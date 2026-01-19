@@ -3,6 +3,7 @@
 import type { TabProps } from './types';
 import { getShadowPersonalityAnalysis } from '../analyzers/matrixAnalyzer';
 import type { ShadowPersonalityResult } from '../analyzers/matrixAnalyzer';
+import { PremiumReportCTA } from '../components';
 
 // 숨겨진 자아 분석을 위한 확장 인터페이스
 interface HiddenSelfAnalysis {
@@ -541,6 +542,12 @@ export default function HiddenSelfTab({ isKo, saju, astro }: TabProps) {
           </p>
         </div>
       )}
+
+      {/* AI Premium Report CTA */}
+      <PremiumReportCTA
+        section="hidden"
+        matrixData={{ hiddenSelf }}
+      />
     </div>
   );
 }

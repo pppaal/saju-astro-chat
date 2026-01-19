@@ -144,11 +144,11 @@ export interface UserAstroProfile {
  * // }
  */
 export function extractSajuProfile(saju: unknown): UserSajuProfile {
-   
-  const sajuData = saju as any;
+
+  const sajuData = saju as Record<string, unknown> | null | undefined;
 
   // dayMaster 추출 - string 또는 { name, heavenlyStem } 형태 처리
-  const dayMasterRaw = sajuData?.dayMaster;
+  const dayMasterRaw = sajuData?.dayMaster as string | { name?: string; heavenlyStem?: string } | undefined;
   const dayMaster = typeof dayMasterRaw === 'string'
     ? dayMasterRaw
     : (dayMasterRaw?.name || dayMasterRaw?.heavenlyStem || '甲');
@@ -174,12 +174,12 @@ export function extractSajuProfile(saju: unknown): UserSajuProfile {
   const daeunRaw = unse.daeun || [];
 
    
-  const daeunCycles: DaeunCycle[] = daeunRaw
-    .map((d: any) => ({
-      age: d.age || 0,
-      heavenlyStem: d.heavenlyStem || '',
-      earthlyBranch: d.earthlyBranch || '',
-      sibsin: d.sibsin || undefined,
+  const daeunCycles: DaeunCycle[] = (daeunRaw as Array<Record<string, unknown>>)
+    .map((d) => ({
+      age: (d.age as number) || 0,
+      heavenlyStem: (d.heavenlyStem as string) || '',
+      earthlyBranch: (d.earthlyBranch as string) || '',
+      sibsin: (d.sibsin as string) || undefined,
     }))
     .filter((d: DaeunCycle) => d.heavenlyStem && d.earthlyBranch);
 
@@ -234,12 +234,12 @@ export function extractSajuProfile(saju: unknown): UserSajuProfile {
  * // }
  */
 export function extractAstroProfile(astrology: unknown): UserAstroProfile {
-   
-  const astroData = astrology as any;
-  const planets = astroData?.planets || [];
 
-   
-  const sun = planets.find((p: any) => p.name === 'Sun');
+  const astroData = astrology as Record<string, unknown> | null | undefined;
+  const planets = (astroData?.planets || []) as Array<{ name?: string; sign?: string }>;
+
+
+  const sun = planets.find((p) => p.name === 'Sun');
   const sunSign = sun?.sign || 'Aries';
 
   return {

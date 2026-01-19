@@ -857,3 +857,112 @@ export function getFactorTranslation(key: string, lang: "ko" | "en"): string | n
     || ASTRO_FACTOR_TRANSLATIONS[key]?.[lang]
     || null;
 }
+
+// ============================================================
+// 등급 결정 이유 번역 (calendar.reasons.*)
+// Grade determination reason translations
+// ============================================================
+export const GRADE_REASON_TRANSLATIONS: Record<string, { ko: string; en: string }> = {
+  // 긍정적 요인
+  birthdaySpecial: {
+    ko: "🎂 생일 특별 보너스가 적용되었습니다",
+    en: "🎂 Birthday special bonus applied"
+  },
+  crossVerifiedPositive: {
+    ko: "🔮 사주와 점성술이 모두 긍정적입니다",
+    en: "🔮 Both Saju and Astrology are positive"
+  },
+  manyStrengths: {
+    ko: "✨ 여러 좋은 기운이 모였습니다",
+    en: "✨ Multiple positive energies gathered"
+  },
+
+  // 부정적 요인
+  chung: {
+    ko: "💥 일진 충(沖): 갈등과 변동의 기운이 있습니다",
+    en: "💥 Day Clash (Chung): Energy of conflict and change present"
+  },
+  xing: {
+    ko: "⚠️ 일진 형(刑): 실수와 마찰이 생기기 쉽습니다",
+    en: "⚠️ Day Punishment (Xing): Prone to mistakes and friction"
+  },
+  chungAndXing: {
+    ko: "🚨 충(沖)과 형(刑)이 동시에 작용합니다",
+    en: "🚨 Both Clash (Chung) and Punishment (Xing) are active"
+  },
+  manyBadFactors: {
+    ko: "⛔ 여러 부정적 요인이 겹쳤습니다",
+    en: "⛔ Multiple negative factors combined"
+  },
+  someBadFactors: {
+    ko: "⚡ 일부 주의할 요인이 있습니다",
+    en: "⚡ Some factors require caution"
+  },
+  multipleRetrogrades: {
+    ko: "🔄 여러 행성이 역행 중입니다",
+    en: "🔄 Multiple planets are in retrograde"
+  },
+  lowBaseScore: {
+    ko: "📉 전반적인 에너지 흐름이 약합니다",
+    en: "📉 Overall energy flow is weak"
+  },
+
+  // 추가 세부 이유
+  hai: {
+    ko: "🔪 해(害): 배신이나 오해의 기운이 있습니다",
+    en: "🔪 Harm (Hai): Energy of betrayal or misunderstanding present"
+  },
+  gongmang: {
+    ko: "🕳️ 공망(空亡): 노력이 헛되기 쉬운 날입니다",
+    en: "🕳️ Void (Gongmang): Efforts may go to waste today"
+  },
+  gwansal: {
+    ko: "👔 관살(官殺): 외부 압박이나 스트레스가 강합니다",
+    en: "👔 Official Star (Gwansal): Strong external pressure or stress"
+  },
+  samjae: {
+    ko: "⚠️ 삼재(三災): 올해 전반적인 주의가 필요합니다",
+    en: "⚠️ Three Disasters (Samjae): General caution needed this year"
+  },
+  backho: {
+    ko: "🐯 백호살: 사고나 부상에 주의하세요",
+    en: "🐯 White Tiger Star: Be careful of accidents or injuries"
+  },
+  guimungwan: {
+    ko: "👻 귀문관: 정신적 혼란이나 불안에 주의하세요",
+    en: "👻 Ghost Gate: Be aware of mental confusion or anxiety"
+  },
+  retrogradeMercury: {
+    ko: "☿️ 수성 역행: 커뮤니케이션과 계약에 주의하세요",
+    en: "☿️ Mercury Retrograde: Be careful with communication and contracts"
+  },
+  retrogradeVenus: {
+    ko: "♀️ 금성 역행: 연애와 재정 결정을 미루세요",
+    en: "♀️ Venus Retrograde: Postpone love and financial decisions"
+  },
+  retrogradeMars: {
+    ko: "♂️ 화성 역행: 충동적 행동을 삼가세요",
+    en: "♂️ Mars Retrograde: Avoid impulsive actions"
+  },
+  voidOfCourse: {
+    ko: "🌙 보이드 오브 코스: 새로운 시작은 피하세요",
+    en: "🌙 Void of Course: Avoid new beginnings"
+  },
+  saturnSquare: {
+    ko: "♄ 토성 스퀘어: 장애물과 제약이 있습니다",
+    en: "♄ Saturn Square: Obstacles and restrictions present"
+  },
+  saturnOpposition: {
+    ko: "♄ 토성 대충: 외부의 저항이 강합니다",
+    en: "♄ Saturn Opposition: Strong external resistance"
+  },
+  conflictElement: {
+    ko: "🔥💧 오행 충돌: 에너지가 분산됩니다",
+    en: "🔥💧 Element Conflict: Energy is scattered"
+  },
+};
+
+// 등급 이유 번역 조회
+export function getGradeReasonTranslation(key: string, lang: "ko" | "en"): string | null {
+  return GRADE_REASON_TRANSLATIONS[key]?.[lang] || null;
+}

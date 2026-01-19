@@ -2,6 +2,7 @@
 
 import type { TabProps } from './types';
 import { getHealthMatrixAnalysis } from '../analyzers/matrixAnalyzer';
+import { PremiumReportCTA } from '../components';
 
 interface HealthItem {
   emoji: string;
@@ -501,6 +502,12 @@ export default function HealthTab({ saju, astro, isKo, data }: TabProps) {
           )}
         </div>
       )}
+
+      {/* AI Premium Report CTA */}
+      <PremiumReportCTA
+        section="health"
+        matrixData={{ matrixHealth }}
+      />
     </div>
   );
 }

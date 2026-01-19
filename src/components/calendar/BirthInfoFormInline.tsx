@@ -1,89 +1,184 @@
 "use client";
 
-// src/components/calendar/BirthInfoForm.tsx
-import React, { useState } from 'react';
+// src/components/calendar/BirthInfoFormInline.tsx
+import React, { useState, useEffect, RefObject } from 'react';
 import { useSession } from 'next-auth/react';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
 import DateTimePicker from '@/components/ui/DateTimePicker';
 import TimePicker from '@/components/ui/TimePicker';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
-import { useCitySearch } from '@/hooks/calendar/useCitySearch';
-import { useProfileLoader } from '@/hooks/calendar/useProfileLoader';
+import { searchCities } from '@/lib/cities';
+import { logger } from '@/lib/logger';
+import tzLookup from 'tz-lookup';
 import styles from './DestinyCalendar.module.css';
+import { ICONS } from './constants';
+import type { BirthInfo, CityHit } from './types';
 
-interface BirthInfo {
-  birthDate: string;
-  birthTime: string;
-  birthPlace: string;
-  gender: 'Male' | 'Female';
-  latitude?: number;
-  longitude?: number;
-  timezone?: string;
-}
-
-interface BirthInfoFormProps {
+interface BirthInfoFormInlineProps {
+  canvasRef: RefObject<HTMLCanvasElement | null>;
   birthInfo: BirthInfo;
-  setBirthInfo: (info: BirthInfo) => void;
+  setBirthInfo: (info: BirthInfo | ((prev: BirthInfo) => BirthInfo)) => void;
+  selectedCity: CityHit | null;
+  setSelectedCity: (city: CityHit | null) => void;
   onSubmit: (e: React.FormEvent) => void;
   submitting: boolean;
   timeUnknown: boolean;
   setTimeUnknown: (value: boolean) => void;
+  cityErr: string | null;
+  setCityErr: (err: string | null) => void;
+  profileLoaded: boolean;
+  setProfileLoaded: (loaded: boolean) => void;
 }
 
-const ICONS = {
-  calendar: "📅",
-} as const;
+function extractCityPart(input: string): string {
+  // If input contains comma, get the first part (city name)
+  if (input.includes(',')) {
+    return input.split(',')[0].trim();
+  }
+  return input.trim();
+}
 
-export default function BirthInfoForm({
+export default function BirthInfoFormInline({
+  canvasRef,
   birthInfo,
   setBirthInfo,
+  selectedCity,
+  setSelectedCity,
   onSubmit,
   submitting,
   timeUnknown,
   setTimeUnknown,
-}: BirthInfoFormProps) {
-  const { locale } = useI18n();
+  cityErr,
+  setCityErr,
+  profileLoaded,
+  setProfileLoaded,
+}: BirthInfoFormInlineProps) {
+  const { locale, t } = useI18n();
   const { status } = useSession();
   const signInUrl = buildSignInUrl();
 
-  const {
-    suggestions,
-    openSug,
-    cityErr,
-    setOpenSug,
-    setSelectedCity,
-    handleCitySelect,
-  } = useCitySearch();
+  // City search state
+  const [suggestions, setSuggestions] = useState<CityHit[]>([]);
+  const [openSug, setOpenSug] = useState(false);
+  const [isUserTyping, setIsUserTyping] = useState(false);
 
-  const { loadingProfile, profileLoaded, loadProfile } = useProfileLoader();
+  // Profile loading state
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
+  // City search effect
+  useEffect(() => {
+    const raw = birthInfo.birthPlace.trim();
+    const q = extractCityPart(raw);
+    if (q.length < 1) {
+      setSuggestions([]);
+      return;
+    }
+    const timeout = setTimeout(async () => {
+      try {
+        logger.debug('[BirthInfoFormInline] Searching cities for:', q);
+        const hits = (await searchCities(q, { limit: 8 })) as CityHit[];
+        logger.debug('[BirthInfoFormInline] City search results:', hits);
+        setSuggestions(hits);
+        if (isUserTyping) {
+          setOpenSug(hits.length > 0);
+        }
+      } catch (err) {
+        logger.error('[BirthInfoFormInline] City search error:', err);
+        setSuggestions([]);
+      }
+    }, 120);
+    return () => clearTimeout(timeout);
+  }, [birthInfo.birthPlace, isUserTyping]);
+
+  const onPickCity = (hit: CityHit) => {
+    setIsUserTyping(false);
+    setBirthInfo((prev: BirthInfo) => ({
+      ...prev,
+      birthPlace: `${hit.name}, ${hit.country}`,
+      latitude: hit.lat,
+      longitude: hit.lon,
+      timezone: hit.timezone ?? tzLookup(hit.lat, hit.lon),
+    }));
+    setSelectedCity({
+      ...hit,
+      timezone: hit.timezone ?? tzLookup(hit.lat, hit.lon),
+    });
+    setOpenSug(false);
+  };
+
+  // Load profile from DB for authenticated users
   const handleLoadProfile = async () => {
     if (status !== 'authenticated') return;
 
-    // Get user ID from session (you'll need to pass this from parent or get from session)
-    // For now, we'll need to refactor this to get userId properly
-    const userId = 'current-user'; // TODO: Get from session
+    setLoadingProfile(true);
+    setCityErr(null);
 
-    await loadProfile(userId, (info, city) => {
-      setBirthInfo(info);
-      setSelectedCity(city);
-    });
-  };
+    try {
+      const res = await fetch('/api/me/profile', { cache: 'no-store' });
+      if (!res.ok) {
+        setCityErr(t('error.profileLoadFailed') || 'Failed to load profile. Please try again.');
+        setLoadingProfile(false);
+        return;
+      }
 
-  const onPickCity = (city: { name: string; country: string; lat: number; lon: number; timezone?: string }) => {
-    handleCitySelect(city);
-    setBirthInfo({
-      ...birthInfo,
-      birthPlace: `${city.name}, ${city.country}`,
-      latitude: city.lat,
-      longitude: city.lon,
-      timezone: city.timezone,
-    });
+      const { user } = await res.json();
+      logger.info('[BirthInfoFormInline] Loaded user profile:', user);
+
+      if (!user || !user.birthDate) {
+        setCityErr(t('error.noProfileData') || 'No saved profile data found. Please save your info in MyJourney first.');
+        setLoadingProfile(false);
+        return;
+      }
+
+      // Set form fields from DB data
+      const updatedBirthInfo: BirthInfo = {
+        ...birthInfo,
+        birthDate: user.birthDate || '',
+        birthTime: user.birthTime || '',
+        birthPlace: user.birthCity || '',
+        gender: user.gender === 'M' ? 'Male' : user.gender === 'F' ? 'Female' : 'Male',
+      };
+
+      // Try to get city coordinates
+      if (user.birthCity) {
+        const cityName = user.birthCity.split(',')[0]?.trim();
+        logger.debug('[BirthInfoFormInline] Searching city:', cityName);
+        if (cityName) {
+          try {
+            const hits = await searchCities(cityName, { limit: 1 }) as CityHit[];
+            logger.debug('[BirthInfoFormInline] City search hits:', hits);
+            if (hits && hits[0]) {
+              const hit = hits[0];
+              const tz = hit.timezone ?? user.tzId ?? tzLookup(hit.lat, hit.lon);
+              setSelectedCity({
+                ...hit,
+                timezone: tz,
+              });
+              updatedBirthInfo.latitude = hit.lat;
+              updatedBirthInfo.longitude = hit.lon;
+              updatedBirthInfo.timezone = tz;
+            }
+          } catch (searchErr) {
+            logger.warn('[BirthInfoFormInline] City search failed for:', { cityName, error: searchErr });
+          }
+        }
+      }
+
+      logger.debug('[BirthInfoFormInline] Final birthInfo:', updatedBirthInfo);
+      setBirthInfo(updatedBirthInfo);
+      setProfileLoaded(true);
+    } catch (err) {
+      logger.error('[BirthInfoFormInline] Failed to load profile:', err);
+      setCityErr(t('error.profileLoadFailed') || 'Failed to load profile. Please try again.');
+    } finally {
+      setLoadingProfile(false);
+    }
   };
 
   return (
     <div className={styles.introContainer}>
+      <canvas ref={canvasRef} className={styles.particleCanvas} />
       <BackButton />
 
       <main className={styles.introMain}>
@@ -177,11 +272,7 @@ export default function BirthInfoForm({
                     }}
                     className={styles.checkbox}
                   />
-                  <span>
-                    {locale === "ko"
-                      ? "출생 시간을 모름 (정오 12:00으로 설정됩니다)"
-                      : "Time unknown (will use 12:00 noon)"}
-                  </span>
+                  <span>{locale === "ko" ? "출생 시간을 모름 (정오 12:00으로 설정됩니다)" : "Time unknown (will use 12:00 noon)"}</span>
                 </label>
               </div>
             </div>
@@ -198,10 +289,12 @@ export default function BirthInfoForm({
                 value={birthInfo.birthPlace}
                 onChange={(e) => {
                   setBirthInfo({ ...birthInfo, birthPlace: e.target.value });
+                  setIsUserTyping(true);
                   setOpenSug(true);
                 }}
                 onBlur={() => {
                   setTimeout(() => setOpenSug(false), 150);
+                  setIsUserTyping(false);
                 }}
                 autoComplete="off"
                 required

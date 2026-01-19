@@ -204,18 +204,21 @@ function getEnergyInsight(
   };
 }
 
-// 의사결정 스타일 분석
+// 의사결정 스타일 분석 - 모든 조합 커버
 function getDecisionInsight(
   affiliation: number,
   decisionScore: number,
   octant: string,
   isKo: boolean
-): { title: string; content: string; icon: string } | null {
+): { title: string; content: string; icon: string } {
   const isEmpathic = decisionScore > 60; // H axis
   const isLogical = decisionScore < 40; // L axis
-  const isWarm = affiliation > 0.2;
-  const isCold = affiliation < -0.2;
+  const isMidDecision = !isEmpathic && !isLogical;
+  const isWarm = affiliation > 0.15;
+  const isCold = affiliation < -0.15;
+  const isMidAffiliation = !isWarm && !isCold;
 
+  // 공감형 조합 (3가지)
   if (isEmpathic && isWarm) {
     return {
       icon: '💝',
@@ -226,6 +229,27 @@ function getDecisionInsight(
     };
   }
 
+  if (isEmpathic && isCold) {
+    return {
+      icon: '🔮',
+      title: isKo ? '객관적 조언자' : 'Objective Advisor',
+      content: isKo
+        ? '공감하지만 거리를 유지하는 독특한 조합입니다. 상대의 감정을 이해하면서도 객관적 조언을 제공할 수 있습니다.'
+        : 'Unique blend of empathy with distance. You understand others\' emotions while providing objective advice.',
+    };
+  }
+
+  if (isEmpathic && isMidAffiliation) {
+    return {
+      icon: '🎯',
+      title: isKo ? '감성적 중재자' : 'Emotional Mediator',
+      content: isKo
+        ? '감정을 중시하면서도 적절한 거리감을 유지합니다. 갈등 상황에서 양측의 감정을 이해하고 중재하는 역할에 적합합니다.'
+        : 'Valuing emotions while maintaining appropriate distance. Ideal for understanding and mediating both sides in conflicts.',
+    };
+  }
+
+  // 논리형 조합 (3가지)
   if (isLogical && isCold) {
     return {
       icon: '🔬',
@@ -233,16 +257,6 @@ function getDecisionInsight(
       content: isKo
         ? '논리적 판단력과 객관적 거리두기가 결합되어 편견 없는 분석을 제공합니다. 데이터 분석, 연구, 컨설팅에 탁월합니다.'
         : 'Logical judgment combined with objective distance provides unbiased analysis. Excellent in data analysis, research, and consulting.',
-    };
-  }
-
-  if (isEmpathic && isCold) {
-    return {
-      icon: '🎭',
-      title: isKo ? '객관적 조언자' : 'Objective Advisor',
-      content: isKo
-        ? '공감하지만 거리를 유지하는 독특한 조합입니다. 상대의 감정을 이해하면서도 객관적 조언을 제공할 수 있습니다.'
-        : 'Unique blend of empathy with distance. You understand others\' emotions while providing objective advice.',
     };
   }
 
@@ -256,39 +270,70 @@ function getDecisionInsight(
     };
   }
 
-  return null;
+  if (isLogical && isMidAffiliation) {
+    return {
+      icon: '🧩',
+      title: isKo ? '실용적 문제해결사' : 'Pragmatic Problem-Solver',
+      content: isKo
+        ? '논리적 접근과 적절한 관계 형성의 균형을 갖추고 있습니다. 효율성과 팀워크를 동시에 추구하는 실용주의자입니다.'
+        : 'Balancing logical approach with appropriate relationships. A pragmatist pursuing both efficiency and teamwork.',
+    };
+  }
+
+  // 중간 의사결정 조합 (3가지)
+  if (isMidDecision && isWarm) {
+    return {
+      icon: '🤝',
+      title: isKo ? '따뜻한 실용주의자' : 'Warm Pragmatist',
+      content: isKo
+        ? '논리와 감정을 상황에 맞게 조화시킵니다. 따뜻한 관계를 유지하면서도 현실적인 판단을 내립니다.'
+        : 'Harmonizing logic and emotion based on situations. Making realistic judgments while maintaining warm relationships.',
+    };
+  }
+
+  if (isMidDecision && isCold) {
+    return {
+      icon: '🎲',
+      title: isKo ? '독립적 판단자' : 'Independent Judge',
+      content: isKo
+        ? '상황에 따라 논리와 직관을 오가며 독자적 판단을 내립니다. 외부 영향에 휘둘리지 않는 주관이 있습니다.'
+        : 'Making independent judgments switching between logic and intuition. You have convictions not swayed by external influence.',
+    };
+  }
+
+  // 기본값 (중간 의사결정 + 중간 친화성)
+  return {
+    icon: '🌊',
+    title: isKo ? '유연한 의사결정자' : 'Flexible Decision-Maker',
+    content: isKo
+      ? '상황과 맥락에 따라 논리와 감정을 유연하게 활용합니다. 다양한 관점을 고려한 균형 잡힌 결정을 내립니다.'
+      : 'Flexibly using logic and emotion based on context. Making balanced decisions considering various perspectives.',
+  };
 }
 
-// 업무 스타일 분석
+// 업무 스타일 분석 - 모든 조합 커버
 function getWorkStyleInsight(
   cognitionScore: number,
   rhythmScore: number,
   dominance: number,
   isKo: boolean
-): { title: string; content: string; icon: string } | null {
+): { title: string; content: string; icon: string } {
   const isVisionary = cognitionScore > 60; // V
   const isStructured = cognitionScore < 40; // S
+  const isMidCognition = !isVisionary && !isStructured;
   const isFlow = rhythmScore > 60; // F
   const isAnchor = rhythmScore < 40; // A
+  const isMidRhythm = !isFlow && !isAnchor;
   const isDominant = dominance > 0;
 
-  if (isVisionary && isFlow && isDominant) {
+  // 비전형 조합 (3가지)
+  if (isVisionary && isFlow) {
     return {
       icon: '🚀',
       title: isKo ? '혁신적 개척자' : 'Innovative Pioneer',
       content: isKo
-        ? '비전, 유연성, 주도력이 결합된 희귀한 조합입니다. 새로운 시장을 개척하고 변화를 주도하는 데 탁월합니다.'
-        : 'Rare combination of vision, flexibility, and initiative. Excellent at pioneering new markets and driving change.',
-    };
-  }
-
-  if (isStructured && isAnchor) {
-    return {
-      icon: '🏗️',
-      title: isKo ? '견고한 설계자' : 'Solid Architect',
-      content: isKo
-        ? '체계적 사고와 꾸준한 리듬으로 복잡한 시스템을 구축합니다. 장기 프로젝트, 인프라, 제도 설계에 강점이 있습니다.'
-        : 'Systematic thinking with steady rhythm builds complex systems. Strong in long-term projects, infrastructure, and policy design.',
+        ? '비전과 유연성이 결합된 조합입니다. 새로운 아이디어를 빠르게 실험하고 변화하는 환경에서 기회를 포착합니다.'
+        : 'Combination of vision and flexibility. You quickly experiment with new ideas and seize opportunities in changing environments.',
     };
   }
 
@@ -302,6 +347,27 @@ function getWorkStyleInsight(
     };
   }
 
+  if (isVisionary && isMidRhythm) {
+    return {
+      icon: '💡',
+      title: isKo ? '전략적 혁신가' : 'Strategic Innovator',
+      content: isKo
+        ? '비전을 품으면서 상황에 따라 템포를 조절합니다. 혁신을 추구하되 현실적인 타이밍을 읽는 전략가입니다.'
+        : 'Holding vision while adjusting tempo by situation. A strategist pursuing innovation while reading realistic timing.',
+    };
+  }
+
+  // 체계형 조합 (3가지)
+  if (isStructured && isAnchor) {
+    return {
+      icon: '🏗️',
+      title: isKo ? '견고한 설계자' : 'Solid Architect',
+      content: isKo
+        ? '체계적 사고와 꾸준한 리듬으로 복잡한 시스템을 구축합니다. 장기 프로젝트, 인프라, 제도 설계에 강점이 있습니다.'
+        : 'Systematic thinking with steady rhythm builds complex systems. Strong in long-term projects, infrastructure, and policy design.',
+    };
+  }
+
   if (isStructured && isFlow) {
     return {
       icon: '🎪',
@@ -312,7 +378,45 @@ function getWorkStyleInsight(
     };
   }
 
-  return null;
+  if (isStructured && isMidRhythm) {
+    return {
+      icon: '📊',
+      title: isKo ? '체계적 관리자' : 'Systematic Manager',
+      content: isKo
+        ? '체계와 규칙을 중시하면서 적절히 유연성을 발휘합니다. 프로세스 최적화와 팀 관리에 강점이 있습니다.'
+        : 'Valuing systems and rules while appropriately showing flexibility. Strong in process optimization and team management.',
+    };
+  }
+
+  // 중간 인지 조합 (3가지)
+  if (isMidCognition && isFlow) {
+    return {
+      icon: '🌊',
+      title: isKo ? '적응형 실행가' : 'Adaptive Executor',
+      content: isKo
+        ? '현실과 비전을 오가며 유연하게 대처합니다. 빠르게 변하는 환경에서 실용적인 해결책을 찾습니다.'
+        : 'Flexibly navigating between reality and vision. Finding practical solutions in rapidly changing environments.',
+    };
+  }
+
+  if (isMidCognition && isAnchor) {
+    return {
+      icon: '⚓',
+      title: isKo ? '안정적 실행가' : 'Steady Executor',
+      content: isKo
+        ? '균형 잡힌 시각으로 꾸준히 성과를 만들어냅니다. 일관성과 신뢰성으로 팀의 기둥 역할을 합니다.'
+        : 'Creating steady results with balanced perspective. Serving as team pillar with consistency and reliability.',
+    };
+  }
+
+  // 기본값 (중간 인지 + 중간 리듬)
+  return {
+    icon: '🎨',
+    title: isKo ? '다재다능한 실무형' : 'Versatile Professional',
+    content: isKo
+      ? '상황에 따라 비전과 현실, 속도와 안정을 조절합니다. 다양한 역할과 환경에 적응하는 만능 플레이어입니다.'
+      : 'Adjusting vision/reality and speed/stability by situation. A versatile player adapting to various roles and environments.',
+  };
 }
 
 // 성장 잠재력 분석

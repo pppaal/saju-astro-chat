@@ -4,6 +4,7 @@ import type { TabProps } from './types';
 import { getLoveMatrixAnalysis, type LoveMatrixResult } from '../analyzers';
 import { getLoveTimingAnalysis } from '../analyzers/matrixAnalyzer';
 import type { LoveTimingResult } from '../analyzers/matrixAnalyzer';
+import { PremiumReportCTA } from '../components';
 
 interface LoveAnalysis {
   style: string;
@@ -494,6 +495,12 @@ export default function LoveTab({ isKo, data, destinyNarrative, saju, astro, lan
           </p>
         </div>
       )}
+
+      {/* AI Premium Report CTA */}
+      <PremiumReportCTA
+        section="love"
+        matrixData={{ loveMatrix, loveTiming }}
+      />
     </div>
   );
 }

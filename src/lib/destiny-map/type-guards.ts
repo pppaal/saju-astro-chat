@@ -163,13 +163,13 @@ export function getNestedProperty<T = unknown>(
   if (typeof obj !== 'object' || obj === null) return defaultValue;
 
   const keys = path.split('.');
-  let current: any = obj;
+  let current: unknown = obj;
 
   for (const key of keys) {
     if (typeof current !== 'object' || current === null || !(key in current)) {
       return defaultValue;
     }
-    current = current[key];
+    current = (current as Record<string, unknown>)[key];
   }
 
   return current as T;

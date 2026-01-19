@@ -69,7 +69,7 @@ const config = [
     },
     rules: {
       '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/no-explicit-any': 'off', // Allow any in lib for now
+      '@typescript-eslint/no-explicit-any': 'warn', // Warn for gradual migration
     },
   },
   {

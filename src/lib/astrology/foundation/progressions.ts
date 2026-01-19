@@ -24,11 +24,12 @@ export async function calculateSecondaryProgressions(
   const swisseph = getSwisseph();
   const PLANET_LIST = getPlanetList();
   const SW_FLAGS = getSwissEphFlags();
-  const fallbackDate = typeof (input as any)?.targetDate === "string"
-    ? (input as any).targetDate
+  const inputObj = input as { targetDate?: string; natal?: unknown } | null | undefined;
+  const fallbackDate = typeof inputObj?.targetDate === "string"
+    ? inputObj.targetDate
     : new Date().toISOString().slice(0, 10);
 
-  if (!input || typeof input !== "object" || !("natal" in input) || !(input as any).natal || !(input as any).targetDate) {
+  if (!input || typeof input !== "object" || !("natal" in input) || !inputObj?.natal || !inputObj?.targetDate) {
     return createFallbackProgressedChart(fallbackDate);
   }
 

@@ -1,10 +1,17 @@
 /**
- * Destiny Calendar Grading Module
- * 점수 기반 등급 결정 로직
+ * Destiny Calendar Grading Module (통합 버전)
+ * 점수 기반 등급 결정 로직 + Memoization
+ *
+ * grading.ts와 grading-optimized.ts를 통합
  */
 
 import type { ImportanceGrade } from './types';
 import { GRADE_THRESHOLDS } from './scoring-config';
+import { memoize } from '@/lib/cache/memoize';
+
+// ═══════════════════════════════════════════════════════════
+// 타입 정의
+// ═══════════════════════════════════════════════════════════
 
 export interface GradeInput {
   score: number;
@@ -21,14 +28,6 @@ export interface GradeInput {
   totalBadCount: number;
 }
 
-export interface GradeResult {
-  grade: ImportanceGrade;
-  adjustedScore: number;
-  gradeBonus: number;
-  /** 등급 결정에 영향을 준 주요 요인들 */
-  gradeReasons: GradeReason[];
-}
-
 export interface GradeReason {
   type: 'positive' | 'negative' | 'neutral';
   factorKey: string;
@@ -36,213 +35,273 @@ export interface GradeReason {
   descriptionKey: string; // i18n 키
 }
 
-/**
- * 점수 기반 등급 결정 (5등급 시스템)
- *
- * Updated 2026-01-17: Thresholds lowered for better distribution
- * Grade 0: 최고의날 (68+ AND 충/형 없음) ~5%
- * Grade 1: 좋은날 (62-67) ~15%
- * Grade 2: 보통날 (42-61) ~50%
- * Grade 3: 안좋은날 (28-41) ~25%
- * Grade 4: 최악의날 (<28) ~5%
- */
-function calculateSimpleGrade(score: number): ImportanceGrade {
-  if (score >= GRADE_THRESHOLDS.grade0) return 0;
-  if (score >= GRADE_THRESHOLDS.grade1) return 1;
-  if (score >= GRADE_THRESHOLDS.grade2) return 2;
-  if (score >= GRADE_THRESHOLDS.grade3) return 3;
-  return 4;
+export interface GradeResult {
+  grade: ImportanceGrade;
+  adjustedScore: number;
+  gradeBonus: number;
+  gradeReasons: GradeReason[];
 }
+
+// ═══════════════════════════════════════════════════════════
+// 캐시 키 생성
+// ═══════════════════════════════════════════════════════════
+
+function getGradeInputKey(input: GradeInput): string {
+  return `grade:${input.score}:${input.isBirthdaySpecial ? 1 : 0}:${input.crossVerified ? 1 : 0}:${input.sajuPositive ? 1 : 0}:${input.astroPositive ? 1 : 0}:${input.totalStrengthCount}:${input.sajuBadCount}:${input.hasChung ? 1 : 0}:${input.hasXing ? 1 : 0}:${input.hasNoMajorRetrograde ? 1 : 0}:${input.retrogradeCount}:${input.totalBadCount}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 등급 임계값 상수
+// ═══════════════════════════════════════════════════════════
+
+const GRADE_SCORE_THRESHOLDS = {
+  GRADE_0: 68, // 최고의날 (~5-8%)
+  GRADE_1: 62, // 좋은날 (~15%)
+  GRADE_2: 42, // 보통날 (~50%)
+  GRADE_3: 28, // 안좋은날 (~25%)
+  // Grade 4: < 28 최악의날 (~5%)
+} as const;
+
+const BONUS_LIMITS = {
+  MIN: -6,
+  MAX: 4,
+} as const;
+
+// ═══════════════════════════════════════════════════════════
+// 단순 등급 계산 (Memoized)
+// ═══════════════════════════════════════════════════════════
+
+const calculateSimpleGradeMemo = memoize(
+  (score: number): ImportanceGrade => {
+    if (score >= GRADE_THRESHOLDS.grade0) return 0;
+    if (score >= GRADE_THRESHOLDS.grade1) return 1;
+    if (score >= GRADE_THRESHOLDS.grade2) return 2;
+    if (score >= GRADE_THRESHOLDS.grade3) return 3;
+    return 4;
+  },
+  {
+    keyFn: (score) => `simple:${score}`,
+    ttl: 1000 * 60 * 60, // 1 hour
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 복합 등급 계산 (Memoized + gradeReasons 포함)
+// ═══════════════════════════════════════════════════════════
+
+const calculateComplexGradeMemo = memoize(
+  (input: GradeInput): GradeResult => {
+    let gradeBonus = 0;
+    const gradeReasons: GradeReason[] = [];
+
+    // ─────────────────────────────────────────────────────
+    // 보너스 조건
+    // ─────────────────────────────────────────────────────
+
+    if (input.isBirthdaySpecial) {
+      gradeBonus += 2;
+      gradeReasons.push({
+        type: 'positive',
+        factorKey: 'birthdaySpecial',
+        impact: 0.8,
+        descriptionKey: 'calendar.reasons.birthdaySpecial',
+      });
+    }
+
+    if (input.crossVerified && input.sajuPositive && input.astroPositive) {
+      gradeBonus += 2;
+      gradeReasons.push({
+        type: 'positive',
+        factorKey: 'crossVerifiedPositive',
+        impact: 0.7,
+        descriptionKey: 'calendar.reasons.crossVerifiedPositive',
+      });
+    }
+
+    if (input.totalStrengthCount >= 5 && input.sajuBadCount === 0) {
+      gradeBonus += 1;
+      gradeReasons.push({
+        type: 'positive',
+        factorKey: 'manyStrengths',
+        impact: 0.5,
+        descriptionKey: 'calendar.reasons.manyStrengths',
+      });
+    }
+
+    // ─────────────────────────────────────────────────────
+    // 페널티 조건
+    // ─────────────────────────────────────────────────────
+
+    if (input.hasChung && input.hasXing) {
+      gradeBonus -= 4;
+      gradeReasons.push({
+        type: 'negative',
+        factorKey: 'chungAndXing',
+        impact: -1.0,
+        descriptionKey: 'calendar.reasons.chungAndXing',
+      });
+    } else if (input.hasChung) {
+      gradeBonus -= 2;
+      gradeReasons.push({
+        type: 'negative',
+        factorKey: 'chung',
+        impact: -0.7,
+        descriptionKey: 'calendar.reasons.chung',
+      });
+    } else if (input.hasXing) {
+      gradeBonus -= 2;
+      gradeReasons.push({
+        type: 'negative',
+        factorKey: 'xing',
+        impact: -0.6,
+        descriptionKey: 'calendar.reasons.xing',
+      });
+    }
+
+    if (input.totalBadCount >= 3) {
+      gradeBonus -= 3;
+      gradeReasons.push({
+        type: 'negative',
+        factorKey: 'manyBadFactors',
+        impact: -0.8,
+        descriptionKey: 'calendar.reasons.manyBadFactors',
+      });
+    } else if (input.totalBadCount >= 2) {
+      gradeBonus -= 1;
+      gradeReasons.push({
+        type: 'negative',
+        factorKey: 'someBadFactors',
+        impact: -0.4,
+        descriptionKey: 'calendar.reasons.someBadFactors',
+      });
+    }
+
+    if (!input.hasNoMajorRetrograde && input.retrogradeCount >= 2) {
+      gradeBonus -= 2;
+      gradeReasons.push({
+        type: 'negative',
+        factorKey: 'multipleRetrogrades',
+        impact: -0.6,
+        descriptionKey: 'calendar.reasons.multipleRetrogrades',
+      });
+    }
+
+    // ─────────────────────────────────────────────────────
+    // 보너스/페널티 제한 및 등급 결정
+    // ─────────────────────────────────────────────────────
+
+    gradeBonus = Math.max(BONUS_LIMITS.MIN, Math.min(BONUS_LIMITS.MAX, gradeBonus));
+    const adjustedScore = input.score + gradeBonus;
+
+    let grade: ImportanceGrade;
+    const hasBothChungAndXing = input.hasChung && input.hasXing;
+
+    if (adjustedScore >= GRADE_SCORE_THRESHOLDS.GRADE_0 && !hasBothChungAndXing) {
+      grade = 0;
+    } else if (adjustedScore >= GRADE_SCORE_THRESHOLDS.GRADE_1) {
+      grade = 1;
+    } else if (adjustedScore >= GRADE_SCORE_THRESHOLDS.GRADE_2) {
+      grade = 2;
+    } else if (adjustedScore >= GRADE_SCORE_THRESHOLDS.GRADE_3) {
+      grade = 3;
+    } else {
+      grade = 4;
+    }
+
+    // 등급에 따른 기본 이유 추가
+    if (grade >= 3 && gradeReasons.filter(r => r.type === 'negative').length === 0) {
+      gradeReasons.push({
+        type: 'negative',
+        factorKey: 'lowBaseScore',
+        impact: -0.5,
+        descriptionKey: 'calendar.reasons.lowBaseScore',
+      });
+    }
+
+    // 부정적 이유가 가장 중요한 순서대로 정렬
+    gradeReasons.sort((a, b) => a.impact - b.impact);
+
+    return { grade, adjustedScore, gradeBonus, gradeReasons };
+  },
+  {
+    keyFn: getGradeInputKey,
+    ttl: 1000 * 60 * 60, // 1 hour
+  }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 메인 calculateGrade 함수 (오버로드)
+// ═══════════════════════════════════════════════════════════
 
 export function calculateGrade(score: number): ImportanceGrade;
 export function calculateGrade(input: GradeInput): GradeResult;
 export function calculateGrade(input: GradeInput | number): GradeResult | ImportanceGrade {
   if (typeof input === 'number') {
-    return calculateSimpleGrade(input);
+    return calculateSimpleGradeMemo(input);
   }
-
-  let gradeBonus = 0;
-  const gradeReasons: GradeReason[] = [];
-
-  // 보너스 조건
-  if (input.isBirthdaySpecial) {
-    gradeBonus += 2;
-    gradeReasons.push({
-      type: 'positive',
-      factorKey: 'birthdaySpecial',
-      impact: 0.8,
-      descriptionKey: 'calendar.reasons.birthdaySpecial',
-    });
-  }
-  if (input.crossVerified && input.sajuPositive && input.astroPositive) {
-    gradeBonus += 2;
-    gradeReasons.push({
-      type: 'positive',
-      factorKey: 'crossVerifiedPositive',
-      impact: 0.7,
-      descriptionKey: 'calendar.reasons.crossVerifiedPositive',
-    });
-  }
-  if (input.totalStrengthCount >= 5 && input.sajuBadCount === 0) {
-    gradeBonus += 1;
-    gradeReasons.push({
-      type: 'positive',
-      factorKey: 'manyStrengths',
-      impact: 0.5,
-      descriptionKey: 'calendar.reasons.manyStrengths',
-    });
-  }
-
-  // 페널티 조건 - 구체적 이유 추적
-  if (input.hasChung && input.hasXing) {
-    gradeBonus -= 4;
-    gradeReasons.push({
-      type: 'negative',
-      factorKey: 'chungAndXing',
-      impact: -1.0,
-      descriptionKey: 'calendar.reasons.chungAndXing',
-    });
-  } else if (input.hasChung) {
-    gradeBonus -= 2;
-    gradeReasons.push({
-      type: 'negative',
-      factorKey: 'chung',
-      impact: -0.7,
-      descriptionKey: 'calendar.reasons.chung',
-    });
-  } else if (input.hasXing) {
-    gradeBonus -= 2;
-    gradeReasons.push({
-      type: 'negative',
-      factorKey: 'xing',
-      impact: -0.6,
-      descriptionKey: 'calendar.reasons.xing',
-    });
-  }
-
-  if (input.totalBadCount >= 3) {
-    gradeBonus -= 3;
-    gradeReasons.push({
-      type: 'negative',
-      factorKey: 'manyBadFactors',
-      impact: -0.8,
-      descriptionKey: 'calendar.reasons.manyBadFactors',
-    });
-  } else if (input.totalBadCount >= 2) {
-    gradeBonus -= 1;
-    gradeReasons.push({
-      type: 'negative',
-      factorKey: 'someBadFactors',
-      impact: -0.4,
-      descriptionKey: 'calendar.reasons.someBadFactors',
-    });
-  }
-
-  if (!input.hasNoMajorRetrograde && input.retrogradeCount >= 2) {
-    gradeBonus -= 2;
-    gradeReasons.push({
-      type: 'negative',
-      factorKey: 'multipleRetrogrades',
-      impact: -0.6,
-      descriptionKey: 'calendar.reasons.multipleRetrogrades',
-    });
-  }
-
-  // 보너스/페널티 제한
-  gradeBonus = Math.max(-6, Math.min(4, gradeBonus));
-
-  const adjustedScore = input.score + gradeBonus;
-
-  // 5등급 시스템
-  let grade: ImportanceGrade;
-  // Grade 0 조건 완화: 충과 형이 "둘 다" 있을 때만 제외
-  const hasBothChungAndXing = input.hasChung && input.hasXing;
-
-  if (adjustedScore >= 68 && !hasBothChungAndXing) {
-    grade = 0; // 최고의날 (~5-8%)
-  } else if (adjustedScore >= 62) {
-    grade = 1; // 좋은날 (~15%)
-  } else if (adjustedScore >= 42) {
-    grade = 2; // 보통날 (~50%)
-  } else if (adjustedScore >= 28) {
-    grade = 3; // 안좋은날 (~25%)
-  } else {
-    grade = 4; // 최악의날 (~5%)
-  }
-
-  // 등급에 따른 기본 이유 추가 (부정적 요소가 없을 때도 설명 제공)
-  if (grade >= 3 && gradeReasons.filter(r => r.type === 'negative').length === 0) {
-    // 점수가 낮은데 특별한 부정 요소가 없으면 기본 점수 낮음 이유
-    gradeReasons.push({
-      type: 'negative',
-      factorKey: 'lowBaseScore',
-      impact: -0.5,
-      descriptionKey: 'calendar.reasons.lowBaseScore',
-    });
-  }
-
-  // 부정적 이유가 가장 중요한 순서대로 정렬
-  gradeReasons.sort((a, b) => a.impact - b.impact);
-
-  return { grade, adjustedScore, gradeBonus, gradeReasons };
+  return calculateComplexGradeMemo(input);
 }
 
 export function getCategoryScore(score: number): ImportanceGrade {
-  return calculateSimpleGrade(score);
+  return calculateSimpleGradeMemo(score);
 }
 
-/**
- * 등급별 타이틀/설명 키 반환
- */
+// ═══════════════════════════════════════════════════════════
+// 등급별 타이틀/설명 키 (Memoized)
+// ═══════════════════════════════════════════════════════════
+
+const GRADE_KEYS: Record<ImportanceGrade, { titleKey: string; descKey: string }> = {
+  0: { titleKey: "calendar.bestDay", descKey: "calendar.bestDayDesc" },
+  1: { titleKey: "calendar.goodDay", descKey: "calendar.goodDayDesc" },
+  2: { titleKey: "calendar.normalDay", descKey: "calendar.normalDayDesc" },
+  3: { titleKey: "calendar.badDay", descKey: "calendar.badDayDesc" },
+  4: { titleKey: "calendar.worstDay", descKey: "calendar.worstDayDesc" },
+};
+
 export function getGradeKeys(grade: ImportanceGrade): { titleKey: string; descKey: string } {
-  switch (grade) {
-    case 0:
-      return { titleKey: "calendar.bestDay", descKey: "calendar.bestDayDesc" };
-    case 1:
-      return { titleKey: "calendar.goodDay", descKey: "calendar.goodDayDesc" };
-    case 2:
-      return { titleKey: "calendar.normalDay", descKey: "calendar.normalDayDesc" };
-    case 3:
-      return { titleKey: "calendar.badDay", descKey: "calendar.badDayDesc" };
-    case 4:
-    default:
-      return { titleKey: "calendar.worstDay", descKey: "calendar.worstDayDesc" };
-  }
+  return GRADE_KEYS[grade] || GRADE_KEYS[2];
 }
 
-/**
- * 등급별 추천 키 반환
- */
+export const getGradeTitleKey = memoize(
+  (grade: ImportanceGrade): string => GRADE_KEYS[grade]?.titleKey || GRADE_KEYS[2].titleKey,
+  { keyFn: (grade) => `title:${grade}` }
+);
+
+export const getGradeDescKey = memoize(
+  (grade: ImportanceGrade): string => GRADE_KEYS[grade]?.descKey || GRADE_KEYS[2].descKey,
+  { keyFn: (grade) => `desc:${grade}` }
+);
+
+// ═══════════════════════════════════════════════════════════
+// 등급별 추천 키
+// ═══════════════════════════════════════════════════════════
+
+const GRADE_RECOMMENDATIONS: Record<ImportanceGrade, string[]> = {
+  0: ["majorDecision", "wedding", "contract", "bigDecision"],
+  1: ["majorDecision", "contract"],
+  2: [],
+  3: ["rest", "meditation"],
+  4: ["rest", "meditation", "avoidBigDecisions"],
+};
+
 export function getGradeRecommendations(grade: ImportanceGrade): string[] {
-  switch (grade) {
-    case 0:
-      return ["majorDecision", "wedding", "contract", "bigDecision"];
-    case 1:
-      return ["majorDecision", "contract"];
-    case 2:
-      return [];
-    case 3:
-      return ["rest", "meditation"];
-    case 4:
-      return ["rest", "meditation", "avoidBigDecisions"];
-    default:
-      return [];
-  }
+  return GRADE_RECOMMENDATIONS[grade] || [];
 }
 
-/**
- * 등급에 따라 경고 필터링
- */
+// ═══════════════════════════════════════════════════════════
+// 등급에 따라 경고 필터링
+// ═══════════════════════════════════════════════════════════
+
+const SEVERE_WARNINGS = ["extremeCaution", "confusion", "conflict", "accident", "injury", "betrayal"];
+const BASE_WORST_WARNINGS = ["extremeCaution", "health"];
+
 export function filterWarningsByGrade(grade: ImportanceGrade, warningKeys: string[]): string[] {
   if (grade <= 1) {
-    // Grade 0, 1: 모든 경고 제거
-    return [];
+    return []; // Grade 0, 1: 모든 경고 제거
   }
 
   if (grade === 2) {
-    // Grade 2: 심각한 경고만 제거
-    const severeWarnings = ["extremeCaution", "confusion", "conflict", "accident", "injury", "betrayal"];
-    return warningKeys.filter(key => !severeWarnings.includes(key));
+    return warningKeys.filter(key => !SEVERE_WARNINGS.includes(key));
   }
 
   if (grade === 3 && warningKeys.length === 0) {
@@ -250,10 +309,38 @@ export function filterWarningsByGrade(grade: ImportanceGrade, warningKeys: strin
   }
 
   if (grade === 4) {
-    // Grade 4 (최악): 기본 경고 추가
-    const baseWarnings = ["extremeCaution", "health"];
-    return [...new Set([...baseWarnings, ...warningKeys])];
+    return [...new Set([...BASE_WORST_WARNINGS, ...warningKeys])];
   }
 
   return warningKeys;
 }
+
+// ═══════════════════════════════════════════════════════════
+// 등급별 색상 (Memoized)
+// ═══════════════════════════════════════════════════════════
+
+const GRADE_COLORS: Record<ImportanceGrade, string> = {
+  0: 'text-yellow-600 dark:text-yellow-400',
+  1: 'text-green-600 dark:text-green-400',
+  2: 'text-blue-600 dark:text-blue-400',
+  3: 'text-orange-600 dark:text-orange-400',
+  4: 'text-red-600 dark:text-red-400',
+};
+
+const GRADE_BG_COLORS: Record<ImportanceGrade, string> = {
+  0: 'bg-yellow-50 dark:bg-yellow-900/20',
+  1: 'bg-green-50 dark:bg-green-900/20',
+  2: 'bg-blue-50 dark:bg-blue-900/20',
+  3: 'bg-orange-50 dark:bg-orange-900/20',
+  4: 'bg-red-50 dark:bg-red-900/20',
+};
+
+export const getGradeColor = memoize(
+  (grade: ImportanceGrade): string => GRADE_COLORS[grade] || 'text-gray-600 dark:text-gray-400',
+  { keyFn: (grade) => `color:${grade}` }
+);
+
+export const getGradeBgColor = memoize(
+  (grade: ImportanceGrade): string => GRADE_BG_COLORS[grade] || 'bg-gray-50 dark:bg-gray-900/20',
+  { keyFn: (grade) => `bg:${grade}` }
+);

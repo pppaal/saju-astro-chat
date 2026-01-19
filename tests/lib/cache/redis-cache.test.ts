@@ -77,12 +77,12 @@ describe("Redis Cache", () => {
         2024,
         "love"
       );
-      expect(key).toBe("yearly:1990-01-01:12:00:M:2024:love");
+      expect(key).toBe("yearly:v2:1990-01-01:12:00:M:2024:love");
     });
 
     it("generates yearly calendar key without category", () => {
       const key = CacheKeys.yearlyCalendar("1990-01-01", "12:00", "M", 2024);
-      expect(key).toBe("yearly:1990-01-01:12:00:M:2024");
+      expect(key).toBe("yearly:v2:1990-01-01:12:00:M:2024");
     });
   });
 

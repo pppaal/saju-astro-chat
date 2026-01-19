@@ -199,8 +199,8 @@ export function calculateMonthlyImportantDates(
  * @returns 운명 캘린더용 사주 프로필
  */
 export function extractSajuProfile(saju: unknown): UserSajuProfile {
-  const sajuData = saju as any;
-  const dayMasterRaw = sajuData?.dayMaster;
+  const sajuData = saju as Record<string, unknown> | null | undefined;
+  const dayMasterRaw = sajuData?.dayMaster as string | { name?: string; heavenlyStem?: string } | undefined;
   const dayMaster = typeof dayMasterRaw === "string"
     ? dayMasterRaw
     : (dayMasterRaw?.name || dayMasterRaw?.heavenlyStem || "甲");
@@ -209,23 +209,26 @@ export function extractSajuProfile(saju: unknown): UserSajuProfile {
     ? dayMaster.charAt(0)
     : "甲";
 
-  const pillars = sajuData?.pillars || {};
+  const pillars = (sajuData?.pillars || {}) as Record<string, Record<string, unknown>>;
   const dayPillar = pillars.day || {};
-  const dayBranch = dayPillar.earthlyBranch?.name || dayPillar.earthlyBranch || dayPillar.branch || "";
+  const dayBranchObj = dayPillar.earthlyBranch as { name?: string } | string | undefined;
+  const dayBranch = typeof dayBranchObj === 'object' ? dayBranchObj?.name : (dayBranchObj || dayPillar.branch as string || "");
 
   // 연지(年支) 추출 - 삼재/역마/도화 계산에 필요
   const yearPillar = pillars.year || {};
-  const yearBranch = yearPillar.earthlyBranch?.name || yearPillar.earthlyBranch || yearPillar.branch || "";
+  const yearBranchObj = yearPillar.earthlyBranch as { name?: string } | string | undefined;
+  const yearBranch = typeof yearBranchObj === 'object' ? yearBranchObj?.name : (yearBranchObj || yearPillar.branch as string || "");
 
   // 대운 데이터 추출
-  const unse = sajuData?.unse || {};
-  const daeunRaw = unse.daeun || [];
-  const daeunCycles: any[] = daeunRaw.map((d: any) => ({
-    age: d.age || 0,
-    heavenlyStem: d.heavenlyStem || "",
-    earthlyBranch: d.earthlyBranch || "",
-    sibsin: d.sibsin || undefined,
-  })).filter((d: any) => d.heavenlyStem && d.earthlyBranch);
+  const unse = (sajuData?.unse || {}) as Record<string, unknown>;
+  const daeunRaw = (unse.daeun || []) as Array<Record<string, unknown>>;
+  type DaeunCycle = { age: number; heavenlyStem: string; earthlyBranch: string; sibsin?: string };
+  const daeunCycles: DaeunCycle[] = daeunRaw.map((d) => ({
+    age: (d.age as number) || 0,
+    heavenlyStem: (d.heavenlyStem as string) || "",
+    earthlyBranch: (d.earthlyBranch as string) || "",
+    sibsin: (d.sibsin as string) || undefined,
+  })).filter((d) => d.heavenlyStem && d.earthlyBranch);
 
   // 생년 추출
   const birthDateStr = sajuData?.facts?.birthDate || sajuData?.birthDate || "";
@@ -267,9 +270,9 @@ export function extractSajuProfile(saju: unknown): UserSajuProfile {
  * @returns 운명 캘린더용 점성술 프로필
  */
 export function extractAstroProfile(astrology: unknown): UserAstroProfile {
-  const astroData = astrology as any;
-  const planets = astroData?.planets || [];
-  const sun = planets.find((p: any) => p.name === "Sun");
+  const astroData = astrology as Record<string, unknown> | null | undefined;
+  const planets = (astroData?.planets || []) as Array<{ name?: string; sign?: string; longitude?: number }>;
+  const sun = planets.find((p) => p.name === "Sun");
   const sunSign = sun?.sign || "Aries";
 
   return {

@@ -13,6 +13,12 @@
 export { default } from './DestinyCalendar';
 export { default as DestinyCalendar } from './DestinyCalendar';
 
+// Re-export sub-components
+export { default as BirthInfoFormInline } from './BirthInfoFormInline';
+export { default as CalendarMainView } from './CalendarMainView';
+export { default as SelectedDatePanel } from './SelectedDatePanel';
+export { default as MonthHighlights } from './MonthHighlights';
+
 // Re-export types
 export type {
   EventCategory,

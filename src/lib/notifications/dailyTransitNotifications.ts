@@ -73,7 +73,7 @@ interface UserProfile {
 }
 
 // 일간 오행 추출
-function getDayMasterElement(dayMaster?: string | any): string | null {
+function getDayMasterElement(dayMaster?: string | { name?: string; heavenlyStem?: string }): string | null {
   if (!dayMaster) return null;
   const dmStr = typeof dayMaster === "string"
     ? dayMaster

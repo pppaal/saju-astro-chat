@@ -1,6 +1,16 @@
 // tests/lib/api/validation.test.ts
 import { describe, it, expect } from 'vitest';
-import { validateFields } from '@/lib/api/validation';
+import {
+  validateFields,
+  Patterns,
+  CommonValidators,
+  validateDestinyMapInput,
+  validateTarotInput,
+  validateDreamInput,
+  validateBirthData,
+  validateCompatibilityInput,
+  parseJsonBody,
+} from '@/lib/api/validation';
 
 describe('validateFields', () => {
   it('should pass when required field is present', () => {

@@ -185,17 +185,21 @@ function GlobalHeaderContent() {
           gap: 8,
         }}
       >
-        <div
-          style={{
-            minWidth: 80,
-            height: 34,
-            borderRadius: 20,
-            background: "rgba(138,164,255,0.1)",
-            border: "1px solid transparent",
-            padding: "6px 14px",
-            boxSizing: "border-box",
-          }}
-        />
+        {/* Home button row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <HomeButton />
+          <div
+            style={{
+              minWidth: 80,
+              height: 34,
+              borderRadius: 20,
+              background: "rgba(138,164,255,0.1)",
+              border: "1px solid transparent",
+              padding: "6px 14px",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
       </div>
     );
   }
@@ -215,31 +219,35 @@ function GlobalHeaderContent() {
           gap: 8,
         }}
       >
-        <button
-          onClick={() => router.push(signInUrl)}
-          style={{
-            color: "#EAE6FF",
-            fontSize: 14,
-            whiteSpace: "nowrap",
-            border: "1px solid rgba(138,164,255,0.4)",
-            padding: "6px 14px",
-            borderRadius: 20,
-            background: "rgba(138,164,255,0.15)",
-            backdropFilter: "blur(6px)",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.background = "rgba(138,164,255,0.25)";
-            e.currentTarget.style.borderColor = "rgba(138,164,255,0.6)";
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.background = "rgba(138,164,255,0.15)";
-            e.currentTarget.style.borderColor = "rgba(138,164,255,0.4)";
-          }}
-        >
-          {t("community.login") || "Login"}
-        </button>
+        {/* Home button and Login in a row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <HomeButton />
+          <button
+            onClick={() => router.push(signInUrl)}
+            style={{
+              color: "#EAE6FF",
+              fontSize: 14,
+              whiteSpace: "nowrap",
+              border: "1px solid rgba(138,164,255,0.4)",
+              padding: "6px 14px",
+              borderRadius: 20,
+              background: "rgba(138,164,255,0.15)",
+              backdropFilter: "blur(6px)",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = "rgba(138,164,255,0.25)";
+              e.currentTarget.style.borderColor = "rgba(138,164,255,0.6)";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = "rgba(138,164,255,0.15)";
+              e.currentTarget.style.borderColor = "rgba(138,164,255,0.4)";
+            }}
+          >
+            {t("community.login") || "Login"}
+          </button>
+        </div>
       </div>
     );
   }
@@ -259,8 +267,11 @@ function GlobalHeaderContent() {
         gap: 8,
       }}
     >
-      <button
-        onClick={() => setShowDropdown(!showDropdown)}
+      {/* Home button and user button in a row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <HomeButton />
+        <button
+          onClick={() => setShowDropdown(!showDropdown)}
         style={{
           display: "flex",
           alignItems: "center",
@@ -342,7 +353,8 @@ function GlobalHeaderContent() {
             50% { opacity: 0.7; transform: scale(0.9); }
           }
         `}</style>
-      </button>
+        </button>
+      </div>
 
       {/* Credit display - below user button */}
       <CreditDisplay />

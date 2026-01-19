@@ -76,22 +76,22 @@ export class LRUCache<K, V> {
 /**
  * 간단한 메모이제이션 함수
  */
-export function memoize<T extends (...args: unknown[]) => any>(
-  fn: T,
+export function memoize<TArgs extends unknown[], TReturn>(
+  fn: (...args: TArgs) => TReturn,
   options?: {
     maxSize?: number;
-    keyGenerator?: (...args: Parameters<T>) => string;
+    keyGenerator?: (...args: TArgs) => string;
     ttl?: number; // Time to live in ms
   }
-): T {
-  const cache = new LRUCache<string, { value: ReturnType<T>; timestamp: number }>(
+): (...args: TArgs) => TReturn {
+  const cache = new LRUCache<string, { value: TReturn; timestamp: number }>(
     options?.maxSize || 100
   );
 
-  const keyGen = options?.keyGenerator || ((...args: unknown[]) => JSON.stringify(args));
+  const keyGen = options?.keyGenerator || ((...args: TArgs) => JSON.stringify(args));
   const ttl = options?.ttl || Infinity;
 
-  return ((...args: Parameters<T>): ReturnType<T> => {
+  return (...args: TArgs): TReturn => {
     const key = keyGen(...args);
     const cached = cache.get(key);
 
@@ -104,30 +104,30 @@ export function memoize<T extends (...args: unknown[]) => any>(
     const result = fn(...args);
     cache.set(key, { value: result, timestamp: Date.now() });
     return result;
-  }) as T;
+  };
 }
 
 /**
  * 비동기 메모이제이션
  */
-export function memoizeAsync<T extends (...args: unknown[]) => Promise<any>>(
-  fn: T,
+export function memoizeAsync<TArgs extends unknown[], TReturn>(
+  fn: (...args: TArgs) => Promise<TReturn>,
   options?: {
     maxSize?: number;
-    keyGenerator?: (...args: Parameters<T>) => string;
+    keyGenerator?: (...args: TArgs) => string;
     ttl?: number;
     pendingMaxSize?: number; // pending Map 최대 크기
     pendingTimeoutMs?: number; // pending 요청 타임아웃
   }
-): T {
-  const cache = new LRUCache<string, { value: Awaited<ReturnType<T>>; timestamp: number }>(
+): (...args: TArgs) => Promise<TReturn> {
+  const cache = new LRUCache<string, { value: TReturn; timestamp: number }>(
     options?.maxSize || 100
   );
-  const pending = new Map<string, { promise: Promise<Awaited<ReturnType<T>>>; timestamp: number }>();
+  const pending = new Map<string, { promise: Promise<TReturn>; timestamp: number }>();
   const pendingMaxSize = options?.pendingMaxSize || 100;
   const pendingTimeoutMs = options?.pendingTimeoutMs || 30000; // 30초 기본 타임아웃
 
-  const keyGen = options?.keyGenerator || ((...args: unknown[]) => JSON.stringify(args));
+  const keyGen = options?.keyGenerator || ((...args: TArgs) => JSON.stringify(args));
   const ttl = options?.ttl || Infinity;
 
   // pending Map 정리 함수 - 오래된 pending 요청 제거
@@ -140,7 +140,7 @@ export function memoizeAsync<T extends (...args: unknown[]) => Promise<any>>(
     }
   };
 
-  return (async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
+  return async (...args: TArgs): Promise<TReturn> => {
     const key = keyGen(...args);
     const cached = cache.get(key);
 
@@ -184,7 +184,7 @@ export function memoizeAsync<T extends (...args: unknown[]) => Promise<any>>(
 
     pending.set(key, { promise, timestamp: Date.now() });
     return promise;
-  }) as T;
+  };
 }
 
 // ===========================

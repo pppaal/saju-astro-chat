@@ -6,13 +6,38 @@
  * It handles planetary data, saju pillars, advanced astrology points, and more.
  */
 
- 
+import type { CombinedResult, AstrologyData, SajuPillar } from "@/lib/destiny-map/astrology/types";
+import type { PlanetData, AspectHit, ExtraPoint, Asteroid } from "@/lib/astrology";
 
-import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
+/**
+ * House cusp data structure
+ */
+interface HouseCusp {
+  cusp: number;
+  formatted: string;
+}
 
-// Type aliases for flexible data structures
-type PlanetData = any;
-type PillarData = any;
+/**
+ * Transit aspect data structure
+ */
+interface TransitAspect {
+  type: string;
+  from: { name: string; longitude: number };
+  to: { name: string; longitude: number };
+  orb: string;
+}
+
+/**
+ * Astrology facts from chart (flexible structure for prompt building)
+ */
+interface AstrologyFactsForPrompt {
+  birthDate?: string;
+  birthTime?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+  [key: string]: unknown;
+}
 
 /**
  * Extracted planetary data from astrology chart
@@ -30,57 +55,80 @@ export interface PlanetaryData {
   pluto?: PlanetData;
   northNode?: PlanetData;
   planets: PlanetData[];
-  houses: any[];
-  aspects: any[];
-  ascendant: any;
-  mc: any;
-  facts: any;
-  transits: any[];
+  houses: HouseCusp[];
+  aspects: AspectHit[];
+  ascendant?: PlanetData;
+  mc?: PlanetData;
+  facts?: AstrologyFactsForPrompt;
+  transits: TransitAspect[];
+}
+
+/**
+ * Day Master data structure
+ */
+interface DayMasterData {
+  name?: string;
+  element?: string;
+  yinYang?: string;
+  strength?: string;
+}
+
+/**
+ * Unse (luck cycles) data structure
+ */
+interface UnseData {
+  daeun: unknown[];
+  annual: unknown[];
+  monthly: unknown[];
+  iljin: unknown[];
 }
 
 /**
  * Extracted Saju/Four Pillars data
  */
-export interface SajuData {
+export interface ExtractedSajuData {
   pillars: {
-    year?: PillarData;
-    month?: PillarData;
-    day?: PillarData;
-    time?: PillarData;
+    year?: SajuPillar;
+    month?: SajuPillar;
+    day?: SajuPillar;
+    time?: SajuPillar;
   };
-  dayMaster: any;
-  unse: any;
-  sinsal: any;
-  advancedAnalysis: any;
-  facts: any;
+  dayMaster: DayMasterData;
+  unse: UnseData;
+  sinsal: Record<string, unknown>;
+  advancedAnalysis: Record<string, unknown>;
+  facts: AstrologyFactsForPrompt;
 }
+
+/** @deprecated Use ExtractedSajuData instead */
+export type SajuData = ExtractedSajuData;
 
 /**
  * Extracted advanced astrology points
  */
 export interface AdvancedAstrologyData {
   extraPoints: {
-    chiron?: any;
-    lilith?: any;
-    vertex?: any;
-    partOfFortune?: any;
+    chiron?: ExtraPoint;
+    lilith?: ExtraPoint;
+    vertex?: ExtraPoint;
+    partOfFortune?: ExtraPoint;
   };
   asteroids: {
-    ceres?: any;
-    pallas?: any;
-    juno?: any;
-    vesta?: any;
-    aspects?: any;
+    ceres?: Asteroid;
+    pallas?: Asteroid;
+    juno?: Asteroid;
+    vesta?: Asteroid;
+    aspects?: CombinedResult['asteroids'] extends { aspects?: infer T } ? T : unknown;
   };
-  solarReturn?: any;
-  lunarReturn?: any;
-  progressions?: any;
-  draconic?: any;
-  harmonics?: any;
-  fixedStars?: any[];
-  eclipses?: any;
-  electional?: any;
-  midpoints?: any;
+  solarReturn?: CombinedResult['solarReturn'];
+  lunarReturn?: CombinedResult['lunarReturn'];
+  progressions?: CombinedResult['progressions'];
+  draconic?: CombinedResult['draconic'];
+  harmonics?: CombinedResult['harmonics'];
+  fixedStars?: CombinedResult['fixedStars'];
+  eclipses?: CombinedResult['eclipses'];
+  electional?: CombinedResult['electional'];
+  midpoints?: CombinedResult['midpoints'];
 }
 
 /**
@@ -91,6 +139,7 @@ export interface AdvancedAstrologyData {
  */
 export function extractPlanetaryData(data: CombinedResult): PlanetaryData {
   const { astrology = {} } = data ?? {};
+  const astroData = astrology as AstrologyData;
   const {
     planets = [],
     houses = [],
@@ -99,9 +148,9 @@ export function extractPlanetaryData(data: CombinedResult): PlanetaryData {
     mc,
     facts,
     transits = [],
-  } = astrology as any;
+  } = astroData;
 
-  const getPlanet = (name: string) => planets.find((p: PlanetData) => p.name === name);
+  const getPlanet = (name: string) => planets.find((p) => p.name === name);
 
   return {
     sun: getPlanet("Sun"),
@@ -120,7 +169,7 @@ export function extractPlanetaryData(data: CombinedResult): PlanetaryData {
     aspects,
     ascendant,
     mc,
-    facts,
+    facts: facts as unknown as AstrologyFactsForPrompt | undefined,
     transits,
   };
 }
@@ -131,18 +180,20 @@ export function extractPlanetaryData(data: CombinedResult): PlanetaryData {
  * @param data - Combined result from destiny map calculation
  * @returns Organized saju data with pillars, day master, and luck cycles
  */
-export function extractSajuData(data: CombinedResult): SajuData {
+export function extractSajuData(data: CombinedResult): ExtractedSajuData {
   const { saju, astrology } = data ?? {};
-  const { pillars, dayMaster, unse, sinsal, advancedAnalysis } = (saju ?? {}) as any;
-  const { facts } = (astrology ?? {}) as any;
+  const sajuData = saju ?? { pillars: {}, dayMaster: {}, unse: { daeun: [], annual: [], monthly: [], iljin: [] }, sinsal: {} };
+  const { pillars, dayMaster, unse, sinsal, advancedAnalysis } = sajuData;
+  const astroData = astrology as AstrologyData | undefined;
+  const facts = astroData?.facts;
 
   return {
     pillars: pillars ?? {},
-    dayMaster: dayMaster ?? {},
+    dayMaster: (dayMaster ?? {}) as DayMasterData,
     unse: unse ?? { daeun: [], annual: [], monthly: [], iljin: [] },
-    sinsal: sinsal ?? {},
-    advancedAnalysis: advancedAnalysis ?? {},
-    facts: facts ?? {},
+    sinsal: (sinsal ?? {}) as Record<string, unknown>,
+    advancedAnalysis: (advancedAnalysis ?? {}) as Record<string, unknown>,
+    facts: (facts ?? {}) as AstrologyFactsForPrompt,
   };
 }
 
@@ -153,8 +204,8 @@ export function extractSajuData(data: CombinedResult): SajuData {
  * @returns Organized advanced astrology data
  */
 export function extractAdvancedAstrology(data: CombinedResult): AdvancedAstrologyData {
-  const extraPoints = (data.extraPoints ?? {}) as any;
-  const asteroids = (data.asteroids ?? {}) as any;
+  const extraPoints = data.extraPoints ?? {};
+  const asteroids = data.asteroids ?? {};
 
   return {
     extraPoints: {
@@ -170,16 +221,25 @@ export function extractAdvancedAstrology(data: CombinedResult): AdvancedAstrolog
       vesta: asteroids.vesta,
       aspects: asteroids.aspects,
     },
-    solarReturn: data.solarReturn as any,
-    lunarReturn: data.lunarReturn as any,
-    progressions: data.progressions as any,
-    draconic: data.draconic as any,
-    harmonics: data.harmonics as any,
-    fixedStars: data.fixedStars as any[],
-    eclipses: data.eclipses as any,
-    electional: data.electional as any,
-    midpoints: data.midpoints as any,
+    solarReturn: data.solarReturn,
+    lunarReturn: data.lunarReturn,
+    progressions: data.progressions,
+    draconic: data.draconic,
+    harmonics: data.harmonics,
+    fixedStars: data.fixedStars,
+    eclipses: data.eclipses,
+    electional: data.electional,
+    midpoints: data.midpoints,
   };
+}
+
+/**
+ * Pillar data for formatting (flexible structure)
+ */
+interface PillarForFormat {
+  heavenlyStem?: { name?: string };
+  earthlyBranch?: { name?: string };
+  ganji?: string;
 }
 
 /**
@@ -188,7 +248,7 @@ export function extractAdvancedAstrology(data: CombinedResult): AdvancedAstrolog
  * @param p - Pillar data
  * @returns Formatted Ganji string (e.g., "甲子") or null
  */
-export function formatPillar(p: PillarData | undefined): string | null {
+export function formatPillar(p: PillarForFormat | undefined): string | null {
   if (!p) return null;
   const stem = p.heavenlyStem?.name || p.ganji?.split?.('')?.[0] || '';
   const branch = p.earthlyBranch?.name || p.ganji?.split?.('')?.[1] || '';
@@ -214,13 +274,23 @@ export function getCurrentTimeInfo(): {
 }
 
 /**
+ * Pillars data for age calculation
+ */
+interface PillarsForAge {
+  year?: { year?: number };
+}
+
+/**
  * Calculate birth year and current age
  *
  * @param facts - Facts data from astrology or saju
  * @param pillars - Four pillars data
  * @returns Birth year and current age
  */
-export function calculateAgeInfo(facts: any, pillars: any): {
+export function calculateAgeInfo(
+  facts: AstrologyFactsForPrompt | undefined,
+  pillars: PillarsForAge | undefined
+): {
   birthYear: number;
   currentAge: number;
 } {

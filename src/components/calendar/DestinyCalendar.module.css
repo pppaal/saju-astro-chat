@@ -2414,6 +2414,97 @@
   margin-top: 6px;
 }
 
+/* Urgent Warning Box - Grade 3, 4 상단 강조 표시 */
+.urgentWarningBox {
+  margin: 12px 0;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.15), rgba(239, 68, 68, 0.1));
+  border: 1px solid rgba(251, 146, 60, 0.4);
+  border-radius: 14px;
+  animation: urgentPulse 2s ease-in-out infinite;
+}
+
+.urgentWarningBox.worstDay {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(190, 18, 60, 0.15));
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.2);
+}
+
+@keyframes urgentPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+.urgentWarningHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.urgentWarningIcon {
+  font-size: 18px;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+.urgentWarningTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f97316;
+}
+
+.worstDay .urgentWarningTitle {
+  color: #ef4444;
+}
+
+.urgentWarningList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.urgentWarningItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--cal-text-primary);
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(251, 146, 60, 0.15);
+}
+
+.urgentWarningItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.worstDay .urgentWarningItem {
+  border-bottom-color: rgba(239, 68, 68, 0.15);
+}
+
+.urgentWarningDot {
+  color: #f97316;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.worstDay .urgentWarningDot {
+  color: #ef4444;
+}
+
+/* Summary Box Warning Style */
+.summaryBox.summaryWarning {
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.1), rgba(239, 68, 68, 0.08));
+  border-left: 3px solid #f97316;
+}
+
 /* Large Save Button */
 .saveBtnLarge {
   display: flex;

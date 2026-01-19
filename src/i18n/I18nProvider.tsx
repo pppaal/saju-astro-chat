@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Deep merge utilities require flexible typing for nested i18n dictionary structures
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
@@ -503,14 +501,17 @@ const dicts = {
   ko: koDict,
 } as const;
 
-const ICHING_OVERRIDES: Partial<Record<string, any>> = {
-  ko: koDict.iching,
+type DictValue = Record<string, unknown>;
+type DictType = Record<string, DictValue>;
+
+const ICHING_OVERRIDES: Partial<Record<string, DictValue>> = {
+  ko: koDict.iching as DictValue,
 };
 
 for (const [loc, strings] of Object.entries(ICHING_OVERRIDES)) {
   const key = loc as keyof typeof dicts;
   if (dicts[key]) {
-    const dict = dicts as Record<string, Record<string, any>>;
+    const dict = dicts as DictType;
     dict[key].iching = {
       ...(dict[key].iching || {}),
       ...strings,
@@ -518,7 +519,7 @@ for (const [loc, strings] of Object.entries(ICHING_OVERRIDES)) {
   }
 }
 
-const TAROT_OVERRIDES: Partial<Record<string, any>> = {
+const TAROT_OVERRIDES: Partial<Record<string, { tarot?: DictValue }>> = {
   en: {
     tarot: {
       topics: {
@@ -539,44 +540,44 @@ const TAROT_OVERRIDES: Partial<Record<string, any>> = {
       },
     },
   },
-  ko: koDict,
+  ko: koDict as { tarot?: DictValue },
 };
 
 for (const [loc, strings] of Object.entries(TAROT_OVERRIDES)) {
   const key = loc as keyof typeof dicts;
-  if (dicts[key]) {
-    const dict = dicts as Record<string, Record<string, any>>;
+  if (dicts[key] && strings?.tarot) {
+    const dict = dicts as DictType;
     dict[key].tarot = {
       ...(dict[key].tarot || {}),
-      ...(strings as any).tarot,
+      ...strings.tarot,
     };
   }
 }
 
-const PERSONALITY_OVERRIDES: Partial<Record<string, any>> = {
-  ko: koDict,
+const PERSONALITY_OVERRIDES: Partial<Record<string, { personality?: DictValue }>> = {
+  ko: koDict as { personality?: DictValue },
 };
 
-const PERSONALITY_PREMIUM_OVERRIDES: Partial<Record<string, any>> = {};
+const PERSONALITY_PREMIUM_OVERRIDES: Partial<Record<string, { personality?: DictValue }>> = {};
 
 for (const [loc, strings] of Object.entries(PERSONALITY_OVERRIDES)) {
   const key = loc as keyof typeof dicts;
-  if (dicts[key]) {
-    const dict = dicts as Record<string, Record<string, any>>;
+  if (dicts[key] && strings?.personality) {
+    const dict = dicts as DictType;
     dict[key].personality = {
       ...(dict[key].personality || {}),
-      ...(strings as any).personality,
+      ...strings.personality,
     };
   }
 }
 
 for (const [loc, strings] of Object.entries(PERSONALITY_PREMIUM_OVERRIDES)) {
   const key = loc as keyof typeof dicts;
-  if (dicts[key]) {
-    const dict = dicts as Record<string, Record<string, any>>;
+  if (dicts[key] && strings?.personality) {
+    const dict = dicts as DictType;
     dict[key].personality = {
       ...(dict[key].personality || {}),
-      ...(strings as any).personality,
+      ...strings.personality,
     };
   }
 }
@@ -594,28 +595,27 @@ for (const [loc, namespaces] of Object.entries(allExtensions)) {
   }
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-function fillMissing(base: Record<string, any>, target: Record<string, any>) {
+function fillMissing(base: Record<string, unknown>, target: Record<string, unknown>) {
   for (const [k, v] of Object.entries(base)) {
     if (!(k in target)) {
       target[k] = v;
       continue;
     }
     if (v && typeof v === "object" && !Array.isArray(v) && target[k] && typeof target[k] === "object") {
-      fillMissing(v, target[k]);
+      fillMissing(v as Record<string, unknown>, target[k] as Record<string, unknown>);
     }
   }
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // Merge translations from JSON files (landing, common, app, about)
-const jsonOverrides: Record<string, any> = {
-  en: enDict,
-  ko: koDict,
+type JsonDict = Record<string, DictValue | undefined>;
+const jsonOverrides: Record<string, JsonDict> = {
+  en: enDict as JsonDict,
+  ko: koDict as JsonDict,
 };
 
 for (const [locale, jsonData] of Object.entries(jsonOverrides)) {
-  const target = (dicts as Record<string, Record<string, any>>)[locale];
+  const target = (dicts as DictType)[locale];
   if (target) {
     if (jsonData.landing) {
       if (!target.landing) target.landing = {};

@@ -197,7 +197,7 @@ describe('daily-fortune-helpers', () => {
 
       const warningAlert = alerts.find(a => a.type === 'warning');
       expect(warningAlert).toBeDefined();
-      expect(warningAlert?.msg).toContain('조심');
+      expect(warningAlert?.msg).toContain('최악');
     });
 
     it('should generate alert for cheoneulGwiin', () => {

@@ -285,8 +285,8 @@ export default function SelectedDatePanel({
             </div>
           )}
 
-          {/* Warnings */}
-          {selectedDate.warnings.length > 0 && (
+          {/* Warnings - Grade 3 이상은 상단에서 이미 표시했으므로 생략 */}
+          {selectedDate.warnings.length > 0 && selectedDate.grade < 3 && (
             <div className={styles.warningsSection}>
               <h4 className={styles.warningsTitle}>
                 <span className={styles.warningsIcon}>⚡</span>

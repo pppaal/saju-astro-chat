@@ -11,18 +11,20 @@ import type { ComponentType, DependencyList } from 'react';
 /**
  * Deep comparison for complex objects
  */
-function deepEqual(a: any, b: any): boolean {
+function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
   if (a == null || b == null) return false;
   if (typeof a !== 'object' || typeof b !== 'object') return false;
 
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
+  const objA = a as Record<string, unknown>;
+  const objB = b as Record<string, unknown>;
+  const keysA = Object.keys(objA);
+  const keysB = Object.keys(objB);
 
   if (keysA.length !== keysB.length) return false;
 
   for (const key of keysA) {
-    if (!keysB.includes(key) || !deepEqual(a[key], b[key])) {
+    if (!keysB.includes(key) || !deepEqual(objA[key], objB[key])) {
       return false;
     }
   }
@@ -59,7 +61,7 @@ export function useStableMemo<T>(
 /**
  * useCallback for expensive calculations
  */
-export function useStableCallback<T extends (...args: any[]) => any>(
+export function useStableCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
   deps: DependencyList
 ): T {
@@ -171,7 +173,7 @@ import { useState, useEffect } from 'react';
 /**
  * Throttled callback for expensive operations
  */
-export function useThrottledCallback<T extends (...args: any[]) => any>(
+export function useThrottledCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number = 300
 ): T {

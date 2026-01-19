@@ -3,6 +3,7 @@
 import type { TabProps } from './types';
 import { getMatrixAnalysis, getFullMatrixAnalysis, getTimingOverlayAnalysis, getRelationAspectAnalysis, getAdvancedAnalysisResult, getExtraPointAnalysis } from '../analyzers';
 import { elementTraits } from '../data';
+import { PremiumReportCTA } from '../components';
 
 interface CurrentFlow {
   emoji: string;
@@ -1335,6 +1336,9 @@ export default function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) 
           </div>
         </div>
       )}
+
+      {/* AI Premium Report CTA */}
+      <PremiumReportCTA section="fortune" />
     </div>
   );
 }

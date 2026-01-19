@@ -28,6 +28,11 @@ function createGradeInput(overrides: Partial<GradeInput> = {}): GradeInput {
   };
 }
 
+// GradeResult 타입 가드
+function isGradeResult(result: GradeResult | number): result is GradeResult {
+  return typeof result === 'object' && 'gradeReasons' in result;
+}
+
 describe('grading', () => {
   describe('calculateGrade', () => {
     describe('structure validation', () => {
@@ -38,6 +43,16 @@ describe('grading', () => {
         expect(result).toHaveProperty('grade');
         expect(result).toHaveProperty('adjustedScore');
         expect(result).toHaveProperty('gradeBonus');
+        expect(result).toHaveProperty('gradeReasons');
+      });
+
+      it('should return gradeReasons as an array', () => {
+        const input = createGradeInput();
+        const result = calculateGrade(input);
+
+        if (isGradeResult(result)) {
+          expect(Array.isArray(result.gradeReasons)).toBe(true);
+        }
       });
     });
 
@@ -451,6 +466,126 @@ describe('grading', () => {
       const result = calculateGrade(input);
 
       expect(result.grade).toBe(4);
+    });
+  });
+
+  describe('gradeReasons', () => {
+    it('should include birthdaySpecial reason when birthday bonus applied', () => {
+      const input = createGradeInput({ score: 50, isBirthdaySpecial: true });
+      const result = calculateGrade(input);
+
+      if (isGradeResult(result)) {
+        const birthdayReason = result.gradeReasons.find(r => r.factorKey === 'birthdaySpecial');
+        expect(birthdayReason).toBeDefined();
+        expect(birthdayReason?.type).toBe('positive');
+        expect(birthdayReason?.descriptionKey).toBe('calendar.reasons.birthdaySpecial');
+      }
+    });
+
+    it('should include crossVerifiedPositive reason when cross verified', () => {
+      const input = createGradeInput({
+        score: 50,
+        crossVerified: true,
+        sajuPositive: true,
+        astroPositive: true,
+      });
+      const result = calculateGrade(input);
+
+      if (isGradeResult(result)) {
+        const crossReason = result.gradeReasons.find(r => r.factorKey === 'crossVerifiedPositive');
+        expect(crossReason).toBeDefined();
+        expect(crossReason?.type).toBe('positive');
+      }
+    });
+
+    it('should include chung reason when hasChung is true', () => {
+      const input = createGradeInput({ score: 50, hasChung: true });
+      const result = calculateGrade(input);
+
+      if (isGradeResult(result)) {
+        const chungReason = result.gradeReasons.find(r => r.factorKey === 'chung');
+        expect(chungReason).toBeDefined();
+        expect(chungReason?.type).toBe('negative');
+        expect(chungReason?.descriptionKey).toBe('calendar.reasons.chung');
+      }
+    });
+
+    it('should include xing reason when hasXing is true', () => {
+      const input = createGradeInput({ score: 50, hasXing: true });
+      const result = calculateGrade(input);
+
+      if (isGradeResult(result)) {
+        const xingReason = result.gradeReasons.find(r => r.factorKey === 'xing');
+        expect(xingReason).toBeDefined();
+        expect(xingReason?.type).toBe('negative');
+        expect(xingReason?.descriptionKey).toBe('calendar.reasons.xing');
+      }
+    });
+
+    it('should include chungAndXing reason when both are true', () => {
+      const input = createGradeInput({ score: 50, hasChung: true, hasXing: true });
+      const result = calculateGrade(input);
+
+      if (isGradeResult(result)) {
+        const bothReason = result.gradeReasons.find(r => r.factorKey === 'chungAndXing');
+        expect(bothReason).toBeDefined();
+        expect(bothReason?.type).toBe('negative');
+        expect(bothReason?.impact).toBe(-1.0);
+      }
+    });
+
+    it('should include manyBadFactors reason when totalBadCount >= 3', () => {
+      const input = createGradeInput({ score: 50, totalBadCount: 3 });
+      const result = calculateGrade(input);
+
+      if (isGradeResult(result)) {
+        const badFactorsReason = result.gradeReasons.find(r => r.factorKey === 'manyBadFactors');
+        expect(badFactorsReason).toBeDefined();
+        expect(badFactorsReason?.type).toBe('negative');
+      }
+    });
+
+    it('should include multipleRetrogrades reason when applicable', () => {
+      const input = createGradeInput({
+        score: 50,
+        hasNoMajorRetrograde: false,
+        retrogradeCount: 2,
+      });
+      const result = calculateGrade(input);
+
+      if (isGradeResult(result)) {
+        const retroReason = result.gradeReasons.find(r => r.factorKey === 'multipleRetrogrades');
+        expect(retroReason).toBeDefined();
+        expect(retroReason?.type).toBe('negative');
+      }
+    });
+
+    it('should include lowBaseScore reason for grade >= 3 with no specific negative factors', () => {
+      const input = createGradeInput({ score: 25 });
+      const result = calculateGrade(input);
+
+      if (isGradeResult(result)) {
+        expect(result.grade).toBeGreaterThanOrEqual(3);
+        const lowScoreReason = result.gradeReasons.find(r => r.factorKey === 'lowBaseScore');
+        expect(lowScoreReason).toBeDefined();
+        expect(lowScoreReason?.type).toBe('negative');
+      }
+    });
+
+    it('should sort gradeReasons by impact (most negative first)', () => {
+      const input = createGradeInput({
+        score: 30,
+        hasChung: true,
+        hasXing: true,
+        totalBadCount: 3,
+      });
+      const result = calculateGrade(input);
+
+      if (isGradeResult(result)) {
+        const impacts = result.gradeReasons.map(r => r.impact);
+        const sortedImpacts = [...impacts].sort((a, b) => a - b);
+        expect(impacts).toEqual(sortedImpacts);
+      }
     });
   });
 });

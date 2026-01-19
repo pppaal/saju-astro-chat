@@ -7,6 +7,7 @@ import type { ShadowPersonalityResult } from '../analyzers/matrixAnalyzer';
 import { getPersonalizedAdvice } from '../generators';
 import { elementTraits } from '../data';
 import PentagonChart from './PentagonChart';
+import { PremiumReportCTA } from '../components';
 
 interface PersonalityAnalysis {
   title: string;
@@ -537,6 +538,12 @@ export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyN
 
       {/* 종합 운세 점수 - 오각형 레이더 차트 */}
       <PentagonChart saju={saju} astro={astro} lang={lang} isKo={isKo} data={data} />
+
+      {/* AI Premium Report CTA */}
+      <PremiumReportCTA
+        section="personality"
+        matrixData={{ shadowAnalysis, matrixAnalysis }}
+      />
     </div>
   );
 }

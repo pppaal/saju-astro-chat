@@ -32,8 +32,8 @@ export * from './constants';
 // Utilities (base utilities - getSipsin, isCheoneulGwiin, etc.)
 export * from './utils';
 
-// Grading (optimized with memoization)
-export * from './grading-optimized';
+// Grading (통합 버전 with memoization)
+export * from './grading';
 
 // Scoring System (New)
 export * from './scoring-config';

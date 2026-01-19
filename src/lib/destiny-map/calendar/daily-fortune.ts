@@ -5,18 +5,14 @@
 
 import { STEMS, BRANCHES, STEM_TO_ELEMENT, BRANCH_TO_ELEMENT } from './constants';
 import { approximateLunarDay, isSonEomneunDay } from './utils';
+import type { GanzhiResult } from './types';
 
 // ============================================================
 // Types
 // ============================================================
-// Note: GanzhiResult is also defined in saju-analysis.ts
-// We define a local version here to avoid circular dependencies
-export interface DailyGanzhiResult {
-  stem: string;
-  branch: string;
-  stemElement: string;
-  branchElement: string;
-}
+
+// types.ts의 GanzhiResult를 재사용 (중복 제거)
+export type DailyGanzhiResult = GanzhiResult;
 
 export interface AlertInfo {
   type: "warning" | "positive" | "info";

@@ -4,6 +4,7 @@
  */
 
 import { createClient, RedisClientType } from 'redis';
+import { logger } from '@/lib/logger';
 
 let redisClient: RedisClientType | null = null;
 
@@ -21,13 +22,13 @@ async function getRedisClient(): Promise<RedisClientType | null> {
     });
 
     redisClient.on('error', (err) => {
-      console.error('[Redis] Connection error:', err);
+      logger.error('[Redis] Connection error', { error: err });
     });
 
     try {
       await redisClient.connect();
     } catch (error) {
-      console.error('[Redis] Failed to connect:', error);
+      logger.error('[Redis] Failed to connect', { error });
       redisClient = null;
       return null;
     }
@@ -61,7 +62,7 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
 
     return JSON.parse(data) as T;
   } catch (error) {
-    console.error('[Redis] Get error:', error);
+    logger.error('[Redis] Get error', { error });
     return null;
   }
 }
@@ -78,7 +79,7 @@ export async function cacheSet(
     await client.setEx(key, ttl, JSON.stringify(value));
     return true;
   } catch (error) {
-    console.error('[Redis] Set error:', error);
+    logger.error('[Redis] Set error', { error });
     return false;
   }
 }
@@ -91,7 +92,7 @@ export async function cacheDel(key: string): Promise<boolean> {
     await client.del(key);
     return true;
   } catch (error) {
-    console.error('[Redis] Delete error:', error);
+    logger.error('[Redis] Delete error', { error });
     return false;
   }
 }
@@ -141,7 +142,7 @@ export async function cacheOrCalculate<T>(
 
   // Cache the result (fire and forget)
   cacheSet(key, result, ttl).catch((err) => {
-    console.error('[Redis] Background cache set failed:', err);
+    logger.error('[Redis] Background cache set failed', { error: err });
   });
 
   return result;
@@ -158,7 +159,7 @@ export async function cacheGetMany<T>(keys: string[]): Promise<(T | null)[]> {
     const results = await client.mGet(keys);
     return results.map((data) => (data ? JSON.parse(data) as T : null));
   } catch (error) {
-    console.error('[Redis] Batch get error:', error);
+    logger.error('[Redis] Batch get error', { error });
     return keys.map(() => null);
   }
 }
@@ -177,7 +178,7 @@ export async function clearCacheByPattern(pattern: string): Promise<number> {
     await client.del(keys);
     return keys.length;
   } catch (error) {
-    console.error('[Redis] Clear pattern error:', error);
+    logger.error('[Redis] Clear pattern error', { error });
     return 0;
   }
 }
@@ -193,7 +194,7 @@ export async function getCacheInfo() {
     const info = await client.info('stats');
     return info;
   } catch (error) {
-    console.error('[Redis] Info error:', error);
+    logger.error('[Redis] Info error', { error });
     return null;
   }
 }

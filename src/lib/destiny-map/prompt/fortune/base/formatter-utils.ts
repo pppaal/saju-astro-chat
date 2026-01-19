@@ -6,11 +6,70 @@
  * Handles planets, houses, aspects, luck cycles, and more.
  */
 
- 
-
 import { formatGanjiEasy, parseGanjiEasy } from './translation-maps';
-import { formatPillar, type PlanetaryData, type SajuData } from './data-extractors';
-import { logger } from '@/lib/logger';
+import { formatPillar, type PlanetaryData, type SajuData, type ExtractedSajuData } from './data-extractors';
+import type { PlanetData, AspectHit } from '@/lib/astrology';
+
+// ============================================
+// Local type definitions for flexible data
+// ============================================
+
+interface HouseData {
+  sign?: string;
+  formatted?: string;
+}
+
+interface PillarSet {
+  year?: { heavenlyStem?: { name?: string; element?: string }; earthlyBranch?: { name?: string } };
+  month?: { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } };
+  day?: { heavenlyStem?: { name?: string; element?: string }; earthlyBranch?: { name?: string } };
+  time?: { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } };
+}
+
+interface DayMasterInfo {
+  name?: string;
+  element?: string;
+}
+
+interface DaeunItem {
+  age: number;
+  heavenlyStem?: string;
+  earthlyBranch?: string;
+}
+
+interface AnnualItem {
+  year: number;
+  ganji?: string;
+  name?: string;
+}
+
+interface MonthlyItem {
+  year: number;
+  month: number;
+  ganji?: string;
+  name?: string;
+}
+
+interface UnseDataForFormat {
+  daeun?: DaeunItem[];
+  annual?: AnnualItem[];
+  monthly?: MonthlyItem[];
+}
+
+interface SinsalRecord {
+  luckyList?: { name?: string }[];
+  unluckyList?: { name?: string }[];
+}
+
+interface TransitData {
+  type?: string;
+  aspectType?: string;
+  transitPlanet?: string;
+  natalPoint?: string;
+  from?: { name?: string };
+  to?: { name?: string };
+  isApplying?: boolean;
+}
 
 /**
  * Format planet list to single line
@@ -18,10 +77,10 @@ import { logger } from '@/lib/logger';
  * @param planets - Array of planet data
  * @returns Formatted string like "Sun: Aries (H1); Moon: Taurus (H2)"
  */
-export function formatPlanetLines(planets: any[]): string {
+export function formatPlanetLines(planets: PlanetData[]): string {
   return planets
     .slice(0, 12)
-    .map((p: any) => `${p.name ?? "?"}: ${p.sign ?? "-"} (H${p.house ?? "-"})`)
+    .map((p) => `${p.name ?? "?"}: ${p.sign ?? "-"} (H${p.house ?? "-"})`)
     .join("; ");
 }
 
@@ -31,17 +90,29 @@ export function formatPlanetLines(planets: any[]): string {
  * @param houses - Array or object of house data
  * @returns Formatted string like "H1: Aries; H2: Taurus"
  */
-export function formatHouseLines(houses: any[] | Record<string, any>): string {
+export function formatHouseLines(houses: HouseData[] | Record<string, HouseData>): string {
   if (Array.isArray(houses)) {
     return houses
       .slice(0, 12)
-      .map((h: any, i: number) => `H${i + 1}: ${h?.sign ?? h?.formatted ?? "-"}`)
+      .map((h, i) => `H${i + 1}: ${h?.sign ?? h?.formatted ?? "-"}`)
       .join("; ");
   }
   return Object.entries(houses ?? {})
     .slice(0, 12)
-    .map(([num, val]: [string, any]) => `H${num}: ${val?.sign ?? "-"}`)
+    .map(([num, val]) => `H${num}: ${val?.sign ?? "-"}`)
     .join("; ");
+}
+
+/**
+ * Aspect data for formatting (flexible structure)
+ */
+interface AspectForFormat {
+  planet1?: { name?: string };
+  planet2?: { name?: string };
+  from?: { name?: string };
+  to?: { name?: string };
+  type?: string;
+  aspect?: string;
 }
 
 /**
@@ -50,10 +121,10 @@ export function formatHouseLines(houses: any[] | Record<string, any>): string {
  * @param aspects - Array of aspect data
  * @returns Formatted string like "Sun-trine-Moon; Mars-square-Saturn"
  */
-export function formatAspectLines(aspects: any[]): string {
+export function formatAspectLines(aspects: AspectForFormat[]): string {
   return aspects
     .slice(0, 12)
-    .map((a: any) =>
+    .map((a) =>
       `${a.planet1?.name ?? a.from?.name ?? "?"}-${a.type ?? a.aspect ?? ""}-${a.planet2?.name ?? a.to?.name ?? "?"}`
     )
     .join("; ");
@@ -78,7 +149,7 @@ export function formatElements(elementRatios: Record<string, number> | undefined
  * @param pillars - Four pillars data
  * @returns Formatted string like "甲子 / 丙寅 / 戊辰 / 庚午"
  */
-export function formatPillarText(pillars: any): string {
+export function formatPillarText(pillars: PillarSet | undefined): string {
   return [
     formatPillar(pillars?.year),
     formatPillar(pillars?.month),
@@ -94,7 +165,10 @@ export function formatPillarText(pillars: any): string {
  * @param dayMaster - Day master data
  * @returns Object with day master name and element
  */
-export function extractDayMaster(pillars: any, dayMaster: any): {
+export function extractDayMaster(
+  pillars: PillarSet | undefined,
+  dayMaster: DayMasterInfo | undefined
+): {
   name: string;
   element: string;
 } {
@@ -114,8 +188,8 @@ export function extractDayMaster(pillars: any, dayMaster: any): {
  * @param currentAge - Current age
  * @returns Current daeun object or undefined
  */
-export function findCurrentDaeun(unse: any, currentAge: number): any {
-  return (unse?.daeun ?? []).find((d: any) => {
+export function findCurrentDaeun(unse: UnseDataForFormat | undefined, currentAge: number): DaeunItem | undefined {
+  return (unse?.daeun ?? []).find((d) => {
     const startAge = d.age;
     const endAge = startAge + 9; // 대운은 10년 단위
     return currentAge >= startAge && currentAge <= endAge;
@@ -129,7 +203,7 @@ export function findCurrentDaeun(unse: any, currentAge: number): any {
  * @param currentAge - Current age
  * @returns Formatted daeun text
  */
-export function formatDaeunText(unse: any, currentAge: number): string {
+export function formatDaeunText(unse: UnseDataForFormat | undefined, currentAge: number): string {
   const currentDaeun = findCurrentDaeun(unse, currentAge);
 
   if (currentDaeun) {
@@ -139,7 +213,7 @@ export function formatDaeunText(unse: any, currentAge: number): string {
   // Fallback: show first 3 daeun
   return (unse?.daeun ?? [])
     .slice(0, 3)
-    .map((u: any) => `${u.age}-${u.age + 9}세: ${formatGanjiEasy(u.heavenlyStem, u.earthlyBranch)}`)
+    .map((u) => `${u.age}-${u.age + 9}세: ${formatGanjiEasy(u.heavenlyStem, u.earthlyBranch)}`)
     .join("; ");
 }
 
@@ -150,9 +224,9 @@ export function formatDaeunText(unse: any, currentAge: number): string {
  * @param currentAge - Current age
  * @returns Multi-line formatted daeun list
  */
-export function formatAllDaeunText(unse: any, currentAge: number): string {
+export function formatAllDaeunText(unse: UnseDataForFormat | undefined, currentAge: number): string {
   return (unse?.daeun ?? [])
-    .map((d: any) => {
+    .map((d) => {
       const startAge = d.age;
       const endAge = startAge + 9;
       const isCurrent = currentAge >= startAge && currentAge <= endAge;
@@ -170,10 +244,10 @@ export function formatAllDaeunText(unse: any, currentAge: number): string {
  * @param currentYear - Current year
  * @returns Multi-line formatted annual list
  */
-export function formatFutureAnnualList(unse: any, currentYear: number): string {
+export function formatFutureAnnualList(unse: UnseDataForFormat | undefined, currentYear: number): string {
   return (unse?.annual ?? [])
-    .filter((a: any) => a.year >= currentYear && a.year <= currentYear + 5)
-    .map((a: any) => {
+    .filter((a) => a.year >= currentYear && a.year <= currentYear + 5)
+    .map((a) => {
       const isCurrent = a.year === currentYear;
       const marker = isCurrent ? "★현재★" : "";
       const easyGanji = parseGanjiEasy(a.ganji ?? a.name);
@@ -191,18 +265,18 @@ export function formatFutureAnnualList(unse: any, currentYear: number): string {
  * @returns Multi-line formatted monthly list
  */
 export function formatFutureMonthlyList(
-  unse: any,
+  unse: UnseDataForFormat | undefined,
   currentYear: number,
   currentMonth: number
 ): string {
   return (unse?.monthly ?? [])
-    .filter((m: any) => {
+    .filter((m) => {
       if (m.year > currentYear) return true;
       if (m.year === currentYear && m.month >= currentMonth) return true;
       return false;
     })
     .slice(0, 12)
-    .map((m: any) => {
+    .map((m) => {
       const isCurrent = m.year === currentYear && m.month === currentMonth;
       const marker = isCurrent ? "★현재★" : "";
       const easyGanji = parseGanjiEasy(m.ganji ?? m.name);
@@ -217,20 +291,32 @@ export function formatFutureMonthlyList(
  * @param sinsal - Sinsal data
  * @returns Object with lucky and unlucky strings
  */
-export function formatSinsalLists(sinsal: any): {
+export function formatSinsalLists(sinsal: SinsalRecord | undefined): {
   lucky: string;
   unlucky: string;
 } {
-  const sinsalRecord = sinsal as any | undefined;
   return {
-    lucky: (sinsalRecord?.luckyList as { name?: string }[] ?? [])
+    lucky: (sinsal?.luckyList ?? [])
       .map((x) => x.name)
       .join(", "),
-    unlucky: (sinsalRecord?.unluckyList as { name?: string }[] ?? [])
+    unlucky: (sinsal?.unluckyList ?? [])
       .map((x) => x.name)
       .join(", "),
   };
 }
+
+// Helper type for advanced analysis (very complex nested structure)
+// Using index signature to allow flexible property access
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AdvancedAnalysisInput = Record<string, any>;
+
+interface RelationshipItem { type?: string; quality?: string; description?: string }
+interface CareerItem { field?: string; score?: number }
+interface ChungItem { branch1?: string; branch2?: string; from?: string; to?: string }
+interface HapItem { branch1?: string; branch2?: string; from?: string; to?: string; result?: string }
+interface SamhapItem { branches?: string[] }
+interface TuechulItem { element?: string; stem?: string; type?: string }
+interface HoegukItem { type?: string; name?: string; resultElement?: string }
 
 /**
  * Format advanced Saju analysis texts
@@ -238,7 +324,7 @@ export function formatSinsalLists(sinsal: any): {
  * @param advancedAnalysis - Advanced analysis data
  * @returns Formatted analysis object
  */
-export function formatAdvancedSajuAnalysis(advancedAnalysis: any): {
+export function formatAdvancedSajuAnalysis(advancedAnalysis: AdvancedAnalysisInput | undefined): {
   strengthText: string;
   geokgukText: string;
   geokgukDesc: string;
@@ -265,7 +351,7 @@ export function formatAdvancedSajuAnalysis(advancedAnalysis: any): {
   gongmangText: string;
   sibsinDist: Record<string, number>;
 } {
-  const adv = advancedAnalysis as any | undefined;
+  const adv = advancedAnalysis;
 
   // 신강/신약
   const strengthText = adv?.extended?.strength
@@ -292,25 +378,25 @@ export function formatAdvancedSajuAnalysis(advancedAnalysis: any): {
   const sibsinMissing = sibsin?.missingSibsin?.join?.(", ") ?? sibsin?.missing?.join?.(", ") ?? "-";
 
   // 십신 기반 인간관계/직업
-  const sibsinRelationships = sibsin?.relationships ?? [];
-  const sibsinCareerAptitudes = sibsin?.careerAptitudes ?? [];
+  const sibsinRelationships = (sibsin?.relationships ?? []) as RelationshipItem[];
+  const sibsinCareerAptitudes = (sibsin?.careerAptitudes ?? []) as CareerItem[];
   const relationshipText = Array.isArray(sibsinRelationships)
-    ? sibsinRelationships.slice(0, 3).map((r: any) => `${r.type}:${r.quality ?? r.description ?? ""}`).join("; ")
+    ? sibsinRelationships.slice(0, 3).map((r) => `${r.type}:${r.quality ?? r.description ?? ""}`).join("; ")
     : "-";
   const careerText = Array.isArray(sibsinCareerAptitudes)
-    ? sibsinCareerAptitudes.slice(0, 4).map((c: any) => `${c.field}(${c.score ?? 0})`).join(", ")
+    ? sibsinCareerAptitudes.slice(0, 4).map((c) => `${c.field}(${c.score ?? 0})`).join(", ")
     : "-";
 
   // 형충회합
-  const hyeongchung = adv?.hyeongchung ?? {};
+  const hyeongchung = (adv?.hyeongchung ?? {}) as { chung?: ChungItem[]; hap?: HapItem[]; samhap?: SamhapItem[] };
   const chungText = hyeongchung.chung?.length
-    ? hyeongchung.chung.map((c: any) => `${c.branch1 ?? c.from}-${c.branch2 ?? c.to}`).join(", ")
+    ? hyeongchung.chung.map((c) => `${c.branch1 ?? c.from}-${c.branch2 ?? c.to}`).join(", ")
     : "-";
   const hapText = hyeongchung.hap?.length
-    ? hyeongchung.hap.map((h: any) => `${h.branch1 ?? h.from}-${h.branch2 ?? h.to}→${h.result ?? ""}`).join(", ")
+    ? hyeongchung.hap.map((h) => `${h.branch1 ?? h.from}-${h.branch2 ?? h.to}→${h.result ?? ""}`).join(", ")
     : "-";
   const samhapText = hyeongchung.samhap?.length
-    ? hyeongchung.samhap.map((s: { branches?: string[] }) => s.branches?.join?.("-") ?? "-").join("; ")
+    ? hyeongchung.samhap.map((s) => s.branches?.join?.("-") ?? "-").join("; ")
     : "-";
 
   // 건강/직업
@@ -328,11 +414,13 @@ export function formatAdvancedSajuAnalysis(advancedAnalysis: any): {
   const tonggeunText = adv?.tonggeun
     ? `${adv.tonggeun.stem ?? "-"}→${adv.tonggeun.rootBranch ?? "-"} (${adv.tonggeun.strength ?? "-"})`
     : "-";
-  const tuechulText = adv?.tuechul?.length
-    ? adv.tuechul.slice(0, 3).map((t: any) => `${t.element ?? t.stem}(${t.type ?? "-"})`).join(", ")
+  const tuechulArr = (adv?.tuechul ?? []) as TuechulItem[];
+  const tuechulText = tuechulArr.length
+    ? tuechulArr.slice(0, 3).map((t) => `${t.element ?? t.stem}(${t.type ?? "-"})`).join(", ")
     : "-";
-  const hoegukText = adv?.hoeguk?.length
-    ? adv.hoeguk.slice(0, 2).map((h: any) => `${h.type ?? h.name}→${h.resultElement ?? "-"}`).join("; ")
+  const hoegukArr = (adv?.hoeguk ?? []) as HoegukItem[];
+  const hoegukText = hoegukArr.length
+    ? hoegukArr.slice(0, 2).map((h) => `${h.type ?? h.name}→${h.resultElement ?? "-"}`).join("; ")
     : "-";
   const deukryeongText = adv?.deukryeong
     ? `${adv.deukryeong.status ?? adv.deukryeong.type ?? "-"} (${adv.deukryeong.score ?? 0}점)`
@@ -379,11 +467,11 @@ export function formatAdvancedSajuAnalysis(advancedAnalysis: any): {
  * @param transits - Array of transit data
  * @returns Formatted transit string
  */
-export function formatSignificantTransits(transits: any[]): string {
+export function formatSignificantTransits(transits: TransitData[]): string {
   return transits
-    .filter((t: any) => ["conjunction", "trine", "square", "opposition"].includes(t.type || t.aspectType))
+    .filter((t) => ["conjunction", "trine", "square", "opposition"].includes(t.type || t.aspectType || ""))
     .slice(0, 8)
-    .map((t: any) => {
+    .map((t) => {
       const planet1 = t.transitPlanet ?? t.from?.name ?? "?";
       const planet2 = t.natalPoint ?? t.to?.name ?? "?";
       const aspectType = t.aspectType ?? t.type ?? "?";

@@ -3,6 +3,7 @@
 import type { TabProps } from './types';
 import { getTimingMatrixAnalysis } from '../analyzers/matrixAnalyzer';
 import type { TimingMatrixResult } from '../analyzers/matrixAnalyzer';
+import { PremiumReportCTA } from '../components';
 
 export default function TimingTab({ isKo, saju, astro }: TabProps) {
   const timingMatrix = getTimingMatrixAnalysis(saju ?? undefined, astro ?? undefined, isKo ? 'ko' : 'en') as TimingMatrixResult | null;
@@ -381,6 +382,12 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
           </p>
         </div>
       )}
+
+      {/* AI Premium Report CTA */}
+      <PremiumReportCTA
+        section="timing"
+        matrixData={{ timingMatrix }}
+      />
     </div>
   );
 }

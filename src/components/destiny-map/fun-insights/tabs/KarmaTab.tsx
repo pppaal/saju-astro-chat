@@ -13,6 +13,7 @@ import {
   findPlanetHouse,
   analyzeElements,
 } from './data';
+import { PremiumReportCTA } from '../components';
 
 export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
   const karmaAnalysis = (data as Record<string, unknown>).karmaAnalysis as KarmaAnalysisResult | null;
@@ -649,6 +650,12 @@ export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
           </div>
         </div>
       )}
+
+      {/* AI Premium Report CTA */}
+      <PremiumReportCTA
+        section="karma"
+        matrixData={{ matrixKarma }}
+      />
     </div>
   );
 }

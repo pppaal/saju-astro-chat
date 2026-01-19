@@ -4,6 +4,7 @@ import type { TabProps } from './types';
 import { getCareerMatrixAnalysis, type CareerMatrixResult } from '../analyzers';
 import { getCareerAdvancedAnalysis } from '../analyzers/matrixAnalyzer';
 import type { CareerAdvancedResult } from '../analyzers/matrixAnalyzer';
+import { PremiumReportCTA } from '../components';
 
 interface GeokgukInfo {
   name?: string;
@@ -611,6 +612,12 @@ export default function CareerTab({ saju, astro, lang, isKo, data, destinyNarrat
           </div>
         </div>
       )}
+
+      {/* AI Premium Report CTA */}
+      <PremiumReportCTA
+        section="career"
+        matrixData={{ careerMatrix, advancedCareer }}
+      />
     </div>
   );
 }
