@@ -76,9 +76,21 @@ export function middleware(request: NextRequest) {
     "upgrade-insecure-requests",
   ];
 
-  // Report violations in production (optional - requires report endpoint)
-  if (isProd && process.env.CSP_REPORT_URI) {
-    cspDirectives.push(`report-uri ${process.env.CSP_REPORT_URI}`);
+  // CSP violation reporting
+  // Use environment variable for external endpoint, or default to internal endpoint
+  const reportUri = process.env.CSP_REPORT_URI || '/api/csp-report';
+  if (isProd) {
+    cspDirectives.push(`report-uri ${reportUri}`);
+    // Also add report-to for newer browsers (CSP Level 3)
+    cspDirectives.push(`report-to csp-endpoint`);
+    response.headers.set(
+      'Report-To',
+      JSON.stringify({
+        group: 'csp-endpoint',
+        max_age: 86400,
+        endpoints: [{ url: reportUri }],
+      })
+    );
   }
 
   response.headers.set('Content-Security-Policy', cspDirectives.join('; '));

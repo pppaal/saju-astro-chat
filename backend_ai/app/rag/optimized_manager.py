@@ -49,8 +49,8 @@ class RAGConfig:
     warn_threshold_ms: int = 500
 
     # Timeouts
-    rag_timeout_seconds: float = 2.0  # Individual RAG timeout
-    total_timeout_seconds: float = 3.0  # Total fetch timeout
+    rag_timeout_seconds: float = 5.0  # Individual RAG timeout
+    total_timeout_seconds: float = 10.0  # Total fetch timeout (increased for cold start)
 
     # Feature flags
     enable_graph_rag: bool = True
@@ -552,11 +552,9 @@ class OptimizedRAGManager:
 
         # Cross-analysis is CPU-only, no executor needed
         if self.config.enable_cross_analysis:
-            tasks.append(
-                asyncio.coroutine(lambda: self._fetch_cross_analysis(
-                    saju_data, astro_data, theme, locale
-                ))()
-            )
+            async def _cross_wrapper():
+                return self._fetch_cross_analysis(saju_data, astro_data, theme, locale)
+            tasks.append(_cross_wrapper())
             task_names.append("cross")
 
         # Execute all tasks with exception handling
@@ -571,9 +569,10 @@ class OptimizedRAGManager:
                 continue
 
             if name == "graph" and isinstance(raw, dict):
-                result["graph_nodes"] = raw.get("matched_nodes", [])[:self.config.graph_top_k]
-                result["graph_context"] = raw.get("context_text", "")[:2000]
-                result["graph_rules"] = raw.get("rule_summary", [])[:5]
+                result["graph_nodes"] = (raw.get("matched_nodes") or [])[:self.config.graph_top_k]
+                result["graph_context"] = (raw.get("context_text") or "")[:2000]
+                rules = raw.get("rule_summary")
+                result["graph_rules"] = (rules or [])[:5]
 
             elif name == "corpus" and isinstance(raw, list):
                 result["corpus_quotes"] = raw
@@ -645,10 +644,10 @@ class OptimizedRAGManager:
                 top_k=self.config.graph_top_k + 5,
                 domain_priority=theme if hasattr(graph_rag, 'rules') and theme in graph_rag.rules else "career"
             )
-            return result
+            return result if result else {}
         except Exception as e:
             logger.error(f"[OptimizedRAGManager] GraphRAG error: {e}")
-            raise
+            return {}  # Return empty dict instead of raising
 
     def _fetch_corpus_sync(
         self,
@@ -664,6 +663,9 @@ class OptimizedRAGManager:
 
             jung_query = f"{theme_concepts.get(theme, theme)} {query[:100]}"
             quotes = corpus_rag.search(jung_query, top_k=self.config.corpus_top_k, min_score=0.12)
+
+            if not quotes:
+                return []
 
             # Deduplicate
             seen = set()
@@ -683,7 +685,7 @@ class OptimizedRAGManager:
             return unique[:8]
         except Exception as e:
             logger.error(f"[OptimizedRAGManager] CorpusRAG error: {e}")
-            raise
+            return []  # Return empty list instead of raising
 
     def _fetch_persona_sync(self, query: str) -> dict:
         """Synchronous PersonaRAG fetch."""
@@ -693,13 +695,16 @@ class OptimizedRAGManager:
                 return {}
 
             result = persona_rag.get_persona_context(query, top_k=self.config.persona_top_k)
+            if not result:
+                return {}
+
             return {
                 "jung": result.get("jung_insights", [])[:self.config.persona_top_k],
                 "stoic": result.get("stoic_insights", [])[:self.config.persona_top_k],
             }
         except Exception as e:
             logger.error(f"[OptimizedRAGManager] PersonaRAG error: {e}")
-            raise
+            return {}  # Return empty dict instead of raising
 
     def _fetch_domain_sync(self, query: str, theme: str) -> List[dict]:
         """Synchronous DomainRAG fetch."""
@@ -711,14 +716,19 @@ class OptimizedRAGManager:
             domain_map = {
                 "career": "career", "love": "love", "health": "health",
                 "wealth": "wealth", "family": "family", "life_path": "life",
+                "chat": "life",
             }
             domain = domain_map.get(theme, "life")
 
-            results = domain_rag.search(domain, query[:200], top_k=self.config.domain_top_k)
-            return results[:self.config.domain_top_k] if results else []
+            try:
+                results = domain_rag.search(domain, query[:200], top_k=self.config.domain_top_k)
+                return results[:self.config.domain_top_k] if results else []
+            except Exception as search_err:
+                logger.warning(f"[OptimizedRAGManager] DomainRAG search failed: {search_err}")
+                return []
         except Exception as e:
             logger.error(f"[OptimizedRAGManager] DomainRAG error: {e}")
-            raise
+            return []  # Return empty instead of raising
 
     def _fetch_cross_analysis(
         self,

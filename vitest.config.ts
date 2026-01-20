@@ -77,17 +77,15 @@ export default defineConfig({
         "src/types/**",
         "src/generated/**",
       ],
-      // Coverage thresholds - baseline to prevent regressions
-      // Will gradually increase as we add more tests
-      // Updated 2026-01-18: Adjusted to realistic baseline based on actual coverage
-      // Current: lines 31%, functions 72%, branches 79%, statements 31%
-      // Note: Many src/lib files have duplicate entries (v8 provider quirk)
-      // Target: Gradually increase as more tests are added
+      // Coverage thresholds - Acceptance Criteria Target
+      // Updated 2026-01-20: Set to acceptance criteria targets
+      // Target: 60% overall coverage (lines/statements)
+      // Note: functions/branches already exceed 60%
       thresholds: {
-        lines: 30,
+        lines: 60,
         functions: 70,
         branches: 75,
-        statements: 30,
+        statements: 60,
       },
     },
     // Test timeouts

@@ -165,8 +165,8 @@ class AlertManager:
     def __init__(self, logger: StructuredLogger):
         self.logger = logger
         self.alert_thresholds = {
-            "response_time_ms": 5000,  # 5 seconds
-            "error_rate_percent": 10,   # 10% error rate
+            "response_time_ms": 700,    # 700ms p95 target (acceptance criteria)
+            "error_rate_percent": 0.5,  # 0.5% error rate (acceptance criteria)
             "memory_usage_mb": 450      # 450MB threshold for alerting
         }
 
@@ -264,8 +264,9 @@ def get_system_health() -> Dict[str, Any]:
         reverse=True
     )[:5]
 
+    # Status thresholds aligned with acceptance criteria (error rate < 0.5%)
     health_status = {
-        "status": "healthy" if error_rate < 5 else "degraded" if error_rate < 10 else "critical",
+        "status": "healthy" if error_rate < 0.5 else "degraded" if error_rate < 1 else "critical",
         "timestamp": datetime.utcnow().isoformat(),
         "metrics": {
             "total_requests": total_requests,

@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import BackButton from '@/components/ui/BackButton';
 import CreditBadge from '@/components/ui/CreditBadge';
-import { CARD_COLORS, type CardColorOption } from '@/lib/tarot/tarotThemeConfig';
+import { CARD_COLORS, type CardColorOption } from '@/lib/Tarot/tarotThemeConfig';
 import type { Spread } from '@/lib/Tarot/tarot.types';
 import styles from './DeckSelectionScreen.module.css';
 

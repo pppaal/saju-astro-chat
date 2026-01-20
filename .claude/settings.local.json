@@ -182,7 +182,8 @@
       "Bash(for f in src/lib/auth/authOptions.ts src/lib/security/csrf.ts src/lib/api/validation.ts src/lib/api/sanitizers.ts src/lib/db/prisma.ts src/lib/streaming/StreamProcessor.ts)",
       "Bash(do if [ -f \"$f\" ])",
       "Bash(for f in src/lib/email/templates/paymentFailed.ts src/lib/email/templates/subscriptionCancelled.ts src/lib/email/templates/subscriptionConfirm.ts)",
-      "Bash(if exist .next rmdir /s /q .next)"
+      "Bash(if exist .next rmdir /s /q .next)",
+      "Bash(npm run security:owasp:*)"
     ],
     "deny": [],
     "ask": []

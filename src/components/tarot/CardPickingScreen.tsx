@@ -1,7 +1,7 @@
 import React from 'react';
 import BackButton from '@/components/ui/BackButton';
 import type { Spread } from '@/lib/Tarot/tarot.types';
-import type { CardColorOption } from '@/lib/tarot/tarotThemeConfig';
+import type { CardColorOption } from '@/lib/Tarot/tarotThemeConfig';
 import styles from './CardPickingScreen.module.css';
 
 interface CardPickingScreenProps {

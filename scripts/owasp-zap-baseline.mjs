@@ -1,5 +1,5 @@
 ﻿import { spawnSync } from "node:child_process";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 const target =
@@ -10,7 +10,10 @@ const target =
 const reportDir = resolve(process.env.OWASP_REPORT_DIR || "reports/owasp");
 mkdirSync(reportDir, { recursive: true });
 
-const image = process.env.OWASP_ZAP_IMAGE || "owasp/zap2docker-stable";
+const rulesFile = resolve(".zap/rules.tsv");
+const hasRulesFile = existsSync(rulesFile);
+
+const image = process.env.OWASP_ZAP_IMAGE || "ghcr.io/zaproxy/zaproxy:stable";
 const dockerArgs = (process.env.OWASP_DOCKER_ARGS || "")
   .split(" ")
   .map(arg => arg.trim())
@@ -20,6 +23,12 @@ const extraArgs = (process.env.OWASP_ZAP_ARGS || "")
   .map(arg => arg.trim())
   .filter(Boolean);
 
+// Add rules file mounting if it exists
+const rulesMount = hasRulesFile
+  ? ["-v", `${rulesFile}:/zap/rules.tsv:ro`]
+  : [];
+const rulesArgs = hasRulesFile ? ["-c", "/zap/rules.tsv"] : [];
+
 const args = [
   "run",
   "--rm",
@@ -27,6 +36,7 @@ const args = [
   ...dockerArgs,
   "-v",
   `${reportDir}:/zap/wrk`,
+  ...rulesMount,
   image,
   "zap-baseline.py",
   "-t",
@@ -37,6 +47,7 @@ const args = [
   "zap-baseline.json",
   "-w",
   "zap-baseline.md",
+  ...rulesArgs,
   ...extraArgs,
 ];
 

@@ -46,6 +46,19 @@ export const MetricLabels = {
 } as const;
 
 // ============================================================
+// SLA Thresholds (Acceptance Criteria)
+// ============================================================
+
+export const SLA_THRESHOLDS = {
+  /** p95 API response time must be under 700ms */
+  P95_LATENCY_MS: 700,
+  /** Error rate must be under 0.5% */
+  ERROR_RATE_PERCENT: 0.5,
+  /** Test coverage target */
+  TEST_COVERAGE_PERCENT: 60,
+} as const;
+
+// ============================================================
 // Metric Definitions (Registry)
 // ============================================================
 
@@ -307,12 +320,14 @@ export interface DashboardSummary {
     totalRequests: number;
     errorRate: number;
     avgLatencyMs: number;
+    p95LatencyMs: number;
     activeUsers: number;
   };
   services: Record<string, {
     requests: number;
     errors: number;
     avgLatencyMs: number;
+    p95LatencyMs?: number;
   }>;
   topErrors: Array<{
     service: string;

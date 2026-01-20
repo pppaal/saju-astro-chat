@@ -215,13 +215,13 @@ def print_results(results: Dict[str, Any]) -> None:
         print(f"\nPercentiles:")
         print(f"  p50: {stats['p50_ms']:.1f}ms")
         print(f"  p90: {stats['p90_ms']:.1f}ms")
-        print(f"  p95: {stats['p95_ms']:.1f}ms ← TARGET")
+        print(f"  p95: {stats['p95_ms']:.1f}ms <-- TARGET")
         print(f"  p99: {stats['p99_ms']:.1f}ms")
 
         print(f"\nTarget Check:")
         target = results.get("target_ms", 700)
         p95 = stats["p95_ms"]
-        status = "✅ PASS" if results.get("target_met") else "❌ FAIL"
+        status = "PASS" if results.get("target_met") else "FAIL"
         print(f"  p95 ({p95:.1f}ms) < {target}ms: {status}")
 
     if results.get("errors"):

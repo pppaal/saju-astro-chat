@@ -370,6 +370,7 @@ export async function POST(req: NextRequest) {
   } catch (e: unknown) {
     const error = e instanceof Error ? e : new Error(String(e));
     captureServerError(error, { route: "/api/dream", method: "POST" });
+    recordApiRequest('dream', 'analyze', 'error', Date.now() - startTime);
     return NextResponse.json(
       { error: error.message || "server error" },
       { status: 500 }
