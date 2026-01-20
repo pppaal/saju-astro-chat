@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import styles from './SearchBar.module.css';
 
 interface ServiceOption {
@@ -22,10 +22,10 @@ interface SearchBarProps {
   hints: string[];
   t: (key: string) => string;
   translate: (key: string, fallback: string) => string;
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export function SearchBar({
+export const SearchBar = React.memo(function SearchBar({
   lifeQuestion,
   typingPlaceholder,
   showServiceSelector,
@@ -42,6 +42,12 @@ export function SearchBar({
   translate,
   containerRef,
 }: SearchBarProps) {
+  // Memoize selected service icon to avoid recalculation on every render
+  const selectedIcon = useMemo(
+    () => serviceOptions.find((s) => s.key === selectedService)?.icon || '🌟',
+    [serviceOptions, selectedService]
+  );
+
   return (
     <div className={styles.questionSearchContainer} ref={containerRef}>
       <form onSubmit={onSubmit} className={styles.questionSearchForm}>
@@ -54,7 +60,7 @@ export function SearchBar({
             title={translate('landing.selectService', '서비스 선택')}
           >
             <span className={styles.serviceSelectIcon}>
-              {serviceOptions.find((s) => s.key === selectedService)?.icon || '🌟'}
+              {selectedIcon}
             </span>
             <span className={styles.serviceSelectArrow}>▼</span>
           </button>
@@ -118,4 +124,4 @@ export function SearchBar({
       </div>
     </div>
   );
-}
+});

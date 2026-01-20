@@ -181,7 +181,8 @@
       "Bash(for file in c:devsaju-astro-chatsrclibpredictionadvancedTimingEngine.ts c:devsaju-astro-chatsrclibpredictiondaeunTransitSync.ts c:devsaju-astro-chatsrclibpredictionprecisionEngine.ts c:devsaju-astro-chatsrclibpredictionspecificDateEngine.ts c:devsaju-astro-chatsrclibpredictiontier6Analysis.ts c:devsaju-astro-chatsrclibpredictiontier7To10Analysis.ts c:devsaju-astro-chatsrclibpredictiontimingScore.ts c:devsaju-astro-chatsrclibpredictionlifePredictionEngine.ts c:devsaju-astro-chatsrclibpredictionultraPrecisionEngine.ts c:devsaju-astro-chatsrclibpredictionlife-prediction-helpers.ts c:devsaju-astro-chatsrclibpredictionultra-precision-helpers.ts)",
       "Bash(for f in src/lib/auth/authOptions.ts src/lib/security/csrf.ts src/lib/api/validation.ts src/lib/api/sanitizers.ts src/lib/db/prisma.ts src/lib/streaming/StreamProcessor.ts)",
       "Bash(do if [ -f \"$f\" ])",
-      "Bash(for f in src/lib/email/templates/paymentFailed.ts src/lib/email/templates/subscriptionCancelled.ts src/lib/email/templates/subscriptionConfirm.ts)"
+      "Bash(for f in src/lib/email/templates/paymentFailed.ts src/lib/email/templates/subscriptionCancelled.ts src/lib/email/templates/subscriptionConfirm.ts)",
+      "Bash(if exist .next rmdir /s /q .next)"
     ],
     "deny": [],
     "ask": []

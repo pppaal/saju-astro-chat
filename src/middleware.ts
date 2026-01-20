@@ -4,24 +4,17 @@ import type { NextRequest } from 'next/server';
 
 /**
  * Generate a cryptographically secure nonce for CSP
+ * Uses Web Crypto API for secure random generation
  */
 function generateNonce(): string {
-  // Generate 16 random bytes and convert to base64
   const array = new Uint8Array(16);
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    crypto.getRandomValues(array);
-  } else {
-    // Fallback for environments without crypto.getRandomValues
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 256);
-    }
-  }
+  crypto.getRandomValues(array);
   return Buffer.from(array).toString('base64');
 }
 
 /**
  * Middleware to inject CSP nonce into requests and set CSP headers
- * This allows us to use nonce-based CSP instead of unsafe-inline
+ * Implements strict nonce-based CSP for scripts and styles
  */
 export function middleware(request: NextRequest) {
   const nonce = generateNonce();
@@ -41,33 +34,65 @@ export function middleware(request: NextRequest) {
   // Add nonce to response headers for use in layout
   response.headers.set('x-nonce', nonce);
 
-  // Set Content-Security-Policy with nonce
-  const cspHeader = [
+  // Build CSP directives
+  const cspDirectives: string[] = [
+    // Default fallback
     "default-src 'self'",
-    // Use nonce instead of unsafe-inline/unsafe-eval for scripts
-    `script-src 'self' 'nonce-${nonce}' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.clarity.ms https://va.vercel-scripts.com https://cdnjs.cloudflare.com https://t1.kakaocdn.net`,
+
+    // Scripts: nonce-based with strict-dynamic for trusted script loading
+    // 'strict-dynamic' allows scripts loaded by trusted scripts to execute
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.clarity.ms https://va.vercel-scripts.com https://cdnjs.cloudflare.com https://t1.kakaocdn.net`,
+
+    // Workers
     "worker-src 'self' blob: https://cdnjs.cloudflare.com",
-    // Keep unsafe-inline for styles as it's commonly needed for styled-components, etc.
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+
+    // Styles: nonce-based with unsafe-inline fallback for React inline styles
+    // Note: React uses inline style objects which require unsafe-inline
+    // In production, consider using CSS-in-JS libraries with nonce support
+    `style-src 'self' 'nonce-${nonce}' 'unsafe-inline' https://fonts.googleapis.com`,
+
+    // Fonts
     "font-src 'self' https://fonts.gstatic.com data:",
+
+    // Images: allow data URIs and blobs for generated content
     `img-src 'self' data: blob: https:${!isProd ? ' http:' : ''}`,
-    `connect-src 'self' https://api.destinypal.com https://*.sentry.io ${isProd ? 'https://api.openai.com' : 'http://localhost:* https://api.openai.com'}`,
+
+    // API connections
+    `connect-src 'self' https://api.destinypal.com https://*.sentry.io https://www.google-analytics.com https://region1.google-analytics.com ${isProd ? 'https://api.openai.com wss://api.openai.com' : 'http://localhost:* https://api.openai.com wss://api.openai.com'}`,
+
+    // Prevent framing (clickjacking protection)
     "frame-ancestors 'none'",
+
+    // Restrict base URI to prevent base tag injection
     "base-uri 'self'",
+
+    // Restrict form submissions
     "form-action 'self'",
+
+    // Object/embed restrictions (prevent Flash, etc.)
+    "object-src 'none'",
+
+    // Upgrade HTTP to HTTPS
     "upgrade-insecure-requests",
-  ].join('; ');
+  ];
 
-  response.headers.set('Content-Security-Policy', cspHeader);
+  // Report violations in production (optional - requires report endpoint)
+  if (isProd && process.env.CSP_REPORT_URI) {
+    cspDirectives.push(`report-uri ${process.env.CSP_REPORT_URI}`);
+  }
 
-  // Add other security headers
+  response.headers.set('Content-Security-Policy', cspDirectives.join('; '));
+
+  // Additional security headers
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
 
+  // HSTS in production
   if (isProd) {
-    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   }
 
   return response;

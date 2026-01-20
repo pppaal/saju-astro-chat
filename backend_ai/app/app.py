@@ -485,35 +485,60 @@ def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale
 def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat", locale: str = "ko") -> dict:
     """
     Pre-fetch relevant data from ALL RAG systems for a user's chart.
-    Uses parallel execution for ~3x speedup (1500ms → 500ms).
+    Uses OptimizedRAGManager for better performance (target: p95 < 700ms).
 
-    This function now uses the async ThreadSafeRAGManager under the hood.
-    It wraps the async call in asyncio.run() for backward compatibility.
+    This function uses the new OptimizedRAGManager which provides:
+    - Query result caching with LRU + TTL
+    - Pre-warmed embedding caches
+    - Connection pooling
+    - Circuit breaker for resilience
 
     Returns:
         Dict with all pre-fetched RAG data
     """
     import asyncio
-    from backend_ai.app.rag_manager import prefetch_all_rag_data_async
 
-    # Check if we're already in an event loop
+    # Use OptimizedRAGManager for better performance
     try:
-        loop = asyncio.get_running_loop()
-        # We're in an async context, create a task
-        # Note: This won't work well in Flask - should use async routes
-        logger.warning("[PREFETCH] Called from async context - consider using prefetch_all_rag_data_async() directly")
-        # Fallback: use run_until_complete on a new loop (not ideal)
-        new_loop = asyncio.new_event_loop()
+        from backend_ai.app.rag.optimized_manager import fetch_all_rag_data_optimized
+
+        # Check if we're already in an event loop
         try:
-            result = new_loop.run_until_complete(
-                prefetch_all_rag_data_async(saju_data, astro_data, theme, locale)
+            loop = asyncio.get_running_loop()
+            # We're in an async context - this shouldn't happen in Flask
+            # but handle gracefully
+            logger.warning("[PREFETCH] Called from async context - creating new loop")
+            new_loop = asyncio.new_event_loop()
+            try:
+                result = new_loop.run_until_complete(
+                    fetch_all_rag_data_optimized(saju_data, astro_data, theme, locale)
+                )
+            finally:
+                new_loop.close()
+            return result
+        except RuntimeError:
+            # No event loop running - safe to use asyncio.run()
+            return asyncio.run(
+                fetch_all_rag_data_optimized(saju_data, astro_data, theme, locale)
             )
-        finally:
-            new_loop.close()
-        return result
-    except RuntimeError:
-        # No event loop running - safe to use asyncio.run()
-        return asyncio.run(prefetch_all_rag_data_async(saju_data, astro_data, theme, locale))
+
+    except ImportError:
+        # Fallback to old rag_manager if optimized not available
+        logger.warning("[PREFETCH] OptimizedRAGManager not available, using fallback")
+        from backend_ai.app.rag_manager import prefetch_all_rag_data_async
+
+        try:
+            loop = asyncio.get_running_loop()
+            new_loop = asyncio.new_event_loop()
+            try:
+                result = new_loop.run_until_complete(
+                    prefetch_all_rag_data_async(saju_data, astro_data, theme, locale)
+                )
+            finally:
+                new_loop.close()
+            return result
+        except RuntimeError:
+            return asyncio.run(prefetch_all_rag_data_async(saju_data, astro_data, theme, locale))
 
 # get_session_rag_cache and set_session_rag_cache are imported from cache_service
 
@@ -521,8 +546,13 @@ def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat"
 # 🚀 MODEL WARMUP - Moved to startup/warmup.py
 # ===============================================================
 # Auto-warmup on import (now uses startup package)
+# Use WARMUP_OPTIMIZED=1 for new OptimizedRAGManager warmup
 if os.getenv("WARMUP_ON_START", "").lower() in ("1", "true", "yes"):
-    warmup_models()
+    if os.getenv("WARMUP_OPTIMIZED", "").lower() in ("1", "true", "yes"):
+        from backend_ai.app.startup.warmup import warmup_optimized
+        warmup_optimized()
+    else:
+        warmup_models()
 
 # ===============================================================
 # AUTH + RATE LIMITING - Using Redis-backed service
@@ -686,7 +716,12 @@ if __name__ == "__main__":
     logger.info(f"Flask server starting on http://127.0.0.1:{port}")
     logger.info(f"Capabilities: realtime={HAS_REALTIME}, charts={HAS_CHARTS}, memory={HAS_USER_MEMORY}, persona={HAS_PERSONA_EMBED}, tarot={HAS_TAROT}, rlhf={HAS_RLHF}, badges={HAS_BADGES}, agentic={HAS_AGENTIC}, prediction={HAS_PREDICTION}, theme_filter={HAS_THEME_FILTER}, fortune_score={HAS_FORTUNE_SCORE}, compatibility={HAS_COMPATIBILITY}, hybrid_rag={HAS_HYBRID_RAG}, domain_rag={HAS_DOMAIN_RAG}")
 
-    # 🚀 Warmup models before accepting requests
-    warmup_models()
+    # 🚀 Use optimized warmup for better performance (p95 < 700ms target)
+    try:
+        from backend_ai.app.startup.warmup import warmup_optimized
+        warmup_optimized()
+    except ImportError:
+        logger.warning("Optimized warmup not available, using legacy warmup")
+        warmup_models()
 
     app.run(host="0.0.0.0", port=port, debug=True)

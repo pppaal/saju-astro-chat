@@ -9,6 +9,7 @@ Modules:
 - model_manager: 공유 SentenceTransformer 모델 관리
 - base: BaseEmbeddingRAG, BaseHybridRAG 추상 클래스
 - context_builder: LLM 프롬프트용 컨텍스트 빌더
+- optimized_manager: 고성능 병렬 RAG 매니저 (p95 < 700ms 목표)
 
 Usage:
     from backend_ai.app.rag import BaseEmbeddingRAG, RAGResult
@@ -17,6 +18,11 @@ Usage:
         def _load_data(self):
             # Load your data here
             pass
+
+    # Optimized parallel RAG fetch
+    from backend_ai.app.rag import get_optimized_rag_manager
+    manager = get_optimized_rag_manager()
+    result = await manager.fetch_all(saju_data, astro_data, theme, locale)
 
 Implementations (inherit from BaseEmbeddingRAG):
 - CorpusRAG: Jung quotes retrieval (corpus_rag.py)
@@ -36,6 +42,16 @@ from .base import BaseEmbeddingRAG, BaseHybridRAG
 # Context builder
 from .context_builder import RAGContextBuilder, build_rag_context
 
+# Optimized manager
+from .optimized_manager import (
+    OptimizedRAGManager,
+    get_optimized_rag_manager,
+    fetch_all_rag_data_optimized,
+    warmup_optimized_rag,
+    RAGConfig,
+    TTLLRUCache,
+)
+
 __all__ = [
     # Types
     "RAGResult",
@@ -51,4 +67,11 @@ __all__ = [
     # Context builder
     "RAGContextBuilder",
     "build_rag_context",
+    # Optimized manager
+    "OptimizedRAGManager",
+    "get_optimized_rag_manager",
+    "fetch_all_rag_data_optimized",
+    "warmup_optimized_rag",
+    "RAGConfig",
+    "TTLLRUCache",
 ]

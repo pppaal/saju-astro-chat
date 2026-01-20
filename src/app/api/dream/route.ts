@@ -10,6 +10,8 @@ import { saveConsultation, extractSummary } from '@/lib/consultation/saveConsult
 import { withCircuitBreaker } from '@/lib/circuitBreaker';
 import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits';
 import { logger } from '@/lib/logger';
+import { DreamRequestSchema, type DreamRequest } from '@/lib/validation';
+import { recordApiRequest } from '@/lib/metrics/index';
 
 type SymbolCombination = {
   combination: string;
@@ -142,36 +144,58 @@ const CIRCUIT_BREAKER_OPTIONS = {
 };
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
   const ip = getClientIp(req.headers);
   const limit = await rateLimit(`dream:${ip}`, { limit: 10, windowSeconds: 60 });
 
   if (!limit.allowed) {
+    recordApiRequest('dream', 'analyze', 'rate_limited');
     return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers: limit.headers });
   }
 
-  const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
+  const tokenCheck = requirePublicToken(req);
+  if (!tokenCheck.valid) {
+    recordApiRequest('dream', 'analyze', 'error');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: limit.headers });
   }
 
   try {
-    const body = await req.json();
-    const dream = body.dream || body.dreamText;
-
-    if (!dream || typeof dream !== 'string' || dream.trim().length < 10) {
+    // Parse and validate request body using Zod schema
+    const rawBody = await req.json().catch(() => null);
+    if (!rawBody) {
+      recordApiRequest('dream', 'analyze', 'validation_error');
       return NextResponse.json(
-        { error: 'Please provide a detailed dream description (at least 10 characters)' },
+        { error: 'Invalid JSON body' },
         { status: 400, headers: limit.headers }
       );
     }
 
-    const ALLOWED_LOCALES = ['ko', 'en', 'ja', 'zh', 'es', 'fr', 'de', 'pt', 'ru'] as const;
-    const acceptLanguage = req.headers.get('accept-language') || '';
-    const rawLocale = body.locale ||
-      (acceptLanguage.includes('ko') ? 'ko' :
-       acceptLanguage.includes('ja') ? 'ja' :
-       acceptLanguage.includes('zh') ? 'zh' : 'en');
-    // Validate locale to prevent injection attacks
-    const locale = ALLOWED_LOCALES.includes(rawLocale) ? rawLocale : 'en';
+    // Support legacy field name
+    if (rawBody.dreamText && !rawBody.dream) {
+      rawBody.dream = rawBody.dreamText;
+    }
+
+    // Detect locale from headers if not provided
+    if (!rawBody.locale) {
+      const acceptLanguage = req.headers.get('accept-language') || '';
+      rawBody.locale = acceptLanguage.includes('ko') ? 'ko' :
+                       acceptLanguage.includes('ja') ? 'ja' :
+                       acceptLanguage.includes('zh') ? 'zh' : 'en';
+    }
+
+    // Validate with Zod schema
+    const validation = DreamRequestSchema.safeParse(rawBody);
+    if (!validation.success) {
+      const errors = validation.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+      recordApiRequest('dream', 'analyze', 'validation_error');
+      return NextResponse.json(
+        { error: `Validation failed: ${errors}` },
+        { status: 400, headers: limit.headers }
+      );
+    }
+
+    const validatedBody: DreamRequest = validation.data;
+    const { dream, locale, symbols, emotions, themes, context, birth } = validatedBody;
 
     const creditResult = await checkAndConsumeCredits("reading", 1);
     if (!creditResult.allowed) {
@@ -255,22 +279,22 @@ export async function POST(req: NextRequest) {
             'Authorization': `Bearer ${process.env.ADMIN_API_TOKEN || ''}`,
           },
           body: JSON.stringify({
-            dream: dream,
-            symbols: body.symbols || [],
-            emotions: body.emotions || [],
-            themes: body.themes || [],
-            context: body.context || [],
+            dream,
+            symbols: symbols || [],
+            emotions: emotions || [],
+            themes: themes || [],
+            context: context || [],
             locale,
-            koreanTypes: body.koreanTypes || [],
-            koreanLucky: body.koreanLucky || [],
-            chinese: body.chinese || [],
-            islamicTypes: body.islamicTypes || [],
-            islamicBlessed: body.islamicBlessed || [],
-            western: body.western || [],
-            hindu: body.hindu || [],
-            nativeAmerican: body.nativeAmerican || [],
-            japanese: body.japanese || [],
-            birth: body.birth,
+            koreanTypes: rawBody.koreanTypes || [],
+            koreanLucky: rawBody.koreanLucky || [],
+            chinese: rawBody.chinese || [],
+            islamicTypes: rawBody.islamicTypes || [],
+            islamicBlessed: rawBody.islamicBlessed || [],
+            western: rawBody.western || [],
+            hindu: rawBody.hindu || [],
+            nativeAmerican: rawBody.nativeAmerican || [],
+            japanese: rawBody.japanese || [],
+            birth,
           }),
           signal: AbortSignal.timeout(30000),
         });
@@ -319,9 +343,9 @@ export async function POST(req: NextRequest) {
           summary: extractSummary(response.summary || dream.substring(0, 100)),
           fullReport,
           signals: {
-            symbols: body.symbols,
-            emotions: body.emotions,
-            themes: body.themes,
+            symbols,
+            emotions,
+            themes,
             dreamSymbols: response.dreamSymbols,
             luckyElements: response.luckyElements,
             premiumFeatures: response.premiumFeatures,
@@ -335,6 +359,9 @@ export async function POST(req: NextRequest) {
     } catch (saveErr) {
       logger.warn('[Dream API] Failed to save dream:', saveErr);
     }
+
+    // Record successful request with timing
+    recordApiRequest('dream', 'analyze', 'success', Date.now() - startTime);
 
     const res = NextResponse.json({ ...response, saved, fromFallback });
     limit.headers.forEach((value, key) => res.headers.set(key, value));

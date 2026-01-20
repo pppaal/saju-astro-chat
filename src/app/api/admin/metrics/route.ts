@@ -1,0 +1,223 @@
+/**
+ * Admin Metrics Dashboard API
+ *
+ * GET /api/admin/metrics - Get metrics dashboard data
+ * GET /api/admin/metrics?format=prometheus - Get Prometheus format
+ * GET /api/admin/metrics?format=otlp - Get OTLP JSON format
+ */
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth/authOptions";
+import { rateLimit } from "@/lib/rateLimit";
+import { getClientIp } from "@/lib/request-ip";
+import {
+  getMetricsSnapshot,
+  toPrometheus,
+  toOtlp,
+  DashboardRequestSchema,
+  type DashboardSummary,
+  type DashboardTimeRange,
+} from "@/lib/metrics/index";
+import { logger } from "@/lib/logger";
+
+// Admin emails allowed to access metrics
+const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(",").map((e) => e.trim().toLowerCase()) || [];
+
+export async function GET(req: NextRequest) {
+  try {
+    // Rate limit
+    const ip = getClientIp(req.headers);
+    const limit = await rateLimit(`metrics:${ip}`, { limit: 30, windowSeconds: 60 });
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429, headers: limit.headers }
+      );
+    }
+
+    // Admin authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
+    }
+
+    const isAdmin = ADMIN_EMAILS.includes(session.user.email.toLowerCase());
+    if (!isAdmin) {
+      logger.warn("[Metrics] Unauthorized access attempt", { email: session.user.email });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403, headers: limit.headers });
+    }
+
+    // Parse query parameters
+    const { searchParams } = new URL(req.url);
+    const format = searchParams.get("format") || "json";
+    const timeRange = (searchParams.get("timeRange") || "24h") as DashboardTimeRange;
+
+    // Validate request
+    const validationResult = DashboardRequestSchema.safeParse({
+      timeRange,
+      includeRaw: searchParams.get("includeRaw") === "true",
+    });
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: "Invalid parameters", details: validationResult.error.flatten() },
+        { status: 400, headers: limit.headers }
+      );
+    }
+
+    // Return raw formats
+    if (format === "prometheus") {
+      const prometheusData = toPrometheus();
+      return new NextResponse(prometheusData, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          ...Object.fromEntries(limit.headers),
+        },
+      });
+    }
+
+    if (format === "otlp") {
+      const otlpData = toOtlp();
+      return NextResponse.json(otlpData, { headers: limit.headers });
+    }
+
+    // Generate dashboard summary
+    const snapshot = getMetricsSnapshot();
+    const summary = generateDashboardSummary(snapshot, timeRange);
+
+    const response: {
+      success: boolean;
+      data: DashboardSummary;
+      raw?: ReturnType<typeof getMetricsSnapshot>;
+    } = {
+      success: true,
+      data: summary,
+    };
+
+    if (validationResult.data.includeRaw) {
+      response.raw = snapshot;
+    }
+
+    return NextResponse.json(response, { headers: limit.headers });
+  } catch (err) {
+    logger.error("[Metrics API Error]", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+/**
+ * Generate dashboard summary from metrics snapshot
+ */
+function generateDashboardSummary(
+  snapshot: ReturnType<typeof getMetricsSnapshot>,
+  timeRange: DashboardTimeRange
+): DashboardSummary {
+  const { counters, timings, gauges } = snapshot;
+
+  // Calculate overview metrics
+  let totalRequests = 0;
+  let totalErrors = 0;
+  let totalLatencySum = 0;
+  let totalLatencyCount = 0;
+
+  const serviceMetrics: Record<string, { requests: number; errors: number; latencySum: number; latencyCount: number }> = {};
+  const errorCounts: Record<string, number> = {};
+  const creditsByService: Record<string, number> = {};
+
+  // Process counters
+  for (const counter of counters) {
+    const name = counter.name;
+    const labels = counter.labels || {};
+
+    // API requests
+    if (name.includes("request") || name.includes("total")) {
+      totalRequests += counter.value;
+
+      const service = String(labels.service || labels.theme || "unknown");
+      if (!serviceMetrics[service]) {
+        serviceMetrics[service] = { requests: 0, errors: 0, latencySum: 0, latencyCount: 0 };
+      }
+      serviceMetrics[service].requests += counter.value;
+    }
+
+    // Errors
+    if (name.includes("error") || name.includes("fail") || labels.status === "error") {
+      totalErrors += counter.value;
+
+      const service = String(labels.service || labels.theme || "unknown");
+      if (serviceMetrics[service]) {
+        serviceMetrics[service].errors += counter.value;
+      }
+
+      const errorKey = `${service}:${labels.error_category || "unknown"}`;
+      errorCounts[errorKey] = (errorCounts[errorKey] || 0) + counter.value;
+    }
+
+    // Credits
+    if (name.includes("credit")) {
+      const service = String(labels.service || "unknown");
+      creditsByService[service] = (creditsByService[service] || 0) + counter.value;
+    }
+  }
+
+  // Process timings
+  for (const timing of timings) {
+    const labels = timing.labels || {};
+    const service = String(labels.service || labels.theme || "unknown");
+
+    totalLatencySum += timing.sum;
+    totalLatencyCount += timing.count;
+
+    if (serviceMetrics[service]) {
+      serviceMetrics[service].latencySum += timing.sum;
+      serviceMetrics[service].latencyCount += timing.count;
+    }
+  }
+
+  // Process gauges for active users
+  let activeUsers = 0;
+  for (const gauge of gauges) {
+    if (gauge.name.includes("session") || gauge.name.includes("active")) {
+      activeUsers += gauge.value;
+    }
+  }
+
+  // Build service summary
+  const services: DashboardSummary["services"] = {};
+  for (const [service, metrics] of Object.entries(serviceMetrics)) {
+    if (service === "unknown") continue;
+    services[service] = {
+      requests: metrics.requests,
+      errors: metrics.errors,
+      avgLatencyMs: metrics.latencyCount > 0 ? Math.round(metrics.latencySum / metrics.latencyCount) : 0,
+    };
+  }
+
+  // Build top errors list
+  const topErrors: DashboardSummary["topErrors"] = Object.entries(errorCounts)
+    .map(([key, count]) => {
+      const [service, category] = key.split(":");
+      return { service, category, count };
+    })
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  return {
+    timeRange,
+    timestamp: new Date().toISOString(),
+    overview: {
+      totalRequests,
+      errorRate: totalRequests > 0 ? Number((totalErrors / totalRequests * 100).toFixed(2)) : 0,
+      avgLatencyMs: totalLatencyCount > 0 ? Math.round(totalLatencySum / totalLatencyCount) : 0,
+      activeUsers,
+    },
+    services,
+    topErrors,
+    credits: {
+      totalUsed: Object.values(creditsByService).reduce((sum, v) => sum + v, 0),
+      byService: creditsByService,
+    },
+  };
+}
