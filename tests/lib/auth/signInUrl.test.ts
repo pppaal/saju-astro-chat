@@ -1,65 +1,108 @@
-import { describe, it, expect } from 'vitest';
+/**
+ * SignInUrl Tests
+ * Tests for sign-in URL building utilities
+ */
 
-describe('SignIn URL Module', () => {
-  it('should export DEFAULT_SIGNIN_PATH constant', async () => {
-    const { DEFAULT_SIGNIN_PATH } = await import('@/lib/auth/signInUrl');
-    expect(DEFAULT_SIGNIN_PATH).toBe('/auth/signin');
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { buildSignInUrl, DEFAULT_SIGNIN_PATH } from "@/lib/auth/signInUrl";
+
+describe("buildSignInUrl", () => {
+  describe("DEFAULT_SIGNIN_PATH", () => {
+    it("exports default sign-in path", () => {
+      expect(DEFAULT_SIGNIN_PATH).toBe("/auth/signin");
+    });
   });
 
-  it('should export buildSignInUrl function', async () => {
-    const { buildSignInUrl } = await import('@/lib/auth/signInUrl');
-    expect(typeof buildSignInUrl).toBe('function');
-  });
-});
+  describe("without callback URL", () => {
+    it("uses window location when available and no callback provided", () => {
+      // In happy-dom environment, window exists
+      // The function will use window.location as the callback
+      const result = buildSignInUrl();
 
-describe('buildSignInUrl', () => {
-  it('should return signin path (with callbackUrl in jsdom environment)', async () => {
-    const { buildSignInUrl, DEFAULT_SIGNIN_PATH } = await import('@/lib/auth/signInUrl');
-    // Provide explicit callbackUrl to avoid relying on window.location
-    const result = buildSignInUrl('/test');
-    expect(result).toContain(DEFAULT_SIGNIN_PATH);
-  });
+      expect(result).toContain("/auth/signin");
+      // When window exists, it adds a callbackUrl
+      expect(result).toContain("callbackUrl=");
+    });
 
-  it('should include callback URL with auth refresh', async () => {
-    const { buildSignInUrl } = await import('@/lib/auth/signInUrl');
-    const result = buildSignInUrl('/dashboard');
-    expect(result).toContain('/auth/signin');
-    expect(result).toContain('callbackUrl=');
-    expect(result).toContain('authRefresh');
-  });
+    it("uses custom window location when set", () => {
+      const originalLocation = window.location;
+      Object.defineProperty(window, "location", {
+        value: {
+          pathname: "/dashboard",
+          search: "?tab=profile",
+          hash: "#section",
+        },
+        writable: true,
+        configurable: true,
+      });
 
-  it('should handle URL with existing query params', async () => {
-    const { buildSignInUrl } = await import('@/lib/auth/signInUrl');
-    const result = buildSignInUrl('/page?foo=bar');
-    expect(result).toContain('callbackUrl=');
-    expect(result).toContain('authRefresh');
-  });
+      const result = buildSignInUrl();
 
-  it('should handle absolute URLs', async () => {
-    const { buildSignInUrl } = await import('@/lib/auth/signInUrl');
-    const result = buildSignInUrl('https://example.com/page');
-    expect(result).toContain('/auth/signin');
-    expect(result).toContain('callbackUrl=');
-  });
+      expect(result).toContain("/auth/signin");
+      expect(result).toContain("callbackUrl=");
+      expect(result).toContain(encodeURIComponent("/dashboard"));
 
-  it('should not duplicate authRefresh param', async () => {
-    const { buildSignInUrl } = await import('@/lib/auth/signInUrl');
-    const result = buildSignInUrl('/page?authRefresh=1');
-    const decoded = decodeURIComponent(result);
-    const authRefreshCount = (decoded.match(/authRefresh/g) || []).length;
-    expect(authRefreshCount).toBe(1);
+      Object.defineProperty(window, "location", {
+        value: originalLocation,
+        writable: true,
+        configurable: true,
+      });
+    });
   });
 
-  it('should preserve hash fragments', async () => {
-    const { buildSignInUrl } = await import('@/lib/auth/signInUrl');
-    const result = buildSignInUrl('/page#section');
-    expect(decodeURIComponent(result)).toContain('#section');
+  describe("with callback URL", () => {
+    it("builds URL with relative callback", () => {
+      const result = buildSignInUrl("/profile");
+
+      expect(result).toBe("/auth/signin?callbackUrl=%2Fprofile%3FauthRefresh%3D1");
+    });
+
+    it("builds URL with callback containing query params", () => {
+      const result = buildSignInUrl("/page?existing=param");
+
+      expect(result).toContain("/auth/signin");
+      expect(result).toContain("callbackUrl=");
+      expect(result).toContain(encodeURIComponent("authRefresh=1"));
+    });
+
+    it("builds URL with absolute callback", () => {
+      const result = buildSignInUrl("https://example.com/page");
+
+      expect(result).toContain("/auth/signin");
+      expect(result).toContain("callbackUrl=");
+      expect(result).toContain(encodeURIComponent("https://example.com"));
+    });
+
+    it("preserves hash in callback URL", () => {
+      const result = buildSignInUrl("/page#section");
+
+      expect(result).toContain("callbackUrl=");
+      expect(result).toContain(encodeURIComponent("#section"));
+    });
+
+    it("does not add authRefresh if already present", () => {
+      const result = buildSignInUrl("/page?authRefresh=1");
+
+      const decoded = decodeURIComponent(result);
+      const matches = decoded.match(/authRefresh/g);
+      expect(matches).toHaveLength(1);
+    });
   });
 
-  it('should URL encode the callback URL', async () => {
-    const { buildSignInUrl } = await import('@/lib/auth/signInUrl');
-    const result = buildSignInUrl('/page?key=value&other=test');
-    expect(result).toContain('callbackUrl=');
-    expect(result).toContain('%2F');
+  describe("edge cases", () => {
+    it("handles empty string callback - uses window.location", () => {
+      // In happy-dom, window exists so empty string triggers fallback to window.location
+      const result = buildSignInUrl("");
+
+      expect(result).toContain("/auth/signin");
+      // Empty string is falsy, so it falls back to window.location
+    });
+
+    it("handles root path callback", () => {
+      const result = buildSignInUrl("/");
+
+      expect(result).toContain("/auth/signin");
+      expect(result).toContain("callbackUrl=");
+    });
   });
 });

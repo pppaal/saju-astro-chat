@@ -1,288 +1,257 @@
 /**
- * Memoization Tests
+ * Memoize Cache Tests
+ * Tests for memoization and caching utilities
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { memoize, clearCache, getCacheStats } from "@/lib/cache/memoize";
 
-describe("Memoization", () => {
+describe("memoize", () => {
   beforeEach(() => {
     clearCache();
   });
 
-  describe("memoize", () => {
+  describe("basic memoization", () => {
     it("caches function results", () => {
-      const expensiveFn = vi.fn((x: number) => x * 2);
+      let callCount = 0;
+      const expensiveFn = (x: number) => {
+        callCount++;
+        return x * 2;
+      };
+
       const memoized = memoize(expensiveFn);
 
-      const result1 = memoized(5);
-      const result2 = memoized(5);
+      expect(memoized(5)).toBe(10);
+      expect(memoized(5)).toBe(10);
+      expect(memoized(5)).toBe(10);
 
-      expect(result1).toBe(10);
-      expect(result2).toBe(10);
-      expect(expensiveFn).toHaveBeenCalledTimes(1);
+      expect(callCount).toBe(1);
     });
 
-    it("handles different arguments", () => {
-      const fn = vi.fn((x: number) => x * 2);
-      const memoized = memoize(fn);
+    it("returns different results for different arguments", () => {
+      let callCount = 0;
+      const expensiveFn = (x: number) => {
+        callCount++;
+        return x * 2;
+      };
 
-      memoized(5);
-      memoized(10);
-      memoized(5);
+      const memoized = memoize(expensiveFn);
 
-      expect(fn).toHaveBeenCalledTimes(2);
-    });
+      expect(memoized(5)).toBe(10);
+      expect(memoized(10)).toBe(20);
+      expect(memoized(5)).toBe(10);
 
-    it("uses custom key function", () => {
-      const fn = vi.fn((obj: { id: string }) => obj.id.toUpperCase());
-      const memoized = memoize(fn, {
-        keyFn: (obj) => obj.id,
-      });
-
-      memoized({ id: "test" });
-      memoized({ id: "test" });
-
-      expect(fn).toHaveBeenCalledTimes(1);
-    });
-
-    it("respects custom TTL", () => {
-      const fn = vi.fn((x: number) => x * 2);
-      const memoized = memoize(fn, { ttl: 100 });
-
-      memoized(5);
-      expect(fn).toHaveBeenCalledTimes(1);
-    });
-
-    it("handles complex return types", () => {
-      const fn = vi.fn((x: number) => ({ value: x, doubled: x * 2 }));
-      const memoized = memoize(fn);
-
-      const result1 = memoized(5);
-      const result2 = memoized(5);
-
-      expect(result1).toEqual({ value: 5, doubled: 10 });
-      expect(result2).toEqual({ value: 5, doubled: 10 });
-      expect(fn).toHaveBeenCalledTimes(1);
-    });
-
-    it("handles array arguments", () => {
-      const fn = vi.fn((arr: number[]) => arr.reduce((a, b) => a + b, 0));
-      const memoized = memoize(fn);
-
-      memoized([1, 2, 3]);
-      memoized([1, 2, 3]);
-
-      expect(fn).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe("clearCache", () => {
-    it("clears all cache entries", () => {
-      const fn = vi.fn((x: number) => x * 2);
-      const memoized = memoize(fn);
-
-      memoized(5);
-      clearCache();
-      memoized(5);
-
-      expect(fn).toHaveBeenCalledTimes(2);
-    });
-
-    it("clears cache by pattern", () => {
-      // Named functions for clearCache pattern matching
-      function testFn1(x: number) { return x * 2; }
-      function testFn2(x: number) { return x * 3; }
-
-      const fn1 = vi.fn(testFn1);
-      const fn2 = vi.fn(testFn2);
-
-      // Override function names
-      Object.defineProperty(fn1, 'name', { value: 'testFn1' });
-      Object.defineProperty(fn2, 'name', { value: 'testFn2' });
-
-      const memoized1 = memoize(fn1);
-      const memoized2 = memoize(fn2);
-
-      memoized1(5);
-      memoized2(5);
-
-      clearCache('testFn1');
-
-      memoized1(5);
-      memoized2(5);
-
-      expect(fn1).toHaveBeenCalledTimes(2);
-      expect(fn2).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe("getCacheStats", () => {
-    it("returns cache statistics", () => {
-      const fn = vi.fn((x: number) => x * 2);
-      const memoized = memoize(fn);
-
-      memoized(5);
-      memoized(10);
-
-      const stats = getCacheStats();
-
-      expect(stats.size).toBeGreaterThan(0);
-      expect(stats.max).toBe(500);
-    });
-
-    it("shows empty cache initially", () => {
-      clearCache();
-      const stats = getCacheStats();
-
-      expect(stats.size).toBe(0);
-    });
-  });
-
-  describe("edge cases", () => {
-    it("handles null return values", () => {
-      const fn = vi.fn(() => null);
-      const memoized = memoize(fn);
-
-      const result1 = memoized();
-      const result2 = memoized();
-
-      expect(result1).toBeNull();
-      expect(result2).toBeNull();
-      // null is falsy but undefined check uses !== undefined
-      expect(fn).toHaveBeenCalledTimes(1);
-    });
-
-    it("handles undefined arguments", () => {
-      const fn = vi.fn((x?: number) => x ?? 0);
-      const memoized = memoize(fn);
-
-      const result1 = memoized(undefined);
-      const result2 = memoized(undefined);
-
-      expect(result1).toBe(0);
-      expect(result2).toBe(0);
-      expect(fn).toHaveBeenCalledTimes(1);
+      expect(callCount).toBe(2);
     });
 
     it("handles multiple arguments", () => {
-      const fn = vi.fn((a: number, b: number, c: string) => `${a + b}-${c}`);
-      const memoized = memoize(fn);
+      let callCount = 0;
+      const addFn = (a: number, b: number) => {
+        callCount++;
+        return a + b;
+      };
 
-      const result1 = memoized(1, 2, "test");
-      const result2 = memoized(1, 2, "test");
-      const result3 = memoized(1, 2, "other");
+      const memoized = memoize(addFn);
 
-      expect(result1).toBe("3-test");
-      expect(result2).toBe("3-test");
-      expect(result3).toBe("3-other");
-      expect(fn).toHaveBeenCalledTimes(2);
+      expect(memoized(1, 2)).toBe(3);
+      expect(memoized(1, 2)).toBe(3);
+      expect(memoized(2, 1)).toBe(3);
+      expect(memoized(1, 2)).toBe(3);
+
+      expect(callCount).toBe(2);
     });
 
-    it("handles nested object arguments", () => {
-      const fn = vi.fn((obj: { nested: { value: number } }) => obj.nested.value * 2);
-      const memoized = memoize(fn);
+    it("handles array arguments", () => {
+      let callCount = 0;
+      const sumFn = (arr: number[]) => {
+        callCount++;
+        return arr.reduce((a, b) => a + b, 0);
+      };
 
-      const arg = { nested: { value: 5 } };
-      memoized(arg);
-      memoized(arg);
+      const memoized = memoize(sumFn);
 
-      expect(fn).toHaveBeenCalledTimes(1);
+      expect(memoized([1, 2, 3])).toBe(6);
+      expect(memoized([1, 2, 3])).toBe(6);
+      expect(memoized([1, 2, 4])).toBe(7);
+
+      expect(callCount).toBe(2);
     });
 
-    it("treats different object references with same content as same key", () => {
-      const fn = vi.fn((obj: { id: number }) => obj.id);
-      const memoized = memoize(fn);
+    it("handles null values", () => {
+      let callCount = 0;
+      const processFn = (val: unknown) => {
+        callCount++;
+        return val === null ? "null" : "other";
+      };
 
-      memoized({ id: 1 });
-      memoized({ id: 1 }); // Different reference, same content
+      const memoized = memoize(processFn);
 
-      // JSON.stringify produces same key
-      expect(fn).toHaveBeenCalledTimes(1);
+      expect(memoized(null)).toBe("null");
+      expect(memoized(null)).toBe("null");
+
+      // null is cached
+      expect(callCount).toBe(1);
     });
 
-    it("handles functions with no arguments", () => {
-      let counter = 0;
-      const fn = vi.fn(() => ++counter);
-      const memoized = memoize(fn);
+    it("handles different falsy values", () => {
+      let callCount = 0;
+      const processFn = (val: unknown) => {
+        callCount++;
+        return String(val);
+      };
 
-      const result1 = memoized();
-      const result2 = memoized();
+      const memoized = memoize(processFn);
 
-      expect(result1).toBe(1);
-      expect(result2).toBe(1); // Cached value
-      expect(fn).toHaveBeenCalledTimes(1);
-    });
+      expect(memoized(0)).toBe("0");
+      expect(memoized(0)).toBe("0");
+      expect(memoized("")).toBe("");
+      expect(memoized("")).toBe("");
+      expect(memoized(false)).toBe("false");
 
-    it("handles boolean arguments correctly", () => {
-      const fn = vi.fn((flag: boolean) => (flag ? "yes" : "no"));
-      const memoized = memoize(fn);
-
-      memoized(true);
-      memoized(true);
-      memoized(false);
-      memoized(false);
-
-      expect(fn).toHaveBeenCalledTimes(2);
-    });
-
-    it("handles zero and negative numbers", () => {
-      const fn = vi.fn((x: number) => x * 2);
-      const memoized = memoize(fn);
-
-      expect(memoized(0)).toBe(0);
-      expect(memoized(-5)).toBe(-10);
-      expect(memoized(0)).toBe(0);
-      expect(memoized(-5)).toBe(-10);
-
-      expect(fn).toHaveBeenCalledTimes(2);
-    });
-
-    it("preserves function name in key generation", () => {
-      function namedFunction(x: number) {
-        return x;
-      }
-      const fn = vi.fn(namedFunction);
-      Object.defineProperty(fn, "name", { value: "namedFunction" });
-
-      const memoized = memoize(fn);
-      memoized(5);
-
-      // The cache key should include the function name
-      const stats = getCacheStats();
-      expect(stats.size).toBeGreaterThan(0);
+      expect(callCount).toBe(3);
     });
   });
 
-  describe("concurrency behavior", () => {
-    it("handles rapid successive calls", () => {
-      const fn = vi.fn((x: number) => x * 2);
+  describe("custom key function", () => {
+    it("uses custom key function when provided", () => {
+      let callCount = 0;
+      const fn = (x: number, y: number) => {
+        callCount++;
+        return x + y;
+      };
+
+      const memoized = memoize(fn, {
+        keyFn: (x) => `custom:${x}`,
+      });
+
+      expect(memoized(1, 2)).toBe(3);
+      expect(memoized(1, 3)).toBe(3);
+      expect(memoized(2, 2)).toBe(4);
+
+      expect(callCount).toBe(2);
+    });
+  });
+
+  describe("return types", () => {
+    it("preserves string return type", () => {
+      const fn = (x: number) => `result-${x}`;
       const memoized = memoize(fn);
 
-      // Rapid calls
-      for (let i = 0; i < 100; i++) {
-        memoized(5);
-      }
-
-      expect(fn).toHaveBeenCalledTimes(1);
+      const result = memoized(5);
+      expect(typeof result).toBe("string");
+      expect(result).toBe("result-5");
     });
 
-    it("handles many different arguments", () => {
-      const fn = vi.fn((x: number) => x * 2);
+    it("preserves object return type", () => {
+      const fn = (x: number) => ({ value: x, doubled: x * 2 });
       const memoized = memoize(fn);
 
-      for (let i = 0; i < 50; i++) {
-        memoized(i);
-      }
-
-      expect(fn).toHaveBeenCalledTimes(50);
-
-      // Second pass should use cache
-      for (let i = 0; i < 50; i++) {
-        memoized(i);
-      }
-
-      expect(fn).toHaveBeenCalledTimes(50);
+      const result = memoized(5);
+      expect(result).toEqual({ value: 5, doubled: 10 });
     });
+
+    it("preserves array return type", () => {
+      const fn = (x: number) => [x, x * 2, x * 3];
+      const memoized = memoize(fn);
+
+      const result = memoized(2);
+      expect(result).toEqual([2, 4, 6]);
+    });
+
+    it("preserves boolean return type", () => {
+      const fn = (x: number) => x > 0;
+      const memoized = memoize(fn);
+
+      expect(memoized(5)).toBe(true);
+      expect(memoized(-5)).toBe(false);
+    });
+  });
+});
+
+describe("clearCache", () => {
+  beforeEach(() => {
+    clearCache();
+  });
+
+  it("clears all cache entries when called without pattern", () => {
+    const fn1 = memoize((x: number) => x * 2);
+    const fn2 = memoize((x: number) => x * 3);
+
+    fn1(5);
+    fn2(5);
+
+    const statsBefore = getCacheStats();
+    expect(statsBefore.size).toBeGreaterThan(0);
+
+    clearCache();
+
+    const statsAfter = getCacheStats();
+    expect(statsAfter.size).toBe(0);
+  });
+
+  it("clears cache entries matching pattern", () => {
+    let call1Count = 0;
+    let call2Count = 0;
+
+    const fn1 = memoize(
+      (x: number) => {
+        call1Count++;
+        return x * 2;
+      },
+      { keyFn: (x) => `pattern1:${x}` }
+    );
+
+    const fn2 = memoize(
+      (x: number) => {
+        call2Count++;
+        return x * 3;
+      },
+      { keyFn: (x) => `pattern2:${x}` }
+    );
+
+    fn1(5);
+    fn2(5);
+
+    clearCache("pattern1");
+
+    fn1(5);
+    expect(call1Count).toBe(2);
+
+    fn2(5);
+    expect(call2Count).toBe(1);
+  });
+});
+
+describe("getCacheStats", () => {
+  beforeEach(() => {
+    clearCache();
+  });
+
+  it("returns cache statistics", () => {
+    const stats = getCacheStats();
+
+    expect(stats).toHaveProperty("size");
+    expect(stats).toHaveProperty("max");
+    expect(stats).toHaveProperty("calculatedSize");
+  });
+
+  it("tracks cache size correctly", () => {
+    const fn = memoize((x: number) => x * 2);
+
+    expect(getCacheStats().size).toBe(0);
+
+    fn(1);
+    expect(getCacheStats().size).toBe(1);
+
+    fn(2);
+    expect(getCacheStats().size).toBe(2);
+
+    fn(1);
+    expect(getCacheStats().size).toBe(2);
+  });
+
+  it("returns max cache size", () => {
+    const stats = getCacheStats();
+    expect(stats.max).toBe(500);
   });
 });

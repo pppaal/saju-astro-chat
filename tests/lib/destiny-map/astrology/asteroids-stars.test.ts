@@ -3,15 +3,14 @@
  * Tests for asteroid and fixed star calculation types
  */
 
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock dependencies
 vi.mock("@/lib/astrology", () => ({
   calculateAllAsteroids: vi.fn(),
-  findAllAsteroidAspects: vi.fn(() => []),
-  findFixedStarConjunctions: vi.fn(() => []),
+  findAllAsteroidAspects: vi.fn(),
+  findFixedStarConjunctions: vi.fn(),
   findEclipseImpact: vi.fn(),
-  getUpcomingEclipses: vi.fn(() => []),
+  getUpcomingEclipses: vi.fn(),
 }));
 
 vi.mock("@/lib/logger", () => ({
@@ -22,6 +21,16 @@ vi.mock("@/lib/logger", () => ({
     error: vi.fn(),
   },
 }));
+
+import {
+  calculateAsteroidsAnalysis,
+  findFixedStarsAnalysis,
+  analyzeEclipsesImpact,
+  calculateAllAsteroidsStars,
+  type AsteroidsStarsInput,
+} from "@/lib/destiny-map/astrology/asteroids-stars";
+
+import * as astrologyModule from "@/lib/astrology";
 
 describe("Asteroids and Fixed Stars", () => {
   describe("Asteroid Types", () => {
@@ -367,6 +376,266 @@ describe("Asteroids and Fixed Stars", () => {
     it("JD for J2000 epoch", () => {
       const j2000 = 2451545.0;
       expect(j2000).toBe(2451545.0);
+    });
+  });
+
+  describe("calculateAsteroidsAnalysis", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("returns undefined when jdUT is not provided", async () => {
+      const input: AsteroidsStarsInput = {
+        natalChart: {} as any,
+        jdUT: 0,
+        houseCusps: [],
+        natalPlanets: [],
+      };
+
+      const result = await calculateAsteroidsAnalysis(input);
+      expect(result).toBeUndefined();
+    });
+
+    it("calculates asteroids when jdUT is provided", async () => {
+      vi.mocked(astrologyModule.calculateAllAsteroids).mockReturnValue({
+        Ceres: { name: "Ceres", sign: "Virgo", longitude: 145, degree: 25, house: 6 },
+        Pallas: { name: "Pallas", sign: "Scorpio", longitude: 210, degree: 0, house: 8 },
+        Juno: { name: "Juno", sign: "Taurus", longitude: 45, degree: 15, house: 2 },
+        Vesta: { name: "Vesta", sign: "Aquarius", longitude: 300, degree: 0, house: 11 },
+      } as any);
+      vi.mocked(astrologyModule.findAllAsteroidAspects).mockReturnValue({ Ceres: [], Pallas: [], Juno: [], Vesta: [] } as any);
+
+      const input: AsteroidsStarsInput = {
+        natalChart: {} as any,
+        jdUT: 2460310.5,
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+        natalPlanets: [],
+      };
+
+      const result = await calculateAsteroidsAnalysis(input);
+
+      expect(result).toBeDefined();
+      expect(result?.ceres?.sign).toBe("Virgo");
+      expect(result?.pallas?.sign).toBe("Scorpio");
+      expect(result?.juno?.sign).toBe("Taurus");
+      expect(result?.vesta?.sign).toBe("Aquarius");
+      expect(astrologyModule.calculateAllAsteroids).toHaveBeenCalledWith(2460310.5, input.houseCusps);
+    });
+
+    it("returns undefined on calculation error", async () => {
+      vi.mocked(astrologyModule.calculateAllAsteroids).mockImplementation(() => {
+        throw new Error("Calculation failed");
+      });
+
+      const input: AsteroidsStarsInput = {
+        natalChart: {} as any,
+        jdUT: 2460310.5,
+        houseCusps: [],
+        natalPlanets: [],
+      };
+
+      const result = await calculateAsteroidsAnalysis(input);
+      expect(result).toBeUndefined();
+    });
+
+    it("logs debug info when enableDebugLogs is true", async () => {
+      vi.mocked(astrologyModule.calculateAllAsteroids).mockReturnValue({
+        Ceres: { name: "Ceres", sign: "Virgo" },
+        Pallas: { name: "Pallas", sign: "Scorpio" },
+        Juno: { name: "Juno", sign: "Taurus" },
+        Vesta: { name: "Vesta", sign: "Aquarius" },
+      } as any);
+      vi.mocked(astrologyModule.findAllAsteroidAspects).mockReturnValue({} as any);
+
+      const input: AsteroidsStarsInput = {
+        natalChart: {} as any,
+        jdUT: 2460310.5,
+        houseCusps: [],
+        natalPlanets: [],
+      };
+
+      await calculateAsteroidsAnalysis(input, true);
+
+      const { logger } = await import("@/lib/logger");
+      expect(logger.debug).toHaveBeenCalled();
+    });
+  });
+
+  describe("findFixedStarsAnalysis", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("returns fixed star conjunctions", async () => {
+      const mockStars = [
+        { star: { name: "Regulus" }, planet: "Sun", orb: 0.5 },
+        { star: { name: "Spica" }, planet: "Venus", orb: 0.8 },
+      ];
+      vi.mocked(astrologyModule.findFixedStarConjunctions).mockReturnValue(mockStars as any);
+
+      const input: AsteroidsStarsInput = {
+        natalChart: {} as any,
+        jdUT: 2460310.5,
+        houseCusps: [],
+        natalPlanets: [],
+      };
+
+      const result = await findFixedStarsAnalysis(input);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].star.name).toBe("Regulus");
+    });
+
+    it("returns empty array on error", async () => {
+      vi.mocked(astrologyModule.findFixedStarConjunctions).mockImplementation(() => {
+        throw new Error("Search failed");
+      });
+
+      const input: AsteroidsStarsInput = {
+        natalChart: {} as any,
+        jdUT: 2460310.5,
+        houseCusps: [],
+        natalPlanets: [],
+      };
+
+      const result = await findFixedStarsAnalysis(input);
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("analyzeEclipsesImpact", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("returns eclipse impact and upcoming eclipses", async () => {
+      const mockImpact = { hasImpact: true, type: "solar", intensity: "strong" };
+      const mockUpcoming = [
+        { date: new Date(), type: "solar", sign: "Aries", degree: 19 },
+      ];
+
+      vi.mocked(astrologyModule.findEclipseImpact).mockReturnValue([mockImpact] as any);
+      vi.mocked(astrologyModule.getUpcomingEclipses).mockReturnValue(mockUpcoming as any);
+
+      const input: AsteroidsStarsInput = {
+        natalChart: {} as any,
+        jdUT: 2460310.5,
+        houseCusps: [],
+        natalPlanets: [],
+      };
+
+      const result = await analyzeEclipsesImpact(input);
+
+      expect(result.impact).toEqual(mockImpact);
+      expect(result.upcoming).toHaveLength(1);
+    });
+
+    it("returns null impact when no eclipses found", async () => {
+      vi.mocked(astrologyModule.findEclipseImpact).mockReturnValue([]);
+      vi.mocked(astrologyModule.getUpcomingEclipses).mockReturnValue([]);
+
+      const input: AsteroidsStarsInput = {
+        natalChart: {} as any,
+        jdUT: 2460310.5,
+        houseCusps: [],
+        natalPlanets: [],
+      };
+
+      const result = await analyzeEclipsesImpact(input);
+
+      expect(result.impact).toBeNull();
+      expect(result.upcoming).toEqual([]);
+    });
+
+    it("uses custom upcomingEclipsesCount", async () => {
+      vi.mocked(astrologyModule.findEclipseImpact).mockReturnValue([]);
+      vi.mocked(astrologyModule.getUpcomingEclipses).mockReturnValue([]);
+
+      const input: AsteroidsStarsInput = {
+        natalChart: {} as any,
+        jdUT: 2460310.5,
+        houseCusps: [],
+        natalPlanets: [],
+        upcomingEclipsesCount: 10,
+      };
+
+      await analyzeEclipsesImpact(input);
+
+      expect(astrologyModule.getUpcomingEclipses).toHaveBeenCalledWith(expect.any(Date), 10);
+    });
+
+    it("returns empty result on error", async () => {
+      vi.mocked(astrologyModule.findEclipseImpact).mockImplementation(() => {
+        throw new Error("Analysis failed");
+      });
+
+      const input: AsteroidsStarsInput = {
+        natalChart: {} as any,
+        jdUT: 2460310.5,
+        houseCusps: [],
+        natalPlanets: [],
+      };
+
+      const result = await analyzeEclipsesImpact(input);
+
+      expect(result.impact).toBeNull();
+      expect(result.upcoming).toEqual([]);
+    });
+  });
+
+  describe("calculateAllAsteroidsStars", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("calculates all asteroids, fixed stars, and eclipses", async () => {
+      vi.mocked(astrologyModule.calculateAllAsteroids).mockReturnValue({
+        Ceres: { name: "Ceres", sign: "Virgo" },
+        Pallas: { name: "Pallas", sign: "Scorpio" },
+        Juno: { name: "Juno", sign: "Taurus" },
+        Vesta: { name: "Vesta", sign: "Aquarius" },
+      } as any);
+      vi.mocked(astrologyModule.findAllAsteroidAspects).mockReturnValue({} as any);
+      vi.mocked(astrologyModule.findFixedStarConjunctions).mockReturnValue([{ star: { name: "Regulus" } }] as any);
+      vi.mocked(astrologyModule.findEclipseImpact).mockReturnValue([{ hasImpact: true }] as any);
+      vi.mocked(astrologyModule.getUpcomingEclipses).mockReturnValue([]);
+
+      const input: AsteroidsStarsInput = {
+        natalChart: {} as any,
+        jdUT: 2460310.5,
+        houseCusps: [],
+        natalPlanets: [],
+      };
+
+      const result = await calculateAllAsteroidsStars(input);
+
+      expect(result.asteroids).toBeDefined();
+      expect(result.fixedStars).toHaveLength(1);
+      expect(result.eclipses.impact).toBeDefined();
+    });
+
+    it("handles errors gracefully", async () => {
+      vi.mocked(astrologyModule.calculateAllAsteroids).mockImplementation(() => {
+        throw new Error("Fatal error");
+      });
+      vi.mocked(astrologyModule.findFixedStarConjunctions).mockImplementation(() => {
+        throw new Error("Fatal error");
+      });
+      vi.mocked(astrologyModule.findEclipseImpact).mockImplementation(() => {
+        throw new Error("Fatal error");
+      });
+
+      const input: AsteroidsStarsInput = {
+        natalChart: {} as any,
+        jdUT: 2460310.5,
+        houseCusps: [],
+        natalPlanets: [],
+      };
+
+      // The function catches individual errors internally
+      const result = await calculateAllAsteroidsStars(input);
+      expect(result.asteroids).toBeUndefined();
+      expect(result.fixedStars).toEqual([]);
     });
   });
 });

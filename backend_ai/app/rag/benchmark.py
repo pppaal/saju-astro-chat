@@ -156,8 +156,10 @@ async def run_benchmark(
                 logger.info(f"  Iteration {i + 1}/{iterations}: {elapsed:.1f}ms")
 
         except Exception as e:
-            results["errors"].append({"iteration": i, "error": str(e)})
-            logger.error(f"  Iteration {i + 1} failed: {e}")
+            import traceback
+            tb = traceback.format_exc()
+            results["errors"].append({"iteration": i, "error": str(e), "traceback": tb})
+            logger.error(f"  Iteration {i + 1} failed: {e}\n{tb}")
 
     results["timings"] = timings
 

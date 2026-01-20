@@ -122,7 +122,8 @@ function generateDashboardSummary(
   let totalLatencySum = 0;
   let totalLatencyCount = 0;
 
-  const serviceMetrics: Record<string, { requests: number; errors: number; latencySum: number; latencyCount: number }> = {};
+  const serviceMetrics: Record<string, { requests: number; errors: number; latencySum: number; latencyCount: number; p95Samples: number[] }> = {};
+  let allLatencySamples: number[] = [];
   const errorCounts: Record<string, number> = {};
   const creditsByService: Record<string, number> = {};
 
@@ -137,7 +138,7 @@ function generateDashboardSummary(
 
       const service = String(labels.service || labels.theme || "unknown");
       if (!serviceMetrics[service]) {
-        serviceMetrics[service] = { requests: 0, errors: 0, latencySum: 0, latencyCount: 0 };
+        serviceMetrics[service] = { requests: 0, errors: 0, latencySum: 0, latencyCount: 0, p95Samples: [] };
       }
       serviceMetrics[service].requests += counter.value;
     }
@@ -162,7 +163,7 @@ function generateDashboardSummary(
     }
   }
 
-  // Process timings
+  // Process timings (with p95 support)
   for (const timing of timings) {
     const labels = timing.labels || {};
     const service = String(labels.service || labels.theme || "unknown");
@@ -170,11 +171,24 @@ function generateDashboardSummary(
     totalLatencySum += timing.sum;
     totalLatencyCount += timing.count;
 
+    // Collect p95 value from timing
+    if (timing.p95 !== undefined) {
+      allLatencySamples.push(timing.p95);
+    }
+
     if (serviceMetrics[service]) {
       serviceMetrics[service].latencySum += timing.sum;
       serviceMetrics[service].latencyCount += timing.count;
+      if (timing.p95 !== undefined) {
+        serviceMetrics[service].p95Samples.push(timing.p95);
+      }
     }
   }
+
+  // Calculate overall p95 from collected samples
+  const sortedLatencies = [...allLatencySamples].sort((a, b) => a - b);
+  const p95Index = Math.ceil(0.95 * sortedLatencies.length) - 1;
+  const overallP95 = sortedLatencies.length > 0 ? sortedLatencies[Math.max(0, p95Index)] : 0;
 
   // Process gauges for active users
   let activeUsers = 0;
@@ -184,14 +198,17 @@ function generateDashboardSummary(
     }
   }
 
-  // Build service summary
+  // Build service summary with p95
   const services: DashboardSummary["services"] = {};
   for (const [service, metrics] of Object.entries(serviceMetrics)) {
     if (service === "unknown") continue;
+    const sortedSamples = [...metrics.p95Samples].sort((a, b) => a - b);
+    const p95Idx = Math.ceil(0.95 * sortedSamples.length) - 1;
     services[service] = {
       requests: metrics.requests,
       errors: metrics.errors,
       avgLatencyMs: metrics.latencyCount > 0 ? Math.round(metrics.latencySum / metrics.latencyCount) : 0,
+      p95LatencyMs: sortedSamples.length > 0 ? sortedSamples[Math.max(0, p95Idx)] : undefined,
     };
   }
 
@@ -211,6 +228,7 @@ function generateDashboardSummary(
       totalRequests,
       errorRate: totalRequests > 0 ? Number((totalErrors / totalRequests * 100).toFixed(2)) : 0,
       avgLatencyMs: totalLatencyCount > 0 ? Math.round(totalLatencySum / totalLatencyCount) : 0,
+      p95LatencyMs: overallP95,
       activeUsers,
     },
     services,

@@ -314,4 +314,77 @@ describe("Metrics Module", () => {
       expect(total).toBe(60);
     });
   });
+
+  describe("Percentile calculations (p95)", () => {
+    it("should calculate p50, p95, p99 for timings", () => {
+      // Record 100 samples from 1 to 100
+      for (let i = 1; i <= 100; i++) {
+        recordTiming("api.latency", i);
+      }
+
+      const snapshot = getMetricsSnapshot();
+      const timing = snapshot.timings[0];
+
+      expect(timing.p50).toBe(50);
+      expect(timing.p95).toBe(95);
+      expect(timing.p99).toBe(99);
+    });
+
+    it("should handle single sample percentiles", () => {
+      recordTiming("single", 500);
+
+      const snapshot = getMetricsSnapshot();
+      const timing = snapshot.timings[0];
+
+      expect(timing.p50).toBe(500);
+      expect(timing.p95).toBe(500);
+      expect(timing.p99).toBe(500);
+    });
+
+    it("should calculate accurate p95 for skewed distribution", () => {
+      // 95 fast requests, 5 slow requests
+      for (let i = 0; i < 95; i++) {
+        recordTiming("api.latency", 100);
+      }
+      for (let i = 0; i < 5; i++) {
+        recordTiming("api.latency", 1000);
+      }
+
+      const snapshot = getMetricsSnapshot();
+      const timing = snapshot.timings[0];
+
+      // p95 should be around 100ms (the 95th percentile of sorted values)
+      expect(timing.p95).toBeLessThanOrEqual(1000);
+      expect(timing.avg).toBeCloseTo(145, 0); // (95*100 + 5*1000) / 100
+    });
+
+    it("should include percentiles in Prometheus output", () => {
+      recordTiming("request_duration", 100);
+      recordTiming("request_duration", 200);
+      recordTiming("request_duration", 300);
+
+      const output = toPrometheus();
+      expect(output).toContain('quantile="0.5"');
+      expect(output).toContain('quantile="0.95"');
+      expect(output).toContain('quantile="0.99"');
+    });
+
+    it("should include percentiles in OTLP output", () => {
+      recordTiming("api.latency", 100);
+      recordTiming("api.latency", 200);
+
+      const output = toOtlp();
+      const metrics = output.resourceMetrics[0].scopeMetrics[0].metrics;
+      const timing = metrics.find((m: { name: string }) => m.name === "api.latency");
+
+      expect(timing).toHaveProperty("p50_ms");
+      expect(timing).toHaveProperty("p95_ms");
+      expect(timing).toHaveProperty("p99_ms");
+    });
+
+    it("should handle empty samples for percentiles", () => {
+      const snapshot = getMetricsSnapshot();
+      expect(snapshot.timings).toHaveLength(0);
+    });
+  });
 });

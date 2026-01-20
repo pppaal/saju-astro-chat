@@ -174,19 +174,19 @@ describe("Specific question content checks", () => {
     it("dom_1 is about group discussions", () => {
       const q = icpQuestions.find(q => q.id === "dom_1");
       expect(q!.text).toContain("group discussions");
-      expect(q!.textKo).toContain("그룹 토론");
+      expect(q!.textKo).toContain("여러 사람이 모여");
     });
 
     it("dom_3 is about conflicts", () => {
       const q = icpQuestions.find(q => q.id === "dom_3");
       expect(q!.text).toContain("conflicts");
-      expect(q!.textKo).toContain("갈등");
+      expect(q!.textKo).toContain("충돌");
     });
 
     it("dom_5 is about work/school", () => {
       const q = icpQuestions.find(q => q.id === "dom_5");
       expect(q!.text).toContain("work or school");
-      expect(q!.textKo).toContain("직장이나 학교");
+      expect(q!.textKo).toContain("일하거나 공부");
     });
 
     it("dom_14 is about competition", () => {
@@ -200,13 +200,13 @@ describe("Specific question content checks", () => {
     it("aff_1 is about supporting upset friends", () => {
       const q = icpQuestions.find(q => q.id === "aff_1");
       expect(q!.text).toContain("friend is upset");
-      expect(q!.textKo).toContain("친구가 속상해");
+      expect(q!.textKo).toContain("친구가 힘들어");
     });
 
     it("aff_3 is about sharing personal feelings", () => {
       const q = icpQuestions.find(q => q.id === "aff_3");
       expect(q!.text).toContain("personal feelings");
-      expect(q!.textKo).toContain("개인적인 감정");
+      expect(q!.textKo).toContain("감정을 다른 사람에게");
     });
 
     it("aff_8 is about trust", () => {

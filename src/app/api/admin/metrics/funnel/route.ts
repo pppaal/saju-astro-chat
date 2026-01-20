@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
           canceledAt: { gte: start, lte: end },
         },
       }),
-      prisma.destinyReading.count({
+      prisma.reading.count({
         where: {
           createdAt: { gte: start, lte: end },
         },
