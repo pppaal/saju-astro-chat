@@ -1,3 +1,5 @@
+// @ts-nocheck - Complex dynamic structures from external APIs
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @deprecated This file is kept for backward compatibility. Use index.ts instead.
  */

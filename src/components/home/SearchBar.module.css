@@ -1,0 +1,218 @@
+.questionSearchContainer {
+  position: relative;
+  max-width: 700px;
+  margin: 0 auto 2rem;
+  width: 100%;
+}
+
+.questionSearchForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.questionSearchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50px;
+  padding: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.3s;
+}
+
+.questionSearchWrapper:focus-within {
+  box-shadow: 0 8px 30px rgba(63, 94, 251, 0.25);
+}
+
+.serviceSelectBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.6rem 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 30px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.serviceSelectBtn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.serviceSelectIcon {
+  font-size: 1.2rem;
+}
+
+.serviceSelectArrow {
+  font-size: 0.7rem;
+  color: #666;
+}
+
+.serviceDropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  z-index: 100;
+  min-width: 220px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.serviceDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 100%;
+  text-align: left;
+  color: #333;
+}
+
+.serviceDropdownItem:hover {
+  background: rgba(63, 94, 251, 0.08);
+}
+
+.serviceDropdownItem.selected {
+  background: rgba(63, 94, 251, 0.12);
+}
+
+.serviceDropdownIcon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.serviceDropdownLabel {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.questionSearchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  color: #333;
+}
+
+.questionSearchInput::placeholder {
+  color: #999;
+}
+
+.questionSearchBtn {
+  background: linear-gradient(135deg, #3f5efb, #6a89ff);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  flex-shrink: 0;
+  font-size: 1.2rem;
+}
+
+.questionSearchBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(63, 94, 251, 0.3);
+}
+
+.questionHints {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.questionHint {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.questionHint:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.aiRoutingGuide {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.aiRoutingText {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.75rem;
+}
+
+.serviceIconsRow {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.serviceIcon {
+  font-size: 1.5rem;
+  opacity: 0.6;
+  transition: opacity 0.2s, transform 0.2s;
+  cursor: default;
+}
+
+.serviceIcon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+  .questionSearchContainer {
+    padding: 0 1rem;
+  }
+
+  .questionSearchInput {
+    font-size: 0.9rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .questionSearchBtn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .serviceSelectBtn {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .questionHints {
+    gap: 0.4rem;
+  }
+
+  .questionHint {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+}

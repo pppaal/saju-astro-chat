@@ -143,11 +143,11 @@ export const icpQuestions: ICPQuestion[] = [
     id: 'dom_12',
     axis: 'dominance',
     text: 'My communication style is usually:',
-    textKo: '나의 의사소통 스타일은 보통:',
+    textKo: '평소 말하는 방식은:',
     options: [
       { id: 'A', text: 'Direct and assertive', textKo: '직접적이고 단호하다' },
-      { id: 'B', text: 'Balanced and diplomatic', textKo: '균형 잡히고 외교적이다' },
-      { id: 'C', text: 'Soft and accommodating', textKo: '부드럽고 수용적이다' },
+      { id: 'B', text: 'Balanced and diplomatic', textKo: '적당히 조율하는 편이다' },
+      { id: 'C', text: 'Soft and accommodating', textKo: '부드럽고 맞춰준다' },
     ],
   },
   {
@@ -167,9 +167,9 @@ export const icpQuestions: ICPQuestion[] = [
     text: 'In competitive situations, I:',
     textKo: '경쟁 상황에서 나는:',
     options: [
-      { id: 'A', text: 'Strive to win and be the best', textKo: '이기고 최고가 되려고 노력한다' },
-      { id: 'B', text: 'Do my best but accept any outcome', textKo: '최선을 다하지만 결과는 수용한다' },
-      { id: 'C', text: 'Prefer not to compete', textKo: '경쟁하지 않는 것을 선호한다' },
+      { id: 'A', text: 'Strive to win and be the best', textKo: '이기려고 최선을 다한다' },
+      { id: 'B', text: 'Do my best but accept any outcome', textKo: '노력하되 결과에 연연하지 않는다' },
+      { id: 'C', text: 'Prefer not to compete', textKo: '경쟁 자체를 피하고 싶다' },
     ],
   },
   {
@@ -180,7 +180,7 @@ export const icpQuestions: ICPQuestion[] = [
     options: [
       { id: 'A', text: 'Confident and commanding', textKo: '자신감 있고 주도적인' },
       { id: 'B', text: 'Flexible and cooperative', textKo: '유연하고 협조적인' },
-      { id: 'C', text: 'Quiet and agreeable', textKo: '조용하고 순응하는' },
+      { id: 'C', text: 'Quiet and agreeable', textKo: '조용하고 따라가는' },
     ],
   },
   {
@@ -189,9 +189,9 @@ export const icpQuestions: ICPQuestion[] = [
     text: 'When making requests, I:',
     textKo: '다른 사람에게 부탁할 때 나는:',
     options: [
-      { id: 'A', text: 'State what I need clearly', textKo: '필요한 것을 분명하게 말한다' },
-      { id: 'B', text: 'Ask politely and explain why', textKo: '정중하게 이유를 설명하며 부탁한다' },
-      { id: 'C', text: 'Hesitate or hint instead of asking directly', textKo: '직접 말하기보다 눈치를 보거나 돌려 말한다' },
+      { id: 'A', text: 'State what I need clearly', textKo: '필요한 것을 분명히 말한다' },
+      { id: 'B', text: 'Ask politely and explain why', textKo: '정중하게 이유와 함께 부탁한다' },
+      { id: 'C', text: 'Hesitate or hint instead of asking directly', textKo: '직접 말하기보다 돌려 말한다' },
     ],
   },
 
@@ -211,18 +211,18 @@ export const icpQuestions: ICPQuestion[] = [
     id: 'aff_2',
     axis: 'affiliation',
     text: 'I prefer relationships that are:',
-    textKo: '나는 이런 관계를 선호한다:',
+    textKo: '내가 편한 관계는:',
     options: [
-      { id: 'A', text: 'Close and emotionally deep', textKo: '가깝고 정서적으로 깊은' },
-      { id: 'B', text: 'Friendly but with boundaries', textKo: '친근하지만 경계가 있는' },
-      { id: 'C', text: 'More independent and distant', textKo: '더 독립적이고 거리가 있는' },
+      { id: 'A', text: 'Close and emotionally deep', textKo: '가깝고 깊게 교류하는' },
+      { id: 'B', text: 'Friendly but with boundaries', textKo: '친근하지만 선이 있는' },
+      { id: 'C', text: 'More independent and distant', textKo: '독립적이고 거리가 있는' },
     ],
   },
   {
     id: 'aff_3',
     axis: 'affiliation',
     text: 'Sharing personal feelings with others is:',
-    textKo: '내 감정을 다른 사람과 나누는 것은:',
+    textKo: '내 감정을 다른 사람에게 털어놓는 것은:',
     options: [
       { id: 'A', text: 'Natural and important to me', textKo: '자연스럽고 중요하다' },
       { id: 'B', text: 'Okay with close friends only', textKo: '아주 친한 사람에게만 가능하다' },
@@ -321,11 +321,11 @@ export const icpQuestions: ICPQuestion[] = [
     id: 'aff_12',
     axis: 'affiliation',
     text: 'My ideal friendship involves:',
-    textKo: '내가 생각하는 이상적인 우정은:',
+    textKo: '내가 생각하는 좋은 친구 관계는:',
     options: [
-      { id: 'A', text: 'Daily contact and deep sharing', textKo: '자주 연락하고 깊은 이야기를 나누는 것' },
-      { id: 'B', text: 'Regular catch-ups with mutual support', textKo: '가끔 만나서 서로 응원하는 것' },
-      { id: 'C', text: 'Independence with occasional contact', textKo: '각자 지내다 필요할 때만 연락하는 것' },
+      { id: 'A', text: 'Daily contact and deep sharing', textKo: '자주 연락하고 깊은 이야기 나누기' },
+      { id: 'B', text: 'Regular catch-ups with mutual support', textKo: '가끔 만나서 서로 응원해주기' },
+      { id: 'C', text: 'Independence with occasional contact', textKo: '각자 지내다 필요할 때만 연락하기' },
     ],
   },
   {
@@ -343,11 +343,11 @@ export const icpQuestions: ICPQuestion[] = [
     id: 'aff_14',
     axis: 'affiliation',
     text: 'Cooperation vs competition: I lean toward:',
-    textKo: '협력과 경쟁 중에서 나는:',
+    textKo: '협력 vs 경쟁이라면 나는:',
     options: [
-      { id: 'A', text: 'Cooperation and harmony', textKo: '협력하고 화합하는 것을 선호한다' },
-      { id: 'B', text: 'Balance of both', textKo: '상황에 따라 균형을 맞춘다' },
-      { id: 'C', text: 'Competition and independence', textKo: '경쟁하고 독립적으로 하는 것을 선호한다' },
+      { id: 'A', text: 'Cooperation and harmony', textKo: '함께 협력하는 게 좋다' },
+      { id: 'B', text: 'Balance of both', textKo: '상황에 따라 다르다' },
+      { id: 'C', text: 'Competition and independence', textKo: '개인적으로 경쟁하는 게 좋다' },
     ],
   },
   {
@@ -358,7 +358,7 @@ export const icpQuestions: ICPQuestion[] = [
     options: [
       { id: 'A', text: 'Good and trustworthy', textKo: '착하고 믿을 만하다' },
       { id: 'B', text: 'Mixed; depends on the person', textKo: '사람마다 다르다' },
-      { id: 'C', text: 'Self-interested; trust must be earned', textKo: '이기적이고 신뢰는 증명되어야 한다' },
+      { id: 'C', text: 'Self-interested; trust must be earned', textKo: '각자 이익을 따지고 쉽게 믿기 어렵다' },
     ],
   },
   {

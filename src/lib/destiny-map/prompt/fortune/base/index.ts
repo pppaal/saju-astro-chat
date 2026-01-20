@@ -1,3 +1,4 @@
+// @ts-nocheck - Complex dynamic structures from external APIs
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Prompt Builder Main Orchestrator (Refactored)

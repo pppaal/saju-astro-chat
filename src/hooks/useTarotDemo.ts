@@ -1,0 +1,71 @@
+import { useReducer } from 'react';
+import type { TarotCard } from '@/data/home';
+
+type TarotState = {
+  flippedCards: boolean[];
+  selectedCards: TarotCard[];
+  usedCardIndices: Set<number>;
+  isDeckSpread: boolean;
+};
+
+type TarotAction =
+  | { type: 'FLIP_CARD'; index: number }
+  | { type: 'DRAW_ALL_CARDS'; cards: TarotCard[]; usedIndices: number[] }
+  | { type: 'RESET' };
+
+const initialTarotState: TarotState = {
+  flippedCards: [false, false, false, false],
+  selectedCards: [],
+  usedCardIndices: new Set(),
+  isDeckSpread: false,
+};
+
+function tarotReducer(state: TarotState, action: TarotAction): TarotState {
+  switch (action.type) {
+    case 'FLIP_CARD': {
+      if (state.selectedCards.length === 0) return state;
+      const newFlipped = [...state.flippedCards];
+      newFlipped[action.index] = !newFlipped[action.index];
+      return { ...state, flippedCards: newFlipped };
+    }
+    case 'DRAW_ALL_CARDS': {
+      return {
+        ...state,
+        selectedCards: action.cards,
+        usedCardIndices: new Set(action.usedIndices),
+        flippedCards: [false, false, false, false],
+        isDeckSpread: true,
+      };
+    }
+    case 'RESET':
+      return initialTarotState;
+    default:
+      return state;
+  }
+}
+
+export function useTarotDemo() {
+  const [tarotState, dispatchTarot] = useReducer(tarotReducer, initialTarotState);
+
+  const flipCard = (index: number) => {
+    dispatchTarot({ type: 'FLIP_CARD', index });
+  };
+
+  const drawCards = (cards: TarotCard[], usedIndices: number[]) => {
+    dispatchTarot({ type: 'DRAW_ALL_CARDS', cards, usedIndices });
+  };
+
+  const resetTarot = () => {
+    dispatchTarot({ type: 'RESET' });
+  };
+
+  return {
+    flippedCards: tarotState.flippedCards,
+    selectedCards: tarotState.selectedCards,
+    usedCardIndices: tarotState.usedCardIndices,
+    isDeckSpread: tarotState.isDeckSpread,
+    flipCard,
+    drawCards,
+    resetTarot,
+  };
+}

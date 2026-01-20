@@ -14,7 +14,7 @@ interface DreamResultPhaseProps {
   chatInput: string;
   setChatInput: (value: string) => void;
   isChatLoading: boolean;
-  chatMessagesRef: RefObject<HTMLDivElement>;
+  chatMessagesRef: RefObject<HTMLDivElement | null>;
   onSendMessage: () => void;
   onReset: () => void;
 }
