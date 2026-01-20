@@ -1,5 +1,5 @@
-import { useReducer } from 'react';
-import type { TarotCard } from '@/data/home';
+import { useReducer, useCallback } from 'react';
+import { TAROT_DECK, type TarotCard } from '@/data/home';
 
 type TarotState = {
   flippedCards: boolean[];
@@ -51,9 +51,19 @@ export function useTarotDemo() {
     dispatchTarot({ type: 'FLIP_CARD', index });
   };
 
-  const drawCards = (cards: TarotCard[], usedIndices: number[]) => {
-    dispatchTarot({ type: 'DRAW_ALL_CARDS', cards, usedIndices });
-  };
+  const drawCards = useCallback(() => {
+    // Select 4 random unique cards from the deck
+    const indices: number[] = [];
+    const cards: TarotCard[] = [];
+    while (indices.length < 4) {
+      const randomIndex = Math.floor(Math.random() * TAROT_DECK.length);
+      if (!indices.includes(randomIndex)) {
+        indices.push(randomIndex);
+        cards.push(TAROT_DECK[randomIndex]);
+      }
+    }
+    dispatchTarot({ type: 'DRAW_ALL_CARDS', cards, usedIndices: indices });
+  }, []);
 
   const resetTarot = () => {
     dispatchTarot({ type: 'RESET' });
