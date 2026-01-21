@@ -94,12 +94,18 @@ export function getAuditLog(limit = 100): TokenAuditEntry[] {
 export function buildTokenConfig(tokenName: string): TokenConfig {
   const current = process.env[tokenName] || "";
   const legacy = process.env[`${tokenName}_LEGACY`];
-  const version = process.env[`${tokenName}_VERSION`]
-    ? parseInt(process.env[`${tokenName}_VERSION`], 10)
-    : 1;
-  const expiresAt = process.env[`${tokenName}_EXPIRES_AT`]
-    ? parseInt(process.env[`${tokenName}_EXPIRES_AT`], 10)
-    : undefined;
+  const versionEnv = process.env[`${tokenName}_VERSION`];
+  const expiresAtEnv = process.env[`${tokenName}_EXPIRES_AT`];
+
+  let version = 1;
+  if (typeof versionEnv === "string" && versionEnv.trim() !== "") {
+    version = Number.parseInt(versionEnv, 10);
+  }
+
+  let expiresAt: number | undefined;
+  if (typeof expiresAtEnv === "string" && expiresAtEnv.trim() !== "") {
+    expiresAt = Number.parseInt(expiresAtEnv, 10);
+  }
 
   return { current, legacy, version, expiresAt };
 }

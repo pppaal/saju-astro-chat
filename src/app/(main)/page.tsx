@@ -63,6 +63,7 @@ export default function MainPage() {
     { key: 'dream', icon: '🌙', path: '/dream' },
     { key: 'personality', icon: '🌈', path: '/personality' },
     { key: 'numerology', icon: '🔢', path: '/numerology' },
+    { key: 'compatibility', icon: '💕', path: '/compatibility' },
   ];
   const [todayVisitors, setTodayVisitors] = useState<number | null>(null);
   const [totalVisitors, setTotalVisitors] = useState<number | null>(null);

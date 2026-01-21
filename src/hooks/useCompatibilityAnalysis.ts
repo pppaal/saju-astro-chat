@@ -62,9 +62,11 @@ export function useCompatibilityAnalysis() {
         body: JSON.stringify(body),
       });
       const data = (await res.json()) as CompatibilityResult | null;
-      if (!res.ok || data?.error) throw new Error(data?.error || 'Server error');
+      if (!data) throw new Error('Server error');
+      if (!res.ok || data.error) throw new Error(data.error || 'Server error');
+      if (!data) throw new Error('No data received');
 
-      const interpretation = data?.interpretation;
+      const interpretation = data.interpretation;
       if (interpretation !== null && interpretation !== undefined && interpretation !== '') {
         setResultText(String(interpretation));
       } else {

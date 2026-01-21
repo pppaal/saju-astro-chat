@@ -35,6 +35,7 @@ import { annotateShinsal, toSajuPillarsLike } from '@/lib/Saju/shinsal';
 import { logger } from '@/lib/logger';
 import { getYinYangFromName, formatBirthTime } from './helpers';
 import type { SajuPillars, SajuData, AdvancedSajuAnalysis } from './types';
+import type { DayMaster } from '@/lib/Saju/types';
 
 // ======================================================
 // Types
@@ -87,7 +88,7 @@ async function getSinsal(
 // ======================================================
 
 type SajuFactsInput = {
-  dayMaster?: { name?: string; element?: string; yinYang?: string };
+  dayMaster?: { name?: string; element?: string; yinYang?: string; yin_yang?: string };
   yearPillar?: unknown;
   monthPillar?: unknown;
   dayPillar?: unknown;
@@ -105,6 +106,9 @@ async function calculateAdvancedSajuAnalysis(
 
   try {
     const dm = sajuFacts?.dayMaster;
+    const dayMasterName = dm?.name || pillars.day.heavenlyStem?.name || '';
+    const dayMasterElement = (dm?.element || pillars.day.heavenlyStem?.element || '?') as '?' | '?' | '?' | '?' | '?';
+    const dayMasterYinYang = (dm?.yin_yang || dm?.yinYang || getYinYangFromName(dayMasterName)) as '?' | '?';
 
     // Pillars for analysis - with heavenlyStem/earthlyBranch structure
     const pillarsForAnalysis = {
@@ -128,9 +132,9 @@ async function calculateAdvancedSajuAnalysis(
 
     // Day master for analysis
     const dayMasterForAnalysis = {
-      name: dm?.name || pillars.day.heavenlyStem?.name || '',
-      element: (dm?.element || pillars.day.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수',
-      yin_yang: (dm?.yinYang || '양') as '음' | '양',
+      name: dayMasterName,
+      element: dayMasterElement,
+      yin_yang: dayMasterYinYang,
     };
 
     // Simple pillars format (stem/branch)
@@ -236,8 +240,30 @@ async function calculateAdvancedSajuAnalysis(
 
     // 9. Ultra Advanced analysis (종격, 화격, 일주론 심화, 공망 심화, 삼기)
     try {
-      // Reuse pillarsForScore structure for ultra advanced analysis
-      advancedAnalysis.ultraAdvanced = performUltraAdvancedAnalysis(pillarsForScore as unknown as Parameters<typeof performUltraAdvancedAnalysis>[0]);
+      // Build pillars structure for ultra advanced analysis
+      const pillarsForUltra = {
+        year: {
+          heavenlyStem: { name: pillars.year.heavenlyStem?.name || '', element: (pillars.year.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.year.heavenlyStem?.name || '') },
+          earthlyBranch: { name: pillars.year.earthlyBranch?.name || '', element: (pillars.year.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.year.earthlyBranch?.name || '') },
+          jijanggan: (pillars.year as { jijanggan?: Record<string, unknown> }).jijanggan || {},
+        },
+        month: {
+          heavenlyStem: { name: pillars.month.heavenlyStem?.name || '', element: (pillars.month.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.month.heavenlyStem?.name || '') },
+          earthlyBranch: { name: pillars.month.earthlyBranch?.name || '', element: (pillars.month.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.month.earthlyBranch?.name || '') },
+          jijanggan: (pillars.month as { jijanggan?: Record<string, unknown> }).jijanggan || {},
+        },
+        day: {
+          heavenlyStem: { name: pillars.day.heavenlyStem?.name || '', element: (pillars.day.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.day.heavenlyStem?.name || '') },
+          earthlyBranch: { name: pillars.day.earthlyBranch?.name || '', element: (pillars.day.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.day.earthlyBranch?.name || '') },
+          jijanggan: (pillars.day as { jijanggan?: Record<string, unknown> }).jijanggan || {},
+        },
+        time: {
+          heavenlyStem: { name: pillars.time.heavenlyStem?.name || '', element: (pillars.time.heavenlyStem?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.time.heavenlyStem?.name || '') },
+          earthlyBranch: { name: pillars.time.earthlyBranch?.name || '', element: (pillars.time.earthlyBranch?.element || '목') as '목' | '화' | '토' | '금' | '수', yin_yang: getYinYangFromName(pillars.time.earthlyBranch?.name || '') },
+          jijanggan: (pillars.time as { jijanggan?: Record<string, unknown> }).jijanggan || {},
+        },
+      };
+      advancedAnalysis.ultraAdvanced = performUltraAdvancedAnalysis(pillarsForUltra as unknown as Parameters<typeof performUltraAdvancedAnalysis>[0]);
     } catch (e) {
       if (enableDebugLogs) logger.debug('[Ultra Advanced analysis skipped]', e);
     }
@@ -330,55 +356,13 @@ export async function calculateSajuOrchestrated(
         day: pillars.day!,
         time: pillars.time ?? pillars.day!, // Fallback if time is missing
       } as Parameters<typeof getDaeunCycles>[2];
-      const d = getDaeunCycles(birthDateObj, gender, pillarsForDaeun, dayMaster as Parameters<typeof getDaeunCycles>[3], timezone);
-
-      // 세운: 현재 연도부터 향후 10년
-      const a = getAnnualCycles(currentYear, 10, dayMaster);
-
-      // 월운: 현재 연도 기준
-      const m = getMonthlyCycles(currentYear, dayMaster);
-
-      // 일진: 현재 연/월 기준
-      const i = getIljinCalendar(currentYear, currentMonth, dayMaster);
-
-      daeun = Array.isArray(d?.cycles) ? d.cycles : [];
-      annual = Array.isArray(a) ? a : [];
-      monthly = Array.isArray(m) ? m : [];
-      iljin = Array.isArray(i) ? i : [];
-
-      if (enableDebugLogs) {
-        logger.debug('[Unse cycles]', { daeun: daeun.length, annual: annual.length, monthly: monthly.length });
-      }
-
-      if (daeun.length === 0) {
-        logger.error('[Unse CRITICAL] daeun is EMPTY - check input data');
-      }
-    } catch (err) {
-      logger.error('[Unse calculation ERROR]', err);
-    }
-  } else {
-    logger.error('[Unse CRITICAL] Invalid pillars - cannot calculate daeun!', {
-      year: !!pillars.year,
-      month: !!pillars.month,
-      day: !!pillars.day,
-    });
-  }
-
-  // Calculate shinsal
-  const sinsal = hasValidPillars ? await getSinsal(pillars, enableDebugLogs) : null;
-
-  // Calculate advanced analysis
-  let advancedAnalysis: SajuOrchestrationResult['advancedAnalysis'];
-  if (hasValidPillars && pillars.year && pillars.month && pillars.day && pillars.time) {
-    advancedAnalysis = await calculateAdvancedSajuAnalysis(pillars, sajuFacts, enableDebugLogs);
-  }
-
-  return {
-    facts: { ...sajuFacts, birthDate },
-    pillars,
-    dayMaster,
-    unse: { daeun, annual, monthly, iljin },
-    sinsal,
-    advancedAnalysis,
-  };
+      // Convert dayMaster to expected DayMaster format with yin_yang
+      const dayMasterNameForCycles = (dayMaster as { name?: string })?.name || pillars.day?.heavenlyStem?.name || '';
+      const dayMasterElementForCycles = (dayMaster as { element?: string })?.element || pillars.day?.heavenlyStem?.element || '?';
+      const dayMasterYinYangForCycles = (dayMaster as { yinYang?: string; yin_yang?: string })?.yinYang || (dayMaster as { yin_yang?: string })?.yin_yang || getYinYangFromName(dayMasterNameForCycles);
+      const dayMasterForCycles: DayMaster = {
+        name: dayMasterNameForCycles,
+        element: dayMasterElementForCycles as DayMaster['element'],
+        yin_yang: dayMasterYinYangForCycles as DayMaster['yin_yang'],
+      };
 }

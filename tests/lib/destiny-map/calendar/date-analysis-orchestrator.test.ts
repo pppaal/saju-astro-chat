@@ -2,220 +2,124 @@
  * Date Analysis Orchestrator Tests
  * Core orchestrator integration tests
  *
- * NOTE: This test file is skipped because it mocks non-existent modules.
- * The modules referenced (@/lib/prediction/ultraPrecisionEngine, etc.)
- * do not exist in the codebase. This file should be updated when those
- * modules are implemented.
+ * Tests the prediction engine modules and their integration.
  */
 
-import { describe, it, expect, vi } from "vitest";
-
-// Skip all tests until the modules are implemented
-describe.skip("Date Analysis Orchestrator", () => {
-  it("placeholder - modules not yet implemented", () => {
-    expect(true).toBe(true);
-  });
-});
-
-/*
-// Original tests - uncomment when modules are implemented:
-
-// Mock all dependencies
-vi.mock("@/lib/prediction/ultraPrecisionEngine", () => ({
-  calculateDailyPillar: vi.fn(() => ({
-    heavenlyStem: "甲",
-    earthlyBranch: "子",
-  })),
-  analyzeGongmang: vi.fn(() => ({ isGongmang: false })),
-  analyzeShinsal: vi.fn(() => ({ shinsals: [] })),
-  analyzeEnergyFlow: vi.fn(() => ({ energy: 5 })),
-  generateHourlyAdvice: vi.fn(() => []),
-}));
-
-vi.mock("@/lib/prediction/daeunTransitSync", () => ({
-  analyzeDaeunTransitSync: vi.fn(() => ({ score: 50 })),
-  convertSajuDaeunToInfo: vi.fn(() => ({ period: "甲子" })),
-}));
-
-vi.mock("@/lib/prediction/advancedTimingEngine", () => ({
-  analyzeMultiLayer: vi.fn(() => ({ score: 60 })),
-  calculatePreciseTwelveStage: vi.fn(() => "prosperity"),
-  calculateYearlyGanji: vi.fn(() => ({ stem: "甲", branch: "子" })),
-  calculateMonthlyGanji: vi.fn(() => ({ stem: "甲", branch: "子" })),
-}));
-
-vi.mock("@/lib/destiny-map/calendar/grading", () => ({
-  calculateGrade: vi.fn((score: number) => {
-    if (score >= 80) return 4;
-    if (score >= 60) return 3;
-    if (score >= 40) return 2;
-    if (score >= 20) return 1;
-    return 0;
-  }),
-  getGradeKeys: vi.fn(() => ["good", "neutral"]),
-  getGradeRecommendations: vi.fn(() => ({
-    activities: ["meditation"],
-    avoid: ["conflicts"],
-  })),
-  filterWarningsByGrade: vi.fn(() => []),
-}));
-
-vi.mock("@/lib/destiny-map/calendar/scoring", () => ({
-  calculateTotalScore: vi.fn(
-    (saju: any, astro: any): { totalScore: number; confidence: number } => ({
-      totalScore: 75,
-      confidence: 0.85,
-    })
-  ),
-}));
-
-vi.mock("@/lib/destiny-map/calendar/scoring-adapter", () => ({
-  adaptDaeunResult: vi.fn(() => ({ score: 50 })),
-  adaptSeunResult: vi.fn(() => ({ score: 50 })),
-  adaptWolunResult: vi.fn(() => ({ score: 50 })),
-  adaptIljinResult: vi.fn(() => ({ score: 50 })),
-  adaptYongsinResult: vi.fn(() => ({ score: 50 })),
-  adaptPlanetTransits: vi.fn(() => ({ score: 50 })),
-}));
-
-vi.mock("@/lib/destiny-map/calendar/category-scoring", () => ({
-  calculateAreaScoresForCategories: vi.fn(() => ({
-    love: 70,
-    career: 80,
-    health: 75,
-  })),
-  getBestAreaCategory: vi.fn(() => "career"),
-}));
-
-vi.mock("@/lib/destiny-map/calendar/activity-scoring", () => ({
-  calculateActivityScore: vi.fn(() => ({
-    goodActivities: ["work"],
-    avoidActivities: ["gambling"],
-  })),
-}));
-
-vi.mock("@/lib/destiny-map/calendar/transit-analysis", () => ({
-  analyzePlanetTransits: vi.fn(() => ({
-    transits: [],
-    score: 50,
-  })),
-  getMoonPhaseDetailed: vi.fn(() => ({
-    phase: "full",
-    illumination: 100,
-  })),
-}));
+import { describe, it, expect } from "vitest";
 
 describe("Date Analysis Orchestrator", () => {
-  describe("Module Integration", () => {
-    it("imports ultraPrecisionEngine functions", () => {
-      const {
-        calculateDailyPillar,
-        analyzeGongmang,
-        analyzeShinsal,
-      } = require("@/lib/prediction/ultraPrecisionEngine");
-
-      expect(calculateDailyPillar).toBeDefined();
-      expect(analyzeGongmang).toBeDefined();
-      expect(analyzeShinsal).toBeDefined();
+  describe("ultraPrecisionEngine exports", () => {
+    it("exports calculateDailyPillar function", async () => {
+      const { calculateDailyPillar } = await import("@/lib/prediction/ultraPrecisionEngine");
+      expect(typeof calculateDailyPillar).toBe("function");
     });
 
-    it("imports daeunTransitSync functions", () => {
-      const { analyzeDaeunTransitSync } = require("@/lib/prediction/daeunTransitSync");
-
-      expect(analyzeDaeunTransitSync).toBeDefined();
+    it("exports analyzeGongmang function", async () => {
+      const { analyzeGongmang } = await import("@/lib/prediction/ultraPrecisionEngine");
+      expect(typeof analyzeGongmang).toBe("function");
     });
 
-    it("imports advancedTimingEngine functions", () => {
-      const { analyzeMultiLayer } = require("@/lib/prediction/advancedTimingEngine");
-
-      expect(analyzeMultiLayer).toBeDefined();
+    it("exports analyzeShinsal function", async () => {
+      const { analyzeShinsal } = await import("@/lib/prediction/ultraPrecisionEngine");
+      expect(typeof analyzeShinsal).toBe("function");
     });
 
-    it("imports grading module", () => {
-      const { calculateGrade } = require("@/lib/destiny-map/calendar/grading");
-
-      expect(calculateGrade).toBeDefined();
+    it("exports analyzeEnergyFlow function", async () => {
+      const { analyzeEnergyFlow } = await import("@/lib/prediction/ultraPrecisionEngine");
+      expect(typeof analyzeEnergyFlow).toBe("function");
     });
 
-    it("imports scoring module", () => {
-      const { calculateTotalScore } = require("@/lib/destiny-map/calendar/scoring");
+    it("exports generateHourlyAdvice function", async () => {
+      const { generateHourlyAdvice } = await import("@/lib/prediction/ultraPrecisionEngine");
+      expect(typeof generateHourlyAdvice).toBe("function");
+    });
 
-      expect(calculateTotalScore).toBeDefined();
+    it("exports calculateUltraPrecisionScore function", async () => {
+      const { calculateUltraPrecisionScore } = await import("@/lib/prediction/ultraPrecisionEngine");
+      expect(typeof calculateUltraPrecisionScore).toBe("function");
     });
   });
 
-  describe("Grading System", () => {
-    it("calculates grade from score", () => {
-      const { calculateGrade } = require("@/lib/destiny-map/calendar/grading");
-
-      expect(calculateGrade(90)).toBe(4);
-      expect(calculateGrade(70)).toBe(3);
-      expect(calculateGrade(50)).toBe(2);
-      expect(calculateGrade(30)).toBe(1);
-      expect(calculateGrade(10)).toBe(0);
+  describe("daeunTransitSync exports", () => {
+    it("exports analyzeDaeunTransitSync function", async () => {
+      const { analyzeDaeunTransitSync } = await import("@/lib/prediction/daeunTransitSync");
+      expect(typeof analyzeDaeunTransitSync).toBe("function");
     });
   });
 
-  describe("Scoring System", () => {
-    it("calculates total score from Saju and Astro inputs", () => {
-      const { calculateTotalScore } = require("@/lib/destiny-map/calendar/scoring");
-
-      const result = calculateTotalScore({}, {});
-
-      expect(result.totalScore).toBe(75);
-      expect(result.confidence).toBe(0.85);
+  describe("advancedTimingEngine exports", () => {
+    it("exports analyzeMultiLayer function", async () => {
+      const { analyzeMultiLayer } = await import("@/lib/prediction/advancedTimingEngine");
+      expect(typeof analyzeMultiLayer).toBe("function");
     });
   });
 
-  describe("Category Scoring", () => {
-    it("calculates area scores for categories", () => {
-      const { calculateAreaScoresForCategories } = require("@/lib/destiny-map/calendar/category-scoring");
+  describe("calculateDailyPillar function", () => {
+    it("calculates daily pillar for a given date", async () => {
+      const { calculateDailyPillar } = await import("@/lib/prediction/ultraPrecisionEngine");
 
-      const scores = calculateAreaScoresForCategories({}, {}, {});
+      const testDate = new Date("2025-01-15");
+      const result = calculateDailyPillar(testDate);
 
-      expect(scores).toHaveProperty("love");
-      expect(scores).toHaveProperty("career");
-      expect(scores).toHaveProperty("health");
-    });
-
-    it("identifies best category", () => {
-      const { getBestAreaCategory } = require("@/lib/destiny-map/calendar/category-scoring");
-
-      const best = getBestAreaCategory({});
-
-      expect(best).toBe("career");
+      expect(result).toHaveProperty("stem");
+      expect(result).toHaveProperty("branch");
+      expect(typeof result.stem).toBe("string");
+      expect(typeof result.branch).toBe("string");
     });
   });
 
-  describe("Activity Scoring", () => {
-    it("calculates activity recommendations", () => {
-      const { calculateActivityScore } = require("@/lib/destiny-map/calendar/activity-scoring");
+  describe("analyzeGongmang function", () => {
+    it("analyzes gongmang (void) status", async () => {
+      const { analyzeGongmang } = await import("@/lib/prediction/ultraPrecisionEngine");
 
-      const activities = calculateActivityScore({}, {}, {});
+      // Test with sample day stem, day branch, and target branch
+      const result = analyzeGongmang("甲", "子", "戌");
 
-      expect(activities).toHaveProperty("goodActivities");
-      expect(activities).toHaveProperty("avoidActivities");
+      // Returns emptyBranches array and isToday空 flag
+      expect(result).toHaveProperty("emptyBranches");
+      expect(Array.isArray(result.emptyBranches)).toBe(true);
+      expect(result).toHaveProperty("isToday空");
+      expect(typeof result.isToday空).toBe("boolean");
     });
   });
 
-  describe("Transit Analysis", () => {
-    it("analyzes planet transits", () => {
-      const { analyzePlanetTransits } = require("@/lib/destiny-map/calendar/transit-analysis");
+  describe("analyzeShinsal function", () => {
+    it("analyzes shinsal (special spirits) for day", async () => {
+      const { analyzeShinsal } = await import("@/lib/prediction/ultraPrecisionEngine");
 
-      const transits = analyzePlanetTransits({}, {});
+      const result = analyzeShinsal("子", "午");
 
-      expect(transits).toHaveProperty("transits");
-      expect(transits).toHaveProperty("score");
+      // Returns active array of shinsal hits
+      expect(result).toHaveProperty("active");
+      expect(Array.isArray(result.active)).toBe(true);
+      expect(result).toHaveProperty("score");
+      expect(typeof result.score).toBe("number");
     });
+  });
 
-    it("gets moon phase details", () => {
-      const { getMoonPhaseDetailed } = require("@/lib/destiny-map/calendar/transit-analysis");
+  describe("analyzeEnergyFlow function", () => {
+    it("analyzes energy flow between stems and branches", async () => {
+      const { analyzeEnergyFlow } = await import("@/lib/prediction/ultraPrecisionEngine");
 
-      const phase = getMoonPhaseDetailed(new Date());
+      const dayStem = "甲";
+      const stems = ["甲", "乙", "丙", "丁"];
+      const branches = ["子", "丑", "寅", "卯"];
 
-      expect(phase).toHaveProperty("phase");
-      expect(phase).toHaveProperty("illumination");
+      const result = analyzeEnergyFlow(dayStem, stems, branches);
+
+      expect(result).toHaveProperty("tonggeun");
+      expect(result).toHaveProperty("tuechul");
+    });
+  });
+
+  describe("generateHourlyAdvice function", () => {
+    it("generates hourly advice for a day", async () => {
+      const { generateHourlyAdvice } = await import("@/lib/prediction/ultraPrecisionEngine");
+
+      const result = generateHourlyAdvice("甲", "子");
+
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThan(0);
     });
   });
 });
-*/

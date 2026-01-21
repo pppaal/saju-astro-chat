@@ -131,6 +131,80 @@ describe('Love Prompt', () => {
     expect(typeof result).toBe('string');
     expect(result.length).toBeGreaterThan(0);
   });
+
+  it('should include love analysis sections', async () => {
+    const { buildLovePrompt } = await import('@/lib/destiny-map/prompt/fortune/theme/lovePrompt');
+    const result = buildLovePrompt('ko', mockCombinedResult as never);
+
+    expect(result).toContain('연상/동갑/연하');
+    expect(result).toContain('배우자 성향');
+    expect(result).toContain('어디서 만나기');
+    expect(result).toContain('결혼/연애 시기');
+    expect(result).toContain('연애 조언');
+    expect(result).toContain('교차 하이라이트');
+  });
+
+  it('should handle male gender', async () => {
+    const { buildLovePrompt } = await import('@/lib/destiny-map/prompt/fortune/theme/lovePrompt');
+    const maleData = {
+      ...mockCombinedResult,
+      meta: { ...mockCombinedResult.meta, gender: 'male' },
+    };
+    const result = buildLovePrompt('ko', maleData as never);
+
+    expect(result).toContain('Gender: male');
+    expect(result).toContain('남성');
+    expect(result).toContain('여성 배우자');
+  });
+
+  it('should handle female gender', async () => {
+    const { buildLovePrompt } = await import('@/lib/destiny-map/prompt/fortune/theme/lovePrompt');
+    const femaleData = {
+      ...mockCombinedResult,
+      meta: { ...mockCombinedResult.meta, gender: 'female' },
+    };
+    const result = buildLovePrompt('ko', femaleData as never);
+
+    expect(result).toContain('Gender: female');
+    expect(result).toContain('여성');
+    expect(result).toContain('남성 배우자');
+  });
+
+  it('should handle unknown gender', async () => {
+    const { buildLovePrompt } = await import('@/lib/destiny-map/prompt/fortune/theme/lovePrompt');
+    const unknownData = {
+      ...mockCombinedResult,
+      meta: { ...mockCombinedResult.meta, gender: undefined },
+    };
+    const result = buildLovePrompt('ko', unknownData as never);
+
+    expect(result).toContain('Gender: unknown');
+    expect(result).toContain('성별 미상');
+  });
+
+  it('should include timezone info', async () => {
+    const { buildLovePrompt } = await import('@/lib/destiny-map/prompt/fortune/theme/lovePrompt');
+    const result = buildLovePrompt('ko', mockCombinedResult as never);
+
+    expect(result).toContain('Asia/Seoul');
+  });
+
+  it('should handle missing timezone', async () => {
+    const { buildLovePrompt } = await import('@/lib/destiny-map/prompt/fortune/theme/lovePrompt');
+    const noTzData = { ...mockCombinedResult, userTimezone: undefined };
+    const result = buildLovePrompt('ko', noTzData as never);
+
+    expect(result).not.toContain('Asia/Seoul');
+  });
+
+  it('should handle useStructured parameter', async () => {
+    const { buildLovePrompt } = await import('@/lib/destiny-map/prompt/fortune/theme/lovePrompt');
+    const result1 = buildLovePrompt('ko', mockCombinedResult as never, true);
+    const result2 = buildLovePrompt('ko', mockCombinedResult as never, false);
+
+    expect(typeof result1).toBe('string');
+    expect(typeof result2).toBe('string');
+  });
 });
 
 describe('Health Prompt', () => {

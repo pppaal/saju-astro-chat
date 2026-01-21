@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "preinstall": "node scripts/bootstrap-python.mjs",
     "postinstall": "prisma generate",
     "dev": "next dev --webpack",
     "build": "next build --webpack",

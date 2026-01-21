@@ -3,7 +3,7 @@
  * src/lib/redis-cache.ts
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { makeCacheKey } from "@/lib/redis-cache";
+import { makeCacheKey, cacheGet, cacheSet } from "@/lib/redis-cache";
 
 // Mock fetch for API tests
 const mockFetch = vi.fn();
@@ -19,10 +19,19 @@ vi.mock("@/lib/logger", () => ({
   },
 }));
 
+// Store original env
+const originalEnv = { ...process.env };
+
 describe("Redis Cache", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetch.mockReset();
+    // Reset env
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
   describe("makeCacheKey", () => {
@@ -196,6 +205,38 @@ describe("Redis Cache", () => {
     it("should handle single character values", () => {
       const key = makeCacheKey("single", { a: "x", b: "y" });
       expect(key).toBe("single:a:x|b:y");
+    });
+  });
+
+  describe("cacheGet", () => {
+    // Note: cacheGet and cacheSet read env vars at module load time
+    // These tests verify the function signatures and error handling behavior
+
+    it("should return null when env vars not set (default state)", async () => {
+      // Without env vars, should return null without calling fetch
+      const result = await cacheGet("test-key");
+      expect(result).toBeNull();
+    });
+
+    it("should be exported and callable", () => {
+      expect(typeof cacheGet).toBe("function");
+    });
+  });
+
+  describe("cacheSet", () => {
+    it("should return false when env vars not set (default state)", async () => {
+      // Without env vars, should return false without calling fetch
+      const result = await cacheSet("test-key", { data: "test" });
+      expect(result).toBe(false);
+    });
+
+    it("should be exported and callable", () => {
+      expect(typeof cacheSet).toBe("function");
+    });
+
+    it("should accept TTL parameter", () => {
+      // Verify function accepts TTL parameter (won't execute without env vars)
+      expect(() => cacheSet("key", "value", 3600)).not.toThrow();
     });
   });
 });
