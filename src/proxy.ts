@@ -1,4 +1,4 @@
-// src/middleware.ts
+// src/proxy.ts (Next.js 16+ proxy convention)
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -6,19 +6,66 @@ import type { NextRequest } from 'next/server';
  * Generate a cryptographically secure nonce for CSP
  * Uses Web Crypto API for secure random generation
  */
+function toBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 1) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 function generateNonce(): string {
   const array = new Uint8Array(16);
   crypto.getRandomValues(array);
-  return Buffer.from(array).toString('base64');
+  return toBase64(array);
+}
+
+function getBackendOrigin(): string | null {
+  const raw =
+    process.env.AI_BACKEND_URL || process.env.NEXT_PUBLIC_AI_BACKEND;
+
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return null;
+  }
 }
 
 /**
- * Middleware to inject CSP nonce into requests and set CSP headers
+ * Proxy to inject CSP nonce into requests and set CSP headers
  * Implements strict nonce-based CSP for scripts and styles
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const nonce = generateNonce();
   const isProd = process.env.NODE_ENV === 'production';
+  const backendOrigin = getBackendOrigin();
+
+  const connectSrc = [
+    "'self'",
+    "https://api.destinypal.com",
+    "https://*.sentry.io",
+    "https://www.google-analytics.com",
+    "https://region1.google-analytics.com",
+    "wss:",
+  ];
+
+  if (backendOrigin) {
+    connectSrc.push(backendOrigin);
+  }
+
+  if (isProd) {
+    connectSrc.push("https://api.openai.com", "wss://api.openai.com");
+  } else {
+    connectSrc.push(
+      "http://localhost:*",
+      "https://api.openai.com",
+      "wss://api.openai.com"
+    );
+  }
 
   // Clone the request headers
   const requestHeaders = new Headers(request.headers);
@@ -58,7 +105,7 @@ export function middleware(request: NextRequest) {
     `img-src 'self' data: blob: https:${!isProd ? ' http:' : ''}`,
 
     // API connections
-    `connect-src 'self' https://api.destinypal.com https://*.sentry.io https://www.google-analytics.com https://region1.google-analytics.com ${isProd ? 'https://api.openai.com wss://api.openai.com' : 'http://localhost:* https://api.openai.com wss://api.openai.com'}`,
+    `connect-src ${connectSrc.join(' ')}`,
 
     // Prevent framing (clickjacking protection)
     "frame-ancestors 'none'",
@@ -138,7 +185,7 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
-// Apply middleware to all routes
+// Apply proxy to all routes
 export const config = {
   matcher: [
     /*

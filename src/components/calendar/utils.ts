@@ -6,6 +6,7 @@
 import styles from "./DestinyCalendar.module.css";
 import type { EventCategory, ImportantDate } from './types';
 import { GRADE_EMOJI, CATEGORY_LABELS_KO, CATEGORY_LABELS_EN } from './constants';
+import { SCORE_THRESHOLDS } from '@/constants/scoring';
 
 /**
  * Extract city part from input string
@@ -46,7 +47,7 @@ export function getCategoryLabel(cat: EventCategory, locale: string): string {
  * Get score CSS class
  */
 export function getScoreClass(score: number): string {
-  if (score >= 70) return styles.high;
+  if (score >= SCORE_THRESHOLDS.GOOD) return styles.high;
   if (score >= 50) return styles.medium;
   return styles.low;
 }

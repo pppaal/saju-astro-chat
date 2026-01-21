@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/i18n/I18nProvider';
 import styles from './PastLifeResults.module.css';
-import type { PastLifeResult } from './PastLifeAnalyzer';
+import type { PastLifeResult } from '@/lib/past-life/types';
 
 type TabId = 'overview' | 'pastLife' | 'journey' | 'karma' | 'mission';
 

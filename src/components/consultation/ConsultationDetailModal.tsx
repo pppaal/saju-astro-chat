@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useConsultationHistory } from "@/hooks/useConsultationHistory";
 import { useI18n } from "@/i18n/I18nProvider";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface Props {
   consultationId: string;
@@ -52,6 +53,28 @@ export default function ConsultationDetailModal({ consultationId, onClose }: Pro
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Focus trap for accessibility - modal is always open when rendered
+  const focusTrapRef = useFocusTrap(true);
+
+  // Keyboard handling and body scroll lock
+  useEffect(() => {
+    // Handle Escape key
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
   useEffect(() => {
     async function load() {
       setLoading(true);
@@ -84,18 +107,25 @@ export default function ConsultationDetailModal({ consultationId, onClose }: Pro
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
       onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="consultation-detail-title"
     >
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-2xl">
+      <div
+        ref={focusTrapRef}
+        className="bg-gray-900 border border-gray-700 rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-2xl"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-800/50">
-          <h2 className="text-lg font-bold text-white">
+          <h2 id="consultation-detail-title" className="text-lg font-bold text-white">
             {isKo ? "상담 상세 기록" : "Consultation Details"}
           </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white transition-colors p-1"
+            aria-label={isKo ? "닫기" : "Close"}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>

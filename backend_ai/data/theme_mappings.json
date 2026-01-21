@@ -1,0 +1,122 @@
+{
+  "version": "1.0.0",
+  "description": "Theme-based cross-reference mappings for Saju and Astrology",
+
+  "theme_sipsin": {
+    "love": {
+      "primary": ["정재", "정관", "식신"],
+      "secondary": ["편재", "편관", "상관"],
+      "negative": ["겁재", "편인"],
+      "description": "연애/결혼 관련 십신"
+    },
+    "career": {
+      "primary": ["정관", "편관", "정인"],
+      "secondary": ["비견", "편인", "식신"],
+      "negative": ["상관", "겁재"],
+      "description": "직업/사업 관련 십신"
+    },
+    "wealth": {
+      "primary": ["정재", "편재", "식신"],
+      "secondary": ["상관", "비견"],
+      "negative": ["겁재", "편관"],
+      "description": "재물/투자 관련 십신"
+    },
+    "health": {
+      "primary": ["식신", "비견", "정인"],
+      "secondary": ["편인", "정재"],
+      "negative": ["상관", "편관", "겁재"],
+      "description": "건강/활력 관련 십신"
+    },
+    "family": {
+      "primary": ["정인", "편인", "정관"],
+      "secondary": ["정재", "식신"],
+      "negative": ["상관", "겁재"],
+      "description": "가족/관계 관련 십신"
+    },
+    "education": {
+      "primary": ["정인", "편인", "식신"],
+      "secondary": ["정관", "상관"],
+      "negative": ["겁재", "편재"],
+      "description": "학업/시험 관련 십신"
+    },
+    "overall": {
+      "primary": ["정관", "정재", "정인", "식신"],
+      "secondary": ["편관", "편재", "편인", "상관"],
+      "negative": ["겁재"],
+      "description": "전체 운세"
+    }
+  },
+
+  "theme_planets": {
+    "love": {
+      "primary": ["venus", "moon", "mars"],
+      "secondary": ["sun", "neptune"],
+      "houses": [5, 7, 8],
+      "aspects": ["conjunction", "trine", "sextile"],
+      "description": "연애/결혼 관련 행성"
+    },
+    "career": {
+      "primary": ["saturn", "jupiter", "sun"],
+      "secondary": ["mars", "mercury"],
+      "houses": [2, 6, 10],
+      "aspects": ["conjunction", "trine", "square"],
+      "description": "직업/사업 관련 행성"
+    },
+    "wealth": {
+      "primary": ["jupiter", "venus", "pluto"],
+      "secondary": ["saturn", "mercury"],
+      "houses": [2, 8, 11],
+      "aspects": ["conjunction", "trine", "sextile"],
+      "description": "재물/투자 관련 행성"
+    },
+    "health": {
+      "primary": ["sun", "mars", "saturn"],
+      "secondary": ["moon", "neptune"],
+      "houses": [1, 6, 12],
+      "aspects": ["conjunction", "opposition", "square"],
+      "description": "건강/활력 관련 행성"
+    },
+    "family": {
+      "primary": ["moon", "saturn", "sun"],
+      "secondary": ["venus", "jupiter"],
+      "houses": [4, 10, 7],
+      "aspects": ["conjunction", "trine", "opposition"],
+      "description": "가족/관계 관련 행성"
+    },
+    "education": {
+      "primary": ["mercury", "jupiter", "saturn"],
+      "secondary": ["uranus", "sun"],
+      "houses": [3, 9],
+      "aspects": ["conjunction", "trine", "sextile"],
+      "description": "학업/시험 관련 행성"
+    },
+    "overall": {
+      "primary": ["sun", "moon", "jupiter", "saturn"],
+      "secondary": ["mars", "venus", "mercury"],
+      "houses": [1, 4, 7, 10],
+      "aspects": ["conjunction", "trine", "square", "opposition"],
+      "description": "전체 운세"
+    }
+  },
+
+  "sipsin_planet_cross": {
+    "비견": {"planets": ["sun", "mars"], "meaning": "자아/경쟁 에너지"},
+    "겁재": {"planets": ["mars", "pluto"], "meaning": "욕망/경쟁 에너지"},
+    "식신": {"planets": ["venus", "jupiter"], "meaning": "표현/풍요 에너지"},
+    "상관": {"planets": ["uranus", "mars"], "meaning": "반항/창조 에너지"},
+    "편재": {"planets": ["jupiter", "uranus"], "meaning": "기회/변동 재물"},
+    "정재": {"planets": ["venus", "saturn"], "meaning": "안정/축적 재물"},
+    "편관": {"planets": ["mars", "pluto"], "meaning": "권위/압박 에너지"},
+    "정관": {"planets": ["saturn", "sun"], "meaning": "명예/책임 에너지"},
+    "편인": {"planets": ["uranus", "neptune"], "meaning": "영감/독창성"},
+    "정인": {"planets": ["moon", "jupiter"], "meaning": "학습/보호 에너지"}
+  },
+
+  "ohaeng_element_cross": {
+    "목": {"signs": ["aries", "sagittarius"], "element": "fire", "planets": ["jupiter", "mars"]},
+    "화": {"signs": ["leo", "aries"], "element": "fire", "planets": ["sun", "mars"]},
+    "토": {"signs": ["taurus", "virgo", "capricorn"], "element": "earth", "planets": ["saturn", "venus"]},
+    "금": {"signs": ["libra", "aquarius"], "element": "air", "planets": ["venus", "saturn"]},
+    "수": {"signs": ["cancer", "scorpio", "pisces"], "element": "water", "planets": ["moon", "neptune"]}
+  }
+}

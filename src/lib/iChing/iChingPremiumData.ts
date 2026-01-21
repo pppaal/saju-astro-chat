@@ -3,6 +3,9 @@
  * 더 풍부한 해석을 위한 core_meaning, themes 포함
  */
 
+// 공통 데이터는 types.ts에서 import (중복 방지)
+import { HEXAGRAM_BINARY_MAP, findHexagramNumberByBinary } from './types';
+
 export interface HexagramThemes {
   career: { ko: string; en: string };
   love: { ko: string; en: string };
@@ -818,40 +821,11 @@ export function getLuckyInfo(hexagramNumber: number): LuckyInfo | null {
 }
 
 /**
- * 64괘 binary 매핑 (번호 → binary)
- */
-const HEXAGRAM_BINARY: Record<number, string> = {
-  1: '111111', 2: '000000', 3: '010001', 4: '100010', 5: '010111',
-  6: '111010', 7: '000010', 8: '010000', 9: '110111', 10: '111011',
-  11: '000111', 12: '111000', 13: '111101', 14: '101111', 15: '000100',
-  16: '001000', 17: '011001', 18: '100110', 19: '000011', 20: '110000',
-  21: '101001', 22: '100101', 23: '100000', 24: '000001', 25: '111001',
-  26: '100111', 27: '100001', 28: '011110', 29: '010010', 30: '101101',
-  31: '011100', 32: '001110', 33: '111100', 34: '001111', 35: '101000',
-  36: '000101', 37: '110101', 38: '101011', 39: '010100', 40: '001010',
-  41: '100011', 42: '110001', 43: '011111', 44: '111110', 45: '011000',
-  46: '000110', 47: '011010', 48: '010110', 49: '011101', 50: '101110',
-  51: '001001', 52: '100100', 53: '110100', 54: '001011', 55: '001101',
-  56: '101100', 57: '110110', 58: '011011', 59: '110010', 60: '010011',
-  61: '110011', 62: '001100', 63: '010101', 64: '101010'
-};
-
-/**
- * Binary에서 괘 번호 찾기
- */
-function findHexagramByBinary(binary: string): number | null {
-  for (const [num, bin] of Object.entries(HEXAGRAM_BINARY)) {
-    if (bin === binary) return parseInt(num);
-  }
-  return null;
-}
-
-/**
  * 호괘(互卦) 계산 - 2,3,4효로 하괘, 3,4,5효로 상괘 구성
  * binary 형식: binary[0]=6효(상), binary[5]=1효(하)
  */
 export function calculateNuclearHexagram(hexagramNumber: number): { number: number; name_ko: string; name_en: string } | null {
-  const binary = HEXAGRAM_BINARY[hexagramNumber];
+  const binary = HEXAGRAM_BINARY_MAP[hexagramNumber];
   if (!binary) return null;
 
   // binary[0]=6효, binary[1]=5효, binary[2]=4효, binary[3]=3효, binary[4]=2효, binary[5]=1효
@@ -861,7 +835,7 @@ export function calculateNuclearHexagram(hexagramNumber: number): { number: numb
   const upperNuclear = binary[1] + binary[2] + binary[3];
   const nuclearBinary = upperNuclear + lowerNuclear;
 
-  const nuclearNumber = findHexagramByBinary(nuclearBinary);
+  const nuclearNumber = findHexagramNumberByBinary(nuclearBinary);
   if (!nuclearNumber) return null;
 
   const nuclearData = PREMIUM_HEXAGRAM_DATA[nuclearNumber];
@@ -879,17 +853,17 @@ export function calculateRelatedHexagrams(hexagramNumber: number): {
   inverted: { number: number; name_ko: string; name_en: string } | null;  // 종괘 (뒤집기)
   opposite: { number: number; name_ko: string; name_en: string } | null;  // 착괘 (음양 반전)
 } {
-  const binary = HEXAGRAM_BINARY[hexagramNumber];
+  const binary = HEXAGRAM_BINARY_MAP[hexagramNumber];
   if (!binary) return { inverted: null, opposite: null };
 
   // 종괘: 뒤집기 (reverse)
   const invertedBinary = binary.split('').reverse().join('');
-  const invertedNumber = findHexagramByBinary(invertedBinary);
+  const invertedNumber = findHexagramNumberByBinary(invertedBinary);
   const invertedData = invertedNumber ? PREMIUM_HEXAGRAM_DATA[invertedNumber] : null;
 
   // 착괘: 음양 반전
   const oppositeBinary = binary.split('').map(b => b === '1' ? '0' : '1').join('');
-  const oppositeNumber = findHexagramByBinary(oppositeBinary);
+  const oppositeNumber = findHexagramNumberByBinary(oppositeBinary);
   const oppositeData = oppositeNumber ? PREMIUM_HEXAGRAM_DATA[oppositeNumber] : null;
 
   return {

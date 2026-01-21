@@ -10,58 +10,9 @@ import { useI18n } from '@/i18n/I18nProvider';
 import styles from './PastLifeAnalyzer.module.css';
 import { logger } from '@/lib/logger';
 import PastLifeResults from './PastLifeResults';
+import type { PastLifeResult } from '@/lib/past-life/types';
 
-export interface PastLifeResult {
-  // Soul Pattern
-  soulPattern: {
-    type: string;
-    emoji: string;
-    title: string;
-    description: string;
-    traits: string[];
-  };
-  // Past Life Theme
-  pastLife: {
-    likely: string;
-    talents: string;
-    lessons: string;
-    era?: string;
-  };
-  // Soul Journey (South Node -> North Node)
-  soulJourney: {
-    pastPattern: string;
-    releasePattern: string;
-    currentDirection: string;
-    lessonToLearn: string;
-  };
-  // Karmic Debts
-  karmicDebts: Array<{
-    area: string;
-    description: string;
-    healing: string;
-  }>;
-  // Saturn Lesson
-  saturnLesson: {
-    lesson: string;
-    challenge: string;
-    mastery: string;
-  };
-  // Talents Carried
-  talentsCarried: string[];
-  // This Life Mission
-  thisLifeMission: {
-    core: string;
-    expression: string;
-    fulfillment: string;
-  };
-  // Karma Score
-  karmaScore: number;
-  // Raw data for display
-  geokguk?: string;
-  northNodeHouse?: number;
-  saturnHouse?: number;
-  dayMaster?: string;
-}
+export type { PastLifeResult } from '@/lib/past-life/types';
 
 export default function PastLifeAnalyzer() {
   const { t, locale } = useI18n();

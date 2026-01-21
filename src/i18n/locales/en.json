@@ -55,7 +55,8 @@
     "numerology": "Numerology",
     "compatibility": "Compatibility",
     "personality": "Personality",
-    "icp": "Relationship Style"
+    "icp": "Relationship Style",
+    "pastLife": "Past Life"
   },
   "landing": {
     "heroTitle": "Know yourself. Shape tomorrow.",
@@ -706,7 +707,30 @@
     "nuclearHexagram": "Nuclear Hexagram",
     "nuclearHexagramDesc": "Inner structure",
     "oppositeHexagram": "Opposite Hexagram",
-    "oppositeDesc": "Complementary energy"
+    "oppositeDesc": "Complementary energy",
+    "quickSummary": "Quick Summary",
+    "visualImagery": "Visual Imagery",
+    "plainLanguage": "Easy Explanation",
+    "traditional": "Traditional",
+    "modernExplanation": "Modern Explanation",
+    "realLifeExample": "Real-Life Example",
+    "metaphor": "Metaphor",
+    "actionableAdvice": "Actionable Advice",
+    "doThis": "Do This",
+    "dontDoThis": "Don't Do This",
+    "bestTiming": "Best Timing",
+    "nextSteps": "Next Steps",
+    "yourQuestion": "Your Question",
+    "detailedAdvice": "Detailed Advice",
+    "actionItems": "Action Items",
+    "aiInterpretation": "AI Personalized Reading",
+    "aiLoading": "Preparing your personalized reading...",
+    "startAi": "Get AI Interpretation",
+    "overview": "Overall Interpretation",
+    "changingAnalysis": "Changing Lines Analysis",
+    "practicalAdvice": "Practical Guidance",
+    "aiError": "An error occurred while generating the interpretation.",
+    "retry": "Try Again"
   },
   "tarot": {
     "home": {

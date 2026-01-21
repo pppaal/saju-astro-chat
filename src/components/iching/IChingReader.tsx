@@ -4,6 +4,8 @@ import React, { useMemo, useState, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { IChingData } from "@/lib/iChing/iChingData";
 import { IChingDataKo } from "@/lib/iChing/iChingData.ko";
+import { castMeihuaByTime } from "@/lib/iChing/ichingNumerology";
+import { HEXAGRAM_BINARY_MAP } from "@/lib/iChing/types";
 import HexagramLine from "./HexagramLine";
 import ResultDisplay from "@/components/iching/ResultDisplay";
 import { IChingResult } from "@/components/iching/types";
@@ -94,6 +96,63 @@ const IChingReader: React.FC = () => {
       primaryBinary !== resultingBinary
         ? hexByBinary.get(resultingBinary)
         : undefined;
+
+    const changingLines = lines
+      .map((line, index) => ({ ...line, index }))
+      .filter((line) => line.isChanging)
+      .map((line) => ({
+        index: line.index,
+        text: primaryHexagram.lines[line.index],
+      }));
+
+    setResult({ primaryHexagram, changingLines, resultingHexagram });
+    setStatus("finished");
+  };
+
+  // Meihua (Time-based) divination using ichingNumerology
+  const handleMeihuaDivination = async () => {
+    setStatus("drawing");
+    setResult(null);
+    setDrawnLines([]);
+
+    // Small delay for visual feedback
+    await delay(800);
+
+    const meihua = castMeihuaByTime(new Date());
+
+    // Convert binary to lines
+    const lines: LineResult[] = [];
+    for (let i = 0; i < 6; i++) {
+      const bit = meihua.본괘Binary[i];
+      const isChanging = i + 1 === meihua.변효;
+      lines.push({ value: bit === "1" ? 1 : 0, isChanging });
+    }
+    setDrawnLines(lines);
+
+    // Find hexagram from binary
+    let hexNumber = 1;
+    for (const [num, bin] of Object.entries(HEXAGRAM_BINARY_MAP)) {
+      if (bin === meihua.본괘Binary) {
+        hexNumber = parseInt(num);
+        break;
+      }
+    }
+
+    const primaryHexagram = currentData.find(h => h.number === hexNumber) ||
+      currentData[0] || { number: 0, binary: meihua.본괘Binary, name: "", symbol: "", judgment: "", image: "", lines: [] };
+
+    // Resulting hexagram
+    let resultingHexagram;
+    if (meihua.본괘Binary !== meihua.지괘Binary) {
+      let resultHexNumber = 1;
+      for (const [num, bin] of Object.entries(HEXAGRAM_BINARY_MAP)) {
+        if (bin === meihua.지괘Binary) {
+          resultHexNumber = parseInt(num);
+          break;
+        }
+      }
+      resultingHexagram = currentData.find(h => h.number === resultHexNumber);
+    }
 
     const changingLines = lines
       .map((line, index) => ({ ...line, index }))
@@ -289,9 +348,17 @@ const IChingReader: React.FC = () => {
               rows={3}
             />
           </div>
-          <button onClick={handleDivination} className={styles.castButton}>
-            {translate("iching.cast", "Cast Hexagram")}
-          </button>
+          <div className={styles.buttonRow}>
+            <button onClick={handleDivination} className={styles.castButton}>
+              {translate("iching.cast", "Cast Hexagram")}
+            </button>
+            <button onClick={handleMeihuaDivination} className={styles.meihuaButton}>
+              {translate("iching.meihua", "Time Reading")}
+            </button>
+          </div>
+          <p className={styles.meihuaHint}>
+            {translate("iching.meihuaHint", "Time Reading uses Meihua numerology based on the current moment")}
+          </p>
         </div>
       )}
 

@@ -118,7 +118,7 @@ export const SERVICE_LINKS: ServiceLink[] = [
   { key: "astrology", href: "/astrology", icon: "✨" },
   { key: "saju", href: "/saju", icon: "☯️" },
   { key: "compatibility", href: "/compatibility", icon: "💕" },
+  { key: "pastLife", href: "/past-life", icon: "🔄" },
   // { key: "iching", href: "/iching", icon: "📜", comingSoon: true },
   // { key: "destinyMatch", href: "/destiny-match", icon: "💫", comingSoon: true },
-  // { key: "pastLife", href: "/past-life", icon: "🔄", comingSoon: true },
 ];

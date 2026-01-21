@@ -16,7 +16,16 @@ import {
 import type { MatrixCalculationInput, InsightDomain, MatrixCell } from '@/lib/destiny-matrix';
 import {
   generateAIPremiumReport,
+  generateTimingReport,
+  generateThemedReport,
   generatePremiumPDF,
+  REPORT_CREDIT_COSTS,
+  type AIPremiumReport,
+  type ReportPeriod,
+  type ReportTheme,
+  type TimingData,
+  type TimingAIPremiumReport,
+  type ThemedAIPremiumReport,
 } from '@/lib/destiny-matrix/ai-report';
 import {
   canUseFeature,
@@ -26,10 +35,73 @@ import {
 import { logger } from '@/lib/logger';
 
 // ===========================
-// 크레딧 비용 설정
+// 크레딧 비용 계산
 // ===========================
 
-const AI_REPORT_CREDIT_COST = 3; // AI 리포트 1회 = 3크레딧
+function calculateCreditCost(
+  period?: ReportPeriod,
+  theme?: ReportTheme
+): number {
+  if (theme) {
+    return REPORT_CREDIT_COSTS.themed;
+  }
+  if (period && period !== 'comprehensive') {
+    return REPORT_CREDIT_COSTS[period];
+  }
+  return REPORT_CREDIT_COSTS.comprehensive;
+}
+
+const HEAVENLY_STEMS = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'];
+const EARTHLY_BRANCHES = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
+const STEM_ELEMENTS: Record<string, string> = {
+  '갑': '목', '을': '목',
+  '병': '화', '정': '화',
+  '무': '토', '기': '토',
+  '경': '금', '신': '금',
+  '임': '수', '계': '수',
+};
+function buildTimingData(targetDate?: string): TimingData {
+  // Parse target date or use today
+  const date = targetDate ? new Date(targetDate) : new Date();
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+
+  // 년주 계산 (간단한 근사)
+  const yearStemIdx = (year - 4) % 10;
+  const yearBranchIdx = (year - 4) % 12;
+
+  // 월주 계산 (간단한 근사 - 실제는 절기 기준)
+  const monthStemIdx = ((year - 4) % 5 * 2 + month + 1) % 10;
+  const monthBranchIdx = (month + 1) % 12;
+
+  // 일주 계산 (간단한 근사)
+  const baseDate = new Date(1900, 0, 1);
+  const dayDiff = Math.floor((date.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+  const dayStemIdx = (dayDiff + 10) % 10;
+  const dayBranchIdx = dayDiff % 12;
+
+  return {
+    seun: {
+      year,
+      heavenlyStem: HEAVENLY_STEMS[yearStemIdx],
+      earthlyBranch: EARTHLY_BRANCHES[yearBranchIdx],
+      element: STEM_ELEMENTS[HEAVENLY_STEMS[yearStemIdx]],
+    },
+    wolun: {
+      month,
+      heavenlyStem: HEAVENLY_STEMS[monthStemIdx],
+      earthlyBranch: EARTHLY_BRANCHES[monthBranchIdx],
+      element: STEM_ELEMENTS[HEAVENLY_STEMS[monthStemIdx]],
+    },
+    iljin: {
+      date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      heavenlyStem: HEAVENLY_STEMS[dayStemIdx],
+      earthlyBranch: EARTHLY_BRANCHES[dayBranchIdx],
+      element: STEM_ELEMENTS[HEAVENLY_STEMS[dayStemIdx]],
+    },
+  };
+}
 
 // ===========================
 // POST - AI 리포트 생성 (JSON 응답)
@@ -64,24 +136,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. 크레딧 잔액 확인
-    const balance = await getCreditBalance(userId);
-    if (balance.remainingCredits < AI_REPORT_CREDIT_COST) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'INSUFFICIENT_CREDITS',
-            message: `AI 리포트 생성에 ${AI_REPORT_CREDIT_COST} 크레딧이 필요합니다. (현재: ${balance.remainingCredits})`,
-            required: AI_REPORT_CREDIT_COST,
-            current: balance.remainingCredits,
-          },
-        },
-        { status: 402 }
-      );
-    }
-
-    // 4. 요청 파싱 및 검증
+    // 3. 요청 파싱 (크레딧 계산을 위해 먼저)
     let body: unknown;
     try {
       body = await req.json();
@@ -91,6 +146,30 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const requestBody = body as Record<string, unknown>;
+    const period = requestBody.period as ReportPeriod | undefined;
+    const theme = requestBody.theme as ReportTheme | undefined;
+
+    // 4. 크레딧 비용 계산 및 잔액 확인
+    const creditCost = calculateCreditCost(period, theme);
+    const balance = await getCreditBalance(userId);
+
+    if (balance.remainingCredits < creditCost) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'INSUFFICIENT_CREDITS',
+            message: `AI 리포트 생성에 ${creditCost} 크레딧이 필요합니다. (현재: ${balance.remainingCredits})`,
+            required: creditCost,
+            current: balance.remainingCredits,
+          },
+        },
+        { status: 402 }
+      );
+    }
+
+    // 5. 요청 검증
     const validation = validateReportRequest(body);
     if (!validation.success) {
       return NextResponse.json(
@@ -108,21 +187,20 @@ export async function POST(req: NextRequest) {
 
     const validatedInput = validation.data!;
     const { queryDomain, maxInsights, ...rest } = validatedInput;
-    // Zod 검증 완료 후 타입 안전하게 변환 (rest spread로 나머지 속성 전달)
     const matrixInput = rest as MatrixCalculationInput;
 
-    // 5. 추가 옵션 추출
-    const requestBody = body as Record<string, unknown>;
+    // 6. 추가 옵션 추출
     const name = requestBody.name as string | undefined;
     const birthDate = requestBody.birthDate as string | undefined;
     const format = requestBody.format as 'json' | 'pdf' | undefined;
     const detailLevel = requestBody.detailLevel as 'standard' | 'detailed' | 'comprehensive' | undefined;
+    const targetDate = requestBody.targetDate as string | undefined;
 
-    // 6. 기본 매트릭스 계산
+    // 7. 기본 매트릭스 계산
     const matrix = calculateDestinyMatrix(matrixInput);
     const layerResults = extractAllLayerCells(matrix as MatrixLayers);
 
-    // 7. 기본 리포트 생성
+    // 8. 기본 리포트 생성
     const generator = new FusionReportGenerator({
       lang: matrixInput.lang || 'ko',
       maxTopInsights: maxInsights ?? 5,
@@ -153,17 +231,42 @@ export async function POST(req: NextRequest) {
       queryDomain as InsightDomain | undefined
     );
 
-    // 8. AI 프리미엄 리포트 생성
-    const aiReport = await generateAIPremiumReport(matrixInput, baseReport, {
-      name,
-      birthDate,
-      lang: matrixInput.lang || 'ko',
-      focusDomain: queryDomain as InsightDomain | undefined,
-      detailLevel: detailLevel || 'detailed',
-    });
+    // 9. 타이밍 데이터 생성 (period 또는 theme이 있는 경우)
+    const timingData: TimingData = buildTimingData(targetDate);
 
-    // 9. 크레딧 차감 (성공한 경우에만)
-    const consumeResult = await consumeCredits(userId, 'reading', AI_REPORT_CREDIT_COST);
+    // 10. 리포트 타입별 분기 처리
+    let aiReport: AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport;
+    let premiumReport: AIPremiumReport | null = null;
+
+    if (theme) {
+      // 테마별 리포트
+      aiReport = await generateThemedReport(matrixInput, baseReport, theme, timingData, {
+        name,
+        birthDate,
+        lang: matrixInput.lang || 'ko',
+      });
+    } else if (period && period !== 'comprehensive') {
+      // 타이밍 리포트 (daily/monthly/yearly)
+      aiReport = await generateTimingReport(matrixInput, baseReport, period, timingData, {
+        name,
+        birthDate,
+        targetDate,
+        lang: matrixInput.lang || 'ko',
+      });
+    } else {
+      // 기존 종합 리포트
+      premiumReport = await generateAIPremiumReport(matrixInput, baseReport, {
+        name,
+        birthDate,
+        lang: matrixInput.lang || 'ko',
+        focusDomain: queryDomain as InsightDomain | undefined,
+        detailLevel: detailLevel || 'detailed',
+      });
+      aiReport = premiumReport;
+    }
+
+    // 11. 크레딧 차감 (성공한 경우에만)
+    const consumeResult = await consumeCredits(userId, 'reading', creditCost);
     if (!consumeResult.success) {
       return NextResponse.json(
         {
@@ -177,9 +280,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 10. PDF 형식 요청인 경우
-    if (format === 'pdf') {
-      const pdfBytes = await generatePremiumPDF(aiReport);
+    // 12. PDF 형식 요청인 경우 (종합 리포트만 지원)
+    if (format === 'pdf' && premiumReport) {
+      const pdfBytes = await generatePremiumPDF(premiumReport);
 
       return new NextResponse(Buffer.from(pdfBytes), {
         status: 200,
@@ -191,11 +294,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 11. JSON 응답
+    // 13. JSON 응답
     return NextResponse.json({
       success: true,
-      creditsUsed: AI_REPORT_CREDIT_COST,
-      remainingCredits: balance.remainingCredits - AI_REPORT_CREDIT_COST,
+      creditsUsed: creditCost,
+      remainingCredits: balance.remainingCredits - creditCost,
+      reportType: theme ? 'themed' : period ? 'timing' : 'comprehensive',
       report: aiReport,
     });
 
@@ -280,8 +384,8 @@ export async function GET(req: NextRequest) {
       },
     },
     pricing: {
-      creditCost: AI_REPORT_CREDIT_COST,
-      description: `AI 리포트 1회 생성 = ${AI_REPORT_CREDIT_COST} 크레딧`,
+      creditCost: REPORT_CREDIT_COSTS.comprehensive,
+      description: `AI 리포트 1회 생성 = ${REPORT_CREDIT_COSTS.comprehensive} 크레딧`,
       availablePlans: ['pro', 'premium'],
     },
   });
@@ -353,3 +457,10 @@ function extractLayerCells(layerData: Record<string, unknown>): Record<string, M
 
   return cells;
 }
+
+// ===========================
+// 타이밍 데이터 빌더
+// ===========================
+
+
+

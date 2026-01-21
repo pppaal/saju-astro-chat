@@ -18,6 +18,7 @@ import {
 import CompatibilityFunInsights from '@/components/compatibility/fun-insights/CompatibilityFunInsights';
 import styles from './CompatibilityAnalyzer.module.css';
 import { logger } from '@/lib/logger';
+import { SCORE_THRESHOLDS } from '@/constants/scoring';
 
 // 간단한 점성 프로필 계산 (클라이언트용)
 function calculateSimpleAstroProfile(birthDate: string, birthTime: string) {
@@ -468,40 +469,40 @@ export default function CompatibilityAnalyzer() {
   const getScoreDescription = (score: number): string => {
     if (locale === 'ko') {
       if (score >= 90) return '천생연분! 최상의 궁합입니다';
-      if (score >= 80) return '매우 좋은 궁합입니다';
-      if (score >= 70) return '좋은 궁합입니다';
-      if (score >= 60) return '보통의 궁합입니다';
+      if (score >= SCORE_THRESHOLDS.EXCELLENT) return '매우 좋은 궁합입니다';
+      if (score >= SCORE_THRESHOLDS.GOOD) return '좋은 궁합입니다';
+      if (score >= SCORE_THRESHOLDS.AVERAGE) return '보통의 궁합입니다';
       if (score >= 50) return '노력이 필요한 궁합입니다';
       return '어려운 궁합이지만 극복 가능합니다';
     }
     if (score >= 90) return 'Perfect match! Exceptional compatibility';
-    if (score >= 80) return 'Excellent compatibility';
-    if (score >= 70) return 'Good compatibility';
-    if (score >= 60) return 'Average compatibility';
+    if (score >= SCORE_THRESHOLDS.EXCELLENT) return 'Excellent compatibility';
+    if (score >= SCORE_THRESHOLDS.GOOD) return 'Good compatibility';
+    if (score >= SCORE_THRESHOLDS.AVERAGE) return 'Average compatibility';
     if (score >= 50) return 'Compatibility requires effort';
     return 'Challenging but possible with dedication';
   };
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return '#4ade80';
-    if (score >= 80) return '#60a5fa';
-    if (score >= 70) return '#fbbf24';
-    if (score >= 60) return '#fb923c';
+    if (score >= SCORE_THRESHOLDS.EXCELLENT) return '#60a5fa';
+    if (score >= SCORE_THRESHOLDS.GOOD) return '#fbbf24';
+    if (score >= SCORE_THRESHOLDS.AVERAGE) return '#fb923c';
     return '#f87171';
   };
 
   const getScoreEmoji = (score: number) => {
     if (score >= 90) return '💯';
-    if (score >= 80) return '😍';
-    if (score >= 70) return '😊';
-    if (score >= 60) return '🙂';
+    if (score >= SCORE_THRESHOLDS.EXCELLENT) return '😍';
+    if (score >= SCORE_THRESHOLDS.GOOD) return '😊';
+    if (score >= SCORE_THRESHOLDS.AVERAGE) return '🙂';
     return '😐';
   };
 
   const getGrade = (score: number): string => {
     if (score >= 90) return 'S';
-    if (score >= 80) return 'A';
-    if (score >= 70) return 'B';
+    if (score >= SCORE_THRESHOLDS.EXCELLENT) return 'A';
+    if (score >= SCORE_THRESHOLDS.GOOD) return 'B';
     if (score >= 60) return 'C';
     if (score >= 50) return 'D';
     return 'F';

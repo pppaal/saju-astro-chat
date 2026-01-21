@@ -4,8 +4,20 @@
 
 'use server';
 
-import type { FusionReport, FusionInsight, InsightDomain } from '../interpreter/types';
+import type { FusionReport, InsightDomain } from '../interpreter/types';
 import type { MatrixCalculationInput } from '../types';
+import type {
+  ReportPeriod,
+  ReportTheme,
+  TimingData,
+  TimingAIPremiumReport,
+  ThemedAIPremiumReport,
+  TimingReportSections,
+  ThemedReportSections,
+} from './types';
+import { PERIOD_META, THEME_META } from './types';
+import { buildTimingPrompt } from './prompts/timingPrompts';
+import { buildThemedPrompt } from './prompts/themedPrompts';
 
 // ===========================
 // AI 리포트 타입 정의
@@ -499,4 +511,355 @@ export async function generateAIPremiumReport(
   };
 
   return report;
+}
+
+// ===========================
+// 타이밍 리포트 생성 함수
+// ===========================
+
+export async function generateTimingReport(
+  input: MatrixCalculationInput,
+  matrixReport: FusionReport,
+  period: ReportPeriod,
+  timingData: TimingData,
+  options: {
+    name?: string;
+    birthDate?: string;
+    targetDate?: string;
+    lang?: 'ko' | 'en';
+  } = {}
+): Promise<TimingAIPremiumReport> {
+  const startTime = Date.now();
+  const lang = options.lang || 'ko';
+  const targetDate = options.targetDate || new Date().toISOString().split('T')[0];
+
+  // 1. 매트릭스 요약 빌드
+  const matrixSummary = buildMatrixSummary(matrixReport, lang);
+
+  // 2. 프롬프트 빌드
+  const prompt = buildTimingPrompt(
+    period,
+    lang,
+    {
+      name: options.name,
+      birthDate: options.birthDate,
+      dayMaster: input.dayMasterElement,
+      dayMasterElement: input.dayMasterElement,
+    },
+    timingData,
+    targetDate,
+    matrixSummary
+  );
+
+  // 3. AI 백엔드 호출
+  const { sections, model, tokensUsed } = await callAIBackendGeneric<TimingReportSections>(prompt, lang);
+
+  // 4. 기간 라벨 생성
+  const periodLabel = generatePeriodLabel(period, targetDate, lang);
+
+  // 5. 점수 계산 (간단한 휴리스틱)
+  const periodScore = calculatePeriodScore(timingData, input.dayMasterElement);
+
+  // 6. 리포트 조립
+  const report: TimingAIPremiumReport = {
+    id: `timing_${period}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    generatedAt: new Date().toISOString(),
+    lang,
+
+    profile: {
+      name: options.name,
+      birthDate: options.birthDate,
+      dayMaster: input.dayMasterElement,
+      dominantElement: input.dominantWesternElement || input.dayMasterElement,
+    },
+
+    period,
+    targetDate,
+    periodLabel,
+
+    timingData,
+    sections,
+    periodScore,
+
+    meta: {
+      modelUsed: model,
+      tokensUsed,
+      processingTime: Math.max(1, Date.now() - startTime),
+      reportVersion: '1.0.0',
+    },
+  };
+
+  return report;
+}
+
+// ===========================
+// 테마별 리포트 생성 함수
+// ===========================
+
+export async function generateThemedReport(
+  input: MatrixCalculationInput,
+  matrixReport: FusionReport,
+  theme: ReportTheme,
+  timingData: TimingData,
+  options: {
+    name?: string;
+    birthDate?: string;
+    lang?: 'ko' | 'en';
+  } = {}
+): Promise<ThemedAIPremiumReport> {
+  const startTime = Date.now();
+  const lang = options.lang || 'ko';
+
+  // 1. 매트릭스 요약 빌드
+  const matrixSummary = buildMatrixSummary(matrixReport, lang);
+
+  // 2. 프롬프트 빌드
+  const prompt = buildThemedPrompt(
+    theme,
+    lang,
+    {
+      name: options.name,
+      birthDate: options.birthDate,
+      dayMaster: input.dayMasterElement,
+      dayMasterElement: input.dayMasterElement,
+      sibsinDistribution: input.sibsinDistribution,
+    },
+    timingData,
+    matrixSummary
+  );
+
+  // 3. AI 백엔드 호출
+  const { sections, model, tokensUsed } = await callAIBackendGeneric<ThemedReportSections>(prompt, lang);
+
+  // 4. 테마 메타데이터
+  const themeMeta = THEME_META[theme];
+
+  // 5. 점수 계산
+  const themeScore = calculateThemeScore(theme, input.sibsinDistribution);
+
+  // 6. 키워드 추출
+  const keywords = extractKeywords(sections, theme, lang);
+
+  // 7. 리포트 조립
+  const report: ThemedAIPremiumReport = {
+    id: `themed_${theme}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    generatedAt: new Date().toISOString(),
+    lang,
+
+    profile: {
+      name: options.name,
+      birthDate: options.birthDate,
+      dayMaster: input.dayMasterElement,
+      dominantElement: input.dominantWesternElement || input.dayMasterElement,
+    },
+
+    theme,
+    themeLabel: themeMeta.label[lang],
+    themeEmoji: themeMeta.emoji,
+
+    sections,
+    themeScore,
+    keywords,
+
+    meta: {
+      modelUsed: model,
+      tokensUsed,
+      processingTime: Math.max(1, Date.now() - startTime),
+      reportVersion: '1.0.0',
+    },
+  };
+
+  return report;
+}
+
+// ===========================
+// 헬퍼 함수들
+// ===========================
+
+async function callAIBackendGeneric<T>(prompt: string, lang: 'ko' | 'en'): Promise<{
+  sections: T;
+  model: string;
+  tokensUsed?: number;
+}> {
+  const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || 'http://127.0.0.1:5000';
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  const apiToken = process.env.ADMIN_API_TOKEN;
+  if (apiToken) {
+    headers['X-API-KEY'] = apiToken;
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000);
+
+  try {
+    const response = await fetch(`${backendUrl}/generate`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        prompt,
+        mode: 'premium_report',
+        locale: lang,
+        max_tokens: 4000,
+        temperature: 0.7,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`AI Backend error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const responseText = data?.data?.response || data?.response || '';
+
+    let sections: T;
+    try {
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        sections = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('No JSON found in response');
+      }
+    } catch {
+      // 기본 폴백 구조
+      sections = {} as T;
+    }
+
+    return {
+      sections,
+      model: data?.data?.model || 'gpt-4o',
+      tokensUsed: data?.data?.usage?.total_tokens,
+    };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+}
+
+function generatePeriodLabel(period: ReportPeriod, targetDate: string, lang: 'ko' | 'en'): string {
+  const date = new Date(targetDate);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+
+  if (lang === 'ko') {
+    switch (period) {
+      case 'daily':
+        return `${year}년 ${month}월 ${day}일`;
+      case 'monthly':
+        return `${year}년 ${month}월`;
+      case 'yearly':
+        return `${year}년`;
+      default:
+        return `${year}년 종합`;
+    }
+  } else {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    switch (period) {
+      case 'daily':
+        return `${monthNames[month - 1]} ${day}, ${year}`;
+      case 'monthly':
+        return `${monthNames[month - 1]} ${year}`;
+      case 'yearly':
+        return `${year}`;
+      default:
+        return `${year} Comprehensive`;
+    }
+  }
+}
+
+function calculatePeriodScore(
+  timingData: TimingData,
+  dayMasterElement: string
+): { overall: number; career: number; love: number; wealth: number; health: number } {
+  // 간단한 휴리스틱 기반 점수 계산
+  const baseScore = 60;
+  const elementBonus: Record<string, Record<string, number>> = {
+    '목': { '수': 15, '목': 10, '화': 5, '토': -5, '금': -10 },
+    '화': { '목': 15, '화': 10, '토': 5, '금': -5, '수': -10 },
+    '토': { '화': 15, '토': 10, '금': 5, '수': -5, '목': -10 },
+    '금': { '토': 15, '금': 10, '수': 5, '목': -5, '화': -10 },
+    '수': { '금': 15, '수': 10, '목': 5, '화': -5, '토': -10 },
+  };
+
+  const seunElement = timingData.seun?.element || '토';
+  const bonus = elementBonus[dayMasterElement]?.[seunElement] || 0;
+
+  const overall = Math.min(100, Math.max(0, baseScore + bonus + Math.floor(Math.random() * 10)));
+
+  return {
+    overall,
+    career: Math.min(100, Math.max(0, overall + Math.floor(Math.random() * 20) - 10)),
+    love: Math.min(100, Math.max(0, overall + Math.floor(Math.random() * 20) - 10)),
+    wealth: Math.min(100, Math.max(0, overall + Math.floor(Math.random() * 20) - 10)),
+    health: Math.min(100, Math.max(0, overall + Math.floor(Math.random() * 20) - 10)),
+  };
+}
+
+function calculateThemeScore(
+  theme: ReportTheme,
+  sibsinDistribution?: Record<string, number>
+): { overall: number; potential: number; timing: number; compatibility: number } {
+  const baseScore = 65;
+
+  // 테마별 관련 십신 가중치
+  const themeWeights: Record<ReportTheme, string[]> = {
+    love: ['정재', '편재', '정관', '편관'],
+    career: ['정관', '편관', '식신', '상관'],
+    wealth: ['정재', '편재', '식신', '상관'],
+    health: ['비견', '겁재', '정인', '편인'],
+    family: ['정인', '편인', '비견', '겁재'],
+  };
+
+  let themeBonus = 0;
+  const relevantSibsin = themeWeights[theme] || [];
+
+  if (sibsinDistribution) {
+    relevantSibsin.forEach(sibsin => {
+      themeBonus += (sibsinDistribution[sibsin] || 0) * 2;
+    });
+  }
+
+  const overall = Math.min(100, Math.max(0, baseScore + themeBonus));
+
+  return {
+    overall,
+    potential: Math.min(100, Math.max(0, overall + Math.floor(Math.random() * 15))),
+    timing: Math.min(100, Math.max(0, overall + Math.floor(Math.random() * 20) - 10)),
+    compatibility: Math.min(100, Math.max(0, overall + Math.floor(Math.random() * 15) - 5)),
+  };
+}
+
+function extractKeywords(sections: ThemedReportSections, theme: ReportTheme, lang: 'ko' | 'en'): string[] {
+  // 기본 키워드
+  const defaultKeywords: Record<ReportTheme, { ko: string[]; en: string[] }> = {
+    love: {
+      ko: ['인연', '만남', '소통', '배려', '신뢰'],
+      en: ['Connection', 'Meeting', 'Communication', 'Care', 'Trust'],
+    },
+    career: {
+      ko: ['성장', '도전', '협업', '전문성', '리더십'],
+      en: ['Growth', 'Challenge', 'Collaboration', 'Expertise', 'Leadership'],
+    },
+    wealth: {
+      ko: ['저축', '투자', '기회', '안정', '성장'],
+      en: ['Savings', 'Investment', 'Opportunity', 'Stability', 'Growth'],
+    },
+    health: {
+      ko: ['균형', '활력', '휴식', '예방', '회복'],
+      en: ['Balance', 'Vitality', 'Rest', 'Prevention', 'Recovery'],
+    },
+    family: {
+      ko: ['화합', '소통', '이해', '지지', '감사'],
+      en: ['Harmony', 'Communication', 'Understanding', 'Support', 'Gratitude'],
+    },
+  };
+
+  return defaultKeywords[theme][lang] || [];
 }

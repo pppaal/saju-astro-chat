@@ -6,6 +6,7 @@ import { tarotThemes } from "@/lib/Tarot/tarot-spreads-data";
 import { DrawnCard, Spread, CardInsight } from "@/lib/Tarot/tarot.types";
 import styles from "./InlineTarotModal.module.css";
 import { logger } from "@/lib/logger";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 type LangKey = "en" | "ko" | "ja" | "zh" | "es" | "fr" | "de" | "pt" | "ru";
 
@@ -173,6 +174,30 @@ export default function InlineTarotModal({
   // AI auto-select state
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiReason, setAiReason] = useState("");
+
+  // Focus trap for accessibility
+  const focusTrapRef = useFocusTrap(isOpen);
+
+  // Keyboard handling and body scroll lock
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Handle Escape key
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, onClose]);
 
   // Get recommended spreads based on theme (memoized to avoid re-render)
   const recommendedSpreads = React.useMemo(() => {
@@ -505,12 +530,18 @@ export default function InlineTarotModal({
   if (!isOpen) return null;
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div
+      className={styles.overlay}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tarot-modal-title"
+    >
+      <div ref={focusTrapRef} className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className={styles.header}>
-          <h2 className={styles.title}>🃏 {tr.title}</h2>
-          <button className={styles.closeButton} onClick={onClose}>
+          <h2 id="tarot-modal-title" className={styles.title}>🃏 {tr.title}</h2>
+          <button className={styles.closeButton} onClick={onClose} aria-label={tr.close}>
             ✕
           </button>
         </div>

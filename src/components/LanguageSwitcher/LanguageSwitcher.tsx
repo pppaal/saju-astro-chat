@@ -18,13 +18,18 @@ const LANGUAGE_LABELS: Record<string, { label: string; flag: string }> = {
 export default function LanguageSwitcher() {
   const { locale, setLocale, dir } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const localeCount = SUPPORTED_LOCALES.length;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setIsOpen(false);
+        setFocusedIndex(-1);
       }
     };
     if (isOpen) {
@@ -33,13 +38,72 @@ export default function LanguageSwitcher() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
-  // Keyboard navigation
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      setIsOpen(false);
-      triggerRef.current?.focus();
+  // Focus the selected option when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      const currentIndex = SUPPORTED_LOCALES.indexOf(locale);
+      setFocusedIndex(currentIndex >= 0 ? currentIndex : 0);
     }
-  }, []);
+  }, [isOpen, locale]);
+
+  // Focus the option when focusedIndex changes
+  useEffect(() => {
+    if (isOpen && focusedIndex >= 0 && optionRefs.current[focusedIndex]) {
+      optionRefs.current[focusedIndex]?.focus();
+    }
+  }, [isOpen, focusedIndex]);
+
+  // Keyboard navigation with arrow keys
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!isOpen) {
+      // Open dropdown on arrow down/up when trigger is focused
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setIsOpen(true);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case "Escape":
+        e.preventDefault();
+        setIsOpen(false);
+        setFocusedIndex(-1);
+        triggerRef.current?.focus();
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        setFocusedIndex((prev) => (prev + 1) % localeCount);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setFocusedIndex((prev) => (prev - 1 + localeCount) % localeCount);
+        break;
+      case "Home":
+        e.preventDefault();
+        setFocusedIndex(0);
+        break;
+      case "End":
+        e.preventDefault();
+        setFocusedIndex(localeCount - 1);
+        break;
+      case "Enter":
+      case " ":
+        if (focusedIndex >= 0) {
+          e.preventDefault();
+          setLocale(SUPPORTED_LOCALES[focusedIndex]);
+          setIsOpen(false);
+          setFocusedIndex(-1);
+          triggerRef.current?.focus();
+        }
+        break;
+      case "Tab":
+        // Allow normal tab behavior but close dropdown
+        setIsOpen(false);
+        setFocusedIndex(-1);
+        break;
+    }
+  }, [isOpen, focusedIndex, localeCount, setLocale]);
 
   const currentLang = LANGUAGE_LABELS[locale] || { label: locale.toUpperCase(), flag: "🌐" };
 
@@ -91,17 +155,22 @@ export default function LanguageSwitcher() {
               to { opacity: 1; transform: translateY(0) scale(1); }
             }
           `}</style>
-          {SUPPORTED_LOCALES.map((loc) => {
+          {SUPPORTED_LOCALES.map((loc, index) => {
             const lang = LANGUAGE_LABELS[loc] || { label: loc.toUpperCase(), flag: "🌐" };
             const isSelected = loc === locale;
+            const isFocused = index === focusedIndex;
             return (
               <button
                 key={loc}
+                ref={(el) => { optionRefs.current[index] = el; }}
                 role="option"
                 aria-selected={isSelected}
+                tabIndex={isFocused ? 0 : -1}
                 onClick={() => {
                   setLocale(loc);
                   setIsOpen(false);
+                  setFocusedIndex(-1);
+                  triggerRef.current?.focus();
                 }}
                 className={`flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg
                   border-none text-sm text-left cursor-pointer transition-all duration-150
@@ -109,6 +178,7 @@ export default function LanguageSwitcher() {
                     ? 'bg-gradient-to-br from-cyan-400/15 to-blue-400/15 text-cyan-400 font-semibold'
                     : 'bg-transparent text-blue-50 font-normal hover:bg-white/[0.08]'
                   }
+                  ${isFocused ? 'ring-2 ring-cyan-400 ring-inset' : ''}
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400`}
               >
                 <span className="text-lg" aria-hidden="true">{lang.flag}</span>

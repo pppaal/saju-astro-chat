@@ -1,12 +1,20 @@
 // src/app/api/iching/stream/route.ts
 // Streaming I Ching Interpretation API - Real-time SSE for fast display
 
-import { NextResponse } from "next/server";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
-import { requirePublicToken } from "@/lib/auth/publicToken";
+import { NextRequest, NextResponse } from "next/server";
+import { initializeApiContext, createPublicStreamGuard } from "@/lib/api/middleware";
+import { createSSEStreamProxy, isSSEResponse } from "@/lib/streaming";
 import { getBackendUrl } from "@/lib/backend-url";
 import { logger } from '@/lib/logger';
+import {
+  generateWisdomPrompt,
+  getHexagramWisdom,
+  type WisdomPromptContext
+} from '@/lib/iChing/ichingWisdom';
+import {
+  calculateNuclearHexagram,
+  calculateRelatedHexagrams
+} from '@/lib/iChing/iChingPremiumData';
 
 const BACKEND_URL = getBackendUrl();
 
@@ -40,21 +48,17 @@ interface StreamIChingRequest {
   };
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`iching-stream:${ip}`, { limit: 30, windowSeconds: 60 });
+    // Apply middleware: rate limiting + public token auth
+    const guardOptions = createPublicStreamGuard({
+      route: "iching-stream",
+      limit: 30,
+      windowSeconds: 60,
+    });
 
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: "Too many requests. Please wait." },
-        { status: 429, headers: limit.headers }
-      );
-    }
-
-    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
-    }
+    const { context, error } = await initializeApiContext(req, guardOptions);
+    if (error) return error;
 
     const body: StreamIChingRequest = await req.json();
     const {
@@ -67,18 +71,34 @@ export async function POST(req: Request) {
       changingLines = [],
       resultingHexagram,
       question = "",
-      locale = "ko",
+      locale = context.locale as "ko" | "en",
       themes = {}
     } = body;
 
     if (!hexagramNumber || !hexagramName) {
       return NextResponse.json(
         { error: "Hexagram data required" },
-        { status: 400, headers: limit.headers }
+        { status: 400 }
       );
     }
 
-    // Call backend streaming endpoint
+    // Generate advanced wisdom context using ichingWisdom library
+    const changingLineIndices = changingLines.map((cl: ChangingLine) => cl.index + 1);
+    const wisdomContext: WisdomPromptContext = {
+      hexagramNumber,
+      changingLines: changingLineIndices,
+      targetHexagram: resultingHexagram?.number,
+      userQuestion: question,
+      consultationType: 'general'
+    };
+    const wisdomPrompt = generateWisdomPrompt(wisdomContext);
+    const hexagramWisdom = getHexagramWisdom(hexagramNumber);
+
+    // Calculate nuclear and related hexagrams for deeper insight
+    const nuclearHexagram = calculateNuclearHexagram(hexagramNumber);
+    const relatedHexagrams = calculateRelatedHexagrams(hexagramNumber);
+
+    // Call backend streaming endpoint with enriched data
     const backendResponse = await fetch(`${BACKEND_URL}/iching/reading-stream`, {
       method: "POST",
       headers: {
@@ -96,7 +116,18 @@ export async function POST(req: Request) {
         resultingHexagram,
         question,
         locale,
-        themes
+        themes,
+        // Enhanced data from advanced iChing library
+        wisdomPrompt,
+        hexagramWisdom: hexagramWisdom ? {
+          keyword: hexagramWisdom.keyword,
+          coreWisdom: hexagramWisdom.coreWisdom,
+          situationAdvice: hexagramWisdom.situationAdvice,
+          warnings: hexagramWisdom.warnings,
+          opportunities: hexagramWisdom.opportunities
+        } : null,
+        nuclearHexagram,
+        relatedHexagrams
       })
     });
 
@@ -105,54 +136,21 @@ export async function POST(req: Request) {
       logger.error("[IChingStream] Backend error:", { status: backendResponse.status, errorText });
       return NextResponse.json(
         { error: "Backend error", detail: errorText },
-        { status: backendResponse.status, headers: limit.headers }
+        { status: backendResponse.status }
       );
     }
 
     // Check if response is SSE
-    const contentType = backendResponse.headers.get("content-type");
-    if (!contentType?.includes("text/event-stream")) {
+    if (!isSSEResponse(backendResponse)) {
       // Fallback to regular JSON response
       const data = await backendResponse.json();
-      return NextResponse.json(data, { headers: limit.headers });
+      return NextResponse.json(data);
     }
 
-    // Stream the SSE response
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = backendResponse.body?.getReader();
-        if (!reader) {
-          controller.close();
-          return;
-        }
-
-        const decoder = new TextDecoder();
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            // Pass through the SSE data
-            const text = decoder.decode(value, { stream: true });
-            controller.enqueue(encoder.encode(text));
-          }
-        } catch (error) {
-          logger.error("[IChingStream] Stream error:", error);
-        } finally {
-          controller.close();
-        }
-      }
-    });
-
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-        ...Object.fromEntries(limit.headers.entries())
-      }
+    // Proxy the SSE stream from backend to client
+    return createSSEStreamProxy({
+      source: backendResponse,
+      route: "IChingStream",
     });
 
   } catch (err: unknown) {

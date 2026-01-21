@@ -10,6 +10,9 @@ import {
   calculateNuclearHexagram,
   calculateRelatedHexagrams
 } from "@/lib/iChing/iChingPremiumData";
+import { enhancedHexagramData, enhancedHexagramDataKo } from "@/lib/iChing/enhancedData";
+import { getHexagramWisdom } from "@/lib/iChing/ichingWisdom";
+import { analyzeSequencePosition, getXuguaPair } from "@/lib/iChing/ichingPatterns";
 import styles from "./ResultDisplay.module.css";
 import { logger } from "@/lib/logger";
 
@@ -86,6 +89,29 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, question = "", au
   const relatedHexagrams = useMemo(() => {
     if (!primaryNumber) return null;
     return calculateRelatedHexagrams(primaryNumber);
+  }, [primaryNumber]);
+
+  // Enhanced data for better UX
+  const enhancedData = useMemo(() => {
+    if (!primaryNumber) return null;
+    return lang === "ko" ? enhancedHexagramDataKo[primaryNumber] : enhancedHexagramData[primaryNumber];
+  }, [primaryNumber, lang]);
+
+  // Wisdom data from ichingWisdom library (traditional interpretations)
+  const wisdomData = useMemo(() => {
+    if (!primaryNumber) return null;
+    return getHexagramWisdom(primaryNumber);
+  }, [primaryNumber]);
+
+  // Sequence and pattern analysis from ichingPatterns
+  const sequenceData = useMemo(() => {
+    if (!primaryNumber) return null;
+    return analyzeSequencePosition(primaryNumber);
+  }, [primaryNumber]);
+
+  const xuguaPairData = useMemo(() => {
+    if (!primaryNumber) return null;
+    return getXuguaPair(primaryNumber);
   }, [primaryNumber]);
 
   // AI Streaming function
@@ -335,6 +361,48 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, question = "", au
 
         <div className={styles.divider} />
 
+        {/* Quick Summary - 한 줄 요약 */}
+        {enhancedData?.quickSummary && (
+          <>
+            <div className={styles.quickSummarySection}>
+              <div className={styles.sectionLabel}>
+                {enhancedData.visualImagery.emoji} {translate("iching.quickSummary", "Quick Summary")}
+              </div>
+              <p className={styles.oneLiner}>
+                {enhancedData.quickSummary.oneLiner}
+              </p>
+              <div className={styles.keywords}>
+                {enhancedData.quickSummary.keywords.map((keyword, idx) => (
+                  <span key={idx} className={styles.keywordTag}>#{keyword}</span>
+                ))}
+              </div>
+            </div>
+            <div className={styles.divider} />
+          </>
+        )}
+
+        {/* Visual Imagery - 상징적 이미지 */}
+        {enhancedData?.visualImagery && (
+          <>
+            <div className={styles.visualImagerySection}>
+              <div className={styles.sectionLabel}>
+                {translate("iching.visualImagery", "Visual Imagery")}
+              </div>
+              <div className={styles.sceneDescription}>
+                <span className={styles.sceneEmoji}>{enhancedData.visualImagery.emoji}</span>
+                <p className={styles.sceneText}>{enhancedData.visualImagery.scene}</p>
+              </div>
+              <p className={styles.symbolismText}>{enhancedData.visualImagery.symbolism}</p>
+              <div className={styles.colorPalette}>
+                {enhancedData.visualImagery.colors.map((color, idx) => (
+                  <span key={idx} className={styles.colorChip}>{color}</span>
+                ))}
+              </div>
+            </div>
+            <div className={styles.divider} />
+          </>
+        )}
+
         {/* Core Meaning - 핵심 의미 */}
         {premiumData && (
           <>
@@ -345,6 +413,58 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, question = "", au
               <p className={styles.coreMeaningText}>
                 {premiumData.core_meaning[lang]}
               </p>
+            </div>
+            <div className={styles.divider} />
+          </>
+        )}
+
+        {/* Plain Language Explanation - 쉬운 풀이 */}
+        {enhancedData?.plainLanguage && (
+          <>
+            <div className={styles.plainLanguageSection}>
+              <div className={styles.sectionLabel}>
+                📖 {translate("iching.plainLanguage", "Easy Explanation")}
+              </div>
+
+              {/* 전통 표현 */}
+              <div className={styles.traditionalBox}>
+                <div className={styles.traditionalLabel}>
+                  {translate("iching.traditional", "Traditional")}
+                </div>
+                <p className={styles.traditionalText}>
+                  {enhancedData.plainLanguage.traditionalText}
+                </p>
+              </div>
+
+              {/* 현대적 풀이 */}
+              <div className={styles.modernBox}>
+                <div className={styles.modernLabel}>
+                  {translate("iching.modernExplanation", "Modern Explanation")}
+                </div>
+                <p className={styles.modernText}>
+                  {enhancedData.plainLanguage.modernExplanation}
+                </p>
+              </div>
+
+              {/* 실생활 예시 */}
+              <div className={styles.exampleBox}>
+                <div className={styles.exampleLabel}>
+                  💡 {translate("iching.realLifeExample", "Real-Life Example")}
+                </div>
+                <p className={styles.exampleText}>
+                  {enhancedData.plainLanguage.realLifeExample}
+                </p>
+              </div>
+
+              {/* 비유 */}
+              <div className={styles.metaphorBox}>
+                <div className={styles.metaphorLabel}>
+                  🌟 {translate("iching.metaphor", "Metaphor")}
+                </div>
+                <p className={styles.metaphorText}>
+                  {enhancedData.plainLanguage.metaphor}
+                </p>
+              </div>
             </div>
             <div className={styles.divider} />
           </>
@@ -452,6 +572,122 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, question = "", au
         </div>
       )}
 
+      {/* Actionable Advice - 실천 가능한 조언 */}
+      {enhancedData?.actionableAdvice && (
+        <div className={styles.actionableCard}>
+          <div className={styles.actionableHeader}>
+            <span className={styles.actionableIcon}>🎯</span>
+            <h3 className={styles.actionableTitle}>
+              {translate("iching.actionableAdvice", "Actionable Advice")}
+            </h3>
+          </div>
+
+          <div className={styles.actionableGrid}>
+            {/* 해야 할 것 */}
+            <div className={styles.adviceBox}>
+              <div className={styles.adviceBoxHeader}>
+                <span className={styles.adviceIcon}>✅</span>
+                <span className={styles.adviceLabel}>
+                  {translate("iching.doThis", "Do This")}
+                </span>
+              </div>
+              <ul className={styles.adviceList}>
+                {enhancedData.actionableAdvice.dos.map((item, idx) => (
+                  <li key={idx} className={styles.adviceItem}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 하지 말아야 할 것 */}
+            <div className={styles.adviceBox}>
+              <div className={styles.adviceBoxHeader}>
+                <span className={styles.adviceIcon}>⛔</span>
+                <span className={styles.adviceLabel}>
+                  {translate("iching.dontDoThis", "Don't Do This")}
+                </span>
+              </div>
+              <ul className={styles.adviceList}>
+                {enhancedData.actionableAdvice.donts.map((item, idx) => (
+                  <li key={idx} className={styles.adviceItem}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* 타이밍 */}
+          <div className={styles.timingBox}>
+            <div className={styles.timingHeader}>
+              <span className={styles.timingIcon}>⏰</span>
+              <span className={styles.timingLabel}>
+                {translate("iching.bestTiming", "Best Timing")}
+              </span>
+            </div>
+            <p className={styles.timingText}>{enhancedData.actionableAdvice.timing}</p>
+          </div>
+
+          {/* 다음 단계 */}
+          <div className={styles.nextStepsBox}>
+            <div className={styles.nextStepsHeader}>
+              <span className={styles.nextStepsIcon}>📋</span>
+              <span className={styles.nextStepsLabel}>
+                {translate("iching.nextSteps", "Next Steps")}
+              </span>
+            </div>
+            <ol className={styles.nextStepsList}>
+              {enhancedData.actionableAdvice.nextSteps.map((step, idx) => (
+                <li key={idx} className={styles.nextStepItem}>{step}</li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      )}
+
+      {/* Situation Templates - 상황별 맞춤 조언 */}
+      {enhancedData?.situationTemplates && question && (
+        <div className={styles.situationCard}>
+          <div className={styles.situationHeader}>
+            <span className={styles.situationIcon}>💬</span>
+            <h3 className={styles.situationTitle}>
+              {translate("iching.yourQuestion", "Your Question")}
+            </h3>
+          </div>
+          <p className={styles.questionText}>"{question}"</p>
+
+          <div className={styles.situationAdvice}>
+            <div className={styles.situationLabel}>
+              {translate("iching.detailedAdvice", "Detailed Advice")}
+            </div>
+            {/* This would need question type detection or user selection */}
+            {/* For now showing career as example */}
+            <p className={styles.situationAnswer}>
+              {enhancedData.situationTemplates.career.advice}
+            </p>
+            {enhancedData.situationTemplates.career.warning && (
+              <div className={styles.situationWarning}>
+                ⚠️ {enhancedData.situationTemplates.career.warning}
+              </div>
+            )}
+            {enhancedData.situationTemplates.career.timeline && (
+              <div className={styles.situationTimeline}>
+                ⏱️ {enhancedData.situationTemplates.career.timeline}
+              </div>
+            )}
+            <div className={styles.situationActionItems}>
+              <div className={styles.actionItemsLabel}>
+                {translate("iching.actionItems", "Action Items")}
+              </div>
+              <ul className={styles.actionItemsList}>
+                {enhancedData.situationTemplates.career.actionItems.map((item, idx) => (
+                  <li key={idx} className={styles.actionItemsItem}>
+                    <span className={styles.actionItemCheck}>✓</span> {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 행운 정보 & 호괘 섹션 */}
       {(luckyInfo || nuclearHexagram) && (
         <div className={styles.insightCard}>
@@ -542,6 +778,137 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, question = "", au
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Traditional Wisdom Section from ichingWisdom library */}
+      {wisdomData && (
+        <div className={styles.insightCard}>
+          <div className={styles.insightHeader}>
+            <span className={styles.insightIcon}>📜</span>
+            <h3 className={styles.insightTitle}>
+              {translate("iching.traditionalWisdom", "Traditional Wisdom")}
+            </h3>
+          </div>
+
+          {/* 괘사 (Hexagram Statement) */}
+          {wisdomData.gwaeSa && (
+            <div className={styles.wisdomSection}>
+              <div className={styles.wisdomLabel}>
+                {translate("iching.gwaeSa", "Hexagram Statement")}
+              </div>
+              <p className={styles.wisdomGwaeSa}>{wisdomData.gwaeSa}</p>
+              <p className={styles.wisdomMeaning}>{wisdomData.meaning}</p>
+            </div>
+          )}
+
+          {/* 핵심 지혜 */}
+          {wisdomData.coreWisdom && (
+            <div className={styles.wisdomSection}>
+              <div className={styles.wisdomLabel}>
+                💡 {translate("iching.coreWisdom", "Core Wisdom")}
+              </div>
+              <p className={styles.wisdomCoreText}>{wisdomData.coreWisdom}</p>
+            </div>
+          )}
+
+          {/* 주의사항 & 기회 */}
+          <div className={styles.insightGrid}>
+            {wisdomData.warnings && wisdomData.warnings.length > 0 && (
+              <div className={styles.insightItem}>
+                <div className={styles.insightItemHeader}>
+                  <span className={styles.insightItemIcon}>⚠️</span>
+                  <span className={styles.insightItemLabel}>
+                    {translate("iching.warnings", "Warnings")}
+                  </span>
+                </div>
+                <ul className={styles.wisdomList}>
+                  {wisdomData.warnings.map((warning, idx) => (
+                    <li key={idx}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {wisdomData.opportunities && wisdomData.opportunities.length > 0 && (
+              <div className={styles.insightItem}>
+                <div className={styles.insightItemHeader}>
+                  <span className={styles.insightItemIcon}>✨</span>
+                  <span className={styles.insightItemLabel}>
+                    {translate("iching.opportunities", "Opportunities")}
+                  </span>
+                </div>
+                <ul className={styles.wisdomList}>
+                  {wisdomData.opportunities.map((opp, idx) => (
+                    <li key={idx}>{opp}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Sequence & Pattern Analysis from ichingPatterns */}
+      {sequenceData && (
+        <div className={styles.insightCard}>
+          <div className={styles.insightHeader}>
+            <span className={styles.insightIcon}>🔄</span>
+            <h3 className={styles.insightTitle}>
+              {translate("iching.sequenceAnalysis", "Sequence Analysis")}
+            </h3>
+          </div>
+
+          <div className={styles.wisdomSection}>
+            <div className={styles.wisdomLabel}>
+              📍 {translate("iching.position", "Position in I Ching")}
+            </div>
+            <p className={styles.wisdomCoreText}>
+              {lang === "ko"
+                ? `제 ${sequenceData.position}괘 - ${sequenceData.lifecycleStage}`
+                : `Hexagram #${sequenceData.position} - ${sequenceData.lifecycleStage}`}
+            </p>
+            <p className={styles.wisdomMeaning}>{sequenceData.sequenceMeaning}</p>
+          </div>
+
+          <div className={styles.insightGrid}>
+            {sequenceData.前괘 && (
+              <div className={styles.insightItem}>
+                <div className={styles.insightItemHeader}>
+                  <span className={styles.insightItemIcon}>⬅️</span>
+                  <span className={styles.insightItemLabel}>
+                    {translate("iching.preceding", "Preceding")}
+                  </span>
+                </div>
+                <p className={styles.sequenceTransition}>
+                  #{sequenceData.前괘.number} {sequenceData.前괘.name}
+                </p>
+              </div>
+            )}
+            {sequenceData.後괘 && (
+              <div className={styles.insightItem}>
+                <div className={styles.insightItemHeader}>
+                  <span className={styles.insightItemIcon}>➡️</span>
+                  <span className={styles.insightItemLabel}>
+                    {translate("iching.following", "Following")}
+                  </span>
+                </div>
+                <p className={styles.sequenceTransition}>
+                  #{sequenceData.後괘.number} {sequenceData.後괘.name}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {xuguaPairData && (
+            <div className={styles.wisdomSection}>
+              <div className={styles.wisdomLabel}>
+                🔗 {translate("iching.xuguaPair", "Xugua Pair")} ({xuguaPairData.relationship})
+              </div>
+              <p className={styles.wisdomMeaning}>
+                {xuguaPairData.meaning}
+              </p>
+            </div>
+          )}
         </div>
       )}
 

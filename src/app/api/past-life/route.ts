@@ -9,7 +9,7 @@ import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
 import { logger } from '@/lib/logger';
 import { calculateSajuData } from '@/lib/Saju/saju';
-import { calculateAstrology } from '@/lib/astrology/astrology';
+import { calculateNatalChart } from '@/lib/astrology';
 import { analyzePastLife } from '@/lib/past-life/analyzer';
 
 /**
@@ -64,18 +64,16 @@ export async function POST(req: Request) {
     const isKo = locale === 'ko';
 
     // Calculate Saju data
+    const safeBirthTime = birthTime || '12:00';
     let sajuData = null;
     try {
-      sajuData = calculateSajuData({
-        year,
-        month,
-        day,
-        hour: hour ?? 12,
-        minute: minute ?? 0,
-        isLunar: false,
-        isLeapMonth: false,
-        gender: 'M', // Gender doesn't affect past life reading
-      });
+      sajuData = calculateSajuData(
+        birthDate,
+        safeBirthTime,
+        'male',
+        'solar',
+        timezone || 'UTC'
+      );
     } catch (err) {
       logger.warn('[PastLife API] Saju calculation failed:', err);
     }
@@ -83,12 +81,15 @@ export async function POST(req: Request) {
     // Calculate Astrology data
     let astroData = null;
     try {
-      const birthDateTime = new Date(year, month - 1, day, hour ?? 12, minute ?? 0);
-      astroData = await calculateAstrology({
-        date: birthDateTime,
+      astroData = await calculateNatalChart({
+        year,
+        month,
+        date: day,
+        hour: hour ?? 12,
+        minute: minute ?? 0,
         latitude,
         longitude,
-        timezone: timezone || 'UTC',
+        timeZone: timezone || 'UTC',
       });
     } catch (err) {
       logger.warn('[PastLife API] Astrology calculation failed:', err);

@@ -4,6 +4,17 @@
  */
 
 // ============================================================
+// 공통 타입 및 상수 (중복 방지 - types.ts에서 관리)
+// ============================================================
+export {
+  HEXAGRAM_BINARY_MAP,
+  HEXAGRAM_NAMES_KO,
+  findHexagramNumberByBinary,
+  getHexagramBinary,
+  getHexagramNameKo
+} from './types';
+
+// ============================================================
 // 기본 데이터
 // ============================================================
 export {
@@ -187,34 +198,8 @@ export interface CompleteIChingAnalysis {
   targetComparison?: ReturnType<typeof compareHexagrams>;
 }
 
-// 64괘 binary 매핑 (번호 → binary)
-const HEXAGRAM_NUMBER_TO_BINARY: Record<number, string> = {
-  1: '111111', 2: '000000', 3: '010001', 4: '100010', 5: '010111',
-  6: '111010', 7: '000010', 8: '010000', 9: '110111', 10: '111011',
-  11: '000111', 12: '111000', 13: '111101', 14: '101111', 15: '000100',
-  16: '001000', 17: '011001', 18: '100110', 19: '000011', 20: '110000',
-  21: '101001', 22: '100101', 23: '100000', 24: '000001', 25: '111001',
-  26: '100111', 27: '100001', 28: '011110', 29: '010010', 30: '101101',
-  31: '011100', 32: '001110', 33: '111100', 34: '001111', 35: '101000',
-  36: '000101', 37: '110101', 38: '101011', 39: '010100', 40: '001010',
-  41: '100011', 42: '110001', 43: '011111', 44: '111110', 45: '011000',
-  46: '000110', 47: '011010', 48: '010110', 49: '011101', 50: '101110',
-  51: '001001', 52: '100100', 53: '110100', 54: '001011', 55: '001101',
-  56: '101100', 57: '110110', 58: '011011', 59: '110010', 60: '010011',
-  61: '110011', 62: '001100', 63: '010101', 64: '101010'
-};
-
-// 괘 이름 매핑
-const HEXAGRAM_NAMES: Record<number, string> = {
-  1: '건', 2: '곤', 3: '둔', 4: '몽', 5: '수', 6: '송', 7: '사', 8: '비',
-  9: '소축', 10: '리', 11: '태', 12: '비', 13: '동인', 14: '대유', 15: '겸', 16: '예',
-  17: '수', 18: '고', 19: '임', 20: '관', 21: '서합', 22: '비', 23: '박', 24: '복',
-  25: '무망', 26: '대축', 27: '이', 28: '대과', 29: '감', 30: '리', 31: '함', 32: '항',
-  33: '둔', 34: '대장', 35: '진', 36: '명이', 37: '가인', 38: '규', 39: '건', 40: '해',
-  41: '손', 42: '익', 43: '쾌', 44: '구', 45: '췌', 46: '승', 47: '곤', 48: '정',
-  49: '혁', 50: '정', 51: '진', 52: '간', 53: '점', 54: '귀매', 55: '풍', 56: '려',
-  57: '손', 58: '태', 59: '환', 60: '절', 61: '중부', 62: '소과', 63: '기제', 64: '미제'
-};
+// 공통 데이터는 types.ts에서 import (HEXAGRAM_BINARY_MAP, HEXAGRAM_NAMES_KO)
+import { HEXAGRAM_BINARY_MAP, HEXAGRAM_NAMES_KO, findHexagramNumberByBinary } from './types';
 
 export function performCompleteAnalysis(
   hexagramNumber: number,
@@ -225,7 +210,7 @@ export function performCompleteAnalysis(
     userProfile?: { birthYear?: number; gender?: 'M' | 'F' };
   }
 ): CompleteIChingAnalysis {
-  const binary = HEXAGRAM_NUMBER_TO_BINARY[hexagramNumber] || '111111';
+  const binary = HEXAGRAM_BINARY_MAP[hexagramNumber] || '111111';
   const comprehensive = performComprehensiveHexagramAnalysis(binary);
   const relationships = analyzeHexagramRelationship(hexagramNumber, hexagramNumber);
   const wisdom = getHexagramWisdom(hexagramNumber);
@@ -240,7 +225,7 @@ export function performCompleteAnalysis(
     }
     const targetBinary = binaryArr.join('');
     // binary에서 number 찾기
-    for (const [num, bin] of Object.entries(HEXAGRAM_NUMBER_TO_BINARY)) {
+    for (const [num, bin] of Object.entries(HEXAGRAM_BINARY_MAP)) {
       if (bin === targetBinary) {
         targetHexagramNumber = parseInt(num);
         break;
@@ -260,7 +245,7 @@ export function performCompleteAnalysis(
     hexagram: {
       number: hexagramNumber,
       binary,
-      name: HEXAGRAM_NAMES[hexagramNumber] || 'Unknown'
+      name: HEXAGRAM_NAMES_KO[hexagramNumber] || 'Unknown'
     },
     comprehensive,
     relationships,
@@ -273,7 +258,7 @@ export function performCompleteAnalysis(
   }
 
   if (targetHexagramNumber) {
-    const targetBinary = HEXAGRAM_NUMBER_TO_BINARY[targetHexagramNumber];
+    const targetBinary = HEXAGRAM_BINARY_MAP[targetHexagramNumber];
     result.targetComparison = compareHexagrams(binary, targetBinary);
   }
 
@@ -300,7 +285,7 @@ export function performMeihuaAnalysis(
 
   // 본괘 binary에서 번호 찾기
   let hexagramNumber = 1;
-  for (const [num, bin] of Object.entries(HEXAGRAM_NUMBER_TO_BINARY)) {
+  for (const [num, bin] of Object.entries(HEXAGRAM_BINARY_MAP)) {
     if (bin === casting.본괘Binary) {
       hexagramNumber = parseInt(num);
       break;
@@ -386,14 +371,14 @@ export function recordReading(
 
   // 지괘 계산
   if (changingLines.length > 0) {
-    const binary = HEXAGRAM_NUMBER_TO_BINARY[hexagramNumber] || '111111';
+    const binary = HEXAGRAM_BINARY_MAP[hexagramNumber] || '111111';
     const binaryArr = binary.split('');
     for (const line of changingLines) {
       const idx = line - 1;
       binaryArr[idx] = binaryArr[idx] === '1' ? '0' : '1';
     }
     const targetBinary = binaryArr.join('');
-    for (const [num, bin] of Object.entries(HEXAGRAM_NUMBER_TO_BINARY)) {
+    for (const [num, bin] of Object.entries(HEXAGRAM_BINARY_MAP)) {
       if (bin === targetBinary) {
         reading.targetHexagram = parseInt(num);
         break;

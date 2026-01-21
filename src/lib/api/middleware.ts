@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
-import { rateLimit, type RateLimitResult } from "@/lib/rateLimit";
+import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { logger } from "@/lib/logger";
@@ -17,6 +17,10 @@ import {
   ErrorCodes,
   type ErrorCode,
 } from "./errorHandler";
+import {
+  checkAndConsumeCredits,
+  type CreditType,
+} from "@/lib/credits";
 
 // ============ Types ============
 
@@ -27,6 +31,9 @@ export interface ApiContext {
   userId: string | null;
   isAuthenticated: boolean;
   isPremium: boolean;
+  creditInfo?: {
+    remaining: number;
+  };
 }
 
 export interface RateLimitOptions {
@@ -38,6 +45,15 @@ export interface RateLimitOptions {
   keyPrefix?: string;
 }
 
+export interface CreditOptions {
+  /** Credit type to consume */
+  type: CreditType;
+  /** Amount of credits to consume */
+  amount?: number;
+  /** If true, only check credits without consuming */
+  checkOnly?: boolean;
+}
+
 export interface MiddlewareOptions {
   /** Require valid public token */
   requireToken?: boolean;
@@ -45,6 +61,8 @@ export interface MiddlewareOptions {
   requireAuth?: boolean;
   /** Rate limiting configuration */
   rateLimit?: RateLimitOptions;
+  /** Credit consumption configuration */
+  credits?: CreditOptions;
   /** Route name for logging/metrics */
   route?: string;
 }
@@ -180,6 +198,62 @@ export async function initializeApiContext(
     };
   }
 
+  // Credit check/consumption
+  let creditInfo: { remaining: number } | undefined;
+
+  if (options.credits) {
+    // Credits require authentication
+    if (!userId) {
+      return {
+        context: {
+          ip,
+          locale,
+          session,
+          userId: null,
+          isAuthenticated: false,
+          isPremium,
+        },
+        error: createErrorResponse({
+          code: ErrorCodes.UNAUTHORIZED,
+          message: "Authentication required for credit-based operations",
+          locale,
+          route,
+        }),
+      };
+    }
+
+    const creditResult = await checkAndConsumeCredits(
+      options.credits.type,
+      options.credits.amount || 1
+    );
+
+    if (!creditResult.allowed) {
+      return {
+        context: {
+          ip,
+          locale,
+          session,
+          userId,
+          isAuthenticated: true,
+          isPremium,
+        },
+        error: NextResponse.json(
+          {
+            error: creditResult.error,
+            code: creditResult.errorCode,
+            remaining: creditResult.remaining,
+            upgradeUrl: "/pricing",
+          },
+          { status: creditResult.errorCode === "not_authenticated" ? 401 : 402 }
+        ),
+      };
+    }
+
+    creditInfo = {
+      remaining: creditResult.remaining || 0,
+    };
+  }
+
   return {
     context: {
       ip,
@@ -188,6 +262,7 @@ export async function initializeApiContext(
       userId,
       isAuthenticated: !!session?.user,
       isPremium,
+      creditInfo,
     },
   };
 }
@@ -325,6 +400,88 @@ export function apiSuccess<T>(
   };
 }
 
+// ============ Convenience Presets ============
+
+/**
+ * Preset for public streaming APIs (e.g., tarot, iching, dream)
+ * - Requires public token
+ * - Rate limited (default: 30/60s)
+ * - Optional credit consumption
+ */
+export function createPublicStreamGuard(options: {
+  route: string;
+  limit?: number;
+  windowSeconds?: number;
+  requireCredits?: boolean;
+  creditType?: CreditType;
+  creditAmount?: number;
+}): MiddlewareOptions {
+  return {
+    route: options.route,
+    requireToken: true,
+    rateLimit: {
+      limit: options.limit || 30,
+      windowSeconds: options.windowSeconds || 60,
+    },
+    credits: options.requireCredits
+      ? {
+          type: options.creditType || "reading",
+          amount: options.creditAmount || 1,
+        }
+      : undefined,
+  };
+}
+
+/**
+ * Preset for authenticated APIs (e.g., saju chat, compatibility)
+ * - Requires session authentication
+ * - Rate limited (default: 60/60s)
+ * - Optional credit consumption
+ */
+export function createAuthenticatedGuard(options: {
+  route: string;
+  limit?: number;
+  windowSeconds?: number;
+  requireCredits?: boolean;
+  creditType?: CreditType;
+  creditAmount?: number;
+}): MiddlewareOptions {
+  return {
+    route: options.route,
+    requireAuth: true,
+    rateLimit: {
+      limit: options.limit || 60,
+      windowSeconds: options.windowSeconds || 60,
+    },
+    credits: options.requireCredits
+      ? {
+          type: options.creditType || "reading",
+          amount: options.creditAmount || 1,
+        }
+      : undefined,
+  };
+}
+
+/**
+ * Preset for simple rate-limited APIs
+ * - No auth required
+ * - Rate limited only
+ */
+export function createSimpleGuard(options: {
+  route: string;
+  limit?: number;
+  windowSeconds?: number;
+}): MiddlewareOptions {
+  return {
+    route: options.route,
+    rateLimit: {
+      limit: options.limit || 60,
+      windowSeconds: options.windowSeconds || 60,
+    },
+  };
+}
+
 // Re-export error codes for convenience
 export { ErrorCodes } from "./errorHandler";
 export type { ErrorCode } from "./errorHandler";
+export type { CreditType };

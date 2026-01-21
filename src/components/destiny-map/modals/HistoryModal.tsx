@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface SessionItem {
   id: string;
@@ -35,6 +36,7 @@ interface HistoryModalProps {
 
 /**
  * Session history modal for viewing and managing past conversations
+ * WCAG 2.1 AA compliant with proper ARIA attributes, focus trap, and keyboard navigation
  */
 export default function HistoryModal({
   isOpen,
@@ -50,17 +52,47 @@ export default function HistoryModal({
   tr,
   styles: s
 }: HistoryModalProps) {
+  const focusTrapRef = useFocusTrap(isOpen);
+
+  // Keyboard handling and body scroll lock
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Handle Escape key
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className={s.historyModalOverlay} onClick={onClose}>
-      <div className={s.historyModal} onClick={(e) => e.stopPropagation()}>
+    <div
+      className={s.historyModalOverlay}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="history-modal-title"
+    >
+      <div ref={focusTrapRef} className={s.historyModal} onClick={(e) => e.stopPropagation()}>
         <div className={s.historyHeader}>
-          <h3 className={s.historyTitle}>{tr.previousChats}</h3>
+          <h3 id="history-modal-title" className={s.historyTitle}>{tr.previousChats}</h3>
           <button
             type="button"
             className={s.historyCloseBtn}
             onClick={onClose}
+            aria-label="Close"
           >
             ✕
           </button>

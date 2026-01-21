@@ -443,64 +443,69 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
 
 
 # ===============================================================
-#  PARALLEL PREPROCESSING HELPERS (v5.2 - Performance Optimization)
+#  PARALLEL PREPROCESSING HELPERS (v6.0 - With Error Handling)
 # ===============================================================
+from app.utils.error_handler import handle_errors
+
+
+@handle_errors(default={}, log_level="warning", context="Parallel RAG")
 def _parallel_rag_query(rag, facts_data, domain):
     """Thread-safe RAG query."""
-    try:
-        return rag.query(facts_data, domain_priority=domain)
-    except Exception as e:
-        print(f"[Parallel] RAG {domain} error: {e}")
-        return {}
+    return rag.query(facts_data, domain_priority=domain)
 
+
+@handle_errors(default="", log_level="warning", context="Parallel Jung")
 def _parallel_jung_quotes(theme: str, locale: str) -> str:
     """Thread-safe Jung quotes retrieval.
 
     NOTE: Jung quotes are used as interpretive frameworks, not direct quotes.
     AI should say "칼융 심리학에 의하면" instead of "융이 말했듯이".
     """
-    try:
-        corpus_rag = get_corpus_rag()
-        search_query = _THEME_QUERIES.get(theme, "individuation self shadow integration")
-        _, formatted_quotes = corpus_rag.get_quotes_for_interpretation(
-            query=search_query, locale=locale, top_k=2
-        )
-        return formatted_quotes or ""
-    except Exception as e:
-        print(f"[Parallel] Jung quotes error: {e}")
-        return ""
+    corpus_rag = get_corpus_rag()
+    search_query = _THEME_QUERIES.get(theme, "individuation self shadow integration")
+    _, formatted_quotes = corpus_rag.get_quotes_for_interpretation(
+        query=search_query, locale=locale, top_k=2
+    )
+    return formatted_quotes or ""
+
 
 def _parallel_user_memory(birth_data, theme, locale):
     """Thread-safe user memory retrieval."""
     if not HAS_USER_MEMORY or not birth_data:
         return "", None
-    try:
+
+    @handle_errors(default=("", None), log_level="warning", context="Parallel UserMemory")
+    def _fetch():
         user_id = generate_user_id(birth_data)
         memory = get_user_memory(user_id)
         context = memory.build_context_for_llm(theme, locale, service_type="fusion")
         return context or "", user_id
-    except Exception as e:
-        print(f"[Parallel] User memory error: {e}")
-        return "", None
+
+    return _fetch()
+
 
 def _parallel_rlhf_fewshot(theme, locale):
     """Thread-safe RLHF few-shot retrieval."""
     if not HAS_RLHF:
         return "", {}
-    try:
+
+    @handle_errors(default=("", {}), log_level="warning", context="Parallel RLHF")
+    def _fetch():
         fl = get_feedback_learning()
         fewshot = fl.format_fewshot_prompt(theme, locale, top_k=2)
         weights = fl.get_rule_weights(theme)
         return fewshot or "", weights or {}
-    except Exception as e:
-        print(f"[Parallel] RLHF error: {e}")
-        return "", {}
+
+    return _fetch()
+
 
 def _parallel_persona_semantic(user_prompt):
     """Thread-safe persona semantic search."""
     if not HAS_PERSONA_EMBED or not user_prompt:
         return ""
-    try:
+
+    @handle_errors(default="", log_level="warning", context="Parallel Persona")
+    def _fetch():
         persona_rag = get_persona_embed_rag()
         semantic_context = persona_rag.get_persona_context(user_prompt, top_k=2)
         parts = []
@@ -509,444 +514,490 @@ def _parallel_persona_semantic(user_prompt):
         if semantic_context.get("stoic_insights"):
             parts.append("[Stoic 인사이트]\n" + "\n".join(semantic_context["stoic_insights"][:2]))
         return "\n\n".join(parts) if parts else ""
-    except Exception as e:
-        print(f"[Parallel] Persona semantic error: {e}")
-        return ""
+
+    return _fetch()
 
 
 # ===============================================================
-#  MAIN INTERPRETER (Fusion Controller)
+#  MAIN INTERPRETER (Fusion Controller) - Refactored v6.0
 # ===============================================================
-@track_performance
-def interpret_with_ai(facts: dict):
-    """
-    saju + astro + graph + rules + LLM
-    Optimized with parallel preprocessing (v5.2)
-    """
+
+def _prepare_request(facts: dict) -> dict:
+    """Parse and validate incoming request, return normalized context."""
     load_dotenv()
-    try:
-        render_mode = facts.get("render_mode", "gpt")  # "gpt" (default) or "template"
-        api_key = os.getenv("OPENAI_API_KEY")
-        if render_mode != "template" and not api_key:
-            # Fallback to template mode if no API key
-            render_mode = "template"
 
-        locale = facts.get("locale", "en")
-        raw_prompt = facts.get("prompt") or ""
+    render_mode = facts.get("render_mode", "gpt")
+    api_key = os.getenv("OPENAI_API_KEY")
+    if render_mode != "template" and not api_key:
+        render_mode = "template"
 
-        # Check if this is a structured JSON request from frontend (not user input)
-        # These prompts contain schema instructions and should not be truncated
-        is_structured_prompt = (
-            "You MUST return a valid JSON object" in raw_prompt or
-            '"lifeTimeline"' in raw_prompt or
-            '"categoryAnalysis"' in raw_prompt
+    locale = facts.get("locale", "en")
+    raw_prompt = facts.get("prompt") or ""
+    theme = facts.get("theme", "life_path")
+
+    # Check prompt type
+    is_structured_prompt = (
+        "You MUST return a valid JSON object" in raw_prompt or
+        '"lifeTimeline"' in raw_prompt or
+        '"categoryAnalysis"' in raw_prompt
+    )
+    is_frontend_v3_snapshot = (
+        "[COMPREHENSIVE DATA SNAPSHOT v3" in raw_prompt or
+        "PART 1: 사주 (KOREAN ASTROLOGY - SAJU)" in raw_prompt
+    )
+
+    # Sanitize prompt
+    if is_structured_prompt or is_frontend_v3_snapshot:
+        user_prompt = sanitize_user_input(raw_prompt, max_length=_MAX_STRUCTURED_PROMPT_LENGTH, allow_newlines=True)
+    else:
+        user_prompt = sanitize_user_input(raw_prompt)
+
+    # Security check
+    if is_suspicious_input(raw_prompt):
+        import logging
+        logging.getLogger("backend_ai.security").warning(
+            "[Security] Suspicious input detected in fusion request"
         )
 
-        # v3.1: Check if frontend sent comprehensive snapshot (from buildAllDataPrompt)
-        is_frontend_v3_snapshot = (
-            "[COMPREHENSIVE DATA SNAPSHOT v3" in raw_prompt or
-            "PART 1: 사주 (KOREAN ASTROLOGY - SAJU)" in raw_prompt
-        )
+    # Extract and validate birth data
+    birth_data = facts.get("saju", {}).get("facts", {})
+    birth_date = birth_data.get("birth_date") or birth_data.get("birthDate")
+    birth_time = birth_data.get("birth_time") or birth_data.get("birthTime")
+    birth_year = birth_data.get("birth_year") or birth_data.get("birthYear")
 
-        if is_structured_prompt or is_frontend_v3_snapshot:
-            # For structured prompts or v3.1 snapshots from frontend, allow full length (no truncation)
-            user_prompt = sanitize_user_input(raw_prompt, max_length=_MAX_STRUCTURED_PROMPT_LENGTH, allow_newlines=True)
-            if is_structured_prompt:
-                print(f"[FusionLogic] Structured JSON prompt detected (len={len(raw_prompt)})")
-            if is_frontend_v3_snapshot:
-                print(f"[FusionLogic] Frontend v3.1 snapshot detected (len={len(raw_prompt)}) - using as authoritative data")
-        else:
-            # Normal user input - apply strict sanitization
-            user_prompt = sanitize_user_input(raw_prompt)
-
-        theme = facts.get("theme", "life_path")
-
-        # Lightweight monitoring (does not block request)
-        if is_suspicious_input(raw_prompt):
+    if birth_date or birth_time or birth_year:
+        is_valid, validation_error = validate_birth_data(birth_date, birth_time, birth_year)
+        if not is_valid:
             import logging
-
-            logging.getLogger("backend_ai.security").warning(
-                f"[Security] Suspicious input detected in fusion request"
+            logging.getLogger("backend_ai.validation").warning(
+                f"[Validation] Invalid birth data: {validation_error}"
             )
 
-        # Validate birth data shape early (non-blocking)
-        birth_data = facts.get("saju", {}).get("facts", {})
-        birth_date = birth_data.get("birth_date") or birth_data.get("birthDate")
-        birth_time = birth_data.get("birth_time") or birth_data.get("birthTime")
-        birth_year = birth_data.get("birth_year") or birth_data.get("birthYear")
+    return {
+        "render_mode": render_mode,
+        "locale": locale,
+        "theme": theme,
+        "user_prompt": user_prompt,
+        "birth_data": birth_data,
+    }
 
-        if birth_date or birth_time or birth_year:
-            is_valid, validation_error = validate_birth_data(
-                birth_date, birth_time, birth_year
+
+def _check_cache(facts: dict, ctx: dict) -> Optional[dict]:
+    """Check Redis cache for existing result."""
+    cache = get_cache()
+    cache_data = {
+        "cache_version": _CACHE_VERSION,
+        "theme": ctx["theme"],
+        "locale": ctx["locale"],
+        "prompt": ctx["user_prompt"],
+        "saju": facts.get("saju", {}),
+        "astro": facts.get("astro", {}),
+        "tarot": facts.get("tarot", {}),
+        "render_mode": ctx["render_mode"],
+    }
+    cached = cache.get("fusion", cache_data)
+    if cached:
+        cached["cached"] = True
+        return cached
+    return None
+
+
+def _handle_template_mode(facts: dict, ctx: dict) -> dict:
+    """Fast path: Template mode without RAG (prevents OOM)."""
+    signals = extract_signals(facts)
+    cross_summary = summarize_cross_signals(signals)
+
+    theme_cross_summary = {}
+    if HAS_THEME_FILTER:
+        try:
+            theme_filter = get_theme_filter()
+            theme_cross_summary = theme_filter.get_theme_summary(
+                ctx["theme"], facts.get("saju", {}), facts.get("astro", {})
             )
-            if not is_valid:
-                import logging
+        except Exception as e:
+            print(f"[ThemeFilter] Error: {e}")
 
-                logging.getLogger("backend_ai.validation").warning(
-                    f"[Validation] Invalid birth data: {validation_error}"
-                )
-                # Continue anyway with available data
+    facts_with_locale = {**facts, "locale": ctx["locale"]}
+    fusion_text = render_template_report(facts_with_locale, signals, cross_summary, theme_cross_summary)
 
-        # Check Redis cache first
-        cache = get_cache()
-        cache_data = {
-            "cache_version": _CACHE_VERSION,
-            "theme": theme,
-            "locale": locale,
-            "prompt": user_prompt,
-            "saju": facts.get("saju", {}),
-            "astro": facts.get("astro", {}),
-            "tarot": facts.get("tarot", {}),
-            "render_mode": render_mode,
+    result = {
+        "status": "success",
+        "timestamp": datetime.utcnow().isoformat(),
+        "theme": ctx["theme"],
+        "fusion_layer": fusion_text,
+        "context": f"[Signals]\n{json.dumps(signals, ensure_ascii=False, indent=2)}",
+        "cached": False,
+        "matched_rule_ids": [],
+        "user_prompt": ctx["user_prompt"],
+        "stats": {"template_mode": True, "rlhf_enabled": False},
+        "theme_cross": theme_cross_summary or None,
+        "cross_summary": cross_summary or None,
+        "render_mode": "template",
+    }
+
+    # Cache result
+    cache = get_cache()
+    cache_data = {
+        "cache_version": _CACHE_VERSION,
+        "theme": ctx["theme"],
+        "locale": ctx["locale"],
+        "prompt": ctx["user_prompt"],
+        "saju": facts.get("saju", {}),
+        "astro": facts.get("astro", {}),
+        "tarot": facts.get("tarot", {}),
+        "render_mode": ctx["render_mode"],
+    }
+    cache.set("fusion", cache_data, result)
+    return result
+
+
+def _run_parallel_preprocessing(facts: dict, ctx: dict) -> dict:
+    """Run RAG queries and context fetching in parallel."""
+    rag = get_graph_rag()
+    parallel_results = {}
+
+    with ThreadPoolExecutor(max_workers=_PARALLEL_MAX_WORKERS) as executor:
+        futures = {
+            executor.submit(_parallel_rag_query, rag, facts.get("saju", {}), "saju"): "rag_saju",
+            executor.submit(_parallel_rag_query, rag, facts.get("astro", {}), "astro"): "rag_astro",
+            executor.submit(_parallel_jung_quotes, ctx["theme"], ctx["locale"]): "jung_quotes",
+            executor.submit(_parallel_user_memory, ctx["birth_data"], ctx["theme"], ctx["locale"]): "user_memory",
+            executor.submit(_parallel_rlhf_fewshot, ctx["theme"], ctx["locale"]): "rlhf",
+            executor.submit(_parallel_persona_semantic, ctx["user_prompt"]): "persona_semantic",
         }
-        cached = cache.get("fusion", cache_data)
+
+        for future in as_completed(futures):
+            key = futures[future]
+            try:
+                parallel_results[key] = future.result(timeout=_PARALLEL_TASK_TIMEOUT)
+            except Exception as e:
+                print(f"[Parallel] {key} failed: {e}")
+                parallel_results[key] = None
+
+    print("[Parallel] Completed 6 tasks concurrently")
+    return parallel_results
+
+
+def _evaluate_rules(facts: dict, ctx: dict) -> Tuple[dict, dict]:
+    """Evaluate fusion and persona rules."""
+    rules_base = Path(__file__).parent.parent / "data" / "graph" / "rules"
+    rule_engine = RuleEngine(str(rules_base / "fusion"))
+
+    # Apply RLHF weights
+    if HAS_RLHF:
+        try:
+            fl = get_feedback_learning()
+            rlhf_weights = fl.get_rule_weights(ctx["theme"])
+            if rlhf_weights:
+                rule_engine.set_rlhf_weights(rlhf_weights)
+        except Exception as e:
+            print(f"[RLHF] Error setting rule weights: {e}")
+
+    rule_eval = rule_engine.evaluate(facts)
+
+    # Persona rules
+    persona_eval = {"matched_rules": [], "matched_count": 0}
+    persona_rules_path = rules_base / "persona"
+    if persona_rules_path.exists():
+        try:
+            persona_engine = RuleEngine(persona_rules_path)
+            persona_eval = persona_engine.evaluate(facts, search_all=True)
+            print(f"[Persona] Matched {persona_eval.get('matched_count', 0)} rules")
+        except Exception as e:
+            print(f"[Persona] Error loading persona rules: {e}")
+
+    return rule_eval, persona_eval
+
+
+def _build_agentic_context(facts: dict, ctx: dict) -> Tuple[str, dict]:
+    """Build context from Agentic RAG (NER + Deep Graph Traversal)."""
+    agentic_context = ""
+    agentic_stats = {}
+
+    if not HAS_AGENTIC or not ctx["user_prompt"]:
+        return agentic_context, agentic_stats
+
+    try:
+        agentic_result = agentic_query(
+            query=ctx["user_prompt"],
+            facts=facts,
+            locale=ctx["locale"],
+            theme=ctx["theme"],
+        )
+
+        if agentic_result.get("status") == "success":
+            entities = agentic_result.get("entities", [])
+            if entities:
+                entity_str = ", ".join(f"{e['normalized']}({e['type']})" for e in entities[:10])
+                agentic_context += f"\n\n[Extracted Entities - NER]\n{entity_str}"
+
+            paths = agentic_result.get("traversal_paths", [])
+            if paths:
+                path_strs = [" → ".join(p["nodes"][:6]) for p in paths[:3] if p.get("nodes")]
+                if path_strs:
+                    agentic_context += f"\n\n[Deep Graph Paths - Multi-hop]\n" + "\n".join(path_strs)
+
+            graph_results = agentic_result.get("graph_results", [])
+            if graph_results:
+                parts = [f"• {r.get('label', '')}: {r.get('description', '')[:150]}"
+                         for r in graph_results[:3] if r.get("label") and r.get("description")]
+                if parts:
+                    agentic_context += f"\n\n[Enhanced Graph Context]\n" + "\n".join(parts)
+
+            agentic_stats = agentic_result.get("stats", {})
+            print(f"[Agentic] Entities: {len(entities)}, Paths: {len(paths)}, Confidence: {agentic_result.get('confidence', 0):.2f}")
+
+    except Exception as e:
+        print(f"[Agentic] Error: {e}")
+
+    return agentic_context, agentic_stats
+
+
+def _build_theme_cross_context(facts: dict, ctx: dict) -> Tuple[str, dict]:
+    """Build theme cross-reference context."""
+    theme_cross_context = ""
+    theme_cross_summary = {}
+
+    if not HAS_THEME_FILTER:
+        return theme_cross_context, theme_cross_summary
+
+    try:
+        theme_filter = get_theme_filter()
+        theme_cross_context = get_theme_prompt_context(
+            ctx["theme"], facts.get("saju", {}), facts.get("astro", {})
+        )
+        theme_cross_summary = theme_filter.get_theme_summary(
+            ctx["theme"], facts.get("saju", {}), facts.get("astro", {})
+        )
+        if theme_cross_context:
+            theme_cross_context = f"\n\n[Theme cross-reference - {ctx['theme'].upper()}]\n{theme_cross_context}"
+            print(f"[ThemeFilter] Generated cross-reference for {ctx['theme']}: score={theme_cross_summary.get('relevance_score', 0)}")
+    except Exception as e:
+        print(f"[ThemeFilter] Error: {e}")
+
+    return theme_cross_context, theme_cross_summary
+
+
+def _build_full_context(
+    facts: dict,
+    parallel_results: dict,
+    rule_eval: dict,
+    persona_eval: dict,
+    agentic_context: str,
+    theme_cross_context: str,
+) -> Tuple[str, str, str, str, str]:
+    """Build the full context for LLM."""
+    # Unpack parallel results
+    linked = {
+        "saju": parallel_results.get("rag_saju") or {},
+        "astro": parallel_results.get("rag_astro") or {},
+    }
+    jung_quotes_formatted = parallel_results.get("jung_quotes") or ""
+    user_history_context, _ = parallel_results.get("user_memory") or ("", None)
+    rlhf_fewshot_context, _ = parallel_results.get("rlhf") or ("", {})
+    persona_semantic_text = parallel_results.get("persona_semantic") or ""
+
+    # Extract signals
+    signals = extract_signals(facts)
+    saju_text, astro_text, tarot_text = naturalize_facts(
+        facts.get("saju", {}), facts.get("astro", {}), facts.get("tarot", {})
+    )
+    signal_summary = summarize_signals(signals)
+    signal_highlights = f"[Signal highlights]\n{signal_summary}\n\n" if signal_summary else ""
+    cross_summary = summarize_cross_signals(signals)
+    cross_highlights = f"[Saju-Astro cross]\n{cross_summary}\n\n" if cross_summary else ""
+
+    # Format context parts
+    jung_quotes_context = f"\n\n[Authentic Jung Quotes - Use these for interpretation]\n{jung_quotes_formatted}" if jung_quotes_formatted else ""
+    if rlhf_fewshot_context:
+        rlhf_fewshot_context = f"\n\n{rlhf_fewshot_context}"
+
+    # Persona context
+    persona_context = ""
+    if persona_eval.get("matched_rules"):
+        persona_texts = persona_eval["matched_rules"][:3]
+        persona_context = f"\n\n[Persona Insights - Rule Based]\n" + "\n---\n".join(persona_texts)
+    if persona_semantic_text:
+        persona_context += f"\n\n[Persona Insights - Semantic Match]\n{persona_semantic_text}"
+
+    base_context = (
+        f"[Graph/Rule matches]\n"
+        f"{json.dumps(linked, ensure_ascii=False, indent=2)}\n\n"
+        f"[Rule evaluation]\n"
+        f"{json.dumps(rule_eval, ensure_ascii=False, indent=2)}\n\n"
+        f"[Signals]\n"
+        f"{json.dumps(signals, ensure_ascii=False, indent=2)}\n"
+        f"{signal_highlights}"
+        f"{cross_highlights}"
+        f"[Fusion inputs]\n"
+        f"[SAJU] {saju_text}\n[ASTRO] {astro_text}\n[TAROT] {tarot_text}"
+        f"{theme_cross_context}"
+        f"{jung_quotes_context}"
+        f"{persona_context}"
+        f"{user_history_context}"
+        f"{rlhf_fewshot_context}"
+        f"{agentic_context}"
+    )
+
+    return base_context, saju_text, astro_text, tarot_text, cross_summary
+
+
+def _generate_and_save(
+    facts: dict,
+    ctx: dict,
+    base_context: str,
+    saju_text: str,
+    astro_text: str,
+    tarot_text: str,
+    cross_summary: str,
+    parallel_results: dict,
+    rule_eval: dict,
+    persona_eval: dict,
+    agentic_stats: dict,
+    theme_cross_summary: dict,
+) -> dict:
+    """Generate fusion report and save to memory/cache."""
+    theme = ctx["theme"]
+    locale = ctx["locale"]
+    user_prompt = ctx["user_prompt"]
+    birth_data = ctx["birth_data"]
+
+    # Unpack for stats
+    _, user_id = parallel_results.get("user_memory") or ("", None)
+    rlhf_fewshot_context, rlhf_rule_weights = parallel_results.get("rlhf") or ("", {})
+    user_history_context, _ = parallel_results.get("user_memory") or ("", None)
+
+    # Generate report
+    model = get_llm()
+    meta = report_memory.get(theme, {"avg_len": _DEFAULT_AVG_LEN, "calls": 0})
+    prev_avg = meta["avg_len"]
+
+    out = generate_fusion_report(
+        model, saju_text, astro_text, theme,
+        locale=locale, user_prompt=user_prompt,
+        tarot_text=tarot_text, dataset_text=base_context,
+    )
+    fusion_text = out["fusion_layer"]
+    graph_context = out["graph_context"]
+    current_len = len(fusion_text)
+
+    # Update stats
+    meta["avg_len"] = (meta["avg_len"] * meta["calls"] + current_len) / (meta["calls"] + 1)
+    meta["calls"] += 1
+    report_memory[theme] = meta
+
+    adjust = 0.1 if current_len < prev_avg * 0.8 else (-0.05 if current_len > prev_avg * 1.2 else 0)
+    context_text = f"{base_context}\n\n[Graph context used]\n{graph_context}"
+    matched_rule_ids = rule_eval.get("matched_rule_ids", [])
+
+    result = {
+        "status": "success",
+        "timestamp": datetime.utcnow().isoformat(),
+        "theme": theme,
+        "fusion_layer": fusion_text,
+        "context": context_text,
+        "cached": False,
+        "matched_rule_ids": matched_rule_ids,
+        "user_prompt": user_prompt,
+        "stats": {
+            "current_len": current_len,
+            "avg_len": round(meta["avg_len"]),
+            "adjust": adjust,
+            "persona_rule_matched": persona_eval.get("matched_count", 0),
+            "persona_semantic_enabled": HAS_PERSONA_EMBED,
+            "user_history_enabled": HAS_USER_MEMORY and bool(user_history_context),
+            "rlhf_enabled": HAS_RLHF,
+            "rlhf_fewshot_injected": bool(rlhf_fewshot_context),
+            "rlhf_rule_weights_count": len(rlhf_rule_weights) if rlhf_rule_weights else 0,
+            "rlhf_weights_applied": rule_eval.get("rlhf_weights_applied", False),
+            "agentic_enabled": HAS_AGENTIC,
+            "agentic_entities_count": agentic_stats.get("entities_count", 0),
+            "agentic_paths_count": agentic_stats.get("paths_count", 0),
+            "agentic_context_injected": bool(agentic_stats),
+            "theme_filter_enabled": HAS_THEME_FILTER,
+            "theme_cross_context_injected": bool(theme_cross_summary),
+            "theme_relevance_score": theme_cross_summary.get("relevance_score", 0),
+            "theme_intersections_count": theme_cross_summary.get("summary", {}).get("cross_count", 0),
+            "theme_important_dates_count": theme_cross_summary.get("summary", {}).get("dates_count", 0),
+        },
+        "theme_cross": theme_cross_summary or None,
+        "cross_summary": cross_summary or None,
+    }
+
+    # Save to user memory
+    if HAS_USER_MEMORY and user_id and birth_data:
+        try:
+            memory = get_user_memory(user_id)
+            record_id = memory.save_consultation(
+                theme=theme, locale=locale, birth_data=birth_data,
+                fusion_result=fusion_text, service_type="fusion",
+                user_prompt=user_prompt,
+                context_used=context_text[:_MAX_CONTEXT_STORAGE],
+                matched_rule_ids=matched_rule_ids,
+            )
+            result["user_id"] = user_id
+            result["record_id"] = record_id
+            print(f"[UserMemory] Saved consultation {record_id} for user {user_id[:8]}...")
+        except Exception as e:
+            print(f"[UserMemory] Error saving consultation: {e}")
+
+    # Cache result
+    cache = get_cache()
+    cache_data = {
+        "cache_version": _CACHE_VERSION,
+        "theme": theme,
+        "locale": locale,
+        "prompt": user_prompt,
+        "saju": facts.get("saju", {}),
+        "astro": facts.get("astro", {}),
+        "tarot": facts.get("tarot", {}),
+        "render_mode": ctx["render_mode"],
+    }
+    cache.set("fusion", cache_data, result)
+    return result
+
+
+@track_performance
+def interpret_with_ai(facts: dict) -> dict:
+    """
+    Main fusion interpreter - combines saju + astro + graph + rules + LLM.
+    Optimized with parallel preprocessing (v6.0 - Refactored).
+    """
+    try:
+        # 1. Prepare request context
+        ctx = _prepare_request(facts)
+
+        # 2. Check cache
+        cached = _check_cache(facts, ctx)
         if cached:
-            cached["cached"] = True  # Mark as cache hit
             return cached
 
-        # ====================================================================
-        # TEMPLATE MODE - Fast path without RAG (prevents OOM)
-        # ====================================================================
-        if render_mode == "template":
-            # DEBUG logging removed to avoid Windows encoding errors
+        # 3. Template mode (fast path)
+        if ctx["render_mode"] == "template":
+            return _handle_template_mode(facts, ctx)
 
-            # Lightweight signal extraction (no RAG)
-            signals = extract_signals(facts)
-            cross_summary = summarize_cross_signals(signals)
+        # 4. GPT mode - parallel preprocessing
+        parallel_results = _run_parallel_preprocessing(facts, ctx)
 
-            # Theme cross filter (if available, doesn't use SentenceTransformer)
-            theme_cross_summary = {}
-            if HAS_THEME_FILTER:
-                try:
-                    theme_filter = get_theme_filter()
-                    theme_cross_summary = theme_filter.get_theme_summary(
-                        theme,
-                        facts.get("saju", {}),
-                        facts.get("astro", {})
-                    )
-                except Exception as e:
-                    print(f"[ThemeFilter] Error: {e}")
+        # 5. Evaluate rules
+        rule_eval, persona_eval = _evaluate_rules(facts, ctx)
 
-            # Pass locale to template renderer
-            facts_with_locale = {**facts, "locale": locale}
-            fusion_text = render_template_report(
-                facts_with_locale, signals, cross_summary, theme_cross_summary
-            )
-            result = {
-                "status": "success",
-                "timestamp": datetime.utcnow().isoformat(),
-                "theme": theme,
-                "fusion_layer": fusion_text,
-                "context": f"[Signals]\n{json.dumps(signals, ensure_ascii=False, indent=2)}",
-                "cached": False,
-                "matched_rule_ids": [],
-                "user_prompt": user_prompt,
-                "stats": {
-                    "template_mode": True,
-                    "rlhf_enabled": False,
-                },
-                "theme_cross": theme_cross_summary if theme_cross_summary else None,
-                "cross_summary": cross_summary if cross_summary else None,
-                "render_mode": "template",
-            }
-            cache.set("fusion", cache_data, result)
-            return result
+        # 6. Build agentic context
+        agentic_context, agentic_stats = _build_agentic_context(facts, ctx)
 
-        # ====================================================================
-        # GPT MODE - Full RAG processing (memory intensive)
-        # ====================================================================
-        rag = get_graph_rag()  # Use singleton instead of creating new instance
+        # 7. Build theme cross context
+        theme_cross_context, theme_cross_summary = _build_theme_cross_context(facts, ctx)
 
-        # PARALLEL PREPROCESSING - Run independent tasks concurrently (optimized)
-        parallel_results = {}
-
-        with ThreadPoolExecutor(max_workers=_PARALLEL_MAX_WORKERS) as executor:
-            futures = {
-                executor.submit(_parallel_rag_query, rag, facts.get("saju", {}), "saju"): "rag_saju",
-                executor.submit(_parallel_rag_query, rag, facts.get("astro", {}), "astro"): "rag_astro",
-                executor.submit(_parallel_jung_quotes, theme, locale): "jung_quotes",
-                executor.submit(_parallel_user_memory, birth_data, theme, locale): "user_memory",
-                executor.submit(_parallel_rlhf_fewshot, theme, locale): "rlhf",
-                executor.submit(_parallel_persona_semantic, user_prompt): "persona_semantic",
-            }
-
-            for future in as_completed(futures):
-                key = futures[future]
-                try:
-                    parallel_results[key] = future.result(timeout=_PARALLEL_TASK_TIMEOUT)
-                except Exception as e:
-                    print(f"[Parallel] {key} failed: {e}")
-                    parallel_results[key] = None
-
-        # Unpack parallel results
-        linked = {
-            "saju": parallel_results.get("rag_saju") or {},
-            "astro": parallel_results.get("rag_astro") or {},
-        }
-        jung_quotes_formatted = parallel_results.get("jung_quotes") or ""
-        user_history_context, user_id = parallel_results.get("user_memory") or ("", None)
-        rlhf_fewshot_context, rlhf_rule_weights = parallel_results.get("rlhf") or ("", {})
-        persona_semantic_text = parallel_results.get("persona_semantic") or ""
-
-        print(f"[Parallel] Completed 6 tasks concurrently")
-
-        # rules under backend_ai/data/graph/rules/fusion
-        rules_base = Path(__file__).parent.parent / "data" / "graph" / "rules"
-        rule_engine = RuleEngine(str(rules_base / "fusion"))
-
-        # Apply RLHF weights to RuleEngine before evaluation
-        if HAS_RLHF:
-            try:
-                fl = get_feedback_learning()
-                rlhf_weights = fl.get_rule_weights(theme)
-                if rlhf_weights:
-                    rule_engine.set_rlhf_weights(rlhf_weights)
-            except Exception as e:
-                print(f"[RLHF] Error setting rule weights: {e}")
-
-        rule_eval = rule_engine.evaluate(facts)
-
-        # Persona rules (Jung/Stoic V4) - separate for modularity
-        persona_eval = {"matched_rules": [], "matched_count": 0}
-        persona_rules_path = rules_base / "persona"
-        if persona_rules_path.exists():
-            try:
-                persona_engine = RuleEngine(persona_rules_path)
-                persona_eval = persona_engine.evaluate(facts, search_all=True)
-                print(f"[Persona] Matched {persona_eval.get('matched_count', 0)} rules")
-            except Exception as e:
-                print(f"[Persona] Error loading persona rules: {e}")
-
-        signals = extract_signals(facts)
-
-        saju_text, astro_text, tarot_text = naturalize_facts(
-            facts.get("saju", {}), facts.get("astro", {}), facts.get("tarot", {})
-        )
-        signal_summary = summarize_signals(signals)
-        signal_highlights = (
-            f"[Signal highlights]\n{signal_summary}\n\n" if signal_summary else ""
-        )
-        cross_summary = summarize_cross_signals(signals)
-        cross_highlights = (
-            f"[Saju-Astro cross]\n{cross_summary}\n\n" if cross_summary else ""
+        # 8. Build full context
+        base_context, saju_text, astro_text, tarot_text, cross_summary = _build_full_context(
+            facts, parallel_results, rule_eval, persona_eval, agentic_context, theme_cross_context
         )
 
-        # User memory & Jung quotes - already fetched in parallel above
-        jung_quotes_context = f"\n\n[Authentic Jung Quotes - Use these for interpretation]\n{jung_quotes_formatted}" if jung_quotes_formatted else ""
-
-        # RLHF - already fetched in parallel above
-        if rlhf_fewshot_context:
-            rlhf_fewshot_context = f"\n\n{rlhf_fewshot_context}"
-
-        # ===============================================================
-        # AGENTIC RAG: Deep Graph Traversal & Entity Extraction
-        # ===============================================================
-        agentic_context = ""
-        agentic_stats = {}
-        if HAS_AGENTIC and user_prompt:
-            try:
-                # Run agentic query for enhanced context
-                agentic_result = agentic_query(
-                    query=user_prompt,
-                    facts=facts,
-                    locale=locale,
-                    theme=theme,
-                )
-
-                if agentic_result.get("status") == "success":
-                    # Add extracted entities
-                    entities = agentic_result.get("entities", [])
-                    if entities:
-                        entity_str = ", ".join(
-                            f"{e['normalized']}({e['type']})"
-                            for e in entities[:10]
-                        )
-                        agentic_context += f"\n\n[Extracted Entities - NER]\n{entity_str}"
-
-                    # Add deep traversal paths
-                    paths = agentic_result.get("traversal_paths", [])
-                    if paths:
-                        path_strs = []
-                        for p in paths[:3]:
-                            if p.get("nodes"):
-                                path_strs.append(" → ".join(p["nodes"][:6]))
-                        if path_strs:
-                            agentic_context += f"\n\n[Deep Graph Paths - Multi-hop]\n" + "\n".join(path_strs)
-
-                    # Add graph search results context
-                    graph_results = agentic_result.get("graph_results", [])
-                    if graph_results:
-                        graph_context_parts = []
-                        for r in graph_results[:3]:
-                            label = r.get("label", "")
-                            desc = r.get("description", "")[:150]
-                            if label and desc:
-                                graph_context_parts.append(f"• {label}: {desc}")
-                        if graph_context_parts:
-                            agentic_context += f"\n\n[Enhanced Graph Context]\n" + "\n".join(graph_context_parts)
-
-                    agentic_stats = agentic_result.get("stats", {})
-                    print(f"[Agentic] Entities: {len(entities)}, Paths: {len(paths)}, Confidence: {agentic_result.get('confidence', 0):.2f}")
-
-            except Exception as e:
-                print(f"[Agentic] Error: {e}")
-
-        # ===============================================================
-        # THEME CROSS-REFERENCE FILTER: saju + astro cross intersections
-        # ===============================================================
-        theme_cross_context = ""
-        theme_cross_summary = {}
-        if HAS_THEME_FILTER:
-            try:
-                theme_filter = get_theme_filter()
-                theme_cross_context = get_theme_prompt_context(
-                    theme,
-                    facts.get("saju", {}),
-                    facts.get("astro", {})
-                )
-                theme_cross_summary = theme_filter.get_theme_summary(
-                    theme,
-                    facts.get("saju", {}),
-                    facts.get("astro", {})
-                )
-                if theme_cross_context:
-                    theme_cross_context = f"\n\n[Theme cross-reference - {theme.upper()}]\n{theme_cross_context}"
-                    print(f"[ThemeFilter] Generated cross-reference for {theme}: score={theme_cross_summary.get('relevance_score', 0)}")
-            except Exception as e:
-                print(f"[ThemeFilter] Error: {e}")
-
-        # Format persona insights (Jung/Stoic)
-        persona_context = ""
-
-        # Method 1: Rule-based matching (from RuleEngine)
-        if persona_eval.get("matched_rules"):
-            persona_texts = persona_eval["matched_rules"][:3]
-            persona_context = f"\n\n[Persona Insights - Rule Based]\n" + "\n---\n".join(persona_texts)
-
-        # Method 2: Semantic search - already fetched in parallel above
-        if persona_semantic_text:
-            persona_context += f"\n\n[Persona Insights - Semantic Match]\n{persona_semantic_text}"
-
-        base_context = (
-            f"[Graph/Rule matches]\n"
-            f"{json.dumps(linked, ensure_ascii=False, indent=2)}\n\n"
-            f"[Rule evaluation]\n"
-            f"{json.dumps(rule_eval, ensure_ascii=False, indent=2)}\n\n"
-            f"[Signals]\n"
-            f"{json.dumps(signals, ensure_ascii=False, indent=2)}\n"
-            f"{signal_highlights}"
-            f"{cross_highlights}"
-            f"[Fusion inputs]\n"
-            f"[SAJU] {saju_text}\n[ASTRO] {astro_text}\n[TAROT] {tarot_text}"
-            f"{theme_cross_context}"  # Theme cross-reference context (v5.1)
-            f"{jung_quotes_context}"
-            f"{persona_context}"
-            f"{user_history_context}"
-            f"{rlhf_fewshot_context}"  # RLHF Few-shot examples
-            f"{agentic_context}"  # Agentic RAG: NER + Deep Graph Traversal
+        # 9. Generate and save
+        return _generate_and_save(
+            facts, ctx, base_context, saju_text, astro_text, tarot_text, cross_summary,
+            parallel_results, rule_eval, persona_eval, agentic_stats, theme_cross_summary
         )
-        theme = facts.get("theme", "life_path")
-
-        # Note: Template mode is handled above (early return before RAG loading)
-        # This section is only reached in GPT mode
-
-        model = get_llm()
-        meta = report_memory.get(theme, {"avg_len": _DEFAULT_AVG_LEN, "calls": 0})
-        prev_avg = meta["avg_len"]
-
-        out = generate_fusion_report(
-            model,
-            saju_text,
-            astro_text,
-            theme,
-            locale=locale,
-            user_prompt=user_prompt,
-            tarot_text=tarot_text,
-            dataset_text=base_context,
-        )
-        fusion_text = out["fusion_layer"]
-        graph_context = out["graph_context"]
-        current_len = len(fusion_text)
-
-        meta["avg_len"] = (meta["avg_len"] * meta["calls"] + current_len) / (
-            meta["calls"] + 1
-        )
-        meta["calls"] += 1
-        report_memory[theme] = meta
-
-        adjust = (
-            0.1
-            if current_len < prev_avg * 0.8
-            else (-0.05 if current_len > prev_avg * 1.2 else 0)
-        )
-        out["sample_adjust"] = adjust
-
-        context_text = f"{base_context}\n\n[Graph context used]\n{graph_context}"
-
-        # Extract matched rule IDs for RLHF feedback tracking
-        matched_rule_ids = rule_eval.get("matched_rule_ids", [])
-
-        result = {
-            "status": "success",
-            "timestamp": datetime.utcnow().isoformat(),
-            "theme": theme,
-            "fusion_layer": fusion_text,
-            "context": context_text,
-            "cached": False,  # Fresh generation
-            "matched_rule_ids": matched_rule_ids,  # For RLHF feedback
-            "user_prompt": user_prompt,  # Original question for RLHF learning
-            "stats": {
-                "current_len": current_len,
-                "avg_len": round(meta["avg_len"]),
-                "adjust": adjust,
-                "persona_rule_matched": persona_eval.get("matched_count", 0),
-                "persona_semantic_enabled": HAS_PERSONA_EMBED,
-                "user_history_enabled": HAS_USER_MEMORY and bool(user_history_context),
-                "rlhf_enabled": HAS_RLHF,
-                "rlhf_fewshot_injected": bool(rlhf_fewshot_context),
-                "rlhf_rule_weights_count": len(rlhf_rule_weights) if rlhf_rule_weights else 0,
-                "rlhf_weights_applied": rule_eval.get("rlhf_weights_applied", False),
-                # Agentic RAG stats
-                "agentic_enabled": HAS_AGENTIC,
-                "agentic_entities_count": agentic_stats.get("entities_count", 0),
-                "agentic_paths_count": agentic_stats.get("paths_count", 0),
-                "agentic_context_injected": bool(agentic_context),
-                # Theme Cross-Reference Filter stats (v5.1)
-                "theme_filter_enabled": HAS_THEME_FILTER,
-                "theme_cross_context_injected": bool(theme_cross_context),
-                "theme_relevance_score": theme_cross_summary.get("relevance_score", 0),
-                "theme_intersections_count": theme_cross_summary.get("summary", {}).get("cross_count", 0),
-                "theme_important_dates_count": theme_cross_summary.get("summary", {}).get("dates_count", 0),
-            },
-            # Theme cross-reference summary for frontend
-            "theme_cross": theme_cross_summary if theme_cross_summary else None,
-            "cross_summary": cross_summary if cross_summary else None,
-        }
-
-        # Auto-save to user memory (MOAT - builds personalization data + RLHF learning)
-        if HAS_USER_MEMORY and user_id and birth_data:
-            try:
-                memory = get_user_memory(user_id)
-                record_id = memory.save_consultation(
-                    theme=theme,
-                    locale=locale,
-                    birth_data=birth_data,
-                    fusion_result=fusion_text,
-                    service_type="fusion",
-                    # RLHF Learning Fields - enables Few-shot selection & rule weight adjustment
-                    user_prompt=user_prompt,
-                    context_used=context_text[:_MAX_CONTEXT_STORAGE],  # Truncate for storage
-                    matched_rule_ids=matched_rule_ids,
-                )
-                result["user_id"] = user_id
-                result["record_id"] = record_id
-                print(f"[UserMemory] Saved consultation {record_id} for user {user_id[:8]}... (RLHF context included)")
-            except Exception as e:
-                print(f"[UserMemory] Error saving consultation: {e}")
-
-        # Store in Redis cache
-        cache.set("fusion", cache_data, result)
-        return result
 
     except Exception as e:
         print(f"[interpret_with_ai] Error: {e}")

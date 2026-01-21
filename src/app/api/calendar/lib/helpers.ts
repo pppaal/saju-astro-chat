@@ -9,6 +9,8 @@ import type { TranslationData } from "@/types/calendar-api";
 import type { PillarData } from "@/lib/Saju/types";
 import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types';
 import { getFactorTranslation } from './translations';
+import { KO_MESSAGES, EN_MESSAGES } from './constants';
+import { SCORE_THRESHOLDS } from '@/constants/scoring';
 
 // Translation helper
 export function getTranslation(key: string, translations: TranslationData): string {
@@ -98,130 +100,49 @@ export function generateSummary(
 
   if (lang === "ko") {
     if (grade === 0) {
-      // 천운의 날 - 최상의 메시지
-      const messages: Record<string, string> = {
-        career: "🌟 인생을 바꿀 계약, 사업 시작에 완벽한 날!",
-        wealth: "💎 대박 재물운! 중요한 투자/계약 강력 추천!",
-        love: "💍 프로포즈, 결혼 결정에 최고의 날!",
-        health: "✨ 에너지 폭발! 새로운 도전을 시작하세요!",
-        travel: "🌈 인생 여행 떠나기 완벽한 날!",
-        study: "🏆 합격운 최고! 시험, 면접에 행운이!",
-        general: "✨ 천운이 함께하는 특별한 날!"
-      };
-      return messages[cat] || messages.general;
+      return KO_MESSAGES.GRADE_0[cat] || KO_MESSAGES.GRADE_0.general;
     } else if (grade === 1) {
-      const messages: Record<string, string> = {
-        career: "💼 계약, 협상, 중요한 결정에 최적의 날!",
-        wealth: "💰 재물운 최고! 투자, 쇼핑에 좋아요!",
-        love: "💕 연애운 폭발! 고백, 데이트 적극 추천!",
-        health: "💪 활력 넘치는 날! 새 운동 시작해보세요!",
-        travel: "✈️ 여행운 최고! 출발하기 좋은 날!",
-        study: "📚 집중력 UP! 시험, 공부에 유리해요!",
-        general: "⭐ 모든 일이 잘 풀리는 최고의 날!"
-      };
-      return messages[cat] || messages.general;
-    } else if (grade === 2 && score >= 60) {
-      const messages: Record<string, string> = {
-        career: "📋 업무가 순조롭게 진행되는 날",
-        wealth: "💵 작은 행운이 찾아올 수 있어요",
-        love: "☕ 편안한 만남에 좋은 날",
-        health: "🌿 가벼운 산책이나 휴식 추천",
-        travel: "🚶 가까운 곳 나들이에 좋아요",
-        study: "📖 꾸준한 학습이 성과를 내요",
-        general: "🌤️ 평온하게 흘러가는 괜찮은 날"
-      };
-      return messages[cat] || messages.general;
+      return KO_MESSAGES.GRADE_1[cat] || KO_MESSAGES.GRADE_1.general;
+    } else if (grade === 2 && score >= SCORE_THRESHOLDS.AVERAGE) {
+      return KO_MESSAGES.GRADE_2_HIGH[cat] || KO_MESSAGES.GRADE_2_HIGH.general;
     } else if (grade === 2) {
-      return "🌥️ 평범한 하루, 무리하지 마세요";
+      return KO_MESSAGES.GRADE_2_LOW;
     } else if (grade === 3) {
-      // Grade 3 - 안좋은 날: 원인 기반 메시지
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
-      if (reason) {
-        return `⚠️ ${reason}`;
-      }
-      const messages: Record<string, string> = {
-        career: "⚠️ 업무에 장애물이 있을 수 있어요. 신중하게!",
-        wealth: "💸 지출에 주의하세요. 큰 거래는 미루세요.",
-        love: "💔 오해가 생기기 쉬워요. 대화 조심!",
-        health: "🏥 컨디션이 저하될 수 있어요. 휴식 필요!",
-        travel: "🚫 이동 시 주의하세요. 계획 변경 가능성!",
-        study: "😓 집중이 어려울 수 있어요. 무리하지 마세요.",
-        general: "🌧️ 기운이 약한 날입니다. 조용히 보내세요."
-      };
-      return messages[cat] || messages.general;
+      if (reason) return `⚠️ ${reason}`;
+      return KO_MESSAGES.GRADE_3[cat] || KO_MESSAGES.GRADE_3.general;
     } else if (grade === 4) {
-      // Grade 4 - 나쁜 날: 강한 경고와 원인
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
-      if (reason) {
-        return `🚨 ${reason}`;
-      }
-      const messages: Record<string, string> = {
-        career: "🚨 중요한 결정은 반드시 미루세요!",
-        wealth: "💀 큰 지출/투자는 절대 금지!",
-        love: "🖤 감정적 결정은 후회할 수 있어요!",
-        health: "🆘 무리한 활동은 삼가고 건강 관리!",
-        travel: "☠️ 장거리 이동은 피하세요!",
-        study: "🔴 시험/면접은 다른 날로 미루세요!",
-        general: "⛈️ 최악의 날! 모든 중요한 일을 피하세요!"
-      };
-      return messages[cat] || messages.general;
+      if (reason) return `🚨 ${reason}`;
+      return KO_MESSAGES.GRADE_4[cat] || KO_MESSAGES.GRADE_4.general;
     } else {
-      // Grade 5 - 최악의 날
+      // Grade 5
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
-      if (reason) {
-        return `🚨🚨 ${reason} 모든 일정을 연기하세요!`;
-      }
-      const messages: Record<string, string> = {
-        career: "🚨 모든 중요한 일정을 연기하세요!",
-        wealth: "💀 절대 투자/계약 금지!",
-        love: "🖤 감정적 결정은 후회할 수 있어요",
-        health: "🆘 건강 관리에 특히 주의하세요",
-        travel: "☠️ 장거리 이동은 피하세요!",
-        study: "🔴 시험/면접은 다른 날로!",
-        general: "⛈️ 최악의 날, 모든 것을 조심하세요!"
-      };
-      return messages[cat] || messages.general;
+      if (reason) return `🚨🚨 ${reason} 모든 일정을 연기하세요!`;
+      return KO_MESSAGES.GRADE_5[cat] || KO_MESSAGES.GRADE_5.general;
     }
   } else {
     // English
     if (grade === 0) {
-      const messages: Record<string, string> = {
-        career: "🌟 Perfect day for life-changing contracts!",
-        wealth: "💎 Amazing fortune! Big investments highly recommended!",
-        love: "💍 Best day for proposals and wedding decisions!",
-        health: "✨ Energy explosion! Start new challenges!",
-        travel: "🌈 Perfect day for a journey of a lifetime!",
-        study: "🏆 Best luck for exams and interviews!",
-        general: "✨ A special day blessed by heaven!"
-      };
-      return messages[cat] || messages.general;
+      return EN_MESSAGES.GRADE_0[cat] || EN_MESSAGES.GRADE_0.general;
     } else if (grade === 1) {
-      const messages: Record<string, string> = {
-        career: "💼 Best day for contracts and decisions!",
-        wealth: "💰 Great wealth luck! Good for investments!",
-        love: "💕 Romance luck high! Perfect for dates!",
-        health: "💪 Full of energy! Start something new!",
-        travel: "✈️ Excellent travel luck! Go for it!",
-        study: "📚 Focus is sharp! Great for exams!",
-        general: "⭐ Everything flows smoothly today!"
-      };
-      return messages[cat] || messages.general;
-    } else if (grade === 2 && score >= 60) {
-      return "🌤️ A good day with positive energy";
+      return EN_MESSAGES.GRADE_1[cat] || EN_MESSAGES.GRADE_1.general;
+    } else if (grade === 2 && score >= SCORE_THRESHOLDS.AVERAGE) {
+      return EN_MESSAGES.GRADE_2_HIGH;
     } else if (grade === 2) {
-      return "🌥️ An ordinary day, take it easy";
+      return EN_MESSAGES.GRADE_2_LOW;
     } else if (grade === 3) {
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
       if (reason) return `⚠️ ${reason}`;
-      return "⚠️ Low energy day. Be cautious and avoid stress.";
+      return EN_MESSAGES.GRADE_3;
     } else if (grade === 4) {
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
       if (reason) return `🚨 ${reason}`;
-      return "🚨 Bad day! Avoid all major decisions!";
+      return EN_MESSAGES.GRADE_4;
     } else {
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
       if (reason) return `🚨🚨 ${reason} Postpone everything!`;
-      return "⛈️ Worst day! Postpone all important matters!";
+      return EN_MESSAGES.GRADE_5;
     }
   }
 }

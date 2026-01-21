@@ -89,6 +89,16 @@
   background: rgba(63, 94, 251, 0.12);
 }
 
+.serviceDropdownItem.focused {
+  outline: 2px solid #3f5efb;
+  outline-offset: -2px;
+}
+
+.serviceDropdownItem:focus-visible {
+  outline: 2px solid #3f5efb;
+  outline-offset: -2px;
+}
+
 .serviceDropdownIcon {
   font-size: 1.2rem;
   flex-shrink: 0;

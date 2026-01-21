@@ -8,6 +8,7 @@ import type { ICPQuizAnswers, ICPAnalysis } from '@/lib/icp/types';
 import { analyzeICP } from '@/lib/icp/analysis';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
+import { ICPCircumplex } from '@/components/icp';
 import styles from './result.module.css';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
 
@@ -416,6 +417,23 @@ export default function ICPResultPage() {
               left={isKo ? '적대적' : 'Hostile'}
               right={isKo ? '친화적' : 'Friendly'}
               delay={100}
+            />
+          </div>
+        </section>
+
+        {/* Circumplex Visualization */}
+        <section className={styles.circumplexSection}>
+          <h2 className={styles.sectionTitle}>
+            <span className={styles.sectionIcon}>🔮</span>
+            {isKo ? '대인관계 원형 분석' : 'Interpersonal Circumplex'}
+          </h2>
+          <div className={styles.circumplexWrapper}>
+            <ICPCircumplex
+              primaryStyle={analysis.primaryStyle}
+              secondaryStyle={analysis.secondaryStyle ?? undefined}
+              octantScores={analysis.octantScores}
+              dominanceScore={(analysis.dominanceScore - 50) / 50}
+              affiliationScore={(analysis.affiliationScore - 50) / 50}
             />
           </div>
         </section>

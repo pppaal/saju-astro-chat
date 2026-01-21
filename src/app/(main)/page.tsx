@@ -64,6 +64,7 @@ export default function MainPage() {
     { key: 'personality', icon: '🌈', path: '/personality' },
     { key: 'numerology', icon: '🔢', path: '/numerology' },
     { key: 'compatibility', icon: '💕', path: '/compatibility' },
+    { key: 'pastLife', icon: '🔄', path: '/past-life' },
   ];
   const [todayVisitors, setTodayVisitors] = useState<number | null>(null);
   const [totalVisitors, setTotalVisitors] = useState<number | null>(null);

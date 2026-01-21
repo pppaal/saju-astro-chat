@@ -57,130 +57,111 @@ class ImportantDate:
     is_auspicious: bool
 
 
+# ===============================================================
+# Theme Mappings - Loaded from JSON for maintainability
+# ===============================================================
+from pathlib import Path
+from functools import lru_cache
+
+_MAPPINGS_CACHE: Dict[str, Any] = {}
+
+
+def _load_theme_mappings() -> Dict[str, Any]:
+    """Load theme mappings from JSON file with caching."""
+    global _MAPPINGS_CACHE
+    if _MAPPINGS_CACHE:
+        return _MAPPINGS_CACHE
+
+    mappings_path = Path(__file__).parent.parent / "data" / "theme_mappings.json"
+    if mappings_path.exists():
+        try:
+            with open(mappings_path, "r", encoding="utf-8") as f:
+                _MAPPINGS_CACHE = json.load(f)
+                return _MAPPINGS_CACHE
+        except Exception as e:
+            print(f"[ThemeCrossFilter] Failed to load theme_mappings.json: {e}")
+
+    # Fallback to hardcoded defaults if file not found
+    return {}
+
+
+def _get_theme_sipsin(theme: Theme) -> Dict:
+    """Get sipsin mapping for a theme."""
+    mappings = _load_theme_mappings()
+    theme_key = theme.value if isinstance(theme, Theme) else str(theme)
+    return mappings.get("theme_sipsin", {}).get(theme_key, {})
+
+
+def _get_theme_planets(theme: Theme) -> Dict:
+    """Get planet mapping for a theme."""
+    mappings = _load_theme_mappings()
+    theme_key = theme.value if isinstance(theme, Theme) else str(theme)
+    return mappings.get("theme_planets", {}).get(theme_key, {})
+
+
+def _get_sipsin_planet_cross() -> Dict:
+    """Get sipsin-planet cross mapping."""
+    mappings = _load_theme_mappings()
+    return mappings.get("sipsin_planet_cross", {})
+
+
+def _get_ohaeng_element_cross() -> Dict:
+    """Get ohaeng-element cross mapping."""
+    mappings = _load_theme_mappings()
+    return mappings.get("ohaeng_element_cross", {})
+
+
 class ThemeCrossReferenceData:
-    """테마별 Cross-Reference 데이터 매핑"""
+    """테마별 Cross-Reference 데이터 매핑 (JSON 파일에서 로드)"""
 
-    # 테마별 관련 십신
-    THEME_SIPSIN = {
-        Theme.LOVE: {
-            "primary": ["정재", "정관", "식신"],
-            "secondary": ["편재", "편관", "상관"],
-            "negative": ["겁재", "편인"],
-            "description": "연애/결혼 관련 십신"
-        },
-        Theme.CAREER: {
-            "primary": ["정관", "편관", "정인"],
-            "secondary": ["비견", "편인", "식신"],
-            "negative": ["상관", "겁재"],
-            "description": "직업/사업 관련 십신"
-        },
-        Theme.WEALTH: {
-            "primary": ["정재", "편재", "식신"],
-            "secondary": ["상관", "비견"],
-            "negative": ["겁재", "편관"],
-            "description": "재물/투자 관련 십신"
-        },
-        Theme.HEALTH: {
-            "primary": ["식신", "비견", "정인"],
-            "secondary": ["편인", "정재"],
-            "negative": ["상관", "편관", "겁재"],
-            "description": "건강/활력 관련 십신"
-        },
-        Theme.FAMILY: {
-            "primary": ["정인", "편인", "정관"],
-            "secondary": ["정재", "식신"],
-            "negative": ["상관", "겁재"],
-            "description": "가족/관계 관련 십신"
-        },
-        Theme.EDUCATION: {
-            "primary": ["정인", "편인", "식신"],
-            "secondary": ["정관", "상관"],
-            "negative": ["겁재", "편재"],
-            "description": "학업/시험 관련 십신"
-        },
-        Theme.OVERALL: {
-            "primary": ["정관", "정재", "정인", "식신"],
-            "secondary": ["편관", "편재", "편인", "상관"],
-            "negative": ["겁재"],
-            "description": "전체 운세"
-        }
-    }
+    @classmethod
+    def get_theme_sipsin(cls, theme: Theme) -> Dict:
+        """Get sipsin data for a specific theme."""
+        return _get_theme_sipsin(theme)
 
-    # 테마별 관련 행성
-    THEME_PLANETS = {
-        Theme.LOVE: {
-            "primary": ["venus", "moon", "mars"],
-            "secondary": ["sun", "neptune"],
-            "houses": [5, 7, 8],
-            "aspects": ["conjunction", "trine", "sextile"],
-            "description": "연애/결혼 관련 행성"
-        },
-        Theme.CAREER: {
-            "primary": ["saturn", "jupiter", "sun"],
-            "secondary": ["mars", "mercury"],
-            "houses": [2, 6, 10],
-            "aspects": ["conjunction", "trine", "square"],
-            "description": "직업/사업 관련 행성"
-        },
-        Theme.WEALTH: {
-            "primary": ["jupiter", "venus", "pluto"],
-            "secondary": ["saturn", "mercury"],
-            "houses": [2, 8, 11],
-            "aspects": ["conjunction", "trine", "sextile"],
-            "description": "재물/투자 관련 행성"
-        },
-        Theme.HEALTH: {
-            "primary": ["sun", "mars", "saturn"],
-            "secondary": ["moon", "neptune"],
-            "houses": [1, 6, 12],
-            "aspects": ["conjunction", "opposition", "square"],
-            "description": "건강/활력 관련 행성"
-        },
-        Theme.FAMILY: {
-            "primary": ["moon", "saturn", "sun"],
-            "secondary": ["venus", "jupiter"],
-            "houses": [4, 10, 7],
-            "aspects": ["conjunction", "trine", "opposition"],
-            "description": "가족/관계 관련 행성"
-        },
-        Theme.EDUCATION: {
-            "primary": ["mercury", "jupiter", "saturn"],
-            "secondary": ["uranus", "sun"],
-            "houses": [3, 9],
-            "aspects": ["conjunction", "trine", "sextile"],
-            "description": "학업/시험 관련 행성"
-        },
-        Theme.OVERALL: {
-            "primary": ["sun", "moon", "jupiter", "saturn"],
-            "secondary": ["mars", "venus", "mercury"],
-            "houses": [1, 4, 7, 10],
-            "aspects": ["conjunction", "trine", "square", "opposition"],
-            "description": "전체 운세"
-        }
-    }
+    @classmethod
+    def get_theme_planets(cls, theme: Theme) -> Dict:
+        """Get planet data for a specific theme."""
+        return _get_theme_planets(theme)
 
-    # 십신-행성 교차 매핑
-    SIPSIN_PLANET_CROSS = {
-        "비견": {"planets": ["sun", "mars"], "meaning": "자아/경쟁 에너지"},
-        "겁재": {"planets": ["mars", "pluto"], "meaning": "욕망/경쟁 에너지"},
-        "식신": {"planets": ["venus", "jupiter"], "meaning": "표현/풍요 에너지"},
-        "상관": {"planets": ["uranus", "mars"], "meaning": "반항/창조 에너지"},
-        "편재": {"planets": ["jupiter", "uranus"], "meaning": "기회/변동 재물"},
-        "정재": {"planets": ["venus", "saturn"], "meaning": "안정/축적 재물"},
-        "편관": {"planets": ["mars", "pluto"], "meaning": "권위/압박 에너지"},
-        "정관": {"planets": ["saturn", "sun"], "meaning": "명예/책임 에너지"},
-        "편인": {"planets": ["uranus", "neptune"], "meaning": "영감/독창성"},
-        "정인": {"planets": ["moon", "jupiter"], "meaning": "학습/보호 에너지"}
-    }
+    @classmethod
+    def get_sipsin_planet_cross(cls, sipsin: str) -> Dict:
+        """Get planet cross-reference for a sipsin."""
+        return _get_sipsin_planet_cross().get(sipsin, {})
 
-    # 오행-원소 교차 매핑
-    OHAENG_ELEMENT_CROSS = {
-        "목": {"signs": ["aries", "sagittarius"], "element": "fire", "planets": ["jupiter", "mars"]},
-        "화": {"signs": ["leo", "aries"], "element": "fire", "planets": ["sun", "mars"]},
-        "토": {"signs": ["taurus", "virgo", "capricorn"], "element": "earth", "planets": ["saturn", "venus"]},
-        "금": {"signs": ["libra", "aquarius"], "element": "air", "planets": ["venus", "saturn"]},
-        "수": {"signs": ["cancer", "scorpio", "pisces"], "element": "water", "planets": ["moon", "neptune"]}
-    }
+    @classmethod
+    def get_ohaeng_element_cross(cls, ohaeng: str) -> Dict:
+        """Get element cross-reference for an ohaeng."""
+        return _get_ohaeng_element_cross().get(ohaeng, {})
+
+    # Legacy class attributes for backward compatibility
+    @property
+    def THEME_SIPSIN(self) -> Dict:
+        mappings = _load_theme_mappings()
+        result = {}
+        for theme in Theme:
+            data = mappings.get("theme_sipsin", {}).get(theme.value, {})
+            if data:
+                result[theme] = data
+        return result
+
+    @property
+    def THEME_PLANETS(self) -> Dict:
+        mappings = _load_theme_mappings()
+        result = {}
+        for theme in Theme:
+            data = mappings.get("theme_planets", {}).get(theme.value, {})
+            if data:
+                result[theme] = data
+        return result
+
+    @property
+    def SIPSIN_PLANET_CROSS(self) -> Dict:
+        return _get_sipsin_planet_cross()
+
+    @property
+    def OHAENG_ELEMENT_CROSS(self) -> Dict:
+        return _get_ohaeng_element_cross()
 
 
 class ThemeCrossFilter:

@@ -14,11 +14,10 @@ import {
   rateLimitHealthCheck,
 } from '@/lib/cache/redis-rate-limit';
 
-// Check if Redis is available - only run if explicitly enabled for integration tests
-const REDIS_AVAILABLE = process.env.VITEST_REDIS_TESTS === '1' &&
-  !!(process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL);
+// Check if Redis is available
+const REDIS_AVAILABLE = !!(process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL);
 
-// Skip tests if Redis is not available
+// Run tests if Redis is available
 const describeWithRedis = REDIS_AVAILABLE ? describe : describe.skip;
 
 describeWithRedis('Redis Rate Limiting', () => {

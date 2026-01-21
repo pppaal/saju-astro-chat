@@ -299,6 +299,23 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
+/* Circumplex Section */
+.circumplexSection {
+  margin-top: 3rem;
+  animation: fadeInUp 0.8s ease-out 0.25s both;
+}
+
+.circumplexWrapper {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 /* Octant Section */
 .octantSection {
   margin-top: 3rem;
