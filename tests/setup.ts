@@ -4,8 +4,40 @@
  * This file is automatically loaded before all tests
  */
 
+import React from "react";
 import { vi } from "vitest";
 import "@testing-library/jest-dom";
+
+// Allow legacy Jest-style helpers in Vitest tests.
+(globalThis as typeof globalThis & { jest?: typeof vi }).jest = vi;
+
+// Mock next-auth/react globally for tests
+const mockSession = {
+  status: 'unauthenticated' as const,
+  data: null,
+  update: vi.fn(),
+};
+
+vi.mock('next-auth/react', () => ({
+  useSession: vi.fn(() => mockSession),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+// Export mock session utilities for tests to configure
+export const mockUseSession = vi.fn(() => mockSession);
+export const setMockSession = (session: {
+  status: 'loading' | 'authenticated' | 'unauthenticated';
+  data: any;
+  update?: any;
+}) => {
+  const { useSession } = require('next-auth/react');
+  (useSession as ReturnType<typeof vi.fn>).mockReturnValue({
+    ...session,
+    update: session.update || vi.fn(),
+  });
+};
 
 const shouldUseRealFetch =
   process.env.npm_lifecycle_event === "test:e2e:api" ||

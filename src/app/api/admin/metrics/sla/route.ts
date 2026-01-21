@@ -19,6 +19,48 @@ import { logger } from "@/lib/logger";
 
 const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(",").map((e) => e.trim().toLowerCase()) || [];
 
+// Precise metric names for SLA calculation
+const API_REQUEST_METRICS = [
+  "api.request.total",
+  "http.request.total",
+  "destiny.report.total",
+  "tarot.reading.total",
+  "dream.analysis.total",
+  "astrology.chart.total",
+];
+
+const API_ERROR_METRICS = [
+  "api.error.total",
+];
+
+// Exact metric names for API latency (excludes external service durations)
+const API_LATENCY_METRICS = [
+  "api.request.duration",
+  "http.request.duration",
+];
+
+// Metrics to exclude from SLA latency calculation (external services, not API SLA)
+const EXCLUDED_LATENCY_PATTERNS = [
+  "external",
+  "openai",
+  "report.generation",
+  "third_party",
+];
+
+function matchesName(name: string, allowed: string[]): boolean {
+  return allowed.includes(name);
+}
+
+function isApiLatencyMetric(name: string): boolean {
+  // Must exactly match one of the API latency metrics
+  const isMatch = API_LATENCY_METRICS.some((pattern) => name === pattern);
+  if (!isMatch) return false;
+
+  // Exclude external service durations that might have similar names
+  const isExcluded = EXCLUDED_LATENCY_PATTERNS.some((excl) => name.toLowerCase().includes(excl));
+  return !isExcluded;
+}
+
 interface SLAStatus {
   metric: string;
   current: number;
@@ -67,25 +109,31 @@ export async function GET(req: NextRequest) {
     // Get metrics snapshot
     const snapshot = getMetricsSnapshot();
 
-    // Calculate p95 latency across all API endpoints
-    let allP95Values: number[] = [];
+    // Calculate p95 latency across API endpoints (precise matching)
+    const allP95Values: number[] = [];
     let totalRequests = 0;
     let totalErrors = 0;
 
+    // Collect p95 from timing metrics (exact matching for API latency only)
     for (const timing of snapshot.timings) {
-      if (timing.name.includes("api") || timing.name.includes("request") || timing.name.includes("duration")) {
+      if (isApiLatencyMetric(timing.name)) {
         if (timing.p95 > 0) {
           allP95Values.push(timing.p95);
         }
       }
     }
 
+    // Count requests and errors with precise metric matching
     for (const counter of snapshot.counters) {
-      const labels = counter.labels || {};
-      if (counter.name.includes("request") || counter.name.includes("total")) {
+      const name = counter.name;
+
+      // Count only explicit API request metrics
+      if (matchesName(name, API_REQUEST_METRICS)) {
         totalRequests += counter.value;
       }
-      if (counter.name.includes("error") || counter.name.includes("fail") || labels.status === "error") {
+
+      // Count only explicit error metrics
+      if (matchesName(name, API_ERROR_METRICS)) {
         totalErrors += counter.value;
       }
     }

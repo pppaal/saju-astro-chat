@@ -2,7 +2,7 @@
 import { getServerSession } from "next-auth";
 import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { authOptions } from "@/lib/auth/authOptions";
-import { buildAllDataPrompt } from "@/lib/destiny-map/prompt/fortune/base/baseAllDataPrompt";
+import { buildAllDataPrompt } from "@/lib/destiny-map/prompt/fortune/base";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 import Stripe from "stripe";
 import { apiGuard } from "@/lib/apiGuard";

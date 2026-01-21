@@ -13,7 +13,7 @@ import {
   findMajorTransits,
   toChart,
 } from "@/lib/astrology";
-import { buildAllDataPrompt } from "@/lib/destiny-map/prompt/fortune/base/baseAllDataPrompt";
+import { buildAllDataPrompt } from "@/lib/destiny-map/prompt/fortune/base";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 import {

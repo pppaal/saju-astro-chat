@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import styles from "./dashboard.module.css";
 import { SLA_THRESHOLDS } from "@/lib/metrics/schema";
+import { formatNumber } from "@/utils/numberFormat";
 
 type FunnelMetrics = {
   visitors: {
@@ -107,11 +108,6 @@ export default function MetricsDashboard() {
     return pass ? "pass" : "fail";
   };
 
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toFixed(0);
-  };
 
   const formatCurrency = (num: number) => {
     return new Intl.NumberFormat("ko-KR", {

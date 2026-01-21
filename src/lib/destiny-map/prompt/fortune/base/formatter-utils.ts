@@ -9,66 +9,30 @@
 import { formatGanjiEasy, parseGanjiEasy } from './translation-maps';
 import { formatPillar, type PlanetaryData, type SajuData, type ExtractedSajuData } from './data-extractors';
 import type { PlanetData, AspectHit } from '@/lib/astrology';
+import type {
+  HouseData,
+  PillarSet,
+  DayMasterInfo,
+  DaeunItem,
+  AnnualItem,
+  MonthlyItem,
+  SinsalRecord,
+  TransitItem,
+  SibsinRelation,
+  CareerAptitude,
+  BranchInteraction,
+  TuechulItem,
+  HoegukItem,
+  AdvancedAnalysisInput,
+} from './prompt-types';
 
-// ============================================
-// Local type definitions for flexible data
-// ============================================
+// Re-export for backwards compatibility
+export type { DaeunItem, AnnualItem, MonthlyItem };
 
-interface HouseData {
-  sign?: string;
-  formatted?: string;
-}
-
-interface PillarSet {
-  year?: { heavenlyStem?: { name?: string; element?: string }; earthlyBranch?: { name?: string } };
-  month?: { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } };
-  day?: { heavenlyStem?: { name?: string; element?: string }; earthlyBranch?: { name?: string } };
-  time?: { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } };
-}
-
-interface DayMasterInfo {
-  name?: string;
-  element?: string;
-}
-
-interface DaeunItem {
-  age: number;
-  heavenlyStem?: string;
-  earthlyBranch?: string;
-}
-
-interface AnnualItem {
-  year: number;
-  ganji?: string;
-  name?: string;
-}
-
-interface MonthlyItem {
-  year: number;
-  month: number;
-  ganji?: string;
-  name?: string;
-}
-
-interface UnseDataForFormat {
+export interface UnseDataForFormat {
   daeun?: DaeunItem[];
   annual?: AnnualItem[];
   monthly?: MonthlyItem[];
-}
-
-interface SinsalRecord {
-  luckyList?: { name?: string }[];
-  unluckyList?: { name?: string }[];
-}
-
-interface TransitData {
-  type?: string;
-  aspectType?: string;
-  transitPlanet?: string;
-  natalPoint?: string;
-  from?: { name?: string };
-  to?: { name?: string };
-  isApplying?: boolean;
 }
 
 /**
@@ -246,7 +210,7 @@ export function formatAllDaeunText(unse: UnseDataForFormat | undefined, currentA
  */
 export function formatFutureAnnualList(unse: UnseDataForFormat | undefined, currentYear: number): string {
   return (unse?.annual ?? [])
-    .filter((a) => a.year >= currentYear && a.year <= currentYear + 5)
+    .filter((a) => a.year != null && a.year >= currentYear && a.year <= currentYear + 5)
     .map((a) => {
       const isCurrent = a.year === currentYear;
       const marker = isCurrent ? "★현재★" : "";
@@ -271,6 +235,7 @@ export function formatFutureMonthlyList(
 ): string {
   return (unse?.monthly ?? [])
     .filter((m) => {
+      if (m.year == null || m.month == null) return false;
       if (m.year > currentYear) return true;
       if (m.year === currentYear && m.month >= currentMonth) return true;
       return false;
@@ -305,18 +270,6 @@ export function formatSinsalLists(sinsal: SinsalRecord | undefined): {
   };
 }
 
-// Helper type for advanced analysis (very complex nested structure)
-// Using index signature to allow flexible property access
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AdvancedAnalysisInput = Record<string, any>;
-
-interface RelationshipItem { type?: string; quality?: string; description?: string }
-interface CareerItem { field?: string; score?: number }
-interface ChungItem { branch1?: string; branch2?: string; from?: string; to?: string }
-interface HapItem { branch1?: string; branch2?: string; from?: string; to?: string; result?: string }
-interface SamhapItem { branches?: string[] }
-interface TuechulItem { element?: string; stem?: string; type?: string }
-interface HoegukItem { type?: string; name?: string; resultElement?: string }
 
 /**
  * Format advanced Saju analysis texts
@@ -378,8 +331,8 @@ export function formatAdvancedSajuAnalysis(advancedAnalysis: AdvancedAnalysisInp
   const sibsinMissing = sibsin?.missingSibsin?.join?.(", ") ?? sibsin?.missing?.join?.(", ") ?? "-";
 
   // 십신 기반 인간관계/직업
-  const sibsinRelationships = (sibsin?.relationships ?? []) as RelationshipItem[];
-  const sibsinCareerAptitudes = (sibsin?.careerAptitudes ?? []) as CareerItem[];
+  const sibsinRelationships = (sibsin?.relationships ?? []) as SibsinRelation[];
+  const sibsinCareerAptitudes = (sibsin?.careerAptitudes ?? []) as CareerAptitude[];
   const relationshipText = Array.isArray(sibsinRelationships)
     ? sibsinRelationships.slice(0, 3).map((r) => `${r.type}:${r.quality ?? r.description ?? ""}`).join("; ")
     : "-";
@@ -388,7 +341,7 @@ export function formatAdvancedSajuAnalysis(advancedAnalysis: AdvancedAnalysisInp
     : "-";
 
   // 형충회합
-  const hyeongchung = (adv?.hyeongchung ?? {}) as { chung?: ChungItem[]; hap?: HapItem[]; samhap?: SamhapItem[] };
+  const hyeongchung = (adv?.hyeongchung ?? {}) as { chung?: BranchInteraction[]; hap?: BranchInteraction[]; samhap?: { branches?: string[] }[] };
   const chungText = hyeongchung.chung?.length
     ? hyeongchung.chung.map((c) => `${c.branch1 ?? c.from}-${c.branch2 ?? c.to}`).join(", ")
     : "-";
@@ -467,7 +420,7 @@ export function formatAdvancedSajuAnalysis(advancedAnalysis: AdvancedAnalysisInp
  * @param transits - Array of transit data
  * @returns Formatted transit string
  */
-export function formatSignificantTransits(transits: TransitData[]): string {
+export function formatSignificantTransits(transits: TransitItem[]): string {
   return transits
     .filter((t) => ["conjunction", "trine", "square", "opposition"].includes(t.type || t.aspectType || ""))
     .slice(0, 8)

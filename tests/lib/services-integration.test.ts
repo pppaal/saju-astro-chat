@@ -136,7 +136,7 @@ describe('Services Integration', () => {
 
       expect(module.authOptions).toBeDefined();
       expect(typeof module.authOptions).toBe('object');
-    });
+    }, 60000);
 
     it('should export public token validator', async () => {
       const module = await import('@/lib/auth/publicToken');

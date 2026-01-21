@@ -19,38 +19,16 @@ export default function PillarSummaryTable({
 }) {
   if (!data) return null;
 
-  const cellBase: React.CSSProperties = {
-    padding: '10px 12px',
-    borderLeft: '1px solid #2a2a3e',
-    whiteSpace: 'pre-wrap',
-    lineHeight: 1.5,
-  };
-  const headerCell: React.CSSProperties = {
-    ...cellBase,
-    textAlign: 'center',
-    fontWeight: 800,
-    color: '#cfd6ff',
-  };
-  const rowLabel: React.CSSProperties = {
-    padding: '10px 12px',
-    color: '#9aa2c1',
-    fontWeight: 600,
-    borderRight: '1px solid #2a2a3e',
-  };
-
   const toDisplayString = (v: unknown): string => {
     if (v == null) return '';
     if (typeof v === 'string') return v.trim();
     if (typeof v === 'number' || typeof v === 'boolean') return String(v);
     if (Array.isArray(v)) return v.map(toDisplayString).filter(Boolean).join('\n');
-    // Handle objects (like pillar data) - extract name/text properties
     if (typeof v === 'object') {
       const obj = v as Record<string, unknown>;
-      // Try common text properties
       if (obj.name && typeof obj.name === 'string') return obj.name;
       if (obj.text && typeof obj.text === 'string') return obj.text;
       if (obj.display && typeof obj.display === 'string') return obj.display;
-      // For jijanggan object structure
       if (obj.chogi || obj.junggi || obj.jeonggi) {
         const parts: string[] = [];
         if (obj.chogi && typeof (obj.chogi as Record<string, unknown>)?.name === 'string') {
@@ -64,7 +42,6 @@ export default function PillarSummaryTable({
         }
         return parts.join(' ');
       }
-      // Fallback: try to stringify or return empty
       try {
         return JSON.stringify(v);
       } catch {
@@ -73,11 +50,8 @@ export default function PillarSummaryTable({
     }
     return String(v);
   };
-  const val = (v?: unknown) => <div style={cellBase}>{toDisplayString(v) || '—'}</div>;
 
-  // 어댑터에서 최종 선별된 길성(lucky)만 그대로 출력하도록 간소화
   const formatLucky = (k: 'time' | 'day' | 'month' | 'year'): string => {
-    // 1) 칸별 오버라이드 우선 적용
     const overrides = {
       time: timeLuckyOverride,
       day: dayLuckyOverride,
@@ -88,89 +62,68 @@ export default function PillarSummaryTable({
     if (override && override.length) {
       return override.map((s) => (s ?? '').toString().trim()).filter(Boolean).join('\n');
     }
-    // 2) 어댑터가 필터링 완료한 lucky를 그대로 출력
     const lucky = (data)?.[k]?.lucky as string[] | undefined;
     return (lucky || []).map((s) => (s ?? '').toString().trim()).filter(Boolean).join('\n');
   };
 
+  const Cell = ({ children }: { children: React.ReactNode }) => (
+    <div className="px-3 py-2.5 border-l border-slate-700 whitespace-pre-wrap leading-relaxed text-gray-200">
+      {children || '—'}
+    </div>
+  );
+
   return (
     <div
-      style={{
-        marginTop: 16,
-        background: '#1e1e2f',
-        border: '1px solid #4f4f7a',
-        borderRadius: 12,
-        overflow: 'hidden',
-      }}
+      className="mt-4 bg-slate-800 border border-slate-600 rounded-xl overflow-hidden"
+      role="table"
+      aria-label="사주 요약 테이블"
     >
+      {/* Header Row */}
       <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '140px repeat(4, 1fr)',
-          borderBottom: '1px solid #4f4f7a',
-        }}
+        className="grid grid-cols-[140px_repeat(4,1fr)] border-b border-slate-600"
+        role="row"
       >
-        <div style={{ padding: '10px 12px', color: '#9aa2c1', fontWeight: 700 }}>구분</div>
-        <div style={headerCell}>시지</div>
-        <div style={headerCell}>일지</div>
-        <div style={headerCell}>월지</div>
-        <div style={headerCell}>연지</div>
+        <div className="px-3 py-2.5 text-slate-400 font-bold" role="columnheader">구분</div>
+        <div className="px-3 py-2.5 border-l border-slate-700 text-center font-extrabold text-blue-200" role="columnheader">시지</div>
+        <div className="px-3 py-2.5 border-l border-slate-700 text-center font-extrabold text-blue-200" role="columnheader">일지</div>
+        <div className="px-3 py-2.5 border-l border-slate-700 text-center font-extrabold text-blue-200" role="columnheader">월지</div>
+        <div className="px-3 py-2.5 border-l border-slate-700 text-center font-extrabold text-blue-200" role="columnheader">연지</div>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '140px repeat(4, 1fr)',
-          borderTop: '1px solid #2a2a3e',
-        }}
-      >
-        <div style={rowLabel}>지장간</div>
-        {val(data?.time?.jijanggan)}
-        {val(data?.day?.jijanggan)}
-        {val(data?.month?.jijanggan)}
-        {val(data?.year?.jijanggan)}
+      {/* 지장간 Row */}
+      <div className="grid grid-cols-[140px_repeat(4,1fr)] border-t border-slate-700" role="row">
+        <div className="px-3 py-2.5 text-slate-400 font-semibold border-r border-slate-700" role="rowheader">지장간</div>
+        <Cell>{toDisplayString(data?.time?.jijanggan)}</Cell>
+        <Cell>{toDisplayString(data?.day?.jijanggan)}</Cell>
+        <Cell>{toDisplayString(data?.month?.jijanggan)}</Cell>
+        <Cell>{toDisplayString(data?.year?.jijanggan)}</Cell>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '140px repeat(4, 1fr)',
-          borderTop: '1px solid #2a2a3e',
-        }}
-      >
-        <div style={rowLabel}>12운성</div>
-        {val(data?.time?.twelveStage)}
-        {val(data?.day?.twelveStage)}
-        {val(data?.month?.twelveStage)}
-        {val(data?.year?.twelveStage)}
+      {/* 12운성 Row */}
+      <div className="grid grid-cols-[140px_repeat(4,1fr)] border-t border-slate-700" role="row">
+        <div className="px-3 py-2.5 text-slate-400 font-semibold border-r border-slate-700" role="rowheader">12운성</div>
+        <Cell>{toDisplayString(data?.time?.twelveStage)}</Cell>
+        <Cell>{toDisplayString(data?.day?.twelveStage)}</Cell>
+        <Cell>{toDisplayString(data?.month?.twelveStage)}</Cell>
+        <Cell>{toDisplayString(data?.year?.twelveStage)}</Cell>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '140px repeat(4, 1fr)',
-          borderTop: '1px solid #2a2a3e',
-        }}
-      >
-        <div style={rowLabel}>12신살</div>
-        {val(data?.time?.twelveShinsal)}
-        {val(data?.day?.twelveShinsal)}
-        {val(data?.month?.twelveShinsal)}
-        {val(data?.year?.twelveShinsal)}
+      {/* 12신살 Row */}
+      <div className="grid grid-cols-[140px_repeat(4,1fr)] border-t border-slate-700" role="row">
+        <div className="px-3 py-2.5 text-slate-400 font-semibold border-r border-slate-700" role="rowheader">12신살</div>
+        <Cell>{toDisplayString(data?.time?.twelveShinsal)}</Cell>
+        <Cell>{toDisplayString(data?.day?.twelveShinsal)}</Cell>
+        <Cell>{toDisplayString(data?.month?.twelveShinsal)}</Cell>
+        <Cell>{toDisplayString(data?.year?.twelveShinsal)}</Cell>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '140px repeat(4, 1fr)',
-          borderTop: '1px solid #2a2a3e',
-        }}
-      >
-        <div style={rowLabel}>길성</div>
-        {val(formatLucky('time'))}
-        {val(formatLucky('day'))}
-        {val(formatLucky('month'))}
-        {val(formatLucky('year'))}
+      {/* 길성 Row */}
+      <div className="grid grid-cols-[140px_repeat(4,1fr)] border-t border-slate-700" role="row">
+        <div className="px-3 py-2.5 text-slate-400 font-semibold border-r border-slate-700" role="rowheader">길성</div>
+        <Cell>{formatLucky('time')}</Cell>
+        <Cell>{formatLucky('day')}</Cell>
+        <Cell>{formatLucky('month')}</Cell>
+        <Cell>{formatLucky('year')}</Cell>
       </div>
     </div>
   );

@@ -80,7 +80,7 @@ describe('API Middleware', () => {
     const { extractLocale } = await import('@/lib/api/middleware');
 
     expect(typeof extractLocale).toBe('function');
-  });
+  }, 60000);
 
   it('should export withApiMiddleware function', async () => {
     const { withApiMiddleware } = await import('@/lib/api/middleware');

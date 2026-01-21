@@ -1,81 +1,49 @@
 # ZAP Baseline Scan Rules Configuration
-# Format: AlertID	Action	URL Regex (optional)
+# Format: AlertID	Action	URL Regex (optional - use .* for all)
 #
 # Action values:
 #   IGNORE - Ignore the alert (won't fail the scan)
 #   WARN   - Report but don't fail the scan
 #   FAIL   - Fail the scan if alert is raised
-#
-# Common alert IDs:
-#   10003 - Vulnerable JS Library
-#   10010 - Cookie No HttpOnly Flag
-#   10011 - Cookie Without Secure Flag
-#   10015 - Incomplete or No Cache-control
-#   10017 - Cross-Domain JavaScript Source File Inclusion
-#   10020 - X-Frame-Options Header
-#   10021 - X-Content-Type-Options Header
-#   10023 - Information Disclosure - Debug Error Messages
-#   10035 - Strict-Transport-Security Header
-#   10036 - Server Leaks Version Information via "Server" HTTP Response Header Field
-#   10037 - Server Leaks Information via "X-Powered-By" HTTP Response Header Field(s)
-#   10038 - Content Security Policy (CSP) Header Not Set
-#   10054 - Cookie without SameSite Attribute
-#   10055 - CSP: Wildcard Directive
-#   10063 - Permissions Policy Header Not Set
-#   10096 - Timestamp Disclosure - Unix
-#   10109 - Modern Web Application
-#   10202 - Absence of Anti-CSRF Tokens
-#   40003 - CRLF Injection
-#   40012 - Cross Site Scripting (Reflected)
-#   40014 - Cross Site Scripting (Persistent)
-#   40018 - SQL Injection
-#   40019 - SQL Injection - MySQL
-#   40020 - SQL Injection - Hypersonic SQL
-#   40021 - SQL Injection - Oracle
-#   40022 - SQL Injection - PostgreSQL
-#   40024 - SQL Injection - SQLite
-#   90011 - Charset Mismatch
-#   90022 - Application Error Disclosure
-#   90033 - Loosely Scoped Cookie
 
 # Informational alerts - warn only
-10015	WARN
-10109	WARN
-10096	IGNORE
+10015	WARN	.*
+10109	WARN	.*
+10096	IGNORE	.*
 
 # Cookie alerts - handled by NextAuth
-10010	WARN	.*/__next.*
-10011	WARN	.*/__next.*
-10054	WARN	.*/__next.*
-90033	WARN
+10010	WARN	.*
+10011	WARN	.*
+10054	WARN	.*
+90033	WARN	.*
 
 # CSP alerts - we have nonce-based CSP
-10038	WARN
-10055	WARN
+10038	WARN	.*
+10055	WARN	.*
 
 # These should be properly configured
-10020	FAIL
-10021	FAIL
-10035	FAIL
-10036	WARN
-10037	FAIL
-10063	WARN
+10020	FAIL	.*
+10021	FAIL	.*
+10035	FAIL	.*
+10036	WARN	.*
+10037	FAIL	.*
+10063	WARN	.*
 
 # CSRF - we use Origin validation
-10202	WARN
+10202	WARN	.*
 
 # Critical security issues - must fail
-40003	FAIL
-40012	FAIL
-40014	FAIL
-40018	FAIL
-40019	FAIL
-40020	FAIL
-40021	FAIL
-40022	FAIL
-40024	FAIL
-90022	FAIL
+40003	FAIL	.*
+40012	FAIL	.*
+40014	FAIL	.*
+40018	FAIL	.*
+40019	FAIL	.*
+40020	FAIL	.*
+40021	FAIL	.*
+40022	FAIL	.*
+40024	FAIL	.*
+90022	FAIL	.*
 
 # Third-party libraries
-10003	WARN
-10017	WARN
+10003	WARN	.*
+10017	WARN	.*

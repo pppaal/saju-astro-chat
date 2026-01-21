@@ -1,4 +1,4 @@
-import { buildAllDataPrompt } from "../base/baseAllDataPrompt";
+import { buildAllDataPrompt } from "../base";
 import { buildTonePrompt } from "../base/toneStyle";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 

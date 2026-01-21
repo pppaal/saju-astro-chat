@@ -12,21 +12,11 @@ import Card from "@/components/ui/Card";
 import Grid from "@/components/ui/Grid";
 import { SERVICE_LINKS, TAROT_DECK, TAROT_CARD_BACK, type TarotCard } from "@/data/home";
 import { ChatDemoSection } from "@/components/home/ChatDemoSection";
+import { formatNumber } from "@/utils/numberFormat";
 
 const NotificationBell = dynamic(() => import("@/components/notifications/NotificationBell"), { ssr: false });
 const HeaderUser = dynamic(() => import("./HeaderUser"), { ssr: false });
 
-// Format large numbers: 1000 -> 1K, 1500000 -> 1.5M
-function formatNumber(num: number | null): string {
-  if (num === null) return "—";
-  if (num < 1000) return num.toLocaleString();
-  if (num < 1000000) {
-    const k = num / 1000;
-    return k % 1 === 0 ? `${k}K` : `${k.toFixed(1)}K`;
-  }
-  const m = num / 1000000;
-  return m % 1 === 0 ? `${m}M` : `${m.toFixed(1)}M`;
-}
 
 interface Particle {
   x: number;

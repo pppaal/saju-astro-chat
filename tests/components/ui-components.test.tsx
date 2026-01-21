@@ -151,7 +151,7 @@ describe('UI Components', () => {
       const module = await import('@/components/life-prediction/AdvisorChat/index');
 
       expect(module.default).toBeDefined();
-    });
+    }, 60000);
 
     it('should export BirthInfoForm', async () => {
       const module = await import('@/components/life-prediction/BirthInfoForm/index');

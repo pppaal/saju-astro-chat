@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { useMainPageCanvas } from '@/hooks/useMainPageCanvas';
 import { useRef } from 'react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('useMainPageCanvas', () => {
   let canvas: HTMLCanvasElement;
@@ -17,21 +18,21 @@ describe('useMainPageCanvas', () => {
       fillStyle: '',
       strokeStyle: '',
       lineWidth: 0,
-      clearRect: jest.fn(),
-      beginPath: jest.fn(),
-      arc: jest.fn(),
-      fill: jest.fn(),
-      moveTo: jest.fn(),
-      lineTo: jest.fn(),
-      stroke: jest.fn(),
+      clearRect: vi.fn(),
+      beginPath: vi.fn(),
+      arc: vi.fn(),
+      fill: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
     };
-    canvas.getContext = jest.fn(() => ctx as any);
+    canvas.getContext = vi.fn(() => ctx as any);
 
     canvasRef = { current: canvas };
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should initialize canvas on mount', () => {
@@ -65,7 +66,7 @@ describe('useMainPageCanvas', () => {
       return ref;
     });
 
-    const cancelAnimationFrameSpy = jest.spyOn(window, 'cancelAnimationFrame');
+    const cancelAnimationFrameSpy = vi.spyOn(window, 'cancelAnimationFrame');
     unmount();
 
     expect(cancelAnimationFrameSpy).toHaveBeenCalled();

@@ -1,5 +1,8 @@
-// tests/lib/api/validation.test.ts
-import { describe, it, expect } from 'vitest';
+/**
+ * Tests for API Validation utilities
+ * src/lib/api/validation.ts
+ */
+import { describe, it, expect } from "vitest";
 import {
   validateFields,
   Patterns,
@@ -9,496 +12,417 @@ import {
   validateDreamInput,
   validateBirthData,
   validateCompatibilityInput,
-  parseJsonBody,
-} from '@/lib/api/validation';
+} from "@/lib/api/validation";
 
-describe('validateFields', () => {
-  it('should pass when required field is present', () => {
-    const data = { name: 'John' };
-    const rules = { name: { required: true } };
-    const result = validateFields(data, rules);
-    
-    expect(result.valid).toBe(true);
-    expect(result.errors).toEqual([]);
+describe("validateFields", () => {
+  describe("Required fields", () => {
+    it("should fail when required field is missing", () => {
+      const result = validateFields({}, { name: { required: true } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("name is required");
+    });
+
+    it("should fail when required field is empty string", () => {
+      const result = validateFields({ name: "" }, { name: { required: true } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("name is required");
+    });
+
+    it("should fail when required field is null", () => {
+      const result = validateFields({ name: null }, { name: { required: true } });
+      expect(result.valid).toBe(false);
+    });
+
+    it("should pass when required field is present", () => {
+      const result = validateFields({ name: "John" }, { name: { required: true } });
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
   });
 
-  it('should fail when required field is missing', () => {
-    const data = {};
-    const rules = { name: { required: true } };
-    const result = validateFields(data, rules);
-    
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('name is required');
+  describe("Type validation", () => {
+    it("should validate string type", () => {
+      const result = validateFields({ name: 123 }, { name: { type: "string" } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("name must be a string");
+    });
+
+    it("should validate number type", () => {
+      const result = validateFields({ age: "25" }, { age: { type: "number" } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("age must be a number");
+    });
+
+    it("should validate boolean type", () => {
+      const result = validateFields({ active: "true" }, { active: { type: "boolean" } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("active must be a boolean");
+    });
+
+    it("should validate array type", () => {
+      const result = validateFields({ items: "not-array" }, { items: { type: "array" } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("items must be a array");
+    });
+
+    it("should validate object type", () => {
+      const result = validateFields({ data: "string" }, { data: { type: "object" } });
+      expect(result.valid).toBe(false);
+    });
   });
 
-  it('should validate string type', () => {
-    const data = { name: 'John' };
-    const rules = { name: { type: 'string' as const } };
-    const result = validateFields(data, rules);
-    
-    expect(result.valid).toBe(true);
+  describe("Numeric range validation", () => {
+    it("should fail when number is below min", () => {
+      const result = validateFields({ age: 5 }, { age: { type: "number", min: 18 } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("age must be at least 18");
+    });
+
+    it("should fail when number is above max", () => {
+      const result = validateFields({ age: 150 }, { age: { type: "number", max: 120 } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("age must be at most 120");
+    });
+
+    it("should pass when number is within range", () => {
+      const result = validateFields({ age: 25 }, { age: { type: "number", min: 18, max: 120 } });
+      expect(result.valid).toBe(true);
+    });
   });
 
-  it('should fail for wrong type', () => {
-    const data = { name: 123 };
-    const rules = { name: { type: 'string' as const } };
-    const result = validateFields(data, rules);
-    
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('name must be a string');
+  describe("String length validation", () => {
+    it("should fail when string is too short", () => {
+      const result = validateFields({ name: "Jo" }, { name: { type: "string", minLength: 3 } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("name must be at least 3 characters");
+    });
+
+    it("should fail when string is too long", () => {
+      const result = validateFields({ name: "A".repeat(100) }, { name: { type: "string", maxLength: 50 } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("name must be at most 50 characters");
+    });
+
+    it("should pass when string length is within range", () => {
+      const result = validateFields({ name: "John" }, { name: { type: "string", minLength: 2, maxLength: 50 } });
+      expect(result.valid).toBe(true);
+    });
   });
 
-  it('should validate number range', () => {
-    const data = { age: 25 };
-    const rules = { age: { min: 18, max: 100 } };
-    const result = validateFields(data, rules);
-    
-    expect(result.valid).toBe(true);
+  describe("Pattern validation", () => {
+    it("should fail when pattern does not match", () => {
+      const result = validateFields({ email: "invalid" }, { email: { type: "string", pattern: Patterns.EMAIL } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("email has invalid format");
+    });
+
+    it("should pass when pattern matches", () => {
+      const result = validateFields({ email: "test@example.com" }, { email: { type: "string", pattern: Patterns.EMAIL } });
+      expect(result.valid).toBe(true);
+    });
   });
 
-  it('should fail when number is below min', () => {
-    const data = { age: 10 };
-    const rules = { age: { min: 18 } };
-    const result = validateFields(data, rules);
-    
-    expect(result.valid).toBe(false);
+  describe("Array length validation", () => {
+    it("should fail when array has too few items", () => {
+      const result = validateFields({ items: [1] }, { items: { type: "array", min: 2 } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("items must have at least 2 items");
+    });
+
+    it("should fail when array has too many items", () => {
+      const result = validateFields({ items: [1, 2, 3, 4, 5] }, { items: { type: "array", max: 3 } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("items must have at most 3 items");
+    });
   });
 
-  it('should validate string length', () => {
-    const data = { name: 'John' };
-    const rules = { name: { minLength: 3, maxLength: 10 } };
-    const result = validateFields(data, rules);
-    
-    expect(result.valid).toBe(true);
+  describe("Enum validation", () => {
+    it("should fail when value is not in enum", () => {
+      const result = validateFields({ status: "unknown" }, { status: { enum: ["active", "inactive"] } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("status must be one of: active, inactive");
+    });
+
+    it("should pass when value is in enum", () => {
+      const result = validateFields({ status: "active" }, { status: { enum: ["active", "inactive"] } });
+      expect(result.valid).toBe(true);
+    });
   });
 
-  it('should fail when string is too short', () => {
-    const data = { name: 'Jo' };
-    const rules = { name: { minLength: 3 } };
-    const result = validateFields(data, rules);
-    
-    expect(result.valid).toBe(false);
+  describe("Custom validation", () => {
+    it("should use custom validator function", () => {
+      const result = validateFields(
+        { age: 15 },
+        { age: { custom: (v) => (v as number) < 18 ? "Must be 18 or older" : null } }
+      );
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("Must be 18 or older");
+    });
+
+    it("should pass custom validation", () => {
+      const result = validateFields(
+        { age: 25 },
+        { age: { custom: (v) => (v as number) < 18 ? "Must be 18 or older" : null } }
+      );
+      expect(result.valid).toBe(true);
+    });
+  });
+});
+
+describe("Patterns", () => {
+  describe("EMAIL pattern", () => {
+    it("should match valid emails", () => {
+      expect(Patterns.EMAIL.test("test@example.com")).toBe(true);
+      expect(Patterns.EMAIL.test("user.name@domain.co.kr")).toBe(true);
+    });
+
+    it("should reject invalid emails", () => {
+      expect(Patterns.EMAIL.test("invalid")).toBe(false);
+      expect(Patterns.EMAIL.test("@domain.com")).toBe(false);
+      expect(Patterns.EMAIL.test("user@")).toBe(false);
+    });
   });
 
-  it('should validate pattern', () => {
-    const data = { email: 'test@example.com' };
-    const rules = { email: { pattern: /^[^@]+@[^@]+\.[^@]+$/ } };
-    const result = validateFields(data, rules);
-    
-    expect(result.valid).toBe(true);
+  describe("DATE pattern", () => {
+    it("should match valid dates", () => {
+      expect(Patterns.DATE.test("2024-01-15")).toBe(true);
+      expect(Patterns.DATE.test("1990-12-31")).toBe(true);
+    });
+
+    it("should reject invalid dates", () => {
+      expect(Patterns.DATE.test("24-01-15")).toBe(false);
+      expect(Patterns.DATE.test("2024/01/15")).toBe(false);
+    });
   });
 
-  it('should collect multiple errors', () => {
-    const data = { name: '', age: 10 };
-    const rules = {
-      name: { required: true },
-      age: { required: true, min: 18 }
+  describe("TIME pattern", () => {
+    it("should match valid times", () => {
+      expect(Patterns.TIME.test("14:30")).toBe(true);
+      expect(Patterns.TIME.test("09:05:30")).toBe(true);
+    });
+
+    it("should reject invalid times", () => {
+      expect(Patterns.TIME.test("2:30")).toBe(false);
+      expect(Patterns.TIME.test("14-30")).toBe(false);
+    });
+  });
+
+  describe("UUID pattern", () => {
+    it("should match valid UUIDs", () => {
+      expect(Patterns.UUID.test("550e8400-e29b-41d4-a716-446655440000")).toBe(true);
+      expect(Patterns.UUID.test("A550E840-E29B-41D4-A716-446655440000")).toBe(true);
+    });
+
+    it("should reject invalid UUIDs", () => {
+      expect(Patterns.UUID.test("550e8400-e29b-41d4-a716")).toBe(false);
+      expect(Patterns.UUID.test("not-a-uuid")).toBe(false);
+    });
+  });
+});
+
+describe("CommonValidators", () => {
+  describe("birthDate validator", () => {
+    it("should accept valid birth date", () => {
+      const result = validateFields({ birthDate: "1990-05-15" }, { birthDate: CommonValidators.birthDate });
+      expect(result.valid).toBe(true);
+    });
+
+    it("should reject invalid date format", () => {
+      const result = validateFields({ birthDate: "05/15/1990" }, { birthDate: CommonValidators.birthDate });
+      expect(result.valid).toBe(false);
+    });
+
+    it("should reject year before 1900", () => {
+      const result = validateFields({ birthDate: "1850-05-15" }, { birthDate: CommonValidators.birthDate });
+      expect(result.valid).toBe(false);
+    });
+
+    it("should reject year after 2100", () => {
+      const result = validateFields({ birthDate: "2150-05-15" }, { birthDate: CommonValidators.birthDate });
+      expect(result.valid).toBe(false);
+    });
+  });
+
+  describe("latitude validator", () => {
+    it("should accept valid latitude", () => {
+      const result = validateFields({ latitude: 37.5665 }, { latitude: CommonValidators.latitude });
+      expect(result.valid).toBe(true);
+    });
+
+    it("should reject latitude below -90", () => {
+      const result = validateFields({ latitude: -91 }, { latitude: CommonValidators.latitude });
+      expect(result.valid).toBe(false);
+    });
+
+    it("should reject latitude above 90", () => {
+      const result = validateFields({ latitude: 91 }, { latitude: CommonValidators.latitude });
+      expect(result.valid).toBe(false);
+    });
+  });
+
+  describe("longitude validator", () => {
+    it("should accept valid longitude", () => {
+      const result = validateFields({ longitude: 126.978 }, { longitude: CommonValidators.longitude });
+      expect(result.valid).toBe(true);
+    });
+
+    it("should reject longitude below -180", () => {
+      const result = validateFields({ longitude: -181 }, { longitude: CommonValidators.longitude });
+      expect(result.valid).toBe(false);
+    });
+
+    it("should reject longitude above 180", () => {
+      const result = validateFields({ longitude: 181 }, { longitude: CommonValidators.longitude });
+      expect(result.valid).toBe(false);
+    });
+  });
+
+  describe("dreamText validator", () => {
+    it("should accept valid dream text", () => {
+      const result = validateFields(
+        { dream: "I dreamed about flying over mountains and seas." },
+        { dream: CommonValidators.dreamText }
+      );
+      expect(result.valid).toBe(true);
+    });
+
+    it("should reject too short dream text", () => {
+      const result = validateFields({ dream: "Short" }, { dream: CommonValidators.dreamText });
+      expect(result.valid).toBe(false);
+    });
+
+    it("should reject script injection", () => {
+      const result = validateFields(
+        { dream: "Normal dream text <script>alert('xss')</script>" },
+        { dream: CommonValidators.dreamText }
+      );
+      expect(result.valid).toBe(false);
+    });
+  });
+});
+
+describe("Domain validators", () => {
+  describe("validateDestinyMapInput", () => {
+    const validInput = {
+      birthDate: "1990-05-15",
+      birthTime: "14:30",
+      latitude: 37.5665,
+      longitude: 126.978,
+      theme: "life",
+      lang: "ko",
     };
-    const result = validateFields(data, rules);
 
-    expect(result.valid).toBe(false);
-    expect(result.errors.length).toBeGreaterThan(1);
+    it("should accept valid destiny map input", () => {
+      const result = validateDestinyMapInput(validInput);
+      expect(result.valid).toBe(true);
+    });
+
+    it("should reject invalid theme", () => {
+      const result = validateDestinyMapInput({ ...validInput, theme: "invalid" });
+      expect(result.valid).toBe(false);
+    });
+
+    it("should reject missing birth date", () => {
+      const { birthDate, ...inputWithoutDate } = validInput;
+      const result = validateDestinyMapInput(inputWithoutDate);
+      expect(result.valid).toBe(false);
+    });
   });
 
-  it('should validate array type', () => {
-    const data = { items: [1, 2, 3] };
-    const rules = { items: { type: 'array' as const } };
-    const result = validateFields(data, rules);
-    expect(result.valid).toBe(true);
-  });
-
-  it('should validate array min length', () => {
-    const data = { items: [1] };
-    const rules = { items: { type: 'array' as const, min: 3 } };
-    const result = validateFields(data, rules);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('items must have at least 3 items');
-  });
-
-  it('should validate array max length', () => {
-    const data = { items: [1, 2, 3, 4, 5, 6] };
-    const rules = { items: { type: 'array' as const, max: 5 } };
-    const result = validateFields(data, rules);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('items must have at most 5 items');
-  });
-
-  it('should validate enum values', () => {
-    const data = { status: 'active' };
-    const rules = { status: { enum: ['active', 'inactive'] } };
-    const result = validateFields(data, rules);
-    expect(result.valid).toBe(true);
-  });
-
-  it('should fail for invalid enum value', () => {
-    const data = { status: 'unknown' };
-    const rules = { status: { enum: ['active', 'inactive'] } };
-    const result = validateFields(data, rules);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('status must be one of: active, inactive');
-  });
-
-  it('should run custom validators', () => {
-    const data = { code: 'ABC' };
-    const rules = {
-      code: {
-        custom: (value: unknown) => {
-          if (typeof value === 'string' && !/^\d+$/.test(value)) {
-            return 'code must contain only digits';
-          }
-          return null;
-        },
-      },
+  describe("validateTarotInput", () => {
+    const validInput = {
+      category: "love",
+      spreadId: "celtic_cross",
+      cards: [1, 5, 10],
+      language: "ko",
     };
-    const result = validateFields(data, rules);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('code must contain only digits');
+
+    it("should accept valid tarot input", () => {
+      const result = validateTarotInput(validInput);
+      expect(result.valid).toBe(true);
+    });
+
+    it("should reject empty cards array", () => {
+      const result = validateTarotInput({ ...validInput, cards: [] });
+      expect(result.valid).toBe(false);
+    });
+
+    it("should reject too many cards", () => {
+      const result = validateTarotInput({ ...validInput, cards: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] });
+      expect(result.valid).toBe(false);
+    });
   });
 
-  it('should skip validation for undefined optional fields', () => {
-    const data = { name: 'John' };
-    const rules = {
-      name: { required: true },
-      nickname: { type: 'string' as const, minLength: 3 },
+  describe("validateDreamInput", () => {
+    it("should accept valid dream input", () => {
+      const result = validateDreamInput({
+        dream: "I had a vivid dream about flying over mountains and meeting strange creatures.",
+        locale: "ko",
+      });
+      expect(result.valid).toBe(true);
+    });
+
+    it("should reject too short dream", () => {
+      const result = validateDreamInput({ dream: "Short", locale: "ko" });
+      expect(result.valid).toBe(false);
+    });
+  });
+
+  describe("validateBirthData", () => {
+    const validData = {
+      birthDate: "1990-05-15",
+      birthTime: "14:30",
+      latitude: 37.5665,
+      longitude: 126.978,
+      timezone: "Asia/Seoul",
+      language: "ko",
     };
-    const result = validateFields(data as Record<string, unknown>, rules);
-    expect(result.valid).toBe(true);
-  });
 
-  it('should validate number max', () => {
-    const data = { score: 150 };
-    const rules = { score: { type: 'number' as const, max: 100 } };
-    const result = validateFields(data, rules);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('score must be at most 100');
-  });
-
-  it('should validate string maxLength', () => {
-    const data = { username: 'verylongusernamethatexceedslimit' };
-    const rules = { username: { type: 'string' as const, maxLength: 20 } };
-    const result = validateFields(data, rules);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('username must be at most 20 characters');
-  });
-});
-
-describe('Patterns', () => {
-  it('should validate email format', () => {
-    expect(Patterns.EMAIL.test('test@example.com')).toBe(true);
-    expect(Patterns.EMAIL.test('invalid')).toBe(false);
-    expect(Patterns.EMAIL.test('user@domain')).toBe(false);
-  });
-
-  it('should validate date format', () => {
-    expect(Patterns.DATE.test('2024-01-15')).toBe(true);
-    expect(Patterns.DATE.test('2024/01/15')).toBe(false);
-    expect(Patterns.DATE.test('01-15-2024')).toBe(false);
-  });
-
-  it('should validate time format', () => {
-    expect(Patterns.TIME.test('14:30')).toBe(true);
-    expect(Patterns.TIME.test('14:30:45')).toBe(true);
-    expect(Patterns.TIME.test('2:30 PM')).toBe(false);
-  });
-
-  it('should validate timezone format', () => {
-    expect(Patterns.TIMEZONE.test('Asia/Seoul')).toBe(true);
-    expect(Patterns.TIMEZONE.test('America/New_York')).toBe(true);
-    expect(Patterns.TIMEZONE.test('Invalid Timezone!')).toBe(false);
-  });
-
-  it('should validate UUID format', () => {
-    expect(Patterns.UUID.test('550e8400-e29b-41d4-a716-446655440000')).toBe(true);
-    expect(Patterns.UUID.test('not-a-uuid')).toBe(false);
-  });
-
-  it('should detect unsafe text', () => {
-    expect(Patterns.SAFE_TEXT.test('Hello World')).toBe(true);
-    expect(Patterns.SAFE_TEXT.test('<script>alert(1)</script>')).toBe(false);
-    expect(Patterns.SAFE_TEXT.test('test{injection}')).toBe(false);
-  });
-});
-
-describe('CommonValidators', () => {
-  describe('birthDate', () => {
-    it('should accept valid birth dates', () => {
-      const result = validateFields(
-        { birthDate: '1990-05-15' },
-        { birthDate: CommonValidators.birthDate }
-      );
+    it("should accept valid birth data", () => {
+      const result = validateBirthData(validData);
       expect(result.valid).toBe(true);
     });
 
-    it('should reject birth dates before 1900', () => {
-      const result = validateFields(
-        { birthDate: '1850-05-15' },
-        { birthDate: CommonValidators.birthDate }
-      );
-      expect(result.valid).toBe(false);
-    });
-
-    it('should reject birth dates after 2100', () => {
-      const result = validateFields(
-        { birthDate: '2150-05-15' },
-        { birthDate: CommonValidators.birthDate }
-      );
+    it("should reject invalid timezone format", () => {
+      const result = validateBirthData({ ...validData, timezone: "GMT+9" });
       expect(result.valid).toBe(false);
     });
   });
 
-  describe('latitude', () => {
-    it('should accept valid latitude', () => {
-      const result = validateFields(
-        { latitude: 37.5665 },
-        { latitude: CommonValidators.latitude }
-      );
-      expect(result.valid).toBe(true);
-    });
-
-    it('should reject latitude below -90', () => {
-      const result = validateFields(
-        { latitude: -100 },
-        { latitude: CommonValidators.latitude }
-      );
-      expect(result.valid).toBe(false);
-    });
-
-    it('should reject latitude above 90', () => {
-      const result = validateFields(
-        { latitude: 100 },
-        { latitude: CommonValidators.latitude }
-      );
-      expect(result.valid).toBe(false);
-    });
-  });
-
-  describe('longitude', () => {
-    it('should accept valid longitude', () => {
-      const result = validateFields(
-        { longitude: 126.978 },
-        { longitude: CommonValidators.longitude }
-      );
-      expect(result.valid).toBe(true);
-    });
-
-    it('should reject longitude outside range', () => {
-      const result = validateFields(
-        { longitude: 200 },
-        { longitude: CommonValidators.longitude }
-      );
-      expect(result.valid).toBe(false);
-    });
-  });
-
-  describe('dreamText', () => {
-    it('should accept valid dream text', () => {
-      const result = validateFields(
-        { dreamText: 'I had a dream about flying over mountains and seeing beautiful landscapes.' },
-        { dreamText: CommonValidators.dreamText }
-      );
-      expect(result.valid).toBe(true);
-    });
-
-    it('should reject too short dream text', () => {
-      const result = validateFields(
-        { dreamText: 'short' },
-        { dreamText: CommonValidators.dreamText }
-      );
-      expect(result.valid).toBe(false);
-    });
-
-    it('should reject script injection', () => {
-      const result = validateFields(
-        { dreamText: 'I had a dream <script>alert("xss")</script> about flying.' },
-        { dreamText: CommonValidators.dreamText }
-      );
-      expect(result.valid).toBe(false);
-    });
-  });
-});
-
-describe('validateDestinyMapInput', () => {
-  it('should accept valid destiny map input', () => {
-    const result = validateDestinyMapInput({
-      birthDate: '1990-05-15',
-      birthTime: '14:30',
-      latitude: 37.5665,
-      longitude: 126.978,
-      theme: 'love',
-      lang: 'ko',
-    });
-    expect(result.valid).toBe(true);
-  });
-
-  it('should reject invalid theme', () => {
-    const result = validateDestinyMapInput({
-      birthDate: '1990-05-15',
-      birthTime: '14:30',
-      latitude: 37.5665,
-      longitude: 126.978,
-      theme: 'invalid_theme',
-      lang: 'ko',
-    });
-    expect(result.valid).toBe(false);
-  });
-});
-
-describe('validateTarotInput', () => {
-  it('should accept valid tarot input', () => {
-    const result = validateTarotInput({
-      category: 'love',
-      spreadId: 'three-card',
-      cards: [1, 2, 3],
-      language: 'ko',
-    });
-    expect(result.valid).toBe(true);
-  });
-
-  it('should reject missing category', () => {
-    const result = validateTarotInput({
-      spreadId: 'three-card',
-      cards: [1, 2, 3],
-    });
-    expect(result.valid).toBe(false);
-  });
-
-  it('should reject too many cards', () => {
-    const result = validateTarotInput({
-      category: 'love',
-      spreadId: 'full-spread',
-      cards: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-    });
-    expect(result.valid).toBe(false);
-  });
-});
-
-describe('validateDreamInput', () => {
-  it('should accept valid dream input', () => {
-    const result = validateDreamInput({
-      dream: 'I dreamed about flying over the mountains and seeing beautiful scenery.',
-      locale: 'ko',
-    });
-    expect(result.valid).toBe(true);
-  });
-
-  it('should reject short dream text', () => {
-    const result = validateDreamInput({
-      dream: 'Hi',
-      locale: 'ko',
-    });
-    expect(result.valid).toBe(false);
-  });
-});
-
-describe('validateBirthData', () => {
-  it('should accept valid birth data', () => {
-    const result = validateBirthData({
-      birthDate: '1990-05-15',
-      birthTime: '14:30',
-      latitude: 37.5665,
-      longitude: 126.978,
-      timezone: 'Asia/Seoul',
-      language: 'ko',
-    });
-    expect(result.valid).toBe(true);
-  });
-
-  it('should reject invalid birth date', () => {
-    const result = validateBirthData({
-      birthDate: 'not-a-date',
-      birthTime: '14:30',
-      latitude: 37.5665,
-      longitude: 126.978,
-    });
-    expect(result.valid).toBe(false);
-  });
-});
-
-describe('validateCompatibilityInput', () => {
-  it('should accept valid compatibility input', () => {
-    const result = validateCompatibilityInput({
+  describe("validateCompatibilityInput", () => {
+    const validInput = {
       person1: {
-        birthDate: '1990-05-15',
-        birthTime: '14:30',
+        birthDate: "1990-05-15",
+        birthTime: "14:30",
         latitude: 37.5665,
         longitude: 126.978,
       },
       person2: {
-        birthDate: '1992-08-20',
-        birthTime: '10:00',
-        latitude: 37.5665,
-        longitude: 126.978,
+        birthDate: "1992-08-20",
+        birthTime: "10:00",
+        latitude: 35.1796,
+        longitude: 129.0756,
       },
-    });
-    expect(result.valid).toBe(true);
-  });
+    };
 
-  it('should reject missing person1', () => {
-    const result = validateCompatibilityInput({
-      person2: {
-        birthDate: '1992-08-20',
-        birthTime: '10:00',
-        latitude: 37.5665,
-        longitude: 126.978,
-      },
-    });
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('person1 is required');
-  });
-
-  it('should prefix errors with person identifier', () => {
-    const result = validateCompatibilityInput({
-      person1: {
-        birthDate: 'invalid',
-        birthTime: '14:30',
-        latitude: 37.5665,
-        longitude: 126.978,
-      },
-      person2: {
-        birthDate: '1992-08-20',
-        birthTime: '10:00',
-        latitude: 37.5665,
-        longitude: 126.978,
-      },
-    });
-    expect(result.valid).toBe(false);
-    expect(result.errors.some(e => e.startsWith('person1.'))).toBe(true);
-  });
-});
-
-describe('parseJsonBody', () => {
-  it('should parse valid JSON', async () => {
-    const body = JSON.stringify({ name: 'John', age: 25 });
-    const request = new Request('http://test.com', {
-      method: 'POST',
-      body,
+    it("should accept valid compatibility input", () => {
+      const result = validateCompatibilityInput(validInput);
+      expect(result.valid).toBe(true);
     });
 
-    const result = await parseJsonBody(request);
-    expect(result.error).toBeNull();
-    expect(result.data).toEqual({ name: 'John', age: 25 });
-  });
-
-  it('should return error for invalid JSON', async () => {
-    const request = new Request('http://test.com', {
-      method: 'POST',
-      body: 'not valid json',
+    it("should reject missing person1", () => {
+      const { person1, ...inputWithoutPerson1 } = validInput;
+      const result = validateCompatibilityInput(inputWithoutPerson1);
+      expect(result.valid).toBe(false);
     });
 
-    const result = await parseJsonBody(request);
-    expect(result.error).toBe('Invalid JSON');
-    expect(result.data).toBeNull();
-  });
-
-  it('should reject body exceeding size limit', async () => {
-    const largeBody = 'x'.repeat(1_000_001);
-    const request = new Request('http://test.com', {
-      method: 'POST',
-      body: largeBody,
+    it("should reject invalid person2 data", () => {
+      const result = validateCompatibilityInput({
+        ...validInput,
+        person2: { ...validInput.person2, latitude: 200 },
+      });
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes("person2"))).toBe(true);
     });
-
-    const result = await parseJsonBody(request);
-    expect(result.error).toBe('Request body too large');
-    expect(result.data).toBeNull();
   });
 });

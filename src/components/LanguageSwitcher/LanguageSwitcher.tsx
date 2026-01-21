@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { SUPPORTED_LOCALES, useI18n } from "@/i18n/I18nProvider";
 
 const LANGUAGE_LABELS: Record<string, { label: string; flag: string }> = {
@@ -19,6 +19,7 @@ export default function LanguageSwitcher() {
   const { locale, setLocale, dir } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -32,65 +33,43 @@ export default function LanguageSwitcher() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
+  // Keyboard navigation
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setIsOpen(false);
+      triggerRef.current?.focus();
+    }
+  }, []);
+
   const currentLang = LANGUAGE_LABELS[locale] || { label: locale.toUpperCase(), flag: "🌐" };
 
   return (
-    <div ref={dropdownRef} style={{ position: "relative" }} dir={dir}>
+    <div ref={dropdownRef} className="relative" dir={dir} onKeyDown={handleKeyDown}>
       <button
+        ref={triggerRef}
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Language"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
         title="Select language"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          background: isOpen
-            ? "linear-gradient(135deg, rgba(99, 210, 255, 0.2) 0%, rgba(138, 164, 255, 0.2) 100%)"
-            : "rgba(255,255,255,0.08)",
-          color: "#e8eeff",
-          border: isOpen
-            ? "1px solid rgba(99, 210, 255, 0.4)"
-            : "1px solid rgba(255,255,255,0.15)",
-          padding: "8px 14px",
-          borderRadius: 12,
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          fontSize: 13,
-          fontWeight: 500,
-          outline: "none",
-          cursor: "pointer",
-          transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-          boxShadow: isOpen
-            ? "0 4px 20px rgba(99, 210, 255, 0.15), inset 0 1px 0 rgba(255,255,255,0.1)"
-            : "0 2px 8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
-        }}
-        onMouseEnter={(e) => {
-          if (!isOpen) {
-            e.currentTarget.style.background = "rgba(255,255,255,0.12)";
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
-            e.currentTarget.style.transform = "translateY(-1px)";
+        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl backdrop-blur-md
+          text-sm font-medium text-blue-50 cursor-pointer outline-none
+          transition-all duration-200 ease-out
+          ${isOpen
+            ? 'bg-gradient-to-br from-cyan-400/20 to-blue-400/20 border border-cyan-400/40 shadow-[0_4px_20px_rgba(99,210,255,0.15)]'
+            : 'bg-white/[0.08] border border-white/15 shadow-[0_2px_8px_rgba(0,0,0,0.15)] hover:bg-white/[0.12] hover:border-white/25 hover:-translate-y-0.5'
           }
-        }}
-        onMouseLeave={(e) => {
-          if (!isOpen) {
-            e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
-            e.currentTarget.style.transform = "translateY(0)";
-          }
-        }}
+          focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900`}
       >
-        <span style={{ fontSize: 16 }}>{currentLang.flag}</span>
+        <span className="text-base" aria-hidden="true">{currentLang.flag}</span>
         <span>{currentLang.label}</span>
         <svg
           width="12"
           height="12"
           viewBox="0 0 12 12"
           fill="none"
-          style={{
-            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform 0.2s ease",
-            opacity: 0.7,
-          }}
+          className={`opacity-70 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+          aria-hidden="true"
         >
           <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
@@ -98,23 +77,13 @@ export default function LanguageSwitcher() {
 
       {isOpen && (
         <div
-          style={{
-            position: "absolute",
-            top: "calc(100% + 8px)",
-            right: 0,
-            minWidth: 180,
-            background: "linear-gradient(180deg, rgba(15, 20, 45, 0.98) 0%, rgba(10, 15, 35, 0.98) 100%)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-            border: "1px solid rgba(99, 210, 255, 0.2)",
-            borderRadius: 16,
-            padding: "8px",
-            boxShadow: "0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset",
-            zIndex: 1000,
-            animation: "dropdownFadeIn 0.2s ease-out",
-            maxHeight: "320px",
-            overflowY: "auto",
-          }}
+          role="listbox"
+          aria-label="Available languages"
+          className="absolute top-[calc(100%+8px)] right-0 min-w-[180px] max-h-80 overflow-y-auto
+            bg-gradient-to-b from-slate-900/[0.98] to-slate-950/[0.98]
+            backdrop-blur-xl border border-cyan-400/20 rounded-2xl p-2 z-[1000]
+            shadow-[0_12px_40px_rgba(0,0,0,0.5),inset_0_0_0_1px_rgba(255,255,255,0.05)]
+            animate-[dropdownFadeIn_0.2s_ease-out]"
         >
           <style>{`
             @keyframes dropdownFadeIn {
@@ -128,44 +97,25 @@ export default function LanguageSwitcher() {
             return (
               <button
                 key={loc}
+                role="option"
+                aria-selected={isSelected}
                 onClick={() => {
                   setLocale(loc);
                   setIsOpen(false);
                 }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  width: "100%",
-                  padding: "10px 12px",
-                  background: isSelected
-                    ? "linear-gradient(135deg, rgba(99, 210, 255, 0.15) 0%, rgba(138, 164, 255, 0.15) 100%)"
-                    : "transparent",
-                  border: "none",
-                  borderRadius: 10,
-                  color: isSelected ? "#63d2ff" : "#e8eeff",
-                  fontSize: 14,
-                  fontWeight: isSelected ? 600 : 400,
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                  textAlign: "left",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+                className={`flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg
+                  border-none text-sm text-left cursor-pointer transition-all duration-150
+                  ${isSelected
+                    ? 'bg-gradient-to-br from-cyan-400/15 to-blue-400/15 text-cyan-400 font-semibold'
+                    : 'bg-transparent text-blue-50 font-normal hover:bg-white/[0.08]'
                   }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.background = "transparent";
-                  }
-                }}
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400`}
               >
-                <span style={{ fontSize: 18 }}>{lang.flag}</span>
-                <span style={{ flex: 1 }}>{lang.label}</span>
+                <span className="text-lg" aria-hidden="true">{lang.flag}</span>
+                <span className="flex-1">{lang.label}</span>
                 {isSelected && (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M13.5 4.5L6 12L2.5 8.5" stroke="#63d2ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M13.5 4.5L6 12L2.5 8.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 )}
               </button>

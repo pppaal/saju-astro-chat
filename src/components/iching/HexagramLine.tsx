@@ -21,63 +21,27 @@ const HexagramLine: React.FC<HexagramLineProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
+  // Gradient colors need to stay as inline styles (dynamic gradients)
   const lineColor = isChanging
     ? 'linear-gradient(90deg, #fbbf24, #f59e0b)'
     : 'linear-gradient(90deg, rgba(197, 166, 255, 0.9), #ffffff, rgba(197, 166, 255, 0.9))';
 
-  // Hover effect - slightly brighter
   const hoverLineColor = isChanging
     ? 'linear-gradient(90deg, #fcd34d, #fbbf24)'
     : 'linear-gradient(90deg, rgba(220, 200, 255, 1), #ffffff, rgba(220, 200, 255, 1))';
 
   const currentLineColor = clickable && isHovered ? hoverLineColor : lineColor;
 
-  const baseStyle: React.CSSProperties = {
-    height: '8px',
-    background: currentLineColor,
-    margin: '6px 0',
-    borderRadius: '4px',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-    transition: 'all 0.2s ease-in-out',
-    boxShadow: isChanging
-      ? `0 0 ${isHovered ? '16px' : '12px'} rgba(251, 191, 36, ${isHovered ? '0.8' : '0.6'})`
-      : `0 0 ${isHovered ? '12px' : '8px'} rgba(255, 255, 255, ${isHovered ? '0.5' : '0.3'})`,
-    width: '80px',
-    cursor: clickable ? 'pointer' : 'default',
-    transform: clickable && isHovered ? 'scaleX(1.05)' : 'scaleX(1)',
-  };
-
-  const wrapperStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    cursor: clickable ? 'pointer' : 'default',
-    padding: clickable ? '4px 8px' : '0',
-    borderRadius: '8px',
-    background: clickable && isHovered ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
-    transition: 'all 0.2s ease',
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: '0.7rem',
-    color: isChanging ? 'rgba(251, 191, 36, 0.9)' : 'rgba(197, 166, 255, 0.6)',
-    minWidth: '24px',
-    textAlign: 'right',
-    fontWeight: isChanging ? 600 : 400,
-    transition: 'all 0.2s ease',
-  };
-
-  const changingIndicatorStyle: React.CSSProperties = {
-    fontSize: '0.7rem',
-    color: '#fbbf24',
-    marginLeft: '4px',
-    minWidth: '16px',
-    fontWeight: 600,
-    opacity: isChanging ? 1 : (clickable && isHovered ? 0.3 : 0),
-    transition: 'opacity 0.2s ease',
+  // Dynamic box-shadow values
+  const getBoxShadow = () => {
+    if (isChanging) {
+      return isHovered
+        ? '0 0 16px rgba(251, 191, 36, 0.8)'
+        : '0 0 12px rgba(251, 191, 36, 0.6)';
+    }
+    return isHovered
+      ? '0 0 12px rgba(255, 255, 255, 0.5)'
+      : '0 0 8px rgba(255, 255, 255, 0.3)';
   };
 
   // Localized text
@@ -101,62 +65,102 @@ const HexagramLine: React.FC<HexagramLineProps> = ({
     setIsHovered(false);
   };
 
+  // Line segment style (for broken lines)
+  const lineSegmentStyle = {
+    background: currentLineColor,
+    boxShadow: getBoxShadow(),
+  };
+
   if (type === 'broken') {
     return (
       <div
-        style={wrapperStyle}
+        className={`flex items-center gap-2 transition-all duration-200 rounded-lg
+          ${clickable ? 'cursor-pointer p-1 px-2' : 'p-0'}
+          ${clickable && isHovered ? 'bg-white/5' : 'bg-transparent'}`}
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         title={clickable ? tooltipText : undefined}
+        role={clickable ? 'button' : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        onKeyDown={clickable ? (e) => e.key === 'Enter' && handleClick() : undefined}
+        aria-pressed={clickable ? isChanging : undefined}
+        aria-label={clickable ? `${lineIndex !== undefined ? lineIndex + 1 : ''}효 ${type === 'broken' ? '음' : '양'}효${isChanging ? ' (변효)' : ''}` : undefined}
       >
+        {/* Line number label */}
         {clickable && lineIndex !== undefined && (
-          <span style={labelStyle}>{lineIndex + 1}{lineLabel}</span>
+          <span className={`text-xs min-w-[24px] text-right transition-all duration-200
+            ${isChanging ? 'text-amber-400 font-semibold' : 'text-violet-300/60 font-normal'}`}>
+            {lineIndex + 1}{lineLabel}
+          </span>
         )}
-        <div style={{ ...baseStyle, background: 'transparent', boxShadow: 'none' }}>
-          <div style={{
-            position: 'absolute',
-            left: 0,
-            width: '32px',
-            height: '8px',
-            background: currentLineColor,
-            borderRadius: '4px',
-            transition: 'all 0.2s ease',
-            boxShadow: isChanging
-              ? `0 0 ${isHovered ? '16px' : '12px'} rgba(251, 191, 36, ${isHovered ? '0.8' : '0.6'})`
-              : `0 0 ${isHovered ? '12px' : '8px'} rgba(255, 255, 255, ${isHovered ? '0.5' : '0.3'})`,
-          }}></div>
-          <div style={{
-            position: 'absolute',
-            right: 0,
-            width: '32px',
-            height: '8px',
-            background: currentLineColor,
-            borderRadius: '4px',
-            transition: 'all 0.2s ease',
-            boxShadow: isChanging
-              ? `0 0 ${isHovered ? '16px' : '12px'} rgba(251, 191, 36, ${isHovered ? '0.8' : '0.6'})`
-              : `0 0 ${isHovered ? '12px' : '8px'} rgba(255, 255, 255, ${isHovered ? '0.5' : '0.3'})`,
-          }}></div>
+
+        {/* Broken line container */}
+        <div className="relative h-2 w-20 flex justify-center items-center my-1.5">
+          {/* Left segment */}
+          <div
+            className="absolute left-0 w-8 h-2 rounded transition-all duration-200"
+            style={lineSegmentStyle}
+          />
+          {/* Right segment */}
+          <div
+            className="absolute right-0 w-8 h-2 rounded transition-all duration-200"
+            style={lineSegmentStyle}
+          />
         </div>
-        {clickable && <span style={changingIndicatorStyle}>{isChanging ? changingLabel : ''}</span>}
+
+        {/* Changing indicator */}
+        {clickable && (
+          <span className={`text-xs text-amber-400 ml-1 min-w-[16px] font-semibold transition-opacity duration-200
+            ${isChanging ? 'opacity-100' : (isHovered ? 'opacity-30' : 'opacity-0')}`}>
+            {isChanging ? changingLabel : ''}
+          </span>
+        )}
       </div>
     );
   }
 
+  // Solid line
   return (
     <div
-      style={wrapperStyle}
+      className={`flex items-center gap-2 transition-all duration-200 rounded-lg
+        ${clickable ? 'cursor-pointer p-1 px-2' : 'p-0'}
+        ${clickable && isHovered ? 'bg-white/5' : 'bg-transparent'}`}
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       title={clickable ? tooltipText : undefined}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={clickable ? (e) => e.key === 'Enter' && handleClick() : undefined}
+      aria-pressed={clickable ? isChanging : undefined}
+      aria-label={clickable ? `${lineIndex !== undefined ? lineIndex + 1 : ''}효 양효${isChanging ? ' (변효)' : ''}` : undefined}
     >
+      {/* Line number label */}
       {clickable && lineIndex !== undefined && (
-        <span style={labelStyle}>{lineIndex + 1}{lineLabel}</span>
+        <span className={`text-xs min-w-[24px] text-right transition-all duration-200
+          ${isChanging ? 'text-amber-400 font-semibold' : 'text-violet-300/60 font-normal'}`}>
+          {lineIndex + 1}{lineLabel}
+        </span>
       )}
-      <div style={baseStyle}></div>
-      {clickable && <span style={changingIndicatorStyle}>{isChanging ? changingLabel : ''}</span>}
+
+      {/* Solid line */}
+      <div
+        className={`h-2 w-20 rounded my-1.5 flex justify-center items-center relative transition-all duration-200
+          ${clickable && isHovered ? 'scale-x-105' : 'scale-x-100'}`}
+        style={{
+          background: currentLineColor,
+          boxShadow: getBoxShadow(),
+        }}
+      />
+
+      {/* Changing indicator */}
+      {clickable && (
+        <span className={`text-xs text-amber-400 ml-1 min-w-[16px] font-semibold transition-opacity duration-200
+          ${isChanging ? 'opacity-100' : (isHovered ? 'opacity-30' : 'opacity-0')}`}>
+          {isChanging ? changingLabel : ''}
+        </span>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnalysisCard, cardRow, cardLabel, cardValue, cardDesc } from './AnalysisCard';
+import { AnalysisCard, CardRow, CardDesc } from './AnalysisCard';
 import type { GeokgukAnalysis, YongsinAnalysis } from '@/lib/Saju/saju-result.types';
 
 interface GeokgukYongsinSectionProps {
@@ -11,72 +11,30 @@ export function GeokgukYongsinSection({ geokguk, yongsin }: GeokgukYongsinSectio
   if (!geokguk && !yongsin) return null;
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+    <div className="flex flex-wrap gap-4" role="group" aria-label="격국 용신 분석">
       {geokguk && (
         <AnalysisCard title="격국 (格局)" color="#8aa4ff">
-          <div style={cardRow}>
-            <span style={cardLabel}>격국:</span>
-            <span style={cardValue}>{geokguk.primary || '미정'}</span>
-          </div>
-          {geokguk.category && (
-            <div style={cardRow}>
-              <span style={cardLabel}>분류:</span>
-              <span style={cardValue}>{geokguk.category}</span>
-            </div>
-          )}
-          {geokguk.confidence && (
-            <div style={cardRow}>
-              <span style={cardLabel}>확신도:</span>
-              <span style={cardValue}>{geokguk.confidence}</span>
-            </div>
-          )}
-          {geokguk.description && <p style={cardDesc}>{geokguk.description}</p>}
+          <CardRow label="격국" value={geokguk.primary || '미정'} />
+          {geokguk.category && <CardRow label="분류" value={geokguk.category} />}
+          {geokguk.confidence && <CardRow label="확신도" value={geokguk.confidence} />}
+          {geokguk.description && <CardDesc>{geokguk.description}</CardDesc>}
         </AnalysisCard>
       )}
 
       {yongsin && (
         <AnalysisCard title="용신 (用神)" color="#ffd479">
-          <div style={cardRow}>
-            <span style={cardLabel}>용신:</span>
-            <span style={cardValue}>{yongsin.primaryYongsin || '-'}</span>
-          </div>
-          {yongsin.secondaryYongsin && (
-            <div style={cardRow}>
-              <span style={cardLabel}>희신:</span>
-              <span style={cardValue}>{yongsin.secondaryYongsin}</span>
-            </div>
-          )}
-          {yongsin.kibsin && (
-            <div style={cardRow}>
-              <span style={cardLabel}>기신:</span>
-              <span style={cardValue}>{yongsin.kibsin}</span>
-            </div>
-          )}
-          {yongsin.daymasterStrength && (
-            <div style={cardRow}>
-              <span style={cardLabel}>신강/신약:</span>
-              <span style={cardValue}>{yongsin.daymasterStrength}</span>
-            </div>
-          )}
+          <CardRow label="용신" value={yongsin.primaryYongsin || '-'} />
+          {yongsin.secondaryYongsin && <CardRow label="희신" value={yongsin.secondaryYongsin} />}
+          {yongsin.kibsin && <CardRow label="기신" value={yongsin.kibsin} />}
+          {yongsin.daymasterStrength && <CardRow label="신강/신약" value={yongsin.daymasterStrength} />}
           {yongsin.luckyColors && yongsin.luckyColors.length > 0 && (
-            <div style={cardRow}>
-              <span style={cardLabel}>행운색:</span>
-              <span style={cardValue}>{yongsin.luckyColors.join(', ')}</span>
-            </div>
+            <CardRow label="행운색" value={yongsin.luckyColors.join(', ')} />
           )}
-          {yongsin.luckyDirection && (
-            <div style={cardRow}>
-              <span style={cardLabel}>행운방향:</span>
-              <span style={cardValue}>{yongsin.luckyDirection}</span>
-            </div>
-          )}
+          {yongsin.luckyDirection && <CardRow label="행운방향" value={yongsin.luckyDirection} />}
           {yongsin.luckyNumbers && yongsin.luckyNumbers.length > 0 && (
-            <div style={cardRow}>
-              <span style={cardLabel}>행운숫자:</span>
-              <span style={cardValue}>{yongsin.luckyNumbers.join(', ')}</span>
-            </div>
+            <CardRow label="행운숫자" value={yongsin.luckyNumbers.join(', ')} />
           )}
-          {yongsin.description && <p style={cardDesc}>{yongsin.description}</p>}
+          {yongsin.description && <CardDesc>{yongsin.description}</CardDesc>}
         </AnalysisCard>
       )}
     </div>

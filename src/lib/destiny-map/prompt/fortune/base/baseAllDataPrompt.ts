@@ -1,31 +1,30 @@
-// @ts-nocheck - Complex dynamic structures from external APIs
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @deprecated This file is kept for backward compatibility. Use index.ts instead.
+ * This file has loose type checking due to complex dynamic structures from external APIs.
  */
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 import type { AstrologyData, SajuData } from "@/lib/destiny-map/astrology/types";
 import type { PlanetData, AspectHit } from "@/lib/astrology";
 import { logger } from "@/lib/logger";
-
-// Prompt-specific type aliases
-type HouseData = { cusp?: number; formatted?: string; sign?: string };
-type PillarData = { heavenlyStem?: { name: string }; earthlyBranch?: { name: string }; ganji?: string; year?: number };
-type UnseItem = { year?: number; month?: number; element?: string; ganji?: string; startAge?: number; endAge?: number };
-type DaeunItem = UnseItem & { age?: number; heavenlyStem?: string; earthlyBranch?: string };
-type AnnualItem = UnseItem;
-type MonthlyItem = UnseItem;
-type AspectData = { planet1?: { name?: string }; planet2?: { name?: string }; type?: string; aspect?: string; from?: { name?: string }; to?: { name?: string } };
-type SinsalItem = { name?: string; stars?: string[] };
-type SibsinRelation = { type?: string; quality?: string; description?: string };
-type CareerAptitude = { field?: string; score?: number };
-type BranchInteraction = { branch1?: string; branch2?: string; from?: string; to?: string; result?: string };
-type TuechulItem = { element?: string; stem?: string; type?: string };
-type HoegukItem = { type?: string; name?: string; resultElement?: string };
-type FixedStarItem = { star?: string; starName?: string; planet?: string; planetName?: string; meaning?: string };
-type MidpointItem = { planet1?: string; planet2?: string; sign?: string; degree?: number };
-type TransitItem = { type?: string; aspectType?: string; from?: { name?: string }; to?: { name?: string }; planet1Name?: string; planet2Name?: string; orb?: string };
-type AsteroidAspect = { asteroid?: string; from?: string; type?: string; aspect?: string; planet?: string; to?: string; planet2?: { name?: string } };
+import type {
+  HouseData,
+  PillarData,
+  DaeunItem,
+  AnnualItem,
+  MonthlyItem,
+  AspectData,
+  SinsalItem,
+  SibsinRelation,
+  CareerAptitude,
+  BranchInteraction,
+  TuechulItem,
+  HoegukItem,
+  FixedStarItem,
+  MidpointItem,
+  TransitItem,
+  AsteroidAspect,
+} from './prompt-types';
 
 
 /**
@@ -145,7 +144,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   const currentMonth = new Date().getMonth() + 1;
 
   // Get birth year from pillars (for age-based daeun calculation)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- pillars may have year property from various sources
+   
   const birthYear = (pillars?.year as any)?.year ?? currentYear - 30;
   const currentAge = currentYear - birthYear;
 
@@ -232,7 +231,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   const unlucky = (sinsalRecord?.unluckyList ?? []).map((x) => x.name).join(", ");
 
   // ========== ADVANCED SAJU ANALYSIS ==========
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Complex nested structure with dynamic properties
+   
   const adv = advancedAnalysis as Record<string, any> | undefined;
 
   // 신강/신약

@@ -107,6 +107,34 @@ export function middleware(request: NextRequest) {
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   }
 
+  // Cross-Origin Isolation headers for Spectre protection
+  // Note: Using 'credentialless' for COEP to allow third-party resources (GA, Kakao, etc.)
+  // Full isolation ('require-corp') would break external scripts without CORS headers
+  //
+  // COOP: Isolate browsing context from cross-origin popups
+  // COEP: Control cross-origin resource loading
+  //
+  // Benefits:
+  // - Enables SharedArrayBuffer and high-resolution timers safely
+  // - Protects against Spectre-style attacks
+  // - Prevents cross-origin information leaks
+  if (isProd) {
+    // Cross-Origin-Opener-Policy: same-origin-allow-popups
+    // - Isolates from cross-origin openers
+    // - Allows popups for OAuth flows (Google, Kakao login)
+    response.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+
+    // Cross-Origin-Embedder-Policy: credentialless
+    // - Allows loading cross-origin resources without CORS
+    // - Resources loaded without credentials (cookies, auth)
+    // - Compatible with analytics (GA, Clarity) and CDN scripts
+    response.headers.set('Cross-Origin-Embedder-Policy', 'credentialless');
+
+    // Cross-Origin-Resource-Policy: same-site
+    // - Protects resources from being loaded by other sites
+    response.headers.set('Cross-Origin-Resource-Policy', 'same-site');
+  }
+
   return response;
 }
 

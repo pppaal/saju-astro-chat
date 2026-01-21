@@ -61,10 +61,15 @@ export function useCompatibilityAnalysis() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(body),
       });
-      const data: CompatibilityResult = await res.json();
+      const data = (await res.json()) as CompatibilityResult | null;
       if (!res.ok || data?.error) throw new Error(data?.error || 'Server error');
 
-      setResultText(data.interpretation || JSON.stringify(data, null, 2));
+      const interpretation = data?.interpretation;
+      if (interpretation !== null && interpretation !== undefined && interpretation !== '') {
+        setResultText(String(interpretation));
+      } else {
+        setResultText(JSON.stringify(data, null, 2));
+      }
 
       // Set timing and action items from fusion system
       if (data.timing) {

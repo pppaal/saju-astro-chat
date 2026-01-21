@@ -5,10 +5,14 @@ export function useCardReveal() {
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
 
   const handleCardReveal = useCallback((index: number) => {
-    const nextToReveal = revealedCards.length;
-    if (index === nextToReveal && !revealedCards.includes(index)) {
-      setRevealedCards(prev => [...prev, index]);
-    }
+    if (!Number.isInteger(index) || index < 0) return;
+    setRevealedCards((prev) => {
+      const nextToReveal = prev.length;
+      if (index !== nextToReveal || prev.includes(index)) {
+        return prev;
+      }
+      return [...prev, index];
+    });
   }, [revealedCards]);
 
   const toggleCardExpand = useCallback((index: number) => {
@@ -16,10 +20,12 @@ export function useCardReveal() {
   }, []);
 
   const isCardRevealed = useCallback((index: number) => {
+    if (!Number.isInteger(index) || index < 0) return false;
     return revealedCards.includes(index);
   }, [revealedCards]);
 
   const canRevealCard = useCallback((index: number) => {
+    if (!Number.isInteger(index) || index < 0) return false;
     return index === revealedCards.length;
   }, [revealedCards]);
 

@@ -1,17 +1,26 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TarotDemoSection } from '@/components/home/TarotDemoSection';
 
 describe('TarotDemoSection', () => {
-  const mockTranslate = (key: string, fallback: string) => fallback;
-  const mockOnCardClick = jest.fn();
-  const mockOnDeckClick = jest.fn();
+  const translations: Record<string, string> = {
+    'landing.tarotDeckLabel': 'Deck label',
+    'landing.tarotDeckReset': 'Deck reset',
+    'landing.tarotPast': 'Past',
+    'landing.tarotPresent': 'Present',
+    'landing.tarotFuture': 'Future',
+    'landing.tarotAdvice': 'Advice',
+  };
+  const mockTranslate = (key: string, fallback: string) => translations[key] || fallback;
+  const mockOnCardClick = vi.fn();
+  const mockOnDeckClick = vi.fn();
 
   const mockCards = [
-    { name: 'The Fool', nameKo: '바보', image: '/cards/fool.jpg' },
-    { name: 'The Magician', nameKo: '마법사', image: '/cards/magician.jpg' },
-    { name: 'The High Priestess', nameKo: '여사제', image: '/cards/priestess.jpg' },
-    { name: 'The Empress', nameKo: '여제', image: '/cards/empress.jpg' },
+    { name: 'The Fool', nameKo: 'The Fool KO', image: '/cards/fool.jpg' },
+    { name: 'The Magician', nameKo: 'The Magician KO', image: '/cards/magician.jpg' },
+    { name: 'The High Priestess', nameKo: 'The High Priestess KO', image: '/cards/priestess.jpg' },
+    { name: 'The Empress', nameKo: 'The Empress KO', image: '/cards/empress.jpg' },
   ];
 
   const defaultProps = {
@@ -26,19 +35,23 @@ describe('TarotDemoSection', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render deck container', () => {
     render(<TarotDemoSection {...defaultProps} />);
 
-    expect(screen.getByText('클릭하여 카드 그리기')).toBeInTheDocument();
+    expect(screen.getByText('Deck label')).toBeInTheDocument();
   });
 
   it('should call onDeckClick when clicking deck', () => {
     const { container } = render(<TarotDemoSection {...defaultProps} />);
 
-    const deck = container.querySelector('.tarotDeck');
+    // tarotDeck is inside tarotDeckContainer - find the clickable deck div
+    const deckContainer = container.querySelector('[class*="tarotDeckContainer"]');
+    // The deck is the first direct child div with tarotDeck class
+    const deck = deckContainer?.querySelector(':scope > [class*="tarotDeck"]');
+    expect(deck).toBeInTheDocument();
     if (deck) {
       fireEvent.click(deck);
       expect(mockOnDeckClick).toHaveBeenCalled();
@@ -48,24 +61,27 @@ describe('TarotDemoSection', () => {
   it('should render 13 deck cards in spread', () => {
     const { container } = render(<TarotDemoSection {...defaultProps} />);
 
-    const deckCards = container.querySelectorAll('.deckCard');
-    expect(deckCards).toHaveLength(13);
+    // deckCard elements are rendered inside the tarotDeck container (not tarotCards)
+    const deckContainer = container.querySelector('[class*="tarotDeckContainer"]');
+    const deck = deckContainer?.querySelector(':scope > [class*="tarotDeck"]');
+    const deckCards = deck?.querySelectorAll(':scope > [class*="deckCard"]');
+    expect(deckCards?.length).toBe(13);
   });
 
   it('should not show selected cards when none are selected', () => {
     render(<TarotDemoSection {...defaultProps} />);
 
-    expect(screen.queryByText('과거')).not.toBeInTheDocument();
-    expect(screen.queryByText('현재')).not.toBeInTheDocument();
+    expect(screen.queryByText('Past')).not.toBeInTheDocument();
+    expect(screen.queryByText('Present')).not.toBeInTheDocument();
   });
 
   it('should show selected cards when cards are drawn', () => {
     render(<TarotDemoSection {...defaultProps} selectedCards={mockCards} />);
 
-    expect(screen.getByText('과거')).toBeInTheDocument();
-    expect(screen.getByText('현재')).toBeInTheDocument();
-    expect(screen.getByText('미래')).toBeInTheDocument();
-    expect(screen.getByText('조언')).toBeInTheDocument();
+    expect(screen.getByText('Past')).toBeInTheDocument();
+    expect(screen.getByText('Present')).toBeInTheDocument();
+    expect(screen.getByText('Future')).toBeInTheDocument();
+    expect(screen.getByText('Advice')).toBeInTheDocument();
   });
 
   it('should display card names in English when locale is en', () => {
@@ -78,15 +94,18 @@ describe('TarotDemoSection', () => {
   it('should display card names in Korean when locale is ko', () => {
     render(<TarotDemoSection {...defaultProps} selectedCards={mockCards} locale="ko" />);
 
-    expect(screen.getByText('바보')).toBeInTheDocument();
-    expect(screen.getByText('마법사')).toBeInTheDocument();
+    expect(screen.getByText('The Fool KO')).toBeInTheDocument();
+    expect(screen.getByText('The Magician KO')).toBeInTheDocument();
   });
 
   it('should call onCardClick when clicking a card', () => {
     const { container } = render(<TarotDemoSection {...defaultProps} selectedCards={mockCards} />);
 
-    const cards = container.querySelectorAll('.tarotCard');
-    if (cards[0]) {
+    // tarotCards is the container for selected cards (not tarotDeck)
+    const cardsContainer = container.querySelector('[class*="tarotCards"]');
+    const cards = cardsContainer?.querySelectorAll(':scope > [class*="tarotCard"]');
+    expect(cards?.length).toBe(4);
+    if (cards && cards[0]) {
       fireEvent.click(cards[0]);
       expect(mockOnCardClick).toHaveBeenCalledWith(0);
     }
@@ -101,30 +120,41 @@ describe('TarotDemoSection', () => {
       />
     );
 
-    const cards = container.querySelectorAll('.tarotCard');
-    expect(cards[0].classList.contains('flipped')).toBe(true);
-    expect(cards[1].classList.contains('flipped')).toBe(false);
-    expect(cards[2].classList.contains('flipped')).toBe(true);
-    expect(cards[3].classList.contains('flipped')).toBe(false);
+    // CSS Module adds hash to class names, use regex for partial match
+    // tarotCards is the container for selected cards
+    const cardsContainer = container.querySelector('[class*="tarotCards"]');
+    const cards = cardsContainer?.querySelectorAll(':scope > [class*="tarotCard"]');
+    expect(cards?.length).toBe(4);
+    if (cards) {
+      expect(cards[0].className).toMatch(/flipped/);
+      expect(cards[1].className).not.toMatch(/flipped/);
+      expect(cards[2].className).toMatch(/flipped/);
+      expect(cards[3].className).not.toMatch(/flipped/);
+    }
   });
 
   it('should apply deckSpread class when deck is spread', () => {
     const { container } = render(<TarotDemoSection {...defaultProps} isDeckSpread={true} />);
 
-    const deck = container.querySelector('.tarotDeck');
-    expect(deck?.classList.contains('deckSpread')).toBe(true);
+    // tarotDeck is inside tarotDeckContainer
+    const deckContainer = container.querySelector('[class*="tarotDeckContainer"]');
+    const deck = deckContainer?.querySelector(':scope > [class*="tarotDeck"]');
+    expect(deck).toBeInTheDocument();
+    expect(deck?.className).toMatch(/deckSpread/);
   });
 
   it('should show reset message when deck is spread', () => {
     render(<TarotDemoSection {...defaultProps} isDeckSpread={true} />);
 
-    expect(screen.getByText('클릭하여 카드 그리기')).toBeInTheDocument();
+    expect(screen.getByText('Deck reset')).toBeInTheDocument();
   });
 
   it('should render all 4 card positions', () => {
     const { container } = render(<TarotDemoSection {...defaultProps} selectedCards={mockCards} />);
 
-    const cardElements = container.querySelectorAll('.tarotCard');
-    expect(cardElements).toHaveLength(4);
+    // tarotCards is the container for selected cards
+    const cardsContainer = container.querySelector('[class*="tarotCards"]');
+    const cardElements = cardsContainer?.querySelectorAll(':scope > [class*="tarotCard"]');
+    expect(cardElements?.length).toBe(4);
   });
 });

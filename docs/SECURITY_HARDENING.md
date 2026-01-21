@@ -345,10 +345,10 @@ jobs:
 
 ### 6.5 OWASP ZAP
 
-- [ ] Baseline scan 실행
-- [ ] 리포트 검토
-- [ ] High/Medium 이슈 해결
-- [ ] CI/CD 통합
+- [x] Baseline scan 실행
+- [x] 리포트 검토
+- [x] High/Medium 이슈 해결 (0 FAIL)
+- [x] CI/CD 통합
 
 ---
 
@@ -403,10 +403,168 @@ recordCounter('api.rate_limit.fallback', 1, { from, to });
 
 ---
 
-## 9. 다음 단계 (Week 3+)
+## 9. OWASP ZAP 스캔 결과 (2026-01-20)
 
-1. **API Key Rotation** - 토큰 자동 갱신
-2. **Audit Logging** - 인증 실패, 관리자 작업 로깅
-3. **DDoS Protection** - 적응형 rate limiting
-4. **Database Encryption** - PII 컬럼 암호화
-5. **Subresource Integrity (SRI)** - CDN 스크립트 해시
+### 9.1 요약
+
+```
+FAIL-NEW: 0    WARN-NEW: 7    PASS: 60
+```
+
+**목표 달성: 보안 스캔 0 FAIL** ✅
+
+### 9.2 통과 항목 (60개)
+
+주요 통과 항목:
+- Vulnerable JS Library [10003] ✅
+- Cookie No HttpOnly Flag [10010] ✅
+- Cookie Without Secure Flag [10011] ✅
+- Anti-clickjacking Header [10020] ✅
+- X-Content-Type-Options Header [10021] ✅
+- Strict-Transport-Security Header [10035] ✅
+- Server Leaks X-Powered-By [10037] ✅
+- Content Security Policy Header [10038] ✅
+- Absence of Anti-CSRF Tokens [10202] ✅
+- SQL Injection [40018-40024] ✅
+- XSS (Reflected/Persistent) [40012-40014] ✅
+
+### 9.3 경고 항목 (7개) - 예상된 경고
+
+| Alert ID | 설명 | 원인 | 조치 |
+|----------|------|------|------|
+| 10017 | Cross-Domain JS | Kakao SDK 등 외부 CDN | 의도적 허용 |
+| 10027 | Suspicious Comments | 개발용 주석 | 프로덕션 빌드 시 제거 |
+| 10049 | Non-Storable Content | 일부 동적 리소스 | 정상 동작 |
+| 10055 | CSP Wildcard | `img-src https:` | 이미지 호스팅 다양성 |
+| 10110 | Dangerous JS Functions | Next.js 번들 내부 | 프레임워크 제공 |
+| 90003 | SRI Missing | 외부 스크립트 | 향후 개선 예정 |
+| 90004 | Spectre Isolation | COEP 헤더 없음 | 향후 개선 예정 |
+
+### 9.4 리포트 파일
+
+- `reports/owasp/zap-baseline.html` - HTML 리포트
+- `reports/owasp/zap-baseline.json` - JSON 리포트
+- `reports/owasp/zap-baseline.md` - Markdown 리포트
+
+---
+
+## 10. Week 3 구현 완료 (2026-01-21)
+
+### 10.1 API Key Rotation ✅
+
+**파일**: [tokenRotation.ts](../src/lib/auth/tokenRotation.ts)
+
+```typescript
+// 토큰 설정 (환경 변수)
+PUBLIC_API_TOKEN=current_token_value
+PUBLIC_API_TOKEN_LEGACY=old_token_for_migration  // 선택
+PUBLIC_API_TOKEN_VERSION=2
+PUBLIC_API_TOKEN_EXPIRES_AT=1735689600000  // Unix ms (선택)
+
+// 사용법
+import { validatePublicToken, validateAdminToken } from '@/lib/auth/tokenRotation';
+
+const result = validatePublicToken(req, clientIp);
+if (!result.valid) {
+  return NextResponse.json({ error: result.reason }, { status: 401 });
+}
+if (result.version === 'legacy') {
+  // 클라이언트에게 토큰 업데이트 권장
+}
+```
+
+**기능**:
+- 현재 토큰 + 레거시 토큰 동시 지원 (무중단 마이그레이션)
+- 토큰 버전 추적
+- 만료 시간 지원
+- Timing-safe 비교 (타이밍 공격 방지)
+- 토큰 감사 로깅
+
+### 10.2 Audit Logging ✅
+
+**파일**: [auditLog.ts](../src/lib/security/auditLog.ts)
+
+```typescript
+import { auditAuth, auditAdmin, auditSecurity } from '@/lib/security/auditLog';
+
+// 인증 실패 로깅
+auditAuth({
+  action: 'login',
+  success: false,
+  userEmail: 'user@example.com',
+  ip: clientIp,
+  error: 'Invalid password',
+});
+
+// 관리자 작업 로깅
+auditAdmin({
+  action: 'user_delete',
+  success: true,
+  userId: adminId,
+  ip: clientIp,
+  details: { targetUserId: '...' },
+});
+
+// 의심스러운 활동 로깅
+auditSuspicious({
+  type: 'injection_attempt',
+  ip: clientIp,
+  path: '/api/search',
+  details: { payload: '...' },
+});
+```
+
+**감사 카테고리**:
+- `auth`: 인증 시도 (로그인, 로그아웃, 등록)
+- `admin`: 관리자 작업
+- `token`: 토큰 검증/회전/폐기
+- `data`: 민감한 데이터 접근
+- `security`: 보안 이벤트 (rate limit, 의심스러운 활동)
+
+### 10.3 SRI (Subresource Integrity) ✅
+
+**파일**: [sri.ts](../src/lib/security/sri.ts)
+
+```typescript
+import { SRI_HASHES, getSRIAttributes } from '@/lib/security/sri';
+
+// SRI 해시 조회
+const kakaoSRI = getSRIAttributes('kakaoSdk');
+// { integrity: 'sha384-...', crossOrigin: 'anonymous' }
+```
+
+**참고**:
+- Google Analytics, Microsoft Clarity는 동적 스크립트로 SRI 적용 불가
+- Kakao SDK는 공식 SRI 해시 미제공 (직접 생성 필요)
+
+### 10.4 COEP/COOP Headers (Spectre 방지) ✅
+
+**파일**: [middleware.ts](../src/middleware.ts)
+
+```typescript
+// 프로덕션에서 적용되는 헤더
+Cross-Origin-Opener-Policy: same-origin-allow-popups
+Cross-Origin-Embedder-Policy: credentialless
+Cross-Origin-Resource-Policy: same-site
+```
+
+| 헤더 | 값 | 목적 |
+|------|-----|------|
+| COOP | `same-origin-allow-popups` | 브라우징 컨텍스트 격리, OAuth 팝업 허용 |
+| COEP | `credentialless` | 외부 리소스 로드 허용 (credentials 없이) |
+| CORP | `same-site` | 자원이 다른 사이트에서 로드되는 것 방지 |
+
+**Benefits**:
+- SharedArrayBuffer 안전하게 사용 가능
+- 고해상도 타이머 안전하게 사용 가능
+- Spectre 스타일 공격 방지
+- 교차 출처 정보 유출 방지
+
+---
+
+## 11. 다음 단계 (Week 4+)
+
+1. **DDoS Protection** - 적응형 rate limiting
+2. **Database Encryption** - PII 컬럼 암호화
+3. **Secret Rotation Automation** - 자동화된 키 교체 스케줄링
+4. **Security Monitoring Dashboard** - 실시간 보안 대시보드

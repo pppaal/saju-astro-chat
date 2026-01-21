@@ -13,7 +13,6 @@ import {
   getUserTimezone,
   getOffsetMinutes,
   formatOffset,
-  // 라이브러리 타입
   type DayMaster,
   type DaeunData,
   type YeonunData,
@@ -22,7 +21,6 @@ import {
   type PillarData,
 } from '../../lib/Saju';
 
-// 도시 검색 결과 타입 (astrology와 동일)
 interface CityResult {
   name: string;
   country: string;
@@ -30,7 +28,6 @@ interface CityResult {
   lon: number;
 }
 
-// 서버 응답 타입: 라이브러리 타입만 사용
 interface ApiFullResponse {
   birthYear: number;
   yearPillar: PillarData;
@@ -66,13 +63,11 @@ export default function SajuAnalyzer() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 도시 검색 관련 상태
   const [cityQuery, setCityQuery] = useState('');
   const [citySuggestions, setCitySuggestions] = useState<CityResult[]>([]);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
   const [selectedCity, setSelectedCity] = useState<string>('');
 
-  // 도시 검색 - useEffect와 debounce 사용 (astrology와 동일)
   useEffect(() => {
     const q = cityQuery.trim();
     if (q.length < 2) {
@@ -91,13 +86,11 @@ export default function SajuAnalyzer() {
     return () => clearTimeout(tmr);
   }, [cityQuery]);
 
-  // 도시 선택 핸들러
   const handleCitySelect = useCallback((city: CityResult) => {
     setSelectedCity(`${city.name}, ${city.country}`);
     setCityQuery(`${city.name}, ${city.country}`);
     setShowCitySuggestions(false);
 
-    // tzLookup으로 타임존 자동 설정
     try {
       const tz = tzLookup(city.lat, city.lon);
       if (tz && typeof tz === 'string') {
@@ -108,7 +101,6 @@ export default function SajuAnalyzer() {
     }
   }, []);
 
-  // Load saved profile from hook
   useEffect(() => {
     if (profileLoading || profileLoaded) return;
     if (profile.birthDate || profile.birthTime || profile.gender) {
@@ -145,7 +137,6 @@ export default function SajuAnalyzer() {
     setSajuResult(null);
 
     try {
-      // userTimezone: 사용자 현재 위치 타임존 (운세 계산용)
       const payload = { ...formData, userTimezone: userTz };
       const response = await fetch('/api/saju', {
         method: 'POST',
@@ -156,10 +147,8 @@ export default function SajuAnalyzer() {
       if (!response.ok) {
         throw new Error(data?.message || 'An unknown server error occurred.');
       }
-      // 서버가 라이브러리 타입과 동일 구조를 반환한다고 가정
       setSajuResult(data as ApiFullResponse);
 
-      // Save profile for reuse across services
       saveUserProfile({
         birthDate: formData.birthDate,
         birthTime: formData.birthTime,
@@ -174,19 +163,15 @@ export default function SajuAnalyzer() {
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: '600px', margin: '0 auto' }}>
+    <div className="w-full max-w-[600px] mx-auto">
       <form
         onSubmit={handleSubmit}
-        style={{
-          background: '#1e1e2f',
-          padding: '2rem',
-          borderRadius: '12px',
-          border: '1px solid #4f4f7a',
-          marginBottom: '2rem',
-        }}
+        className="bg-slate-800 p-8 rounded-xl border border-slate-600 mb-8"
+        aria-label="사주 분석 입력 폼"
       >
-        <div style={{ marginBottom: '1.25rem' }}>
-          <label htmlFor="calendarType" style={labelStyle}>
+        {/* 양력/음력 */}
+        <div className="mb-5">
+          <label htmlFor="calendarType" className="block font-medium mb-2 text-gray-200">
             양력/음력
           </label>
           <select
@@ -194,15 +179,17 @@ export default function SajuAnalyzer() {
             name="calendarType"
             value={formData.calendarType}
             onChange={handleInputChange}
-            style={selectStyle}
+            className="w-full p-3 border border-slate-600 rounded-md text-base bg-slate-900 text-white
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="solar">양력</option>
             <option value="lunar">음력</option>
           </select>
         </div>
 
-        <div style={{ marginBottom: '1.25rem' }}>
-          <label htmlFor="birthDate" style={labelStyle}>
+        {/* 생년월일 */}
+        <div className="mb-5">
+          <label htmlFor="birthDate" className="block font-medium mb-2 text-gray-200">
             생년월일
           </label>
           <input
@@ -211,12 +198,15 @@ export default function SajuAnalyzer() {
             type="date"
             value={formData.birthDate}
             onChange={handleInputChange}
-            style={inputStyle}
+            className="w-full p-3 border border-slate-600 rounded-md text-base bg-slate-900 text-white
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            required
           />
         </div>
 
-        <div style={{ marginBottom: '1.25rem' }}>
-          <label htmlFor="birthTime" style={labelStyle}>
+        {/* 태어난 시간 */}
+        <div className="mb-5">
+          <label htmlFor="birthTime" className="block font-medium mb-2 text-gray-200">
             태어난 시간
           </label>
           <input
@@ -225,12 +215,14 @@ export default function SajuAnalyzer() {
             type="time"
             value={formData.birthTime}
             onChange={handleInputChange}
-            style={inputStyle}
+            className="w-full p-3 border border-slate-600 rounded-md text-base bg-slate-900 text-white
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
-        <div style={{ marginBottom: '1.25rem' }}>
-          <label htmlFor="gender" style={labelStyle}>
+        {/* 성별 */}
+        <div className="mb-5">
+          <label htmlFor="gender" className="block font-medium mb-2 text-gray-200">
             성별
           </label>
           <select
@@ -238,16 +230,17 @@ export default function SajuAnalyzer() {
             name="gender"
             value={formData.gender}
             onChange={handleInputChange}
-            style={selectStyle}
+            className="w-full p-3 border border-slate-600 rounded-md text-base bg-slate-900 text-white
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="male">남자</option>
             <option value="female">여자</option>
           </select>
         </div>
 
-        {/* 출생 도시 입력 (자동 타임존 설정) */}
-        <div style={{ marginBottom: '1.25rem', position: 'relative' }}>
-          <label htmlFor="birthCity" style={labelStyle}>
+        {/* 출생 도시 */}
+        <div className="mb-5 relative">
+          <label htmlFor="birthCity" className="block font-medium mb-2 text-gray-200">
             출생 도시 (영문)
           </label>
           <input
@@ -260,14 +253,26 @@ export default function SajuAnalyzer() {
             onChange={(e) => setCityQuery(e.target.value)}
             onFocus={() => citySuggestions.length > 0 && setShowCitySuggestions(true)}
             onBlur={() => setTimeout(() => setShowCitySuggestions(false), 200)}
-            style={inputStyle}
+            className="w-full p-3 border border-slate-600 rounded-md text-base bg-slate-900 text-white
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            aria-describedby={selectedCity ? 'selected-city-info' : undefined}
+            aria-autocomplete="list"
+            aria-controls="city-suggestions"
+            aria-expanded={showCitySuggestions}
           />
           {showCitySuggestions && citySuggestions.length > 0 && (
-            <ul style={suggestionListStyle}>
+            <ul
+              id="city-suggestions"
+              role="listbox"
+              className="absolute top-full left-0 right-0 bg-slate-800 border border-slate-600
+                rounded-md max-h-[200px] overflow-y-auto z-50 mt-1"
+            >
               {citySuggestions.map((city, idx) => (
                 <li
                   key={`${city.name}-${city.country}-${idx}`}
-                  style={suggestionItemStyle}
+                  role="option"
+                  className="px-4 py-3 cursor-pointer text-gray-200 border-b border-slate-600
+                    hover:bg-slate-700 transition-colors last:border-b-0"
                   onMouseDown={() => handleCitySelect(city)}
                 >
                   {city.name}, {city.country}
@@ -276,29 +281,34 @@ export default function SajuAnalyzer() {
             </ul>
           )}
           {selectedCity && (
-            <p style={{ fontSize: '0.8rem', color: '#8aa4ff', marginTop: '4px' }}>
+            <p id="selected-city-info" className="text-sm text-blue-400 mt-1">
               ✓ 선택됨: {selectedCity} → 타임존 자동 설정됨
             </p>
           )}
         </div>
 
-        <div style={{ marginBottom: '2rem' }}>
-          <label style={labelStyle}>타임존</label>
-          <details style={{ marginBottom: '8px' }}>
-            <summary style={{ cursor: 'pointer', color: '#a0a0a0', fontSize: '0.85rem' }}>
+        {/* 타임존 */}
+        <div className="mb-8">
+          <label className="block font-medium mb-2 text-gray-200">타임존</label>
+          <details className="mb-2">
+            <summary className="cursor-pointer text-gray-400 text-sm hover:text-gray-300">
               고급: 타임존 직접 선택
             </summary>
             <input
               placeholder="타임존 검색 (예: seoul, new_york)"
               value={tzQuery}
               onChange={(e) => setTzQuery(e.target.value)}
-              style={{ ...inputStyle, marginTop: '8px' }}
+              className="w-full p-3 border border-slate-600 rounded-md text-base bg-slate-900 text-white mt-2
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              aria-label="타임존 검색"
             />
             <select
               name="timezone"
               value={formData.timezone}
               onChange={handleInputChange}
-              style={{ ...selectStyle, marginTop: '8px' }}
+              className="w-full p-3 border border-slate-600 rounded-md text-base bg-slate-900 text-white mt-2
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              aria-label="타임존 선택"
             >
               {filteredTz.map((tz: string) => {
                 const off = formatOffset(getOffsetMinutes(baseInstant, tz));
@@ -310,19 +320,30 @@ export default function SajuAnalyzer() {
               })}
             </select>
           </details>
-          <p style={{ fontSize: '0.85rem', color: '#a0a0a0' }}>
-            현재: <strong style={{ color: '#ffd479' }}>{formData.timezone}</strong>{' '}
+          <p className="text-sm text-gray-400">
+            현재: <strong className="text-yellow-400">{formData.timezone}</strong>{' '}
             ({formatOffset(getOffsetMinutes(baseInstant, formData.timezone))})
           </p>
         </div>
 
-        <button type="submit" disabled={isLoading} style={buttonStyle(isLoading)}>
+        {/* 제출 버튼 */}
+        <button
+          type="submit"
+          disabled={isLoading}
+          className={`w-full p-4 rounded-md text-lg font-bold text-white transition-all duration-200
+            focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800
+            ${isLoading
+              ? 'bg-slate-700 cursor-not-allowed opacity-60'
+              : 'bg-blue-600 hover:bg-blue-500 cursor-pointer'
+            }`}
+          aria-busy={isLoading}
+        >
           {isLoading ? '분석 중...' : '사주 분석하기'}
         </button>
       </form>
 
       {error && (
-        <p style={{ color: '#ff6b6b', marginTop: '1rem', textAlign: 'center' }}>
+        <p className="text-red-400 mt-4 text-center" role="alert">
           오류: {error}
         </p>
       )}
@@ -330,58 +351,3 @@ export default function SajuAnalyzer() {
     </div>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  display: 'block',
-  fontWeight: '500',
-  marginBottom: '0.5rem',
-  color: '#e0e0e0',
-};
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '0.8rem',
-  border: '1px solid #4f4f7a',
-  borderRadius: '6px',
-  fontSize: '1rem',
-  backgroundColor: '#161625',
-  color: '#ffffff',
-};
-const selectStyle: React.CSSProperties = { ...inputStyle, appearance: 'none' };
-const buttonStyle = (disabled: boolean): React.CSSProperties => ({
-  width: '100%',
-  padding: '1rem',
-  cursor: disabled ? 'not-allowed' : 'pointer',
-  background: disabled ? '#2a2a3e' : '#3a6df0',
-  color: 'white',
-  border: 'none',
-  borderRadius: '6px',
-  fontSize: '1.1rem',
-  fontWeight: 'bold',
-  transition: 'background-color 0.2s',
-  opacity: disabled ? 0.6 : 1,
-});
-
-// 도시 추천 목록 스타일
-const suggestionListStyle: React.CSSProperties = {
-  position: 'absolute',
-  top: '100%',
-  left: 0,
-  right: 0,
-  background: '#1e1e2f',
-  border: '1px solid #4f4f7a',
-  borderRadius: '6px',
-  maxHeight: '200px',
-  overflowY: 'auto',
-  zIndex: 100,
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-  marginTop: '4px',
-};
-const suggestionItemStyle: React.CSSProperties = {
-  padding: '0.75rem 1rem',
-  cursor: 'pointer',
-  color: '#e0e0e0',
-  borderBottom: '1px solid #4f4f7a',
-  transition: 'background-color 0.15s',
-};

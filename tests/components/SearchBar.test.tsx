@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SearchBar } from '@/components/home/SearchBar';
@@ -5,12 +6,12 @@ import { SearchBar } from '@/components/home/SearchBar';
 describe('SearchBar', () => {
   const mockT = (key: string) => key;
   const mockTranslate = (key: string, fallback: string) => fallback;
-  const mockOnQuestionChange = jest.fn();
-  const mockOnSubmit = jest.fn();
-  const mockOnServiceSelect = jest.fn();
-  const mockOnToggleSelector = jest.fn();
-  const mockOnFocus = jest.fn();
-  const mockOnHintClick = jest.fn();
+  const mockOnQuestionChange = vi.fn();
+  const mockOnSubmit = vi.fn();
+  const mockOnServiceSelect = vi.fn();
+  const mockOnToggleSelector = vi.fn();
+  const mockOnFocus = vi.fn();
+  const mockOnHintClick = vi.fn();
 
   const defaultProps = {
     lifeQuestion: '',
@@ -34,7 +35,7 @@ describe('SearchBar', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render search input with placeholder', () => {
@@ -86,10 +87,11 @@ describe('SearchBar', () => {
   });
 
   it('should call onSubmit when submitting form', () => {
-    render(<SearchBar {...defaultProps} />);
+    const { container } = render(<SearchBar {...defaultProps} />);
 
-    const form = screen.getByRole('form');
-    fireEvent.submit(form);
+    const form = container.querySelector('form');
+    expect(form).toBeInTheDocument();
+    fireEvent.submit(form!);
 
     expect(mockOnSubmit).toHaveBeenCalled();
   });
@@ -122,7 +124,8 @@ describe('SearchBar', () => {
   it('should display selected service icon', () => {
     render(<SearchBar {...defaultProps} selectedService="tarot" />);
 
-    expect(screen.getByText('🔮')).toBeInTheDocument();
+    const button = screen.getByRole('button', { name: /서비스 선택/i });
+    expect(button).toHaveTextContent('🔮');
   });
 
   it('should display all service icons in guide section', () => {

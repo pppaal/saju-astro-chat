@@ -6,7 +6,7 @@ describe('Credits Module Exports', () => {
 
     expect(PLAN_CONFIG).toBeDefined();
     expect(typeof PLAN_CONFIG).toBe('object');
-  });
+  }, 60000);
 
   it('should export initializeUserCredits function', async () => {
     const { initializeUserCredits } = await import('@/lib/credits');

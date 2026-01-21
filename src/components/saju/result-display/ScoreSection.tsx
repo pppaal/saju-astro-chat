@@ -1,5 +1,4 @@
 import React from 'react';
-import { cardLabel, cardDesc } from './AnalysisCard';
 import type { ComprehensiveScore } from '@/lib/Saju/saju-result.types';
 
 interface ScoreSectionProps {
@@ -8,62 +7,48 @@ interface ScoreSectionProps {
 
 export function ScoreSection({ score }: ScoreSectionProps) {
   return (
-    <div style={scoreContainer}>
-      <div style={scoreTotalBox}>
-        <div style={scoreTotalLabel}>종합 점수</div>
-        <div style={scoreTotalValue}>{score.overall ?? '-'}</div>
-        {score.grade && <div style={scoreTotalGrade}>{score.grade}등급</div>}
+    <div className="flex flex-col gap-6 bg-slate-800 p-6 rounded-xl border border-slate-600">
+      {/* Total Score Box */}
+      <div className="text-center p-4 bg-gradient-to-br from-blue-500/15 to-yellow-500/15 rounded-xl">
+        <div className="text-sm text-gray-400 mb-2">종합 점수</div>
+        <div className="text-4xl font-extrabold text-yellow-400">{score.overall ?? '-'}</div>
+        {score.grade && <div className="text-base text-blue-400 mt-1">{score.grade}등급</div>}
       </div>
 
-      <div style={scoreBreakdown}>
+      {/* Score Breakdown */}
+      <div className="flex flex-col gap-3" role="list" aria-label="점수 상세">
         {score.strength && (
-          <div style={scoreItem}>
-            <span style={scoreLabel}>신강/신약:</span>
-            <div style={scoreBar}>
-              <div style={{ ...scoreBarFill, width: `${Math.min(100, score.strength.total || 0)}%` }} />
-            </div>
-            <span style={scoreNum}>
-              {score.strength.total} ({score.strength.level})
-            </span>
-          </div>
+          <ScoreBar
+            label="신강/신약"
+            value={score.strength.total || 0}
+            suffix={score.strength.level}
+          />
         )}
 
         {score.geokguk && (
           <>
-            <div style={scoreItem}>
-              <span style={scoreLabel}>격국 순수도:</span>
-              <div style={scoreBar}>
-                <div style={{ ...scoreBarFill, width: `${Math.min(100, score.geokguk.purity || 0)}%` }} />
-              </div>
-              <span style={scoreNum}>{score.geokguk.purity}</span>
-            </div>
-            <div style={scoreItem}>
-              <span style={scoreLabel}>격국 안정도:</span>
-              <div style={scoreBar}>
-                <div style={{ ...scoreBarFill, width: `${Math.min(100, score.geokguk.stability || 0)}%` }} />
-              </div>
-              <span style={scoreNum}>{score.geokguk.stability}</span>
-            </div>
+            <ScoreBar label="격국 순수도" value={score.geokguk.purity || 0} />
+            <ScoreBar label="격국 안정도" value={score.geokguk.stability || 0} />
           </>
         )}
 
         {score.yongsin && (
-          <div style={scoreItem}>
-            <span style={scoreLabel}>용신 적합도:</span>
-            <div style={scoreBar}>
-              <div style={{ ...scoreBarFill, width: `${Math.min(100, score.yongsin.fitScore || 0)}%` }} />
-            </div>
-            <span style={scoreNum}>{score.yongsin.fitScore}</span>
-          </div>
+          <ScoreBar label="용신 적합도" value={score.yongsin.fitScore || 0} />
         )}
       </div>
 
-      {score.summary && <p style={{ ...cardDesc, marginTop: '1rem' }}>{score.summary}</p>}
+      {/* Summary */}
+      {score.summary && (
+        <p className="text-xs text-slate-400 leading-relaxed p-2 bg-white/[0.03] rounded-md mt-4">
+          {score.summary}
+        </p>
+      )}
 
+      {/* Strengths */}
       {score.strengths && score.strengths.length > 0 && (
-        <div style={{ marginTop: '0.75rem' }}>
-          <span style={{ ...cardLabel, display: 'block', marginBottom: '0.25rem' }}>강점:</span>
-          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#2dbd7f', fontSize: '0.85rem' }}>
+        <div className="mt-3">
+          <span className="block text-gray-400 text-sm mb-1">강점:</span>
+          <ul className="list-disc pl-5 text-emerald-400 text-sm" role="list">
             {score.strengths.map((s, i) => (
               <li key={i}>{s}</li>
             ))}
@@ -71,10 +56,11 @@ export function ScoreSection({ score }: ScoreSectionProps) {
         </div>
       )}
 
+      {/* Weaknesses */}
       {score.weaknesses && score.weaknesses.length > 0 && (
-        <div style={{ marginTop: '0.5rem' }}>
-          <span style={{ ...cardLabel, display: 'block', marginBottom: '0.25rem' }}>약점:</span>
-          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#ff6b6b', fontSize: '0.85rem' }}>
+        <div className="mt-2">
+          <span className="block text-gray-400 text-sm mb-1">약점:</span>
+          <ul className="list-disc pl-5 text-red-400 text-sm" role="list">
             {score.weaknesses.map((w, i) => (
               <li key={i}>{w}</li>
             ))}
@@ -82,10 +68,11 @@ export function ScoreSection({ score }: ScoreSectionProps) {
         </div>
       )}
 
+      {/* Recommendations */}
       {score.recommendations && score.recommendations.length > 0 && (
-        <div style={{ marginTop: '0.5rem' }}>
-          <span style={{ ...cardLabel, display: 'block', marginBottom: '0.25rem' }}>추천:</span>
-          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#ffd479', fontSize: '0.85rem' }}>
+        <div className="mt-2">
+          <span className="block text-gray-400 text-sm mb-1">추천:</span>
+          <ul className="list-disc pl-5 text-yellow-400 text-sm" role="list">
             {score.recommendations.map((r, i) => (
               <li key={i}>{r}</li>
             ))}
@@ -96,79 +83,32 @@ export function ScoreSection({ score }: ScoreSectionProps) {
   );
 }
 
-const scoreContainer: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1.5rem',
-  background: '#1e1e2f',
-  padding: '1.5rem',
-  borderRadius: 12,
-  border: '1px solid #4f4f7a',
-};
+interface ScoreBarProps {
+  label: string;
+  value: number;
+  suffix?: string;
+}
 
-const scoreTotalBox: React.CSSProperties = {
-  textAlign: 'center',
-  padding: '1rem',
-  background: 'linear-gradient(135deg, rgba(138,164,255,0.15), rgba(255,212,121,0.15))',
-  borderRadius: 12,
-};
-
-const scoreTotalLabel: React.CSSProperties = {
-  fontSize: '0.9rem',
-  color: '#a0a0a0',
-  marginBottom: '0.5rem',
-};
-
-const scoreTotalValue: React.CSSProperties = {
-  fontSize: '2.5rem',
-  fontWeight: 800,
-  color: '#ffd479',
-};
-
-const scoreTotalGrade: React.CSSProperties = {
-  fontSize: '1rem',
-  color: '#8aa4ff',
-  marginTop: '0.25rem',
-};
-
-const scoreBreakdown: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.75rem',
-};
-
-const scoreItem: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.5rem',
-};
-
-const scoreLabel: React.CSSProperties = {
-  width: 100,
-  fontSize: '0.8rem',
-  color: '#a0a0a0',
-  flexShrink: 0,
-};
-
-const scoreBar: React.CSSProperties = {
-  flex: 1,
-  height: 8,
-  background: '#161625',
-  borderRadius: 4,
-  overflow: 'hidden',
-};
-
-const scoreBarFill: React.CSSProperties = {
-  height: '100%',
-  background: 'linear-gradient(90deg, #8aa4ff, #ffd479)',
-  borderRadius: 4,
-  transition: 'width 0.5s ease',
-};
-
-const scoreNum: React.CSSProperties = {
-  minWidth: 80,
-  textAlign: 'right',
-  fontSize: '0.85rem',
-  color: '#e0e0e0',
-  flexShrink: 0,
-};
+function ScoreBar({ label, value, suffix }: ScoreBarProps) {
+  return (
+    <div className="flex items-center gap-2" role="listitem">
+      <span className="w-24 text-xs text-gray-400 shrink-0">{label}:</span>
+      <div
+        className="flex-1 h-2 bg-slate-700 rounded overflow-hidden"
+        role="progressbar"
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`${label} ${value}점`}
+      >
+        <div
+          className="h-full bg-gradient-to-r from-blue-400 to-yellow-400 rounded transition-all duration-500"
+          style={{ width: `${Math.min(100, value)}%` }}
+        />
+      </div>
+      <span className="min-w-[80px] text-right text-sm text-gray-200 shrink-0">
+        {value}{suffix ? ` (${suffix})` : ''}
+      </span>
+    </div>
+  );
+}

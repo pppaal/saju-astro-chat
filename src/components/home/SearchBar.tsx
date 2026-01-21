@@ -47,6 +47,7 @@ export const SearchBar = React.memo(function SearchBar({
     () => serviceOptions.find((s) => s.key === selectedService)?.icon || '🌟',
     [serviceOptions, selectedService]
   );
+  const selectServiceLabel = translate('landing.selectService', '서비스 선택');
 
   return (
     <div className={styles.questionSearchContainer} ref={containerRef}>
@@ -57,7 +58,8 @@ export const SearchBar = React.memo(function SearchBar({
             type="button"
             className={styles.serviceSelectBtn}
             onClick={onToggleSelector}
-            title={translate('landing.selectService', '서비스 선택')}
+            title={selectServiceLabel}
+            aria-label={selectServiceLabel}
           >
             <span className={styles.serviceSelectIcon}>
               {selectedIcon}

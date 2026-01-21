@@ -30,64 +30,40 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log error using logger
     logger.error("[ErrorBoundary] caught an error:", { error, errorInfo });
 
-    // Call optional error handler
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
-
-    // You can also log to an error reporting service here
-    // e.g., Sentry.captureException(error);
   }
 
   render() {
     if (this.state.hasError) {
-      // Custom fallback UI or default error message
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
       return (
         <div
-          style={{
-            padding: "2rem",
-            margin: "1rem",
-            borderRadius: "8px",
-            backgroundColor: "#fee",
-            border: "1px solid #fcc",
-            color: "#c00",
-          }}
+          className="p-8 m-4 rounded-lg bg-red-50 border border-red-200 text-red-700"
+          role="alert"
+          aria-live="assertive"
         >
-          <h2 style={{ marginTop: 0 }}>Something went wrong</h2>
-          <p>We&apos;re sorry, but something unexpected happened.</p>
-          <details style={{ marginTop: "1rem", cursor: "pointer" }}>
-            <summary>Error details</summary>
-            <pre
-              style={{
-                marginTop: "0.5rem",
-                padding: "1rem",
-                backgroundColor: "#fff",
-                borderRadius: "4px",
-                overflow: "auto",
-                fontSize: "0.875rem",
-              }}
-            >
+          <h2 className="mt-0 text-xl font-semibold mb-2">Something went wrong</h2>
+          <p className="mb-4">We&apos;re sorry, but something unexpected happened.</p>
+          <details className="mt-4 cursor-pointer">
+            <summary className="text-red-600 hover:text-red-800 transition-colors">
+              Error details
+            </summary>
+            <pre className="mt-2 p-4 bg-white rounded text-sm overflow-auto text-red-600">
               {this.state.error?.toString()}
             </pre>
           </details>
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
-            style={{
-              marginTop: "1rem",
-              padding: "0.5rem 1rem",
-              backgroundColor: "#c00",
-              color: "#fff",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
+            className="mt-4 px-4 py-2 bg-red-600 text-white border-none rounded cursor-pointer
+              hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+              transition-colors"
           >
             Try again
           </button>
@@ -105,51 +81,31 @@ export class ErrorBoundary extends Component<Props, State> {
 export function ChatErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "3rem 1rem",
-        textAlign: "center",
-        minHeight: "400px",
-      }}
+      className="flex flex-col items-center justify-center px-4 py-12 text-center min-h-[400px]"
+      role="alert"
+      aria-live="assertive"
     >
-      <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>💫</div>
-      <h2 style={{ marginBottom: "0.5rem", fontSize: "1.5rem", fontWeight: 600 }}>
-        Chat Connection Lost
-      </h2>
-      <p style={{ color: "#666", marginBottom: "2rem", maxWidth: "400px" }}>
+      <div className="text-6xl mb-4" aria-hidden="true">💫</div>
+      <h2 className="mb-2 text-2xl font-semibold">Chat Connection Lost</h2>
+      <p className="text-gray-500 mb-8 max-w-[400px]">
         We encountered an issue with the chat. Please try refreshing or starting a new conversation.
       </p>
-      <div style={{ display: "flex", gap: "1rem" }}>
+      <div className="flex gap-4">
         <button
           onClick={reset}
-          style={{
-            padding: "0.75rem 1.5rem",
-            backgroundColor: "#8b5cf6",
-            color: "#fff",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-            fontSize: "1rem",
-            fontWeight: 500,
-          }}
+          className="px-6 py-3 bg-violet-500 text-white border-none rounded-lg cursor-pointer
+            text-base font-medium hover:bg-violet-600
+            focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2
+            transition-colors"
         >
           Try Again
         </button>
         <button
           onClick={() => window.location.reload()}
-          style={{
-            padding: "0.75rem 1.5rem",
-            backgroundColor: "#e5e7eb",
-            color: "#374151",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-            fontSize: "1rem",
-            fontWeight: 500,
-          }}
+          className="px-6 py-3 bg-gray-200 text-gray-700 border-none rounded-lg cursor-pointer
+            text-base font-medium hover:bg-gray-300
+            focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2
+            transition-colors"
         >
           Refresh Page
         </button>

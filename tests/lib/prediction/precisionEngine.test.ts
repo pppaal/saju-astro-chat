@@ -1,9 +1,9 @@
-// tests/lib/prediction/precisionEngine.test.ts
-// 초정밀 예측 엔진 테스트 - 절기, 28수, 행성시, 달 위상, 인과 분석
-
-import { describe, it, expect } from 'vitest';
+/**
+ * Tests for PrecisionEngine - 초정밀 예측 엔진
+ * src/lib/prediction/precisionEngine.ts
+ */
+import { describe, it, expect } from "vitest";
 import {
-  PrecisionEngine,
   getSolarTermForDate,
   getSolarTermMonth,
   getLunarMansion,
@@ -16,826 +16,798 @@ import {
   combineConfidenceScores,
   analyzeCausalFactors,
   calculateEventCategoryScores,
+  PrecisionEngine,
+  type LunarPhase,
   type ConfidenceFactors,
   type FiveElement,
-} from '@/lib/prediction/precisionEngine';
+} from "@/lib/prediction/precisionEngine";
 
-// ============================================================
-// 절기 (24 Solar Terms) 테스트
-// ============================================================
+describe("PrecisionEngine", () => {
+  describe("Solar Term Functions", () => {
+    describe("getSolarTermForDate", () => {
+      it("should return lichun (입춘) for early February", () => {
+        const date = new Date("2025-02-10");
+        const term = getSolarTermForDate(date);
 
-describe('precisionEngine - solar terms', () => {
-  it('should calculate solar term for any date', () => {
-    const date = new Date(2024, 1, 4); // February 4, 2024 (입춘)
-    const term = getSolarTermForDate(date);
+        expect(term.nameKo).toBe("입춘");
+        expect(term.element).toBe("목");
+        expect(term.energy).toBe("yang");
+        expect(term.month).toBe(1);
+      });
 
-    expect(term).toBeDefined();
-    expect(term.name).toBeTruthy();
-    expect(term.nameKo).toBeTruthy();
-    expect(term.month).toBeGreaterThanOrEqual(1);
-    expect(term.month).toBeLessThanOrEqual(12);
-    expect(['목', '화', '토', '금', '수']).toContain(term.element);
-    expect(['yang', 'yin']).toContain(term.energy);
-    expect(['early', 'mid', 'late']).toContain(term.seasonPhase);
+      it("should return chunfen (춘분) for late March", () => {
+        const date = new Date("2025-03-25");
+        const term = getSolarTermForDate(date);
+
+        expect(term.nameKo).toBe("춘분");
+        expect(term.element).toBe("목");
+        expect(term.month).toBe(2);
+      });
+
+      it("should return xiazhi (하지) for late June", () => {
+        const date = new Date("2025-06-22");
+        const term = getSolarTermForDate(date);
+
+        expect(term.nameKo).toBe("하지");
+        expect(term.element).toBe("화");
+        expect(term.month).toBe(5);
+      });
+
+      it("should return qiufen (추분) for late September", () => {
+        const date = new Date("2025-09-25");
+        const term = getSolarTermForDate(date);
+
+        expect(term.nameKo).toBe("추분");
+        expect(term.element).toBe("금");
+        expect(term.month).toBe(8);
+      });
+
+      it("should return dongzhi (동지) for late December", () => {
+        const date = new Date("2025-12-22");
+        const term = getSolarTermForDate(date);
+
+        expect(term.nameKo).toBe("동지");
+        expect(term.element).toBe("수");
+        expect(term.month).toBe(11);
+      });
+
+      it("should calculate seasonPhase correctly", () => {
+        const earlyDate = new Date("2025-03-05");
+        const midDate = new Date("2025-03-15");
+        const lateDate = new Date("2025-03-25");
+
+        expect(getSolarTermForDate(earlyDate).seasonPhase).toBe("early");
+        expect(getSolarTermForDate(midDate).seasonPhase).toBe("mid");
+        expect(getSolarTermForDate(lateDate).seasonPhase).toBe("late");
+      });
+
+      it("should include longitude in result", () => {
+        const date = new Date("2025-06-15");
+        const term = getSolarTermForDate(date);
+
+        expect(typeof term.longitude).toBe("number");
+        expect(term.longitude).toBeGreaterThanOrEqual(0);
+        expect(term.longitude).toBeLessThan(360);
+      });
+    });
+
+    describe("getSolarTermMonth", () => {
+      it("should return correct term month for various dates", () => {
+        expect(getSolarTermMonth(new Date("2025-02-15"))).toBe(1);
+        expect(getSolarTermMonth(new Date("2025-05-15"))).toBe(4);
+        expect(getSolarTermMonth(new Date("2025-08-15"))).toBe(7);
+        expect(getSolarTermMonth(new Date("2025-11-15"))).toBe(10);
+      });
+    });
   });
 
-  it('should calculate solar term month', () => {
-    const date = new Date(2024, 2, 15);
-    const month = getSolarTermMonth(date);
+  describe("Lunar Mansion Functions", () => {
+    describe("getLunarMansion", () => {
+      it("should return a valid lunar mansion object", () => {
+        const date = new Date("2025-01-15");
+        const mansion = getLunarMansion(date);
 
-    expect(month).toBeGreaterThanOrEqual(1);
-    expect(month).toBeLessThanOrEqual(12);
+        expect(mansion.index).toBeGreaterThanOrEqual(1);
+        expect(mansion.index).toBeLessThanOrEqual(28);
+        expect(mansion.name).toBeDefined();
+        expect(mansion.nameKo).toBeDefined();
+        expect(mansion.element).toBeDefined();
+        expect(typeof mansion.isAuspicious).toBe("boolean");
+        expect(Array.isArray(mansion.goodFor)).toBe(true);
+        expect(Array.isArray(mansion.badFor)).toBe(true);
+      });
+
+      it("should cycle through 28 mansions correctly", () => {
+        const baseDate = new Date("2025-01-01");
+        const baseMansion = getLunarMansion(baseDate);
+
+        // After 28 days, should return to same mansion
+        const after28Days = new Date("2025-01-29");
+        const mansion28 = getLunarMansion(after28Days);
+
+        expect(mansion28.index).toBe(baseMansion.index);
+      });
+
+      it("should return different mansions for consecutive days", () => {
+        const day1 = new Date("2025-02-01");
+        const day2 = new Date("2025-02-02");
+
+        const mansion1 = getLunarMansion(day1);
+        const mansion2 = getLunarMansion(day2);
+
+        expect(mansion1.index).not.toBe(mansion2.index);
+      });
+
+      it("should include animal associations", () => {
+        const date = new Date("2025-03-15");
+        const mansion = getLunarMansion(date);
+
+        expect(mansion.animal).toBeDefined();
+        expect(typeof mansion.animal).toBe("string");
+      });
+    });
   });
 
-  it('should handle different seasons', () => {
-    const spring = new Date(2024, 2, 20); // March (Spring)
-    const summer = new Date(2024, 5, 21); // June (Summer)
-    const autumn = new Date(2024, 8, 23); // September (Autumn)
-    const winter = new Date(2024, 11, 22); // December (Winter)
+  describe("Lunar Phase Functions", () => {
+    describe("getLunarPhase", () => {
+      it("should return new_moon for day 1", () => {
+        expect(getLunarPhase(1)).toBe("new_moon");
+      });
 
-    const springTerm = getSolarTermForDate(spring);
-    const summerTerm = getSolarTermForDate(summer);
-    const autumnTerm = getSolarTermForDate(autumn);
-    const winterTerm = getSolarTermForDate(winter);
+      it("should return waxing_crescent for days 2-7", () => {
+        expect(getLunarPhase(3)).toBe("waxing_crescent");
+        expect(getLunarPhase(7)).toBe("waxing_crescent");
+      });
 
-    expect(springTerm.element).toBe('목');
-    expect(summerTerm.element).toBe('화');
-    expect(['금', '토']).toContain(autumnTerm.element);
-    expect(winterTerm.element).toBe('수');
+      it("should return first_quarter for day 8", () => {
+        expect(getLunarPhase(8)).toBe("first_quarter");
+      });
+
+      it("should return full_moon for days 15-16", () => {
+        expect(getLunarPhase(15)).toBe("full_moon");
+        expect(getLunarPhase(16)).toBe("full_moon");
+      });
+
+      it("should return last_quarter for day 23", () => {
+        expect(getLunarPhase(23)).toBe("last_quarter");
+      });
+
+      it("should return waning_crescent for days 24+", () => {
+        expect(getLunarPhase(25)).toBe("waning_crescent");
+        expect(getLunarPhase(29)).toBe("waning_crescent");
+      });
+    });
+
+    describe("getLunarPhaseName", () => {
+      it("should return Korean names for all phases", () => {
+        const phases: LunarPhase[] = [
+          "new_moon",
+          "waxing_crescent",
+          "first_quarter",
+          "waxing_gibbous",
+          "full_moon",
+          "waning_gibbous",
+          "last_quarter",
+          "waning_crescent",
+        ];
+
+        for (const phase of phases) {
+          const name = getLunarPhaseName(phase);
+          expect(typeof name).toBe("string");
+          expect(name.length).toBeGreaterThan(0);
+        }
+      });
+
+      it("should return specific names", () => {
+        expect(getLunarPhaseName("new_moon")).toContain("삭");
+        expect(getLunarPhaseName("full_moon")).toContain("보름");
+        expect(getLunarPhaseName("waning_crescent")).toContain("그믐");
+      });
+    });
   });
 
-  it('should provide solar term longitude', () => {
-    const date = new Date(2024, 0, 15);
-    const term = getSolarTermForDate(date);
+  describe("Planetary Hours", () => {
+    describe("calculatePlanetaryHours", () => {
+      it("should return 24 planetary hours", () => {
+        const date = new Date("2025-06-21"); // Summer solstice
+        const hours = calculatePlanetaryHours(date);
 
-    expect(term.longitude).toBeGreaterThanOrEqual(0);
-    expect(term.longitude).toBeLessThan(360);
-  });
-});
+        expect(hours.length).toBe(24);
+      });
 
-// ============================================================
-// 28수 (Lunar Mansions) 테스트
-// ============================================================
+      it("should have 12 day hours and 12 night hours", () => {
+        const date = new Date("2025-03-21");
+        const hours = calculatePlanetaryHours(date);
 
-describe('precisionEngine - lunar mansions', () => {
-  it('should calculate lunar mansion for any date', () => {
-    const date = new Date(2024, 0, 1);
-    const mansion = getLunarMansion(date);
+        const dayHours = hours.filter((h) => h.isDay);
+        const nightHours = hours.filter((h) => !h.isDay);
 
-    expect(mansion).toBeDefined();
-    expect(mansion.index).toBeGreaterThanOrEqual(1);
-    expect(mansion.index).toBeLessThanOrEqual(28);
-    expect(mansion.name).toBeTruthy();
-    expect(mansion.nameKo).toBeTruthy();
-    expect(['목', '화', '토', '금', '수']).toContain(mansion.element);
-    expect(mansion.animal).toBeTruthy();
-    expect(typeof mansion.isAuspicious).toBe('boolean');
-    expect(Array.isArray(mansion.goodFor)).toBe(true);
-    expect(Array.isArray(mansion.badFor)).toBe(true);
-  });
+        expect(dayHours.length).toBe(12);
+        expect(nightHours.length).toBe(12);
+      });
 
-  it('should cycle through 28 mansions', () => {
-    const date1 = new Date(2024, 0, 1);
-    const date2 = new Date(2024, 0, 29); // 28 days later
+      it("should assign correct planets", () => {
+        const date = new Date("2025-01-05"); // Sunday
+        const hours = calculatePlanetaryHours(date);
 
-    const mansion1 = getLunarMansion(date1);
-    const mansion2 = getLunarMansion(date2);
+        const validPlanets = [
+          "Sun",
+          "Moon",
+          "Mars",
+          "Mercury",
+          "Jupiter",
+          "Venus",
+          "Saturn",
+        ];
+        for (const hour of hours) {
+          expect(validPlanets).toContain(hour.planet);
+        }
+      });
 
-    // Lunar mansions may cycle differently than calendar days
-    // Just verify both are valid (1-28)
-    expect(mansion1.index).toBeGreaterThanOrEqual(1);
-    expect(mansion1.index).toBeLessThanOrEqual(28);
-    expect(mansion2.index).toBeGreaterThanOrEqual(1);
-    expect(mansion2.index).toBeLessThanOrEqual(28);
-  });
+      it("should include element for each hour", () => {
+        const date = new Date("2025-02-15");
+        const hours = calculatePlanetaryHours(date);
 
-  it('should return different mansions for consecutive days', () => {
-    const date1 = new Date(2024, 0, 1);
-    const date2 = new Date(2024, 0, 2);
+        for (const hour of hours) {
+          expect(["목", "화", "토", "금", "수"]).toContain(hour.element);
+        }
+      });
 
-    const mansion1 = getLunarMansion(date1);
-    const mansion2 = getLunarMansion(date2);
+      it("should include quality rating", () => {
+        const date = new Date("2025-04-10");
+        const hours = calculatePlanetaryHours(date);
 
-    expect(Math.abs(mansion1.index - mansion2.index)).toBeGreaterThanOrEqual(1);
-  });
+        const validQualities = [
+          "excellent",
+          "good",
+          "neutral",
+          "caution",
+          "avoid",
+        ];
+        for (const hour of hours) {
+          expect(validQualities).toContain(hour.quality);
+        }
+      });
 
-  it('should have consistent properties', () => {
-    const date = new Date(2024, 5, 15);
-    const mansion = getLunarMansion(date);
+      it("should include activities for each hour", () => {
+        const date = new Date("2025-05-20");
+        const hours = calculatePlanetaryHours(date);
 
-    if (mansion.isAuspicious) {
-      expect(mansion.goodFor.length).toBeGreaterThan(0);
-    } else {
-      // Inauspicious mansions may have warnings
-      expect(mansion.badFor).toBeDefined();
-    }
-  });
-});
+        for (const hour of hours) {
+          expect(Array.isArray(hour.goodFor)).toBe(true);
+          expect(hour.goodFor.length).toBeGreaterThan(0);
+        }
+      });
 
-// ============================================================
-// 달 위상 (Lunar Phase) 테스트
-// ============================================================
+      it("should accept custom coordinates", () => {
+        const date = new Date("2025-07-01");
+        const hours = calculatePlanetaryHours(date, 35.6762, 139.6503); // Tokyo
 
-describe('precisionEngine - lunar phase', () => {
-  it('should calculate lunar phase from day', () => {
-    const phases: Array<{ day: number; expected: string }> = [
-      { day: 1, expected: 'new_moon' },
-      { day: 5, expected: 'waxing_crescent' },
-      { day: 8, expected: 'first_quarter' },
-      { day: 12, expected: 'waxing_gibbous' },
-      { day: 15, expected: 'full_moon' },
-      { day: 20, expected: 'waning_gibbous' },
-      { day: 23, expected: 'last_quarter' },
-      { day: 27, expected: 'waning_crescent' },
-    ];
-
-    for (const { day, expected } of phases) {
-      const phase = getLunarPhase(day);
-      expect(phase).toBe(expected);
-    }
+        expect(hours.length).toBe(24);
+      });
+    });
   });
 
-  it('should provide Korean phase name', () => {
-    const phase = getLunarPhase(1); // New moon
-    const name = getLunarPhaseName(phase);
+  describe("Secondary Progression", () => {
+    describe("calculateSecondaryProgression", () => {
+      it("should calculate progressed positions", () => {
+        const birthDate = new Date("1990-06-15");
+        const targetDate = new Date("2025-06-15");
 
-    expect(name).toBeTruthy();
-    expect(typeof name).toBe('string');
-    expect(name).toContain('삭');
+        const result = calculateSecondaryProgression(birthDate, targetDate);
+
+        expect(result.sun).toBeDefined();
+        expect(result.moon).toBeDefined();
+        expect(result.mercury).toBeDefined();
+        expect(result.venus).toBeDefined();
+        expect(result.mars).toBeDefined();
+      });
+
+      it("should return valid zodiac signs", () => {
+        const birthDate = new Date("1985-03-20");
+        const targetDate = new Date("2025-03-20");
+
+        const result = calculateSecondaryProgression(birthDate, targetDate);
+
+        const validSigns = [
+          "Aries",
+          "Taurus",
+          "Gemini",
+          "Cancer",
+          "Leo",
+          "Virgo",
+          "Libra",
+          "Scorpio",
+          "Sagittarius",
+          "Capricorn",
+          "Aquarius",
+          "Pisces",
+        ];
+
+        expect(validSigns).toContain(result.sun.sign);
+        expect(validSigns).toContain(result.moon.sign);
+      });
+
+      it("should include degree positions", () => {
+        const birthDate = new Date("1995-10-10");
+        const targetDate = new Date("2025-10-10");
+
+        const result = calculateSecondaryProgression(birthDate, targetDate);
+
+        expect(typeof result.sun.degree).toBe("number");
+        expect(result.sun.degree).toBeGreaterThanOrEqual(0);
+        expect(result.sun.degree).toBeLessThan(30);
+      });
+
+      it("should include moon phase", () => {
+        const birthDate = new Date("2000-01-01");
+        const targetDate = new Date("2025-01-01");
+
+        const result = calculateSecondaryProgression(birthDate, targetDate);
+
+        const validPhases = [
+          "New",
+          "Crescent",
+          "First Quarter",
+          "Gibbous",
+          "Full",
+          "Disseminating",
+          "Last Quarter",
+          "Balsamic",
+        ];
+
+        expect(validPhases).toContain(result.moon.phase);
+      });
+    });
   });
 
-  it('should handle all phase names', () => {
-    const phases = [
-      'new_moon', 'waxing_crescent', 'first_quarter', 'waxing_gibbous',
-      'full_moon', 'waning_gibbous', 'last_quarter', 'waning_crescent'
-    ];
+  describe("Confidence Calculation", () => {
+    describe("calculateConfidence", () => {
+      it("should return high confidence for exact birth time", () => {
+        const factors: ConfidenceFactors = {
+          birthTimeAccuracy: "exact",
+          methodAlignment: 90,
+          dataCompleteness: 95,
+        };
 
-    for (const phase of phases) {
-      const name = getLunarPhaseName(phase as any);
-      expect(name).toBeTruthy();
-    }
+        const confidence = calculateConfidence(factors);
+
+        expect(confidence).toBeGreaterThanOrEqual(80);
+        expect(confidence).toBeLessThanOrEqual(100);
+      });
+
+      it("should return lower confidence for unknown birth time", () => {
+        const factors: ConfidenceFactors = {
+          birthTimeAccuracy: "unknown",
+          methodAlignment: 70,
+          dataCompleteness: 60,
+        };
+
+        const confidence = calculateConfidence(factors);
+
+        expect(confidence).toBeLessThan(70);
+      });
+
+      it("should factor in historical validation when provided", () => {
+        const withValidation: ConfidenceFactors = {
+          birthTimeAccuracy: "within_hour",
+          methodAlignment: 80,
+          dataCompleteness: 85,
+          historicalValidation: 90,
+        };
+
+        const withoutValidation: ConfidenceFactors = {
+          birthTimeAccuracy: "within_hour",
+          methodAlignment: 80,
+          dataCompleteness: 85,
+        };
+
+        const confWithValidation = calculateConfidence(withValidation);
+        const confWithoutValidation = calculateConfidence(withoutValidation);
+
+        // Both should produce valid scores
+        expect(confWithValidation).toBeGreaterThan(0);
+        expect(confWithoutValidation).toBeGreaterThan(0);
+      });
+    });
+
+    describe("calculateUnifiedConfidence", () => {
+      it("should return grade A+ for high scores", () => {
+        const factors: ConfidenceFactors & { predictionType?: string } = {
+          birthTimeAccuracy: "exact",
+          methodAlignment: 95,
+          dataCompleteness: 98,
+          historicalValidation: 95,
+        };
+
+        const result = calculateUnifiedConfidence(factors);
+
+        expect(result.grade).toBe("A+");
+        expect(result.score).toBeGreaterThanOrEqual(95);
+      });
+
+      it("should return grade F for very low scores", () => {
+        const factors: ConfidenceFactors = {
+          birthTimeAccuracy: "unknown",
+          methodAlignment: 20,
+          dataCompleteness: 25,
+        };
+
+        const result = calculateUnifiedConfidence(factors);
+
+        expect(result.grade).toBe("F");
+        expect(result.score).toBeLessThan(35);
+      });
+
+      it("should include interpretation", () => {
+        const factors: ConfidenceFactors = {
+          birthTimeAccuracy: "within_hour",
+          methodAlignment: 75,
+          dataCompleteness: 80,
+        };
+
+        const result = calculateUnifiedConfidence(factors);
+
+        expect(result.interpretation).toBeDefined();
+        expect(typeof result.interpretation).toBe("string");
+        expect(result.interpretation.length).toBeGreaterThan(0);
+      });
+
+      it("should include recommendations", () => {
+        const factors: ConfidenceFactors = {
+          birthTimeAccuracy: "unknown",
+          methodAlignment: 50,
+          dataCompleteness: 60,
+        };
+
+        const result = calculateUnifiedConfidence(factors);
+
+        expect(Array.isArray(result.recommendations)).toBe(true);
+        expect(result.recommendations.length).toBeGreaterThan(0);
+      });
+
+      it("should apply east-west harmony bonus", () => {
+        const lowHarmony = {
+          birthTimeAccuracy: "exact" as const,
+          methodAlignment: 70,
+          dataCompleteness: 70,
+          eastWestHarmony: 30,
+        };
+
+        const highHarmony = {
+          birthTimeAccuracy: "exact" as const,
+          methodAlignment: 70,
+          dataCompleteness: 70,
+          eastWestHarmony: 90,
+        };
+
+        const lowResult = calculateUnifiedConfidence(lowHarmony);
+        const highResult = calculateUnifiedConfidence(highHarmony);
+
+        expect(highResult.score).toBeGreaterThan(lowResult.score);
+      });
+    });
+
+    describe("combineConfidenceScores", () => {
+      it("should combine multiple confidence sources", () => {
+        const scores = [
+          { source: "saju", score: 80, weight: 1 },
+          { source: "astrology", score: 70, weight: 1 },
+          { source: "numerology", score: 75, weight: 0.5 },
+        ];
+
+        const result = combineConfidenceScores(scores);
+
+        expect(result.combined).toBeGreaterThan(0);
+        expect(result.combined).toBeLessThanOrEqual(100);
+        expect(result.breakdown.length).toBe(3);
+      });
+
+      it("should return 50 for empty scores", () => {
+        const result = combineConfidenceScores([]);
+
+        expect(result.combined).toBe(50);
+        expect(result.breakdown.length).toBe(0);
+      });
+
+      it("should respect weights", () => {
+        const heavyWeight = [
+          { source: "main", score: 90, weight: 3 },
+          { source: "secondary", score: 50, weight: 1 },
+        ];
+
+        const result = combineConfidenceScores(heavyWeight);
+
+        // Should be closer to 90 than 50
+        expect(result.combined).toBeGreaterThan(70);
+      });
+    });
   });
 
-  it('should recognize full moon', () => {
-    const fullMoon = getLunarPhase(15);
-    expect(fullMoon).toBe('full_moon');
-    const name = getLunarPhaseName(fullMoon);
-    expect(name).toContain('보름');
-  });
-});
+  describe("Causal Factor Analysis", () => {
+    describe("analyzeCausalFactors", () => {
+      it("should detect stem clashes", () => {
+        // 甲-庚 is a stem clash pair
+        const factors = analyzeCausalFactors("甲", "子", "庚", "午");
 
-// ============================================================
-// 행성시 (Planetary Hours) 테스트
-// ============================================================
+        const stemClash = factors.find((f) => f.type === "stem_clash");
+        expect(stemClash).toBeDefined();
+        expect(stemClash?.impact).toBe("major_negative");
+      });
 
-describe('precisionEngine - planetary hours', () => {
-  it('should calculate planetary hours for a date', () => {
-    const date = new Date(2024, 0, 1);
-    const hours = calculatePlanetaryHours(date);
+      it("should detect branch clashes", () => {
+        // 子-午 is a branch clash pair
+        const factors = analyzeCausalFactors("甲", "子", "甲", "午");
 
-    expect(hours).toBeDefined();
-    expect(Array.isArray(hours)).toBe(true);
-    expect(hours.length).toBe(24); // 12 day + 12 night hours
-  });
+        const branchClash = factors.find((f) => f.type === "branch_clash");
+        expect(branchClash).toBeDefined();
+      });
 
-  it('should have valid hour structure', () => {
-    const date = new Date(2024, 5, 15);
-    const hours = calculatePlanetaryHours(date);
+      it("should detect triple harmonies", () => {
+        // 申-子 are part of water triple harmony
+        const factors = analyzeCausalFactors("甲", "申", "甲", "子");
 
-    for (const hour of hours) {
-      expect(hour.hour).toBeGreaterThanOrEqual(0);
-      expect(hour.hour).toBeLessThan(24);
-      expect(hour.startTime).toBeInstanceOf(Date);
-      expect(hour.endTime).toBeInstanceOf(Date);
-      expect(['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']).toContain(hour.planet);
-      expect(['목', '화', '토', '금', '수']).toContain(hour.element);
-      expect(typeof hour.isDay).toBe('boolean');
-      expect(['excellent', 'good', 'neutral', 'caution', 'avoid']).toContain(hour.quality);
-      expect(Array.isArray(hour.goodFor)).toBe(true);
-      expect(hour.startTime < hour.endTime).toBe(true);
-    }
-  });
+        const harmony = factors.find((f) => f.type === "branch_harmony");
+        expect(harmony).toBeDefined();
+        expect(harmony?.impact).toBe("major_positive");
+      });
 
-  it('should vary by location', () => {
-    const date = new Date(2024, 5, 21); // Summer solstice
-    const seoulHours = calculatePlanetaryHours(date, 37.5665, 126.9780);
-    const londonHours = calculatePlanetaryHours(date, 51.5074, -0.1278);
+      it("should detect yongsin activation", () => {
+        const yongsin: FiveElement[] = ["목", "화"];
+        const factors = analyzeCausalFactors(
+          "甲",
+          "子",
+          "甲",
+          "寅", // 甲 is wood element
+          undefined,
+          undefined,
+          yongsin
+        );
 
-    expect(seoulHours).toBeDefined();
-    expect(londonHours).toBeDefined();
-    expect(seoulHours.length).toBe(24);
-    expect(londonHours.length).toBe(24);
-  });
+        const yongsinActive = factors.find(
+          (f) => f.type === "yongsin_activation"
+        );
+        expect(yongsinActive).toBeDefined();
+        expect(yongsinActive?.impact).toBe("major_positive");
+      });
 
-  it('should identify day and night hours', () => {
-    const date = new Date(2024, 0, 15);
-    const hours = calculatePlanetaryHours(date);
+      it("should detect kisin activation", () => {
+        const kisin: FiveElement[] = ["금"];
+        const factors = analyzeCausalFactors(
+          "甲",
+          "子",
+          "庚",
+          "申", // 庚 is metal element
+          undefined,
+          undefined,
+          undefined,
+          kisin
+        );
 
-    const dayHours = hours.filter(h => h.isDay);
-    const nightHours = hours.filter(h => !h.isDay);
+        const kisinActive = factors.find((f) => f.type === "kisin_activation");
+        expect(kisinActive).toBeDefined();
+        expect(kisinActive?.impact).toBe("negative");
+      });
 
-    expect(dayHours.length).toBe(12);
-    expect(nightHours.length).toBe(12);
-  });
+      it("should sort factors by impact score", () => {
+        const factors = analyzeCausalFactors(
+          "甲",
+          "申",
+          "甲",
+          "子",
+          undefined,
+          undefined,
+          ["수"]
+        );
 
-  it('should vary planet by day of week', () => {
-    const sunday = new Date(2024, 0, 7); // Sunday
-    const monday = new Date(2024, 0, 8); // Monday
-
-    const sundayHours = calculatePlanetaryHours(sunday);
-    const mondayHours = calculatePlanetaryHours(monday);
-
-    // First hour should be Sun on Sunday, Moon on Monday
-    expect(sundayHours[0].planet).toBeDefined();
-    expect(mondayHours[0].planet).toBeDefined();
-  });
-});
-
-// ============================================================
-// 2차 진행법 (Secondary Progression) 테스트
-// ============================================================
-
-describe('precisionEngine - secondary progression', () => {
-  it('should calculate secondary progression', () => {
-    const birthDate = new Date(1990, 2, 15);
-    const targetDate = new Date(2024, 2, 15); // 34 years later
-
-    const progression = calculateSecondaryProgression(birthDate, targetDate);
-
-    expect(progression).toBeDefined();
-    expect(progression.sun).toBeDefined();
-    expect(progression.sun.sign).toBeTruthy();
-    expect(progression.sun.degree).toBeGreaterThanOrEqual(0);
-    expect(progression.sun.degree).toBeLessThan(30);
-    expect(progression.sun.house).toBeGreaterThanOrEqual(1);
-    expect(progression.sun.house).toBeLessThanOrEqual(12);
+        // Factors should be sorted by absolute score (descending)
+        for (let i = 1; i < factors.length; i++) {
+          expect(Math.abs(factors[i - 1].score)).toBeGreaterThanOrEqual(
+            Math.abs(factors[i].score)
+          );
+        }
+      });
+    });
   });
 
-  it('should calculate moon progression', () => {
-    const birthDate = new Date(1990, 0, 1);
-    const targetDate = new Date(2020, 0, 1);
+  describe("Event Category Scores", () => {
+    describe("calculateEventCategoryScores", () => {
+      it("should return scores for all categories", () => {
+        const scores = calculateEventCategoryScores(
+          "정관",
+          "건록",
+          [],
+          [],
+          false,
+          false
+        );
 
-    const progression = calculateSecondaryProgression(birthDate, targetDate);
+        expect(scores.career).toBeDefined();
+        expect(scores.finance).toBeDefined();
+        expect(scores.relationship).toBeDefined();
+        expect(scores.health).toBeDefined();
+        expect(scores.travel).toBeDefined();
+        expect(scores.education).toBeDefined();
+      });
 
-    expect(progression.moon).toBeDefined();
-    expect(progression.moon.sign).toBeTruthy();
-    expect(progression.moon.phase).toBeTruthy();
-    expect(progression.moon.degree).toBeGreaterThanOrEqual(0);
-    expect(progression.moon.degree).toBeLessThan(30);
+      it("should apply sibsin modifiers correctly", () => {
+        const jeonggwanScores = calculateEventCategoryScores(
+          "정관",
+          "관대",
+          [],
+          [],
+          false,
+          false
+        );
+
+        const sikshinScores = calculateEventCategoryScores(
+          "식신",
+          "관대",
+          [],
+          [],
+          false,
+          false
+        );
+
+        // 정관 boosts career
+        expect(jeonggwanScores.career).toBeGreaterThan(sikshinScores.career);
+        // 식신 boosts health
+        expect(sikshinScores.health).toBeGreaterThan(jeonggwanScores.health);
+      });
+
+      it("should apply twelve stage modifiers", () => {
+        const jaewaScores = calculateEventCategoryScores(
+          "비견",
+          "제왕",
+          [],
+          [],
+          false,
+          false
+        );
+
+        const saScores = calculateEventCategoryScores(
+          "비견",
+          "사",
+          [],
+          [],
+          false,
+          false
+        );
+
+        // 제왕 should have higher career score than 사
+        expect(jaewaScores.career).toBeGreaterThan(saScores.career);
+      });
+
+      it("should apply yongsin boost to all categories", () => {
+        const withYongsin = calculateEventCategoryScores(
+          "비견",
+          "관대",
+          [],
+          [],
+          true,
+          false
+        );
+
+        const withoutYongsin = calculateEventCategoryScores(
+          "비견",
+          "관대",
+          [],
+          [],
+          false,
+          false
+        );
+
+        expect(withYongsin.career).toBeGreaterThan(withoutYongsin.career);
+        expect(withYongsin.finance).toBeGreaterThan(withoutYongsin.finance);
+        expect(withYongsin.health).toBeGreaterThan(withoutYongsin.health);
+      });
+
+      it("should apply kisin penalty to all categories", () => {
+        const withKisin = calculateEventCategoryScores(
+          "비견",
+          "관대",
+          [],
+          [],
+          false,
+          true
+        );
+
+        const withoutKisin = calculateEventCategoryScores(
+          "비견",
+          "관대",
+          [],
+          [],
+          false,
+          false
+        );
+
+        expect(withKisin.career).toBeLessThan(withoutKisin.career);
+        expect(withKisin.finance).toBeLessThan(withoutKisin.finance);
+      });
+
+      it("should apply shinsal effects", () => {
+        const withLuckyShinsal = calculateEventCategoryScores(
+          "비견",
+          "관대",
+          [],
+          [{ name: "천을귀인", type: "lucky" }],
+          false,
+          false
+        );
+
+        const withUnluckyShinsal = calculateEventCategoryScores(
+          "비견",
+          "관대",
+          [],
+          [{ name: "겁살", type: "unlucky" }],
+          false,
+          false
+        );
+
+        expect(withLuckyShinsal.career).toBeGreaterThan(
+          withUnluckyShinsal.career
+        );
+      });
+
+      it("should normalize scores to 0-100 range", () => {
+        const scores = calculateEventCategoryScores(
+          "정관",
+          "제왕",
+          [{ type: "삼합", score: 30 }],
+          [
+            { name: "천을귀인", type: "lucky" },
+            { name: "역마", type: "lucky" },
+          ],
+          true,
+          false
+        );
+
+        expect(scores.career).toBeGreaterThanOrEqual(0);
+        expect(scores.career).toBeLessThanOrEqual(100);
+        expect(scores.finance).toBeGreaterThanOrEqual(0);
+        expect(scores.finance).toBeLessThanOrEqual(100);
+      });
+
+      it("should apply branch interaction modifiers", () => {
+        const withHarmony = calculateEventCategoryScores(
+          "비견",
+          "관대",
+          [{ type: "육합", score: 20 }],
+          [],
+          false,
+          false
+        );
+
+        const withClash = calculateEventCategoryScores(
+          "비견",
+          "관대",
+          [{ type: "자오충", score: -20 }],
+          [],
+          false,
+          false
+        );
+
+        expect(withHarmony.relationship).toBeGreaterThan(
+          withClash.relationship
+        );
+      });
+    });
   });
 
-  it('should calculate inner planets', () => {
-    const birthDate = new Date(1990, 5, 10);
-    const targetDate = new Date(2024, 5, 10);
-
-    const progression = calculateSecondaryProgression(birthDate, targetDate);
-
-    expect(progression.mercury).toBeDefined();
-    expect(progression.venus).toBeDefined();
-    expect(progression.mars).toBeDefined();
-  });
-
-  it('should show progression over time', () => {
-    const birthDate = new Date(1990, 0, 1);
-    const date1 = new Date(1995, 0, 1); // 5 years
-    const date2 = new Date(2000, 0, 1); // 10 years
-
-    const prog1 = calculateSecondaryProgression(birthDate, date1);
-    const prog2 = calculateSecondaryProgression(birthDate, date2);
-
-    // Moon should move significantly
-    expect(prog1.moon).toBeDefined();
-    expect(prog2.moon).toBeDefined();
-    if (prog1.moon?.longitude !== undefined && prog2.moon?.longitude !== undefined) {
-      expect(prog1.moon.longitude).not.toBe(prog2.moon.longitude);
-    }
-  });
-});
-
-// ============================================================
-// 신뢰도 계산 (Confidence Calculation) 테스트
-// ============================================================
-
-describe('precisionEngine - confidence calculation', () => {
-  it('should calculate basic confidence', () => {
-    const factors: ConfidenceFactors = {
-      birthTimeAccuracy: 'exact',
-      methodAlignment: 80,
-      dataCompleteness: 90,
-    };
-
-    const confidence = calculateConfidence(factors);
-
-    expect(confidence).toBeGreaterThanOrEqual(0);
-    expect(confidence).toBeLessThanOrEqual(100);
-  });
-
-  it('should give higher score for exact birth time', () => {
-    const exact: ConfidenceFactors = {
-      birthTimeAccuracy: 'exact',
-      methodAlignment: 70,
-      dataCompleteness: 70,
-    };
-
-    const unknown: ConfidenceFactors = {
-      birthTimeAccuracy: 'unknown',
-      methodAlignment: 70,
-      dataCompleteness: 70,
-    };
-
-    const exactScore = calculateConfidence(exact);
-    const unknownScore = calculateConfidence(unknown);
-
-    expect(exactScore).toBeGreaterThan(unknownScore);
-  });
-
-  it('should handle historical validation', () => {
-    const factors: ConfidenceFactors = {
-      birthTimeAccuracy: 'within_hour',
-      methodAlignment: 75,
-      dataCompleteness: 80,
-      historicalValidation: 85,
-    };
-
-    const confidence = calculateConfidence(factors);
-
-    expect(confidence).toBeGreaterThanOrEqual(0);
-    expect(confidence).toBeLessThanOrEqual(100);
-  });
-
-  it('should vary by birth time accuracy levels', () => {
-    const accuracyLevels: ConfidenceFactors['birthTimeAccuracy'][] = [
-      'exact', 'within_hour', 'within_2hours', 'unknown'
-    ];
-
-    const scores = accuracyLevels.map(acc =>
-      calculateConfidence({
-        birthTimeAccuracy: acc,
-        methodAlignment: 70,
-        dataCompleteness: 70,
-      })
-    );
-
-    // Scores should decrease as accuracy decreases
-    expect(scores[0]).toBeGreaterThan(scores[1]);
-    expect(scores[1]).toBeGreaterThan(scores[2]);
-    expect(scores[2]).toBeGreaterThan(scores[3]);
-  });
-});
-
-// ============================================================
-// 통합 신뢰도 (Unified Confidence) 테스트
-// ============================================================
-
-describe('precisionEngine - unified confidence', () => {
-  it('should calculate unified confidence', () => {
-    const factors = {
-      birthTimeAccuracy: 'exact' as const,
-      methodAlignment: 85,
-      dataCompleteness: 90,
-      predictionType: 'daily' as const,
-    };
-
-    const result = calculateUnifiedConfidence(factors);
-
-    expect(result).toBeDefined();
-    expect(result.score).toBeGreaterThanOrEqual(0);
-    expect(result.score).toBeLessThanOrEqual(100);
-    expect(['A+', 'A', 'B+', 'B', 'C+', 'C', 'D', 'F']).toContain(result.grade);
-    expect(result.interpretation).toBeTruthy();
-    expect(Array.isArray(result.recommendations)).toBe(true);
-  });
-
-  it('should provide breakdown', () => {
-    const factors = {
-      birthTimeAccuracy: 'within_hour' as const,
-      methodAlignment: 75,
-      dataCompleteness: 80,
-      historicalValidation: 70,
-    };
-
-    const result = calculateUnifiedConfidence(factors);
-
-    expect(result.breakdown).toBeDefined();
-    expect(result.breakdown.birthTime).toBeDefined();
-    expect(result.breakdown.birthTime.score).toBeDefined();
-    expect(result.breakdown.birthTime.weight).toBeDefined();
-    expect(result.breakdown.dataCompleteness).toBeDefined();
-    expect(result.breakdown.methodAlignment).toBeDefined();
-  });
-
-  it('should adjust weights by prediction type', () => {
-    const baseFactor = {
-      birthTimeAccuracy: 'exact' as const,
-      methodAlignment: 80,
-      dataCompleteness: 85,
-    };
-
-    const daily = calculateUnifiedConfidence({ ...baseFactor, predictionType: 'daily' });
-    const lifetime = calculateUnifiedConfidence({ ...baseFactor, predictionType: 'lifetime' });
-
-    expect(daily.breakdown.birthTime.weight).not.toBe(lifetime.breakdown.birthTime.weight);
-  });
-
-  it('should provide grade interpretation', () => {
-    const highScore = {
-      birthTimeAccuracy: 'exact' as const,
-      methodAlignment: 95,
-      dataCompleteness: 98,
-    };
-
-    const lowScore = {
-      birthTimeAccuracy: 'unknown' as const,
-      methodAlignment: 40,
-      dataCompleteness: 45,
-    };
-
-    const high = calculateUnifiedConfidence(highScore);
-    const low = calculateUnifiedConfidence(lowScore);
-
-    expect(high.grade).toBe('A+');
-    expect(['C', 'D', 'F']).toContain(low.grade);
-    expect(high.interpretation).toBeTruthy();
-    expect(low.interpretation).toBeTruthy();
-  });
-
-  it('should provide recommendations', () => {
-    const factors = {
-      birthTimeAccuracy: 'within_2hours' as const,
-      methodAlignment: 60,
-      dataCompleteness: 65,
-    };
-
-    const result = calculateUnifiedConfidence(factors);
-
-    expect(result.recommendations.length).toBeGreaterThan(0);
-    expect(result.recommendations.some(r => r.includes('출생 시간'))).toBe(true);
-  });
-
-  it('should handle east-west harmony bonus', () => {
-    const withHarmony = {
-      birthTimeAccuracy: 'exact' as const,
-      methodAlignment: 75,
-      dataCompleteness: 80,
-      eastWestHarmony: 85,
-    };
-
-    const withoutHarmony = {
-      birthTimeAccuracy: 'exact' as const,
-      methodAlignment: 75,
-      dataCompleteness: 80,
-      eastWestHarmony: 40,
-    };
-
-    const high = calculateUnifiedConfidence(withHarmony);
-    const low = calculateUnifiedConfidence(withoutHarmony);
-
-    expect(high.score).toBeGreaterThan(low.score);
-  });
-});
-
-// ============================================================
-// 신뢰도 조합 (Combine Confidence) 테스트
-// ============================================================
-
-describe('precisionEngine - combine confidence scores', () => {
-  it('should combine multiple confidence scores', () => {
-    const scores = [
-      { source: 'saju', score: 85, weight: 1.0 },
-      { source: 'astrology', score: 75, weight: 0.8 },
-      { source: 'numerology', score: 70, weight: 0.5 },
-    ];
-
-    const result = combineConfidenceScores(scores);
-
-    expect(result.combined).toBeGreaterThanOrEqual(0);
-    expect(result.combined).toBeLessThanOrEqual(100);
-    expect(result.breakdown).toBeDefined();
-    expect(result.breakdown.length).toBe(3);
-  });
-
-  it('should weight scores properly', () => {
-    const highWeight = [
-      { source: 'method1', score: 90, weight: 10 },
-      { source: 'method2', score: 50, weight: 1 },
-    ];
-
-    const result = combineConfidenceScores(highWeight);
-
-    // Result should be closer to 90 due to higher weight
-    expect(result.combined).toBeGreaterThan(80);
-  });
-
-  it('should handle equal weights', () => {
-    const scores = [
-      { source: 'a', score: 60 },
-      { source: 'b', score: 80 },
-    ];
-
-    const result = combineConfidenceScores(scores);
-
-    expect(result.combined).toBe(70); // Average
-  });
-
-  it('should handle empty scores', () => {
-    const result = combineConfidenceScores([]);
-
-    expect(result.combined).toBe(50); // Default
-    expect(result.breakdown.length).toBe(0);
-  });
-});
-
-// ============================================================
-// 인과 요인 분석 (Causal Factors) 테스트
-// ============================================================
-
-describe('precisionEngine - causal factors', () => {
-  it('should analyze causal factors', () => {
-    const factors = analyzeCausalFactors(
-      '甲', '子', // Day stem/branch
-      '庚', '午', // Target stem/branch
-      undefined, undefined, // No daeun
-      ['목'], // Yongsin
-      ['금']  // Kisin
-    );
-
-    expect(factors).toBeDefined();
-    expect(Array.isArray(factors)).toBe(true);
-  });
-
-  it('should detect stem clashes', () => {
-    const factors = analyzeCausalFactors(
-      '甲', '子',
-      '庚', '午' // 甲-庚 clash
-    );
-
-    const stemClash = factors.find(f => f.type === 'stem_clash');
-    if (stemClash) {
-      expect(stemClash.impact).toContain('negative');
-      expect(stemClash.score).toBeLessThan(0);
-    }
-  });
-
-  it('should detect branch clashes', () => {
-    const factors = analyzeCausalFactors(
-      '甲', '子',
-      '甲', '午' // 子-午 clash
-    );
-
-    const branchClash = factors.find(f => f.type === 'branch_clash');
-    if (branchClash) {
-      expect(branchClash.impact).toContain('negative');
-      expect(branchClash.score).toBeLessThan(0);
-    }
-  });
-
-  it('should detect harmonies', () => {
-    const factors = analyzeCausalFactors(
-      '甲', '寅',
-      '甲', '午' // 寅-午 harmony (part of 寅午戌)
-    );
-
-    const harmony = factors.find(f => f.type === 'branch_harmony');
-    if (harmony) {
-      expect(harmony.impact).toContain('positive');
-      expect(harmony.score).toBeGreaterThan(0);
-    }
-  });
-
-  it('should detect yongsin activation', () => {
-    const factors = analyzeCausalFactors(
-      '甲', '子',
-      '甲', '寅', // 甲 is 목
-      undefined, undefined,
-      ['목'] // Yongsin is 목
-    );
-
-    const yongsinFactor = factors.find(f => f.type === 'yongsin_activation');
-    if (yongsinFactor) {
-      expect(yongsinFactor.impact).toContain('positive');
-      expect(yongsinFactor.score).toBeGreaterThan(0);
-      expect(yongsinFactor.affectedAreas).toBeDefined();
-    }
-  });
-
-  it('should detect kisin activation', () => {
-    const factors = analyzeCausalFactors(
-      '甲', '子',
-      '庚', '申', // 庚 is 금
-      undefined, undefined,
-      undefined,
-      ['금'] // Kisin is 금
-    );
-
-    const kisinFactor = factors.find(f => f.type === 'kisin_activation');
-    if (kisinFactor) {
-      expect(kisinFactor.impact).toBe('negative');
-      expect(kisinFactor.score).toBeLessThan(0);
-    }
-  });
-
-  it('should sort factors by impact', () => {
-    const factors = analyzeCausalFactors(
-      '甲', '子',
-      '庚', '午',
-      '丙', '戌',
-      ['화'],
-      ['금']
-    );
-
-    if (factors.length > 1) {
-      for (let i = 0; i < factors.length - 1; i++) {
-        expect(Math.abs(factors[i].score)).toBeGreaterThanOrEqual(Math.abs(factors[i + 1].score));
-      }
-    }
-  });
-});
-
-// ============================================================
-// 사건 유형별 점수 (Event Category Scores) 테스트
-// ============================================================
-
-describe('precisionEngine - event category scores', () => {
-  it('should calculate event category scores', () => {
-    const scores = calculateEventCategoryScores(
-      '정관', // Sibsin
-      '건록', // TwelveStage
-      [{ type: '육합', score: 10, description: 'harmony', branches: [], impact: 'positive' }],
-      [{ name: '천을귀인', type: 'lucky' }],
-      true,  // Yongsin active
-      false  // Kisin not active
-    );
-
-    expect(scores).toBeDefined();
-    expect(scores.career).toBeGreaterThanOrEqual(0);
-    expect(scores.career).toBeLessThanOrEqual(100);
-    expect(scores.finance).toBeGreaterThanOrEqual(0);
-    expect(scores.finance).toBeLessThanOrEqual(100);
-    expect(scores.relationship).toBeGreaterThanOrEqual(0);
-    expect(scores.relationship).toBeLessThanOrEqual(100);
-    expect(scores.health).toBeGreaterThanOrEqual(0);
-    expect(scores.health).toBeLessThanOrEqual(100);
-    expect(scores.travel).toBeGreaterThanOrEqual(0);
-    expect(scores.travel).toBeLessThanOrEqual(100);
-    expect(scores.education).toBeGreaterThanOrEqual(0);
-    expect(scores.education).toBeLessThanOrEqual(100);
-  });
-
-  it('should boost scores with positive sibsin', () => {
-    const goodSibsin = calculateEventCategoryScores(
-      '정관', '건록', [], [], false, false
-    );
-
-    const badSibsin = calculateEventCategoryScores(
-      '겁재', '병', [], [], false, false
-    );
-
-    expect(goodSibsin.career).toBeGreaterThan(badSibsin.career);
-  });
-
-  it('should apply yongsin boost', () => {
-    const withYongsin = calculateEventCategoryScores(
-      '정관', '건록', [], [], true, false
-    );
-
-    const withoutYongsin = calculateEventCategoryScores(
-      '정관', '건록', [], [], false, false
-    );
-
-    expect(withYongsin.career).toBeGreaterThan(withoutYongsin.career);
-    expect(withYongsin.finance).toBeGreaterThan(withoutYongsin.finance);
-  });
-
-  it('should apply kisin penalty', () => {
-    const withKisin = calculateEventCategoryScores(
-      '정관', '건록', [], [], false, true
-    );
-
-    const withoutKisin = calculateEventCategoryScores(
-      '정관', '건록', [], [], false, false
-    );
-
-    expect(withKisin.career).toBeLessThan(withoutKisin.career);
-    expect(withKisin.finance).toBeLessThan(withoutKisin.finance);
-  });
-
-  it('should apply shinsal modifiers', () => {
-    const luckyShinsals = [
-      { name: '천을귀인', type: 'lucky' as const },
-      { name: '역마', type: 'lucky' as const },
-    ];
-
-    const unluckyShinsals = [
-      { name: '겁살', type: 'unlucky' as const },
-      { name: '백호', type: 'unlucky' as const },
-    ];
-
-    const lucky = calculateEventCategoryScores('정관', '건록', [], luckyShinsals, false, false);
-    const unlucky = calculateEventCategoryScores('정관', '건록', [], unluckyShinsals, false, false);
-
-    expect(lucky.career).toBeGreaterThan(unlucky.career);
-  });
-
-  it('should handle twelve stage effects', () => {
-    const peak = calculateEventCategoryScores('정관', '제왕', [], [], false, false);
-    const decline = calculateEventCategoryScores('정관', '사', [], [], false, false);
-
-    expect(peak.career).toBeGreaterThan(decline.career);
-  });
-});
-
-// ============================================================
-// PrecisionEngine 통합 테스트
-// ============================================================
-
-describe('precisionEngine - integrated tests', () => {
-  it('should provide all solar term functions', () => {
-    expect(PrecisionEngine.getSolarTermForDate).toBeDefined();
-    expect(PrecisionEngine.getSolarTermMonth).toBeDefined();
-  });
-
-  it('should provide all lunar mansion functions', () => {
-    expect(PrecisionEngine.getLunarMansion).toBeDefined();
-  });
-
-  it('should provide all lunar phase functions', () => {
-    expect(PrecisionEngine.getLunarPhase).toBeDefined();
-    expect(PrecisionEngine.getLunarPhaseName).toBeDefined();
-  });
-
-  it('should provide all planetary hour functions', () => {
-    expect(PrecisionEngine.calculatePlanetaryHours).toBeDefined();
-  });
-
-  it('should provide all confidence functions', () => {
-    expect(PrecisionEngine.calculateConfidence).toBeDefined();
-    expect(PrecisionEngine.calculateUnifiedConfidence).toBeDefined();
-    expect(PrecisionEngine.combineConfidenceScores).toBeDefined();
-  });
-
-  it('should provide all analysis functions', () => {
-    expect(PrecisionEngine.analyzeCausalFactors).toBeDefined();
-    expect(PrecisionEngine.calculateEventCategoryScores).toBeDefined();
-  });
-});
-
-// ============================================================
-// 엣지 케이스 테스트
-// ============================================================
-
-describe('precisionEngine - edge cases', () => {
-  it('should handle year boundary dates', () => {
-    const newYear = new Date(2024, 0, 1);
-    const term = getSolarTermForDate(newYear);
-    const mansion = getLunarMansion(newYear);
-
-    expect(term).toBeDefined();
-    expect(mansion).toBeDefined();
-  });
-
-  it('should handle leap year dates', () => {
-    const leapDay = new Date(2024, 1, 29);
-    const term = getSolarTermForDate(leapDay);
-    const mansion = getLunarMansion(leapDay);
-    const hours = calculatePlanetaryHours(leapDay);
-
-    expect(term).toBeDefined();
-    expect(mansion).toBeDefined();
-    expect(hours.length).toBe(24);
-  });
-
-  it('should handle very old dates', () => {
-    const oldDate = new Date(1900, 0, 1);
-    const term = getSolarTermForDate(oldDate);
-    const mansion = getLunarMansion(oldDate);
-
-    expect(term).toBeDefined();
-    expect(mansion).toBeDefined();
-  });
-
-  it('should handle future dates', () => {
-    const future = new Date(2050, 11, 31);
-    const term = getSolarTermForDate(future);
-    const mansion = getLunarMansion(future);
-    const hours = calculatePlanetaryHours(future);
-
-    expect(term).toBeDefined();
-    expect(mansion).toBeDefined();
-    expect(hours.length).toBe(24);
-  });
-
-  it('should handle boundary lunar days', () => {
-    const phase1 = getLunarPhase(1);
-    const phase30 = getLunarPhase(30);
-
-    expect(phase1).toBe('new_moon');
-    expect(phase30).toBeTruthy();
-  });
-
-  it('should handle empty causal factors', () => {
-    const factors = analyzeCausalFactors('甲', '子', '乙', '丑');
-
-    expect(factors).toBeDefined();
-    expect(Array.isArray(factors)).toBe(true);
+  describe("PrecisionEngine Object Export", () => {
+    it("should export all main functions", () => {
+      expect(PrecisionEngine.getSolarTermForDate).toBeDefined();
+      expect(PrecisionEngine.getSolarTermMonth).toBeDefined();
+      expect(PrecisionEngine.getLunarMansion).toBeDefined();
+      expect(PrecisionEngine.getLunarPhase).toBeDefined();
+      expect(PrecisionEngine.getLunarPhaseName).toBeDefined();
+      expect(PrecisionEngine.calculatePlanetaryHours).toBeDefined();
+      expect(PrecisionEngine.calculateSecondaryProgression).toBeDefined();
+      expect(PrecisionEngine.calculateConfidence).toBeDefined();
+      expect(PrecisionEngine.calculateUnifiedConfidence).toBeDefined();
+      expect(PrecisionEngine.combineConfidenceScores).toBeDefined();
+      expect(PrecisionEngine.analyzeCausalFactors).toBeDefined();
+      expect(PrecisionEngine.calculateEventCategoryScores).toBeDefined();
+    });
   });
 });

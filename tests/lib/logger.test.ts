@@ -1,259 +1,257 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+/**
+ * Tests for Logger module
+ * src/lib/logger.ts
+ */
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { logger, logInfo, logError, logWarn, logDebug } from "@/lib/logger";
 
-// Mock telemetry
-vi.mock('@/lib/telemetry', () => ({
-  captureServerError: vi.fn(),
-}));
-
-describe('Logger', () => {
-  let consoleDebugSpy: ReturnType<typeof vi.spyOn>;
-  let consoleInfoSpy: ReturnType<typeof vi.spyOn>;
-  let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+describe("Logger", () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
-    consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
-    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  describe('Simple Logger (src/lib/logger.ts)', () => {
-    it('should export logger object with all methods', async () => {
-      const { logger } = await import('@/lib/logger');
-
-      expect(logger).toBeDefined();
-      expect(typeof logger.info).toBe('function');
-      expect(typeof logger.warn).toBe('function');
-      expect(typeof logger.error).toBe('function');
-      expect(typeof logger.debug).toBe('function');
-    });
-
-    it('should log info messages', async () => {
-      const { logger } = await import('@/lib/logger');
-
-      logger.info('Test info message');
-
-      expect(consoleLogSpy).toHaveBeenCalled();
-    });
-
-    it('should log info messages with metadata', async () => {
-      const { logger } = await import('@/lib/logger');
-
-      logger.info('Test info message', { userId: '123' });
-
-      expect(consoleLogSpy).toHaveBeenCalled();
-    });
-
-    it('should log warn messages', async () => {
-      const { logger } = await import('@/lib/logger');
-
-      logger.warn('Test warning message');
-
-      expect(consoleWarnSpy).toHaveBeenCalled();
-    });
-
-    it('should log error messages', async () => {
-      const { logger } = await import('@/lib/logger');
-
-      logger.error('Test error message');
-
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-
-    it('should export convenience methods', async () => {
-      const { logInfo, logError, logWarn, logDebug } = await import('@/lib/logger');
-
-      expect(typeof logInfo).toBe('function');
-      expect(typeof logError).toBe('function');
-      expect(typeof logWarn).toBe('function');
-      expect(typeof logDebug).toBe('function');
-    });
-
-    it('should handle Error objects in logError', async () => {
-      const { logError } = await import('@/lib/logger');
-      const error = new Error('Test error');
-
-      logError('An error occurred', error);
-
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-
-    it('should handle non-Error objects in logError', async () => {
-      const { logError } = await import('@/lib/logger');
-
-      logError('An error occurred', { message: 'custom error', code: 500 });
-
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-
-    it('should handle string errors in logError', async () => {
-      const { logError } = await import('@/lib/logger');
-
-      logError('An error occurred', 'simple string error');
-
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-  });
-
-  describe('Domain Loggers', () => {
-    it('should export domain loggers', async () => {
-      const {
-        authLogger,
-        paymentLogger,
-        apiLogger,
-        dbLogger,
-        sajuLogger,
-        astroLogger,
-        tarotLogger,
-      } = await import('@/lib/logger');
-
-      expect(authLogger).toBeDefined();
-      expect(paymentLogger).toBeDefined();
-      expect(apiLogger).toBeDefined();
-      expect(dbLogger).toBeDefined();
-      expect(sajuLogger).toBeDefined();
-      expect(astroLogger).toBeDefined();
-      expect(tarotLogger).toBeDefined();
-    });
-  });
-
-  describe('toMeta helper', () => {
-    it('should handle undefined values', async () => {
-      const { logger } = await import('@/lib/logger');
-
-      logger.info('Test message', undefined);
-
-      expect(consoleLogSpy).toHaveBeenCalled();
-    });
-
-    it('should handle null values', async () => {
-      const { logger } = await import('@/lib/logger');
-
-      logger.info('Test message', null);
-
-      expect(consoleLogSpy).toHaveBeenCalled();
-    });
-
-    it('should handle arrays', async () => {
-      const { logger } = await import('@/lib/logger');
-
-      logger.info('Test message', ['item1', 'item2']);
-
-      expect(consoleLogSpy).toHaveBeenCalled();
-    });
-
-    it('should handle primitive values', async () => {
-      const { logger } = await import('@/lib/logger');
-
-      logger.info('Test message', 'string value');
-
-      expect(consoleLogSpy).toHaveBeenCalled();
-    });
-  });
-});
-
-describe('Structured Logger (src/lib/logger/index.ts)', () => {
-  let consoleDebugSpy: ReturnType<typeof vi.spyOn>;
-  let consoleInfoSpy: ReturnType<typeof vi.spyOn>;
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+  let consoleDebugSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
-    consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
-    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    consoleDebugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('should export logger instance', async () => {
-    const { logger } = await import('@/lib/logger/index');
+  describe("logger.info", () => {
+    it("should log info message", () => {
+      logger.info("Test info message");
+      expect(consoleLogSpy).toHaveBeenCalledWith("[INFO] Test info message", "");
+    });
 
-    expect(logger).toBeDefined();
-    expect(typeof logger.debug).toBe('function');
-    expect(typeof logger.info).toBe('function');
-    expect(typeof logger.warn).toBe('function');
-    expect(typeof logger.error).toBe('function');
-    expect(typeof logger.domain).toBe('function');
+    it("should log info message with metadata object", () => {
+      logger.info("User logged in", { userId: "123", action: "login" });
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "[INFO] User logged in",
+        { userId: "123", action: "login" }
+      );
+    });
+
+    it("should handle null metadata", () => {
+      logger.info("Message", null);
+      expect(consoleLogSpy).toHaveBeenCalledWith("[INFO] Message", "");
+    });
+
+    it("should handle undefined metadata", () => {
+      logger.info("Message", undefined);
+      expect(consoleLogSpy).toHaveBeenCalledWith("[INFO] Message", "");
+    });
   });
 
-  it('should create domain loggers', async () => {
-    const { logger } = await import('@/lib/logger/index');
+  describe("logger.warn", () => {
+    it("should log warning message", () => {
+      logger.warn("Test warning");
+      expect(consoleWarnSpy).toHaveBeenCalledWith("[WARN] Test warning", "");
+    });
 
-    const customLogger = logger.domain('custom');
-
-    expect(customLogger).toBeDefined();
-    expect(typeof customLogger.debug).toBe('function');
-    expect(typeof customLogger.info).toBe('function');
-    expect(typeof customLogger.warn).toBe('function');
-    expect(typeof customLogger.error).toBe('function');
+    it("should log warning with metadata", () => {
+      logger.warn("Rate limit exceeded", { ip: "192.168.1.1", limit: 100 });
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        "[WARN] Rate limit exceeded",
+        { ip: "192.168.1.1", limit: 100 }
+      );
+    });
   });
 
-  it('should export predefined domain loggers', async () => {
-    const {
-      authLogger,
-      paymentLogger,
-      apiLogger,
-      dbLogger,
-      sajuLogger,
-      astroLogger,
-      tarotLogger,
-    } = await import('@/lib/logger/index');
+  describe("logger.error", () => {
+    it("should log error message", () => {
+      logger.error("Test error");
+      expect(consoleErrorSpy).toHaveBeenCalledWith("[ERROR] Test error", "");
+    });
 
-    expect(authLogger).toBeDefined();
-    expect(paymentLogger).toBeDefined();
-    expect(apiLogger).toBeDefined();
-    expect(dbLogger).toBeDefined();
-    expect(sajuLogger).toBeDefined();
-    expect(astroLogger).toBeDefined();
-    expect(tarotLogger).toBeDefined();
+    it("should log error with Error object", () => {
+      const error = new Error("Something went wrong");
+      logger.error("API Error", error);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[ERROR] API Error",
+        expect.objectContaining({
+          message: "Something went wrong",
+          stack: expect.any(String),
+        })
+      );
+    });
+
+    it("should log error with metadata", () => {
+      logger.error("Database error", { query: "SELECT *", table: "users" });
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[ERROR] Database error",
+        { query: "SELECT *", table: "users" }
+      );
+    });
   });
 
-  it('should only log errors in test environment', async () => {
-    const { logger } = await import('@/lib/logger/index');
+  describe("logger.debug", () => {
+    it("should log debug message in non-production", () => {
+      logger.debug("Debug info");
+      expect(consoleDebugSpy).toHaveBeenCalledWith("[DEBUG] Debug info", "");
+    });
 
-    // In test environment, only error should log
-    logger.debug('Debug message');
-    logger.info('Info message');
-    logger.warn('Warn message');
-    logger.error('Error message');
-
-    // In test env, debug/info/warn are suppressed, only error logs
-    expect(consoleErrorSpy).toHaveBeenCalled();
+    it("should log debug with metadata", () => {
+      logger.debug("Request details", { method: "GET", path: "/api/test" });
+      expect(consoleDebugSpy).toHaveBeenCalledWith(
+        "[DEBUG] Request details",
+        { method: "GET", path: "/api/test" }
+      );
+    });
   });
 
-  it('should handle errors in error method', async () => {
-    const { logger } = await import('@/lib/logger/index');
-    const error = new Error('Test error');
-
-    logger.error('An error occurred', error, { userId: '123' });
-
-    expect(consoleErrorSpy).toHaveBeenCalled();
+  describe("logInfo convenience function", () => {
+    it("should call logger.info", () => {
+      logInfo("Info message", { key: "value" });
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "[INFO] Info message",
+        { key: "value" }
+      );
+    });
   });
 
-  it('should handle context in warn method', async () => {
-    const { logger } = await import('@/lib/logger/index');
-
-    // In test env, warn is suppressed, but we can still call it
-    logger.warn('Warning', { context: 'test' });
-
-    // No assertion needed as warn is suppressed in test env
+  describe("logWarn convenience function", () => {
+    it("should call logger.warn", () => {
+      logWarn("Warning message", { key: "value" });
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        "[WARN] Warning message",
+        { key: "value" }
+      );
+    });
   });
 
-  it('should export LogLevel and LogContext types', async () => {
-    const module = await import('@/lib/logger/index');
+  describe("logDebug convenience function", () => {
+    it("should call logger.debug", () => {
+      logDebug("Debug message", { key: "value" });
+      expect(consoleDebugSpy).toHaveBeenCalledWith(
+        "[DEBUG] Debug message",
+        { key: "value" }
+      );
+    });
+  });
 
-    // Type exports are available at runtime
-    expect(module).toBeDefined();
+  describe("logError convenience function", () => {
+    it("should handle Error object", () => {
+      const error = new Error("Test error");
+      logError("Error occurred", error);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[ERROR] Error occurred",
+        expect.objectContaining({
+          error: "Test error",
+          stack: expect.any(String),
+        })
+      );
+    });
+
+    it("should handle error-like object", () => {
+      const errorLike = { message: "Custom error", code: "E001" };
+      logError("Error occurred", errorLike);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[ERROR] Error occurred",
+        expect.objectContaining({
+          error: "Custom error",
+        })
+      );
+    });
+
+    it("should handle string error", () => {
+      logError("Error occurred", "Simple string error");
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[ERROR] Error occurred",
+        expect.objectContaining({
+          error: "Simple string error",
+        })
+      );
+    });
+
+    it("should include additional metadata", () => {
+      const error = new Error("Test error");
+      logError("Error occurred", error, { userId: "123", action: "save" });
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[ERROR] Error occurred",
+        expect.objectContaining({
+          error: "Test error",
+          userId: "123",
+          action: "save",
+        })
+      );
+    });
+  });
+
+  describe("Metadata handling", () => {
+    it("should wrap primitive values in object", () => {
+      logger.info("Number value", 42);
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "[INFO] Number value",
+        { value: 42 }
+      );
+    });
+
+    it("should wrap string values in object", () => {
+      logger.info("String value", "test string");
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "[INFO] String value",
+        { value: "test string" }
+      );
+    });
+
+    it("should wrap array values in object", () => {
+      logger.info("Array value", [1, 2, 3]);
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "[INFO] Array value",
+        { value: [1, 2, 3] }
+      );
+    });
+
+    it("should pass object values directly", () => {
+      logger.info("Object value", { a: 1, b: 2 });
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "[INFO] Object value",
+        { a: 1, b: 2 }
+      );
+    });
+  });
+
+  describe("Edge cases", () => {
+    it("should handle empty string message", () => {
+      logger.info("");
+      expect(consoleLogSpy).toHaveBeenCalledWith("[INFO] ", "");
+    });
+
+    it("should handle very long messages", () => {
+      const longMessage = "a".repeat(10000);
+      logger.info(longMessage);
+      expect(consoleLogSpy).toHaveBeenCalledWith(`[INFO] ${longMessage}`, "");
+    });
+
+    it("should handle special characters in message", () => {
+      logger.info("Special chars: 한글 日本語 émoji 🎉");
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "[INFO] Special chars: 한글 日本語 émoji 🎉",
+        ""
+      );
+    });
+
+    it("should handle nested objects", () => {
+      const nested = {
+        level1: {
+          level2: {
+            level3: "deep value",
+          },
+        },
+      };
+      logger.info("Nested", nested);
+      expect(consoleLogSpy).toHaveBeenCalledWith("[INFO] Nested", nested);
+    });
+
+    it("should handle circular references in Error", () => {
+      const error = new Error("Circular");
+      logger.error("Error with circular", error);
+      expect(consoleErrorSpy).toHaveBeenCalled();
+    });
   });
 });

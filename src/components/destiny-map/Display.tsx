@@ -73,7 +73,6 @@ type ReportType = "core" | "timing" | "compat";
 
 // Theme translations
 const THEME_LABELS: Record<string, Record<LangKey, string>> = {
-  // Focus themes
   focus_overall: { ko: "운명의 지도", en: "Destiny Map", ja: "運命の地図", zh: "命运地图", es: "Mapa del Destino" },
   focus_love: { ko: "연애운", en: "Love & Romance", ja: "恋愛運", zh: "爱情运", es: "Amor" },
   focus_career: { ko: "직업운", en: "Career & Work", ja: "仕事運", zh: "事业运", es: "Carrera" },
@@ -82,7 +81,6 @@ const THEME_LABELS: Record<string, Record<LangKey, string>> = {
   focus_energy: { ko: "기운/에너지", en: "Energy & Vitality", ja: "エネルギー", zh: "能量", es: "Energía" },
   focus_family: { ko: "가정운", en: "Family & Home", ja: "家庭運", zh: "家庭运", es: "Familia" },
   focus_social: { ko: "대인관계", en: "Social & Relationships", ja: "対人運", zh: "人际关系", es: "Social" },
-  // Fortune themes
   fortune_new_year: { ko: "신년 운세", en: "New Year Fortune", ja: "新年運勢", zh: "新年运势", es: "Fortuna de Año Nuevo" },
   fortune_next_year: { ko: "내년 운세", en: "Next Year Fortune", ja: "来年運勢", zh: "明年运势", es: "Fortuna del Próximo Año" },
   fortune_monthly: { ko: "월운", en: "Monthly Fortune", ja: "月運", zh: "月运", es: "Fortuna Mensual" },
@@ -90,7 +88,6 @@ const THEME_LABELS: Record<string, Record<LangKey, string>> = {
 };
 
 const getThemeLabel = (themeKey: string, lang: LangKey): string => {
-  // Normalize to lowercase for consistent lookup
   const normalizedKey = themeKey?.toLowerCase?.() || themeKey;
   return THEME_LABELS[normalizedKey]?.[lang] || THEME_LABELS[normalizedKey]?.en || themeKey;
 };
@@ -99,14 +96,12 @@ const getThemeLabel = (themeKey: string, lang: LangKey): string => {
 function tryParseStructured(text: string): StructuredFortune | null {
   if (!text) return null;
 
-  // Clean the text first
   let cleanText = text
-    .replace(/```json\s*/gi, '')  // Remove markdown code blocks
+    .replace(/```json\s*/gi, '')
     .replace(/```\s*/g, '')
     .trim();
 
   try {
-    // Try direct JSON parse first
     const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
@@ -115,9 +110,7 @@ function tryParseStructured(text: string): StructuredFortune | null {
       }
     }
 
-    // If no outer braces, try wrapping the content
     if (cleanText.includes('"lifeTimeline"') || cleanText.includes('"categoryAnalysis"')) {
-      // Add outer braces if missing
       if (!cleanText.startsWith('{')) {
         cleanText = '{' + cleanText;
       }
@@ -144,13 +137,13 @@ function tryParseStructured(text: string): StructuredFortune | null {
 // Star rating component
 function StarRating({ rating }: { rating: number }) {
   return (
-    <span style={{ color: "#ffd166", letterSpacing: 2 }}>
+    <span className="text-yellow-400 tracking-wider" aria-label={`${rating}점 (5점 만점)`}>
       {"★".repeat(rating)}{"☆".repeat(5 - rating)}
     </span>
   );
 }
 
-// Life Timeline component (인생 타임라인)
+// Life Timeline component
 function LifeTimelineSection({
   data,
   lang
@@ -170,7 +163,7 @@ function LifeTimelineSection({
   const t = labels[lang] || labels.en;
 
   return (
-    <div className={styles.timelineSection}>
+    <div className={styles.timelineSection} role="region" aria-label={t.title}>
       <h3 className={styles.sectionTitle}>{t.title}</h3>
       {data.description && <p className={styles.timelineDesc}>{data.description}</p>}
       <div className={styles.timeline}>
@@ -202,7 +195,7 @@ function LifeTimelineSection({
   );
 }
 
-// Category Analysis component (카테고리별 분석)
+// Category Analysis component
 function CategoryAnalysisSection({
   categories,
   lang
@@ -227,11 +220,11 @@ function CategoryAnalysisSection({
     .map(key => ({ key, ...categories[key] }));
 
   return (
-    <div className={styles.categorySection}>
+    <div className={styles.categorySection} role="region" aria-label="카테고리별 분석">
       {sortedCategories.map((cat) => (
         <div key={cat.key} className={styles.categoryCard}>
           <h3 className={styles.categoryTitle}>
-            <span className={styles.categoryIcon}>{cat.icon}</span>
+            <span className={styles.categoryIcon} aria-hidden="true">{cat.icon}</span>
             {cat.title}
           </h3>
 
@@ -275,7 +268,7 @@ function CategoryAnalysisSection({
   );
 }
 
-// Lucky Elements component (행운의 요소)
+// Lucky Elements component
 function LuckyElementsSection({
   data,
   lang
@@ -295,7 +288,7 @@ function LuckyElementsSection({
   const t = labels[lang] || labels.en;
 
   return (
-    <div className={styles.luckySection}>
+    <div className={styles.luckySection} role="region" aria-label={t.title}>
       <h4>{t.title}</h4>
       <div className={styles.luckyGrid}>
         {data.colors?.length && (
@@ -329,7 +322,6 @@ function LuckyElementsSection({
 
 // Key insights component
 function KeyInsightsSection({ insights, lang }: { insights: KeyInsight[]; lang: LangKey }) {
-  // Filter out insights without actual text content
   const validInsights = insights?.filter(i => i.text && i.text.trim().length > 0);
   if (!validInsights || validInsights.length === 0) return null;
 
@@ -350,10 +342,10 @@ function KeyInsightsSection({ insights, lang }: { insights: KeyInsight[]; lang: 
   const t = typeLabels[lang] || typeLabels.en;
 
   return (
-    <div className={styles.insightsSection}>
+    <div className={styles.insightsSection} role="list" aria-label="핵심 인사이트">
       {validInsights.map((insight, i) => (
-        <div key={i} className={`${styles.insightCard} ${styles[`insight_${insight.type}`]}`}>
-          <span className={styles.insightIcon}>{insight.icon || typeIcons[insight.type] || "✦"}</span>
+        <div key={i} className={`${styles.insightCard} ${styles[`insight_${insight.type}`]}`} role="listitem">
+          <span className={styles.insightIcon} aria-hidden="true">{insight.icon || typeIcons[insight.type] || "✦"}</span>
           <div>
             <span className={styles.insightType}>{t[insight.type] || insight.type}</span>
             <p className={styles.insightText}>{insight.text}</p>
@@ -364,16 +356,16 @@ function KeyInsightsSection({ insights, lang }: { insights: KeyInsight[]; lang: 
   );
 }
 
-// Theme Sections component (테마별 섹션 카드)
+// Theme Sections component
 function ThemeSectionsDisplay({ sections, lang }: { sections: ThemeSection[]; lang: LangKey }) {
   if (!sections || sections.length === 0) return null;
 
   return (
-    <div className={styles.themeSections}>
+    <div className={styles.themeSections} role="region" aria-label="테마별 섹션">
       {sections.map((section) => (
         <div key={section.id} className={styles.themeSection}>
           <div className={styles.themeSectionHeader}>
-            <span className={styles.themeSectionIcon}>{section.icon}</span>
+            <span className={styles.themeSectionIcon} aria-hidden="true">{section.icon}</span>
             <h3 className={styles.themeSectionTitle}>
               {lang === "en" ? section.titleEn : section.title}
             </h3>
@@ -436,9 +428,7 @@ const I18N: Record<LangKey, {
 // Helper to find theme data with case-insensitive key matching
 const findThemeData = (themes: Record<string, unknown> | undefined, themeKey: string) => {
   if (!themes || !themeKey) return undefined;
-  // Try exact match first
   if (themes[themeKey]) return { key: themeKey, data: themes[themeKey] };
-  // Try case-insensitive match
   const normalizedKey = themeKey.toLowerCase();
   const matchingKey = Object.keys(themes).find(k => k.toLowerCase() === normalizedKey);
   if (matchingKey) return { key: matchingKey, data: themes[matchingKey] };
@@ -462,14 +452,12 @@ export default function Display({
   );
   const tr = I18N[lang] ?? I18N.en;
 
-  // Find theme data with case-insensitive matching
   const themeMatch = findThemeData(result?.themes, activeTheme);
   const themed = themeMatch?.data;
   const name = result?.profile?.name?.trim() || tr.userFallback;
   const interpretationText =
     typeof ((themed as Record<string, unknown>))?.interpretation === "string" ? ((themed as Record<string, unknown>)).interpretation : "";
 
-  // Try to parse structured JSON from interpretation
   const structuredData = useMemo(() => {
     const text = String(interpretationText);
     if (!text.trim()) return null;
@@ -479,7 +467,7 @@ export default function Display({
   const errorMessage = result.errorMessage || result.error;
   if (errorMessage) {
     return (
-      <div className={styles.summary}>
+      <div className={styles.summary} role="alert">
         Analysis failed: {errorMessage}
       </div>
     );
@@ -487,29 +475,25 @@ export default function Display({
 
   return (
     <div>
+      {/* Theme selector tabs */}
       {themeKeys.length > 1 && (
         <div
-          style={{
-            display: "flex",
-            gap: 8,
-            flexWrap: "wrap",
-            marginBottom: 16,
-          }}
+          className="flex gap-2 flex-wrap mb-4"
+          role="tablist"
+          aria-label="테마 선택"
         >
           {themeKeys.map((key) => (
             <button
               key={key}
               onClick={() => setActiveTheme(key)}
-              className={styles.badge}
-              aria-pressed={activeTheme === key}
-              style={{
-                background: activeTheme === key ? "#2563eb" : "transparent",
-                color: activeTheme === key ? "#fff" : "inherit",
-                borderColor: activeTheme === key ? "#2563eb" : "#4b5563",
-                padding: "6px 12px",
-                borderRadius: 8,
-                cursor: "pointer",
-              }}
+              className={`px-3 py-1.5 rounded-lg cursor-pointer border transition-colors
+                ${activeTheme === key
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-transparent text-inherit border-gray-600 hover:border-gray-400'
+                }`}
+              role="tab"
+              aria-selected={activeTheme === key}
+              aria-controls={`theme-panel-${key}`}
             >
               {key}
             </button>
@@ -518,50 +502,32 @@ export default function Display({
       )}
 
       <div className={styles.header}>
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '16px',
-          marginBottom: '24px',
-          padding: '12px 32px',
-          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.15))',
-          borderRadius: '50px',
-          border: '1px solid rgba(167, 139, 250, 0.3)',
-          backdropFilter: 'blur(10px)',
-        }}>
-          <span style={{ fontSize: '32px', filter: 'drop-shadow(0 0 10px rgba(167, 139, 250, 0.6))' }}>✨</span>
+        {/* Title badge */}
+        <div className="inline-flex items-center gap-4 mb-6 px-8 py-3
+          bg-gradient-to-br from-violet-500/15 to-blue-500/15
+          rounded-full border border-violet-400/30 backdrop-blur-sm">
+          <span className="text-3xl drop-shadow-[0_0_10px_rgba(167,139,250,0.6)]" aria-hidden="true">✨</span>
           <h2 className={styles.title} style={{ margin: 0, fontSize: '2rem', textShadow: 'none' }}>
             {structuredData?.themeSummary || getThemeLabel(activeTheme, lang)}
           </h2>
-          <span style={{ fontSize: '32px', filter: 'drop-shadow(0 0 10px rgba(167, 139, 250, 0.6))' }}>✨</span>
+          <span className="text-3xl drop-shadow-[0_0_10px_rgba(167,139,250,0.6)]" aria-hidden="true">✨</span>
         </div>
 
+        {/* Profile section */}
         <div className={styles.profile}>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '8px',
-            width: '100%'
-          }}>
+          <div className="flex flex-col items-center gap-2 w-full">
             <div className={styles.profileName}>{name}</div>
             {result?.profile?.birthDate && (
-              <div className={styles.profileMeta} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                fontSize: '0.95rem',
-                color: 'rgba(167, 139, 250, 0.9)'
-              }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ opacity: 0.7 }}>📅</span>
+              <div className="flex items-center gap-3 text-sm text-violet-400/90">
+                <span className="flex items-center gap-1.5">
+                  <span className="opacity-70" aria-hidden="true">📅</span>
                   {result.profile.birthDate}
                 </span>
                 {result?.profile?.birthTime && (
                   <>
-                    <span style={{ opacity: 0.5 }}>•</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ opacity: 0.7 }}>🕐</span>
+                    <span className="opacity-50">•</span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="opacity-70" aria-hidden="true">🕐</span>
                       {result.profile.birthTime}
                     </span>
                   </>
@@ -572,12 +538,12 @@ export default function Display({
         </div>
       </div>
 
-      {/* Theme Sections - 테마별 섹션 카드 (새 템플릿 포맷) */}
+      {/* Theme Sections */}
       {structuredData?.sections && structuredData.sections.length > 0 && (
         <ThemeSectionsDisplay sections={structuredData.sections} lang={lang} />
       )}
 
-      {/* Key Insights - Top summary */}
+      {/* Key Insights */}
       {structuredData?.keyInsights && (
         <div className={styles.section}>
           <KeyInsightsSection insights={structuredData.keyInsights} lang={lang} />
@@ -589,12 +555,12 @@ export default function Display({
         <LuckyElementsSection data={structuredData.luckyElements} lang={lang} />
       )}
 
-      {/* Life Timeline (인생 주요 시점) */}
+      {/* Life Timeline */}
       {structuredData?.lifeTimeline && (
         <LifeTimelineSection data={structuredData.lifeTimeline} lang={lang} />
       )}
 
-      {/* Category Analysis (카테고리별 분석) */}
+      {/* Category Analysis */}
       {structuredData?.categoryAnalysis && (
         <CategoryAnalysisSection categories={structuredData.categoryAnalysis} lang={lang} />
       )}
@@ -604,7 +570,7 @@ export default function Display({
         <div className={styles.highlightsRow}>
           {structuredData.sajuHighlight && (
             <div className={styles.highlightCard}>
-              <span className={styles.highlightIcon}>☯️</span>
+              <span className={styles.highlightIcon} aria-hidden="true">☯️</span>
               <div>
                 <div className={styles.highlightTitle}>{structuredData.sajuHighlight.pillar}</div>
                 <div className={styles.highlightElement}>{structuredData.sajuHighlight.element}</div>
@@ -614,7 +580,7 @@ export default function Display({
           )}
           {structuredData.astroHighlight && (
             <div className={styles.highlightCard}>
-              <span className={styles.highlightIcon}>✨</span>
+              <span className={styles.highlightIcon} aria-hidden="true">✨</span>
               <div>
                 <div className={styles.highlightTitle}>{structuredData.astroHighlight.planet}</div>
                 <div className={styles.highlightElement}>{structuredData.astroHighlight.sign}</div>
@@ -624,10 +590,6 @@ export default function Display({
           )}
         </div>
       )}
-
-      {/* Main Content - 제거됨: FunInsights 컴포넌트에서 스토리텔링 형식으로 통합 표시 */}
-
-      {/* 후속 질문하기 섹션 제거 - 상담사 페이지에서 동일 기능 제공 */}
     </div>
   );
 }

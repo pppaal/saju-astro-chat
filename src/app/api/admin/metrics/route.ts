@@ -107,6 +107,31 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// Metric names for accurate filtering
+const REQUEST_METRICS = [
+  "api.request.total",
+  "http.request.total",
+  "destiny.report.total",
+  "tarot.reading.total",
+  "dream.analysis.total",
+  "astrology.chart.total",
+];
+
+const ERROR_METRICS = [
+  "api.error.total",
+];
+
+const CREDIT_METRICS = [
+  "credits.usage.total",
+];
+
+/**
+ * Check if metric name matches any allowed names
+ */
+function matchesMetricName(name: string, allowed: string[]): boolean {
+  return allowed.includes(name);
+}
+
 /**
  * Generate dashboard summary from metrics snapshot
  */
@@ -123,42 +148,42 @@ function generateDashboardSummary(
   let totalLatencyCount = 0;
 
   const serviceMetrics: Record<string, { requests: number; errors: number; latencySum: number; latencyCount: number; p95Samples: number[] }> = {};
-  let allLatencySamples: number[] = [];
+  const allLatencySamples: number[] = [];
   const errorCounts: Record<string, number> = {};
   const creditsByService: Record<string, number> = {};
 
-  // Process counters
+  // Process counters with precise metric matching
   for (const counter of counters) {
     const name = counter.name;
     const labels = counter.labels || {};
+    const service = String(labels.service || labels.theme || "unknown");
 
-    // API requests
-    if (name.includes("request") || name.includes("total")) {
+    // API requests - only count explicit request metrics
+    if (matchesMetricName(name, REQUEST_METRICS)) {
       totalRequests += counter.value;
 
-      const service = String(labels.service || labels.theme || "unknown");
       if (!serviceMetrics[service]) {
         serviceMetrics[service] = { requests: 0, errors: 0, latencySum: 0, latencyCount: 0, p95Samples: [] };
       }
       serviceMetrics[service].requests += counter.value;
     }
 
-    // Errors
-    if (name.includes("error") || name.includes("fail") || labels.status === "error") {
+    // Errors - only count explicit error metrics
+    if (matchesMetricName(name, ERROR_METRICS)) {
       totalErrors += counter.value;
 
-      const service = String(labels.service || labels.theme || "unknown");
       if (serviceMetrics[service]) {
         serviceMetrics[service].errors += counter.value;
+      } else {
+        serviceMetrics[service] = { requests: 0, errors: counter.value, latencySum: 0, latencyCount: 0, p95Samples: [] };
       }
 
       const errorKey = `${service}:${labels.error_category || "unknown"}`;
       errorCounts[errorKey] = (errorCounts[errorKey] || 0) + counter.value;
     }
 
-    // Credits
-    if (name.includes("credit")) {
-      const service = String(labels.service || "unknown");
+    // Credits - only count credit usage metrics
+    if (matchesMetricName(name, CREDIT_METRICS)) {
       creditsByService[service] = (creditsByService[service] || 0) + counter.value;
     }
   }
@@ -185,10 +210,9 @@ function generateDashboardSummary(
     }
   }
 
-  // Calculate overall p95 from collected samples
-  const sortedLatencies = [...allLatencySamples].sort((a, b) => a - b);
-  const p95Index = Math.ceil(0.95 * sortedLatencies.length) - 1;
-  const overallP95 = sortedLatencies.length > 0 ? sortedLatencies[Math.max(0, p95Index)] : 0;
+  // Calculate overall p95 as max of individual p95s (conservative upper bound)
+  // Note: Taking p95 of p95s is statistically incorrect; max gives a valid upper bound
+  const overallP95 = allLatencySamples.length > 0 ? Math.max(...allLatencySamples) : 0;
 
   // Process gauges for active users
   let activeUsers = 0;
@@ -198,17 +222,15 @@ function generateDashboardSummary(
     }
   }
 
-  // Build service summary with p95
+  // Build service summary with p95 (max of p95s per service)
   const services: DashboardSummary["services"] = {};
   for (const [service, metrics] of Object.entries(serviceMetrics)) {
     if (service === "unknown") continue;
-    const sortedSamples = [...metrics.p95Samples].sort((a, b) => a - b);
-    const p95Idx = Math.ceil(0.95 * sortedSamples.length) - 1;
     services[service] = {
       requests: metrics.requests,
       errors: metrics.errors,
       avgLatencyMs: metrics.latencyCount > 0 ? Math.round(metrics.latencySum / metrics.latencyCount) : 0,
-      p95LatencyMs: sortedSamples.length > 0 ? sortedSamples[Math.max(0, p95Idx)] : undefined,
+      p95LatencyMs: metrics.p95Samples.length > 0 ? Math.max(...metrics.p95Samples) : undefined,
     };
   }
 

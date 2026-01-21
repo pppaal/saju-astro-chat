@@ -1,12 +1,13 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useVisitorMetrics } from '@/hooks/useVisitorMetrics';
 
 // Mock fetch
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
 describe('useVisitorMetrics', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should initialize with null values', () => {
@@ -19,15 +20,22 @@ describe('useVisitorMetrics', () => {
   });
 
   it('should fetch and set visitor metrics', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ count: 150, total: 5000 }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ users: 1200 }),
-      });
+    (global.fetch as ReturnType<typeof vi.fn>).mockImplementation((url: string) => {
+      if (url === '/api/metrics/public') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            todayVisitors: 150,
+            totalVisitors: 5000,
+            totalMembers: 1200,
+          }),
+        });
+      }
+      if (url === '/api/metrics/track') {
+        return Promise.resolve({ ok: true });
+      }
+      return Promise.reject(new Error('Unexpected request'));
+    });
 
     const { result } = renderHook(() => useVisitorMetrics('test-token'));
 
@@ -39,80 +47,93 @@ describe('useVisitorMetrics', () => {
   });
 
   it('should track visitor once', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({ ok: true }) // POST track
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ count: 150, total: 5000 }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ users: 1200 }),
-      });
+    (global.fetch as ReturnType<typeof vi.fn>).mockImplementation((url: string) => {
+      if (url === '/api/metrics/public') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            todayVisitors: 150,
+            totalVisitors: 5000,
+            totalMembers: 1200,
+          }),
+        });
+      }
+      if (url === '/api/metrics/track') {
+        return Promise.resolve({ ok: true });
+      }
+      return Promise.reject(new Error('Unexpected request'));
+    });
 
     renderHook(() => useVisitorMetrics('test-token'));
 
     await waitFor(() => {
-      const postCalls = (global.fetch as jest.Mock).mock.calls.filter(
-        call => call[1]?.method === 'POST'
+      const postCalls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.filter(
+        (call) => call[0] === '/api/metrics/track' && call[1]?.method === 'POST'
       );
       expect(postCalls).toHaveLength(1);
     });
   });
 
   it('should handle fetch errors gracefully', async () => {
-    (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
+    (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network error'));
 
-    const { result } = renderHook(() => useVisitorMetrics());
+    const { result } = renderHook(() => useVisitorMetrics('test-token'));
 
     await waitFor(() => {
-      expect(result.current.visitorError).toBe('Could not load stats.');
+      expect(result.current.visitorError).toBe('Failed to load metrics');
     });
   });
 
   it('should send metrics token in headers', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({ ok: true })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ count: 150, total: 5000 }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ users: 1200 }),
-      });
+    (global.fetch as ReturnType<typeof vi.fn>).mockImplementation((url: string) => {
+      if (url === '/api/metrics/public') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            todayVisitors: 150,
+            totalVisitors: 5000,
+            totalMembers: 1200,
+          }),
+        });
+      }
+      if (url === '/api/metrics/track') {
+        return Promise.resolve({ ok: true });
+      }
+      return Promise.reject(new Error('Unexpected request'));
+    });
 
     renderHook(() => useVisitorMetrics('my-secret-token'));
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        '/api/visitors-today',
+        '/api/metrics/public',
         expect.objectContaining({
-          method: 'POST',
-          headers: { 'x-metrics-token': 'my-secret-token' },
+          headers: { Authorization: 'Bearer my-secret-token' },
         })
       );
     });
   });
 
   it('should handle missing data gracefully', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({ ok: true })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({}), // Empty response
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({}),
-      });
+    (global.fetch as ReturnType<typeof vi.fn>).mockImplementation((url: string) => {
+      if (url === '/api/metrics/public') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({}),
+        });
+      }
+      if (url === '/api/metrics/track') {
+        return Promise.resolve({ ok: true });
+      }
+      return Promise.reject(new Error('Unexpected request'));
+    });
 
-    const { result } = renderHook(() => useVisitorMetrics());
+    const { result } = renderHook(() => useVisitorMetrics('test-token'));
 
     await waitFor(() => {
-      expect(result.current.todayVisitors).toBe(0);
-      expect(result.current.totalVisitors).toBe(0);
-      expect(result.current.totalMembers).toBe(0);
+      expect(result.current.todayVisitors).toBeNull();
+      expect(result.current.totalVisitors).toBeNull();
+      expect(result.current.totalMembers).toBeNull();
     });
   });
 });
