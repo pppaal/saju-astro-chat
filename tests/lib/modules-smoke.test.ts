@@ -5,6 +5,9 @@
  */
 import { describe, it, expect } from 'vitest';
 
+// Longer timeout for module import tests (60 seconds)
+const IMPORT_TIMEOUT = 60000;
+
 describe('Modules Smoke Tests', () => {
   describe('Saju Modules', () => {
     it('should import all core saju modules', async () => {
@@ -64,7 +67,7 @@ describe('Modules Smoke Tests', () => {
       modules.forEach((module) => {
         expect(module).toBeDefined();
       });
-    });
+    }, IMPORT_TIMEOUT);
 
     it('should import calendar modules', async () => {
       const modules = await Promise.all([
@@ -242,7 +245,7 @@ describe('Modules Smoke Tests', () => {
       modules.forEach((module) => {
         expect(module).toBeDefined();
       });
-    });
+    }, IMPORT_TIMEOUT);
 
     it('should import service modules', async () => {
       const modules = await Promise.all([

@@ -107,8 +107,8 @@ async function calculateAdvancedSajuAnalysis(
   try {
     const dm = sajuFacts?.dayMaster;
     const dayMasterName = dm?.name || pillars.day.heavenlyStem?.name || '';
-    const dayMasterElement = (dm?.element || pillars.day.heavenlyStem?.element || '?') as '?' | '?' | '?' | '?' | '?';
-    const dayMasterYinYang = (dm?.yin_yang || dm?.yinYang || getYinYangFromName(dayMasterName)) as '?' | '?';
+    const dayMasterElement = (dm?.element || pillars.day.heavenlyStem?.element || pillars.day.earthlyBranch?.element || '') as DayMaster['element'];
+    const dayMasterYinYang = (dm?.yin_yang || dm?.yinYang || getYinYangFromName(dayMasterName) || '') as DayMaster['yin_yang'];
 
     // Pillars for analysis - with heavenlyStem/earthlyBranch structure
     const pillarsForAnalysis = {
@@ -365,4 +365,55 @@ export async function calculateSajuOrchestrated(
         element: dayMasterElementForCycles as DayMaster['element'],
         yin_yang: dayMasterYinYangForCycles as DayMaster['yin_yang'],
       };
+      const d = getDaeunCycles(birthDateObj, gender, pillarsForDaeun, dayMasterForCycles, timezone);
+
+      // Annual cycles (10 years)
+      const a = getAnnualCycles(currentYear, 10, dayMasterForCycles);
+
+      // Monthly cycles
+      const m = getMonthlyCycles(currentYear, dayMasterForCycles);
+
+      // Iljin calendar
+      const i = getIljinCalendar(currentYear, currentMonth, dayMasterForCycles);
+
+      daeun = Array.isArray(d?.cycles) ? d.cycles : [];
+      annual = Array.isArray(a) ? a : [];
+      monthly = Array.isArray(m) ? m : [];
+      iljin = Array.isArray(i) ? i : [];
+
+      if (enableDebugLogs) {
+        logger.debug('[Unse cycles]', { daeun: daeun.length, annual: annual.length, monthly: monthly.length });
+      }
+
+      if (daeun.length === 0) {
+        logger.error('[Unse CRITICAL] daeun is EMPTY - check input data');
+      }
+    } catch (err) {
+      logger.error('[Unse calculation ERROR]', err);
+    }
+  } else {
+    logger.error('[Unse CRITICAL] Invalid pillars - cannot calculate daeun!', {
+      year: !!pillars.year,
+      month: !!pillars.month,
+      day: !!pillars.day,
+    });
+  }
+
+  // Calculate shinsal
+  const sinsal = hasValidPillars ? await getSinsal(pillars, enableDebugLogs) : null;
+
+  // Calculate advanced analysis
+  let advancedAnalysis: SajuOrchestrationResult['advancedAnalysis'];
+  if (hasValidPillars && pillars.year && pillars.month && pillars.day && pillars.time) {
+    advancedAnalysis = await calculateAdvancedSajuAnalysis(pillars, sajuFacts, enableDebugLogs);
+  }
+
+  return {
+    facts: { ...sajuFacts, birthDate },
+    pillars,
+    dayMaster,
+    unse: { daeun, annual, monthly, iljin },
+    sinsal,
+    advancedAnalysis,
+  };
 }

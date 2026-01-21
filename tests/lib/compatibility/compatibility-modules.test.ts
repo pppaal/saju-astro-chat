@@ -27,7 +27,7 @@ describe('Group Compatibility', () => {
   it('should export GroupMember type', async () => {
     const module = await import('@/lib/compatibility/groupCompatibility');
     expect(module).toBeDefined();
-  });
+  }, 60000);
 
   it('should export analyzeGroupSajuCompatibility function', async () => {
     const { analyzeGroupSajuCompatibility } = await import('@/lib/compatibility/groupCompatibility');

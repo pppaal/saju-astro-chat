@@ -35,6 +35,10 @@ export interface UnseDataForFormat {
   monthly?: MonthlyItem[];
 }
 
+const isAnnualWithYear = (item: AnnualItem): item is AnnualItem & { year: number } =>
+  typeof item.year === "number";
+const isMonthlyWithYearMonth = (item: MonthlyItem): item is MonthlyItem & { year: number; month: number } =>
+  typeof item.year === "number" && typeof item.month === "number";
 /**
  * Format planet list to single line
  *
@@ -210,7 +214,8 @@ export function formatAllDaeunText(unse: UnseDataForFormat | undefined, currentA
  */
 export function formatFutureAnnualList(unse: UnseDataForFormat | undefined, currentYear: number): string {
   return (unse?.annual ?? [])
-    .filter((a) => a.year != null && a.year >= currentYear && a.year <= currentYear + 5)
+    .filter(isAnnualWithYear)
+    .filter((a) => a.year >= currentYear && a.year <= currentYear + 5)
     .map((a) => {
       const isCurrent = a.year === currentYear;
       const marker = isCurrent ? "★현재★" : "";
@@ -234,12 +239,8 @@ export function formatFutureMonthlyList(
   currentMonth: number
 ): string {
   return (unse?.monthly ?? [])
-    .filter((m) => {
-      if (m.year == null || m.month == null) return false;
-      if (m.year > currentYear) return true;
-      if (m.year === currentYear && m.month >= currentMonth) return true;
-      return false;
-    })
+    .filter(isMonthlyWithYearMonth)
+    .filter((m) => m.year > currentYear || (m.year === currentYear && m.month >= currentMonth))
     .slice(0, 12)
     .map((m) => {
       const isCurrent = m.year === currentYear && m.month === currentMonth;

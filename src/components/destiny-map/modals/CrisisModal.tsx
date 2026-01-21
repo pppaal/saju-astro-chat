@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface CrisisModalProps {
   isOpen: boolean;
@@ -18,17 +19,14 @@ interface CrisisModalProps {
 
 /**
  * Crisis support modal with hotline information
- * WCAG 2.1 AA compliant with proper ARIA attributes and focus management
+ * WCAG 2.1 AA compliant with proper ARIA attributes, focus trap, and keyboard navigation
  */
 export default function CrisisModal({ isOpen, onClose, tr, styles: s }: CrisisModalProps) {
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const focusTrapRef = useFocusTrap(isOpen);
 
-  // Focus management and keyboard handling
+  // Keyboard handling and body scroll lock
   useEffect(() => {
     if (!isOpen) return;
-
-    // Focus the close button when modal opens
-    closeButtonRef.current?.focus();
 
     // Handle Escape key
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -60,7 +58,7 @@ export default function CrisisModal({ isOpen, onClose, tr, styles: s }: CrisisMo
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className={s.crisisModal}>
+      <div ref={focusTrapRef} className={s.crisisModal}>
         <div className={s.crisisIcon} aria-hidden="true">💜</div>
         <h3 id="crisis-modal-title" className={s.crisisTitle}>{tr.crisisTitle}</h3>
         <p id="crisis-modal-description" className={s.crisisMessage}>{tr.crisisMessage}</p>
@@ -72,7 +70,6 @@ export default function CrisisModal({ isOpen, onClose, tr, styles: s }: CrisisMo
         </div>
         <p className={s.groundingTip}>{tr.groundingTip}</p>
         <button
-          ref={closeButtonRef}
           type="button"
           className={s.crisisCloseBtn}
           onClick={onClose}

@@ -186,7 +186,8 @@
       "Bash(npm run security:owasp:*)",
       "Bash(OWASP_TARGET_URL=\"http://host.docker.internal:3000\" OWASP_DOCKER_ARGS=\"--add-host=host.docker.internal:host-gateway\" npm run security:owasp:*)",
       "Bash(git -C \"c:\\\\dev\\\\saju-astro-chat\" log --oneline)",
-      "Bash(npm run test:a11y:*)"
+      "Bash(npm run test:a11y:*)",
+      "Bash(flyctl deploy:*)"
     ],
     "deny": [],
     "ask": []

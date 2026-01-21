@@ -1,0 +1,218 @@
+/* Main Container */
+.page {
+  min-height: 100vh;
+  background: transparent;
+  color: #fff;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated Background Stars */
+.stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.star {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.9), rgba(167, 139, 250, 0));
+  border-radius: 50%;
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* Fade In Animation */
+.fadeIn {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form Container / Card */
+.card {
+  width: 100%;
+  max-width: 900px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 3rem;
+  border-radius: 24px;
+  border: 1px solid rgba(167, 139, 250, 0.15);
+  backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.card:hover {
+  border-color: rgba(167, 139, 250, 0.3);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 20px rgba(167, 139, 250, 0.2);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.formIcon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.title {
+  font-family: "Cinzel", serif;
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #a78bfa 0%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 0.5rem;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.form {
+  margin-top: 20px;
+  animation: fadeIn 0.8s ease-out 0.4s both;
+}
+
+.actionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .card {
+    padding: 2rem 1.5rem;
+  }
+
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .actionRow {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .card {
+    padding: 1.5rem 1rem;
+    border-radius: 18px;
+  }
+
+  .formIcon {
+    font-size: 3rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+}
+
+/* Tablet breakpoint */
+@media (min-width: 481px) and (max-width: 1024px) {
+  .page {
+    padding: 1.5rem;
+  }
+
+  .card {
+    max-width: 700px;
+    padding: 2.5rem 2rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+}
+
+/* Landscape phone */
+@media (orientation: landscape) and (max-height: 500px) {
+  .page {
+    padding: 1rem 2rem;
+  }
+
+  .card {
+    padding: 1.5rem 2rem;
+  }
+
+  .formIcon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .header {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Extra small mobile */
+@media (max-width: 359px) {
+  .page {
+    padding: 0.75rem;
+  }
+
+  .card {
+    padding: 1.25rem 0.875rem;
+    border-radius: 16px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+}

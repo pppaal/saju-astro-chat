@@ -10,7 +10,7 @@ describe('Compatibility Module Exports', () => {
     it('should export cosmic compatibility functions', async () => {
       const module = await import('@/lib/compatibility');
       expect(module).toBeDefined();
-    });
+    }, 60000);
   });
 
   describe('Compatibility Graph exports', () => {

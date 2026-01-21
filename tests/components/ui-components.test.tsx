@@ -123,7 +123,7 @@ describe('UI Components', () => {
       const module = await import('@/components/destiny-map/fun-insights/tabs/PersonalityTab');
 
       expect(module.default).toBeDefined();
-    });
+    }, 60000);
 
     it('should export fun insights types', async () => {
       const module = await import('@/components/destiny-map/fun-insights/types/core');

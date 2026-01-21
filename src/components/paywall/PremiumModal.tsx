@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/i18n/I18nProvider";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import styles from "./PremiumModal.module.css";
 
 interface PremiumModalProps {
@@ -23,6 +24,28 @@ export default function PremiumModal({
   const { t } = useI18n();
   const router = useRouter();
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const focusTrapRef = useFocusTrap(isOpen);
+
+  // Keyboard handling and body scroll lock
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Handle Escape key
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -74,10 +97,21 @@ export default function PremiumModal({
   const plan = plans[requiredPlan];
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeButton} onClick={onClose} aria-label="Close">
-          <svg viewBox="0 0 24 24" fill="none">
+    <div
+      className={styles.overlay}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="premium-modal-title"
+      aria-describedby="premium-modal-description"
+    >
+      <div ref={focusTrapRef} className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <button
+          className={styles.closeButton}
+          onClick={onClose}
+          aria-label={t("common.close") || "Close"}
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
               d="M18 6L6 18M6 6l12 12"
               stroke="currentColor"
@@ -88,9 +122,9 @@ export default function PremiumModal({
         </button>
 
         <div className={styles.header}>
-          <div className={styles.icon}>✨</div>
-          <h2 className={styles.title}>{t("paywall.unlockFeature")}</h2>
-          <p className={styles.subtitle}>
+          <div className={styles.icon} aria-hidden="true">✨</div>
+          <h2 id="premium-modal-title" className={styles.title}>{t("paywall.unlockFeature")}</h2>
+          <p id="premium-modal-description" className={styles.subtitle}>
             {creditsNeeded
               ? t("paywall.needsCredits").replace("{count}", String(creditsNeeded))
               : t("paywall.premiumRequired").replace("{feature}", feature)}

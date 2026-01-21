@@ -51,7 +51,7 @@ import {
   formatSignificantTransits,
 } from './formatter-utils';
 
-import { buildThemeSection } from './theme-sections';
+import { buildThemeSection, type ThemeSectionInput } from './theme-sections';
 import { assemblePromptTemplate, type PromptData } from './prompt-template';
 
 /**
@@ -88,6 +88,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     const advancedAstro = extractAdvancedAstrology(data);
     const timeInfo = getCurrentTimeInfo();
     const ageInfo = calculateAgeInfo(saju.facts, saju.pillars as PillarSet);
+    const toHouseLabel = (value?: number | string) => (value == null ? "-" : String(value));
 
     // Debug logging
     logger.debug("[buildAllDataPrompt] saju keys:", saju ? Object.keys(saju) : "null");
@@ -161,53 +162,84 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
     })() : "-";
 
     // Step 8: Format advanced astrology data
-    // Use type assertions for flexible API response structures
-    type FlexibleSummary = Record<string, unknown>;
-    type FlexibleProfile = Record<string, unknown>;
-    type FlexibleImpact = Record<string, unknown>;
-    type FlexibleMoonPhase = Record<string, unknown>;
-    type FlexibleAnalysis = Record<string, unknown>;
-    type FlexibleActivation = Record<string, unknown>;
-    type FlexibleAlignment = Record<string, unknown>;
-
-    const srSummary = advancedAstro.solarReturn?.summary as FlexibleSummary | undefined;
+    const solarSummary = advancedAstro.solarReturn?.summary as {
+      ascSign?: string;
+      ascendant?: string;
+      sunHouse?: number;
+      moonSign?: string;
+      moonHouse?: number;
+      theme?: string;
+      yearTheme?: string;
+    };
+    const lunarSummary = advancedAstro.lunarReturn?.summary as {
+      ascSign?: string;
+      ascendant?: string;
+      moonHouse?: number;
+      theme?: string;
+      monthTheme?: string;
+    };
+    const progressionSecondarySummary = advancedAstro.progressions?.secondary?.summary as {
+      keySigns?: { sun?: string; moon?: string };
+      progressedSun?: string;
+      progressedMoon?: string;
+    };
+    const progressionSolarArcSummary = advancedAstro.progressions?.solarArc?.summary as {
+      keySigns?: { sun?: string };
+      progressedSun?: string;
+    };
+    const progressionMoonPhase = advancedAstro.progressions?.secondary?.moonPhase as
+      | { phase?: string; name?: string }
+      | string
+      | undefined;
+    const progressionMoonPhaseLabel =
+      typeof progressionMoonPhase === "string"
+        ? progressionMoonPhase
+        : progressionMoonPhase?.phase ?? progressionMoonPhase?.name ?? "-";
+    const harmonicProfile = advancedAstro.harmonics?.profile as {
+      dominant?: number;
+      creative?: number;
+      intuitive?: number;
+      spiritual?: number;
+      strongestHarmonics?: { harmonic: number; strength?: number }[];
+    };
+    const dominantHarmonic = harmonicProfile?.dominant ?? harmonicProfile?.strongestHarmonics?.[0]?.harmonic;
+    const draconicAlignments = advancedAstro.draconic?.comparison?.alignments ?? [];
+    const draconicAlignmentText = draconicAlignments.length
+      ? `Alignments: ${draconicAlignments
+          .slice(0, 2)
+          .map((a) => (a as { description?: string; meaning?: string }).description ?? (a as { meaning?: string }).meaning)
+          .filter(Boolean)
+          .join("; ")}`
+      : null;
     const solarReturnText = advancedAstro.solarReturn ? [
-      `SR ASC: ${srSummary?.ascSign ?? srSummary?.ascendant ?? "-"}`,
-      `SR Sun House: ${srSummary?.sunHouse ?? "-"}`,
-      `SR Moon: ${srSummary?.moonSign ?? "-"} (H${srSummary?.moonHouse ?? "-"})`,
-      `Year Theme: ${srSummary?.theme ?? srSummary?.yearTheme ?? "-"}`,
+      `SR ASC: ${solarSummary?.ascSign ?? solarSummary?.ascendant ?? "-"}`,
+      `SR Sun House: ${solarSummary?.sunHouse ?? "-"}`,
+      `SR Moon: ${solarSummary?.moonSign ?? "-"} (H${solarSummary?.moonHouse ?? "-"})`,
+      `Year Theme: ${solarSummary?.theme ?? solarSummary?.yearTheme ?? "-"}`,
     ].join("; ") : "-";
-
-    const lrSummary = advancedAstro.lunarReturn?.summary as FlexibleSummary | undefined;
     const lunarReturnText = advancedAstro.lunarReturn ? [
-      `LR ASC: ${lrSummary?.ascSign ?? lrSummary?.ascendant ?? "-"}`,
-      `LR Moon House: ${lrSummary?.moonHouse ?? "-"}`,
-      `Month Theme: ${lrSummary?.theme ?? lrSummary?.monthTheme ?? "-"}`,
+      `LR ASC: ${lunarSummary?.ascSign ?? lunarSummary?.ascendant ?? "-"}`,
+      `LR Moon House: ${lunarSummary?.moonHouse ?? "-"}`,
+      `Month Theme: ${lunarSummary?.theme ?? lunarSummary?.monthTheme ?? "-"}`,
     ].join("; ") : "-";
-
-    const secSummary = advancedAstro.progressions?.secondary?.summary as FlexibleSummary | undefined;
-    const secMoonPhase = advancedAstro.progressions?.secondary?.moonPhase as FlexibleMoonPhase | undefined;
-    const saSummary = advancedAstro.progressions?.solarArc?.summary as FlexibleSummary | undefined;
     const progressionsText = advancedAstro.progressions ? [
-      `Progressed Sun: ${(secSummary?.keySigns as FlexibleSummary)?.sun ?? secSummary?.progressedSun ?? "-"}`,
-      `Progressed Moon: ${(secSummary?.keySigns as FlexibleSummary)?.moon ?? secSummary?.progressedMoon ?? "-"}`,
-      `Moon Phase: ${secMoonPhase?.phase ?? "-"}`,
-      advancedAstro.progressions.solarArc ? `Solar Arc Sun: ${(saSummary?.keySigns as FlexibleSummary)?.sun ?? saSummary?.progressedSun ?? "-"}` : null,
+      `Progressed Sun: ${progressionSecondarySummary?.keySigns?.sun ?? progressionSecondarySummary?.progressedSun ?? "-"}`,
+      `Progressed Moon: ${progressionSecondarySummary?.keySigns?.moon ?? progressionSecondarySummary?.progressedMoon ?? "-"}`,
+      `Moon Phase: ${progressionMoonPhaseLabel}`,
+      advancedAstro.progressions.solarArc ? `Solar Arc Sun: ${progressionSolarArcSummary?.keySigns?.sun ?? progressionSolarArcSummary?.progressedSun ?? "-"}` : null,
     ].filter(Boolean).join("; ") : "-";
 
     const draconicText = advancedAstro.draconic ? [
       `Draconic Sun: ${advancedAstro.draconic.chart?.planets?.find((p: PlanetData) => p.name === "Sun")?.sign ?? "-"}`,
       `Draconic Moon: ${advancedAstro.draconic.chart?.planets?.find((p: PlanetData) => p.name === "Moon")?.sign ?? "-"}`,
       `Draconic ASC: ${advancedAstro.draconic.chart?.ascendant?.sign ?? "-"}`,
-      advancedAstro.draconic.comparison?.alignments?.length ? `Alignments: ${(advancedAstro.draconic.comparison.alignments as unknown as FlexibleAlignment[]).slice(0, 2).map((a) => a.description).join("; ")}` : null,
+      draconicAlignmentText,
     ].filter(Boolean).join("; ") : "-";
-
-    const harmProfile = advancedAstro.harmonics?.profile as FlexibleProfile | undefined;
-    const harmonicsText = harmProfile ? [
-      harmProfile.dominant ? `Dominant: H${harmProfile.dominant}` : null,
-      harmProfile.creative ? `Creative(H5): ${(harmProfile.creative as number)?.toFixed?.(0) ?? harmProfile.creative}%` : null,
-      harmProfile.intuitive ? `Intuitive(H7): ${(harmProfile.intuitive as number)?.toFixed?.(0) ?? harmProfile.intuitive}%` : null,
-      harmProfile.spiritual ? `Spiritual(H9): ${(harmProfile.spiritual as number)?.toFixed?.(0) ?? harmProfile.spiritual}%` : null,
+    const harmonicsText = harmonicProfile ? [
+      dominantHarmonic ? `Dominant: H${dominantHarmonic}` : null,
+      harmonicProfile.creative ? `Creative(H5): ${harmonicProfile.creative?.toFixed?.(0) ?? harmonicProfile.creative}%` : null,
+      harmonicProfile.intuitive ? `Intuitive(H7): ${harmonicProfile.intuitive?.toFixed?.(0) ?? harmonicProfile.intuitive}%` : null,
+      harmonicProfile.spiritual ? `Spiritual(H9): ${harmonicProfile.spiritual?.toFixed?.(0) ?? harmonicProfile.spiritual}%` : null,
     ].filter(Boolean).join("; ") : "-";
 
     const h5Sun = advancedAstro.harmonics?.h5?.planets?.find((p: PlanetData) => p.name === "Sun");
@@ -219,36 +251,46 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       h9Sun ? `H9 Sun: ${h9Sun.sign}` : null,
     ].filter(Boolean).join("; ") || "-";
 
-    type FixedStarItem = { star?: unknown; starName?: string; planet?: unknown; planetName?: string; meaning?: string };
+    type FixedStarItem = { star?: unknown; starName?: string; planet?: unknown; planetName?: string; meaning?: string; description?: string };
     const fixedStarsText = advancedAstro.fixedStars?.length
       ? (advancedAstro.fixedStars as FixedStarItem[]).slice(0, 4).map((fs) => {
-          const starName = typeof fs.star === 'object' ? (fs.star as { name?: string })?.name : fs.star ?? fs.starName;
-          const planetName = typeof fs.planet === 'object' ? (fs.planet as { name?: string })?.name : fs.planet ?? fs.planetName;
-          return `${starName}↔${planetName}(${fs.meaning ?? ""})`;
+          const starObj = typeof fs.star === "object" ? (fs.star as { name?: string; name_ko?: string }) : undefined;
+          const starName = starObj?.name ?? starObj?.name_ko ?? (typeof fs.star === "string" ? fs.star : fs.starName);
+          const planetObj = typeof fs.planet === "object" ? (fs.planet as { name?: string }) : undefined;
+          const planetName = planetObj?.name ?? (typeof fs.planet === "string" ? fs.planet : fs.planetName);
+          const meaning = fs.meaning ?? fs.description ?? "";
+          return `${starName ?? "-"}-${planetName ?? "-"}(${meaning})`;
         }).join("; ")
       : "-";
 
-    const eclipseImpact = advancedAstro.eclipses?.impact as FlexibleImpact | undefined;
+    const eclipseImpact = advancedAstro.eclipses?.impact;
     const eclipsesText = advancedAstro.eclipses ? [
-      eclipseImpact ? `Impact: ${eclipseImpact.eclipseType ?? eclipseImpact.type ?? "-"} on ${eclipseImpact.affectedPoint ?? eclipseImpact.affectedPlanet ?? "-"}` : null,
+      eclipseImpact ? `Impact: ${eclipseImpact.eclipse?.type ?? "-"} on ${eclipseImpact.affectedPoint ?? "-"}` : null,
       advancedAstro.eclipses.upcoming?.length ? `Next: ${advancedAstro.eclipses.upcoming[0]?.date ?? "-"} (${advancedAstro.eclipses.upcoming[0]?.type ?? "-"})` : null,
     ].filter(Boolean).join("; ") : "-";
 
-    const electMoonPhase = advancedAstro.electional?.moonPhase as FlexibleMoonPhase | string | undefined;
-    const electAnalysis = advancedAstro.electional?.analysis as FlexibleAnalysis | undefined;
+    const electMoonPhase = advancedAstro.electional?.moonPhase as { phase?: string; name?: string } | string | undefined;
+    const electAnalysis = advancedAstro.electional?.analysis as { score?: { total?: number }; recommendations?: string[] } | undefined;
     const electionalText = advancedAstro.electional ? [
       `Moon Phase: ${typeof electMoonPhase === 'string' ? electMoonPhase : (electMoonPhase?.phase ?? electMoonPhase?.name ?? "-")}`,
-      advancedAstro.electional.voidOfCourse ? `VOC: ${advancedAstro.electional.voidOfCourse.isVoid ? "YES - 중요한 결정 피하기" : "No"}` : null,
+      advancedAstro.electional.voidOfCourse ? `VOC: ${advancedAstro.electional.voidOfCourse.isVoid ? "YES - ??? ?? ???" : "No"}` : null,
       `Planetary Hour: ${advancedAstro.electional.planetaryHour?.planet ?? "-"}`,
       advancedAstro.electional.retrograde?.length ? `Retrograde: ${advancedAstro.electional.retrograde.join(", ")}` : null,
-      electAnalysis?.score ? `Score: ${electAnalysis.score}/100` : null,
-      electAnalysis?.recommendation ?? electAnalysis?.recommendations ? `Tip: ${electAnalysis.recommendation ?? (electAnalysis.recommendations as string[])?.[0] ?? ""}` : null,
+      typeof electAnalysis?.score?.total === 'number' ? `Score: ${electAnalysis.score.total}/100` : null,
+      electAnalysis?.recommendations?.length ? `Tip: ${electAnalysis.recommendations[0]}` : null,
     ].filter(Boolean).join("; ") : "-";
 
     const midpointsText = advancedAstro.midpoints ? [
-      advancedAstro.midpoints.sunMoon ? `Sun/Moon(심리): ${advancedAstro.midpoints.sunMoon.sign} ${advancedAstro.midpoints.sunMoon.degree?.toFixed?.(0) ?? advancedAstro.midpoints.sunMoon.degree ?? 0}°` : null,
-      advancedAstro.midpoints.ascMc ? `ASC/MC(자아): ${advancedAstro.midpoints.ascMc.sign} ${advancedAstro.midpoints.ascMc.degree?.toFixed?.(0) ?? advancedAstro.midpoints.ascMc.degree ?? 0}°` : null,
-      advancedAstro.midpoints.activations?.length ? `Activated: ${(advancedAstro.midpoints.activations as unknown as FlexibleActivation[]).slice(0, 3).map((a) => a.description ?? `${a.midpoint}-${a.activator}`).join("; ")}` : null,
+      advancedAstro.midpoints.sunMoon ? `Sun/Moon(??): ${advancedAstro.midpoints.sunMoon.sign} ${advancedAstro.midpoints.sunMoon.degree?.toFixed?.(0) ?? advancedAstro.midpoints.sunMoon.degree ?? 0}?` : null,
+      advancedAstro.midpoints.ascMc ? `ASC/MC(??): ${advancedAstro.midpoints.ascMc.sign} ${advancedAstro.midpoints.ascMc.degree?.toFixed?.(0) ?? advancedAstro.midpoints.ascMc.degree ?? 0}?` : null,
+      advancedAstro.midpoints.activations?.length
+        ? `Activated: ${advancedAstro.midpoints.activations
+            .slice(0, 3)
+            .map((a: { description?: string; midpoint?: { id?: string; name_ko?: string }; activator?: string }) =>
+              a.description ?? `${a.midpoint?.id ?? a.midpoint?.name_ko ?? "-"}-${a.activator ?? "-"}`
+            )
+            .join("; ")}`
+        : null,
     ].filter(Boolean).join("; ") : "-";
 
     type MidpointItem = { planet1?: string; planet2?: string; sign?: string; degree?: number };
@@ -283,7 +325,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       },
       ageInfo,
       timeInfo,
-    });
+    } as ThemeSectionInput);
 
     // Step 10: Assemble final prompt using template
     const promptData: PromptData = {
@@ -312,27 +354,27 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       ascendantSign: planetary.ascendant?.sign ?? "-",
       mcSign: planetary.mc?.sign ?? "-",
       sunSign: planetary.sun?.sign ?? "-",
-      sunHouse: String(planetary.sun?.house ?? "-"),
+      sunHouse: toHouseLabel(planetary.sun?.house),
       moonSign: planetary.moon?.sign ?? "-",
-      moonHouse: String(planetary.moon?.house ?? "-"),
+      moonHouse: toHouseLabel(planetary.moon?.house),
       mercurySign: planetary.mercury?.sign ?? "-",
-      mercuryHouse: String(planetary.mercury?.house ?? "-"),
+      mercuryHouse: toHouseLabel(planetary.mercury?.house),
       venusSign: planetary.venus?.sign ?? "-",
-      venusHouse: String(planetary.venus?.house ?? "-"),
+      venusHouse: toHouseLabel(planetary.venus?.house),
       marsSign: planetary.mars?.sign ?? "-",
-      marsHouse: String(planetary.mars?.house ?? "-"),
+      marsHouse: toHouseLabel(planetary.mars?.house),
       jupiterSign: planetary.jupiter?.sign ?? "-",
-      jupiterHouse: String(planetary.jupiter?.house ?? "-"),
+      jupiterHouse: toHouseLabel(planetary.jupiter?.house),
       saturnSign: planetary.saturn?.sign ?? "-",
-      saturnHouse: String(planetary.saturn?.house ?? "-"),
+      saturnHouse: toHouseLabel(planetary.saturn?.house),
       uranusSign: planetary.uranus?.sign ?? "-",
-      uranusHouse: String(planetary.uranus?.house ?? "-"),
+      uranusHouse: toHouseLabel(planetary.uranus?.house),
       neptuneSign: planetary.neptune?.sign ?? "-",
-      neptuneHouse: String(planetary.neptune?.house ?? "-"),
+      neptuneHouse: toHouseLabel(planetary.neptune?.house),
       plutoSign: planetary.pluto?.sign ?? "-",
-      plutoHouse: String(planetary.pluto?.house ?? "-"),
+      plutoHouse: toHouseLabel(planetary.pluto?.house),
       northNodeSign: planetary.northNode?.sign ?? "-",
-      northNodeHouse: String(planetary.northNode?.house ?? "-"),
+      northNodeHouse: toHouseLabel(planetary.northNode?.house),
       elements,
       planetLines,
       houseLines,

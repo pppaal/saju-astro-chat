@@ -112,8 +112,10 @@ function GlobalHeaderContent() {
   }, [pathname]);
 
   const [showDropdown, setShowDropdown] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuItemsRef = useRef<HTMLButtonElement[]>([]);
 
   const loading = status === "loading";
   const isAuthenticated = status === "authenticated";
@@ -122,11 +124,15 @@ function GlobalHeaderContent() {
     session?.user?.email ||
     (isAuthenticated ? (t("common.account") || "Account") : null);
 
+  // Menu items count for arrow key navigation
+  const menuItemCount = 2; // My Journey, Logout
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setShowDropdown(false);
+        setFocusedIndex(-1);
       }
     };
     if (showDropdown) {
@@ -135,13 +141,60 @@ function GlobalHeaderContent() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showDropdown]);
 
-  // Keyboard navigation for dropdown
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      setShowDropdown(false);
-      triggerRef.current?.focus();
+  // Focus menu item when focusedIndex changes
+  useEffect(() => {
+    if (showDropdown && focusedIndex >= 0 && menuItemsRef.current[focusedIndex]) {
+      menuItemsRef.current[focusedIndex].focus();
     }
-  }, []);
+  }, [focusedIndex, showDropdown]);
+
+  // Reset focused index when dropdown closes
+  useEffect(() => {
+    if (!showDropdown) {
+      setFocusedIndex(-1);
+    }
+  }, [showDropdown]);
+
+  // Keyboard navigation for dropdown (WCAG 2.1 AA compliant)
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!showDropdown) {
+      // Open dropdown with arrow down or Enter/Space
+      if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setShowDropdown(true);
+        setFocusedIndex(0);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case "Escape":
+        e.preventDefault();
+        setShowDropdown(false);
+        triggerRef.current?.focus();
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        setFocusedIndex((prev) => (prev + 1) % menuItemCount);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setFocusedIndex((prev) => (prev - 1 + menuItemCount) % menuItemCount);
+        break;
+      case "Home":
+        e.preventDefault();
+        setFocusedIndex(0);
+        break;
+      case "End":
+        e.preventDefault();
+        setFocusedIndex(menuItemCount - 1);
+        break;
+      case "Tab":
+        // Close dropdown on Tab and let focus move naturally
+        setShowDropdown(false);
+        break;
+    }
+  }, [showDropdown, menuItemCount]);
 
   // Loading state
   if (loading) {
@@ -261,7 +314,9 @@ function GlobalHeaderContent() {
         >
           {/* My Journey button */}
           <button
+            ref={(el) => { if (el) menuItemsRef.current[0] = el; }}
             role="menuitem"
+            tabIndex={focusedIndex === 0 ? 0 : -1}
             onClick={() => {
               setShowDropdown(false);
               router.push("/myjourney");
@@ -292,7 +347,9 @@ function GlobalHeaderContent() {
           </button>
           {/* Logout button */}
           <button
+            ref={(el) => { if (el) menuItemsRef.current[1] = el; }}
             role="menuitem"
+            tabIndex={focusedIndex === 1 ? 0 : -1}
             onClick={() => signOut({ callbackUrl: "/" })}
             className="flex items-center justify-center gap-2 px-4 py-2.5
               bg-red-500/15 border border-red-500/30 rounded-xl

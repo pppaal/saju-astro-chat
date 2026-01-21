@@ -8,6 +8,7 @@
 
 import type { CombinedResult, AstrologyData, SajuPillar } from "@/lib/destiny-map/astrology/types";
 import type { PlanetData, AspectHit, ExtraPoint, Asteroid } from "@/lib/astrology";
+import type { UnseData } from "./prompt-types";
 
 /**
  * House cusp data structure
@@ -71,16 +72,6 @@ interface DayMasterData {
   element?: string;
   yinYang?: string;
   strength?: string;
-}
-
-/**
- * Unse (luck cycles) data structure
- */
-interface UnseData {
-  daeun: unknown[];
-  annual: unknown[];
-  monthly: unknown[];
-  iljin: unknown[];
 }
 
 /**
@@ -190,7 +181,7 @@ export function extractSajuData(data: CombinedResult): ExtractedSajuData {
   return {
     pillars: pillars ?? {},
     dayMaster: (dayMaster ?? {}) as DayMasterData,
-    unse: unse ?? { daeun: [], annual: [], monthly: [], iljin: [] },
+    unse: (unse ?? { daeun: [], annual: [], monthly: [], iljin: [] }) as UnseData,
     sinsal: (sinsal ?? {}) as Record<string, unknown>,
     advancedAnalysis: (advancedAnalysis ?? {}) as Record<string, unknown>,
     facts: (facts ?? {}) as AstrologyFactsForPrompt,

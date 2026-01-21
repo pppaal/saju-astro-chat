@@ -1,7 +1,7 @@
 # fly.toml app configuration file for Backend AI
 # See https://fly.io/docs/reference/configuration/ for documentation
 
-app = "saju-backend-ai"
+app = "backend-ai"
 primary_region = "nrt" # Tokyo - closest to Korea
 
 [build]

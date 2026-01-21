@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useDreamChat } from '@/hooks/useDreamChat';
 import { apiFetch } from '@/lib/api';
@@ -41,6 +41,11 @@ describe('useDreamChat', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe('Message sending', () => {
@@ -57,19 +62,12 @@ describe('useDreamChat', () => {
     });
 
     it('should not send message while loading', async () => {
-      mockApiFetch.mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () =>
-                resolve({
-                  ok: true,
-                  json: async () => ({ reply: 'Response' }),
-                } as Response),
-              1000
-            )
-          )
-      );
+      let resolvePromise: (value: Response) => void;
+      const pendingPromise = new Promise<Response>((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      mockApiFetch.mockReturnValue(pendingPromise);
 
       const { result } = renderHook(() =>
         useDreamChat('en', 'Dream text', mockResult, null, null)
@@ -79,6 +77,7 @@ describe('useDreamChat', () => {
         result.current.setChatInput('First message');
       });
 
+      // Start the first request (don't await - it will be pending)
       act(() => {
         result.current.sendMessage();
       });
@@ -89,12 +88,22 @@ describe('useDreamChat', () => {
         result.current.setChatInput('Second message');
       });
 
-      await act(async () => {
-        await result.current.sendMessage();
+      // Try to send second message while first is loading
+      act(() => {
+        result.current.sendMessage();
       });
 
-      // Should only be called once
+      // Should only be called once because second is blocked
       expect(mockApiFetch).toHaveBeenCalledTimes(1);
+
+      // Now resolve the pending promise to clean up
+      await act(async () => {
+        resolvePromise!({
+          ok: true,
+          json: async () => ({ reply: 'Response' }),
+        } as Response);
+        await pendingPromise;
+      });
     });
 
     it('should add user message to chat', async () => {
