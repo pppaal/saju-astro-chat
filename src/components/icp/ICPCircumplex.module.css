@@ -43,7 +43,7 @@
 
 .axisLabel {
   fill: rgba(255, 255, 255, 0.5);
-  font-size: 10px;
+  font-size: 11px;
   font-family: 'Pretendard', sans-serif;
 }
 
@@ -81,7 +81,7 @@
 
 .octantCode {
   fill: white;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   font-family: 'Cinzel', serif;
   pointer-events: none;
@@ -89,7 +89,7 @@
 
 .octantLabel {
   fill: rgba(255, 255, 255, 0.7);
-  font-size: 10px;
+  font-size: 11px;
   font-family: 'Pretendard', sans-serif;
 }
 
@@ -133,20 +133,38 @@
 }
 
 /* Responsive */
+@media (max-width: 768px) {
+  .octantLabel {
+    font-size: 11px;
+  }
+
+  .octantCode {
+    font-size: 10px;
+  }
+
+  .axisLabel {
+    font-size: 11px;
+  }
+}
+
 @media (max-width: 480px) {
   .container {
     padding: 1rem;
   }
 
   .svg {
-    max-width: 280px;
+    max-width: 300px;
   }
 
   .octantLabel {
-    font-size: 9px;
+    font-size: 12px;
+  }
+
+  .octantCode {
+    font-size: 11px;
   }
 
   .axisLabel {
-    font-size: 9px;
+    font-size: 12px;
   }
 }

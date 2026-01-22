@@ -36,8 +36,8 @@ try:
     from backend_ai.app.tarot_rag import get_tarot_rag, TarotRAG
     from backend_ai.app.tarot_advanced_embeddings import get_tarot_advanced_embeddings
 except ImportError:
-    from app.tarot_rag import get_tarot_rag, TarotRAG
-    from app.tarot_advanced_embeddings import get_tarot_advanced_embeddings
+    from backend_ai.app.tarot_rag import get_tarot_rag, TarotRAG
+    from backend_ai.app.tarot_advanced_embeddings import get_tarot_advanced_embeddings
 
 
 class TarotHybridRAG:

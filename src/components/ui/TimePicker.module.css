@@ -19,10 +19,11 @@
 .selectGrid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
+  gap: 12px;
 }
 
 .select {
+  min-height: 48px;
   padding: 14px 12px;
   background: rgba(168, 237, 234, 0.08);
   border: 1px solid rgba(168, 237, 234, 0.25);
@@ -33,6 +34,7 @@
   transition: all 0.3s ease;
   outline: none;
   cursor: pointer;
+  touch-action: manipulation;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -59,8 +61,25 @@
   padding: 8px;
 }
 
+/* Responsive improvements for mobile */
+@media (max-width: 768px) {
+  .selectGrid {
+    gap: 16px;
+  }
+
+  .select {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+}
+
 @media (max-width: 480px) {
   .selectGrid {
-    gap: 6px;
+    gap: 16px;
+  }
+
+  .select {
+    min-height: 52px;
+    padding: 16px 14px;
+    font-size: 16px;
   }
 }

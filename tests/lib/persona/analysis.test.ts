@@ -1,7 +1,7 @@
 // tests/lib/persona/analysis.test.ts
 import { describe, it, expect } from 'vitest';
-import { analyzePersona, EFFECTS } from '@/lib/persona/analysis';
-import type { PersonaQuizAnswers, PersonaAnalysis, PersonaAxisKey } from '@/lib/persona/types';
+import { analyzePersona, getPersonaCompatibility, EFFECTS } from '@/lib/persona/analysis';
+import type { PersonaQuizAnswers, PersonaAnalysis, PersonaAxisKey, PersonaAxisResult } from '@/lib/persona/types';
 
 describe('persona analysis', () => {
   // Helper function to create answers - moved to top level of describe block
@@ -395,6 +395,226 @@ describe('persona analysis', () => {
 
       expect(result.profile.enneagram).toBeDefined();
       expect(Object.keys(result.profile.enneagram).length).toBe(9);
+    });
+  });
+
+  describe('getPersonaCompatibility', () => {
+    it('should return valid compatibility result', () => {
+      const axes1: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 80, pole: 'radiant' },
+        cognition: { score: 75, pole: 'visionary' },
+        decision: { score: 70, pole: 'logic' },
+        rhythm: { score: 60, pole: 'anchor' },
+      };
+      const axes2: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 30, pole: 'grounded' },
+        cognition: { score: 25, pole: 'structured' },
+        decision: { score: 30, pole: 'logic' },
+        rhythm: { score: 70, pole: 'anchor' },
+      };
+
+      const result = getPersonaCompatibility('RVLA', 'GSLA', axes1, axes2, 'en');
+
+      expect(result.score).toBeGreaterThanOrEqual(30);
+      expect(result.score).toBeLessThanOrEqual(95);
+      expect(result.level).toBeDefined();
+      expect(result.levelKo).toBeDefined();
+      expect(result.description).toBeDefined();
+      expect(result.descriptionKo).toBeDefined();
+      expect(result.synergies).toBeInstanceOf(Array);
+      expect(result.synergiesKo).toBeInstanceOf(Array);
+      expect(result.tensions).toBeInstanceOf(Array);
+      expect(result.tensionsKo).toBeInstanceOf(Array);
+    });
+
+    it('should identify similar energy levels as synergy', () => {
+      const axes1: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 80, pole: 'radiant' },
+        cognition: { score: 50, pole: 'visionary' },
+        decision: { score: 50, pole: 'logic' },
+        rhythm: { score: 50, pole: 'anchor' },
+      };
+      const axes2: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 85, pole: 'radiant' },
+        cognition: { score: 50, pole: 'visionary' },
+        decision: { score: 50, pole: 'logic' },
+        rhythm: { score: 50, pole: 'anchor' },
+      };
+
+      const result = getPersonaCompatibility('RVLA', 'RVLA', axes1, axes2, 'en');
+
+      expect(result.synergies.some(s => s.includes('energy'))).toBe(true);
+    });
+
+    it('should identify complementary cognition as synergy', () => {
+      const axes1: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 50, pole: 'radiant' },
+        cognition: { score: 85, pole: 'visionary' },
+        decision: { score: 50, pole: 'logic' },
+        rhythm: { score: 50, pole: 'anchor' },
+      };
+      const axes2: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 50, pole: 'radiant' },
+        cognition: { score: 20, pole: 'structured' },
+        decision: { score: 50, pole: 'logic' },
+        rhythm: { score: 50, pole: 'anchor' },
+      };
+
+      const result = getPersonaCompatibility('RVLA', 'RSLA', axes1, axes2, 'en');
+
+      expect(result.synergies.some(s => s.includes('thinking') || s.includes('Complementary'))).toBe(true);
+    });
+
+    it('should identify decision style difference as potential tension', () => {
+      const axes1: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 50, pole: 'radiant' },
+        cognition: { score: 50, pole: 'visionary' },
+        decision: { score: 85, pole: 'logic' },
+        rhythm: { score: 50, pole: 'anchor' },
+      };
+      const axes2: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 50, pole: 'radiant' },
+        cognition: { score: 50, pole: 'visionary' },
+        decision: { score: 20, pole: 'empathic' },
+        rhythm: { score: 50, pole: 'anchor' },
+      };
+
+      const result = getPersonaCompatibility('RVLA', 'RVHA', axes1, axes2, 'en');
+
+      expect(result.tensions.some(t => t.includes('decision'))).toBe(true);
+    });
+
+    it('should give bonus for same archetype', () => {
+      const axes: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 80, pole: 'radiant' },
+        cognition: { score: 75, pole: 'visionary' },
+        decision: { score: 70, pole: 'logic' },
+        rhythm: { score: 60, pole: 'anchor' },
+      };
+
+      const sameResult = getPersonaCompatibility('RVLA', 'RVLA', axes, axes, 'en');
+      const diffResult = getPersonaCompatibility('RVLA', 'GSLA', axes, {
+        energy: { score: 30, pole: 'grounded' },
+        cognition: { score: 25, pole: 'structured' },
+        decision: { score: 70, pole: 'logic' },
+        rhythm: { score: 60, pole: 'anchor' },
+      }, 'en');
+
+      expect(sameResult.synergies.some(s => s.includes('shared archetype') || s.includes('mutual understanding'))).toBe(true);
+    });
+
+    it('should identify visionary + structured synergy', () => {
+      const axes1: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 50, pole: 'radiant' },
+        cognition: { score: 85, pole: 'visionary' },
+        decision: { score: 50, pole: 'logic' },
+        rhythm: { score: 50, pole: 'anchor' },
+      };
+      const axes2: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 50, pole: 'radiant' },
+        cognition: { score: 20, pole: 'structured' },
+        decision: { score: 50, pole: 'logic' },
+        rhythm: { score: 50, pole: 'anchor' },
+      };
+
+      const result = getPersonaCompatibility('RVLA', 'RSLA', axes1, axes2, 'en');
+
+      expect(result.synergies.some(s => s.includes('Visionary') || s.includes('execution'))).toBe(true);
+    });
+
+    it('should identify radiant + grounded balance', () => {
+      const axes1: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 85, pole: 'radiant' },
+        cognition: { score: 50, pole: 'visionary' },
+        decision: { score: 50, pole: 'logic' },
+        rhythm: { score: 50, pole: 'anchor' },
+      };
+      const axes2: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 20, pole: 'grounded' },
+        cognition: { score: 50, pole: 'visionary' },
+        decision: { score: 50, pole: 'logic' },
+        rhythm: { score: 50, pole: 'anchor' },
+      };
+
+      const result = getPersonaCompatibility('RVLA', 'GVLA', axes1, axes2, 'en');
+
+      expect(result.synergies.some(s => s.includes('Energizer') || s.includes('stabilizer'))).toBe(true);
+    });
+
+    it('should work with Korean locale', () => {
+      const axes1: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 80, pole: 'radiant' },
+        cognition: { score: 75, pole: 'visionary' },
+        decision: { score: 70, pole: 'logic' },
+        rhythm: { score: 60, pole: 'anchor' },
+      };
+      const axes2: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 30, pole: 'grounded' },
+        cognition: { score: 25, pole: 'structured' },
+        decision: { score: 30, pole: 'logic' },
+        rhythm: { score: 70, pole: 'anchor' },
+      };
+
+      const result = getPersonaCompatibility('RVLA', 'GSLA', axes1, axes2, 'ko');
+
+      expect(result.levelKo).toBeDefined();
+      expect(result.descriptionKo).toBeDefined();
+      expect(result.synergiesKo.length).toBeGreaterThan(0);
+    });
+
+    it('should identify extreme rhythm differences as tension', () => {
+      const axes1: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 50, pole: 'radiant' },
+        cognition: { score: 50, pole: 'visionary' },
+        decision: { score: 50, pole: 'logic' },
+        rhythm: { score: 90, pole: 'flow' },
+      };
+      const axes2: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 50, pole: 'radiant' },
+        cognition: { score: 50, pole: 'visionary' },
+        decision: { score: 50, pole: 'logic' },
+        rhythm: { score: 10, pole: 'anchor' },
+      };
+
+      const result = getPersonaCompatibility('RVLF', 'RVLA', axes1, axes2, 'en');
+
+      expect(result.tensions.some(t => t.includes('pacing') || t.includes('rhythm'))).toBe(true);
+    });
+
+    it('should return higher scores for well-matched pairs', () => {
+      // Well-matched: complementary cognition, similar values
+      const wellMatchedAxes1: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 70, pole: 'radiant' },
+        cognition: { score: 80, pole: 'visionary' },
+        decision: { score: 75, pole: 'logic' },
+        rhythm: { score: 60, pole: 'anchor' },
+      };
+      const wellMatchedAxes2: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 65, pole: 'radiant' },
+        cognition: { score: 25, pole: 'structured' },
+        decision: { score: 70, pole: 'logic' },
+        rhythm: { score: 55, pole: 'anchor' },
+      };
+
+      const wellMatchedResult = getPersonaCompatibility('RVLA', 'RSLA', wellMatchedAxes1, wellMatchedAxes2, 'en');
+
+      // Poorly matched: opposing on most dimensions
+      const poorlyMatchedAxes1: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 85, pole: 'radiant' },
+        cognition: { score: 80, pole: 'visionary' },
+        decision: { score: 85, pole: 'logic' },
+        rhythm: { score: 20, pole: 'anchor' },
+      };
+      const poorlyMatchedAxes2: Record<PersonaAxisKey, PersonaAxisResult> = {
+        energy: { score: 20, pole: 'grounded' },
+        cognition: { score: 25, pole: 'structured' },
+        decision: { score: 20, pole: 'empathic' },
+        rhythm: { score: 85, pole: 'flow' },
+      };
+
+      const poorlyMatchedResult = getPersonaCompatibility('RVLA', 'GSHF', poorlyMatchedAxes1, poorlyMatchedAxes2, 'en');
+
+      expect(wellMatchedResult.score).toBeGreaterThan(poorlyMatchedResult.score);
     });
   });
 });

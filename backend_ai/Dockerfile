@@ -33,6 +33,5 @@ EXPOSE 8080
 ENV PYTHONPATH=/app
 
 # Start command (default to 8080 if PORT is not provided)
-# Use 1 worker with threads for memory efficiency on Fly.io
-# preload to share model memory, graceful-timeout for clean shutdown
-CMD ["sh", "-c", "gunicorn app.app:app --bind 0.0.0.0:${PORT:-8080} --workers 1 --threads 4 --timeout 120 --graceful-timeout 30 --keep-alive 5 --preload"]
+# Use env-driven Gunicorn settings to keep Docker/Fly/Nixpacks aligned.
+CMD ["sh", "-c", "exec gunicorn ${APP_MODULE:-main:app} --bind 0.0.0.0:${PORT:-8080} --workers ${GUNICORN_WORKERS:-1} --threads ${GUNICORN_THREADS:-4} --timeout ${GUNICORN_TIMEOUT:-120} --graceful-timeout ${GUNICORN_GRACEFUL_TIMEOUT:-30} --keep-alive ${GUNICORN_KEEPALIVE:-5} --worker-class ${GUNICORN_WORKER_CLASS:-gthread} --preload"]

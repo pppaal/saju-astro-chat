@@ -1,7 +1,7 @@
-import { getServerSession } from "next-auth";
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
-import { authOptions } from "@/lib/auth/authOptions";
-import { apiGuard } from "@/lib/apiGuard";
+import { NextRequest, NextResponse } from "next/server";
+import { initializeApiContext, createAuthenticatedGuard } from "@/lib/api/middleware";
+import { createSSEStreamProxy, createFallbackSSEStream } from "@/lib/streaming";
+import { apiClient } from "@/lib/api/ApiClient";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { logger } from '@/lib/logger';
 
@@ -15,36 +15,34 @@ function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
 }
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const guard = await apiGuard(request, { path: "compatibility-chat", limit: 60, windowSeconds: 60 });
-    if (guard instanceof Response) return guard;
+    // Apply middleware: authentication + rate limiting + credit consumption
+    const guardOptions = createAuthenticatedGuard({
+      route: "compatibility-chat",
+      limit: 60,
+      windowSeconds: 60,
+      requireCredits: true,
+      creditType: "compatibility", // 궁합 채팅은 compatibility 타입 사용
+      creditAmount: 1,
+    });
 
-    // DEV MODE: Skip auth check
-    const isDev = process.env.NODE_ENV === "development";
-    if (!isDev) {
-      const session = await getServerSession(authOptions);
-      if (!session?.user?.email) {
-        return new Response(JSON.stringify({ error: "not_authenticated" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-    }
+    const { context, error } = await initializeApiContext(req, guardOptions);
+    if (error) return error;
 
-    const body = await request.json();
+    const body = await req.json();
     const {
       persons = [],
       compatibilityResult = "",
-      lang = "ko",
+      lang = context.locale,
       messages = [],
     } = body;
 
     if (!persons || persons.length < 2) {
-      return new Response(JSON.stringify({ error: "At least 2 persons required" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json(
+        { error: "At least 2 persons required" },
+        { status: 400 }
+      );
     }
 
     const trimmedHistory = clampMessages(messages);
@@ -52,23 +50,10 @@ export async function POST(request: Request) {
     // Safety check
     const lastUser = [...trimmedHistory].reverse().find((m) => m.role === "user");
     if (lastUser && containsForbidden(lastUser.content)) {
-      const encoder = new TextEncoder();
-      return new Response(
-        new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode(`data: ${safetyMessage(lang)}\n\n`));
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-            controller.close();
-          },
-        }),
-        {
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-          },
-        }
-      );
+      return createFallbackSSEStream({
+        content: safetyMessage(lang),
+        done: true,
+      });
     }
 
     // Build conversation context
@@ -95,49 +80,31 @@ export async function POST(request: Request) {
     ].filter(Boolean).join("\n");
 
     // Call backend AI
-    const backendUrl = pickBackendUrl();
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    const apiToken = process.env.ADMIN_API_TOKEN;
-    if (apiToken) {
-      headers["X-API-KEY"] = apiToken;
-    }
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
-
     try {
-      const aiResponse = await fetch(`${backendUrl}/api/compatibility/chat`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          persons,
-          prompt: chatPrompt,
-          question: userQuestion,
-          history: trimmedHistory,
-          locale: lang,
-          compatibility_context: compatibilityResult,
-        }),
-        signal: controller.signal,
-      });
+      const response = await apiClient.post("/api/compatibility/chat", {
+        persons,
+        prompt: chatPrompt,
+        question: userQuestion,
+        history: trimmedHistory,
+        locale: lang,
+        compatibility_context: compatibilityResult,
+      }, { timeout: 60000 });
 
-      clearTimeout(timeoutId);
-
-      if (!aiResponse.ok) {
-        throw new Error(`Backend returned ${aiResponse.status}`);
+      if (!response.ok) {
+        throw new Error(`Backend returned ${response.status}`);
       }
 
-      // Stream response
-      const encoder = new TextEncoder();
-      const aiData = await aiResponse.json();
-      const answer = aiData?.data?.response || aiData?.response || aiData?.interpretation ||
-        "죄송합니다. 응답을 생성할 수 없습니다. 다시 시도해 주세요.";
+      const aiData = response.data as Record<string, unknown>;
+      const answer = (aiData?.data as Record<string, unknown>)?.response || aiData?.response || aiData?.interpretation ||
+        (lang === "ko"
+          ? "죄송합니다. 응답을 생성할 수 없습니다. 다시 시도해 주세요."
+          : "Sorry, unable to generate a response. Please try again.");
 
+      // Stream response in chunks for better UX
+      const encoder = new TextEncoder();
       return new Response(
         new ReadableStream({
           start(controller) {
-            // Send answer in chunks for streaming effect
             const chunks = answer.match(/.{1,50}/g) || [answer];
             chunks.forEach((chunk: string, index: number) => {
               setTimeout(() => {
@@ -159,37 +126,22 @@ export async function POST(request: Request) {
         }
       );
     } catch (fetchError) {
-      clearTimeout(timeoutId);
       logger.error("[Compatibility Chat] Backend error:", fetchError);
 
-      // Fallback response
       const fallback = lang === "ko"
         ? "AI 서버 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요."
         : "AI server connection issue. Please try again later.";
 
-      const encoder = new TextEncoder();
-      return new Response(
-        new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode(`data: ${fallback}\n\n`));
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-            controller.close();
-          },
-        }),
-        {
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-          },
-        }
-      );
+      return createFallbackSSEStream({
+        content: fallback,
+        done: true,
+      });
     }
   } catch (error) {
     logger.error("[Compatibility Chat] Error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

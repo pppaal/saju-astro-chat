@@ -7,6 +7,8 @@ import { prisma } from "@/lib/db/prisma";
 import { getUserCredits } from "@/lib/credits/creditService";
 import { logger } from "@/lib/logger";
 import { captureServerError } from "@/lib/telemetry";
+import { sanitizeError } from "@/lib/security/errorSanitizer";
+import { rateLimit } from "@/lib/rateLimit";
 
 // Audit log for admin actions
 async function logAdminAction(
@@ -124,6 +126,17 @@ export async function POST(req: Request) {
       return json({ error: "Unauthorized" }, 401);
     }
 
+    // Rate limiting for admin actions: max 10 refunds per hour per admin
+    const rlKey = `admin-refund:${adminEmail}`;
+    const limit = await rateLimit(rlKey, { limit: 10, windowSeconds: 3600 });
+    if (!limit.allowed) {
+      await logAdminAction(adminEmail, "refund_rate_limited", {
+        remaining: limit.remaining,
+        reset: limit.reset,
+      });
+      return json({ error: "Too many refund requests. Please try again later." }, 429);
+    }
+
     const body = await req.json().catch(() => null);
     const subscriptionId =
       typeof body?.subscriptionId === "string" ? body.subscriptionId.trim() : "";
@@ -221,14 +234,14 @@ export async function POST(req: Request) {
   } catch (err: unknown) {
     logger.error("[AdminRefund] Failed:", { error: err });
     captureServerError(err as Error, { route: "/api/admin/refund-subscription" });
-    const message = err instanceof Error ? err.message : "Unknown error";
+    const sanitized = sanitizeError(err, 'internal');
 
-    // Audit log for failed refund
+    // Audit log for failed refund (log original error for internal debugging)
     await logAdminAction(adminEmail, "refund_failed", {
-      error: message,
+      error: err instanceof Error ? err.message : "Unknown error",
       body: await req.clone().json().catch(() => null),
     });
 
-    return json({ error: message }, 500);
+    return json(sanitized, 500);
   }
 }

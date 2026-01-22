@@ -17,9 +17,9 @@ try:
     from backend_ai.app.dream import get_dream_rule_engine
     from backend_ai.app.sanitizer import sanitize_dream_text, is_suspicious_input
 except ImportError:
-    from app.redis_cache import get_cache
-    from app.dream import get_dream_rule_engine
-    from app.sanitizer import sanitize_dream_text, is_suspicious_input
+    from backend_ai.app.redis_cache import get_cache
+    from backend_ai.app.dream import get_dream_rule_engine
+    from backend_ai.app.sanitizer import sanitize_dream_text, is_suspicious_input
 
 from .prompt_builder import build_dream_prompt
 from .utils import (
@@ -42,7 +42,7 @@ def _get_dream_embed_rag():
         try:
             from backend_ai.app.dream_embeddings import get_dream_embed_rag as _get_rag
         except ImportError:
-            from app.dream_embeddings import get_dream_embed_rag as _get_rag
+            from backend_ai.app.dream_embeddings import get_dream_embed_rag as _get_rag
         _dream_embed_rag = _get_rag()
     return _dream_embed_rag
 

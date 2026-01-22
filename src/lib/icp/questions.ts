@@ -98,12 +98,12 @@ export const icpQuestions: ICPQuestion[] = [
   {
     id: 'dom_8',
     axis: 'dominance',
-    text: 'In new social situations, I:',
-    textKo: '처음 보는 사람들과 있을 때 나는:',
+    text: 'When someone else is leading, I:',
+    textKo: '다른 사람이 주도하고 있을 때 나는:',
     options: [
-      { id: 'A', text: 'Introduce myself and start conversations', textKo: '먼저 다가가서 대화를 시작한다' },
-      { id: 'B', text: 'Wait to be introduced', textKo: '소개받기를 기다린다' },
-      { id: 'C', text: 'Stay quiet until I feel comfortable', textKo: '편해질 때까지 조용히 있는다' },
+      { id: 'A', text: 'Find it hard to let go and often step in', textKo: '놓아주기 어렵고 자주 개입하게 된다' },
+      { id: 'B', text: 'Support their leadership while offering input', textKo: '의견을 내면서 그들의 리더십을 지원한다' },
+      { id: 'C', text: 'Naturally follow and let them take charge', textKo: '자연스럽게 따르며 주도하게 둔다' },
     ],
   },
   {
@@ -131,19 +131,19 @@ export const icpQuestions: ICPQuestion[] = [
   {
     id: 'dom_11',
     axis: 'dominance',
-    text: 'When I have a strong opinion, I:',
-    textKo: '확고한 의견이 있을 때 나는:',
+    text: 'Under pressure or stress, I tend to:',
+    textKo: '압박이나 스트레스를 받을 때 나는:',
     options: [
-      { id: 'A', text: 'Make sure others hear it', textKo: '적극적으로 의견을 표현한다' },
-      { id: 'B', text: 'Share if the moment feels right', textKo: '때를 봐서 공유한다' },
-      { id: 'C', text: 'Keep it to myself unless asked', textKo: '물어보지 않으면 말하지 않는다' },
+      { id: 'A', text: 'Take control and push through', textKo: '통제권을 잡고 밀고 나간다' },
+      { id: 'B', text: 'Share the burden with others', textKo: '다른 사람들과 부담을 나눈다' },
+      { id: 'C', text: 'Step back and let others handle it', textKo: '물러나서 다른 사람이 처리하게 한다' },
     ],
   },
   {
     id: 'dom_12',
     axis: 'dominance',
     text: 'My communication style is usually:',
-    textKo: '평소 말하는 방식은:',
+    textKo: '나의 의사소통 스타일은:',
     options: [
       { id: 'A', text: 'Direct and assertive', textKo: '직접적이고 단호하다' },
       { id: 'B', text: 'Balanced and diplomatic', textKo: '적당히 조율하는 편이다' },
@@ -243,12 +243,12 @@ export const icpQuestions: ICPQuestion[] = [
   {
     id: 'aff_5',
     axis: 'affiliation',
-    text: 'I show appreciation for others:',
-    textKo: '다른 사람에게 고마움을 표현할 때 나는:',
+    text: 'When I accomplish something, I:',
+    textKo: '무언가를 성취했을 때 나는:',
     options: [
-      { id: 'A', text: 'Openly and frequently', textKo: '자주 솔직하게 표현한다' },
-      { id: 'B', text: 'When they deserve it', textKo: '정말 고마울 때만 한다' },
-      { id: 'C', text: 'Rarely; actions speak louder than words', textKo: '거의 안 한다; 말보다 행동이 중요하다' },
+      { id: 'A', text: 'Celebrate with others and share the joy', textKo: '다른 사람들과 축하하고 기쁨을 나눈다' },
+      { id: 'B', text: 'Acknowledge it but keep celebrations modest', textKo: '인정하지만 축하는 소소하게 한다' },
+      { id: 'C', text: 'Prefer to keep achievements to myself', textKo: '성취를 혼자만 간직하는 것을 선호한다' },
     ],
   },
   {
@@ -299,7 +299,7 @@ export const icpQuestions: ICPQuestion[] = [
     id: 'aff_10',
     axis: 'affiliation',
     text: 'Expressing affection physically (hugs, etc.) is:',
-    textKo: '신체적인 스킨십(포옹 등)은:',
+    textKo: '신체적 접촉(포옹, 어깨 터치 등)은:',
     options: [
       { id: 'A', text: 'Natural and I do it often', textKo: '자연스럽고 자주 한다' },
       { id: 'B', text: 'Fine with close people only', textKo: '친한 사람에게만 괜찮다' },

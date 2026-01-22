@@ -15,6 +15,7 @@ import {
 } from '../../lib/Saju';
 import PillarSummaryTable from './PillarSummaryTable';
 import { buildPillarView } from '../../adapters/map-12';
+import FunInsights from '../destiny-map/FunInsights';
 
 // 천간/지지 값에서 이름 추출 헬퍼 (string | { name: string } 처리)
 type GanjiValue = string | { name: string } | null | undefined;
@@ -656,6 +657,27 @@ export default function SajuResultDisplay({ result }: Props) {
 
       <Section title="일진 달력 (Daily Calendar)">
         <IljinCalendar iljinData={displayedIljin} year={selectedWolun?.year} month={selectedWolun?.month} />
+      </Section>
+
+      {/* ✨ 재미있는 사주 인사이트 - 이해하기 쉬운 해석 */}
+      <Section title="✨ 쉽게 이해하는 나의 사주">
+        <FunInsights
+          saju={{
+            dayMaster: result.dayMaster,
+            pillars: {
+              year: yearPillar,
+              month: monthPillar,
+              day: dayPillar,
+              time: timePillar,
+            },
+            fiveElements: fiveElements,
+            unse: daeun,
+            sinsal: result.sinsal,
+            advancedAnalysis: result.advancedAnalysis,
+          }}
+          astro={null}
+          theme="life"
+        />
       </Section>
     </article>
   );

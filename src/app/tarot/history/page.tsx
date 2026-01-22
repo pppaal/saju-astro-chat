@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useI18n } from "@/i18n/I18nProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import BackButton from "@/components/ui/BackButton";
+import { EmptyState } from "@/components/ui/EmptyState";
 import {
   getSavedReadings,
   deleteReading,
@@ -260,26 +261,27 @@ export default function TarotHistoryPage() {
             </motion.div>
           ))
         ) : (
-          <div className={styles.emptyState}>
-            <span className={styles.emptyIcon}>🔮</span>
-            <p>
-              {searchQuery || filterBy !== "all"
-                ? isKo
-                  ? "검색 결과가 없습니다"
-                  : "No results found"
-                : isKo
-                ? "저장된 리딩이 없습니다"
-                : "No saved readings yet"}
-            </p>
-            {!searchQuery && filterBy === "all" && (
-              <button
-                className={styles.startButton}
-                onClick={() => router.push("/tarot")}
-              >
-                {isKo ? "타로 시작하기" : "Start a Reading"}
-              </button>
-            )}
-          </div>
+          <EmptyState
+            icon="🔮"
+            title={
+              searchQuery || filterBy !== "all"
+                ? isKo ? "검색 결과가 없습니다" : "No results found"
+                : isKo ? "저장된 리딩이 없습니다" : "No saved readings yet"
+            }
+            description={
+              searchQuery || filterBy !== "all"
+                ? isKo ? "다른 검색어나 필터를 시도해보세요" : "Try different keywords or filters"
+                : isKo ? "타로 카드로 미래를 예측해보세요" : "Start your first tarot reading"
+            }
+            actionButton={
+              !searchQuery && filterBy === "all"
+                ? {
+                    text: isKo ? "타로 시작하기" : "Start a Reading",
+                    onClick: () => router.push("/tarot")
+                  }
+                : undefined
+            }
+          />
         )}
       </div>
 

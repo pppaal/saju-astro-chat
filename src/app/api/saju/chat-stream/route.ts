@@ -1,10 +1,9 @@
-import { getServerSession } from "next-auth";
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
-import { authOptions } from "@/lib/auth/authOptions";
-import { apiGuard } from "@/lib/apiGuard";
+import { NextRequest, NextResponse } from "next/server";
+import { initializeApiContext, createAuthenticatedGuard } from "@/lib/api/middleware";
+import { createSSEStreamProxy, createFallbackSSEStream, createTransformedSSEStream } from "@/lib/streaming";
+import { apiClient } from "@/lib/api/ApiClient";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
-import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
@@ -58,71 +57,52 @@ function sajuCounselorSystemPrompt(lang: string) {
     : base.join("\n");
 }
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const guard = await apiGuard(request, { path: "saju-chat-stream", limit: 60, windowSeconds: 60 });
-    if (guard instanceof Response) return guard;
+    // Apply middleware: authentication + rate limiting + credit consumption
+    const guardOptions = createAuthenticatedGuard({
+      route: "saju-chat-stream",
+      limit: 60,
+      windowSeconds: 60,
+      requireCredits: true,
+      creditType: "reading",
+      creditAmount: 1,
+    });
 
-    // Authentication check - always required unless explicitly bypassed for testing
-    const allowDevBypass = process.env.ALLOW_DEV_AUTH_BYPASS === "true" && process.env.NODE_ENV === "development";
-    if (!allowDevBypass) {
-      const session = await getServerSession(authOptions);
-      if (!session?.user?.email) {
-        return new Response(JSON.stringify({ error: "not_authenticated" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-    }
+    const { context, error } = await initializeApiContext(req, guardOptions);
+    if (error) return error;
 
-    const body = await request.json();
+    const body = await req.json();
     const {
       name,
       birthDate,
       birthTime,
       gender = "male",
       theme = "life",
-      lang = "ko",
+      lang = context.locale,
       messages = [],
       saju,
       userContext,
     } = body;
 
     if (!birthDate || !birthTime) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
-    // Check credits and consume (required for chat)
-    const creditResult = await checkAndConsumeCredits("reading", 1);
-    if (!creditResult.allowed) {
-      return creditErrorResponse(creditResult);
-    }
+    // Credits already consumed by middleware
 
     const trimmedHistory = clampMessages(messages);
 
     // Safety check
     const lastUser = [...trimmedHistory].reverse().find((m) => m.role === "user");
     if (lastUser && containsForbidden(lastUser.content)) {
-      const encoder = new TextEncoder();
-      return new Response(
-        new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode(`data: ${safetyMessage(lang)}\n\n`));
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-            controller.close();
-          },
-        }),
-        {
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-          },
-        }
-      );
+      return createFallbackSSEStream({
+        content: safetyMessage(lang),
+        done: true,
+      });
     }
 
     // Build conversation context
@@ -147,105 +127,54 @@ export async function POST(request: Request) {
       .filter(Boolean)
       .join("\n");
 
-    // Call backend streaming endpoint
-    const backendUrl = pickBackendUrl();
-    const apiKey = process.env.ADMIN_API_TOKEN || "";
-
-    if (!apiKey) {
-      logger.warn("[saju chat-stream] ADMIN_API_TOKEN is not set - backend auth may fail");
-    }
-
     // Get session_id from header for RAG cache
-    const sessionId = request.headers.get("x-session-id") || undefined;
+    const sessionId = req.headers.get("x-session-id") || undefined;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    // Call backend streaming endpoint using apiClient
+    const streamResult = await apiClient.postSSEStream("/saju/ask-stream", {
+      theme,
+      prompt: chatPrompt,
+      locale: lang,
+      saju: saju || undefined,
+      birth: { date: birthDate, time: birthTime, gender },
+      history: trimmedHistory.filter((m) => m.role !== "system"),
+      session_id: sessionId,
+      user_context: userContext || undefined,
+      counselor_type: "saju", // Indicate saju-only mode
+    }, { timeout: 60000 });
 
-    const backendResponse = await fetch(`${backendUrl}/saju/ask-stream`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-API-KEY": apiKey,
-      },
-      body: JSON.stringify({
-        theme,
-        prompt: chatPrompt,
-        locale: lang,
-        saju: saju || undefined,
-        birth: { date: birthDate, time: birthTime, gender },
-        history: trimmedHistory.filter((m) => m.role !== "system"),
-        session_id: sessionId,
-        user_context: userContext || undefined,
-        counselor_type: "saju", // Indicate saju-only mode
-      }),
-      signal: controller.signal,
-    });
+    if (!streamResult.ok) {
+      logger.error("[SajuChatStream] Backend error:", { status: streamResult.status, error: streamResult.error });
 
-    clearTimeout(timeoutId);
-
-    if (!backendResponse.ok || !backendResponse.body) {
-      const encoder = new TextEncoder();
       const fallback = lang === "ko"
         ? "AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요."
         : "Could not connect to AI service. Please try again.";
-      return new Response(
-        new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode(`data: ${fallback}\n\n`));
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-            controller.close();
-          },
-        }),
-        {
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-            "X-Fallback": "1",
-          },
-        }
-      );
+
+      return createFallbackSSEStream({
+        content: fallback,
+        done: true,
+        "X-Fallback": "1"
+      });
     }
 
     // Relay the stream from backend to frontend with sanitization
-    const encoder = new TextEncoder();
-    const sanitizedStream = new ReadableStream({
-      start(controller) {
-        const reader = backendResponse.body!.getReader();
-        const decoder = new TextDecoder();
-        const read = (): void => {
-          reader.read().then(({ done, value }) => {
-            if (done) {
-              controller.close();
-              return;
-            }
-            const chunk = decoder.decode(value, { stream: true });
-            const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name);
-            controller.enqueue(encoder.encode(masked));
-            read();
-          }).catch((err) => {
-            logger.error("[saju chat-stream sanitize error]", err);
-            controller.close();
-          });
-        };
-        read();
+    return createTransformedSSEStream({
+      source: streamResult.response,
+      transform: (chunk) => {
+        const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name);
+        return masked;
       },
-    });
-
-    return new Response(sanitizedStream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-        "X-Fallback": backendResponse.headers.get("x-fallback") || "0",
+      route: "SajuChatStream",
+      additionalHeaders: {
+        "X-Fallback": streamResult.response.headers.get("x-fallback") || "0",
       },
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal Server Error";
     logger.error("[Saju Chat-Stream API error]", err);
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json(
+      { error: message },
+      { status: 500 }
+    );
   }
 }

@@ -4,11 +4,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
+import { getBackendUrl } from '@/lib/backend-url';
 
 // ============================================================
 // 백엔드 RAG 컨텍스트 호출
 // ============================================================
-const BACKEND_URL = process.env.BACKEND_AI_URL || 'http://localhost:5000';
+const BACKEND_URL = getBackendUrl();
 
 async function fetchRagContext(sipsin?: string, eventType?: string): Promise<string> {
   try {

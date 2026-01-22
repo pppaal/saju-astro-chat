@@ -46,7 +46,7 @@ export async function GET() {
     const userId = session.user.id
 
     // Fetch all service records from different tables
-    const [readings, tarotReadings, consultations, interactions, dailyFortunes, calendarDates] = await Promise.all([
+    const [readings, tarotReadings, consultations, interactions, dailyFortunes, calendarDates, icpResults, compatibilityResults, matrixReports] = await Promise.all([
       // Readings (astrology, dream, etc.)
       prisma.reading.findMany({
         where: { userId },
@@ -124,6 +124,48 @@ export async function GET() {
           summary: true,
         },
       }),
+      // ICP results
+      prisma.iCPResult.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+        select: {
+          id: true,
+          createdAt: true,
+          primaryStyle: true,
+          secondaryStyle: true,
+        },
+      }),
+      // Compatibility results
+      prisma.compatibilityResult.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+        select: {
+          id: true,
+          createdAt: true,
+          crossSystemScore: true,
+          person1Name: true,
+          person2Name: true,
+        },
+      }),
+      // Destiny Matrix reports
+      prisma.destinyMatrixReport.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+        select: {
+          id: true,
+          createdAt: true,
+          reportType: true,
+          period: true,
+          theme: true,
+          title: true,
+          summary: true,
+          overallScore: true,
+          grade: true,
+        },
+      }),
     ])
 
     // Combine and normalize all records
@@ -182,6 +224,30 @@ export async function GET() {
         theme: c.grade <= 2 ? "좋은 날" : c.grade === 4 ? "주의 날" : "보통 날",
         summary: c.title || c.summary || "저장된 날짜",
         type: "calendar",
+      })),
+      ...icpResults.map((i) => ({
+        id: i.id,
+        date: i.createdAt.toISOString().split("T")[0],
+        service: "personality-icp",
+        theme: i.primaryStyle,
+        summary: `${i.primaryStyle}${i.secondaryStyle ? ` / ${i.secondaryStyle}` : ''} 스타일`,
+        type: "icp-result",
+      })),
+      ...compatibilityResults.map((c) => ({
+        id: c.id,
+        date: c.createdAt.toISOString().split("T")[0],
+        service: "personality-compatibility",
+        theme: undefined,
+        summary: `${c.person1Name || 'Person 1'} & ${c.person2Name || 'Person 2'} - 궁합 ${c.crossSystemScore}점`,
+        type: "compatibility-result",
+      })),
+      ...matrixReports.map((m) => ({
+        id: m.id,
+        date: m.createdAt.toISOString().split("T")[0],
+        service: "destiny-matrix",
+        theme: m.reportType === "timing" ? m.period : m.theme,
+        summary: m.summary || m.title || `${m.grade || ''} ${m.overallScore || ''}점`,
+        type: "destiny-matrix-report",
       })),
     ]
 

@@ -1,9 +1,15 @@
 // Sentry error monitoring - re-enabled
 import {withSentryConfig} from '@sentry/nextjs';
+// Bundle Analyzer - enable with ANALYZE=true npm run build
+import bundleAnalyzer from '@next/bundle-analyzer';
 // 파일 경로: next.config.ts
 
 import path from 'path';
 import type { Configuration } from 'webpack';
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -185,18 +191,20 @@ const nextConfig = {
   },
 };
 
-// Sentry wrapper enabled for production error monitoring
-export default withSentryConfig(nextConfig, {
-  org: "destinypal",
-  project: "javascript-nextjs",
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  tunnelRoute: "/monitoring",
-  bundleSizeOptimizations: {
-    excludeDebugStatements: true,
-  },
-  webpack: {
-    // Updated per Sentry deprecation: use webpack.automaticVercelMonitors
-    automaticVercelMonitors: true,
-  },
-});
+// Apply multiple wrappers: Bundle Analyzer + Sentry
+export default withBundleAnalyzer(
+  withSentryConfig(nextConfig, {
+    org: "destinypal",
+    project: "javascript-nextjs",
+    silent: !process.env.CI,
+    widenClientFileUpload: true,
+    tunnelRoute: "/monitoring",
+    bundleSizeOptimizations: {
+      excludeDebugStatements: true,
+    },
+    webpack: {
+      // Updated per Sentry deprecation: use webpack.automaticVercelMonitors
+      automaticVercelMonitors: true,
+    },
+  })
+);

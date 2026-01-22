@@ -1,20 +1,16 @@
 // src/app/api/dream/stream/route.ts
 // Streaming Dream Interpretation API - Real-time SSE for fast display
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
-import { requirePublicToken } from "@/lib/auth/publicToken";
+import { initializeApiContext, createPublicStreamGuard } from "@/lib/api/middleware";
+import { createSSEStreamProxy, createFallbackSSEStream } from "@/lib/streaming";
+import { apiClient } from "@/lib/api/ApiClient";
 import { enforceBodySize } from "@/lib/http";
-import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 import { cleanStringArray, isRecord } from "@/lib/api";
-import { getBackendUrl } from "@/lib/backend-url";
 import { logger } from '@/lib/logger';
-
-const BACKEND_URL = getBackendUrl();
 
 interface StreamDreamRequest {
   dreamText: string;
@@ -79,31 +75,27 @@ function sanitizeBirth(raw: unknown) {
   return { date, time, timezone, latitude, longitude, gender };
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`dream-stream:${ip}`, { limit: 10, windowSeconds: 60 });
+    // Apply middleware: rate limiting + public token auth + credit consumption
+    const guardOptions = createPublicStreamGuard({
+      route: "dream-stream",
+      limit: 10,
+      windowSeconds: 60,
+      requireCredits: true,
+      creditType: "reading",
+      creditAmount: 1,
+    });
 
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: "Too many requests. Please wait." },
-        { status: 429, headers: limit.headers }
-      );
-    }
+    const { context, error } = await initializeApiContext(req, guardOptions);
+    if (error) return error;
 
-    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
-    }
-
-    const oversized = enforceBodySize(req, MAX_STREAM_BODY, limit.headers);
+    const oversized = enforceBodySize(req, MAX_STREAM_BODY);
     if (oversized) return oversized;
 
     const body = (await req.json().catch(() => null)) as Partial<StreamDreamRequest> | null;
     if (!body || typeof body !== "object") {
-      return NextResponse.json(
-        { error: "invalid_body" },
-        { status: 400, headers: limit.headers }
-      );
+      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
     }
 
     const dreamTextRaw = typeof body.dreamText === "string" ? body.dreamText.trim() : "";
@@ -111,10 +103,10 @@ export async function POST(req: Request) {
     const symbols = cleanStringArray(body.symbols);
     const emotions = cleanStringArray(body.emotions);
     const themes = cleanStringArray(body.themes);
-    const context = cleanStringArray(body.context);
-    const locale = typeof body.locale === "string" && STREAM_LOCALES.has(body.locale)
+    const contextArray = cleanStringArray(body.context);
+    const locale = (typeof body.locale === "string" && STREAM_LOCALES.has(body.locale)
       ? body.locale
-      : "ko";
+      : context.locale) as "ko" | "en";
     const koreanTypes = cleanStringArray(body.koreanTypes);
     const koreanLucky = cleanStringArray(body.koreanLucky);
     const chinese = cleanStringArray(body.chinese);
@@ -128,61 +120,50 @@ export async function POST(req: Request) {
     if (!dreamText || dreamText.trim().length < 5) {
       return NextResponse.json(
         { error: "Dream description required (min 5 characters)" },
-        { status: 400, headers: limit.headers }
+        { status: 400 }
       );
     }
 
-    // Check credits and consume (required for dream interpretation)
-    const creditResult = await checkAndConsumeCredits("reading", 1);
-    if (!creditResult.allowed) {
-      const res = creditErrorResponse(creditResult);
-      limit.headers.forEach((value, key) => res.headers.set(key, value));
-      return res;
-    }
-
-    // Call backend streaming endpoint
-    const backendResponse = await fetch(`${BACKEND_URL}/api/dream/interpret-stream`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
-      },
-      body: JSON.stringify({
-        dream: dreamText,
-        symbols,
-        emotions,
-        themes,
-        context,
-        locale,
-        koreanTypes,
-        koreanLucky,
-        chinese,
-        islamicTypes,
-        western,
-        hindu,
-        japanese,
-        birth,
-        sajuInfluence
-      })
+    // Call backend streaming endpoint using apiClient
+    const streamResult = await apiClient.postSSEStream("/api/dream/interpret-stream", {
+      dream: dreamText,
+      symbols,
+      emotions,
+      themes,
+      context: contextArray,
+      locale,
+      koreanTypes,
+      koreanLucky,
+      chinese,
+      islamicTypes,
+      western,
+      hindu,
+      japanese,
+      birth,
+      sajuInfluence
     });
 
-    if (!backendResponse.ok) {
-      const errorText = await backendResponse.text();
-      logger.error("[DreamStream] Backend error:", { status: backendResponse.status, errorText });
-      return NextResponse.json(
-        { error: "Backend error", detail: errorText },
-        { status: backendResponse.status, headers: limit.headers }
-      );
+    if (!streamResult.ok) {
+      logger.error("[DreamStream] Backend error:", { status: streamResult.status, error: streamResult.error });
+
+      return createFallbackSSEStream({
+        content: locale === "ko"
+          ? "일시적으로 꿈 해석 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해주세요."
+          : "Dream interpretation service temporarily unavailable. Please try again later.",
+        done: true,
+        error: streamResult.error
+      });
     }
 
     // ======== 기록 저장 (로그인 사용자만) ========
     const session = await getServerSession(authOptions);
-    if (session?.user?.id) {
+    if (session?.user?.id || context.userId) {
       try {
+        const userId = session?.user?.id || context.userId;
         const symbolsStr = symbols.slice(0, 5).join(', ');
         await prisma.reading.create({
           data: {
-            userId: session.user.id,
+            userId: userId!,
             type: 'dream',
             title: symbolsStr ? `꿈 해석: ${symbolsStr}` : '꿈 해석',
             content: JSON.stringify({
@@ -190,7 +171,7 @@ export async function POST(req: Request) {
               symbols,
               emotions,
               themes,
-              context,
+              context: contextArray,
               koreanTypes,
               koreanLucky,
             }),
@@ -201,50 +182,10 @@ export async function POST(req: Request) {
       }
     }
 
-    // Check if response is SSE
-    const contentType = backendResponse.headers.get("content-type");
-    if (!contentType?.includes("text/event-stream")) {
-      // Fallback to regular JSON response
-      const data = await backendResponse.json();
-      return NextResponse.json(data, { headers: limit.headers });
-    }
-
-    // Stream the SSE response
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = backendResponse.body?.getReader();
-        if (!reader) {
-          controller.close();
-          return;
-        }
-
-        const decoder = new TextDecoder();
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            // Pass through the SSE data
-            const text = decoder.decode(value, { stream: true });
-            controller.enqueue(encoder.encode(text));
-          }
-        } catch (error) {
-          logger.error("[DreamStream] Stream error:", error);
-        } finally {
-          controller.close();
-        }
-      }
-    });
-
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-        ...Object.fromEntries(limit.headers.entries())
-      }
+    // Proxy the SSE stream from backend to client
+    return createSSEStreamProxy({
+      source: streamResult.response,
+      route: "DreamStream",
     });
 
   } catch (err: unknown) {

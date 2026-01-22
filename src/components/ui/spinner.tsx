@@ -37,6 +37,8 @@ const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
       ref={ref}
       role="status"
       aria-label={label}
+      aria-live="polite"
+      aria-busy="true"
       className={cn(spinnerVariants({ size, variant }), className)}
       {...props}
     >

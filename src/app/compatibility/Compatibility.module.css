@@ -926,6 +926,29 @@
   .formTitle {
     font-size: 1.8rem;
   }
+}
+
+@media (max-width: 480px) {
+  .formContainer {
+    padding: 1.5rem 1rem;
+    border-radius: 16px;
+  }
+
+  .formTitle {
+    font-size: 1.5rem;
+  }
+
+  .formIcon {
+    font-size: 3rem;
+  }
+
+  .formContainer {
+    padding: 2rem 1.5rem;
+  }
+
+  .formTitle {
+    font-size: 1.8rem;
+  }
 
   .personCard {
     padding: 1.5rem;

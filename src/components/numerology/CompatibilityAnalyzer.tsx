@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import DOMPurify from 'dompurify';
 import DateTimePicker from '@/components/ui/DateTimePicker';
 import TimePicker from '@/components/ui/TimePicker';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -695,9 +696,15 @@ export default function CompatibilityAnalyzer() {
               <div
                 className={styles.interpretationText}
                 dangerouslySetInnerHTML={{
-                  __html: (result.aiInterpretation || result.interpretation || '')
-                    .replace(/\n/g, '<br/>')
-                    .replace(/##\s*(.+)/g, '<strong>$1</strong>')
+                  __html: DOMPurify.sanitize(
+                    (result.aiInterpretation || result.interpretation || '')
+                      .replace(/\n/g, '<br/>')
+                      .replace(/##\s*(.+)/g, '<strong>$1</strong>'),
+                    {
+                      ALLOWED_TAGS: ['br', 'strong', 'em', 'p', 'ul', 'ol', 'li'],
+                      ALLOWED_ATTR: []
+                    }
+                  )
                 }}
               />
             </div>

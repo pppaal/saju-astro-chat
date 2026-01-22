@@ -207,6 +207,30 @@
   line-height: 1.5;
 }
 
+/* ========== Skeleton Loading ========== */
+.skeletonExplanation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  background: rgba(99, 210, 255, 0.05);
+  border: 1px solid rgba(99, 210, 255, 0.15);
+  border-radius: 16px;
+}
+
+.skeletonLine {
+  height: 16px;
+  background: linear-gradient(90deg, rgba(99, 210, 255, 0.1) 0%, rgba(99, 210, 255, 0.2) 50%, rgba(99, 210, 255, 0.1) 100%);
+  background-size: 200% 100%;
+  border-radius: 8px;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 /* ========== AI Explanation ========== */
 .aiExplanation {
   display: flex;
@@ -454,6 +478,17 @@
     gap: 1.5rem;
   }
 
+  /* Prevent back button and credit badge overlap on small screens */
+  .backButtonContainer {
+    top: 0.75rem;
+    left: 0.75rem;
+  }
+
+  .creditBadgeWrapper {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+
   .iconWrapper {
     width: 80px;
     height: 80px;
@@ -498,5 +533,19 @@
   .quickTag {
     font-size: 0.85rem;
     padding: 0.5rem 0.85rem;
+  }
+}
+
+/* Very small screens - stack credit badge at bottom */
+@media (max-width: 360px) {
+  .creditBadgeWrapper {
+    top: auto;
+    bottom: 1rem;
+    right: 1rem;
+  }
+
+  .backButtonContainer {
+    top: 0.5rem;
+    left: 0.5rem;
   }
 }

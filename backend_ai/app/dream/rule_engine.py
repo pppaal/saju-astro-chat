@@ -12,7 +12,7 @@ import traceback
 try:
     from backend_ai.app.realtime_astro import get_current_transits
 except ImportError:
-    from app.realtime_astro import get_current_transits
+    from backend_ai.app.realtime_astro import get_current_transits
 
 
 class DreamRuleEngine:

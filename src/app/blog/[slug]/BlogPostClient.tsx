@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useI18n } from "@/i18n/I18nProvider";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { blogPosts, BlogPost } from "@/data/blog-posts";
+import DOMPurify from "dompurify";
 import styles from "./post.module.css";
 
 interface BlogPostClientProps {
@@ -65,7 +66,12 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
         <div className={styles.content}>
           <div
             className={styles.markdown}
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(renderMarkdown(content), {
+                ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'table', 'tr', 'td', 'th', 'a', 'blockquote', 'code', 'pre'],
+                ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+              })
+            }}
           />
         </div>
 

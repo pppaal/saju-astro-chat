@@ -15,6 +15,7 @@ import os
 import json
 import math
 import hashlib
+from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 from functools import lru_cache
 from collections import defaultdict
@@ -33,7 +34,7 @@ except ImportError:
 try:
     from backend_ai.app.saju_astro_rag import get_model, embed_text, search_graphs, get_graph_rag
 except ImportError:
-    from app.saju_astro_rag import get_model, embed_text, search_graphs, get_graph_rag
+    from backend_ai.app.saju_astro_rag import get_model, embed_text, search_graphs, get_graph_rag
 
 
 # ===============================================================
@@ -225,11 +226,12 @@ def hybrid_search(
     # 2. BM25 Search (keyword)
     if _BM25_INDEX is None and HAS_BM25:
         # Build index on first use
-        from saju_astro_rag import _load_graph_nodes
+        from backend_ai.app.saju_astro_rag import _load_graph_nodes
         if graph_root is None:
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            graph_root = os.path.join(base_dir, "data", "graph")
-        nodes = _load_graph_nodes(graph_root)
+            base_dir = Path(__file__).resolve().parent.parent
+            graph_root = base_dir / "data" / "graph"
+        graph_root_path = Path(graph_root)
+        nodes = _load_graph_nodes(graph_root_path)
         build_bm25_index(nodes)
 
     bm25_pairs = bm25_search(query, top_k=top_k * 2)

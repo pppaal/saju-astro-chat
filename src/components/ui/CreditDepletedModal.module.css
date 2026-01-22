@@ -204,6 +204,26 @@
   }
 }
 
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .iconRing,
+  .iconInner,
+  .purchaseButton,
+  .cancelButton {
+    animation: none;
+    transition: none;
+  }
+
+  .purchaseButton:hover,
+  .cancelButton:hover {
+    transform: none;
+  }
+
+  .iconInner {
+    transform: none;
+  }
+}
+
 .creditInfo {
   display: flex;
   flex-direction: column;
@@ -303,8 +323,8 @@
   position: absolute;
   top: 16px;
   right: 16px;
-  width: 32px;
-  height: 32px;
+  min-width: 48px;
+  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -312,9 +332,10 @@
   border: none;
   border-radius: 8px;
   color: #8b8aa3;
-  font-size: 16px;
+  font-size: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
+  touch-action: manipulation;
 }
 
 .closeButton:hover {

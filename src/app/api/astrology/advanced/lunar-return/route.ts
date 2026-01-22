@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { captureServerError } from "@/lib/telemetry";
 import { requirePublicToken } from "@/lib/auth/publicToken";
+import { sanitizeError } from "@/lib/security/errorSanitizer";
 import {
   calculateLunarReturn,
   getLunarReturnSummary,
@@ -78,11 +79,8 @@ export async function POST(request: Request) {
     res.headers.set("Cache-Control", "no-store");
     return res;
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unexpected server error.";
     captureServerError(error, { route: "/api/astrology/advanced/lunar-return" });
-    return NextResponse.json(
-      { error: message },
-      { status: 500 }
-    );
+    const sanitized = sanitizeError(error, 'internal');
+    return NextResponse.json(sanitized, { status: 500 });
   }
 }

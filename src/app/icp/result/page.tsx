@@ -121,8 +121,8 @@ export default function ICPResultPage() {
         const parsed = JSON.parse(raw);
         setAnswers(parsed);
       }
-    } catch {
-      // noop
+    } catch (error) {
+      console.error('[ICP Result] Error loading answers:', error);
     }
   }, []);
 
@@ -170,7 +170,8 @@ export default function ICPResultPage() {
     if (!hasAnswers) return null;
     try {
       return analyzeICP(answers, locale);
-    } catch {
+    } catch (error) {
+      console.error('[ICP Result] Analysis error:', error);
       return null;
     }
   }, [answers, locale]);

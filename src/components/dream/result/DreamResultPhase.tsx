@@ -4,6 +4,7 @@ import type { InsightResponse, ChatMessage } from '@/lib/dream/types';
 import { SectionHeader } from '../SectionHeader';
 import { ChatSection } from './ChatSection';
 import { DreamSymbolsSection } from './DreamSymbolsSection';
+import CopyButton from '@/components/ui/CopyButton';
 import styles from './DreamResultPhase.module.css';
 
 interface DreamResultPhaseProps {
@@ -79,7 +80,14 @@ export function DreamResultPhase({
           {/* Summary Card */}
           {result.summary && (
             <div className={styles.summaryCard}>
-              <div className={styles.resultTitle}>📖 {isKo ? '종합 해석' : 'Summary'}</div>
+              <div className={styles.summaryHeader}>
+                <div className={styles.resultTitle}>📖 {isKo ? '종합 해석' : 'Summary'}</div>
+                <CopyButton
+                  text={result.summary}
+                  label={isKo ? '복사' : 'Copy'}
+                  successMessage={isKo ? '복사됨!' : 'Copied!'}
+                />
+              </div>
               <div className={styles.resultText}>{result.summary}</div>
             </div>
           )}

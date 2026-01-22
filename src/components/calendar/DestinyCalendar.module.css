@@ -125,7 +125,7 @@
   flex-direction: column;
   align-items: center;
   min-height: 100svh;
-  padding: 80px 20px 40px;
+  padding: 100px 20px 40px;
   max-width: 680px;
   margin: 0 auto;
 }
@@ -349,11 +349,22 @@
   border-color: rgba(168, 237, 234, 0.4);
 }
 
+.genderBtn:focus-visible {
+  outline: 3px solid rgba(168, 237, 234, 0.8);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(168, 237, 234, 0.2);
+}
+
 .genderBtn.active {
   background: linear-gradient(135deg, rgba(168, 237, 234, 0.25), rgba(254, 214, 227, 0.2));
   border-color: rgba(168, 237, 234, 0.6);
   color: #ffffff;
   box-shadow: 0 0 20px rgba(168, 237, 234, 0.25);
+}
+
+.genderBtn.active:focus-visible {
+  outline: 3px solid rgba(168, 237, 234, 1);
+  box-shadow: 0 0 20px rgba(168, 237, 234, 0.4);
 }
 
 .genderBtn span:first-child {
@@ -2819,7 +2830,7 @@
   }
 
   .introMain {
-    padding: 60px 16px 32px;
+    padding: 80px 16px 32px;
   }
 }
 
@@ -3399,5 +3410,109 @@
 @media (max-width: 480px) {
   .calendarGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ========== Accessibility Enhancements ========== */
+
+/* Help text for form fields */
+.helpText {
+  font-size: 0.75rem;
+  color: rgba(168, 237, 234, 0.5);
+  margin-top: 6px;
+  display: block;
+  line-height: 1.4;
+}
+
+/* Submit wrapper with hint */
+.submitWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Submit hint - shows required fields message */
+.submitHint {
+  font-size: 0.8rem;
+  color: rgba(254, 214, 227, 0.7);
+  margin: 0;
+  text-align: center;
+  line-height: 1.4;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced focus indicators for keyboard navigation */
+.input:focus-visible,
+.checkbox:focus-visible,
+.genderBtn:focus-visible {
+  outline: 2px solid #a8edea;
+  outline-offset: 2px;
+}
+
+/* Dropdown accessibility */
+.dropdown {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0 0;
+  position: absolute;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: rgba(20, 25, 40, 0.98);
+  border: 1px solid rgba(168, 237, 234, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+.dropdownItem {
+  padding: 12px 16px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdownItem:hover,
+.dropdownItem:focus {
+  background: rgba(168, 237, 234, 0.15);
+  color: #ffffff;
+}
+
+.dropdownItem:active {
+  background: rgba(168, 237, 234, 0.25);
+}
+
+/* Error message accessibility */
+.error {
+  color: #fed6e3;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(254, 68, 68, 0.1);
+  border-left: 3px solid #fed6e3;
+  border-radius: 4px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

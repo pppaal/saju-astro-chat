@@ -7,6 +7,7 @@ import { getClientIp } from "@/lib/request-ip";
 import { enforceBodySize } from "@/lib/http";
 import { sendWelcomeEmail } from "@/lib/email";
 import { logger } from '@/lib/logger';
+import { sanitizeError } from '@/lib/security/errorSanitizer';
 
 const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const MAX_NAME = 80;
@@ -79,6 +80,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true }, { headers: limit.headers });
   } catch (err: unknown) {
     logger.error("[register] error", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "server_error" }, { status: 500 });
+    const sanitized = sanitizeError(err, 'authentication');
+    return NextResponse.json(sanitized, { status: 500 });
   }
 }

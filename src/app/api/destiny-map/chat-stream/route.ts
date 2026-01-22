@@ -1,7 +1,7 @@
-import { getServerSession } from "next-auth";
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
-import { authOptions } from "@/lib/auth/authOptions";
-import { apiGuard } from "@/lib/apiGuard";
+import { NextRequest, NextResponse } from "next/server";
+import { initializeApiContext, createAuthenticatedGuard } from "@/lib/api/middleware";
+import { createTransformedSSEStream, createFallbackSSEStream } from "@/lib/streaming";
+import { apiClient } from "@/lib/api/ApiClient";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { sanitizeLocaleText } from "@/lib/destiny-map/sanitize";
 import { maskTextWithName } from "@/lib/security";
@@ -15,7 +15,6 @@ import {
 } from "@/lib/astrology";
 import { buildAllDataPrompt } from "@/lib/destiny-map/prompt/fortune/base";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
-import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 import {
   isValidDate,
   isValidTime,
@@ -88,33 +87,32 @@ export const maxDuration = 60;
 // Constants that are only used locally in this file
 const ALLOWED_ROLE = new Set(["system", "user", "assistant"]);
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const oversized = enforceBodySize(request, 256 * 1024); // 256KB for large chart data
+    const oversized = enforceBodySize(req, 256 * 1024); // 256KB for large chart data
     if (oversized) return oversized;
 
-    const guard = await apiGuard(request, { path: "destiny-map-chat-stream", limit: 60, windowSeconds: 60 });
-    if (guard instanceof Response) return guard;
+    // Apply middleware: authentication + rate limiting + credit consumption
+    const guardOptions = createAuthenticatedGuard({
+      route: "destiny-map-chat-stream",
+      limit: 60,
+      windowSeconds: 60,
+      requireCredits: true,
+      creditType: "reading",
+      creditAmount: 1,
+    });
 
-    // Authentication check - always required unless explicitly bypassed for testing
-    const allowDevBypass = process.env.ALLOW_DEV_AUTH_BYPASS === "true" && process.env.NODE_ENV === "development";
-    let userId: string | null = null;
-    const session = await getServerSession(authOptions);
+    const { context, error } = await initializeApiContext(req, guardOptions);
+    if (error) return error;
 
-    if (!allowDevBypass && !session?.user?.email) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    userId = session?.user?.id || null;
+    const userId = context.userId;
 
-    const body = await request.json().catch(() => null);
+    const body = await req.json().catch(() => null);
     if (!body) {
-      return new Response(JSON.stringify({ error: "invalid_body" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json(
+        { error: "invalid_body" },
+        { status: 400 }
+      );
     }
 
     const name = typeof body.name === "string" ? body.name.trim().slice(0, LIMITS.NAME) : undefined;
@@ -182,11 +180,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 크레딧 체크 및 소비
-    const creditResult = await checkAndConsumeCredits("reading", 1);
-    if (!creditResult.allowed) {
-      return creditErrorResponse(creditResult);
-    }
+    // Credits already consumed by middleware
 
     // ========================================
     // 🧠 LONG-TERM MEMORY: Load PersonaMemory and recent session summaries
@@ -1138,117 +1132,63 @@ export async function POST(request: Request) {
       `\n질문: ${userQuestion}`,
     ].filter(Boolean).join("\n");
 
-    // Call backend streaming endpoint IMMEDIATELY (no heavy computation)
-    const backendUrl = pickBackendUrl();
-    const apiKey = process.env.ADMIN_API_TOKEN || "";
-
     // Get session_id from header for RAG cache
-    const sessionId = request.headers.get("x-session-id") || undefined;
+    const sessionId = req.headers.get("x-session-id") || undefined;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    // Call backend streaming endpoint using apiClient
+    const streamResult = await apiClient.postSSEStream("/ask-stream", {
+      theme,
+      prompt: chatPrompt,
+      locale: lang,
+      // Pass pre-computed chart data if available (instant response)
+      saju: saju || undefined,
+      astro: astro || undefined,
+      // Advanced astrology features (draconic, harmonics, progressions, etc.)
+      advanced_astro: advancedAstro || undefined,
+      // Fallback: Pass birth info for backend to compute if needed
+      birth: { date: effectiveBirthDate, time: effectiveBirthTime, gender: effectiveGender, lat: effectiveLatitude, lon: effectiveLongitude },
+      // Conversation history for context-aware responses
+      history: trimmedHistory.filter((m) => m.role !== "system"),
+      // Session ID for RAG cache
+      session_id: sessionId,
+      // Premium: user context for returning users
+      user_context: userContext || undefined,
+      // CV/Resume text for career-related questions
+      cv_text: cvText || undefined,
+    }, { timeout: 60000 });
 
-    const backendResponse = await fetch(`${backendUrl}/ask-stream`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-API-KEY": apiKey,
-      },
-      body: JSON.stringify({
-        theme,
-        prompt: chatPrompt,
-        locale: lang,
-        // Pass pre-computed chart data if available (instant response)
-        saju: saju || undefined,
-        astro: astro || undefined,
-        // Advanced astrology features (draconic, harmonics, progressions, etc.)
-        advanced_astro: advancedAstro || undefined,
-        // Fallback: Pass birth info for backend to compute if needed
-        birth: { date: effectiveBirthDate, time: effectiveBirthTime, gender: effectiveGender, lat: effectiveLatitude, lon: effectiveLongitude },
-        // Conversation history for context-aware responses
-        history: trimmedHistory.filter((m) => m.role !== "system"),
-        // Session ID for RAG cache
-        session_id: sessionId,
-        // Premium: user context for returning users
-        user_context: userContext || undefined,
-        // CV/Resume text for career-related questions
-        cv_text: cvText || undefined,
-      }),
-      signal: controller.signal,
-    });
+    if (!streamResult.ok) {
+      logger.error("[DestinyMapChatStream] Backend error:", { status: streamResult.status, error: streamResult.error });
 
-    clearTimeout(timeoutId);
-
-    if (!backendResponse.ok || !backendResponse.body) {
-      const encoder = new TextEncoder();
       const fallback = lang === "ko"
         ? "AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요."
         : "Could not connect to AI service. Please try again.";
-      return new Response(
-        new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode(`data: ${fallback}\n\n`));
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-            controller.close();
-          },
-        }),
-        {
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-            "X-Fallback": "1",
-          },
-        }
-      );
+
+      return createFallbackSSEStream({
+        content: fallback,
+        done: true,
+        "X-Fallback": "1"
+      });
     }
 
-    // Relay the stream from backend to frontend
-    // Sanitize/mask the stream on the fly
-    const encoder = new TextEncoder();
-    const sanitizedStream = new ReadableStream({
-      start(controller) {
-        const reader = backendResponse.body!.getReader();
-        const decoder = new TextDecoder();
-        let isClosed = false;
-        const read = (): void => {
-          reader.read().then(({ done, value }) => {
-            if (isClosed) return;
-            if (done) {
-              isClosed = true;
-              try { controller.close(); } catch { /* already closed */ }
-              return;
-            }
-            const chunk = decoder.decode(value, { stream: true });
-            const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name);
-            try { controller.enqueue(encoder.encode(masked)); } catch { /* already closed */ }
-            read();
-          }).catch((err) => {
-            if (!isClosed) {
-              logger.error("[chat-stream sanitize error]", err);
-              isClosed = true;
-              try { controller.close(); } catch { /* already closed */ }
-            }
-          });
-        };
-        read();
+    // Relay the stream from backend to frontend with sanitization
+    return createTransformedSSEStream({
+      source: streamResult.response,
+      transform: (chunk) => {
+        const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name);
+        return masked;
       },
-    });
-
-    return new Response(sanitizedStream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-        "X-Fallback": backendResponse.headers.get("x-fallback") || "0",
+      route: "DestinyMapChatStream",
+      additionalHeaders: {
+        "X-Fallback": streamResult.response.headers.get("x-fallback") || "0",
       },
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal Server Error";
     logger.error("[Chat-Stream API error]", err);
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json(
+      { error: message },
+      { status: 500 }
+    );
   }
 }

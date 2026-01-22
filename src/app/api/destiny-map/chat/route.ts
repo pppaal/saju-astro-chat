@@ -1,15 +1,13 @@
-﻿import { NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { initializeApiContext, createAuthenticatedGuard } from "@/lib/api/middleware";
+import { apiClient } from "@/lib/api/ApiClient";
 import { getServerSession } from "next-auth";
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { authOptions } from "@/lib/auth/authOptions";
 import { buildAllDataPrompt } from "@/lib/destiny-map/prompt/fortune/base";
 import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
 import Stripe from "stripe";
-import { apiGuard } from "@/lib/apiGuard";
-import { callBackendWithFallback } from "@/lib/backend-health";
 import { guardText, cleanText as _cleanText, PROMPT_BUDGET_CHARS, safetyMessage, containsForbidden } from "@/lib/textGuards";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
-import { enforceBodySize } from "@/lib/http";
 import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
@@ -94,18 +92,25 @@ async function checkStripeActive(email?: string) {
   return false;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const oversized = enforceBodySize(request, 64 * 1024);
-    if (oversized) return oversized;
+    // Apply middleware: authentication + rate limiting + credit consumption
+    const guardOptions = createAuthenticatedGuard({
+      route: "destiny-map-chat",
+      limit: 45,
+      windowSeconds: 60,
+      requireCredits: true,
+      creditType: "followUp", // 운명 지도 상담은 followUp 타입 사용
+      creditAmount: 1,
+    });
 
-    const guard = await apiGuard(request, { path: "destiny-map-chat", limit: 45, windowSeconds: 60 });
-    if (guard instanceof NextResponse) return guard;
+    const { context, error } = await initializeApiContext(request, guardOptions);
+    if (error) return error;
 
     // Lazy-load heavy astro engine to avoid resolving swisseph during build/deploy
     const { computeDestinyMap } = await import("@/lib/destiny-map/astrologyengine");
 
-    // DEV MODE: Skip auth check for local development
+    // DEV MODE: Skip Stripe check for local development
     const isDev = process.env.NODE_ENV === "development";
 
     let userEmail: string | undefined;
@@ -200,29 +205,24 @@ export async function POST(request: Request) {
       .join("\n\n")
       .slice(0, PROMPT_BUDGET_CHARS);
 
-    // 3) call backend fusion with health check
-    const backendUrl = pickBackendUrl();
-
+    // 3) call backend fusion
     const fallbackReply =
       lang === "ko"
         ? "AI 분석 서비스가 일시적으로 불가합니다. 잠시 후 다시 시도해 주세요."
         : "AI analysis service is temporarily unavailable. Please try again later.";
-    const fallbackPayload: BackendReply = { fusion_layer: fallbackReply };
 
-    const { success, data } = await callBackendWithFallback<BackendReply>(
-      backendUrl,
-      "/ask",
-      {
-        theme: theme || "chat",
-        prompt: chatPrompt,
-        saju: result.saju,
-        astro: result.astrology,
-        locale: lang,
-      },
-      fallbackPayload
-    );
+    const response = await apiClient.post("/ask", {
+      theme: theme || "chat",
+      prompt: chatPrompt,
+      saju: result.saju,
+      astro: result.astrology,
+      locale: lang,
+    }, { timeout: 60000 });
 
-    const rawReply = data?.fusion_layer || data?.report || fallbackReply;
+    const success = response.ok;
+    const rawReply = response.ok && response.data
+      ? response.data?.fusion_layer || response.data?.report || fallbackReply
+      : fallbackReply;
     const reply = maskTextWithName(sanitizeLocaleText(rawReply, lang), name);
 
     const res = NextResponse.json({

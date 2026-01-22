@@ -1,13 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { initializeApiContext, createSimpleGuard } from "@/lib/api/middleware";
 import { generateReport } from "@/lib/destiny-map/reportService";
 import type { SajuResult, AstrologyResult } from "@/lib/destiny-map/types";
 import { recordCounter, recordTiming } from "@/lib/metrics";
-import { apiGuard } from "@/lib/apiGuard";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/authOptions";
 import { saveConsultation, extractSummary } from "@/lib/consultation/saveConsultation";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
-import { enforceBodySize } from "@/lib/http";
 import {
   LIMITS,
   isValidDate,
@@ -80,13 +79,18 @@ function maskPayload(body: unknown) {
  * POST /api/destiny-map
  * Generate a themed destiny-map report using astro + saju inputs.
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const oversized = enforceBodySize(request, 64 * 1024);
-    if (oversized) return oversized;
+    // Apply middleware: public token auth + rate limiting (no credits for destiny-map)
+    const guardOptions = createSimpleGuard({
+      route: "destiny-map",
+      limit: 60,
+      windowSeconds: 60,
+      requireCredits: false, // DestinyMap doesn't consume credits
+    });
 
-    const guard = await apiGuard(request, { path: "destiny-map", limit: 60, windowSeconds: 60 });
-    if (guard instanceof NextResponse) return guard;
+    const { context, error } = await initializeApiContext(request, guardOptions);
+    if (error) return error;
 
     const body = await request.json().catch(() => null);
     if (enableDebugLogs) {

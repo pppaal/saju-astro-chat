@@ -1,7 +1,7 @@
 "use client";
 
 // src/components/calendar/BirthInfoForm.tsx
-import React, { useState } from 'react';
+import React from 'react';
 import { useSession } from 'next-auth/react';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
@@ -10,6 +10,7 @@ import TimePicker from '@/components/ui/TimePicker';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
 import { useCitySearch } from '@/hooks/calendar/useCitySearch';
 import { useProfileLoader } from '@/hooks/calendar/useProfileLoader';
+import { formatCityForDropdown } from '@/lib/cities/formatter';
 import styles from './DestinyCalendar.module.css';
 
 interface BirthInfo {
@@ -57,14 +58,15 @@ export default function BirthInfoForm({
   } = useCitySearch();
 
   const { loadingProfile, profileLoaded, loadProfile } = useProfileLoader();
+  const { data: session } = useSession();
 
   const handleLoadProfile = async () => {
-    if (status !== 'authenticated') return;
+    if (status !== 'authenticated' || !session?.user?.id) {
+      console.warn('User not authenticated or session missing');
+      return;
+    }
 
-    // Get user ID from session (you'll need to pass this from parent or get from session)
-    // For now, we'll need to refactor this to get userId properly
-    const userId = 'current-user'; // TODO: Get from session
-
+    const userId = session.user.id;
     await loadProfile(userId, (info, city) => {
       setBirthInfo(info);
       setSelectedCity(city);
@@ -142,13 +144,15 @@ export default function BirthInfoForm({
 
           <form onSubmit={onSubmit} className={styles.form}>
             {/* Birth Date */}
-            <DateTimePicker
-              value={birthInfo.birthDate}
-              onChange={(date) => setBirthInfo({ ...birthInfo, birthDate: date })}
-              label={locale === "ko" ? "생년월일" : "Birth Date"}
-              required
-              locale={locale}
-            />
+            <div className={styles.fieldGroup}>
+              <DateTimePicker
+                value={birthInfo.birthDate}
+                onChange={(date) => setBirthInfo({ ...birthInfo, birthDate: date })}
+                label={locale === "ko" ? "생년월일" : "Birth Date"}
+                required
+                locale={locale}
+              />
+            </div>
 
             {/* Birth Time */}
             <div className={styles.fieldGroup}>
@@ -164,6 +168,7 @@ export default function BirthInfoForm({
                 <label className={styles.checkboxLabel}>
                   <input
                     type="checkbox"
+                    id="time-unknown-checkbox"
                     checked={timeUnknown}
                     onChange={(e) => {
                       setTimeUnknown(e.target.checked);
@@ -172,8 +177,9 @@ export default function BirthInfoForm({
                       }
                     }}
                     className={styles.checkbox}
+                    aria-describedby="time-unknown-help"
                   />
-                  <span>
+                  <span id="time-unknown-help">
                     {locale === "ko"
                       ? "출생 시간을 모름 (정오 12:00으로 설정됩니다)"
                       : "Time unknown (will use 12:00 noon)"}
@@ -184,11 +190,12 @@ export default function BirthInfoForm({
 
             {/* Birth City */}
             <div className={styles.fieldGroup} style={{ position: 'relative' }}>
-              <label className={styles.label}>
+              <label className={styles.label} htmlFor="birth-city-input">
                 {locale === "ko" ? "출생 도시" : "Birth City"}
-                <span className={styles.required}>*</span>
+                <span className={styles.required} aria-label="required">*</span>
               </label>
               <input
+                id="birth-city-input"
                 className={styles.input}
                 placeholder={locale === "ko" ? "도시를 입력하세요" : "Enter your city"}
                 value={birthInfo.birthPlace}
@@ -199,74 +206,109 @@ export default function BirthInfoForm({
                 onBlur={() => {
                   setTimeout(() => setOpenSug(false), 150);
                 }}
-                autoComplete="off"
+                autoComplete="address-level2"
+                inputMode="text"
                 required
+                autoFocus
+                aria-required="true"
+                aria-invalid={cityErr ? "true" : "false"}
+                aria-describedby={cityErr ? "city-error" : "city-help"}
+                role="combobox"
+                aria-expanded={openSug && suggestions.length > 0}
+                aria-controls="city-suggestions"
+                aria-autocomplete="list"
               />
+              {!cityErr && (
+                <span id="city-help" className={styles.helpText}>
+                  {locale === "ko" ? "도시명을 2글자 이상 입력하세요" : "Enter at least 2 characters"}
+                </span>
+              )}
               {openSug && suggestions.length > 0 && (
-                <ul className={styles.dropdown}>
-                  {suggestions.map((s, idx) => (
-                    <li
-                      key={`${s.name}-${s.country}-${idx}`}
-                      className={styles.dropdownItem}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        onPickCity(s);
-                      }}
-                    >
-                      <span className={styles.cityName}>{s.name}</span>
-                      <span className={styles.country}>{s.country}</span>
-                    </li>
-                  ))}
+                <ul id="city-suggestions" role="listbox" className={styles.dropdown}>
+                  {suggestions.map((s, idx) => {
+                    const formattedCity = formatCityForDropdown(s.name, s.country, locale);
+                    return (
+                      <li
+                        key={`${s.name}-${s.country}-${idx}`}
+                        role="option"
+                        className={styles.dropdownItem}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          onPickCity(s);
+                        }}
+                      >
+                        {formattedCity}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
 
             {/* Gender */}
             <div className={styles.fieldGroup}>
-              <label className={styles.label}>
+              <label className={styles.label} id="gender-label">
                 {locale === "ko" ? "성별" : "Gender"}
-                <span className={styles.required}>*</span>
+                <span className={styles.required} aria-label="required">*</span>
               </label>
-              <div className={styles.genderButtons}>
+              <div className={styles.genderButtons} role="group" aria-labelledby="gender-label" aria-required="true">
                 <button
                   type="button"
                   className={`${styles.genderBtn} ${birthInfo.gender === 'Male' ? styles.active : ''}`}
                   onClick={() => setBirthInfo({ ...birthInfo, gender: 'Male' })}
+                  aria-pressed={birthInfo.gender === 'Male'}
+                  aria-label={locale === "ko" ? "남성" : "Male"}
                 >
-                  <span>👨</span>
+                  <span aria-hidden="true">👨</span>
                   <span>{locale === "ko" ? "남성" : "Male"}</span>
                 </button>
                 <button
                   type="button"
                   className={`${styles.genderBtn} ${birthInfo.gender === 'Female' ? styles.active : ''}`}
                   onClick={() => setBirthInfo({ ...birthInfo, gender: 'Female' })}
+                  aria-pressed={birthInfo.gender === 'Female'}
+                  aria-label={locale === "ko" ? "여성" : "Female"}
                 >
-                  <span>👩</span>
+                  <span aria-hidden="true">👩</span>
                   <span>{locale === "ko" ? "여성" : "Female"}</span>
                 </button>
               </div>
             </div>
 
-            {cityErr && <div className={styles.error}>{cityErr}</div>}
+            {cityErr && <div id="city-error" className={styles.error} role="alert">{cityErr}</div>}
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              className={styles.submitButton}
-              disabled={submitting || !birthInfo.birthDate || (!birthInfo.birthTime && !timeUnknown) || !birthInfo.birthPlace}
-            >
-              {submitting ? (
-                <>
-                  <div className={styles.buttonSpinner} />
-                  <span>{t('calendar.analyzingButton', 'Analyzing...')}</span>
-                </>
-              ) : (
-                <>
-                  <span>✨</span>
-                  <span>{t('calendar.analyzeButton', 'View Destiny Calendar')}</span>
-                </>
+            <div className={styles.submitWrapper}>
+              <button
+                type="submit"
+                className={styles.submitButton}
+                disabled={submitting || !birthInfo.birthDate || (!birthInfo.birthTime && !timeUnknown) || !birthInfo.birthPlace}
+                aria-label={
+                  submitting
+                    ? t('calendar.analyzingButton', 'Analyzing...')
+                    : t('calendar.analyzeButton', 'View Destiny Calendar')
+                }
+              >
+                {submitting ? (
+                  <>
+                    <div className={styles.buttonSpinner} />
+                    <span>{t('calendar.analyzingButton', 'Analyzing...')}</span>
+                  </>
+                ) : (
+                  <>
+                    <span aria-hidden="true">✨</span>
+                    <span>{t('calendar.analyzeButton', 'View Destiny Calendar')}</span>
+                  </>
+                )}
+              </button>
+              {!submitting && (!birthInfo.birthDate || (!birthInfo.birthTime && !timeUnknown) || !birthInfo.birthPlace) && (
+                <p className={styles.submitHint} role="status">
+                  {locale === "ko"
+                    ? "* 필수 항목을 모두 입력해주세요"
+                    : "* Please fill in all required fields"}
+                </p>
               )}
-            </button>
+            </div>
           </form>
 
           {status === 'unauthenticated' && (

@@ -34,7 +34,7 @@ except ImportError:
 try:
     from backend_ai.app.rag import BaseEmbeddingRAG, RAGResult
 except ImportError:
-    from app.rag import BaseEmbeddingRAG, RAGResult
+    from backend_ai.app.rag import BaseEmbeddingRAG, RAGResult
 
 logger = logging.getLogger(__name__)
 

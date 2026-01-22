@@ -16,6 +16,7 @@ import { cardContainerVariants, pageTransitionVariants } from '@/components/life
 
 import BackButton from '@/components/ui/BackButton';
 import CreditBadge from '@/components/ui/CreditBadge';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import styles from './life-prediction.module.css';
 import { logger } from "@/lib/logger";
 
@@ -927,49 +928,53 @@ function LifePredictionContent() {
 
               {/* 결과 공유 */}
               {results.length > 0 && (
-                <ResultShare
-                  result={{
+                <ErrorBoundary>
+                  <ResultShare
+                    result={{
+                      question: currentQuestion,
+                      eventType: currentEventType || 'general',
+                      topResult: {
+                        startDate: results[0].startDate,
+                        endDate: results[0].endDate,
+                        score: results[0].score,
+                        grade: results[0].grade,
+                      },
+                      allResults: results.map(r => ({
+                        startDate: r.startDate,
+                        endDate: r.endDate,
+                        score: r.score,
+                        grade: r.grade,
+                        reasons: r.reasons,
+                      })),
+                      totalCount: results.length,
+                      birthDate: userProfile?.birthDate || guestBirthInfo?.birthDate || '',
+                      gender: (userProfile?.gender || guestBirthInfo?.gender || 'M') as 'M' | 'F',
+                    }}
+                    locale={locale as 'ko' | 'en'}
+                    isLoggedIn={status === 'authenticated'}
+                  />
+                </ErrorBoundary>
+              )}
+
+              {/* AI 상담사 채팅 */}
+              <ErrorBoundary>
+                <AdvisorChat
+                  predictionContext={{
                     question: currentQuestion,
                     eventType: currentEventType || 'general',
-                    topResult: {
-                      startDate: results[0].startDate,
-                      endDate: results[0].endDate,
-                      score: results[0].score,
-                      grade: results[0].grade,
-                    },
-                    allResults: results.map(r => ({
-                      startDate: r.startDate,
-                      endDate: r.endDate,
+                    results: results.map(r => ({
+                      startDate: String(r.startDate),
+                      endDate: String(r.endDate),
                       score: r.score,
                       grade: r.grade,
                       reasons: r.reasons,
                     })),
-                    totalCount: results.length,
                     birthDate: userProfile?.birthDate || guestBirthInfo?.birthDate || '',
                     gender: (userProfile?.gender || guestBirthInfo?.gender || 'M') as 'M' | 'F',
                   }}
                   locale={locale as 'ko' | 'en'}
-                  isLoggedIn={status === 'authenticated'}
                 />
-              )}
-
-              {/* AI 상담사 채팅 */}
-              <AdvisorChat
-                predictionContext={{
-                  question: currentQuestion,
-                  eventType: currentEventType || 'general',
-                  results: results.map(r => ({
-                    startDate: String(r.startDate),
-                    endDate: String(r.endDate),
-                    score: r.score,
-                    grade: r.grade,
-                    reasons: r.reasons,
-                  })),
-                  birthDate: userProfile?.birthDate || guestBirthInfo?.birthDate || '',
-                  gender: (userProfile?.gender || guestBirthInfo?.gender || 'M') as 'M' | 'F',
-                }}
-                locale={locale as 'ko' | 'en'}
-              />
+              </ErrorBoundary>
 
               {/* 다시 질문하기 버튼 */}
               <button className={styles.askAgainBtn} onClick={handleAskAgain}>

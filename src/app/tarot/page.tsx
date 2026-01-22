@@ -367,7 +367,7 @@ export default function TarotHomePage() {
             {/* 검색창 스타일 입력 */}
             <div className={`${styles.searchContainer} ${isFocused ? styles.focused : ''}`}>
               <div className={styles.searchBox}>
-                <span className={styles.searchIcon}>✨</span>
+                <span className={styles.searchIcon} aria-hidden="true">✨</span>
                 <input
                   type="text"
                   className={styles.searchInput}
@@ -382,6 +382,8 @@ export default function TarotHomePage() {
                     }
                   }}
                   disabled={isAnalyzing}
+                  aria-label={isKo ? "타로 질문 입력" : "Enter your tarot question"}
+                  aria-describedby="question-hint"
                 />
                 {question && !isAnalyzing && (
                   <button
@@ -406,8 +408,20 @@ export default function TarotHomePage() {
                 </motion.div>
               )}
 
+              {/* 로딩 중 스켈레톤 (분석 전) */}
+              {isLoadingPreview && question.trim() && !dangerWarning && (
+                <motion.div
+                  className={styles.skeletonExplanation}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <div className={styles.skeletonLine} style={{ width: '80%' }}></div>
+                  <div className={styles.skeletonLine} style={{ width: '60%' }}></div>
+                </motion.div>
+              )}
+
               {/* AI 설명 (분석 완료 후) */}
-              {aiExplanation && (
+              {aiExplanation && !isLoadingPreview && (
                 <motion.div
                   className={styles.aiExplanation}
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -439,9 +453,11 @@ export default function TarotHomePage() {
                     className={styles.readingButton}
                     onClick={handleStartReading}
                     disabled={isAnalyzing || isLoadingPreview}
+                    aria-label={isKo ? "타로 카드 해석 시작하기" : "Start tarot reading"}
+                    aria-busy={isAnalyzing || isLoadingPreview}
                   >
                     {isAnalyzing || isLoadingPreview ? (
-                      <span className={styles.analyzing}>
+                      <span className={styles.analyzing} aria-label={isKo ? "분석 중" : "Analyzing"}>
                         <span className={styles.dot}></span>
                         <span className={styles.dot}></span>
                         <span className={styles.dot}></span>
@@ -456,16 +472,18 @@ export default function TarotHomePage() {
 
             {/* 빠른 질문 태그 */}
             <div className={styles.quickTags}>
-              <p className={styles.quickTagsLabel}>{isKo ? "빠른 질문" : "Quick Questions"}</p>
-              <div className={styles.quickTagsList}>
+              <p className={styles.quickTagsLabel} id="quick-questions-label">{isKo ? "빠른 질문" : "Quick Questions"}</p>
+              <div className={styles.quickTagsList} role="list" aria-labelledby="quick-questions-label">
                 {quickQuestions.map((q, idx) => (
                   <button
                     key={idx}
                     className={styles.quickTag}
                     onClick={() => handleQuickQuestion(q)}
                     disabled={isAnalyzing}
+                    role="listitem"
+                    aria-label={`${isKo ? '빠른 질문' : 'Quick question'}: ${isKo ? q.label : q.labelEn}`}
                   >
-                    <span className={styles.tagEmoji}>{q.emoji}</span>
+                    <span className={styles.tagEmoji} aria-hidden="true">{q.emoji}</span>
                     <span>{isKo ? q.label : q.labelEn}</span>
                   </button>
                 ))}

@@ -1,14 +1,10 @@
 // src/app/api/tarot/chat/route.ts
 // Tarot Chat API - Follow-up conversation about tarot readings
 
-import { NextResponse } from "next/server";
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
+import { NextRequest, NextResponse } from "next/server";
+import { initializeApiContext, createSimpleGuard } from "@/lib/api/middleware";
+import { apiClient } from "@/lib/api/ApiClient";
 import { captureServerError } from "@/lib/telemetry";
-import { requirePublicToken } from "@/lib/auth/publicToken";
-import { enforceBodySize } from "@/lib/http";
-import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 import {
   cleanStringArray,
   normalizeMessages as normalizeMessagesBase,
@@ -136,30 +132,26 @@ function buildSystemInstruction(context: TarotContext, language: "ko" | "en") {
   return language === "ko" ? baseKo : baseEn;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`tarot-chat:${ip}`, { limit: 20, windowSeconds: 60 });
+    // Apply middleware: public token auth + rate limiting + credit consumption
+    const guardOptions = createSimpleGuard({
+      route: "tarot-chat",
+      limit: 20,
+      windowSeconds: 60,
+      requireCredits: true,
+      creditType: "followUp", // 타로 후속 질문은 followUp 타입 사용
+      creditAmount: 1,
+    });
 
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: "Too many requests. Please wait." },
-        { status: 429, headers: limit.headers }
-      );
-    }
-
-    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
-    }
-
-    const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
-    if (oversized) return oversized;
+    const { context: apiContext, error } = await initializeApiContext(req, guardOptions);
+    if (error) return error;
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         { error: "invalid_body" },
-        { status: 400, headers: limit.headers }
+        { status: 400 }
       );
     }
 
@@ -173,22 +165,17 @@ export async function POST(req: Request) {
     if (!messages || messages.length === 0) {
       return NextResponse.json(
         { error: "Missing messages" },
-        { status: 400, headers: limit.headers }
+        { status: 400 }
       );
     }
     if (!context) {
       return NextResponse.json(
         { error: "Invalid tarot context" },
-        { status: 400, headers: limit.headers }
+        { status: 400 }
       );
     }
 
-    const creditResult = await checkAndConsumeCredits("reading", 1);
-    if (!creditResult.allowed) {
-      const res = creditErrorResponse(creditResult);
-      limit.headers.forEach((value, key) => res.headers.set(key, value));
-      return res;
-    }
+    // Credits already consumed by middleware
 
     // Inject system instruction for consistent, card-grounded replies
     const systemInstruction = buildSystemInstruction(context, language);
@@ -198,51 +185,28 @@ export async function POST(req: Request) {
     ];
 
     // Call Python backend for chat (with fallback on connection failure)
-    let backendData: { reply?: string } | null = null;
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
-      const backendResponse = await fetch(`${pickBackendUrl()}/api/tarot/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
-        },
-        body: JSON.stringify({
-          messages: messagesWithSystem,
-          context: {
-            spread_title: context.spread_title,
-            category: context.category,
-            cards: context.cards.map(c => ({
-              position: c.position,
-              name: c.name,
-              is_reversed: c.is_reversed ?? c.isReversed ?? false,
-              meaning: c.meaning,
-              keywords: c.keywords || []
-            })),
-            overall_message: context.overall_message,
-            guidance: context.guidance
-          },
-          language
-        }),
-        signal: controller.signal,
-        cache: "no-store",
-      });
-
-      clearTimeout(timeoutId);
-
-      if (backendResponse.ok) {
-        backendData = await backendResponse.json();
-      }
-    } catch (fetchError) {
-      logger.warn("Backend connection failed, using fallback:", fetchError);
-    }
+    const response = await apiClient.post("/api/tarot/chat", {
+      messages: messagesWithSystem,
+      context: {
+        spread_title: context.spread_title,
+        category: context.category,
+        cards: context.cards.map(c => ({
+          position: c.position,
+          name: c.name,
+          is_reversed: c.is_reversed ?? c.isReversed ?? false,
+          meaning: c.meaning,
+          keywords: c.keywords || []
+        })),
+        overall_message: context.overall_message,
+        guidance: context.guidance
+      },
+      language
+    }, { timeout: 20000 });
 
     // Use backend response or fallback
-    if (backendData?.reply) {
-      const res = NextResponse.json({ reply: backendData.reply });
+    if (response.ok && response.data?.reply) {
+      const res = NextResponse.json({ reply: response.data.reply });
       res.headers.set("X-Fallback", "0");
-      limit.headers.forEach((value, key) => res.headers.set(key, value));
       return res;
     }
 
@@ -251,7 +215,6 @@ export async function POST(req: Request) {
     const fallbackReply = generateFallbackReply(messages, context, language);
     const res = NextResponse.json({ reply: fallbackReply });
     res.headers.set("X-Fallback", "1");
-    limit.headers.forEach((value, key) => res.headers.set(key, value));
     return res;
 
   } catch (err: unknown) {

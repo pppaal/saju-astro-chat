@@ -10,6 +10,8 @@ import { useI18n } from '@/i18n/I18nProvider';
 import { ShareButton } from '@/components/share/ShareButton';
 import { generateCompatibilityCard, CompatibilityData } from '@/components/share/cards/CompatibilityCard';
 import { useRouter } from 'next/navigation';
+import { formatCityForDropdown } from '@/lib/cities/formatter';
+import ScrollToTop from '@/components/ui/ScrollToTop';
 import styles from './Compatibility.module.css';
 import { logger } from '@/lib/logger';
 
@@ -29,7 +31,7 @@ import {
 } from './lib';
 
 export default function CompatPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
   const { data: session, status } = useSession();
   const [count, setCount] = useState<number>(2);
@@ -458,18 +460,21 @@ export default function CompatPage() {
                       />
                       {p.suggestions.length > 0 && p.showDropdown && (
                         <ul className={styles.dropdown}>
-                          {p.suggestions.map((c, i) => (
-                            <li
-                              key={`${c.name}-${c.country}-${i}`}
-                              className={styles.dropdownItem}
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                onPickCity(idx, c);
-                              }}
-                            >
-                              {c.name}, {c.country}
-                            </li>
-                          ))}
+                          {p.suggestions.map((c, i) => {
+                            const formattedCity = formatCityForDropdown(c.name, c.country, locale);
+                            return (
+                              <li
+                                key={`${c.name}-${c.country}-${i}`}
+                                className={styles.dropdownItem}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  onPickCity(idx, c);
+                                }}
+                              >
+                                {formattedCity}
+                              </li>
+                            );
+                          })}
                         </ul>
                       )}
                     </div>
@@ -1011,8 +1016,34 @@ export default function CompatPage() {
               </div>
             )}
 
-            {/* Action Buttons: Chat, Counselor, Tarot */}
+            {/* Action Buttons: Insights, Chat, Counselor, Tarot */}
             <div className={styles.actionButtons}>
+              {/* Only show Insights button for 2-person compatibility */}
+              {persons.length === 2 && (
+                <button
+                  className={styles.actionButton}
+                  onClick={() => {
+                    const personsData = persons.map(p => ({
+                      name: p.name,
+                      date: p.date,
+                      time: p.time,
+                      city: p.cityQuery,
+                      latitude: p.lat,
+                      longitude: p.lon,
+                      timeZone: p.timeZone,
+                      relation: p.relation
+                    }));
+                    router.push(`/compatibility/insights?persons=${encodeURIComponent(JSON.stringify(personsData))}`);
+                  }}
+                >
+                  <span className={styles.actionButtonIcon}>🔮</span>
+                  <div className={styles.actionButtonText}>
+                    <strong>{t('compatibilityPage.insights.viewDetailed', '상세 궁합 보기')}</strong>
+                    <span>{t('compatibilityPage.insights.description', '사주 + 점성학 심화 분석')}</span>
+                  </div>
+                </button>
+              )}
+
               <button
                 className={styles.actionButton}
                 onClick={() => router.push(`/compatibility/chat?persons=${encodeURIComponent(JSON.stringify(persons.map(p => ({ name: p.name, date: p.date, time: p.time, city: p.cityQuery, relation: p.relation }))))}&result=${encodeURIComponent(resultText || '')}`)}
@@ -1042,7 +1073,7 @@ export default function CompatPage() {
                   router.push(`/tarot?context=compatibility&partner=${encodeURIComponent(partnerName)}`);
                 }}
               >
-                <span className={styles.actionButtonIcon}>🔮</span>
+                <span className={styles.actionButtonIcon}>✨</span>
                 <div className={styles.actionButtonText}>
                   <strong>{t('compatibilityPage.tarot.start', '타로 시작하기')}</strong>
                   <span>{t('compatibilityPage.tarot.description', '상대방을 생각하며 타로')}</span>
@@ -1072,6 +1103,7 @@ export default function CompatPage() {
           </div>
         )}
       </main>
+      <ScrollToTop threshold={400} />
     </ServicePageLayout>
   );
 }

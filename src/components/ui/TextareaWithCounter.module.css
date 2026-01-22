@@ -1,0 +1,100 @@
+.container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.required {
+  color: #fed6e3;
+  font-size: 1rem;
+}
+
+.textareaWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.counter {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.counter.counterFocused {
+  opacity: 1;
+}
+
+.counterText {
+  font-variant-numeric: tabular-nums;
+}
+
+.counterWarning {
+  color: #fbbf24;
+  opacity: 1;
+}
+
+.counterError {
+  color: #ef4444;
+  opacity: 1;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .counterError {
+    animation: none;
+  }
+}
+
+.helpText {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .counter {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+    bottom: 6px;
+    right: 6px;
+  }
+
+  .label {
+    font-size: 0.85rem;
+  }
+
+  .helpText {
+    font-size: 0.75rem;
+  }
+}

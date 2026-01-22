@@ -196,7 +196,18 @@
       "Bash(NODE_OPTIONS=--max-old-space-size=4096 npm run build:*)",
       "Bash(git -C /c/dev/saju-astro-chat log --oneline --all -20)",
       "Bash(npm run type-check:*)",
-      "Bash(types \")"
+      "Bash(types \")",
+      "Bash(npx kill-port:*)",
+      "Bash(for file in \"c:\\\\dev\\\\saju-astro-chat\\\\src\\\\app\\\\api\\\\destiny-map\\\\chat\\\\route.ts\" \"c:\\\\dev\\\\saju-astro-chat\\\\src\\\\app\\\\api\\\\dream\\\\route.ts\" \"c:\\\\dev\\\\saju-astro-chat\\\\src\\\\app\\\\api\\\\astrology\\\\route.ts\" \"c:\\\\dev\\\\saju-astro-chat\\\\src\\\\app\\\\api\\\\tarot\\\\interpret\\\\route.ts\" \"c:\\\\dev\\\\saju-astro-chat\\\\src\\\\app\\\\api\\\\tarot\\\\chat\\\\route.ts\" \"c:\\\\dev\\\\saju-astro-chat\\\\src\\\\app\\\\api\\\\saju\\\\route.ts\" \"c:\\\\dev\\\\saju-astro-chat\\\\src\\\\app\\\\api\\\\compatibility\\\\route.ts\")",
+      "Bash(if [ -f \"c:/dev/saju-astro-chat/src/components/ui/Button.tsx\" ])",
+      "Bash(then echo \"exists\")",
+      "Bash(else echo \"not exists\")",
+      "Bash(if [ ! -f \"c:\\\\dev\\\\saju-astro-chat\\\\src\\\\components\\\\ui\\\\FormField.tsx\" ])",
+      "Bash(then echo \"File does not exist\")",
+      "Bash(else echo \"File exists\")",
+      "Bash(if [ -f \"c:\\\\dev\\\\saju-astro-chat\\\\src\\\\components\\\\ui\\\\FormField.module.css\" ])",
+      "Bash(else echo \"not found\")",
+      "Bash(if [ -f \"c:/dev/saju-astro-chat/src/components/ui/ScrollToTop.tsx\" ])"
     ],
     "deny": [],
     "ask": []

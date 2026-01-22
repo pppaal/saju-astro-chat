@@ -1,5 +1,6 @@
 import { recordCounter } from "@/lib/metrics";
 import { logger } from "@/lib/logger";
+import { timingSafeCompare } from "@/lib/security/timingSafe";
 
 export type TokenValidationResult = { valid: true } | { valid: false; reason: string };
 
@@ -17,9 +18,15 @@ export function requirePublicToken(req: Request): TokenValidationResult {
   }
 
   const got = req.headers.get("x-api-token");
-  const ok = got === expected;
+  if (!got) {
+    recordCounter("api.auth.invalid_token", 1, { reason: "missing" });
+    return { valid: false, reason: "Invalid or missing token" };
+  }
+
+  // Use timing-safe comparison to prevent timing attacks
+  const ok = timingSafeCompare(got, expected);
   if (!ok) {
-    recordCounter("api.auth.invalid_token", 1);
+    recordCounter("api.auth.invalid_token", 1, { reason: "mismatch" });
     return { valid: false, reason: "Invalid or missing token" };
   }
   return { valid: true };

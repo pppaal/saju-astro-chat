@@ -1,13 +1,11 @@
 // src/app/api/dream/chat/route.ts
 // Dream Follow-up Chat API - Enhanced with RAG, Celestial, and Saju context
 
-import { NextResponse } from "next/server";
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
-import { requirePublicToken } from "@/lib/auth/publicToken";
+import { NextRequest, NextResponse } from "next/server";
+import { initializeApiContext, createPublicStreamGuard } from "@/lib/api/middleware";
+import { createSSEStreamProxy } from "@/lib/streaming";
+import { apiClient } from "@/lib/api/ApiClient";
 import { enforceBodySize } from "@/lib/http";
-import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 import {
   cleanStringArray,
   normalizeMessages as normalizeMessagesBase,
@@ -256,61 +254,42 @@ function normalizeEnhancedDreamContext(raw: unknown): EnhancedDreamContext | nul
   };
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`dream-chat:${ip}`, { limit: 20, windowSeconds: 60 });
+    // Apply middleware: rate limiting + public token auth + credit consumption
+    const guardOptions = createPublicStreamGuard({
+      route: "dream-chat",
+      limit: 20,
+      windowSeconds: 60,
+      requireCredits: true,
+      creditType: "followUp", // 꿈 해몽 후속 질문은 followUp 타입 사용
+      creditAmount: 1,
+    });
 
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: "Too many requests. Please wait." },
-        { status: 429, headers: limit.headers }
-      );
-    }
+    const { context, error } = await initializeApiContext(req, guardOptions);
+    if (error) return error;
 
-    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
-    }
-
-    const oversized = enforceBodySize(req, MAX_CHAT_BODY, limit.headers);
+    const oversized = enforceBodySize(req, MAX_CHAT_BODY);
     if (oversized) return oversized;
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") {
-      return NextResponse.json(
-        { error: "invalid_body" },
-        { status: 400, headers: limit.headers }
-      );
+      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
     }
 
     const locale = typeof (body as Record<string, unknown>).locale === "string" && ALLOWED_CHAT_LOCALES.has((body as Record<string, unknown>).locale as string)
       ? (body as Record<string, unknown>).locale as "ko" | "en"
-      : "ko";
+      : (context.locale as "ko" | "en");
     const messages = normalizeMessages((body as Record<string, unknown>).messages);
     if (!messages.length) {
-      return NextResponse.json(
-        { error: "Messages required" },
-        { status: 400, headers: limit.headers }
-      );
+      return NextResponse.json({ error: "Messages required" }, { status: 400 });
     }
     const dreamContext = normalizeEnhancedDreamContext((body as Record<string, unknown>).dreamContext);
     if (!dreamContext) {
-      return NextResponse.json(
-        { error: "Invalid dream context" },
-        { status: 400, headers: limit.headers }
-      );
+      return NextResponse.json({ error: "Invalid dream context" }, { status: 400 });
     }
 
-    const creditResult = await checkAndConsumeCredits("reading", 1);
-    if (!creditResult.allowed) {
-      const res = creditErrorResponse(creditResult);
-      limit.headers.forEach((value, key) => res.headers.set(key, value));
-      return res;
-    }
-
-    // Call backend streaming endpoint with full enhanced context
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 45000); // Extended timeout for RAG
+    // Credits already consumed by middleware
 
     // Build backend request with all context
     const backendPayload = {
@@ -343,73 +322,19 @@ export async function POST(req: Request) {
       symbolCount: dreamContext.symbols?.length || 0,
     });
 
-    const backendResponse = await fetch(`${pickBackendUrl()}/api/dream/chat-stream`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
-      },
-      body: JSON.stringify(backendPayload),
-      signal: controller.signal,
-      cache: "no-store",
-    });
+    // Call backend streaming endpoint using apiClient (extended timeout for RAG)
+    const streamResult = await apiClient.postSSEStream("/api/dream/chat-stream", backendPayload, { timeout: 45000 });
 
-    clearTimeout(timeoutId);
-
-    if (!backendResponse.ok) {
-      const errorText = await backendResponse.text();
-      logger.error("[DreamChat] Backend error:", { status: backendResponse.status, errorText });
+    if (!streamResult.ok) {
+      logger.error("[DreamChat] Backend error:", { status: streamResult.status, error: streamResult.error });
       return NextResponse.json(
-        { error: "Backend error", detail: errorText },
-        { status: backendResponse.status, headers: limit.headers }
+        { error: "Backend error", detail: streamResult.error },
+        { status: streamResult.status || 500 }
       );
     }
 
-    // Check if response is SSE
-    const contentType = backendResponse.headers.get("content-type");
-    if (!contentType?.includes("text/event-stream")) {
-      // Fallback to regular JSON response
-      const data = await backendResponse.json();
-      return NextResponse.json(data, { headers: limit.headers });
-    }
-
-    // Stream the SSE response
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(streamController) {
-        const reader = backendResponse.body?.getReader();
-        if (!reader) {
-          streamController.close();
-          return;
-        }
-
-        const decoder = new TextDecoder();
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            // Pass through the SSE data
-            const text = decoder.decode(value, { stream: true });
-            streamController.enqueue(encoder.encode(text));
-          }
-        } catch (error) {
-          logger.error("[DreamChat] Stream error:", error);
-        } finally {
-          streamController.close();
-        }
-      }
-    });
-
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-        ...Object.fromEntries(limit.headers.entries())
-      }
-    });
+    // Proxy the SSE stream from backend to client
+    return createSSEStreamProxy(streamResult.response, "DreamChat");
 
   } catch (err: unknown) {
     logger.error("Dream chat error:", err);

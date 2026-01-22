@@ -4,6 +4,7 @@
  */
 
 import { logger } from '@/lib/logger';
+import { apiClient } from '@/lib/api/ApiClient';
 import type { EventCategory, ImportanceGrade, ImportantDate } from "@/lib/destiny-map/destinyCalendar";
 import type { TranslationData } from "@/types/calendar-api";
 import type { PillarData } from "@/lib/Saju/types";
@@ -351,39 +352,23 @@ export function formatDateForResponse(
 export async function fetchAIDates(
   sajuData: Record<string, unknown>,
   astroData: Record<string, unknown>,
-  backendUrl: string,
   theme: string = "overall"
 ): Promise<{
   auspicious: Array<{ date?: string; description?: string; is_auspicious?: boolean }>;
   caution: Array<{ date?: string; description?: string; is_auspicious?: boolean }>;
 } | null> {
   try {
-    validateBackendUrl(backendUrl);
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    const response = await apiClient.post('/api/theme/important-dates', {
+      theme,
+      saju: sajuData,
+      astro: astroData,
+    }, { timeout: 20000 });
 
-    const response = await fetch(`${backendUrl}/api/theme/important-dates`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
-      },
-      body: JSON.stringify({
-        theme,
-        saju: sajuData,
-        astro: astroData,
-      }),
-      signal: controller.signal,
-      cache: "no-store",
-    });
-
-    clearTimeout(timeoutId);
-
-    if (response.ok) {
-      const data = await response.json();
+    if (response.ok && response.data) {
+      const resData = response.data as { auspicious_dates?: string[]; caution_dates?: string[] };
       return {
-        auspicious: data.auspicious_dates || [],
-        caution: data.caution_dates || [],
+        auspicious: (resData.auspicious_dates || []).map(date => ({ date, is_auspicious: true })),
+        caution: (resData.caution_dates || []).map(date => ({ date, is_auspicious: false })),
       };
     }
   } catch (error) {

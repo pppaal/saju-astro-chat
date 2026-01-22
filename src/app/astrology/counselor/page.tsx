@@ -4,14 +4,24 @@ import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
-import AstrologyChat from "@/components/astrology/AstrologyChat";
 import { useI18n } from "@/i18n/I18nProvider";
 import CreditBadge from "@/components/ui/CreditBadge";
 import AuthGate from "@/components/auth/AuthGate";
 import styles from "./counselor.module.css";
 import { astroLogger } from '@/lib/logger';
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
+
+// Dynamic import for heavy component (712 lines)
+const AstrologyChat = dynamic(() => import("@/components/astrology/AstrologyChat"), {
+  loading: () => (
+    <div style={{ padding: '2rem', textAlign: 'center' }}>
+      <div className={styles.loadingMessage}>Loading chat...</div>
+    </div>
+  ),
+  ssr: false, // Client-only component
+});
 
 type SearchParams = Record<string, string | string[] | undefined>;
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import type { PersonForm, SavedPerson, Relation, CityItem } from '@/app/compatibility/lib';
 import { relationIcons } from '@/app/compatibility/lib';
+import { formatCityForDropdown } from '@/lib/cities/formatter';
 import styles from './PersonCard.module.css';
 
 interface PersonCardProps {

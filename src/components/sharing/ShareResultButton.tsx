@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
+import { useToast } from "@/components/ui/Toast";
 import styles from "./ShareResultButton.module.css";
 import { logger } from "@/lib/logger";
 
@@ -25,6 +26,7 @@ export default function ShareResultButton({
   shareUrl,
 }: ShareResultButtonProps) {
   const { t } = useI18n();
+  const { error: showErrorToast, success: showSuccessToast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalUrl, setModalUrl] = useState("");
@@ -86,7 +88,7 @@ export default function ShareResultButton({
       }
     } catch (error) {
       logger.error("Share error:", { error: error });
-      alert(t("share.error"));
+      showErrorToast(t("share.error"));
     } finally {
       setIsGenerating(false);
     }
@@ -97,8 +99,9 @@ export default function ShareResultButton({
       await navigator.clipboard.writeText(modalUrl);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
-    } catch {
-      alert("링크 복사에 실패했습니다.");
+    } catch (error) {
+      logger.error("Copy link error:", { error });
+      showErrorToast(t("share.copyError", "링크 복사에 실패했습니다."));
     }
   };
 
@@ -136,9 +139,11 @@ export default function ShareResultButton({
       link.href = imageUrl;
       link.download = `${resultType}-result-${Date.now()}.png`;
       link.click();
+
+      showSuccessToast(t("share.downloadSuccess", "이미지가 다운로드되었습니다!"));
     } catch (error) {
       logger.error("Download error:", { error: error });
-      alert(t("share.downloadError"));
+      showErrorToast(t("share.downloadError"));
     } finally {
       setIsGenerating(false);
     }

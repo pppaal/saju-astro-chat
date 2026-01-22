@@ -101,6 +101,7 @@ export default function DateTimePicker({
           onChange={handleYearChange}
           className={styles.select}
           required={required}
+          aria-label={locale === 'ko' ? '출생 연도' : 'Birth year'}
         >
           <option value="">{locale === 'ko' ? '년도' : 'Year'}</option>
           {years.map((y) => (
@@ -114,6 +115,7 @@ export default function DateTimePicker({
           onChange={handleMonthChange}
           className={styles.select}
           required={required}
+          aria-label={locale === 'ko' ? '출생 월' : 'Birth month'}
         >
           <option value="">{locale === 'ko' ? '월' : 'Month'}</option>
           {months.map((m) => (
@@ -127,6 +129,7 @@ export default function DateTimePicker({
           onChange={handleDayChange}
           className={styles.select}
           required={required}
+          aria-label={locale === 'ko' ? '출생 일' : 'Birth day'}
         >
           <option value="">{locale === 'ko' ? '일' : 'Day'}</option>
           {days.map((d) => (

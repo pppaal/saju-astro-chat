@@ -164,10 +164,50 @@
   color: rgba(255, 255, 255, 0.3);
 }
 
+.input:disabled {
+  background: rgba(255, 255, 255, 0.01);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .textarea {
   resize: vertical;
   font-family: inherit;
   min-height: 80px;
+}
+
+/* ========== Checkbox ========== */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.875rem;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  color: rgba(99, 210, 255, 0.9);
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #63d2ff;
+  flex-shrink: 0;
+}
+
+.hint {
+  display: block;
+  color: rgba(99, 210, 255, 0.6);
+  font-size: 0.8rem;
+  margin-top: 8px;
+  font-style: italic;
 }
 
 /* ========== Custom Select Dropdown ========== */

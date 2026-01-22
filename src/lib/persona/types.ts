@@ -67,3 +67,16 @@ export interface PersonaAnalysis {
   // Legacy profile for existing consumers
   profile: PersonalityProfile;
 }
+
+// Persona compatibility result
+export interface PersonaCompatibilityResult {
+  score: number;
+  level: string;
+  levelKo: string;
+  description: string;
+  descriptionKo: string;
+  synergies: string[];
+  synergiesKo: string[];
+  tensions: string[];
+  tensionsKo: string[];
+}

@@ -1,0 +1,248 @@
+/**
+ * Accessibility & UX Utilities
+ * Global styles for better accessibility and user experience
+ */
+
+/* =====================================================
+   TOUCH TARGET MINIMUM SIZE (WCAG 2.5.5)
+   ===================================================== */
+
+/* Ensure all interactive elements meet 48x48px minimum */
+button,
+a,
+[role="button"],
+[role="link"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.btn,
+.clickable {
+  min-height: 48px;
+  min-width: 48px;
+  touch-action: manipulation; /* Prevents double-tap zoom delay */
+}
+
+/* Exception for small icons inside larger touch targets */
+button > svg,
+a > svg,
+.btn > svg {
+  min-height: auto;
+  min-width: auto;
+}
+
+/* =====================================================
+   FOCUS VISIBLE STYLES
+   ===================================================== */
+
+/* Clear focus indicators for keyboard navigation */
+*:focus-visible {
+  outline: 3px solid rgba(139, 92, 246, 0.8);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove outline for mouse users */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Button focus states */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid rgba(139, 92, 246, 0.8);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+}
+
+/* Form input focus states */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(139, 92, 246, 0.8);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+}
+
+/* Input types that should have consistent focus */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="number"]:focus,
+input[type="search"]:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(139, 92, 246, 0.5);
+  transition: all 0.2s ease;
+}
+
+/* =====================================================
+   DISABLED STATES
+   ===================================================== */
+
+/* Consistent disabled styling */
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Visual feedback for disabled state */
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  filter: grayscale(50%);
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* =====================================================
+   LOADING STATES
+   ===================================================== */
+
+/* Loading button state */
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  margin-left: -10px;
+  margin-top: -10px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spinner 0.6s linear infinite;
+}
+
+@keyframes spinner {
+  to { transform: rotate(360deg); }
+}
+
+/* =====================================================
+   RESPONSIVE TOUCH IMPROVEMENTS
+   ===================================================== */
+
+/* Increase padding on mobile for easier tapping */
+@media (max-width: 768px) {
+  button,
+  a,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 48px;
+    padding: 12px 20px;
+  }
+
+  /* Larger text inputs on mobile */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 48px;
+  }
+
+  /* Larger select dropdowns */
+  select {
+    min-height: 48px;
+    font-size: 16px;
+  }
+}
+
+/* =====================================================
+   SKIP TO CONTENT LINK (Accessibility)
+   ===================================================== */
+
+.skip-to-content {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  background: #667eea;
+  color: white;
+  padding: 12px 20px;
+  text-decoration: none;
+  z-index: 9999;
+  border-radius: 0 0 4px 0;
+  transition: top 0.2s ease;
+}
+
+.skip-to-content:focus {
+  top: 0;
+  outline: 3px solid rgba(139, 92, 246, 0.8);
+}
+
+/* =====================================================
+   REDUCED MOTION SUPPORT
+   ===================================================== */
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =====================================================
+   HIGH CONTRAST MODE SUPPORT
+   ===================================================== */
+
+@media (prefers-contrast: high) {
+  button,
+  a,
+  [role="button"] {
+    border: 2px solid currentColor;
+  }
+
+  *:focus-visible {
+    outline-width: 4px;
+    outline-color: currentColor;
+  }
+}
+
+/* =====================================================
+   SCREEN READER ONLY UTILITY
+   ===================================================== */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Make visible when focused (for skip links) */
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}

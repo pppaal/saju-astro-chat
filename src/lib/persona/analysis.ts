@@ -6,6 +6,7 @@ import {
   PersonaPole,
   PersonaQuizAnswers,
   PersonalityProfile,
+  PersonaCompatibilityResult,
 } from './types';
 
 type AxisState = Record<PersonaAxisKey, Record<PersonaPole, number>>;
@@ -443,5 +444,155 @@ const CONSISTENCY_PAIRS: Array<[string, string]> = [
     recommendedRoles: archetype.idealRoles,
     compatibilityHint: archetype.compatibilityHint,
     profile,
+  };
+}
+
+/**
+ * Get compatibility between two Nova Persona archetypes
+ */
+export function getPersonaCompatibility(
+  code1: string,
+  code2: string,
+  axes1: Record<PersonaAxisKey, PersonaAxisResult>,
+  axes2: Record<PersonaAxisKey, PersonaAxisResult>,
+  locale: string = 'en'
+): PersonaCompatibilityResult {
+  let score = 50; // Start at neutral
+  const synergies: string[] = [];
+  const synergiesKo: string[] = [];
+  const tensions: string[] = [];
+  const tensionsKo: string[] = [];
+
+  // Energy axis compatibility
+  const energyDiff = Math.abs(axes1.energy.score - axes2.energy.score);
+  if (energyDiff < 20) {
+    // Similar energy levels = good match
+    score += 10;
+    synergies.push('Similar energy levels create natural understanding');
+    synergiesKo.push('비슷한 에너지 레벨로 자연스러운 이해 형성');
+  } else if (energyDiff > 60) {
+    // Very different energy levels = potential friction
+    score -= 5;
+    tensions.push('Different social energy needs may require compromise');
+    tensionsKo.push('다른 사회적 에너지 요구로 타협 필요');
+  }
+
+  // Cognition axis compatibility
+  const cognitionDiff = Math.abs(axes1.cognition.score - axes2.cognition.score);
+  if (cognitionDiff > 40) {
+    // Complementary: visionary + structured = powerful combo
+    score += 15;
+    synergies.push('Complementary thinking styles create balanced perspectives');
+    synergiesKo.push('상호보완적 사고 방식으로 균형잡힌 관점 형성');
+  } else if (cognitionDiff < 15) {
+    // Same thinking style = easy communication but less growth
+    score += 5;
+    synergies.push('Shared cognitive approach enables smooth communication');
+    synergiesKo.push('공유된 인지 방식으로 원활한 소통');
+  }
+
+  // Decision axis compatibility
+  const decisionDiff = Math.abs(axes1.decision.score - axes2.decision.score);
+  if (decisionDiff > 50) {
+    // Logic + Empathic = potential conflict in decision-making
+    score -= 5;
+    tensions.push('Different decision-making values may cause friction');
+    tensionsKo.push('다른 의사결정 가치관으로 마찰 가능');
+  } else if (decisionDiff < 20) {
+    // Similar decision style = aligned values
+    score += 10;
+    synergies.push('Aligned values create harmony in tough choices');
+    synergiesKo.push('일치된 가치관으로 어려운 선택에서 조화');
+  }
+
+  // Rhythm axis compatibility
+  const rhythmDiff = Math.abs(axes1.rhythm.score - axes2.rhythm.score);
+  if (rhythmDiff > 40 && rhythmDiff < 70) {
+    // Moderate difference = complementary pacing
+    score += 10;
+    synergies.push('Different work rhythms create balanced productivity');
+    synergiesKo.push('다른 작업 리듬으로 균형잡힌 생산성');
+  } else if (rhythmDiff > 70) {
+    // Extreme difference = lifestyle clash
+    score -= 10;
+    tensions.push('Very different pacing styles may require adjustment');
+    tensionsKo.push('매우 다른 페이스 스타일로 조정 필요');
+  } else {
+    // Similar rhythm = easy coordination
+    score += 5;
+    synergies.push('Similar work rhythms enable easy coordination');
+    synergiesKo.push('비슷한 작업 리듬으로 쉬운 조율');
+  }
+
+  // Same archetype bonus
+  if (code1 === code2) {
+    score += 10;
+    synergies.push('Deep mutual understanding from shared archetype');
+    synergiesKo.push('같은 원형에서 깊은 상호 이해');
+  }
+
+  // Special synergy combinations
+  const isVisionary1 = axes1.cognition.pole === 'visionary';
+  const isVisionary2 = axes2.cognition.pole === 'visionary';
+  const isStructured1 = axes1.cognition.pole === 'structured';
+  const isStructured2 = axes2.cognition.pole === 'structured';
+
+  if ((isVisionary1 && isStructured2) || (isVisionary2 && isStructured1)) {
+    score += 10;
+    synergies.push('Visionary ideas meet structured execution');
+    synergiesKo.push('비전적 아이디어와 체계적 실행의 만남');
+  }
+
+  const isRadiant1 = axes1.energy.pole === 'radiant';
+  const isRadiant2 = axes2.energy.pole === 'radiant';
+  const isGrounded1 = axes1.energy.pole === 'grounded';
+  const isGrounded2 = axes2.energy.pole === 'grounded';
+
+  if ((isRadiant1 && isGrounded2) || (isRadiant2 && isGrounded1)) {
+    score += 5;
+    synergies.push('Energizer and stabilizer balance each other');
+    synergiesKo.push('활력자와 안정자의 균형');
+  }
+
+  // Ensure score is in valid range
+  score = Math.max(30, Math.min(95, score));
+
+  let level: string;
+  let levelKo: string;
+  let description: string;
+  let descriptionKo: string;
+
+  if (score >= 80) {
+    level = 'Excellent Match';
+    levelKo = '탁월한 궁합';
+    description = 'Your personas create powerful synergy. You bring out the best in each other.';
+    descriptionKo = '당신의 인격들이 강력한 시너지를 만듭니다. 서로의 최고를 끌어냅니다.';
+  } else if (score >= 65) {
+    level = 'Good Match';
+    levelKo = '좋은 궁합';
+    description = 'Your personas complement each other well with natural harmony.';
+    descriptionKo = '당신의 인격이 자연스러운 조화로 잘 보완합니다.';
+  } else if (score >= 50) {
+    level = 'Moderate Match';
+    levelKo = '보통 궁합';
+    description = 'Your personas can work together with mutual understanding and effort.';
+    descriptionKo = '상호 이해와 노력으로 함께 작동할 수 있습니다.';
+  } else {
+    level = 'Challenging Match';
+    levelKo = '도전적 궁합';
+    description = 'Your personas have different approaches that require conscious bridging.';
+    descriptionKo = '의식적인 연결이 필요한 다른 접근 방식을 가집니다.';
+  }
+
+  return {
+    score,
+    level,
+    levelKo,
+    description,
+    descriptionKo,
+    synergies,
+    synergiesKo,
+    tensions,
+    tensionsKo,
   };
 }

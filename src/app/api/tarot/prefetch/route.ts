@@ -1,64 +1,48 @@
 // src/app/api/tarot/prefetch/route.ts
 // Prefetch RAG context while user is selecting cards
 
-import { NextResponse } from "next/server";
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
-import { requirePublicToken } from "@/lib/auth/publicToken";
-import { enforceBodySize } from "@/lib/http";
+import { NextRequest, NextResponse } from "next/server";
+import { initializeApiContext, createSimpleGuard } from "@/lib/api/middleware";
+import { apiClient } from "@/lib/api/ApiClient";
 
 const MAX_ID_LEN = 64;
-const BODY_LIMIT = 8 * 1024;
 type TarotPrefetchBody = {
   categoryId?: string;
   spreadId?: string;
 };
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`tarot-prefetch:${ip}`, { limit: 30, windowSeconds: 60 });
-    if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: limit.headers });
-    }
-    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
-    }
+    // Apply middleware: public token auth + rate limiting (no credits for prefetch)
+    const guardOptions = createSimpleGuard({
+      route: "tarot-prefetch",
+      limit: 30,
+      windowSeconds: 60,
+      requireCredits: false, // Tarot prefetch doesn't consume credits
+    });
 
-    const oversized = enforceBodySize(req, BODY_LIMIT, limit.headers);
-    if (oversized) return oversized;
+    const { context, error } = await initializeApiContext(req, guardOptions);
+    if (error) return error;
 
     const body = (await req.json().catch(() => null)) as TarotPrefetchBody | null;
     if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
     }
     const categoryIdRaw = typeof body.categoryId === "string" ? body.categoryId.trim() : "";
     const spreadIdRaw = typeof body.spreadId === "string" ? body.spreadId.trim() : "";
     const categoryId = categoryIdRaw.slice(0, MAX_ID_LEN);
     const spreadId = spreadIdRaw.slice(0, MAX_ID_LEN);
     if (!categoryId || !spreadId) {
-      return NextResponse.json({ error: "categoryId and spreadId are required" }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "categoryId and spreadId are required" }, { status: 400 });
     }
 
     // Fire-and-forget prefetch to backend
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    apiClient.post('/api/tarot/prefetch', {
+      categoryId,
+      spreadId
+    }, { timeout: 10000 }).catch(() => {}); // Ignore errors silently
 
-    fetch(`${pickBackendUrl()}/api/tarot/prefetch`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
-      },
-      body: JSON.stringify({ categoryId, spreadId }),
-      signal: controller.signal,
-      cache: "no-store",
-    }).catch(() => {}).finally(() => clearTimeout(timeoutId)); // Ignore errors silently
-
-    const res = NextResponse.json({ status: "prefetching" }, { headers: limit.headers });
-    limit.headers.forEach((value, key) => res.headers.set(key, value));
-    return res;
+    return NextResponse.json({ status: "prefetching" });
   } catch {
     return NextResponse.json({ status: "ok" });
   }

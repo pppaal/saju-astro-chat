@@ -8,4 +8,4 @@ cmds = ["pip install -r requirements.txt"]
 PYTHONPATH = "/app/backend_ai:/"
 
 [start]
-cmd = "gunicorn main:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+cmd = "gunicorn ${APP_MODULE:-main:app} --bind 0.0.0.0:${PORT:-8080} --workers ${GUNICORN_WORKERS:-1} --threads ${GUNICORN_THREADS:-4} --timeout ${GUNICORN_TIMEOUT:-120} --graceful-timeout ${GUNICORN_GRACEFUL_TIMEOUT:-30} --keep-alive ${GUNICORN_KEEPALIVE:-5} --worker-class ${GUNICORN_WORKER_CLASS:-gthread} --preload"

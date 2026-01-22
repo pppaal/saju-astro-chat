@@ -3,10 +3,9 @@
 // v3.0: 백엔드 counseling_engine 완전 통합 (위기감지, RAG, RuleEngine)
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getBackendUrl } from '@/lib/backend-url';
+import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware';
+import { apiClient } from '@/lib/api/ApiClient';
 import { logger } from '@/lib/logger';
-
-const BACKEND_URL = getBackendUrl();
 
 interface ChatRequest {
   message: string;
@@ -47,27 +46,17 @@ async function fetchRagContext(
   const fallbackContext = buildFallbackContext(sipsin, eventType);
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3000); // 3초 타임아웃
-
-    const response = await fetch(`${BACKEND_URL}/api/prediction/rag-context`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sipsin,
-        event_type: eventType,
-        query: userMessage,
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
+    const response = await apiClient.post('/api/prediction/rag-context', {
+      sipsin,
+      event_type: eventType,
+      query: userMessage,
+    }, { timeout: 3000 });
 
     if (!response.ok) {
       return fallbackContext;
     }
 
-    const data = await response.json();
-    const ragContext = data.rag_context || {};
+    const ragContext = response.data?.rag_context || {};
 
     const parts: string[] = [];
     if (ragContext.sipsin) parts.push(ragContext.sipsin);
@@ -115,19 +104,14 @@ async function fetchTherapeuticQuestions(
   userMessage: string
 ): Promise<string[]> {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/counseling/therapeutic-questions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        theme,
-        user_message: userMessage,
-      }),
-    });
+    const response = await apiClient.post('/api/counseling/therapeutic-questions', {
+      theme,
+      user_message: userMessage,
+    }, { timeout: 5000 });
 
     if (!response.ok) return [];
 
-    const data = await response.json();
-    return data.rag_questions || [data.question] || [];
+    return response.data?.rag_questions || [response.data?.question] || [];
   } catch {
     return [];
   }
@@ -135,6 +119,19 @@ async function fetchTherapeuticQuestions(
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    // Apply middleware: authentication + rate limiting + credit consumption
+    const guardOptions = createAuthenticatedGuard({
+      route: "life-prediction-advisor-chat",
+      limit: 30,
+      windowSeconds: 60,
+      requireCredits: true,
+      creditType: "followUp", // 인생 예측 상담은 followUp 타입 사용
+      creditAmount: 1,
+    });
+
+    const { context: apiContext, error } = await initializeApiContext(request, guardOptions);
+    if (error) return error;
+
     const body: ChatRequest = await request.json();
     const { message, context, history, locale, sessionId } = body;
 
@@ -149,42 +146,34 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // v3.0: 백엔드 counseling engine 우선 사용
     // ============================================================
     try {
-      const counselingResponse = await fetch(`${BACKEND_URL}/api/counseling/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message,
-          session_id: sessionId,
-          saju: {
-            dayMaster: {
-              element: context.sipsin?.split(' ')[0] || '',
-            },
-            daeun: context.daeun,
+      const counselingResponse = await apiClient.post('/api/counseling/chat', {
+        message,
+        session_id: sessionId,
+        saju: {
+          dayMaster: {
+            element: context.sipsin?.split(' ')[0] || '',
           },
-          // 타로/점성 데이터가 있다면 추가 가능
-        }),
-        signal: AbortSignal.timeout(15000), // 15초 타임아웃
-      });
+          daeun: context.daeun,
+        },
+        // 타로/점성 데이터가 있다면 추가 가능
+      }, { timeout: 15000 });
 
-      if (counselingResponse.ok) {
-        const counselingData = await counselingResponse.json();
+      if (counselingResponse.ok && counselingResponse.data?.status === 'success') {
+        const counselingData = counselingResponse.data;
+        // ✅ 백엔드 상담 엔진 사용 성공
+        logger.info('[Advisor Chat] Using backend counseling engine');
 
-        if (counselingData.status === 'success') {
-          // ✅ 백엔드 상담 엔진 사용 성공
-          logger.info('[Advisor Chat] Using backend counseling engine');
-
-          return NextResponse.json({
-            success: true,
-            reply: counselingData.response,
-            sessionId: counselingData.session_id,
-            phase: counselingData.phase,
-            crisisDetected: counselingData.crisis_detected,
-            severity: counselingData.severity,
-            shouldContinue: counselingData.should_continue,
-            jungContext: counselingData.jung_context,
-            useBackendEngine: true, // 백엔드 엔진 사용 표시
-          });
-        }
+        return NextResponse.json({
+          success: true,
+          reply: counselingData.response,
+          sessionId: counselingData.session_id,
+          phase: counselingData.phase,
+          crisisDetected: counselingData.crisis_detected,
+          severity: counselingData.severity,
+          shouldContinue: counselingData.should_continue,
+          jungContext: counselingData.jung_context,
+          useBackendEngine: true, // 백엔드 엔진 사용 표시
+        });
       }
     } catch (backendError) {
       logger.warn('[Advisor Chat] Backend counseling engine unavailable, falling back to GPT:', backendError);

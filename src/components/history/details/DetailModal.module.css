@@ -1,0 +1,857 @@
+/* ========================================= */
+/* Detail Modal Styles */
+/* ========================================= */
+
+/* Common Detail Wrapper Styles */
+.ichingDetail,
+.destinyMapDetail,
+.calendarDetail,
+.tarotDetail,
+.numerologyDetail,
+.icpDetail,
+.compatibilityDetail,
+.matrixDetail {
+  padding: 2rem;
+}
+
+/* ========== Header Styles ========== */
+.destinyHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.destinyIcon {
+  font-size: 2.5rem;
+  padding: 0.75rem;
+  background: rgba(139, 92, 246, 0.15);
+  border-radius: 16px;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.destinyHeader h2 {
+  font-size: 1.5rem;
+  color: #fff;
+  margin: 0;
+}
+
+.destinyTheme {
+  font-size: 0.9rem;
+  color: rgba(139, 92, 246, 0.9);
+  margin: 0.25rem 0 0 0;
+}
+
+/* ========== I Ching Specific ========== */
+.ichingHeader {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.hexagramDisplay {
+  flex-shrink: 0;
+}
+
+.hexagramLines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 1rem;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.hexLine {
+  width: 60px;
+  height: 8px;
+  background: linear-gradient(90deg, rgba(197, 166, 255, 0.9), #ffffff, rgba(197, 166, 255, 0.9));
+  border-radius: 4px;
+  position: relative;
+}
+
+.hexLine.broken {
+  background: transparent;
+}
+
+.hexLine.broken::before,
+.hexLine.broken::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 24px;
+  height: 8px;
+  background: linear-gradient(90deg, rgba(197, 166, 255, 0.9), #ffffff);
+  border-radius: 4px;
+}
+
+.hexLine.broken::before { left: 0; }
+.hexLine.broken::after { right: 0; }
+
+.hexLine.changing {
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
+}
+
+.hexLine.changing::before,
+.hexLine.changing::after {
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+
+.hexagramSymbol {
+  font-size: 3rem;
+  padding: 1rem;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 12px;
+}
+
+.hexagramInfo {
+  flex: 1;
+}
+
+.hexagramInfo h2 {
+  font-size: 1.5rem;
+  color: #fff;
+  margin: 0 0 0.5rem 0;
+}
+
+.hexagramNumber {
+  font-size: 0.9rem;
+  color: rgba(99, 102, 241, 0.8);
+  margin: 0 0 1rem 0;
+}
+
+.changingLinesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.changingLineItem {
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+.lineNumber {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(251, 191, 36, 0.9);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.changingLineItem p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 230, 150, 0.95);
+  line-height: 1.5;
+}
+
+.resultingHex {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.resultingSymbol {
+  font-size: 2rem;
+}
+
+.resultingName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 0.25rem 0;
+}
+
+.resultingJudgment {
+  font-size: 0.85rem;
+  color: rgba(197, 166, 255, 0.8);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ========== Common Sections ========== */
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(99, 102, 241, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 0.75rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sectionTitle::before {
+  content: "";
+  width: 4px;
+  height: 16px;
+  background: linear-gradient(180deg, #6366f1, #4f46e5);
+  border-radius: 2px;
+}
+
+.section p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(224, 224, 255, 0.9);
+  line-height: 1.7;
+}
+
+.section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.section li {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(224, 224, 255, 0.85);
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.section li:last-child {
+  border-bottom: none;
+}
+
+/* ========== Question Box ========== */
+.questionBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+.questionBox .questionIcon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.questionBox p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(224, 224, 255, 0.9);
+  line-height: 1.5;
+}
+
+/* ========== AI Section ========== */
+.aiSection {
+  background: linear-gradient(135deg, rgba(100, 149, 237, 0.1), rgba(147, 112, 219, 0.05));
+  border: 1px solid rgba(100, 149, 237, 0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.aiSectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(100, 149, 237, 1);
+  margin: 0 0 1.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.aiBlock {
+  margin-bottom: 1.25rem;
+}
+
+.aiBlock:last-child {
+  margin-bottom: 0;
+}
+
+.aiBlock h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(100, 149, 237, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 0.5rem 0;
+}
+
+.aiBlock p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(224, 224, 255, 0.9);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.analysisList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.analysisList li {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(224, 224, 255, 0.85);
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.analysisList li:last-child {
+  border-bottom: none;
+}
+
+/* ========== Destiny Map Specific ========== */
+.fullReport {
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: rgba(224, 224, 255, 0.9);
+}
+
+.premiumRequired {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  margin-top: 1.5rem;
+  background: rgba(139, 92, 246, 0.05);
+  border: 1px dashed rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+}
+
+.lockIcon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.premiumRequired p {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 1rem 0;
+}
+
+.upgradeLink {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+}
+
+.upgradeLink:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+}
+
+/* ========== Calendar Specific ========== */
+.calendarGrade {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+}
+
+.gradeEmoji {
+  font-size: 1.75rem;
+}
+
+.gradeLabel {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #10b981;
+  flex: 1;
+}
+
+.scoreText {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 8px;
+}
+
+.calendarSummary {
+  font-size: 1rem;
+  color: rgba(16, 185, 129, 0.9);
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(16, 185, 129, 0.08);
+  border-radius: 8px;
+  border-left: 3px solid #10b981;
+}
+
+.calendarCategories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.categoryTag {
+  font-size: 0.85rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(99, 210, 255, 0.1);
+  border: 1px solid rgba(99, 210, 255, 0.2);
+  border-radius: 20px;
+  color: rgba(99, 210, 255, 0.9);
+}
+
+.bestTimesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bestTimeItem {
+  font-size: 0.85rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 8px;
+  color: rgba(255, 215, 0, 0.9);
+}
+
+/* ========== Tarot Specific ========== */
+.tarotCards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tarotCard {
+  background: rgba(236, 72, 153, 0.08);
+  border: 1px solid rgba(236, 72, 153, 0.2);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.tarotCard:hover {
+  background: rgba(236, 72, 153, 0.12);
+  transform: translateX(4px);
+}
+
+.tarotCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.cardPosition {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(236, 72, 153, 0.9);
+  background: rgba(236, 72, 153, 0.15);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+}
+
+.cardOrientation {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: rgba(16, 185, 129, 0.9);
+  background: rgba(16, 185, 129, 0.15);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.cardOrientation.reversed {
+  color: rgba(239, 68, 68, 0.9);
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.cardName {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.4;
+}
+
+.cardNameEn {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.25rem;
+}
+
+.cardInsight {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(139, 92, 246, 0.1);
+  border-left: 3px solid rgba(139, 92, 246, 0.5);
+  border-radius: 0 8px 8px 0;
+}
+
+.cardInsight p {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.affirmation {
+  font-style: italic;
+  color: rgba(167, 139, 250, 0.95);
+  padding: 1rem;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* ========== Numerology Specific ========== */
+.numerologyDetail {
+  color: #fff;
+}
+
+.numberGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.numberBox {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(240, 147, 251, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.numberBox:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(240, 147, 251, 0.4);
+  transform: translateY(-2px);
+}
+
+.numberValue {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.numberLabel {
+  display: block;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.numberKorean {
+  display: block;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.personalYearBox {
+  background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.1));
+  border: 1px solid rgba(240, 147, 251, 0.3);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.yearNumber {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.yearLabel {
+  display: block;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ========== ICP Specific ========== */
+.scoreGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.scoreBox {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.scoreBox:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+}
+
+.scoreLabel {
+  display: block;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.5rem;
+}
+
+.scoreValue {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ========== Compatibility Specific ========== */
+.compatibilityScore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  background: rgba(236, 72, 153, 0.1);
+  border: 1px solid rgba(236, 72, 153, 0.2);
+  border-radius: 16px;
+}
+
+.scoreEmoji {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.compatibilityScore .scoreLabel {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.5rem;
+}
+
+.compatibilityScore .scoreText {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.scoreLevel {
+  font-size: 1rem;
+  color: rgba(236, 72, 153, 0.9);
+  font-weight: 600;
+}
+
+.personGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.personCard {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.personCard h4 {
+  font-size: 1.1rem;
+  color: #fff;
+  margin: 0 0 0.75rem 0;
+}
+
+.personLabel {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0.25rem 0;
+}
+
+/* ========== Matrix Specific ========== */
+.modalHeader {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid rgba(99, 210, 255, 0.2);
+}
+
+.modalHeader h3 {
+  font-size: 1.5rem;
+  color: #63d2ff;
+  margin: 0;
+}
+
+.scoreSection {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 2rem;
+}
+
+.scoreBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem 2rem;
+  background: rgba(99, 210, 255, 0.1);
+  border: 1px solid rgba(99, 210, 255, 0.2);
+  border-radius: 16px;
+}
+
+.scoreBadge .gradeEmoji {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.scoreBadge .scoreText {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #63d2ff 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.25rem;
+}
+
+.scoreBadge .gradeLabel {
+  font-size: 0.9rem;
+  color: rgba(99, 210, 255, 0.9);
+}
+
+.infoLabel {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0.5rem 0;
+}
+
+.actionSection {
+  margin: 1.5rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.pdfButton {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.pdfButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.pdfButton:active {
+  transform: translateY(0);
+}
+
+/* ========== Timestamp ========== */
+.timestamp {
+  text-align: center;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 1.5rem 0 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
+  .ichingDetail,
+  .destinyMapDetail,
+  .calendarDetail,
+  .tarotDetail,
+  .numerologyDetail,
+  .icpDetail,
+  .compatibilityDetail,
+  .matrixDetail {
+    padding: 1.5rem;
+  }
+
+  .ichingHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    text-align: center;
+  }
+
+  .hexagramInfo h2 {
+    font-size: 1.3rem;
+  }
+
+  .hexLine {
+    width: 50px;
+    height: 6px;
+  }
+
+  .hexLine.broken::before,
+  .hexLine.broken::after {
+    width: 20px;
+    height: 6px;
+  }
+
+  .numberGrid,
+  .scoreGrid,
+  .personGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .destinyHeader {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .destinyIcon {
+    font-size: 2rem;
+  }
+}

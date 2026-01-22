@@ -18,6 +18,9 @@ export type {
   TarotCardInsight,
   TarotContent,
   NumerologyContent,
+  ICPContent,
+  PersonalityCompatibilityContent,
+  DestinyMatrixContent,
   ServiceConfig,
 } from './types';
 

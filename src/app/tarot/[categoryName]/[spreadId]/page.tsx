@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data';
 import { Spread, DrawnCard, DeckStyle, DECK_STYLES, DECK_STYLE_INFO, getCardImagePath } from '@/lib/Tarot/tarot.types';
 import { getStoredBirthDate } from '@/lib/userProfile';
@@ -483,7 +484,18 @@ export default function TarotReadingPage() {
     // Only allow revealing the next card in sequence
     const nextToReveal = revealedCards.length;
     if (index === nextToReveal && !revealedCards.includes(index)) {
-      setRevealedCards(prev => [...prev, index]);
+      setRevealedCards(prev => {
+        const newRevealed = [...prev, index];
+
+        // Auto-scroll to details after last card is revealed
+        if (newRevealed.length === readingResult?.drawnCards.length && detailedSectionRef.current) {
+          setTimeout(() => {
+            smoothScrollTo(detailedSectionRef.current!, 1200);
+          }, 800); // Wait for card reveal animation to finish
+        }
+
+        return newRevealed;
+      });
     }
   };
 
@@ -809,6 +821,19 @@ export default function TarotReadingPage() {
                   '--card-border': selectedColor.border,
                 } as React.CSSProperties}
                 onClick={() => !revealed && canReveal && handleCardReveal(index)}
+                role="button"
+                tabIndex={canReveal && !revealed ? 0 : -1}
+                aria-label={revealed
+                  ? `${positionTitle}: ${language === 'ko' ? drawnCard.card.nameKo || drawnCard.card.name : drawnCard.card.name}${drawnCard.isReversed ? ` (${language === 'ko' ? '역위' : 'reversed'})` : ''}`
+                  : `${positionTitle} - ${canReveal ? (language === 'ko' ? '클릭하여 공개' : 'Click to reveal') : (language === 'ko' ? '잠김' : 'Locked')}`
+                }
+                aria-pressed={revealed}
+                onKeyDown={(e) => {
+                  if ((e.key === 'Enter' || e.key === ' ') && !revealed && canReveal) {
+                    e.preventDefault();
+                    handleCardReveal(index);
+                  }
+                }}
               >
                 <div className={styles.cardNumberBadge}>{index + 1}</div>
                 <div className={styles.positionBadgeHorizontal}>{positionTitle}</div>
@@ -1102,7 +1127,9 @@ export default function TarotReadingPage() {
         )}
 
         {/* Personality Insight (from Nova Persona quiz) */}
-        <PersonalityInsight lang={language} compact className={styles.personalityInsight} />
+        <ErrorBoundary>
+          <PersonalityInsight lang={language} compact className={styles.personalityInsight} />
+        </ErrorBoundary>
 
         {saveMessage && (
           <div className={styles.saveMessage} role="status" aria-live="polite">
@@ -1173,12 +1200,12 @@ export default function TarotReadingPage() {
       )}
 
       <div className={styles.cardSpreadContainer}>
-        {Array.from({ length: 78 }).map((_, index) => {
+        {useMemo(() => Array.from({ length: 78 }).map((_, index) => {
           const isSelected = selectionOrderMap.has(index);
           const displayNumber = selectionOrderMap.get(index) || 0;
           return (
             <div
-              key={`card-${index}-${displayNumber}`}
+              key={`card-${index}`}
               className={`${styles.cardWrapper} ${isSelected ? styles.selected : ''} ${gameState === 'revealing' ? styles.revealing : ''} ${isSpreading ? styles.spreading : ''}`}
               style={{
                 '--selection-order': displayNumber,
@@ -1188,6 +1215,16 @@ export default function TarotReadingPage() {
                 '--card-back-image': `url(${selectedColor.backImage})`,
               } as React.CSSProperties}
               onClick={() => handleCardClick(index)}
+              role="button"
+              tabIndex={gameState === 'picking' && !isSelected && selectedIndices.length < effectiveCardCount ? 0 : -1}
+              aria-label={`${language === 'ko' ? '카드' : 'Card'} ${index + 1}${isSelected ? ` - ${language === 'ko' ? '선택됨' : 'selected'}` : ''}`}
+              aria-pressed={isSelected}
+              onKeyDown={(e) => {
+                if ((e.key === 'Enter' || e.key === ' ') && gameState === 'picking') {
+                  e.preventDefault();
+                  handleCardClick(index);
+                }
+              }}
             >
               <div className={styles.cardBack}>
                 <div className={styles.cardPattern}></div>
@@ -1198,7 +1235,7 @@ export default function TarotReadingPage() {
               )}
             </div>
           );
-        })}
+        }), [selectionOrderMap, gameState, isSpreading, selectedColor, effectiveCardCount, selectedIndices.length, language])}
       </div>
     </div>
   );

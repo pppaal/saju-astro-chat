@@ -241,13 +241,14 @@
 
 /* Submit Button */
 .submitButton {
+  max-width: 280px;
   width: 100%;
-  padding: 1.2rem;
+  padding: 0.875rem 1.5rem;
   background: linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%);
   border: none;
-  border-radius: 14px;
+  border-radius: 999px;
   color: white;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
@@ -518,34 +519,44 @@
 /* Scroll to Top */
 .scrollToTop {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: 48px;
-  height: 48px;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  background: rgba(138, 43, 226, 0.8);
+  background: linear-gradient(135deg, rgba(157, 78, 221, 0.9) 0%, rgba(123, 44, 191, 0.9) 100%);
   border: none;
-  color: white;
-  font-size: 1.2rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s;
-  z-index: 100;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(138, 43, 226, 0.4);
 }
 
 .scrollToTop.visible {
   opacity: 1;
   visibility: visible;
+  transform: translateY(0);
 }
 
 .scrollToTop:hover {
-  background: #9d4edd;
   transform: translateY(-3px);
+  box-shadow: 0 6px 30px rgba(138, 43, 226, 0.6);
+}
+
+.scrollToTop:active {
+  transform: translateY(0);
 }
 
 .scrollToTopIcon {
-  display: block;
+  font-size: 1.5rem;
+  color: white;
+  line-height: 1;
 }
 
 /* ==================== RESPONSIVE ==================== */
@@ -585,5 +596,16 @@
 
   .pageNavigation {
     flex-direction: column;
+  }
+
+  .scrollToTop {
+    bottom: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .scrollToTopIcon {
+    font-size: 1.3rem;
   }
 }

@@ -70,3 +70,35 @@ export interface ICPCompatibility {
     tipsKo: string[];
   };
 }
+
+// Simplified axis data for cross-system compatibility
+export interface PersonaAxisData {
+  energy: { score: number; pole: string };
+  cognition: { score: number; pole: string };
+  decision: { score: number; pole: string };
+  rhythm: { score: number; pole: string };
+}
+
+// Cross-system compatibility result
+export interface CrossSystemCompatibility {
+  score: number;
+  level: string;
+  levelKo: string;
+  description: string;
+  descriptionKo: string;
+  insights: string[];
+  insightsKo: string[];
+}
+
+// Persona compatibility result
+export interface PersonaCompatibilityResult {
+  score: number;
+  level: string;
+  levelKo: string;
+  description: string;
+  descriptionKo: string;
+  synergies: string[];
+  synergiesKo: string[];
+  tensions: string[];
+  tensionsKo: string[];
+}

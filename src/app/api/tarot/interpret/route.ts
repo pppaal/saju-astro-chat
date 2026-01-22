@@ -2,7 +2,7 @@
 // Premium Tarot Interpretation API using Hybrid RAG
 
 import { NextResponse } from "next/server";
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
+import { apiClient } from "@/lib/api/ApiClient";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
@@ -149,36 +149,23 @@ export async function POST(req: Request) {
     // Call Python backend for Hybrid RAG interpretation (with fallback on connection failure)
     let interpretation = null;
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
-      const backendResponse = await fetch(`${pickBackendUrl()}/api/tarot/interpret`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
-        },
-        body: JSON.stringify({
-          category: categoryId,
-          spread_id: spreadId,
-          spread_title: spreadTitle,
-          cards: validatedCards.map(c => ({
-            name: c.name,
-            is_reversed: c.isReversed,
-            position: c.position
-          })),
-          user_question: userQuestion,
-          language,
-          birthdate,
-          moon_phase: moonPhase
-        }),
-        signal: controller.signal,
-        cache: "no-store",
-      });
+      const response = await apiClient.post("/api/tarot/interpret", {
+        category: categoryId,
+        spread_id: spreadId,
+        spread_title: spreadTitle,
+        cards: validatedCards.map(c => ({
+          name: c.name,
+          is_reversed: c.isReversed,
+          position: c.position
+        })),
+        user_question: userQuestion,
+        language,
+        birthdate,
+        moon_phase: moonPhase
+      }, { timeout: 20000 });
 
-      clearTimeout(timeoutId);
-
-      if (backendResponse.ok) {
-        interpretation = await backendResponse.json();
+      if (response.ok) {
+        interpretation = response.data;
       }
     } catch (fetchError) {
       logger.warn("Backend connection failed, using fallback:", fetchError);

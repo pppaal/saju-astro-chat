@@ -83,8 +83,10 @@ export class ApiClient {
       ...options.headers,
     };
 
+    // Add Authorization header (preferred) or X-API-KEY fallback
     if (options.includeApiToken !== false && this.apiToken) {
-      headers["X-API-KEY"] = this.apiToken;
+      headers["Authorization"] = `Bearer ${this.apiToken}`;
+      headers["X-API-KEY"] = this.apiToken; // Fallback for legacy endpoints
     }
 
     return headers;
@@ -204,12 +206,13 @@ export class ApiClient {
 
   /**
    * POST request returning raw Response for streaming
+   * Use this for SSE streams or other streaming responses
    */
   async postStream(
     path: string,
     body: unknown,
     options: ApiClientOptions = {}
-  ): Promise<Response | null> {
+  ): Promise<Response> {
     const controller = new AbortController();
     const timeout = options.timeout ?? this.defaultTimeout;
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -220,6 +223,7 @@ export class ApiClient {
         headers: this.buildHeaders(options),
         body: JSON.stringify(body),
         signal: controller.signal,
+        cache: "no-store",
       });
 
       clearTimeout(timeoutId);
@@ -227,7 +231,49 @@ export class ApiClient {
     } catch (err) {
       clearTimeout(timeoutId);
       logger.error("[ApiClient] Stream request failed:", err);
-      return null;
+      throw err; // Throw instead of returning null for better error handling
+    }
+  }
+
+  /**
+   * POST request for SSE streaming with validation
+   * Automatically checks if response is SSE and handles errors
+   */
+  async postSSEStream(
+    path: string,
+    body: unknown,
+    options: ApiClientOptions = {}
+  ): Promise<{ ok: true; response: Response } | { ok: false; error: string; status: number }> {
+    try {
+      const response = await this.postStream(path, body, options);
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "Unknown error");
+        return {
+          ok: false,
+          error: errorText,
+          status: response.status,
+        };
+      }
+
+      // Validate SSE response
+      const contentType = response.headers.get("content-type");
+      if (!contentType?.includes("text/event-stream")) {
+        return {
+          ok: false,
+          error: "Response is not SSE stream",
+          status: response.status,
+        };
+      }
+
+      return { ok: true, response };
+    } catch (err) {
+      logger.error("[ApiClient] SSE stream error:", err);
+      return {
+        ok: false,
+        error: err instanceof Error ? err.message : "Stream request failed",
+        status: 500,
+      };
     }
   }
 }

@@ -52,6 +52,7 @@ const MessageRow = React.memo(function MessageRow({
               className={`${s.feedbackBtn} ${feedback[message.id!] === "up" ? s.feedbackActive : ""}`}
               onClick={() => onFeedback(message.id!, "up")}
               title={lang === "ko" ? "도움이 됐어요" : "Helpful"}
+              aria-label={lang === "ko" ? "도움이 됐어요" : "Helpful"}
             >
               👍
             </button>
@@ -60,6 +61,7 @@ const MessageRow = React.memo(function MessageRow({
               className={`${s.feedbackBtn} ${feedback[message.id!] === "down" ? s.feedbackActive : ""}`}
               onClick={() => onFeedback(message.id!, "down")}
               title={lang === "ko" ? "아쉬워요" : "Not helpful"}
+              aria-label={lang === "ko" ? "아쉬워요" : "Not helpful"}
             >
               👎
             </button>

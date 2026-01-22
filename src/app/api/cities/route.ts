@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 import { logger } from '@/lib/logger';
+import { getCityNameInKorean, getCountryNameInKorean } from '@/lib/cities/formatter';
 
 export const runtime = "nodejs";
 
@@ -53,8 +54,38 @@ export async function GET(request: Request) {
       const name = norm(c.name);
       const cc = norm(c.country);
       const pair = `${name}, ${cc}`;
-      if (name.startsWith(query) || name.includes(query) || pair.startsWith(query) || pair.includes(query)) {
-        const score = (name.startsWith(query) ? 0 : 10) + (pair.startsWith(query) ? 0 : 5);
+
+      // Get Korean translations
+      const cityKr = getCityNameInKorean(c.name);
+      const countryKr = getCountryNameInKorean(c.country);
+      const cityKrNorm = cityKr ? norm(cityKr) : null;
+      const countryKrNorm = countryKr ? norm(countryKr) : null;
+      const pairKr = cityKrNorm && countryKrNorm ? `${cityKrNorm}, ${countryKrNorm}` : null;
+
+      // Check English matches
+      const engMatch = name.startsWith(query) || name.includes(query) ||
+                       pair.startsWith(query) || pair.includes(query);
+
+      // Check Korean matches
+      const korMatch = (cityKrNorm && (cityKrNorm.startsWith(query) || cityKrNorm.includes(query))) ||
+                       (countryKrNorm && (countryKrNorm.startsWith(query) || countryKrNorm.includes(query))) ||
+                       (pairKr && (pairKr.startsWith(query) || pairKr.includes(query)));
+
+      if (engMatch || korMatch) {
+        // Calculate score (lower is better)
+        let score = 100;
+
+        // Best match: starts with query
+        if (name.startsWith(query) || cityKrNorm?.startsWith(query)) {
+          score = 0;
+        } else if (pair.startsWith(query) || pairKr?.startsWith(query)) {
+          score = 5;
+        } else if (name.includes(query) || cityKrNorm?.includes(query)) {
+          score = 10;
+        } else {
+          score = 15;
+        }
+
         scored.push({ c, score });
       }
     }

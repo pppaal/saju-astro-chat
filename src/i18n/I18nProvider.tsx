@@ -449,7 +449,7 @@ const dicts = {
       heroTitle3: "Heal with Spirituality.",
       heroSubtitle: "Fate speaks. AI listens. You decide.",
       servicesEyebrow: "DestinyPal Services",
-      servicesTitle: "9 Destiny Readings",
+      servicesTitle: "14 Destiny Readings",
       servicesDesc: "Explore your destiny from multiple perspectives with each unique service",
       philosophyTitle: "Our Philosophy",
       philosophy: {

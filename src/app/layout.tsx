@@ -9,8 +9,7 @@ import Footer from "@/components/ui/Footer";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import { CreditModalProvider } from "@/contexts/CreditModalContext";
-// ErrorBoundary temporarily disabled - Next.js 15 compatibility issue
-// import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+import { ErrorBoundaryProvider } from "@/components/providers/ErrorBoundaryProvider";
 import { ConsentProvider } from "@/contexts/ConsentContext";
 import { ConsentBanner } from "@/components/consent/ConsentBanner";
 import { NotificationProvider } from "@/contexts/NotificationContext";
@@ -238,22 +237,24 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <MicrosoftClarity clarityId={process.env.NEXT_PUBLIC_CLARITY_ID || ""} nonce={nonce} />
           </Suspense>
 
-          <AuthProvider>
-            <ScrollRestoration />
-            <I18nProvider>
-              <ToastProvider>
-                <CreditModalProvider>
-                  <NotificationProvider>
-                    <StarrySky />
-                    <BackButtonWrapper />
-                    <GlobalHeader />
-                    <main id="main-content">{children}</main>
-                    <Footer />
-                  </NotificationProvider>
-                </CreditModalProvider>
-              </ToastProvider>
-            </I18nProvider>
-          </AuthProvider>
+          <ErrorBoundaryProvider>
+            <AuthProvider>
+              <ScrollRestoration />
+              <I18nProvider>
+                <ToastProvider>
+                  <CreditModalProvider>
+                    <NotificationProvider>
+                      <StarrySky />
+                      <BackButtonWrapper />
+                      <GlobalHeader />
+                      <main id="main-content">{children}</main>
+                      <Footer />
+                    </NotificationProvider>
+                  </CreditModalProvider>
+                </ToastProvider>
+              </I18nProvider>
+            </AuthProvider>
+          </ErrorBoundaryProvider>
 
           <ConsentBanner />
         </ConsentProvider>

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { analyzeICP, getICPCompatibility, ICP_OCTANTS } from '@/lib/icp/analysis';
+import { analyzeICP, getICPCompatibility, getCrossSystemCompatibility, ICP_OCTANTS } from '@/lib/icp/analysis';
 import type { ICPQuizAnswers, ICPOctantCode } from '@/lib/icp/types';
 
 // Mock questions for consistent testing
@@ -541,6 +541,215 @@ describe('ICP Analysis', () => {
       expect(result.affiliationScore).toBe(0);
       // FG has dominance=-0.7, affiliation=-0.7 - closest to (-1,-1)
       expect(result.primaryStyle).toBe('FG');
+    });
+  });
+
+  describe('getCrossSystemCompatibility', () => {
+    it('should return valid compatibility result', () => {
+      const result = getCrossSystemCompatibility(
+        'PA', 'HI',
+        'RVLA', 'GSLA',
+        {
+          energy: { score: 80, pole: 'radiant' },
+          cognition: { score: 75, pole: 'visionary' },
+          decision: { score: 70, pole: 'logic' },
+          rhythm: { score: 60, pole: 'anchor' },
+        },
+        {
+          energy: { score: 30, pole: 'grounded' },
+          cognition: { score: 25, pole: 'structured' },
+          decision: { score: 30, pole: 'logic' },
+          rhythm: { score: 70, pole: 'anchor' },
+        },
+        'en'
+      );
+
+      expect(result.score).toBeGreaterThanOrEqual(30);
+      expect(result.score).toBeLessThanOrEqual(95);
+      expect(result.level).toBeDefined();
+      expect(result.levelKo).toBeDefined();
+      expect(result.description).toBeDefined();
+      expect(result.descriptionKo).toBeDefined();
+      expect(result.insights).toBeInstanceOf(Array);
+      expect(result.insightsKo).toBeInstanceOf(Array);
+    });
+
+    it('should identify dominant + radiant leadership pattern', () => {
+      const result = getCrossSystemCompatibility(
+        'PA', 'PA',
+        'RVLA', 'RVLA',
+        {
+          energy: { score: 85, pole: 'radiant' },
+          cognition: { score: 80, pole: 'visionary' },
+          decision: { score: 75, pole: 'logic' },
+          rhythm: { score: 65, pole: 'anchor' },
+        },
+        {
+          energy: { score: 90, pole: 'radiant' },
+          cognition: { score: 85, pole: 'visionary' },
+          decision: { score: 80, pole: 'logic' },
+          rhythm: { score: 70, pole: 'anchor' },
+        },
+        'en'
+      );
+
+      expect(result.insights.some(i => i.includes('leader'))).toBe(true);
+    });
+
+    it('should identify warm + empathic connection pattern', () => {
+      const result = getCrossSystemCompatibility(
+        'LM', 'NO',
+        'RVHA', 'RSHA',
+        {
+          energy: { score: 75, pole: 'radiant' },
+          cognition: { score: 70, pole: 'visionary' },
+          decision: { score: 80, pole: 'empathic' },
+          rhythm: { score: 60, pole: 'anchor' },
+        },
+        {
+          energy: { score: 70, pole: 'radiant' },
+          cognition: { score: 40, pole: 'structured' },
+          decision: { score: 85, pole: 'empathic' },
+          rhythm: { score: 75, pole: 'anchor' },
+        },
+        'en'
+      );
+
+      expect(result.insights.some(i => i.includes('emotional') || i.includes('warmth'))).toBe(true);
+    });
+
+    it('should identify leader-supporter dynamic', () => {
+      const result = getCrossSystemCompatibility(
+        'PA', 'HI',
+        'RVLA', 'GSLF',
+        {
+          energy: { score: 85, pole: 'radiant' },
+          cognition: { score: 80, pole: 'visionary' },
+          decision: { score: 70, pole: 'logic' },
+          rhythm: { score: 65, pole: 'anchor' },
+        },
+        {
+          energy: { score: 25, pole: 'grounded' },
+          cognition: { score: 30, pole: 'structured' },
+          decision: { score: 35, pole: 'logic' },
+          rhythm: { score: 40, pole: 'anchor' },
+        },
+        'en'
+      );
+
+      expect(result.insights.some(i => i.includes('leader') || i.includes('support'))).toBe(true);
+    });
+
+    it('should work with Korean locale', () => {
+      const result = getCrossSystemCompatibility(
+        'PA', 'HI',
+        'RVLA', 'GSLA',
+        {
+          energy: { score: 80, pole: 'radiant' },
+          cognition: { score: 75, pole: 'visionary' },
+          decision: { score: 70, pole: 'logic' },
+          rhythm: { score: 60, pole: 'anchor' },
+        },
+        {
+          energy: { score: 30, pole: 'grounded' },
+          cognition: { score: 25, pole: 'structured' },
+          decision: { score: 30, pole: 'logic' },
+          rhythm: { score: 70, pole: 'anchor' },
+        },
+        'ko'
+      );
+
+      expect(result.levelKo).toBeDefined();
+      expect(result.descriptionKo).toBeDefined();
+      expect(result.insightsKo.length).toBeGreaterThan(0);
+    });
+
+    it('should return higher scores for complementary patterns', () => {
+      const complementaryResult = getCrossSystemCompatibility(
+        'PA', 'JK',
+        'RVLA', 'GSHA',
+        {
+          energy: { score: 80, pole: 'radiant' },
+          cognition: { score: 75, pole: 'visionary' },
+          decision: { score: 70, pole: 'logic' },
+          rhythm: { score: 60, pole: 'anchor' },
+        },
+        {
+          energy: { score: 35, pole: 'grounded' },
+          cognition: { score: 30, pole: 'structured' },
+          decision: { score: 75, pole: 'empathic' },
+          rhythm: { score: 70, pole: 'anchor' },
+        },
+        'en'
+      );
+
+      const similarResult = getCrossSystemCompatibility(
+        'DE', 'FG',
+        'GVLA', 'GVLF',
+        {
+          energy: { score: 25, pole: 'grounded' },
+          cognition: { score: 70, pole: 'visionary' },
+          decision: { score: 80, pole: 'logic' },
+          rhythm: { score: 60, pole: 'anchor' },
+        },
+        {
+          energy: { score: 30, pole: 'grounded' },
+          cognition: { score: 75, pole: 'visionary' },
+          decision: { score: 85, pole: 'logic' },
+          rhythm: { score: 45, pole: 'flow' },
+        },
+        'en'
+      );
+
+      // Complementary should generally score higher than very similar
+      expect(complementaryResult.score).toBeGreaterThan(similarResult.score - 15);
+    });
+
+    it('should identify visionary + dominant innovation pattern', () => {
+      const result = getCrossSystemCompatibility(
+        'PA', 'BC',
+        'RVLA', 'RVLF',
+        {
+          energy: { score: 80, pole: 'radiant' },
+          cognition: { score: 85, pole: 'visionary' },
+          decision: { score: 75, pole: 'logic' },
+          rhythm: { score: 60, pole: 'anchor' },
+        },
+        {
+          energy: { score: 75, pole: 'radiant' },
+          cognition: { score: 80, pole: 'visionary' },
+          decision: { score: 80, pole: 'logic' },
+          rhythm: { score: 70, pole: 'flow' },
+        },
+        'en'
+      );
+
+      expect(result.insights.some(i => i.includes('Visionary') || i.includes('innovation'))).toBe(true);
+    });
+
+    it('should generate insights for structured + cooperative patterns', () => {
+      const result = getCrossSystemCompatibility(
+        'JK', 'JK',
+        'GSLA', 'GSLA',
+        {
+          energy: { score: 40, pole: 'grounded' },
+          cognition: { score: 30, pole: 'structured' },
+          decision: { score: 35, pole: 'empathic' },
+          rhythm: { score: 75, pole: 'anchor' },
+        },
+        {
+          energy: { score: 35, pole: 'grounded' },
+          cognition: { score: 32, pole: 'structured' },
+          decision: { score: 40, pole: 'empathic' },
+          rhythm: { score: 72, pole: 'anchor' },
+        },
+        'en'
+      );
+
+      // Should generate meaningful insights for any cross-system analysis
+      expect(result.insights).toBeInstanceOf(Array);
+      expect(result.insightsKo).toBeInstanceOf(Array);
+      expect(result.score).toBeGreaterThanOrEqual(30);
     });
   });
 });

@@ -1,0 +1,211 @@
+/**
+ * Z-Index System
+ *
+ * Standardized z-index scale for consistent layering across the application.
+ * Use these CSS variables instead of arbitrary z-index values.
+ *
+ * Scale: 0-100 (base), 100-200 (elevated), 200-300 (sticky), 300-400 (fixed),
+ *        400-500 (overlays), 500-600 (dropdowns), 600-700 (modals),
+ *        700-800 (popovers), 800-900 (tooltips), 900-1000 (notifications)
+ */
+
+:root {
+  /* ========== Base Layer (0-100) ========== */
+  --z-base: 0;
+  --z-background: -1;
+  --z-content: 10;
+
+  /* ========== Elevated Layer (100-200) ========== */
+  --z-elevated: 100;
+  --z-card: 110;
+  --z-card-hover: 120;
+
+  /* ========== Sticky Layer (200-300) ========== */
+  --z-sticky: 200;
+  --z-sticky-header: 210;
+  --z-sticky-footer: 220;
+  --z-sticky-sidebar: 230;
+
+  /* ========== Fixed Layer (300-400) ========== */
+  --z-fixed: 300;
+  --z-back-button: 310;
+  --z-floating-action: 320;
+  --z-credit-badge: 330;
+
+  /* ========== Overlay Layer (400-500) ========== */
+  --z-overlay: 400;
+  --z-overlay-backdrop: 410;
+  --z-loading-overlay: 420;
+
+  /* ========== Dropdown Layer (500-600) ========== */
+  --z-dropdown: 500;
+  --z-autocomplete: 510;
+  --z-select: 520;
+  --z-menu: 530;
+
+  /* ========== Modal Layer (600-700) ========== */
+  --z-modal-backdrop: 600;
+  --z-modal: 610;
+  --z-modal-header: 620;
+  --z-modal-close: 630;
+
+  /* ========== Popover Layer (700-800) ========== */
+  --z-popover: 700;
+  --z-context-menu: 710;
+  --z-date-picker: 720;
+
+  /* ========== Tooltip Layer (800-900) ========== */
+  --z-tooltip: 800;
+
+  /* ========== Notification Layer (900-1000) ========== */
+  --z-toast: 900;
+  --z-notification: 910;
+  --z-alert: 920;
+
+  /* ========== Maximum Layer (1000+) ========== */
+  --z-debug: 9999;
+  --z-maximum: 2147483647; /* JavaScript max safe integer for z-index */
+}
+
+/* ========== Layer Documentation ========== */
+
+/**
+ * Base Layer (0-100)
+ * - Default content
+ * - Background elements
+ * - Decorative elements
+ *
+ * Usage:
+ * .my-content {
+ *   z-index: var(--z-content);
+ * }
+ */
+
+/**
+ * Elevated Layer (100-200)
+ * - Cards and panels
+ * - Elements that sit above content
+ * - Hover states
+ *
+ * Usage:
+ * .card {
+ *   z-index: var(--z-card);
+ * }
+ * .card:hover {
+ *   z-index: var(--z-card-hover);
+ * }
+ */
+
+/**
+ * Sticky Layer (200-300)
+ * - Sticky headers
+ * - Sticky footers
+ * - Sticky navigation
+ *
+ * Usage:
+ * .header {
+ *   position: sticky;
+ *   top: 0;
+ *   z-index: var(--z-sticky-header);
+ * }
+ */
+
+/**
+ * Fixed Layer (300-400)
+ * - Fixed position elements
+ * - Back buttons
+ * - Floating action buttons
+ * - Corner badges
+ *
+ * Usage:
+ * .back-button {
+ *   position: fixed;
+ *   z-index: var(--z-back-button);
+ * }
+ */
+
+/**
+ * Overlay Layer (400-500)
+ * - Modal backdrops
+ * - Loading overlays
+ * - Page dimming
+ *
+ * Usage:
+ * .modal-backdrop {
+ *   z-index: var(--z-modal-backdrop);
+ * }
+ */
+
+/**
+ * Dropdown Layer (500-600)
+ * - Select dropdowns
+ * - Autocomplete suggestions
+ * - Context menus
+ *
+ * Usage:
+ * .dropdown-menu {
+ *   z-index: var(--z-dropdown);
+ * }
+ */
+
+/**
+ * Modal Layer (600-700)
+ * - Modal dialogs
+ * - Modal content
+ * - Modal controls
+ *
+ * Usage:
+ * .modal {
+ *   z-index: var(--z-modal);
+ * }
+ * .modal-close {
+ *   z-index: var(--z-modal-close);
+ * }
+ */
+
+/**
+ * Popover Layer (700-800)
+ * - Popovers
+ * - Date pickers
+ * - Color pickers
+ *
+ * Usage:
+ * .popover {
+ *   z-index: var(--z-popover);
+ * }
+ */
+
+/**
+ * Tooltip Layer (800-900)
+ * - Tooltips
+ * - Help text
+ *
+ * Usage:
+ * .tooltip {
+ *   z-index: var(--z-tooltip);
+ * }
+ */
+
+/**
+ * Notification Layer (900-1000)
+ * - Toast notifications
+ * - Alerts
+ * - System messages
+ *
+ * Usage:
+ * .toast {
+ *   z-index: var(--z-toast);
+ * }
+ */
+
+/**
+ * Maximum Layer (1000+)
+ * - Debug overlays
+ * - Developer tools
+ * - Emergency content
+ *
+ * Usage:
+ * .debug-panel {
+ *   z-index: var(--z-debug);
+ * }
+ */

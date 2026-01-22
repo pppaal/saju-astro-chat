@@ -32,8 +32,18 @@ const getServices = (t: (key: string, fallback: string) => string): Service[] =>
     featured: true,
   },
   {
+    id: "aiReports",
+    icon: "🤖",
+    title: t('about.services.aiReports.title', 'AI Reports'),
+    titleKo: t('about.services.aiReports.title', 'AI 리포트'),
+    description: t('about.services.aiReports.description', 'Premium AI-generated detailed analysis reports'),
+    descriptionEn: t('about.services.aiReports.description', 'Premium AI-generated detailed analysis reports'),
+    href: "/premium-reports",
+    gradient: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)",
+  },
+  {
     id: "lifePrediction",
-    icon: "🔮",
+    icon: "📈",
     title: t('about.services.lifePrediction.title', 'Life Prediction'),
     titleKo: t('about.services.lifePrediction.title', '인생 예측'),
     description: t('about.services.lifePrediction.description', 'Discover your 10-year fortune flow and life turning points'),
@@ -44,7 +54,7 @@ const getServices = (t: (key: string, fallback: string) => string): Service[] =>
   },
   {
     id: "tarot",
-    icon: "♜",
+    icon: "🔮",
     title: t('about.services.tarot.title', 'Tarot'),
     titleKo: t('about.services.tarot.title', '타로'),
     description: t('about.services.tarot.description', 'Explore current situations and future possibilities through 78 cards'),
@@ -54,7 +64,7 @@ const getServices = (t: (key: string, fallback: string) => string): Service[] =>
   },
   {
     id: "calendar",
-    icon: "📅",
+    icon: "🗓️",
     title: t('about.services.calendar.title', 'Fortune Calendar'),
     titleKo: t('about.services.calendar.title', '운세 캘린더'),
     description: t('about.services.calendar.description', 'Check daily fortune and auspicious days on your calendar'),
@@ -64,7 +74,7 @@ const getServices = (t: (key: string, fallback: string) => string): Service[] =>
   },
   {
     id: "dream",
-    icon: "💭",
+    icon: "🌙",
     title: t('about.services.dream.title', 'Dream Interpretation'),
     titleKo: t('about.services.dream.title', '꿈해몽'),
     description: t('about.services.dream.description', 'Interpret dream symbols and messages from your subconscious'),
@@ -74,13 +84,23 @@ const getServices = (t: (key: string, fallback: string) => string): Service[] =>
   },
   {
     id: "personality",
-    icon: "🎭",
+    icon: "🌈",
     title: t('about.services.personality.title', 'Personality Analysis'),
     titleKo: t('about.services.personality.title', '성격분석'),
     description: t('about.services.personality.description', 'Deep analysis of your personality traits, strengths, and weaknesses'),
     descriptionEn: t('about.services.personality.description', 'Deep analysis of your personality traits, strengths, and weaknesses'),
     href: "/personality",
     gradient: "linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)",
+  },
+  {
+    id: "icp",
+    icon: "🎭",
+    title: t('about.services.icp.title', 'ICP Analysis'),
+    titleKo: t('about.services.icp.title', 'ICP 분석'),
+    description: t('about.services.icp.description', 'Inner Child Persona analysis for deeper self-understanding'),
+    descriptionEn: t('about.services.icp.description', 'Inner Child Persona analysis for deeper self-understanding'),
+    href: "/icp",
+    gradient: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
   },
   {
     id: "numerology",
@@ -91,6 +111,56 @@ const getServices = (t: (key: string, fallback: string) => string): Service[] =>
     descriptionEn: t('about.services.numerology.description', 'Discover your life purpose and potential through numerological analysis of your name and birth date'),
     href: "/numerology",
     gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+  },
+  {
+    id: "astrology",
+    icon: "✨",
+    title: t('about.services.astrology.title', 'Astrology'),
+    titleKo: t('about.services.astrology.title', '점성술'),
+    description: t('about.services.astrology.description', 'Western astrology birth chart and planetary influence analysis'),
+    descriptionEn: t('about.services.astrology.description', 'Western astrology birth chart and planetary influence analysis'),
+    href: "/astrology",
+    gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
+  },
+  {
+    id: "saju",
+    icon: "☯️",
+    title: t('about.services.saju.title', 'Saju'),
+    titleKo: t('about.services.saju.title', '사주'),
+    description: t('about.services.saju.description', 'Traditional Four Pillars of Destiny analysis'),
+    descriptionEn: t('about.services.saju.description', 'Traditional Four Pillars of Destiny analysis'),
+    href: "/saju",
+    gradient: "linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)",
+  },
+  {
+    id: "compatibility",
+    icon: "💕",
+    title: t('about.services.compatibility.title', 'Compatibility'),
+    titleKo: t('about.services.compatibility.title', '궁합'),
+    description: t('about.services.compatibility.description', 'Relationship compatibility analysis based on birth charts'),
+    descriptionEn: t('about.services.compatibility.description', 'Relationship compatibility analysis based on birth charts'),
+    href: "/compatibility",
+    gradient: "linear-gradient(135deg, #f7b733 0%, #fc4a1a 100%)",
+  },
+  {
+    id: "pastLife",
+    icon: "🔄",
+    title: t('about.services.pastLife.title', 'Past Life'),
+    titleKo: t('about.services.pastLife.title', '전생분석'),
+    description: t('about.services.pastLife.description', 'Explore past life patterns and karmic influences'),
+    descriptionEn: t('about.services.pastLife.description', 'Explore past life patterns and karmic influences'),
+    href: "/past-life",
+    gradient: "linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)",
+  },
+  {
+    id: "iching",
+    icon: "📜",
+    title: t('about.services.iching.title', 'I Ching'),
+    titleKo: t('about.services.iching.title', '주역'),
+    description: t('about.services.iching.description', 'Ancient Chinese wisdom through the 64 hexagrams'),
+    descriptionEn: t('about.services.iching.description', 'Ancient Chinese wisdom through the 64 hexagrams'),
+    href: "/iching",
+    gradient: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
   },
 ];
 
@@ -127,7 +197,7 @@ export default function AboutPage() {
               {translate("about.servicesEyebrow", "DestinyPal Services")}
             </p>
             <h2 className={styles.sectionTitle}>
-              {translate("about.servicesTitle", "7 Destiny Readings")}
+              {translate("about.servicesTitle", "14 Destiny Readings")}
             </h2>
             <p className={styles.sectionDesc}>
               {translate("about.servicesDesc", "Explore your destiny from multiple perspectives with each unique service")}
@@ -202,17 +272,17 @@ export default function AboutPage() {
         </section>
 
         <section className={styles.detailedInfo}>
-          <div className={styles.infoBlock}>
-            <h2 className={styles.infoTitle}>
+          <div className={styles.infoHeader}>
+            <h2 className={styles.infoMainTitle}>
               {translate("about.whatIsDestinyPal.title", "DestinyPal이란 무엇인가요?")}
             </h2>
-            <p className={styles.infoParagraph}>
+            <p className={styles.infoIntro}>
               {translate(
                 "about.whatIsDestinyPal.p1",
                 "DestinyPal(데스티니팔)은 동양의 사주팔자(四柱八字), 서양의 점성술(Astrology), 그리고 타로(Tarot) 카드를 통합한 AI 기반 운세 분석 플랫폼입니다. 수천 년간 인류가 축적해 온 운명학의 지혜를 현대 인공지능 기술과 결합하여, 사용자에게 깊이 있고 정확한 인생 통찰을 제공합니다."
               )}
             </p>
-            <p className={styles.infoParagraph}>
+            <p className={styles.infoIntro}>
               {translate(
                 "about.whatIsDestinyPal.p2",
                 "우리는 단순한 '오늘의 운세'를 넘어서, 개인의 타고난 성향, 인생의 주기적 변화, 관계의 역학, 진로와 적성, 건강 패턴 등을 종합적으로 분석합니다. 생년월일시(Birth Chart Data)를 입력하면 사주팔자의 천간지지(天干地支), 서양 점성술의 행성 배치(Planetary Positions), 그리고 타로 리딩을 통해 다면적인 운명 분석을 받을 수 있습니다."
@@ -224,45 +294,60 @@ export default function AboutPage() {
             <h2 className={styles.infoTitle}>
               {translate("about.whyChooseUs.title", "왜 DestinyPal을 선택해야 하나요?")}
             </h2>
-            <h3 className={styles.infoSubtitle}>
-              {translate("about.whyChooseUs.reason1.title", "1. 동서양 운명학의 완벽한 통합")}
-            </h3>
-            <p className={styles.infoParagraph}>
-              {translate(
-                "about.whyChooseUs.reason1.desc",
-                "대부분의 운세 사이트는 사주만, 또는 별자리만 다룹니다. DestinyPal은 사주팔자의 오행 이론, 서양 점성술의 행성 사이클, 타로의 직관적 상징을 하나의 통합된 시각으로 제공합니다. 이를 통해 당신의 운명을 다각도로 이해할 수 있습니다."
-              )}
-            </p>
 
-            <h3 className={styles.infoSubtitle}>
-              {translate("about.whyChooseUs.reason2.title", "2. AI 기술 기반 고도화된 해석")}
-            </h3>
-            <p className={styles.infoParagraph}>
-              {translate(
-                "about.whyChooseUs.reason2.desc",
-                "DestinyPal은 ChatGPT와 같은 최신 대형 언어 모델(LLM)을 활용하여, 복잡한 사주 구조와 행성 배치를 자연어로 쉽게 설명합니다. 전통적인 사주 전문가의 해석 논리를 AI가 학습하여, 초보자도 이해하기 쉬운 맞춤형 설명을 제공합니다. 또한 사용자가 질문을 입력하면 실시간으로 대화형 상담이 가능합니다."
-              )}
-            </p>
+            <div className={styles.reasonsGrid}>
+              <div className={styles.reasonCard}>
+                <div className={styles.reasonIcon}>🌏</div>
+                <h3 className={styles.reasonTitle}>
+                  {translate("about.whyChooseUs.reason1.title", "동서양 운명학의 완벽한 통합")}
+                </h3>
+                <p className={styles.reasonDesc}>
+                  {translate(
+                    "about.whyChooseUs.reason1.desc",
+                    "대부분의 운세 사이트는 사주만, 또는 별자리만 다룹니다. DestinyPal은 사주팔자의 오행 이론, 서양 점성술의 행성 사이클, 타로의 직관적 상징을 하나의 통합된 시각으로 제공합니다. 이를 통해 당신의 운명을 다각도로 이해할 수 있습니다."
+                  )}
+                </p>
+              </div>
 
-            <h3 className={styles.infoSubtitle}>
-              {translate("about.whyChooseUs.reason3.title", "3. 정밀한 천체 계산과 시간대 보정")}
-            </h3>
-            <p className={styles.infoParagraph}>
-              {translate(
-                "about.whyChooseUs.reason3.desc",
-                "사주와 점성술은 정확한 출생 시간과 위치가 매우 중요합니다. DestinyPal은 스위스 천문력(Swiss Ephemeris) 엔진을 사용하여 0.001도 단위까지 정밀한 행성 위치를 계산하며, 시간대(Timezone), 일광절약시간(DST), 역법 차이를 모두 반영합니다. 또한 음력 변환, 절기 계산, 태양시 보정 등 전문적인 알고리즘을 적용하여 한국의 전통 사주학 표준을 충실히 따릅니다."
-              )}
-            </p>
+              <div className={styles.reasonCard}>
+                <div className={styles.reasonIcon}>🤖</div>
+                <h3 className={styles.reasonTitle}>
+                  {translate("about.whyChooseUs.reason2.title", "AI 기술 기반 고도화된 해석")}
+                </h3>
+                <p className={styles.reasonDesc}>
+                  {translate(
+                    "about.whyChooseUs.reason2.desc",
+                    "DestinyPal은 ChatGPT와 같은 최신 대형 언어 모델(LLM)을 활용하여, 복잡한 사주 구조와 행성 배치를 자연어로 쉽게 설명합니다. 전통적인 사주 전문가의 해석 논리를 AI가 학습하여, 초보자도 이해하기 쉬운 맞춤형 설명을 제공합니다. 또한 사용자가 질문을 입력하면 실시간으로 대화형 상담이 가능합니다."
+                  )}
+                </p>
+              </div>
 
-            <h3 className={styles.infoSubtitle}>
-              {translate("about.whyChooseUs.reason4.title", "4. 개인정보 보호와 보안")}
-            </h3>
-            <p className={styles.infoParagraph}>
-              {translate(
-                "about.whyChooseUs.reason4.desc",
-                "생년월일시와 운세 정보는 매우 민감한 개인 데이터입니다. DestinyPal은 최고 수준의 암호화 기술과 접근 제어를 통해 데이터를 보호하며, GDPR 및 국내 개인정보보호법을 준수합니다. 사용자는 언제든지 자신의 데이터를 다운로드하거나 삭제할 수 있으며, 익명 모드를 통해 계정 생성 없이도 기본 분석을 이용할 수 있습니다."
-              )}
-            </p>
+              <div className={styles.reasonCard}>
+                <div className={styles.reasonIcon}>⚙️</div>
+                <h3 className={styles.reasonTitle}>
+                  {translate("about.whyChooseUs.reason3.title", "정밀한 천체 계산과 시간대 보정")}
+                </h3>
+                <p className={styles.reasonDesc}>
+                  {translate(
+                    "about.whyChooseUs.reason3.desc",
+                    "사주와 점성술은 정확한 출생 시간과 위치가 매우 중요합니다. DestinyPal은 스위스 천문력(Swiss Ephemeris) 엔진을 사용하여 0.001도 단위까지 정밀한 행성 위치를 계산하며, 시간대(Timezone), 일광절약시간(DST), 역법 차이를 모두 반영합니다. 또한 음력 변환, 절기 계산, 태양시 보정 등 전문적인 알고리즘을 적용하여 한국의 전통 사주학 표준을 충실히 따릅니다."
+                  )}
+                </p>
+              </div>
+
+              <div className={styles.reasonCard}>
+                <div className={styles.reasonIcon}>🔒</div>
+                <h3 className={styles.reasonTitle}>
+                  {translate("about.whyChooseUs.reason4.title", "개인정보 보호와 보안")}
+                </h3>
+                <p className={styles.reasonDesc}>
+                  {translate(
+                    "about.whyChooseUs.reason4.desc",
+                    "생년월일시와 운세 정보는 매우 민감한 개인 데이터입니다. DestinyPal은 최고 수준의 암호화 기술과 접근 제어를 통해 데이터를 보호하며, GDPR 및 국내 개인정보보호법을 준수합니다. 사용자는 언제든지 자신의 데이터를 다운로드하거나 삭제할 수 있으며, 익명 모드를 통해 계정 생성 없이도 기본 분석을 이용할 수 있습니다."
+                  )}
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className={styles.infoBlock}>

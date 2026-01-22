@@ -1456,3 +1456,61 @@
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.7);
 }
+
+/* ========================================= */
+/* 🔷 Destiny Matrix Detail Styles          */
+/* ========================================= */
+
+.matrixDetail {
+  /* Uses existing modal styles */
+}
+
+.matrixDetail .modalHeader h3 {
+  color: #63d2ff;
+}
+
+.infoLabel {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0.5rem 0;
+}
+
+.actionSection {
+  margin: 1.5rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.pdfButton {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.pdfButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.pdfButton:active {
+  transform: translateY(0);
+}
+
+/* ICP and Compatibility Detail styles (reusable) */
+.icpDetail,
+.compatibilityDetail {
+  /* Uses existing modal styles */
+}
+
+.personLabel {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0.25rem 0;
+}

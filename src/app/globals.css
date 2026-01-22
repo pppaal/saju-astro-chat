@@ -1,5 +1,6 @@
 @import "../styles/tokens.css";
 @import "../styles/breakpoints.css";
+@import "../styles/z-index.css";
 
 /* ============ Fonts ============ */
 /* Fonts are now loaded via Next.js font optimization in layout.tsx */
@@ -71,9 +72,9 @@ select:focus-visible,
   --bg-tertiary: #1a2238;
 
   --text-color: #EAE6FF;
-  --text-secondary: rgba(234, 230, 255, 0.85);
-  --text-tertiary: rgba(234, 230, 255, 0.65);
-  --text-muted: rgba(234, 230, 255, 0.45);
+  --text-secondary: rgba(234, 230, 255, 0.9);
+  --text-tertiary: rgba(234, 230, 255, 0.75);
+  --text-muted: rgba(234, 230, 255, 0.6);
 
   --glow-color: #A899FF;
   --muted: rgba(232, 234, 246, 0.75);

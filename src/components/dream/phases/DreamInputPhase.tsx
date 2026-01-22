@@ -102,8 +102,12 @@ export function DreamInputPhase({
               ? '예: 높은 곳에서 떨어지는 꿈을 꿨어요. 처음엔 무서웠는데 나중엔 하늘을 날고 있었어요...'
               : 'Example: I dreamed of falling from a high place. It was scary at first, but then I was flying...'}
             rows={6}
+            maxLength={1000}
           />
           <div className={styles.textareaGlow}></div>
+          <div className={`${styles.charCounter} ${dreamText.length >= 900 ? styles.charCounterWarning : ''} ${dreamText.length >= 1000 ? styles.charCounterError : ''}`}>
+            {dreamText.length} / 1000
+          </div>
         </div>
 
         <button

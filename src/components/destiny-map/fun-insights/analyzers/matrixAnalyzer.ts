@@ -1,5 +1,6 @@
 // matrixAnalyzer.ts
 // Destiny Fusion Matrix™ 데이터를 활용한 고급 분석
+// Main orchestrator - coordinates layer and domain analysis modules
 
 import { getInteractionColor } from '@/lib/destiny-matrix/engine';
 import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/layer1-element-core';

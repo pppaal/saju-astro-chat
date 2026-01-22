@@ -16,12 +16,12 @@ from typing import Any, Dict, Optional, Tuple
 
 from dotenv import load_dotenv
 
-from app.performance_optimizer import track_performance
-from app.redis_cache import get_cache
-from app.rendering import render_template_report
-from app.rule_engine import RuleEngine
-from app.sanitizer import is_suspicious_input, sanitize_user_input, validate_birth_data
-from app.signal_extractor import extract_signals, summarize_cross_signals, summarize_signals
+from backend_ai.app.performance_optimizer import track_performance
+from backend_ai.app.redis_cache import get_cache
+from backend_ai.app.rendering import render_template_report
+from backend_ai.app.rule_engine import RuleEngine
+from backend_ai.app.sanitizer import is_suspicious_input, sanitize_user_input, validate_birth_data
+from backend_ai.app.signal_extractor import extract_signals, summarize_cross_signals, summarize_signals
 
 # ===============================================================
 # CONSTANTS
@@ -445,7 +445,7 @@ def naturalize_facts(saju: dict, astro: dict, tarot: dict) -> tuple[str, str, st
 # ===============================================================
 #  PARALLEL PREPROCESSING HELPERS (v6.0 - With Error Handling)
 # ===============================================================
-from app.utils.error_handler import handle_errors
+from backend_ai.app.utils.error_handler import handle_errors
 
 
 @handle_errors(default={}, log_level="warning", context="Parallel RAG")

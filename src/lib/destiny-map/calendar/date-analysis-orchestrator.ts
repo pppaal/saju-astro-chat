@@ -143,6 +143,9 @@ import {
   isYeokmaDay,
   normalizeElement,
 } from './utils';
+import { filterByScenario } from './utils/recommendation-filter';
+import { processShinsals } from './utils/shinsal-mapper';
+import { analyzeBranchRelationships } from './utils/branch-relationship-analyzer';
 
 // Types - types.ts에서 import (중복 제거)
 import type {
@@ -598,51 +601,10 @@ export function analyzeDate(
   // ═══════════════════════════════════════════════════════════
 
   if (shinsalForScoring?.active) {
-    for (const shinsal of shinsalForScoring.active) {
-      const name = shinsal.name;
-      // 길신
-      if (name === '태극귀인') {
-        sajuFactorKeys.push("shinsal_taegukGwiin");
-        recommendationKeys.push("majorLuck", "blessing");
-      } else if (name === '천덕귀인' || name === '천덕') {
-        sajuFactorKeys.push("shinsal_cheondeokGwiin");
-        recommendationKeys.push("heavenlyHelp", "protection");
-      } else if (name === '월덕귀인' || name === '월덕') {
-        sajuFactorKeys.push("shinsal_woldeokGwiin");
-        recommendationKeys.push("lunarBlessing", "assistance");
-      } else if (name === '화개') {
-        sajuFactorKeys.push("shinsal_hwagae");
-        recommendationKeys.push("creativity", "spiritual");
-      }
-      // 흉신
-      else if (name === '공망') {
-        sajuFactorKeys.push("shinsal_gongmang");
-        warningKeys.push("emptiness", "voidDay");
-      } else if (name === '원진') {
-        sajuFactorKeys.push("shinsal_wonjin");
-        warningKeys.push("resentment", "conflict");
-      } else if (name === '양인') {
-        sajuFactorKeys.push("shinsal_yangin");
-        warningKeys.push("danger", "impulsiveness");
-      } else if (name === '괴강') {
-        sajuFactorKeys.push("shinsal_goegang");
-        warningKeys.push("extremes", "intensity");
-      } else if (name === '백호') {
-        sajuFactorKeys.push("shinsal_backho");
-        warningKeys.push("accident", "surgery");
-      } else if (name === '귀문관') {
-        sajuFactorKeys.push("shinsal_guimungwan");
-        warningKeys.push("mentalConfusion", "anxiety");
-      }
-      // 특수 신살
-      else if (name === '역마') {
-        sajuFactorKeys.push("shinsal_yeokma");
-        recommendationKeys.push("travel", "movement");
-      } else if (name === '재살') {
-        sajuFactorKeys.push("shinsal_jaesal");
-        warningKeys.push("dispute", "legalIssue");
-      }
-    }
+    const shinsalResults = processShinsals(shinsalForScoring.active);
+    sajuFactorKeys.push(...shinsalResults.factorKeys);
+    recommendationKeys.push(...shinsalResults.recommendations);
+    warningKeys.push(...shinsalResults.warnings);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -753,95 +715,47 @@ export function analyzeDate(
     warningKeys.push("conflict", "health", "avoidAuthority");
     recommendationKeys.push("careful", "lowProfile");
     // 관살이 있으면 권위/승진 추천 제거
-    const removeRecs = ["authority", "promotion", "interview"];
-    for (let i = recommendationKeys.length - 1; i >= 0; i--) {
-      if (removeRecs.includes(recommendationKeys[i])) {
-        recommendationKeys.splice(i, 1);
-      }
-    }
+    filterByScenario(recommendationKeys, 'gwansal');
   }
 
   // ═══════════════════════════════════════════════════════════
   // SECTION 12: 지지 관계 (삼합, 육합, 충, 형, 해)
   // ═══════════════════════════════════════════════════════════
 
-  if (dayBranch) {
-    // 삼합 체크 - 가장 강력
-    for (const [element, branches] of Object.entries(SAMHAP)) {
-      if (branches.includes(dayBranch) && branches.includes(ganzhi.branch)) {
-        if (element === dayMasterElement || element === relations.generatedBy) {
-          sajuFactorKeys.push("branchSamhap");
-          if (!titleKey) {
-            titleKey = "calendar.samhap";
-            descKey = "calendar.samhapDesc";
-          }
-          recommendationKeys.push("bigDecision", "contract", "partnership");
-          if (!categories.includes("general")) categories.push("general");
-        } else if (element === relations.controlledBy) {
-          sajuFactorKeys.push("branchSamhapNegative");
-          warningKeys.push("opposition");
-        }
-      }
-    }
+  const branchAnalysis = analyzeBranchRelationships({
+    dayBranch: dayBranch || '',
+    ganzhiBranch: ganzhi.branch,
+    dayMasterElement,
+    relations,
+    SAMHAP,
+    YUKHAP,
+    CHUNG,
+    XING,
+    currentTitleKey: titleKey,
+  });
 
-    // 육합 체크 - 인연/화합
-    if (YUKHAP[dayBranch] === ganzhi.branch) {
-      sajuFactorKeys.push("branchYukhap");
-      if (!titleKey) {
-        titleKey = "calendar.yukhap";
-        descKey = "calendar.yukhapDesc";
-      }
-      categories.push("love");
-      recommendationKeys.push("love", "meeting", "reconciliation");
-    }
+  sajuFactorKeys.push(...branchAnalysis.factorKeys);
+  recommendationKeys.push(...branchAnalysis.recommendations);
+  warningKeys.push(...branchAnalysis.warnings);
 
-    // 충 체크 - 충돌/변화
-    if (CHUNG[dayBranch] === ganzhi.branch) {
-      categories.push("travel", "health");
-      titleKey = "calendar.chung";
-      descKey = "calendar.chungDesc";
-      sajuFactorKeys.push("branchChung");
-      warningKeys.push("avoidTravel", "conflict", "accident", "avoidChange");
-      recommendationKeys.push("careful", "postpone");
-      // 충이 있으면 여행/변화 추천 제거
-      const removeRecs = ["travel", "change"];
-      for (let i = recommendationKeys.length - 1; i >= 0; i--) {
-        if (removeRecs.includes(recommendationKeys[i])) {
-          recommendationKeys.splice(i, 1);
-        }
-      }
+  for (const category of branchAnalysis.categories) {
+    if (!categories.includes(category)) {
+      categories.push(category);
     }
+  }
 
-    // 형 (刑) 체크
-    if (XING[dayBranch]?.includes(ganzhi.branch)) {
-      sajuFactorKeys.push("branchXing");
-      warningKeys.push("legal", "injury");
-      // 형이 있으면 계약 관련 추천 제거
-      const removeRecs = ["contract", "bigDecision", "partnership"];
-      for (let i = recommendationKeys.length - 1; i >= 0; i--) {
-        if (removeRecs.includes(recommendationKeys[i])) {
-          recommendationKeys.splice(i, 1);
-        }
-      }
-    }
+  if (branchAnalysis.titleKey && !titleKey) {
+    titleKey = branchAnalysis.titleKey;
+    descKey = branchAnalysis.descKey || '';
+  } else if (branchAnalysis.titleKey) {
+    // Chung overrides other titles
+    titleKey = branchAnalysis.titleKey;
+    descKey = branchAnalysis.descKey || '';
+  }
 
-    // 해 (害) 체크 - 육해
-    const HAI_MAP: Record<string, string> = {
-      "子": "未", "未": "子", "丑": "午", "午": "丑",
-      "寅": "巳", "巳": "寅", "卯": "辰", "辰": "卯",
-      "申": "亥", "亥": "申", "酉": "戌", "戌": "酉",
-    };
-    if (HAI_MAP[dayBranch] === ganzhi.branch) {
-      sajuFactorKeys.push("branchHai");
-      warningKeys.push("betrayal", "misunderstanding");
-      // 해가 있으면 소셜/네트워킹 추천 제거
-      const removeRecs = ["networking", "socializing"];
-      for (let i = recommendationKeys.length - 1; i >= 0; i--) {
-        if (removeRecs.includes(recommendationKeys[i])) {
-          recommendationKeys.splice(i, 1);
-        }
-      }
-    }
+  // Apply recommendation filters
+  for (const scenario of branchAnalysis.filterScenarios) {
+    filterByScenario(recommendationKeys, scenario);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -913,22 +827,12 @@ export function analyzeDate(
     // 수성 역행은 커뮤니케이션/계약에 특히 주의
     if (retrogradePlanets.includes("mercury")) {
       warningKeys.push("mercuryRetrograde");
-      const removeRecs = ["contract", "documents", "interview"];
-      for (let i = recommendationKeys.length - 1; i >= 0; i--) {
-        if (removeRecs.includes(recommendationKeys[i])) {
-          recommendationKeys.splice(i, 1);
-        }
-      }
+      filterByScenario(recommendationKeys, 'mercuryRetrograde');
     }
     // 금성 역행은 연애/재물에 주의
     if (retrogradePlanets.includes("venus")) {
       warningKeys.push("venusRetrograde");
-      const removeRecs = ["dating", "love", "finance", "investment", "shopping"];
-      for (let i = recommendationKeys.length - 1; i >= 0; i--) {
-        if (removeRecs.includes(recommendationKeys[i])) {
-          recommendationKeys.splice(i, 1);
-        }
-      }
+      filterByScenario(recommendationKeys, 'venusRetrograde');
     }
     // 화성 역행은 행동/에너지에 주의
     if (retrogradePlanets.includes("mars")) {

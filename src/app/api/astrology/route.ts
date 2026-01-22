@@ -1,6 +1,6 @@
 // src/app/api/astrology/route.ts
 import { NextResponse } from "next/server";
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
+import { apiClient } from "@/lib/api/ApiClient";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
@@ -22,6 +22,8 @@ import {
   buildEngineMeta,
 } from "@/lib/astrology";
 import { logger } from '@/lib/logger';
+import { validateRequestBody, astrologyRequestSchema } from '@/lib/api/zodValidation';
+import { validationError } from '@/lib/api/errorResponse';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -177,35 +179,24 @@ export async function POST(request: Request) {
     const oversized = enforceBodySize(request as Request & { body?: ReadableStream }, BODY_LIMIT, limit.headers);
     if (oversized) return oversized;
 
-    const body = await request.json().catch(() => null) as AstrologyRequestBody | null;
-    if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "Invalid request body" }, { status: 400, headers: limit.headers });
+    // ========  Zod Validation ========
+    const validation = await validateRequestBody(request, astrologyRequestSchema);
+    if (!validation.success) {
+      const errorMessage = validation.errors.map((e) => `${e.path}: ${e.message}`).join(', ');
+      const res = validationError(errorMessage, { errors: validation.errors });
+      limit.headers.forEach((value, key) => res.headers.set(key, value));
+      return res;
     }
 
-    const date = typeof body.date === "string" ? body.date.trim().slice(0, 10) : "";
-    const time = body.time;
-    const latitude = typeof body.latitude === "number" ? body.latitude : Number(body.latitude);
-    const longitude = typeof body.longitude === "number" ? body.longitude : Number(body.longitude);
-    const timeZone = typeof body.timeZone === "string" ? body.timeZone.trim().slice(0, TIMEZONE_MAX) : "";
-    const locale = typeof body.locale === "string" ? body.locale : undefined;
-    const options = body.options && typeof body.options === "object" ? body.options : undefined;
+    const { date, time, latitude, longitude, timeZone, locale, options } = validation.data;
     const L = pickLabels(locale);
     const locKey = normalizeLocale(locale);
 
-    if (!date || !time || latitude === undefined || longitude === undefined || !timeZone) {
-      return NextResponse.json({ error: "date, time, latitude, longitude, and timeZone are required." }, { status: 400, headers: limit.headers });
-    }
-    if (!DATE_RE.test(date)) {
-      return NextResponse.json({ error: "date must be YYYY-MM-DD." }, { status: 400, headers: limit.headers });
-    }
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
-        latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-      return NextResponse.json({ error: "latitude/longitude out of range." }, { status: 400, headers: limit.headers });
-    }
-
     const [year, month, day] = String(date).split("-").map(Number);
     if (!year || !month || !day) {
-      return NextResponse.json({ error: "date must be YYYY-MM-DD." }, { status: 400, headers: limit.headers });
+      const res = validationError("Invalid date components", { date });
+      limit.headers.forEach((value, key) => res.headers.set(key, value));
+      return res;
     }
 
     const { h, m } = parseHM(String(time));
@@ -278,47 +269,28 @@ export async function POST(request: Request) {
     // ======== AI 백엔드 호출 (GPT) ========
     let aiInterpretation = '';
     let aiModelUsed = '';
-    const backendUrl = pickBackendUrl();
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      const apiToken = process.env.ADMIN_API_TOKEN;
-      if (apiToken) {
-        headers['X-API-KEY'] = apiToken;
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
-
       // Build prompt for astrology interpretation
       const astroPrompt = `Analyze this natal chart as an expert astrologer:\n\nAscendant: ${ascStr}\nMC: ${mcStr}\n\nPlanet Positions:\n${planetLines}\n\nProvide insights on personality, life path, strengths, and challenges.`;
 
-      const aiResponse = await fetch(`${backendUrl}/ask`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          theme: 'astrology',
-          prompt: astroPrompt,
-          astro: {
-            ascendant: natal.ascendant,
-            mc: natal.mc,
-            planets: natal.planets,
-            houses,
-            aspects: aspectsPlus,
-          },
-          locale: locKey,
-        }),
-        signal: controller.signal,
-      });
+      const response = await apiClient.post('/ask', {
+        theme: 'astrology',
+        prompt: astroPrompt,
+        astro: {
+          ascendant: natal.ascendant,
+          mc: natal.mc,
+          planets: natal.planets,
+          houses,
+          aspects: aspectsPlus,
+        },
+        locale: locKey,
+      }, { timeout: 60000 });
 
-      clearTimeout(timeoutId);
-
-      if (aiResponse.ok) {
-        const aiData = await aiResponse.json();
-        aiInterpretation = aiData?.data?.fusion_layer || aiData?.data?.report || '';
-        aiModelUsed = aiData?.data?.model || 'gpt-4o';
+      if (response.ok) {
+        const resData = response.data as { data?: { fusion_layer?: string; report?: string; model?: string } };
+        aiInterpretation = resData?.data?.fusion_layer || resData?.data?.report || '';
+        aiModelUsed = resData?.data?.model || 'gpt-4o';
       }
     } catch (aiErr) {
       logger.warn('[Astrology API] AI backend call failed:', aiErr);

@@ -52,7 +52,7 @@ except ImportError:
 
 # RuleEngine 임포트
 try:
-    from app.rule_engine import RuleEngine
+    from backend_ai.app.rule_engine import RuleEngine
     RULE_ENGINE_AVAILABLE = True
 except ImportError:
     try:
@@ -72,7 +72,7 @@ try:
         get_jungian_rag,
     )
 except ImportError:
-    from app.counseling import (
+    from backend_ai.app.counseling import (
         CrisisDetector,
         TherapeuticQuestionGenerator,
         JungianRAG,

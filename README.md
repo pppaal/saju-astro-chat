@@ -19,21 +19,34 @@ AI-assisted astrology, saju, tarot, and dream counseling platform with a Next.js
 **Roadmap to 10/10:** See [PROJECT_QUALITY_10_ROADMAP.md](./PROJECT_QUALITY_10_ROADMAP.md)
 
 ## 📚 Documentation
-### Getting Started
-- [Quick Start Guide](#quickstart-local) - Start developing in 5 minutes
-- [EXECUTION_GUIDE.md](docs/EXECUTION_GUIDE.md) - Detailed setup instructions
-- [ENVIRONMENT_CHECKLIST.md](docs/ENVIRONMENT_CHECKLIST.md) - Environment configuration
 
-### Quality & Best Practices
-- [QUALITY_IMPROVEMENTS_SUMMARY.md](./QUALITY_IMPROVEMENTS_SUMMARY.md) - Quality improvements overview
-- [QUICK_WINS.md](./QUICK_WINS.md) - 30-minute improvements you can apply today
-- [PROJECT_QUALITY_10_ROADMAP.md](./PROJECT_QUALITY_10_ROADMAP.md) - Path to 10/10 quality
+### 💼 For Leadership
+- **[EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md)** - CEO/경영진용 요약 (비즈니스 임팩트, ROI, 의사결정 포인트)
 
-### Architecture & Performance
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - System architecture
-- [PERFORMANCE_OPTIMIZATION.md](docs/PERFORMANCE_OPTIMIZATION.md) - Performance optimization guide (RAG 3x speedup)
-- [Backend Testing Guide](backend_ai/README_TESTING.md) - AI backend testing
-- [API Documentation](docs/API.md) - REST API endpoints
+### 🎯 For Engineers
+- **[PROJECT_CHECKLIST.md](PROJECT_CHECKLIST.md)** - 전체 구현 체크리스트 (보안, 접근성, 성능, 테스트)
+- [Quick Start Guide](#quickstart-local) - 5분 만에 시작하기
+- [EXECUTION_GUIDE.md](docs/EXECUTION_GUIDE.md) - 상세 설정 가이드
+- [ENVIRONMENT_CHECKLIST.md](docs/ENVIRONMENT_CHECKLIST.md) - 환경변수 설정
+
+### 🏗️ Architecture & API
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - 시스템 아키텍처
+- [API Documentation](docs/API.md) - REST API 엔드포인트
+
+### 🔒 Security & Performance
+- [SECURITY_HARDENING.md](docs/SECURITY_HARDENING.md) - 보안 강화 가이드
+- [PERFORMANCE_OPTIMIZATION.md](docs/PERFORMANCE_OPTIMIZATION.md) - 성능 최적화 (RAG 3배 속도 향상)
+- [PERFORMANCE_TESTING.md](docs/PERFORMANCE_TESTING.md) - 성능 테스트
+- [TRACING.md](docs/TRACING.md) - Distributed tracing (OpenTelemetry)
+- [REDIS_CACHE_GUIDE.md](docs/REDIS_CACHE_GUIDE.md) - Redis 캐싱
+
+### 🧪 Testing & CI/CD
+- [E2E_TESTING_GUIDE.md](docs/E2E_TESTING_GUIDE.md) - E2E 테스트 가이드
+- [tests/load/README.md](tests/load/README.md) - Load testing (k6)
+- [CI_CD_PIPELINE.md](docs/CI_CD_PIPELINE.md) - CI/CD 파이프라인
+- [CI_CD_QUICK_REFERENCE.md](docs/CI_CD_QUICK_REFERENCE.md) - CI/CD 빠른 참조
+- [GITHUB_ACTIONS_SETUP.md](docs/GITHUB_ACTIONS_SETUP.md) - GitHub Actions 설정
+- [Backend Testing Guide](backend_ai/README_TESTING.md) - AI 백엔드 테스트
 
 ## Quickstart (local)
 1. Install frontend deps:

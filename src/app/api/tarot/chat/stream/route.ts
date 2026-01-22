@@ -1,16 +1,14 @@
 // src/app/api/tarot/chat/stream/route.ts
 // Streaming Tarot Chat API - Real-time SSE proxy to backend
 
-import { NextResponse } from "next/server";
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
-import { requirePublicToken } from "@/lib/auth/publicToken";
+import { NextRequest, NextResponse } from "next/server";
+import { initializeApiContext, createPublicStreamGuard } from "@/lib/api/middleware";
+import { createSSEStreamProxy, createFallbackSSEStream } from "@/lib/streaming";
+import { apiClient } from "@/lib/api/ApiClient";
 import { enforceBodySize } from "@/lib/http";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
-import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 import {
   cleanStringArray,
   normalizeMessages as normalizeMessagesBase,
@@ -21,8 +19,7 @@ import { logger } from '@/lib/logger';
 interface CardContext {
   position: string;
   name: string;
-  isReversed?: boolean;
-  is_reversed?: boolean;
+  is_reversed: boolean;
   meaning: string;
   keywords?: string[];
 }
@@ -105,56 +102,65 @@ interface PersonalityData {
   };
 }
 
-function buildSystemInstruction(
-  context: TarotContext,
-  language: "ko" | "en",
-  personality?: PersonalityData | null
-) {
-  const cardLines = context.cards
+function getPersonalityLabel(score: number, trueLabel: string, falseLabel: string): string {
+  return score >= 50 ? trueLabel : falseLabel;
+}
+
+function buildPersonalityContext(
+  personality: PersonalityData,
+  language: "ko" | "en"
+): string {
+  const { typeCode, personaName, energyScore, cognitionScore, decisionScore, rhythmScore, analysisData } = personality;
+
+  if (language === "ko") {
+    return [
+      "\n\n사용자 성격 정보 (Nova Persona):",
+      `- 페르소나: ${personaName} (${typeCode})`,
+      `- 에너지: ${getPersonalityLabel(energyScore, 'Radiant(외향적)', 'Grounded(내향적)')} ${energyScore}`,
+      `- 인지: ${getPersonalityLabel(cognitionScore, 'Visionary(직관적)', 'Structured(체계적)')} ${cognitionScore}`,
+      `- 결정: ${getPersonalityLabel(decisionScore, 'Logic(논리적)', 'Empathic(공감적)')} ${decisionScore}`,
+      `- 리듬: ${getPersonalityLabel(rhythmScore, 'Flow(유동적)', 'Anchor(안정적)')} ${rhythmScore}`,
+      analysisData.keyMotivations ? `- 핵심 동기: ${analysisData.keyMotivations.slice(0, 2).join(', ')}` : "",
+      analysisData.strengths ? `- 강점: ${analysisData.strengths.slice(0, 2).join(', ')}` : "",
+      "\n이 성격 정보를 바탕으로 사용자의 성향에 맞춰 조언을 개인화해줘.",
+      `예: ${getPersonalityLabel(energyScore, '외향적이므로 다른 사람과 함께하는 행동 제안', '내향적이므로 혼자 성찰하는 시간 제안')}`,
+      `${getPersonalityLabel(cognitionScore, '비전과 가능성 중심으로', '구체적이고 단계별로')} 설명해줘.`,
+    ].filter(Boolean).join("\n");
+  } else {
+    return [
+      "\n\nUser Personality (Nova Persona):",
+      `- Persona: ${personaName} (${typeCode})`,
+      `- Energy: ${getPersonalityLabel(energyScore, 'Radiant(extroverted)', 'Grounded(introverted)')} ${energyScore}`,
+      `- Cognition: ${getPersonalityLabel(cognitionScore, 'Visionary(intuitive)', 'Structured(systematic)')} ${cognitionScore}`,
+      `- Decision: ${getPersonalityLabel(decisionScore, 'Logic-focused', 'Empathy-focused')} ${decisionScore}`,
+      `- Rhythm: ${getPersonalityLabel(rhythmScore, 'Flow(flexible)', 'Anchor(stable)')} ${rhythmScore}`,
+      analysisData.keyMotivations ? `- Key motivations: ${analysisData.keyMotivations.slice(0, 2).join(', ')}` : "",
+      analysisData.strengths ? `- Strengths: ${analysisData.strengths.slice(0, 2).join(', ')}` : "",
+      "\nPersonalize advice based on this personality.",
+      `E.g., ${getPersonalityLabel(energyScore, 'suggest social actions', 'suggest introspective time')},`,
+      `${getPersonalityLabel(cognitionScore, 'focus on vision and possibilities', 'provide concrete step-by-step guidance')}.`,
+    ].filter(Boolean).join("\n");
+  }
+}
+
+function formatCardLines(cards: CardContext[], language: "ko" | "en"): string {
+  return cards
     .map((c, idx) => {
       const pos = c.position || `Card ${idx + 1}`;
-      const orient = c.is_reversed ?? c.isReversed ? (language === "ko" ? "역위" : "reversed") : (language === "ko" ? "정위" : "upright");
+      const orient = c.is_reversed
+        ? (language === "ko" ? "역위" : "reversed")
+        : (language === "ko" ? "정위" : "upright");
       return `- ${pos}: ${c.name} (${orient})`;
     })
     .join("\n");
+}
 
-  // Personality context for counselor
-  let personalityContext = "";
-  if (personality) {
-    const { typeCode, personaName, energyScore, cognitionScore, decisionScore, rhythmScore, analysisData } = personality;
-
-    if (language === "ko") {
-      personalityContext = [
-        "\n\n사용자 성격 정보 (Nova Persona):",
-        `- 페르소나: ${personaName} (${typeCode})`,
-        `- 에너지: ${energyScore >= 50 ? 'Radiant(외향적)' : 'Grounded(내향적)'} ${energyScore}`,
-        `- 인지: ${cognitionScore >= 50 ? 'Visionary(직관적)' : 'Structured(체계적)'} ${cognitionScore}`,
-        `- 결정: ${decisionScore >= 50 ? 'Logic(논리적)' : 'Empathic(공감적)'} ${decisionScore}`,
-        `- 리듬: ${rhythmScore >= 50 ? 'Flow(유동적)' : 'Anchor(안정적)'} ${rhythmScore}`,
-        analysisData.keyMotivations ? `- 핵심 동기: ${analysisData.keyMotivations.slice(0, 2).join(', ')}` : "",
-        analysisData.strengths ? `- 강점: ${analysisData.strengths.slice(0, 2).join(', ')}` : "",
-        "\n이 성격 정보를 바탕으로 사용자의 성향에 맞춰 조언을 개인화해줘.",
-        `예: ${energyScore >= 50 ? '외향적이므로 다른 사람과 함께하는 행동 제안' : '내향적이므로 혼자 성찰하는 시간 제안'}`,
-        `${cognitionScore >= 50 ? '비전과 가능성 중심으로' : '구체적이고 단계별로'} 설명해줘.`,
-      ].filter(Boolean).join("\n");
-    } else {
-      personalityContext = [
-        "\n\nUser Personality (Nova Persona):",
-        `- Persona: ${personaName} (${typeCode})`,
-        `- Energy: ${energyScore >= 50 ? 'Radiant(extroverted)' : 'Grounded(introverted)'} ${energyScore}`,
-        `- Cognition: ${cognitionScore >= 50 ? 'Visionary(intuitive)' : 'Structured(systematic)'} ${cognitionScore}`,
-        `- Decision: ${decisionScore >= 50 ? 'Logic-focused' : 'Empathy-focused'} ${decisionScore}`,
-        `- Rhythm: ${rhythmScore >= 50 ? 'Flow(flexible)' : 'Anchor(stable)'} ${rhythmScore}`,
-        analysisData.keyMotivations ? `- Key motivations: ${analysisData.keyMotivations.slice(0, 2).join(', ')}` : "",
-        analysisData.strengths ? `- Strengths: ${analysisData.strengths.slice(0, 2).join(', ')}` : "",
-        "\nPersonalize advice based on this personality.",
-        `E.g., ${energyScore >= 50 ? 'suggest social actions' : 'suggest introspective time'},`,
-        `${cognitionScore >= 50 ? 'focus on vision and possibilities' : 'provide concrete step-by-step guidance'}.`,
-      ].filter(Boolean).join("\n");
-    }
-  }
-
-  const baseKo = [
+function buildKoreanInstruction(
+  context: TarotContext,
+  cardLines: string,
+  personalityContext: string
+): string {
+  return [
     "너는 따뜻하고 통찰력 있는 타로 상담사다. 항상 실제로 뽑힌 카드와 위치를 근거로 깊이 있는 해석을 제공해.",
     "",
     "출력 형식 (반드시 모든 섹션을 포함할 것):",
@@ -183,8 +189,14 @@ function buildSystemInstruction(
     `스프레드: ${context.spread_title} (${context.category})`,
     cardLines || "(카드 없음)"
   ].join("\n");
+}
 
-  const baseEn = [
+function buildEnglishInstruction(
+  context: TarotContext,
+  cardLines: string,
+  personalityContext: string
+): string {
+  return [
     "You are a warm and insightful tarot counselor. Always ground your interpretations in the actual drawn cards and their positions.",
     "",
     "Output format (include ALL sections):",
@@ -213,263 +225,174 @@ function buildSystemInstruction(
     `Spread: ${context.spread_title} (${context.category})`,
     cardLines || "(no cards)"
   ].join("\n");
-
-  return language === "ko" ? baseKo : baseEn;
 }
 
-export async function POST(req: Request) {
+function buildSystemInstruction(
+  context: TarotContext,
+  language: "ko" | "en",
+  personality?: PersonalityData | null
+): string {
+  const cardLines = formatCardLines(context.cards, language);
+  const personalityContext = personality ? buildPersonalityContext(personality, language) : "";
+
+  return language === "ko"
+    ? buildKoreanInstruction(context, cardLines, personalityContext)
+    : buildEnglishInstruction(context, cardLines, personalityContext);
+}
+
+function generateFallbackMessage(
+  tarotContext: TarotContext,
+  lastUserMessage: string,
+  language: "ko" | "en"
+): string {
+  const cardSummary = tarotContext.cards.map(c => `${c.position}: ${c.name}`).join(", ");
+
+  if (language === "ko") {
+    return `${tarotContext.spread_title} 리딩에서 ${cardSummary} 카드가 나왔네요. "${lastUserMessage}"에 대해 말씀드리면, 카드들이 전하는 메시지는 ${tarotContext.overall_message || "내면의 지혜를 믿으라는 것"}입니다. ${tarotContext.guidance || "카드의 조언에 귀 기울여보세요."}\n\n다음으로 물어볼 것: 특정 카드에 대해 더 자세히 알고 싶으신가요?`;
+  } else {
+    return `In your ${tarotContext.spread_title} reading with ${cardSummary}, regarding "${lastUserMessage}", the cards suggest: ${tarotContext.overall_message || "trust your inner wisdom"}. ${tarotContext.guidance || "Listen to the guidance of the cards."}\n\nNext question: Would you like to explore any specific card in more detail?`;
+  }
+}
+
+async function fetchUserPersonality(userId: string): Promise<PersonalityData | null> {
   try {
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`tarot-chat-stream:${ip}`, { limit: 30, windowSeconds: 60 });
+    const personalityResult = await prisma.personalityResult.findUnique({
+      where: { userId },
+      select: {
+        typeCode: true,
+        personaName: true,
+        energyScore: true,
+        cognitionScore: true,
+        decisionScore: true,
+        rhythmScore: true,
+        analysisData: true,
+      },
+    });
 
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: "Too many requests. Please wait." },
-        { status: 429, headers: limit.headers }
-      );
+    if (!personalityResult || !personalityResult.analysisData) {
+      return null;
     }
 
-    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
-    }
+    const analysisData = personalityResult.analysisData as Record<string, unknown>;
+    return {
+      typeCode: personalityResult.typeCode,
+      personaName: personalityResult.personaName,
+      energyScore: personalityResult.energyScore,
+      cognitionScore: personalityResult.cognitionScore,
+      decisionScore: personalityResult.decisionScore,
+      rhythmScore: personalityResult.rhythmScore,
+      analysisData: {
+        summary: typeof analysisData.summary === 'string' ? analysisData.summary : undefined,
+        keyMotivations: Array.isArray(analysisData.keyMotivations)
+          ? analysisData.keyMotivations.filter((x): x is string => typeof x === 'string')
+          : undefined,
+        strengths: Array.isArray(analysisData.strengths)
+          ? analysisData.strengths.filter((x): x is string => typeof x === 'string')
+          : undefined,
+        challenges: Array.isArray(analysisData.challenges)
+          ? analysisData.challenges.filter((x): x is string => typeof x === 'string')
+          : undefined,
+      },
+    };
+  } catch (err) {
+    logger.error("[TarotChatStream] Failed to fetch personality:", err);
+    return null;
+  }
+}
 
-    const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
+export async function POST(req: NextRequest) {
+  try {
+    // Apply middleware: rate limiting + public token auth + credit consumption
+    const guardOptions = createPublicStreamGuard({
+      route: "tarot-chat-stream",
+      limit: 30,
+      windowSeconds: 60,
+      requireCredits: true,
+      creditType: "followUp", // 타로 후속 질문은 followUp 타입 사용
+      creditAmount: 1,
+    });
+
+    const { context, error } = await initializeApiContext(req, guardOptions);
+    if (error) return error;
+
+    const oversized = enforceBodySize(req, 256 * 1024);
     if (oversized) return oversized;
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         { error: "invalid_body" },
-        { status: 400, headers: limit.headers }
+        { status: 400 }
       );
     }
 
     const bodyObj = body as Record<string, unknown>;
     const language = typeof bodyObj.language === "string" && ALLOWED_TAROT_LANG.has(bodyObj.language)
       ? (bodyObj.language as "ko" | "en")
-      : "ko";
+      : (context.locale as "ko" | "en");
     const messages = normalizeMessages(bodyObj.messages);
-    const context = sanitizeContext(bodyObj.context);
+    const tarotContext = sanitizeContext(bodyObj.context);
     const counselorId = typeof bodyObj.counselor_id === "string" ? bodyObj.counselor_id : undefined;
     const counselorStyle = typeof bodyObj.counselor_style === "string" ? bodyObj.counselor_style : undefined;
 
     if (!messages || messages.length === 0) {
       return NextResponse.json(
         { error: "Missing messages" },
-        { status: 400, headers: limit.headers }
+        { status: 400 }
       );
     }
-    if (!context) {
+    if (!tarotContext) {
       return NextResponse.json(
         { error: "Invalid tarot context" },
-        { status: 400, headers: limit.headers }
+        { status: 400 }
       );
     }
 
-    // Check credits and consume (required for chat)
-    const creditResult = await checkAndConsumeCredits("reading", 1);
-    if (!creditResult.allowed) {
-      const res = creditErrorResponse(creditResult);
-      limit.headers.forEach((value, key) => res.headers.set(key, value));
-      return res;
-    }
+    // Credits already consumed by middleware
 
     // Fetch user's personality result (if authenticated)
     let personalityData: PersonalityData | null = null;
-    try {
-      const session = await getServerSession(authOptions);
-      if (session?.user?.id) {
-        const personalityResult = await prisma.personalityResult.findUnique({
-          where: { userId: session.user.id },
-          select: {
-            typeCode: true,
-            personaName: true,
-            energyScore: true,
-            cognitionScore: true,
-            decisionScore: true,
-            rhythmScore: true,
-            analysisData: true,
-          },
-        });
-
-        if (personalityResult && personalityResult.analysisData) {
-          const analysisData = personalityResult.analysisData as Record<string, unknown>;
-          personalityData = {
-            typeCode: personalityResult.typeCode,
-            personaName: personalityResult.personaName,
-            energyScore: personalityResult.energyScore,
-            cognitionScore: personalityResult.cognitionScore,
-            decisionScore: personalityResult.decisionScore,
-            rhythmScore: personalityResult.rhythmScore,
-            analysisData: {
-              summary: typeof analysisData.summary === 'string' ? analysisData.summary : undefined,
-              keyMotivations: Array.isArray(analysisData.keyMotivations)
-                ? analysisData.keyMotivations.filter((x): x is string => typeof x === 'string')
-                : undefined,
-              strengths: Array.isArray(analysisData.strengths)
-                ? analysisData.strengths.filter((x): x is string => typeof x === 'string')
-                : undefined,
-              challenges: Array.isArray(analysisData.challenges)
-                ? analysisData.challenges.filter((x): x is string => typeof x === 'string')
-                : undefined,
-            },
-          };
-        }
-      }
-    } catch (err) {
-      logger.error("[TarotChatStream] Failed to fetch personality:", err);
-      // Continue without personality data
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id) {
+      personalityData = await fetchUserPersonality(session.user.id);
     }
 
-    // Call backend streaming endpoint
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
-
     // Inject system guardrails for consistent, card-grounded answers with personality
-    const systemInstruction = buildSystemInstruction(context, language, personalityData);
+    const systemInstruction = buildSystemInstruction(tarotContext, language, personalityData);
     const messagesWithSystem: ChatMessage[] = [
       { role: "system", content: systemInstruction },
       ...messages,
     ];
 
-    let backendResponse: Response;
-    try {
-      backendResponse = await fetch(`${pickBackendUrl()}/api/tarot/chat-stream`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
-        },
-        body: JSON.stringify({
-          messages: messagesWithSystem,
-          context: {
-            spread_title: context.spread_title,
-            category: context.category,
-            cards: context.cards.map(c => ({
-              position: c.position,
-              name: c.name,
-              is_reversed: c.is_reversed ?? c.isReversed ?? false,
-              meaning: c.meaning,
-              keywords: c.keywords || []
-            })),
-            overall_message: context.overall_message,
-            guidance: context.guidance
-          },
-          language,
-          counselor_id: counselorId,
-          counselor_style: counselorStyle
-        }),
-        signal: controller.signal,
-        cache: "no-store",
-      });
-    } catch (fetchError) {
-      clearTimeout(timeoutId);
-      logger.error("[TarotChatStream] Backend connection failed, using fallback:", fetchError);
+    // Call backend streaming endpoint using apiClient
+    const streamResult = await apiClient.postSSEStream("/api/tarot/chat-stream", {
+      messages: messagesWithSystem,
+      context: tarotContext,
+      language,
+      counselor_id: counselorId,
+      counselor_style: counselorStyle
+    });
+
+    if (!streamResult.ok) {
+      logger.error("[TarotChatStream] Backend error:", { status: streamResult.status, error: streamResult.error });
 
       // Generate fallback response based on context
       const lastUserMessage = messages.filter(m => m.role === "user").pop()?.content || "";
-      const cardSummary = context.cards.map(c => `${c.position}: ${c.name}`).join(", ");
+      const fallbackMessage = generateFallbackMessage(tarotContext, lastUserMessage, language);
 
-      const fallbackMessage = language === "ko"
-        ? `${context.spread_title} 리딩에서 ${cardSummary} 카드가 나왔네요. "${lastUserMessage}"에 대해 말씀드리면, 카드들이 전하는 메시지는 ${context.overall_message || "내면의 지혜를 믿으라는 것"}입니다. ${context.guidance || "카드의 조언에 귀 기울여보세요."}\n\n다음으로 물어볼 것: 특정 카드에 대해 더 자세히 알고 싶으신가요?`
-        : `In your ${context.spread_title} reading with ${cardSummary}, regarding "${lastUserMessage}", the cards suggest: ${context.overall_message || "trust your inner wisdom"}. ${context.guidance || "Listen to the guidance of the cards."}\n\nNext question: Would you like to explore any specific card in more detail?`;
-
-      // Return as SSE stream format for consistency
-      const encoder = new TextEncoder();
-      const fallbackStream = new ReadableStream({
-        start(controller) {
-          const data = `data: ${JSON.stringify({ content: fallbackMessage, done: true })}\n\n`;
-          controller.enqueue(encoder.encode(data));
-          controller.close();
-        }
-      });
-
-      return new Response(fallbackStream, {
-        headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          "Connection": "keep-alive",
-          "X-Fallback": "1",
-          ...Object.fromEntries(limit.headers.entries())
-        }
+      return createFallbackSSEStream({
+        content: fallbackMessage,
+        done: true,
+        "X-Fallback": "1"
       });
     }
 
-    clearTimeout(timeoutId);
-
-    if (!backendResponse.ok) {
-      const errorText = await backendResponse.text();
-      logger.error("[TarotChatStream] Backend error:", { status: backendResponse.status, errorText });
-
-      // Return fallback instead of error
-      const lastUserMessage = messages.filter(m => m.role === "user").pop()?.content || "";
-      const fallbackMessage = language === "ko"
-        ? `"${lastUserMessage}"에 대해 카드가 전하는 메시지를 전해드릴게요. ${context.overall_message || "지금은 내면의 직관을 믿을 때입니다."} 다른 질문이 있으시면 말씀해주세요.`
-        : `Regarding "${lastUserMessage}", the cards suggest: ${context.overall_message || "Trust your intuition at this time."} Feel free to ask another question.`;
-
-      const encoder = new TextEncoder();
-      const fallbackStream = new ReadableStream({
-        start(controller) {
-          const data = `data: ${JSON.stringify({ content: fallbackMessage, done: true })}\n\n`;
-          controller.enqueue(encoder.encode(data));
-          controller.close();
-        }
-      });
-
-      return new Response(fallbackStream, {
-        headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          "Connection": "keep-alive",
-          "X-Fallback": "1",
-          ...Object.fromEntries(limit.headers.entries())
-        }
-      });
-    }
-
-    // Check if response is SSE
-    const contentType = backendResponse.headers.get("content-type");
-    if (!contentType?.includes("text/event-stream")) {
-      // Fallback to regular JSON response
-      const data = await backendResponse.json();
-      return NextResponse.json(data, { headers: { ...Object.fromEntries(limit.headers.entries()), "X-Fallback": "1" } });
-    }
-
-    // Stream the SSE response
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = backendResponse.body?.getReader();
-        if (!reader) {
-          controller.close();
-          return;
-        }
-
-        const decoder = new TextDecoder();
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            // Pass through the SSE data
-            const text = decoder.decode(value, { stream: true });
-            controller.enqueue(encoder.encode(text));
-          }
-        } catch (error) {
-          logger.error("[TarotChatStream] Stream error:", error);
-        } finally {
-          controller.close();
-        }
-      }
-    });
-
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-        ...Object.fromEntries(limit.headers.entries())
+    // Proxy the SSE stream from backend to client
+    return createSSEStreamProxy({
+      source: streamResult.response,
+      route: "TarotChatStream",
+      additionalHeaders: {
+        "X-Fallback": "0"
       }
     });
 

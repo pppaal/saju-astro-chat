@@ -18,6 +18,7 @@ export default function PastLifeAnalyzer() {
   const { t, locale } = useI18n();
   const [birthDate, setBirthDate] = useState('');
   const [birthTime, setBirthTime] = useState('12:00');
+  const [timeUnknown, setTimeUnknown] = useState(false);
   const [birthCity, setBirthCity] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
@@ -107,6 +108,7 @@ export default function PastLifeAnalyzer() {
     setResult(null);
     setBirthDate('');
     setBirthTime('12:00');
+    setTimeUnknown(false);
     setBirthCity('');
     setLatitude(null);
     setLongitude(null);
@@ -136,10 +138,32 @@ export default function PastLifeAnalyzer() {
             onChange={setBirthTime}
             label={t('pastLife.birthtimeLabel', 'Birth Time')}
             locale={isKo ? 'ko' : 'en'}
+            disabled={timeUnknown}
           />
-          <span className={styles.hint}>
-            {t('pastLife.birthtimeHint', 'If unknown, 12:00 will be used')}
-          </span>
+          <label className={styles.checkboxLabel}>
+            <input
+              type="checkbox"
+              checked={timeUnknown}
+              onChange={(e) => {
+                setTimeUnknown(e.target.checked);
+                if (e.target.checked) {
+                  setBirthTime('12:00');
+                }
+              }}
+              className={styles.checkbox}
+            />
+            <span>{t('pastLife.timeUnknown', 'I don\'t know my birth time')}</span>
+          </label>
+          {!timeUnknown && (
+            <span className={styles.hint}>
+              {t('pastLife.birthtimeHint', 'If unknown, 12:00 will be used')}
+            </span>
+          )}
+          {timeUnknown && (
+            <span className={styles.hint}>
+              {t('pastLife.timeUnknownHint', 'Noon (12:00) will be used for calculations')}
+            </span>
+          )}
         </div>
 
         <div className={styles.inputGroup}>

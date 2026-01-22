@@ -147,6 +147,7 @@ export function BirthInputPhase({
               required
               max={new Date().toISOString().split('T')[0]}
               min="1900-01-01"
+              autoComplete="bday"
             />
           </div>
 

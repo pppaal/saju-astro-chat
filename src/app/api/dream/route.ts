@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
+import { apiClient } from '@/lib/api/ApiClient';
 import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
 import { captureServerError } from '@/lib/telemetry';
@@ -10,6 +10,7 @@ import { saveConsultation, extractSummary } from '@/lib/consultation/saveConsult
 import { withCircuitBreaker } from '@/lib/circuitBreaker';
 import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits';
 import { logger } from '@/lib/logger';
+import { sanitizeError } from '@/lib/security/errorSanitizer';
 import { DreamRequestSchema, type DreamRequest } from '@/lib/validation';
 import { recordApiRequest } from '@/lib/metrics/index';
 
@@ -272,38 +273,30 @@ export async function POST(req: NextRequest) {
     const { result: response, fromFallback } = await withCircuitBreaker<InsightResponse>(
       'flask-dream',
       async () => {
-        const flaskResponse = await fetch(`${pickBackendUrl()}/api/dream`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.ADMIN_API_TOKEN || ''}`,
-          },
-          body: JSON.stringify({
-            dream,
-            symbols: symbols || [],
-            emotions: emotions || [],
-            themes: themes || [],
-            context: context || [],
-            locale,
-            koreanTypes: rawBody.koreanTypes || [],
-            koreanLucky: rawBody.koreanLucky || [],
-            chinese: rawBody.chinese || [],
-            islamicTypes: rawBody.islamicTypes || [],
-            islamicBlessed: rawBody.islamicBlessed || [],
-            western: rawBody.western || [],
-            hindu: rawBody.hindu || [],
-            nativeAmerican: rawBody.nativeAmerican || [],
-            japanese: rawBody.japanese || [],
-            birth,
-          }),
-          signal: AbortSignal.timeout(30000),
-        });
+        const apiResponse = await apiClient.post('/api/dream', {
+          dream,
+          symbols: symbols || [],
+          emotions: emotions || [],
+          themes: themes || [],
+          context: context || [],
+          locale,
+          koreanTypes: rawBody.koreanTypes || [],
+          koreanLucky: rawBody.koreanLucky || [],
+          chinese: rawBody.chinese || [],
+          islamicTypes: rawBody.islamicTypes || [],
+          islamicBlessed: rawBody.islamicBlessed || [],
+          western: rawBody.western || [],
+          hindu: rawBody.hindu || [],
+          nativeAmerican: rawBody.nativeAmerican || [],
+          japanese: rawBody.japanese || [],
+          birth,
+        }, { timeout: 30000 });
 
-        if (!flaskResponse.ok) {
-          throw new Error(`Flask returned ${flaskResponse.status}`);
+        if (!apiResponse.ok) {
+          throw new Error(`Flask returned ${apiResponse.status}`);
         }
 
-        const flaskData = await flaskResponse.json();
+        const flaskData = apiResponse.data;
         if (flaskData.status !== 'success' || !flaskData.data) {
           throw new Error('Flask returned invalid response');
         }
@@ -394,6 +387,7 @@ export async function GET(req: NextRequest) {
   } catch (e: unknown) {
     const error = e instanceof Error ? e : new Error(String(e));
     captureServerError(error, { route: "/api/dream", method: "GET" });
-    return NextResponse.json({ error: error.message || "server error" }, { status: 500 });
+    const sanitized = sanitizeError(e, 'internal');
+    return NextResponse.json(sanitized, { status: 500 });
   }
 }

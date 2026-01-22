@@ -68,6 +68,9 @@ model User {
   referralRewards       ReferralReward[]        // 내가 받은 추천 보상들
   savedCalendarDates    SavedCalendarDate[]     // 저장된 운명 캘린더 날짜들
   personalityResult     PersonalityResult?      // 성격 테스트 결과
+  icpResults            ICPResult[]             // ICP 대인관계 스타일 결과
+  compatibilityResults  CompatibilityResult[]   // 궁합 분석 결과
+  destinyMatrixReports  DestinyMatrixReport[]   // Destiny Matrix AI 리포트
   tarotReadings         TarotReading[]          // 타로 리딩 기록
   pushSubscriptions     PushSubscription[]      // 푸시 알림 구독
   matchProfile          MatchProfile?           // 매칭 프로필
@@ -93,6 +96,9 @@ model Reading {
   content   String
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt], name: "idx_reading_user_date")
+  @@index([userId, type], name: "idx_reading_user_type")
 }
 
 model Fortune {
@@ -588,6 +594,113 @@ model PersonalityResult {
 
   @@index([typeCode])
   @@index([createdAt])
+}
+
+// ICP 대인관계 스타일 결과
+model ICPResult {
+  id                String   @id @default(cuid())
+  userId            String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // 주 스타일과 부 스타일
+  primaryStyle      String   // BC, PA, NO, LM, JK, HI, FG, DE
+  secondaryStyle    String?  // 부차 스타일 (있을 경우)
+
+  // 축 점수 (0-100)
+  dominanceScore    Int      // 지배성 축 점수
+  affiliationScore  Int      // 친화성 축 점수
+
+  // 8개 옥탄트 점수 (JSON)
+  octantScores      Json     // { BC: 0.8, PA: 0.6, ... }
+
+  // 분석 결과 (JSON)
+  analysisData      Json     // description, strengths, challenges, relationships, etc.
+
+  // 답변 데이터 (백업용)
+  answers           Json?    // 전체 답변 데이터
+
+  // 언어
+  locale            String   @default("en")
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([primaryStyle])
+}
+
+// 성격 궁합 분석 결과
+model CompatibilityResult {
+  id                String   @id @default(cuid())
+  userId            String   // 분석을 요청한 사용자
+  createdAt         DateTime @default(now())
+
+  // Person 1 정보 (일반적으로 userId와 동일)
+  person1UserId     String?  // 사용자 ID (있을 경우)
+  person1Name       String?  // 이름 또는 레이블
+  person1ICP        Json     // ICP 결과 요약
+  person1Persona    Json     // Persona 결과 요약
+
+  // Person 2 정보
+  person2UserId     String?  // 사용자 ID (있을 경우)
+  person2Name       String?  // 이름 또는 레이블
+  person2ICP        Json     // ICP 결과 요약
+  person2Persona    Json     // Persona 결과 요약
+
+  // 궁합 분석 결과
+  icpCompatibility      Json // ICP 궁합 점수 및 설명
+  personaCompatibility  Json // Persona 궁합 점수 및 설명
+  crossSystemScore      Int  // 종합 궁합 점수 (0-100)
+  crossSystemAnalysis   Json // 종합 분석 결과
+
+  // 답변 데이터 (백업용)
+  person1Answers    Json?    // Person 1의 전체 답변
+  person2Answers    Json?    // Person 2의 전체 답변
+
+  // 언어
+  locale            String   @default("en")
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([person1UserId])
+  @@index([person2UserId])
+}
+
+// Destiny Matrix AI 프리미엄 리포트
+model DestinyMatrixReport {
+  id            String   @id @default(cuid())
+  userId        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // 리포트 타입 및 분류
+  reportType    String   // "timing" 또는 "themed"
+  period        String?  // 타이밍 리포트용: "daily", "monthly", "yearly", "comprehensive"
+  theme         String?  // 테마 리포트용: "love", "career", "wealth", "health", "family"
+
+  // 리포트 전체 데이터 (JSON)
+  reportData    Json     // TimingAIPremiumReport 또는 ThemedAIPremiumReport 전체 객체
+
+  // 표시용 요약 정보
+  title         String   // 리포트 제목 (예: "2024년 1월 종합 운세")
+  summary       String?  // 짧은 요약
+  overallScore  Int?     // 종합 점수 (0-100)
+  grade         String?  // S, A, B, C, D
+
+  // PDF 관련
+  pdfGenerated  Boolean  @default(false)
+  pdfUrl        String?  // PDF가 저장된 경로 (향후 스토리지 사용시)
+
+  // 언어
+  locale        String   @default("ko")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([reportType])
+  @@index([period])
+  @@index([theme])
 }
 
 // ============================================

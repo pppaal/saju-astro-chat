@@ -3,8 +3,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { initializeApiContext, createPublicStreamGuard } from "@/lib/api/middleware";
-import { createSSEStreamProxy, isSSEResponse } from "@/lib/streaming";
-import { getBackendUrl } from "@/lib/backend-url";
+import { createSSEStreamProxy, createFallbackSSEStream } from "@/lib/streaming";
+import { apiClient } from "@/lib/api/ApiClient";
 import { logger } from '@/lib/logger';
 import {
   generateWisdomPrompt,
@@ -15,8 +15,6 @@ import {
   calculateNuclearHexagram,
   calculateRelatedHexagrams
 } from '@/lib/iChing/iChingPremiumData';
-
-const BACKEND_URL = getBackendUrl();
 
 interface ChangingLine {
   index: number;
@@ -98,58 +96,48 @@ export async function POST(req: NextRequest) {
     const nuclearHexagram = calculateNuclearHexagram(hexagramNumber);
     const relatedHexagrams = calculateRelatedHexagrams(hexagramNumber);
 
-    // Call backend streaming endpoint with enriched data
-    const backendResponse = await fetch(`${BACKEND_URL}/iching/reading-stream`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
-      },
-      body: JSON.stringify({
-        hexagramNumber,
-        hexagramName,
-        hexagramSymbol,
-        judgment,
-        image,
-        coreMeaning,
-        changingLines,
-        resultingHexagram,
-        question,
-        locale,
-        themes,
-        // Enhanced data from advanced iChing library
-        wisdomPrompt,
-        hexagramWisdom: hexagramWisdom ? {
-          keyword: hexagramWisdom.keyword,
-          coreWisdom: hexagramWisdom.coreWisdom,
-          situationAdvice: hexagramWisdom.situationAdvice,
-          warnings: hexagramWisdom.warnings,
-          opportunities: hexagramWisdom.opportunities
-        } : null,
-        nuclearHexagram,
-        relatedHexagrams
-      })
+    // Call backend streaming endpoint with enriched data using apiClient
+    const streamResult = await apiClient.postSSEStream("/iching/reading-stream", {
+      hexagramNumber,
+      hexagramName,
+      hexagramSymbol,
+      judgment,
+      image,
+      coreMeaning,
+      changingLines,
+      resultingHexagram,
+      question,
+      locale,
+      themes,
+      // Enhanced data from advanced iChing library
+      wisdomPrompt,
+      hexagramWisdom: hexagramWisdom ? {
+        keyword: hexagramWisdom.keyword,
+        coreWisdom: hexagramWisdom.coreWisdom,
+        situationAdvice: hexagramWisdom.situationAdvice,
+        warnings: hexagramWisdom.warnings,
+        opportunities: hexagramWisdom.opportunities
+      } : null,
+      nuclearHexagram,
+      relatedHexagrams
     });
 
-    if (!backendResponse.ok) {
-      const errorText = await backendResponse.text();
-      logger.error("[IChingStream] Backend error:", { status: backendResponse.status, errorText });
-      return NextResponse.json(
-        { error: "Backend error", detail: errorText },
-        { status: backendResponse.status }
-      );
-    }
+    if (!streamResult.ok) {
+      logger.error("[IChingStream] Backend error:", { status: streamResult.status, error: streamResult.error });
 
-    // Check if response is SSE
-    if (!isSSEResponse(backendResponse)) {
-      // Fallback to regular JSON response
-      const data = await backendResponse.json();
-      return NextResponse.json(data);
+      // Return fallback SSE stream with error message
+      return createFallbackSSEStream({
+        content: locale === "ko"
+          ? "일시적으로 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해주세요."
+          : "Service temporarily unavailable. Please try again later.",
+        done: true,
+        error: streamResult.error
+      });
     }
 
     // Proxy the SSE stream from backend to client
     return createSSEStreamProxy({
-      source: backendResponse,
+      source: streamResult.response,
       route: "IChingStream",
     });
 

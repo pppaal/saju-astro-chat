@@ -1,7 +1,7 @@
-import { getServerSession } from "next-auth";
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
-import { authOptions } from "@/lib/auth/authOptions";
-import { apiGuard } from "@/lib/apiGuard";
+import { NextRequest, NextResponse } from "next/server";
+import { initializeApiContext, createAuthenticatedGuard } from "@/lib/api/middleware";
+import { createFallbackSSEStream } from "@/lib/streaming";
+import { apiClient } from "@/lib/api/ApiClient";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { logger } from '@/lib/logger';
 import {
@@ -163,40 +163,35 @@ function formatFusionForPrompt(fusion: FusionCompatibilityResult, lang: string):
   return lines.join('\n');
 }
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    // Rate limiting - premium users get more
-    const guard = await apiGuard(request, { path: "compatibility-counselor", limit: 30, windowSeconds: 60 });
-    if (guard instanceof Response) return guard;
+    // Apply middleware: authentication + rate limiting + credit consumption
+    const guardOptions = createAuthenticatedGuard({
+      route: "compatibility-counselor",
+      limit: 30,
+      windowSeconds: 60,
+      requireCredits: true,
+      creditType: "compatibility", // 궁합 상담은 compatibility 타입 사용
+      creditAmount: 1,
+    });
 
-    // Auth check - counselor is premium feature
-    const session = await getServerSession(authOptions);
-    const isDev = process.env.NODE_ENV === "development";
+    const { context, error } = await initializeApiContext(req, guardOptions);
+    if (error) return error;
 
-    if (!isDev && !session?.user?.email) {
-      return new Response(JSON.stringify({ error: "not_authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const body = await request.json();
+    const body = await req.json();
     const {
       persons = [],
       person1Saju = null,
       person2Saju = null,
       person1Astro = null,
       person2Astro = null,
-      lang = "ko",
+      lang = context.locale,
       messages = [],
       theme = "general", // general, love, business, family
     } = body;
 
     if (!persons || persons.length < 2) {
-      return new Response(JSON.stringify({ error: "At least 2 persons required" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json({ error: "At least 2 persons required" }, { status: 400 });
     }
 
     const trimmedHistory = clampMessages(messages);
@@ -204,23 +199,10 @@ export async function POST(request: Request) {
     // Safety check
     const lastUser = [...trimmedHistory].reverse().find((m) => m.role === "user");
     if (lastUser && containsForbidden(lastUser.content)) {
-      const encoder = new TextEncoder();
-      return new Response(
-        new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode(`data: ${safetyMessage(lang)}\n\n`));
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-            controller.close();
-          },
-        }),
-        {
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-          },
-        }
-      );
+      return createFallbackSSEStream({
+        content: safetyMessage(lang),
+        done: true,
+      });
     }
 
     // Build profiles and run Fusion analysis
@@ -291,49 +273,31 @@ Based on the deep analysis above, provide friendly but professional guidance.
 - Be positive yet realistic`,
     ].filter(Boolean).join("\n");
 
-    // Call backend AI
-    const backendUrl = pickBackendUrl();
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    const apiToken = process.env.ADMIN_API_TOKEN;
-    if (apiToken) {
-      headers["X-API-KEY"] = apiToken;
-    }
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 80000);
-
+    // Call backend AI (extended timeout for fusion analysis)
     try {
-      const aiResponse = await fetch(`${backendUrl}/api/compatibility/chat`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          persons,
-          prompt: counselorPrompt,
-          question: userQuestion,
-          history: trimmedHistory,
-          locale: lang,
-          compatibility_context: fusionContext,
-          theme,
-          is_premium: true,
-        }),
-        signal: controller.signal,
-      });
+      const response = await apiClient.post("/api/compatibility/chat", {
+        persons,
+        prompt: counselorPrompt,
+        question: userQuestion,
+        history: trimmedHistory,
+        locale: lang,
+        compatibility_context: fusionContext,
+        theme,
+        is_premium: true,
+      }, { timeout: 80000 });
 
-      clearTimeout(timeoutId);
-
-      if (!aiResponse.ok) {
-        throw new Error(`Backend returned ${aiResponse.status}`);
+      if (!response.ok) {
+        throw new Error(`Backend returned ${response.status}`);
       }
 
-      const encoder = new TextEncoder();
-      const aiData = await aiResponse.json();
+      const aiData = response.data;
       const answer = aiData?.data?.response || aiData?.response || aiData?.interpretation ||
         (lang === "ko"
           ? "죄송합니다. 응답을 생성할 수 없습니다. 다시 시도해 주세요."
           : "Sorry, couldn't generate response. Please try again.");
 
+      // Stream response in chunks for better UX
+      const encoder = new TextEncoder();
       return new Response(
         new ReadableStream({
           start(controller) {
@@ -358,36 +322,22 @@ Based on the deep analysis above, provide friendly but professional guidance.
         }
       );
     } catch (fetchError) {
-      clearTimeout(timeoutId);
       logger.error("[Compatibility Counselor] Backend error:", { error: fetchError });
 
       const fallback = lang === "ko"
         ? "AI 서버 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요."
         : "AI server connection issue. Please try again later.";
 
-      const encoder = new TextEncoder();
-      return new Response(
-        new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode(`data: ${fallback}\n\n`));
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-            controller.close();
-          },
-        }),
-        {
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-          },
-        }
-      );
+      return createFallbackSSEStream({
+        content: fallback,
+        done: true,
+      });
     }
   } catch (error) {
     logger.error("[Compatibility Counselor] Error:", { error: error });
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:saturate-0 disabled:bg-slate-700 disabled:text-slate-400 disabled:border-slate-600 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -26,11 +26,11 @@ const buttonVariants = cva(
           "bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 font-semibold shadow-lg hover:from-amber-400 hover:to-yellow-400 focus-visible:ring-amber-500",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
+        default: "h-12 px-4 py-2",
+        sm: "h-10 rounded-md px-3 text-xs",
         lg: "h-12 rounded-xl px-8 text-base",
         xl: "h-14 rounded-xl px-10 text-lg",
-        icon: "h-10 w-10",
+        icon: "h-12 w-12",
       },
     },
     defaultVariants: {
@@ -45,10 +45,11 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   isLoading?: boolean;
+  loadingText?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, isLoading, children, disabled, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, isLoading, loadingText = "Loading...", children, disabled, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
@@ -56,6 +57,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || isLoading}
         aria-busy={isLoading}
+        aria-live={isLoading ? "polite" : undefined}
         {...props}
       >
         {isLoading ? (
@@ -81,7 +83,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            <span>Loading...</span>
+            <span>{loadingText}</span>
           </>
         ) : (
           children

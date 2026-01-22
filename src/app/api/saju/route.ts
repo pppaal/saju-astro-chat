@@ -10,9 +10,8 @@ import { calculateSajuData } from '@/lib/Saju/saju';
 import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
 import { getCreditBalance } from '@/lib/credits/creditService';
-import { getBackendUrl as pickBackendUrl } from '@/lib/backend-url';
+import { apiClient } from '@/lib/api/ApiClient';
 import { getNowInTimezone } from '@/lib/datetime';
-import { getApiToken } from '@/lib/validateEnv';
 import type {
   SajuPromptData,
   DaeunCycle,
@@ -135,6 +134,7 @@ import {
   type TwelveStageType,
 } from '@/lib/Saju/interpretations';
 import { logger } from '@/lib/logger';
+import { sanitizeError } from '@/lib/security/errorSanitizer';
 
 /* -----------------------------
    Utilities
@@ -734,48 +734,26 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     // ======== AI 백엔드 호출 (GPT) ========
     let aiInterpretation = '';
     let aiModelUsed = '';
-    const backendUrl = pickBackendUrl();
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
+      const response = await apiClient.post('/ask', {
+        theme: 'saju',
+        prompt: gptPrompt,
+        saju: {
+          dayMaster: sajuResult.dayMaster,
+          fiveElements: sajuResult.fiveElements,
+          pillars: simplePillars,
+          daeun: daeunInfo,
+          yeonun,
+          wolun,
+        },
+        locale: body.locale || 'ko',
+        advancedSaju: isPremium ? fullAdvancedAnalysis : null,
+      }, { timeout: 90000 });
 
-      // Secure API token handling - throws in production if missing
-      const apiToken = getApiToken();
-      if (apiToken) {
-        headers['X-API-KEY'] = apiToken;
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 90000);
-
-      const aiResponse = await fetch(`${backendUrl}/ask`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          theme: 'saju',
-          prompt: gptPrompt,
-          saju: {
-            dayMaster: sajuResult.dayMaster,
-            fiveElements: sajuResult.fiveElements,
-            pillars: simplePillars,
-            daeun: daeunInfo,
-            yeonun,
-            wolun,
-          },
-          locale: body.locale || 'ko',
-          advancedSaju: isPremium ? fullAdvancedAnalysis : null,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (aiResponse.ok) {
-        const aiData = await aiResponse.json();
-        aiInterpretation = aiData?.data?.fusion_layer || aiData?.data?.report || '';
-        aiModelUsed = aiData?.data?.model || 'gpt-4o';
+      if (response.ok) {
+        aiInterpretation = response.data?.data?.fusion_layer || response.data?.data?.report || '';
+        aiModelUsed = response.data?.data?.model || 'gpt-4o';
       }
     } catch (aiErr) {
       if (process.env.NODE_ENV !== 'production') {
@@ -872,7 +850,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
     });
   } catch (error) {
     logger.error('[API /api/saju] Uncaught error:', error);
-    const msg = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ message: `Internal Server Error: ${msg}` }, { status: 500 });
+    const sanitized = sanitizeError(error, 'internal');
+    return NextResponse.json(sanitized, { status: 500 });
   }
 }

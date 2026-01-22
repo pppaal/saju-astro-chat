@@ -45,6 +45,7 @@
   },
   "menu": {
     "destinyMap": "Destiny Map",
+    "aiReports": "AI Premium Reports",
     "lifePrediction": "Life Prediction",
     "saju": "Saju",
     "astrology": "Astrology",
@@ -205,6 +206,8 @@
     "subtitle": "Manage your personal information",
     "notEntered": "Not entered",
     "saveProfile": "Save Profile",
+    "timeUnknown": "I don't know my birth time",
+    "timeUnknownHint": "Noon (12:00) will be used for calculations",
     "birthInfo": {
       "title": "Birth Information",
       "desc": "Your birth data is used for accurate fortune readings"
@@ -420,6 +423,10 @@
       "label": "Destiny Map",
       "desc": "AI Fortune Analysis"
     },
+    "aiReports": {
+      "label": "AI Reports",
+      "desc": "Premium Detailed Analysis"
+    },
     "lifePrediction": {
       "label": "Life Prediction",
       "desc": "10-Year Fortune Flow"
@@ -464,17 +471,77 @@
       "label": "Relationship Style",
       "desc": "ICP Interpersonal Analysis"
     },
-    "destinyMatch": {
-      "label": "Destiny Match",
-      "desc": "AI Soulmate Matching"
-    },
     "pastLife": {
       "label": "Past Life",
       "desc": "Discover your past lives"
+    }
+  },
+  "pastLife": {
+    "title": "Past Life Reading",
+    "subtitle": "Discover the journey your soul has traveled",
+    "birthdateLabel": "Birth Date",
+    "birthtimeLabel": "Birth Time",
+    "birthtimeHint": "If time is unknown, 12:00 will be used",
+    "timeUnknown": "I don't know my birth time",
+    "timeUnknownHint": "Noon (12:00) will be used for calculations",
+    "birthcityLabel": "Birth City",
+    "birthcityPlaceholder": "Search for your birth city...",
+    "birthcityHint": "Birth city is needed for accurate astrology calculations",
+    "analyzing": "Exploring past lives...",
+    "buttonStart": "Discover My Past Lives",
+    "infoText": "Your past life reading combines Eastern Saju (Four Pillars) analysis with Western Astrology to reveal soul patterns, karmic lessons, and talents carried from previous incarnations.",
+    "errors": {
+      "birthdate": "Please enter your birth date.",
+      "city": "Please select your birth city.",
+      "generate": "An error occurred. Please try again."
     },
-    "community": {
-      "label": "Community",
-      "desc": "Connect with others"
+    "tabs": {
+      "reading": "Reading",
+      "readingDesc": "Your past life analysis",
+      "about": "About",
+      "aboutDesc": "About past life readings"
+    },
+    "about": {
+      "whatIsTitle": "What is a Past Life Reading?",
+      "whatIsText": "A past life reading combines Eastern Saju philosophy with Western astrology to explore the patterns, talents, and karmic lessons your soul has carried from previous lives. It provides profound insights into why your soul chose this current life and what growth it seeks to achieve in this incarnation.",
+      "sajuTitle": "Saju and Soul Patterns",
+      "sajuText": "Saju philosophy analyzes the Heavenly Stems and Earthly Branches of your birth time to determine your Geokguk (energy pattern). The Geokguk represents your soul's fundamental energy pattern, revealing the essence of your soul that has continued from past lives. There are 8 patterns: Siksin (Creator), Sanggwan (Revolutionary), Jeonggwan (Leader), Pyeongwan (Warrior), Jeongjae (Preserver), Pyeonjae (Adventurer), Jeongin (Sage), and Pyeongin (Mystic).",
+      "nodesTitle": "Lunar Nodes and Soul Journey",
+      "nodesText": "In Western astrology, the North Node represents the direction your soul needs to develop in this life, while the South Node indicates patterns already familiar from past lives. The North Node's position shows the direction of your soul's evolution, helping you understand the habits carried from past lives and the new lessons to learn in this life.",
+      "purposeTitle": "Saturn and Karmic Lessons",
+      "purposeText": "Saturn is the planet of karma, representing the areas we must master and the lessons we must learn in this life. Saturn's position shows the tasks left unfinished from past lives or the fears you need to overcome. The house containing Saturn is the area where you will experience the greatest maturity and growth, allowing you to repay karmic debts and evolve your soul."
+    },
+    "overview": {
+      "soulPattern": "Soul Pattern",
+      "quickSummary": "Quick Summary",
+      "pastRole": "Past Life Role",
+      "coreLesson": "Core Lesson",
+      "lifeDirection": "This Life's Direction",
+      "talentsCarried": "Talents Carried"
+    },
+    "pastLife": {
+      "likelyRole": "Likely Role",
+      "talentsBrought": "Talents Brought",
+      "lessonsRemaining": "Lessons Remaining"
+    },
+    "journey": {
+      "title": "Soul Journey",
+      "pastPattern": "Past Pattern",
+      "releasePattern": "Pattern to Release",
+      "lifeDirection": "This Life's Direction",
+      "lessonToLearn": "Lesson to Learn"
+    },
+    "karma": {
+      "title": "Karmic Debts",
+      "lesson": "Karmic Lesson",
+      "challenge": "Challenge",
+      "mastery": "Mastery"
+    },
+    "mission": {
+      "title": "This Life's Mission",
+      "core": "Core Mission",
+      "expression": "Expression",
+      "fulfillment": "Fulfillment"
     }
   },
   "numerology": {
@@ -955,6 +1022,10 @@
         "title": "Destiny Map",
         "description": "AI integrates Saju, Astrology, and Tarot for personalized fortune reading"
       },
+      "aiReports": {
+        "title": "AI Reports",
+        "description": "Premium AI-generated detailed analysis reports"
+      },
       "lifePrediction": {
         "title": "Life Prediction",
         "description": "Discover your 10-year fortune flow and life turning points"
@@ -975,9 +1046,33 @@
         "title": "Personality Analysis",
         "description": "Deep analysis of your personality traits, strengths, and weaknesses"
       },
+      "icp": {
+        "title": "ICP Analysis",
+        "description": "Inner Child Persona analysis for deeper self-understanding"
+      },
       "numerology": {
         "title": "Numerology",
         "description": "Discover your life purpose and potential through numerological analysis of your name and birth date"
+      },
+      "astrology": {
+        "title": "Astrology",
+        "description": "Western astrology birth chart and planetary influence analysis"
+      },
+      "saju": {
+        "title": "Saju",
+        "description": "Traditional Four Pillars of Destiny analysis"
+      },
+      "compatibility": {
+        "title": "Compatibility",
+        "description": "Relationship compatibility analysis based on birth charts"
+      },
+      "pastLife": {
+        "title": "Past Life",
+        "description": "Explore past life patterns and karmic influences"
+      },
+      "iching": {
+        "title": "I Ching",
+        "description": "Ancient Chinese wisdom through the 64 hexagrams"
       }
     },
     "tryDestinyMap": "Start Destiny Map",
@@ -985,7 +1080,7 @@
     "visualTitle": "Your destiny navigation, in a way the world loves",
     "visualDesc": "Clean interface with reliable calculation logic. Properly reflects time zones, seasons, and DST, translating results into easy-to-understand language.",
     "servicesEyebrow": "DestinyPal Services",
-    "servicesTitle": "5 Destiny Readings",
+    "servicesTitle": "14 Destiny Readings",
     "servicesDesc": "Explore your destiny from multiple perspectives with each unique service",
     "discoverTitle": "Four Frameworks We Offer",
     "discoverSubtitle": "Choose by your question or use together to cross-verify timing and themes.",
@@ -1714,6 +1809,14 @@
       "personality": {
         "title": "Personality",
         "desc": "Inner self exploration"
+      },
+      "personalityIcp": {
+        "title": "ICP Interpersonal Style",
+        "desc": "Interpersonal patterns and style analysis"
+      },
+      "personalityCompatibility": {
+        "title": "Personality Compatibility",
+        "desc": "ICP + Persona comprehensive compatibility"
       },
       "destinyPal": {
         "title": "Destiny Pal",

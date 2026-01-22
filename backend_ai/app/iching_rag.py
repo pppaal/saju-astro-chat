@@ -91,7 +91,7 @@ try:
         cast_hexagram,
     )
 except ImportError:
-    from app.iching import (
+    from backend_ai.app.iching import (
         WUXING_GENERATING,
         WUXING_OVERCOMING,
         WUXING_KOREAN,

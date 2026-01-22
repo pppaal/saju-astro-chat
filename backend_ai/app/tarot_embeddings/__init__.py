@@ -31,14 +31,14 @@ try:
     )
     from backend_ai.app.tarot_extractors import FILE_HANDLERS
 except ImportError:
-    from app.tarot import (
+    from backend_ai.app.tarot import (
         SearchMetrics,
         LRUCache,
         detect_best_device,
         MODEL_OPTIONS,
         DEFAULT_MODEL,
     )
-    from app.tarot_extractors import FILE_HANDLERS
+    from backend_ai.app.tarot_extractors import FILE_HANDLERS
 
 try:
     from sentence_transformers import SentenceTransformer

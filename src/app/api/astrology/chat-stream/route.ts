@@ -1,11 +1,9 @@
-import { getServerSession } from "next-auth";
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
-import { authOptions } from "@/lib/auth/authOptions";
-import { apiGuard } from "@/lib/apiGuard";
+import { NextRequest, NextResponse } from "next/server";
+import { initializeApiContext, createAuthenticatedGuard } from "@/lib/api/middleware";
+import { createTransformedSSEStream, createFallbackSSEStream } from "@/lib/streaming";
+import { apiClient } from "@/lib/api/ApiClient";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
-import { enforceBodySize } from "@/lib/http";
-import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 import { normalizeMessages as normalizeMessagesBase, type ChatMessage } from "@/lib/api";
 import { logger } from '@/lib/logger';
 
@@ -76,27 +74,22 @@ function astrologyCounselorSystemPrompt(lang: string) {
     : base.join("\n");
 }
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const guard = await apiGuard(request, { path: "astrology-chat-stream", limit: 60, windowSeconds: 60 });
-    if (guard instanceof Response) return guard;
+    // Apply middleware: authentication + rate limiting + credit consumption
+    const guardOptions = createAuthenticatedGuard({
+      route: "astrology-chat-stream",
+      limit: 60,
+      windowSeconds: 60,
+      requireCredits: true,
+      creditType: "reading",
+      creditAmount: 1,
+    });
 
-    // Authentication check - always required unless explicitly bypassed for testing
-    const allowDevBypass = process.env.ALLOW_DEV_AUTH_BYPASS === "true" && process.env.NODE_ENV === "development";
-    if (!allowDevBypass) {
-      const session = await getServerSession(authOptions);
-      if (!session?.user?.email) {
-        return new Response(JSON.stringify({ error: "not_authenticated" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-    }
+    const { context, error } = await initializeApiContext(req, guardOptions);
+    if (error) return error;
 
-    const oversized = enforceBodySize(request, BODY_LIMIT);
-    if (oversized) return oversized;
-
-    const body = (await request.json().catch(() => null)) as {
+    const body = (await req.json().catch(() => null)) as {
       name?: string;
       birthDate?: string;
       birthTime?: string;
@@ -110,10 +103,7 @@ export async function POST(request: Request) {
       userContext?: string;
     } | null;
     if (!body || typeof body !== "object") {
-      return new Response(JSON.stringify({ error: "invalid_body" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
     }
 
     const name = typeof body.name === "string" ? body.name.trim().slice(0, MAX_NAME) : undefined;
@@ -126,7 +116,7 @@ export async function POST(request: Request) {
     const longitude = typeof body.longitude === "number" ? body.longitude : Number(body.longitude);
     const themeRaw = typeof body.theme === "string" ? body.theme.trim() : "life";
     const theme = themeRaw.slice(0, MAX_THEME) || "life";
-    const lang = typeof body.lang === "string" && ALLOWED_LANG.has(body.lang) ? body.lang : "ko";
+    const lang = typeof body.lang === "string" && ALLOWED_LANG.has(body.lang) ? body.lang : context.locale;
     const messages = normalizeMessages(body.messages);
     const astro = typeof body.astro === "object" && body.astro !== null ? body.astro : undefined;
     const userContext = typeof body.userContext === "string"
@@ -134,52 +124,26 @@ export async function POST(request: Request) {
       : undefined;
 
     if (!birthDate || !birthTime || !DATE_RE.test(birthDate) || !TIME_RE.test(birthTime)) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-      return new Response(JSON.stringify({ error: "Invalid coordinates" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json({ error: "Invalid coordinates" }, { status: 400 });
     }
     if (!messages.length) {
-      return new Response(JSON.stringify({ error: "Missing messages" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json({ error: "Missing messages" }, { status: 400 });
     }
 
-    // Check credits and consume (required for chat)
-    const creditResult = await checkAndConsumeCredits("reading", 1);
-    if (!creditResult.allowed) {
-      return creditErrorResponse(creditResult);
-    }
+    // Credits already consumed by middleware
 
     const trimmedHistory = clampMessages(messages);
 
     // Safety check
     const lastUser = [...trimmedHistory].reverse().find((m) => m.role === "user");
     if (lastUser && containsForbidden(lastUser.content)) {
-      const encoder = new TextEncoder();
-      return new Response(
-        new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode(`data: ${safetyMessage(lang)}\n\n`));
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-            controller.close();
-          },
-        }),
-        {
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-          },
-        }
-      );
+      return createFallbackSSEStream({
+        content: safetyMessage(lang),
+        done: true,
+      });
     }
 
     // Build conversation context
@@ -205,100 +169,54 @@ export async function POST(request: Request) {
       .filter(Boolean)
       .join("\n");
 
-    // Call backend streaming endpoint
-    const backendUrl = pickBackendUrl();
-    const apiKey = process.env.ADMIN_API_TOKEN || "";
-
     // Get session_id from header for RAG cache
-    const sessionId = request.headers.get("x-session-id") || undefined;
+    const sessionId = req.headers.get("x-session-id") || undefined;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    // Call backend streaming endpoint using apiClient
+    const streamResult = await apiClient.postSSEStream("/astrology/ask-stream", {
+      theme,
+      prompt: chatPrompt,
+      locale: lang,
+      astro: astro || undefined,
+      birth: { date: birthDate, time: birthTime, gender, lat: latitude, lon: longitude },
+      history: trimmedHistory.filter((m) => m.role !== "system"),
+      session_id: sessionId,
+      user_context: userContext || undefined,
+      counselor_type: "astrology", // Indicate astrology-only mode
+    }, { timeout: 60000 });
 
-    const backendResponse = await fetch(`${backendUrl}/astrology/ask-stream`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-API-KEY": apiKey,
-      },
-      body: JSON.stringify({
-        theme,
-        prompt: chatPrompt,
-        locale: lang,
-        astro: astro || undefined,
-        birth: { date: birthDate, time: birthTime, gender, lat: latitude, lon: longitude },
-        history: trimmedHistory.filter((m) => m.role !== "system"),
-        session_id: sessionId,
-        user_context: userContext || undefined,
-        counselor_type: "astrology", // Indicate astrology-only mode
-      }),
-      signal: controller.signal,
-    });
+    if (!streamResult.ok) {
+      logger.error("[AstrologyChatStream] Backend error:", { status: streamResult.status, error: streamResult.error });
 
-    clearTimeout(timeoutId);
-
-    if (!backendResponse.ok || !backendResponse.body) {
-      const encoder = new TextEncoder();
       const fallback = lang === "ko"
         ? "AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요."
         : "Could not connect to AI service. Please try again.";
-      return new Response(
-        new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode(`data: ${fallback}\n\n`));
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-            controller.close();
-          },
-        }),
-        {
-          headers: {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-            "X-Fallback": "1",
-          },
-        }
-      );
+
+      return createFallbackSSEStream({
+        content: fallback,
+        done: true,
+        "X-Fallback": "1"
+      });
     }
 
     // Relay the stream from backend to frontend with sanitization
-    const encoder = new TextEncoder();
-    const sanitizedStream = new ReadableStream({
-      start(controller) {
-        const reader = backendResponse.body!.getReader();
-        const decoder = new TextDecoder();
-        const read = (): void => {
-          reader.read().then(({ done, value }) => {
-            if (done) {
-              controller.close();
-              return;
-            }
-            const chunk = decoder.decode(value, { stream: true });
-            const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name);
-            controller.enqueue(encoder.encode(masked));
-            read();
-          }).catch((err) => {
-            logger.error("[astrology chat-stream sanitize error]", err);
-            controller.close();
-          });
-        };
-        read();
+    return createTransformedSSEStream({
+      source: streamResult.response,
+      transform: (chunk) => {
+        const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name);
+        return masked;
       },
-    });
-
-    return new Response(sanitizedStream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-        "X-Fallback": backendResponse.headers.get("x-fallback") || "0",
+      route: "AstrologyChatStream",
+      additionalHeaders: {
+        "X-Fallback": streamResult.response.headers.get("x-fallback") || "0",
       },
     });
   } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal Server Error";
     logger.error("[Astrology Chat-Stream API error]", err);
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Internal Server Error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json(
+      { error: message },
+      { status: 500 }
+    );
   }
 }

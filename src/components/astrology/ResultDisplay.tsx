@@ -20,6 +20,7 @@ import Image from 'next/image';
 import { useI18n } from '@/i18n/I18nProvider';
 import type { NatalChartData, PlanetData } from '@/lib/astrology';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
+import FunInsights from '../destiny-map/FunInsights';
 
 // Types
 import type { AspectData, AdvancedData, LocalizedPlanet, LocalizedHouse } from './types';
@@ -334,6 +335,21 @@ export default function ResultDisplay({
                 <HousesTable houses={viewChart.houses} locKey={locKey} />
                 {aspects && <AspectsTable aspects={aspects} locKey={locKey} />}
                 {advanced && <AdvancedPanel advanced={advanced} locKey={locKey} onToggle={handleAdvancedToggle} />}
+
+                {/* ✨ 재미있는 점성술 인사이트 - 이해하기 쉬운 해석 */}
+                <div className="mt-8">
+                  <h3 className="text-xl font-bold mb-4 text-white">✨ 쉽게 이해하는 나의 별자리</h3>
+                  <FunInsights
+                    saju={null}
+                    astro={{
+                      planets: chart.planets,
+                      houses: chart.houses,
+                      aspects: aspects || [],
+                      ...(advanced || {}),
+                    }}
+                    theme="life"
+                  />
+                </div>
               </>
             )}
           </div>

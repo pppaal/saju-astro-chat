@@ -5,9 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
-import { requirePublicToken } from "@/lib/auth/publicToken";
+import { initializeApiContext, createSimpleGuard } from "@/lib/api/middleware";
 import {
   calculateYearlyImportantDates,
   type EventCategory,
@@ -15,7 +13,6 @@ import {
 import { calculateSajuData } from "@/lib/Saju/saju";
 import { calculateNatalChart } from "@/lib/astrology/foundation/astrologyService";
 import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from "@/lib/Saju/stemElementMapping";
-import { getBackendUrl } from "@/lib/backend-url";
 import koTranslations from "@/i18n/locales/ko.json";
 import enTranslations from "@/i18n/locales/en.json";
 import type { TranslationData } from "@/types/calendar-api";
@@ -33,8 +30,6 @@ import {
 } from './lib';
 
 export const dynamic = "force-dynamic";
-
-const BACKEND_URL = getBackendUrl();
 
 const VALID_CALENDAR_LOCALES = new Set(["ko", "en"]);
 const VALID_CALENDAR_GENDERS = new Set(["male", "female"]);
@@ -65,20 +60,16 @@ const MAX_PLACE_LEN = 64;
  * - locale: 언어 (ko, en)
  */
 export async function GET(request: NextRequest) {
-  let limitHeaders: Headers | undefined;
   try {
-    const ip = getClientIp(request.headers);
-    const limit = await rateLimit(`calendar:${ip}`, { limit: 30, windowSeconds: 60 });
-    limitHeaders = limit.headers;
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: "rate_limited", retryAfter: limit.reset },
-        { status: 429, headers: limit.headers }
-      );
-    }
-    const tokenCheck = requirePublicToken(request); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
-    }
+    // Apply middleware: public token auth + rate limiting (no credits for calendar)
+    const guardOptions = createSimpleGuard({
+      route: "calendar",
+      limit: 30,
+      windowSeconds: 60,
+    });
+
+    const { context, error } = await initializeApiContext(request, guardOptions);
+    if (error) return error;
 
     const { searchParams } = new URL(request.url);
     const birthDateParam = searchParams.get("birthDate")?.trim().slice(0, 10);
@@ -86,14 +77,14 @@ export async function GET(request: NextRequest) {
     if (!birthDateParam) {
       return NextResponse.json(
         { error: "Birth date required", message: "생년월일을 입력해주세요." },
-        { status: 400, headers: limit.headers }
+        { status: 400 }
       );
     }
 
     // 생년월일 파싱 (UTC 오프셋 영향 없이 고정)
     const birthDate = parseBirthDate(birthDateParam);
     if (!birthDate) {
-      return NextResponse.json({ error: "Invalid birth date" }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "Invalid birth date" }, { status: 400 });
     }
 
     const birthTimeParam = (searchParams.get("birthTime") || "12:00").trim().slice(0, 5);
@@ -120,10 +111,10 @@ export async function GET(request: NextRequest) {
       : null;
 
     if (!CALENDAR_TIME_RE.test(birthTimeParam)) {
-      return NextResponse.json({ error: "Invalid birth time" }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "Invalid birth time" }, { status: 400 });
     }
     if ((yearParam && !CALENDAR_YEAR_RE.test(yearParam)) || !Number.isFinite(year) || year < 1900 || year > 2100) {
-      return NextResponse.json({ error: "Invalid year" }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "Invalid year" }, { status: 400 });
     }
     // birthPlace는 항상 유효한 값이 있음 (기본값: Seoul)
     const coords = LOCATION_COORDS[birthPlace] || LOCATION_COORDS["Seoul"];
@@ -143,7 +134,7 @@ export async function GET(request: NextRequest) {
       logger.error("[Calendar] Saju calculation error:", sajuError);
       return NextResponse.json(
         { error: "Failed to calculate saju data" },
-        { status: 500, headers: limit.headers }
+        { status: 500 }
       );
     }
 
@@ -301,7 +292,7 @@ export async function GET(request: NextRequest) {
     };
 
     // AI 백엔드 호출 시도
-    const aiDates = await fetchAIDates(sajuData, astroData, BACKEND_URL, category || "overall");
+    const aiDates = await fetchAIDates(sajuData, astroData, category || "overall");
 
     // 6등급별 그룹화
     const grade0 = filteredDates.filter(d => d.grade === 0); // 천운의 날
@@ -360,14 +351,13 @@ export async function GET(request: NextRequest) {
       }),
     });
 
-    limit.headers.forEach((value, key) => res.headers.set(key, value));
     res.headers.set("Cache-Control", "no-store");
     return res;
   } catch (error: unknown) {
     logger.error("Calendar API error:", error);
     return NextResponse.json(
       { error: "Internal server error", message: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500, headers: limitHeaders }
+      { status: 500 }
     );
   }
 }

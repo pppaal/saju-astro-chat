@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { scoreToGrade as standardScoreToGrade, type PredictionGrade } from '@/lib/prediction';
 import { logger } from '@/lib/logger';
+import { getBackendUrl } from '@/lib/backend-url';
 
 // ============================================================
 // 타입 정의
@@ -61,7 +62,7 @@ interface BackendResponse {
 // ============================================================
 // 환경 변수
 // ============================================================
-const BACKEND_URL = process.env.BACKEND_AI_URL || 'http://localhost:5000';
+const BACKEND_URL = getBackendUrl();
 
 // ============================================================
 // POST 핸들러

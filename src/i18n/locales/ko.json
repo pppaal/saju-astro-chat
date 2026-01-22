@@ -45,6 +45,7 @@
   },
   "menu": {
     "destinyMap": "운명 지도",
+    "aiReports": "AI 프리미엄 리포트",
     "lifePrediction": "인생 예측",
     "saju": "사주",
     "astrology": "점성술",
@@ -227,6 +228,8 @@
     "subtitle": "개인정보를 관리하세요",
     "notEntered": "미입력",
     "saveProfile": "프로필 저장",
+    "timeUnknown": "출생 시간을 모릅니다",
+    "timeUnknownHint": "정오 (12:00)가 계산에 사용됩니다",
     "birthInfo": {
       "title": "생년월일 정보",
       "desc": "정확한 운세 분석을 위해 사용됩니다"
@@ -442,6 +445,10 @@
       "label": "운명 지도",
       "desc": "AI 운세 분석"
     },
+    "aiReports": {
+      "label": "AI 리포트",
+      "desc": "프리미엄 상세 분석"
+    },
     "lifePrediction": {
       "label": "인생 예측",
       "desc": "10년 운세 흐름"
@@ -486,17 +493,77 @@
       "label": "대인관계 스타일",
       "desc": "ICP 대인관계 분석"
     },
-    "destinyMatch": {
-      "label": "인연 매칭",
-      "desc": "AI 소울메이트 매칭"
-    },
     "pastLife": {
       "label": "전생",
       "desc": "전생을 알아보세요"
+    }
+  },
+  "pastLife": {
+    "title": "전생 리딩",
+    "subtitle": "당신의 영혼이 걸어온 여정을 발견하세요",
+    "birthdateLabel": "생년월일",
+    "birthtimeLabel": "출생 시간",
+    "birthtimeHint": "시간을 모르는 경우 12:00이 사용됩니다",
+    "timeUnknown": "출생 시간을 모릅니다",
+    "timeUnknownHint": "정오 (12:00)가 계산에 사용됩니다",
+    "birthcityLabel": "출생 도시",
+    "birthcityPlaceholder": "출생 도시를 검색하세요...",
+    "birthcityHint": "정확한 점성학 계산을 위해 출생 도시가 필요합니다",
+    "analyzing": "전생을 탐색하는 중...",
+    "buttonStart": "내 전생 발견하기",
+    "infoText": "당신의 전생 리딩은 동양의 사주(四柱) 분석과 서양 점성학을 결합하여 영혼의 패턴, 카르마 교훈, 그리고 전생에서 가져온 재능을 드러냅니다.",
+    "errors": {
+      "birthdate": "생년월일을 입력해주세요.",
+      "city": "출생 도시를 선택해주세요.",
+      "generate": "오류가 발생했습니다. 다시 시도해주세요."
     },
-    "community": {
-      "label": "커뮤니티",
-      "desc": "다른 사람들과 교류하기"
+    "tabs": {
+      "reading": "리딩",
+      "readingDesc": "당신의 전생 분석",
+      "about": "소개",
+      "aboutDesc": "전생 리딩에 대해"
+    },
+    "about": {
+      "whatIsTitle": "전생 리딩이란?",
+      "whatIsText": "전생 리딩은 동양의 사주명리학과 서양 점성학을 결합하여 당신의 영혼이 전생에서 가져온 패턴, 재능, 그리고 배워야 할 카르마 교훈을 탐구합니다. 이것은 당신의 영혼이 왜 지금 이 삶을 선택했는지, 그리고 어떤 성장을 추구하는지에 대한 심오한 통찰을 제공합니다.",
+      "sajuTitle": "사주와 영혼 패턴",
+      "sajuText": "사주명리학은 출생 시간의 천간지지(天干地支)를 분석하여 당신의 격국(格局)을 파악합니다. 격국은 당신의 영혼이 가진 근본적인 에너지 패턴을 나타내며, 이는 전생에서부터 이어져온 영혼의 본질을 드러냅니다. 식신(창조자), 상관(변혁가), 정관(지도자), 편관(전사), 정재(보존자), 편재(모험가), 정인(현자), 편인(신비가) 등 8가지 패턴이 있습니다.",
+      "nodesTitle": "달의 교점과 영혼의 여정",
+      "nodesText": "서양 점성학에서 달의 북교점(North Node)은 당신의 영혼이 이번 생에서 발전시켜야 할 방향을, 남교점(South Node)은 전생에서 이미 익숙한 패턴을 나타냅니다. 북교점의 위치는 당신이 나아가야 할 영혼의 진화 방향을 보여주며, 이를 통해 전생에서 가져온 습관과 이번 생에서 배워야 할 새로운 교훈을 이해할 수 있습니다.",
+      "purposeTitle": "토성과 카르마 교훈",
+      "purposeText": "토성(Saturn)은 카르마의 행성으로, 우리가 이번 생에서 숙달해야 할 영역과 배워야 할 교훈을 나타냅니다. 토성의 위치는 당신이 전생에서 미완성으로 남긴 과제나 극복해야 할 두려움을 보여줍니다. 토성이 있는 하우스는 당신이 가장 큰 성숙과 성장을 경험할 영역이며, 이를 통해 카르마의 빚을 갚고 영혼을 진화시킬 수 있습니다."
+    },
+    "overview": {
+      "soulPattern": "영혼 패턴",
+      "quickSummary": "빠른 요약",
+      "pastRole": "전생의 역할",
+      "coreLesson": "핵심 교훈",
+      "lifeDirection": "이번 생의 방향",
+      "talentsCarried": "가져온 재능"
+    },
+    "pastLife": {
+      "likelyRole": "가능성이 높은 역할",
+      "talentsBrought": "가져온 재능",
+      "lessonsRemaining": "남은 교훈"
+    },
+    "journey": {
+      "title": "영혼의 여정",
+      "pastPattern": "전생의 패턴",
+      "releasePattern": "놓아야 할 패턴",
+      "lifeDirection": "이번 생의 방향",
+      "lessonToLearn": "배워야 할 교훈"
+    },
+    "karma": {
+      "title": "카르마 빚",
+      "lesson": "카르마 교훈",
+      "challenge": "도전 과제",
+      "mastery": "숙달할 것"
+    },
+    "mission": {
+      "title": "이번 생의 사명",
+      "core": "핵심 사명",
+      "expression": "표현 방법",
+      "fulfillment": "성취"
     }
   },
   "numerology": {
@@ -978,6 +1045,10 @@
         "title": "운명 지도",
         "description": "사주·점성술·타로를 AI가 통합 분석하여 맞춤형 운세를 제공합니다"
       },
+      "aiReports": {
+        "title": "AI 리포트",
+        "description": "프리미엄 AI 생성 상세 분석 리포트"
+      },
       "lifePrediction": {
         "title": "인생 예측",
         "description": "10년간의 운세 흐름과 인생 전환점을 미리 알아보세요"
@@ -998,9 +1069,33 @@
         "title": "성격분석",
         "description": "다양한 관점에서 당신의 성격 특성과 장단점을 심층 분석합니다"
       },
+      "icp": {
+        "title": "ICP 분석",
+        "description": "내면 아이 페르소나 분석으로 더 깊은 자기 이해"
+      },
       "numerology": {
         "title": "수비학",
         "description": "이름과 생년월일의 수비학적 분석으로 당신의 삶의 목적과 잠재력을 발견합니다"
+      },
+      "astrology": {
+        "title": "점성술",
+        "description": "서양 점성술 출생 차트와 행성 영향 분석"
+      },
+      "saju": {
+        "title": "사주",
+        "description": "전통적인 사주팔자 분석"
+      },
+      "compatibility": {
+        "title": "궁합",
+        "description": "생년월일 기반 관계 궁합 분석"
+      },
+      "pastLife": {
+        "title": "전생분석",
+        "description": "전생 패턴과 카르마 영향 탐구"
+      },
+      "iching": {
+        "title": "주역",
+        "description": "64괘를 통한 고대 중국 지혜"
       }
     },
     "tryDestinyMap": "운명 지도 시작하기",
@@ -1008,7 +1103,7 @@
     "visualTitle": "세상이 사랑하는 운명 탐색법",
     "visualDesc": "신뢰할 수 있는 계산 로직을 갖춘 깨끗한 인터페이스. 시간대, 계절 및 DST를 적절히 반영하여 결과를 이해하기 쉬운 언어로 번역합니다.",
     "servicesEyebrow": "DestinyPal 서비스",
-    "servicesTitle": "5가지 운명 리딩",
+    "servicesTitle": "14가지 운명 리딩",
     "servicesDesc": "각 서비스로 다양한 관점에서 운명을 탐험하세요",
     "discoverTitle": "당사가 제공하는 네 가지 프레임워크",
     "discoverSubtitle": "질문별로 선택하거나 함께 사용하여 타이밍과 테마를 교차 검증합니다.",
@@ -1904,6 +1999,14 @@
       "personality": {
         "title": "성격",
         "desc": "내면의 자아 탐구"
+      },
+      "personalityIcp": {
+        "title": "ICP 대인관계 스타일",
+        "desc": "대인관계 패턴 및 스타일 분석"
+      },
+      "personalityCompatibility": {
+        "title": "성격 궁합",
+        "desc": "ICP + Persona 종합 궁합 분석"
       },
       "destinyPal": {
         "title": "Destiny Pal",

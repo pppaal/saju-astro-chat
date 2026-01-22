@@ -13,13 +13,15 @@ export function validateOrigin(headers: Headers): boolean {
   const referer = headers.get("referer");
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
-  // In development, allow requests without origin (e.g., curl, Postman)
-  if (process.env.NODE_ENV === "development") {
-    return true;
-  }
-
-  // If no origin/referer and no base URL configured, deny by default
+  // If no origin/referer, only allow in development with localhost
   if (!origin && !referer) {
+    if (process.env.NODE_ENV === "development") {
+      // Allow localhost/127.0.0.1 requests in development
+      const host = headers.get("host");
+      if (host && (host.startsWith("localhost") || host.startsWith("127.0.0.1"))) {
+        return true;
+      }
+    }
     return false;
   }
 

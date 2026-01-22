@@ -1,13 +1,12 @@
 // src/app/api/tarot/interpret-stream/route.ts
 // Direct OpenAI Streaming Tarot Interpretation API
 
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
-import { requirePublicToken } from "@/lib/auth/publicToken";
+import { NextRequest, NextResponse } from "next/server";
+import { initializeApiContext, createPublicStreamGuard } from "@/lib/api/middleware";
+import { createSSEStreamProxy, createFallbackSSEStream, createSSEEvent, createSSEDoneEvent } from "@/lib/streaming";
+import { apiClient } from "@/lib/api/ApiClient";
 import { enforceBodySize } from "@/lib/http";
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
 import { logger } from '@/lib/logger';
-import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 
 interface CardInput {
   name: string;
@@ -117,15 +116,14 @@ function normalizeBackendPayload(
 
 function streamJsonPayload(
   payload: { overall: string; cards: { position: string; interpretation: string }[]; advice: string },
-  limitHeaders: Headers,
   extraHeaders?: Record<string, string>
 ): Response {
   const encoder = new TextEncoder();
   const jsonText = JSON.stringify(payload);
   const stream = new ReadableStream({
     start(controller) {
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: jsonText })}\n\n`));
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.enqueue(encoder.encode(createSSEEvent({ content: jsonText })));
+      controller.enqueue(encoder.encode(createSSEDoneEvent()));
       controller.close();
     }
   });
@@ -135,7 +133,6 @@ function streamJsonPayload(
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       "Connection": "keep-alive",
-      ...Object.fromEntries(limitHeaders.entries()),
       ...(extraHeaders || {})
     }
   });
@@ -150,44 +147,30 @@ async function fetchBackendFallback(payload: {
   language: "ko" | "en";
   birthdate: string;
 }): Promise<unknown | null> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), BACKEND_TIMEOUT_MS);
   try {
-    const backendResponse = await fetch(`${pickBackendUrl()}/api/tarot/interpret`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.ADMIN_API_TOKEN || ""}`
-      },
-      body: JSON.stringify({
-        category: payload.categoryId,
-        spread_id: payload.spreadId,
-        spread_title: payload.spreadTitle,
-        cards: payload.cards.map((card) => ({
-          name: card.name,
-          is_reversed: card.isReversed,
-          position: card.position
-        })),
-        user_question: payload.userQuestion,
-        language: payload.language,
-        birthdate: payload.birthdate || undefined
-      }),
-      signal: controller.signal,
-      cache: "no-store",
-    });
+    const result = await apiClient.post("/api/tarot/interpret", {
+      category: payload.categoryId,
+      spread_id: payload.spreadId,
+      spread_title: payload.spreadTitle,
+      cards: payload.cards.map((card) => ({
+        name: card.name,
+        is_reversed: card.isReversed,
+        position: card.position
+      })),
+      user_question: payload.userQuestion,
+      language: payload.language,
+      birthdate: payload.birthdate || undefined
+    }, { timeout: BACKEND_TIMEOUT_MS });
 
-    if (!backendResponse.ok) {
-      const errorText = await backendResponse.text();
-      logger.error("Tarot stream backend fallback error:", { status: backendResponse.status, error: errorText });
+    if (!result.ok) {
+      logger.error("Tarot stream backend fallback error:", { status: result.status, error: result.error });
       return null;
     }
 
-    return await backendResponse.json();
+    return result.data;
   } catch (error) {
     logger.error("Tarot stream backend fallback exception:", { error });
     return null;
-  } finally {
-    clearTimeout(timeoutId);
   }
 }
 
@@ -264,40 +247,38 @@ function analyzeQuestionMood(question: string): 'worried' | 'curious' | 'hopeful
   return 'neutral';
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const ip = getClientIp(req.headers);
-    logger.info("Tarot stream request", { ip });
-    const limit = await rateLimit(`tarot-stream:${ip}`, { limit: 10, windowSeconds: 60 });
+    // Apply middleware: rate limiting + public token auth + credit consumption
+    const guardOptions = createPublicStreamGuard({
+      route: "tarot-interpret-stream",
+      limit: 10,
+      windowSeconds: 60,
+      requireCredits: true,
+      creditType: "reading",
+      creditAmount: 1,
+    });
 
-    if (!limit.allowed) {
-      return new Response(JSON.stringify({ error: "Too many requests" }), {
-        status: 429,
-        headers: { ...Object.fromEntries(limit.headers), "Content-Type": "application/json" }
-      });
-    }
+    const { context, error } = await initializeApiContext(req, guardOptions);
+    if (error) return error;
 
-    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" }
-      });
-    }
+    logger.info("Tarot stream request", { ip: context.ip });
 
-    const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
+    const oversized = enforceBodySize(req, 256 * 1024);
     if (oversized) return oversized;
 
     const body: StreamInterpretRequest = await req.json();
     const categoryId = sanitize(body?.categoryId, MAX_TITLE);
     const spreadId = sanitize(body?.spreadId, MAX_TITLE);
     const spreadTitle = sanitize(body?.spreadTitle, MAX_TITLE);
-    const language = body?.language === "en" ? "en" : "ko";
+    const language = body?.language === "en" ? "en" : (context.locale as "ko" | "en");
     const rawCards = Array.isArray(body?.cards) ? body.cards.slice(0, MAX_CARDS) : [];
     const userQuestion = sanitize(body?.userQuestion, MAX_QUESTION);
     const birthdate = sanitize(body?.birthdate, 12);
     const previousReadings = Array.isArray(body?.previousReadings)
       ? body.previousReadings.slice(0, 3).map(r => sanitize(r, 200))
       : [];
+
     logger.info("Tarot stream payload", {
       categoryId,
       spreadId,
@@ -309,18 +290,13 @@ export async function POST(req: Request) {
     });
 
     if (!categoryId || rawCards.length === 0) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" }
-      });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
-    const creditResult = await checkAndConsumeCredits("reading", 1);
-    if (!creditResult.allowed) {
-      const res = creditErrorResponse(creditResult);
-      limit.headers.forEach((value, key) => res.headers.set(key, value));
-      return res;
-    }
+    // Credits already consumed by middleware
 
     const isKorean = language === "ko";
     const cardListText = rawCards.map((c, i) => {
@@ -407,7 +383,7 @@ ${cardListText}
     if (!process.env.OPENAI_API_KEY) {
       logger.warn("Tarot stream missing OPENAI_API_KEY, using fallback");
       const fallback = buildFallbackPayload(rawCards, language);
-      return streamJsonPayload(fallback, limit.headers, { "X-Fallback": "1" });
+      return streamJsonPayload(fallback, { "X-Fallback": "1" });
     }
 
     const openaiController = new AbortController();
@@ -446,7 +422,7 @@ ${cardListText}
         birthdate
       });
       const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase;
-      return streamJsonPayload(fallback, limit.headers, { "X-Fallback": "1" });
+      return streamJsonPayload(fallback, { "X-Fallback": "1" });
     }
     clearTimeout(openaiTimeoutId);
 
@@ -465,7 +441,7 @@ ${cardListText}
         birthdate
       });
       const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase;
-      return streamJsonPayload(fallback, limit.headers, { "X-Fallback": "1" });
+      return streamJsonPayload(fallback, { "X-Fallback": "1" });
     }
 
     // SSE
@@ -488,8 +464,8 @@ ${cardListText}
             birthdate
           });
           const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase;
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: JSON.stringify(fallback) })}\n\n`));
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.enqueue(encoder.encode(createSSEEvent({ content: JSON.stringify(fallback) })));
+          controller.enqueue(encoder.encode(createSSEDoneEvent()));
           controller.close();
           return;
         }
@@ -500,14 +476,14 @@ ${cardListText}
           if (!line.startsWith('data: ')) return;
           const data = line.slice(6);
           if (data === '[DONE]') {
-            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.enqueue(encoder.encode(createSSEDoneEvent()));
             return;
           }
           try {
             const parsed = JSON.parse(data);
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
+              controller.enqueue(encoder.encode(createSSEEvent({ content })));
             }
           } catch {
             // Skip invalid JSON
@@ -550,15 +526,14 @@ ${cardListText}
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
-        ...Object.fromEntries(limit.headers),
       }
     });
 
   } catch (err) {
     logger.error('Tarot stream error:', { error: err });
-    return new Response(JSON.stringify({ error: "Server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
   }
 }

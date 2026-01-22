@@ -6,6 +6,7 @@ import { TOTAL_ICP_QUESTIONS, icpQuestions, type ICPQuestion } from '@/lib/icp/q
 import type { ICPQuizAnswers } from '@/lib/icp/types';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
+import { useToast } from '@/components/ui/Toast';
 import styles from '../ICP.module.css';
 
 const QUESTIONS_PER_PAGE = 8;
@@ -24,6 +25,7 @@ export default function ICPQuizPage() {
   const { locale } = useI18n();
   const isKo = locale === 'ko';
   const router = useRouter();
+  const { showToast } = useToast();
   const [answers, setAnswers] = useState<ICPQuizAnswers>({});
   const [currentPage, setCurrentPage] = useState(0);
   const [shuffledQuestions, setShuffledQuestions] = useState<ICPQuestion[]>([]);
@@ -71,8 +73,17 @@ export default function ICPQuizPage() {
   };
 
   const handleViewResults = () => {
-    localStorage.setItem('icpQuizAnswers', JSON.stringify(answers));
-    router.push('/icp/result');
+    try {
+      const answersData = JSON.stringify(answers);
+      localStorage.setItem('icpQuizAnswers', answersData);
+      router.push('/icp/result');
+    } catch (error) {
+      console.error('[ICP Quiz] Error saving answers:', error);
+      showToast(
+        isKo ? '결과 저장 중 오류가 발생했습니다.' : 'Error saving results. Please try again.',
+        'error'
+      );
+    }
   };
 
   const handleNextPage = () => {
@@ -264,7 +275,7 @@ export default function ICPQuizPage() {
 
       {/* Scroll to Top Button */}
       <button
-        className={`${styles.scrollToTop} ${showScrollTop ? 'visible' : ''}`}
+        className={`${styles.scrollToTop} ${showScrollTop ? styles.visible : ''}`}
         onClick={scrollToTop}
         aria-label={isKo ? '맨 위로' : 'Back to Top'}
       >

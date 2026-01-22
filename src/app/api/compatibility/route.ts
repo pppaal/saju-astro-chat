@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getBackendUrl as pickBackendUrl } from "@/lib/backend-url";
+import { initializeApiContext, createSimpleGuard } from "@/lib/api/middleware";
+import { apiClient } from "@/lib/api/ApiClient";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { prisma } from '@/lib/db/prisma';
-import { rateLimit } from '@/lib/rateLimit';
-import { getClientIp } from '@/lib/request-ip';
 import { captureServerError } from '@/lib/telemetry';
-import { requirePublicToken } from '@/lib/auth/publicToken';
-import { enforceBodySize } from '@/lib/http';
 import {
   isValidDate,
   isValidTime,
@@ -31,13 +28,8 @@ type PersonInput = {
   relationNoteToP1?: string;
 };
 
-function withHeaders(res: NextResponse, headers?: Headers) {
-  headers?.forEach((value, key) => res.headers.set(key, value));
-  return res;
-}
-
-function bad(msg: string, status = 400, headers?: Headers) {
-  return withHeaders(NextResponse.json({ error: msg }, { status }), headers);
+function bad(msg: string, status = 400) {
+  return NextResponse.json({ error: msg }, { status });
 }
 
 function relationWeight(r?: Relation) {
@@ -56,22 +48,22 @@ function sanitizeStr(value: unknown, max = 120) {
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`compat:${ip}`, { limit: 30, windowSeconds: 60 });
-    if (!limit.allowed) {
-      return bad('Too many requests. Please try again in a minute.', 429, limit.headers);
-    }
-    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
-      return bad('Unauthorized', 401, limit.headers);
-    }
-    const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
-    if (oversized) return oversized;
+    // Apply middleware: public token auth + rate limiting (no credits for compatibility)
+    const guardOptions = createSimpleGuard({
+      route: "compatibility",
+      limit: 30,
+      windowSeconds: 60,
+      requireCredits: false, // Compatibility doesn't consume credits
+    });
+
+    const { context, error } = await initializeApiContext(req, guardOptions);
+    if (error) return error;
 
     const body = await req.json();
     const persons: PersonInput[] = Array.isArray(body?.persons) ? body.persons : [];
 
     if (persons.length < 2 || persons.length > 4) {
-      return bad('Provide between 2 and 4 people for compatibility.', 400, limit.headers);
+      return bad('Provide between 2 and 4 people for compatibility.', 400);
     }
 
     for (let i = 0; i < persons.length; i++) {
@@ -81,32 +73,32 @@ export async function POST(req: NextRequest) {
       p.relationNoteToP1 = sanitizeStr(p.relationNoteToP1, MAX_NOTE);
 
       if (!p?.date || !p?.time || !p?.timeZone) {
-        return bad(`${i + 1}: date, time, and timeZone are required.`, 400, limit.headers);
+        return bad(`${i + 1}: date, time, and timeZone are required.`, 400);
       }
       if (!isValidDate(p.date)) {
-        return bad(`${i + 1}: date must be YYYY-MM-DD.`, 400, limit.headers);
+        return bad(`${i + 1}: date must be YYYY-MM-DD.`, 400);
       }
       if (!isValidTime(p.time)) {
-        return bad(`${i + 1}: time must be HH:mm (24h).`, 400, limit.headers);
+        return bad(`${i + 1}: time must be HH:mm (24h).`, 400);
       }
       if (typeof p.latitude !== 'number' || typeof p.longitude !== 'number' || !Number.isFinite(p.latitude) || !Number.isFinite(p.longitude)) {
-        return bad(`${i + 1}: latitude/longitude must be numbers.`, 400, limit.headers);
+        return bad(`${i + 1}: latitude/longitude must be numbers.`, 400);
       }
       if (!isValidLatitude(p.latitude) || !isValidLongitude(p.longitude)) {
-        return bad(`${i + 1}: latitude/longitude out of range.`, 400, limit.headers);
+        return bad(`${i + 1}: latitude/longitude out of range.`, 400);
       }
       if (!p.timeZone || typeof p.timeZone !== 'string' || !p.timeZone.trim()) {
-        return bad(`${i + 1}: timeZone is required.`, 400, limit.headers);
+        return bad(`${i + 1}: timeZone is required.`, 400);
       }
       p.timeZone = p.timeZone.trim().slice(0, 80);
       if (i > 0 && !p.relationToP1) {
-        return bad(`${i + 1}: relationToP1 is required.`, 400, limit.headers);
+        return bad(`${i + 1}: relationToP1 is required.`, 400);
       }
       if (i > 0 && !['friend', 'lover', 'other'].includes(p.relationToP1 as string)) {
-        return bad(`${i + 1}: relationToP1 must be friend | lover | other.`, 400, limit.headers);
+        return bad(`${i + 1}: relationToP1 must be friend | lover | other.`, 400);
       }
       if (i > 0 && p.relationToP1 === 'other' && !p.relationNoteToP1?.trim()) {
-        return bad(`${i + 1}: add a short note for relationToP1 = "other".`, 400, limit.headers);
+        return bad(`${i + 1}: add a short note for relationToP1 = "other".`, 400);
       }
       persons[i] = p;
     }
@@ -163,45 +155,26 @@ export async function POST(req: NextRequest) {
     let isGroup = false;
     let groupAnalysis: Record<string, unknown> | null = null;
     let synergyBreakdown: Record<string, unknown> | null = null;
-    const backendUrl = pickBackendUrl();
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      const apiToken = process.env.ADMIN_API_TOKEN;
-      if (apiToken) {
-        headers['X-API-KEY'] = apiToken;
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
-
       // Send to backend with full birth data for Saju+Astrology fusion analysis
-      const aiResponse = await fetch(`${backendUrl}/api/compatibility`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          persons: persons.map((p, i) => ({
-            name: names[i],
-            birthDate: p.date,
-            birthTime: p.time,
-            latitude: p.latitude,
-            longitude: p.longitude,
-            timeZone: p.timeZone,
-            relation: i > 0 ? p.relationToP1 : undefined,
-            relationNote: i > 0 ? p.relationNoteToP1 : undefined,
-          })),
-          relationship_type: persons[1]?.relationToP1 || 'lover',
-          locale: body?.locale || 'ko',
-        }),
-        signal: controller.signal,
-      });
+      const response = await apiClient.post('/api/compatibility', {
+        persons: persons.map((p, i) => ({
+          name: names[i],
+          birthDate: p.date,
+          birthTime: p.time,
+          latitude: p.latitude,
+          longitude: p.longitude,
+          timeZone: p.timeZone,
+          relation: i > 0 ? p.relationToP1 : undefined,
+          relationNote: i > 0 ? p.relationNoteToP1 : undefined,
+        })),
+        relationship_type: persons[1]?.relationToP1 || 'lover',
+        locale: body?.locale || 'ko',
+      }, { timeout: 60000 });
 
-      clearTimeout(timeoutId);
-
-      if (aiResponse.ok) {
-        const aiData = await aiResponse.json();
+      if (response.ok && response.data) {
+        const aiData = response.data;
         // Handle both nested (data.report) and flat response formats
         aiInterpretation = aiData?.data?.report || aiData?.interpretation || '';
         aiModelUsed = aiData?.data?.model || aiData?.model || 'gpt-4o';
@@ -267,7 +240,7 @@ export async function POST(req: NextRequest) {
       synergy_breakdown: synergyBreakdown,
     });
     res.headers.set('Cache-Control', 'no-store');
-    return withHeaders(res, limit.headers);
+    return res;
   } catch (e: unknown) {
     captureServerError(e as Error, { route: "/api/compatibility" });
     return bad(e instanceof Error ? e.message : 'Unexpected server error', 500);

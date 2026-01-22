@@ -111,6 +111,90 @@ export type NumerologyContent = {
   date: string;
 };
 
+export type ICPContent = {
+  id: string;
+  primaryStyle: string;
+  secondaryStyle: string | null;
+  dominanceScore: number;
+  affiliationScore: number;
+  octantScores: Record<string, number>;
+  analysisData: {
+    description: string;
+    descriptionKo?: string;
+    strengths: string[];
+    strengthsKo?: string[];
+    challenges: string[];
+    challengesKo?: string[];
+  };
+  createdAt: string;
+};
+
+export type PersonalityCompatibilityContent = {
+  id: string;
+  person1: {
+    name?: string;
+    icp: {
+      primaryStyle: string;
+      secondaryStyle: string | null;
+      dominanceScore: number;
+      affiliationScore: number;
+      octantScores: Record<string, number>;
+    };
+    persona: {
+      typeCode: string;
+      personaName: string;
+      energyScore: number;
+      cognitionScore: number;
+      decisionScore: number;
+      rhythmScore: number;
+    };
+  };
+  person2: {
+    name?: string;
+    icp: {
+      primaryStyle: string;
+      secondaryStyle: string | null;
+      dominanceScore: number;
+      affiliationScore: number;
+      octantScores: Record<string, number>;
+    };
+    persona: {
+      typeCode: string;
+      personaName: string;
+      energyScore: number;
+      cognitionScore: number;
+      decisionScore: number;
+      rhythmScore: number;
+    };
+  };
+  compatibility: {
+    crossSystemScore: number;
+    icpScore: number;
+    personaScore: number;
+    level: string;
+    levelKo?: string;
+    description: string;
+    descriptionKo?: string;
+  };
+  createdAt: string;
+};
+
+export type DestinyMatrixContent = {
+  id: string;
+  reportType: 'timing' | 'themed';
+  period?: 'daily' | 'monthly' | 'yearly' | 'comprehensive';
+  theme?: 'love' | 'career' | 'wealth' | 'health' | 'family';
+  title: string;
+  summary?: string;
+  overallScore?: number;
+  grade?: string;
+  reportData: any; // Full TimingAIPremiumReport or ThemedAIPremiumReport
+  pdfGenerated: boolean;
+  locale: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ServiceConfig = {
   icon: string;
   titleKey: string;

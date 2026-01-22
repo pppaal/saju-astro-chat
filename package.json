@@ -117,11 +117,13 @@
     "tailwind-merge": "^3.4.0",
     "tz-lookup": "^6.1.25",
     "web-push": "^3.6.7",
-    "winston": "^3.19.0"
+    "winston": "^3.19.0",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@axe-core/react": "^4.11.0",
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^16.1.4",
     "@playwright/test": "^1.57.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",

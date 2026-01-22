@@ -33,6 +33,7 @@ function ProfileContent() {
 
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
+  const [timeUnknown, setTimeUnknown] = useState(false);
   const [gender, setGender] = useState<"M" | "F">("M");
   const [city, setCity] = useState("");
   const [tzId, setTzId] = useState<string>(
@@ -77,7 +78,12 @@ function ProfileContent() {
           const { user } = await profileRes.json();
           if (user) {
             if (user.birthDate) setBirthDate(user.birthDate);
-            if (user.birthTime) setBirthTime(user.birthTime);
+            if (user.birthTime) {
+              setBirthTime(user.birthTime);
+              setTimeUnknown(false);
+            } else {
+              setTimeUnknown(true);
+            }
             if (user.gender) setGender(user.gender);
             if (user.birthCity) setCity(user.birthCity);
             if (user.tzId) setTzId(user.tzId);
@@ -147,7 +153,7 @@ function ProfileContent() {
 
     const payload = {
       birthDate,
-      birthTime: birthTime || null,
+      birthTime: timeUnknown ? "12:00" : (birthTime || null),
       gender,
       birthCity: city || null,
       tzId: tzId || Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul",
@@ -186,7 +192,7 @@ function ProfileContent() {
 
   // Format time for display (HH:mm -> localized time)
   const formatTime = (timeStr: string) => {
-    if (!timeStr) return t("profile.notEntered", "Not entered");
+    if (!timeStr) return t("profile.timeUnknown", "Time unknown");
     const [hour, minute] = timeStr.split(":");
     const h = parseInt(hour);
     if (locale === "ko") {
@@ -329,7 +335,29 @@ function ProfileContent() {
               onChange={(e) => setBirthTime(e.target.value)}
               className={styles.input}
               placeholder={t("profile.placeholder.birthTime", "Optional but recommended")}
+              disabled={timeUnknown}
             />
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={timeUnknown}
+                onChange={(e) => {
+                  setTimeUnknown(e.target.checked);
+                  if (e.target.checked) {
+                    setBirthTime("");
+                  }
+                }}
+                className={styles.checkbox}
+              />
+              <span>
+                {t("profile.timeUnknown", "I don't know my birth time")}
+              </span>
+            </label>
+            {timeUnknown && (
+              <p className={styles.hint}>
+                {t("profile.timeUnknownHint", "Noon (12:00) will be used for calculations")}
+              </p>
+            )}
           </div>
 
           <div className={styles.formGroup}>

@@ -110,9 +110,46 @@ def _get_ohaeng_element_cross() -> Dict:
     mappings = _load_theme_mappings()
     return mappings.get("ohaeng_element_cross", {})
 
+def _build_theme_sipsin_map() -> Dict:
+    """Build theme->sipsin map for class-level access."""
+    mappings = _load_theme_mappings()
+    result = {}
+    for theme in Theme:
+        data = mappings.get("theme_sipsin", {}).get(theme.value, {})
+        if data:
+            result[theme] = data
+    return result
+
+
+def _build_theme_planets_map() -> Dict:
+    """Build theme->planets map for class-level access."""
+    mappings = _load_theme_mappings()
+    result = {}
+    for theme in Theme:
+        data = mappings.get("theme_planets", {}).get(theme.value, {})
+        if data:
+            result[theme] = data
+    return result
+
+
+class _ThemeMappingDescriptor:
+    """Descriptor that returns mapping data for class/instance access."""
+
+    def __init__(self, loader):
+        self._loader = loader
+
+    def __get__(self, instance, owner):
+        return self._loader()
+
+
 
 class ThemeCrossReferenceData:
     """테마별 Cross-Reference 데이터 매핑 (JSON 파일에서 로드)"""
+    THEME_SIPSIN = _ThemeMappingDescriptor(_build_theme_sipsin_map)
+    THEME_PLANETS = _ThemeMappingDescriptor(_build_theme_planets_map)
+    SIPSIN_PLANET_CROSS = _ThemeMappingDescriptor(_get_sipsin_planet_cross)
+    OHAENG_ELEMENT_CROSS = _ThemeMappingDescriptor(_get_ohaeng_element_cross)
+
 
     @classmethod
     def get_theme_sipsin(cls, theme: Theme) -> Dict:
@@ -133,35 +170,6 @@ class ThemeCrossReferenceData:
     def get_ohaeng_element_cross(cls, ohaeng: str) -> Dict:
         """Get element cross-reference for an ohaeng."""
         return _get_ohaeng_element_cross().get(ohaeng, {})
-
-    # Legacy class attributes for backward compatibility
-    @property
-    def THEME_SIPSIN(self) -> Dict:
-        mappings = _load_theme_mappings()
-        result = {}
-        for theme in Theme:
-            data = mappings.get("theme_sipsin", {}).get(theme.value, {})
-            if data:
-                result[theme] = data
-        return result
-
-    @property
-    def THEME_PLANETS(self) -> Dict:
-        mappings = _load_theme_mappings()
-        result = {}
-        for theme in Theme:
-            data = mappings.get("theme_planets", {}).get(theme.value, {})
-            if data:
-                result[theme] = data
-        return result
-
-    @property
-    def SIPSIN_PLANET_CROSS(self) -> Dict:
-        return _get_sipsin_planet_cross()
-
-    @property
-    def OHAENG_ELEMENT_CROSS(self) -> Dict:
-        return _get_ohaeng_element_cross()
 
 
 class ThemeCrossFilter:

@@ -1,0 +1,55 @@
+.container {
+  position: relative;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 8px;
+}
+
+.shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    var(--shimmer-color, rgba(255, 255, 255, 0.05)) 0%,
+    var(--shimmer-color, rgba(255, 255, 255, 0.1)) 50%,
+    var(--shimmer-color, rgba(255, 255, 255, 0.05)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  z-index: 1;
+}
+
+.image {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  position: relative;
+  z-index: 2;
+}
+
+.image.loaded {
+  opacity: 1;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
+    background: var(--shimmer-color, rgba(255, 255, 255, 0.1));
+  }
+
+  .image {
+    transition: none;
+  }
+}

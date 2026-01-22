@@ -54,6 +54,7 @@ function CircleContent() {
   const [relation, setRelation] = useState("family");
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
+  const [timeUnknown, setTimeUnknown] = useState(false);
   const [gender, setGender] = useState("M");
   const [birthCity, setBirthCity] = useState("");
   const [note, setNote] = useState("");
@@ -129,6 +130,7 @@ function CircleContent() {
     setRelation("family");
     setBirthDate("");
     setBirthTime("");
+    setTimeUnknown(false);
     setGender("M");
     setBirthCity("");
     setNote("");
@@ -160,7 +162,7 @@ function CircleContent() {
           name: name.trim(),
           relation,
           birthDate: birthDate || null,
-          birthTime: birthTime || null,
+          birthTime: timeUnknown ? "12:00" : (birthTime || null),
           gender,
           birthCity: birthCity || null,
           latitude: selectedCity?.lat || null,
@@ -297,7 +299,27 @@ function CircleContent() {
                 value={birthTime}
                 onChange={(e) => setBirthTime(e.target.value)}
                 className={styles.input}
+                disabled={timeUnknown}
               />
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  checked={timeUnknown}
+                  onChange={(e) => {
+                    setTimeUnknown(e.target.checked);
+                    if (e.target.checked) {
+                      setBirthTime("");
+                    }
+                  }}
+                  className={styles.checkbox}
+                />
+                <span>I don't know the birth time</span>
+              </label>
+              {timeUnknown && (
+                <p className={styles.hint}>
+                  Noon (12:00) will be used for calculations
+                </p>
+              )}
             </div>
 
             <div className={styles.formGroup}>

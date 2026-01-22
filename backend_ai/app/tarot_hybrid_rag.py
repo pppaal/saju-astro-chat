@@ -39,7 +39,7 @@ try:
         get_spread_loader,
     )
 except ImportError:
-    from app.tarot import (
+    from backend_ai.app.tarot import (
         # Prompts
         TarotPromptBuilder,
         SYSTEM_PROMPT,

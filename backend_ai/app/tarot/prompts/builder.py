@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 try:
     from backend_ai.app.tarot_rag import SUIT_MEANINGS
 except ImportError:
-    from app.tarot_rag import SUIT_MEANINGS
+    from backend_ai.app.tarot_rag import SUIT_MEANINGS
 
 from .system_prompts import SYSTEM_PROMPT, READING_GUIDE
 
