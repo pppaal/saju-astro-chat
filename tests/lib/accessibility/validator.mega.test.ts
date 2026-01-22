@@ -657,6 +657,95 @@ describe('accessibility MEGA - generateAccessibilityReport', () => {
     });
     expect(report.score).toBeGreaterThan(0);
   });
+
+  describe('Failure cases', () => {
+    it('should detect invalid ARIA role', () => {
+      const report = generateAccessibilityReport({
+        ariaElements: [
+          { role: 'invalid-role', attributes: {} },
+        ],
+      });
+      expect(report.aria.validRoles).toBe(false);
+      expect(report.score).toBeLessThan(100);
+    });
+
+    it('should detect missing ARIA attributes', () => {
+      const report = generateAccessibilityReport({
+        ariaElements: [
+          { role: 'checkbox', attributes: {} }, // missing aria-checked
+        ],
+      });
+      expect(report.aria.missingAttributes).toContain('aria-checked');
+      expect(report.score).toBeLessThan(100);
+    });
+
+    it('should detect invalid alt text', () => {
+      const report = generateAccessibilityReport({
+        images: [
+          { alt: 'image' }, // useless alt text
+        ],
+      });
+      expect(report.altText.invalid).toHaveLength(1);
+      expect(report.score).toBeLessThan(100);
+    });
+
+    it('should detect invalid heading structure', () => {
+      const report = generateAccessibilityReport({
+        headings: [
+          { level: 2, text: 'No h1' }, // should start with h1
+        ],
+      });
+      expect(report.headings.valid).toBe(false);
+      expect(report.headings.errors.length).toBeGreaterThan(0);
+      expect(report.score).toBeLessThan(100);
+    });
+
+    it('should detect inaccessible interactive elements', () => {
+      const report = generateAccessibilityReport({
+        interactiveElements: [
+          {}, // no role, no tabIndex
+        ],
+      });
+      expect(report.keyboard.inaccessible).toBe(1);
+      expect(report.keyboard.accessible).toBe(0);
+      expect(report.score).toBeLessThan(100);
+    });
+
+    it('should detect invalid touch targets', () => {
+      const report = generateAccessibilityReport({
+        touchTargets: [
+          { width: 30, height: 30 }, // too small
+        ],
+      });
+      expect(report.touchTargets.invalid).toBe(1);
+      expect(report.touchTargets.valid).toBe(0);
+      expect(report.score).toBeLessThan(100);
+    });
+
+    it('should calculate score with multiple failures', () => {
+      const report = generateAccessibilityReport({
+        colors: [
+          { foreground: '#cccccc', background: '#ffffff' }, // fails AA
+        ],
+        ariaElements: [
+          { role: 'invalid', attributes: {} }, // invalid role
+        ],
+        images: [
+          { alt: 'image' }, // useless alt
+        ],
+        headings: [
+          { level: 2, text: 'Skip' }, // no h1
+        ],
+        interactiveElements: [
+          {}, // not accessible
+        ],
+        touchTargets: [
+          { width: 20, height: 20 }, // too small
+        ],
+      });
+      expect(report.score).toBe(0);
+    });
+  });
 });
 
 describe('accessibility MEGA - Accessibility export', () => {

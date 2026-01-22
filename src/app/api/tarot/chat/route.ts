@@ -210,6 +210,15 @@ export async function POST(req: NextRequest) {
       return res;
     }
 
+    // 🔄 Backend 실패 시 크레딧 환불 (Fallback 사용은 품질 저하이므로)
+    if (!response.ok && apiContext.refundCreditsOnError) {
+      await apiContext.refundCreditsOnError(`Backend failed: ${response.status}`, {
+        backendStatus: response.status,
+        usingFallback: true,
+      });
+      logger.warn('[Tarot] Credits refunded due to backend failure, using fallback');
+    }
+
     // Fallback response
     logger.warn("Using fallback chat response");
     const fallbackReply = generateFallbackReply(messages, context, language);
@@ -221,6 +230,16 @@ export async function POST(req: NextRequest) {
     captureServerError(err as Error, { route: "/api/tarot/chat" });
     const errorMessage = err instanceof Error ? err.message : String(err);
     logger.error("Tarot chat error:", { message: errorMessage, error: err });
+
+    // 🔄 크레딧 자동 환불 (API 에러 발생 시)
+    if (apiContext.refundCreditsOnError) {
+      await apiContext.refundCreditsOnError(errorMessage, {
+        errorType: err instanceof Error ? err.constructor.name : 'UnknownError',
+        hasMessages: !!messages,
+        hasContext: !!context,
+      });
+    }
+
     return NextResponse.json(
       { error: "Server error", detail: process.env.NODE_ENV === "development" ? errorMessage : undefined },
       { status: 500 }

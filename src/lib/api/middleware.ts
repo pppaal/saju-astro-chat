@@ -21,6 +21,7 @@ import {
   checkAndConsumeCredits,
   type CreditType,
 } from "@/lib/credits";
+import { refundCredits } from "@/lib/credits/creditRefund";
 
 // ============ Types ============
 
@@ -33,7 +34,11 @@ export interface ApiContext {
   isPremium: boolean;
   creditInfo?: {
     remaining: number;
+    type?: CreditType;
+    consumed?: number;
   };
+  // 🔄 NEW: API 실패 시 크레딧 자동 환불 함수
+  refundCreditsOnError?: (errorMessage: string, metadata?: Record<string, unknown>) => Promise<void>;
 }
 
 export interface RateLimitOptions {
@@ -251,8 +256,36 @@ export async function initializeApiContext(
 
     creditInfo = {
       remaining: creditResult.remaining || 0,
+      type: options.credits.type,
+      consumed: options.credits.amount || 1,
     };
   }
+
+  // 🔄 크레딧 자동 환불 함수 생성
+  const refundCreditsOnError = options.credits && userId
+    ? async (errorMessage: string, metadata?: Record<string, unknown>) => {
+        try {
+          await refundCredits({
+            userId: userId!,
+            creditType: options.credits!.type,
+            amount: options.credits!.amount || 1,
+            reason: 'api_error',
+            apiRoute: options.route,
+            errorMessage,
+            metadata,
+          });
+          logger.info('[Middleware] Credits refunded due to API error', {
+            userId,
+            route: options.route,
+            creditType: options.credits!.type,
+            amount: options.credits!.amount || 1,
+          });
+        } catch (error) {
+          logger.error('[Middleware] Failed to refund credits', { error });
+          // 환불 실패는 로그만 남기고 원래 에러를 그대로 던짐
+        }
+      }
+    : undefined;
 
   return {
     context: {
@@ -263,6 +296,7 @@ export async function initializeApiContext(
       isAuthenticated: !!session?.user,
       isPremium,
       creditInfo,
+      refundCreditsOnError,
     },
   };
 }

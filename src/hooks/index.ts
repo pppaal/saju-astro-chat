@@ -12,3 +12,10 @@ export {
 export { useUserProfile } from "./useUserProfile";
 export { useConsultationHistory } from "./useConsultationHistory";
 export { usePersonaMemory } from "./usePersonaMemory";
+
+// Life Prediction Hooks
+export { useLifePredictionProfile } from './useLifePredictionProfile';
+export { useLifePredictionPhase } from './useLifePredictionPhase';
+export { useLifePredictionState } from './useLifePredictionState';
+export { useLifePredictionAnimation } from './useLifePredictionAnimation';
+export { useLifePredictionAPI } from './useLifePredictionAPI';

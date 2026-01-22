@@ -222,10 +222,9 @@ export function validateAriaAttributes(
 /**
  * Check if alt text is meaningful
  */
-export function isValidAltText(alt: string | undefined): {
-  valid: boolean;
-  reason?: string;
-} {
+export function isValidAltText(
+  alt: string | undefined
+): { valid: true } | { valid: false; reason: string } {
   if (alt === undefined) {
     return { valid: false, reason: 'Alt attribute is missing' };
   }
@@ -459,7 +458,7 @@ export function generateAccessibilityReport(checks: {
       report.altText.checked++;
       const validation = isValidAltText(img.alt);
       if (!validation.valid) {
-        report.altText.invalid.push(validation.reason || 'Invalid');
+        report.altText.invalid.push(validation.reason);
         failedChecks++;
       }
       totalChecks++;
