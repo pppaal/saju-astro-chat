@@ -119,9 +119,9 @@ export function buildAdvancedTimingSection(
     // 프롬프트 컨텍스트 생성
     const advancedTimingContext = generateAdvancedTimingPromptContext(
       advancedScores,
-      lang
+      lang as 'ko' | 'en'
     );
-    const yearlyContext = generatePredictionPromptContext(yearlyPrediction, lang);
+    const yearlyContext = generatePredictionPromptContext(yearlyPrediction, lang as 'ko' | 'en');
 
     return `${advancedTimingContext}\n\n${yearlyContext}`;
   } catch (e) {
