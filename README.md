@@ -1,7 +1,7 @@
 # DestinyPal (Saju-Astro-Chat)
 
-[![Tests](https://img.shields.io/badge/tests-116%20passing-brightgreen)](./tests)
-[![Coverage](https://img.shields.io/badge/coverage-4.5%25-yellow)](./coverage)
+[![Tests](https://img.shields.io/badge/tests-22k%2B%20passing-brightgreen)](./tests)
+[![Coverage](https://img.shields.io/badge/coverage-81%25-brightgreen)](./coverage)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![Quality](https://img.shields.io/badge/quality-8.5%2F10-success)](./QUALITY_IMPROVEMENTS_SUMMARY.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
@@ -11,7 +11,7 @@ AI-assisted astrology, saju, tarot, and dream counseling platform with a Next.js
 ## 🎯 Project Quality: 8.5/10
 
 **Recent Improvements:**
-- ✅ 116 automated tests
+- ✅ 22,000+ automated tests (81% coverage)
 - ✅ Structured logging system
 - ✅ Standardized error handling
 - ✅ Comprehensive documentation
@@ -87,8 +87,8 @@ docker compose up --build
 - `npm run quality:check` - Full quality check with coverage
 
 ### Testing
-- `npm test` - Run all tests (116 tests)
-- `npm run test:coverage` - Run tests with coverage report
+- `npm test` - Run all tests (22,000+ tests)
+- `npm run test:coverage` - Run tests with coverage report (81% coverage)
 - `npm run test:backend` - Run backend AI tests
 - `npm run test:e2e:api` - Run API e2e tests
 
