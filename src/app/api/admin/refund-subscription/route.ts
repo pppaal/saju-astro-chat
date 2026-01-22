@@ -268,7 +268,7 @@ export async function POST(req: Request) {
       adminEmail,
       adminUserId,
       action: "refund_failed",
-      data: {
+      metadata: {
         error: err instanceof Error ? err.message : "Unknown error",
         body: await req.clone().json().catch(() => null),
       },

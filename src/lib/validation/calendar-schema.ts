@@ -64,7 +64,10 @@ export function validateInput<T>(
   const result = schema.safeParse(data);
 
   if (!result.success) {
-    const errors = result.error.errors.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ');
+    const issues = result.error?.issues || [];
+    const errors = issues.length > 0
+      ? issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ')
+      : 'Validation failed';
     return { success: false, error: errors };
   }
 
@@ -83,7 +86,10 @@ export async function validateInputAsync<T>(
     return { success: true, data: parsed };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errors = error.errors.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ');
+      const issues = error.issues || [];
+      const errors = issues.length > 0
+        ? issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ')
+        : 'Validation failed';
       return { success: false, error: errors };
     }
     return { success: false, error: 'Validation failed' };

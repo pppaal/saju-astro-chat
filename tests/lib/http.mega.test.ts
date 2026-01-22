@@ -11,11 +11,16 @@ describe('lib/http - enforceBodySize comprehensive tests', () => {
     if (contentLength !== undefined) {
       headers.set('content-length', contentLength);
     }
-    return new Request('http://localhost:3000/api/test', {
+
+    // Mock Request object that preserves our content-length header
+    const mockRequest = {
       method: 'POST',
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+      url: 'http://localhost:3000/api/test',
+      headers: headers,
+      body: body ? JSON.stringify(body) : null,
+    } as Request;
+
+    return mockRequest;
   };
 
   describe('Basic functionality', () => {
@@ -280,10 +285,14 @@ describe('lib/http - enforceBodySize comprehensive tests', () => {
     const createRequestWithMethod = (method: string, contentLength: string): Request => {
       const headers = new Headers();
       headers.set('content-length', contentLength);
-      return new Request('http://localhost:3000/api/test', {
+
+      // Mock Request to preserve content-length header
+      return {
         method,
+        url: 'http://localhost:3000/api/test',
         headers,
-      });
+        body: null,
+      } as Request;
     };
 
     it('should work with POST', () => {

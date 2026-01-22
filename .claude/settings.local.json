@@ -211,7 +211,8 @@
       "Bash(else echo \"No coverage file found\")",
       "Bash(for file in tests/lib/api/*.mega.test.ts tests/lib/*.mega.test.ts tests/lib/Saju/*.mega.test.ts tests/lib/accessibility/*.mega.test.ts)",
       "Bash(npx next lint:*)",
-      "Bash(gh pr list:*)"
+      "Bash(gh pr list:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

@@ -13,8 +13,19 @@ import {
   ASTRO_EVENT_CONDITIONS,
   TRANSIT_EVENT_CONDITIONS,
   EVENT_HOUSES,
-  MOON_PHASE_NAMES,
-} from './life-prediction-constants';
+} from './life-prediction/constants';
+
+// Moon phase names for display
+const MOON_PHASE_NAMES: Record<string, string> = {
+  'new_moon': '초승달',
+  'waxing_crescent': '상현달',
+  'first_quarter': '반달',
+  'waxing_gibbous': '보름달 전',
+  'full_moon': '보름달',
+  'waning_gibbous': '보름달 후',
+  'last_quarter': '하현달',
+  'waning_crescent': '그믐달',
+};
 
 // ============================================================
 // 점성 데이터 기반 스코어 보정

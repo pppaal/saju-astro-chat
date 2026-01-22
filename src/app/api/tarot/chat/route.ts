@@ -2,7 +2,7 @@
 // Tarot Chat API - Follow-up conversation about tarot readings
 
 import { NextRequest, NextResponse } from "next/server";
-import { initializeApiContext, createSimpleGuard } from "@/lib/api/middleware";
+import { initializeApiContext, createAuthenticatedGuard } from "@/lib/api/middleware";
 import { apiClient } from "@/lib/api/ApiClient";
 import { captureServerError } from "@/lib/telemetry";
 import {
@@ -133,19 +133,26 @@ function buildSystemInstruction(context: TarotContext, language: "ko" | "en") {
 }
 
 export async function POST(req: NextRequest) {
+  // Declare variables outside try block for error handling
+  let apiContext: Awaited<ReturnType<typeof initializeApiContext>>['context'] | undefined;
+  let messages: ChatMessage[] | undefined;
+  let context: TarotContext | null = null;
+
   try {
-    // Apply middleware: public token auth + rate limiting + credit consumption
-    const guardOptions = createPublicGuard({
+    // Apply middleware: auth + rate limiting + credit consumption
+    const guardOptions = createAuthenticatedGuard({
       route: "tarot-chat",
       limit: 20,
       windowSeconds: 60,
-      requireCredits: true,
-      creditType: "followUp", // 타로 후속 질문은 followUp 타입 사용
-      creditAmount: 1,
+      credits: {
+        type: "followUp", // 타로 후속 질문은 followUp 타입 사용
+        amount: 1,
+      },
     });
 
-    const { context: apiContext, error } = await initializeApiContext(req, guardOptions);
-    if (error) return error;
+    const initResult = await initializeApiContext(req, guardOptions);
+    if (initResult.error) return initResult.error;
+    apiContext = initResult.context;
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") {
@@ -159,8 +166,8 @@ export async function POST(req: NextRequest) {
     const language = typeof bodyObj.language === "string" && ALLOWED_TAROT_LANG.has(bodyObj.language as string)
       ? bodyObj.language as "ko" | "en"
       : "ko";
-    const messages = normalizeMessages(bodyObj.messages);
-    const context = sanitizeContext(bodyObj.context);
+    messages = normalizeMessages(bodyObj.messages);
+    context = sanitizeContext(bodyObj.context);
 
     if (!messages || messages.length === 0) {
       return NextResponse.json(
@@ -232,7 +239,7 @@ export async function POST(req: NextRequest) {
     logger.error("Tarot chat error:", { message: errorMessage, error: err });
 
     // 🔄 크레딧 자동 환불 (API 에러 발생 시)
-    if (apiContext.refundCreditsOnError) {
+    if (apiContext?.refundCreditsOnError) {
       await apiContext.refundCreditsOnError(errorMessage, {
         errorType: err instanceof Error ? err.constructor.name : 'UnknownError',
         hasMessages: !!messages,

@@ -15,6 +15,7 @@ export function enforceBodySize(
 
   const len = Number(lenHeader);
   if (!Number.isFinite(len)) return null;
+  if (len < 0) return null; // Negative values should be ignored
   if (len <= maxBytes) return null;
 
   const res = NextResponse.json(

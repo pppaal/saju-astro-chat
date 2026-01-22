@@ -220,8 +220,9 @@ export async function POST(request: NextRequest) {
     }, { timeout: 60000 });
 
     const success = response.ok;
-    const rawReply = response.ok && response.data
-      ? response.data?.fusion_layer || response.data?.report || fallbackReply
+    const data = response.data as { fusion_layer?: string; report?: string } | undefined;
+    const rawReply = response.ok && data
+      ? data.fusion_layer || data.report || fallbackReply
       : fallbackReply;
     const reply = maskTextWithName(sanitizeLocaleText(rawReply, lang), name);
 

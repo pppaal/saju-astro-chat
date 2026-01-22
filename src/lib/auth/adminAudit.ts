@@ -8,6 +8,7 @@ export interface AdminAuditParams {
   targetType?: string;
   targetId?: string;
   metadata?: Record<string, unknown>;
+  data?: Record<string, unknown>; // Legacy field alias for metadata
   success?: boolean;
   errorMessage?: string;
   ipAddress?: string;
@@ -46,7 +47,7 @@ export async function logAdminAction(params: AdminAuditParams): Promise<void> {
         action: params.action,
         targetType: params.targetType,
         targetId: params.targetId,
-        metadata: params.metadata || {},
+        metadata: params.metadata || params.data || {}, // Support both fields
         success: params.success !== false, // default true
         errorMessage: params.errorMessage,
         ipAddress: params.ipAddress,

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       route: "iching-changing-line",
       limit: 60,
       windowSeconds: 60,
-      requireCredits: false, // I Ching changing line doesn't consume credits
+      // No credits needed for I Ching changing line
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);

@@ -14,12 +14,12 @@ if (existsSync(prismaEnvPath)) {
 }
 
 export default defineConfig({
-  schema: 'prisma/schema.prisma',
+  schema: 'schema.prisma',
   migrations: {
-    path: 'prisma/migrations',
+    path: 'migrations',
   },
   datasource: {
-    url: process.env.TEST_DATABASE_URL || process.env.DATABASE_URL,
-    directUrl: process.env.DIRECT_DATABASE_URL,
+    // Using pooled connection since direct connection is blocked
+    url: process.env.DATABASE_URL,
   },
 })

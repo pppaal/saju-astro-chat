@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       route: "destiny-map",
       limit: 60,
       windowSeconds: 60,
-      requireCredits: false, // DestinyMap doesn't consume credits
+      // No credits needed for DestinyMap
     });
 
     const { context, error } = await initializeApiContext(request, guardOptions);

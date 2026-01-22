@@ -1,9 +1,12 @@
 // src/lib/db/prisma.ts
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { encryptToken } from '@/lib/security/tokenCrypto';
 import { logger } from '@/lib/logger';
+
+// Re-export Prisma namespace for type usage
+export { Prisma };
 
 // HMR/다중 import 방지(개발 환경)
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient; pool?: Pool };

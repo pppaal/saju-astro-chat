@@ -26,14 +26,19 @@ import {
   STEM_CLASHES,
   SIX_COMBOS,
   PARTIAL_TRINES,
-  CLASHES,
-  PUNISHMENTS,
-  CHEONEL_MAP,
-  YEOKMA_MAP,
-  MUNCHANG_MAP,
-  GEOPSAL_MAP,
+  BRANCH_CLASHES,
+  BRANCH_PUNISHMENTS,
   EVENT_FAVORABLE_CONDITIONS,
-} from './life-prediction-constants';
+} from './life-prediction/constants';
+
+// Temporary placeholders for undefined constants
+// TODO: Define these properly when shinsal logic is needed
+const CHEONEL_MAP: Record<string, string[]> = {};
+const YEOKMA_MAP: Record<string, string> = {};
+const MUNCHANG_MAP: Record<string, string> = {};
+const GEOPSAL_MAP: Record<string, string> = {};
+const CLASHES = BRANCH_CLASHES;
+const PUNISHMENTS = BRANCH_PUNISHMENTS;
 
 // ============================================================
 // 천간/지지 관계 분석
@@ -281,19 +286,6 @@ export function calculateDataCompleteness(input: LifePredictionInput): number {
   if (input.advancedAstro) completeness += 5;
 
   return Math.min(100, completeness);
-}
-
-// ============================================================
-// 12운성 사건 효과
-// ============================================================
-
-import { STAGE_EVENT_EFFECTS } from './life-prediction-constants';
-
-/**
- * 12운성별 특정 사건 효과
- */
-export function getStageEventEffect(stage: string, category: string): string | null {
-  return STAGE_EVENT_EFFECTS[stage]?.[category] || null;
 }
 
 // ============================================================

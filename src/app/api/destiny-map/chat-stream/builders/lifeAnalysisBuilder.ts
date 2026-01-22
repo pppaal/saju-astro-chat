@@ -160,13 +160,18 @@ export function buildMultiYearTrendSection(
     }
 
     // MultiYearTrend를 간단한 문자열로 변환
+    const peakYearsStr = trendAnalysis.peakYears.slice(0, 3).join(', ');
+    const lowYearsStr = trendAnalysis.lowYears.slice(0, 3).join(', ');
+
     const trendSummary = [
       `=== ${lang === 'ko' ? '다년간 인생 예측' : 'Multi-Year Life Prediction'} ===`,
       `${lang === 'ko' ? '분석 기간' : 'Period'}: ${startYear}-${endYear}`,
       `${lang === 'ko' ? '총 기간 수' : 'Total Periods'}: ${trendAnalysis.yearlyScores.length}`,
-      `${lang === 'ko' ? '평균 점수' : 'Average Score'}: ${trendAnalysis.overallTrend.averageScore.toFixed(1)}`,
-      `${lang === 'ko' ? '최고 점수' : 'Peak Score'}: ${trendAnalysis.overallTrend.peak.score.toFixed(1)} (${trendAnalysis.overallTrend.peak.year}${lang === 'ko' ? '년' : ''})`,
-      `${lang === 'ko' ? '최저 점수' : 'Low Score'}: ${trendAnalysis.overallTrend.low.score.toFixed(1)} (${trendAnalysis.overallTrend.low.year}${lang === 'ko' ? '년' : ''})`,
+      `${lang === 'ko' ? '전체 트렌드' : 'Overall Trend'}: ${trendAnalysis.overallTrend}`,
+      `${lang === 'ko' ? '최고의 해' : 'Peak Years'}: ${peakYearsStr || 'N/A'}`,
+      `${lang === 'ko' ? '도전의 해' : 'Challenge Years'}: ${lowYearsStr || 'N/A'}`,
+      '',
+      trendAnalysis.summary,
       '',
       `${lang === 'ko' ? '위 분석을 바탕으로 인생 전반의 흐름을 설명하고 조언을 제공하세요.' : 'Based on the analysis above, explain the overall life flow and provide advice.'}`,
     ].join('\n');

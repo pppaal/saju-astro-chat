@@ -32,12 +32,14 @@ import {
 import {
   generateWeeklyPrediction,
   generateUltraPrecisionPromptContext,
+} from "@/lib/prediction/ultraPrecisionEngine";
+import {
   analyzeGongmang,
   analyzeShinsal,
   analyzeEnergyFlow,
   generateHourlyAdvice,
   calculateDailyPillar,
-} from "@/lib/prediction/ultraPrecisionEngine";
+} from "@/lib/prediction/ultra-precision-daily";
 import {
   findBestDates,
   findYongsinActivationPeriods,
@@ -93,6 +95,15 @@ import {
   generateTier3Analysis,
   generateTier4Analysis,
 } from "./analysis";
+
+// Handlers
+import { loadOrComputeAllData } from "./handlers/dataLoader";
+
+// Builders
+import { buildAdvancedTimingSection } from "./builders/advancedTimingBuilder";
+import { buildDailyPrecisionSection } from "./builders/dailyPrecisionBuilder";
+import { buildDaeunTransitSection } from "./builders/daeunTransitBuilder";
+import { buildPastAnalysisSection, buildMultiYearTrendSection } from "./builders/lifeAnalysisBuilder";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -473,610 +484,68 @@ export async function POST(req: NextRequest) {
       : `Current theme: ${theme} (${themeDesc.en})\nFocus your answer on this theme.`;
 
     // ========================================
-    // 📅 ADVANCED TIMING SCORE: Multi-layer + Branch Interactions
+    // 📅 ADVANCED ANALYSIS SECTIONS: Using modular builders
     // ========================================
-    // 천간→오행 매핑 (로컬 헬퍼)
-    const STEMS_MAP: Record<string, FiveElement> = {
-      '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토',
-      '己': '토', '庚': '금', '辛': '금', '壬': '수', '癸': '수',
-    };
-
     let timingScoreSection = "";
-    if (saju?.dayMaster && (theme === "year" || theme === "month" || theme === "today" || theme === "life" || theme === "chat")) {
-      try {
-        const dayStem = saju.dayMaster?.heavenlyStem || '甲';
-        const dayBranch = saju?.pillars?.day?.earthlyBranch?.name || '子';
-        const dayElement = (saju.dayMaster?.element as FiveElement) || '토';
-        const yongsin: FiveElement[] = saju?.advancedAnalysis?.yongsin?.primary
-          ? [saju.advancedAnalysis.yongsin.primary]
-          : [];
-        const kisin: FiveElement[] = saju?.advancedAnalysis?.yongsin?.avoid
-          ? [saju.advancedAnalysis.yongsin.avoid]
-          : [];
+    let enhancedAnalysisSection = "";
+    let daeunTransitSection = "";
+    let advancedAstroSection = "";
+    let tier4AdvancedSection = "";
+    let pastAnalysisSection = "";
+    let lifePredictionSection = "";
 
-        // 현재 대운 추출
+    if (saju?.dayMaster) {
+      try {
+        // Current year and age calculation
         const currentYear = new Date().getFullYear();
-        const currentMonth = new Date().getMonth() + 1;
         const birthYear = effectiveBirthDate ? extractBirthYear(effectiveBirthDate) : undefined;
         const currentAge = birthYear ? currentYear - birthYear : undefined;
-        let currentDaeun: { stem: string; branch: string } | undefined;
 
-        if (saju?.unse?.daeun && currentAge) {
-          const daeunList = saju.unse.daeun as Array<{ startAge?: number; stem?: string; heavenlyStem?: string; branch?: string; earthlyBranch?: string }>;
-          for (const d of daeunList) {
-            const startAge = d.startAge ?? 0;
-            if (currentAge >= startAge && currentAge < (startAge + 10)) {
-              currentDaeun = {
-                stem: d.stem || d.heavenlyStem || '甲',
-                branch: d.branch || d.earthlyBranch || '子',
-              };
-              break;
-            }
-          }
-        }
+        // Build all analysis sections using modular builders
+        timingScoreSection = buildAdvancedTimingSection(
+          saju,
+          effectiveBirthDate,
+          theme,
+          lang
+        );
 
-        // 고급 월별 점수 계산 (향후 6개월)
-        const advancedScores: LayeredTimingScore[] = [];
-        for (let i = 0; i < 6; i++) {
-          let targetMonth = currentMonth + i;
-          let targetYear = currentYear;
-          if (targetMonth > 12) {
-            targetMonth -= 12;
-            targetYear++;
-          }
+        enhancedAnalysisSection = buildDailyPrecisionSection(
+          saju,
+          theme,
+          lang
+        );
 
-          const score = calculateAdvancedMonthlyScore({
-            year: targetYear,
-            month: targetMonth,
-            dayStem,
-            dayBranch,
-            daeun: currentDaeun,
-            yongsin,
-            kisin,
-          });
-          advancedScores.push(score);
-        }
+        daeunTransitSection = buildDaeunTransitSection(
+          saju,
+          effectiveBirthDate,
+          lang
+        );
 
-        // 기본 연간 예측도 병행 (호환성 유지)
-        const yearlyPrediction = generateYearlyPrediction({
-          year: currentYear,
-          dayStem,
-          dayElement,
-          yongsin,
-          kisin,
-          currentDaeunElement: currentDaeun ? (STEMS_MAP[currentDaeun.stem] || '토') : undefined,
-          birthYear,
-        });
+        pastAnalysisSection = buildPastAnalysisSection(
+          saju,
+          astro,
+          effectiveBirthDate,
+          lastUser?.content || '',
+          lang
+        );
 
-        // ========================================
-        // 🔮 TIER 1 개선: 공망/신살/에너지/시간대 분석 (모든 테마에 추가)
-        // ========================================
-        let enhancedAnalysisSection = "";
-        try {
-          const today = new Date();
-          const dailyPillar = calculateDailyPillar(today);
-          const monthBranchVal = saju?.pillars?.month?.earthlyBranch?.name || '子';
-          const yearBranchVal = saju?.pillars?.year?.earthlyBranch?.name || '子';
-          const allStemsArr = [
-            saju?.pillars?.year?.heavenlyStem?.name,
-            saju?.pillars?.month?.heavenlyStem?.name,
-            dayStem,
-            saju?.pillars?.time?.heavenlyStem?.name,
-          ].filter((x): x is string => Boolean(x));
-          const allBranchesArr = [yearBranchVal, monthBranchVal, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter((x): x is string => Boolean(x));
+        lifePredictionSection = buildMultiYearTrendSection(
+          saju,
+          astro,
+          effectiveBirthDate,
+          theme,
+          lang
+        );
 
-          // 공망 분석
-          const gongmangResult = analyzeGongmang(dayStem, dayBranch, dailyPillar.branch);
+        advancedAstroSection = generateTier3Analysis({ saju, astro, lang }).section;
+        tier4AdvancedSection = generateTier4Analysis({
+          natalChartData: natalChartData || null,
+          userAge: currentAge,
+          currentYear,
+          lang,
+        }).section;
 
-          // 신살 분석
-          const shinsalResult = analyzeShinsal(dayBranch, dailyPillar.branch);
-
-          // 에너지 흐름 분석
-          const energyResult = analyzeEnergyFlow(dayStem, allStemsArr, allBranchesArr);
-
-          // 시간대별 조언
-          const hourlyResult = generateHourlyAdvice(dailyPillar.stem, dailyPillar.branch);
-          const excellentHours = hourlyResult.filter(h => h.quality === 'excellent').map(h => `${h.hour}시(${h.siGan})`);
-          const goodHours = hourlyResult.filter(h => h.quality === 'good').map(h => `${h.hour}시`);
-          const cautionHours = hourlyResult.filter(h => h.quality === 'caution').map(h => `${h.hour}시`);
-
-          const enhancedParts: string[] = [
-            "",
-            "═══════════════════════════════════════════════════════════════",
-            lang === "ko" ? "[🔮 오늘의 정밀 분석 - 공망/신살/에너지/시간대]" : "[🔮 TODAY'S PRECISION ANALYSIS - Gongmang/Shinsal/Energy/Hours]",
-            "═══════════════════════════════════════════════════════════════",
-            "",
-            lang === "ko" ? `📅 오늘 일진: ${dailyPillar.stem}${dailyPillar.branch}` : `📅 Today: ${dailyPillar.stem}${dailyPillar.branch}`,
-          ];
-
-          // 공망 상태
-          if (gongmangResult.isToday空) {
-            enhancedParts.push(lang === "ko"
-              ? `⚠️ 공망: ${gongmangResult.emptyBranches.join(', ')} 공망 - ${gongmangResult.affectedAreas.join(', ')} 관련 신중히`
-              : `⚠️ Gongmang: ${gongmangResult.emptyBranches.join(', ')} empty - Be careful with ${gongmangResult.affectedAreas.join(', ')}`);
-          } else {
-            enhancedParts.push(lang === "ko"
-              ? `✅ 공망: 영향 없음 (${gongmangResult.emptyBranches.join(', ')}는 공망이나 오늘과 무관)`
-              : `✅ Gongmang: No effect today`);
-          }
-
-          // 신살 분석
-          if (shinsalResult.active.length > 0) {
-            const luckyShinsals = shinsalResult.active.filter(s => s.type === 'lucky');
-            const unluckyShinsals = shinsalResult.active.filter(s => s.type === 'unlucky');
-            const specialShinsals = shinsalResult.active.filter(s => s.type === 'special');
-
-            if (luckyShinsals.length > 0) {
-              enhancedParts.push(lang === "ko"
-                ? `✨ 길신: ${luckyShinsals.map(s => `${s.name}(${s.affectedArea})`).join(', ')}`
-                : `✨ Lucky: ${luckyShinsals.map(s => `${s.name}(${s.affectedArea})`).join(', ')}`);
-            }
-            if (unluckyShinsals.length > 0) {
-              enhancedParts.push(lang === "ko"
-                ? `⚠️ 흉신: ${unluckyShinsals.map(s => `${s.name}(${s.affectedArea})`).join(', ')}`
-                : `⚠️ Caution: ${unluckyShinsals.map(s => `${s.name}(${s.affectedArea})`).join(', ')}`);
-            }
-            if (specialShinsals.length > 0) {
-              enhancedParts.push(lang === "ko"
-                ? `🔄 특수: ${specialShinsals.map(s => `${s.name}(${s.affectedArea})`).join(', ')}`
-                : `🔄 Special: ${specialShinsals.map(s => `${s.name}(${s.affectedArea})`).join(', ')}`);
-            }
-          } else {
-            enhancedParts.push(lang === "ko" ? `📊 신살: 특별한 신살 없음` : `📊 Shinsal: None active`);
-          }
-
-          // 에너지 강도
-          const energyLabels: Record<string, { ko: string; en: string }> = {
-            'very_strong': { ko: '매우 강함', en: 'Very Strong' },
-            'strong': { ko: '강함', en: 'Strong' },
-            'moderate': { ko: '보통', en: 'Moderate' },
-            'weak': { ko: '약함', en: 'Weak' },
-            'very_weak': { ko: '매우 약함', en: 'Very Weak' },
-          };
-          const energyLabel = energyLabels[energyResult.energyStrength] || { ko: '보통', en: 'Moderate' };
-          enhancedParts.push(lang === "ko"
-            ? `⚡ 에너지: ${energyResult.dominantElement} 기운 ${energyLabel.ko} (통근 ${energyResult.tonggeun.length}개, 투출 ${energyResult.tuechul.length}개)`
-            : `⚡ Energy: ${energyResult.dominantElement} ${energyLabel.en} (Roots: ${energyResult.tonggeun.length}, Revealed: ${energyResult.tuechul.length})`);
-
-          // 최적 시간대
-          enhancedParts.push("");
-          if (excellentHours.length > 0) {
-            enhancedParts.push(lang === "ko"
-              ? `🌟 최적 시간: ${excellentHours.slice(0, 4).join(', ')}`
-              : `🌟 Best Hours: ${excellentHours.slice(0, 4).join(', ')}`);
-          }
-          if (goodHours.length > 0) {
-            enhancedParts.push(lang === "ko"
-              ? `👍 좋은 시간: ${goodHours.slice(0, 4).join(', ')}`
-              : `👍 Good Hours: ${goodHours.slice(0, 4).join(', ')}`);
-          }
-          if (cautionHours.length > 0) {
-            enhancedParts.push(lang === "ko"
-              ? `⚠️ 주의 시간: ${cautionHours.slice(0, 3).join(', ')}`
-              : `⚠️ Caution Hours: ${cautionHours.slice(0, 3).join(', ')}`);
-          }
-
-          enhancedParts.push("");
-          enhancedAnalysisSection = enhancedParts.join("\n");
-          logger.warn(`[chat-stream] Enhanced analysis: Gongmang=${gongmangResult.isToday空}, Shinsal=${shinsalResult.active.length}, Energy=${energyResult.energyStrength}`);
-        } catch (e) {
-          logger.warn("[chat-stream] Failed to generate enhanced analysis:", e);
-        }
-
-        // ========================================
-        // 🔮 TIER 2 개선: 대운-트랜짓 동기화 + 과거 분석
-        // ========================================
-        let daeunTransitSection = "";
-        try {
-          // 대운 리스트가 있으면 트랜짓 동기화 분석
-          if (saju?.unse?.daeun && currentAge) {
-            const daeunList: DaeunInfo[] = convertSajuDaeunToInfo(saju.unse.daeun);
-            if (daeunList.length > 0) {
-              const syncAnalysis = analyzeDaeunTransitSync(daeunList, birthYear || currentYear - (currentAge || 30), currentAge);
-
-              const daeunParts: string[] = [
-                "",
-                "═══════════════════════════════════════════════════════════════",
-                lang === "ko" ? "[🌟 대운-트랜짓 동기화 분석 - 동양+서양 통합]" : "[🌟 DAEUN-TRANSIT SYNC - East+West Integration]",
-                "═══════════════════════════════════════════════════════════════",
-                "",
-              ];
-
-              // 인생 패턴
-              daeunParts.push(lang === "ko"
-                ? `📈 인생 패턴: ${syncAnalysis.lifeCyclePattern}`
-                : `📈 Life Pattern: ${syncAnalysis.lifeCyclePattern}`);
-              daeunParts.push(lang === "ko"
-                ? `📊 분석 신뢰도: ${syncAnalysis.overallConfidence}%`
-                : `📊 Confidence: ${syncAnalysis.overallConfidence}%`);
-
-              // 주요 전환점 (최대 3개)
-              if (syncAnalysis.majorTransitions.length > 0) {
-                daeunParts.push("");
-                daeunParts.push(lang === "ko" ? "--- 주요 전환점 ---" : "--- Major Transitions ---");
-                for (const point of syncAnalysis.majorTransitions.slice(0, 3)) {
-                  const marker = point.age === currentAge ? "★현재★ " : "";
-                  daeunParts.push(lang === "ko"
-                    ? `${marker}${point.age}세 (${point.year}년): ${point.synergyType} | 점수 ${point.synergyScore}`
-                    : `${marker}Age ${point.age} (${point.year}): ${point.synergyType} | Score ${point.synergyScore}`);
-                  if (point.themes.length > 0) {
-                    daeunParts.push(`  → ${point.themes.slice(0, 2).join(', ')}`);
-                  }
-                }
-              }
-
-              // 피크/도전 연도
-              if (syncAnalysis.peakYears.length > 0) {
-                daeunParts.push("");
-                daeunParts.push(lang === "ko"
-                  ? `🌟 최고 시기: ${syncAnalysis.peakYears.slice(0, 3).map(p => `${p.age}세(${p.year}년)`).join(', ')}`
-                  : `🌟 Peak Years: ${syncAnalysis.peakYears.slice(0, 3).map(p => `Age ${p.age}(${p.year})`).join(', ')}`);
-              }
-              if (syncAnalysis.challengeYears.length > 0) {
-                daeunParts.push(lang === "ko"
-                  ? `⚡ 도전 시기: ${syncAnalysis.challengeYears.slice(0, 3).map(p => `${p.age}세(${p.year}년)`).join(', ')}`
-                  : `⚡ Challenge Years: ${syncAnalysis.challengeYears.slice(0, 3).map(p => `Age ${p.age}(${p.year})`).join(', ')}`);
-              }
-
-              daeunParts.push("");
-              daeunTransitSection = daeunParts.join("\n");
-              logger.warn(`[chat-stream] Daeun-Transit sync: ${syncAnalysis.majorTransitions.length} transitions, confidence ${syncAnalysis.overallConfidence}%`);
-            }
-          }
-        } catch (e) {
-          logger.warn("[chat-stream] Failed to generate daeun-transit sync:", e);
-        }
-
-        // ========================================
-        // 🔮 TIER 3: 고급 점성술 + 사주 패턴 분석 (모듈화)
-        // ========================================
-        let advancedAstroSection = "";
-        try {
-          const tier3Result = generateTier3Analysis({ saju, astro, lang });
-          advancedAstroSection = tier3Result.section;
-          logger.warn(`[chat-stream] TIER 3 analysis completed`);
-        } catch (e) {
-          logger.warn("[chat-stream] Failed to generate TIER 3 analysis:", e);
-        }
-
-        // ========================================
-        // 🌟 TIER 4: 고급 점성술 확장 (모듈화)
-        // ========================================
-        let tier4AdvancedSection = "";
-        try {
-          const userAge = currentAge || (birthYear ? currentYear - birthYear : undefined);
-          const tier4Result = generateTier4Analysis({
-            natalChartData: natalChartData || null,
-            userAge,
-            currentYear,
-            lang,
-          });
-          tier4AdvancedSection = tier4Result.section;
-          logger.warn(`[chat-stream] TIER 4 analysis completed`);
-        } catch (e) {
-          logger.warn("[chat-stream] Failed to generate TIER 4 analysis:", e);
-        }
-
-        // 구체적 날짜 추천 (질문에 특정 활동이 포함된 경우)
-        let specificDateSection = "";
-        const questionLower = userQuestion?.toLowerCase() || "";
-
-        // 과거 분석 (과거 날짜 질문인 경우)
-        let pastAnalysisSection = "";
-        const pastKeywords = ['그때', '그 때', '그날', '과거', '전에', '이전', 'back then', 'that time', 'in the past', '왜 그랬', '무슨 일', '작년', '재작년', '몇년전', '몇 년 전'];
-        const isPastQuestion = pastKeywords.some(kw => questionLower.includes(kw));
-
-        // 과거 분석 활성화 (TIER 2)
-        if (isPastQuestion && birthYear) {
-          try {
-            const monthBranchVal = saju?.pillars?.month?.earthlyBranch?.name || '子';
-            const yearBranchVal = saju?.pillars?.year?.earthlyBranch?.name || '子';
-            const allStemsArr = [
-              saju?.pillars?.year?.heavenlyStem?.name,
-              saju?.pillars?.month?.heavenlyStem?.name,
-              dayStem,
-              saju?.pillars?.time?.heavenlyStem?.name,
-            ].filter((x): x is string => Boolean(x));
-            const allBranchesArr = [yearBranchVal, monthBranchVal, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter((x): x is string => Boolean(x));
-
-            // 작년 또는 재작년 분석 (기본값)
-            const yearsAgoMatch = questionLower.match(/(\d+)\s*년\s*전|(\d+)\s*years?\s*ago/);
-            let targetYear = currentYear - 1; // 기본: 작년
-
-            if (yearsAgoMatch) {
-              const yearsAgo = parseInt(yearsAgoMatch[1] || yearsAgoMatch[2]);
-              targetYear = currentYear - yearsAgo;
-            } else if (questionLower.includes('재작년') || questionLower.includes('year before last')) {
-              targetYear = currentYear - 2;
-            }
-
-            // 과거 날짜 분석
-            const pastDate = new Date(targetYear, 6, 1); // 해당 연도 중간
-            const predictionInput: LifePredictionInput = {
-              birthYear,
-              birthMonth: extractBirthMonth(effectiveBirthDate),
-              birthDay: extractBirthDay(effectiveBirthDate),
-              gender: effectiveGender as 'male' | 'female',
-              dayStem,
-              dayBranch,
-              monthBranch: monthBranchVal,
-              yearBranch: yearBranchVal,
-              allStems: allStemsArr,
-              allBranches: allBranchesArr,
-            };
-
-            const retrospective = analyzePastDate(predictionInput, pastDate);
-            const pastParts: string[] = [
-              "",
-              "═══════════════════════════════════════════════════════════════",
-              lang === "ko" ? `[📚 과거 회고 분석 - ${targetYear}년]` : `[📚 PAST RETROSPECTIVE - ${targetYear}]`,
-              "═══════════════════════════════════════════════════════════════",
-              "",
-              generatePastAnalysisPromptContext(retrospective, lang as "ko" | "en"),
-              "",
-              lang === "ko"
-                ? "위 과거 분석을 참고하여 그 시기에 무슨 일이 있었을지, 왜 그랬는지 설명해주세요."
-                : "Use the retrospective above to explain what happened during that period and why.",
-              "",
-            ];
-
-            pastAnalysisSection = pastParts.join("\n");
-            logger.warn(`[chat-stream] Past analysis: ${targetYear}, score ${retrospective.score}`);
-          } catch (e) {
-            logger.warn("[chat-stream] Failed to generate past analysis:", e);
-          }
-        }
-
-        const activityKeywords: { keywords: string[]; activity: ActivityType }[] = [
-          { keywords: ['결혼', '혼례', '웨딩', 'marry', 'wedding', 'marriage'], activity: 'marriage' },
-          { keywords: ['약혼', 'engage', 'engagement'], activity: 'engagement' },
-          { keywords: ['이사', 'move', 'moving', '입주'], activity: 'moving' },
-          { keywords: ['사업', '창업', '개업', 'business', 'start company', 'opening'], activity: 'opening' },
-          { keywords: ['계약', 'contract', '서명', 'sign'], activity: 'contract' },
-          { keywords: ['면접', 'interview', '취업'], activity: 'interview' },
-          { keywords: ['투자', 'invest', '주식', 'stock', '부동산'], activity: 'investment' },
-          { keywords: ['여행', 'travel', 'trip', '휴가'], activity: 'travel' },
-          { keywords: ['수술', 'surgery', '치료', 'operation'], activity: 'surgery' },
-          { keywords: ['미팅', 'meeting', '회의', '상담'], activity: 'meeting' },
-          { keywords: ['고백', '프로포즈', 'propose', 'confession', '데이트'], activity: 'proposal' },
-          { keywords: ['시험', '공부', 'exam', 'test', 'study', '학습'], activity: 'study' },
-          { keywords: ['이직', 'job change', 'career change', '퇴사', '전직'], activity: 'career_change' },
-          { keywords: ['협상', 'negotiation', '거래'], activity: 'negotiation' },
-        ];
-
-        let detectedActivity: ActivityType | null = null;
-        for (const { keywords, activity } of activityKeywords) {
-          if (keywords.some(kw => questionLower.includes(kw))) {
-            detectedActivity = activity;
-            break;
-          }
-        }
-
-        // 날짜 관련 질문인지 확인
-        const isDateQuestion = [
-          '언제', '날짜', '시기', '때', 'when', 'date', 'time', 'timing',
-          '좋은 날', '길일', '최적', 'best day', 'good day', '추천'
-        ].some(kw => questionLower.includes(kw));
-
-        if (detectedActivity && isDateQuestion) {
-          try {
-            const monthBranch = saju?.pillars?.month?.earthlyBranch?.name || '子';
-            const yearBranch = saju?.pillars?.year?.earthlyBranch?.name || '子';
-            const allStems = [
-              saju?.pillars?.year?.heavenlyStem?.name,
-              saju?.pillars?.month?.heavenlyStem?.name,
-              dayStem,
-              saju?.pillars?.time?.heavenlyStem?.name,
-            ].filter((x): x is string => Boolean(x));
-            const allBranches = [yearBranch, monthBranch, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter((x): x is string => Boolean(x));
-
-            // 용신 추출
-            const primaryYongsin = saju?.advancedAnalysis?.yongsin?.primary;
-
-            const recommendations = findBestDates({
-              activity: detectedActivity,
-              dayStem,
-              dayBranch,
-              monthBranch,
-              yearBranch,
-              allStems,
-              allBranches,
-              yongsin: primaryYongsin,
-              startDate: new Date(),
-              searchDays: 60,
-              topN: 5,
-            });
-
-            if (recommendations.length > 0) {
-              specificDateSection = [
-                "",
-                "═══════════════════════════════════════════════════════════════",
-                lang === "ko" ? `[📅 ${detectedActivity} 최적 날짜 추천]` : `[📅 Best Dates for ${detectedActivity}]`,
-                "═══════════════════════════════════════════════════════════════",
-                generateSpecificDatePromptContext(recommendations, detectedActivity, lang as "ko" | "en"),
-                "",
-                lang === "ko"
-                  ? "위 구체적 날짜와 시간을 기반으로 사용자에게 추천하세요. 각 날짜의 점수와 이유를 설명하세요."
-                  : "Recommend specific dates and times based on the above. Explain the scores and reasons.",
-                "",
-              ].join("\n");
-
-              logger.warn(`[chat-stream] Specific date recommendations: ${recommendations.length} for ${detectedActivity}`);
-            }
-
-            // 용신 활성화 시점도 추가
-            if (primaryYongsin) {
-              const activations = findYongsinActivationPeriods(
-                primaryYongsin,
-                dayStem,
-                new Date(),
-                60
-              );
-
-              if (activations.length > 0) {
-                specificDateSection += [
-                  "",
-                  generateYongsinPromptContext(activations.slice(0, 5), primaryYongsin, lang as "ko" | "en"),
-                ].join("\n");
-                logger.warn(`[chat-stream] Yongsin activation periods: ${activations.length} for ${primaryYongsin}`);
-              }
-            }
-          } catch (e) {
-            logger.warn("[chat-stream] Failed to generate specific date recommendations:", e);
-          }
-        }
-
-        // 초정밀 일별 분석 (today 테마일 경우)
-        let dailyAnalysisSection = "";
-        if (theme === "today") {
-          try {
-            const monthBranch = saju?.pillars?.month?.earthlyBranch?.name || '子';
-            const yearBranch = saju?.pillars?.year?.earthlyBranch?.name || '子';
-            const allStems = [
-              saju?.pillars?.year?.heavenlyStem?.name,
-              saju?.pillars?.month?.heavenlyStem?.name,
-              dayStem,
-              saju?.pillars?.time?.heavenlyStem?.name,
-            ].filter((x): x is string => Boolean(x));
-            const allBranches = [yearBranch, monthBranch, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter((x): x is string => Boolean(x));
-
-            const weeklyScores = generateWeeklyPrediction(
-              new Date(),
-              dayStem,
-              dayBranch,
-              monthBranch,
-              yearBranch,
-              allStems,
-              allBranches
-            );
-
-            dailyAnalysisSection = [
-              "",
-              "--- 초정밀 일별 분석 (일진+공망+신살+통근투출) ---",
-              generateUltraPrecisionPromptContext(weeklyScores, lang as "ko" | "en"),
-            ].join("\n");
-
-            logger.warn(`[chat-stream] Ultra-precision daily analysis: ${weeklyScores.length} days`);
-          } catch (e) {
-            logger.warn("[chat-stream] Failed to generate daily analysis:", e);
-          }
-        }
-
-        // 🔮 다년간 인생 예측 분석 (theme이 future, life-plan, career, marriage 등일 때)
-        let lifePredictionSection = "";
-        const lifePredictionThemes = ["future", "life-plan", "career", "marriage", "investment", "money", "love"];
-        if (lifePredictionThemes.includes(theme) || theme === "general") {
-          try {
-            const birthYear = extractBirthYear(effectiveBirthDate);
-            const birthMonth = extractBirthMonth(effectiveBirthDate);
-            const birthDayNum = extractBirthDay(effectiveBirthDate);
-            const monthBranch = saju?.pillars?.month?.earthlyBranch?.name || '子';
-            const yearBranchVal = saju?.pillars?.year?.earthlyBranch?.name || '子';
-            const allStems = [
-              saju?.pillars?.year?.heavenlyStem?.name,
-              saju?.pillars?.month?.heavenlyStem?.name,
-              dayStem,
-              saju?.pillars?.time?.heavenlyStem?.name,
-            ].filter((x): x is string => Boolean(x));
-            const allBranches = [yearBranchVal, monthBranch, dayBranch, saju?.pillars?.time?.earthlyBranch?.name].filter((x): x is string => Boolean(x));
-
-            // 대운 정보 추출
-            const daeunData = (saju?.daeun?.cycles || saju?.daeunCycles || []) as unknown[];
-            const daeunList = daeunData.length > 0 ? convertSajuDaeunToInfo(daeunData as DaeunInfo[]) : undefined;
-
-            // 용신/기신 추출
-            const yongsinData = (saju?.yongsin as { elements?: unknown })?.elements || saju?.yongsin;
-            const kisinData = (saju?.kisin as { elements?: unknown })?.elements || saju?.kisin;
-
-            const predictionInput: LifePredictionInput = {
-              birthYear,
-              birthMonth,
-              birthDay: birthDayNum,
-              gender: effectiveGender as 'male' | 'female',
-              dayStem,
-              dayBranch,
-              monthBranch,
-              yearBranch: yearBranchVal,
-              allStems,
-              allBranches,
-              daeunList,
-              yongsin: yongsinData as FiveElement[] | undefined,
-              kisin: kisinData as FiveElement[] | undefined,
-            };
-
-            const currentYear = new Date().getFullYear();
-            const multiYearTrend = analyzeMultiYearTrend(predictionInput, currentYear - 2, currentYear + 8);
-
-            const lifePredictionParts: string[] = [
-              "",
-              "═══════════════════════════════════════════════════════════════",
-              lang === "ko" ? "[🔮 다년간 인생 예측 - 트렌드 + 대운 전환점]" : "[🔮 MULTI-YEAR LIFE PREDICTION - Trends + Daeun Transitions]",
-              "═══════════════════════════════════════════════════════════════",
-              generateLifePredictionPromptContext({
-                input: predictionInput,
-                generatedAt: new Date(),
-                multiYearTrend,
-                upcomingHighlights: [],
-                confidence: daeunList ? 85 : 70,
-              }, lang as "ko" | "en"),
-            ];
-
-            // 테마별 이벤트 타이밍 분석 추가
-            const eventTypeMap: Record<string, EventType> = {
-              'marriage': 'marriage',
-              'love': 'relationship',
-              'career': 'career',
-              'investment': 'investment',
-              'money': 'investment',
-            };
-            const eventType = eventTypeMap[theme];
-            if (eventType) {
-              const eventTiming = findOptimalEventTiming(predictionInput, eventType, currentYear, currentYear + 3);
-              lifePredictionParts.push("");
-              lifePredictionParts.push(lang === "ko" ? `--- ${eventType} 최적 타이밍 ---` : `--- ${eventType} Optimal Timing ---`);
-              lifePredictionParts.push(generateEventTimingPromptContext(eventTiming, lang as "ko" | "en"));
-            }
-
-            lifePredictionParts.push("");
-            lifePredictionParts.push(
-              lang === "ko"
-                ? "위 다년간 트렌드와 대운 전환점을 참고하여 장기적 관점의 조언을 제공하세요."
-                : "Use the multi-year trends and daeun transitions above for long-term perspective advice."
-            );
-
-            lifePredictionSection = lifePredictionParts.join("\n");
-            logger.warn(`[chat-stream] Life prediction: ${multiYearTrend.yearlyScores.length} years, trend: ${multiYearTrend.overallTrend}`);
-          } catch (e) {
-            logger.warn("[chat-stream] Failed to generate life prediction:", e);
-          }
-        }
-
-        // 프롬프트용 컨텍스트 생성 (고급 + 기본 + 일별 + 구체적 날짜 + 인생 예측 + 강화 분석 + 고급 사주 + TIER 4 병합)
-        timingScoreSection = [
-          "",
-          "═══════════════════════════════════════════════════════════════",
-          lang === "ko" ? "[📅 정밀 월별 타이밍 분석 - 다층 레이어 + 합충형]" : "[📅 ADVANCED MONTHLY TIMING - Multi-layer + Branch Interactions]",
-          "═══════════════════════════════════════════════════════════════",
-          generateAdvancedTimingPromptContext(advancedScores, lang as "ko" | "en"),
-          enhancedAnalysisSection,  // 🔮 오늘의 공망/신살/에너지/시간대 분석
-          daeunTransitSection,      // 🌟 대운-트랜짓 동기화 분석
-          advancedAstroSection,     // 🌙 고급 점성술 (달 위상/역행/패턴)
-          tier4AdvancedSection,     // 🌟 TIER 4 (하모닉/이클립스/항성)
-          dailyAnalysisSection,
-          specificDateSection,      // 📅 구체적 날짜/시간 추천 추가
-          lifePredictionSection,    // 🔮 다년간 인생 예측 추가
-          pastAnalysisSection,      // 📚 과거 분석 (있을 경우)
-          "",
-          "--- 연간 종합 ---",
-          generatePredictionPromptContext(yearlyPrediction, lang as "ko" | "en"),
-          "",
-          lang === "ko"
-            ? "위 정밀 점수(12운성, 합충형, 다층 레이어, 일진, 공망, 신살, 대운-트랜짓, 달위상, 역행, 사주 패턴, 하모닉, 이클립스, 항성, 구체적 날짜 추천)를 참고하여 '3월 15일 오전 10시' 같은 구체적 시기를 제안하세요. 공망일에는 해당 영역 일을 피하고, 역행 시에는 계약/연애 결정을 미루라고 조언하세요. 이클립스 시즌에는 주요 변화에 대비하세요. 희귀 사주 패턴이나 왕의 별 영향이 있으면 특별히 언급하세요."
-            : "Use the precise scores above to recommend specific dates and times like 'March 15th at 10 AM'. Advise avoiding activities in gongmang-affected areas. During retrogrades, advise delaying contracts/love decisions. Prepare for major changes during eclipse seasons. Mention rare Saju patterns or royal star influences if present.",
-          "",
-        ].join("\n");
-
-        logger.warn(`[chat-stream] Advanced timing generated: ${advancedScores.length} months, avg confidence ${Math.round(advancedScores.reduce((s, m) => s + m.confidence, 0) / advancedScores.length)}%`);
+        logger.warn('[chat-stream] All analysis sections built using modular builders');
       } catch (e) {
         logger.warn("[chat-stream] Failed to generate advanced timing scores:", e);
       }
@@ -1120,8 +589,14 @@ export async function POST(req: NextRequest) {
       "",
       // 기본 사주/점성 데이터
       v3Snapshot ? `[사주/점성 기본 데이터]\n${v3Snapshot.slice(0, 5000)}` : "",
-      // 🔮 고급 분석 - 공망/신살/에너지/시간대/대운/트랜짓/하모닉/이클립스/항성
+      // 🔮 고급 분석 섹션들 (모듈화된 빌더 사용)
       timingScoreSection ? `\n${timingScoreSection}` : "",
+      enhancedAnalysisSection ? `\n${enhancedAnalysisSection}` : "",
+      daeunTransitSection ? `\n${daeunTransitSection}` : "",
+      advancedAstroSection ? `\n${advancedAstroSection}` : "",
+      tier4AdvancedSection ? `\n${tier4AdvancedSection}` : "",
+      pastAnalysisSection ? `\n${pastAnalysisSection}` : "",
+      lifePredictionSection ? `\n${lifePredictionSection}` : "",
       // 🧠 장기 기억 - 이전 상담 컨텍스트
       longTermMemorySection ? `\n${longTermMemorySection}` : "",
       // 📊 인생 예측 컨텍스트 (프론트엔드에서 전달된 경우)
