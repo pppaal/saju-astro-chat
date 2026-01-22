@@ -275,7 +275,7 @@ Based on the deep analysis above, provide friendly but professional guidance.
 
     // Call backend AI (extended timeout for fusion analysis)
     try {
-      const response = await apiClient.post("/api/compatibility/chat", {
+      const response = await apiClient.post<Record<string, unknown>>("/api/compatibility/chat", {
         persons,
         prompt: counselorPrompt,
         question: userQuestion,
@@ -290,11 +290,11 @@ Based on the deep analysis above, provide friendly but professional guidance.
         throw new Error(`Backend returned ${response.status}`);
       }
 
-      const aiData = response.data;
-      const answer = aiData?.data?.response || aiData?.response || aiData?.interpretation ||
+      const aiData = response.data as Record<string, unknown>;
+      const answer = String((aiData?.data as Record<string, unknown>)?.response || aiData?.response || aiData?.interpretation ||
         (lang === "ko"
           ? "죄송합니다. 응답을 생성할 수 없습니다. 다시 시도해 주세요."
-          : "Sorry, couldn't generate response. Please try again.");
+          : "Sorry, couldn't generate response. Please try again."));
 
       // Stream response in chunks for better UX
       const encoder = new TextEncoder();

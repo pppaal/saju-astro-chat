@@ -6,6 +6,7 @@ import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { sanitizeLocaleText } from "@/lib/destiny-map/sanitize";
 import { maskTextWithName } from "@/lib/security";
 import { enforceBodySize } from "@/lib/http";
+import { jsonErrorResponse } from "@/lib/api/response-builders";
 import { calculateSajuData } from "@/lib/Saju/saju";
 import {
   calculateNatalChart,
@@ -61,6 +62,19 @@ import {
 } from "@/lib/prediction/daeunTransitSync";
 import { logger } from '@/lib/logger';
 import { toSajuDataStructure } from '@/lib/destiny-map/type-guards';
+import {
+  parseDateComponents,
+  parseTimeComponents,
+  extractBirthYear,
+  extractBirthMonth,
+  extractBirthDay,
+  formatDateByLocale,
+} from '@/lib/prediction/utils';
+import { analyzeActivityIntent } from '@/lib/destiny-map/chat-stream/helpers/activityDetector';
+import {
+  buildDateRecommendationSection,
+  extractSajuDataForRecommendation,
+} from '@/lib/destiny-map/chat-stream/builders/dateRecommendationBuilder';
 
 // Local modules (extracted from this file)
 import {
@@ -150,34 +164,19 @@ export async function POST(req: NextRequest) {
     }
 
     if (!effectiveBirthDate || !effectiveBirthTime || !isValidLatitude(effectiveLatitude) || !isValidLongitude(effectiveLongitude)) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return jsonErrorResponse("Missing required fields");
     }
     if (!isValidDate(effectiveBirthDate)) {
-      return new Response(JSON.stringify({ error: "Invalid birthDate" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return jsonErrorResponse("Invalid birthDate");
     }
     if (!isValidTime(effectiveBirthTime)) {
-      return new Response(JSON.stringify({ error: "Invalid birthTime" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return jsonErrorResponse("Invalid birthTime");
     }
     if (!isValidLatitude(effectiveLatitude)) {
-      return new Response(JSON.stringify({ error: "Invalid latitude" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return jsonErrorResponse("Invalid latitude");
     }
     if (!isValidLongitude(effectiveLongitude)) {
-      return new Response(JSON.stringify({ error: "Invalid longitude" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return jsonErrorResponse("Invalid longitude");
     }
 
     // Credits already consumed by middleware
@@ -220,8 +219,8 @@ export async function POST(req: NextRequest) {
     let natalChartData: Awaited<ReturnType<typeof calculateNatalChart>> | null = null;
     if (!astro || !astro.sun) {
       try {
-        const [year, month, day] = effectiveBirthDate.split("-").map(Number);
-        const [hour, minute] = effectiveBirthTime.split(":").map(Number);
+        const { year, month, day } = parseDateComponents(effectiveBirthDate);
+        const { hour, minute } = parseTimeComponents(effectiveBirthTime);
         natalChartData = await calculateNatalChart({
           year,
           month,
@@ -498,7 +497,7 @@ export async function POST(req: NextRequest) {
         // 현재 대운 추출
         const currentYear = new Date().getFullYear();
         const currentMonth = new Date().getMonth() + 1;
-        const birthYear = effectiveBirthDate ? parseInt(effectiveBirthDate.split("-")[0]) : undefined;
+        const birthYear = effectiveBirthDate ? extractBirthYear(effectiveBirthDate) : undefined;
         const currentAge = birthYear ? currentYear - birthYear : undefined;
         let currentDaeun: { stem: string; branch: string } | undefined;
 
@@ -795,8 +794,8 @@ export async function POST(req: NextRequest) {
             const pastDate = new Date(targetYear, 6, 1); // 해당 연도 중간
             const predictionInput: LifePredictionInput = {
               birthYear,
-              birthMonth: parseInt(effectiveBirthDate.split("-")[1]),
-              birthDay: parseInt(effectiveBirthDate.split("-")[2]),
+              birthMonth: extractBirthMonth(effectiveBirthDate),
+              birthDay: extractBirthDay(effectiveBirthDate),
               gender: effectiveGender as 'male' | 'female',
               dayStem,
               dayBranch,
@@ -968,9 +967,9 @@ export async function POST(req: NextRequest) {
         const lifePredictionThemes = ["future", "life-plan", "career", "marriage", "investment", "money", "love"];
         if (lifePredictionThemes.includes(theme) || theme === "general") {
           try {
-            const birthYear = parseInt(effectiveBirthDate.split("-")[0]);
-            const birthMonth = parseInt(effectiveBirthDate.split("-")[1]);
-            const birthDayNum = parseInt(effectiveBirthDate.split("-")[2]);
+            const birthYear = extractBirthYear(effectiveBirthDate);
+            const birthMonth = extractBirthMonth(effectiveBirthDate);
+            const birthDayNum = extractBirthDay(effectiveBirthDate);
             const monthBranch = saju?.pillars?.month?.earthlyBranch?.name || '子';
             const yearBranchVal = saju?.pillars?.year?.earthlyBranch?.name || '子';
             const allStems = [

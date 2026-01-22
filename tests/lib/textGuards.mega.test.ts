@@ -14,7 +14,7 @@ import {
 
 describe('textGuards MEGA - cleanText exhaustive tests', () => {
   describe('Script tag variations', () => {
-    const scriptVariations = [
+    it.each([
       '<script>alert(1)</script>',
       '<SCRIPT>alert(1)</SCRIPT>',
       '<ScRiPt>alert(1)</ScRiPt>',
@@ -25,19 +25,15 @@ describe('textGuards MEGA - cleanText exhaustive tests', () => {
       'Text<script>alert(1)</script>More',
       '<script>\nalert(1)\n</script>',
       '<script>alert("xss")</script><script>alert(2)</script>',
-    ];
-
-    scriptVariations.forEach((input, idx) => {
-      it(`should remove script tag variation ${idx + 1}`, () => {
-        const result = cleanText(input);
-        expect(result).not.toContain('script');
-        expect(result).not.toContain('alert');
-      });
+    ])('should remove script tag: %s', (input) => {
+      const result = cleanText(input);
+      expect(result).not.toContain('script');
+      expect(result).not.toContain('alert');
     });
   });
 
   describe('HTML tag variations', () => {
-    const htmlTags = [
+    it.each([
       '<div>content</div>',
       '<p>paragraph</p>',
       '<span>text</span>',
@@ -53,13 +49,9 @@ describe('textGuards MEGA - cleanText exhaustive tests', () => {
       '<form><input /></form>',
       '<iframe src="evil"></iframe>',
       '<object data="evil"></object>',
-    ];
-
-    htmlTags.forEach((input, idx) => {
-      it(`should remove HTML tag ${idx + 1}: ${input.substring(0, 20)}`, () => {
-        const result = cleanText(input);
-        expect(result).not.toMatch(/<[^>]+>/);
-      });
+    ])('should remove HTML tag: %s', (input) => {
+      const result = cleanText(input);
+      expect(result).not.toMatch(/<[^>]+>/);
     });
   });
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
-import { prisma } from '@/lib/db/prisma';
+import { prisma, Prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
 import type { ICPQuizAnswers } from '@/lib/icp/types';
 
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
         affiliationScore,
         octantScores,
         analysisData,
-        answers: answers || null,
+        answers: answers ? answers as unknown as Prisma.InputJsonValue : Prisma.JsonNull,
         locale,
       },
     });

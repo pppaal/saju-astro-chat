@@ -95,10 +95,10 @@ export async function POST(req: NextRequest) {
       }
 
       const aiData = response.data as Record<string, unknown>;
-      const answer = (aiData?.data as Record<string, unknown>)?.response || aiData?.response || aiData?.interpretation ||
+      const answer = String((aiData?.data as Record<string, unknown>)?.response || aiData?.response || aiData?.interpretation ||
         (lang === "ko"
           ? "죄송합니다. 응답을 생성할 수 없습니다. 다시 시도해 주세요."
-          : "Sorry, unable to generate a response. Please try again.");
+          : "Sorry, unable to generate a response. Please try again."));
 
       // Stream response in chunks for better UX
       const encoder = new TextEncoder();

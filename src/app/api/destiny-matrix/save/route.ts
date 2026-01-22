@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
-import { prisma } from '@/lib/db/prisma';
+import { prisma, Prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
 import type { TimingAIPremiumReport, ThemedAIPremiumReport } from '@/lib/destiny-matrix/ai-report/types';
 
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
         reportType,
         period: period || null,
         theme: theme || null,
-        reportData,
+        reportData: reportData as unknown as Prisma.InputJsonValue,
         title,
         summary: summary || null,
         overallScore: overallScore || null,

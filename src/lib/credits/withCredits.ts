@@ -40,13 +40,23 @@ export async function checkAndConsumeCredits(
 
   const userId = session.user.id;
 
-  // 개발/테스트 환경에서 크레딧 우회
-  if (process.env.BYPASS_CREDITS === "true") {
+  // 🔒 보안: 개발 환경에서만 크레딧 우회 허용 (NODE_ENV 체크 추가)
+  // 프로덕션에서는 절대 우회 불가
+  const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+  const bypassEnabled = process.env.BYPASS_CREDITS === "true" && isDevelopment;
+
+  if (bypassEnabled) {
+    console.warn('[DEV ONLY] Credit check bypassed for user:', userId);
     return {
       allowed: true,
       userId,
       remaining: 9999,
     };
+  }
+
+  // 프로덕션에서 BYPASS_CREDITS가 설정된 경우 경고
+  if (process.env.BYPASS_CREDITS === "true" && !isDevelopment) {
+    console.error('🚨 SECURITY WARNING: BYPASS_CREDITS is enabled in production! This is a critical security issue.');
   }
 
   // 크레딧 체크

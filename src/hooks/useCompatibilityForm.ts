@@ -35,12 +35,12 @@ export function useCompatibilityForm(initialCount: number = 2) {
 
   const fillFromCircle = useCallback((personIdx: number, savedPerson: {
     name: string;
-    birthDate?: string;
-    birthTime?: string;
-    birthCity?: string;
+    birthDate?: string | null;
+    birthTime?: string | null;
+    birthCity?: string | null;
     latitude?: number | null;
     longitude?: number | null;
-    tzId?: string;
+    tzId?: string | null;
     relation: string;
   }) => {
     setPersons((prev) => {

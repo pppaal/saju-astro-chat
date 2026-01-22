@@ -27,7 +27,7 @@ export function useMyCircle(status: 'authenticated' | 'loading' | 'unauthenticat
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest('.circleDropdownWrapper')) {
+      if (!target.closest('[data-circle-dropdown]')) {
         setShowCircleDropdown(null);
       }
     };

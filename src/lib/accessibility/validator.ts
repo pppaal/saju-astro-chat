@@ -19,9 +19,11 @@ function getLuminance(r: number, g: number, b: number): number {
 
 /**
  * Parse hex color to RGB
+ * Supports both #RRGGBB and RRGGBB formats
  */
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  const cleanHex = hex.replace(/^#/, '');
+  const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(cleanHex);
   return result
     ? {
         r: parseInt(result[1], 16),
@@ -241,7 +243,7 @@ export function isValidAltText(alt: string | undefined): {
     /^photo$/i,
     /^graphic$/i,
     /^icon$/i,
-    /^\d+\.(jpg|jpeg|png|gif|svg|webp)$/i,
+    /\.(jpg|jpeg|png|gif|svg|webp)$/i,
   ];
 
   if (uselessPatterns.some((pattern) => pattern.test(alt))) {
@@ -258,7 +260,7 @@ export function isValidAltText(alt: string | undefined): {
 
 // ============ Heading Structure Validation ============
 
-interface HeadingInfo {
+export interface HeadingInfo {
   level: number;
   text: string;
   id?: string;

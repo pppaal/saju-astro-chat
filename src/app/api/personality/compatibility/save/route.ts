@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
-import { prisma } from '@/lib/db/prisma';
+import { prisma, Prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
 import type { ICPQuizAnswers } from '@/lib/icp/types';
 import type { PersonaQuizAnswers } from '@/lib/persona/types';
@@ -140,11 +140,11 @@ export async function POST(req: NextRequest) {
           insightsKo: compatibility.insightsKo,
         },
         person1Answers: person1.icpAnswers && person1.personaAnswers
-          ? { icp: person1.icpAnswers, persona: person1.personaAnswers }
-          : null,
+          ? { icp: person1.icpAnswers, persona: person1.personaAnswers } as unknown as Prisma.InputJsonValue
+          : Prisma.JsonNull,
         person2Answers: person2.icpAnswers && person2.personaAnswers
-          ? { icp: person2.icpAnswers, persona: person2.personaAnswers }
-          : null,
+          ? { icp: person2.icpAnswers, persona: person2.personaAnswers } as unknown as Prisma.InputJsonValue
+          : Prisma.JsonNull,
         locale,
       },
     });

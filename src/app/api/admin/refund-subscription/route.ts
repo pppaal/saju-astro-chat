@@ -2,29 +2,14 @@
 import Stripe from "stripe";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
-import { isAdminEmail } from "@/lib/auth/admin";
+import { isAdminUser } from "@/lib/auth/admin";
 import { prisma } from "@/lib/db/prisma";
 import { getUserCredits } from "@/lib/credits/creditService";
 import { logger } from "@/lib/logger";
 import { captureServerError } from "@/lib/telemetry";
 import { sanitizeError } from "@/lib/security/errorSanitizer";
 import { rateLimit } from "@/lib/rateLimit";
-
-// Audit log for admin actions
-async function logAdminAction(
-  adminEmail: string,
-  action: string,
-  details: Record<string, unknown>
-) {
-  const logEntry = {
-    timestamp: new Date().toISOString(),
-    adminEmail,
-    action,
-    details,
-  };
-  logger.info("[AdminAudit]", logEntry);
-  // TODO: In production, also write to a dedicated audit table or external service
-}
+import { logAdminAction } from "@/lib/auth/adminAudit";
 
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2025-10-29.clover";
 const MINI_CREDIT_PRICE_KRW = 633;
@@ -119,10 +104,24 @@ async function resolveStripeFee(stripe: Stripe, charge: Stripe.Charge | null) {
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   const adminEmail = session?.user?.email || "unknown";
+  const adminUserId = session?.user?.id;
+
+  // 🔒 IP와 User-Agent 수집 (감사 로그용)
+  const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+  const userAgent = req.headers.get('user-agent') || undefined;
 
   try {
-    if (!isAdminEmail(adminEmail)) {
-      await logAdminAction(adminEmail, "refund_attempt_unauthorized", {});
+    // ✨ NEW: DB 기반 Admin 권한 체크
+    if (!adminUserId || !(await isAdminUser(adminUserId))) {
+      await logAdminAction({
+        adminEmail,
+        adminUserId,
+        action: "refund_attempt_unauthorized",
+        success: false,
+        errorMessage: "User is not an admin",
+        ipAddress,
+        userAgent,
+      });
       return json({ error: "Unauthorized" }, 401);
     }
 
@@ -130,9 +129,18 @@ export async function POST(req: Request) {
     const rlKey = `admin-refund:${adminEmail}`;
     const limit = await rateLimit(rlKey, { limit: 10, windowSeconds: 3600 });
     if (!limit.allowed) {
-      await logAdminAction(adminEmail, "refund_rate_limited", {
-        remaining: limit.remaining,
-        reset: limit.reset,
+      await logAdminAction({
+        adminEmail,
+        adminUserId,
+        action: "refund_rate_limited",
+        metadata: {
+          remaining: limit.remaining,
+          reset: limit.reset,
+        },
+        success: false,
+        errorMessage: "Rate limit exceeded",
+        ipAddress,
+        userAgent,
       });
       return json({ error: "Too many refund requests. Please try again later." }, 429);
     }
@@ -205,16 +213,27 @@ export async function POST(req: Request) {
         ? (subscription.customer as Stripe.Customer).email
         : null;
 
-    // Audit log for successful refund
-    await logAdminAction(adminEmail, "refund_completed", {
-      subscriptionId: subscription.id,
-      customerEmail,
-      amountPaid,
-      refundAmount,
-      usedCredits,
-      creditDeduction,
-      stripeFee,
-      refundId: refund?.id ?? null,
+    // ✨ Audit log for successful refund (DB 기반)
+    await logAdminAction({
+      adminEmail,
+      adminUserId,
+      action: "refund_completed",
+      targetType: "subscription",
+      targetId: subscription.id,
+      metadata: {
+        subscriptionId: subscription.id,
+        customerEmail,
+        amountPaid,
+        refundAmount,
+        usedCredits,
+        creditDeduction,
+        stripeFee,
+        refundId: refund?.id ?? null,
+        currency,
+      },
+      success: true,
+      ipAddress,
+      userAgent,
     });
 
     return json({
@@ -236,10 +255,18 @@ export async function POST(req: Request) {
     captureServerError(err as Error, { route: "/api/admin/refund-subscription" });
     const sanitized = sanitizeError(err, 'internal');
 
-    // Audit log for failed refund (log original error for internal debugging)
-    await logAdminAction(adminEmail, "refund_failed", {
-      error: err instanceof Error ? err.message : "Unknown error",
-      body: await req.clone().json().catch(() => null),
+    // ✨ Audit log for failed refund (DB 기반)
+    await logAdminAction({
+      adminEmail,
+      adminUserId,
+      action: "refund_failed",
+        error: err instanceof Error ? err.message : "Unknown error",
+        body: await req.clone().json().catch(() => null),
+      },
+      success: false,
+      errorMessage: err instanceof Error ? err.message : "Unknown error",
+      ipAddress,
+      userAgent,
     });
 
     return json(sanitized, 500);

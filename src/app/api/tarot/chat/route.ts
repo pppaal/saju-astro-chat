@@ -135,7 +135,7 @@ function buildSystemInstruction(context: TarotContext, language: "ko" | "en") {
 export async function POST(req: NextRequest) {
   try {
     // Apply middleware: public token auth + rate limiting + credit consumption
-    const guardOptions = createSimpleGuard({
+    const guardOptions = createPublicGuard({
       route: "tarot-chat",
       limit: 20,
       windowSeconds: 60,

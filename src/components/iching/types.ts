@@ -8,6 +8,9 @@ export interface HexagramData {
   lines: string[];
 }
 
+// Alias for backwards compatibility
+export type Hexagram = HexagramData;
+
 export interface ChangingLineInterpretation {
   transition: string;
   from_to: string;

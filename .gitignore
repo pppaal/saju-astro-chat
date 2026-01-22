@@ -90,3 +90,12 @@ test-results.txt
 
 .vercel
 logs/
+
+.vercel
+
+# Build outputs
+build-output*.txt
+
+# Refactoring documentation (temporary)
+REFACTORING*.md
+COMPONENT_EXTRACTION*.md

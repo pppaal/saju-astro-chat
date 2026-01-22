@@ -47,6 +47,7 @@ model User {
   tzId                  String?
   passwordHash          String?
   emailNotifications    Boolean                 @default(false)
+  role                  String                  @default("user") // user, admin, superadmin
   referralCode          String?                 @unique // 내 고유 추천 코드
   referrerId            String?                 // 나를 추천한 유저 ID
   referrer              User?                   @relation("Referrals", fields: [referrerId], references: [id], onDelete: SetNull, onUpdate: NoAction)
@@ -863,4 +864,62 @@ model MatchMessage {
 
   @@index([connectionId, createdAt])
   @@index([senderId])
+}
+
+// 🔒 Admin Audit Log - 관리자 작업 감사 로그
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  // 관리자 정보
+  adminEmail  String
+  adminUserId String?
+
+  // 작업 정보
+  action      String   // refund_subscription, update_credits, ban_user, etc.
+  targetType  String?  // user, subscription, credit, etc.
+  targetId    String?  // 대상의 ID
+
+  // 작업 세부사항 (JSON)
+  metadata    Json?    // { amount, reason, before, after, etc. }
+
+  // 결과
+  success     Boolean  @default(true)
+  errorMessage String?
+
+  // IP 및 User Agent
+  ipAddress   String?
+  userAgent   String?
+
+  @@index([adminEmail, createdAt])
+  @@index([action, createdAt])
+  @@index([targetType, targetId])
+}
+
+// 🔄 Credit Refund Log - 크레딧 자동 환불 로그
+model CreditRefundLog {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  // 사용자 정보
+  userId      String
+
+  // 크레딧 정보
+  creditType  String   // reading, compatibility, followUp
+  amount      Int      // 환불된 크레딧 수량
+
+  // 원인 정보
+  reason      String   // api_error, timeout, ai_backend_failure, etc.
+  apiRoute    String?  // 실패한 API 경로
+  errorMessage String? // 에러 메시지
+
+  // 원본 트랜잭션 ID (추적용)
+  transactionId String?
+
+  // 메타데이터 (JSON)
+  metadata    Json?
+
+  @@index([userId, createdAt])
+  @@index([creditType, createdAt])
+  @@index([apiRoute, createdAt])
 }

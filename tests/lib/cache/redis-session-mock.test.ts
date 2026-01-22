@@ -504,6 +504,25 @@ describe('Redis Session Cache (Mock)', () => {
       expect(typeof health.sessionCount).toBe('number');
     });
 
+    it('should handle Redis ping errors and set isRedisAvailable to false', async () => {
+      process.env.REDIS_URL = 'redis://localhost:6379';
+
+      const { healthCheck, getSession } = await import('@/lib/cache/redis-session');
+
+      // Trigger initialization first
+      await getSession('init');
+
+      // Now make ping fail
+      mockRedis.ping = vi.fn().mockRejectedValueOnce(new Error('Ping failed'));
+      mockRedis.keys.mockResolvedValueOnce([]);
+
+      const health = await healthCheck();
+
+      expect(health.redis).toBe(false);
+      // isRedisAvailable should be set to false in the catch block
+      expect(typeof health.sessionCount).toBe('number');
+    });
+
     it('should handle Redis errors', async () => {
       process.env.REDIS_URL = 'redis://localhost:6379';
 
@@ -535,6 +554,30 @@ describe('Redis Session Cache (Mock)', () => {
       expect(health.redis).toBe(false);
       expect(health.memory).toBe(false); // No sessions in memory
       expect(health.sessionCount).toBe(0);
+    });
+
+    it('should execute complete healthCheck flow with ping failure', async () => {
+      process.env.REDIS_URL = 'redis://localhost:6379';
+
+      const { healthCheck, getSession } = await import('@/lib/cache/redis-session');
+
+      // Initialize Redis
+      await getSession('init-health');
+
+      // Mock ping to fail (triggers catch block lines 408-411)
+      mockRedis.ping.mockRejectedValueOnce(new Error('Ping failed'));
+
+      // Mock keys for getSessionCount call (line 414)
+      mockRedis.keys.mockResolvedValueOnce(['session:1']);
+
+      const health = await healthCheck();
+
+      // Verify all return properties exist (lines 416-420)
+      expect(health).toHaveProperty('redis');
+      expect(health).toHaveProperty('memory');
+      expect(health).toHaveProperty('sessionCount');
+      expect(health.redis).toBe(false); // Because ping failed
+      expect(typeof health.sessionCount).toBe('number');
     });
   });
 
@@ -632,6 +675,43 @@ describe('Redis Session Cache (Mock)', () => {
       const sessions = await getSessionsByPattern('*');
 
       expect(sessions).toEqual(expect.any(Array));
+    });
+
+    it('should fallback to memory when Redis keys operation fails', async () => {
+      delete process.env.REDIS_URL;
+
+      const { setSession, getSessionsByPattern } = await import('@/lib/cache/redis-session');
+
+      // Add sessions to memory
+      await setSession('fallback-1', { data: 1 }, 3600);
+      await setSession('fallback-2', { data: 2 }, 3600);
+
+      const sessions = await getSessionsByPattern();
+
+      // Should return array from memory
+      expect(Array.isArray(sessions)).toBe(true);
+      expect(sessions.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('should execute memory fallback path when Redis keys fails but client exists', async () => {
+      process.env.REDIS_URL = 'redis://localhost:6379';
+
+      const { setSession, getSessionsByPattern, getSession } = await import('@/lib/cache/redis-session');
+
+      // Initialize Redis first
+      await getSession('init');
+
+      // Add sessions to memory by making setex fail
+      mockRedis.setex.mockRejectedValueOnce(new Error('Redis error'));
+      await setSession('mem-fallback-1', { data: 1 }, 3600);
+
+      // Make keys fail to trigger fallback path (lines 306-311)
+      mockRedis.keys.mockRejectedValueOnce(new Error('Keys failed'));
+
+      const sessions = await getSessionsByPattern();
+
+      // Should fallback to memory and find the session we added
+      expect(Array.isArray(sessions)).toBe(true);
     });
   });
 

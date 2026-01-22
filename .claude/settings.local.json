@@ -207,7 +207,9 @@
       "Bash(else echo \"File exists\")",
       "Bash(if [ -f \"c:\\\\dev\\\\saju-astro-chat\\\\src\\\\components\\\\ui\\\\FormField.module.css\" ])",
       "Bash(else echo \"not found\")",
-      "Bash(if [ -f \"c:/dev/saju-astro-chat/src/components/ui/ScrollToTop.tsx\" ])"
+      "Bash(if [ -f \"c:/dev/saju-astro-chat/src/components/ui/ScrollToTop.tsx\" ])",
+      "Bash(else echo \"No coverage file found\")",
+      "Bash(for file in tests/lib/api/*.mega.test.ts tests/lib/*.mega.test.ts tests/lib/Saju/*.mega.test.ts tests/lib/accessibility/*.mega.test.ts)"
     ],
     "deny": [],
     "ask": []

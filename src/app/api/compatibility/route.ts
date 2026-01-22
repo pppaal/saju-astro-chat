@@ -13,20 +13,11 @@ import {
   LIMITS,
 } from "@/lib/validation";
 import { logger } from '@/lib/logger';
-
-type Relation = 'friend' | 'lover' | 'other';
-
-type PersonInput = {
-  name?: string;
-  date: string;     // YYYY-MM-DD
-  time: string;     // HH:mm
-  city: string;
-  latitude: number;
-  longitude: number;
-  timeZone: string; // e.g., Asia/Seoul
-  relationToP1?: Relation;
-  relationNoteToP1?: string;
-};
+import type {
+  Relation,
+  PersonInput,
+  CompatibilityBackendResponse,
+} from './types';
 
 function bad(msg: string, status = 400) {
   return NextResponse.json({ error: msg }, { status });
@@ -53,7 +44,6 @@ export async function POST(req: NextRequest) {
       route: "compatibility",
       limit: 30,
       windowSeconds: 60,
-      requireCredits: false, // Compatibility doesn't consume credits
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);
@@ -158,7 +148,7 @@ export async function POST(req: NextRequest) {
 
     try {
       // Send to backend with full birth data for Saju+Astrology fusion analysis
-      const response = await apiClient.post('/api/compatibility', {
+      const response = await apiClient.post<CompatibilityBackendResponse>('/api/compatibility', {
         persons: persons.map((p, i) => ({
           name: names[i],
           birthDate: p.date,
@@ -176,18 +166,18 @@ export async function POST(req: NextRequest) {
       if (response.ok && response.data) {
         const aiData = response.data;
         // Handle both nested (data.report) and flat response formats
-        aiInterpretation = aiData?.data?.report || aiData?.interpretation || '';
-        aiModelUsed = aiData?.data?.model || aiData?.model || 'gpt-4o';
+        aiInterpretation = ('data' in aiData && aiData.data?.report) || ('interpretation' in aiData && aiData.interpretation) || ('report' in aiData && aiData.report) || '';
+        aiModelUsed = ('data' in aiData && aiData.data?.model) || ('model' in aiData && aiData.model) || 'gpt-4o';
         // Get the AI-calculated overall score (Saju+Astrology fusion)
-        aiScore = aiData?.data?.overall_score || aiData?.overall_score || null;
+        aiScore = ('data' in aiData && aiData.data?.overall_score) || ('overall_score' in aiData && aiData.overall_score) || null;
         // Get timing analysis
-        timing = aiData?.data?.timing || aiData?.timing || null;
+        timing = ('data' in aiData && aiData.data?.timing) || ('timing' in aiData && aiData.timing) || null;
         // Get action items
-        actionItems = aiData?.data?.action_items || aiData?.action_items || [];
+        actionItems = ('data' in aiData && aiData.data?.action_items) || ('action_items' in aiData && aiData.action_items) || [];
         // Get group analysis data (for 3+ people)
-        isGroup = aiData?.is_group || false;
-        groupAnalysis = aiData?.group_analysis || null;
-        synergyBreakdown = aiData?.synergy_breakdown || null;
+        isGroup = ('is_group' in aiData && aiData.is_group) || false;
+        groupAnalysis = ('group_analysis' in aiData && aiData.group_analysis) || null;
+        synergyBreakdown = ('synergy_breakdown' in aiData && aiData.synergy_breakdown) || null;
       }
     } catch (aiErr) {
       logger.warn('[Compatibility API] AI backend call failed:', aiErr);

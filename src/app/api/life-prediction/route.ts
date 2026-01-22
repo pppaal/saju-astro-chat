@@ -2,7 +2,7 @@
 // 종합 인생 예측 API - 다년간 트렌드 + 과거 회고 + 이벤트 타이밍
 // TIER 1~3 고급 분석 엔진 통합
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import {
   analyzeMultiYearTrend,
   analyzePastDate,
@@ -41,200 +41,27 @@ import {
 } from '@/lib/prediction/ultraPrecisionEngine';
 import { logger } from '@/lib/logger';
 
-// ============================================================
-// 고급 분석 결과 타입
-// ============================================================
+// Response builders
+import {
+  successResponse,
+  errorResponse,
+  validationErrorResponse,
+} from '@/lib/api/response-builders';
 
-interface AdvancedAnalysis {
-  // TIER 1: 초정밀 분석
-  tier1?: {
-    gongmang?: {
-      emptyBranches: string[];
-      isAffected: boolean;
-      affectedAreas: string[];
-    };
-    shinsal?: {
-      active: Array<{
-        name: string;
-        type: 'lucky' | 'unlucky' | 'special';
-        description: string;
-      }>;
-      score: number;
-    };
-    energyFlow?: {
-      strength: string;
-      dominantElement: string;
-      tonggeunCount: number;
-      tuechulCount: number;
-    };
-    hourlyAdvice?: Array<{
-      hour: number;
-      quality: string;
-      activity: string;
-    }>;
-  };
+// Date formatters
+import { formatDateToISO } from '@/lib/prediction/utils';
 
-  // TIER 2: 대운-트랜짓 동기화
-  tier2?: {
-    daeunSync?: {
-      currentDaeun?: {
-        stem: string;
-        branch: string;
-        age: number;
-      };
-      transitAlignment: number;
-      majorThemes: string[];
-    };
-  };
-
-  // TIER 3: 고급 점성술 + 패턴
-  tier3?: {
-    moonPhase?: {
-      phase: string;
-      illumination: number;
-      name: string;
-    };
-    voidOfCourse?: {
-      isVoid: boolean;
-      endsAt?: string;
-    };
-    retrogrades?: string[];
-    sajuPatterns?: {
-      found: Array<{
-        name: string;
-        rarity: number;
-        description: string;
-      }>;
-      rarityScore: number;
-    };
-  };
-}
-
-// ============================================================
-// 요청 타입 정의
-// ============================================================
-
-// 점성술 차트 데이터 타입
-interface AstroChartData {
-  sun?: { sign?: string; signKo?: string; house?: number; longitude?: number };
-  moon?: { sign?: string; signKo?: string; house?: number; longitude?: number };
-  mercury?: { sign?: string; signKo?: string; house?: number; longitude?: number; isRetrograde?: boolean };
-  venus?: { sign?: string; signKo?: string; house?: number; longitude?: number; isRetrograde?: boolean };
-  mars?: { sign?: string; signKo?: string; house?: number; longitude?: number; isRetrograde?: boolean };
-  jupiter?: { sign?: string; signKo?: string; house?: number; longitude?: number; isRetrograde?: boolean };
-  saturn?: { sign?: string; signKo?: string; house?: number; longitude?: number; isRetrograde?: boolean };
-  ascendant?: { sign?: string; signKo?: string; longitude?: number };
-  mc?: { sign?: string; signKo?: string; longitude?: number };
-  planets?: Array<{ name: string; sign?: string; signKo?: string; house?: number; longitude?: number; isRetrograde?: boolean }>;
-}
-
-// 고급 점성술 데이터 타입
-interface AdvancedAstroData {
-  extraPoints?: {
-    chiron?: { sign?: string; house?: number };
-    lilith?: { sign?: string; house?: number };
-    partOfFortune?: { sign?: string; house?: number; longitude?: number };
-    vertex?: { sign?: string; house?: number };
-  };
-  solarReturn?: {
-    chart?: unknown;
-    summary?: { year?: number; theme?: string; keyPlanets?: string[] };
-  };
-  lunarReturn?: {
-    chart?: unknown;
-    summary?: { month?: number; theme?: string };
-  };
-  progressions?: {
-    secondary?: { chart?: unknown; moonPhase?: string; summary?: unknown };
-    solarArc?: { chart?: unknown; summary?: unknown };
-  };
-  draconic?: {
-    chart?: unknown;
-    comparison?: unknown;
-  };
-  harmonics?: {
-    h5?: unknown;
-    h7?: unknown;
-    h9?: unknown;
-    profile?: unknown;
-  };
-  eclipses?: {
-    impact?: { type?: string; date?: string; affectedPlanets?: string[] };
-    upcoming?: Array<{ date?: string; type?: string }>;
-  };
-  electional?: {
-    moonPhase?: { phase?: string; illumination?: number; name?: string };
-    voidOfCourse?: { isVoid?: boolean; endsAt?: string };
-    retrograde?: string[];
-  };
-  midpoints?: {
-    sunMoon?: { longitude?: number };
-    ascMc?: { longitude?: number };
-    activations?: unknown[];
-  };
-}
-
-interface BaseRequest {
-  birthYear: number;
-  birthMonth: number;
-  birthDay: number;
-  birthHour?: number;
-  gender: 'male' | 'female';
-  dayStem: string;
-  dayBranch: string;
-  monthBranch: string;
-  yearBranch: string;
-  allStems?: string[];
-  allBranches?: string[];
-  daeunList?: Array<{
-    startAge?: number;
-    age?: number;
-    stem?: string;
-    heavenlyStem?: string;
-    branch?: string;
-    earthlyBranch?: string;
-  }>;
-  yongsin?: string[];
-  kisin?: string[];
-  locale?: 'ko' | 'en';
-  // 점성술 데이터 (precompute-chart에서 전달)
-  astroChart?: AstroChartData;
-  advancedAstro?: AdvancedAstroData;
-}
-
-interface MultiYearRequest extends BaseRequest {
-  type: 'multi-year';
-  startYear: number;
-  endYear: number;
-}
-
-interface PastAnalysisRequest extends BaseRequest {
-  type: 'past-analysis';
-  targetDate?: string;  // YYYY-MM-DD
-  startDate?: string;   // for period analysis
-  endDate?: string;     // for period analysis
-}
-
-interface EventTimingRequest extends BaseRequest {
-  type: 'event-timing';
-  eventType: EventType;
-  startYear: number;
-  endYear: number;
-}
-
-interface ComprehensiveRequest extends BaseRequest {
-  type: 'comprehensive';
-  yearsRange?: number;
-}
-
-interface WeeklyTimingRequest extends BaseRequest {
-  type: 'weekly-timing';
-  eventType: EventType;
-  startDate?: string;  // YYYY-MM-DD
-  endDate?: string;    // YYYY-MM-DD (기본 3개월)
-}
-
-type PredictionRequest = MultiYearRequest | PastAnalysisRequest | EventTimingRequest | ComprehensiveRequest | WeeklyTimingRequest;
+// Type definitions
+import type {
+  AdvancedAnalysis,
+  BaseRequest,
+  PredictionRequest,
+  MultiYearRequest,
+  PastAnalysisRequest,
+  EventTimingRequest,
+  ComprehensiveRequest,
+  WeeklyTimingRequest,
+} from './types';
 
 // ============================================================
 // 헬퍼 함수
@@ -288,27 +115,27 @@ function buildPredictionInput(req: BaseRequest): LifePredictionInput {
   };
 }
 
-function validateRequest(body: unknown): { valid: boolean; error?: string } {
+function validateRequest(body: unknown): { valid: true } | { valid: false; errorResponse: ReturnType<typeof errorResponse> } {
   if (!body || typeof body !== 'object') {
-    return { valid: false, error: 'Invalid request body' };
+    return { valid: false, errorResponse: errorResponse('Invalid request body') };
   }
 
   const req = body as Record<string, unknown>;
 
   if (!req.type) {
-    return { valid: false, error: 'type is required (multi-year, past-analysis, event-timing, comprehensive)' };
+    return { valid: false, errorResponse: errorResponse('type is required (multi-year, past-analysis, event-timing, comprehensive)') };
   }
 
   if (!req.birthYear || !req.birthMonth || !req.birthDay) {
-    return { valid: false, error: 'birthYear, birthMonth, birthDay are required' };
+    return { valid: false, errorResponse: errorResponse('birthYear, birthMonth, birthDay are required') };
   }
 
   if (!req.dayStem || !req.dayBranch) {
-    return { valid: false, error: 'dayStem and dayBranch are required' };
+    return { valid: false, errorResponse: errorResponse('dayStem and dayBranch are required') };
   }
 
   if (!req.gender || !['male', 'female'].includes(req.gender as string)) {
-    return { valid: false, error: 'gender is required (male or female)' };
+    return { valid: false, errorResponse: errorResponse('gender is required (male or female)') };
   }
 
   return { valid: true };
@@ -679,10 +506,7 @@ export async function POST(request: NextRequest) {
     // 유효성 검사
     const validation = validateRequest(body);
     if (!validation.valid) {
-      return NextResponse.json(
-        { success: false, error: validation.error },
-        { status: 400 }
-      );
+      return validation.errorResponse;
     }
 
     const input = buildPredictionInput(body);
@@ -693,10 +517,7 @@ export async function POST(request: NextRequest) {
         const { startYear, endYear } = body;
 
         if (!startYear || !endYear) {
-          return NextResponse.json(
-            { success: false, error: 'startYear and endYear are required for multi-year analysis' },
-            { status: 400 }
-          );
+          return errorResponse('startYear and endYear are required for multi-year analysis');
         }
 
         const trend = analyzeMultiYearTrend(input, startYear, endYear);
@@ -712,8 +533,7 @@ export async function POST(request: NextRequest) {
           locale
         ) + generateAdvancedPromptContext(currentYearAnalysis, locale);
 
-        return NextResponse.json({
-          success: true,
+        return successResponse({
           type: 'multi-year',
           data: {
             trend,
@@ -739,10 +559,7 @@ export async function POST(request: NextRequest) {
           // 단일 날짜 분석
           const date = new Date(targetDate);
           if (isNaN(date.getTime())) {
-            return NextResponse.json(
-              { success: false, error: 'Invalid targetDate format. Use YYYY-MM-DD' },
-              { status: 400 }
-            );
+            return validationErrorResponse('targetDate', 'Invalid date format. Use YYYY-MM-DD');
           }
 
           const retrospective = analyzePastDate(input, date);
@@ -753,8 +570,7 @@ export async function POST(request: NextRequest) {
           const promptContext = generatePastAnalysisPromptContext(retrospective, locale)
             + generateAdvancedPromptContext(advancedAnalysis, locale);
 
-          return NextResponse.json({
-            success: true,
+          return successResponse({
             type: 'past-analysis',
             mode: 'single',
             data: {
@@ -770,19 +586,13 @@ export async function POST(request: NextRequest) {
           const end = new Date(endDate);
 
           if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            return NextResponse.json(
-              { success: false, error: 'Invalid date format. Use YYYY-MM-DD' },
-              { status: 400 }
-            );
+            return validationErrorResponse('date', 'Invalid date format. Use YYYY-MM-DD');
           }
 
           // 최대 30일로 제한
           const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
           if (daysDiff > 30) {
-            return NextResponse.json(
-              { success: false, error: 'Period cannot exceed 30 days' },
-              { status: 400 }
-            );
+            return errorResponse('Period cannot exceed 30 days');
           }
 
           const retrospectives = analyzePastPeriod(input, start, end);
@@ -807,8 +617,7 @@ export async function POST(request: NextRequest) {
             worstDay,
           };
 
-          return NextResponse.json({
-            success: true,
+          return successResponse({
             type: 'past-analysis',
             mode: 'period',
             data: {
@@ -819,10 +628,7 @@ export async function POST(request: NextRequest) {
           });
 
         } else {
-          return NextResponse.json(
-            { success: false, error: 'Either targetDate or both startDate and endDate are required' },
-            { status: 400 }
-          );
+          return errorResponse('Either targetDate or both startDate and endDate are required');
         }
       }
 
@@ -830,17 +636,11 @@ export async function POST(request: NextRequest) {
         const { eventType, startYear, endYear } = body;
 
         if (!eventType) {
-          return NextResponse.json(
-            { success: false, error: 'eventType is required (marriage, career, investment, move, study, health, relationship)' },
-            { status: 400 }
-          );
+          return errorResponse('eventType is required (marriage, career, investment, move, study, health, relationship)');
         }
 
         if (!startYear || !endYear) {
-          return NextResponse.json(
-            { success: false, error: 'startYear and endYear are required' },
-            { status: 400 }
-          );
+          return errorResponse('startYear and endYear are required');
         }
 
         const result = findOptimalEventTiming(input, eventType, startYear, endYear);
@@ -850,9 +650,9 @@ export async function POST(request: NextRequest) {
           const analysis = performAdvancedAnalysis(body, input, period.startDate);
           return {
             ...period,
-            startDate: period.startDate.toISOString().split('T')[0],
-            endDate: period.endDate.toISOString().split('T')[0],
-            specificDays: period.specificDays?.map(d => d.toISOString().split('T')[0]),
+            startDate: formatDateToISO(period.startDate),
+            endDate: formatDateToISO(period.endDate),
+            specificDays: period.specificDays?.map(d => formatDateToISO(d)),
             advancedAnalysis: analysis,
           };
         });
@@ -863,8 +663,7 @@ export async function POST(request: NextRequest) {
         const promptContext = generateEventTimingPromptContext(result, locale)
           + generateAdvancedPromptContext(currentAnalysis, locale);
 
-        return NextResponse.json({
-          success: true,
+        return successResponse({
           type: 'event-timing',
           data: {
             eventType: result.eventType,
@@ -872,14 +671,14 @@ export async function POST(request: NextRequest) {
             optimalPeriods: optimalPeriodsWithAdvanced,
             avoidPeriods: result.avoidPeriods.map(p => ({
               ...p,
-              startDate: p.startDate.toISOString().split('T')[0],
-              endDate: p.endDate.toISOString().split('T')[0],
+              startDate: formatDateToISO(p.startDate),
+              endDate: formatDateToISO(p.endDate),
             })),
             nextBestWindow: result.nextBestWindow ? {
               ...result.nextBestWindow,
-              startDate: result.nextBestWindow.startDate.toISOString().split('T')[0],
-              endDate: result.nextBestWindow.endDate.toISOString().split('T')[0],
-              specificDays: result.nextBestWindow.specificDays?.map(d => d.toISOString().split('T')[0]),
+              startDate: formatDateToISO(result.nextBestWindow.startDate),
+              endDate: formatDateToISO(result.nextBestWindow.endDate),
+              specificDays: result.nextBestWindow.specificDays?.map(d => formatDateToISO(d)),
             } : null,
             advice: result.advice,
             // 고급 분석 추가
@@ -901,7 +700,7 @@ export async function POST(request: NextRequest) {
         // 하이라이트 날짜들에 대한 고급 분석
         const highlightsWithAdvanced = prediction.upcomingHighlights.slice(0, 5).map(h => ({
           ...h,
-          date: h.date.toISOString().split('T')[0],
+          date: formatDateToISO(h.date),
           advancedAnalysis: performAdvancedAnalysis(body, input, h.date),
         }));
 
@@ -920,11 +719,10 @@ export async function POST(request: NextRequest) {
           locale
         ) + generateAdvancedPromptContext(currentAnalysis, locale);
 
-        return NextResponse.json({
-          success: true,
+        return successResponse({
           type: 'comprehensive',
           data: {
-            generatedAt: prediction.generatedAt.toISOString(),
+            generatedAt: formatDateToISO(prediction.generatedAt),
             confidence: enhancedConfidence,
             multiYearTrend: {
               ...prediction.multiYearTrend,
@@ -951,10 +749,7 @@ export async function POST(request: NextRequest) {
         const { eventType, startDate: startDateStr, endDate: endDateStr } = body as WeeklyTimingRequest;
 
         if (!eventType) {
-          return NextResponse.json(
-            { success: false, error: 'eventType is required' },
-            { status: 400 }
-          );
+          return errorResponse('eventType is required');
         }
 
         const startDate = startDateStr ? new Date(startDateStr) : new Date();
@@ -965,32 +760,31 @@ export async function POST(request: NextRequest) {
         // 날짜를 ISO 문자열로 변환
         const weeklyPeriodsFormatted = weeklyResult.weeklyPeriods.map(w => ({
           ...w,
-          startDate: w.startDate.toISOString().split('T')[0],
-          endDate: w.endDate.toISOString().split('T')[0],
-          bestDays: (w.bestDays ?? []).map(d => d.toISOString().split('T')[0]),
+          startDate: formatDateToISO(w.startDate),
+          endDate: formatDateToISO(w.endDate),
+          bestDays: (w.bestDays ?? []).map(d => formatDateToISO(d)),
         }));
 
-        return NextResponse.json({
-          success: true,
+        return successResponse({
           type: 'weekly-timing',
           data: {
             eventType: weeklyResult.eventType,
             searchRange: {
-              startDate: weeklyResult.searchRange.startDate.toISOString().split('T')[0],
-              endDate: weeklyResult.searchRange.endDate.toISOString().split('T')[0],
+              startDate: formatDateToISO(weeklyResult.searchRange.startDate),
+              endDate: formatDateToISO(weeklyResult.searchRange.endDate),
             },
             weeklyPeriods: weeklyPeriodsFormatted,
             bestWeek: weeklyResult.bestWeek ? {
               ...weeklyResult.bestWeek,
-              startDate: weeklyResult.bestWeek.startDate.toISOString().split('T')[0],
-              endDate: weeklyResult.bestWeek.endDate.toISOString().split('T')[0],
-              bestDays: (weeklyResult.bestWeek.bestDays ?? []).map(d => d.toISOString().split('T')[0]),
+              startDate: formatDateToISO(weeklyResult.bestWeek.startDate),
+              endDate: formatDateToISO(weeklyResult.bestWeek.endDate),
+              bestDays: (weeklyResult.bestWeek.bestDays ?? []).map(d => formatDateToISO(d)),
             } : null,
             worstWeek: weeklyResult.worstWeek ? {
               ...weeklyResult.worstWeek,
-              startDate: weeklyResult.worstWeek.startDate.toISOString().split('T')[0],
-              endDate: weeklyResult.worstWeek.endDate.toISOString().split('T')[0],
-              bestDays: (weeklyResult.worstWeek.bestDays ?? []).map(d => d.toISOString().split('T')[0]),
+              startDate: formatDateToISO(weeklyResult.worstWeek.startDate),
+              endDate: formatDateToISO(weeklyResult.worstWeek.endDate),
+              bestDays: (weeklyResult.worstWeek.bestDays ?? []).map(d => formatDateToISO(d)),
             } : null,
             summary: weeklyResult.summary,
           },
@@ -998,27 +792,19 @@ export async function POST(request: NextRequest) {
       }
 
       default:
-        return NextResponse.json(
-          { success: false, error: 'Invalid type. Use multi-year, past-analysis, event-timing, weekly-timing, or comprehensive' },
-          { status: 400 }
-        );
+        return errorResponse('Invalid type. Use multi-year, past-analysis, event-timing, weekly-timing, or comprehensive');
     }
 
   } catch (error) {
     logger.error('[life-prediction API error]', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Internal server error'
-      },
-      { status: 500 }
-    );
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    return errorResponse(errorMessage, 500);
   }
 }
 
 // GET 요청 - API 정보
 export async function GET() {
-  return NextResponse.json({
+  return successResponse({
     name: 'Life Prediction API',
     version: '2.0.0',
     description: '종합 인생 예측 API - TIER 1~3 고급 분석 엔진 통합',

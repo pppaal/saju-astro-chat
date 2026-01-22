@@ -117,6 +117,7 @@ export function useCompatibilityAnalysis() {
   return {
     isLoading,
     error,
+    setError,
     resultText,
     timing,
     actionItems,
