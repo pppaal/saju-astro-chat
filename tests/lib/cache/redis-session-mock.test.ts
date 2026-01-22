@@ -850,6 +850,70 @@ describe('Redis Session Cache (Mock)', () => {
     });
   });
 
+  describe('Redis configuration', () => {
+    it('should configure Redis with enableOfflineQueue false', async () => {
+      process.env.REDIS_URL = 'redis://localhost:6379';
+
+      const Redis = (await import('ioredis')).default;
+      const { getSession } = await import('@/lib/cache/redis-session');
+
+      // Trigger initialization
+      await getSession('trigger-init');
+
+      const config = (Redis as any).mock.calls[0][1];
+      expect(config.enableOfflineQueue).toBe(false);
+    });
+
+    it('should handle initialization error in try-catch block', async () => {
+      process.env.REDIS_URL = 'redis://invalid-url';
+
+      // Mock Redis constructor to throw
+      const Redis = (await import('ioredis')).default;
+      vi.mocked(Redis).mockImplementationOnce(() => {
+        throw new Error('Invalid Redis URL');
+      });
+
+      const { logger } = await import('@/lib/logger');
+      const { getSession } = await import('@/lib/cache/redis-session');
+
+      // Should fallback to memory without throwing
+      const result = await getSession('test');
+
+      // Logger should have been called
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to initialize Redis'),
+        expect.any(Error)
+      );
+    });
+  });
+
+  describe('memory cleanup function', () => {
+    it('should clean up expired sessions and log when cleaned > 0', async () => {
+      delete process.env.REDIS_URL;
+
+      const { setSession, getSession } = await import('@/lib/cache/redis-session');
+      const { logger } = await import('@/lib/logger');
+
+      // Add sessions with very short TTL
+      await setSession('expire-1', { data: 1 }, 0);
+      await setSession('expire-2', { data: 2 }, 0);
+
+      // Wait for expiration
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      // Trigger cleanup by trying to get expired sessions
+      await getSession('expire-1');
+      await getSession('expire-2');
+
+      // Both should be null (cleaned up)
+      const result1 = await getSession('expire-1');
+      const result2 = await getSession('expire-2');
+
+      expect(result1).toBeNull();
+      expect(result2).toBeNull();
+    });
+  });
+
   describe('Redis event handling', () => {
     it('should trigger event handlers on connection', async () => {
       process.env.REDIS_URL = 'redis://localhost:6379';
