@@ -676,6 +676,181 @@ describe('Redis Session Cache (Mock)', () => {
   });
 
   describe('edge cases and error handling', () => {
+    it('should handle setSession with catastrophic error', async () => {
+      delete process.env.REDIS_URL;
+
+      const { setSession } = await import('@/lib/cache/redis-session');
+      const { logger } = await import('@/lib/logger');
+
+      // Mock to cause error even in memory fallback
+      const originalSet = Map.prototype.set;
+      Map.prototype.set = function() {
+        throw new Error('Memory error');
+      };
+
+      const result = await setSession('test-error', { data: 'test' }, 3600);
+
+      // Restore
+      Map.prototype.set = originalSet;
+
+      // Should log error
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to set session'),
+        expect.any(Error)
+      );
+      expect(result).toBe(false);
+    });
+
+    it('should handle getSession with catastrophic error', async () => {
+      delete process.env.REDIS_URL;
+
+      const { getSession } = await import('@/lib/cache/redis-session');
+      const { logger } = await import('@/lib/logger');
+
+      // Mock to cause error
+      const originalGet = Map.prototype.get;
+      Map.prototype.get = function() {
+        throw new Error('Memory error');
+      };
+
+      const result = await getSession('test-error');
+
+      // Restore
+      Map.prototype.get = originalGet;
+
+      // Should return null and log error
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to get session'),
+        expect.any(Error)
+      );
+      expect(result).toBeNull();
+    });
+
+    it('should handle deleteSession with catastrophic error', async () => {
+      delete process.env.REDIS_URL;
+
+      const { deleteSession } = await import('@/lib/cache/redis-session');
+      const { logger } = await import('@/lib/logger');
+
+      // Mock to cause error
+      const originalDelete = Map.prototype.delete;
+      Map.prototype.delete = function() {
+        throw new Error('Memory error');
+      };
+
+      const result = await deleteSession('test-error');
+
+      // Restore
+      Map.prototype.delete = originalDelete;
+
+      // Should log error
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to delete session'),
+        expect.any(Error)
+      );
+      expect(result).toBe(false);
+    });
+
+    it('should handle touchSession with catastrophic error', async () => {
+      delete process.env.REDIS_URL;
+
+      const { touchSession } = await import('@/lib/cache/redis-session');
+      const { logger } = await import('@/lib/logger');
+
+      // Mock to cause error
+      const originalGet = Map.prototype.get;
+      Map.prototype.get = function() {
+        throw new Error('Memory error');
+      };
+
+      const result = await touchSession('test-error', 3600);
+
+      // Restore
+      Map.prototype.get = originalGet;
+
+      // Should log error
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to touch session'),
+        expect.any(Error)
+      );
+      expect(result).toBe(false);
+    });
+
+    it('should handle getSessionsByPattern with catastrophic error', async () => {
+      delete process.env.REDIS_URL;
+
+      const { getSessionsByPattern } = await import('@/lib/cache/redis-session');
+      const { logger } = await import('@/lib/logger');
+
+      // Mock to cause error
+      const originalKeys = Map.prototype.keys;
+      Map.prototype.keys = function() {
+        throw new Error('Memory error');
+      };
+
+      const result = await getSessionsByPattern();
+
+      // Restore
+      Map.prototype.keys = originalKeys;
+
+      // Should return empty array and log error
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to get sessions by pattern'),
+        expect.any(Error)
+      );
+      expect(result).toEqual([]);
+    });
+
+    it('should handle getSessionCount with catastrophic error', async () => {
+      delete process.env.REDIS_URL;
+
+      const { getSessionCount } = await import('@/lib/cache/redis-session');
+      const { logger } = await import('@/lib/logger');
+
+      // Mock to cause error
+      const originalEntries = Map.prototype.entries;
+      Map.prototype.entries = function() {
+        throw new Error('Memory error');
+      };
+
+      const result = await getSessionCount();
+
+      // Restore
+      Map.prototype.entries = originalEntries;
+
+      // Should return 0 and log error
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to get session count'),
+        expect.any(Error)
+      );
+      expect(result).toBe(0);
+    });
+
+    it('should handle clearAllSessions with catastrophic error', async () => {
+      delete process.env.REDIS_URL;
+
+      const { clearAllSessions } = await import('@/lib/cache/redis-session');
+      const { logger } = await import('@/lib/logger');
+
+      // Mock to cause error
+      const originalKeys = Map.prototype.keys;
+      Map.prototype.keys = function() {
+        throw new Error('Memory error');
+      };
+
+      const result = await clearAllSessions();
+
+      // Restore
+      Map.prototype.keys = originalKeys;
+
+      // Should return 0 and log error
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to clear sessions'),
+        expect.any(Error)
+      );
+      expect(result).toBe(0);
+    });
+
     it('should handle setSession with zero TTL', async () => {
       process.env.REDIS_URL = 'redis://localhost:6379';
 
