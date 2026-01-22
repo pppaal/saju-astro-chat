@@ -10,6 +10,7 @@ import { captureServerError } from "@/lib/telemetry";
 import { sanitizeError } from "@/lib/security/errorSanitizer";
 import { rateLimit } from "@/lib/rateLimit";
 import { logAdminAction } from "@/lib/auth/adminAudit";
+import { csrfGuard } from "@/lib/security/csrf";
 
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2025-10-29.clover";
 const MINI_CREDIT_PRICE_KRW = 633;
@@ -102,6 +103,13 @@ async function resolveStripeFee(stripe: Stripe, charge: Stripe.Charge | null) {
 }
 
 export async function POST(req: Request) {
+  // 🔒 CSRF Protection (before any logic)
+  const csrfError = csrfGuard(req.headers);
+  if (csrfError) {
+    logger.warn('[AdminRefund] CSRF validation failed');
+    return csrfError;
+  }
+
   const session = await getServerSession(authOptions);
   const adminEmail = session?.user?.email || "unknown";
   const adminUserId = session?.user?.id;
@@ -260,6 +268,7 @@ export async function POST(req: Request) {
       adminEmail,
       adminUserId,
       action: "refund_failed",
+      data: {
         error: err instanceof Error ? err.message : "Unknown error",
         body: await req.clone().json().catch(() => null),
       },
