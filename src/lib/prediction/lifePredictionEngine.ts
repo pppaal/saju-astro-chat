@@ -133,6 +133,10 @@ import {
   calculateDataCompleteness,
 } from './life-prediction-helpers';
 
+// Strategy pattern for event timing
+import { EventTimingStrategyFactory } from './strategies/StrategyFactory';
+import type { ScoringContext } from './strategies/types';
+
 // ============================================================
 // EXTRACTED MODULES - imported functions
 // ============================================================
@@ -554,8 +558,9 @@ export function findOptimalEventTiming(
 ): EventTimingResult {
   const { useProgressions = true, useSolarTerms = true } = options;
 
-  const conditions = EVENT_FAVORABLE_CONDITIONS[eventType];
-  if (!conditions) {
+  // Get event-specific strategy
+  const strategy = EventTimingStrategyFactory.getStrategy(eventType);
+  if (!strategy) {
     return {
       eventType,
       searchRange: { startYear, endYear },
@@ -583,89 +588,46 @@ export function findOptimalEventTiming(
       const yearGanji = calculateYearlyGanji(year);
       const twelveStage = calculatePreciseTwelveStage(input.dayStem, monthGanji.branch);
       const sibsin = calculateSibsin(input.dayStem, monthGanji.stem);
+      const monthElement = STEM_ELEMENT[monthGanji.stem];
 
       const solarTerm = useSolarTerms ? getSolarTermForDate(midMonth) : null;
-      const solarTermMonth = solarTerm ? PrecisionEngine.getSolarTermMonth(midMonth) : month;
+      const daeun = input.daeunList?.find(d => age >= d.startAge && age <= d.endAge);
+      const progression = useProgressions ? calculateSecondaryProgression(birthDate, midMonth) : undefined;
 
-      let progressionBonus = 0;
-      let progressionReason = '';
-      if (useProgressions) {
-        const progression = calculateSecondaryProgression(birthDate, midMonth);
+      // Build scoring context
+      const context: ScoringContext = {
+        year,
+        month,
+        age,
+        dayStem: input.dayStem,
+        dayBranch: input.dayBranch,
+        monthBranch: monthGanji.branch,
+        yearBranch: yearGanji.branch,
+        monthElement,
+        twelveStage,
+        sibsin,
+        yongsin: input.yongsin,
+        kisin: input.kisin,
+        daeun,
+        solarTerm: solarTerm || undefined,
+        progression,
+      };
 
-        if (progression.moon.phase === 'Full') {
-          progressionBonus += 10;
-          progressionReason = '진행 보름달 - 결실기';
-        } else if (progression.moon.phase === 'New') {
-          progressionBonus += 8;
-          progressionReason = '진행 초승달 - 새 시작';
-        }
+      // Calculate score using strategy pattern
+      const result = strategy.calculateBaseScore(context);
+      strategy.applySibsinBonus(context, result);
+      strategy.applyTwelveStageBonus(context, result);
+      strategy.applyElementBonus(context, result);
+      strategy.applyYongsinKisinBonus(context, result);
+      strategy.applySolarTermBonus(context, result);
+      strategy.applyProgressionBonus(context, result);
+      strategy.applyDaeunBonus(context, result);
 
-        if (eventType === 'marriage' || eventType === 'relationship') {
-          if (progression.venus.sign === 'Libra' || progression.venus.sign === 'Taurus') {
-            progressionBonus += 8;
-            progressionReason = `진행 금성 ${progression.venus.sign} - 관계 길`;
-          }
-        } else if (eventType === 'career') {
-          if (progression.sun.house === 10 || progression.sun.house === 1) {
-            progressionBonus += 10;
-            progressionReason = `진행 태양 ${progression.sun.house}하우스 - 커리어 상승`;
-          }
-        }
-      }
+      let score = result.score;
+      const reasons = [...result.reasons];
+      const avoidReasons = [...result.avoidReasons];
 
-      let score = 50;
-      const reasons: string[] = [];
-      const avoidReasons: string[] = [];
-
-      if (conditions.favorableSibsin.includes(sibsin)) {
-        score += EVENT_SCORING.MARRIAGE_FAVORABLE_SIBSIN;
-        reasons.push(`${sibsin}운 - ${eventType}에 유리`);
-      }
-      if (conditions.avoidSibsin.includes(sibsin)) {
-        score -= EVENT_SCORING.MARRIAGE_UNFAVORABLE_SIBSIN;
-        avoidReasons.push(`${sibsin}운 - ${eventType}에 불리`);
-      }
-
-      if (conditions.favorableStages.includes(twelveStage.stage)) {
-        score += EVENT_SCORING.CAREER_FAVORABLE_SIBSIN;
-        reasons.push(`${twelveStage.stage} - 에너지 상승기`);
-      }
-      if (conditions.avoidStages.includes(twelveStage.stage)) {
-        score -= EVENT_SCORING.CAREER_UNFAVORABLE_SIBSIN;
-        avoidReasons.push(`${twelveStage.stage} - 에너지 저하기`);
-      }
-
-      const monthElement = STEM_ELEMENT[monthGanji.stem];
-      if (conditions.favorableElements.includes(monthElement)) {
-        score += EVENT_SCORING.FAVORABLE_STAGE;
-        reasons.push(`${monthElement} 기운 - 조화`);
-      }
-
-      if (input.yongsin?.includes(monthElement)) {
-        score += EVENT_SCORING.BUSINESS_FAVORABLE;
-        reasons.push('용신 월');
-      }
-      if (input.kisin?.includes(monthElement)) {
-        score -= EVENT_SCORING.BUSINESS_UNFAVORABLE;
-        avoidReasons.push('기신 월');
-      }
-
-      if (solarTerm) {
-        if (conditions.favorableElements.includes(solarTerm.element)) {
-          score += SCORING_WEIGHTS.SOLAR_TERM_MATCH + 1;
-          reasons.push(`${solarTerm.nameKo} 절기 - ${solarTerm.element} 기운`);
-        }
-        if (input.yongsin?.includes(solarTerm.element)) {
-          score += SCORING_WEIGHTS.SOLAR_TERM_MATCH;
-          reasons.push(`절기 용신 활성 (${solarTerm.element})`);
-        }
-      }
-
-      if (progressionBonus > 0) {
-        score += progressionBonus;
-        reasons.push(progressionReason);
-      }
-
+      // Branch interactions
       const allBranches = [input.dayBranch, input.monthBranch, yearGanji.branch, monthGanji.branch];
       const interactions = analyzeBranchInteractions(allBranches);
       for (const inter of interactions) {
@@ -682,25 +644,13 @@ export function findOptimalEventTiming(
         }
       }
 
-      const daeun = input.daeunList?.find(d => age >= d.startAge && age <= d.endAge);
-      if (daeun) {
-        const daeunStage = calculatePreciseTwelveStage(input.dayStem, daeun.branch);
-        if (conditions.favorableStages.includes(daeunStage.stage)) {
-          score += EVENT_SCORING.FAVORABLE_STAGE;
-          reasons.push(`대운 ${daeunStage.stage} - 장기적 지원`);
-        }
-
-        if (solarTerm && daeun.element === solarTerm.element) {
-          score += EVENT_SCORING.TRANSITION_FAVORABLE;
-          reasons.push(`대운-절기 동기화 (${daeun.element})`);
-        }
-      }
-
+      // Astro bonuses
       const astroBonus = calculateAstroBonus(input, eventType);
       score += astroBonus.bonus;
       reasons.push(...astroBonus.reasons);
       avoidReasons.push(...astroBonus.penalties);
 
+      // Transit bonuses
       if (year === new Date().getFullYear() && month === new Date().getMonth() + 1) {
         const transitBonus = calculateTransitBonus(input, eventType);
         score += transitBonus.bonus;
@@ -716,11 +666,13 @@ export function findOptimalEventTiming(
         reasons.push(...transitEstimate.reasons);
       }
 
+      // Compound luck
       const compoundLuck = calculateCompoundLuckScore(input, eventType, year, month);
       score += compoundLuck.bonus;
       reasons.push(...compoundLuck.reasons);
       avoidReasons.push(...compoundLuck.penalties);
 
+      // Tier 6 bonuses
       const tier6Input = {
         birthYear: input.birthYear,
         birthMonth: input.birthMonth,
@@ -742,6 +694,7 @@ export function findOptimalEventTiming(
       avoidReasons.push(...tier6.shinsal.penalties);
       avoidReasons.push(...tier6.dayPillar.warnings);
 
+      // Tier 7-10 bonuses
       const tier7To10Input = {
         birthYear: input.birthYear,
         birthMonth: input.birthMonth,
