@@ -32,6 +32,12 @@ export interface SibsinInput {
   yin_yang: YinYang;
 }
 
+// Ganji 타입 (간지: 천간 + 지지)
+export interface Ganji {
+  stem: string;   // 천간
+  branch: string; // 지지
+}
+
 // --- 사주 팔자 구조 관련 타입 ---
 
 export interface PillarGanjiData {

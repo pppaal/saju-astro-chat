@@ -3,6 +3,9 @@
  * Centralized constants for life prediction scoring and analysis
  */
 
+// Re-export from engine/constants
+export { STEM_ELEMENT, EVENT_FAVORABLE_CONDITIONS } from './engine/constants';
+
 /**
  * Sibsin (Ten Gods) score mapping
  * Used for calculating fortune scores across different prediction types
@@ -36,6 +39,22 @@ export const SCORE_THRESHOLDS = {
   AVERAGE: 50,
   CAUTION: 35,
 } as const;
+
+/**
+ * Event type Korean names
+ */
+export const EVENT_TYPE_NAMES_KO: Record<string, string> = {
+  marriage: '결혼',
+  career: '커리어',
+  investment: '투자',
+  move: '이사',
+  study: '학업',
+  health: '건강',
+  relationship: '인간관계',
+  business: '사업',
+  travel: '여행',
+  surgery: '수술',
+};
 
 /**
  * Event type keywords for categorization

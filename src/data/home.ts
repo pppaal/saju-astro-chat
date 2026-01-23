@@ -14,6 +14,22 @@ export type ServiceLink = {
   comingSoon?: boolean;
 };
 
+export type ServiceKey =
+  | "destinyMap"
+  | "aiReports"
+  | "lifePrediction"
+  | "tarot"
+  | "calendar"
+  | "dream"
+  | "personality"
+  | "icp"
+  | "numerology"
+  | "astrology"
+  | "saju"
+  | "compatibility"
+  | "pastLife"
+  | "iching";
+
 export const TAROT_CARD_BACK = "/images/tarot-main/back.png";
 
 export const TAROT_DECK: TarotCard[] = [

@@ -32,6 +32,8 @@ export {
   analyzeGeokguk,
   analyzeSolarReturn,
   analyzeProgressions,
+  type YongsinAnalysis,
+  type GeokgukInfo,
 } from './saju-analysis';
 
 // Re-export from astrology-analysis (getLunarPhase)
