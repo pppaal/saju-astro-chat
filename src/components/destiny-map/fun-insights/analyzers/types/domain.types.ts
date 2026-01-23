@@ -51,11 +51,21 @@ export interface KarmaMatrixResult {
 
 // Advanced Career Analysis
 export interface CareerAdvancedResult {
-  wealthPatterns: Array<{ ko: string; en: string; strength: number }>;
-  careerTiming: Array<{ period: string; strength: number; advice: { ko: string; en: string } }>;
-  progressionInsights: Array<{ ko: string; en: string }>;
-  careerAdvancedScore: number;
-  careerAdvancedMessage: { ko: string; en: string };
+  careerScore?: number;
+  wealthPatterns?: Array<{ ko: string; en: string; strength: number }>;
+  careerTiming?: Array<{ period: string; strength: number; advice: { ko: string; en: string } }>;
+  progressionInsights?: Array<{ ko: string; en: string }>;
+  careerAdvancedScore?: number;
+  careerAdvancedMessage?: { ko: string; en: string };
+  // Optional extended properties for legacy compatibility
+  wealthPattern?: any;
+  successTiming?: any[];
+  careerProgression?: any;
+  nobleHelp?: any[];
+  fortunePoint?: any;
+  midheaven?: any;
+  geokgukCareer?: any;
+  houseCareerMap?: any[];
 }
 
 // Love Timing Analysis
@@ -64,12 +74,18 @@ export interface LoveTimingResult {
   relationshipPatterns: Array<{ ko: string; en: string }>;
   loveTimingScore: number;
   loveTimingMessage: { ko: string; en: string };
+  // Optional extended properties for legacy compatibility
+  timingScore?: number;
+  timingMessage?: { ko: string; en: string };
+  romanticTiming?: any[];
+  relationshipPattern?: any[];
+  destinyMeeting?: any;
 }
 
 // Shadow Personality Analysis
 export interface ShadowPersonalityResult {
-  lilithShadow: { ko: string; en: string };
-  hiddenPotential: { ko: string; en: string };
+  lilithShadow?: { ko: string; en: string };
+  hiddenPotential?: { ko: string; en: string };
   shadowScore: number;
   shadowMessage: { ko: string; en: string };
 }
