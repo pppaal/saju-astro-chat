@@ -1,0 +1,31 @@
+
+> saju-astro-chatbot@0.1.0 build
+> next build --webpack
+
+   ▲ Next.js 16.0.10 (webpack)
+   - Environments: .env.local, .env
+   - Experiments (use with caution):
+     · clientTraceMetadata
+     ✓ optimizeCss
+     · optimizePackageImports
+     ✓ scrollRestoration
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 6.6min
+   Running TypeScript ...
+Failed to compile.
+
+./src/app/api/destiny-matrix/ai-report/route.ts:190:25
+Type error: Conversion of type '{ dayMasterElement: "목" | "화" | "토" | "금" | "수"; pillarElements: ("목" | "화" | "토" | "금" | "수")[]; sibsinDistribution: Record<"비견" | "겁재" | "식신" | "상관" | "편재" | "정재" | "편관" | "정관" | "편인" | "정인", number>; ... 16 more ...; dominantWesternElement?: "fire" | ... 3 more ... | undefined; }' to type 'MatrixCalculationInput' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types of 'planetSigns.Moon' are incompatible between these types.
+    Type '"물병자리" | "전갈자리" | "물고기자리" | "양자리" | "황소자리" | "쌍둥이자리" | "게자리" | "사자자리" | "처녀자리" | "천칭자리" | "사수자리" | "염소자리"' is not comparable to type 'ZodiacKo | undefined'.
+      Type '"염소자리"' is not comparable to type 'ZodiacKo | undefined'.
+
+[0m [90m 188 |[39m     [36mconst[39m validatedInput [33m=[39m validation[33m.[39mdata[33m![39m[33m;[39m
+ [90m 189 |[39m     [36mconst[39m { queryDomain[33m,[39m maxInsights[33m,[39m [33m...[39mrest } [33m=[39m validatedInput[33m;[39m
+[31m[1m>[22m[39m[90m 190 |[39m     [36mconst[39m matrixInput [33m=[39m rest [36mas[39m [33mMatrixCalculationInput[39m[33m;[39m
+ [90m     |[39m                         [31m[1m^[22m[39m
+ [90m 191 |[39m
+ [90m 192 |[39m     [90m// 6. 추가 옵션 추출[39m
+ [90m 193 |[39m     [36mconst[39m name [33m=[39m requestBody[33m.[39mname [36mas[39m string [33m|[39m undefined[33m;[39m[0m
+Next.js build worker exited with code: 1 and signal: null

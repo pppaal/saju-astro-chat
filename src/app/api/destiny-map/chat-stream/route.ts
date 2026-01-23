@@ -96,9 +96,6 @@ import {
   generateTier4Analysis,
 } from "./analysis";
 
-// Handlers
-import { loadOrComputeAllData } from "./handlers/dataLoader";
-
 // Builders
 import { buildAdvancedTimingSection } from "./builders/advancedTimingBuilder";
 import { buildDailyPrecisionSection } from "./builders/dailyPrecisionBuilder";

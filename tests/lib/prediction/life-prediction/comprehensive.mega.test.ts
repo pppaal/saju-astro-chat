@@ -31,8 +31,8 @@ const createBasicInput = (): LifePredictionInput => ({
   yongsin: ['水', '木'],
   gisin: ['土', '金'],
   daeunList: [
-    { stem: '乙', branch: '酉', startAge: 20, endAge: 29, energy: 'yin' as const },
-    { stem: '丙', branch: '戌', startAge: 30, endAge: 39, energy: 'yang' as const },
+    { stem: '乙', branch: '酉', startAge: 20, endAge: 29, element: '금', energy: 'yin' as const },
+    { stem: '丙', branch: '戌', startAge: 30, endAge: 39, element: '토', energy: 'yang' as const },
   ],
   astroChart: {
     sun: { sign: 'Gemini', house: 10, longitude: 75.5 },
@@ -113,7 +113,8 @@ describe('comprehensive MEGA - generateLifePredictionPromptContext', () => {
     const input = createBasicInput();
     const currentYear = new Date().getFullYear();
 
-    const result = generateLifePredictionPromptContext(input, currentYear, currentYear + 5);
+    const prediction = generateComprehensivePrediction(input, currentYear, currentYear + 5);
+    const result = generateLifePredictionPromptContext(prediction);
 
     expect(typeof result).toBe('string');
     expect(result.length).toBeGreaterThan(0);
@@ -123,7 +124,8 @@ describe('comprehensive MEGA - generateLifePredictionPromptContext', () => {
     const input = createBasicInput();
     const currentYear = new Date().getFullYear();
 
-    const result = generateLifePredictionPromptContext(input, currentYear, currentYear + 3);
+    const prediction = generateComprehensivePrediction(input, currentYear, currentYear + 3);
+    const result = generateLifePredictionPromptContext(prediction);
 
     expect(result).toBeDefined();
     expect(typeof result).toBe('string');
@@ -133,9 +135,13 @@ describe('comprehensive MEGA - generateLifePredictionPromptContext', () => {
     const input = createBasicInput();
     const currentYear = new Date().getFullYear();
 
-    const result1 = generateLifePredictionPromptContext(input, currentYear, currentYear + 1);
-    const result5 = generateLifePredictionPromptContext(input, currentYear, currentYear + 5);
-    const result10 = generateLifePredictionPromptContext(input, currentYear, currentYear + 10);
+    const prediction1 = generateComprehensivePrediction(input, currentYear, currentYear + 1);
+    const prediction5 = generateComprehensivePrediction(input, currentYear, currentYear + 5);
+    const prediction10 = generateComprehensivePrediction(input, currentYear, currentYear + 10);
+
+    const result1 = generateLifePredictionPromptContext(prediction1);
+    const result5 = generateLifePredictionPromptContext(prediction5);
+    const result10 = generateLifePredictionPromptContext(prediction10);
 
     expect(result1.length).toBeGreaterThan(0);
     expect(result5.length).toBeGreaterThan(0);
@@ -152,7 +158,8 @@ describe('comprehensive MEGA - generateLifePredictionPromptContext', () => {
     const currentYear = new Date().getFullYear();
 
     expect(() => {
-      generateLifePredictionPromptContext(input, currentYear, currentYear + 3);
+      const prediction = generateComprehensivePrediction(input, currentYear, currentYear + 3);
+      generateLifePredictionPromptContext(prediction);
     }).not.toThrow();
   });
 });
@@ -260,22 +267,18 @@ describe('comprehensive MEGA - generateEventTimingPromptContext', () => {
 describe('comprehensive MEGA - generatePastAnalysisPromptContext', () => {
   it('should generate past analysis context', () => {
     const mockPastData: PastRetrospective = {
-      startYear: 2020,
-      endYear: 2023,
-      significantEvents: [
-        {
-          year: 2021,
-          month: 6,
-          score: 85,
-          grade: 'S',
-          description: 'Great period',
-          reasons: ['good fortune'],
-        },
-      ],
-      averageScore: 70,
-      bestYear: { year: 2021, score: 85, highlights: [] },
-      worstYear: { year: 2020, score: 50, challenges: [] },
-      overallTrend: 'improving',
+      targetDate: new Date('2021-06-15'),
+      dailyPillar: { stem: '戊', branch: '午' },
+      score: 85,
+      grade: 'A',
+      yearGanji: { stem: '辛', branch: '丑' },
+      monthGanji: { stem: '甲', branch: '午' },
+      twelveStage: { stage: '제왕', description: '', strength: 10 },
+      sibsin: '편재',
+      branchInteractions: [],
+      themes: ['성공', '성취'],
+      whyItHappened: ['좋은 운세', '타이밍이 완벽'],
+      lessonsLearned: ['준비의 중요성', '기회 포착'],
     };
 
     const result = generatePastAnalysisPromptContext(mockPastData);
@@ -286,13 +289,18 @@ describe('comprehensive MEGA - generatePastAnalysisPromptContext', () => {
 
   it('should handle empty significant events', () => {
     const mockPastData: PastRetrospective = {
-      startYear: 2020,
-      endYear: 2023,
-      significantEvents: [],
-      averageScore: 60,
-      bestYear: { year: 2021, score: 70, highlights: [] },
-      worstYear: { year: 2020, score: 50, challenges: [] },
-      overallTrend: 'stable',
+      targetDate: new Date('2023-03-15'),
+      dailyPillar: { stem: '甲', branch: '寅' },
+      score: 75,
+      grade: 'B',
+      yearGanji: { stem: '癸', branch: '卯' },
+      monthGanji: { stem: '乙', branch: '卯' },
+      twelveStage: { stage: '건록', description: '', strength: 8 },
+      sibsin: '비견',
+      branchInteractions: [],
+      themes: [],
+      whyItHappened: [],
+      lessonsLearned: [],
     };
 
     const result = generatePastAnalysisPromptContext(mockPastData);
@@ -303,13 +311,18 @@ describe('comprehensive MEGA - generatePastAnalysisPromptContext', () => {
 
   it('should include trend information', () => {
     const mockPastData: PastRetrospective = {
-      startYear: 2018,
-      endYear: 2023,
-      significantEvents: [],
-      averageScore: 65,
-      bestYear: { year: 2023, score: 80, highlights: [] },
-      worstYear: { year: 2019, score: 45, challenges: [] },
-      overallTrend: 'improving',
+      targetDate: new Date('2023-06-20'),
+      dailyPillar: { stem: '丙', branch: '午' },
+      score: 82,
+      grade: 'A',
+      yearGanji: { stem: '癸', branch: '卯' },
+      monthGanji: { stem: '戊', branch: '午' },
+      twelveStage: { stage: '제왕', description: '', strength: 10 },
+      sibsin: '식신',
+      branchInteractions: [],
+      themes: ['성장', '발전'],
+      whyItHappened: ['좋은 운세', '노력의 결실'],
+      lessonsLearned: ['지속적인 노력의 중요성'],
     };
 
     const result = generatePastAnalysisPromptContext(mockPastData);
@@ -335,9 +348,7 @@ describe('comprehensive MEGA - Integration', () => {
     );
 
     const promptContext = generateLifePredictionPromptContext(
-      input,
-      currentYear,
-      currentYear + 5
+      comprehensivePrediction
     );
 
     expect(comprehensivePrediction).toBeDefined();
@@ -352,7 +363,10 @@ describe('comprehensive MEGA - Integration', () => {
     const result1 = generateComprehensivePrediction(input, currentYear, currentYear + 3);
     const result2 = generateComprehensivePrediction(input, currentYear, currentYear + 3);
 
-    expect(result1).toEqual(result2);
+    // Compare everything except generatedAt timestamp
+    const { generatedAt: _1, ...rest1 } = result1;
+    const { generatedAt: _2, ...rest2 } = result2;
+    expect(rest1).toEqual(rest2);
   });
 });
 
