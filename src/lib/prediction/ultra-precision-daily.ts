@@ -8,6 +8,7 @@ import {
   analyzeBranchInteractions,
   calculateSibsin,
 } from './advancedTimingEngine';
+import { normalizeScore } from './utils/scoring-utils';
 
 import type {
   FiveElement,
@@ -88,7 +89,7 @@ export function analyzeDailyPillar(
   // 십신 영향
   score += SIBSIN_SCORES[sibsin] || 0;
 
-  score = Math.max(0, Math.min(100, score));
+  score = normalizeScore(score);
 
   return {
     stem: daily.stem,

@@ -12,6 +12,10 @@ import {
 } from './advancedTimingEngine';
 
 import type { DaeunInfo } from './daeunTransitSync';
+import { analyzeBranchRelation as _analyzeBranchRelation } from './life-prediction/relation-analysis';
+
+// Re-export for backward compatibility
+export const analyzeBranchRelation = _analyzeBranchRelation;
 
 import type {
   EventType,
@@ -58,20 +62,7 @@ export function analyzeStemRelation(stem1: string, stem2: string): { type: strin
   return { type: '무관', description: '' };
 }
 
-/**
- * 지지 관계 분석 (간단 버전)
- */
-export function analyzeBranchRelation(branch1: string, branch2: string): string {
-  const combo = branch1 + branch2;
-  const reverseCombo = branch2 + branch1;
-
-  if (SIX_COMBOS[combo] || SIX_COMBOS[reverseCombo]) return '육합';
-  if (PARTIAL_TRINES[combo] || PARTIAL_TRINES[reverseCombo]) return '삼합';
-  if (CLASHES[combo] || CLASHES[reverseCombo]) return '충';
-  if (PUNISHMENTS[combo] || PUNISHMENTS[reverseCombo]) return '형';
-
-  return '무관';
-}
+// Note: analyzeBranchRelation() is now imported and re-exported from life-prediction/relation-analysis.ts
 
 // ============================================================
 // 신살 감지

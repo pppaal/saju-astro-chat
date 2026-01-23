@@ -14,6 +14,7 @@ import type {
   PredictionGrade,
 } from './types';
 import { STEM_ELEMENT, SIBSIN_SCORES } from './constants';
+import { normalizeScore } from '../utils/scoring-utils';
 import {
   calculateYearlyGanji,
   calculatePreciseTwelveStage,
@@ -252,7 +253,7 @@ export function analyzeMultiYearTrend(
     if (input.yongsin?.includes(yearElement)) score += 12;
     if (input.kisin?.includes(yearElement)) score -= 10;
 
-    score = Math.max(0, Math.min(100, score));
+    score = normalizeScore(score);
 
     // 등급 결정
     const grade = scoreToGrade(score);

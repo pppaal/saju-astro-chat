@@ -381,7 +381,7 @@ export function analyzePastDate(
   if (input.yongsin?.includes(dayElement)) score += SCORING_WEIGHTS.YONGSIN_BONUS_MINOR;
   if (input.kisin?.includes(dayElement)) score -= SCORING_WEIGHTS.KISIN_PENALTY_MINOR;
 
-  score = Math.max(SCORE_BOUNDARIES.MIN, Math.min(SCORE_BOUNDARIES.MAX, score));
+  score = normalizeScore(score, SCORE_BOUNDARIES.MIN, SCORE_BOUNDARIES.MAX);
   const grade = scoreToGrade(score);
 
   const causalFactors = analyzeCausalFactors(

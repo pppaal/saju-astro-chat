@@ -26,6 +26,7 @@ export function buildPastAnalysisSection(
   saju: SajuDataStructure | undefined,
   astro: AstroDataStructure | undefined,
   birthDate: string,
+  gender: 'male' | 'female',
   question: string,
   lang: string
 ): string {
@@ -61,7 +62,7 @@ export function buildPastAnalysisSection(
       birthYear,
       birthMonth,
       birthDay,
-      gender: 'male', // Default, should be passed from parent
+      gender,
       dayStem: saju.dayMaster?.heavenlyStem || '甲',
       dayBranch: saju?.pillars?.day?.earthlyBranch?.name || '子',
       monthBranch: allBranches[1],
@@ -91,6 +92,7 @@ export function buildMultiYearTrendSection(
   saju: SajuDataStructure | undefined,
   astro: AstroDataStructure | undefined,
   birthDate: string,
+  gender: 'male' | 'female',
   theme: string,
   lang: string
 ): string {
@@ -122,7 +124,7 @@ export function buildMultiYearTrendSection(
       birthYear,
       birthMonth,
       birthDay,
-      gender: 'male', // Default, should be passed from parent
+      gender,
       dayStem: saju.dayMaster?.heavenlyStem || '甲',
       dayBranch: saju?.pillars?.day?.earthlyBranch?.name || '子',
       monthBranch: allBranches[1],

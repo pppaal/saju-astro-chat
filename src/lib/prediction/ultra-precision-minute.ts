@@ -5,6 +5,7 @@
 
 import { analyzeBranchInteractions } from './advancedTimingEngine';
 import { scoreToGrade } from './index';
+import { normalizeScore } from './utils/scoring-utils';
 import {
   PrecisionEngine,
   getSolarTermForDate,
@@ -133,7 +134,7 @@ export function analyzeMinutePrecision(
     optimalActivities.push('내부 작업', '정리', '휴식');
   }
 
-  score = Math.max(0, Math.min(100, score));
+  score = normalizeScore(score);
 
   // 등급 결정 (통일된 기준 사용)
   const grade = scoreToGrade(score);

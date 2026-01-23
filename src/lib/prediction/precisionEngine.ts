@@ -3,6 +3,7 @@
 // TIER 5: 과거/미래 완벽 정밀 분석
 
 import type { FiveElement } from './timingScore';
+import { normalizeScore } from './utils/scoring-utils';
 
 // ============================================================
 // 타입 정의
@@ -871,7 +872,7 @@ export function calculateEventCategoryScores(
 
   // 0-100 범위로 정규화
   for (const key of Object.keys(scores)) {
-    scores[key as keyof EventCategoryScores] = Math.max(0, Math.min(100, scores[key as keyof EventCategoryScores]));
+    scores[key as keyof EventCategoryScores] = normalizeScore(scores[key as keyof EventCategoryScores]);
   }
 
   return scores;

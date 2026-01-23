@@ -522,6 +522,7 @@ export async function POST(req: NextRequest) {
           saju,
           astro,
           effectiveBirthDate,
+          effectiveGender as 'male' | 'female',
           lastUser?.content || '',
           lang
         );
@@ -530,6 +531,7 @@ export async function POST(req: NextRequest) {
           saju,
           astro,
           effectiveBirthDate,
+          effectiveGender as 'male' | 'female',
           theme,
           lang
         );

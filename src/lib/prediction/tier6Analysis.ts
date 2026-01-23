@@ -10,6 +10,7 @@ import {
 } from './advancedTimingEngine';
 
 import { calculateDailyPillar } from './ultraPrecisionEngine';
+import { analyzeBranchRelation } from './life-prediction/relation-analysis';
 
 // ============================================================
 // 타입 정의
@@ -84,46 +85,7 @@ const EVENT_FAVORABLE_CONDITIONS: Record<EventType, {
   },
 };
 
-// ============================================================
-// 지지 관계 분석 (간단 버전)
-// ============================================================
-
-function analyzeBranchRelation(branch1: string, branch2: string): string {
-  const sixCombos: Record<string, string> = {
-    '子丑': '육합', '丑子': '육합', '寅亥': '육합', '亥寅': '육합',
-    '卯戌': '육합', '戌卯': '육합', '辰酉': '육합', '酉辰': '육합',
-    '巳申': '육합', '申巳': '육합', '午未': '육합', '未午': '육합',
-  };
-
-  const partialTrines: Record<string, string> = {
-    '寅午': '삼합', '午戌': '삼합', '寅戌': '삼합',
-    '申子': '삼합', '子辰': '삼합', '申辰': '삼합',
-    '巳酉': '삼합', '酉丑': '삼합', '巳丑': '삼합',
-    '亥卯': '삼합', '卯未': '삼합', '亥未': '삼합',
-  };
-
-  const clashes: Record<string, string> = {
-    '子午': '충', '午子': '충', '丑未': '충', '未丑': '충',
-    '寅申': '충', '申寅': '충', '卯酉': '충', '酉卯': '충',
-    '辰戌': '충', '戌辰': '충', '巳亥': '충', '亥巳': '충',
-  };
-
-  const punishments: Record<string, string> = {
-    '寅巳': '형', '巳寅': '형', '巳申': '형', '申巳': '형',
-    '丑戌': '형', '戌丑': '형', '戌未': '형', '未戌': '형',
-    '子卯': '형', '卯子': '형',
-  };
-
-  const combo = branch1 + branch2;
-  const reverseCombo = branch2 + branch1;
-
-  if (sixCombos[combo] || sixCombos[reverseCombo]) return '육합';
-  if (partialTrines[combo] || partialTrines[reverseCombo]) return '삼합';
-  if (clashes[combo] || clashes[reverseCombo]) return '충';
-  if (punishments[combo] || punishments[reverseCombo]) return '형';
-
-  return '무관';
-}
+// Note: analyzeBranchRelation() is now imported from life-prediction/relation-analysis.ts
 
 // ============================================================
 // TIER 6-1: 세컨더리 프로그레션 정밀 분석

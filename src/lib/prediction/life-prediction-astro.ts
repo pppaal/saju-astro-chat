@@ -53,32 +53,36 @@ export function calculateAstroBonus(
   // 1. 주요 행성 별자리 체크
   if (astro) {
     // 금성 체크 (결혼/연애)
-    if (astro.venus?.sign && conditions.favorableSigns.includes(astro.venus.sign)) {
+    if (astro.venus?.sign && conditions.beneficSigns?.includes(astro.venus.sign)) {
       bonus += 8;
       reasons.push(`금성 ${astro.venus.sign} - ${eventType}에 유리`);
     }
 
     // 목성 체크 (확장/행운)
-    if (astro.jupiter?.sign && conditions.favorableSigns.includes(astro.jupiter.sign)) {
+    if (astro.jupiter?.sign && conditions.beneficSigns?.includes(astro.jupiter.sign)) {
       bonus += 6;
       reasons.push(`목성 ${astro.jupiter.sign} - 행운 지원`);
     }
 
+    // Get favorable houses from EVENT_HOUSES constant
+    const eventHouses = EVENT_HOUSES[eventType];
+    const favorableHouses = [...eventHouses.primary, ...eventHouses.secondary];
+
     // 태양 하우스 체크
-    if (astro.sun?.house && conditions.favorableHouses.includes(astro.sun.house)) {
+    if (astro.sun?.house && favorableHouses.includes(astro.sun.house)) {
       bonus += 7;
       reasons.push(`태양 ${astro.sun.house}하우스 - 에너지 집중`);
     }
 
     // 달 하우스 체크
-    if (astro.moon?.house && conditions.favorableHouses.includes(astro.moon.house)) {
+    if (astro.moon?.house && favorableHouses.includes(astro.moon.house)) {
       bonus += 5;
       reasons.push(`달 ${astro.moon.house}하우스 - 감정 지원`);
     }
 
     // Part of Fortune 체크
     if (advanced?.extraPoints?.partOfFortune?.house &&
-        conditions.favorableHouses.includes(advanced.extraPoints.partOfFortune.house)) {
+        favorableHouses.includes(advanced.extraPoints.partOfFortune.house)) {
       bonus += 6;
       reasons.push(`행운점 ${advanced.extraPoints.partOfFortune.house}하우스 - 길운`);
     }
@@ -87,7 +91,7 @@ export function calculateAstroBonus(
   // 2. 역행 체크
   if (advanced?.electional?.retrograde) {
     for (const retroPlanet of advanced.electional.retrograde) {
-      if (conditions.avoidRetrogrades.includes(retroPlanet)) {
+      if (conditions.maleficPlanets?.includes(retroPlanet)) {
         bonus -= 10;
         penalties.push(`${retroPlanet} 역행 - ${eventType} 주의`);
       }
@@ -95,7 +99,7 @@ export function calculateAstroBonus(
   } else if (astro?.planets) {
     // 기본 차트에서 역행 체크
     for (const planet of astro.planets) {
-      if (planet.isRetrograde && conditions.avoidRetrogrades.includes(planet.name)) {
+      if (planet.isRetrograde && conditions.maleficPlanets?.includes(planet.name)) {
         bonus -= 10;
         penalties.push(`${planet.name} 역행 - ${eventType} 주의`);
       }

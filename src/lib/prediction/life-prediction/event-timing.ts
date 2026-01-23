@@ -14,6 +14,7 @@ import type {
   PredictionGrade,
 } from './types';
 import { EVENT_FAVORABLE_CONDITIONS, STEM_ELEMENT, EVENT_NAMES } from './constants';
+import { normalizeScore } from '../utils/scoring-utils';
 import { calculateAstroBonus, calculateTransitBonus, calculateTransitHouseOverlay } from './astro-bonus';
 import {
   calculateYearlyGanji,
@@ -342,7 +343,7 @@ function findSpecificGoodDays(
       }
     }
 
-    score = Math.max(0, Math.min(100, score));
+    score = normalizeScore(score);
 
     if (score >= 65) {
       goodDays.push({ date: new Date(current), score, reasons });
@@ -603,7 +604,7 @@ export function findOptimalEventTiming(
       reasons.push(...tier7To10.reasons);
       avoidReasons.push(...tier7To10.penalties);
 
-      score = Math.max(0, Math.min(100, score));
+      score = normalizeScore(score);
 
       // 분류
       if (score >= 70) {

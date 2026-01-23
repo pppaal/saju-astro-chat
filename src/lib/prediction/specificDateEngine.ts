@@ -12,6 +12,7 @@ import {
   analyzeBranchInteractions,
   calculateSibsin,
 } from './advancedTimingEngine';
+import { normalizeScore } from './utils/scoring-utils';
 
 // ============================================================
 // 타입 정의
@@ -372,7 +373,7 @@ function calculateActivityScore(
   }
 
   return {
-    score: Math.max(0, Math.min(100, score)),
+    score: normalizeScore(score),
     reasons,
     warnings,
   };
