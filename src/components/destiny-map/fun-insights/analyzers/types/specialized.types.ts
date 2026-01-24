@@ -80,6 +80,7 @@ export interface KarmaMatrixResult {
     fusion: MatrixFusion;
     hint: { ko: string; en: string };
   }>;
+  karmaMessage?: { ko: string; en: string };
 }
 
 // ============================
