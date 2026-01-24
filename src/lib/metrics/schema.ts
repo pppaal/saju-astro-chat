@@ -247,7 +247,7 @@ export const MetricRegistry: Record<string, MetricDefinition> = {
 // Zod Schemas for Validation
 // ============================================================
 
-export const MetricLabelSchema = z.record(z.union([z.string(), z.number(), z.boolean()]));
+export const MetricLabelSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean()]));
 
 export const CounterMetricSchema = z.object({
   name: z.string(),
@@ -279,7 +279,7 @@ export const SummaryMetricSchema = z.object({
 export const HistogramMetricSchema = z.object({
   name: z.string(),
   type: z.literal("histogram"),
-  buckets: z.record(z.number()),
+  buckets: z.record(z.string(), z.number()),
   count: z.number(),
   sum: z.number(),
   labels: MetricLabelSchema.optional(),

@@ -1,5 +1,6 @@
 // 🔒 Admin Audit Log - 관리자 작업 감사 로그
-import { prisma } from "@/lib/db/prisma";
+import { prisma, Prisma } from "@/lib/db/prisma";
+import { logger } from "@/lib/logger";
 
 export interface AdminAuditParams {
   adminEmail: string;
@@ -47,7 +48,7 @@ export async function logAdminAction(params: AdminAuditParams): Promise<void> {
         action: params.action,
         targetType: params.targetType,
         targetId: params.targetId,
-        metadata: params.metadata || params.data || {}, // Support both fields
+        metadata: (params.metadata || params.data || {}) as Prisma.JsonObject, // Support both fields
         success: params.success !== false, // default true
         errorMessage: params.errorMessage,
         ipAddress: params.ipAddress,
@@ -55,8 +56,7 @@ export async function logAdminAction(params: AdminAuditParams): Promise<void> {
       },
     });
 
-    // 콘솔에도 로그 (개발/디버깅용)
-    console.log('[Admin Action]', {
+    logger.info('[Admin Action]', {
       admin: params.adminEmail,
       action: params.action,
       target: `${params.targetType}:${params.targetId}`,
@@ -64,7 +64,7 @@ export async function logAdminAction(params: AdminAuditParams): Promise<void> {
     });
   } catch (error) {
     // 감사 로그 실패는 치명적이지 않으므로 에러만 기록
-    console.error('Failed to log admin action:', error);
+    logger.error('Failed to log admin action', { error });
   }
 }
 

@@ -81,8 +81,9 @@ describe('lib/utils - cn() comprehensive tests', () => {
   });
 
   describe('Tailwind CSS deduplication', () => {
-    it('should deduplicate same classes', () => {
-      expect(cn('foo', 'foo')).toBe('foo');
+    it('should preserve duplicate non-Tailwind classes', () => {
+      // twMerge only deduplicates Tailwind utility conflicts, not arbitrary strings
+      expect(cn('foo', 'foo')).toBe('foo foo');
     });
 
     it('should handle Tailwind class conflicts', () => {
@@ -178,7 +179,8 @@ describe('lib/utils - cn() comprehensive tests', () => {
   describe('Edge cases', () => {
     it('should handle very long class strings', () => {
       const longClass = 'a '.repeat(100).trim();
-      expect(cn(longClass)).toBe('a');
+      // twMerge preserves non-Tailwind classes as-is
+      expect(cn(longClass)).toBe(longClass);
     });
 
     it('should handle special characters in class names', () => {

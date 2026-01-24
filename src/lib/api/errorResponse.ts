@@ -6,6 +6,7 @@
 
 import { NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
+import { logger } from '@/lib/logger';
 
 // ============ Error Codes ============
 
@@ -127,9 +128,9 @@ export function createErrorResponse(options: {
     headers['Retry-After'] = retryAfter.toString();
   }
 
-  // Log error for monitoring (in production, send to error tracking service)
+  // Log error for monitoring
   if (process.env.NODE_ENV === 'production') {
-    console.error('[API Error]', {
+    logger.error('[API Error]', {
       requestId,
       code,
       status,
@@ -379,7 +380,7 @@ export function withErrorHandling<T extends unknown[]>(
     try {
       return await handler(...args);
     } catch (error) {
-      console.error('[API Handler Error]', error);
+      logger.error('[API Handler Error]', { error });
 
       // Handle known error types
       if (error instanceof Error) {

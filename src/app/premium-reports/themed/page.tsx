@@ -1,10 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import Link from 'next/link';
+
+interface SajuData {
+  dayMasterElement: string;
+  dayMaster: string;
+  birthDate: string;
+  birthTime?: string;
+}
 
 const THEME_INFO = {
   love: {
@@ -59,12 +66,36 @@ export default function ThemedReportPage() {
   const [selectedTheme, setSelectedTheme] = useState<ThemeType | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sajuData, setSajuData] = useState<SajuData | null>(null);
+  const [sajuLoading, setSajuLoading] = useState(false);
+
+  // 사주 정보 로드
+  const loadSajuData = useCallback(async () => {
+    if (status !== 'authenticated') return;
+
+    setSajuLoading(true);
+    try {
+      const res = await fetch('/api/me/saju');
+      const data = await res.json();
+      if (data.success && data.hasSaju) {
+        setSajuData(data.saju);
+      }
+    } catch {
+      // 사주 로드 실패 시 무시 (기본값 사용)
+    } finally {
+      setSajuLoading(false);
+    }
+  }, [status]);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin?callbackUrl=/premium-reports/themed');
     }
   }, [status, router]);
+
+  useEffect(() => {
+    loadSajuData();
+  }, [loadSajuData]);
 
   const handleGenerate = async () => {
     if (!selectedTheme) {
@@ -86,7 +117,7 @@ export default function ThemedReportPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           theme: selectedTheme,
-          dayMasterElement: '목', // TODO: 실제 사용자 데이터에서 가져오기
+          dayMasterElement: sajuData?.dayMasterElement || '목',
           name: profile.name,
           birthDate: profile.birthDate,
           lang: 'ko',
@@ -112,7 +143,7 @@ export default function ThemedReportPage() {
     }
   };
 
-  if (status === 'loading' || profileLoading) {
+  if (status === 'loading' || profileLoading || sajuLoading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-white">로딩 중...</div>

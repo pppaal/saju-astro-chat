@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
+import { prisma } from '@/lib/db/prisma';
 import {
   calculateDestinyMatrix,
   FusionReportGenerator,
@@ -187,7 +188,7 @@ export async function POST(req: NextRequest) {
 
     const validatedInput = validation.data!;
     const { queryDomain, maxInsights, ...rest } = validatedInput;
-    const matrixInput = rest as MatrixCalculationInput;
+    const matrixInput = rest as unknown as MatrixCalculationInput;
 
     // 6. 추가 옵션 추출
     const name = requestBody.name as string | undefined;
@@ -280,27 +281,57 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 12. PDF 형식 요청인 경우 (종합 리포트만 지원)
+    // 12. DB에 리포트 저장
+    const reportType = theme ? 'themed' : period ? 'timing' : 'comprehensive';
+    const reportTitle = generateReportTitle(reportType, period, theme, targetDate);
+    const reportSummary = extractReportSummary(aiReport);
+    const overallScore = extractOverallScore(aiReport);
+
+    const savedReport = await prisma.destinyMatrixReport.create({
+      data: {
+        userId,
+        reportType,
+        period: period || null,
+        theme: theme || null,
+        reportData: aiReport as object,
+        title: reportTitle,
+        summary: reportSummary,
+        overallScore,
+        grade: scoreToGrade(overallScore),
+        locale: matrixInput.lang || 'ko',
+      },
+    });
+
+    // 13. PDF 형식 요청인 경우 (종합 리포트만 지원)
     if (format === 'pdf' && premiumReport) {
       const pdfBytes = await generatePremiumPDF(premiumReport);
+
+      // PDF 생성 상태 업데이트
+      await prisma.destinyMatrixReport.update({
+        where: { id: savedReport.id },
+        data: { pdfGenerated: true },
+      });
 
       return new NextResponse(Buffer.from(pdfBytes), {
         status: 200,
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="destiny-matrix-report-${aiReport.id}.pdf"`,
+          'Content-Disposition': `attachment; filename="destiny-matrix-report-${savedReport.id}.pdf"`,
           'Content-Length': pdfBytes.length.toString(),
         },
       });
     }
 
-    // 13. JSON 응답
+    // 14. JSON 응답 (저장된 리포트 ID 포함)
     return NextResponse.json({
       success: true,
       creditsUsed: creditCost,
       remainingCredits: balance.remainingCredits - creditCost,
-      reportType: theme ? 'themed' : period ? 'timing' : 'comprehensive',
-      report: aiReport,
+      reportType,
+      report: {
+        ...aiReport,
+        id: savedReport.id, // DB에 저장된 ID로 덮어쓰기
+      },
     });
 
   } catch (error) {
@@ -462,5 +493,98 @@ function extractLayerCells(layerData: Record<string, unknown>): Record<string, M
 // 타이밍 데이터 빌더
 // ===========================
 
+// ===========================
+// 리포트 저장 헬퍼 함수
+// ===========================
 
+const PERIOD_LABELS: Record<string, string> = {
+  daily: '오늘',
+  monthly: '이번달',
+  yearly: '올해',
+  comprehensive: '종합',
+};
 
+const THEME_LABELS: Record<string, string> = {
+  love: '사랑',
+  career: '커리어',
+  wealth: '재물',
+  health: '건강',
+  family: '가족',
+};
+
+function generateReportTitle(
+  reportType: string,
+  period?: string,
+  theme?: string,
+  targetDate?: string
+): string {
+  const date = targetDate ? new Date(targetDate) : new Date();
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+
+  if (reportType === 'themed' && theme) {
+    return `${THEME_LABELS[theme] || theme} 운세 심화 분석`;
+  }
+
+  if (reportType === 'timing' && period) {
+    const periodLabel = PERIOD_LABELS[period] || period;
+    if (period === 'daily') {
+      return `${year}년 ${month}월 ${date.getDate()}일 운세`;
+    }
+    if (period === 'monthly') {
+      return `${year}년 ${month}월 운세`;
+    }
+    if (period === 'yearly') {
+      return `${year}년 운세`;
+    }
+    return `${periodLabel} 운세 리포트`;
+  }
+
+  return `${year}년 종합 운세 리포트`;
+}
+
+function extractReportSummary(
+  report: AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
+): string {
+  // 각 리포트 타입에서 요약 추출
+  const r = report as unknown as Record<string, unknown>;
+
+  if (typeof r.summary === 'string') return r.summary;
+  if (typeof r.overallMessage === 'string') return r.overallMessage;
+
+  // sections에서 첫 번째 내용 추출
+  if (Array.isArray(r.sections) && r.sections.length > 0) {
+    const first = r.sections[0] as Record<string, unknown>;
+    if (typeof first.content === 'string') {
+      return first.content.slice(0, 200) + (first.content.length > 200 ? '...' : '');
+    }
+  }
+
+  return '운세 분석이 완료되었습니다.';
+}
+
+function extractOverallScore(
+  report: AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
+): number | null {
+  const r = report as unknown as Record<string, unknown>;
+
+  if (typeof r.overallScore === 'number') return r.overallScore;
+  if (typeof r.score === 'number') return r.score;
+
+  // timingScore에서 추출
+  if (r.timingScore && typeof r.timingScore === 'object') {
+    const ts = r.timingScore as Record<string, unknown>;
+    if (typeof ts.overall === 'number') return ts.overall;
+  }
+
+  return null;
+}
+
+function scoreToGrade(score: number | null): string | null {
+  if (score === null) return null;
+  if (score >= 90) return 'S';
+  if (score >= 80) return 'A';
+  if (score >= 70) return 'B';
+  if (score >= 60) return 'C';
+  return 'D';
+}

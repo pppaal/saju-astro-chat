@@ -102,7 +102,7 @@ export function useMemoCompare<T, D>(
   dependency: D,
   compare: (prev: D, next: D) => boolean
 ): T {
-  const ref = useRef<{ value: T; dependency: D }>();
+  const ref = useRef<{ value: T; dependency: D } | undefined>(undefined);
 
   if (!ref.current || !compare(ref.current.dependency, dependency)) {
     ref.current = {

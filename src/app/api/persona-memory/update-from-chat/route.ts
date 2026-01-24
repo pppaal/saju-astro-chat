@@ -10,8 +10,15 @@ import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
-type ChatMessage = {
+// summarize.ts의 ChatMessage와 호환되는 타입 (system role 제외)
+type ChatMessageForSummary = {
   role: "user" | "assistant";
+  content: string;
+};
+
+// 실제 요청에서는 system 메시지도 포함될 수 있음
+type IncomingChatMessage = {
+  role: "user" | "assistant" | "system";
   content: string;
 };
 
@@ -19,7 +26,7 @@ type RequestBody = {
   sessionId: string;
   theme: string;
   locale: string;
-  messages: ChatMessage[];
+  messages: IncomingChatMessage[];
   saju?: Record<string, unknown>;
   astro?: Record<string, unknown>;
 };
@@ -39,8 +46,11 @@ export async function POST(request: Request) {
     const { sessionId, theme, locale, messages, saju, astro } = body;
     const userId = session.user.id;
 
-    // 1. 대화 요약 생성
-    const summary = await summarizeConversation(messages, theme, locale);
+    // 1. 대화 요약 생성 (system role 제외)
+    const filteredMessages = messages.filter(
+      (m): m is ChatMessageForSummary => m.role === "user" || m.role === "assistant"
+    );
+    const summary = await summarizeConversation(filteredMessages, theme, locale);
 
     // 2. 기존 PersonaMemory 조회
     const existingMemory = await prisma.personaMemory.findUnique({

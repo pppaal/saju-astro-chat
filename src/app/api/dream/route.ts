@@ -187,7 +187,7 @@ export async function POST(req: NextRequest) {
     // Validate with Zod schema
     const validation = DreamRequestSchema.safeParse(rawBody);
     if (!validation.success) {
-      const errors = validation.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+      const errors = validation.error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ');
       recordApiRequest('dream', 'analyze', 'validation_error');
       return NextResponse.json(
         { error: `Validation failed: ${errors}` },
@@ -296,12 +296,12 @@ export async function POST(req: NextRequest) {
           throw new Error(`Flask returned ${apiResponse.status}`);
         }
 
-        const flaskData = apiResponse.data;
+        const flaskData = apiResponse.data as any;
         if (flaskData.status !== 'success' || !flaskData.data) {
           throw new Error('Flask returned invalid response');
         }
 
-        const data = flaskData.data;
+        const data = flaskData.data as any;
         return {
           summary: data.summary,
           dreamSymbols: data.dreamSymbols,

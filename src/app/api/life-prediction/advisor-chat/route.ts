@@ -56,7 +56,7 @@ async function fetchRagContext(
       return fallbackContext;
     }
 
-    const ragContext = response.data?.rag_context || {};
+    const ragContext = (response.data as any)?.rag_context || {};
 
     const parts: string[] = [];
     if (ragContext.sipsin) parts.push(ragContext.sipsin);
@@ -111,7 +111,7 @@ async function fetchTherapeuticQuestions(
 
     if (!response.ok) return [];
 
-    return response.data?.rag_questions || [response.data?.question] || [];
+    return (response.data as any)?.rag_questions || [(response.data as any)?.question] || [];
   } catch {
     return [];
   }
@@ -158,8 +158,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         // 타로/점성 데이터가 있다면 추가 가능
       }, { timeout: 15000 });
 
-      if (counselingResponse.ok && counselingResponse.data?.status === 'success') {
-        const counselingData = counselingResponse.data;
+      if (counselingResponse.ok && (counselingResponse.data as any)?.status === 'success') {
+        const counselingData = counselingResponse.data as any;
         // ✅ 백엔드 상담 엔진 사용 성공
         logger.info('[Advisor Chat] Using backend counseling engine');
 

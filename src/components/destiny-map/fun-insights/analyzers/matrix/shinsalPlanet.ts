@@ -9,7 +9,10 @@ import type { ShinsalKind, PlanetName } from '@/lib/destiny-matrix/types';
 import type { SajuData } from '../../types';
 import type { ShinsalPlanetResult } from './types';
 
-interface ExtendedSajuData extends SajuData {
+// Extended type for internal use - allows more flexible sinsal format
+interface ExtendedSajuData {
+  dayMaster?: { element?: string; name?: string; heavenlyStem?: string };
+  fiveElements?: Record<string, number>;
   shinsal?: Array<{ name?: string; shinsal?: string } | string> | Record<string, unknown>;
   sinsal?: {
     luckyList?: Array<{ name?: string } | string>;

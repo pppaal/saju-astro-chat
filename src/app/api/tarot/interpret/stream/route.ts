@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Relay the SSE stream
-    return createSSEStreamProxy(streamResult.response, "TarotInterpretStream");
+    return createSSEStreamProxy({ source: streamResult.response, route: "TarotInterpretStream" });
 
   } catch (err: unknown) {
     logger.error("Tarot interpret stream error:", err);

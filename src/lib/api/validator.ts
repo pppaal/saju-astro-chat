@@ -154,8 +154,8 @@ export const TarotInterpretSchema = z.object({
   userQuestion: z.string().max(LIMITS.QUESTION).optional(),
   language: LocaleSchema.default("ko"),
   birthDate: DateSchema.optional(),
-  sajuContext: z.record(z.unknown()).optional(),
-  astroContext: z.record(z.unknown()).optional(),
+  sajuContext: z.record(z.string(), z.unknown()).optional(),
+  astroContext: z.record(z.string(), z.unknown()).optional(),
 });
 export type TarotInterpretRequest = z.infer<typeof TarotInterpretSchema>;
 
@@ -230,7 +230,7 @@ export function validate<T>(
     return { success: true, data: result };
   } catch (error) {
     if (error instanceof ZodError) {
-      const errors = error.errors.map((e) => ({
+      const errors = error.issues.map((e) => ({
         field: e.path.join("."),
         message: e.message,
         code: e.code,

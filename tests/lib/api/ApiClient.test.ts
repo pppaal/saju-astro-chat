@@ -228,12 +228,10 @@ describe("ApiClient", () => {
       expect(result).toBe(mockResponse);
     });
 
-    it("returns null on error", async () => {
+    it("throws error on failure", async () => {
       mockFetch.mockRejectedValueOnce(new Error("Stream error"));
 
-      const result = await client.postStream("/stream", {});
-
-      expect(result).toBeNull();
+      await expect(client.postStream("/stream", {})).rejects.toThrow("Stream error");
     });
   });
 });

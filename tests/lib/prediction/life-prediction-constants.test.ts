@@ -27,7 +27,7 @@ import {
   MUNCHANG_MAP,
   GEOPSAL_MAP,
   STAGE_EVENT_EFFECTS,
-} from "@/lib/prediction/life-prediction-constants";
+} from "@/lib/prediction/life-prediction/constants";
 
 describe("Life Prediction Constants", () => {
   describe("STEMS (천간)", () => {

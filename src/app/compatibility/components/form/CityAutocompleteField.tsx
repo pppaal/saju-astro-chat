@@ -62,7 +62,7 @@ export const CityAutocompleteField: React.FC<CityAutocompleteFieldProps> = React
       {suggestions.length > 0 && showDropdown && (
         <ul className={styles.dropdown}>
           {suggestions.map((c, i) => {
-            const formattedCity = formatCityForDropdown(c.name, c.country, locale);
+            const formattedCity = formatCityForDropdown(c.name, c.country, locale as "ko" | "en" | undefined);
             return (
               <li
                 key={`${c.name}-${c.country}-${i}`}

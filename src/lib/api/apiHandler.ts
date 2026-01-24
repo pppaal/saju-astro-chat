@@ -12,6 +12,7 @@ import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
+import { logger } from '@/lib/logger';
 import {
   createSuccessResponse,
   unauthorizedError,
@@ -135,7 +136,7 @@ export function withApiHandler<TBody = unknown, TQuery = unknown, TResponse = un
         const validated = options.querySchema.safeParse(params);
 
         if (!validated.success) {
-          const errors = validated.error.errors.map((err) => ({
+          const errors = validated.error.issues.map((err) => ({
             path: err.path.join('.'),
             message: err.message,
           }));
@@ -158,7 +159,7 @@ export function withApiHandler<TBody = unknown, TQuery = unknown, TResponse = un
       // Return standardized success response
       return createSuccessResponse(result);
     } catch (error) {
-      console.error('[API Handler Error]', error);
+      logger.error('[API Handler Error]', { error });
 
       if (error instanceof Error) {
         return internalError(error.message, {

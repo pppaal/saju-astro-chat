@@ -20,8 +20,14 @@ export const dateSchema = z
   })
   .refine(
     (date) => {
-      const parsed = new Date(date);
-      return !isNaN(parsed.getTime());
+      const [year, month, day] = date.split('-').map(Number);
+      const parsed = new Date(year, month - 1, day);
+      // Check if the parsed date matches the input (catches invalid dates like 2023-02-29)
+      return (
+        parsed.getFullYear() === year &&
+        parsed.getMonth() === month - 1 &&
+        parsed.getDate() === day
+      );
     },
     { message: 'Invalid date' }
   );
@@ -63,23 +69,16 @@ export const longitudeSchema = z
 /**
  * Gender validation
  */
-export const genderSchema = z.enum(['Male', 'Female', 'Other', 'male', 'female', 'other'], {
-  errorMap: () => ({ message: 'Gender must be Male, Female, or Other' }),
-});
+export const genderSchema = z.enum(['Male', 'Female', 'Other', 'male', 'female', 'other']);
 
 /**
  * Language/Locale validation
  */
-export const localeSchema = z.enum(['ko', 'en', 'ja', 'zh', 'es', 'fr', 'de', 'pt', 'ru', 'ar'], {
-  errorMap: () => ({ message: 'Invalid language code' }),
-});
+export const localeSchema = z.enum(['ko', 'en', 'ja', 'zh', 'es', 'fr', 'de', 'pt', 'ru', 'ar']);
 
 /**
- * Calendar type validation (for Saju)
  */
-export const calendarTypeSchema = z.enum(['solar', 'lunar'], {
-  errorMap: () => ({ message: 'Calendar type must be solar or lunar' }),
-});
+export const calendarTypeSchema = z.enum(['solar', 'lunar']);
 
 // ============ Birth Information Schema ============
 
@@ -108,7 +107,7 @@ export const astrologyRequestSchema = z.object({
   longitude: z.union([longitudeSchema, z.string().transform((val) => parseFloat(val))]),
   timeZone: timezoneSchema,
   locale: localeSchema.optional(),
-  options: z.record(z.unknown()).optional(),
+  options: z.object({}).passthrough().optional(),
 });
 
 export type AstrologyRequest = z.infer<typeof astrologyRequestSchema>;
@@ -196,7 +195,7 @@ export type IChingRequest = z.infer<typeof iChingRequestSchema>;
 export const chatMessageSchema = z.object({
   message: z.string().min(1).max(5000).transform((str) => str.trim()),
   conversationId: z.string().uuid().optional(),
-  context: z.record(z.unknown()).optional(),
+  context: z.object({}).passthrough().optional(),
   locale: localeSchema.optional(),
 });
 
@@ -231,7 +230,7 @@ export async function validateRequestBody<T extends z.ZodTypeAny>(
     const result = schema.safeParse(body);
 
     if (!result.success) {
-      const errors = result.error.errors.map((err) => ({
+      const errors = result.error.issues.map((err) => ({
         path: err.path.join('.'),
         message: err.message,
       }));
@@ -277,7 +276,7 @@ export function validateQueryParams<T extends z.ZodTypeAny>(
     const result = schema.safeParse(converted);
 
     if (!result.success) {
-      const errors = result.error.errors.map((err) => ({
+      const errors = result.error.issues.map((err) => ({
         path: err.path.join('.'),
         message: err.message,
       }));

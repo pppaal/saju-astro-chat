@@ -65,7 +65,7 @@ export function ImageWithShimmer({
       )}
       <Image
         {...imageProps}
-        className={`${styles.image} ${!isLoading ? styles.loaded : ''} ${imageProps.className || ''}`}
+        className={`${styles.image} ${!isLoading ? styles.loaded : ''}`}
         onLoad={handleLoad}
         onError={handleError}
       />

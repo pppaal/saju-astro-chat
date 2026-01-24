@@ -12,6 +12,7 @@ import { captureServerError } from "@/lib/telemetry";
 import { requirePublicToken } from "@/lib/auth/publicToken";
 import { enforceBodySize } from "@/lib/http";
 import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
+import { sanitizeString } from "@/lib/api/sanitizers";
 import { logger } from '@/lib/logger';
 
 
@@ -45,12 +46,9 @@ const MAX_POSITION = 80;
 const MAX_KEYWORDS = 8;
 const MAX_CARDS = 15;
 
-const sanitize = (value: unknown, max = 120) =>
-  typeof value === "string" ? value.trim().slice(0, max) : "";
-
 function validateCard(card: Partial<CardInput> | null | undefined, idx: number): { error?: string; card?: CardInput } {
-  const name = sanitize(card?.name, MAX_TITLE);
-  const position = sanitize(card?.position, MAX_POSITION);
+  const name = sanitizeString(card?.name, MAX_TITLE);
+  const position = sanitizeString(card?.position, MAX_POSITION);
   if (!name || !position) {
     return { error: `cards[${idx}]: name and position are required.` };
   }
@@ -67,12 +65,12 @@ function validateCard(card: Partial<CardInput> | null | undefined, idx: number):
   return {
     card: {
       name,
-      nameKo: sanitize(card?.nameKo, MAX_TITLE) || undefined,
+      nameKo: sanitizeString(card?.nameKo, MAX_TITLE) || undefined,
       isReversed: card.isReversed,
       position,
-      positionKo: sanitize(card?.positionKo, MAX_POSITION) || undefined,
-      meaning: sanitize(card?.meaning, MAX_TITLE) || undefined,
-      meaningKo: sanitize(card?.meaningKo, MAX_TITLE) || undefined,
+      positionKo: sanitizeString(card?.positionKo, MAX_POSITION) || undefined,
+      meaning: sanitizeString(card?.meaning, MAX_TITLE) || undefined,
+      meaningKo: sanitizeString(card?.meaningKo, MAX_TITLE) || undefined,
       keywords,
       keywordsKo,
     } as CardInput,
@@ -99,14 +97,14 @@ export async function POST(req: Request) {
     if (oversized) return oversized;
 
     const body: InterpretRequest = await req.json();
-    const categoryId = sanitize(body?.categoryId, MAX_TITLE);
-    const spreadId = sanitize(body?.spreadId, MAX_TITLE);
-    const spreadTitle = sanitize(body?.spreadTitle, MAX_TITLE);
+    const categoryId = sanitizeString(body?.categoryId, MAX_TITLE);
+    const spreadId = sanitizeString(body?.spreadId, MAX_TITLE);
+    const spreadTitle = sanitizeString(body?.spreadTitle, MAX_TITLE);
     const language: "ko" | "en" = body?.language === "en" ? "en" : "ko";
-    const birthdate = sanitize(body?.birthdate, 20);
-    const moonPhase = sanitize(body?.moonPhase, 40);
+    const birthdate = sanitizeString(body?.birthdate, 20);
+    const moonPhase = sanitizeString(body?.moonPhase, 40);
     const rawCards = Array.isArray(body?.cards) ? body.cards : [];
-    const userQuestion = sanitize(body?.userQuestion, MAX_QUESTION);
+    const userQuestion = sanitizeString(body?.userQuestion, MAX_QUESTION);
 
     if (!categoryId || !spreadId || rawCards.length === 0) {
       return NextResponse.json(
@@ -173,7 +171,7 @@ export async function POST(req: Request) {
 
     // Use backend response or GPT fallback
     let result;
-    if (interpretation && !interpretation.error) {
+    if (interpretation && !(interpretation as any).error) {
       result = interpretation;
     } else {
       logger.warn("Backend unavailable, using GPT interpretation");

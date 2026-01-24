@@ -25,100 +25,20 @@ import {
 } from '../advancedTimingEngine';
 import { calculateDailyPillar } from '../ultraPrecisionEngine';
 import {
-  PrecisionEngine,
   getSolarTermForDate,
-  getLunarMansion,
   calculateSecondaryProgression,
 } from '../precisionEngine';
 import { calculateTier6Bonus } from '../tier6Analysis';
 import { calculateTier7To10Bonus } from '../tier7To10Analysis';
+import {
+  detectShinsals,
+  calculateCompoundLuckScore,
+} from '../life-prediction-helpers';
+import { findSpecificGoodDays } from './helpers/good-day-finder';
 
 // ============================================================
 // Helper Functions
 // ============================================================
-
-/**
- * 신살 감지 (간단한 버전)
- */
-function detectShinsals(
-  input: LifePredictionInput,
-  dailyPillar: { stem: string; branch: string }
-): Array<{ name: string; type: 'lucky' | 'unlucky' }> {
-  const shinsals: Array<{ name: string; type: 'lucky' | 'unlucky' }> = [];
-
-  // 천을귀인 (甲戊庚: 丑未, 乙己: 子申, 丙丁: 亥酉, 壬癸: 卯巳, 辛: 午寅)
-  const cheonelMap: Record<string, string[]> = {
-    '甲': ['丑', '未'], '戊': ['丑', '未'], '庚': ['丑', '未'],
-    '乙': ['子', '申'], '己': ['子', '申'],
-    '丙': ['亥', '酉'], '丁': ['亥', '酉'],
-    '壬': ['卯', '巳'], '癸': ['卯', '巳'],
-    '辛': ['午', '寅'],
-  };
-
-  if (cheonelMap[input.dayStem]?.includes(dailyPillar.branch)) {
-    shinsals.push({ name: '천을귀인', type: 'lucky' });
-  }
-
-  // 역마 (寅午戌: 申, 申子辰: 寅, 亥卯未: 巳, 巳酉丑: 亥)
-  const yeokmaMap: Record<string, string> = {
-    '寅': '申', '午': '申', '戌': '申',
-    '申': '寅', '子': '寅', '辰': '寅',
-    '亥': '巳', '卯': '巳', '未': '巳',
-    '巳': '亥', '酉': '亥', '丑': '亥',
-  };
-
-  if (yeokmaMap[input.dayBranch] === dailyPillar.branch) {
-    shinsals.push({ name: '역마', type: 'lucky' });
-  }
-
-  // 문창 (甲: 巳, 乙: 午, 丙戊: 申, 丁己: 酉, 庚: 亥, 辛: 子, 壬: 寅, 癸: 卯)
-  const munchangMap: Record<string, string> = {
-    '甲': '巳', '乙': '午', '丙': '申', '戊': '申',
-    '丁': '酉', '己': '酉', '庚': '亥', '辛': '子',
-    '壬': '寅', '癸': '卯',
-  };
-
-  if (munchangMap[input.dayStem] === dailyPillar.branch) {
-    shinsals.push({ name: '문창', type: 'lucky' });
-  }
-
-  // 겁살 (寅午戌: 亥, 申子辰: 巳, 亥卯未: 申, 巳酉丑: 寅)
-  const geopsalMap: Record<string, string> = {
-    '寅': '亥', '午': '亥', '戌': '亥',
-    '申': '巳', '子': '巳', '辰': '巳',
-    '亥': '申', '卯': '申', '未': '申',
-    '巳': '寅', '酉': '寅', '丑': '寅',
-  };
-
-  if (geopsalMap[input.dayBranch] === dailyPillar.branch) {
-    shinsals.push({ name: '겁살', type: 'unlucky' });
-  }
-
-  // 화개 (寅午戌: 戌, 申子辰: 辰, 亥卯未: 未, 巳酉丑: 丑)
-  const hwagaeMap: Record<string, string> = {
-    '寅': '戌', '午': '戌', '戌': '戌',
-    '申': '辰', '子': '辰', '辰': '辰',
-    '亥': '未', '卯': '未', '未': '未',
-    '巳': '丑', '酉': '丑', '丑': '丑',
-  };
-
-  if (hwagaeMap[input.dayBranch] === dailyPillar.branch) {
-    shinsals.push({ name: '화개', type: 'unlucky' });
-  }
-
-  // 천덕/월덕 (간단 버전 - 월별로 다름)
-  const cheondukByMonth: Record<number, string> = {
-    1: '丁', 2: '申', 3: '壬', 4: '辛', 5: '亥', 6: '甲',
-    7: '癸', 8: '寅', 9: '丙', 10: '乙', 11: '巳', 12: '庚',
-  };
-
-  const currentMonth = new Date().getMonth() + 1;
-  if (cheondukByMonth[currentMonth] === dailyPillar.stem) {
-    shinsals.push({ name: '천덕', type: 'lucky' });
-  }
-
-  return shinsals;
-}
 
 /**
  * 점수를 등급으로 변환
@@ -135,73 +55,14 @@ function scoreToGrade(score: number): PredictionGrade {
  * 월별 트랜짓 점수 추정 (미래 월용)
  */
 function estimateMonthlyTransitScore(
-  input: LifePredictionInput,
-  eventType: EventType,
-  year: number,
-  month: number
+  _input: LifePredictionInput,
+  _eventType: EventType,
+  _year: number,
+  _month: number
 ): { bonus: number; reasons: string[] } {
   // 기본 구현 - 외행성은 천천히 이동하므로 대략적인 추정만
-  const bonus = 0;
-  const reasons: string[] = [];
-
-  // 토성, 목성 등 외행성 이동 추정은 복잡하므로
-  // 여기서는 간단하게 기본값 반환
-  return { bonus, reasons };
-}
-
-/**
- * 복합 운 점수 계산 (대운-세운-월운 시너지)
- */
-function calculateCompoundLuckScore(
-  input: LifePredictionInput,
-  eventType: EventType,
-  year: number,
-  month: number
-): { bonus: number; reasons: string[]; penalties: string[] } {
-  let bonus = 0;
-  const reasons: string[] = [];
-  const penalties: string[] = [];
-
-  const conditions = EVENT_FAVORABLE_CONDITIONS[eventType];
-  if (!conditions) return { bonus: 0, reasons: [], penalties: [] };
-
-  const age = year - input.birthYear;
-  const daeun = input.daeunList?.find(d => age >= d.startAge && age <= d.endAge);
-  if (!daeun) return { bonus: 0, reasons: [], penalties: [] };
-
-  const yearGanji = calculateYearlyGanji(year);
-  const monthGanji = calculateMonthlyGanji(year, month);
-
-  // 대운-세운-월운 십신 시너지
-  const daeunSibsin = calculateSibsin(input.dayStem, daeun.stem);
-  const yearSibsin = calculateSibsin(input.dayStem, yearGanji.stem);
-  const monthSibsin = calculateSibsin(input.dayStem, monthGanji.stem);
-
-  const favorableCount = [daeunSibsin, yearSibsin, monthSibsin]
-    .filter(s => conditions.favorableSibsin.includes(s)).length;
-
-  if (favorableCount >= 3) {
-    bonus += 15;
-    reasons.push('삼중 길신 시너지');
-  } else if (favorableCount >= 2) {
-    bonus += 8;
-    reasons.push('이중 길신');
-  }
-
-  // 대운-세운-월운 12운성 시너지
-  const daeunStage = calculatePreciseTwelveStage(input.dayStem, daeun.branch);
-  const yearStage = calculatePreciseTwelveStage(input.dayStem, yearGanji.branch);
-  const monthStage = calculatePreciseTwelveStage(input.dayStem, monthGanji.branch);
-
-  const peakCount = [daeunStage, yearStage, monthStage]
-    .filter(s => s.energy === 'peak').length;
-
-  if (peakCount >= 2) {
-    bonus += 10;
-    reasons.push('복합 전성기');
-  }
-
-  return { bonus, reasons, penalties };
+  // 토성, 목성 등 외행성 이동 추정은 복잡하므로 기본값 반환
+  return { bonus: 0, reasons: [] };
 }
 
 // ============================================================
@@ -234,128 +95,6 @@ function generateEventAdvice(
   }
 
   return advice;
-}
-
-// ============================================================
-// Specific Good Days Finder
-// ============================================================
-
-function findSpecificGoodDays(
-  input: LifePredictionInput,
-  monthStart: Date,
-  monthEnd: Date,
-  eventType: EventType,
-  options: { useLunarMansions?: boolean; usePlanetaryHours?: boolean } = {}
-): Date[] {
-  const { useLunarMansions = true } = options;
-
-  const conditions = EVENT_FAVORABLE_CONDITIONS[eventType];
-  if (!conditions) return [];
-
-  const goodDays: { date: Date; score: number; reasons: string[] }[] = [];
-
-  const current = new Date(monthStart);
-  while (current <= monthEnd) {
-    const dailyPillar = calculateDailyPillar(current);
-    const sibsin = calculateSibsin(input.dayStem, dailyPillar.stem);
-    const twelveStage = calculatePreciseTwelveStage(input.dayStem, dailyPillar.branch);
-
-    let score = 50;
-    const reasons: string[] = [];
-
-    // 기본 사주 분석
-    if (conditions.favorableSibsin.includes(sibsin)) {
-      score += 15;
-      reasons.push(`${sibsin}운`);
-    }
-    if (conditions.avoidSibsin.includes(sibsin)) score -= 15;
-    if (conditions.favorableStages.includes(twelveStage.stage)) {
-      score += 12;
-      reasons.push(twelveStage.stage);
-    }
-    if (conditions.avoidStages.includes(twelveStage.stage)) score -= 12;
-
-    // 28수 분석
-    if (useLunarMansions) {
-      const lunarMansion = getLunarMansion(current);
-      const eventKeywords: Record<EventType, string[]> = {
-        marriage: ['결혼'],
-        career: ['개업'],
-        investment: ['계약'],
-        move: ['이사'],
-        study: ['학업'],
-        health: [],
-        relationship: ['결혼', '개업'],
-      };
-
-      const keywords = eventKeywords[eventType];
-
-      if (lunarMansion.isAuspicious) {
-        score += 8;
-        if (keywords.some(k => lunarMansion.goodFor.includes(k))) {
-          score += 10;
-          reasons.push(`${lunarMansion.nameKo}수 - ${eventType}에 최적`);
-        } else {
-          reasons.push(`${lunarMansion.nameKo}수 - 길일`);
-        }
-      } else {
-        score -= 6;
-        if (keywords.some(k => lunarMansion.badFor.includes(k))) {
-          score -= 10;
-        }
-      }
-    }
-
-    // 절기 분석
-    const solarTerm = getSolarTermForDate(current);
-    const dayElement = STEM_ELEMENT[dailyPillar.stem];
-
-    if (input.yongsin?.includes(dayElement)) {
-      score += 10;
-      reasons.push('용신일');
-    }
-    if (input.kisin?.includes(dayElement)) {
-      score -= 8;
-    }
-
-    if (conditions.favorableElements.includes(solarTerm.element)) {
-      score += 5;
-    }
-
-    // 신살 분석
-    const shinsals = detectShinsals(input, dailyPillar);
-    for (const shinsal of shinsals) {
-      if (shinsal.type === 'lucky') {
-        if (shinsal.name === '천을귀인') {
-          score += 12;
-          reasons.push('천을귀인');
-        } else if (shinsal.name === '역마' && eventType === 'move') {
-          score += 10;
-          reasons.push('역마');
-        } else if (shinsal.name === '문창' && eventType === 'study') {
-          score += 10;
-          reasons.push('문창');
-        }
-      } else {
-        if (shinsal.name === '겁살') {
-          score -= 10;
-        }
-      }
-    }
-
-    score = normalizeScore(score);
-
-    if (score >= 65) {
-      goodDays.push({ date: new Date(current), score, reasons });
-    }
-
-    current.setDate(current.getDate() + 1);
-  }
-
-  return goodDays
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 5)
-    .map(d => d.date);
 }
 
 // ============================================================

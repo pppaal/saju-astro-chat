@@ -107,7 +107,25 @@ export async function GET(req: NextRequest) {
     // 프로필 검색 (양방향 필터링을 위해 추가 정보 포함)
     const profiles = await prisma.matchProfile.findMany({
       where: whereCondition,
-      include: {
+      select: {
+        id: true,
+        userId: true,
+        displayName: true,
+        bio: true,
+        occupation: true,
+        photos: true,
+        city: true,
+        interests: true,
+        verified: true,
+        personalityType: true,
+        personalityName: true,
+        personalityScores: true,
+        latitude: true,
+        longitude: true,
+        ageMin: true,
+        ageMax: true,
+        genderPreference: true,
+        lastActiveAt: true,
         user: {
           select: {
             birthDate: true,

@@ -19,6 +19,7 @@ describe('CSRF Protection', () => {
     it('should allow all requests in development mode', () => {
       process.env.NODE_ENV = 'development';
       const headers = new Headers();
+      headers.set('host', 'localhost:3000');
       expect(validateOrigin(headers)).toBe(true);
     });
 
@@ -114,6 +115,7 @@ describe('CSRF Protection', () => {
     it('should return null for valid requests', () => {
       process.env.NODE_ENV = 'development';
       const headers = new Headers();
+      headers.set('host', 'localhost:3000');
 
       const result = csrfGuard(headers);
       expect(result).toBeNull();

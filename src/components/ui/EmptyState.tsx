@@ -9,6 +9,7 @@ interface EmptyStateProps {
   actionLabel?: string;
   actionHref?: string;
   onAction?: () => void;
+  actionButton?: { text: string; onClick: () => void };
   suggestions?: string[];
   className?: string;
 }
@@ -20,6 +21,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   actionLabel,
   actionHref,
   onAction,
+  actionButton,
   suggestions,
   className = '',
 }) => {
@@ -50,9 +52,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         </div>
       )}
 
-      {(actionLabel && (actionHref || onAction)) && (
+      {((actionLabel && (actionHref || onAction)) || actionButton) && (
         <div className={styles.actionContainer}>
-          {actionHref ? (
+          {actionButton ? (
+            <button onClick={actionButton.onClick} className={styles.actionButton}>
+              {actionButton.text}
+            </button>
+          ) : actionHref ? (
             <Link href={actionHref} className={styles.actionButton}>
               {actionLabel}
             </Link>

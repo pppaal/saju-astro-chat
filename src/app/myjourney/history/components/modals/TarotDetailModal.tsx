@@ -1,13 +1,15 @@
-import type { TarotContent } from '../../lib';
+import type { TarotContent, ServiceRecord } from '../../lib';
 import { formatDate } from '../../lib';
 import styles from '../../history.module.css';
 
 type TarotDetailModalProps = {
   detail: TarotContent;
+  selectedRecord?: ServiceRecord;
   recordDate?: string;
 };
 
-export function TarotDetailModal({ detail, recordDate }: TarotDetailModalProps) {
+export function TarotDetailModal({ detail, selectedRecord, recordDate }: TarotDetailModalProps) {
+  const displayDate = recordDate || selectedRecord?.date;
   return (
     <div className={styles.tarotDetail}>
       {/* Header */}
@@ -91,9 +93,9 @@ export function TarotDetailModal({ detail, recordDate }: TarotDetailModalProps) 
       )}
 
       {/* Timestamp */}
-      {recordDate && (
+      {displayDate && (
         <p className={styles.timestamp}>
-          {formatDate(recordDate)}
+          {formatDate(displayDate)}
         </p>
       )}
     </div>

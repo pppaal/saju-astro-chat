@@ -16,7 +16,7 @@ import {
 } from './life-prediction/constants';
 
 // Moon phase names for display
-const MOON_PHASE_NAMES: Record<string, string> = {
+export const MOON_PHASE_NAMES: Record<string, string> = {
   'new_moon': '초승달',
   'waxing_crescent': '상현달',
   'first_quarter': '반달',

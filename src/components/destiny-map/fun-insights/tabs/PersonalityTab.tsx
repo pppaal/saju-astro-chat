@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from 'react';
 import type { TabProps } from './types';
 import { getStrengthsAndWeaknesses, getMatrixAnalysis } from '../analyzers';
 import { getShadowPersonalityAnalysis } from '../analyzers/matrixAnalyzer';
@@ -27,7 +28,7 @@ interface PersonalityAnalysis {
   stressResponse?: string;
 }
 
-export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyNarrative, combinedLifeTheme }: TabProps) {
+function PersonalityTab({ saju, astro, lang, isKo, data, destinyNarrative, combinedLifeTheme }: TabProps) {
   // TabData.personalityAnalysis is Record<string, unknown> | null, cast to local interface
   const personalityAnalysis = data.personalityAnalysis as PersonalityAnalysis | null;
   const strengthsWeaknesses = getStrengthsAndWeaknesses(saju ?? undefined, astro ?? undefined, lang);
@@ -494,7 +495,7 @@ export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyN
             {shadowAnalysis.lilithShadow && (
               <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">{shadowAnalysis.lilithShadow.fusion.icon}</span>
+                  <span className="text-lg">{shadowAnalysis.lilithShadow.fusion?.icon}</span>
                   <p className="text-purple-300 font-bold text-sm">{isKo ? '억압된 욕구 (Lilith)' : 'Suppressed Desires (Lilith)'}</p>
                   <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">L10</span>
                 </div>
@@ -502,10 +503,10 @@ export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyN
                   <span className="text-white font-medium">Lilith × {shadowAnalysis.lilithShadow.element}</span>
                 </div>
                 <p className="text-gray-300 text-sm leading-relaxed mb-2">
-                  {isKo ? shadowAnalysis.lilithShadow.shadowSelf.ko : shadowAnalysis.lilithShadow.shadowSelf.en}
+                  {isKo ? shadowAnalysis.lilithShadow.shadowSelf?.ko : shadowAnalysis.lilithShadow.shadowSelf?.en}
                 </p>
                 <p className="text-purple-400 text-xs">
-                  {isKo ? shadowAnalysis.lilithShadow.integration.ko : shadowAnalysis.lilithShadow.integration.en}
+                  {isKo ? shadowAnalysis.lilithShadow.integration?.ko : shadowAnalysis.lilithShadow.integration?.en}
                 </p>
               </div>
             )}
@@ -514,7 +515,7 @@ export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyN
             {shadowAnalysis.hiddenPotential && (
               <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">{shadowAnalysis.hiddenPotential.fusion.icon}</span>
+                  <span className="text-lg">{shadowAnalysis.hiddenPotential.fusion?.icon}</span>
                   <p className="text-amber-300 font-bold text-sm">{isKo ? '숨겨진 잠재력 (Part of Fortune)' : 'Hidden Potential (Part of Fortune)'}</p>
                   <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">L10</span>
                 </div>
@@ -522,7 +523,7 @@ export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyN
                   <span className="text-white font-medium">Part of Fortune × {shadowAnalysis.hiddenPotential.element}</span>
                 </div>
                 <p className="text-gray-300 text-sm leading-relaxed">
-                  {isKo ? shadowAnalysis.hiddenPotential.potential.ko : shadowAnalysis.hiddenPotential.potential.en}
+                  {isKo ? shadowAnalysis.hiddenPotential.potential?.ko : shadowAnalysis.hiddenPotential.potential?.en}
                 </p>
               </div>
             )}
@@ -547,3 +548,5 @@ export default function PersonalityTab({ saju, astro, lang, isKo, data, destinyN
     </div>
   );
 }
+
+export default memo(PersonalityTab);

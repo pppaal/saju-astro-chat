@@ -248,8 +248,8 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
 
       {/* Resulting Hexagram */}
       <ResultingHexagramCard
-        resultingHexagram={result.resultingHexagram}
-        resultingPremiumData={hexagramData.resultingPremiumData}
+        resultingHexagram={result.resultingHexagram ?? null}
+        resultingPremiumData={hexagramData?.resultingPremiumData ?? null}
         lang={lang}
         translate={translate}
       />

@@ -1,23 +1,92 @@
 {
-  "name": "DestinyPal",
+  "name": "DestinyPal - AI Fortune & Astrology",
   "short_name": "DestinyPal",
   "description": "AI Spiritual Mental Care Platform - Diagnose with Fate, Analyze with Psychology, Heal with Spirituality",
   "start_url": "/",
   "id": "/",
   "display": "standalone",
   "background_color": "#0d1225",
-  "theme_color": "#0d1225",
+  "theme_color": "#8b5cf6",
   "orientation": "portrait-primary",
   "scope": "/",
-  "lang": "en",
+  "lang": "ko",
+  "dir": "ltr",
+  "categories": ["lifestyle", "entertainment", "utilities"],
   "icons": [
     {
       "src": "/logo/logo.png",
       "sizes": "any",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
     }
   ],
-  "categories": ["lifestyle", "entertainment", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Tarot Reading",
+      "short_name": "Tarot",
+      "description": "Get your AI tarot reading",
+      "url": "/tarot"
+    },
+    {
+      "name": "Saju Analysis",
+      "short_name": "Saju",
+      "description": "Analyze your saju fortune",
+      "url": "/saju"
+    },
+    {
+      "name": "Dream Interpretation",
+      "short_name": "Dreams",
+      "description": "Interpret your dreams",
+      "url": "/dreams"
+    }
+  ],
   "prefer_related_applications": false
 }

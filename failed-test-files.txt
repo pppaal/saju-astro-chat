@@ -1,0 +1,191 @@
+ [31m❯[39m tests/apiSecurityHardened.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 2305[2mms[22m[39m
+ [31m❯[39m tests/destiny-map-api-smoke.test.ts [2m([22m[2m2 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 237[2mms[22m[39m
+ [31m❯[39m tests/hooks/useMyCircle.test.ts [2m([22m[2m10 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 287[2mms[22m[39m
+ [31m❯[39m tests/lib/api/ApiClient.test.ts [2m([22m[2m20 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 25[2mms[22m[39m
+ [31m❯[39m tests/lib/api/sanitizers.mega.test.ts [2m([22m[2m141 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[32m 199[2mms[22m[39m
+ [31m❯[39m tests/lib/api/schemas.test.ts [2m([22m[2m57 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[32m 159[2mms[22m[39m
+ [31m❯[39m tests/lib/api/validator.test.ts [2m([22m[2m60 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[32m 153[2mms[22m[39m
+ [31m❯[39m tests/lib/api/zodValidation.mega.test.ts [2m([22m[2m178 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 157[2mms[22m[39m
+ [31m❯[39m tests/lib/apiGuard.mega.test.ts [2m([22m[2m47 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 97[2mms[22m[39m
+ [31m❯[39m tests/lib/auth/admin.test.ts [2m([22m[2m17 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 52[2mms[22m[39m
+ [31m❯[39m tests/lib/backend-url.test.ts [2m([22m[2m16 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 188[2mms[22m[39m
+ [31m❯[39m tests/lib/datetime/timezone.mega.test.ts [2m([22m[2m113 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[33m 406[2mms[22m[39m
+ [31m❯[39m tests/lib/destiny-map/astrology/engine-core.mega.test.ts [2m([22m[2m69 tests[22m[2m | [22m[31m19 failed[39m[2m)[22m[33m 721[2mms[22m[39m
+ [31m❯[39m tests/lib/destiny-matrix/validation.test.ts [2m([22m[2m32 tests[22m[2m | [22m[31m7 failed[39m[2m)[22m[32m 127[2mms[22m[39m
+ [31m❯[39m tests/lib/metrics/schema.test.ts [2m([22m[2m46 tests[22m[2m | [22m[31m6 failed[39m[2m)[22m[32m 85[2mms[22m[39m
+ [31m❯[39m tests/lib/past-life/analyzer-profiling.test.ts [2m([22m[2m36 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 529[2mms[22m[39m
+ [31m❯[39m tests/lib/prediction/life-prediction-astro.test.ts [2m([22m[2m81 tests[22m[2m | [22m[31m15 failed[39m[2m)[22m[32m 80[2mms[22m[39m
+ [31m❯[39m tests/lib/prediction/life-prediction-constants.test.ts [2m([22m[2m74 tests[22m[2m | [22m[31m72 failed[39m[2m)[22m[32m 248[2mms[22m[39m
+ [31m❯[39m tests/lib/prediction/lifePredictionEngine.test.ts [2m([22m[2m68 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1097[2mms[22m[39m
+ [31m❯[39m tests/lib/prediction/life-prediction-helpers.test.ts [2m([22m[2m121 tests[22m[2m | [22m[31m10 failed[39m[2m)[22m[32m 281[2mms[22m[39m
+ [31m❯[39m tests/lib/security/csrf.test.ts [2m([22m[2m14 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 132[2mms[22m[39m
+ [31m❯[39m tests/lib/utils.comprehensive.test.ts [2m([22m[2m69 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 175[2mms[22m[39m
+[36m [2m❯[22m tests/apiSecurityHardened.test.ts:[2m27:24[22m[39m
+[36m [2m❯[22m tests/apiSecurityHardened.test.ts:[2m43:24[22m[39m
+[36m [2m❯[22m tests/destiny-map-api-smoke.test.ts:[2m48:24[22m[39m
+[36m [2m❯[22m tests/destiny-map-api-smoke.test.ts:[2m66:24[22m[39m
+[36m [2m❯[22m tests/hooks/useMyCircle.test.ts:[2m139:47[22m[39m
+[36m [2m❯[22m tests/lib/api/ApiClient.test.ts:[2m232:39[22m[39m
+[36m [2m❯[22m tests/lib/api/sanitizers.mega.test.ts:[2m343:22[22m[39m
+[36m [2m❯[22m tests/lib/api/sanitizers.mega.test.ts:[2m351:22[22m[39m
+[36m [2m❯[22m tests/lib/api/sanitizers.mega.test.ts:[2m621:65[22m[39m
+[36m [2m❯[22m tests/lib/api/schemas.test.ts:[2m265:40[22m[39m
+[36m [2m❯[22m tests/lib/api/schemas.test.ts:[2m440:54[22m[39m
+[36m [2m❯[22m tests/lib/api/schemas.test.ts:[2m447:36[22m[39m
+[36m [2m❯[22m tests/lib/api/zodValidation.mega.test.ts:[2m233:43[22m[39m
+[36m [2m❯[22m tests/lib/api/zodValidation.mega.test.ts:[2m41:48[22m[39m
+[36m [2m❯[22m tests/lib/api/zodValidation.mega.test.ts:[2m575:38[22m[39m
+[36m [2m❯[22m tests/lib/api/zodValidation.mega.test.ts:[2m729:58[22m[39m
+[36m [2m❯[22m tests/lib/apiGuard.mega.test.ts:[2m595:14[22m[39m
+[36m [2m❯[22m tests/lib/auth/admin.test.ts:[2m146:20[22m[39m
+[36m [2m❯[22m tests/lib/auth/admin.test.ts:[2m157:20[22m[39m
+[36m [2m❯[22m tests/lib/backend-url.test.ts:[2m84:31[22m[39m
+[36m [2m❯[22m tests/lib/backend-url.test.ts:[2m94:31[22m[39m
+[36m [2m❯[22m tests/lib/datetime/timezone.mega.test.ts:[2m414:39[22m[39m
+[36m [2m❯[22m tests/lib/datetime/timezone.mega.test.ts:[2m421:45[22m[39m
+[36m [2m❯[22m tests/lib/datetime/timezone.mega.test.ts:[2m443:38[22m[39m
+[36m [2m❯[22m tests/lib/datetime/timezone.mega.test.ts:[2m462:41[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m172:29[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m229:32[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m250:40[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m259:39[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m268:42[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m276:40[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m284:41[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m292:38[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m377:40[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m402:40[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m574:34[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m581:34[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m617:21[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m647:41[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m657:41[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m672:41[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m693:41[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m721:30[22m[39m
+[36m [2m❯[22m tests/lib/destiny-map/astrology/engine-core.mega.test.ts:[2m749:32[22m[39m
+[36m [2m❯[22m tests/lib/destiny-matrix/validation.test.ts:[2m174:28[22m[39m
+[36m [2m❯[22m tests/lib/destiny-matrix/validation.test.ts:[2m196:28[22m[39m
+[36m [2m❯[22m tests/lib/destiny-matrix/validation.test.ts:[2m234:28[22m[39m
+[36m [2m❯[22m tests/lib/destiny-matrix/validation.test.ts:[2m257:28[22m[39m
+[36m [2m❯[22m tests/lib/destiny-matrix/validation.test.ts:[2m326:28[22m[39m
+[36m [2m❯[22m tests/lib/destiny-matrix/validation.test.ts:[2m361:28[22m[39m
+[36m [2m❯[22m tests/lib/destiny-matrix/validation.test.ts:[2m437:28[22m[39m
+[36m [2m❯[22m tests/lib/metrics/schema.test.ts:[2m150:42[22m[39m
+[36m [2m❯[22m tests/lib/metrics/schema.test.ts:[2m190:40[22m[39m
+[36m [2m❯[22m tests/lib/metrics/schema.test.ts:[2m225:42[22m[39m
+[36m [2m❯[22m tests/lib/metrics/schema.test.ts:[2m239:44[22m[39m
+[36m [2m❯[22m tests/lib/metrics/schema.test.ts:[2m250:44[22m[39m
+[36m [2m❯[22m tests/lib/metrics/schema.test.ts:[2m293:35[22m[39m
+[36m [2m❯[22m tests/lib/past-life/analyzer-profiling.test.ts:[2m162:34[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m105:28[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m115:51[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m122:49[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m129:53[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m135:48[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m147:16[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m153:28[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m163:47[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m170:45[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m178:28[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m191:16[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m197:28[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m208:47[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m215:47[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m226:16[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m232:24[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m240:27[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m244:27[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m248:27[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m253:27[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m261:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m265:32[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m276:31[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m297:23[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m303:35[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m307:35[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m316:16[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m321:26[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m333:33[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m341:27[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m349:32[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m35:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m355:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m359:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m364:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m368:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m374:28[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m378:28[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m385:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m389:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m39:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m396:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m400:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m404:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m410:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m414:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m419:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m425:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m429:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m433:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m439:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m44:27[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m443:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m450:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m457:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m461:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m467:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m471:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m477:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m481:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m487:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m493:16[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m498:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m50:24[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m502:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m506:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m54:24[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m61:27[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m67:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m71:14[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m84:39[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m99:16[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-helpers.test.ts:[2m222:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-helpers.test.ts:[2m233:20[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-helpers.test.ts:[2m244:22[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-helpers.test.ts:[2m255:21[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-helpers.test.ts:[2m276:27[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-helpers.test.ts:[2m538:20[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-helpers.test.ts:[2m545:20[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-helpers.test.ts:[2m550:20[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-helpers.test.ts:[2m555:20[22m[39m
+[36m [2m❯[22m tests/lib/prediction/life-prediction-helpers.test.ts:[2m560:20[22m[39m
+[36m [2m❯[22m tests/lib/security/csrf.test.ts:[2m119:22[22m[39m
+[36m [2m❯[22m tests/lib/security/csrf.test.ts:[2m22:39[22m[39m
+[36m [2m❯[22m tests/lib/utils.comprehensive.test.ts:[2m181:29[22m[39m
+[36m [2m❯[22m tests/lib/utils.comprehensive.test.ts:[2m85:32[22m[39m
+[90m [2m❯[22m tests/lib/api/validator.test.ts:[2m372:22[22m[39m
+[90m [2m❯[22m tests/lib/api/validator.test.ts:[2m379:22[22m[39m
+[90m [2m❯[22m tests/lib/api/validator.test.ts:[2m490:22[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-astro.test.ts:[2m109:22[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-astro.test.ts:[2m147:22[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-astro.test.ts:[2m210:22[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-astro.test.ts:[2m222:22[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-astro.test.ts:[2m658:24[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-astro.test.ts:[2m67:22[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-astro.test.ts:[2m77:22[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-astro.test.ts:[2m87:22[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-astro.test.ts:[2m97:22[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m104:18[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m146:18[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m152:18[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m177:18[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m190:18[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m196:18[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m225:18[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m231:18[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m296:36[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m315:18[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m492:14[22m[39m
+[90m [2m❯[22m tests/lib/prediction/life-prediction-constants.test.ts:[2m98:18[22m[39m
+[90m [2m❯[22m tests/lib/prediction/lifePredictionEngine.test.ts:[2m513:20[22m[39m

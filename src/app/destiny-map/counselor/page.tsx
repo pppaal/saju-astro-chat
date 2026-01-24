@@ -22,6 +22,7 @@ import type {
 } from "@/types/api";
 import styles from "./counselor.module.css";
 import { logger } from "@/lib/logger";
+import { getPublicBackendUrl } from "@/lib/backend-url";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -313,7 +314,7 @@ export default function CounselorPage({
     // Always call prefetchRAG - backend will compute saju/astro from birth data if needed
     const prefetchRAG = async () => {
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
+        const backendUrl = getPublicBackendUrl();
         const res = await fetch(`${backendUrl}/counselor/init`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },

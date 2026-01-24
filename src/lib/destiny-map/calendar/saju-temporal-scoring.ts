@@ -15,6 +15,7 @@
  * @version 1.0.0
  */
 
+import { logger } from '@/lib/logger';
 import {
   ELEMENT_RELATIONS,
   STEMS,
@@ -150,7 +151,7 @@ export function getYearGanzhi(year: number): GanzhiResult {
       branchElement: BRANCH_TO_ELEMENT[branch] || 'earth',
     };
   } catch (error) {
-    console.error('Error calculating year ganzhi:', error);
+    logger.error('Error calculating year ganzhi:', { error });
     return {
       stem: '甲',
       branch: '子',
@@ -262,7 +263,7 @@ export function calculateSeunScore(
 
     return { score, factorKeys, positive, negative };
   } catch (error) {
-    console.error('Error calculating seun score:', error);
+    logger.error('Error calculating seun score:', { error });
     return { score: 0, factorKeys: [], positive: false, negative: false };
   }
 }
@@ -333,7 +334,7 @@ export function getMonthGanzhi(year: number, month: number): GanzhiResult {
       branchElement: BRANCH_TO_ELEMENT[branch] || 'earth',
     };
   } catch (error) {
-    console.error('Error calculating month ganzhi:', error);
+    logger.error('Error calculating month ganzhi:', { error });
     return {
       stem: '甲',
       branch: '寅',
@@ -432,7 +433,7 @@ export function calculateWolunScore(
 
     return { score, factorKeys, positive, negative };
   } catch (error) {
-    console.error('Error calculating wolun score:', error);
+    logger.error('Error calculating wolun score:', { error });
     return { score: 0, factorKeys: [], positive: false, negative: false };
   }
 }
@@ -622,7 +623,7 @@ export function calculateIljinScore(
 
     return { score, factorKeys, positive, negative, ganzhi };
   } catch (error) {
-    console.error('Error calculating iljin score:', error);
+    logger.error('Error calculating iljin score:', { error });
     return {
       score: 0,
       factorKeys: [],
@@ -678,7 +679,7 @@ export function getCurrentDaeun(
     // 첫 대운 이전인 경우 첫 번째 대운 반환
     return daeunCycles[0] || null;
   } catch (error) {
-    console.error('Error finding current daeun:', error);
+    logger.error('Error finding current daeun:', { error });
     return null;
   }
 }
@@ -847,7 +848,7 @@ export function calculateDaeunScore(
 
     return { score, factorKeys, positive, negative, currentDaeun };
   } catch (error) {
-    console.error('Error calculating daeun score:', error);
+    logger.error('Error calculating daeun score:', { error });
     return {
       score: 0,
       factorKeys: [],
@@ -893,7 +894,7 @@ export function calculateTotalTemporalScore(
 
     return Math.round(totalScore);
   } catch (error) {
-    console.error('Error calculating total temporal score:', error);
+    logger.error('Error calculating total temporal score:', { error });
     return 0;
   }
 }

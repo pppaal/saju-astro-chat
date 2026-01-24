@@ -13,6 +13,7 @@ import AuthGate from "@/components/auth/AuthGate";
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
 import styles from "./counselor.module.css";
 import { sajuLogger } from "@/lib/logger";
+import { getPublicBackendUrl } from "@/lib/backend-url";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -157,7 +158,7 @@ export default function SajuCounselorPage({
     if (saju) {
       const prefetchRAG = async () => {
         try {
-          const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
+          const backendUrl = getPublicBackendUrl();
           const res = await fetch(`${backendUrl}/saju/counselor/init`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },

@@ -17,6 +17,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
+import { prisma, Prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
 import { parseJsonBody, validateFields } from '@/lib/api/validation';
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler';
@@ -24,7 +25,6 @@ import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler';
 export const dynamic = "force-dynamic";
 
 // GET: 저장된 ICP 결과 조회
-// TODO: ICPResult 모델이 Prisma 스키마에 추가되면 DB 연동 활성화
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -32,8 +32,27 @@ export async function GET() {
       return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
     }
 
-    // ICPResult 모델이 없어서 임시로 false 반환
-    return NextResponse.json({ saved: false });
+    const latestResult = await prisma.iCPResult.findFirst({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        primaryStyle: true,
+        secondaryStyle: true,
+        dominanceScore: true,
+        affiliationScore: true,
+        octantScores: true,
+        analysisData: true,
+        locale: true,
+        createdAt: true,
+      },
+    });
+
+    if (!latestResult) {
+      return NextResponse.json({ saved: false });
+    }
+
+    return NextResponse.json({ saved: true, result: latestResult });
   } catch (error) {
     logger.error("GET /api/icp error:", error);
     return NextResponse.json({ error: "server_error" }, { status: 500 });
@@ -41,7 +60,6 @@ export async function GET() {
 }
 
 // POST: ICP 결과 저장 (로그인 필요)
-// TODO: ICPResult 모델이 Prisma 스키마에 추가되면 DB 연동 활성화
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -91,10 +109,17 @@ export async function POST(request: Request) {
         min: -100,
         max: 100,
       },
-      consistencyScore: {
-        type: "number",
-        min: 0,
-        max: 100,
+      octantScores: {
+        type: "object",
+      },
+      analysisData: {
+        type: "object",
+      },
+      answers: {
+        type: "object",
+      },
+      locale: {
+        type: "string",
       },
     });
 
@@ -106,16 +131,39 @@ export async function POST(request: Request) {
       });
     }
 
-    const { primaryStyle, secondaryStyle, dominanceScore, affiliationScore, consistencyScore } = data;
+    const icpData = data as {
+      primaryStyle: string;
+      secondaryStyle?: string;
+      dominanceScore: number;
+      affiliationScore: number;
+      octantScores?: Record<string, number>;
+      analysisData?: Record<string, unknown>;
+      answers?: Record<string, unknown>;
+      locale?: string;
+    };
 
-    // ICPResult 모델이 없어서 임시 응답
+    // Save to database
+    const result = await prisma.iCPResult.create({
+      data: {
+        userId: session.user.id,
+        primaryStyle: icpData.primaryStyle,
+        secondaryStyle: icpData.secondaryStyle,
+        dominanceScore: icpData.dominanceScore,
+        affiliationScore: icpData.affiliationScore,
+        octantScores: (icpData.octantScores || {}) as Prisma.JsonObject,
+        analysisData: (icpData.analysisData || {}) as Prisma.JsonObject,
+        answers: (icpData.answers || {}) as Prisma.JsonObject,
+        locale: icpData.locale || 'en',
+      },
+    });
+
     return NextResponse.json({
       success: true,
-      primaryStyle,
-      secondaryStyle,
-      dominanceScore,
-      affiliationScore,
-      consistencyScore,
+      id: result.id,
+      primaryStyle: result.primaryStyle,
+      secondaryStyle: result.secondaryStyle,
+      dominanceScore: result.dominanceScore,
+      affiliationScore: result.affiliationScore,
       message: "ICP result saved successfully",
     });
   } catch (error) {

@@ -120,11 +120,78 @@ export function getIsoInTimezone(tz?: string): string {
 }
 
 /**
- * Check if a timezone string is valid
+ * Check if a timezone string is valid IANA timezone identifier
+ * Strict validation that rejects abbreviations and non-standard formats
  */
 export function isValidTimezone(tz: string): boolean {
+  // Reject empty or whitespace-only strings
+  if (!tz || tz.trim() !== tz || tz.trim().length === 0) {
+    return false;
+  }
+
+  // Reject common timezone abbreviations (3-4 letter codes), but allow UTC and GMT
+  if (tz !== 'UTC' && tz !== 'GMT') {
+    const abbreviationPattern = /^[A-Z]{3,4}$/;
+    if (abbreviationPattern.test(tz)) {
+      return false;
+    }
+  }
+
+  // Reject numeric offset formats like +09:00, UTC+9, etc.
+  if (/[+\-]\d|UTC[+\-]/.test(tz)) {
+    return false;
+  }
+
+  // Reject strings with only numbers
+  if (/^\d+$/.test(tz)) {
+    return false;
+  }
+
+  // Reject strings with special characters (except / and _)
+  if (/[!?#@$%^&*()=[\]{}|\\;:'",<>]/.test(tz)) {
+    return false;
+  }
+
+  // Check if it's a valid IANA timezone using Intl API
   try {
     Intl.DateTimeFormat(undefined, { timeZone: tz });
+
+    // Additional check: Intl API is case-insensitive but IANA identifiers are case-sensitive
+    // We need to ensure the exact case matches by checking common patterns
+    // Valid IANA timezones typically start with uppercase (America/, Asia/, Europe/, etc.)
+    // or are all uppercase (UTC, GMT)
+    if (tz === 'UTC' || tz === 'GMT') {
+      return true;
+    }
+
+    // For region/city format, check if it has proper casing
+    if (tz.includes('/')) {
+      const parts = tz.split('/');
+
+      // Special case: Etc/GMT and Etc/UTC are allowed with all uppercase
+      const isEtcTimezone = parts[0] === 'Etc' && (parts[1] === 'GMT' || parts[1] === 'UTC');
+      if (isEtcTimezone) {
+        return true;
+      }
+
+      // Check proper casing for standard timezones
+      for (const part of parts) {
+        if (part.length > 0) {
+          // Each part should start with uppercase
+          const startsWithUppercase = part[0] === part[0].toUpperCase();
+          if (!startsWithUppercase) {
+            return false;
+          }
+
+          // Reject all-uppercase parts (except for already-handled Etc/GMT cases)
+          const isAllUppercase = part === part.toUpperCase() && /^[A-Z]+$/.test(part);
+          if (isAllUppercase) {
+            return false;
+          }
+        }
+      }
+    }
+
     return true;
   } catch {
     return false;

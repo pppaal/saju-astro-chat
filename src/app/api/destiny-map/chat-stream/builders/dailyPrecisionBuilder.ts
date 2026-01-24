@@ -15,6 +15,7 @@ import {
 } from '@/lib/prediction/ultraPrecisionEngine';
 import { extractFilteredStemsAndBranches } from '../helpers/pillarExtractors';
 import type { SajuDataStructure } from '../lib/types';
+import { logger } from '@/lib/logger';
 
 /**
  * 일진 정밀 분석 섹션 구성
@@ -155,7 +156,7 @@ export function buildDailyPrecisionSection(
 
     return enhancedParts.join('\n');
   } catch (e) {
-    console.error('[dailyPrecisionBuilder] Error:', e);
+    logger.error('[dailyPrecisionBuilder] Error:', e);
     return '';
   }
 }

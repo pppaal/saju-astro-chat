@@ -1,10 +1,17 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import Link from 'next/link';
+
+interface SajuData {
+  dayMasterElement: string;
+  dayMaster: string;
+  birthDate: string;
+  birthTime?: string;
+}
 
 const PERIOD_INFO = {
   daily: {
@@ -44,12 +51,36 @@ function TimingReportContent() {
   const [targetDate, setTargetDate] = useState(() => {
     return new Date().toISOString().split('T')[0];
   });
+  const [sajuData, setSajuData] = useState<SajuData | null>(null);
+  const [sajuLoading, setSajuLoading] = useState(false);
+
+  // 사주 정보 로드
+  const loadSajuData = useCallback(async () => {
+    if (status !== 'authenticated') return;
+
+    setSajuLoading(true);
+    try {
+      const res = await fetch('/api/me/saju');
+      const data = await res.json();
+      if (data.success && data.hasSaju) {
+        setSajuData(data.saju);
+      }
+    } catch {
+      // 사주 로드 실패 시 무시 (기본값 사용)
+    } finally {
+      setSajuLoading(false);
+    }
+  }, [status]);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin?callbackUrl=/premium-reports/timing?period=' + period);
     }
   }, [status, router, period]);
+
+  useEffect(() => {
+    loadSajuData();
+  }, [loadSajuData]);
 
   const handleGenerate = async () => {
     if (!profile.birthDate) {
@@ -67,7 +98,7 @@ function TimingReportContent() {
         body: JSON.stringify({
           period,
           targetDate,
-          dayMasterElement: '목', // TODO: 실제 사용자 데이터에서 가져오기
+          dayMasterElement: sajuData?.dayMasterElement || '목',
           name: profile.name,
           birthDate: profile.birthDate,
           lang: 'ko',
@@ -93,7 +124,7 @@ function TimingReportContent() {
     }
   };
 
-  if (status === 'loading' || profileLoading) {
+  if (status === 'loading' || profileLoading || sajuLoading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-white">로딩 중...</div>

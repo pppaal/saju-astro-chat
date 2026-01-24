@@ -75,7 +75,7 @@ export function MatrixDetailModal({ detail }: MatrixDetailModalProps) {
             try {
               const { generatePremiumPDF } = await import('@/lib/destiny-matrix/ai-report/pdfGenerator');
               const pdfBytes = await generatePremiumPDF(detail.reportData);
-              const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+              const blob = new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;

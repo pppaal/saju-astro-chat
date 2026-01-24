@@ -585,7 +585,7 @@ describe('apiGuard', () => {
       process.env.PREMIUM_API_TOKEN = 'premium-token';
       const req = createRequest({ authorization: 'Bearer premium-token' });
 
-      await apiGuard(req, {
+      const result = await apiGuard(req, {
         path: '/api/premium',
         limit: 1000,
         windowSeconds: 60,

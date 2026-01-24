@@ -16,6 +16,7 @@
  * @version 1.0.0
  */
 
+import { logger } from '@/lib/logger';
 import { ELEMENT_RELATIONS, ZODIAC_TO_ELEMENT } from './constants';
 import { getSipsin, normalizeElement } from './utils';
 
@@ -230,7 +231,7 @@ export function getMoonElement(date: Date): string {
     const element = ZODIAC_TO_ELEMENT[approxSign] || 'earth';
     return normalizeElement(element);
   } catch (error) {
-    console.error('Error calculating moon element:', error);
+    logger.error('Error calculating moon element:', { error });
     return 'earth';
   }
 }
@@ -364,7 +365,7 @@ export function analyzeYongsin(
 
     return result;
   } catch (error) {
-    console.error('Error analyzing yongsin:', error);
+    logger.error('Error analyzing yongsin:', { error });
     return {
       score: 0,
       factorKeys: [],
@@ -478,7 +479,7 @@ export function analyzeGeokguk(
 
     return result;
   } catch (error) {
-    console.error('Error analyzing geokguk:', error);
+    logger.error('Error analyzing geokguk:', { error });
     return {
       score: 0,
       factorKeys: [],
@@ -582,7 +583,7 @@ export function analyzeSolarReturn(
 
     return result;
   } catch (error) {
-    console.error('Error analyzing solar return:', error);
+    logger.error('Error analyzing solar return:', { error });
     return {
       score: 0,
       factorKeys: [],
@@ -730,7 +731,7 @@ export function analyzeProgressions(
 
     return result;
   } catch (error) {
-    console.error('Error analyzing progressions:', error);
+    logger.error('Error analyzing progressions:', { error });
     return {
       score: 0,
       factorKeys: [],
@@ -775,7 +776,7 @@ export function calculateTotalCharacterScore(
 
     return Math.round(totalScore);
   } catch (error) {
-    console.error('Error calculating total character score:', error);
+    logger.error('Error calculating total character score:', { error });
     return 0;
   }
 }

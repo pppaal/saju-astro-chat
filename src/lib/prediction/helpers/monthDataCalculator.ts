@@ -95,7 +95,7 @@ export function calculateMonthData(
   const twelveStage = calculatePreciseTwelveStage(input.dayStem, monthGanji.branch);
 
   // 십신 계산
-  const sibsin = calculateSibsin(input.dayStem, monthGanji.stem);
+  const sibsin = calculateSibsin(input.dayStem, monthGanji.stem) as SibsinKind;
 
   // 절기 분석
   const solarTerm = useSolarTerms ? getSolarTermForDate(midMonth) : null;
@@ -111,7 +111,7 @@ export function calculateMonthData(
     monthGanji,
     yearGanji,
     twelveStage,
-    sibsin,
+    sibsin: sibsin as any,
     solarTerm,
     solarTermMonth,
   };

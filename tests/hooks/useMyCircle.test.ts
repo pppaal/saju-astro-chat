@@ -117,9 +117,9 @@ describe('useMyCircle', () => {
       result.current.setShowCircleDropdown(1);
     });
 
-    // Create element with the class
+    // Create element with the data attribute
     const wrapper = document.createElement('div');
-    wrapper.className = 'circleDropdownWrapper';
+    wrapper.setAttribute('data-circle-dropdown', 'true');
     document.body.appendChild(wrapper);
 
     const insideElement = document.createElement('button');

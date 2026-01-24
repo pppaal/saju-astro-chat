@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from 'react';
 import type { TabProps } from './types';
 import { getLoveMatrixAnalysis, type LoveMatrixResult } from '../analyzers';
 import { getLoveTimingAnalysis } from '../analyzers/matrixAnalyzer';
@@ -31,7 +32,7 @@ interface LoveAnalysis {
   conflictStyle?: string;
 }
 
-export default function LoveTab({ isKo, data, destinyNarrative, saju, astro, lang }: TabProps) {
+function LoveTab({ isKo, data, destinyNarrative, saju, astro, lang }: TabProps) {
   // TabData.loveAnalysis is Record<string, unknown> | null, cast to local interface
   const loveAnalysis = data.loveAnalysis as LoveAnalysis | null;
   const loveMatrix = getLoveMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang) as LoveMatrixResult | null;
@@ -407,7 +408,7 @@ export default function LoveTab({ isKo, data, destinyNarrative, saju, astro, lan
               />
             </div>
             <p className="text-gray-300 text-sm leading-relaxed">
-              {isKo ? loveTiming.timingMessage.ko : loveTiming.timingMessage.en}
+              {isKo ? loveTiming.timingMessage?.ko : loveTiming.timingMessage?.en}
             </p>
           </div>
 
@@ -504,3 +505,5 @@ export default function LoveTab({ isKo, data, destinyNarrative, saju, astro, lan
     </div>
   );
 }
+
+export default memo(LoveTab);

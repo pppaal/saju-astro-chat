@@ -2,6 +2,8 @@
 import {withSentryConfig} from '@sentry/nextjs';
 // Bundle Analyzer - enable with ANALYZE=true npm run build
 import bundleAnalyzer from '@next/bundle-analyzer';
+// PWA support - offline capability and app-like experience
+import withPWAInit from '@ducanh2912/next-pwa';
 // 파일 경로: next.config.ts
 
 import path from 'path';
@@ -9,6 +11,68 @@ import type { Configuration } from 'webpack';
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
+});
+
+const withPWA = withPWAInit({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
+  register: true,
+  skipWaiting: true,
+  reloadOnOnline: true,
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  fallbacks: {
+    document: '/offline',
+  },
+  workboxOptions: {
+    runtimeCaching: [
+      {
+        urlPattern: /^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'google-fonts',
+          expiration: {
+            maxEntries: 10,
+            maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
+          },
+        },
+      },
+      {
+        urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp|avif)$/i,
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'static-images',
+          expiration: {
+            maxEntries: 64,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+          },
+        },
+      },
+      {
+        urlPattern: /\.(?:js|css)$/i,
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'static-resources',
+          expiration: {
+            maxEntries: 32,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+        },
+      },
+      {
+        urlPattern: /^https:\/\/api\.destinypal\.com\/.*/i,
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'api-cache',
+          expiration: {
+            maxEntries: 16,
+            maxAgeSeconds: 5 * 60, // 5 minutes
+          },
+          networkTimeoutSeconds: 10,
+        },
+      },
+    ],
+  },
 });
 
 /** @type {import('next').NextConfig} */
@@ -191,9 +255,10 @@ const nextConfig = {
   },
 };
 
-// Apply multiple wrappers: Bundle Analyzer + Sentry
-export default withBundleAnalyzer(
-  withSentryConfig(nextConfig, {
+// Apply multiple wrappers: PWA + Bundle Analyzer + Sentry
+export default withPWA(
+  withBundleAnalyzer(
+    withSentryConfig(nextConfig, {
     org: "destinypal",
     project: "javascript-nextjs",
     silent: !process.env.CI,
@@ -207,4 +272,5 @@ export default withBundleAnalyzer(
       automaticVercelMonitors: true,
     },
   })
+  )
 );

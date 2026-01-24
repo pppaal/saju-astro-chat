@@ -8,8 +8,8 @@ type ServiceRecord = {
   id: string
   date: string
   service: string
-  theme?: string
-  summary?: string
+  theme?: string | null
+  summary?: string | null
   type: string
 }
 
@@ -35,7 +35,7 @@ function formatDestinyMapSummary(theme?: string | null): string {
   return `${label} 분석을 이용했습니다`
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -45,13 +45,25 @@ export async function GET() {
 
     const userId = session.user.id
 
-    // Fetch all service records from different tables
+    // Parse pagination parameters
+    const { searchParams } = new URL(request.url)
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get("limit") || "30")), 100)
+    const offset = Math.max(0, parseInt(searchParams.get("offset") || "0"))
+    const service = searchParams.get("service") // Optional filter by service type
+
+    // Calculate per-table limits (distribute evenly, with some tables getting less)
+    // Total target: limit records, distributed across 9 tables
+    const perTableLimit = Math.ceil(limit / 3) // Each major category gets 1/3
+    const minorTableLimit = Math.ceil(limit / 6) // Minor tables get less
+
+    // Fetch service records from different tables with reduced limits
     const [readings, tarotReadings, consultations, interactions, dailyFortunes, calendarDates, icpResults, compatibilityResults, matrixReports] = await Promise.all([
       // Readings (astrology, dream, etc.)
       prisma.reading.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
-        take: 100,
+        take: perTableLimit,
+        skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
           id: true,
           createdAt: true,
@@ -63,21 +75,22 @@ export async function GET() {
       prisma.tarotReading.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
-        take: 100,
+        take: perTableLimit,
+        skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
           id: true,
           createdAt: true,
           question: true,
           theme: true,
           spreadTitle: true,
-          overallMessage: true,
         },
       }),
       // Consultation history
       prisma.consultationHistory.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
-        take: 100,
+        take: perTableLimit,
+        skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
           id: true,
           createdAt: true,
@@ -85,11 +98,15 @@ export async function GET() {
           summary: true,
         },
       }),
-      // User interactions (views, clicks, etc.)
+      // User interactions (views, clicks, etc.) - reduced significantly
       prisma.userInteraction.findMany({
-        where: { userId },
+        where: {
+          userId,
+          type: { in: ["complete", "view"] } // Filter in query, not in memory
+        },
         orderBy: { createdAt: "desc" },
-        take: 200,
+        take: minorTableLimit,
+        skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
           id: true,
           createdAt: true,
@@ -98,11 +115,11 @@ export async function GET() {
           theme: true,
         },
       }),
-      // Daily fortunes
+      // Daily fortunes - keep small
       prisma.dailyFortune.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
-        take: 30,
+        take: Math.min(minorTableLimit, 14), // Max 2 weeks
         select: {
           id: true,
           createdAt: true,
@@ -114,21 +131,22 @@ export async function GET() {
       prisma.savedCalendarDate.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
-        take: 100,
+        take: minorTableLimit,
+        skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
           id: true,
           createdAt: true,
           date: true,
           grade: true,
           title: true,
-          summary: true,
         },
       }),
       // ICP results
       prisma.iCPResult.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
-        take: 100,
+        take: minorTableLimit,
+        skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
           id: true,
           createdAt: true,
@@ -140,7 +158,8 @@ export async function GET() {
       prisma.compatibilityResult.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
-        take: 100,
+        take: minorTableLimit,
+        skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
           id: true,
           createdAt: true,
@@ -153,7 +172,8 @@ export async function GET() {
       prisma.destinyMatrixReport.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
-        take: 100,
+        take: minorTableLimit,
+        skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
           id: true,
           createdAt: true,
@@ -174,17 +194,17 @@ export async function GET() {
         id: r.id,
         date: r.createdAt.toISOString().split("T")[0],
         service: r.type,
-        theme: undefined,
+        theme: undefined as string | undefined,
         summary: r.title || undefined,
-        type: "reading",
+        type: "reading" as string,
       })),
       ...tarotReadings.map((t) => ({
         id: t.id,
         date: t.createdAt.toISOString().split("T")[0],
-        service: "tarot",
-        theme: t.theme || undefined,
+        service: "tarot" as string,
+        theme: (t.theme || undefined) as string | undefined,
         summary: t.question || t.spreadTitle || "타로 리딩",
-        type: "tarot-reading",
+        type: "tarot-reading" as string,
       })),
       ...consultations.map((c) => ({
         id: c.id,
@@ -193,22 +213,20 @@ export async function GET() {
           : c.theme === "life-prediction-timing" ? "life-prediction-timing"
           : c.theme === "life-prediction" ? "life-prediction"
           : "destiny-map",
-        theme: c.theme === "dream" ? undefined : c.theme,
+        theme: c.theme === "dream" ? undefined : (c.theme || undefined),
         summary: c.theme === "dream" ? (c.summary || "꿈 해석")
           : c.theme?.startsWith("life-prediction") ? (c.summary || "인생 예측")
           : formatDestinyMapSummary(c.theme),
         type: "consultation",
       })),
-      ...interactions
-        .filter((i) => i.type === "complete" || i.type === "view")
-        .map((i) => ({
-          id: i.id,
-          date: i.createdAt.toISOString().split("T")[0],
-          service: i.service,
-          theme: i.theme || undefined,
-          summary: undefined,
-          type: "interaction",
-        })),
+      ...interactions.map((i) => ({
+        id: i.id,
+        date: i.createdAt.toISOString().split("T")[0],
+        service: i.service,
+        theme: (i.theme || undefined) as string | undefined,
+        summary: undefined as string | undefined,
+        type: "interaction",
+      })),
       ...dailyFortunes.map((f) => ({
         id: f.id,
         date: f.date,
@@ -222,7 +240,7 @@ export async function GET() {
         date: c.date,
         service: "destiny-calendar",
         theme: c.grade <= 2 ? "좋은 날" : c.grade === 4 ? "주의 날" : "보통 날",
-        summary: c.title || c.summary || "저장된 날짜",
+        summary: c.title || "저장된 날짜",
         type: "calendar",
       })),
       ...icpResults.map((i) => ({
@@ -251,8 +269,13 @@ export async function GET() {
       })),
     ]
 
+    // Apply service filter if specified
+    const filteredRecords = service
+      ? allRecords.filter((r) => r.service === service || r.type === service)
+      : allRecords
+
     // Group by date
-    const byDate = allRecords.reduce((acc, record) => {
+    const filteredByDate = filteredRecords.reduce((acc, record) => {
       if (!acc[record.date]) {
         acc[record.date] = []
       }
@@ -261,14 +284,28 @@ export async function GET() {
     }, {} as Record<string, ServiceRecord[]>)
 
     // Convert to array and sort by date (newest first)
-    const history: DailyHistory[] = Object.entries(byDate)
+    const history: DailyHistory[] = Object.entries(filteredByDate)
       .map(([date, records]) => ({
         date,
         records: records.sort((a, b) => a.service.localeCompare(b.service)),
       }))
       .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, limit) // Apply final limit to grouped results
 
-    return NextResponse.json({ history })
+    // Calculate if there's more data
+    const totalRecords = allRecords.length
+    const hasMore = totalRecords >= limit || history.length >= limit
+
+    return NextResponse.json({
+      history,
+      pagination: {
+        limit,
+        offset,
+        count: history.length,
+        totalRecords,
+        hasMore,
+      },
+    })
   } catch (error) {
     logger.error("Error fetching history:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

@@ -35,7 +35,8 @@ export default function RecommendationsPage() {
     try {
       setLoading(true);
 
-      // TODO: Fetch user's actual Saju, Astrology, Tarot data from backend
+      // Note: This page uses placeholder saju/astrology data.
+      // To use real user data, integrate with /api/me/saju and astrology profile APIs.
       const userProfile: UserProfile = {
         name: session?.user?.name || "User",
         birthDate: "1990-01-01", // Should fetch from user data

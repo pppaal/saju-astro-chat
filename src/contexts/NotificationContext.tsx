@@ -53,70 +53,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("notifications", JSON.stringify(notifications));
   }, [notifications]);
 
-  // Setup Server-Sent Events for real-time notifications
-  // TODO: Enable when SSE notification system is needed
+  // Cleanup SSE on unmount (SSE feature disabled - can be re-enabled later)
   useEffect(() => {
-    // SSE disabled - uncomment below to enable real-time notifications
     if (eventSource) {
       eventSource.close();
       setEventSource(null);
     }
-
-    // // Only connect if user is authenticated
-    // if (!session?.user?.email) {
-    //   if (eventSource) {
-    //     eventSource.close();
-    //     setEventSource(null);
-    //   }
-    //   return;
-    // }
-
-    // // Create SSE connection
-    // const es = new EventSource("/api/notifications/stream");
-
-    // es.onmessage = (event) => {
-    //   try {
-    //     const notification = JSON.parse(event.data) as Notification;
-
-    //     // Skip the initial "Connected" system message
-    //     if (notification.type === "system" && notification.title === "Connected") {
-    //       console.log("SSE connected successfully");
-    //       return;
-    //     }
-
-    //     // Add the notification
-    //     setNotifications((prev) => [notification, ...prev].slice(0, 50));
-
-    //     // Show toast for new notifications
-    //     if (!notification.read) {
-    //       toast.info(notification.title, 5000);
-
-    //       // Show browser notification
-    //       if ("Notification" in window && Notification.permission === "granted") {
-    //         new Notification(notification.title, {
-    //           body: notification.message,
-    //           icon: "/icon.png",
-    //           badge: "/badge.png",
-    //         });
-    //       }
-    //     }
-    //   } catch (error) {
-    //     console.error("Failed to parse SSE notification:", error);
-    //   }
-    // };
-
-    // es.onerror = (error) => {
-    //   console.error("SSE connection error:", error);
-    //   es.close();
-    // };
-
-    // setEventSource(es);
-
-    // // Cleanup on unmount
-    // return () => {
-    //   es.close();
-    // };
-  }, [session, toast, eventSource]);
+  }, [eventSource]);
 
   const addNotification = useCallback((notif: Omit<Notification, "id" | "read" | "createdAt">) => {
     const newNotification: Notification = {

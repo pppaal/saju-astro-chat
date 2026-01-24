@@ -14,6 +14,7 @@ import {
   analyzeGeokguk,
   type YongsinAnalysis,
 } from '../temporal-scoring';
+import { getStemElement, getBranchElement } from '../utils';
 
 export interface SajuAnalysisResult {
   daeunAnalysis: ReturnType<typeof calculateDaeunScore>;
@@ -50,11 +51,19 @@ export function analyzeSaju(input: SajuAnalysisInput): SajuAnalysisResult {
     date,
   } = input;
 
+  // GanzhiResult 생성
+  const ganzhiResult = {
+    stem: ganzhi.stem,
+    branch: ganzhi.branch,
+    stemElement: getStemElement(ganzhi.stem),
+    branchElement: getBranchElement(ganzhi.branch),
+  };
+
   // 용신(用神) 분석 - 사주의 핵심 보완 오행
-  const yongsinAnalysis = analyzeYongsin(sajuProfile.yongsin, ganzhi, date);
+  const yongsinAnalysis = analyzeYongsin(sajuProfile.yongsin, ganzhiResult, date);
 
   // 격국(格局) 분석 - 사주 구조 유형
-  const geokgukAnalysis = analyzeGeokguk(sajuProfile.geokguk, ganzhi, sajuProfile.pillars);
+  const geokgukAnalysis = analyzeGeokguk(sajuProfile.geokguk, ganzhiResult, sajuProfile.pillars);
 
   // 대운(大運) 분석 - 10년 주기
   const daeunAnalysis = calculateDaeunScore(
@@ -72,7 +81,7 @@ export function analyzeSaju(input: SajuAnalysisInput): SajuAnalysisResult {
   const wolunAnalysis = calculateWolunScore(dayMasterElement, dayBranch, year, month);
 
   // 일진(日辰) 분석 - 일별 운세
-  const iljinAnalysis = calculateIljinScore(dayMasterElement, dayMasterStem, dayBranch, ganzhi);
+  const iljinAnalysis = calculateIljinScore(dayMasterElement, dayMasterStem, dayBranch, ganzhiResult);
 
   return {
     daeunAnalysis,

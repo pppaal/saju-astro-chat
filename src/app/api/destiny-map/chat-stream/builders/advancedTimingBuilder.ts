@@ -18,6 +18,7 @@ import {
 import { extractBirthYear } from '@/lib/prediction/utils';
 import { STEMS_MAP } from '../lib/constants';
 import type { SajuDataStructure } from '../lib/types';
+import { logger } from '@/lib/logger';
 
 /**
  * 고급 타이밍 분석 섹션 구성
@@ -125,7 +126,7 @@ export function buildAdvancedTimingSection(
 
     return `${advancedTimingContext}\n\n${yearlyContext}`;
   } catch (e) {
-    console.error('[advancedTimingBuilder] Error:', e);
+    logger.error('[advancedTimingBuilder] Error:', e);
     return '';
   }
 }

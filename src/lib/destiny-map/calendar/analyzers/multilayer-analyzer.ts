@@ -5,8 +5,8 @@
  */
 
 import type { UserSajuProfile } from '../types';
-import {
-  analyzeMultiLayer,
+import { analyzeMultiLayer as analyzeMultiLayerImport,
+  
   calculatePreciseTwelveStage,
   calculateYearlyGanji,
   calculateMonthlyGanji as advancedMonthlyGanji,
@@ -69,7 +69,7 @@ export function analyzeMultiLayer(input: MultiLayerAnalysisInput): MultiLayerAna
     }
 
     // 다층 레이어 분석
-    const multiLayerResult = analyzeMultiLayer({
+    const multiLayerResult = analyzeMultiLayerImport({
       dayStem: dayMasterStem,
       dayBranch: dayBranch,
       daeun: daeunInfo,

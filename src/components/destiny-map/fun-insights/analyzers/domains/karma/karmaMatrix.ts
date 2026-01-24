@@ -9,11 +9,16 @@ import { SHINSAL_PLANET_MATRIX } from '@/lib/destiny-matrix/data/layer8-shinsal-
 import type { AdvancedAnalysisRow, ShinsalKind, BranchRelation } from '@/lib/destiny-matrix/types';
 import type { FiveElement } from '@/lib/Saju/types';
 import type { SajuData, AstroData } from '../../../types';
-import { mapSajuElementToKo } from '../../utils';
+import { KARMA_SHINSALS } from '../../shared';
 import type { KarmaMatrixResult, MatrixFusion } from '../../types';
 
-// Karma-related Shinsal list
-const KARMA_SHINSALS: ShinsalKind[] = ['원진', '역마', '화개', '천라지망', '공망'];
+// Element mapping helper
+const mapSajuElementToKo = (el: string): FiveElement => {
+  const map: Record<string, FiveElement> = {
+    'wood': '목', 'fire': '화', 'earth': '토', 'metal': '금', 'water': '수'
+  };
+  return map[el] || '목';
+};
 
 // Extended Saju data type for internal use
 interface ExtendedSajuData {
@@ -47,7 +52,7 @@ export function getKarmaMatrixAnalysis(
   saju: SajuData | ExtendedSajuData | undefined,
   astro: AstroData | undefined,
   lang: string
-): KarmaMatrixResult | null {
+): any {
   const isKo = lang === 'ko';
   if (!saju && !astro) return null;
 
@@ -56,7 +61,12 @@ export function getKarmaMatrixAnalysis(
   const sajuEl = mapSajuElementToKo(dayElement);
 
   // 1. 영혼 패턴 (L7 - 격국 × 드라코닉)
-  let soulPattern: KarmaMatrixResult['soulPattern'] = null;
+  let soulPattern: {
+    geokguk: string;
+    progression: string;
+    fusion: MatrixFusion;
+    soulTheme: { ko: string; en: string };
+  } | null = null;
   const geokgukData = extSaju?.advancedAnalysis?.geokguk;
   const geokgukName = geokgukData?.name || geokgukData?.type || '';
 
@@ -105,7 +115,20 @@ export function getKarmaMatrixAnalysis(
   }
 
   // 2. 노드 축 분석 (L10)
-  let nodeAxis: KarmaMatrixResult['nodeAxis'] = null;
+  let nodeAxis: {
+    northNode: {
+      element: FiveElement;
+      fusion: MatrixFusion;
+      direction: { ko: string; en: string };
+      lesson: { ko: string; en: string };
+    };
+    southNode: {
+      element: FiveElement;
+      fusion: MatrixFusion;
+      pastPattern: { ko: string; en: string };
+      release: { ko: string; en: string };
+    };
+  } | null = null;
   const northNodeInteraction = EXTRAPOINT_ELEMENT_MATRIX['NorthNode']?.[sajuEl];
   const southNodeInteraction = EXTRAPOINT_ELEMENT_MATRIX['SouthNode']?.[sajuEl];
 
@@ -165,7 +188,12 @@ export function getKarmaMatrixAnalysis(
   }
 
   // 3. 카르마적 관계 패턴 (L5)
-  const karmicRelations: KarmaMatrixResult['karmicRelations'] = [];
+  const karmicRelations: Array<{
+    relation: string;
+    aspect: string;
+    fusion: MatrixFusion;
+    meaning: { ko: string; en: string };
+  }> = [];
   const hyungChungHoeHap = extSaju?.advancedAnalysis?.hyungChungHoeHap;
 
   const relationMeanings: Record<string, { ko: string; en: string }> = {
@@ -200,7 +228,12 @@ export function getKarmaMatrixAnalysis(
   }
 
   // 4. 전생 힌트 (L8)
-  const pastLifeHints: KarmaMatrixResult['pastLifeHints'] = [];
+  const pastLifeHints: Array<{
+    shinsal: string;
+    planet: string;
+    fusion: MatrixFusion;
+    hint: { ko: string; en: string };
+  }> = [];
   const allShinsals = [
     ...(extSaju?.advancedAnalysis?.sinsal?.luckyList || []),
     ...(extSaju?.advancedAnalysis?.sinsal?.unluckyList || []),
@@ -243,11 +276,21 @@ export function getKarmaMatrixAnalysis(
 
   // 5. 카르마 점수 계산
   let karmaScore = 50;
-  if (soulPattern) karmaScore += soulPattern.fusion.score * 2;
-  if (nodeAxis) karmaScore += (nodeAxis.northNode.fusion.score + nodeAxis.southNode.fusion.score);
+  if (soulPattern) karmaScore += soulPattern.fusion?.score ? soulPattern.fusion.score * 2 : 0;
+  if (nodeAxis) karmaScore += (nodeAxis.northNode?.fusion?.score || 0) + (nodeAxis.southNode?.fusion?.score || 0);
   karmaScore += karmicRelations.length * 5;
   karmaScore += pastLifeHints.length * 5;
   karmaScore = Math.min(100, Math.max(30, karmaScore));
+
+  // Generate karma message based on score
+  const karmaMessage = {
+    ko: karmaScore >= 80 ? '카르마 에너지가 매우 강력합니다' :
+        karmaScore >= 60 ? '카르마 패턴이 분명히 나타납니다' :
+        '카르마 에너지가 잠재되어 있습니다',
+    en: karmaScore >= 80 ? 'Very strong karmic energy' :
+        karmaScore >= 60 ? 'Clear karmic patterns present' :
+        'Latent karmic energy'
+  };
 
   return {
     karmaScore: Math.round(karmaScore),
@@ -255,5 +298,6 @@ export function getKarmaMatrixAnalysis(
     nodeAxis,
     karmicRelations,
     pastLifeHints,
+    karmaMessage,
   };
 }

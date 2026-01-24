@@ -3,24 +3,68 @@
  * Centralized constants for life prediction scoring and analysis
  */
 
-// Re-export from engine/constants
-export { STEM_ELEMENT, EVENT_FAVORABLE_CONDITIONS } from './engine/constants';
+import { BRANCH_CLASHES, BRANCH_PUNISHMENTS } from './life-prediction/constants';
+import { MOON_PHASE_NAMES } from './life-prediction-astro';
+import {
+  CHEONEL_MAP,
+  YEOKMA_MAP,
+  MUNCHANG_MAP,
+  GEOPSAL_MAP,
+  STAGE_EVENT_EFFECTS,
+} from './life-prediction-helpers';
+
+// Re-export from life-prediction/constants
+export {
+  STEMS,
+  BRANCHES,
+  STEM_ELEMENT,
+  EVENT_FAVORABLE_CONDITIONS,
+  ASTRO_EVENT_CONDITIONS,
+  TRANSIT_EVENT_CONDITIONS,
+  EVENT_HOUSES,
+  // MOON_PHASE_NAMES, // Not exported from life-prediction/constants
+  // EVENT_NAMES - defined locally below
+  // IMPORTANCE_WEIGHT - defined locally below
+  STEM_COMBINATIONS,
+  STEM_CLASHES,
+  SIX_COMBOS,
+  PARTIAL_TRINES,
+  // CLASHES, // Alias not exported
+  // PUNISHMENTS, // Alias not exported
+  // CHEONEL_MAP, // Not exported
+  // YEOKMA_MAP, // Not exported
+  // MUNCHANG_MAP, // Not exported
+  // GEOPSAL_MAP, // Not exported
+  // STAGE_EVENT_EFFECTS // Not exported
+} from './life-prediction/constants';
+
+export {
+  MOON_PHASE_NAMES,
+  CHEONEL_MAP,
+  YEOKMA_MAP,
+  MUNCHANG_MAP,
+  GEOPSAL_MAP,
+  STAGE_EVENT_EFFECTS,
+};
+
+export const CLASHES = BRANCH_CLASHES;
+export const PUNISHMENTS = BRANCH_PUNISHMENTS;
 
 /**
- * Sibsin (Ten Gods) score mapping
+ * Sibsin (Ten Gods) score mapping (0-100 scale)
  * Used for calculating fortune scores across different prediction types
  */
 export const SIBSIN_SCORES: Record<string, number> = {
-  '정관': 15,  // Proper Official
-  '정재': 12,  // Proper Wealth
-  '정인': 10,  // Proper Seal
-  '식신': 8,   // Eating God
-  '편관': 5,   // Partial Official
-  '편재': 5,   // Partial Wealth
-  '편인': 3,   // Partial Seal
-  '상관': 0,   // Hurting Officer
-  '비견': -3,  // Shoulder
-  '겁재': -8,  // Robbery
+  '정관': 80,  // Proper Official - highest positive
+  '정재': 75,  // Proper Wealth
+  '정인': 70,  // Proper Seal
+  '식신': 65,  // Eating God
+  '편재': 60,  // Partial Wealth
+  '편관': 55,  // Partial Official
+  '상관': 50,  // Hurting Officer - neutral
+  '편인': 48,  // Partial Seal
+  '비견': 47,  // Shoulder
+  '겁재': 45,  // Robbery - lowest
 };
 
 /**
@@ -55,6 +99,22 @@ export const EVENT_TYPE_NAMES_KO: Record<string, string> = {
   travel: '여행',
   surgery: '수술',
 };
+
+/**
+ * Event names (simplified version for tests)
+ */
+export const EVENT_NAMES: Record<string, string> = EVENT_TYPE_NAMES_KO;
+
+/**
+ * Cycle Importance Weights (sum to 1.0)
+ * Used for weighting different time cycles in predictions
+ */
+export const IMPORTANCE_WEIGHT = {
+  daeun: 0.30,  // 대운 (decade) - 30%
+  seun: 0.35,   // 세운 (annual) - highest weight 35%
+  wolun: 0.25,  // 월운 (monthly) - 25%
+  iljin: 0.10,  // 일진 (daily) - 10%
+} as const;
 
 /**
  * Event type keywords for categorization

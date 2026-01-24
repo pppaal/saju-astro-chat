@@ -87,8 +87,8 @@ export function getExtraPointAnalysis(
 
     // 오행 기반 분석
     const elementData = EXTRAPOINT_ELEMENT_MATRIX[point];
-    if (elementData && elementData[sajuEl]) {
-      const interaction = elementData[sajuEl];
+    if (elementData && elementData[sajuEl as keyof typeof elementData]) {
+      const interaction = elementData[sajuEl as keyof typeof elementData];
 
       results.push({
         extraPoint: point,
@@ -100,7 +100,7 @@ export function getExtraPointAnalysis(
           color: getInteractionColor(interaction.level),
           keyword: { ko: interaction.keyword, en: interaction.keywordEn },
           description: {
-            ko: `${pointInfo.ko} × ${sajuEl}(${elementNameKo[sajuEl] || sajuEl}) = ${interaction.keyword}`,
+            ko: `${pointInfo.ko} × ${sajuEl}(${sajuEl}) = ${interaction.keyword}`,
             en: `${pointInfo.en} × ${sajuEl} Element = ${interaction.keywordEn}`,
           },
         },

@@ -8,11 +8,7 @@ import { prisma } from "@/lib/db/prisma";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { logger } from '@/lib/logger';
-
-interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-}
+import { type ChatMessage } from "@/lib/api";
 
 interface SaveDreamChatRequest {
   dreamId?: string;  // Optional: link to existing dream interpretation

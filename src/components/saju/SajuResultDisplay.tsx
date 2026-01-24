@@ -665,17 +665,17 @@ export default function SajuResultDisplay({ result }: Props) {
           saju={{
             dayMaster: result.dayMaster,
             pillars: {
-              year: yearPillar,
-              month: monthPillar,
-              day: dayPillar,
-              time: timePillar,
+              year: yearPillar as any,
+              month: monthPillar as any,
+              day: dayPillar as any,
+              time: timePillar as any,
             },
             fiveElements: fiveElements,
             unse: daeun,
-            sinsal: result.sinsal,
+            sinsal: (result as any).sinsal,
             advancedAnalysis: result.advancedAnalysis,
           }}
-          astro={null}
+          astro={undefined}
           theme="life"
         />
       </Section>

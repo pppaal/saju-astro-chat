@@ -212,7 +212,13 @@
       "Bash(for file in tests/lib/api/*.mega.test.ts tests/lib/*.mega.test.ts tests/lib/Saju/*.mega.test.ts tests/lib/accessibility/*.mega.test.ts)",
       "Bash(npx next lint:*)",
       "Bash(gh pr list:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(do basename \"$f\" .test.ts)",
+      "Bash(exit 0)",
+      "Bash(npx --yes tsc:*)",
+      "Bash(if [ -f .next/BUILD_ID ])",
+      "Bash(then echo \"✅ BUILD SUCCESS\")",
+      "Bash(else echo \"⏳ Still building...\")"
     ],
     "deny": [],
     "ask": []

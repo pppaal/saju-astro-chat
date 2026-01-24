@@ -13,8 +13,17 @@ vi.mock("@/lib/auth/authOptions", () => ({
   authOptions: {},
 }));
 
+vi.mock("@/lib/db/prisma", () => ({
+  prisma: {
+    user: {
+      findUnique: vi.fn(),
+    },
+  },
+}));
+
 import { isAdminEmail, requireAdminSession } from "@/lib/auth/admin";
 import { getServerSession } from "next-auth";
+import { prisma } from "@/lib/db/prisma";
 
 describe("isAdminEmail", () => {
   const originalEnv = process.env.ADMIN_EMAILS;
@@ -137,9 +146,14 @@ describe("requireAdminSession", () => {
 
   it("returns session for admin user", async () => {
     const mockSession = {
-      user: { email: "admin@test.com", name: "Admin" },
+      user: { id: "user-123", email: "admin@test.com", name: "Admin" },
     };
     vi.mocked(getServerSession).mockResolvedValue(mockSession as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: "user-123",
+      email: "admin@test.com",
+      role: "admin",
+    } as any);
 
     const result = await requireAdminSession();
 
@@ -148,9 +162,14 @@ describe("requireAdminSession", () => {
 
   it("is case-insensitive for admin check", async () => {
     const mockSession = {
-      user: { email: "ADMIN@TEST.COM" },
+      user: { id: "user-456", email: "ADMIN@TEST.COM" },
     };
     vi.mocked(getServerSession).mockResolvedValue(mockSession as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: "user-456",
+      email: "ADMIN@TEST.COM",
+      role: "admin",
+    } as any);
 
     const result = await requireAdminSession();
 

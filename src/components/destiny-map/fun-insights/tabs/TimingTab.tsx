@@ -2,7 +2,7 @@
 
 import type { TabProps } from './types';
 import { getTimingMatrixAnalysis } from '../analyzers/matrixAnalyzer';
-import type { TimingMatrixResult } from '../analyzers/matrixAnalyzer';
+import type { TimingMatrixResult } from '../analyzers/types/domain.types';
 import { PremiumReportCTA } from '../components';
 
 export default function TimingTab({ isKo, saju, astro }: TabProps) {
@@ -10,6 +10,9 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
 
   // 현재 날짜 기준 계산
   const currentYear = new Date().getFullYear();
+
+  // Find current period from daeunTimeline array
+  const currentPeriod = timingMatrix?.daeunTimeline?.find(item => item.isCurrent);
 
   return (
     <div className="space-y-6">
@@ -37,7 +40,7 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
               />
             </div>
             <p className="text-gray-300 text-sm leading-relaxed">
-              {isKo ? timingMatrix.overallMessage.ko : timingMatrix.overallMessage.en}
+              {isKo ? timingMatrix.overallMessage?.ko : timingMatrix.overallMessage?.en}
             </p>
           </div>
         </div>
@@ -56,32 +59,34 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
           </div>
 
           {/* 현재 대운 */}
-          {timingMatrix.daeunTimeline.current && (
+          {currentPeriod && (
             <div className="p-4 rounded-xl bg-indigo-500/15 border border-indigo-500/30 mb-4">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">{timingMatrix.daeunTimeline.current.icon}</span>
+                <span className="text-lg">{currentPeriod.icon}</span>
                 <span className="text-indigo-300 font-bold text-sm">{isKo ? '현재 대운' : 'Current Major Luck'}</span>
-                <span className="text-white font-bold ml-auto">{timingMatrix.daeunTimeline.current.period}</span>
+                <span className="text-white font-bold ml-auto">{currentPeriod.period}</span>
               </div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">{timingMatrix.daeunTimeline.current.element}</span>
-                <span className="text-gray-300">{timingMatrix.daeunTimeline.current.heavenlyStem}{timingMatrix.daeunTimeline.current.earthlyBranch}</span>
+                <span className="text-xl">{currentPeriod.element}</span>
+                <span className="text-gray-300">{currentPeriod.heavenlyStem}{currentPeriod.earthlyBranch}</span>
               </div>
               <p className="text-gray-300 text-sm leading-relaxed mb-2">
-                {isKo ? timingMatrix.daeunTimeline.current.description.ko : timingMatrix.daeunTimeline.current.description.en}
+                {currentPeriod.description ? (isKo ? currentPeriod.description.ko : currentPeriod.description.en) : ''}
               </p>
-              <p className="text-indigo-400 text-xs">
-                {isKo ? timingMatrix.daeunTimeline.current.advice.ko : timingMatrix.daeunTimeline.current.advice.en}
-              </p>
+              {currentPeriod.advice && (
+                <p className="text-indigo-400 text-xs">
+                  {isKo ? currentPeriod.advice.ko : currentPeriod.advice.en}
+                </p>
+              )}
             </div>
           )}
 
           {/* 대운 흐름 시각화 */}
-          {timingMatrix.daeunTimeline.sequence && timingMatrix.daeunTimeline.sequence.length > 0 && (
+          {timingMatrix.daeunTimeline && timingMatrix.daeunTimeline.length > 0 && (
             <div className="space-y-2">
               <p className="text-gray-400 text-xs mb-2">{isKo ? '대운 흐름' : 'Luck Flow'}</p>
               <div className="flex items-center gap-2 overflow-x-auto pb-2">
-                {timingMatrix.daeunTimeline.sequence.map((daeun, idx) => (
+                {timingMatrix.daeunTimeline.map((daeun, idx) => (
                   <div
                     key={idx}
                     className={`flex-shrink-0 p-3 rounded-lg text-center ${
@@ -105,14 +110,14 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
           )}
 
           {/* 대운 전환기 알림 */}
-          {timingMatrix.daeunTimeline.transition && (
+          {timingMatrix.overallMessage && (
             <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
               <div className="flex items-center gap-2">
                 <span className="text-lg">⚡</span>
                 <span className="text-amber-300 font-bold text-sm">{isKo ? '대운 전환기' : 'Luck Transition'}</span>
               </div>
               <p className="text-gray-300 text-xs mt-1">
-                {isKo ? timingMatrix.daeunTimeline.transition.ko : timingMatrix.daeunTimeline.transition.en}
+                {isKo ? timingMatrix.overallMessage.ko : timingMatrix.overallMessage.en}
               </p>
             </div>
           )}
@@ -160,12 +165,16 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
                   </div>
                   <span className="text-gray-400 text-xs">{transit.period}</span>
                 </div>
-                <p className="text-gray-300 text-sm leading-relaxed mb-2">
-                  {isKo ? transit.description.ko : transit.description.en}
-                </p>
-                <p className={`text-xs ${transit.isActive ? 'text-purple-400' : 'text-gray-500'}`}>
-                  {isKo ? transit.advice.ko : transit.advice.en}
-                </p>
+                {transit.description && (
+                  <p className="text-gray-300 text-sm leading-relaxed mb-2">
+                    {isKo ? transit.description.ko : transit.description.en}
+                  </p>
+                )}
+                {transit.advice && (
+                  <p className={`text-xs ${transit.isActive ? 'text-purple-400' : 'text-gray-500'}`}>
+                    {isKo ? transit.advice.ko : transit.advice.en}
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -186,7 +195,7 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
 
           {/* 현재 역행 상태 */}
           <div className="grid grid-cols-3 gap-3 mb-4">
-            {timingMatrix.retrogrades.planets.map((planet, idx) => (
+            {timingMatrix.retrogrades.map((planet, idx) => (
               <div
                 key={idx}
                 className={`p-3 rounded-xl text-center ${
@@ -205,10 +214,10 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
           </div>
 
           {/* 역행 기간 목록 */}
-          {timingMatrix.retrogrades.upcoming && timingMatrix.retrogrades.upcoming.length > 0 && (
+          {timingMatrix.retrogrades && timingMatrix.retrogrades.length > 0 && (
             <div className="space-y-2">
               <p className="text-gray-400 text-xs mb-2">{isKo ? `${currentYear}년 역행 일정` : `${currentYear} Retrograde Schedule`}</p>
-              {timingMatrix.retrogrades.upcoming.map((retro, idx) => (
+              {timingMatrix.retrogrades.map((retro, idx) => (
                 <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-gray-800/30">
                   <div className="flex items-center gap-2">
                     <span>{retro.icon}</span>
@@ -232,7 +241,7 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
       )}
 
       {/* 세운/월운/일운 분석 (L4) */}
-      {timingMatrix?.periodLuck && (
+      {(timingMatrix as any)?.periodLuck && (
         <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-cyan-900/20 border border-cyan-500/30 p-6">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-2xl">📅</span>
@@ -245,64 +254,64 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* 세운 (올해) */}
-            {timingMatrix.periodLuck.year && (
+            {(timingMatrix as any).periodLuck.year && (
               <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">{timingMatrix.periodLuck.year.icon}</span>
+                  <span className="text-lg">{(timingMatrix as any).periodLuck.year.icon}</span>
                   <span className="text-cyan-300 font-bold text-sm">{isKo ? `${currentYear}년 세운` : `${currentYear} Year`}</span>
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">{timingMatrix.periodLuck.year.element}</span>
-                  <span className="text-white font-bold">{timingMatrix.periodLuck.year.stem}{timingMatrix.periodLuck.year.branch}</span>
+                  <span className="text-xl">{(timingMatrix as any).periodLuck.year.element}</span>
+                  <span className="text-white font-bold">{(timingMatrix as any).periodLuck.year.stem}{(timingMatrix as any).periodLuck.year.branch}</span>
                 </div>
                 <p className="text-gray-300 text-xs leading-relaxed">
-                  {isKo ? timingMatrix.periodLuck.year.description.ko : timingMatrix.periodLuck.year.description.en}
+                  {isKo ? (timingMatrix as any).periodLuck.year.description.ko : (timingMatrix as any).periodLuck.year.description.en}
                 </p>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs text-gray-500">{isKo ? '에너지' : 'Energy'}</span>
-                  <span className="text-cyan-400 font-bold">{timingMatrix.periodLuck.year.score}%</span>
+                  <span className="text-cyan-400 font-bold">{(timingMatrix as any).periodLuck.year.score}%</span>
                 </div>
               </div>
             )}
 
             {/* 월운 (이번 달) */}
-            {timingMatrix.periodLuck.month && (
+            {(timingMatrix as any).periodLuck.month && (
               <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">{timingMatrix.periodLuck.month.icon}</span>
+                  <span className="text-lg">{(timingMatrix as any).periodLuck.month.icon}</span>
                   <span className="text-blue-300 font-bold text-sm">{isKo ? '이번 달 월운' : 'This Month'}</span>
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">{timingMatrix.periodLuck.month.element}</span>
-                  <span className="text-white font-bold">{timingMatrix.periodLuck.month.stem}{timingMatrix.periodLuck.month.branch}</span>
+                  <span className="text-xl">{(timingMatrix as any).periodLuck.month.element}</span>
+                  <span className="text-white font-bold">{(timingMatrix as any).periodLuck.month.stem}{(timingMatrix as any).periodLuck.month.branch}</span>
                 </div>
                 <p className="text-gray-300 text-xs leading-relaxed">
-                  {isKo ? timingMatrix.periodLuck.month.description.ko : timingMatrix.periodLuck.month.description.en}
+                  {isKo ? (timingMatrix as any).periodLuck.month.description.ko : (timingMatrix as any).periodLuck.month.description.en}
                 </p>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs text-gray-500">{isKo ? '에너지' : 'Energy'}</span>
-                  <span className="text-blue-400 font-bold">{timingMatrix.periodLuck.month.score}%</span>
+                  <span className="text-blue-400 font-bold">{(timingMatrix as any).periodLuck.month.score}%</span>
                 </div>
               </div>
             )}
 
             {/* 일운 (오늘) */}
-            {timingMatrix.periodLuck.day && (
+            {(timingMatrix as any).periodLuck.day && (
               <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">{timingMatrix.periodLuck.day.icon}</span>
+                  <span className="text-lg">{(timingMatrix as any).periodLuck.day.icon}</span>
                   <span className="text-violet-300 font-bold text-sm">{isKo ? '오늘 일운' : 'Today'}</span>
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">{timingMatrix.periodLuck.day.element}</span>
-                  <span className="text-white font-bold">{timingMatrix.periodLuck.day.stem}{timingMatrix.periodLuck.day.branch}</span>
+                  <span className="text-xl">{(timingMatrix as any).periodLuck.day.element}</span>
+                  <span className="text-white font-bold">{(timingMatrix as any).periodLuck.day.stem}{(timingMatrix as any).periodLuck.day.branch}</span>
                 </div>
                 <p className="text-gray-300 text-xs leading-relaxed">
-                  {isKo ? timingMatrix.periodLuck.day.description.ko : timingMatrix.periodLuck.day.description.en}
+                  {isKo ? (timingMatrix as any).periodLuck.day.description.ko : (timingMatrix as any).periodLuck.day.description.en}
                 </p>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs text-gray-500">{isKo ? '에너지' : 'Energy'}</span>
-                  <span className="text-violet-400 font-bold">{timingMatrix.periodLuck.day.score}%</span>
+                  <span className="text-violet-400 font-bold">{(timingMatrix as any).periodLuck.day.score}%</span>
                 </div>
               </div>
             )}
@@ -323,7 +332,7 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
           </div>
 
           <div className="space-y-3">
-            {timingMatrix.luckyPeriods.slice(0, 5).map((period, idx) => (
+            {(timingMatrix.luckyPeriods as any[]).slice(0, 5).map((period, idx) => (
               <div
                 key={idx}
                 className={`p-4 rounded-xl border ${
@@ -356,7 +365,7 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
                   {isKo ? period.description.ko : period.description.en}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {period.goodFor.map((item, i) => (
+                  {period.goodFor.map((item: string, i: number) => (
                     <span key={i} className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-300">
                       {item}
                     </span>

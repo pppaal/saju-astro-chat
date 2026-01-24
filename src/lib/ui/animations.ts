@@ -262,7 +262,21 @@ export function prefersReducedMotion(): boolean {
 export function getAccessibleDuration(
   duration: keyof typeof DURATION
 ): number {
-  return prefersReducedMotion() ? 0 : DURATION[`${duration}Ms` as keyof typeof DURATION] as number;
+  if (prefersReducedMotion()) return 0;
+
+  // Map string keys to their Ms counterparts
+  const msMap: Record<string, number> = {
+    fast: DURATION.fastMs,
+    medium: DURATION.mediumMs,
+    slow: DURATION.slowMs,
+    bounce: DURATION.bounceMs,
+    fastMs: DURATION.fastMs,
+    mediumMs: DURATION.mediumMs,
+    slowMs: DURATION.slowMs,
+    bounceMs: DURATION.bounceMs,
+  };
+
+  return msMap[duration] || 150;
 }
 
 // ============ CSS Variable Exports ============
@@ -312,9 +326,9 @@ export const CSS_VARIABLES = `
  *   </div>
  * );
  */
-export function useAnimation(speed: keyof typeof DURATION = 'medium') {
+export function useAnimation(speed: keyof typeof TRANSITIONS = 'medium') {
   const shouldAnimate = !prefersReducedMotion();
-  const duration = getAccessibleDuration(speed);
+  const duration = getAccessibleDuration(speed as keyof typeof DURATION);
 
   return {
     shouldAnimate,

@@ -13,8 +13,8 @@ export const ACTIVITY_KEYWORD_MAP: Array<{
   activity: ActivityType;
 }> = [
   { keywords: ['결혼', '혼례', '웨딩', 'marry', 'wedding', 'marriage'], activity: 'marriage' },
-  { keywords: ['이사', 'move', '입주', 'relocation'], activity: 'move' },
-  { keywords: ['개업', '창업', 'business', 'start', 'open', '오픈'], activity: 'business_start' },
+  { keywords: ['이사', 'move', '입주', 'relocation'], activity: 'moving' },
+  { keywords: ['개업', '창업', 'business', 'start', 'open', '오픈'], activity: 'business' },
   { keywords: ['계약', 'contract', '서명', 'sign'], activity: 'contract' },
   { keywords: ['면접', 'interview', '취업'], activity: 'interview' },
   { keywords: ['투자', 'invest', '주식', 'stock', '부동산'], activity: 'investment' },

@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     const { queryDomain, maxInsights, includeVisualizations, includeDetailedData, ...rest } = validatedInput;
 
     // Zod가 검증을 완료했으므로 타입 안전하게 변환 (rest spread로 나머지 속성 전달)
-    const matrixInput = rest as MatrixCalculationInput;
+    const matrixInput = rest as unknown as MatrixCalculationInput;
 
     // 3. 캐시 키 생성
     const inputHash = generateInputHash(matrixInput);

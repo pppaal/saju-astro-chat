@@ -18,6 +18,7 @@ import type {
 import { PERIOD_META, THEME_META } from './types';
 import { buildTimingPrompt } from './prompts/timingPrompts';
 import { buildThemedPrompt } from './prompts/themedPrompts';
+import { getBackendUrl } from '@/lib/backend-url';
 
 // ===========================
 // AI 리포트 타입 정의
@@ -84,6 +85,7 @@ export interface AIReportGenerationOptions {
 
 /**
  * Builds themed AI prompt with specific focus areas
+ * @deprecated Use generateThemedReport with buildThemedPrompt from themedPrompts.ts instead
  */
 function buildThemedAIPrompt(
   input: MatrixCalculationInput,
@@ -93,20 +95,12 @@ function buildThemedAIPrompt(
 ): string {
   const lang = options.lang || 'ko';
 
-  // Import theme prompts dynamically
-  let themePromptData: { ko: string; en: string } | undefined;
-  // TODO: Re-enable when themed-report/prompts is created
-  // try {
-  //   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  //   const { THEME_PROMPT_FOCUS } = require('../themed-report/prompts');
-  //   themePromptData = THEME_PROMPT_FOCUS[theme as keyof typeof THEME_PROMPT_FOCUS];
-  // } catch (error) {
-  //   console.warn('Failed to load theme prompts:', error);
-  // }
-
   const profileInfo = buildProfileInfo(input, options, lang);
   const matrixSummary = buildMatrixSummary(report, lang);
-  const themeContext = themePromptData?.[lang] || '';
+
+  // Theme context is now handled by themedPrompts.ts for proper themed reports
+  // Use generateThemedReport for full themed report functionality
+  const themeContext = '';
 
   if (lang === 'ko') {
     return `${themeContext}
@@ -372,7 +366,7 @@ async function callAIBackend(prompt: string, lang: 'ko' | 'en'): Promise<{
   model: string;
   tokensUsed?: number;
 }> {
-  const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || 'http://127.0.0.1:5000';
+  const backendUrl = getBackendUrl();
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -681,7 +675,7 @@ async function callAIBackendGeneric<T>(prompt: string, lang: 'ko' | 'en'): Promi
   model: string;
   tokensUsed?: number;
 }> {
-  const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || 'http://127.0.0.1:5000';
+  const backendUrl = getBackendUrl();
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

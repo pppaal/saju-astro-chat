@@ -189,7 +189,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   });
 
   return (
-    <html lang="en" data-theme="dark" data-scroll-behavior="smooth" style={{ colorScheme: 'dark', backgroundColor: '#0d1225' }}>
+    <html lang="ko" data-theme="dark" data-scroll-behavior="smooth" style={{ colorScheme: 'dark', backgroundColor: '#0d1225' }}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/logo/logo.png" />

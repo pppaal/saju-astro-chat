@@ -156,6 +156,17 @@ export async function GET(req: NextRequest) {
 
     const savedDates = await prisma.savedCalendarDate.findMany({
       where,
+      select: {
+        id: true,
+        date: true,
+        year: true,
+        grade: true,
+        score: true,
+        title: true,
+        summary: true,
+        categories: true,
+        createdAt: true,
+      },
       orderBy: { date: "asc" },
       take: Math.min(limitParam, 365),
     });

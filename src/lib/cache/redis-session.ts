@@ -7,14 +7,24 @@
  * - Automatic fallback to in-memory cache
  * - Session TTL management
  * - Optimized for serverless environments
+ * - AES-256-GCM encryption for session data (when TOKEN_ENCRYPTION_KEY is set)
  */
 
 import Redis from 'ioredis';
 import { logger } from '@/lib/logger';
+import { encryptToken, decryptToken, hasTokenEncryptionKey } from '@/lib/security/tokenCrypto';
 
 // Session configuration
 const SESSION_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 const SESSION_PREFIX = 'session:';
+const ENCRYPTION_ENABLED = hasTokenEncryptionKey();
+
+// Log encryption status on module load
+if (ENCRYPTION_ENABLED) {
+  logger.info('[RedisSession] Session encryption enabled (AES-256-GCM)');
+} else {
+  logger.warn('[RedisSession] Session encryption disabled - set TOKEN_ENCRYPTION_KEY for production');
+}
 
 // Redis client singleton
 let redisClient: Redis | null = null;
@@ -149,6 +159,47 @@ function getSessionKey(sessionId: string): string {
 }
 
 /**
+ * Encrypt session data if encryption is enabled
+ */
+function encryptSessionData(data: unknown): string {
+  const jsonData = JSON.stringify(data);
+  if (!ENCRYPTION_ENABLED) {
+    return jsonData;
+  }
+  const encrypted = encryptToken(jsonData);
+  return encrypted ?? jsonData;
+}
+
+/**
+ * Decrypt session data if encryption is enabled
+ */
+function decryptSessionData<T>(payload: string): T | null {
+  if (!ENCRYPTION_ENABLED) {
+    try {
+      return JSON.parse(payload) as T;
+    } catch {
+      return null;
+    }
+  }
+
+  const decrypted = decryptToken(payload);
+  if (!decrypted) {
+    // Fallback: try parsing as unencrypted JSON (for backward compatibility)
+    try {
+      return JSON.parse(payload) as T;
+    } catch {
+      return null;
+    }
+  }
+
+  try {
+    return JSON.parse(decrypted) as T;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Store session data
  */
 export async function setSession(
@@ -160,11 +211,12 @@ export async function setSession(
 
   try {
     const client = getRedisClient();
+    const encryptedData = encryptSessionData(data);
 
     if (client && isRedisAvailable) {
       // Try Redis first
       try {
-        await client.setex(key, ttlSeconds, JSON.stringify(data));
+        await client.setex(key, ttlSeconds, encryptedData);
         return true;
       } catch (error) {
         logger.warn('[RedisSession] Redis setex failed, falling back to memory:', error);
@@ -172,9 +224,9 @@ export async function setSession(
       }
     }
 
-    // Fallback to memory
+    // Fallback to memory (store encrypted data for consistency)
     memoryStore.set(key, {
-      data,
+      data: encryptedData,
       expiresAt: Date.now() + ttlSeconds * 1000,
     });
 
@@ -199,9 +251,9 @@ export async function getSession<T = unknown>(
     if (client && isRedisAvailable) {
       // Try Redis first
       try {
-        const data = await client.get(key);
-        if (data) {
-          return JSON.parse(data) as T;
+        const encryptedData = await client.get(key);
+        if (encryptedData) {
+          return decryptSessionData<T>(encryptedData);
         }
       } catch (error) {
         logger.warn('[RedisSession] Redis get failed, falling back to memory:', error);
@@ -213,6 +265,10 @@ export async function getSession<T = unknown>(
     const memoryData = memoryStore.get(key);
     if (memoryData) {
       if (memoryData.expiresAt > Date.now()) {
+        // Memory stores encrypted string now
+        if (typeof memoryData.data === 'string') {
+          return decryptSessionData<T>(memoryData.data);
+        }
         return memoryData.data as T;
       }
       // Expired
@@ -390,12 +446,20 @@ export async function clearAllSessions(): Promise<number> {
 }
 
 /**
+ * Check if session encryption is enabled
+ */
+export function isEncryptionEnabled(): boolean {
+  return ENCRYPTION_ENABLED;
+}
+
+/**
  * Health check for Redis connection
  */
 export async function healthCheck(): Promise<{
   redis: boolean;
   memory: boolean;
   sessionCount: number;
+  encrypted: boolean;
 }> {
   const client = getRedisClient();
   let redisHealthy = false;
@@ -417,6 +481,7 @@ export async function healthCheck(): Promise<{
     redis: redisHealthy,
     memory: memoryStore.size > 0,
     sessionCount,
+    encrypted: ENCRYPTION_ENABLED,
   };
 }
 

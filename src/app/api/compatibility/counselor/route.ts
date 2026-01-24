@@ -4,6 +4,7 @@ import { createFallbackSSEStream } from "@/lib/streaming";
 import { apiClient } from "@/lib/api/ApiClient";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { logger } from '@/lib/logger';
+import { type ChatMessage } from "@/lib/api";
 import {
   calculateFusionCompatibility,
   interpretCompatibilityScore,
@@ -15,8 +16,6 @@ import type { FiveElement } from "@/lib/Saju/types";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 90;
-
-type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
 function clampMessages(messages: ChatMessage[], max = 8) {
   return messages.slice(-max);

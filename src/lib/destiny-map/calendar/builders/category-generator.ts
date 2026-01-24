@@ -9,7 +9,7 @@ import { ELEMENT_RELATIONS } from '../constants';
 import { calculateAreaScoresForCategories, getBestAreaCategory } from '../category-scoring';
 
 export interface CategoryGeneratorInput {
-  ganzhi: { stem: string; branch: string; stemElement: string };
+  ganzhi: { stem: string; branch: string; stemElement: string; branchElement: string };
   dayMasterElement: string;
   dayBranch: string;
   relations: {

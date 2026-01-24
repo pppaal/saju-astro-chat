@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from 'react';
 import type { TabProps } from './types';
 import { getMatrixAnalysis, getTimingOverlayAnalysis, getRelationAspectAnalysis, getAdvancedAnalysisResult, getExtraPointAnalysis } from '../analyzers';
 import { PremiumReportCTA } from '../components';
@@ -20,7 +21,7 @@ import {
   ExtraPointsSection
 } from './fortune/components';
 
-export default function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
+function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
   const currentFlow = data.currentFlow as CurrentFlow | null;
   const dayElement = data.dayElement as string | undefined;
   const matrixAnalysis = getMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang);
@@ -109,3 +110,5 @@ export default function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) 
     </div>
   );
 }
+
+export default memo(FortuneTab);

@@ -76,21 +76,25 @@ describe('backend-url', () => {
       );
     });
 
-    it('should warn when using deprecated BACKEND_AI_URL', () => {
+    it('should warn when using deprecated BACKEND_AI_URL', async () => {
+      vi.resetModules();
       process.env.BACKEND_AI_URL = 'https://legacy.com';
-      
+
+      const { getBackendUrl } = await import('@/lib/backend-url');
       getBackendUrl();
-      
+
       expect(mockLogger.warn).toHaveBeenCalledWith(
         '[Backend] BACKEND_AI_URL is deprecated; use AI_BACKEND_URL'
       );
     });
 
-    it('should warn when using public NEXT_PUBLIC_AI_BACKEND', () => {
+    it('should warn when using public NEXT_PUBLIC_AI_BACKEND', async () => {
+      vi.resetModules();
       process.env.NEXT_PUBLIC_AI_BACKEND = 'https://public.com';
-      
+
+      const { getBackendUrl } = await import('@/lib/backend-url');
       getBackendUrl();
-      
+
       expect(mockLogger.warn).toHaveBeenCalledWith(
         '[Backend] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL for security'
       );

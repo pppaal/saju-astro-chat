@@ -8,6 +8,7 @@ import type {
   EventType,
   OptimalPeriod,
 } from '../life-prediction-types';
+import type { FiveElement } from '@/lib/Saju/types';
 
 import {
   calculateYearlyGanji,
@@ -132,17 +133,17 @@ export function applyElementScoring(
   let adjustedScore = score;
 
   // 유리한 오행
-  if (conditions.favorableElements.includes(monthElement)) {
+  if (conditions.favorableElements.includes(monthElement as FiveElement)) {
     adjustedScore += EVENT_SCORING.FAVORABLE_STAGE;
     reasons.push(`${monthElement} 기운 - 조화`);
   }
 
   // 용신/기신
-  if (input.yongsin?.includes(monthElement)) {
+  if (input.yongsin?.includes(monthElement as FiveElement)) {
     adjustedScore += EVENT_SCORING.BUSINESS_FAVORABLE;
     reasons.push('용신 월');
   }
-  if (input.kisin?.includes(monthElement)) {
+  if (input.kisin?.includes(monthElement as FiveElement)) {
     adjustedScore -= EVENT_SCORING.BUSINESS_UNFAVORABLE;
     avoidReasons.push('기신 월');
   }

@@ -151,6 +151,12 @@ export interface CareerAdvancedResult {
     description: { ko: string; en: string };
     goodFor: string[];
   }>;
+  // Optional extended properties for legacy UI compatibility
+  wealthPattern?: { ko: string; en: string; fusion?: MatrixFusion };
+  successTiming?: Array<{ period: string; score: number; description: { ko: string; en: string } }>;
+  careerProgression?: { phase: string; description: { ko: string; en: string } };
+  nobleHelp?: Array<{ type: string; description: { ko: string; en: string } }>;
+  fortunePoint?: { sign: string; house: number; description: { ko: string; en: string } };
 }
 
 export interface LoveTimingResult {
@@ -181,6 +187,12 @@ export interface LoveTimingResult {
     description: { ko: string; en: string };
     goodFor: string[];
   }>;
+  // Optional extended properties for tab compatibility
+  timingScore?: number;
+  timingMessage?: { ko: string; en: string };
+  romanticTiming?: Array<{ period: string; score: number; description: { ko: string; en: string } }>;
+  relationshipPattern?: Array<{ pattern: string; description: { ko: string; en: string } }>;
+  destinyMeeting?: { timing: string; description: { ko: string; en: string } };
 }
 
 export interface ShadowPersonalityResult {
@@ -204,6 +216,28 @@ export interface ShadowPersonalityResult {
     suppressed: { ko: string; en: string };
     expression: { ko: string; en: string };
   } | null;
+  // Optional extended properties for tab compatibility
+  lilithShadow?: {
+    ko: string;
+    en: string;
+    shadowSelf?: { ko: string; en: string };
+    integration?: { ko: string; en: string };
+    fusion?: MatrixFusion;
+    element?: FiveElement;
+    icon?: string;
+    sibsin?: string;
+    description?: { ko: string; en: string };
+  };
+  hiddenPotential?: {
+    ko: string;
+    en: string;
+    potential?: { ko: string; en: string };
+    fusion?: MatrixFusion;
+    element?: FiveElement;
+    icon?: string;
+    description?: { ko: string; en: string };
+    activation?: { ko: string; en: string };
+  };
   projection: Array<{
     pattern: string;
     from: string;
@@ -224,6 +258,12 @@ export interface TimingMatrixResult {
     score: number;
     description: { ko: string; en: string };
     icon: string;
+    period?: string;
+    heavenlyStem?: string;
+    earthlyBranch?: string;
+    advice?: { ko: string; en: string };
+    sequence?: Array<any>;
+    transition?: Array<any>;
   }>;
   majorTransits: Array<{
     transit: string;
@@ -232,6 +272,11 @@ export interface TimingMatrixResult {
     score: number;
     description: { ko: string; en: string };
     icon: string;
+    isActive?: boolean;
+    isUpcoming?: boolean;
+    name?: string;
+    period?: string;
+    advice?: { ko: string; en: string };
   }>;
   retrogrades: Array<{
     planet: string;
@@ -239,11 +284,13 @@ export interface TimingMatrixResult {
     fusion: MatrixFusion;
     effect: { ko: string; en: string };
     advice: { ko: string; en: string };
+    planets?: Array<any>;
+    upcoming?: Array<any>;
   }>;
-  periodLuck: {
-    year: { element: string; score: number; description: { ko: string; en: string } };
-    month: { element: string; score: number; description: { ko: string; en: string } };
-    day: { element: string; score: number; description: { ko: string; en: string } };
+periodLuck: {
+    year: { element: string; score: number; description: { ko: string; en: string }; icon?: string; stem?: string; branch?: string };
+    month: { element: string; score: number; description: { ko: string; en: string }; icon?: string; stem?: string; branch?: string };
+    day: { element: string; score: number; description: { ko: string; en: string }; icon?: string; stem?: string; branch?: string };
   };
   luckyPeriods: Array<{
     icon: string;
@@ -336,9 +383,9 @@ const getGeneratorElement = ElementRelations.getGenerator.bind(ElementRelations)
 
 function mapTwelveStageToStandard(stage: TwelveStage): TwelveStageStandard | null {
   const mapping: Record<TwelveStage, TwelveStageStandard> = {
-    '장생': '장생', '목욕': '목욕', '관대': '관대', '건록': '임관', '제왕': '제왕',
+    '장생': '장생', '목욕': '목욕', '관대': '관대', '건록': '임관', '제왕': '왕지',
     '쇠': '쇠', '병': '병', '사': '사', '묘': '묘', '절': '절', '태': '태', '양': '양',
-    '임관': '임관',
+    '임관': '임관', '왕지': '왕지',
   };
   return mapping[stage] || null;
 }
@@ -488,7 +535,7 @@ export function getHealthMatrixAnalysis(
   // 5. 키론 힐링 (L10)
   let chironHealing: HealthMatrixResult['chironHealing'] = null;
   const chironInfo = EXTRAPOINT_INFO['Chiron'];
-  if (chironInfo && astro?.planets) {
+  if (chironInfo && astro?.planets && Array.isArray(astro.planets)) {
     const chironPlanet = astro.planets.find(p => p.name?.toLowerCase() === 'chiron');
     if (chironPlanet?.house) {
       const house = chironPlanet.house as HouseNumber;
@@ -586,7 +633,7 @@ export function getKarmaMatrixAnalysis(
 
   // 2. 노드 축 분석
   let nodeAxis: KarmaMatrixResult['nodeAxis'] = null;
-  if (astro?.planets) {
+  if (astro?.planets && Array.isArray(astro.planets)) {
     const northNode = astro.planets.find(p => p.name?.toLowerCase() === 'north node' || p.name?.toLowerCase() === 'northnode');
     const southNode = astro.planets.find(p => p.name?.toLowerCase() === 'south node' || p.name?.toLowerCase() === 'southnode');
 
@@ -795,7 +842,7 @@ export function getCareerAdvancedAnalysis(
   // 3. MC (Midheaven) 분석
   let midheaven: CareerAdvancedResult['midheaven'] = null;
   if (astro?.houses && Array.isArray(astro.houses)) {
-    const mc = astro.houses.find(h => h.number === 10);
+    const mc = astro.houses.find(h => (h as any).number === 10 || (h as any).index === 10 || (h as any).cusp === 10);
     if (mc?.sign) {
       const mcElement = getWestElementFromSign(mc.sign);
       const interaction = ELEMENT_CORE_GRID[sajuEl]?.[mcElement];
@@ -895,7 +942,7 @@ export function getLoveTimingAnalysis(
 
   // 2. 금성 타이밍
   let venusTiming: LoveTimingResult['venusTiming'] = null;
-  if (astro?.planets) {
+  if (astro?.planets && Array.isArray(astro.planets)) {
     const venus = astro.planets.find(p => p.name?.toLowerCase() === 'venus');
     if (venus?.sign) {
       const venusEl = getWestElementFromSign(venus.sign);
@@ -1031,7 +1078,7 @@ export function getShadowPersonalityAnalysis(
 
   // 2. 키론 상처 (L10)
   let chironWound: ShadowPersonalityResult['chironWound'] = null;
-  if (astro?.planets) {
+  if (astro?.planets && Array.isArray(astro.planets)) {
     const chiron = astro.planets.find(p => p.name?.toLowerCase() === 'chiron');
     if (chiron?.house) {
       const house = chiron.house as number;
@@ -1062,7 +1109,7 @@ export function getShadowPersonalityAnalysis(
 
   // 3. 릴리스 에너지 (L10)
   let lilithEnergy: ShadowPersonalityResult['lilithEnergy'] = null;
-  if (astro?.planets) {
+  if (astro?.planets && Array.isArray(astro.planets)) {
     const lilith = astro.planets.find(p => p.name?.toLowerCase() === 'lilith' || p.name?.toLowerCase() === 'black moon lilith');
     if (lilith?.sign) {
       const lilithEl = getWestElementFromSign(lilith.sign);

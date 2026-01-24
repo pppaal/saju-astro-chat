@@ -6,6 +6,7 @@ import { initializeApiContext, createPublicStreamGuard } from "@/lib/api/middlew
 import { createSSEStreamProxy, createFallbackSSEStream, createSSEEvent, createSSEDoneEvent } from "@/lib/streaming";
 import { apiClient } from "@/lib/api/ApiClient";
 import { enforceBodySize } from "@/lib/http";
+import { sanitizeString } from "@/lib/api/sanitizers";
 import { logger } from '@/lib/logger';
 
 interface CardInput {
@@ -38,8 +39,7 @@ const MAX_CARDS = 15;
 const BACKEND_TIMEOUT_MS = 20000;
 const OPENAI_TIMEOUT_MS = 20000;
 
-const sanitize = (value: unknown, max = 120) =>
-  typeof value === "string" ? value.trim().slice(0, max) : "";
+// Use centralized sanitizeString from @/lib/api/sanitizers
 
 function buildFallbackPayload(
   cards: CardInput[],
@@ -268,15 +268,15 @@ export async function POST(req: NextRequest) {
     if (oversized) return oversized;
 
     const body: StreamInterpretRequest = await req.json();
-    const categoryId = sanitize(body?.categoryId, MAX_TITLE);
-    const spreadId = sanitize(body?.spreadId, MAX_TITLE);
-    const spreadTitle = sanitize(body?.spreadTitle, MAX_TITLE);
+    const categoryId = sanitizeString(body?.categoryId, MAX_TITLE);
+    const spreadId = sanitizeString(body?.spreadId, MAX_TITLE);
+    const spreadTitle = sanitizeString(body?.spreadTitle, MAX_TITLE);
     const language = body?.language === "en" ? "en" : (context.locale as "ko" | "en");
     const rawCards = Array.isArray(body?.cards) ? body.cards.slice(0, MAX_CARDS) : [];
-    const userQuestion = sanitize(body?.userQuestion, MAX_QUESTION);
-    const birthdate = sanitize(body?.birthdate, 12);
+    const userQuestion = sanitizeString(body?.userQuestion, MAX_QUESTION);
+    const birthdate = sanitizeString(body?.birthdate, 12);
     const previousReadings = Array.isArray(body?.previousReadings)
-      ? body.previousReadings.slice(0, 3).map(r => sanitize(r, 200))
+      ? body.previousReadings.slice(0, 3).map(r => sanitizeString(r, 200))
       : [];
 
     logger.info("Tarot stream payload", {

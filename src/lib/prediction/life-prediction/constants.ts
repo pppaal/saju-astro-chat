@@ -268,3 +268,134 @@ export const EVENT_NAMES: Record<EventType, { ko: string; en: string }> = {
   health: { ko: '건강관리', en: 'Health' },
   relationship: { ko: '인간관계', en: 'Relationship' },
 };
+
+// ============================================================
+// 달 위상 이름
+// ============================================================
+export const MOON_PHASE_NAMES: Record<string, string> = {
+  new_moon: '새달',
+  waxing_crescent: '초승달',
+  first_quarter: '상현달',
+  waxing_gibbous: '상현망',
+  full_moon: '보름달',
+  waning_gibbous: '하현망',
+  last_quarter: '하현달',
+  waning_crescent: '그믐달',
+};
+
+// ============================================================
+// 중요도 가중치
+// ============================================================
+export const IMPORTANCE_WEIGHT = {
+  daeun: 0.25,
+  seun: 0.35,
+  wolun: 0.25,
+  iljin: 0.15,
+} as const;
+
+// ============================================================
+// Branch relationships (aliases for compatibility)
+// ============================================================
+export const CLASHES = BRANCH_CLASHES;
+export const PUNISHMENTS = BRANCH_PUNISHMENTS;
+
+// ============================================================
+// 신살 맵핑
+// ============================================================
+
+// 천을귀인 (Noble Person): Day stem → Target branches for good fortune
+export const CHEONEL_MAP: Record<string, string[]> = {
+  '甲': ['丑', '未'], '乙': ['子', '申'], '丙': ['亥', '酉'], '丁': ['亥', '酉'],
+  '戊': ['丑', '未'], '己': ['子', '申'], '庚': ['丑', '未'], '辛': ['寅', '午'],
+  '壬': ['卯', '巳'], '癸': ['卯', '巳'],
+};
+
+// 역마 (Travel Star): Day branch → Target branch indicating movement/travel
+// 申子辰 → 寅, 寅午戌 → 申, 巳酉丑 → 亥, 亥卯未 → 巳
+export const YEOKMA_MAP: Record<string, string> = {
+  '申': '寅', '子': '寅', '辰': '寅',
+  '寅': '申', '午': '申', '戌': '申',
+  '巳': '亥', '酉': '亥', '丑': '亥',
+  '亥': '巳', '卯': '巳', '未': '巳',
+};
+
+// 문창 (Literary Star): Day stem → Target branch for academic/intellectual fortune
+export const MUNCHANG_MAP: Record<string, string> = {
+  '甲': '巳', '乙': '午', '丙': '申', '丁': '酉', '戊': '申',
+  '己': '酉', '庚': '亥', '辛': '子', '壬': '寅', '癸': '卯',
+};
+
+// 겁살 (Robbery Star): Day branch → Target branch indicating potential loss/conflict
+// 申子辰 → 巳, 亥卯未 → 申, 寅午戌 → 亥, 巳酉丑 → 寅
+export const GEOPSAL_MAP: Record<string, string> = {
+  '申': '巳', '子': '巳', '辰': '巳',
+  '亥': '申', '卯': '申', '未': '申',
+  '寅': '亥', '午': '亥', '戌': '亥',
+  '巳': '寅', '酉': '寅', '丑': '寅',
+};
+
+// ============================================================
+// 12운성별 이벤트 효과
+// ============================================================
+export const STAGE_EVENT_EFFECTS: Record<string, Record<string, string>> = {
+  '장생': {
+    career: '새로운 시작',
+    health: '건강 회복',
+    relationship: '새로운 만남',
+  },
+  '목욕': {
+    career: '준비 과정',
+    health: '주의 필요',
+    relationship: '감정 변화',
+  },
+  '관대': {
+    career: '성장 시기',
+    health: '안정',
+    relationship: '발전',
+  },
+  '건록': {
+    career: '전성기',
+    health: '왕성',
+    relationship: '활발',
+  },
+  '제왕': {
+    career: '절정기',
+    health: '최고조',
+    relationship: '왕성',
+  },
+  '쇠': {
+    career: '하락 시작',
+    health: '체력 저하',
+    relationship: '소원',
+  },
+  '병': {
+    career: '휴식',
+    health: '관리 필요',
+    relationship: '정리',
+  },
+  '사': {
+    career: '마무리',
+    health: '주의',
+    relationship: '종결',
+  },
+  '묘': {
+    career: '잠복기',
+    health: '회복',
+    relationship: '재정비',
+  },
+  '절': {
+    career: '전환기',
+    health: '전환',
+    relationship: '변화',
+  },
+  '태': {
+    career: '태동',
+    health: '준비',
+    relationship: '시작',
+  },
+  '양': {
+    career: '성장 준비',
+    health: '에너지 축적',
+    relationship: '기대',
+  },
+};

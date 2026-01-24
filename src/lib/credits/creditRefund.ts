@@ -1,5 +1,6 @@
 // 🔄 Credit Refund Service - API 실패 시 크레딧 자동 환불
 import { prisma } from "@/lib/db/prisma";
+import { logger } from "@/lib/logger";
 
 export interface CreditRefundParams {
   userId: string;
@@ -72,12 +73,12 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
           apiRoute,
           errorMessage: errorMessage?.substring(0, 500), // 최대 500자
           transactionId,
-          metadata: metadata || {},
+          metadata: (metadata || {}) as any,
         },
       });
     });
 
-    console.log('[CreditRefund] Success:', {
+    logger.info('[CreditRefund] Success', {
       userId,
       creditType,
       amount,
@@ -87,7 +88,7 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
 
     return true;
   } catch (error) {
-    console.error('[CreditRefund] Failed:', error);
+    logger.error('[CreditRefund] Failed', { error });
     // 환불 실패는 치명적이므로 에러를 다시 던짐
     throw error;
   }

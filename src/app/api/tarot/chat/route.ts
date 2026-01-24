@@ -144,10 +144,9 @@ export async function POST(req: NextRequest) {
       route: "tarot-chat",
       limit: 20,
       windowSeconds: 60,
-      credits: {
-        type: "followUp", // 타로 후속 질문은 followUp 타입 사용
-        amount: 1,
-      },
+      requireCredits: true,
+      creditType: "followUp", // 타로 후속 질문은 followUp 타입 사용
+      creditAmount: 1,
     });
 
     const initResult = await initializeApiContext(req, guardOptions);
@@ -211,8 +210,9 @@ export async function POST(req: NextRequest) {
     }, { timeout: 20000 });
 
     // Use backend response or fallback
-    if (response.ok && response.data?.reply) {
-      const res = NextResponse.json({ reply: response.data.reply });
+    const responseData = response.data as { reply?: string } | null | undefined;
+    if (response.ok && responseData && 'reply' in responseData && responseData.reply) {
+      const res = NextResponse.json({ reply: responseData.reply });
       res.headers.set("X-Fallback", "0");
       return res;
     }

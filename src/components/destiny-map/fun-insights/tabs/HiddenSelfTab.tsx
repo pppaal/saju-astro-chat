@@ -316,7 +316,7 @@ export default function HiddenSelfTab({ isKo, saju, astro }: TabProps) {
 
           <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20 mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">{hiddenSelf.lilithShadow.fusion.icon}</span>
+              <span className="text-lg">{hiddenSelf.lilithShadow.fusion?.icon}</span>
               <span className="text-white font-medium">Lilith × {hiddenSelf.lilithShadow.element}</span>
               {hiddenSelf.lilithShadow.sibsin && (
                 <span className="text-gray-400 text-sm">× {hiddenSelf.lilithShadow.sibsin}</span>
@@ -404,7 +404,7 @@ export default function HiddenSelfTab({ isKo, saju, astro }: TabProps) {
 
           <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">{hiddenSelf.hiddenPotential.fusion.icon}</span>
+              <span className="text-lg">{hiddenSelf.hiddenPotential.fusion?.icon}</span>
               <span className="text-white font-medium">Part of Fortune × {hiddenSelf.hiddenPotential.element}</span>
             </div>
             <p className="text-gray-300 text-sm leading-relaxed mb-3">

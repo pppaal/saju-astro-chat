@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useSearchParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
@@ -19,23 +19,104 @@ interface ReportData {
   period?: string;
   theme?: string;
   score?: number;
+  grade?: string;
   sections: ReportSection[];
   keywords?: string[];
+  insights?: Array<{ title: string; content: string }>;
+  actionItems?: string[];
+  fullData?: Record<string, unknown>;
 }
 
 export default function ReportResultPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const router = useRouter();
   const { status } = useSession();
 
   const reportId = params.id as string;
-  const reportType = searchParams.get('type') || 'comprehensive';
 
   const [report, setReport] = useState<ReportData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState(0);
+
+  const loadReport = useCallback(async () => {
+    if (!reportId) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/reports/${reportId}`);
+      const data = await response.json();
+
+      if (!data.success) {
+        setError(data.error?.message || '리포트를 불러오는데 실패했습니다.');
+        return;
+      }
+
+      // API 응답을 ReportData 형식으로 변환
+      const apiReport = data.report;
+      const fullData = apiReport.fullData || {};
+
+      // sections 변환 (다양한 형식 지원)
+      let sections: ReportSection[] = [];
+
+      if (Array.isArray(apiReport.sections) && apiReport.sections.length > 0) {
+        sections = apiReport.sections;
+      } else if (fullData.sections && Array.isArray(fullData.sections)) {
+        sections = fullData.sections;
+      } else {
+        // 리포트 데이터에서 섹션 추출 시도
+        const possibleSections = ['overview', 'analysis', 'timing', 'advice', 'summary'];
+        for (const key of possibleSections) {
+          if (fullData[key] && typeof fullData[key] === 'string') {
+            sections.push({ title: getSectionTitle(key), content: fullData[key] as string });
+          } else if (fullData[key] && typeof fullData[key] === 'object') {
+            const obj = fullData[key] as Record<string, unknown>;
+            if (obj.content) {
+              sections.push({
+                title: (obj.title as string) || getSectionTitle(key),
+                content: obj.content as string
+              });
+            }
+          }
+        }
+
+        // 여전히 섹션이 없으면 기본 섹션 생성
+        if (sections.length === 0 && apiReport.summary) {
+          sections.push({ title: '요약', content: apiReport.summary });
+        }
+      }
+
+      // keywords 추출
+      let keywords: string[] = apiReport.keywords || [];
+      if (keywords.length === 0 && fullData.keywords) {
+        keywords = fullData.keywords as string[];
+      }
+
+      setReport({
+        id: apiReport.id,
+        type: apiReport.type,
+        title: apiReport.title,
+        summary: apiReport.summary,
+        createdAt: apiReport.createdAt,
+        period: apiReport.period,
+        theme: apiReport.theme,
+        score: apiReport.score,
+        grade: apiReport.grade,
+        sections,
+        keywords,
+        insights: apiReport.insights,
+        actionItems: apiReport.actionItems,
+        fullData,
+      });
+
+    } catch (err) {
+      setError('리포트를 불러오는데 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [reportId]);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -43,81 +124,41 @@ export default function ReportResultPage() {
       return;
     }
 
-    // 리포트 데이터 로드 (실제로는 API에서 가져옴)
-    // 여기서는 URL 파라미터로 전달된 리포트 ID를 사용하여 로컬 스토리지 또는 API에서 조회
-    const loadReport = async () => {
-      try {
-        // TODO: 실제 API 호출로 대체
-        // const response = await fetch(`/api/reports/${reportId}`);
-        // const data = await response.json();
-
-        // 임시: 세션 스토리지에서 리포트 데이터 로드
-        const storedReport = sessionStorage.getItem(`report_${reportId}`);
-        if (storedReport) {
-          setReport(JSON.parse(storedReport));
-        } else {
-          // 데모 데이터 (실제로는 API에서 가져옴)
-          setReport({
-            id: reportId,
-            type: reportType as 'timing' | 'themed' | 'comprehensive',
-            title: getReportTitle(reportType),
-            summary: '사주 분석 결과, 현재 시기는 전체적으로 긍정적인 에너지가 흐르고 있습니다.',
-            createdAt: new Date().toISOString(),
-            score: 78,
-            sections: getDemoSections(reportType),
-            keywords: ['목 에너지', '상승 운기', '인내심', '새로운 시작'],
-          });
-        }
-      } catch (err) {
-        setError('리포트를 불러오는데 실패했습니다.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadReport();
-  }, [reportId, reportType, status, router]);
-
-  const getReportTitle = (type: string): string => {
-    switch (type) {
-      case 'timing':
-        return '타이밍 운세 리포트';
-      case 'themed':
-        return '테마별 심화 리포트';
-      default:
-        return '종합 운세 리포트';
+    if (status === 'authenticated') {
+      loadReport();
     }
-  };
+  }, [status, router, loadReport]);
 
-  const getDemoSections = (type: string): ReportSection[] => {
-    // 실제로는 API에서 받아온 데이터 사용
-    return [
-      {
-        title: '총평',
-        content: '현재 시기의 전반적인 에너지 흐름을 분석한 결과입니다. 사주 원국의 목(木) 에너지가 강하게 작용하고 있으며, 이는 새로운 시작과 성장의 기운을 나타냅니다.',
-      },
-      {
-        title: '에너지 분석',
-        content: '올해의 세운과 본인의 사주가 상생 관계에 있어, 전반적으로 운기가 상승하는 시기입니다. 특히 인간관계와 커리어 방면에서 좋은 기회가 찾아올 수 있습니다.',
-      },
-      {
-        title: '기회 시기',
-        content: '3월과 7월에 중요한 전환점이 예상됩니다. 이 시기에는 적극적으로 새로운 도전을 시도해보시는 것이 좋겠습니다.',
-      },
-      {
-        title: '주의 사항',
-        content: '건강 관리에 특히 신경 써야 할 시기입니다. 무리한 일정은 피하고, 충분한 휴식을 취하시기 바랍니다.',
-      },
-      {
-        title: '실천 가이드',
-        content: '1. 아침 명상이나 가벼운 운동으로 하루를 시작하세요.\n2. 중요한 결정은 오전에 내리는 것이 유리합니다.\n3. 주변 사람들과의 소통을 늘려보세요.',
-      },
-    ];
+  const getSectionTitle = (key: string): string => {
+    const titles: Record<string, string> = {
+      overview: '총평',
+      analysis: '상세 분석',
+      timing: '시기 분석',
+      advice: '조언',
+      summary: '요약',
+    };
+    return titles[key] || key;
   };
 
   const handleDownloadPDF = async () => {
-    // TODO: PDF 다운로드 구현
-    alert('PDF 다운로드 기능은 준비 중입니다.');
+    try {
+      const response = await fetch(`/api/destiny-matrix/ai-report?reportId=${reportId}&format=pdf`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `destiny-report-${reportId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('PDF 다운로드에 실패했습니다.');
+      }
+    } catch {
+      alert('PDF 다운로드 중 오류가 발생했습니다.');
+    }
   };
 
   const handleShare = async () => {
@@ -132,7 +173,6 @@ export default function ReportResultPage() {
         // 사용자가 공유를 취소한 경우
       }
     } else {
-      // 클립보드에 복사
       await navigator.clipboard.writeText(window.location.href);
       alert('링크가 복사되었습니다.');
     }
@@ -187,13 +227,13 @@ export default function ReportResultPage() {
                 onClick={handleDownloadPDF}
                 className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm flex items-center gap-2"
               >
-                📄 PDF 다운로드
+                PDF 다운로드
               </button>
               <button
                 onClick={handleShare}
                 className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm flex items-center gap-2"
               >
-                🔗 공유하기
+                공유하기
               </button>
             </div>
           </div>
@@ -206,11 +246,14 @@ export default function ReportResultPage() {
           <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/80 text-sm">오늘의 운세 점수</p>
+                <p className="text-white/80 text-sm">운세 점수</p>
                 <p className="text-4xl font-bold text-white">{report.score}점</p>
+                {report.grade && (
+                  <p className="text-white/80 text-sm mt-1">등급: {report.grade}</p>
+                )}
               </div>
               <div className="text-6xl">
-                {report.score >= 80 ? '🌟' : report.score >= 60 ? '✨' : '💫'}
+                {report.score >= 90 ? '🌟' : report.score >= 80 ? '⭐' : report.score >= 70 ? '✨' : report.score >= 60 ? '💫' : '🌙'}
               </div>
             </div>
           </div>
@@ -239,63 +282,84 @@ export default function ReportResultPage() {
       </div>
 
       {/* Section Navigation */}
-      <div className="max-w-4xl mx-auto px-4 mt-6">
-        <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
-          {report.sections.map((section, index) => (
-            <button
-              key={index}
-              onClick={() => setActiveSection(index)}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
-                activeSection === index
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-              }`}
-            >
-              {section.title}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Section Content */}
-      <main className="max-w-4xl mx-auto px-4 py-6 pb-20">
-        <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
-          <h2 className="text-xl font-bold text-white mb-4">
-            {report.sections[activeSection].title}
-          </h2>
-          <div className="text-gray-300 whitespace-pre-line leading-relaxed">
-            {report.sections[activeSection].content}
+      {report.sections.length > 0 && (
+        <div className="max-w-4xl mx-auto px-4 mt-6">
+          <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
+            {report.sections.map((section, index) => (
+              <button
+                key={index}
+                onClick={() => setActiveSection(index)}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
+                  activeSection === index
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                }`}
+              >
+                {section.title}
+              </button>
+            ))}
           </div>
         </div>
+      )}
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={() => setActiveSection((prev) => Math.max(0, prev - 1))}
-            disabled={activeSection === 0}
-            className={`px-4 py-2 rounded-lg ${
-              activeSection === 0
-                ? 'bg-slate-700 text-gray-500 cursor-not-allowed'
-                : 'bg-slate-700 text-white hover:bg-slate-600'
-            }`}
-          >
-            ← 이전
-          </button>
-          <button
-            onClick={() =>
-              setActiveSection((prev) => Math.min(report.sections.length - 1, prev + 1))
-            }
-            disabled={activeSection === report.sections.length - 1}
-            className={`px-4 py-2 rounded-lg ${
-              activeSection === report.sections.length - 1
-                ? 'bg-slate-700 text-gray-500 cursor-not-allowed'
-                : 'bg-slate-700 text-white hover:bg-slate-600'
-            }`}
-          >
-            다음 →
-          </button>
+      {/* Section Content */}
+      {report.sections.length > 0 && (
+        <main className="max-w-4xl mx-auto px-4 py-6 pb-20">
+          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+            <h2 className="text-xl font-bold text-white mb-4">
+              {report.sections[activeSection].title}
+            </h2>
+            <div className="text-gray-300 whitespace-pre-line leading-relaxed">
+              {report.sections[activeSection].content}
+            </div>
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between mt-6">
+            <button
+              onClick={() => setActiveSection((prev) => Math.max(0, prev - 1))}
+              disabled={activeSection === 0}
+              className={`px-4 py-2 rounded-lg ${
+                activeSection === 0
+                  ? 'bg-slate-700 text-gray-500 cursor-not-allowed'
+                  : 'bg-slate-700 text-white hover:bg-slate-600'
+              }`}
+            >
+              ← 이전
+            </button>
+            <button
+              onClick={() =>
+                setActiveSection((prev) => Math.min(report.sections.length - 1, prev + 1))
+              }
+              disabled={activeSection === report.sections.length - 1}
+              className={`px-4 py-2 rounded-lg ${
+                activeSection === report.sections.length - 1
+                  ? 'bg-slate-700 text-gray-500 cursor-not-allowed'
+                  : 'bg-slate-700 text-white hover:bg-slate-600'
+              }`}
+            >
+              다음 →
+            </button>
+          </div>
+        </main>
+      )}
+
+      {/* Action Items */}
+      {report.actionItems && report.actionItems.length > 0 && (
+        <div className="max-w-4xl mx-auto px-4 pb-20">
+          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+            <h2 className="text-lg font-bold text-white mb-4">실천 가이드</h2>
+            <ul className="space-y-2">
+              {report.actionItems.map((item, index) => (
+                <li key={index} className="flex items-start gap-2 text-gray-300">
+                  <span className="text-purple-400 mt-1">•</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-      </main>
+      )}
     </div>
   );
 }

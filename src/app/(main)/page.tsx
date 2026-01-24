@@ -2,41 +2,20 @@
 
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./main-page.module.css";
-import LanguageSwitcher from "@/components/LanguageSwitcher/LanguageSwitcher";
 import { useI18n } from "@/i18n/I18nProvider";
-import Card from "@/components/ui/Card";
-import Grid from "@/components/ui/Grid";
-import { SERVICE_LINKS, TAROT_DECK, TAROT_CARD_BACK, type TarotCard } from "@/data/home";
 import { ChatDemoSection } from "@/components/home/ChatDemoSection";
 import { formatNumber } from "@/utils/numberFormat";
+import { ParticleCanvas, MainHeader, TarotSection } from "./components";
 
-const NotificationBell = dynamic(() => import("@/components/notifications/NotificationBell"), { ssr: false });
-const HeaderUser = dynamic(() => import("./HeaderUser"), { ssr: false });
-
-
-interface Particle {
-  x: number;
-  y: number;
-  size: number;
-  speedX: number;
-  speedY: number;
-  color: string;
-  update(): void;
-  draw(): void;
-}
 const WeeklyFortuneCard = dynamic(() => import("@/components/WeeklyFortuneCard"), {
   loading: () => <div className={styles.weeklyCardSkeleton} />,
 });
 
-const serviceLinksData = SERVICE_LINKS;
-
 export default function MainPage() {
-  const canvasRef = useRef<HTMLCanvasElement>(null!);
   const router = useRouter();
   const { t, locale } = useI18n();
   const translate = useCallback((key: string, fallback: string) => {
@@ -48,7 +27,6 @@ export default function MainPage() {
   const [_answer, setAnswer] = useState(
     translate("landing.prompt1", "What do the stars say about my path today?")
   );
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [lifeQuestion, setLifeQuestion] = useState("");
   const [typingPlaceholder, setTypingPlaceholder] = useState("");
   const [showServiceSelector, setShowServiceSelector] = useState(false);
@@ -79,52 +57,6 @@ export default function MainPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const trackedOnce = useRef(false);
   const metricsToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN;
-
-  // Tarot card state - consolidated to prevent multiple re-renders
-  type TarotState = {
-    flippedCards: boolean[];
-    selectedCards: TarotCard[];
-    usedCardIndices: Set<number>;
-    isDeckSpread: boolean;
-  };
-  type TarotAction =
-    | { type: 'FLIP_CARD'; index: number }
-    | { type: 'DRAW_ALL_CARDS'; cards: TarotCard[]; usedIndices: number[] }
-    | { type: 'RESET' };
-
-  const initialTarotState: TarotState = {
-    flippedCards: [false, false, false, false],
-    selectedCards: [],
-    usedCardIndices: new Set(),
-    isDeckSpread: false,
-  };
-
-  function tarotReducer(state: TarotState, action: TarotAction): TarotState {
-    switch (action.type) {
-      case 'FLIP_CARD': {
-        if (state.selectedCards.length === 0) return state;
-        const newFlipped = [...state.flippedCards];
-        newFlipped[action.index] = !newFlipped[action.index];
-        return { ...state, flippedCards: newFlipped };
-      }
-      case 'DRAW_ALL_CARDS': {
-        return {
-          ...state,
-          selectedCards: action.cards,
-          usedCardIndices: new Set(action.usedIndices),
-          flippedCards: [false, false, false, false],
-          isDeckSpread: true,
-        };
-      }
-      case 'RESET':
-        return initialTarotState;
-      default:
-        return state;
-    }
-  }
-
-  const [tarotState, dispatchTarot] = useReducer(tarotReducer, initialTarotState);
-  const { flippedCards, selectedCards, isDeckSpread } = tarotState;
 
   useEffect(() => {
     const prompts = [
@@ -271,37 +203,6 @@ export default function MainPage() {
     run();
   }, [metricsToken]);
 
-  // Tarot card click handler - just flip the card
-  const handleCardClick = useCallback((index: number) => {
-    if (selectedCards.length > 0) {
-      dispatchTarot({ type: 'FLIP_CARD', index });
-    }
-  }, [selectedCards.length]);
-
-  // Fisher-Yates shuffle for uniform randomness
-  const fisherYatesShuffle = useCallback(<T,>(array: T[]): T[] => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  }, []);
-
-  // Deck click handler - draw 4 random cards or reset
-  const handleDeckClick = useCallback(() => {
-    if (isDeckSpread) {
-      dispatchTarot({ type: 'RESET' });
-    } else {
-      // Fisher-Yates shuffle for truly uniform randomness
-      const indices = Array.from({ length: TAROT_DECK.length }, (_, i) => i);
-      const shuffled = fisherYatesShuffle(indices);
-      const selectedIndices = shuffled.slice(0, 4);
-      const cards = selectedIndices.map(i => TAROT_DECK[i]);
-      dispatchTarot({ type: 'DRAW_ALL_CARDS', cards, usedIndices: selectedIndices });
-    }
-  }, [isDeckSpread, fisherYatesShuffle]);
-
   // Handle question submission - navigate to selected service with the question
   const handleQuestionSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -330,254 +231,10 @@ export default function MainPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  useEffect(() => {
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext("2d")!;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const PARTICLE_COUNT = 150;
-    const MAX_LINK_DISTANCE = 120;
-    const MOUSE_INTERACTION_RADIUS = 200;
-    const PARTICLE_BASE_SPEED = 0.5;
-    const PARTICLE_COLOR = "#88b3f7";
-
-    let particlesArray: Particle[] = [];
-    let raf = 0;
-    let lastFrame = 0;
-    const frameInterval = 1000 / 30;
-
-    const mouse = {
-      x: undefined as number | undefined,
-      y: undefined as number | undefined,
-      radius: MOUSE_INTERACTION_RADIUS,
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      mouse.x = e.x;
-      mouse.y = e.y;
-    };
-    const handleMouseOut = () => {
-      mouse.x = undefined;
-      mouse.y = undefined;
-    };
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      init();
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseout", handleMouseOut);
-    window.addEventListener("resize", handleResize);
-
-    class ParticleImpl implements Particle {
-      x: number;
-      y: number;
-      size: number;
-      speedX: number;
-      speedY: number;
-      color: string;
-
-      constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 2.5 + 1;
-        this.speedX = (Math.random() * 2 - 1) * PARTICLE_BASE_SPEED;
-        this.speedY = (Math.random() * 2 - 1) * PARTICLE_BASE_SPEED;
-        this.color = PARTICLE_COLOR;
-      }
-
-      update() {
-        if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
-        if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
-
-        this.x += this.speedX;
-        this.y += this.speedY;
-
-        if (mouse.x !== undefined && mouse.y !== undefined) {
-          const dx = mouse.x - this.x;
-          const dy = mouse.y - this.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < mouse.radius) {
-            const forceDirectionX = dx / distance;
-            const forceDirectionY = dy / distance;
-            const force = (mouse.radius - distance) / mouse.radius;
-            const directionX = forceDirectionX * force * 2;
-            const directionY = forceDirectionY * force * 2;
-            this.x -= directionX;
-            this.y -= directionY;
-          }
-        }
-      }
-
-      draw() {
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    function init() {
-      particlesArray = [];
-      let numberOfParticles = (canvas.height * canvas.width) / 9000;
-      numberOfParticles = Math.min(numberOfParticles, PARTICLE_COUNT);
-      for (let i = 0; i < numberOfParticles; i++) {
-        particlesArray.push(new ParticleImpl());
-      }
-    }
-
-    // Grid-based spatial partitioning for O(n) performance
-    const gridCellSize = MAX_LINK_DISTANCE;
-    function connectParticles() {
-      // Build spatial grid
-      const grid: Map<string, Particle[]> = new Map();
-      for (const p of particlesArray) {
-        const cellX = Math.floor(p.x / gridCellSize);
-        const cellY = Math.floor(p.y / gridCellSize);
-        const key = `${cellX},${cellY}`;
-        if (!grid.has(key)) grid.set(key, []);
-        grid.get(key)!.push(p);
-      }
-
-      // Only check neighboring cells
-      const checked = new Set<string>();
-      for (const p of particlesArray) {
-        const cellX = Math.floor(p.x / gridCellSize);
-        const cellY = Math.floor(p.y / gridCellSize);
-
-        // Check 3x3 neighboring cells
-        for (let dx = -1; dx <= 1; dx++) {
-          for (let dy = -1; dy <= 1; dy++) {
-            const neighborKey = `${cellX + dx},${cellY + dy}`;
-            const neighbors = grid.get(neighborKey);
-            if (!neighbors) continue;
-
-            for (const neighbor of neighbors) {
-              if (p === neighbor) continue;
-              const pairKey = p.x < neighbor.x ? `${p.x},${p.y}-${neighbor.x},${neighbor.y}` : `${neighbor.x},${neighbor.y}-${p.x},${p.y}`;
-              if (checked.has(pairKey)) continue;
-              checked.add(pairKey);
-
-              const distX = p.x - neighbor.x;
-              const distY = p.y - neighbor.y;
-              const distSq = distX * distX + distY * distY;
-              if (distSq < MAX_LINK_DISTANCE * MAX_LINK_DISTANCE) {
-                const distance = Math.sqrt(distSq);
-                const opacity = 1 - distance / MAX_LINK_DISTANCE;
-                ctx.strokeStyle = `rgba(136, 179, 247, ${opacity})`;
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(p.x, p.y);
-                ctx.lineTo(neighbor.x, neighbor.y);
-                ctx.stroke();
-              }
-            }
-          }
-        }
-      }
-    }
-
-    function animate(timestamp = 0) {
-      if (timestamp - lastFrame >= frameInterval) {
-        lastFrame = timestamp;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particlesArray.forEach((p) => {
-          p.update();
-          p.draw();
-        });
-        connectParticles();
-      }
-      raf = requestAnimationFrame(animate);
-    }
-
-    init();
-    animate();
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseout", handleMouseOut);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
   return (
     <main className={styles.container}>
-      <canvas ref={canvasRef} className={styles.particleCanvas} />
-
-      <header className={styles.topBar}>
-        <div className={styles.brand}>
-          <span className={styles.brandText}>DestinyPal</span>
-        </div>
-        <nav className={styles.nav}>
-          <Link href="/about" className={styles.navLink}>
-            {translate("common.about", "About")}
-          </Link>
-          <div
-            className={styles.navItem}
-            onMouseEnter={() => setActiveMenu("services")}
-            onMouseLeave={() => setActiveMenu(null)}
-          >
-            <button className={styles.navButton}>{t("common.ourService")}</button>
-            {activeMenu === "services" && (
-              <div className={styles.dropdown}>
-                <div className={styles.dropdownHeader}>
-                  <span className={styles.dropdownTitle}>{t("services.title")}</span>
-                  <span className={styles.dropdownSubtitle}>{t("services.subtitle")}</span>
-                </div>
-                <Grid className={styles.dropdownGrid} columns={3}>
-                  {serviceLinksData.map((s) => (
-                    s.comingSoon ? (
-                      <Card key={s.href} className={`${styles.dropItem} ${styles.dropItemDisabled}`}>
-                        <div className={styles.dropItemLeft}>
-                          <span className={styles.dropItemIcon}>{s.icon}</span>
-                          <div className={styles.dropItemText}>
-                            <span className={styles.dropItemLabel}>
-                              {t(`services.${s.key}.label`)}
-                              <span className={styles.comingSoonBadge}>{t("common.comingSoon")}</span>
-                            </span>
-                            <span className={styles.dropItemDesc}>{t(`services.${s.key}.desc`)}</span>
-                          </div>
-                        </div>
-                      </Card>
-                    ) : (
-                      <Card as={Link} key={s.href} href={s.href} className={styles.dropItem}>
-                        <div className={styles.dropItemLeft}>
-                          <span className={styles.dropItemIcon}>{s.icon}</span>
-                          <div className={styles.dropItemText}>
-                            <span className={styles.dropItemLabel}>{t(`services.${s.key}.label`)}</span>
-                            <span className={styles.dropItemDesc}>{t(`services.${s.key}.desc`)}</span>
-                          </div>
-                        </div>
-                      </Card>
-                    )
-                  ))}
-                </Grid>
-              </div>
-            )}
-          </div>
-          <Link href="/pricing" className={styles.navLink}>
-            {translate("common.pricing", "Pricing")}
-          </Link>
-          <Link href="/blog" className={styles.navLink}>
-            {translate("common.blog", "Blog")}
-          </Link>
-          <Link href="/myjourney" className={styles.navLink}>
-            {t("app.myJourney")}
-          </Link>
-          <span className={`${styles.navLink} ${styles.navLinkDisabled}`}>
-            {t("app.community")}
-            <span className={styles.comingSoonBadgeSmall}>{t("common.comingSoon")}</span>
-          </span>
-        </nav>
-        <div className={styles.headerLinks}>
-          <NotificationBell />
-          <LanguageSwitcher />
-          <HeaderUser />
-        </div>
-      </header>
+      <ParticleCanvas />
+      <MainHeader />
 
       {/* Fullscreen Hero Section */}
       <section className={styles.fullscreenHero}>
@@ -986,97 +643,7 @@ export default function MainPage() {
       </section>
 
       {/* Tarot Feature Section */}
-      <section className={styles.featureSection}>
-        <h2 className={styles.featureSectionTitle}>
-          {translate("landing.tarotSectionTitle", "오늘의 타로 리딩")}
-        </h2>
-        <p className={styles.featureSectionSubtitle}>
-          {translate("landing.tarotSectionSubtitle", "카드에 담긴 메시지를 들어보세요.")}
-        </p>
-        {/* Card Deck - Semi-circular spread */}
-        <div className={styles.tarotDeckContainer}>
-          <div
-            className={`${styles.tarotDeck} ${isDeckSpread ? styles.deckSpread : ''}`}
-            onClick={handleDeckClick}
-          >
-            {[...Array(13)].map((_, i) => {
-              // Semi-circular spread: cards fan out in an arc
-              const totalCards = 13;
-              const centerIndex = (totalCards - 1) / 2;
-              const angleSpread = 120; // Total angle of the fan (degrees)
-              const anglePerCard = angleSpread / (totalCards - 1);
-              const cardAngle = (i - centerIndex) * anglePerCard;
-              const radius = 160; // Distance from center point
-
-              return (
-                <div
-                  key={i}
-                  className={styles.deckCard}
-                  style={{
-                    transform: isDeckSpread
-                      ? `rotate(${cardAngle}deg) translateY(-${radius}px)`
-                      : `translateY(${i * 0.3}px) rotate(${(i - centerIndex) * 0.3}deg)`,
-                    zIndex: isDeckSpread ? (i <= centerIndex ? i + 1 : totalCards - i) : totalCards - i,
-                    transition: `all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.04}s`,
-                    transformOrigin: 'center bottom',
-                  }}
-                >
-                  <div className={styles.deckCardDesign}>
-                    <span className={styles.deckCardIcon}>✦</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <p className={styles.deckLabel} suppressHydrationWarning>
-            {isDeckSpread
-              ? translate("landing.tarotDeckReset", "클릭하여 카드 그리기")
-              : translate("landing.tarotDeckLabel", "클릭하여 카드 그리기")}
-          </p>
-        </div>
-        {/* Selected Cards - only show when cards are drawn */}
-        {selectedCards.length > 0 && (
-          <>
-            <div className={styles.tarotCards}>
-              {[0, 1, 2, 3].map((index) => (
-                <div
-                  key={index}
-                  className={`${styles.tarotCard} ${flippedCards[index] ? styles.flipped : ''}`}
-                  onClick={() => handleCardClick(index)}
-                >
-                  <div className={styles.cardInner}>
-                    <div className={styles.cardBack}>
-                      <div className={styles.cardBackDesign}>
-                        <div className={styles.cardBackBorder}>
-                          <span className={styles.cardBackIcon}>✦</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className={styles.cardFront}>
-                      <Image
-                        src={selectedCards[index]?.image || TAROT_CARD_BACK}
-                        alt={selectedCards[index]?.name || 'Tarot Card'}
-                        className={styles.cardImage}
-                        width={200}
-                        height={350}
-                        loading="lazy"
-                        quality={80}
-                      />
-                      <div className={styles.cardName}>{locale === 'ko' ? selectedCards[index]?.nameKo : selectedCards[index]?.name}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className={styles.tarotLabels}>
-              <span>{translate("landing.tarotPast", "과거")}</span>
-              <span>{translate("landing.tarotPresent", "현재")}</span>
-              <span>{translate("landing.tarotFuture", "미래")}</span>
-              <span>{translate("landing.tarotAdvice", "조언")}</span>
-            </div>
-          </>
-        )}
-      </section>
+      <TarotSection translate={translate} locale={locale} />
 
       {/* CTA Section */}
       <section className={styles.ctaSection}>

@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
       route: "tarot-prefetch",
       limit: 30,
       windowSeconds: 60,
-      requireCredits: false, // Tarot prefetch doesn't consume credits
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);

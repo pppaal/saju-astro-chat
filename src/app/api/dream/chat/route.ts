@@ -334,7 +334,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Proxy the SSE stream from backend to client
-    return createSSEStreamProxy(streamResult.response, "DreamChat");
+    return createSSEStreamProxy({
+      source: streamResult.response,
+      route: "DreamChat"
+    });
 
   } catch (err: unknown) {
     logger.error("Dream chat error:", err);

@@ -8,20 +8,15 @@ import { EXTRAPOINT_ELEMENT_MATRIX, EXTRAPOINT_SIBSIN_MATRIX } from '@/lib/desti
 import type { ShinsalKind, PlanetName, InteractionCode } from '@/lib/destiny-matrix/types';
 import type { FiveElement, TwelveStage, TwelveStageStandard, SibsinKind } from '@/lib/Saju/types';
 import type { SajuData, AstroData } from '../../../types';
-import { mapSajuElementToKo, getGeneratedElement, getControlledElement, getControllerElement, getGeneratorElement } from '../../utils';
+import {
+  getGeneratedElement,
+  getControlledElement,
+  getControllerElement,
+  getGeneratorElement,
+  ELEMENT_HEALTH_MAP,
+  HEALTH_SHINSALS
+} from '../../shared';
 import type { HealthMatrixResult } from '../../types';
-
-// Five Element health mapping
-const ELEMENT_HEALTH_MAP: Record<string, { organs: string[]; organEn: string[]; warning: string; warningEn: string }> = {
-  '목': { organs: ['간', '담낭', '눈', '근육', '신경'], organEn: ['Liver', 'Gallbladder', 'Eyes', 'Muscles', 'Nerves'], warning: '스트레스와 분노 조절이 중요해요', warningEn: 'Stress and anger management is important' },
-  '화': { organs: ['심장', '소장', '혈압', '혀'], organEn: ['Heart', 'Small intestine', 'Blood pressure', 'Tongue'], warning: '과로와 흥분을 피하세요', warningEn: 'Avoid overwork and excitement' },
-  '토': { organs: ['위장', '비장', '소화기', '입술'], organEn: ['Stomach', 'Spleen', 'Digestive system', 'Lips'], warning: '규칙적인 식사가 중요해요', warningEn: 'Regular meals are important' },
-  '금': { organs: ['폐', '대장', '피부', '코'], organEn: ['Lungs', 'Large intestine', 'Skin', 'Nose'], warning: '호흡기와 피부 관리가 필요해요', warningEn: 'Respiratory and skin care needed' },
-  '수': { organs: ['신장', '방광', '귀', '뼈'], organEn: ['Kidneys', 'Bladder', 'Ears', 'Bones'], warning: '충분한 수분 섭취와 휴식이 필요해요', warningEn: 'Adequate hydration and rest needed' },
-};
-
-// Health-related Shinsal list
-const HEALTH_SHINSALS: ShinsalKind[] = ['병부', '효신살', '상문살', '백호', '귀문관'];
 
 // Extended Saju data type for internal use
 interface ExtendedSajuData {
@@ -64,10 +59,21 @@ export function getHealthMatrixAnalysis(
 
   const extSaju = saju as ExtendedSajuData | undefined;
   const dayElement = saju?.dayMaster?.element || 'wood';
-  const sajuEl = mapSajuElementToKo(dayElement);
+
+  // Map English element to Korean element
+  const elementMap: Record<string, FiveElement> = {
+    'wood': '목', 'fire': '화', 'earth': '토', 'metal': '금', 'water': '수'
+  };
+  const sajuEl: FiveElement = elementMap[dayElement] || '목';
 
   // 1. 오행 균형 분석 (L1 기반)
-  const elementBalance: HealthMatrixResult['elementBalance'] = [];
+  const elementBalance: HealthMatrixResult['elementBalance'] = {
+    wood: 0,
+    fire: 0,
+    earth: 0,
+    metal: 0,
+    water: 0,
+  };
   const fiveElements: FiveElement[] = ['목', '화', '토', '금', '수'];
 
   // 사주에서 오행 분포 추출
@@ -87,47 +93,63 @@ export function getHealthMatrixAnalysis(
   }
 
   const totalCount = Object.values(elementCounts).reduce((a, b) => a + b, 0) || 1;
+
+  // Map Korean elements to English keys
+  const elKeyMap: Record<FiveElement, keyof HealthMatrixResult['elementBalance']> = {
+    '목': 'wood', '화': 'fire', '토': 'earth', '금': 'metal', '수': 'water'
+  };
+
   for (const el of fiveElements) {
     const ratio = elementCounts[el] / totalCount;
-    let status: 'excess' | 'balanced' | 'deficient' = 'balanced';
-    if (ratio > 0.3) status = 'excess';
-    else if (ratio < 0.1) status = 'deficient';
-    elementBalance.push({ element: el, score: Math.round(ratio * 100), status });
+    elementBalance[elKeyMap[el]] = Math.round(ratio * 100);
   }
+
+  // Keep track of deficient/excess for vulnerableAreas
+  const deficientElements = fiveElements.filter(el => elementBalance[elKeyMap[el]] < 10);
+  const excessElements = fiveElements.filter(el => elementBalance[elKeyMap[el]] > 30);
 
   // 2. 취약 부위 분석
   const vulnerableAreas: HealthMatrixResult['vulnerableAreas'] = [];
-  const deficientElements = elementBalance.filter(e => e.status === 'deficient');
-  const excessElements = elementBalance.filter(e => e.status === 'excess');
 
   for (const el of deficientElements) {
-    const healthInfo = ELEMENT_HEALTH_MAP[el.element];
+    const healthInfo = ELEMENT_HEALTH_MAP[el];
     if (healthInfo) {
       vulnerableAreas.push({
-        organ: isKo ? healthInfo.organs[0] : healthInfo.organEn[0],
-        element: el.element,
+        organ: healthInfo.organEn[0],
+        organKo: healthInfo.organs[0],
+        element: el,
         risk: 'high',
-        advice: isKo ? `${el.element} 기운 부족: ${healthInfo.warning}` : `${el.element} energy deficient: ${healthInfo.warningEn}`,
-        icon: el.element === '목' ? '🌳' : el.element === '화' ? '🔥' : el.element === '토' ? '🏔️' : el.element === '금' ? '⚔️' : '💧',
+        advice: {
+          ko: `${el} 기운 부족: ${healthInfo.warning}`,
+          en: `${el} energy deficient: ${healthInfo.warningEn}`
+        },
       });
     }
   }
 
   for (const el of excessElements) {
-    const healthInfo = ELEMENT_HEALTH_MAP[el.element];
+    const healthInfo = ELEMENT_HEALTH_MAP[el];
     if (healthInfo) {
       vulnerableAreas.push({
-        organ: isKo ? healthInfo.organs[0] : healthInfo.organEn[0],
-        element: el.element,
+        organ: healthInfo.organEn[0],
+        organKo: healthInfo.organs[0],
+        element: el,
         risk: 'medium',
-        advice: isKo ? `${el.element} 기운 과다: 에너지 분산이 필요해요` : `${el.element} energy excess: Energy distribution needed`,
-        icon: el.element === '목' ? '🌳' : el.element === '화' ? '🔥' : el.element === '토' ? '🏔️' : el.element === '금' ? '⚔️' : '💧',
+        advice: {
+          ko: `${el} 기운 과다: 에너지 분산이 필요해요`,
+          en: `${el} energy excess: Energy distribution needed`
+        },
       });
     }
   }
 
-  // 3. 생명력 사이클 (L6 - 12운성)
-  let lifeCycleStage: HealthMatrixResult['lifeCycleStage'] = null;
+  // 3. 생명력 사이클 (L6 - 12운성) - removed from final type
+  let lifeCycleStage: {
+    stage: TwelveStageStandard;
+    description: { ko: string; en: string };
+    vitalityLevel: number;
+    advice: string;
+  } | null = null;
   const twelveStages = extSaju?.twelveStages;
   if (twelveStages?.day) {
     const stage = twelveStages.day as TwelveStage;
@@ -152,8 +174,20 @@ export function getHealthMatrixAnalysis(
     }
   }
 
-  // 4. 신살-행성 건강 분석 (L8)
-  const shinsalHealth: HealthMatrixResult['shinsalHealth'] = [];
+  // 4. 신살-행성 건강 분석 (L8) - removed from final type
+  const shinsalHealth: Array<{
+    shinsal: ShinsalKind;
+    planet: PlanetName;
+    fusion: {
+      level: string;
+      score: number;
+      icon: string;
+      color: string;
+      keyword: { ko: string; en: string };
+      description: { ko: string; en: string };
+    };
+    healthWarning: { ko: string; en: string };
+  }> = [];
   const shinsalList = extSaju?.shinsal || extSaju?.advancedAnalysis?.sinsal?.unluckyList || [];
   const healthPlanets: PlanetName[] = ['Neptune', 'Pluto', 'Saturn'];
 
@@ -191,8 +225,14 @@ export function getHealthMatrixAnalysis(
     }
   }
 
-  // 5. Chiron 치유 분석 (L10)
-  let chironHealing: HealthMatrixResult['chironHealing'] = null;
+  // 5. Chiron 치유 분석 (L10) - removed from final type
+  let chironHealing: {
+    woundArea: { ko: string; en: string };
+    healingPath: { ko: string; en: string };
+    healerPotential: { ko: string; en: string };
+    score: number;
+    icon: string;
+  } | null = null;
   const chironElementInteraction = EXTRAPOINT_ELEMENT_MATRIX['Chiron']?.[sajuEl];
 
   if (chironElementInteraction) {
@@ -229,20 +269,30 @@ export function getHealthMatrixAnalysis(
 
   // 6. 종합 생명력 점수 계산
   const baseScore = 60;
-  const balanceBonus = elementBalance.filter(e => e.status === 'balanced').length * 5;
+  // Count balanced elements (between 15-25%)
+  const balancedCount = Object.values(elementBalance).filter(score => score >= 15 && score <= 25).length;
+  const balanceBonus = balancedCount * 5;
   const deficitPenalty = deficientElements.length * 8;
   const excessPenalty = excessElements.length * 3;
-  const lifeCycleBonus = lifeCycleStage ? (lifeCycleStage.vitalityLevel - 5) * 3 : 0;
-  const chironBonus = chironHealing ? (chironHealing.score - 5) * 2 : 0;
+  const lifeCycleBonus = 0; // lifeCycleStage not in final type
+  const chironBonus = 0; // chironHealing not in final type
 
   const vitalityScore = Math.min(100, Math.max(30, baseScore + balanceBonus - deficitPenalty - excessPenalty + lifeCycleBonus + chironBonus));
+
+  // Generate health message based on score
+  const healthMessage = {
+    ko: vitalityScore >= 80 ? '전반적으로 건강한 상태입니다' :
+        vitalityScore >= 60 ? '균형 잡힌 관리가 필요합니다' :
+        '건강에 특별한 주의가 필요합니다',
+    en: vitalityScore >= 80 ? 'Overall healthy state' :
+        vitalityScore >= 60 ? 'Balanced care needed' :
+        'Special attention to health required'
+  };
 
   return {
     vitalityScore: Math.round(vitalityScore),
     elementBalance,
     vulnerableAreas,
-    lifeCycleStage,
-    shinsalHealth,
-    chironHealing,
-  };
+    healthMessage,
+  } as HealthMatrixResult;
 }

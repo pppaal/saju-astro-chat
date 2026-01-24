@@ -1,7 +1,2 @@
-/**
- * Hooks Index
- */
-
-export * from './useTarotState';
-export * from './useCardSelection';
-export * from './useCardReveal';
+export { useTarotGame } from './useTarotGame';
+export { useTarotInterpretation } from './useTarotInterpretation';

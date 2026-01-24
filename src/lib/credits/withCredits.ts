@@ -46,7 +46,7 @@ export async function checkAndConsumeCredits(
   const bypassEnabled = process.env.BYPASS_CREDITS === "true" && isDevelopment;
 
   if (bypassEnabled) {
-    console.warn('[DEV ONLY] Credit check bypassed for user:', userId);
+    logger.warn('[DEV ONLY] Credit check bypassed', { userId });
     return {
       allowed: true,
       userId,
@@ -56,7 +56,7 @@ export async function checkAndConsumeCredits(
 
   // 프로덕션에서 BYPASS_CREDITS가 설정된 경우 경고
   if (process.env.BYPASS_CREDITS === "true" && !isDevelopment) {
-    console.error('🚨 SECURITY WARNING: BYPASS_CREDITS is enabled in production! This is a critical security issue.');
+    logger.error('SECURITY WARNING: BYPASS_CREDITS is enabled in production! This is a critical security issue.');
   }
 
   // 크레딧 체크

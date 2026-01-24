@@ -9,42 +9,22 @@ import { z } from "zod";
 export { LIMITS } from "@/lib/validation/patterns";
 
 // ==========================================
-// Common Schemas
+// Common Schemas - Re-exported from validator.ts for consistency
 // ==========================================
 
-export const LocaleSchema = z.enum([
-  "ko",
-  "en",
-  "ja",
-  "zh",
-  "es",
-  "vi",
-  "th",
-  "id",
-  "de",
-  "fr",
-]);
+// Import and re-export from validator.ts to avoid duplication
+import {
+  LocaleSchema as LocaleSchemaImport,
+  DateSchema,
+  TimeSchema,
+  TimezoneSchema as TimezoneSchemaImport,
+} from "./validator";
+
+export const LocaleSchema = LocaleSchemaImport;
+export const DateStringSchema = DateSchema;
+export const TimeStringSchema = TimeSchema;
+export const TimezoneSchema = TimezoneSchemaImport;
 export type Locale = z.infer<typeof LocaleSchema>;
-
-export const DateStringSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format");
-
-export const TimeStringSchema = z
-  .string()
-  .regex(/^\d{2}:\d{2}$/, "Time must be in HH:MM format");
-
-export const TimezoneSchema = z.string().refine(
-  (tz) => {
-    try {
-      Intl.DateTimeFormat(undefined, { timeZone: tz });
-      return true;
-    } catch {
-      return false;
-    }
-  },
-  { message: "Invalid timezone" }
-);
 
 // ==========================================
 // Birth Data Schemas
@@ -101,8 +81,8 @@ export const TarotInterpretRequestSchema = z.object({
   language: LocaleSchema.default("ko"),
   // Optional personalization
   birthdate: DateStringSchema.optional(),
-  saju_context: z.record(z.unknown()).optional(),
-  astro_context: z.record(z.unknown()).optional(),
+  saju_context: z.object({}).passthrough().optional(),
+  astro_context: z.object({}).passthrough().optional(),
 });
 export type TarotInterpretRequest = z.infer<typeof TarotInterpretRequestSchema>;
 
@@ -150,7 +130,7 @@ export const ApiSuccessSchema = <T extends z.ZodType>(dataSchema: T) =>
   z.object({
     success: z.literal(true),
     data: dataSchema,
-    meta: z.record(z.unknown()).optional(),
+    meta: z.object({}).passthrough().optional(),
   });
 
 export const ApiFailureSchema = z.object({
@@ -207,7 +187,7 @@ export function parseBody<T extends z.ZodType>(
 ): z.infer<T> {
   const result = schema.safeParse(data);
   if (!result.success) {
-    const errors = result.error.errors
+    const errors = result.error.issues
       .map((e) => `${e.path.join(".")}: ${e.message}`)
       .join(", ");
     throw new Error(`Validation failed: ${errors}`);

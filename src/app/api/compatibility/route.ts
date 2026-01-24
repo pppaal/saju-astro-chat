@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { initializeApiContext, createSimpleGuard } from "@/lib/api/middleware";
+import { initializeApiContext, createPublicStreamGuard } from "@/lib/api/middleware";
 import { apiClient } from "@/lib/api/ApiClient";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
@@ -12,6 +12,7 @@ import {
   isValidLongitude,
   LIMITS,
 } from "@/lib/validation";
+import { sanitizeString } from "@/lib/api/sanitizers";
 import { logger } from '@/lib/logger';
 import type {
   Relation,
@@ -32,15 +33,11 @@ function relationWeight(r?: Relation) {
 
 const MAX_NOTE = 240;
 
-function sanitizeStr(value: unknown, max = 120) {
-  return String(value ?? '').trim().slice(0, max);
-}
-
 
 export async function POST(req: NextRequest) {
   try {
     // Apply middleware: public token auth + rate limiting (no credits for compatibility)
-    const guardOptions = createSimpleGuard({
+    const guardOptions = createPublicStreamGuard({
       route: "compatibility",
       limit: 30,
       windowSeconds: 60,
@@ -58,9 +55,9 @@ export async function POST(req: NextRequest) {
 
     for (let i = 0; i < persons.length; i++) {
       const p = persons[i] || ({} as PersonInput);
-      p.name = sanitizeStr(p.name, LIMITS.NAME);
-      p.city = sanitizeStr(p.city, LIMITS.CITY);
-      p.relationNoteToP1 = sanitizeStr(p.relationNoteToP1, MAX_NOTE);
+      p.name = sanitizeString(p.name, LIMITS.NAME);
+      p.city = sanitizeString(p.city, LIMITS.CITY);
+      p.relationNoteToP1 = sanitizeString(p.relationNoteToP1, MAX_NOTE);
 
       if (!p?.date || !p?.time || !p?.timeZone) {
         return bad(`${i + 1}: date, time, and timeZone are required.`, 400);

@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { initializeApiContext, createSimpleGuard } from "@/lib/api/middleware";
+import { initializeApiContext, createPublicStreamGuard } from "@/lib/api/middleware";
 import {
   calculateYearlyImportantDates,
   type EventCategory,
@@ -62,7 +62,7 @@ const MAX_PLACE_LEN = 64;
 export async function GET(request: NextRequest) {
   try {
     // Apply middleware: public token auth + rate limiting (no credits for calendar)
-    const guardOptions = createSimpleGuard({
+    const guardOptions = createPublicStreamGuard({
       route: "calendar",
       limit: 30,
       windowSeconds: 60,

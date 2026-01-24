@@ -12,6 +12,7 @@ import AuthGate from "@/components/auth/AuthGate";
 import styles from "./counselor.module.css";
 import { astroLogger } from '@/lib/logger';
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
+import { getPublicBackendUrl } from "@/lib/backend-url";
 
 // Dynamic import for heavy component (712 lines)
 const AstrologyChat = dynamic(() => import("@/components/astrology/AstrologyChat"), {
@@ -166,7 +167,7 @@ export default function AstrologyCounselorPage({
     // Prefetch RAG data in background (astrology-only)
     const prefetchRAG = async () => {
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND || "http://127.0.0.1:5000";
+        const backendUrl = getPublicBackendUrl();
         const res = await fetch(`${backendUrl}/astrology/counselor/init`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -34,8 +34,8 @@ export const ServicesGrid = memo(function ServicesGrid({
         </div>
       </div>
 
-      <Grid cols={3} gap="1.5rem" className={styles.serviceGrid}>
-        {Object.entries(SERVICE_LINKS).map(([key, { href, labelKey }]) => {
+      <Grid columns={3} gap="1.5rem" className={styles.serviceGrid}>
+        {Object.entries(SERVICE_LINKS).map(([key, { href }]) => {
           const serviceKey = key as ServiceKey;
           return (
             <Link
@@ -44,17 +44,17 @@ export const ServicesGrid = memo(function ServicesGrid({
               className={styles.serviceCardLink}
               prefetch={false}
             >
-              <Card className={styles.serviceCard} hover>
+              <Card className={styles.serviceCard}>
                 <div className={styles.serviceIconWrapper}>
                   <span className={styles.serviceIcon}>
                     {getServiceIcon(serviceKey)}
                   </span>
                 </div>
                 <h3 className={styles.serviceCardTitle}>
-                  {translate(labelKey, key)}
+                  {translate(key, key)}
                 </h3>
                 <p className={styles.serviceCardDesc}>
-                  {translate(`${labelKey}Desc`, getServiceFallbackDesc(serviceKey))}
+                  {translate(`${key}Desc`, getServiceFallbackDesc(serviceKey))}
                 </p>
               </Card>
             </Link>
@@ -80,6 +80,8 @@ function getServiceIcon(key: ServiceKey): string {
     personality: '🌈',
     icp: '🎭',
     pastLife: '🔄',
+    aiReports: "🤖",
+    lifePrediction: "🔮",
   };
   return icons[key] || '✨';
 }
@@ -99,6 +101,8 @@ function getServiceFallbackDesc(key: ServiceKey): string {
     personality: 'Personality insights',
     icp: 'Relationship style',
     pastLife: 'Past life regression',
+    aiReports: "AI-powered reports",
+    lifePrediction: "Life predictions",
   };
   return descriptions[key] || 'Discover your destiny';
 }

@@ -154,7 +154,7 @@ export function isShape<T>(
 
   return Object.entries(shape).every(([key, validator]) => {
     const val = (value as Record<string, unknown>)[key];
-    return validator(val);
+    return (validator as (v: unknown) => boolean)(val);
   });
 }
 

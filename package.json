@@ -62,7 +62,8 @@
     "mobile:sync:ios": "npm run build && npx cap sync ios",
     "mobile:open:android": "npx cap open android",
     "mobile:open:ios": "npx cap open ios",
-    "mobile:build": "npm run build && npx cap sync && npx cap open android"
+    "mobile:build": "npm run build && npx cap sync && npx cap open android",
+    "security:audit": "npm audit --audit-level=high"
   },
   "overrides": {
     "node-gyp": "^10.0.1",
@@ -76,6 +77,7 @@
     "@capacitor/cli": "^8.0.0",
     "@capacitor/core": "^8.0.0",
     "@capacitor/ios": "^8.0.0",
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@next-auth/prisma-adapter": "^1.0.7",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",

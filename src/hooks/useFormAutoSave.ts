@@ -44,7 +44,7 @@ export function useFormAutoSave<T>({
   onSave,
   onLoad,
 }: UseFormAutoSaveOptions<T>) {
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const isInitialMount = useRef(true);
   const storageKey = `form-autosave-${key}`;
 

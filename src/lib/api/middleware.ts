@@ -256,8 +256,6 @@ export async function initializeApiContext(
 
     creditInfo = {
       remaining: creditResult.remaining || 0,
-      type: options.credits.type,
-      consumed: options.credits.amount || 1,
     };
   }
 

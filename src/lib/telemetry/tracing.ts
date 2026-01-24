@@ -144,15 +144,15 @@ export function Trace(spanName?: string) {
     descriptor: PropertyDescriptor
   ) {
     const originalMethod = descriptor.value;
-    const name = spanName || `${target.constructor.name}.${propertyKey}`;
+    const name = spanName || `${(target as any).constructor.name}.${String(propertyKey)}`;
 
     descriptor.value = async function (...args: unknown[]) {
       return traceAsync(
         name,
         () => originalMethod.apply(this, args),
         {
-          'method': propertyKey,
-          'class': target.constructor.name,
+          'method': String(propertyKey),
+          'class': (target as any).constructor.name,
         }
       );
     };

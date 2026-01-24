@@ -28,13 +28,7 @@ const STRIPE_API_VERSION: Stripe.LatestApiVersion = '2025-10-29.clover';
 // Email validation regex (RFC 5322 simplified)
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
-/**
- * Escape special characters in Stripe query to prevent injection
- * Order matters: escape backslashes first, then quotes
- */
-function escapeStripeQuery(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-}
+// Removed escapeStripeQuery - using Stripe's parameterized API instead
 
 function getCachedPremium(email: string): boolean | null {
   const entry = premiumCache.get(email.toLowerCase());
@@ -69,10 +63,10 @@ async function checkPremiumStatus(email?: string, ip?: string): Promise<boolean>
 
     const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
 
-    // Escape email to prevent query injection
-    const safeEmail = escapeStripeQuery(email);
-    const customers = await stripe.customers.search({
-      query: `email:'${safeEmail}'`,
+    // Use parameterized API to prevent query injection
+    // customers.list with email filter is safer than search query string
+    const customers = await stripe.customers.list({
+      email: email.toLowerCase(),
       limit: 3,
     });
 
@@ -752,8 +746,9 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       }, { timeout: 90000 });
 
       if (response.ok) {
-        aiInterpretation = response.data?.data?.fusion_layer || response.data?.data?.report || '';
-        aiModelUsed = response.data?.data?.model || 'gpt-4o';
+        const data = (response.data as any)?.data;
+        aiInterpretation = data?.fusion_layer || data?.report || '';
+        aiModelUsed = data?.model || 'gpt-4o';
       }
     } catch (aiErr) {
       if (process.env.NODE_ENV !== 'production') {

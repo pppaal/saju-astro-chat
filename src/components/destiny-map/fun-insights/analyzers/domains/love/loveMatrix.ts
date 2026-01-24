@@ -6,8 +6,18 @@ import { SHINSAL_PLANET_MATRIX, SHINSAL_INFO } from '@/lib/destiny-matrix/data/l
 import { ASTEROID_HOUSE_MATRIX, ASTEROID_INFO } from '@/lib/destiny-matrix/data/layer9-asteroid-house';
 import type { ShinsalKind, PlanetName, AsteroidName, HouseNumber } from '@/lib/destiny-matrix/types';
 import type { SajuData, AstroData } from '../../../types';
-import { getHouseLifeArea } from '../../utils';
 import type { LoveMatrixResult, ShinsalPlanetResult, AsteroidHouseResult } from '../../types';
+
+// Helper to get house life area
+const getHouseLifeArea = (house: number): { ko: string; en: string } => {
+  const areas: Record<number, { ko: string; en: string }> = {
+    1: { ko: '자아', en: 'Self' },
+    5: { ko: '연애', en: 'Romance' },
+    7: { ko: '파트너십', en: 'Partnership' },
+    8: { ko: '친밀감', en: 'Intimacy' },
+  };
+  return areas[house] || { ko: '기타', en: 'Other' };
+};
 
 // Extended Saju data type for internal use
 interface ExtendedSajuData {
@@ -133,7 +143,7 @@ export function getLoveMatrixAnalysis(
                 en: `${info.en} × House ${house} = ${interaction.keywordEn}`,
               },
             },
-            lifeArea: getHouseLifeArea(house, isKo),
+            lifeArea: isKo ? getHouseLifeArea(house).ko : getHouseLifeArea(house).en,
           });
         }
       }

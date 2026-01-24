@@ -340,11 +340,16 @@ export default function ResultDisplay({
                 <div className="mt-8">
                   <h3 className="text-xl font-bold mb-4 text-white">✨ 쉽게 이해하는 나의 별자리</h3>
                   <FunInsights
-                    saju={null}
+                    saju={undefined}
                     astro={{
-                      planets: chart.planets,
-                      houses: chart.houses,
-                      aspects: aspects || [],
+                      planets: chartData?.planets || [],
+                      houses: chartData?.houses || [],
+                      aspects: (aspects || []).map(a => ({
+                        from: typeof a.from === 'string' ? a.from : a.from?.name || a.planet1 || '',
+                        to: typeof a.to === 'string' ? a.to : a.to?.name || a.planet2 || '',
+                        type: a.type || a.aspect || '',
+                        orb: a.orb,
+                      })),
                       ...(advanced || {}),
                     }}
                     theme="life"

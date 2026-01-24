@@ -34,8 +34,8 @@ export const TextareaWithCounter = React.forwardRef<
     },
     ref
   ) => {
-    const [charCount, setCharCount] = useState(0);
-    const [isFocused, setIsFocused] = useState(false);
+    const [charCount, setCharCount] = React.useState(0);
+    const [isFocused, setIsFocused] = React.useState(false);
 
     // Track character count
     React.useEffect(() => {
@@ -124,7 +124,3 @@ export const TextareaWithCounter = React.forwardRef<
 TextareaWithCounter.displayName = "TextareaWithCounter";
 
 export default TextareaWithCounter;
-
-function useState(arg0: number): [any, any] {
-  return React.useState(arg0);
-}

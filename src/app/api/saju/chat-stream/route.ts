@@ -5,12 +5,11 @@ import { apiClient } from "@/lib/api/ApiClient";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
 import { logger } from '@/lib/logger';
+import { type ChatMessage } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
-
-type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
 function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);

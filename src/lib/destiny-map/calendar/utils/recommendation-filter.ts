@@ -65,6 +65,6 @@ export function filterByScenario(
   scenario: keyof typeof CONFLICT_SCENARIOS
 ): void {
   filterOutRecommendations(recommendations, {
-    [scenario]: CONFLICT_SCENARIOS[scenario],
+    [scenario]: [...CONFLICT_SCENARIOS[scenario]],
   });
 }

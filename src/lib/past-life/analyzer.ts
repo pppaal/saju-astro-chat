@@ -555,7 +555,7 @@ function selectLang(isKo: boolean, text: BilingualText): string {
   return isKo ? text.ko : text.en;
 }
 
-function selectLangFromArray<T extends { ko: string; en: string }>(isKo: boolean, items: T[]): string[] {
+function selectLangFromArray<T extends { ko: string; en: string }>(isKo: boolean, items: readonly T[]): string[] {
   return items.map(item => isKo ? item.ko : item.en);
 }
 
@@ -719,7 +719,7 @@ function buildSaturnLesson(saturnHouse: HouseNumber | null, isKo: boolean): Past
 // 전생 재능 추출 헬퍼
 function extractTalentsCarried(geokgukType: GeokgukType | null, isKo: boolean): string[] {
   if (!geokgukType) {
-    return selectLangFromArray(isKo, FALLBACK_TEXTS.DEFAULT_TALENTS);
+    return [...selectLangFromArray(isKo, FALLBACK_TEXTS.DEFAULT_TALENTS)];
   }
 
   const geokTalents = GEOKGUK_TALENTS[geokgukType];

@@ -311,7 +311,6 @@ export function findProgressedMoonAspects(
  * 진행 행성 위치와 기본 정보 가져오기
  */
 export function findProgressedAspectKeywords() {
-  // TODO: 실제 Aspect 키워드 매핑 (지금은 placeholder)
   return {
     conjunction: "강력한 합",
     opposition: "대립",

@@ -9,13 +9,13 @@ import Stripe from "stripe";
 import { guardText, cleanText as _cleanText, PROMPT_BUDGET_CHARS, safetyMessage, containsForbidden } from "@/lib/textGuards";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
 import { logger } from '@/lib/logger';
+import { type ChatMessage } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2025-10-29.clover";
 
-type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 type BackendReply = { fusion_layer?: string; report?: string };
 
 const ALLOWED_LANG = new Set(["ko", "en"]);
@@ -76,8 +76,9 @@ async function checkStripeActive(email?: string) {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key || !email || !isValidEmail(email)) return false;
   const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
-  const customers = await stripe.customers.search({
-    query: `email:'${email}'`,
+  // Use parameterized API to prevent query injection
+  const customers = await stripe.customers.list({
+    email: email.toLowerCase(),
     limit: 3,
   });
   for (const c of customers.data) {

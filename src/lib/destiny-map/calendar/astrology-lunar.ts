@@ -18,6 +18,7 @@
 
 import { ZODIAC_TO_ELEMENT } from './constants';
 import { normalizeElement } from './utils';
+import { logger } from '@/lib/logger';
 
 // ============================================================
 // Type Definitions / 타입 정의
@@ -263,7 +264,7 @@ function getPlanetPosition(date: Date, planet: PlanetName): PlanetPosition {
       degree: Math.round(degree * 100) / 100,
     };
   } catch (error) {
-    console.error('Error calculating planet position:', error);
+    logger.error('Error calculating planet position:', { error });
     return {
       sign: 'Aries',
       longitude: 0,
@@ -352,7 +353,7 @@ export function getLunarPhase(date: Date): LunarPhaseResult {
 
     return { phase, phaseName, phaseScore };
   } catch (error) {
-    console.error('Error calculating lunar phase:', error);
+    logger.error('Error calculating lunar phase:', { error });
     return {
       phase: 0,
       phaseName: 'newMoon',
@@ -465,7 +466,7 @@ export function getMoonPhaseDetailed(date: Date): MoonPhaseDetailed {
       score,
     };
   } catch (error) {
-    console.error('Error calculating detailed moon phase:', error);
+    logger.error('Error calculating detailed moon phase:', { error });
     return {
       phase: 'new_moon',
       phaseName: '삭',
@@ -581,7 +582,7 @@ export function checkVoidOfCourseMoon(date: Date): VoidOfCourseMoonResult {
       hoursRemaining: Math.round(hoursRemaining),
     };
   } catch (error) {
-    console.error('Error checking void of course moon:', error);
+    logger.error('Error checking void of course moon:', { error });
     return {
       isVoid: false,
       moonSign: 'Aries',
@@ -686,7 +687,7 @@ export function checkEclipseImpact(date: Date): EclipseImpactResult {
       daysFromEclipse: null,
     };
   } catch (error) {
-    console.error('Error checking eclipse impact:', error);
+    logger.error('Error checking eclipse impact:', { error });
     return {
       hasImpact: false,
       type: null,
@@ -768,7 +769,7 @@ export function analyzeLunarComplete(date: Date): LunarAnalysisComplete {
       totalScore,
     };
   } catch (error) {
-    console.error('Error analyzing lunar complete:', error);
+    logger.error('Error analyzing lunar complete:', { error });
     return {
       phaseBasic: { phase: 0, phaseName: 'newMoon', phaseScore: 0 },
       phaseDetailed: {
@@ -822,7 +823,7 @@ export function getMoonElement(date: Date): string {
     const element = ZODIAC_TO_ELEMENT[approxSign] || 'earth';
     return normalizeElement(element);
   } catch (error) {
-    console.error('Error calculating moon element:', error);
+    logger.error('Error calculating moon element:', { error });
     return 'earth';
   }
 }

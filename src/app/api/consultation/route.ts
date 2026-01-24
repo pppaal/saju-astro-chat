@@ -31,8 +31,9 @@ async function checkStripeActive(email?: string): Promise<boolean> {
   if (!key || !email || !isValidEmail(email)) return false;
 
   const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
-  const customers = await stripe.customers.search({
-    query: `email:'${email}'`,
+  // Use parameterized API to prevent query injection
+  const customers = await stripe.customers.list({
+    email: email.toLowerCase(),
     limit: 3,
   });
 

@@ -35,14 +35,104 @@ import {
   EVENT_FAVORABLE_CONDITIONS,
 } from './life-prediction/constants';
 
-// Temporary placeholders for undefined constants
-// TODO: Define these properly when shinsal logic is needed
-const CHEONEL_MAP: Record<string, string[]> = {};
-const YEOKMA_MAP: Record<string, string> = {};
-const MUNCHANG_MAP: Record<string, string> = {};
-const GEOPSAL_MAP: Record<string, string> = {};
+// Shinsal constants from Korean Saju tradition
+// 천을귀인 (Noble Person): Day stem → Target branches for good fortune
+export const CHEONEL_MAP: Record<string, string[]> = {
+  '甲': ['丑', '未'], '乙': ['子', '申'], '丙': ['亥', '酉'], '丁': ['亥', '酉'],
+  '戊': ['丑', '未'], '己': ['子', '申'], '庚': ['丑', '未'], '辛': ['寅', '午'],
+  '壬': ['卯', '巳'], '癸': ['卯', '巳'],
+};
+
+// 역마 (Travel Star): Day branch → Target branch indicating movement/travel
+// 申子辰 → 寅, 寅午戌 → 申, 巳酉丑 → 亥, 亥卯未 → 巳
+export const YEOKMA_MAP: Record<string, string> = {
+  '申': '寅', '子': '寅', '辰': '寅',
+  '寅': '申', '午': '申', '戌': '申',
+  '巳': '亥', '酉': '亥', '丑': '亥',
+  '亥': '巳', '卯': '巳', '未': '巳',
+};
+
+// 문창 (Literary Star): Day stem → Target branch for academic/intellectual fortune
+export const MUNCHANG_MAP: Record<string, string> = {
+  '甲': '巳', '乙': '午', '丙': '申', '丁': '酉', '戊': '申',
+  '己': '酉', '庚': '亥', '辛': '子', '壬': '寅', '癸': '卯',
+};
+
+// 겁살 (Robbery Star): Day branch → Target branch indicating potential loss/conflict
+// 申子辰 → 巳, 亥卯未 → 申, 寅午戌 → 亥, 巳酉丑 → 寅
+export const GEOPSAL_MAP: Record<string, string> = {
+  '申': '巳', '子': '巳', '辰': '巳',
+  '亥': '申', '卯': '申', '未': '申',
+  '寅': '亥', '午': '亥', '戌': '亥',
+  '巳': '寅', '酉': '寅', '丑': '寅',
+};
+
 const CLASHES = BRANCH_CLASHES;
 const PUNISHMENTS = BRANCH_PUNISHMENTS;
+
+// Stage Event Effects mapping
+export const STAGE_EVENT_EFFECTS: Record<string, Record<string, string>> = {
+  '장생': {
+    career: '새로운 시작',
+    health: '건강 회복',
+    relationship: '새로운 만남',
+  },
+  '목욕': {
+    career: '준비 과정',
+    health: '주의 필요',
+    relationship: '감정 변화',
+  },
+  '관대': {
+    career: '성장 시기',
+    health: '안정',
+    relationship: '발전',
+  },
+  '건록': {
+    career: '전성기',
+    health: '왕성',
+    relationship: '활발',
+  },
+  '제왕': {
+    career: '절정기',
+    health: '최고조',
+    relationship: '왕성',
+  },
+  '쇠': {
+    career: '하락 시작',
+    health: '체력 저하',
+    relationship: '소원',
+  },
+  '병': {
+    career: '휴식',
+    health: '관리 필요',
+    relationship: '정리',
+  },
+  '사': {
+    career: '마무리',
+    health: '주의',
+    relationship: '종결',
+  },
+  '묘': {
+    career: '잠복기',
+    health: '회복',
+    relationship: '재정비',
+  },
+  '절': {
+    career: '전환기',
+    health: '전환',
+    relationship: '변화',
+  },
+  '태': {
+    career: '태동',
+    health: '준비',
+    relationship: '시작',
+  },
+  '양': {
+    career: '성장 준비',
+    health: '에너지 축적',
+    relationship: '기대',
+  },
+};
 
 // ============================================================
 // 천간/지지 관계 분석
@@ -277,6 +367,20 @@ export function calculateDataCompleteness(input: LifePredictionInput): number {
   if (input.advancedAstro) completeness += 5;
 
   return Math.min(100, completeness);
+}
+
+/**
+ * Get stage event effect for a given 12 stage and event category
+ * @param stage - 12운성 stage (장생, 목욕, etc.)
+ * @param category - Event category (career, health, relationship)
+ * @returns Effect string or null if not found
+ */
+export function getStageEventEffect(stage: string, category: string): string | null {
+  const stageEffects = STAGE_EVENT_EFFECTS[stage];
+  if (!stageEffects) return null;
+
+  const effect = stageEffects[category];
+  return effect || null;
 }
 
 // ============================================================

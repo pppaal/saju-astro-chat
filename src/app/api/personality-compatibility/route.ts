@@ -3,6 +3,7 @@ import { analyzeICP, getICPCompatibility, getCrossSystemCompatibility } from '@/
 import { analyzePersona, getPersonaCompatibility } from '@/lib/persona/analysis';
 import type { ICPQuizAnswers } from '@/lib/icp/types';
 import type { PersonaQuizAnswers } from '@/lib/persona/types';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -99,7 +100,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Personality compatibility error:', error);
+    logger.error('Personality compatibility error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

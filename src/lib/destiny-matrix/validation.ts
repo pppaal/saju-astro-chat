@@ -109,14 +109,50 @@ export const AspectSchema = z.object({
 // 메인 입력 스키마
 // ===========================
 
+// Valid sibsin kinds for validation
+const VALID_SIBSIN_KINDS = new Set([
+  '비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인'
+]);
+
+// Valid twelve stages for validation
+const VALID_TWELVE_STAGES = new Set([
+  '장생', '목욕', '관대', '건록', '제왕', '쇠', '병', '사', '묘', '절', '태', '양'
+]);
+
+// Valid planet names for validation
+const VALID_PLANET_NAMES = new Set([
+  'Sun', 'Moon', 'Mercury', 'Venus', 'Mars',
+  'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'
+]);
+
+// Valid zodiac signs for validation
+const VALID_ZODIAC_SIGNS = new Set([
+  '양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리',
+  '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'
+]);
+
+// Valid asteroid names for validation
+const VALID_ASTEROID_NAMES = new Set(['Ceres', 'Pallas', 'Juno', 'Vesta']);
+
+// Valid extra point names for validation
+const VALID_EXTRA_POINT_NAMES = new Set([
+  'Chiron', 'Lilith', 'PartOfFortune', 'Vertex', 'NorthNode', 'SouthNode'
+]);
+
 export const MatrixCalculationInputSchema = z.object({
   // 필수: 일간 오행
   dayMasterElement: FiveElementSchema,
 
   // 사주 데이터 (선택)
   pillarElements: z.array(FiveElementSchema).optional().default([]),
-  sibsinDistribution: z.record(SibsinKindSchema, z.number()).optional().default({}),
-  twelveStages: z.record(TwelveStageSchema, z.number()).optional().default({}),
+  sibsinDistribution: z.record(z.string(), z.number()).optional().default({}).refine(
+    (dist) => Object.keys(dist).every(key => VALID_SIBSIN_KINDS.has(key)),
+    { message: 'Invalid sibsin kind in distribution' }
+  ),
+  twelveStages: z.record(z.string(), z.number()).optional().default({}).refine(
+    (stages) => Object.keys(stages).every(key => VALID_TWELVE_STAGES.has(key)),
+    { message: 'Invalid twelve stage' }
+  ),
   relations: z.array(RelationHitSchema).optional().default([]),
   geokguk: GeokgukTypeSchema.optional(),
   yongsin: FiveElementSchema.optional(),
@@ -128,14 +164,26 @@ export const MatrixCalculationInputSchema = z.object({
 
   // 점성 데이터
   dominantWesternElement: WesternElementSchema.optional(),
-  planetHouses: z.record(PlanetNameSchema, HouseNumberSchema).optional().default({}),
-  planetSigns: z.record(PlanetNameSchema, ZodiacSignSchema).optional().default({}),
+  planetHouses: z.record(z.string(), HouseNumberSchema).optional().default({}).refine(
+    (houses) => Object.keys(houses).every(key => VALID_PLANET_NAMES.has(key)),
+    { message: 'Invalid planet name in houses' }
+  ),
+  planetSigns: z.record(z.string(), ZodiacSignSchema).optional().default({}).refine(
+    (signs) => Object.keys(signs).every(key => VALID_PLANET_NAMES.has(key)),
+    { message: 'Invalid planet name in signs' }
+  ),
   aspects: z.array(AspectSchema).optional().default([]),
   activeTransits: z.array(TransitCycleSchema).optional().default([]),
 
   // 소행성/엑스트라포인트
-  asteroidHouses: z.record(AsteroidNameSchema, HouseNumberSchema).optional().default({}),
-  extraPointSigns: z.record(ExtraPointNameSchema, ZodiacSignSchema).optional().default({}),
+  asteroidHouses: z.record(z.string(), HouseNumberSchema).optional().default({}).refine(
+    (houses) => Object.keys(houses).every(key => VALID_ASTEROID_NAMES.has(key)),
+    { message: 'Invalid asteroid name in houses' }
+  ),
+  extraPointSigns: z.record(z.string(), ZodiacSignSchema).optional().default({}).refine(
+    (signs) => Object.keys(signs).every(key => VALID_EXTRA_POINT_NAMES.has(key)),
+    { message: 'Invalid extra point name in signs' }
+  ),
 
   // 옵션
   lang: LangSchema.optional().default('ko'),
@@ -186,7 +234,7 @@ export function validateMatrixInput(input: unknown): ValidationResult<ValidatedM
       return { success: true, data: result.data };
     }
 
-    const errors: ValidationError[] = result.error.errors.map(err => ({
+    const errors: ValidationError[] = result.error.issues.map(err => ({
       field: err.path.join('.'),
       message: err.message,
       code: err.code,
@@ -212,7 +260,7 @@ export function validateReportRequest(input: unknown): ValidationResult<Validate
       return { success: true, data: result.data };
     }
 
-    const errors: ValidationError[] = result.error.errors.map(err => ({
+    const errors: ValidationError[] = result.error.issues.map(err => ({
       field: err.path.join('.'),
       message: err.message,
       code: err.code,

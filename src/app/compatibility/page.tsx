@@ -132,7 +132,7 @@ export default function CompatPage() {
                     showCircleDropdown={showCircleDropdown === idx}
                     locale={locale}
                     t={t}
-                    onUpdatePerson={updatePerson}
+                    onUpdatePerson={updatePerson as (idx: number, field: string, value: any) => void}
                     onSetPersons={setPersons}
                     onPickCity={onPickCity}
                     onToggleCircleDropdown={() => setShowCircleDropdown(showCircleDropdown === idx ? null : idx)}
@@ -182,7 +182,7 @@ export default function CompatPage() {
             {isGroupResult && groupAnalysis && (
               <GroupAnalysisSection
                 groupAnalysis={groupAnalysis}
-                synergyBreakdown={synergyBreakdown}
+                synergyBreakdown={synergyBreakdown || undefined}
                 personCount={persons.length}
                 t={t}
               />

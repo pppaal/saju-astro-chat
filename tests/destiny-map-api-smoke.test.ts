@@ -19,6 +19,12 @@ vi.mock("@/lib/apiGuard", () => ({
   apiGuard: vi.fn(async () => null),
 }));
 
+vi.mock("@/lib/api/middleware", () => ({
+  initializeApiContext: vi.fn(async () => ({ context: {}, error: null })),
+  createAuthenticatedGuard: vi.fn(() => ({})),
+  createSimpleGuard: vi.fn(() => ({})),
+}));
+
 vi.mock("next-auth/next", () => ({
   getServerSession: vi.fn(async () => null),
 }));
