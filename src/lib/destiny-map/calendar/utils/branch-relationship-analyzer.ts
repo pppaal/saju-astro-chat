@@ -20,7 +20,9 @@ interface AnalyzeRelationshipInput {
   ganzhiBranch: string;
   dayMasterElement: string;
   relations: {
+    generates: string;
     generatedBy: string;
+    controls: string;
     controlledBy: string;
   };
   SAMHAP: Record<string, string[]>;

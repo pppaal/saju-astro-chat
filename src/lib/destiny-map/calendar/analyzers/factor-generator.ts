@@ -13,6 +13,10 @@ import {
   ELEMENT_RELATIONS,
   JIJANGGAN,
   STEM_TO_ELEMENT,
+  SAMHAP,
+  YUKHAP,
+  CHUNG,
+  XING,
 } from '../constants';
 import {
   getSipsin,
@@ -284,6 +288,10 @@ export function generateFactors(input: FactorGeneratorInput): FactorGeneratorRes
     ganzhiBranch: ganzhi.branch,
     dayMasterElement,
     relations,
+    SAMHAP,
+    YUKHAP,
+    CHUNG,
+    XING,
     currentTitleKey: titleKey,
   });
 

@@ -107,6 +107,26 @@ export function analyzeSaju(input: SajuAnalysisInput): SajuAnalysisResult {
   // 일진(日辰) 분석 - 일별 운세
   const iljinAnalysis = calculateIljinScore(dayMasterElement, dayMasterStem, dayBranch, ganzhiResult);
 
+  // ─────────────────────────────────────────────────────
+  // 특수 요소 체크
+  // ─────────────────────────────────────────────────────
+
+  const hasCheoneulGwiin = dayMasterStem ? isCheoneulGwiin(dayMasterStem, ganzhi.branch) : false;
+  const hasGeonrok = dayMasterStem ? isGeonrokDay(dayMasterStem, ganzhi.branch) : false;
+  const approxLunarDay = approximateLunarDay(date);
+  const hasSonEomneun = isSonEomneunDay(approxLunarDay);
+  const hasYeokma = sajuProfile.yearBranch ? isYeokmaDay(sajuProfile.yearBranch, ganzhi.branch) : false;
+  const hasDohwa = sajuProfile.yearBranch ? isDohwaDay(sajuProfile.yearBranch, ganzhi.branch) : false;
+
+  const yearGanzhi = getYearGanzhi(year);
+  const isSamjaeYearFlag = sajuProfile.yearBranch ? isSamjaeYear(sajuProfile.yearBranch, yearGanzhi.branch) : false;
+
+  // ─────────────────────────────────────────────────────
+  // 신살 분석
+  // ─────────────────────────────────────────────────────
+
+  const shinsalForScoring = analyzeShinsal(dayBranch || ganzhi.branch, ganzhi.branch);
+
   return {
     daeunAnalysis,
     seunAnalysis,
@@ -114,5 +134,15 @@ export function analyzeSaju(input: SajuAnalysisInput): SajuAnalysisResult {
     iljinAnalysis,
     yongsinAnalysis,
     geokgukAnalysis,
+    specialFactors: {
+      hasCheoneulGwiin,
+      hasGeonrok,
+      hasSonEomneun,
+      hasYeokma,
+      hasDohwa,
+      isSamjaeYear: isSamjaeYearFlag,
+      approxLunarDay,
+    },
+    shinsalForScoring,
   };
 }

@@ -194,8 +194,8 @@ export function analyzeDate(
 
   const sajuResult = analyzeSaju({
     dayMasterElement,
-    dayBranch,
-    dayMasterStem,
+    dayBranch: dayBranch || '',
+    dayMasterStem: dayMasterStem || '',
     sajuProfile,
     ganzhi: { stem: ganzhi.stem, branch: ganzhi.branch },
     year,
@@ -220,8 +220,8 @@ export function analyzeDate(
   // ─────────────────────────────────────────────────────
 
   const multiLayerResult = analyzeMultiLayer({
-    dayMasterStem,
-    dayBranch,
+    dayMasterStem: dayMasterStem || '',
+    dayBranch: dayBranch || '',
     sajuProfile,
     year,
     month,
@@ -234,7 +234,7 @@ export function analyzeDate(
   const branchInteractions: LegacyBranchInteraction[] = multiLayerResult.advancedBranchInteractions.map(bi => ({
     type: bi.type,
     impact: (bi.impact === 'transformative' ? 'neutral' : bi.impact) as 'positive' | 'negative' | 'neutral',
-    element: bi.element,
+    element: (bi as { element?: string }).element,
   }));
 
   const hasAnyGwiin = sajuResult.specialFactors.hasCheoneulGwiin || sajuResult.shinsalForScoring?.active?.some(
@@ -300,8 +300,8 @@ export function analyzeDate(
   const factors = generateFactors({
     ganzhi: ganzhiResult,
     dayMasterElement,
-    dayMasterStem,
-    dayBranch,
+    dayMasterStem: dayMasterStem || '',
+    dayBranch: dayBranch || '',
     yearBranch: sajuProfile.yearBranch,
     sajuResult: extendedSajuResult,
     astroResult,
@@ -367,8 +367,8 @@ export function analyzeDate(
     date,
     year,
     sajuProfile,
-    dayMasterStem,
-    dayBranch,
+    dayMasterStem: dayMasterStem || '',
+    dayBranch: dayBranch || '',
   });
 
   // ─────────────────────────────────────────────────────
