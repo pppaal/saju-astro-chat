@@ -97,7 +97,7 @@ jobs:
           NEXT_PUBLIC_VERSION: ${{ needs.validate.outputs.version }}
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: production-build
           path: |

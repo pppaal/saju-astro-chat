@@ -105,7 +105,7 @@ jobs:
 
       - name: Upload performance results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: performance-results-${{ github.sha }}
           path: |
@@ -189,7 +189,7 @@ jobs:
 
       - name: Upload endurance results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: endurance-results-${{ github.sha }}
           path: |
