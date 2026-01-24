@@ -366,6 +366,7 @@ export function findOptimalEventTiming(
           startDate: monthStart,
           endDate: monthEnd,
           score,
+          grade: 'D', // Low score periods get D grade
           reasons: avoidReasons,
         });
       }
@@ -376,8 +377,8 @@ export function findOptimalEventTiming(
   optimalPeriods.sort((a, b) => b.score - a.score);
   avoidPeriods.sort((a, b) => a.score - b.score);
 
-  // 다음 최적 시기
-  const futureOptimal = optimalPeriods.filter(p => p.startDate > currentDate);
+  // 다음 최적 시기 (endDate가 미래인 것 중 첫 번째)
+  const futureOptimal = optimalPeriods.filter(p => p.endDate > currentDate);
   const nextBestWindow = futureOptimal.length > 0 ? futureOptimal[0] : null;
 
   // 조언 생성
