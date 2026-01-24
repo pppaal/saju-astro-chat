@@ -21,8 +21,10 @@ import {
 } from "@/lib/metrics/index";
 import { logger } from "@/lib/logger";
 
-// Admin emails allowed to access metrics
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(",").map((e) => e.trim().toLowerCase()) || [];
+// Helper to get admin emails (dynamic for testing)
+function getAdminEmails(): string[] {
+  return process.env.ADMIN_EMAILS?.split(",").map((e) => e.trim().toLowerCase()) || [];
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -42,7 +44,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
     }
 
-    const isAdmin = ADMIN_EMAILS.includes(session.user.email.toLowerCase());
+    const isAdmin = getAdminEmails().includes(session.user.email.toLowerCase());
     if (!isAdmin) {
       logger.warn("[Metrics] Unauthorized access attempt", { email: session.user.email });
       return NextResponse.json({ error: "Forbidden" }, { status: 403, headers: limit.headers });

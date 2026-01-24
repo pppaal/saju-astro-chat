@@ -82,6 +82,10 @@ export const ASTRO_EVENT_CONDITIONS: Record<EventType, AstroEventConditions> = {
     beneficPlanets: ['Venus', 'Jupiter', 'Moon'],
     maleficPlanets: ['Saturn', 'Uranus'],
     moonPhaseBonus: { 'full_moon': 8, 'waxing_gibbous': 5, 'first_quarter': 3 },
+    favorableSigns: ['Libra', 'Taurus', 'Cancer', 'Pisces'],
+    keyPlanets: ['Venus', 'Jupiter', 'Moon'],
+    favorableHouses: [5, 7, 11],
+    avoidRetrogrades: ['Venus', 'Mars'],
   },
   career: {
     ...EVENT_FAVORABLE_CONDITIONS.career,
@@ -89,6 +93,10 @@ export const ASTRO_EVENT_CONDITIONS: Record<EventType, AstroEventConditions> = {
     beneficPlanets: ['Sun', 'Mars', 'Jupiter', 'Saturn'],
     maleficPlanets: ['Neptune'],
     moonPhaseBonus: { 'waxing_crescent': 6, 'first_quarter': 5, 'waxing_gibbous': 4 },
+    favorableSigns: ['Capricorn', 'Leo', 'Aries', 'Virgo'],
+    keyPlanets: ['Sun', 'Mars', 'Jupiter', 'Saturn'],
+    favorableHouses: [2, 6, 10],
+    avoidRetrogrades: ['Mercury', 'Saturn'],
   },
   investment: {
     ...EVENT_FAVORABLE_CONDITIONS.investment,
@@ -96,6 +104,10 @@ export const ASTRO_EVENT_CONDITIONS: Record<EventType, AstroEventConditions> = {
     beneficPlanets: ['Jupiter', 'Venus', 'Pluto'],
     maleficPlanets: ['Neptune', 'Uranus'],
     moonPhaseBonus: { 'new_moon': 7, 'waxing_crescent': 6, 'first_quarter': 4 },
+    favorableSigns: ['Taurus', 'Scorpio', 'Capricorn'],
+    keyPlanets: ['Jupiter', 'Venus', 'Pluto'],
+    favorableHouses: [2, 8, 11],
+    avoidRetrogrades: ['Mercury', 'Jupiter'],
   },
   move: {
     ...EVENT_FAVORABLE_CONDITIONS.move,
@@ -103,6 +115,10 @@ export const ASTRO_EVENT_CONDITIONS: Record<EventType, AstroEventConditions> = {
     beneficPlanets: ['Moon', 'Mercury', 'Jupiter'],
     maleficPlanets: ['Saturn'],
     moonPhaseBonus: { 'new_moon': 8, 'waxing_crescent': 6, 'waning_crescent': 4 },
+    favorableSigns: ['Cancer', 'Sagittarius', 'Gemini'],
+    keyPlanets: ['Moon', 'Mercury', 'Jupiter'],
+    favorableHouses: [4, 9, 12],
+    avoidRetrogrades: ['Mercury'],
   },
   study: {
     ...EVENT_FAVORABLE_CONDITIONS.study,
@@ -110,6 +126,10 @@ export const ASTRO_EVENT_CONDITIONS: Record<EventType, AstroEventConditions> = {
     beneficPlanets: ['Mercury', 'Jupiter', 'Uranus'],
     maleficPlanets: ['Neptune'],
     moonPhaseBonus: { 'waxing_crescent': 7, 'first_quarter': 5, 'waxing_gibbous': 4 },
+    favorableSigns: ['Gemini', 'Virgo', 'Sagittarius', 'Aquarius'],
+    keyPlanets: ['Mercury', 'Jupiter', 'Uranus'],
+    favorableHouses: [3, 9, 11],
+    avoidRetrogrades: ['Mercury'],
   },
   health: {
     ...EVENT_FAVORABLE_CONDITIONS.health,
@@ -117,6 +137,10 @@ export const ASTRO_EVENT_CONDITIONS: Record<EventType, AstroEventConditions> = {
     beneficPlanets: ['Sun', 'Mars', 'Jupiter'],
     maleficPlanets: ['Saturn', 'Neptune', 'Pluto'],
     moonPhaseBonus: { 'full_moon': 6, 'waxing_gibbous': 5, 'new_moon': 4 },
+    favorableSigns: ['Virgo', 'Scorpio', 'Aries'],
+    keyPlanets: ['Sun', 'Mars', 'Jupiter'],
+    favorableHouses: [1, 6, 12],
+    avoidRetrogrades: ['Mars', 'Saturn'],
   },
   relationship: {
     ...EVENT_FAVORABLE_CONDITIONS.relationship,
@@ -124,6 +148,10 @@ export const ASTRO_EVENT_CONDITIONS: Record<EventType, AstroEventConditions> = {
     beneficPlanets: ['Venus', 'Jupiter', 'Sun'],
     maleficPlanets: ['Saturn'],
     moonPhaseBonus: { 'full_moon': 7, 'waxing_gibbous': 5, 'first_quarter': 4 },
+    favorableSigns: ['Libra', 'Leo', 'Sagittarius', 'Aquarius'],
+    keyPlanets: ['Venus', 'Jupiter', 'Sun'],
+    favorableHouses: [7, 11, 5],
+    avoidRetrogrades: ['Venus'],
   },
 };
 

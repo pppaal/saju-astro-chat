@@ -46,6 +46,19 @@ vi.mock("@/lib/prediction/life-prediction/constants", () => ({
     "편인": 60,
     "정인": 75,
   },
+  BRANCH_CLASHES: {
+    "子": "午", "午": "子",
+    "丑": "未", "未": "丑",
+    "寅": "申", "申": "寅",
+    "卯": "酉", "酉": "卯",
+    "辰": "戌", "戌": "辰",
+    "巳": "亥", "亥": "巳",
+  },
+  BRANCH_PUNISHMENTS: {
+    "寅": "巳", "巳": "申", "申": "寅",
+    "丑": "戌", "戌": "未", "未": "丑",
+    "子": "卯", "卯": "子",
+  },
 }));
 
 import { analyzeMultiYearTrend } from "@/lib/prediction/life-prediction/multi-year";

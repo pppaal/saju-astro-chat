@@ -12,9 +12,31 @@ import {
   calculateIljinScore,
   analyzeYongsin,
   analyzeGeokguk,
+  getYearGanzhi,
   type YongsinAnalysis,
 } from '../temporal-scoring';
-import { getStemElement, getBranchElement } from '../utils';
+import {
+  getStemElement,
+  getBranchElement,
+  approximateLunarDay,
+  isCheoneulGwiin,
+  isDohwaDay,
+  isGeonrokDay,
+  isSamjaeYear,
+  isSonEomneunDay,
+  isYeokmaDay,
+} from '../utils';
+import { analyzeShinsal } from '@/lib/prediction/ultraPrecisionEngine';
+
+export interface SpecialFactors {
+  hasCheoneulGwiin: boolean;
+  hasGeonrok: boolean;
+  hasSonEomneun: boolean;
+  hasYeokma: boolean;
+  hasDohwa: boolean;
+  isSamjaeYear: boolean;
+  approxLunarDay: number;
+}
 
 export interface SajuAnalysisResult {
   daeunAnalysis: ReturnType<typeof calculateDaeunScore>;
@@ -23,6 +45,8 @@ export interface SajuAnalysisResult {
   iljinAnalysis: ReturnType<typeof calculateIljinScore>;
   yongsinAnalysis: YongsinAnalysis;
   geokgukAnalysis: ReturnType<typeof analyzeGeokguk>;
+  specialFactors: SpecialFactors;
+  shinsalForScoring: ReturnType<typeof analyzeShinsal>;
 }
 
 export interface SajuAnalysisInput {

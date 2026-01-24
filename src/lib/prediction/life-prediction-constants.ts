@@ -4,7 +4,6 @@
  */
 
 import { BRANCH_CLASHES, BRANCH_PUNISHMENTS } from './life-prediction/constants';
-import { MOON_PHASE_NAMES } from './life-prediction-astro';
 import {
   CHEONEL_MAP,
   YEOKMA_MAP,
@@ -39,7 +38,6 @@ export {
 } from './life-prediction/constants';
 
 export {
-  MOON_PHASE_NAMES,
   CHEONEL_MAP,
   YEOKMA_MAP,
   MUNCHANG_MAP,
@@ -49,6 +47,20 @@ export {
 
 export const CLASHES = BRANCH_CLASHES;
 export const PUNISHMENTS = BRANCH_PUNISHMENTS;
+
+/**
+ * Moon phase names (Korean)
+ */
+export const MOON_PHASE_NAMES: Record<string, string> = {
+  new_moon: '새달',
+  waxing_crescent: '초승달',
+  first_quarter: '상현달',
+  waxing_gibbous: '상현망',
+  full_moon: '보름달',
+  waning_gibbous: '하현망',
+  last_quarter: '하현달',
+  waning_crescent: '그믐달',
+};
 
 /**
  * Sibsin (Ten Gods) score mapping (0-100 scale)
@@ -110,10 +122,10 @@ export const EVENT_NAMES: Record<string, string> = EVENT_TYPE_NAMES_KO;
  * Used for weighting different time cycles in predictions
  */
 export const IMPORTANCE_WEIGHT = {
-  daeun: 0.30,  // 대운 (decade) - 30%
+  daeun: 0.25,  // 대운 (decade) - 25%
   seun: 0.35,   // 세운 (annual) - highest weight 35%
   wolun: 0.25,  // 월운 (monthly) - 25%
-  iljin: 0.10,  // 일진 (daily) - 10%
+  iljin: 0.15,  // 일진 (daily) - 15%
 } as const;
 
 /**

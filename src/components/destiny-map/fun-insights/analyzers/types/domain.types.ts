@@ -60,10 +60,36 @@ export interface CareerAdvancedResult {
   careerAdvancedMessage?: { ko: string; en: string };
   // Optional extended properties for legacy compatibility
   wealthPattern?: { ko: string; en: string; fusion?: MatrixFusion };
-  successTiming?: Array<{ period: string; score: number; description: { ko: string; en: string } }>;
-  careerProgression?: { phase: string; description: { ko: string; en: string } };
-  nobleHelp?: Array<{ type: string; description: { ko: string; en: string } }>;
-  fortunePoint?: { sign: string; house: number; description: { ko: string; en: string } };
+  successTiming?: Array<{
+    timing: string;
+    transit: string;
+    fusion: MatrixFusion;
+    advice: { ko: string; en: string };
+  }>;
+  careerProgression?: {
+    phase: string;
+    description: { ko: string; en: string };
+    fusion: MatrixFusion;
+    geokguk: string;
+    progression: string;
+    direction: { ko: string; en: string };
+  };
+  nobleHelp?: Array<{
+    type: string;
+    description: { ko: string; en: string };
+    fusion: MatrixFusion;
+    shinsal: string;
+    planet: string;
+    blessing: { ko: string; en: string };
+  }>;
+  fortunePoint?: {
+    sign: string;
+    house: number;
+    description: { ko: string; en: string };
+    fusion: MatrixFusion;
+    element: string;
+    luckyArea: { ko: string; en: string };
+  };
   midheaven?: { sign: string; element: string; fusion?: MatrixFusion; publicImage?: { ko: string; en: string } };
   geokgukCareer?: { geokguk: string; pattern: string; fusion?: MatrixFusion; careerDirection?: { ko: string; en: string } };
   houseCareerMap?: Array<{ house: number; planets: string[]; careerArea: { ko: string; en: string }; strength: string; icon: string }>;
@@ -78,9 +104,30 @@ export interface LoveTimingResult {
   // Optional extended properties for legacy compatibility
   timingScore?: number;
   timingMessage?: { ko: string; en: string };
-  romanticTiming?: Array<{ period: string; score: number; description: { ko: string; en: string } }>;
-  relationshipPattern?: Array<{ pattern: string; description: { ko: string; en: string } }>;
-  destinyMeeting?: { timing: string; description: { ko: string; en: string } };
+  romanticTiming?: Array<{
+    period: string;
+    score: number;
+    description: { ko: string; en: string };
+    timing: string;
+    transit: string;
+    fusion: MatrixFusion;
+    advice: { ko: string; en: string };
+  }>;
+  relationshipPattern?: Array<{
+    pattern: string;
+    description: { ko: string; en: string };
+    fusion: MatrixFusion;
+    relation: string;
+    aspect: string;
+    meaning: { ko: string; en: string };
+  }>;
+  destinyMeeting?: {
+    timing: string;
+    description: { ko: string; en: string };
+    fusion: MatrixFusion;
+    element: string;
+    prediction: { ko: string; en: string };
+  };
 }
 
 // Shadow Personality Analysis
