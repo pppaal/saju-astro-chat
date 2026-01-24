@@ -70,6 +70,13 @@ export default function PastLifeAnalyzer() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        if (response.status === 429) {
+          throw new Error(t('pastLife.errors.rateLimit', 'Too many requests. Please wait a moment and try again.'));
+        } else if (response.status === 400) {
+          throw new Error(errorData.error || t('pastLife.errors.validation', 'Invalid input. Please check your information.'));
+        } else if (response.status >= 500) {
+          throw new Error(t('pastLife.errors.server', 'Server error. Please try again later.'));
+        }
         throw new Error(errorData.error || t('pastLife.errors.generate', 'An error occurred. Please try again.'));
       }
 

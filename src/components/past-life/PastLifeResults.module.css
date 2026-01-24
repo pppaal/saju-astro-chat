@@ -87,6 +87,33 @@
   color: #a78bfa;
 }
 
+.scoreInterpretation {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.scoreRangeLabel {
+  display: inline-block;
+  background: linear-gradient(135deg, #a78bfa, #818cf8);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.scoreRangeDesc {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 350px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* Tab Navigation */
 .tabNav {
   display: flex;

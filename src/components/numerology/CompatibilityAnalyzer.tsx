@@ -19,251 +19,17 @@ import {
 import CompatibilityFunInsights from '@/components/compatibility/fun-insights/CompatibilityFunInsights';
 import styles from './CompatibilityAnalyzer.module.css';
 import { logger } from '@/lib/logger';
-import { SCORE_THRESHOLDS } from '@/constants/scoring';
 
-// 간단한 점성 프로필 계산 (클라이언트용)
-function calculateSimpleAstroProfile(birthDate: string, birthTime: string) {
-  const date = new Date(birthDate);
-  const month = date.getMonth();
-  const day = date.getDate();
-  const [hours] = (birthTime || '12:00').split(':').map(Number);
-
-  // 태양 별자리 계산
-  const getSunSign = (): string => {
-    if ((month === 2 && day >= 21) || (month === 3 && day <= 19)) return 'aries';
-    if ((month === 3 && day >= 20) || (month === 4 && day <= 20)) return 'taurus';
-    if ((month === 4 && day >= 21) || (month === 5 && day <= 20)) return 'gemini';
-    if ((month === 5 && day >= 21) || (month === 6 && day <= 22)) return 'cancer';
-    if ((month === 6 && day >= 23) || (month === 7 && day <= 22)) return 'leo';
-    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'virgo';
-    if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'libra';
-    if ((month === 9 && day >= 23) || (month === 10 && day <= 21)) return 'scorpio';
-    if ((month === 10 && day >= 22) || (month === 11 && day <= 21)) return 'sagittarius';
-    if ((month === 11 && day >= 22) || (month === 0 && day <= 19)) return 'capricorn';
-    if ((month === 0 && day >= 20) || (month === 1 && day <= 18)) return 'aquarius';
-    return 'pisces';
-  };
-
-  // 달 별자리 추정 (실제로는 출생 시간과 위치 기반 정밀 계산 필요)
-  const getMoonSign = (): string => {
-    // 간단한 추정: 태양 별자리에서 2-3칸 이동 (실제 계산 아님)
-    const signs = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
-                   'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
-    const sunIndex = signs.indexOf(getSunSign());
-    const offset = (day % 12); // 일자 기반 오프셋
-    return signs[(sunIndex + offset) % 12];
-  };
-
-  // 금성 별자리 추정 (태양에서 ±2칸 이내)
-  const getVenusSign = (): string => {
-    const signs = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
-                   'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
-    const sunIndex = signs.indexOf(getSunSign());
-    const offset = ((month + day) % 5) - 2;
-    return signs[(sunIndex + offset + 12) % 12];
-  };
-
-  // 화성 별자리 추정
-  const getMarsSign = (): string => {
-    const signs = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
-                   'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
-    const sunIndex = signs.indexOf(getSunSign());
-    const offset = (date.getFullYear() % 12);
-    return signs[(sunIndex + offset) % 12];
-  };
-
-  // 수성 별자리 추정 (태양에서 ±1칸 이내)
-  const getMercurySign = (): string => {
-    const signs = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
-                   'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
-    const sunIndex = signs.indexOf(getSunSign());
-    const offset = ((day % 3) - 1);
-    return signs[(sunIndex + offset + 12) % 12];
-  };
-
-  // 상승궁 추정 (출생 시간 기반)
-  const getAscendant = (): string => {
-    const signs = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
-                   'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
-    // 2시간마다 하나의 별자리 (대략적 추정)
-    const ascIndex = Math.floor(hours / 2) % 12;
-    const sunIndex = signs.indexOf(getSunSign());
-    return signs[(sunIndex + ascIndex) % 12];
-  };
-
-  const getElement = (sign: string): string => {
-    const elements: Record<string, string> = {
-      aries: 'fire', leo: 'fire', sagittarius: 'fire',
-      taurus: 'earth', virgo: 'earth', capricorn: 'earth',
-      gemini: 'air', libra: 'air', aquarius: 'air',
-      cancer: 'water', scorpio: 'water', pisces: 'water',
-    };
-    return elements[sign] || 'fire';
-  };
-
-  const sunSign = getSunSign();
-  const moonSign = getMoonSign();
-  const venusSign = getVenusSign();
-  const marsSign = getMarsSign();
-  const mercurySign = getMercurySign();
-  const ascendant = getAscendant();
-
-  return {
-    sun: { sign: sunSign, element: getElement(sunSign) },
-    moon: { sign: moonSign, element: getElement(moonSign) },
-    venus: { sign: venusSign, element: getElement(venusSign) },
-    mars: { sign: marsSign, element: getElement(marsSign) },
-    mercury: { sign: mercurySign, element: getElement(mercurySign) },
-    ascendant: { sign: ascendant, element: getElement(ascendant) },
-    // 외행성은 년도 기반 추정
-    jupiter: { sign: ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'][date.getFullYear() % 12], element: getElement(['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'][date.getFullYear() % 12]) },
-    saturn: { sign: ['capricorn', 'aquarius', 'pisces', 'aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius'][Math.floor(date.getFullYear() / 2.5) % 12], element: getElement(['capricorn', 'aquarius', 'pisces', 'aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius'][Math.floor(date.getFullYear() / 2.5) % 12]) },
-  };
-}
-
-interface Person {
-  birthDate: string;
-  birthTime: string;
-  name: string;
-  gender?: 'male' | 'female';
-}
-
-// Simple astrology profile type (compatible with CompatibilityFunInsights AstroRawData)
-interface SimpleAstroProfile {
-  sun: { sign: string; element: string };
-  moon: { sign: string; element: string };
-  venus: { sign: string; element: string };
-  mars: { sign: string; element: string };
-  mercury: { sign: string; element: string };
-  ascendant: { sign: string; element: string };
-  jupiter: { sign: string; element: string };
-  saturn: { sign: string; element: string };
-  [key: string]: unknown; // Index signature for compatibility
-}
-
-// Raw Saju data type (compatible with CompatibilityFunInsights SajuRawData)
-interface RawSajuData {
-  yearPillar?: { heavenlyStem?: string; earthlyBranch?: string };
-  monthPillar?: { heavenlyStem?: string; earthlyBranch?: string };
-  dayPillar?: { heavenlyStem?: string; earthlyBranch?: string };
-  timePillar?: { heavenlyStem?: string; earthlyBranch?: string };
-  fiveElements?: Record<string, number>;
-  dayMaster?: { name?: string; heavenlyStem?: string; element?: string };
-  [key: string]: unknown; // Index signature for compatibility
-}
-
-interface PairScore {
-  score: number;
-  saju_details?: string[];
-  astro_details?: string[];
-  fusion_insights?: string[];
-  element_harmony?: {
-    score: number;
-    details: string[];
-  };
-  branch_analysis?: {
-    samhap?: string[];
-    yukhap?: string[];
-    chung?: string[];
-  };
-}
-
-interface TimingAnalysis {
-  yearly?: {
-    score: number;
-    description: string;
-  };
-  monthly?: {
-    score: number;
-    description: string;
-  };
-  best_periods?: string[];
-  caution_periods?: string[];
-}
-
-// Frontend calculated analysis
-interface FrontendSajuAnalysis {
-  elementCompatibility: {
-    score: number;
-    harmony: string[];
-    conflict: string[];
-    complementary: string[];
-    analysis: string;
-  };
-  stemCompatibility: {
-    score: number;
-    hapPairs: Array<{ stem1: string; stem2: string; result: string }>;
-    chungPairs: Array<{ stem1: string; stem2: string }>;
-    analysis: string;
-  };
-  branchCompatibility: {
-    score: number;
-    yukhapPairs: Array<{ branch1: string; branch2: string; result: string }>;
-    samhapGroups: Array<{ branches: string[]; result: string }>;
-    chungPairs: Array<{ branch1: string; branch2: string }>;
-    analysis: string;
-  };
-  dayMasterRelation: {
-    person1DayMaster: string;
-    person2DayMaster: string;
-    relation: string;
-    sibsin: string;
-    dynamics: string;
-    score: number;
-  };
-  categoryScores: Array<{
-    category: string;
-    score: number;
-    strengths: string[];
-    challenges: string[];
-    advice: string;
-  }>;
-}
-
-interface CompatibilityResult {
-  // Basic
-  overall_score: number;
-  average?: number;
-  interpretation?: string;
-  aiInterpretation?: string;
-
-  // Advanced Saju/Astrology
-  pair_score?: PairScore;
-  timing?: TimingAnalysis;
-  action_items?: string[];
-  fusion_enabled?: boolean;
-
-  // Frontend calculated Saju analysis
-  frontendAnalysis?: FrontendSajuAnalysis;
-
-  // Raw Saju data for Fun Insights
-  person1SajuRaw?: RawSajuData;
-  person2SajuRaw?: RawSajuData;
-
-  // Raw Astrology data for Fun Insights
-  person1AstroRaw?: SimpleAstroProfile;
-  person2AstroRaw?: SimpleAstroProfile;
-
-  // Legacy numerology fields
-  level?: string;
-  description?: string;
-  life_path_comparison?: {
-    person1: number;
-    person2: number;
-    base_score: number;
-  };
-  expression_comparison?: {
-    person1: number;
-    person2: number;
-    score: number;
-  };
-  pairing_insight?: {
-    compatibility: string;
-    description: string;
-  };
-}
-
-type RelationshipType = 'lover' | 'spouse' | 'friend' | 'business' | 'family';
+// Extracted modules
+import type {
+  Person,
+  RawSajuData,
+  FrontendSajuAnalysis,
+  CompatibilityResult,
+  RelationshipType,
+} from './compatibility/types';
+import { calculateSimpleAstroProfile } from './compatibility/astroProfile';
+import { getScoreDescription, getScoreColor, getScoreEmoji, getGrade } from './compatibility/scoreHelpers';
 
 export default function CompatibilityAnalyzer() {
   const { t, locale } = useI18n();
@@ -301,8 +67,8 @@ export default function CompatibilityAnalyzer() {
       let frontendAnalysis: FrontendSajuAnalysis | undefined;
       let person1SajuRaw: RawSajuData | undefined;
       let person2SajuRaw: RawSajuData | undefined;
-      let person1AstroRaw: SimpleAstroProfile | undefined;
-      let person2AstroRaw: SimpleAstroProfile | undefined;
+      let person1AstroRaw = undefined;
+      let person2AstroRaw = undefined;
 
       try {
         // Calculate Astrology for both persons
@@ -356,7 +122,7 @@ export default function CompatibilityAnalyzer() {
         // Analyze by relationship category
         const categoryMap: Record<RelationshipType, CompatibilityCategory> = {
           lover: 'love',
-          spouse: 'love',  // Use 'love' for spouse as well
+          spouse: 'love',
           friend: 'friendship',
           business: 'business',
           family: 'family',
@@ -372,7 +138,6 @@ export default function CompatibilityAnalyzer() {
         };
       } catch (sajuErr) {
         logger.warn('[Compatibility] Frontend Saju calculation failed:', sajuErr);
-        // Continue with backend-only analysis
       }
 
       // ===== Backend API Call (GPT + Fusion) =====
@@ -426,7 +191,6 @@ export default function CompatibilityAnalyzer() {
            frontendAnalysis.dayMasterRelation.score * 0.2 +
            (frontendAnalysis.categoryScores[0]?.score || 70) * 0.15)
         );
-        // Blend backend (60%) and frontend (40%) scores
         combinedScore = Math.round(combinedScore * 0.6 + frontendScore * 0.4);
       }
 
@@ -445,8 +209,7 @@ export default function CompatibilityAnalyzer() {
         person2SajuRaw,
         person1AstroRaw,
         person2AstroRaw,
-        // Legacy fields for fallback UI
-        description: getScoreDescription(combinedScore),
+        description: getScoreDescription(combinedScore, locale),
       };
 
       setResult(transformedResult);
@@ -465,48 +228,6 @@ export default function CompatibilityAnalyzer() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getScoreDescription = (score: number): string => {
-    if (locale === 'ko') {
-      if (score >= 90) return '천생연분! 최상의 궁합입니다';
-      if (score >= SCORE_THRESHOLDS.EXCELLENT) return '매우 좋은 궁합입니다';
-      if (score >= SCORE_THRESHOLDS.GOOD) return '좋은 궁합입니다';
-      if (score >= SCORE_THRESHOLDS.AVERAGE) return '보통의 궁합입니다';
-      if (score >= 50) return '노력이 필요한 궁합입니다';
-      return '어려운 궁합이지만 극복 가능합니다';
-    }
-    if (score >= 90) return 'Perfect match! Exceptional compatibility';
-    if (score >= SCORE_THRESHOLDS.EXCELLENT) return 'Excellent compatibility';
-    if (score >= SCORE_THRESHOLDS.GOOD) return 'Good compatibility';
-    if (score >= SCORE_THRESHOLDS.AVERAGE) return 'Average compatibility';
-    if (score >= 50) return 'Compatibility requires effort';
-    return 'Challenging but possible with dedication';
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return '#4ade80';
-    if (score >= SCORE_THRESHOLDS.EXCELLENT) return '#60a5fa';
-    if (score >= SCORE_THRESHOLDS.GOOD) return '#fbbf24';
-    if (score >= SCORE_THRESHOLDS.AVERAGE) return '#fb923c';
-    return '#f87171';
-  };
-
-  const getScoreEmoji = (score: number) => {
-    if (score >= 90) return '💯';
-    if (score >= SCORE_THRESHOLDS.EXCELLENT) return '😍';
-    if (score >= SCORE_THRESHOLDS.GOOD) return '😊';
-    if (score >= SCORE_THRESHOLDS.AVERAGE) return '🙂';
-    return '😐';
-  };
-
-  const getGrade = (score: number): string => {
-    if (score >= 90) return 'S';
-    if (score >= SCORE_THRESHOLDS.EXCELLENT) return 'A';
-    if (score >= SCORE_THRESHOLDS.GOOD) return 'B';
-    if (score >= 60) return 'C';
-    if (score >= 50) return 'D';
-    return 'F';
   };
 
   return (

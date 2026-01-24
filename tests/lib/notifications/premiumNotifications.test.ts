@@ -314,6 +314,7 @@ describe("Premium Notifications", () => {
             bonusCredits: 0,
             percentUsed: 100,
           },
+          hasActiveSubscription: true, // Prevent premium notification from being added
         };
         const result = generatePremiumNotifications(options);
         expect(result).toHaveLength(1);

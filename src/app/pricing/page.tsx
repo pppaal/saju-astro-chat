@@ -5,13 +5,22 @@ import { useCallback, useState, useEffect } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
 import styles from "./pricing.module.css";
+import {
+  PLANS,
+  CREDIT_PACKS,
+  YEARLY_DISCOUNT_PERCENT,
+  YEARLY_DISCOUNT_MULTIPLIER,
+  type PlanType,
+  type CreditPackType,
+} from "@/lib/config/pricing";
+import { fetchWithRetry } from "@/lib/http";
 
 interface PlanFeature {
   textKey: string;
   included: boolean;
 }
 
-interface Plan {
+interface PlanDisplay {
   id: string;
   nameKey: string;
   price: number;
@@ -22,7 +31,7 @@ interface Plan {
   gradient: string;
 }
 
-interface CreditPack {
+interface CreditPackDisplay {
   id: string;
   nameKey: string;
   price: number;
@@ -34,123 +43,80 @@ interface CreditPack {
   popular?: boolean;
 }
 
-const plans: Plan[] = [
-  {
-    id: "free",
-    nameKey: "free",
-    price: 0,
-    priceEn: 0,
-    readings: 7,
-    features: [
-      { textKey: "aiChat7", included: true },
-      { textKey: "calendarThisMonth", included: true },
-      { textKey: "personalityFree", included: true },
-      { textKey: "calendar3months", included: false },
-      { textKey: "adFree", included: false },
-    ],
-    gradient: "linear-gradient(135deg, #3a3f5c 0%, #2a2f4c 100%)",
-  },
-  {
-    id: "starter",
-    nameKey: "starter",
-    price: 4900,
-    priceEn: 4.99,
-    readings: 25,
-    features: [
-      { textKey: "aiChat25", included: true },
-      { textKey: "calendar3months", included: true },
-      { textKey: "personalityFree", included: true },
-      { textKey: "adFree", included: true },
-      { textKey: "calendar1year", included: false },
-    ],
-    gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-  },
-  {
-    id: "pro",
-    nameKey: "pro",
-    price: 9900,
-    priceEn: 9.99,
-    readings: 80,
-    popular: true,
-    features: [
-      { textKey: "aiChat80", included: true },
-      { textKey: "calendar1year", included: true },
-      { textKey: "personalityFree", included: true },
-      { textKey: "adFree", included: true },
-      { textKey: "calendar2years", included: false },
-    ],
-    gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-  },
-  {
-    id: "premium",
-    nameKey: "premium",
-    price: 19900,
-    priceEn: 19.99,
-    readings: 150,
-    features: [
-      { textKey: "aiChat150", included: true },
-      { textKey: "calendar2years", included: true },
-      { textKey: "personalityFree", included: true },
-      { textKey: "adFree", included: true },
-      { textKey: "prioritySupport", included: true },
-    ],
-    gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-  },
-];
+// Plan display configuration derived from centralized pricing config
+const PLAN_GRADIENTS: Record<PlanType, string> = {
+  free: "linear-gradient(135deg, #3a3f5c 0%, #2a2f4c 100%)",
+  starter: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+  pro: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+  premium: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+};
 
-const creditPacks: CreditPack[] = [
-  {
-    id: "mini",
-    nameKey: "mini",
-    price: 1900,
-    priceEn: 1.99,
-    readings: 5,
-    perReading: "₩380",
-    perReadingEn: "$0.40",
-    gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
-  },
-  {
-    id: "standard",
-    nameKey: "standard",
-    price: 4900,
-    priceEn: 4.99,
-    readings: 15,
-    perReading: "₩327",
-    perReadingEn: "$0.33",
-    gradient: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
-  },
-  {
-    id: "plus",
-    nameKey: "plus",
-    price: 9900,
-    priceEn: 9.99,
-    readings: 40,
-    perReading: "₩248",
-    perReadingEn: "$0.25",
-    gradient: "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
-    popular: true,
-  },
-  {
-    id: "mega",
-    nameKey: "mega",
-    price: 19900,
-    priceEn: 19.99,
-    readings: 100,
-    perReading: "₩199",
-    perReadingEn: "$0.20",
-    gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-  },
-  {
-    id: "ultimate",
-    nameKey: "ultimate",
-    price: 39900,
-    priceEn: 39.99,
-    readings: 250,
-    perReading: "₩160",
-    perReadingEn: "$0.16",
-    gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-  },
-];
+const PLAN_FEATURES: Record<PlanType, PlanFeature[]> = {
+  free: [
+    { textKey: "aiChat7", included: true },
+    { textKey: "calendarThisMonth", included: true },
+    { textKey: "personalityFree", included: true },
+    { textKey: "calendar3months", included: false },
+    { textKey: "adFree", included: false },
+  ],
+  starter: [
+    { textKey: "aiChat25", included: true },
+    { textKey: "calendar3months", included: true },
+    { textKey: "personalityFree", included: true },
+    { textKey: "adFree", included: true },
+    { textKey: "calendar1year", included: false },
+  ],
+  pro: [
+    { textKey: "aiChat80", included: true },
+    { textKey: "calendar1year", included: true },
+    { textKey: "personalityFree", included: true },
+    { textKey: "adFree", included: true },
+    { textKey: "calendar2years", included: false },
+  ],
+  premium: [
+    { textKey: "aiChat200", included: true },
+    { textKey: "calendar2years", included: true },
+    { textKey: "personalityFree", included: true },
+    { textKey: "adFree", included: true },
+    { textKey: "prioritySupport", included: true },
+  ],
+};
+
+// Build plans array from centralized config
+const plans: PlanDisplay[] = (["free", "starter", "pro", "premium"] as PlanType[]).map((planId) => ({
+  id: planId,
+  nameKey: planId,
+  price: PLANS[planId].pricing.monthly.krw,
+  priceEn: PLANS[planId].pricing.monthly.usd,
+  readings: PLANS[planId].config.monthlyCredits,
+  features: PLAN_FEATURES[planId],
+  popular: planId === "pro",
+  gradient: PLAN_GRADIENTS[planId],
+}));
+
+// Credit pack display configuration
+const CREDIT_PACK_GRADIENTS: Record<CreditPackType, string> = {
+  mini: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+  standard: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
+  plus: "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
+  mega: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+  ultimate: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+};
+
+// Build credit packs array from centralized config
+const creditPacks: CreditPackDisplay[] = (["mini", "standard", "plus", "mega", "ultimate"] as CreditPackType[]).map(
+  (packId) => ({
+    id: packId,
+    nameKey: packId,
+    price: CREDIT_PACKS[packId].pricing.krw,
+    priceEn: CREDIT_PACKS[packId].pricing.usd,
+    readings: CREDIT_PACKS[packId].credits,
+    perReading: `₩${CREDIT_PACKS[packId].perCreditKrw}`,
+    perReadingEn: `$${CREDIT_PACKS[packId].perCreditUsd.toFixed(2)}`,
+    gradient: CREDIT_PACK_GRADIENTS[packId],
+    popular: CREDIT_PACKS[packId].popular,
+  })
+);
 
 const faqKeys = ["q1", "q2", "q3", "q4", "q5"];
 
@@ -159,6 +125,8 @@ export default function PricingPage() {
   const isKo = locale === "ko";
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [loadingCredit, setLoadingCredit] = useState<string | null>(null);
 
   // 결제 후 돌아갈 URL 저장 (referrer 또는 이전에 저장된 값 유지)
   useEffect(() => {
@@ -199,13 +167,13 @@ export default function PricingPage() {
     if (price === 0) return pt("free");
     if (isKo) {
       if (billingCycle === "yearly") {
-        const yearly = Math.floor(price * 10);
+        const yearly = Math.floor(price * YEARLY_DISCOUNT_MULTIPLIER);
         return `₩${yearly.toLocaleString()}`;
       }
       return `₩${price.toLocaleString()}`;
     }
     if (billingCycle === "yearly") {
-      const yearly = Math.floor(priceEn * 10 * 100) / 100;
+      const yearly = Math.floor(priceEn * YEARLY_DISCOUNT_MULTIPLIER * 100) / 100;
       return `$${yearly.toFixed(2)}`;
     }
     return `$${priceEn.toFixed(2)}`;
@@ -222,14 +190,18 @@ export default function PricingPage() {
       return;
     }
 
+    setLoadingPlan(planId);
     try {
-      const res = await fetch("/api/checkout", {
+      const res = await fetchWithRetry("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           plan: planId,
           billingCycle: billingCycle === "yearly" ? "yearly" : "monthly"
         }),
+      }, {
+        maxRetries: 2,
+        timeoutMs: 15000,
       });
       const data = await res.json();
       if (data.url) {
@@ -239,15 +211,21 @@ export default function PricingPage() {
       }
     } catch {
       alert(pt("paymentError"));
+    } finally {
+      setLoadingPlan(null);
     }
   }
 
   async function handleBuyCredit(packId: string) {
+    setLoadingCredit(packId);
     try {
-      const res = await fetch("/api/checkout", {
+      const res = await fetchWithRetry("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ creditPack: packId }),
+      }, {
+        maxRetries: 2,
+        timeoutMs: 15000,
       });
       const data = await res.json();
       if (data.url) {
@@ -257,6 +235,8 @@ export default function PricingPage() {
       }
     } catch {
       alert(pt("paymentError"));
+    } finally {
+      setLoadingCredit(null);
     }
   }
 
@@ -288,7 +268,7 @@ export default function PricingPage() {
               onClick={() => setBillingCycle("yearly")}
             >
               {pt("yearly")}
-              <span className={styles.discount}>-17%</span>
+              <span className={styles.discount}>-{YEARLY_DISCOUNT_PERCENT}%</span>
             </button>
           </div>
         </section>
@@ -337,8 +317,13 @@ export default function PricingPage() {
                     className={`${styles.ctaButton} ${plan.popular ? styles.ctaPopular : ""}`}
                     style={!plan.popular ? { background: plan.gradient } : {}}
                     onClick={() => handleSelectPlan(plan.id)}
+                    disabled={loadingPlan !== null}
                   >
-                    {plan.id === "free" ? pt("getStarted") : pt("subscribe")}
+                    {loadingPlan === plan.id
+                      ? "⏳"
+                      : plan.id === "free"
+                        ? pt("getStarted")
+                        : pt("subscribe")}
                   </button>
                 </div>
               </div>
@@ -355,8 +340,8 @@ export default function PricingPage() {
 
           <div className={styles.creditGrid}>
             {creditPacks.map((pack) => {
-              // Calculate discount percentage (base: mini pack ₩633/reading)
-              const basePrice = 633;
+              // Calculate discount percentage (base: mini pack rate)
+              const basePrice = CREDIT_PACKS.mini.perCreditKrw;
               const currentPrice = pack.price / pack.readings;
               const discountPercent = Math.round((1 - currentPrice / basePrice) * 100);
 
@@ -385,8 +370,9 @@ export default function PricingPage() {
                     <button
                       className={`${styles.creditButton} ${pack.popular ? styles.creditButtonPopular : ""}`}
                       onClick={() => handleBuyCredit(pack.id)}
+                      disabled={loadingCredit !== null}
                     >
-                      {pt("buyNow")}
+                      {loadingCredit === pack.id ? "⏳" : pt("buyNow")}
                     </button>
                   </div>
                 </div>
@@ -425,22 +411,50 @@ export default function PricingPage() {
             <h2 className={styles.sectionTitle}>{pt("faq")}</h2>
           </div>
 
-          <div className={styles.faqList}>
-            {faqKeys.map((key, idx) => (
-              <div
-                key={idx}
-                className={`${styles.faqItem} ${openFaq === idx ? styles.open : ""}`}
-                onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-              >
-                <div className={styles.faqQuestion}>
-                  <span>{pt(`faqs.${key}`)}</span>
-                  <span className={styles.faqArrow}>{openFaq === idx ? "−" : "+"}</span>
+          <div className={styles.faqList} role="list">
+            {faqKeys.map((key, idx) => {
+              const isOpen = openFaq === idx;
+              const questionId = `faq-question-${idx}`;
+              const answerId = `faq-answer-${idx}`;
+
+              return (
+                <div
+                  key={idx}
+                  className={`${styles.faqItem} ${isOpen ? styles.open : ""}`}
+                  role="listitem"
+                >
+                  <button
+                    id={questionId}
+                    className={styles.faqQuestion}
+                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setOpenFaq(isOpen ? null : idx);
+                      }
+                    }}
+                    aria-expanded={isOpen}
+                    aria-controls={answerId}
+                    type="button"
+                  >
+                    <span>{pt(`faqs.${key}`)}</span>
+                    <span className={styles.faqArrow} aria-hidden="true">
+                      {isOpen ? "−" : "+"}
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div
+                      id={answerId}
+                      className={styles.faqAnswer}
+                      role="region"
+                      aria-labelledby={questionId}
+                    >
+                      {pt(`faqs.a${key.slice(1)}`)}
+                    </div>
+                  )}
                 </div>
-                {openFaq === idx && (
-                  <div className={styles.faqAnswer}>{pt(`faqs.a${key.slice(1)}`)}</div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 

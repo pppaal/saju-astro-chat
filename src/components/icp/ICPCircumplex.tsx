@@ -16,15 +16,17 @@ interface ICPCircumplexProps {
   affiliationScore?: number;
 }
 
+// 표준 ICP 모델: 상단=지배(PA), 하단=복종(HI), 우측=친밀(LM), 좌측=적대(DE)
+// 시계방향: PA(90°) → NO(45°) → LM(0°) → JK(-45°) → HI(-90°) → FG(-135°) → DE(180°) → BC(135°)
 const OCTANT_POSITIONS: Record<string, { angle: number; label: string; korean: string }> = {
   PA: { angle: 90, label: 'Dominant', korean: '지배적' },
-  BC: { angle: 45, label: 'Competitive', korean: '경쟁적' },
-  DE: { angle: 0, label: 'Cold', korean: '냉담' },
-  FG: { angle: -45, label: 'Introverted', korean: '내향적' },
+  NO: { angle: 45, label: 'Nurturant', korean: '양육적' },
+  LM: { angle: 0, label: 'Warm', korean: '따뜻함' },
+  JK: { angle: -45, label: 'Agreeable', korean: '동조적' },
   HI: { angle: -90, label: 'Submissive', korean: '복종적' },
-  JK: { angle: -135, label: 'Agreeable', korean: '동조적' },
-  LM: { angle: 180, label: 'Warm', korean: '따뜻함' },
-  NO: { angle: 135, label: 'Nurturant', korean: '양육적' },
+  FG: { angle: -135, label: 'Introverted', korean: '내향적' },
+  DE: { angle: 180, label: 'Cold', korean: '냉담' },
+  BC: { angle: 135, label: 'Competitive', korean: '경쟁적' },
 };
 
 export default function ICPCircumplex({
@@ -55,9 +57,23 @@ export default function ICPCircumplex({
     })
     .join(' ');
 
+  // Generate accessible description
+  const primaryLabel = OCTANT_POSITIONS[primaryStyle]?.korean || primaryStyle;
+  const secondaryLabel = secondaryStyle ? OCTANT_POSITIONS[secondaryStyle]?.korean : null;
+  const accessibleDescription = secondaryLabel
+    ? `ICP 대인관계 원형 차트. 주요 스타일: ${primaryLabel} (${primaryStyle}), 부가 스타일: ${secondaryLabel} (${secondaryStyle})`
+    : `ICP 대인관계 원형 차트. 주요 스타일: ${primaryLabel} (${primaryStyle})`;
+
   return (
-    <div className={styles.container}>
-      <svg viewBox={`0 0 ${size} ${size}`} className={styles.svg}>
+    <div className={styles.container} role="img" aria-label={accessibleDescription}>
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        className={styles.svg}
+        aria-hidden="true"
+        focusable="false"
+      >
+        <title>ICP Interpersonal Circumplex</title>
+        <desc>{accessibleDescription}</desc>
         {/* Background circles */}
         <circle cx={center} cy={center} r={radius} className={styles.circleOuter} />
         <circle cx={center} cy={center} r={radius * 0.66} className={styles.circleMiddle} />
@@ -67,7 +83,7 @@ export default function ICPCircumplex({
         <line x1={center - radius - 10} y1={center} x2={center + radius + 10} y2={center} className={styles.axis} />
         <line x1={center} y1={center - radius - 10} x2={center} y2={center + radius + 10} className={styles.axis} />
 
-        {/* Axis labels */}
+        {/* Axis labels - 표준 ICP: 우측=친밀(Affiliation+), 좌측=적대(Affiliation-) */}
         <text x={center + radius + 15} y={center + 4} className={styles.axisLabel}>친밀</text>
         <text x={center - radius - 35} y={center + 4} className={styles.axisLabel}>적대</text>
         <text x={center} y={center - radius - 15} className={styles.axisLabel} textAnchor="middle">지배</text>

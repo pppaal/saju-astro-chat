@@ -1,397 +1,664 @@
 /**
- * Tests for chartDataCache.ts
- * Chart data caching utility for Saju and Astrology calculations
+ * Chart Data Cache 테스트
+ * - 캐시 저장/로드
+ * - 캐시 만료
+ * - birthKey 검증
+ * - 레거시 호환
  */
 
-import { vi, beforeEach } from "vitest";
+import { vi, beforeEach, afterEach } from "vitest";
 
-// Mock sessionStorage
-const mockSessionStorage: Record<string, string> = {};
+// SessionStorage mock
+let storageData: Record<string, string> = {};
+
 const sessionStorageMock = {
-  getItem: vi.fn((key: string) => mockSessionStorage[key] || null),
+  getItem: vi.fn((key: string) => storageData[key] || null),
   setItem: vi.fn((key: string, value: string) => {
-    mockSessionStorage[key] = value;
+    storageData[key] = value;
   }),
   removeItem: vi.fn((key: string) => {
-    delete mockSessionStorage[key];
+    delete storageData[key];
   }),
   clear: vi.fn(() => {
-    Object.keys(mockSessionStorage).forEach((key) => delete mockSessionStorage[key]);
+    storageData = {};
   }),
-  length: 0,
-  key: vi.fn(),
+  get length() {
+    return Object.keys(storageData).length;
+  },
+  key: vi.fn((index: number) => Object.keys(storageData)[index] || null),
 };
 
-vi.stubGlobal("sessionStorage", sessionStorageMock);
+// Mock sessionStorage globally
+Object.defineProperty(global, "sessionStorage", {
+  value: sessionStorageMock,
+  writable: true,
+});
 
-// Mock logger
 vi.mock("@/lib/logger", () => ({
   logger: {
     warn: vi.fn(),
-    info: vi.fn(),
     error: vi.fn(),
+    info: vi.fn(),
     debug: vi.fn(),
   },
 }));
 
+// Import after mocking
+import {
+  saveChartData,
+  loadChartData,
+  loadCurrentChartData,
+  clearChartCache,
+  hasCachedData,
+} from "@/lib/chartDataCache";
+
 describe("chartDataCache", () => {
-  const testBirthDate = "1990-05-15";
-  const testBirthTime = "14:30";
-  const testLatitude = 37.5665;
-  const testLongitude = 126.978;
-
-  const testSajuData = {
-    dayMaster: { name: "갑", element: "목" },
-    yearPillar: { heavenlyStem: "경", earthlyBranch: "오" },
-  };
-
-  const testAstroData = {
-    sun: { sign: "Taurus", degree: 24 },
-    moon: { sign: "Leo", degree: 15 },
-  };
-
   beforeEach(() => {
-    vi.resetModules();
     sessionStorageMock.clear();
-    Object.keys(mockSessionStorage).forEach((key) => delete mockSessionStorage[key]);
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe("saveChartData", () => {
-    it("saves saju data to sessionStorage", async () => {
-      const { saveChartData } = await import("@/lib/chartDataCache");
-
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        saju: testSajuData,
+    it("saves data to sessionStorage", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { pillars: {} },
       });
 
       expect(sessionStorageMock.setItem).toHaveBeenCalled();
-
-      // Verify data was stored
-      const storedKey = Object.keys(mockSessionStorage).find((k) =>
-        k.startsWith("destinyChartData_")
-      );
-      expect(storedKey).toBeDefined();
-
-      const stored = JSON.parse(mockSessionStorage[storedKey!]);
-      expect(stored.saju).toEqual(testSajuData);
-      expect(stored.timestamp).toBeDefined();
-      expect(stored.birthKey).toBeDefined();
     });
 
-    it("saves astro data to sessionStorage", async () => {
-      const { saveChartData } = await import("@/lib/chartDataCache");
-
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        astro: testAstroData,
+    it("saves with correct key format", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { pillars: {} },
       });
 
-      const storedKey = Object.keys(mockSessionStorage).find((k) =>
-        k.startsWith("destinyChartData_")
-      );
-      const stored = JSON.parse(mockSessionStorage[storedKey!]);
-      expect(stored.astro).toEqual(testAstroData);
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const cacheKey = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
+      expect(cacheKey).toBeTruthy();
+      expect(cacheKey?.[0]).toContain("1990-01-15");
+      expect(cacheKey?.[0]).toContain("14:30");
     });
 
-    it("saves both saju and astro data together", async () => {
-      const { saveChartData } = await import("@/lib/chartDataCache");
+    it("includes timestamp in saved data", () => {
+      const now = new Date("2024-01-15T12:00:00Z").getTime();
+      vi.setSystemTime(now);
 
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        saju: testSajuData,
-        astro: testAstroData,
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
       });
 
-      const storedKey = Object.keys(mockSessionStorage).find((k) =>
-        k.startsWith("destinyChartData_")
-      );
-      const stored = JSON.parse(mockSessionStorage[storedKey!]);
-      expect(stored.saju).toEqual(testSajuData);
-      expect(stored.astro).toEqual(testAstroData);
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
+      const savedData = JSON.parse(dataCall?.[1] || "{}");
+
+      expect(savedData.timestamp).toBe(now);
     });
 
-    it("stores current cache key index", async () => {
-      const { saveChartData } = await import("@/lib/chartDataCache");
-
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        saju: testSajuData,
+    it("includes birthKey in saved data", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
       });
 
-      expect(mockSessionStorage["destinyChartDataKey"]).toBeDefined();
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
+      const savedData = JSON.parse(dataCall?.[1] || "{}");
+
+      expect(savedData.birthKey).toContain("1990-01-15");
+      expect(savedData.birthKey).toContain("14:30");
+      expect(savedData.birthKey).toContain("37.5665");
+      expect(savedData.birthKey).toContain("126.9780");
     });
 
-    it("generates unique birth key based on birth data", async () => {
-      const { saveChartData } = await import("@/lib/chartDataCache");
-
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        saju: testSajuData,
+    it("saves saju data", () => {
+      const sajuData = { pillars: { year: "甲子" } };
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: sajuData,
       });
 
-      const storedKey = Object.keys(mockSessionStorage).find((k) =>
-        k.startsWith("destinyChartData_")
-      );
-      const stored = JSON.parse(mockSessionStorage[storedKey!]);
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
+      const savedData = JSON.parse(dataCall?.[1] || "{}");
 
-      expect(stored.birthKey).toBe(
-        `${testBirthDate}_${testBirthTime}_${testLatitude.toFixed(4)}_${testLongitude.toFixed(4)}`
-      );
+      expect(savedData.saju).toEqual(sajuData);
     });
 
-    it("handles sessionStorage errors gracefully", async () => {
-      const { logger } = await import("@/lib/logger");
-      sessionStorageMock.setItem.mockImplementationOnce(() => {
-        throw new Error("Storage full");
+    it("saves astro data", () => {
+      const astroData = { planets: { sun: 280 } };
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        astro: astroData,
       });
 
-      const { saveChartData } = await import("@/lib/chartDataCache");
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
+      const savedData = JSON.parse(dataCall?.[1] || "{}");
 
-      // Should not throw
-      expect(() =>
-        saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-          saju: testSajuData,
-        })
-      ).not.toThrow();
+      expect(savedData.astro).toEqual(astroData);
+    });
 
-      expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringMatching(/Failed to (save cache|manage cache keys)/),
-        expect.any(Error)
+    it("saves advancedAstro data", () => {
+      const advancedData = { aspects: [] };
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        advancedAstro: advancedData,
+      });
+
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
+      const savedData = JSON.parse(dataCall?.[1] || "{}");
+
+      expect(savedData.advancedAstro).toEqual(advancedData);
+    });
+
+    it("updates cache key index", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
+      });
+
+      const indexCall = sessionStorageMock.setItem.mock.calls.find(
+        (c: string[]) => c[0] === "destinyChartDataKey"
       );
+      expect(indexCall).toBeTruthy();
     });
   });
 
   describe("loadChartData", () => {
-    it("loads cached data for matching birth data", async () => {
-      const { saveChartData, loadChartData } = await import("@/lib/chartDataCache");
-
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        saju: testSajuData,
-        astro: testAstroData,
-      });
-
-      const loaded = loadChartData(testBirthDate, testBirthTime, testLatitude, testLongitude);
-
-      expect(loaded).not.toBeNull();
-      expect(loaded!.saju).toEqual(testSajuData);
-      expect(loaded!.astro).toEqual(testAstroData);
+    it("returns null when no cache exists", () => {
+      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+      expect(result).toBeNull();
     });
 
-    it("returns null for non-existent cache", async () => {
-      const { loadChartData } = await import("@/lib/chartDataCache");
-
-      const loaded = loadChartData(testBirthDate, testBirthTime, testLatitude, testLongitude);
-
-      expect(loaded).toBeNull();
-    });
-
-    it("returns null for different birth data", async () => {
-      const { saveChartData, loadChartData } = await import("@/lib/chartDataCache");
-
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        saju: testSajuData,
+    it("returns cached data when valid", () => {
+      // Save first
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { pillars: {} },
+        astro: { planets: {} },
       });
 
-      // Try to load with different birth date
-      const loaded = loadChartData("1995-01-01", testBirthTime, testLatitude, testLongitude);
+      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
 
-      expect(loaded).toBeNull();
+      expect(result).not.toBeNull();
+      expect(result?.saju).toBeDefined();
+      expect(result?.astro).toBeDefined();
     });
 
-    it("returns null for expired cache", async () => {
-      const { saveChartData, loadChartData } = await import("@/lib/chartDataCache");
+    it("returns null for expired cache", () => {
+      const now = new Date("2024-01-15T12:00:00Z").getTime();
+      vi.setSystemTime(now);
 
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        saju: testSajuData,
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
       });
 
-      // Manually expire the cache
-      const storedKey = Object.keys(mockSessionStorage).find((k) =>
-        k.startsWith("destinyChartData_")
+      // Advance time by more than 1 hour (cache duration)
+      vi.advanceTimersByTime(3600001); // 1 hour + 1ms
+
+      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+
+      expect(result).toBeNull();
+    });
+
+    it("returns null when birthKey does not match", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
+      });
+
+      // Try to load with different coordinates
+      const result = loadChartData("1990-01-15", "14:30", 35.0, 127.0);
+
+      expect(result).toBeNull();
+    });
+
+    it("returns null when birthDate does not match", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
+      });
+
+      const result = loadChartData("1990-01-16", "14:30", 37.5665, 126.978);
+
+      expect(result).toBeNull();
+    });
+
+    it("returns null when birthTime does not match", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
+      });
+
+      const result = loadChartData("1990-01-15", "15:00", 37.5665, 126.978);
+
+      expect(result).toBeNull();
+    });
+
+    it("returns null when neither saju nor astro data exists", () => {
+      // Manually set invalid cache
+      const cacheKey = "destinyChartData_1990-01-15_14:30";
+      sessionStorageMock.setItem(
+        cacheKey,
+        JSON.stringify({
+          timestamp: Date.now(),
+          birthKey: "1990-01-15_14:30_37.5665_126.9780",
+        })
       );
-      const stored = JSON.parse(mockSessionStorage[storedKey!]);
-      stored.timestamp = Date.now() - 3600001; // Just over 1 hour
-      mockSessionStorage[storedKey!] = JSON.stringify(stored);
 
-      const loaded = loadChartData(testBirthDate, testBirthTime, testLatitude, testLongitude);
+      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
 
-      expect(loaded).toBeNull();
-    });
-
-    it("loads from legacy cache key as fallback", async () => {
-      const { loadChartData } = await import("@/lib/chartDataCache");
-
-      // Store in legacy format
-      const legacyData = {
-        saju: testSajuData,
-        astro: testAstroData,
-        timestamp: Date.now(),
-        birthKey: `${testBirthDate}_${testBirthTime}_${testLatitude.toFixed(4)}_${testLongitude.toFixed(4)}`,
-      };
-      mockSessionStorage["destinyChartData"] = JSON.stringify(legacyData);
-
-      const loaded = loadChartData(testBirthDate, testBirthTime, testLatitude, testLongitude);
-
-      expect(loaded).not.toBeNull();
-      expect(loaded!.saju).toEqual(testSajuData);
-    });
-
-    it("returns null for invalid cache data", async () => {
-      const { loadChartData } = await import("@/lib/chartDataCache");
-
-      // Store invalid JSON
-      mockSessionStorage[`destinyChartData_${testBirthDate}_${testBirthTime}`] = "invalid json";
-
-      const loaded = loadChartData(testBirthDate, testBirthTime, testLatitude, testLongitude);
-
-      expect(loaded).toBeNull();
-    });
-
-    it("returns null when cache has no saju or astro data", async () => {
-      const { loadChartData } = await import("@/lib/chartDataCache");
-
-      const emptyData = {
-        timestamp: Date.now(),
-        birthKey: `${testBirthDate}_${testBirthTime}_${testLatitude.toFixed(4)}_${testLongitude.toFixed(4)}`,
-      };
-      mockSessionStorage[`destinyChartData_${testBirthDate}_${testBirthTime}`] = JSON.stringify(emptyData);
-
-      const loaded = loadChartData(testBirthDate, testBirthTime, testLatitude, testLongitude);
-
-      expect(loaded).toBeNull();
+      expect(result).toBeNull();
     });
   });
 
   describe("loadCurrentChartData", () => {
-    it("loads most recent cached data without validation", async () => {
-      const { saveChartData, loadCurrentChartData } = await import("@/lib/chartDataCache");
-
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        saju: testSajuData,
-        astro: testAstroData,
-      });
-
-      const loaded = loadCurrentChartData();
-
-      expect(loaded).not.toBeNull();
-      expect(loaded!.saju).toEqual(testSajuData);
-      expect(loaded!.astro).toEqual(testAstroData);
+    it("returns null when no cache exists", () => {
+      const result = loadCurrentChartData();
+      expect(result).toBeNull();
     });
 
-    it("returns null when no cache exists", async () => {
-      const { loadCurrentChartData } = await import("@/lib/chartDataCache");
-
-      const loaded = loadCurrentChartData();
-
-      expect(loaded).toBeNull();
-    });
-
-    it("returns null for expired cache", async () => {
-      const { saveChartData, loadCurrentChartData } = await import("@/lib/chartDataCache");
-
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        saju: testSajuData,
+    it("returns current cached data without birthKey validation", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { pillars: {} },
       });
 
-      // Manually expire the cache
-      const currentKey = mockSessionStorage["destinyChartDataKey"];
-      const stored = JSON.parse(mockSessionStorage[currentKey]);
-      stored.timestamp = Date.now() - 3600001;
-      mockSessionStorage[currentKey] = JSON.stringify(stored);
+      const result = loadCurrentChartData();
 
-      const loaded = loadCurrentChartData();
+      expect(result).not.toBeNull();
+      expect(result?.saju).toBeDefined();
+    });
 
-      expect(loaded).toBeNull();
+    it("returns null for expired cache", () => {
+      const now = new Date("2024-01-15T12:00:00Z").getTime();
+      vi.setSystemTime(now);
+
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
+      });
+
+      vi.advanceTimersByTime(3600001);
+
+      const result = loadCurrentChartData();
+
+      expect(result).toBeNull();
     });
   });
 
   describe("clearChartCache", () => {
-    it("clears all cache entries", async () => {
-      const { saveChartData, clearChartCache, loadChartData } = await import("@/lib/chartDataCache");
-
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        saju: testSajuData,
+    it("removes cache data", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
       });
 
       clearChartCache();
 
-      const loaded = loadChartData(testBirthDate, testBirthTime, testLatitude, testLongitude);
-      expect(loaded).toBeNull();
+      expect(sessionStorageMock.removeItem).toHaveBeenCalled();
     });
 
-    it("removes cache key index", async () => {
-      const { saveChartData, clearChartCache } = await import("@/lib/chartDataCache");
-
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        saju: testSajuData,
+    it("removes cache key index", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
       });
 
       clearChartCache();
 
-      expect(mockSessionStorage["destinyChartDataKey"]).toBeUndefined();
+      const indexRemoveCall = sessionStorageMock.removeItem.mock.calls.find(
+        (c: string[]) => c[0] === "destinyChartDataKey"
+      );
+      expect(indexRemoveCall).toBeTruthy();
     });
 
-    it("removes legacy cache key", async () => {
-      const { clearChartCache } = await import("@/lib/chartDataCache");
-
-      mockSessionStorage["destinyChartData"] = JSON.stringify({ test: true });
+    it("removes legacy cache key", () => {
+      sessionStorageMock.setItem("destinyChartData", JSON.stringify({ test: true }));
 
       clearChartCache();
 
-      expect(mockSessionStorage["destinyChartData"]).toBeUndefined();
-    });
-
-    it("handles errors gracefully", async () => {
-      sessionStorageMock.removeItem.mockImplementationOnce(() => {
-        throw new Error("Storage error");
-      });
-
-      const { clearChartCache } = await import("@/lib/chartDataCache");
-
-      // Should not throw
-      expect(() => clearChartCache()).not.toThrow();
+      const legacyRemoveCall = sessionStorageMock.removeItem.mock.calls.find(
+        (c: string[]) => c[0] === "destinyChartData"
+      );
+      expect(legacyRemoveCall).toBeTruthy();
     });
   });
 
   describe("hasCachedData", () => {
-    it("returns true when valid cache exists", async () => {
-      const { saveChartData, hasCachedData } = await import("@/lib/chartDataCache");
-
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        saju: testSajuData,
-      });
-
-      const exists = hasCachedData(testBirthDate, testBirthTime, testLatitude, testLongitude);
-
-      expect(exists).toBe(true);
+    it("returns false when no cache exists", () => {
+      const result = hasCachedData("1990-01-15", "14:30", 37.5665, 126.978);
+      expect(result).toBe(false);
     });
 
-    it("returns false when no cache exists", async () => {
-      const { hasCachedData } = await import("@/lib/chartDataCache");
-
-      const exists = hasCachedData(testBirthDate, testBirthTime, testLatitude, testLongitude);
-
-      expect(exists).toBe(false);
-    });
-
-    it("returns false for different birth data", async () => {
-      const { saveChartData, hasCachedData } = await import("@/lib/chartDataCache");
-
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        saju: testSajuData,
+    it("returns true when valid saju cache exists", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { pillars: {} },
       });
 
-      const exists = hasCachedData("2000-01-01", testBirthTime, testLatitude, testLongitude);
+      const result = hasCachedData("1990-01-15", "14:30", 37.5665, 126.978);
 
-      expect(exists).toBe(false);
+      expect(result).toBe(true);
     });
 
-    it("returns true when only astro data exists", async () => {
-      const { saveChartData, hasCachedData } = await import("@/lib/chartDataCache");
-
-      saveChartData(testBirthDate, testBirthTime, testLatitude, testLongitude, {
-        astro: testAstroData,
+    it("returns true when valid astro cache exists", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        astro: { planets: {} },
       });
 
-      const exists = hasCachedData(testBirthDate, testBirthTime, testLatitude, testLongitude);
+      const result = hasCachedData("1990-01-15", "14:30", 37.5665, 126.978);
 
-      expect(exists).toBe(true);
+      expect(result).toBe(true);
+    });
+
+    it("returns false when cache is expired", () => {
+      const now = new Date("2024-01-15T12:00:00Z").getTime();
+      vi.setSystemTime(now);
+
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
+      });
+
+      vi.advanceTimersByTime(3600001);
+
+      const result = hasCachedData("1990-01-15", "14:30", 37.5665, 126.978);
+
+      expect(result).toBe(false);
+    });
+
+    it("returns false when birthKey does not match", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
+      });
+
+      const result = hasCachedData("1990-01-15", "14:30", 35.0, 127.0);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("birthKey generation", () => {
+    it("generates consistent birthKey for same input", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
+      });
+
+      // Load with same coordinates
+      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+
+      expect(result).not.toBeNull();
+    });
+
+    it("truncates coordinates to 4 decimal places", () => {
+      // Save with high precision
+      saveChartData("1990-01-15", "14:30", 37.56654321, 126.97876543, {
+        saju: { test: true },
+      });
+
+      // Load with same truncated precision
+      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.9788);
+
+      expect(result).not.toBeNull();
+    });
+  });
+
+  describe("legacy cache compatibility", () => {
+    it("falls back to legacy cache key when new key not found", () => {
+      // Set legacy cache
+      const legacyData = {
+        saju: { pillars: {} },
+        timestamp: Date.now(),
+        birthKey: "1990-01-15_14:30_37.5665_126.9780",
+      };
+      sessionStorageMock.setItem("destinyChartData", JSON.stringify(legacyData));
+
+      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+
+      expect(result).not.toBeNull();
+      expect(result?.saju).toBeDefined();
+    });
+  });
+
+  describe("cache performance and edge cases", () => {
+    beforeEach(() => {
+      storageData = {};
+      vi.clearAllMocks();
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("handles rapid save/load cycles", () => {
+      // Rapidly save and load
+      for (let i = 0; i < 10; i++) {
+        saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+          saju: { iteration: i },
+        });
+
+        const loaded = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+        expect(loaded).not.toBeNull();
+      }
+    });
+
+    it("handles large data objects", () => {
+      const largeData = {
+        saju: { data: "x".repeat(10000) },
+        astro: { data: "y".repeat(10000) },
+      };
+
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, largeData);
+      const loaded = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+
+      expect(loaded?.saju).toEqual(largeData.saju);
+      expect(loaded?.astro).toEqual(largeData.astro);
+    });
+
+    it("handles cache at exact expiry time", () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
+      });
+
+      // Exactly 1 hour later
+      vi.setSystemTime(now + 3600000);
+      const atExpiry = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+      expect(atExpiry).not.toBeNull();
+
+      // 1ms after expiry
+      vi.setSystemTime(now + 3600001);
+      const afterExpiry = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+      expect(afterExpiry).toBeNull();
+    });
+
+    it("handles missing advancedAstro gracefully", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { test: true },
+      });
+
+      const loaded = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+      expect(loaded?.saju).toBeDefined();
+      expect(loaded?.advancedAstro).toBeUndefined();
+    });
+
+    it("handles coordinate precision differences", () => {
+      // Save with high precision
+      saveChartData("1990-01-15", "14:30", 37.566543210, 126.978987654, {
+        saju: { test: true },
+      });
+
+      // Load with lower precision (should match after truncation)
+      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.9790);
+      expect(result).not.toBeNull();
+    });
+
+    it("handles different time formats", () => {
+      saveChartData("1990-01-15", "09:00", 37.5665, 126.978, {
+        saju: { morning: true },
+      });
+
+      const result = loadChartData("1990-01-15", "09:00", 37.5665, 126.978);
+      expect(result?.saju).toBeDefined();
+    });
+
+    it("returns null for corrupted cache data", () => {
+      const cacheKey = "destinyChartData_1990-01-15_14:30";
+      sessionStorageMock.setItem(cacheKey, "not valid json{");
+
+      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+      expect(result).toBeNull();
+    });
+
+    it("handles sessionStorage quota exceeded", () => {
+      sessionStorageMock.setItem = vi.fn(() => {
+        throw new Error("QuotaExceededError");
+      });
+
+      // Should not throw
+      expect(() =>
+        saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+          saju: { test: true },
+        })
+      ).not.toThrow();
+    });
+
+    it("handles multiple cached charts", () => {
+      // Cache different birth data
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: { person: "A" },
+      });
+
+      saveChartData("1995-06-20", "09:00", 35.0, 127.0, {
+        saju: { person: "B" },
+      });
+
+      // Verify both were saved with different keys
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const keys = calls.filter((c: string[]) => c[0].startsWith("destinyChartData_")).map((c: string[]) => c[0]);
+
+      // Should have saved with different cache keys
+      expect(keys.length).toBeGreaterThanOrEqual(2);
+      expect(keys).toContain("destinyChartData_1990-01-15_14:30");
+      expect(keys).toContain("destinyChartData_1995-06-20_09:00");
+    });
+  });
+
+  describe("birthKey generation edge cases", () => {
+    beforeEach(() => {
+      storageData = {};
+      vi.clearAllMocks();
+    });
+
+    it("generates unique birthKeys based on all parameters", () => {
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, { saju: { test: 1 } });
+
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
+      const savedData = JSON.parse(dataCall?.[1] || "{}");
+
+      // BirthKey should include date, time, and coordinates
+      expect(savedData.birthKey).toContain("1990-01-15");
+      expect(savedData.birthKey).toContain("14:30");
+      expect(savedData.birthKey).toContain("37.5665");
+      expect(savedData.birthKey).toContain("126.9780");
+    });
+
+    it("uses 4 decimal places for coordinates in birthKey", () => {
+      saveChartData("1990-01-15", "14:30", 37.566543210, 126.978987654, { saju: { test: true } });
+
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
+      const savedData = JSON.parse(dataCall?.[1] || "{}");
+
+      // Should be truncated to 4 decimal places
+      expect(savedData.birthKey).toContain("37.5665");
+      expect(savedData.birthKey).toContain("126.9790");
+    });
+
+    it("handles zero coordinates in birthKey", () => {
+      saveChartData("1990-01-15", "14:30", 0, 0, { saju: { equator: true } });
+
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
+      const savedData = JSON.parse(dataCall?.[1] || "{}");
+
+      expect(savedData.birthKey).toContain("0.0000");
+    });
+
+    it("handles extreme coordinates in birthKey", () => {
+      saveChartData("1990-01-15", "14:30", 89.9999, -179.9999, { saju: { extreme: true } });
+
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
+      const savedData = JSON.parse(dataCall?.[1] || "{}");
+
+      expect(savedData.birthKey).toBeDefined();
+      expect(typeof savedData.birthKey).toBe("string");
+    });
+  });
+
+  describe("data integrity checks", () => {
+    beforeEach(() => {
+      storageData = {};
+      vi.clearAllMocks();
+    });
+
+    it("saves complex nested structures correctly", () => {
+      const complexData = {
+        pillars: {
+          year: { stem: "甲", branch: "子" },
+          month: { stem: "乙", branch: "丑" },
+        },
+        elements: ["木", "土"],
+      };
+
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: complexData,
+      });
+
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
+      const savedData = JSON.parse(dataCall?.[1] || "{}");
+
+      expect(savedData.saju).toEqual(complexData);
+    });
+
+    it("saves array data correctly", () => {
+      const arrayData = {
+        elements: ["Metal", "Water", "Wood"],
+        scores: [10, 20, 30, 40, 50],
+      };
+
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: arrayData,
+      });
+
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
+      const savedData = JSON.parse(dataCall?.[1] || "{}");
+
+      expect(Array.isArray(savedData.saju.elements)).toBe(true);
+      expect(savedData.saju.elements).toEqual(["Metal", "Water", "Wood"]);
+    });
+
+    it("handles various data types", () => {
+      const mixedData = {
+        string: "test",
+        number: 42,
+        float: 3.14159,
+        negative: -100,
+        boolean: true,
+        nullValue: null,
+      };
+
+      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saju: mixedData,
+      });
+
+      const calls = sessionStorageMock.setItem.mock.calls;
+      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
+      const savedData = JSON.parse(dataCall?.[1] || "{}");
+
+      expect(savedData.saju.number).toBe(42);
+      expect(savedData.saju.float).toBe(3.14159);
+      expect(savedData.saju.boolean).toBe(true);
+      expect(savedData.saju.nullValue).toBeNull();
     });
   });
 });

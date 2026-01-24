@@ -7,6 +7,7 @@
 import { useState, useRef, useCallback } from "react";
 import { IChingResult } from "@/components/iching/types";
 import { logger } from "@/lib/logger";
+import type { PremiumHexagramData } from "@/lib/iChing/iChingPremiumData";
 
 /**
  * AI streaming status type
@@ -41,7 +42,7 @@ export interface UseAiStreamingParams {
   question?: string;
   locale: string;
   lang: "ko" | "en";
-  premiumData: any;
+  premiumData: PremiumHexagramData | null;
 }
 
 /**
@@ -133,10 +134,23 @@ export const useAiStreaming = ({
       const contentType = response.headers.get("content-type");
       if (!contentType?.includes("text/event-stream")) {
         // Fallback to JSON response
-        const data = await response.json();
-        if (data.error) throw new Error(data.error);
-        setAiStatus("done");
-        return;
+        try {
+          const data = await response.json();
+          if (data.error) throw new Error(data.error);
+          // If we got JSON with content, it might be a fallback response
+          if (data.overview || data.changing || data.advice) {
+            setOverviewText(data.overview || "");
+            setChangingText(data.changing || "");
+            setAdviceText(data.advice || "");
+          }
+          setAiStatus("done");
+          return;
+        } catch (parseErr) {
+          logger.error("[useAiStreaming] Failed to parse non-SSE response:", parseErr);
+          throw new Error(locale === "ko"
+            ? "AI 서버 응답을 처리할 수 없습니다."
+            : "Unable to process AI server response.");
+        }
       }
 
       setAiStatus("streaming");

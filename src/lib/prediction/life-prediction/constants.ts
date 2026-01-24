@@ -231,12 +231,26 @@ export const EVENT_HOUSES: Record<EventType, { primary: number[]; secondary: num
 };
 
 // ============================================================
-// 십신 점수
+// 십신 점수 (상대적 점수, 가중치 계산용)
 // ============================================================
-export const SIBSIN_SCORES: Record<string, number> = {
+export const SIBSIN_SCORES_RELATIVE: Record<string, number> = {
   '정관': 15, '정재': 12, '정인': 10, '식신': 8,
   '편관': 5, '편재': 5, '편인': 3, '상관': 0,
   '비견': -3, '겁재': -8,
+};
+
+// 십신 점수 (0-100 스케일)
+export const SIBSIN_SCORES: Record<string, number> = {
+  '정관': 80,
+  '정재': 75,
+  '정인': 70,
+  '식신': 65,
+  '편재': 60,
+  '편관': 55,
+  '상관': 50,
+  '편인': 48,
+  '비견': 47,
+  '겁재': 45,
 };
 
 // ============================================================
@@ -287,7 +301,7 @@ export const BRANCH_PUNISHMENTS: Record<string, string> = {
 // ============================================================
 // 이벤트 이름 (다국어)
 // ============================================================
-export const EVENT_NAMES: Record<EventType, { ko: string; en: string }> = {
+export const EVENT_NAMES_FULL: Record<EventType, { ko: string; en: string }> = {
   marriage: { ko: '결혼', en: 'Marriage' },
   career: { ko: '취업/이직', en: 'Career' },
   investment: { ko: '투자', en: 'Investment' },
@@ -295,6 +309,17 @@ export const EVENT_NAMES: Record<EventType, { ko: string; en: string }> = {
   study: { ko: '학업/시험', en: 'Study' },
   health: { ko: '건강관리', en: 'Health' },
   relationship: { ko: '인간관계', en: 'Relationship' },
+};
+
+// Simple Korean names (for backwards compatibility)
+export const EVENT_NAMES: Record<string, string> = {
+  marriage: '결혼',
+  career: '커리어',
+  investment: '투자',
+  move: '이사',
+  study: '학업',
+  health: '건강',
+  relationship: '인간관계',
 };
 
 // ============================================================
@@ -320,6 +345,68 @@ export const IMPORTANCE_WEIGHT = {
   wolun: 0.25,
   iljin: 0.15,
 } as const;
+
+// ============================================================
+// 점수 임계값
+// ============================================================
+export const SCORE_THRESHOLDS = {
+  MIN: 0,
+  MAX: 100,
+  BASELINE_MONTHLY: 50,
+  BASELINE_WEEKLY: 30,
+  RANGE_LOW: 30,
+  RANGE_HIGH: 70,
+  VARIANCE_VOLATILE: 400,
+  EXCELLENT: 80,
+  GOOD: 65,
+  AVERAGE: 50,
+  CAUTION: 35,
+} as const;
+
+// ============================================================
+// 십신 점수 (0-100 스케일)
+// ============================================================
+export const SIBSIN_SCORES_100: Record<string, number> = {
+  '정관': 80,
+  '정재': 75,
+  '정인': 70,
+  '식신': 65,
+  '편재': 60,
+  '편관': 55,
+  '상관': 50,
+  '편인': 48,
+  '비견': 47,
+  '겁재': 45,
+};
+
+// ============================================================
+// 이벤트 유형 한국어 이름
+// ============================================================
+export const EVENT_TYPE_NAMES_KO: Record<string, string> = {
+  marriage: '결혼',
+  career: '커리어',
+  investment: '투자',
+  move: '이사',
+  study: '학업',
+  health: '건강',
+  relationship: '인간관계',
+  business: '사업',
+  travel: '여행',
+  surgery: '수술',
+};
+
+// ============================================================
+// 이벤트 키워드
+// ============================================================
+export const EVENT_KEYWORDS: Record<string, string[]> = {
+  marriage: ['결혼', 'wedding', 'marry'],
+  career: ['개업', '취업', '창업', 'business', 'job', 'career'],
+  investment: ['계약', '투자', '매매', 'contract', 'investment', 'deal'],
+  move: ['이사', '이전', 'move', 'relocation'],
+  study: ['학업', '시험', '교육', 'study', 'exam', 'education'],
+  health: ['건강', '수술', '치료', 'health', 'surgery', 'treatment'],
+  relationship: ['관계', '인연', 'relationship', 'connection'],
+};
 
 // ============================================================
 // Branch relationships (aliases for compatibility)

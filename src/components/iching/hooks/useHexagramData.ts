@@ -12,10 +12,27 @@ import {
   getLuckyInfo,
   calculateNuclearHexagram,
   calculateRelatedHexagrams,
+  type PremiumHexagramData,
+  type TrigramInfo,
+  type LuckyInfo,
 } from "@/lib/iChing/iChingPremiumData";
 import { enhancedHexagramData, enhancedHexagramDataKo } from "@/lib/iChing/enhancedData";
-import { getHexagramWisdom } from "@/lib/iChing/ichingWisdom";
-import { analyzeSequencePosition, getXuguaPair } from "@/lib/iChing/ichingPatterns";
+import type { EnhancedHexagramData } from "@/lib/iChing/types";
+import { getHexagramWisdom, type HexagramWisdomData } from "@/lib/iChing/ichingWisdom";
+import { analyzeSequencePosition, getXuguaPair, type SequenceAnalysis, type HexagramPair } from "@/lib/iChing/ichingPatterns";
+
+/** Nuclear hexagram calculation result */
+interface NuclearHexagram {
+  number: number;
+  name_ko: string;
+  name_en: string;
+}
+
+/** Related hexagrams calculation result */
+interface RelatedHexagrams {
+  inverted: { number: number; name_ko: string; name_en: string } | null;
+  opposite: { number: number; name_ko: string; name_en: string } | null;
+}
 
 /**
  * Hexagram data return type
@@ -23,17 +40,17 @@ import { analyzeSequencePosition, getXuguaPair } from "@/lib/iChing/ichingPatter
 export interface HexagramData {
   primaryNumber: number | undefined;
   resultingNumber: number | undefined;
-  premiumData: any;
-  resultingPremiumData: any;
-  upperTrigram: any;
-  lowerTrigram: any;
-  luckyInfo: any;
-  nuclearHexagram: any;
-  relatedHexagrams: any;
-  enhancedData: any;
-  wisdomData: any;
-  sequenceData: any;
-  xuguaPairData: any;
+  premiumData: PremiumHexagramData | null;
+  resultingPremiumData: PremiumHexagramData | null;
+  upperTrigram: TrigramInfo | null;
+  lowerTrigram: TrigramInfo | null;
+  luckyInfo: LuckyInfo | null;
+  nuclearHexagram: NuclearHexagram | null;
+  relatedHexagrams: RelatedHexagrams | null;
+  enhancedData: EnhancedHexagramData | null;
+  wisdomData: HexagramWisdomData | null;
+  sequenceData: SequenceAnalysis | null;
+  xuguaPairData: HexagramPair | null;
 }
 
 /**

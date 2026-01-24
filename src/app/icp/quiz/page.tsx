@@ -32,9 +32,63 @@ export default function ICPQuizPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const questionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // Shuffle questions on mount (client-side only)
+  // Shuffle questions on mount (client-side only) and restore saved progress
   useEffect(() => {
-    setShuffledQuestions(shuffleArray(icpQuestions));
+    // Check for saved shuffle order
+    const savedOrder = localStorage.getItem('icpQuizOrder');
+    const savedAnswers = localStorage.getItem('icpQuizAnswers');
+    const savedPage = localStorage.getItem('icpQuizPage');
+
+    if (savedOrder) {
+      try {
+        const order = JSON.parse(savedOrder) as string[];
+        // Reconstruct question order from saved IDs
+        const ordered = order
+          .map(id => icpQuestions.find(q => q.id === id))
+          .filter((q): q is ICPQuestion => q !== undefined);
+        if (ordered.length === icpQuestions.length) {
+          setShuffledQuestions(ordered);
+        } else {
+          // Saved order is invalid, create new shuffle
+          const newOrder = shuffleArray(icpQuestions);
+          setShuffledQuestions(newOrder);
+          localStorage.setItem('icpQuizOrder', JSON.stringify(newOrder.map(q => q.id)));
+        }
+      } catch {
+        const newOrder = shuffleArray(icpQuestions);
+        setShuffledQuestions(newOrder);
+        localStorage.setItem('icpQuizOrder', JSON.stringify(newOrder.map(q => q.id)));
+      }
+    } else {
+      const newOrder = shuffleArray(icpQuestions);
+      setShuffledQuestions(newOrder);
+      localStorage.setItem('icpQuizOrder', JSON.stringify(newOrder.map(q => q.id)));
+    }
+
+    // Restore saved answers (in progress)
+    if (savedAnswers) {
+      try {
+        const parsed = JSON.parse(savedAnswers);
+        // Only restore if it's not a complete quiz (user might want to retake)
+        if (Object.keys(parsed).length < icpQuestions.length) {
+          setAnswers(parsed);
+        }
+      } catch {
+        // Invalid saved answers, start fresh
+      }
+    }
+
+    // Restore saved page
+    if (savedPage) {
+      try {
+        const page = parseInt(savedPage, 10);
+        if (!isNaN(page) && page >= 0 && page < Math.ceil(icpQuestions.length / QUESTIONS_PER_PAGE)) {
+          setCurrentPage(page);
+        }
+      } catch {
+        // Invalid saved page
+      }
+    }
   }, []);
 
   // Scroll to top handler
@@ -69,13 +123,28 @@ export default function ICPQuizPage() {
   const currentPageAnswered = currentQuestions.every(q => answers[q.id]);
 
   const handleAnswerChange = (questionId: string, answerId: string) => {
-    setAnswers((prev: ICPQuizAnswers) => ({ ...prev, [questionId]: answerId }));
+    setAnswers((prev: ICPQuizAnswers) => {
+      const updated = { ...prev, [questionId]: answerId };
+      // Auto-save answers to localStorage
+      localStorage.setItem('icpQuizAnswers', JSON.stringify(updated));
+      return updated;
+    });
   };
+
+  // Auto-save current page when it changes
+  useEffect(() => {
+    if (shuffledQuestions.length > 0) {
+      localStorage.setItem('icpQuizPage', String(currentPage));
+    }
+  }, [currentPage, shuffledQuestions.length]);
 
   const handleViewResults = () => {
     try {
       const answersData = JSON.stringify(answers);
       localStorage.setItem('icpQuizAnswers', answersData);
+      // Clear progress tracking (order and page) after completion
+      localStorage.removeItem('icpQuizOrder');
+      localStorage.removeItem('icpQuizPage');
       router.push('/icp/result');
     } catch (error) {
       console.error('[ICP Quiz] Error saving answers:', error);

@@ -17,7 +17,7 @@ import type {
   EventType,
   WeeklyPeriod,
 } from '../../life-prediction-types';
-import { EVENT_NAMES } from '../constants';
+import { EVENT_NAMES_FULL } from '../constants';
 
 /**
  * Generate a theme description for a lifecycle phase based on daeun and energy level
@@ -164,13 +164,13 @@ export function generateWeeklySummary(
   bestWeek: WeeklyPeriod | null
 ): string {
   if (!bestWeek) {
-    return `${EVENT_NAMES[eventType].ko} 분석 결과가 없습니다.`;
+    return `${EVENT_NAMES_FULL[eventType].ko} 분석 결과가 없습니다.`;
   }
 
   const startStr = `${bestWeek.startDate.getMonth() + 1}/${bestWeek.startDate.getDate()}`;
   const endStr = `${bestWeek.endDate.getMonth() + 1}/${bestWeek.endDate.getDate()}`;
 
-  let summary = `${EVENT_NAMES[eventType].ko}에 가장 좋은 주간은 ${startStr}~${endStr} (${bestWeek.grade}등급, ${bestWeek.averageScore}점)입니다.`;
+  let summary = `${EVENT_NAMES_FULL[eventType].ko}에 가장 좋은 주간은 ${startStr}~${endStr} (${bestWeek.grade}등급, ${bestWeek.averageScore}점)입니다.`;
 
   const bestDayList = bestWeek.bestDays && bestWeek.bestDays.length > 0
     ? bestWeek.bestDays
@@ -210,7 +210,7 @@ export function generateEventAdvice(
   avoidPeriods: AvoidPeriod[],
   nextBest: OptimalPeriod | null
 ): string {
-  let advice = `${EVENT_NAMES[eventType].ko}에 대한 타이밍 분석 결과입니다. `;
+  let advice = `${EVENT_NAMES_FULL[eventType].ko}에 대한 타이밍 분석 결과입니다. `;
 
   if (optimalPeriods.length > 0) {
     const bestPeriod = optimalPeriods[0];

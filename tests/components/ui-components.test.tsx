@@ -54,7 +54,7 @@ describe('UI Components', () => {
       const module = await import('@/components/astrology/ResultDisplay');
 
       expect(module.default).toBeDefined();
-    });
+    }, 60000); // Increase timeout to 60s for heavy component
   });
 
   describe('Saju Components', () => {

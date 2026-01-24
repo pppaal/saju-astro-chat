@@ -59,10 +59,10 @@ describe('Life Prediction Index Exports', () => {
     });
 
     it('should export SIBSIN_SCORES', async () => {
-      const { SIBSIN_SCORES } = await import('@/lib/prediction/life-prediction');
-      expect(SIBSIN_SCORES).toBeDefined();
-      expect(SIBSIN_SCORES['정관']).toBe(15);
-      expect(SIBSIN_SCORES['겁재']).toBe(-8);
+      const { SIBSIN_SCORES_RELATIVE } = await import('@/lib/prediction/life-prediction');
+      expect(SIBSIN_SCORES_RELATIVE).toBeDefined();
+      expect(SIBSIN_SCORES_RELATIVE['정관']).toBe(15);
+      expect(SIBSIN_SCORES_RELATIVE['겁재']).toBe(-8);
     });
 
     it('should export STEM_COMBINATIONS', async () => {
@@ -101,11 +101,11 @@ describe('Life Prediction Index Exports', () => {
       expect(BRANCH_PUNISHMENTS['寅巳']).toBe('형');
     });
 
-    it('should export EVENT_NAMES', async () => {
-      const { EVENT_NAMES } = await import('@/lib/prediction/life-prediction');
-      expect(EVENT_NAMES).toBeDefined();
-      expect(EVENT_NAMES.marriage.ko).toBe('결혼');
-      expect(EVENT_NAMES.career.en).toBe('Career');
+    it('should export EVENT_NAMES_FULL', async () => {
+      const { EVENT_NAMES_FULL } = await import('@/lib/prediction/life-prediction');
+      expect(EVENT_NAMES_FULL).toBeDefined();
+      expect(EVENT_NAMES_FULL.marriage.ko).toBe('결혼');
+      expect(EVENT_NAMES_FULL.career.en).toBe('Career');
     });
   });
 

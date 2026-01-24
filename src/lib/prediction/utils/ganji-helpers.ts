@@ -35,7 +35,9 @@ export interface DaeunCycle {
   endAge?: number;
   heavenlyStem?: string;
   earthlyBranch?: string;
-  [key: string]: any;
+  element?: string;
+  sibsin?: string;
+  [key: string]: string | number | undefined;
 }
 
 /**

@@ -5,6 +5,7 @@
 
 import { BaseEventStrategy, type ScoringContext, type ScoreResult } from './types';
 import { EVENT_SCORING } from '../constants/scoring';
+import type { FiveElement } from '@/lib/Saju/types';
 
 export class InvestmentStrategy extends BaseEventStrategy {
   readonly eventType = 'investment';
@@ -41,7 +42,7 @@ export class InvestmentStrategy extends BaseEventStrategy {
 
   applyElementBonus(context: ScoringContext, result: ScoreResult): void {
     // 토(土), 금(金) - 안정과 축적
-    const favorableElements: any[] = ['土', '金'];
+    const favorableElements: FiveElement[] = ['토', '금'];
 
     if (favorableElements.includes(context.monthElement)) {
       result.score += EVENT_SCORING.FAVORABLE_STAGE;

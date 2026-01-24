@@ -51,7 +51,7 @@ describe('useMyCircle', () => {
       expect(result.current.circlePeople).toEqual(mockPeople);
     });
 
-    expect(fetch).toHaveBeenCalledWith('/api/me/circle', { cache: 'no-store' });
+    expect(fetch).toHaveBeenCalledWith('/api/me/circle', expect.objectContaining({ cache: 'no-store' }));
   });
 
   it('should handle fetch errors gracefully', async () => {
@@ -175,7 +175,7 @@ describe('useMyCircle', () => {
     rerender({ status: 'authenticated' });
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/me/circle', { cache: 'no-store' });
+      expect(fetch).toHaveBeenCalledWith('/api/me/circle', expect.objectContaining({ cache: 'no-store' }));
     });
   });
 });

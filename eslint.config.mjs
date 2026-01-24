@@ -44,8 +44,8 @@ const config = [
       '@typescript-eslint': tseslint,
     },
     rules: {
-      // TypeScript strict rules (warn for gradual adoption)
-      '@typescript-eslint/no-explicit-any': 'warn',
+      // TypeScript strict rules
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
@@ -62,24 +62,13 @@ const config = [
     },
   },
   {
-    // Relaxed rules for lib files (gradual migration)
+    // Relaxed unused-vars for lib files (complex internal logic)
     files: ['src/lib/**/*.{ts,tsx}'],
     plugins: {
       '@typescript-eslint': tseslint,
     },
     rules: {
       '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn', // Warn for gradual migration
-    },
-  },
-  {
-    // Strict rules for new API routes
-    files: ['src/app/api/**/*.ts'],
-    plugins: {
-      '@typescript-eslint': tseslint,
-    },
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'warn',
     },
   },
 ]

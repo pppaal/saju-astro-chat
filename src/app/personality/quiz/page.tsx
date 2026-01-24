@@ -30,9 +30,59 @@ export default function QuizPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const questionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // Shuffle questions on mount (client-side only)
+  // Shuffle questions on mount (client-side only) and restore saved progress
   useEffect(() => {
-    setShuffledQuestions(shuffleArray(questions));
+    // Check for saved shuffle order
+    const savedOrder = localStorage.getItem('personaQuizOrder');
+    const savedAnswers = localStorage.getItem('personaQuizAnswers');
+    const savedPage = localStorage.getItem('personaQuizPage');
+
+    if (savedOrder) {
+      try {
+        const order = JSON.parse(savedOrder) as string[];
+        // Reconstruct question order from saved IDs
+        const ordered = order
+          .map(id => questions.find(q => q.id === id))
+          .filter((q): q is PersonaQuestion => q !== undefined);
+        if (ordered.length === questions.length) {
+          setShuffledQuestions(ordered);
+        } else {
+          // Saved order is invalid, create new shuffle
+          const newOrder = shuffleArray(questions);
+          setShuffledQuestions(newOrder);
+          localStorage.setItem('personaQuizOrder', JSON.stringify(newOrder.map(q => q.id)));
+        }
+      } catch {
+        const newOrder = shuffleArray(questions);
+        setShuffledQuestions(newOrder);
+        localStorage.setItem('personaQuizOrder', JSON.stringify(newOrder.map(q => q.id)));
+      }
+    } else {
+      const newOrder = shuffleArray(questions);
+      setShuffledQuestions(newOrder);
+      localStorage.setItem('personaQuizOrder', JSON.stringify(newOrder.map(q => q.id)));
+    }
+
+    // Restore saved answers
+    if (savedAnswers) {
+      try {
+        setAnswers(JSON.parse(savedAnswers));
+      } catch {
+        // Invalid saved answers, start fresh
+      }
+    }
+
+    // Restore saved page
+    if (savedPage) {
+      try {
+        const page = parseInt(savedPage, 10);
+        if (!isNaN(page) && page >= 0 && page < Math.ceil(questions.length / QUESTIONS_PER_PAGE)) {
+          setCurrentPage(page);
+        }
+      } catch {
+        // Invalid saved page
+      }
+    }
   }, []);
 
   // Scroll to top handler
@@ -67,11 +117,26 @@ export default function QuizPage() {
   const currentPageAnswered = currentQuestions.every(q => answers[q.id]);
 
   const handleAnswerChange = (questionId: string, answerId: string) => {
-    setAnswers((prev: PersonaQuizAnswers) => ({ ...prev, [questionId]: answerId }));
+    setAnswers((prev: PersonaQuizAnswers) => {
+      const updated = { ...prev, [questionId]: answerId };
+      // Auto-save answers to localStorage
+      localStorage.setItem('personaQuizAnswers', JSON.stringify(updated));
+      return updated;
+    });
   };
+
+  // Auto-save current page when it changes
+  useEffect(() => {
+    if (shuffledQuestions.length > 0) {
+      localStorage.setItem('personaQuizPage', String(currentPage));
+    }
+  }, [currentPage, shuffledQuestions.length]);
 
   const handleViewResults = () => {
     localStorage.setItem('personaQuizAnswers', JSON.stringify(answers));
+    // Clear progress tracking (order and page) after completion
+    localStorage.removeItem('personaQuizOrder');
+    localStorage.removeItem('personaQuizPage');
     router.push('/personality/result');
   };
 

@@ -505,5 +505,232 @@ describe("Life Prediction Constants", () => {
     it("장생 indicates new beginnings", () => {
       expect(STAGE_EVENT_EFFECTS["장생"].career).toContain("새로운");
     });
+
+    it("each stage has career, health, and relationship categories", () => {
+      const stages = Object.keys(STAGE_EVENT_EFFECTS);
+      stages.forEach((stage) => {
+        expect(STAGE_EVENT_EFFECTS[stage]).toHaveProperty("career");
+        expect(STAGE_EVENT_EFFECTS[stage]).toHaveProperty("health");
+        expect(STAGE_EVENT_EFFECTS[stage]).toHaveProperty("relationship");
+      });
+    });
+
+    it("제왕 indicates peak state", () => {
+      expect(STAGE_EVENT_EFFECTS["제왕"].career).toContain("절정");
+      expect(STAGE_EVENT_EFFECTS["제왕"].health).toContain("최고");
+    });
+
+    it("쇠 indicates decline", () => {
+      expect(STAGE_EVENT_EFFECTS["쇠"].career).toContain("하락");
+    });
+
+    it("태 indicates conception/beginning", () => {
+      expect(STAGE_EVENT_EFFECTS["태"].career).toContain("태동");
+    });
+  });
+
+  describe("SCORE_THRESHOLDS", () => {
+    // Import SCORE_THRESHOLDS if available
+    it("can be imported from constants", async () => {
+      const { SCORE_THRESHOLDS } = await import("@/lib/prediction/life-prediction-constants");
+      expect(SCORE_THRESHOLDS).toBeDefined();
+    });
+
+    it("has valid score boundaries", async () => {
+      const { SCORE_THRESHOLDS } = await import("@/lib/prediction/life-prediction-constants");
+      expect(SCORE_THRESHOLDS.MIN).toBe(0);
+      expect(SCORE_THRESHOLDS.MAX).toBe(100);
+      expect(SCORE_THRESHOLDS.MIN).toBeLessThan(SCORE_THRESHOLDS.MAX);
+    });
+
+    it("has baseline values for monthly and weekly", async () => {
+      const { SCORE_THRESHOLDS } = await import("@/lib/prediction/life-prediction-constants");
+      expect(SCORE_THRESHOLDS.BASELINE_MONTHLY).toBeDefined();
+      expect(SCORE_THRESHOLDS.BASELINE_WEEKLY).toBeDefined();
+      expect(SCORE_THRESHOLDS.BASELINE_MONTHLY).toBeGreaterThan(SCORE_THRESHOLDS.BASELINE_WEEKLY);
+    });
+
+    it("has rating thresholds in correct order", async () => {
+      const { SCORE_THRESHOLDS } = await import("@/lib/prediction/life-prediction-constants");
+      expect(SCORE_THRESHOLDS.EXCELLENT).toBeGreaterThan(SCORE_THRESHOLDS.GOOD);
+      expect(SCORE_THRESHOLDS.GOOD).toBeGreaterThan(SCORE_THRESHOLDS.AVERAGE);
+      expect(SCORE_THRESHOLDS.AVERAGE).toBeGreaterThan(SCORE_THRESHOLDS.CAUTION);
+    });
+  });
+
+  describe("EVENT_TYPE_NAMES_KO", () => {
+    it("can be imported from constants", async () => {
+      const { EVENT_TYPE_NAMES_KO } = await import("@/lib/prediction/life-prediction-constants");
+      expect(EVENT_TYPE_NAMES_KO).toBeDefined();
+    });
+
+    it("includes extended event types", async () => {
+      const { EVENT_TYPE_NAMES_KO } = await import("@/lib/prediction/life-prediction-constants");
+      expect(EVENT_TYPE_NAMES_KO.business).toBe("사업");
+      expect(EVENT_TYPE_NAMES_KO.travel).toBe("여행");
+      expect(EVENT_TYPE_NAMES_KO.surgery).toBe("수술");
+    });
+
+    it("all values are non-empty Korean strings", async () => {
+      const { EVENT_TYPE_NAMES_KO } = await import("@/lib/prediction/life-prediction-constants");
+      Object.values(EVENT_TYPE_NAMES_KO).forEach((name) => {
+        expect(typeof name).toBe("string");
+        expect(name.length).toBeGreaterThan(0);
+        // Korean text check (should contain Korean characters)
+        expect(/[\uAC00-\uD7AF]/.test(name)).toBe(true);
+      });
+    });
+  });
+
+  describe("EVENT_KEYWORDS", () => {
+    it("can be imported from constants", async () => {
+      const { EVENT_KEYWORDS } = await import("@/lib/prediction/life-prediction-constants");
+      expect(EVENT_KEYWORDS).toBeDefined();
+    });
+
+    it("each event type has both Korean and English keywords", async () => {
+      const { EVENT_KEYWORDS } = await import("@/lib/prediction/life-prediction-constants");
+      Object.values(EVENT_KEYWORDS).forEach((keywords) => {
+        expect(Array.isArray(keywords)).toBe(true);
+        expect(keywords.length).toBeGreaterThan(0);
+        // Should have at least one Korean keyword
+        const hasKorean = keywords.some((k) => /[\uAC00-\uD7AF]/.test(k));
+        // Should have at least one English keyword
+        const hasEnglish = keywords.some((k) => /[a-zA-Z]/.test(k));
+        expect(hasKorean).toBe(true);
+        expect(hasEnglish).toBe(true);
+      });
+    });
+
+    it("marriage keywords include wedding terms", async () => {
+      const { EVENT_KEYWORDS } = await import("@/lib/prediction/life-prediction-constants");
+      expect(EVENT_KEYWORDS.marriage).toContain("결혼");
+      expect(EVENT_KEYWORDS.marriage).toContain("wedding");
+    });
+
+    it("career keywords include job terms", async () => {
+      const { EVENT_KEYWORDS } = await import("@/lib/prediction/life-prediction-constants");
+      expect(EVENT_KEYWORDS.career).toContain("취업");
+      expect(EVENT_KEYWORDS.career).toContain("job");
+    });
+  });
+
+  describe("Cross-constant Consistency", () => {
+    it("EVENT_NAMES is subset of EVENT_TYPE_NAMES_KO", async () => {
+      const { EVENT_NAMES, EVENT_TYPE_NAMES_KO } = await import("@/lib/prediction/life-prediction-constants");
+      // EVENT_NAMES has 7 core event types, EVENT_TYPE_NAMES_KO has extended types (business, travel, surgery)
+      Object.keys(EVENT_NAMES).forEach(key => {
+        expect(EVENT_TYPE_NAMES_KO[key]).toBe(EVENT_NAMES[key]);
+      });
+    });
+
+    it("EVENT_FAVORABLE_CONDITIONS has all EVENT_NAMES keys", () => {
+      const eventKeys = Object.keys(EVENT_NAMES);
+      const conditionKeys = Object.keys(EVENT_FAVORABLE_CONDITIONS);
+      // Most event names should be in favorable conditions
+      const coveredKeys = eventKeys.filter((k) => conditionKeys.includes(k));
+      expect(coveredKeys.length).toBeGreaterThan(5);
+    });
+
+    it("STEMS and STEM_ELEMENT keys match", () => {
+      const stemElementKeys = Object.keys(STEM_ELEMENT);
+      expect(stemElementKeys).toHaveLength(STEMS.length);
+      STEMS.forEach((stem) => {
+        expect(STEM_ELEMENT[stem]).toBeDefined();
+      });
+    });
+
+    it("all STEM_COMBINATIONS use valid stems", () => {
+      const validStems = new Set(STEMS);
+      Object.keys(STEM_COMBINATIONS).forEach((combo) => {
+        expect(combo.length).toBe(2);
+        expect(validStems.has(combo[0])).toBe(true);
+        expect(validStems.has(combo[1])).toBe(true);
+      });
+    });
+
+    it("all STEM_CLASHES use valid stems", () => {
+      const validStems = new Set(STEMS);
+      STEM_CLASHES.forEach((clash) => {
+        expect(clash.length).toBe(2);
+        expect(validStems.has(clash[0])).toBe(true);
+        expect(validStems.has(clash[1])).toBe(true);
+      });
+    });
+
+    it("all SIX_COMBOS use valid branches", () => {
+      const validBranches = new Set(BRANCHES);
+      Object.keys(SIX_COMBOS).forEach((combo) => {
+        expect(combo.length).toBe(2);
+        expect(validBranches.has(combo[0])).toBe(true);
+        expect(validBranches.has(combo[1])).toBe(true);
+      });
+    });
+
+    it("all CLASHES use valid branches", () => {
+      const validBranches = new Set(BRANCHES);
+      Object.keys(CLASHES).forEach((clash) => {
+        expect(clash.length).toBe(2);
+        expect(validBranches.has(clash[0])).toBe(true);
+        expect(validBranches.has(clash[1])).toBe(true);
+      });
+    });
+
+    it("all PUNISHMENTS use valid branches", () => {
+      const validBranches = new Set(BRANCHES);
+      Object.keys(PUNISHMENTS).forEach((punishment) => {
+        expect(punishment.length).toBe(2);
+        expect(validBranches.has(punishment[0])).toBe(true);
+        expect(validBranches.has(punishment[1])).toBe(true);
+      });
+    });
+
+    it("IMPORTANCE_WEIGHT values are between 0 and 1", () => {
+      Object.values(IMPORTANCE_WEIGHT).forEach((weight) => {
+        expect(weight).toBeGreaterThan(0);
+        expect(weight).toBeLessThanOrEqual(1);
+      });
+    });
+
+    it("CHEONEL_MAP uses valid stems as keys", () => {
+      const validStems = new Set(STEMS);
+      Object.keys(CHEONEL_MAP).forEach((stem) => {
+        expect(validStems.has(stem)).toBe(true);
+      });
+    });
+
+    it("CHEONEL_MAP uses valid branches as values", () => {
+      const validBranches = new Set(BRANCHES);
+      Object.values(CHEONEL_MAP).forEach((branches) => {
+        branches.forEach((branch) => {
+          expect(validBranches.has(branch)).toBe(true);
+        });
+      });
+    });
+
+    it("YEOKMA_MAP uses valid branches", () => {
+      const validBranches = new Set(BRANCHES);
+      Object.entries(YEOKMA_MAP).forEach(([key, value]) => {
+        expect(validBranches.has(key)).toBe(true);
+        expect(validBranches.has(value)).toBe(true);
+      });
+    });
+
+    it("MUNCHANG_MAP uses valid stems and branches", () => {
+      const validStems = new Set(STEMS);
+      const validBranches = new Set(BRANCHES);
+      Object.entries(MUNCHANG_MAP).forEach(([stem, branch]) => {
+        expect(validStems.has(stem)).toBe(true);
+        expect(validBranches.has(branch)).toBe(true);
+      });
+    });
+
+    it("GEOPSAL_MAP uses valid branches", () => {
+      const validBranches = new Set(BRANCHES);
+      Object.entries(GEOPSAL_MAP).forEach(([key, value]) => {
+        expect(validBranches.has(key)).toBe(true);
+        expect(validBranches.has(value)).toBe(true);
+      });
+    });
   });
 });

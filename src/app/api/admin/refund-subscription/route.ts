@@ -11,9 +11,11 @@ import { sanitizeError } from "@/lib/security/errorSanitizer";
 import { rateLimit } from "@/lib/rateLimit";
 import { logAdminAction } from "@/lib/auth/adminAudit";
 import { csrfGuard } from "@/lib/security/csrf";
+import { BASE_CREDIT_PRICE_KRW } from "@/lib/config/pricing";
 
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2025-10-29.clover";
-const MINI_CREDIT_PRICE_KRW = 633;
+// Use centralized pricing constant for refund calculations
+const MINI_CREDIT_PRICE_KRW = BASE_CREDIT_PRICE_KRW;
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;

@@ -66,6 +66,22 @@ export default function PastLifeResults({ result, onReset }: Props) {
             </div>
             <div className={styles.scoreValue}>{result.karmaScore}/100</div>
           </div>
+          <div className={styles.scoreInterpretation}>
+            <span className={styles.scoreRangeLabel}>
+              {result.karmaScore >= 80
+                ? t('pastLife.results.karmaScoreRange.high', 'Deep Explorer')
+                : result.karmaScore >= 60
+                ? t('pastLife.results.karmaScoreRange.medium', 'Growing Soul')
+                : t('pastLife.results.karmaScoreRange.low', 'Fresh Start')}
+            </span>
+            <p className={styles.scoreRangeDesc}>
+              {result.karmaScore >= 80
+                ? t('pastLife.results.karmaScoreDesc.high', 'Your soul has gathered rich experiences from many past lives.')
+                : result.karmaScore >= 60
+                ? t('pastLife.results.karmaScoreDesc.medium', 'Your soul carries moderate karmic patterns.')
+                : t('pastLife.results.karmaScoreDesc.low', 'Your soul is relatively free from heavy karmic burdens.')}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -132,7 +148,13 @@ function OverviewTab({ result }: { result: PastLifeResult }) {
         <div className={styles.summaryList}>
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>{t('pastLife.overview.pastRole', 'Past Life Role')}</span>
-            <span className={styles.summaryValue}>{result.pastLife.likely.split('.')[0]}</span>
+            <span className={styles.summaryValue}>
+              {result.pastLife.likely.includes('.')
+                ? result.pastLife.likely.split('.')[0]
+                : result.pastLife.likely.length > 80
+                ? result.pastLife.likely.substring(0, 80) + '...'
+                : result.pastLife.likely}
+            </span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>{t('pastLife.overview.coreLesson', 'Core Lesson')}</span>

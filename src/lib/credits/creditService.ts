@@ -1,79 +1,14 @@
 import { prisma } from "@/lib/db/prisma";
+import {
+  PLAN_CONFIG,
+  type PlanType,
+  type PlanFeatures,
+} from "@/lib/config/pricing";
 
-// 플랜별 설정
-export const PLAN_CONFIG = {
-  free: {
-    monthlyCredits: 7,
-    compatibilityLimit: 0,
-    followUpLimit: 0,
-    historyRetention: 7,
-    features: {
-      basicSaju: true,
-      detailedSaju: false,
-      fullSaju: false,
-      oneCardTarot: true,
-      threeCardTarot: false,
-      allTarotSpreads: false,
-      pdfReport: false,
-      adFree: false,
-      priority: false,
-    },
-  },
-  starter: {
-    monthlyCredits: 25,
-    compatibilityLimit: 2,
-    followUpLimit: 2,
-    historyRetention: 30,
-    features: {
-      basicSaju: true,
-      detailedSaju: true,
-      fullSaju: false,
-      oneCardTarot: true,
-      threeCardTarot: true,
-      allTarotSpreads: false,
-      pdfReport: false,
-      adFree: true,
-      priority: false,
-    },
-  },
-  pro: {
-    monthlyCredits: 80,
-    compatibilityLimit: 5,
-    followUpLimit: 5,
-    historyRetention: 90,
-    features: {
-      basicSaju: true,
-      detailedSaju: true,
-      fullSaju: true,
-      oneCardTarot: true,
-      threeCardTarot: true,
-      allTarotSpreads: true,
-      pdfReport: true,
-      adFree: true,
-      priority: false,
-    },
-  },
-  premium: {
-    monthlyCredits: 150,
-    compatibilityLimit: 10,
-    followUpLimit: 10,
-    historyRetention: 365,
-    features: {
-      basicSaju: true,
-      detailedSaju: true,
-      fullSaju: true,
-      oneCardTarot: true,
-      threeCardTarot: true,
-      allTarotSpreads: true,
-      pdfReport: true,
-      adFree: true,
-      priority: true,
-    },
-  },
-} as const;
-
-export type PlanType = keyof typeof PLAN_CONFIG;
-export type FeatureType = keyof typeof PLAN_CONFIG.free.features;
+// Re-export for backward compatibility
+export { PLAN_CONFIG };
+export type { PlanType };
+export type FeatureType = keyof PlanFeatures;
 
 // 월간 기간 계산 (다음 달 같은 날)
 function getNextPeriodEnd(): Date {

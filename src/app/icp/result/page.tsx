@@ -11,6 +11,7 @@ import BackButton from '@/components/ui/BackButton';
 import { ICPCircumplex } from '@/components/icp';
 import styles from './result.module.css';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
+import { fetchWithRetry, FetchWithRetryError } from '@/lib/http';
 
 // Confetti particle type
 interface ConfettiParticle {
@@ -60,15 +61,16 @@ const AxisBar = ({ label, score, left, right, delay }: {
 
 // Octant Radar Component (simplified)
 const OctantRadar = ({ scores, isKo }: { scores: Record<string, number>; isKo: boolean }) => {
+  // 표준 ICP 모델 레이블과 일치
   const octantLabels: Record<string, { en: string; ko: string }> = {
     PA: { en: 'Dominant', ko: '지배적' },
     BC: { en: 'Competitive', ko: '경쟁적' },
-    DE: { en: 'Cold', ko: '냉담형' },
-    FG: { en: 'Introverted', ko: '내향형' },
-    HI: { en: 'Submissive', ko: '수용형' },
-    JK: { en: 'Cooperative', ko: '협력형' },
-    LM: { en: 'Friendly', ko: '친화형' },
-    NO: { en: 'Nurturant', ko: '양육형' },
+    DE: { en: 'Cold', ko: '냉담' },
+    FG: { en: 'Introverted', ko: '내향적' },
+    HI: { en: 'Submissive', ko: '복종적' },
+    JK: { en: 'Agreeable', ko: '동조적' },
+    LM: { en: 'Warm', ko: '따뜻함' },
+    NO: { en: 'Nurturant', ko: '양육적' },
   };
 
   const sortedOctants = Object.entries(scores)
@@ -202,7 +204,7 @@ export default function ICPResultPage() {
 
     setSaveStatus('saving');
     try {
-      const res = await fetch('/api/icp', {
+      const res = await fetchWithRetry('/api/icp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -218,6 +220,12 @@ export default function ICPResultPage() {
             secondaryOctant: analysis.secondaryOctant,
           },
         }),
+      }, {
+        maxRetries: 3,
+        timeoutMs: 15000,
+        onRetry: (attempt, error, delay) => {
+          console.log(`[ICP Save] Retry ${attempt} after ${delay}ms: ${error.message}`);
+        },
       });
 
       if (res.ok) {
@@ -226,7 +234,10 @@ export default function ICPResultPage() {
       } else {
         setSaveStatus('error');
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof FetchWithRetryError) {
+        console.error('[ICP Save] Failed after retries:', error.message);
+      }
       setSaveStatus('error');
     }
   };

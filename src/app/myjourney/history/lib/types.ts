@@ -3,6 +3,8 @@
  * Extracted from page.tsx for modularity
  */
 
+import type { TimingAIPremiumReport, ThemedAIPremiumReport } from '@/lib/destiny-matrix/ai-report/types';
+
 export type ServiceRecord = {
   id: string;
   date: string;
@@ -188,7 +190,7 @@ export type DestinyMatrixContent = {
   summary?: string;
   overallScore?: number;
   grade?: string;
-  reportData: any; // Full TimingAIPremiumReport or ThemedAIPremiumReport
+  reportData: TimingAIPremiumReport | ThemedAIPremiumReport | null;
   pdfGenerated: boolean;
   locale: string;
   createdAt: string;

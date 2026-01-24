@@ -222,6 +222,50 @@
   border-radius: 21px;
 }
 
+/* Avatar Fallback */
+.avatarFallback {
+  width: 360px;
+  height: 540px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, rgba(168, 237, 234, 0.1), rgba(254, 214, 227, 0.1));
+  border-radius: 21px;
+}
+
+.avatarFallbackIcon {
+  font-size: 5rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+.avatarFallbackCode {
+  font-size: 2.5rem;
+  font-weight: 800;
+  font-family: monospace;
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 600px) {
+  .avatarFallback {
+    width: 280px;
+    height: 420px;
+  }
+
+  .avatarFallbackIcon {
+    font-size: 4rem;
+  }
+
+  .avatarFallbackCode {
+    font-size: 2rem;
+  }
+}
+
 .preTitle {
   font-size: 0.9rem;
   text-transform: uppercase;

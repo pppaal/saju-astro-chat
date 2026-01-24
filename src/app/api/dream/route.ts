@@ -12,6 +12,7 @@ import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withC
 import { logger } from '@/lib/logger';
 import { sanitizeError } from '@/lib/security/errorSanitizer';
 import { DreamRequestSchema, type DreamRequest } from '@/lib/validation';
+import type { ZodIssue } from 'zod';
 import { recordApiRequest } from '@/lib/metrics/index';
 
 type SymbolCombination = {
@@ -187,7 +188,7 @@ export async function POST(req: NextRequest) {
     // Validate with Zod schema
     const validation = DreamRequestSchema.safeParse(rawBody);
     if (!validation.success) {
-      const errors = validation.error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ');
+      const errors = validation.error.issues.map((e: ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ');
       recordApiRequest('dream', 'analyze', 'validation_error');
       return NextResponse.json(
         { error: `Validation failed: ${errors}` },

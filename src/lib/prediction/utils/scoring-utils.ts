@@ -3,7 +3,15 @@
  * Common scoring functions used across prediction engine
  */
 
-import { SCORE_THRESHOLDS } from '../life-prediction-constants';
+// Inlined to avoid circular imports
+const SCORE_THRESHOLDS = {
+  MIN: 0,
+  MAX: 100,
+  EXCELLENT: 80,
+  GOOD: 65,
+  AVERAGE: 50,
+  CAUTION: 35,
+} as const;
 
 /**
  * Normalize score to be within min-max range

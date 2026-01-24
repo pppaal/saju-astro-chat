@@ -515,7 +515,11 @@
     "errors": {
       "birthdate": "생년월일을 입력해주세요.",
       "city": "출생 도시를 선택해주세요.",
-      "generate": "오류가 발생했습니다. 다시 시도해주세요."
+      "generate": "오류가 발생했습니다. 다시 시도해주세요.",
+      "rateLimit": "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
+      "validation": "입력이 올바르지 않습니다. 정보를 확인해주세요.",
+      "server": "서버 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+      "network": "네트워크 오류가 발생했습니다. 연결을 확인해주세요."
     },
     "tabs": {
       "reading": "리딩",
@@ -532,6 +536,25 @@
       "nodesText": "서양 점성학에서 달의 북교점(North Node)은 당신의 영혼이 이번 생에서 발전시켜야 할 방향을, 남교점(South Node)은 전생에서 이미 익숙한 패턴을 나타냅니다. 북교점의 위치는 당신이 나아가야 할 영혼의 진화 방향을 보여주며, 이를 통해 전생에서 가져온 습관과 이번 생에서 배워야 할 새로운 교훈을 이해할 수 있습니다.",
       "purposeTitle": "토성과 카르마 교훈",
       "purposeText": "토성(Saturn)은 카르마의 행성으로, 우리가 이번 생에서 숙달해야 할 영역과 배워야 할 교훈을 나타냅니다. 토성의 위치는 당신이 전생에서 미완성으로 남긴 과제나 극복해야 할 두려움을 보여줍니다. 토성이 있는 하우스는 당신이 가장 큰 성숙과 성장을 경험할 영역이며, 이를 통해 카르마의 빚을 갚고 영혼을 진화시킬 수 있습니다."
+    },
+    "results": {
+      "overview": "개요",
+      "pastLife": "전생",
+      "journey": "영혼의 여정",
+      "karma": "카르마 빚",
+      "mission": "이번 생",
+      "newReading": "새로운 리딩",
+      "karmaScore": "카르마 탐험 지수",
+      "karmaScoreDesc": {
+        "high": "당신의 영혼은 많은 전생에서 풍부한 경험을 쌓아왔습니다. 깊은 카르마 패턴이 큰 성장의 기회를 제공합니다.",
+        "medium": "당신의 영혼은 적절한 카르마 패턴을 가지고 있습니다. 과거의 지혜와 새로운 교훈 사이의 균형이 기다립니다.",
+        "low": "당신의 영혼은 무거운 카르마 짐에서 비교적 자유롭습니다. 이번 생에서 새로운 경험과 성장에 집중하세요."
+      },
+      "karmaScoreRange": {
+        "high": "깊은 탐험가",
+        "medium": "성장하는 영혼",
+        "low": "새로운 시작"
+      }
     },
     "overview": {
       "soulPattern": "영혼 패턴",
@@ -551,19 +574,31 @@
       "pastPattern": "전생의 패턴",
       "releasePattern": "놓아야 할 패턴",
       "lifeDirection": "이번 생의 방향",
-      "lessonToLearn": "배워야 할 교훈"
+      "currentDirection": "이번 생의 방향",
+      "lessonToLearn": "배워야 할 교훈",
+      "toRelease": "놓아야 할 것",
+      "toLearn": "배워야 할 것",
+      "saturnLesson": "토성의 카르마 교훈",
+      "lesson": "교훈",
+      "challenge": "도전",
+      "mastery": "숙달"
     },
     "karma": {
       "title": "카르마 빚",
       "lesson": "카르마 교훈",
       "challenge": "도전 과제",
-      "mastery": "숙달할 것"
+      "mastery": "숙달할 것",
+      "intro": "이것들은 전생에서 가져온 카르마 패턴으로, 이번 생에서 성장과 치유의 기회를 제공합니다.",
+      "healing": "치유의 길",
+      "noDebts": "특별한 카르마 빚이 감지되지 않았습니다. 당신의 영혼은 전생에서 훌륭한 일을 해왔습니다!"
     },
     "mission": {
       "title": "이번 생의 사명",
       "core": "핵심 사명",
       "expression": "표현 방법",
-      "fulfillment": "성취"
+      "fulfillment": "성취",
+      "coreMission": "핵심 사명",
+      "talentsToUse": "활용할 재능"
     }
   },
   "numerology": {
@@ -1784,15 +1819,20 @@
     "paymentError": "결제 서비스가 일시적으로 이용 불가합니다",
     "plans": {
       "free": "무료",
-      "basic": "베이직",
+      "starter": "스타터",
       "pro": "프로",
       "premium": "프리미엄"
     },
     "features": {
       "aiChat3": "AI 상담 3회/월",
+      "aiChat7": "AI 상담 7회/월",
       "aiChat15": "AI 상담 15회/월",
+      "aiChat25": "AI 상담 25회/월",
       "aiChat40": "AI 상담 40회/월",
+      "aiChat80": "AI 상담 80회/월",
       "aiChat90": "AI 상담 90회/월",
+      "aiChat150": "AI 상담 150회/월",
+      "aiChat200": "AI 상담 200회/월",
       "calendarThisMonth": "캘린더 (당월만)",
       "calendar3months": "캘린더 (3개월)",
       "calendar1year": "캘린더 (1년)",
@@ -1806,7 +1846,7 @@
       "standard": "기본 팩",
       "plus": "플러스 팩",
       "mega": "메가 팩",
-      "ultra": "울트라 팩"
+      "ultimate": "얼티밋 팩"
     },
     "bestValue": "최고 가성비",
     "faqs": {

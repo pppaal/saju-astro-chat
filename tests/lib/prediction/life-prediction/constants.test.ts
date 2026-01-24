@@ -14,13 +14,14 @@ import {
   TRANSIT_EVENT_CONDITIONS,
   EVENT_HOUSES,
   SIBSIN_SCORES,
+  SIBSIN_SCORES_RELATIVE,
   STEM_COMBINATIONS,
   STEM_CLASHES,
   SIX_COMBOS,
   PARTIAL_TRINES,
   BRANCH_CLASHES,
   BRANCH_PUNISHMENTS,
-  EVENT_NAMES,
+  EVENT_NAMES_FULL,
 } from "@/lib/prediction/life-prediction/constants";
 
 describe("STEMS constant", () => {
@@ -278,29 +279,50 @@ describe("EVENT_HOUSES", () => {
   });
 });
 
-describe("SIBSIN_SCORES", () => {
+describe("SIBSIN_SCORES (0-100 scale)", () => {
   it("has scores for 10 sibsin types", () => {
     expect(Object.keys(SIBSIN_SCORES)).toHaveLength(10);
   });
 
-  it("정관 has highest positive score", () => {
-    expect(SIBSIN_SCORES["정관"]).toBe(15);
+  it("정관 has highest score (80)", () => {
+    expect(SIBSIN_SCORES["정관"]).toBe(80);
   });
 
-  it("정재 has positive score", () => {
-    expect(SIBSIN_SCORES["정재"]).toBe(12);
+  it("정재 has positive score (75)", () => {
+    expect(SIBSIN_SCORES["정재"]).toBe(75);
   });
 
-  it("겁재 has most negative score", () => {
-    expect(SIBSIN_SCORES["겁재"]).toBe(-8);
+  it("겁재 has lowest score (45)", () => {
+    expect(SIBSIN_SCORES["겁재"]).toBe(45);
   });
 
-  it("상관 is neutral", () => {
-    expect(SIBSIN_SCORES["상관"]).toBe(0);
+  it("상관 is neutral (50)", () => {
+    expect(SIBSIN_SCORES["상관"]).toBe(50);
   });
 
-  it("all scores are in reasonable range", () => {
+  it("all scores are in 0-100 range", () => {
     Object.values(SIBSIN_SCORES).forEach(score => {
+      expect(score).toBeGreaterThanOrEqual(0);
+      expect(score).toBeLessThanOrEqual(100);
+    });
+  });
+});
+
+describe("SIBSIN_SCORES_RELATIVE (relative weights)", () => {
+  it("has scores for 10 sibsin types", () => {
+    expect(Object.keys(SIBSIN_SCORES_RELATIVE)).toHaveLength(10);
+  });
+
+  it("정관 has highest positive weight (15)", () => {
+    expect(SIBSIN_SCORES_RELATIVE["정관"]).toBe(15);
+  });
+
+  it("겁재 has most negative weight (-8)", () => {
+    expect(SIBSIN_SCORES_RELATIVE["겁재"]).toBe(-8);
+  });
+
+  it("all scores are in -10 to 20 range", () => {
+    Object.values(SIBSIN_SCORES_RELATIVE).forEach(score => {
       expect(score).toBeGreaterThanOrEqual(-10);
       expect(score).toBeLessThanOrEqual(20);
     });
@@ -482,15 +504,15 @@ describe("BRANCH_PUNISHMENTS (형)", () => {
   });
 });
 
-describe("EVENT_NAMES", () => {
+describe("EVENT_NAMES_FULL", () => {
   const eventTypes = ["marriage", "career", "investment", "move", "study", "health", "relationship"];
 
   it("has names for all 7 event types", () => {
-    expect(Object.keys(EVENT_NAMES)).toHaveLength(7);
+    expect(Object.keys(EVENT_NAMES_FULL)).toHaveLength(7);
   });
 
   it.each(eventTypes)("has Korean and English names for %s", (eventType) => {
-    const names = EVENT_NAMES[eventType as keyof typeof EVENT_NAMES];
+    const names = EVENT_NAMES_FULL[eventType as keyof typeof EVENT_NAMES_FULL];
     expect(names.ko).toBeDefined();
     expect(names.en).toBeDefined();
     expect(typeof names.ko).toBe("string");
@@ -498,27 +520,27 @@ describe("EVENT_NAMES", () => {
   });
 
   it("marriage is 결혼 in Korean", () => {
-    expect(EVENT_NAMES.marriage.ko).toBe("결혼");
-    expect(EVENT_NAMES.marriage.en).toBe("Marriage");
+    expect(EVENT_NAMES_FULL.marriage.ko).toBe("결혼");
+    expect(EVENT_NAMES_FULL.marriage.en).toBe("Marriage");
   });
 
   it("career is 취업/이직 in Korean", () => {
-    expect(EVENT_NAMES.career.ko).toBe("취업/이직");
-    expect(EVENT_NAMES.career.en).toBe("Career");
+    expect(EVENT_NAMES_FULL.career.ko).toBe("취업/이직");
+    expect(EVENT_NAMES_FULL.career.en).toBe("Career");
   });
 
   it("investment is 투자 in Korean", () => {
-    expect(EVENT_NAMES.investment.ko).toBe("투자");
-    expect(EVENT_NAMES.investment.en).toBe("Investment");
+    expect(EVENT_NAMES_FULL.investment.ko).toBe("투자");
+    expect(EVENT_NAMES_FULL.investment.en).toBe("Investment");
   });
 
   it("move is 이사 in Korean", () => {
-    expect(EVENT_NAMES.move.ko).toBe("이사");
-    expect(EVENT_NAMES.move.en).toBe("Move");
+    expect(EVENT_NAMES_FULL.move.ko).toBe("이사");
+    expect(EVENT_NAMES_FULL.move.en).toBe("Move");
   });
 
   it("study is 학업/시험 in Korean", () => {
-    expect(EVENT_NAMES.study.ko).toBe("학업/시험");
-    expect(EVENT_NAMES.study.en).toBe("Study");
+    expect(EVENT_NAMES_FULL.study.ko).toBe("학업/시험");
+    expect(EVENT_NAMES_FULL.study.en).toBe("Study");
   });
 });

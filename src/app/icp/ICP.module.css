@@ -243,6 +243,8 @@
 .submitButton {
   max-width: 280px;
   width: 100%;
+  margin: 0 auto;
+  display: block;
   padding: 0.875rem 1.5rem;
   background: linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%);
   border: none;

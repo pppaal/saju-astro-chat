@@ -290,11 +290,28 @@ export const ICP_OCTANTS: Record<ICPOctantCode, ICPOctant> = {
   },
 };
 
-// Scoring weights: A = high, B = mid, C = low
+/**
+ * ICP 점수 매핑
+ *
+ * 점수 체계 설명:
+ * - A (1.0): 해당 축의 높은 쪽 극단 (지배적/친화적)
+ * - B (0.5): 중간 입장 또는 상황에 따라 다름
+ * - C (0.0): 해당 축의 낮은 쪽 극단 (복종적/적대적)
+ *
+ * 설계 근거:
+ * - ICP 모델은 두 축(지배-복종, 친화-적대)에서의 위치를 측정
+ * - B 선택지는 명확한 극단이 아닌 중간/상황적 응답을 나타냄
+ * - 0.5는 수학적 중간값으로 축 점수에 중립적 영향
+ *
+ * 일관성 점수 관련:
+ * - B 선택이 많으면 일관성 점수가 낮아짐
+ * - 이는 결과가 부정확하다는 뜻이 아니라,
+ *   응답자가 상황에 따라 다르게 행동함을 의미
+ */
 const SCORE_MAP: Record<string, number> = {
-  A: 1.0,
-  B: 0.5,
-  C: 0.0,
+  A: 1.0,  // 높은 극단 (dominant/friendly)
+  B: 0.5,  // 중간/상황적 (balanced/situational)
+  C: 0.0,  // 낮은 극단 (submissive/hostile)
 };
 
 /**

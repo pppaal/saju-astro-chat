@@ -493,7 +493,11 @@
     "errors": {
       "birthdate": "Please enter your birth date.",
       "city": "Please select your birth city.",
-      "generate": "An error occurred. Please try again."
+      "generate": "An error occurred. Please try again.",
+      "rateLimit": "Too many requests. Please wait a moment and try again.",
+      "validation": "Invalid input. Please check your information.",
+      "server": "Server error. Please try again later.",
+      "network": "Network error. Please check your connection."
     },
     "tabs": {
       "reading": "Reading",
@@ -510,6 +514,25 @@
       "nodesText": "In Western astrology, the North Node represents the direction your soul needs to develop in this life, while the South Node indicates patterns already familiar from past lives. The North Node's position shows the direction of your soul's evolution, helping you understand the habits carried from past lives and the new lessons to learn in this life.",
       "purposeTitle": "Saturn and Karmic Lessons",
       "purposeText": "Saturn is the planet of karma, representing the areas we must master and the lessons we must learn in this life. Saturn's position shows the tasks left unfinished from past lives or the fears you need to overcome. The house containing Saturn is the area where you will experience the greatest maturity and growth, allowing you to repay karmic debts and evolve your soul."
+    },
+    "results": {
+      "overview": "Overview",
+      "pastLife": "Past Life",
+      "journey": "Soul Journey",
+      "karma": "Karmic Debts",
+      "mission": "This Life",
+      "newReading": "New Reading",
+      "karmaScore": "Karma Exploration Index",
+      "karmaScoreDesc": {
+        "high": "Your soul has gathered rich experiences from many past lives. Deep karmic patterns offer significant growth opportunities.",
+        "medium": "Your soul carries moderate karmic patterns. Balance between past wisdom and new lessons awaits.",
+        "low": "Your soul is relatively free from heavy karmic burdens. Focus on new experiences and growth in this life."
+      },
+      "karmaScoreRange": {
+        "high": "Deep Explorer",
+        "medium": "Growing Soul",
+        "low": "Fresh Start"
+      }
     },
     "overview": {
       "soulPattern": "Soul Pattern",
@@ -529,19 +552,31 @@
       "pastPattern": "Past Pattern",
       "releasePattern": "Pattern to Release",
       "lifeDirection": "This Life's Direction",
-      "lessonToLearn": "Lesson to Learn"
+      "currentDirection": "This Life's Direction",
+      "lessonToLearn": "Lesson to Learn",
+      "toRelease": "To Release",
+      "toLearn": "To Learn",
+      "saturnLesson": "Saturn's Karmic Lesson",
+      "lesson": "Lesson",
+      "challenge": "Challenge",
+      "mastery": "Mastery"
     },
     "karma": {
       "title": "Karmic Debts",
       "lesson": "Karmic Lesson",
       "challenge": "Challenge",
-      "mastery": "Mastery"
+      "mastery": "Mastery",
+      "intro": "These are karmic patterns carried from past lives that offer opportunities for growth and healing in this lifetime.",
+      "healing": "Healing Path",
+      "noDebts": "No significant karmic debts detected. Your soul has done great work in past lives!"
     },
     "mission": {
       "title": "This Life's Mission",
       "core": "Core Mission",
       "expression": "Expression",
-      "fulfillment": "Fulfillment"
+      "fulfillment": "Fulfillment",
+      "coreMission": "Core Mission",
+      "talentsToUse": "Talents to Use"
     }
   },
   "numerology": {
@@ -1586,15 +1621,20 @@
     "paymentError": "Payment service temporarily unavailable",
     "plans": {
       "free": "Free",
-      "basic": "Basic",
+      "starter": "Starter",
       "pro": "Pro",
       "premium": "Premium"
     },
     "features": {
       "aiChat3": "3 AI chats/month",
+      "aiChat7": "7 AI chats/month",
       "aiChat15": "15 AI chats/month",
+      "aiChat25": "25 AI chats/month",
       "aiChat40": "40 AI chats/month",
+      "aiChat80": "80 AI chats/month",
       "aiChat90": "90 AI chats/month",
+      "aiChat150": "150 AI chats/month",
+      "aiChat200": "200 AI chats/month",
       "calendarThisMonth": "Calendar (current month)",
       "calendar3months": "Calendar (3 months)",
       "calendar1year": "Calendar (1 year)",
@@ -1608,7 +1648,7 @@
       "standard": "Standard Pack",
       "plus": "Plus Pack",
       "mega": "Mega Pack",
-      "ultra": "Ultra Pack"
+      "ultimate": "Ultimate Pack"
     },
     "bestValue": "Best Value",
     "faqs": {

@@ -75,81 +75,100 @@ function CompatibilityInsightsContent() {
     }
 
     try {
-      // Fetch Saju for person 1
-      const saju1Response = await fetch('/api/saju', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: personList[0].date,
-          time: personList[0].time,
-          latitude: personList[0].latitude || 37.5665,
-          longitude: personList[0].longitude || 126.9780,
-          timeZone: personList[0].timeZone || 'Asia/Seoul',
+      // Fetch all data in parallel
+      const [saju1Response, saju2Response, astro1Response, astro2Response] = await Promise.all([
+        fetch('/api/saju', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: personList[0].date,
+            time: personList[0].time,
+            latitude: personList[0].latitude || 37.5665,
+            longitude: personList[0].longitude || 126.9780,
+            timeZone: personList[0].timeZone || 'Asia/Seoul',
+          }),
         }),
-      });
-
-      // Fetch Saju for person 2
-      const saju2Response = await fetch('/api/saju', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: personList[1].date,
-          time: personList[1].time,
-          latitude: personList[1].latitude || 37.5665,
-          longitude: personList[1].longitude || 126.9780,
-          timeZone: personList[1].timeZone || 'Asia/Seoul',
+        fetch('/api/saju', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: personList[1].date,
+            time: personList[1].time,
+            latitude: personList[1].latitude || 37.5665,
+            longitude: personList[1].longitude || 126.9780,
+            timeZone: personList[1].timeZone || 'Asia/Seoul',
+          }),
         }),
-      });
-
-      // Fetch Astrology for person 1
-      const astro1Response = await fetch('/api/astrology', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: personList[0].date,
-          time: personList[0].time,
-          latitude: personList[0].latitude || 37.5665,
-          longitude: personList[0].longitude || 126.9780,
+        fetch('/api/astrology', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: personList[0].date,
+            time: personList[0].time,
+            latitude: personList[0].latitude || 37.5665,
+            longitude: personList[0].longitude || 126.9780,
+          }),
         }),
-      });
-
-      // Fetch Astrology for person 2
-      const astro2Response = await fetch('/api/astrology', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: personList[1].date,
-          time: personList[1].time,
-          latitude: personList[1].latitude || 37.5665,
-          longitude: personList[1].longitude || 126.9780,
+        fetch('/api/astrology', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: personList[1].date,
+            time: personList[1].time,
+            latitude: personList[1].latitude || 37.5665,
+            longitude: personList[1].longitude || 126.9780,
+          }),
         }),
-      });
+      ]);
 
-      // Process responses
+      // Track failed requests
+      const errors: string[] = [];
+
+      // Process responses and collect errors
       if (saju1Response.ok) {
         const data = await saju1Response.json();
         setPerson1Saju(data);
+      } else {
+        errors.push(`사주 데이터 조회 실패 (${personList[0].name})`);
+        logger.error('Saju1 fetch failed:', { status: saju1Response.status });
       }
 
       if (saju2Response.ok) {
         const data = await saju2Response.json();
         setPerson2Saju(data);
+      } else {
+        errors.push(`사주 데이터 조회 실패 (${personList[1].name})`);
+        logger.error('Saju2 fetch failed:', { status: saju2Response.status });
       }
 
       if (astro1Response.ok) {
         const data = await astro1Response.json();
         setPerson1Astro(data);
+      } else {
+        errors.push(`점성술 데이터 조회 실패 (${personList[0].name})`);
+        logger.error('Astro1 fetch failed:', { status: astro1Response.status });
       }
 
       if (astro2Response.ok) {
         const data = await astro2Response.json();
         setPerson2Astro(data);
+      } else {
+        errors.push(`점성술 데이터 조회 실패 (${personList[1].name})`);
+        logger.error('Astro2 fetch failed:', { status: astro2Response.status });
+      }
+
+      // If all critical data failed, show error
+      if (!saju1Response.ok && !saju2Response.ok) {
+        setError('사주 데이터를 불러올 수 없습니다. 다시 시도해주세요.');
+      } else if (errors.length > 0) {
+        // Log partial failures but continue
+        logger.warn('Partial data fetch failures:', { errors });
       }
 
       setIsLoading(false);
     } catch (e) {
       logger.error('Failed to fetch person data:', { error: e });
-      setError('Failed to fetch analysis data');
+      setError('분석 데이터를 불러오는데 실패했습니다. 다시 시도해주세요.');
       setIsLoading(false);
     }
   };

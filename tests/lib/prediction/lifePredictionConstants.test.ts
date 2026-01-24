@@ -20,7 +20,7 @@ import {
   PARTIAL_TRINES,
   BRANCH_CLASHES,
   BRANCH_PUNISHMENTS,
-  EVENT_NAMES,
+  EVENT_NAMES_FULL,
 } from "@/lib/prediction/life-prediction/constants";
 
 describe("Basic Saju constants", () => {
@@ -226,21 +226,21 @@ describe("EVENT_HOUSES", () => {
   });
 });
 
-describe("SIBSIN_SCORES", () => {
-  it("gives highest score to 정관", () => {
-    expect(SIBSIN_SCORES["정관"]).toBe(15);
+describe("SIBSIN_SCORES (0-100 scale)", () => {
+  it("gives highest score to 정관 (80)", () => {
+    expect(SIBSIN_SCORES["정관"]).toBe(80);
   });
 
-  it("gives positive score to 정재", () => {
-    expect(SIBSIN_SCORES["정재"]).toBe(12);
+  it("gives positive score to 정재 (75)", () => {
+    expect(SIBSIN_SCORES["정재"]).toBe(75);
   });
 
-  it("gives negative score to 겁재", () => {
-    expect(SIBSIN_SCORES["겁재"]).toBe(-8);
+  it("gives lowest score to 겁재 (45)", () => {
+    expect(SIBSIN_SCORES["겁재"]).toBe(45);
   });
 
-  it("gives zero score to 상관", () => {
-    expect(SIBSIN_SCORES["상관"]).toBe(0);
+  it("gives neutral score to 상관 (50)", () => {
+    expect(SIBSIN_SCORES["상관"]).toBe(50);
   });
 
   it("has scores for all 10 sibsin", () => {
@@ -362,23 +362,23 @@ describe("Branch relationships", () => {
   });
 });
 
-describe("EVENT_NAMES", () => {
+describe("EVENT_NAMES_FULL", () => {
   it("has bilingual names for all events", () => {
-    expect(EVENT_NAMES.marriage.ko).toBe("결혼");
-    expect(EVENT_NAMES.marriage.en).toBe("Marriage");
+    expect(EVENT_NAMES_FULL.marriage.ko).toBe("결혼");
+    expect(EVENT_NAMES_FULL.marriage.en).toBe("Marriage");
   });
 
   it("has career event names", () => {
-    expect(EVENT_NAMES.career.ko).toBe("취업/이직");
-    expect(EVENT_NAMES.career.en).toBe("Career");
+    expect(EVENT_NAMES_FULL.career.ko).toBe("취업/이직");
+    expect(EVENT_NAMES_FULL.career.en).toBe("Career");
   });
 
   it("has all 7 event types", () => {
     const types = ["marriage", "career", "investment", "move", "study", "health", "relationship"];
     types.forEach((type) => {
-      expect(EVENT_NAMES).toHaveProperty(type);
-      expect(EVENT_NAMES[type as keyof typeof EVENT_NAMES]).toHaveProperty("ko");
-      expect(EVENT_NAMES[type as keyof typeof EVENT_NAMES]).toHaveProperty("en");
+      expect(EVENT_NAMES_FULL).toHaveProperty(type);
+      expect(EVENT_NAMES_FULL[type as keyof typeof EVENT_NAMES_FULL]).toHaveProperty("ko");
+      expect(EVENT_NAMES_FULL[type as keyof typeof EVENT_NAMES_FULL]).toHaveProperty("en");
     });
   });
 });

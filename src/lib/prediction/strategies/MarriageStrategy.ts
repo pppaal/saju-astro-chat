@@ -5,6 +5,7 @@
 
 import { BaseEventStrategy, type ScoringContext, type ScoreResult } from './types';
 import { EVENT_SCORING } from '../constants/scoring';
+import type { FiveElement } from '@/lib/Saju/types';
 
 export class MarriageStrategy extends BaseEventStrategy {
   readonly eventType = 'marriage';
@@ -43,7 +44,7 @@ export class MarriageStrategy extends BaseEventStrategy {
 
   applyElementBonus(context: ScoringContext, result: ScoreResult): void {
     // 결혼에 유리한 오행: 수(水), 금(金) - 조화와 안정
-    const favorableElements: any[] = ['水', '金'];
+    const favorableElements: FiveElement[] = ['수', '금'];
 
     if (favorableElements.includes(context.monthElement)) {
       result.score += EVENT_SCORING.FAVORABLE_STAGE;
@@ -84,7 +85,7 @@ export class MarriageStrategy extends BaseEventStrategy {
     if (!context.daeun) return;
 
     // 결혼: 대운이 재성 또는 관성일 때 유리
-    const favorableDaeunElements: any[] = ['水', '金'];
+    const favorableDaeunElements: FiveElement[] = ['수', '금'];
     if (favorableDaeunElements.includes(context.daeun.element)) {
       result.score += 10;
       result.reasons.push(`대운 ${context.daeun.element} - 결혼운 상승`);

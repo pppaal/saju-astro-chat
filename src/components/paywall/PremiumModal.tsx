@@ -86,7 +86,7 @@ export default function PremiumModal({
       price: "₩19,900",
       priceEn: "$19.99",
       features: [
-        t("pricing.features.aiChat150"),
+        t("pricing.features.aiChat200"),
         t("pricing.features.calendar2years"),
         t("pricing.features.prioritySupport"),
         t("pricing.features.pdfReport"),

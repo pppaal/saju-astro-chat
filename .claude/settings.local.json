@@ -218,7 +218,20 @@
       "Bash(npx --yes tsc:*)",
       "Bash(if [ -f .next/BUILD_ID ])",
       "Bash(then echo \"✅ BUILD SUCCESS\")",
-      "Bash(else echo \"⏳ Still building...\")"
+      "Bash(else echo \"⏳ Still building...\")",
+      "Bash(git rm:*)",
+      "Bash(for route in personality icp/route dream/stream dream/chat dream/chat/save life-prediction/explain-results life-prediction/advisor-chat life-prediction/backend-predict calendar/route calendar/save compatibility/counselor consultation astrology/chat-stream tarot/chat/stream iching/stream iching/changing-line)",
+      "Bash(do if [ -f \"c:\\\\dev\\\\saju-astro-chat\\\\src\\\\app\\\\api$route.ts\" ])",
+      "Bash(then if ! grep -l \"describe\\\\|it\\(\" \"c:\\\\dev\\\\saju-astro-chat\\\\tests\\\\app\\\\api$route.test.ts\")",
+      "Bash(else)",
+      "Bash(for file in /c/dev/saju-astro-chat/src/lib/prediction/*.ts)",
+      "Bash(for file in src/lib/prediction/*.ts)",
+      "Bash(do basename \"$file\")",
+      "Bash(while read dir)",
+      "Bash(do find \"$dir\" -name \"*.ts\" ! -name \"*.d.ts\")",
+      "Bash(/tmp/find_untested.sh)",
+      "Bash(ultra-precision.*daily)",
+      "Bash(\")"
     ],
     "deny": [],
     "ask": []

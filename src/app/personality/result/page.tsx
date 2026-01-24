@@ -11,6 +11,7 @@ import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
 import styles from './result.module.css';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
+import { fetchWithRetry, FetchWithRetryError } from '@/lib/http';
 
 // Confetti particle type
 interface ConfettiParticle {
@@ -109,6 +110,7 @@ export default function ResultPage() {
   const [isSavedToDb, setIsSavedToDb] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [confettiParticles, setConfettiParticles] = useState<ConfettiParticle[]>([]);
+  const [avatarError, setAvatarError] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -181,7 +183,7 @@ export default function ResultPage() {
 
     setSaveStatus('saving');
     try {
-      const res = await fetch('/api/personality', {
+      const res = await fetchWithRetry('/api/personality', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -208,6 +210,12 @@ export default function ResultPage() {
           },
           answers,
         }),
+      }, {
+        maxRetries: 3,
+        timeoutMs: 15000,
+        onRetry: (attempt, error, delay) => {
+          console.log(`[Persona Save] Retry ${attempt} after ${delay}ms: ${error.message}`);
+        },
       });
 
       if (res.ok) {
@@ -216,7 +224,10 @@ export default function ResultPage() {
       } else {
         setSaveStatus('error');
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof FetchWithRetryError) {
+        console.error('[Persona Save] Failed after retries:', error.message);
+      }
       setSaveStatus('error');
     }
   };
@@ -595,7 +606,7 @@ export default function ResultPage() {
         <section className={styles.hero}>
           {/* Avatar with Aura Rings */}
           <div className={styles.avatarSection}>
-            {avatarSrc && (
+            {avatarSrc && !avatarError && (
               <div className={styles.avatarWrapper}>
                 {/* Aura Rings */}
                 <div className={styles.auraRings}>
@@ -610,7 +621,22 @@ export default function ResultPage() {
                   height={540}
                   className={styles.avatar}
                   unoptimized
+                  onError={() => setAvatarError(true)}
                 />
+              </div>
+            )}
+            {/* Fallback when avatar fails to load */}
+            {(!avatarSrc || avatarError) && (
+              <div className={styles.avatarWrapper}>
+                <div className={styles.auraRings}>
+                  <div className={styles.auraRing1} />
+                  <div className={styles.auraRing2} />
+                  <div className={styles.auraRing3} />
+                </div>
+                <div className={styles.avatarFallback} aria-label={analysis.personaName}>
+                  <span className={styles.avatarFallbackIcon}>✨</span>
+                  <span className={styles.avatarFallbackCode}>{analysis.typeCode}</span>
+                </div>
               </div>
             )}
           </div>

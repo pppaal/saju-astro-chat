@@ -3,7 +3,7 @@
  * 이벤트별 조언 생성 모듈
  */
 
-import type { PeriodClassifierResult, OptimalPeriod } from '../analyzers/periodClassifier';
+import type { PeriodClassifierResult, OptimalPeriod, AvoidPeriod } from '../analyzers/periodClassifier';
 import { EVENT_TYPE_NAMES_KO } from '../life-prediction-constants';
 
 /**
@@ -86,7 +86,7 @@ export class EventAdvisor {
    */
   private static generateAvoidOnlyAdvice(
     eventName: string,
-    avoidPeriods: any[]
+    avoidPeriods: AvoidPeriod[]
   ): string {
     return `검색 기간 내에 ${eventName}을(를) 위한 최적의 시기를 찾기 어렵습니다. 신중한 준비와 시기를 더 확장하여 검토해보시기 바랍니다.`;
   }

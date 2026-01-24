@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => null);
 
     // Validate required fields
-    const typeCode = typeof body?.typeCode === "string" ? body.typeCode.trim().slice(0, 4) : "";
+    const typeCode = typeof body?.typeCode === "string" ? body.typeCode.trim().slice(0, 4).toUpperCase() : "";
     const personaName = typeof body?.personaName === "string" ? body.personaName.trim().slice(0, 100) : "";
     const avatarGender = typeof body?.avatarGender === "string" ? body.avatarGender.trim() : "M";
 
@@ -69,7 +69,24 @@ export async function POST(request: Request) {
     const consistencyScore = typeof body?.consistencyScore === "number" ? Math.max(0, Math.min(100, body.consistencyScore)) : null;
 
     if (!typeCode || !personaName) {
-      return NextResponse.json({ error: "missing_fields" }, { status: 400 });
+      return NextResponse.json({ error: "missing_fields", message: "typeCode and personaName are required" }, { status: 400 });
+    }
+
+    // Validate typeCode format: must be 4 characters [R|G][V|S][L|H][A|F]
+    const VALID_TYPE_CODE_PATTERN = /^[RG][VS][LH][AF]$/;
+    if (!VALID_TYPE_CODE_PATTERN.test(typeCode)) {
+      return NextResponse.json({
+        error: "invalid_type_code",
+        message: `Invalid typeCode format: "${typeCode}". Expected pattern: [R|G][V|S][L|H][A|F] (e.g., RVLA, GSHF)`,
+      }, { status: 400 });
+    }
+
+    // Validate avatarGender
+    if (!["M", "F"].includes(avatarGender)) {
+      return NextResponse.json({
+        error: "invalid_avatar_gender",
+        message: `Invalid avatarGender: "${avatarGender}". Expected "M" or "F"`,
+      }, { status: 400 });
     }
 
     // Validate analysisData

@@ -78,11 +78,23 @@ export const EVENT_SCORING = {
   /** General favorable stage bonus */
   FAVORABLE_STAGE: 8,
 
+  /** General favorable twelve stage bonus */
+  FAVORABLE_TWELVE_STAGE: 12,
+
+  /** General favorable element bonus */
+  FAVORABLE_ELEMENT: 10,
+
   /** Business favorable condition bonus */
   BUSINESS_FAVORABLE: 10,
 
   /** Business unfavorable condition penalty */
   BUSINESS_UNFAVORABLE: 10,
+
+  /** Business favorable twelve stage bonus */
+  BUSINESS_FAVORABLE_STAGE: 15,
+
+  /** Business favorable element bonus */
+  BUSINESS_FAVORABLE_ELEMENT: 12,
 
   /** Investment favorable condition bonus */
   INVESTMENT_FAVORABLE: 8,
@@ -101,6 +113,48 @@ export const EVENT_SCORING = {
 
   /** Element match bonus */
   ELEMENT_MATCH: 8,
+
+  /** Health favorable sibsin bonus */
+  HEALTH_FAVORABLE_SIBSIN: 12,
+
+  /** Health unfavorable sibsin penalty */
+  HEALTH_UNFAVORABLE_SIBSIN: 10,
+
+  /** Health favorable twelve stage bonus */
+  HEALTH_FAVORABLE_STAGE: 15,
+
+  /** Health unfavorable twelve stage penalty */
+  HEALTH_UNFAVORABLE_STAGE: 12,
+
+  /** Surgery favorable sibsin bonus */
+  SURGERY_FAVORABLE_SIBSIN: 15,
+
+  /** Surgery unfavorable sibsin penalty */
+  SURGERY_UNFAVORABLE_SIBSIN: 15,
+
+  /** Surgery favorable twelve stage bonus */
+  SURGERY_FAVORABLE_STAGE: 18,
+
+  /** Surgery unfavorable twelve stage penalty */
+  SURGERY_UNFAVORABLE_STAGE: 20,
+
+  /** Surgery favorable element bonus */
+  SURGERY_FAVORABLE_ELEMENT: 12,
+
+  /** Surgery unfavorable element penalty */
+  SURGERY_UNFAVORABLE_ELEMENT: 10,
+
+  /** Move favorable sibsin bonus */
+  MOVE_FAVORABLE_SIBSIN: 15,
+
+  /** Travel favorable sibsin bonus */
+  TRAVEL_FAVORABLE_SIBSIN: 12,
+
+  /** Daeun favorable element bonus */
+  DAEUN_FAVORABLE: 12,
+
+  /** Daeun minor favorable element bonus */
+  DAEUN_FAVORABLE_MINOR: 10,
 } as const;
 
 /**

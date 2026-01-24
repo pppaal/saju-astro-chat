@@ -107,6 +107,9 @@ function GlobalHeaderContent() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
+  // Hide GlobalHeader on main page (MainHeader handles it there)
+  const isMainPage = !pathname || pathname === "/" || pathname === "";
+
   const signInUrl = useMemo(() => {
     return buildSignInUrl(pathname || "/");
   }, [pathname]);
@@ -195,6 +198,11 @@ function GlobalHeaderContent() {
         break;
     }
   }, [showDropdown, menuItemCount]);
+
+  // Hide on main page (MainHeader handles navigation there)
+  if (isMainPage) {
+    return null;
+  }
 
   // Loading state
   if (loading) {
