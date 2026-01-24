@@ -67,28 +67,14 @@ export function MatrixDetailModal({ detail }: MatrixDetailModalProps) {
         )}
       </div>
 
-      {/* PDF Download Button */}
+      {/* PDF Download Button - PDF generation not yet supported for timing/themed reports */}
       <div className={styles.actionSection}>
         <button
           className={styles.pdfButton}
-          onClick={async () => {
-            try {
-              const { generatePremiumPDF } = await import('@/lib/destiny-matrix/ai-report/pdfGenerator');
-              const pdfBytes = await generatePremiumPDF(detail.reportData);
-              const blob = new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `${detail.title.replace(/[^a-zA-Z0-9가-힣]/g, '_')}.pdf`;
-              a.click();
-              URL.revokeObjectURL(url);
-            } catch (error) {
-              logger.error('Failed to generate PDF:', error);
-              alert('PDF 생성 실패');
-            }
-          }}
+          disabled
+          title="PDF 다운로드 기능은 준비 중입니다"
         >
-          📄 PDF 다운로드
+          📄 PDF 다운로드 (준비중)
         </button>
       </div>
 

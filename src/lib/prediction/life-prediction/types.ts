@@ -309,6 +309,7 @@ export interface AvoidPeriod {
   startDate: Date;
   endDate: Date;
   score: number;
+  grade: string;
   reasons: string[];
 }
 
@@ -377,6 +378,10 @@ export interface AstroEventConditions extends EventFavorableConditions {
   beneficPlanets: string[];
   maleficPlanets: string[];
   moonPhaseBonus: Record<string, number>;
+  favorableSigns: string[];
+  keyPlanets: string[];
+  favorableHouses: number[];
+  avoidRetrogrades: string[];
 }
 
 // 트랜짓 이벤트 조건 타입

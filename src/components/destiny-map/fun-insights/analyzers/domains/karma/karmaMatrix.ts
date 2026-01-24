@@ -10,7 +10,8 @@ import type { AdvancedAnalysisRow, ShinsalKind, BranchRelation } from '@/lib/des
 import type { FiveElement } from '@/lib/Saju/types';
 import type { SajuData, AstroData } from '../../../types';
 import { KARMA_SHINSALS } from '../../shared';
-import type { KarmaMatrixResult, MatrixFusion } from '../../types';
+import type { MatrixFusion } from '../../types';
+import type { KarmaMatrixResult } from '../../types/specialized.types';
 
 // Element mapping helper
 const mapSajuElementToKo = (el: string): FiveElement => {
@@ -52,7 +53,7 @@ export function getKarmaMatrixAnalysis(
   saju: SajuData | ExtendedSajuData | undefined,
   astro: AstroData | undefined,
   lang: string
-): any {
+): KarmaMatrixResult | null {
   const isKo = lang === 'ko';
   if (!saju && !astro) return null;
 
