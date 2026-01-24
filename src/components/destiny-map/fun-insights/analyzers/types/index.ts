@@ -24,13 +24,15 @@ export type {
 } from './matrix.types';
 
 export type {
-  // Domain results
+  // Domain results (simple versions)
   LoveMatrixResult,
   CareerMatrixResult,
   HealthMatrixResult,
-  KarmaMatrixResult,
   CareerAdvancedResult,
   LoveTimingResult,
   ShadowPersonalityResult,
   TimingMatrixResult,
 } from './domain.types';
+
+// KarmaMatrixResult uses the detailed version from specialized.types
+export type { KarmaMatrixResult } from './specialized.types';
