@@ -152,7 +152,7 @@
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.6",
     "typescript": "^5",
-    "vitest": "^3.0.0",
+    "vitest": "^4.0.18",
     "vitest-axe": "^0.1.0",
     "webpack": "^5.102.1"
   }
