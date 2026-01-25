@@ -9,6 +9,7 @@ import type { PersonaAnalysis, PersonaQuizAnswers } from '@/lib/persona/types';
 import { analyzePersona } from '@/lib/persona/analysis';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
+import { PersonaCircumplex } from '@/components/personality';
 import styles from './result.module.css';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
 import { fetchWithRetry, FetchWithRetryError } from '@/lib/http';
@@ -736,6 +737,21 @@ export default function ResultPage() {
               left={t('personality.axis.anchor', 'Anchor')}
               right={t('personality.axis.flow', 'Flow')}
               delay={300}
+            />
+          </div>
+        </section>
+
+        {/* Circumplex Visualization */}
+        <section className={styles.circumplexSection}>
+          <h2 className={styles.sectionTitle}>
+            <span className={styles.sectionIcon}>🔮</span>
+            {t('personality.circumplex', 'Personality Circumplex')}
+          </h2>
+          <div className={styles.circumplexWrapper}>
+            <PersonaCircumplex
+              axes={analysis.axes}
+              typeCode={analysis.typeCode}
+              locale={locale}
             />
           </div>
         </section>

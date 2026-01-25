@@ -61,16 +61,16 @@ const AxisBar = ({ label, score, left, right, delay }: {
 
 // Octant Radar Component (simplified)
 const OctantRadar = ({ scores, isKo }: { scores: Record<string, number>; isKo: boolean }) => {
-  // 표준 ICP 모델 레이블과 일치
-  const octantLabels: Record<string, { en: string; ko: string }> = {
-    PA: { en: 'Dominant', ko: '지배적' },
-    BC: { en: 'Competitive', ko: '경쟁적' },
-    DE: { en: 'Cold', ko: '냉담' },
-    FG: { en: 'Introverted', ko: '내향적' },
-    HI: { en: 'Submissive', ko: '복종적' },
-    JK: { en: 'Agreeable', ko: '동조적' },
-    LM: { en: 'Warm', ko: '따뜻함' },
-    NO: { en: 'Nurturant', ko: '양육적' },
+  // 표준 ICP 모델 레이블과 일치 - 이모지 + 한글로 직관성 향상
+  const octantLabels: Record<string, { emoji: string; en: string; ko: string }> = {
+    PA: { emoji: '👑', en: 'Dominant', ko: '지배적' },
+    BC: { emoji: '🏆', en: 'Competitive', ko: '경쟁적' },
+    DE: { emoji: '🧊', en: 'Cold', ko: '냉담' },
+    FG: { emoji: '🌙', en: 'Introverted', ko: '내향적' },
+    HI: { emoji: '🕊️', en: 'Submissive', ko: '복종적' },
+    JK: { emoji: '🤝', en: 'Agreeable', ko: '동조적' },
+    LM: { emoji: '💗', en: 'Warm', ko: '따뜻함' },
+    NO: { emoji: '🌻', en: 'Nurturant', ko: '양육적' },
   };
 
   const sortedOctants = Object.entries(scores)
@@ -85,7 +85,7 @@ const OctantRadar = ({ scores, isKo }: { scores: Record<string, number>; isKo: b
           style={{ animationDelay: `${index * 100}ms` }}
         >
           <div className={styles.octantInfo}>
-            <span className={styles.octantCode}>{code}</span>
+            <span className={styles.octantCode}>{octantLabels[code]?.emoji}</span>
             <span className={styles.octantName}>
               {isKo ? octantLabels[code]?.ko : octantLabels[code]?.en}
             </span>

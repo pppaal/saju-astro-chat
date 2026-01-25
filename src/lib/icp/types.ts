@@ -9,6 +9,7 @@ export type ICPOctantCode = 'PA' | 'BC' | 'DE' | 'FG' | 'HI' | 'JK' | 'LM' | 'NO
 
 export interface ICPOctant {
   code: ICPOctantCode;
+  emoji: string;
   name: string;
   korean: string;
   traits: string[];

@@ -276,11 +276,14 @@ const rawShinsal = getShinsalHits(sajuPillars, {
         aiModelUsed = data?.model || 'gpt-4o';
       }
     } catch (aiErr) {
-      if (process.env.NODE_ENV !== 'production') {
-        logger.warn('[Saju API] AI backend call failed:', aiErr);
-      }
-      aiInterpretation = '';
-      aiModelUsed = 'error-fallback';
+      logger.warn('[Saju API] AI backend call failed:', aiErr);
+      // AI 실패 시 기본 해석 제공
+      const locale = body.locale || 'ko';
+      const dayMasterName = sajuResult.dayMaster?.name || '';
+      aiInterpretation = locale === 'ko'
+        ? `${dayMasterName} 일간으로 태어나셨습니다. 현재 AI 해석 서비스가 일시적으로 이용 불가합니다. 기본 사주 분석 결과를 확인해주세요.`
+        : `You were born with ${dayMasterName} as your day master. AI interpretation is temporarily unavailable. Please check the basic Saju analysis results.`;
+      aiModelUsed = 'fallback';
     }
 
     // ======== 기록 저장 (로그인 사용자만) ========

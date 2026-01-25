@@ -64,6 +64,58 @@ interface NumerologyTransformedResponse {
   koreanName?: { number: number | undefined; strokes: number | undefined; meaning: string };
 }
 
+// 기본 수비학 계산 fallback 함수
+function calculateLifePathNumber(birthDate: string): number {
+  const digits = birthDate.replace(/-/g, '').split('').map(Number);
+  let sum = digits.reduce((a, b) => a + b, 0);
+  while (sum > 9 && sum !== 11 && sum !== 22 && sum !== 33) {
+    sum = sum.toString().split('').map(Number).reduce((a, b) => a + b, 0);
+  }
+  return sum;
+}
+
+function getLifePathMeaning(num: number, locale: string): { meaning: string; description: string } {
+  const meanings: Record<number, { ko: { meaning: string; description: string }; en: { meaning: string; description: string } }> = {
+    1: { ko: { meaning: '리더', description: '독립적이고 창의적인 리더십을 가진 개척자입니다.' }, en: { meaning: 'Leader', description: 'Independent and creative pioneer with leadership qualities.' } },
+    2: { ko: { meaning: '협력자', description: '조화와 균형을 추구하는 외교적인 중재자입니다.' }, en: { meaning: 'Cooperator', description: 'Diplomatic mediator seeking harmony and balance.' } },
+    3: { ko: { meaning: '표현자', description: '창의적이고 사교적인 자기표현의 달인입니다.' }, en: { meaning: 'Expresser', description: 'Creative and social master of self-expression.' } },
+    4: { ko: { meaning: '건설자', description: '실용적이고 체계적인 안정의 건설자입니다.' }, en: { meaning: 'Builder', description: 'Practical and systematic builder of stability.' } },
+    5: { ko: { meaning: '자유인', description: '변화와 모험을 사랑하는 자유로운 영혼입니다.' }, en: { meaning: 'Freedom Seeker', description: 'Free spirit who loves change and adventure.' } },
+    6: { ko: { meaning: '양육자', description: '책임감 있고 헌신적인 가정의 수호자입니다.' }, en: { meaning: 'Nurturer', description: 'Responsible and devoted guardian of the home.' } },
+    7: { ko: { meaning: '탐구자', description: '분석적이고 직관적인 진리의 탐구자입니다.' }, en: { meaning: 'Seeker', description: 'Analytical and intuitive seeker of truth.' } },
+    8: { ko: { meaning: '성취자', description: '야심차고 목표지향적인 물질적 성공의 달인입니다.' }, en: { meaning: 'Achiever', description: 'Ambitious and goal-oriented master of material success.' } },
+    9: { ko: { meaning: '인도주의자', description: '이타적이고 관대한 인류애의 봉사자입니다.' }, en: { meaning: 'Humanitarian', description: 'Altruistic and generous servant of humanity.' } },
+    11: { ko: { meaning: '영감자', description: '직관적이고 영적인 영감의 전달자입니다.' }, en: { meaning: 'Inspirer', description: 'Intuitive and spiritual messenger of inspiration.' } },
+    22: { ko: { meaning: '마스터 건설자', description: '비전을 현실로 만드는 위대한 건설자입니다.' }, en: { meaning: 'Master Builder', description: 'Great builder who turns visions into reality.' } },
+    33: { ko: { meaning: '마스터 교사', description: '사랑과 치유로 인류를 이끄는 스승입니다.' }, en: { meaning: 'Master Teacher', description: 'Teacher who guides humanity with love and healing.' } },
+  };
+  const data = meanings[num] || meanings[9];
+  return locale === 'ko' ? data.ko : data.en;
+}
+
+function generateNumerologyFallback(birthDate: string, locale: string): NumerologyTransformedResponse {
+  const lifePathNum = calculateLifePathNumber(birthDate);
+  const { meaning, description } = getLifePathMeaning(lifePathNum, locale);
+
+  // 개인년도 계산
+  const currentYear = new Date().getFullYear();
+  const [, month, day] = birthDate.split('-').map(Number);
+  let personalYearSum = currentYear + month + day;
+  while (personalYearSum > 9) {
+    personalYearSum = personalYearSum.toString().split('').map(Number).reduce((a, b) => a + b, 0);
+  }
+
+  return {
+    lifePath: { number: lifePathNum, meaning, description },
+    personalYear: {
+      number: personalYearSum,
+      theme: locale === 'ko'
+        ? `${currentYear}년은 ${personalYearSum}의 에너지가 흐릅니다.`
+        : `${currentYear} carries the energy of ${personalYearSum}.`
+    },
+  };
+}
+
 /**
  * POST /api/numerology
  *
@@ -143,8 +195,15 @@ export async function POST(req: Request) {
 
     if (!result.ok) {
       logger.error('[Numerology API] Backend error:', { status: result.status, error: result.error });
+
+      // Fallback: 백엔드 실패 시 기본 수비학 계산 제공
+      if (action === 'analyze' && body.birthDate) {
+        const fallbackResponse = generateNumerologyFallback(body.birthDate, locale);
+        return NextResponse.json({ ...fallbackResponse, fromFallback: true });
+      }
+
       return NextResponse.json(
-        { error: 'Backend service error', status: result.status },
+        { error: locale === 'ko' ? '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' : 'Backend service error', status: result.status },
         { status: result.status }
       );
     }

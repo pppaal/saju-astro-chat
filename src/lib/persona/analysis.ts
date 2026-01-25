@@ -260,6 +260,23 @@ export const EFFECTS: AnswerEffects = {
   },
 };
 
+/**
+ * 점수를 비선형 변환하여 중간에 몰리지 않고 분포를 넓힘
+ * 50% 기준으로 양쪽으로 확장 (power 변환)
+ */
+const expandScore = (rawScore: number): number => {
+  // rawScore는 0-100 범위
+  // 50을 중심으로 양쪽으로 확장
+  const centered = (rawScore - 50) / 50; // -1 to 1
+  // 비선형 변환: 중간값을 유지하면서 극단값으로 더 확장
+  // 0.7 지수로 분포를 약 1.4배 확장
+  const expanded = Math.sign(centered) * Math.pow(Math.abs(centered), 0.7);
+  // 다시 0-100 범위로 변환
+  const result = Math.round((expanded * 50) + 50);
+  // 범위 클램핑: 8% ~ 92% (극단적이지만 너무 극단적이지는 않게)
+  return Math.max(8, Math.min(92, result));
+};
+
 const resolveAxis = (axis: PersonaAxisKey, state: AxisState): PersonaAxisResult => {
   const [p1, p2] = AXES[axis];
   const a = state[axis][p1] ?? 0; // p1 = right side (radiant, visionary, logic, flow)
@@ -267,7 +284,9 @@ const resolveAxis = (axis: PersonaAxisKey, state: AxisState): PersonaAxisResult 
   const total = a + b || 1;
   const dominant = (a >= b ? p1 : p2) as PersonaPole;
   // score represents position on spectrum: 0% = full p2 (left), 100% = full p1 (right)
-  const score = Math.round((a / total) * 100);
+  const rawScore = Math.round((a / total) * 100);
+  // 점수 폭 확대 적용
+  const score = expandScore(rawScore);
   return { pole: dominant, score };
 };
 

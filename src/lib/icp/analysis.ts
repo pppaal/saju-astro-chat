@@ -6,10 +6,11 @@
 import type { ICPQuizAnswers, ICPAnalysis, ICPOctant, ICPOctantCode, PersonaAxisData, CrossSystemCompatibility } from './types';
 import { icpQuestions } from './questions';
 
-// 8 Octant definitions
+// 8 Octant definitions with emojis for intuitive display
 export const ICP_OCTANTS: Record<ICPOctantCode, ICPOctant> = {
   PA: {
     code: 'PA',
+    emoji: '👑',
     name: 'Dominant-Assured',
     korean: '지배적-확신형',
     traits: ['Leadership', 'Confidence', 'Decisive', 'Assertive'],
@@ -45,6 +46,7 @@ export const ICP_OCTANTS: Record<ICPOctantCode, ICPOctant> = {
   },
   BC: {
     code: 'BC',
+    emoji: '🏆',
     name: 'Competitive-Arrogant',
     korean: '경쟁적-거만형',
     traits: ['Ambitious', 'Competitive', 'Achievement-oriented', 'Independent'],
@@ -80,6 +82,7 @@ export const ICP_OCTANTS: Record<ICPOctantCode, ICPOctant> = {
   },
   DE: {
     code: 'DE',
+    emoji: '🧊',
     name: 'Cold-Distant',
     korean: '냉담-거리형',
     traits: ['Analytical', 'Objective', 'Independent', 'Reserved'],
@@ -115,6 +118,7 @@ export const ICP_OCTANTS: Record<ICPOctantCode, ICPOctant> = {
   },
   FG: {
     code: 'FG',
+    emoji: '🌙',
     name: 'Submissive-Introverted',
     korean: '복종적-내향형',
     traits: ['Humble', 'Cautious', 'Observant', 'Quiet'],
@@ -150,6 +154,7 @@ export const ICP_OCTANTS: Record<ICPOctantCode, ICPOctant> = {
   },
   HI: {
     code: 'HI',
+    emoji: '🕊️',
     name: 'Submissive-Unassured',
     korean: '복종적-불확신형',
     traits: ['Accommodating', 'Dependent', 'Receptive', 'Gentle'],
@@ -185,10 +190,11 @@ export const ICP_OCTANTS: Record<ICPOctantCode, ICPOctant> = {
   },
   JK: {
     code: 'JK',
-    name: 'Cooperative-Agreeable',
-    korean: '협력적-동조형',
-    traits: ['Cooperative', 'Kind', 'Harmony-seeking', 'Considerate'],
-    traitsKo: ['협조적', '친절한', '조화추구', '배려하는'],
+    emoji: '🤝',
+    name: 'Agreeable-Docile',
+    korean: '동조적-순응형',
+    traits: ['Agreeable', 'Kind', 'Harmony-seeking', 'Considerate'],
+    traitsKo: ['동조적', '친절한', '조화추구', '배려하는'],
     shadow: 'Can be self-sacrificing, boundary-less, and unable to tolerate conflict. May say yes when meaning no, leading to resentment and burnout. Under stress, becomes more people-pleasing and loses sense of self, merging completely with others\' needs. The avoidance of disagreement can enable unhealthy dynamics and prevent authentic connection.',
     shadowKo: '자기희생적이고 경계가 없으며 갈등을 견디지 못할 수 있습니다. 아니오를 의미할 때 예라고 말하여 분노와 소진으로 이어질 수 있습니다. 스트레스를 받으면 더욱 사람을 기쁘게 하려 하고 자아감각을 잃으며 다른 사람의 필요와 완전히 합쳐집니다. 불일치를 피하는 것이 건강하지 않은 역학을 가능하게 하고 진정한 연결을 방해할 수 있습니다.',
     dominance: -0.7,
@@ -220,6 +226,7 @@ export const ICP_OCTANTS: Record<ICPOctantCode, ICPOctant> = {
   },
   LM: {
     code: 'LM',
+    emoji: '💗',
     name: 'Warm-Friendly',
     korean: '따뜻-친화형',
     traits: ['Empathetic', 'Sociable', 'Nurturing', 'Approachable'],
@@ -255,6 +262,7 @@ export const ICP_OCTANTS: Record<ICPOctantCode, ICPOctant> = {
   },
   NO: {
     code: 'NO',
+    emoji: '🌻',
     name: 'Nurturant-Extroverted',
     korean: '양육적-외향형',
     traits: ['Guiding', 'Protective', 'Encouraging', 'Generous'],
@@ -350,15 +358,21 @@ export function analyzeICP(answers: ICPQuizAnswers, locale: string = 'en'): ICPA
   const affiliationNormalized = (affiliationScore - 50) / 50;
 
   // Calculate octant scores based on distance
+  // 표준 ICP 모델에서 최대 거리는 sqrt(2^2 + 2^2) = sqrt(8) ≈ 2.83
+  // 더 넓은 점수 분포를 위해 가우시안 유사도 사용
   const octantScores: Record<ICPOctantCode, number> = {} as Record<ICPOctantCode, number>;
 
   for (const [code, octant] of Object.entries(ICP_OCTANTS) as [ICPOctantCode, ICPOctant][]) {
     // Calculate similarity based on axis alignment
-    const domDiff = Math.abs(dominanceNormalized - octant.dominance);
-    const affDiff = Math.abs(affiliationNormalized - octant.affiliation);
-    const distance = Math.sqrt(domDiff * domDiff + affDiff * affDiff);
-    // Convert distance to score (max distance is sqrt(8) ≈ 2.83)
-    octantScores[code] = Math.max(0, 1 - distance / 2);
+    const domDiff = dominanceNormalized - octant.dominance;
+    const affDiff = affiliationNormalized - octant.affiliation;
+    const distanceSquared = domDiff * domDiff + affDiff * affDiff;
+
+    // 가우시안 유사도: sigma=0.8로 설정하여 점수 분포 확대
+    // 가까우면 1에 가깝고, 멀면 0에 가까움
+    const sigma = 0.8;
+    const similarity = Math.exp(-distanceSquared / (2 * sigma * sigma));
+    octantScores[code] = similarity;
   }
 
   // Find primary and secondary styles
@@ -371,15 +385,21 @@ export function analyzeICP(answers: ICPQuizAnswers, locale: string = 'en'): ICPA
   const primaryOctant = ICP_OCTANTS[primaryStyle];
   const secondaryOctant = secondaryStyle ? ICP_OCTANTS[secondaryStyle] : null;
 
-  // Calculate consistency (how clear the answers are)
-  const answerValues = Object.values(answers);
-  const aCount = answerValues.filter(a => a === 'A').length;
-  const cCount = answerValues.filter(a => a === 'C').length;
-  const bCount = answerValues.filter(a => a === 'B').length;
-  const total = answerValues.length || 1;
+  // Calculate consistency (how clearly the profile emerges)
+  // 1. 주요 스타일과 2위 스타일 간의 점수 차이가 클수록 일관성 높음
+  // 2. 축 점수가 중앙(50)에서 멀수록 명확한 성향
+  const primaryScore = sortedOctants[0][1];
+  const secondaryScore = sortedOctants[1][1];
+  const scoreDifferentiation = (primaryScore - secondaryScore) / primaryScore; // 0~1
 
-  // More A/C answers = more consistent, more B = less consistent
-  const consistencyScore = Math.round(((aCount + cCount) / total) * 100);
+  // 축 명확도: 50%에서 얼마나 벗어났는지 (0~50 범위를 0~1로 정규화)
+  const dominanceClarity = Math.abs(dominanceScore - 50) / 50;
+  const affiliationClarity = Math.abs(affiliationScore - 50) / 50;
+  const axisClarity = (dominanceClarity + affiliationClarity) / 2;
+
+  // 일관성 = 스타일 차별화(40%) + 축 명확도(60%)
+  const consistencyRaw = scoreDifferentiation * 0.4 + axisClarity * 0.6;
+  const consistencyScore = Math.round(Math.min(100, Math.max(30, consistencyRaw * 100 + 30)));
 
   // Generate summary
   const summary = isKo

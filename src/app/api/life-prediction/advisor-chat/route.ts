@@ -7,31 +7,61 @@ import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middle
 import { apiClient } from '@/lib/api/ApiClient';
 import { logger } from '@/lib/logger';
 
+interface PredictionResult {
+  startDate: string;
+  endDate: string;
+  score: number;
+  grade: string;
+  reasons: string[];
+}
+
+interface ChatContext {
+  question: string;
+  eventType: string;
+  results: PredictionResult[];
+  birthDate: string;
+  gender: 'M' | 'F';
+  sipsin?: string;
+  daeun?: string;
+  yongsin?: string[];
+}
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 interface ChatRequest {
   message: string;
-  sessionId?: string; // 세션 ID 추가
-  context: {
-    question: string;
-    eventType: string;
-    results: Array<{
-      startDate: string;
-      endDate: string;
-      score: number;
-      grade: string;
-      reasons: string[];
-    }>;
-    birthDate: string;
-    gender: 'M' | 'F';
-    // RAG 관련 추가 필드
-    sipsin?: string;
-    daeun?: string;
-    yongsin?: string[];
-  };
-  history: Array<{
-    role: 'user' | 'assistant';
-    content: string;
-  }>;
+  sessionId?: string;
+  context: ChatContext;
+  history: ChatMessage[];
   locale: 'ko' | 'en';
+}
+
+interface RagContextResponse {
+  rag_context?: {
+    sipsin?: string;
+    timing?: string;
+    query_result?: string;
+    insights?: string[];
+  };
+}
+
+interface CounselingResponse {
+  status: string;
+  response: string;
+  session_id: string;
+  phase: string;
+  crisis_detected: boolean;
+  severity: string;
+  should_continue: boolean;
+  jung_context: Record<string, unknown>;
+}
+
+interface TherapeuticQuestionsResponse {
+  rag_questions?: string[];
+  question?: string;
 }
 
 // ============================================================
@@ -50,13 +80,13 @@ async function fetchRagContext(
       sipsin,
       event_type: eventType,
       query: userMessage,
-    }, { timeout: 3000 });
+    }, { timeout: 10000 });
 
     if (!response.ok) {
       return fallbackContext;
     }
 
-    const ragContext = (response.data as any)?.rag_context || {};
+    const ragContext = (response.data as RagContextResponse)?.rag_context || {};
 
     const parts: string[] = [];
     if (ragContext.sipsin) parts.push(ragContext.sipsin);
@@ -111,7 +141,8 @@ async function fetchTherapeuticQuestions(
 
     if (!response.ok) return [];
 
-    return (response.data as any)?.rag_questions || [(response.data as any)?.question] || [];
+    const data = response.data as TherapeuticQuestionsResponse;
+    return data?.rag_questions || (data?.question ? [data.question] : []);
   } catch {
     return [];
   }
@@ -129,7 +160,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       creditAmount: 1,
     });
 
-    const { context: apiContext, error } = await initializeApiContext(request, guardOptions);
+    const { error } = await initializeApiContext(request, guardOptions);
     if (error) return error;
 
     const body: ChatRequest = await request.json();
@@ -158,8 +189,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         // 타로/점성 데이터가 있다면 추가 가능
       }, { timeout: 15000 });
 
-      if (counselingResponse.ok && (counselingResponse.data as any)?.status === 'success') {
-        const counselingData = counselingResponse.data as any;
+      if (counselingResponse.ok && (counselingResponse.data as CounselingResponse)?.status === 'success') {
+        const counselingData = counselingResponse.data as CounselingResponse;
         // ✅ 백엔드 상담 엔진 사용 성공
         logger.info('[Advisor Chat] Using backend counseling engine');
 

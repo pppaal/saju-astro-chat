@@ -18,15 +18,15 @@ interface ICPCircumplexProps {
 
 // 표준 ICP 모델: 상단=지배(PA), 하단=복종(HI), 우측=친밀(LM), 좌측=적대(DE)
 // 시계방향: PA(90°) → NO(45°) → LM(0°) → JK(-45°) → HI(-90°) → FG(-135°) → DE(180°) → BC(135°)
-const OCTANT_POSITIONS: Record<string, { angle: number; label: string; korean: string }> = {
-  PA: { angle: 90, label: 'Dominant', korean: '지배적' },
-  NO: { angle: 45, label: 'Nurturant', korean: '양육적' },
-  LM: { angle: 0, label: 'Warm', korean: '따뜻함' },
-  JK: { angle: -45, label: 'Agreeable', korean: '동조적' },
-  HI: { angle: -90, label: 'Submissive', korean: '복종적' },
-  FG: { angle: -135, label: 'Introverted', korean: '내향적' },
-  DE: { angle: 180, label: 'Cold', korean: '냉담' },
-  BC: { angle: 135, label: 'Competitive', korean: '경쟁적' },
+const OCTANT_POSITIONS: Record<string, { angle: number; emoji: string; label: string; korean: string }> = {
+  PA: { angle: 90, emoji: '👑', label: 'Dominant', korean: '지배적' },
+  NO: { angle: 45, emoji: '🌻', label: 'Nurturant', korean: '양육적' },
+  LM: { angle: 0, emoji: '💗', label: 'Warm', korean: '따뜻함' },
+  JK: { angle: -45, emoji: '🤝', label: 'Agreeable', korean: '동조적' },
+  HI: { angle: -90, emoji: '🕊️', label: 'Submissive', korean: '복종적' },
+  FG: { angle: -135, emoji: '🌙', label: 'Introverted', korean: '내향적' },
+  DE: { angle: 180, emoji: '🧊', label: 'Cold', korean: '냉담' },
+  BC: { angle: 135, emoji: '🏆', label: 'Competitive', korean: '경쟁적' },
 };
 
 export default function ICPCircumplex({
@@ -106,9 +106,9 @@ export default function ICPCircumplex({
                 r={isPrimary ? 18 : isSecondary ? 14 : 10}
                 className={`${styles.octantCircle} ${isPrimary ? styles.primary : ''} ${isSecondary ? styles.secondary : ''}`}
               />
-              {/* Octant code */}
-              <text x={pos.x} y={pos.y + 4} className={styles.octantCode} textAnchor="middle">
-                {code}
+              {/* Octant emoji */}
+              <text x={pos.x} y={pos.y + 5} className={styles.octantCode} textAnchor="middle">
+                {OCTANT_POSITIONS[code]?.emoji}
               </text>
               {/* Korean label (outside) */}
               <text
@@ -136,12 +136,12 @@ export default function ICPCircumplex({
       <div className={styles.legend}>
         <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.primary}`}></span>
-          <span>주요 스타일: {primaryStyle} ({OCTANT_POSITIONS[primaryStyle]?.korean})</span>
+          <span>주요 스타일: {OCTANT_POSITIONS[primaryStyle]?.emoji} {OCTANT_POSITIONS[primaryStyle]?.korean}</span>
         </div>
         {secondaryStyle && (
           <div className={styles.legendItem}>
             <span className={`${styles.legendDot} ${styles.secondary}`}></span>
-            <span>부가 스타일: {secondaryStyle} ({OCTANT_POSITIONS[secondaryStyle]?.korean})</span>
+            <span>부가 스타일: {OCTANT_POSITIONS[secondaryStyle]?.emoji} {OCTANT_POSITIONS[secondaryStyle]?.korean}</span>
           </div>
         )}
       </div>

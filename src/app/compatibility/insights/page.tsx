@@ -81,42 +81,54 @@ function CompatibilityInsightsContent() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            date: personList[0].date,
-            time: personList[0].time,
+            birthDate: personList[0].date,
+            birthTime: personList[0].time || '12:00',
+            gender: 'M', // 궁합 분석용 기본값
+            calendarType: 'solar',
+            timezone: personList[0].timeZone || 'Asia/Seoul',
             latitude: personList[0].latitude || 37.5665,
             longitude: personList[0].longitude || 126.9780,
-            timeZone: personList[0].timeZone || 'Asia/Seoul',
           }),
         }),
         fetch('/api/saju', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            birthDate: personList[1].date,
+            birthTime: personList[1].time || '12:00',
+            gender: 'F', // 궁합 분석용 기본값
+            calendarType: 'solar',
+            timezone: personList[1].timeZone || 'Asia/Seoul',
+            latitude: personList[1].latitude || 37.5665,
+            longitude: personList[1].longitude || 126.9780,
+          }),
+        }),
+        fetch('/api/astrology', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+          },
+          body: JSON.stringify({
+            date: personList[0].date,
+            time: personList[0].time || '12:00',
+            latitude: personList[0].latitude || 37.5665,
+            longitude: personList[0].longitude || 126.9780,
+            timeZone: personList[0].timeZone || 'Asia/Seoul',
+          }),
+        }),
+        fetch('/api/astrology', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+          },
+          body: JSON.stringify({
             date: personList[1].date,
-            time: personList[1].time,
+            time: personList[1].time || '12:00',
             latitude: personList[1].latitude || 37.5665,
             longitude: personList[1].longitude || 126.9780,
             timeZone: personList[1].timeZone || 'Asia/Seoul',
-          }),
-        }),
-        fetch('/api/astrology', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            date: personList[0].date,
-            time: personList[0].time,
-            latitude: personList[0].latitude || 37.5665,
-            longitude: personList[0].longitude || 126.9780,
-          }),
-        }),
-        fetch('/api/astrology', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            date: personList[1].date,
-            time: personList[1].time,
-            latitude: personList[1].latitude || 37.5665,
-            longitude: personList[1].longitude || 126.9780,
           }),
         }),
       ]);

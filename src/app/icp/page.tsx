@@ -98,14 +98,14 @@ export default function ICPHomePage() {
         <div className={styles.octantPreview}>
           <h4>{isKo ? '8가지 대인관계 스타일' : 'The 8 Interpersonal Styles'}</h4>
           <div className={styles.octantGrid}>
-            <span className={styles.octantTag}>PA {isKo ? '지배적' : 'Dominant'}</span>
-            <span className={styles.octantTag}>BC {isKo ? '경쟁적' : 'Competitive'}</span>
-            <span className={styles.octantTag}>DE {isKo ? '냉담형' : 'Cold'}</span>
-            <span className={styles.octantTag}>FG {isKo ? '내향형' : 'Introverted'}</span>
-            <span className={styles.octantTag}>HI {isKo ? '수용형' : 'Submissive'}</span>
-            <span className={styles.octantTag}>JK {isKo ? '협력형' : 'Cooperative'}</span>
-            <span className={styles.octantTag}>LM {isKo ? '친화형' : 'Friendly'}</span>
-            <span className={styles.octantTag}>NO {isKo ? '양육형' : 'Nurturant'}</span>
+            <span className={styles.octantTag}>👑 {isKo ? '지배적' : 'Dominant'}</span>
+            <span className={styles.octantTag}>🏆 {isKo ? '경쟁적' : 'Competitive'}</span>
+            <span className={styles.octantTag}>🧊 {isKo ? '냉담' : 'Cold'}</span>
+            <span className={styles.octantTag}>🌙 {isKo ? '내향적' : 'Introverted'}</span>
+            <span className={styles.octantTag}>🕊️ {isKo ? '복종적' : 'Submissive'}</span>
+            <span className={styles.octantTag}>🤝 {isKo ? '동조적' : 'Agreeable'}</span>
+            <span className={styles.octantTag}>💗 {isKo ? '따뜻함' : 'Warm'}</span>
+            <span className={styles.octantTag}>🌻 {isKo ? '양육적' : 'Nurturant'}</span>
           </div>
         </div>
 
