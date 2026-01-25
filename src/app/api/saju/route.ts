@@ -368,8 +368,8 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       aiInterpretation,
       aiModelUsed,
 
-      // ======== 고급 분석 결과 - 프리미엄 사용자에게만 제공 ========
-      advancedAnalysis: isPremium ? fullAdvancedAnalysis : null,
+      // ======== 고급 분석 결과 - 모든 사용자에게 제공 ========
+      advancedAnalysis: fullAdvancedAnalysis,
     });
   } catch (error) {
     logger.error('[API /api/saju] Uncaught error:', error);

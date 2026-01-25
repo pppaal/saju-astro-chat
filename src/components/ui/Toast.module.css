@@ -127,3 +127,61 @@
     max-width: none;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .toastContainer {
+    top: 8px;
+    right: 8px;
+    left: 8px;
+    gap: 10px;
+  }
+
+  .toast {
+    padding: 14px 16px;
+    gap: 10px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+
+  .toastIcon {
+    font-size: 18px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .toastClose {
+    font-size: 16px;
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .toastContainer {
+    top: 6px;
+    right: 6px;
+    left: 6px;
+    gap: 8px;
+  }
+
+  .toast {
+    padding: 12px 14px;
+    gap: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  .toastIcon {
+    font-size: 16px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .toastClose {
+    font-size: 14px;
+    width: 20px;
+    height: 20px;
+  }
+}

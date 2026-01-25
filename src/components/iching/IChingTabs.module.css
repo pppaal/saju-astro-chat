@@ -157,3 +157,128 @@
     font-size: 14px;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .tabHeaders {
+    gap: 6px;
+    padding: 5px;
+    margin-bottom: 18px;
+    border-radius: 14px;
+  }
+
+  .tabButton {
+    min-width: 85px;
+    padding: 10px 12px;
+    gap: 6px;
+    border-radius: 10px;
+  }
+
+  .tabIcon {
+    font-size: 20px;
+  }
+
+  .tabLabel {
+    font-size: 11px;
+  }
+
+  .activeIndicator {
+    height: 2px;
+  }
+
+  .tabDescription {
+    font-size: 13px;
+    padding: 10px;
+    margin-bottom: 18px;
+    border-radius: 10px;
+  }
+
+  .tabContent {
+    min-height: 300px;
+  }
+
+  .aboutContainer {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .aboutSection {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .aboutTitle {
+    font-size: 15px;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .aboutIcon {
+    font-size: 20px;
+  }
+
+  .aboutText {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .tabHeaders {
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+  }
+
+  .tabButton {
+    min-width: 70px;
+    padding: 8px 10px;
+    gap: 4px;
+    border-radius: 8px;
+  }
+
+  .tabIcon {
+    font-size: 18px;
+  }
+
+  .tabLabel {
+    font-size: 10px;
+  }
+
+  .tabDescription {
+    font-size: 12px;
+    padding: 8px;
+    margin-bottom: 12px;
+  }
+
+  .tabContent {
+    min-height: 250px;
+  }
+
+  .aboutContainer {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .aboutSection {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .aboutTitle {
+    font-size: 14px;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .aboutIcon {
+    font-size: 18px;
+  }
+
+  .aboutText {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+}

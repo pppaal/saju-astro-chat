@@ -191,3 +191,133 @@
     margin-left: -50px;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .tarotContainer {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .tarotDeckContainer {
+    height: 240px;
+    margin-bottom: 2rem;
+  }
+
+  .tarotDeck {
+    width: 90px;
+    height: 150px;
+  }
+
+  .tarotDeck.deckSpread {
+    height: 220px;
+  }
+
+  .deckCard {
+    width: 90px;
+    height: 150px;
+    margin-left: -45px;
+    border-radius: 10px;
+  }
+
+  .deckCardIcon {
+    font-size: 2.5rem;
+  }
+
+  .deckLabel {
+    bottom: -1.75rem;
+    font-size: 0.8rem;
+  }
+
+  .tarotCards {
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .cardBack,
+  .cardFront {
+    border-radius: 10px;
+  }
+
+  .cardBackBorder {
+    border-radius: 6px;
+  }
+
+  .cardBackIcon {
+    font-size: 2.5rem;
+  }
+
+  .cardName {
+    padding: 0.375rem;
+    font-size: 0.75rem;
+  }
+
+  .tarotLabels {
+    gap: 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .tarotContainer {
+    padding: 1.25rem 0.5rem;
+  }
+
+  .tarotDeckContainer {
+    height: 210px;
+    margin-bottom: 1.75rem;
+  }
+
+  .tarotDeck {
+    width: 80px;
+    height: 132px;
+  }
+
+  .tarotDeck.deckSpread {
+    height: 190px;
+  }
+
+  .deckCard {
+    width: 80px;
+    height: 132px;
+    margin-left: -40px;
+    border-radius: 8px;
+  }
+
+  .deckCardIcon {
+    font-size: 2rem;
+  }
+
+  .deckLabel {
+    bottom: -1.5rem;
+    font-size: 0.75rem;
+  }
+
+  .tarotCards {
+    gap: 0.625rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .cardBack,
+  .cardFront {
+    border-radius: 8px;
+  }
+
+  .cardBackBorder {
+    border-radius: 5px;
+  }
+
+  .cardBackIcon {
+    font-size: 2rem;
+  }
+
+  .cardName {
+    padding: 0.3rem;
+    font-size: 0.7rem;
+  }
+
+  .tarotLabels {
+    gap: 0.625rem;
+    font-size: 0.75rem;
+  }
+}

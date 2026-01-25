@@ -74,6 +74,34 @@
   }
 }
 
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .scrollToTop {
+    bottom: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .scrollToTopIcon {
+    font-size: 1.2rem;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .scrollToTop {
+    bottom: 14px;
+    right: 14px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .scrollToTopIcon {
+    font-size: 1.1rem;
+  }
+}
+
 /* Focus state for accessibility */
 .scrollToTop:focus-visible {
   outline: 3px solid rgba(167, 139, 250, 0.8);

@@ -357,3 +357,181 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .dashboard {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .header {
+    padding-bottom: 12px;
+    margin-bottom: 14px;
+    gap: 10px;
+  }
+
+  .trendIcon {
+    font-size: 24px;
+  }
+
+  .trendLabel {
+    font-size: 10px;
+  }
+
+  .trendValue {
+    font-size: 14px;
+  }
+
+  .highlights {
+    gap: 8px;
+  }
+
+  .highlight {
+    padding: 5px 8px;
+    border-radius: 10px;
+  }
+
+  .highlightIcon {
+    font-size: 14px;
+  }
+
+  .highlightValue {
+    font-size: 12px;
+  }
+
+  .timelineScroll {
+    gap: 8px;
+    padding: 8px 0;
+  }
+
+  .yearCard {
+    min-width: 65px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    gap: 5px;
+  }
+
+  .yearNumber {
+    font-size: 13px;
+  }
+
+  .gradeCircle {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+
+  .scoreValue {
+    font-size: 10px;
+  }
+
+  .ageLabel {
+    font-size: 9px;
+  }
+
+  .yearDetail {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .detailTitle {
+    font-size: 16px;
+  }
+
+  .detailGrade {
+    padding: 3px 10px;
+    font-size: 11px;
+  }
+
+  .detailSection {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .sectionTitle {
+    font-size: 12px;
+  }
+
+  .sectionContent {
+    font-size: 13px;
+  }
+
+  .sectionList {
+    font-size: 12px;
+  }
+
+  .transitionInfo {
+    padding: 10px;
+    border-radius: 8px;
+    gap: 8px;
+  }
+
+  .transitionIcon {
+    font-size: 16px;
+  }
+
+  .transitionText {
+    font-size: 12px;
+  }
+
+  .summarySection {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .summaryText {
+    font-size: 13px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .dashboard {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .trendIcon {
+    font-size: 20px;
+  }
+
+  .trendValue {
+    font-size: 13px;
+  }
+
+  .yearCard {
+    min-width: 58px;
+    padding: 6px 8px;
+  }
+
+  .yearNumber {
+    font-size: 12px;
+  }
+
+  .gradeCircle {
+    width: 22px;
+    height: 22px;
+    font-size: 9px;
+  }
+
+  .yearDetail {
+    padding: 12px;
+  }
+
+  .detailTitle {
+    font-size: 14px;
+  }
+
+  .detailSection {
+    padding: 10px;
+  }
+
+  .sectionTitle {
+    font-size: 11px;
+  }
+
+  .sectionContent {
+    font-size: 12px;
+  }
+}

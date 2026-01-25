@@ -360,3 +360,150 @@
     font-size: 0.8rem;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .container {
+    padding: 0.75rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .timeRangeSelector {
+    flex-wrap: wrap;
+  }
+
+  .timeRangeBtn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .refreshBtn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.1rem;
+  }
+
+  .slaGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .slaCard {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+
+  .slaValue {
+    font-size: 1.5rem;
+  }
+
+  .slaLabel {
+    font-size: 0.8rem;
+  }
+
+  .funnelStep {
+    min-width: 100px;
+  }
+
+  .funnelIcon {
+    font-size: 1.5rem;
+  }
+
+  .funnelLabel {
+    font-size: 0.8rem;
+  }
+
+  .funnelValue {
+    font-size: 1.25rem;
+  }
+
+  .metricsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .metricCard {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+
+  .metricValue {
+    font-size: 1.25rem;
+  }
+
+  .subscriptionGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .subscriptionCard {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+
+  .subscriptionValue {
+    font-size: 1.25rem;
+  }
+
+  .tableHeader,
+  .tableRow {
+    grid-template-columns: 1fr 1fr;
+    font-size: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .tableHeader > :nth-child(3),
+  .tableRow > :nth-child(3) {
+    display: none;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .container {
+    padding: 0.5rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .timeRangeBtn {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .slaGrid,
+  .metricsGrid,
+  .subscriptionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .slaValue {
+    font-size: 1.25rem;
+  }
+
+  .funnelContainer {
+    padding: 1rem;
+  }
+
+  .funnelStep {
+    min-width: 80px;
+  }
+
+  .funnelValue {
+    font-size: 1.1rem;
+  }
+
+  .tableHeader,
+  .tableRow {
+    padding: 0.5rem;
+  }
+}

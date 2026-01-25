@@ -362,3 +362,186 @@
     padding: 1.5rem;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .container {
+    padding: 0.75rem;
+  }
+
+  .header {
+    margin-bottom: 2rem;
+  }
+
+  .icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .title {
+    width: 200px;
+    height: 28px;
+    border-radius: 6px;
+  }
+
+  .subtitle, .hint {
+    width: 240px;
+    height: 16px;
+  }
+
+  .formBox {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .field {
+    margin-bottom: 1.5rem;
+  }
+
+  .label {
+    height: 16px;
+  }
+
+  .input {
+    height: 44px;
+    border-radius: 10px;
+  }
+
+  .genderGroup {
+    gap: 0.75rem;
+  }
+
+  .genderButton {
+    height: 44px;
+    border-radius: 10px;
+  }
+
+  .submitButton {
+    height: 48px;
+    border-radius: 12px;
+    margin-top: 1.5rem;
+  }
+
+  .resultContainer {
+    padding: 1.5rem 1rem;
+  }
+
+  .resultHeader {
+    margin-bottom: 2rem;
+  }
+
+  .resultTitle {
+    width: 160px;
+    height: 26px;
+  }
+
+  .resultSubtitle {
+    width: 240px;
+    height: 18px;
+  }
+
+  .pillarsBox {
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+    border-radius: 16px;
+  }
+
+  .pillarsTitle {
+    width: 120px;
+    height: 20px;
+    margin-bottom: 1rem;
+  }
+
+  .pillarsGrid {
+    gap: 0.75rem;
+  }
+
+  .pillar {
+    padding: 1rem 0.75rem;
+    border-radius: 10px;
+  }
+
+  .pillarLabel {
+    width: 50px;
+    height: 14px;
+  }
+
+  .pillarChar {
+    width: 42px;
+    height: 42px;
+  }
+
+  .section {
+    padding: 1.25rem;
+    border-radius: 14px;
+    margin-bottom: 1rem;
+  }
+
+  .sectionTitle {
+    width: 140px;
+    height: 20px;
+    margin-bottom: 1rem;
+  }
+
+  .sectionLine {
+    height: 14px;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .icon {
+    font-size: 2rem;
+  }
+
+  .title {
+    width: 160px;
+    height: 24px;
+  }
+
+  .subtitle, .hint {
+    width: 200px;
+    height: 14px;
+  }
+
+  .formBox {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .input {
+    height: 40px;
+  }
+
+  .genderButton {
+    height: 40px;
+  }
+
+  .submitButton {
+    height: 44px;
+  }
+
+  .resultContainer {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .pillarsBox {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .pillar {
+    padding: 0.875rem 0.625rem;
+  }
+
+  .pillarChar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .section {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+}

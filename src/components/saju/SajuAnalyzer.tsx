@@ -142,7 +142,9 @@ export default function SajuAnalyzer() {
     setSajuResult(null);
 
     try {
-      const payload = { ...formData, userTimezone: userTz };
+      // 출생시간 모름이면 12:00으로 설정
+      const effectiveBirthTime = formData.birthTime || '12:00';
+      const payload = { ...formData, birthTime: effectiveBirthTime, userTimezone: userTz };
       const response = await fetch('/api/saju', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -327,3 +327,180 @@
     height: 220px;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .container {
+    padding: 0.75rem;
+  }
+
+  .logoSection {
+    margin-bottom: 2rem;
+  }
+
+  .icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .title {
+    width: 160px;
+    height: 32px;
+    border-radius: 6px;
+  }
+
+  .subtitle {
+    width: 200px;
+    height: 16px;
+  }
+
+  .searchBox {
+    height: 52px;
+    padding: 0 1.25rem;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    border-radius: 14px;
+  }
+
+  .searchIcon {
+    font-size: 1.25rem;
+  }
+
+  .searchInput {
+    height: 16px;
+  }
+
+  .quickSection {
+    margin-bottom: 1.5rem;
+  }
+
+  .quickLabel {
+    height: 14px;
+    margin-bottom: 0.75rem;
+  }
+
+  .quickTags {
+    gap: 0.5rem;
+  }
+
+  .tag {
+    width: 100px;
+    height: 32px;
+    border-radius: 16px;
+  }
+
+  .hint {
+    width: 240px;
+    height: 14px;
+    margin-top: 1.5rem;
+  }
+
+  .readingContainer {
+    padding: 1.5rem 1rem;
+  }
+
+  .questionSection {
+    margin-bottom: 2rem;
+  }
+
+  .questionTitle {
+    width: 120px;
+    height: 20px;
+  }
+
+  .questionText {
+    width: 240px;
+    height: 16px;
+  }
+
+  .cardsGrid {
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .card {
+    width: 110px;
+    height: 172px;
+  }
+
+  .cardBack {
+    border-radius: 10px;
+  }
+
+  .interpretationBox {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+
+  .interpretationTitle {
+    width: 160px;
+    height: 20px;
+    margin-bottom: 1rem;
+  }
+
+  .interpretationLine {
+    height: 14px;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .icon {
+    font-size: 2.5rem;
+  }
+
+  .title {
+    width: 140px;
+    height: 28px;
+  }
+
+  .subtitle {
+    width: 160px;
+    height: 14px;
+  }
+
+  .searchBox {
+    height: 48px;
+    padding: 0 1rem;
+    border-radius: 12px;
+  }
+
+  .searchIcon {
+    font-size: 1.1rem;
+  }
+
+  .tag {
+    width: 85px;
+    height: 28px;
+    border-radius: 14px;
+  }
+
+  .hint {
+    width: 200px;
+    height: 12px;
+  }
+
+  .card {
+    width: 90px;
+    height: 140px;
+  }
+
+  .cardBack {
+    border-radius: 8px;
+  }
+
+  .interpretationBox {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .interpretationTitle {
+    width: 140px;
+    height: 18px;
+  }
+
+  .interpretationLine {
+    height: 12px;
+  }
+}

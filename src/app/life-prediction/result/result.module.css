@@ -278,3 +278,166 @@
     min-height: 400px;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .container {
+    padding: 60px 10px 20px;
+  }
+
+  .creditBadgeWrapper {
+    top: 14px;
+    right: 14px;
+  }
+
+  .header {
+    margin-bottom: 20px;
+  }
+
+  .title {
+    font-size: 1.35rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .loaderContainer,
+  .errorContainer {
+    padding: 16px;
+  }
+
+  .loaderCard,
+  .errorCard {
+    padding: 28px 18px;
+    border-radius: 18px;
+  }
+
+  .loaderIcon {
+    font-size: 56px;
+    margin-bottom: 18px;
+  }
+
+  .loaderTitle {
+    font-size: 1.1rem;
+    margin-bottom: 18px;
+  }
+
+  .progressContainer {
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .progressTrack {
+    height: 6px;
+  }
+
+  .progressText {
+    font-size: 13px;
+    min-width: 42px;
+  }
+
+  .stepsContainer {
+    gap: 10px;
+  }
+
+  .step {
+    padding: 10px 14px;
+    gap: 10px;
+    border-radius: 10px;
+  }
+
+  .stepIcon {
+    font-size: 18px;
+  }
+
+  .stepLabel {
+    font-size: 13px;
+  }
+
+  .errorIcon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .errorCard h2 {
+    font-size: 1.1rem;
+  }
+
+  .errorCard p {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .retryButton {
+    padding: 10px 26px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .chatTitle {
+    font-size: 1.1rem;
+  }
+
+  .chatSubtitle {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .chatWrapper {
+    border-radius: 14px;
+    min-height: 350px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .container {
+    padding: 55px 8px 16px;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .loaderCard,
+  .errorCard {
+    padding: 24px 14px;
+    border-radius: 14px;
+  }
+
+  .loaderIcon {
+    font-size: 48px;
+    margin-bottom: 14px;
+  }
+
+  .loaderTitle {
+    font-size: 1rem;
+  }
+
+  .step {
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+
+  .stepIcon {
+    font-size: 16px;
+  }
+
+  .stepLabel {
+    font-size: 12px;
+  }
+
+  .chatTitle {
+    font-size: 1rem;
+  }
+
+  .chatWrapper {
+    border-radius: 12px;
+    min-height: 320px;
+  }
+}

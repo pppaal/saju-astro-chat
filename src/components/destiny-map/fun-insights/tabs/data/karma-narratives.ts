@@ -657,6 +657,349 @@ const northNodeExtendedNarratives: Record<number, { ko: string[]; en: string[] }
 };
 
 // ============================================================
+// Extended Saturn House Narratives (토성 하우스 확장 서사)
+// ============================================================
+
+const saturnExtendedNarratives: Record<number, { ko: string[]; en: string[] }> = {
+  1: {
+    ko: [
+      "🪐 【토성 1하우스 - 자아 정체성의 시험】",
+      "",
+      "토성이 1하우스에 있다는 것은, 당신이 '나는 누구인가?'라는 질문과 평생 씨름한다는 뜻입니다.",
+      "",
+      "어릴 때부터 자신감이 부족하거나, 자기 표현이 어려웠을 수 있어요. '나를 드러내는 것'이 두렵고, 다른 사람의 눈치를 많이 봤을 수 있습니다.",
+      "",
+      "하지만 이것은 저주가 아니라 선물입니다. 토성의 시험을 통과하면, 누구보다 단단한 자아를 갖게 됩니다. 30대 이후 진정한 자신감이 생기기 시작합니다.",
+      "",
+      "⏰ 새턴 리턴(29세, 58세): 이 시기에 정체성에 대한 큰 전환점이 옵니다. '진짜 나'를 발견하는 계기가 됩니다.",
+      "",
+      "💡 성장 팁: 자기 자신에게 엄격하되, 자기 비판에 빠지지 마세요. 작은 성취도 인정하고, 천천히 자신감을 쌓아가세요."
+    ],
+    en: [
+      "🪐 【Saturn 1st House - Test of Self-Identity】",
+      "",
+      "Saturn in the 1st house means you wrestle with 'Who am I?' throughout life.",
+      "",
+      "From childhood, you may have lacked confidence or struggled with self-expression. 'Showing yourself' felt scary, watching others' reactions carefully.",
+      "",
+      "But this is a gift, not a curse. Passing Saturn's test gives you a stronger self than anyone. True confidence starts building after your 30s.",
+      "",
+      "⏰ Saturn Return (29, 58): Major turning points about identity come at these times. Opportunities to discover 'the real you.'",
+      "",
+      "💡 Growth tip: Be strict with yourself, but don't fall into self-criticism. Acknowledge small achievements and build confidence slowly."
+    ]
+  },
+  2: {
+    ko: [
+      "🪐 【토성 2하우스 - 물질과 가치의 시험】",
+      "",
+      "토성이 2하우스에 있다는 것은, 돈과 자원에 대한 특별한 수업을 받는다는 뜻입니다.",
+      "",
+      "젊을 때 경제적 어려움을 겪거나, 돈에 대한 불안이 클 수 있어요. '충분하지 않다'는 느낌, 물질적 안정에 대한 강박이 있을 수 있습니다.",
+      "",
+      "하지만 이 시험을 통과하면, 누구보다 현명하게 재정을 관리하는 능력을 갖게 됩니다. 늦게 오는 풍요가 가장 안정적입니다.",
+      "",
+      "자존감과도 연결됩니다. 돈뿐 아니라 '나의 가치'에 대한 확신을 세우는 것이 과제입니다.",
+      "",
+      "💡 성장 팁: 돈을 두려워하지 말고 친구로 만드세요. 재테크를 공부하고, 작은 것부터 저축하세요. 물질적 안정이 정서적 안정으로 이어집니다."
+    ],
+    en: [
+      "🪐 【Saturn 2nd House - Test of Material and Value】",
+      "",
+      "Saturn in the 2nd house means receiving special lessons about money and resources.",
+      "",
+      "You may face financial difficulties when young, or have great anxiety about money. Feelings of 'not enough,' obsession with material security.",
+      "",
+      "But passing this test gives you wiser financial management skills than anyone. Prosperity that comes late is most stable.",
+      "",
+      "It connects to self-worth too. The task is building conviction about 'my value,' not just money.",
+      "",
+      "💡 Growth tip: Don't fear money, make it your friend. Study finance, save starting small. Material stability leads to emotional stability."
+    ]
+  },
+  3: {
+    ko: [
+      "🪐 【토성 3하우스 - 소통과 학습의 시험】",
+      "",
+      "토성이 3하우스에 있다는 것은, 말하고 배우는 것에 특별한 도전이 있다는 뜻입니다.",
+      "",
+      "어릴 때 말이 늦었거나, 학습에 어려움을 겪었거나, 형제자매와의 관계가 복잡했을 수 있어요. 자신의 생각을 표현하는 것이 두렵거나 서툴렀을 수 있습니다.",
+      "",
+      "하지만 이 시험을 통과하면, 누구보다 명확하고 깊이 있게 소통하는 능력을 갖게 됩니다. 늦게 배운 것이 가장 오래 남습니다.",
+      "",
+      "글쓰기, 강의, 교육... 시간이 지날수록 당신의 말과 글에 무게가 실립니다.",
+      "",
+      "💡 성장 팁: 완벽하게 말하려 하지 마세요. 서툴러도 표현하는 연습을 계속하세요. 평생 학습자가 되세요."
+    ],
+    en: [
+      "🪐 【Saturn 3rd House - Test of Communication and Learning】",
+      "",
+      "Saturn in the 3rd house means special challenges in speaking and learning.",
+      "",
+      "You may have spoken late as a child, struggled with learning, or had complicated sibling relationships. Expressing your thoughts felt scary or clumsy.",
+      "",
+      "But passing this test gives you clearer, deeper communication skills than anyone. What's learned late stays longest.",
+      "",
+      "Writing, lecturing, teaching... Over time, your words carry more weight.",
+      "",
+      "💡 Growth tip: Don't try to speak perfectly. Keep practicing expression even if clumsy. Be a lifelong learner."
+    ]
+  },
+  4: {
+    ko: [
+      "🪐 【토성 4하우스 - 가정과 뿌리의 시험】",
+      "",
+      "토성이 4하우스에 있다는 것은, 가족과 정서적 기반에 특별한 과제가 있다는 뜻입니다.",
+      "",
+      "어린 시절이 힘들었거나, 부모님(특히 아버지)과의 관계가 어려웠거나, 가정에서 안정감을 느끼지 못했을 수 있어요. '집'이라는 개념이 복잡하게 느껴질 수 있습니다.",
+      "",
+      "하지만 이 시험을 통과하면, 스스로 단단한 정서적 기반을 만들 수 있습니다. 부모에게 받지 못한 것을 스스로에게 줄 수 있게 됩니다.",
+      "",
+      "나이가 들수록 가정생활이 안정되고, 좋은 부모/가장이 될 수 있습니다.",
+      "",
+      "💡 성장 팁: 어린 시절의 상처를 인정하고 치유하세요. 자신만의 '마음의 집'을 만드세요. 과거에 매이지 말고 새로운 가족 문화를 창조하세요."
+    ],
+    en: [
+      "🪐 【Saturn 4th House - Test of Home and Roots】",
+      "",
+      "Saturn in the 4th house means special tasks regarding family and emotional foundation.",
+      "",
+      "Childhood may have been hard, relationship with parents (especially father) difficult, or you didn't feel secure at home. 'Home' feels complicated.",
+      "",
+      "But passing this test lets you build a solid emotional foundation yourself. You can give yourself what parents couldn't give.",
+      "",
+      "Home life stabilizes with age, and you can become a good parent/head of household.",
+      "",
+      "💡 Growth tip: Acknowledge and heal childhood wounds. Create your own 'home for the heart.' Don't be bound by the past, create new family culture."
+    ]
+  },
+  5: {
+    ko: [
+      "🪐 【토성 5하우스 - 창조와 기쁨의 시험】",
+      "",
+      "토성이 5하우스에 있다는 것은, 즐기고 창조하는 것에 특별한 도전이 있다는 뜻입니다.",
+      "",
+      "어릴 때 놀이가 부족했거나, 자기 표현이 억압됐거나, '재미'가 죄책감으로 느껴졌을 수 있어요. 연애도 쉽지 않았거나, 늦게 시작했을 수 있습니다.",
+      "",
+      "하지만 이 시험을 통과하면, 더 깊고 성숙한 창의성과 기쁨을 발견하게 됩니다. 늦게 피는 꽃이 가장 오래 갑니다.",
+      "",
+      "자녀와의 관계도 시간이 지날수록 좋아집니다. 처음엔 어색해도 결국 깊은 유대를 형성합니다.",
+      "",
+      "💡 성장 팁: 놀이와 창작을 '낭비'가 아닌 '필수'로 생각하세요. 자신에게 즐길 허락을 주세요. 취미를 꼭 가지세요."
+    ],
+    en: [
+      "🪐 【Saturn 5th House - Test of Creation and Joy】",
+      "",
+      "Saturn in the 5th house means special challenges in enjoying and creating.",
+      "",
+      "Play may have been lacking in childhood, self-expression suppressed, or 'fun' felt like guilt. Romance wasn't easy or started late.",
+      "",
+      "But passing this test reveals deeper, more mature creativity and joy. Late-blooming flowers last longest.",
+      "",
+      "Relationship with children improves over time. Awkward at first, but deep bonds eventually form.",
+      "",
+      "💡 Growth tip: See play and creation as 'essential' not 'waste.' Give yourself permission to enjoy. Definitely have hobbies."
+    ]
+  },
+  6: {
+    ko: [
+      "🪐 【토성 6하우스 - 건강과 일상의 시험】",
+      "",
+      "토성이 6하우스에 있다는 것은, 건강과 일상 업무에 특별한 과제가 있다는 뜻입니다.",
+      "",
+      "만성적인 건강 문제가 있거나, 일에서 과도한 책임을 지거나, 완벽주의로 스스로를 몰아붙였을 수 있어요. 몸이 보내는 신호를 무시하는 경향이 있을 수 있습니다.",
+      "",
+      "하지만 이 시험을 통과하면, 누구보다 건강한 생활 습관과 효율적인 업무 능력을 갖게 됩니다. 꾸준함이 당신의 무기입니다.",
+      "",
+      "봉사와 헌신에서도 성숙한 태도를 보이게 됩니다.",
+      "",
+      "💡 성장 팁: 몸의 신호를 무시하지 마세요. 규칙적인 운동, 식단 관리, 충분한 휴식이 필수입니다. 완벽보다 지속 가능함을 추구하세요."
+    ],
+    en: [
+      "🪐 【Saturn 6th House - Test of Health and Daily Life】",
+      "",
+      "Saturn in the 6th house means special tasks regarding health and daily work.",
+      "",
+      "You may have chronic health issues, excessive work responsibility, or push yourself with perfectionism. Tendency to ignore body's signals.",
+      "",
+      "But passing this test gives you healthier habits and more efficient work abilities than anyone. Consistency is your weapon.",
+      "",
+      "You also show mature attitudes in service and dedication.",
+      "",
+      "💡 Growth tip: Don't ignore body signals. Regular exercise, diet management, adequate rest are essential. Pursue sustainability over perfection."
+    ]
+  },
+  7: {
+    ko: [
+      "🪐 【토성 7하우스 - 관계와 파트너십의 시험】",
+      "",
+      "토성이 7하우스에 있다는 것은, 관계와 결혼에 특별한 과제가 있다는 뜻입니다.",
+      "",
+      "결혼이 늦거나, 파트너 관계에서 어려움을 겪거나, '함께하는 것'이 쉽지 않았을 수 있어요. 혼자가 편하지만, 그래서 외로움을 느끼기도 합니다.",
+      "",
+      "하지만 이 시험을 통과하면, 누구보다 성숙하고 안정적인 파트너십을 만들 수 있습니다. 늦게 맺은 관계가 가장 오래갑니다.",
+      "",
+      "나이 차이가 있는 파트너나, 책임감 있고 성숙한 파트너와 인연이 있을 수 있습니다.",
+      "",
+      "💡 성장 팁: 완벽한 파트너를 찾지 말고, 함께 성장할 파트너를 찾으세요. 관계에서 책임을 피하지 마세요. 서로에게 배우는 자세가 중요합니다."
+    ],
+    en: [
+      "🪐 【Saturn 7th House - Test of Relationships and Partnership】",
+      "",
+      "Saturn in the 7th house means special tasks regarding relationships and marriage.",
+      "",
+      "Marriage may be late, partnerships difficult, or 'being together' wasn't easy. Being alone feels comfortable, yet brings loneliness.",
+      "",
+      "But passing this test creates more mature, stable partnerships than anyone. Late-formed relationships last longest.",
+      "",
+      "You may connect with partners of different ages, or responsible, mature partners.",
+      "",
+      "💡 Growth tip: Don't seek perfect partners, seek partners to grow with. Don't avoid responsibility in relationships. Learning from each other is key."
+    ]
+  },
+  8: {
+    ko: [
+      "🪐 【토성 8하우스 - 변화와 깊이의 시험】",
+      "",
+      "토성이 8하우스에 있다는 것은, 삶의 깊은 변화와 위기에 특별한 과제가 있다는 뜻입니다.",
+      "",
+      "상실, 위기, 죽음에 대한 두려움이 크거나, 깊은 친밀감을 맺기 어려웠을 수 있어요. 공동 자산이나 타인의 자원에 대한 문제가 있었을 수도 있습니다.",
+      "",
+      "하지만 이 시험을 통과하면, 누구보다 강력한 변환 능력과 위기 관리 능력을 갖게 됩니다. 불사조처럼 다시 일어나는 힘이 생깁니다.",
+      "",
+      "심리학, 금융, 위기 관리 분야에서 뛰어난 능력을 발휘할 수 있습니다.",
+      "",
+      "💡 성장 팁: 변화를 피하지 말고 받아들이세요. 위기를 성장의 기회로 바꾸세요. 깊은 관계를 두려워하지 마세요."
+    ],
+    en: [
+      "🪐 【Saturn 8th House - Test of Transformation and Depth】",
+      "",
+      "Saturn in the 8th house means special tasks regarding life's deep changes and crises.",
+      "",
+      "Fear of loss, crisis, death may be strong, or deep intimacy difficult. Issues with joint assets or others' resources may have occurred.",
+      "",
+      "But passing this test gives you more powerful transformation and crisis management abilities than anyone. Phoenix-like power to rise again.",
+      "",
+      "You can excel in psychology, finance, crisis management fields.",
+      "",
+      "💡 Growth tip: Don't avoid change, embrace it. Turn crisis into growth opportunity. Don't fear deep relationships."
+    ]
+  },
+  9: {
+    ko: [
+      "🪐 【토성 9하우스 - 믿음과 지혜의 시험】",
+      "",
+      "토성이 9하우스에 있다는 것은, 신념과 세계관에 특별한 과제가 있다는 뜻입니다.",
+      "",
+      "종교나 철학에 대한 의심, 고등 교육의 어려움, 해외 경험에 대한 두려움이 있었을 수 있어요. '의미'를 찾는 것이 쉽지 않았을 수 있습니다.",
+      "",
+      "하지만 이 시험을 통과하면, 누구보다 깊고 단단한 철학과 지혜를 갖게 됩니다. 가벼운 믿음이 아닌, 시험을 통과한 확신이 생깁니다.",
+      "",
+      "학자, 철학자, 법률가, 종교인으로서 권위를 가질 수 있습니다.",
+      "",
+      "💡 성장 팁: 쉬운 답을 찾지 마세요. 질문하고 탐구하세요. 늦더라도 공부를 계속하세요. 여행과 다양한 문화 경험이 도움이 됩니다."
+    ],
+    en: [
+      "🪐 【Saturn 9th House - Test of Faith and Wisdom】",
+      "",
+      "Saturn in the 9th house means special tasks regarding beliefs and worldview.",
+      "",
+      "Doubt about religion or philosophy, difficulty with higher education, fear of foreign experiences may have existed. Finding 'meaning' wasn't easy.",
+      "",
+      "But passing this test gives you deeper, more solid philosophy and wisdom than anyone. Not light belief, but conviction that passed tests.",
+      "",
+      "You can have authority as scholar, philosopher, lawyer, or religious figure.",
+      "",
+      "💡 Growth tip: Don't seek easy answers. Question and explore. Continue studying even if late. Travel and diverse cultural experiences help."
+    ]
+  },
+  10: {
+    ko: [
+      "🪐 【토성 10하우스 - 사회적 성취의 시험】",
+      "",
+      "토성이 10하우스에 있다는 것은, 커리어와 사회적 지위에 특별한 과제가 있다는 뜻입니다.",
+      "",
+      "성공에 대한 압박이 크거나, 커리어가 늦게 자리잡거나, 권위자(특히 아버지)와의 관계가 복잡했을 수 있어요. '증명해야 한다'는 부담을 느꼈을 수 있습니다.",
+      "",
+      "하지만 이 시험을 통과하면, 누구보다 존경받는 사회적 위치에 오를 수 있습니다. 천천히 쌓은 성공이 가장 오래갑니다.",
+      "",
+      "정치인, CEO, 고위 관료... 책임 있는 자리에 적합합니다.",
+      "",
+      "💡 성장 팁: 빠른 성공을 쫓지 마세요. 실력을 쌓고 단계를 밟으세요. 권위를 두려워하지 말고, 스스로 권위가 되세요."
+    ],
+    en: [
+      "🪐 【Saturn 10th House - Test of Social Achievement】",
+      "",
+      "Saturn in the 10th house means special tasks regarding career and social status.",
+      "",
+      "Pressure to succeed may be heavy, career may settle late, or relationship with authority (especially father) was complicated. Felt burden to 'prove yourself.'",
+      "",
+      "But passing this test lets you reach more respected social positions than anyone. Slowly built success lasts longest.",
+      "",
+      "Politician, CEO, high official... suitable for responsible positions.",
+      "",
+      "💡 Growth tip: Don't chase quick success. Build skills and climb steps. Don't fear authority, become the authority yourself."
+    ]
+  },
+  11: {
+    ko: [
+      "🪐 【토성 11하우스 - 공동체와 우정의 시험】",
+      "",
+      "토성이 11하우스에 있다는 것은, 친구 관계와 소속감에 특별한 과제가 있다는 뜻입니다.",
+      "",
+      "친구가 적거나, 그룹에서 소외감을 느끼거나, '내가 어디에 속하는지' 불확실했을 수 있어요. 미래에 대한 불안도 있을 수 있습니다.",
+      "",
+      "하지만 이 시험을 통과하면, 적지만 진정한 친구, 믿을 수 있는 네트워크를 갖게 됩니다. 양보다 질이 중요합니다.",
+      "",
+      "사회 활동이나 공동체 운동에서 중요한 역할을 할 수 있습니다.",
+      "",
+      "💡 성장 팁: 많은 친구보다 깊은 친구를 찾으세요. 커뮤니티 활동에 참여하세요. 미래를 두려워하지 말고 계획하세요."
+    ],
+    en: [
+      "🪐 【Saturn 11th House - Test of Community and Friendship】",
+      "",
+      "Saturn in the 11th house means special tasks regarding friendships and belonging.",
+      "",
+      "Few friends, feeling excluded from groups, or uncertainty about 'where I belong' may have existed. Anxiety about the future too.",
+      "",
+      "But passing this test gives you few but true friends, reliable networks. Quality over quantity matters.",
+      "",
+      "You can play important roles in social activities or community movements.",
+      "",
+      "💡 Growth tip: Seek deep friends over many friends. Participate in community activities. Don't fear the future, plan for it."
+    ]
+  },
+  12: {
+    ko: [
+      "🪐 【토성 12하우스 - 내면과 영혼의 시험】",
+      "",
+      "토성이 12하우스에 있다는 것은, 내면 세계와 영적 영역에 특별한 과제가 있다는 뜻입니다.",
+      "",
+      "설명할 수 없는 두려움, 고독감, 숨겨진 적, 자기 파괴적 패턴... 보이지 않는 곳에서 시험을 받습니다. 과거의 카르마가 무겁게 느껴질 수 있어요.",
+      "",
+      "하지만 이 시험을 통과하면, 누구보다 깊은 영적 지혜와 내면의 평화를 얻습니다. 어둠을 통과한 사람만이 빛의 의미를 압니다.",
+      "",
+      "명상, 치유, 봉사, 예술... 보이지 않는 영역에서 큰 역할을 할 수 있습니다.",
+      "",
+      "💡 성장 팁: 혼자만의 시간을 두려워하지 마세요. 명상, 심리 치료, 영적 수행이 도움이 됩니다. 숨겨진 두려움을 직면하세요."
+    ],
+    en: [
+      "🪐 【Saturn 12th House - Test of Inner Self and Soul】",
+      "",
+      "Saturn in the 12th house means special tasks regarding inner world and spiritual realms.",
+      "",
+      "Unexplainable fears, loneliness, hidden enemies, self-destructive patterns... tested in invisible places. Past karma may feel heavy.",
+      "",
+      "But passing this test gives you deeper spiritual wisdom and inner peace than anyone. Only those who passed through darkness know light's meaning.",
+      "",
+      "Meditation, healing, service, art... you can play big roles in invisible realms.",
+      "",
+      "💡 Growth tip: Don't fear alone time. Meditation, therapy, spiritual practice help. Face hidden fears."
+    ]
+  }
+};
+
+// ============================================================
 // Section 1: Soul Identity Narrative (영혼의 정체성)
 // Combines Day Master + Soul Type for rich description
 // ============================================================
@@ -924,34 +1267,42 @@ export function getLifeDirectionNarrative(
     }
   }
 
-  if (saturnInfo) {
+  if (saturnInfo && saturnHouse) {
     paragraphs.push('');
-    if (isKo) {
-      paragraphs.push(`🪐 【토성 선생님의 수업】`);
-      paragraphs.push(
-        `토성은 당신의 ${saturnHouse}하우스에서 엄격한 선생님으로 작용합니다. 이 영역에서 당신은 특별한 시험을 치르게 됩니다.`
-      );
-      paragraphs.push(`📖 배울 것: ${saturnInfo.lessonKo}`);
-      paragraphs.push(`😓 힘든 점: ${saturnInfo.challengeKo} - 이것이 처음에는 고통스럽게 느껴질 수 있습니다.`);
-      paragraphs.push(
-        `🏆 졸업 보상: ${saturnInfo.rewardKo} - 하지만 이 과제를 마스터하면, 다른 사람들이 부러워할 만큼 단단한 기반을 갖게 됩니다.`
-      );
-      paragraphs.push(
-        `토성의 수업은 보통 29세(새턴 리턴)와 58세 즈음에 가장 강렬하게 나타납니다. 이 시기를 잘 통과하면 인생의 새로운 장이 열립니다.`
-      );
+    // Check if we have extended narrative for this saturn house
+    const saturnExtended = saturnExtendedNarratives[saturnHouse];
+    if (saturnExtended) {
+      const narrativeLines = isKo ? saturnExtended.ko : saturnExtended.en;
+      narrativeLines.forEach(line => paragraphs.push(line));
     } else {
-      paragraphs.push(`🪐 【Saturn Teacher's Lesson】`);
-      paragraphs.push(
-        `Saturn acts as a strict teacher in your ${saturnHouse}th house. You face special tests in this area.`
-      );
-      paragraphs.push(`📖 To learn: ${saturnInfo.lessonEn}`);
-      paragraphs.push(`😓 Challenge: ${saturnInfo.challengeEn} - This may feel painful at first.`);
-      paragraphs.push(
-        `🏆 Graduation reward: ${saturnInfo.rewardEn} - But mastering this task gives you a foundation others will envy.`
-      );
-      paragraphs.push(
-        `Saturn's lessons are most intense around ages 29 (Saturn Return) and 58. Navigating these periods well opens new chapters in life.`
-      );
+      // Fallback to original simple version
+      if (isKo) {
+        paragraphs.push(`🪐 【토성 선생님의 수업】`);
+        paragraphs.push(
+          `토성은 당신의 ${saturnHouse}하우스에서 엄격한 선생님으로 작용합니다. 이 영역에서 당신은 특별한 시험을 치르게 됩니다.`
+        );
+        paragraphs.push(`📖 배울 것: ${saturnInfo.lessonKo}`);
+        paragraphs.push(`😓 힘든 점: ${saturnInfo.challengeKo} - 이것이 처음에는 고통스럽게 느껴질 수 있습니다.`);
+        paragraphs.push(
+          `🏆 졸업 보상: ${saturnInfo.rewardKo} - 하지만 이 과제를 마스터하면, 다른 사람들이 부러워할 만큼 단단한 기반을 갖게 됩니다.`
+        );
+        paragraphs.push(
+          `토성의 수업은 보통 29세(새턴 리턴)와 58세 즈음에 가장 강렬하게 나타납니다. 이 시기를 잘 통과하면 인생의 새로운 장이 열립니다.`
+        );
+      } else {
+        paragraphs.push(`🪐 【Saturn Teacher's Lesson】`);
+        paragraphs.push(
+          `Saturn acts as a strict teacher in your ${saturnHouse}th house. You face special tests in this area.`
+        );
+        paragraphs.push(`📖 To learn: ${saturnInfo.lessonEn}`);
+        paragraphs.push(`😓 Challenge: ${saturnInfo.challengeEn} - This may feel painful at first.`);
+        paragraphs.push(
+          `🏆 Graduation reward: ${saturnInfo.rewardEn} - But mastering this task gives you a foundation others will envy.`
+        );
+        paragraphs.push(
+          `Saturn's lessons are most intense around ages 29 (Saturn Return) and 58. Navigating these periods well opens new chapters in life.`
+        );
+      }
     }
   }
 
@@ -1855,6 +2206,100 @@ export function getEnergyBalanceNarrative(
     }
   };
 
+  // Element combination interpretations
+  const elementCombinations: Record<string, Record<string, { ko: string; en: string }>> = {
+    wood: {
+      fire: {
+        ko: "나무가 강하고 불이 약하면, 시작하는 힘은 있지만 표현하고 완성하는 힘이 부족합니다. 아이디어는 많은데 실행이 약해요. 불 에너지(열정, 표현, 행동)를 보충하세요.",
+        en: "Strong Wood with weak Fire means you can start things but lack power to express and complete. Many ideas but weak execution. Boost Fire energy (passion, expression, action)."
+      },
+      water: {
+        ko: "나무가 강하고 물이 약하면, 뻗어나가려는 힘은 있지만 지혜와 깊이가 부족합니다. 충분히 생각하지 않고 행동할 수 있어요. 물 에너지(사색, 휴식, 깊이)를 보충하세요.",
+        en: "Strong Wood with weak Water means expanding power exists but wisdom and depth are lacking. May act without enough thought. Boost Water energy (reflection, rest, depth)."
+      },
+      metal: {
+        ko: "나무가 강하고 쇠가 약하면, 성장하는 힘은 있지만 정리하고 마무리하는 힘이 부족합니다. 시작은 잘하는데 끝을 못 볼 수 있어요. 쇠 에너지(결단, 마무리)를 보충하세요.",
+        en: "Strong Wood with weak Metal means growth power exists but organizing and finishing power is lacking. Start well but may not finish. Boost Metal energy (decision, completion)."
+      },
+      earth: {
+        ko: "나무가 강하고 흙이 약하면, 성장하려는 힘은 있지만 안정감이 부족합니다. 기반 없이 위로만 자라려 해요. 흙 에너지(안정, 중심)를 보충하세요.",
+        en: "Strong Wood with weak Earth means growth drive exists but stability is lacking. Trying to grow upward without foundation. Boost Earth energy (stability, centering)."
+      }
+    },
+    fire: {
+      wood: {
+        ko: "불이 강하고 나무가 약하면, 열정은 있지만 지속할 연료가 부족합니다. 빨리 타오르고 빨리 꺼져요. 나무 에너지(새로운 시작, 성장)를 보충하세요.",
+        en: "Strong Fire with weak Wood means passion exists but fuel to sustain is lacking. Burns fast and dies fast. Boost Wood energy (new starts, growth)."
+      },
+      water: {
+        ko: "불이 강하고 물이 약하면, 열정적이지만 감정 조절이 어렵습니다. 너무 뜨거워서 자신도 지치고 남도 지치게 해요. 물 에너지(냉정, 휴식)가 필요합니다.",
+        en: "Strong Fire with weak Water means passionate but hard to control emotions. Too hot, exhausting yourself and others. Water energy (coolness, rest) is needed."
+      },
+      metal: {
+        ko: "불이 강하고 쇠가 약하면, 표현력은 뛰어나지만 날카로운 결단력이 부족합니다. 감정에 휩쓸려 결정을 미루게 돼요. 쇠 에너지(결단, 냉정함)를 보충하세요.",
+        en: "Strong Fire with weak Metal means excellent expression but lacking sharp decisiveness. Emotions delay decisions. Boost Metal energy (decision, coolness)."
+      },
+      earth: {
+        ko: "불이 강하고 흙이 약하면, 열정은 넘치지만 안정감이 부족합니다. 불꽃처럼 이리저리 튀어요. 흙 에너지(안정, 중심 잡기)가 필요합니다.",
+        en: "Strong Fire with weak Earth means overflowing passion but lacking stability. Bouncing around like sparks. Earth energy (stability, centering) is needed."
+      }
+    },
+    earth: {
+      wood: {
+        ko: "흙이 강하고 나무가 약하면, 안정적이지만 변화와 성장이 어렵습니다. 너무 보수적이고 새로운 시도를 두려워해요. 나무 에너지(새로움, 도전)를 보충하세요.",
+        en: "Strong Earth with weak Wood means stable but change and growth are difficult. Too conservative, fearing new attempts. Boost Wood energy (newness, challenge)."
+      },
+      fire: {
+        ko: "흙이 강하고 불이 약하면, 안정적이지만 열정과 기쁨이 부족합니다. 무거워 보이고 재미가 없어요. 불 에너지(열정, 기쁨, 표현)를 보충하세요.",
+        en: "Strong Earth with weak Fire means stable but lacking passion and joy. Seems heavy and no fun. Boost Fire energy (passion, joy, expression)."
+      },
+      metal: {
+        ko: "흙이 강하고 쇠가 약하면, 포용력은 있지만 결단력이 부족합니다. 너무 받아들이기만 하고 정리를 못해요. 쇠 에너지(결단, 정리)를 보충하세요.",
+        en: "Strong Earth with weak Metal means embracing but lacking decisiveness. Only accepting, can't organize. Boost Metal energy (decision, organizing)."
+      },
+      water: {
+        ko: "흙이 강하고 물이 약하면, 안정적이지만 유연성이 부족합니다. 고집이 세고 변통이 안 돼요. 물 에너지(유연성, 적응력)를 보충하세요.",
+        en: "Strong Earth with weak Water means stable but lacking flexibility. Stubborn and can't adapt. Boost Water energy (flexibility, adaptability)."
+      }
+    },
+    metal: {
+      wood: {
+        ko: "쇠가 강하고 나무가 약하면, 날카롭지만 부드러움이 부족합니다. 너무 냉정하고 성장에 대한 열망이 적어요. 나무 에너지(부드러움, 성장)를 보충하세요.",
+        en: "Strong Metal with weak Wood means sharp but lacking softness. Too cold with little desire for growth. Boost Wood energy (softness, growth)."
+      },
+      fire: {
+        ko: "쇠가 강하고 불이 약하면, 결단력은 있지만 열정이 부족합니다. 차갑고 기계적으로 느껴질 수 있어요. 불 에너지(따뜻함, 열정)를 보충하세요.",
+        en: "Strong Metal with weak Fire means decisive but lacking passion. May feel cold and mechanical. Boost Fire energy (warmth, passion)."
+      },
+      earth: {
+        ko: "쇠가 강하고 흙이 약하면, 날카롭지만 포용력이 부족합니다. 비판적이고 다른 사람을 받아들이기 어려워해요. 흙 에너지(포용, 수용)를 보충하세요.",
+        en: "Strong Metal with weak Earth means sharp but lacking embrace. Critical and hard to accept others. Boost Earth energy (embrace, acceptance)."
+      },
+      water: {
+        ko: "쇠가 강하고 물이 약하면, 결단력은 있지만 깊이가 부족합니다. 표면적으로만 처리하고 넘어가요. 물 에너지(깊이, 지혜)를 보충하세요.",
+        en: "Strong Metal with weak Water means decisive but lacking depth. Handling things only superficially. Boost Water energy (depth, wisdom)."
+      }
+    },
+    water: {
+      wood: {
+        ko: "물이 강하고 나무가 약하면, 지혜는 있지만 실행력이 부족합니다. 생각만 하고 행동으로 옮기지 못해요. 나무 에너지(행동, 시작)를 보충하세요.",
+        en: "Strong Water with weak Wood means wisdom exists but execution is lacking. Only thinking, not acting. Boost Wood energy (action, starting)."
+      },
+      fire: {
+        ko: "물이 강하고 불이 약하면, 깊이는 있지만 표현력이 부족합니다. 속으로만 생각하고 밖으로 나누지 못해요. 불 에너지(표현, 공유)를 보충하세요.",
+        en: "Strong Water with weak Fire means depth exists but expression is lacking. Thinking inside only, not sharing. Boost Fire energy (expression, sharing)."
+      },
+      earth: {
+        ko: "물이 강하고 흙이 약하면, 유연하지만 중심이 없습니다. 이리저리 흘러다니기만 해요. 흙 에너지(중심, 안정)를 보충하세요.",
+        en: "Strong Water with weak Earth means flexible but lacking center. Just flowing everywhere. Boost Earth energy (centering, stability)."
+      },
+      metal: {
+        ko: "물이 강하고 쇠가 약하면, 깊이는 있지만 결단력이 부족합니다. 생각이 너무 많아서 결정을 못 내려요. 쇠 에너지(결단, 마무리)를 보충하세요.",
+        en: "Strong Water with weak Metal means depth exists but decisiveness is lacking. Too many thoughts to decide. Boost Metal energy (decision, completion)."
+      }
+    }
+  };
+
   if (isKo) {
     paragraphs.push(`⚖️ 【오행 에너지 밸런스 분석】`);
     paragraphs.push(
@@ -1881,7 +2326,15 @@ export function getEnergyBalanceNarrative(
     paragraphs.push(`💡 보충 방법: ${weakestDetail.boost.ko}`);
     paragraphs.push('');
 
-    paragraphs.push('');
+    // Add combination interpretation
+    const combinationKey = elementAnalysis.strongest;
+    const weakKey = elementAnalysis.weakest;
+    if (elementCombinations[combinationKey] && elementCombinations[combinationKey][weakKey]) {
+      paragraphs.push(`🎯 【당신의 오행 조합 해석】`);
+      paragraphs.push(elementCombinations[combinationKey][weakKey].ko);
+      paragraphs.push('');
+    }
+
     paragraphs.push(`🔄 【오행의 상생 관계】`);
     paragraphs.push(`나무는 불을 살리고(木生火), 불은 흙을 만들고(火生土), 흙은 쇠를 품고(土生金), 쇠는 물을 모으고(金生水), 물은 나무를 키웁니다(水生木).`);
     paragraphs.push('');
@@ -1914,7 +2367,15 @@ export function getEnergyBalanceNarrative(
     paragraphs.push(`💡 How to boost: ${weakestDetail.boost.en}`);
     paragraphs.push('');
 
-    paragraphs.push('');
+    // Add combination interpretation
+    const combinationKey = elementAnalysis.strongest;
+    const weakKey = elementAnalysis.weakest;
+    if (elementCombinations[combinationKey] && elementCombinations[combinationKey][weakKey]) {
+      paragraphs.push(`🎯 【Your Five Elements Combination Interpretation】`);
+      paragraphs.push(elementCombinations[combinationKey][weakKey].en);
+      paragraphs.push('');
+    }
+
     paragraphs.push(`🔄 【Five Elements Generation Cycle】`);
     paragraphs.push(`Wood feeds Fire (木生火), Fire creates Earth (火生土), Earth bears Metal (土生金), Metal collects Water (金生水), Water nourishes Wood (水生木).`);
     paragraphs.push('');

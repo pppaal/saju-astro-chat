@@ -75,6 +75,231 @@
 @media (max-width: 480px) {
   .cardGrid {
     grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .minimalContainer {
+    padding: 30px;
+  }
+
+  .content {
+    gap: 20px;
+  }
+
+  .icon {
+    font-size: 40px;
+  }
+
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border-width: 2px;
+  }
+
+  .message {
+    font-size: 13px;
+  }
+
+  .cardSkeleton {
+    padding: 20px;
+    gap: 10px;
+    border-radius: 14px;
+  }
+
+  .cardIcon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+  }
+
+  .cardTitle {
+    height: 18px;
+    border-radius: 6px;
+  }
+
+  .cardDesc {
+    height: 14px;
+    border-radius: 6px;
+  }
+
+  .chatContainer {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .chatHeader {
+    gap: 10px;
+    padding-bottom: 14px;
+  }
+
+  .chatAvatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .chatHeaderText {
+    width: 100px;
+    height: 18px;
+  }
+
+  .chatMessages {
+    gap: 10px;
+    min-height: 250px;
+  }
+
+  .chatMessage {
+    height: 50px;
+    border-radius: 14px;
+  }
+
+  .chatInput {
+    height: 44px;
+    border-radius: 20px;
+  }
+
+  .calendarContainer {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .calendarNav {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+  }
+
+  .calendarTitle {
+    width: 120px;
+    height: 24px;
+  }
+
+  .calendarDayHeader {
+    height: 28px;
+  }
+
+  .calendarDay {
+    border-radius: 6px;
+  }
+
+  .formContainer {
+    padding: 20px;
+    gap: 16px;
+    border-radius: 14px;
+  }
+
+  .formTitle {
+    height: 24px;
+    margin-bottom: 6px;
+  }
+
+  .formField {
+    height: 44px;
+    border-radius: 6px;
+  }
+
+  .formButton {
+    height: 44px;
+    border-radius: 20px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .cardGrid {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .minimalContainer {
+    padding: 24px;
+  }
+
+  .content {
+    gap: 16px;
+  }
+
+  .icon {
+    font-size: 36px;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+  }
+
+  .message {
+    font-size: 12px;
+  }
+
+  .cardSkeleton {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .cardIcon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .chatContainer {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .chatAvatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .chatMessages {
+    min-height: 200px;
+  }
+
+  .chatMessage {
+    height: 44px;
+    border-radius: 12px;
+  }
+
+  .chatInput {
+    height: 40px;
+  }
+
+  .calendarContainer {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .calendarNav {
+    width: 32px;
+    height: 32px;
+  }
+
+  .calendarTitle {
+    width: 100px;
+    height: 22px;
+  }
+
+  .calendarDayHeader {
+    height: 24px;
+  }
+
+  .formContainer {
+    padding: 16px;
+    gap: 14px;
+    border-radius: 12px;
+  }
+
+  .formTitle {
+    height: 22px;
+  }
+
+  .formField {
+    height: 40px;
+  }
+
+  .formButton {
+    height: 40px;
   }
 }
 

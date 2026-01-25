@@ -200,9 +200,100 @@
   .badge {
     padding: 6px 10px;
     font-size: 13px;
+    gap: 6px;
+    border-radius: 16px;
+  }
+
+  .badgeMinimal {
+    padding: 3px 8px;
+    font-size: 12px;
+    gap: 3px;
+    border-radius: 10px;
+  }
+
+  .compact {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  .creditIcon {
+    font-size: 12px;
   }
 
   .creditText strong {
     font-size: 14px;
+  }
+
+  .divider {
+    font-size: 11px;
+  }
+
+  .total {
+    font-size: 11px;
+  }
+
+  .planBadge {
+    font-size: 9px;
+    padding: 2px 5px;
+  }
+
+  .spinner {
+    width: 14px;
+    height: 14px;
+  }
+
+  .icon {
+    font-size: 12px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .badge {
+    padding: 5px 8px;
+    font-size: 12px;
+    gap: 5px;
+    border-radius: 14px;
+  }
+
+  .badgeMinimal {
+    padding: 2px 6px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+
+  .compact {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .creditIcon {
+    font-size: 11px;
+  }
+
+  .creditText strong {
+    font-size: 13px;
+  }
+
+  .divider, .total {
+    font-size: 10px;
+  }
+
+  .planBadge {
+    font-size: 8px;
+    padding: 1px 4px;
+  }
+
+  .spinner {
+    width: 12px;
+    height: 12px;
+  }
+
+  .icon {
+    font-size: 11px;
+  }
+
+  .loading {
+    min-width: 70px;
   }
 }

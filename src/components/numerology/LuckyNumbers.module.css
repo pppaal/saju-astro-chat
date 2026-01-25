@@ -298,3 +298,214 @@
     width: 100%;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .form {
+    padding: 14px;
+    gap: 16px;
+    border-radius: 14px;
+  }
+
+  .inputGroup {
+    gap: 6px;
+  }
+
+  .label {
+    font-size: 13px;
+  }
+
+  .input {
+    padding: 10px 14px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .hint {
+    font-size: 11px;
+  }
+
+  .error {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+
+  .submitBtn {
+    padding: 14px 26px;
+    font-size: 15px;
+    border-radius: 10px;
+  }
+
+  .results {
+    margin-top: 26px;
+    gap: 20px;
+  }
+
+  .resultsHeader {
+    padding: 20px;
+    border-radius: 14px;
+  }
+
+  .resultsTitle {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .interpretation {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .coreNumbers {
+    gap: 10px;
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .coreNumberItem {
+    padding: 10px 16px;
+    border-radius: 6px;
+    gap: 3px;
+  }
+
+  .coreLabel {
+    font-size: 10px;
+  }
+
+  .coreValue {
+    font-size: 18px;
+  }
+
+  .numbersGrid {
+    grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
+    gap: 10px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .numberBall {
+    font-size: 22px;
+  }
+
+  .actions {
+    gap: 10px;
+  }
+
+  .actionBtn {
+    padding: 10px 20px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+
+  .infoCard {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .infoTitle {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+
+  .infoList {
+    font-size: 13px;
+    line-height: 1.7;
+    padding-left: 18px;
+  }
+
+  .infoList li {
+    margin-bottom: 6px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .form {
+    padding: 12px;
+    gap: 14px;
+    border-radius: 12px;
+  }
+
+  .label {
+    font-size: 12px;
+  }
+
+  .input {
+    padding: 9px 12px;
+    font-size: 13px;
+  }
+
+  .hint {
+    font-size: 10px;
+  }
+
+  .error {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .submitBtn {
+    padding: 12px 22px;
+    font-size: 14px;
+  }
+
+  .resultsHeader {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .resultsTitle {
+    font-size: 16px;
+  }
+
+  .interpretation {
+    font-size: 13px;
+  }
+
+  .coreNumbers {
+    gap: 8px;
+    padding: 14px;
+  }
+
+  .coreNumberItem {
+    padding: 8px 12px;
+  }
+
+  .coreLabel {
+    font-size: 9px;
+  }
+
+  .coreValue {
+    font-size: 16px;
+  }
+
+  .numbersGrid {
+    grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+    gap: 8px;
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .numberBall {
+    font-size: 20px;
+  }
+
+  .actionBtn {
+    padding: 9px 16px;
+    font-size: 12px;
+  }
+
+  .infoCard {
+    padding: 14px;
+  }
+
+  .infoTitle {
+    font-size: 14px;
+  }
+
+  .infoList {
+    font-size: 12px;
+    padding-left: 16px;
+  }
+}

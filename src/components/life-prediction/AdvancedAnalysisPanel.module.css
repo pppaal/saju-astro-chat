@@ -419,3 +419,205 @@
     font-size: 1.3rem;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .panel {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .panelTitle {
+    font-size: 1rem;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+  }
+
+  .tierSection {
+    margin-bottom: 10px;
+    border-radius: 10px;
+  }
+
+  .tierHeader {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .tierIcon {
+    font-size: 1rem;
+  }
+
+  .tierTitle {
+    font-size: 0.85rem;
+  }
+
+  .expandIcon {
+    font-size: 1rem;
+  }
+
+  .tierContent {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .analysisItem {
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .itemHeader {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .itemIcon {
+    font-size: 0.95rem;
+  }
+
+  .itemTitle {
+    font-size: 0.85rem;
+  }
+
+  .scoreChip {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+
+  .itemContent {
+    font-size: 0.8rem;
+  }
+
+  .shinsalList li {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .shinsalIcon {
+    font-size: 0.8rem;
+  }
+
+  .shinsalName {
+    font-size: 0.85rem;
+  }
+
+  .shinsalDesc {
+    font-size: 0.75rem;
+  }
+
+  .energyGrid {
+    gap: 8px;
+  }
+
+  .energyItem {
+    padding: 8px;
+  }
+
+  .energyLabel {
+    font-size: 0.7rem;
+  }
+
+  .energyValue {
+    font-size: 0.8rem;
+  }
+
+  .hourlyGrid {
+    gap: 6px;
+  }
+
+  .hourChip {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+
+  .daeunGanji {
+    font-size: 1.2rem;
+  }
+
+  .daeunAge {
+    font-size: 0.8rem;
+  }
+
+  .alignmentBar {
+    height: 20px;
+  }
+
+  .alignmentValue {
+    font-size: 0.75rem;
+  }
+
+  .themeChip,
+  .retrogradeChip {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+
+  .moonName {
+    font-size: 0.9rem;
+  }
+
+  .moonIllumination {
+    font-size: 0.8rem;
+    padding: 3px 8px;
+  }
+
+  .patternItem {
+    padding: 8px 10px;
+  }
+
+  .patternName {
+    font-size: 0.9rem;
+  }
+
+  .patternRarity {
+    font-size: 0.7rem;
+  }
+
+  .patternDesc {
+    font-size: 0.75rem;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .panel {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .panelTitle {
+    font-size: 0.95rem;
+  }
+
+  .tierHeader {
+    padding: 8px 10px;
+  }
+
+  .tierTitle {
+    font-size: 0.8rem;
+  }
+
+  .tierContent {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .analysisItem {
+    padding: 10px;
+  }
+
+  .itemTitle {
+    font-size: 0.8rem;
+  }
+
+  .itemContent {
+    font-size: 0.75rem;
+  }
+
+  .energyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .daeunGanji {
+    font-size: 1.1rem;
+  }
+}

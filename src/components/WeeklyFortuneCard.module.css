@@ -104,3 +104,75 @@
     margin: 0 16px;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .card {
+    margin: 0 12px;
+    border-radius: 14px;
+  }
+
+  .header {
+    padding: 10px 14px;
+  }
+
+  .badge {
+    font-size: 13px;
+  }
+
+  .week {
+    font-size: 11px;
+  }
+
+  .overlay {
+    padding: 32px 14px 14px;
+  }
+
+  .theme {
+    font-size: 13px;
+  }
+
+  .footer {
+    padding: 10px 14px;
+  }
+
+  .message {
+    font-size: 12px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .card {
+    margin: 0 8px;
+    border-radius: 12px;
+  }
+
+  .header {
+    padding: 8px 12px;
+  }
+
+  .badge {
+    font-size: 12px;
+  }
+
+  .week {
+    font-size: 10px;
+  }
+
+  .overlay {
+    padding: 28px 12px 12px;
+  }
+
+  .theme {
+    font-size: 12px;
+  }
+
+  .footer {
+    padding: 8px 12px;
+  }
+
+  .message {
+    font-size: 11px;
+  }
+}
