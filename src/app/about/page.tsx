@@ -9,165 +9,29 @@ import styles from "./about.module.css";
 type Service = {
   id: string;
   icon: string;
-  title: string;
-  titleKo: string;
-  description: string;
-  descriptionEn: string;
   href: string;
   gradient: string;
-  featured?: boolean;
-  comingSoon?: boolean;
 };
 
-const getServices = (t: (key: string, fallback: string) => string): Service[] => [
-  {
-    id: "destinyMap",
-    icon: "🗺️",
-    title: t('about.services.destinyMap.title', 'Destiny Map'),
-    titleKo: t('about.services.destinyMap.title', '운명 지도'),
-    description: t('about.services.destinyMap.description', 'AI integrates Saju, Astrology, and Tarot for personalized fortune reading'),
-    descriptionEn: t('about.services.destinyMap.description', 'AI integrates Saju, Astrology, and Tarot for personalized fortune reading'),
-    href: "/destiny-map",
-    gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    featured: true,
-  },
-  {
-    id: "aiReports",
-    icon: "🤖",
-    title: t('about.services.aiReports.title', 'AI Reports'),
-    titleKo: t('about.services.aiReports.title', 'AI 리포트'),
-    description: t('about.services.aiReports.description', 'Premium AI-generated detailed analysis reports'),
-    descriptionEn: t('about.services.aiReports.description', 'Premium AI-generated detailed analysis reports'),
-    href: "/premium-reports",
-    gradient: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)",
-  },
-  {
-    id: "lifePrediction",
-    icon: "📈",
-    title: t('about.services.lifePrediction.title', 'Life Prediction'),
-    titleKo: t('about.services.lifePrediction.title', '인생 예측'),
-    description: t('about.services.lifePrediction.description', 'Discover your 10-year fortune flow and life turning points'),
-    descriptionEn: t('about.services.lifePrediction.description', 'Discover your 10-year fortune flow and life turning points'),
-    href: "/life-prediction",
-    gradient: "linear-gradient(135deg, #a855f7 0%, #6366f1 100%)",
-    featured: true,
-  },
-  {
-    id: "tarot",
-    icon: "🔮",
-    title: t('about.services.tarot.title', 'Tarot'),
-    titleKo: t('about.services.tarot.title', '타로'),
-    description: t('about.services.tarot.description', 'Explore current situations and future possibilities through 78 cards'),
-    descriptionEn: t('about.services.tarot.description', 'Explore current situations and future possibilities through 78 cards'),
-    href: "/tarot",
-    gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
-  },
-  {
-    id: "calendar",
-    icon: "🗓️",
-    title: t('about.services.calendar.title', 'Fortune Calendar'),
-    titleKo: t('about.services.calendar.title', '운세 캘린더'),
-    description: t('about.services.calendar.description', 'Check daily fortune and auspicious days on your calendar'),
-    descriptionEn: t('about.services.calendar.description', 'Check daily fortune and auspicious days on your calendar'),
-    href: "/calendar",
-    gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-  },
-  {
-    id: "dream",
-    icon: "🌙",
-    title: t('about.services.dream.title', 'Dream Interpretation'),
-    titleKo: t('about.services.dream.title', '꿈해몽'),
-    description: t('about.services.dream.description', 'Interpret dream symbols and messages from your subconscious'),
-    descriptionEn: t('about.services.dream.description', 'Interpret dream symbols and messages from your subconscious'),
-    href: "/dream",
-    gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
-  },
-  {
-    id: "personality",
-    icon: "🌈",
-    title: t('about.services.personality.title', 'Personality Analysis'),
-    titleKo: t('about.services.personality.title', '성격분석'),
-    description: t('about.services.personality.description', 'Deep analysis of your personality traits, strengths, and weaknesses'),
-    descriptionEn: t('about.services.personality.description', 'Deep analysis of your personality traits, strengths, and weaknesses'),
-    href: "/personality",
-    gradient: "linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)",
-  },
-  {
-    id: "icp",
-    icon: "🎭",
-    title: t('about.services.icp.title', 'ICP Analysis'),
-    titleKo: t('about.services.icp.title', 'ICP 분석'),
-    description: t('about.services.icp.description', 'Inner Child Persona analysis for deeper self-understanding'),
-    descriptionEn: t('about.services.icp.description', 'Inner Child Persona analysis for deeper self-understanding'),
-    href: "/icp",
-    gradient: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
-  },
-  {
-    id: "numerology",
-    icon: "🔢",
-    title: t('about.services.numerology.title', 'Numerology'),
-    titleKo: t('about.services.numerology.title', '수비학'),
-    description: t('about.services.numerology.description', 'Discover your life purpose and potential through numerological analysis of your name and birth date'),
-    descriptionEn: t('about.services.numerology.description', 'Discover your life purpose and potential through numerological analysis of your name and birth date'),
-    href: "/numerology",
-    gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-  },
-  {
-    id: "astrology",
-    icon: "✨",
-    title: t('about.services.astrology.title', 'Astrology'),
-    titleKo: t('about.services.astrology.title', '점성술'),
-    description: t('about.services.astrology.description', 'Western astrology birth chart and planetary influence analysis'),
-    descriptionEn: t('about.services.astrology.description', 'Western astrology birth chart and planetary influence analysis'),
-    href: "/astrology",
-    gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
-  },
-  {
-    id: "saju",
-    icon: "☯️",
-    title: t('about.services.saju.title', 'Saju'),
-    titleKo: t('about.services.saju.title', '사주'),
-    description: t('about.services.saju.description', 'Traditional Four Pillars of Destiny analysis'),
-    descriptionEn: t('about.services.saju.description', 'Traditional Four Pillars of Destiny analysis'),
-    href: "/saju",
-    gradient: "linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)",
-  },
-  {
-    id: "compatibility",
-    icon: "💕",
-    title: t('about.services.compatibility.title', 'Compatibility'),
-    titleKo: t('about.services.compatibility.title', '궁합'),
-    description: t('about.services.compatibility.description', 'Relationship compatibility analysis based on birth charts'),
-    descriptionEn: t('about.services.compatibility.description', 'Relationship compatibility analysis based on birth charts'),
-    href: "/compatibility",
-    gradient: "linear-gradient(135deg, #f7b733 0%, #fc4a1a 100%)",
-  },
-  {
-    id: "pastLife",
-    icon: "🔄",
-    title: t('about.services.pastLife.title', 'Past Life'),
-    titleKo: t('about.services.pastLife.title', '전생분석'),
-    description: t('about.services.pastLife.description', 'Explore past life patterns and karmic influences'),
-    descriptionEn: t('about.services.pastLife.description', 'Explore past life patterns and karmic influences'),
-    href: "/past-life",
-    gradient: "linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)",
-  },
-  {
-    id: "iching",
-    icon: "📜",
-    title: t('about.services.iching.title', 'I Ching'),
-    titleKo: t('about.services.iching.title', '주역'),
-    description: t('about.services.iching.description', 'Ancient Chinese wisdom through the 64 hexagrams'),
-    descriptionEn: t('about.services.iching.description', 'Ancient Chinese wisdom through the 64 hexagrams'),
-    href: "/iching",
-    gradient: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
-  },
+const SERVICES: Service[] = [
+  { id: "destinyMap", icon: "🗺️", href: "/destiny-map", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
+  { id: "aiReports", icon: "🤖", href: "/premium-reports", gradient: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)" },
+  { id: "lifePrediction", icon: "📈", href: "/life-prediction", gradient: "linear-gradient(135deg, #a855f7 0%, #6366f1 100%)" },
+  { id: "tarot", icon: "🔮", href: "/tarot", gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)" },
+  { id: "calendar", icon: "🗓️", href: "/calendar", gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" },
+  { id: "dream", icon: "🌙", href: "/dream", gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)" },
+  { id: "personality", icon: "🌈", href: "/personality", gradient: "linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)" },
+  { id: "icp", icon: "🎭", href: "/icp", gradient: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)" },
+  { id: "numerology", icon: "🔢", href: "/numerology", gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" },
+  { id: "astrology", icon: "✨", href: "/astrology", gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)" },
+  { id: "saju", icon: "☯️", href: "/saju", gradient: "linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)" },
+  { id: "compatibility", icon: "💕", href: "/compatibility", gradient: "linear-gradient(135deg, #f7b733 0%, #fc4a1a 100%)" },
+  { id: "pastLife", icon: "🔄", href: "/past-life", gradient: "linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)" },
+  { id: "iching", icon: "📜", href: "/iching", gradient: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)" },
 ];
 
 export default function AboutPage() {
-  const { translate, locale } = useI18n();
-  const isKo = locale === "ko";
-  const services = getServices(translate);
+  const { translate } = useI18n();
 
   return (
     <div className={styles.page}>
@@ -205,30 +69,23 @@ export default function AboutPage() {
           </div>
 
           <div className={styles.serviceGrid}>
-            {services.map((service) => (
+            {SERVICES.map((service) => (
               <Link
                 key={service.id}
-                href={service.comingSoon ? "#" : service.href}
-                className={`${styles.serviceCard} ${service.comingSoon ? styles.comingSoon : ""}`}
-                style={{
-                  background: service.gradient,
-                }}
-                onClick={service.comingSoon ? (e) => e.preventDefault() : undefined}
+                href={service.href}
+                className={styles.serviceCard}
+                style={{ background: service.gradient }}
               >
                 <div className={styles.cardOverlay} />
                 <div className={styles.cardContent}>
                   <div className={styles.serviceIcon}>{service.icon}</div>
                   <h3 className={styles.serviceTitle}>
-                    {isKo ? service.titleKo : service.title}
+                    {translate(`about.services.${service.id}.title`, service.id)}
                   </h3>
                   <p className={styles.serviceDesc}>
-                    {isKo ? service.description : service.descriptionEn}
+                    {translate(`about.services.${service.id}.description`, "")}
                   </p>
-                  {service.comingSoon ? (
-                    <span className={styles.comingSoonBadge}>Coming Soon</span>
-                  ) : (
-                    <span className={styles.serviceArrow}>→</span>
-                  )}
+                  <span className={styles.serviceArrow}>→</span>
                 </div>
               </Link>
             ))}
@@ -521,7 +378,7 @@ export default function AboutPage() {
           </div>
         </section>
       </main>
-      <ScrollToTop label={isKo ? "맨 위로" : "Top"} />
+      <ScrollToTop label={translate("common.scrollToTop", "Top")} />
     </div>
   );
 }

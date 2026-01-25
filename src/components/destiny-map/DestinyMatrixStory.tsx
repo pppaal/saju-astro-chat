@@ -8,6 +8,9 @@ import { getBackendUrl } from "@/lib/backend-url";
 import type { SajuData, AstroData, ShinsalItem, PlanetData } from "./fun-insights/types";
 import { logger } from "@/lib/logger";
 
+// Import extracted data files
+import { STEM_INFO, ZODIAC_INFO, TWELVE_STAGE, SHINSAL_INFO, PLANET_SIGNS } from "./data";
+
 interface Props {
   saju?: SajuData;
   astro?: AstroData;
@@ -19,8 +22,58 @@ interface Props {
 // AI 백엔드 URL
 const AI_BACKEND_URL = getBackendUrl();
 
-// 천간 상세 정보
-const STEM_INFO: Record<string, {
+// 오행 조합 - Element cross analysis
+function getElementCross(saju: FiveElement, astro: string, lang: string): string {
+  const isKo = lang === "ko";
+  const map: Record<string, Record<string, { ko: string; en: string }>> = {
+    "목": {
+      "fire": { ko: "나무가 불을 만나 더욱 빛나요! 성장과 열정의 시너지.", en: "Wood meets fire and shines brighter! Synergy of growth and passion." },
+      "earth": { ko: "나무가 흙에 뿌리내려 안정적으로 성장해요.", en: "Wood roots in earth for stable growth." },
+      "air": { ko: "나무가 바람을 만나 씨앗이 멀리 퍼져요.", en: "Wood meets wind, seeds spread far." },
+      "water": { ko: "나무가 물을 만나 무럭무럭 자라요!", en: "Wood meets water and grows vigorously!" }
+    },
+    "화": {
+      "fire": { ko: "불이 불을 만나 폭발적으로 타올라요!", en: "Fire meets fire and burns explosively!" },
+      "earth": { ko: "불이 흙을 만나 단단한 결과물을 만들어요.", en: "Fire meets earth creating solid results." },
+      "air": { ko: "불이 바람을 만나 더 크게 타올라요!", en: "Fire meets wind and burns greater!" },
+      "water": { ko: "불과 물의 긴장이 증기처럼 새 에너지를 만들어요.", en: "Fire and water tension creates new energy like steam." }
+    },
+    "토": {
+      "fire": { ko: "흙이 불을 만나 더욱 단단해져요.", en: "Earth meets fire and hardens." },
+      "earth": { ko: "흙이 흙을 만나 더욱 견고한 기반이 돼요.", en: "Earth meets earth for stronger foundation." },
+      "air": { ko: "흙과 바람이 만나 새로운 가능성이 열려요.", en: "Earth meets wind opening new possibilities." },
+      "water": { ko: "흙이 물을 만나 비옥해져요.", en: "Earth meets water becoming fertile." }
+    },
+    "금": {
+      "fire": { ko: "금이 불을 만나 새로운 형태로 태어나요.", en: "Metal meets fire and is reborn in new form." },
+      "earth": { ko: "금이 흙에서 나와 가치 있는 결과를 만들어요.", en: "Metal from earth creating valuable results." },
+      "air": { ko: "금이 바람에 아름다운 소리를 내요.", en: "Metal rings beautifully in the wind." },
+      "water": { ko: "금이 물을 만나 더욱 맑게 빛나요.", en: "Metal meets water shining clearer." }
+    },
+    "수": {
+      "fire": { ko: "물과 불이 만나 증기처럼 새 에너지를 만들어요.", en: "Water and fire create new energy like steam." },
+      "earth": { ko: "물이 흙을 적셔 생명이 자라요.", en: "Water moistens earth, life grows." },
+      "air": { ko: "물이 증발해 구름이 되듯 감성이 아이디어로 승화해요.", en: "Like water evaporating to clouds, emotions sublimate to ideas." },
+      "water": { ko: "물이 물을 만나 더 깊어져요.", en: "Water meets water and deepens." }
+    }
+  };
+  const result = map[saju]?.[astro];
+  return result ? (isKo ? result.ko : result.en) : (isKo ? "동양과 서양의 에너지가 만나 독특한 조합을 만들어요." : "Eastern and Western energies create a unique combination.");
+}
+
+// 한글 천간 → 한자 변환
+const STEM_KO_TO_HANJA: Record<string, string> = {
+  "갑": "甲", "을": "乙", "병": "丙", "정": "丁", "무": "戊",
+  "기": "己", "경": "庚", "신": "辛", "임": "壬", "계": "癸",
+  "갑목": "甲", "을목": "乙", "병화": "丙", "정화": "丁", "무토": "戊",
+  "기토": "己", "경금": "庚", "신금": "辛", "임수": "壬", "계수": "癸",
+};
+
+// 메인 스토리 생성 - NOTE: Original STEM_INFO, TWELVE_STAGE, ZODIAC_INFO, SHINSAL_INFO, PLANET_SIGNS
+// are now imported from ./data/index.ts
+
+// Legacy placeholder to maintain compatibility - actual data removed, using imports
+const _LEGACY_STEM_INFO_REMOVED: Record<string, {
   ko: string; en: string;
   nature: { ko: string; en: string };
   personality: { ko: string; en: string };

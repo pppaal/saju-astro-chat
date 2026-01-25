@@ -3048,25 +3048,34 @@ to { opacity: 1; transform: translateY(0); }
 
   .container { padding: 4.5rem 1.1rem 5rem; gap: 2.5rem; }
   .topBar {
-    flex-direction: column;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 8px 12px;
     position: fixed;
     padding: 10px 16px;
-    align-items: stretch;
+    align-items: center;
   }
   .brand {
-    order: 1;
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .brandText {
+    font-size: 1.1rem;
   }
   .headerLinks {
-    order: 2;
-    gap: 8px;
+    grid-column: 3;
+    grid-row: 1;
+    gap: 6px;
+    justify-self: end;
   }
   .nav {
-    order: 3;
+    grid-column: 1 / -1;
+    grid-row: 2;
     display: flex;
     overflow-x: auto;
-    gap: 8px;
-    padding: 8px 0;
+    gap: 6px;
+    padding: 6px 0;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
@@ -3074,34 +3083,50 @@ to { opacity: 1; transform: translateY(0); }
     display: none;
   }
   .navLink, .navLinkDisabled {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     white-space: nowrap;
-    padding: 6px 12px;
+    padding: 5px 10px;
   }
   .navItem {
     position: static;
   }
+  .navButton {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
   .logo { flex-shrink: 0; }
   .logoLink { font-size: 1.2rem; }
   .ctaPrimary { padding: 8px 12px; font-size: 13px; }
-  .content { padding: 1.8rem; margin-top: 120px; }
+  .content { padding: 1.8rem; margin-top: 100px; }
 
   .dropdown {
-    min-width: calc(100vw - 32px);
-    max-width: 400px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-radius: 20px;
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    min-width: 100vw;
+    max-width: 100vw;
+    max-height: 70vh;
+    overflow-y: auto;
+    transform: none;
+    border-radius: 20px 20px 0 0;
+    -webkit-overflow-scrolling: touch;
   }
 
   .dropdownGrid {
     grid-template-columns: repeat(4, 1fr);
     gap: 6px;
     padding: 10px;
+    padding-bottom: 20px;
   }
 
   .dropdownHeader {
     padding: 14px 16px 10px;
+    position: sticky;
+    top: 0;
+    background: inherit;
+    z-index: 1;
   }
 
   .dropItem {
@@ -3136,70 +3161,194 @@ to { opacity: 1; transform: translateY(0); }
   .statFootnote { font-size: 0.7rem; padding: 6px 12px; }
   .serviceGrid { grid-template-columns: 1fr; }
 
-  .fullscreenHero { min-height: 100svh; padding-top: 8rem; margin-top: -4rem; }
+  .fullscreenHero { min-height: 100svh; padding-top: 8rem; padding-bottom: 5rem; margin-top: -4rem; }
   .heroContent .heroTitle { font-size: clamp(1.8rem, 6vw, 2.5rem); white-space: normal; }
-  .heroContent .heroSub { font-size: 1rem; margin-bottom: 2rem; }
-  .scrollIndicator { bottom: 20px; }
+  .heroContent .heroSub { font-size: 1rem; margin-bottom: 1.5rem; }
+  .scrollIndicator { bottom: 15px; }
+  .scrollText { font-size: 0.7rem; }
   .scrollArrow { width: 24px; height: 40px; }
 
   .featureSection { margin: 3rem auto; padding: 2rem 1rem; }
+  .featureSectionTitle { font-size: 1.4rem; }
+  .featureSectionSubtitle { font-size: 0.9rem; }
 
-  .astrologyChart { width: 320px; height: 320px; }
-  .planet { width: 40px; height: 40px; font-size: 1.5rem; }
-  .zodiacSign { font-size: 1.2rem; }
+  /* Astrology Chart - scaled down for mobile */
+  .astrologyChart {
+    width: 280px;
+    height: 280px;
+    transform: scale(0.85);
+    transform-origin: center;
+  }
+  .planet { width: 36px; height: 36px; font-size: 1.3rem; }
+  .zodiacSign { font-size: 1rem; }
 
-  .sajuPillars { gap: 1rem; }
+  /* Astrology Info - stacked on mobile */
+  .astrologyInfo {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+  .astrologyInfo p:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  /* Saju Pillars - horizontal scroll on mobile */
+  .sajuPillars {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 1rem 0;
+    margin: 1.5rem -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .sajuPillars::-webkit-scrollbar { display: none; }
+  .pillar { flex: 0 0 auto; min-width: 100px; }
   .pillarChar { padding: 1rem 1.5rem; }
-  .stem, .branch { font-size: 2rem; }
-  .branch { font-size: 1.8rem; }
-  .luckTimeline { padding: 1.5rem; }
-  .timelineTrack { gap: 0.5rem; }
-  .luckPeriod { padding: 1rem 1.5rem; }
+  .stem, .branch { font-size: 1.8rem; }
+  .branch { font-size: 1.6rem; }
+
+  /* Luck Timeline - horizontal scroll on mobile */
+  .luckTimeline {
+    padding: 1.5rem 1rem;
+    margin: 2rem -1rem;
+    border-radius: 0;
+  }
+  .timelineTrack {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.5rem;
+  }
+  .timelineTrack::-webkit-scrollbar { display: none; }
+  .luckPeriod {
+    flex: 0 0 auto;
+    min-width: 90px;
+    padding: 0.8rem 1rem;
+  }
+
+  /* Saju Container (Five Elements) - horizontal scroll on mobile */
+  .sajuContainer {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 1.5rem -1rem;
+    padding: 0.5rem 1rem;
+  }
+  .sajuContainer::-webkit-scrollbar { display: none; }
+  .elementBar {
+    flex: 0 0 auto;
+    min-width: 140px;
+    padding: 1rem;
+  }
+
+  /* Shinsal Container - horizontal scroll on mobile */
+  .shinsalContainer {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 2rem -1rem;
+    padding: 1rem;
+  }
+  .shinsalContainer::-webkit-scrollbar { display: none; }
+  .shinsalCard {
+    flex: 0 0 auto;
+    min-width: 130px;
+  }
 
   .tarotDeckContainer { padding-top: 140px; min-height: 280px; }
   .tarotDeck { width: 80px; height: 120px; }
   .deckCard { width: 50px; height: 85px; margin-left: -25px; }
-  .tarotCards { gap: 0.75rem; }
+
+  /* Tarot Cards - horizontal scroll on mobile */
+  .tarotCards {
+    gap: 0.75rem;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 1rem 1rem;
+    margin: 2rem -1rem 0;
+  }
+  .tarotCards::-webkit-scrollbar { display: none; }
   .tarotCard { width: 80px; height: 140px; flex: 0 0 80px; }
   .cardMainIcon { font-size: 2.5rem; }
   .cardCenterIcon { font-size: 2rem; }
   .cardHeader, .cardFooter { font-size: 0.55rem; }
-  .tarotLabels { gap: 0.75rem; font-size: 0.75rem; }
-  .tarotLabels span { width: 80px; }
 
-  .ctaSection { margin: 4rem auto; padding: 3rem 1.5rem; }
+  /* Tarot Labels - horizontal scroll on mobile */
+  .tarotLabels {
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 1rem;
+    margin: 1rem -1rem 0;
+  }
+  .tarotLabels::-webkit-scrollbar { display: none; }
+  .tarotLabels span { width: 80px; flex: 0 0 80px; }
+
+  .ctaSection {
+    margin: 4rem auto;
+    padding: 3rem 1.5rem;
+    border-radius: 24px;
+  }
+  .ctaTitle { font-size: 1.8rem; }
+  .ctaSubtitle { font-size: 1rem; margin-bottom: 2rem; }
+  .ctaButton {
+    padding: 16px 32px;
+    font-size: 1rem;
+    width: 100%;
+    justify-content: center;
+  }
 
   /* Mobile Service Icons Row */
   .aiRoutingGuide {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .aiRoutingText {
-    font-size: 0.8rem;
-    margin-bottom: 1rem;
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
     padding: 0 0.5rem;
   }
 
   .serviceIconsRow {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.75rem;
-    justify-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: center;
     max-width: 100%;
     padding: 0 0.5rem;
   }
 
   .serviceIcon {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    aspect-ratio: 1;
+    width: 32px;
+    height: 32px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+    border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
@@ -3211,6 +3360,57 @@ to { opacity: 1; transform: translateY(0); }
 
   .questionSearchWrapper {
     flex-wrap: nowrap;
+  }
+
+  .questionSearchInput {
+    padding: 18px 55px 18px 90px;
+    font-size: 1rem;
+  }
+
+  .serviceSelectBtn {
+    padding: 6px 10px;
+    left: 8px;
+  }
+
+  .serviceSelectIcon {
+    font-size: 1rem;
+  }
+
+  .serviceSelectArrow {
+    font-size: 0.5rem;
+  }
+
+  /* Service Dropdown - bottom sheet style on mobile */
+  .serviceDropdown {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    min-width: 100vw;
+    max-height: 60vh;
+    overflow-y: auto;
+    border-radius: 20px 20px 0 0;
+    padding: 16px 16px 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .serviceDropdownItem {
+    flex-direction: column;
+    padding: 12px 8px;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .serviceDropdownIcon {
+    font-size: 1.5rem;
+  }
+
+  .serviceDropdownLabel {
+    font-size: 0.75rem;
   }
 
   .questionHints {

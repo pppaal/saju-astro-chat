@@ -21,64 +21,123 @@ export function getSoulIdentityNarrative(
 
   if (dayMasterInfo) {
     if (isKo) {
+      paragraphs.push(`🌟 【일간(日干) 분석 - 당신 영혼의 본질】`);
+      paragraphs.push('');
       paragraphs.push(
-        `당신의 영혼은 ${dayMasterInfo.emoji} "${dayMasterInfo.simpleKo}"의 에너지를 타고 태어났습니다.`
+        `사주(四柱)에서 '일간'은 당신 자체를 나타냅니다. 태어난 날의 천간(天干)이 바로 당신의 영혼이 어떤 에너지로 이 세상에 왔는지를 보여줍니다.`
       );
+      paragraphs.push('');
+      paragraphs.push(
+        `당신의 일간은 ${dayMasterInfo.emoji} "${dayMasterInfo.simpleKo}"입니다.`
+      );
+      paragraphs.push('');
       paragraphs.push(dayMasterInfo.metaphorKo);
+      paragraphs.push('');
       paragraphs.push(
-        `이 에너지는 당신이 세상을 바라보는 방식, 결정을 내리는 방식, 그리고 사람들과 관계 맺는 방식 모두에 깊이 스며들어 있습니다. 어린 시절부터 이런 성향이 자연스럽게 나타났을 것입니다.`
+        `이 에너지는 당신이 세상을 바라보는 방식, 결정을 내리는 방식, 그리고 사람들과 관계 맺는 방식 모두에 깊이 스며들어 있습니다.`
       );
+      paragraphs.push('');
+      paragraphs.push(`어린 시절부터 이런 성향이 자연스럽게 나타났을 것입니다. 부모님이나 주변 사람들도 아마 이 특성을 알아챘을 거예요.`);
+      paragraphs.push('');
+      paragraphs.push(`💪 【당신의 타고난 강점】`);
+      paragraphs.push(dayMasterInfo.strengthKo);
+      paragraphs.push('');
+      paragraphs.push(`⚠️ 【조심할 부분】`);
+      paragraphs.push(`모든 강점에는 그림자도 있습니다. ${dayMasterInfo.watchOutKo}`);
+      paragraphs.push('');
+      paragraphs.push(`🎨 【어울리는 색상】`);
       paragraphs.push(
-        `${dayMasterInfo.strengthKo} - 이것이 당신의 타고난 무기입니다. 하지만 모든 강점에는 그림자도 있습니다. ${dayMasterInfo.watchOutKo}`
+        `당신에게 어울리는 색상은 ${dayMasterInfo.luckyColorKo}입니다.`
       );
-      paragraphs.push(
-        `당신에게 어울리는 색상은 ${dayMasterInfo.luckyColorKo}입니다. 이 색을 가까이 두면 당신의 에너지가 더 안정되고 조화롭게 흐릅니다.`
-      );
+      paragraphs.push(`이 색을 옷, 소품, 인테리어에 활용하면 당신의 에너지가 더 안정되고 조화롭게 흐릅니다.`);
     } else {
+      paragraphs.push(`🌟 【Day Master Analysis - The Essence of Your Soul】`);
+      paragraphs.push('');
       paragraphs.push(
-        `Your soul was born with the energy of ${dayMasterInfo.emoji} "${dayMasterInfo.simpleEn}".`
+        `In Four Pillars (Saju), the 'Day Master' represents you yourself. The Heavenly Stem of your birth day shows what energy your soul brought into this world.`
       );
+      paragraphs.push('');
+      paragraphs.push(
+        `Your Day Master is ${dayMasterInfo.emoji} "${dayMasterInfo.simpleEn}".`
+      );
+      paragraphs.push('');
       paragraphs.push(dayMasterInfo.metaphorEn);
+      paragraphs.push('');
       paragraphs.push(
-        `This energy permeates how you see the world, make decisions, and form relationships. You've likely noticed these tendencies naturally appearing since childhood.`
+        `This energy permeates how you see the world, make decisions, and form relationships.`
       );
+      paragraphs.push('');
+      paragraphs.push(`These tendencies have naturally appeared since childhood. Your parents and those around you probably noticed these traits too.`);
+      paragraphs.push('');
+      paragraphs.push(`💪 【Your Innate Strength】`);
+      paragraphs.push(dayMasterInfo.strengthEn);
+      paragraphs.push('');
+      paragraphs.push(`⚠️ 【Watch Out For】`);
+      paragraphs.push(`Every strength has its shadow. ${dayMasterInfo.watchOutEn}`);
+      paragraphs.push('');
+      paragraphs.push(`🎨 【Your Harmonious Colors】`);
       paragraphs.push(
-        `${dayMasterInfo.strengthEn} - This is your innate gift. But every strength has its shadow. ${dayMasterInfo.watchOutEn}`
+        `Your harmonious colors are ${dayMasterInfo.luckyColorEn}.`
       );
-      paragraphs.push(
-        `Your harmonious color is ${dayMasterInfo.luckyColorEn}. Keeping this color close helps your energy flow more balanced and steady.`
-      );
+      paragraphs.push(`Using these colors in clothing, accessories, and interior design helps your energy flow more balanced and steady.`);
     }
   }
 
   if (soulType) {
+    paragraphs.push('');
     if (isKo) {
+      paragraphs.push(`🔮 【영혼 유형 분석】`);
       paragraphs.push('');
-      paragraphs.push(`영혼 유형 분석에서 당신은 "${soulType.title}" 유형으로 나타납니다.`);
+      paragraphs.push(`동서양 분석을 종합한 결과, 당신은 "${soulType.title}" 유형으로 나타납니다.`);
+      paragraphs.push('');
       paragraphs.push(soulType.description);
       if (soulType.traits && soulType.traits.length > 0) {
+        paragraphs.push('');
+        paragraphs.push(`✨ 당신을 대표하는 키워드: ${soulType.traits.join(' • ')}`);
+        paragraphs.push('');
         paragraphs.push(
-          `당신을 대표하는 키워드: ${soulType.traits.join(', ')}. 이 특성들은 당신의 영혼이 이번 생에서 표현하고자 하는 본질적인 에너지입니다.`
+          `이 특성들은 당신의 영혼이 이번 생에서 표현하고자 하는 본질적인 에너지입니다. 이 키워드들과 공명하는 활동이나 환경을 찾으면, 자연스럽게 에너지가 흐르고 성취감을 느낄 수 있습니다.`
         );
       }
     } else {
+      paragraphs.push(`🔮 【Soul Type Analysis】`);
       paragraphs.push('');
-      paragraphs.push(`Soul type analysis reveals you as the "${soulType.title}" type.`);
+      paragraphs.push(`Combining Eastern and Western analysis, you emerge as the "${soulType.title}" type.`);
+      paragraphs.push('');
       paragraphs.push(soulType.description);
       if (soulType.traits && soulType.traits.length > 0) {
+        paragraphs.push('');
+        paragraphs.push(`✨ Keywords representing you: ${soulType.traits.join(' • ')}`);
+        paragraphs.push('');
         paragraphs.push(
-          `Keywords representing you: ${soulType.traits.join(', ')}. These traits are the essential energies your soul seeks to express in this lifetime.`
+          `These traits are the essential energies your soul seeks to express this lifetime. Finding activities and environments that resonate with these keywords allows energy to flow naturally and brings fulfillment.`
         );
       }
     }
   }
 
   if (paragraphs.length === 0) {
-    paragraphs.push(
-      isKo
-        ? '영혼의 정체성을 분석하기 위한 데이터가 부족합니다. 생년월일시 정보가 있으면 더 깊은 분석이 가능합니다.'
-        : 'Not enough data to analyze soul identity. Birth date and time would enable deeper analysis.'
-    );
+    if (isKo) {
+      paragraphs.push(`🌟 【영혼의 정체성에 대하여】`);
+      paragraphs.push('');
+      paragraphs.push(`상세한 분석을 위한 데이터가 부족하지만, 모든 사람은 고유한 영혼의 에너지를 가지고 태어납니다.`);
+      paragraphs.push('');
+      paragraphs.push(`당신이 자연스럽게 끌리는 것, 어릴 때부터 좋아했던 것, 노력하지 않아도 잘하는 것... 이런 것들이 당신 영혼의 본질을 보여주는 단서입니다.`);
+      paragraphs.push('');
+      paragraphs.push(`어떤 상황에서 가장 '나답다'고 느끼나요? 어떤 활동을 할 때 시간 가는 줄 모르나요? 그 순간들이 바로 당신의 영혼이 빛나는 순간입니다.`);
+      paragraphs.push('');
+      paragraphs.push(`💡 생년월일시 정보가 있으면 더 정확한 일간 분석이 가능합니다.`);
+    } else {
+      paragraphs.push(`🌟 【About Soul Identity】`);
+      paragraphs.push('');
+      paragraphs.push(`While detailed analysis data isn't available, everyone is born with unique soul energy.`);
+      paragraphs.push('');
+      paragraphs.push(`What you're naturally drawn to, what you've loved since childhood, what you do well without trying... these are clues revealing your soul's essence.`);
+      paragraphs.push('');
+      paragraphs.push(`In what situations do you feel most 'yourself'? During what activities does time fly? Those moments are when your soul shines.`);
+      paragraphs.push('');
+      paragraphs.push(`💡 More accurate Day Master analysis is possible with birth date and time information.`);
+    }
   }
 
   return paragraphs;
@@ -222,6 +281,90 @@ export function getLifeDirectionNarrative(
 // Combines Past Life Hints + Shinsal stars
 // ============================================================
 
+// Extended shinsal narratives for deeper storytelling
+const shinsalExtendedNarratives: Record<string, { ko: string[]; en: string[] }> = {
+  "천을귀인": {
+    ko: [
+      "당신에게는 '천을귀인'이라는 특별한 별이 함께합니다.",
+      "이 별은 하늘에서 내려온 수호천사와 같은 존재예요. 삶에서 정말 어려운 순간이 올 때마다, 마치 기적처럼 도움의 손길이 나타났던 경험이 있지 않나요?",
+      "갑자기 연락이 온 오래된 친구, 우연히 만난 낯선 사람의 조언, 예상치 못한 곳에서 온 기회... 이 모든 것이 천을귀인의 작용입니다.",
+      "당신 주변에는 자연스럽게 좋은 사람들이 모입니다. 사람들이 당신을 돕고 싶어하는 에너지가 있어요.",
+      "💡 이 복을 더 강하게 하려면: 어려울 때 혼자 끙끙대지 마세요. 도움을 요청하면 반드시 귀인이 나타납니다. 그리고 당신도 누군가의 귀인이 되어주세요."
+    ],
+    en: [
+      "You carry a special star called 'Cheon-eul Guin' (Heavenly Noble Helper).",
+      "This star acts like a guardian angel sent from heaven. Haven't you noticed that in your most difficult moments, help mysteriously appears?",
+      "An old friend suddenly reaching out, advice from a stranger you happened to meet, unexpected opportunities from unlikely places... All these are the workings of your noble helper star.",
+      "Good people naturally gather around you. There's an energy that makes others want to help you.",
+      "💡 To strengthen this blessing: Don't struggle alone when times are hard. Ask for help and a helper will surely appear. And become someone's noble helper yourself."
+    ]
+  },
+  "역마살": {
+    ko: [
+      "당신에게는 '역마살'이라는 여행자의 별이 있습니다.",
+      "가만히 한 곳에 있으면 뭔가 답답하고 근질근질하지 않나요? 새로운 장소, 새로운 사람, 새로운 경험에 대한 갈망이 당신 안에 늘 있습니다.",
+      "이것은 단점이 아니라 강력한 장점입니다. 이 별을 가진 사람들은 해외에서 성공하거나, 이동이 많은 직업에서 크게 빛납니다.",
+      "여행 작가, 무역업, 항공 관련 직종, 영업직, 외교관... 움직임이 곧 행운을 불러오는 운명이에요.",
+      "💡 실천 팁: 일년에 최소 한 번은 새로운 곳으로 여행하세요. 낯선 곳에서 당신의 행운이 기다리고 있습니다. 가만히 있으면 오히려 운이 막힙니다."
+    ],
+    en: [
+      "You carry the 'Yeokma-sal' - the Traveler's Star.",
+      "Don't you feel restless and confined staying in one place? There's always a yearning within you for new places, new people, new experiences.",
+      "This isn't a weakness but a powerful strength. People with this star often succeed abroad or shine in careers involving travel.",
+      "Travel writer, trade business, aviation, sales, diplomat... Movement itself brings you luck.",
+      "💡 Action tip: Travel to at least one new place each year. Your fortune waits in unfamiliar territories. Staying put actually blocks your luck."
+    ]
+  },
+  "화개살": {
+    ko: [
+      "당신에게는 '화개살'이라는 예술가의 별이 있습니다.",
+      "다른 사람들이 보지 못하는 것이 보이고, 느끼지 못하는 것이 느껴지지 않나요? 어릴 때부터 뭔가 '다르다'는 느낌을 받았을 수도 있어요.",
+      "음악, 미술, 글쓰기, 영적인 것, 종교... 눈에 보이지 않는 세계에 자연스럽게 끌립니다. 이것은 당신이 특별한 감수성을 타고났다는 의미입니다.",
+      "때로는 이 예민함이 고통이 될 수도 있어요. 너무 많은 것을 느끼니까요. 하지만 이 감수성이 바로 당신만의 예술적 재능입니다.",
+      "💡 실천 팁: 창작 활동이나 명상을 꼭 해보세요. 그림을 그리거나, 글을 쓰거나, 악기를 연주하거나... 무엇이든 좋아요. 거기에 당신의 진짜 재능이 숨어있습니다."
+    ],
+    en: [
+      "You carry the 'Hwagae-sal' - the Artist's Star.",
+      "Don't you see things others don't see, feel things others don't feel? You may have felt 'different' since childhood.",
+      "Music, art, writing, spirituality, religion... You're naturally drawn to invisible realms. This means you were born with special sensitivity.",
+      "Sometimes this sensitivity can be painful. You feel too much. But this very sensitivity is your unique artistic gift.",
+      "💡 Action tip: Make sure to engage in creative activities or meditation. Draw, write, play music... anything works. Your true talent hides there."
+    ]
+  },
+  "도화살": {
+    ko: [
+      "당신에게는 '도화살'이라는 매력의 별이 있습니다.",
+      "사람들이 당신에게 이끌립니다. 특별히 노력하지 않아도 인기가 있고, 이성에게도 매력적으로 보여요. 이것은 타고난 카리스마입니다.",
+      "하지만 이 별에는 양면이 있어요. 매력이 너무 강해서 복잡한 이성 관계로 이어질 수 있습니다. 원치 않는 관심을 받거나, 오해를 살 수도 있죠.",
+      "중요한 것은 이 매력을 '어디에' 쓰느냐입니다. 연애에만 쓰면 복잡해지지만, 일이나 예술에 쓰면 대성공할 수 있어요.",
+      "💡 실천 팁: 당신의 매력을 의식적으로 활용하세요. 프레젠테이션, 영업, 예술 활동, 리더십... 사람을 끄는 힘이 필요한 곳에 이 재능을 쓰면 빛납니다. 사랑에서는 조금 신중하게!"
+    ],
+    en: [
+      "You carry the 'Dohwa-sal' - the Charm Star.",
+      "People are drawn to you. You're popular without trying, and attractive to others. This is innate charisma.",
+      "But this star has two sides. Such strong charm can lead to complicated romantic relationships. You might receive unwanted attention or be misunderstood.",
+      "What matters is 'where' you use this charm. Using it only for romance creates complications, but using it for work or art can bring great success.",
+      "💡 Action tip: Consciously utilize your charm. Presentations, sales, art, leadership... Your talent shines where attracting people matters. Just be more careful in love!"
+    ]
+  },
+  "백호살": {
+    ko: [
+      "당신에게는 '백호살'이라는 호랑이의 별이 있습니다.",
+      "백호처럼 용감하고, 빠르고, 강합니다. 결단력이 있고, 밀어붙이는 힘이 있어요. 위험 앞에서도 물러서지 않죠.",
+      "하지만 호랑이가 너무 급하게 달리면 낭떠러지로 떨어질 수 있듯이, 당신도 너무 급하면 다칠 수 있어요. 특히 급한 결정은 피해야 합니다.",
+      "교통사고, 다툼, 갑작스러운 사건... 이런 것들에 조금 더 조심할 필요가 있어요. 느긋하게 한 박자 쉬어가는 연습이 필요합니다.",
+      "💡 실천 팁: 중요한 결정 전에는 꼭 하루 정도 시간을 두세요. '지금 당장'이라는 생각이 들 때가 가장 위험해요. 그리고 운전할 때, 과격한 운동을 할 때 특히 조심하세요."
+    ],
+    en: [
+      "You carry the 'Baekho-sal' - the White Tiger Star.",
+      "Like a white tiger, you're brave, fast, and strong. You have decisiveness and pushing power. You don't back down from danger.",
+      "But just as a tiger running too fast might fall off a cliff, you can get hurt by being too hasty. Especially avoid rushed decisions.",
+      "Car accidents, conflicts, sudden events... You need to be more careful about these. Practice slowing down and taking a beat.",
+      "💡 Action tip: Before important decisions, take at least a day to think. The thought 'right now!' is most dangerous. Be especially careful when driving or doing extreme sports."
+    ]
+  }
+};
+
 export function getPastLifeNarrative(
   luckyStars: string[],
   challengeStars: string[],
@@ -236,13 +379,20 @@ export function getPastLifeNarrative(
 ): string[] {
   const paragraphs: string[] = [];
 
+  // Opening narrative
   if (isKo) {
     paragraphs.push(
-      `🔮 전생의 에너지는 신비로운 영역입니다. 이 분석은 영감을 주기 위한 것이며, 절대적인 진실보다는 자기 성찰의 도구로 활용하세요.`
+      `🔮 전생과 카르마는 눈에 보이지 않는 영역입니다. 이 분석은 과학적 증명보다는 동양 철학과 점성술의 지혜를 바탕으로 한 영감의 도구예요.`
+    );
+    paragraphs.push(
+      `당신이 왜 특정한 상황에서 강하게 끌리거나 반복적인 패턴을 경험하는지, 그 실마리를 여기서 찾아볼 수 있습니다.`
     );
   } else {
     paragraphs.push(
-      `🔮 Past life energy is a mystical realm. This analysis is meant for inspiration - use it as a tool for self-reflection rather than absolute truth.`
+      `🔮 Past lives and karma belong to invisible realms. This analysis is an inspirational tool based on Eastern philosophy and astrological wisdom rather than scientific proof.`
+    );
+    paragraphs.push(
+      `Here you may find clues about why you feel strongly drawn to certain situations or experience recurring patterns.`
     );
   }
 
@@ -250,15 +400,29 @@ export function getPastLifeNarrative(
   if (pastLifeTheme) {
     paragraphs.push('');
     if (isKo) {
-      paragraphs.push(`🌀 【전생의 모습】`);
+      paragraphs.push(`🌀 【전생의 모습 - 영혼이 기억하는 과거】`);
+      paragraphs.push('');
       paragraphs.push(pastLifeTheme.likely);
-      paragraphs.push(`✨ 가져온 재능: ${pastLifeTheme.talents}`);
-      paragraphs.push(`📖 이번 생 숙제: ${pastLifeTheme.lessons}`);
+      paragraphs.push('');
+      paragraphs.push(`이것은 당신의 영혼이 이미 경험한 에너지입니다. 그래서 특정 분야에서 '처음인데 익숙한' 느낌을 받았을 수 있어요.`);
+      paragraphs.push('');
+      paragraphs.push(`✨ 전생에서 가져온 재능: ${pastLifeTheme.talents}`);
+      paragraphs.push(`이 재능은 노력 없이도 자연스럽게 발휘되는 영역일 가능성이 높습니다.`);
+      paragraphs.push('');
+      paragraphs.push(`📖 이번 생의 숙제: ${pastLifeTheme.lessons}`);
+      paragraphs.push(`전생에서 다 배우지 못한 것을 이번 생에서 완성해야 합니다. 어렵게 느껴지는 영역이 바로 성장의 열쇠예요.`);
     } else {
-      paragraphs.push(`🌀 【Past Life Vision】`);
+      paragraphs.push(`🌀 【Past Life Vision - What Your Soul Remembers】`);
+      paragraphs.push('');
       paragraphs.push(pastLifeTheme.likely);
-      paragraphs.push(`✨ Talents brought: ${pastLifeTheme.talents}`);
+      paragraphs.push('');
+      paragraphs.push(`This is energy your soul has already experienced. That's why certain areas may feel 'familiar even though it's your first time.'`);
+      paragraphs.push('');
+      paragraphs.push(`✨ Talents from past lives: ${pastLifeTheme.talents}`);
+      paragraphs.push(`These talents likely manifest naturally without effort.`);
+      paragraphs.push('');
       paragraphs.push(`📖 This life's homework: ${pastLifeTheme.lessons}`);
+      paragraphs.push(`You must complete what wasn't fully learned in past lives. The areas that feel difficult are the keys to your growth.`);
     }
   }
 
@@ -266,64 +430,136 @@ export function getPastLifeNarrative(
   if (pastLifeHints.length > 0) {
     paragraphs.push('');
     if (isKo) {
-      paragraphs.push(`💫 【신살 × 행성 조합으로 본 전생 에너지】`);
+      paragraphs.push(`💫 【신살과 행성의 만남 - 더 깊은 전생 에너지】`);
+      paragraphs.push(`동양의 신살(神煞)과 서양 점성술의 행성이 만나면 독특한 카르마적 조합이 나타납니다:`);
+      paragraphs.push('');
       pastLifeHints.slice(0, 3).forEach(hint => {
-        paragraphs.push(`${hint.fusion.icon} ${hint.shinsal} × ${hint.planet}: ${hint.hint.ko}`);
+        paragraphs.push(`${hint.fusion.icon} ${hint.shinsal} × ${hint.planet}`);
+        paragraphs.push(`   ${hint.hint.ko}`);
+        paragraphs.push('');
       });
     } else {
-      paragraphs.push(`💫 【Past Life Energy from Shinsal × Planet Combinations】`);
+      paragraphs.push(`💫 【Shinsal Meets Planets - Deeper Past Life Energy】`);
+      paragraphs.push(`When Eastern Shinsal (divine stars) meet Western planetary energies, unique karmic combinations emerge:`);
+      paragraphs.push('');
       pastLifeHints.slice(0, 3).forEach(hint => {
-        paragraphs.push(`${hint.fusion.icon} ${hint.shinsal} × ${hint.planet}: ${hint.hint.en}`);
+        paragraphs.push(`${hint.fusion.icon} ${hint.shinsal} × ${hint.planet}`);
+        paragraphs.push(`   ${hint.hint.en}`);
+        paragraphs.push('');
       });
     }
   }
 
-  // Shinsal stars
+  // Shinsal stars with extended narratives
   if (luckyStars.length > 0 || challengeStars.length > 0) {
     paragraphs.push('');
     if (isKo) {
-      paragraphs.push(`⭐ 【타고난 별들】`);
+      paragraphs.push(`⭐ 【타고난 별들 - 당신만의 우주적 선물】`);
+      paragraphs.push('');
       paragraphs.push(
-        `태어날 때 우주가 당신에게 특별한 별들을 선물했습니다. 이 별들은 당신의 잠재력과 도전을 나타냅니다.`
+        `태어나는 순간, 우주는 당신에게 특별한 별들을 선물했습니다. 마치 요정들이 아기에게 축복을 주는 것처럼요. 이 별들은 평생 당신과 함께하며 잠재력과 도전을 나타냅니다.`
       );
     } else {
-      paragraphs.push(`⭐ 【Stars You Were Born With】`);
+      paragraphs.push(`⭐ 【Stars You Were Born With - Your Cosmic Gifts】`);
+      paragraphs.push('');
       paragraphs.push(
-        `The universe gifted you special stars at birth. These stars represent your potential and challenges.`
+        `At the moment of birth, the universe gifted you special stars. Like fairies blessing a baby, these stars accompany you throughout life, representing your potential and challenges.`
       );
     }
 
     if (luckyStars.length > 0) {
       paragraphs.push('');
-      paragraphs.push(isKo ? '✨ 축복의 별:' : '✨ Blessing Stars:');
-      luckyStars.slice(0, 3).forEach(starName => {
-        const info = shinsalSimple[starName];
-        if (info) {
-          paragraphs.push(`${info.emoji} ${starName}: ${isKo ? info.storyKo : info.storyEn}`);
-          paragraphs.push(`   → ${isKo ? info.adviceKo : info.adviceEn}`);
+      paragraphs.push(isKo ? '🌟 【축복의 별들】' : '🌟 【Blessing Stars】');
+      paragraphs.push('');
+
+      luckyStars.slice(0, 3).forEach((starName, idx) => {
+        // Check if we have extended narrative
+        const extendedNarrative = shinsalExtendedNarratives[starName];
+        if (extendedNarrative) {
+          const narrativeLines = isKo ? extendedNarrative.ko : extendedNarrative.en;
+          narrativeLines.forEach(line => paragraphs.push(line));
+        } else {
+          // Fall back to simple version
+          const info = shinsalSimple[starName];
+          if (info) {
+            paragraphs.push(`${info.emoji} ${starName} (${isKo ? info.typeKo : info.typeEn})`);
+            paragraphs.push('');
+            paragraphs.push(isKo ? info.storyKo : info.storyEn);
+            paragraphs.push('');
+            paragraphs.push(`💡 ${isKo ? info.adviceKo : info.adviceEn}`);
+          }
+        }
+        if (idx < luckyStars.slice(0, 3).length - 1) {
+          paragraphs.push('');
+          paragraphs.push('---');
+          paragraphs.push('');
         }
       });
     }
 
     if (challengeStars.length > 0) {
       paragraphs.push('');
-      paragraphs.push(isKo ? '🌟 도전의 별 (극복하면 강해져요):' : '🌟 Challenge Stars (Grow by overcoming):');
-      challengeStars.slice(0, 3).forEach(starName => {
-        const info = shinsalSimple[starName];
-        if (info) {
-          paragraphs.push(`${info.emoji} ${starName}: ${isKo ? info.storyKo : info.storyEn}`);
-          paragraphs.push(`   → ${isKo ? info.adviceKo : info.adviceEn}`);
+      paragraphs.push(isKo ? '⚡ 【도전의 별들 - 극복하면 최강의 무기가 됩니다】' : '⚡ 【Challenge Stars - Overcome Them to Gain Your Greatest Weapons】');
+      paragraphs.push('');
+      if (isKo) {
+        paragraphs.push(`도전의 별은 '나쁜 별'이 아닙니다. 오히려 극복했을 때 가장 강력한 성장을 가져다주는 별이에요. 다이아몬드가 압력을 받아 빛나듯, 이 별들의 도전을 이겨내면 당신도 빛나게 됩니다.`);
+      } else {
+        paragraphs.push(`Challenge stars aren't 'bad stars.' Rather, they bring the most powerful growth when overcome. Like diamonds shining under pressure, conquering these stellar challenges makes you shine.`);
+      }
+      paragraphs.push('');
+
+      challengeStars.slice(0, 3).forEach((starName, idx) => {
+        const extendedNarrative = shinsalExtendedNarratives[starName];
+        if (extendedNarrative) {
+          const narrativeLines = isKo ? extendedNarrative.ko : extendedNarrative.en;
+          narrativeLines.forEach(line => paragraphs.push(line));
+        } else {
+          const info = shinsalSimple[starName];
+          if (info) {
+            paragraphs.push(`${info.emoji} ${starName} (${isKo ? info.typeKo : info.typeEn})`);
+            paragraphs.push('');
+            paragraphs.push(isKo ? info.storyKo : info.storyEn);
+            paragraphs.push('');
+            paragraphs.push(`💡 ${isKo ? info.adviceKo : info.adviceEn}`);
+          }
+        }
+        if (idx < challengeStars.slice(0, 3).length - 1) {
+          paragraphs.push('');
+          paragraphs.push('---');
+          paragraphs.push('');
         }
       });
     }
   }
 
-  if (paragraphs.length <= 1) {
-    paragraphs.push(
-      isKo
-        ? '전생 에너지 분석을 위한 데이터가 충분하지 않습니다.'
-        : 'Not enough data for past life energy analysis.'
-    );
+  // If still not enough content, add general wisdom
+  if (paragraphs.length <= 3) {
+    paragraphs.push('');
+    if (isKo) {
+      paragraphs.push(`🌌 【전생 에너지에 대한 일반적 통찰】`);
+      paragraphs.push('');
+      paragraphs.push(`당신의 상세한 전생 데이터가 충분하지 않아 구체적인 분석은 어렵지만, 몇 가지 보편적인 지혜를 나눌 수 있습니다.`);
+      paragraphs.push('');
+      paragraphs.push(`우리 모두는 이번 생에 배워야 할 것을 가지고 태어납니다. 어떤 일이 유독 어렵게 느껴진다면, 그것이 바로 당신의 영혼이 이번 생에서 성장하고자 선택한 영역일 수 있어요.`);
+      paragraphs.push('');
+      paragraphs.push(`반대로, 특별히 노력하지 않아도 잘 되는 일이 있다면, 그것은 전생에서 이미 충분히 연습한 영역입니다. 그 재능을 활용하되, 너무 거기에만 안주하지 마세요.`);
+      paragraphs.push('');
+      paragraphs.push(`특정 사람에게 강하게 끌리거나, 이유 없이 반복되는 패턴이 있다면, 그것은 카르마적 연결의 신호일 수 있습니다. 그 패턴을 인식하고 의식적으로 선택하는 것이 성장의 시작입니다.`);
+      paragraphs.push('');
+      paragraphs.push(`💡 출생 시간 정보가 있으면 더 정확한 전생 분석이 가능합니다.`);
+    } else {
+      paragraphs.push(`🌌 【General Insights on Past Life Energy】`);
+      paragraphs.push('');
+      paragraphs.push(`While detailed past life data isn't available for specific analysis, here are some universal wisdoms to share.`);
+      paragraphs.push('');
+      paragraphs.push(`We're all born with lessons to learn this lifetime. If something feels particularly difficult, that might be exactly the area your soul chose to grow in.`);
+      paragraphs.push('');
+      paragraphs.push(`Conversely, if something comes easily without much effort, that's an area you've already practiced plenty in past lives. Use that talent, but don't rest solely on it.`);
+      paragraphs.push('');
+      paragraphs.push(`Strong attraction to certain people or inexplicable recurring patterns may signal karmic connections. Recognizing these patterns and making conscious choices is where growth begins.`);
+      paragraphs.push('');
+      paragraphs.push(`💡 More accurate past life analysis is possible with birth time information.`);
+    }
   }
 
   return paragraphs;
@@ -349,26 +585,48 @@ export function getGrowthHealingNarrative(
 
   if (soulMission) {
     if (isKo) {
-      paragraphs.push(`🌟 【이번 생의 사명】`);
+      paragraphs.push(`🌟 【이번 생의 사명 - 당신의 영혼이 선택한 길】`);
+      paragraphs.push('');
       paragraphs.push(
-        `모든 영혼은 이번 생에서 이루고자 하는 특별한 목적을 가지고 태어납니다. 당신의 영혼이 선택한 사명은:`
+        `모든 영혼은 이번 생에 태어나기 전, 무엇을 배우고 이루고 경험할지를 선택합니다. 마치 학교에 입학하기 전에 어떤 과목을 들을지 정하는 것처럼요.`
       );
-      paragraphs.push(`🎯 핵심 사명: ${soulMission.core}`);
-      paragraphs.push(`💫 표현 방식: ${soulMission.expression}`);
-      paragraphs.push(`✨ 성취의 순간: ${soulMission.fulfillment}`);
+      paragraphs.push('');
+      paragraphs.push(`당신의 영혼이 이번 생에서 선택한 사명은:`);
+      paragraphs.push('');
+      paragraphs.push(`🎯 【핵심 사명】`);
+      paragraphs.push(soulMission.core);
+      paragraphs.push('');
+      paragraphs.push(`💫 【표현 방식】`);
+      paragraphs.push(soulMission.expression);
+      paragraphs.push(`이것은 당신이 사명을 수행하는 독특한 스타일입니다. 같은 사명을 가진 사람도 표현 방식은 다 다릅니다.`);
+      paragraphs.push('');
+      paragraphs.push(`✨ 【성취의 순간】`);
+      paragraphs.push(soulMission.fulfillment);
+      paragraphs.push('');
       paragraphs.push(
-        `이 사명을 따라갈 때, 당신은 가장 충만하고 의미 있는 삶을 살게 됩니다. 때때로 힘들어도, 이것이 당신의 영혼이 원하는 길입니다.`
+        `이 사명을 따라갈 때, 당신은 가장 충만하고 의미 있는 삶을 살게 됩니다. 힘들 때도 있겠지만, 그 어려움조차 사명의 일부입니다. 영혼은 이미 그것을 알고 이 길을 선택했습니다.`
       );
     } else {
-      paragraphs.push(`🌟 【This Life's Mission】`);
+      paragraphs.push(`🌟 【This Life's Mission - The Path Your Soul Chose】`);
+      paragraphs.push('');
       paragraphs.push(
-        `Every soul is born with a special purpose to fulfill this lifetime. Your soul's chosen mission is:`
+        `Every soul, before being born into this life, chooses what to learn, achieve, and experience. Like deciding what courses to take before enrolling in school.`
       );
-      paragraphs.push(`🎯 Core mission: ${soulMission.core}`);
-      paragraphs.push(`💫 Expression: ${soulMission.expression}`);
-      paragraphs.push(`✨ Fulfillment moment: ${soulMission.fulfillment}`);
+      paragraphs.push('');
+      paragraphs.push(`The mission your soul chose for this lifetime is:`);
+      paragraphs.push('');
+      paragraphs.push(`🎯 【Core Mission】`);
+      paragraphs.push(soulMission.core);
+      paragraphs.push('');
+      paragraphs.push(`💫 【Expression Style】`);
+      paragraphs.push(soulMission.expression);
+      paragraphs.push(`This is your unique style of fulfilling your mission. Even those with the same mission express it differently.`);
+      paragraphs.push('');
+      paragraphs.push(`✨ 【Fulfillment Moment】`);
+      paragraphs.push(soulMission.fulfillment);
+      paragraphs.push('');
       paragraphs.push(
-        `Following this mission leads to the most fulfilling and meaningful life. Though sometimes difficult, this is the path your soul desires.`
+        `Following this mission leads to the most fulfilling and meaningful life. Though there will be difficulties, even those challenges are part of the mission. Your soul knew this and chose this path anyway.`
       );
     }
   }
@@ -377,31 +635,57 @@ export function getGrowthHealingNarrative(
     paragraphs.push('');
     if (isKo) {
       paragraphs.push(`💝 【치유해야 할 마음의 상처】`);
+      paragraphs.push('');
       paragraphs.push(
-        `우리 모두는 치유해야 할 상처를 가지고 있습니다. 이 상처를 인정하고 치유하는 것이 성장의 핵심입니다.`
+        `우리 모두는 치유해야 할 상처를 가지고 있습니다. 이것은 약점이 아니라, 성장을 위해 필요한 과제입니다.`
       );
-      paragraphs.push(`💔 아픈 곳: ${woundToHeal.wound}`);
+      paragraphs.push('');
       paragraphs.push(
-        `이 상처는 어쩌면 전생에서 온 것일 수도, 어린 시절의 경험일 수도 있습니다. 중요한 것은 이제 이것을 치유할 준비가 되었다는 것입니다.`
+        `상처가 없는 사람은 없습니다. 중요한 것은 그 상처를 인정하고, 직면하고, 치유하는 것입니다.`
       );
-      paragraphs.push(`🩹 치유의 길: ${woundToHeal.healingPath}`);
-      paragraphs.push(`🎁 치유 후의 선물: ${woundToHeal.gift}`);
+      paragraphs.push('');
+      paragraphs.push(`💔 【아픈 곳】`);
+      paragraphs.push(woundToHeal.wound);
+      paragraphs.push('');
       paragraphs.push(
-        `상처가 치유되면, 그것은 오히려 당신의 가장 큰 강점이 됩니다. 같은 아픔을 겪는 다른 사람들을 도울 수 있는 지혜가 생깁니다.`
+        `이 상처는 어쩌면 전생에서 온 것일 수도, 어린 시절의 경험일 수도, 혹은 이번 생에서 겪은 일일 수도 있습니다.`
+      );
+      paragraphs.push('');
+      paragraphs.push(`🩹 【치유의 길】`);
+      paragraphs.push(woundToHeal.healingPath);
+      paragraphs.push('');
+      paragraphs.push(`🎁 【치유 후의 선물】`);
+      paragraphs.push(woundToHeal.gift);
+      paragraphs.push('');
+      paragraphs.push(
+        `흥미로운 점은, 상처가 완전히 치유되면 그것이 오히려 당신의 가장 큰 강점이 된다는 것입니다. '상처받은 치유자(Wounded Healer)'라는 말이 있듯이, 같은 아픔을 겪어본 사람만이 줄 수 있는 깊은 공감과 지혜가 생깁니다.`
       );
     } else {
       paragraphs.push(`💝 【Heart Wounds to Heal】`);
+      paragraphs.push('');
       paragraphs.push(
-        `We all carry wounds that need healing. Acknowledging and healing these wounds is key to growth.`
+        `We all carry wounds that need healing. This isn't weakness but a necessary task for growth.`
       );
-      paragraphs.push(`💔 The wound: ${woundToHeal.wound}`);
+      paragraphs.push('');
       paragraphs.push(
-        `This wound might come from past lives or childhood experiences. What matters is that you're now ready to heal it.`
+        `No one is without wounds. What matters is acknowledging, facing, and healing them.`
       );
-      paragraphs.push(`🩹 Healing path: ${woundToHeal.healingPath}`);
-      paragraphs.push(`🎁 Gift after healing: ${woundToHeal.gift}`);
+      paragraphs.push('');
+      paragraphs.push(`💔 【The Wound】`);
+      paragraphs.push(woundToHeal.wound);
+      paragraphs.push('');
       paragraphs.push(
-        `Once healed, this wound becomes your greatest strength. You gain wisdom to help others experiencing similar pain.`
+        `This wound might come from past lives, childhood experiences, or events in this lifetime.`
+      );
+      paragraphs.push('');
+      paragraphs.push(`🩹 【Healing Path】`);
+      paragraphs.push(woundToHeal.healingPath);
+      paragraphs.push('');
+      paragraphs.push(`🎁 【Gift After Healing】`);
+      paragraphs.push(woundToHeal.gift);
+      paragraphs.push('');
+      paragraphs.push(
+        `Interestingly, once completely healed, the wound becomes your greatest strength. As the concept of 'Wounded Healer' suggests, only those who've experienced the same pain can offer deep empathy and wisdom.`
       );
     }
   }
@@ -409,38 +693,84 @@ export function getGrowthHealingNarrative(
   if (karmicRelations.length > 0) {
     paragraphs.push('');
     if (isKo) {
-      paragraphs.push(`💫 【카르마적 관계 패턴】`);
+      paragraphs.push(`💫 【카르마적 관계 패턴 - 인연의 비밀】`);
+      paragraphs.push('');
       paragraphs.push(
-        `어떤 사람들과의 관계에서 강한 끌림이나 반복되는 갈등을 경험했다면, 그것은 카르마적 연결 때문일 수 있습니다.`
+        `어떤 사람을 처음 만났는데 오래 알던 것 같은 느낌... 이유 없이 강하게 끌리거나, 반대로 설명할 수 없는 거부감... 이런 경험 있으신가요?`
       );
+      paragraphs.push('');
+      paragraphs.push(
+        `이것은 카르마적 연결, 즉 전생부터 이어져 온 인연의 신호일 수 있습니다. 같은 패턴의 사람을 반복해서 만나거나, 특정 유형의 관계에서 계속 같은 문제가 생긴다면 특히 그렇습니다.`
+      );
+      paragraphs.push('');
+      paragraphs.push(`당신의 차트에서 발견된 카르마적 관계 패턴:`);
+      paragraphs.push('');
       karmicRelations.slice(0, 3).forEach(rel => {
-        paragraphs.push(`${rel.fusion.icon} ${rel.relation} × ${rel.aspect} (${rel.fusion.level})`);
-        paragraphs.push(`   ${rel.meaning.ko}`);
+        paragraphs.push(`${rel.fusion.icon} ${rel.relation} × ${rel.aspect}`);
+        paragraphs.push(`강도: ${rel.fusion.level}`);
+        paragraphs.push(`의미: ${rel.meaning.ko}`);
+        paragraphs.push('');
       });
       paragraphs.push(
-        `이 패턴들을 인식하면, 관계에서 더 의식적인 선택을 할 수 있습니다.`
+        `이 패턴들을 인식하는 것만으로도 관계에서 더 의식적인 선택을 할 수 있습니다. 무의식적으로 끌려가기보다, "아, 이 패턴이구나" 하고 인식하면 다른 선택을 할 수 있어요.`
       );
     } else {
-      paragraphs.push(`💫 【Karmic Relationship Patterns】`);
+      paragraphs.push(`💫 【Karmic Relationship Patterns - Secrets of Connection】`);
+      paragraphs.push('');
       paragraphs.push(
-        `If you've experienced strong attraction or recurring conflicts with certain people, it may be due to karmic connections.`
+        `Meeting someone for the first time but feeling like you've known them forever... Strong inexplicable attraction, or conversely, unexplainable aversion... Sound familiar?`
       );
+      paragraphs.push('');
+      paragraphs.push(
+        `These may signal karmic connections - bonds carried over from past lives. This is especially likely if you repeatedly meet the same type of person or keep facing the same issues in certain relationships.`
+      );
+      paragraphs.push('');
+      paragraphs.push(`Karmic relationship patterns found in your chart:`);
+      paragraphs.push('');
       karmicRelations.slice(0, 3).forEach(rel => {
-        paragraphs.push(`${rel.fusion.icon} ${rel.relation} × ${rel.aspect} (${rel.fusion.level})`);
-        paragraphs.push(`   ${rel.meaning.en}`);
+        paragraphs.push(`${rel.fusion.icon} ${rel.relation} × ${rel.aspect}`);
+        paragraphs.push(`Intensity: ${rel.fusion.level}`);
+        paragraphs.push(`Meaning: ${rel.meaning.en}`);
+        paragraphs.push('');
       });
       paragraphs.push(
-        `Recognizing these patterns allows for more conscious choices in relationships.`
+        `Simply recognizing these patterns enables more conscious choices in relationships. Rather than being unconsciously drawn, thinking "Ah, this is that pattern" allows for different choices.`
       );
     }
   }
 
   if (paragraphs.length === 0) {
-    paragraphs.push(
-      isKo
-        ? '성장과 치유 분석을 위한 데이터가 충분하지 않습니다.'
-        : 'Not enough data for growth and healing analysis.'
-    );
+    if (isKo) {
+      paragraphs.push(`🌱 【성장과 치유에 대하여】`);
+      paragraphs.push('');
+      paragraphs.push(`상세한 분석 데이터가 부족하지만, 성장과 치유에 대한 보편적인 지혜를 나눌 수 있습니다.`);
+      paragraphs.push('');
+      paragraphs.push(`💡 【성장의 열쇠】`);
+      paragraphs.push(`어렵게 느껴지는 영역이 바로 성장의 열쇠입니다. 영혼은 쉬운 것을 배우러 오지 않았어요.`);
+      paragraphs.push('');
+      paragraphs.push(`💝 【치유의 시작】`);
+      paragraphs.push(`치유는 상처를 인정하는 것에서 시작됩니다. "나는 괜찮아"라고 부정하기보다, "그래, 이게 아팠어"라고 인정하는 것이 첫걸음입니다.`);
+      paragraphs.push('');
+      paragraphs.push(`🤝 【관계의 거울】`);
+      paragraphs.push(`반복되는 관계 패턴이 있다면, 그것은 당신에게 뭔가를 가르치려는 우주의 메시지일 수 있습니다. 그 패턴이 무엇을 말하려는지 귀 기울여보세요.`);
+      paragraphs.push('');
+      paragraphs.push(`출생 시간 정보가 있으면 더 구체적인 분석이 가능합니다.`);
+    } else {
+      paragraphs.push(`🌱 【About Growth and Healing】`);
+      paragraphs.push('');
+      paragraphs.push(`While detailed analysis data isn't available, here's some universal wisdom on growth and healing.`);
+      paragraphs.push('');
+      paragraphs.push(`💡 【Key to Growth】`);
+      paragraphs.push(`The areas that feel difficult are the keys to growth. Your soul didn't come here to learn easy things.`);
+      paragraphs.push('');
+      paragraphs.push(`💝 【Starting Healing】`);
+      paragraphs.push(`Healing begins with acknowledging the wound. Rather than denying "I'm fine," saying "Yes, that hurt" is the first step.`);
+      paragraphs.push('');
+      paragraphs.push(`🤝 【Relationship Mirrors】`);
+      paragraphs.push(`If there are recurring relationship patterns, they may be the universe's message trying to teach you something. Listen to what that pattern is trying to say.`);
+      paragraphs.push('');
+      paragraphs.push(`More specific analysis is possible with birth time information.`);
+    }
   }
 
   return paragraphs;
