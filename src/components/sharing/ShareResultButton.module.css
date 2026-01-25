@@ -214,3 +214,136 @@
     font-size: 20px;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .shareContainer {
+    gap: 10px;
+    margin: 16px 0;
+  }
+
+  .shareButton {
+    font-size: 13px;
+    padding: 11px 18px;
+    gap: 6px;
+    border-radius: 10px;
+  }
+
+  .downloadButton {
+    padding: 11px;
+    border-radius: 10px;
+  }
+
+  .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .spinner {
+    width: 14px;
+    height: 14px;
+  }
+
+  .shareModal {
+    padding: 16px;
+  }
+
+  .shareModalContent {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .shareModalContent h3 {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  .linkCopied {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .shareButtons {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .shareBtn {
+    padding: 12px 18px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
+  .closeBtn {
+    padding: 10px 20px;
+    font-size: 13px;
+    border-radius: 7px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .shareContainer {
+    gap: 8px;
+    margin: 14px 0;
+  }
+
+  .shareButton {
+    font-size: 12px;
+    padding: 10px 14px;
+    gap: 5px;
+    border-radius: 8px;
+  }
+
+  .downloadButton {
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .spinner {
+    width: 12px;
+    height: 12px;
+  }
+
+  .shareModal {
+    padding: 12px;
+  }
+
+  .shareModalContent {
+    padding: 16px;
+    border-radius: 14px;
+    max-width: 340px;
+  }
+
+  .shareModalContent h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .linkCopied {
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+
+  .shareButtons {
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .shareBtn {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  .closeBtn {
+    padding: 8px 16px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+}

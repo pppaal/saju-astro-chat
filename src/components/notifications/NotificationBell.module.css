@@ -300,5 +300,171 @@
   .dropdown {
     width: calc(100vw - 32px);
     right: -120px;
+    max-height: 500px;
+    border-radius: 14px;
+  }
+
+  .header {
+    padding: 14px 16px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .markAllBtn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .list {
+    max-height: 380px;
+    padding: 6px;
+  }
+
+  .empty {
+    padding: 48px 16px;
+  }
+
+  .emptyIcon {
+    font-size: 40px;
+  }
+
+  .item {
+    padding: 10px;
+    gap: 10px;
+    border-radius: 8px;
+  }
+
+  .itemIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .defaultIcon {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+
+  .itemTitle {
+    font-size: 13px;
+  }
+
+  .itemMessage {
+    font-size: 12px;
+  }
+
+  .itemTime {
+    font-size: 10px;
+  }
+
+  .deleteBtn {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+
+  .footer {
+    padding: 10px 16px;
+  }
+
+  .viewAllLink {
+    font-size: 13px;
+    padding: 6px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .bellButton {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .badge {
+    font-size: 9px;
+    padding: 2px 5px;
+    min-width: 16px;
+  }
+
+  .dropdown {
+    width: calc(100vw - 24px);
+    right: -100px;
+    max-height: 450px;
+    border-radius: 12px;
+  }
+
+  .header {
+    padding: 12px 14px;
+  }
+
+  .title {
+    font-size: 15px;
+  }
+
+  .markAllBtn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .list {
+    max-height: 340px;
+    padding: 4px;
+  }
+
+  .empty {
+    padding: 40px 14px;
+  }
+
+  .emptyIcon {
+    font-size: 36px;
+  }
+
+  .item {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .itemIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .defaultIcon {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+
+  .itemTitle {
+    font-size: 12px;
+  }
+
+  .itemMessage {
+    font-size: 11px;
+  }
+
+  .itemTime {
+    font-size: 9px;
+  }
+
+  .footer {
+    padding: 8px 12px;
+  }
+
+  .viewAllLink {
+    font-size: 12px;
   }
 }

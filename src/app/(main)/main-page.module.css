@@ -700,12 +700,13 @@
 .serviceDropdown {
   position: absolute;
   top: calc(100% + 8px);
-  left: 12px;
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(15, 20, 40, 0.98);
   border: 1px solid rgba(139, 92, 246, 0.3);
   border-radius: 16px;
-  padding: 8px;
-  min-width: 180px;
+  padding: 10px;
+  min-width: 520px;
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5),
               0 0 20px rgba(139, 92, 246, 0.2);
   z-index: 10;
@@ -715,26 +716,28 @@
 @keyframes dropdownFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateX(-50%) translateY(-8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(0);
   }
 }
 
 .serviceDropdownItem {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  gap: 4px;
   width: 100%;
-  padding: 12px 16px;
+  padding: 8px 4px;
   background: transparent;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-align: left;
+  text-align: center;
 }
 
 .serviceDropdownItem:hover {
@@ -747,13 +750,23 @@
 }
 
 .serviceDropdownIcon {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
 }
 
 .serviceDropdownLabel {
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Service Dropdown Grid - All 14 services visible */
+.serviceDropdownGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
 }
 
 .questionSearchIcon {
@@ -3387,30 +3400,32 @@ to { opacity: 1; transform: translateY(0); }
     bottom: 0;
     left: 0;
     right: 0;
+    transform: none;
     min-width: 100vw;
-    max-height: 60vh;
+    max-height: 50vh;
     overflow-y: auto;
     border-radius: 20px 20px 0 0;
-    padding: 16px 16px 24px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    padding: 16px 12px 24px;
     -webkit-overflow-scrolling: touch;
   }
 
-  .serviceDropdownItem {
-    flex-direction: column;
-    padding: 12px 8px;
+  .serviceDropdownGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 6px;
-    text-align: center;
+  }
+
+  .serviceDropdownItem {
+    padding: 10px 4px;
+    gap: 4px;
   }
 
   .serviceDropdownIcon {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
 
   .serviceDropdownLabel {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
   }
 
   .questionHints {

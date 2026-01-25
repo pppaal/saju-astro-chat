@@ -156,10 +156,11 @@
 @media (max-width: 480px) {
   .container {
     padding: 1rem;
+    border-radius: 16px;
   }
 
   .svg {
-    max-width: 280px;
+    max-width: 270px;
   }
 
   .axisLabel {
@@ -170,12 +171,94 @@
     font-size: 9px;
   }
 
+  .typeCode {
+    font-size: 12px;
+  }
+
   .legend {
     grid-template-columns: 1fr;
     gap: 0.5rem;
+    margin-top: 1.25rem;
+    max-width: 280px;
   }
 
   .legendItem {
     font-size: 0.8rem;
+    gap: 0.4rem;
+  }
+
+  .legendDot {
+    width: 9px;
+    height: 9px;
+  }
+
+  .legendAxis {
+    font-size: 0.7rem;
+    min-width: 36px;
+  }
+
+  .legendPole {
+    font-size: 0.75rem;
+  }
+
+  .legendScore {
+    font-size: 0.7rem;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .container {
+    padding: 0.875rem;
+    border-radius: 14px;
+  }
+
+  .svg {
+    max-width: 240px;
+  }
+
+  .axisLabel {
+    font-size: 10px;
+  }
+
+  .poleLabel {
+    font-size: 8px;
+  }
+
+  .scoreText {
+    font-size: 8px;
+  }
+
+  .typeCode {
+    font-size: 11px;
+  }
+
+  .legend {
+    gap: 0.4rem;
+    margin-top: 1rem;
+    max-width: 260px;
+  }
+
+  .legendItem {
+    font-size: 0.75rem;
+    gap: 0.35rem;
+  }
+
+  .legendDot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .legendAxis {
+    font-size: 0.65rem;
+    min-width: 32px;
+  }
+
+  .legendPole {
+    font-size: 0.7rem;
+  }
+
+  .legendScore {
+    font-size: 0.65rem;
   }
 }

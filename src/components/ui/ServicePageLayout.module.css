@@ -196,21 +196,74 @@
 }
 
 @media (max-width: 480px) {
+  .content {
+    padding: 70px 14px 36px;
+  }
+
+  .creditBadgeWrapper {
+    top: 14px;
+    right: 14px;
+  }
+
+  .header {
+    margin-bottom: 28px;
+  }
+
   .title {
-    font-size: 28px;
+    font-size: 26px;
+    margin-bottom: 12px;
   }
 
   .subtitle {
-    font-size: 15px;
+    font-size: 14px;
+    line-height: 1.6;
   }
 
   .iconWrapper {
-    width: 70px;
-    height: 70px;
+    width: 68px;
+    height: 68px;
+    margin-bottom: 18px;
   }
 
   .icon {
-    font-size: 32px;
+    font-size: 30px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .content {
+    padding: 60px 12px 32px;
+  }
+
+  .creditBadgeWrapper {
+    top: 12px;
+    right: 12px;
+  }
+
+  .header {
+    margin-bottom: 24px;
+  }
+
+  .title {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .iconWrapper {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 16px;
+    border-width: 1.5px;
+  }
+
+  .icon {
+    font-size: 26px;
   }
 }
 

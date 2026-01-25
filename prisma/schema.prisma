@@ -923,3 +923,27 @@ model CreditRefundLog {
   @@index([creditType, createdAt])
   @@index([apiRoute, createdAt])
 }
+
+// 🔗 Shared Result - 공유된 결과 저장
+model SharedResult {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime? // 만료 시간 (null = 영구)
+
+  // 공유자 정보
+  userId      String?  // 비로그인 공유도 허용
+
+  // 결과 타입
+  resultType  String   // saju, tarot, astrology, dream, compatibility, personality, icp
+
+  // 결과 내용
+  title       String
+  description String?  @db.Text
+  resultData  Json?    // 추가 데이터 (선택)
+
+  // 조회 통계
+  viewCount   Int      @default(0)
+
+  @@index([userId, createdAt])
+  @@index([resultType, createdAt])
+}

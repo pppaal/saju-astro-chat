@@ -13,6 +13,13 @@ type City = {
   lon: number;
 };
 
+type CityResult = City & {
+  nameKr?: string;
+  countryKr?: string;
+  displayKr?: string;
+  displayEn?: string;
+};
+
 let cachedCities: City[] | null = null;
 let loading: Promise<City[]> | null = null;
 
@@ -91,7 +98,17 @@ export async function GET(request: Request) {
     }
 
     scored.sort((a, b) => a.score - b.score || a.c.name.localeCompare(b.c.name));
-    const results = scored.slice(0, limit).map(({ c }) => c);
+    const results: CityResult[] = scored.slice(0, limit).map(({ c }) => {
+      const nameKr = getCityNameInKorean(c.name);
+      const countryKr = getCountryNameInKorean(c.country);
+      return {
+        ...c,
+        nameKr: nameKr || undefined,
+        countryKr: countryKr || undefined,
+        displayKr: nameKr && countryKr ? `${nameKr}, ${countryKr}` : nameKr ? `${nameKr}, ${c.country}` : undefined,
+        displayEn: `${c.name}, ${c.country}`,
+      };
+    });
 
     logger.info("[cities API] Found results:", { count: results.length });
     const response = NextResponse.json({ results });

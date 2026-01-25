@@ -123,6 +123,10 @@
 
 /* Responsive */
 @media (max-width: 480px) {
+  .container {
+    margin-top: 0.75rem;
+  }
+
   .shareButtons {
     gap: 0.5rem;
   }
@@ -130,9 +134,52 @@
   .shareBtn {
     padding: 8px 14px;
     font-size: 0.8rem;
+    border-radius: 22px;
   }
 
   .icon {
     font-size: 0.9rem;
+  }
+
+  .toast {
+    bottom: 70px;
+    padding: 10px 20px;
+    font-size: 0.85rem;
+    border-radius: 22px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .container {
+    margin-top: 0.5rem;
+  }
+
+  .shareButtons {
+    gap: 0.375rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .shareBtn {
+    padding: 7px 12px;
+    font-size: 0.75rem;
+    border-radius: 20px;
+    gap: 0.35rem;
+  }
+
+  .icon {
+    font-size: 0.85rem;
+  }
+
+  .label {
+    display: none;
+  }
+
+  .toast {
+    bottom: 60px;
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    border-radius: 20px;
   }
 }

@@ -870,37 +870,445 @@
 }
 
 @media (max-width: 480px) {
+  .container {
+    padding: 18px 10px;
+  }
+
+  .header {
+    margin-bottom: 24px;
+  }
+
+  .logoIcon {
+    font-size: 2rem;
+  }
+
   .header h1 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
 
   .subtitle {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
-  .tab {
-    min-width: 65px;
-    padding: 8px 10px;
+  .headerStats {
+    gap: 16px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    margin-top: 16px;
   }
 
-  .tabNum {
-    font-size: 0.65rem;
+  .headerStat {
+    font-size: 0.8rem;
   }
 
-  .tabName {
-    font-size: 0.6rem;
+  .headerStat span {
+    font-size: 1.25rem;
   }
 
-  .layerDesc h2 {
-    font-size: 1.2rem;
+  .controls {
+    padding: 12px 16px;
+    border-radius: 12px;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .reportLabel {
+    font-size: 0.8rem;
   }
 
   .reportBtns {
     flex-direction: column;
     width: 100%;
+    gap: 10px;
   }
 
   .reportBtn {
     width: 100%;
+    padding: 9px 16px;
+    font-size: 0.8rem;
+    border-radius: 10px;
+  }
+
+  .tabs {
+    gap: 5px;
+    margin-bottom: 20px;
+  }
+
+  .tab {
+    min-width: 60px;
+    padding: 8px 10px;
+    border-radius: 12px;
+  }
+
+  .tabNum {
+    font-size: 0.6rem;
+  }
+
+  .tabName {
+    font-size: 0.55rem;
+  }
+
+  .tabCells {
+    font-size: 0.55rem;
+  }
+
+  .layerDesc {
+    padding: 18px 20px;
+    border-radius: 16px;
+    margin-bottom: 18px;
+  }
+
+  .layerDesc h2 {
+    font-size: 1.15rem;
+  }
+
+  .layerSize {
+    font-size: 0.8rem;
+    padding: 5px 12px;
+  }
+
+  .descText {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+
+  .descMeta {
+    gap: 16px;
+  }
+
+  .metaItem {
+    font-size: 0.8rem;
+  }
+
+  .legend {
+    padding: 12px 16px;
+    gap: 10px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+  }
+
+  .legendTitle {
+    font-size: 0.8rem;
+  }
+
+  .legendItem {
+    font-size: 0.75rem;
+    gap: 5px;
+  }
+
+  .legendIcon {
+    font-size: 0.9rem;
+  }
+
+  .legendColor {
+    width: 14px;
+    height: 14px;
+  }
+
+  .matrixContainer {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .protectedNotice {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .lockIcon {
+    font-size: 2.5rem;
+  }
+
+  .protectedNotice h3 {
+    font-size: 1.1rem;
+  }
+
+  .protectedNotice p {
+    font-size: 0.9rem;
+  }
+
+  .howItWorks {
+    padding: 24px 16px;
+    margin-top: 32px;
+    border-radius: 20px;
+  }
+
+  .howItWorks h3 {
+    font-size: 1.3rem;
+    margin-bottom: 24px;
+  }
+
+  .step {
+    padding: 16px;
+    gap: 14px;
+    border-radius: 14px;
+  }
+
+  .stepNum {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+    border-radius: 10px;
+  }
+
+  .step h4 {
+    font-size: 0.95rem;
+  }
+
+  .step p {
+    font-size: 0.8rem;
+  }
+
+  .footer {
+    margin-top: 36px;
+    padding-top: 24px;
+  }
+
+  .footer p {
+    font-size: 0.85rem;
+  }
+
+  .footer p:first-child {
+    font-size: 0.95rem;
+  }
+
+  .footerNotice {
+    font-size: 0.75rem !important;
+  }
+
+  .modalContent {
+    padding: 24px 20px;
+    border-radius: 20px;
+  }
+
+  .modalContent h3 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+
+  .modalClose {
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
+    top: 14px;
+    right: 14px;
+  }
+
+  .scoreNum {
+    font-size: 3.5rem;
+  }
+
+  .scoreGrade {
+    font-size: 1.6rem;
+  }
+
+  .reportMeta {
+    font-size: 0.85rem;
+  }
+
+  .reportInsights {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .reportInsights h4 {
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+  }
+
+  .insightItem {
+    padding: 8px 0;
+    font-size: 0.85rem;
+    gap: 10px;
+  }
+
+  .insightLayer {
+    font-size: 0.65rem;
+    padding: 3px 6px;
+  }
+
+  .insightScore {
+    font-size: 0.8rem;
+  }
+
+  .reportDomains {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .reportDomains h4 {
+    font-size: 0.85rem;
+  }
+
+  .domainItem {
+    font-size: 0.8rem;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .container {
+    padding: 14px 8px;
+  }
+
+  .header {
+    margin-bottom: 20px;
+  }
+
+  .logoIcon {
+    font-size: 1.75rem;
+  }
+
+  .header h1 {
+    font-size: 1.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+  }
+
+  .headerStats {
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 10px;
+  }
+
+  .headerStat {
+    font-size: 0.75rem;
+  }
+
+  .headerStat span {
+    font-size: 1.1rem;
+  }
+
+  .controls {
+    padding: 10px 12px;
+    border-radius: 10px;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .reportBtn {
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    border-radius: 8px;
+  }
+
+  .tabs {
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+
+  .tab {
+    min-width: 52px;
+    padding: 6px 8px;
+    border-radius: 10px;
+  }
+
+  .tabNum {
+    font-size: 0.55rem;
+  }
+
+  .tabName {
+    font-size: 0.5rem;
+  }
+
+  .layerDesc {
+    padding: 14px 16px;
+    border-radius: 14px;
+    margin-bottom: 14px;
+  }
+
+  .layerDesc h2 {
+    font-size: 1.05rem;
+  }
+
+  .layerSize {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+  }
+
+  .descText {
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+
+  .legend {
+    padding: 10px 12px;
+    gap: 8px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+  }
+
+  .matrixContainer {
+    padding: 16px 12px;
+    border-radius: 14px;
+  }
+
+  .protectedNotice {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .lockIcon {
+    font-size: 2rem;
+  }
+
+  .protectedNotice h3 {
+    font-size: 1rem;
+  }
+
+  .protectedNotice p {
+    font-size: 0.85rem;
+  }
+
+  .howItWorks {
+    padding: 20px 14px;
+    margin-top: 28px;
+    border-radius: 16px;
+  }
+
+  .howItWorks h3 {
+    font-size: 1.15rem;
+    margin-bottom: 20px;
+  }
+
+  .step {
+    padding: 14px;
+    gap: 12px;
+    border-radius: 12px;
+  }
+
+  .stepNum {
+    width: 34px;
+    height: 34px;
+    font-size: 0.95rem;
+    border-radius: 8px;
+  }
+
+  .step h4 {
+    font-size: 0.9rem;
+  }
+
+  .step p {
+    font-size: 0.75rem;
+  }
+
+  .modalContent {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .modalContent h3 {
+    font-size: 1.1rem;
+  }
+
+  .scoreNum {
+    font-size: 3rem;
+  }
+
+  .scoreGrade {
+    font-size: 1.4rem;
   }
 }

@@ -310,3 +310,207 @@
     font-size: 20px;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .container {
+    padding: 20px 14px 80px;
+  }
+
+  .backButton {
+    padding: 0.5rem 0.875rem;
+    font-size: 13px;
+    gap: 6px;
+  }
+
+  .hero {
+    margin-bottom: 36px;
+    padding: 70px 0 20px;
+  }
+
+  .heroIcon {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .faqSection {
+    gap: 12px;
+  }
+
+  .accordion {
+    border-radius: 14px;
+  }
+
+  .accordionHeader {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .accordionIcon {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    border-radius: 10px;
+  }
+
+  .accordionQuestion {
+    font-size: 13px;
+  }
+
+  .accordionToggle {
+    width: 28px;
+    height: 28px;
+    font-size: 20px;
+  }
+
+  .accordionAnswer {
+    padding: 0 16px 16px 58px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .contactSection {
+    margin-top: 48px;
+  }
+
+  .contactCard {
+    padding: 28px 20px;
+    border-radius: 20px;
+  }
+
+  .contactIcon {
+    font-size: 40px;
+    margin-bottom: 14px;
+  }
+
+  .contactTitle {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .contactDesc {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .contactButton {
+    padding: 12px 28px;
+    font-size: 14px;
+    border-radius: 10px;
+    gap: 6px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .container {
+    padding: 16px 12px 70px;
+  }
+
+  .backButtonContainer {
+    top: 0.75rem;
+    left: 0.75rem;
+  }
+
+  .backButton {
+    padding: 0.45rem 0.75rem;
+    font-size: 12px;
+  }
+
+  .hero {
+    margin-bottom: 28px;
+    padding: 60px 0 16px;
+  }
+
+  .heroIcon {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    margin-bottom: 14px;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+  }
+
+  .faqSection {
+    gap: 10px;
+  }
+
+  .accordion {
+    border-radius: 12px;
+  }
+
+  .accordionHeader {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .accordionIcon {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+
+  .accordionQuestion {
+    font-size: 12px;
+  }
+
+  .accordionToggle {
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+  }
+
+  .accordionAnswer {
+    padding: 0 14px 14px 50px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .contactSection {
+    margin-top: 40px;
+  }
+
+  .contactCard {
+    padding: 24px 16px;
+    border-radius: 16px;
+  }
+
+  .contactIcon {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .contactTitle {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .contactDesc {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .contactButton {
+    padding: 10px 24px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+}

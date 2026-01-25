@@ -255,3 +255,228 @@
     justify-content: center;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .card {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .loading {
+    padding: 32px;
+  }
+
+  .spinner {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header {
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .icon {
+    font-size: 28px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+  }
+
+  .stats {
+    padding: 16px;
+    border-radius: 14px;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .statValue {
+    font-size: 28px;
+  }
+
+  .statLabel {
+    font-size: 11px;
+  }
+
+  .statDivider {
+    height: 32px;
+  }
+
+  .rewards {
+    margin-bottom: 18px;
+  }
+
+  .rewardBadge {
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 10px;
+    gap: 6px;
+  }
+
+  .rewardEmoji {
+    font-size: 16px;
+  }
+
+  .linkSection {
+    margin-bottom: 18px;
+  }
+
+  .linkContainer {
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .linkInput {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .copyButton {
+    padding: 10px 16px;
+    font-size: 13px;
+    border-radius: 10px;
+    gap: 5px;
+  }
+
+  .shareButton {
+    padding: 12px 20px;
+    font-size: 15px;
+    border-radius: 10px;
+    gap: 6px;
+  }
+
+  .howItWorks {
+    padding-top: 18px;
+  }
+
+  .howItWorks h4 {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+
+  .steps {
+    font-size: 13px;
+    padding-left: 18px;
+    line-height: 1.7;
+  }
+
+  .steps li {
+    margin-bottom: 6px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .loading {
+    padding: 28px;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+  }
+
+  .header {
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .icon {
+    font-size: 24px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+
+  .stats {
+    padding: 14px;
+    border-radius: 12px;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .statValue {
+    font-size: 24px;
+  }
+
+  .statLabel {
+    font-size: 10px;
+  }
+
+  .rewards {
+    margin-bottom: 14px;
+  }
+
+  .rewardBadge {
+    padding: 7px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .rewardEmoji {
+    font-size: 14px;
+  }
+
+  .linkSection {
+    margin-bottom: 14px;
+  }
+
+  .linkContainer {
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+
+  .linkInput {
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .copyButton {
+    padding: 8px 14px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .shareButton {
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  .howItWorks {
+    padding-top: 14px;
+  }
+
+  .howItWorks h4 {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .steps {
+    font-size: 12px;
+    padding-left: 16px;
+    line-height: 1.65;
+  }
+
+  .steps li {
+    margin-bottom: 5px;
+  }
+}

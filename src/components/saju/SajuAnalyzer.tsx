@@ -29,6 +29,10 @@ interface CityResult {
   country: string;
   lat: number;
   lon: number;
+  nameKr?: string;
+  countryKr?: string;
+  displayKr?: string;
+  displayEn?: string;
 }
 
 interface ApiFullResponse {
@@ -92,8 +96,10 @@ export default function SajuAnalyzer() {
   }, [cityQuery]);
 
   const handleCitySelect = useCallback((city: CityResult) => {
-    setSelectedCity(`${city.name}, ${city.country}`);
-    setCityQuery(`${city.name}, ${city.country}`);
+    // 한국어 표시 우선, 없으면 영어
+    const displayName = locale === 'ko' && city.displayKr ? city.displayKr : city.displayEn || `${city.name}, ${city.country}`;
+    setSelectedCity(displayName);
+    setCityQuery(displayName);
     setShowCitySuggestions(false);
 
     try {
@@ -104,7 +110,7 @@ export default function SajuAnalyzer() {
     } catch {
       // ignore
     }
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     if (profileLoading || profileLoaded) return;
@@ -298,17 +304,29 @@ export default function SajuAnalyzer() {
               className="absolute top-full left-0 right-0 bg-slate-800 border border-slate-600
                 rounded-md max-h-[200px] overflow-y-auto z-50 mt-1"
             >
-              {citySuggestions.map((city, idx) => (
-                <li
-                  key={`${city.name}-${city.country}-${idx}`}
-                  role="option"
-                  className="px-4 py-3 cursor-pointer text-gray-200 border-b border-slate-600
-                    hover:bg-slate-700 transition-colors last:border-b-0"
-                  onMouseDown={() => handleCitySelect(city)}
-                >
-                  {city.name}, {city.country}
-                </li>
-              ))}
+              {citySuggestions.map((city, idx) => {
+                // 한국어 표시명 (있으면) + 영어 표시명
+                const displayKr = city.displayKr;
+                const displayEn = city.displayEn || `${city.name}, ${city.country}`;
+                return (
+                  <li
+                    key={`${city.name}-${city.country}-${idx}`}
+                    role="option"
+                    className="px-4 py-3 cursor-pointer text-gray-200 border-b border-slate-600
+                      hover:bg-slate-700 transition-colors last:border-b-0"
+                    onMouseDown={() => handleCitySelect(city)}
+                  >
+                    {displayKr ? (
+                      <span>
+                        <span className="font-medium">{displayKr}</span>
+                        <span className="text-gray-400 text-sm ml-2">({displayEn})</span>
+                      </span>
+                    ) : (
+                      displayEn
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
           {selectedCity && (

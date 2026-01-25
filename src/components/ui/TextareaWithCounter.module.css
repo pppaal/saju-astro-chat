@@ -98,3 +98,61 @@
     font-size: 0.75rem;
   }
 }
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .container {
+    gap: 6px;
+  }
+
+  .label {
+    font-size: 0.8rem;
+    gap: 3px;
+  }
+
+  .required {
+    font-size: 0.9rem;
+  }
+
+  .counter {
+    font-size: 0.65rem;
+    padding: 2px 5px;
+    bottom: 5px;
+    right: 5px;
+    border-radius: 5px;
+  }
+
+  .helpText {
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .container {
+    gap: 5px;
+  }
+
+  .label {
+    font-size: 0.75rem;
+    gap: 2px;
+  }
+
+  .required {
+    font-size: 0.85rem;
+  }
+
+  .counter {
+    font-size: 0.6rem;
+    padding: 2px 4px;
+    bottom: 4px;
+    right: 4px;
+    border-radius: 4px;
+  }
+
+  .helpText {
+    font-size: 0.65rem;
+    line-height: 1.4;
+  }
+}

@@ -150,21 +150,76 @@
 @media (max-width: 480px) {
   .container {
     padding: 1rem;
+    border-radius: 14px;
   }
 
   .svg {
-    max-width: 300px;
+    max-width: 280px;
   }
 
   .octantLabel {
-    font-size: 12px;
-  }
-
-  .octantCode {
     font-size: 11px;
   }
 
+  .octantCode {
+    font-size: 10px;
+  }
+
   .axisLabel {
-    font-size: 12px;
+    font-size: 11px;
+  }
+
+  .legend {
+    margin-top: 1.25rem;
+    gap: 0.4rem;
+  }
+
+  .legendItem {
+    font-size: 0.8rem;
+    gap: 0.4rem;
+  }
+
+  .legendDot {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .container {
+    padding: 0.875rem;
+    border-radius: 12px;
+  }
+
+  .svg {
+    max-width: 250px;
+  }
+
+  .octantLabel {
+    font-size: 10px;
+  }
+
+  .octantCode {
+    font-size: 9px;
+  }
+
+  .axisLabel {
+    font-size: 10px;
+  }
+
+  .legend {
+    margin-top: 1rem;
+    gap: 0.35rem;
+  }
+
+  .legendItem {
+    font-size: 0.75rem;
+    gap: 0.35rem;
+  }
+
+  .legendDot {
+    width: 9px;
+    height: 9px;
   }
 }

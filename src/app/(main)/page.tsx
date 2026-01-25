@@ -284,20 +284,22 @@ export default function MainPage() {
                   <span className={styles.serviceSelectArrow}>▼</span>
                 </button>
 
-                {/* Service Dropdown */}
+                {/* Service Dropdown - All services visible */}
                 {showServiceSelector && (
                   <div className={styles.serviceDropdown}>
-                    {SERVICE_OPTIONS.map((service) => (
-                      <button
-                        key={service.key}
-                        type="button"
-                        className={`${styles.serviceDropdownItem} ${selectedService === service.key ? styles.selected : ''}`}
-                        onClick={() => handleServiceSelect(service.key)}
-                      >
-                        <span className={styles.serviceDropdownIcon}>{service.icon}</span>
-                        <span className={styles.serviceDropdownLabel}>{t(`menu.${service.key}`)}</span>
-                      </button>
-                    ))}
+                    <div className={styles.serviceDropdownGrid}>
+                      {SERVICE_OPTIONS.map((service) => (
+                        <button
+                          key={service.key}
+                          type="button"
+                          className={`${styles.serviceDropdownItem} ${selectedService === service.key ? styles.selected : ''}`}
+                          onClick={() => handleServiceSelect(service.key)}
+                        >
+                          <span className={styles.serviceDropdownIcon}>{service.icon}</span>
+                          <span className={styles.serviceDropdownLabel}>{t(`menu.${service.key}`)}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 

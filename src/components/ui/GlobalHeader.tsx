@@ -354,12 +354,12 @@ function GlobalHeaderContent() {
   if (!isAuthenticated) {
     return (
       <HeaderWrapper ariaLabel={headerAriaLabel}>
-        <nav className="flex items-center gap-2" aria-label={t("nav.main") || "Main navigation"}>
+        <nav className="flex items-center gap-3" aria-label={t("nav.main") || "Main navigation"}>
           <HomeButton />
           <button
             onClick={() => router.push(signInUrl)}
             className={`text-[#EAE6FF] text-sm whitespace-nowrap px-3.5 py-1.5 rounded-[20px]
-              backdrop-blur-md cursor-pointer border-blue-400/40 ml-1
+              backdrop-blur-md cursor-pointer border-blue-400/40
               ${styles.buttonBase} ${styles.blueButton}`}
             aria-label={t("community.login") || "Login to your account"}
           >

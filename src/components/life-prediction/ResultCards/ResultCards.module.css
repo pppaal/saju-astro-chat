@@ -498,17 +498,276 @@
 }
 
 @media (max-width: 480px) {
+  .resultsContainer {
+    padding: 0.875rem;
+    gap: 1.25rem;
+  }
+
+  .resultsHeader {
+    margin-bottom: 0.75rem;
+  }
+
+  .resultsTitle {
+    font-size: 1.15rem;
+  }
+
+  .resultsSubtitle {
+    font-size: 0.9rem;
+  }
+
+  .timingCard {
+    padding: 1.125rem;
+    border-radius: 16px;
+  }
+
   .cardHeader {
     flex-wrap: wrap;
+    margin-bottom: 0.875rem;
+  }
+
+  .rankBadge {
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+  }
+
+  .dateInfo {
+    margin-left: 0.75rem;
+  }
+
+  .datePeriod {
+    font-size: 1rem;
+  }
+
+  .dateLabel {
+    font-size: 0.8rem;
   }
 
   .gradeBadge {
     margin-top: 0.75rem;
     width: 100%;
     text-align: center;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+  }
+
+  .scoreSection {
+    margin: 0.875rem 0;
+  }
+
+  .scoreLabel {
+    font-size: 0.8rem;
+  }
+
+  .scoreValue {
+    font-size: 1rem;
+  }
+
+  .scoreBarContainer {
+    height: 7px;
+  }
+
+  .reasonsTitle,
+  .specificDaysTitle {
+    font-size: 0.8rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .reasonItem {
+    font-size: 0.85rem;
+    gap: 0.4rem;
+  }
+
+  .dayBadge {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    border-radius: 12px;
   }
 
   .daysList {
     justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .viewToggle {
+    margin-bottom: 1.25rem;
+    gap: 0.4rem;
+  }
+
+  .toggleBtn {
+    padding: 8px 20px;
+    font-size: 0.85rem;
+    border-radius: 22px;
+  }
+
+  .askAgainBtn {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    margin-top: 1.5rem;
+    max-width: 280px;
+  }
+
+  .analyzerContainer {
+    padding: 3rem 1.5rem;
+    min-height: 280px;
+  }
+
+  .analyzerIcon {
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .analyzerTitle {
+    font-size: 1.35rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .analyzerSubtitle {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .progressContainer {
+    gap: 0.875rem;
+    max-width: 280px;
+    margin-bottom: 1.25rem;
+  }
+
+  .progressBar {
+    height: 7px;
+  }
+
+  .progressText {
+    font-size: 0.85rem;
+  }
+
+  .analysisStepsContainer {
+    max-width: 260px;
+    gap: 0.5rem;
+  }
+
+  .analysisStep {
+    font-size: 0.8rem;
+    gap: 0.5rem;
+  }
+
+  .stepIcon {
+    width: 18px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .resultsContainer {
+    padding: 0.75rem;
+    gap: 1rem;
+  }
+
+  .resultsTitle {
+    font-size: 1.05rem;
+  }
+
+  .resultsSubtitle {
+    font-size: 0.85rem;
+  }
+
+  .timingCard {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .rankBadge {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .dateInfo {
+    margin-left: 0.625rem;
+  }
+
+  .datePeriod {
+    font-size: 0.95rem;
+  }
+
+  .dateLabel {
+    font-size: 0.75rem;
+  }
+
+  .gradeBadge {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+  }
+
+  .scoreLabel {
+    font-size: 0.75rem;
+  }
+
+  .scoreValue {
+    font-size: 0.95rem;
+  }
+
+  .scoreBarContainer {
+    height: 6px;
+  }
+
+  .reasonsTitle,
+  .specificDaysTitle {
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .reasonItem {
+    font-size: 0.8rem;
+  }
+
+  .dayBadge {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    border-radius: 10px;
+  }
+
+  .toggleBtn {
+    padding: 7px 16px;
+    font-size: 0.8rem;
+  }
+
+  .askAgainBtn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    max-width: 260px;
+  }
+
+  .analyzerContainer {
+    padding: 2.5rem 1.25rem;
+    min-height: 260px;
+  }
+
+  .analyzerIcon {
+    font-size: 3rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .analyzerTitle {
+    font-size: 1.2rem;
+  }
+
+  .analyzerSubtitle {
+    font-size: 0.9rem;
+  }
+
+  .analyzerDot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .analysisStepsContainer {
+    max-width: 240px;
+    gap: 0.4rem;
+  }
+
+  .analysisStep {
+    font-size: 0.75rem;
   }
 }
