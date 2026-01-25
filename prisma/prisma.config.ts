@@ -1,16 +1,18 @@
-import { config } from 'dotenv'
 import { defineConfig } from 'prisma/config'
-import { join } from 'path'
-import { existsSync } from 'fs'
+import dotenv from 'dotenv'
+import { readFileSync, existsSync } from 'fs'
+import { resolve } from 'path'
 
-// Try loading .env.prisma.tmp first (for test DB setup), then .env.local
-const prismaEnvPath = join(__dirname, '..', '.env.prisma.tmp')
-const localEnvPath = join(__dirname, '..', '.env.local')
+// Manually load .env.local
+const envPath = resolve(process.cwd(), '.env.local')
+if (existsSync(envPath)) {
+  dotenv.config({ path: envPath })
+}
 
-if (existsSync(prismaEnvPath)) {
-  config({ path: prismaEnvPath })
-} else if (existsSync(localEnvPath)) {
-  config({ path: localEnvPath })
+const databaseUrl = process.env.DATABASE_URL
+
+if (!databaseUrl) {
+  throw new Error(`DATABASE_URL not found. Checked: ${envPath}`)
 }
 
 export default defineConfig({
@@ -19,7 +21,6 @@ export default defineConfig({
     path: 'migrations',
   },
   datasource: {
-    // Using pooled connection since direct connection is blocked
-    url: process.env.DATABASE_URL,
+    url: databaseUrl,
   },
 })

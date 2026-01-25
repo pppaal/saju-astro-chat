@@ -185,4 +185,161 @@
   .btnIcon {
     font-size: 1.1rem;
   }
+
+  .form {
+    margin-bottom: 1.5rem;
+  }
+
+  .inputGroup {
+    margin-bottom: 1.25rem;
+  }
+
+  .label {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .input {
+    padding: 0.8rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 10px;
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    margin-top: 0.35rem;
+  }
+
+  .checkboxLabel {
+    font-size: 0.85rem;
+    margin-top: 0.65rem;
+  }
+
+  .checkbox {
+    width: 16px;
+    height: 16px;
+  }
+
+  .error {
+    padding: 0.875rem;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    margin-bottom: 1.25rem;
+  }
+
+  .submitBtn {
+    border-radius: 10px;
+    gap: 0.4rem;
+  }
+
+  .spinner {
+    width: 18px;
+    height: 18px;
+  }
+
+  .infoBox {
+    padding: 14px;
+    gap: 10px;
+    border-radius: 10px;
+    margin-top: 1.25rem;
+  }
+
+  .infoIcon {
+    font-size: 1.35rem;
+  }
+
+  .infoText {
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .form {
+    margin-bottom: 1.25rem;
+  }
+
+  .inputGroup {
+    margin-bottom: 1rem;
+  }
+
+  .label {
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .required {
+    margin-left: 3px;
+  }
+
+  .input {
+    padding: 0.7rem 0.875rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+  }
+
+  .input:focus {
+    box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.1);
+  }
+
+  .hint {
+    font-size: 0.7rem;
+    margin-top: 0.3rem;
+  }
+
+  .checkboxLabel {
+    font-size: 0.8rem;
+    gap: 0.4rem;
+    margin-top: 0.55rem;
+  }
+
+  .checkbox {
+    width: 15px;
+    height: 15px;
+  }
+
+  .error {
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .submitBtn {
+    padding: 0.8rem 1.25rem;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    gap: 0.35rem;
+  }
+
+  .btnIcon {
+    font-size: 1rem;
+  }
+
+  .loading {
+    gap: 0.6rem;
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border-width: 1.5px;
+  }
+
+  .infoBox {
+    padding: 12px;
+    gap: 8px;
+    border-radius: 8px;
+    margin-top: 1rem;
+  }
+
+  .infoIcon {
+    font-size: 1.25rem;
+  }
+
+  .infoText {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
 }

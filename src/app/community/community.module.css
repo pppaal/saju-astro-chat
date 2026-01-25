@@ -1443,3 +1443,258 @@
     text-align: center;
   }
 }
+
+@media (max-width: 360px) {
+  .container {
+    padding: 16px 8px 32px;
+  }
+
+  .header {
+    padding: 12px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+
+  .h1 {
+    font-size: 1.25rem;
+  }
+
+  .headerDesc {
+    font-size: 0.75rem;
+  }
+
+  .logoIcon {
+    font-size: 28px;
+  }
+
+  .logoSection {
+    gap: 10px;
+  }
+
+  .backButton {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .tab {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  .loginBtn,
+  .logoutBtn {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  .hubTitle {
+    font-size: 1.25rem;
+  }
+
+  .hubSubtitle {
+    font-size: 0.85rem;
+  }
+
+  .communityCard {
+    padding: 16px;
+    border-radius: 14px;
+    gap: 12px;
+  }
+
+  .communityIcon {
+    font-size: 32px;
+  }
+
+  .communityName {
+    font-size: 1rem;
+  }
+
+  .communityPlatform {
+    font-size: 0.75rem;
+  }
+
+  .communityMembers {
+    font-size: 0.7rem;
+  }
+
+  .matchingCard {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .matchingIcon {
+    font-size: 40px;
+  }
+
+  .matchingTitle {
+    font-size: 1.1rem;
+  }
+
+  .matchingDesc {
+    font-size: 13px;
+  }
+
+  .matchingButton {
+    padding: 10px 18px;
+    font-size: 13px;
+  }
+
+  .searchInput {
+    padding: 12px 14px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  .chip,
+  .pill {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .composeSection {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .h2 {
+    font-size: 1.25rem;
+  }
+
+  .guide {
+    font-size: 12px;
+  }
+
+  .input,
+  .textarea,
+  .composeInput,
+  .categorySelect {
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
+  .primaryBtn,
+  .composeBtn {
+    padding: 8px 18px;
+    font-size: 13px;
+  }
+
+  .postCard,
+  .card {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .postAvatar,
+  .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .cardBody,
+  .postContent {
+    font-size: 14px;
+  }
+
+  .postCategory,
+  .tag {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .actionBtn {
+    padding: 6px 10px;
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .commentsSection {
+    margin-top: 14px;
+    padding-top: 14px;
+  }
+
+  .comment {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .commentAvatar {
+    width: 26px;
+    height: 26px;
+  }
+
+  .commentAuthor {
+    font-size: 12px;
+  }
+
+  .commentBody,
+  .commentContent {
+    font-size: 13px;
+  }
+
+  .commentInput {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .commentBtn,
+  .commentSubmitBtn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .repliesSection,
+  .repliesList {
+    margin-left: 8px;
+    padding-left: 8px;
+  }
+
+  .reply {
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .replyAvatar {
+    width: 24px;
+    height: 24px;
+  }
+
+  .replyAuthor {
+    font-size: 12px;
+  }
+
+  .replyBody,
+  .replyContent {
+    font-size: 12px;
+  }
+
+  .toast {
+    padding: 12px 16px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+
+  .empty {
+    padding: 32px 16px;
+    font-size: 14px;
+  }
+
+  .loginPrompt {
+    padding: 24px 16px;
+  }
+
+  .loginPrompt p {
+    font-size: 14px;
+  }
+
+  .loginPromptBtn {
+    padding: 10px 24px;
+    font-size: 14px;
+  }
+}

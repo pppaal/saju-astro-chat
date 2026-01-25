@@ -236,7 +236,11 @@
       "Bash(Where-Object { $_CommandLine -like \"*next*\" })",
       "Bash(Stop-Process -Force -ErrorAction SilentlyContinue)",
       "Bash(Remove-Item -Force \"c:\\\\dev\\\\saju-astro-chat\\\\.next\\\\lock\" -ErrorAction SilentlyContinue)",
-      "Bash(xxd:*)"
+      "Bash(xxd:*)",
+      "Bash(do if grep -q \"@media\" \"$file\")",
+      "Bash(! grep -q \"@media.*360\" \"$file\")",
+      "Bash(then echo \"$file\" fi done)",
+      "Bash(Write-Host \"Lock file removed\")"
     ],
     "deny": [],
     "ask": []

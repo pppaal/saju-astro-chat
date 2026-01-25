@@ -340,3 +340,105 @@
     font-size: 22px;
   }
 }
+
+@media (max-width: 360px) {
+  .main {
+    padding: 80px 12px 48px;
+  }
+
+  .hero {
+    margin-bottom: 40px;
+  }
+
+  .heroIcon {
+    font-size: 52px;
+    margin-bottom: 16px;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  .title {
+    font-size: 28px;
+    margin-bottom: 14px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .categoryFilter {
+    gap: 6px;
+    margin-bottom: 32px;
+  }
+
+  .categoryBtn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .blogGrid {
+    gap: 16px;
+  }
+
+  .blogCard {
+    border-radius: 18px;
+  }
+
+  .cardImage {
+    height: 160px;
+  }
+
+  .cardImagePlaceholder {
+    font-size: 48px;
+  }
+
+  .cardContent {
+    padding: 16px;
+  }
+
+  .cardCategory {
+    padding: 4px 10px;
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+
+  .cardTitle {
+    font-size: 17px;
+    margin-bottom: 8px;
+  }
+
+  .cardExcerpt {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .cardMeta {
+    gap: 12px;
+    font-size: 11px;
+  }
+
+  .featuredPost .cardContent {
+    padding: 20px;
+  }
+
+  .featuredPost .cardTitle {
+    font-size: 19px;
+  }
+
+  .featuredBadge {
+    padding: 4px 10px;
+    font-size: 10px;
+    margin-bottom: 12px;
+  }
+
+  .backButton {
+    top: 12px;
+    left: 12px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}

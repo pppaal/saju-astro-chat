@@ -761,3 +761,222 @@
     font-size: 0.8rem;
   }
 }
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .chatContainer {
+    min-height: calc(100vh - 100px);
+    border-radius: 12px;
+    border-width: 1px;
+  }
+
+  .chatHeader {
+    padding: 0.5rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .homeButton {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+  }
+
+  .homeIcon {
+    font-size: 0.9rem;
+  }
+
+  .homeLabel {
+    font-size: 0.8rem;
+  }
+
+  .messagesPanel {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .messageBubble {
+    max-width: 90%;
+  }
+
+  .userMessage,
+  .assistantMessage {
+    font-size: 0.9rem;
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
+    line-height: 1.55;
+  }
+
+  .userMessage {
+    border-radius: 14px 14px 3px 14px;
+  }
+
+  .assistantMessage {
+    border-radius: 14px 14px 14px 3px;
+  }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .avatarIcon {
+    font-size: 1rem;
+  }
+
+  .inputArea {
+    padding: 0.625rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .textarea {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: 10px;
+  }
+
+  .sendButton {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.85rem;
+    border-radius: 10px;
+  }
+
+  .quickActions {
+    padding: 0.4rem 0.75rem;
+  }
+
+  .quickButton {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    border-radius: 16px;
+  }
+
+  .emptyIcon {
+    font-size: 2.5rem;
+  }
+
+  .emptyText {
+    font-size: 0.9rem;
+  }
+
+  .suggestedTitle {
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .suggestedButton {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.85rem;
+    border-radius: 10px;
+  }
+
+  .cardContextButton {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .cardContextIcon {
+    font-size: 1rem;
+  }
+
+  .thinkingMessage {
+    padding: 0.7rem 0.9rem;
+    border-radius: 14px;
+  }
+
+  .typingDot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .thinkingText {
+    font-size: 0.8rem;
+  }
+
+  /* Modal styles for 360px */
+  .modalContent {
+    border-radius: 16px;
+    max-height: 85vh;
+  }
+
+  .modalHeader {
+    padding: 1rem;
+  }
+
+  .modalTitle {
+    font-size: 1.1rem;
+  }
+
+  .modalCloseBtn {
+    width: 28px;
+    height: 28px;
+    font-size: 1.25rem;
+    border-radius: 6px;
+  }
+
+  .modalCardGrid {
+    padding: 1rem;
+    gap: 0.875rem;
+  }
+
+  .modalCardItem {
+    padding: 1rem;
+    border-radius: 12px;
+    gap: 1rem;
+  }
+
+  .modalCardImageWrapper {
+    width: 120px;
+    height: 198px;
+  }
+
+  .modalCardImage {
+    border-radius: 8px;
+    border-width: 2px;
+  }
+
+  .reversedBadge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    bottom: -10px;
+  }
+
+  .modalCardNumber {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  .modalCardPosition {
+    font-size: 0.8rem;
+  }
+
+  .modalCardName {
+    font-size: 1.1rem;
+    margin-bottom: 0.375rem;
+  }
+
+  .modalCardOrient {
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .modalKeywordTag {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.7rem;
+    border-radius: 6px;
+  }
+
+  .modalCardMeaning {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    padding-top: 0.75rem;
+  }
+
+  .fallbackNote {
+    margin: 0.5rem 1rem 0;
+    padding: 0.6rem 0.875rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+  }
+}

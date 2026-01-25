@@ -283,16 +283,188 @@
     height: 300px;
   }
 
+  .cardFront,
+  .cardBack {
+    border-radius: 14px;
+  }
+
+  .cardFront {
+    padding: 20px;
+  }
+
   .symbolIcon {
     font-size: 36px;
+    margin-bottom: 12px;
   }
 
   .symbolName {
     font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .symbolMeaning {
+    font-size: 12px;
+    margin-bottom: 20px;
+  }
+
+  .flipHint {
+    padding: 6px 10px;
+  }
+
+  .flipText {
+    font-size: 10px;
+  }
+
+  .cardBack {
+    padding: 16px;
+  }
+
+  .backContent {
+    gap: 12px;
+  }
+
+  .backHeader {
+    gap: 10px;
+    padding-bottom: 10px;
   }
 
   .backIcon {
     font-size: 28px;
+  }
+
+  .backTitle {
+    font-size: 16px;
+  }
+
+  .interpretations {
+    gap: 10px;
+  }
+
+  .interpretation {
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .interpretationHeader {
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .interpretationIcon {
+    font-size: 16px;
+  }
+
+  .interpretationLabel {
+    font-size: 11px;
+  }
+
+  .interpretationText {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .flipBackHint {
+    padding: 6px;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .cardContainer {
+    width: 200px;
+    height: 280px;
+  }
+
+  .cardFront,
+  .cardBack {
+    border-radius: 12px;
+    border-width: 1.5px;
+  }
+
+  .cardFront {
+    padding: 16px;
+  }
+
+  .symbolIcon {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+
+  .symbolName {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .symbolMeaning {
+    font-size: 11px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .flipHint {
+    padding: 5px 8px;
+    gap: 4px;
+  }
+
+  .flipIcon {
+    font-size: 14px;
+  }
+
+  .flipText {
+    font-size: 9px;
+  }
+
+  .cardBack {
+    padding: 14px;
+  }
+
+  .backContent {
+    gap: 10px;
+  }
+
+  .backHeader {
+    gap: 8px;
+    padding-bottom: 8px;
+  }
+
+  .backIcon {
+    font-size: 24px;
+  }
+
+  .backTitle {
+    font-size: 14px;
+  }
+
+  .interpretations {
+    gap: 8px;
+  }
+
+  .interpretation {
+    padding: 8px;
+    border-radius: 8px;
+  }
+
+  .interpretationHeader {
+    gap: 5px;
+    margin-bottom: 5px;
+  }
+
+  .interpretationIcon {
+    font-size: 14px;
+  }
+
+  .interpretationLabel {
+    font-size: 10px;
+  }
+
+  .interpretationText {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .flipBackHint {
+    padding: 5px;
+    gap: 4px;
   }
 }
 

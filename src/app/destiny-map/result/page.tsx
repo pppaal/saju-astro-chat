@@ -2,14 +2,14 @@
 
 "use client";
 
-import * as React from "react";
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense, use } from "react";
 import styles from "./result.module.css";
 import { logger } from "@/lib/logger";
 import { analyzeDestiny } from "@/components/destiny-map/Analyzer";
 import Display from "@/components/destiny-map/Display";
 import FunInsights from "@/components/destiny-map/FunInsights";
-const FortuneDashboard = React.lazy(() => import("@/components/life-prediction/FortuneDashboard"));
+import { lazy } from "react";
+const FortuneDashboard = lazy(() => import("@/components/life-prediction/FortuneDashboard"));
 import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
 import CreditBadge from "@/components/ui/CreditBadge";
@@ -36,33 +36,36 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 // Life Prediction Skeleton
 function LifePredictionSkeleton() {
   return (
-    <div style={{ padding: 24, background: 'rgba(59, 130, 246, 0.05)', borderRadius: 16, border: '1px solid rgba(59, 130, 246, 0.1)' }}>
-      <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '8px 0' }}>
+    <div className={styles.skeletonContainer}>
+      <div className={styles.skeletonFlex}>
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} style={{ minWidth: 100, height: 140, borderRadius: 12, background: 'rgba(59,130,246,0.1)', animation: 'pulse 1.5s infinite' }} />
+          <div key={i} className={styles.skeletonItem} />
         ))}
       </div>
-      <style>{`@keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }`}</style>
     </div>
   );
 }
+
+// Loader step icons (outside component to avoid recreating)
+const LOADER_STEP_ICONS = ["☯", "☉", "✨", "📜"] as const;
+const STEP_COUNT = LOADER_STEP_ICONS.length;
 
 // ============================================
 // Analyzing Loader Component with Progress Bar
 // ============================================
 function AnalyzingLoader() {
   const { t } = useI18n();
-  const [progress, setProgress] = React.useState(0);
-  const [step, setStep] = React.useState(0);
+  const [progress, setProgress] = useState(0);
+  const [step, setStep] = useState(0);
 
-  const steps: { label: string; icon: string }[] = [
-    { label: t("destinyMap.result.step1", "Eastern Fortune Analysis..."), icon: "☯" },
-    { label: t("destinyMap.result.step2", "Western Fortune Analysis..."), icon: "☉" },
-    { label: t("destinyMap.result.step3", "Generating AI Interpretation..."), icon: "✨" },
-    { label: t("destinyMap.result.step4", "Finalizing Report..."), icon: "📜" },
-  ];
+  const steps = useMemo(() => [
+    { label: t("destinyMap.result.step1", "Eastern Fortune Analysis..."), icon: LOADER_STEP_ICONS[0] },
+    { label: t("destinyMap.result.step2", "Western Fortune Analysis..."), icon: LOADER_STEP_ICONS[1] },
+    { label: t("destinyMap.result.step3", "Generating AI Interpretation..."), icon: LOADER_STEP_ICONS[2] },
+    { label: t("destinyMap.result.step4", "Finalizing Report..."), icon: LOADER_STEP_ICONS[3] },
+  ], [t]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Simulate progress: ~45 seconds total
     const interval = setInterval(() => {
       setProgress((prev) => {
@@ -74,155 +77,63 @@ function AnalyzingLoader() {
 
     // Step progression
     const stepInterval = setInterval(() => {
-      setStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
+      setStep((prev) => (prev < STEP_COUNT - 1 ? prev + 1 : prev));
     }, 10000);
 
     return () => {
       clearInterval(interval);
       clearInterval(stepInterval);
     };
-  }, [steps.length]);
+  }, []);
 
   return (
-    <main style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
-      padding: 20,
-    }}>
+    <main className={styles.loaderMain}>
       <BackButton />
-      <div style={{
-        maxWidth: 440,
-        width: "100%",
-        textAlign: "center",
-        padding: "48px 32px",
-        background: "rgba(15, 12, 41, 0.8)",
-        borderRadius: 24,
-        backdropFilter: "blur(20px)",
-        border: "1px solid rgba(167, 139, 250, 0.2)",
-        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 60px rgba(167, 139, 250, 0.1)",
-      }}>
-        {/* Animated cosmic icon */}
-        <div style={{
-          fontSize: 72,
-          marginBottom: 28,
-          filter: "drop-shadow(0 0 20px rgba(167, 139, 250, 0.6))",
-        }}>
-          <span style={{
-            display: "inline-block",
-            animation: "spin 8s linear infinite",
-          }}>☯</span>
+      <div className={styles.loaderCard}>
+        <div className={styles.loaderIcon}>
+          <span className={styles.loaderIconSpin}>☯</span>
         </div>
 
-        {/* Title */}
-        <h2 style={{
-          fontSize: 22,
-          fontWeight: 600,
-          color: "#fff",
-          marginBottom: 6,
-          letterSpacing: "-0.02em",
-        }}>
+        <h2 className={styles.loaderTitle}>
           {t("destinyMap.result.analyzingTitle", "Analyzing Your Destiny")}
         </h2>
-        <p style={{ color: "#a78bfa", fontSize: 13, marginBottom: 36, opacity: 0.8 }}>
+        <p className={styles.loaderSubtitle}>
           {t("destinyMap.result.analyzingSubtitle", "Analyzing Your Destiny Chart")}
         </p>
 
-        {/* Progress bar */}
-        <div style={{
-          background: "rgba(167, 139, 250, 0.1)",
-          borderRadius: 12,
-          height: 6,
-          overflow: "hidden",
-          marginBottom: 12,
-          border: "1px solid rgba(167, 139, 250, 0.2)",
-        }}>
-          <div style={{
-            width: `${progress}%`,
-            height: "100%",
-            background: "linear-gradient(90deg, #a78bfa, #818cf8, #6366f1)",
-            borderRadius: 12,
-            transition: "width 0.5s ease-out",
-            boxShadow: "0 0 20px rgba(167, 139, 250, 0.6)",
-          }} />
+        <div className={styles.progressBar}>
+          <div className={styles.progressFill} style={{ width: `${progress}%` }} />
         </div>
 
-        {/* Progress percentage */}
-        <div style={{
-          fontSize: 13,
-          color: "#a78bfa",
-          fontWeight: 600,
-          marginBottom: 28,
-        }}>
+        <div className={styles.progressPercent}>
           {Math.round(progress)}%
         </div>
 
-        {/* Step indicators */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className={styles.stepList}>
           {steps.map((s, i) => (
             <div
               key={i}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "10px 16px",
-                borderRadius: 12,
-                background: i === step ? "rgba(167, 139, 250, 0.15)" : "transparent",
-                border: i === step ? "1px solid rgba(167, 139, 250, 0.3)" : "1px solid transparent",
-                transition: "all 0.3s",
-              }}
+              className={`${styles.stepItem} ${i === step ? styles.stepItemActive : ""}`}
             >
-              <span style={{
-                width: 28,
-                height: 28,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: i < step ? 14 : 16,
-                background: i < step
-                  ? "linear-gradient(135deg, #a78bfa, #818cf8)"
-                  : i === step
-                    ? "rgba(167, 139, 250, 0.3)"
-                    : "rgba(255,255,255,0.05)",
-                color: i <= step ? "#fff" : "#6b7280",
-                boxShadow: i < step ? "0 0 12px rgba(167, 139, 250, 0.5)" : "none",
-              }}>
+              <span className={`${styles.stepIcon} ${
+                i < step ? styles.stepIconCompleted :
+                i === step ? styles.stepIconActive : styles.stepIconPending
+              }`}>
                 {i < step ? "✓" : s.icon}
               </span>
-              <span style={{
-                fontSize: 14,
-                color: i <= step ? "#e5e7eb" : "#6b7280",
-                textAlign: "left",
-                fontWeight: i === step ? 500 : 400,
-              }}>
+              <span className={`${styles.stepLabel} ${
+                i <= step ? styles.stepLabelActive : styles.stepLabelInactive
+              }`}>
                 {s.label}
               </span>
             </div>
           ))}
         </div>
 
-        {/* Fun fact */}
-        <p style={{
-          marginTop: 32,
-          fontSize: 11,
-          color: "#6b7280",
-          fontStyle: "italic",
-        }}>
+        <p className={styles.loaderFunFact}>
           {t("destinyMap.result.dataNodes", "Analysis based on 71,000+ data nodes")}
         </p>
       </div>
-
-      {/* CSS animations */}
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </main>
   );
 }
@@ -237,7 +148,7 @@ export default function DestinyResultPage({
 }) {
   const { t } = useI18n();
   // ✅ Next.js 15 동적 API 규칙 — Promise 언래핑
-  const sp = React.use(searchParams);
+  const sp = use(searchParams);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -471,17 +382,18 @@ export default function DestinyResultPage({
     return <AnalyzingLoader />;
   }
 
+  const handleReload = useCallback(() => window.location.reload(), []);
+
   if (error) {
     return (
       <main className={styles.page}>
         <BackButton />
         <section className={styles.card}>
-          <div style={{ padding: 40, color: "crimson" }}>⚠️ {error}</div>
+          <div className={styles.errorBox}>⚠️ {error}</div>
           <button
             type="button"
-            className={styles.submitButton}
-            style={{ marginTop: 16 }}
-            onClick={() => window.location.reload()}
+            className={`${styles.submitButton} ${styles.retryButton}`}
+            onClick={handleReload}
           >
             {t("destinyMap.result.retry", "Retry")}
           </button>
@@ -495,12 +407,11 @@ export default function DestinyResultPage({
       <main className={styles.page}>
         <BackButton />
         <section className={styles.card}>
-          <div style={{ padding: 40 }}>{t("destinyMap.result.errorNoResult", "Failed to load results.")}</div>
+          <div className={styles.errorBox}>{t("destinyMap.result.errorNoResult", "Failed to load results.")}</div>
           <button
             type="button"
-            className={styles.submitButton}
-            style={{ marginTop: 16 }}
-            onClick={() => window.location.reload()}
+            className={`${styles.submitButton} ${styles.retryButton}`}
+            onClick={handleReload}
           >
             {t("destinyMap.result.retry", "Retry")}
           </button>
@@ -515,33 +426,35 @@ export default function DestinyResultPage({
   const themeKeys = Object.keys(result?.themes || {});
   const lang: Lang = result?.lang === "en" ? "en" : "ko";
 
+  // Memoize merged astrology data for FunInsights
+  const mergedAstro = useMemo(() => {
+    const advAstro = result?.advancedAstrology || {};
+    return {
+      ...(result?.astro || result?.astrology || {}),
+      extraPoints: advAstro.extraPoints,
+      asteroids: advAstro.asteroids,
+      solarReturn: advAstro.solarReturn,
+      lunarReturn: advAstro.lunarReturn,
+      progressions: advAstro.progressions,
+      draconic: advAstro.draconic,
+      harmonics: advAstro.harmonics,
+      fixedStars: advAstro.fixedStars,
+      eclipses: advAstro.eclipses,
+      electional: advAstro.electional,
+      midpoints: advAstro.midpoints,
+    };
+  }, [result]);
+
   // 분석 기준일 포맷팅 - 사용자 위치(도시) 기준으로 표시
   const userCity = result?.profile?.city || "";
   const analysisDate = result?.analysisDate || new Date().toISOString().slice(0, 10);
 
   const analysisDateDisplay = (
-    <div style={{
-      textAlign: 'center',
-      marginBottom: 20,
-      padding: '10px 20px',
-      background: 'rgba(167, 139, 250, 0.1)',
-      borderRadius: 12,
-      fontSize: 14,
-      color: '#a78bfa',
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 8,
-      margin: '0 auto 20px',
-    }}>
+    <div className={styles.analysisDateBadge}>
       <span>📅</span>
       <span>{t("destinyMap.result.analysisDate", "분석 기준")}: {analysisDate}</span>
       {userCity && (
-        <span style={{
-          opacity: 0.8,
-          borderLeft: '1px solid rgba(167, 139, 250, 0.3)',
-          paddingLeft: 8,
-          marginLeft: 4,
-        }}>
+        <span className={styles.analysisDateCity}>
           📍 {userCity}
         </span>
       )}
@@ -557,18 +470,24 @@ export default function DestinyResultPage({
       </div>
       <section className={styles.card}>
         {/* 📅 분석 기준일 표시 */}
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div className={styles.analysisDateWrapper}>
           {analysisDateDisplay}
         </div>
 
         {/* 🗂️ 탭 네비게이션 */}
-        <div style={{ display: 'flex', gap: 0, marginBottom: 28, justifyContent: 'center', background: 'rgba(15, 12, 41, 0.6)', borderRadius: 16, padding: 4, border: '1px solid rgba(167, 139, 250, 0.15)' }}>
-          <button onClick={() => setActiveTab("destiny")} style={{ flex: 1, maxWidth: 200, padding: '14px 24px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 600, transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: activeTab === "destiny" ? 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)' : 'transparent', color: activeTab === "destiny" ? '#fff' : 'rgba(255,255,255,0.6)', boxShadow: activeTab === "destiny" ? '0 4px 20px rgba(139, 92, 246, 0.4)' : 'none' }}>
-            <span style={{ fontSize: 18 }}>🗺️</span>
+        <div className={styles.tabContainer}>
+          <button
+            onClick={() => setActiveTab("destiny")}
+            className={`${styles.tabButton} ${activeTab === "destiny" ? styles.tabButtonDestinyActive : ""}`}
+          >
+            <span className={styles.tabIcon}>🗺️</span>
             <span>{t("destinyMap.result.tabDestiny", "운명 분석")}</span>
           </button>
-          <button onClick={() => setActiveTab("life-prediction")} style={{ flex: 1, maxWidth: 200, padding: '14px 24px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 600, transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: activeTab === "life-prediction" ? 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' : 'transparent', color: activeTab === "life-prediction" ? '#fff' : 'rgba(255,255,255,0.6)', boxShadow: activeTab === "life-prediction" ? '0 4px 20px rgba(59, 130, 246, 0.4)' : 'none' }}>
-            <span style={{ fontSize: 18 }}>📈</span>
+          <button
+            onClick={() => setActiveTab("life-prediction")}
+            className={`${styles.tabButton} ${activeTab === "life-prediction" ? styles.tabButtonLifeActive : ""}`}
+          >
+            <span className={styles.tabIcon}>📈</span>
             <span>{t("destinyMap.result.tabLifePrediction", "10년 예측")}</span>
           </button>
         </div>
@@ -577,26 +496,16 @@ export default function DestinyResultPage({
         {activeTab === "destiny" && (<>
         {/* 🌗 테마 전환 버튼 */}
         {themeKeys.length > 1 && (
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              flexWrap: "wrap",
-              marginBottom: 16,
-              justifyContent: "center",
-            }}
-          >
+          <div className={styles.themeButtonsContainer}>
             {themeKeys.map((key) => {
               const normalizedKey = key.toLowerCase();
               const presetLabels: Record<string, string> = {
-                // Focus themes
                 focus_love: t("destinyMap.result.themeLove", "Love"),
                 focus_career: t("destinyMap.result.themeCareer", "Career"),
                 focus_energy: t("destinyMap.result.themeEnergy", "Energy"),
                 focus_overall: t("destinyMap.result.themeOverall", "Overall"),
                 focus_health: t("destinyMap.result.themeHealth", "Health"),
                 focus_family: t("destinyMap.result.themeFamily", "Family"),
-                // Fortune themes
                 fortune_new_year: t("destinyMap.result.themeNewYear", "New Year"),
                 fortune_next_year: t("destinyMap.result.themeNextYear", "Next Year"),
                 fortune_monthly: t("destinyMap.result.themeMonthly", "Monthly"),
@@ -611,15 +520,6 @@ export default function DestinyResultPage({
                   onClick={() => setActiveTheme(key)}
                   aria-pressed={isActive}
                   className={styles.badge}
-                  style={{
-                    background: isActive ? "#2563eb" : "transparent",
-                    color: isActive ? "#fff" : "inherit",
-                    border: `1px solid ${isActive ? "#2563eb" : "#4b5563"}`,
-                    padding: "6px 12px",
-                    borderRadius: 8,
-                    cursor: "pointer",
-                    transition: "all 0.25s ease",
-                  }}
                 >
                   {label}
                 </button>
@@ -632,31 +532,12 @@ export default function DestinyResultPage({
         <Display result={result as Record<string, unknown>} lang={lang} theme={activeTheme} reportType="core" />
 
         {/* ✨ 재미있는 운세 인사이트 (AI 없이 데이터 기반) */}
-        {(() => {
-          const advAstro = result?.advancedAstrology || {};
-          return (
-            <FunInsights
-              saju={result?.saju}
-              astro={{
-                ...(result?.astro || result?.astrology || {}),
-                // 🔥 고급 점성학 데이터 병합
-                extraPoints: advAstro.extraPoints,
-                asteroids: advAstro.asteroids,
-                solarReturn: advAstro.solarReturn,
-                lunarReturn: advAstro.lunarReturn,
-                progressions: advAstro.progressions,
-                draconic: advAstro.draconic,
-                harmonics: advAstro.harmonics,
-                fixedStars: advAstro.fixedStars,
-                eclipses: advAstro.eclipses,
-                electional: advAstro.electional,
-                midpoints: advAstro.midpoints,
-              }}
-              lang={lang}
-              theme={activeTheme}
-            />
-          );
-        })()}
+        <FunInsights
+          saju={result?.saju}
+          astro={mergedAstro}
+          lang={lang}
+          theme={activeTheme}
+        />
 
 {/* DestinyMatrixStory AI 섹션 제거됨 - FunInsights에서 스토리텔링 형식으로 통합 */}
 
@@ -664,67 +545,26 @@ export default function DestinyResultPage({
         <PersonalityInsight lang={lang} />
 
         {/* 🔮 상담사 연결 버튼 */}
-        <div style={{ marginTop: 48, marginBottom: 20 }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 16,
-            marginBottom: 24,
-          }}>
-            <div style={{
-              flex: 1,
-              height: 1,
-              background: 'linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent)',
-            }} />
-            <span style={{
-              color: '#a78bfa',
-              fontSize: 14,
-              fontWeight: 500,
-            }}>
+        <div className={styles.counselorSection}>
+          <div className={styles.counselorDivider}>
+            <div className={styles.counselorLine} />
+            <span className={styles.counselorLabel}>
               {lang === "ko" ? "더 궁금한 점이 있으신가요?" : "Want to know more?"}
             </span>
-            <div style={{
-              flex: 1,
-              height: 1,
-              background: 'linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent)',
-            }} />
+            <div className={styles.counselorLine} />
           </div>
 
           <button
             onClick={() => {
               const params = new URLSearchParams(window.location.search);
-              params.set("lang", lang); // Ensure lang is passed
+              params.set("lang", lang);
               window.location.href = `/destiny-map/counselor?${params.toString()}`;
             }}
-            style={{
-              width: '100%',
-              padding: '18px 24px',
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
-              color: '#ffffff',
-              fontWeight: 700,
-              fontSize: 16,
-              borderRadius: 16,
-              border: 'none',
-              cursor: 'pointer',
-              boxShadow: '0 8px 32px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 12,
-              transition: 'all 0.3s ease',
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 12px 40px rgba(139, 92, 246, 0.5), 0 0 60px rgba(139, 92, 246, 0.3)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 8px 32px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2)';
-            }}
+            className={styles.counselorButton}
           >
-            <span style={{ fontSize: 24 }}>🔮</span>
+            <span className={styles.counselorButtonIcon}>🔮</span>
             <span>{lang === "ko" ? "상담사에게 직접 물어보기" : "Ask the Counselor Directly"}</span>
-            <span style={{ fontSize: 20 }}>→</span>
+            <span className={styles.counselorButtonArrow}>→</span>
           </button>
         </div>
         </>)}
@@ -732,11 +572,11 @@ export default function DestinyResultPage({
         {/* ===== LIFE PREDICTION TAB ===== */}
         {activeTab === "life-prediction" && (
           <div>
-            <div style={{ textAlign: 'center', marginBottom: 32 }}>
-              <h2 style={{ fontSize: '1.6rem', fontWeight: 700, color: '#fff', marginBottom: 8, background: 'linear-gradient(135deg, #60a5fa, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <div className={styles.lifePredictionHeader}>
+              <h2 className={styles.lifePredictionTitle}>
                 {lang === "ko" ? "📈 10년 인생 예측" : "📈 10-Year Life Prediction"}
               </h2>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)' }}>
+              <p className={styles.lifePredictionSubtitle}>
                 {lang === "ko" ? "사주와 대운을 기반으로 한 연도별 운세 흐름" : "Year-by-year fortune flow based on Saju and Daeun"}
               </p>
             </div>
@@ -744,10 +584,13 @@ export default function DestinyResultPage({
             {lifePredictionLoading && <LifePredictionSkeleton />}
 
             {lifePredictionError && (
-              <div style={{ padding: 32, textAlign: 'center', background: 'rgba(239, 68, 68, 0.1)', borderRadius: 16, border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                <span style={{ fontSize: 32, marginBottom: 12, display: 'block' }}>⚠️</span>
-                <p style={{ color: '#f87171', marginBottom: 16 }}>{lifePredictionError}</p>
-                <button onClick={() => { setLifePredictionError(null); setLifePredictionTrend(null); loadLifePrediction(); }} style={{ padding: '10px 24px', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8, cursor: 'pointer' }}>
+              <div className={styles.lifePredictionError}>
+                <span className={styles.lifePredictionErrorIcon}>⚠️</span>
+                <p className={styles.lifePredictionErrorText}>{lifePredictionError}</p>
+                <button
+                  onClick={() => { setLifePredictionError(null); setLifePredictionTrend(null); loadLifePrediction(); }}
+                  className={styles.lifePredictionRetryButton}
+                >
                   {lang === "ko" ? "다시 시도" : "Retry"}
                 </button>
               </div>
@@ -761,16 +604,14 @@ export default function DestinyResultPage({
 
             {/* 저장 버튼 */}
             {lifePredictionTrend && (
-              <div style={{ marginTop: 24, textAlign: 'center' }}>
+              <div className={styles.saveButtonContainer}>
                 <button
                   onClick={saveLifePrediction}
                   disabled={saveStatus === 'saving' || saveStatus === 'saved'}
-                  style={{
-                    padding: '12px 32px', borderRadius: 12, border: 'none', cursor: saveStatus === 'saved' ? 'default' : 'pointer',
-                    background: saveStatus === 'saved' ? 'rgba(34, 197, 94, 0.2)' : saveStatus === 'error' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.2)',
-                    color: saveStatus === 'saved' ? '#22c55e' : saveStatus === 'error' ? '#f87171' : '#60a5fa',
-                    fontWeight: 600, fontSize: 14, display: 'inline-flex', alignItems: 'center', gap: 8, transition: 'all 0.3s ease',
-                  }}
+                  className={`${styles.saveButton} ${
+                    saveStatus === 'saved' ? styles.saveButtonSaved :
+                    saveStatus === 'error' ? styles.saveButtonError : styles.saveButtonIdle
+                  }`}
                 >
                   {saveStatus === 'saving' ? (lang === "ko" ? "저장 중..." : "Saving...") :
                    saveStatus === 'saved' ? (<><span>✓</span>{lang === "ko" ? "저장됨" : "Saved"}</>) :
@@ -781,7 +622,7 @@ export default function DestinyResultPage({
             )}
 
             {/* 상담사 버튼 */}
-            <div style={{ marginTop: 48, marginBottom: 20 }}>
+            <div className={styles.counselorSection}>
               <button
                 onClick={() => {
                   const params = new URLSearchParams(window.location.search);
@@ -790,11 +631,11 @@ export default function DestinyResultPage({
                   if (selectedYear) params.set("focusYear", String(selectedYear));
                   window.location.href = `/destiny-map/counselor?${params.toString()}`;
                 }}
-                style={{ width: '100%', padding: '18px 24px', background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)', color: '#ffffff', fontWeight: 700, fontSize: 16, borderRadius: 16, border: 'none', cursor: 'pointer', boxShadow: '0 8px 32px rgba(59, 130, 246, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, transition: 'all 0.3s ease' }}
+                className={`${styles.counselorButton} ${styles.counselorButtonBlue}`}
               >
-                <span style={{ fontSize: 24 }}>🔮</span>
+                <span className={styles.counselorButtonIcon}>🔮</span>
                 <span>{selectedYear ? (lang === "ko" ? `${selectedYear}년 운세 상담받기` : `Consult about ${selectedYear}`) : (lang === "ko" ? "미래 운세 상담받기" : "Consult about future")}</span>
-                <span style={{ fontSize: 20 }}>→</span>
+                <span className={styles.counselorButtonArrow}>→</span>
               </button>
             </div>
           </div>

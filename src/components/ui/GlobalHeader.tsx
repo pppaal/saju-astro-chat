@@ -339,7 +339,7 @@ function GlobalHeaderContent() {
   if (loading) {
     return (
       <HeaderWrapper ariaLabel={headerAriaLabel}>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <HomeButton />
           <div
             className="min-w-[80px] h-[34px] rounded-[20px] bg-blue-400/10 border border-transparent px-3.5 py-1.5"
@@ -373,7 +373,7 @@ function GlobalHeaderContent() {
   // Logged in
   return (
     <HeaderWrapper headerRef={dropdownRef} onKeyDown={handleKeyDown} ariaLabel={headerAriaLabel}>
-      <nav className="flex items-center gap-2" aria-label={t("nav.main") || "Main navigation"}>
+      <nav className="flex items-center gap-3" aria-label={t("nav.main") || "Main navigation"}>
         <HomeButton />
         <button
           ref={triggerRef}

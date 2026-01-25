@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -173,87 +173,88 @@ function MyJourneyPage() {
   const [credits, setCredits] = useState<{ remaining: number; total: number; plan: string } | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
 
-  useEffect(() => {
-    const loadInitialData = async () => {
-      if (status !== "authenticated") {
-        setInitialLoading(false);
-        return;
+  const loadInitialData = useCallback(async () => {
+    if (status !== "authenticated") {
+      setInitialLoading(false);
+      return;
+    }
+
+    try {
+      const [profileRes, creditsRes] = await Promise.all([
+        fetch("/api/me/profile", { cache: "no-store" }),
+        fetch("/api/me/credits", { cache: "no-store" })
+      ]);
+
+      if (profileRes.ok) {
+        const { user } = await profileRes.json();
+        if (user) setProfile(user);
       }
 
-      try {
-        // Load profile and credits in parallel
-        const [profileRes, creditsRes] = await Promise.all([
-          fetch("/api/me/profile", { cache: "no-store" }),
-          fetch("/api/me/credits", { cache: "no-store" })
-        ]);
-
-        if (profileRes.ok) {
-          const { user } = await profileRes.json();
-          if (user) setProfile(user);
-        }
-
-        if (creditsRes.ok) {
-          const data = await creditsRes.json();
-          setCredits({
-            remaining: data.credits?.remaining ?? 0,
-            total: data.credits?.monthly ?? 0,
-            plan: data.plan || 'free'
-          });
-        }
-      } catch (e) {
-        logger.error("Failed to load initial data:", e);
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-    loadInitialData();
-  }, [status]);
-
-  useEffect(() => {
-    const loadHistory = async () => {
-      if (status !== "authenticated") return;
-      setHistoryLoading(true);
-      try {
-        const res = await fetch("/api/me/history", { cache: "no-store" });
-        if (res.ok) {
-          const data = await res.json();
-          // Get only recent 2 days of history
-          setRecentHistory((data.history || []).slice(0, 2));
-        }
-      } catch (e) {
-        logger.error("Failed to load history:", e);
-      } finally {
-        setHistoryLoading(false);
-      }
-    };
-    loadHistory();
-  }, [status]);
-
-  useEffect(() => {
-    const loadFortune = async () => {
-      if (!profile.birthDate || fortune) return;
-      setFortuneLoading(true);
-      try {
-        const res = await fetch("/api/daily-fortune", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            birthDate: profile.birthDate,
-            birthTime: profile.birthTime,
-          }),
+      if (creditsRes.ok) {
+        const data = await creditsRes.json();
+        setCredits({
+          remaining: data.credits?.remaining ?? 0,
+          total: data.credits?.monthly ?? 0,
+          plan: data.plan || 'free'
         });
-        if (res.ok) {
-          const data = await res.json();
-          setFortune(data.fortune);
-        }
-      } catch (e) {
-        logger.error("Failed to load fortune:", e);
-      } finally {
-        setFortuneLoading(false);
       }
-    };
-    loadFortune();
+    } catch (e) {
+      logger.error("Failed to load initial data:", e);
+    } finally {
+      setInitialLoading(false);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
+  const loadHistory = useCallback(async () => {
+    if (status !== "authenticated") return;
+    setHistoryLoading(true);
+    try {
+      const res = await fetch("/api/me/history", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        setRecentHistory((data.history || []).slice(0, 2));
+      }
+    } catch (e) {
+      logger.error("Failed to load history:", e);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
+  const loadFortune = useCallback(async () => {
+    if (!profile.birthDate || fortune) return;
+    setFortuneLoading(true);
+    try {
+      const res = await fetch("/api/daily-fortune", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          birthDate: profile.birthDate,
+          birthTime: profile.birthTime,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setFortune(data.fortune);
+      }
+    } catch (e) {
+      logger.error("Failed to load fortune:", e);
+    } finally {
+      setFortuneLoading(false);
+    }
   }, [profile.birthDate, profile.birthTime, fortune]);
+
+  useEffect(() => {
+    loadFortune();
+  }, [loadFortune]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -279,7 +280,7 @@ function MyJourneyPage() {
     prevStatus.current = status;
   }, [status]);
 
-  const goBack = () => {
+  const goBack = useCallback(() => {
     if (typeof window === "undefined") return;
     const state = history.state || {};
     if (state.__fromAuth || window.history.length <= 1) {
@@ -287,7 +288,15 @@ function MyJourneyPage() {
     } else {
       router.back();
     }
-  };
+  }, [router]);
+
+  const handleLogout = useCallback(() => signOut({ callbackUrl: "/myjourney" }), []);
+
+  const handleCreditsClick = useCallback(() => router.push('/pricing'), [router]);
+
+  const toggleDayExpanded = useCallback((date: string) => {
+    setExpandedDays(prev => ({ ...prev, [date]: !prev[date] }));
+  }, []);
 
   if (status === "loading" || (status === "authenticated" && initialLoading)) {
     return <LoadingScreen />;
@@ -338,7 +347,7 @@ function MyJourneyPage() {
         <button className={styles.backBtn} onClick={goBack}>←</button>
         <h1 className={styles.logo}>{t("myjourney.title", "My Journey")}</h1>
         {session && (
-          <button className={styles.logoutBtn} onClick={() => signOut({ callbackUrl: "/myjourney" })}>
+          <button className={styles.logoutBtn} onClick={handleLogout}>
             {t("myjourney.logout", "Logout")}
           </button>
         )}
@@ -379,7 +388,7 @@ function MyJourneyPage() {
                     </div>
                     <div
                       className={styles.creditsBadge}
-                      onClick={() => router.push('/pricing')}
+                      onClick={handleCreditsClick}
                     >
                       <span className={styles.creditsCount}>{credits.remaining}</span>
                       <span className={styles.creditsLabel}>{t("myjourney.credits.short", "credits")}</span>
@@ -525,7 +534,7 @@ function MyJourneyPage() {
                       {hasMore && (
                         <button
                           className={styles.showMoreBtn}
-                          onClick={() => setExpandedDays(prev => ({ ...prev, [day.date]: !prev[day.date] }))}
+                          onClick={() => toggleDayExpanded(day.date)}
                         >
                           {isExpanded ? t("myjourney.activity.showLess", "Show Less") : `${t("myjourney.activity.showMore", "Show More")} (+${day.records.length - 3})`}
                         </button>

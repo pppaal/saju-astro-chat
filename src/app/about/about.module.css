@@ -889,3 +889,209 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 360px) {
+  .main {
+    padding: 80px 12px 48px;
+  }
+
+  .hero {
+    margin-bottom: 48px;
+  }
+
+  .heroTitle {
+    font-size: 26px;
+    gap: 4px;
+  }
+
+  .heroSub {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .tagline {
+    font-size: 15px;
+  }
+
+  .sectionHeader {
+    margin-bottom: 36px;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+  }
+
+  .sectionDesc {
+    font-size: 14px;
+  }
+
+  .serviceCard {
+    padding: 24px 18px;
+    min-height: 180px;
+    border-radius: 18px;
+  }
+
+  .serviceIcon {
+    font-size: 40px;
+    margin-bottom: 4px;
+  }
+
+  .serviceTitle {
+    font-size: 20px;
+  }
+
+  .serviceDesc {
+    font-size: 14px;
+  }
+
+  .comingSoonBadge {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  .philosophyCard {
+    padding: 24px 20px;
+    border-radius: 16px;
+  }
+
+  .philosophyIcon {
+    font-size: 40px;
+  }
+
+  .philosophyCard h3 {
+    font-size: 17px;
+  }
+
+  .philosophyCard p {
+    font-size: 14px;
+  }
+
+  .cta {
+    padding: 40px 20px;
+    border-radius: 24px;
+  }
+
+  .ctaSub {
+    font-size: 15px;
+  }
+
+  .ctaPrimary,
+  .ctaSecondary {
+    padding: 14px 24px;
+    font-size: 14px;
+  }
+
+  .detailedInfo {
+    padding: 0 1rem;
+    margin: 2rem auto;
+  }
+
+  .infoMainTitle {
+    font-size: 1.5rem;
+    line-height: 1.4;
+  }
+
+  .infoIntro {
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  .infoTitle {
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .reasonCard {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .reasonIcon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .reasonTitle {
+    font-size: 1.1rem;
+  }
+
+  .reasonDesc {
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  .userCard {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+
+  .userIcon {
+    font-size: 1.75rem;
+  }
+
+  .userTitle {
+    font-size: 1rem;
+  }
+
+  .userDesc {
+    font-size: 0.85rem;
+  }
+
+  .infoCard {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .infoCardIcon {
+    font-size: 1.75rem;
+  }
+
+  .infoCardTitle {
+    font-size: 1.25rem;
+  }
+
+  .infoCardDesc {
+    font-size: 0.9rem;
+  }
+
+  .infoSubtitle {
+    font-size: 1.1rem;
+  }
+
+  .infoParagraph {
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+
+  .infoList li {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    border-left-width: 3px;
+  }
+
+  .stepCard {
+    padding: 1.5rem;
+    border-radius: 14px;
+  }
+
+  .stepNumber {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+  }
+
+  .stepTitle {
+    font-size: 1.1rem;
+  }
+
+  .stepDesc {
+    font-size: 0.9rem;
+  }
+
+  .backButton {
+    top: 10px;
+    left: 10px;
+    padding: 3px;
+    border-radius: 10px;
+  }
+}

@@ -781,9 +781,788 @@
 @media (max-width: 480px) {
   .card, .storyCard, .saturnCard, .missionCard {
     padding: 16px;
+    border-radius: 14px;
   }
 
   .cardHeader h3, .storyHeader h3 {
     font-size: 1rem;
+  }
+
+  .header {
+    margin-bottom: 18px;
+  }
+
+  .resetBtn {
+    padding: 7px 14px;
+    font-size: 0.85rem;
+    border-radius: 7px;
+  }
+
+  .scoreCard {
+    border-radius: 16px;
+  }
+
+  .scoreEmoji {
+    font-size: 2.75rem;
+    margin-bottom: 10px;
+  }
+
+  .scoreTitle {
+    font-size: 1.35rem;
+  }
+
+  .scoreType {
+    font-size: 0.9rem;
+    margin-bottom: 18px;
+  }
+
+  .scoreLabel {
+    font-size: 0.8rem;
+  }
+
+  .scoreTrack {
+    height: 7px;
+  }
+
+  .scoreValue {
+    font-size: 1.1rem;
+  }
+
+  .scoreRangeLabel {
+    font-size: 0.8rem;
+    padding: 3px 10px;
+  }
+
+  .scoreRangeDesc {
+    font-size: 0.85rem;
+  }
+
+  .tabNav {
+    margin-bottom: 18px;
+    border-radius: 10px;
+  }
+
+  .tabBtn {
+    min-width: 55px;
+    padding: 9px 5px;
+    gap: 3px;
+  }
+
+  .tabIcon {
+    font-size: 1.1rem;
+  }
+
+  .tabLabel {
+    font-size: 0.6rem;
+  }
+
+  .tabContent {
+    min-height: 250px;
+  }
+
+  .overviewGrid {
+    gap: 14px;
+  }
+
+  .cardHeader {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .cardIcon {
+    font-size: 1.35rem;
+  }
+
+  .cardDescription {
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+
+  .traits {
+    gap: 6px;
+  }
+
+  .trait {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+
+  .summaryItem {
+    padding: 10px;
+    border-radius: 7px;
+  }
+
+  .summaryLabel {
+    font-size: 0.75rem;
+  }
+
+  .summaryValue {
+    font-size: 0.9rem;
+  }
+
+  .talentItem {
+    padding: 9px 10px;
+    font-size: 0.85rem;
+    border-radius: 7px;
+  }
+
+  .talentIcon {
+    font-size: 0.9rem;
+  }
+
+  .storyHeader {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .storyIcon {
+    font-size: 1.5rem;
+  }
+
+  .storyText {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .eraTag {
+    margin-top: 12px;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+
+  .tlCard {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .tlHeader {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .tlHeader h4 {
+    font-size: 0.95rem;
+  }
+
+  .tlIcon {
+    font-size: 1.2rem;
+  }
+
+  .tlText {
+    font-size: 0.85rem;
+  }
+
+  .journeyContent {
+    gap: 24px;
+  }
+
+  .timelineMarker {
+    width: 42px;
+    height: 42px;
+    font-size: 1.3rem;
+  }
+
+  .timelineCard {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .timelineCard h4 {
+    font-size: 0.95rem;
+  }
+
+  .timelineCard p {
+    font-size: 0.85rem;
+  }
+
+  .releaseNote, .learnNote {
+    padding: 8px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+  }
+
+  .saturnHeader {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .saturnHeader h4 {
+    font-size: 1rem;
+  }
+
+  .saturnIcon {
+    font-size: 1.35rem;
+  }
+
+  .saturnItem {
+    padding: 10px;
+    border-radius: 7px;
+  }
+
+  .saturnLabel {
+    font-size: 0.7rem;
+    margin-bottom: 5px;
+  }
+
+  .saturnItem p {
+    font-size: 0.85rem;
+  }
+
+  .karmaContent {
+    gap: 16px;
+  }
+
+  .karmaIntro {
+    font-size: 0.9rem;
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .karmaCard {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .karmaArea {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .karmaArea h4 {
+    font-size: 0.95rem;
+  }
+
+  .karmaIcon {
+    font-size: 1.2rem;
+  }
+
+  .karmaDescription {
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+  }
+
+  .karmaHealing {
+    padding: 10px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+  }
+
+  .noKarma {
+    padding: 32px;
+    border-radius: 14px;
+  }
+
+  .noKarmaIcon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+  }
+
+  .noKarma p {
+    font-size: 0.9rem;
+  }
+
+  .missionContent {
+    gap: 18px;
+  }
+
+  .missionHeader {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .missionHeader h3 {
+    font-size: 1.1rem;
+  }
+
+  .missionIcon {
+    font-size: 1.35rem;
+  }
+
+  .missionText {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .missionItem {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .missionItemHeader {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .missionItemHeader h4 {
+    font-size: 0.95rem;
+  }
+
+  .missionItemIcon {
+    font-size: 1.2rem;
+  }
+
+  .missionItem p {
+    font-size: 0.85rem;
+  }
+
+  .talentsSection {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .talentsSectionTitle {
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+  }
+
+  .talentsTags {
+    gap: 6px;
+  }
+
+  .talentTag {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .card, .storyCard, .saturnCard, .missionCard {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .header {
+    margin-bottom: 14px;
+  }
+
+  .resetBtn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+  }
+
+  .scoreCard {
+    padding: 18px 12px;
+    border-radius: 14px;
+  }
+
+  .scoreEmoji {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+  }
+
+  .scoreTitle {
+    font-size: 1.2rem;
+  }
+
+  .scoreType {
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+  }
+
+  .scoreLabel {
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+  }
+
+  .scoreTrack {
+    height: 6px;
+    margin-bottom: 6px;
+  }
+
+  .scoreValue {
+    font-size: 1rem;
+  }
+
+  .scoreInterpretation {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .scoreRangeLabel {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    margin-bottom: 6px;
+  }
+
+  .scoreRangeDesc {
+    font-size: 0.8rem;
+    line-height: 1.45;
+  }
+
+  .tabNav {
+    gap: 3px;
+    padding: 5px;
+    margin-bottom: 14px;
+    border-radius: 8px;
+  }
+
+  .tabBtn {
+    min-width: 48px;
+    padding: 8px 4px;
+    gap: 2px;
+    border-radius: 6px;
+  }
+
+  .tabIcon {
+    font-size: 1rem;
+  }
+
+  .tabLabel {
+    font-size: 0.55rem;
+  }
+
+  .tabContent {
+    min-height: 220px;
+  }
+
+  .overviewGrid {
+    gap: 12px;
+  }
+
+  .cardHeader {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .cardHeader h3 {
+    font-size: 0.95rem;
+  }
+
+  .cardIcon {
+    font-size: 1.2rem;
+  }
+
+  .cardDescription {
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin-bottom: 10px;
+  }
+
+  .traits {
+    gap: 5px;
+  }
+
+  .trait {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+
+  .summaryList {
+    gap: 10px;
+  }
+
+  .summaryItem {
+    padding: 8px;
+    border-radius: 6px;
+    gap: 3px;
+  }
+
+  .summaryLabel {
+    font-size: 0.7rem;
+  }
+
+  .summaryValue {
+    font-size: 0.85rem;
+  }
+
+  .talentList {
+    gap: 6px;
+  }
+
+  .talentItem {
+    padding: 8px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    gap: 6px;
+  }
+
+  .talentIcon {
+    font-size: 0.85rem;
+  }
+
+  .pastLifeContent {
+    gap: 18px;
+  }
+
+  .storyCard {
+    padding: 20px 14px;
+  }
+
+  .storyHeader {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .storyHeader h3 {
+    font-size: 1.05rem;
+  }
+
+  .storyIcon {
+    font-size: 1.35rem;
+  }
+
+  .storyText {
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .eraTag {
+    margin-top: 10px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    gap: 5px;
+  }
+
+  .eraIcon {
+    font-size: 0.9rem;
+  }
+
+  .tlGrid {
+    gap: 12px;
+  }
+
+  .tlCard {
+    padding: 14px;
+    border-radius: 8px;
+  }
+
+  .tlHeader {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .tlHeader h4 {
+    font-size: 0.9rem;
+  }
+
+  .tlIcon {
+    font-size: 1.1rem;
+  }
+
+  .tlText {
+    font-size: 0.8rem;
+    line-height: 1.55;
+  }
+
+  .journeyContent {
+    gap: 20px;
+  }
+
+  .timeline {
+    gap: 12px;
+  }
+
+  .timelineItem {
+    gap: 10px;
+  }
+
+  .timelineMarker {
+    width: 38px;
+    height: 38px;
+    font-size: 1.2rem;
+  }
+
+  .timelineCard {
+    padding: 14px;
+    border-radius: 8px;
+  }
+
+  .timelineCard h4 {
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+  }
+
+  .timelineCard p {
+    font-size: 0.8rem;
+    margin-bottom: 10px;
+  }
+
+  .timelineArrow {
+    font-size: 1.5rem;
+  }
+
+  .releaseNote, .learnNote {
+    padding: 7px;
+    font-size: 0.75rem;
+    gap: 6px;
+  }
+
+  .releaseIcon, .learnIcon {
+    font-size: 0.9rem;
+  }
+
+  .saturnCard {
+    padding: 18px 14px;
+  }
+
+  .saturnHeader {
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .saturnHeader h4 {
+    font-size: 0.95rem;
+  }
+
+  .saturnIcon {
+    font-size: 1.25rem;
+  }
+
+  .saturnGrid {
+    gap: 12px;
+  }
+
+  .saturnItem {
+    padding: 8px;
+    border-radius: 6px;
+  }
+
+  .saturnLabel {
+    font-size: 0.65rem;
+    margin-bottom: 4px;
+  }
+
+  .saturnItem p {
+    font-size: 0.8rem;
+    line-height: 1.45;
+  }
+
+  .karmaContent {
+    gap: 14px;
+  }
+
+  .karmaIntro {
+    font-size: 0.85rem;
+    padding: 10px;
+    border-radius: 8px;
+    line-height: 1.55;
+  }
+
+  .karmaList {
+    gap: 12px;
+  }
+
+  .karmaCard {
+    padding: 14px;
+    border-radius: 8px;
+  }
+
+  .karmaArea {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .karmaArea h4 {
+    font-size: 0.9rem;
+  }
+
+  .karmaIcon {
+    font-size: 1.1rem;
+  }
+
+  .karmaDescription {
+    font-size: 0.8rem;
+    line-height: 1.55;
+    margin-bottom: 10px;
+  }
+
+  .karmaHealing {
+    padding: 8px;
+    font-size: 0.75rem;
+    border-radius: 5px;
+    gap: 6px;
+  }
+
+  .healingIcon {
+    font-size: 0.9rem;
+  }
+
+  .noKarma {
+    padding: 28px;
+    border-radius: 12px;
+  }
+
+  .noKarmaIcon {
+    font-size: 2.25rem;
+    margin-bottom: 10px;
+  }
+
+  .noKarma p {
+    font-size: 0.85rem;
+  }
+
+  .missionContent {
+    gap: 16px;
+  }
+
+  .missionCard {
+    padding: 20px 14px;
+  }
+
+  .missionHeader {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .missionHeader h3 {
+    font-size: 1rem;
+  }
+
+  .missionIcon {
+    font-size: 1.25rem;
+  }
+
+  .missionText {
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .missionGrid {
+    gap: 12px;
+  }
+
+  .missionItem {
+    padding: 14px;
+    border-radius: 8px;
+  }
+
+  .missionItemHeader {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .missionItemHeader h4 {
+    font-size: 0.9rem;
+  }
+
+  .missionItemIcon {
+    font-size: 1.1rem;
+  }
+
+  .missionItem p {
+    font-size: 0.8rem;
+    line-height: 1.55;
+  }
+
+  .talentsSection {
+    padding: 14px;
+    border-radius: 8px;
+  }
+
+  .talentsSectionTitle {
+    font-size: 0.9rem;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .talentsTags {
+    gap: 5px;
+  }
+
+  .talentTag {
+    padding: 5px 10px;
+    font-size: 0.8rem;
   }
 }

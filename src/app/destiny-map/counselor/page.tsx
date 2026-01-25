@@ -1,7 +1,6 @@
 "use client";
 
-import * as React from "react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -32,7 +31,7 @@ export default function CounselorPage({
   searchParams: Promise<SearchParams>;
 }) {
   const { t, setLocale } = useI18n();
-  const sp = React.use(searchParams);
+  const sp = use(searchParams);
   const router = useRouter();
   const { status: authStatus } = useSession();
   const isAuthed = authStatus === "authenticated";
@@ -78,25 +77,15 @@ export default function CounselorPage({
   // Theme selection state (can be changed by user)
   const [selectedTheme, setSelectedTheme] = useState(theme);
 
-  // Available themes with labels
-  const themeOptions: Array<{ key: string; icon: string; label: string }> = [
-    // { key: "love", icon: "💕", label: lang === "ko" ? "연애" : "Love" },
-    // { key: "career", icon: "💼", label: lang === "ko" ? "커리어" : "Career" },
-    // { key: "health", icon: "🏥", label: lang === "ko" ? "건강" : "Health" },
-    // { key: "wealth", icon: "💰", label: lang === "ko" ? "재물" : "Wealth" },
-    // { key: "today", icon: "📅", label: lang === "ko" ? "오늘" : "Today" },
-    // { key: "month", icon: "📆", label: lang === "ko" ? "이달" : "Month" },
-    // { key: "year", icon: "🗓️", label: lang === "ko" ? "올해" : "Year" },
-    // { key: "family", icon: "👨‍👩‍👧", label: lang === "ko" ? "가족" : "Family" },
-    // { key: "life", icon: "🌟", label: lang === "ko" ? "인생" : "Life" },
-  ];
+  // Available themes with labels (currently empty - commented out options)
+  const themeOptions = useMemo<Array<{ key: string; icon: string; label: string }>>(() => [], []);
 
-  const loadingMessages = [
+  const loadingMessages = useMemo(() => [
     t("destinyMap.counselor.loading1", "Connecting with counselor..."),
     t("destinyMap.counselor.loading2", "Analyzing your profile..."),
     t("destinyMap.counselor.loading3", "Preparing data..."),
     t("destinyMap.counselor.loading4", "Ready to start!"),
-  ];
+  ], [t]);
 
   // Set locale from URL parameter
   useEffect(() => {
@@ -503,6 +492,10 @@ export default function CounselorPage({
     router.push(buildSignInUrl(`/destiny-map/counselor${search}`));
   }, [router]);
 
+  const handleBack = useCallback(() => router.back(), [router]);
+
+  const handleChatReset = useCallback(() => window.location.reload(), []);
+
   if (isCheckingAuth) {
     return (
       <main className={styles.page}>
@@ -599,7 +592,7 @@ export default function CounselorPage({
         <button
           type="button"
           className={styles.backButton}
-          onClick={() => router.back()}
+          onClick={handleBack}
           aria-label={t("common.back", "뒤로가기")}
         >
           <span className={styles.backIcon}>←</span>
@@ -653,7 +646,7 @@ export default function CounselorPage({
           fallback={
             <ChatErrorFallback
               error={new Error("Chat error")}
-              reset={() => window.location.reload()}
+              reset={handleChatReset}
             />
           }
           onError={(error) => {

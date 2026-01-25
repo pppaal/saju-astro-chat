@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
@@ -577,7 +577,7 @@ export default function CombinedResultPage() {
   const [hasPersona, setHasPersona] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadResults = useCallback(() => {
     // Load ICP results
     const icpAnswers = localStorage.getItem('icpQuizAnswers');
     if (icpAnswers) {
@@ -607,7 +607,24 @@ export default function CombinedResultPage() {
     setLoading(false);
   }, [locale]);
 
-  const insights = generateCombinedInsights(icpResult, personaResult, isKo);
+  useEffect(() => {
+    loadResults();
+  }, [loadResults]);
+
+  const insights = useMemo(
+    () => generateCombinedInsights(icpResult, personaResult, isKo),
+    [icpResult, personaResult, isKo]
+  );
+
+  // Memoize star positions to avoid recalculation
+  const starPositions = useMemo(
+    () => Array.from({ length: 50 }, (_, i) => ({
+      left: `${(i * 37 + 13) % 100}%`,
+      top: `${(i * 53 + 7) % 100}%`,
+      animationDelay: `${(i * 0.08) % 4}s`,
+    })),
+    []
+  );
 
   if (loading) {
     return (
@@ -675,15 +692,11 @@ export default function CombinedResultPage() {
 
       {/* Background Stars */}
       <div className={styles.stars}>
-        {[...Array(50)].map((_, i) => (
+        {starPositions.map((pos, i) => (
           <div
             key={i}
             className={styles.star}
-            style={{
-              left: `${(i * 37 + 13) % 100}%`,
-              top: `${(i * 53 + 7) % 100}%`,
-              animationDelay: `${(i * 0.08) % 4}s`,
-            }}
+            style={pos}
           />
         ))}
       </div>

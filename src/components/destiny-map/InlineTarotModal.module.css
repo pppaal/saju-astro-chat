@@ -617,8 +617,93 @@
     padding: 16px 20px;
   }
 
+  .title {
+    font-size: 1.15rem;
+  }
+
+  .closeButton {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .stepIndicator {
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .stepDot {
+    width: 9px;
+    height: 9px;
+  }
+
   .content {
     padding: 16px;
+  }
+
+  .stepTitle {
+    font-size: 1rem;
+    margin-bottom: 16px;
+  }
+
+  .concernInput {
+    padding: 14px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+  }
+
+  .hint {
+    font-size: 0.8rem;
+    margin: 10px 0 16px;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    padding: 12px 20px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+  }
+
+  .spreadCard {
+    padding: 14px 16px;
+    border-radius: 14px;
+  }
+
+  .spreadCardCount {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+
+  .spreadCard .spreadTitle {
+    font-size: 0.95rem;
+  }
+
+  .spreadDesc {
+    font-size: 0.8rem;
+  }
+
+  .spreadTip {
+    font-size: 0.75rem;
+  }
+
+  .aiReasonText {
+    font-size: 0.85rem;
+    padding: 6px 14px;
+  }
+
+  .drawArea {
+    gap: 20px;
+    padding: 16px 0;
+  }
+
+  .deckStack {
+    width: 90px;
+    height: 135px;
+  }
+
+  .drawButton {
+    padding: 14px 35px;
+    font-size: 1rem;
   }
 
   .resultActions {
@@ -637,6 +722,8 @@
   .drawAgainButton,
   .saveButton {
     justify-content: center;
+    padding: 10px 20px;
+    font-size: 0.9rem;
   }
 
   .drawnCardsGrid {
@@ -646,11 +733,310 @@
   .cardBack {
     width: 100px;
     height: 150px;
+    border-radius: 10px;
+    font-size: 2.5rem;
+  }
+
+  .interpretingLoader {
+    gap: 16px;
+    padding: 32px 0;
+  }
+
+  .crystalBall {
+    width: 70px;
+    height: 70px;
+  }
+
+  .interpretingText {
+    font-size: 0.95rem;
+  }
+
+  .streamingPreview {
+    padding: 14px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    max-height: 130px;
+  }
+
+  .resultCardsRow {
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 12px 0;
   }
 
   .concernDisplay {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
+    padding: 10px 14px;
+    border-radius: 10px;
+  }
+
+  .concernLabel {
+    font-size: 0.75rem;
+  }
+
+  .concernText {
+    font-size: 0.85rem;
+  }
+
+  .resultSection {
+    padding: 14px 16px;
+    border-radius: 14px;
+    margin-bottom: 14px;
+  }
+
+  .resultSectionTitle {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+  }
+
+  .resultText {
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .affirmationBox {
+    padding: 14px 16px;
+    gap: 10px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+  }
+
+  .affirmationIcon {
+    font-size: 1.35rem;
+  }
+
+  .affirmationText {
+    font-size: 0.95rem;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .overlay {
+    padding: 16px;
+  }
+
+  .modal {
+    border-radius: 16px 16px 0 0;
+  }
+
+  .header {
+    padding: 14px 16px;
+  }
+
+  .title {
+    font-size: 1.05rem;
+  }
+
+  .closeButton {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+  }
+
+  .stepIndicator {
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .stepDot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .content {
+    padding: 14px;
+  }
+
+  .stepTitle {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+  }
+
+  .concernInput {
+    padding: 12px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    margin: 8px 0 14px;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    gap: 6px;
+  }
+
+  .spreadGrid {
+    gap: 12px;
+  }
+
+  .spreadCard {
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .spreadCardCount {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    margin-bottom: 6px;
+  }
+
+  .spreadCard .spreadTitle {
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+
+  .spreadDesc {
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+  }
+
+  .spreadTip {
+    font-size: 0.7rem;
+  }
+
+  .aiReasonText {
+    font-size: 0.8rem;
+    padding: 5px 12px;
+    margin-bottom: 14px;
+  }
+
+  .drawArea {
+    gap: 18px;
+    padding: 14px 0;
+  }
+
+  .deckStack {
+    width: 80px;
+    height: 120px;
+  }
+
+  .deckCard {
+    border-radius: 10px;
+  }
+
+  .drawButton {
+    padding: 12px 30px;
+    font-size: 0.95rem;
+    border-radius: 25px;
+  }
+
+  .drawnCardsGrid {
+    gap: 10px;
+    padding: 18px 0;
+  }
+
+  .cardBack {
+    width: 90px;
+    height: 135px;
+    border-radius: 8px;
+    font-size: 2.25rem;
+  }
+
+  .interpretingLoader {
+    gap: 14px;
+    padding: 28px 0;
+  }
+
+  .crystalBall {
+    width: 60px;
+    height: 60px;
+  }
+
+  .interpretingText {
+    font-size: 0.9rem;
+  }
+
+  .streamingPreview {
+    padding: 12px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+    max-height: 120px;
+  }
+
+  .resultCardsRow {
+    gap: 14px;
+    margin-bottom: 20px;
+    padding: 10px 0;
+  }
+
+  .resultCardWrapper {
+    transform: scale(1);
+  }
+
+  .resultCardWrapper:hover {
+    transform: scale(1.02);
+  }
+
+  .concernDisplay {
+    padding: 8px 12px;
+    gap: 4px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+
+  .concernLabel {
+    font-size: 0.7rem;
+  }
+
+  .concernText {
+    font-size: 0.8rem;
+  }
+
+  .resultTopActions {
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .drawAgainButton,
+  .saveButton {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    border-radius: 24px;
+    gap: 6px;
+  }
+
+  .resultSection {
+    padding: 12px 14px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+
+  .resultSectionTitle {
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+  }
+
+  .resultText {
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .affirmationBox {
+    padding: 12px 14px;
+    gap: 8px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+  }
+
+  .affirmationIcon {
+    font-size: 1.25rem;
+  }
+
+  .affirmationText {
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .resultActions {
+    gap: 10px;
   }
 }

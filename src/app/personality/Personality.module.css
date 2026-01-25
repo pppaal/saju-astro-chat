@@ -1255,3 +1255,456 @@
     font-size: 1.3rem;
   }
 }
+
+@media (max-width: 480px) {
+  .page {
+    padding: 1rem 0.75rem;
+  }
+
+  .card {
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
+  }
+
+  .quizCard {
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .icon {
+    font-size: 3rem;
+  }
+
+  .questionCard {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+
+  .questionNumber {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+
+  .questionText {
+    font-size: 0.95rem;
+  }
+
+  .option {
+    padding: 0.875rem 1.25rem;
+    padding-right: 2.5rem;
+    font-size: 0.9rem;
+  }
+
+  .submitButton {
+    padding: 14px 36px;
+    font-size: 1rem;
+  }
+
+  .testInfo {
+    padding: 0.75rem 1.25rem;
+    gap: 0.5rem;
+  }
+
+  .infoText {
+    font-size: 0.85rem;
+  }
+
+  .featureItem {
+    padding: 0.875rem 1.25rem;
+    gap: 1rem;
+  }
+
+  .featureIcon {
+    width: 38px;
+    height: 38px;
+    font-size: 1.2rem;
+  }
+
+  .genderButton {
+    padding: 1rem 1.5rem;
+    min-width: 100px;
+  }
+
+  .genderIcon {
+    font-size: 2rem;
+  }
+
+  .genderText {
+    font-size: 0.8rem;
+  }
+
+  .resultCard {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .personaName {
+    font-size: 1.4rem;
+  }
+
+  .personaSummary {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .page {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .card {
+    padding: 1.25rem 0.875rem;
+    border-radius: 16px;
+  }
+
+  .quizCard {
+    padding: 1.25rem 0.875rem;
+    border-radius: 16px;
+  }
+
+  .title {
+    font-size: 1.35rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .header {
+    margin-bottom: 1.5rem;
+  }
+
+  .progressContainer {
+    margin-bottom: 1.5rem;
+  }
+
+  .progressLabel,
+  .progressPercent {
+    font-size: 0.75rem;
+  }
+
+  .questionCard {
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .questionHeader {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .questionNumber {
+    width: 26px;
+    height: 26px;
+    font-size: 0.7rem;
+  }
+
+  .questionText {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  .optionsGrid {
+    gap: 0.5rem;
+  }
+
+  .option {
+    padding: 0.75rem 1rem;
+    padding-right: 2.25rem;
+    font-size: 0.85rem;
+    border-radius: 10px;
+  }
+
+  .radioIndicator {
+    width: 14px;
+    height: 14px;
+    top: 0.6rem;
+    right: 0.6rem;
+  }
+
+  .radioInner {
+    width: 6px;
+    height: 6px;
+  }
+
+  .submitButton {
+    padding: 12px 28px;
+    font-size: 0.95rem;
+    margin-top: 1.5rem;
+  }
+
+  .testInfo {
+    padding: 0.625rem 1rem;
+    gap: 0.5rem;
+    border-radius: 40px;
+    margin: 1.25rem 0 1.5rem;
+  }
+
+  .infoItem {
+    gap: 0.4rem;
+  }
+
+  .infoIcon {
+    font-size: 1rem;
+  }
+
+  .infoText {
+    font-size: 0.8rem;
+  }
+
+  .features {
+    gap: 0.65rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .featureItem {
+    padding: 0.75rem 1rem;
+    gap: 0.875rem;
+    border-radius: 12px;
+  }
+
+  .featureIcon {
+    width: 34px;
+    height: 34px;
+    font-size: 1.1rem;
+    border-radius: 10px;
+  }
+
+  .featureItem h3 {
+    font-size: 0.9rem;
+  }
+
+  .featureItem p {
+    font-size: 0.8rem;
+  }
+
+  .genderSection {
+    margin: 1rem 0 0.25rem;
+  }
+
+  .genderLabel {
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .genderButtons {
+    gap: 0.75rem;
+  }
+
+  .genderButton {
+    padding: 0.875rem 1.25rem;
+    min-width: 85px;
+    border-radius: 12px;
+  }
+
+  .genderIcon {
+    font-size: 1.75rem;
+  }
+
+  .genderText {
+    font-size: 0.75rem;
+  }
+
+  .questionProgress {
+    gap: 0.35rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .questionDot {
+    width: 20px;
+    height: 20px;
+    font-size: 0.55rem;
+  }
+
+  .pageProgress {
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+  }
+
+  .pageDot {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+  }
+
+  .pageInfo {
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .pageNavigation {
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .navButton {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    min-width: 110px;
+    max-width: 240px;
+  }
+
+  .pageNavigation .submitButton {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    min-width: 160px;
+    max-width: 240px;
+  }
+
+  /* Result page 360px */
+  .resultContainer {
+    padding: 0 0.25rem;
+  }
+
+  .personaHeader {
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .personaLabel {
+    font-size: 0.8rem;
+  }
+
+  .personaName {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .personaSummary {
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .typeCodeBadge {
+    padding: 0.375rem 0.75rem;
+    margin-right: 0.5rem;
+  }
+
+  .typeCode {
+    font-size: 0.95rem;
+  }
+
+  .typeCodeLabel {
+    font-size: 0.7rem;
+  }
+
+  .consistencyBadge {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .motivationCard {
+    min-width: auto;
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .motivationLabel {
+    font-size: 0.8rem;
+  }
+
+  .motivationList li {
+    font-size: 0.8rem;
+  }
+
+  .resultGrid {
+    gap: 1rem;
+  }
+
+  .resultCard {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .resultCardTitle {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .axisLabels {
+    margin-bottom: 0.35rem;
+  }
+
+  .axisPole {
+    font-size: 0.75rem;
+  }
+
+  .axisName {
+    font-size: 0.65rem;
+  }
+
+  .axisTrack {
+    height: 6px;
+  }
+
+  .tagContainer {
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .tagStrength,
+  .tagChallenge,
+  .tagRole {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .sectionLabel {
+    font-size: 0.8rem;
+  }
+
+  .sectionText {
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .downloadButton {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.8rem;
+  }
+
+  .fineTuneSection {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+  }
+
+  .fineTuneTitle {
+    font-size: 1.1rem;
+  }
+
+  .fineTuneDesc {
+    font-size: 0.8rem;
+  }
+
+  .scrollToTop {
+    bottom: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .scrollToTopIcon {
+    font-size: 1.2rem;
+  }
+}

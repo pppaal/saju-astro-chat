@@ -1628,6 +1628,434 @@
   filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.4));
 }
 
+/* =====================================================
+   ANALYZING LOADER STYLES
+   ===================================================== */
+
+.loaderMain {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  padding: 20px;
+}
+
+.loaderCard {
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  padding: 48px 32px;
+  background: rgba(15, 12, 41, 0.8);
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 60px rgba(167, 139, 250, 0.1);
+}
+
+.loaderIcon {
+  font-size: 72px;
+  margin-bottom: 28px;
+  filter: drop-shadow(0 0 20px rgba(167, 139, 250, 0.6));
+}
+
+.loaderIconSpin {
+  display: inline-block;
+  animation: spin 8s linear infinite;
+}
+
+.loaderTitle {
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+
+.loaderSubtitle {
+  color: #a78bfa;
+  font-size: 13px;
+  margin-bottom: 36px;
+  opacity: 0.8;
+}
+
+.progressBar {
+  background: rgba(167, 139, 250, 0.1);
+  border-radius: 12px;
+  height: 6px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  border: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #a78bfa, #818cf8, #6366f1);
+  border-radius: 12px;
+  transition: width 0.5s ease-out;
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.6);
+}
+
+.progressPercent {
+  font-size: 13px;
+  color: #a78bfa;
+  font-weight: 600;
+  margin-bottom: 28px;
+}
+
+.stepList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  transition: all 0.3s;
+  border: 1px solid transparent;
+}
+
+.stepItemActive {
+  background: rgba(167, 139, 250, 0.15);
+  border-color: rgba(167, 139, 250, 0.3);
+}
+
+.stepIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepIconCompleted {
+  background: linear-gradient(135deg, #a78bfa, #818cf8);
+  color: #fff;
+  font-size: 14px;
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.5);
+}
+
+.stepIconActive {
+  background: rgba(167, 139, 250, 0.3);
+  color: #fff;
+  font-size: 16px;
+}
+
+.stepIconPending {
+  background: rgba(255, 255, 255, 0.05);
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.stepLabel {
+  font-size: 14px;
+  text-align: left;
+}
+
+.stepLabelActive {
+  color: #e5e7eb;
+  font-weight: 500;
+}
+
+.stepLabelInactive {
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.loaderFunFact {
+  margin-top: 32px;
+  font-size: 11px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* =====================================================
+   LIFE PREDICTION SKELETON
+   ===================================================== */
+
+.skeletonContainer {
+  padding: 24px;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.skeletonFlex {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+
+.skeletonItem {
+  min-width: 100px;
+  height: 140px;
+  border-radius: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  animation: pulse 1.5s infinite;
+}
+
+/* =====================================================
+   TAB NAVIGATION
+   ===================================================== */
+
+.tabContainer {
+  display: flex;
+  gap: 0;
+  margin-bottom: 28px;
+  justify-content: center;
+  background: rgba(15, 12, 41, 0.6);
+  border-radius: 16px;
+  padding: 4px;
+  border: 1px solid rgba(167, 139, 250, 0.15);
+}
+
+.tabButton {
+  flex: 1;
+  max-width: 200px;
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  box-shadow: none;
+}
+
+.tabButtonDestinyActive {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+}
+
+.tabButtonLifeActive {
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+}
+
+.tabIcon {
+  font-size: 18px;
+}
+
+/* =====================================================
+   ANALYSIS DATE DISPLAY
+   ===================================================== */
+
+.analysisDateBadge {
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 10px 20px;
+  background: rgba(167, 139, 250, 0.1);
+  border-radius: 12px;
+  font-size: 14px;
+  color: #a78bfa;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto 20px;
+}
+
+.analysisDateCity {
+  opacity: 0.8;
+  border-left: 1px solid rgba(167, 139, 250, 0.3);
+  padding-left: 8px;
+  margin-left: 4px;
+}
+
+.analysisDateWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+/* =====================================================
+   COUNSELOR BUTTON SECTION
+   ===================================================== */
+
+.counselorSection {
+  margin-top: 48px;
+  margin-bottom: 20px;
+}
+
+.counselorDivider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.counselorLine {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent);
+}
+
+.counselorLabel {
+  color: #a78bfa;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.counselorButton {
+  width: 100%;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 16px;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+}
+
+.counselorButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(139, 92, 246, 0.5), 0 0 60px rgba(139, 92, 246, 0.3);
+}
+
+.counselorButtonBlue {
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
+}
+
+.counselorButtonIcon {
+  font-size: 24px;
+}
+
+.counselorButtonArrow {
+  font-size: 20px;
+}
+
+/* =====================================================
+   LIFE PREDICTION TAB
+   ===================================================== */
+
+.lifePredictionHeader {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.lifePredictionTitle {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.lifePredictionSubtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.lifePredictionError {
+  padding: 32px;
+  text-align: center;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 16px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.lifePredictionErrorIcon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.lifePredictionErrorText {
+  color: #f87171;
+  margin-bottom: 16px;
+}
+
+.lifePredictionRetryButton {
+  padding: 10px 24px;
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.saveButtonContainer {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.saveButton {
+  padding: 12px 32px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.saveButtonIdle {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.saveButtonSaved {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  cursor: default;
+}
+
+.saveButtonError {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* =====================================================
+   THEME BUTTONS CONTAINER
+   ===================================================== */
+
+.themeButtonsContainer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  justify-content: center;
+}
+
+/* =====================================================
+   ERROR / EMPTY STATES
+   ===================================================== */
+
+.errorBox {
+  padding: 40px;
+  color: crimson;
+}
+
+.retryButton {
+  margin-top: 16px;
+}
+
 @media (max-width: 640px) {
   .themeSections {
     gap: 16px;
