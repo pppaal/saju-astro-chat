@@ -2095,8 +2095,8 @@
   },
   "auth": {
     "signIn": "로그인",
-    "welcomeBack": "다시 오신 것을 환영합니다",
-    "signInToContinue": "우주 여행을 계속하려면 로그인하세요",
+    "welcomeBack": "다시 오신것을 환영합니다",
+    "signInToContinue": "DestinyPal을 이용하시려면 클릭하세요",
     "signInWithGoogle": "Google로 로그인",
     "secureAuthentication": "보안 인증",
     "dataProtected": "OAuth 2.0으로 데이터가 보호됩니다",

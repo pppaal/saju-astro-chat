@@ -4220,3 +4220,147 @@ to { opacity: 1; transform: translateY(0); }
     font-size: 0.9rem;
   }
 }
+
+/* ============================================================
+   SERVICE PAGINATION STYLES
+   ============================================================ */
+
+.serviceScrollContainer {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.servicePages {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  scroll-behavior: smooth;
+}
+
+.servicePages::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.servicePage {
+  flex: 0 0 100%;
+  width: 100%;
+  scroll-snap-align: start;
+  padding: 0 4px; /* Small padding to prevent cut-off */
+}
+
+.serviceNavButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.9);
+  border: 1px solid rgba(167, 139, 250, 0.5);
+  color: white;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.serviceNavButton:hover {
+  background: rgba(139, 92, 246, 1);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.5);
+}
+
+.serviceNavLeft {
+  left: -20px;
+}
+
+.serviceNavRight {
+  right: -20px;
+}
+
+.servicePageIndicators {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.servicePageDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.servicePageDot:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.2);
+}
+
+.servicePageDot.active {
+  background: rgba(139, 92, 246, 0.9);
+  width: 32px;
+  border-radius: 6px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 1000px) {
+  .serviceNavButton {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+  }
+
+  .serviceNavLeft {
+    left: -12px;
+  }
+
+  .serviceNavRight {
+    right: -12px;
+  }
+
+  .servicePage {
+    padding: 0 2px;
+  }
+}
+
+@media (max-width: 600px) {
+  .serviceNavButton {
+    width: 36px;
+    height: 36px;
+    font-size: 1.3rem;
+  }
+
+  .serviceNavLeft {
+    left: -8px;
+  }
+
+  .serviceNavRight {
+    right: -8px;
+  }
+
+  .servicePageIndicators {
+    gap: 8px;
+    margin-top: 1.5rem;
+  }
+
+  .servicePageDot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .servicePageDot.active {
+    width: 24px;
+  }
+}

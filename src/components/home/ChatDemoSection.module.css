@@ -404,3 +404,99 @@
     font-size: 0.875rem;
   }
 }
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .chatDemoSection {
+    padding: 48px 12px;
+  }
+
+  .chatDemoContainer {
+    gap: 32px;
+  }
+
+  .demoTitle {
+    font-size: 1.3rem;
+    margin-bottom: 14px;
+  }
+
+  .demoSubtitle {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .chatWindow {
+    border-radius: 18px;
+  }
+
+  .chatHeader {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .aiAvatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.8rem;
+  }
+
+  .aiName {
+    font-size: 0.9rem;
+  }
+
+  .aiStatus {
+    font-size: 0.75rem;
+    gap: 5px;
+  }
+
+  .statusDot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .chatMessages {
+    height: 350px;
+    min-height: 350px;
+    max-height: 350px;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .messageAvatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.65rem;
+  }
+
+  .messageContent {
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+
+  .messageContent p {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .messageTime {
+    font-size: 0.65rem;
+    margin-top: 6px;
+  }
+
+  .chatInput {
+    padding: 14px 12px;
+    gap: 10px;
+  }
+
+  .inputField {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    border-radius: 20px;
+  }
+
+  .sendButton {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+}

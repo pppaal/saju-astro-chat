@@ -25,3 +25,46 @@
   color: rgba(168, 237, 234, 0.9);
   font-weight: 500;
 }
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .sectionHeader {
+    gap: 0.625rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .sectionIcon {
+    font-size: 1.25rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.1rem;
+  }
+
+  .sectionBadge {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.7rem;
+  }
+}
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .sectionHeader {
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .sectionIcon {
+    font-size: 1.125rem;
+  }
+
+  .sectionTitle {
+    font-size: 1rem;
+  }
+
+  .sectionBadge {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.65rem;
+    border-radius: 0.75rem;
+  }
+}

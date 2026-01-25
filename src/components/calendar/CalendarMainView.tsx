@@ -21,7 +21,6 @@ interface CalendarMainViewProps {
   activeCategory: EventCategory | "all";
   isDarkTheme: boolean;
   slideDirection: 'left' | 'right' | null;
-  cacheHit: boolean;
   savedDates: Set<string>;
   saving: boolean;
   saveMsg: string | null;
@@ -48,7 +47,6 @@ export default function CalendarMainView({
   activeCategory,
   isDarkTheme,
   slideDirection,
-  cacheHit,
   savedDates,
   saving,
   saveMsg,
@@ -209,17 +207,6 @@ export default function CalendarMainView({
             </div>
           </div>
           <div className={styles.headerActions}>
-            {cacheHit && (
-              <span
-                className={styles.cacheIndicator}
-                title={locale === "ko" ? "저장된 데이터 사용 중 (빠른 로딩)" : "Using cached data (fast loading)"}
-              >
-                <span className={styles.cacheIcon}>⚡</span>
-                <span className={styles.cacheText}>
-                  {locale === "ko" ? "캐시" : "Cached"}
-                </span>
-              </span>
-            )}
             <button className={styles.editBirthBtn} onClick={onEditBirthInfo}>
               <span>✏️</span>
               <span>{locale === "ko" ? "수정" : "Edit"}</span>
@@ -233,23 +220,28 @@ export default function CalendarMainView({
             <span className={styles.summaryBadge} title={locale === "ko" ? "최고의 날 (~5%)" : "Best Days (~5%)"}>
               <span className={styles.badgeEmoji}>🌟</span>
               <span className={styles.badgeLabel}>{locale === "ko" ? "최고" : "Best"}</span>
-              <span className={styles.badgeCount}>{yearSummary.grade0}</span>
+              <span className={styles.badgeCount}>{yearSummary.grade0}/{yearSummary.total}</span>
             </span>
             <span className={styles.summaryBadge} title={locale === "ko" ? "좋은 날 (~15%)" : "Good Days (~15%)"}>
               <span className={styles.badgeEmoji}>✨</span>
               <span className={styles.badgeLabel}>{locale === "ko" ? "좋음" : "Good"}</span>
-              <span className={styles.badgeCount}>{yearSummary.grade1}</span>
+              <span className={styles.badgeCount}>{yearSummary.grade1}/{yearSummary.total}</span>
             </span>
-            <span className={`${styles.summaryBadge} ${styles.cautionBadge}`} title={locale === "ko" ? "안좋은 날 (~25%)" : "Bad Days (~25%)"}>
+            <span className={styles.summaryBadge} title={locale === "ko" ? "보통 날 (~55%)" : "Normal Days (~55%)"}>
+              <span className={styles.badgeEmoji}>◆</span>
+              <span className={styles.badgeLabel}>{locale === "ko" ? "보통" : "Normal"}</span>
+              <span className={styles.badgeCount}>{yearSummary.grade2}/{yearSummary.total}</span>
+            </span>
+            <span className={`${styles.summaryBadge} ${styles.cautionBadge}`} title={locale === "ko" ? "안좋은 날 (~20%)" : "Bad Days (~20%)"}>
               <span className={styles.badgeEmoji}>⚠️</span>
               <span className={styles.badgeLabel}>{locale === "ko" ? "안좋음" : "Bad"}</span>
-              <span className={styles.badgeCount}>{yearSummary.grade3}</span>
+              <span className={styles.badgeCount}>{yearSummary.grade3}/{yearSummary.total}</span>
             </span>
             {yearSummary.grade4 > 0 && (
               <span className={`${styles.summaryBadge} ${styles.worstBadge}`} title={locale === "ko" ? "최악의 날 (~5%)" : "Worst Days (~5%)"}>
                 <span className={styles.badgeEmoji}>☠️</span>
                 <span className={styles.badgeLabel}>{locale === "ko" ? "최악" : "Worst"}</span>
-                <span className={styles.badgeCount}>{yearSummary.grade4}</span>
+                <span className={styles.badgeCount}>{yearSummary.grade4}/{yearSummary.total}</span>
               </span>
             )}
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo } from 'react';
+import React, { memo, useState, useRef } from 'react';
 import Link from 'next/link';
 import { SERVICE_LINKS, type ServiceKey } from '@/data/home';
 import Card from '@/components/ui/Card';
@@ -24,6 +24,36 @@ export const ServicesGrid = memo(function ServicesGrid({
   description,
   translate,
 }: ServicesGridProps) {
+  const [currentPage, setCurrentPage] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Split services into 2 pages (7 per page for 14 total)
+  const serviceEntries = Object.entries(SERVICE_LINKS);
+  const servicesPerPage = 7;
+  const totalPages = Math.ceil(serviceEntries.length / servicesPerPage);
+
+  const handlePageChange = (pageIndex: number) => {
+    setCurrentPage(pageIndex);
+    if (scrollContainerRef.current) {
+      const pageWidth = scrollContainerRef.current.offsetWidth;
+      scrollContainerRef.current.scrollTo({
+        left: pageWidth * pageIndex,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const scrollLeft = scrollContainerRef.current.scrollLeft;
+      const pageWidth = scrollContainerRef.current.offsetWidth;
+      const newPage = Math.round(scrollLeft / pageWidth);
+      if (newPage !== currentPage) {
+        setCurrentPage(newPage);
+      }
+    }
+  };
+
   return (
     <section className={styles.services}>
       <div className={styles.serviceHeader}>
@@ -34,33 +64,83 @@ export const ServicesGrid = memo(function ServicesGrid({
         </div>
       </div>
 
-      <Grid columns={4} gap="1.5rem" className={styles.serviceGrid}>
-        {Object.entries(SERVICE_LINKS).map(([key, { href }]) => {
-          const serviceKey = key as ServiceKey;
-          return (
-            <Link
-              key={serviceKey}
-              href={href}
-              className={styles.serviceCardLink}
-              prefetch={false}
-            >
-              <Card className={styles.serviceCard}>
-                <div className={styles.serviceIconWrapper}>
-                  <span className={styles.serviceIcon}>
-                    {getServiceIcon(serviceKey)}
-                  </span>
-                </div>
-                <h3 className={styles.serviceCardTitle}>
-                  {translate(key, key)}
-                </h3>
-                <p className={styles.serviceCardDesc}>
-                  {translate(`${key}Desc`, getServiceFallbackDesc(serviceKey))}
-                </p>
-              </Card>
-            </Link>
-          );
-        })}
-      </Grid>
+      <div className={styles.serviceScrollContainer}>
+        <div
+          ref={scrollContainerRef}
+          className={styles.servicePages}
+          onScroll={handleScroll}
+        >
+          {Array.from({ length: totalPages }).map((_, pageIndex) => {
+            const startIndex = pageIndex * servicesPerPage;
+            const endIndex = startIndex + servicesPerPage;
+            const pageServices = serviceEntries.slice(startIndex, endIndex);
+
+            return (
+              <div key={pageIndex} className={styles.servicePage}>
+                <Grid columns={4} gap="1.5rem" className={styles.serviceGrid}>
+                  {pageServices.map(([key, { href }]) => {
+                    const serviceKey = key as ServiceKey;
+                    return (
+                      <Link
+                        key={serviceKey}
+                        href={href}
+                        className={styles.serviceCardLink}
+                        prefetch={false}
+                      >
+                        <Card className={styles.serviceCard}>
+                          <div className={styles.serviceIconWrapper}>
+                            <span className={styles.serviceIcon}>
+                              {getServiceIcon(serviceKey)}
+                            </span>
+                          </div>
+                          <h3 className={styles.serviceCardTitle}>
+                            {translate(key, key)}
+                          </h3>
+                          <p className={styles.serviceCardDesc}>
+                            {translate(`${key}Desc`, getServiceFallbackDesc(serviceKey))}
+                          </p>
+                        </Card>
+                      </Link>
+                    );
+                  })}
+                </Grid>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Navigation arrows */}
+        {currentPage > 0 && (
+          <button
+            className={`${styles.serviceNavButton} ${styles.serviceNavLeft}`}
+            onClick={() => handlePageChange(currentPage - 1)}
+            aria-label="Previous page"
+          >
+            ‹
+          </button>
+        )}
+        {currentPage < totalPages - 1 && (
+          <button
+            className={`${styles.serviceNavButton} ${styles.serviceNavRight}`}
+            onClick={() => handlePageChange(currentPage + 1)}
+            aria-label="Next page"
+          >
+            ›
+          </button>
+        )}
+      </div>
+
+      {/* Page indicators */}
+      <div className={styles.servicePageIndicators}>
+        {Array.from({ length: totalPages }).map((_, index) => (
+          <button
+            key={index}
+            className={`${styles.servicePageDot} ${index === currentPage ? styles.active : ''}`}
+            onClick={() => handlePageChange(index)}
+            aria-label={`Go to page ${index + 1}`}
+          />
+        ))}
+      </div>
     </section>
   );
 });

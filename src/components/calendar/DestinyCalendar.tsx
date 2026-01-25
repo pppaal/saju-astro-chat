@@ -418,7 +418,6 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
       activeCategory={activeCategory}
       isDarkTheme={isDarkTheme}
       slideDirection={slideDirection}
-      cacheHit={cacheHit}
       savedDates={savedDates}
       saving={saving}
       saveMsg={saveMsg}
