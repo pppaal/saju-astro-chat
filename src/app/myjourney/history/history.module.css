@@ -1514,3 +1514,511 @@
   color: rgba(255, 255, 255, 0.6);
   margin: 0.25rem 0;
 }
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .container {
+    padding: 14px 10px;
+  }
+
+  .card {
+    padding: 16px 12px;
+    border-radius: 20px;
+  }
+
+  .header {
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .subtitle {
+    font-size: 0.75rem;
+  }
+
+  .loadingCard {
+    padding: 2rem 1.5rem;
+    border-radius: 18px;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+  }
+
+  .serviceGrid {
+    gap: 10px;
+  }
+
+  .serviceCard {
+    padding: 1rem;
+    border-radius: 16px;
+    gap: 0.75rem;
+  }
+
+  .serviceIcon {
+    font-size: 1.75rem;
+  }
+
+  .serviceTitle {
+    font-size: 0.95rem;
+  }
+
+  .serviceDesc {
+    font-size: 0.75rem;
+  }
+
+  .serviceCount {
+    font-size: 1.2rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 10px;
+    min-width: 44px;
+  }
+
+  .dayGroup {
+    border-radius: 14px;
+  }
+
+  .dayHeader {
+    padding: 0.75rem 0.875rem;
+  }
+
+  .dayDate {
+    font-size: 0.8rem;
+  }
+
+  .dayCount {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  .recordCard {
+    padding: 0.75rem 0.875rem;
+    gap: 0.6rem;
+  }
+
+  .recordCard:hover {
+    padding-left: 1rem;
+  }
+
+  .recordIcon {
+    width: 34px;
+    height: 34px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+  }
+
+  .serviceName {
+    font-size: 0.8rem;
+  }
+
+  .recordTheme {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .viewDetail {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .recordSummary {
+    font-size: 0.75rem;
+  }
+
+  .recordArrow {
+    font-size: 0.85rem;
+  }
+
+  .showMoreButton {
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    border-radius: 10px;
+  }
+
+  .empty {
+    padding: 2.5rem 0.75rem;
+  }
+
+  .emptyIcon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty p {
+    font-size: 0.95rem;
+  }
+
+  .emptyHint {
+    font-size: 0.85rem !important;
+  }
+
+  .emptyLink {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.85rem;
+    border-radius: 12px;
+  }
+
+  .aiInfo {
+    padding: 1rem 1.25rem;
+    gap: 0.75rem;
+    border-radius: 14px;
+  }
+
+  .aiIcon {
+    font-size: 1.6rem;
+  }
+
+  .aiInfo p {
+    font-size: 0.8rem;
+  }
+
+  .filters {
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .filterButton {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  /* Modal */
+  .modal {
+    border-radius: 16px;
+    max-height: 92vh;
+  }
+
+  .modalClose {
+    width: 32px;
+    height: 32px;
+    font-size: 1.25rem;
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .modalLoading {
+    padding: 3rem 1.5rem;
+  }
+
+  .modalError {
+    padding: 2rem 1.5rem;
+  }
+
+  /* I Ching */
+  .ichingDetail {
+    padding: 1.25rem;
+  }
+
+  .ichingHeader {
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .hexagramLines {
+    padding: 0.75rem;
+    gap: 5px;
+  }
+
+  .hexLine {
+    width: 44px;
+    height: 5px;
+  }
+
+  .hexLine.broken::before,
+  .hexLine.broken::after {
+    width: 18px;
+    height: 5px;
+  }
+
+  .hexagramInfo h2 {
+    font-size: 1.15rem;
+  }
+
+  .hexagramNumber {
+    font-size: 0.8rem;
+  }
+
+  .questionBox {
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+  }
+
+  .questionBox p {
+    font-size: 0.8rem;
+  }
+
+  .sectionTitle {
+    font-size: 0.75rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .sectionTitle::before {
+    width: 3px;
+    height: 14px;
+  }
+
+  .section p {
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .changingLineItem {
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+  }
+
+  .lineNumber {
+    font-size: 0.65rem;
+  }
+
+  .changingLineItem p {
+    font-size: 0.8rem;
+  }
+
+  .resultingHex {
+    padding: 0.75rem;
+    gap: 0.75rem;
+    border-radius: 10px;
+  }
+
+  .resultingSymbol {
+    font-size: 1.6rem;
+  }
+
+  .resultingName {
+    font-size: 0.95rem;
+  }
+
+  .resultingJudgment {
+    font-size: 0.75rem;
+  }
+
+  .aiSection {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+
+  .aiSectionTitle {
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
+
+  .aiBlock h4 {
+    font-size: 0.7rem;
+  }
+
+  .aiBlock p {
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .timestamp {
+    font-size: 0.7rem;
+    margin-top: 1.25rem;
+    padding-top: 0.75rem;
+  }
+
+  /* Destiny */
+  .destinyMapDetail {
+    padding: 1.25rem;
+  }
+
+  .destinyHeader {
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .destinyIcon {
+    font-size: 2rem;
+    padding: 0.5rem;
+    border-radius: 12px;
+  }
+
+  .destinyHeader h2 {
+    font-size: 1.2rem;
+  }
+
+  .destinyTheme {
+    font-size: 0.8rem;
+  }
+
+  .fullReport {
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+
+  .premiumRequired {
+    padding: 1.5rem;
+    border-radius: 14px;
+  }
+
+  .lockIcon {
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .premiumRequired p {
+    font-size: 0.85rem;
+  }
+
+  .upgradeLink {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.8rem;
+  }
+
+  /* Calendar */
+  .calendarDetail {
+    padding: 1.25rem;
+  }
+
+  .calendarGrade {
+    padding: 0.85rem 1rem;
+    gap: 0.6rem;
+    border-radius: 10px;
+  }
+
+  .gradeEmoji {
+    font-size: 1.5rem;
+  }
+
+  .gradeLabel {
+    font-size: 0.95rem;
+  }
+
+  .scoreText {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  .calendarSummary {
+    font-size: 0.9rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 6px;
+  }
+
+  .categoryTag {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .bestTimeItem {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .analysisList li {
+    font-size: 0.8rem;
+    padding: 0.6rem 0;
+  }
+
+  /* Tarot */
+  .tarotDetail {
+    padding: 1.25rem;
+  }
+
+  .tarotCards {
+    gap: 0.6rem;
+  }
+
+  .tarotCard {
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+  }
+
+  .tarotCardHeader {
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .cardPosition {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .cardOrientation {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.4rem;
+  }
+
+  .cardName {
+    font-size: 0.95rem;
+  }
+
+  .cardNameEn {
+    font-size: 0.75rem;
+  }
+
+  .cardInsight {
+    margin-top: 0.6rem;
+    padding: 0.6rem;
+  }
+
+  .cardInsight p {
+    font-size: 0.8rem;
+  }
+
+  .affirmation {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+    border-radius: 6px;
+  }
+
+  /* Numerology */
+  .numberGrid {
+    gap: 0.75rem;
+  }
+
+  .numberBox {
+    padding: 1.25rem;
+    border-radius: 10px;
+  }
+
+  .numberValue {
+    font-size: 2rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .numberLabel {
+    font-size: 0.8rem;
+  }
+
+  .numberKorean {
+    font-size: 0.65rem;
+  }
+
+  .personalYearBox {
+    padding: 1.5rem;
+    border-radius: 10px;
+  }
+
+  .yearNumber {
+    font-size: 2.5rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .yearLabel {
+    font-size: 0.8rem;
+  }
+
+  /* Matrix detail */
+  .infoLabel {
+    font-size: 0.8rem;
+  }
+
+  .pdfButton {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .personLabel {
+    font-size: 0.75rem;
+  }
+}

@@ -281,6 +281,105 @@
   }
 }
 
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .inline {
+    padding: 10px 12px;
+    border-radius: 6px;
+  }
+
+  .inline .content {
+    gap: 10px;
+  }
+
+  .inline .title {
+    font-size: 13px;
+  }
+
+  .inline .message {
+    font-size: 12px;
+  }
+
+  .inline .actions {
+    gap: 6px;
+  }
+
+  .card {
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+
+  .card .iconWrapper {
+    margin-bottom: 14px;
+  }
+
+  .card .icon {
+    font-size: 40px;
+  }
+
+  .card .title {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .card .message {
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+
+  .card .actions {
+    gap: 10px;
+  }
+
+  .fullscreen {
+    padding: 16px;
+  }
+
+  .fullscreen .content {
+    padding: 24px 16px;
+    border-radius: 16px;
+  }
+
+  .fullscreen .iconWrapper {
+    margin-bottom: 16px;
+  }
+
+  .fullscreen .icon {
+    font-size: 44px;
+  }
+
+  .fullscreen .title {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .fullscreen .message {
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  .fullscreen .actions {
+    gap: 10px;
+  }
+
+  .errorCode {
+    font-size: 11px;
+  }
+
+  .errorCode code {
+    padding: 2px 6px;
+  }
+
+  .retryButton,
+  .supportButton {
+    min-height: 42px;
+    padding: 8px 18px;
+    font-size: 13px;
+    border-radius: 8px;
+    gap: 6px;
+  }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .errorMessage {

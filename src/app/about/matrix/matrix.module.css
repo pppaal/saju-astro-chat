@@ -1342,3 +1342,386 @@
     font-size: 0.9rem;
   }
 }
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .container {
+    padding: 12px 10px;
+  }
+
+  .introContent {
+    padding: 24px 12px;
+  }
+
+  .introLogo h1 {
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+  }
+
+  .introIcon {
+    font-size: 2.5rem;
+  }
+
+  .introTagline {
+    font-size: 0.95rem;
+    margin-bottom: 28px;
+  }
+
+  .introStats {
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .statNum {
+    font-size: 1.5rem;
+  }
+
+  .statLabel {
+    font-size: 0.8rem;
+  }
+
+  .introFeatures {
+    padding: 16px 18px;
+    gap: 12px;
+    border-radius: 16px;
+    margin-bottom: 32px;
+  }
+
+  .featureItem {
+    font-size: 0.85rem;
+  }
+
+  .featureItem span:first-child {
+    font-size: 2rem;
+  }
+
+  .featureX {
+    font-size: 1.5rem;
+  }
+
+  .startBtn {
+    padding: 14px 24px;
+    font-size: 0.95rem;
+    border-radius: 12px;
+  }
+
+  .btnArrow {
+    font-size: 1.2rem;
+  }
+
+  .introNote {
+    font-size: 0.8rem;
+    margin-top: 24px;
+  }
+
+  .introFooter p {
+    font-size: 0.75rem;
+  }
+
+  .backBtn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    left: 12px;
+    top: 16px;
+  }
+
+  .inputContent {
+    max-width: 100%;
+  }
+
+  .inputHeader {
+    margin-bottom: 28px;
+  }
+
+  .inputIcon {
+    font-size: 3rem;
+  }
+
+  .inputHeader h2 {
+    font-size: 1.5rem;
+  }
+
+  .inputHeader p {
+    font-size: 0.9rem;
+  }
+
+  .inputForm {
+    gap: 20px;
+  }
+
+  .formGroup label {
+    font-size: 0.9rem;
+  }
+
+  .dateInput,
+  .timeInput,
+  .selectInput {
+    padding: 14px 16px;
+    font-size: 1rem;
+    border-radius: 12px;
+  }
+
+  .dayMasterGrid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+
+  .dayMasterBtn {
+    padding: 12px 8px;
+    border-radius: 12px;
+  }
+
+  .dmIcon {
+    font-size: 1.4rem;
+  }
+
+  .dmLabel {
+    font-size: 0.85rem;
+  }
+
+  .analyzeBtn {
+    padding: 16px 28px;
+    font-size: 1rem;
+    border-radius: 12px;
+  }
+
+  .loadingOrbit {
+    width: 160px;
+    height: 160px;
+    margin-bottom: 28px;
+  }
+
+  .orbitCenter {
+    font-size: 3rem;
+  }
+
+  .orbitIcon {
+    font-size: 1.5rem;
+  }
+
+  .loadingText {
+    font-size: 1.4rem;
+  }
+
+  .loadingStep {
+    font-size: 0.9rem;
+  }
+
+  .scoreDisplay {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .scoreValue {
+    font-size: 3rem;
+  }
+
+  .scoreMax {
+    font-size: 1.2rem;
+  }
+
+  .scoreInfo h2 {
+    font-size: 1.2rem;
+  }
+
+  .scoreInfo p {
+    font-size: 0.85rem;
+  }
+
+  .quickStats {
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .quickStat {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    border-radius: 10px;
+  }
+
+  .quickIcon {
+    font-size: 1.1rem;
+  }
+
+  .layerProgress {
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 16px;
+  }
+
+  .layerDot {
+    min-width: 44px;
+    padding: 8px 10px;
+    border-radius: 12px;
+  }
+
+  .layerDotIcon {
+    font-size: 1rem;
+  }
+
+  .layerDotNum {
+    font-size: 0.6rem;
+  }
+
+  .cardArea {
+    gap: 8px;
+  }
+
+  .navArrow {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+
+  .card {
+    width: 260px;
+    height: 400px;
+  }
+
+  .cardFront,
+  .cardBack {
+    padding: 24px 20px;
+    border-radius: 22px;
+  }
+
+  .layerBadge {
+    top: 14px;
+    right: 14px;
+    padding: 6px 12px;
+    font-size: 0.7rem;
+  }
+
+  .personalScore {
+    top: 14px;
+    left: 14px;
+    padding: 6px 10px;
+    border-radius: 10px;
+  }
+
+  .levelIcon {
+    font-size: 1rem;
+  }
+
+  .levelLabel {
+    font-size: 0.7rem;
+  }
+
+  .mainIcon {
+    font-size: 2.5rem;
+    margin-top: 24px;
+  }
+
+  .cardTitle {
+    font-size: 1.1rem;
+  }
+
+  .cardTitleEn {
+    font-size: 0.8rem;
+    margin-bottom: 16px;
+  }
+
+  .fusionVisual {
+    padding: 12px 14px;
+    gap: 10px;
+    border-radius: 16px;
+  }
+
+  .fusionIcon {
+    font-size: 1.4rem;
+  }
+
+  .fusionLabel {
+    font-size: 0.65rem;
+  }
+
+  .fusionArrow {
+    font-size: 1.4rem;
+  }
+
+  .fusionX {
+    font-size: 1.2rem;
+  }
+
+  .matchedNum {
+    font-size: 2rem;
+  }
+
+  .matchedLabel {
+    font-size: 0.8rem;
+  }
+
+  .tapHint {
+    font-size: 0.75rem;
+  }
+
+  .backTitle {
+    font-size: 1.2rem;
+    margin: 36px 0 14px;
+  }
+
+  .backDescription {
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
+
+  .personalInsights {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .personalInsights h4 {
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+
+  .insightItem {
+    font-size: 0.85rem;
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+
+  .metaRow {
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+  }
+
+  .summarySection {
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  .summaryCard {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .summaryCard h4 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+
+  .summaryCard li {
+    font-size: 0.85rem;
+    gap: 8px;
+  }
+
+  .summaryLayer {
+    padding: 3px 8px;
+    font-size: 0.65rem;
+  }
+
+  .footer {
+    padding-top: 24px;
+    margin-top: 28px;
+  }
+
+  .footer p {
+    font-size: 0.8rem;
+  }
+
+  .footerNote {
+    font-size: 0.7rem !important;
+  }
+}

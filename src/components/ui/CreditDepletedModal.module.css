@@ -396,3 +396,88 @@
     font-size: 13px;
   }
 }
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .modal {
+    padding: 28px 20px 20px;
+    margin: 12px;
+    border-radius: 18px;
+  }
+
+  .iconContainer {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 18px;
+  }
+
+  .iconInner {
+    inset: 14px;
+  }
+
+  .emptyIcon,
+  .warningIcon {
+    font-size: 22px;
+  }
+
+  .title {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .description {
+    font-size: 12px;
+    margin-bottom: 20px;
+  }
+
+  .creditDisplay {
+    padding: 12px 16px;
+    gap: 12px;
+    border-radius: 14px;
+    margin-bottom: 24px;
+  }
+
+  .creditIcon {
+    font-size: 22px;
+  }
+
+  .creditValue {
+    font-size: 22px;
+  }
+
+  .creditUnit {
+    font-size: 12px;
+  }
+
+  .creditLabel {
+    font-size: 11px;
+  }
+
+  .buttons {
+    gap: 10px;
+  }
+
+  .purchaseButton {
+    padding: 12px 18px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  .buttonIcon {
+    font-size: 16px;
+  }
+
+  .laterButton {
+    padding: 10px 18px;
+    font-size: 12px;
+    border-radius: 12px;
+  }
+
+  .closeButton {
+    min-width: 44px;
+    min-height: 44px;
+    top: 12px;
+    right: 12px;
+    font-size: 18px;
+  }
+}

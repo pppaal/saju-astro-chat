@@ -138,3 +138,36 @@
     justify-content: center;
   }
 }
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+
+  .iconWrapper {
+    margin-bottom: 1rem;
+  }
+
+  .icon {
+    font-size: 2.5rem;
+  }
+
+  .title {
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .message {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .retryButton {
+    padding: 0.6rem 1.25rem;
+    min-height: 44px;
+    font-size: 0.9rem;
+    border-radius: 10px;
+    gap: 0.4rem;
+  }
+}

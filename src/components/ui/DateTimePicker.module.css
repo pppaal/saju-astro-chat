@@ -79,3 +79,23 @@
     font-size: 16px;
   }
 }
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .label {
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .selectGrid {
+    gap: 12px;
+  }
+
+  .select {
+    min-height: 48px;
+    padding: 14px 12px;
+    border-radius: 10px;
+    padding-right: 28px;
+    background-position: right 10px center;
+  }
+}

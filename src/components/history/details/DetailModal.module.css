@@ -855,3 +855,136 @@
     font-size: 2rem;
   }
 }
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .ichingDetail,
+  .destinyMapDetail,
+  .calendarDetail,
+  .tarotDetail,
+  .numerologyDetail,
+  .icpDetail,
+  .compatibilityDetail,
+  .matrixDetail {
+    padding: 1.25rem;
+  }
+
+  .destinyHeader {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .destinyIcon {
+    font-size: 1.75rem;
+    padding: 0.6rem;
+    border-radius: 12px;
+  }
+
+  .destinyHeader h2 {
+    font-size: 1.25rem;
+  }
+
+  .hexagramLines {
+    padding: 0.75rem;
+    gap: 5px;
+    border-radius: 10px;
+  }
+
+  .hexLine {
+    width: 44px;
+    height: 5px;
+  }
+
+  .hexLine.broken::before,
+  .hexLine.broken::after {
+    width: 18px;
+    height: 5px;
+  }
+
+  .hexagramInfo h2 {
+    font-size: 1.15rem;
+  }
+
+  .section p {
+    font-size: 0.9rem;
+  }
+
+  .questionBox {
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+  }
+
+  .aiSection {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+
+  .calendarGrade {
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+  }
+
+  .gradeEmoji {
+    font-size: 1.5rem;
+  }
+
+  .tarotCard {
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+  }
+
+  .cardName {
+    font-size: 1rem;
+  }
+
+  .numberBox {
+    padding: 1.25rem;
+    border-radius: 10px;
+  }
+
+  .numberValue {
+    font-size: 2rem;
+  }
+
+  .scoreBox {
+    padding: 1.25rem;
+    border-radius: 10px;
+  }
+
+  .scoreValue {
+    font-size: 1.75rem;
+  }
+
+  .compatibilityScore {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+
+  .scoreEmoji {
+    font-size: 2.5rem;
+  }
+
+  .personCard {
+    padding: 1.25rem;
+    border-radius: 10px;
+  }
+
+  .modalHeader {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .scoreBadge {
+    padding: 1.25rem 1.5rem;
+    border-radius: 14px;
+  }
+
+  .pdfButton {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .timestamp {
+    font-size: 0.75rem;
+  }
+}

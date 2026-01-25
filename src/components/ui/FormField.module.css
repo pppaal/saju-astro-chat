@@ -207,3 +207,57 @@
     border-color: #ef4444;
   }
 }
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .formField {
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .label {
+    font-size: 13px;
+    gap: 3px;
+  }
+
+  .required {
+    font-size: 14px;
+  }
+
+  .icon {
+    left: 12px;
+    font-size: 16px;
+  }
+
+  .field {
+    min-height: 44px;
+    padding: 10px 40px 10px 12px;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+
+  .inputWrapper .icon + .field {
+    padding-left: 40px;
+  }
+
+  .validIcon,
+  .errorIcon {
+    right: 12px;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+
+  .helpText {
+    font-size: 12px;
+  }
+
+  .errorText {
+    font-size: 12px;
+    gap: 4px;
+  }
+
+  .errorText::before {
+    font-size: 12px;
+  }
+}

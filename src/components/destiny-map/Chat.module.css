@@ -1626,3 +1626,438 @@
     margin: 10px;
   }
 }
+
+/* ===== Extra Small Mobile (360px) ===== */
+@media (max-width: 360px) {
+  .chatContainer {
+    gap: 14px;
+  }
+
+  /* Notice Bar */
+  .noticeBar {
+    padding: 10px 14px;
+    gap: 8px;
+    font-size: 13px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+
+  .noticeIcon {
+    font-size: 14px;
+  }
+
+  /* Messages Panel */
+  .messagesPanel {
+    min-height: 100px;
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .messageRow {
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+
+  .messageBubble {
+    max-width: 92%;
+  }
+
+  /* Avatar */
+  .avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .avatarIcon {
+    font-size: 14px;
+  }
+
+  /* Messages */
+  .assistantMessage,
+  .userMessage {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    border-radius: 14px;
+  }
+
+  .userMessage {
+    border-radius: 14px 14px 3px 14px;
+  }
+
+  .assistantMessage {
+    border-radius: 14px 14px 14px 3px;
+  }
+
+  /* Empty State */
+  .emptyState {
+    padding: 40px 16px;
+  }
+
+  .emptyIcon {
+    font-size: 44px;
+    margin-bottom: 12px;
+  }
+
+  .emptyText {
+    font-size: 14px;
+  }
+
+  /* Thinking */
+  .thinkingMessage {
+    padding: 10px 14px;
+    border-radius: 14px;
+    gap: 10px;
+  }
+
+  .typingDot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .thinkingText {
+    font-size: 12px;
+    margin-left: 6px;
+  }
+
+  /* Input Area */
+  .inputArea {
+    gap: 10px;
+  }
+
+  .inputRow {
+    gap: 8px;
+  }
+
+  .textarea {
+    min-height: 48px;
+    padding: 12px 14px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+
+  .sendButton {
+    min-width: 100%;
+    padding: 12px 18px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  .sendIcon {
+    font-size: 16px;
+  }
+
+  /* File Upload */
+  .fileUploadArea {
+    gap: 8px;
+  }
+
+  .fileLabel {
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .fileLabelIcon {
+    font-size: 14px;
+  }
+
+  .fileName {
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+
+  /* Voice Button */
+  .voiceButton {
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .micIcon {
+    font-size: 14px;
+  }
+
+  .recordingDot {
+    width: 6px;
+    height: 6px;
+  }
+
+  /* Counselor Avatar */
+  .counselorAvatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .counselorAvatar::after {
+    font-size: 20px;
+  }
+
+  /* Tarot Prompt */
+  .tarotPromptCard {
+    padding: 14px;
+    border-radius: 14px;
+    margin-top: 14px;
+    gap: 12px;
+  }
+
+  .tarotPromptIcon {
+    font-size: 32px;
+  }
+
+  .tarotPromptTitle {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .tarotPromptDesc {
+    font-size: 12px;
+  }
+
+  .tarotPromptButton {
+    padding: 10px 16px;
+    font-size: 13px;
+    border-radius: 10px;
+    gap: 6px;
+  }
+
+  /* Feedback Buttons */
+  .feedbackBtn {
+    padding: 3px 6px;
+    font-size: 12px;
+    border-radius: 5px;
+  }
+
+  /* Suggestions */
+  .suggestionsContainer {
+    gap: 8px;
+    margin-top: 14px;
+    padding: 0 8px;
+  }
+
+  .suggestionChip {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    border-radius: 16px;
+  }
+
+  /* Follow-up */
+  .followUpContainer {
+    padding: 10px 14px;
+    border-radius: 14px;
+    gap: 8px;
+  }
+
+  .followUpLabel {
+    font-size: 11px;
+  }
+
+  .followUpChip {
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 16px;
+    gap: 6px;
+  }
+
+  .followUpIcon {
+    font-size: 12px;
+  }
+
+  /* Crisis Modal */
+  .crisisModal {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .crisisIcon {
+    font-size: 44px;
+    margin-bottom: 12px;
+  }
+
+  .crisisTitle {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .crisisMessage {
+    font-size: 14px;
+    margin-bottom: 18px;
+  }
+
+  .crisisHotline {
+    padding: 16px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
+
+  .crisisHotlineLabel {
+    font-size: 12px;
+  }
+
+  .crisisHotlineNumber {
+    padding: 10px 18px;
+    font-size: 16px;
+    border-radius: 10px;
+    gap: 8px;
+  }
+
+  .groundingTip {
+    padding: 12px;
+    border-radius: 10px;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .groundingIcon {
+    font-size: 20px;
+  }
+
+  .groundingText {
+    font-size: 13px;
+  }
+
+  .crisisCloseBtn {
+    padding: 14px 20px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
+  /* Welcome Back */
+  .welcomeBackBanner {
+    padding: 14px 16px;
+    border-radius: 14px;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .welcomeIcon {
+    font-size: 28px;
+  }
+
+  .welcomeText {
+    font-size: 14px;
+  }
+
+  .lastTopic {
+    font-size: 12px;
+  }
+
+  .welcomeCloseBtn {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+    border-radius: 6px;
+  }
+
+  /* Connection Status */
+  .connectionStatus {
+    padding: 10px 16px;
+    font-size: 12px;
+    border-radius: 10px;
+    top: 12px;
+    right: 12px;
+  }
+
+  /* Session Buttons */
+  .sessionButtons {
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .sessionBtn {
+    padding: 5px 8px;
+    font-size: 11px;
+    border-radius: 8px;
+    gap: 4px;
+  }
+
+  /* History Modal */
+  .historyModal {
+    border-radius: 18px;
+    max-height: 85vh;
+    margin: 8px;
+  }
+
+  .historyHeader {
+    padding: 14px 16px;
+  }
+
+  .historyTitle {
+    font-size: 16px;
+  }
+
+  .historyCloseBtn {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .historyContent {
+    padding: 10px;
+  }
+
+  .historyItem {
+    padding: 12px 14px;
+    border-radius: 10px;
+    gap: 8px;
+  }
+
+  .historyItemDate {
+    font-size: 13px;
+  }
+
+  .historyItemMeta {
+    font-size: 11px;
+  }
+
+  .historyItemSummary {
+    font-size: 11px;
+  }
+
+  .historyItemDelete {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  .deleteConfirm {
+    font-size: 12px;
+    gap: 8px;
+  }
+
+  .deleteConfirmButtons {
+    gap: 6px;
+  }
+
+  .deleteConfirmYes,
+  .deleteConfirmNo {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  .historyFooter {
+    padding: 12px 16px;
+  }
+
+  .newChatBtn {
+    padding: 10px 16px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  /* Fallback Note */
+  .fallbackNote {
+    padding: 10px 14px;
+    gap: 8px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+
+  .fallbackIcon {
+    font-size: 14px;
+  }
+}

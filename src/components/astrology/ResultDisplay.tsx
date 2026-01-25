@@ -294,17 +294,7 @@ export default function ResultDisplay({
           </summary>
 
           <div className="rounded-b-xl border border-t-0 border-amber-400/20 bg-gradient-to-br from-slate-900/80 to-indigo-950/60 p-6 md:p-8">
-            {/* Not logged in - login required */}
-            {!isLoggedIn && (
-              <PaywallOverlay type="login" labels={PL} signInUrl={signInUrl} />
-            )}
-
-            {/* Logged in but not premium - payment required */}
-            {isLoggedIn && !isPremium && (
-              <PaywallOverlay type="premium" labels={PL} signInUrl={signInUrl} />
-            )}
-
-            {/* Premium user - show full content */}
+            {/* All users can access - premium disabled */}
             {canAccessPremium && (
               <>
                 {/* ASC / MC cards */}

@@ -2078,3 +2078,547 @@
     font-size: 0.95rem;
   }
 }
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .page {
+    padding: 12px 6px;
+  }
+
+  .creditBadgeWrapper {
+    top: 12px;
+    right: 12px;
+  }
+
+  .card {
+    padding: 18px 12px;
+    border-radius: 20px;
+  }
+
+  .header {
+    margin-bottom: 24px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+  }
+
+  .profile {
+    padding: 12px 14px;
+    gap: 8px 14px;
+    border-radius: 14px;
+  }
+
+  .kv {
+    font-size: 0.8rem;
+  }
+
+  .profileName {
+    font-size: 1.3rem;
+  }
+
+  .profileMeta {
+    font-size: 0.8rem;
+    gap: 6px;
+  }
+
+  .section {
+    margin-top: 28px;
+  }
+
+  .h2,
+  .sectionHeader {
+    font-size: 1.2rem;
+    margin: 40px 0 20px;
+  }
+
+  .h2::after,
+  .sectionHeader::after {
+    width: 80px;
+    height: 3px;
+    margin: 12px auto;
+  }
+
+  .summary {
+    padding: 20px 16px;
+    border-radius: 18px;
+  }
+
+  .summaryBox {
+    font-size: 0.9rem;
+    line-height: 1.75;
+  }
+
+  .summaryBox li {
+    padding-left: 24px;
+    margin-bottom: 0.6em;
+  }
+
+  .summaryBox li::before {
+    left: 4px;
+    font-size: 0.9em;
+  }
+
+  .badge {
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    border-radius: 10px;
+  }
+
+  .sectionTitle {
+    font-size: 1.15rem;
+    margin: 40px 0 20px;
+    padding: 16px 20px;
+  }
+
+  .subTitle {
+    font-size: 1rem;
+    margin: 28px 0 14px;
+    padding: 12px 18px;
+  }
+
+  .paragraph {
+    font-size: 0.9rem;
+    line-height: 1.75;
+  }
+
+  .list {
+    margin: 18px 0;
+    padding: 16px 18px;
+    border-radius: 14px;
+  }
+
+  .listItem {
+    padding: 10px 10px 10px 28px;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    border-radius: 8px;
+  }
+
+  .listItem::before {
+    left: 10px;
+    top: 12px;
+    font-size: 0.8em;
+  }
+
+  .blockquote {
+    margin: 24px 0;
+    padding: 18px 20px;
+    font-size: 0.95rem;
+    border-radius: 0 16px 16px 0;
+  }
+
+  .blockquote::before {
+    top: 12px;
+    right: 14px;
+    font-size: 1.2rem;
+  }
+
+  .divider {
+    margin: 36px 0;
+  }
+
+  .divider::before {
+    font-size: 0.75rem;
+    letter-spacing: 6px;
+    padding: 0 14px;
+  }
+
+  /* Date recommendations */
+  .dateSection h4 {
+    font-size: 1rem;
+  }
+
+  .bestPeriod {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .periodRange {
+    font-size: 1.1rem;
+  }
+
+  .dateGrid {
+    gap: 12px;
+  }
+
+  .dateCard,
+  .dateCardCaution {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .dateValue {
+    font-size: 1rem;
+  }
+
+  .dateReason {
+    font-size: 0.85rem;
+  }
+
+  .sajuTag, .astroTag {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+
+  /* Insights */
+  .insightCard {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .insightIcon {
+    font-size: 1.3rem;
+  }
+
+  .insightType {
+    font-size: 0.65rem;
+  }
+
+  .insightText {
+    font-size: 0.85rem;
+  }
+
+  /* Highlights */
+  .highlightCard {
+    padding: 18px;
+    gap: 12px;
+    border-radius: 14px;
+  }
+
+  .highlightIcon {
+    font-size: 1.6rem;
+  }
+
+  .highlightTitle {
+    font-size: 1rem;
+  }
+
+  .highlightElement {
+    font-size: 0.8rem;
+  }
+
+  .highlightCard p {
+    font-size: 0.8rem;
+  }
+
+  /* Timeline */
+  .timelineSection {
+    margin-top: 36px;
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .timelineSection h3 {
+    font-size: 1.25rem;
+  }
+
+  .timelineDesc {
+    font-size: 0.85rem;
+    margin-bottom: 24px;
+  }
+
+  .timeline {
+    padding-left: 16px;
+  }
+
+  .timeline::before {
+    left: 6px;
+  }
+
+  .timelineItem {
+    padding: 14px;
+    margin-bottom: 14px;
+    border-radius: 14px;
+  }
+
+  .timelineItem::before {
+    left: -14px;
+    width: 8px;
+    height: 8px;
+  }
+
+  .yearValue {
+    font-size: 1.2rem;
+  }
+
+  .yearAge {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+  }
+
+  .starRating span {
+    font-size: 0.85rem;
+  }
+
+  .timelineTitle {
+    font-size: 1rem;
+  }
+
+  .reasonRow {
+    font-size: 0.8rem;
+  }
+
+  .reasonRow .label {
+    min-width: 44px;
+  }
+
+  .timelineAdvice {
+    font-size: 0.8rem;
+  }
+
+  /* Category */
+  .categorySection > h3 {
+    font-size: 1.25rem;
+    margin-bottom: 24px;
+  }
+
+  .categoryCard {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .categoryIcon {
+    font-size: 1.6rem;
+  }
+
+  .categoryTitle {
+    font-size: 1.05rem;
+  }
+
+  .analysisBox {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .analysisLabel {
+    font-size: 0.65rem;
+  }
+
+  .analysisBox p {
+    font-size: 0.8rem;
+  }
+
+  .crossInsight {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .crossLabel {
+    font-size: 0.65rem;
+  }
+
+  .crossInsight p {
+    font-size: 0.8rem;
+  }
+
+  .keyword {
+    font-size: 0.65rem;
+    padding: 3px 10px;
+  }
+
+  .careerList h5,
+  .timing h5,
+  .partner h5,
+  .wealthType h5,
+  .vulnerabilities h5,
+  .catAdvice h5 {
+    font-size: 0.7rem;
+  }
+
+  .careerList li,
+  .timing p,
+  .partner p,
+  .wealthType p,
+  .vulnerabilities li,
+  .catAdvice p {
+    font-size: 0.8rem;
+  }
+
+  /* Lucky */
+  .luckySection {
+    margin-top: 36px;
+    padding: 24px 18px;
+    border-radius: 16px;
+  }
+
+  .luckySection h3 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+
+  .luckyGrid {
+    gap: 10px;
+  }
+
+  .luckyItem {
+    padding: 14px 10px;
+    border-radius: 12px;
+  }
+
+  .luckyLabel {
+    font-size: 0.65rem;
+    margin-bottom: 8px;
+  }
+
+  .luckyValue {
+    font-size: 0.85rem;
+  }
+
+  .luckyValue span {
+    margin: 3px;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+
+  /* Theme sections */
+  .themeSections {
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .themeSection {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .themeSectionIcon {
+    font-size: 1.2rem;
+  }
+
+  .themeSectionTitle {
+    font-size: 0.95rem;
+  }
+
+  .themeSectionContent {
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+
+  /* Loader */
+  .loaderCard {
+    padding: 36px 24px;
+    border-radius: 20px;
+  }
+
+  .loaderIcon {
+    font-size: 56px;
+    margin-bottom: 20px;
+  }
+
+  .loaderTitle {
+    font-size: 18px;
+  }
+
+  .loaderSubtitle {
+    font-size: 11px;
+    margin-bottom: 28px;
+  }
+
+  .progressBar {
+    height: 5px;
+    border-radius: 10px;
+  }
+
+  .progressPercent {
+    font-size: 11px;
+    margin-bottom: 24px;
+  }
+
+  .stepItem {
+    padding: 8px 12px;
+    gap: 10px;
+  }
+
+  .stepIcon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .stepLabel {
+    font-size: 12px;
+  }
+
+  .loaderFunFact {
+    margin-top: 24px;
+    font-size: 10px;
+  }
+
+  /* Tabs */
+  .tabContainer {
+    padding: 3px;
+    border-radius: 14px;
+    margin-bottom: 24px;
+  }
+
+  .tabButton {
+    padding: 10px 16px;
+    font-size: 13px;
+    border-radius: 10px;
+    gap: 6px;
+  }
+
+  .tabIcon {
+    font-size: 14px;
+  }
+
+  /* Counselor */
+  .counselorSection {
+    margin-top: 36px;
+  }
+
+  .counselorLabel {
+    font-size: 12px;
+  }
+
+  .counselorButton {
+    padding: 14px 18px;
+    font-size: 14px;
+    border-radius: 14px;
+    gap: 10px;
+  }
+
+  .counselorButtonIcon {
+    font-size: 20px;
+  }
+
+  .counselorButtonArrow {
+    font-size: 16px;
+  }
+
+  /* Life prediction */
+  .lifePredictionTitle {
+    font-size: 1.3rem;
+  }
+
+  .lifePredictionSubtitle {
+    font-size: 12px;
+  }
+
+  .lifePredictionError {
+    padding: 24px;
+    border-radius: 14px;
+  }
+
+  .lifePredictionErrorIcon {
+    font-size: 28px;
+  }
+
+  .saveButton {
+    padding: 10px 24px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+
+  .analysisDateBadge {
+    padding: 8px 14px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+}

@@ -1367,3 +1367,328 @@
   margin: 0.25rem 0 0 0;
   font-weight: 500;
 }
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .resultCard {
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .hexagramHeader {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .hexagramIcon {
+    width: 44px;
+    height: 44px;
+    font-size: 1.35rem;
+    border-radius: 12px;
+  }
+
+  .hexagramTitle {
+    font-size: 1.15rem;
+  }
+
+  .hexagramSymbol {
+    font-size: 1.05rem;
+  }
+
+  .divider {
+    margin: 1rem 0;
+  }
+
+  .sectionLabel {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .sectionLabel::before {
+    width: 3px;
+    height: 14px;
+  }
+
+  .sectionText {
+    font-size: 0.95rem;
+  }
+
+  .imageText {
+    font-size: 0.9rem;
+  }
+
+  /* Changing Lines */
+  .changingLinesCard {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .changingLinesIcon {
+    font-size: 1.1rem;
+  }
+
+  .changingLinesTitle {
+    font-size: 1.05rem;
+  }
+
+  .changingLineItem {
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+  }
+
+  .changingLineIndex {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .changingLineText {
+    font-size: 0.9rem;
+  }
+
+  .changingLineInterpretation {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.65rem;
+  }
+
+  /* Resulting Hexagram */
+  .resultingCard {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .resultingIcon {
+    font-size: 1.25rem;
+  }
+
+  .resultingTitle {
+    font-size: 1.1rem;
+  }
+
+  .resultingText {
+    font-size: 0.9rem;
+  }
+
+  /* Trigrams */
+  .trigramGrid {
+    gap: 1rem;
+  }
+
+  .trigramItem {
+    padding: 0.6rem 0.75rem;
+    min-width: 65px;
+    border-radius: 10px;
+  }
+
+  .trigramSymbol {
+    font-size: 1.25rem;
+  }
+
+  .trigramName {
+    font-size: 0.85rem;
+  }
+
+  .trigramLabel {
+    font-size: 0.7rem;
+  }
+
+  /* Core Meaning */
+  .coreMeaningText {
+    font-size: 0.95rem;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+  }
+
+  /* Themes */
+  .themesCard {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .themesIcon {
+    font-size: 1.1rem;
+  }
+
+  .themesTitle {
+    font-size: 1.05rem;
+  }
+
+  .themeItem {
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+  }
+
+  .themeIcon {
+    font-size: 1rem;
+  }
+
+  .themeLabel {
+    font-size: 0.85rem;
+  }
+
+  .themeText {
+    font-size: 0.9rem;
+  }
+
+  /* Insights */
+  .insightCard {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .insightIcon {
+    font-size: 1.1rem;
+  }
+
+  .insightTitle {
+    font-size: 1.05rem;
+  }
+
+  .insightItem {
+    padding: 0.75rem 0.85rem;
+    border-radius: 10px;
+  }
+
+  .insightItemIcon {
+    font-size: 0.9rem;
+  }
+
+  .insightItemLabel {
+    font-size: 0.75rem;
+  }
+
+  .insightItemText {
+    font-size: 0.85rem;
+  }
+
+  .luckyColorTag {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 10px;
+  }
+
+  .luckyNumberTag {
+    width: 22px;
+    height: 22px;
+    font-size: 0.75rem;
+  }
+
+  /* AI Interpretation */
+  .aiInterpretationCard {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .aiIcon {
+    font-size: 1.25rem;
+  }
+
+  .aiTitle {
+    font-size: 1.1rem;
+  }
+
+  .aiSubtitle {
+    font-size: 0.8rem;
+  }
+
+  .aiSection {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .aiSectionLabel {
+    font-size: 0.8rem;
+  }
+
+  .aiSectionContent {
+    font-size: 0.95rem;
+  }
+
+  .aiStartButton {
+    padding: 0.85rem 1.25rem;
+    font-size: 0.95rem;
+    border-radius: 10px;
+  }
+
+  .aiButtonIcon {
+    font-size: 1.1rem;
+  }
+
+  /* Actionable Card */
+  .actionableCard {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .actionableIcon {
+    font-size: 1.5rem;
+  }
+
+  .actionableTitle {
+    font-size: 1.15rem;
+  }
+
+  .adviceBox,
+  .timingBox,
+  .nextStepsBox {
+    padding: 0.85rem;
+    border-radius: 12px;
+  }
+
+  .adviceIcon,
+  .timingIcon,
+  .nextStepsIcon {
+    font-size: 1.1rem;
+  }
+
+  .adviceLabel,
+  .timingLabel,
+  .nextStepsLabel {
+    font-size: 0.9rem;
+  }
+
+  .adviceItem,
+  .nextStepItem {
+    font-size: 0.85rem;
+  }
+
+  /* Situation Card */
+  .situationCard {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .situationIcon {
+    font-size: 1.5rem;
+  }
+
+  .situationTitle {
+    font-size: 1.15rem;
+  }
+
+  .questionText {
+    font-size: 0.95rem;
+    padding: 0.75rem;
+  }
+
+  /* Wisdom Section */
+  .wisdomLabel {
+    font-size: 0.8rem;
+  }
+
+  .wisdomGwaeSa {
+    font-size: 1rem;
+  }
+
+  .wisdomMeaning {
+    font-size: 0.85rem;
+  }
+
+  .wisdomCoreText {
+    font-size: 0.9rem;
+    padding: 0.7rem 0.85rem;
+  }
+
+  .wisdomList li {
+    font-size: 0.8rem;
+  }
+}

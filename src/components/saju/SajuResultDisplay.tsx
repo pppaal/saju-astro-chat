@@ -1,7 +1,7 @@
 // src/components/saju/SajuResultDisplay.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, type ReactNode, type FC } from 'react';
 import {
   getAnnualCycles,
   getMonthlyCycles,
@@ -36,6 +36,11 @@ function getGanjiName(val: GanjiValue): string {
 
 interface Props { result: SajuApiResponse; }
 
+// Pillar label mapping (static)
+const PILLAR_LABEL_MAP: Record<'year'|'month'|'day'|'time', string> = {
+  time: '시지', day: '일지', month: '월지', year: '연지'
+};
+
 /* =========================================== */
 
 export default function SajuResultDisplay({ result }: Props) {
@@ -46,6 +51,7 @@ export default function SajuResultDisplay({ result }: Props) {
   const [displayedWolun, setDisplayedWolun] = useState<WolunData[]>([]);
   const [displayedIljin, setDisplayedIljin] = useState<IljinData[]>([]);
 
+  // Initialize selected daeun based on current age
   useEffect(() => {
     if (result && result.daeun?.cycles?.length) {
       const currentYear = new Date().getFullYear();
@@ -85,6 +91,48 @@ export default function SajuResultDisplay({ result }: Props) {
     const fixed = newIljin.filter((d) => d.year === y && d.month === m);
     setDisplayedIljin(fixed);
   }, [selectedWolun, result.dayMaster]);
+
+  // Memoized click handlers
+  const handleDaeunClick = useCallback((item: DaeunData) => {
+    setSelectedDaeun(item);
+  }, []);
+
+  const handleYeonunClick = useCallback((item: YeonunData) => {
+    setSelectedYeonun(item);
+  }, []);
+
+  const handleWolunClick = useCallback((item: WolunData) => {
+    setSelectedWolun(item);
+  }, []);
+
+  // Memoized day master display
+  const dayMasterDisplay = useMemo(() => {
+    const { dayPillar } = result;
+    const stemName = typeof dayPillar.heavenlyStem === 'string'
+      ? dayPillar.heavenlyStem
+      : (dayPillar.heavenlyStem?.name ?? '');
+    const stemElement = typeof dayPillar.heavenlyStem === 'string'
+      ? ''
+      : (dayPillar.heavenlyStem?.element ?? '');
+    return { name: stemName, element: stemElement };
+  }, [result]);
+
+  // Memoized FunInsights saju prop (FunInsights expects flexible SajuData type)
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const funInsightsSaju = useMemo(() => ({
+    dayMaster: result.dayMaster,
+    pillars: {
+      year: result.yearPillar as any,
+      month: result.monthPillar as any,
+      day: result.dayPillar as any,
+      time: result.timePillar as any,
+    },
+    fiveElements: result.fiveElements,
+    unse: result.daeun,
+    sinsal: (result as any).sinsal,
+    advancedAnalysis: result.advancedAnalysis,
+  }), [result]);
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   if (!result || !result.daeun?.cycles || !selectedDaeun) {
     return (
@@ -129,12 +177,8 @@ export default function SajuResultDisplay({ result }: Props) {
         <p className="text-center mt-4 text-base text-gray-400">
           당신의 일간(日干)은{' '}
           <span className="text-amber-500 font-bold">
-            {typeof dayPillar.heavenlyStem === 'string'
-              ? dayPillar.heavenlyStem
-              : (dayPillar.heavenlyStem?.name ?? '')}{' '}
-            ({typeof dayPillar.heavenlyStem === 'string'
-              ? ''
-              : (dayPillar.heavenlyStem?.element ?? '')})
+            {dayMasterDisplay.name}{' '}
+            ({dayMasterDisplay.element})
           </span>{' '}
           입니다.
         </p>
@@ -426,7 +470,8 @@ export default function SajuResultDisplay({ result }: Props) {
               cheon={item.heavenlyStem}
               ji={item.earthlyBranch}
               bottomSubText={item.sibsin.ji}
-              onClick={() => setSelectedDaeun(item)}
+              onClick={handleDaeunClick}
+              item={item}
               isSelected={selectedDaeun?.age === item.age}
             />
           ))}
@@ -443,7 +488,8 @@ export default function SajuResultDisplay({ result }: Props) {
               cheon={item.heavenlyStem}
               ji={item.earthlyBranch}
               bottomSubText={item.sibsin.ji}
-              onClick={() => setSelectedYeonun(item)}
+              onClick={handleYeonunClick}
+              item={item}
               isSelected={selectedYeonun?.year === item.year}
             />
           ))}
@@ -460,7 +506,8 @@ export default function SajuResultDisplay({ result }: Props) {
               cheon={item.heavenlyStem}
               ji={item.earthlyBranch}
               bottomSubText={item.sibsin.ji}
-              onClick={() => setSelectedWolun(item)}
+              onClick={handleWolunClick}
+              item={item}
               isSelected={selectedWolun?.month === item.month && selectedWolun?.year === item.year}
             />
           ))}
@@ -474,19 +521,7 @@ export default function SajuResultDisplay({ result }: Props) {
       {/* ✨ 재미있는 사주 인사이트 - 이해하기 쉬운 해석 */}
       <Section title="✨ 쉽게 이해하는 나의 사주">
         <FunInsights
-          saju={{
-            dayMaster: result.dayMaster,
-            pillars: {
-              year: yearPillar as any,
-              month: monthPillar as any,
-              day: dayPillar as any,
-              time: timePillar as any,
-            },
-            fiveElements: fiveElements,
-            unse: daeun,
-            sinsal: (result as any).sinsal,
-            advancedAnalysis: result.advancedAnalysis,
-          }}
+          saju={funInsightsSaju}
           astro={undefined}
           theme="life"
         />
@@ -497,7 +532,7 @@ export default function SajuResultDisplay({ result }: Props) {
 
 /* ---------- 하위 컴포넌트 ---------- */
 
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+const Section: FC<{ title: string; children: ReactNode }> = ({ title, children }) => (
   <section className="mb-12" aria-labelledby={`section-${title.replace(/\s/g, '-')}`}>
     <h2
       id={`section-${title.replace(/\s/g, '-')}`}
@@ -509,7 +544,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
   </section>
 );
 
-const AnalysisCard: React.FC<{ title: string; colorClass: string; children: React.ReactNode }> = ({ title, colorClass, children }) => (
+const AnalysisCard: FC<{ title: string; colorClass: string; children: ReactNode }> = ({ title, colorClass, children }) => (
   <div className={`bg-slate-800 p-4 rounded-xl border flex-1 min-w-[280px] ${colorClass.split(' ')[0]}`}>
     <h4 className={`text-base font-semibold mb-3 pb-2 border-b border-current/30 ${colorClass.split(' ')[1] || colorClass}`}>
       {title}
@@ -518,20 +553,20 @@ const AnalysisCard: React.FC<{ title: string; colorClass: string; children: Reac
   </div>
 );
 
-const CardRow: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+const CardRow: FC<{ label: string; value: string }> = ({ label, value }) => (
   <div className="flex justify-between items-center py-1 text-sm">
     <span className="text-gray-400 mr-2">{label}:</span>
     <span className="text-gray-200 font-medium">{value}</span>
   </div>
 );
 
-const CardDesc: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const CardDesc: FC<{ children: ReactNode }> = ({ children }) => (
   <p className="text-xs text-slate-400 mt-3 leading-relaxed p-2 bg-white/[0.03] rounded-md">
     {children}
   </p>
 );
 
-const ScoreBar: React.FC<{ label: string; value: number; suffix?: string }> = ({ label, value, suffix }) => (
+const ScoreBar: FC<{ label: string; value: number; suffix?: string }> = ({ label, value, suffix }) => (
   <div className="flex items-center gap-2">
     <span className="w-24 text-xs text-gray-400 shrink-0">{label}:</span>
     <div className="flex-1 h-2 bg-slate-700 rounded overflow-hidden">
@@ -589,19 +624,24 @@ const PillarBox = ({
   );
 };
 
+// Element display configuration (static)
+const OHAENG_ELEMENTS = [
+  { name: '목', key: 'wood' as const, colorClass: ELEMENT_BAR_COLORS.Wood },
+  { name: '화', key: 'fire' as const, colorClass: ELEMENT_BAR_COLORS.Fire },
+  { name: '토', key: 'earth' as const, colorClass: ELEMENT_BAR_COLORS.Earth },
+  { name: '금', key: 'metal' as const, colorClass: ELEMENT_BAR_COLORS.Metal },
+  { name: '수', key: 'water' as const, colorClass: ELEMENT_BAR_COLORS.Water },
+] as const;
+
 const OhaengDistribution = ({ ohaengData }: { ohaengData: { [k in 'wood'|'fire'|'earth'|'metal'|'water']: number } }) => {
-  const elements = [
-    { name: '목', key: 'wood' as const, colorClass: ELEMENT_BAR_COLORS.Wood },
-    { name: '화', key: 'fire' as const, colorClass: ELEMENT_BAR_COLORS.Fire },
-    { name: '토', key: 'earth' as const, colorClass: ELEMENT_BAR_COLORS.Earth },
-    { name: '금', key: 'metal' as const, colorClass: ELEMENT_BAR_COLORS.Metal },
-    { name: '수', key: 'water' as const, colorClass: ELEMENT_BAR_COLORS.Water },
-  ];
-  const total = Object.values(ohaengData).reduce((s, c) => s + c, 0);
+  const total = useMemo(
+    () => Object.values(ohaengData).reduce((s, c) => s + c, 0),
+    [ohaengData]
+  );
 
   return (
     <div className="bg-slate-800 p-6 rounded-xl border border-slate-600" role="img" aria-label="오행 분포 차트">
-      {elements.map((el) => {
+      {OHAENG_ELEMENTS.map((el) => {
         const count = ohaengData[el.key] || 0;
         const percentage = total > 0 ? (count / total) * 100 : 0;
         return (
@@ -625,7 +665,7 @@ const OhaengDistribution = ({ ohaengData }: { ohaengData: { [k in 'wood'|'fire'|
   );
 };
 
-const UnseFlowContainer: React.FC<{ children: React.ReactNode; 'aria-label'?: string }> = ({ children, 'aria-label': ariaLabel }) => (
+const UnseFlowContainer: FC<{ children: ReactNode; 'aria-label'?: string }> = ({ children, 'aria-label': ariaLabel }) => (
   <div
     className="flex overflow-x-auto py-4 px-2 bg-slate-800 rounded-xl border border-slate-600"
     role="listbox"
@@ -635,17 +675,20 @@ const UnseFlowContainer: React.FC<{ children: React.ReactNode; 'aria-label'?: st
   </div>
 );
 
-const UnsePillar = ({
-  topText, topSubText, cheon, ji, bottomSubText, onClick, isSelected,
-}: {
+interface UnsePillarProps<T> {
   topText: string;
   topSubText: string | object;
   cheon: GanjiValue;
   ji: GanjiValue;
   bottomSubText: string | object;
-  onClick?: () => void;
-  isSelected?: boolean
-}) => {
+  onClick?: (item: T) => void;
+  item?: T;
+  isSelected?: boolean;
+}
+
+function UnsePillar<T>({
+  topText, topSubText, cheon, ji, bottomSubText, onClick, item, isSelected,
+}: UnsePillarProps<T>) {
   const cheonStr = getGanjiName(cheon);
   const jiStr = getGanjiName(ji);
   const topSubStr = typeof topSubText === 'string' ? topSubText : String(topSubText ?? '');
@@ -653,6 +696,12 @@ const UnsePillar = ({
 
   const topEl = getElementOfChar(cheonStr);
   const bottomEl = getElementOfChar(jiStr);
+
+  const handleClick = useCallback(() => {
+    if (onClick && item !== undefined) {
+      onClick(item);
+    }
+  }, [onClick, item]);
 
   return (
     <button
@@ -664,7 +713,7 @@ const UnsePillar = ({
         }
         ${onClick ? 'cursor-pointer' : 'cursor-default'}
       `}
-      onClick={onClick}
+      onClick={handleClick}
       role="option"
       aria-selected={isSelected}
       aria-label={`${topText} ${cheonStr}${jiStr}`}
@@ -688,16 +737,12 @@ const UnsePillar = ({
       <div className="text-xs text-gray-500 h-5 flex items-center justify-center">{bottomSubStr}</div>
     </button>
   );
-};
+}
 
-const RelationsPanel: React.FC<{ relations?: { kind: string; pillars: ('year'|'month'|'day'|'time')[]; detail?: string }[] }> = ({ relations }) => {
+const RelationsPanel: FC<{ relations?: { kind: string; pillars: ('year'|'month'|'day'|'time')[]; detail?: string }[] }> = ({ relations }) => {
   if (!relations || relations.length === 0) {
     return <div className="text-slate-400">표시할 합·충 정보가 없습니다.</div>;
   }
-
-  const labelMap: Record<'year'|'month'|'day'|'time', string> = {
-    time: '시지', day: '일지', month: '월지', year: '연지'
-  };
 
   return (
     <div
@@ -712,7 +757,7 @@ const RelationsPanel: React.FC<{ relations?: { kind: string; pillars: ('year'|'m
           role="listitem"
         >
           <div className="font-extrabold text-yellow-400 mb-1.5">{r.kind}</div>
-          <div className="text-sm text-slate-300">{r.pillars.map((p) => labelMap[p]).join(' · ')}</div>
+          <div className="text-sm text-slate-300">{r.pillars.map((p) => PILLAR_LABEL_MAP[p]).join(' · ')}</div>
           {r.detail && <div className="mt-1.5 text-xs text-slate-400">{r.detail}</div>}
         </div>
       ))}

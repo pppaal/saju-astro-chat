@@ -93,6 +93,37 @@
   }
 }
 
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .breadcrumb {
+    margin-bottom: 12px;
+    padding: 8px 0;
+  }
+
+  .list {
+    gap: 3px;
+  }
+
+  .item {
+    font-size: 12px;
+    gap: 4px;
+  }
+
+  .link,
+  .text {
+    padding: 2px 4px;
+    gap: 4px;
+  }
+
+  .icon {
+    font-size: 12px;
+  }
+
+  .separator {
+    font-size: 10px;
+  }
+}
+
 /* High contrast mode */
 @media (prefers-contrast: high) {
   .link {

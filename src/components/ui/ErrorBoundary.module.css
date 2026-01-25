@@ -185,6 +185,64 @@
   }
 }
 
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .errorContainer {
+    padding: 16px;
+  }
+
+  .errorCard {
+    padding: 24px 16px;
+    border-radius: 16px;
+  }
+
+  .iconWrapper {
+    margin-bottom: 16px;
+  }
+
+  .errorIcon {
+    font-size: 40px;
+  }
+
+  .title {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .message {
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  .actions {
+    gap: 10px;
+  }
+
+  .retryButton,
+  .homeButton {
+    min-height: 44px;
+    padding: 10px 24px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
+  .errorDetails {
+    margin-top: 24px;
+    padding-top: 16px;
+  }
+
+  .detailsSummary {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .errorStack {
+    font-size: 10px;
+    padding: 12px;
+    border-radius: 6px;
+  }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .errorCard {

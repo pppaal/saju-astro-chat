@@ -2244,3 +2244,477 @@
     font-size: 1rem;
   }
 }
+
+/* ===== Extra Small Mobile (360px) ===== */
+@media (max-width: 360px) {
+  .container {
+    gap: 20px;
+  }
+
+  /* Hero Header */
+  .heroHeader {
+    padding: 24px 12px;
+    border-radius: 18px;
+  }
+
+  .heroIcon {
+    font-size: 2.5rem;
+    margin-bottom: 16px;
+  }
+
+  .heroTitle {
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+  }
+
+  .heroSubtitle {
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+
+  .profileCard {
+    padding: 12px 18px;
+    gap: 12px;
+  }
+
+  .profileAvatar {
+    width: 36px;
+    height: 36px;
+    font-size: 1.25rem;
+  }
+
+  .profileName {
+    font-size: 1rem;
+  }
+
+  .profileLabel {
+    font-size: 0.75rem;
+  }
+
+  /* Sections */
+  .sectionsGrid {
+    gap: 16px;
+  }
+
+  .sectionCard {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .sectionHeader {
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .sectionIcon {
+    font-size: 1.5rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.05rem;
+  }
+
+  .sectionParagraph,
+  .listText {
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  .sectionListItem {
+    padding: 10px 12px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+
+  .listBullet {
+    font-size: 0.9rem;
+  }
+
+  .keywordBadge {
+    padding: 2px 6px;
+    font-size: 0.85em;
+    border-radius: 12px;
+  }
+
+  /* Theme Navigation */
+  .themeButton {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    gap: 8px;
+    border-radius: 14px;
+  }
+
+  .themeIcon {
+    font-size: 1.1rem;
+  }
+
+  /* Chat Section */
+  .chatSection {
+    padding: 18px 12px;
+    border-radius: 18px;
+  }
+
+  .chatHeader {
+    gap: 14px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+  }
+
+  .chatHeaderIcon {
+    font-size: 1.8rem;
+  }
+
+  .chatTitle {
+    font-size: 1.15rem;
+  }
+
+  .chatSubtitle {
+    font-size: 0.9rem;
+  }
+
+  /* Stats Bar */
+  .statsBar {
+    gap: 12px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .statIcon {
+    font-size: 1rem;
+  }
+
+  .statValue {
+    font-size: 1rem;
+  }
+
+  .statLabel {
+    font-size: 0.7rem;
+  }
+
+  /* Action Buttons */
+  .actionButtons {
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .actionButton {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    border-radius: 20px;
+  }
+
+  .actionIcon {
+    font-size: 0.9rem;
+  }
+
+  /* TOC */
+  .tocToggle {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .tocContainer {
+    width: calc(100% - 32px);
+    bottom: 75px;
+    border-radius: 18px;
+    padding: 18px;
+  }
+
+  .tocItem {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    border-radius: 12px;
+  }
+
+  .tocItemIcon {
+    font-size: 1rem;
+  }
+
+  .tocItemNumber {
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+  }
+
+  /* Error Card */
+  .errorCard {
+    padding: 48px 24px;
+    border-radius: 20px;
+  }
+
+  .errorIcon {
+    font-size: 3.5rem;
+  }
+
+  .errorTitle {
+    font-size: 1.4rem;
+  }
+
+  .errorMessage {
+    font-size: 1rem;
+  }
+
+  /* Floating Toolbar */
+  .floatingToolbar {
+    bottom: 16px;
+    left: 16px;
+  }
+
+  .toolbarToggle {
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+  }
+
+  .toolbarContent {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .toolbarButton {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+  }
+
+  .fontButton {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+  }
+
+  .ttsButton {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+  }
+
+  /* Search */
+  .searchToggle {
+    width: 40px;
+    height: 40px;
+    bottom: 70px;
+    left: 16px;
+  }
+
+  .searchContainer {
+    width: calc(100% - 32px);
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .searchInputWrapper {
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .searchInput {
+    font-size: 0.9rem;
+  }
+
+  /* Scroll Top */
+  .scrollTopButton {
+    width: 40px;
+    height: 40px;
+    bottom: 70px;
+    left: 16px;
+    font-size: 1.1rem;
+  }
+
+  /* Date Recommendations */
+  .dateRecommendations {
+    padding: 20px 16px;
+    border-radius: 18px;
+  }
+
+  .dateRecommendationsHeader {
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+  }
+
+  .dateRecommendationsIcon {
+    font-size: 2rem;
+  }
+
+  .dateRecommendationsTitle {
+    font-size: 1.3rem;
+  }
+
+  .dateRecommendationsSubtitle {
+    font-size: 0.85rem;
+  }
+
+  .luckyDatesGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .luckyDateCard {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .luckyDateDate {
+    font-size: 1.15rem;
+  }
+
+  .luckyDateReason {
+    font-size: 0.85rem;
+  }
+
+  .luckyDateFactor {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    border-radius: 16px;
+  }
+
+  .cautionDateItem {
+    padding: 12px;
+    border-radius: 12px;
+    gap: 10px;
+  }
+
+  .cautionDateIcon {
+    font-size: 1.1rem;
+  }
+
+  .cautionDateDate {
+    font-size: 0.9rem;
+  }
+
+  .cautionDateReason {
+    font-size: 0.85rem;
+  }
+
+  .bestPeriodBanner {
+    padding: 18px;
+    border-radius: 16px;
+    gap: 14px;
+  }
+
+  .bestPeriodIcon {
+    font-size: 2.5rem;
+  }
+
+  .bestPeriodLabel {
+    font-size: 0.75rem;
+  }
+
+  .bestPeriodDates {
+    font-size: 1.2rem;
+  }
+
+  .bestPeriodReason {
+    font-size: 0.85rem;
+  }
+
+  /* Key Insights */
+  .keyInsights {
+    gap: 12px;
+  }
+
+  .keyInsightCard {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .keyInsightIcon {
+    font-size: 1.5rem;
+  }
+
+  .keyInsightType {
+    font-size: 0.75rem;
+  }
+
+  .keyInsightText {
+    font-size: 0.9rem;
+  }
+
+  /* Terminology */
+  .terminologyItem {
+    padding: 5px 12px;
+    font-size: 0.8rem;
+    border-radius: 16px;
+  }
+
+  .terminologyTooltip {
+    width: 200px;
+    padding: 12px 14px;
+    font-size: 0.85rem;
+    border-radius: 12px;
+  }
+
+  /* Saju Pillar */
+  .sajuPillarAnimated {
+    padding: 10px 16px;
+    border-radius: 14px;
+  }
+
+  .sajuCharacter {
+    font-size: 1.8rem;
+  }
+
+  .sajuElement {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 8px;
+  }
+
+  /* Structured Section */
+  .structuredSectionCard {
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+
+  .reasoningBlock {
+    padding: 12px;
+    border-radius: 0 10px 10px 0;
+  }
+
+  .reasoningLabel {
+    font-size: 0.8rem;
+  }
+
+  .reasoningText {
+    font-size: 0.85rem;
+  }
+
+  /* Feedback */
+  .feedbackSection {
+    gap: 8px;
+    padding: 10px 0;
+  }
+
+  .feedbackLabel {
+    font-size: 0.8rem;
+  }
+
+  .feedbackButton {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+
+  /* Bookmark */
+  .bookmarkButton {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+  }
+
+  /* Expand */
+  .expandButton {
+    padding: 12px;
+    font-size: 0.85rem;
+    border-radius: 12px;
+  }
+
+  .expandIcon {
+    font-size: 0.7rem;
+  }
+}

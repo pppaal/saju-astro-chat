@@ -507,3 +507,107 @@
     font-size: 0.8rem;
   }
 }
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .container {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 16px 14px;
+    border-radius: 20px;
+  }
+
+  .header {
+    margin-bottom: 20px;
+  }
+
+  .backButton {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    margin-right: 12px;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+  }
+
+  .grid {
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .themeCard {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .emoji {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .themeTitle {
+    font-size: 0.95rem;
+  }
+
+  .themeDesc {
+    font-size: 0.75rem;
+  }
+
+  .modeToggle {
+    gap: 6px;
+    margin-top: 18px;
+  }
+
+  .modeButton {
+    padding: 10px 16px;
+    min-width: 100px;
+    border-radius: 12px;
+  }
+
+  .modeIcon {
+    font-size: 18px;
+  }
+
+  .modeLabel {
+    font-size: 0.8rem;
+  }
+
+  .modeTime {
+    font-size: 0.7rem;
+  }
+
+  .matrixSection {
+    margin-top: 24px;
+    padding-top: 20px;
+  }
+
+  .matrixButton {
+    padding: 14px 14px;
+    gap: 10px;
+    border-radius: 14px;
+  }
+
+  .matrixIcon {
+    font-size: 24px;
+  }
+
+  .matrixTitle {
+    font-size: 0.9rem;
+  }
+
+  .matrixDesc {
+    font-size: 0.75rem;
+  }
+
+  .matrixArrow {
+    font-size: 20px;
+  }
+}

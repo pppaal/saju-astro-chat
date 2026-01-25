@@ -177,3 +177,66 @@
     transform: none;
   }
 }
+
+/* Extra small mobile */
+@media (max-width: 360px) {
+  .emptyState {
+    padding: 36px 16px;
+    min-height: 250px;
+  }
+
+  .iconContainer {
+    margin-bottom: 16px;
+  }
+
+  .icon {
+    font-size: 52px;
+  }
+
+  .title {
+    font-size: 17px;
+    margin-bottom: 8px;
+  }
+
+  .description {
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  .suggestions {
+    margin: 24px 0;
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .suggestionsTitle {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .suggestionsList {
+    gap: 10px;
+  }
+
+  .suggestionItem {
+    padding: 10px 12px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .suggestionItem::before {
+    font-size: 14px;
+    margin-right: 6px;
+  }
+
+  .actionContainer {
+    margin-top: 24px;
+  }
+
+  .actionButton {
+    min-height: 44px;
+    padding: 10px 24px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+}
