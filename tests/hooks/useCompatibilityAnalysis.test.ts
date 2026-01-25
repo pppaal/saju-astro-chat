@@ -307,7 +307,10 @@ describe('useCompatibilityAnalysis', () => {
 
       expect(fetch).toHaveBeenCalledWith('/api/compatibility', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: {
+          'content-type': 'application/json',
+          'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+        },
         body: JSON.stringify({
           persons: [
             {

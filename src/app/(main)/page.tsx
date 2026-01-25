@@ -4,7 +4,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import styles from "./main-page.module.css";
 import { useI18n } from "@/i18n/I18nProvider";
 import { ChatDemoSection } from "@/components/home/ChatDemoSection";
@@ -15,72 +15,12 @@ const WeeklyFortuneCard = dynamic(() => import("@/components/WeeklyFortuneCard")
   loading: () => <div className={styles.weeklyCardSkeleton} />,
 });
 
-export default function MainPage() {
-  const router = useRouter();
-  const { t, locale } = useI18n();
-  const translate = useCallback((key: string, fallback: string) => {
-    const res = t(key);
-    const last = key.split(".").pop() || key;
-    return res === last ? fallback : res;
-  }, [t]);
-
-  const [_answer, setAnswer] = useState(
-    translate("landing.prompt1", "What do the stars say about my path today?")
-  );
-  const [lifeQuestion, setLifeQuestion] = useState("");
-  const [typingPlaceholder, setTypingPlaceholder] = useState("");
-  const [showServiceSelector, setShowServiceSelector] = useState(false);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-
-  // Service options for routing (matches SERVICE_LINKS in home.ts)
-  const serviceOptions = useMemo(() => [
-    { key: 'destinyMap', labelKey: 'menu.destinyMap', icon: '🗺️', path: '/destiny-map' },
-    { key: 'aiReports', labelKey: 'menu.aiReports', icon: '🤖', path: '/premium-reports' },
-    { key: 'lifePrediction', labelKey: 'menu.lifePrediction', icon: '📈', path: '/life-prediction' },
-    { key: 'tarot', labelKey: 'menu.tarot', icon: '🔮', path: '/tarot' },
-    { key: 'calendar', labelKey: 'menu.calendar', icon: '🗓️', path: '/calendar' },
-    { key: 'dream', labelKey: 'menu.dream', icon: '🌙', path: '/dream' },
-    { key: 'personality', labelKey: 'menu.personality', icon: '🌈', path: '/personality' },
-    { key: 'icp', labelKey: 'menu.icp', icon: '🎭', path: '/icp' },
-    { key: 'numerology', labelKey: 'menu.numerology', icon: '🔢', path: '/numerology' },
-    { key: 'astrology', labelKey: 'menu.astrology', icon: '✨', path: '/astrology' },
-    { key: 'saju', labelKey: 'menu.saju', icon: '☯️', path: '/saju' },
-    { key: 'compatibility', labelKey: 'menu.compatibility', icon: '💕', path: '/compatibility' },
-    { key: 'pastLife', labelKey: 'menu.pastLife', icon: '🔄', path: '/past-life' },
-    { key: 'iching', labelKey: 'menu.iching', icon: '📜', path: '/iching' },
-  ], []);
-  const [todayVisitors, setTodayVisitors] = useState<number | null>(null);
-  const [totalVisitors, setTotalVisitors] = useState<number | null>(null);
-  const [totalMembers, setTotalMembers] = useState<number | null>(null);
-  const [visitorError, setVisitorError] = useState<string | null>(null);
-  const [showScrollTop, setShowScrollTop] = useState(false);
-  const trackedOnce = useRef(false);
-  const metricsToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN;
-
+// Custom hook for typing animation
+function useTypingAnimation(
+  placeholders: string[],
+  setPlaceholder: Dispatch<SetStateAction<string>>
+) {
   useEffect(() => {
-    const prompts = [
-      translate("landing.prompt1", "What do the stars say about my path today?"),
-      translate("landing.prompt2", "When will love arrive? What is my destiny cycle?"),
-      translate("landing.prompt3", "Should I make a bold move now or wait?"),
-    ];
-
-    const timer = setInterval(() => {
-      setAnswer(prompts[Math.floor(Math.random() * prompts.length)]);
-    }, 4200);
-    return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Typing animation for placeholder
-  useEffect(() => {
-    const placeholders = [
-      translate("landing.hint1", "오늘의 운세가 궁금해요"),
-      translate("landing.hint2", "연애운이 어떨까요?"),
-      translate("landing.hint3", "이직해도 될까요?"),
-      translate("landing.searchPlaceholder", "오늘 무엇이 궁금하세요?"),
-    ];
-
     let currentIndex = 0;
     let charIndex = 0;
     let isDeleting = false;
@@ -90,7 +30,7 @@ export default function MainPage() {
       const currentText = placeholders[currentIndex];
 
       if (isDeleting) {
-        setTypingPlaceholder(currentText.substring(0, charIndex - 1));
+        setPlaceholder(currentText.substring(0, charIndex - 1));
         charIndex--;
 
         if (charIndex === 0) {
@@ -101,12 +41,12 @@ export default function MainPage() {
           timeoutId = setTimeout(type, 30);
         }
       } else {
-        setTypingPlaceholder(currentText.substring(0, charIndex + 1));
+        setPlaceholder(currentText.substring(0, charIndex + 1));
         charIndex++;
 
         if (charIndex === currentText.length) {
           isDeleting = true;
-          timeoutId = setTimeout(type, 2000); // Pause before deleting
+          timeoutId = setTimeout(type, 2000);
         } else {
           timeoutId = setTimeout(type, 80);
         }
@@ -114,12 +54,41 @@ export default function MainPage() {
     };
 
     timeoutId = setTimeout(type, 1000);
-
     return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [placeholders, setPlaceholder]);
+}
 
-  // Scroll-triggered animation for feature sections
+// Custom hook for scroll visibility
+function useScrollVisibility(threshold: number) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setVisible(window.scrollY > threshold);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [threshold]);
+
+  return visible;
+}
+
+// Custom hook for click outside
+function useClickOutside(
+  ref: React.RefObject<HTMLElement | null>,
+  callback: () => void
+) {
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        callback();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [ref, callback]);
+}
+
+// Custom hook for intersection observer
+function useScrollAnimation(selector: string, styles: Record<string, string>) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -129,41 +98,30 @@ export default function MainPage() {
           }
         });
       },
-      {
-        threshold: 0.2,
-        rootMargin: "0px 0px -100px 0px",
-      }
+      { threshold: 0.2, rootMargin: "0px 0px -100px 0px" }
     );
 
-    const featureSections = document.querySelectorAll(`.${styles.featureSection}`);
-    featureSections.forEach((section) => observer.observe(section));
+    const elements = document.querySelectorAll(selector);
+    elements.forEach((el) => observer.observe(el));
 
-    return () => {
-      featureSections.forEach((section) => observer.unobserve(section));
-    };
-  }, []);
+    return () => elements.forEach((el) => observer.unobserve(el));
+  }, [selector, styles]);
+}
 
-  // Scroll to top button visibility
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 500);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Close service selector when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
-        setShowServiceSelector(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+// Custom hook for visitor stats
+function useVisitorStats(metricsToken: string | undefined) {
+  const [stats, setStats] = useState<{
+    todayVisitors: number | null;
+    totalVisitors: number | null;
+    totalMembers: number | null;
+    error: string | null;
+  }>({
+    todayVisitors: null,
+    totalVisitors: null,
+    totalMembers: null,
+    error: null,
+  });
+  const trackedOnce = useRef(false);
 
   useEffect(() => {
     if (trackedOnce.current) return;
@@ -174,46 +132,106 @@ export default function MainPage() {
 
     async function run() {
       try {
-        // Track visitor (POST - don't wait for response)
         fetch("/api/visitors-today", { method: "POST", headers }).catch(() => {});
 
-        // Fetch both visitor stats and member stats in parallel
         const [visitorRes, statsRes] = await Promise.all([
           fetch("/api/visitors-today", { headers }),
           fetch("/api/stats")
         ]);
 
-        // Process visitor stats
+        const newStats = { ...stats };
+
         if (visitorRes.ok) {
           const data = await visitorRes.json();
-          setTodayVisitors(typeof data.count === "number" ? data.count : 0);
-          setTotalVisitors(typeof data.total === "number" ? data.total : 0);
+          newStats.todayVisitors = typeof data.count === "number" ? data.count : 0;
+          newStats.totalVisitors = typeof data.total === "number" ? data.total : 0;
         }
 
-        // Process member stats
         if (statsRes.ok) {
           const statsData = await statsRes.json();
-          setTotalMembers(typeof statsData.users === "number" ? statsData.users : 0);
+          newStats.totalMembers = typeof statsData.users === "number" ? statsData.users : 0;
         }
+
+        setStats(newStats);
       } catch {
-        setVisitorError("Could not load stats.");
+        setStats((prev) => ({ ...prev, error: "Could not load stats." }));
       }
     }
 
     run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metricsToken]);
+
+  return stats;
+}
+
+// Service options constant (outside component to prevent recreation)
+const SERVICE_OPTIONS = [
+  { key: 'destinyMap', labelKey: 'menu.destinyMap', icon: '🗺️', path: '/destiny-map' },
+  { key: 'aiReports', labelKey: 'menu.aiReports', icon: '🤖', path: '/premium-reports' },
+  { key: 'lifePrediction', labelKey: 'menu.lifePrediction', icon: '📈', path: '/life-prediction' },
+  { key: 'tarot', labelKey: 'menu.tarot', icon: '🔮', path: '/tarot' },
+  { key: 'calendar', labelKey: 'menu.calendar', icon: '🗓️', path: '/calendar' },
+  { key: 'dream', labelKey: 'menu.dream', icon: '🌙', path: '/dream' },
+  { key: 'personality', labelKey: 'menu.personality', icon: '🌈', path: '/personality' },
+  { key: 'icp', labelKey: 'menu.icp', icon: '🎭', path: '/icp' },
+  { key: 'numerology', labelKey: 'menu.numerology', icon: '🔢', path: '/numerology' },
+  { key: 'astrology', labelKey: 'menu.astrology', icon: '✨', path: '/astrology' },
+  { key: 'saju', labelKey: 'menu.saju', icon: '☯️', path: '/saju' },
+  { key: 'compatibility', labelKey: 'menu.compatibility', icon: '💕', path: '/compatibility' },
+  { key: 'pastLife', labelKey: 'menu.pastLife', icon: '🔄', path: '/past-life' },
+  { key: 'iching', labelKey: 'menu.iching', icon: '📜', path: '/iching' },
+] as const;
+
+// Zodiac signs constant
+const ZODIAC_SIGNS = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'] as const;
+
+export default function MainPage() {
+  const router = useRouter();
+  const { t, locale } = useI18n();
+  const translate = useCallback((key: string, fallback: string) => {
+    const res = t(key);
+    const last = key.split(".").pop() || key;
+    return res === last ? fallback : res;
+  }, [t]);
+
+  const [lifeQuestion, setLifeQuestion] = useState("");
+  const [typingPlaceholder, setTypingPlaceholder] = useState("");
+  const [showServiceSelector, setShowServiceSelector] = useState(false);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  const metricsToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN;
+
+  // Memoized placeholders for typing animation
+  const placeholders = useMemo(() => [
+    translate("landing.hint1", "오늘의 운세가 궁금해요"),
+    translate("landing.hint2", "연애운이 어떨까요?"),
+    translate("landing.hint3", "이직해도 될까요?"),
+    translate("landing.searchPlaceholder", "오늘 무엇이 궁금하세요?"),
+  ], [translate]);
+
+  // Custom hooks
+  useTypingAnimation(placeholders, setTypingPlaceholder);
+  useScrollAnimation(`.${styles.featureSection}`, styles);
+  const showScrollTop = useScrollVisibility(500);
+  const closeServiceSelector = useCallback(() => setShowServiceSelector(false), []);
+  useClickOutside(searchContainerRef, closeServiceSelector);
+
+  // Visitor stats
+  const { todayVisitors, totalVisitors, totalMembers, error: visitorError } = useVisitorStats(metricsToken);
 
   // Handle question submission - navigate to selected service with the question
   const handleQuestionSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    const service = serviceOptions.find(s => s.key === selectedService) || serviceOptions[0];
+    const service = SERVICE_OPTIONS.find(s => s.key === selectedService) || SERVICE_OPTIONS[0];
     if (lifeQuestion.trim()) {
       router.push(`${service.path}?q=${encodeURIComponent(lifeQuestion.trim())}`);
     } else {
       router.push(service.path);
     }
     setShowServiceSelector(false);
-  }, [lifeQuestion, router, selectedService, serviceOptions]);
+  }, [lifeQuestion, router, selectedService, SERVICE_OPTIONS]);
 
   // Handle service selection
   const handleServiceSelect = useCallback((serviceKey: string) => {
@@ -261,7 +279,7 @@ export default function MainPage() {
                   title={translate("landing.selectService", "서비스 선택")}
                 >
                   <span className={styles.serviceSelectIcon}>
-                    {serviceOptions.find(s => s.key === selectedService)?.icon || '🌟'}
+                    {SERVICE_OPTIONS.find(s => s.key === selectedService)?.icon || '🌟'}
                   </span>
                   <span className={styles.serviceSelectArrow}>▼</span>
                 </button>
@@ -269,7 +287,7 @@ export default function MainPage() {
                 {/* Service Dropdown */}
                 {showServiceSelector && (
                   <div className={styles.serviceDropdown}>
-                    {serviceOptions.map((service) => (
+                    {SERVICE_OPTIONS.map((service) => (
                       <button
                         key={service.key}
                         type="button"
@@ -331,7 +349,7 @@ export default function MainPage() {
                 {translate("landing.aiRoutingText", "서비스를 선택하고 질문을 입력하세요")}
               </p>
               <div className={styles.serviceIconsRow}>
-                {serviceOptions.map((service) => (
+                {SERVICE_OPTIONS.map((service) => (
                   <span key={service.key} className={styles.serviceIcon} title={t(`menu.${service.key}`)}>
                     {service.icon}
                   </span>
@@ -417,18 +435,15 @@ export default function MainPage() {
         <div className={styles.astrologyChart}>
           {/* Zodiac Circle with 12 signs */}
           <div className={styles.zodiacCircle}>
-            <div className={styles.zodiacSign} style={{transform: 'rotate(0deg) translateY(-180px)'}}>♈</div>
-            <div className={styles.zodiacSign} style={{transform: 'rotate(30deg) translateY(-180px)'}}>♉</div>
-            <div className={styles.zodiacSign} style={{transform: 'rotate(60deg) translateY(-180px)'}}>♊</div>
-            <div className={styles.zodiacSign} style={{transform: 'rotate(90deg) translateY(-180px)'}}>♋</div>
-            <div className={styles.zodiacSign} style={{transform: 'rotate(120deg) translateY(-180px)'}}>♌</div>
-            <div className={styles.zodiacSign} style={{transform: 'rotate(150deg) translateY(-180px)'}}>♍</div>
-            <div className={styles.zodiacSign} style={{transform: 'rotate(180deg) translateY(-180px)'}}>♎</div>
-            <div className={styles.zodiacSign} style={{transform: 'rotate(210deg) translateY(-180px)'}}>♏</div>
-            <div className={styles.zodiacSign} style={{transform: 'rotate(240deg) translateY(-180px)'}}>♐</div>
-            <div className={styles.zodiacSign} style={{transform: 'rotate(270deg) translateY(-180px)'}}>♑</div>
-            <div className={styles.zodiacSign} style={{transform: 'rotate(300deg) translateY(-180px)'}}>♒</div>
-            <div className={styles.zodiacSign} style={{transform: 'rotate(330deg) translateY(-180px)'}}>♓</div>
+            {ZODIAC_SIGNS.map((sign, i) => (
+              <div
+                key={sign}
+                className={styles.zodiacSign}
+                style={{ transform: `rotate(${i * 30}deg) translateY(-180px)` }}
+              >
+                {sign}
+              </div>
+            ))}
           </div>
           {/* Stars background */}
           <div className={styles.stars}>

@@ -225,10 +225,8 @@ const Chat = memo(function Chat({
   }, [feedback, messages, theme, lang]);
 
   // Handle follow-up question click - uses ref to avoid stale closure
-  const handleSendRef = React.useRef(handleSend);
-  React.useEffect(() => {
-    handleSendRef.current = handleSend;
-  });
+  const handleSendRef = React.useRef<(text?: string) => Promise<void>>(null!);
+  handleSendRef.current = handleSend;
 
   const handleFollowUp = React.useCallback((question: string) => {
     setFollowUpQuestions([]);
@@ -261,7 +259,7 @@ const Chat = memo(function Chat({
     ]);
   }, [returningSummary, messages]);
 
-  const goToTarot = () => setShowTarotModal(true);
+  const goToTarot = React.useCallback(() => setShowTarotModal(true), []);
 
   // Handle tarot result from InlineTarotModal
   const handleTarotComplete = (result: TarotResultSummary) => {
@@ -292,7 +290,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
   };
 
   // Format relative date
-  const formatRelativeDate = (dateStr: string) => {
+  const formatRelativeDate = React.useCallback((dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
     const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
@@ -300,7 +298,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
     if (diffDays === 0) return tr.today;
     if (diffDays === 1) return tr.yesterday;
     return `${diffDays} ${tr.daysAgo}`;
-  };
+  }, [tr.today, tr.yesterday, tr.daysAgo]);
 
   // Open history modal (loads session list via hook)
   const openHistoryModal = () => {
@@ -322,10 +320,10 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
     setShowSuggestions(true);
   };
 
-  const extractConcernFromMessages = () => {
+  const extractConcernFromMessages = React.useCallback(() => {
     const userMessages = messages.filter((m) => m.role === "user").map((m) => m.content);
     return userMessages.slice(-2).join(" ").slice(0, 200);
-  };
+  }, [messages]);
 
   // Seed event listener
   React.useEffect(() => {

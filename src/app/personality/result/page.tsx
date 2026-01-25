@@ -136,21 +136,17 @@ export default function ResultPage() {
   // Confetti celebration effect
   const createConfetti = useCallback(() => {
     const colors = ['#a8edea', '#fed6e3', '#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
-    const particles: ConfettiParticle[] = [];
-
-    for (let i = 0; i < 150; i++) {
-      particles.push({
-        id: i,
-        x: Math.random() * 100,
-        y: -10 - Math.random() * 20,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        size: 6 + Math.random() * 8,
-        speedY: 2 + Math.random() * 3,
-        speedX: (Math.random() - 0.5) * 4,
-        rotation: Math.random() * 360,
-        rotationSpeed: (Math.random() - 0.5) * 10,
-      });
-    }
+    const particles: ConfettiParticle[] = Array.from({ length: 150 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: -10 - Math.random() * 20,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: 6 + Math.random() * 8,
+      speedY: 2 + Math.random() * 3,
+      speedX: (Math.random() - 0.5) * 4,
+      rotation: Math.random() * 360,
+      rotationSpeed: (Math.random() - 0.5) * 10,
+    }));
 
     setConfettiParticles(particles);
     setShowConfetti(true);
@@ -173,11 +169,10 @@ export default function ResultPage() {
     }
   }, [authStatus, session?.user]);
 
-  const handleSaveResult = async () => {
+  const handleSaveResult = useCallback(async () => {
     if (!analysis) return;
 
     if (authStatus !== 'authenticated') {
-      // Redirect to login
       router.push(buildSignInUrl('/personality/result'));
       return;
     }
@@ -231,7 +226,7 @@ export default function ResultPage() {
       }
       setSaveStatus('error');
     }
-  };
+  }, [analysis, authStatus, router, gender, answers]);
 
    
   const analysis: PersonaAnalysis | null = useMemo(() => {
@@ -276,7 +271,7 @@ export default function ResultPage() {
 
   const avatarSrc = analysis ? `/images/persona/${analysis.typeCode}_${gender}.gif` : null;
 
-  const handleDownload = () => {
+  const handleDownload = useCallback(() => {
     if (!analysis) return;
     const payload = {
       answers,
@@ -292,10 +287,10 @@ export default function ResultPage() {
     a.download = `nova_persona_${analysis.typeCode}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  };
+  }, [analysis, answers]);
 
   // Generate share card image
-  const generateShareCard = async (): Promise<Blob | null> => {
+  const generateShareCard = useCallback(async (): Promise<Blob | null> => {
     if (!analysis) return null;
 
     const canvas = document.createElement('canvas');
@@ -470,9 +465,9 @@ export default function ResultPage() {
     return new Promise((resolve) => {
       canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
     });
-  };
+  }, [analysis, locale]);
 
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     if (!analysis) return;
 
     try {
@@ -507,7 +502,7 @@ export default function ResultPage() {
       navigator.clipboard.writeText(shareText);
       alert(t('personality.copiedToClipboard', 'Copied to clipboard!'));
     }
-  };
+  }, [analysis, generateShareCard, t]);
 
   if (!mounted) {
     return (
