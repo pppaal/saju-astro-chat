@@ -373,13 +373,147 @@
   transform: translateX(-4px);
 }
 
-/* Responsive */
+/* Responsive - Tablet */
 @media (max-width: 768px) {
+  .page {
+    padding: 1.5rem 1rem;
+  }
+
   .formContainer {
     padding: 2rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .formHeader {
+    margin-bottom: 2rem;
+  }
+
+  .formIcon {
+    font-size: 3rem;
   }
 
   .formTitle {
     font-size: 1.8rem;
+  }
+
+  .formSubtitle {
+    font-size: 1rem;
+  }
+
+  .resultsContainer {
+    padding: 0;
+  }
+
+  .resultCard {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .resultTitle {
+    font-size: 1.3rem;
+  }
+
+  .submitButton {
+    padding: 14px 32px;
+    font-size: 1rem;
+  }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 480px) {
+  .page {
+    padding: 1rem 0.75rem;
+  }
+
+  .formContainer {
+    padding: 1.5rem 1rem;
+    border-radius: 16px;
+  }
+
+  .formHeader {
+    margin-bottom: 1.5rem;
+  }
+
+  .formIcon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .formTitle {
+    font-size: 1.5rem;
+  }
+
+  .formSubtitle {
+    font-size: 0.9rem;
+  }
+
+  .grid {
+    gap: 1rem;
+  }
+
+  .label {
+    font-size: 0.85rem;
+  }
+
+  .input,
+  .select {
+    padding: 0.875rem;
+    font-size: 0.95rem;
+    border-radius: 10px;
+  }
+
+  .submitButton {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    margin-top: 1.5rem;
+  }
+
+  .resultCard {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .resultTitle {
+    font-size: 1.1rem;
+  }
+
+  .resultText {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .backButton {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .dropdown {
+    max-height: 12rem;
+  }
+
+  .dropdownItem {
+    padding: 0.65rem 0.875rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+  .formContainer {
+    padding: 1.25rem 0.875rem;
+  }
+
+  .formTitle {
+    font-size: 1.3rem;
+  }
+
+  .formSubtitle {
+    font-size: 0.85rem;
+  }
+
+  .submitButton {
+    padding: 11px 20px;
+    font-size: 0.9rem;
   }
 }

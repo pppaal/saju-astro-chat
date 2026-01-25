@@ -277,6 +277,7 @@
   box-shadow: 0 8px 20px rgba(124, 92, 255, 0.4);
 }
 
+/* Responsive - Tablet */
 @media (max-width: 768px) {
   .container {
     padding-top: 60px;
@@ -332,5 +333,192 @@
 
   .itemMessage {
     font-size: 13px;
+  }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 480px) {
+  .container {
+    padding-top: 50px;
+  }
+
+  .header {
+    padding: 16px 12px;
+  }
+
+  .headerTop {
+    gap: 10px;
+  }
+
+  .title {
+    font-size: 20px;
+    gap: 8px;
+  }
+
+  .badge {
+    min-width: 24px;
+    height: 24px;
+    font-size: 12px;
+    padding: 0 6px;
+  }
+
+  .actions {
+    gap: 6px;
+  }
+
+  .actionBtn {
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+
+  .filters {
+    gap: 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filterBtn {
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 16px;
+    flex-shrink: 0;
+  }
+
+  .content {
+    padding: 12px;
+  }
+
+  .list {
+    gap: 6px;
+  }
+
+  .item {
+    padding: 10px;
+    gap: 10px;
+    border-radius: 10px;
+  }
+
+  .itemIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .avatar,
+  .defaultIcon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .itemTitle {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .itemMessage {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  .itemTime {
+    font-size: 11px;
+  }
+
+  .unreadDot {
+    width: 8px;
+    height: 8px;
+    top: 14px;
+    right: 12px;
+  }
+
+  .deleteBtn {
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+    opacity: 1;
+  }
+
+  .emptyState {
+    padding: 60px 16px;
+  }
+
+  .emptyIcon {
+    font-size: 60px;
+    margin-bottom: 16px;
+  }
+
+  .emptyState h2 {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .emptyState p {
+    font-size: 14px;
+  }
+
+  .backLink {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    margin-top: 20px;
+  }
+}
+
+/* Responsive - Extra Small */
+@media (max-width: 360px) {
+  .header {
+    padding: 12px 10px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .filterBtn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .content {
+    padding: 10px;
+  }
+
+  .item {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .itemIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .avatar,
+  .defaultIcon {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .itemTitle {
+    font-size: 12px;
+  }
+
+  .itemMessage {
+    font-size: 11px;
+  }
+
+  .emptyIcon {
+    font-size: 48px;
+  }
+
+  .emptyState h2 {
+    font-size: 18px;
   }
 }

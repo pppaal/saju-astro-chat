@@ -7,6 +7,656 @@ import type { DayMasterInfo, NorthNodeInfo, SaturnInfo, ShinsalInfo } from './ka
 import { dayMasterSimple, northNodeSimple, saturnSimple, shinsalSimple } from './karma-data';
 
 // ============================================================
+// Extended Day Master Narratives (일간 확장 서사)
+// ============================================================
+
+const dayMasterExtendedNarratives: Record<string, { ko: string[]; en: string[] }> = {
+  "갑": {
+    ko: [
+      "🌲 【갑목(甲木) - 큰 나무의 영혼】",
+      "",
+      "당신은 숲에서 하늘을 향해 곧게 뻗어가는 큰 나무와 같습니다.",
+      "",
+      "큰 나무는 어떤 상황에서도 위를 향합니다. 비가 오든, 바람이 불든 꿋꿋이 자신의 방향을 지키죠. 당신도 그렇습니다. 목표가 생기면 어떤 어려움이 있어도 포기하지 않는 끈기가 있어요.",
+      "",
+      "리더십이 타고났습니다. 사람들이 자연스럽게 당신을 따르고, 당신 곁에 모입니다. 마치 큰 나무 아래 그늘에 사람들이 모이듯이요. 새로운 것을 시작하는 힘이 강해서, 개척자나 창업가 기질이 있어요.",
+      "",
+      "하지만 나무가 너무 곧으면 부러지기 쉽듯이, 당신도 유연성이 필요합니다. 가끔은 바람에 몸을 맡기고 흔들리는 것도 괜찮아요. 고집을 조금 내려놓으면 더 멀리 갈 수 있습니다.",
+      "",
+      "💼 어울리는 직업: 경영자, 창업가, 정치인, 교육자, 건축가, 사회운동가",
+      "💑 궁합: 정화(丁火)나 기토(己土)와 만나면 서로의 에너지를 보완해줍니다."
+    ],
+    en: [
+      "🌲 【Gap-mok (甲木) - Soul of the Great Tree】",
+      "",
+      "You are like a great tree reaching straight toward the sky in a forest.",
+      "",
+      "A great tree always points upward, no matter the circumstances. Rain or wind, it steadfastly maintains its direction. So do you. Once you have a goal, you have the perseverance to never give up despite any difficulty.",
+      "",
+      "Leadership comes naturally. People naturally follow and gather around you. Like people gathering in the shade of a great tree. Your strong ability to start new things gives you pioneer or entrepreneur qualities.",
+      "",
+      "But just as a tree too rigid breaks easily, you need flexibility. Sometimes it's okay to sway with the wind. Letting go of stubbornness a little lets you go further.",
+      "",
+      "💼 Suitable careers: Executive, entrepreneur, politician, educator, architect, social activist",
+      "💑 Compatibility: Meeting Jeong-hwa (丁火) or Gi-to (己土) complements each other's energy."
+    ]
+  },
+  "을": {
+    ko: [
+      "🌿 【을목(乙木) - 덩굴의 영혼】",
+      "",
+      "당신은 담쟁이덩굴이나 넝쿨처럼 어디든 적응하고 뻗어가는 생명력을 가졌습니다.",
+      "",
+      "덩굴은 큰 나무처럼 곧게 서지 않아요. 대신 환경에 맞춰 유연하게 길을 찾아갑니다. 벽을 타고, 돌을 감고, 틈새를 비집고... 어디든 살아남습니다. 당신의 적응력이 바로 이것입니다.",
+      "",
+      "부드러워 보이지만 절대 약하지 않아요. 덩굴이 결국 집 전체를 덮듯이, 당신도 시간이 걸려도 결국 목표에 도달합니다. 끈질김이 당신의 무기예요.",
+      "",
+      "협력과 조화를 중시합니다. 혼자보다는 누군가와 함께할 때 더 빛나요. 다른 사람의 도움을 받아들이는 것을 부끄러워하지 마세요, 그게 당신의 방식이에요.",
+      "",
+      "💼 어울리는 직업: 외교관, 상담사, 디자이너, 협상가, 작가, 요가 강사",
+      "💑 궁합: 경금(庚金)과 만나면 서로 강하게 끌리지만, 적절한 거리가 필요합니다."
+    ],
+    en: [
+      "🌿 【Eul-mok (乙木) - Soul of the Vine】",
+      "",
+      "You have the vitality of ivy or vines that adapt and spread anywhere.",
+      "",
+      "Vines don't stand straight like great trees. Instead, they flexibly find their way according to the environment. Climbing walls, wrapping stones, squeezing through gaps... surviving anywhere. This is your adaptability.",
+      "",
+      "Soft-looking but never weak. Just as vines eventually cover an entire house, you too reach your goals even if it takes time. Persistence is your weapon.",
+      "",
+      "You value cooperation and harmony. You shine more with someone than alone. Don't be ashamed to accept others' help - that's your way.",
+      "",
+      "💼 Suitable careers: Diplomat, counselor, designer, negotiator, writer, yoga instructor",
+      "💑 Compatibility: Meeting Gyeong-geum (庚金) creates strong attraction, but appropriate distance is needed."
+    ]
+  },
+  "병": {
+    ko: [
+      "☀️ 【병화(丙火) - 태양의 영혼】",
+      "",
+      "당신은 세상을 비추는 태양과 같습니다. 어디를 가든 빛나고, 주변을 환하게 밝힙니다.",
+      "",
+      "태양은 모든 생명에게 빛과 따뜻함을 줍니다. 차별 없이, 조건 없이. 당신도 그런 에너지를 가졌어요. 사람들이 당신 곁에서 희망을 느끼고, 에너지를 얻습니다.",
+      "",
+      "존재감이 강해서 숨어있기 어렵습니다. 어딜 가든 주목받고, 자연스럽게 중심이 됩니다. 이것은 축복이지만, 때로는 부담이 될 수도 있어요.",
+      "",
+      "하지만 태양도 쉬어야 합니다. 24시간 빛나면 지치죠. 밤처럼 자신만의 시간, 조용히 재충전하는 시간이 필요합니다. 항상 빛나려고 하지 마세요.",
+      "",
+      "💼 어울리는 직업: 연예인, 정치인, 기업가, 강연자, 예술가, 인플루언서",
+      "💑 궁합: 임수(壬水)와 만나면 서로 균형을 이루며 큰 시너지가 납니다."
+    ],
+    en: [
+      "☀️ 【Byeong-hwa (丙火) - Soul of the Sun】",
+      "",
+      "You are like the sun that illuminates the world. Wherever you go, you shine and brighten your surroundings.",
+      "",
+      "The sun gives light and warmth to all life. Without discrimination, without conditions. You have that energy. People feel hope and gain energy near you.",
+      "",
+      "Strong presence makes hiding difficult. You get attention everywhere, naturally becoming the center. This is a blessing, but sometimes can be a burden.",
+      "",
+      "But even the sun must rest. Shining 24 hours is exhausting. Like night, you need your own time, quiet time to recharge. Don't try to always shine.",
+      "",
+      "💼 Suitable careers: Entertainer, politician, entrepreneur, speaker, artist, influencer",
+      "💑 Compatibility: Meeting Im-su (壬水) creates balance and great synergy."
+    ]
+  },
+  "정": {
+    ko: [
+      "🕯️ 【정화(丁火) - 촛불의 영혼】",
+      "",
+      "당신은 어둠 속에서 은은하게 빛나는 촛불과 같습니다.",
+      "",
+      "촛불은 태양처럼 세상 전체를 비추지는 않아요. 하지만 그 작은 빛이 누군가에게는 희망이 됩니다. 캄캄한 밤, 길을 잃었을 때 멀리서 보이는 불빛처럼요.",
+      "",
+      "깊이 생각하고, 섬세하게 느끼고, 조용히 빛납니다. 화려함보다는 진정성으로 사람을 끌어당겨요. 당신을 알아가면 알아갈수록 더 좋아지는 타입입니다.",
+      "",
+      "집중력이 뛰어나고, 한 가지에 몰입하는 힘이 강합니다. 연구자, 장인, 예술가... 깊이 파고드는 일에 적합합니다. 하지만 혼자 너무 오래 생각하면 지칩니다.",
+      "",
+      "💼 어울리는 직업: 연구원, 작가, 심리상담사, 셰프, 예술가, 종교인",
+      "💑 궁합: 갑목(甲木)과 만나면 서로에게 따뜻한 에너지를 줍니다."
+    ],
+    en: [
+      "🕯️ 【Jeong-hwa (丁火) - Soul of the Candle】",
+      "",
+      "You are like a candle glowing gently in the darkness.",
+      "",
+      "A candle doesn't illuminate the entire world like the sun. But that small light becomes hope for someone. Like a light seen from afar on a dark night when lost.",
+      "",
+      "Think deeply, feel delicately, shine quietly. You attract people with authenticity rather than glamour. The more people know you, the more they like you.",
+      "",
+      "Excellent focus and strong power to immerse in one thing. Researcher, craftsman, artist... suited for deep diving. But thinking alone too long is tiring.",
+      "",
+      "💼 Suitable careers: Researcher, writer, psychologist, chef, artist, clergy",
+      "💑 Compatibility: Meeting Gap-mok (甲木) gives warm energy to each other."
+    ]
+  },
+  "무": {
+    ko: [
+      "🏔️ 【무토(戊土) - 산의 영혼】",
+      "",
+      "당신은 우뚝 서서 모든 것을 품어주는 산과 같습니다.",
+      "",
+      "산은 흔들리지 않습니다. 비가 와도, 눈이 와도, 바람이 불어도 그 자리에 있습니다. 사람들은 산을 보며 안정감을 느끼고, 기대고 싶어합니다. 당신이 바로 그런 존재예요.",
+      "",
+      "신뢰감이 넘치고, 듬직합니다. 약속을 지키고, 책임감이 강해요. 주변 사람들이 힘들 때 당신에게 의지합니다. 그만큼 무거운 짐을 지는 경우도 많죠.",
+      "",
+      "하지만 산도 때로는 흔들립니다. 지진이 나면 땅이 갈라지듯, 당신도 한계에 다다르면 무너질 수 있어요. 혼자 다 짊어지려 하지 말고, 도움을 요청하세요.",
+      "",
+      "💼 어울리는 직업: CEO, 부동산, 은행가, 건설업, 정치인, 관리자",
+      "💑 궁합: 계수(癸水)와 만나면 서로를 적시며 생명력을 키웁니다."
+    ],
+    en: [
+      "🏔️ 【Mu-to (戊土) - Soul of the Mountain】",
+      "",
+      "You are like a mountain standing tall, embracing everything.",
+      "",
+      "Mountains don't shake. Rain, snow, wind - they stay in place. People feel stability looking at mountains and want to lean on them. That's what you are.",
+      "",
+      "Overflowing with trust, solid and dependable. Keep promises, strong responsibility. People around you rely on you when times are hard. That often means carrying heavy burdens.",
+      "",
+      "But mountains sometimes shake too. Like ground cracking in an earthquake, you can collapse when reaching your limit. Don't try to carry everything alone - ask for help.",
+      "",
+      "💼 Suitable careers: CEO, real estate, banker, construction, politician, manager",
+      "💑 Compatibility: Meeting Gye-su (癸水) moistens each other and cultivates vitality."
+    ]
+  },
+  "기": {
+    ko: [
+      "🌾 【기토(己土) - 논밭의 영혼】",
+      "",
+      "당신은 씨앗을 품고 열매를 맺게 하는 비옥한 논밭과 같습니다.",
+      "",
+      "논밭은 화려하지 않아요. 하지만 그 안에서 생명이 자랍니다. 씨앗을 주면 싹을 틔우고, 물을 주면 자라게 하고, 결국 풍성한 수확을 가져다줍니다. 당신의 보살피는 능력이 바로 이것이에요.",
+      "",
+      "사람을 키우고, 일을 키우고, 아이디어를 키웁니다. 당신 손을 거치면 뭐든 성장해요. 교육자, 양육자로서 타고난 재능이 있습니다.",
+      "",
+      "하지만 논밭이 계속 주기만 하면 척박해지듯, 당신도 자신을 돌봐야 합니다. 남 챙기다 자기를 잊으면 결국 지쳐요. 받는 것도 배우세요.",
+      "",
+      "💼 어울리는 직업: 교사, 간호사, 농업, 요리사, 보육사, 사회복지사",
+      "💑 궁합: 갑목(甲木)과 만나면 서로 영양을 주고받으며 성장합니다."
+    ],
+    en: [
+      "🌾 【Gi-to (己土) - Soul of the Field】",
+      "",
+      "You are like fertile fields that hold seeds and bear fruit.",
+      "",
+      "Fields aren't glamorous. But life grows within them. Given seeds, they sprout; given water, they grow; eventually bringing abundant harvest. This is your nurturing ability.",
+      "",
+      "You grow people, grow work, grow ideas. Everything that passes through your hands grows. Natural talent as educator and nurturer.",
+      "",
+      "But just as fields become barren if they only give, you must care for yourself. Forgetting yourself while caring for others eventually exhausts you. Learn to receive too.",
+      "",
+      "💼 Suitable careers: Teacher, nurse, agriculture, chef, childcare, social worker",
+      "💑 Compatibility: Meeting Gap-mok (甲木) exchanges nourishment and grows together."
+    ]
+  },
+  "경": {
+    ko: [
+      "⚔️ 【경금(庚金) - 검의 영혼】",
+      "",
+      "당신은 날카롭고 강한 검과 같습니다. 결단력이 있고, 정의로우며, 필요할 때 단호하게 행동합니다.",
+      "",
+      "검은 망설이지 않습니다. 베어야 할 때 벱니다. 당신도 그렇습니다. 결정을 내려야 할 때 명확하게 내리고, 옳고 그름을 분명히 합니다. 우유부단함과는 거리가 멀어요.",
+      "",
+      "정의감이 강합니다. 불의를 보면 참지 못하고, 약자를 보호하려 합니다. 싸워야 할 때 피하지 않습니다. 이런 성격 때문에 리더가 되거나, 갈등의 중심에 서기도 해요.",
+      "",
+      "하지만 검은 함부로 휘두르면 자신도 다칩니다. 말이 너무 날카로우면 상처를 줍니다. 때로는 검을 칼집에 넣어두는 것도 용기입니다.",
+      "",
+      "💼 어울리는 직업: 군인, 경찰, 검사, 외과의사, 기계공학자, 운동선수",
+      "💑 궁합: 을목(乙木)과 만나면 강한 끌림이 있지만, 부드러움을 배워야 합니다."
+    ],
+    en: [
+      "⚔️ 【Gyeong-geum (庚金) - Soul of the Sword】",
+      "",
+      "You are like a sharp, strong sword. Decisive, righteous, acting firmly when needed.",
+      "",
+      "A sword doesn't hesitate. It cuts when cutting is needed. So do you. Making decisions clearly when needed, distinguishing right from wrong clearly. Far from indecisive.",
+      "",
+      "Strong sense of justice. Can't stand injustice, tries to protect the weak. Doesn't avoid fights when fighting is needed. This personality makes you a leader or puts you at the center of conflict.",
+      "",
+      "But swinging a sword carelessly hurts yourself too. Words too sharp wound others. Sometimes keeping the sword sheathed is also courage.",
+      "",
+      "💼 Suitable careers: Military, police, prosecutor, surgeon, mechanical engineer, athlete",
+      "💑 Compatibility: Strong attraction with Eul-mok (乙木), but must learn softness."
+    ]
+  },
+  "신": {
+    ko: [
+      "💎 【신금(辛金) - 보석의 영혼】",
+      "",
+      "당신은 세공된 보석처럼 섬세하고 아름다운 빛을 냅니다.",
+      "",
+      "보석은 원석에서 시작해 깎이고 다듬어져 빛납니다. 당신도 삶의 경험을 통해 점점 더 빛나는 타입이에요. 고통과 압박이 오히려 당신을 더 아름답게 만듭니다.",
+      "",
+      "완벽주의 성향이 있고, 디테일에 강합니다. 예리한 눈으로 다른 사람이 못 보는 것을 봅니다. 예술, 패션, 디자인... 아름다움을 다루는 일에 재능이 있어요.",
+      "",
+      "하지만 완벽을 추구하다 자신을 너무 몰아붙이면 깨질 수 있습니다. 보석도 너무 세게 누르면 금이 가듯이요. 불완전함도 아름다움의 일부라는 것을 받아들이세요.",
+      "",
+      "💼 어울리는 직업: 보석상, 디자이너, 에디터, 품질관리자, 비평가, 큐레이터",
+      "💑 궁합: 병화(丙火)의 따뜻함이 당신을 녹여주고 빛나게 합니다."
+    ],
+    en: [
+      "💎 【Sin-geum (辛金) - Soul of the Gem】",
+      "",
+      "You shine with delicate, beautiful light like a polished gem.",
+      "",
+      "Gems start as rough stones, cut and refined to shine. You're the type that shines more through life experiences. Pain and pressure actually make you more beautiful.",
+      "",
+      "Perfectionist tendencies, strong with details. Sharp eyes see what others can't. Talent in art, fashion, design... work dealing with beauty.",
+      "",
+      "But pushing yourself too hard pursuing perfection can break you. Like gems cracking under too much pressure. Accept that imperfection is part of beauty.",
+      "",
+      "💼 Suitable careers: Jeweler, designer, editor, quality controller, critic, curator",
+      "💑 Compatibility: Byeong-hwa's (丙火) warmth melts and makes you shine."
+    ]
+  },
+  "임": {
+    ko: [
+      "🌊 【임수(壬水) - 바다의 영혼】",
+      "",
+      "당신은 모든 것을 품는 넓고 깊은 바다와 같습니다.",
+      "",
+      "바다는 강물도, 빗물도, 모든 물을 받아들입니다. 당신의 마음도 그렇게 넓어요. 다양한 사람, 다양한 생각, 다양한 경험... 다 받아들이고 품을 수 있습니다.",
+      "",
+      "지혜가 깊습니다. 표면에 보이는 것 너머를 봅니다. 상황의 흐름을 읽고, 큰 그림을 파악합니다. 전략가, 철학자 기질이 있어요.",
+      "",
+      "하지만 바다도 폭풍이 치면 거칠어지듯, 감정이 격해지면 통제가 어려울 수 있습니다. 너무 깊이 빠지면 헤어나오기 힘들어요. 균형이 필요합니다.",
+      "",
+      "💼 어울리는 직업: 철학자, 전략가, 무역업, 물류, 심리학자, 영적 지도자",
+      "💑 궁합: 병화(丙火)와 만나면 서로 균형을 이루며 조화롭습니다."
+    ],
+    en: [
+      "🌊 【Im-su (壬水) - Soul of the Ocean】",
+      "",
+      "You are like a wide, deep ocean that embraces everything.",
+      "",
+      "The ocean accepts river water, rain water, all water. Your heart is that wide. Various people, thoughts, experiences... you can accept and embrace them all.",
+      "",
+      "Deep wisdom. Seeing beyond the surface. Reading situational flow, grasping the big picture. Strategist, philosopher qualities.",
+      "",
+      "But just as oceans become rough in storms, emotions can be hard to control when intense. Going too deep makes it hard to come out. Balance is needed.",
+      "",
+      "💼 Suitable careers: Philosopher, strategist, trade, logistics, psychologist, spiritual leader",
+      "💑 Compatibility: Meeting Byeong-hwa (丙火) creates balanced harmony."
+    ]
+  },
+  "계": {
+    ko: [
+      "💧 【계수(癸水) - 샘물의 영혼】",
+      "",
+      "당신은 맑고 순수한 샘물처럼 깨끗한 영혼을 가졌습니다.",
+      "",
+      "샘물은 땅 깊은 곳에서 솟아납니다. 보이지 않는 곳에서 조용히 흐르다가, 필요한 곳에 생명을 줍니다. 당신의 직감과 영적 감수성이 바로 이런 에너지예요.",
+      "",
+      "예민하고, 감성이 풍부하고, 눈에 보이지 않는 것을 느낍니다. 다른 사람의 감정, 장소의 분위기, 말하지 않은 것... 당신은 그것들을 읽을 수 있어요.",
+      "",
+      "하지만 스펀지처럼 주변 에너지를 다 흡수하면 힘들어집니다. 남의 감정까지 다 느끼면 지쳐요. 자신을 보호하고, 정화하는 시간이 꼭 필요합니다.",
+      "",
+      "💼 어울리는 직업: 영적 상담사, 예술가, 치료사, 시인, 점술가, 명상 지도자",
+      "💑 궁합: 무토(戊土)와 만나면 안정감을 얻고 뿌리를 내릴 수 있습니다."
+    ],
+    en: [
+      "💧 【Gye-su (癸水) - Soul of the Spring】",
+      "",
+      "You have a pure soul like clear, clean spring water.",
+      "",
+      "Spring water emerges from deep in the earth. Flowing quietly from unseen places, giving life where needed. Your intuition and spiritual sensitivity are this energy.",
+      "",
+      "Sensitive, emotionally rich, feeling the invisible. Others' emotions, place atmospheres, unspoken things... you can read them.",
+      "",
+      "But absorbing all surrounding energy like a sponge is hard. Feeling everyone's emotions is exhausting. Time to protect and purify yourself is essential.",
+      "",
+      "💼 Suitable careers: Spiritual counselor, artist, healer, poet, fortune teller, meditation guide",
+      "💑 Compatibility: Meeting Mu-to (戊土) provides stability and lets you put down roots."
+    ]
+  }
+};
+
+// ============================================================
+// Extended North Node House Narratives (노스노드 하우스 확장 서사)
+// ============================================================
+
+const northNodeExtendedNarratives: Record<number, { ko: string[]; en: string[] }> = {
+  1: {
+    ko: [
+      "🦸 【노스노드 1하우스 - 나 자신을 찾는 여정】",
+      "",
+      "이번 생에서 당신의 가장 큰 과제는 '나'를 발견하는 것입니다.",
+      "",
+      "전생에서 당신은 아마 관계에 많은 에너지를 쏟았을 거예요. 파트너, 협력자, 타인을 위해 살았습니다. 그래서 '나'보다 '우리'가 익숙하고, 혼자 결정하는 것이 불편해요.",
+      "",
+      "하지만 이번 생에서는 반대로 가야 합니다. 다른 사람의 의견을 구하기 전에 '나는 뭘 원하지?'를 먼저 물어보세요. 누군가에게 기대지 말고 스스로 일어서는 연습을 하세요.",
+      "",
+      "처음에는 이기적으로 느껴질 수 있어요. 하지만 그렇지 않습니다. 자기 자신을 먼저 채워야 다른 사람에게도 진정으로 줄 수 있습니다.",
+      "",
+      "💡 실천 방법: 혼자 여행하기, 혼자 결정 내리기, 자기 의견 먼저 말하기. '나를 먼저 생각해도 괜찮아'라고 스스로에게 허락하세요."
+    ],
+    en: [
+      "🦸 【North Node 1st House - Journey to Find Yourself】",
+      "",
+      "Your biggest task this lifetime is discovering 'yourself.'",
+      "",
+      "In past lives, you probably poured much energy into relationships. Living for partners, collaborators, others. So 'we' feels more natural than 'me,' and deciding alone feels uncomfortable.",
+      "",
+      "But this life requires the opposite. Before seeking others' opinions, first ask 'What do I want?' Practice standing on your own instead of leaning on someone.",
+      "",
+      "It may feel selfish at first. But it's not. You must fill yourself first to truly give to others.",
+      "",
+      "💡 How to practice: Travel alone, make decisions alone, speak your opinion first. Give yourself permission that 'it's okay to think of myself first.'"
+    ]
+  },
+  2: {
+    ko: [
+      "💎 【노스노드 2하우스 - 나만의 가치를 세우는 여정】",
+      "",
+      "이번 생에서 당신의 과제는 '나의 것'을 만드는 것입니다.",
+      "",
+      "전생에서 당신은 다른 사람의 자원, 에너지, 돈에 의존했을 수 있어요. 상속, 후원, 파트너의 재정... 그래서 '내 것'이라는 개념이 약합니다.",
+      "",
+      "이번 생에서는 스스로 벌고, 스스로 모으고, 스스로 가치를 증명해야 합니다. 누군가에게 의지하는 것이 편하겠지만, 그것은 성장의 방향이 아니에요.",
+      "",
+      "자존감과도 연결됩니다. '나는 가치 있는 사람이야'라는 믿음을 스스로 세워야 해요. 외부의 인정이 아니라 내면의 확신으로요.",
+      "",
+      "💡 실천 방법: 자기 돈으로 원하는 것 사기, 재테크 공부하기, 자신의 재능으로 수입 창출하기. 물질적 독립이 정서적 독립으로 이어집니다."
+    ],
+    en: [
+      "💎 【North Node 2nd House - Journey to Build Your Own Value】",
+      "",
+      "Your task this lifetime is creating 'your own.'",
+      "",
+      "In past lives, you may have depended on others' resources, energy, money. Inheritance, sponsorship, partner's finances... so the concept of 'mine' is weak.",
+      "",
+      "This life, you must earn, save, and prove value yourself. Depending on someone feels comfortable, but that's not the growth direction.",
+      "",
+      "It connects to self-esteem. You must build the belief 'I am a worthy person' yourself. Through inner conviction, not external validation.",
+      "",
+      "💡 How to practice: Buy what you want with your own money, study finance, generate income from your talents. Financial independence leads to emotional independence."
+    ]
+  },
+  3: {
+    ko: [
+      "💬 【노스노드 3하우스 - 소통하고 연결하는 여정】",
+      "",
+      "이번 생에서 당신의 과제는 '말하고 듣는 것'입니다.",
+      "",
+      "전생에서 당신은 아마 높은 이상, 철학, 먼 곳의 진리를 추구했을 거예요. 그래서 일상적인 대화나 작은 소통이 시시하게 느껴질 수 있어요.",
+      "",
+      "하지만 이번 생에서는 '가까운 곳'에 답이 있습니다. 형제자매, 이웃, 동료... 가까운 관계에서 배우세요. 거창한 진리보다 일상의 지혜가 중요합니다.",
+      "",
+      "글쓰기, 말하기, 가르치기... 당신의 생각을 표현하는 것이 성장의 열쇠예요. 머릿속에만 두지 말고 밖으로 꺼내세요.",
+      "",
+      "💡 실천 방법: 블로그 쓰기, 팟캐스트 하기, 동네 모임 참여하기, 짧은 글 자주 쓰기. 작은 소통이 쌓이면 큰 연결이 됩니다."
+    ],
+    en: [
+      "💬 【North Node 3rd House - Journey of Communication and Connection】",
+      "",
+      "Your task this lifetime is 'speaking and listening.'",
+      "",
+      "In past lives, you probably pursued high ideals, philosophy, distant truths. So everyday conversation or small talk may feel trivial.",
+      "",
+      "But this life, answers are 'nearby.' Siblings, neighbors, colleagues... learn from close relationships. Daily wisdom matters more than grand truths.",
+      "",
+      "Writing, speaking, teaching... expressing your thoughts is the key to growth. Don't keep it in your head, bring it out.",
+      "",
+      "💡 How to practice: Blog writing, podcasting, joining local groups, writing short pieces often. Small communications build into big connections."
+    ]
+  },
+  4: {
+    ko: [
+      "🏠 【노스노드 4하우스 - 마음의 집을 짓는 여정】",
+      "",
+      "이번 생에서 당신의 과제는 '뿌리를 내리는 것'입니다.",
+      "",
+      "전생에서 당신은 사회적 성공, 커리어, 외부 세계에서의 인정에 집중했을 거예요. 그래서 '집'보다 '회사'가 익숙하고, 감정보다 성취가 중요하게 느껴질 수 있어요.",
+      "",
+      "하지만 이번 생에서는 내면으로 들어가야 합니다. 가족, 고향, 정서적 안정... 이런 것들이 당신의 진짜 기반입니다. 아무리 사회적으로 성공해도 마음의 집이 없으면 공허해요.",
+      "",
+      "어린 시절의 상처를 치유하고, 가족과의 관계를 회복하고, 안전한 내면의 공간을 만드세요.",
+      "",
+      "💡 실천 방법: 가족과 시간 보내기, 집 꾸미기, 요리하기, 어린 시절 사진 보며 내면 아이 돌보기. 외부의 성공보다 내면의 평화가 먼저입니다."
+    ],
+    en: [
+      "🏠 【North Node 4th House - Journey to Build a Home for the Heart】",
+      "",
+      "Your task this lifetime is 'putting down roots.'",
+      "",
+      "In past lives, you focused on social success, career, recognition in the outer world. So 'company' feels more natural than 'home,' achievement more important than emotions.",
+      "",
+      "But this life requires going inward. Family, hometown, emotional stability... these are your true foundation. No matter how socially successful, without a home for the heart, there's emptiness.",
+      "",
+      "Heal childhood wounds, restore family relationships, create safe inner space.",
+      "",
+      "💡 How to practice: Spend time with family, decorate home, cook, care for your inner child looking at childhood photos. Inner peace before outer success."
+    ]
+  },
+  5: {
+    ko: [
+      "🎭 【노스노드 5하우스 - 빛나는 별이 되는 여정】",
+      "",
+      "이번 생에서 당신의 과제는 '창조하고 즐기는 것'입니다.",
+      "",
+      "전생에서 당신은 집단을 위해 살았을 거예요. 팀, 커뮤니티, 사회를 위해 개인을 희생했습니다. 그래서 '나 혼자 빛나는 것'이 불편하고 죄책감이 들 수 있어요.",
+      "",
+      "하지만 이번 생에서는 무대 위로 올라가야 합니다. 당신만의 창의성을 표현하고, 주목받고, 즐기세요. 숨어있으면 안 돼요.",
+      "",
+      "연애, 취미, 예술, 자녀... 기쁨을 주는 것들에 시간을 투자하세요. '일만 하는 인생'은 당신의 길이 아닙니다.",
+      "",
+      "💡 실천 방법: 예술 활동하기, 무대에 서기, 연애하기, 아이와 놀기, 게임하기. 진지함만큼 유희도 중요합니다."
+    ],
+    en: [
+      "🎭 【North Node 5th House - Journey to Become a Shining Star】",
+      "",
+      "Your task this lifetime is 'creating and enjoying.'",
+      "",
+      "In past lives, you lived for the group. Sacrificed individuality for team, community, society. So 'shining alone' feels uncomfortable and may bring guilt.",
+      "",
+      "But this life requires stepping onto the stage. Express your unique creativity, get attention, enjoy. Don't hide.",
+      "",
+      "Romance, hobbies, art, children... invest time in joy-giving things. 'A life of only work' is not your path.",
+      "",
+      "💡 How to practice: Do art activities, perform on stage, date, play with children, play games. Play matters as much as seriousness."
+    ]
+  },
+  6: {
+    ko: [
+      "⚙️ 【노스노드 6하우스 - 장인이 되는 여정】",
+      "",
+      "이번 생에서 당신의 과제는 '실용적으로 살고 봉사하는 것'입니다.",
+      "",
+      "전생에서 당신은 꿈과 영적인 세계에 빠져 살았을 수 있어요. 현실보다 이상, 일보다 명상... 그래서 일상의 디테일이 귀찮고 지루하게 느껴질 수 있어요.",
+      "",
+      "하지만 이번 생에서는 '현실'에 발을 딛어야 합니다. 매일의 루틴, 건강 관리, 세부적인 일... 이런 것들이 당신을 성장시킵니다.",
+      "",
+      "봉사도 중요합니다. 다른 사람에게 실질적인 도움을 주세요. 거창한 구원이 아니라 작은 도움이요.",
+      "",
+      "💡 실천 방법: 운동 루틴 만들기, 식단 관리하기, 정리정돈하기, 자원봉사하기. 꿈꾸는 것만큼 행동하는 것이 중요합니다."
+    ],
+    en: [
+      "⚙️ 【North Node 6th House - Journey to Become a Craftsman】",
+      "",
+      "Your task this lifetime is 'living practically and serving.'",
+      "",
+      "In past lives, you may have been lost in dreams and spiritual worlds. Ideals over reality, meditation over work... so daily details may feel bothersome and boring.",
+      "",
+      "But this life requires grounding in 'reality.' Daily routines, health care, detailed work... these grow you.",
+      "",
+      "Service matters too. Give practical help to others. Small help, not grand salvation.",
+      "",
+      "💡 How to practice: Create exercise routines, manage diet, organize, volunteer. Acting matters as much as dreaming."
+    ]
+  },
+  7: {
+    ko: [
+      "🤝 【노스노드 7하우스 - 함께하는 법을 배우는 여정】",
+      "",
+      "이번 생에서 당신의 과제는 '협력하고 나누는 것'입니다.",
+      "",
+      "전생에서 당신은 독립적이고 자기 중심적으로 살았을 거예요. 혼자 결정하고, 혼자 행동하고, 혼자 책임졌습니다. 그래서 '파트너십'이 불편하고 통제력을 잃는 것 같은 느낌이 들 수 있어요.",
+      "",
+      "하지만 이번 생에서는 '함께'가 성장의 열쇠입니다. 배우자, 사업 파트너, 협력자... 누군가와 깊이 연결되는 경험이 필요해요.",
+      "",
+      "타협하는 법, 듣는 법, 양보하는 법을 배우세요. '내 방식'만 고집하면 성장이 멈춥니다.",
+      "",
+      "💡 실천 방법: 파트너십 경험하기, 상대 입장에서 생각하기, '우리'라는 단어 쓰기. 혼자 하면 빠르지만 함께 하면 멀리 갑니다."
+    ],
+    en: [
+      "🤝 【North Node 7th House - Journey to Learn Togetherness】",
+      "",
+      "Your task this lifetime is 'cooperating and sharing.'",
+      "",
+      "In past lives, you lived independently and self-centeredly. Decided alone, acted alone, took responsibility alone. So 'partnership' feels uncomfortable and like losing control.",
+      "",
+      "But this life, 'together' is the key to growth. Spouse, business partner, collaborator... you need deep connection experiences.",
+      "",
+      "Learn to compromise, listen, yield. Insisting on 'my way' stops growth.",
+      "",
+      "💡 How to practice: Experience partnership, think from others' perspective, use the word 'we.' Alone is faster, but together goes further."
+    ]
+  },
+  8: {
+    ko: [
+      "🦋 【노스노드 8하우스 - 깊이 변화하는 여정】",
+      "",
+      "이번 생에서 당신의 과제는 '깊이 들어가고 변화하는 것'입니다.",
+      "",
+      "전생에서 당신은 안정과 안전을 추구했을 거예요. 내 것을 지키고, 예측 가능한 삶을 살았습니다. 그래서 '변화'와 '상실'이 두렵게 느껴질 수 있어요.",
+      "",
+      "하지만 이번 생에서는 변화를 받아들여야 합니다. 죽고 다시 태어나듯, 완전한 변신이 필요합니다. 표면이 아닌 깊은 곳으로 들어가세요.",
+      "",
+      "다른 사람과 자원을 공유하고, 친밀함을 경험하고, 삶의 깊은 진실을 마주하세요.",
+      "",
+      "💡 실천 방법: 심리 치료받기, 깊은 대화하기, 투자/공동 자산 경험하기, 위기를 성장 기회로 바꾸기. 안전지대를 벗어나야 성장합니다."
+    ],
+    en: [
+      "🦋 【North Node 8th House - Journey of Deep Transformation】",
+      "",
+      "Your task this lifetime is 'going deep and transforming.'",
+      "",
+      "In past lives, you pursued stability and safety. Protected what's yours, lived predictably. So 'change' and 'loss' may feel scary.",
+      "",
+      "But this life requires embracing change. Like dying and being reborn, complete transformation is needed. Go deep, not surface.",
+      "",
+      "Share resources with others, experience intimacy, face life's deep truths.",
+      "",
+      "💡 How to practice: Get therapy, have deep conversations, experience investment/shared assets, turn crisis into growth opportunity. Growth requires leaving comfort zones."
+    ]
+  },
+  9: {
+    ko: [
+      "🌍 【노스노드 9하우스 - 넓은 세계로 나가는 여정】",
+      "",
+      "이번 생에서 당신의 과제는 '확장하고 의미를 찾는 것'입니다.",
+      "",
+      "전생에서 당신은 작은 세계에 머물렀을 거예요. 일상의 디테일, 정보 수집, 가까운 환경... 그래서 '큰 그림'을 보거나 '왜?'라는 질문이 어색할 수 있어요.",
+      "",
+      "하지만 이번 생에서는 넓게 봐야 합니다. 여행, 철학, 종교, 고등 교육... 삶의 의미를 탐구하세요. 사실(fact)만 모으지 말고 지혜(wisdom)를 추구하세요.",
+      "",
+      "다른 문화, 다른 생각, 다른 세계관을 경험하세요. 그것이 당신을 확장시킵니다.",
+      "",
+      "💡 실천 방법: 해외여행하기, 철학책 읽기, 종교/영성 탐구하기, 대학원 진학하기, 멘토 찾기. 작은 것에 갇히지 말고 높이 날아오르세요."
+    ],
+    en: [
+      "🌍 【North Node 9th House - Journey to the Wider World】",
+      "",
+      "Your task this lifetime is 'expanding and finding meaning.'",
+      "",
+      "In past lives, you stayed in a small world. Daily details, information gathering, close environment... so seeing 'the big picture' or asking 'why?' may feel awkward.",
+      "",
+      "But this life requires seeing widely. Travel, philosophy, religion, higher education... explore life's meaning. Don't just collect facts, pursue wisdom.",
+      "",
+      "Experience different cultures, different thoughts, different worldviews. That expands you.",
+      "",
+      "💡 How to practice: Travel abroad, read philosophy, explore religion/spirituality, go to graduate school, find mentors. Don't be trapped in small things, fly high."
+    ]
+  },
+  10: {
+    ko: [
+      "🏆 【노스노드 10하우스 - 세상에서 역할을 찾는 여정】",
+      "",
+      "이번 생에서 당신의 과제는 '사회적 역할을 다하는 것'입니다.",
+      "",
+      "전생에서 당신은 가정과 내면에 집중했을 거예요. 가족을 돌보고, 안전한 공간에 머물렀습니다. 그래서 '세상에 나가는 것'이 두렵거나 불편할 수 있어요.",
+      "",
+      "하지만 이번 생에서는 밖으로 나가야 합니다. 커리어를 쌓고, 사회에서 인정받고, 책임 있는 자리에 서세요. 집에만 있으면 성장이 멈춥니다.",
+      "",
+      "당신만의 '소명'을 찾으세요. 세상에 어떤 기여를 할 수 있는지, 어떤 유산을 남길 수 있는지 생각하세요.",
+      "",
+      "💡 실천 방법: 커리어 목표 세우기, 리더십 경험하기, 전문성 키우기, 사회적 책임 다하기. 편안함보다 성취를 선택하세요."
+    ],
+    en: [
+      "🏆 【North Node 10th House - Journey to Find Your Role in the World】",
+      "",
+      "Your task this lifetime is 'fulfilling your social role.'",
+      "",
+      "In past lives, you focused on home and inner world. Caring for family, staying in safe spaces. So 'going out into the world' may feel scary or uncomfortable.",
+      "",
+      "But this life requires going out. Build career, gain social recognition, take responsible positions. Staying home stops growth.",
+      "",
+      "Find your 'calling.' Think about what contribution you can make to the world, what legacy you can leave.",
+      "",
+      "💡 How to practice: Set career goals, experience leadership, build expertise, fulfill social responsibility. Choose achievement over comfort."
+    ]
+  },
+  11: {
+    ko: [
+      "🌐 【노스노드 11하우스 - 더 큰 공동체를 위한 여정】",
+      "",
+      "이번 생에서 당신의 과제는 '나보다 우리를 생각하는 것'입니다.",
+      "",
+      "전생에서 당신은 개인적 창조와 자기 표현에 집중했을 거예요. '나'의 영광, '나'의 작품, '나'의 사랑... 그래서 집단이나 공동체가 불편하게 느껴질 수 있어요.",
+      "",
+      "하지만 이번 생에서는 더 큰 그림을 봐야 합니다. 개인적 영광보다 집단의 발전, 단기적 성과보다 미래 세대를 위한 일... 이런 것들이 당신의 성장 방향입니다.",
+      "",
+      "친구, 네트워크, 공동체... 같은 뜻을 가진 사람들과 연결되세요.",
+      "",
+      "💡 실천 방법: 동호회 가입하기, 사회 운동 참여하기, 네트워킹하기, 미래를 위한 프로젝트 하기. 혼자 빛나기보다 함께 빛나세요."
+    ],
+    en: [
+      "🌐 【North Node 11th House - Journey for the Greater Community】",
+      "",
+      "Your task this lifetime is 'thinking of us rather than me.'",
+      "",
+      "In past lives, you focused on personal creation and self-expression. 'My' glory, 'my' work, 'my' love... so groups or communities may feel uncomfortable.",
+      "",
+      "But this life requires seeing the bigger picture. Collective progress over personal glory, work for future generations over short-term results... these are your growth directions.",
+      "",
+      "Friends, networks, communities... connect with like-minded people.",
+      "",
+      "💡 How to practice: Join clubs, participate in social movements, network, do projects for the future. Shine together rather than alone."
+    ]
+  },
+  12: {
+    ko: [
+      "🧘 【노스노드 12하우스 - 영혼과 만나는 여정】",
+      "",
+      "이번 생에서 당신의 과제는 '내려놓고 연결되는 것'입니다.",
+      "",
+      "전생에서 당신은 분석하고, 정리하고, 완벽하게 통제하려 했을 거예요. 모든 것을 체크하고, 모든 것을 관리했습니다. 그래서 '통제를 놓는 것'이 무섭게 느껴질 수 있어요.",
+      "",
+      "하지만 이번 생에서는 신비로움을 받아들여야 합니다. 모든 것을 이해하려 하지 말고, 흐름에 맡기세요. 명상, 영성, 예술... 논리를 초월한 영역에서 성장합니다.",
+      "",
+      "혼자만의 시간, 내면과의 대화, 우주와의 연결... 이런 것들이 당신을 채웁니다.",
+      "",
+      "💡 실천 방법: 명상하기, 요가하기, 봉사하기, 예술 감상하기, 자연 속에서 시간 보내기. 통제를 내려놓으면 더 큰 평화가 옵니다."
+    ],
+    en: [
+      "🧘 【North Node 12th House - Journey to Meet the Soul】",
+      "",
+      "Your task this lifetime is 'letting go and connecting.'",
+      "",
+      "In past lives, you analyzed, organized, tried to perfectly control. Checked everything, managed everything. So 'releasing control' may feel scary.",
+      "",
+      "But this life requires embracing mystery. Don't try to understand everything, surrender to flow. Meditation, spirituality, art... growth in realms beyond logic.",
+      "",
+      "Alone time, inner dialogue, connection with the universe... these fill you.",
+      "",
+      "💡 How to practice: Meditate, do yoga, volunteer, appreciate art, spend time in nature. Releasing control brings greater peace."
+    ]
+  }
+};
+
+// ============================================================
 // Section 1: Soul Identity Narrative (영혼의 정체성)
 // Combines Day Master + Soul Type for rich description
 // ============================================================
@@ -19,67 +669,86 @@ export function getSoulIdentityNarrative(
   const paragraphs: string[] = [];
   const dayMasterInfo = dayMaster ? dayMasterSimple[dayMaster] : null;
 
-  if (dayMasterInfo) {
-    if (isKo) {
-      paragraphs.push(`🌟 【일간(日干) 분석 - 당신 영혼의 본질】`);
+  if (dayMasterInfo && dayMaster) {
+    // Check if we have extended narrative for this day master
+    const extendedNarrative = dayMasterExtendedNarratives[dayMaster];
+    if (extendedNarrative) {
+      const narrativeLines = isKo ? extendedNarrative.ko : extendedNarrative.en;
+      narrativeLines.forEach(line => paragraphs.push(line));
       paragraphs.push('');
-      paragraphs.push(
-        `사주(四柱)에서 '일간'은 당신 자체를 나타냅니다. 태어난 날의 천간(天干)이 바로 당신의 영혼이 어떤 에너지로 이 세상에 왔는지를 보여줍니다.`
-      );
-      paragraphs.push('');
-      paragraphs.push(
-        `당신의 일간은 ${dayMasterInfo.emoji} "${dayMasterInfo.simpleKo}"입니다.`
-      );
-      paragraphs.push('');
-      paragraphs.push(dayMasterInfo.metaphorKo);
-      paragraphs.push('');
-      paragraphs.push(
-        `이 에너지는 당신이 세상을 바라보는 방식, 결정을 내리는 방식, 그리고 사람들과 관계 맺는 방식 모두에 깊이 스며들어 있습니다.`
-      );
-      paragraphs.push('');
-      paragraphs.push(`어린 시절부터 이런 성향이 자연스럽게 나타났을 것입니다. 부모님이나 주변 사람들도 아마 이 특성을 알아챘을 거예요.`);
-      paragraphs.push('');
-      paragraphs.push(`💪 【당신의 타고난 강점】`);
-      paragraphs.push(dayMasterInfo.strengthKo);
-      paragraphs.push('');
-      paragraphs.push(`⚠️ 【조심할 부분】`);
-      paragraphs.push(`모든 강점에는 그림자도 있습니다. ${dayMasterInfo.watchOutKo}`);
-      paragraphs.push('');
-      paragraphs.push(`🎨 【어울리는 색상】`);
-      paragraphs.push(
-        `당신에게 어울리는 색상은 ${dayMasterInfo.luckyColorKo}입니다.`
-      );
-      paragraphs.push(`이 색을 옷, 소품, 인테리어에 활용하면 당신의 에너지가 더 안정되고 조화롭게 흐릅니다.`);
+      // Add color recommendation
+      if (isKo) {
+        paragraphs.push(`🎨 【어울리는 색상】`);
+        paragraphs.push(`당신에게 어울리는 색상은 ${dayMasterInfo.luckyColorKo}입니다.`);
+        paragraphs.push(`이 색을 옷, 소품, 인테리어에 활용하면 당신의 에너지가 더 안정되고 조화롭게 흐릅니다.`);
+      } else {
+        paragraphs.push(`🎨 【Your Harmonious Colors】`);
+        paragraphs.push(`Your harmonious colors are ${dayMasterInfo.luckyColorEn}.`);
+        paragraphs.push(`Using these colors in clothing, accessories, and interior design helps your energy flow more balanced and steady.`);
+      }
     } else {
-      paragraphs.push(`🌟 【Day Master Analysis - The Essence of Your Soul】`);
-      paragraphs.push('');
-      paragraphs.push(
-        `In Four Pillars (Saju), the 'Day Master' represents you yourself. The Heavenly Stem of your birth day shows what energy your soul brought into this world.`
-      );
-      paragraphs.push('');
-      paragraphs.push(
-        `Your Day Master is ${dayMasterInfo.emoji} "${dayMasterInfo.simpleEn}".`
-      );
-      paragraphs.push('');
-      paragraphs.push(dayMasterInfo.metaphorEn);
-      paragraphs.push('');
-      paragraphs.push(
-        `This energy permeates how you see the world, make decisions, and form relationships.`
-      );
-      paragraphs.push('');
-      paragraphs.push(`These tendencies have naturally appeared since childhood. Your parents and those around you probably noticed these traits too.`);
-      paragraphs.push('');
-      paragraphs.push(`💪 【Your Innate Strength】`);
-      paragraphs.push(dayMasterInfo.strengthEn);
-      paragraphs.push('');
-      paragraphs.push(`⚠️ 【Watch Out For】`);
-      paragraphs.push(`Every strength has its shadow. ${dayMasterInfo.watchOutEn}`);
-      paragraphs.push('');
-      paragraphs.push(`🎨 【Your Harmonious Colors】`);
-      paragraphs.push(
-        `Your harmonious colors are ${dayMasterInfo.luckyColorEn}.`
-      );
-      paragraphs.push(`Using these colors in clothing, accessories, and interior design helps your energy flow more balanced and steady.`);
+      // Fallback to original simple version
+      if (isKo) {
+        paragraphs.push(`🌟 【일간(日干) 분석 - 당신 영혼의 본질】`);
+        paragraphs.push('');
+        paragraphs.push(
+          `사주(四柱)에서 '일간'은 당신 자체를 나타냅니다. 태어난 날의 천간(天干)이 바로 당신의 영혼이 어떤 에너지로 이 세상에 왔는지를 보여줍니다.`
+        );
+        paragraphs.push('');
+        paragraphs.push(
+          `당신의 일간은 ${dayMasterInfo.emoji} "${dayMasterInfo.simpleKo}"입니다.`
+        );
+        paragraphs.push('');
+        paragraphs.push(dayMasterInfo.metaphorKo);
+        paragraphs.push('');
+        paragraphs.push(
+          `이 에너지는 당신이 세상을 바라보는 방식, 결정을 내리는 방식, 그리고 사람들과 관계 맺는 방식 모두에 깊이 스며들어 있습니다.`
+        );
+        paragraphs.push('');
+        paragraphs.push(`어린 시절부터 이런 성향이 자연스럽게 나타났을 것입니다. 부모님이나 주변 사람들도 아마 이 특성을 알아챘을 거예요.`);
+        paragraphs.push('');
+        paragraphs.push(`💪 【당신의 타고난 강점】`);
+        paragraphs.push(dayMasterInfo.strengthKo);
+        paragraphs.push('');
+        paragraphs.push(`⚠️ 【조심할 부분】`);
+        paragraphs.push(`모든 강점에는 그림자도 있습니다. ${dayMasterInfo.watchOutKo}`);
+        paragraphs.push('');
+        paragraphs.push(`🎨 【어울리는 색상】`);
+        paragraphs.push(
+          `당신에게 어울리는 색상은 ${dayMasterInfo.luckyColorKo}입니다.`
+        );
+        paragraphs.push(`이 색을 옷, 소품, 인테리어에 활용하면 당신의 에너지가 더 안정되고 조화롭게 흐릅니다.`);
+      } else {
+        paragraphs.push(`🌟 【Day Master Analysis - The Essence of Your Soul】`);
+        paragraphs.push('');
+        paragraphs.push(
+          `In Four Pillars (Saju), the 'Day Master' represents you yourself. The Heavenly Stem of your birth day shows what energy your soul brought into this world.`
+        );
+        paragraphs.push('');
+        paragraphs.push(
+          `Your Day Master is ${dayMasterInfo.emoji} "${dayMasterInfo.simpleEn}".`
+        );
+        paragraphs.push('');
+        paragraphs.push(dayMasterInfo.metaphorEn);
+        paragraphs.push('');
+        paragraphs.push(
+          `This energy permeates how you see the world, make decisions, and form relationships.`
+        );
+        paragraphs.push('');
+        paragraphs.push(`These tendencies have naturally appeared since childhood. Your parents and those around you probably noticed these traits too.`);
+        paragraphs.push('');
+        paragraphs.push(`💪 【Your Innate Strength】`);
+        paragraphs.push(dayMasterInfo.strengthEn);
+        paragraphs.push('');
+        paragraphs.push(`⚠️ 【Watch Out For】`);
+        paragraphs.push(`Every strength has its shadow. ${dayMasterInfo.watchOutEn}`);
+        paragraphs.push('');
+        paragraphs.push(`🎨 【Your Harmonious Colors】`);
+        paragraphs.push(
+          `Your harmonious colors are ${dayMasterInfo.luckyColorEn}.`
+        );
+        paragraphs.push(`Using these colors in clothing, accessories, and interior design helps your energy flow more balanced and steady.`);
+      }
     }
   }
 
@@ -204,33 +873,54 @@ export function getLifeDirectionNarrative(
       );
       paragraphs.push(`To learn: ${nodeAxisData.northNode.lesson.en}`);
     }
-  } else if (northNodeInfo) {
-    if (isKo) {
-      paragraphs.push(`${northNodeInfo.emoji} 당신의 노스노드는 ${northNodeHouse}하우스에 있습니다.`);
-      paragraphs.push(`이것은 "${northNodeInfo.titleKo}"의 여정입니다.`);
+  } else if (northNodeInfo && northNodeHouse) {
+    // Check if we have extended narrative for this north node house
+    const extendedNarrative = northNodeExtendedNarratives[northNodeHouse];
+    if (extendedNarrative) {
+      const narrativeLines = isKo ? extendedNarrative.ko : extendedNarrative.en;
+      narrativeLines.forEach(line => paragraphs.push(line));
       paragraphs.push('');
-      paragraphs.push(northNodeInfo.simpleKo);
-      paragraphs.push('');
+      // Add south node info
       if (southNodeHouse) {
-        paragraphs.push(
-          `당신의 사우스노드(전생의 패턴)는 ${southNodeHouse}하우스에 있습니다. 이 영역에서는 이미 충분한 경험을 쌓았으므로, 이제는 반대 방향으로 성장해야 할 때입니다.`
-        );
+        if (isKo) {
+          paragraphs.push(`☋ 【사우스노드 ${southNodeHouse}하우스 - 전생의 패턴】`);
+          paragraphs.push(`당신의 사우스노드는 ${southNodeHouse}하우스에 있습니다. 이 영역에서는 이미 충분한 경험을 쌓았습니다.`);
+          paragraphs.push(`여기에 머무는 것은 편안하지만, 성장을 위해서는 반대 방향(노스노드)으로 나아가야 합니다.`);
+        } else {
+          paragraphs.push(`☋ 【South Node ${southNodeHouse}th House - Past Life Pattern】`);
+          paragraphs.push(`Your South Node is in the ${southNodeHouse}th house. You've already gained sufficient experience in this area.`);
+          paragraphs.push(`Staying here is comfortable, but growth requires moving toward the opposite direction (North Node).`);
+        }
       }
-      paragraphs.push(`📚 배워야 할 것: ${northNodeInfo.lessonKo}`);
-      paragraphs.push(`💡 실천 팁: ${northNodeInfo.tipKo}`);
     } else {
-      paragraphs.push(`${northNodeInfo.emoji} Your North Node is in the ${northNodeHouse}th house.`);
-      paragraphs.push(`This is the journey of "${northNodeInfo.titleEn}".`);
-      paragraphs.push('');
-      paragraphs.push(northNodeInfo.simpleEn);
-      paragraphs.push('');
-      if (southNodeHouse) {
-        paragraphs.push(
-          `Your South Node (past life pattern) is in the ${southNodeHouse}th house. You've already gained enough experience there, so now it's time to grow in the opposite direction.`
-        );
+      // Fallback to original simple version
+      if (isKo) {
+        paragraphs.push(`${northNodeInfo.emoji} 당신의 노스노드는 ${northNodeHouse}하우스에 있습니다.`);
+        paragraphs.push(`이것은 "${northNodeInfo.titleKo}"의 여정입니다.`);
+        paragraphs.push('');
+        paragraphs.push(northNodeInfo.simpleKo);
+        paragraphs.push('');
+        if (southNodeHouse) {
+          paragraphs.push(
+            `당신의 사우스노드(전생의 패턴)는 ${southNodeHouse}하우스에 있습니다. 이 영역에서는 이미 충분한 경험을 쌓았으므로, 이제는 반대 방향으로 성장해야 할 때입니다.`
+          );
+        }
+        paragraphs.push(`📚 배워야 할 것: ${northNodeInfo.lessonKo}`);
+        paragraphs.push(`💡 실천 팁: ${northNodeInfo.tipKo}`);
+      } else {
+        paragraphs.push(`${northNodeInfo.emoji} Your North Node is in the ${northNodeHouse}th house.`);
+        paragraphs.push(`This is the journey of "${northNodeInfo.titleEn}".`);
+        paragraphs.push('');
+        paragraphs.push(northNodeInfo.simpleEn);
+        paragraphs.push('');
+        if (southNodeHouse) {
+          paragraphs.push(
+            `Your South Node (past life pattern) is in the ${southNodeHouse}th house. You've already gained enough experience there, so now it's time to grow in the opposite direction.`
+          );
+        }
+        paragraphs.push(`📚 To learn: ${northNodeInfo.lessonEn}`);
+        paragraphs.push(`💡 Action tip: ${northNodeInfo.tipEn}`);
       }
-      paragraphs.push(`📚 To learn: ${northNodeInfo.lessonEn}`);
-      paragraphs.push(`💡 Action tip: ${northNodeInfo.tipEn}`);
     }
   }
 

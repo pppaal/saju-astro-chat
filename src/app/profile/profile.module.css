@@ -370,6 +370,7 @@
   font-size: 14px;
 }
 
+/* Responsive - Tablet */
 @media (max-width: 768px) {
   .profileHeader {
     padding: 24px;
@@ -403,5 +404,228 @@
 
   .statGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 480px) {
+  .backButtonContainer {
+    top: 12px;
+    left: 12px;
+  }
+
+  .container {
+    padding: 80px 12px 40px;
+  }
+
+  .loginPrompt {
+    padding: 80px 16px;
+  }
+
+  .loginPrompt h1 {
+    font-size: 24px;
+  }
+
+  .loginPrompt p {
+    font-size: 14px;
+  }
+
+  .loginBtn {
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+
+  .profileHeader {
+    padding: 20px 16px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+
+  .profileName {
+    font-size: 20px;
+  }
+
+  .profileEmail {
+    font-size: 14px;
+  }
+
+  .statCard {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .statValue {
+    font-size: 28px;
+  }
+
+  .statLabel {
+    font-size: 12px;
+  }
+
+  .tabs {
+    padding: 4px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    gap: 4px;
+  }
+
+  .tab {
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .content {
+    padding: 16px;
+    border-radius: 14px;
+    min-height: 300px;
+  }
+
+  .sectionTitle {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+
+  .subsectionTitle {
+    font-size: 16px;
+    margin: 24px 0 12px;
+  }
+
+  .activityList {
+    gap: 12px;
+  }
+
+  .activityItem {
+    padding: 12px;
+    gap: 12px;
+    border-radius: 10px;
+  }
+
+  .activityIcon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .activityTitle {
+    font-size: 14px;
+  }
+
+  .activityDesc {
+    font-size: 13px;
+  }
+
+  .activityTime {
+    font-size: 11px;
+  }
+
+  .activityLink {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .empty {
+    padding: 40px 16px;
+    font-size: 14px;
+  }
+
+  .info {
+    font-size: 14px;
+  }
+
+  .linkButton {
+    padding: 10px 20px;
+    font-size: 14px;
+    gap: 6px;
+  }
+
+  .statBox {
+    padding: 20px;
+    border-radius: 10px;
+  }
+
+  .statBoxLabel {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  .statBoxValue {
+    font-size: 26px;
+    margin-bottom: 6px;
+  }
+
+  .statBoxSubtext {
+    font-size: 13px;
+  }
+
+  .servicesUsed {
+    margin-top: 24px;
+  }
+
+  .servicesList {
+    gap: 8px;
+  }
+
+  .serviceItem {
+    padding: 12px 16px;
+    gap: 12px;
+    border-radius: 8px;
+  }
+
+  .serviceIcon {
+    font-size: 20px;
+    width: 32px;
+  }
+
+  .serviceName {
+    font-size: 14px;
+  }
+
+  .serviceCount {
+    font-size: 13px;
+  }
+}
+
+/* Responsive - Extra Small */
+@media (max-width: 360px) {
+  .container {
+    padding: 70px 10px 32px;
+  }
+
+  .profileHeader {
+    padding: 16px 12px;
+  }
+
+  .profileName {
+    font-size: 18px;
+  }
+
+  .statValue {
+    font-size: 24px;
+  }
+
+  .tabs {
+    gap: 2px;
+  }
+
+  .tab {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .content {
+    padding: 12px;
+  }
+
+  .sectionTitle {
+    font-size: 18px;
+  }
+
+  .activityItem {
+    padding: 10px;
+  }
+
+  .statBoxValue {
+    font-size: 22px;
   }
 }

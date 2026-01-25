@@ -169,6 +169,16 @@ export default function ResultPage() {
     }
   }, [authStatus, session?.user]);
 
+  const analysis: PersonaAnalysis | null = useMemo(() => {
+    const hasAnswers = Object.keys(answers).length > 0;
+    if (!hasAnswers) return null;
+    try {
+      return analyzePersona(answers, locale);
+    } catch {
+      return null;
+    }
+  }, [answers, locale]);
+
   const handleSaveResult = useCallback(async () => {
     if (!analysis) return;
 
@@ -227,17 +237,6 @@ export default function ResultPage() {
       setSaveStatus('error');
     }
   }, [analysis, authStatus, router, gender, answers]);
-
-   
-  const analysis: PersonaAnalysis | null = useMemo(() => {
-    const hasAnswers = Object.keys(answers).length > 0;
-    if (!hasAnswers) return null;
-    try {
-      return analyzePersona(answers, locale);
-    } catch {
-      return null;
-    }
-  }, [answers, locale]);
 
   // Trigger confetti when analysis is ready (only once per result)
   useEffect(() => {

@@ -706,7 +706,7 @@
   50% { transform: translateY(-8px); }
 }
 
-/* Responsive */
+/* Responsive - Tablet */
 @media (max-width: 768px) {
   .container {
     padding: 1.25rem;
@@ -738,5 +738,241 @@
   .personActions {
     width: 100%;
     justify-content: space-between;
+  }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .header {
+    gap: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .backButton,
+  .addButton {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+    border-radius: 18px;
+  }
+
+  .formTitle {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .formGroup label {
+    font-size: 0.8rem;
+  }
+
+  .input,
+  .textarea {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .selectButton {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .selectIcon {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
+
+  .selectDropdown {
+    border-radius: 10px;
+  }
+
+  .selectOption {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .selectOptionIcon {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .dropdown {
+    border-radius: 10px;
+    max-height: 220px;
+  }
+
+  .dropdownItem {
+    padding: 10px 12px;
+  }
+
+  .cityName {
+    font-size: 13px;
+  }
+
+  .country {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  .formActions {
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .cancelButton,
+  .saveButton {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .empty {
+    padding: 3rem 1.5rem;
+  }
+
+  .emptyIcon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .emptyButton {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9rem;
+    border-radius: 12px;
+  }
+
+  .groups {
+    gap: 1.5rem;
+  }
+
+  .groupTitle {
+    font-size: 0.8rem;
+  }
+
+  .peopleList {
+    gap: 0.5rem;
+  }
+
+  .personCard {
+    padding: 0.875rem 1rem;
+    border-radius: 14px;
+    gap: 0.75rem;
+  }
+
+  .personName {
+    font-size: 0.95rem;
+  }
+
+  .personBirth {
+    font-size: 0.8rem;
+  }
+
+  .personActions {
+    gap: 0.5rem;
+  }
+
+  .matchButton {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8rem;
+    border-radius: 8px;
+  }
+
+  .deleteButton {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+    border-radius: 8px;
+  }
+
+  .checkboxLabel {
+    font-size: 0.8rem;
+    margin-top: 10px;
+  }
+
+  .checkbox {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    margin-top: 6px;
+  }
+}
+
+/* Responsive - Extra Small */
+@media (max-width: 360px) {
+  .container {
+    padding: 0.75rem;
+  }
+
+  .header {
+    gap: 0.5rem;
+  }
+
+  .backButton,
+  .addButton {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .card {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .formTitle {
+    font-size: 1rem;
+  }
+
+  .input,
+  .textarea,
+  .selectButton {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .personCard {
+    padding: 0.75rem;
+  }
+
+  .personName {
+    font-size: 0.9rem;
+  }
+
+  .matchButton {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
   }
 }

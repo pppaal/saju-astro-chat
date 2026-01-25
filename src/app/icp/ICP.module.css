@@ -563,6 +563,38 @@
 
 /* ==================== RESPONSIVE ==================== */
 
+/* Tablet */
+@media (max-width: 768px) {
+  .page {
+    padding: 1.5rem;
+  }
+
+  .card, .quizCard {
+    padding: 2rem 1.5rem;
+  }
+
+  .icon {
+    font-size: 3.5rem;
+  }
+
+  .title {
+    font-size: 1.7rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .featureItem {
+    padding: 0.875rem;
+  }
+
+  .questionCard {
+    padding: 1.25rem;
+  }
+}
+
+/* Mobile */
 @media (max-width: 600px) {
   .page {
     padding: 1rem;
@@ -573,8 +605,17 @@
     border-radius: 20px;
   }
 
+  .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
   .title {
     font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
   }
 
   .testInfo {
@@ -587,6 +628,27 @@
     height: 1px;
   }
 
+  .features {
+    gap: 0.75rem;
+  }
+
+  .featureItem {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .featureIcon {
+    font-size: 1.25rem;
+  }
+
+  .featureItem h3 {
+    font-size: 0.9rem;
+  }
+
+  .featureItem p {
+    font-size: 0.85rem;
+  }
+
   .octantGrid {
     gap: 0.4rem;
   }
@@ -596,8 +658,36 @@
     padding: 0.3rem 0.6rem;
   }
 
+  .questionCard {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .questionText {
+    font-size: 0.95rem;
+  }
+
+  .option {
+    padding: 0.7rem 0.875rem;
+  }
+
+  .optionText {
+    font-size: 0.9rem;
+  }
+
   .pageNavigation {
     flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .navButton {
+    padding: 0.875rem;
+    font-size: 0.95rem;
+  }
+
+  .submitButton {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
   }
 
   .scrollToTop {
@@ -609,5 +699,56 @@
 
   .scrollToTopIcon {
     font-size: 1.3rem;
+  }
+}
+
+/* Extra small mobile */
+@media (max-width: 400px) {
+  .page {
+    padding: 0.75rem;
+  }
+
+  .card, .quizCard {
+    padding: 1.25rem 1rem;
+    border-radius: 16px;
+  }
+
+  .icon {
+    font-size: 2.5rem;
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
+
+  .header {
+    margin-bottom: 1.5rem;
+  }
+
+  .testInfo {
+    padding: 0.75rem 1rem;
+  }
+
+  .infoText {
+    font-size: 0.85rem;
+  }
+
+  .pageDot {
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
+  }
+
+  .questionNumber {
+    font-size: 0.75rem;
+  }
+
+  .questionText {
+    font-size: 0.9rem;
+  }
+
+  .optionRadio {
+    width: 16px;
+    height: 16px;
   }
 }

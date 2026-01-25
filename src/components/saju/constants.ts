@@ -1,0 +1,206 @@
+// src/components/saju/constants.ts
+// Chat I18N and constants for SajuChat
+
+export type ChatLangKey = "en" | "ko" | "ja" | "zh" | "es" | "fr" | "de" | "pt" | "ru";
+
+export type ChatCopy = {
+  placeholder: string;
+  send: string;
+  thinking: string;
+  empty: string;
+  error: string;
+  fallbackNote: string;
+  noResponse: string;
+  recording: string;
+  stopRecording: string;
+  crisisTitle: string;
+  crisisMessage: string;
+  crisisHotline: string;
+  crisisHotlineNumber: string;
+  crisisClose: string;
+  welcomeBack: string;
+};
+
+export const CHAT_I18N: Record<ChatLangKey, ChatCopy> = {
+  en: {
+    placeholder: "Ask about your saju (when/why/what)",
+    send: "Send",
+    thinking: "Analyzing your Four Pillars...",
+    empty: "Ask about your saju for personalized guidance.",
+    error: "An error occurred. Please try again.",
+    fallbackNote: "Using backup response (AI temporarily unavailable).",
+    noResponse: "No response received. Try again later.",
+    recording: "Recording...",
+    stopRecording: "Stop",
+    crisisTitle: "We're Here For You",
+    crisisMessage: "It sounds like you're going through a really difficult time. Please know that support is available.",
+    crisisHotline: "Crisis Hotline",
+    crisisHotlineNumber: "988 (US) / 116 123 (UK)",
+    crisisClose: "I understand",
+    welcomeBack: "Welcome back! Let's continue exploring your saju.",
+  },
+  ko: {
+    placeholder: "사주에 대해 질문해 주세요 (언제/왜/무엇)",
+    send: "보내기",
+    thinking: "사주 명식을 분석하고 있습니다...",
+    empty: "사주에 대해 질문하시면 맞춤 상담을 받으실 수 있습니다.",
+    error: "오류가 발생했습니다. 다시 시도해 주세요.",
+    fallbackNote: "백업 응답으로 대신합니다 (AI 일시 불가).",
+    noResponse: "응답을 받을 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    recording: "녹음 중...",
+    stopRecording: "중지",
+    crisisTitle: "당신 곁에 있어요",
+    crisisMessage: "지금 많이 힘드시죠. 혼자가 아니에요. 전문 상담 도움을 받으실 수 있어요.",
+    crisisHotline: "위기상담전화",
+    crisisHotlineNumber: "자살예방 1393 / 정신건강 1577-0199",
+    crisisClose: "확인했어요",
+    welcomeBack: "다시 오셨네요! 사주 상담을 이어갈까요?",
+  },
+  ja: {
+    placeholder: "四柱について質問してください",
+    send: "送信",
+    thinking: "四柱推命を分析中...",
+    empty: "四柱についてお聞きください。",
+    error: "エラーが発生しました。もう一度お試しください。",
+    fallbackNote: "バックアップの応答を返しました。",
+    noResponse: "応答がありません。しばらくしてからお試しください。",
+    recording: "録音中...",
+    stopRecording: "停止",
+    crisisTitle: "あなたのそばにいます",
+    crisisMessage: "今、とても辛い時期を過ごしていますね。専門のサポートがあります。",
+    crisisHotline: "相談窓口",
+    crisisHotlineNumber: "いのちの電話 0570-783-556",
+    crisisClose: "確認しました",
+    welcomeBack: "お帰りなさい！四柱の相談を続けましょう。",
+  },
+  zh: {
+    placeholder: "请询问您的四柱命理",
+    send: "发送",
+    thinking: "正在分析您的四柱...",
+    empty: "请询问您的四柱以获得个性化指导。",
+    error: "发生错误，请稍后重试。",
+    fallbackNote: "返回了备用回答。",
+    noResponse: "暂无回复，请稍后再试。",
+    recording: "录音中...",
+    stopRecording: "停止",
+    crisisTitle: "我们在您身边",
+    crisisMessage: "您现在正经历困难时期。您并不孤单。",
+    crisisHotline: "心理援助热线",
+    crisisHotlineNumber: "全国心理援助 400-161-9995",
+    crisisClose: "我了解了",
+    welcomeBack: "欢迎回来！让我们继续四柱咨询。",
+  },
+  es: {
+    placeholder: "Pregunta sobre tu saju",
+    send: "Enviar",
+    thinking: "Analizando los Cuatro Pilares...",
+    empty: "Pregunta sobre tu saju para orientación personalizada.",
+    error: "Ocurrió un error. Inténtalo de nuevo.",
+    fallbackNote: "Respuesta de respaldo.",
+    noResponse: "Sin respuesta. Inténtalo más tarde.",
+    recording: "Grabando...",
+    stopRecording: "Detener",
+    crisisTitle: "Estamos contigo",
+    crisisMessage: "Parece que estás pasando por un momento difícil.",
+    crisisHotline: "Línea de crisis",
+    crisisHotlineNumber: "Teléfono de la Esperanza 717 003 717",
+    crisisClose: "Entendido",
+    welcomeBack: "¡Bienvenido! Continuemos con tu saju.",
+  },
+  fr: {
+    placeholder: "Posez une question sur votre saju",
+    send: "Envoyer",
+    thinking: "Analyse des Quatre Piliers...",
+    empty: "Posez une question sur votre saju.",
+    error: "Une erreur s'est produite.",
+    fallbackNote: "Réponse de secours.",
+    noResponse: "Pas de réponse.",
+    recording: "Enregistrement...",
+    stopRecording: "Arrêter",
+    crisisTitle: "Nous sommes là pour vous",
+    crisisMessage: "Vous traversez une période difficile.",
+    crisisHotline: "Ligne de crise",
+    crisisHotlineNumber: "SOS Amitié 09 72 39 40 50",
+    crisisClose: "J'ai compris",
+    welcomeBack: "Bon retour ! Continuons votre saju.",
+  },
+  de: {
+    placeholder: "Fragen Sie nach Ihrem Saju",
+    send: "Senden",
+    thinking: "Analysiere die Vier Säulen...",
+    empty: "Fragen Sie nach Ihrem Saju.",
+    error: "Ein Fehler ist aufgetreten.",
+    fallbackNote: "Backup-Antwort.",
+    noResponse: "Keine Antwort.",
+    recording: "Aufnahme...",
+    stopRecording: "Stoppen",
+    crisisTitle: "Wir sind für Sie da",
+    crisisMessage: "Sie durchleben gerade eine schwierige Zeit.",
+    crisisHotline: "Krisenhotline",
+    crisisHotlineNumber: "Telefonseelsorge 0800 111 0 111",
+    crisisClose: "Verstanden",
+    welcomeBack: "Willkommen zurück! Lassen Sie uns Ihr Saju fortsetzen.",
+  },
+  pt: {
+    placeholder: "Pergunte sobre seu saju",
+    send: "Enviar",
+    thinking: "Analisando os Quatro Pilares...",
+    empty: "Pergunte sobre seu saju.",
+    error: "Ocorreu um erro.",
+    fallbackNote: "Resposta de backup.",
+    noResponse: "Nenhuma resposta.",
+    recording: "Gravando...",
+    stopRecording: "Parar",
+    crisisTitle: "Estamos com você",
+    crisisMessage: "Você está passando por um momento difícil.",
+    crisisHotline: "Linha de crise",
+    crisisHotlineNumber: "CVV 188",
+    crisisClose: "Entendi",
+    welcomeBack: "Bem-vindo de volta! Vamos continuar seu saju.",
+  },
+  ru: {
+    placeholder: "Спросите о вашем саджу",
+    send: "Отправить",
+    thinking: "Анализируем Четыре Столпа...",
+    empty: "Спросите о вашем саджу.",
+    error: "Произошла ошибка.",
+    fallbackNote: "Резервный ответ.",
+    noResponse: "Нет ответа.",
+    recording: "Запись...",
+    stopRecording: "Стоп",
+    crisisTitle: "Мы рядом с вами",
+    crisisMessage: "Похоже, вы переживаете трудное время.",
+    crisisHotline: "Линия помощи",
+    crisisHotlineNumber: "8-800-2000-122",
+    crisisClose: "Понятно",
+    welcomeBack: "С возвращением! Продолжим консультацию по саджу.",
+  },
+};
+
+// Follow-up questions for saju chat
+export const SAJU_FOLLOWUPS = {
+  ko: [
+    "제 일간(일주)의 특성이 궁금해요",
+    "올해 대운이 어떻게 되나요?",
+    "제 오행 밸런스는 어떤가요?",
+    "용신이 뭔가요? 저에게 필요한 오행은?",
+    "재물운이 언제 좋아지나요?",
+    "제 적성에 맞는 직업은?",
+    "결혼운은 어떤가요?",
+    "건강에서 주의할 점이 있나요?",
+    "올해 주의해야 할 달이 있나요?",
+    "신살 중에 좋은 것과 나쁜 것은?",
+  ],
+  en: [
+    "Tell me about my Day Master characteristics",
+    "What is my luck cycle (Daeun) this year?",
+    "What is my five element balance?",
+    "What is my favorable element (Yongshin)?",
+    "When will my wealth luck improve?",
+    "What careers suit my saju?",
+    "How is my marriage luck?",
+    "Any health concerns in my chart?",
+    "Are there months to watch out for this year?",
+    "What are the good and bad stars (Shinsal) in my chart?",
+  ],
+} as const;

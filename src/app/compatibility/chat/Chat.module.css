@@ -265,7 +265,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* Responsive */
+/* Responsive - Tablet */
 @media (max-width: 768px) {
   .chatContainer {
     height: calc(100vh - 150px);
@@ -295,5 +295,118 @@
 
   .suggestions {
     flex-direction: column;
+  }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 480px) {
+  .chatContainer {
+    height: calc(100vh - 120px);
+    max-height: none;
+    border-radius: 12px;
+    border-width: 1px;
+  }
+
+  .messagesContainer {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .emptyState {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .emptyIcon {
+    font-size: 3rem;
+  }
+
+  .emptyState h3 {
+    font-size: 1.1rem;
+  }
+
+  .emptyState p {
+    font-size: 0.9rem;
+  }
+
+  .suggestions {
+    gap: 0.5rem;
+  }
+
+  .suggestionButton {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .message {
+    gap: 0.5rem;
+  }
+
+  .messageIcon {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .messageContent {
+    padding: 0.65rem 0.875rem;
+    font-size: 0.875rem;
+    border-radius: 12px;
+  }
+
+  .inputContainer {
+    padding: 0.6rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .input {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    min-height: 44px;
+  }
+
+  .sendButton {
+    width: 44px;
+    height: 44px;
+  }
+
+  .loadingContainer {
+    min-height: 300px;
+  }
+
+  .errorMessage {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+}
+
+/* Responsive - Extra Small */
+@media (max-width: 360px) {
+  .chatContainer {
+    border-radius: 10px;
+  }
+
+  .emptyIcon {
+    font-size: 2.5rem;
+  }
+
+  .emptyState h3 {
+    font-size: 1rem;
+  }
+
+  .messageContent {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .input {
+    padding: 0.65rem 0.875rem;
+    font-size: 0.9rem;
+  }
+
+  .sendButton {
+    width: 40px;
+    height: 40px;
   }
 }
