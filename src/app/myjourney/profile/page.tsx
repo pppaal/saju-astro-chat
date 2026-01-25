@@ -4,6 +4,8 @@ import { useSession } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BackButton from "@/components/ui/BackButton";
+import DateTimePicker from "@/components/ui/DateTimePicker";
+import TimePicker from "@/components/ui/TimePicker";
 import { searchCities } from "@/lib/cities";
 import tzLookup from "tz-lookup";
 import styles from "./profile.module.css";
@@ -318,24 +320,22 @@ function ProfileContent() {
           /* Edit Mode - Show form */
           <div className={styles.formGrid}>
           <div className={styles.formGroup}>
-            <label>{t("profile.field.birthDate", "Date of Birth")} *</label>
-            <input
-              type="date"
+            <DateTimePicker
               value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
-              className={styles.input}
+              onChange={(date) => setBirthDate(date)}
+              label={t("profile.field.birthDate", "Date of Birth") + " *"}
+              required
+              locale={locale}
             />
           </div>
 
           <div className={styles.formGroup}>
-            <label>{t("profile.field.birthTime", "Time of Birth")}</label>
-            <input
-              type="time"
+            <TimePicker
               value={birthTime}
-              onChange={(e) => setBirthTime(e.target.value)}
-              className={styles.input}
-              placeholder={t("profile.placeholder.birthTime", "Optional but recommended")}
+              onChange={(time) => setBirthTime(time)}
+              label={t("profile.field.birthTime", "Time of Birth")}
               disabled={timeUnknown}
+              locale={locale}
             />
             <label className={styles.checkboxLabel}>
               <input

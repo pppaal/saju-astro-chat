@@ -58,13 +58,22 @@ export function useCompatibilityAnalysis() {
 
       const res = await fetch('/api/compatibility', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: {
+          'content-type': 'application/json',
+          'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+        },
         body: JSON.stringify(body),
       });
       const data = (await res.json()) as CompatibilityResult | null;
       if (!data) throw new Error('Server error');
-      if (!res.ok || data.error) throw new Error(data.error || 'Server error');
-      if (!data) throw new Error('No data received');
+      if (!res.ok || data.error) {
+        const errMsg = typeof data.error === 'string'
+          ? data.error
+          : (data.error && typeof data.error === 'object' && 'message' in data.error)
+            ? String((data.error as { message: string }).message)
+            : 'Server error';
+        throw new Error(errMsg);
+      }
 
       const interpretation = data.interpretation;
       if (interpretation !== null && interpretation !== undefined && interpretation !== '') {

@@ -4,6 +4,8 @@ import { useSession } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BackButton from "@/components/ui/BackButton";
+import DateTimePicker from "@/components/ui/DateTimePicker";
+import TimePicker from "@/components/ui/TimePicker";
 import { searchCities } from "@/lib/cities";
 import tzLookup from "tz-lookup";
 import styles from "./circle.module.css";
@@ -283,23 +285,21 @@ function CircleContent() {
             </div>
 
             <div className={styles.formGroup}>
-              <label>Birth Date</label>
-              <input
-                type="date"
+              <DateTimePicker
                 value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
-                className={styles.input}
+                onChange={(date) => setBirthDate(date)}
+                label="Birth Date"
+                locale="en"
               />
             </div>
 
             <div className={styles.formGroup}>
-              <label>Birth Time</label>
-              <input
-                type="time"
+              <TimePicker
                 value={birthTime}
-                onChange={(e) => setBirthTime(e.target.value)}
-                className={styles.input}
+                onChange={(time) => setBirthTime(time)}
+                label="Birth Time"
                 disabled={timeUnknown}
+                locale="en"
               />
               <label className={styles.checkboxLabel}>
                 <input
