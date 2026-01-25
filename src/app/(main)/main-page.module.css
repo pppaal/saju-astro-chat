@@ -852,7 +852,20 @@
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.questionHint:hover {
+.questionHint:focus-visible {
+  outline: 2px solid rgba(167, 139, 250, 0.8);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .questionHint:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(167, 139, 250, 0.5);
+    color: #ffffff;
+  }
+}
+
+.questionHint:active {
   background: rgba(139, 92, 246, 0.2);
   border-color: rgba(167, 139, 250, 0.5);
   color: #ffffff;

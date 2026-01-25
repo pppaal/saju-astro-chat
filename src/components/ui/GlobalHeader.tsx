@@ -87,7 +87,7 @@ function CreditDisplay() {
   return (
     <Link
       href="/pricing"
-      className="flex items-center gap-1 px-2.5 py-1 rounded-xl
+      className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl
         bg-blue-400/15 border border-blue-400/30 text-blue-200
         text-[13px] font-semibold no-underline
         hover:bg-blue-400/25 hover:border-blue-400/50
@@ -97,6 +97,7 @@ function CreditDisplay() {
     >
       <span className="text-yellow-400" aria-hidden="true">✦</span>
       <span>{credits}</span>
+      <span className="text-blue-300/80 font-medium">{t("credits.label") || "크레딧"}</span>
     </Link>
   );
 }
@@ -212,7 +213,7 @@ function GlobalHeaderContent() {
         role="banner"
         aria-label={t("nav.header") || "Site header"}
       >
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <HomeButton />
           <div
             className="min-w-[80px] h-[34px] rounded-[20px] bg-blue-400/10 border border-transparent px-3.5 py-1.5"
@@ -231,7 +232,7 @@ function GlobalHeaderContent() {
         role="banner"
         aria-label={t("nav.header") || "Site header"}
       >
-        <nav className="flex items-center gap-2.5" aria-label={t("nav.main") || "Main navigation"}>
+        <nav className="flex items-center gap-3" aria-label={t("nav.main") || "Main navigation"}>
           <HomeButton />
           <button
             onClick={() => router.push(signInUrl)}
@@ -259,7 +260,7 @@ function GlobalHeaderContent() {
       aria-label={t("nav.header") || "Site header"}
       onKeyDown={handleKeyDown}
     >
-      <nav className="flex items-center gap-2.5" aria-label={t("nav.main") || "Main navigation"}>
+      <nav className="flex items-center gap-3" aria-label={t("nav.main") || "Main navigation"}>
         <HomeButton />
         <button
           ref={triggerRef}

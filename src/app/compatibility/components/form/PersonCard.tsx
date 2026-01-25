@@ -3,6 +3,8 @@ import { type Relation } from '../../lib';
 import { PersonCardHeader } from './PersonCardHeader';
 import { CircleDropdown } from './CircleDropdown';
 import { CityAutocompleteField } from './CityAutocompleteField';
+import DateTimePicker from '@/components/ui/DateTimePicker';
+import TimePicker from '@/components/ui/TimePicker';
 import type { CirclePerson } from '@/hooks/useMyCircle';
 import type { CityResult } from '@/lib/cities/types';
 import styles from '../../Compatibility.module.css';
@@ -64,15 +66,22 @@ export const PersonCard: React.FC<PersonCardProps> = React.memo(({
           <label htmlFor={`name-${idx}`} className={styles.label}>{t('compatibilityPage.name', 'Name')}</label>
           <input id={`name-${idx}`} value={person.name} onChange={(e) => onUpdatePerson(idx, 'name', e.target.value)} placeholder={t('compatibilityPage.namePlaceholder', 'Name')} className={styles.input} />
         </div>
-        <div className={`${styles.grid} ${styles.gridTwo}`}>
-          <div>
-            <label htmlFor={`date-${idx}`} className={styles.label}>{t('compatibilityPage.dateOfBirth', 'Date of Birth')}</label>
-            <input id={`date-${idx}`} type='date' value={person.date} onChange={(e) => onUpdatePerson(idx, 'date', e.target.value)} className={styles.input} />
-          </div>
-          <div>
-            <label htmlFor={`time-${idx}`} className={styles.label}>{t('compatibilityPage.timeOfBirth', 'Time of Birth')}</label>
-            <input id={`time-${idx}`} type='time' value={person.time} onChange={(e) => onUpdatePerson(idx, 'time', e.target.value)} className={styles.input} />
-          </div>
+        <div>
+          <DateTimePicker
+            value={person.date}
+            onChange={(date) => onUpdatePerson(idx, 'date', date)}
+            label={t('compatibilityPage.dateOfBirth', 'Date of Birth')}
+            required
+            locale={locale}
+          />
+        </div>
+        <div>
+          <TimePicker
+            value={person.time}
+            onChange={(time) => onUpdatePerson(idx, 'time', time)}
+            label={t('compatibilityPage.timeOfBirth', 'Time of Birth')}
+            locale={locale}
+          />
         </div>
         <CityAutocompleteField id={`city-${idx}`} value={person.cityQuery} suggestions={person.suggestions} showDropdown={person.showDropdown} locale={locale}
           onChange={(val) => { onSetPersons((prev) => { const next = [...prev]; next[idx] = { ...next[idx], cityQuery: val, lat: null, lon: null }; return next; }); }}

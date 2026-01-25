@@ -2,6 +2,8 @@ import React from 'react';
 import type { PersonForm, SavedPerson, Relation, CityItem } from '@/app/compatibility/lib';
 import { relationIcons } from '@/app/compatibility/lib';
 import { formatCityForDropdown } from '@/lib/cities/formatter';
+import DateTimePicker from '@/components/ui/DateTimePicker';
+import TimePicker from '@/components/ui/TimePicker';
 import styles from './PersonCard.module.css';
 
 interface PersonCardProps {
@@ -15,6 +17,7 @@ interface PersonCardProps {
   onUpdate: <K extends keyof PersonForm>(idx: number, key: K, value: PersonForm[K]) => void;
   onPickCity: (idx: number, item: CityItem) => void;
   t: (key: string, fallback?: string) => string;
+  locale?: string;
 }
 
 export function PersonCard({
@@ -28,6 +31,7 @@ export function PersonCard({
   onUpdate,
   onPickCity,
   t,
+  locale = 'ko',
 }: PersonCardProps) {
   return (
     <div className={styles.personCard} style={{ animationDelay: `${index * 0.1}s` }}>
@@ -90,32 +94,25 @@ export function PersonCard({
           />
         </div>
 
-        {/* Date & Time */}
-        <div className={`${styles.grid} ${styles.gridTwo}`}>
-          <div>
-            <label htmlFor={`date-${index}`} className={styles.label}>
-              {t('compatibilityPage.dateOfBirth', 'Date of Birth')}
-            </label>
-            <input
-              id={`date-${index}`}
-              type="date"
-              value={person.date}
-              onChange={(e) => onUpdate(index, 'date', e.target.value)}
-              className={styles.input}
-            />
-          </div>
-          <div>
-            <label htmlFor={`time-${index}`} className={styles.label}>
-              {t('compatibilityPage.timeOfBirth', 'Time of Birth')}
-            </label>
-            <input
-              id={`time-${index}`}
-              type="time"
-              value={person.time}
-              onChange={(e) => onUpdate(index, 'time', e.target.value)}
-              className={styles.input}
-            />
-          </div>
+        {/* Date of Birth */}
+        <div>
+          <DateTimePicker
+            value={person.date}
+            onChange={(date) => onUpdate(index, 'date', date)}
+            label={t('compatibilityPage.dateOfBirth', 'Date of Birth')}
+            required
+            locale={locale}
+          />
+        </div>
+
+        {/* Time of Birth */}
+        <div>
+          <TimePicker
+            value={person.time}
+            onChange={(time) => onUpdate(index, 'time', time)}
+            label={t('compatibilityPage.timeOfBirth', 'Time of Birth')}
+            locale={locale}
+          />
         </div>
 
         {/* City Autocomplete */}

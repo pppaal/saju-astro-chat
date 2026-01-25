@@ -2,6 +2,8 @@
 
 import React, { useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import DateTimePicker from '@/components/ui/DateTimePicker';
+import TimePicker from '@/components/ui/TimePicker';
 import styles from './BirthInfoForm.module.css';
 import { logger } from '@/lib/logger';
 
@@ -89,13 +91,9 @@ function generateDayOptions(year: number, month: number) {
 export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInfoFormProps) {
   const { status } = useSession();
 
-  // Parse initial date into year, month, day
-  const initialParsed = parseInitialDate(initialData?.birthDate);
-
-  const [birthYear, setBirthYear] = useState(initialParsed.year);
-  const [birthMonth, setBirthMonth] = useState(initialParsed.month);
-  const [birthDay, setBirthDay] = useState(initialParsed.day);
-  const [timePeriod, setTimePeriod] = useState(findTimePeriodFromTime(initialData?.birthTime));
+  const [birthDate, setBirthDate] = useState(initialData?.birthDate || '');
+  const [birthTime, setBirthTime] = useState(initialData?.birthTime || '');
+  const [timeUnknown, setTimeUnknown] = useState(!initialData?.birthTime);
   const [gender, setGender] = useState<'M' | 'F'>(initialData?.gender || 'M');
   const [birthCity, setBirthCity] = useState(initialData?.birthCity || '');
   const [showCityInput, setShowCityInput] = useState(!!initialData?.birthCity);
@@ -105,31 +103,8 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Computed values
-  const yearOptions = generateYearOptions();
-  const monthOptions = generateMonthOptions();
-  const dayOptions = generateDayOptions(
-    birthYear ? parseInt(birthYear) : 0,
-    birthMonth ? parseInt(birthMonth) : 0
-  );
-
   // Check if date is valid
-  const isDateValid = birthYear && birthMonth && birthDay;
-
-  // Build date string
-  const buildDateString = () => {
-    if (!birthYear || !birthMonth || !birthDay) return '';
-    const y = birthYear.padStart(4, '0');
-    const m = birthMonth.padStart(2, '0');
-    const d = birthDay.padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  };
-
-  // Get time from time period
-  const getTimeFromPeriod = () => {
-    const period = TIME_PERIODS.find(p => p.id === timePeriod);
-    return period?.time || '12:00';
-  };
+  const isDateValid = !!birthDate;
 
   // Load profile from API
   const handleLoadProfile = useCallback(async () => {
@@ -157,16 +132,16 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
         return;
       }
 
-      // Parse and set date fields
-      const parsed = parseInitialDate(user.birthDate);
-      setBirthYear(parsed.year);
-      setBirthMonth(parsed.month.replace(/^0/, '')); // Remove leading zero for select
-      setBirthDay(parsed.day.replace(/^0/, '')); // Remove leading zero for select
+      // Set date
+      setBirthDate(user.birthDate);
 
-      // Set time period from birthTime
+      // Set time
       if (user.birthTime && user.birthTime.trim() !== '') {
         logger.debug('[BirthInfoForm] Setting birthTime:', user.birthTime);
-        setTimePeriod(findTimePeriodFromTime(user.birthTime));
+        setBirthTime(user.birthTime);
+        setTimeUnknown(false);
+      } else {
+        setTimeUnknown(true);
       }
 
       if (user.gender) {
@@ -194,8 +169,8 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
     if (!isDateValid) return;
 
     onSubmit({
-      birthDate: buildDateString(),
-      birthTime: getTimeFromPeriod(),
+      birthDate,
+      birthTime: timeUnknown ? '12:00' : birthTime || '12:00',
       gender,
       birthCity: showCityInput ? birthCity : undefined,
     });
@@ -254,68 +229,15 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
       )}
 
       <form onSubmit={handleSubmit} className={styles.form}>
-        {/* Birth Date - Year/Month/Day Selects */}
+        {/* Birth Date */}
         <div className={styles.fieldGroup}>
-          <label className={styles.label}>
-            {locale === 'ko' ? '생년월일' : 'Birth Date'}
-            <span className={styles.required}>*</span>
-          </label>
-          <div className={styles.dateSelectGroup}>
-            {/* Year */}
-            <div className={styles.dateSelectWrapper}>
-              <select
-                value={birthYear}
-                onChange={(e) => setBirthYear(e.target.value)}
-                className={styles.dateSelect}
-                required
-              >
-                <option value="">{locale === 'ko' ? '년도' : 'Year'}</option>
-                {yearOptions.map(year => (
-                  <option key={year} value={year.toString()}>{year}{locale === 'ko' ? '년' : ''}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Month */}
-            <div className={styles.dateSelectWrapper}>
-              <select
-                value={birthMonth}
-                onChange={(e) => {
-                  setBirthMonth(e.target.value);
-                  // Reset day if it's invalid for new month
-                  const newDays = generateDayOptions(
-                    birthYear ? parseInt(birthYear) : 0,
-                    parseInt(e.target.value)
-                  );
-                  if (birthDay && parseInt(birthDay) > newDays.length) {
-                    setBirthDay('');
-                  }
-                }}
-                className={styles.dateSelect}
-                required
-              >
-                <option value="">{locale === 'ko' ? '월' : 'Month'}</option>
-                {monthOptions.map(month => (
-                  <option key={month} value={month.toString()}>{month}{locale === 'ko' ? '월' : ''}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Day */}
-            <div className={styles.dateSelectWrapper}>
-              <select
-                value={birthDay}
-                onChange={(e) => setBirthDay(e.target.value)}
-                className={styles.dateSelect}
-                required
-              >
-                <option value="">{locale === 'ko' ? '일' : 'Day'}</option>
-                {dayOptions.map(day => (
-                  <option key={day} value={day.toString()}>{day}{locale === 'ko' ? '일' : ''}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <DateTimePicker
+            value={birthDate}
+            onChange={setBirthDate}
+            label={locale === 'ko' ? '생년월일' : 'Birth Date'}
+            required
+            locale={locale}
+          />
         </div>
 
         {/* Gender */}
@@ -344,27 +266,33 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
           </div>
         </div>
 
-        {/* Birth Time - 12시진 Selection */}
+        {/* Birth Time */}
         <div className={styles.fieldGroup}>
-          <label className={styles.label}>
-            {locale === 'ko' ? '태어난 시간' : 'Birth Time'}
+          <TimePicker
+            value={birthTime}
+            onChange={setBirthTime}
+            label={locale === 'ko' ? '태어난 시간' : 'Birth Time'}
+            disabled={timeUnknown}
+            locale={locale}
+          />
+          <label className={styles.checkboxLabel}>
+            <input
+              type="checkbox"
+              checked={timeUnknown}
+              onChange={(e) => {
+                setTimeUnknown(e.target.checked);
+                if (e.target.checked) {
+                  setBirthTime('');
+                }
+              }}
+              className={styles.checkbox}
+            />
+            <span>
+              {locale === 'ko'
+                ? '출생 시간을 모름 (정오 12:00으로 설정됩니다)'
+                : 'Time unknown (will use 12:00 noon)'}
+            </span>
           </label>
-          <select
-            value={timePeriod}
-            onChange={(e) => setTimePeriod(e.target.value)}
-            className={styles.timeSelect}
-          >
-            {TIME_PERIODS.map(period => (
-              <option key={period.id} value={period.id}>
-                {locale === 'ko' ? period.label : period.labelEn}
-              </option>
-            ))}
-          </select>
-          <p className={styles.timeHint}>
-            {locale === 'ko'
-              ? '정확한 시간을 모르시면 "모름"을 선택해주세요'
-              : 'Select "Don\'t know" if you\'re unsure'}
-          </p>
         </div>
 
         {/* Birth City Toggle */}

@@ -8,6 +8,9 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { saveUserProfile } from '@/lib/userProfile';
 import { searchCities } from '@/lib/cities';
 import tzLookup from 'tz-lookup';
+import DateTimePicker from '@/components/ui/DateTimePicker';
+import TimePicker from '@/components/ui/TimePicker';
+import { useI18n } from '@/i18n/I18nProvider';
 import {
   getSupportedTimezones,
   getUserTimezone,
@@ -44,12 +47,14 @@ interface ApiFullResponse {
 }
 
 export default function SajuAnalyzer() {
+  const { locale } = useI18n();
   const userTz = useMemo(() => getUserTimezone(), []);
   const tzList: string[] = useMemo(() => getSupportedTimezones(), []);
   const baseInstant = useMemo(() => new Date(), []);
   const [tzQuery, setTzQuery] = useState('');
   const { profile, isLoading: profileLoading } = useUserProfile();
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [timeUnknown, setTimeUnknown] = useState(false);
 
   const [formData, setFormData] = useState({
     calendarType: 'solar' as 'solar' | 'lunar',
@@ -189,53 +194,77 @@ export default function SajuAnalyzer() {
 
         {/* 생년월일 */}
         <div className="mb-5">
-          <label htmlFor="birthDate" className="block font-medium mb-2 text-gray-200">
-            생년월일
-          </label>
-          <input
-            id="birthDate"
-            name="birthDate"
-            type="date"
+          <DateTimePicker
             value={formData.birthDate}
-            onChange={handleInputChange}
-            className="w-full p-3 border border-slate-600 rounded-md text-base bg-slate-900 text-white
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={(date) => setFormData(prev => ({ ...prev, birthDate: date }))}
+            label={locale === 'ko' ? '생년월일' : 'Birth Date'}
             required
+            locale={locale}
           />
         </div>
 
         {/* 태어난 시간 */}
         <div className="mb-5">
-          <label htmlFor="birthTime" className="block font-medium mb-2 text-gray-200">
-            태어난 시간
-          </label>
-          <input
-            id="birthTime"
-            name="birthTime"
-            type="time"
+          <TimePicker
             value={formData.birthTime}
-            onChange={handleInputChange}
-            className="w-full p-3 border border-slate-600 rounded-md text-base bg-slate-900 text-white
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={(time) => setFormData(prev => ({ ...prev, birthTime: time }))}
+            label={locale === 'ko' ? '태어난 시간' : 'Birth Time'}
+            required={!timeUnknown}
+            disabled={timeUnknown}
+            locale={locale}
           />
+          <label className="flex items-center gap-2 mt-2 cursor-pointer text-gray-400 text-sm">
+            <input
+              type="checkbox"
+              checked={timeUnknown}
+              onChange={(e) => {
+                setTimeUnknown(e.target.checked);
+                if (e.target.checked) {
+                  setFormData(prev => ({ ...prev, birthTime: '' }));
+                }
+              }}
+              className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500"
+            />
+            <span>
+              {locale === 'ko'
+                ? '출생 시간을 모름 (정오 12:00으로 설정됩니다)'
+                : 'Time unknown (will use 12:00 noon)'}
+            </span>
+          </label>
         </div>
 
         {/* 성별 */}
         <div className="mb-5">
-          <label htmlFor="gender" className="block font-medium mb-2 text-gray-200">
-            성별
+          <label className="block font-medium mb-2 text-gray-200">
+            {locale === 'ko' ? '성별' : 'Gender'}
+            <span className="text-red-400 ml-1">*</span>
           </label>
-          <select
-            id="gender"
-            name="gender"
-            value={formData.gender}
-            onChange={handleInputChange}
-            className="w-full p-3 border border-slate-600 rounded-md text-base bg-slate-900 text-white
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="male">남자</option>
-            <option value="female">여자</option>
-          </select>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, gender: 'male' }))}
+              className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all
+                ${formData.gender === 'male'
+                  ? 'border-blue-500 bg-blue-500/20 text-white'
+                  : 'border-slate-600 bg-slate-900 text-gray-400 hover:border-slate-500'
+                }`}
+            >
+              <span>👨</span>
+              <span>{locale === 'ko' ? '남성' : 'Male'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, gender: 'female' }))}
+              className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all
+                ${formData.gender === 'female'
+                  ? 'border-pink-500 bg-pink-500/20 text-white'
+                  : 'border-slate-600 bg-slate-900 text-gray-400 hover:border-slate-500'
+                }`}
+            >
+              <span>👩</span>
+              <span>{locale === 'ko' ? '여성' : 'Female'}</span>
+            </button>
+          </div>
         </div>
 
         {/* 출생 도시 */}

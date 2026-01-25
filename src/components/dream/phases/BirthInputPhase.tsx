@@ -2,6 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MessageBox } from '../MessageBox';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
+import DateTimePicker from '@/components/ui/DateTimePicker';
+import TimePicker from '@/components/ui/TimePicker';
 import styles from './BirthInputPhase.module.css';
 
 interface BirthInputPhaseProps {
@@ -135,19 +137,12 @@ export function BirthInputPhase({
         <form onSubmit={onSubmit} className={styles.form}>
           {/* Birth Date */}
           <div className={styles.fieldGroup}>
-            <label className={styles.label}>
-              {isKo ? '생년월일' : 'Birth Date'}
-              <span className={styles.required}>*</span>
-            </label>
-            <input
-              type="date"
+            <DateTimePicker
               value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
-              className={styles.input}
+              onChange={setBirthDate}
+              label={isKo ? '생년월일' : 'Birth Date'}
               required
-              max={new Date().toISOString().split('T')[0]}
-              min="1900-01-01"
-              autoComplete="bday"
+              locale={locale}
             />
           </div>
 
@@ -190,11 +185,11 @@ export function BirthInputPhase({
 
             {showTimeInput && (
               <div className={styles.timeInputWrapper}>
-                <input
-                  type="time"
+                <TimePicker
                   value={birthTime}
-                  onChange={(e) => setBirthTime(e.target.value)}
-                  className={styles.input}
+                  onChange={setBirthTime}
+                  label=""
+                  locale={locale}
                 />
                 <p className={styles.timeHint}>
                   {isKo

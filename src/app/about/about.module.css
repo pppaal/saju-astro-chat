@@ -160,9 +160,16 @@
   min-height: 240px;
 }
 
-.serviceCard:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+@media (hover: hover) {
+  .serviceCard:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+}
+
+.serviceCard:focus-visible {
+  outline: 2px solid rgba(136, 179, 247, 0.8);
+  outline-offset: 2px;
 }
 
 .cardOverlay {
@@ -278,11 +285,18 @@
   transition: all 0.3s ease;
 }
 
-.philosophyCard:hover {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.15);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+@media (hover: hover) {
+  .philosophyCard:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  }
+}
+
+.philosophyCard:focus-visible {
+  outline: 2px solid rgba(136, 179, 247, 0.8);
+  outline-offset: 2px;
 }
 
 .philosophyIcon {
@@ -358,9 +372,16 @@
   box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
 }
 
-.ctaPrimary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 48px rgba(102, 126, 234, 0.5);
+@media (hover: hover) {
+  .ctaPrimary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 48px rgba(102, 126, 234, 0.5);
+  }
+}
+
+.ctaPrimary:focus-visible {
+  outline: 2px solid rgba(102, 126, 234, 0.8);
+  outline-offset: 2px;
 }
 
 .ctaSecondary {
@@ -369,10 +390,17 @@
   border: 1px solid rgba(255,255,255,0.15);
 }
 
-.ctaSecondary:hover {
-  background: rgba(255,255,255,0.1);
-  border-color: rgba(255,255,255,0.25);
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .ctaSecondary:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.25);
+    transform: translateY(-2px);
+  }
+}
+
+.ctaSecondary:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 2px;
 }
 
 /* Responsive */

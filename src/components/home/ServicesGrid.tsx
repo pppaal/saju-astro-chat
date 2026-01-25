@@ -34,7 +34,7 @@ export const ServicesGrid = memo(function ServicesGrid({
         </div>
       </div>
 
-      <Grid columns={3} gap="1.5rem" className={styles.serviceGrid}>
+      <Grid columns={4} gap="1.5rem" className={styles.serviceGrid}>
         {Object.entries(SERVICE_LINKS).map(([key, { href }]) => {
           const serviceKey = key as ServiceKey;
           return (
