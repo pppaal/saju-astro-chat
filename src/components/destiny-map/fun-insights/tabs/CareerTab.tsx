@@ -433,7 +433,7 @@ function CareerTab({ saju, astro, lang, isKo, data, destinyNarrative }: TabProps
       {/* ============================================================ */}
       {/* 고급 분석: 재물 패턴 (L2 기반) */}
       {/* ============================================================ */}
-      {advancedCareer && (advancedCareer as any).wealthPattern && (
+      {advancedCareer?.wealthPattern && (
         <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-amber-900/20 border border-amber-500/30 p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -442,24 +442,26 @@ function CareerTab({ saju, astro, lang, isKo, data, destinyNarrative }: TabProps
                 {isKo ? "재물 패턴 매트릭스" : "Wealth Pattern Matrix"}
               </h3>
             </div>
-            <div className="text-2xl font-bold text-amber-400">
-              {(advancedCareer as any).wealthPattern.score}<span className="text-sm text-amber-500">/10</span>
-            </div>
+            {advancedCareer.wealthPattern.score != null && (
+              <div className="text-2xl font-bold text-amber-400">
+                {advancedCareer.wealthPattern.score}<span className="text-sm text-amber-500">/10</span>
+              </div>
+            )}
           </div>
 
           <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-4">
             <p className="text-gray-300 text-sm leading-relaxed">
-              {isKo ? (advancedCareer as any).wealthPattern.style.ko : (advancedCareer as any).wealthPattern.style.en}
+              {isKo ? advancedCareer.wealthPattern.style?.ko : advancedCareer.wealthPattern.style?.en}
             </p>
           </div>
 
-          {(advancedCareer as any).wealthPattern.sibsinWealth?.length > 0 && (
+          {advancedCareer.wealthPattern.sibsinWealth && advancedCareer.wealthPattern.sibsinWealth.length > 0 && (
             <div className="space-y-3">
               <p className="text-yellow-300 font-bold text-sm">
                 🔮 {isKo ? "십신 × 행성 재물 분석" : "Sibsin × Planet Wealth Analysis"}
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {(advancedCareer as any).wealthPattern?.sibsinWealth?.map((item: any, idx: number) => (
+                {advancedCareer.wealthPattern.sibsinWealth.map((item, idx) => (
                   <div key={idx} className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-lg">{item.fusion.icon}</span>

@@ -565,7 +565,7 @@ export function getCareerAdvancedAnalysis(
   // 3. MC (Midheaven) 분석
   let midheaven: CareerAdvancedResult['midheaven'] = null;
   if (astro?.houses && Array.isArray(astro.houses)) {
-    const mc = astro.houses.find(h => (h as any).number === 10 || (h as any).index === 10 || (h as any).cusp === 10);
+    const mc = astro.houses.find(h => h.number === 10 || h.index === 10 || h.cusp === 10);
     if (mc?.sign) {
       const mcElement = getWestElementFromSign(mc.sign);
       const interaction = ELEMENT_CORE_GRID[sajuEl]?.[mcElement];

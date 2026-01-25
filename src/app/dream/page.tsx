@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -15,6 +15,7 @@ import { BirthInputPhase } from '@/components/dream/phases/BirthInputPhase';
 import { DreamInputPhase } from '@/components/dream/phases/DreamInputPhase';
 import { AnalyzingPhase } from '@/components/dream/phases/AnalyzingPhase';
 import { DreamResultPhase } from '@/components/dream/result/DreamResultPhase';
+import DreamTabs from '@/components/dream/DreamTabs';
 import styles from './Dream.module.css';
 
 export default function DreamPage() {
@@ -24,6 +25,9 @@ export default function DreamPage() {
 function DreamContent() {
   const { locale } = useI18n();
   const { status } = useSession();
+
+  // Show tabs initially, then switch to phase flow
+  const [showTabs, setShowTabs] = useState(true);
 
   // Phase management
   const { phase, setPhase, profileLoading, userProfile, setUserProfile } = useDreamPhase();
@@ -78,7 +82,12 @@ function DreamContent() {
   const handleReset = () => {
     analysis.resetAnalysis();
     chat.resetChat();
-    setPhase('dream-input');
+    setShowTabs(true);
+    setPhase('birth-input');
+  };
+
+  const handleStartReading = () => {
+    setShowTabs(false);
   };
 
   const handleChangeBirthInfo = () => {
@@ -111,7 +120,11 @@ function DreamContent() {
         </div>
 
         <AnimatePresence mode="wait">
-          {phase === 'birth-input' && (
+          {showTabs && (
+            <DreamTabs onStartReading={handleStartReading} />
+          )}
+
+          {!showTabs && phase === 'birth-input' && (
             <BirthInputPhase
               locale={locale}
               status={status}
@@ -136,7 +149,7 @@ function DreamContent() {
             />
           )}
 
-          {phase === 'dream-input' && (
+          {!showTabs && phase === 'dream-input' && (
             <DreamInputPhase
               locale={locale}
               userProfile={userProfile || birthInfo.userProfile}
@@ -150,11 +163,11 @@ function DreamContent() {
             />
           )}
 
-          {phase === 'analyzing' && (
+          {!showTabs && phase === 'analyzing' && (
             <AnalyzingPhase locale={locale} hasBirthInfo={birthInfo.hasBirthInfo} />
           )}
 
-          {phase === 'result' && analysis.result && (
+          {!showTabs && phase === 'result' && analysis.result && (
             <DreamResultPhase
               locale={locale}
               result={analysis.result}

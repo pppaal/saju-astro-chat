@@ -784,6 +784,221 @@
   50% { opacity: 1; }
 }
 
+/* Growth Intro Text */
+.growthIntro {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DESTINY SECTION - 운명 기반 맞춤 조언
+   ═══════════════════════════════════════════════════════════════ */
+.destinySection {
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.15), rgba(75, 0, 130, 0.2));
+  border-radius: 1rem;
+  padding: 2rem;
+  border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.destinyIntro {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.destinyInputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inputGroup label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.dateInput,
+.timeInput {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(138, 43, 226, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 0.95rem;
+  min-width: 160px;
+  transition: all 0.2s ease;
+}
+
+.dateInput:focus,
+.timeInput:focus {
+  outline: none;
+  border-color: #9d4edd;
+  box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.3);
+}
+
+.destinyButton {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%);
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.destinyButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+}
+
+.destinyButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Destiny Results */
+.destinyResults {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: fadeIn 0.5s ease;
+}
+
+/* Fortune Card */
+.fortuneCard {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(138, 43, 226, 0.2);
+}
+
+.fortuneCard h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  color: #ffd166;
+  margin-bottom: 1rem;
+}
+
+.fortuneScores {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.fortuneScore {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.scoreLabel {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.scoreValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #c99fff;
+}
+
+.fortuneTips {
+  background: rgba(138, 43, 226, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border-left: 3px solid #9d4edd;
+}
+
+.fortuneTips p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Growth Dates Card */
+.growthDatesCard {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(138, 43, 226, 0.2);
+}
+
+.growthDatesCard h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  color: #ffd166;
+  margin-bottom: 1rem;
+}
+
+.datesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dateItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(138, 43, 226, 0.1);
+  border-radius: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dateGrade {
+  font-size: 1.2rem;
+}
+
+.dateValue {
+  font-weight: 600;
+  color: white;
+  min-width: 100px;
+}
+
+.dateCategory {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  flex: 1;
+}
+
+.dateScore {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #c99fff;
+  padding: 0.25rem 0.5rem;
+  background: rgba(138, 43, 226, 0.2);
+  border-radius: 0.25rem;
+}
+
+.datesNote {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 1rem;
+  font-style: italic;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .container {
@@ -833,5 +1048,36 @@
 
   .loadingText {
     font-size: 1rem;
+  }
+
+  .destinySection {
+    padding: 1.5rem;
+  }
+
+  .destinyInputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dateInput,
+  .timeInput {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .destinyButton {
+    width: 100%;
+  }
+
+  .fortuneScores {
+    gap: 1rem;
+  }
+
+  .dateItem {
+    flex-wrap: wrap;
+  }
+
+  .dateValue {
+    min-width: 80px;
   }
 }

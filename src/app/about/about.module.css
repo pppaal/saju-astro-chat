@@ -15,6 +15,10 @@
   top: 20px;
   left: 20px;
   z-index: 100;
+  background: rgba(10, 14, 31, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 4px;
 }
 
 .main {
@@ -679,7 +683,7 @@
   line-height: 1.9;
   margin-bottom: 1.5rem;
   color: rgba(255, 255, 255, 0.9);
-  text-align: justify;
+  text-align: left;
 }
 
 .infoList {
@@ -846,7 +850,11 @@
 
   .infoParagraph {
     font-size: 1rem;
-    text-align: left;
+  }
+
+  .backButton {
+    top: 12px;
+    left: 12px;
   }
 
   .stepsGrid {

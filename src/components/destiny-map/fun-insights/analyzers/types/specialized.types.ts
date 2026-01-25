@@ -117,7 +117,18 @@ export interface CareerAdvancedResult {
     goodFor: string[];
   }>;
   // Optional extended properties for legacy UI compatibility
-  wealthPattern?: { ko: string; en: string; fusion?: MatrixFusion };
+  wealthPattern?: {
+    ko: string;
+    en: string;
+    fusion?: MatrixFusion;
+    score?: number;
+    style?: { ko: string; en: string };
+    sibsinWealth?: Array<{
+      sibsin: string;
+      planet: string;
+      fusion: { icon: string; keyword: { ko: string; en: string } };
+    }>;
+  };
   successTiming?: Array<{
     timing: string;
     transit: string;

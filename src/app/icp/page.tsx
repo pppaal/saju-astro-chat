@@ -98,14 +98,14 @@ export default function ICPHomePage() {
         <div className={styles.octantPreview}>
           <h4>{isKo ? '8가지 대인관계 스타일' : 'The 8 Interpersonal Styles'}</h4>
           <div className={styles.octantGrid}>
-            <span className={styles.octantTag}>👑 {isKo ? '지배적' : 'Dominant'}</span>
-            <span className={styles.octantTag}>🏆 {isKo ? '경쟁적' : 'Competitive'}</span>
-            <span className={styles.octantTag}>🧊 {isKo ? '냉담' : 'Cold'}</span>
-            <span className={styles.octantTag}>🌙 {isKo ? '내향적' : 'Introverted'}</span>
-            <span className={styles.octantTag}>🕊️ {isKo ? '복종적' : 'Submissive'}</span>
-            <span className={styles.octantTag}>🤝 {isKo ? '동조적' : 'Agreeable'}</span>
-            <span className={styles.octantTag}>💗 {isKo ? '따뜻함' : 'Warm'}</span>
-            <span className={styles.octantTag}>🌻 {isKo ? '양육적' : 'Nurturant'}</span>
+            <span className={styles.octantTag}>👑 {isKo ? '리더형' : 'Leader'}</span>
+            <span className={styles.octantTag}>🏆 {isKo ? '성취형' : 'Achiever'}</span>
+            <span className={styles.octantTag}>🧊 {isKo ? '분석형' : 'Analyst'}</span>
+            <span className={styles.octantTag}>🌙 {isKo ? '관찰형' : 'Observer'}</span>
+            <span className={styles.octantTag}>🕊️ {isKo ? '평화형' : 'Peacemaker'}</span>
+            <span className={styles.octantTag}>🤝 {isKo ? '협력형' : 'Supporter'}</span>
+            <span className={styles.octantTag}>💗 {isKo ? '친화형' : 'Connector'}</span>
+            <span className={styles.octantTag}>🌻 {isKo ? '멘토형' : 'Mentor'}</span>
           </div>
         </div>
 

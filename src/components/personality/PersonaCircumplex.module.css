@@ -56,15 +56,10 @@
 
 .scorePolygon {
   fill: rgba(168, 237, 234, 0.15);
-  stroke: url(#personaGradient);
+  stroke: rgba(168, 237, 234, 0.8);
   stroke-width: 2.5;
   transition: all 0.3s ease;
   filter: drop-shadow(0 0 8px rgba(168, 237, 234, 0.3));
-}
-
-/* Fallback stroke color when gradient is not available */
-.scorePolygon {
-  stroke: rgba(168, 237, 234, 0.8);
 }
 
 .scoreMarker {
@@ -87,7 +82,6 @@
 }
 
 .centerCircle {
-  fill: linear-gradient(135deg, rgba(168, 237, 234, 0.2), rgba(254, 214, 227, 0.2));
   fill: rgba(26, 26, 46, 0.9);
   stroke: rgba(168, 237, 234, 0.5);
   stroke-width: 2;

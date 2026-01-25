@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import IChingReader from '@/components/iching/IChingReader';
+import IChingTabs from '@/components/iching/IChingTabs';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
 import { useI18n } from '@/i18n/I18nProvider';
 import styles from './iching.module.css';
@@ -31,9 +31,9 @@ export default function IchingPage() {
           </div>
         </div>
 
-        {/* Main Card with Reader */}
+        {/* Main Card with Tabs */}
         <div className={styles.mainCard}>
-          <IChingReader />
+          <IChingTabs />
         </div>
       </div>
     </ServicePageLayout>

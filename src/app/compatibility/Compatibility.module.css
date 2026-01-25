@@ -1511,3 +1511,11 @@
   font-size: 0.9rem;
   font-weight: 600;
 }
+
+/* Tabs Wrapper */
+.tabsWrapper {
+  max-width: 1200px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}

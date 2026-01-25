@@ -60,7 +60,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #f093fb, #f5576c);
+  background: linear-gradient(90deg, #a78bfa, #818cf8);
   border-radius: 3px 3px 0 0;
 }
 
@@ -97,7 +97,7 @@
 
 .aboutSection:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(240, 147, 251, 0.3);
+  border-color: rgba(167, 139, 250, 0.3);
 }
 
 .aboutTitle {
@@ -143,5 +143,17 @@
   .tabDescription {
     font-size: 14px;
     padding: 12px;
+  }
+
+  .aboutSection {
+    padding: 16px;
+  }
+
+  .aboutTitle {
+    font-size: 16px;
+  }
+
+  .aboutText {
+    font-size: 14px;
   }
 }

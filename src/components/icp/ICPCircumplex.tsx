@@ -19,14 +19,14 @@ interface ICPCircumplexProps {
 // 표준 ICP 모델: 상단=지배(PA), 하단=복종(HI), 우측=친밀(LM), 좌측=적대(DE)
 // 시계방향: PA(90°) → NO(45°) → LM(0°) → JK(-45°) → HI(-90°) → FG(-135°) → DE(180°) → BC(135°)
 const OCTANT_POSITIONS: Record<string, { angle: number; emoji: string; label: string; korean: string }> = {
-  PA: { angle: 90, emoji: '👑', label: 'Dominant', korean: '지배적' },
-  NO: { angle: 45, emoji: '🌻', label: 'Nurturant', korean: '양육적' },
-  LM: { angle: 0, emoji: '💗', label: 'Warm', korean: '따뜻함' },
-  JK: { angle: -45, emoji: '🤝', label: 'Agreeable', korean: '동조적' },
-  HI: { angle: -90, emoji: '🕊️', label: 'Submissive', korean: '복종적' },
-  FG: { angle: -135, emoji: '🌙', label: 'Introverted', korean: '내향적' },
-  DE: { angle: 180, emoji: '🧊', label: 'Cold', korean: '냉담' },
-  BC: { angle: 135, emoji: '🏆', label: 'Competitive', korean: '경쟁적' },
+  PA: { angle: 90, emoji: '👑', label: 'Leader', korean: '리더형' },
+  NO: { angle: 45, emoji: '🌻', label: 'Mentor', korean: '멘토형' },
+  LM: { angle: 0, emoji: '💗', label: 'Connector', korean: '친화형' },
+  JK: { angle: -45, emoji: '🤝', label: 'Supporter', korean: '협력형' },
+  HI: { angle: -90, emoji: '🕊️', label: 'Peacemaker', korean: '평화형' },
+  FG: { angle: -135, emoji: '🌙', label: 'Observer', korean: '관찰형' },
+  DE: { angle: 180, emoji: '🧊', label: 'Analyst', korean: '분석형' },
+  BC: { angle: 135, emoji: '🏆', label: 'Achiever', korean: '성취형' },
 };
 
 export default function ICPCircumplex({

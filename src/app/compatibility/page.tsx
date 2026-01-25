@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -7,6 +8,7 @@ import { ShareButton } from '@/components/share/ShareButton';
 import { generateCompatibilityCard, CompatibilityData } from '@/components/share/cards/CompatibilityCard';
 import { useRouter } from 'next/navigation';
 import ScrollToTop from '@/components/ui/ScrollToTop';
+import CompatibilityTabs from '@/components/compatibility/CompatibilityTabs';
 import styles from './Compatibility.module.css';
 
 import { useCompatibilityForm } from '@/hooks/useCompatibilityForm';
@@ -29,6 +31,9 @@ export default function CompatPage() {
   const { t, locale } = useI18n();
   const router = useRouter();
   const { data: session, status } = useSession();
+
+  // Show tabs initially
+  const [showTabs, setShowTabs] = useState(true);
 
   // Use extracted hooks
   const { count, setCount, persons, setPersons, updatePerson, fillFromCircle, onPickCity } =
@@ -57,9 +62,15 @@ export default function CompatPage() {
   const handleBack = () => {
     if (resultText) {
       resetResults();
+    } else if (!showTabs) {
+      setShowTabs(true);
     } else {
-      router.push('/compatibility');
+      router.push('/');
     }
+  };
+
+  const handleStartAnalysis = () => {
+    setShowTabs(false);
   };
 
   // Parse results for beautiful display
@@ -93,7 +104,14 @@ export default function CompatPage() {
           ))}
         </div>
 
-        {!resultText && (
+        {/* Tabs View */}
+        {showTabs && !resultText && (
+          <div className={styles.tabsWrapper}>
+            <CompatibilityTabs onStartAnalysis={handleStartAnalysis} />
+          </div>
+        )}
+
+        {!showTabs && !resultText && (
           <div className={`${styles.formContainer} ${styles.fadeIn}`}>
             <div className={styles.formHeader}>
               <div className={styles.formIcon}>💕</div>

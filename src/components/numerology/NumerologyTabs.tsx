@@ -9,7 +9,7 @@ import LuckyNumbers from './LuckyNumbers';
 import { useI18n } from '@/i18n/I18nProvider';
 import styles from './NumerologyTabs.module.css';
 
-type TabType = 'personal' | 'compatibility' | 'lucky';
+type TabType = 'personal' | 'compatibility' | 'lucky' | 'about';
 
 interface Tab {
   id: TabType;
@@ -44,6 +44,14 @@ const tabsConfig: Tab[] = [
     icon: '🍀',
     descKey: 'numerology.tabs.luckyDesc',
     descDefault: 'Find your lucky numbers'
+  },
+  {
+    id: 'about',
+    labelKey: 'numerology.tabs.about',
+    labelDefault: 'About',
+    icon: '📖',
+    descKey: 'numerology.tabs.aboutDesc',
+    descDefault: 'Learn about numerology and its meanings'
   }
 ];
 
@@ -105,8 +113,57 @@ export default function NumerologyTabs() {
           {activeTab === 'personal' && <NumerologyAnalyzer />}
           {activeTab === 'compatibility' && <CompatibilityAnalyzer />}
           {activeTab === 'lucky' && <LuckyNumbers />}
+          {activeTab === 'about' && <AboutNumerology />}
         </motion.div>
       </AnimatePresence>
+    </div>
+  );
+}
+
+function AboutNumerology() {
+  const { t } = useI18n();
+
+  return (
+    <div className={styles.aboutContainer}>
+      <div className={styles.aboutSection}>
+        <h3 className={styles.aboutTitle}>
+          <span className={styles.aboutIcon}>🔢</span>
+          {t('numerology.about.whatIsTitle', 'What is Numerology?')}
+        </h3>
+        <p className={styles.aboutText}>
+          {t('numerology.about.whatIsText', 'Numerology is an ancient practice that reveals the hidden meanings in numbers. By analyzing your birth date and name, we can uncover your life path, personality traits, and destiny.')}
+        </p>
+      </div>
+
+      <div className={styles.aboutSection}>
+        <h3 className={styles.aboutTitle}>
+          <span className={styles.aboutIcon}>🛤️</span>
+          {t('numerology.about.lifePathTitle', 'Life Path Number')}
+        </h3>
+        <p className={styles.aboutText}>
+          {t('numerology.about.lifePathText', 'Your Life Path Number is the most important number in numerology. Derived from your birth date, it reveals your life purpose, natural talents, and the opportunities you\'ll encounter on your journey.')}
+        </p>
+      </div>
+
+      <div className={styles.aboutSection}>
+        <h3 className={styles.aboutTitle}>
+          <span className={styles.aboutIcon}>✨</span>
+          {t('numerology.about.masterTitle', 'Master Numbers')}
+        </h3>
+        <p className={styles.aboutText}>
+          {t('numerology.about.masterText', 'Master Numbers (11, 22, 33) carry powerful vibrations and greater potential. They indicate souls with special missions and heightened spiritual awareness in this lifetime.')}
+        </p>
+      </div>
+
+      <div className={styles.aboutSection}>
+        <h3 className={styles.aboutTitle}>
+          <span className={styles.aboutIcon}>📅</span>
+          {t('numerology.about.cyclesTitle', 'Personal Year Cycles')}
+        </h3>
+        <p className={styles.aboutText}>
+          {t('numerology.about.cyclesText', 'Numerology follows 9-year cycles. Your Personal Year number reveals the theme and energy of each year, helping you align with natural rhythms and make better decisions.')}
+        </p>
+      </div>
     </div>
   );
 }

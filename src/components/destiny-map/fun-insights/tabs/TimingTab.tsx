@@ -241,7 +241,7 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
       )}
 
       {/* 세운/월운/일운 분석 (L4) */}
-      {(timingMatrix as any)?.periodLuck && (
+      {timingMatrix?.periodLuck && (
         <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-cyan-900/20 border border-cyan-500/30 p-6">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-2xl">📅</span>
@@ -254,64 +254,64 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* 세운 (올해) */}
-            {(timingMatrix as any).periodLuck.year && (
+            {timingMatrix.periodLuck.year && (
               <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">{(timingMatrix as any).periodLuck.year.icon}</span>
+                  <span className="text-lg">{timingMatrix.periodLuck.year.icon}</span>
                   <span className="text-cyan-300 font-bold text-sm">{isKo ? `${currentYear}년 세운` : `${currentYear} Year`}</span>
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">{(timingMatrix as any).periodLuck.year.element}</span>
-                  <span className="text-white font-bold">{(timingMatrix as any).periodLuck.year.stem}{(timingMatrix as any).periodLuck.year.branch}</span>
+                  <span className="text-xl">{timingMatrix.periodLuck.year.element}</span>
+                  <span className="text-white font-bold">{timingMatrix.periodLuck.year.stem}{timingMatrix.periodLuck.year.branch}</span>
                 </div>
                 <p className="text-gray-300 text-xs leading-relaxed">
-                  {isKo ? (timingMatrix as any).periodLuck.year.description.ko : (timingMatrix as any).periodLuck.year.description.en}
+                  {isKo ? timingMatrix.periodLuck.year.description.ko : timingMatrix.periodLuck.year.description.en}
                 </p>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs text-gray-500">{isKo ? '에너지' : 'Energy'}</span>
-                  <span className="text-cyan-400 font-bold">{(timingMatrix as any).periodLuck.year.score}%</span>
+                  <span className="text-cyan-400 font-bold">{timingMatrix.periodLuck.year.score}%</span>
                 </div>
               </div>
             )}
 
             {/* 월운 (이번 달) */}
-            {(timingMatrix as any).periodLuck.month && (
+            {timingMatrix.periodLuck.month && (
               <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">{(timingMatrix as any).periodLuck.month.icon}</span>
+                  <span className="text-lg">{timingMatrix.periodLuck.month.icon}</span>
                   <span className="text-blue-300 font-bold text-sm">{isKo ? '이번 달 월운' : 'This Month'}</span>
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">{(timingMatrix as any).periodLuck.month.element}</span>
-                  <span className="text-white font-bold">{(timingMatrix as any).periodLuck.month.stem}{(timingMatrix as any).periodLuck.month.branch}</span>
+                  <span className="text-xl">{timingMatrix.periodLuck.month.element}</span>
+                  <span className="text-white font-bold">{timingMatrix.periodLuck.month.stem}{timingMatrix.periodLuck.month.branch}</span>
                 </div>
                 <p className="text-gray-300 text-xs leading-relaxed">
-                  {isKo ? (timingMatrix as any).periodLuck.month.description.ko : (timingMatrix as any).periodLuck.month.description.en}
+                  {isKo ? timingMatrix.periodLuck.month.description.ko : timingMatrix.periodLuck.month.description.en}
                 </p>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs text-gray-500">{isKo ? '에너지' : 'Energy'}</span>
-                  <span className="text-blue-400 font-bold">{(timingMatrix as any).periodLuck.month.score}%</span>
+                  <span className="text-blue-400 font-bold">{timingMatrix.periodLuck.month.score}%</span>
                 </div>
               </div>
             )}
 
             {/* 일운 (오늘) */}
-            {(timingMatrix as any).periodLuck.day && (
+            {timingMatrix.periodLuck.day && (
               <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">{(timingMatrix as any).periodLuck.day.icon}</span>
+                  <span className="text-lg">{timingMatrix.periodLuck.day.icon}</span>
                   <span className="text-violet-300 font-bold text-sm">{isKo ? '오늘 일운' : 'Today'}</span>
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">{(timingMatrix as any).periodLuck.day.element}</span>
-                  <span className="text-white font-bold">{(timingMatrix as any).periodLuck.day.stem}{(timingMatrix as any).periodLuck.day.branch}</span>
+                  <span className="text-xl">{timingMatrix.periodLuck.day.element}</span>
+                  <span className="text-white font-bold">{timingMatrix.periodLuck.day.stem}{timingMatrix.periodLuck.day.branch}</span>
                 </div>
                 <p className="text-gray-300 text-xs leading-relaxed">
-                  {isKo ? (timingMatrix as any).periodLuck.day.description.ko : (timingMatrix as any).periodLuck.day.description.en}
+                  {isKo ? timingMatrix.periodLuck.day.description.ko : timingMatrix.periodLuck.day.description.en}
                 </p>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs text-gray-500">{isKo ? '에너지' : 'Energy'}</span>
-                  <span className="text-violet-400 font-bold">{(timingMatrix as any).periodLuck.day.score}%</span>
+                  <span className="text-violet-400 font-bold">{timingMatrix.periodLuck.day.score}%</span>
                 </div>
               </div>
             )}
@@ -332,7 +332,7 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
           </div>
 
           <div className="space-y-3">
-            {(timingMatrix.luckyPeriods as any[]).slice(0, 5).map((period, idx) => (
+            {timingMatrix.luckyPeriods.slice(0, 5).map((period, idx) => (
               <div
                 key={idx}
                 className={`p-4 rounded-xl border ${

@@ -283,7 +283,11 @@ export default function MainPage() {
                   </div>
                 )}
 
+                <label htmlFor="destiny-question" className={styles.srOnly}>
+                  {translate("landing.searchPlaceholder", "오늘 무엇이 궁금하세요?")}
+                </label>
                 <input
+                  id="destiny-question"
                   type="text"
                   className={styles.questionSearchInput}
                   placeholder={typingPlaceholder || translate("landing.searchPlaceholder", "오늘 무엇이 궁금하세요?")}

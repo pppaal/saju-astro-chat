@@ -14,7 +14,8 @@ interface Props {
 }
 
 export default function PersonaQuiz({ answers, onAnswerChange, questionRefs, questions, startIndex = 0 }: Props) {
-  const { t } = useI18n();
+  const { locale } = useI18n();
+  const isKo = locale === 'ko';
   const displayQuestions = questions || allQuestions;
 
   return (
@@ -32,7 +33,7 @@ export default function PersonaQuiz({ answers, onAnswerChange, questionRefs, que
           <div className={styles.questionHeader}>
             <span className={styles.questionNumber}>{startIndex + index + 1}</span>
             <p className={styles.questionText}>
-              {t(`personality.questions.${q.id}.text`, q.text)}
+              {isKo ? q.textKo : q.text}
             </p>
           </div>
           <div className={styles.optionsGrid}>
@@ -49,7 +50,7 @@ export default function PersonaQuiz({ answers, onAnswerChange, questionRefs, que
                   >
                     {isSelected && <span className={styles.radioInner} />}
                   </span>
-                  <span>{t(`personality.questions.${q.id}.options.${opt.id}`, opt.text)}</span>
+                  <span>{isKo ? opt.textKo : opt.text}</span>
                 </button>
               );
             })}

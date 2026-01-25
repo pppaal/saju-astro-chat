@@ -58,6 +58,10 @@ const SERVICE_ICONS: Record<string, string> = {
   "daily-fortune": "🌟",
   "destiny-pal": "🤝",
   "destiny-matrix": "🔷",
+  "personality-icp": "🎭",
+  "personality-compatibility": "💕",
+  "life-prediction": "📈",
+  "life-prediction-timing": "⏰",
   // camelCase versions (for backward compatibility)
   "destinyMap": "🗺️",
   "destinyCalendar": "📅",
@@ -74,6 +78,7 @@ const SERVICE_ICONS: Record<string, string> = {
   aura: "🌈",
   personality: "🧠",
   compatibility: "💕",
+  icp: "🎭",
 };
 
 const SERVICE_NAME_KEYS: Record<string, string> = {
@@ -83,6 +88,10 @@ const SERVICE_NAME_KEYS: Record<string, string> = {
   "daily-fortune": "myjourney.services.dailyFortune",
   "destiny-pal": "myjourney.services.destinyPal",
   "destiny-matrix": "myjourney.services.destinyMatrix",
+  "personality-icp": "myjourney.services.icp",
+  "personality-compatibility": "myjourney.services.personalityCompatibility",
+  "life-prediction": "myjourney.services.lifePrediction",
+  "life-prediction-timing": "myjourney.services.lifePredictionTiming",
   // camelCase versions (for backward compatibility)
   "destinyMap": "myjourney.services.destinyMap",
   "destinyCalendar": "myjourney.services.destinyCalendar",
@@ -99,6 +108,7 @@ const SERVICE_NAME_KEYS: Record<string, string> = {
   aura: "myjourney.services.aura",
   personality: "myjourney.services.personality",
   compatibility: "myjourney.services.compatibility",
+  icp: "myjourney.services.icp",
 };
 
 const _SERVICE_URLS: Record<string, string> = {
@@ -108,6 +118,10 @@ const _SERVICE_URLS: Record<string, string> = {
   "daily-fortune": "/myjourney",
   "destiny-pal": "/destiny-pal",
   "destiny-matrix": "/destiny-matrix",
+  "personality-icp": "/icp/result",
+  "personality-compatibility": "/personality/compatibility",
+  "life-prediction": "/life-prediction",
+  "life-prediction-timing": "/life-prediction",
   // camelCase versions (for backward compatibility)
   "destinyMap": "/destiny-map",
   "destinyCalendar": "/calendar",
@@ -124,6 +138,7 @@ const _SERVICE_URLS: Record<string, string> = {
   personality: "/personality",
   compatibility: "/compatibility",
   aura: "/aura",
+  icp: "/icp",
 };
 
 export default function MyJourneyClient() {

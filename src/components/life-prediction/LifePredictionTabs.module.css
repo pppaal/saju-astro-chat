@@ -60,7 +60,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #f093fb, #f5576c);
+  background: linear-gradient(90deg, #a78bfa, #8b5cf6);
   border-radius: 3px 3px 0 0;
 }
 
@@ -77,6 +77,52 @@
 
 .tabContent {
   min-height: 400px;
+}
+
+/* Intro Container */
+.introContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.introIcon {
+  font-size: 64px;
+  margin-bottom: 24px;
+}
+
+.introTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.introText {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 16px;
+  line-height: 1.7;
+  max-width: 500px;
+  margin-bottom: 32px;
+}
+
+.startButton {
+  padding: 16px 40px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+.startButton:hover {
+  box-shadow: 0 6px 30px rgba(139, 92, 246, 0.5);
 }
 
 /* About Section */
@@ -97,7 +143,7 @@
 
 .aboutSection:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(240, 147, 251, 0.3);
+  border-color: rgba(139, 92, 246, 0.3);
 }
 
 .aboutTitle {
@@ -143,5 +189,34 @@
   .tabDescription {
     font-size: 14px;
     padding: 12px;
+  }
+
+  .introIcon {
+    font-size: 48px;
+  }
+
+  .introTitle {
+    font-size: 22px;
+  }
+
+  .introText {
+    font-size: 14px;
+  }
+
+  .startButton {
+    padding: 14px 32px;
+    font-size: 16px;
+  }
+
+  .aboutSection {
+    padding: 16px;
+  }
+
+  .aboutTitle {
+    font-size: 16px;
+  }
+
+  .aboutText {
+    font-size: 14px;
   }
 }

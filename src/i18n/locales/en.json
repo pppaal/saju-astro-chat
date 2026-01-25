@@ -182,6 +182,28 @@
       "postHorseDesc": "Travel & movement",
       "peachBlossom": "Peach Blossom",
       "peachBlossomDesc": "Charm & romance"
+    },
+    "seo": {
+      "whatIsDestinyPal": "What is DestinyPal? AI-Powered Destiny & Personality Analysis Platform",
+      "intro": "DestinyPal is a comprehensive fortune analysis platform that combines Eastern Saju (Four Pillars) with Western Astrology. Using artificial intelligence, we provide deep analysis of your destiny flow, personality traits, aptitudes, and relationships based on your birth date and time. Ancient Eastern and Western wisdom meets modern AI technology to deliver practical insights for your life.",
+      "sajuTitle": "Saju (Four Pillars) Analysis",
+      "sajuDescription": "Saju (Four Pillars of Destiny) is the premier Eastern system for analyzing fate based on birth year, month, day, and hour. Composed of four pillars (Year, Month, Day, Hour) and eight characters (Heavenly Stems and Earthly Branches), it examines the generative and destructive relationships of the Five Elements (Wood, Fire, Earth, Metal, Water) to understand innate tendencies and life flow. DestinyPal visualizes expert-level Saju analysis in an easy-to-understand format. Through Daeun (10-year luck cycles) and annual fortune analysis, we predict life changes for each period and comprehensively diagnose career, wealth, love, and health.",
+      "astrologyTitle": "Western Astrology",
+      "astrologyDescription": "Western Astrology analyzes personality and destiny through celestial positions at birth. It considers 12 zodiac signs, planetary positions (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, etc.), house systems, and aspects between planets. DestinyPal precisely calculates your natal chart, analyzing key points like the Ascendant, Midheaven (MC), Descendant, and IC. Your Sun sign represents core personality, Moon sign reveals emotional nature, and Ascendant shows your outer image - together forming a complex personality profile.",
+      "tarotTitle": "Tarot Cards",
+      "tarotDescription": "Tarot is a mystical tool of 78 cards that analyzes current situations and illuminates the future. 22 Major Arcana cards symbolize major life turning points and spiritual growth, while 56 Minor Arcana cards address everyday situations. DestinyPal offers various spreads including Past-Present-Future, Celtic Cross, and Relationship spreads, with AI connecting card symbolism to your specific situation for deep interpretation. For love, career, finances, health - Tarot provides intuitive insights for all life questions.",
+      "compatibilityTitle": "Compatibility Analysis",
+      "compatibilityDescription": "Compatibility analysis compares two people's Saju and zodiac signs to predict relationship harmony and potential conflicts. Saju compatibility examines the combining and clashing relationships of Day Masters, Five Elements interactions, and special star interactions. Astrological compatibility considers elemental harmony of Sun signs, Venus-Mars love style compatibility, and Moon sign emotional compatibility. DestinyPal analyzes not just romantic compatibility, but also marital, business partnership, friendship, and parent-child relationships, providing practical advice for understanding others and developing relationships.",
+      "calendarTitle": "Fortune Calendar",
+      "calendarDescription": "The Fortune Calendar is a powerful tool for tracking daily fortune changes and identifying important dates in advance. It integrates daily auspicious and inauspicious indicators, planetary transits, retrograde cycles, and moon phases. Choose favorable days for weddings, business openings, moving, or contracts, and avoid challenging days. DestinyPal's AI combines your personal Saju with current planetary positions to generate customized daily fortunes, with detailed advice for career, finances, love, and health.",
+      "howToUse": "How to Use DestinyPal",
+      "howToUseDescription": "Using DestinyPal is simple. First, enter your exact birth date and time. If uncertain about time, you can select an approximate range - more precise times yield more accurate analysis. Adding birthplace information enables precise house system calculations for astrology. Once input is complete, AI calculates your Saju, analyzes celestial positions, and generates a comprehensive destiny report. View your Five Elements balance, planetary chart, and luck cycle timeline on the dashboard, clicking each section for detailed interpretations. Use our AI chat feature to ask questions and receive real-time answers.",
+      "privacyTitle": "Privacy & Data Security",
+      "privacyDescription": "DestinyPal protects your personal information and fortune data with the highest level of security. All data is encrypted and stored with strict access controls to prevent unauthorized access. Personal information is never shared with third parties without consent, and you can delete your data anytime. Anonymous mode allows basic fortune analysis without an account, so you can experience the service without privacy concerns. We strictly comply with GDPR and domestic privacy laws, maintaining security through regular audits.",
+      "freeVsPremium": "Free vs Premium",
+      "freeVsPremiumDescription": "DestinyPal offers free users basic Saju analysis, Western astrology charts, daily fortunes, and Tarot readings. Premium membership unlocks advanced features: 10-year luck cycle analysis, annual predictions, detailed compatibility reports, personalized AI consultations, unlimited Tarot readings, and PDF report downloads. Premium users receive priority support and beta tester access to new features. Choose between monthly and annual subscriptions, with up to 30% discount on annual plans. Try premium features free for 7 days.",
+      "keywords": "Key Topics",
+      "keywordsList": "saju, four pillars of destiny, free saju, fortune, daily horoscope, zodiac fortune, astrology, tarot cards, tarot reading, free tarot, compatibility, zodiac compatibility, birth date compatibility, luck cycles, annual fortune, ten gods, five elements, heavenly stems, earthly branches, day master, natal chart, birth chart, house system, ascendant, major arcana, minor arcana, celtic cross, past present future, saju interpretation, free fortune, 2024 horoscope, 2025 horoscope, new year fortune, AI fortune, artificial intelligence destiny, destiny analysis, personality analysis, career aptitude, career guidance, love fortune, wealth fortune, health fortune, job fortune, career change, marriage fortune, pregnancy fortune"
     }
   },
   "common": {
@@ -771,6 +793,8 @@
     "cast": "Cast Hexagram",
     "casting": "Casting the lines",
     "castAgain": "Cast Again",
+    "meihua": "Time Reading",
+    "meihuaHint": "Time Reading uses Meihua numerology based on the current moment",
     "changingHint": "Click on a line to toggle changing status",
     "changingCount": "Changing lines",
     "back": "Back",
@@ -791,6 +815,7 @@
     "save": "Save Reading",
     "saved": "Reading Saved",
     "saveError": "Failed to save reading",
+    "waitingAi": "Waiting for AI...",
     "loginToSave": "Please log in to save readings",
     "composition": "Hexagram Composition",
     "upperTrigram": "Upper",
@@ -832,7 +857,33 @@
     "changingAnalysis": "Changing Lines Analysis",
     "practicalAdvice": "Practical Guidance",
     "aiError": "An error occurred while generating the interpretation.",
-    "retry": "Try Again"
+    "retry": "Try Again",
+    "traditionalWisdom": "Traditional Wisdom",
+    "gwaeSa": "Hexagram Statement",
+    "coreWisdom": "Core Wisdom",
+    "warnings": "Warnings",
+    "opportunities": "Opportunities",
+    "sequenceAnalysis": "Sequence Analysis",
+    "position": "Position in I Ching",
+    "preceding": "Preceding",
+    "following": "Following",
+    "xuguaPair": "Xugua Pair",
+    "tabs": {
+      "reading": "Reading",
+      "readingDesc": "Cast your I Ching reading",
+      "about": "About",
+      "aboutDesc": "Learn about the I Ching"
+    },
+    "about": {
+      "whatIsTitle": "What is I Ching?",
+      "whatIsText": "The I Ching, or Book of Changes, is one of the oldest and most profound wisdom texts in human history. Dating back over 3,000 years, it has guided emperors, scholars, and seekers of truth through life's complexities.",
+      "hexagramsTitle": "The 64 Hexagrams",
+      "hexagramsText": "The I Ching consists of 64 hexagrams, each made of six lines that can be solid (Yang) or broken (Yin). These hexagrams represent all possible situations and transformations in the universe.",
+      "castingTitle": "How It Works",
+      "castingText": "Traditionally cast with yarrow stalks or three coins, the I Ching responds to your sincere questions. The resulting hexagram offers wisdom about your current situation and potential changes ahead.",
+      "changingTitle": "Changing Lines",
+      "changingText": "Some lines may be 'changing' - transforming from Yin to Yang or vice versa. These changing lines reveal the dynamic nature of your situation and point toward future developments."
+    }
   },
   "tarot": {
     "home": {
@@ -1778,6 +1829,7 @@
     "services": {
       "destinyMap": "Destiny map",
       "lifePrediction": "Life prediction",
+      "lifePredictionTiming": "Life prediction timing",
       "destinyCalendar": "Destiny calendar",
       "tarot": "Tarot",
       "saju": "Saju",
@@ -1789,6 +1841,8 @@
       "dailyFortune": "Daily fortune",
       "personality": "Personality",
       "compatibility": "Compatibility",
+      "personalityCompatibility": "Personality compatibility",
+      "icp": "ICP Test",
       "destinyPal": "Destiny pal",
       "destinyMatrix": "Destiny matrix"
     }

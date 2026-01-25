@@ -231,7 +231,11 @@
       "Bash(do find \"$dir\" -name \"*.ts\" ! -name \"*.d.ts\")",
       "Bash(/tmp/find_untested.sh)",
       "Bash(ultra-precision.*daily)",
-      "Bash(\")"
+      "Bash(\")",
+      "Bash(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
+      "Bash(Where-Object { $_CommandLine -like \"*next*\" })",
+      "Bash(Stop-Process -Force -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item -Force \"c:\\\\dev\\\\saju-astro-chat\\\\.next\\\\lock\" -ErrorAction SilentlyContinue)"
     ],
     "deny": [],
     "ask": []

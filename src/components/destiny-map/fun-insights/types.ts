@@ -197,7 +197,7 @@ export interface AstroData {
   planets?: PlanetData[] | Record<string, { sign?: string }>;
   ascendant?: { sign?: string; formatted?: string };
   mc?: { sign?: string; formatted?: string };
-  houses?: { index?: number; cusp?: number; sign?: string }[];
+  houses?: { number?: number; index?: number; cusp?: number; sign?: string }[];
   aspects?: AspectData[];
   extraPoints?: {
     chiron?: ExtraPointData;

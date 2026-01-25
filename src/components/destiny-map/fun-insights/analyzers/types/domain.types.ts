@@ -59,7 +59,18 @@ export interface CareerAdvancedResult {
   careerAdvancedScore?: number;
   careerAdvancedMessage?: { ko: string; en: string };
   // Optional extended properties for legacy compatibility
-  wealthPattern?: { ko: string; en: string; fusion?: MatrixFusion };
+  wealthPattern?: {
+    ko: string;
+    en: string;
+    fusion?: MatrixFusion;
+    score?: number;
+    style?: { ko: string; en: string };
+    sibsinWealth?: Array<{
+      sibsin: string;
+      planet: string;
+      fusion: { icon: string; keyword: { ko: string; en: string } };
+    }>;
+  };
   successTiming?: Array<{
     timing: string;
     transit: string;
@@ -170,6 +181,26 @@ export interface ShadowPersonalityResult {
   };
 }
 
+// Period Luck Entry (Year/Month/Day)
+export interface PeriodLuckEntry {
+  icon: string;
+  element: string;
+  stem: string;
+  branch: string;
+  description: { ko: string; en: string };
+  score: number;
+}
+
+// Lucky Period Entry
+export interface LuckyPeriodEntry {
+  period: string;
+  icon: string;
+  strength: 'strong' | 'moderate' | 'mild';
+  score: number;
+  description: { ko: string; en: string };
+  goodFor: string[];
+}
+
 // Timing Matrix Analysis
 export interface TimingMatrixResult {
   overallScore?: number;
@@ -219,7 +250,12 @@ export interface TimingMatrixResult {
     planet?: string;
     period?: string;
   }>;
-  luckyPeriods?: Array<{ period: string; description: { ko: string; en: string } }>;
+  periodLuck?: {
+    year?: PeriodLuckEntry;
+    month?: PeriodLuckEntry;
+    day?: PeriodLuckEntry;
+  };
+  luckyPeriods?: LuckyPeriodEntry[];
   timingScore?: number;
   timingMessage?: { ko: string; en: string };
 }

@@ -57,7 +57,7 @@ export async function GET(request: Request) {
     const minorTableLimit = Math.ceil(limit / 6) // Minor tables get less
 
     // Fetch service records from different tables with reduced limits
-    const [readings, tarotReadings, consultations, interactions, dailyFortunes, calendarDates, icpResults, compatibilityResults, matrixReports] = await Promise.all([
+    const [readings, tarotReadings, consultations, interactions, dailyFortunes, calendarDates, icpResults, compatibilityResults, matrixReports, personalityResults] = await Promise.all([
       // Readings (astrology, dream, etc.)
       prisma.reading.findMany({
         where: { userId },
@@ -186,6 +186,19 @@ export async function GET(request: Request) {
           grade: true,
         },
       }),
+      // Personality test results
+      prisma.personalityResult.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: minorTableLimit,
+        skip: offset > 0 ? Math.floor(offset / 10) : 0,
+        select: {
+          id: true,
+          createdAt: true,
+          typeCode: true,
+          personaName: true,
+        },
+      }),
     ])
 
     // Combine and normalize all records
@@ -266,6 +279,14 @@ export async function GET(request: Request) {
         theme: m.reportType === "timing" ? m.period : m.theme,
         summary: m.summary || m.title || `${m.grade || ''} ${m.overallScore || ''}점`,
         type: "destiny-matrix-report",
+      })),
+      ...personalityResults.map((p) => ({
+        id: p.id,
+        date: p.createdAt.toISOString().split("T")[0],
+        service: "personality",
+        theme: p.typeCode,
+        summary: `${p.personaName} (${p.typeCode})`,
+        type: "personality-result",
       })),
     ]
 

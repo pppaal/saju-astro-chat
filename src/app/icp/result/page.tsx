@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import type { ICPQuizAnswers, ICPAnalysis } from '@/lib/icp/types';
+import type { ICPQuizAnswers, ICPAnalysis, ICPOctantCode } from '@/lib/icp/types';
 import { analyzeICP } from '@/lib/icp/analysis';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
@@ -12,6 +12,14 @@ import { ICPCircumplex } from '@/components/icp';
 import styles from './result.module.css';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
 import { fetchWithRetry, FetchWithRetryError } from '@/lib/http';
+import {
+  getDailyFortuneScore,
+  calculateYearlyImportantDates,
+  calculateSajuProfileFromBirthDate,
+  calculateAstroProfileFromBirthDate,
+  type DailyFortuneResult,
+  type ImportantDate,
+} from '@/lib/destiny-map/destinyCalendar';
 
 // Confetti particle type
 interface ConfettiParticle {
@@ -63,14 +71,14 @@ const AxisBar = ({ label, score, left, right, delay }: {
 const OctantRadar = ({ scores, isKo }: { scores: Record<string, number>; isKo: boolean }) => {
   // 표준 ICP 모델 레이블과 일치 - 이모지 + 한글로 직관성 향상
   const octantLabels: Record<string, { emoji: string; en: string; ko: string }> = {
-    PA: { emoji: '👑', en: 'Dominant', ko: '지배적' },
-    BC: { emoji: '🏆', en: 'Competitive', ko: '경쟁적' },
-    DE: { emoji: '🧊', en: 'Cold', ko: '냉담' },
-    FG: { emoji: '🌙', en: 'Introverted', ko: '내향적' },
-    HI: { emoji: '🕊️', en: 'Submissive', ko: '복종적' },
-    JK: { emoji: '🤝', en: 'Agreeable', ko: '동조적' },
-    LM: { emoji: '💗', en: 'Warm', ko: '따뜻함' },
-    NO: { emoji: '🌻', en: 'Nurturant', ko: '양육적' },
+    PA: { emoji: '👑', en: 'Leader', ko: '리더형' },
+    BC: { emoji: '🏆', en: 'Achiever', ko: '성취형' },
+    DE: { emoji: '🧊', en: 'Analyst', ko: '분석형' },
+    FG: { emoji: '🌙', en: 'Observer', ko: '관찰형' },
+    HI: { emoji: '🕊️', en: 'Peacemaker', ko: '평화형' },
+    JK: { emoji: '🤝', en: 'Supporter', ko: '협력형' },
+    LM: { emoji: '💗', en: 'Connector', ko: '친화형' },
+    NO: { emoji: '🌻', en: 'Mentor', ko: '멘토형' },
   };
 
   const sortedOctants = Object.entries(scores)
@@ -114,6 +122,15 @@ export default function ICPResultPage() {
   const [isSavedToDb, setIsSavedToDb] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [confettiParticles, setConfettiParticles] = useState<ConfettiParticle[]>([]);
+
+  // Destiny-based advice states
+  const [birthDate, setBirthDate] = useState<string>('');
+  const [birthTime, setBirthTime] = useState<string>('');
+  const [destinyAdvice, setDestinyAdvice] = useState<{
+    fortune: DailyFortuneResult | null;
+    growthDates: ImportantDate[];
+    isLoading: boolean;
+  }>({ fortune: null, growthDates: [], isLoading: false });
 
   useEffect(() => {
     setMounted(true);
@@ -193,6 +210,63 @@ export default function ICPResultPage() {
       }
     }
   }, [mounted, analysis, createConfetti]);
+
+  // ICP 유형별 성장 카테고리 매핑
+  const getGrowthCategories = (icpType: ICPOctantCode): string[] => {
+    const categoryMap: Record<ICPOctantCode, string[]> = {
+      PA: ['career', 'general'], // 리더형 - 커리어, 전반
+      BC: ['career', 'wealth'], // 성취형 - 커리어, 재물
+      DE: ['study', 'general'], // 분석형 - 학업, 전반
+      FG: ['study', 'health'], // 관찰형 - 학업, 건강
+      HI: ['love', 'health'], // 평화형 - 연애, 건강
+      JK: ['love', 'general'], // 협력형 - 연애, 전반
+      LM: ['love', 'travel'], // 친화형 - 연애, 여행
+      NO: ['career', 'love'], // 멘토형 - 커리어, 연애
+    };
+    return categoryMap[icpType] || ['general'];
+  };
+
+  // 운명 기반 조언 생성
+  const handleGenerateDestinyAdvice = useCallback(async () => {
+    if (!birthDate || !analysis) return;
+
+    setDestinyAdvice(prev => ({ ...prev, isLoading: true }));
+
+    try {
+      // 오늘의 운세
+      const fortune = getDailyFortuneScore(birthDate, birthTime || undefined);
+
+      // 성장에 좋은 날짜 (올해)
+      const sajuProfile = calculateSajuProfileFromBirthDate(new Date(birthDate));
+      const astroProfile = calculateAstroProfileFromBirthDate(new Date(birthDate));
+      const growthCategories = getGrowthCategories(analysis.primaryStyle as ICPOctantCode);
+
+      const yearlyDates = calculateYearlyImportantDates(
+        new Date().getFullYear(),
+        sajuProfile,
+        astroProfile,
+        { minGrade: 2, limit: 30 }
+      );
+
+      // ICP 유형에 맞는 날짜 필터링
+      const filteredDates = yearlyDates
+        .filter(d =>
+          d.categories.some(cat => growthCategories.includes(cat)) ||
+          d.grade <= 1
+        )
+        .sort((a, b) => a.grade - b.grade)
+        .slice(0, 5);
+
+      setDestinyAdvice({
+        fortune,
+        growthDates: filteredDates,
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error('[ICP Destiny] Error:', error);
+      setDestinyAdvice(prev => ({ ...prev, isLoading: false }));
+    }
+  }, [birthDate, birthTime, analysis]);
 
   const handleSaveResult = async () => {
     if (!analysis) return;
@@ -503,12 +577,17 @@ export default function ICPResultPage() {
           </div>
         </section>
 
-        {/* Growth Recommendations */}
+        {/* Growth Recommendations - General Tips */}
         <section className={styles.growthSection}>
           <h2 className={styles.sectionTitle}>
             <span className={styles.sectionIcon}>🌱</span>
-            {isKo ? '성장을 위한 조언' : 'Growth Recommendations'}
+            {isKo ? '성장 팁' : 'Growth Tips'}
           </h2>
+          <p className={styles.growthIntro}>
+            {isKo
+              ? `${primaryOctant.korean}의 핵심 성장 포인트:`
+              : `Key growth points for ${primaryOctant.name}:`}
+          </p>
           <div className={styles.growthCards}>
             {(isKo ? primaryOctant.growthRecommendationsKo : primaryOctant.growthRecommendations).map((rec, i) => (
               <div key={i} className={styles.growthCard}>
@@ -517,6 +596,135 @@ export default function ICPResultPage() {
               </div>
             ))}
           </div>
+        </section>
+
+        {/* Destiny-Based Personalized Advice */}
+        <section className={styles.destinySection}>
+          <h2 className={styles.sectionTitle}>
+            <span className={styles.sectionIcon}>🔮</span>
+            {isKo ? '운명 기반 맞춤 조언' : 'Destiny-Based Personalized Advice'}
+          </h2>
+          <p className={styles.destinyIntro}>
+            {isKo
+              ? '생년월일을 입력하면 사주와 점성술 분석을 기반으로 성장에 좋은 시기를 알려드려요.'
+              : 'Enter your birth date to get personalized growth timing based on Saju and astrology analysis.'}
+          </p>
+
+          <div className={styles.destinyInputs}>
+            <div className={styles.inputGroup}>
+              <label htmlFor="birthDate">
+                {isKo ? '생년월일' : 'Birth Date'}
+              </label>
+              <input
+                type="date"
+                id="birthDate"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+                className={styles.dateInput}
+                max={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+            <div className={styles.inputGroup}>
+              <label htmlFor="birthTime">
+                {isKo ? '출생 시간 (선택)' : 'Birth Time (optional)'}
+              </label>
+              <input
+                type="time"
+                id="birthTime"
+                value={birthTime}
+                onChange={(e) => setBirthTime(e.target.value)}
+                className={styles.timeInput}
+              />
+            </div>
+            <button
+              onClick={handleGenerateDestinyAdvice}
+              disabled={!birthDate || destinyAdvice.isLoading}
+              className={styles.destinyButton}
+            >
+              {destinyAdvice.isLoading
+                ? (isKo ? '분석 중...' : 'Analyzing...')
+                : (isKo ? '운명 분석하기' : 'Analyze Destiny')}
+            </button>
+          </div>
+
+          {destinyAdvice.fortune && (
+            <div className={styles.destinyResults}>
+              {/* Today's Fortune */}
+              <div className={styles.fortuneCard}>
+                <h3>
+                  <span>✨</span>
+                  {isKo ? '오늘의 운세' : "Today's Fortune"}
+                </h3>
+                <div className={styles.fortuneScores}>
+                  <div className={styles.fortuneScore}>
+                    <span className={styles.scoreLabel}>{isKo ? '종합' : 'Overall'}</span>
+                    <span className={styles.scoreValue}>{destinyAdvice.fortune.overall}점</span>
+                  </div>
+                  <div className={styles.fortuneScore}>
+                    <span className={styles.scoreLabel}>{isKo ? '연애' : 'Love'}</span>
+                    <span className={styles.scoreValue}>{destinyAdvice.fortune.love}점</span>
+                  </div>
+                  <div className={styles.fortuneScore}>
+                    <span className={styles.scoreLabel}>{isKo ? '커리어' : 'Career'}</span>
+                    <span className={styles.scoreValue}>{destinyAdvice.fortune.career}점</span>
+                  </div>
+                </div>
+                {destinyAdvice.fortune.recommendations.length > 0 && (
+                  <div className={styles.fortuneTips}>
+                    <p>💡 {destinyAdvice.fortune.recommendations[0]}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Growth Dates */}
+              {destinyAdvice.growthDates.length > 0 && (
+                <div className={styles.growthDatesCard}>
+                  <h3>
+                    <span>📅</span>
+                    {isKo
+                      ? `${primaryOctant.korean} 성장에 좋은 날`
+                      : `Best Days for ${primaryOctant.name} Growth`}
+                  </h3>
+                  <div className={styles.datesList}>
+                    {destinyAdvice.growthDates.map((d, i) => (
+                      <div key={i} className={styles.dateItem}>
+                        <span className={styles.dateGrade}>
+                          {d.grade === 0 ? '🌟' : d.grade === 1 ? '⭐' : '✨'}
+                        </span>
+                        <span className={styles.dateValue}>
+                          {new Date(d.date).toLocaleDateString(isKo ? 'ko-KR' : 'en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            weekday: 'short',
+                          })}
+                        </span>
+                        <span className={styles.dateCategory}>
+                          {d.categories.slice(0, 2).map(c => {
+                            const catNames: Record<string, { ko: string; en: string }> = {
+                              career: { ko: '커리어', en: 'Career' },
+                              love: { ko: '연애', en: 'Love' },
+                              wealth: { ko: '재물', en: 'Wealth' },
+                              health: { ko: '건강', en: 'Health' },
+                              study: { ko: '학업', en: 'Study' },
+                              travel: { ko: '여행', en: 'Travel' },
+                              general: { ko: '전반', en: 'General' },
+                            };
+                            return isKo ? catNames[c]?.ko || c : catNames[c]?.en || c;
+                          }).join(', ')}
+                        </span>
+                        <span className={styles.dateScore}>{d.score}점</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className={styles.datesNote}>
+                    {isKo
+                      ? '* 사주와 점성술이 교차 검증된 날짜만 표시됩니다.'
+                      : '* Only dates cross-verified by Saju and astrology are shown.'}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         {/* Therapeutic Questions */}
