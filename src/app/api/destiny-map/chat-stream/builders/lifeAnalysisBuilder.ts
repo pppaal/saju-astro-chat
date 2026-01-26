@@ -12,6 +12,7 @@ import {
   type LifePredictionInput,
   type EventType,
 } from '@/lib/prediction/lifePredictionEngine';
+import { generateEventTimingPromptContext } from '@/lib/prediction/prompt-contexts';
 import { extractBirthYear, extractBirthMonth, extractBirthDay } from '@/lib/prediction/utils';
 import { logger } from '@/lib/logger';
 import type { SajuDataStructure, AstroDataStructure } from '../lib/types';
