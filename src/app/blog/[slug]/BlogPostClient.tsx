@@ -44,12 +44,16 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
     }
   };
 
-  const transformLinkUri = (uri: string) => (isSafeUri(uri) ? uri : "");
-  const transformImageUri = (uri: string) => {
-    if (!uri) return "";
+  const urlTransform = (uri: string) => {
+    if (!uri) {
+      return "";
+    }
+    if (!isSafeUri(uri)) {
+      return "";
+    }
     try {
       const parsed = new URL(uri, "https://example.com");
-      return ["http:", "https:", "data:"].includes(parsed.protocol) ? uri : "";
+      return ["http:", "https:", "data:", "mailto:", "tel:"].includes(parsed.protocol) ? uri : "";
     } catch {
       return "";
     }
@@ -93,8 +97,7 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
           <div className={styles.markdown}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              transformLinkUri={transformLinkUri}
-              transformImageUri={transformImageUri}
+              urlTransform={urlTransform}
               components={{
                 a: ({ node: _node, ...props }) => (
                   <a {...props} target="_blank" rel="noopener noreferrer" />
