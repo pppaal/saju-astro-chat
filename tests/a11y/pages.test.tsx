@@ -251,11 +251,14 @@ describe('Accessibility: Page Components', () => {
         <div>
           <button>Button 1</button>
           <a href="/link">Link</a>
-          <input type="text" placeholder="Input" />
-          <select>
+          <label htmlFor="text-input">Text Input</label>
+          <input id="text-input" type="text" placeholder="Input" />
+          <label htmlFor="select-input">Select Option</label>
+          <select id="select-input">
             <option>Option 1</option>
           </select>
-          <textarea placeholder="Textarea"></textarea>
+          <label htmlFor="textarea-input">Textarea</label>
+          <textarea id="textarea-input" placeholder="Textarea"></textarea>
         </div>
       );
 
