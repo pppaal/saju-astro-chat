@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import styles from './AnalyzingPhase.module.css';
 
@@ -14,8 +13,6 @@ const pageTransitionVariants = {
 };
 
 export function AnalyzingPhase({ locale, hasBirthInfo }: AnalyzingPhaseProps) {
-  const isKo = locale === 'ko';
-
   return (
     <motion.div
       key="analyzing"
@@ -32,10 +29,10 @@ export function AnalyzingPhase({ locale, hasBirthInfo }: AnalyzingPhaseProps) {
           <div className={styles.orbRing2}></div>
         </div>
         <h2 className={styles.analyzingTitle}>
-          {isKo ? '꿈을 해석하고 있어요' : 'Interpreting Your Dream'}
+          {locale === 'ko' ? '꿈을 해석하고 있어요' : 'Interpreting Your Dream'}
         </h2>
         <p className={styles.analyzingText}>
-          {isKo
+          {locale === 'ko'
             ? (hasBirthInfo
                 ? '생년월일 정보를 바탕으로 분석 중입니다...'
                 : '꿈의 상징과 의미를 분석하고 있습니다...')

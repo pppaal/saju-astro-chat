@@ -73,7 +73,7 @@ export default function CalendarMainView({
   const yearSummary = useMemo(() => {
     if (!data?.allDates) {return null;}
 
-    const result = { total: 0, grade0: 0, grade1: 0, grade2: 0, grade3: 0, grade4: 0 };
+    const result = { total: 0, grade0: 0, grade1: 0, grade2: 0, grade3: 0, grade4: 0, grade5: 0 };
     for (const d of data.allDates) {
       const dateYear = new Date(d.date).getFullYear();
       if (dateYear === year) {
@@ -82,7 +82,8 @@ export default function CalendarMainView({
         else if (d.grade === 1) {result.grade1++;}
         else if (d.grade === 2) {result.grade2++;}
         else if (d.grade === 3) {result.grade3++;}
-        else if (d.grade >= 4) {result.grade4++;}
+        else if (d.grade === 4) {result.grade4++;}
+        else if (d.grade === 5) {result.grade5++;}
       }
     }
     return result.total > 0 ? result : null;
@@ -178,12 +179,13 @@ export default function CalendarMainView({
   const getGradeLabel = (grade: number) => {
     const labels = {
       0: locale === "ko" ? "최고의 날" : "Best Day",
-      1: locale === "ko" ? "좋은 날" : "Good Day",
-      2: locale === "ko" ? "보통 날" : "Normal Day",
-      3: locale === "ko" ? "안좋은 날" : "Bad Day",
-      4: locale === "ko" ? "최악의 날" : "Worst Day",
+      1: locale === "ko" ? "아주 좋은 날" : "Very Good Day",
+      2: locale === "ko" ? "좋은 날" : "Good Day",
+      3: locale === "ko" ? "보통 날" : "Normal Day",
+      4: locale === "ko" ? "안좋은 날" : "Bad Day",
+      5: locale === "ko" ? "최악의 날" : "Worst Day",
     };
-    return labels[grade as keyof typeof labels] || labels[2];
+    return labels[grade as keyof typeof labels] || labels[3];
   };
 
   return (
@@ -217,40 +219,42 @@ export default function CalendarMainView({
         {/* Year Summary Badges */}
         {yearSummary && (
           <div className={styles.summaryBadges}>
-            <span className={styles.summaryBadge} title={locale === "ko" ? "최고의 날 (~5%)" : "Best Days (~5%)"}>
+            <span className={styles.summaryBadge} title={locale === "ko" ? "최고의 날 (0등급)" : "Best Days (grade 0)"}>
               <span className={styles.badgeEmoji}>🌟</span>
               <span className={styles.badgeLabel}>{locale === "ko" ? "최고" : "Best"}</span>
               <span className={styles.badgeCount}>
                 {locale === "ko" ? `${yearSummary.grade0}일` : `${yearSummary.grade0} days`}
               </span>
             </span>
-            <span className={styles.summaryBadge} title={locale === "ko" ? "좋은 날 (~15%)" : "Good Days (~15%)"}>
+            <span className={styles.summaryBadge} title={locale === "ko" ? "좋은 날 (1~2등급)" : "Good Days (grade 1-2)"}>
               <span className={styles.badgeEmoji}>✨</span>
               <span className={styles.badgeLabel}>{locale === "ko" ? "좋음" : "Good"}</span>
               <span className={styles.badgeCount}>
-                {locale === "ko" ? `${yearSummary.grade1}일` : `${yearSummary.grade1} days`}
+                {locale === "ko"
+                  ? `${yearSummary.grade1 + yearSummary.grade2}일`
+                  : `${yearSummary.grade1 + yearSummary.grade2} days`}
               </span>
             </span>
-            <span className={styles.summaryBadge} title={locale === "ko" ? "보통 날 (~55%)" : "Normal Days (~55%)"}>
+            <span className={styles.summaryBadge} title={locale === "ko" ? "보통 날 (3등급)" : "Normal Days (grade 3)"}>
               <span className={styles.badgeEmoji}>◆</span>
               <span className={styles.badgeLabel}>{locale === "ko" ? "보통" : "Normal"}</span>
-              <span className={styles.badgeCount}>
-                {locale === "ko" ? `${yearSummary.grade2}일` : `${yearSummary.grade2} days`}
-              </span>
-            </span>
-            <span className={`${styles.summaryBadge} ${styles.cautionBadge}`} title={locale === "ko" ? "안좋은 날 (~20%)" : "Bad Days (~20%)"}>
-              <span className={styles.badgeEmoji}>⚠️</span>
-              <span className={styles.badgeLabel}>{locale === "ko" ? "안좋음" : "Bad"}</span>
               <span className={styles.badgeCount}>
                 {locale === "ko" ? `${yearSummary.grade3}일` : `${yearSummary.grade3} days`}
               </span>
             </span>
-            {yearSummary.grade4 > 0 && (
-              <span className={`${styles.summaryBadge} ${styles.worstBadge}`} title={locale === "ko" ? "최악의 날 (~5%)" : "Worst Days (~5%)"}>
+            <span className={`${styles.summaryBadge} ${styles.cautionBadge}`} title={locale === "ko" ? "안좋은 날 (4등급)" : "Bad Days (grade 4)"}>
+              <span className={styles.badgeEmoji}>⚠️</span>
+              <span className={styles.badgeLabel}>{locale === "ko" ? "안좋음" : "Bad"}</span>
+              <span className={styles.badgeCount}>
+                {locale === "ko" ? `${yearSummary.grade4}일` : `${yearSummary.grade4} days`}
+              </span>
+            </span>
+            {yearSummary.grade5 > 0 && (
+              <span className={`${styles.summaryBadge} ${styles.worstBadge}`} title={locale === "ko" ? "최악의 날 (5등급)" : "Worst Days (grade 5)"}>
                 <span className={styles.badgeEmoji}>☠️</span>
                 <span className={styles.badgeLabel}>{locale === "ko" ? "최악" : "Worst"}</span>
                 <span className={styles.badgeCount}>
-                  {locale === "ko" ? `${yearSummary.grade4}일` : `${yearSummary.grade4} days`}
+                  {locale === "ko" ? `${yearSummary.grade5}일` : `${yearSummary.grade5} days`}
                 </span>
               </span>
             )}

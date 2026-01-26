@@ -206,6 +206,10 @@ export default function MainPage() {
   const [servicePage, setServicePage] = useState(0);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
+  const servicePageSize = 7;
+  const servicePageCount = Math.max(1, Math.ceil(SERVICE_OPTIONS.length / servicePageSize));
+  const maxServicePage = servicePageCount - 1;
+
   const metricsToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN;
 
   // Memoized placeholders for typing animation
@@ -220,11 +224,20 @@ export default function MainPage() {
   useTypingAnimation(placeholders, setTypingPlaceholder);
   useScrollAnimation(`.${styles.featureSection}`, styles);
   const showScrollTop = useScrollVisibility(500);
-  const closeServiceSelector = useCallback(() => setShowServiceSelector(false), []);
+  const closeServiceSelector = useCallback(() => {
+    setShowServiceSelector(false);
+    setServicePage(0);
+  }, []);
   useClickOutside(searchContainerRef, closeServiceSelector);
 
   // Visitor stats
   const { todayVisitors, totalVisitors, totalMembers, error: visitorError } = useVisitorStats(metricsToken);
+
+  useEffect(() => {
+    if (servicePage > maxServicePage) {
+      setServicePage(maxServicePage);
+    }
+  }, [servicePage, maxServicePage]);
 
   // Handle question submission - navigate to selected service with the question
   const handleQuestionSubmit = useCallback((e: React.FormEvent) => {
@@ -293,7 +306,7 @@ export default function MainPage() {
                 {showServiceSelector && (
                   <div className={styles.serviceDropdown}>
                     <div className={styles.serviceDropdownGrid}>
-                      {SERVICE_OPTIONS.slice(servicePage * 7, (servicePage + 1) * 7).map((service) => (
+                      {SERVICE_OPTIONS.slice(servicePage * servicePageSize, (servicePage + 1) * servicePageSize).map((service) => (
                         <button
                           key={service.key}
                           type="button"
@@ -307,30 +320,36 @@ export default function MainPage() {
                     </div>
 
                     {/* Page navigation */}
-                    <div className={styles.serviceDropdownNav}>
-                      <button
-                        type="button"
-                        className={`${styles.serviceDropdownNavBtn} ${servicePage === 0 ? styles.disabled : ''}`}
-                        onClick={() => setServicePage(0)}
-                        disabled={servicePage === 0}
-                        aria-label="Previous page"
-                      >
-                        ‹
-                      </button>
-                      <div className={styles.serviceDropdownDots}>
-                        <span className={`${styles.serviceDropdownDot} ${servicePage === 0 ? styles.active : ''}`} />
-                        <span className={`${styles.serviceDropdownDot} ${servicePage === 1 ? styles.active : ''}`} />
+                    {servicePageCount > 1 && (
+                      <div className={styles.serviceDropdownNav}>
+                        <button
+                          type="button"
+                          className={`${styles.serviceDropdownNavBtn} ${servicePage === 0 ? styles.disabled : ''}`}
+                          onClick={() => setServicePage((prev) => Math.max(0, prev - 1))}
+                          disabled={servicePage === 0}
+                          aria-label="Previous page"
+                        >
+                          ‹
+                        </button>
+                        <div className={styles.serviceDropdownDots}>
+                          {Array.from({ length: servicePageCount }).map((_, idx) => (
+                            <span
+                              key={`service-dot-${idx}`}
+                              className={`${styles.serviceDropdownDot} ${servicePage === idx ? styles.active : ''}`}
+                            />
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          className={`${styles.serviceDropdownNavBtn} ${servicePage === maxServicePage ? styles.disabled : ''}`}
+                          onClick={() => setServicePage((prev) => Math.min(maxServicePage, prev + 1))}
+                          disabled={servicePage === maxServicePage}
+                          aria-label="Next page"
+                        >
+                          ›
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        className={`${styles.serviceDropdownNavBtn} ${servicePage === 1 ? styles.disabled : ''}`}
-                        onClick={() => setServicePage(1)}
-                        disabled={servicePage === 1}
-                        aria-label="Next page"
-                      >
-                        ›
-                      </button>
-                    </div>
+                    )}
                   </div>
                 )}
 

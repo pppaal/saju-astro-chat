@@ -130,11 +130,6 @@ This change has been applied to:
 - ✅ `src/i18n/README.md` - Documentation
 - ✅ `scripts/split-i18n.py` - Split automation script
 
-### Backup Files
-- `src/i18n/locales/ko.json.backup`
-- `src/i18n/locales/en.json.backup`
-- `src/i18n/I18nProvider.tsx.backup`
-
 ## Benefits
 
 1. **Smaller Files**: ~10-15KB per file vs 100KB+ monolithic
@@ -176,15 +171,10 @@ After migration, verify:
 
 ## Rollback Plan
 
-If issues arise, rollback is simple:
+If issues arise, rollback using git:
 
 ```bash
-cd src/i18n
-mv I18nProvider.tsx.backup I18nProvider.tsx
-
-cd locales
-mv ko.json.backup ko.json
-mv en.json.backup en.json
+git restore src/i18n/I18nProvider.tsx src/i18n/locales/ko.json src/i18n/locales/en.json
 ```
 
 Then rebuild: `npm run build`

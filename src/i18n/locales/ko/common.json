@@ -1,4 +1,27 @@
 {
+  "common": {
+    "loading": "로딩 중...",
+    "loadMyProfile": "내 프로필 불러오기",
+    "profileLoaded": "프로필 불러오기 완료!",
+    "change": "변경",
+    "copy": "복사",
+    "copied": "복사됨!",
+    "birthDate": "생년월일",
+    "birthTime": "태어난 시간",
+    "birthCity": "태어난 도시",
+    "birthTimeHint": "모르시면 12:00(정오)로 자동 설정됩니다",
+    "birthCityPlaceholder": "예: 서울, 부산, Seoul",
+    "birthCityHint": "더 정확한 분석을 위해 입력해주세요",
+    "gender": "성별",
+    "male": "남성",
+    "female": "여성",
+    "optional": "선택",
+    "continue": "다음으로",
+    "skipBirthInfo": "생년월일 없이 진행",
+    "skipBirthInfoHint": "생년월일 없이도 기본적인 해석은 가능합니다",
+    "loginToSave": "로그인하면 정보가 저장되어 더 편리하게 이용할 수 있어요",
+    "login": "로그인하기"
+  },
   "app": {
     "title": "destinypal",
     "subtitle": "AI가 당신의 운명 지도를 펼칩니다.",

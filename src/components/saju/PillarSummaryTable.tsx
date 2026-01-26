@@ -4,6 +4,13 @@
 import React from 'react';
 import type { PillarView } from '@/adapters/map-12';
 
+// Cell component defined outside to avoid recreation on each render
+const Cell = ({ children }: { children: React.ReactNode }) => (
+  <div className="px-3 py-2.5 border-l border-slate-700 whitespace-pre-wrap leading-relaxed text-gray-200">
+    {children || '—'}
+  </div>
+);
+
 export default function PillarSummaryTable({
   data,
   timeLuckyOverride,
@@ -65,12 +72,6 @@ export default function PillarSummaryTable({
     const lucky = (data)?.[k]?.lucky as string[] | undefined;
     return (lucky || []).map((s) => (s ?? '').toString().trim()).filter(Boolean).join('\n');
   };
-
-  const Cell = ({ children }: { children: React.ReactNode }) => (
-    <div className="px-3 py-2.5 border-l border-slate-700 whitespace-pre-wrap leading-relaxed text-gray-200">
-      {children || '—'}
-    </div>
-  );
 
   return (
     <div

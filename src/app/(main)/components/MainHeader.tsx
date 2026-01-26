@@ -18,11 +18,20 @@ export default function MainHeader() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [servicePage, setServicePage] = useState(0);
   const navItemRef = useRef<HTMLDivElement>(null);
+  const pageSize = 7;
+  const pageCount = Math.max(1, Math.ceil(SERVICE_LINKS.length / pageSize));
+  const maxPage = pageCount - 1;
 
   const closeMenu = useCallback(() => {
     setActiveMenu(null);
     setServicePage(0); // Reset page when closing
   }, []);
+
+  useEffect(() => {
+    if (servicePage > maxPage) {
+      setServicePage(maxPage);
+    }
+  }, [servicePage, maxPage]);
 
   // Close dropdown when clicking outside (for mobile)
   useEffect(() => {
@@ -76,7 +85,7 @@ export default function MainHeader() {
                 <span className={styles.dropdownSubtitle}>{t("services.subtitle")}</span>
               </div>
               <Grid className={styles.dropdownGrid} columns={3}>
-                {SERVICE_LINKS.slice(servicePage * 7, (servicePage + 1) * 7).map((s) => {
+                {SERVICE_LINKS.slice(servicePage * pageSize, (servicePage + 1) * pageSize).map((s) => {
                   const content = (
                     <div className={styles.dropItemLeft}>
                       <span className={styles.dropItemIcon}>{s.icon}</span>
@@ -103,30 +112,36 @@ export default function MainHeader() {
               </Grid>
 
               {/* Page Navigation */}
-              <div className={styles.dropdownPagination}>
-                <button
-                  type="button"
-                  className={`${styles.dropdownPageBtn} ${servicePage === 0 ? styles.disabled : ''}`}
-                  onClick={() => setServicePage(0)}
-                  disabled={servicePage === 0}
-                  aria-label="Previous page"
-                >
-                  ‹
-                </button>
-                <div className={styles.dropdownPageDots}>
-                  <span className={`${styles.dropdownPageDot} ${servicePage === 0 ? styles.active : ''}`} />
-                  <span className={`${styles.dropdownPageDot} ${servicePage === 1 ? styles.active : ''}`} />
+              {pageCount > 1 && (
+                <div className={styles.dropdownPagination}>
+                  <button
+                    type="button"
+                    className={`${styles.dropdownPageBtn} ${servicePage === 0 ? styles.disabled : ''}`}
+                    onClick={() => setServicePage((prev) => Math.max(0, prev - 1))}
+                    disabled={servicePage === 0}
+                    aria-label="Previous page"
+                  >
+                    ‹
+                  </button>
+                  <div className={styles.dropdownPageDots}>
+                    {Array.from({ length: pageCount }).map((_, idx) => (
+                      <span
+                        key={`page-dot-${idx}`}
+                        className={`${styles.dropdownPageDot} ${servicePage === idx ? styles.active : ''}`}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className={`${styles.dropdownPageBtn} ${servicePage === maxPage ? styles.disabled : ''}`}
+                    onClick={() => setServicePage((prev) => Math.min(maxPage, prev + 1))}
+                    disabled={servicePage === maxPage}
+                    aria-label="Next page"
+                  >
+                    ›
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  className={`${styles.dropdownPageBtn} ${servicePage === 1 ? styles.disabled : ''}`}
-                  onClick={() => setServicePage(1)}
-                  disabled={servicePage === 1}
-                  aria-label="Next page"
-                >
-                  ›
-                </button>
-              </div>
+              )}
             </div>
           )}
         </div>

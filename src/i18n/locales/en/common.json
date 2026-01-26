@@ -1,4 +1,27 @@
 {
+  "common": {
+    "loading": "Loading...",
+    "loadMyProfile": "Load My Profile",
+    "profileLoaded": "Profile loaded!",
+    "change": "Change",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "birthDate": "Birth Date",
+    "birthTime": "Birth Time",
+    "birthCity": "Birth City",
+    "birthTimeHint": "Defaults to 12:00 PM if unknown",
+    "birthCityPlaceholder": "e.g., Seoul, New York",
+    "birthCityHint": "For more accurate analysis",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "optional": "Optional",
+    "continue": "Continue",
+    "skipBirthInfo": "Skip for now",
+    "skipBirthInfoHint": "You can continue without birth info, but accuracy may drop.",
+    "loginToSave": "Log in to save your info for a better experience",
+    "login": "Log in"
+  },
   "app": {
     "title": "destinypal",
     "subtitle": "AI unfolds your destiny map.",

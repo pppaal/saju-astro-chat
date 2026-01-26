@@ -136,7 +136,7 @@ export function BirthInputPhase({
             <DateTimePicker
               value={birthDate}
               onChange={setBirthDate}
-              label={isKo ? '생년월일' : 'Birth Date'}
+              label={t('common.birthDate')}
               required
               locale={locale}
             />
@@ -145,7 +145,7 @@ export function BirthInputPhase({
           {/* Gender */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>
-              {isKo ? '성별' : 'Gender'}
+              {t('common.gender')}
               <span className={styles.required}>*</span>
             </label>
             <div className={styles.genderButtons}>
@@ -155,7 +155,7 @@ export function BirthInputPhase({
                 onClick={() => setGender('M')}
               >
                 <span>👨</span>
-                <span>{isKo ? '남성' : 'Male'}</span>
+                <span>{t('common.male')}</span>
               </button>
               <button
                 type="button"
@@ -163,7 +163,7 @@ export function BirthInputPhase({
                 onClick={() => setGender('F')}
               >
                 <span>👩</span>
-                <span>{isKo ? '여성' : 'Female'}</span>
+                <span>{t('common.female')}</span>
               </button>
             </div>
           </div>
@@ -176,7 +176,7 @@ export function BirthInputPhase({
               onClick={() => setShowTimeInput(!showTimeInput)}
             >
               <span className={styles.toggleIcon}>{showTimeInput ? '▼' : '▶'}</span>
-              <span>{isKo ? '태어난 시간 입력 (선택)' : 'Birth Time (Optional)'}</span>
+              <span>{t('common.birthTime')} ({t('common.optional')})</span>
             </button>
 
             {showTimeInput && (
@@ -188,9 +188,7 @@ export function BirthInputPhase({
                   locale={locale}
                 />
                 <p className={styles.timeHint}>
-                  {isKo
-                    ? '모르시면 12:00(정오)로 자동 설정됩니다'
-                    : 'Defaults to 12:00 PM if unknown'}
+                  {t('common.birthTimeHint')}
                 </p>
               </div>
             )}
@@ -204,7 +202,7 @@ export function BirthInputPhase({
               onClick={() => setShowCityInput(!showCityInput)}
             >
               <span className={styles.toggleIcon}>{showCityInput ? '▼' : '▶'}</span>
-              <span>{isKo ? '태어난 도시 입력 (선택)' : 'Birth City (Optional)'}</span>
+              <span>{t('common.birthCity')} ({t('common.optional')})</span>
             </button>
 
             {showCityInput && (
@@ -214,12 +212,10 @@ export function BirthInputPhase({
                   value={birthCity}
                   onChange={(e) => setBirthCity(e.target.value)}
                   className={styles.input}
-                  placeholder={isKo ? '예: 서울, 부산, Seoul' : 'e.g., Seoul, New York'}
+                  placeholder={t('common.birthCityPlaceholder')}
                 />
                 <p className={styles.timeHint}>
-                  {isKo
-                    ? '더 정확한 분석을 위해 입력해주세요'
-                    : 'For more accurate analysis'}
+                  {t('common.birthCityHint')}
                 </p>
               </div>
             )}
@@ -232,7 +228,7 @@ export function BirthInputPhase({
             disabled={!birthDate}
           >
             <span>✨</span>
-            <span>{isKo ? '다음으로' : 'Continue'}</span>
+            <span>{t('common.continue')}</span>
           </button>
         </form>
 
@@ -242,24 +238,20 @@ export function BirthInputPhase({
             className={styles.skipBirthButton}
             onClick={onSkip}
           >
-            {isKo ? '생년월일 없이 진행' : 'Skip for now'}
+            {t('common.skipBirthInfo')}
           </button>
           <p className={styles.skipBirthHint}>
-            {isKo
-              ? '생년월일 없이도 기본적인 해석은 가능합니다'
-              : 'You can continue without birth info, but accuracy may drop.'}
+            {t('common.skipBirthInfoHint')}
           </p>
         </div>
 
         {status === 'unauthenticated' && (
           <div className={styles.loginHint}>
             <p>
-              {isKo
-                ? '로그인하면 정보가 저장되어 더 편리하게 이용할 수 있어요'
-                : 'Log in to save your info for a better experience'}
+              {t('common.loginToSave')}
             </p>
             <a href={signInUrl} className={styles.loginLink}>
-              {isKo ? '로그인하기' : 'Log in'}
+              {t('common.login')}
             </a>
           </div>
         )}

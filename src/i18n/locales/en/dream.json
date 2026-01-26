@@ -52,6 +52,26 @@
       "delete": "Delete",
       "confirmDelete": "Delete this dream?",
       "retry": "Retry"
+    },
+    "tabs": {
+      "reading": "Dream Interpretation",
+      "readingDesc": "Discover the hidden meanings in your dreams",
+      "about": "About Dreams",
+      "aboutDesc": "Learn about dream interpretation and symbolism"
+    },
+    "intro": {
+      "title": "What did you dream?",
+      "text": "Share your dream and discover its hidden meanings through ancient wisdom and modern psychology. Our AI combines Eastern dream interpretation with Western symbolism for deep insights."
+    },
+    "about": {
+      "whatIsTitle": "What is Dream Interpretation?",
+      "whatIsText": "Dream interpretation is the process of discovering hidden meanings in dreams. Throughout history, cultures worldwide have believed dreams carry messages from the subconscious mind or spiritual realms.",
+      "easternTitle": "Eastern Dream Wisdom",
+      "easternText": "In Korean and Chinese traditions, dreams are seen as omens and messages. Certain symbols like dragons, water, or ancestors carry specific meanings related to fortune, relationships, and life paths.",
+      "psychologyTitle": "Dream Psychology",
+      "psychologyText": "Modern psychology views dreams as windows to the unconscious mind. Carl Jung believed dreams reveal archetypes and shadow aspects of our psyche, helping us understand ourselves more deeply.",
+      "symbolsTitle": "Common Dream Symbols",
+      "symbolsText": "Flying often represents freedom and ambition. Water reflects emotions and the unconscious. Teeth falling out may indicate anxiety about appearance or communication. Each symbol gains meaning from your personal context."
     }
   }
 }

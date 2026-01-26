@@ -30,6 +30,31 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
 
   const content = isKo ? post.contentKo : post.content;
 
+  const isSafeUri = (uri: string) => {
+    const trimmed = uri.trim();
+    if (!trimmed) return false;
+    if (trimmed.startsWith("#") || trimmed.startsWith("/") || trimmed.startsWith("./") || trimmed.startsWith("../")) {
+      return true;
+    }
+    try {
+      const parsed = new URL(trimmed, "https://example.com");
+      return ["http:", "https:", "mailto:", "tel:"].includes(parsed.protocol);
+    } catch {
+      return false;
+    }
+  };
+
+  const transformLinkUri = (uri: string) => (isSafeUri(uri) ? uri : "");
+  const transformImageUri = (uri: string) => {
+    if (!uri) return "";
+    try {
+      const parsed = new URL(uri, "https://example.com");
+      return ["http:", "https:", "data:"].includes(parsed.protocol) ? uri : "";
+    } catch {
+      return "";
+    }
+  };
+
   // Find related posts (same category, excluding current)
   const relatedPosts = blogPosts
     .filter((p) => p.category === post.category && p.slug !== post.slug)
@@ -68,8 +93,10 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
           <div className={styles.markdown}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
+              transformLinkUri={transformLinkUri}
+              transformImageUri={transformImageUri}
               components={{
-                a: ({ node, ...props }) => (
+                a: ({ node: _node, ...props }) => (
                   <a {...props} target="_blank" rel="noopener noreferrer" />
                 ),
               }}
