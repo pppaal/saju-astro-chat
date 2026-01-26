@@ -7,7 +7,10 @@
 import {
   analyzePastDate,
   generatePastAnalysisPromptContext,
+  analyzeMultiYearTrend,
+  findOptimalEventTiming,
   type LifePredictionInput,
+  type EventType,
 } from '@/lib/prediction/lifePredictionEngine';
 import { extractBirthYear, extractBirthMonth, extractBirthDay } from '@/lib/prediction/utils';
 import { logger } from '@/lib/logger';
