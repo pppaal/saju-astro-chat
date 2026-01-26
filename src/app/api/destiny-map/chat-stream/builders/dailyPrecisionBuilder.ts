@@ -109,7 +109,7 @@ export function buildDailyPrecisionSection(
     const typedShinsalResult = shinsalResult as ShinsalAnalysis;
     if (typedShinsalResult.active?.length > 0) {
       const shinsalList = typedShinsalResult.active
-        .map((s: ShinsalHit) => `${s.name}: ${s.effect}`)
+        .map((s: ShinsalHit) => `${s.name}: ${s.description}`)
         .join(', ');
       enhancedParts.push(
         lang === 'ko'
