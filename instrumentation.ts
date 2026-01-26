@@ -7,6 +7,8 @@
  * Docs: https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
  */
 
+import { logger } from '@/lib/logger';
+
 export async function register() {
   // Only run on server
   if (process.env.NEXT_RUNTIME === 'nodejs') {
@@ -19,11 +21,11 @@ export async function register() {
       await import('./sentry.server.config');
     }
 
-    console.log('[Instrumentation] Server instrumentation loaded');
+    logger.info('[Instrumentation] Server instrumentation loaded');
   }
 
   // Edge runtime instrumentation
   if (process.env.NEXT_RUNTIME === 'edge') {
-    console.log('[Instrumentation] Edge runtime instrumentation loaded');
+    logger.info('[Instrumentation] Edge runtime instrumentation loaded');
   }
 }

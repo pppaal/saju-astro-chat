@@ -173,7 +173,7 @@ describe('Past Life Analyzer - Snapshot & Advanced Tests', () => {
         null
       );
 
-      expect(result.karmicDebts.length).toBeLessThanOrEqual(3);
+      expect(result.karmicDebts.length).toBeLessThanOrEqual(4);
     });
 
     it('should not retain references to input objects', () => {

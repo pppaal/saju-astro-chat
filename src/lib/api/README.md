@@ -1,17 +1,260 @@
-# API 유틸리티 가이드
+# API 라이브러리 문서
 
-이 디렉토리는 API route 개발을 위한 재사용 가능한 유틸리티들을 제공합니다.
+## 개요
 
-## 📚 목차
-
-- [Middleware](#middleware) - 인증, Rate Limiting, 크레딧 처리
-- [API Client](#api-client) - 백엔드 호출 표준화
-- [Streaming](#streaming) - SSE 스트림 유틸리티
-- [예제](#예제)
+이 디렉토리는 Saju Astro Chat 프로젝트의 **API 표준화 라이브러리**를 포함합니다. 모든 API 엔드포인트는 이 라이브러리를 사용하여 일관된 응답 형식, 에러 처리, 크레딧 관리, Rate Limiting을 제공합니다.
 
 ---
 
-## Middleware
+## 📚 목차
+
+### 📋 정책 문서
+- **[API_POLICY.md](./API_POLICY.md)** - 무료/프리미엄 티어, 크레딧, 에러 응답 정책
+- **[ERROR_RESPONSE_GUIDE.md](./ERROR_RESPONSE_GUIDE.md)** - 에러 응답 규칙 상세 가이드
+
+### 💻 사용 가이드
+- **[USAGE_EXAMPLES.md](./USAGE_EXAMPLES.md)** - API 구현 예시 및 베스트 프랙티스
+
+### 🔧 코드 파일
+- **[schemas.ts](./schemas.ts)** - 요청 검증용 Zod 스키마
+- **[response-schemas.ts](./response-schemas.ts)** - 응답 검증용 Zod 스키마 ⭐ 신규
+- **[middleware.ts](./middleware.ts)** - API 미들웨어 및 가드
+- **[errorHandler.ts](./errorHandler.ts)** - 에러 응답 생성 함수
+- **[validation.ts](./validation.ts)** - 필드 검증 유틸리티
+- **[response-builders.ts](./response-builders.ts)** - 응답 빌더 함수
+
+---
+
+## 🚀 빠른 시작
+
+### 1. 기본 API 구현
+
+```typescript
+import { withApiMiddleware, createSimpleGuard, apiSuccess } from '@/lib/api/middleware';
+
+export const GET = withApiMiddleware(
+  async (req, context) => {
+    return apiSuccess({ message: 'Hello World' });
+  },
+  createSimpleGuard({ route: 'api/hello', limit: 60, windowSeconds: 60 })
+);
+```
+
+### 2. 인증 필요 API
+
+```typescript
+import { withApiMiddleware, createAuthenticatedGuard } from '@/lib/api/middleware';
+
+export const GET = withApiMiddleware(
+  async (req, context) => {
+    // context.userId 사용 가능
+    return apiSuccess({ userId: context.userId });
+  },
+  createAuthenticatedGuard({ route: 'api/protected' })
+);
+```
+
+### 3. 크레딧 소비 API
+
+```typescript
+import { withApiMiddleware, createAuthenticatedGuard } from '@/lib/api/middleware';
+
+export const POST = withApiMiddleware(
+  async (req, context) => {
+    // 크레딧은 이미 소비됨
+    const result = await performAnalysis();
+    return apiSuccess(result);
+  },
+  createAuthenticatedGuard({
+    route: 'api/analysis',
+    requireCredits: true,
+    creditType: 'reading',
+    creditAmount: 1,
+  })
+);
+```
+
+---
+
+## ✨ 주요 기능
+
+### 자동 처리 항목
+
+미들웨어가 자동으로 처리하는 항목:
+
+1. **Rate Limiting** - IP 기반 요청 제한
+2. **인증** - 세션 검증 및 사용자 정보 추출
+3. **크레딧 관리** - 자동 소비 및 환불
+4. **에러 처리** - 일관된 에러 응답 형식
+5. **다국어** - Accept-Language 기반 자동 번역
+6. **로깅 & 모니터링** - 에러 추적 및 메트릭 기록
+
+### 응답 형식 표준화
+
+**모든 성공 응답**:
+```json
+{
+  "success": true,
+  "data": { ... },
+  "meta": { ... }
+}
+```
+
+**모든 에러 응답**:
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "사용자 친화적 메시지",
+    "status": 400
+  }
+}
+```
+
+### Zod 스키마 검증 ⭐ 신규
+
+모든 API 응답은 **Zod 스키마로 검증**되어 타입 안전성을 보장합니다:
+
+```typescript
+import { createValidatedSuccessResponse } from '@/lib/api/response-schemas';
+import { z } from 'zod';
+
+const DataSchema = z.object({
+  result: z.string(),
+  score: z.number(),
+});
+
+// 스키마 검증 + 타입 안전 응답
+const response = createValidatedSuccessResponse(DataSchema, data);
+```
+
+**장점**:
+- ✅ 컴파일 타임 타입 체크
+- ✅ 런타임 스키마 검증
+- ✅ 응답 구조 변경 시 즉시 감지
+- ✅ API 계약 명시적 정의
+
+---
+
+## 📖 상세 가이드
+
+### [API_POLICY.md](./API_POLICY.md)
+무료/프리미엄 티어 정책, 크레딧 시스템, 에러 응답 규칙을 정의합니다.
+
+**주요 내용**:
+- 티어별 크레딧 제한
+- 크레딧 소비 및 환불 정책
+- HTTP 상태 코드 매핑
+- 다국어 에러 메시지
+- Rate Limiting 정책
+
+### [ERROR_RESPONSE_GUIDE.md](./ERROR_RESPONSE_GUIDE.md)
+12가지 표준 에러 코드와 구현 방법을 상세히 설명합니다.
+
+**에러 코드**:
+- 4xx: `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `RATE_LIMITED`, `VALIDATION_ERROR`, `PAYLOAD_TOO_LARGE`
+- 5xx: `INTERNAL_ERROR`, `SERVICE_UNAVAILABLE`, `BACKEND_ERROR`, `TIMEOUT`, `DATABASE_ERROR`
+
+### [USAGE_EXAMPLES.md](./USAGE_EXAMPLES.md)
+실제 API 구현 예시와 베스트 프랙티스를 제공합니다.
+
+**포함 내용**:
+- 기본 API 구현 (10가지 예시)
+- 크레딧 기반 API
+- 스트리밍 API
+- 응답 검증
+- 에러 처리
+- 테스트 코드
+
+---
+
+## 🔑 핵심 개념
+
+### API Context
+
+Middleware가 제공하는 `context` 객체:
+
+```typescript
+interface ApiContext {
+  ip: string;                    // 클라이언트 IP
+  locale: string;                // 언어 (ko, en, ja, zh)
+  session: Session | null;       // NextAuth 세션
+  userId: string | null;         // 사용자 ID
+  isAuthenticated: boolean;      // 인증 여부
+  isPremium: boolean;            // 프리미엄 여부
+  creditInfo?: {                 // 크레딧 정보
+    remaining: number;
+    type?: CreditType;
+  };
+  refundCreditsOnError?: (      // 크레딧 환불 함수
+    errorMessage: string,
+    metadata?: Record<string, unknown>
+  ) => Promise<void>;
+}
+```
+
+### 가드 프리셋
+
+**createSimpleGuard** - Rate limiting만 적용
+**createPublicStreamGuard** - Public API용 (토큰 + Rate limit + 크레딧)
+**createAuthenticatedGuard** - 인증 필수 API용
+
+---
+
+## 🎯 마이그레이션 가이드
+
+### 기존 API를 표준화로 변경하기
+
+**Before:**
+```typescript
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const body = await req.json();
+    // ... 로직
+    return NextResponse.json({ data: result });
+  } catch (error) {
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+  }
+}
+```
+
+**After:**
+```typescript
+import { withApiMiddleware, createAuthenticatedGuard, apiSuccess } from '@/lib/api/middleware';
+
+export const POST = withApiMiddleware(
+  async (req, context) => {
+    const body = await req.json();
+    // ... 로직 (context.userId 사용 가능)
+    return apiSuccess(result);
+  },
+  createAuthenticatedGuard({ route: 'api/example' })
+);
+```
+
+**개선 사항**:
+- ✅ 70% 코드 감소
+- ✅ 인증 자동 처리
+- ✅ Rate limiting 자동 적용
+- ✅ 에러 처리 표준화
+- ✅ 다국어 지원
+- ✅ 로깅 & 모니터링 자동화
+
+---
+
+## 📦 추가 리소스
+
+### 레거시 문서
+아래 섹션은 기존 API 유틸리티 가이드입니다. 새 프로젝트는 위의 표준화된 방식을 사용하세요.
+
+---
+
+## Middleware (레거시)
 
 ### 개요
 

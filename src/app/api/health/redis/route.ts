@@ -3,7 +3,6 @@
  * Monitors Redis connection status and cache health
  */
 
-import { NextRequest } from 'next/server';
 import { withApiMiddleware, apiSuccess } from '@/lib/api/middleware';
 import { healthCheck as sessionHealthCheck } from '@/lib/cache/redis-session';
 import { rateLimitHealthCheck } from '@/lib/cache/redis-rate-limit';

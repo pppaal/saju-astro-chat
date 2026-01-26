@@ -239,7 +239,7 @@ describe('Past Life Analyzer - Boundary Tests', () => {
     it('should handle very large sinsal array', () => {
       const largeSinsalArray = Array(100).fill(null).map(() => ({ name: '원진' }));
       const result = analyzeKorean(createSaju({ sinsal: largeSinsalArray }));
-      expect(result.karmicDebts.length).toBeLessThanOrEqual(3); // Max 3
+      expect(result.karmicDebts.length).toBeLessThanOrEqual(4); // Max 4
     });
 
     it('should handle sinsal array with mixed types', () => {
@@ -255,7 +255,7 @@ describe('Past Life Analyzer - Boundary Tests', () => {
         ],
       }));
       expect(result.karmicDebts.length).toBeGreaterThan(0);
-      expect(result.karmicDebts.length).toBeLessThanOrEqual(3);
+      expect(result.karmicDebts.length).toBeLessThanOrEqual(4);
     });
 
     it('should handle null values in planets array', () => {

@@ -16,8 +16,6 @@ export const runtime = "nodejs";
 export const maxDuration = 120;
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2025-10-29.clover";
 
-type BackendReply = { fusion_layer?: string; report?: string };
-
 const ALLOWED_LANG = new Set(["ko", "en"]);
 const ALLOWED_ROLE = new Set(["system", "user", "assistant"]);
 const MAX_THEME = 40;

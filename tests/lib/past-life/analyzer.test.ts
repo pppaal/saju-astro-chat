@@ -17,7 +17,7 @@ const KARMA_SCORE = {
   SATURN_BONUS: 5,
   DAY_MASTER_BONUS: 5,
   KARMIC_DEBT_BONUS: 3,
-  MAX_KARMIC_DEBTS: 3,
+  MAX_KARMIC_DEBTS: 4,
   EXPECTED_HIGH_SCORE: 80,
 } as const;
 
@@ -365,7 +365,7 @@ const expectSoulPatternComplete = (soulPattern: any) => {
   expect(soulPattern.title).toBeTruthy();
   expect(soulPattern.description).toBeTruthy();
   expect(soulPattern.traits).toBeInstanceOf(Array);
-  expect(soulPattern.traits.length).toBe(3);
+  expect(soulPattern.traits.length).toBe(5);
 };
 
 const expectPastLifeComplete = (pastLife: any, shouldHaveEra = true) => {
@@ -1007,10 +1007,10 @@ describe('Past Life Analyzer', () => {
     });
 
     describe('Soul Pattern Traits Coverage', () => {
-      it('should return 3 traits for each soul pattern', () => {
+      it('should return 5 traits for each soul pattern', () => {
         GEOKGUK_TYPES.forEach((geokguk) => {
           const result = analyzeKorean(createSajuWithGeokguk(geokguk));
-          expect(result.soulPattern.traits.length).toBe(3);
+          expect(result.soulPattern.traits.length).toBe(5);
         });
       });
     });
@@ -1080,7 +1080,7 @@ describe('Past Life Analyzer', () => {
           ])
         );
 
-        // Each unique sinsal type creates a karmic debt, limited to 3 total
+        // Each unique sinsal type creates a karmic debt, limited to 4 total
         expect(result.karmicDebts.length).toBeLessThanOrEqual(KARMA_SCORE.MAX_KARMIC_DEBTS);
       });
     });

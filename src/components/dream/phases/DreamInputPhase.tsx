@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { useI18n } from '@/i18n/I18nProvider';
 import { MessageBox } from '../MessageBox';
 import type { UserProfile, GuestBirthInfo } from '@/lib/dream/types';
 import styles from './DreamInputPhase.module.css';
@@ -33,7 +32,7 @@ export function DreamInputPhase({
   onChangeBirthInfo,
   onSubmit,
 }: DreamInputPhaseProps) {
-  const { t } = useI18n();
+  const isKo = locale === 'ko';
 
   return (
     <motion.div
@@ -49,10 +48,12 @@ export function DreamInputPhase({
           <span className={styles.icon}>🌙</span>
         </div>
         <h1 className={styles.pageTitle}>
-          {t('dream.title')}
+          {isKo ? '꿈 해몽' : 'Dream Interpretation'}
         </h1>
         <p className={styles.pageSubtitle}>
-          {t('dream.subtitle')}
+          {isKo
+            ? '어젯밤 꾼 꿈을 알려주세요'
+            : 'Tell us about your dream'}
         </p>
       </div>
 
@@ -65,7 +66,7 @@ export function DreamInputPhase({
             {(userProfile?.gender || guestBirthInfo?.gender) === 'M' ? ' 👨' : ' 👩'}
           </span>
           <button className={styles.changeBirthBtn} onClick={onChangeBirthInfo}>
-            {t('common.change')}
+            {isKo ? '변경' : 'Change'}
           </button>
         </div>
       )}
@@ -81,10 +82,12 @@ export function DreamInputPhase({
           <span className={styles.dreamInputIcon}>✍️</span>
           <div>
             <h3 className={styles.dreamInputTitle}>
-              {t('dream.labelDream')}
+              {isKo ? '꿈 내용을 적어주세요' : 'Describe Your Dream'}
             </h3>
             <p className={styles.dreamInputHint}>
-              {t('dream.hintDream')}
+              {isKo
+                ? '자세할수록 더 정확한 해석이 가능합니다'
+                : 'More details lead to better interpretation'}
             </p>
           </div>
         </div>
@@ -94,7 +97,9 @@ export function DreamInputPhase({
             className={styles.dreamTextarea}
             value={dreamText}
             onChange={(e) => setDreamText(e.target.value)}
-            placeholder={t('dream.placeholderDream')}
+            placeholder={isKo
+              ? '예: 높은 곳에서 떨어지는 꿈을 꿨어요. 처음엔 무서웠는데 나중엔 하늘을 날고 있었어요...'
+              : 'Example: I dreamed of falling from a high place. It was scary at first, but then I was flying...'}
             rows={6}
             maxLength={1000}
           />
@@ -113,12 +118,12 @@ export function DreamInputPhase({
           {isLoading ? (
             <>
               <div className={styles.buttonSpinner} />
-              <span>{t('dream.buttonAnalyzing')}</span>
+              <span>{isKo ? '분석 중...' : 'Analyzing...'}</span>
             </>
           ) : (
             <>
               <span>🔮</span>
-              <span>{t('dream.buttonAnalyze')}</span>
+              <span>{isKo ? 'AI 해석 받기' : 'Get AI Interpretation'}</span>
             </>
           )}
         </button>
@@ -126,11 +131,11 @@ export function DreamInputPhase({
 
       {/* Quick Tips */}
       <div className={styles.quickTips}>
-        <h4>💡 {locale === 'ko' ? '작성 팁' : 'Writing Tips'}</h4>
+        <h4>{isKo ? '💡 작성 팁' : '💡 Writing Tips'}</h4>
         <ul>
-          <li>{locale === 'ko' ? '등장인물이나 장소를 구체적으로' : 'Be specific about people and places'}</li>
-          <li>{locale === 'ko' ? '느꼈던 감정도 함께 적어주세요' : 'Include emotions you felt'}</li>
-          <li>{locale === 'ko' ? '반복되는 꿈이면 그것도 알려주세요' : 'Mention if it\'s a recurring dream'}</li>
+          <li>{isKo ? '등장인물이나 장소를 구체적으로' : 'Be specific about people and places'}</li>
+          <li>{isKo ? '느꼈던 감정도 함께 적어주세요' : 'Include emotions you felt'}</li>
+          <li>{isKo ? '반복되는 꿈이면 그것도 알려주세요' : 'Mention if it\'s a recurring dream'}</li>
         </ul>
       </div>
     </motion.div>

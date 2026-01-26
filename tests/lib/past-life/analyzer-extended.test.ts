@@ -245,11 +245,11 @@ describe('Past Life Analyzer - Extended Tests', () => {
   });
 
   describe('Soul Pattern Detailed Tests', () => {
-    it('should have 3 traits for each pattern', () => {
+    it('should have 5 traits for each pattern', () => {
       GEOKGUK_TYPES.forEach((geokguk) => {
         const result = analyzeKorean(createSajuWithGeokguk(geokguk));
 
-        expect(result.soulPattern.traits).toHaveLength(3);
+        expect(result.soulPattern.traits).toHaveLength(5);
         result.soulPattern.traits.forEach((trait) => {
           expect(trait).toBeTruthy();
           expect(typeof trait).toBe('string');

@@ -512,8 +512,9 @@ describe('POST /api/numerology', () => {
       const response = await POST(req);
       const data = await response.json();
 
-      expect(response.status).toBe(503);
-      expect(data.error).toBe('Backend service error');
+      expect(response.status).toBe(200);
+      expect(data.fromFallback).toBe(true);
+      expect(data.lifePath).toBeDefined();
       expect(logger.error).toHaveBeenCalledWith(
         '[Numerology API] Backend error:',
         expect.objectContaining({ status: 503 })

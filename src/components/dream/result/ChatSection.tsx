@@ -1,5 +1,4 @@
-import { RefObject } from 'react';
-import { useI18n } from '@/i18n/I18nProvider';
+import React, { RefObject } from 'react';
 import type { ChatMessage } from '@/lib/dream/types';
 import styles from './ChatSection.module.css';
 
@@ -24,7 +23,7 @@ export function ChatSection({
   chatMessagesRef,
   onSendMessage,
 }: ChatSectionProps) {
-  const { t } = useI18n();
+  const isKo = locale === 'ko';
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -39,10 +38,10 @@ export function ChatSection({
         <span className={styles.chatHeaderIcon}>🌙</span>
         <div>
           <h3 className={styles.chatHeaderTitle}>
-            {t('dream.chat.title')}
+            {isKo ? '꿈 상담사' : 'Dream Counselor'}
           </h3>
           <p className={styles.chatHeaderSubtitle}>
-            {t('dream.chat.subtitle')}
+            {isKo ? '꿈에 대해 더 깊이 이야기해보세요' : 'Let\'s explore your dream deeper'}
           </p>
         </div>
       </div>
@@ -51,7 +50,10 @@ export function ChatSection({
         <div className={styles.chatMessage}>
           <div className={styles.chatAvatar}>🌙</div>
           <div className={styles.chatBubble}>
-            {t('dream.chat.empty')}
+            {isKo
+              ? `꿈 해석 결과를 보셨군요. "${dreamText.slice(0, 30)}..." 꿈에 대해 더 궁금한 점이 있으시면 편하게 물어보세요.`
+              : `I see you've received your dream interpretation. Feel free to ask me anything about your dream "${dreamText.slice(0, 30)}..."`
+            }
           </div>
         </div>
         {chatMessages.map((msg, idx) => (
@@ -75,7 +77,7 @@ export function ChatSection({
         <input
           type="text"
           className={styles.chatInput}
-          placeholder={t('dream.chat.placeholder')}
+          placeholder={isKo ? '꿈에 대해 질문하세요...' : 'Ask about your dream...'}
           value={chatInput}
           onChange={(e) => setChatInput(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -86,7 +88,7 @@ export function ChatSection({
           onClick={onSendMessage}
           disabled={isChatLoading || !chatInput.trim()}
         >
-          {t('dream.chat.send')}
+          {isKo ? '전송' : 'Send'}
         </button>
       </div>
     </div>

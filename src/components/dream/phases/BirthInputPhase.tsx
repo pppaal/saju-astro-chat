@@ -1,5 +1,5 @@
+import React from 'react';
 import { motion } from 'framer-motion';
-import { useI18n } from '@/i18n/I18nProvider';
 import { MessageBox } from '../MessageBox';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
 import DateTimePicker from '@/components/ui/DateTimePicker';
@@ -24,6 +24,7 @@ interface BirthInputPhaseProps {
   loadingProfileBtn: boolean;
   profileLoadedMsg: boolean;
   profileLoadError: string | null;
+  showProfilePrompt?: boolean;
   onLoadProfile: () => void;
   onSubmit: (e: React.FormEvent) => void;
   onSkip: () => void;
@@ -53,12 +54,13 @@ export function BirthInputPhase({
   loadingProfileBtn,
   profileLoadedMsg,
   profileLoadError,
+  showProfilePrompt = false,
   onLoadProfile,
   onSubmit,
   onSkip,
 }: BirthInputPhaseProps) {
   const signInUrl = buildSignInUrl();
-  const { t } = useI18n();
+  const isKo = locale === 'ko';
 
   return (
     <motion.div
@@ -74,10 +76,12 @@ export function BirthInputPhase({
           <span className={styles.icon}>🌙</span>
         </div>
         <h1 className={styles.pageTitle}>
-          {t('dream.title')}
+          {isKo ? '꿈 해몽' : 'Dream Interpretation'}
         </h1>
         <p className={styles.pageSubtitle}>
-          {t('dream.subtitle')}
+          {isKo
+            ? '당신의 꿈에 담긴 메시지를 해석해드립니다'
+            : 'Discover the hidden messages in your dreams'}
         </p>
       </div>
 
@@ -85,19 +89,50 @@ export function BirthInputPhase({
         <div className={styles.formHeader}>
           <span className={styles.formIcon}>🎂</span>
           <h3 className={styles.formTitle}>
-            {t('dream.birthInfo')}
+            {isKo ? '생년월일을 입력해주세요' : 'Enter Your Birth Info'}
           </h3>
           <p className={styles.formSubtitle}>
-            {t('dream.birthInfoHint')}
+            {isKo
+              ? '정확한 해석을 위해 필요한 정보입니다'
+              : 'Optional, but improves accuracy'}
           </p>
         </div>
 
+        {/* Profile Prompt - No saved profile found */}
+        {status === 'authenticated' && showProfilePrompt && !profileLoadedMsg && (
+          <MessageBox
+            type="info"
+            icon="💡"
+            message={
+              <div>
+                {isKo ? (
+                  <>
+                    <strong>저장된 프로필이 없습니다.</strong>
+                    <br />
+                    <a href="/myjourney/profile" style={{ color: '#6366f1', textDecoration: 'underline' }}>
+                      My Journey 프로필
+                    </a>에서 생년월일을 먼저 저장하면 다음부터 자동으로 입력됩니다.
+                  </>
+                ) : (
+                  <>
+                    <strong>No saved profile found.</strong>
+                    <br />
+                    Save your birth info in <a href="/myjourney/profile" style={{ color: '#6366f1', textDecoration: 'underline' }}>
+                      My Journey Profile
+                    </a> to auto-fill next time.
+                  </>
+                )}
+              </div>
+            }
+          />
+        )}
+
         {/* Load Profile Button */}
-        {status === 'authenticated' && !profileLoadedMsg && (
+        {status === 'authenticated' && !profileLoadedMsg && !showProfilePrompt && (
           <button
             type="button"
             className={styles.loadProfileButton}
-            onClick={onLoadProfile}
+            onClick={() => onLoadProfile()}
             disabled={loadingProfileBtn}
           >
             <span className={styles.loadProfileIcon}>
@@ -105,8 +140,8 @@ export function BirthInputPhase({
             </span>
             <span>
               {loadingProfileBtn
-                ? t('common.loading')
-                : t('common.loadMyProfile')}
+                ? (isKo ? '불러오는 중...' : 'Loading...')
+                : (isKo ? '내 프로필 불러오기' : 'Load My Profile')}
             </span>
             <span className={styles.loadProfileArrow}>→</span>
           </button>
@@ -117,7 +152,7 @@ export function BirthInputPhase({
           <MessageBox
             type="success"
             icon="✓"
-            message={t('common.profileLoaded')}
+            message={isKo ? '프로필 불러오기 완료!' : 'Profile loaded!'}
           />
         )}
 
@@ -136,7 +171,7 @@ export function BirthInputPhase({
             <DateTimePicker
               value={birthDate}
               onChange={setBirthDate}
-              label={t('common.birthDate')}
+              label={isKo ? '생년월일' : 'Birth Date'}
               required
               locale={locale}
             />
@@ -145,7 +180,7 @@ export function BirthInputPhase({
           {/* Gender */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>
-              {t('common.gender')}
+              {isKo ? '성별' : 'Gender'}
               <span className={styles.required}>*</span>
             </label>
             <div className={styles.genderButtons}>
@@ -155,7 +190,7 @@ export function BirthInputPhase({
                 onClick={() => setGender('M')}
               >
                 <span>👨</span>
-                <span>{t('common.male')}</span>
+                <span>{isKo ? '남성' : 'Male'}</span>
               </button>
               <button
                 type="button"
@@ -163,7 +198,7 @@ export function BirthInputPhase({
                 onClick={() => setGender('F')}
               >
                 <span>👩</span>
-                <span>{t('common.female')}</span>
+                <span>{isKo ? '여성' : 'Female'}</span>
               </button>
             </div>
           </div>
@@ -176,7 +211,7 @@ export function BirthInputPhase({
               onClick={() => setShowTimeInput(!showTimeInput)}
             >
               <span className={styles.toggleIcon}>{showTimeInput ? '▼' : '▶'}</span>
-              <span>{t('common.birthTime')} ({t('common.optional')})</span>
+              <span>{isKo ? '태어난 시간 입력 (선택)' : 'Birth Time (Optional)'}</span>
             </button>
 
             {showTimeInput && (
@@ -188,7 +223,9 @@ export function BirthInputPhase({
                   locale={locale}
                 />
                 <p className={styles.timeHint}>
-                  {t('common.birthTimeHint')}
+                  {isKo
+                    ? '모르시면 12:00(정오)로 자동 설정됩니다'
+                    : 'Defaults to 12:00 PM if unknown'}
                 </p>
               </div>
             )}
@@ -202,7 +239,7 @@ export function BirthInputPhase({
               onClick={() => setShowCityInput(!showCityInput)}
             >
               <span className={styles.toggleIcon}>{showCityInput ? '▼' : '▶'}</span>
-              <span>{t('common.birthCity')} ({t('common.optional')})</span>
+              <span>{isKo ? '태어난 도시 입력 (선택)' : 'Birth City (Optional)'}</span>
             </button>
 
             {showCityInput && (
@@ -212,10 +249,12 @@ export function BirthInputPhase({
                   value={birthCity}
                   onChange={(e) => setBirthCity(e.target.value)}
                   className={styles.input}
-                  placeholder={t('common.birthCityPlaceholder')}
+                  placeholder={isKo ? '예: 서울, 부산, Seoul' : 'e.g., Seoul, New York'}
                 />
                 <p className={styles.timeHint}>
-                  {t('common.birthCityHint')}
+                  {isKo
+                    ? '더 정확한 분석을 위해 입력해주세요'
+                    : 'For more accurate analysis'}
                 </p>
               </div>
             )}
@@ -228,7 +267,7 @@ export function BirthInputPhase({
             disabled={!birthDate}
           >
             <span>✨</span>
-            <span>{t('common.continue')}</span>
+            <span>{isKo ? '다음으로' : 'Continue'}</span>
           </button>
         </form>
 
@@ -238,20 +277,24 @@ export function BirthInputPhase({
             className={styles.skipBirthButton}
             onClick={onSkip}
           >
-            {t('common.skipBirthInfo')}
+            {isKo ? '생년월일 없이 진행' : 'Skip for now'}
           </button>
           <p className={styles.skipBirthHint}>
-            {t('common.skipBirthInfoHint')}
+            {isKo
+              ? '생년월일 없이도 기본적인 해석은 가능합니다'
+              : 'You can continue without birth info, but accuracy may drop.'}
           </p>
         </div>
 
         {status === 'unauthenticated' && (
           <div className={styles.loginHint}>
             <p>
-              {t('common.loginToSave')}
+              {isKo
+                ? '로그인하면 정보가 저장되어 더 편리하게 이용할 수 있어요'
+                : 'Log in to save your info for a better experience'}
             </p>
             <a href={signInUrl} className={styles.loginLink}>
-              {t('common.login')}
+              {isKo ? '로그인하기' : 'Log in'}
             </a>
           </div>
         )}

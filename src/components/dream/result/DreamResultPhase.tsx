@@ -1,6 +1,5 @@
-import { RefObject } from 'react';
+import React, { RefObject } from 'react';
 import { motion } from 'framer-motion';
-import { useI18n } from '@/i18n/I18nProvider';
 import type { InsightResponse, ChatMessage } from '@/lib/dream/types';
 import { SectionHeader } from '../SectionHeader';
 import { ChatSection } from './ChatSection';
@@ -39,7 +38,7 @@ export function DreamResultPhase({
   onSendMessage,
   onReset,
 }: DreamResultPhaseProps) {
-  const { t } = useI18n();
+  const isKo = locale === 'ko';
 
   return (
     <motion.div
@@ -52,7 +51,7 @@ export function DreamResultPhase({
     >
       <button onClick={onReset} className={styles.resetButton}>
         <span className={styles.resetArrow}>←</span>
-        {t('dream.buttonReset')}
+        {isKo ? '새로운 꿈 해석' : 'New Dream'}
       </button>
 
       <div className={styles.resultHeader}>
@@ -61,14 +60,16 @@ export function DreamResultPhase({
           <div className={styles.resultIconRing}></div>
         </div>
         <h1 className={styles.resultMainTitle}>
-          {t('dream.resultTitle')}
+          {isKo ? '꿈 해석 결과' : 'Dream Interpretation'}
         </h1>
         <p className={styles.resultSubtitle}>
-          {t('dream.resultSubtitle')}
+          {isKo ? '당신의 꿈이 전하는 메시지입니다' : 'Messages from your dream'}
         </p>
         {result.fromFallback && (
           <div className={styles.fallbackNotice}>
-            {t('dream.fallbackNotice')}
+            {isKo
+              ? '서버 지연으로 간략한 해석을 제공합니다.'
+              : 'Showing a simplified interpretation due to server delay.'}
           </div>
         )}
       </div>
@@ -80,11 +81,11 @@ export function DreamResultPhase({
           {result.summary && (
             <div className={styles.summaryCard}>
               <div className={styles.summaryHeader}>
-                <div className={styles.resultTitle}>📖 {t('dream.resultSummary')}</div>
+                <div className={styles.resultTitle}>📖 {isKo ? '종합 해석' : 'Summary'}</div>
                 <CopyButton
                   text={result.summary}
-                  label={t('common.copy')}
-                  successMessage={t('common.copied')}
+                  label={isKo ? '복사' : 'Copy'}
+                  successMessage={isKo ? '복사됨!' : 'Copied!'}
                 />
               </div>
               <div className={styles.resultText}>{result.summary}</div>
@@ -116,7 +117,7 @@ export function DreamResultPhase({
             {/* Cross Insights */}
             {result.crossInsights && result.crossInsights.length > 0 && (
               <div className={styles.insightSection}>
-                <SectionHeader icon="💡" title={t('dream.resultInsights')} />
+                <SectionHeader icon="💡" title={isKo ? '통합 분석' : 'Cross Insights'} />
                 <div className={styles.insightsList}>
                   {result.crossInsights.map((insight, i) => (
                     <div key={i} className={styles.insightItem}>
@@ -131,7 +132,7 @@ export function DreamResultPhase({
             {/* Themes */}
             {result.themes && result.themes.length > 0 && (
               <div className={styles.themesSection}>
-                <SectionHeader icon="🎭" title={t('dream.resultThemes')} />
+                <SectionHeader icon="🎭" title={isKo ? '주요 테마' : 'Themes'} />
                 <div className={styles.themesList}>
                   {result.themes.map((theme, i) => (
                     <div key={i} className={styles.themeItem}>
@@ -162,8 +163,8 @@ export function DreamResultPhase({
             <div className={styles.recommendationsSection}>
               <SectionHeader
                 icon="🌟"
-                title={t('dream.resultRecommendations')}
-                badge={locale === 'ko' ? '실천 가이드' : 'Action Guide'}
+                title={isKo ? '맞춤 조언' : 'Personalized Advice'}
+                badge={isKo ? '실천 가이드' : 'Action Guide'}
               />
               <div className={styles.recommendationsGrid}>
                 {result.recommendations.map((rec, i) => (
@@ -189,11 +190,11 @@ export function DreamResultPhase({
             {/* Lucky Elements */}
             {result.luckyElements && (result.luckyElements.luckyNumbers?.length || result.luckyElements.luckyColors?.length) && (
               <div className={styles.luckySection}>
-                <SectionHeader icon="🍀" title={t('dream.luckyElements')} />
+                <SectionHeader icon="🍀" title={isKo ? '행운의 요소' : 'Lucky Elements'} />
                 <div className={styles.luckyContent}>
                   {result.luckyElements.luckyNumbers && result.luckyElements.luckyNumbers.length > 0 && (
                     <div className={styles.luckyRow}>
-                      <span className={styles.luckyLabel}>{t('dream.luckyNumbers')}</span>
+                      <span className={styles.luckyLabel}>{isKo ? '행운의 숫자' : 'Numbers'}</span>
                       <div className={styles.numberBalls}>
                         {result.luckyElements.luckyNumbers.map((num, i) => (
                           <span key={i} className={styles.numberBall}>{num}</span>
@@ -203,7 +204,7 @@ export function DreamResultPhase({
                   )}
                   {result.luckyElements.luckyColors && result.luckyElements.luckyColors.length > 0 && (
                     <div className={styles.luckyRow}>
-                      <span className={styles.luckyLabel}>{t('dream.luckyColors')}</span>
+                      <span className={styles.luckyLabel}>{isKo ? '행운의 색상' : 'Colors'}</span>
                       <div className={styles.colorTags}>
                         {result.luckyElements.luckyColors.map((color, i) => (
                           <span key={i} className={styles.colorTag}>{color}</span>
@@ -223,7 +224,7 @@ export function DreamResultPhase({
               <div className={styles.moonSection}>
                 <SectionHeader
                   icon={result.celestial.moon_phase.emoji || '🌕'}
-                  title={locale === 'ko' ? '달의 위상' : 'Moon Phase'}
+                  title={isKo ? '달의 위상' : 'Moon Phase'}
                 />
                 <div className={styles.moonContent}>
                   <div className={styles.moonVisual}>
@@ -243,26 +244,26 @@ export function DreamResultPhase({
           {/* Cultural Notes */}
           {result.culturalNotes && (result.culturalNotes.korean || result.culturalNotes.western || result.culturalNotes.chinese) && (
             <div className={styles.culturalSection}>
-              <SectionHeader icon="🌏" title={t('dream.resultCultural')} />
+              <SectionHeader icon="🌏" title={isKo ? '문화별 해몽' : 'Cultural Interpretations'} />
               <div className={styles.culturalGrid}>
                 {result.culturalNotes.korean && (
                   <div className={styles.culturalCard}>
                     <div className={styles.culturalFlag}>🇰🇷</div>
-                    <h4 className={styles.culturalTitle}>{t('dream.korean')}</h4>
+                    <h4 className={styles.culturalTitle}>{isKo ? '한국 전통' : 'Korean'}</h4>
                     <p className={styles.culturalText}>{result.culturalNotes.korean}</p>
                   </div>
                 )}
                 {result.culturalNotes.western && (
                   <div className={styles.culturalCard}>
                     <div className={styles.culturalFlag}>🧠</div>
-                    <h4 className={styles.culturalTitle}>{locale === 'ko' ? '서양/융' : 'Western'}</h4>
+                    <h4 className={styles.culturalTitle}>{isKo ? '서양/융' : 'Western'}</h4>
                     <p className={styles.culturalText}>{result.culturalNotes.western}</p>
                   </div>
                 )}
                 {result.culturalNotes.chinese && (
                   <div className={styles.culturalCard}>
                     <div className={styles.culturalFlag}>🇨🇳</div>
-                    <h4 className={styles.culturalTitle}>{locale === 'ko' ? '중국' : 'Chinese'}</h4>
+                    <h4 className={styles.culturalTitle}>{isKo ? '중국' : 'Chinese'}</h4>
                     <p className={styles.culturalText}>{result.culturalNotes.chinese}</p>
                   </div>
                 )}
@@ -274,19 +275,19 @@ export function DreamResultPhase({
           {result.premium_features?.taemong?.is_taemong && result.premium_features.taemong.primary_symbol && (
             <div className={`${styles.resultCard} ${styles.taemongCard}`}>
               <div className={styles.resultCardGlow}></div>
-              <div className={styles.resultTitle}>👶 {locale === 'ko' ? '태몽 분석' : 'Conception Dream'}</div>
+              <div className={styles.resultTitle}>👶 {isKo ? '태몽 분석' : 'Conception Dream'}</div>
               <div className={styles.taemongContent}>
                 <div className={styles.taemongSymbol}>
-                  <strong>{locale === 'ko' ? '상징' : 'Symbol'}:</strong> {result.premium_features.taemong.primary_symbol.symbol}
+                  <strong>{isKo ? '상징' : 'Symbol'}:</strong> {result.premium_features.taemong.primary_symbol.symbol}
                 </div>
                 {result.premium_features.taemong.primary_symbol.child_trait && (
                   <div className={styles.taemongTrait}>
-                    <strong>{locale === 'ko' ? '아이 특성' : 'Child Trait'}:</strong> {result.premium_features.taemong.primary_symbol.child_trait}
+                    <strong>{isKo ? '아이 특성' : 'Child Trait'}:</strong> {result.premium_features.taemong.primary_symbol.child_trait}
                   </div>
                 )}
                 {result.premium_features.taemong.primary_symbol.gender_hint && (
                   <div className={styles.taemongGender}>
-                    <strong>{locale === 'ko' ? '성별 힌트' : 'Gender Hint'}:</strong> {result.premium_features.taemong.primary_symbol.gender_hint}
+                    <strong>{isKo ? '성별 힌트' : 'Gender Hint'}:</strong> {result.premium_features.taemong.primary_symbol.gender_hint}
                   </div>
                 )}
                 {result.premium_features.taemong.primary_symbol.interpretation && (
@@ -300,7 +301,7 @@ export function DreamResultPhase({
           {result.premium_features?.combinations && result.premium_features.combinations.length > 0 && (
             <div className={styles.resultCard}>
               <div className={styles.resultCardGlow}></div>
-              <div className={styles.resultTitle}>🔗 {locale === 'ko' ? '심볼 조합 분석' : 'Symbol Combinations'}</div>
+              <div className={styles.resultTitle}>🔗 {isKo ? '심볼 조합 분석' : 'Symbol Combinations'}</div>
               <ul className={styles.resultList}>
                 {result.premium_features.combinations.map((combo, i) => (
                   <li key={i}>
@@ -316,23 +317,23 @@ export function DreamResultPhase({
           {result.cosmicInfluence && (result.cosmicInfluence.moonPhaseEffect || result.cosmicInfluence.planetaryInfluence) && (
             <div className={styles.resultCard}>
               <div className={styles.resultCardGlow}></div>
-              <div className={styles.resultTitle}>✨ {locale === 'ko' ? '우주적 영향' : 'Cosmic Influence'}</div>
+              <div className={styles.resultTitle}>✨ {isKo ? '우주적 영향' : 'Cosmic Influence'}</div>
               <div className={styles.cosmicContent}>
                 {result.cosmicInfluence.moonPhaseEffect && (
                   <div className={styles.cosmicItem}>
-                    <strong>🌙 {locale === 'ko' ? '달의 영향' : 'Moon Effect'}:</strong>
+                    <strong>🌙 {isKo ? '달의 영향' : 'Moon Effect'}:</strong>
                     <p>{result.cosmicInfluence.moonPhaseEffect}</p>
                   </div>
                 )}
                 {result.cosmicInfluence.planetaryInfluence && (
                   <div className={styles.cosmicItem}>
-                    <strong>🪐 {locale === 'ko' ? '행성 영향' : 'Planetary Effect'}:</strong>
+                    <strong>🪐 {isKo ? '행성 영향' : 'Planetary Effect'}:</strong>
                     <p>{result.cosmicInfluence.planetaryInfluence}</p>
                   </div>
                 )}
                 {result.cosmicInfluence.overallEnergy && (
                   <div className={styles.cosmicItem}>
-                    <strong>⚡ {locale === 'ko' ? '종합 에너지' : 'Overall Energy'}:</strong>
+                    <strong>⚡ {isKo ? '종합 에너지' : 'Overall Energy'}:</strong>
                     <p>{result.cosmicInfluence.overallEnergy}</p>
                   </div>
                 )}
@@ -345,7 +346,7 @@ export function DreamResultPhase({
       {/* Ask Again Button */}
       <button className={styles.askAgainBtn} onClick={onReset}>
         <span>🌙</span>
-        <span>{locale === 'ko' ? '다른 꿈 해석하기' : 'Interpret Another Dream'}</span>
+        <span>{isKo ? '다른 꿈 해석하기' : 'Interpret Another Dream'}</span>
       </button>
     </motion.div>
   );

@@ -102,21 +102,26 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
+  const [autoLoadAttempted, setAutoLoadAttempted] = useState(false);
 
   // Check if date is valid
   const isDateValid = !!birthDate;
 
   // Load profile from API
-  const handleLoadProfile = useCallback(async () => {
+  const handleLoadProfile = useCallback(async (isAutoLoad = false) => {
     if (status !== 'authenticated') {return;}
 
     setLoadingProfile(true);
     setLoadError(null);
+    setShowProfilePrompt(false);
 
     try {
       const res = await fetch('/api/me/profile', { cache: 'no-store' });
       if (!res.ok) {
-        setLoadError(locale === 'ko' ? '프로필을 불러올 수 없습니다' : 'Failed to load profile');
+        if (!isAutoLoad) {
+          setLoadError(locale === 'ko' ? '프로필을 불러올 수 없습니다' : 'Failed to load profile');
+        }
         setLoadingProfile(false);
         return;
       }
@@ -125,9 +130,13 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
       logger.info('[BirthInfoForm] Loaded profile:', { birthDate: user?.birthDate, birthTime: user?.birthTime, gender: user?.gender });
 
       if (!user || !user.birthDate) {
-        setLoadError(locale === 'ko'
-          ? '저장된 프로필이 없습니다. My Journey에서 먼저 정보를 저장해주세요.'
-          : 'No saved profile. Please save your info in My Journey first.');
+        if (isAutoLoad) {
+          setShowProfilePrompt(true);
+        } else {
+          setLoadError(locale === 'ko'
+            ? '저장된 프로필이 없습니다. My Journey에서 먼저 정보를 저장해주세요.'
+            : 'No saved profile. Please save your info in My Journey first.');
+        }
         setLoadingProfile(false);
         return;
       }
@@ -158,11 +167,21 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
       setProfileLoaded(true);
     } catch (err) {
       logger.error('[BirthInfoForm] Failed to load profile:', err);
-      setLoadError(locale === 'ko' ? '프로필 로드 실패' : 'Profile load failed');
+      if (!isAutoLoad) {
+        setLoadError(locale === 'ko' ? '프로필 로드 실패' : 'Profile load failed');
+      }
     } finally {
       setLoadingProfile(false);
     }
   }, [status, locale]);
+
+  // Auto-load profile when user is authenticated
+  React.useEffect(() => {
+    if (status === 'authenticated' && !autoLoadAttempted && !profileLoaded && !initialData?.birthDate) {
+      setAutoLoadAttempted(true);
+      handleLoadProfile(true);
+    }
+  }, [status, autoLoadAttempted, profileLoaded, initialData, handleLoadProfile]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,12 +209,36 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
         </p>
       </div>
 
+      {/* Profile Prompt - No saved profile found */}
+      {status === 'authenticated' && showProfilePrompt && !profileLoaded && (
+        <div className={styles.profilePromptMsg}>
+          <span className={styles.profilePromptIcon}>💡</span>
+          <div className={styles.profilePromptText}>
+            <strong>{locale === 'ko' ? '저장된 프로필이 없습니다.' : 'No saved profile found.'}</strong>
+            <br />
+            {locale === 'ko' ? (
+              <>
+                <a href="/myjourney/profile" style={{ color: '#6366f1', textDecoration: 'underline' }}>
+                  My Journey 프로필
+                </a>에서 생년월일을 먼저 저장하면 다음부터 자동으로 입력됩니다.
+              </>
+            ) : (
+              <>
+                Save your birth info in <a href="/myjourney/profile" style={{ color: '#6366f1', textDecoration: 'underline' }}>
+                  My Journey Profile
+                </a> to auto-fill next time.
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Load Profile Button - Only for authenticated users */}
-      {status === 'authenticated' && !profileLoaded && (
+      {status === 'authenticated' && !profileLoaded && !showProfilePrompt && (
         <button
           type="button"
           className={styles.loadProfileBtn}
-          onClick={handleLoadProfile}
+          onClick={() => handleLoadProfile(false)}
           disabled={loadingProfile}
         >
           <span className={styles.loadProfileIcon}>

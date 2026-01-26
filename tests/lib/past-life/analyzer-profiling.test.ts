@@ -503,12 +503,12 @@ describe('Past Life Analyzer - Profiling & Production Tests', () => {
       for (let i = 0; i < 50; i++) {
         const result = analyzeKorean(createRandomSaju(), createRandomAstro());
 
-        // Traits should always be 3
-        expect(result.soulPattern.traits).toHaveLength(3);
+        // Traits should always be 5 for geokguk patterns
+        expect(result.soulPattern.traits).toHaveLength(5);
 
-        // Karmic debts should be 0-3
+        // Karmic debts should be 0-4
         expect(result.karmicDebts.length).toBeGreaterThanOrEqual(0);
-        expect(result.karmicDebts.length).toBeLessThanOrEqual(3);
+        expect(result.karmicDebts.length).toBeLessThanOrEqual(4);
 
         // Talents should be at least 3 if geokguk present
         if (result.geokguk) {

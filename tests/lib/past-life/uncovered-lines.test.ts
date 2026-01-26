@@ -146,12 +146,12 @@ describe('Past Life Analyzer - Optimized Uncovered Lines Coverage', () => {
   describe('Line 611: era field ternary true branch (theme.era ? selectLang(isKo, theme.era) : undefined)', () => {
     it('should return Korean era when theme.era exists (식신)', () => {
       const result = analyzePastLife(createSajuWithGeokguk('식신'), null, true);
-      expect(result.pastLife.era).toBe('르네상스 시대 또는 조선시대 예술가');
+      expect(result.pastLife.era).toBe('르네상스 시대 피렌체 화가 또는 조선시대 궁중 도예가');
     });
 
     it('should return English era when theme.era exists (식신)', () => {
       const result = analyzePastLife(createSajuWithGeokguk('식신'), null, false);
-      expect(result.pastLife.era).toBe('Renaissance era or Joseon Dynasty artist');
+      expect(result.pastLife.era).toBe('Renaissance era Florence painter or Joseon Dynasty royal potter');
     });
 
     it('should return different era for each geokguk type', () => {
@@ -170,19 +170,23 @@ describe('Past Life Analyzer - Optimized Uncovered Lines Coverage', () => {
     it('should use selectLangFromArray for Korean talents (식신)', () => {
       const result = analyzePastLife(createSajuWithGeokguk('식신'), null, true);
       expect(result.talentsCarried).toBeDefined();
-      expect(result.talentsCarried.length).toBe(3);
+      expect(result.talentsCarried.length).toBe(5);
       expect(result.talentsCarried).toContain('창작 능력');
       expect(result.talentsCarried).toContain('미적 감각');
       expect(result.talentsCarried).toContain('요리/음식');
+      expect(result.talentsCarried).toContain('글쓰기');
+      expect(result.talentsCarried).toContain('디자인 감각');
     });
 
     it('should use selectLangFromArray for English talents (식신)', () => {
       const result = analyzePastLife(createSajuWithGeokguk('식신'), null, false);
       expect(result.talentsCarried).toBeDefined();
-      expect(result.talentsCarried.length).toBe(3);
+      expect(result.talentsCarried.length).toBe(5);
       expect(result.talentsCarried).toContain('Creative ability');
       expect(result.talentsCarried).toContain('Aesthetic sense');
       expect(result.talentsCarried).toContain('Cooking/Food');
+      expect(result.talentsCarried).toContain('Writing');
+      expect(result.talentsCarried).toContain('Design sense');
     });
 
     it('should map talents to Korean when geokgukType exists', () => {

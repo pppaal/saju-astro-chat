@@ -4,7 +4,7 @@
  * 요청 검증 및 파싱
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { isValidDate, isValidTime, isValidLatitude, isValidLongitude, LIMITS } from '@/lib/validation';
 import { ALLOWED_LANG, ALLOWED_GENDER, type SajuDataStructure, type AstroDataStructure } from '../lib';
 

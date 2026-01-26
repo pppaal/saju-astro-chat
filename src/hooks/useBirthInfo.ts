@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import type { UserProfile, GuestBirthInfo } from '@/lib/dream/types';
 import { logger } from '@/lib/logger';
@@ -20,31 +20,42 @@ export function useBirthInfo(locale: string) {
   const [loadingProfileBtn, setLoadingProfileBtn] = useState(false);
   const [profileLoadedMsg, setProfileLoadedMsg] = useState(false);
   const [profileLoadError, setProfileLoadError] = useState<string | null>(null);
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
+  const [autoLoadAttempted, setAutoLoadAttempted] = useState(false);
 
   const hasBirthInfo = Boolean(userProfile?.birthDate || guestBirthInfo?.birthDate);
 
-  const loadProfile = useCallback(async () => {
+  const loadProfile = useCallback(async (isAutoLoad = false) => {
     if (status !== 'authenticated') {return;}
 
     setLoadingProfileBtn(true);
     setProfileLoadError(null);
+    setShowProfilePrompt(false);
 
     try {
       const res = await fetch('/api/me/profile', { cache: 'no-store' });
       if (!res.ok) {
-        setProfileLoadError(locale === 'ko' ? '프로필을 불러올 수 없습니다' : 'Failed to load profile');
+        if (!isAutoLoad) {
+          setProfileLoadError(locale === 'ko' ? '프로필을 불러올 수 없습니다' : 'Failed to load profile');
+        }
         setLoadingProfileBtn(false);
-        return;
+        return false;
       }
 
       const { user } = await res.json();
 
       if (!user || !user.birthDate) {
-        setProfileLoadError(locale === 'ko'
-          ? '저장된 프로필이 없습니다. My Journey에서 먼저 정보를 저장해주세요.'
-          : 'No saved profile. Please save your info in My Journey first.');
+        if (isAutoLoad) {
+          // Auto-load found no profile - show prompt
+          setShowProfilePrompt(true);
+        } else {
+          // Manual load found no profile - show error
+          setProfileLoadError(locale === 'ko'
+            ? '저장된 프로필이 없습니다. My Journey에서 먼저 정보를 저장해주세요.'
+            : 'No saved profile. Please save your info in My Journey first.');
+        }
         setLoadingProfileBtn(false);
-        return;
+        return false;
       }
 
       // Set form fields from DB data
@@ -68,13 +79,25 @@ export function useBirthInfo(locale: string) {
         timezone: user.tzId,
       });
       setProfileLoadedMsg(true);
+      return true;
     } catch (err) {
       logger.error('Failed to load profile:', err);
-      setProfileLoadError(locale === 'ko' ? '프로필 로드 실패' : 'Profile load failed');
+      if (!isAutoLoad) {
+        setProfileLoadError(locale === 'ko' ? '프로필 로드 실패' : 'Profile load failed');
+      }
+      return false;
     } finally {
       setLoadingProfileBtn(false);
     }
   }, [status, locale]);
+
+  // Auto-load profile when user becomes authenticated
+  useEffect(() => {
+    if (status === 'authenticated' && !autoLoadAttempted && !userProfile) {
+      setAutoLoadAttempted(true);
+      loadProfile(true);
+    }
+  }, [status, autoLoadAttempted, userProfile, loadProfile]);
 
   const saveBirthInfo = useCallback(async () => {
     if (!birthDate) {return false;}
@@ -147,6 +170,7 @@ export function useBirthInfo(locale: string) {
     loadingProfileBtn,
     profileLoadedMsg,
     profileLoadError,
+    showProfilePrompt,
 
     // Actions
     loadProfile,

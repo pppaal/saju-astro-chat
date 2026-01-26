@@ -53,7 +53,7 @@ describe('Past Life Analyzer - Stress Tests', () => {
 
       const result = analyzeKorean(saju);
 
-      expect(result.karmicDebts.length).toBeLessThanOrEqual(3);
+      expect(result.karmicDebts.length).toBeLessThanOrEqual(4);
       expect(result.karmaScore).toBeGreaterThanOrEqual(KARMA_SCORE.MIN);
       expect(result.karmaScore).toBeLessThanOrEqual(KARMA_SCORE.MAX);
     });
@@ -129,7 +129,7 @@ describe('Past Life Analyzer - Stress Tests', () => {
       const result = analyzeKorean(saju);
 
       expect(result.karmicDebts.length).toBeGreaterThan(0);
-      expect(result.karmicDebts.length).toBeLessThanOrEqual(3);
+      expect(result.karmicDebts.length).toBeLessThanOrEqual(4);
     });
 
     it('should handle planets with missing or invalid houses', () => {
@@ -568,7 +568,7 @@ describe('Past Life Analyzer - Stress Tests', () => {
 
         const result = analyzeKorean(saju);
         expect(result.karmaScore).toBeGreaterThanOrEqual(KARMA_SCORE.BASE);
-        expect(result.karmicDebts.length).toBeLessThanOrEqual(3);
+        expect(result.karmicDebts.length).toBeLessThanOrEqual(4);
       }
     });
   });

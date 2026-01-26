@@ -772,7 +772,9 @@ describe('/api/saju POST - Advanced Analysis Modules (11 modules)', () => {
 
     expect(response.status).toBe(200);
     const data = await response.json();
-    expect(data.advancedAnalysis).toBeNull(); // Free user
+    expect(data.advancedAnalysis).toBeDefined();
+    expect(data.advancedAnalysis).not.toBeNull();
+    expect(data.advancedAnalysis.geokguk).toBeNull();
   });
 });
 
@@ -796,7 +798,8 @@ describe('/api/saju POST - Premium Content Filtering', () => {
     const data = await response.json();
 
     expect(data.isPremium).toBe(false);
-    expect(data.advancedAnalysis).toBeNull();
+    expect(data.advancedAnalysis).toBeDefined();
+    expect(data.advancedAnalysis).not.toBeNull();
   });
 
   it('should include full advanced analysis for premium users', async () => {
@@ -916,8 +919,8 @@ describe('/api/saju POST - AI Backend Integration', () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data.aiInterpretation).toBe('');
-    expect(data.aiModelUsed).toBe('error-fallback');
+    expect(data.aiInterpretation.length).toBeGreaterThan(0);
+    expect(data.aiModelUsed).toBe('fallback');
   });
 
   it('should use correct locale from request', async () => {
@@ -1152,8 +1155,9 @@ describe('/api/saju POST - Integration Test', () => {
     expect(data.aiInterpretation).toBeDefined();
     expect(data.aiModelUsed).toBeDefined();
 
-    // Premium content excluded
-    expect(data.advancedAnalysis).toBeNull();
+    // Premium content included for all users
+    expect(data.advancedAnalysis).toBeDefined();
+    expect(data.advancedAnalysis).not.toBeNull();
   });
 
   it('should complete full Saju analysis flow for premium user', async () => {

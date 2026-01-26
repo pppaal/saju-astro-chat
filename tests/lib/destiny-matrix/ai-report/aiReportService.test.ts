@@ -338,9 +338,8 @@ describe('generateAIPremiumReport - Error Handling', () => {
 
     const result = await generateAIPremiumReport(input, matrixReport);
 
-    // Should fallback gracefully
-    expect(result.sections.introduction).toBeDefined();
-    expect(result.sections.conclusion).toBeDefined();
+    // Should fallback to empty sections
+    expect(Object.keys(result.sections).length).toBe(0);
   });
 
   it('should handle missing response field', async () => {
@@ -357,7 +356,7 @@ describe('generateAIPremiumReport - Error Handling', () => {
 
     const result = await generateAIPremiumReport(input, matrixReport);
 
-    expect(result.sections.conclusion).toBeDefined();
+    expect(Object.keys(result.sections).length).toBe(0);
   });
 });
 

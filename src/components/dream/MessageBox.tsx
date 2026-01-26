@@ -1,9 +1,10 @@
+import React from 'react';
 import styles from './MessageBox.module.css';
 
 interface MessageBoxProps {
   type: 'success' | 'error' | 'info';
   icon: string;
-  message: string;
+  message: string | React.ReactNode;
 }
 
 export function MessageBox({ type, icon, message }: MessageBoxProps) {

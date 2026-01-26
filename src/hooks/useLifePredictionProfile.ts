@@ -44,6 +44,8 @@ export interface UseLifePredictionProfileReturn {
   guestBirthInfo: GuestBirthInfo | null;
   /** Loading state */
   profileLoading: boolean;
+  /** Show profile creation prompt */
+  showProfilePrompt: boolean;
   /** Handler for birth info submission */
   handleBirthInfoSubmit: (birthInfo: GuestBirthInfo) => Promise<void>;
   /** Reset birth info and go back to input */
@@ -68,6 +70,7 @@ export function useLifePredictionProfile(
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [guestBirthInfo, setGuestBirthInfo] = useState<GuestBirthInfo | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
 
   // Load user profile for authenticated users
   useEffect(() => {
@@ -80,6 +83,7 @@ export function useLifePredictionProfile(
       }
 
       setProfileLoading(true);
+      setShowProfilePrompt(false);
       try {
         const res = await fetch('/api/me/profile', { cache: 'no-store' });
         if (res.ok) {
@@ -95,6 +99,9 @@ export function useLifePredictionProfile(
               longitude: user.longitude,
               timezone: user.tzId,
             });
+          } else {
+            // User is authenticated but has no profile saved
+            setShowProfilePrompt(true);
           }
         }
       } catch (err) {
@@ -154,6 +161,7 @@ export function useLifePredictionProfile(
     userProfile,
     guestBirthInfo,
     profileLoading,
+    showProfilePrompt,
     handleBirthInfoSubmit,
     handleChangeBirthInfo,
   };

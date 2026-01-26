@@ -185,15 +185,15 @@ export async function loadOrComputeAllData(
     astro?: AstroDataStructure;
   }
 ): Promise<LoadedData> {
-  let {
+  const {
     birthDate,
     birthTime,
     gender,
-    latitude,
-    longitude,
     saju,
     astro,
   } = data;
+  const latitude = data.latitude;
+  const longitude = data.longitude;
 
   // Auto-load from user profile if data is missing
   if (userId) {

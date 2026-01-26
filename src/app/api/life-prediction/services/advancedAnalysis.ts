@@ -4,7 +4,6 @@
  */
 
 import {
-  convertSajuDaeunToInfo,
   type LifePredictionInput,
 } from '@/lib/prediction';
 import {

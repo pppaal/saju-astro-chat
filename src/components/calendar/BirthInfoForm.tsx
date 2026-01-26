@@ -57,8 +57,14 @@ export default function BirthInfoForm({
     handleCitySelect,
   } = useCitySearch();
 
-  const { loadingProfile, profileLoaded, loadProfile } = useProfileLoader();
   const { data: session } = useSession();
+  const { loadingProfile, profileLoaded, showProfilePrompt, loadProfile } = useProfileLoader(
+    session?.user?.id as string | undefined,
+    (info, city) => {
+      setBirthInfo(info);
+      setSelectedCity(city);
+    }
+  );
 
   const handleLoadProfile = async () => {
     if (status !== 'authenticated' || !session?.user?.id) {
@@ -70,7 +76,7 @@ export default function BirthInfoForm({
     await loadProfile(userId, (info, city) => {
       setBirthInfo(info);
       setSelectedCity(city);
-    });
+    }, false);
   };
 
   const onPickCity = (city: { name: string; country: string; lat: number; lon: number; timezone?: string }) => {
@@ -112,8 +118,32 @@ export default function BirthInfoForm({
             </p>
           </div>
 
+          {/* Profile Prompt - No saved profile found */}
+          {status === 'authenticated' && showProfilePrompt && !profileLoaded && (
+            <div className={styles.profilePromptMessage}>
+              <span className={styles.profilePromptIcon}>💡</span>
+              <div className={styles.profilePromptText}>
+                <strong>{locale === 'ko' ? '저장된 프로필이 없습니다.' : 'No saved profile found.'}</strong>
+                <br />
+                {locale === 'ko' ? (
+                  <>
+                    <a href="/myjourney/profile" style={{ color: '#6366f1', textDecoration: 'underline' }}>
+                      My Journey 프로필
+                    </a>에서 생년월일을 먼저 저장하면 다음부터 자동으로 입력됩니다.
+                  </>
+                ) : (
+                  <>
+                    Save your birth info in <a href="/myjourney/profile" style={{ color: '#6366f1', textDecoration: 'underline' }}>
+                      My Journey Profile
+                    </a> to auto-fill next time.
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Load Profile Button */}
-          {status === 'authenticated' && !profileLoaded && (
+          {status === 'authenticated' && !profileLoaded && !showProfilePrompt && (
             <button
               type="button"
               className={styles.loadProfileButton}

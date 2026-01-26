@@ -19,7 +19,7 @@ const loadEnv = () => {
     if (existsSync(envLocalPath)) {
       dotenv.config({ path: envLocalPath, override: true })
     }
-  } catch (err) {
+  } catch {
     // dotenv not available, use process.env directly
   }
 }

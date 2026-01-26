@@ -5,14 +5,9 @@
  */
 
 import {
-  analyzeMultiYearTrend,
-  generateLifePredictionPromptContext,
-  findOptimalEventTiming,
-  generateEventTimingPromptContext,
   analyzePastDate,
   generatePastAnalysisPromptContext,
   type LifePredictionInput,
-  type EventType,
 } from '@/lib/prediction/lifePredictionEngine';
 import { extractBirthYear, extractBirthMonth, extractBirthDay } from '@/lib/prediction/utils';
 import { logger } from '@/lib/logger';
@@ -54,7 +49,6 @@ export function buildPastAnalysisSection(
     const birthYear = extractBirthYear(birthDate);
     const birthMonth = extractBirthMonth(birthDate);
     const birthDay = extractBirthDay(birthDate);
-    const targetAge = targetYear - birthYear;
 
     const { allStems, allBranches } = extractAllStemsAndBranches(saju);
 

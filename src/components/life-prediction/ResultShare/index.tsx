@@ -98,44 +98,6 @@ Question: "${result.question}"
     }
   }, [generateShareText, locale]);
 
-  // 카카오톡 공유
-  const handleKakaoShare = useCallback(() => {
-    if (typeof window !== 'undefined' && window.Kakao) {
-      if (!window.Kakao.isInitialized()) {
-        // 카카오 SDK 초기화 필요
-        setToastMessage(locale === 'ko' ? '카카오 공유 준비 중...' : 'Preparing Kakao share...');
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 2000);
-        return;
-      }
-
-      window.Kakao.Share.sendDefault({
-        objectType: 'feed',
-        content: {
-          title: locale === 'ko' ? '🔮 인생 예측 결과' : '🔮 Life Prediction Result',
-          description: `${result.question} - ${result.topResult.grade}등급 (${result.topResult.score}점)`,
-          imageUrl: 'https://saju-astro.vercel.app/og-image.png',
-          link: {
-            mobileWebUrl: window.location.href,
-            webUrl: window.location.href,
-          },
-        },
-        buttons: [
-          {
-            title: locale === 'ko' ? '나도 예측하기' : 'Try Prediction',
-            link: {
-              mobileWebUrl: `${window.location.origin}/life-prediction`,
-              webUrl: `${window.location.origin}/life-prediction`,
-            },
-          },
-        ],
-      });
-    } else {
-      // 카카오 SDK 없으면 복사로 대체
-      handleCopy();
-    }
-  }, [result, locale, handleCopy]);
-
   // 트위터 공유
   const handleTwitterShare = useCallback(() => {
     const text = encodeURIComponent(generateShareText());
@@ -195,15 +157,6 @@ Question: "${result.question}"
         </button>
 
         <button
-          className={`${styles.shareBtn} ${styles.kakaoBtn}`}
-          onClick={handleKakaoShare}
-          title={locale === 'ko' ? '카카오톡 공유' : 'Share on KakaoTalk'}
-        >
-          <span className={styles.icon}>💬</span>
-          <span className={styles.label}>{locale === 'ko' ? '카카오' : 'Kakao'}</span>
-        </button>
-
-        <button
           className={`${styles.shareBtn} ${styles.twitterBtn}`}
           onClick={handleTwitterShare}
           title={locale === 'ko' ? '트위터 공유' : 'Share on Twitter'}
@@ -247,30 +200,6 @@ Question: "${result.question}"
       </AnimatePresence>
     </div>
   );
-}
-
-// Kakao SDK 타입
-declare global {
-  interface Window {
-    Kakao?: {
-      isInitialized: () => boolean;
-      Share: {
-        sendDefault: (options: {
-          objectType: string;
-          content: {
-            title: string;
-            description: string;
-            imageUrl: string;
-            link: { mobileWebUrl: string; webUrl: string };
-          };
-          buttons: Array<{
-            title: string;
-            link: { mobileWebUrl: string; webUrl: string };
-          }>;
-        }) => void;
-      };
-    };
-  }
 }
 
 export default ResultShare;

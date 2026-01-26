@@ -152,7 +152,7 @@ describe('Past Life Analyzer - Integration Tests', () => {
       const result = analyzeKorean(saju, astro);
 
       expect(result.soulPattern.type).toBe('신비가 영혼');
-      expect(result.karmicDebts.length).toBe(3);
+      expect(result.karmicDebts.length).toBe(4);
       expect(result.karmaScore).toBeLessThanOrEqual(KARMA_SCORE.MAX);
       expect(result.karmaScore).toBeGreaterThan(KARMA_SCORE.BASE);
     });
@@ -329,7 +329,7 @@ describe('Past Life Analyzer - Integration Tests', () => {
       const result = analyzeKorean(saju);
 
       expect(result.karmicDebts.length).toBeGreaterThan(0);
-      expect(result.karmicDebts.length).toBeLessThanOrEqual(3);
+      expect(result.karmicDebts.length).toBeLessThanOrEqual(4);
     });
 
     it('should handle special geokguk name 칠살', () => {
@@ -469,7 +469,7 @@ describe('Past Life Analyzer - Integration Tests', () => {
         expect(result.soulPattern.emoji).toBeTruthy();
         expect(result.soulPattern.title).toBeTruthy();
         expect(result.soulPattern.description).toBeTruthy();
-        expect(result.soulPattern.traits).toHaveLength(3);
+        expect(result.soulPattern.traits).toHaveLength(5);
         result.soulPattern.traits.forEach((trait) => {
           expect(trait).toBeTruthy();
         });

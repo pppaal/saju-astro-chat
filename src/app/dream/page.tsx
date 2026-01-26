@@ -143,6 +143,7 @@ function DreamContent() {
               loadingProfileBtn={birthInfo.loadingProfileBtn}
               profileLoadedMsg={birthInfo.profileLoadedMsg}
               profileLoadError={birthInfo.profileLoadError}
+              showProfilePrompt={birthInfo.showProfilePrompt}
               onLoadProfile={birthInfo.loadProfile}
               onSubmit={handleBirthInfoSubmit}
               onSkip={handleSkipBirthInfo}

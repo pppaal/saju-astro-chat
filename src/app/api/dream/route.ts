@@ -297,12 +297,12 @@ export async function POST(req: NextRequest) {
           throw new Error(`Flask returned ${apiResponse.status}`);
         }
 
-        const flaskData = apiResponse.data as any;
+        const flaskData = apiResponse.data as { status: string; data: InsightResponse };
         if (flaskData.status !== 'success' || !flaskData.data) {
           throw new Error('Flask returned invalid response');
         }
 
-        const data = flaskData.data as any;
+        const data = flaskData.data;
         return {
           summary: data.summary,
           dreamSymbols: data.dreamSymbols,

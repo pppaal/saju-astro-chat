@@ -23,60 +23,13 @@ import {
   isValidLongitude,
   LIMITS,
 } from "@/lib/validation";
-import { generateYearlyPrediction, generatePredictionPromptContext, type FiveElement } from "@/lib/prediction/timingScore";
-import {
-  calculateAdvancedMonthlyScore,
-  generateAdvancedTimingPromptContext,
-  type LayeredTimingScore,
-} from "@/lib/prediction/advancedTimingEngine";
-import {
-  generateWeeklyPrediction,
-  generateUltraPrecisionPromptContext,
-} from "@/lib/prediction/ultraPrecisionEngine";
-import {
-  analyzeGongmang,
-  analyzeShinsal,
-  analyzeEnergyFlow,
-  generateHourlyAdvice,
-  calculateDailyPillar,
-} from "@/lib/prediction/ultra-precision-daily";
-import {
-  findBestDates,
-  findYongsinActivationPeriods,
-  generateSpecificDatePromptContext,
-  generateYongsinPromptContext,
-  type ActivityType,
-} from "@/lib/prediction/specificDateEngine";
-import {
-  analyzeMultiYearTrend,
-  generateLifePredictionPromptContext,
-  findOptimalEventTiming,
-  generateEventTimingPromptContext,
-  analyzePastDate,
-  generatePastAnalysisPromptContext,
-  type LifePredictionInput,
-  type EventType,
-} from "@/lib/prediction/lifePredictionEngine";
-import {
-  convertSajuDaeunToInfo,
-  analyzeDaeunTransitSync,
-  type DaeunInfo,
-} from "@/lib/prediction/daeunTransitSync";
 import { logger } from '@/lib/logger';
 import { toSajuDataStructure } from '@/lib/destiny-map/type-guards';
 import {
   parseDateComponents,
   parseTimeComponents,
   extractBirthYear,
-  extractBirthMonth,
-  extractBirthDay,
-  formatDateByLocale,
 } from '@/lib/prediction/utils';
-import { analyzeActivityIntent } from '@/lib/destiny-map/chat-stream/helpers/activityDetector';
-import {
-  buildDateRecommendationSection,
-  extractSajuDataForRecommendation,
-} from '@/lib/destiny-map/chat-stream/builders/dateRecommendationBuilder';
 
 // Local modules (extracted from this file)
 import {

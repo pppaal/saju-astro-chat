@@ -141,6 +141,48 @@
   margin: 0;
 }
 
+/* Profile Prompt Message */
+.profilePromptMsg {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 1.5rem;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 12px;
+  animation: fadeIn 0.3s ease;
+}
+
+.profilePromptIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.profilePromptText {
+  flex: 1;
+  font-size: 14px;
+  color: rgba(196, 181, 253, 0.9);
+  line-height: 1.6;
+}
+
+.profilePromptText strong {
+  color: rgba(255, 255, 255, 0.95);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.profilePromptText a {
+  color: #818cf8;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.profilePromptText a:hover {
+  color: #a5b4fc;
+}
+
 /* Load Profile Button */
 .loadProfileButton {
   display: flex;

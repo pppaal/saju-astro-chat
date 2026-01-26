@@ -11,8 +11,12 @@ import {
   analyzeEnergyFlow,
   generateHourlyAdvice,
   calculateDailyPillar,
-  generateUltraPrecisionPromptContext,
 } from '@/lib/prediction/ultraPrecisionEngine';
+import type {
+  ShinsalAnalysis,
+  EnergyFlowAnalysis,
+  ShinsalHit,
+} from '@/lib/prediction/ultra-precision-types';
 import { extractFilteredStemsAndBranches } from '../helpers/pillarExtractors';
 import type { SajuDataStructure } from '../lib/types';
 import { logger } from '@/lib/logger';
@@ -102,9 +106,10 @@ export function buildDailyPrecisionSection(
     }
 
     // 신살 분석
-    if ((shinsalResult as any).activeShinsals?.length > 0) {
-      const shinsalList = (shinsalResult as any).activeShinsals
-        .map((s: any) => `${s.name}: ${s.effect}`)
+    const typedShinsalResult = shinsalResult as ShinsalAnalysis;
+    if (typedShinsalResult.active?.length > 0) {
+      const shinsalList = typedShinsalResult.active
+        .map((s: ShinsalHit) => `${s.name}: ${s.effect}`)
         .join(', ');
       enhancedParts.push(
         lang === 'ko'
@@ -118,10 +123,11 @@ export function buildDailyPrecisionSection(
     }
 
     // 에너지 흐름
+    const typedEnergyResult = energyResult as EnergyFlowAnalysis;
     enhancedParts.push(
       lang === 'ko'
-        ? `💫 에너지: ${(energyResult as any).flowType} - ${energyResult.description}`
-        : `💫 Energy: ${(energyResult as any).flowType} - ${energyResult.description}`
+        ? `💫 에너지: ${typedEnergyResult.energyStrength} - ${typedEnergyResult.dominantElement}`
+        : `💫 Energy: ${typedEnergyResult.energyStrength} - ${typedEnergyResult.dominantElement}`
     );
 
     // 시간대 조언

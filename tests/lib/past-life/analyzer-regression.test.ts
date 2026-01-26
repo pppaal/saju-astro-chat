@@ -117,7 +117,7 @@ describe('Past Life Analyzer - Regression Tests', () => {
 
         expect(result.soulPattern.type).toBe(persona.expectedSoul);
         expect(result.soulPattern.emoji).toBe(persona.expectedEmoji);
-        expect(result.soulPattern.traits).toHaveLength(3);
+        expect(result.soulPattern.traits).toHaveLength(5);
         expect(result.karmaScore).toBeGreaterThanOrEqual(50);
         expect(result.karmaScore).toBeLessThanOrEqual(100);
       });

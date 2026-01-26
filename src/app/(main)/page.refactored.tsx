@@ -4,7 +4,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./main-page.module.css";
 import LanguageSwitcher from "@/components/LanguageSwitcher/LanguageSwitcher";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -12,7 +12,6 @@ import Card from "@/components/ui/Card";
 import Grid from "@/components/ui/Grid";
 import { SERVICE_LINKS, TAROT_CARD_BACK } from "@/data/home";
 import { ChatDemoSection } from "@/components/home/ChatDemoSection";
-import { HeroSection } from "@/components/home/HeroSection";
 import { SearchBar } from "@/components/home/SearchBar";
 import { VisitorStats } from "@/components/home/VisitorStats";
 import { TarotDemoSection } from "@/components/home/TarotDemoSection";
@@ -49,7 +48,7 @@ export default function MainPage() {
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // Service options for routing
-  const serviceOptions = [
+  const serviceOptions = useMemo(() => [
     { key: 'destinyMap', icon: '🗺️', path: '/destiny-map' },
     { key: 'lifePrediction', icon: '📈', path: '/life-prediction' },
     { key: 'tarot', icon: '🔮', path: '/tarot' },
@@ -57,7 +56,7 @@ export default function MainPage() {
     { key: 'dream', icon: '🌙', path: '/dream' },
     { key: 'personality', icon: '🌈', path: '/personality' },
     { key: 'numerology', icon: '🔢', path: '/numerology' },
-  ];
+  ], []);
 
   const [showScrollTop, setShowScrollTop] = useState(false);
 

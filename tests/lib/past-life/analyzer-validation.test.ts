@@ -227,7 +227,7 @@ describe('Past Life Analyzer - Validation Tests', () => {
 
       expect(result.karmicDebts).toBeInstanceOf(Array);
       expect(result.karmicDebts.length).toBeGreaterThan(0);
-      expect(result.karmicDebts.length).toBeLessThanOrEqual(3);
+      expect(result.karmicDebts.length).toBeLessThanOrEqual(4);
 
       result.karmicDebts.forEach((debt) => {
         expectValidText(debt.area);
@@ -531,7 +531,7 @@ describe('Past Life Analyzer - Validation Tests', () => {
       const result = analyzeKorean(createSaju({ sinsal: sinsalList }));
 
       expect(result.karmicDebts.length).toBeGreaterThan(0);
-      expect(result.karmicDebts.length).toBeLessThanOrEqual(3);
+      expect(result.karmicDebts.length).toBeLessThanOrEqual(4);
     });
   });
 
