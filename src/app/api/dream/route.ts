@@ -312,7 +312,7 @@ export async function POST(req: NextRequest) {
           recommendations: data.recommendations,
           culturalNotes: data.culturalNotes,
           luckyElements: data.luckyElements,
-          premiumFeatures: data.premium_features,
+          premiumFeatures: data.premiumFeatures,
           celestial: data.celestial,
         };
       },
