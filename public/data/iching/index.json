@@ -1,0 +1,54 @@
+{
+  "totalHexagrams": 64,
+  "chunkSize": 8,
+  "chunks": [
+    {
+      "start": 1,
+      "end": 8,
+      "enFile": "enhanced-data-en-1-8.json",
+      "koFile": "enhanced-data-ko-1-8.json"
+    },
+    {
+      "start": 9,
+      "end": 16,
+      "enFile": "enhanced-data-en-9-16.json",
+      "koFile": "enhanced-data-ko-9-16.json"
+    },
+    {
+      "start": 17,
+      "end": 24,
+      "enFile": "enhanced-data-en-17-24.json",
+      "koFile": "enhanced-data-ko-17-24.json"
+    },
+    {
+      "start": 25,
+      "end": 32,
+      "enFile": "enhanced-data-en-25-32.json",
+      "koFile": "enhanced-data-ko-25-32.json"
+    },
+    {
+      "start": 33,
+      "end": 40,
+      "enFile": "enhanced-data-en-33-40.json",
+      "koFile": "enhanced-data-ko-33-40.json"
+    },
+    {
+      "start": 41,
+      "end": 48,
+      "enFile": "enhanced-data-en-41-48.json",
+      "koFile": "enhanced-data-ko-41-48.json"
+    },
+    {
+      "start": 49,
+      "end": 56,
+      "enFile": "enhanced-data-en-49-56.json",
+      "koFile": "enhanced-data-ko-49-56.json"
+    },
+    {
+      "start": 57,
+      "end": 64,
+      "enFile": "enhanced-data-en-57-64.json",
+      "koFile": "enhanced-data-ko-57-64.json"
+    }
+  ]
+}

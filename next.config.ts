@@ -103,6 +103,9 @@ const nextConfig = {
       'chart.js',
       'recharts',
       '@vercel/speed-insights',
+      'react-markdown',
+      'remark-gfm',
+      'zod',
     ], // Tree-shake large packages
   },
 
@@ -240,10 +243,42 @@ const nextConfig = {
       }
     }
 
-    // Performance optimizations - simplified to reduce build memory usage
+    // Performance optimizations - code splitting and caching
     config.optimization = {
       ...config.optimization,
       moduleIds: 'deterministic', // Better long-term caching
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          // Separate large data files
+          iching: {
+            test: /[\\/]src[\\/]lib[\\/]iChing[\\/]/,
+            name: 'iching-lib',
+            priority: 10,
+          },
+          tarot: {
+            test: /[\\/]src[\\/]lib[\\/]Tarot[\\/]/,
+            name: 'tarot-lib',
+            priority: 10,
+          },
+          saju: {
+            test: /[\\/]src[\\/]lib[\\/]Saju[\\/]/,
+            name: 'saju-lib',
+            priority: 10,
+          },
+          // Vendor libraries
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+            name: 'react-vendor',
+            priority: 20,
+          },
+          vendors: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: 5,
+          },
+        },
+      },
     };
 
     config.ignoreWarnings = [
