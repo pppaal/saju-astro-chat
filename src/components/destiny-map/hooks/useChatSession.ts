@@ -59,8 +59,8 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
 
   // Auto-save messages to database
   React.useEffect(() => {
-    if (!sessionLoaded) return;
-    if (messages.length === 0) return;
+    if (!sessionLoaded) {return;}
+    if (messages.length === 0) {return;}
 
     const saveTimer = setTimeout(async () => {
       try {
@@ -86,15 +86,15 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
   // Auto-update PersonaMemory after conversation
   const lastUpdateRef = React.useRef<number>(0);
   React.useEffect(() => {
-    if (!sessionLoaded) return;
+    if (!sessionLoaded) {return;}
     const visibleMsgs = messages.filter(m => m.role !== "system");
-    if (visibleMsgs.length < 2) return;
+    if (visibleMsgs.length < 2) {return;}
 
     const now = Date.now();
-    if (now - lastUpdateRef.current < 30000) return;
+    if (now - lastUpdateRef.current < 30000) {return;}
 
     const lastMsg = visibleMsgs[visibleMsgs.length - 1];
-    if (lastMsg?.role !== "assistant" || !lastMsg.content || lastMsg.content.length < 50) return;
+    if (lastMsg?.role !== "assistant" || !lastMsg.content || lastMsg.content.length < 50) {return;}
 
     lastUpdateRef.current = now;
 

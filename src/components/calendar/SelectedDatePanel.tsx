@@ -76,7 +76,7 @@ export default function SelectedDatePanel({
   const { status } = useSession();
   const WEEKDAYS = locale === "ko" ? WEEKDAYS_KO : WEEKDAYS_EN;
 
-  if (!selectedDay) return null;
+  if (!selectedDay) {return null;}
 
   const getCategoryLabel = (cat: EventCategory) => {
     const labels: Record<EventCategory, { ko: string; en: string }> = {

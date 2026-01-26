@@ -28,7 +28,7 @@ export class EventTimingStrategyFactory {
    * 전략 초기화
    */
   private static initialize(): void {
-    if (this.strategies.size > 0) return;
+    if (this.strategies.size > 0) {return;}
 
     this.strategies.set('marriage', new MarriageStrategy());
     this.strategies.set('relationship', new RelationshipStrategy());

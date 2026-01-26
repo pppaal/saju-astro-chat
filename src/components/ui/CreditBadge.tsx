@@ -39,7 +39,7 @@ export default function CreditBadge({
   const sessionLoading = status === "loading";
 
   const fetchCredits = useCallback(async () => {
-    if (status === "loading") return;
+    if (status === "loading") {return;}
 
     if (!session?.user) {
       setCreditData(null);
@@ -51,7 +51,7 @@ export default function CreditBadge({
     try {
       setLoading(true);
       const res = await fetch("/api/me/credits");
-      if (!res.ok) throw new Error("Failed to fetch");
+      if (!res.ok) {throw new Error("Failed to fetch");}
       const data = await res.json();
       setCreditData(data);
       setError(false);
@@ -78,7 +78,7 @@ export default function CreditBadge({
 
   // Not logged in - show login prompt
   if (sessionLoading) {
-    if (variant === "minimal") return null;
+    if (variant === "minimal") {return null;}
     return (
       <div className={`${styles.badge} ${styles.loading} ${className}`}>
         <span className={styles.spinner} />
@@ -88,7 +88,7 @@ export default function CreditBadge({
 
   // Not logged in - show login prompt
   if (!session?.user) {
-    if (variant === "minimal") return null;
+    if (variant === "minimal") {return null;}
     return (
       <Link href={signInUrl} className={`${styles.badge} ${styles.login} ${className}`}>
         <span className={styles.icon}>🔑</span>
@@ -123,8 +123,8 @@ export default function CreditBadge({
 
   // Determine color based on remaining percentage
   const getColorClass = () => {
-    if (percentage > 50) return styles.good;
-    if (percentage > 20) return styles.warning;
+    if (percentage > 50) {return styles.good;}
+    if (percentage > 20) {return styles.warning;}
     return styles.low;
   };
 

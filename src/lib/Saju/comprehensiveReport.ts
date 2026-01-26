@@ -244,7 +244,7 @@ function analyzeGongmang(dayPillar: SimplePillar, pillars: SajuInput): string[] 
   const pillar = `${dayPillar.stem}${dayPillar.branch}`;
   const gongmang = getGongmang(pillar);
 
-  if (!gongmang) return [];
+  if (!gongmang) {return [];}
 
   const details: string[] = [`공망: ${gongmang[0]}${gongmang[1]}`];
 

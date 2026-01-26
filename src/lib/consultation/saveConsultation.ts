@@ -121,7 +121,7 @@ export async function getPersonaMemory(userId: string) {
  * 요약문 생성 헬퍼 (첫 1-2 문장 추출)
  */
 export function extractSummary(fullReport: string, maxLength = 200): string {
-  if (!fullReport) return "";
+  if (!fullReport) {return "";}
 
   // 문장 단위로 분리
   const sentences = fullReport.split(/[.!?。]\s+/).filter(Boolean);

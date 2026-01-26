@@ -17,7 +17,7 @@ function isValidEmail(email: string): boolean {
 // Stripe 구독 확인 (프리미엄 체크)
 async function checkStripeActive(email?: string): Promise<boolean> {
   const key = process.env.STRIPE_SECRET_KEY;
-  if (!key || !email || !isValidEmail(email)) return false;
+  if (!key || !email || !isValidEmail(email)) {return false;}
 
   const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
   // Use parameterized API to prevent query injection
@@ -35,7 +35,7 @@ async function checkStripeActive(email?: string): Promise<boolean> {
     const active = subs.data.find((s) =>
       ["active", "trialing", "past_due"].includes(s.status)
     );
-    if (active) return true;
+    if (active) {return true;}
   }
   return false;
 }

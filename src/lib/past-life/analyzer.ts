@@ -1812,12 +1812,12 @@ function isValidHeavenlyStem(char: string): char is HeavenlyStem {
 }
 
 function getGeokgukType(geokName: string | undefined): GeokgukType | null {
-  if (!geokName) return null;
+  if (!geokName) {return null;}
   return GEOKGUK_NAME_MAPPING[geokName] || null;
 }
 
 function findPlanetHouse(astro: AstroData | null, planetName: string): HouseNumber | null {
-  if (!astro?.planets) return null;
+  if (!astro?.planets) {return null;}
 
   const planet = astro.planets.find((p: Planet) =>
     p.name?.toLowerCase().includes(planetName.toLowerCase())
@@ -1833,13 +1833,13 @@ function findPlanetHouse(astro: AstroData | null, planetName: string): HouseNumb
 function findPlanetByAliases(astro: AstroData | null, aliases: readonly string[]): HouseNumber | null {
   for (const alias of aliases) {
     const house = findPlanetHouse(astro, alias);
-    if (house) return house;
+    if (house) {return house;}
   }
   return null;
 }
 
 function extractDayMasterChar(saju: SajuData | null): HeavenlyStem | null {
-  if (!saju) return null;
+  if (!saju) {return null;}
 
   // 여러 소스에서 일간 문자열 추출 시도
   const sources = [
@@ -1852,7 +1852,7 @@ function extractDayMasterChar(saju: SajuData | null): HeavenlyStem | null {
   ];
 
   const dayMasterStr = sources.find(s => s && s.trim().length > 0);
-  if (!dayMasterStr) return null;
+  if (!dayMasterStr) {return null;}
 
   const firstChar = dayMasterStr.charAt(0);
   return isValidHeavenlyStem(firstChar) ? firstChar : null;
@@ -1928,7 +1928,7 @@ function analyzeKarmicDebts(saju: SajuData | null, isKo: boolean): PastLifeResul
 
   for (const item of unluckyList.slice(0, KARMIC_DEBT_CONFIG.MAX_ITEMS)) {
     const name = typeof item === 'string' ? item : item?.name || item?.shinsal || '';
-    if (!name) continue;
+    if (!name) {continue;}
 
     // Check each pattern
     for (const [patternKey, patternData] of Object.entries(KARMIC_DEBT_CONFIG.PATTERNS)) {
@@ -2002,11 +2002,11 @@ function calculateKarmaScore(
 ): number {
   let score = KARMA_SCORE_CONFIG.BASE_SCORE;
 
-  if (geokgukType) score += KARMA_SCORE_CONFIG.BONUS.GEOKGUK;
-  if (northNodeHouse) score += KARMA_SCORE_CONFIG.BONUS.NORTH_NODE;
-  if (saturnHouse) score += KARMA_SCORE_CONFIG.BONUS.SATURN;
-  if (dayMasterChar) score += KARMA_SCORE_CONFIG.BONUS.DAY_MASTER;
-  if (karmicDebtsCount > 0) score += karmicDebtsCount * KARMA_SCORE_CONFIG.BONUS.PER_KARMIC_DEBT;
+  if (geokgukType) {score += KARMA_SCORE_CONFIG.BONUS.GEOKGUK;}
+  if (northNodeHouse) {score += KARMA_SCORE_CONFIG.BONUS.NORTH_NODE;}
+  if (saturnHouse) {score += KARMA_SCORE_CONFIG.BONUS.SATURN;}
+  if (dayMasterChar) {score += KARMA_SCORE_CONFIG.BONUS.DAY_MASTER;}
+  if (karmicDebtsCount > 0) {score += karmicDebtsCount * KARMA_SCORE_CONFIG.BONUS.PER_KARMIC_DEBT;}
 
   return Math.min(KARMA_SCORE_CONFIG.MAX_SCORE, Math.max(KARMA_SCORE_CONFIG.MIN_SCORE, score));
 }

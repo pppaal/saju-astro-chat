@@ -25,18 +25,18 @@ const ALLOWED_ACCOUNT_FIELDS = new Set([
 
 function getCookieDomain() {
   const explicit = process.env.NEXTAUTH_COOKIE_DOMAIN?.trim()
-  if (explicit) return explicit
+  if (explicit) {return explicit}
 
   const baseUrl = process.env.NEXTAUTH_URL
-  if (!baseUrl) return undefined
+  if (!baseUrl) {return undefined}
 
   try {
     const host = new URL(baseUrl).hostname.toLowerCase()
-    if (host === 'localhost' || host.endsWith('.localhost')) return undefined
-    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return undefined
-    if (host.startsWith('www.')) return `.${host.slice(4)}`
+    if (host === 'localhost' || host.endsWith('.localhost')) {return undefined}
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {return undefined}
+    if (host.startsWith('www.')) {return `.${host.slice(4)}`}
     const parts = host.split('.')
-    if (parts.length === 2) return `.${host}`
+    if (parts.length === 2) {return `.${host}`}
     return undefined
   } catch {
     return undefined
@@ -46,7 +46,7 @@ function getCookieDomain() {
 const cookieDomain = getCookieDomain()
 
 function ensureEncryptionKey() {
-  if (hasTokenEncryptionKey()) return
+  if (hasTokenEncryptionKey()) {return}
   const msg = 'TOKEN_ENCRYPTION_KEY is required to store OAuth tokens securely'
   if (process.env.NODE_ENV === 'production') {
     throw new Error(msg)
@@ -56,9 +56,9 @@ function ensureEncryptionKey() {
 
 function encryptAccountTokens(account: AdapterAccount) {
   const copy = { ...account }
-  if (copy.refresh_token) copy.refresh_token = encryptToken(copy.refresh_token) ?? undefined
-  if (copy.access_token) copy.access_token = encryptToken(copy.access_token) ?? undefined
-  if (copy.id_token) copy.id_token = encryptToken(copy.id_token) ?? undefined
+  if (copy.refresh_token) {copy.refresh_token = encryptToken(copy.refresh_token) ?? undefined}
+  if (copy.access_token) {copy.access_token = encryptToken(copy.access_token) ?? undefined}
+  if (copy.id_token) {copy.id_token = encryptToken(copy.id_token) ?? undefined}
   return copy
 }
 
@@ -180,17 +180,17 @@ export const authOptions: NextAuthOptions = {
         })
       }
 
-      if (process.env.NODE_ENV !== 'production') return
+      if (process.env.NODE_ENV !== 'production') {return}
       Sentry.withScope((scope) => {
         scope.setTag('auth_event', 'sign_in')
         scope.setTag('provider', account?.provider ?? 'unknown')
         scope.setExtra('isNewUser', isNewUser ?? false)
-        if (user?.id) scope.setUser({ id: String(user.id), email: user.email ?? undefined })
+        if (user?.id) {scope.setUser({ id: String(user.id), email: user.email ?? undefined })}
         Sentry.captureMessage('auth.sign_in')
       })
     },
     async signOut({ token }) {
-      if (!token?.id) return
+      if (!token?.id) {return}
       try {
         await revokeGoogleTokensForUser(String(token.id))
         if (process.env.NODE_ENV === 'production') {

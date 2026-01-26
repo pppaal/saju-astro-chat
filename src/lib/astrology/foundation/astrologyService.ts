@@ -73,8 +73,8 @@ export async function calculateNatalChart(input: NatalChartInput): Promise<Natal
   // Planets
   const planets: PlanetData[] = Object.entries(PLANET_LIST).map(([name, planetId]) => {
     const res = swisseph.swe_calc_ut(ut_jd, planetId, SW_FLAGS);
-    if ("error" in res) throw new Error(`Swiss Ephemeris Error (swe_calc_ut for ${name}): ${res.error}`);
-    if (!("longitude" in res)) throw new Error(`Unexpected coordinate system for ${name}.`);
+    if ("error" in res) {throw new Error(`Swiss Ephemeris Error (swe_calc_ut for ${name}): ${res.error}`);}
+    if (!("longitude" in res)) {throw new Error(`Unexpected coordinate system for ${name}.`);}
 
     const longitude = res.longitude;
     const info = formatLongitude(longitude);

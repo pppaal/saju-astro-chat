@@ -55,10 +55,10 @@ export const CACHE_TTL = {
 export async function cacheGet<T>(key: string): Promise<T | null> {
   try {
     const client = await getRedisClient();
-    if (!client) return null;
+    if (!client) {return null;}
 
     const data = await client.get(key);
-    if (!data) return null;
+    if (!data) {return null;}
 
     return JSON.parse(data) as T;
   } catch (error) {
@@ -74,7 +74,7 @@ export async function cacheSet(
 ): Promise<boolean> {
   try {
     const client = await getRedisClient();
-    if (!client) return false;
+    if (!client) {return false;}
 
     await client.setEx(key, ttl, JSON.stringify(value));
     return true;
@@ -87,7 +87,7 @@ export async function cacheSet(
 export async function cacheDel(key: string): Promise<boolean> {
   try {
     const client = await getRedisClient();
-    if (!client) return false;
+    if (!client) {return false;}
 
     await client.del(key);
     return true;
@@ -154,7 +154,7 @@ export async function cacheOrCalculate<T>(
 export async function cacheGetMany<T>(keys: string[]): Promise<(T | null)[]> {
   try {
     const client = await getRedisClient();
-    if (!client) return keys.map(() => null);
+    if (!client) {return keys.map(() => null);}
 
     const results = await client.mGet(keys);
     return results.map((data) => (data ? JSON.parse(data) as T : null));
@@ -170,10 +170,10 @@ export async function cacheGetMany<T>(keys: string[]): Promise<(T | null)[]> {
 export async function clearCacheByPattern(pattern: string): Promise<number> {
   try {
     const client = await getRedisClient();
-    if (!client) return 0;
+    if (!client) {return 0;}
 
     const keys = await client.keys(pattern);
-    if (keys.length === 0) return 0;
+    if (keys.length === 0) {return 0;}
 
     await client.del(keys);
     return keys.length;
@@ -189,7 +189,7 @@ export async function clearCacheByPattern(pattern: string): Promise<number> {
 export async function getCacheInfo() {
   try {
     const client = await getRedisClient();
-    if (!client) return null;
+    if (!client) {return null;}
 
     const info = await client.info('stats');
     return info;

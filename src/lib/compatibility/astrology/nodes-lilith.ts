@@ -73,7 +73,7 @@ export function analyzeNodes(
     // Person2의 North Node와 Person1의 Sun/Moon
     if (p2NorthNode.element === p1Sun.element) {
       northNodeCompatibility += 15;
-      if (!growthDirection) growthDirection = 'Person1이 Person2의 영혼적 성장을 촉진';
+      if (!growthDirection) {growthDirection = 'Person1이 Person2의 영혼적 성장을 촉진';}
       karmicRelationshipType = 'soulmate';
       lifeLessons.push('Person1이 Person2에게 운명적 역할');
     }
@@ -89,7 +89,7 @@ export function analyzeNodes(
       southNodeCompatibility = 95;
       pastLifeIndicators = '같은 과거생 패턴을 공유';
       comfortZone = '함께 있으면 익숙하고 편안함';
-      if (karmicRelationshipType === 'neutral') karmicRelationshipType = 'karmic';
+      if (karmicRelationshipType === 'neutral') {karmicRelationshipType = 'karmic';}
     } else if (p1SouthNode.element === p2SouthNode.element) {
       southNodeCompatibility = 80;
       pastLifeIndicators = '비슷한 과거 경험의 에너지';
@@ -100,15 +100,15 @@ export function analyzeNodes(
     if (p1SouthNode?.element === p2Sun.element) {
       southNodeCompatibility += 15;
       pastLifeIndicators = '전생에서의 깊은 연결 가능성';
-      if (karmicRelationshipType === 'neutral') karmicRelationshipType = 'karmic';
+      if (karmicRelationshipType === 'neutral') {karmicRelationshipType = 'karmic';}
       lifeLessons.push('과거의 패턴을 인식하고 넘어서야 함');
     }
 
     // Person2의 South Node와 Person1의 Sun/Moon
     if (p2SouthNode?.element === p1Sun.element) {
       southNodeCompatibility += 15;
-      if (!pastLifeIndicators) pastLifeIndicators = '전생에서의 깊은 연결 가능성';
-      if (karmicRelationshipType === 'neutral') karmicRelationshipType = 'karmic';
+      if (!pastLifeIndicators) {pastLifeIndicators = '전생에서의 깊은 연결 가능성';}
+      if (karmicRelationshipType === 'neutral') {karmicRelationshipType = 'karmic';}
       lifeLessons.push('익숙함에 안주하지 않고 성장해야 함');
     }
   }

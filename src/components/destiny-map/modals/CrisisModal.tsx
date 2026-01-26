@@ -26,7 +26,7 @@ export default function CrisisModal({ isOpen, onClose, tr, styles: s }: CrisisMo
 
   // Keyboard handling and body scroll lock
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {return;}
 
     // Handle Escape key
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -45,7 +45,7 @@ export default function CrisisModal({ isOpen, onClose, tr, styles: s }: CrisisMo
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div
@@ -55,7 +55,7 @@ export default function CrisisModal({ isOpen, onClose, tr, styles: s }: CrisisMo
       aria-labelledby="crisis-modal-title"
       aria-describedby="crisis-modal-description"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) {onClose();}
       }}
     >
       <div ref={focusTrapRef} className={s.crisisModal}>

@@ -107,7 +107,7 @@ function normalizeMessages(raw: unknown): Message[] {
 }
 
 function normalizeCulturalNotes(raw: unknown): CulturalNotes | undefined {
-  if (!raw || typeof raw !== "object") return undefined;
+  if (!raw || typeof raw !== "object") {return undefined;}
   const obj = raw as Record<string, unknown>;
   const result: CulturalNotes = {};
 
@@ -128,7 +128,7 @@ function normalizeCulturalNotes(raw: unknown): CulturalNotes | undefined {
 }
 
 function normalizeCelestialContext(raw: unknown): CelestialContext | undefined {
-  if (!raw || typeof raw !== "object") return undefined;
+  if (!raw || typeof raw !== "object") {return undefined;}
   const obj = raw as Record<string, unknown>;
   const result: CelestialContext = {};
 
@@ -179,7 +179,7 @@ function normalizeCelestialContext(raw: unknown): CelestialContext | undefined {
 }
 
 function normalizeSajuContext(raw: unknown): SajuContext | undefined {
-  if (!raw || typeof raw !== "object") return undefined;
+  if (!raw || typeof raw !== "object") {return undefined;}
   const obj = raw as Record<string, unknown>;
 
   // Must have at least birth_date
@@ -196,11 +196,11 @@ function normalizeSajuContext(raw: unknown): SajuContext | undefined {
 }
 
 function normalizeEnhancedDreamContext(raw: unknown): EnhancedDreamContext | null {
-  if (!raw || typeof raw !== "object") return null;
+  if (!raw || typeof raw !== "object") {return null;}
   const obj = raw as Record<string, unknown>;
 
   const dreamText = typeof obj.dreamText === "string" ? obj.dreamText.trim() : "";
-  if (!dreamText || dreamText.length < 5) return null;
+  if (!dreamText || dreamText.length < 5) {return null;}
 
   const summary = typeof obj.summary === "string" ? obj.summary.trim().slice(0, MAX_CONTEXT_FIELD) : undefined;
   const symbols = cleanStringArray(obj.symbols);
@@ -267,10 +267,10 @@ export async function POST(req: NextRequest) {
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     const oversized = enforceBodySize(req, MAX_CHAT_BODY);
-    if (oversized) return oversized;
+    if (oversized) {return oversized;}
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") {

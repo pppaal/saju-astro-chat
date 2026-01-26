@@ -20,7 +20,7 @@ export function getElementFusionDescription(
 ): string | null {
   const isKo = lang === 'ko';
   const interaction = ELEMENT_CORE_GRID[sajuElement]?.[westElement];
-  if (!interaction) return null;
+  if (!interaction) {return null;}
 
   const levelDesc = getLevelDescription(interaction.level, isKo);
   return isKo

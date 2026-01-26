@@ -61,9 +61,9 @@ function normalizeEnergy(info: LegacyEnergyInfo | EnergyInfo | null | undefined)
 }
 
 function isRelevantActivity(activityType: ActivityType, targets?: string[] | null): boolean {
-  if (!targets || targets.length === 0) return false;
-  if (targets.includes('all')) return true;
-  if (targets.includes('general') && activityType === 'general') return true;
+  if (!targets || targets.length === 0) {return false;}
+  if (targets.includes('all')) {return true;}
+  if (targets.includes('general') && activityType === 'general') {return true;}
   return targets.includes(activityType);
 }
 
@@ -89,7 +89,7 @@ function computeActivityScore(
   // Н< Н,' Н~?б-Э: б'Й<1 Н~?Н--Н-? Н ?НscЙ?~ЙS" Н< Н,' Й°~Н~?
   const shinsalList = Array.isArray(shinsals) ? shinsals : [];
   for (const shinsal of shinsalList) {
-    if (!shinsal) continue;
+    if (!shinsal) {continue;}
 
     if ('beneficialFor' in shinsal || 'harmfulFor' in shinsal) {
       const beneficial = isRelevantActivity(activityType, shinsal.beneficialFor);

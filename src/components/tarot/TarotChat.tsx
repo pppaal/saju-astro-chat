@@ -102,7 +102,7 @@ const TarotChat = memo(function TarotChat({
   // Handle send with question tracking
   const onSend = React.useCallback(async (text?: string) => {
     const messageText = text || input.trim();
-    if (!messageText || loading) return;
+    if (!messageText || loading) {return;}
 
     // Track used suggestion
     markQuestionUsed(messageText);

@@ -30,7 +30,7 @@ export const CardsModal = React.memo(function CardsModal({
   tr,
   styles
 }: CardsModalProps) {
-  if (!show) return null;
+  if (!show) {return null;}
 
   return (
     <div className={styles.modalBackdrop} onClick={onClose}>

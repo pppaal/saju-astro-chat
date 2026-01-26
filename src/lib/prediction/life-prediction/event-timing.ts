@@ -44,10 +44,10 @@ import { findSpecificGoodDays } from './helpers/good-day-finder';
  * 점수를 등급으로 변환
  */
 function scoreToGrade(score: number): PredictionGrade {
-  if (score >= 85) return 'S';
-  if (score >= 75) return 'A';
-  if (score >= 60) return 'B';
-  if (score >= 45) return 'C';
+  if (score >= 85) {return 'S';}
+  if (score >= 75) {return 'A';}
+  if (score >= 60) {return 'B';}
+  if (score >= 45) {return 'C';}
   return 'D';
 }
 
@@ -138,7 +138,7 @@ export function findOptimalEventTiming(
       const midMonth = new Date(year, month - 1, 15);
 
       // 이미 지난 달은 건너뛰기
-      if (monthEnd < currentDate) continue;
+      if (monthEnd < currentDate) {continue;}
 
       const age = year - input.birthYear;
       const monthGanji = calculateMonthlyGanji(year, month);
@@ -534,8 +534,8 @@ function analyzeWeekPeriod(
         if (sh.name === '겁살') {
           dayScore -= 10;
         } else if (sh.name === '화개') {
-          if (eventType === 'study') dayScore += 5;
-          else dayScore -= 3;
+          if (eventType === 'study') {dayScore += 5;}
+          else {dayScore -= 3;}
         } else {
           dayScore -= 5;
         }
@@ -595,7 +595,7 @@ function analyzeWeekPeriod(
   const bestDays = dailyScores
     .sort((a, b) => {
       const scoreDiff = b.score - a.score;
-      if (Math.abs(scoreDiff) > 5) return scoreDiff;
+      if (Math.abs(scoreDiff) > 5) {return scoreDiff;}
       return b.reasons.length - a.reasons.length;
     })
     .slice(0, 3)

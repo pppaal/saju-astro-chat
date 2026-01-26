@@ -50,7 +50,7 @@ export function RecordsList({
         let count = 0;
         const limited: DailyHistory[] = [];
         for (const day of filteredHistory) {
-          if (count >= INITIAL_DISPLAY_COUNT) break;
+          if (count >= INITIAL_DISPLAY_COUNT) {break;}
           const remaining = INITIAL_DISPLAY_COUNT - count;
           if (day.records.length <= remaining) {
             limited.push(day);

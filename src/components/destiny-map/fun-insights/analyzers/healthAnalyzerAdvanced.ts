@@ -91,7 +91,7 @@ const twelveStageHealth: Record<string, { ko: string; en: string }> = {
  * 6하우스 별자리 추출
  */
 function getHouse6Sign(astro: AstroData | undefined): string | null {
-  if (!astro?.houses) return null;
+  if (!astro?.houses) {return null;}
 
   if (Array.isArray(astro.houses)) {
     const house6 = astro.houses.find(h => h.index === 6);
@@ -104,10 +104,10 @@ function getHouse6Sign(astro: AstroData | undefined): string | null {
  * 애스펙트에서 행성 이름 추출 (문자열 또는 객체 형태 모두 지원)
  */
 function getAspectPlanetName(value: unknown): string {
-  if (typeof value === 'string') return value.toLowerCase();
+  if (typeof value === 'string') {return value.toLowerCase();}
   if (value && typeof value === 'object' && 'name' in value) {
     const name = (value as { name?: unknown }).name;
-    if (typeof name === 'string') return name.toLowerCase();
+    if (typeof name === 'string') {return name.toLowerCase();}
   }
   return '';
 }
@@ -116,7 +116,7 @@ function getAspectPlanetName(value: unknown): string {
  * 달의 주요 애스펙트 찾기
  */
 function getMoonAspect(astro: AstroData | undefined): string | null {
-  if (!astro?.aspects) return null;
+  if (!astro?.aspects) {return null;}
 
   // 달과 태양/토성의 애스펙트 우선 (가장 영향력 큼)
   const moonAspects = astro.aspects.filter(a => {
@@ -132,7 +132,7 @@ function getMoonAspect(astro: AstroData | undefined): string | null {
     return fromName === 'sun' || toName === 'sun';
   });
 
-  if (sunAspect) return sunAspect.type?.toLowerCase() || null;
+  if (sunAspect) {return sunAspect.type?.toLowerCase() || null;}
 
   // 그 다음 토성
   const saturnAspect = moonAspects.find(a => {
@@ -193,7 +193,7 @@ export function getHealthAnalysisAdvanced(
   const isKo = lang === "ko";
   const dayMasterName = extractDayMaster(saju);
 
-  if (!dayMasterName) return null;
+  if (!dayMasterName) {return null;}
 
   const dmBase = dayMasterHealthTraits[dayMasterName] || dayMasterHealthTraits["갑"];
 

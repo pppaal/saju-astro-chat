@@ -29,7 +29,7 @@ export const ChangingLinesSection: React.FC<ChangingLinesSectionProps> = React.m
   lang,
   translate,
 }) => {
-  if (changingLines.length === 0) return null;
+  if (changingLines.length === 0) {return null;}
 
   return (
     <div className={styles.changingLinesCard}>

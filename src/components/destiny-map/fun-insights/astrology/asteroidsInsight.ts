@@ -4,7 +4,7 @@ import type { AstroData } from '../types';
 export function getAsteroidsInsight(astro: AstroData | undefined, lang: string): { title: string; insights: { name: string; message: string }[]; emoji: string } | null {
   const isKo = lang === "ko";
   const asteroids = astro?.asteroids;
-  if (!asteroids || typeof asteroids !== 'object') return null;
+  if (!asteroids || typeof asteroids !== 'object') {return null;}
 
   const insights: { name: string; message: string }[] = [];
 
@@ -33,7 +33,7 @@ export function getAsteroidsInsight(astro: AstroData | undefined, lang: string):
     }
   });
 
-  if (insights.length === 0) return null;
+  if (insights.length === 0) {return null;}
 
   return {
     title: isKo ? "소행성이 보여주는 특성" : "Asteroid Characteristics",

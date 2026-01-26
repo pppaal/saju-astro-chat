@@ -29,7 +29,7 @@ export function smoothScrollTo(targetY: number, duration: number = 600): void {
  * Scroll to a specific element with smooth animation
  */
 export function scrollToElement(element: HTMLElement | null, offset: number = -100, duration: number = 600): void {
-  if (!element) return;
+  if (!element) {return;}
 
   const targetY = element.getBoundingClientRect().top + window.scrollY + offset;
   smoothScrollTo(targetY, duration);

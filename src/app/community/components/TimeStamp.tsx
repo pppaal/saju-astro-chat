@@ -21,10 +21,10 @@ export const TimeStamp: React.FC<TimeStampProps> = React.memo(({ epoch }) => {
     const hours = Math.floor(mins / 60);
     const days = Math.floor(hours / 24);
 
-    if (days > 0) setText(t("community.time.daysAgo", "{{d}}d ago").replace("{{d}}", String(days)));
-    else if (hours > 0) setText(t("community.time.hoursAgo", "{{h}}h ago").replace("{{h}}", String(hours)));
-    else if (mins > 0) setText(t("community.time.minutesAgo", "{{m}}m ago").replace("{{m}}", String(mins)));
-    else setText(t("community.time.justNow", "just now"));
+    if (days > 0) {setText(t("community.time.daysAgo", "{{d}}d ago").replace("{{d}}", String(days)));}
+    else if (hours > 0) {setText(t("community.time.hoursAgo", "{{h}}h ago").replace("{{h}}", String(hours)));}
+    else if (mins > 0) {setText(t("community.time.minutesAgo", "{{m}}m ago").replace("{{m}}", String(mins)));}
+    else {setText(t("community.time.justNow", "just now"));}
   }, [epoch, t]);
 
   return <span suppressHydrationWarning>{text}</span>;

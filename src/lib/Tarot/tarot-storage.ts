@@ -38,7 +38,7 @@ const MAX_SAVED_READINGS = 50;
 
 // 저장된 리딩 목록 가져오기
 export function getSavedReadings(): SavedTarotReading[] {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === 'undefined') {return [];}
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
@@ -76,7 +76,7 @@ export function deleteReading(id: string): boolean {
   const readings = getSavedReadings();
   const filtered = readings.filter(r => r.id !== id);
 
-  if (filtered.length === readings.length) return false;
+  if (filtered.length === readings.length) {return false;}
 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));

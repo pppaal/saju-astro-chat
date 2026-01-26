@@ -3,10 +3,10 @@ import { useEffect, RefObject } from 'react';
 export function useCanvasAnimation(canvasRef: RefObject<HTMLCanvasElement>) {
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {return;}
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {return;}
 
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     let animationId: number | null = null;
@@ -64,7 +64,7 @@ export function useCanvasAnimation(canvasRef: RefObject<HTMLCanvasElement>) {
     };
 
     const animate = (timestamp = 0) => {
-      if (!isRunning) return;
+      if (!isRunning) {return;}
       if (timestamp - lastFrame >= frameInterval) {
         lastFrame = timestamp;
         time += 0.002;
@@ -82,7 +82,7 @@ export function useCanvasAnimation(canvasRef: RefObject<HTMLCanvasElement>) {
     };
 
     const start = () => {
-      if (isRunning) return;
+      if (isRunning) {return;}
       if (mediaQuery.matches || document.hidden) {
         drawFrame();
         return;

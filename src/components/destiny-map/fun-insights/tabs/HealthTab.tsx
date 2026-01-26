@@ -126,7 +126,7 @@ export default function HealthTab({ saju, astro, isKo, data }: TabProps) {
   const energyStrength = extendedAnalysis?.strength as Record<string, unknown> | undefined;
 
   const getEnergyLevel = () => {
-    if (!energyStrength) return null;
+    if (!energyStrength) {return null;}
     const levelVal = energyStrength.level || energyStrength.type || "";
     const level = String(levelVal).toLowerCase();
 
@@ -172,15 +172,15 @@ export default function HealthTab({ saju, astro, isKo, data }: TabProps) {
   };
 
   const getStatusText = (status: 'excess' | 'balanced' | 'deficient') => {
-    if (status === 'excess') return isKo ? '과다' : 'Excess';
-    if (status === 'balanced') return isKo ? '균형' : 'Balanced';
+    if (status === 'excess') {return isKo ? '과다' : 'Excess';}
+    if (status === 'balanced') {return isKo ? '균형' : 'Balanced';}
     return isKo ? '부족' : 'Deficient';
   };
 
   const getVitalityColor = (score: number) => {
-    if (score >= 80) return 'from-green-500 to-emerald-400';
-    if (score >= 60) return 'from-yellow-500 to-amber-400';
-    if (score >= 40) return 'from-orange-500 to-amber-500';
+    if (score >= 80) {return 'from-green-500 to-emerald-400';}
+    if (score >= 60) {return 'from-yellow-500 to-amber-400';}
+    if (score >= 40) {return 'from-orange-500 to-amber-500';}
     return 'from-red-500 to-rose-400';
   };
 

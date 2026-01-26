@@ -52,10 +52,10 @@ export function analyzeBranchRelation(branch1: string, branch2: string): string 
   const combo = branch1 + branch2;
   const reverseCombo = branch2 + branch1;
 
-  if (SIX_COMBOS[combo] || SIX_COMBOS[reverseCombo]) return '육합';
-  if (PARTIAL_TRINES[combo] || PARTIAL_TRINES[reverseCombo]) return '삼합';
-  if (BRANCH_CLASHES[combo] || BRANCH_CLASHES[reverseCombo]) return '충';
-  if (BRANCH_PUNISHMENTS[combo] || BRANCH_PUNISHMENTS[reverseCombo]) return '형';
+  if (SIX_COMBOS[combo] || SIX_COMBOS[reverseCombo]) {return '육합';}
+  if (PARTIAL_TRINES[combo] || PARTIAL_TRINES[reverseCombo]) {return '삼합';}
+  if (BRANCH_CLASHES[combo] || BRANCH_CLASHES[reverseCombo]) {return '충';}
+  if (BRANCH_PUNISHMENTS[combo] || BRANCH_PUNISHMENTS[reverseCombo]) {return '형';}
 
   return '무관';
 }

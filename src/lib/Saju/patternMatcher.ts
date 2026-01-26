@@ -143,7 +143,7 @@ const PATTERN_DEFINITIONS: PatternDefinition[] = [
       let hapCount = 0;
       for (let i = 0; i < branches.length; i++) {
         for (let j = i + 1; j < branches.length; j++) {
-          if (YUKHAP_MAP[branches[i]] === branches[j]) hapCount++;
+          if (YUKHAP_MAP[branches[i]] === branches[j]) {hapCount++;}
         }
       }
       return { matched: hapCount >= 2, score: hapCount * 40, details: `육합 수: ${hapCount}` };
@@ -203,7 +203,7 @@ const PATTERN_DEFINITIONS: PatternDefinition[] = [
       let chungCount = 0;
       for (let i = 0; i < branches.length; i++) {
         for (let j = i + 1; j < branches.length; j++) {
-          if (CHUNG_MAP[branches[i]] === branches[j]) chungCount++;
+          if (CHUNG_MAP[branches[i]] === branches[j]) {chungCount++;}
         }
       }
       return { matched: chungCount >= 2, score: chungCount * 35, details: `충 수: ${chungCount}` };
@@ -587,8 +587,8 @@ export function createCustomPattern(
         const op = condition.operator || '>=';
 
         const result = evalOperator(count, target, op);
-        if (!result) matched = false;
-        else score += 25;
+        if (!result) {matched = false;}
+        else {score += 25;}
       }
       // 다른 조건 타입도 구현 가능
     }

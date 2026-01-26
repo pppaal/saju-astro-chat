@@ -106,7 +106,7 @@ export function buildStructuredFortunePrompt(
 
   // ========== PILLARS FORMATTING ==========
   const formatPillar = (p: PlanetInput) => {
-    if (!p) return null;
+    if (!p) {return null;}
     const stem = p.heavenlyStem?.name || p.ganji?.split?.('')?.[0] || '';
     const branch = p.earthlyBranch?.name || p.ganji?.split?.('')?.[1] || '';
     return stem && branch ? `${stem}${branch}` : null;
@@ -139,8 +139,8 @@ export function buildStructuredFortunePrompt(
   // Upcoming months
   const upcomingMonths = (unse?.monthly ?? [])
     .filter((m: MonthlyItem) => {
-      if (m.year > currentYear) return true;
-      if (m.year === currentYear && m.month >= currentMonth) return true;
+      if (m.year > currentYear) {return true;}
+      if (m.year === currentYear && m.month >= currentMonth) {return true;}
       return false;
     })
     .slice(0, 6);
@@ -709,7 +709,7 @@ function getHarmonicMeaning(h: number): string {
  */
 type AspectHitItem = { type?: string; aspect?: string; planet2?: { name?: string }; to?: string; planet?: string; asteroid?: string; from?: string };
 function formatAsteroidAspects(aspects: AspectHitItem[] | Record<string, AspectHitItem[]> | undefined): string {
-  if (!aspects) return "-";
+  if (!aspects) {return "-";}
 
   // If it's an array, format directly
   if (Array.isArray(aspects)) {
@@ -753,8 +753,8 @@ export function parseStructuredResponse(response: string): StructuredFortuneOutp
       const parsed = JSON.parse(candidates[i]);
 
       // Validate required fields
-      if (!parsed.sections || !Array.isArray(parsed.sections)) continue;
-      if (!parsed.dateRecommendations) continue;
+      if (!parsed.sections || !Array.isArray(parsed.sections)) {continue;}
+      if (!parsed.dateRecommendations) {continue;}
 
       return parsed as StructuredFortuneOutput;
     }
@@ -791,10 +791,10 @@ function extractJsonCandidates(input: string): string[] {
       continue;
     }
 
-    if (inString) continue;
+    if (inString) {continue;}
 
     if (ch === "{") {
-      if (depth === 0) start = i;
+      if (depth === 0) {start = i;}
       depth++;
       continue;
     }

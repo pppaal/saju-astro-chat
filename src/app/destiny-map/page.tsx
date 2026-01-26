@@ -17,7 +17,7 @@ type CityHit = { name: string; country: string; lat: number; lon: number; timezo
 const loadCitiesModule = (() => {
   let promise: Promise<typeof import('@/lib/cities')> | null = null;
   return () => {
-    if (!promise) promise = import('@/lib/cities');
+    if (!promise) {promise = import('@/lib/cities');}
     return promise;
   };
 })();
@@ -25,7 +25,7 @@ const loadCitiesModule = (() => {
 const loadTimezoneModule = (() => {
   let promise: Promise<typeof import('@/lib/Saju/timezone')> | null = null;
   return () => {
-    if (!promise) promise = import('@/lib/Saju/timezone');
+    if (!promise) {promise = import('@/lib/Saju/timezone');}
     return promise;
   };
 })();
@@ -33,7 +33,7 @@ const loadTimezoneModule = (() => {
 const loadTzLookup = (() => {
   let promise: Promise<typeof import('tz-lookup')> | null = null;
   return () => {
-    if (!promise) promise = import('tz-lookup');
+    if (!promise) {promise = import('tz-lookup');}
     return promise;
   };
 })();
@@ -93,15 +93,15 @@ function DestinyMapContent() {
   }, []);
 
   const resolveCityTimezone = async (hit: CityHit, fallback?: string) => {
-    if (hit.timezone) return hit.timezone;
-    if (fallback) return fallback;
+    if (hit.timezone) {return hit.timezone;}
+    if (fallback) {return fallback;}
     const { default: tzLookup } = await loadTzLookup();
     return tzLookup(hit.lat, hit.lon);
   };
 
   // Load profile from DB for authenticated users
   const handleLoadProfile = async () => {
-    if (status !== 'authenticated') return;
+    if (status !== 'authenticated') {return;}
 
     setLoadingProfile(true);
     setCityErr(null);
@@ -123,9 +123,9 @@ function DestinyMapContent() {
       }
 
       // Set form fields from DB data
-      if (user.name) setName(user.name);
-      if (user.birthDate) setBirthDate(user.birthDate);
-      if (user.birthTime) setBirthTime(user.birthTime);
+      if (user.name) {setName(user.name);}
+      if (user.birthDate) {setBirthDate(user.birthDate);}
+      if (user.birthTime) {setBirthTime(user.birthTime);}
       if (user.birthCity) {
         setCity(user.birthCity);
         // Try to get city coordinates
@@ -149,8 +149,8 @@ function DestinyMapContent() {
         }
       }
       // Convert gender from DB format (M/F) to form format (Male/Female)
-      if (user.gender === 'M') setGender('Male');
-      else if (user.gender === 'F') setGender('Female');
+      if (user.gender === 'M') {setGender('Male');}
+      else if (user.gender === 'F') {setGender('Female');}
 
       setProfileLoaded(true);
     } catch (err) {
@@ -201,7 +201,7 @@ function DestinyMapContent() {
   useEffect(() => {
     const tryFindCity = async () => {
       const q = extractCityPart(city);
-      if (!q) return;
+      if (!q) {return;}
       try {
         const { searchCities } = await loadCitiesModule();
         const hits = (await searchCities(q, { limit: 1 })) as CityHit[];
@@ -231,7 +231,7 @@ function DestinyMapContent() {
     resolveCityTimezone(hit)
       .then((timezone) => {
         setSelectedCity((prev) => {
-          if (!prev || prev.name !== hit.name || prev.country !== hit.country) return prev;
+          if (!prev || prev.name !== hit.name || prev.country !== hit.country) {return prev;}
           return { ...prev, timezone };
         });
       })
@@ -269,7 +269,7 @@ function DestinyMapContent() {
     params.set('lang', locale || 'ko');
     params.set('latitude', lat);
     params.set('longitude', lon);
-    if (tz) params.set('tz', tz);
+    if (tz) {params.set('tz', tz);}
     params.set('userTz', userTimezone); // 사용자 현재 타임존 (운세 날짜용)
 
     // Save user profile for reuse across services

@@ -309,7 +309,7 @@ function addPlanetNodes(
 }
 
 function calculatePlanetHarmony(element1: string, element2: string): number {
-  if (element1 === element2) return 0.8;
+  if (element1 === element2) {return 0.8;}
 
   const compatible = {
     fire: ['air', 'fire'],
@@ -637,7 +637,7 @@ function calculateHarmonyIndex(graph: CompatibilityGraph): number {
   );
 
   const total = positiveEdges.length + negativeEdges.length;
-  if (total === 0) return 0.5;
+  if (total === 0) {return 0.5;}
 
   return positiveEdges.length / total;
 }

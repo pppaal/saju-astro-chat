@@ -264,13 +264,13 @@ const PLANETARY_HOUR_USES: Record<string, string[]> = {
 export function getMoonPhase(sunLongitude: number, moonLongitude: number): MoonPhase {
   const angle = normalize360(moonLongitude - sunLongitude);
 
-  if (angle < 45) return "new_moon";
-  if (angle < 90) return "waxing_crescent";
-  if (angle < 135) return "first_quarter";
-  if (angle < 180) return "waxing_gibbous";
-  if (angle < 225) return "full_moon";
-  if (angle < 270) return "waning_gibbous";
-  if (angle < 315) return "last_quarter";
+  if (angle < 45) {return "new_moon";}
+  if (angle < 90) {return "waxing_crescent";}
+  if (angle < 135) {return "first_quarter";}
+  if (angle < 180) {return "waxing_gibbous";}
+  if (angle < 225) {return "full_moon";}
+  if (angle < 270) {return "waning_gibbous";}
+  if (angle < 315) {return "last_quarter";}
   return "waning_crescent";
 }
 
@@ -518,11 +518,11 @@ export function analyzeElection(
   const total = moonFactors + planetaryAspects + retrogradeIssues + specialConsiderations;
 
   let interpretation: string;
-  if (total >= 90) interpretation = "최적의 택일 - 적극 추천";
-  else if (total >= 75) interpretation = "좋은 택일 - 추천";
-  else if (total >= 60) interpretation = "무난한 택일 - 가능";
-  else if (total >= 45) interpretation = "주의 필요 - 대안 검토 권장";
-  else interpretation = "비추천 - 다른 날짜 선택 권장";
+  if (total >= 90) {interpretation = "최적의 택일 - 적극 추천";}
+  else if (total >= 75) {interpretation = "좋은 택일 - 추천";}
+  else if (total >= 60) {interpretation = "무난한 택일 - 가능";}
+  else if (total >= 45) {interpretation = "주의 필요 - 대안 검토 권장";}
+  else {interpretation = "비추천 - 다른 날짜 선택 권장";}
 
   // 권장사항과 경고 생성
   const recommendations: string[] = [];

@@ -27,7 +27,7 @@ function getMidpoint(lon1: number, lon2: number): number {
   const b = normalize360(lon2);
 
   let diff = b - a;
-  if (diff < 0) diff += 360;
+  if (diff < 0) {diff += 360;}
 
   // 짧은 호 선택
   if (diff > 180) {
@@ -56,9 +56,9 @@ function createCompositePlanet(
     const cusp = houses[i].cusp;
     let nextCusp = houses[nextI].cusp;
 
-    if (nextCusp < cusp) nextCusp += 360;
+    if (nextCusp < cusp) {nextCusp += 360;}
     let testLon = midLon;
-    if (testLon < cusp) testLon += 360;
+    if (testLon < cusp) {testLon += 360;}
 
     if (testLon >= cusp && testLon < nextCusp) {
       house = i + 1;

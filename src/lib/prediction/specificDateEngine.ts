@@ -453,9 +453,9 @@ function findBestHours(
     }
 
     let quality: 'excellent' | 'good' | 'neutral';
-    if (score >= 70) quality = 'excellent';
-    else if (score >= 55) quality = 'good';
-    else quality = 'neutral';
+    if (score >= 70) {quality = 'excellent';}
+    else if (score >= 55) {quality = 'good';}
+    else {quality = 'neutral';}
 
     // 실제 시각 계산 (각 지지 시간대의 중간)
     const realHour = (i * 2 + 1) % 24;
@@ -526,18 +526,18 @@ export function findBestDates(input: DateSearchInput): DateRecommendation[] {
     const totalScore = activityScore * 0.6 + ultraScore.totalScore * 0.4;
 
     // 최소 점수 미만이면 스킵
-    if (totalScore < conditions.minScore * 0.8) continue;
+    if (totalScore < conditions.minScore * 0.8) {continue;}
 
     // 시간대 추천
     const bestHours = findBestHours(daily, activity, dayStem, yongsin);
 
     // 등급 결정
     let grade: 'S' | 'A' | 'B' | 'C' | 'D';
-    if (totalScore >= 85) grade = 'S';
-    else if (totalScore >= 70) grade = 'A';
-    else if (totalScore >= 55) grade = 'B';
-    else if (totalScore >= 40) grade = 'C';
-    else grade = 'D';
+    if (totalScore >= 85) {grade = 'S';}
+    else if (totalScore >= 70) {grade = 'A';}
+    else if (totalScore >= 55) {grade = 'B';}
+    else if (totalScore >= 40) {grade = 'C';}
+    else {grade = 'D';}
 
     // 상세 분석 문구
     const detailedAnalysis = generateDetailedAnalysis(
@@ -661,14 +661,14 @@ export function findYongsinActivationPeriods(
       sources.push(`${dailyStemElement}이 ${yongsin}을 생함`);
     }
 
-    if (score <= 10) continue;
+    if (score <= 10) {continue;}
 
     // 활성화 레벨
     let activationLevel: YongsinActivation['activationLevel'];
-    if (score >= 60) activationLevel = 'very_strong';
-    else if (score >= 40) activationLevel = 'strong';
-    else if (score >= 25) activationLevel = 'moderate';
-    else activationLevel = 'weak';
+    if (score >= 60) {activationLevel = 'very_strong';}
+    else if (score >= 40) {activationLevel = 'strong';}
+    else if (score >= 25) {activationLevel = 'moderate';}
+    else {activationLevel = 'weak';}
 
     const advice = generateYongsinAdvice(yongsin, activationLevel, sources);
 

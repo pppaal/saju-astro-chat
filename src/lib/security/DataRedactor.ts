@@ -21,7 +21,7 @@ export class DataRedactor {
    * @example hashName("홍길동") → "a1b2c3d4e5f6"
    */
   static hashName(name?: string): string {
-    if (!name) return "anon";
+    if (!name) {return "anon";}
     return crypto.createHash("sha256").update(name).digest("hex").slice(0, 12);
   }
 
@@ -30,7 +30,7 @@ export class DataRedactor {
    * @example maskDisplayName("홍길동") → "홍***"
    */
   static maskDisplayName(name?: string): string | undefined {
-    if (!name) return undefined;
+    if (!name) {return undefined;}
     const first = name.trim().slice(0, 1) || "";
     return `${first}***`;
   }
@@ -40,7 +40,7 @@ export class DataRedactor {
    * @example maskTextWithName("홍길동님 안녕", "홍길동") → "***님 안녕"
    */
   static maskTextWithName(text: string, name?: string): string {
-    if (!text || !name) return text;
+    if (!text || !name) {return text;}
     try {
       return text.replace(new RegExp(this.escapeRegExp(name), "g"), "***");
     } catch {
@@ -53,7 +53,7 @@ export class DataRedactor {
    * @example maskEmail("user@example.com") → "us***@***"
    */
   static maskEmail(email?: string): string {
-    if (!email) return "***@***";
+    if (!email) {return "***@***";}
     const [local] = email.split("@");
     return `${local?.slice(0, 2) ?? "**"}***@***`;
   }

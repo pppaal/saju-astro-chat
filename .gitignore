@@ -75,13 +75,41 @@ nul
 # Backup files
 *.bak
 *~
+*.backup
 
 # Temporary debug/test output files
 tmp_*.txt
 coverage-*.txt
+coverage-report.json
 test-*.txt
 test-output.txt
 test-results.txt
+calendar-test-results*.json
+tmp_calendar.json
+
+# Build/test verification artifacts
+build-*.txt
+final-test-summary.txt
+failed-tests.txt
+failed-test-files.txt
+
+# Windows path/encoding artifacts
+C*tmpsrc_files.txt
+C*tmptest_files.txt
+c*dev*saju-astro-chatpublicsw.js
+c*temptested_files.txt
+c*tmptest_yongsin.json
+
+# Local tool configs / generated assets
+.claude/settings.local.json
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+public/swe-worker-*.js
+public/swe-worker-*.js.map
+public/fallback-*.js
+public/fallback-*.js.map
 
 # IDE
 .idea/

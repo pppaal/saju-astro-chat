@@ -122,14 +122,14 @@ export function extractSpecialDayFactors(
   if (flags.hasSonEomneun) {
     sajuFactorKeys.push("sonEomneunDay");
     recommendationKeys.push("moving", "wedding", "business");
-    if (!categories.includes("general")) categories.push("general");
+    if (!categories.includes("general")) {categories.push("general");}
   }
 
   // 건록(建祿) 체크
   if (flags.hasGeonrok) {
     sajuFactorKeys.push("geonrokDay");
     recommendationKeys.push("career", "authority", "promotion");
-    if (!categories.includes("career")) categories.push("career");
+    if (!categories.includes("career")) {categories.push("career");}
   }
 
   // 삼재(三災) 체크
@@ -143,14 +143,14 @@ export function extractSpecialDayFactors(
     sajuFactorKeys.push("yeokmaDay");
     recommendationKeys.push("travel", "change", "interview");
     warningKeys.push("instability");
-    if (!categories.includes("travel")) categories.push("travel");
+    if (!categories.includes("travel")) {categories.push("travel");}
   }
 
   // 도화살(桃花殺) 체크
   if (yearBranch && isDohwaDay(yearBranch, ganzhiBranch)) {
     sajuFactorKeys.push("dohwaDay");
     recommendationKeys.push("dating", "socializing", "charm");
-    if (!categories.includes("love")) categories.push("love");
+    if (!categories.includes("love")) {categories.push("love");}
   }
 
   return { sajuFactorKeys, recommendationKeys, warningKeys, categories, titleKey, descKey };
@@ -167,7 +167,7 @@ export function extractShinsalFactors(
   const recommendationKeys: string[] = [];
   const warningKeys: string[] = [];
 
-  if (!shinsalActive) return { sajuFactorKeys, recommendationKeys, warningKeys };
+  if (!shinsalActive) {return { sajuFactorKeys, recommendationKeys, warningKeys };}
 
   for (const shinsal of shinsalActive) {
     const name = shinsal.name;
@@ -231,10 +231,10 @@ export function extractSipsinFactors(
   const warningKeys: string[] = [];
   const categories: EventCategory[] = [];
 
-  if (!dayMasterStem) return { sajuFactorKeys, recommendationKeys, warningKeys, categories };
+  if (!dayMasterStem) {return { sajuFactorKeys, recommendationKeys, warningKeys, categories };}
 
   const daySipsin = getSipsin(dayMasterStem, ganzhiStem);
-  if (!daySipsin) return { sajuFactorKeys, recommendationKeys, warningKeys, categories };
+  if (!daySipsin) {return { sajuFactorKeys, recommendationKeys, warningKeys, categories };}
 
   sajuFactorKeys.push(`sipsin_${daySipsin}`);
 
@@ -274,10 +274,10 @@ export function extractHiddenStemFactors(
 ): string[] {
   const sajuFactorKeys: string[] = [];
 
-  if (!relations) return sajuFactorKeys;
+  if (!relations) {return sajuFactorKeys;}
 
   const hiddenStems = JIJANGGAN[ganzhiBranch];
-  if (!hiddenStems) return sajuFactorKeys;
+  if (!hiddenStems) {return sajuFactorKeys;}
 
   const mainHiddenStem = hiddenStems.정기;
   const mainHiddenElement = STEM_TO_ELEMENT[mainHiddenStem];
@@ -367,7 +367,7 @@ export function extractBranchRelationFactors(
   let titleKey = "";
   let descKey = "";
 
-  if (!dayBranch) return { sajuFactorKeys, recommendationKeys, warningKeys, categories, titleKey, descKey };
+  if (!dayBranch) {return { sajuFactorKeys, recommendationKeys, warningKeys, categories, titleKey, descKey };}
 
   // 삼합 체크
   for (const [element, branches] of Object.entries(SAMHAP)) {
@@ -379,7 +379,7 @@ export function extractBranchRelationFactors(
           descKey = "calendar.samhapDesc";
         }
         recommendationKeys.push("bigDecision", "contract", "partnership");
-        if (!categories.includes("general")) categories.push("general");
+        if (!categories.includes("general")) {categories.push("general");}
       } else if (element === relations.controlledBy) {
         sajuFactorKeys.push("branchSamhapNegative");
         warningKeys.push("opposition");
@@ -499,7 +499,7 @@ export function extractRetrogradeFactors(
   const warningKeys: string[] = [];
   let removeRecs: string[] = [];
 
-  if (retrogradePlanets.length === 0) return { astroFactorKeys, warningKeys, removeRecs };
+  if (retrogradePlanets.length === 0) {return { astroFactorKeys, warningKeys, removeRecs };}
 
   for (const planet of retrogradePlanets) {
     astroFactorKeys.push(`retrograde${planet.charAt(0).toUpperCase() + planet.slice(1)}`);

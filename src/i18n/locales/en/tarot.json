@@ -1,0 +1,148 @@
+{
+  "tarot": {
+    "home": {
+      "title": "Mystical Tarot Reading",
+      "subtitle": "Gaze into the crystal ball and let the cards reveal your destiny",
+      "tapCrystal": "Tap the crystal ball to begin your journey",
+      "chooseTheme": "Choose your reading theme",
+      "tip": "Clear your mind and focus on your question before selecting cards"
+    },
+    "spread": {
+      "chooseSpread": "Choose a spread",
+      "backToHome": "Back to Tarot Home",
+      "cards": "cards"
+    },
+    "reading": {
+      "preparing": "Preparing cards...",
+      "invalidAccess": "Invalid access",
+      "backToHome": "Back to Home",
+      "choose": "Choose",
+      "cards": "cards",
+      "revealing": "Selection complete! Revealing your fate...",
+      "interpreting": "Reading the cards...",
+      "interpretingDesc": "Please wait a moment",
+      "pleaseWait": "This may take 20-30 seconds",
+      "redirecting": "Redirecting to Tarot...",
+      "redraw": "Redraw"
+    },
+    "results": {
+      "title": "Results",
+      "subtitle": "The cards speak",
+      "reversed": "Reversed",
+      "askAnother": "New Reading",
+      "startChat": "Start AI Consultation",
+      "clickToExpand": "▼ Click for more insights",
+      "clickToCollapse": "▲ Click to collapse",
+      "clickToReveal": "Click to reveal",
+      "detailedReadings": "Detailed Readings",
+      "card": "Card",
+      "defaultMessage": "The cards have revealed their wisdom to you.",
+      "defaultGuidance": "Trust your intuition as you reflect on these cards.",
+      "defaultAffirmation": "I am open to the wisdom of the universe."
+    },
+    "premium": {
+      "title": "Premium AI Tarot Consultation",
+      "desc": "Get personalized insights from our AI tarot master. Ask follow-up questions, explore deeper meanings, and receive guidance tailored just for you."
+    },
+    "insights": {
+      "aiInterpretation": "Deep Insight",
+      "spiritAnimal": "Spirit Animal",
+      "chakra": "Chakra Connection",
+      "shadowWork": "Shadow Work",
+      "combinations": "Card Combinations",
+      "guidance": "Guidance",
+      "affirmation": "Affirmation",
+      "followup": "Questions for Reflection",
+      "deepInsight": "Deep Insight",
+      "element": "Element"
+    },
+    "elements": {
+      "fire": "Fire",
+      "water": "Water",
+      "air": "Air",
+      "earth": "Earth"
+    },
+    "chat": {
+      "title": "Tarot Consultation",
+      "backToResults": "Back to Cards",
+      "placeholder": "Ask more about your cards...",
+      "send": "Send",
+      "thinking": "Interpreting the card's message...",
+      "empty": "Ask anything about your cards. E.g., 'What does this combination mean for my love life?'",
+      "error": "An error occurred. Please try again.",
+      "suggestedQuestions": "Suggested Questions",
+      "drawMore": "Draw More Cards",
+      "differentView": "Different View"
+    },
+    "deckSelect": {
+      "title": "Choose Your Deck Style",
+      "subtitle": "Select the aesthetic that resonates with your spirit"
+    },
+    "colorSelect": {
+      "start": "Begin Reading"
+    },
+    "card": {
+      "reversed": "Reversed",
+      "clickMore": "▼ Click for more",
+      "clickCollapse": "▲ Click to collapse"
+    },
+    "categories": {
+      "general-insight": "General Insight",
+      "love-relationships": "Love & Relationships",
+      "career-work": "Career & Work",
+      "money-finance": "Money & Finance",
+      "well-being-health": "Well-being & Health",
+      "spiritual-growth": "Spiritual Growth",
+      "decisions-crossroads": "Decisions & Crossroads",
+      "self-discovery": "Self-Discovery",
+      "daily-reading": "Daily Reading"
+    },
+    "spreads": {
+      "quick-reading": "Quick Reading",
+      "past-present-future": "Past, Present, Future",
+      "celtic-cross": "The Celtic Cross",
+      "relationship-check-in": "Relationship Check-in",
+      "relationship-cross": "Relationship Cross",
+      "finding-a-partner": "Finding a Partner",
+      "quick-guidance": "Quick Guidance",
+      "career-path": "Career Path",
+      "work-life-balance": "Work-Life Balance",
+      "financial-snapshot": "Financial Snapshot",
+      "abundance-path": "Abundance Path",
+      "career-money": "Career & Money",
+      "mind-body-scan": "Mind, Body, Spirit",
+      "healing-path": "Healing Path",
+      "energy-balance": "Energy Balance",
+      "inner-voice": "Inner Voice",
+      "shadow-work": "Shadow Work",
+      "path-of-growth": "Path of Growth",
+      "two-paths": "Two Paths",
+      "yes-no-why": "Yes/No + Why",
+      "timing-window": "Timing Window",
+      "identity-core": "Identity Core",
+      "shadow-integration": "Shadow Integration",
+      "day-card": "Day Card",
+      "three-times": "Three Times"
+    },
+    "positions": {
+      "core-insight": "Core Insight",
+      "the-past": "The Past",
+      "the-present": "The Present",
+      "the-future": "The Future",
+      "the-challenge": "The Challenge",
+      "above-conscious": "Above (Conscious)",
+      "below-subconscious": "Below (Subconscious)",
+      "advice": "Advice",
+      "external-influences": "External Influences",
+      "hopes-and-fears": "Hopes and Fears",
+      "the-outcome": "The Outcome",
+      "your-energy": "Your Energy",
+      "partners-energy": "Partner's Energy",
+      "the-connection": "The Connection",
+      "what-you-seek": "What You Seek",
+      "what-blocks-you": "What Blocks You",
+      "how-to-attract": "How to Attract",
+      "potential-partner": "Potential Partner"
+    }
+  }
+}

@@ -31,9 +31,9 @@ export default function LuckyNumbers() {
 
     // Core numbers
     numbers.add(lifePath);
-    if (expression) numbers.add(expression);
-    if (soulUrge) numbers.add(soulUrge);
-    if (personality) numbers.add(personality);
+    if (expression) {numbers.add(expression);}
+    if (soulUrge) {numbers.add(soulUrge);}
+    if (personality) {numbers.add(personality);}
 
     // Multiples and combinations
     const coreNums = [lifePath, expression, soulUrge, personality].filter(n => n) as number[];
@@ -42,13 +42,13 @@ export default function LuckyNumbers() {
       // Multiples within 1-45
       for (let i = 1; i <= 4; i++) {
         const multiple = num * i;
-        if (multiple <= 45) numbers.add(multiple);
+        if (multiple <= 45) {numbers.add(multiple);}
       }
 
       // Sum combinations
       coreNums.forEach(other => {
         const sum = num + other;
-        if (sum <= 45 && sum > 0) numbers.add(sum);
+        if (sum <= 45 && sum > 0) {numbers.add(sum);}
       });
     });
 

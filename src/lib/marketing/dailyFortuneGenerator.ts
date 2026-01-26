@@ -219,10 +219,10 @@ export async function generateDailyFortuneForSign(
 
   // 메시지 선택
   let messageCategory: keyof typeof FORTUNE_MESSAGES;
-  if (scores.overall >= 80) messageCategory = 'excellent';
-  else if (scores.overall >= 65) messageCategory = 'good';
-  else if (scores.overall >= 50) messageCategory = 'normal';
-  else messageCategory = 'caution';
+  if (scores.overall >= 80) {messageCategory = 'excellent';}
+  else if (scores.overall >= 65) {messageCategory = 'good';}
+  else if (scores.overall >= 50) {messageCategory = 'normal';}
+  else {messageCategory = 'caution';}
 
   const messageIndex = Math.floor(seededRandom(seed + 8) * FORTUNE_MESSAGES[messageCategory].length);
   const message = FORTUNE_MESSAGES[messageCategory][messageIndex];

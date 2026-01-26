@@ -29,7 +29,7 @@ export function IljinCalendar({ iljinData, year, month }: IljinCalendarProps) {
 
   const keyOf = (Y: number, M: number, D: number) => `${Number(Y)}-${Number(M)}-${Number(D)}`;
   const iljinMap = new Map<string, IljinData>();
-  for (const d of iljinData) iljinMap.set(keyOf(d.year, d.month, d.day), d);
+  for (const d of iljinData) {iljinMap.set(keyOf(d.year, d.month, d.day), d);}
 
   const calendarDays: React.ReactNode[] = [];
 

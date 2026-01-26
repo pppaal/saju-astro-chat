@@ -312,7 +312,7 @@ export function isKeyboardAccessible(element: {
   role?: string;
   disabled?: boolean;
 }): boolean {
-  if (element.disabled) return false;
+  if (element.disabled) {return false;}
 
   const interactiveRoles = new Set([
     'button',
@@ -432,7 +432,7 @@ export function generateAccessibilityReport(checks: {
         passes: result.passesAA,
       });
       totalChecks++;
-      if (!result.passesAA) failedChecks++;
+      if (!result.passesAA) {failedChecks++;}
     });
   }
 

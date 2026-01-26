@@ -54,7 +54,7 @@ export class StreamProcessor {
     try {
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {break;}
 
         const chunk = this.decoder.decode(value, { stream: true });
         const parsed = this.parseSSEChunk(chunk);

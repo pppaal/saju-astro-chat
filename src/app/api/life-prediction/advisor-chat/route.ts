@@ -89,9 +89,9 @@ async function fetchRagContext(
     const ragContext = (response.data as RagContextResponse)?.rag_context || {};
 
     const parts: string[] = [];
-    if (ragContext.sipsin) parts.push(ragContext.sipsin);
-    if (ragContext.timing) parts.push(ragContext.timing);
-    if (ragContext.query_result) parts.push(ragContext.query_result);
+    if (ragContext.sipsin) {parts.push(ragContext.sipsin);}
+    if (ragContext.timing) {parts.push(ragContext.timing);}
+    if (ragContext.query_result) {parts.push(ragContext.query_result);}
 
     return {
       context: parts.join('\n\n') || fallbackContext.context,
@@ -116,7 +116,7 @@ function buildFallbackContext(sipsin?: string, eventType?: string): { context: s
       '건강': '건강운은 일간의 강약과 오행 균형을 봅니다.',
       '이사/부동산': '부동산운은 인성과 재성의 관계가 핵심입니다.',
     };
-    if (eventTips[eventType]) tips.push(eventTips[eventType]);
+    if (eventTips[eventType]) {tips.push(eventTips[eventType]);}
   }
 
   if (sipsin) {
@@ -139,7 +139,7 @@ async function fetchTherapeuticQuestions(
       user_message: userMessage,
     }, { timeout: 5000 });
 
-    if (!response.ok) return [];
+    if (!response.ok) {return [];}
 
     const data = response.data as TherapeuticQuestionsResponse;
     return data?.rag_questions || (data?.question ? [data.question] : []);
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
     const { error } = await initializeApiContext(request, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     const body: ChatRequest = await request.json();
     const { message, context, history, locale, sessionId } = body;

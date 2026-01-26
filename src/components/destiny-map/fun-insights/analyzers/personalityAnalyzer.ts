@@ -178,10 +178,10 @@ const moonStressResponse: Record<string, { ko: string; en: string }> = {
  */
 function getDominantSibsin(saju: SajuData | undefined): string | null {
   const sibsinDist = saju?.advancedAnalysis?.sibsin?.sibsinDistribution;
-  if (!sibsinDist || typeof sibsinDist !== 'object') return null;
+  if (!sibsinDist || typeof sibsinDist !== 'object') {return null;}
 
   const entries = Object.entries(sibsinDist) as [string, number][];
-  if (entries.length === 0) return null;
+  if (entries.length === 0) {return null;}
 
   // 가장 높은 비율의 십신 찾기
   const sorted = entries.sort(([, a], [, b]) => b - a);
@@ -206,10 +206,10 @@ function getAscendant(astro: AstroData | undefined): string | null {
  * 애스펙트에서 행성 이름 추출 (문자열 또는 객체 형태 모두 지원)
  */
 function getAspectPlanetName(value: unknown): string {
-  if (typeof value === 'string') return value.toLowerCase();
+  if (typeof value === 'string') {return value.toLowerCase();}
   if (value && typeof value === 'object' && 'name' in value) {
     const name = (value as { name?: unknown }).name;
-    if (typeof name === 'string') return name.toLowerCase();
+    if (typeof name === 'string') {return name.toLowerCase();}
   }
   return '';
 }
@@ -218,7 +218,7 @@ function getAspectPlanetName(value: unknown): string {
  * 태양-달 애스펙트 찾기
  */
 function getSunMoonAspect(astro: AstroData | undefined): string | null {
-  if (!astro?.aspects) return null;
+  if (!astro?.aspects) {return null;}
 
   const sunMoon = astro.aspects.find(a => {
     const fromName = getAspectPlanetName(a.from);
@@ -241,17 +241,17 @@ function getMercurySign(astro: AstroData | undefined): string | null {
  * 별자리를 원소로 변환
  */
 function getSignElement(sign: string | null): string | null {
-  if (!sign) return null;
+  if (!sign) {return null;}
 
   const fireSign = ['aries', 'leo', 'sagittarius'];
   const earthSign = ['taurus', 'virgo', 'capricorn'];
   const airSign = ['gemini', 'libra', 'aquarius'];
   const waterSign = ['cancer', 'scorpio', 'pisces'];
 
-  if (fireSign.includes(sign)) return 'fire';
-  if (earthSign.includes(sign)) return 'earth';
-  if (airSign.includes(sign)) return 'air';
-  if (waterSign.includes(sign)) return 'water';
+  if (fireSign.includes(sign)) {return 'fire';}
+  if (earthSign.includes(sign)) {return 'earth';}
+  if (airSign.includes(sign)) {return 'air';}
+  if (waterSign.includes(sign)) {return 'water';}
   return null;
 }
 
@@ -259,13 +259,13 @@ function getSignElement(sign: string | null): string | null {
  * 두 원소의 갈등 유형 찾기
  */
 function getElementConflict(el1: string | null, el2: string | null): string | null {
-  if (!el1 || !el2 || el1 === el2) return null;
+  if (!el1 || !el2 || el1 === el2) {return null;}
 
   const key1 = `${el1}-${el2}`;
   const key2 = `${el2}-${el1}`;
 
-  if (elementConflicts[key1]) return key1;
-  if (elementConflicts[key2]) return key2;
+  if (elementConflicts[key1]) {return key1;}
+  if (elementConflicts[key2]) {return key2;}
   return null;
 }
 
@@ -277,7 +277,7 @@ export function getPersonalityAnalysis(
   const isKo = lang === "ko";
   const dayMasterName = extractDayMaster(saju);
 
-  if (!dayMasterName) return null;
+  if (!dayMasterName) {return null;}
 
   const dmBase = dayMasterPersonalityTraits[dayMasterName] || dayMasterPersonalityTraits["갑"];
 

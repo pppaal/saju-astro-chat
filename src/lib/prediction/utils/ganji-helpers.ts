@@ -50,7 +50,7 @@ export function findDaeunForAge(
   daeunList: DaeunCycle[] | undefined,
   age: number
 ): DaeunCycle | undefined {
-  if (!daeunList || daeunList.length === 0) return undefined;
+  if (!daeunList || daeunList.length === 0) {return undefined;}
 
   return daeunList.find(d => {
     // Check if age is within daeun range
@@ -72,8 +72,8 @@ export function findDaeunForAge(
 export function getDaeunGanji(
   daeun: DaeunCycle | undefined
 ): { stem: string; branch: string } | undefined {
-  if (!daeun) return undefined;
-  if (!daeun.heavenlyStem || !daeun.earthlyBranch) return undefined;
+  if (!daeun) {return undefined;}
+  if (!daeun.heavenlyStem || !daeun.earthlyBranch) {return undefined;}
 
   return {
     stem: daeun.heavenlyStem,

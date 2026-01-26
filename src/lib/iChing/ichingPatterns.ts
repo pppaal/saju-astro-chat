@@ -165,7 +165,7 @@ function reverseBinary(binary: string): string {
 
 function findHexByBinary(binary: string): number {
   for (const [num, data] of Object.entries(HEXAGRAM_DATA)) {
-    if (data.binary === binary) return Number(num);
+    if (data.binary === binary) {return Number(num);}
   }
   return 0;
 }
@@ -242,13 +242,13 @@ export function analyzeSequencePosition(hexNum: number): SequenceAnalysis {
 
   // 라이프사이클 단계
   let lifecycleStage: string;
-  if (hexNum <= 10) lifecycleStage = '시작과 기초';
-  else if (hexNum <= 20) lifecycleStage = '성장과 발전';
-  else if (hexNum <= 30) lifecycleStage = '완성과 전환';
-  else if (hexNum <= 40) lifecycleStage = '관계와 조화';
-  else if (hexNum <= 50) lifecycleStage = '변혁과 정립';
-  else if (hexNum <= 60) lifecycleStage = '성숙과 안정';
-  else lifecycleStage = '완성과 새 시작';
+  if (hexNum <= 10) {lifecycleStage = '시작과 기초';}
+  else if (hexNum <= 20) {lifecycleStage = '성장과 발전';}
+  else if (hexNum <= 30) {lifecycleStage = '완성과 전환';}
+  else if (hexNum <= 40) {lifecycleStage = '관계와 조화';}
+  else if (hexNum <= 50) {lifecycleStage = '변혁과 정립';}
+  else if (hexNum <= 60) {lifecycleStage = '성숙과 안정';}
+  else {lifecycleStage = '완성과 새 시작';}
 
   return {
     position: hexNum,
@@ -518,7 +518,7 @@ export function findHexagramsByPattern(pattern: string): PatternMatch {
 }
 
 function matchesPattern(binary: string, pattern: string): boolean {
-  if (pattern.length !== 6) return false;
+  if (pattern.length !== 6) {return false;}
 
   for (let i = 0; i < 6; i++) {
     if (pattern[i] !== '?' && pattern[i] !== binary[i]) {
@@ -532,17 +532,17 @@ function getPatternSignificance(pattern: string): string {
   const yangCount = (pattern.match(/1/g) || []).length;
   const yinCount = (pattern.match(/0/g) || []).length;
 
-  if (pattern === '111111') return '순양의 극강한 창조력';
-  if (pattern === '000000') return '순음의 극대한 수용력';
-  if (yangCount === yinCount) return '음양 균형의 조화';
-  if (yangCount > yinCount) return '양기 우세의 진취성';
+  if (pattern === '111111') {return '순양의 극강한 창조력';}
+  if (pattern === '000000') {return '순음의 극대한 수용력';}
+  if (yangCount === yinCount) {return '음양 균형의 조화';}
+  if (yangCount > yinCount) {return '양기 우세의 진취성';}
   return '음기 우세의 수용성';
 }
 
 function getPatternRarity(count: number): PatternMatch['rarity'] {
-  if (count === 1) return 'very_rare';
-  if (count <= 4) return 'rare';
-  if (count <= 10) return 'uncommon';
+  if (count === 1) {return 'very_rare';}
+  if (count <= 4) {return 'rare';}
+  if (count <= 10) {return 'uncommon';}
   return 'common';
 }
 
@@ -583,7 +583,7 @@ export function analyzeHexagramRelationship(hex1: number, hex2: number): {
   // 유사도 계산
   let sameCount = 0;
   for (let i = 0; i < 6; i++) {
-    if (data1.binary[i] === data2.binary[i]) sameCount++;
+    if (data1.binary[i] === data2.binary[i]) {sameCount++;}
   }
   const similarity = (sameCount / 6) * 100;
 

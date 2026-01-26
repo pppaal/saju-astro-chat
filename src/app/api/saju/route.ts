@@ -160,7 +160,7 @@ const rawShinsal = getShinsalHits(sajuPillars, {
       const display = (['chogi', 'junggi', 'jeonggi'] as const)
         .map((k) => {
           const it = jgObj[k];
-          if (!it?.name) return '';
+          if (!it?.name) {return '';}
           const han = it.name; // hanja
           const sib = it.sibsin ? `(${it.sibsin})` : '';
           return `${han}${sib}`;

@@ -28,7 +28,7 @@ export default function FortuneGraph({
 }: FortuneGraphProps) {
   const { locale } = useI18n();
 
-  if (fortuneData.length === 0) return null;
+  if (fortuneData.length === 0) {return null;}
 
   return (
     <div className={styles.fortuneGraph}>

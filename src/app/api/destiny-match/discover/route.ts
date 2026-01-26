@@ -32,7 +32,7 @@ function calculateDistance(
 
 // 나이 계산
 function calculateAge(birthDate: string | null): number | null {
-  if (!birthDate) return null;
+  if (!birthDate) {return null;}
   const birth = new Date(birthDate);
   const today = new Date();
   let age = today.getFullYear() - birth.getFullYear();
@@ -149,22 +149,22 @@ export async function GET(req: NextRequest) {
       // 나이 필터 (양방향)
       const age = calculateAge(profile.user.birthDate);
       if (age !== null) {
-        if (age < myProfile.ageMin || age > myProfile.ageMax) return false;
+        if (age < myProfile.ageMin || age > myProfile.ageMax) {return false;}
         if (myAge !== null) {
-          if (myAge < profile.ageMin || myAge > profile.ageMax) return false;
+          if (myAge < profile.ageMin || myAge > profile.ageMax) {return false;}
         }
       }
 
       // 성별 필터 (양방향)
       if (profile.genderPreference !== 'all') {
-        if (profile.genderPreference !== myProfile.user.gender) return false;
+        if (profile.genderPreference !== myProfile.user.gender) {return false;}
       }
 
       // 도시 필터 (case-insensitive)
       if (myProfile.city && profile.city) {
         const myCity = myProfile.city.toLowerCase().trim();
         const theirCity = profile.city.toLowerCase().trim();
-        if (myCity !== theirCity) return false;
+        if (myCity !== theirCity) {return false;}
       }
 
       // 거리 필터
@@ -180,7 +180,7 @@ export async function GET(req: NextRequest) {
           profile.latitude,
           profile.longitude
         );
-        if (distance > myProfile.maxDistance) return false;
+        if (distance > myProfile.maxDistance) {return false;}
       }
 
       return true;
@@ -278,8 +278,8 @@ export async function GET(req: NextRequest) {
       const sajuElement = getSajuElement(profile.user.birthDate);
 
       // 필터 적용
-      if (zodiacFilter && zodiacSign !== zodiacFilter) continue;
-      if (elementFilter && sajuElement !== elementFilter) continue;
+      if (zodiacFilter && zodiacSign !== zodiacFilter) {continue;}
+      if (elementFilter && sajuElement !== elementFilter) {continue;}
 
       results.push({
         id: profile.id,
@@ -305,7 +305,7 @@ export async function GET(req: NextRequest) {
         lastActiveAt: profile.lastActiveAt,
       });
 
-      if (results.length >= limit) break;
+      if (results.length >= limit) {break;}
     }
 
     // 궁합 점수 기준 정렬
@@ -326,7 +326,7 @@ export async function GET(req: NextRequest) {
 
 // 간단한 별자리 계산
 function getZodiacSign(birthDate: string | null): string | null {
-  if (!birthDate) return null;
+  if (!birthDate) {return null;}
 
   const date = new Date(birthDate);
   const month = date.getMonth() + 1;
@@ -362,7 +362,7 @@ function getZodiacSign(birthDate: string | null): string | null {
 
 // 간단한 사주 오행 (년도 기반)
 function getSajuElement(birthDate: string | null): string | null {
-  if (!birthDate) return null;
+  if (!birthDate) {return null;}
 
   const year = new Date(birthDate).getFullYear();
   const stemIndex = (year - 4) % 10;

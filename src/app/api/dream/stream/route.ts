@@ -58,7 +58,7 @@ const MAX_TIMEZONE_LEN = 64;
 // cleanStringArray and isRecord imported from @/lib/api
 
 function sanitizeBirth(raw: unknown) {
-  if (!isRecord(raw)) return undefined;
+  if (!isRecord(raw)) {return undefined;}
   const date = typeof raw.date === "string" && DATE_RE.test(raw.date) ? raw.date : undefined;
   const time = typeof raw.time === "string" && TIME_RE.test(raw.time) ? raw.time : undefined;
   const timezone = typeof raw.timezone === "string" ? raw.timezone.trim().slice(0, MAX_TIMEZONE_LEN) : undefined;
@@ -88,10 +88,10 @@ export async function POST(req: NextRequest) {
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     const oversized = enforceBodySize(req, MAX_STREAM_BODY);
-    if (oversized) return oversized;
+    if (oversized) {return oversized;}
 
     const body = (await req.json().catch(() => null)) as Partial<StreamDreamRequest> | null;
     if (!body || typeof body !== "object") {

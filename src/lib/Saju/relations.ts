@@ -314,12 +314,12 @@ function analyzeGongmang(
   } else {
     // basic 모드: 일간/연간의 천간으로 공망 계산
     let baseStem = dayMasterStem ?? p.day.heavenlyStem;
-    if (policy === 'yearPillar-basic') baseStem = p.year.heavenlyStem;
+    if (policy === 'yearPillar-basic') {baseStem = p.year.heavenlyStem;}
     const idx = stemIndex(baseStem);
-    if (idx >= 0) gm = GONGMANG_BY_STEM_INDEX[idx];
+    if (idx >= 0) {gm = GONGMANG_BY_STEM_INDEX[idx];}
   }
 
-  if (!gm) return hits;
+  if (!gm) {return hits;}
   const [b1, b2] = gm;
 
   const map: Array<[PillarKind, string]> = [

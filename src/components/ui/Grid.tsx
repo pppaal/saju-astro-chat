@@ -13,7 +13,7 @@ export default function Grid({ children, columns, gap, className }: GridProps) {
   if (columns) {
     style.gridTemplateColumns = typeof columns === "number" ? `repeat(${columns}, minmax(0, 1fr))` : columns;
   }
-  if (gap) style.gap = gap;
+  if (gap) {style.gap = gap;}
 
   const merged = className ? `${styles.grid} ${className}` : styles.grid;
   return (

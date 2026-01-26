@@ -131,7 +131,7 @@ export const HEXAGRAM_NAMES_KO: Record<number, string> = {
  */
 export function findHexagramNumberByBinary(binary: string): number | null {
   for (const [num, bin] of Object.entries(HEXAGRAM_BINARY_MAP)) {
-    if (bin === binary) return parseInt(num);
+    if (bin === binary) {return parseInt(num);}
   }
   return null;
 }

@@ -19,7 +19,7 @@ export function analyzeLoveMatrix(
 ): LoveMatrixResult | null {
   const isKo = lang === 'ko';
 
-  if (!saju && !astro) return null;
+  if (!saju && !astro) {return null;}
 
   // 1. 신살-행성 분석 (사랑 관련: 도화, 홍염살 중심)
   const loveShinsals: ShinsalKind[] = ['도화', '홍염살', '천을귀인', '월덕귀인', '반안'];

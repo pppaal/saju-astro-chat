@@ -39,7 +39,7 @@ const TIME_PERIODS = [
 
 // Helper to parse initial date
 function parseInitialDate(dateStr?: string) {
-  if (!dateStr) return { year: '', month: '', day: '' };
+  if (!dateStr) {return { year: '', month: '', day: '' };}
   const parts = dateStr.split('-');
   if (parts.length === 3) {
     return { year: parts[0], month: parts[1], day: parts[2] };
@@ -49,20 +49,20 @@ function parseInitialDate(dateStr?: string) {
 
 // Helper to find time period from time string
 function findTimePeriodFromTime(timeStr?: string): string {
-  if (!timeStr) return 'unknown';
+  if (!timeStr) {return 'unknown';}
   const [hours] = timeStr.split(':').map(Number);
-  if (hours >= 23 || hours < 1) return 'ja';
-  if (hours >= 1 && hours < 3) return 'chuk';
-  if (hours >= 3 && hours < 5) return 'in';
-  if (hours >= 5 && hours < 7) return 'myo';
-  if (hours >= 7 && hours < 9) return 'jin';
-  if (hours >= 9 && hours < 11) return 'sa';
-  if (hours >= 11 && hours < 13) return 'o';
-  if (hours >= 13 && hours < 15) return 'mi';
-  if (hours >= 15 && hours < 17) return 'sin';
-  if (hours >= 17 && hours < 19) return 'yu';
-  if (hours >= 19 && hours < 21) return 'sul';
-  if (hours >= 21 && hours < 23) return 'hae';
+  if (hours >= 23 || hours < 1) {return 'ja';}
+  if (hours >= 1 && hours < 3) {return 'chuk';}
+  if (hours >= 3 && hours < 5) {return 'in';}
+  if (hours >= 5 && hours < 7) {return 'myo';}
+  if (hours >= 7 && hours < 9) {return 'jin';}
+  if (hours >= 9 && hours < 11) {return 'sa';}
+  if (hours >= 11 && hours < 13) {return 'o';}
+  if (hours >= 13 && hours < 15) {return 'mi';}
+  if (hours >= 15 && hours < 17) {return 'sin';}
+  if (hours >= 17 && hours < 19) {return 'yu';}
+  if (hours >= 19 && hours < 21) {return 'sul';}
+  if (hours >= 21 && hours < 23) {return 'hae';}
   return 'unknown';
 }
 
@@ -83,7 +83,7 @@ function generateMonthOptions() {
 
 // Generate day options based on year and month
 function generateDayOptions(year: number, month: number) {
-  if (!year || !month) return Array.from({ length: 31 }, (_, i) => i + 1);
+  if (!year || !month) {return Array.from({ length: 31 }, (_, i) => i + 1);}
   const daysInMonth = new Date(year, month, 0).getDate();
   return Array.from({ length: daysInMonth }, (_, i) => i + 1);
 }
@@ -108,7 +108,7 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
 
   // Load profile from API
   const handleLoadProfile = useCallback(async () => {
-    if (status !== 'authenticated') return;
+    if (status !== 'authenticated') {return;}
 
     setLoadingProfile(true);
     setLoadError(null);
@@ -166,7 +166,7 @@ export function BirthInfoForm({ onSubmit, locale = 'ko', initialData }: BirthInf
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isDateValid) return;
+    if (!isDateValid) {return;}
 
     onSubmit({
       birthDate,

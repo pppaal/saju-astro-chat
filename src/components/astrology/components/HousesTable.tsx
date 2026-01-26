@@ -9,7 +9,7 @@ interface HousesTableProps {
 }
 
 export default function HousesTable({ houses, locKey }: HousesTableProps) {
-  if (!houses?.length) return null;
+  if (!houses?.length) {return null;}
 
   const L = LABELS[locKey];
 

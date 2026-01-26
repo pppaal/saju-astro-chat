@@ -60,7 +60,7 @@ function getHiddenSelfAnalysis(
     isKo ? 'ko' : 'en'
   );
 
-  if (!shadowBase && !saju && !astro) return null;
+  if (!shadowBase && !saju && !astro) {return null;}
 
   const dayElement = saju?.dayMaster?.element || 'wood';
 
@@ -207,9 +207,9 @@ function getHiddenSelfAnalysis(
 
   // 그림자 점수 계산
   let shadowScore = 50;
-  if (shadowBase?.lilithShadow) shadowScore += 15;
-  if (shadowBase?.hiddenPotential) shadowScore += 10;
-  if (specialShinsalList.length > 0) shadowScore += specialShinsalList.length * 5;
+  if (shadowBase?.lilithShadow) {shadowScore += 15;}
+  if (shadowBase?.hiddenPotential) {shadowScore += 10;}
+  if (specialShinsalList.length > 0) {shadowScore += specialShinsalList.length * 5;}
   shadowScore = Math.min(shadowScore, 100);
 
   const shadowMessage = {

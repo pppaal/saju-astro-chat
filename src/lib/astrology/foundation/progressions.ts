@@ -61,7 +61,7 @@ export async function calculateSecondaryProgressions(
   // 진행된 행성 위치 계산
   const planets: PlanetBase[] = Object.entries(PLANET_LIST).map(([name, planetId]) => {
     const res = swisseph.swe_calc_ut(progressedJD, planetId, SW_FLAGS);
-    if ("error" in res) throw new Error(`Progression calc error for ${name}: ${res.error}`);
+    if ("error" in res) {throw new Error(`Progression calc error for ${name}: ${res.error}`);}
 
     const longitude = res.longitude;
     const info = formatLongitude(longitude);
@@ -97,7 +97,7 @@ export async function calculateSecondaryProgressions(
 }
 
 function hasValidNatalInput(natal: Partial<NatalInput> | undefined): natal is NatalInput {
-  if (!natal) return false;
+  if (!natal) {return false;}
   return [
     natal.year,
     natal.month,
@@ -171,10 +171,10 @@ export async function calculateSolarArcDirections(
   // Secondary Progression으로 태양의 진행 위치 계산
   const progressedJD = natalJD + yearsProgressed; // 1일 = 1년
   const progressedSunRes = swisseph.swe_calc_ut(progressedJD, swisseph.SE_SUN, SW_FLAGS);
-  if ("error" in progressedSunRes) throw new Error(`Solar Arc Sun error: ${progressedSunRes.error}`);
+  if ("error" in progressedSunRes) {throw new Error(`Solar Arc Sun error: ${progressedSunRes.error}`);}
 
   const natalSunRes = swisseph.swe_calc_ut(natalJD, swisseph.SE_SUN, SW_FLAGS);
-  if ("error" in natalSunRes) throw new Error(`Natal Sun error: ${natalSunRes.error}`);
+  if ("error" in natalSunRes) {throw new Error(`Natal Sun error: ${natalSunRes.error}`);}
 
   // Solar Arc = 진행된 태양 - 출생 태양
   const solarArc = normalize360(progressedSunRes.longitude - natalSunRes.longitude);
@@ -185,7 +185,7 @@ export async function calculateSolarArcDirections(
   // 모든 행성에 Solar Arc 적용
   const planets: PlanetBase[] = Object.entries(PLANET_LIST).map(([name, planetId]) => {
     const natalRes = swisseph.swe_calc_ut(natalJD, planetId, SW_FLAGS);
-    if ("error" in natalRes) throw new Error(`Solar Arc calc error for ${name}: ${natalRes.error}`);
+    if ("error" in natalRes) {throw new Error(`Solar Arc calc error for ${name}: ${natalRes.error}`);}
 
     // Solar Arc Direction: 출생 위치 + Solar Arc
     const directedLon = normalize360(natalRes.longitude + solarArc);
@@ -229,13 +229,13 @@ export async function calculateSolarArcDirections(
  */
 export function getProgressedMoonPhase(progressedMoonLon: number, sunLon: number) {
   const angle = normalize360(progressedMoonLon - sunLon);
-  if (angle <= 45) return "New/Waxing Crescent";
-  if (angle <= 90) return "First Quarter";
-  if (angle <= 135) return "Waxing Gibbous";
-  if (angle <= 180) return "Full Moon";
-  if (angle <= 225) return "Waning Gibbous";
-  if (angle <= 270) return "Last Quarter";
-  if (angle <= 315) return "Waning Crescent";
+  if (angle <= 45) {return "New/Waxing Crescent";}
+  if (angle <= 90) {return "First Quarter";}
+  if (angle <= 135) {return "Waxing Gibbous";}
+  if (angle <= 180) {return "Full Moon";}
+  if (angle <= 225) {return "Waning Gibbous";}
+  if (angle <= 270) {return "Last Quarter";}
+  if (angle <= 315) {return "Waning Crescent";}
   return "Dark Moon";
 }
 
@@ -298,7 +298,7 @@ export function findProgressedMoonAspects(
   natal: Chart
 ): { target: string; angle: number }[] {
   const moon = progressed.planets.find(p => p.name === "Moon");
-  if (!moon) return [];
+  if (!moon) {return [];}
 
   return natal.planets.map(p => {
     const diff = normalize360(moon.longitude - p.longitude);

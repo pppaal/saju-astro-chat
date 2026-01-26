@@ -65,7 +65,7 @@ export function getTimingOverlayAnalysis(
   const isKo = lang === 'ko';
   const results: TimingOverlayResult[] = [];
 
-  if (!saju && !astro) return results;
+  if (!saju && !astro) {return results;}
 
   const extSaju = saju as ExtendedSajuData | undefined;
 

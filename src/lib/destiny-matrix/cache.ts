@@ -135,7 +135,7 @@ export function hashMatrixInput(input: MatrixCalculationInput): string {
  * Sort object keys for deterministic hashing
  */
 function sortObjectKeys<T extends Record<string, unknown>>(obj: T): T {
-  if (!obj || typeof obj !== 'object') return obj;
+  if (!obj || typeof obj !== 'object') {return obj;}
 
   const sorted = Object.keys(obj)
     .sort()

@@ -216,11 +216,11 @@ function calculateYearImpact(
   const huisin = calculateHuisin(profile, yongsin);
   const dm = normalizeElement(profile.dayMaster.element);
 
-  if (yearElement === yongsin) return 'very_favorable';
-  if (yearElement === huisin) return 'favorable';
-  if (areElementsHarmonious(yearElement, dm)) return 'favorable';
-  if (areElementsClashing(yearElement, dm)) return 'challenging';
-  if (yearElement === dm) return 'neutral';
+  if (yearElement === yongsin) {return 'very_favorable';}
+  if (yearElement === huisin) {return 'favorable';}
+  if (areElementsHarmonious(yearElement, dm)) {return 'favorable';}
+  if (areElementsClashing(yearElement, dm)) {return 'challenging';}
+  if (yearElement === dm) {return 'neutral';}
 
   return 'neutral';
 }

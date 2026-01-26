@@ -85,7 +85,7 @@ export const PersonCard: React.FC<PersonCardProps> = React.memo(({
         </div>
         <CityAutocompleteField id={`city-${idx}`} value={person.cityQuery} suggestions={person.suggestions} showDropdown={person.showDropdown} locale={locale}
           onChange={(val) => { onSetPersons((prev) => { const next = [...prev]; next[idx] = { ...next[idx], cityQuery: val, lat: null, lon: null }; return next; }); }}
-          onFocus={() => { if (person.lat === null) onUpdatePerson(idx, 'showDropdown', true); }}
+          onFocus={() => { if (person.lat === null) {onUpdatePerson(idx, 'showDropdown', true);} }}
           onBlur={() => setTimeout(() => onUpdatePerson(idx, 'showDropdown', false), 200)}
           onSelect={(city) => onPickCity(idx, city)} t={t}
         />

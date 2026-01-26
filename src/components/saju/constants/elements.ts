@@ -55,7 +55,7 @@ export const BRANCH_ELEMENT: Record<string, ElementEN> = {
  * 천간/지지 글자에서 오행 추출
  */
 export function getElementOfChar(ch: string): ElementEN | null {
-  if (STEM_ELEMENT[ch]) return STEM_ELEMENT[ch];
-  if (BRANCH_ELEMENT[ch]) return BRANCH_ELEMENT[ch];
+  if (STEM_ELEMENT[ch]) {return STEM_ELEMENT[ch];}
+  if (BRANCH_ELEMENT[ch]) {return BRANCH_ELEMENT[ch];}
   return null;
 }

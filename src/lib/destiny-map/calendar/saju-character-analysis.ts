@@ -289,7 +289,7 @@ export function analyzeYongsin(
       negative: false,
     };
 
-    if (!yongsin?.primary) return result;
+    if (!yongsin?.primary) {return result;}
 
     // 1단계: 용신 오행 정규화 (한글 → 영문)
     const primaryYongsin =
@@ -416,12 +416,12 @@ export function analyzeGeokguk(
       negative: false,
     };
 
-    if (!geokguk?.type || !pillars?.day?.stem) return result;
+    if (!geokguk?.type || !pillars?.day?.stem) {return result;}
 
     const dayMasterStem = pillars.day.stem;
     const preferences = GEOKGUK_PREFERENCES[geokguk.type as keyof typeof GEOKGUK_PREFERENCES];
 
-    if (!preferences) return result;
+    if (!preferences) {return result;}
 
     // 1단계: 일진 천간의 십신 계산
     const daySipsin = getSipsin(dayMasterStem, ganzhi.stem);
@@ -536,7 +536,7 @@ export function analyzeSolarReturn(
       daysFromBirthday: 999,
     };
 
-    if (!birthMonth || !birthDay) return result;
+    if (!birthMonth || !birthDay) {return result;}
 
     const currentMonth = date.getMonth() + 1;
     const currentDay = date.getDate();
@@ -650,7 +650,7 @@ export function analyzeProgressions(
       currentPhase: '',
     };
 
-    if (!birthYear) return result;
+    if (!birthYear) {return result;}
 
     const currentYear = date.getFullYear();
     const age = currentYear - birthYear;

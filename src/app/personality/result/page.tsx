@@ -171,7 +171,7 @@ export default function ResultPage() {
 
   const analysis: PersonaAnalysis | null = useMemo(() => {
     const hasAnswers = Object.keys(answers).length > 0;
-    if (!hasAnswers) return null;
+    if (!hasAnswers) {return null;}
     try {
       return analyzePersona(answers, locale);
     } catch {
@@ -180,7 +180,7 @@ export default function ResultPage() {
   }, [answers, locale]);
 
   const handleSaveResult = useCallback(async () => {
-    if (!analysis) return;
+    if (!analysis) {return;}
 
     if (authStatus !== 'authenticated') {
       router.push(buildSignInUrl('/personality/result'));
@@ -271,7 +271,7 @@ export default function ResultPage() {
   const avatarSrc = analysis ? `/images/persona/${analysis.typeCode}_${gender}.gif` : null;
 
   const handleDownload = useCallback(() => {
-    if (!analysis) return;
+    if (!analysis) {return;}
     const payload = {
       answers,
       typeCode: analysis.typeCode,
@@ -290,11 +290,11 @@ export default function ResultPage() {
 
   // Generate share card image
   const generateShareCard = useCallback(async (): Promise<Blob | null> => {
-    if (!analysis) return null;
+    if (!analysis) {return null;}
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
+    if (!ctx) {return null;}
 
     canvas.width = 1200;
     canvas.height = 630;
@@ -467,7 +467,7 @@ export default function ResultPage() {
   }, [analysis, locale]);
 
   const handleShare = useCallback(async () => {
-    if (!analysis) return;
+    if (!analysis) {return;}
 
     try {
       // Try to generate and share image

@@ -186,7 +186,7 @@ export default function ICPResultPage() {
 
   const analysis: ICPAnalysis | null = useMemo(() => {
     const hasAnswers = Object.keys(answers).length > 0;
-    if (!hasAnswers) return null;
+    if (!hasAnswers) {return null;}
     try {
       return analyzeICP(answers, locale);
     } catch (error) {
@@ -228,7 +228,7 @@ export default function ICPResultPage() {
 
   // 운명 기반 조언 생성
   const handleGenerateDestinyAdvice = useCallback(async () => {
-    if (!birthDate || !analysis) return;
+    if (!birthDate || !analysis) {return;}
 
     setDestinyAdvice(prev => ({ ...prev, isLoading: true }));
 
@@ -269,7 +269,7 @@ export default function ICPResultPage() {
   }, [birthDate, birthTime, analysis]);
 
   const handleSaveResult = async () => {
-    if (!analysis) return;
+    if (!analysis) {return;}
 
     if (authStatus !== 'authenticated') {
       router.push(buildSignInUrl('/icp/result'));
@@ -317,7 +317,7 @@ export default function ICPResultPage() {
   };
 
   const handleDownload = () => {
-    if (!analysis) return;
+    if (!analysis) {return;}
     const payload = {
       answers,
       primaryStyle: analysis.primaryStyle,
@@ -337,7 +337,7 @@ export default function ICPResultPage() {
   };
 
   const handleShare = async () => {
-    if (!analysis) return;
+    if (!analysis) {return;}
 
     const summary = isKo ? analysis.summaryKo : analysis.summary;
     const styleName = isKo ? analysis.primaryOctant.korean : analysis.primaryOctant.name;

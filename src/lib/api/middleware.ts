@@ -98,9 +98,9 @@ export function extractLocale(req: Request): string {
   const acceptLang = req.headers.get("accept-language") || "";
   const urlLocale = new URL(req.url).searchParams.get("locale");
 
-  if (urlLocale === "ko" || acceptLang.includes("ko")) return "ko";
-  if (urlLocale === "ja" || acceptLang.includes("ja")) return "ja";
-  if (urlLocale === "zh" || acceptLang.includes("zh")) return "zh";
+  if (urlLocale === "ko" || acceptLang.includes("ko")) {return "ko";}
+  if (urlLocale === "ja" || acceptLang.includes("ja")) {return "ja";}
+  if (urlLocale === "zh" || acceptLang.includes("zh")) {return "zh";}
   return "en";
 }
 

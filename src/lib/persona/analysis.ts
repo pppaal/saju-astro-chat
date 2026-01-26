@@ -291,9 +291,9 @@ const resolveAxis = (axis: PersonaAxisKey, state: AxisState): PersonaAxisResult 
 };
 
 const letterForAxis = (axis: PersonaAxisKey, pole: PersonaPole): string => {
-  if (axis === 'energy') return pole === 'radiant' ? 'R' : 'G';
-  if (axis === 'cognition') return pole === 'visionary' ? 'V' : 'S';
-  if (axis === 'decision') return pole === 'logic' ? 'L' : 'H';
+  if (axis === 'energy') {return pole === 'radiant' ? 'R' : 'G';}
+  if (axis === 'cognition') {return pole === 'visionary' ? 'V' : 'S';}
+  if (axis === 'decision') {return pole === 'logic' ? 'L' : 'H';}
   return pole === 'flow' ? 'F' : 'A';
 };
 
@@ -390,9 +390,9 @@ const CONSISTENCY_PAIRS: Array<[string, string]> = [
   CONSISTENCY_PAIRS.forEach(([a, b]) => {
     const va = answers[a];
     const vb = answers[b];
-    if (!va || !vb) return;
+    if (!va || !vb) {return;}
     considered += 1;
-    if (va === vb) consistent += 1;
+    if (va === vb) {consistent += 1;}
   });
   const consistencyScore = considered > 0 ? Math.round((consistent / considered) * 100) : undefined;
   const consistencyLabel =

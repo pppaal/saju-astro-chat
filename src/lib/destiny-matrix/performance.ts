@@ -237,7 +237,7 @@ class MatrixCache {
   getMatrix(inputHash: string): unknown | null {
     const cached = this.cache.get(inputHash);
 
-    if (!cached) return null;
+    if (!cached) {return null;}
 
     // TTL 체크
     if (Date.now() - cached.timestamp > this.defaultTTL) {
@@ -267,7 +267,7 @@ class MatrixCache {
   getReport(inputHash: string): unknown | null {
     const cached = this.cache.get(inputHash);
 
-    if (!cached || !cached.report) return null;
+    if (!cached || !cached.report) {return null;}
 
     if (Date.now() - cached.timestamp > this.defaultTTL) {
       return null;
@@ -365,7 +365,7 @@ class PerformanceMonitor {
   getAverageTime(operationName: string): number {
     const filtered = this.metrics.filter(m => m.operationName === operationName && m.duration);
 
-    if (filtered.length === 0) return 0;
+    if (filtered.length === 0) {return 0;}
 
     const total = filtered.reduce((sum, m) => sum + (m.duration || 0), 0);
     return total / filtered.length;
@@ -374,7 +374,7 @@ class PerformanceMonitor {
   getCacheHitRate(operationName: string): number {
     const filtered = this.metrics.filter(m => m.operationName === operationName);
 
-    if (filtered.length === 0) return 0;
+    if (filtered.length === 0) {return 0;}
 
     const hits = filtered.filter(m => m.cacheHit).length;
     return hits / filtered.length;

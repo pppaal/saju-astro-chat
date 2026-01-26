@@ -327,18 +327,18 @@ export function getSolarTermForDate(date: Date): SolarTerm {
   // 각 월 초순/중순에 절기가 있음
   let termIndex: number;
 
-  if (month === 1) termIndex = day < 20 ? 22 : 23; // 소한/대한
-  else if (month === 2) termIndex = day < 19 ? 0 : 1; // 입춘/우수
-  else if (month === 3) termIndex = day < 21 ? 2 : 3; // 경칩/춘분
-  else if (month === 4) termIndex = day < 20 ? 4 : 5; // 청명/곡우
-  else if (month === 5) termIndex = day < 21 ? 6 : 7; // 입하/소만
-  else if (month === 6) termIndex = day < 21 ? 8 : 9; // 망종/하지
-  else if (month === 7) termIndex = day < 23 ? 10 : 11; // 소서/대서
-  else if (month === 8) termIndex = day < 23 ? 12 : 13; // 입추/처서
-  else if (month === 9) termIndex = day < 23 ? 14 : 15; // 백로/추분
-  else if (month === 10) termIndex = day < 23 ? 16 : 17; // 한로/상강
-  else if (month === 11) termIndex = day < 22 ? 18 : 19; // 입동/소설
-  else termIndex = day < 22 ? 20 : 21; // 대설/동지
+  if (month === 1) {termIndex = day < 20 ? 22 : 23;} // 소한/대한
+  else if (month === 2) {termIndex = day < 19 ? 0 : 1;} // 입춘/우수
+  else if (month === 3) {termIndex = day < 21 ? 2 : 3;} // 경칩/춘분
+  else if (month === 4) {termIndex = day < 20 ? 4 : 5;} // 청명/곡우
+  else if (month === 5) {termIndex = day < 21 ? 6 : 7;} // 입하/소만
+  else if (month === 6) {termIndex = day < 21 ? 8 : 9;} // 망종/하지
+  else if (month === 7) {termIndex = day < 23 ? 10 : 11;} // 소서/대서
+  else if (month === 8) {termIndex = day < 23 ? 12 : 13;} // 입추/처서
+  else if (month === 9) {termIndex = day < 23 ? 14 : 15;} // 백로/추분
+  else if (month === 10) {termIndex = day < 23 ? 16 : 17;} // 한로/상강
+  else if (month === 11) {termIndex = day < 22 ? 18 : 19;} // 입동/소설
+  else {termIndex = day < 22 ? 20 : 21;} // 대설/동지
 
   const term = SOLAR_TERMS[termIndex];
   const seasonPhase: 'early' | 'mid' | 'late' = day < 10 ? 'early' : day < 20 ? 'mid' : 'late';
@@ -389,14 +389,14 @@ export function getLunarMansion(date: Date): LunarMansion {
  * 달 위상 계산 (음력 일자 기반)
  */
 export function getLunarPhase(lunarDay: number): LunarPhase {
-  if (lunarDay === 1) return 'new_moon';
-  else if (lunarDay <= 7) return 'waxing_crescent';
-  else if (lunarDay <= 8) return 'first_quarter';
-  else if (lunarDay <= 14) return 'waxing_gibbous';
-  else if (lunarDay <= 16) return 'full_moon';
-  else if (lunarDay <= 22) return 'waning_gibbous';
-  else if (lunarDay <= 23) return 'last_quarter';
-  else return 'waning_crescent';
+  if (lunarDay === 1) {return 'new_moon';}
+  else if (lunarDay <= 7) {return 'waxing_crescent';}
+  else if (lunarDay <= 8) {return 'first_quarter';}
+  else if (lunarDay <= 14) {return 'waxing_gibbous';}
+  else if (lunarDay <= 16) {return 'full_moon';}
+  else if (lunarDay <= 22) {return 'waning_gibbous';}
+  else if (lunarDay <= 23) {return 'last_quarter';}
+  else {return 'waning_crescent';}
 }
 
 /**
@@ -489,11 +489,11 @@ export function calculatePlanetaryHours(
     const adjustedEndHour = endHour >= 24 ? endHour - 24 : endHour;
 
     const startTime = new Date(date);
-    if (startHour >= 24) startTime.setDate(startTime.getDate() + 1);
+    if (startHour >= 24) {startTime.setDate(startTime.getDate() + 1);}
     startTime.setHours(Math.floor(adjustedStartHour), Math.round((adjustedStartHour % 1) * 60), 0, 0);
 
     const endTime = new Date(date);
-    if (endHour >= 24) endTime.setDate(endTime.getDate() + 1);
+    if (endHour >= 24) {endTime.setDate(endTime.getDate() + 1);}
     endTime.setHours(Math.floor(adjustedEndHour), Math.round((adjustedEndHour % 1) * 60), 0, 0);
 
     hours.push({
@@ -567,13 +567,13 @@ function getZodiacSign(longitude: number): string {
 
 function getMoonPhaseFromLongitude(sunLon: number, moonLon: number): string {
   const diff = (moonLon - sunLon + 360) % 360;
-  if (diff < 45) return 'New';
-  if (diff < 90) return 'Crescent';
-  if (diff < 135) return 'First Quarter';
-  if (diff < 180) return 'Gibbous';
-  if (diff < 225) return 'Full';
-  if (diff < 270) return 'Disseminating';
-  if (diff < 315) return 'Last Quarter';
+  if (diff < 45) {return 'New';}
+  if (diff < 90) {return 'Crescent';}
+  if (diff < 135) {return 'First Quarter';}
+  if (diff < 180) {return 'Gibbous';}
+  if (diff < 225) {return 'Full';}
+  if (diff < 270) {return 'Disseminating';}
+  if (diff < 315) {return 'Last Quarter';}
   return 'Balsamic';
 }
 
@@ -999,13 +999,13 @@ function getWeightsForPredictionType(type: string): {
 }
 
 function getConfidenceGrade(score: number): ConfidenceGrade {
-  if (score >= 95) return 'A+';
-  if (score >= 85) return 'A';
-  if (score >= 75) return 'B+';
-  if (score >= 65) return 'B';
-  if (score >= 55) return 'C+';
-  if (score >= 45) return 'C';
-  if (score >= 35) return 'D';
+  if (score >= 95) {return 'A+';}
+  if (score >= 85) {return 'A';}
+  if (score >= 75) {return 'B+';}
+  if (score >= 65) {return 'B';}
+  if (score >= 55) {return 'C+';}
+  if (score >= 45) {return 'C';}
+  if (score >= 35) {return 'D';}
   return 'F';
 }
 
@@ -1055,7 +1055,7 @@ function generateConfidenceRecommendations(factors: ConfidenceFactors, score: nu
 export function combineConfidenceScores(
   scores: { source: string; score: number; weight?: number }[]
 ): { combined: number; breakdown: { source: string; contribution: number }[] } {
-  if (scores.length === 0) return { combined: 50, breakdown: [] };
+  if (scores.length === 0) {return { combined: 50, breakdown: [] };}
 
   const totalWeight = scores.reduce((sum, s) => sum + (s.weight || 1), 0);
   const combined = Math.round(

@@ -109,7 +109,7 @@ export default function BirthInfoFormInline({
 
   // Load profile from DB for authenticated users
   const handleLoadProfile = async () => {
-    if (status !== 'authenticated') return;
+    if (status !== 'authenticated') {return;}
 
     setLoadingProfile(true);
     setCityErr(null);

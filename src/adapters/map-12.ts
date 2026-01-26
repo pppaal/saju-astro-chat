@@ -122,7 +122,7 @@ interface KnownPillarSet {
 }
 
 export function buildPillarView(source?: UnknownPillarSet | KnownPillarSet): PillarView {
-  if (!source) return {};
+  if (!source) {return {};}
 
   const looksLikeRaw =
     source?.year?.heavenlyStem?.name &&
@@ -148,7 +148,7 @@ export function buildPillarView(source?: UnknownPillarSet | KnownPillarSet): Pil
   // - 그 외: '살' 접미사 부여
   const normalizeLabel = (s: string) => {
     const pure = String(s || '').replace(/살$/g, '');
-    if (['천을귀인','태극귀인','금여성','천문성','문창','문곡'].includes(pure)) return pure;
+    if (['천을귀인','태극귀인','금여성','천문성','문창','문곡'].includes(pure)) {return pure;}
     return pure + '살';
   };
 

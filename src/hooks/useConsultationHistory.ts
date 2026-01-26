@@ -47,7 +47,7 @@ export function useConsultationHistory(): UseConsultationHistoryReturn {
 
     try {
       const params = new URLSearchParams();
-      if (theme) params.set("theme", theme);
+      if (theme) {params.set("theme", theme);}
       params.set("offset", String(offset));
       params.set("limit", "20");
 

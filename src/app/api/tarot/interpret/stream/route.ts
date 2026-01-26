@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     const body: StreamInterpretRequest = await req.json();
     const { categoryId, spreadId, spreadTitle, cards, userQuestion, language = "ko", counselorId, counselorStyle } = body;

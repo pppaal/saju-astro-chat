@@ -55,7 +55,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url)
     const date = searchParams.get("date")
     const kind = searchParams.get("kind") || "daily"
-    if (!date) return NextResponse.json({ error: "date is required" }, { status: 400 })
+    if (!date) {return NextResponse.json({ error: "date is required" }, { status: 400 })}
 
     const d = new Date(date)
     const normalized = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))

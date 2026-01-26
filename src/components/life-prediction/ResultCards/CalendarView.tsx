@@ -36,7 +36,7 @@ export function CalendarView({
   onDayClick,
 }: CalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState(() => {
-    if (initialMonth) return initialMonth;
+    if (initialMonth) {return initialMonth;}
     // 가장 먼저 좋은 날짜가 있는 월로 시작
     if (days.length > 0) {
       return new Date(days[0].date);

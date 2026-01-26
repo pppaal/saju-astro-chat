@@ -14,7 +14,7 @@ export default function SessionSync() {
   const refreshHandledRef = useRef(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {return;}
 
     if (!refreshHandledRef.current) {
       const url = new URL(window.location.href);
@@ -30,7 +30,7 @@ export default function SessionSync() {
     }
 
     const scheduleRefresh = () => {
-      if (debounceRef.current !== null) return;
+      if (debounceRef.current !== null) {return;}
       debounceRef.current = window.setTimeout(() => {
         debounceRef.current = null;
         update();
@@ -51,11 +51,11 @@ export default function SessionSync() {
   }, [update]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {return;}
     const prevStatus = lastStatusRef.current;
     lastStatusRef.current = status;
 
-    if (!prevStatus || prevStatus === status) return;
+    if (!prevStatus || prevStatus === status) {return;}
     if (status === "authenticated" || status === "unauthenticated") {
       try {
         localStorage.setItem(STORAGE_KEY, String(Date.now()));

@@ -1,5 +1,5 @@
-import React from 'react';
 import { motion } from 'framer-motion';
+import { useI18n } from '@/i18n/I18nProvider';
 import { MessageBox } from '../MessageBox';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
 import DateTimePicker from '@/components/ui/DateTimePicker';
@@ -58,7 +58,7 @@ export function BirthInputPhase({
   onSkip,
 }: BirthInputPhaseProps) {
   const signInUrl = buildSignInUrl();
-  const isKo = locale === 'ko';
+  const { t } = useI18n();
 
   return (
     <motion.div
@@ -74,12 +74,10 @@ export function BirthInputPhase({
           <span className={styles.icon}>🌙</span>
         </div>
         <h1 className={styles.pageTitle}>
-          {isKo ? '꿈 해몽' : 'Dream Interpretation'}
+          {t('dream.title')}
         </h1>
         <p className={styles.pageSubtitle}>
-          {isKo
-            ? '당신의 꿈에 담긴 메시지를 해석해드립니다'
-            : 'Discover the hidden messages in your dreams'}
+          {t('dream.subtitle')}
         </p>
       </div>
 
@@ -87,12 +85,10 @@ export function BirthInputPhase({
         <div className={styles.formHeader}>
           <span className={styles.formIcon}>🎂</span>
           <h3 className={styles.formTitle}>
-            {isKo ? '생년월일을 입력해주세요' : 'Enter Your Birth Info'}
+            {t('dream.birthInfo')}
           </h3>
           <p className={styles.formSubtitle}>
-            {isKo
-              ? '정확한 해석을 위해 필요한 정보입니다'
-              : 'Optional, but improves accuracy'}
+            {t('dream.birthInfoHint')}
           </p>
         </div>
 
@@ -109,8 +105,8 @@ export function BirthInputPhase({
             </span>
             <span>
               {loadingProfileBtn
-                ? (isKo ? '불러오는 중...' : 'Loading...')
-                : (isKo ? '내 프로필 불러오기' : 'Load My Profile')}
+                ? t('common.loading')
+                : t('common.loadMyProfile')}
             </span>
             <span className={styles.loadProfileArrow}>→</span>
           </button>
@@ -121,7 +117,7 @@ export function BirthInputPhase({
           <MessageBox
             type="success"
             icon="✓"
-            message={isKo ? '프로필 불러오기 완료!' : 'Profile loaded!'}
+            message={t('common.profileLoaded')}
           />
         )}
 

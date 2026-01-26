@@ -131,7 +131,7 @@ export function PersonCard({
               onUpdate(index, 'lon', null);
             }}
             onFocus={() => {
-              if (person.lat === null) onUpdate(index, 'showDropdown', true);
+              if (person.lat === null) {onUpdate(index, 'showDropdown', true);}
             }}
             onBlur={() => setTimeout(() => onUpdate(index, 'showDropdown', false), 200)}
             placeholder={t('compatibilityPage.cityPlaceholder', 'e.g., Seoul, KR')}

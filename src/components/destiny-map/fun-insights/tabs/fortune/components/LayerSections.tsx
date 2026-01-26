@@ -58,7 +58,7 @@ interface TimingOverlaySectionProps {
 }
 
 export function TimingOverlaySection({ timingOverlays, isKo }: TimingOverlaySectionProps) {
-  if (!timingOverlays || timingOverlays.length === 0) return null;
+  if (!timingOverlays || timingOverlays.length === 0) {return null;}
 
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-cyan-900/20 border border-cyan-500/30 p-6">
@@ -119,7 +119,7 @@ interface RelationAspectSectionProps {
 }
 
 export function RelationAspectSection({ relationAspects, isKo }: RelationAspectSectionProps) {
-  if (!relationAspects || relationAspects.length === 0) return null;
+  if (!relationAspects || relationAspects.length === 0) {return null;}
 
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-pink-900/20 border border-pink-500/30 p-6">
@@ -180,7 +180,7 @@ interface AdvancedAnalysisSectionProps {
 }
 
 export function AdvancedAnalysisSection({ advancedAnalysis, isKo }: AdvancedAnalysisSectionProps) {
-  if (!advancedAnalysis || advancedAnalysis.length === 0) return null;
+  if (!advancedAnalysis || advancedAnalysis.length === 0) {return null;}
 
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-amber-900/20 border border-amber-500/30 p-6">
@@ -241,7 +241,7 @@ interface ExtraPointsSectionProps {
 }
 
 export function ExtraPointsSection({ extraPoints, isKo }: ExtraPointsSectionProps) {
-  if (!extraPoints || extraPoints.length === 0) return null;
+  if (!extraPoints || extraPoints.length === 0) {return null;}
 
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-indigo-900/20 border border-indigo-500/30 p-6">

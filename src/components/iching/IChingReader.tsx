@@ -183,7 +183,7 @@ const IChingReader: React.FC = () => {
 
   // Toggle changing line status when user clicks on a line
   const toggleChangingLine = (index: number) => {
-    if (status !== "finished" || !result?.primaryHexagram) return;
+    if (status !== "finished" || !result?.primaryHexagram) {return;}
 
     const newLines = drawnLines.map((line, i) =>
       i === index ? { ...line, isChanging: !line.isChanging } : line
@@ -207,7 +207,7 @@ const IChingReader: React.FC = () => {
 
     // Get hexagrams
     const primaryHexagram = hexByBinary.get(primaryBinary);
-    if (!primaryHexagram) return;
+    if (!primaryHexagram) {return;}
 
     const resultingHexagram =
       primaryBinary !== resultingBinary
@@ -237,7 +237,7 @@ const IChingReader: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!session || !result || !result.primaryHexagram) return;
+    if (!session || !result || !result.primaryHexagram) {return;}
 
     setSaveStatus("saving");
     try {

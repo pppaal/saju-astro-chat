@@ -42,19 +42,7 @@ interface _NatalPlanet {
   longitude?: number;
 }
 
-interface AstrologyRequestBody {
-  date?: string;
-  time?: string;
-  latitude?: number | string;
-  longitude?: number | string;
-  timeZone?: string;
-  locale?: string;
-  options?: Record<string, unknown>;
-}
-
 const BODY_LIMIT = 64 * 1024;
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const TIMEZONE_MAX = 64;
 
 const LABELS = {
   en: {
@@ -101,31 +89,31 @@ function normalizeLocale(l?: string): LocaleKey {
 function splitSignAndDegree(text: string) {
   const s = String(text || "").trim();
   const m = s.match(/^(\S+)\s+(.*)$/);
-  if (!m) return { signPart: s, degreePart: "" };
+  if (!m) {return { signPart: s, degreePart: "" };}
   return { signPart: m[1], degreePart: m[2] };
 }
 
 function findSignIndex(name: string): number {
   for (const list of Object.values(SIGNS)) {
     const idx = (list as readonly string[]).indexOf(name);
-    if (idx >= 0) return idx;
+    if (idx >= 0) {return idx;}
   }
   const cleaned = name.replace(/[^\p{L}]/gu, "").toLowerCase();
   for (const list of Object.values(SIGNS)) {
     const idx = (list as readonly string[]).findIndex(
       s => s.replace(/[^\p{L}]/gu, "").toLowerCase() === cleaned
     );
-    if (idx >= 0) return idx;
+    if (idx >= 0) {return idx;}
   }
   return -1;
 }
 
 function localizeSignLabel(inputSign: string, target: LocaleKey): string {
   const idx = findSignIndex(inputSign);
-  if (idx >= 0) return SIGNS[target][idx] || SIGNS.en[idx];
+  if (idx >= 0) {return SIGNS[target][idx] || SIGNS.en[idx];}
   const { signPart } = splitSignAndDegree(inputSign);
   const idx2 = findSignIndex(signPart);
-  if (idx2 >= 0) return SIGNS[target][idx2] || SIGNS.en[idx2];
+  if (idx2 >= 0) {return SIGNS[target][idx2] || SIGNS.en[idx2];}
   return inputSign;
 }
 
@@ -134,7 +122,7 @@ function localizePlanetLabel(inputName: string, target: LocaleKey): string {
   const enKeys = Object.keys(PLANET_LABELS.en) as PlanetKey[];
   if (enKeys.includes(inputName as PlanetKey)) {
     const labels = PLANET_LABELS[target];
-    if (labels) return labels[inputName as PlanetKey] || String(inputName);
+    if (labels) {return labels[inputName as PlanetKey] || String(inputName);}
     return String(inputName);
   }
   const allLabels = Object.values(PLANET_LABELS).filter((l): l is NonNullable<typeof l> => l !== null);
@@ -142,7 +130,7 @@ function localizePlanetLabel(inputName: string, target: LocaleKey): string {
     for (const enKey of enKeys) {
       if (labels[enKey] === inputName) {
         const targetLabels = PLANET_LABELS[target];
-        if (targetLabels) return targetLabels[enKey];
+        if (targetLabels) {return targetLabels[enKey];}
         return PLANET_LABELS.en[enKey];
       }
     }
@@ -157,10 +145,10 @@ function parseHM(input: string) {
   const [hhRaw, mmRaw = "0"] = core.split(":");
   let h = Number(hhRaw);
   const m = Number(mmRaw);
-  if (!Number.isFinite(h) || !Number.isFinite(m)) throw new Error("Enter a valid time (HH:mm or HH:mm AM/PM).");
-  if (ampm === "PM" && h < 12) h += 12;
-  if (ampm === "AM" && h === 12) h = 0;
-  if (h < 0 || h > 23 || m < 0 || m > 59) throw new Error("Time must be within 00:00-23:59.");
+  if (!Number.isFinite(h) || !Number.isFinite(m)) {throw new Error("Enter a valid time (HH:mm or HH:mm AM/PM).");}
+  if (ampm === "PM" && h < 12) {h += 12;}
+  if (ampm === "AM" && h === 12) {h = 0;}
+  if (h < 0 || h > 23 || m < 0 || m > 59) {throw new Error("Time must be within 00:00-23:59.");}
   return { h, m };
 }
 
@@ -177,7 +165,7 @@ export async function POST(request: Request) {
     }
 
     const oversized = enforceBodySize(request as Request & { body?: ReadableStream }, BODY_LIMIT, limit.headers);
-    if (oversized) return oversized;
+    if (oversized) {return oversized;}
 
     // ========  Zod Validation ========
     const validation = await validateRequestBody(request, astrologyRequestSchema);

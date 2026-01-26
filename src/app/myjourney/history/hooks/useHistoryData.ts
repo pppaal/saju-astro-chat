@@ -25,7 +25,7 @@ export function useHistoryData(authenticated: boolean): UseHistoryDataReturn {
 
   useEffect(() => {
     const loadHistory = async () => {
-      if (!authenticated) return;
+      if (!authenticated) {return;}
       try {
         const res = await fetch('/api/me/history', { cache: 'no-store' });
         if (res.ok) {

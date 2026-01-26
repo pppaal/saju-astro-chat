@@ -26,7 +26,7 @@ export const PlainLanguageExplanation: React.FC<PlainLanguageExplanationProps> =
   enhancedData,
   translate,
 }) => {
-  if (!enhancedData?.plainLanguage) return null;
+  if (!enhancedData?.plainLanguage) {return null;}
 
   return (
     <>

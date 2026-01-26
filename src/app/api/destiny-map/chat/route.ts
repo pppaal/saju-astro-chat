@@ -72,9 +72,9 @@ function isValidEmail(email: string): boolean {
 }
 
 async function checkStripeActive(email?: string) {
-  if (!process.env.REQUIRE_PAID_CHAT || process.env.REQUIRE_PAID_CHAT === "false") return true;
+  if (!process.env.REQUIRE_PAID_CHAT || process.env.REQUIRE_PAID_CHAT === "false") {return true;}
   const key = process.env.STRIPE_SECRET_KEY;
-  if (!key || !email || !isValidEmail(email)) return false;
+  if (!key || !email || !isValidEmail(email)) {return false;}
   const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
   // Use parameterized API to prevent query injection
   const customers = await stripe.customers.list({
@@ -88,7 +88,7 @@ async function checkStripeActive(email?: string) {
       limit: 5,
     });
     const active = subs.data.find((s) => ["active", "trialing", "past_due"].includes(s.status));
-    if (active) return true;
+    if (active) {return true;}
   }
   return false;
 }
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     });
 
     const { context, error } = await initializeApiContext(request, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     // Lazy-load heavy astro engine to avoid resolving swisseph during build/deploy
     const { computeDestinyMap } = await import("@/lib/destiny-map/astrologyengine");
@@ -163,13 +163,13 @@ export async function POST(request: NextRequest) {
     // Normalize messages
     const normalizedMessages: ChatMessage[] = [];
     for (const m of messages) {
-      if (!m || typeof m !== "object") continue;
+      if (!m || typeof m !== "object") {continue;}
       const record = m as Record<string, unknown>;
       const role = typeof record.role === "string" && ALLOWED_ROLE.has(record.role)
         ? (record.role as ChatMessage["role"])
         : null;
       const content = typeof record.content === "string" ? record.content.trim() : "";
-      if (!role || !content) continue;
+      if (!role || !content) {continue;}
       normalizedMessages.push({ role, content: content.slice(0, 2000) });
     }
 

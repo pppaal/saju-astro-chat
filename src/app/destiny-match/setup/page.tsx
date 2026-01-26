@@ -43,7 +43,7 @@ export default function DestinyMatchSetupPage() {
 
   // 기존 프로필 로드
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === 'loading') {return;}
 
     if (!session) {
       router.push('/auth/signin?callbackUrl=/destiny-match/setup');

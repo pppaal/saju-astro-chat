@@ -9,7 +9,7 @@ type Section = { title: string; titleKo: string; body: string; bodyKo: string };
 
 const CONTROLLER_NAME = "Paul Rhee (individual)";
 const CONTACT_EMAIL = "rheeco88@gmail.com";
-const EFFECTIVE_DATE = "2025-12-24";
+const EFFECTIVE_DATE = "2026-01-25";
 
 const sections: Section[] = [
   {

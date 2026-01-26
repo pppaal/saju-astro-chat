@@ -80,14 +80,14 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   };
   // 간지를 쉬운 형태로 변환
   const formatGanjiEasy = (stem?: string, branch?: string) => {
-    if (!stem || !branch) return '-';
+    if (!stem || !branch) {return '-';}
     const stemKo = stemToKorean[stem] || stem;
     const branchKo = branchToKorean[branch] || branch;
     return `${stemKo} + ${branchKo}`;
   };
 
   const formatPillar = (p: PillarData | undefined) => {
-    if (!p) return null;
+    if (!p) {return null;}
     const stem = p.heavenlyStem?.name || p.ganji?.split?.('')?.[0] || '';
     const branch = p.earthlyBranch?.name || p.ganji?.split?.('')?.[1] || '';
     return stem && branch ? `${stem}${branch}` : null;
@@ -188,7 +188,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
 
   // 간지 문자열에서 천간/지지 분리 후 쉬운 형태로 변환
   const parseGanjiEasy = (ganji?: string) => {
-    if (!ganji || ganji.length < 2) return ganji || '-';
+    if (!ganji || ganji.length < 2) {return ganji || '-';}
     const stem = ganji[0];
     const branch = ganji[1];
     return formatGanjiEasy(stem, branch);
@@ -210,8 +210,8 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   // 향후 월운 (현재월 ~ 12개월) - 쉬운 한글로 표시
   const futureMonthlyList = monthlyList
     .filter((m) => {
-      if ((m.year ?? 0) > currentYear) return true;
-      if ((m.year ?? 0) === currentYear && (m.month ?? 0) >= currentMonth) return true;
+      if ((m.year ?? 0) > currentYear) {return true;}
+      if ((m.year ?? 0) === currentYear && (m.month ?? 0) >= currentMonth) {return true;}
       return false;
     })
     .slice(0, 12)

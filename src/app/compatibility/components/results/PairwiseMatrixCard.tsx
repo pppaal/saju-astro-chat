@@ -8,7 +8,7 @@ interface PairwiseMatrixCardProps {
 }
 
 export const PairwiseMatrixCard: React.FC<PairwiseMatrixCardProps> = React.memo(({ pairwiseMatrix, t }) => {
-  if (!pairwiseMatrix || pairwiseMatrix.length === 0) return null;
+  if (!pairwiseMatrix || pairwiseMatrix.length === 0) {return null;}
 
   return (
     <div className={styles.resultCard}>

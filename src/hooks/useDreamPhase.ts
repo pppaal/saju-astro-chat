@@ -12,7 +12,7 @@ export function useDreamPhase() {
   // Load user profile on mount
   useEffect(() => {
     const loadProfile = async () => {
-      if (status === 'loading') return;
+      if (status === 'loading') {return;}
 
       if (status !== 'authenticated') {
         setProfileLoading(false);

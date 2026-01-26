@@ -125,7 +125,7 @@ export default function DestinyMatchPage() {
 
   // 프로필 로딩 함수
   const loadProfiles = useCallback(async () => {
-    if (!session?.user) return;
+    if (!session?.user) {return;}
 
     setIsLoading(true);
     setError(null);
@@ -133,8 +133,8 @@ export default function DestinyMatchPage() {
     try {
       const params = new URLSearchParams();
       params.set('limit', '20');
-      if (filters.zodiacSign !== 'all') params.set('zodiac', filters.zodiacSign);
-      if (filters.sajuElement !== 'all') params.set('element', filters.sajuElement);
+      if (filters.zodiacSign !== 'all') {params.set('zodiac', filters.zodiacSign);}
+      if (filters.sajuElement !== 'all') {params.set('element', filters.sajuElement);}
 
       const res = await fetch(`/api/destiny-match/discover?${params.toString()}`);
       const data = await res.json();
@@ -208,14 +208,14 @@ export default function DestinyMatchPage() {
   };
 
   const handleDragMove = (clientX: number, clientY: number) => {
-    if (!isDragging) return;
+    if (!isDragging) {return;}
     const offsetX = clientX - dragStart.x;
     const offsetY = clientY - dragStart.y;
     setDragOffset({ x: offsetX, y: offsetY });
   };
 
   const handleDragEnd = () => {
-    if (!isDragging) return;
+    if (!isDragging) {return;}
     setIsDragging(false);
 
     const threshold = 100;

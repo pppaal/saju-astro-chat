@@ -78,7 +78,7 @@ async function getSinsal(
       includeUnlucky: true,
     });
   } catch (err) {
-    if (enableDebugLogs) logger.error('[getSinsal_error]', err);
+    if (enableDebugLogs) {logger.error('[getSinsal_error]', err);}
     return null;
   }
 }
@@ -160,21 +160,21 @@ async function calculateAdvancedSajuAnalysis(
         logger.debug('[Extended analysis]:', { strength: extended.strength.level, geokguk: extended.geokguk.type });
       }
     } catch (e) {
-      if (enableDebugLogs) logger.debug('[Extended analysis skipped]', e);
+      if (enableDebugLogs) {logger.debug('[Extended analysis skipped]', e);}
     }
 
     // 2. Geokguk (격국)
     try {
       advancedAnalysis.geokguk = determineGeokguk(pillarsSimple);
     } catch (e) {
-      if (enableDebugLogs) logger.debug('[Geokguk skipped]', e);
+      if (enableDebugLogs) {logger.debug('[Geokguk skipped]', e);}
     }
 
     // 3. Yongsin (용신)
     try {
       advancedAnalysis.yongsin = determineYongsin(pillarsSimple);
     } catch (e) {
-      if (enableDebugLogs) logger.debug('[Yongsin skipped]', e);
+      if (enableDebugLogs) {logger.debug('[Yongsin skipped]', e);}
     }
 
     // 4. Tonggeun/Tuechul/Hoeguk/Deukryeong
@@ -185,28 +185,28 @@ async function calculateAdvancedSajuAnalysis(
       const monthBranch = pillarsSimple.month.branch;
       advancedAnalysis.deukryeong = calculateDeukryeong(dayMasterForAnalysis.name, monthBranch);
     } catch (e) {
-      if (enableDebugLogs) logger.debug('[Tonggeun/Tuechul/Hoeguk skipped]', e);
+      if (enableDebugLogs) {logger.debug('[Tonggeun/Tuechul/Hoeguk skipped]', e);}
     }
 
     // 5. Hyeongchung (형충회합)
     try {
       advancedAnalysis.hyeongchung = analyzeHyeongchung(pillarsSimple);
     } catch (e) {
-      if (enableDebugLogs) logger.debug('[Hyeongchung skipped]', e);
+      if (enableDebugLogs) {logger.debug('[Hyeongchung skipped]', e);}
     }
 
     // 6. Sibsin comprehensive analysis (십신 심층 분석)
     try {
       advancedAnalysis.sibsin = analyzeSibsinComprehensive(pillarsSimple);
     } catch (e) {
-      if (enableDebugLogs) logger.debug('[Sibsin analysis skipped]', e);
+      if (enableDebugLogs) {logger.debug('[Sibsin analysis skipped]', e);}
     }
 
     // 7. Health/Career analysis (건강/직업 분석)
     try {
       advancedAnalysis.healthCareer = analyzeHealthCareer(pillarsSimple);
     } catch (e) {
-      if (enableDebugLogs) logger.debug('[Health/Career analysis skipped]', e);
+      if (enableDebugLogs) {logger.debug('[Health/Career analysis skipped]', e);}
     }
 
     // 8. Comprehensive score (종합 점수)
@@ -235,7 +235,7 @@ async function calculateAdvancedSajuAnalysis(
       };
       advancedAnalysis.score = calculateComprehensiveScore(pillarsForScore as unknown as Parameters<typeof calculateComprehensiveScore>[0]);
     } catch (e) {
-      if (enableDebugLogs) logger.debug('[Score calculation skipped]', e);
+      if (enableDebugLogs) {logger.debug('[Score calculation skipped]', e);}
     }
 
     // 9. Ultra Advanced analysis (종격, 화격, 일주론 심화, 공망 심화, 삼기)
@@ -265,7 +265,7 @@ async function calculateAdvancedSajuAnalysis(
       };
       advancedAnalysis.ultraAdvanced = performUltraAdvancedAnalysis(pillarsForUltra as unknown as Parameters<typeof performUltraAdvancedAnalysis>[0]);
     } catch (e) {
-      if (enableDebugLogs) logger.debug('[Ultra Advanced analysis skipped]', e);
+      if (enableDebugLogs) {logger.debug('[Ultra Advanced analysis skipped]', e);}
     }
 
     if (enableDebugLogs) {
@@ -284,7 +284,7 @@ async function calculateAdvancedSajuAnalysis(
 
     return advancedAnalysis;
   } catch (advErr) {
-    if (enableDebugLogs) logger.warn('[Advanced Saju Analysis error]', advErr);
+    if (enableDebugLogs) {logger.warn('[Advanced Saju Analysis error]', advErr);}
     return undefined;
   }
 }

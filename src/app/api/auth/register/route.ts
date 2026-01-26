@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     }
 
     const oversized = enforceBodySize(req, 32 * 1024, limit.headers);
-    if (oversized) return oversized;
+    if (oversized) {return oversized;}
 
     const body = (await req.json().catch(() => null)) as RegisterBody | null;
     const email = typeof body?.email === "string" ? body.email.trim() : "";

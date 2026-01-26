@@ -45,13 +45,13 @@ export function performComprehensiveAstrologyAnalysis(
   );
 
   let grade: ComprehensiveAstrologyCompatibility['grade'];
-  if (overallScore >= 95) grade = 'S+';
-  else if (overallScore >= 85) grade = 'S';
-  else if (overallScore >= 75) grade = 'A';
-  else if (overallScore >= 65) grade = 'B';
-  else if (overallScore >= 50) grade = 'C';
-  else if (overallScore >= 35) grade = 'D';
-  else grade = 'F';
+  if (overallScore >= 95) {grade = 'S+';}
+  else if (overallScore >= 85) {grade = 'S';}
+  else if (overallScore >= 75) {grade = 'A';}
+  else if (overallScore >= 65) {grade = 'B';}
+  else if (overallScore >= 50) {grade = 'C';}
+  else if (overallScore >= 35) {grade = 'D';}
+  else {grade = 'F';}
 
   // 요약
   let summary = '';
@@ -157,8 +157,8 @@ export function performExtendedAstrologyAnalysis(
     { name: 'Mars', sign: p2.mars.sign },
   ];
 
-  if (p1.mercury) p1Planets.push({ name: 'Mercury', sign: p1.mercury.sign, degree: p1.mercury.degree });
-  if (p2.mercury) p2Planets.push({ name: 'Mercury', sign: p2.mercury.sign, degree: p2.mercury.degree });
+  if (p1.mercury) {p1Planets.push({ name: 'Mercury', sign: p1.mercury.sign, degree: p1.mercury.degree });}
+  if (p2.mercury) {p2Planets.push({ name: 'Mercury', sign: p2.mercury.sign, degree: p2.mercury.degree });}
 
   degreeBasedAspects = analyzeDegreeBasedAspects(p1Planets, p2Planets);
   scores.push(degreeBasedAspects.overallBalance);
@@ -231,13 +231,13 @@ export function performExtendedAstrologyAnalysis(
   const extendedScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
 
   let extendedGrade: ExtendedAstrologyCompatibility['extendedGrade'];
-  if (extendedScore >= 95) extendedGrade = 'S+';
-  else if (extendedScore >= 85) extendedGrade = 'S';
-  else if (extendedScore >= 75) extendedGrade = 'A';
-  else if (extendedScore >= 65) extendedGrade = 'B';
-  else if (extendedScore >= 50) extendedGrade = 'C';
-  else if (extendedScore >= 35) extendedGrade = 'D';
-  else extendedGrade = 'F';
+  if (extendedScore >= 95) {extendedGrade = 'S+';}
+  else if (extendedScore >= 85) {extendedGrade = 'S';}
+  else if (extendedScore >= 75) {extendedGrade = 'A';}
+  else if (extendedScore >= 65) {extendedGrade = 'B';}
+  else if (extendedScore >= 50) {extendedGrade = 'C';}
+  else if (extendedScore >= 35) {extendedGrade = 'D';}
+  else {extendedGrade = 'F';}
 
   // 확장 요약
   let extendedSummary = baseAnalysis.summary;

@@ -37,7 +37,7 @@ export default function AuthGate({
   }
 
   if (resolvedStatus === "unauthenticated") {
-    if (fallback) return <>{fallback}</>;
+    if (fallback) {return <>{fallback}</>;}
     return (
       <div className={className}>
         <h2>{title}</h2>

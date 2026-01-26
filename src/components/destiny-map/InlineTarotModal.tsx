@@ -74,7 +74,7 @@ export default function InlineTarotModal({
 
   // Keyboard handling and body scroll lock
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {return;}
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -142,7 +142,7 @@ export default function InlineTarotModal({
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div

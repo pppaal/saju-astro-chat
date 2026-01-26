@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useI18n } from "@/i18n/I18nProvider";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { blogPosts, BlogPost } from "@/data/blog-posts";
-import DOMPurify from "dompurify";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import styles from "./post.module.css";
 
 interface BlogPostClientProps {
@@ -64,15 +65,18 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
 
         {/* Content */}
         <div className={styles.content}>
-          <div
-            className={styles.markdown}
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(renderMarkdown(content), {
-                ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'table', 'tr', 'td', 'th', 'a', 'blockquote', 'code', 'pre'],
-                ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
-              })
-            }}
-          />
+          <div className={styles.markdown}>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                a: ({ node, ...props }) => (
+                  <a {...props} target="_blank" rel="noopener noreferrer" />
+                ),
+              }}
+            >
+              {content}
+            </ReactMarkdown>
+          </div>
         </div>
 
         {/* CTA Section */}
@@ -135,57 +139,4 @@ function getCategoryLink(category: string): string {
     "Destiny Map": "/destiny-map",
   };
   return links[category] || "/destiny-map";
-}
-
-function renderMarkdown(content: string): string {
-  // Simple markdown to HTML conversion
-  let html = content
-    // Escape HTML first
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    // Headers
-    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
-    // Bold
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    // Italic
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    // Lists
-    .replace(/^- (.+)$/gm, "<li>$1</li>")
-    .replace(/^(\d+)\. (.+)$/gm, "<li>$2</li>")
-    // Tables (basic support)
-    .replace(/\|(.+)\|/g, (match) => {
-      const cells = match.split("|").filter((c) => c.trim());
-      if (cells.every((c) => /^[-\s:]+$/.test(c))) return ""; // Skip separator rows
-      const cellHtml = cells.map((c) => `<td>${c.trim()}</td>`).join("");
-      return `<tr>${cellHtml}</tr>`;
-    })
-    // Paragraphs
-    .split("\n\n")
-    .map((para) => {
-      const trimmed = para.trim();
-      if (!trimmed) return "";
-      if (
-        trimmed.startsWith("<h") ||
-        trimmed.startsWith("<li") ||
-        trimmed.startsWith("<tr")
-      ) {
-        return trimmed;
-      }
-      return `<p>${trimmed.replace(/\n/g, "<br>")}</p>`;
-    })
-    .join("\n");
-
-  // Wrap lists
-  html = html.replace(/(<li>.+<\/li>\n?)+/g, (match) => `<ul>${match}</ul>`);
-
-  // Wrap tables
-  html = html.replace(
-    /(<tr>.+<\/tr>\n?)+/g,
-    (match) => `<table>${match}</table>`
-  );
-
-  return html;
 }

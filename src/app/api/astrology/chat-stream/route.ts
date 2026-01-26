@@ -19,7 +19,6 @@ const MAX_NAME = 120;
 const MAX_THEME = 64;
 const MAX_MESSAGE_LEN = 2000;
 const MAX_MESSAGES = 10;
-const BODY_LIMIT = 64 * 1024;
 
 function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
@@ -87,7 +86,7 @@ export async function POST(req: NextRequest) {
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     const body = (await req.json().catch(() => null)) as {
       name?: string;

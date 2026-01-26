@@ -1,0 +1,51 @@
+{
+  "chat": {
+    "placeholder": "언제/왜/무엇을 구체적으로 입력해 주세요.",
+    "send": "보내기",
+    "thinking": "당신의 고민을 깊이 살펴보고 있습니다...",
+    "empty": "선택한 주제에 맞춰 질문하면 더 정확하게 답변합니다.",
+    "error": "오류가 발생했습니다. 다시 시도해 주세요.",
+    "fallbackNote": "백업 응답으로 대신합니다 (AI 일시 불가).",
+    "safetyNote": "정책상 제한된 답변입니다.",
+    "noResponse": "응답을 받을 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    "uploadCv": "이력서 업로드",
+    "attached": "첨부됨:",
+    "parsingPdf": "PDF 읽는 중...",
+    "newChat": "새 대화",
+    "previousChats": "이전 대화",
+    "noHistory": "이전 대화가 없습니다",
+    "loadSession": "불러오기",
+    "deleteSession": "삭제",
+    "confirmDelete": "이 대화를 삭제할까요?",
+    "cancel": "취소",
+    "today": "오늘",
+    "yesterday": "어제",
+    "daysAgo": "일 전",
+    "messages": "개 메시지",
+    "welcomeBack": "다시 오셨네요! 이어서 대화해볼까요?",
+    "groundingTip": "잠시 숨을 고르세요. 지금 주변에서 보이는 것 5가지를 세어보세요.",
+    "crisis": {
+      "title": "당신 곁에 있어요",
+      "message": "지금 많이 힘드시죠. 혼자가 아니에요. 전문 상담 도움을 받으실 수 있어요.",
+      "hotline": "위기상담전화",
+      "hotlineNumber": "자살예방 1393 / 정신건강 1577-0199",
+      "close": "확인했어요"
+    },
+    "tarot": {
+      "prompt": "더 깊은 통찰을 원하시나요?",
+      "button": "타로 리딩 받기",
+      "desc": "점성술과 사주를 타로와 결합하여 현재 고민에 대한 지침을 받아보세요",
+      "cardContextTitle": "뽑은 카드 정보",
+      "followUpLabel": "다음으로 물어볼 것",
+      "suggestedQuestions": "추천 질문"
+    },
+    "loading": {
+      "analyzing": "분석 중...",
+      "preparingResponse": "답변 준비 중...",
+      "processing": "처리 중...",
+      "generatingAnswer": "응답 생성 중...",
+      "organizingInsights": "조언 정리 중...",
+      "interpretingCards": "카드 해석 중..."
+    }
+  }
+}

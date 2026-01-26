@@ -120,7 +120,7 @@ export function buildReturningSummary(
   persona: UserContext["persona"] | undefined,
   lang: LangKey
 ): string {
-  if (!persona) return "";
+  if (!persona) {return "";}
 
   const lastTopics = persona.lastTopics?.slice(0, 2)?.join(", ");
   const tone = persona.emotionalTone;

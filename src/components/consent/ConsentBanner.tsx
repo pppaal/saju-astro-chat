@@ -12,7 +12,7 @@ export function ConsentBanner() {
     setVisible(status === "pending");
   }, [status]);
 
-  if (!visible) return null;
+  if (!visible) {return null;}
 
   return (
     <div className={styles.banner} role="dialog" aria-live="polite">

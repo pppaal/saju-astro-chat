@@ -12,7 +12,7 @@ export interface LogError {
 
 // Helper to convert any value to LogMetadata
 function toMeta(value: unknown): LogMetadata | undefined {
-  if (value === undefined || value === null) return undefined;
+  if (value === undefined || value === null) {return undefined;}
   if (value instanceof Error) {
     return { message: value.message, stack: value.stack };
   }

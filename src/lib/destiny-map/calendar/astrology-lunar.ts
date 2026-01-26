@@ -247,7 +247,7 @@ function getPlanetPosition(date: Date, planet: PlanetName): PlanetPosition {
     // 현재 황경 계산
     const degreesPerDay = 360 / period;
     let currentLongitude = (j2000Long + degreesPerDay * daysSinceJ2000) % 360;
-    if (currentLongitude < 0) currentLongitude += 360;
+    if (currentLongitude < 0) {currentLongitude += 360;}
 
     // 별자리 판정 (30도 = 1개 별자리)
     const zodiacSigns = [
@@ -570,7 +570,7 @@ export function checkVoidOfCourseMoon(date: Date): VoidOfCourseMoonResult {
           }
         }
       }
-      if (hasUpcomingAspect) break;
+      if (hasUpcomingAspect) {break;}
     }
 
     // 달 이동 속도: 약 13도/일 = 약 0.54도/시간

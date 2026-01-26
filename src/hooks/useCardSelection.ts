@@ -8,9 +8,9 @@ export function useCardSelection(cardCount: number) {
   const handleCardClick = useCallback((index: number, gameState: string) => {
     const currentMap = selectionOrderRef.current;
 
-    if (gameState !== 'picking') return;
-    if (currentMap.size >= cardCount) return;
-    if (currentMap.has(index)) return;
+    if (gameState !== 'picking') {return;}
+    if (currentMap.size >= cardCount) {return;}
+    if (currentMap.has(index)) {return;}
 
     const newOrder = currentMap.size + 1;
     const newMap = new Map(currentMap).set(index, newOrder);

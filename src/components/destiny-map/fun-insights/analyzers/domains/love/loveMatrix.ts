@@ -39,7 +39,7 @@ export function getLoveMatrixAnalysis(
 ): LoveMatrixResult | null {
   const isKo = lang === 'ko';
 
-  if (!saju && !astro) return null;
+  if (!saju && !astro) {return null;}
 
   const extSaju = saju as ExtendedSajuData | undefined;
   const shinsalLove: ShinsalPlanetResult[] = [];

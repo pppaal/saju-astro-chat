@@ -117,7 +117,7 @@ export function calculateTonggeun(stem: string, pillars: SajuPillarsInput): Tong
 
   for (const { key, branch } of pillarEntries) {
     const jijanggan = JIJANGGAN[branch];
-    if (!jijanggan) continue;
+    if (!jijanggan) {continue;}
 
     for (const [type, hiddenStem] of Object.entries(jijanggan)) {
       if (hiddenStem === stem) {
@@ -187,7 +187,7 @@ export function calculateTuechul(pillars: SajuPillarsInput): TuechulResult[] {
 
   for (const { key, branch } of pillarEntries) {
     const jijanggan = JIJANGGAN[branch];
-    if (!jijanggan) continue;
+    if (!jijanggan) {continue;}
 
     const hiddenStems: TuechulResult['hiddenStems'] = [];
 
@@ -222,7 +222,7 @@ export function getMonthBranchTransparency(pillars: SajuPillarsInput): {
 } {
   const monthBranch = pillars.month.branch;
   const jijanggan = JIJANGGAN[monthBranch];
-  if (!jijanggan) return { transparentStem: null, transparentType: null, priority: 0 };
+  if (!jijanggan) {return { transparentStem: null, transparentType: null, priority: 0 };}
 
   const allStems = [
     pillars.year.stem,
@@ -450,7 +450,7 @@ export function calculateElementStrengths(pillars: SajuPillarsInput): Record<Fiv
   // 지장간 힘 (정기 10, 중기 5, 여기 3)
   for (const branch of branches) {
     const jijanggan = JIJANGGAN[branch];
-    if (!jijanggan) continue;
+    if (!jijanggan) {continue;}
 
     if (jijanggan.정기) {
       strengths[getStemElement(jijanggan.정기)] += 10;
@@ -530,11 +530,11 @@ export function analyzeStrength(pillars: SajuPillarsInput): StrengthAnalysis {
 
   // 강약 판정
   let finalStrength: StrengthAnalysis['finalStrength'];
-  if (score > 50) finalStrength = '극신강';
-  else if (score > 20) finalStrength = '신강';
-  else if (score > -20) finalStrength = '중화';
-  else if (score > -50) finalStrength = '신약';
-  else finalStrength = '극신약';
+  if (score > 50) {finalStrength = '극신강';}
+  else if (score > 20) {finalStrength = '신강';}
+  else if (score > -20) {finalStrength = '중화';}
+  else if (score > -50) {finalStrength = '신약';}
+  else {finalStrength = '극신약';}
 
   return {
     daymaster,
@@ -577,11 +577,11 @@ export function evaluateStemPower(stem: string, pillars: SajuPillarsInput): {
   const total = tonggeun.totalStrength + transparentScore + hoegukBonus;
 
   let description = '';
-  if (total >= 100) description = '매우 강함';
-  else if (total >= 60) description = '강함';
-  else if (total >= 30) description = '보통';
-  else if (total > 0) description = '약함';
-  else description = '무력';
+  if (total >= 100) {description = '매우 강함';}
+  else if (total >= 60) {description = '강함';}
+  else if (total >= 30) {description = '보통';}
+  else if (total > 0) {description = '약함';}
+  else {description = '무력';}
 
   return {
     tonggeunScore: tonggeun.totalStrength,

@@ -17,7 +17,7 @@ export const StreamingMessage = React.memo(function StreamingMessage({
   content,
   styles
 }: StreamingMessageProps) {
-  if (!content) return null;
+  if (!content) {return null;}
 
   return (
     <div className={`${styles.messageRow} ${styles.assistantRow}`}>

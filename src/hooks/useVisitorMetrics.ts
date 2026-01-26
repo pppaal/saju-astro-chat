@@ -8,7 +8,7 @@ export function useVisitorMetrics(metricsToken?: string) {
   const trackedOnce = useRef(false);
 
   useEffect(() => {
-    if (!metricsToken) return;
+    if (!metricsToken) {return;}
 
     const fetchMetrics = async () => {
       try {
@@ -16,7 +16,7 @@ export function useVisitorMetrics(metricsToken?: string) {
           headers: { Authorization: `Bearer ${metricsToken}` },
         });
 
-        if (!res.ok) throw new Error('Failed to fetch metrics');
+        if (!res.ok) {throw new Error('Failed to fetch metrics');}
 
         const data = await res.json();
         setTodayVisitors(data.todayVisitors ?? null);

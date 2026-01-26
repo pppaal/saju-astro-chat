@@ -39,7 +39,7 @@ async function revokeWithGoogle(token: string) {
 }
 
 export async function revokeGoogleTokensForAccount(account: GoogleAccountLike) {
-  if (account.provider !== 'google') return { revoked: false, cleared: false };
+  if (account.provider !== 'google') {return { revoked: false, cleared: false };}
 
   const token =
     account.refresh_token ||
@@ -77,7 +77,7 @@ export async function revokeGoogleTokensForUser(userId: string) {
     },
   });
 
-  if (!account) return { revoked: false, cleared: false, reason: 'no_account' };
+  if (!account) {return { revoked: false, cleared: false, reason: 'no_account' };}
 
   const decryptedAccount = {
     ...account,

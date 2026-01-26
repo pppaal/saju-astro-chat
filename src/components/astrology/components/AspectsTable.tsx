@@ -10,7 +10,7 @@ interface AspectsTableProps {
 }
 
 export default function AspectsTable({ aspects, locKey }: AspectsTableProps) {
-  if (!aspects?.length) return null;
+  if (!aspects?.length) {return null;}
 
   const L = LABELS[locKey];
 

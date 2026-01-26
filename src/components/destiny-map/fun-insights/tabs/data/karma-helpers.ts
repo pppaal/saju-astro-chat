@@ -9,7 +9,7 @@ import type { SajuDataExtended, PlanetData } from './karma-types';
  * Find a planet's house from the planets array
  */
 export function findPlanetHouse(planets: PlanetData[] | undefined, name: string): number | null {
-  if (!Array.isArray(planets)) return null;
+  if (!Array.isArray(planets)) {return null;}
   const planet = planets.find((p) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
   return planet?.house ?? null;
 }
@@ -19,7 +19,7 @@ export function findPlanetHouse(planets: PlanetData[] | undefined, name: string)
  */
 export function analyzeElements(saju: SajuDataExtended | undefined): { strongest: string; weakest: string; balance: Record<string, number> } | null {
   const elements = saju?.fiveElements;
-  if (!elements) return null;
+  if (!elements) {return null;}
 
   const balance: Record<string, number> = {
     wood: (elements.wood as number) || (elements['목'] as number) || 0,

@@ -25,7 +25,7 @@ interface ExtendedSajuData {
  * Extract shinsals from saju data
  */
 function extractShinsals(saju: SajuData | undefined, targetShinsals?: ShinsalKind[]): ShinsalKind[] {
-  if (!saju) return [];
+  if (!saju) {return [];}
 
   const extSaju = saju as ExtendedSajuData;
   const shinsalList = extSaju?.shinsal || extSaju?.sinsal || [];
@@ -70,7 +70,7 @@ export function analyzeShinsalPlanet(
 ): ShinsalPlanetResult[] {
   const shinsalPlanetResults: ShinsalPlanetResult[] = [];
 
-  if (!saju) return shinsalPlanetResults;
+  if (!saju) {return shinsalPlanetResults;}
 
   const userShinsals = extractShinsals(saju, targetShinsals);
   const planets = targetPlanets || ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'] as PlanetName[];

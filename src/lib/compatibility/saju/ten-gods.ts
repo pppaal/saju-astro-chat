@@ -102,7 +102,7 @@ function extractPrimaryTenGods(profile: SajuProfile): TenGod[] {
   };
 
   const mapping = tenGodMap[dm];
-  if (!mapping) return primary;
+  if (!mapping) {return primary;}
 
   const elements = ['wood', 'fire', 'earth', 'metal', 'water'];
   const sorted = elements
@@ -126,6 +126,6 @@ function hasTenGod(list: TenGod[], targets: TenGod[]): boolean {
 
 function calculateTenGodBalance(supports: number, conflicts: number): number {
   const total = supports + conflicts;
-  if (total === 0) return 50;
+  if (total === 0) {return 50;}
   return Math.round((supports / total) * 100);
 }

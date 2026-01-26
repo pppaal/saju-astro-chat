@@ -77,7 +77,7 @@ const PLANET_ALIASES: Record<string, StandardPlanetName> = {
  * @returns Standardized planet name or null if invalid
  */
 export function normalizePlanetName(name: unknown): StandardPlanetName | null {
-  if (typeof name !== 'string' || !name.trim()) return null;
+  if (typeof name !== 'string' || !name.trim()) {return null;}
 
   const key = name.toLowerCase().trim();
   return PLANET_ALIASES[key] || null;
@@ -120,7 +120,7 @@ const ASPECT_ALIASES: Record<string, AspectType> = {
  * Normalizes aspect type to standard format
  */
 export function normalizeAspectType(type: unknown): AspectType | null {
-  if (typeof type !== 'string' || !type.trim()) return null;
+  if (typeof type !== 'string' || !type.trim()) {return null;}
 
   const key = type.toLowerCase().trim();
   return ASPECT_ALIASES[key] || null;
@@ -159,7 +159,7 @@ export function findPlanet(
   planets: PlanetData[] | Record<string, { sign?: string }> | undefined,
   targetName: StandardPlanetName
 ): PlanetData | { sign?: string; house?: number } | null {
-  if (!planets) return null;
+  if (!planets) {return null;}
 
   if (Array.isArray(planets)) {
     return planets.find(p => {
@@ -170,7 +170,7 @@ export function findPlanet(
 
   // Handle Record format
   const planet = planets[targetName];
-  if (planet) return planet;
+  if (planet) {return planet;}
 
   // Try other key formats
   for (const [key, value] of Object.entries(planets)) {
@@ -189,10 +189,10 @@ export function extractPlanetSignByName(
   astro: AstroData | undefined,
   planetName: StandardPlanetName
 ): string | null {
-  if (!astro?.planets) return null;
+  if (!astro?.planets) {return null;}
 
   const planet = findPlanet(astro.planets, planetName);
-  if (!planet?.sign) return null;
+  if (!planet?.sign) {return null;}
 
   return planet.sign.toLowerCase();
 }
@@ -205,7 +205,7 @@ export function getPlanetSign(
   planetName: string
 ): string | null {
   const normalized = normalizePlanetName(planetName);
-  if (!normalized) return null;
+  if (!normalized) {return null;}
   return extractPlanetSignByName(astro, normalized);
 }
 
@@ -216,7 +216,7 @@ export function extractPlanetHouseByName(
   astro: AstroData | undefined,
   planetName: StandardPlanetName
 ): number | null {
-  if (!astro?.planets) return null;
+  if (!astro?.planets) {return null;}
 
   const planet = findPlanet(astro.planets, planetName);
   if (!planet || !('house' in planet) || typeof planet.house !== 'number') {
@@ -253,7 +253,7 @@ export function extractMultiplePlanetSigns(
  * Get Chiron data from astro
  */
 export function getChironData(astro: AstroData | undefined): { sign?: string; house?: number } | null {
-  if (!astro) return null;
+  if (!astro) {return null;}
 
   // Check extraPoints
   if (astro.extraPoints?.chiron) {
@@ -273,7 +273,7 @@ export function getChironData(astro: AstroData | undefined): { sign?: string; ho
  * Get Lilith data from astro
  */
 export function getLilithData(astro: AstroData | undefined): { sign?: string; house?: number } | null {
-  if (!astro) return null;
+  if (!astro) {return null;}
 
   if (astro.extraPoints?.lilith) {
     return astro.extraPoints.lilith;
@@ -290,7 +290,7 @@ export function getLilithData(astro: AstroData | undefined): { sign?: string; ho
  * Get Vertex data from astro
  */
 export function getVertexData(astro: AstroData | undefined): { sign?: string; house?: number } | null {
-  if (!astro) return null;
+  if (!astro) {return null;}
 
   if (astro.extraPoints?.vertex) {
     return astro.extraPoints.vertex;
@@ -307,7 +307,7 @@ export function getVertexData(astro: AstroData | undefined): { sign?: string; ho
  * Get Part of Fortune data from astro
  */
 export function getPartOfFortuneData(astro: AstroData | undefined): { sign?: string; house?: number } | null {
-  if (!astro) return null;
+  if (!astro) {return null;}
 
   if (astro.extraPoints?.partOfFortune) {
     return astro.extraPoints.partOfFortune;

@@ -137,7 +137,7 @@ export async function canUseCredits(
 // 보너스 크레딧 소비 (FIFO - 먼저 구매한 것부터 사용)
 // Optimized to use batch updates instead of N+1 queries
 async function consumeBonusCreditsFromPurchases(userId: string, amount: number): Promise<number> {
-  if (amount <= 0) return 0;
+  if (amount <= 0) {return 0;}
 
   const now = new Date();
 
@@ -162,7 +162,7 @@ async function consumeBonusCreditsFromPurchases(userId: string, amount: number):
   const updates: Array<{ id: string; decrement: number }> = [];
 
   for (const purchase of validPurchases) {
-    if (remainingToConsume <= 0) break;
+    if (remainingToConsume <= 0) {break;}
 
     const toConsume = Math.min(purchase.remaining, remainingToConsume);
     updates.push({ id: purchase.id, decrement: toConsume });
@@ -251,7 +251,7 @@ async function hasActiveSubscription(userId: string): Promise<boolean> {
     orderBy: { updatedAt: "desc" },
   });
 
-  if (!subscription) return false;
+  if (!subscription) {return false;}
 
   // currentPeriodEnd가 지났으면 만료된 것
   if (subscription.currentPeriodEnd && new Date() > subscription.currentPeriodEnd) {

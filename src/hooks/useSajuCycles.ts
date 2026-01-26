@@ -27,7 +27,7 @@ export function useSajuCycles(
 
   // 연운 계산
   useEffect(() => {
-    if (!selectedDaeun) return;
+    if (!selectedDaeun) {return;}
     const daeunStartYear = birthYear + selectedDaeun.age - 1;
     const newYeonun = getAnnualCycles(daeunStartYear, 10, dayMaster);
     setDisplayedYeonun(newYeonun);
@@ -38,7 +38,7 @@ export function useSajuCycles(
 
   // 월운 계산
   useEffect(() => {
-    if (!selectedYeonun) return;
+    if (!selectedYeonun) {return;}
     const newWolun = getMonthlyCycles(selectedYeonun.year, dayMaster);
     setDisplayedWolun(newWolun);
 
@@ -50,7 +50,7 @@ export function useSajuCycles(
 
   // 일진 달력
   useEffect(() => {
-    if (!selectedWolun) return;
+    if (!selectedWolun) {return;}
     const y = selectedWolun.year;
     const m = selectedWolun.month;
     const newIljin = getIljinCalendar(y, m, dayMaster);

@@ -66,7 +66,7 @@ export function useUserProfile(
   };
 
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === 'loading') {return;}
     loadProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, isAuthenticated]);

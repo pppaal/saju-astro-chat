@@ -59,7 +59,7 @@ export {
  */
 export function getDateInTimezone(tz?: string): string {
   const now = new Date();
-  if (!tz) return now.toISOString().slice(0, 10);
+  if (!tz) {return now.toISOString().slice(0, 10);}
 
   try {
     return new Intl.DateTimeFormat("en-CA", {

@@ -73,7 +73,7 @@ export const useAiStreaming = ({
    * Fetches streaming response from API and updates state progressively
    */
   const startAiInterpretation = useCallback(async () => {
-    if (!result?.primaryHexagram || aiStatus === "streaming" || aiStatus === "loading") return;
+    if (!result?.primaryHexagram || aiStatus === "streaming" || aiStatus === "loading") {return;}
 
     // Abort any existing stream
     if (abortControllerRef.current) {
@@ -136,7 +136,7 @@ export const useAiStreaming = ({
         // Fallback to JSON response
         try {
           const data = await response.json();
-          if (data.error) throw new Error(data.error);
+          if (data.error) {throw new Error(data.error);}
           // If we got JSON with content, it might be a fallback response
           if (data.overview || data.changing || data.advice) {
             setOverviewText(data.overview || "");
@@ -155,14 +155,14 @@ export const useAiStreaming = ({
 
       setAiStatus("streaming");
       const reader = response.body?.getReader();
-      if (!reader) throw new Error("No reader available");
+      if (!reader) {throw new Error("No reader available");}
 
       const decoder = new TextDecoder();
       let buffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {break;}
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");

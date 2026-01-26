@@ -30,7 +30,7 @@ export const TrigramComposition: React.FC<TrigramCompositionProps> = React.memo(
   lang,
   translate,
 }) => {
-  if (!upperTrigram || !lowerTrigram) return null;
+  if (!upperTrigram || !lowerTrigram) {return null;}
 
   return (
     <>

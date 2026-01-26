@@ -34,10 +34,10 @@ export function normalizeScore(
  * @returns Grade from 0 (best) to 4 (worst)
  */
 export function scoreToGrade(score: number): 0 | 1 | 2 | 3 | 4 {
-  if (score >= SCORE_THRESHOLDS.EXCELLENT) return 0; // 80+
-  if (score >= SCORE_THRESHOLDS.GOOD) return 1;      // 65-79
-  if (score >= SCORE_THRESHOLDS.AVERAGE) return 2;   // 50-64
-  if (score >= SCORE_THRESHOLDS.CAUTION) return 3;   // 35-49
+  if (score >= SCORE_THRESHOLDS.EXCELLENT) {return 0;} // 80+
+  if (score >= SCORE_THRESHOLDS.GOOD) {return 1;}      // 65-79
+  if (score >= SCORE_THRESHOLDS.AVERAGE) {return 2;}   // 50-64
+  if (score >= SCORE_THRESHOLDS.CAUTION) {return 3;}   // 35-49
   return 4;                                           // 0-34
 }
 
@@ -65,10 +65,10 @@ export function getGradeLabel(grade: 0 | 1 | 2 | 3 | 4): string {
 export function calculateWeightedAverage(
   scores: Array<{ value: number; weight: number }>
 ): number {
-  if (scores.length === 0) return 0;
+  if (scores.length === 0) {return 0;}
 
   const totalWeight = scores.reduce((sum, s) => sum + s.weight, 0);
-  if (totalWeight === 0) return 0;
+  if (totalWeight === 0) {return 0;}
 
   const weightedSum = scores.reduce((sum, s) => sum + s.value * s.weight, 0);
   return weightedSum / totalWeight;

@@ -163,7 +163,7 @@ export abstract class BaseEventStrategy implements EventTimingStrategy {
   }
 
   applySolarTermBonus(context: ScoringContext, result: ScoreResult): void {
-    if (!context.solarTerm) return;
+    if (!context.solarTerm) {return;}
 
     if (context.yongsin?.includes(context.solarTerm.element)) {
       result.score += 8;
@@ -176,7 +176,7 @@ export abstract class BaseEventStrategy implements EventTimingStrategy {
   }
 
   applyDaeunBonus(context: ScoringContext, result: ScoreResult): void {
-    if (!context.daeun) return;
+    if (!context.daeun) {return;}
 
     // 기본 대운 점수는 모든 이벤트에 공통 적용
     if (context.solarTerm && context.daeun.element === context.solarTerm.element) {
@@ -225,7 +225,7 @@ export class ConfigurableEventStrategy extends BaseEventStrategy {
   applyDaeunBonus(context: ScoringContext, result: ScoreResult): void {
     super.applyDaeunBonus(context, result);
 
-    if (!context.daeun || !this.config.daeun) return;
+    if (!context.daeun || !this.config.daeun) {return;}
 
     this.applyConditionalScore(
       context.daeun.element,

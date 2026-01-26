@@ -19,14 +19,14 @@ export function calculateYearFortune({ sajuExt, dayMasterName, dayElement, isKo 
 
   const currentYear = new Date().getFullYear();
   const thisYearUnse = sajuExt.unse.annual.find((a) => a.year === currentYear) ?? sajuExt.unse.annual[0];
-  if (!thisYearUnse) return null;
+  if (!thisYearUnse) {return null;}
 
   const ganji = thisYearUnse.ganji || `${thisYearUnse.stem?.name || ""}${thisYearUnse.branch?.name || ""}`;
   const element = thisYearUnse.stem?.element || thisYearUnse.element || getStemElement(ganji);
 
   const getYearFortune = (el: string): { theme: string; desc: string; advice: string; emoji: string } => {
     const e = el.toLowerCase();
-    if (e.includes("목") || e === "wood") return {
+    if (e.includes("목") || e === "wood") {return {
       theme: isKo ? "성장과 시작의 해 🌱" : "Year of Growth & Beginnings 🌱",
       desc: isKo
         ? "올해는 새싹이 땅을 뚫고 올라오는 해예요. 무언가를 시작하기에 최적의 타이밍이에요."
@@ -35,8 +35,8 @@ export function calculateYearFortune({ sajuExt, dayMasterName, dayElement, isKo 
         ? "새로운 것을 시작하세요. 배움, 프로젝트, 관계... 뭐든 좋아요! 멈춰있으면 오히려 답답해지는 해예요."
         : "Start something new. Learning, projects, relationships... anything! Staying still will frustrate you this year.",
       emoji: "🌱"
-    };
-    if (e.includes("화") || e === "fire") return {
+    };}
+    if (e.includes("화") || e === "fire") {return {
       theme: isKo ? "열정과 표현의 해 🔥" : "Year of Passion & Expression 🔥",
       desc: isKo
         ? "올해는 당신이 빛나는 해예요. 존재감을 드러내고 적극적으로 움직일 때 기회가 와요."
@@ -45,8 +45,8 @@ export function calculateYearFortune({ sajuExt, dayMasterName, dayElement, isKo 
         ? "숨지 말고 드러내세요! 자기 PR, 네트워킹, 발표... 밖으로 나갈수록 기회가 와요."
         : "Don't hide—show yourself! Self-PR, networking, presentations... more outside = more opportunities.",
       emoji: "🔥"
-    };
-    if (e.includes("토") || e === "earth") return {
+    };}
+    if (e.includes("토") || e === "earth") {return {
       theme: isKo ? "안정과 기반의 해 🏔️" : "Year of Stability & Foundation 🏔️",
       desc: isKo
         ? "올해는 기반을 다지는 해예요. 화려하진 않지만 단단해지는 시간이에요."
@@ -55,8 +55,8 @@ export function calculateYearFortune({ sajuExt, dayMasterName, dayElement, isKo 
         ? "급하게 가지 마세요. 기반을 다지고, 관계를 정리하고, 내실을 채우세요."
         : "Don't rush. Build foundation, organize relationships, strengthen your core.",
       emoji: "🏔️"
-    };
-    if (e.includes("금") || e === "metal") return {
+    };}
+    if (e.includes("금") || e === "metal") {return {
       theme: isKo ? "결실과 정리의 해 ⚔️" : "Year of Harvest & Organization ⚔️",
       desc: isKo
         ? "올해는 수확의 해예요. 지금까지 쌓아온 것들이 결과로 나타나요."
@@ -65,8 +65,8 @@ export function calculateYearFortune({ sajuExt, dayMasterName, dayElement, isKo 
         ? "지금까지 한 것들이 결실을 맺어요. 마무리, 수확, 정산의 시기예요."
         : "Your past efforts bear fruit. Time for finishing, harvesting, settling.",
       emoji: "⚔️"
-    };
-    if (e.includes("수") || e === "water") return {
+    };}
+    if (e.includes("수") || e === "water") {return {
       theme: isKo ? "준비와 지혜의 해 💧" : "Year of Preparation & Wisdom 💧",
       desc: isKo
         ? "올해는 물처럼 깊어지는 해예요. 겉으로 드러나진 않지만 내면이 성장해요."
@@ -75,7 +75,7 @@ export function calculateYearFortune({ sajuExt, dayMasterName, dayElement, isKo 
         ? "겉으로 드러나진 않지만 내면이 깊어지는 해예요. 공부, 계획, 성찰의 시기예요."
         : "Inner depth grows though not visible. Study, plan, reflect... preparation time for next leap.",
       emoji: "💧"
-    };
+    };}
     const dayElTrait = dayElement ? elementTraits[dayElement] : undefined;
     return {
       theme: isKo ? "변화와 적응의 해 🔄" : "Year of Change & Adaptation 🔄",
@@ -144,38 +144,38 @@ export function calculateMonthFortune({ sajuExt, isKo }: UseMonthFortuneParams):
 
   const currentMonth = new Date().getMonth() + 1;
   const thisMonthUnse = sajuExt.unse.monthly.find((m) => m.month === currentMonth) ?? sajuExt.unse.monthly[0];
-  if (!thisMonthUnse) return null;
+  if (!thisMonthUnse) {return null;}
 
   const ganji = thisMonthUnse.ganji || `${thisMonthUnse.stem?.name || ""}${thisMonthUnse.branch?.name || ""}`;
   const element = thisMonthUnse.stem?.element || thisMonthUnse.element || getStemElement(ganji);
 
   const getMonthFortune = (el: string): { theme: string; advice: string; emoji: string } => {
     const e = el.toLowerCase();
-    if (e.includes("목") || e.includes("wood")) return {
+    if (e.includes("목") || e.includes("wood")) {return {
       theme: isKo ? "활동적인 달" : "Active Month",
       advice: isKo ? "움직이세요! 새로운 만남, 시작, 도전이 좋아요." : "Get moving! New meetings, beginnings, challenges are good.",
       emoji: "🌿"
-    };
-    if (e.includes("화") || e.includes("fire")) return {
+    };}
+    if (e.includes("화") || e.includes("fire")) {return {
       theme: isKo ? "주목받는 달" : "Spotlight Month",
       advice: isKo ? "사람들 앞에 서세요. 당신의 매력이 빛나는 달이에요." : "Step in front of people. Your charm shines this month.",
       emoji: "✨"
-    };
-    if (e.includes("토") || e.includes("earth")) return {
+    };}
+    if (e.includes("토") || e.includes("earth")) {return {
       theme: isKo ? "안정의 달" : "Stable Month",
       advice: isKo ? "무리하지 마세요. 기존 것을 유지하고 다지는 게 좋아요." : "Don't overdo it. Maintain and strengthen what you have.",
       emoji: "🏠"
-    };
-    if (e.includes("금") || e.includes("metal")) return {
+    };}
+    if (e.includes("금") || e.includes("metal")) {return {
       theme: isKo ? "정리의 달" : "Organizing Month",
       advice: isKo ? "결단이 필요해요. 미루던 일을 끝내고 정리하세요." : "Decisions are needed. Finish delayed tasks, organize.",
       emoji: "✂️"
-    };
-    if (e.includes("수") || e.includes("water")) return {
+    };}
+    if (e.includes("수") || e.includes("water")) {return {
       theme: isKo ? "충전의 달" : "Recharging Month",
       advice: isKo ? "쉬어가세요. 재충전하고 생각을 정리하기 좋은 때예요." : "Take a break. Good time to recharge and organize thoughts.",
       emoji: "🌙"
-    };
+    };}
     return {
       theme: isKo ? "흐름을 타는 달" : "Flow Month",
       advice: isKo ? "자연스럽게 흘러가세요." : "Go with the natural flow.",
@@ -248,37 +248,37 @@ export function calculateTodayFortune({ sajuExt, isKo }: UseTodayFortuneParams):
   const today = new Date();
   const todayDate = today.getDate();
   const todayIljin = sajuExt.unse.iljin.find((i) => i.day === todayDate) ?? sajuExt.unse.iljin[0];
-  if (!todayIljin) return null;
+  if (!todayIljin) {return null;}
 
   const ganji = todayIljin.ganji || `${todayIljin.stem?.name || ""}${todayIljin.branch?.name || ""}`;
   const element = todayIljin.stem?.element || todayIljin.element || getStemElement(ganji);
 
   const getDayFortune = (el: string): { mood: string; tip: string; emoji: string; luckyTime: string } => {
     const e = el.toLowerCase();
-    if (e.includes("목") || e.includes("wood")) return {
+    if (e.includes("목") || e.includes("wood")) {return {
       mood: isKo ? "활기찬 하루! 새로운 시작 에너지가 넘쳐요." : "Energetic day! Full of new beginning energy.",
       tip: isKo ? "오늘은 적극적으로 움직이세요. 새로운 도전이 좋아요." : "Move actively today. New challenges are good.",
       emoji: "🌱",
       luckyTime: isKo ? "오전 7-9시" : "7-9 AM"
-    };
-    if (e.includes("화") || e.includes("fire")) return {
+    };}
+    if (e.includes("화") || e.includes("fire")) {return {
       mood: isKo ? "열정적인 하루! 표현하고 빛날 때예요." : "Passionate day! Time to express and shine.",
       tip: isKo ? "숨기지 말고 드러내세요. 당신의 매력이 통해요." : "Don't hide, show yourself. Your charm works.",
       emoji: "🔥",
       luckyTime: isKo ? "오전 11시-오후 1시" : "11 AM - 1 PM"
-    };
-    if (e.includes("토") || e.includes("earth")) return {
+    };}
+    if (e.includes("토") || e.includes("earth")) {return {
       mood: isKo ? "안정적인 하루! 기존 일을 마무리하기 좋아요." : "Stable day! Good for finishing existing work.",
       tip: isKo ? "급하게 움직이지 마세요. 차분히 정리하는 날이에요." : "Don't move hastily. It's a day for calm organizing.",
       emoji: "🏠",
       luckyTime: isKo ? "오후 1-3시" : "1-3 PM"
-    };
-    if (e.includes("금") || e.includes("metal")) return {
+    };}
+    if (e.includes("금") || e.includes("metal")) {return {
       mood: isKo ? "결단의 하루! 미루던 걸 끝낼 때예요." : "Day of decision! Time to finish what you've delayed.",
       tip: isKo ? "잘라낼 건 잘라내세요. 깔끔해지면 새 에너지가 와요." : "Cut what needs cutting. Clarity brings new energy.",
       emoji: "✂️",
       luckyTime: isKo ? "오후 3-5시" : "3-5 PM"
-    };
+    };}
     return {
       mood: isKo ? "직관적인 하루! 생각보다 느낌으로 가세요." : "Intuitive day! Go by feeling rather than thinking.",
       tip: isKo ? "물처럼 유연하게 흘러가세요. 억지로 밀어붙이지 마세요." : "Flow like water. Don't force things.",

@@ -60,10 +60,10 @@ const GEOKGUK_PATTERNS: GeokgukPattern[] = [
  * @returns Standardized geokguk type or null
  */
 export function getGeokgukType(name: string | undefined | null): GeokgukType | null {
-  if (!name || typeof name !== 'string') return null;
+  if (!name || typeof name !== 'string') {return null;}
 
   const normalized = name.toLowerCase().trim();
-  if (!normalized) return null;
+  if (!normalized) {return null;}
 
   // First pass: exact match (highest priority)
   for (const { patterns, type } of GEOKGUK_PATTERNS) {
@@ -86,7 +86,7 @@ export function getGeokgukType(name: string | undefined | null): GeokgukType | n
  * Checks if a geokguk type is valid
  */
 export function isValidGeokgukType(type: unknown): type is GeokgukType {
-  if (typeof type !== 'string') return false;
+  if (typeof type !== 'string') {return false;}
 
   const validTypes: GeokgukType[] = [
     'jeonggwan', 'pyeongwan', 'jeongin', 'pyeongin',
@@ -197,12 +197,12 @@ import type { SajuData } from '../types';
  * Extract geokguk type from saju data
  */
 export function extractGeokgukType(saju: SajuData | undefined): GeokgukType | null {
-  if (!saju?.advancedAnalysis?.geokguk) return null;
+  if (!saju?.advancedAnalysis?.geokguk) {return null;}
 
   const geokguk = saju.advancedAnalysis.geokguk;
   const geokName = geokguk.name || geokguk.type;
 
-  if (!geokName) return null;
+  if (!geokName) {return null;}
 
   return getGeokgukType(geokName);
 }

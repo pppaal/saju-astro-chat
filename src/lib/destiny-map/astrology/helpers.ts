@@ -55,7 +55,7 @@ export function maskInput(input: CombinedInput): MaskedInput {
  * @returns Resolved timezone string
  */
 export function resolveTimezone(tz: string | undefined, latitude: number, longitude: number): string {
-  if (tz) return tz;
+  if (tz) {return tz;}
   try {
     return tzLookup(latitude, longitude);
   } catch {
@@ -121,7 +121,7 @@ export function getNowInTimezone(tz?: string): DateComponents {
 export function getYinYangFromName(name: string): '음' | '양' {
   const yangStems = ['갑', '병', '무', '경', '임'];
   const yangBranches = ['자', '인', '진', '오', '신', '술'];
-  if (yangStems.includes(name) || yangBranches.includes(name)) return '양';
+  if (yangStems.includes(name) || yangBranches.includes(name)) {return '양';}
   return '음';
 }
 
@@ -239,7 +239,7 @@ export function calcTransitsToLights(
   for (const tr of transitPlanets) {
     const lon = typeof tr?.longitude === 'number' ? tr.longitude : null;
     const name = tr?.name;
-    if (!name || lon === null) continue;
+    if (!name || lon === null) {continue;}
 
     for (const tgt of lights) {
       const d = normDiff(lon, tgt.longitude);

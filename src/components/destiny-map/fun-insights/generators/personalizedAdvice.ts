@@ -18,7 +18,7 @@ function getSibsinDistribution(saju: SajuData | undefined): Record<string, numbe
 function getDominantSibsin(saju: SajuData | undefined): string | null {
   const dist = getSibsinDistribution(saju);
   const entries = Object.entries(dist);
-  if (entries.length === 0) return null;
+  if (entries.length === 0) {return null;}
   const sorted = entries.sort(([, a], [, b]) => b - a);
   return sorted[0]?.[0] || null;
 }
@@ -27,7 +27,7 @@ function getDominantSibsin(saju: SajuData | undefined): string | null {
 function getElementRatios(saju: SajuData | undefined): { element: string; ratio: number }[] {
   const elements = saju?.fiveElements || {};
   const total = Object.values(elements).reduce((a, b) => (a as number) + (b as number), 0) as number;
-  if (total === 0) return [];
+  if (total === 0) {return [];}
 
   return Object.entries(elements)
     .map(([el, val]) => ({ element: el, ratio: Math.round(((val as number) / total) * 100) }))
@@ -40,9 +40,9 @@ function getSinsalList(saju: SajuData | undefined): string[] {
   const shinsal = saju?.shinsal;
   const result: string[] = [];
 
-  if (sinsal?.luckyList) result.push(...sinsal.luckyList.map(s => s.name));
-  if (sinsal?.unluckyList) result.push(...sinsal.unluckyList.map(s => s.name));
-  if (Array.isArray(shinsal)) result.push(...shinsal.map(s => s.name || '').filter(Boolean));
+  if (sinsal?.luckyList) {result.push(...sinsal.luckyList.map(s => s.name));}
+  if (sinsal?.unluckyList) {result.push(...sinsal.unluckyList.map(s => s.name));}
+  if (Array.isArray(shinsal)) {result.push(...shinsal.map(s => s.name || '').filter(Boolean));}
 
   return result;
 }
@@ -386,7 +386,7 @@ export function getCombinedLifeTheme(
   const dayMaster = getDayMaster(saju);
   const elementRatios = getElementRatios(saju);
 
-  if (!dayMaster || elementRatios.length < 2) return null;
+  if (!dayMaster || elementRatios.length < 2) {return null;}
 
   const strongEl = elementRatios[0].element;
   const strongRatio = elementRatios[0].ratio;

@@ -19,12 +19,12 @@ function getSibseong(
   dayMaster: { element: FiveElement; yin_yang: YinYang },
   target: StemBranchInfo
 ): string {
-  if (!dayMaster || !target) return '';
-  if (dayMaster.element === target.element) return dayMaster.yin_yang === target.yin_yang ? '비견' : '겁재';
-  if (FIVE_ELEMENT_RELATIONS.생하는관계[dayMaster.element] === target.element) return dayMaster.yin_yang === target.yin_yang ? '식신' : '상관';
-  if (FIVE_ELEMENT_RELATIONS.극하는관계[dayMaster.element] === target.element) return dayMaster.yin_yang === target.yin_yang ? '편재' : '정재';
-  if (FIVE_ELEMENT_RELATIONS.극받는관계[dayMaster.element] === target.element) return dayMaster.yin_yang === target.yin_yang ? '편관' : '정관';
-  if (FIVE_ELEMENT_RELATIONS.생받는관계[dayMaster.element] === target.element) return dayMaster.yin_yang === target.yin_yang ? '편인' : '정인';
+  if (!dayMaster || !target) {return '';}
+  if (dayMaster.element === target.element) {return dayMaster.yin_yang === target.yin_yang ? '비견' : '겁재';}
+  if (FIVE_ELEMENT_RELATIONS.생하는관계[dayMaster.element] === target.element) {return dayMaster.yin_yang === target.yin_yang ? '식신' : '상관';}
+  if (FIVE_ELEMENT_RELATIONS.극하는관계[dayMaster.element] === target.element) {return dayMaster.yin_yang === target.yin_yang ? '편재' : '정재';}
+  if (FIVE_ELEMENT_RELATIONS.극받는관계[dayMaster.element] === target.element) {return dayMaster.yin_yang === target.yin_yang ? '편관' : '정관';}
+  if (FIVE_ELEMENT_RELATIONS.생받는관계[dayMaster.element] === target.element) {return dayMaster.yin_yang === target.yin_yang ? '편인' : '정인';}
   return '';
 }
 
@@ -56,9 +56,9 @@ const DAEUN_ROUNDING: 'round' | 'ceil' | 'floor' = 'round';
 function daysToDaeunAge(days: number): number {
   const v = days / 3;
   let age: number;
-  if (DAEUN_ROUNDING === 'ceil') age = Math.ceil(v);
-  else if (DAEUN_ROUNDING === 'floor') age = Math.floor(v);
-  else age = Math.round(v);
+  if (DAEUN_ROUNDING === 'ceil') {age = Math.ceil(v);}
+  else if (DAEUN_ROUNDING === 'floor') {age = Math.floor(v);}
+  else {age = Math.round(v);}
   return Math.max(1, age);
 }
 
@@ -83,7 +83,7 @@ export function getDaeunCycles(
 
   // 주의: getSolarTermKST가 KST 기준 Date를 반환한다고 가정
   const cur = getSolarTermKST(y, m);
-  if (!cur) return { daeunsu: 0, cycles: [] };
+  if (!cur) {return { daeunsu: 0, cycles: [] };}
 
   let previousTerm: Date, nextTerm: Date;
   if (birthUTC.getTime() >= cur.getTime()) {
@@ -91,13 +91,13 @@ export function getDaeunCycles(
     const ny = m === 12 ? y + 1 : y;
     previousTerm = cur;
     const nt = getSolarTermKST(ny, nm);
-    if (!nt) return { daeunsu: 0, cycles: [] };
+    if (!nt) {return { daeunsu: 0, cycles: [] };}
     nextTerm = nt;
   } else {
     const pm = m === 1 ? 12 : m - 1;
     const py = m === 1 ? y - 1 : y;
     const pt = getSolarTermKST(py, pm);
-    if (!pt) return { daeunsu: 0, cycles: [] };
+    if (!pt) {return { daeunsu: 0, cycles: [] };}
     previousTerm = pt;
     nextTerm = cur;
   }
@@ -176,7 +176,7 @@ export function getMonthlyCycles(year: number, dayMaster: DayMaster, options?: {
   // 해당 연도의 년간 찾기 (입춘 기준, 간편화: 양력 연도 사용)
   const year_gapja_index = (year - 4 + 6000) % 60;
   const yearStemName = STEMS[year_gapja_index % 10]?.name;
-  if (!yearStemName) return [];
+  if (!yearStemName) {return [];}
 
   const firstMonthStemName = MONTH_STEM_LOOKUP[yearStemName]; // 寅월의 월간
   const firstMonthStemIndex = STEMS.findIndex(s => s.name === firstMonthStemName);
@@ -268,7 +268,7 @@ export function getIljinCalendar(year: number, month: number, dayMaster: DayMast
 
     const stem = STEMS[stemIndex];
     const branch = BRANCHES[branchIndex];
-    if (!stem || !branch) continue;
+    if (!stem || !branch) {continue;}
 
     calendar.push({
       year,

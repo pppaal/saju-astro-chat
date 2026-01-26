@@ -57,10 +57,10 @@ export type { SajuPillarsInput };
  */
 function getElement(char: string): FiveElement | null {
   const stem = STEMS.find(s => s.name === char);
-  if (stem) return stem.element;
+  if (stem) {return stem.element;}
 
   const branch = BRANCHES.find(b => b.name === char);
-  if (branch) return branch.element;
+  if (branch) {return branch.element;}
 
   return null;
 }
@@ -106,17 +106,17 @@ function countElements(pillars: SajuPillarsInput): ElementStats {
   for (const pillar of allPillars) {
     // 천간 오행
     const stemElement = getElement(pillar.stem);
-    if (stemElement) stats[stemElement]++;
+    if (stemElement) {stats[stemElement]++;}
 
     // 지지 오행
     const branchElement = getElement(pillar.branch);
-    if (branchElement) stats[branchElement]++;
+    if (branchElement) {stats[branchElement]++;}
 
     // 지장간 정기 오행 (가장 중요한 기운)
     const jijanggan = JIJANGGAN[pillar.branch];
     if (jijanggan?.정기) {
       const jeonggiElement = getElement(jijanggan.정기);
-      if (jeonggiElement) stats[jeonggiElement] += 0.5; // 가중치 0.5
+      if (jeonggiElement) {stats[jeonggiElement] += 0.5;} // 가중치 0.5
     }
   }
 
@@ -131,7 +131,7 @@ function assessDaymasterStrength(
   pillars: SajuPillarsInput
 ): DaymasterStrength {
   const daymasterElement = getElement(daymaster);
-  if (!daymasterElement) return '중화';
+  if (!daymasterElement) {return '중화';}
 
   const stats = countElements(pillars);
 
@@ -159,10 +159,10 @@ function assessDaymasterStrength(
   // 강약 판단
   const ratio = totalSupport / (totalWeaken + 0.1);
 
-  if (ratio > 2.5 || (ratio > 1.8 && hasMonthSupport)) return '극신강';
-  if (ratio > 1.5 || (ratio > 1.2 && hasMonthSupport)) return '신강';
-  if (ratio < 0.4 || (ratio < 0.6 && !hasMonthSupport)) return '극신약';
-  if (ratio < 0.8 || (ratio < 0.9 && !hasMonthSupport)) return '신약';
+  if (ratio > 2.5 || (ratio > 1.8 && hasMonthSupport)) {return '극신강';}
+  if (ratio > 1.5 || (ratio > 1.2 && hasMonthSupport)) {return '신강';}
+  if (ratio < 0.4 || (ratio < 0.6 && !hasMonthSupport)) {return '극신약';}
+  if (ratio < 0.8 || (ratio < 0.9 && !hasMonthSupport)) {return '신약';}
 
   return '중화';
 }

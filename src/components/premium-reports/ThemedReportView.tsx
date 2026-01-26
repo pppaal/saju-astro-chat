@@ -76,9 +76,9 @@ export function ThemedReportView({ report, onDownloadPDF, onShare }: ThemedRepor
   const themeMeta = THEME_META[report.theme];
 
   const getScoreEmoji = (score: number) => {
-    if (score >= 80) return '🌟';
-    if (score >= 60) return '✨';
-    if (score >= 40) return '💫';
+    if (score >= 80) {return '🌟';}
+    if (score >= 60) {return '✨';}
+    if (score >= 40) {return '💫';}
     return '🌙';
   };
 

@@ -49,7 +49,7 @@ export function AstrologyInsightsSection({ astro, lang }: AstrologyInsightsSecti
     starsInsight ||
     eclipsesInsight;
 
-  if (!hasAnyInsight) return null;
+  if (!hasAnyInsight) {return null;}
 
   return (
     <>

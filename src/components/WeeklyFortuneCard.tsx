@@ -20,7 +20,7 @@ export default function WeeklyFortuneCard() {
     async function fetchWeeklyFortune() {
       try {
         const res = await fetch('/api/weekly-fortune');
-        if (!res.ok) throw new Error('Failed to fetch');
+        if (!res.ok) {throw new Error('Failed to fetch');}
         const json = await res.json();
         if (json.imageUrl) {
           setData(json);

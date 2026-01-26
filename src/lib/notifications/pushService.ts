@@ -52,7 +52,7 @@ function isWebPushError(error: unknown): error is WebPushError {
 let vapidConfigured = false;
 
 function initializeVapid() {
-  if (vapidConfigured) return true;
+  if (vapidConfigured) {return true;}
 
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;

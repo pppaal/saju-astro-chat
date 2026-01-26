@@ -161,7 +161,7 @@ export function applySolarTermScoring(
   score: number,
   reasons: string[]
 ): number {
-  if (!solarTerm) return score;
+  if (!solarTerm) {return score;}
 
   const conditions = EVENT_FAVORABLE_CONDITIONS[eventType];
   let adjustedScore = score;

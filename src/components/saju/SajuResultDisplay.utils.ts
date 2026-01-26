@@ -82,8 +82,8 @@ const branchElement: Record<string, ElementEN> = {
  * string | { name: string } 처리
  */
 export function getGanjiName(val: GanjiValue): string {
-  if (typeof val === 'string') return val;
-  if (val && typeof val === 'object' && 'name' in val) return val.name;
+  if (typeof val === 'string') {return val;}
+  if (val && typeof val === 'object' && 'name' in val) {return val.name;}
   return '';
 }
 
@@ -91,8 +91,8 @@ export function getGanjiName(val: GanjiValue): string {
  * 글자의 오행 조회
  */
 export function getElementOfChar(ch: string): ElementEN | null {
-  if (stemElement[ch]) return stemElement[ch];
-  if (branchElement[ch]) return branchElement[ch];
+  if (stemElement[ch]) {return stemElement[ch];}
+  if (branchElement[ch]) {return branchElement[ch];}
   return null;
 }
 
@@ -114,7 +114,7 @@ export function getElementBarColor(element: ElementEN): string {
  * 문자열 배열을 쉼표로 연결
  */
 export function joinArray(arr?: string[]): string {
-  if (!arr || arr.length === 0) return '-';
+  if (!arr || arr.length === 0) {return '-';}
   return arr.join(', ');
 }
 
@@ -122,11 +122,11 @@ export function joinArray(arr?: string[]): string {
  * 점수를 등급으로 변환
  */
 export function scoreToGrade(score?: number): string {
-  if (!score) return '-';
-  if (score >= 90) return 'S';
-  if (score >= 80) return 'A';
-  if (score >= 70) return 'B';
-  if (score >= 60) return 'C';
+  if (!score) {return '-';}
+  if (score >= 90) {return 'S';}
+  if (score >= 80) {return 'A';}
+  if (score >= 70) {return 'B';}
+  if (score >= 60) {return 'C';}
   return 'D';
 }
 
@@ -134,6 +134,6 @@ export function scoreToGrade(score?: number): string {
  * 숫자를 퍼센트 문자열로 변환
  */
 export function toPercentString(value?: number): string {
-  if (value === undefined || value === null) return '-';
+  if (value === undefined || value === null) {return '-';}
   return `${Math.round(value)}%`;
 }

@@ -11,19 +11,19 @@ import {
 } from './constants';
 
 export function findPlanetSign(planets: PlanetData[] | undefined, name: string): string | null {
-  if (!Array.isArray(planets)) return null;
+  if (!Array.isArray(planets)) {return null;}
   const planet = planets.find((p) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
   return planet?.sign ?? null;
 }
 
 export function findPlanetHouse(planets: PlanetData[] | undefined, name: string): number | null {
-  if (!Array.isArray(planets)) return null;
+  if (!Array.isArray(planets)) {return null;}
   const planet = planets.find((p) => p.name?.toLowerCase()?.includes(name.toLowerCase()));
   return planet?.house ?? null;
 }
 
 export function getStemElement(ganji: string): string {
-  if (!ganji) return "";
+  if (!ganji) {return "";}
   const firstChar = ganji.charAt(0);
   return STEM_TO_ELEMENT[firstChar] || "";
 }

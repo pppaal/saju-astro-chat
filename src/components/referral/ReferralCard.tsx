@@ -40,7 +40,7 @@ export default function ReferralCard() {
   };
 
   const copyReferralLink = () => {
-    if (!stats?.referralCode) return;
+    if (!stats?.referralCode) {return;}
 
     const referralLink = `${window.location.origin}?ref=${stats.referralCode}`;
     navigator.clipboard.writeText(referralLink);
@@ -50,7 +50,7 @@ export default function ReferralCard() {
   };
 
   const shareReferral = async () => {
-    if (!stats?.referralCode) return;
+    if (!stats?.referralCode) {return;}
 
     const referralLink = `${window.location.origin}?ref=${stats.referralCode}`;
     const shareText = t("referral.shareText");

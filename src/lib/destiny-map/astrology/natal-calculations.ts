@@ -109,7 +109,7 @@ export function computePartOfFortune(
   const sun = planets.find((p) => p.name === "Sun");
   const moon = planets.find((p) => p.name === "Moon");
 
-  if (!sun || !moon || !ascendant) return;
+  if (!sun || !moon || !ascendant) {return;}
 
   // Determine if day or night chart
   // Night chart if Sun is below horizon (houses 1-6 from ASC)

@@ -80,33 +80,33 @@ function getStemInfo(stemName: string): StemBranchInfo | undefined {
 // 지장간 정기(본기) 천간 가져오기
 function getMainHiddenStem(branchName: string): StemBranchInfo | undefined {
   const jj = JIJANGGAN[branchName];
-  if (!jj?.정기) return undefined;
+  if (!jj?.정기) {return undefined;}
   return STEMS.find(s => s.name === jj.정기);
 }
 
 // 지장간 모든 천간 가져오기 (가중치 포함)
 function getHiddenStems(branchName: string): Array<{ stem: StemBranchInfo; weight: number }> {
   const jj = JIJANGGAN[branchName];
-  if (!jj) return [];
+  if (!jj) {return [];}
 
   const result: Array<{ stem: StemBranchInfo; weight: number }> = [];
 
   // 초기: 7일 비중 (약 23%)
   if (jj.초기) {
     const stem = STEMS.find(s => s.name === jj.초기);
-    if (stem) result.push({ stem, weight: 0.23 });
+    if (stem) {result.push({ stem, weight: 0.23 });}
   }
 
   // 중기: 7일 비중 (약 23%)
   if (jj.중기) {
     const stem = STEMS.find(s => s.name === jj.중기);
-    if (stem) result.push({ stem, weight: 0.23 });
+    if (stem) {result.push({ stem, weight: 0.23 });}
   }
 
   // 정기: 16일 비중 (약 54%)
   if (jj.정기) {
     const stem = STEMS.find(s => s.name === jj.정기);
-    if (stem) result.push({ stem, weight: 0.54 });
+    if (stem) {result.push({ stem, weight: 0.54 });}
   }
 
   return result;
@@ -115,9 +115,9 @@ function getHiddenStems(branchName: string): Array<{ stem: StemBranchInfo; weigh
 // 오행이 일간을 돕는지 (비겁 또는 인성)
 function isHelpingElement(dayMasterElement: FiveElement, targetElement: FiveElement): boolean {
   // 같은 오행 (비겁)
-  if (dayMasterElement === targetElement) return true;
+  if (dayMasterElement === targetElement) {return true;}
   // 일간을 생하는 오행 (인성)
-  if (FIVE_ELEMENT_RELATIONS.생받는관계[dayMasterElement] === targetElement) return true;
+  if (FIVE_ELEMENT_RELATIONS.생받는관계[dayMasterElement] === targetElement) {return true;}
   return false;
 }
 
@@ -126,11 +126,11 @@ function getElementCategory(
   dayMasterElement: FiveElement,
   targetElement: FiveElement
 ): '비겁' | '인성' | '식상' | '재성' | '관성' {
-  if (dayMasterElement === targetElement) return '비겁';
-  if (FIVE_ELEMENT_RELATIONS.생받는관계[dayMasterElement] === targetElement) return '인성';
-  if (FIVE_ELEMENT_RELATIONS.생하는관계[dayMasterElement] === targetElement) return '식상';
-  if (FIVE_ELEMENT_RELATIONS.극하는관계[dayMasterElement] === targetElement) return '재성';
-  if (FIVE_ELEMENT_RELATIONS.극받는관계[dayMasterElement] === targetElement) return '관성';
+  if (dayMasterElement === targetElement) {return '비겁';}
+  if (FIVE_ELEMENT_RELATIONS.생받는관계[dayMasterElement] === targetElement) {return '인성';}
+  if (FIVE_ELEMENT_RELATIONS.생하는관계[dayMasterElement] === targetElement) {return '식상';}
+  if (FIVE_ELEMENT_RELATIONS.극하는관계[dayMasterElement] === targetElement) {return '재성';}
+  if (FIVE_ELEMENT_RELATIONS.극받는관계[dayMasterElement] === targetElement) {return '관성';}
   return '비겁'; // fallback
 }
 
@@ -260,11 +260,11 @@ export function analyzeStrength(
 
   // 레벨 판정
   let level: StrengthLevel;
-  if (score >= 40) level = '극신강';
-  else if (score >= 15) level = '신강';
-  else if (score >= -15) level = '중화';
-  else if (score >= -40) level = '신약';
-  else level = '극신약';
+  if (score >= 40) {level = '극신강';}
+  else if (score >= 15) {level = '신강';}
+  else if (score >= -15) {level = '중화';}
+  else if (score >= -40) {level = '신약';}
+  else {level = '극신약';}
 
   return {
     level,
@@ -510,11 +510,11 @@ export function analyzeYongsin(
   const min = Math.min(비겁, 인성, 식상, 재성, 관성);
 
   let primary: FiveElement;
-  if (관성 === min) primary = controlledBy;
-  else if (재성 === min) primary = controlling;
-  else if (식상 === min) primary = generating;
-  else if (인성 === min) primary = generatedBy;
-  else primary = dayElement;
+  if (관성 === min) {primary = controlledBy;}
+  else if (재성 === min) {primary = controlling;}
+  else if (식상 === min) {primary = generating;}
+  else if (인성 === min) {primary = generatedBy;}
+  else {primary = dayElement;}
 
   return {
     primary,
@@ -554,9 +554,9 @@ export function evaluateElementInfluence(
   element: FiveElement,
   yongsin: YongsinAnalysis
 ): '용신' | '희신' | '기신' | '한신' | '구신' {
-  if (element === yongsin.primary) return '용신';
-  if (yongsin.favorable.includes(element)) return '희신';
-  if (yongsin.unfavorable.includes(element)) return '기신';
+  if (element === yongsin.primary) {return '용신';}
+  if (yongsin.favorable.includes(element)) {return '희신';}
+  if (yongsin.unfavorable.includes(element)) {return '기신';}
   // 그 외는 한신(閑神) 또는 구신(仇神)
   return '한신';
 }
@@ -570,16 +570,16 @@ export function scoreUnseElement(
   let score = 0;
 
   // 천간 점수
-  if (stemElement === yongsin.primary) score += 3;
-  else if (yongsin.secondary && stemElement === yongsin.secondary) score += 2;
-  else if (yongsin.favorable.includes(stemElement)) score += 1;
-  else if (yongsin.unfavorable.includes(stemElement)) score -= 2;
+  if (stemElement === yongsin.primary) {score += 3;}
+  else if (yongsin.secondary && stemElement === yongsin.secondary) {score += 2;}
+  else if (yongsin.favorable.includes(stemElement)) {score += 1;}
+  else if (yongsin.unfavorable.includes(stemElement)) {score -= 2;}
 
   // 지지 점수
-  if (branchElement === yongsin.primary) score += 3;
-  else if (yongsin.secondary && branchElement === yongsin.secondary) score += 2;
-  else if (yongsin.favorable.includes(branchElement)) score += 1;
-  else if (yongsin.unfavorable.includes(branchElement)) score -= 2;
+  if (branchElement === yongsin.primary) {score += 3;}
+  else if (yongsin.secondary && branchElement === yongsin.secondary) {score += 2;}
+  else if (yongsin.favorable.includes(branchElement)) {score += 1;}
+  else if (yongsin.unfavorable.includes(branchElement)) {score -= 2;}
 
   return score;
 }

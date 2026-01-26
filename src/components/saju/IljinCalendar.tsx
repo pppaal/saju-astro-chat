@@ -6,8 +6,8 @@ import type { IljinData } from '@/lib/Saju';
 type GanjiValue = string | { name: string } | null | undefined;
 
 function getGanjiName(val: GanjiValue): string {
-  if (typeof val === 'string') return val;
-  if (val && typeof val === 'object' && 'name' in val) return val.name;
+  if (typeof val === 'string') {return val;}
+  if (val && typeof val === 'object' && 'name' in val) {return val.name;}
   return '';
 }
 
@@ -32,7 +32,7 @@ export default function IljinCalendar({ iljinData, year, month }: IljinCalendarP
   const daysInMonth = lastDayKst.getUTCDate();
   const keyOf = (Y: number, M: number, D: number) => `${Number(Y)}-${Number(M)}-${Number(D)}`;
   const iljinMap = new Map<string, IljinData>();
-  for (const d of iljinData) iljinMap.set(keyOf(d.year, d.month, d.day), d);
+  for (const d of iljinData) {iljinMap.set(keyOf(d.year, d.month, d.day), d);}
 
   const calendarDays: React.ReactNode[] = [];
   for (let i = 0; i < leading; i++) {

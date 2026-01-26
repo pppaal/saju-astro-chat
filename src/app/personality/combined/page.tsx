@@ -476,7 +476,7 @@ function generateCombinedInsights(
 ): { title: string; content: string; icon: string }[] {
   const insights: { title: string; content: string; icon: string }[] = [];
 
-  if (!icpResult || !personaResult) return insights;
+  if (!icpResult || !personaResult) {return insights;}
 
   const dominance = icpResult.dominanceNormalized;
   const affiliation = icpResult.affiliationNormalized;

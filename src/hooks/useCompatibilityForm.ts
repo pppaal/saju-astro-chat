@@ -46,8 +46,8 @@ export function useCompatibilityForm(initialCount: number = 2) {
     setPersons((prev) => {
       const next = [...prev];
       const mapRelation = (rel: string): Relation => {
-        if (rel === 'partner') return 'lover';
-        if (rel === 'friend') return 'friend';
+        if (rel === 'partner') {return 'lover';}
+        if (rel === 'friend') {return 'friend';}
         return 'other';
       };
       next[personIdx] = {

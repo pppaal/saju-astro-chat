@@ -17,7 +17,7 @@ export function useCityAutocomplete(
       // Skip if city already selected or query too short
       if (citySelected[idx] || q.length < 2) {
         setPersons((prev) => {
-          if (prev[idx].suggestions.length === 0) return prev;
+          if (prev[idx].suggestions.length === 0) {return prev;}
           const next = [...prev];
           next[idx] = { ...next[idx], suggestions: [], showDropdown: false };
           return next;

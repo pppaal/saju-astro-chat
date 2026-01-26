@@ -7,7 +7,7 @@ export function MicrosoftClarity({ clarityId, nonce }: { clarityId: string; nonc
   const { status } = useConsent();
   const consentGranted = status === "granted";
 
-  if (!clarityId || !consentGranted) return null;
+  if (!clarityId || !consentGranted) {return null;}
 
   return (
     <Script

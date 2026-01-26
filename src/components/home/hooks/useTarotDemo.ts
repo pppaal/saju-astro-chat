@@ -29,7 +29,7 @@ const initialTarotState: TarotState = {
 function tarotReducer(state: TarotState, action: TarotAction): TarotState {
   switch (action.type) {
     case 'FLIP_CARD': {
-      if (state.selectedCards.length === 0) return state;
+      if (state.selectedCards.length === 0) {return state;}
       const newFlipped = [...state.flippedCards];
       newFlipped[action.index] = !newFlipped[action.index];
       return { ...state, flippedCards: newFlipped };

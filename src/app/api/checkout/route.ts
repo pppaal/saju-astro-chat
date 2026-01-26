@@ -24,16 +24,16 @@ export const runtime = 'nodejs'
 
 let stripeInstance: Stripe | null = null
 function getStripe(): Stripe | null {
-  if (stripeInstance) return stripeInstance
+  if (stripeInstance) {return stripeInstance}
   const key = process.env.STRIPE_SECRET_KEY
-  if (!key) return null
+  if (!key) {return null}
   stripeInstance = new Stripe(key)
   return stripeInstance
 }
 
 function isValidEmail(email?: string | null) {
-  if (!email) return false
-  if (email.length > 254) return false
+  if (!email) {return false}
+  if (email.length > 254) {return false}
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
   return emailRegex.test(email)
 }
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     }
 
     const oversized = enforceBodySize(req, 32 * 1024)
-    if (oversized) return oversized
+    if (oversized) {return oversized}
 
     // Rate limit to reduce checkout abuse
     const limit = await rateLimit(`checkout:${ip}`, { limit: 8, windowSeconds: 60 })

@@ -18,13 +18,13 @@ export function createSignInsight(
   defaultEmoji: string,
   lang: string
 ): { title: string; message: string; emoji: string } | null {
-  if (!sign) return null;
+  if (!sign) {return null;}
 
   const isKo = lang === "ko";
   const signLower = sign.toLowerCase();
   const msg = messages[signLower];
 
-  if (!msg) return null;
+  if (!msg) {return null;}
 
   return {
     title: isKo ? titleKo : titleEn,
@@ -43,12 +43,12 @@ export function createHouseInsight(
   titleEn: string,
   lang: string
 ): { title: string; message: string; emoji: string; house: number } | null {
-  if (!house) return null;
+  if (!house) {return null;}
 
   const isKo = lang === "ko";
   const msg = messages[house];
 
-  if (!msg) return null;
+  if (!msg) {return null;}
 
   return {
     title: isKo ? titleKo : titleEn,

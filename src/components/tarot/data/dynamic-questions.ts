@@ -16,10 +16,10 @@ import {
 
 // Helper: Extract suit from card name
 export function getSuitFromCard(cardName: string): string | null {
-  if (cardName.includes("Wands")) return "Wands";
-  if (cardName.includes("Cups")) return "Cups";
-  if (cardName.includes("Swords")) return "Swords";
-  if (cardName.includes("Pentacles")) return "Pentacles";
+  if (cardName.includes("Wands")) {return "Wands";}
+  if (cardName.includes("Cups")) {return "Cups";}
+  if (cardName.includes("Swords")) {return "Swords";}
+  if (cardName.includes("Pentacles")) {return "Pentacles";}
   return null;
 }
 
@@ -27,17 +27,17 @@ export function getSuitFromCard(cardName: string): string | null {
 export function getNumberFromCard(cardName: string): string | null {
   const numbers = ["Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
   for (const num of numbers) {
-    if (cardName.includes(num)) return num;
+    if (cardName.includes(num)) {return num;}
   }
   return null;
 }
 
 // Helper: Extract court rank from card name
 export function getCourtRankFromCard(cardName: string): string | null {
-  if (cardName.includes("Page")) return "Page";
-  if (cardName.includes("Knight")) return "Knight";
-  if (cardName.includes("Queen")) return "Queen";
-  if (cardName.includes("King")) return "King";
+  if (cardName.includes("Page")) {return "Page";}
+  if (cardName.includes("Knight")) {return "Knight";}
+  if (cardName.includes("Queen")) {return "Queen";}
+  if (cardName.includes("King")) {return "King";}
   return null;
 }
 

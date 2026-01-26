@@ -18,7 +18,7 @@ function SuccessContent() {
 
   // Stripe 결제 후 돌아왔을 때 세션 새로고침
   useEffect(() => {
-    if (status === "loading") return;
+    if (status === "loading") {return;}
 
     // 세션이 없거나 첫 로드시 세션 업데이트 시도
     if (!sessionRefreshed) {

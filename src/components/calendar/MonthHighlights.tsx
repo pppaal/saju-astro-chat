@@ -47,7 +47,7 @@ export default function MonthHighlights({
     parseLocalDate(a.date).getTime() - parseLocalDate(b.date).getTime()
   );
 
-  if (highlightDates.length === 0) return null;
+  if (highlightDates.length === 0) {return null;}
 
   const getGradeClass = (grade: number) => {
     switch (grade) {

@@ -108,16 +108,16 @@ export function calculateYearlyImportantDates(
     const analysis = analyzeDate(new Date(d), sajuProfile, astroProfile);
     if (analysis) {
       // 카테고리 필터 (복수 카테고리에서 하나라도 매치하면 OK)
-      if (options?.category && !analysis.categories.includes(options.category)) continue;
+      if (options?.category && !analysis.categories.includes(options.category)) {continue;}
       // 등급 필터
-      if (options?.minGrade && analysis.grade > options.minGrade) continue;
+      if (options?.minGrade && analysis.grade > options.minGrade) {continue;}
       dates.push(analysis);
     }
   }
 
   // 점수순 정렬
   dates.sort((a, b) => {
-    if (a.grade !== b.grade) return a.grade - b.grade;
+    if (a.grade !== b.grade) {return a.grade - b.grade;}
     return b.score - a.score;
   });
 
@@ -253,12 +253,12 @@ export function extractSajuProfile(saju: unknown): UserSajuProfile {
   // pillars 변환 헬퍼
   type PillarWithStem = { heavenlyStem?: unknown; stem?: unknown; earthlyBranch?: { name?: string } | string; branch?: unknown };
   const extractPillarInfo = (p: Record<string, unknown> | undefined): { stem: string; branch: string } | undefined => {
-    if (!p) return undefined;
+    if (!p) {return undefined;}
     const pillar = p as PillarWithStem;
     const stemVal = (pillar.heavenlyStem || pillar.stem) as string | undefined;
     const branchObj = pillar.earthlyBranch;
     const branchVal = (typeof branchObj === 'object' && branchObj ? branchObj.name : branchObj) || pillar.branch;
-    if (!stemVal || !branchVal) return undefined;
+    if (!stemVal || !branchVal) {return undefined;}
     return { stem: stemVal as string, branch: branchVal as string };
   };
 
@@ -359,18 +359,18 @@ export function calculateAstroProfileFromBirthDate(birthDate: Date): UserAstroPr
   const day = birthDate.getDate();
 
   let sunSign: string;
-  if ((month === 2 && day >= 21) || (month === 3 && day <= 19)) sunSign = "Aries";
-  else if ((month === 3 && day >= 20) || (month === 4 && day <= 20)) sunSign = "Taurus";
-  else if ((month === 4 && day >= 21) || (month === 5 && day <= 20)) sunSign = "Gemini";
-  else if ((month === 5 && day >= 21) || (month === 6 && day <= 22)) sunSign = "Cancer";
-  else if ((month === 6 && day >= 23) || (month === 7 && day <= 22)) sunSign = "Leo";
-  else if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) sunSign = "Virgo";
-  else if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) sunSign = "Libra";
-  else if ((month === 9 && day >= 23) || (month === 10 && day <= 21)) sunSign = "Scorpio";
-  else if ((month === 10 && day >= 22) || (month === 11 && day <= 21)) sunSign = "Sagittarius";
-  else if ((month === 11 && day >= 22) || (month === 0 && day <= 19)) sunSign = "Capricorn";
-  else if ((month === 0 && day >= 20) || (month === 1 && day <= 18)) sunSign = "Aquarius";
-  else sunSign = "Pisces";
+  if ((month === 2 && day >= 21) || (month === 3 && day <= 19)) {sunSign = "Aries";}
+  else if ((month === 3 && day >= 20) || (month === 4 && day <= 20)) {sunSign = "Taurus";}
+  else if ((month === 4 && day >= 21) || (month === 5 && day <= 20)) {sunSign = "Gemini";}
+  else if ((month === 5 && day >= 21) || (month === 6 && day <= 22)) {sunSign = "Cancer";}
+  else if ((month === 6 && day >= 23) || (month === 7 && day <= 22)) {sunSign = "Leo";}
+  else if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) {sunSign = "Virgo";}
+  else if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) {sunSign = "Libra";}
+  else if ((month === 9 && day >= 23) || (month === 10 && day <= 21)) {sunSign = "Scorpio";}
+  else if ((month === 10 && day >= 22) || (month === 11 && day <= 21)) {sunSign = "Sagittarius";}
+  else if ((month === 11 && day >= 22) || (month === 0 && day <= 19)) {sunSign = "Capricorn";}
+  else if ((month === 0 && day >= 20) || (month === 1 && day <= 18)) {sunSign = "Aquarius";}
+  else {sunSign = "Pisces";}
 
   // 출생 태양 경도 계산 (어스펙트 분석용)
   const sunPosition = getPlanetPosition(birthDate, "sun");

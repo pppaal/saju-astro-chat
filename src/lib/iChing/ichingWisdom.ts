@@ -147,7 +147,7 @@ export const YAO_POSITION_MEANINGS: Record<number, { general: string; timing: st
 
 // 괘 지혜 생성 함수
 export function getHexagramWisdom(hexagramNumber: number): HexagramWisdomData | null {
-  if (hexagramNumber < 1 || hexagramNumber > 64) return null;
+  if (hexagramNumber < 1 || hexagramNumber > 64) {return null;}
   return HEXAGRAM_WISDOM[hexagramNumber] || createDefaultWisdom(hexagramNumber);
 }
 
@@ -181,7 +181,7 @@ export function generateSituationalAdvice(
   changingLines?: number[]
 ): string {
   const wisdom = getHexagramWisdom(hexagramNumber);
-  if (!wisdom) return '괘를 확인해주세요.';
+  if (!wisdom) {return '괘를 확인해주세요.';}
 
   let advice = wisdom.situationAdvice[situation];
 
@@ -209,7 +209,7 @@ export interface WisdomPromptContext {
 
 export function generateWisdomPrompt(context: WisdomPromptContext): string {
   const wisdom = getHexagramWisdom(context.hexagramNumber);
-  if (!wisdom) return '';
+  if (!wisdom) {return '';}
 
   let prompt = `## 주역 괘 해석 프롬프트
 
@@ -292,7 +292,7 @@ export function interpretChangingLines(
   const original = getHexagramWisdom(originalHex);
   const target = getHexagramWisdom(targetHex);
 
-  if (!original || !target) return '괘 정보를 확인할 수 없습니다.';
+  if (!original || !target) {return '괘 정보를 확인할 수 없습니다.';}
 
   const lineCount = changingLines.length;
   let interpretation = '';
@@ -413,7 +413,7 @@ export function interpretChangingLines(
 // 일일 지혜 메시지 생성
 export function generateDailyWisdom(hexagramNumber: number, date: Date): string {
   const wisdom = getHexagramWisdom(hexagramNumber);
-  if (!wisdom) return '';
+  if (!wisdom) {return '';}
 
   const dayOfWeek = date.getDay();
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
@@ -499,7 +499,7 @@ export function generatePeriodicWisdom(
   periodNumber: number
 ): string {
   const wisdom = getHexagramWisdom(hexagramNumber);
-  if (!wisdom) return '';
+  if (!wisdom) {return '';}
 
   const periodNames = {
     yearly: `${periodNumber}년`,

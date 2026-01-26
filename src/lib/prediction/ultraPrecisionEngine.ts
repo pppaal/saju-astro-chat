@@ -176,11 +176,11 @@ export function calculateUltraPrecisionScore(input: CalculateDailyScoreInput): U
 
   // 10. 일 품질
   let dayQuality: UltraPrecisionScore['dayQuality'];
-  if (totalScore >= 80) dayQuality = 'excellent';
-  else if (totalScore >= 60) dayQuality = 'good';
-  else if (totalScore >= 40) dayQuality = 'neutral';
-  else if (totalScore >= 25) dayQuality = 'caution';
-  else dayQuality = 'avoid';
+  if (totalScore >= 80) {dayQuality = 'excellent';}
+  else if (totalScore >= 60) {dayQuality = 'good';}
+  else if (totalScore >= 40) {dayQuality = 'neutral';}
+  else if (totalScore >= 25) {dayQuality = 'caution';}
+  else {dayQuality = 'avoid';}
 
   // 11. 활동 추천
   const themes: string[] = [dailyPillar.description];

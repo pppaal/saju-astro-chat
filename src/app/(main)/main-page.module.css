@@ -327,6 +327,65 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   padding: 12px;
+  min-height: 200px;
+}
+
+/* Dropdown Pagination */
+.dropdownPagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 12px;
+  border-top: 1px solid rgba(99, 210, 255, 0.15);
+  margin-top: 8px;
+}
+
+.dropdownPageBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(99, 210, 255, 0.15);
+  border: 1px solid rgba(99, 210, 255, 0.3);
+  color: #ffffff;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dropdownPageBtn:hover:not(.disabled) {
+  background: rgba(99, 210, 255, 0.3);
+  transform: scale(1.1);
+  box-shadow: 0 0 16px rgba(99, 210, 255, 0.4);
+}
+
+.dropdownPageBtn.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.dropdownPageDots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dropdownPageDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(99, 210, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.dropdownPageDot.active {
+  background: rgba(99, 210, 255, 0.9);
+  width: 24px;
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(99, 210, 255, 0.6);
 }
 
 .dropdown > .dropdownHeader ~ .dropItem {
@@ -762,11 +821,68 @@
   text-overflow: ellipsis;
 }
 
-/* Service Dropdown Grid - All 14 services visible */
+/* Service Dropdown Grid - 7 services per page */
 .serviceDropdownGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
+  min-height: 80px;
+}
+
+/* Service Dropdown Navigation */
+.serviceDropdownNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+.serviceDropdownNavBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  color: #ffffff;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.serviceDropdownNavBtn:hover:not(.disabled) {
+  background: rgba(139, 92, 246, 0.5);
+  transform: scale(1.1);
+}
+
+.serviceDropdownNavBtn.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.serviceDropdownDots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.serviceDropdownDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.serviceDropdownDot.active {
+  background: rgba(139, 92, 246, 0.9);
+  width: 18px;
+  border-radius: 3px;
 }
 
 .questionSearchIcon {
@@ -3131,7 +3247,27 @@ to { opacity: 1; transform: translateY(0); }
     grid-template-columns: repeat(4, 1fr);
     gap: 6px;
     padding: 10px;
-    padding-bottom: 20px;
+    padding-bottom: 10px;
+  }
+
+  .dropdownPagination {
+    padding: 14px 10px;
+    margin-top: 4px;
+  }
+
+  .dropdownPageBtn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.6rem;
+  }
+
+  .dropdownPageDot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .dropdownPageDot.active {
+    width: 28px;
   }
 
   .dropdownHeader {
@@ -3426,6 +3562,26 @@ to { opacity: 1; transform: translateY(0); }
 
   .serviceDropdownLabel {
     font-size: 0.65rem;
+  }
+
+  .serviceDropdownNav {
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+
+  .serviceDropdownNavBtn {
+    width: 32px;
+    height: 32px;
+    font-size: 1.4rem;
+  }
+
+  .serviceDropdownDot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .serviceDropdownDot.active {
+    width: 20px;
   }
 
   .questionHints {

@@ -22,16 +22,16 @@ export default function ParticleBackground({ className }: ParticleBackgroundProp
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {return;}
 
     let disposed = false;
     let cleanup: (() => void) | null = null;
 
     const startAnimation = () => {
-      if (disposed || !canvas) return;
+      if (disposed || !canvas) {return;}
 
       const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+      if (!ctx) {return;}
 
       // Capture canvas reference for use in class
       const canvasWidth = () => canvas!.width;
@@ -101,8 +101,8 @@ export default function ParticleBackground({ className }: ParticleBackgroundProp
         }
 
         update() {
-          if (this.x > canvasWidth() || this.x < 0) this.speedX = -this.speedX;
-          if (this.y > canvasHeight() || this.y < 0) this.speedY = -this.speedY;
+          if (this.x > canvasWidth() || this.x < 0) {this.speedX = -this.speedX;}
+          if (this.y > canvasHeight() || this.y < 0) {this.speedY = -this.speedY;}
 
           this.x += this.speedX;
           this.y += this.speedY;
@@ -124,7 +124,7 @@ export default function ParticleBackground({ className }: ParticleBackgroundProp
         }
 
         draw() {
-          if (!ctx) return;
+          if (!ctx) {return;}
           ctx.fillStyle = this.color;
           ctx.beginPath();
           ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
@@ -143,7 +143,7 @@ export default function ParticleBackground({ className }: ParticleBackgroundProp
       };
 
       const connectParticles = () => {
-        if (!ctx) return;
+        if (!ctx) {return;}
         for (let a = 0; a < particlesArray.length; a++) {
           for (let b = a; b < particlesArray.length; b++) {
             const dx = particlesArray[a].x - particlesArray[b].x;
@@ -163,17 +163,17 @@ export default function ParticleBackground({ className }: ParticleBackgroundProp
       };
 
       const drawFrame = (animateFrame: boolean) => {
-        if (!ctx) return;
+        if (!ctx) {return;}
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         particlesArray.forEach((p) => {
-          if (animateFrame) p.update();
+          if (animateFrame) {p.update();}
           p.draw();
         });
         connectParticles();
       };
 
       const animate = (timestamp = 0) => {
-        if (!isRunning) return;
+        if (!isRunning) {return;}
         if (timestamp - lastFrame >= frameInterval) {
           lastFrame = timestamp;
           drawFrame(true);
@@ -190,7 +190,7 @@ export default function ParticleBackground({ className }: ParticleBackgroundProp
       };
 
       const start = () => {
-        if (isRunning) return;
+        if (isRunning) {return;}
         if (shouldReduceMotion()) {
           drawFrame(false);
           return;
@@ -258,7 +258,7 @@ export default function ParticleBackground({ className }: ParticleBackgroundProp
       if (timeoutId !== null) {
         window.clearTimeout(timeoutId);
       }
-      if (cleanup) cleanup();
+      if (cleanup) {cleanup();}
     };
   }, []);
 

@@ -97,7 +97,7 @@ export function performAdvancedAnalysis(
       description: getGeokgukDescription(geokguk.primary),
     };
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Geokguk analysis failed:', e);
+    if (process.env.NODE_ENV !== 'production') {logger.warn('[Saju API] Geokguk analysis failed:', e);}
   }
 
   // 2. 용신 분석
@@ -114,14 +114,14 @@ export function performAdvancedAnalysis(
       luckyNumbers,
     };
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Yongsin analysis failed:', e);
+    if (process.env.NODE_ENV !== 'production') {logger.warn('[Saju API] Yongsin analysis failed:', e);}
   }
 
   // 3. 형충회합 분석
   try {
     result.hyeongchung = analyzeHyeongchung(simplePillars);
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Hyeongchung analysis failed:', e);
+    if (process.env.NODE_ENV !== 'production') {logger.warn('[Saju API] Hyeongchung analysis failed:', e);}
   }
 
   // 4. 통근/득령 분석
@@ -129,49 +129,49 @@ export function performAdvancedAnalysis(
     result.tonggeun = calculateTonggeun(dayMasterStem, simplePillars);
     result.deukryeong = calculateDeukryeong(dayMasterStem, monthBranch);
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Tonggeun/Deukryeong analysis failed:', e);
+    if (process.env.NODE_ENV !== 'production') {logger.warn('[Saju API] Tonggeun/Deukryeong analysis failed:', e);}
   }
 
   // 5. 조후용신 (궁통보감)
   try {
     result.johuYongsin = getJohuYongsin(dayMasterStem, monthBranch);
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] JohuYongsin analysis failed:', e);
+    if (process.env.NODE_ENV !== 'production') {logger.warn('[Saju API] JohuYongsin analysis failed:', e);}
   }
 
   // 6. 십신 종합 분석
   try {
     result.sibsin = analyzeSibsinComprehensive(pillarsWithHour);
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Sibsin analysis failed:', e);
+    if (process.env.NODE_ENV !== 'production') {logger.warn('[Saju API] Sibsin analysis failed:', e);}
   }
 
   // 7. 건강 분석
   try {
     result.health = analyzeHealth(pillarsWithHour);
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Health analysis failed:', e);
+    if (process.env.NODE_ENV !== 'production') {logger.warn('[Saju API] Health analysis failed:', e);}
   }
 
   // 8. 직업 적성 분석
   try {
     result.career = analyzeCareer(pillarsWithHour);
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Career analysis failed:', e);
+    if (process.env.NODE_ENV !== 'production') {logger.warn('[Saju API] Career analysis failed:', e);}
   }
 
   // 9. 종합 점수
   try {
     result.score = calculateComprehensiveScore(sajuPillars);
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Comprehensive score failed:', e);
+    if (process.env.NODE_ENV !== 'production') {logger.warn('[Saju API] Comprehensive score failed:', e);}
   }
 
   // 10. 종합 리포트
   try {
     result.report = generateComprehensiveReport(pillarsWithHour);
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Comprehensive report failed:', e);
+    if (process.env.NODE_ENV !== 'production') {logger.warn('[Saju API] Comprehensive report failed:', e);}
   }
 
   // 11. 해석 데이터 수집
@@ -190,7 +190,7 @@ export function performAdvancedAnalysis(
       }
     }
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Interpretations failed:', e);
+    if (process.env.NODE_ENV !== 'production') {logger.warn('[Saju API] Interpretations failed:', e);}
   }
 
   return result;

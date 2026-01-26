@@ -15,11 +15,11 @@ export function getCacheKey(birthInfo: BirthInfo, year: number, category: string
 }
 
 export function getCachedData(cacheKey: string): CalendarData | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined') {return null;}
 
   try {
     const cached = localStorage.getItem(cacheKey);
-    if (!cached) return null;
+    if (!cached) {return null;}
 
     const parsed: CachedCalendarData = JSON.parse(cached);
 
@@ -51,7 +51,7 @@ export function setCachedData(
   category: string,
   data: CalendarData
 ): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined') {return;}
 
   try {
     const cacheData: CachedCalendarData = {
@@ -84,7 +84,7 @@ export function setCachedData(
 }
 
 export function clearOldCache(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined') {return;}
 
   try {
     const now = Date.now();
@@ -95,7 +95,7 @@ export function clearOldCache(): void {
     calendarKeys.forEach(key => {
       try {
         const cached = localStorage.getItem(key);
-        if (!cached) return;
+        if (!cached) {return;}
 
         const parsed: CachedCalendarData = JSON.parse(cached);
         const expiryMs = CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000;

@@ -53,7 +53,7 @@ export class CareerStrategy extends BaseEventStrategy {
   }
 
   applyProgressionBonus(context: ScoringContext, result: ScoreResult): void {
-    if (!context.progression) return;
+    if (!context.progression) {return;}
 
     // 커리어: 태양이 10하우스(커리어) 또는 1하우스(자아)에 있을 때 유리
     if (
@@ -76,7 +76,7 @@ export class CareerStrategy extends BaseEventStrategy {
   applyDaeunBonus(context: ScoringContext, result: ScoreResult): void {
     super.applyDaeunBonus(context, result);
 
-    if (!context.daeun) return;
+    if (!context.daeun) {return;}
 
     // 커리어: 대운이 목화 기운일 때 유리
     const favorableDaeunElements: FiveElement[] = ['목', '화'];

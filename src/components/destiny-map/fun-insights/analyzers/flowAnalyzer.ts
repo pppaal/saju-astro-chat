@@ -4,7 +4,7 @@ export function getCurrentFlowAnalysis(saju: SajuData | undefined, lang: string)
   const isKo = lang === "ko";
   const unse = saju?.unse;
 
-  if (!unse) return null;
+  if (!unse) {return null;}
 
   // 현재 대운 찾기 - age 기준으로 현재 대운 계산
   const daeunList = Array.isArray(unse.daeun) ? unse.daeun : [];
@@ -52,7 +52,7 @@ export function getCurrentFlowAnalysis(saju: SajuData | undefined, lang: string)
   const annualList = Array.isArray(unse.annual) ? unse.annual : [];
   const thisYear = annualList.find((a: UnseItem) => a.year === currentYear);
 
-  if (!currentDaeun && !thisYear) return null;
+  if (!currentDaeun && !thisYear) {return null;}
 
   const daeunGanji = currentDaeun ? `${currentDaeun.heavenlyStem}${currentDaeun.earthlyBranch}` : "";
   const daeunAge = currentDaeun?.age != null ? `${currentDaeun.age}-${currentDaeun.age + 9}세` : "";

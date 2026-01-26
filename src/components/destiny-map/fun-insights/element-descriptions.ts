@@ -37,7 +37,7 @@ export function getElementEnergyDescription(
   lang: string
 ): string {
   const desc = ELEMENT_ENERGY_DESCRIPTIONS[element];
-  if (!desc) return element;
+  if (!desc) {return element;}
   return lang === "ko" ? desc.ko : desc.en;
 }
 

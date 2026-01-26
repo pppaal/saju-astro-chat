@@ -11,9 +11,9 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "100", 10);
 
     const where: { service?: string; theme?: string; helpful?: boolean } = {};
-    if (service) where.service = service;
-    if (theme) where.theme = theme;
-    if (helpful !== null) where.helpful = helpful === "true";
+    if (service) {where.service = service;}
+    if (theme) {where.theme = theme;}
+    if (helpful !== null) {where.helpful = helpful === "true";}
 
     const records = await prisma.sectionFeedback.findMany({
       where,

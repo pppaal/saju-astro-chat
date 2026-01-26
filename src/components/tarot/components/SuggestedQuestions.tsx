@@ -22,7 +22,7 @@ export const SuggestedQuestions = React.memo(function SuggestedQuestions({
   tr,
   styles
 }: SuggestedQuestionsProps) {
-  if (questions.length === 0) return null;
+  if (questions.length === 0) {return null;}
 
   return (
     <div className={styles.suggestedSection}>

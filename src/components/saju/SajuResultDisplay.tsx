@@ -29,8 +29,8 @@ export type { SajuApiResponse } from './types/analysis.types';
 // 천간/지지 값에서 이름 추출 헬퍼 (string | { name: string } 처리)
 type GanjiValue = string | { name: string } | null | undefined;
 function getGanjiName(val: GanjiValue): string {
-  if (typeof val === 'string') return val;
-  if (val && typeof val === 'object' && 'name' in val) return val.name;
+  if (typeof val === 'string') {return val;}
+  if (val && typeof val === 'object' && 'name' in val) {return val.name;}
   return '';
 }
 
@@ -64,7 +64,7 @@ export default function SajuResultDisplay({ result }: Props) {
   }, [result]);
 
   useEffect(() => {
-    if (!selectedDaeun) return;
+    if (!selectedDaeun) {return;}
     const daeunStartYear = result.birthYear + selectedDaeun.age - 1;
     const newYeonun = getAnnualCycles(daeunStartYear, 10, result.dayMaster);
     setDisplayedYeonun(newYeonun);
@@ -74,7 +74,7 @@ export default function SajuResultDisplay({ result }: Props) {
   }, [selectedDaeun, result.birthYear, result.dayMaster]);
 
   useEffect(() => {
-    if (!selectedYeonun) return;
+    if (!selectedYeonun) {return;}
     const newWolun = getMonthlyCycles(selectedYeonun.year, result.dayMaster);
     setDisplayedWolun(newWolun);
     const now = new Date();
@@ -84,7 +84,7 @@ export default function SajuResultDisplay({ result }: Props) {
   }, [selectedYeonun, result.dayMaster]);
 
   useEffect(() => {
-    if (!selectedWolun) return;
+    if (!selectedWolun) {return;}
     const y = selectedWolun.year;
     const m = selectedWolun.month;
     const newIljin = getIljinCalendar(y, m, result.dayMaster);

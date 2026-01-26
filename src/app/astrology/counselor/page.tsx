@@ -131,8 +131,8 @@ export default function AstrologyCounselorPage({
 
   // Load pre-computed astro data from sessionStorage
   useEffect(() => {
-    if (!isAuthed) return;
-    if (!birthDate || !birthTime) return;
+    if (!isAuthed) {return;}
+    if (!birthDate || !birthTime) {return;}
 
     let astro: Record<string, unknown> | null = null;
 
@@ -209,7 +209,7 @@ export default function AstrologyCounselorPage({
 
   // Premium: Load user context (persona + recent sessions) for returning users
   useEffect(() => {
-    if (!isAuthed) return;
+    if (!isAuthed) {return;}
 
     const loadUserContext = async () => {
       try {
@@ -292,7 +292,7 @@ export default function AstrologyCounselorPage({
 
   // Loading animation
   useEffect(() => {
-    if (!isAuthed) return;
+    if (!isAuthed) {return;}
 
     if (!birthDate || !birthTime || isNaN(latitude) || isNaN(longitude)) {
       router.push("/astrology");

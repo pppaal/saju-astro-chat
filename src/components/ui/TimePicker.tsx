@@ -22,9 +22,9 @@ export default function TimePicker({
 }: TimePickerProps) {
   // Parse current value - handle empty string
   const parseTime = (timeStr: string): [number | null, number | null] => {
-    if (!timeStr || !timeStr.includes(':')) return [null, null];
+    if (!timeStr || !timeStr.includes(':')) {return [null, null];}
     const parts = timeStr.split(':').map(Number);
-    if (parts.some(isNaN)) return [null, null];
+    if (parts.some(isNaN)) {return [null, null];}
     return [parts[0], parts[1]];
   };
 
@@ -63,7 +63,7 @@ export default function TimePicker({
   const handlePeriodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newPeriod = e.target.value;
     const isNewPM = newPeriod === 'PM';
-    if (hour === null) return; // No hour selected yet
+    if (hour === null) {return;} // No hour selected yet
 
     let newHour = hour;
 

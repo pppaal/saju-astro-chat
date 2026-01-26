@@ -86,7 +86,7 @@ export const branchToKorean: Record<string, string> = {
  * ```
  */
 export function formatGanjiEasy(stem?: string, branch?: string): string {
-  if (!stem || !branch) return '-';
+  if (!stem || !branch) {return '-';}
   const stemKo = stemToKorean[stem] || stem;
   const branchKo = branchToKorean[branch] || branch;
   return `${stemKo} + ${branchKo}`;
@@ -111,7 +111,7 @@ export function formatGanjiEasy(stem?: string, branch?: string): string {
  * ```
  */
 export function parseGanjiEasy(ganji?: string): string {
-  if (!ganji || ganji.length < 2) return ganji || '-';
+  if (!ganji || ganji.length < 2) {return ganji || '-';}
   const stem = ganji[0];
   const branch = ganji[1];
   return formatGanjiEasy(stem, branch);

@@ -187,14 +187,14 @@ export default function SajuChat({
   // Handle seed event
   useEffect(() => {
     const handler = (e: Event) => {
-      if (seedSentRef.current) return;
+      if (seedSentRef.current) {return;}
       seedSentRef.current = true;
       const question = (e as CustomEvent<string>).detail;
       if (question) {
         setInput(question);
         setTimeout(() => {
           const form = document.querySelector("form");
-          if (form) form.dispatchEvent(new Event("submit", { bubbles: true }));
+          if (form) {form.dispatchEvent(new Event("submit", { bubbles: true }));}
         }, 100);
       }
     };
@@ -233,7 +233,7 @@ export default function SajuChat({
   const handleSubmit = async (e?: React.FormEvent, directText?: string) => {
     e?.preventDefault();
     const trimmed = directText || input.trim();
-    if (!trimmed || loading) return;
+    if (!trimmed || loading) {return;}
 
     // Crisis detection
     if (detectCrisis(trimmed, effectiveLang)) {
@@ -288,7 +288,7 @@ export default function SajuChat({
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {break;}
 
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split("\n");
@@ -296,7 +296,7 @@ export default function SajuChat({
         for (const line of lines) {
           if (line.startsWith("data: ")) {
             const data = line.slice(6);
-            if (data === "[DONE]") continue;
+            if (data === "[DONE]") {continue;}
 
             // Check for follow-up questions
             if (data.includes("||FOLLOWUP||")) {

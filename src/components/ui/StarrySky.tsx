@@ -13,7 +13,7 @@ export default function StarrySky() {
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {return;}
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReduceMotion(mq.matches);
     const handler = () => setReduceMotion(mq.matches);

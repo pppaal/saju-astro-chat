@@ -26,7 +26,7 @@ export const TraditionalWisdomSection: React.FC<TraditionalWisdomSectionProps> =
   wisdomData,
   translate,
 }) => {
-  if (!wisdomData) return null;
+  if (!wisdomData) {return null;}
 
   return (
     <div className={styles.insightCard}>

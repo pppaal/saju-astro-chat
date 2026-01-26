@@ -61,7 +61,7 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
 
   // 메시지 전송
   const sendMessage = useCallback(async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading) {return;}
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,

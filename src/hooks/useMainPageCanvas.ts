@@ -15,10 +15,10 @@ interface Particle {
 export function useMainPageCanvas(canvasRef: RefObject<HTMLCanvasElement>) {
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {return;}
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {return;}
 
     let animationFrameId: number;
     const particles: Particle[] = [];
@@ -51,8 +51,8 @@ export function useMainPageCanvas(canvasRef: RefObject<HTMLCanvasElement>) {
         this.x += this.speedX;
         this.y += this.speedY;
 
-        if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
-        if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+        if (this.x > canvas.width || this.x < 0) {this.speedX *= -1;}
+        if (this.y > canvas.height || this.y < 0) {this.speedY *= -1;}
       }
 
       draw() {

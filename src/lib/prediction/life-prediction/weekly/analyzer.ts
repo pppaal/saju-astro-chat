@@ -188,8 +188,8 @@ export function analyzeWeekPeriod(
           dayScore -= 10;
         } else if (sh.name === '화개') {
           // 화개는 학업에는 좋음
-          if (eventType === 'study') dayScore += 5;
-          else dayScore -= 3;
+          if (eventType === 'study') {dayScore += 5;}
+          else {dayScore -= 3;}
         } else {
           dayScore -= 5;
         }
@@ -251,7 +251,7 @@ export function analyzeWeekPeriod(
   const sortedDays = [...dailyScores]
     .sort((a, b) => {
       const scoreDiff = b.score - a.score;
-      if (Math.abs(scoreDiff) > 5) return scoreDiff;
+      if (Math.abs(scoreDiff) > 5) {return scoreDiff;}
       return b.reasons.length - a.reasons.length; // 점수 비슷하면 이유 많은 날 우선
     });
   const bestDayEntry = sortedDays[0];

@@ -343,13 +343,13 @@ export function calculateMethodAlignment(
   let alignment = 50;
 
   // 12운성 에너지와 28수 길흉 일치
-  if (twelveStage.energy === 'peak' && lunarMansion.isAuspicious) alignment += 15;
-  if (twelveStage.energy === 'dormant' && !lunarMansion.isAuspicious) alignment += 10;
-  if (twelveStage.energy === 'peak' && !lunarMansion.isAuspicious) alignment -= 10;
+  if (twelveStage.energy === 'peak' && lunarMansion.isAuspicious) {alignment += 15;}
+  if (twelveStage.energy === 'dormant' && !lunarMansion.isAuspicious) {alignment += 10;}
+  if (twelveStage.energy === 'peak' && !lunarMansion.isAuspicious) {alignment -= 10;}
 
   // 절기 에너지 방향 일치
-  if (solarTerm.energy === 'yang' && twelveStage.energy === 'rising') alignment += 10;
-  if (solarTerm.energy === 'yin' && twelveStage.energy === 'declining') alignment += 10;
+  if (solarTerm.energy === 'yang' && twelveStage.energy === 'rising') {alignment += 10;}
+  if (solarTerm.energy === 'yin' && twelveStage.energy === 'declining') {alignment += 10;}
 
   return Math.min(100, Math.max(0, alignment));
 }
@@ -360,11 +360,11 @@ export function calculateMethodAlignment(
 export function calculateDataCompleteness(input: LifePredictionInput): number {
   let completeness = 50;
 
-  if (input.birthHour !== undefined) completeness += 15;
-  if (input.daeunList && input.daeunList.length > 0) completeness += 15;
-  if (input.yongsin && input.yongsin.length > 0) completeness += 10;
-  if (input.astroChart) completeness += 5;
-  if (input.advancedAstro) completeness += 5;
+  if (input.birthHour !== undefined) {completeness += 15;}
+  if (input.daeunList && input.daeunList.length > 0) {completeness += 15;}
+  if (input.yongsin && input.yongsin.length > 0) {completeness += 10;}
+  if (input.astroChart) {completeness += 5;}
+  if (input.advancedAstro) {completeness += 5;}
 
   return Math.min(100, completeness);
 }
@@ -377,7 +377,7 @@ export function calculateDataCompleteness(input: LifePredictionInput): number {
  */
 export function getStageEventEffect(stage: string, category: string): string | null {
   const stageEffects = STAGE_EVENT_EFFECTS[stage];
-  if (!stageEffects) return null;
+  if (!stageEffects) {return null;}
 
   const effect = stageEffects[category];
   return effect || null;
@@ -440,7 +440,7 @@ export function determineLifeCycle(
 export function analyzeOverallTrend(
   scores: number[]
 ): 'ascending' | 'descending' | 'stable' | 'volatile' {
-  if (scores.length < 3) return 'stable';
+  if (scores.length < 3) {return 'stable';}
 
   const firstHalf = scores.slice(0, Math.floor(scores.length / 2));
   const secondHalf = scores.slice(Math.floor(scores.length / 2));
@@ -452,9 +452,9 @@ export function analyzeOverallTrend(
     scores.reduce((sum, s) => sum + Math.pow(s - (scores.reduce((a, b) => a + b) / scores.length), 2), 0) / scores.length
   );
 
-  if (variance > 15) return 'volatile';
-  if (secondAvg - firstAvg > 10) return 'ascending';
-  if (firstAvg - secondAvg > 10) return 'descending';
+  if (variance > 15) {return 'volatile';}
+  if (secondAvg - firstAvg > 10) {return 'ascending';}
+  if (firstAvg - secondAvg > 10) {return 'descending';}
   return 'stable';
 }
 

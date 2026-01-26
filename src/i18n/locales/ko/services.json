@@ -1,0 +1,62 @@
+{
+  "services": {
+    "title": "서비스",
+    "subtitle": "운명 탐험하기",
+    "destinyMap": {
+      "label": "운명 지도",
+      "desc": "AI 운세 분석"
+    },
+    "aiReports": {
+      "label": "AI 리포트",
+      "desc": "프리미엄 상세 분석"
+    },
+    "lifePrediction": {
+      "label": "인생 예측",
+      "desc": "10년 운세 흐름"
+    },
+    "calendar": {
+      "label": "운세 캘린더",
+      "desc": "중요한 날짜 확인"
+    },
+    "astrology": {
+      "label": "점성술",
+      "desc": "서양 점성술"
+    },
+    "saju": {
+      "label": "사주",
+      "desc": "사주팔자"
+    },
+    "tarot": {
+      "label": "타로",
+      "desc": "타로 카드"
+    },
+    "iching": {
+      "label": "역경",
+      "desc": "주역"
+    },
+    "dream": {
+      "label": "꿈해몽",
+      "desc": "꿈 해석"
+    },
+    "numerology": {
+      "label": "수비학",
+      "desc": "숫자 분석"
+    },
+    "compatibility": {
+      "label": "궁합",
+      "desc": "궁합 분석"
+    },
+    "personality": {
+      "label": "성격분석",
+      "desc": "성격 유형 분석"
+    },
+    "icp": {
+      "label": "대인관계 스타일",
+      "desc": "ICP 대인관계 분석"
+    },
+    "pastLife": {
+      "label": "전생",
+      "desc": "전생을 알아보세요"
+    }
+  }
+}

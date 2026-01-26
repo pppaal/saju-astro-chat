@@ -32,7 +32,7 @@ export const DeeperInsightCard: React.FC<DeeperInsightCardProps> = React.memo(({
   lang,
   translate,
 }) => {
-  if (!luckyInfo && !nuclearHexagram) return null;
+  if (!luckyInfo && !nuclearHexagram) {return null;}
 
   return (
     <div className={styles.insightCard}>

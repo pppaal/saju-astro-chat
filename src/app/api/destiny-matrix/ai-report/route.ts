@@ -459,9 +459,9 @@ function extractAllLayerCells(matrix: MatrixLayers): Record<string, Record<strin
 }
 
 function isMatrixCell(obj: unknown): obj is MatrixCell {
-  if (!isRecord(obj)) return false;
+  if (!isRecord(obj)) {return false;}
   const candidate = obj as Record<string, unknown>;
-  if (!isRecord(candidate.interaction)) return false;
+  if (!isRecord(candidate.interaction)) {return false;}
   return 'level' in candidate.interaction;
 }
 
@@ -549,8 +549,8 @@ function extractReportSummary(
   // 각 리포트 타입에서 요약 추출
   const r = report as unknown as Record<string, unknown>;
 
-  if (typeof r.summary === 'string') return r.summary;
-  if (typeof r.overallMessage === 'string') return r.overallMessage;
+  if (typeof r.summary === 'string') {return r.summary;}
+  if (typeof r.overallMessage === 'string') {return r.overallMessage;}
 
   // sections에서 첫 번째 내용 추출
   if (Array.isArray(r.sections) && r.sections.length > 0) {
@@ -568,23 +568,23 @@ function extractOverallScore(
 ): number | null {
   const r = report as unknown as Record<string, unknown>;
 
-  if (typeof r.overallScore === 'number') return r.overallScore;
-  if (typeof r.score === 'number') return r.score;
+  if (typeof r.overallScore === 'number') {return r.overallScore;}
+  if (typeof r.score === 'number') {return r.score;}
 
   // timingScore에서 추출
   if (r.timingScore && typeof r.timingScore === 'object') {
     const ts = r.timingScore as Record<string, unknown>;
-    if (typeof ts.overall === 'number') return ts.overall;
+    if (typeof ts.overall === 'number') {return ts.overall;}
   }
 
   return null;
 }
 
 function scoreToGrade(score: number | null): string | null {
-  if (score === null) return null;
-  if (score >= 90) return 'S';
-  if (score >= 80) return 'A';
-  if (score >= 70) return 'B';
-  if (score >= 60) return 'C';
+  if (score === null) {return null;}
+  if (score >= 90) {return 'S';}
+  if (score >= 80) {return 'A';}
+  if (score >= 70) {return 'B';}
+  if (score >= 60) {return 'C';}
   return 'D';
 }

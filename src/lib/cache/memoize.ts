@@ -19,7 +19,7 @@ const calculationCache = new LRUCache<string, CacheValue>({
  * Memoize function with LRU cache
  * Perfect for expensive calculations like grading, saju, etc.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic memoization requires flexible function signature
+ 
 export function memoize<TArgs extends unknown[], TReturn>(
   fn: (...args: TArgs) => TReturn,
   options?: {

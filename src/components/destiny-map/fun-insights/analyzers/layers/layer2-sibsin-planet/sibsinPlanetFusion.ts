@@ -19,7 +19,7 @@ export function getSibsinPlanetDescription(
 ): string | null {
   const isKo = lang === 'ko';
   const interaction = SIBSIN_PLANET_MATRIX[sibsin]?.[planet];
-  if (!interaction) return null;
+  if (!interaction) {return null;}
 
   const sibsinKw = SIBSIN_KEYWORDS[sibsin];
   const planetKw = PLANET_KEYWORDS[planet];

@@ -35,11 +35,11 @@ export default function Home() {
 
   // Load profile data into form
   useEffect(() => {
-    if (profileLoading || profileLoaded) return;
-    if (profile.birthDate) setDate(profile.birthDate);
-    if (profile.birthTime) setTime(profile.birthTime);
-    if (profile.birthCity) setCityQuery(profile.birthCity);
-    if (profile.timezone) setTimeZone(profile.timezone);
+    if (profileLoading || profileLoaded) {return;}
+    if (profile.birthDate) {setDate(profile.birthDate);}
+    if (profile.birthTime) {setTime(profile.birthTime);}
+    if (profile.birthCity) {setCityQuery(profile.birthCity);}
+    if (profile.timezone) {setTimeZone(profile.timezone);}
     setProfileLoaded(true);
   }, [profile, profileLoading, profileLoaded]);
 
@@ -49,7 +49,7 @@ export default function Home() {
       fetch('/api/me/premium')
         .then((res) => res.json())
         .then((data) => {
-          if (data.isPremium) setIsPremium(true);
+          if (data.isPremium) {setIsPremium(true);}
         })
         .catch(() => {
           // 에러 시 기본값 유지
@@ -104,7 +104,7 @@ export default function Home() {
 
     try {
       const guessed = tzLookup(item.lat, item.lon);
-      if (guessed && typeof guessed === 'string') setTimeZone(guessed);
+      if (guessed && typeof guessed === 'string') {setTimeZone(guessed);}
     } catch {
       // ignore
     }
@@ -157,8 +157,8 @@ export default function Home() {
       });
 
       const result = await response.json();
-      if (!response.ok) throw new Error(result?.error || `Server error: ${response.status}`);
-      if (result?.error) throw new Error(result.error);
+      if (!response.ok) {throw new Error(result?.error || `Server error: ${response.status}`);}
+      if (result?.error) {throw new Error(result.error);}
 
       const possible =
         result?.interpretation ??

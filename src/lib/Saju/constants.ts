@@ -241,7 +241,7 @@ export const KASI_SOLAR_TERMS: { [year: number]: { [month: number]: string } } =
 // KST(UTC+9) 문자열을 UTC Date로 변환 (외부 라이브러리 없이)
 export function getSolarTermKST(year: number, month: number): Date | null {
   const s = KASI_SOLAR_TERMS[year]?.[month]; // "YYYY-MM-DD HH:mm"
-  if (!s) return null;
+  if (!s) {return null;}
   const [datePart, timePart] = s.split(' ');
   const [Y, M, D] = datePart.split('-').map(Number);
   const [h, m] = timePart.split(':').map(Number);

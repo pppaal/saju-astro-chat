@@ -1,0 +1,148 @@
+{
+  "tarot": {
+    "home": {
+      "title": "신비로운 타로점 보기",
+      "subtitle": "크리스탈 볼을 바라보며 카드가 당신의 운명을 드러내도록 하세요",
+      "tapCrystal": "Tap the crystal ball to begin your journey",
+      "chooseTheme": "독서 테마 선택",
+      "tip": "카드를 선택하기 전에 마음을 비우고 질문에 집중하세요."
+    },
+    "spread": {
+      "chooseSpread": "스프레드 선택",
+      "backToHome": "타로점으로 돌아가기",
+      "cards": "cards"
+    },
+    "reading": {
+      "preparing": "카드를 준비하고 있습니다...",
+      "invalidAccess": "잘못된 접근",
+      "backToHome": "집으로 돌아가기",
+      "choose": "선택",
+      "cards": "장",
+      "revealing": "선택 완료! 운명을 공개합니다...",
+      "interpreting": "카드를 해석하고 있습니다...",
+      "interpretingDesc": "잠시만 기다려주세요",
+      "pleaseWait": "20-30초 정도 소요됩니다",
+      "redirecting": "타로로 이동 중...",
+      "redraw": "다시 뽑기"
+    },
+    "results": {
+      "title": "결과",
+      "subtitle": "카드 해석",
+      "reversed": "역방향",
+      "askAnother": "새로 읽기",
+      "startChat": "AI 상담 시작",
+      "clickToExpand": "▼ 클릭하여 더 보기",
+      "clickToCollapse": "▲ 클릭하여 접기",
+      "clickToReveal": "클릭하여 표시",
+      "detailedReadings": "상세 해석",
+      "card": "카드",
+      "defaultMessage": "카드 해석이 완료되었습니다.",
+      "defaultGuidance": "이 결과를 바탕으로 생각해보세요.",
+      "defaultAffirmation": "이 조언을 실천으로 옮기겠습니다."
+    },
+    "premium": {
+      "title": "프리미엄 AI 타로 상담",
+      "desc": "AI 타로 마스터로부터 맞춤형 인사이트를 얻으세요. 후속 질문을 하고, 더 깊은 의미를 탐구하고, 귀하만을 위한 지침을 받으십시오."
+    },
+    "insights": {
+      "aiInterpretation": "심층 통찰력",
+      "spiritAnimal": "수호 동물",
+      "chakra": "차크라 연결",
+      "shadowWork": "그림자 작업",
+      "combinations": "카드 조합",
+      "guidance": "길잡이",
+      "affirmation": "자기 긍정",
+      "followup": "성찰을 위한 질문",
+      "deepInsight": "심층 통찰력",
+      "element": "요소"
+    },
+    "elements": {
+      "fire": "불",
+      "water": "Water",
+      "air": "Air (에어)",
+      "earth": "지구"
+    },
+    "chat": {
+      "title": "Tarot Consultation",
+      "backToResults": "카드로 돌아가기",
+      "placeholder": "카드에 대해 자세히 물어보세요...",
+      "send": "Send",
+      "thinking": "카드 메시지 해석 중...",
+      "empty": "카드에 대해 무엇이든 물어보세요. 예: '이 조합이 내 연애 생활에 어떤 의미가 있나요?'",
+      "error": "에러가 발생했습니다. 다시 해보세요",
+      "suggestedQuestions": "Suggested Questions",
+      "drawMore": "더 많은 카드 뽑기",
+      "differentView": "다른 관점"
+    },
+    "deckSelect": {
+      "title": "스타일 선택",
+      "subtitle": "당신의 영혼과 공명하는 스타일을 선택하세요"
+    },
+    "colorSelect": {
+      "start": "읽기 시작"
+    },
+    "card": {
+      "reversed": "Reversed",
+      "clickMore": "▼ Click for more",
+      "clickCollapse": "▲ Click to collapse"
+    },
+    "categories": {
+      "general-insight": "일반 통찰력",
+      "love-relationships": "사랑과 관계",
+      "career-work": "경력 및 업무",
+      "money-finance": "자금 및 금융",
+      "well-being-health": "Well-being & Health",
+      "spiritual-growth": "Spiritual Growth",
+      "decisions-crossroads": "결정과 갈림길",
+      "self-discovery": "Self-Discovery",
+      "daily-reading": "일일 독서"
+    },
+    "spreads": {
+      "quick-reading": "Quick Reading",
+      "past-present-future": "Past, Present, Future",
+      "celtic-cross": "The Celtic Cross",
+      "relationship-check-in": "Relationship Check-in",
+      "relationship-cross": "Relationship Cross",
+      "finding-a-partner": "파트너 찾기",
+      "quick-guidance": "Quick Guidance",
+      "career-path": "Parcours",
+      "work-life-balance": "Work-Life Balance",
+      "financial-snapshot": "재무 스냅샷",
+      "abundance-path": "풍요로운 길",
+      "career-money": "커리어 & 머니",
+      "mind-body-scan": "마음, 몸, 영",
+      "healing-path": "치유의 길",
+      "energy-balance": "에너지수지",
+      "inner-voice": "내면의 목소리",
+      "shadow-work": "Shadow Work",
+      "path-of-growth": "Path of Growth",
+      "two-paths": "Two Paths",
+      "yes-no-why": "Yes/No + Why",
+      "timing-window": "Timing Window",
+      "identity-core": "Identity Core",
+      "shadow-integration": "Shadow Integration",
+      "day-card": "요일 카드",
+      "three-times": "Three Times"
+    },
+    "positions": {
+      "core-insight": "핵심 인사이트",
+      "the-past": "The Past",
+      "the-present": "The Present",
+      "the-future": "The Future",
+      "the-challenge": "The Challenge",
+      "above-conscious": "위 (의식)",
+      "below-subconscious": "아래 (잠재의식)",
+      "advice": "충고",
+      "external-influences": "외부 영향",
+      "hopes-and-fears": "희망과 두려움",
+      "the-outcome": "The Outcome",
+      "your-energy": "Your Energy",
+      "partners-energy": "Partner's Energy",
+      "the-connection": "The Connection",
+      "what-you-seek": "What You Seek",
+      "what-blocks-you": "What Blocks You",
+      "how-to-attract": "최고 인재",
+      "potential-partner": "Potential Partner"
+    }
+  }
+}

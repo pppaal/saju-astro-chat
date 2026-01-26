@@ -32,9 +32,9 @@ async function fetchRagContext(sipsin?: string, eventType?: string): Promise<str
 
     // RAG 컨텍스트를 하나의 문자열로 결합
     const parts: string[] = [];
-    if (ragContext.sipsin) parts.push(ragContext.sipsin);
-    if (ragContext.timing) parts.push(ragContext.timing);
-    if (ragContext.query_result) parts.push(ragContext.query_result);
+    if (ragContext.sipsin) {parts.push(ragContext.sipsin);}
+    if (ragContext.timing) {parts.push(ragContext.timing);}
+    if (ragContext.query_result) {parts.push(ragContext.query_result);}
 
     return parts.join('\n\n');
   } catch (error) {

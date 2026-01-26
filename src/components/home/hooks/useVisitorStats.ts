@@ -24,11 +24,11 @@ export function useVisitorStats(metricsToken?: string) {
   const trackedOnce = useRef(false);
 
   useEffect(() => {
-    if (trackedOnce.current) return;
+    if (trackedOnce.current) {return;}
     trackedOnce.current = true;
 
     const headers: HeadersInit = {};
-    if (metricsToken) headers['x-metrics-token'] = metricsToken;
+    if (metricsToken) {headers['x-metrics-token'] = metricsToken;}
 
     async function run() {
       try {

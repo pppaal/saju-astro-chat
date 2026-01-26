@@ -55,7 +55,7 @@ export function getKarmaMatrixAnalysis(
   lang: string
 ): KarmaMatrixResult | null {
   const isKo = lang === 'ko';
-  if (!saju && !astro) return null;
+  if (!saju && !astro) {return null;}
 
   const extSaju = saju as ExtendedSajuData | undefined;
   const dayElement = saju?.dayMaster?.element || 'wood';
@@ -205,9 +205,9 @@ export function getKarmaMatrixAnalysis(
   };
 
   const karmicRelationTypes: BranchRelation[] = [];
-  if (hyungChungHoeHap?.hap?.length) karmicRelationTypes.push('samhap');
-  if (hyungChungHoeHap?.harmony?.length) karmicRelationTypes.push('yukhap');
-  if (hyungChungHoeHap?.chung?.length || hyungChungHoeHap?.conflicts?.length) karmicRelationTypes.push('chung');
+  if (hyungChungHoeHap?.hap?.length) {karmicRelationTypes.push('samhap');}
+  if (hyungChungHoeHap?.harmony?.length) {karmicRelationTypes.push('yukhap');}
+  if (hyungChungHoeHap?.chung?.length || hyungChungHoeHap?.conflicts?.length) {karmicRelationTypes.push('chung');}
 
   for (const rel of karmicRelationTypes.slice(0, 3)) {
     const conjunctionInteraction = RELATION_ASPECT_MATRIX[rel]?.conjunction;
@@ -277,8 +277,8 @@ export function getKarmaMatrixAnalysis(
 
   // 5. 카르마 점수 계산
   let karmaScore = 50;
-  if (soulPattern) karmaScore += soulPattern.fusion?.score ? soulPattern.fusion.score * 2 : 0;
-  if (nodeAxis) karmaScore += (nodeAxis.northNode?.fusion?.score || 0) + (nodeAxis.southNode?.fusion?.score || 0);
+  if (soulPattern) {karmaScore += soulPattern.fusion?.score ? soulPattern.fusion.score * 2 : 0;}
+  if (nodeAxis) {karmaScore += (nodeAxis.northNode?.fusion?.score || 0) + (nodeAxis.southNode?.fusion?.score || 0);}
   karmaScore += karmicRelations.length * 5;
   karmaScore += pastLifeHints.length * 5;
   karmaScore = Math.min(100, Math.max(30, karmaScore));

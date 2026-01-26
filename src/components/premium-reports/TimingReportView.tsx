@@ -53,16 +53,16 @@ export function TimingReportView({ report, onDownloadPDF, onShare }: TimingRepor
   const [activeTab, setActiveTab] = useState<'overview' | 'domains' | 'action'>('overview');
 
   const getScoreEmoji = (score: number) => {
-    if (score >= 80) return '🌟';
-    if (score >= 60) return '✨';
-    if (score >= 40) return '💫';
+    if (score >= 80) {return '🌟';}
+    if (score >= 60) {return '✨';}
+    if (score >= 40) {return '💫';}
     return '🌙';
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'from-yellow-400 to-orange-500';
-    if (score >= 60) return 'from-green-400 to-emerald-500';
-    if (score >= 40) return 'from-blue-400 to-cyan-500';
+    if (score >= 80) {return 'from-yellow-400 to-orange-500';}
+    if (score >= 60) {return 'from-green-400 to-emerald-500';}
+    if (score >= 40) {return 'from-blue-400 to-cyan-500';}
     return 'from-purple-400 to-indigo-500';
   };
 

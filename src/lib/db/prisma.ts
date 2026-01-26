@@ -12,7 +12,7 @@ export { Prisma };
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient; pool?: Pool };
 
 const encryptAccountTokens = <T>(data: T): T => {
-  if (!data || typeof data !== 'object') return data;
+  if (!data || typeof data !== 'object') {return data;}
   const fields = ['access_token', 'refresh_token', 'id_token'] as const;
   const result = { ...data } as Record<string, unknown>;
   for (const field of fields) {
@@ -62,7 +62,7 @@ export async function ensureDbConnection() {
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== 'production') {globalForPrisma.prisma = prisma;}
 
 // Helper for encrypting tokens before Account operations
 export const encryptAccountData = encryptAccountTokens;

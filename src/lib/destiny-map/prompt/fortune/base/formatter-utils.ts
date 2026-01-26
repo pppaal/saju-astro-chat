@@ -105,7 +105,7 @@ export function formatAspectLines(aspects: AspectForFormat[]): string {
  * @returns Formatted string like "Fire:3.2, Earth:2.1"
  */
 export function formatElements(elementRatios: Record<string, number> | undefined): string {
-  if (!elementRatios) return "-";
+  if (!elementRatios) {return "-";}
   return Object.entries(elementRatios)
     .map(([k, v]) => `${k}:${v.toFixed?.(1) ?? v}`)
     .join(", ");

@@ -10,7 +10,7 @@ export function useMyCircle(status: 'authenticated' | 'loading' | 'unauthenticat
 
   // Load circle people when logged in
   useEffect(() => {
-    if (status !== 'authenticated') return;
+    if (status !== 'authenticated') {return;}
 
     const controller = new AbortController();
 
@@ -26,7 +26,7 @@ export function useMyCircle(status: 'authenticated' | 'loading' | 'unauthenticat
         }
       } catch (e) {
         // Ignore abort errors - they're expected when component unmounts
-        if (e instanceof Error && e.name === 'AbortError') return;
+        if (e instanceof Error && e.name === 'AbortError') {return;}
         logger.error('Failed to load circle:', { error: e instanceof Error ? e.message : String(e) });
       }
     };

@@ -408,7 +408,7 @@ export function calculateSibsin(dayStem: string, targetStem: string): string {
   const dayInfo = STEMS[dayStem];
   const targetInfo = STEMS[targetStem];
 
-  if (!dayInfo || !targetInfo) return '비견';
+  if (!dayInfo || !targetInfo) {return '비견';}
 
   const elements: FiveElement[] = ['목', '화', '토', '금', '수'];
   const dayIdx = elements.indexOf(dayInfo.element);
@@ -524,7 +524,7 @@ export function analyzeMultiLayer(input: MultiLayerInput): {
 
   // 모든 지지 상호작용
   const allBranches = [dayBranch];
-  if (daeun) allBranches.push(daeun.branch);
+  if (daeun) {allBranches.push(daeun.branch);}
   allBranches.push(saeun.branch, wolun.branch);
 
   const branchInteractions = analyzeBranchInteractions(allBranches);
@@ -656,8 +656,8 @@ export function calculateAdvancedMonthlyScore(input: AdvancedTimingInput): Layer
   // 용신/기신 적용
   const wolunElement = STEMS[wolun.stem]?.element;
   if (wolunElement) {
-    if (yongsin.includes(wolunElement)) rawScore += 15;
-    if (kisin.includes(wolunElement)) rawScore -= 12;
+    if (yongsin.includes(wolunElement)) {rawScore += 15;}
+    if (kisin.includes(wolunElement)) {rawScore -= 12;}
   }
 
   // 점수 정규화
@@ -666,9 +666,9 @@ export function calculateAdvancedMonthlyScore(input: AdvancedTimingInput): Layer
 
   // 신뢰도 (데이터 완전성에 따라)
   let confidence = 60;
-  if (daeun) confidence += 20;
-  if (yongsin.length > 0) confidence += 10;
-  if (branchInteractions.length > 0) confidence += 10;
+  if (daeun) {confidence += 20;}
+  if (yongsin.length > 0) {confidence += 10;}
+  if (branchInteractions.length > 0) {confidence += 10;}
   confidence = Math.min(100, confidence);
 
   // 등급 (통일된 기준 사용)
@@ -758,7 +758,7 @@ function calculateLuckyDays(month: number, baseScore: number): number[] {
 
 function calculateCautionDays(month: number, branchInteractions: BranchInteraction[]): number[] {
   const hasConflict = branchInteractions.some(b => b.impact === 'negative');
-  if (!hasConflict) return [];
+  if (!hasConflict) {return [];}
 
   // 현재 연도 기준으로 월의 일수 계산 (하드코딩된 2024 제거)
   const currentYear = new Date().getFullYear();

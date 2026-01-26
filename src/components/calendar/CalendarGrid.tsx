@@ -64,7 +64,7 @@ export default function CalendarGrid({
   // Memoize today check with stable today value
   const today = useMemo(() => new Date(), []);
   const isToday = useCallback((date: Date | null) => {
-    if (!date) return false;
+    if (!date) {return false;}
     return (
       date.getDate() === today.getDate() &&
       date.getMonth() === today.getMonth() &&
@@ -74,7 +74,7 @@ export default function CalendarGrid({
 
   // Memoize selection check
   const isSelected = useCallback((date: Date | null) => {
-    if (!date || !selectedDay) return false;
+    if (!date || !selectedDay) {return false;}
     return (
       date.getDate() === selectedDay.getDate() &&
       date.getMonth() === selectedDay.getMonth() &&

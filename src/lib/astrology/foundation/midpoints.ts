@@ -70,7 +70,7 @@ function getMidpointLongitude(lon1: number, lon2: number): number {
   const b = normalize360(lon2);
 
   let diff = b - a;
-  if (diff < 0) diff += 360;
+  if (diff < 0) {diff += 360;}
 
   if (diff > 180) {
     return normalize360(a + diff / 2 + 180);

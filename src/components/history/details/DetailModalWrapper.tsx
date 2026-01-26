@@ -56,7 +56,7 @@ export function DetailModalWrapper({
   loading,
   onClose,
 }: DetailModalWrapperProps) {
-  if (!record) return null;
+  if (!record) {return null;}
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>

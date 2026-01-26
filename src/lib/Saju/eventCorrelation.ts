@@ -545,7 +545,7 @@ function calculateNextBranchYear(branch: string): Date {
   const currentBranchIndex = (currentYear - 4) % 12;
 
   let yearsUntil = branchIndex - currentBranchIndex;
-  if (yearsUntil <= 0) yearsUntil += 12;
+  if (yearsUntil <= 0) {yearsUntil += 12;}
 
   return new Date(currentYear + yearsUntil, 0, 1);
 }
@@ -744,7 +744,7 @@ export function analyzeTriggers(
 function calculateFutureStemCombination(stem: string, count: number): Date[] {
   const dates: Date[] = [];
   const partner = CHEONGAN_HAP[stem]?.partner;
-  if (!partner) return dates;
+  if (!partner) {return dates;}
 
   const partnerIndex = STEMS.findIndex(s => s.name === partner);
   const currentYear = new Date().getFullYear();

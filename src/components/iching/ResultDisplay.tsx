@@ -105,8 +105,8 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
   }, [abortControllerRef]);
 
   // Early returns
-  if (!result) return null;
-  if (result.error) return <p className={styles.errorText}>{result.error}</p>;
+  if (!result) {return null;}
+  if (result.error) {return <p className={styles.errorText}>{result.error}</p>;}
 
   return (
     <div className={styles.resultContainer}>

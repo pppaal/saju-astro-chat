@@ -103,7 +103,7 @@ function determineGyeokguk(profile: SajuProfile): GyeokgukType {
 
 function getTenGodRelationship(dayMaster: string, target: string): string {
   // 오행 관계로 십성 카테고리 결정
-  if (dayMaster === target) return '비겁';
+  if (dayMaster === target) {return '비겁';}
 
   const generates: Record<string, string> = {
     wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood',
@@ -112,10 +112,10 @@ function getTenGodRelationship(dayMaster: string, target: string): string {
     wood: 'earth', fire: 'metal', earth: 'water', metal: 'wood', water: 'fire',
   };
 
-  if (generates[dayMaster] === target) return '식상';
-  if (generates[target] === dayMaster) return '인성';
-  if (controls[dayMaster] === target) return '재성';
-  if (controls[target] === dayMaster) return '관성';
+  if (generates[dayMaster] === target) {return '식상';}
+  if (generates[target] === dayMaster) {return '인성';}
+  if (controls[dayMaster] === target) {return '재성';}
+  if (controls[target] === dayMaster) {return '관성';}
 
   return '비겁';
 }

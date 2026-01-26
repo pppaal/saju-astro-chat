@@ -87,10 +87,10 @@ export function analyzeGroupSajuCompatibility(members: GroupMember[]): GroupSaju
         const analysis = performComprehensiveSajuAnalysis(m1.sajuProfile, m2.sajuProfile);
 
         let relationship: PairwiseCompatibility['relationship'];
-        if (analysis.overallScore >= 80) relationship = 'excellent';
-        else if (analysis.overallScore >= 65) relationship = 'good';
-        else if (analysis.overallScore >= 45) relationship = 'neutral';
-        else relationship = 'challenging';
+        if (analysis.overallScore >= 80) {relationship = 'excellent';}
+        else if (analysis.overallScore >= 65) {relationship = 'good';}
+        else if (analysis.overallScore >= 45) {relationship = 'neutral';}
+        else {relationship = 'challenging';}
 
         pairwiseResults.push({
           member1Id: m1.id,
@@ -335,10 +335,10 @@ export function analyzeGroupAstrologyCompatibility(members: GroupMember[]): Grou
         );
 
         let relationship: PairwiseCompatibility['relationship'];
-        if (analysis.overallScore >= 80) relationship = 'excellent';
-        else if (analysis.overallScore >= 65) relationship = 'good';
-        else if (analysis.overallScore >= 45) relationship = 'neutral';
-        else relationship = 'challenging';
+        if (analysis.overallScore >= 80) {relationship = 'excellent';}
+        else if (analysis.overallScore >= 65) {relationship = 'good';}
+        else if (analysis.overallScore >= 45) {relationship = 'neutral';}
+        else {relationship = 'challenging';}
 
         pairwiseResults.push({
           member1Id: m1.id,
@@ -524,7 +524,7 @@ function analyzeGroupSynergyAspects(members: GroupMember[]): {
   for (const member of members) {
     if (member.astrologyProfile) {
       const el = member.astrologyProfile.sun.element;
-      if (!elementGroups[el]) elementGroups[el] = [];
+      if (!elementGroups[el]) {elementGroups[el] = [];}
       elementGroups[el].push(member.name);
     }
   }
@@ -668,9 +668,9 @@ export function analyzeGroupCompatibility(members: GroupMember[]): Comprehensive
     }
   }
 
-  if (sajuAnalysis && !astrologyAnalysis) analysisType = 'saju_only';
-  else if (!sajuAnalysis && astrologyAnalysis) analysisType = 'astrology_only';
-  else if (sajuAnalysis && astrologyAnalysis) analysisType = 'combined';
+  if (sajuAnalysis && !astrologyAnalysis) {analysisType = 'saju_only';}
+  else if (!sajuAnalysis && astrologyAnalysis) {analysisType = 'astrology_only';}
+  else if (sajuAnalysis && astrologyAnalysis) {analysisType = 'combined';}
 
   // 종합 쌍별 매트릭스
   const combinedPairwiseMatrix: ComprehensiveGroupAnalysis['combinedPairwiseMatrix'] = [];
@@ -680,7 +680,7 @@ export function analyzeGroupCompatibility(members: GroupMember[]): Comprehensive
   if (sajuAnalysis) {
     for (const pair of sajuAnalysis.pairwiseResults) {
       const key = [pair.member1Name, pair.member2Name].sort().join('-');
-      if (!pairScores.has(key)) pairScores.set(key, []);
+      if (!pairScores.has(key)) {pairScores.set(key, []);}
       pairScores.get(key)!.push(pair.sajuScore || pair.combinedScore);
     }
   }
@@ -689,7 +689,7 @@ export function analyzeGroupCompatibility(members: GroupMember[]): Comprehensive
   if (astrologyAnalysis) {
     for (const pair of astrologyAnalysis.pairwiseResults) {
       const key = [pair.member1Name, pair.member2Name].sort().join('-');
-      if (!pairScores.has(key)) pairScores.set(key, []);
+      if (!pairScores.has(key)) {pairScores.set(key, []);}
       pairScores.get(key)!.push(pair.astrologyScore || pair.combinedScore);
     }
   }
@@ -700,9 +700,9 @@ export function analyzeGroupCompatibility(members: GroupMember[]): Comprehensive
     const avgScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
 
     let relationship = 'neutral';
-    if (avgScore >= 80) relationship = 'excellent';
-    else if (avgScore >= 65) relationship = 'good';
-    else if (avgScore < 45) relationship = 'challenging';
+    if (avgScore >= 80) {relationship = 'excellent';}
+    else if (avgScore >= 65) {relationship = 'good';}
+    else if (avgScore < 45) {relationship = 'challenging';}
 
     combinedPairwiseMatrix.push({
       member1: m1,
@@ -727,12 +727,12 @@ export function analyzeGroupCompatibility(members: GroupMember[]): Comprehensive
 
   // 등급
   let groupGrade: ComprehensiveGroupAnalysis['groupGrade'];
-  if (overallGroupScore >= 90) groupGrade = 'S+';
-  else if (overallGroupScore >= 80) groupGrade = 'S';
-  else if (overallGroupScore >= 70) groupGrade = 'A';
-  else if (overallGroupScore >= 60) groupGrade = 'B';
-  else if (overallGroupScore >= 45) groupGrade = 'C';
-  else groupGrade = 'D';
+  if (overallGroupScore >= 90) {groupGrade = 'S+';}
+  else if (overallGroupScore >= 80) {groupGrade = 'S';}
+  else if (overallGroupScore >= 70) {groupGrade = 'A';}
+  else if (overallGroupScore >= 60) {groupGrade = 'B';}
+  else if (overallGroupScore >= 45) {groupGrade = 'C';}
+  else {groupGrade = 'D';}
 
   // 그룹 타입 결정
   let groupType = '';
@@ -754,18 +754,18 @@ export function analyzeGroupCompatibility(members: GroupMember[]): Comprehensive
 
   // 핵심 강점 종합
   const coreStrengths: string[] = [];
-  if (sajuAnalysis) coreStrengths.push(...sajuAnalysis.strengths.slice(0, 2));
-  if (astrologyAnalysis) coreStrengths.push(...astrologyAnalysis.strengths.slice(0, 2));
+  if (sajuAnalysis) {coreStrengths.push(...sajuAnalysis.strengths.slice(0, 2));}
+  if (astrologyAnalysis) {coreStrengths.push(...astrologyAnalysis.strengths.slice(0, 2));}
 
   // 주요 도전 종합
   const mainChallenges: string[] = [];
-  if (sajuAnalysis) mainChallenges.push(...sajuAnalysis.challenges.slice(0, 2));
-  if (astrologyAnalysis) mainChallenges.push(...astrologyAnalysis.challenges.slice(0, 2));
+  if (sajuAnalysis) {mainChallenges.push(...sajuAnalysis.challenges.slice(0, 2));}
+  if (astrologyAnalysis) {mainChallenges.push(...astrologyAnalysis.challenges.slice(0, 2));}
 
   // 실행 가능한 조언
   const actionableAdvice: string[] = [];
-  if (sajuAnalysis) actionableAdvice.push(...sajuAnalysis.advice.slice(0, 2));
-  if (astrologyAnalysis) actionableAdvice.push(...astrologyAnalysis.advice.slice(0, 2));
+  if (sajuAnalysis) {actionableAdvice.push(...sajuAnalysis.advice.slice(0, 2));}
+  if (astrologyAnalysis) {actionableAdvice.push(...astrologyAnalysis.advice.slice(0, 2));}
 
   // 최고 궁합 쌍
   const sortedPairs = [...combinedPairwiseMatrix].sort((a, b) => b.score - a.score);

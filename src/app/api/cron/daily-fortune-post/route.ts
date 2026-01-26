@@ -2,11 +2,12 @@
 // Vercel Cron Job - 매일 자동으로 운세 포스팅
 
 import { NextRequest, NextResponse } from 'next/server';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { logger } from '@/lib/logger';
+import path from 'path';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 /**
  * Vercel Cron Job Handler
@@ -35,9 +36,13 @@ export async function GET(request: NextRequest) {
   logger.info('[Cron] Starting daily fortune auto-post...');
 
   try {
-    // 자동 포스팅 스크립트 실행
-    const { stdout, stderr } = await execAsync(
-      'node scripts/auto-post-daily-fortune.mjs',
+    // 자동 포스팅 스크립트 실행 (execFile로 명령어 주입 방지)
+    const scriptPath = path.join(process.cwd(), 'scripts', 'auto-post-daily-fortune.mjs');
+    const nodePath = process.execPath; // Node.js 실행 파일 경로
+
+    const { stdout, stderr } = await execFileAsync(
+      nodePath,
+      [scriptPath],
       {
         cwd: process.cwd(),
         env: {

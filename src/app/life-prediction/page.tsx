@@ -85,7 +85,7 @@ function LifePredictionContent() {
 
   // Update phase based on profile
   React.useEffect(() => {
-    if (profileLoading) return;
+    if (profileLoading) {return;}
 
     if (userProfile?.birthDate || guestBirthInfo?.birthDate) {
       if (phase === 'birth-input') {

@@ -54,7 +54,7 @@ function matchesName(name: string, allowed: string[]): boolean {
 function isApiLatencyMetric(name: string): boolean {
   // Must exactly match one of the API latency metrics
   const isMatch = API_LATENCY_METRICS.some((pattern) => name === pattern);
-  if (!isMatch) return false;
+  if (!isMatch) {return false;}
 
   // Exclude external service durations that might have similar names
   const isExcluded = EXCLUDED_LATENCY_PATTERNS.some((excl) => name.toLowerCase().includes(excl));

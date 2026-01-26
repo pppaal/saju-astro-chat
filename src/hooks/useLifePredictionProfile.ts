@@ -72,7 +72,7 @@ export function useLifePredictionProfile(
   // Load user profile for authenticated users
   useEffect(() => {
     const loadProfile = async () => {
-      if (status === 'loading') return;
+      if (status === 'loading') {return;}
 
       if (status !== 'authenticated') {
         setProfileLoading(false);

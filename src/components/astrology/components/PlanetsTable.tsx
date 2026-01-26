@@ -11,7 +11,7 @@ interface PlanetsTableProps {
 }
 
 export default function PlanetsTable({ planets, locKey }: PlanetsTableProps) {
-  if (!planets?.length) return null;
+  if (!planets?.length) {return null;}
 
   const L = LABELS[locKey];
 
@@ -19,7 +19,7 @@ export default function PlanetsTable({ planets, locKey }: PlanetsTableProps) {
   const getOriginalPlanetName = (localizedName: string): string => {
     for (const [_locale, labels] of Object.entries(PLANET_LABELS)) {
       for (const [key, value] of Object.entries(labels)) {
-        if (value === localizedName) return key;
+        if (value === localizedName) {return key;}
       }
     }
     return localizedName;

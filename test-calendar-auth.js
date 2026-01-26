@@ -109,9 +109,9 @@ async function testCalendarAPI(user, year) {
     // 검증: 모든 샘플이 설명, 카테고리, 분석을 가지고 있는지
     const issues = [];
     samples.forEach(s => {
-      if (!s.hasDescription) issues.push(`${s.date}: 설명 부족`);
-      if (!s.hasCategories) issues.push(`${s.date}: 카테고리 없음`);
-      if (!s.hasFactors) issues.push(`${s.date}: 분석 없음`);
+      if (!s.hasDescription) {issues.push(`${s.date}: 설명 부족`);}
+      if (!s.hasCategories) {issues.push(`${s.date}: 카테고리 없음`);}
+      if (!s.hasFactors) {issues.push(`${s.date}: 분석 없음`);}
     });
 
     return {

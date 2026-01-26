@@ -227,7 +227,7 @@ function generateDashboardSummary(
   // Build service summary with p95 (max of p95s per service)
   const services: DashboardSummary["services"] = {};
   for (const [service, metrics] of Object.entries(serviceMetrics)) {
-    if (service === "unknown") continue;
+    if (service === "unknown") {continue;}
     services[service] = {
       requests: metrics.requests,
       errors: metrics.errors,

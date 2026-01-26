@@ -33,7 +33,7 @@ export function getCareerMatrixAnalysis(
 ): CareerMatrixResult | null {
   const isKo = lang === 'ko';
 
-  if (!saju && !astro) return null;
+  if (!saju && !astro) {return null;}
 
   const extSaju = saju as ExtendedSajuData | undefined;
   const sibsinCareer: SibsinHouseResult[] = [];
@@ -45,10 +45,10 @@ export function getCareerMatrixAnalysis(
 
   // 각 기둥의 십신 추출
   const allSibsin: SibsinKind[] = [];
-  if (sibsinList.year) allSibsin.push(sibsinList.year);
-  if (sibsinList.month) allSibsin.push(sibsinList.month);
-  if (sibsinList.day) allSibsin.push(sibsinList.day);
-  if (sibsinList.hour) allSibsin.push(sibsinList.hour);
+  if (sibsinList.year) {allSibsin.push(sibsinList.year);}
+  if (sibsinList.month) {allSibsin.push(sibsinList.month);}
+  if (sibsinList.day) {allSibsin.push(sibsinList.day);}
+  if (sibsinList.hour) {allSibsin.push(sibsinList.hour);}
 
   // 십신-하우스 매트릭스 분석
   for (const sibsin of allSibsin) {

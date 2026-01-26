@@ -336,7 +336,7 @@ export function analyzeICP(answers: ICPQuizAnswers, locale: string = 'en'): ICPA
 
   for (const question of icpQuestions) {
     const answer = answers[question.id];
-    if (!answer) continue;
+    if (!answer) {continue;}
 
     const score = SCORE_MAP[answer] ?? 0.5;
 
@@ -445,16 +445,16 @@ export function getICPCompatibility(style1: ICPOctantCode, style2: ICPOctantCode
   let score = 50;
 
   // Complementary dominance (one leads, one follows) is good
-  if (domDiff > 1.0) score += 20;
-  else if (domDiff > 0.5) score += 10;
+  if (domDiff > 1.0) {score += 20;}
+  else if (domDiff > 0.5) {score += 10;}
 
   // Both being warm/friendly is good
-  if (affSum > 1.0) score += 20;
-  else if (affSum > 0) score += 10;
-  else if (affSum < -1.0) score -= 10; // Both cold is harder
+  if (affSum > 1.0) {score += 20;}
+  else if (affSum > 0) {score += 10;}
+  else if (affSum < -1.0) {score -= 10;} // Both cold is harder
 
   // Same style: moderate (understand each other but may clash)
-  if (style1 === style2) score = 65;
+  if (style1 === style2) {score = 65;}
 
   score = Math.max(30, Math.min(95, score));
 

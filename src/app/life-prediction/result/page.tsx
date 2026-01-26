@@ -44,7 +44,7 @@ function AnalyzingLoader({ locale }: { locale: string }) {
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 95) return prev;
+        if (prev >= 95) {return prev;}
         const increment = prev < 30 ? 4 : prev < 60 ? 3 : prev < 80 ? 2 : 1;
         return Math.min(prev + increment, 95);
       });

@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     const body = await req.json();
     const {

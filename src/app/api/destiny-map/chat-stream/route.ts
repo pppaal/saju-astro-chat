@@ -112,7 +112,7 @@ const ALLOWED_ROLE = new Set(["system", "user", "assistant"]);
 export async function POST(req: NextRequest) {
   try {
     const oversized = enforceBodySize(req, 256 * 1024); // 256KB for large chart data
-    if (oversized) return oversized;
+    if (oversized) {return oversized;}
 
     // Apply middleware: authentication + rate limiting + credit consumption
     const guardOptions = createAuthenticatedGuard({
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     const userId = context.userId;
 
@@ -164,11 +164,11 @@ export async function POST(req: NextRequest) {
 
     if (userId && (!birthDate || !birthTime || !isValidLatitude(latitude) || !isValidLongitude(longitude))) {
       const profileResult = await loadUserProfile(userId, birthDate, birthTime, latitude, longitude, saju, astro);
-      if (profileResult.saju) saju = profileResult.saju;
-      if (profileResult.astro) astro = profileResult.astro as AstroDataStructure;
-      if (profileResult.birthDate) effectiveBirthDate = profileResult.birthDate;
-      if (profileResult.birthTime) effectiveBirthTime = profileResult.birthTime;
-      if (profileResult.gender) effectiveGender = profileResult.gender;
+      if (profileResult.saju) {saju = profileResult.saju;}
+      if (profileResult.astro) {astro = profileResult.astro as AstroDataStructure;}
+      if (profileResult.birthDate) {effectiveBirthDate = profileResult.birthDate;}
+      if (profileResult.birthTime) {effectiveBirthTime = profileResult.birthTime;}
+      if (profileResult.gender) {effectiveGender = profileResult.gender;}
     }
 
     if (!effectiveBirthDate || !effectiveBirthTime || !isValidLatitude(effectiveLatitude) || !isValidLongitude(effectiveLongitude)) {
@@ -287,13 +287,13 @@ export async function POST(req: NextRequest) {
 
     const normalizedMessages: ChatMessage[] = [];
     for (const m of messages) {
-      if (!m || typeof m !== "object") continue;
+      if (!m || typeof m !== "object") {continue;}
       const record = m as Record<string, unknown>;
       const role = typeof record.role === "string" && ALLOWED_ROLE.has(record.role)
         ? (record.role as ChatMessage["role"])
         : null;
       const content = typeof record.content === "string" ? record.content.trim() : "";
-      if (!role || !content) continue;
+      if (!role || !content) {continue;}
       normalizedMessages.push({ role, content: content.slice(0, 2000) });
     }
 
@@ -399,7 +399,7 @@ export async function POST(req: NextRequest) {
 
         if (lang === "ko") {
           lines.push("\n\n[🔮 인생 예측 분석 결과 (TIER 1-10)]");
-          if (pc.eventType) lines.push(`이벤트 유형: ${pc.eventLabel || pc.eventType}`);
+          if (pc.eventType) {lines.push(`이벤트 유형: ${pc.eventLabel || pc.eventType}`);}
 
           if (pc.optimalPeriods?.length) {
             lines.push("\n✅ 최적 시기:");
@@ -421,13 +421,13 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          if (pc.advice) lines.push(`\n💡 조언: ${pc.advice}`);
+          if (pc.advice) {lines.push(`\n💡 조언: ${pc.advice}`);}
           if (pc.tierAnalysis?.tier7to10?.confidence) {
             lines.push(`\n📊 분석 신뢰도: ${Math.round(pc.tierAnalysis.tier7to10.confidence * 100)}%`);
           }
         } else {
           lines.push("\n\n[🔮 Life Prediction Analysis (TIER 1-10)]");
-          if (pc.eventType) lines.push(`Event Type: ${pc.eventLabel || pc.eventType}`);
+          if (pc.eventType) {lines.push(`Event Type: ${pc.eventLabel || pc.eventType}`);}
 
           if (pc.optimalPeriods?.length) {
             lines.push("\n✅ Optimal Periods:");
@@ -449,7 +449,7 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          if (pc.advice) lines.push(`\n💡 Advice: ${pc.advice}`);
+          if (pc.advice) {lines.push(`\n💡 Advice: ${pc.advice}`);}
           if (pc.tierAnalysis?.tier7to10?.confidence) {
             lines.push(`\n📊 Analysis Confidence: ${Math.round(pc.tierAnalysis.tier7to10.confidence * 100)}%`);
           }

@@ -10,7 +10,7 @@ import { getSwisseph } from "./ephe";
 const getExtraBodies = (() => {
   let cache: Record<string, number> | null = null;
   return () => {
-    if (cache) return cache;
+    if (cache) {return cache;}
     const swisseph = getSwisseph();
     cache = {
       Chiron: swisseph.SE_CHIRON,
@@ -31,7 +31,7 @@ export function calculateChiron(ut_jd: number, houseCusps: number[]): ExtraPoint
   const SW_FLAGS = swisseph.SEFLG_SPEED;
 
   const res = swisseph.swe_calc_ut(ut_jd, EXTRA_BODIES.Chiron, SW_FLAGS);
-  if ("error" in res) throw new Error(`Chiron calculation error: ${res.error}`);
+  if ("error" in res) {throw new Error(`Chiron calculation error: ${res.error}`);}
 
   const longitude = res.longitude;
   const info = formatLongitude(longitude);
@@ -59,7 +59,7 @@ export function calculateLilith(ut_jd: number, houseCusps: number[]): ExtraPoint
   const SW_FLAGS = swisseph.SEFLG_SPEED;
 
   const res = swisseph.swe_calc_ut(ut_jd, EXTRA_BODIES.Lilith, SW_FLAGS);
-  if ("error" in res) throw new Error(`Lilith calculation error: ${res.error}`);
+  if ("error" in res) {throw new Error(`Lilith calculation error: ${res.error}`);}
 
   const longitude = res.longitude;
   const info = formatLongitude(longitude);
@@ -136,7 +136,7 @@ export function calculateVertex(
   // 대부분의 차트에서 5-8하우스 사이에 위치
 
   const housesRes = swisseph.swe_houses(ut_jd, latitude, longitude, "P");
-  if ("error" in housesRes) throw new Error(`Vertex calculation error: ${housesRes.error}`);
+  if ("error" in housesRes) {throw new Error(`Vertex calculation error: ${housesRes.error}`);}
 
   // Vertex는 보통 houses 결과의 vertex 필드에 있음 (있는 경우)
   // 없으면 DESC에서 약간 조정

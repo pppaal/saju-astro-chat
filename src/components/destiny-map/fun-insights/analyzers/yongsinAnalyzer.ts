@@ -4,16 +4,16 @@ import type { SajuData } from '../types';
 export function getYongsinAnalysis(saju: SajuData | undefined, lang: string): { title: string; element: string; why: string; how: string; emoji: string } | null {
   const isKo = lang === "ko";
   const fiveElements = saju?.fiveElements;
-  if (!fiveElements) return null;
+  if (!fiveElements) {return null;}
 
   // 가장 약한 오행 찾기 (용신 간이 계산)
   const sorted = Object.entries(fiveElements).sort(([,a], [,b]) => (a as number) - (b as number));
   const weakest = sorted[0];
-  if (!weakest || typeof weakest[1] !== "number") return null;
+  if (!weakest || typeof weakest[1] !== "number") {return null;}
 
   const element = weakest[0];
   const elementInfo = elementTraits[element];
-  if (!elementInfo) return null;
+  if (!elementInfo) {return null;}
 
   const howToBoost: Record<string, { ko: string; en: string }> = {
     wood: {

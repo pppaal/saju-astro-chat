@@ -16,13 +16,17 @@ const HeaderUser = dynamic(() => import("../HeaderUser"), { ssr: false });
 export default function MainHeader() {
   const { t } = useI18n();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [servicePage, setServicePage] = useState(0);
   const navItemRef = useRef<HTMLDivElement>(null);
 
-  const closeMenu = useCallback(() => setActiveMenu(null), []);
+  const closeMenu = useCallback(() => {
+    setActiveMenu(null);
+    setServicePage(0); // Reset page when closing
+  }, []);
 
   // Close dropdown when clicking outside (for mobile)
   useEffect(() => {
-    if (!activeMenu) return;
+    if (!activeMenu) {return;}
 
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (navItemRef.current && !navItemRef.current.contains(e.target as Node)) {
@@ -72,7 +76,7 @@ export default function MainHeader() {
                 <span className={styles.dropdownSubtitle}>{t("services.subtitle")}</span>
               </div>
               <Grid className={styles.dropdownGrid} columns={3}>
-                {SERVICE_LINKS.map((s) => {
+                {SERVICE_LINKS.slice(servicePage * 7, (servicePage + 1) * 7).map((s) => {
                   const content = (
                     <div className={styles.dropItemLeft}>
                       <span className={styles.dropItemIcon}>{s.icon}</span>
@@ -97,6 +101,32 @@ export default function MainHeader() {
                   );
                 })}
               </Grid>
+
+              {/* Page Navigation */}
+              <div className={styles.dropdownPagination}>
+                <button
+                  type="button"
+                  className={`${styles.dropdownPageBtn} ${servicePage === 0 ? styles.disabled : ''}`}
+                  onClick={() => setServicePage(0)}
+                  disabled={servicePage === 0}
+                  aria-label="Previous page"
+                >
+                  ‹
+                </button>
+                <div className={styles.dropdownPageDots}>
+                  <span className={`${styles.dropdownPageDot} ${servicePage === 0 ? styles.active : ''}`} />
+                  <span className={`${styles.dropdownPageDot} ${servicePage === 1 ? styles.active : ''}`} />
+                </div>
+                <button
+                  type="button"
+                  className={`${styles.dropdownPageBtn} ${servicePage === 1 ? styles.disabled : ''}`}
+                  onClick={() => setServicePage(1)}
+                  disabled={servicePage === 1}
+                  aria-label="Next page"
+                >
+                  ›
+                </button>
+              </div>
             </div>
           )}
         </div>

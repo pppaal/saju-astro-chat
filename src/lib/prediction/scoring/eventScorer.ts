@@ -167,7 +167,7 @@ export class EventScorer {
     const { solarTerm } = this.context.monthData;
     const { conditions, yongsin } = this.context;
 
-    if (!solarTerm) return;
+    if (!solarTerm) {return;}
 
     if (conditions.favorableElements.includes(solarTerm.element)) {
       this.score += SCORING_WEIGHTS.SOLAR_TERM_MATCH + 1;
@@ -218,13 +218,13 @@ export class EventScorer {
     const { age, solarTerm } = this.context.monthData;
     const { daeunList, conditions } = this.context;
 
-    if (!daeunList) return;
+    if (!daeunList) {return;}
 
     const daeun = daeunList.find(
       (d) => age >= d.startAge && age <= d.endAge
     );
 
-    if (!daeun) return;
+    if (!daeun) {return;}
 
     const daeunStage = calculatePreciseTwelveStage(
       this.context.monthData.monthGanji.stem,

@@ -87,7 +87,7 @@ export function isDate(value: unknown): value is Date {
  * Check if value is a valid Date string (ISO 8601 or YYYY-MM-DD)
  */
 export function isDateString(value: unknown): value is string {
-  if (!isString(value)) return false;
+  if (!isString(value)) {return false;}
   const date = new Date(value);
   return isDate(date);
 }
@@ -132,7 +132,7 @@ export function hasProperties<K extends string>(
   obj: unknown,
   keys: K[]
 ): obj is Record<K, unknown> {
-  if (!isObject(obj)) return false;
+  if (!isObject(obj)) {return false;}
   return keys.every((key) => key in obj);
 }
 
@@ -150,7 +150,7 @@ export function isShape<T>(
   value: unknown,
   shape: { [K in keyof T]: (value: unknown) => boolean }
 ): value is T {
-  if (!isObject(value)) return false;
+  if (!isObject(value)) {return false;}
 
   return Object.entries(shape).every(([key, validator]) => {
     const val = (value as Record<string, unknown>)[key];
@@ -310,7 +310,7 @@ export function parseJSON<T>(
  * Safely parse number
  */
 export function parseNumber(value: unknown): number | null {
-  if (isNumber(value)) return value;
+  if (isNumber(value)) {return value;}
   if (isString(value)) {
     const parsed = Number(value);
     return isNumber(parsed) ? parsed : null;
@@ -322,11 +322,11 @@ export function parseNumber(value: unknown): number | null {
  * Safely parse boolean
  */
 export function parseBoolean(value: unknown): boolean | null {
-  if (isBoolean(value)) return value;
-  if (value === 'true') return true;
-  if (value === 'false') return false;
-  if (value === 1) return true;
-  if (value === 0) return false;
+  if (isBoolean(value)) {return value;}
+  if (value === 'true') {return true;}
+  if (value === 'false') {return false;}
+  if (value === 1) {return true;}
+  if (value === 0) {return false;}
   return null;
 }
 
@@ -338,7 +338,7 @@ export function getProperty<T>(
   key: string,
   validator: (value: unknown) => value is T
 ): T | null {
-  if (!isObject(obj)) return null;
+  if (!isObject(obj)) {return null;}
   const value = obj[key];
   return validator(value) ? value : null;
 }

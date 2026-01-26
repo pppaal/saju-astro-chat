@@ -242,13 +242,13 @@ export function analyzeTwelveFortuneStar(
 ): TwelveStarAnalysis | null {
   const table = getTwelveStarTable(school);
   const stemTable = table[dayMaster];
-  if (!stemTable) return null;
+  if (!stemTable) {return null;}
 
   const starName = stemTable[targetBranch];
-  if (!starName) return null;
+  if (!starName) {return null;}
 
   const starInfo = TWELVE_FORTUNE_STARS[starName];
-  if (!starInfo) return null;
+  if (!starInfo) {return null;}
 
   const schoolName = school || currentTwelveStarSchool;
   const schoolLabel = schoolName === "standard" ? "순행파" :
@@ -347,13 +347,13 @@ export function analyzeFortuneFlow(
 
   if (stemEl === rel.generatedBy || branchEl === rel.generatedBy) {
     score += 20;
-    if (compatibility !== "excellent") compatibility = "good";
+    if (compatibility !== "excellent") {compatibility = "good";}
     focus.push("에너지를 받는 시기");
   }
 
   if (stemEl === dayMasterElement || branchEl === dayMasterElement) {
     score += 15;
-    if (compatibility !== "excellent" && compatibility !== "good") compatibility = "good";
+    if (compatibility !== "excellent" && compatibility !== "good") {compatibility = "good";}
     focus.push("자신감 상승, 주도적 활동");
   }
 
@@ -523,7 +523,7 @@ export function analyzeLunarDate(gregorianDate: Date): LunarAnalysis {
   const day = gregorianDate.getDate();
 
   let lunarMonth = month - 1;
-  if (lunarMonth <= 0) lunarMonth = 12;
+  if (lunarMonth <= 0) {lunarMonth = 12;}
 
   const lunarDay = day;
 

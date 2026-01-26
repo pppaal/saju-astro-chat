@@ -53,7 +53,7 @@ function cleanupSessionStorage(): void {
 
     for (let i = 0; i < sessionStorage.length; i++) {
       const key = sessionStorage.key(i);
-      if (!key || !key.startsWith(CACHE_KEY_PREFIX)) continue;
+      if (!key || !key.startsWith(CACHE_KEY_PREFIX)) {continue;}
 
       try {
         const data = JSON.parse(sessionStorage.getItem(key) || '{}');
@@ -84,7 +84,7 @@ function manageCacheSize(newKey: string): void {
 
     for (let i = 0; i < sessionStorage.length; i++) {
       const key = sessionStorage.key(i);
-      if (!key || !key.startsWith(CACHE_KEY_PREFIX)) continue;
+      if (!key || !key.startsWith(CACHE_KEY_PREFIX)) {continue;}
 
       try {
         const data = JSON.parse(sessionStorage.getItem(key) || '{}');
@@ -390,7 +390,7 @@ export function getCacheStats(): {
 
   for (let i = 0; i < sessionStorage.length; i++) {
     const key = sessionStorage.key(i);
-    if (!key?.startsWith(CACHE_KEY_PREFIX)) continue;
+    if (!key?.startsWith(CACHE_KEY_PREFIX)) {continue;}
 
     try {
       const data = JSON.parse(sessionStorage.getItem(key) || '{}');

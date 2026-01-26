@@ -274,7 +274,7 @@ export async function generateTimeRangeCandidates(
 
   for (let hour = startHour; hour <= endHour; hour++) {
     for (let minute = 0; minute < 60; minute += intervalMinutes) {
-      if (hour === endHour && minute > 0) break;
+      if (hour === endHour && minute > 0) {break;}
 
       const input: NatalInput = {
         ...baseInput,

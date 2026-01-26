@@ -19,7 +19,7 @@ const devError = (...args: unknown[]) => logger.error('[useMessages]', ...args);
 export function useMessages(storageKey: string): [Message[], React.Dispatch<React.SetStateAction<Message[]>>] {
   // Load messages from localStorage on mount
   const [messages, setMessages] = useState<Message[]>(() => {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') {return [];}
     try {
       const stored = localStorage.getItem(storageKey);
       return stored ? JSON.parse(stored) : [];

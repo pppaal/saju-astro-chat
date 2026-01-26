@@ -218,8 +218,8 @@ function analyzeYongsinMatch(unseStem: string, unseBranch: string, yongsin: Five
   let kisinCount = 0;
 
   for (const elem of unseElements) {
-    if (yongsin.includes(elem)) yongsinCount++;
-    if (kisin.includes(elem)) kisinCount++;
+    if (yongsin.includes(elem)) {yongsinCount++;}
+    if (kisin.includes(elem)) {kisinCount++;}
   }
 
   let match: 'yongsin' | 'kisin' | 'neutral';
@@ -319,12 +319,12 @@ export function analyzeUnseComprehensive(
   totalScore = Math.max(0, Math.min(100, totalScore));
 
   let grade: UnseComprehensiveAnalysis['grade'];
-  if (totalScore >= 90) grade = 'S';
-  else if (totalScore >= 75) grade = 'A';
-  else if (totalScore >= 60) grade = 'B';
-  else if (totalScore >= 45) grade = 'C';
-  else if (totalScore >= 30) grade = 'D';
-  else grade = 'F';
+  if (totalScore >= 90) {grade = 'S';}
+  else if (totalScore >= 75) {grade = 'A';}
+  else if (totalScore >= 60) {grade = 'B';}
+  else if (totalScore >= 45) {grade = 'C';}
+  else if (totalScore >= 30) {grade = 'D';}
+  else {grade = 'F';}
 
   const themes: string[] = [];
   const opportunities: string[] = [];
@@ -504,12 +504,12 @@ export function analyzeSpecificYear(
   const combinedScore = Math.round((seun.overallScore * 0.4) + (daeunScore * 0.6));
 
   let combinedGrade: YearDetailAnalysis['combinedGrade'];
-  if (combinedScore >= 90) combinedGrade = 'S';
-  else if (combinedScore >= 75) combinedGrade = 'A';
-  else if (combinedScore >= 60) combinedGrade = 'B';
-  else if (combinedScore >= 45) combinedGrade = 'C';
-  else if (combinedScore >= 30) combinedGrade = 'D';
-  else combinedGrade = 'F';
+  if (combinedScore >= 90) {combinedGrade = 'S';}
+  else if (combinedScore >= 75) {combinedGrade = 'A';}
+  else if (combinedScore >= 60) {combinedGrade = 'B';}
+  else if (combinedScore >= 45) {combinedGrade = 'C';}
+  else if (combinedScore >= 30) {combinedGrade = 'D';}
+  else {combinedGrade = 'F';}
 
   const monthlyForecast: YearDetailAnalysis['monthlyForecast'] = [];
   const bestMonths: number[] = [];
@@ -588,10 +588,10 @@ export function analyzeMultiYearTrend(
   const volatility = maxScore - minScore;
 
   let overallTrend: MultiYearTrend['overallTrend'];
-  if (volatility > 30) overallTrend = 'fluctuating';
-  else if (secondAvg - firstAvg > 10) overallTrend = 'ascending';
-  else if (firstAvg - secondAvg > 10) overallTrend = 'descending';
-  else overallTrend = 'stable';
+  if (volatility > 30) {overallTrend = 'fluctuating';}
+  else if (secondAvg - firstAvg > 10) {overallTrend = 'ascending';}
+  else if (firstAvg - secondAvg > 10) {overallTrend = 'descending';}
+  else {overallTrend = 'stable';}
 
   const trendDescriptions: Record<MultiYearTrend['overallTrend'], string> = {
     ascending: '점진적으로 상승하는 운세입니다.',

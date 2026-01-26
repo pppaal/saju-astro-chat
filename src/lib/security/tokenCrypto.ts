@@ -6,7 +6,7 @@ const KEY_ENV = process.env.TOKEN_ENCRYPTION_KEY;
 type TokenLike = string | null | undefined;
 
 function getKey(): Buffer | null {
-  if (!KEY_ENV) return null;
+  if (!KEY_ENV) {return null;}
 
   const base64Candidate = Buffer.from(KEY_ENV, "base64");
   const utf8Candidate = Buffer.from(KEY_ENV, "utf-8");
@@ -24,9 +24,9 @@ function getKey(): Buffer | null {
 export const hasTokenEncryptionKey = () => Boolean(getKey());
 
 export function encryptToken(value: TokenLike): string | null {
-  if (!value) return null;
+  if (!value) {return null;}
   const key = getKey();
-  if (!key) return value;
+  if (!key) {return value;}
 
   const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
@@ -39,12 +39,12 @@ export function encryptToken(value: TokenLike): string | null {
 }
 
 export function decryptToken(payload: TokenLike): string | null {
-  if (!payload) return null;
+  if (!payload) {return null;}
   const key = getKey();
-  if (!key) return typeof payload === "string" ? payload : null;
+  if (!key) {return typeof payload === "string" ? payload : null;}
 
   const parts = String(payload).split(".");
-  if (parts.length !== 3) return null;
+  if (parts.length !== 3) {return null;}
 
   const [ivB64, tagB64, dataB64] = parts;
 

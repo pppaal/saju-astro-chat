@@ -811,10 +811,10 @@ const ELEMENT_LUCKY_INFO: Record<string, LuckyInfo> = {
  */
 export function getLuckyInfo(hexagramNumber: number): LuckyInfo | null {
   const data = PREMIUM_HEXAGRAM_DATA[hexagramNumber];
-  if (!data) return null;
+  if (!data) {return null;}
 
   // lucky가 직접 정의되어 있으면 사용
-  if (data.lucky) return data.lucky;
+  if (data.lucky) {return data.lucky;}
 
   // element 기반으로 행운 정보 반환
   return ELEMENT_LUCKY_INFO[data.element] || null;
@@ -826,7 +826,7 @@ export function getLuckyInfo(hexagramNumber: number): LuckyInfo | null {
  */
 export function calculateNuclearHexagram(hexagramNumber: number): { number: number; name_ko: string; name_en: string } | null {
   const binary = HEXAGRAM_BINARY_MAP[hexagramNumber];
-  if (!binary) return null;
+  if (!binary) {return null;}
 
   // binary[0]=6효, binary[1]=5효, binary[2]=4효, binary[3]=3효, binary[4]=2효, binary[5]=1효
   // 하괘(2,3,4효): 4효=binary[2], 3효=binary[3], 2효=binary[4]
@@ -836,7 +836,7 @@ export function calculateNuclearHexagram(hexagramNumber: number): { number: numb
   const nuclearBinary = upperNuclear + lowerNuclear;
 
   const nuclearNumber = findHexagramNumberByBinary(nuclearBinary);
-  if (!nuclearNumber) return null;
+  if (!nuclearNumber) {return null;}
 
   const nuclearData = PREMIUM_HEXAGRAM_DATA[nuclearNumber];
   return {
@@ -854,7 +854,7 @@ export function calculateRelatedHexagrams(hexagramNumber: number): {
   opposite: { number: number; name_ko: string; name_en: string } | null;  // 착괘 (음양 반전)
 } {
   const binary = HEXAGRAM_BINARY_MAP[hexagramNumber];
-  if (!binary) return { inverted: null, opposite: null };
+  if (!binary) {return { inverted: null, opposite: null };}
 
   // 종괘: 뒤집기 (reverse)
   const invertedBinary = binary.split('').reverse().join('');

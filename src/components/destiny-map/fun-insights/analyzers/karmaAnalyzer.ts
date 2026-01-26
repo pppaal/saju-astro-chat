@@ -250,7 +250,7 @@ const CURRENT_LIFE_MAP: Record<HouseNumber, BilingualText> = {
  * Helper to select language from BilingualText
  */
 function selectLang(isKo: boolean, text: BilingualText | undefined): string {
-  if (!text) return '';
+  if (!text) {return '';}
   return isKo ? text.ko : text.en;
 }
 
@@ -258,7 +258,7 @@ function selectLang(isKo: boolean, text: BilingualText | undefined): string {
  * Helper to select language from bilingual array
  */
 function selectLangArray(isKo: boolean, arr: { ko: string[]; en: string[] } | undefined): string[] {
-  if (!arr) return [];
+  if (!arr) {return [];}
   return isKo ? arr.ko : arr.en;
 }
 
@@ -310,7 +310,7 @@ export function getKarmaAnalysis(
   astro: AstroData | undefined,
   lang: string
 ): KarmaAnalysisResult | null {
-  if (!saju && !astro) return null;
+  if (!saju && !astro) {return null;}
 
   const isKo = lang === 'ko';
 

@@ -3,7 +3,6 @@
  * Provides Redis-backed caching for chart calculations
  */
 
-import { NextRequest } from 'next/server';
 import { withApiMiddleware, apiSuccess, apiError, ErrorCodes } from '@/lib/api/middleware';
 import {
   loadChartData,

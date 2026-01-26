@@ -8,11 +8,11 @@ export { maskDisplayName, maskTextWithName } from "@/lib/security";
  * Sanitize text based on locale - removes invalid characters
  */
 export function sanitizeLocaleText(str: string, lang: string) {
-  if (!str) return str;
+  if (!str) {return str;}
 
   // Do not alter structured JSON; caller should run HTML cleansing separately
   const isJson = str.trim().startsWith("{") || str.includes('"lifeTimeline"') || str.includes('"categoryAnalysis"');
-  if (isJson) return str;
+  if (isJson) {return str;}
 
   // Allow printable ASCII plus language blocks
   // Note: Korean text often includes CJK Hanja (Chinese characters) for traditional terms

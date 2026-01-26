@@ -13,8 +13,8 @@ import {
 import { calculateSajuData } from "@/lib/Saju/saju";
 import { calculateNatalChart } from "@/lib/astrology/foundation/astrologyService";
 import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from "@/lib/Saju/stemElementMapping";
-import koTranslations from "@/i18n/locales/ko.json";
-import enTranslations from "@/i18n/locales/en.json";
+import koTranslations from "@/i18n/locales/ko";
+import enTranslations from "@/i18n/locales/en";
 import type { TranslationData } from "@/types/calendar-api";
 import { logger } from '@/lib/logger';
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache';
@@ -68,8 +68,8 @@ export async function GET(request: NextRequest) {
       windowSeconds: 60,
     });
 
-    const { context, error } = await initializeApiContext(request, guardOptions);
-    if (error) return error;
+    const { error } = await initializeApiContext(request, guardOptions);
+    if (error) {return error;}
 
     const { searchParams } = new URL(request.url);
     const birthDateParam = searchParams.get("birthDate")?.trim().slice(0, 10);
@@ -222,18 +222,18 @@ export async function GET(request: NextRequest) {
       const month = birthDate.getMonth();
       const day = birthDate.getDate();
       let sunSign = "Aries";
-      if ((month === 2 && day >= 21) || (month === 3 && day <= 19)) sunSign = "Aries";
-      else if ((month === 3 && day >= 20) || (month === 4 && day <= 20)) sunSign = "Taurus";
-      else if ((month === 4 && day >= 21) || (month === 5 && day <= 20)) sunSign = "Gemini";
-      else if ((month === 5 && day >= 21) || (month === 6 && day <= 22)) sunSign = "Cancer";
-      else if ((month === 6 && day >= 23) || (month === 7 && day <= 22)) sunSign = "Leo";
-      else if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) sunSign = "Virgo";
-      else if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) sunSign = "Libra";
-      else if ((month === 9 && day >= 23) || (month === 10 && day <= 21)) sunSign = "Scorpio";
-      else if ((month === 10 && day >= 22) || (month === 11 && day <= 21)) sunSign = "Sagittarius";
-      else if ((month === 11 && day >= 22) || (month === 0 && day <= 19)) sunSign = "Capricorn";
-      else if ((month === 0 && day >= 20) || (month === 1 && day <= 18)) sunSign = "Aquarius";
-      else sunSign = "Pisces";
+      if ((month === 2 && day >= 21) || (month === 3 && day <= 19)) {sunSign = "Aries";}
+      else if ((month === 3 && day >= 20) || (month === 4 && day <= 20)) {sunSign = "Taurus";}
+      else if ((month === 4 && day >= 21) || (month === 5 && day <= 20)) {sunSign = "Gemini";}
+      else if ((month === 5 && day >= 21) || (month === 6 && day <= 22)) {sunSign = "Cancer";}
+      else if ((month === 6 && day >= 23) || (month === 7 && day <= 22)) {sunSign = "Leo";}
+      else if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) {sunSign = "Virgo";}
+      else if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) {sunSign = "Libra";}
+      else if ((month === 9 && day >= 23) || (month === 10 && day <= 21)) {sunSign = "Scorpio";}
+      else if ((month === 10 && day >= 22) || (month === 11 && day <= 21)) {sunSign = "Sagittarius";}
+      else if ((month === 11 && day >= 22) || (month === 0 && day <= 19)) {sunSign = "Capricorn";}
+      else if ((month === 0 && day >= 20) || (month === 1 && day <= 18)) {sunSign = "Aquarius";}
+      else {sunSign = "Pisces";}
 
       const ZODIAC_TO_ELEMENT: Record<string, string> = {
         Aries: "fire", Leo: "fire", Sagittarius: "fire",

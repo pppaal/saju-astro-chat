@@ -297,10 +297,10 @@ function calculatePillarSynergy(
   let matches = 0;
 
   // 지지 육합, 삼합, 방합 등은 복잡하므로 간단히 같은 지지 체크
-  if (pillars1.year.branch === pillars2.year.branch) matches++;
-  if (pillars1.month.branch === pillars2.month.branch) matches++;
-  if (pillars1.day.branch === pillars2.day.branch) matches++;
-  if (pillars1.time.branch === pillars2.time.branch) matches++;
+  if (pillars1.year.branch === pillars2.year.branch) {matches++;}
+  if (pillars1.month.branch === pillars2.month.branch) {matches++;}
+  if (pillars1.day.branch === pillars2.day.branch) {matches++;}
+  if (pillars1.time.branch === pillars2.time.branch) {matches++;}
 
   const score = matches * 25;
 
@@ -431,7 +431,7 @@ function calculateElementalAlignment(
   let matches = 0;
   for (const el1 of elements1) {
     for (const el2 of elements2) {
-      if (el1 === el2) matches++;
+      if (el1 === el2) {matches++;}
     }
   }
 
@@ -531,12 +531,12 @@ function calculateCrossElementalHarmony(
   let score = 50;
 
   // 사주-점성학 교차 조화 (영어 오행으로 비교)
-  if (saju1En === astro2MainElement) score += 15;
-  if (saju2En === astro1MainElement) score += 15;
+  if (saju1En === astro2MainElement) {score += 15;}
+  if (saju2En === astro1MainElement) {score += 15;}
 
   // 상생 관계 체크 (astro는 이미 영어 오행이므로 직접 비교)
-  if (astro2MainElement && ELEMENT_RELATIONS.generates[saju1En] === astro2MainElement) score += 10;
-  if (astro1MainElement && ELEMENT_RELATIONS.generates[saju2En] === astro1MainElement) score += 10;
+  if (astro2MainElement && ELEMENT_RELATIONS.generates[saju1En] === astro2MainElement) {score += 10;}
+  if (astro1MainElement && ELEMENT_RELATIONS.generates[saju2En] === astro1MainElement) {score += 10;}
 
   return Math.min(100, score);
 }

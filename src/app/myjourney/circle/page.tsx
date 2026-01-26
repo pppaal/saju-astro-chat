@@ -79,7 +79,7 @@ function CircleContent() {
 
   useEffect(() => {
     const loadPeople = async () => {
-      if (status !== "authenticated") return;
+      if (status !== "authenticated") {return;}
       try {
         const res = await fetch("/api/me/circle", { cache: "no-store" });
         if (res.ok) {
@@ -154,7 +154,7 @@ function CircleContent() {
   };
 
   const handleSave = async () => {
-    if (!name.trim()) return;
+    if (!name.trim()) {return;}
     setSaving(true);
     try {
       const res = await fetch("/api/me/circle", {
@@ -187,7 +187,7 @@ function CircleContent() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Remove this person from your circle?")) return;
+    if (!confirm("Remove this person from your circle?")) {return;}
     try {
       const res = await fetch(`/api/me/circle?id=${id}`, { method: "DELETE" });
       if (res.ok) {

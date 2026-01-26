@@ -20,7 +20,7 @@ const VALID_ZODIAC_SIGNS: readonly ZodiacSign[] = [
  * @returns Normalized zodiac sign or null if invalid
  */
 export function normalizeZodiacSign(sign: unknown): ZodiacSign | null {
-  if (typeof sign !== 'string' || !sign.trim()) return null;
+  if (typeof sign !== 'string' || !sign.trim()) {return null;}
 
   const normalized = sign.toLowerCase().trim();
 
@@ -47,9 +47,9 @@ export function isValidZodiacSign(sign: unknown): sign is ZodiacSign {
  * @returns Validated house number or null if invalid
  */
 export function validateHouseNumber(house: unknown): HouseNumber | null {
-  if (typeof house !== 'number') return null;
-  if (!Number.isInteger(house)) return null;
-  if (house < 1 || house > 12) return null;
+  if (typeof house !== 'number') {return null;}
+  if (!Number.isInteger(house)) {return null;}
+  if (house < 1 || house > 12) {return null;}
 
   return house as HouseNumber;
 }
@@ -78,7 +78,7 @@ const ELEMENT_ALIASES: Record<string, FiveElement> = {
  * Validates and normalizes five element
  */
 export function normalizeFiveElement(element: unknown): FiveElement | null {
-  if (typeof element !== 'string' || !element.trim()) return null;
+  if (typeof element !== 'string' || !element.trim()) {return null;}
 
   const normalized = element.toLowerCase().trim();
   return ELEMENT_ALIASES[normalized] || null;
@@ -108,7 +108,7 @@ const STEM_ALIASES: Record<string, HeavenlyStem> = {
  * Validates and normalizes heavenly stem
  */
 export function normalizeHeavenlyStem(stem: unknown): HeavenlyStem | null {
-  if (typeof stem !== 'string' || !stem.trim()) return null;
+  if (typeof stem !== 'string' || !stem.trim()) {return null;}
 
   const trimmed = stem.trim();
   return STEM_ALIASES[trimmed] || null;
@@ -127,7 +127,7 @@ export function isValidHeavenlyStem(stem: unknown): stem is HeavenlyStem {
  * Checks if saju data has minimum required fields for analysis
  */
 export function validateSajuData(saju: unknown): saju is SajuData {
-  if (!saju || typeof saju !== 'object') return false;
+  if (!saju || typeof saju !== 'object') {return false;}
 
   const s = saju as Record<string, unknown>;
 
@@ -143,10 +143,10 @@ export function validateSajuData(saju: unknown): saju is SajuData {
  * Checks if saju has valid five elements data
  */
 export function hasFiveElements(saju: SajuData | undefined): boolean {
-  if (!saju) return false;
+  if (!saju) {return false;}
 
   const elements = saju.fiveElements || saju.elements;
-  if (!elements || typeof elements !== 'object') return false;
+  if (!elements || typeof elements !== 'object') {return false;}
 
   const entries = Object.entries(elements);
   return entries.length > 0 && entries.some(([, v]) => typeof v === 'number' && v > 0);
@@ -156,7 +156,7 @@ export function hasFiveElements(saju: SajuData | undefined): boolean {
  * Checks if saju has advanced analysis data
  */
 export function hasAdvancedAnalysis(saju: SajuData | undefined): boolean {
-  if (!saju?.advancedAnalysis) return false;
+  if (!saju?.advancedAnalysis) {return false;}
 
   const aa = saju.advancedAnalysis;
   return !!(aa.sibsin || aa.geokguk || aa.yongsin);
@@ -166,10 +166,10 @@ export function hasAdvancedAnalysis(saju: SajuData | undefined): boolean {
  * Checks if saju has sinsal/shinsal data
  */
 export function hasSinsalData(saju: SajuData | undefined): boolean {
-  if (!saju) return false;
+  if (!saju) {return false;}
 
   const sinsal = saju.sinsal || (saju.advancedAnalysis as Record<string, unknown>)?.sinsal;
-  if (!sinsal || typeof sinsal !== 'object') return false;
+  if (!sinsal || typeof sinsal !== 'object') {return false;}
 
   const s = sinsal as Record<string, unknown>;
   return !!(
@@ -184,7 +184,7 @@ export function hasSinsalData(saju: SajuData | undefined): boolean {
  * Checks if astro data has minimum required fields for analysis
  */
 export function validateAstroData(astro: unknown): astro is AstroData {
-  if (!astro || typeof astro !== 'object') return false;
+  if (!astro || typeof astro !== 'object') {return false;}
 
   const a = astro as Record<string, unknown>;
 
@@ -199,7 +199,7 @@ export function validateAstroData(astro: unknown): astro is AstroData {
  * Checks if astro has valid planet data
  */
 export function hasPlanetData(astro: AstroData | undefined): boolean {
-  if (!astro?.planets) return false;
+  if (!astro?.planets) {return false;}
 
   if (Array.isArray(astro.planets)) {
     return astro.planets.length > 0;
@@ -226,7 +226,7 @@ export function hasHouseData(astro: AstroData | undefined): boolean {
  * Checks if astro has extra points (Chiron, Lilith, etc.)
  */
 export function hasExtraPoints(astro: AstroData | undefined): boolean {
-  if (!astro) return false;
+  if (!astro) {return false;}
 
   return !!(
     astro.extraPoints?.chiron ||

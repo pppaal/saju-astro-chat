@@ -12,16 +12,16 @@ import type { ComponentType, DependencyList } from 'react';
  * Deep comparison for complex objects
  */
 function deepEqual(a: unknown, b: unknown): boolean {
-  if (a === b) return true;
-  if (a == null || b == null) return false;
-  if (typeof a !== 'object' || typeof b !== 'object') return false;
+  if (a === b) {return true;}
+  if (a == null || b == null) {return false;}
+  if (typeof a !== 'object' || typeof b !== 'object') {return false;}
 
   const objA = a as Record<string, unknown>;
   const objB = b as Record<string, unknown>;
   const keysA = Object.keys(objA);
   const keysB = Object.keys(objB);
 
-  if (keysA.length !== keysB.length) return false;
+  if (keysA.length !== keysB.length) {return false;}
 
   for (const key of keysA) {
     if (!keysB.includes(key) || !deepEqual(objA[key], objB[key])) {
@@ -93,8 +93,8 @@ export function useLazyMemo<T>(factory: () => T): () => T {
  * Performance mark for expensive renders
  */
 export function useRenderPerformance(componentName: string) {
-  if (typeof window === 'undefined') return;
-  if (!window.performance) return;
+  if (typeof window === 'undefined') {return;}
+  if (!window.performance) {return;}
 
   const startMark = `${componentName}-render-start`;
   const endMark = `${componentName}-render-end`;
@@ -199,7 +199,7 @@ export function useInView(options?: IntersectionObserverInit) {
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
-    if (!ref) return;
+    if (!ref) {return;}
 
     const observer = new IntersectionObserver(
       ([entry]) => {

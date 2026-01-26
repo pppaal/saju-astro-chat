@@ -16,12 +16,12 @@ export function cleanStringArray(
   maxItems = 20,
   maxLen = 60
 ): string[] {
-  if (!Array.isArray(value)) return [];
+  if (!Array.isArray(value)) {return [];}
   const cleaned: string[] = [];
   for (const entry of value.slice(0, maxItems)) {
-    if (typeof entry !== "string") continue;
+    if (typeof entry !== "string") {continue;}
     const trimmed = entry.trim();
-    if (!trimmed) continue;
+    if (!trimmed) {continue;}
     cleaned.push(trimmed.slice(0, maxLen));
   }
   return cleaned;
@@ -59,14 +59,14 @@ export function normalizeMessages(
     allowedRoles = ALLOWED_ROLES,
   } = options;
 
-  if (!Array.isArray(raw)) return [];
+  if (!Array.isArray(raw)) {return [];}
 
   // Handle edge case: maxMessages of 0 should return empty array
-  if (maxMessages === 0) return [];
+  if (maxMessages === 0) {return [];}
 
   const normalized: ChatMessage[] = [];
   for (const m of raw.slice(-maxMessages)) {
-    if (!isRecord(m)) continue;
+    if (!isRecord(m)) {continue;}
 
     const role =
       typeof m.role === "string" && allowedRoles.has(m.role as ChatRole)
@@ -74,11 +74,11 @@ export function normalizeMessages(
         : null;
     const content = typeof m.content === "string" ? m.content.trim() : "";
 
-    if (!role) continue;
+    if (!role) {continue;}
 
     // Slice content first, then check if it's empty
     const slicedContent = content.slice(0, maxLength);
-    if (!slicedContent) continue;
+    if (!slicedContent) {continue;}
 
     normalized.push({ role, content: slicedContent });
   }
@@ -94,7 +94,7 @@ export function sanitizeString(
   maxLen: number,
   defaultValue = ""
 ): string {
-  if (typeof value !== "string") return defaultValue;
+  if (typeof value !== "string") {return defaultValue;}
   const trimmed = value.trim();
   return trimmed ? trimmed.slice(0, maxLen) : defaultValue;
 }
@@ -108,7 +108,7 @@ export function sanitizeNumber(
   max: number,
   defaultValue: number
 ): number {
-  if (typeof value !== "number" || !Number.isFinite(value)) return defaultValue;
+  if (typeof value !== "number" || !Number.isFinite(value)) {return defaultValue;}
   return Math.max(min, Math.min(max, value));
 }
 
@@ -116,7 +116,7 @@ export function sanitizeNumber(
  * Sanitize boolean value
  */
 export function sanitizeBoolean(value: unknown, defaultValue = false): boolean {
-  if (typeof value === "boolean") return value;
+  if (typeof value === "boolean") {return value;}
   return defaultValue;
 }
 
@@ -139,7 +139,7 @@ export function sanitizeHtml(
   maxLen = 10000,
   defaultValue = ""
 ): string {
-  if (typeof value !== "string") return defaultValue;
+  if (typeof value !== "string") {return defaultValue;}
 
   return value
     .replace(SCRIPT_PATTERN, "")           // Remove script tags
@@ -163,7 +163,7 @@ export function sanitizeHtmlSafe(
   maxLen = 10000,
   defaultValue = ""
 ): string {
-  if (typeof value !== "string") return defaultValue;
+  if (typeof value !== "string") {return defaultValue;}
 
   // First remove dangerous content
   let sanitized = value

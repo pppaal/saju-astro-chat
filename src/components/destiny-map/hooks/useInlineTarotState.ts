@@ -86,7 +86,7 @@ export function useInlineTarotState({ isOpen, initialConcern, theme }: UseInline
   const recommendedSpreads = useMemo(() => {
     const categoryId = themeToCategory[theme] || 'general-insight';
     const category = tarotThemes.find((t) => t.id === categoryId);
-    if (!category) return [];
+    if (!category) {return [];}
     return [...category.spreads].sort((a, b) => a.cardCount - b.cardCount);
   }, [theme]);
 

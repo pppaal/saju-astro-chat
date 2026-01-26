@@ -124,11 +124,15 @@ function useVisitorStats(metricsToken: string | undefined) {
   const trackedOnce = useRef(false);
 
   useEffect(() => {
-    if (trackedOnce.current) return;
+    if (trackedOnce.current) {
+      return;
+    }
     trackedOnce.current = true;
 
     const headers: HeadersInit = {};
-    if (metricsToken) headers["x-metrics-token"] = metricsToken;
+    if (metricsToken) {
+      headers["x-metrics-token"] = metricsToken;
+    }
 
     async function run() {
       try {
@@ -199,6 +203,7 @@ export default function MainPage() {
   const [typingPlaceholder, setTypingPlaceholder] = useState("");
   const [showServiceSelector, setShowServiceSelector] = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [servicePage, setServicePage] = useState(0);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const metricsToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN;
@@ -231,7 +236,7 @@ export default function MainPage() {
       router.push(service.path);
     }
     setShowServiceSelector(false);
-  }, [lifeQuestion, router, selectedService, SERVICE_OPTIONS]);
+  }, [lifeQuestion, router, selectedService]);
 
   // Handle service selection
   const handleServiceSelect = useCallback((serviceKey: string) => {
@@ -284,11 +289,11 @@ export default function MainPage() {
                   <span className={styles.serviceSelectArrow}>▼</span>
                 </button>
 
-                {/* Service Dropdown - All services visible */}
+                {/* Service Dropdown - Paginated (7 per page) */}
                 {showServiceSelector && (
                   <div className={styles.serviceDropdown}>
                     <div className={styles.serviceDropdownGrid}>
-                      {SERVICE_OPTIONS.map((service) => (
+                      {SERVICE_OPTIONS.slice(servicePage * 7, (servicePage + 1) * 7).map((service) => (
                         <button
                           key={service.key}
                           type="button"
@@ -299,6 +304,32 @@ export default function MainPage() {
                           <span className={styles.serviceDropdownLabel}>{t(`menu.${service.key}`)}</span>
                         </button>
                       ))}
+                    </div>
+
+                    {/* Page navigation */}
+                    <div className={styles.serviceDropdownNav}>
+                      <button
+                        type="button"
+                        className={`${styles.serviceDropdownNavBtn} ${servicePage === 0 ? styles.disabled : ''}`}
+                        onClick={() => setServicePage(0)}
+                        disabled={servicePage === 0}
+                        aria-label="Previous page"
+                      >
+                        ‹
+                      </button>
+                      <div className={styles.serviceDropdownDots}>
+                        <span className={`${styles.serviceDropdownDot} ${servicePage === 0 ? styles.active : ''}`} />
+                        <span className={`${styles.serviceDropdownDot} ${servicePage === 1 ? styles.active : ''}`} />
+                      </div>
+                      <button
+                        type="button"
+                        className={`${styles.serviceDropdownNavBtn} ${servicePage === 1 ? styles.disabled : ''}`}
+                        onClick={() => setServicePage(1)}
+                        disabled={servicePage === 1}
+                        aria-label="Next page"
+                      >
+                        ›
+                      </button>
                     </div>
                   </div>
                 )}

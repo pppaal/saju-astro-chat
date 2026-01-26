@@ -112,8 +112,8 @@ export default function SajuCounselorPage({
 
   // Load pre-computed saju data from sessionStorage OR compute fresh
   useEffect(() => {
-    if (!isAuthed) return;
-    if (!birthDate || !birthTime) return;
+    if (!isAuthed) {return;}
+    if (!birthDate || !birthTime) {return;}
 
     let saju: SajuData | null = null;
 
@@ -189,7 +189,7 @@ export default function SajuCounselorPage({
 
   // Premium: Load user context (persona + recent sessions) for returning users
   useEffect(() => {
-    if (!isAuthed) return;
+    if (!isAuthed) {return;}
 
     const loadUserContext = async () => {
       try {
@@ -272,7 +272,7 @@ export default function SajuCounselorPage({
 
   // Loading animation
   useEffect(() => {
-    if (!isAuthed) return;
+    if (!isAuthed) {return;}
 
     if (!birthDate || !birthTime) {
       router.push("/saju");

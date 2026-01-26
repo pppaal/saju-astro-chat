@@ -71,7 +71,7 @@ export function getElementRelation(e1: string, e2: string): 'same' | 'generating
   const n1 = normalizeElement(e1);
   const n2 = normalizeElement(e2);
 
-  if (n1 === n2) return 'same';
+  if (n1 === n2) {return 'same';}
 
   const generating: Record<string, string> = {
     wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood',
@@ -81,8 +81,8 @@ export function getElementRelation(e1: string, e2: string): 'same' | 'generating
     wood: 'earth', earth: 'water', water: 'fire', fire: 'metal', metal: 'wood',
   };
 
-  if (generating[n1] === n2 || generating[n2] === n1) return 'generating';
-  if (controlling[n1] === n2 || controlling[n2] === n1) return 'controlling';
+  if (generating[n1] === n2 || generating[n2] === n1) {return 'generating';}
+  if (controlling[n1] === n2 || controlling[n2] === n1) {return 'controlling';}
 
   return 'neutral';
 }

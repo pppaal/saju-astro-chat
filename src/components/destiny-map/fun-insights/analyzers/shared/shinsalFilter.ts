@@ -47,7 +47,7 @@ export function extractShinsals(
   data: ShinsalData | undefined,
   allowedShinsals: readonly ShinsalKind[] | readonly string[]
 ): Array<ShinsalKind | string> {
-  if (!data) return [];
+  if (!data) {return [];}
 
   const result: Array<ShinsalKind | string> = [];
   const allowedSet = new Set(allowedShinsals);

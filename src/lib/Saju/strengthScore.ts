@@ -272,12 +272,12 @@ export function calculateStrengthScore(
 
   // 레벨 결정
   let level: StrengthScore['level'];
-  if (total >= 85) level = '극강';
-  else if (total >= 70) level = '강';
-  else if (total >= 55) level = '중강';
-  else if (total >= 40) level = '중약';
-  else if (total >= 25) level = '약';
-  else level = '극약';
+  if (total >= 85) {level = '극강';}
+  else if (total >= 70) {level = '강';}
+  else if (total >= 55) {level = '중강';}
+  else if (total >= 40) {level = '중약';}
+  else if (total >= 25) {level = '약';}
+  else {level = '극약';}
 
   return {
     total,
@@ -290,11 +290,11 @@ export function calculateStrengthScore(
 }
 
 function calculateDeukryeongScore(dayElement: FiveElement, monthElement: FiveElement): number {
-  if (dayElement === monthElement) return 30; // 왕지
-  if (FIVE_ELEMENT_RELATIONS['생받는관계'][dayElement] === monthElement) return 25; // 상생
-  if (FIVE_ELEMENT_RELATIONS['생하는관계'][dayElement] === monthElement) return 10; // 설기
-  if (FIVE_ELEMENT_RELATIONS['극하는관계'][dayElement] === monthElement) return 5; // 극출
-  if (FIVE_ELEMENT_RELATIONS['극받는관계'][dayElement] === monthElement) return 0; // 극입
+  if (dayElement === monthElement) {return 30;} // 왕지
+  if (FIVE_ELEMENT_RELATIONS['생받는관계'][dayElement] === monthElement) {return 25;} // 상생
+  if (FIVE_ELEMENT_RELATIONS['생하는관계'][dayElement] === monthElement) {return 10;} // 설기
+  if (FIVE_ELEMENT_RELATIONS['극하는관계'][dayElement] === monthElement) {return 5;} // 극출
+  if (FIVE_ELEMENT_RELATIONS['극받는관계'][dayElement] === monthElement) {return 0;} // 극입
   return 15; // 중립
 }
 
@@ -309,7 +309,7 @@ function calculateTonggeunScore(pillars: SajuPillars, dayElement: FiveElement): 
 
   for (const branch of branches) {
     const jijanggan = JIJANGGAN[branch];
-    if (!jijanggan) continue;
+    if (!jijanggan) {continue;}
 
     for (const [qi, stem] of Object.entries(jijanggan)) {
       if (getStemElement(stem) === dayElement) {
@@ -338,7 +338,7 @@ function calculateElementPresenceScore(
   ];
 
   for (const stem of stems) {
-    if (getStemElement(stem) === element) score += 3;
+    if (getStemElement(stem) === element) {score += 3;}
   }
 
   // 지지 체크
@@ -350,12 +350,12 @@ function calculateElementPresenceScore(
   ];
 
   for (const branch of branches) {
-    if (getBranchElement(branch) === element) score += 2;
+    if (getBranchElement(branch) === element) {score += 2;}
 
     const jijanggan = JIJANGGAN[branch];
     if (jijanggan) {
       for (const stem of Object.values(jijanggan)) {
-        if (getStemElement(stem) === element) score += 1;
+        if (getStemElement(stem) === element) {score += 1;}
       }
     }
   }
@@ -452,7 +452,7 @@ function checkChungPresence(pillars: SajuPillars): boolean {
   ];
 
   for (const [a, b] of CHUNG_PAIRS) {
-    if (branches.includes(a) && branches.includes(b)) return true;
+    if (branches.includes(a) && branches.includes(b)) {return true;}
   }
   return false;
 }
@@ -471,7 +471,7 @@ function checkHapPresence(pillars: SajuPillars): boolean {
   ];
 
   for (const [a, b] of YUKHAP_PAIRS) {
-    if (branches.includes(a) && branches.includes(b)) return true;
+    if (branches.includes(a) && branches.includes(b)) {return true;}
   }
   return false;
 }
@@ -583,12 +583,12 @@ export function calculateComprehensiveScore(
 
   // 등급 결정
   let grade: ComprehensiveScore['grade'];
-  if (overall >= 90) grade = 'S';
-  else if (overall >= 80) grade = 'A';
-  else if (overall >= 70) grade = 'B';
-  else if (overall >= 60) grade = 'C';
-  else if (overall >= 50) grade = 'D';
-  else grade = 'F';
+  if (overall >= 90) {grade = 'S';}
+  else if (overall >= 80) {grade = 'A';}
+  else if (overall >= 70) {grade = 'B';}
+  else if (overall >= 60) {grade = 'C';}
+  else if (overall >= 50) {grade = 'D';}
+  else {grade = 'F';}
 
   // 강점/약점 분석
   const strengths: string[] = [];

@@ -144,10 +144,10 @@ export class PeriodClassifier {
    * 점수를 등급으로 변환
    */
   private scoreToGrade(score: number): 'S' | 'A' | 'B' | 'C' | 'D' {
-    if (score >= 85) return 'S';
-    if (score >= 75) return 'A';
-    if (score >= 65) return 'B';
-    if (score >= 55) return 'C';
+    if (score >= 85) {return 'S';}
+    if (score >= 75) {return 'A';}
+    if (score >= 65) {return 'B';}
+    if (score >= 55) {return 'C';}
     return 'D';
   }
 

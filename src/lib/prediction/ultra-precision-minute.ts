@@ -224,8 +224,8 @@ function calculatePercentComplete(hour: PrecisionPlanetaryHour, datetime: Date):
 
 // 달 위상 영향력
 function getLunarInfluence(phase: LunarPhase): 'strong' | 'moderate' | 'weak' {
-  if (phase === 'full_moon' || phase === 'new_moon') return 'strong';
-  if (phase === 'first_quarter' || phase === 'last_quarter') return 'moderate';
+  if (phase === 'full_moon' || phase === 'new_moon') {return 'strong';}
+  if (phase === 'first_quarter' || phase === 'last_quarter') {return 'moderate';}
   return 'weak';
 }
 

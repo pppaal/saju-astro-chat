@@ -70,7 +70,7 @@ function CompatibilityCounselorContent() {
 
   // Parse URL params and fetch data on mount
   useEffect(() => {
-    if (!searchParams) return;
+    if (!searchParams) {return;}
 
     const initializeData = async () => {
       try {
@@ -148,10 +148,10 @@ function CompatibilityCounselorContent() {
         }),
       ]);
 
-      if (saju1Res.ok) setPerson1Saju(await saju1Res.json());
-      if (saju2Res.ok) setPerson2Saju(await saju2Res.json());
-      if (astro1Res.ok) setPerson1Astro(await astro1Res.json());
-      if (astro2Res.ok) setPerson2Astro(await astro2Res.json());
+      if (saju1Res.ok) {setPerson1Saju(await saju1Res.json());}
+      if (saju2Res.ok) {setPerson2Saju(await saju2Res.json());}
+      if (astro1Res.ok) {setPerson1Astro(await astro1Res.json());}
+      if (astro2Res.ok) {setPerson2Astro(await astro2Res.json());}
     } catch (e) {
       logger.error('Failed to fetch person data:', { error: e });
     }
@@ -163,7 +163,7 @@ function CompatibilityCounselorContent() {
   }, [messages]);
 
   const sendMessage = useCallback(async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading) {return;}
 
     const userMessage: ChatMessage = { role: 'user', content: input.trim() };
     setMessages((prev) => [...prev, userMessage]);
@@ -207,7 +207,7 @@ function CompatibilityCounselorContent() {
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {break;}
 
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split('\n');
@@ -215,7 +215,7 @@ function CompatibilityCounselorContent() {
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
-            if (data === '[DONE]') continue;
+            if (data === '[DONE]') {continue;}
             assistantContent += data;
 
             // Update the last assistant message

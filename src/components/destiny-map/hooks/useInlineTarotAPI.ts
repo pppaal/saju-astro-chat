@@ -32,7 +32,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
 
   // AI auto-select spread based on question
   const analyzeQuestion = useCallback(async () => {
-    if (!state.concern.trim()) return;
+    if (!state.concern.trim()) {return;}
 
     actions.setIsAnalyzing(true);
     try {
@@ -100,7 +100,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
 
   // Draw cards from API
   const drawCards = useCallback(async () => {
-    if (!state.selectedSpread) return;
+    if (!state.selectedSpread) {return;}
 
     actions.setIsDrawing(true);
     try {
@@ -144,7 +144,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
   // Fetch streaming interpretation
   const fetchInterpretation = useCallback(async (cards: DrawnCard[]) => {
     const { selectedSpread } = state;
-    if (!selectedSpread) return;
+    if (!selectedSpread) {return;}
 
     // Cancel any existing request
     if (abortControllerRef.current) {
@@ -185,7 +185,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
         signal: abortControllerRef.current.signal,
       });
 
-      if (!res.ok || !res.body) throw new Error('Stream failed');
+      if (!res.ok || !res.body) {throw new Error('Stream failed');}
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -193,15 +193,15 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {break;}
 
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split('\n');
 
         for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
+          if (!line.startsWith('data: ')) {continue;}
           const data = line.slice(6);
-          if (data === '[DONE]') break;
+          if (data === '[DONE]') {break;}
 
           try {
             const parsed = JSON.parse(data);
@@ -248,7 +248,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
   // Save tarot reading to database
   const saveReading = useCallback(async () => {
     const { selectedSpread, drawnCards, overallMessage, cardInsights, guidance, affirmation, isSaving, isSaved, concern, selectedCategory } = state;
-    if (isSaving || isSaved || !selectedSpread) return;
+    if (isSaving || isSaved || !selectedSpread) {return;}
 
     actions.setIsSaving(true);
     try {

@@ -124,9 +124,9 @@ export class DestinyMatrixError extends Error {
   getHttpStatus(): number {
     const codeNum = parseInt(this.code.replace('DFM_', ''), 10);
 
-    if (codeNum >= 1000 && codeNum < 2000) return 400; // 검증 에러 → Bad Request
-    if (codeNum >= 2000 && codeNum < 3000) return 422; // 계산 에러 → Unprocessable Entity
-    if (codeNum >= 3000 && codeNum < 4000) return 404; // 데이터 에러 → Not Found
+    if (codeNum >= 1000 && codeNum < 2000) {return 400;} // 검증 에러 → Bad Request
+    if (codeNum >= 2000 && codeNum < 3000) {return 422;} // 계산 에러 → Unprocessable Entity
+    if (codeNum >= 3000 && codeNum < 4000) {return 404;} // 데이터 에러 → Not Found
     return 500; // 시스템 에러 → Internal Server Error
   }
 }

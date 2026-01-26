@@ -190,8 +190,8 @@ const result = await sendPushNotification(userId, notification);
 모든 알림은 한국어(ko)와 영어(en)를 지원합니다.
 
 번역 파일 위치:
-- `src/i18n/locales/ko.json` - 한국어
-- `src/i18n/locales/en.json` - 영어
+- `src/i18n/locales/ko/features.json` - 한국어
+- `src/i18n/locales/en/features.json` - 영어
 
 번역 키 경로: `premiumNotifications.*`
 

@@ -32,8 +32,8 @@ export function getPricingVariantForUser(userId: string): PricingVariant {
   const bucket = Math.abs(hash) % 100;
 
   // 33% control, 33% variant_a, 34% variant_b
-  if (bucket < 33) return 'control';
-  if (bucket < 66) return 'variant_a';
+  if (bucket < 33) {return 'control';}
+  if (bucket < 66) {return 'variant_a';}
   return 'variant_b';
 }
 
@@ -329,7 +329,7 @@ export function isPaidPlan(plan: PlanType): boolean {
  * Format price for display
  */
 export function formatPrice(amount: number, currency: Currency, locale: 'ko' | 'en' = 'ko'): string {
-  if (amount === 0) return locale === 'ko' ? '무료' : 'Free';
+  if (amount === 0) {return locale === 'ko' ? '무료' : 'Free';}
 
   if (currency === 'KRW') {
     return `₩${amount.toLocaleString()}`;

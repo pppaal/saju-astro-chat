@@ -35,7 +35,7 @@ export default function DateDetailPanel({
 
   const getCategoryLabelLocal = (cat: EventCategory) => getCategoryLabel(cat, locale);
 
-  if (!selectedDay) return null;
+  if (!selectedDay) {return null;}
 
   return (
     <div className={styles.selectedDayInfo}>

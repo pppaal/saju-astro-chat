@@ -65,12 +65,12 @@ export function findSpecificGoodDays(
       score += EVENT_SCORING.MARRIAGE_FAVORABLE_SIBSIN;
       reasons.push(`${sibsin}운`);
     }
-    if (conditions.avoidSibsin.includes(sibsin)) score -= EVENT_SCORING.MARRIAGE_UNFAVORABLE_SIBSIN;
+    if (conditions.avoidSibsin.includes(sibsin)) {score -= EVENT_SCORING.MARRIAGE_UNFAVORABLE_SIBSIN;}
     if (conditions.favorableStages.includes(twelveStage.stage)) {
       score += EVENT_SCORING.CAREER_FAVORABLE_SIBSIN;
       reasons.push(twelveStage.stage);
     }
-    if (conditions.avoidStages.includes(twelveStage.stage)) score -= EVENT_SCORING.CAREER_UNFAVORABLE_SIBSIN;
+    if (conditions.avoidStages.includes(twelveStage.stage)) {score -= EVENT_SCORING.CAREER_UNFAVORABLE_SIBSIN;}
 
     // === TIER 5: 28수 분석 ===
     if (useLunarMansions) {

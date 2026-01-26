@@ -206,15 +206,15 @@ export default function MatrixJourneyPage() {
   const activeLayer = LAYERS[activeIndex];
 
   const getScoreLevel = (score: number): keyof typeof LEVEL_INFO => {
-    if (score >= 9) return 'extreme';
-    if (score >= 7) return 'amplify';
-    if (score >= 5) return 'balance';
-    if (score >= 3) return 'clash';
+    if (score >= 9) {return 'extreme';}
+    if (score >= 7) {return 'amplify';}
+    if (score >= 5) {return 'balance';}
+    if (score >= 3) {return 'clash';}
     return 'conflict';
   };
 
   const getLayerInsight = (layerNum: number): PersonalInsight | null => {
-    if (!result || !result.highlights) return null;
+    if (!result || !result.highlights) {return null;}
 
     const strengthsInLayer = result.highlights.strengths?.filter(s => s.layer === layerNum) || [];
     const cautionsInLayer = result.highlights.cautions?.filter(c => c.layer === layerNum) || [];
@@ -288,7 +288,7 @@ export default function MatrixJourneyPage() {
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStart === null) return;
+    if (touchStart === null) {return;}
     const diff = touchStart - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 50) {
       if (diff > 0 && activeIndex < LAYERS.length - 1) {

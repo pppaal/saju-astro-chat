@@ -21,11 +21,11 @@ export function analyzeAspects(p1: AstrologyProfile, p2: AstrologyProfile): Aspe
 
   // Person1의 Venus와 Person2의 Mars (로맨스)
   const venusMarsAspect = calculateSingleAspect('Venus', 'Mars', p1.venus, p2.mars);
-  if (venusMarsAspect) aspects.push(venusMarsAspect);
+  if (venusMarsAspect) {aspects.push(venusMarsAspect);}
 
   // Person2의 Venus와 Person1의 Mars
   const marsVenusAspect = calculateSingleAspect('Venus', 'Mars', p2.venus, p1.mars);
-  if (marsVenusAspect) aspects.push(marsVenusAspect);
+  if (marsVenusAspect) {aspects.push(marsVenusAspect);}
 
   const harmoniousCount = aspects.filter(a => a.isHarmonious).length;
   const challengingCount = aspects.filter(a => !a.isHarmonious).length;
@@ -53,10 +53,10 @@ function calculateAspectsForPlanet(
   const aspects: Aspect[] = [];
 
   const aspect1 = calculateSingleAspect(planetName, 'Sun', planet1, person2.sun);
-  if (aspect1) aspects.push(aspect1);
+  if (aspect1) {aspects.push(aspect1);}
 
   const aspect2 = calculateSingleAspect(planetName, 'Moon', planet1, person2.moon);
-  if (aspect2) aspects.push(aspect2);
+  if (aspect2) {aspects.push(aspect2);}
 
   return aspects;
 }
@@ -206,9 +206,9 @@ function calculateMoonCompatibility(
   moon1: { sign: string; element: string },
   moon2: { sign: string; element: string }
 ): number {
-  if (moon1.sign === moon2.sign) return 90;
-  if (moon1.element === moon2.element) return 75;
-  if (isCompatibleElement(moon1.element, moon2.element)) return 65;
-  if (isIncompatibleElement(moon1.element, moon2.element)) return 35;
+  if (moon1.sign === moon2.sign) {return 90;}
+  if (moon1.element === moon2.element) {return 75;}
+  if (isCompatibleElement(moon1.element, moon2.element)) {return 65;}
+  if (isIncompatibleElement(moon1.element, moon2.element)) {return 35;}
   return 50;
 }

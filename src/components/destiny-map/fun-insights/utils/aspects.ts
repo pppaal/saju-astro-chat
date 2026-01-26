@@ -45,9 +45,9 @@ export function isChallengingAspect(type: AspectType): boolean {
  * Get aspect strength based on orb
  */
 export function getAspectStrength(orb: number | undefined): 'exact' | 'close' | 'wide' {
-  if (orb === undefined) return 'close';
-  if (orb <= 1) return 'exact';
-  if (orb <= 3) return 'close';
+  if (orb === undefined) {return 'close';}
+  if (orb <= 1) {return 'exact';}
+  if (orb <= 3) {return 'close';}
   return 'wide';
 }
 
@@ -66,14 +66,14 @@ export function findAspect(
   planet1: StandardPlanetName,
   planet2: StandardPlanetName
 ): AspectInfo | null {
-  if (!astro?.aspects || !Array.isArray(astro.aspects)) return null;
+  if (!astro?.aspects || !Array.isArray(astro.aspects)) {return null;}
 
   for (const aspect of astro.aspects) {
     const from = extractAspectPlanetName(aspect.from);
     const to = extractAspectPlanetName(aspect.to);
     const type = normalizeAspectType(aspect.type);
 
-    if (!from || !to || !type) continue;
+    if (!from || !to || !type) {continue;}
 
     // Check both directions
     if ((from === planet1 && to === planet2) || (from === planet2 && to === planet1)) {
@@ -98,7 +98,7 @@ export function findAspectDetailed(
   planet2: StandardPlanetName
 ): DetailedAspectInfo | null {
   const basic = findAspect(astro, planet1, planet2);
-  if (!basic) return null;
+  if (!basic) {return null;}
 
   return {
     ...basic,
@@ -115,7 +115,7 @@ export function findPlanetAspects(
   astro: AstroData | undefined,
   planet: StandardPlanetName
 ): AspectInfo[] {
-  if (!astro?.aspects || !Array.isArray(astro.aspects)) return [];
+  if (!astro?.aspects || !Array.isArray(astro.aspects)) {return [];}
 
   const results: AspectInfo[] = [];
 
@@ -124,7 +124,7 @@ export function findPlanetAspects(
     const to = extractAspectPlanetName(aspect.to);
     const type = normalizeAspectType(aspect.type);
 
-    if (!from || !to || !type) continue;
+    if (!from || !to || !type) {continue;}
 
     if (from === planet || to === planet) {
       results.push({
@@ -171,7 +171,7 @@ export function hasAspect(
   aspectTypes?: AspectType[]
 ): boolean {
   const aspect = findAspect(astro, planet1, planet2);
-  if (!aspect) return false;
+  if (!aspect) {return false;}
 
   if (aspectTypes && aspectTypes.length > 0) {
     return aspectTypes.includes(aspect.type);

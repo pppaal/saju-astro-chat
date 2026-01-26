@@ -100,7 +100,7 @@ export function useTarotInterpretation({
     spreadInfo: Spread | null,
     interpretation: InterpretationResult | null
   ) => {
-    if (!readingResult || !spreadInfo || isSaved) return;
+    if (!readingResult || !spreadInfo || isSaved) {return;}
 
     try {
       const guidance = interpretation?.guidance;

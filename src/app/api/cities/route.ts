@@ -26,7 +26,7 @@ let loading: Promise<City[]> | null = null;
 const norm = (value: unknown) => String(value ?? "").trim().toLowerCase();
 
 async function loadCities(): Promise<City[]> {
-  if (cachedCities) return cachedCities;
+  if (cachedCities) {return cachedCities;}
   if (!loading) {
     loading = (async () => {
       const filePath = path.join(process.cwd(), "public", "data", "cities.min.json");

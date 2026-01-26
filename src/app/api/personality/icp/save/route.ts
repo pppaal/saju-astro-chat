@@ -55,10 +55,10 @@ export async function POST(req: NextRequest) {
     // Validate required fields
     if (!primaryStyle || dominanceScore === undefined || affiliationScore === undefined || !octantScores) {
       const missing = [];
-      if (!primaryStyle) missing.push('primaryStyle');
-      if (dominanceScore === undefined) missing.push('dominanceScore');
-      if (affiliationScore === undefined) missing.push('affiliationScore');
-      if (!octantScores) missing.push('octantScores');
+      if (!primaryStyle) {missing.push('primaryStyle');}
+      if (dominanceScore === undefined) {missing.push('dominanceScore');}
+      if (affiliationScore === undefined) {missing.push('affiliationScore');}
+      if (!octantScores) {missing.push('octantScores');}
 
       return NextResponse.json(
         {

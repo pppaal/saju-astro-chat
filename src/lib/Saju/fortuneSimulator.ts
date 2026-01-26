@@ -248,11 +248,11 @@ function calculateAreaFortune(
 }
 
 function getRelationName(dayElement: FiveElement, unseElement: FiveElement): string {
-  if (dayElement === unseElement) return '비화';
-  if (FIVE_ELEMENT_RELATIONS['생받는관계'][dayElement] === unseElement) return '생조';
-  if (FIVE_ELEMENT_RELATIONS['생하는관계'][dayElement] === unseElement) return '설기';
-  if (FIVE_ELEMENT_RELATIONS['극하는관계'][dayElement] === unseElement) return '극출';
-  if (FIVE_ELEMENT_RELATIONS['극받는관계'][dayElement] === unseElement) return '극입';
+  if (dayElement === unseElement) {return '비화';}
+  if (FIVE_ELEMENT_RELATIONS['생받는관계'][dayElement] === unseElement) {return '생조';}
+  if (FIVE_ELEMENT_RELATIONS['생하는관계'][dayElement] === unseElement) {return '설기';}
+  if (FIVE_ELEMENT_RELATIONS['극하는관계'][dayElement] === unseElement) {return '극출';}
+  if (FIVE_ELEMENT_RELATIONS['극받는관계'][dayElement] === unseElement) {return '극입';}
   return '중립';
 }
 
@@ -359,10 +359,10 @@ export function simulateFortuneFlow(
   const avgLast = (scores[scores.length - 1] + (scores[scores.length - 2] || scores[scores.length - 1])) / 2;
 
   let overallTrend: FortuneFlow['overallTrend'];
-  if (avgLast - avgFirst > 10) overallTrend = 'ascending';
-  else if (avgFirst - avgLast > 10) overallTrend = 'descending';
-  else if (Math.max(...scores) - Math.min(...scores) > 30) overallTrend = 'fluctuating';
-  else overallTrend = 'plateau';
+  if (avgLast - avgFirst > 10) {overallTrend = 'ascending';}
+  else if (avgFirst - avgLast > 10) {overallTrend = 'descending';}
+  else if (Math.max(...scores) - Math.min(...scores) > 30) {overallTrend = 'fluctuating';}
+  else {overallTrend = 'plateau';}
 
   // 최고/최저 시점
   const maxScore = Math.max(...scores);

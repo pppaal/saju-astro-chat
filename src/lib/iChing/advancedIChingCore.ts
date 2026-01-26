@@ -382,7 +382,7 @@ export function analyzeHaekGwa(binary: string): HaekGwaAnalysis {
 }
 
 function getHaekEnergy(lower: Trigram | undefined, upper: Trigram | undefined): string {
-  if (!lower || !upper) return '핵심 에너지 분석 중';
+  if (!lower || !upper) {return '핵심 에너지 분석 중';}
   return `하핵 ${lower.korean}(${lower.nature})과 상핵 ${upper.korean}(${upper.nature})의 조합이 상황의 본질입니다.`;
 }
 
@@ -543,15 +543,15 @@ function getChangingInterpretation(lines: number[], fromNum: number, toNum: numb
 function getTransitionAdvice(lines: number[], fromNum: number, toNum: number): string {
   const lineCount = lines.length;
 
-  if (lineCount === 0) return '현 상황의 본질을 깊이 이해하고 그에 따르세요.';
-  if (lineCount === 1) return '변효의 위치가 변화의 핵심입니다. 그 시점에 집중하세요.';
-  if (lineCount === 2) return '두 변화가 연결되어 있습니다. 위 효가 더 중요합니다.';
-  if (lineCount === 3) return '본괘의 상황을 중심으로 보되, 지괘로의 변화도 참고하세요.';
-  if (lineCount === 4) return '변하지 않는 것에서 답을 찾으세요. 불변의 요소가 핵심입니다.';
-  if (lineCount === 5) return '유일하게 변하지 않는 효가 상황의 닻입니다.';
+  if (lineCount === 0) {return '현 상황의 본질을 깊이 이해하고 그에 따르세요.';}
+  if (lineCount === 1) {return '변효의 위치가 변화의 핵심입니다. 그 시점에 집중하세요.';}
+  if (lineCount === 2) {return '두 변화가 연결되어 있습니다. 위 효가 더 중요합니다.';}
+  if (lineCount === 3) {return '본괘의 상황을 중심으로 보되, 지괘로의 변화도 참고하세요.';}
+  if (lineCount === 4) {return '변하지 않는 것에서 답을 찾으세요. 불변의 요소가 핵심입니다.';}
+  if (lineCount === 5) {return '유일하게 변하지 않는 효가 상황의 닻입니다.';}
   if (lineCount === 6) {
-    if (fromNum === 1 && toNum === 2) return '강건함을 내려놓고 겸손히 수용하면 길합니다.';
-    if (fromNum === 2 && toNum === 1) return '끝까지 바른 도를 지키면 강건함을 얻습니다.';
+    if (fromNum === 1 && toNum === 2) {return '강건함을 내려놓고 겸손히 수용하면 길합니다.';}
+    if (fromNum === 2 && toNum === 1) {return '끝까지 바른 도를 지키면 강건함을 얻습니다.';}
     return '완전한 전환의 시기입니다. 지괘의 지혜를 따르세요.';
   }
   return '변화를 수용하고 새로운 국면에 대비하세요.';
@@ -646,7 +646,7 @@ export function compareHexagrams(binary1: string, binary2: string): {
 } {
   let matchCount = 0;
   for (let i = 0; i < 6; i++) {
-    if (binary1[i] === binary2[i]) matchCount++;
+    if (binary1[i] === binary2[i]) {matchCount++;}
   }
 
   const similarity = (matchCount / 6) * 100;

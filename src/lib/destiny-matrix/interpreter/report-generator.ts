@@ -237,7 +237,7 @@ export class FusionReportGenerator {
    */
   private getCategoryAverage(insights: FusionInsight[], category: InsightCategory): number | null {
     const filtered = insights.filter(i => i.category === category);
-    if (filtered.length === 0) return null; // 데이터 없음을 명시
+    if (filtered.length === 0) {return null;} // 데이터 없음을 명시
 
     const sum = filtered.reduce((acc, i) => acc + i.score, 0);
     return Math.round(sum / filtered.length);
@@ -247,10 +247,10 @@ export class FusionReportGenerator {
    * 등급 정보
    */
   private getGradeInfo(score: number): { grade: 'S' | 'A' | 'B' | 'C' | 'D'; gradeDescription: string; gradeDescriptionEn: string } {
-    if (score >= 90) return { grade: 'S', gradeDescription: '최상의 조화! 운명의 시너지가 폭발합니다.', gradeDescriptionEn: 'Supreme harmony! Destiny synergy explodes.' };
-    if (score >= 75) return { grade: 'A', gradeDescription: '훌륭한 조화! 성장의 기회가 열려 있습니다.', gradeDescriptionEn: 'Excellent harmony! Opportunities for growth are open.' };
-    if (score >= 60) return { grade: 'B', gradeDescription: '좋은 균형. 안정적인 흐름입니다.', gradeDescriptionEn: 'Good balance. Stable flow.' };
-    if (score >= 45) return { grade: 'C', gradeDescription: '주의가 필요한 영역이 있습니다. 신중하게 진행하세요.', gradeDescriptionEn: 'Some areas need attention. Proceed carefully.' };
+    if (score >= 90) {return { grade: 'S', gradeDescription: '최상의 조화! 운명의 시너지가 폭발합니다.', gradeDescriptionEn: 'Supreme harmony! Destiny synergy explodes.' };}
+    if (score >= 75) {return { grade: 'A', gradeDescription: '훌륭한 조화! 성장의 기회가 열려 있습니다.', gradeDescriptionEn: 'Excellent harmony! Opportunities for growth are open.' };}
+    if (score >= 60) {return { grade: 'B', gradeDescription: '좋은 균형. 안정적인 흐름입니다.', gradeDescriptionEn: 'Good balance. Stable flow.' };}
+    if (score >= 45) {return { grade: 'C', gradeDescription: '주의가 필요한 영역이 있습니다. 신중하게 진행하세요.', gradeDescriptionEn: 'Some areas need attention. Proceed carefully.' };}
     return { grade: 'D', gradeDescription: '도전의 시기입니다. 내면 성찰과 준비의 시간으로 삼으세요.', gradeDescriptionEn: 'A challenge-focused period. Use it as a time for inner reflection and preparation.' };
   }
 
@@ -410,8 +410,8 @@ export class FusionReportGenerator {
     const positiveTransits: TransitCycle[] = ['jupiterReturn', 'nodeReturn'];
     const challengingTransits: TransitCycle[] = ['saturnReturn', 'plutoTransit', 'mercuryRetrograde', 'marsRetrograde'];
 
-    if (positiveTransits.includes(transit)) return 'positive';
-    if (challengingTransits.includes(transit)) return 'challenging';
+    if (positiveTransits.includes(transit)) {return 'positive';}
+    if (challengingTransits.includes(transit)) {return 'challenging';}
     return 'neutral';
   }
 
@@ -458,7 +458,7 @@ export class FusionReportGenerator {
     const year = now.getFullYear() as 2024 | 2025;
     const schedule = RETROGRADE_SCHEDULE[year];
 
-    if (!schedule) return [];
+    if (!schedule) {return [];}
 
     const alerts: RetrogradeAlert[] = [];
 

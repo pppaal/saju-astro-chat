@@ -47,7 +47,7 @@ function reduceToCore(num: number): number {
 function getTitle(n: number, locale: string): string {
   const core = reduceToCore(n);
   const titles = NUMBER_TITLES[core];
-  if (!titles) return '';
+  if (!titles) {return '';}
   return locale === 'ko' ? titles.ko : titles.en;
 }
 

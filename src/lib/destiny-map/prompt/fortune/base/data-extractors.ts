@@ -240,7 +240,7 @@ interface PillarForFormat {
  * @returns Formatted Ganji string (e.g., "甲子") or null
  */
 export function formatPillar(p: PillarForFormat | undefined): string | null {
-  if (!p) return null;
+  if (!p) {return null;}
   const stem = p.heavenlyStem?.name || p.ganji?.split?.('')?.[0] || '';
   const branch = p.earthlyBranch?.name || p.ganji?.split?.('')?.[1] || '';
   return stem && branch ? `${stem}${branch}` : null;

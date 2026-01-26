@@ -69,15 +69,15 @@ function buildFallbackPayload(
 }
 
 function normalizeAdvice(advice: unknown): string {
-  if (typeof advice === "string") return advice;
+  if (typeof advice === "string") {return advice;}
   if (Array.isArray(advice)) {
     const lines = advice
       .map((entry) => {
-        if (!entry || typeof entry !== "object") return "";
+        if (!entry || typeof entry !== "object") {return "";}
         const record = entry as Record<string, unknown>;
         const title = typeof record.title === "string" ? record.title.trim() : "";
         const detail = typeof record.detail === "string" ? record.detail.trim() : "";
-        if (title && detail) return `${title}: ${detail}`;
+        if (title && detail) {return `${title}: ${detail}`;}
         return title || detail;
       })
       .filter(Boolean);
@@ -90,7 +90,7 @@ function normalizeBackendPayload(
   data: unknown,
   fallback: { overall: string; cards: { position: string; interpretation: string }[]; advice: string }
 ): { overall: string; cards: { position: string; interpretation: string }[]; advice: string } | null {
-  if (!data || typeof data !== "object") return null;
+  if (!data || typeof data !== "object") {return null;}
   const record = data as Record<string, unknown>;
   const overall = typeof record.overall_message === "string" && record.overall_message.trim()
     ? record.overall_message
@@ -177,7 +177,7 @@ async function fetchBackendFallback(payload: {
 // 별자리 계산 함수
 function getZodiacSign(birthdate: string): { sign: string; signKo: string; element: string } | null {
   const date = new Date(birthdate);
-  if (isNaN(date.getTime())) return null;
+  if (isNaN(date.getTime())) {return null;}
 
   const month = date.getMonth() + 1;
   const day = date.getDate();
@@ -260,12 +260,12 @@ export async function POST(req: NextRequest) {
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     logger.info("Tarot stream request", { ip: context.ip });
 
     const oversized = enforceBodySize(req, 256 * 1024);
-    if (oversized) return oversized;
+    if (oversized) {return oversized;}
 
     const body: StreamInterpretRequest = await req.json();
     const categoryId = sanitizeString(body?.categoryId, MAX_TITLE);
@@ -473,7 +473,7 @@ ${cardListText}
         let buffer = '';
 
         const handleLine = (line: string) => {
-          if (!line.startsWith('data: ')) return;
+          if (!line.startsWith('data: ')) {return;}
           const data = line.slice(6);
           if (data === '[DONE]') {
             controller.enqueue(encoder.encode(createSSEDoneEvent()));
@@ -494,7 +494,7 @@ ${cardListText}
         try {
           while (true) {
             const { done, value } = await reader.read();
-            if (done) break;
+            if (done) {break;}
 
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split('\n');

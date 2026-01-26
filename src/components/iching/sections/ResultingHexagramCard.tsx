@@ -31,7 +31,7 @@ export const ResultingHexagramCard: React.FC<ResultingHexagramCardProps> = React
   lang,
   translate,
 }) => {
-  if (!resultingHexagram) return null;
+  if (!resultingHexagram) {return null;}
 
   return (
     <div className={styles.resultingCard}>

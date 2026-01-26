@@ -131,11 +131,11 @@ async function runTests() {
         console.log(`     통계: 천운(${result.stats.grade0}), 최고(${result.stats.grade1}), 좋음(${result.stats.grade2}), 보통(${result.stats.grade3}), 나쁨(${result.stats.grade4}), 최악(${result.stats.grade5})`);
 
         // 샘플 검증
-        let sampleIssues = [];
+        const sampleIssues = [];
         result.samples.forEach((s, i) => {
-          if (!s.hasDescription) sampleIssues.push(`${s.date}: 설명 부족`);
-          if (!s.hasCategories) sampleIssues.push(`${s.date}: 카테고리 없음`);
-          if (!s.hasFactors) sampleIssues.push(`${s.date}: 분석 없음`);
+          if (!s.hasDescription) {sampleIssues.push(`${s.date}: 설명 부족`);}
+          if (!s.hasCategories) {sampleIssues.push(`${s.date}: 카테고리 없음`);}
+          if (!s.hasFactors) {sampleIssues.push(`${s.date}: 분석 없음`);}
         });
 
         if (sampleIssues.length > 0) {

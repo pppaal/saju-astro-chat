@@ -193,7 +193,7 @@ const elementWealthTraits: Record<string, { ko: string; en: string; field: { ko:
  * 2하우스 별자리 추출
  */
 function getHouse2Sign(astro: AstroData | undefined): string | null {
-  if (!astro?.houses) return null;
+  if (!astro?.houses) {return null;}
 
   if (Array.isArray(astro.houses)) {
     const house2 = astro.houses.find(h => h.index === 2);
@@ -206,7 +206,7 @@ function getHouse2Sign(astro: AstroData | undefined): string | null {
  * 목성 하우스 추출
  */
 function getJupiterHouse(astro: AstroData | undefined): number | null {
-  if (!astro?.planets) return null;
+  if (!astro?.planets) {return null;}
 
   if (Array.isArray(astro.planets)) {
     const jupiter = astro.planets.find(p => p.name?.toLowerCase() === 'jupiter');
@@ -219,7 +219,7 @@ function getJupiterHouse(astro: AstroData | undefined): number | null {
  * 명왕성 하우스 추출
  */
 function getPlutoHouse(astro: AstroData | undefined): number | null {
-  if (!astro?.planets) return null;
+  if (!astro?.planets) {return null;}
 
   if (Array.isArray(astro.planets)) {
     const pluto = astro.planets.find(p => p.name?.toLowerCase() === 'pluto');
@@ -232,7 +232,7 @@ function getPlutoHouse(astro: AstroData | undefined): number | null {
  * 토성 하우스 추출
  */
 function getSaturnHouse(astro: AstroData | undefined): number | null {
-  if (!astro?.planets) return null;
+  if (!astro?.planets) {return null;}
 
   if (Array.isArray(astro.planets)) {
     const saturn = astro.planets.find(p => p.name?.toLowerCase() === 'saturn');
@@ -246,17 +246,17 @@ function getSaturnHouse(astro: AstroData | undefined): number | null {
  */
 function getJaeseongStrength(saju: SajuData | undefined): string | null {
   const sibsinDist = saju?.advancedAnalysis?.sibsin?.sibsinDistribution;
-  if (!sibsinDist || typeof sibsinDist !== 'object') return null;
+  if (!sibsinDist || typeof sibsinDist !== 'object') {return null;}
 
   // 편재, 정재 점수 확인
   const pyeonJae = (sibsinDist as Record<string, number>)["편재"] || 0;
   const jeongJae = (sibsinDist as Record<string, number>)["정재"] || 0;
   const total = pyeonJae + jeongJae;
 
-  if (total >= 3) return "재성_강";
+  if (total >= 3) {return "재성_강";}
   if (total >= 1) {
-    if (pyeonJae > jeongJae) return "편재";
-    if (jeongJae > pyeonJae) return "정재";
+    if (pyeonJae > jeongJae) {return "편재";}
+    if (jeongJae > pyeonJae) {return "정재";}
     return "재성_약";
   }
   return "재성_약";
@@ -270,7 +270,7 @@ export function getWealthAnalysis(
   const isKo = lang === "ko";
   const dayMasterName = extractDayMaster(saju);
 
-  if (!dayMasterName) return null;
+  if (!dayMasterName) {return null;}
 
   const dmBase = dayMasterWealthTraits[dayMasterName] || dayMasterWealthTraits["갑"];
 

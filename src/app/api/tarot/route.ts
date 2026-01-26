@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     }
 
     const oversized = enforceBodySize(req, BODY_LIMIT, limit.headers);
-    if (oversized) return oversized;
+    if (oversized) {return oversized;}
 
     const body = (await req.json().catch(() => null)) as TarotBody | null;
     if (!body || typeof body !== "object") {
@@ -69,10 +69,10 @@ export async function POST(req: Request) {
     }
 
     const theme = tarotThemes.find((t) => t.id === categoryId);
-    if (!theme) return NextResponse.json({ error: "Invalid category" }, { status: 404, headers: limit.headers });
+    if (!theme) {return NextResponse.json({ error: "Invalid category" }, { status: 404, headers: limit.headers });}
 
     const spread = theme.spreads.find((s) => s.id === spreadId);
-    if (!spread) return NextResponse.json({ error: "Invalid spread" }, { status: 404, headers: limit.headers });
+    if (!spread) {return NextResponse.json({ error: "Invalid spread" }, { status: 404, headers: limit.headers });}
 
     const drawnCards = drawCards(spread.cardCount);
 

@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
-    if (oversized) return oversized;
+    if (oversized) {return oversized;}
 
     const body = (await req.json().catch(() => null)) as FeedbackBody | null;
 
@@ -179,8 +179,8 @@ export async function GET(req: NextRequest) {
     const theme = searchParams.get("theme");
 
     const where: { service?: string; theme?: string } = {};
-    if (service) where.service = service;
-    if (theme) where.theme = theme;
+    if (service) {where.service = service;}
+    if (theme) {where.theme = theme;}
 
     // Get aggregated stats
     const [total, positive, bySectionTotals, bySectionPositives] = await Promise.all([

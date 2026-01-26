@@ -13,7 +13,7 @@ interface AdvancedPanelProps {
 export default function AdvancedPanel({ advanced, locKey, onToggle }: AdvancedPanelProps) {
   const [open, setOpen] = useState(false);
 
-  if (!advanced) return null;
+  if (!advanced) {return null;}
 
   const L = LABELS[locKey];
   const opts = advanced.options || {};

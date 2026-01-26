@@ -43,7 +43,7 @@ export default function DestinyMatchesPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === 'loading') {return;}
 
     if (!session) {
       router.push('/auth/signin?callbackUrl=/destiny-match/matches');
@@ -72,7 +72,7 @@ export default function DestinyMatchesPage() {
   }, [session, status, router]);
 
   const handleUnmatch = async (connectionId: string) => {
-    if (!confirm('정말 매치를 해제하시겠어요?')) return;
+    if (!confirm('정말 매치를 해제하시겠어요?')) {return;}
 
     try {
       const res = await fetch('/api/destiny-match/matches', {
@@ -96,9 +96,9 @@ export default function DestinyMatchesPage() {
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return '오늘';
-    if (diffDays === 1) return '어제';
-    if (diffDays < 7) return `${diffDays}일 전`;
+    if (diffDays === 0) {return '오늘';}
+    if (diffDays === 1) {return '어제';}
+    if (diffDays < 7) {return `${diffDays}일 전`;}
     return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
   };
 

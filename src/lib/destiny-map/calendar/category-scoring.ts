@@ -33,7 +33,7 @@ export function getBestAreaCategory(
   minScore: number = 65
 ): EventCategory | null {
   const bestArea = Object.entries(areaScores).sort((a, b) => (b[1] || 0) - (a[1] || 0))[0];
-  if (!bestArea || (bestArea[1] || 0) < minScore) return null;
+  if (!bestArea || (bestArea[1] || 0) < minScore) {return null;}
 
   const areaToCategory: Record<FortuneArea, EventCategory> = {
     career: "career",

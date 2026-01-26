@@ -113,7 +113,7 @@ export default function SajuAnalyzer() {
   }, [locale]);
 
   useEffect(() => {
-    if (profileLoading || profileLoaded) return;
+    if (profileLoading || profileLoaded) {return;}
     if (profile.birthDate || profile.birthTime || profile.gender) {
       setFormData(prev => ({
         ...prev,
@@ -137,7 +137,7 @@ export default function SajuAnalyzer() {
 
   const filteredTz: string[] = useMemo(() => {
     const q = tzQuery.trim().toLowerCase();
-    if (!q) return tzList.slice(0, 200);
+    if (!q) {return tzList.slice(0, 200);}
     return tzList.filter((t: string) => t.toLowerCase().includes(q)).slice(0, 200);
   }, [tzList, tzQuery]);
 

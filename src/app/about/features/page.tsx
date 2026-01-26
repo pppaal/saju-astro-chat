@@ -10,11 +10,11 @@ import { useI18n } from "@/i18n/I18nProvider";
 function useReveal(ref: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el) {return;}
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting) el.classList.add("reveal-in");
+          if (e.isIntersecting) {el.classList.add("reveal-in");}
         });
       },
       { threshold: 0.2 }
@@ -28,9 +28,9 @@ function useReveal(ref: React.RefObject<HTMLElement | null>) {
 function useOvoidScene(canvasId: string) {
   useEffect(() => {
     const el = document.getElementById(canvasId);
-    if (!(el instanceof HTMLCanvasElement)) return;
+    if (!(el instanceof HTMLCanvasElement)) {return;}
     const ctx = el.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {return;}
 
     const canvas = el;
     let raf = 0;
@@ -132,8 +132,8 @@ function useOvoidScene(canvasId: string) {
         for (let a = 0; a <= Math.PI * 2 + 0.01; a += 0.02) {
           const x = Math.cos(a) * rx;
           const y = Math.sin(a) * ry;
-          if (a === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
+          if (a === 0) {ctx.moveTo(x, y);}
+          else {ctx.lineTo(x, y);}
         }
         ctx.stroke();
       }
@@ -148,8 +148,8 @@ function useOvoidScene(canvasId: string) {
       const baseY = h * 0.65;
       for (let x = 0; x <= w; x += 6) {
         const y = baseY + Math.sin(x * 0.02 + t * 2) * 6;
-        if (x === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+        if (x === 0) {ctx.moveTo(x, y);}
+        else {ctx.lineTo(x, y);}
       }
       ctx.stroke();
       ctx.restore();

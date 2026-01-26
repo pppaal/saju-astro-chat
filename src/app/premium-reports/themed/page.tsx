@@ -71,7 +71,7 @@ export default function ThemedReportPage() {
 
   // 사주 정보 로드
   const loadSajuData = useCallback(async () => {
-    if (status !== 'authenticated') return;
+    if (status !== 'authenticated') {return;}
 
     setSajuLoading(true);
     try {

@@ -21,7 +21,7 @@ export default function ScrollToTop({
   useEffect(() => {
     const handleScroll = () => {
       // Throttle scroll events to improve performance
-      if (throttleTimeout.current) return;
+      if (throttleTimeout.current) {return;}
 
       throttleTimeout.current = setTimeout(() => {
         setIsVisible(window.scrollY > threshold);

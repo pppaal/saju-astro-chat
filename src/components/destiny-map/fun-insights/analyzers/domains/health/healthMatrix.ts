@@ -55,7 +55,7 @@ export function getHealthMatrixAnalysis(
   lang: string
 ): HealthMatrixResult | null {
   const isKo = lang === 'ko';
-  if (!saju && !astro) return null;
+  if (!saju && !astro) {return null;}
 
   const extSaju = saju as ExtendedSajuData | undefined;
   const dayElement = saju?.dayMaster?.element || 'wood';
@@ -89,7 +89,7 @@ export function getHealthMatrixAnalysis(
   const elementCounts: Record<FiveElement, number> = { '목': 0, '화': 0, '토': 0, '금': 0, '수': 0 };
   for (const [sibsin, count] of Object.entries(elementDist)) {
     const el = sibsinToElement[sibsin];
-    if (el) elementCounts[el] += count as number;
+    if (el) {elementCounts[el] += count as number;}
   }
 
   const totalCount = Object.values(elementCounts).reduce((a, b) => a + b, 0) || 1;

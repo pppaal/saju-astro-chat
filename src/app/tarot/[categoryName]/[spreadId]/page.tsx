@@ -79,7 +79,7 @@ export default function TarotReadingPage() {
   useEffect(() => {
     if (readingResult && interpretation?.fallback) {
       fetchInterpretation(readingResult).then(result => {
-        if (result) setInterpretation(result);
+        if (result) {setInterpretation(result);}
       });
     }
   }, [readingResult, interpretation?.fallback, fetchInterpretation, setInterpretation]);

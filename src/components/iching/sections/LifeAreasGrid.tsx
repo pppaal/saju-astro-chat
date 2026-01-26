@@ -28,7 +28,7 @@ export const LifeAreasGrid: React.FC<LifeAreasGridProps> = React.memo(({
   lang,
   translate,
 }) => {
-  if (!premiumData) return null;
+  if (!premiumData) {return null;}
 
   return (
     <div className={styles.themesCard}>

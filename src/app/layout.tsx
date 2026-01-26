@@ -17,6 +17,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { generateJsonLd } from "@/components/seo/SEO";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { MicrosoftClarity } from "@/components/analytics/MicrosoftClarity";
+import { KakaoInit } from "@/components/analytics/KakaoInit";
 import AuthProvider from "@/components/AuthProvider";
 import ScrollRestoration from "@/components/ui/ScrollRestoration";
 import GlobalHeader from "@/components/ui/GlobalHeader";
@@ -201,18 +202,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <JsonLd data={organizationJsonLd} />
         {/* Kakao SDK for sharing */}
         <script defer src="https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js" nonce={nonce} />
-        <script
-          nonce={nonce}
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.addEventListener('load', function() {
-                if (window.Kakao && !window.Kakao.isInitialized()) {
-                  window.Kakao.init('${process.env.NEXT_PUBLIC_KAKAO_APP_KEY || ''}');
-                }
-              });
-            `,
-          }}
-        />
+        {process.env.NEXT_PUBLIC_KAKAO_APP_KEY && (
+          <script
+            nonce={nonce}
+            data-kakao-key={process.env.NEXT_PUBLIC_KAKAO_APP_KEY}
+            id="kakao-init"
+          />
+        )}
       </head>
       <body
         className={`
@@ -236,6 +232,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <Suspense fallback={null}>
             <MicrosoftClarity clarityId={process.env.NEXT_PUBLIC_CLARITY_ID || ""} nonce={nonce} />
           </Suspense>
+          <KakaoInit />
 
           <ErrorBoundaryProvider>
             <AuthProvider>

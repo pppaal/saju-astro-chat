@@ -9,7 +9,7 @@ interface ResultSectionsDisplayProps {
 }
 
 export const ResultSectionsDisplay: React.FC<ResultSectionsDisplayProps> = React.memo(({ sections, t }) => {
-  if (sections.length === 0) return null;
+  if (sections.length === 0) {return null;}
 
   return (
     <div className={styles.resultSections}>

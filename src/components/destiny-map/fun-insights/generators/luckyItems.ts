@@ -1,7 +1,7 @@
 import type { SajuData } from '../types';
 
 export function getLuckyItems(saju: SajuData | undefined, lang: string): { item: string; reason: string }[] {
-  if (!saju?.fiveElements) return [];
+  if (!saju?.fiveElements) {return [];}
   const isKo = lang === "ko";
 
   const sorted = Object.entries(saju.fiveElements).sort(([,a], [,b]) => (a as number) - (b as number));

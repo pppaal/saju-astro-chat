@@ -38,7 +38,7 @@ export function analyzeAsteroidHouse(
   const isKo = lang === 'ko';
   const asteroidHouseResults: AsteroidHouseResult[] = [];
 
-  if (!astro) return asteroidHouseResults;
+  if (!astro) {return asteroidHouseResults;}
 
   const asteroids = targetAsteroids || ['Juno', 'Ceres', 'Pallas', 'Vesta'] as AsteroidName[];
 

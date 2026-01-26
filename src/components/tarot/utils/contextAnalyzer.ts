@@ -31,7 +31,7 @@ export function generateContextualQuestions(
   cards: DrawnCard[],
   language: 'ko' | 'en'
 ): string[] {
-  if (!lastResponse) return [];
+  if (!lastResponse) {return [];}
 
   const contextualQuestions: string[] = [];
 

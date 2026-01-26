@@ -44,9 +44,9 @@ function getGradientColors(sign: string): [string, string] {
  * 점수 바 색상
  */
 function getScoreColor(score: number): string {
-  if (score >= 80) return '#2ECC71'; // 녹색
-  if (score >= 60) return '#F39C12'; // 주황
-  if (score >= 40) return '#E67E22'; // 진한 주황
+  if (score >= 80) {return '#2ECC71';} // 녹색
+  if (score >= 60) {return '#F39C12';} // 주황
+  if (score >= 40) {return '#E67E22';} // 진한 주황
   return '#E74C3C'; // 빨강
 }
 

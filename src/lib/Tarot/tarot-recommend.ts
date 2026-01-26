@@ -87,10 +87,10 @@ function determineComplexity(question: string): "simple" | "normal" | "detailed"
   const normalizedQuestion = question.toLowerCase();
 
   for (const keyword of complexityKeywordsLower.simple) {
-    if (normalizedQuestion.includes(keyword)) return "simple";
+    if (normalizedQuestion.includes(keyword)) {return "simple";}
   }
   for (const keyword of complexityKeywordsLower.detailed) {
-    if (normalizedQuestion.includes(keyword)) return "detailed";
+    if (normalizedQuestion.includes(keyword)) {return "detailed";}
   }
 
   return "normal";
@@ -109,38 +109,38 @@ export function determineCardCount(question: string): number {
   const { one, two, three, four, five, seven, ten } = cardCountPatternsLower;
 
   for (const pattern of one) {
-    if (normalizedQuestion.includes(pattern)) return 1;
+    if (normalizedQuestion.includes(pattern)) {return 1;}
   }
 
   for (const pattern of two) {
-    if (normalizedQuestion.includes(pattern)) return 2;
+    if (normalizedQuestion.includes(pattern)) {return 2;}
   }
 
   for (const pattern of three) {
-    if (normalizedQuestion.includes(pattern)) return 3;
+    if (normalizedQuestion.includes(pattern)) {return 3;}
   }
 
   for (const pattern of four) {
-    if (normalizedQuestion.includes(pattern)) return 4;
+    if (normalizedQuestion.includes(pattern)) {return 4;}
   }
 
   for (const pattern of five) {
-    if (normalizedQuestion.includes(pattern)) return 5;
+    if (normalizedQuestion.includes(pattern)) {return 5;}
   }
 
   for (const pattern of seven) {
-    if (normalizedQuestion.includes(pattern)) return 7;
+    if (normalizedQuestion.includes(pattern)) {return 7;}
   }
 
   for (const pattern of ten) {
-    if (normalizedQuestion.includes(pattern)) return 10;
+    if (normalizedQuestion.includes(pattern)) {return 10;}
   }
 
   const questionLength = question.length;
-  if (questionLength <= 10) return 1;
-  if (questionLength <= 20) return 2;
-  if (questionLength <= 40) return 3;
-  if (questionLength <= 60) return 4;
+  if (questionLength <= 10) {return 1;}
+  if (questionLength <= 20) {return 2;}
+  if (questionLength <= 40) {return 3;}
+  if (questionLength <= 60) {return 4;}
 
   return 3;
 }
@@ -219,12 +219,12 @@ export function generateDynamicSpread(question: string, cardCount?: number): {
 
   // 레이아웃 타입 결정
   let layoutType: 'horizontal' | 'vertical' | 'cross' | 'circular' = 'horizontal';
-  if (count === 1) layoutType = 'horizontal';
-  else if (count <= 3) layoutType = 'horizontal';
-  else if (count === 4) layoutType = 'cross';
-  else if (count <= 6) layoutType = 'horizontal';
-  else if (count === 7) layoutType = 'horizontal';
-  else if (count >= 10) layoutType = 'cross';
+  if (count === 1) {layoutType = 'horizontal';}
+  else if (count <= 3) {layoutType = 'horizontal';}
+  else if (count === 4) {layoutType = 'cross';}
+  else if (count <= 6) {layoutType = 'horizontal';}
+  else if (count === 7) {layoutType = 'horizontal';}
+  else if (count >= 10) {layoutType = 'cross';}
 
   return { cardCount: count, positions, layoutType };
 }
@@ -284,7 +284,7 @@ function findDirectMatch(question: string): SpreadRecommendation | null {
       }
     }
 
-    if (!mainKeywordMatched) continue;
+    if (!mainKeywordMatched) {continue;}
 
     // contextKeywords가 있는 경우: 둘 다 매칭되어야 함
     if (match.contextKeywords && match.contextKeywords.length > 0) {
@@ -296,7 +296,7 @@ function findDirectMatch(question: string): SpreadRecommendation | null {
         }
       }
       // 컨텍스트 키워드가 있는데 매칭 안 되면 스킵
-      if (!contextMatched) continue;
+      if (!contextMatched) {continue;}
     }
 
     // 매칭 성공! 결과에 추가
@@ -307,7 +307,7 @@ function findDirectMatch(question: string): SpreadRecommendation | null {
   }
 
   // 우선순위가 가장 높은 매칭 선택
-  if (matchResults.length === 0) return null;
+  if (matchResults.length === 0) {return null;}
 
   matchResults.sort((a, b) => b.score - a.score);
   const bestMatch = matchResults[0].match;
@@ -418,7 +418,7 @@ export function recommendSpreads(question: string, maxResults?: number, options?
 
   for (const [themeId, themeScore] of themesToCheck) {
     const theme = tarotThemes.find(t => t.id === themeId);
-    if (!theme) continue;
+    if (!theme) {continue;}
 
     const suitableSpreads = theme.spreads
       .filter(spread => spread.cardCount >= minCards && spread.cardCount <= maxCards)
@@ -426,7 +426,7 @@ export function recommendSpreads(question: string, maxResults?: number, options?
 
     for (const spread of suitableSpreads) {
       // 이미 직접 매칭으로 추가된 스프레드는 건너뛰기
-      if (recommendations.find(r => r.spreadId === spread.id)) continue;
+      if (recommendations.find(r => r.spreadId === spread.id)) {continue;}
 
       recommendations.push({
         themeId, theme, spreadId: spread.id, spread,
@@ -445,7 +445,7 @@ export function recommendSpreads(question: string, maxResults?: number, options?
   if (uniqueRecommendations.length < limit) {
     const defaults = getDefaultRecommendations();
     for (const def of defaults) {
-      if (uniqueRecommendations.length >= limit) break;
+      if (uniqueRecommendations.length >= limit) {break;}
       if (!uniqueRecommendations.find(r => r.spreadId === def.spreadId)) {
         uniqueRecommendations.push(def);
       }

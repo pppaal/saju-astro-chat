@@ -26,7 +26,7 @@ export const VisualImagerySection: React.FC<VisualImagerySectionProps> = React.m
   enhancedData,
   translate,
 }) => {
-  if (!enhancedData?.visualImagery) return null;
+  if (!enhancedData?.visualImagery) {return null;}
 
   return (
     <>

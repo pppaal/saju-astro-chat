@@ -28,7 +28,7 @@ export function generateTopicBasedQuestions(
   userTopic: string | undefined,
   language: 'ko' | 'en'
 ): string[] {
-  if (!userTopic || userTopic.trim().length === 0) return [];
+  if (!userTopic || userTopic.trim().length === 0) {return [];}
 
   const topic = userTopic.toLowerCase();
   const topicQuestions: string[] = [];

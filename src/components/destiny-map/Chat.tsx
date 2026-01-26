@@ -97,8 +97,8 @@ const Chat = memo(function Chat({
 
   // Auto-save messages to database
   React.useEffect(() => {
-    if (!sessionLoaded) return;
-    if (messages.length === 0) return;
+    if (!sessionLoaded) {return;}
+    if (messages.length === 0) {return;}
 
     const saveTimer = setTimeout(async () => {
       try {
@@ -124,17 +124,17 @@ const Chat = memo(function Chat({
   // Auto-update PersonaMemory after conversation (when assistant responds)
   const lastUpdateRef = React.useRef<number>(0);
   React.useEffect(() => {
-    if (!sessionLoaded) return;
+    if (!sessionLoaded) {return;}
     const visibleMsgs = messages.filter(m => m.role !== "system");
-    if (visibleMsgs.length < 2) return; // Need at least 1 Q&A pair
+    if (visibleMsgs.length < 2) {return;} // Need at least 1 Q&A pair
 
     // Debounce: only update if 30s passed since last update
     const now = Date.now();
-    if (now - lastUpdateRef.current < 30000) return;
+    if (now - lastUpdateRef.current < 30000) {return;}
 
     // Only update when we have a complete Q&A (last message is assistant)
     const lastMsg = visibleMsgs[visibleMsgs.length - 1];
-    if (lastMsg?.role !== "assistant" || !lastMsg.content || lastMsg.content.length < 50) return;
+    if (lastMsg?.role !== "assistant" || !lastMsg.content || lastMsg.content.length < 50) {return;}
 
     lastUpdateRef.current = now;
 
@@ -250,9 +250,9 @@ const Chat = memo(function Chat({
 
   // Auto-insert returning context as system message
   React.useEffect(() => {
-    if (!returningSummary) return;
+    if (!returningSummary) {return;}
     const alreadyHas = messages.some((m) => m.role === "system" && m.content.includes("Returning context"));
-    if (alreadyHas) return;
+    if (alreadyHas) {return;}
     setMessages((prev) => [
       { role: "system", content: `Returning context: ${returningSummary}` },
       ...prev,
@@ -295,8 +295,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
     const now = new Date();
     const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return tr.today;
-    if (diffDays === 1) return tr.yesterday;
+    if (diffDays === 0) {return tr.today;}
+    if (diffDays === 1) {return tr.yesterday;}
     return `${diffDays} ${tr.daysAgo}`;
   }, [tr.today, tr.yesterday, tr.daysAgo]);
 
@@ -342,14 +342,14 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
 
   // Auto-scroll
   React.useEffect(() => {
-    if (!autoScroll) return;
+    if (!autoScroll) {return;}
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading, autoScroll]);
 
   // File upload handler
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {return;}
 
     logger.info("[CV Upload] File:", { name: file.name, type: file.type, size: file.size });
     setCvName(file.name);
@@ -432,7 +432,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
         }
         throw new Error(await res.text());
       }
-      if (!res.body) throw new Error("No response body");
+      if (!res.body) {throw new Error("No response body");}
 
       setRetryCount(0);
       return res;
@@ -509,7 +509,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
   // Main send handler
   async function handleSend(directText?: string) {
     const text = directText || input.trim();
-    if (!text || loading) return;
+    if (!text || loading) {return;}
 
     // Crisis detection
     if (detectCrisis(text, lang)) {

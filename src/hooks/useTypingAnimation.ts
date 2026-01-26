@@ -4,7 +4,7 @@ export function useTypingAnimation(texts: string[], initialDelay = 1000) {
   const [displayText, setDisplayText] = useState('');
 
   useEffect(() => {
-    if (texts.length === 0) return;
+    if (texts.length === 0) {return;}
 
     let currentIndex = 0;
     let charIndex = 0;

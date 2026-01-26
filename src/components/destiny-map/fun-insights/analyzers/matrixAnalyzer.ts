@@ -164,15 +164,15 @@ export function getHealthMatrixAnalysis(
   const elementCounts: Record<FiveElement, number> = { '목': 0, '화': 0, '토': 0, '금': 0, '수': 0 };
   for (const [sibsin, count] of Object.entries(elementDist)) {
     const el = sibsinToElement[sibsin];
-    if (el) elementCounts[el] += count as number;
+    if (el) {elementCounts[el] += count as number;}
   }
 
   const totalCount = Object.values(elementCounts).reduce((a, b) => a + b, 0) || 1;
   for (const el of fiveElements) {
     const ratio = elementCounts[el] / totalCount;
     let status: 'excess' | 'balanced' | 'deficient' = 'balanced';
-    if (ratio > 0.3) status = 'excess';
-    else if (ratio < 0.1) status = 'deficient';
+    if (ratio > 0.3) {status = 'excess';}
+    else if (ratio < 0.1) {status = 'deficient';}
     elementBalance.push({ element: el, score: Math.round(ratio * 100), status });
   }
 
@@ -320,7 +320,7 @@ export function getKarmaMatrixAnalysis(
   lang: string
 ): KarmaMatrixResult | null {
   const isKo = lang === 'ko';
-  if (!saju && !astro) return null;
+  if (!saju && !astro) {return null;}
 
   const extSaju = saju as ExtendedSajuData | undefined;
   const dayElement = saju?.dayMaster?.element || 'wood';
@@ -502,7 +502,7 @@ export function getCareerAdvancedAnalysis(
   lang: string
 ): CareerAdvancedResult | null {
   const isKo = lang === 'ko';
-  if (!saju && !astro) return null;
+  if (!saju && !astro) {return null;}
 
   const extSaju = saju as ExtendedSajuData | undefined;
   const dayElement = saju?.dayMaster?.element || 'wood';
@@ -541,7 +541,7 @@ export function getCareerAdvancedAnalysis(
     for (const p of astro.planets) {
       if (p.house && p.name) {
         const house = p.house as number;
-        if (!housePlanets[house]) housePlanets[house] = [];
+        if (!housePlanets[house]) {housePlanets[house] = [];}
         housePlanets[house].push(p.name);
       }
     }
@@ -641,7 +641,7 @@ export function getLoveTimingAnalysis(
   lang: string
 ): LoveTimingResult | null {
   const isKo = lang === 'ko';
-  if (!saju && !astro) return null;
+  if (!saju && !astro) {return null;}
 
   const extSaju = saju as ExtendedSajuData | undefined;
   const dayElement = saju?.dayMaster?.element || 'wood';
@@ -762,7 +762,7 @@ export function getShadowPersonalityAnalysis(
   lang: string
 ): ShadowPersonalityResult | null {
   const isKo = lang === 'ko';
-  if (!saju && !astro) return null;
+  if (!saju && !astro) {return null;}
 
   const extSaju = saju as ExtendedSajuData | undefined;
   const dayElement = saju?.dayMaster?.element || 'wood';
@@ -910,7 +910,7 @@ export function getTimingMatrixAnalysis(
   lang: string
 ): TimingMatrixResult | null {
   const isKo = lang === 'ko';
-  if (!saju && !astro) return null;
+  if (!saju && !astro) {return null;}
 
   const extSaju = saju as ExtendedSajuData | undefined;
   const dayElement = saju?.dayMaster?.element || 'wood';

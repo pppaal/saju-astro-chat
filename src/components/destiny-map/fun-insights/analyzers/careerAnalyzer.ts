@@ -98,13 +98,13 @@ interface CareerAnalysis {
  */
 function getCurrentDaeunElement(saju: SajuData | undefined): string | null {
   const daeun = saju?.unse?.daeun;
-  if (!daeun || !Array.isArray(daeun)) return null;
+  if (!daeun || !Array.isArray(daeun)) {return null;}
 
   const birthYear = saju?.facts?.birthDate
     ? new Date(saju.facts.birthDate).getFullYear()
     : (saju?.birthDate ? new Date(saju.birthDate).getFullYear() : null);
 
-  if (!birthYear) return null;
+  if (!birthYear) {return null;}
 
   const currentYear = new Date().getFullYear();
   const currentAge = currentYear - birthYear;
@@ -116,7 +116,7 @@ function getCurrentDaeunElement(saju: SajuData | undefined): string | null {
     return false;
   });
 
-  if (!currentDaeun) return null;
+  if (!currentDaeun) {return null;}
 
   const stemElement: Record<string, string> = {
     "갑": "wood", "乙": "wood", "을": "wood",
@@ -135,10 +135,10 @@ function getCurrentDaeunElement(saju: SajuData | undefined): string | null {
  */
 function getDominantSibsinCategory(saju: SajuData | undefined): SibsinCategory | null {
   const sibsinDist = saju?.advancedAnalysis?.sibsin?.sibsinDistribution;
-  if (!sibsinDist || typeof sibsinDist !== 'object') return null;
+  if (!sibsinDist || typeof sibsinDist !== 'object') {return null;}
 
   const entries = Object.entries(sibsinDist) as [string, number][];
-  if (entries.length === 0) return null;
+  if (entries.length === 0) {return null;}
 
   const sorted = entries.sort(([, a], [, b]) => b - a);
   const topSibsin = sorted[0]?.[0];
@@ -239,7 +239,7 @@ function getSuccessTiming(saju: SajuData | undefined, isKo: boolean): string | n
   const goodYears: number[] = [];
   for (const yearData of saeun) {
     const year = yearData.year;
-    if (!year || year < currentYear || year > currentYear + 10) continue;
+    if (!year || year < currentYear || year > currentYear + 10) {continue;}
     const element = yearData.stem?.element;
     if (yongsinElements.includes(element)) {
       goodYears.push(year);
@@ -257,7 +257,7 @@ function getSuccessTiming(saju: SajuData | undefined, isKo: boolean): string | n
   const fireYears: number[] = [];
   for (const yearData of saeun) {
     const year = yearData.year;
-    if (!year || year < currentYear || year > currentYear + 10) continue;
+    if (!year || year < currentYear || year > currentYear + 10) {continue;}
     const element = yearData.stem?.element;
     if (element === 'fire' || element === '화') {
       fireYears.push(year);
@@ -282,7 +282,7 @@ export function getCareerAnalysis(
   const isKo = lang === "ko";
   const dayMasterName = extractDayMaster(saju);
 
-  if (!dayMasterName) return null;
+  if (!dayMasterName) {return null;}
 
   const dmBase = dayMasterCareerTraits[dayMasterName] || dayMasterCareerTraits["갑"];
 

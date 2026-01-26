@@ -94,7 +94,7 @@ export async function POST(req: Request) {
     }
 
     const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
-    if (oversized) return oversized;
+    if (oversized) {return oversized;}
 
     const body: InterpretRequest = await req.json();
     const categoryId = sanitizeString(body?.categoryId, MAX_TITLE);

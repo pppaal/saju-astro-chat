@@ -246,9 +246,9 @@ function countAllElements(pillars: SajuPillars): Record<FiveElement, number> {
     // 지장간
     const jijanggan = JIJANGGAN[pillar.earthlyBranch.name];
     if (jijanggan) {
-      if (jijanggan['정기']) counts[getStemElement(jijanggan['정기'])] += 0.5;
-      if (jijanggan['중기']) counts[getStemElement(jijanggan['중기'])] += 0.3;
-      if (jijanggan['여기']) counts[getStemElement(jijanggan['여기'])] += 0.2;
+      if (jijanggan['정기']) {counts[getStemElement(jijanggan['정기'])] += 0.5;}
+      if (jijanggan['중기']) {counts[getStemElement(jijanggan['중기'])] += 0.3;}
+      if (jijanggan['여기']) {counts[getStemElement(jijanggan['여기'])] += 0.2;}
     }
   }
 
@@ -289,7 +289,7 @@ function checkDayMasterRoot(pillars: SajuPillars, dayElement: FiveElement): bool
     const jijanggan = JIJANGGAN[branch];
     if (jijanggan) {
       for (const stem of Object.values(jijanggan)) {
-        if (getStemElement(stem) === dayElement) return true;
+        if (getStemElement(stem) === dayElement) {return true;}
       }
     }
   }
@@ -435,7 +435,7 @@ function checkBranchSupport(pillars: SajuPillars, targetElement: FiveElement): b
 
   let support = 0;
   for (const branch of branches) {
-    if (getBranchElement(branch) === targetElement) support++;
+    if (getBranchElement(branch) === targetElement) {support++;}
   }
 
   return support >= 2;
@@ -813,9 +813,9 @@ export function performUltraAdvancedAnalysis(pillars: SajuPillars): UltraAdvance
 
   const specialFormations: string[] = [];
 
-  if (jonggeok.isJonggeok) specialFormations.push(jonggeok.type);
-  if (hwagyeok.isHwagyeok) specialFormations.push(hwagyeok.type);
-  if (samgi.hasSamgi && samgi.type) specialFormations.push(samgi.type);
+  if (jonggeok.isJonggeok) {specialFormations.push(jonggeok.type);}
+  if (hwagyeok.isHwagyeok) {specialFormations.push(hwagyeok.type);}
+  if (samgi.hasSamgi && samgi.type) {specialFormations.push(samgi.type);}
 
   const masterySummary = generateMasterySummary(jonggeok, hwagyeok, iljuDeep, samgi);
 

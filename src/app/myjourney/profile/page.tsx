@@ -79,16 +79,16 @@ function ProfileContent() {
         if (profileRes.ok) {
           const { user } = await profileRes.json();
           if (user) {
-            if (user.birthDate) setBirthDate(user.birthDate);
+            if (user.birthDate) {setBirthDate(user.birthDate);}
             if (user.birthTime) {
               setBirthTime(user.birthTime);
               setTimeUnknown(false);
             } else {
               setTimeUnknown(true);
             }
-            if (user.gender) setGender(user.gender);
-            if (user.birthCity) setCity(user.birthCity);
-            if (user.tzId) setTzId(user.tzId);
+            if (user.gender) {setGender(user.gender);}
+            if (user.birthCity) {setCity(user.birthCity);}
+            if (user.tzId) {setTzId(user.tzId);}
 
             // If user has saved birth data, show view mode
             if (user.birthDate) {
@@ -169,7 +169,7 @@ function ProfileContent() {
         body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || t("profile.error.saveFailed", "Failed to save"));
+      if (!res.ok) {throw new Error(data?.error || t("profile.error.saveFailed", "Failed to save"));}
       setMsg(t("profile.success.saved", "Saved successfully!"));
       setHasSavedData(true);
       setIsEditMode(false);
@@ -183,7 +183,7 @@ function ProfileContent() {
 
   // Format date for display (YYYY-MM-DD -> localized date)
   const formatDate = (dateStr: string) => {
-    if (!dateStr) return "-";
+    if (!dateStr) {return "-";}
     const [year, month, day] = dateStr.split("-");
     if (locale === "ko") {
       return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
@@ -194,7 +194,7 @@ function ProfileContent() {
 
   // Format time for display (HH:mm -> localized time)
   const formatTime = (timeStr: string) => {
-    if (!timeStr) return t("profile.timeUnknown", "Time unknown");
+    if (!timeStr) {return t("profile.timeUnknown", "Time unknown");}
     const [hour, minute] = timeStr.split(":");
     const h = parseInt(hour);
     if (locale === "ko") {

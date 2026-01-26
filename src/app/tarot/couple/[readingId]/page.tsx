@@ -66,7 +66,7 @@ export default function CoupleReadingDetailPage({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === 'loading') {return;}
 
     if (!session) {
       router.push(`/auth/signin?callbackUrl=/tarot/couple/${readingId}`);

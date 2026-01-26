@@ -83,7 +83,7 @@ export function getStrengthsAndWeaknesses(saju: SajuData | undefined, astro: Ast
     }
   }
 
-  if (strengths.length === 0 && weaknesses.length === 0) return null;
+  if (strengths.length === 0 && weaknesses.length === 0) {return null;}
 
   return { strengths, weaknesses };
 }

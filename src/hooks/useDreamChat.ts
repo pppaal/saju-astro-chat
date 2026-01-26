@@ -16,7 +16,7 @@ export function useDreamChat(
   const chatMessagesRef = useRef<HTMLDivElement>(null);
 
   const sendMessage = useCallback(async () => {
-    if (!chatInput.trim() || isChatLoading) return;
+    if (!chatInput.trim() || isChatLoading) {return;}
 
     const userMessage = chatInput.trim();
     setChatInput('');
@@ -65,14 +65,14 @@ export function useDreamChat(
       if (contentType?.includes('text/event-stream')) {
         // Handle SSE stream
         const reader = res.body?.getReader();
-        if (!reader) throw new Error('No stream reader');
+        if (!reader) {throw new Error('No stream reader');}
 
         const decoder = new TextDecoder();
         let fullReply = '';
 
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {break;}
 
           const text = decoder.decode(value, { stream: true });
           const lines = text.split('\n');

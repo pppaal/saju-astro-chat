@@ -43,7 +43,7 @@ export function createSSEStreamProxy(options: StreamProxyOptions): Response {
       try {
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {break;}
 
           // Pass through the SSE data
           const text = decoder.decode(value, { stream: true });
@@ -171,7 +171,7 @@ export function createTransformedSSEStream(
       try {
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {break;}
 
           const text = decoder.decode(value, { stream: true });
           const transformed = transform(text);

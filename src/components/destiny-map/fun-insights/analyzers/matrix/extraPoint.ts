@@ -53,7 +53,7 @@ export function analyzeExtraPoint(
   const isKo = lang === 'ko';
   const results: ExtraPointResult[] = [];
 
-  if (!saju && !astro) return results;
+  if (!saju && !astro) {return results;}
 
   const extSaju = saju as ExtendedSajuData | undefined;
 
@@ -78,10 +78,10 @@ export function analyzeExtraPoint(
   const availablePoints: ExtraPointName[] = [];
   const extraPointsData = astro?.extraPoints || astro?.advancedAstrology;
 
-  if (extraPointsData?.chiron) availablePoints.push('Chiron');
-  if (extraPointsData?.lilith) availablePoints.push('Lilith');
-  if (extraPointsData?.partOfFortune) availablePoints.push('PartOfFortune');
-  if (extraPointsData?.vertex) availablePoints.push('Vertex');
+  if (extraPointsData?.chiron) {availablePoints.push('Chiron');}
+  if (extraPointsData?.lilith) {availablePoints.push('Lilith');}
+  if (extraPointsData?.partOfFortune) {availablePoints.push('PartOfFortune');}
+  if (extraPointsData?.vertex) {availablePoints.push('Vertex');}
 
   // advancedAstrology에서 노드 정보 찾기
   if (astro?.advancedAstrology) {
@@ -96,7 +96,7 @@ export function analyzeExtraPoint(
 
   for (const point of extraPoints) {
     const pointInfo = EXTRAPOINT_INFO[point];
-    if (!pointInfo) continue;
+    if (!pointInfo) {continue;}
 
     // 오행 기반 분석
     const elementData = EXTRAPOINT_ELEMENT_MATRIX[point];

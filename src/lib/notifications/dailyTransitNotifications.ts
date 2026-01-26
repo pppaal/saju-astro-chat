@@ -74,11 +74,11 @@ interface UserProfile {
 
 // 일간 오행 추출
 function getDayMasterElement(dayMaster?: string | { name?: string; heavenlyStem?: string }): string | null {
-  if (!dayMaster) return null;
+  if (!dayMaster) {return null;}
   const dmStr = typeof dayMaster === "string"
     ? dayMaster
     : (dayMaster?.name || dayMaster?.heavenlyStem || "");
-  if (!dmStr || typeof dmStr !== "string") return null;
+  if (!dmStr || typeof dmStr !== "string") {return null;}
   const stem = dmStr.charAt(0);
   return STEM_TO_ELEMENT[stem] || null;
 }
@@ -109,7 +109,7 @@ function analyzeHourlyFortune(
 
   // 일간과 시간 오행의 관계 분석
   const relations = ELEMENT_RELATIONS[dayMasterElement];
-  if (!relations) return { score: 3, type: "neutral" };
+  if (!relations) {return { score: 3, type: "neutral" };}
 
   if (hourElement === relations.generatedBy || hourElement === dayMasterElement) {
     return { score: 5, type: "positive" };
@@ -200,8 +200,8 @@ function calculateCategoryScores(
       return ((transit.planet || transit.transiting || "") as string).includes("Jupiter");
     });
 
-    if (venusTransit) love += 15;
-    if (marsTransit) career += 10;
+    if (venusTransit) {love += 15;}
+    if (marsTransit) {career += 10;}
     if (jupiterTransit) {
       wealth += 20;
       career += 15;
@@ -277,7 +277,7 @@ export function generateDailyNotifications(
   const notifications: DailyNotification[] = [];
 
   const dayMasterElement = getDayMasterElement(saju.dayMaster);
-  if (!dayMasterElement) return notifications;
+  if (!dayMasterElement) {return notifications;}
 
   // 일진 데이터 추출
   const iljin = Array.isArray(saju.unse?.iljin)

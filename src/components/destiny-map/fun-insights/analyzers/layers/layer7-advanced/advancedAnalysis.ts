@@ -55,7 +55,7 @@ export function getAdvancedAnalysisResult(
   const isKo = lang === 'ko';
   const results: AdvancedAnalysisResult[] = [];
 
-  if (!saju && !astro) return results;
+  if (!saju && !astro) {return results;}
 
   const extSaju = saju as ExtendedSajuData | undefined;
 
@@ -96,12 +96,12 @@ export function getAdvancedAnalysisResult(
   const progressions: ProgressionType[] = [];
 
   // astro 데이터에서 프로그레션 정보 추출
-  if (astro?.solarReturn) progressions.push('solarReturn');
-  if (astro?.lunarReturn) progressions.push('lunarReturn');
-  if (astro?.progressions?.secondary) progressions.push('secondary');
-  if (astro?.progressions?.solarArc) progressions.push('solarArc');
-  if (astro?.draconic) progressions.push('draconic');
-  if (astro?.harmonics) progressions.push('harmonics');
+  if (astro?.solarReturn) {progressions.push('solarReturn');}
+  if (astro?.lunarReturn) {progressions.push('lunarReturn');}
+  if (astro?.progressions?.secondary) {progressions.push('secondary');}
+  if (astro?.progressions?.solarArc) {progressions.push('solarArc');}
+  if (astro?.draconic) {progressions.push('draconic');}
+  if (astro?.harmonics) {progressions.push('harmonics');}
 
   // 프로그레션 데이터가 없으면 기본값 사용
   const useProgressions: ProgressionType[] = progressions.length > 0

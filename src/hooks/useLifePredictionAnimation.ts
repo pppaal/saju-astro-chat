@@ -25,10 +25,10 @@ export function useLifePredictionAnimation() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {return;}
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {return;}
 
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     let animationId: number | null = null;
@@ -92,7 +92,7 @@ export function useLifePredictionAnimation() {
      * Animation loop with frame rate limiting
      */
     const animate = (timestamp = 0) => {
-      if (!isRunning) return;
+      if (!isRunning) {return;}
       if (timestamp - lastFrame >= frameInterval) {
         lastFrame = timestamp;
         time += 0.003;
@@ -116,7 +116,7 @@ export function useLifePredictionAnimation() {
      * Start animation
      */
     const start = () => {
-      if (isRunning) return;
+      if (isRunning) {return;}
       if (mediaQuery.matches || document.hidden) {
         drawFrame();
         return;

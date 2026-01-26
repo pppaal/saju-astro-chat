@@ -21,7 +21,7 @@ export function getLifeCycleDescription(
   const isKo = lang === 'ko';
   const interaction = TWELVE_STAGE_HOUSE_MATRIX[stage]?.[house];
   const stageInfo = TWELVE_STAGE_INFO[stage];
-  if (!interaction || !stageInfo) return null;
+  if (!interaction || !stageInfo) {return null;}
 
   const lifeArea = getHouseLifeArea(house, isKo);
 

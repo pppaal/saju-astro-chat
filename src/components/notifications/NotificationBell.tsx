@@ -22,9 +22,9 @@ const formatTime = (timestamp: number, t: (path: string, fb?: string) => string)
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
-  if (minutes < 1) return t("notifications.time.justNow", "Just now");
-  if (minutes < 60) return t("notifications.time.minutesAgo", "{{m}}m ago").replace("{{m}}", String(minutes));
-  if (hours < 24) return t("notifications.time.hoursAgo", "{{h}}h ago").replace("{{h}}", String(hours));
+  if (minutes < 1) {return t("notifications.time.justNow", "Just now");}
+  if (minutes < 60) {return t("notifications.time.minutesAgo", "{{m}}m ago").replace("{{m}}", String(minutes));}
+  if (hours < 24) {return t("notifications.time.hoursAgo", "{{h}}h ago").replace("{{h}}", String(hours));}
   return t("notifications.time.daysAgo", "{{d}}d ago").replace("{{d}}", String(days));
 };
 
@@ -77,7 +77,7 @@ export default function NotificationBell() {
                     className={`${styles.item} ${!notif.read ? styles.unread : ""}`}
                     onClick={() => {
                       markAsRead(notif.id);
-                      if (notif.link) setIsOpen(false);
+                      if (notif.link) {setIsOpen(false);}
                     }}
                     role="listitem"
                   >

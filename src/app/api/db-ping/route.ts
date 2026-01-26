@@ -22,7 +22,7 @@ export const runtime = "nodejs";
  */
 function authorize(req: NextRequest): boolean {
   const token = process.env.ADMIN_API_TOKEN;
-  if (!token) return false;
+  if (!token) {return false;}
   return req.headers.get("x-admin-token") === token;
 }
 

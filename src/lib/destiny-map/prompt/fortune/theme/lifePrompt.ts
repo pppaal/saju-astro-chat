@@ -13,7 +13,7 @@ function buildQuickData(data: CombinedResult): string {
   const moon = planets.find((p: unknown) => (p as { name?: string }).name === "Moon");
 
   const formatPillar = (p: unknown) => {
-    if (!p) return "-";
+    if (!p) {return "-";}
     const pillar = p as { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } };
     const stem = pillar.heavenlyStem?.name || "";
     const branch = pillar.earthlyBranch?.name || "";

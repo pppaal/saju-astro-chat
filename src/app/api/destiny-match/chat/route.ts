@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
     });
 
     const hasMore = messages.length > limit;
-    if (hasMore) messages.pop();
+    if (hasMore) {messages.pop();}
 
     // 상대방이 보낸 읽지 않은 메시지들 읽음 처리
     await prisma.matchMessage.updateMany({

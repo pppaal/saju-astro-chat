@@ -30,10 +30,10 @@ import {
  * 점수를 등급으로 변환
  */
 function scoreToGrade(score: number): PredictionGrade {
-  if (score >= 85) return 'S';
-  if (score >= 75) return 'A';
-  if (score >= 60) return 'B';
-  if (score >= 45) return 'C';
+  if (score >= 85) {return 'S';}
+  if (score >= 75) {return 'A';}
+  if (score >= 60) {return 'B';}
+  if (score >= 45) {return 'C';}
   return 'D';
 }
 
@@ -118,15 +118,15 @@ function analyzeLifeCycles(yearlyScores: YearlyScore[], daeunList: DaeunInfo[]):
 
   for (const daeun of daeunList) {
     const yearsInDaeun = yearlyScores.filter(y => y.daeun === daeun);
-    if (yearsInDaeun.length === 0) continue;
+    if (yearsInDaeun.length === 0) {continue;}
 
     const avgScore = yearsInDaeun.reduce((sum, y) => sum + y.score, 0) / yearsInDaeun.length;
 
     let energy: LifeCyclePhase['energy'];
-    if (avgScore >= 70) energy = 'peak';
-    else if (avgScore >= 55) energy = 'rising';
-    else if (avgScore >= 40) energy = 'declining';
-    else energy = 'dormant';
+    if (avgScore >= 70) {energy = 'peak';}
+    else if (avgScore >= 55) {energy = 'rising';}
+    else if (avgScore >= 40) {energy = 'declining';}
+    else {energy = 'dormant';}
 
     const theme = generatePhaseTheme(daeun, energy);
     const recommendations = generatePhaseRecommendations(energy, daeun.element);
@@ -213,7 +213,7 @@ export function analyzeMultiYearTrend(
 
   for (let year = startYear; year <= endYear; year++) {
     const age = year - input.birthYear;
-    if (age < 0) continue;
+    if (age < 0) {continue;}
 
     // 해당 연도의 간지
     const yearGanji = calculateYearlyGanji(year);
@@ -250,8 +250,8 @@ export function analyzeMultiYearTrend(
 
     // 용신/기신 보정
     const yearElement = STEM_ELEMENT[yearGanji.stem];
-    if (input.yongsin?.includes(yearElement)) score += 12;
-    if (input.kisin?.includes(yearElement)) score -= 10;
+    if (input.yongsin?.includes(yearElement)) {score += 12;}
+    if (input.kisin?.includes(yearElement)) {score -= 10;}
 
     score = normalizeScore(score);
 
@@ -308,11 +308,11 @@ export function analyzeMultiYearTrend(
 
       let impact: DaeunTransitionPoint['impact'];
       const scoreDiff = currStage.score - prevStage.score;
-      if (scoreDiff >= 30) impact = 'major_positive';
-      else if (scoreDiff >= 10) impact = 'positive';
-      else if (scoreDiff <= -30) impact = 'major_challenging';
-      else if (scoreDiff <= -10) impact = 'challenging';
-      else impact = 'neutral';
+      if (scoreDiff >= 30) {impact = 'major_positive';}
+      else if (scoreDiff >= 10) {impact = 'positive';}
+      else if (scoreDiff <= -30) {impact = 'major_challenging';}
+      else if (scoreDiff <= -10) {impact = 'challenging';}
+      else {impact = 'neutral';}
 
       daeunTransitions.push({
         year,

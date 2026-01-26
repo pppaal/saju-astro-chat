@@ -290,16 +290,87 @@ export default function FaqPage() {
         </p>
       </section>
 
-      <section className={styles.faqSection}>
-        {faqs.map((item, idx) => (
-          <FaqAccordion
-            key={idx}
-            item={item}
-            isOpen={openIndex === idx}
-            onClick={() => handleToggle(idx)}
-            isKo={isKo}
+      {/* Search Box */}
+      <div className={styles.searchContainer}>
+        <div className={styles.searchBox}>
+          <span className={styles.searchIcon}>🔍</span>
+          <input
+            type="text"
+            className={styles.searchInput}
+            placeholder={isKo ? "FAQ 검색..." : "Search FAQ..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-        ))}
+          {searchQuery && (
+            <button
+              className={styles.searchClear}
+              onClick={() => setSearchQuery("")}
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Category Filter */}
+      <div className={styles.categoryContainer}>
+        <div className={styles.categoryButtons}>
+          {(Object.keys(categoryLabels) as Category[]).map((category) => (
+            <button
+              key={category}
+              className={`${styles.categoryButton} ${selectedCategory === category ? styles.active : ''}`}
+              onClick={() => setSelectedCategory(category)}
+            >
+              {isKo ? categoryLabels[category].ko : categoryLabels[category].en}
+            </button>
+          ))}
+        </div>
+        <button
+          className={styles.expandAllButton}
+          onClick={handleExpandAll}
+        >
+          {expandAll
+            ? (isKo ? "모두 접기" : "Collapse All")
+            : (isKo ? "모두 펼치기" : "Expand All")
+          }
+        </button>
+      </div>
+
+      {/* Results count */}
+      {searchQuery && (
+        <div className={styles.resultsCount}>
+          {isKo
+            ? `${filteredFaqs.length}개의 결과를 찾았습니다`
+            : `Found ${filteredFaqs.length} result${filteredFaqs.length !== 1 ? 's' : ''}`
+          }
+        </div>
+      )}
+
+      <section className={styles.faqSection}>
+        {filteredFaqs.length > 0 ? (
+          filteredFaqs.map((item, idx) => {
+            const originalIndex = faqs.indexOf(item);
+            return (
+              <FaqAccordion
+                key={originalIndex}
+                item={item}
+                isOpen={expandAll || openIndex === originalIndex}
+                onClick={() => handleToggle(originalIndex)}
+                isKo={isKo}
+              />
+            );
+          })
+        ) : (
+          <div className={styles.noResults}>
+            <div className={styles.noResultsIcon}>🔍</div>
+            <p className={styles.noResultsText}>
+              {isKo
+                ? "검색 결과가 없습니다. 다른 키워드를 시도해보세요."
+                : "No results found. Try different keywords."}
+            </p>
+          </div>
+        )}
       </section>
 
       <section className={styles.contactSection}>

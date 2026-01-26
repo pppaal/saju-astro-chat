@@ -63,7 +63,7 @@ export function calculateEclipticDegree(sign: string, degreeInSign: number = 15)
  */
 export function calculateExactAngle(degree1: number, degree2: number): number {
   let angle = Math.abs(degree1 - degree2);
-  if (angle > 180) angle = 360 - angle;
+  if (angle > 180) {angle = 360 - angle;}
   return angle;
 }
 

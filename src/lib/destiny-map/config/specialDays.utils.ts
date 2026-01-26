@@ -71,7 +71,7 @@ export function getSipsin(dayMasterStem: string, targetStem: string): string {
 
 // 손없는 날 (이사/결혼/개업에 좋은 날)
 export function isSonEomneunDay(lunarDay: number): boolean {
-  if (!Number.isFinite(lunarDay) || lunarDay < 1 || lunarDay > 30) return false;
+  if (!Number.isFinite(lunarDay) || lunarDay < 1 || lunarDay > 30) {return false;}
   const dayInCycle = lunarDay % 10;
   return dayInCycle === 9 || dayInCycle === 0; // 9, 10, 19, 20, 29, 30일
 }
@@ -95,7 +95,7 @@ export function approximateLunarDay(date: Date): number {
 export function getGongmang(dayStem: string, dayBranch: string): string[] {
   const stemIdx = STEMS.indexOf(dayStem);
   const branchIdx = BRANCHES.indexOf(dayBranch);
-  if (stemIdx === -1 || branchIdx === -1) return [];
+  if (stemIdx === -1 || branchIdx === -1) {return [];}
 
   // 순(旬)의 시작 지지 인덱스: 천간 인덱스만큼 지지가 뒤로 밀림
   const xunStartBranch = (branchIdx - stemIdx + 12) % 12;
@@ -128,7 +128,7 @@ export function isGwimunDay(dayBranch: string, targetBranch: string): boolean {
 export function isAmhap(branch1: string, branch2: string): boolean {
   const stem1 = BRANCH_MAIN_STEM[branch1];
   const stem2 = BRANCH_MAIN_STEM[branch2];
-  if (!stem1 || !stem2) return false;
+  if (!stem1 || !stem2) {return false;}
 
   return STEM_COMBO_PAIRS.some(([a, b]) =>
     (stem1 === a && stem2 === b) || (stem1 === b && stem2 === a)
@@ -593,7 +593,7 @@ export function analyzeNatalDayRelation(
   ];
 
   for (const { name, pillar } of pillars) {
-    if (!pillar) continue;
+    if (!pillar) {continue;}
 
     // 천간합 체크
     const hapResult = isChunganHap(pillar.stem, dayGanzhi.stem);

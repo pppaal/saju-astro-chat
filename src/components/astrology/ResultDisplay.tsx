@@ -119,20 +119,20 @@ export default function ResultDisplay({
 
   // Clean up interpretation text
   const prettyInterpretation = useMemo(() => {
-    if (!interpretation) return null;
+    if (!interpretation) {return null;}
     const rawLines = interpretation.split(/\r?\n/);
     const lines = rawLines.map((s) => s.trim()).filter(Boolean);
     const isHeader = (s: string) =>
       /^title$/i.test(s) || /^natal$/i.test(s) || /(요약|summary)$/i.test(s);
-    while (lines.length && isHeader(lines[0])) lines.shift();
+    while (lines.length && isHeader(lines[0])) {lines.shift();}
     const last = lines[lines.length - 1]?.toLowerCase() || '';
-    if (/^(주의|note|notice)\s*:/.test(last)) lines.pop();
+    if (/^(주의|note|notice)\s*:/.test(last)) {lines.pop();}
     return lines.join('\n');
   }, [interpretation]);
 
   // Localize chart data
   const viewChart = useMemo(() => {
-    if (!chartData) return null;
+    if (!chartData) {return null;}
     try {
       const localizedAsc = (() => {
         const { signPart, degreePart } = splitSignAndDegree(
@@ -201,7 +201,7 @@ export default function ResultDisplay({
     );
   }
 
-  if (!prettyInterpretation) return null;
+  if (!prettyInterpretation) {return null;}
 
   return (
     <Card dir={dir}>

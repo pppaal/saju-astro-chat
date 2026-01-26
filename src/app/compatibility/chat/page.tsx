@@ -47,7 +47,7 @@ function CompatibilityChatContent() {
 
   // Parse URL params on mount
   useEffect(() => {
-    if (!searchParams) return;
+    if (!searchParams) {return;}
     try {
       const personsParam = searchParams.get('persons');
       const resultParam = searchParams.get('result');
@@ -70,7 +70,7 @@ function CompatibilityChatContent() {
   }, [messages]);
 
   const sendMessage = useCallback(async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading) {return;}
 
     const userMessage: ChatMessage = { role: 'user', content: input.trim() };
     setMessages((prev) => [...prev, userMessage]);
@@ -107,7 +107,7 @@ function CompatibilityChatContent() {
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {break;}
 
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split('\n');
@@ -115,7 +115,7 @@ function CompatibilityChatContent() {
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
-            if (data === '[DONE]') continue;
+            if (data === '[DONE]') {continue;}
             assistantContent += data;
 
             // Update the last assistant message

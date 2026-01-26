@@ -160,9 +160,9 @@ export function analyzeConflicts(p1: SajuProfile, p2: SajuProfile): ConflictAnal
   const totalConflicts = chung.length + hyeong.length + pa.length + hae.length;
 
   let severity: ConflictAnalysis['severity'] = 'minimal';
-  if (totalConflicts >= 4 || chung.length >= 2) severity = 'severe';
-  else if (totalConflicts >= 2) severity = 'moderate';
-  else if (totalConflicts >= 1) severity = 'mild';
+  if (totalConflicts >= 4 || chung.length >= 2) {severity = 'severe';}
+  else if (totalConflicts >= 2) {severity = 'moderate';}
+  else if (totalConflicts >= 1) {severity = 'mild';}
 
   const mitigationAdvice: string[] = [];
   if (chung.length > 0) {

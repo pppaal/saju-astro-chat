@@ -104,7 +104,7 @@ export default function CompatibilityFunInsights({
   const analysisData = useMemo(() => {
     // Build Saju profiles from raw data
     const buildSajuProfile = (saju: SajuRawData | null | undefined) => {
-      if (!saju) return null;
+      if (!saju) {return null;}
 
       const dayMasterName = saju?.dayMaster?.name || saju?.dayMaster?.heavenlyStem || '갑';
       const dayMasterElement = saju?.dayMaster?.element || 'wood';
@@ -144,7 +144,7 @@ export default function CompatibilityFunInsights({
 
     // Build Astrology profiles from raw data
     const buildAstroProfile = (astro: AstroRawData | null | undefined) => {
-      if (!astro) return null;
+      if (!astro) {return null;}
 
       const getSignData = (source: AstroRawData, planetName: string) => {
         // Try multiple sources

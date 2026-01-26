@@ -96,8 +96,8 @@ export default function CounselorPage({
 
   // Load pre-computed chart data from cache OR compute fresh
   useEffect(() => {
-    if (!isAuthed) return;
-    if (!birthDate || !birthTime || isNaN(latitude) || isNaN(longitude)) return;
+    if (!isAuthed) {return;}
+    if (!birthDate || !birthTime || isNaN(latitude) || isNaN(longitude)) {return;}
 
     let saju: Record<string, unknown> | null = null;
     let astro: Record<string, unknown> | null = null;
@@ -347,7 +347,7 @@ export default function CounselorPage({
 
   // Premium: Load user context (persona + recent sessions) for returning users
   useEffect(() => {
-    if (!isAuthed) return;
+    if (!isAuthed) {return;}
 
     const loadUserContext = async () => {
       try {
@@ -452,7 +452,7 @@ export default function CounselorPage({
 
   // Loading animation
   useEffect(() => {
-    if (!isAuthed) return;
+    if (!isAuthed) {return;}
 
     if (!birthDate || !birthTime || isNaN(latitude) || isNaN(longitude)) {
       router.push("/destiny-map");

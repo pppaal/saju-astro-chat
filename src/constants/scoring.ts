@@ -53,10 +53,10 @@ export function clampScore(
  * Get quality level based on score
  */
 export function getQualityLevel(score: number): 'excellent' | 'good' | 'average' | 'below_average' | 'poor' {
-  if (score >= SCORE_THRESHOLDS.EXCELLENT) return 'excellent';
-  if (score >= SCORE_THRESHOLDS.GOOD) return 'good';
-  if (score >= SCORE_THRESHOLDS.AVERAGE) return 'average';
-  if (score >= SCORE_THRESHOLDS.BELOW_AVERAGE) return 'below_average';
+  if (score >= SCORE_THRESHOLDS.EXCELLENT) {return 'excellent';}
+  if (score >= SCORE_THRESHOLDS.GOOD) {return 'good';}
+  if (score >= SCORE_THRESHOLDS.AVERAGE) {return 'average';}
+  if (score >= SCORE_THRESHOLDS.BELOW_AVERAGE) {return 'below_average';}
   return 'poor';
 }
 
@@ -64,8 +64,8 @@ export function getQualityLevel(score: number): 'excellent' | 'good' | 'average'
  * Get grade based on score (0-3 scale)
  */
 export function getGrade(score: number): 0 | 1 | 2 | 3 {
-  if (score >= SCORE_THRESHOLDS.GOOD) return 0; // Excellent
-  if (score >= SCORE_THRESHOLDS.AVERAGE) return 1; // Good
-  if (score >= SCORE_THRESHOLDS.BELOW_AVERAGE) return 2; // Average
+  if (score >= SCORE_THRESHOLDS.GOOD) {return 0;} // Excellent
+  if (score >= SCORE_THRESHOLDS.AVERAGE) {return 1;} // Good
+  if (score >= SCORE_THRESHOLDS.BELOW_AVERAGE) {return 2;} // Average
   return 3; // Poor
 }

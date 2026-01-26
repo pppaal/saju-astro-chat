@@ -20,7 +20,7 @@ type DailyHistory = {
 
 // Format destiny map summary based on theme
 function formatDestinyMapSummary(theme?: string | null): string {
-  if (!theme) return "Destiny Map 분석을 이용했습니다"
+  if (!theme) {return "Destiny Map 분석을 이용했습니다"}
 
   const themeLabels: Record<string, string> = {
     "focus_overall": "종합 운세",

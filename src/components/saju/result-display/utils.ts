@@ -5,14 +5,14 @@ import type { ElementEN } from './constants';
 import { stemElement, branchElement } from './constants';
 
 export function getGanjiName(val: GanjiValue): string {
-  if (typeof val === 'string') return val;
-  if (val && typeof val === 'object' && 'name' in val) return val.name;
+  if (typeof val === 'string') {return val;}
+  if (val && typeof val === 'object' && 'name' in val) {return val.name;}
   return '';
 }
 
 export function getElementOfChar(ch: string): ElementEN | null {
-  if (stemElement[ch]) return stemElement[ch];
-  if (branchElement[ch]) return branchElement[ch];
+  if (stemElement[ch]) {return stemElement[ch];}
+  if (branchElement[ch]) {return branchElement[ch];}
   return null;
 }
 

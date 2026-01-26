@@ -60,12 +60,12 @@ function desiredAngle(a: AspectType) {
 
 function getOrbLimitByName(name: string, rules: AspectRules) {
   const { orbs = {} } = rules;
-  if (name === "Sun") return orbs.Sun ?? 1.5;
-  if (name === "Moon") return orbs.Moon ?? 2.5;
-  if (["Mercury", "Venus", "Mars"].includes(name)) return orbs.inner ?? 1.5;
+  if (name === "Sun") {return orbs.Sun ?? 1.5;}
+  if (name === "Moon") {return orbs.Moon ?? 2.5;}
+  if (["Mercury", "Venus", "Mars"].includes(name)) {return orbs.inner ?? 1.5;}
   if (["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"].includes(name))
-    return orbs.outer ?? 2.0;
-  if (["Ascendant", "MC"].includes(name)) return orbs.angles ?? 2.0;
+    {return orbs.outer ?? 2.0;}
+  if (["Ascendant", "MC"].includes(name)) {return orbs.angles ?? 2.0;}
   return orbs.default ?? 1.8;
 }
 
@@ -93,7 +93,7 @@ function applyingFlag(sep: number, relSpeed: number, a: AspectType) {
 }
 
 function resolveAspectList(rules: AspectRules) {
-  if (rules.aspects) return rules.aspects;
+  if (rules.aspects) {return rules.aspects;}
   return rules.includeMinor
     ? [...MAJOR_ASPECTS, ...MINOR_ASPECTS]
     : MAJOR_ASPECTS;

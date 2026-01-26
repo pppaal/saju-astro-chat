@@ -60,24 +60,24 @@ const ELEMENT_SYNERGY_PAIRS: ReadonlyArray<[string, string]> = [
 
 // ============ 유틸리티 함수 ============
 const clampScore = (v: unknown): number => {
-  if (typeof v === 'number') return Math.max(SCORE_LIMITS.MIN, Math.min(SCORE_LIMITS.FULL, v));
+  if (typeof v === 'number') {return Math.max(SCORE_LIMITS.MIN, Math.min(SCORE_LIMITS.FULL, v));}
   return 0;
 };
 
 const capAt95 = (score: number): number => Math.min(SCORE_LIMITS.MAX, Math.round(score));
 
 const getScoreLevel = (score: number) => {
-  if (score >= SCORE_LEVELS.EXCELLENT.threshold) return SCORE_LEVELS.EXCELLENT;
-  if (score >= SCORE_LEVELS.GOOD.threshold) return SCORE_LEVELS.GOOD;
-  if (score >= SCORE_LEVELS.AVERAGE.threshold) return SCORE_LEVELS.AVERAGE;
+  if (score >= SCORE_LEVELS.EXCELLENT.threshold) {return SCORE_LEVELS.EXCELLENT;}
+  if (score >= SCORE_LEVELS.GOOD.threshold) {return SCORE_LEVELS.GOOD;}
+  if (score >= SCORE_LEVELS.AVERAGE.threshold) {return SCORE_LEVELS.AVERAGE;}
   return SCORE_LEVELS.NEEDS_CARE;
 };
 
 // 원소 시너지 점수 계산
 const calculateElementSynergy = (el1: string | null, el2: string | null, sameScore: number, compatibleScore: number, defaultScore: number): number => {
-  if (!el1 || !el2) return 0;
-  if (el1 === el2) return sameScore;
-  if (ELEMENT_SYNERGY_PAIRS.some(([a, b]) => a === el1 && b === el2)) return compatibleScore;
+  if (!el1 || !el2) {return 0;}
+  if (el1 === el2) {return sameScore;}
+  if (ELEMENT_SYNERGY_PAIRS.some(([a, b]) => a === el1 && b === el2)) {return compatibleScore;}
   return defaultScore;
 };
 

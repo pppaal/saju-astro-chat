@@ -25,7 +25,7 @@ export interface UserProfile {
  * Get stored user profile from localStorage
  */
 export function getUserProfile(): UserProfile {
-  if (typeof window === 'undefined') return {};
+  if (typeof window === 'undefined') {return {};}
 
   try {
     const stored = localStorage.getItem(USER_PROFILE_KEY);
@@ -40,14 +40,14 @@ export function getUserProfile(): UserProfile {
  * and sync to localStorage
  */
 export async function fetchAndSyncUserProfile(): Promise<UserProfile> {
-  if (typeof window === 'undefined') return {};
+  if (typeof window === 'undefined') {return {};}
 
   try {
     const res = await fetch('/api/me/profile', { cache: 'no-store' });
-    if (!res.ok) return getUserProfile();
+    if (!res.ok) {return getUserProfile();}
 
     const { user } = await res.json();
-    if (!user) return getUserProfile();
+    if (!user) {return getUserProfile();}
 
     // Convert API response to UserProfile format
     const profile: UserProfile = {
@@ -75,7 +75,7 @@ export async function fetchAndSyncUserProfile(): Promise<UserProfile> {
  * Save user profile to localStorage (merges with existing)
  */
 export function saveUserProfile(profile: Partial<UserProfile>): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined') {return;}
 
   try {
     const existing = getUserProfile();
@@ -109,7 +109,7 @@ export function hasCompleteProfile(): boolean {
  * Clear stored user profile
  */
 export function clearUserProfile(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined') {return;}
 
   try {
     localStorage.removeItem(USER_PROFILE_KEY);

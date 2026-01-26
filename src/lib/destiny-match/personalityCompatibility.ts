@@ -85,10 +85,10 @@ export function calculatePersonalityCompatibility(
 }
 
 function getGrade(score: number): string {
-  if (score >= 90) return 'S';
-  if (score >= 80) return 'A';
-  if (score >= 65) return 'B';
-  if (score >= 50) return 'C';
+  if (score >= 90) {return 'S';}
+  if (score >= 80) {return 'A';}
+  if (score >= 65) {return 'B';}
+  if (score >= 50) {return 'C';}
   return 'D';
 }
 
@@ -202,7 +202,7 @@ export function quickPersonalityScore(
   p1: PersonalityScores | null,
   p2: PersonalityScores | null
 ): number | null {
-  if (!p1 || !p2) return null;
+  if (!p1 || !p2) {return null;}
 
   const energyDiff = Math.abs(p1.energy - p2.energy);
   const cognitionDiff = Math.abs(p1.cognition - p2.cognition);

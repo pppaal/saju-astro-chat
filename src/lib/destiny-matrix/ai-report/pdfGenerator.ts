@@ -53,18 +53,18 @@ function wrapText(text: string, maxCharsPerLine: number): string[] {
     if (currentLine.length + word.length + 1 <= maxCharsPerLine) {
       currentLine += (currentLine ? ' ' : '') + word;
     } else {
-      if (currentLine) lines.push(currentLine);
+      if (currentLine) {lines.push(currentLine);}
       currentLine = word;
     }
   }
-  if (currentLine) lines.push(currentLine);
+  if (currentLine) {lines.push(currentLine);}
 
   return lines;
 }
 
 // 한글 텍스트를 영어로 변환 (pdf-lib는 한글 폰트 미지원)
 function sanitizeForPdf(text: string, lang: 'ko' | 'en'): string {
-  if (lang === 'en') return text;
+  if (lang === 'en') {return text;}
 
   // 한글 -> ASCII 변환 (실제로는 한글 폰트 임베딩 필요)
   // 여기서는 간단히 처리

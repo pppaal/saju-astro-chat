@@ -72,23 +72,23 @@ export function generateCategories(input: CategoryGeneratorInput): CategoryGener
   // 천간 관계에 따른 카테고리
   if (ganzhi.stemElement === dayMasterElement) {
     // 비견
-    if (!categories.includes('career')) categories.push('career');
+    if (!categories.includes('career')) {categories.push('career');}
   } else if (ganzhi.stemElement === relations.generatedBy) {
     // 인성
-    if (!categories.includes('study')) categories.push('study');
-    if (!categories.includes('career')) categories.push('career');
+    if (!categories.includes('study')) {categories.push('study');}
+    if (!categories.includes('career')) {categories.push('career');}
   } else if (ganzhi.stemElement === relations.controls) {
     // 재성
-    if (!categories.includes('wealth')) categories.push('wealth');
-    if (!categories.includes('love')) categories.push('love');
+    if (!categories.includes('wealth')) {categories.push('wealth');}
+    if (!categories.includes('love')) {categories.push('love');}
   } else if (ganzhi.stemElement === relations.generates) {
     // 식상
-    if (!categories.includes('love')) categories.push('love');
-    if (!categories.includes('career')) categories.push('career');
+    if (!categories.includes('love')) {categories.push('love');}
+    if (!categories.includes('career')) {categories.push('career');}
   } else if (ganzhi.stemElement === relations.controlledBy) {
     // 관살
-    if (!categories.includes('health')) categories.push('health');
-    if (!categories.includes('career')) categories.push('career');
+    if (!categories.includes('health')) {categories.push('health');}
+    if (!categories.includes('career')) {categories.push('career');}
   }
 
   // 카테고리가 비어있으면 general 추가

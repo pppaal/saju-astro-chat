@@ -325,14 +325,14 @@ export function analyzeDaeunTransitSync(
   for (let age = startAge; age <= endAge; age++) {
     // 해당 나이의 대운 찾기
     const daeun = daeunList.find(d => age >= d.startAge && age <= d.endAge);
-    if (!daeun) continue;
+    if (!daeun) {continue;}
 
     // 활성 트랜짓 감지
     const transits = getActiveTransits(age);
 
     // 트랜짓이 있거나 대운 전환기인 경우만 분석
     const transition = isDaeunTransition(age, daeunList);
-    if (transits.length === 0 && !transition.isTransition) continue;
+    if (transits.length === 0 && !transition.isTransition) {continue;}
 
     // 시너지 계산
     const synergy = calculateSynergyScore(daeun, transits);
@@ -340,7 +340,7 @@ export function analyzeDaeunTransitSync(
     // 신뢰도 계산 (트랜짓 수, 대운 전환 여부에 따라)
     let confidence = 60;
     confidence += transits.length * 10;
-    if (transition.isTransition) confidence += 15;
+    if (transition.isTransition) {confidence += 15;}
     confidence = Math.min(100, confidence);
 
     const year = birthYear + age;
@@ -388,7 +388,7 @@ export function analyzeDaeunTransitSync(
       });
 
       // TIER 5 기반 신뢰도 보정
-      if (eastWestHarmony >= 70) confidence += 10;
+      if (eastWestHarmony >= 70) {confidence += 10;}
       confidence = Math.min(100, confidence);
     }
 
@@ -514,7 +514,7 @@ export function analyzeDaeunTransitSync(
 
 // 오행 정렬도 계산
 function calculateElementAlignment(element1: FiveElement, element2: FiveElement): number {
-  if (element1 === element2) return 100;
+  if (element1 === element2) {return 100;}
 
   const supportMatrix: Record<FiveElement, FiveElement> = {
     '목': '화', '화': '토', '토': '금', '금': '수', '수': '목',
@@ -523,10 +523,10 @@ function calculateElementAlignment(element1: FiveElement, element2: FiveElement)
     '목': '토', '토': '수', '수': '화', '화': '금', '금': '목',
   };
 
-  if (supportMatrix[element1] === element2) return 80; // 상생
-  if (supportMatrix[element2] === element1) return 70; // 피상생
-  if (clashMatrix[element1] === element2) return 30;   // 상극
-  if (clashMatrix[element2] === element1) return 40;   // 피상극
+  if (supportMatrix[element1] === element2) {return 80;} // 상생
+  if (supportMatrix[element2] === element1) {return 70;} // 피상생
+  if (clashMatrix[element1] === element2) {return 30;}   // 상극
+  if (clashMatrix[element2] === element1) {return 40;}   // 피상극
 
   return 50; // 중립
 }

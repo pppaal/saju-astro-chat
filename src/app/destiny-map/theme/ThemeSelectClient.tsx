@@ -56,7 +56,7 @@ export default function ThemeSelectClient() {
   // ------------------------------------------------------------ //
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {return;}
 
     const ctx = canvas.getContext('2d')!;
     canvas.width = window.innerWidth;
@@ -115,8 +115,8 @@ export default function ThemeSelectClient() {
       }
 
       update() {
-        if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
-        if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+        if (this.x > canvas.width || this.x < 0) {this.speedX = -this.speedX;}
+        if (this.y > canvas.height || this.y < 0) {this.speedY = -this.speedY;}
 
         this.x += this.speedX;
         this.y += this.speedY;
@@ -203,8 +203,8 @@ export default function ThemeSelectClient() {
 
     const lat = sp?.get('latitude') || sp?.get('lat');
     const lon = sp?.get('longitude') || sp?.get('lon');
-    if (lat) params.set('latitude', lat);
-    if (lon) params.set('longitude', lon);
+    if (lat) {params.set('latitude', lat);}
+    if (lon) {params.set('longitude', lon);}
 
     router.push(`/destiny-map/result?${params.toString()}`);
   };

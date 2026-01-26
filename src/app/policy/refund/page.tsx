@@ -9,7 +9,7 @@ type Section = { title: string; titleKo: string; body: string; bodyKo: string };
 
 const PSP_NAME = "Stripe";
 const CONTACT_EMAIL = "rheeco88@gmail.com";
-const EFFECTIVE_DATE = "2025-12-24";
+const EFFECTIVE_DATE = "2026-01-25";
 
 const sections: Section[] = [
   {
@@ -450,7 +450,7 @@ function SectionView({ s, isKo }: { s: Section; isKo: boolean }) {
 }
 
 export default function RefundPage() {
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
   const isKo = locale === "ko";
 
   return (
@@ -462,10 +462,10 @@ export default function RefundPage() {
         <div className={styles.card}>
           <div className={styles.header}>
             <h1 className={styles.title}>
-              {isKo ? "환불 및 결제 정책" : "Refund and Payment Policy"}
+              {t("policy.refund.title", "Refund and Payment Policy")}
             </h1>
             <p className={styles.effectiveDate}>
-              {isKo ? "시행일" : "Effective date"}: {EFFECTIVE_DATE}
+              {t("policy.refund.effective", "Effective date")}: {EFFECTIVE_DATE}
             </p>
           </div>
           <div className={styles.content}>
@@ -475,7 +475,7 @@ export default function RefundPage() {
           </div>
           <div className={styles.footer}>
             <p className={styles.footerText}>
-              {isKo ? "부칙" : "Addendum"}: {EFFECTIVE_DATE}
+              {t("policy.refund.footer", "Addendum")}: {EFFECTIVE_DATE}
             </p>
           </div>
         </div>

@@ -90,7 +90,7 @@ function generateFullStory(saju: SajuData | undefined, astro: AstroData | undefi
 
   const shinsals = saju?.shinsal || saju?.specialStars || [];
   const shinsalList: string[] = Array.isArray(shinsals) ? shinsals.map((s: ShinsalItem | string) => {
-    if (typeof s === 'string') return s;
+    if (typeof s === 'string') {return s;}
     return s?.name || s?.kind || null;
   }).filter((s): s is string => s !== null && s !== undefined) : [];
 
@@ -356,13 +356,13 @@ export default function DestinyMatrixStory({ saju, astro, lang = "ko", className
       }
 
       const reader = response.body?.getReader();
-      if (!reader) throw new Error("No reader available");
+      if (!reader) {throw new Error("No reader available");}
 
       const decoder = new TextDecoder();
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {break;}
 
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split("\n");
@@ -422,7 +422,7 @@ export default function DestinyMatrixStory({ saju, astro, lang = "ko", className
   // 표시할 스토리 선택
   const displayStory = useAI ? aiStory : staticStory;
 
-  if (!useAI && !staticStory) return null;
+  if (!useAI && !staticStory) {return null;}
 
   return (
     <div className={`mt-8 ${className}`}>

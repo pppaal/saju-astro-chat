@@ -187,12 +187,12 @@ export function enforceBodySize(
   passthroughHeaders?: HeadersInit
 ) {
   const lenHeader = req.headers.get("content-length");
-  if (!lenHeader) return null;
+  if (!lenHeader) {return null;}
 
   const len = Number(lenHeader);
-  if (!Number.isFinite(len)) return null;
-  if (len < 0) return null; // Negative values should be ignored
-  if (len <= maxBytes) return null;
+  if (!Number.isFinite(len)) {return null;}
+  if (len < 0) {return null;} // Negative values should be ignored
+  if (len <= maxBytes) {return null;}
 
   const res = NextResponse.json(
     { error: "payload_too_large", limit: maxBytes },

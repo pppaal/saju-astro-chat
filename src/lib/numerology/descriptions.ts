@@ -278,7 +278,7 @@ const templatesEn: Record<string, (n: number) => string> = {
 export function describeLocale(core: string, n: number, locale: string = "en"): string {
   const t = locale === "ko" ? templatesKo : templatesEn;
   const fn = t[core];
-  if (fn) return fn(n);
+  if (fn) {return fn(n);}
   // Fallback
   const b = safeBaseLocale(n, locale);
   return b.tagline;

@@ -68,7 +68,7 @@ export function recordGauge(name: string, value: number, labels?: Labels) {
  * Calculate percentile from sorted array
  */
 function calculatePercentile(sortedSamples: number[], percentile: number): number {
-  if (sortedSamples.length === 0) return 0;
+  if (sortedSamples.length === 0) {return 0;}
   const index = Math.ceil((percentile / 100) * sortedSamples.length) - 1;
   return sortedSamples[Math.max(0, Math.min(index, sortedSamples.length - 1))];
 }

@@ -18,14 +18,14 @@ export function getSibsinDistribution(saju: SajuData | undefined): Record<string
       const sibsin = typeof sibsinVal === 'object' && sibsinVal !== null
         ? (sibsinVal as Record<string, unknown>).name || (sibsinVal as Record<string, unknown>).kind
         : sibsinVal;
-      if (typeof sibsin === 'string' && sibsin) distribution[sibsin] = (distribution[sibsin] || 0) + 1;
+      if (typeof sibsin === 'string' && sibsin) {distribution[sibsin] = (distribution[sibsin] || 0) + 1;}
     }
     if (pillar?.earthlyBranch?.sibsin) {
       const sibsinVal = pillar.earthlyBranch.sibsin as unknown;
       const sibsin = typeof sibsinVal === 'object' && sibsinVal !== null
         ? (sibsinVal as Record<string, unknown>).name || (sibsinVal as Record<string, unknown>).kind
         : sibsinVal;
-      if (typeof sibsin === 'string' && sibsin) distribution[sibsin] = (distribution[sibsin] || 0) + 1;
+      if (typeof sibsin === 'string' && sibsin) {distribution[sibsin] = (distribution[sibsin] || 0) + 1;}
     }
   }
 

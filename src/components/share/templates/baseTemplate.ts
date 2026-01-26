@@ -35,7 +35,7 @@ export function createCanvas(size: CardSize) {
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Failed to get canvas context');
+  if (!ctx) {throw new Error('Failed to get canvas context');}
   return { canvas, ctx, width, height };
 }
 
@@ -92,12 +92,12 @@ export function drawWrappedText(ctx: CanvasRenderingContext2D, text: string, x: 
       line = word + ' ';
       currentY += lineHeight;
       lineCount++;
-      if (lineCount >= maxLines) break;
+      if (lineCount >= maxLines) {break;}
     } else {
       line = testLine;
     }
   }
-  if (line && lineCount < maxLines) ctx.fillText(line.trim(), x, currentY);
+  if (line && lineCount < maxLines) {ctx.fillText(line.trim(), x, currentY);}
   return currentY;
 }
 

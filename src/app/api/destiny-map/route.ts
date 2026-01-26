@@ -28,7 +28,7 @@ const ALLOWED_GENDER = new Set(["male", "female", "other", "prefer_not"]);
 // Basic HTML/script stripping to keep responses safe for UI rendering
 // IMPORTANT: Preserve JSON structure (curly braces) for structured responses
 function cleanseText(raw: string) {
-  if (!raw) return "";
+  if (!raw) {return "";}
 
   // Check if this is a JSON response (starts with { or contains structured keys)
   const isJsonResponse = raw.trim().startsWith("{") ||
@@ -54,7 +54,7 @@ function cleanseText(raw: string) {
 }
 
 function maskPayload(body: unknown) {
-  if (!body || typeof body !== "object") return body;
+  if (!body || typeof body !== "object") {return body;}
   const payload = body as Record<string, unknown>;
   const name = typeof payload.name === "string" ? payload.name : undefined;
   const birthDate = typeof payload.birthDate === "string" ? payload.birthDate : undefined;
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     });
 
     const { context, error } = await initializeApiContext(request, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     const body = await request.json().catch(() => null);
     if (enableDebugLogs) {
@@ -325,7 +325,7 @@ export async function POST(request: NextRequest) {
     if (enableDebugLogs) {
       try {
         const dir = path.join(process.cwd(), "logs");
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+        if (!fs.existsSync(dir)) {fs.mkdirSync(dir);}
         const file = path.join(dir, `destinymap-${Date.now()}.json`);
         fs.writeFileSync(file, JSON.stringify({ body: maskPayload(body), report }, null, 2), "utf8");
         logger.warn("[API] Log saved:", file);

@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     const body: ChangingLineRequest = await req.json();
     const { hexagramNumber, lineIndex, locale = "ko" } = body;

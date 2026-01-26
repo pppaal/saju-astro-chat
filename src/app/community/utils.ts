@@ -18,7 +18,7 @@ import {
  * @returns Sanitized icon string or fallback "*"
  */
 export const sanitizeIcon = (icon?: string): string => {
-  if (!icon) return "*";
+  if (!icon) {return "*";}
   const ascii = icon.replace(/[^\x00-\x7F]/g, "*").trim();
   return ascii || "*";
 };
@@ -32,10 +32,10 @@ export const getCommunityDict = (locale: string): Record<string, unknown> => {
   const dicts = DICTS as Record<string, { community?: unknown }>;
   const current = dicts[locale]?.community;
   if (current && typeof current === "object")
-    return current as Record<string, unknown>;
+    {return current as Record<string, unknown>;}
   const fallback = dicts.en?.community;
   if (fallback && typeof fallback === "object")
-    return fallback as Record<string, unknown>;
+    {return fallback as Record<string, unknown>;}
   return {};
 };
 

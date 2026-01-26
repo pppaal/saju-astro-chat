@@ -642,14 +642,14 @@ export function generateYearlyPrediction(params: GenerateYearlyPredictionParams)
 }
 
 function determineTrend(scores: number[]): QuarterAnalysis['trend'] {
-  if (scores.length < 2) return 'stable';
+  if (scores.length < 2) {return 'stable';}
 
   const diff = scores[scores.length - 1] - scores[0];
   const volatility = Math.max(...scores) - Math.min(...scores);
 
-  if (volatility > 20) return 'volatile';
-  if (diff > 10) return 'ascending';
-  if (diff < -10) return 'descending';
+  if (volatility > 20) {return 'volatile';}
+  if (diff > 10) {return 'ascending';}
+  if (diff < -10) {return 'descending';}
   return 'stable';
 }
 

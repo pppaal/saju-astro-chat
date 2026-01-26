@@ -70,7 +70,7 @@ export default function CreditDepletedModal({
     };
   }, [isOpen, handleKeyDown]);
 
-  if (!isVisible) return null;
+  if (!isVisible) {return null;}
 
   const isDepleted = type === "depleted";
 

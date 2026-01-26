@@ -67,11 +67,11 @@ export function standardizeScore(rawScore: number): StandardizedScore {
  * 등급만 빠르게 계산
  */
 export function scoreToGrade(score: number): PredictionGrade {
-  if (score >= 90) return 'S';
-  if (score >= 80) return 'A+';
-  if (score >= 70) return 'A';
-  if (score >= 60) return 'B';
-  if (score >= 50) return 'C';
+  if (score >= 90) {return 'S';}
+  if (score >= 80) {return 'A+';}
+  if (score >= 70) {return 'A';}
+  if (score >= 60) {return 'B';}
+  if (score >= 50) {return 'C';}
   return 'D';
 }
 

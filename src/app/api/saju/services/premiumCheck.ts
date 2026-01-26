@@ -16,7 +16,7 @@ const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-
 
 function getCachedPremium(email: string): boolean | null {
   const entry = premiumCache.get(email.toLowerCase());
-  if (entry && entry.expires > Date.now()) return entry.value;
+  if (entry && entry.expires > Date.now()) {return entry.value;}
   return null;
 }
 
@@ -30,13 +30,13 @@ function setCachedPremium(email: string, value: boolean): void {
  */
 export async function checkPremiumStatus(email?: string, ip?: string): Promise<boolean> {
   const key = process.env.STRIPE_SECRET_KEY;
-  if (!key || !email) return false;
+  if (!key || !email) {return false;}
 
   // Validate email format
-  if (!EMAIL_REGEX.test(email) || email.length > 254) return false;
+  if (!EMAIL_REGEX.test(email) || email.length > 254) {return false;}
 
   const cached = getCachedPremium(email);
-  if (cached !== null) return cached;
+  if (cached !== null) {return cached;}
 
   try {
     const rlKey = `saju-premium:${email.toLowerCase()}:${ip ?? 'unknown'}`;
@@ -68,7 +68,7 @@ export async function checkPremiumStatus(email?: string, ip?: string): Promise<b
       }
     }
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') logger.warn('[Saju API] Premium check failed:', e);
+    if (process.env.NODE_ENV !== 'production') {logger.warn('[Saju API] Premium check failed:', e);}
   }
   setCachedPremium(email, false);
   return false;

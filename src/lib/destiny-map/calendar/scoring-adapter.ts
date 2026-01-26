@@ -68,15 +68,15 @@ export function adaptDaeunResult(result: LegacyAnalysisResult): SajuScoreInput['
   const input: SajuScoreInput['daeun'] = {};
 
   for (const key of result.factorKeys) {
-    if (key.includes('Inseong') || key.includes('인성')) input.sibsin = 'inseong';
-    else if (key.includes('Jaeseong') || key.includes('재성')) input.sibsin = 'jaeseong';
-    else if (key.includes('Bijeon') || key.includes('비견')) input.sibsin = 'bijeon';
-    else if (key.includes('Siksang') || key.includes('식상')) input.sibsin = 'siksang';
-    else if (key.includes('Gwansal') || key.includes('관살')) input.hasGwansal = true;
-    else if (key.includes('yukhap') || key.includes('육합')) input.hasYukhap = true;
-    else if (key.includes('samhap') && result.positive) input.hasSamhapPositive = true;
-    else if (key.includes('samhap') && result.negative) input.hasSamhapNegative = true;
-    else if (key.includes('chung') || key.includes('충')) input.hasChung = true;
+    if (key.includes('Inseong') || key.includes('인성')) {input.sibsin = 'inseong';}
+    else if (key.includes('Jaeseong') || key.includes('재성')) {input.sibsin = 'jaeseong';}
+    else if (key.includes('Bijeon') || key.includes('비견')) {input.sibsin = 'bijeon';}
+    else if (key.includes('Siksang') || key.includes('식상')) {input.sibsin = 'siksang';}
+    else if (key.includes('Gwansal') || key.includes('관살')) {input.hasGwansal = true;}
+    else if (key.includes('yukhap') || key.includes('육합')) {input.hasYukhap = true;}
+    else if (key.includes('samhap') && result.positive) {input.hasSamhapPositive = true;}
+    else if (key.includes('samhap') && result.negative) {input.hasSamhapNegative = true;}
+    else if (key.includes('chung') || key.includes('충')) {input.hasChung = true;}
   }
 
   return input;
@@ -96,15 +96,15 @@ export function adaptSeunResult(
   const input: SajuScoreInput['seun'] = { isSamjaeYear, hasGwiin };
 
   for (const key of result.factorKeys) {
-    if (key.includes('Inseong') || key.includes('인성')) input.sibsin = 'inseong';
-    else if (key.includes('Jaeseong') || key.includes('재성')) input.sibsin = 'jaeseong';
-    else if (key.includes('Bijeon') || key.includes('비견')) input.sibsin = 'bijeon';
-    else if (key.includes('Siksang') || key.includes('식상')) input.sibsin = 'siksang';
-    else if (key.includes('Gwansal') || key.includes('관살')) input.hasGwansal = true;
-    else if (key.includes('yukhap') || key.includes('육합')) input.hasYukhap = true;
-    else if (key.includes('samhap') && result.positive) input.hasSamhapPositive = true;
-    else if (key.includes('samhap') && result.negative) input.hasSamhapNegative = true;
-    else if (key.includes('chung') || key.includes('충')) input.hasChung = true;
+    if (key.includes('Inseong') || key.includes('인성')) {input.sibsin = 'inseong';}
+    else if (key.includes('Jaeseong') || key.includes('재성')) {input.sibsin = 'jaeseong';}
+    else if (key.includes('Bijeon') || key.includes('비견')) {input.sibsin = 'bijeon';}
+    else if (key.includes('Siksang') || key.includes('식상')) {input.sibsin = 'siksang';}
+    else if (key.includes('Gwansal') || key.includes('관살')) {input.hasGwansal = true;}
+    else if (key.includes('yukhap') || key.includes('육합')) {input.hasYukhap = true;}
+    else if (key.includes('samhap') && result.positive) {input.hasSamhapPositive = true;}
+    else if (key.includes('samhap') && result.negative) {input.hasSamhapNegative = true;}
+    else if (key.includes('chung') || key.includes('충')) {input.hasChung = true;}
   }
 
   return input;
@@ -117,15 +117,15 @@ export function adaptWolunResult(result: LegacyAnalysisResult): SajuScoreInput['
   const input: SajuScoreInput['wolun'] = {};
 
   for (const key of result.factorKeys) {
-    if (key.includes('Inseong') || key.includes('인성')) input.sibsin = 'inseong';
-    else if (key.includes('Jaeseong') || key.includes('재성')) input.sibsin = 'jaeseong';
-    else if (key.includes('Bijeon') || key.includes('비견')) input.sibsin = 'bijeon';
-    else if (key.includes('Siksang') || key.includes('식상')) input.sibsin = 'siksang';
-    else if (key.includes('Gwansal') || key.includes('관살')) input.hasGwansal = true;
-    else if (key.includes('yukhap') || key.includes('육합')) input.hasYukhap = true;
-    else if (key.includes('samhap') && result.positive) input.hasSamhapPositive = true;
-    else if (key.includes('samhap') && result.negative) input.hasSamhapNegative = true;
-    else if (key.includes('chung') || key.includes('충')) input.hasChung = true;
+    if (key.includes('Inseong') || key.includes('인성')) {input.sibsin = 'inseong';}
+    else if (key.includes('Jaeseong') || key.includes('재성')) {input.sibsin = 'jaeseong';}
+    else if (key.includes('Bijeon') || key.includes('비견')) {input.sibsin = 'bijeon';}
+    else if (key.includes('Siksang') || key.includes('식상')) {input.sibsin = 'siksang';}
+    else if (key.includes('Gwansal') || key.includes('관살')) {input.hasGwansal = true;}
+    else if (key.includes('yukhap') || key.includes('육합')) {input.hasYukhap = true;}
+    else if (key.includes('samhap') && result.positive) {input.hasSamhapPositive = true;}
+    else if (key.includes('samhap') && result.negative) {input.hasSamhapNegative = true;}
+    else if (key.includes('chung') || key.includes('충')) {input.hasChung = true;}
   }
 
   return input;
@@ -159,59 +159,59 @@ export function adaptIljinResult(
     for (const shinsal of options.shinsalResult.active) {
       const name = shinsal.name;
       // 길신
-      if (name === '태극귀인') input.hasTaegukGwiin = true;
-      else if (name === '천덕귀인' || name === '천덕') input.hasCheondeokGwiin = true;
-      else if (name === '월덕귀인' || name === '월덕') input.hasWoldeokGwiin = true;
-      else if (name === '화개') input.hasHwagae = true;
+      if (name === '태극귀인') {input.hasTaegukGwiin = true;}
+      else if (name === '천덕귀인' || name === '천덕') {input.hasCheondeokGwiin = true;}
+      else if (name === '월덕귀인' || name === '월덕') {input.hasWoldeokGwiin = true;}
+      else if (name === '화개') {input.hasHwagae = true;}
       // 흉신
-      else if (name === '공망') input.hasGongmang = true;
-      else if (name === '원진') input.hasWonjin = true;
-      else if (name === '양인') input.hasYangin = true;
-      else if (name === '괴강') input.hasGoegang = true;
-      else if (name === '백호') input.hasBackho = true;
-      else if (name === '귀문관') input.hasGuimungwan = true;
+      else if (name === '공망') {input.hasGongmang = true;}
+      else if (name === '원진') {input.hasWonjin = true;}
+      else if (name === '양인') {input.hasYangin = true;}
+      else if (name === '괴강') {input.hasGoegang = true;}
+      else if (name === '백호') {input.hasBackho = true;}
+      else if (name === '귀문관') {input.hasGuimungwan = true;}
     }
   }
 
   // 십신 분석
   for (const key of result.factorKeys) {
     // 십신 매칭
-    if (key.includes('jeongyin') || key.includes('정인')) input.sibsin = 'jeongyin';
-    else if (key.includes('pyeonyin') || key.includes('편인')) input.sibsin = 'pyeonyin';
-    else if (key.includes('jeongchaae') || key.includes('정재')) input.sibsin = 'jeongchaae';
-    else if (key.includes('pyeonchaae') || key.includes('편재')) input.sibsin = 'pyeonchaae';
-    else if (key.includes('sikshin') || key.includes('식신')) input.sibsin = 'sikshin';
-    else if (key.includes('sanggwan') || key.includes('상관')) input.sibsin = 'sanggwan';
-    else if (key.includes('jeongwan') || key.includes('정관')) input.sibsin = 'jeongwan';
-    else if (key.includes('pyeonwan') || key.includes('편관')) input.sibsin = 'pyeonwan';
-    else if (key.includes('bijeon') || key.includes('비견')) input.sibsin = 'bijeon';
-    else if (key.includes('gyeobjae') || key.includes('겁재')) input.sibsin = 'gyeobjae';
+    if (key.includes('jeongyin') || key.includes('정인')) {input.sibsin = 'jeongyin';}
+    else if (key.includes('pyeonyin') || key.includes('편인')) {input.sibsin = 'pyeonyin';}
+    else if (key.includes('jeongchaae') || key.includes('정재')) {input.sibsin = 'jeongchaae';}
+    else if (key.includes('pyeonchaae') || key.includes('편재')) {input.sibsin = 'pyeonchaae';}
+    else if (key.includes('sikshin') || key.includes('식신')) {input.sibsin = 'sikshin';}
+    else if (key.includes('sanggwan') || key.includes('상관')) {input.sibsin = 'sanggwan';}
+    else if (key.includes('jeongwan') || key.includes('정관')) {input.sibsin = 'jeongwan';}
+    else if (key.includes('pyeonwan') || key.includes('편관')) {input.sibsin = 'pyeonwan';}
+    else if (key.includes('bijeon') || key.includes('비견')) {input.sibsin = 'bijeon';}
+    else if (key.includes('gyeobjae') || key.includes('겁재')) {input.sibsin = 'gyeobjae';}
     // 인성/재성 등 상위 카테고리도 매칭
-    else if (key.includes('Inseong') || key.includes('인성')) input.sibsin = 'jeongyin';
-    else if (key.includes('Jaeseong') || key.includes('재성')) input.sibsin = 'jeongchaae';
-    else if (key.includes('Gwansal') || key.includes('관살')) input.sibsin = 'pyeonwan';
+    else if (key.includes('Inseong') || key.includes('인성')) {input.sibsin = 'jeongyin';}
+    else if (key.includes('Jaeseong') || key.includes('재성')) {input.sibsin = 'jeongchaae';}
+    else if (key.includes('Gwansal') || key.includes('관살')) {input.sibsin = 'pyeonwan';}
   }
 
   // 지지 상호작용
   if (options.branchInteractions) {
     for (const inter of options.branchInteractions) {
-      if (inter.type === '육합') input.hasYukhap = true;
-      else if (inter.type === '삼합' && inter.impact === 'positive') input.hasSamhapPositive = true;
-      else if (inter.type === '삼합' && inter.impact === 'negative') input.hasSamhapNegative = true;
-      else if (inter.type === '충') input.hasChung = true;
-      else if (inter.type === '형') input.hasXing = true;
-      else if (inter.type === '해') input.hasHai = true;
+      if (inter.type === '육합') {input.hasYukhap = true;}
+      else if (inter.type === '삼합' && inter.impact === 'positive') {input.hasSamhapPositive = true;}
+      else if (inter.type === '삼합' && inter.impact === 'negative') {input.hasSamhapNegative = true;}
+      else if (inter.type === '충') {input.hasChung = true;}
+      else if (inter.type === '형') {input.hasXing = true;}
+      else if (inter.type === '해') {input.hasHai = true;}
     }
   }
 
   // factorKeys에서도 지지 관계 추출
   for (const key of result.factorKeys) {
-    if (key.includes('yukhap') || key.includes('육합')) input.hasYukhap = true;
-    else if (key.includes('samhap') && result.positive) input.hasSamhapPositive = true;
-    else if (key.includes('samhap') && result.negative) input.hasSamhapNegative = true;
-    else if (key.includes('chung') || key.includes('충')) input.hasChung = true;
-    else if (key.includes('xing') || key.includes('형')) input.hasXing = true;
-    else if (key.includes('hai') || key.includes('해')) input.hasHai = true;
+    if (key.includes('yukhap') || key.includes('육합')) {input.hasYukhap = true;}
+    else if (key.includes('samhap') && result.positive) {input.hasSamhapPositive = true;}
+    else if (key.includes('samhap') && result.negative) {input.hasSamhapNegative = true;}
+    else if (key.includes('chung') || key.includes('충')) {input.hasChung = true;}
+    else if (key.includes('xing') || key.includes('형')) {input.hasXing = true;}
+    else if (key.includes('hai') || key.includes('해')) {input.hasHai = true;}
   }
 
   return input;
@@ -273,15 +273,15 @@ export function getElementRelation(
   transitElement: string,
   elementRelations: Record<string, { generates: string; controls: string; generatedBy: string; controlledBy: string }>
 ): 'same' | 'generatedBy' | 'generates' | 'controlledBy' | 'controls' | undefined {
-  if (natalElement === transitElement) return 'same';
+  if (natalElement === transitElement) {return 'same';}
 
   const relations = elementRelations[natalElement];
-  if (!relations) return undefined;
+  if (!relations) {return undefined;}
 
-  if (transitElement === relations.generatedBy) return 'generatedBy';
-  if (transitElement === relations.generates) return 'generates';
-  if (transitElement === relations.controlledBy) return 'controlledBy';
-  if (transitElement === relations.controls) return 'controls';
+  if (transitElement === relations.generatedBy) {return 'generatedBy';}
+  if (transitElement === relations.generates) {return 'generates';}
+  if (transitElement === relations.controlledBy) {return 'controlledBy';}
+  if (transitElement === relations.controls) {return 'controls';}
 
   return undefined;
 }

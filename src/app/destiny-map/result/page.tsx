@@ -69,7 +69,7 @@ function AnalyzingLoader() {
     // Simulate progress: ~45 seconds total
     const interval = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 95) return prev;
+        if (prev >= 95) {return prev;}
         const increment = prev < 30 ? 3 : prev < 60 ? 2 : prev < 80 ? 1 : 0.5;
         return Math.min(prev + increment, 95);
       });
@@ -283,7 +283,7 @@ export default function DestinyResultPage({
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem("destinyChartData");
-      if (!raw) return;
+      if (!raw) {return;}
       const parsed = JSON.parse(raw);
       if (parsed?.timestamp) {
         const minutes = Math.max(0, Math.floor((Date.now() - parsed.timestamp) / 60000));
@@ -296,7 +296,7 @@ export default function DestinyResultPage({
 
   // Load Life Prediction when tab is switched
   const loadLifePrediction = useCallback(async () => {
-    if (lifePredictionTrend || lifePredictionLoading) return;
+    if (lifePredictionTrend || lifePredictionLoading) {return;}
 
     const birthDate = (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) ?? "";
     const birthTime = (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime) ?? "";
@@ -304,7 +304,7 @@ export default function DestinyResultPage({
     const rawLang = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? "ko";
     const locale = rawLang === "en" ? "en" : "ko";
 
-    if (!birthDate || !birthTime) return;
+    if (!birthDate || !birthTime) {return;}
 
     setLifePredictionLoading(true);
     setLifePredictionError(null);
@@ -331,7 +331,7 @@ export default function DestinyResultPage({
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to fetch prediction");
+      if (!response.ok) {throw new Error("Failed to fetch prediction");}
       const apiResult = await response.json();
       if (apiResult.success && apiResult.data?.multiYearTrend) {
         setLifePredictionTrend(apiResult.data.multiYearTrend);
@@ -356,7 +356,7 @@ export default function DestinyResultPage({
 
   // Save Life Prediction result
   const saveLifePrediction = useCallback(async () => {
-    if (!lifePredictionTrend || saveStatus === 'saving') return;
+    if (!lifePredictionTrend || saveStatus === 'saving') {return;}
     setSaveStatus('saving');
     try {
       const rawLang = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? "ko";
@@ -628,7 +628,7 @@ export default function DestinyResultPage({
                   const params = new URLSearchParams(window.location.search);
                   params.set("lang", lang);
                   params.set("theme", "future");
-                  if (selectedYear) params.set("focusYear", String(selectedYear));
+                  if (selectedYear) {params.set("focusYear", String(selectedYear));}
                   window.location.href = `/destiny-map/counselor?${params.toString()}`;
                 }}
                 className={`${styles.counselorButton} ${styles.counselorButtonBlue}`}

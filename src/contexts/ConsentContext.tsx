@@ -25,7 +25,7 @@ export function ConsentProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (status === "pending" || typeof window === "undefined") return;
+    if (status === "pending" || typeof window === "undefined") {return;}
     window.localStorage.setItem(STORAGE_KEY, status);
   }, [status]);
 

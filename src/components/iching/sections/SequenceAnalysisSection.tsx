@@ -30,7 +30,7 @@ export const SequenceAnalysisSection: React.FC<SequenceAnalysisSectionProps> = R
   lang,
   translate,
 }) => {
-  if (!sequenceData) return null;
+  if (!sequenceData) {return null;}
 
   return (
     <div className={styles.insightCard}>

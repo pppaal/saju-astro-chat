@@ -54,10 +54,10 @@ export default function NotificationsPage() {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return t("notifications.time.justNow", "Just now");
-    if (minutes < 60) return t("notifications.time.minutesAgo", "{{m}}m ago").replace("{{m}}", String(minutes));
-    if (hours < 24) return t("notifications.time.hoursAgo", "{{h}}h ago").replace("{{h}}", String(hours));
-    if (days < 7) return t("notifications.time.daysAgo", "{{d}}d ago").replace("{{d}}", String(days));
+    if (minutes < 1) {return t("notifications.time.justNow", "Just now");}
+    if (minutes < 60) {return t("notifications.time.minutesAgo", "{{m}}m ago").replace("{{m}}", String(minutes));}
+    if (hours < 24) {return t("notifications.time.hoursAgo", "{{h}}h ago").replace("{{h}}", String(hours));}
+    if (days < 7) {return t("notifications.time.daysAgo", "{{d}}d ago").replace("{{d}}", String(days));}
     return new Date(timestamp).toLocaleDateString();
   };
 
@@ -179,8 +179,8 @@ export default function NotificationsPage() {
                 key={notif.id}
                 className={`${styles.item} ${!notif.read ? styles.unread : ""}`}
                 onClick={() => {
-                  if (!notif.read) markAsRead(notif.id);
-                  if (notif.link) window.location.href = notif.link;
+                  if (!notif.read) {markAsRead(notif.id);}
+                  if (notif.link) {window.location.href = notif.link;}
                 }}
               >
                 <div className={styles.itemIcon}>

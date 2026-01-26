@@ -33,7 +33,7 @@ const CHOSUNG_LIST = Object.keys(CHOSUNG_MAP);
  */
 export function isChosungOnly(text: string): boolean {
   const cleanText = text.replace(/[^ㄱ-ㅎ가-힣]/g, '');
-  if (cleanText.length === 0) return false;
+  if (cleanText.length === 0) {return false;}
 
   // 50% 이상이 초성이면 초성 질문으로 간주
   const chosungCount = cleanText.split('').filter(char => CHOSUNG_LIST.includes(char)).length;
@@ -202,7 +202,7 @@ export function enhancedYesNoMatch(text: string): boolean {
  * "ㅇㄷㅇㄷㄱㄹㄲ" → "오늘운동갈까" 추측
  */
 export function decodeChosung(text: string): string | null {
-  if (!isChosungOnly(text)) return null;
+  if (!isChosungOnly(text)) {return null;}
 
   // 일반적인 패턴 매칭
   const knownPatterns: Record<string, string> = {

@@ -8,12 +8,12 @@ export const isRecord = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === 'object' && !Array.isArray(value);
 
 export const toJGItem = (value: unknown): JGItem | undefined => {
-  if (!value) return undefined;
-  if (typeof value === 'string') return { name: value };
+  if (!value) {return undefined;}
+  if (typeof value === 'string') {return { name: value };}
   if (isRecord(value)) {
     const name = typeof value.name === 'string' ? value.name : undefined;
     const sibsin = typeof value.sibsin === 'string' ? value.sibsin : undefined;
-    if (name || sibsin) return { name, sibsin };
+    if (name || sibsin) {return { name, sibsin };}
   }
   return undefined;
 };
@@ -28,15 +28,15 @@ const HANJA_TO_HANGUL_STEM: Record<string, string> = Object.fromEntries(
 
 // 한자 정규화: (한글 → 한자)
 export const normalizeStemName = (name?: string) => {
-  if (!name) return name;
-  if (HANJA_TO_HANGUL_STEM[name]) return name; // 이미 한자면 그대로
+  if (!name) {return name;}
+  if (HANJA_TO_HANGUL_STEM[name]) {return name;} // 이미 한자면 그대로
   return HANGUL_TO_HANJA_STEM[name] ?? name; // 한글이면 한자로 매핑
 };
 
 // 한글로 환원: (한자 → 한글)
 export const toHangulStem = (name?: string) => {
-  if (!name) return name;
-  if (HANGUL_TO_HANJA_STEM[name]) return name; // 이미 한글이면 그대로
+  if (!name) {return name;}
+  if (HANGUL_TO_HANJA_STEM[name]) {return name;} // 이미 한글이면 그대로
   return HANJA_TO_HANGUL_STEM[name] ?? name; // 한자면 한글로 매핑
 };
 
@@ -56,7 +56,7 @@ const SIBSIN_TABLE: Record<string, Record<string, string>> = {
 
 // 무엇이 오든 {chogi,junggi,jeonggi} 객체로
 export const coerceJijanggan = (raw: JijangganAny): { chogi?: JGItem; junggi?: JGItem; jeonggi?: JGItem } => {
-  if (!raw) return {};
+  if (!raw) {return {};}
   if (isRecord(raw)) {
     return {
       chogi: toJGItem(raw.chogi),
@@ -77,12 +77,12 @@ export const enrichSibsin = (
 ) => {
   const dm = normalizeStemName(dayMasterStem);
   const map = dm ? SIBSIN_TABLE[dm] : undefined;
-  if (!map) return jg;
+  if (!map) {return jg;}
   for (const key of ['chogi', 'junggi', 'jeonggi'] as const) {
     const it = jg[key];
     if (it && it.name) {
       const stemName = normalizeStemName(it.name);
-      if (!stemName) continue;
+      if (!stemName) {continue;}
       if (!it.sibsin && map[stemName]) {
         it.sibsin = map[stemName];
         it.name = stemName; // 한자 통일
@@ -108,7 +108,7 @@ export const buildJijangganRaw = (raw: JijangganAny) => {
     const keys = ['chogi', 'junggi', 'jeonggi'] as const;
     const list = keys.map((k) => {
       const v = raw[k];
-      if (!v) return '';
+      if (!v) {return '';}
       const name = typeof v === 'string' ? v : (isRecord(v) && typeof v.name === 'string' ? v.name : '');
       return toHangulStem(name);
     }).filter(Boolean);

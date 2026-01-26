@@ -99,12 +99,12 @@ function countElements(pillars: SajuPillars): Record<FiveElement, number> {
 
   for (const stem of allStems) {
     const element = getStemElement(stem);
-    if (element) count[element]++;
+    if (element) {count[element]++;}
   }
 
   for (const branch of allBranches) {
     const element = getBranchElement(branch);
-    if (element) count[element]++;
+    if (element) {count[element]++;}
   }
 
   return count;
@@ -144,7 +144,7 @@ export function analyzeHealth(pillars: SajuPillars): HealthAnalysis {
     const controller = Object.entries(ELEMENT_CONTROLS).find(([, v]) => v === elem)?.[0] as FiveElement | undefined;
     if (controller && elementCount[controller] >= 3) {
       score -= 15;
-      if (status === 'normal') status = 'weak';
+      if (status === 'normal') {status = 'weak';}
     }
 
     const risks: string[] = [];
@@ -168,11 +168,11 @@ export function analyzeHealth(pillars: SajuPillars): HealthAnalysis {
   const overallScore = Math.round(organHealth.reduce((sum, o) => sum + o.score, 0) / 5);
 
   let constitution: string;
-  if (dominantElement === '목') constitution = '목형 체질 - 활동적이고 창의적';
-  else if (dominantElement === '화') constitution = '화형 체질 - 열정적이고 외향적';
-  else if (dominantElement === '토') constitution = '토형 체질 - 안정적이고 실용적';
-  else if (dominantElement === '금') constitution = '금형 체질 - 꼼꼼하고 예민함';
-  else constitution = '수형 체질 - 지혜롭고 내향적';
+  if (dominantElement === '목') {constitution = '목형 체질 - 활동적이고 창의적';}
+  else if (dominantElement === '화') {constitution = '화형 체질 - 열정적이고 외향적';}
+  else if (dominantElement === '토') {constitution = '토형 체질 - 안정적이고 실용적';}
+  else if (dominantElement === '금') {constitution = '금형 체질 - 꼼꼼하고 예민함';}
+  else {constitution = '수형 체질 - 지혜롭고 내향적';}
 
   const vulnerableAges: { age: number; reason: string }[] = [];
   if (elementCount[weakElement] === 0) {
@@ -189,11 +189,11 @@ export function analyzeHealth(pillars: SajuPillars): HealthAnalysis {
   ];
 
   const preventionAdvice: string[] = [];
-  if (weakElement === '목') preventionAdvice.push('간 해독, 눈 건강 관리');
-  if (weakElement === '화') preventionAdvice.push('심장 검진, 혈압 관리');
-  if (weakElement === '토') preventionAdvice.push('소화기 검진, 당뇨 검사');
-  if (weakElement === '금') preventionAdvice.push('호흡기 검진, 피부 관리');
-  if (weakElement === '수') preventionAdvice.push('신장 검진, 뼈 건강 체크');
+  if (weakElement === '목') {preventionAdvice.push('간 해독, 눈 건강 관리');}
+  if (weakElement === '화') {preventionAdvice.push('심장 검진, 혈압 관리');}
+  if (weakElement === '토') {preventionAdvice.push('소화기 검진, 당뇨 검사');}
+  if (weakElement === '금') {preventionAdvice.push('호흡기 검진, 피부 관리');}
+  if (weakElement === '수') {preventionAdvice.push('신장 검진, 뼈 건강 체크');}
 
   const lifestyleRecommendations: string[] = [];
   lifestyleRecommendations.push(`${weakElement} 오행 보충 음식 섭취 권장`);
@@ -246,7 +246,7 @@ export function analyzeCareer(pillars: SajuPillars): CareerAnalysis {
 
   for (const elem of elements) {
     let score = elementCount[elem] * 20;
-    if (elem === dayElement) score += 15;
+    if (elem === dayElement) {score += 15;}
     elementScores[elem] = Math.min(100, score);
   }
 
@@ -266,9 +266,9 @@ export function analyzeCareer(pillars: SajuPillars): CareerAnalysis {
         successFactors: [], challenges: []
       };
 
-      if (elementCount[elem] >= 2) field.successFactors.push(`${elem} 기운이 강함`);
-      if (i === 0) primaryFields.push(field);
-      else secondaryFields.push(field);
+      if (elementCount[elem] >= 2) {field.successFactors.push(`${elem} 기운이 강함`);}
+      if (i === 0) {primaryFields.push(field);}
+      else {secondaryFields.push(field);}
     }
   }
 
@@ -306,32 +306,32 @@ export function analyzeCareer(pillars: SajuPillars): CareerAnalysis {
   }
 
   let entrepreneurialScore = 50;
-  if (elementCount['화'] >= 2) entrepreneurialScore += 15;
-  if (elementCount['목'] >= 2) entrepreneurialScore += 10;
+  if (elementCount['화'] >= 2) {entrepreneurialScore += 15;}
+  if (elementCount['목'] >= 2) {entrepreneurialScore += 10;}
 
   let leadershipScore = 50;
-  if (elementCount['금'] >= 2) leadershipScore += 15;
-  if (elementCount['화'] >= 2) leadershipScore += 10;
+  if (elementCount['금'] >= 2) {leadershipScore += 15;}
+  if (elementCount['화'] >= 2) {leadershipScore += 10;}
 
   let creativityScore = 50;
-  if (elementCount['수'] >= 2) creativityScore += 20;
-  if (elementCount['화'] >= 2) creativityScore += 10;
+  if (elementCount['수'] >= 2) {creativityScore += 20;}
+  if (elementCount['화'] >= 2) {creativityScore += 10;}
 
   let stabilityPreference = 50;
-  if (elementCount['토'] >= 2) stabilityPreference += 20;
-  if (elementCount['금'] >= 2) stabilityPreference += 15;
+  if (elementCount['토'] >= 2) {stabilityPreference += 20;}
+  if (elementCount['금'] >= 2) {stabilityPreference += 15;}
 
   const careerPath: string[] = [];
-  if (entrepreneurialScore >= 70) careerPath.push('창업 및 자영업 적합');
-  if (leadershipScore >= 70) careerPath.push('관리직/임원 승진 가능');
-  if (creativityScore >= 70) careerPath.push('창작/기획 분야 성장');
-  if (stabilityPreference >= 70) careerPath.push('대기업/공공기관 장기근속');
+  if (entrepreneurialScore >= 70) {careerPath.push('창업 및 자영업 적합');}
+  if (leadershipScore >= 70) {careerPath.push('관리직/임원 승진 가능');}
+  if (creativityScore >= 70) {careerPath.push('창작/기획 분야 성장');}
+  if (stabilityPreference >= 70) {careerPath.push('대기업/공공기관 장기근속');}
 
   const peakCareerAges: number[] = [];
-  if (elementCount['화'] >= 2) peakCareerAges.push(35);
-  if (elementCount['금'] >= 2) peakCareerAges.push(45);
-  if (elementCount['수'] >= 2) peakCareerAges.push(55);
-  if (peakCareerAges.length === 0) peakCareerAges.push(40, 50);
+  if (elementCount['화'] >= 2) {peakCareerAges.push(35);}
+  if (elementCount['금'] >= 2) {peakCareerAges.push(45);}
+  if (elementCount['수'] >= 2) {peakCareerAges.push(55);}
+  if (peakCareerAges.length === 0) {peakCareerAges.push(40, 50);}
 
   const careerAdvice: string[] = [];
   careerAdvice.push(`${sortedElements[0]} 관련 업종이 가장 적합합니다`);
@@ -411,11 +411,11 @@ export function getElementRecommendations(weakElements: FiveElement[]): ElementR
     luckyNumbers.push(...ELEMENT_NUMBERS[elem]);
   }
 
-  if (weakElements.includes('목')) beneficialActivities.push('산책', '등산', '원예 활동');
-  if (weakElements.includes('화')) beneficialActivities.push('햇볕 쬐기', '사우나');
-  if (weakElements.includes('토')) beneficialActivities.push('흙 만지기', '도예', '요리');
-  if (weakElements.includes('금')) beneficialActivities.push('호흡 운동', '악기 연주');
-  if (weakElements.includes('수')) beneficialActivities.push('수영', '명상', '독서');
+  if (weakElements.includes('목')) {beneficialActivities.push('산책', '등산', '원예 활동');}
+  if (weakElements.includes('화')) {beneficialActivities.push('햇볕 쬐기', '사우나');}
+  if (weakElements.includes('토')) {beneficialActivities.push('흙 만지기', '도예', '요리');}
+  if (weakElements.includes('금')) {beneficialActivities.push('호흡 운동', '악기 연주');}
+  if (weakElements.includes('수')) {beneficialActivities.push('수영', '명상', '독서');}
 
   return {
     luckyColors: Array.from(new Set(luckyColors)),

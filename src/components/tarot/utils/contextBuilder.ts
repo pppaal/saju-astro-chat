@@ -52,7 +52,7 @@ export function buildContext(
           p.name === c.name &&
           (p.position === c.position || !p.position || !c.position)
       );
-      if (!dup) merged.push(c);
+      if (!dup) {merged.push(c);}
     }
     return { ...base, cards: merged };
   }

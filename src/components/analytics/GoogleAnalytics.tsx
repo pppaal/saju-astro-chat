@@ -10,7 +10,7 @@ type WindowWithGtag = Window & {
 };
 
 const getGtag = () => {
-  if (typeof window === "undefined") return undefined;
+  if (typeof window === "undefined") {return undefined;}
   return (window as WindowWithGtag).gtag;
 };
 
@@ -21,7 +21,7 @@ export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string 
   const consentGranted = status === "granted";
 
   useEffect(() => {
-    if (!gaId || !consentGranted) return;
+    if (!gaId || !consentGranted) {return;}
 
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
 
@@ -37,7 +37,7 @@ export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string 
   // Keep Google Consent Mode in sync with banner choice
   useEffect(() => {
     const gtag = getGtag();
-    if (!gtag) return;
+    if (!gtag) {return;}
 
     const consentState = consentGranted ? "granted" : "denied";
     gtag("consent", "update", {
@@ -48,7 +48,7 @@ export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string 
     });
   }, [consentGranted, status]);
 
-  if (!gaId || !consentGranted) return null;
+  if (!gaId || !consentGranted) {return null;}
 
   return (
     <>

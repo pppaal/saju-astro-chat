@@ -39,7 +39,7 @@ export default function ServicePageLayout({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {return;}
 
     const ctx = canvas.getContext('2d')!;
     canvas.width = window.innerWidth;
@@ -95,8 +95,8 @@ export default function ServicePageLayout({
       }
 
       update() {
-        if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
-        if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+        if (this.x > canvas.width || this.x < 0) {this.speedX = -this.speedX;}
+        if (this.y > canvas.height || this.y < 0) {this.speedY = -this.speedY;}
 
         this.x += this.speedX;
         this.y += this.speedY;

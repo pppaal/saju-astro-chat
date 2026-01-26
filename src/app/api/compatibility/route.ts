@@ -25,9 +25,9 @@ function bad(msg: string, status = 400) {
 }
 
 function relationWeight(r?: Relation) {
-  if (!r) return 1.0;
-  if (r === 'lover') return 1.0;
-  if (r === 'friend') return 0.95;
+  if (!r) {return 1.0;}
+  if (r === 'lover') {return 1.0;}
+  if (r === 'friend') {return 0.95;}
   return 0.9; // other
 }
 
@@ -43,8 +43,8 @@ export async function POST(req: NextRequest) {
       windowSeconds: 60,
     });
 
-    const { context, error } = await initializeApiContext(req, guardOptions);
-    if (error) return error;
+    const { error } = await initializeApiContext(req, guardOptions);
+    if (error) {return error;}
 
     const body = await req.json();
     const persons: PersonInput[] = Array.isArray(body?.persons) ? body.persons : [];
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
 
     const pairs: [number, number][] = [];
     for (let i = 0; i < persons.length; i++) {
-      for (let j = i + 1; j < persons.length; j++) pairs.push([i, j]);
+      for (let j = i + 1; j < persons.length; j++) {pairs.push([i, j]);}
     }
 
     const scores = pairs.map(([a, b]) => {

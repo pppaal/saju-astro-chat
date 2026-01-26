@@ -13,7 +13,7 @@ export { hashName, maskDisplayName, maskTextWithName } from "@/lib/security";
  * IMPORTANT: Preserves JSON structure (curly braces) for structured responses
  */
 export function cleanseText(raw: string): string {
-  if (!raw) return "";
+  if (!raw) {return "";}
 
   // Check if this is a JSON response
   const isJsonResponse =
@@ -59,7 +59,7 @@ export function cleanseText(raw: string): string {
  */
 export function getDateInTimezone(tz?: string): string {
   const now = new Date();
-  if (!tz) return now.toISOString().slice(0, 10);
+  if (!tz) {return now.toISOString().slice(0, 10);}
   try {
     return new Intl.DateTimeFormat("en-CA", {
       timeZone: tz,
@@ -121,7 +121,7 @@ export function validateSections(theme: string, text: string): string[] {
       const parsed = JSON.parse(text);
       const ensureKeys = (obj: Record<string, unknown>, keys: string[]) => {
         for (const k of keys) {
-          if (!(k in obj)) warnings.push(`JSON 키 누락: ${k}`);
+          if (!(k in obj)) {warnings.push(`JSON 키 누락: ${k}`);}
         }
       };
 

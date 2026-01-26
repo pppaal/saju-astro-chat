@@ -24,7 +24,7 @@ export function useBirthInfo(locale: string) {
   const hasBirthInfo = Boolean(userProfile?.birthDate || guestBirthInfo?.birthDate);
 
   const loadProfile = useCallback(async () => {
-    if (status !== 'authenticated') return;
+    if (status !== 'authenticated') {return;}
 
     setLoadingProfileBtn(true);
     setProfileLoadError(null);
@@ -48,12 +48,12 @@ export function useBirthInfo(locale: string) {
       }
 
       // Set form fields from DB data
-      if (user.birthDate) setBirthDate(user.birthDate);
+      if (user.birthDate) {setBirthDate(user.birthDate);}
       if (user.birthTime) {
         setBirthTime(user.birthTime);
         setShowTimeInput(true);
       }
-      if (user.gender) setGender(user.gender);
+      if (user.gender) {setGender(user.gender);}
       if (user.birthCity) {
         setBirthCity(user.birthCity);
         setShowCityInput(true);
@@ -77,7 +77,7 @@ export function useBirthInfo(locale: string) {
   }, [status, locale]);
 
   const saveBirthInfo = useCallback(async () => {
-    if (!birthDate) return false;
+    if (!birthDate) {return false;}
 
     const birthInfo: GuestBirthInfo = {
       birthDate,

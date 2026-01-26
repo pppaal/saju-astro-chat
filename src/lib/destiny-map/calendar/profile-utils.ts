@@ -71,7 +71,7 @@ export interface UserAstroProfile {
  * 오행 이름 정규화 (air → fire)
  */
 function normalizeElement(element: string): string {
-  if (element === "air") return "fire";
+  if (element === "air") {return "fire";}
   return element;
 }
 
@@ -204,18 +204,18 @@ export function calculateAstroProfileFromBirthDate(birthDate: Date): UserAstroPr
   const day = birthDate.getDate();
 
   let sunSign: string;
-  if ((month === 2 && day >= 21) || (month === 3 && day <= 19)) sunSign = "Aries";
-  else if ((month === 3 && day >= 20) || (month === 4 && day <= 20)) sunSign = "Taurus";
-  else if ((month === 4 && day >= 21) || (month === 5 && day <= 20)) sunSign = "Gemini";
-  else if ((month === 5 && day >= 21) || (month === 6 && day <= 22)) sunSign = "Cancer";
-  else if ((month === 6 && day >= 23) || (month === 7 && day <= 22)) sunSign = "Leo";
-  else if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) sunSign = "Virgo";
-  else if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) sunSign = "Libra";
-  else if ((month === 9 && day >= 23) || (month === 10 && day <= 21)) sunSign = "Scorpio";
-  else if ((month === 10 && day >= 22) || (month === 11 && day <= 21)) sunSign = "Sagittarius";
-  else if ((month === 11 && day >= 22) || (month === 0 && day <= 19)) sunSign = "Capricorn";
-  else if ((month === 0 && day >= 20) || (month === 1 && day <= 18)) sunSign = "Aquarius";
-  else sunSign = "Pisces";
+  if ((month === 2 && day >= 21) || (month === 3 && day <= 19)) {sunSign = "Aries";}
+  else if ((month === 3 && day >= 20) || (month === 4 && day <= 20)) {sunSign = "Taurus";}
+  else if ((month === 4 && day >= 21) || (month === 5 && day <= 20)) {sunSign = "Gemini";}
+  else if ((month === 5 && day >= 21) || (month === 6 && day <= 22)) {sunSign = "Cancer";}
+  else if ((month === 6 && day >= 23) || (month === 7 && day <= 22)) {sunSign = "Leo";}
+  else if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) {sunSign = "Virgo";}
+  else if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) {sunSign = "Libra";}
+  else if ((month === 9 && day >= 23) || (month === 10 && day <= 21)) {sunSign = "Scorpio";}
+  else if ((month === 10 && day >= 22) || (month === 11 && day <= 21)) {sunSign = "Sagittarius";}
+  else if ((month === 11 && day >= 22) || (month === 0 && day <= 19)) {sunSign = "Capricorn";}
+  else if ((month === 0 && day >= 20) || (month === 1 && day <= 18)) {sunSign = "Aquarius";}
+  else {sunSign = "Pisces";}
 
   // 출생 태양 경도 계산 (어스펙트 분석용)
   const sunPosition = getPlanetPosition(birthDate, "sun");

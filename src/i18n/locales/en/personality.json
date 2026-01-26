@@ -1,0 +1,391 @@
+{
+  "personality": {
+    "title": "Nova Persona",
+    "heroTitle": "Discover Your True Persona",
+    "heroSubtitle": "A next-generation personality test that goes beyond the basics",
+    "startButton": "Start the Free Discovery Test",
+    "loading": "Loading your persona...",
+    "analyzingAura": "Analyzing your cosmic persona...",
+    "noResults": "No Results Yet",
+    "noResultsDesc": "Complete the personality quiz to discover your Nova Persona",
+    "startQuiz": "Start Quiz",
+    "auraDiscovery": "Persona Discovery",
+    "answerHonestly": "Answer honestly to reveal your inner landscape.",
+    "progress": "Progress",
+    "page": "Page",
+    "pageOf": "Page {{current}} of {{total}}",
+    "questionsRange": "Questions {{start}}-{{end}}",
+    "previous": "Previous",
+    "next": "Next",
+    "calculateMyAura": "Calculate My Persona",
+    "typeCode": "Type Code",
+    "consistency": "Response Consistency",
+    "consistencyLabel": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "consistencyDesc": {
+      "high": "You answered similar questions consistently. You know yourself well!",
+      "medium": "Mostly consistent answers. You adapt flexibly to situations.",
+      "low": "Varied answers. You may act differently in different contexts, or still exploring yourself."
+    },
+    "keyMotivations": "Key Motivations",
+    "axes": "Personality Spectrum",
+    "axis": {
+      "energy": "Energy",
+      "grounded": "Grounded",
+      "radiant": "Radiant",
+      "cognition": "Cognition",
+      "structured": "Structured",
+      "visionary": "Visionary",
+      "decision": "Decision",
+      "empathic": "Empathic",
+      "logic": "Logic",
+      "rhythm": "Rhythm",
+      "anchor": "Anchor",
+      "flow": "Flow"
+    },
+    "strengthsAndChallenges": "Strengths & Watchouts",
+    "strengths": "Strengths",
+    "challenges": "Growth Areas",
+    "roles": "Ideal Roles",
+    "career": "Career Focus",
+    "compatibility": "Compatibility",
+    "guidance": "Guidance",
+    "growthGuide": "Growth Guide",
+    "tuneTitle": "Fine-tune your answers",
+    "tuneDesc": "Adjust responses to see how your persona evolves.",
+    "download": "Download JSON",
+    "share": "Share Result",
+    "retake": "Retake Quiz",
+    "copiedToClipboard": "Copied to clipboard!",
+    "save": "Save Result",
+    "saving": "Saving...",
+    "saved": "Saved!",
+    "loginToSave": "Login to Save",
+    "yourNovaPersona": "Your Nova Persona",
+    "questions": {
+      "q1_energy_network": {
+        "text": "After a day full of people and meetings, you:",
+        "options": {
+          "A": "Feel charged and want to keep going.",
+          "B": "Need quiet space to reset.",
+          "C": "Depends on my mood that day."
+        }
+      },
+      "q2_energy_weekend": {
+        "text": "On a long weekend, you prefer to:",
+        "options": {
+          "A": "Pack the calendar with plans.",
+          "B": "Leave generous open blocks.",
+          "C": "Mix of both - some plans, some free time."
+        }
+      },
+      "q3_energy_spontaneous": {
+        "text": "When invited to a sudden gathering, you usually:",
+        "options": {
+          "A": "Say 'let's go' without much hesitation.",
+          "B": "Pause and decide after some thought.",
+          "C": "Check who else is going first."
+        }
+      },
+      "q4_energy_transit": {
+        "text": "During travel/wait times, you tend to:",
+        "options": {
+          "A": "Chat and engage with people around you.",
+          "B": "Use headphones and stay in your own zone.",
+          "C": "Read or browse casually."
+        }
+      },
+      "q5_energy_idealday": {
+        "text": "Your ideal day looks like:",
+        "options": {
+          "A": "Many activities/people in one day.",
+          "B": "A few set activities + ample solo time.",
+          "C": "Flexible flow without strict plans."
+        }
+      },
+      "q21_energy_focus": {
+        "text": "In long work sessions, you recharge more by:",
+        "options": {
+          "A": "Quick chats/interaction between tasks.",
+          "B": "Staying in your own lane with minimal breaks.",
+          "C": "Taking walks or physical breaks."
+        }
+      },
+      "q22_energy_solo_group": {
+        "text": "You do your best thinking:",
+        "options": {
+          "A": "In group brainstorming energy.",
+          "B": "Alone, refining quietly.",
+          "C": "Writing or journaling ideas."
+        }
+      },
+      "q23_energy_interruptions": {
+        "text": "Frequent pings/interruptions feel:",
+        "options": {
+          "A": "Invigorating; you like the buzz.",
+          "B": "Draining; you prefer uninterrupted blocks.",
+          "C": "Fine if scheduled, annoying if random."
+        }
+      },
+      "q24_energy_events": {
+        "text": "At large events, you tend to:",
+        "options": {
+          "A": "Work the room and meet many.",
+          "B": "Stay with a few or observe quietly.",
+          "C": "Focus on the event content itself."
+        }
+      },
+      "q25_energy_noise": {
+        "text": "Background noise while working:",
+        "options": {
+          "A": "Helps—music/cafe hum boosts you.",
+          "B": "Hurts—you need quiet to focus.",
+          "C": "White noise or instrumental only."
+        }
+      },
+      "q6_cog_problem": {
+        "text": "Facing a new problem, you first:",
+        "options": {
+          "A": "Spot patterns and possible models.",
+          "B": "List requirements and a checklist.",
+          "C": "Research what others have done."
+        }
+      },
+      "q7_cog_explain": {
+        "text": "When learning, you prefer explanations that start with:",
+        "options": {
+          "A": "The big picture then examples.",
+          "B": "Concrete examples then the principle.",
+          "C": "Hands-on practice first."
+        }
+      },
+      "q8_cog_evaluate": {
+        "text": "Evaluating an idea, you lean toward:",
+        "options": {
+          "A": "Novelty and potential impact.",
+          "B": "Feasibility and risks.",
+          "C": "Team alignment and buy-in."
+        }
+      },
+      "q9_cog_basis": {
+        "text": "Decisions feel solid when they are built on:",
+        "options": {
+          "A": "'Why' and future scenarios.",
+          "B": "'What/when/who' and process.",
+          "C": "Gut feeling backed by experience."
+        }
+      },
+      "q10_cog_constraints": {
+        "text": "When new constraints appear, you:",
+        "options": {
+          "A": "Retool the concept to fit the future.",
+          "B": "Re-sequence the plan to fit realities.",
+          "C": "Negotiate to remove the constraint."
+        }
+      },
+      "q26_cog_detail_bigpicture": {
+        "text": "You are more satisfied when work outputs are:",
+        "options": {
+          "A": "Visionary narratives or prototypes.",
+          "B": "Detailed specs or checklists.",
+          "C": "Working demos users can try."
+        }
+      },
+      "q27_cog_rule_break": {
+        "text": "If a process slows you down, you:",
+        "options": {
+          "A": "Find a new pattern or shortcut.",
+          "B": "Refine existing steps within the rules.",
+          "C": "Propose changes to the process officially."
+        }
+      },
+      "q28_cog_metrics_story": {
+        "text": "Persuasion works best on you via:",
+        "options": {
+          "A": "Story/analogy of future possibilities.",
+          "B": "Metrics and viability evidence.",
+          "C": "Social proof and testimonials."
+        }
+      },
+      "q29_cog_timehorizon": {
+        "text": "You naturally think more about:",
+        "options": {
+          "A": "Long-term arcs and emerging trends.",
+          "B": "Near-term execution and milestones.",
+          "C": "Present moment opportunities."
+        }
+      },
+      "q30_cog_changecomfort": {
+        "text": "When requirements change midstream, you feel:",
+        "options": {
+          "A": "Energized by reimagining the solution.",
+          "B": "Prefer to lock scope and avoid churn.",
+          "C": "Accept it as part of the process."
+        }
+      },
+      "q11_decision_conflict": {
+        "text": "In a team conflict, you focus first on:",
+        "options": {
+          "A": "Principles and performance.",
+          "B": "Relationships and emotions.",
+          "C": "Finding a compromise everyone accepts."
+        }
+      },
+      "q12_decision_feedback": {
+        "text": "Your feedback style is usually:",
+        "options": {
+          "A": "Direct and fact-focused.",
+          "B": "Contextual with cushioning.",
+          "C": "Written to allow processing time."
+        }
+      },
+      "q13_decision_resources": {
+        "text": "When allocating resources, you prioritize:",
+        "options": {
+          "A": "ROI and clear priorities.",
+          "B": "Team morale and learning.",
+          "C": "Fairness and equal distribution."
+        }
+      },
+      "q14_decision_rules": {
+        "text": "Catching a rule break, you believe:",
+        "options": {
+          "A": "Consistency is fairness.",
+          "B": "Contextual flexibility is fairness.",
+          "C": "Depends on intent behind the action."
+        }
+      },
+      "q15_decision_delay": {
+        "text": "If you postpone a decision, it is usually because:",
+        "options": {
+          "A": "Data/arguments feel insufficient.",
+          "B": "People/feelings need more alignment.",
+          "C": "Waiting for external factors to clarify."
+        }
+      },
+      "q31_decision_dataemotion": {
+        "text": "To reach a decision, you weigh more:",
+        "options": {
+          "A": "Data, trade-offs, objective impact.",
+          "B": "Team pulse, stakeholder emotions.",
+          "C": "Past precedents and patterns."
+        }
+      },
+      "q32_decision_feedback_tone": {
+        "text": "When receiving blunt feedback, you:",
+        "options": {
+          "A": "Appreciate the directness.",
+          "B": "Prefer it softened with context.",
+          "C": "Need time to process privately."
+        }
+      },
+      "q33_decision_risk": {
+        "text": "Faced with a bold bet:",
+        "options": {
+          "A": "Take it if logic checks out.",
+          "B": "Consider people impact first.",
+          "C": "Sleep on it before deciding."
+        }
+      },
+      "q34_decision_delegate": {
+        "text": "Delegating tough calls, you:",
+        "options": {
+          "A": "Seek the most competent owner.",
+          "B": "Consider who is most affected.",
+          "C": "Keep it yourself if stakes are high."
+        }
+      },
+      "q35_decision_conflict_speed": {
+        "text": "In heated debates, you:",
+        "options": {
+          "A": "Drive to a fast, logical resolution.",
+          "B": "Slow down to cool emotions and align.",
+          "C": "Step back and revisit later."
+        }
+      },
+      "q16_rhythm_deadline": {
+        "text": "On deadlines, you tend to:",
+        "options": {
+          "A": "Front-load work and finish early.",
+          "B": "Surge near the end under pressure.",
+          "C": "Work steadily at consistent pace."
+        }
+      },
+      "q17_rhythm_change": {
+        "text": "When plans change last-minute, you:",
+        "options": {
+          "A": "Pivot and adjust quickly.",
+          "B": "Stabilize and replan deliberately.",
+          "C": "Go with the flow, see what happens."
+        }
+      },
+      "q18_rhythm_workstyle": {
+        "text": "Your workstyle is more:",
+        "options": {
+          "A": "Multi-track in parallel.",
+          "B": "One track at a time.",
+          "C": "Switching based on energy levels."
+        }
+      },
+      "q19_rhythm_holiday": {
+        "text": "On holidays, you prefer:",
+        "options": {
+          "A": "Spontaneous outings/activities.",
+          "B": "Planned routines/reservations.",
+          "C": "Relaxing without any agenda."
+        }
+      },
+      "q20_rhythm_feeling": {
+        "text": "When plans break, you mostly feel:",
+        "options": {
+          "A": "Curious/energized by new options.",
+          "B": "Unsettled and wanting predictability.",
+          "C": "Neutral - adapt and move on."
+        }
+      },
+      "q36_rhythm_morning_evening": {
+        "text": "Your natural peak focus is:",
+        "options": {
+          "A": "Early day; you like to start strong.",
+          "B": "Later day; you ramp up gradually.",
+          "C": "Varies by day, no fixed pattern."
+        }
+      },
+      "q37_rhythm_planslack": {
+        "text": "On daily planning, you:",
+        "options": {
+          "A": "Overbook slightly; momentum matters.",
+          "B": "Leave slack; adaptability matters.",
+          "C": "Don't plan much, react to priorities."
+        }
+      },
+      "q38_rhythm_batching": {
+        "text": "You prefer to handle tasks:",
+        "options": {
+          "A": "In batches/sprints, then rest.",
+          "B": "In steady, even pacing.",
+          "C": "As they come, real-time."
+        }
+      },
+      "q39_rhythm_contextswitch": {
+        "text": "Context switching often feels:",
+        "options": {
+          "A": "Stimulating; keeps you engaged.",
+          "B": "Costly; you minimize switches.",
+          "C": "Unavoidable, just deal with it."
+        }
+      },
+      "q40_rhythm_deadtime": {
+        "text": "With unexpected downtime, you:",
+        "options": {
+          "A": "Jump into spontaneous tasks/ideas.",
+          "B": "Use it to rest or tidy planned work.",
+          "C": "Scroll or browse without direction."
+        }
+      }
+    }
+  }
+}

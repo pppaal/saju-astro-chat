@@ -85,12 +85,12 @@ export function getRecommendedDates(saju: SajuData | undefined, astro: AstroData
 
       const categoryText = isKo
         ? topCategories.map(c => {
-            if (c === 'career') return '커리어';
-            if (c === 'wealth') return '재물';
-            if (c === 'love') return '연애';
-            if (c === 'health') return '건강';
-            if (c === 'study') return '학업';
-            if (c === 'travel') return '이동';
+            if (c === 'career') {return '커리어';}
+            if (c === 'wealth') {return '재물';}
+            if (c === 'love') {return '연애';}
+            if (c === 'health') {return '건강';}
+            if (c === 'study') {return '학업';}
+            if (c === 'travel') {return '이동';}
             return '전반';
           }).join(', ')
         : topCategories.join(', ');
@@ -136,7 +136,7 @@ export function getSimpleRecommendedDates(saju: SajuData | undefined, lang: stri
   const currentMonth = new Date().getMonth() + 1;
 
   const dayElement = saju?.dayMaster?.element ? elementKeyMap[saju.dayMaster.element] : null;
-  if (!dayElement) return dates;
+  if (!dayElement) {return dates;}
 
   for (let m = 1; m <= 12; m++) {
     const monthEl = monthElements[m];

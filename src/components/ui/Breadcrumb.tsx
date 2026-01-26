@@ -21,7 +21,7 @@ export default function Breadcrumb({
   separator = '/',
   className = '',
 }: BreadcrumbProps) {
-  if (!items || items.length === 0) return null;
+  if (!items || items.length === 0) {return null;}
 
   return (
     <nav aria-label="Breadcrumb" className={`${styles.breadcrumb} ${className}`}>

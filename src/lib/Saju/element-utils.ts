@@ -31,13 +31,13 @@ const BRANCH_ELEMENT: Record<string, ElementEN> = {
 };
 
 export function getElementOfChar(ch: string): ElementEN | null {
-  if (STEM_ELEMENT[ch]) return STEM_ELEMENT[ch];
-  if (BRANCH_ELEMENT[ch]) return BRANCH_ELEMENT[ch];
+  if (STEM_ELEMENT[ch]) {return STEM_ELEMENT[ch];}
+  if (BRANCH_ELEMENT[ch]) {return BRANCH_ELEMENT[ch];}
   return null;
 }
 
 export function getGanjiName(val: string | { name: string } | null | undefined): string {
-  if (typeof val === 'string') return val;
-  if (val && typeof val === 'object' && 'name' in val) return val.name;
+  if (typeof val === 'string') {return val;}
+  if (val && typeof val === 'object' && 'name' in val) {return val.name;}
   return '';
 }

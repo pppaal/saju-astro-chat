@@ -51,8 +51,8 @@ const GRADE_STYLE_KEYS: Record<string, GradeStyleKey> = {
 // 점수별 바 스타일 키
 type ScoreBarStyleKey = 'scoreBarHigh' | 'scoreBarMedium' | 'scoreBarLow';
 function getScoreBarStyleKey(score: number): ScoreBarStyleKey {
-  if (score >= 80) return 'scoreBarHigh';
-  if (score >= 60) return 'scoreBarMedium';
+  if (score >= 80) {return 'scoreBarHigh';}
+  if (score >= 60) {return 'scoreBarMedium';}
   return 'scoreBarLow';
 }
 

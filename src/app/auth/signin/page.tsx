@@ -155,7 +155,10 @@ function SignInContent() {
               >
                 {t("auth.privacyPolicy", "Privacy Policy")}
               </Link>
-              .
+              .{" "}
+              <span className={styles.checkboxHint}>
+                {t("auth.checkboxHint", "(Please check the box to agree)")}
+              </span>
             </span>
           </label>
 

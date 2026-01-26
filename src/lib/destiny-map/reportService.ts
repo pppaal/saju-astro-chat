@@ -201,7 +201,7 @@ export async function generateReport({
 
       clearTimeout(timeoutId);
 
-      if (!response.ok) throw new Error(`Flask server error: ${response.status}`);
+      if (!response.ok) {throw new Error(`Flask server error: ${response.status}`);}
 
       const data = await response.json();
 

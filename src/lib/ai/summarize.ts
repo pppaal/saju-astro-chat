@@ -27,12 +27,12 @@ export async function summarizeConversation(
   theme: string,
   locale: string = "ko"
 ): Promise<ConversationSummary | null> {
-  if (messages.length < 2) return null;
+  if (messages.length < 2) {return null;}
 
   const userMessages = messages.filter(m => m.role === "user").map(m => m.content);
   const assistantMessages = messages.filter(m => m.role === "assistant").map(m => m.content);
 
-  if (userMessages.length === 0) return null;
+  if (userMessages.length === 0) {return null;}
 
   // 간단한 로컬 분석 (API 호출 없이)
   const summary = generateLocalSummary(userMessages, assistantMessages, theme, locale);
@@ -147,13 +147,13 @@ function analyzeEmotionalTone(userMessages: string[], locale: string): string {
   let curiousCount = 0;
 
   for (const keyword of anxiousKeywords) {
-    if (text.includes(keyword)) anxiousCount++;
+    if (text.includes(keyword)) {anxiousCount++;}
   }
   for (const keyword of hopefulKeywords) {
-    if (text.includes(keyword)) hopefulCount++;
+    if (text.includes(keyword)) {hopefulCount++;}
   }
   for (const keyword of curiousKeywords) {
-    if (text.includes(keyword)) curiousCount++;
+    if (text.includes(keyword)) {curiousCount++;}
   }
 
   if (anxiousCount > hopefulCount && anxiousCount > curiousCount) {
@@ -410,9 +410,9 @@ export function buildLongTermMemory(
 
   // 세션에서 정보 수집
   for (const session of sessions) {
-    if (session.theme) themes.add(session.theme);
-    if (session.keyTopics) allTopics.push(...session.keyTopics);
-    if (session.summary) summaries.push(session.summary);
+    if (session.theme) {themes.add(session.theme);}
+    if (session.keyTopics) {allTopics.push(...session.keyTopics);}
+    if (session.summary) {summaries.push(session.summary);}
   }
 
   // PersonaMemory에서 추가 정보

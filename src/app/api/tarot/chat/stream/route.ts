@@ -49,15 +49,15 @@ function normalizeMessages(raw: unknown): ChatMessage[] {
 }
 
 function sanitizeCards(raw: unknown): CardContext[] {
-  if (!Array.isArray(raw)) return [];
+  if (!Array.isArray(raw)) {return [];}
   const cards: CardContext[] = [];
   for (const card of raw.slice(0, MAX_CARD_COUNT)) {
-    if (!card || typeof card !== "object") continue;
+    if (!card || typeof card !== "object") {continue;}
     const record = card as Record<string, unknown>;
     const position = typeof record.position === "string" ? record.position.trim().slice(0, MAX_TITLE_TEXT) : "";
     const name = typeof record.name === "string" ? record.name.trim().slice(0, MAX_TITLE_TEXT) : "";
     const meaning = typeof record.meaning === "string" ? record.meaning.trim().slice(0, MAX_CARD_TEXT) : "";
-    if (!position || !name || !meaning) continue;
+    if (!position || !name || !meaning) {continue;}
     const isReversed = Boolean((record.is_reversed ?? record.isReversed));
     const keywords = cleanStringArray(record.keywords);
     cards.push({
@@ -72,7 +72,7 @@ function sanitizeCards(raw: unknown): CardContext[] {
 }
 
 function sanitizeContext(raw: unknown): TarotContext | null {
-  if (!raw || typeof raw !== "object") return null;
+  if (!raw || typeof raw !== "object") {return null;}
   const record = raw as Record<string, unknown>;
   const spread_title = typeof record.spread_title === "string" ? record.spread_title.trim().slice(0, MAX_TITLE_TEXT) : "";
   const category = typeof record.category === "string" ? record.category.trim().slice(0, MAX_TITLE_TEXT) : "";
@@ -313,10 +313,10 @@ export async function POST(req: NextRequest) {
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     const oversized = enforceBodySize(req, 256 * 1024);
-    if (oversized) return oversized;
+    if (oversized) {return oversized;}
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") {

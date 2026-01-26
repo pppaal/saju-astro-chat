@@ -345,7 +345,7 @@ export function analyzeBranchRelations(
           descKey = "calendar.samhapDesc";
         }
         recommendationKeys.push("bigDecision", "contract", "partnership");
-        if (!categories.includes("general")) categories.push("general");
+        if (!categories.includes("general")) {categories.push("general");}
       } else if (element === relations.controlledBy) {
         factorKeys.push("branchSamhapNegative");
         warningKeys.push("opposition");

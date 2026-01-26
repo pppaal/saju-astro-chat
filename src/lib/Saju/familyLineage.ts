@@ -296,7 +296,7 @@ function extractAllElements(saju: SajuResult): string[] {
 function findDominantElement(elements: string[]): string {
   const counts: Record<string, number> = { '목': 0, '화': 0, '토': 0, '금': 0, '수': 0 };
   for (const el of elements) {
-    if (counts[el] !== undefined) counts[el]++;
+    if (counts[el] !== undefined) {counts[el]++;}
   }
 
   let maxElement = '토';
@@ -598,7 +598,7 @@ export function analyzeConflictPoints(
       const saju1 = sajuMap.get(members[i].id);
       const saju2 = sajuMap.get(members[j].id);
 
-      if (!saju1 || !saju2) continue;
+      if (!saju1 || !saju2) {continue;}
 
       const branchRel = analyzeBranchRelation(saju1, saju2);
 
@@ -645,7 +645,7 @@ export function analyzeGenerationalPatterns(
   const allElements = [...gpElements, ...pElements, ...cElements];
   const elementCounts: Record<string, number> = { '목': 0, '화': 0, '토': 0, '금': 0, '수': 0 };
   for (const el of allElements) {
-    if (elementCounts[el] !== undefined) elementCounts[el]++;
+    if (elementCounts[el] !== undefined) {elementCounts[el]++;}
   }
 
   for (const [element, count] of Object.entries(elementCounts)) {
@@ -960,7 +960,7 @@ export function analyzeFamilyDynamic(
 
   const elementCounts: Record<string, number> = { '목': 0, '화': 0, '토': 0, '금': 0, '수': 0 };
   for (const el of allElements) {
-    if (elementCounts[el] !== undefined) elementCounts[el]++;
+    if (elementCounts[el] !== undefined) {elementCounts[el]++;}
   }
 
   const sorted = Object.entries(elementCounts).sort((a, b) => b[1] - a[1]);
@@ -1054,7 +1054,7 @@ export function performCompleteFamilyAnalysis(
     for (let j = i + 1; j < members.length; j++) {
       const saju1 = sajuMap.get(members[i].id);
       const saju2 = sajuMap.get(members[j].id);
-      if (!saju1 || !saju2) continue;
+      if (!saju1 || !saju2) {continue;}
 
       const relationType = determineRelationType(members[i].role, members[j].role);
 
@@ -1101,11 +1101,11 @@ export function performCompleteFamilyAnalysis(
 }
 
 function determineRelationType(role1: FamilyRole, role2: FamilyRole): RelationType {
-  if ((role1 === 'father' || role1 === 'mother') && role2 === 'child') return 'parent_child';
-  if (role1 === 'child' && (role2 === 'father' || role2 === 'mother')) return 'parent_child';
-  if (role1 === 'self' && role2 === 'spouse') return 'spouse';
-  if (role1 === 'spouse' && role2 === 'self') return 'spouse';
-  if (role1 === 'sibling' && role2 === 'sibling') return 'sibling';
-  if (role1 === 'grandparent' || role2 === 'grandparent') return 'grandparent_grandchild';
+  if ((role1 === 'father' || role1 === 'mother') && role2 === 'child') {return 'parent_child';}
+  if (role1 === 'child' && (role2 === 'father' || role2 === 'mother')) {return 'parent_child';}
+  if (role1 === 'self' && role2 === 'spouse') {return 'spouse';}
+  if (role1 === 'spouse' && role2 === 'self') {return 'spouse';}
+  if (role1 === 'sibling' && role2 === 'sibling') {return 'sibling';}
+  if (role1 === 'grandparent' || role2 === 'grandparent') {return 'grandparent_grandchild';}
   return 'sibling';
 }

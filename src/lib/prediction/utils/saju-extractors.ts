@@ -34,18 +34,18 @@ export function extractPillarData(saju: SajuStructure | undefined): {
   timeBranch: string;
 } {
   const getStemName = (pillar: SajuPillar | undefined): string => {
-    if (!pillar) return '甲';
+    if (!pillar) {return '甲';}
     const stem = pillar.heavenlyStem;
-    if (typeof stem === 'string') return stem;
-    if (stem && typeof stem === 'object' && 'name' in stem) return stem.name || '甲';
+    if (typeof stem === 'string') {return stem;}
+    if (stem && typeof stem === 'object' && 'name' in stem) {return stem.name || '甲';}
     return '甲';
   };
 
   const getBranchName = (pillar: SajuPillar | undefined): string => {
-    if (!pillar) return '子';
+    if (!pillar) {return '子';}
     const branch = pillar.earthlyBranch;
-    if (typeof branch === 'string') return branch;
-    if (branch && typeof branch === 'object' && 'name' in branch) return branch.name || '子';
+    if (typeof branch === 'string') {return branch;}
+    if (branch && typeof branch === 'object' && 'name' in branch) {return branch.name || '子';}
     return '子';
   };
 
@@ -70,10 +70,10 @@ export function extractPillarData(saju: SajuStructure | undefined): {
  */
 export function extractAllStems(saju: SajuStructure | undefined): string[] {
   const getStemName = (pillar: SajuPillar | undefined): string | null => {
-    if (!pillar) return null;
+    if (!pillar) {return null;}
     const stem = pillar.heavenlyStem;
-    if (typeof stem === 'string') return stem;
-    if (stem && typeof stem === 'object' && 'name' in stem) return stem.name || null;
+    if (typeof stem === 'string') {return stem;}
+    if (stem && typeof stem === 'object' && 'name' in stem) {return stem.name || null;}
     return null;
   };
 
@@ -97,10 +97,10 @@ export function extractAllStems(saju: SajuStructure | undefined): string[] {
  */
 export function extractAllBranches(saju: SajuStructure | undefined): string[] {
   const getBranchName = (pillar: SajuPillar | undefined): string | null => {
-    if (!pillar) return null;
+    if (!pillar) {return null;}
     const branch = pillar.earthlyBranch;
-    if (typeof branch === 'string') return branch;
-    if (branch && typeof branch === 'object' && 'name' in branch) return branch.name || null;
+    if (typeof branch === 'string') {return branch;}
+    if (branch && typeof branch === 'object' && 'name' in branch) {return branch.name || null;}
     return null;
   };
 

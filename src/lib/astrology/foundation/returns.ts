@@ -37,7 +37,7 @@ function findSunAtLongitude(
   for (let i = 0; i < 50; i++) {
     const mid = (low + high) / 2;
     const sunRes = swisseph.swe_calc_ut(mid, swisseph.SE_SUN, SW_FLAGS);
-    if ("error" in sunRes) throw new Error(`Sun calc error: ${sunRes.error}`);
+    if ("error" in sunRes) {throw new Error(`Sun calc error: ${sunRes.error}`);}
 
     const sunLon = sunRes.longitude;
     const diff = normalize360(sunLon - targetLon);
@@ -77,7 +77,7 @@ function findMoonAtLongitude(
   for (let i = 0; i < 50; i++) {
     const mid = (low + high) / 2;
     const moonRes = swisseph.swe_calc_ut(mid, swisseph.SE_MOON, SW_FLAGS);
-    if ("error" in moonRes) throw new Error(`Moon calc error: ${moonRes.error}`);
+    if ("error" in moonRes) {throw new Error(`Moon calc error: ${moonRes.error}`);}
 
     const moonLon = moonRes.longitude;
     const diff = normalize360(moonLon - targetLon);
@@ -112,7 +112,7 @@ export async function calculateSolarReturn(
   // 1. 출생 시 태양 위치 구하기
   const natalJD = natalToJD(natal);
   const natalSunRes = swisseph.swe_calc_ut(natalJD, swisseph.SE_SUN, SW_FLAGS);
-  if ("error" in natalSunRes) throw new Error(`Natal Sun error: ${natalSunRes.error}`);
+  if ("error" in natalSunRes) {throw new Error(`Natal Sun error: ${natalSunRes.error}`);}
   const natalSunLon = natalSunRes.longitude;
 
   // 2. 해당 연도의 생일 근처에서 태양이 동일 위치에 오는 시간 찾기
@@ -136,7 +136,7 @@ export async function calculateSolarReturn(
   // 5. 행성 위치 계산
   const planets: PlanetBase[] = Object.entries(PLANET_LIST).map(([name, planetId]) => {
     const res = swisseph.swe_calc_ut(solarReturnJD, planetId, SW_FLAGS);
-    if ("error" in res) throw new Error(`Solar Return calc error for ${name}: ${res.error}`);
+    if ("error" in res) {throw new Error(`Solar Return calc error for ${name}: ${res.error}`);}
 
     const longitude = res.longitude;
     const info = formatLongitude(longitude);
@@ -183,7 +183,7 @@ export async function calculateLunarReturn(
   // 1. 출생 시 달 위치 구하기
   const natalJD = natalToJD(natal);
   const natalMoonRes = swisseph.swe_calc_ut(natalJD, swisseph.SE_MOON, SW_FLAGS);
-  if ("error" in natalMoonRes) throw new Error(`Natal Moon error: ${natalMoonRes.error}`);
+  if ("error" in natalMoonRes) {throw new Error(`Natal Moon error: ${natalMoonRes.error}`);}
   const natalMoonLon = natalMoonRes.longitude;
 
   // 2. 해당 월의 시작부터 끝까지 검색 (달은 약 27.3일 주기)
@@ -208,7 +208,7 @@ export async function calculateLunarReturn(
   // 5. 행성 위치
   const planets: PlanetBase[] = Object.entries(PLANET_LIST).map(([name, planetId]) => {
     const res = swisseph.swe_calc_ut(lunarReturnJD, planetId, SW_FLAGS);
-    if ("error" in res) throw new Error(`Lunar Return calc error for ${name}: ${res.error}`);
+    if ("error" in res) {throw new Error(`Lunar Return calc error for ${name}: ${res.error}`);}
 
     const longitude = res.longitude;
     const info = formatLongitude(longitude);

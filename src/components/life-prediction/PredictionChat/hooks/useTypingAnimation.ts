@@ -86,7 +86,7 @@ export function useTypingAnimation(
   }, [typingSpeed, deletingSpeed, pauseDuration, pauseAfterDelete]);
 
   useEffect(() => {
-    if (texts.length === 0) return;
+    if (texts.length === 0) {return;}
 
     const { typingSpeed, deletingSpeed, pauseDuration, pauseAfterDelete } = optionsRef.current;
     const currentText = texts[state.currentIndex];

@@ -18,7 +18,7 @@ export async function calculateTransitChart(input: TransitInput, system: HouseSy
 
   const planets = Object.entries(PLANET_LIST).map(([name, id]) => {
     const res = swisseph.swe_calc_ut(ut_jd, id, SW_FLAGS);
-    if ("error" in res) throw new Error(`swe_calc_ut(${name}): ${res.error}`);
+    if ("error" in res) {throw new Error(`swe_calc_ut(${name}): ${res.error}`);}
     const info = formatLongitude(res.longitude);
     const house = inferHouseOf(res.longitude, housesRes.house);
     const speed = res.speed;
@@ -183,7 +183,7 @@ function determineApplying(
   targetAngle: number
 ): boolean {
   // 정적 트랜짓 또는 역행
-  if (transitSpeed === 0) return false;
+  if (transitSpeed === 0) {return false;}
 
   const diff = (natalLon - transitLon + 360) % 360;
 

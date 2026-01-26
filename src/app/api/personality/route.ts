@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     }
 
     const oversized = enforceBodySize(request, 16 * 1024);
-    if (oversized) return oversized;
+    if (oversized) {return oversized;}
 
     const body = await request.json().catch(() => null);
 

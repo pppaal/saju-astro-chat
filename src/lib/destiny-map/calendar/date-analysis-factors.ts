@@ -120,14 +120,14 @@ export function generateSajuFactorKeys(input: SajuFactorKeysInput): FactorKeysRe
   if (specialDayFlags.hasSonEomneun) {
     sajuFactorKeys.push("sonEomneunDay");
     recommendationKeys.push("moving", "wedding", "business");
-    if (!categories.includes("general")) categories.push("general");
+    if (!categories.includes("general")) {categories.push("general");}
   }
 
   // 건록(建祿) 체크
   if (specialDayFlags.hasGeonrok) {
     sajuFactorKeys.push("geonrokDay");
     recommendationKeys.push("career", "authority", "promotion");
-    if (!categories.includes("career")) categories.push("career");
+    if (!categories.includes("career")) {categories.push("career");}
   }
 
   // 삼재(三災) 체크
@@ -141,14 +141,14 @@ export function generateSajuFactorKeys(input: SajuFactorKeysInput): FactorKeysRe
     sajuFactorKeys.push("yeokmaDay");
     recommendationKeys.push("travel", "change", "interview");
     warningKeys.push("instability");
-    if (!categories.includes("travel")) categories.push("travel");
+    if (!categories.includes("travel")) {categories.push("travel");}
   }
 
   // 도화살(桃花殺) 체크
   if (specialDayFlags.hasDohwa) {
     sajuFactorKeys.push("dohwaDay");
     recommendationKeys.push("dating", "socializing", "charm");
-    if (!categories.includes("love")) categories.push("love");
+    if (!categories.includes("love")) {categories.push("love");}
   }
 
   // 신살 결과 반영
@@ -454,8 +454,8 @@ export function generateAstroFactorKeys(input: AstroFactorKeysInput): AstroFacto
 
   // 8단계 달 위상
   astroFactorKeys.push(input.moonPhaseDetailed.factorKey);
-  if (input.moonPhaseDetailed.score > 10) astroPositive = true;
-  if (input.moonPhaseDetailed.score < -2) astroNegative = true;
+  if (input.moonPhaseDetailed.score > 10) {astroPositive = true;}
+  if (input.moonPhaseDetailed.score < -2) {astroNegative = true;}
 
   // 역행 행성
   for (const planet of input.retrogradePlanets) {

@@ -58,7 +58,7 @@ export function ConfirmDialog({
 
   // Focus trap and escape key handler
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {return;}
 
     // Focus cancel button when dialog opens
     cancelButtonRef.current?.focus();
@@ -70,13 +70,13 @@ export function ConfirmDialog({
     };
 
     const handleTabKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
+      if (e.key !== 'Tab') {return;}
 
       const focusableElements = dialogRef.current?.querySelectorAll(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
       );
 
-      if (!focusableElements || focusableElements.length === 0) return;
+      if (!focusableElements || focusableElements.length === 0) {return;}
 
       const firstElement = focusableElements[0] as HTMLElement;
       const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
@@ -107,7 +107,7 @@ export function ConfirmDialog({
     };
   }, [isOpen, onCancel]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div

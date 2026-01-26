@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { initializeApiContext, createAuthenticatedGuard } from "@/lib/api/middleware";
-import { createSSEStreamProxy, createFallbackSSEStream } from "@/lib/streaming";
+import { createFallbackSSEStream } from "@/lib/streaming";
 import { apiClient } from "@/lib/api/ApiClient";
 import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { logger } from '@/lib/logger';
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     const body = await req.json();
     const {

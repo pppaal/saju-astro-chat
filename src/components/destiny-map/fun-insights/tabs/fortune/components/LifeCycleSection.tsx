@@ -19,7 +19,7 @@ interface LifeCycleSectionProps {
 }
 
 export default function LifeCycleSection({ lifeCycles, isKo }: LifeCycleSectionProps) {
-  if (lifeCycles.length === 0) return null;
+  if (lifeCycles.length === 0) {return null;}
 
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-violet-900/20 border border-violet-500/30 p-6">

@@ -23,7 +23,7 @@ function clampMessages(messages: ChatMessage[], max = 8) {
 
 // Build SajuProfile from raw saju data
 function buildSajuProfile(saju: Record<string, unknown>): SajuProfile | null {
-  if (!saju) return null;
+  if (!saju) {return null;}
 
   const dayMasterName = (saju?.dayMaster as Record<string, unknown>)?.name as string ||
     (saju?.dayMaster as Record<string, unknown>)?.heavenlyStem as string || '갑';
@@ -66,7 +66,7 @@ function buildSajuProfile(saju: Record<string, unknown>): SajuProfile | null {
 
 // Build AstrologyProfile from raw astro data
 function buildAstroProfile(astro: Record<string, unknown>): AstrologyProfile | null {
-  if (!astro) return null;
+  if (!astro) {return null;}
 
   const getElementFromSign = (sign: string): string => {
     const elementMap: Record<string, string> = {
@@ -175,7 +175,7 @@ export async function POST(req: NextRequest) {
     });
 
     const { context, error } = await initializeApiContext(req, guardOptions);
-    if (error) return error;
+    if (error) {return error;}
 
     const body = await req.json();
     const {

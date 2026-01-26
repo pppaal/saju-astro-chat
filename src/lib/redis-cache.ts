@@ -10,7 +10,7 @@ const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
  * Get cached value from Redis
  */
 export async function cacheGet<T>(key: string): Promise<T | null> {
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) return null;
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {return null;}
 
   try {
     const res = await fetch(`${UPSTASH_URL}/get/${encodeURIComponent(key)}`, {
@@ -18,10 +18,10 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
       cache: "no-store",
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {return null;}
 
     const data = await res.json();
-    if (!data?.result) return null;
+    if (!data?.result) {return null;}
 
     const parsed = JSON.parse(data.result);
 
@@ -52,7 +52,7 @@ export async function cacheSet(
   value: unknown,
   ttlSeconds: number = 86400 // default 24 hours
 ): Promise<boolean> {
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) return false;
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {return false;}
 
   try {
     // Use Upstash pipeline format for SET with EX (expiry)

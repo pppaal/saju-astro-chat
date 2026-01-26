@@ -10,7 +10,7 @@ const eclipseMessage = {
 export function getEclipsesInsight(astro: AstroData | undefined, lang: string): { title: string; message: string; emoji: string } | null {
   const isKo = lang === "ko";
   const eclipses = astro?.eclipses;
-  if (!eclipses) return null;
+  if (!eclipses) {return null;}
 
   let message = "";
   if (typeof eclipses === 'string') {
@@ -19,7 +19,7 @@ export function getEclipsesInsight(astro: AstroData | undefined, lang: string): 
     message = selectLang(isKo, eclipseMessage);
   }
 
-  if (!message) return null;
+  if (!message) {return null;}
 
   return {
     title: selectLang(isKo, titles),

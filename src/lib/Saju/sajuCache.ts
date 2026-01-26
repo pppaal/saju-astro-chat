@@ -209,7 +209,7 @@ export class LRUCache<T> {
    */
   has(key: string): boolean {
     const entry = this.cache.get(key);
-    if (!entry) return false;
+    if (!entry) {return false;}
 
     // TTL 체크
     if (Date.now() - entry.createdAt > this.config.ttlMs) {
@@ -296,7 +296,7 @@ export class LRUCache<T> {
    * 저장소에 저장
    */
   private persistToStorage(): void {
-    if (typeof localStorage === 'undefined') return;
+    if (typeof localStorage === 'undefined') {return;}
 
     try {
       const data = Array.from(this.cache.entries());
@@ -311,7 +311,7 @@ export class LRUCache<T> {
    * 저장소에서 복원
    */
   private restoreFromStorage(): void {
-    if (typeof localStorage === 'undefined') return;
+    if (typeof localStorage === 'undefined') {return;}
 
     try {
       const data = localStorage.getItem(this.config.storageKey);
@@ -550,7 +550,7 @@ export class BatchProcessor<T, R> {
    * 배치 처리
    */
   private async process(): Promise<void> {
-    if (this.processing || this.queue.length === 0) return;
+    if (this.processing || this.queue.length === 0) {return;}
 
     this.processing = true;
     const batch = this.queue.splice(0, this.batchSize);

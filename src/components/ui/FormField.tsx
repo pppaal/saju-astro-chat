@@ -38,7 +38,7 @@ export const FormField: React.FC<FormFieldProps> = ({
 
   // Real-time validation on value change
   useEffect(() => {
-    if (!touched) return;
+    if (!touched) {return;}
 
     if (validate) {
       const errorMessage = validate(value);
@@ -54,7 +54,7 @@ export const FormField: React.FC<FormFieldProps> = ({
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setTouched(true);
-    if (onBlur) onBlur(e);
+    if (onBlur) {onBlur(e);}
   };
 
   const fieldClassName = `
@@ -118,14 +118,14 @@ export const FormField: React.FC<FormFieldProps> = ({
 export const validators = {
   email: (value: string): string | null => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!value) return 'Email is required';
-    if (!emailRegex.test(value)) return 'Please enter a valid email address';
+    if (!value) {return 'Email is required';}
+    if (!emailRegex.test(value)) {return 'Please enter a valid email address';}
     return null;
   },
 
   phone: (value: string): string | null => {
     const phoneRegex = /^[0-9]{10,11}$/;
-    if (!value) return 'Phone number is required';
+    if (!value) {return 'Phone number is required';}
     if (!phoneRegex.test(value.replace(/[-\s]/g, ''))) {
       return 'Please enter a valid phone number (10-11 digits)';
     }
@@ -133,31 +133,31 @@ export const validators = {
   },
 
   required: (value: string): string | null => {
-    if (!value || value.trim() === '') return 'This field is required';
+    if (!value || value.trim() === '') {return 'This field is required';}
     return null;
   },
 
   minLength: (min: number) => (value: string): string | null => {
-    if (value.length < min) return `Must be at least ${min} characters`;
+    if (value.length < min) {return `Must be at least ${min} characters`;}
     return null;
   },
 
   maxLength: (max: number) => (value: string): string | null => {
-    if (value.length > max) return `Must be no more than ${max} characters`;
+    if (value.length > max) {return `Must be no more than ${max} characters`;}
     return null;
   },
 
   date: (value: string): string | null => {
-    if (!value) return 'Date is required';
+    if (!value) {return 'Date is required';}
     const date = new Date(value);
-    if (isNaN(date.getTime())) return 'Please enter a valid date';
+    if (isNaN(date.getTime())) {return 'Please enter a valid date';}
     return null;
   },
 
   time: (value: string): string | null => {
-    if (!value) return 'Time is required';
+    if (!value) {return 'Time is required';}
     const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    if (!timeRegex.test(value)) return 'Please enter time in HH:MM format';
+    if (!timeRegex.test(value)) {return 'Please enter time in HH:MM format';}
     return null;
   },
 };

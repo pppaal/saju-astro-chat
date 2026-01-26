@@ -27,7 +27,7 @@ export function analyzeSibsinPlanetFusion(
 ): SibsinPlanetResult[] {
   const sibsinPlanetFusions: SibsinPlanetResult[] = [];
 
-  if (!saju) return sibsinPlanetFusions;
+  if (!saju) {return sibsinPlanetFusions;}
 
   const extSaju = saju as ExtendedSajuData;
   const sibsinList = extSaju?.sibsin || {};
@@ -44,9 +44,9 @@ export function analyzeSibsinPlanetFusion(
 
   // 주요 십신 3개 선택
   const mainSibsin: SibsinKind[] = [];
-  if (sibsinList.year) mainSibsin.push(sibsinList.year);
-  if (sibsinList.month) mainSibsin.push(sibsinList.month);
-  if (sibsinList.hour) mainSibsin.push(sibsinList.hour);
+  if (sibsinList.year) {mainSibsin.push(sibsinList.year);}
+  if (sibsinList.month) {mainSibsin.push(sibsinList.month);}
+  if (sibsinList.hour) {mainSibsin.push(sibsinList.hour);}
 
   for (const sibsin of mainSibsin.slice(0, 3)) {
     for (const planet of planets.slice(0, 4)) {
@@ -88,7 +88,7 @@ export function getSibsinPlanetDescription(
 ): string | null {
   const isKo = lang === 'ko';
   const interaction = SIBSIN_PLANET_MATRIX[sibsin]?.[planet];
-  if (!interaction) return null;
+  if (!interaction) {return null;}
 
   const sibsinKw = SIBSIN_KEYWORDS[sibsin];
   const planetKw = PLANET_KEYWORDS[planet];

@@ -19,11 +19,11 @@ function getSibseong(
   dayMaster: { element: FiveElement; yin_yang: YinYang },
   target: { element: FiveElement; yin_yang: YinYang }
 ): string {
-  if (dayMaster.element === target.element) return dayMaster.yin_yang === target.yin_yang ? '비견' : '겁재';
-  if (FIVE_ELEMENT_RELATIONS.생하는관계[dayMaster.element] === target.element) return dayMaster.yin_yang === target.yin_yang ? '식신' : '상관';
-  if (FIVE_ELEMENT_RELATIONS.극하는관계[dayMaster.element] === target.element) return dayMaster.yin_yang === target.yin_yang ? '편재' : '정재';
-  if (FIVE_ELEMENT_RELATIONS.극받는관계[dayMaster.element] === target.element) return dayMaster.yin_yang === target.yin_yang ? '편관' : '정관';
-  if (FIVE_ELEMENT_RELATIONS.생받는관계[dayMaster.element] === target.element) return dayMaster.yin_yang === target.yin_yang ? '편인' : '정인';
+  if (dayMaster.element === target.element) {return dayMaster.yin_yang === target.yin_yang ? '비견' : '겁재';}
+  if (FIVE_ELEMENT_RELATIONS.생하는관계[dayMaster.element] === target.element) {return dayMaster.yin_yang === target.yin_yang ? '식신' : '상관';}
+  if (FIVE_ELEMENT_RELATIONS.극하는관계[dayMaster.element] === target.element) {return dayMaster.yin_yang === target.yin_yang ? '편재' : '정재';}
+  if (FIVE_ELEMENT_RELATIONS.극받는관계[dayMaster.element] === target.element) {return dayMaster.yin_yang === target.yin_yang ? '편관' : '정관';}
+  if (FIVE_ELEMENT_RELATIONS.생받는관계[dayMaster.element] === target.element) {return dayMaster.yin_yang === target.yin_yang ? '편인' : '정인';}
   return '';
 }
 
@@ -35,7 +35,7 @@ const MAIN_QI: Record<string, string | undefined> = {
 };
 function getBranchMainStem(branchName: string) {
   const name = MAIN_QI[branchName];
-  if (!name) return undefined;
+  if (!name) {return undefined;}
   return STEMS.find(s => s.name === name);
 }
 
@@ -53,14 +53,14 @@ function parseHourMinute(t: string): { h: number; m: number } {
   const [hh = '0', mm = '0'] = core.split(':');
   let h = Number(hh);
   let m = Number(mm?.replace(/\D/g, '') ?? '0');
-  if (isPM && h < 12) h += 12;
-  if (isAM && h === 12) h = 0;
-  if (!Number.isFinite(h)) h = 0;
-  if (!Number.isFinite(m)) m = 0;
-  if (h < 0) h = 0;
-  if (h > 23) h = 23;
-  if (m < 0) m = 0;
-  if (m > 59) m = 59;
+  if (isPM && h < 12) {h += 12;}
+  if (isAM && h === 12) {h = 0;}
+  if (!Number.isFinite(h)) {h = 0;}
+  if (!Number.isFinite(m)) {m = 0;}
+  if (h < 0) {h = 0;}
+  if (h > 23) {h = 23;}
+  if (m < 0) {m = 0;}
+  if (m > 59) {m = 59;}
   return { h, m };
 }
 
@@ -69,9 +69,9 @@ const DAEUN_ROUNDING: 'round' | 'ceil' | 'floor' = 'round';
 function daysToDaeunAge(days: number): number {
   const v = days / 3;
   let age: number;
-  if (DAEUN_ROUNDING === 'ceil') age = Math.ceil(v);
-  else if (DAEUN_ROUNDING === 'floor') age = Math.floor(v);
-  else age = Math.round(v);
+  if (DAEUN_ROUNDING === 'ceil') {age = Math.ceil(v);}
+  else if (DAEUN_ROUNDING === 'floor') {age = Math.floor(v);}
+  else {age = Math.round(v);}
   return Math.max(1, age);
 }
 
@@ -99,9 +99,9 @@ export function calculateSajuData(
     // ✅ 안전한 시간 문자열 처리
     const safeTime = (() => {
       const t = String(birthTime ?? '').trim();
-      if (!t) return '00:00:00';
-      if (/^\d{1,2}:\d{2}$/.test(t)) return `${t}:00`;
-      if (/^\d{1,2}$/.test(t)) return `${t.padStart(2, '0')}:00:00`;
+      if (!t) {return '00:00:00';}
+      if (/^\d{1,2}:\d{2}$/.test(t)) {return `${t}:00`;}
+      if (/^\d{1,2}$/.test(t)) {return `${t.padStart(2, '0')}:00:00`;}
       return t;
     })();
 
@@ -127,7 +127,7 @@ export function calculateSajuData(
 
     /* ---------------- 연기둥 ---------------- */
     const ipchunUTC = getSolarTermKST(year, 2);
-    if (!ipchunUTC) throw new Error(`Cannot determine Saju year: solar term data missing for ${year}`);
+    if (!ipchunUTC) {throw new Error(`Cannot determine Saju year: solar term data missing for ${year}`);}
     const sajuYear = birthDateTime < ipchunUTC ? year - 1 : year;
     const idx60Y = (sajuYear - 4 + 6000) % 60;
     const yearPillar = { stem: STEMS[idx60Y % 10], branch: BRANCHES[idx60Y % 12] };
@@ -135,9 +135,9 @@ export function calculateSajuData(
     /* ---------------- 월기둥 ---------------- */
     let sajuMonth = month;
     const termUTC_thisMonth = getSolarTermKST(year, month);
-    if (!termUTC_thisMonth) throw new Error(`Cannot determine Saju month: solar term data missing for ${year}/${month}`);
+    if (!termUTC_thisMonth) {throw new Error(`Cannot determine Saju month: solar term data missing for ${year}/${month}`);}
     if (birthDateTime < termUTC_thisMonth)
-      sajuMonth = (sajuMonth === 1) ? 12 : (sajuMonth - 1);
+      {sajuMonth = (sajuMonth === 1) ? 12 : (sajuMonth - 1);}
 
     const G_BRANCH: ReadonlyArray<string> = ['丑','寅','卯','辰','巳','午','未','申','酉','戌','亥','子'];
     const monthBranchName = G_BRANCH[(sajuMonth - 1) % 12];
@@ -187,20 +187,20 @@ export function calculateSajuData(
     const isMale = gender === 'male';
     const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
     const termUTC_current = getSolarTermKST(year, sajuMonth);
-    if (!termUTC_current) throw new Error(`Cannot determine Daeun: solar term data missing for ${year}/${sajuMonth}`);
+    if (!termUTC_current) {throw new Error(`Cannot determine Daeun: solar term data missing for ${year}/${sajuMonth}`);}
     let nextTermUTC: Date, prevTermUTC: Date;
     if (isForward) {
       const nextMonth = sajuMonth === 12 ? 1 : sajuMonth + 1;
       const nextYear = sajuMonth === 12 ? year + 1 : year;
       const nextTerm = getSolarTermKST(nextYear, nextMonth);
-      if (!nextTerm) throw new Error(`Cannot determine Daeun: solar term data missing for ${nextYear}/${nextMonth}`);
+      if (!nextTerm) {throw new Error(`Cannot determine Daeun: solar term data missing for ${nextYear}/${nextMonth}`);}
       nextTermUTC = nextTerm;
       prevTermUTC = termUTC_current;
     } else {
       const prevMonth = sajuMonth === 1 ? 12 : sajuMonth - 1;
       const prevYear = sajuMonth === 1 ? year - 1 : year;
       const prevTerm = getSolarTermKST(prevYear, prevMonth);
-      if (!prevTerm) throw new Error(`Cannot determine Daeun: solar term data missing for ${prevYear}/${prevMonth}`);
+      if (!prevTerm) {throw new Error(`Cannot determine Daeun: solar term data missing for ${prevYear}/${prevMonth}`);}
       prevTermUTC = prevTerm;
       nextTermUTC = termUTC_current;
     }
@@ -235,9 +235,9 @@ export function calculateSajuData(
 
     // 지장간 기운 정보를 안전하게 생성하는 헬퍼
     const makeJijangganEntry = (stemName: string | undefined) => {
-      if (!stemName) return undefined;
+      if (!stemName) {return undefined;}
       const stem = STEMS.find(s => s.name === stemName);
-      if (!stem) return undefined;
+      if (!stem) {return undefined;}
       return { name: stemName, sibsin: getSibseong(dayMaster, stem) };
     };
 

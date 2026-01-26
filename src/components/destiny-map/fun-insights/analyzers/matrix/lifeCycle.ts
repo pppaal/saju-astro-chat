@@ -48,7 +48,7 @@ export function analyzeLifeCycle(
   const isKo = lang === 'ko';
   const lifeCycles: LifeCycleResult[] = [];
 
-  if (!saju) return lifeCycles;
+  if (!saju) {return lifeCycles;}
 
   const extSaju = saju as ExtendedSajuData;
   const twelveStages = extSaju?.twelveStages || {};
@@ -68,7 +68,7 @@ export function analyzeLifeCycle(
   const stageKeys = Object.keys(twelveStages) as Array<'year' | 'month' | 'day' | 'hour'>;
   for (const pillar of stageKeys) {
     const stage = twelveStages[pillar] as TwelveStage | undefined;
-    if (!stage) continue;
+    if (!stage) {continue;}
 
     // 건록/제왕 변환 (TwelveStage -> TwelveStageStandard)
     const normalizedStage: TwelveStageStandard =
@@ -120,7 +120,7 @@ export function getLifeCycleDescription(
   const isKo = lang === 'ko';
   const interaction = TWELVE_STAGE_HOUSE_MATRIX[stage]?.[house];
   const stageInfo = TWELVE_STAGE_INFO[stage];
-  if (!interaction || !stageInfo) return null;
+  if (!interaction || !stageInfo) {return null;}
 
   const lifeArea = getHouseLifeArea(house, isKo);
 

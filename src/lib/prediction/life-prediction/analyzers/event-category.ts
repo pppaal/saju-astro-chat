@@ -42,11 +42,11 @@ export function generateDetailedEventAnalysis(
 
     // 십신 영향
     const sibsinEffect = getSibsinEffect(sibsin, category);
-    if (sibsinEffect) factors.push(sibsinEffect);
+    if (sibsinEffect) {factors.push(sibsinEffect);}
 
     // 12운성 영향
     const stageEffect = getStageEffect(twelveStage, category);
-    if (stageEffect) factors.push(stageEffect);
+    if (stageEffect) {factors.push(stageEffect);}
 
     // 인과 요인 중 해당 영역 관련
     for (const cf of causalFactors) {

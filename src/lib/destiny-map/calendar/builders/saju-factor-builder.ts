@@ -93,18 +93,18 @@ export function buildSajuFactorKeys(input: SajuFactorBuilderInput): SajuFactorBu
   if (shinsalActive) {
     for (const shinsal of shinsalActive) {
       const name = shinsal.name;
-      if (name === '태극귀인') factorKeys.push('shinsal_taegukGwiin');
-      else if (name === '천덕귀인' || name === '천덕') factorKeys.push('shinsal_cheondeokGwiin');
-      else if (name === '월덕귀인' || name === '월덕') factorKeys.push('shinsal_woldeokGwiin');
-      else if (name === '화개') factorKeys.push('shinsal_hwagae');
-      else if (name === '공망') factorKeys.push('shinsal_gongmang');
-      else if (name === '원진') factorKeys.push('shinsal_wonjin');
-      else if (name === '양인') factorKeys.push('shinsal_yangin');
-      else if (name === '괴강') factorKeys.push('shinsal_goegang');
-      else if (name === '백호') factorKeys.push('shinsal_backho');
-      else if (name === '귀문관') factorKeys.push('shinsal_guimungwan');
-      else if (name === '역마') factorKeys.push('shinsal_yeokma');
-      else if (name === '재살') factorKeys.push('shinsal_jaesal');
+      if (name === '태극귀인') {factorKeys.push('shinsal_taegukGwiin');}
+      else if (name === '천덕귀인' || name === '천덕') {factorKeys.push('shinsal_cheondeokGwiin');}
+      else if (name === '월덕귀인' || name === '월덕') {factorKeys.push('shinsal_woldeokGwiin');}
+      else if (name === '화개') {factorKeys.push('shinsal_hwagae');}
+      else if (name === '공망') {factorKeys.push('shinsal_gongmang');}
+      else if (name === '원진') {factorKeys.push('shinsal_wonjin');}
+      else if (name === '양인') {factorKeys.push('shinsal_yangin');}
+      else if (name === '괴강') {factorKeys.push('shinsal_goegang');}
+      else if (name === '백호') {factorKeys.push('shinsal_backho');}
+      else if (name === '귀문관') {factorKeys.push('shinsal_guimungwan');}
+      else if (name === '역마') {factorKeys.push('shinsal_yeokma');}
+      else if (name === '재살') {factorKeys.push('shinsal_jaesal');}
     }
   }
 

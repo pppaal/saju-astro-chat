@@ -108,15 +108,15 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   // Load saved profile on mount
   useEffect(() => {
     const profile = getUserProfile();
-    if (profile.birthDate) setBirthInfo(prev => ({ ...prev, birthDate: profile.birthDate || '' }));
-    if (profile.birthTime) setBirthInfo(prev => ({ ...prev, birthTime: profile.birthTime || '' }));
-    if (profile.gender) setBirthInfo(prev => ({ ...prev, gender: profile.gender as 'Male' | 'Female' }));
+    if (profile.birthDate) {setBirthInfo(prev => ({ ...prev, birthDate: profile.birthDate || '' }));}
+    if (profile.birthTime) {setBirthInfo(prev => ({ ...prev, birthTime: profile.birthTime || '' }));}
+    if (profile.gender) {setBirthInfo(prev => ({ ...prev, gender: profile.gender as 'Male' | 'Female' }));}
   }, []);
 
   // Load saved dates for authenticated users
   useEffect(() => {
     const loadSavedDates = async () => {
-      if (status !== 'authenticated') return;
+      if (status !== 'authenticated') {return;}
       try {
         const res = await fetch(`/api/calendar/save?year=${year}`);
         if (res.ok) {
@@ -233,7 +233,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
 
   // Date selection handler
   const handleDayClick = useCallback((date: Date | null) => {
-    if (!date) return;
+    if (!date) {return;}
     setSelectedDay(date);
 
     if (!data?.allDates) {
@@ -274,7 +274,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
 
   // Save/unsave handlers
   const handleSaveDate = async () => {
-    if (!selectedDate || status !== 'authenticated') return;
+    if (!selectedDate || status !== 'authenticated') {return;}
 
     setSaving(true);
     setSaveMsg(null);
@@ -321,7 +321,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   };
 
   const handleUnsaveDate = async () => {
-    if (!selectedDate || status !== 'authenticated') return;
+    if (!selectedDate || status !== 'authenticated') {return;}
 
     setSaving(true);
     setSaveMsg(null);
@@ -406,7 +406,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   }
 
   // Main calendar view
-  if (!data) return null;
+  if (!data) {return null;}
 
   return (
     <CalendarMainView

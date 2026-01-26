@@ -8,7 +8,7 @@ interface GeokgukYongsinSectionProps {
 }
 
 export function GeokgukYongsinSection({ geokguk, yongsin }: GeokgukYongsinSectionProps) {
-  if (!geokguk && !yongsin) return null;
+  if (!geokguk && !yongsin) {return null;}
 
   return (
     <div className="flex flex-wrap gap-4" role="group" aria-label="격국 용신 분석">

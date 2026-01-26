@@ -16,13 +16,13 @@ console.log('');
 const folders = {};
 
 for (const [path, coverage] of Object.entries(data)) {
-  if (path === 'total') continue;
-  if (path.indexOf('src') === -1 || path.indexOf('lib') === -1) continue;
+  if (path === 'total') {continue;}
+  if (path.indexOf('src') === -1 || path.indexOf('lib') === -1) {continue;}
   
   const parts = path.split(/[\\/]/);
   const libIdx = parts.findIndex(p => p === 'lib');
   
-  let folder = parts.length > libIdx + 2 ? parts[libIdx + 1] : '(root)';
+  const folder = parts.length > libIdx + 2 ? parts[libIdx + 1] : '(root)';
   
   if (folders[folder] === undefined) {
     folders[folder] = { 
@@ -67,9 +67,9 @@ console.log('');
 
 const files = [];
 for (const [path, coverage] of Object.entries(data)) {
-  if (path === 'total') continue;
-  if (path.indexOf('src') === -1 || path.indexOf('lib') === -1) continue;
-  if (coverage.lines.total === 0) continue;
+  if (path === 'total') {continue;}
+  if (path.indexOf('src') === -1 || path.indexOf('lib') === -1) {continue;}
+  if (coverage.lines.total === 0) {continue;}
   
   const parts = path.split(/[\\/]/);
   const libIdx = parts.findIndex(p => p === 'lib');

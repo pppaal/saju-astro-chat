@@ -22,13 +22,13 @@ export function useCompatibilityAnalysis() {
   const [isGroupResult, setIsGroupResult] = useState(false);
 
   const validate = useCallback((persons: PersonForm[], count: number, t: (key: string, fallback: string) => string) => {
-    if (count < 2 || count > 5) return t('compatibilityPage.errorAddPeople', 'Add between 2 and 5 people.');
+    if (count < 2 || count > 5) {return t('compatibilityPage.errorAddPeople', 'Add between 2 and 5 people.');}
     for (let i = 0; i < persons.length; i++) {
       const p = persons[i];
-      if (!p.date || !p.time) return `${i + 1}: ${t('compatibilityPage.errorDateTimeRequired', 'date and time are required.')}`;
-      if (p.lat == null || p.lon == null) return `${i + 1}: ${t('compatibilityPage.errorSelectCity', 'select a city from suggestions.')}`;
-      if (!p.timeZone) return `${i + 1}: ${t('compatibilityPage.errorTimezoneRequired', 'timezone is required.')}`;
-      if (i > 0 && !p.relation) return `${i + 1}: ${t('compatibilityPage.errorRelationRequired', 'relation to Person 1 is required.')}`;
+      if (!p.date || !p.time) {return `${i + 1}: ${t('compatibilityPage.errorDateTimeRequired', 'date and time are required.')}`;}
+      if (p.lat == null || p.lon == null) {return `${i + 1}: ${t('compatibilityPage.errorSelectCity', 'select a city from suggestions.')}`;}
+      if (!p.timeZone) {return `${i + 1}: ${t('compatibilityPage.errorTimezoneRequired', 'timezone is required.')}`;}
+      if (i > 0 && !p.relation) {return `${i + 1}: ${t('compatibilityPage.errorRelationRequired', 'relation to Person 1 is required.')}`;}
       if (i > 0 && p.relation === 'other' && !p.relationNote?.trim()) {
         return `${i + 1}: ${t('compatibilityPage.errorOtherNote', "add a note for relation 'other'.")}`;
       }
@@ -65,7 +65,7 @@ export function useCompatibilityAnalysis() {
         body: JSON.stringify(body),
       });
       const data = (await res.json()) as CompatibilityResult | null;
-      if (!data) throw new Error('Server error');
+      if (!data) {throw new Error('Server error');}
       if (!res.ok || data.error) {
         const errMsg = typeof data.error === 'string'
           ? data.error

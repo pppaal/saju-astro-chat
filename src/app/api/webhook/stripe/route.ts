@@ -396,7 +396,7 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   const subscriptionId = typeof invoice.subscription === "string"
     ? invoice.subscription
     : invoice.subscription?.id
-  if (!subscriptionId) return
+  if (!subscriptionId) {return}
 
   const existing = await prisma.subscription.findUnique({
     where: { stripeSubscriptionId: subscriptionId },
@@ -426,7 +426,7 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
   const subscriptionId = typeof invoice.subscription === "string"
     ? invoice.subscription
     : invoice.subscription?.id
-  if (!subscriptionId) return
+  if (!subscriptionId) {return}
 
   const existing = await prisma.subscription.findUnique({
     where: { stripeSubscriptionId: subscriptionId },
@@ -463,7 +463,7 @@ async function getPaymentMethodType(paymentIntentId: string): Promise<string | n
     const stripe = getStripe()
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
     const paymentMethodId = paymentIntent.payment_method as string
-    if (!paymentMethodId) return null
+    if (!paymentMethodId) {return null}
 
     const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId)
     return paymentMethod.type // card, kakao_pay, etc.

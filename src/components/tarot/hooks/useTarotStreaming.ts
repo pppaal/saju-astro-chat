@@ -57,7 +57,7 @@ export function useTarotStreaming(params: UseTarotStreamingParams) {
    * Send a message and handle streaming response
    */
   const handleSend = useCallback(async (messageText: string) => {
-    if (!messageText || loading) return;
+    if (!messageText || loading) {return;}
     setUsedFallback(false);
 
     const nextMessages: Message[] = [...messages, { role: "user", content: messageText }];

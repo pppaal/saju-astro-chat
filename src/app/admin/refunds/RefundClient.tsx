@@ -38,7 +38,7 @@ export default function RefundClient({ adminEmail }: { adminEmail: string }) {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!canSubmit) return;
+    if (!canSubmit) {return;}
     setLoading(true);
     setError(null);
     setResult(null);

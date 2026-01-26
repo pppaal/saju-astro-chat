@@ -200,7 +200,7 @@ const elementDestinyTraits: Record<string, { ko: string; en: string }> = {
  * 노드 별자리 추출
  */
 function getNodeSign(astro: AstroData | undefined, nodeType: 'north' | 'south'): string | null {
-  if (!astro?.planets) return null;
+  if (!astro?.planets) {return null;}
 
   const nodeName = nodeType === 'north'
     ? ['north node', 'northnode', 'true node', 'mean node']
@@ -219,14 +219,14 @@ function getNodeSign(astro: AstroData | undefined, nodeType: 'north' | 'south'):
  * 7하우스 주인 행성 찾기
  */
 function getHouse7Ruler(astro: AstroData | undefined): string | null {
-  if (!astro?.houses) return null;
+  if (!astro?.houses) {return null;}
 
   // 7하우스 별자리 찾기
   const house7Sign = Array.isArray(astro.houses)
     ? astro.houses.find(h => h.index === 7)?.sign?.toLowerCase()
     : null;
 
-  if (!house7Sign) return null;
+  if (!house7Sign) {return null;}
 
   // 별자리의 주인 행성 매핑
   const signRulers: Record<string, string> = {
@@ -261,7 +261,7 @@ function getVertexSign(astro: AstroData | undefined): string | null {
 function getJunoSign(astro: AstroData | undefined): string | null {
   // asteroids에서 찾기
   const juno = astro?.asteroids?.juno;
-  if (juno?.sign) return juno.sign.toLowerCase();
+  if (juno?.sign) {return juno.sign.toLowerCase();}
 
   // advancedAstrology.asteroids에서 찾기
   if (astro?.advancedAstrology?.asteroids && Array.isArray(astro.advancedAstrology.asteroids)) {
@@ -278,10 +278,10 @@ function getJunoSign(astro: AstroData | undefined): string | null {
  * 애스펙트에서 행성 이름 추출 (문자열 또는 객체 형태 모두 지원)
  */
 function getAspectPlanetName(value: unknown): string {
-  if (typeof value === 'string') return value.toLowerCase();
+  if (typeof value === 'string') {return value.toLowerCase();}
   if (value && typeof value === 'object' && 'name' in value) {
     const name = (value as { name?: unknown }).name;
-    if (typeof name === 'string') return name.toLowerCase();
+    if (typeof name === 'string') {return name.toLowerCase();}
   }
   return '';
 }
@@ -290,7 +290,7 @@ function getAspectPlanetName(value: unknown): string {
  * 금성의 주요 애스펙트 찾기
  */
 function getVenusMainAspect(astro: AstroData | undefined): string | null {
-  if (!astro?.aspects) return null;
+  if (!astro?.aspects) {return null;}
 
   const importantPlanets = ['jupiter', 'saturn', 'uranus', 'neptune', 'pluto'];
 
@@ -302,7 +302,7 @@ function getVenusMainAspect(astro: AstroData | undefined): string | null {
     return hasVenus && importantPlanets.includes(otherPlanet);
   });
 
-  if (!venusAspect) return null;
+  if (!venusAspect) {return null;}
 
   const fromName = getAspectPlanetName(venusAspect.from);
   const toName = getAspectPlanetName(venusAspect.to);
@@ -316,10 +316,10 @@ function getVenusMainAspect(astro: AstroData | undefined): string | null {
  */
 function getDominantSibsin(saju: SajuData | undefined): string | null {
   const sibsinDist = saju?.advancedAnalysis?.sibsin?.sibsinDistribution;
-  if (!sibsinDist || typeof sibsinDist !== 'object') return null;
+  if (!sibsinDist || typeof sibsinDist !== 'object') {return null;}
 
   const entries = Object.entries(sibsinDist) as [string, number][];
-  if (entries.length === 0) return null;
+  if (entries.length === 0) {return null;}
 
   const sorted = entries.sort(([, a], [, b]) => b - a);
   return sorted[0]?.[0] || null;
@@ -333,7 +333,7 @@ export function getDestinyAnalysis(
   const isKo = lang === "ko";
   const dayMasterName = extractDayMaster(saju);
 
-  if (!dayMasterName) return null;
+  if (!dayMasterName) {return null;}
 
   const dmBase = dayMasterDestinyTraits[dayMasterName] || dayMasterDestinyTraits["갑"];
 

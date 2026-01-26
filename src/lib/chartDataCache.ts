@@ -68,7 +68,7 @@ export function cleanupExpiredCache(): number {
   let removedCount = 0;
   try {
     const keysJson = sessionStorage.getItem(CACHE_KEYS_LIST);
-    if (!keysJson) return 0;
+    if (!keysJson) {return 0;}
 
     const keys: string[] = JSON.parse(keysJson);
     const now = Date.now();
@@ -157,7 +157,7 @@ export function loadChartData(
       stored = sessionStorage.getItem(LEGACY_CACHE_KEY);
     }
 
-    if (!stored) return null;
+    if (!stored) {return null;}
 
     const cached: ChartCacheData = JSON.parse(stored);
 
@@ -212,7 +212,7 @@ export function loadCurrentChartData(): {
       stored = sessionStorage.getItem(LEGACY_CACHE_KEY);
     }
 
-    if (!stored) return null;
+    if (!stored) {return null;}
 
     const cached = JSON.parse(stored);
 

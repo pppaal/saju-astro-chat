@@ -20,10 +20,10 @@ export function getHouseSign(
   astro: AstroData | undefined,
   house: HouseNumber
 ): ZodiacSign | null {
-  if (!astro?.houses || !Array.isArray(astro.houses)) return null;
+  if (!astro?.houses || !Array.isArray(astro.houses)) {return null;}
 
   const houseData = astro.houses.find(h => h.index === house);
-  if (!houseData?.sign) return null;
+  if (!houseData?.sign) {return null;}
 
   return normalizeZodiacSign(houseData.sign);
 }
@@ -56,7 +56,7 @@ export function getPlanetsInHouse(
   astro: AstroData | undefined,
   house: HouseNumber
 ): string[] {
-  if (!astro?.planets || !Array.isArray(astro.planets)) return [];
+  if (!astro?.planets || !Array.isArray(astro.planets)) {return [];}
 
   return astro.planets
     .filter((p: PlanetData) => validateHouseNumber(p.house) === house)
@@ -92,10 +92,10 @@ export function isPlanetInHouse(
   planetName: string,
   house: HouseNumber
 ): boolean {
-  if (!astro?.planets || !Array.isArray(astro.planets)) return false;
+  if (!astro?.planets || !Array.isArray(astro.planets)) {return false;}
 
   const normalized = normalizePlanetName(planetName);
-  if (!normalized) return false;
+  if (!normalized) {return false;}
 
   return astro.planets.some((p: PlanetData) => {
     const pName = normalizePlanetName(p.name);
@@ -116,10 +116,10 @@ export function getPlanetHouse(
   astro: AstroData | undefined,
   planetName: string
 ): HouseNumber | null {
-  if (!astro?.planets) return null;
+  if (!astro?.planets) {return null;}
 
   const normalized = normalizePlanetName(planetName);
-  if (!normalized) return null;
+  if (!normalized) {return null;}
 
   if (Array.isArray(astro.planets)) {
     const planet = astro.planets.find(

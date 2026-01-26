@@ -23,15 +23,15 @@ export function analyzeLifeCycles(yearlyScores: YearlyScore[], daeunList: DaeunI
   // 대운 기반 주기 분석
   for (const daeun of daeunList) {
     const yearsInDaeun = yearlyScores.filter(y => y.daeun === daeun);
-    if (yearsInDaeun.length === 0) continue;
+    if (yearsInDaeun.length === 0) {continue;}
 
     const avgScore = yearsInDaeun.reduce((sum, y) => sum + y.score, 0) / yearsInDaeun.length;
 
     let energy: LifeCyclePhase['energy'];
-    if (avgScore >= 70) energy = 'peak';
-    else if (avgScore >= 55) energy = 'rising';
-    else if (avgScore >= 40) energy = 'declining';
-    else energy = 'dormant';
+    if (avgScore >= 70) {energy = 'peak';}
+    else if (avgScore >= 55) {energy = 'rising';}
+    else if (avgScore >= 40) {energy = 'declining';}
+    else {energy = 'dormant';}
 
     const theme = generatePhaseTheme(daeun, energy);
     const recommendations = generatePhaseRecommendations(energy, daeun.element);

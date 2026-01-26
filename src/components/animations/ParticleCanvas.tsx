@@ -84,8 +84,8 @@ export default function ParticleCanvas() {
       }
 
       update() {
-        if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
-        if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+        if (this.x > canvas.width || this.x < 0) {this.speedX = -this.speedX;}
+        if (this.y > canvas.height || this.y < 0) {this.speedY = -this.speedY;}
 
         this.x += this.speedX;
         this.y += this.speedY;
@@ -131,7 +131,7 @@ export default function ParticleCanvas() {
         const cellX = Math.floor(p.x / gridCellSize);
         const cellY = Math.floor(p.y / gridCellSize);
         const key = `${cellX},${cellY}`;
-        if (!grid.has(key)) grid.set(key, []);
+        if (!grid.has(key)) {grid.set(key, []);}
         grid.get(key)!.push(p);
       }
 
@@ -144,15 +144,15 @@ export default function ParticleCanvas() {
           for (let dy = -1; dy <= 1; dy++) {
             const neighborKey = `${cellX + dx},${cellY + dy}`;
             const neighbors = grid.get(neighborKey);
-            if (!neighbors) continue;
+            if (!neighbors) {continue;}
 
             for (const neighbor of neighbors) {
-              if (p === neighbor) continue;
+              if (p === neighbor) {continue;}
               const pairKey =
                 p.x < neighbor.x
                   ? `${p.x},${p.y}-${neighbor.x},${neighbor.y}`
                   : `${neighbor.x},${neighbor.y}-${p.x},${p.y}`;
-              if (checked.has(pairKey)) continue;
+              if (checked.has(pairKey)) {continue;}
               checked.add(pairKey);
 
               const distX = p.x - neighbor.x;

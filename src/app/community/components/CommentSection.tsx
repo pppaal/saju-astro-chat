@@ -47,7 +47,7 @@ export const CommentSection: React.FC<CommentSectionProps> = React.memo(({
   onToggleReplyLike,
   translate
 }) => {
-  if (!showComments) return null;
+  if (!showComments) {return null;}
 
   return (
     <div className={styles.commentsSection}>

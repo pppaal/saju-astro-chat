@@ -74,7 +74,7 @@ function todayKeyKST(): string {
 }
 
 async function getTodayDocRef() {
-  if (!auth || !db) throw new Error("Firestore is not initialized.");
+  if (!auth || !db) {throw new Error("Firestore is not initialized.");}
 
   if (auth.currentUser === null) {
     if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
@@ -91,7 +91,7 @@ async function getTodayDocRef() {
 }
 
 async function getTotalDocRef() {
-  if (!auth || !db) throw new Error("Firestore is not initialized.");
+  if (!auth || !db) {throw new Error("Firestore is not initialized.");}
 
   if (auth.currentUser === null) {
     if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
@@ -114,7 +114,7 @@ function withHeaders(res: NextResponse, headers?: Headers) {
 function requireToken(req: Request) {
   const expected = process.env.PUBLIC_METRICS_TOKEN;
   const publicExpected = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN;
-  if (!expected && !publicExpected) return true;
+  if (!expected && !publicExpected) {return true;}
   const token = req.headers.get("x-metrics-token");
   return (expected && token === expected) || (publicExpected && token === publicExpected);
 }

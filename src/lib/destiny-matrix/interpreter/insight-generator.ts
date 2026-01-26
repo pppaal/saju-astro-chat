@@ -296,9 +296,9 @@ export class InsightGenerator {
   private calculatePriority(score: number, weight: number): InsightPriority {
     const effectiveScore = score * weight;
 
-    if (effectiveScore >= 8.5) return 'critical';
-    if (effectiveScore >= 7) return 'high';
-    if (effectiveScore >= 5) return 'medium';
+    if (effectiveScore >= 8.5) {return 'critical';}
+    if (effectiveScore >= 7) {return 'high';}
+    if (effectiveScore >= 5) {return 'medium';}
     return 'low';
   }
 
@@ -450,7 +450,7 @@ export class InsightGenerator {
    * 점수 정규화 (1-100)
    */
   private normalizeScores(insights: FusionInsight[]): FusionInsight[] {
-    if (insights.length === 0) return insights;
+    if (insights.length === 0) {return insights;}
 
     const maxWeighted = Math.max(...insights.map(i => i.weightedScore));
     const minWeighted = Math.min(...insights.map(i => i.weightedScore));
@@ -476,7 +476,7 @@ export class InsightGenerator {
     return insights.sort((a, b) => {
       // 우선순위로 먼저 정렬
       const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
-      if (priorityDiff !== 0) return priorityDiff;
+      if (priorityDiff !== 0) {return priorityDiff;}
 
       // 같은 우선순위면 점수로 정렬
       return b.score - a.score;

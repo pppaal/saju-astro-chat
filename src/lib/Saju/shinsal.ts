@@ -116,10 +116,10 @@ export function getTwelveStage(dayStemNameRaw: string, branchNameRaw: string): T
   const dayStemName = normalizeStemName(dayStemNameRaw);
   const branchName = normalizeBranchName(branchNameRaw);
   const start = DAYMASTER_BIRTH_BRANCH[dayStemName];
-  if (!start) return '묘';
+  if (!start) {return '묘';}
   const startIdx = (BRANCH_ORDER as readonly string[]).indexOf(start);
   const targetIdx = (BRANCH_ORDER as readonly string[]).indexOf(branchName);
-  if (startIdx < 0 || targetIdx < 0) return '묘';
+  if (startIdx < 0 || targetIdx < 0) {return '묘';}
   const diff = (targetIdx - startIdx + 12) % 12;
   return TWELVE_STAGE_ORDER[diff];
 }
@@ -204,7 +204,7 @@ function getGwimunOn(monthBranch: string, targetBranch: string, ruleSet: 'standa
   if (ruleSet === 'your') {
     // 표 사이트 특례: 필요한 케이스 우선 허용
     if ((monthBranch === '寅' && targetBranch === '未') ||
-        (monthBranch === '亥' && targetBranch === '卯')) return true;
+        (monthBranch === '亥' && targetBranch === '卯')) {return true;}
 
     // 기본: 삼합(방국) 내부에서만 귀문관 허용
     const triads: string[][] = [
@@ -225,7 +225,7 @@ const HYEONCHIM_BY_STEM: Record<string, string> = {
 function isHyeonchim(dayStem: string, branch: string): boolean { return HYEONCHIM_BY_STEM[dayStem] === branch; }
 function isGosin(monthBranch: string, target: string): boolean {
   const idx = BRANCH_ORDER.indexOf(monthBranch as typeof BRANCH_ORDER[number]);
-  if (idx < 0) return false;
+  if (idx < 0) {return false;}
   const prev = BRANCH_ORDER[(idx + 11) % 12];
   const next = BRANCH_ORDER[(idx + 1) % 12];
   return target === prev || target === next;
@@ -298,7 +298,7 @@ function isHongyeomsal(dayStem: string, targetBranch: string): boolean {
 
 // 천라지망(天羅地網): 辰~巳는 천라, 戌~亥는 지망
 function isCheonraJimang(branch: string): '천라지망' | null {
-  if (['辰','巳','戌','亥'].includes(branch)) return '천라지망';
+  if (['辰','巳','戌','亥'].includes(branch)) {return '천라지망';}
   return null;
 }
 
@@ -403,14 +403,14 @@ function mapK(k: keyof TwelveMap): ShinsalHit['kind'] {
 
 function pickTwelveSingle(dayBranch: string, targetBranch: string): ShinsalHit['kind'] | null {
   const full = TWELVE_SHINSAL_BY_DAY_BRANCH[dayBranch];
-  if (!full) return null;
+  if (!full) {return null;}
   const candidates: ShinsalHit['kind'][] = [];
   for (const [k, v] of Object.entries(full) as Array<[keyof TwelveMap, string]>) {
-    if (v === targetBranch) candidates.push(mapK(k));
+    if (v === targetBranch) {candidates.push(mapK(k));}
   }
-  if (candidates.length === 0) return null;
+  if (candidates.length === 0) {return null;}
   for (const pr of TWELVE_PRIORITY) {
-    if (candidates.includes(pr)) return pr;
+    if (candidates.includes(pr)) {return pr;}
   }
   return candidates[0];
 }
@@ -429,7 +429,7 @@ function applyYourOverrides() {
 /* ===== 신살 계산 ===== */
 export function getShinsalHits(p: SajuPillarsLike, options?: Partial<AnnotateOptions>): ShinsalHit[] {
   const opt = { ...DEFAULT_ANNOTATE_OPTIONS, ...(options || {}) };
-  if (opt.ruleSet === 'your') applyYourOverrides();
+  if (opt.ruleSet === 'your') {applyYourOverrides();}
 
   const hits: ShinsalHit[] = [];
 
@@ -456,7 +456,7 @@ export function getShinsalHits(p: SajuPillarsLike, options?: Partial<AnnotateOpt
     const dayRule = SHINSAL_SIMPLE_BY_DAY_BRANCH[dayBranch] || {};
     for (const [kind, br] of pairs) {
       const hitKind = dayRule[br];
-      if (hitKind) hits.push({ kind: hitKind, pillars: [kind], target: br, detail: '일지(' + dayBranch + ') 기준' });
+      if (hitKind) {hits.push({ kind: hitKind, pillars: [kind], target: br, detail: '일지(' + dayBranch + ') 기준' });}
     }
   }
 
@@ -465,7 +465,7 @@ export function getShinsalHits(p: SajuPillarsLike, options?: Partial<AnnotateOpt
     const monthRule = YEARMONTH_SHINSAL_BY_MONTH_BRANCH[monthBranch] || {};
     for (const [kind, br] of pairs) {
       const hitKind = monthRule[br];
-      if (hitKind) hits.push({ kind: hitKind, pillars: [kind], target: br, detail: '월지(' + monthBranch + ') 기준' });
+      if (hitKind) {hits.push({ kind: hitKind, pillars: [kind], target: br, detail: '월지(' + monthBranch + ') 기준' });}
     }
   }
 
@@ -476,37 +476,37 @@ export function getShinsalHits(p: SajuPillarsLike, options?: Partial<AnnotateOpt
 
     for (const [kind, br] of pairs) {
       if (opt.includeGeneralShinsal) {
-        if (getDohwaOn(br)) hits.push({ kind: '도화', pillars: [kind], target: br });
-        if (getGwimunOn(monthBranch, br, opt.ruleSet)) hits.push({ kind: '귀문관', pillars: [kind], target: br });
-        if (isHyeonchim(dayStem, br)) hits.push({ kind: '현침', pillars: [kind], target: br });
-        if (isGosin(monthBranch, br)) hits.push({ kind: '고신', pillars: [kind], target: br });
-        if (checkGwaegang(dayStem, dayBranch, br)) hits.push({ kind: '괴강', pillars: [kind], target: br });
-        if (kind === 'day' && checkBaekho(dayStem, dayBranch)) hits.push({ kind: '백호', pillars: [kind], target: br });
-        if (YANGIN_BY_DAY_STEM[dayStem] === br) hits.push({ kind: '양인', pillars: [kind], target: br });
+        if (getDohwaOn(br)) {hits.push({ kind: '도화', pillars: [kind], target: br });}
+        if (getGwimunOn(monthBranch, br, opt.ruleSet)) {hits.push({ kind: '귀문관', pillars: [kind], target: br });}
+        if (isHyeonchim(dayStem, br)) {hits.push({ kind: '현침', pillars: [kind], target: br });}
+        if (isGosin(monthBranch, br)) {hits.push({ kind: '고신', pillars: [kind], target: br });}
+        if (checkGwaegang(dayStem, dayBranch, br)) {hits.push({ kind: '괴강', pillars: [kind], target: br });}
+        if (kind === 'day' && checkBaekho(dayStem, dayBranch)) {hits.push({ kind: '백호', pillars: [kind], target: br });}
+        if (YANGIN_BY_DAY_STEM[dayStem] === br) {hits.push({ kind: '양인', pillars: [kind], target: br });}
 
         // 확장 신살 (흉성 계열)
-        if (gongmangBranches.includes(br)) hits.push({ kind: '공망', pillars: [kind], target: br, detail: '일주(' + dayStem + dayBranch + ') 기준' });
-        if (isHongyeomsal(dayStem, br)) hits.push({ kind: '홍염살', pillars: [kind], target: br });
-        if (isCheonraJimang(br)) hits.push({ kind: '천라지망', pillars: [kind], target: br });
-        if (isWonjin(dayBranch, br)) hits.push({ kind: '원진', pillars: [kind], target: br });
+        if (gongmangBranches.includes(br)) {hits.push({ kind: '공망', pillars: [kind], target: br, detail: '일주(' + dayStem + dayBranch + ') 기준' });}
+        if (isHongyeomsal(dayStem, br)) {hits.push({ kind: '홍염살', pillars: [kind], target: br });}
+        if (isCheonraJimang(br)) {hits.push({ kind: '천라지망', pillars: [kind], target: br });}
+        if (isWonjin(dayBranch, br)) {hits.push({ kind: '원진', pillars: [kind], target: br });}
       }
       if (opt.includeLuckyDetails) {
         const ce = CHEONEUL_BY_DAY_STEM[dayStem] || [];
         const tg = TAEGEUK_BY_DAY_STEM[dayStem] || [];
-        if (ce.includes(br)) hits.push({ kind: '천을귀인', pillars: [kind], target: br });
-        if (tg.includes(br)) hits.push({ kind: '태극귀인', pillars: [kind], target: br });
-        if (isGeumYeoseong(br)) hits.push({ kind: '금여성', pillars: [kind], target: br });
-        if (isCheonMunSeong(br)) hits.push({ kind: '천문성', pillars: [kind], target: br });
-        if (isMunChang(br)) hits.push({ kind: '문창', pillars: [kind], target: br });
-        if (isMunGok(br)) hits.push({ kind: '문곡', pillars: [kind], target: br });
+        if (ce.includes(br)) {hits.push({ kind: '천을귀인', pillars: [kind], target: br });}
+        if (tg.includes(br)) {hits.push({ kind: '태극귀인', pillars: [kind], target: br });}
+        if (isGeumYeoseong(br)) {hits.push({ kind: '금여성', pillars: [kind], target: br });}
+        if (isCheonMunSeong(br)) {hits.push({ kind: '천문성', pillars: [kind], target: br });}
+        if (isMunChang(br)) {hits.push({ kind: '문창', pillars: [kind], target: br });}
+        if (isMunGok(br)) {hits.push({ kind: '문곡', pillars: [kind], target: br });}
 
         // 확장 신살 (길성 계열)
-        if (isCheonuiseong(monthBranch, br)) hits.push({ kind: '천의성', pillars: [kind], target: br });
-        if (isHakdangGwiin(dayStem, br)) hits.push({ kind: '학당귀인', pillars: [kind], target: br });
-        if (isCheonjuGwiin(dayStem, br)) hits.push({ kind: '천주귀인', pillars: [kind], target: br });
-        if (isAmnok(dayStem, br)) hits.push({ kind: '암록', pillars: [kind], target: br });
-        if (isGeonrok(dayStem, br)) hits.push({ kind: '건록', pillars: [kind], target: br });
-        if (isJewang(dayStem, br)) hits.push({ kind: '제왕', pillars: [kind], target: br });
+        if (isCheonuiseong(monthBranch, br)) {hits.push({ kind: '천의성', pillars: [kind], target: br });}
+        if (isHakdangGwiin(dayStem, br)) {hits.push({ kind: '학당귀인', pillars: [kind], target: br });}
+        if (isCheonjuGwiin(dayStem, br)) {hits.push({ kind: '천주귀인', pillars: [kind], target: br });}
+        if (isAmnok(dayStem, br)) {hits.push({ kind: '암록', pillars: [kind], target: br });}
+        if (isGeonrok(dayStem, br)) {hits.push({ kind: '건록', pillars: [kind], target: br });}
+        if (isJewang(dayStem, br)) {hits.push({ kind: '제왕', pillars: [kind], target: br });}
       }
     }
   }
@@ -520,8 +520,8 @@ export function getShinsalHits(p: SajuPillarsLike, options?: Partial<AnnotateOpt
       ['time', normalizeStemName(p.time.heavenlyStem.name)],
     ];
     for (const [kind, stem] of stemPairs) {
-      if (isCheondeokGwiin(monthBranch, stem)) hits.push({ kind: '천덕귀인', pillars: [kind], target: stem, detail: '월지(' + monthBranch + ') 기준' });
-      if (isWoldeokGwiin(monthBranch, stem)) hits.push({ kind: '월덕귀인', pillars: [kind], target: stem, detail: '월지(' + monthBranch + ') 기준' });
+      if (isCheondeokGwiin(monthBranch, stem)) {hits.push({ kind: '천덕귀인', pillars: [kind], target: stem, detail: '월지(' + monthBranch + ') 기준' });}
+      if (isWoldeokGwiin(monthBranch, stem)) {hits.push({ kind: '월덕귀인', pillars: [kind], target: stem, detail: '월지(' + monthBranch + ') 기준' });}
     }
   }
 
@@ -568,16 +568,16 @@ export function annotateShinsal(p: SajuPillarsLike, options?: Partial<AnnotateOp
     for (const k of h.pillars) {
       // 12신살
       if (['겁살','재살','천살','지살','년살','월살','망신','장성','반안','역마','육해','화개'].includes(h.kind)) {
-        if (!byPillar[k].twelveShinsal.includes(h.kind + '살')) byPillar[k].twelveShinsal.push(h.kind + '살');
+        if (!byPillar[k].twelveShinsal.includes(h.kind + '살')) {byPillar[k].twelveShinsal.push(h.kind + '살');}
       }
       // 길성 (기존 + 확장 + 추가)
       else if (['천을귀인','태극귀인','금여성','천문성','문창','문곡','천의성','학당귀인','천주귀인','암록','건록','제왕','천덕귀인','월덕귀인'].includes(h.kind)) {
-        if (!byPillar[k].lucky.includes(h.kind)) byPillar[k].lucky.push(h.kind);
+        if (!byPillar[k].lucky.includes(h.kind)) {byPillar[k].lucky.push(h.kind);}
       }
       // 일반/흉성 신살 (기존 + 확장 + 추가)
       else if (['도화','귀문관','현침','고신','괴강','양인','백호','공망','홍염살','천라지망','원진','삼재'].includes(h.kind)) {
         const label = h.kind.endsWith('살') ? h.kind : h.kind + '살';
-        if (!byPillar[k].generalShinsal.includes(label)) byPillar[k].generalShinsal.push(label);
+        if (!byPillar[k].generalShinsal.includes(label)) {byPillar[k].generalShinsal.push(label);}
       }
     }
   }
@@ -616,7 +616,7 @@ export function toSajuPillarsLike(input: SajuPillarsAdapterInput): SajuPillarsLi
 /* ===== 단일 12신살/길성 ===== */
 export function getTwelveShinsalSingleByPillar(p: SajuPillarsLike, options?: Partial<AnnotateOptions>): { year: string; month: string; day: string; time: string } {
   const opt = { ...DEFAULT_ANNOTATE_OPTIONS, ...(options || {}) };
-  if (opt.ruleSet === 'your') applyYourOverrides();
+  if (opt.ruleSet === 'your') {applyYourOverrides();}
 
   const dayBranch = normalizeBranchName(p.day.earthlyBranch.name);
   const monthBranch = normalizeBranchName(p.month.earthlyBranch.name);
@@ -629,11 +629,11 @@ export function getTwelveShinsalSingleByPillar(p: SajuPillarsLike, options?: Par
       return single ? single + '살' : '';
     } else {
       const fromDay = SHINSAL_SIMPLE_BY_DAY_BRANCH[dayBranch]?.[b];
-      if (fromDay) return fromDay + '살';
+      if (fromDay) {return fromDay + '살';}
     }
     if (opt.useMonthCompletion) {
       const fromMonth = monthRule[b];
-      if (fromMonth) return fromMonth + '살';
+      if (fromMonth) {return fromMonth + '살';}
     }
     return '';
   };

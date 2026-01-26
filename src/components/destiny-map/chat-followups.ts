@@ -222,7 +222,7 @@ export function generateFollowUpQuestions(
 
   const add = (arr: string[] = []) => {
     for (const q of arr) {
-      if (!picks.includes(q)) picks.push(q);
+      if (!picks.includes(q)) {picks.push(q);}
     }
   };
 

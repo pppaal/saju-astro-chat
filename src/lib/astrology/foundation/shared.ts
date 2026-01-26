@@ -22,7 +22,7 @@ let planetListCache: Record<string, number> | null = null;
  * Uses cached value after first call
  */
 export function getPlanetList(): Record<string, number> {
-  if (planetListCache) return planetListCache;
+  if (planetListCache) {return planetListCache;}
 
   const sw = getSwisseph();
   planetListCache = {
@@ -191,7 +191,7 @@ export function getMidpoint(lon1: number, lon2: number): number {
   const b = normalize360(lon2);
 
   let diff = b - a;
-  if (diff < 0) diff += 360;
+  if (diff < 0) {diff += 360;}
 
   // Choose shorter arc
   if (diff > 180) {
@@ -219,9 +219,9 @@ export function findHouseForLongitude(longitude: number, houses: House[]): numbe
     const cusp = houses[i].cusp;
     let nextCusp = houses[nextI].cusp;
 
-    if (nextCusp < cusp) nextCusp += 360;
+    if (nextCusp < cusp) {nextCusp += 360;}
     let testLon = lon;
-    if (testLon < cusp) testLon += 360;
+    if (testLon < cusp) {testLon += 360;}
 
     if (testLon >= cusp && testLon < nextCusp) {
       return i + 1;
@@ -268,7 +268,7 @@ let swFlagsCache: number | null = null;
  * Get standard Swiss Ephemeris calculation flags
  */
 export function getSwissEphFlags(): number {
-  if (swFlagsCache !== null) return swFlagsCache;
+  if (swFlagsCache !== null) {return swFlagsCache;}
 
   const sw = getSwisseph();
   swFlagsCache = sw.SEFLG_SPEED;

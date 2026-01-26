@@ -1,0 +1,62 @@
+{
+  "services": {
+    "title": "Services",
+    "subtitle": "Explore your destiny",
+    "destinyMap": {
+      "label": "Destiny Map",
+      "desc": "AI Fortune Analysis"
+    },
+    "aiReports": {
+      "label": "AI Reports",
+      "desc": "Premium Detailed Analysis"
+    },
+    "lifePrediction": {
+      "label": "Life Prediction",
+      "desc": "10-Year Fortune Flow"
+    },
+    "calendar": {
+      "label": "Destiny Calendar",
+      "desc": "Important Dates"
+    },
+    "astrology": {
+      "label": "Astrology",
+      "desc": "Western Astrology"
+    },
+    "saju": {
+      "label": "Saju",
+      "desc": "Four Pillars of Destiny"
+    },
+    "tarot": {
+      "label": "Tarot",
+      "desc": "Tarot Cards"
+    },
+    "iching": {
+      "label": "I Ching",
+      "desc": "Book of Changes"
+    },
+    "dream": {
+      "label": "Dream",
+      "desc": "Dream Interpretation"
+    },
+    "numerology": {
+      "label": "Numerology",
+      "desc": "Number Analysis"
+    },
+    "compatibility": {
+      "label": "Compatibility",
+      "desc": "Compatibility Analysis"
+    },
+    "personality": {
+      "label": "Personality",
+      "desc": "Personality Analysis"
+    },
+    "icp": {
+      "label": "Relationship Style",
+      "desc": "ICP Interpersonal Analysis"
+    },
+    "pastLife": {
+      "label": "Past Life",
+      "desc": "Discover your past lives"
+    }
+  }
+}

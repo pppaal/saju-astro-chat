@@ -53,7 +53,7 @@ export default function CoupleTarotPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === 'loading') {return;}
 
     if (!session) {
       router.push('/auth/signin?callbackUrl=/tarot/couple');

@@ -17,18 +17,18 @@ export default function PillarSummaryTable({
   monthLuckyOverride?: string[];
   yearLuckyOverride?: string[];
 }) {
-  if (!data) return null;
+  if (!data) {return null;}
 
   const toDisplayString = (v: unknown): string => {
-    if (v == null) return '';
-    if (typeof v === 'string') return v.trim();
-    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
-    if (Array.isArray(v)) return v.map(toDisplayString).filter(Boolean).join('\n');
+    if (v == null) {return '';}
+    if (typeof v === 'string') {return v.trim();}
+    if (typeof v === 'number' || typeof v === 'boolean') {return String(v);}
+    if (Array.isArray(v)) {return v.map(toDisplayString).filter(Boolean).join('\n');}
     if (typeof v === 'object') {
       const obj = v as Record<string, unknown>;
-      if (obj.name && typeof obj.name === 'string') return obj.name;
-      if (obj.text && typeof obj.text === 'string') return obj.text;
-      if (obj.display && typeof obj.display === 'string') return obj.display;
+      if (obj.name && typeof obj.name === 'string') {return obj.name;}
+      if (obj.text && typeof obj.text === 'string') {return obj.text;}
+      if (obj.display && typeof obj.display === 'string') {return obj.display;}
       if (obj.chogi || obj.junggi || obj.jeonggi) {
         const parts: string[] = [];
         if (obj.chogi && typeof (obj.chogi as Record<string, unknown>)?.name === 'string') {

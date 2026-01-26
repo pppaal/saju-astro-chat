@@ -95,7 +95,7 @@ function initializeRedis(): Redis | null {
  */
 function cleanupInMemory(): void {
   const now = Date.now();
-  if (now - lastCleanup < CLEANUP_INTERVAL_MS) return;
+  if (now - lastCleanup < CLEANUP_INTERVAL_MS) {return;}
 
   lastCleanup = now;
   const nowSeconds = Math.floor(now / 1000);

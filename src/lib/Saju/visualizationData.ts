@@ -330,11 +330,11 @@ function calculateYinYangBalance(pillars: SajuPillars): { yin: number; yang: num
     const stemInfo = STEMS.find(s => s.name === pillar.heavenlyStem.name);
     const branchInfo = BRANCHES.find(b => b.name === pillar.earthlyBranch.name);
 
-    if (stemInfo?.yin_yang === '양') yang++;
-    else yin++;
+    if (stemInfo?.yin_yang === '양') {yang++;}
+    else {yin++;}
 
-    if (branchInfo?.yin_yang === '양') yang++;
-    else yin++;
+    if (branchInfo?.yin_yang === '양') {yang++;}
+    else {yin++;}
   }
 
   return { yin, yang };
@@ -528,7 +528,7 @@ function calculateBranchRelationScore(branch1: string, branch2: string): number 
     '寅': '申', '申': '寅', '卯': '酉', '酉': '卯',
     '辰': '戌', '戌': '辰', '巳': '亥', '亥': '巳',
   };
-  if (CHUNG_MAP[branch1] === branch2) return 20;
+  if (CHUNG_MAP[branch1] === branch2) {return 20;}
 
   // 육합
   const YUKHAP_MAP: Record<string, string> = {
@@ -536,7 +536,7 @@ function calculateBranchRelationScore(branch1: string, branch2: string): number 
     '卯': '戌', '戌': '卯', '辰': '酉', '酉': '辰',
     '巳': '申', '申': '巳', '午': '未', '未': '午',
   };
-  if (YUKHAP_MAP[branch1] === branch2) return 85;
+  if (YUKHAP_MAP[branch1] === branch2) {return 85;}
 
   // 삼합 (간략화)
   const SAMHAP_GROUPS = [
@@ -546,7 +546,7 @@ function calculateBranchRelationScore(branch1: string, branch2: string): number 
     ['亥', '卯', '未'],
   ];
   for (const group of SAMHAP_GROUPS) {
-    if (group.includes(branch1) && group.includes(branch2)) return 80;
+    if (group.includes(branch1) && group.includes(branch2)) {return 80;}
   }
 
   return 50; // 중립

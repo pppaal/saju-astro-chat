@@ -145,7 +145,7 @@ Question: "${result.question}"
 
   // My Destiny에 저장
   const handleSave = useCallback(async () => {
-    if (isSaving || isSaved) return;
+    if (isSaving || isSaved) {return;}
 
     setIsSaving(true);
     try {

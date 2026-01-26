@@ -9,11 +9,11 @@ const WEEKLY_FORTUNE_KEY = 'weekly_fortune_image';
 
 // Validate if URL is properly configured (not placeholder)
 function isValidUpstashConfig(): boolean {
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) return false;
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {return false;}
   // Check for common placeholder values
-  if (UPSTASH_URL === 'replace_me' || UPSTASH_TOKEN === 'replace_me') return false;
+  if (UPSTASH_URL === 'replace_me' || UPSTASH_TOKEN === 'replace_me') {return false;}
   // Check if URL starts with https
-  if (!UPSTASH_URL.startsWith('https://')) return false;
+  if (!UPSTASH_URL.startsWith('https://')) {return false;}
   return true;
 }
 

@@ -60,7 +60,7 @@ export function analyzeTimingOverlay(
   const isKo = lang === 'ko';
   const results: TimingOverlayResult[] = [];
 
-  if (!saju) return results;
+  if (!saju) {return results;}
 
   // 일간 오행으로 세운 결정
   const dayElement = saju?.dayMaster?.element || 'wood';

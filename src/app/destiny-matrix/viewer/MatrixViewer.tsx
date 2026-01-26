@@ -95,7 +95,7 @@ export default function MatrixViewer() {
     setError(null);
     try {
       const res = await fetch('/api/destiny-matrix');
-      if (!res.ok) throw new Error('Failed to fetch matrix summary');
+      if (!res.ok) {throw new Error('Failed to fetch matrix summary');}
       const data = await res.json();
       setSummary(data);
     } catch (err) {

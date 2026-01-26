@@ -126,12 +126,12 @@ function validateCalendarData(data, year, user) {
   // 통계 계산
   yearDates.forEach(date => {
     stats.total++;
-    if (date.grade === 0) stats.grade0++;
-    else if (date.grade === 1) stats.grade1++;
-    else if (date.grade === 2) stats.grade2++;
-    else if (date.grade === 3) stats.grade3++;
-    else if (date.grade === 4) stats.grade4++;
-    else if (date.grade === 5) stats.grade5++;
+    if (date.grade === 0) {stats.grade0++;}
+    else if (date.grade === 1) {stats.grade1++;}
+    else if (date.grade === 2) {stats.grade2++;}
+    else if (date.grade === 3) {stats.grade3++;}
+    else if (date.grade === 4) {stats.grade4++;}
+    else if (date.grade === 5) {stats.grade5++;}
   });
 
   // 날짜당 필수 필드 검증

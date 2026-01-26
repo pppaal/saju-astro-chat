@@ -7,16 +7,16 @@ function calculateGrade(input) {
   let gradeBonus = 0;
 
   // 보너스 조건
-  if (input.isBirthdaySpecial) gradeBonus += 3;
-  if (input.crossVerified && input.sajuPositive && input.astroPositive) gradeBonus += 2;
-  if (input.totalStrengthCount >= 5 && input.sajuBadCount === 0) gradeBonus += 2;
+  if (input.isBirthdaySpecial) {gradeBonus += 3;}
+  if (input.crossVerified && input.sajuPositive && input.astroPositive) {gradeBonus += 2;}
+  if (input.totalStrengthCount >= 5 && input.sajuBadCount === 0) {gradeBonus += 2;}
 
   // 페널티 조건
-  if (input.hasChung && input.hasXing) gradeBonus -= 4;
-  else if (input.hasChung || input.hasXing) gradeBonus -= 2;
-  if (input.totalBadCount >= 3) gradeBonus -= 3;
-  else if (input.totalBadCount >= 2) gradeBonus -= 1;
-  if (!input.hasNoMajorRetrograde && input.retrogradeCount >= 2) gradeBonus -= 2;
+  if (input.hasChung && input.hasXing) {gradeBonus -= 4;}
+  else if (input.hasChung || input.hasXing) {gradeBonus -= 2;}
+  if (input.totalBadCount >= 3) {gradeBonus -= 3;}
+  else if (input.totalBadCount >= 2) {gradeBonus -= 1;}
+  if (!input.hasNoMajorRetrograde && input.retrogradeCount >= 2) {gradeBonus -= 2;}
 
   // 제한
   gradeBonus = Math.max(-7, Math.min(5, gradeBonus));

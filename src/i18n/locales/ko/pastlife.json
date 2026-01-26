@@ -1,0 +1,105 @@
+{
+  "pastLife": {
+    "title": "전생 리딩",
+    "subtitle": "당신의 영혼이 걸어온 여정을 발견하세요",
+    "birthdateLabel": "생년월일",
+    "birthtimeLabel": "출생 시간",
+    "birthtimeHint": "시간을 모르는 경우 12:00이 사용됩니다",
+    "timeUnknown": "출생 시간을 모릅니다",
+    "timeUnknownHint": "정오 (12:00)가 계산에 사용됩니다",
+    "birthcityLabel": "출생 도시",
+    "birthcityPlaceholder": "출생 도시를 검색하세요...",
+    "birthcityHint": "정확한 점성학 계산을 위해 출생 도시가 필요합니다",
+    "analyzing": "전생을 탐색하는 중...",
+    "buttonStart": "내 전생 발견하기",
+    "infoText": "당신의 전생 리딩은 동양의 사주(四柱) 분석과 서양 점성학을 결합하여 영혼의 패턴, 카르마 교훈, 그리고 전생에서 가져온 재능을 드러냅니다.",
+    "errors": {
+      "birthdate": "생년월일을 입력해주세요.",
+      "city": "출생 도시를 선택해주세요.",
+      "generate": "오류가 발생했습니다. 다시 시도해주세요.",
+      "rateLimit": "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
+      "validation": "입력이 올바르지 않습니다. 정보를 확인해주세요.",
+      "server": "서버 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+      "network": "네트워크 오류가 발생했습니다. 연결을 확인해주세요."
+    },
+    "tabs": {
+      "reading": "리딩",
+      "readingDesc": "당신의 전생 분석",
+      "about": "소개",
+      "aboutDesc": "전생 리딩에 대해"
+    },
+    "about": {
+      "whatIsTitle": "전생 리딩이란?",
+      "whatIsText": "전생 리딩은 동양의 사주명리학과 서양 점성학을 결합하여 당신의 영혼이 전생에서 가져온 패턴, 재능, 그리고 배워야 할 카르마 교훈을 탐구합니다. 이것은 당신의 영혼이 왜 지금 이 삶을 선택했는지, 그리고 어떤 성장을 추구하는지에 대한 심오한 통찰을 제공합니다.",
+      "sajuTitle": "사주와 영혼 패턴",
+      "sajuText": "사주명리학은 출생 시간의 천간지지(天干地支)를 분석하여 당신의 격국(格局)을 파악합니다. 격국은 당신의 영혼이 가진 근본적인 에너지 패턴을 나타내며, 이는 전생에서부터 이어져온 영혼의 본질을 드러냅니다. 식신(창조자), 상관(변혁가), 정관(지도자), 편관(전사), 정재(보존자), 편재(모험가), 정인(현자), 편인(신비가) 등 8가지 패턴이 있습니다.",
+      "nodesTitle": "달의 교점과 영혼의 여정",
+      "nodesText": "서양 점성학에서 달의 북교점(North Node)은 당신의 영혼이 이번 생에서 발전시켜야 할 방향을, 남교점(South Node)은 전생에서 이미 익숙한 패턴을 나타냅니다. 북교점의 위치는 당신이 나아가야 할 영혼의 진화 방향을 보여주며, 이를 통해 전생에서 가져온 습관과 이번 생에서 배워야 할 새로운 교훈을 이해할 수 있습니다.",
+      "purposeTitle": "토성과 카르마 교훈",
+      "purposeText": "토성(Saturn)은 카르마의 행성으로, 우리가 이번 생에서 숙달해야 할 영역과 배워야 할 교훈을 나타냅니다. 토성의 위치는 당신이 전생에서 미완성으로 남긴 과제나 극복해야 할 두려움을 보여줍니다. 토성이 있는 하우스는 당신이 가장 큰 성숙과 성장을 경험할 영역이며, 이를 통해 카르마의 빚을 갚고 영혼을 진화시킬 수 있습니다."
+    },
+    "results": {
+      "overview": "개요",
+      "pastLife": "전생",
+      "journey": "영혼의 여정",
+      "karma": "카르마 빚",
+      "mission": "이번 생",
+      "newReading": "새로운 리딩",
+      "karmaScore": "카르마 탐험 지수",
+      "karmaScoreDesc": {
+        "high": "당신의 영혼은 많은 전생에서 풍부한 경험을 쌓아왔습니다. 깊은 카르마 패턴이 큰 성장의 기회를 제공합니다.",
+        "medium": "당신의 영혼은 적절한 카르마 패턴을 가지고 있습니다. 과거의 지혜와 새로운 교훈 사이의 균형이 기다립니다.",
+        "low": "당신의 영혼은 무거운 카르마 짐에서 비교적 자유롭습니다. 이번 생에서 새로운 경험과 성장에 집중하세요."
+      },
+      "karmaScoreRange": {
+        "high": "깊은 탐험가",
+        "medium": "성장하는 영혼",
+        "low": "새로운 시작"
+      }
+    },
+    "overview": {
+      "soulPattern": "영혼 패턴",
+      "quickSummary": "빠른 요약",
+      "pastRole": "전생의 역할",
+      "coreLesson": "핵심 교훈",
+      "lifeDirection": "이번 생의 방향",
+      "talentsCarried": "가져온 재능"
+    },
+    "pastLife": {
+      "likelyRole": "가능성이 높은 역할",
+      "talentsBrought": "가져온 재능",
+      "lessonsRemaining": "남은 교훈"
+    },
+    "journey": {
+      "title": "영혼의 여정",
+      "pastPattern": "전생의 패턴",
+      "releasePattern": "놓아야 할 패턴",
+      "lifeDirection": "이번 생의 방향",
+      "currentDirection": "이번 생의 방향",
+      "lessonToLearn": "배워야 할 교훈",
+      "toRelease": "놓아야 할 것",
+      "toLearn": "배워야 할 것",
+      "saturnLesson": "토성의 카르마 교훈",
+      "lesson": "교훈",
+      "challenge": "도전",
+      "mastery": "숙달"
+    },
+    "karma": {
+      "title": "카르마 빚",
+      "lesson": "카르마 교훈",
+      "challenge": "도전 과제",
+      "mastery": "숙달할 것",
+      "intro": "이것들은 전생에서 가져온 카르마 패턴으로, 이번 생에서 성장과 치유의 기회를 제공합니다.",
+      "healing": "치유의 길",
+      "noDebts": "특별한 카르마 빚이 감지되지 않았습니다. 당신의 영혼은 전생에서 훌륭한 일을 해왔습니다!"
+    },
+    "mission": {
+      "title": "이번 생의 사명",
+      "core": "핵심 사명",
+      "expression": "표현 방법",
+      "fulfillment": "성취",
+      "coreMission": "핵심 사명",
+      "talentsToUse": "활용할 재능"
+    }
+  }
+}

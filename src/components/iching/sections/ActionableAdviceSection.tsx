@@ -26,7 +26,7 @@ export const ActionableAdviceSection: React.FC<ActionableAdviceSectionProps> = R
   enhancedData,
   translate,
 }) => {
-  if (!enhancedData?.actionableAdvice) return null;
+  if (!enhancedData?.actionableAdvice) {return null;}
 
   return (
     <div className={styles.actionableCard}>

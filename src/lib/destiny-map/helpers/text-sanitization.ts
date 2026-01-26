@@ -40,7 +40,7 @@
  * ```
  */
 export function cleanseText(raw: string): string {
-  if (!raw) return "";
+  if (!raw) {return "";}
 
   // Check if this is a JSON response
   const isJsonResponse =
@@ -84,7 +84,7 @@ export function cleanseText(raw: string): string {
  * @returns True if text appears to be JSON
  */
 export function isJsonResponse(text: string): boolean {
-  if (!text) return false;
+  if (!text) {return false;}
   const trimmed = text.trim();
   return (
     trimmed.startsWith("{") ||

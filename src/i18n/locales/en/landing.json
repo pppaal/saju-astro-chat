@@ -1,0 +1,353 @@
+{
+  "landing": {
+    "heroTitle": "Know yourself. Shape tomorrow.",
+    "heroSub": "Where destiny, psychology, and spirituality meet",
+    "statsToday": "Today",
+    "statsTotal": "Total Visitors",
+    "statsMembers": "Members",
+    "statsSince": "(Since Oct 2025)",
+    "statsFootnote": "Live stats",
+    "servicesEyebrow": "DestinyPal Services",
+    "servicesTitle": "Your Destiny, Decoded.",
+    "servicesDesc": "AI interprets the language of fate",
+    "prompt1": "How is my fortune today?",
+    "prompt2": "I need to make an important decision.",
+    "prompt3": "I want to see my love fortune.",
+    "chatInputPlaceholder": "Ask about your destiny...",
+    "aiResponse": "Based on your astrological chart, today brings favorable planetary alignments. Your Saju elements show strong harmony - particularly in career and wealth sectors. The Moon's position suggests emotional clarity, while Jupiter's influence enhances opportunities for growth.",
+    "astrologyTitle": "Western Fortune",
+    "astrologyDesc": "Your destiny through zodiac & planetary alignment",
+    "destinyTitle": "Destiny Map",
+    "destinyDesc": "AI combines Eastern + Western fortune in one analysis",
+    "sajuTitle": "Eastern Fortune",
+    "sajuDesc": "Your destiny through Saju & Five Elements",
+    "tarotTitle": "Tarot",
+    "tarotDesc": "Intuitive spreads with card pulling animation.",
+    "astrologySectionTitle": "🌍 Western Fortune — Your Stars Today",
+    "astrologySectionSubtitle": "See how the Sun, Moon, and planets influence your day",
+    "sajuSectionTitle": "🌏 Eastern Fortune — Your Saju Today",
+    "sajuSectionSubtitle": "Wood · Fire · Earth · Metal · Water — how do the five elements guide your destiny?",
+    "tarotSectionTitle": "Today's Tarot Reading",
+    "tarotSectionSubtitle": "Listen to the message the cards have for you",
+    "tarotDeckLabel": "Click to draw cards",
+    "tarotDeckReset": "Draw again",
+    "tarotPast": "Past",
+    "tarotPresent": "Present",
+    "tarotFuture": "Future",
+    "tarotAdvice": "Advice",
+    "ctaTitle": "Make Better Decisions",
+    "ctaSubtitle": "AI reads your destiny and guides you to the best choice",
+    "ctaButton": "Start Now",
+    "scrollToTop": "Back to Top",
+    "aiChatDemo": "AI Chat Demo",
+    "ascendant": "Ascendant",
+    "sun": "Sun",
+    "moon": "Moon",
+    "hourPillar": "Hour Pillar",
+    "dayPillar": "Day Pillar",
+    "monthPillar": "Month Pillar",
+    "yearPillar": "Year Pillar",
+    "greatFortune": "Great Fortune",
+    "elementWood": "Wood",
+    "elementFire": "Fire",
+    "elementEarth": "Earth",
+    "elementMetal": "Metal",
+    "elementWater": "Water",
+    "elementWoodEn": "Wood",
+    "elementFireEn": "Fire",
+    "elementEarthEn": "Earth",
+    "elementMetalEn": "Metal",
+    "elementWaterEn": "Water",
+    "aquarius": "Aquarius",
+    "scorpio": "Scorpio",
+    "pisces": "Pisces",
+    "ageUnit": " yrs",
+    "sajuSimpleExplain": "Eastern philosophy believes everyone receives 5 energies (Wood·Fire·Earth·Metal·Water) at birth. This balance determines your personality, talents, and life flow.",
+    "fourPillarsTitle": "📊 Four Pillars of Life",
+    "fourPillarsExplain": "Your birth year/month/day/hour each govern different life areas",
+    "yearPillarSimple": "Ancestry/Childhood",
+    "monthPillarSimple": "Parents/Youth",
+    "dayPillarSimple": "Self",
+    "hourPillarSimple": "Children/Later Years",
+    "yearPillarMeaning": "Stable Foundation",
+    "monthPillarMeaning": "Growth & Challenge",
+    "dayPillarMeaning": "Passionate Nature",
+    "hourPillarMeaning": "Flexible & Wise",
+    "luckTimelineTitle": "📈 10-Year Luck Cycles",
+    "luckTimelineExplain": "Your life receives different energies every 10 years. What phase are you in now?",
+    "luckPeriod1": "Stability",
+    "luckPeriod2": "Challenge",
+    "luckPeriod3": "Prime",
+    "luckPeriod4": "Transition",
+    "luckPeriod5": "Maturity",
+    "currentPeriod": "Current",
+    "todayMessage": "Today is favorable for new beginnings. Your creativity will shine.",
+    "searchPlaceholder": "What would you like to know today?",
+    "hint1": "How is my fortune today?",
+    "hint2": "How is my love luck?",
+    "hint3": "Should I change jobs?",
+    "scrollDown": "Scroll to see more",
+    "aiRoutingText": "Select a service and enter your question",
+    "selectService": "Select service",
+    "questionPlaceholder": "Enter your life question...",
+    "questionHint1": "What is my life direction?",
+    "questionHint2": "How will my year be?",
+    "questionHint3": "What career suits me?",
+    "chatDemo": {
+      "title": "DestinyPal Services",
+      "subtitle": "Your Destiny, Decoded.",
+      "subtitle2": "AI interprets the language of fate",
+      "aiName": "DestinyPal AI",
+      "online": "Online",
+      "placeholder": "Ask about your destiny...",
+      "q1": "How is my fortune today?",
+      "a1": "Based on your astrological chart, today brings favorable planetary alignments. Your Saju elements show strong harmony - particularly in career and wealth sectors. The Moon's position suggests emotional clarity, while Jupiter's influence enhances opportunities for growth.",
+      "q2": "What about love life?",
+      "a2": "Your romantic sector shows interesting dynamics. The Peach Blossom star in your chart indicates charm and attractiveness. Venus is well-aspected, suggesting harmony in relationships. If you're single, this is a good time for new connections. For couples, focus on communication and shared goals.",
+      "q3": "Should I start a new project?",
+      "a3": "Yes, the timing looks favorable! Your current 10-year luck cycle supports new beginnings. The combination of Wood and Fire elements in your chart provides creative energy and momentum. Mercury's position enhances planning and communication skills. Consider starting within the next few weeks for optimal results."
+    },
+    "elementCombo": {
+      "earthEarth": "Earth-Earth",
+      "metalMetal": "Metal-Metal",
+      "waterEarth": "Water-Earth",
+      "waterWater": "Water-Water",
+      "woodWater": "Wood-Water",
+      "woodEarth": "Wood-Earth"
+    },
+    "shinsal": {
+      "heavenlyNoble": "Heavenly Noble",
+      "heavenlyNobleDesc": "Guardian energy",
+      "postHorse": "Post Horse",
+      "postHorseDesc": "Travel & movement",
+      "peachBlossom": "Peach Blossom",
+      "peachBlossomDesc": "Charm & romance"
+    },
+    "seo": {
+      "whatIsDestinyPal": "What is DestinyPal? AI-Powered Destiny & Personality Analysis Platform",
+      "intro": "DestinyPal is a comprehensive fortune analysis platform that combines Eastern Saju (Four Pillars) with Western Astrology. Using artificial intelligence, we provide deep analysis of your destiny flow, personality traits, aptitudes, and relationships based on your birth date and time. Ancient Eastern and Western wisdom meets modern AI technology to deliver practical insights for your life.",
+      "sajuTitle": "Saju (Four Pillars) Analysis",
+      "sajuDescription": "Saju (Four Pillars of Destiny) is the premier Eastern system for analyzing fate based on birth year, month, day, and hour. Composed of four pillars (Year, Month, Day, Hour) and eight characters (Heavenly Stems and Earthly Branches), it examines the generative and destructive relationships of the Five Elements (Wood, Fire, Earth, Metal, Water) to understand innate tendencies and life flow. DestinyPal visualizes expert-level Saju analysis in an easy-to-understand format. Through Daeun (10-year luck cycles) and annual fortune analysis, we predict life changes for each period and comprehensively diagnose career, wealth, love, and health.",
+      "astrologyTitle": "Western Astrology",
+      "astrologyDescription": "Western Astrology analyzes personality and destiny through celestial positions at birth. It considers 12 zodiac signs, planetary positions (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, etc.), house systems, and aspects between planets. DestinyPal precisely calculates your natal chart, analyzing key points like the Ascendant, Midheaven (MC), Descendant, and IC. Your Sun sign represents core personality, Moon sign reveals emotional nature, and Ascendant shows your outer image - together forming a complex personality profile.",
+      "tarotTitle": "Tarot Cards",
+      "tarotDescription": "Tarot is a mystical tool of 78 cards that analyzes current situations and illuminates the future. 22 Major Arcana cards symbolize major life turning points and spiritual growth, while 56 Minor Arcana cards address everyday situations. DestinyPal offers various spreads including Past-Present-Future, Celtic Cross, and Relationship spreads, with AI connecting card symbolism to your specific situation for deep interpretation. For love, career, finances, health - Tarot provides intuitive insights for all life questions.",
+      "compatibilityTitle": "Compatibility Analysis",
+      "compatibilityDescription": "Compatibility analysis compares two people's Saju and zodiac signs to predict relationship harmony and potential conflicts. Saju compatibility examines the combining and clashing relationships of Day Masters, Five Elements interactions, and special star interactions. Astrological compatibility considers elemental harmony of Sun signs, Venus-Mars love style compatibility, and Moon sign emotional compatibility. DestinyPal analyzes not just romantic compatibility, but also marital, business partnership, friendship, and parent-child relationships, providing practical advice for understanding others and developing relationships.",
+      "calendarTitle": "Fortune Calendar",
+      "calendarDescription": "The Fortune Calendar is a powerful tool for tracking daily fortune changes and identifying important dates in advance. It integrates daily auspicious and inauspicious indicators, planetary transits, retrograde cycles, and moon phases. Choose favorable days for weddings, business openings, moving, or contracts, and avoid challenging days. DestinyPal's AI combines your personal Saju with current planetary positions to generate customized daily fortunes, with detailed advice for career, finances, love, and health.",
+      "howToUse": "How to Use DestinyPal",
+      "howToUseDescription": "Using DestinyPal is simple. First, enter your exact birth date and time. If uncertain about time, you can select an approximate range - more precise times yield more accurate analysis. Adding birthplace information enables precise house system calculations for astrology. Once input is complete, AI calculates your Saju, analyzes celestial positions, and generates a comprehensive destiny report. View your Five Elements balance, planetary chart, and luck cycle timeline on the dashboard, clicking each section for detailed interpretations. Use our AI chat feature to ask questions and receive real-time answers.",
+      "privacyTitle": "Privacy & Data Security",
+      "privacyDescription": "DestinyPal protects your personal information and fortune data with the highest level of security. All data is encrypted and stored with strict access controls to prevent unauthorized access. Personal information is never shared with third parties without consent, and you can delete your data anytime. Anonymous mode allows basic fortune analysis without an account, so you can experience the service without privacy concerns. We strictly comply with GDPR and domestic privacy laws, maintaining security through regular audits.",
+      "freeVsPremium": "Free vs Premium",
+      "freeVsPremiumDescription": "DestinyPal offers free users basic Saju analysis, Western astrology charts, daily fortunes, and Tarot readings. Premium membership unlocks advanced features: 10-year luck cycle analysis, annual predictions, detailed compatibility reports, personalized AI consultations, unlimited Tarot readings, and PDF report downloads. Premium users receive priority support and beta tester access to new features. Choose between monthly and annual subscriptions, with up to 30% discount on annual plans. Try premium features free for 7 days.",
+      "keywords": "Key Topics",
+      "keywordsList": "saju, four pillars of destiny, free saju, fortune, daily horoscope, zodiac fortune, astrology, tarot cards, tarot reading, free tarot, compatibility, zodiac compatibility, birth date compatibility, luck cycles, annual fortune, ten gods, five elements, heavenly stems, earthly branches, day master, natal chart, birth chart, house system, ascendant, major arcana, minor arcana, celtic cross, past present future, saju interpretation, free fortune, 2024 horoscope, 2025 horoscope, new year fortune, AI fortune, artificial intelligence destiny, destiny analysis, personality analysis, career aptitude, career guidance, love fortune, wealth fortune, health fortune, job fortune, career change, marriage fortune, pregnancy fortune"
+    }
+  },
+  "about": {
+    "heroTitle1": "Diagnose with Fate.",
+    "heroTitle2": "Analyze with Psychology.",
+    "heroTitle3": "Heal with Spirituality.",
+    "heroSub": "Fate speaks. AI listens. You decide.",
+    "heroSubtitle": "Fate speaks. AI listens. You decide.",
+    "tagline": "Understand your patterns. Change your outcomes.",
+    "services": {
+      "destinyMap": {
+        "title": "Destiny Map",
+        "description": "AI integrates Saju, Astrology, and Tarot for personalized fortune reading"
+      },
+      "aiReports": {
+        "title": "AI Reports",
+        "description": "Premium AI-generated detailed analysis reports"
+      },
+      "lifePrediction": {
+        "title": "Life Prediction",
+        "description": "Discover your 10-year fortune flow and life turning points"
+      },
+      "tarot": {
+        "title": "Tarot",
+        "description": "Explore current situations and future possibilities through 78 cards"
+      },
+      "calendar": {
+        "title": "Fortune Calendar",
+        "description": "Check daily fortune and auspicious days on your calendar"
+      },
+      "dream": {
+        "title": "Dream Interpretation",
+        "description": "Interpret dream symbols and messages from your subconscious"
+      },
+      "personality": {
+        "title": "Personality Analysis",
+        "description": "Deep analysis of your personality traits, strengths, and weaknesses"
+      },
+      "icp": {
+        "title": "ICP Analysis",
+        "description": "Inner Child Persona analysis for deeper self-understanding"
+      },
+      "numerology": {
+        "title": "Numerology",
+        "description": "Discover your life purpose and potential through numerological analysis of your name and birth date"
+      },
+      "astrology": {
+        "title": "Astrology",
+        "description": "Western astrology birth chart and planetary influence analysis"
+      },
+      "saju": {
+        "title": "Saju",
+        "description": "Traditional Four Pillars of Destiny analysis"
+      },
+      "compatibility": {
+        "title": "Compatibility",
+        "description": "Relationship compatibility analysis based on birth charts"
+      },
+      "pastLife": {
+        "title": "Past Life",
+        "description": "Explore past life patterns and karmic influences"
+      },
+      "iching": {
+        "title": "I Ching",
+        "description": "Ancient Chinese wisdom through the 64 hexagrams"
+      }
+    },
+    "tryDestinyMap": "Start Destiny Map",
+    "seeFeatures": "See Features",
+    "visualTitle": "Your destiny navigation, in a way the world loves",
+    "visualDesc": "Clean interface with reliable calculation logic. Properly reflects time zones, seasons, and DST, translating results into easy-to-understand language.",
+    "servicesEyebrow": "DestinyPal Services",
+    "servicesTitle": "14 Destiny Readings",
+    "servicesDesc": "Explore your destiny from multiple perspectives with each unique service",
+    "discoverTitle": "Four Frameworks We Offer",
+    "discoverSubtitle": "Choose by your question or use together to cross-verify timing and themes.",
+    "sajuTitle": "Saju (Four Pillars)",
+    "sajuDesc": "Interprets year, month, day, hour using heavenly stems and earthly branches for five element balance and long-term cycles.",
+    "sajuStrength": "Strength: Long-term theme transitions, energy balance",
+    "sajuAccuracy": "Accuracy: Birth time and solar term correction",
+    "sajuDetailTitle": "Details",
+    "sajuDetail": "Hour pillar changes can affect personality and timing. Solar term boundaries and local time corrections are important.",
+    "sajuLink": "Go to Saju",
+    "astroTitle": "Astrology",
+    "astroDesc": "Reads planets, signs, houses, and aspects in birth charts, with transits/returns for timing.",
+    "astroStrength": "Strength: House-specific details, psychological/relationship patterns",
+    "astroAccuracy": "Accuracy: Time, timezone/DST, house system",
+    "astroDetailTitle": "Details",
+    "astroDetail": "Even 5-15 minute errors can change ASC/houses. Hospital records + DST reflection recommended.",
+    "astroLink": "Go to Astrology",
+    "ichingTitle": "I Ching",
+    "ichingDesc": "Captures current flow and transition points with 64 hexagram symbolic language.",
+    "ichingStrength": "Strength: Directional hints at decision crossroads",
+    "ichingAccuracy": "Accuracy: Question quality and context clarity",
+    "ichingDetailTitle": "Details",
+    "ichingDetail": "Open questions yield clearer advice than 'yes/no' questions.",
+    "ichingLink": "Go to I Ching",
+    "tarotTitle": "Tarot",
+    "tarotDesc": "Reveals current psychological and relationship patterns with symbolic cards, providing immediate action guidance.",
+    "tarotStrength": "Strength: Quick insights, coaching-friendly",
+    "tarotAccuracy": "Accuracy: Question specificity, spread, reroll strategy",
+    "tarotDetailTitle": "Details",
+    "tarotDetail": "Same card can mean different things by context/position. View with action scenarios.",
+    "tarotLink": "Go to Tarot",
+    "philosophyTitle": "Our Philosophy",
+    "philosophy": {
+      "accurate": {
+        "title": "Accurate Calculation",
+        "desc": "Reliable calculations reflecting time zones, seasons, and DST"
+      },
+      "ethical": {
+        "title": "Ethical Guidance",
+        "desc": "Practical hints to help choices, not absolute predictions"
+      },
+      "ui": {
+        "title": "Intuitive UI",
+        "desc": "Beautiful interface that makes complex information easy"
+      },
+      "ai": {
+        "title": "AI Integration",
+        "desc": "AI-powered integration of multiple divination systems"
+      }
+    },
+    "service": {
+      "astrology": {
+        "title": "Astrology",
+        "desc": "Read your personality and destiny through planetary positions and houses"
+      },
+      "saju": {
+        "title": "Saju",
+        "desc": "Analyze five elements balance and fortune cycles through Four Pillars"
+      },
+      "tarot": {
+        "title": "Tarot",
+        "desc": "Explore current situations and future possibilities through 78 cards"
+      },
+      "iching": {
+        "title": "I Ching",
+        "desc": "Wisdom of 64 hexagrams guides current situation and direction of change"
+      },
+      "dream": {
+        "title": "Dream",
+        "desc": "Interpret dream symbols and messages from your subconscious"
+      },
+      "numerology": {
+        "title": "Numerology",
+        "desc": "Discover your life path and potential through birth date numbers"
+      },
+      "compatibility": {
+        "title": "Compatibility",
+        "desc": "Analyze harmony and relationship dynamics between two people"
+      },
+      "personality": {
+        "title": "Personality",
+        "desc": "Deep analysis of your personality traits, strengths, and weaknesses"
+      }
+    },
+    "ctaTitle": "Start Now",
+    "ctaSub": "Explore your destiny map with AI",
+    "ctaPrimary": "Start Destiny Map",
+    "ctaSecondary": "Go Home"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "We'd love to hear from you",
+    "nameLabel": "Name",
+    "namePlaceholder": "Your name",
+    "emailLabel": "Email",
+    "emailPlaceholder": "your@email.com",
+    "subjectLabel": "Subject",
+    "subjectPlaceholder": "How can we help?",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Tell us more...",
+    "submit": "Send Message",
+    "sending": "Sending...",
+    "success": "Message sent successfully!",
+    "error": "Failed to send message. Please try again.",
+    "info": "For billing inquiries, please include your account email and transaction ID."
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Find answers to common questions below",
+    "footer": "Still have questions? Contact us through the Contact page.",
+    "q1": "What is DestinyPal?",
+    "a1": "DestinyPal is an AI-powered platform that combines multiple divination systems including Astrology, Saju (Four Pillars), Tarot, I Ching, Dream Interpretation, and Numerology to provide personalized insights.",
+    "q2": "Is DestinyPal free to use?",
+    "a2": "Yes! Basic features are free to use. Premium features like detailed AI consultations and unlimited readings are available through our subscription plans.",
+    "q3": "How accurate are the readings?",
+    "a3": "Our readings use traditional divination principles combined with AI analysis. They are for entertainment and self-reflection purposes, not professional advice. Accuracy depends on the quality of input information.",
+    "q4": "Do I need to know my birth time?",
+    "a4": "For Saju and detailed Astrology readings, knowing your exact birth time gives more accurate results. However, many features work without it.",
+    "q5": "Is my data secure?",
+    "a5": "Yes. We use industry-standard encryption and security measures. We do not sell your personal information. See our Privacy Policy for details.",
+    "q6": "Can I cancel my subscription anytime?",
+    "a6": "Yes, you can cancel your subscription anytime from your account settings. You'll continue to have access until the end of your billing period.",
+    "q7": "What languages are supported?",
+    "a7": "Currently we support Korean and English."
+  },
+  "footer": {
+    "about": "About",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "refund": "Refund"
+  }
+}

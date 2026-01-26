@@ -64,7 +64,7 @@ async function resolveSubscription(stripe: Stripe, subscriptionId?: string, emai
 
 async function resolveInvoice(stripe: Stripe, subscription: Stripe.Subscription) {
   const latestInvoice = subscription.latest_invoice;
-  if (!latestInvoice) return null;
+  if (!latestInvoice) {return null;}
   if (typeof latestInvoice === "string") {
     return stripe.invoices.retrieve(latestInvoice, { expand: ["payment_intent"] });
   }
@@ -73,7 +73,7 @@ async function resolveInvoice(stripe: Stripe, subscription: Stripe.Subscription)
 
 async function resolvePaymentIntent(stripe: Stripe, invoice: Stripe.Invoice) {
   const paymentIntent = invoice.payment_intent;
-  if (!paymentIntent) return null;
+  if (!paymentIntent) {return null;}
   if (typeof paymentIntent === "string") {
     return stripe.paymentIntents.retrieve(paymentIntent, {
       expand: ["latest_charge"],
@@ -84,7 +84,7 @@ async function resolvePaymentIntent(stripe: Stripe, invoice: Stripe.Invoice) {
 
 async function resolveCharge(stripe: Stripe, paymentIntent: Stripe.PaymentIntent) {
   const latestCharge = paymentIntent.latest_charge;
-  if (!latestCharge) return null;
+  if (!latestCharge) {return null;}
   if (typeof latestCharge === "string") {
     return stripe.charges.retrieve(latestCharge, {
       expand: ["balance_transaction"],
@@ -94,9 +94,9 @@ async function resolveCharge(stripe: Stripe, paymentIntent: Stripe.PaymentIntent
 }
 
 async function resolveStripeFee(stripe: Stripe, charge: Stripe.Charge | null) {
-  if (!charge) return 0;
+  if (!charge) {return 0;}
   const balance = charge.balance_transaction;
-  if (!balance) return 0;
+  if (!balance) {return 0;}
   if (typeof balance === "string") {
     const tx = await stripe.balanceTransactions.retrieve(balance);
     return tx.fee || 0;

@@ -294,12 +294,12 @@ export interface AdvancedAnalysisInput {
 // ============================================
 
 export function isValidPillarData(data: unknown): data is PillarData {
-  if (!data || typeof data !== 'object') return false;
+  if (!data || typeof data !== 'object') {return false;}
   return true;
 }
 
 export function isValidUnseData(data: unknown): data is UnseData {
-  if (!data || typeof data !== 'object') return false;
+  if (!data || typeof data !== 'object') {return false;}
   const obj = data as Record<string, unknown>;
   return (
     Array.isArray(obj.daeun) ||
@@ -309,7 +309,7 @@ export function isValidUnseData(data: unknown): data is UnseData {
 }
 
 export function isValidSinsalRecord(data: unknown): data is SinsalRecord {
-  if (!data || typeof data !== 'object') return false;
+  if (!data || typeof data !== 'object') {return false;}
   const obj = data as Record<string, unknown>;
   return (
     Array.isArray(obj.luckyList) ||

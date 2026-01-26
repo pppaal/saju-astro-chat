@@ -66,29 +66,29 @@ function normalizeLocale(l?: string): LocaleKey {
 function splitSignAndDegree(text: string) {
   const trimmed = String(text || "").trim();
   const m = trimmed.match(/^(\S+)\s+(.*)$/);
-  if (!m) return { signPart: trimmed, degreePart: "" };
+  if (!m) {return { signPart: trimmed, degreePart: "" };}
   return { signPart: m[1], degreePart: m[2] };
 }
 
 function findSignIndex(name: string): number {
   for (const list of Object.values(SIGNS)) {
     const idx = (list as readonly string[]).indexOf(name);
-    if (idx >= 0) return idx;
+    if (idx >= 0) {return idx;}
   }
   const cleaned = name.replace(/[^\p{L}]/gu, "").toLowerCase();
   for (const list of Object.values(SIGNS)) {
     const idx = (list as readonly string[]).findIndex(s => s.replace(/[^\p{L}]/gu, "").toLowerCase() === cleaned);
-    if (idx >= 0) return idx;
+    if (idx >= 0) {return idx;}
   }
   return -1;
 }
 
 function localizeSignLabel(inputSign: string, target: LocaleKey): string {
   const idx = findSignIndex(inputSign);
-  if (idx >= 0) return SIGNS[target][idx] || SIGNS.en[idx];
+  if (idx >= 0) {return SIGNS[target][idx] || SIGNS.en[idx];}
   const { signPart } = splitSignAndDegree(inputSign);
   const idx2 = findSignIndex(signPart);
-  if (idx2 >= 0) return SIGNS[target][idx2] || SIGNS.en[idx2];
+  if (idx2 >= 0) {return SIGNS[target][idx2] || SIGNS.en[idx2];}
   return inputSign;
 }
 
@@ -120,10 +120,10 @@ function parseHM(input: string) {
   const [hhRaw, mmRaw = "0"] = core.split(":");
   let h = Number(hhRaw);
   const m = Number(mmRaw);
-  if (!Number.isFinite(h) || !Number.isFinite(m)) throw new Error("Enter a valid time (HH:mm or HH:mm AM/PM).");
-  if (ampm === "PM" && h < 12) h += 12;
-  if (ampm === "AM" && h === 12) h = 0;
-  if (h < 0 || h > 23 || m < 0 || m > 59) throw new Error("Time must be within 00:00-23:59.");
+  if (!Number.isFinite(h) || !Number.isFinite(m)) {throw new Error("Enter a valid time (HH:mm or HH:mm AM/PM).");}
+  if (ampm === "PM" && h < 12) {h += 12;}
+  if (ampm === "AM" && h === 12) {h = 0;}
+  if (h < 0 || h > 23 || m < 0 || m > 59) {throw new Error("Time must be within 00:00-23:59.");}
   return { h, m };
 }
 

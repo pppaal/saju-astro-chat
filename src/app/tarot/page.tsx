@@ -49,7 +49,7 @@ const RECENT_QUESTIONS_KEY = "tarot_recent_questions";
 const MAX_RECENT_QUESTIONS = 5;
 
 function getRecentQuestions(): string[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") {return [];}
   try {
     const stored = localStorage.getItem(RECENT_QUESTIONS_KEY);
     return stored ? JSON.parse(stored) : [];
@@ -59,7 +59,7 @@ function getRecentQuestions(): string[] {
 }
 
 function saveRecentQuestion(question: string) {
-  if (typeof window === "undefined" || !question.trim()) return;
+  if (typeof window === "undefined" || !question.trim()) {return;}
   try {
     const recent = getRecentQuestions();
     const filtered = recent.filter(q => q !== question);
@@ -99,7 +99,7 @@ export default function TarotHomePage() {
   // 배경 애니메이션
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {return;}
 
     const ctx = canvas.getContext('2d')!;
     canvas.width = window.innerWidth;
@@ -263,7 +263,7 @@ export default function TarotHomePage() {
 
   // 타로 시작 - 이미 GPT 분석 결과가 있으면 바로 사용, 없으면 분석
   const handleStartReading = useCallback(async () => {
-    if (!question.trim() || dangerWarning || isLoadingPreview) return;
+    if (!question.trim() || dangerWarning || isLoadingPreview) {return;}
 
     saveRecentQuestion(question);
 

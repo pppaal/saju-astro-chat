@@ -53,7 +53,7 @@ export class MarriageStrategy extends BaseEventStrategy {
   }
 
   applyProgressionBonus(context: ScoringContext, result: ScoreResult): void {
-    if (!context.progression) return;
+    if (!context.progression) {return;}
 
     // 결혼: 금성이 천칭자리 또는 황소자리에 있을 때 유리
     if (
@@ -82,7 +82,7 @@ export class MarriageStrategy extends BaseEventStrategy {
   applyDaeunBonus(context: ScoringContext, result: ScoreResult): void {
     super.applyDaeunBonus(context, result);
 
-    if (!context.daeun) return;
+    if (!context.daeun) {return;}
 
     // 결혼: 대운이 재성 또는 관성일 때 유리
     const favorableDaeunElements: FiveElement[] = ['수', '금'];

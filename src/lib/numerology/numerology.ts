@@ -83,7 +83,7 @@ export class Numerology {
   /** Converts a letter to its Pythagorean numerology value (1-9). */
   private _letterToNumber(letter: string): number {
     const code = letter.toUpperCase().charCodeAt(0);
-    if (code < 65 || code > 90) return 0; // Not A-Z
+    if (code < 65 || code > 90) {return 0;} // Not A-Z
     return ((code - 65) % 9) + 1;
   }
   
@@ -264,7 +264,7 @@ export class Numerology {
     const numbers = new Set<number>();
     this.name.split('').forEach(c => {
       const n = this._letterToNumber(c);
-      if (n > 0) numbers.add(n);
+      if (n > 0) {numbers.add(n);}
     });
     return numbers.size;
   }
@@ -279,10 +279,10 @@ export class Numerology {
     const month = this.birthDate.getUTCMonth() + 1;
     const day = this.birthDate.getUTCDate();
     const lpSum = `${year}${month}${day}`.split('').map(Number).reduce((a, b) => a + b, 0);
-    if (karmicNumbers.includes(lpSum)) debts.push(lpSum);
+    if (karmicNumbers.includes(lpSum)) {debts.push(lpSum);}
 
     // Check birthday
-    if (karmicNumbers.includes(day)) debts.push(day);
+    if (karmicNumbers.includes(day)) {debts.push(day);}
 
     return [...new Set(debts)];
   }
@@ -292,11 +292,11 @@ export class Numerology {
     const present = new Set<number>();
     this.name.split('').forEach(c => {
       const n = this._letterToNumber(c);
-      if (n > 0) present.add(n);
+      if (n > 0) {present.add(n);}
     });
     const lessons: number[] = [];
     for (let i = 1; i <= 9; i++) {
-      if (!present.has(i)) lessons.push(i);
+      if (!present.has(i)) {lessons.push(i);}
     }
     return lessons;
   }

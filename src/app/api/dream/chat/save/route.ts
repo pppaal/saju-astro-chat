@@ -226,7 +226,7 @@ export async function GET(req: Request) {
 
 // Helper to parse messages from saved fullReport
 function parseMessagesFromReport(fullReport: string): ChatMessage[] {
-  if (!fullReport) return [];
+  if (!fullReport) {return [];}
 
   const messages: ChatMessage[] = [];
   const parts = fullReport.split(/\n\n/);

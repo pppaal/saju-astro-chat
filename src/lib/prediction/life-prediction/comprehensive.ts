@@ -110,9 +110,9 @@ export function generateComprehensivePrediction(
 
   // 신뢰도 계산
   let confidence = 60;
-  if (input.daeunList && input.daeunList.length > 0) confidence += 15;
-  if (input.yongsin && input.yongsin.length > 0) confidence += 10;
-  if (input.birthHour !== undefined) confidence += 10;
+  if (input.daeunList && input.daeunList.length > 0) {confidence += 15;}
+  if (input.yongsin && input.yongsin.length > 0) {confidence += 10;}
+  if (input.birthHour !== undefined) {confidence += 10;}
   confidence = Math.min(95, confidence);
 
   return {

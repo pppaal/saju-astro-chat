@@ -100,9 +100,9 @@ function ScoreBarComponent({
 
   // Get dynamic vitality gradient based on score
   const getVitalityGradient = (value: number) => {
-    if (value >= 80) return 'from-green-500 to-emerald-400';
-    if (value >= 60) return 'from-yellow-500 to-amber-400';
-    if (value >= 40) return 'from-orange-500 to-amber-500';
+    if (value >= 80) {return 'from-green-500 to-emerald-400';}
+    if (value >= 60) {return 'from-yellow-500 to-amber-400';}
+    if (value >= 40) {return 'from-orange-500 to-amber-500';}
     return 'from-red-500 to-rose-400';
   };
 

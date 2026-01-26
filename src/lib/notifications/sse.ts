@@ -104,7 +104,7 @@ export async function sendNotification(
  * Store connection info in Redis
  */
 async function storeConnectionInRedis(userId: string): Promise<void> {
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) return;
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {return;}
 
   const key = `sse:connection:${userId}`;
   await fetch(`${UPSTASH_URL}/pipeline`, {
@@ -124,7 +124,7 @@ async function storeConnectionInRedis(userId: string): Promise<void> {
  * Remove connection info from Redis
  */
 async function removeConnectionFromRedis(userId: string): Promise<void> {
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) return;
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {return;}
 
   const key = `sse:connection:${userId}`;
   await fetch(`${UPSTASH_URL}/del/${encodeURIComponent(key)}`, {
@@ -137,7 +137,7 @@ async function removeConnectionFromRedis(userId: string): Promise<void> {
  * Publish notification to Redis pub/sub channel
  */
 async function publishNotificationToRedis(userId: string, notification: unknown): Promise<void> {
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) return;
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {return;}
 
   const channel = `sse:notify:${userId}`;
   await fetch(`${UPSTASH_URL}/publish/${encodeURIComponent(channel)}/${encodeURIComponent(JSON.stringify(notification))}`, {

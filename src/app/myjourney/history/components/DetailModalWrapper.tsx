@@ -55,7 +55,7 @@ export function DetailModalWrapper(props: DetailModalWrapperProps) {
     closeDetail,
   } = props;
 
-  if (!selectedRecord) return null;
+  if (!selectedRecord) {return null;}
 
   return (
     <div className={styles.modalOverlay} onClick={closeDetail}>

@@ -73,10 +73,10 @@ const BONUS_LIMITS = {
 
 const calculateSimpleGradeMemo = memoize(
   (score: number): ImportanceGrade => {
-    if (score >= GRADE_THRESHOLDS.grade0) return 0;
-    if (score >= GRADE_THRESHOLDS.grade1) return 1;
-    if (score >= GRADE_THRESHOLDS.grade2) return 2;
-    if (score >= GRADE_THRESHOLDS.grade3) return 3;
+    if (score >= GRADE_THRESHOLDS.grade0) {return 0;}
+    if (score >= GRADE_THRESHOLDS.grade1) {return 1;}
+    if (score >= GRADE_THRESHOLDS.grade2) {return 2;}
+    if (score >= GRADE_THRESHOLDS.grade3) {return 3;}
     return 4;
   },
   {

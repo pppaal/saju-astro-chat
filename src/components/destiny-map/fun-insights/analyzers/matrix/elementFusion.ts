@@ -99,7 +99,7 @@ export function analyzeElementFusion(
 ): ElementFusionResult[] {
   const elementFusions: ElementFusionResult[] = [];
 
-  if (!saju && !astro) return elementFusions;
+  if (!saju && !astro) {return elementFusions;}
 
   const dayElement = saju?.dayMaster?.element || 'wood';
   const sajuEl = mapSajuElementToKo(dayElement);
@@ -165,7 +165,7 @@ export function getElementFusionDescription(
 ): string | null {
   const isKo = lang === 'ko';
   const interaction = ELEMENT_CORE_GRID[sajuElement]?.[westElement];
-  if (!interaction) return null;
+  if (!interaction) {return null;}
 
   function getLevelDescription(level: string, isKo: boolean): string {
     const descriptions: Record<string, { ko: string; en: string }> = {

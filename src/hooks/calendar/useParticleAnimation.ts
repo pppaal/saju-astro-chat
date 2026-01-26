@@ -36,13 +36,13 @@ export function useParticleAnimation(
   } = options;
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {return;}
 
     const canvasRaw = canvasRef.current;
-    if (!canvasRaw) return;
+    if (!canvasRaw) {return;}
 
     const ctxRaw = canvasRaw.getContext('2d');
-    if (!ctxRaw) return;
+    if (!ctxRaw) {return;}
 
     // Non-null after checks - used in closures below
     const canvas = canvasRaw;
@@ -103,8 +103,8 @@ export function useParticleAnimation(
       }
 
       update() {
-        if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
-        if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+        if (this.x > canvas.width || this.x < 0) {this.speedX = -this.speedX;}
+        if (this.y > canvas.height || this.y < 0) {this.speedY = -this.speedY;}
         this.x += this.speedX;
         this.y += this.speedY;
 
@@ -199,11 +199,11 @@ export function useParticleAnimation(
         const nearby = spatialGrid.getNearby(particleA.x, particleA.y);
 
         for (const particleB of nearby) {
-          if (particleA === particleB) continue;
+          if (particleA === particleB) {continue;}
 
           // Avoid checking same pair twice
           const pairKey = `${Math.min(particleA.x, particleB.x)},${Math.min(particleA.y, particleB.y)}`;
-          if (checked.has(pairKey)) continue;
+          if (checked.has(pairKey)) {continue;}
           checked.add(pairKey);
 
           const dx = particleA.x - particleB.x;

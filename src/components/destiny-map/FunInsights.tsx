@@ -233,7 +233,7 @@ const FunInsights = memo(function FunInsights({ saju, astro, lang = "ko", theme 
 
   // 운명 서사 생성 - 외부 상수 사용으로 대폭 간소화
   const destinyNarrative = useMemo(() => {
-    if (!data) return null;
+    if (!data) {return null;}
 
     const dayEl = data.dayElement;
     const strongEl = data.strongest[0];
@@ -248,7 +248,7 @@ const FunInsights = memo(function FunInsights({ saju, astro, lang = "ko", theme 
 
   // 운명이 풀리는 선택 5가지 - 외부 함수 사용으로 간소화
   const destinyChoices = useMemo(() => {
-    if (!data) return [];
+    if (!data) {return [];}
     return generateDestinyChoices(data.weakest[0], elementTraits, isKo);
   }, [data, isKo]);
 

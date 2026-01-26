@@ -1,0 +1,129 @@
+{
+  "pricing": {
+    "eyebrow": "Pricing",
+    "heroTitle": "Pricing for Your Destiny",
+    "heroSub": "AI counseling, Tarot, and Dream interpretation at reasonable prices",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "mostPopular": "Most Popular",
+    "readingsPerMonth": "credits/mo",
+    "perYear": "/year",
+    "perMonth": "/mo",
+    "free": "Free",
+    "getStarted": "Get Started",
+    "subscribe": "Subscribe",
+    "creditPacks": "Credit Packs",
+    "creditPacksDesc": "No subscription needed. Buy only when you need",
+    "readings": "credits",
+    "perReading": "per credit",
+    "buyNow": "Buy Now",
+    "howItWorks": "How Credits Work",
+    "oneReading": "1 Credit",
+    "oneReadingDesc": "AI chat, Tarot reading, Dream interpretation = 1 credit each",
+    "freeFeature": "Free Features",
+    "freeFeatureDesc": "Personality test and current month calendar are free",
+    "monthlyReset": "Monthly Reset",
+    "monthlyResetDesc": "Credits reset on the 1st of each month",
+    "faq": "FAQ",
+    "guarantee": "7-Day Money Back Guarantee",
+    "guaranteeDesc": "If you're not satisfied, get a full refund within 7 days.",
+    "ctaTitle": "Start Today",
+    "ctaSub": "Start free, upgrade when you're ready",
+    "startFree": "Start Free",
+    "learnMore": "Learn More",
+    "paymentError": "Payment service temporarily unavailable",
+    "plans": {
+      "free": "Free",
+      "starter": "Starter",
+      "pro": "Pro",
+      "premium": "Premium"
+    },
+    "features": {
+      "aiChat3": "3 AI chats/month",
+      "aiChat7": "7 AI chats/month",
+      "aiChat15": "15 AI chats/month",
+      "aiChat25": "25 AI chats/month",
+      "aiChat40": "40 AI chats/month",
+      "aiChat80": "80 AI chats/month",
+      "aiChat90": "90 AI chats/month",
+      "aiChat150": "150 AI chats/month",
+      "aiChat200": "200 AI chats/month",
+      "calendarThisMonth": "Calendar (current month)",
+      "calendar3months": "Calendar (3 months)",
+      "calendar1year": "Calendar (1 year)",
+      "calendar2years": "Calendar (2 years)",
+      "personalityFree": "Personality test free",
+      "adFree": "Ad-free experience",
+      "prioritySupport": "Priority support"
+    },
+    "creditPackNames": {
+      "mini": "Mini Pack",
+      "standard": "Standard Pack",
+      "plus": "Plus Pack",
+      "mega": "Mega Pack",
+      "ultimate": "Ultimate Pack"
+    },
+    "bestValue": "Best Value",
+    "faqs": {
+      "q1": "How is 1 credit used?",
+      "a1": "1 credit is deducted each time you use AI services like counseling, Tarot reading, or Dream interpretation. Personality test and current month calendar are free.",
+      "q2": "Do unused credits roll over?",
+      "a2": "Monthly plan credits reset each billing cycle. Credit packs are valid for 1 year from purchase.",
+      "q3": "Can I cancel anytime?",
+      "a3": "Yes, cancel anytime. You'll retain access until the end of your billing period.",
+      "q4": "Do credit packs expire?",
+      "a4": "Credit packs are valid for 1 year from purchase date.",
+      "q5": "Can I get a refund?",
+      "a5": "Full refund available within 7 days of subscription. Unused credit packs are also refundable."
+    }
+  },
+  "policy": {
+    "privacy": {
+      "title": "Privacy Policy",
+      "effective": "Effective date",
+      "footer": "Addendum"
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "effective": "Effective date",
+      "footer": "Addendum"
+    },
+    "refund": {
+      "title": "Refunds and Billing Policy",
+      "effective": "Effective date",
+      "footer": "Addendum"
+    }
+  },
+  "form": {
+    "birthDate": "Birth Date",
+    "birthTime": "Birth Time",
+    "birthTimeOptional": "Optional - for more accurate analysis",
+    "birthCity": "Birth City",
+    "cityPlaceholder": "Search your city..."
+  },
+  "success": {
+    "title": "Payment Successful!",
+    "message": "Thank you for your purchase. Your account has been upgraded and you're ready to explore your destiny.",
+    "orderRef": "Order Reference",
+    "startReading": "Start Your Reading",
+    "goHome": "Go to Home",
+    "emailNote": "A confirmation email has been sent to your registered email address."
+  },
+  "common": {
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "refunds": "Refund Policy",
+    "ourService": "Services",
+    "start": "Start",
+    "about": "About",
+    "pricing": "Pricing",
+    "blog": "Blog",
+    "comingSoon": "Coming Soon",
+    "loggedIn": "Logged in",
+    "loading": "Loading...",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "error": "Error"
+  }
+}

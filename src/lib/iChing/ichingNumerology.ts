@@ -337,11 +337,11 @@ function getElementRelation(체: string, 용: string): string {
   const cycle = { '목': '화', '화': '토', '토': '금', '금': '수', '수': '목' };
   const control = { '목': '토', '토': '수', '수': '화', '화': '금', '금': '목' };
 
-  if (체 === 용) return '비화';
-  if (cycle[용 as keyof typeof cycle] === 체) return '생';
-  if (cycle[체 as keyof typeof cycle] === 용) return '설';
-  if (control[용 as keyof typeof control] === 체) return '극';
-  if (control[체 as keyof typeof control] === 용) return '재';
+  if (체 === 용) {return '비화';}
+  if (cycle[용 as keyof typeof cycle] === 체) {return '생';}
+  if (cycle[체 as keyof typeof cycle] === 용) {return '설';}
+  if (control[용 as keyof typeof control] === 체) {return '극';}
+  if (control[체 as keyof typeof control] === 용) {return '재';}
   return '복합';
 }
 
@@ -424,16 +424,16 @@ function getLifeTheme(hexNum: number): string {
 
 function getCoreChallenge(xiantian: number, houtian: number): string {
   const diff = Math.abs(xiantian - houtian);
-  if (diff <= 2) return '내면과 외면의 조화가 주요 과제입니다.';
-  if (diff <= 4) return '환경 적응과 자기 발전의 균형이 과제입니다.';
+  if (diff <= 2) {return '내면과 외면의 조화가 주요 과제입니다.';}
+  if (diff <= 4) {return '환경 적응과 자기 발전의 균형이 과제입니다.';}
   return '근본적 변화와 성장이 요구됩니다.';
 }
 
 function getHiddenTalent(binary: string): string {
   const yangCount = (binary.match(/1/g) || []).length;
-  if (yangCount >= 5) return '강한 추진력과 리더십';
-  if (yangCount <= 1) return '깊은 통찰력과 수용력';
-  if (yangCount === 3) return '균형 잡힌 판단력';
+  if (yangCount >= 5) {return '강한 추진력과 리더십';}
+  if (yangCount <= 1) {return '깊은 통찰력과 수용력';}
+  if (yangCount === 3) {return '균형 잡힌 판단력';}
   return '유연한 적응력';
 }
 
@@ -498,9 +498,9 @@ function getCurrentEnergy(시괘: string): string {
 }
 
 function getTimeAdvice(hexNum: number, 변효: number): string {
-  if (변효 === 5) return '지금이 가장 좋은 타이밍입니다.';
-  if (변효 === 6) return '정점을 지났으니 마무리에 집중하세요.';
-  if (변효 === 1) return '시작 단계이니 신중하게 준비하세요.';
+  if (변효 === 5) {return '지금이 가장 좋은 타이밍입니다.';}
+  if (변효 === 6) {return '정점을 지났으니 마무리에 집중하세요.';}
+  if (변효 === 1) {return '시작 단계이니 신중하게 준비하세요.';}
   return '현재 상황에 집중하며 기회를 살피세요.';
 }
 
@@ -548,21 +548,21 @@ function getYearTheme(hexNum: number, cycle: number): string {
 }
 
 function getYearOpportunities(hexNum: number): string[] {
-  if (hexNum <= 10) return ['새로운 시작', '리더십 발휘'];
-  if (hexNum <= 30) return ['관계 개선', '내면 성장'];
-  if (hexNum <= 50) return ['실질적 성과', '안정 구축'];
+  if (hexNum <= 10) {return ['새로운 시작', '리더십 발휘'];}
+  if (hexNum <= 30) {return ['관계 개선', '내면 성장'];}
+  if (hexNum <= 50) {return ['실질적 성과', '안정 구축'];}
   return ['마무리와 정리', '지혜 축적'];
 }
 
 function getYearChallenges(hexNum: number): string[] {
-  if (hexNum === 29 || hexNum === 47) return ['어려움 극복', '인내 필요'];
-  if (hexNum === 12 || hexNum === 23) return ['막힘 해소', '방향 전환'];
+  if (hexNum === 29 || hexNum === 47) {return ['어려움 극복', '인내 필요'];}
+  if (hexNum === 12 || hexNum === 23) {return ['막힘 해소', '방향 전환'];}
   return ['균형 유지', '과욕 경계'];
 }
 
 function getYearAdvice(hexNum: number, 변효: number): string {
-  if (변효 <= 2) return '기초를 다지고 준비하는 시기입니다.';
-  if (변효 <= 4) return '적극적으로 행동하되 신중함을 잃지 마세요.';
+  if (변효 <= 2) {return '기초를 다지고 준비하는 시기입니다.';}
+  if (변효 <= 4) {return '적극적으로 행동하되 신중함을 잃지 마세요.';}
   return '성과를 거두고 다음을 준비하세요.';
 }
 

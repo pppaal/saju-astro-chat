@@ -663,12 +663,12 @@ export function analyzeComprehensiveCompatibility(
 
   // 등급
   let grade: ComprehensiveCompatibility['grade'];
-  if (overallScore >= 85) grade = 'S';
-  else if (overallScore >= 75) grade = 'A';
-  else if (overallScore >= 65) grade = 'B';
-  else if (overallScore >= 55) grade = 'C';
-  else if (overallScore >= 45) grade = 'D';
-  else grade = 'F';
+  if (overallScore >= 85) {grade = 'S';}
+  else if (overallScore >= 75) {grade = 'A';}
+  else if (overallScore >= 65) {grade = 'B';}
+  else if (overallScore >= 55) {grade = 'C';}
+  else if (overallScore >= 45) {grade = 'D';}
+  else {grade = 'F';}
 
   // 강점/약점 수집
   const strengths: string[] = [];

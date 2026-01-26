@@ -55,7 +55,7 @@ export default function SajuResultDisplay({ result }: Props) {
         </div>
 
         <PillarSummaryTable
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           data={buildPillarView(result.table?.byPillar as unknown as Parameters<typeof buildPillarView>[0])}
         />
 

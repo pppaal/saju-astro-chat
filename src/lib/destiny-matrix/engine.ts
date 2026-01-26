@@ -229,7 +229,7 @@ function calculateLayer5(input: MatrixCalculationInput): Record<string, MatrixCe
 
   for (const relation of input.relations) {
     const branchRel = mapRelationKindToBranchRelation(relation.kind);
-    if (!branchRel) continue;
+    if (!branchRel) {continue;}
 
     for (const aspect of input.aspects) {
       const aspectType = aspect.type;
@@ -258,7 +258,7 @@ function calculateLayer6(input: MatrixCalculationInput): Record<string, MatrixCe
     const stage = toStandardStage(rawStage);
 
     // Skip if not a valid twelve stage (e.g., 건록, 제왕)
-    if (!stage) continue;
+    if (!stage) {continue;}
 
     for (const [planet, house] of Object.entries(input.planetHouses)) {
       const houseNum = house as HouseNumber;
@@ -679,9 +679,9 @@ export function getInteractionEmoji(level: InteractionCode['level']): string {
 }
 
 export function scoreToLevel(score: number): InteractionCode['level'] {
-  if (score >= 9) return 'extreme';
-  if (score >= 7) return 'amplify';
-  if (score >= 5) return 'balance';
-  if (score >= 3) return 'clash';
+  if (score >= 9) {return 'extreme';}
+  if (score >= 7) {return 'amplify';}
+  if (score >= 5) {return 'balance';}
+  if (score >= 3) {return 'clash';}
   return 'conflict';
 }

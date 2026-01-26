@@ -289,11 +289,11 @@ export function analyzeEnergyFlow(
 
   // 점수 계산
   let score = 50;
-  if (energyStrength === 'very_strong') score += 25;
-  else if (energyStrength === 'strong') score += 15;
-  else if (energyStrength === 'moderate') score += 5;
-  else if (energyStrength === 'weak') score -= 10;
-  else score -= 20;
+  if (energyStrength === 'very_strong') {score += 25;}
+  else if (energyStrength === 'strong') {score += 15;}
+  else if (energyStrength === 'moderate') {score += 5;}
+  else if (energyStrength === 'weak') {score -= 10;}
+  else {score -= 20;}
 
   const description = `${dominantElement} 에너지 ${energyStrength} - 통근 ${tonggeun.length}개, 투출 ${tuechul.length}개`;
 

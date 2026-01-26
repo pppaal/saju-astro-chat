@@ -49,7 +49,7 @@ const IGNORED_SOURCE_FILES = [
 ];
 
 function isIgnoredViolation(report: CSPViolationReport["csp-report"]): boolean {
-  if (!report) return true;
+  if (!report) {return true;}
 
   const blockedUri = report["blocked-uri"] || "";
   const sourceFile = report["source-file"] || "";

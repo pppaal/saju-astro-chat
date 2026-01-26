@@ -212,21 +212,21 @@ function calculateYongsinScore(input: SajuScoreInput['yongsin']): number {
   const adjustments: number[] = [];
 
   // 긍정 요소 - config 비율 사용
-  if (input.hasPrimaryMatch) adjustments.push(YONGSIN_SCORES.positive.primaryMatch);
-  if (input.hasSecondaryMatch) adjustments.push(YONGSIN_SCORES.positive.secondaryMatch);
-  if (input.hasBranchMatch) adjustments.push(YONGSIN_SCORES.positive.branchMatch);
-  if (input.hasSupport) adjustments.push(YONGSIN_SCORES.positive.support);
+  if (input.hasPrimaryMatch) {adjustments.push(YONGSIN_SCORES.positive.primaryMatch);}
+  if (input.hasSecondaryMatch) {adjustments.push(YONGSIN_SCORES.positive.secondaryMatch);}
+  if (input.hasBranchMatch) {adjustments.push(YONGSIN_SCORES.positive.branchMatch);}
+  if (input.hasSupport) {adjustments.push(YONGSIN_SCORES.positive.support);}
 
   // 부정 요소
-  if (input.hasKibsinMatch) adjustments.push(YONGSIN_SCORES.negative.kibsinMatch);
-  if (input.hasKibsinBranch) adjustments.push(YONGSIN_SCORES.negative.kibsinBranch);
-  if (input.hasHarm) adjustments.push(YONGSIN_SCORES.negative.harm);
+  if (input.hasKibsinMatch) {adjustments.push(YONGSIN_SCORES.negative.kibsinMatch);}
+  if (input.hasKibsinBranch) {adjustments.push(YONGSIN_SCORES.negative.kibsinBranch);}
+  if (input.hasHarm) {adjustments.push(YONGSIN_SCORES.negative.harm);}
 
   // 격국
-  if (input.geokgukFavor) adjustments.push(YONGSIN_SCORES.geokguk.favor);
-  if (input.geokgukAvoid) adjustments.push(YONGSIN_SCORES.geokguk.avoid);
-  if (input.strengthBalance) adjustments.push(YONGSIN_SCORES.geokguk.strengthBalance);
-  if (input.strengthImbalance) adjustments.push(YONGSIN_SCORES.geokguk.strengthImbalance);
+  if (input.geokgukFavor) {adjustments.push(YONGSIN_SCORES.geokguk.favor);}
+  if (input.geokgukAvoid) {adjustments.push(YONGSIN_SCORES.geokguk.avoid);}
+  if (input.strengthBalance) {adjustments.push(YONGSIN_SCORES.geokguk.strengthBalance);}
+  if (input.strengthImbalance) {adjustments.push(YONGSIN_SCORES.geokguk.strengthImbalance);}
 
   return calculateAdjustedScore(maxScore, adjustments, YONGSIN_SCORES.maxRaw);
 }
@@ -259,7 +259,7 @@ function calculateTransitMoonScore(input: AstroScoreInput['transitMoon']): numbe
   }
 
   // Void of Course 페널티 - config 사용 (완화됨)
-  if (input.isVoidOfCourse) adjustments.push(TRANSIT_MOON_SCORES.voidOfCourse);
+  if (input.isVoidOfCourse) {adjustments.push(TRANSIT_MOON_SCORES.voidOfCourse);}
 
   return calculateAdjustedScore(maxScore, adjustments, TRANSIT_MOON_SCORES.maxRaw);
 }
@@ -272,7 +272,7 @@ function calculateMajorPlanetsScore(input: AstroScoreInput['majorPlanets']): num
 
   for (const planet of planets) {
     const planetData = input[planet];
-    if (!planetData) continue;
+    if (!planetData) {continue;}
 
     const weight = MAJOR_PLANETS_SCORES.weights[planet] || 1.0;
 
@@ -285,7 +285,7 @@ function calculateMajorPlanetsScore(input: AstroScoreInput['majorPlanets']): num
     // 역행 페널티 - config 사용 (완화됨)
     if (planetData.isRetrograde) {
       const retrograde = MAJOR_PLANETS_SCORES.retrograde[planet as keyof typeof MAJOR_PLANETS_SCORES.retrograde];
-      if (retrograde) adjustments.push(retrograde);
+      if (retrograde) {adjustments.push(retrograde);}
     }
   }
 
@@ -296,7 +296,7 @@ function calculateLunarPhaseScore(phase?: AstroScoreInput['lunarPhase']): number
   const maxScore = CATEGORY_MAX_SCORES.astro.lunarPhase; // 8점 (개선)
   const adjustments: number[] = [];
 
-  if (!phase) return maxScore * 0.5; // 기본 중간값
+  if (!phase) {return maxScore * 0.5;} // 기본 중간값
 
   // 달 위상별 점수 - config 사용 (완만한 분포)
   const phaseKey = phase as keyof typeof LUNAR_PHASE_SCORES;
@@ -313,14 +313,14 @@ function calculateSolarReturnScore(input: AstroScoreInput['solarReturn']): numbe
 
   // 생일 근처 보너스 - config 사용
   const days = input.daysFromBirthday ?? 365;
-  if (days === 0) adjustments.push(SOLAR_RETURN_SCORES.exactBirthday);
-  else if (days <= 1) adjustments.push(SOLAR_RETURN_SCORES.nearBirthday1);
-  else if (days <= 3) adjustments.push(SOLAR_RETURN_SCORES.nearBirthday3);
-  else if (days <= 7) adjustments.push(SOLAR_RETURN_SCORES.nearBirthday7);
+  if (days === 0) {adjustments.push(SOLAR_RETURN_SCORES.exactBirthday);}
+  else if (days <= 1) {adjustments.push(SOLAR_RETURN_SCORES.nearBirthday1);}
+  else if (days <= 3) {adjustments.push(SOLAR_RETURN_SCORES.nearBirthday3);}
+  else if (days <= 7) {adjustments.push(SOLAR_RETURN_SCORES.nearBirthday7);}
 
   // Progression - config 사용
-  if (input.progressionSupport) adjustments.push(SOLAR_RETURN_SCORES.progressionSupport);
-  if (input.progressionChallenge) adjustments.push(SOLAR_RETURN_SCORES.progressionChallenge);
+  if (input.progressionSupport) {adjustments.push(SOLAR_RETURN_SCORES.progressionSupport);}
+  if (input.progressionChallenge) {adjustments.push(SOLAR_RETURN_SCORES.progressionChallenge);}
 
   return calculateAdjustedScore(maxScore, adjustments, SOLAR_RETURN_SCORES.maxRaw);
 }
@@ -331,7 +331,7 @@ function calculateSolarReturnScore(input: AstroScoreInput['solarReturn']): numbe
  * 네이탈 차트와 어스펙트가 있을 때 영향력 발생
  */
 function calculateOuterPlanetsScore(input?: AstroScoreInput['outerPlanets']): number {
-  if (!input) return 0;
+  if (!input) {return 0;}
 
   let score = 0;
 
@@ -363,7 +363,7 @@ function calculateOuterPlanetsScore(input?: AstroScoreInput['outerPlanets']): nu
  * 특수점 점수 계산 (키론, 노드, 릴리스)
  */
 function calculateSpecialPointsScore(input?: AstroScoreInput['specialPoints']): number {
-  if (!input) return 0;
+  if (!input) {return 0;}
 
   let score = 0;
 
@@ -407,7 +407,7 @@ function calculateSpecialPointsScore(input?: AstroScoreInput['specialPoints']): 
  * 일식/월식은 강력한 에너지 포인트 - 변화와 전환점
  */
 function calculateEclipseScore(input?: AstroScoreInput['eclipse']): number {
-  if (!input) return 0;
+  if (!input) {return 0;}
 
   let score = 0;
 

@@ -46,13 +46,13 @@ export function performComprehensiveSajuAnalysis(
   ));
 
   let grade: ComprehensiveSajuCompatibility['grade'];
-  if (overallScore >= 95) grade = 'S+';
-  else if (overallScore >= 85) grade = 'S';
-  else if (overallScore >= 75) grade = 'A';
-  else if (overallScore >= 65) grade = 'B';
-  else if (overallScore >= 50) grade = 'C';
-  else if (overallScore >= 35) grade = 'D';
-  else grade = 'F';
+  if (overallScore >= 95) {grade = 'S+';}
+  else if (overallScore >= 85) {grade = 'S';}
+  else if (overallScore >= 75) {grade = 'A';}
+  else if (overallScore >= 65) {grade = 'B';}
+  else if (overallScore >= 50) {grade = 'C';}
+  else if (overallScore >= 35) {grade = 'D';}
+  else {grade = 'F';}
 
   // 요약 - 더 생생하고 매력적으로
   let summary = '';
@@ -135,13 +135,13 @@ export function performExtendedSajuAnalysis(
 
   // 등급 재계산
   let grade: ComprehensiveSajuCompatibility['grade'];
-  if (extendedScore >= 95) grade = 'S+';
-  else if (extendedScore >= 85) grade = 'S';
-  else if (extendedScore >= 75) grade = 'A';
-  else if (extendedScore >= 65) grade = 'B';
-  else if (extendedScore >= 50) grade = 'C';
-  else if (extendedScore >= 35) grade = 'D';
-  else grade = 'F';
+  if (extendedScore >= 95) {grade = 'S+';}
+  else if (extendedScore >= 85) {grade = 'S';}
+  else if (extendedScore >= 75) {grade = 'A';}
+  else if (extendedScore >= 65) {grade = 'B';}
+  else if (extendedScore >= 50) {grade = 'C';}
+  else if (extendedScore >= 35) {grade = 'D';}
+  else {grade = 'F';}
 
   // 상세 인사이트 확장
   const detailedInsights = [

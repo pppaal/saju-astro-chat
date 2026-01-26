@@ -121,7 +121,7 @@ function DestinyPalContent() {
   };
 
   const handleNativeShare = async () => {
-    if (!data) return;
+    if (!data) {return;}
 
     if (navigator.share) {
       try {

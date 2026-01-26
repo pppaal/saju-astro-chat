@@ -58,7 +58,7 @@ const HexagramLine: React.FC<HexagramLineProps> = ({
   };
 
   const handleMouseEnter = () => {
-    if (clickable) setIsHovered(true);
+    if (clickable) {setIsHovered(true);}
   };
 
   const handleMouseLeave = () => {

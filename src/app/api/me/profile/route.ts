@@ -8,7 +8,7 @@ const isNonEmptyString = (val: unknown, max = 120) =>
   typeof val === "string" && val.trim().length > 0 && val.trim().length <= max
 
 const isValidUrl = (val: unknown) => {
-  if (typeof val !== "string" || !val.trim()) return false
+  if (typeof val !== "string" || !val.trim()) {return false}
   try {
     const url = new URL(val)
     return url.protocol === "http:" || url.protocol === "https:"
@@ -80,8 +80,8 @@ export async function PATCH(request: Request) {
     } = body || {}
 
     const data: { name?: string; image?: string | null; emailNotifications?: boolean } = {}
-    if (isNonEmptyString(name, 64)) data.name = name.trim()
-    if (typeof emailNotifications === "boolean") data.emailNotifications = emailNotifications
+    if (isNonEmptyString(name, 64)) {data.name = name.trim()}
+    if (typeof emailNotifications === "boolean") {data.emailNotifications = emailNotifications}
     if (image === null) {
       data.image = null
     } else if (isValidUrl(image)) {

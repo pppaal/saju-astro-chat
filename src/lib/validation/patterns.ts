@@ -85,8 +85,8 @@ export const LIMITS = {
  * Validate date string format (YYYY-MM-DD)
  */
 export function isValidDate(date: string | null | undefined): boolean {
-  if (!date) return false;
-  if (!DATE_RE.test(date)) return false;
+  if (!date) {return false;}
+  if (!DATE_RE.test(date)) {return false;}
   const parsed = Date.parse(date);
   return !Number.isNaN(parsed);
 }
@@ -95,7 +95,7 @@ export function isValidDate(date: string | null | undefined): boolean {
  * Validate time string format (HH:MM)
  */
 export function isValidTime(time: string | null | undefined): boolean {
-  if (!time) return false;
+  if (!time) {return false;}
   return TIME_RE.test(time);
 }
 
@@ -103,7 +103,7 @@ export function isValidTime(time: string | null | undefined): boolean {
  * Validate latitude (-90 to 90)
  */
 export function isValidLatitude(lat: number | null | undefined): boolean {
-  if (lat === null || lat === undefined) return false;
+  if (lat === null || lat === undefined) {return false;}
   return Number.isFinite(lat) && lat >= -90 && lat <= 90;
 }
 
@@ -111,7 +111,7 @@ export function isValidLatitude(lat: number | null | undefined): boolean {
  * Validate longitude (-180 to 180)
  */
 export function isValidLongitude(lon: number | null | undefined): boolean {
-  if (lon === null || lon === undefined) return false;
+  if (lon === null || lon === undefined) {return false;}
   return Number.isFinite(lon) && lon >= -180 && lon <= 180;
 }
 
@@ -132,7 +132,7 @@ export function isWithinLimit(
   value: string | null | undefined,
   maxLength: number
 ): boolean {
-  if (!value) return true; // Empty is valid (use required check separately)
+  if (!value) {return true;} // Empty is valid (use required check separately)
   return value.length <= maxLength;
 }
 
@@ -147,7 +147,7 @@ export function isRequired(value: string | null | undefined): boolean {
  * Truncate string to max length
  */
 export function truncate(value: string, maxLength: number): string {
-  if (value.length <= maxLength) return value;
+  if (value.length <= maxLength) {return value;}
   return value.slice(0, maxLength);
 }
 

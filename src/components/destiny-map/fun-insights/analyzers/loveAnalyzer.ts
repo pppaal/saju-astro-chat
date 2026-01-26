@@ -112,10 +112,10 @@ interface LoveAnalysis {
  */
 function getDominantSibsin(saju: SajuData | undefined): SibsinCategory | null {
   const sibsinDist = saju?.advancedAnalysis?.sibsin?.sibsinDistribution;
-  if (!sibsinDist || typeof sibsinDist !== 'object') return null;
+  if (!sibsinDist || typeof sibsinDist !== 'object') {return null;}
 
   const entries = Object.entries(sibsinDist) as [string, number][];
-  if (entries.length === 0) return null;
+  if (entries.length === 0) {return null;}
 
   const sorted = entries.sort(([, a], [, b]) => b - a);
   const topSibsin = sorted[0]?.[0];
@@ -129,7 +129,7 @@ function getDominantSibsin(saju: SajuData | undefined): SibsinCategory | null {
 function getJunoSign(astro: AstroData | undefined): ZodiacSign | null {
   const juno = astro?.asteroids?.juno;
   const sign = juno?.sign?.toLowerCase();
-  if (!sign) return null;
+  if (!sign) {return null;}
 
   const validSigns: ZodiacSign[] = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
     'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
@@ -154,7 +154,7 @@ function getVertexHouse(astro: AstroData | undefined): HouseNumber | null {
 function getLilithSign(astro: AstroData | undefined): ZodiacSign | null {
   const lilith = getLilithData(astro);
   const sign = lilith?.sign?.toLowerCase();
-  if (!sign) return null;
+  if (!sign) {return null;}
 
   const validSigns: ZodiacSign[] = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
     'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
@@ -187,7 +187,7 @@ function getRomanceTiming(saju: SajuData | undefined, isKo: boolean): string | n
 
   for (const yearData of saeun) {
     const year = yearData.year;
-    if (!year || year < currentYear || year > currentYear + 10) continue;
+    if (!year || year < currentYear || year > currentYear + 10) {continue;}
     const element = yearData.stem?.element;
     if (element === 'fire' || element === 'wood' || element === '화' || element === '목') {
       goodYears.push(year);
@@ -223,7 +223,7 @@ export function getLoveAnalysis(
   const isKo = lang === "ko";
   const dayMasterName = extractDayMaster(saju);
 
-  if (!dayMasterName) return null;
+  if (!dayMasterName) {return null;}
 
   const dmBase = dayMasterLoveTraits[dayMasterName] || dayMasterLoveTraits["갑"];
 

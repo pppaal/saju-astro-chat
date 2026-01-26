@@ -1,0 +1,65 @@
+{
+  "app": {
+    "title": "destinypal",
+    "subtitle": "AI unfolds your destiny map.",
+    "visitors": "Visitors Today",
+    "myJourney": "My Journey",
+    "community": "Community",
+    "back": "Back",
+    "name": "Name",
+    "namePh": "Enter your name",
+    "birthDate": "Birth Date",
+    "birthTime": "Birth Time",
+    "birthCity": "Birth City",
+    "cityPh": "Seoul",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "preferNot": "Prefer not to say",
+    "analyze": "Analyze",
+    "loadMyProfile": "Load My Profile",
+    "loadingProfile": "Loading...",
+    "profileLoaded": "Profile Loaded!"
+  },
+  "ui": {
+    "tipChooseCity": "Selecting a city automatically sets the time zone.",
+    "timeZone": "Time Zone",
+    "changeManually": "Change Manually",
+    "generate": "Generate Chart",
+    "analyzing": "Analyzing...",
+    "titleAstrology": "AI Birth Chart",
+    "subtitleAstrology": "Discover your cosmic map based on your birth info.",
+    "datePlaceholder": "yyyy-mm-dd",
+    "timePlaceholder": "--:--"
+  },
+  "error": {
+    "dateRequired": "Please enter a valid birth date (YYYY-MM-DD).",
+    "timeRequired": "Please enter a valid birth time (HH:MM).",
+    "cityRequired": "Please search and select a birth city.",
+    "timezoneRequired": "Please select a time zone.",
+    "noData": "No analysis data received from server.",
+    "unknown": "An unknown error occurred.",
+    "profileLoadFailed": "Failed to load profile. Please try again.",
+    "noProfileData": "No saved profile data found. Please save your info in MyJourney first."
+  },
+  "menu": {
+    "destinyMap": "Destiny Map",
+    "aiReports": "AI Premium Reports",
+    "lifePrediction": "Life Prediction",
+    "saju": "Saju",
+    "astrology": "Astrology",
+    "iching": "I Ching",
+    "tarot": "Tarot",
+    "dream": "Dream",
+    "calendar": "Fortune Calendar",
+    "numerology": "Numerology",
+    "compatibility": "Compatibility",
+    "personality": "Personality",
+    "icp": "Relationship Style",
+    "pastLife": "Past Life"
+  },
+  "emoji": {
+    "sparkles": "sparkles"
+  }
+}

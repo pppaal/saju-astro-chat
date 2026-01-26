@@ -191,13 +191,13 @@ export function findHarmonicConjunctions(chart: HarmonicChart, orb: number = 10)
   const used = new Set<string>();
 
   for (let i = 0; i < planets.length; i++) {
-    if (used.has(planets[i].name)) continue;
+    if (used.has(planets[i].name)) {continue;}
 
     const group: PlanetBase[] = [planets[i]];
     used.add(planets[i].name);
 
     for (let j = i + 1; j < planets.length; j++) {
-      if (used.has(planets[j].name)) continue;
+      if (used.has(planets[j].name)) {continue;}
 
       const diff = shortestAngle(planets[i].longitude, planets[j].longitude);
       if (diff <= orb) {
@@ -448,13 +448,13 @@ function groupAspectsByPlanets(aspects: AspectHit[]): AspectHit[][] {
   const used = new Set<number>();
 
   for (let i = 0; i < aspects.length; i++) {
-    if (used.has(i)) continue;
+    if (used.has(i)) {continue;}
 
     const group: AspectHit[] = [aspects[i]];
     used.add(i);
 
     for (let j = i + 1; j < aspects.length; j++) {
-      if (used.has(j)) continue;
+      if (used.has(j)) {continue;}
 
       const planets1 = [aspects[i].from.name, aspects[i].to.name];
       const planets2 = [aspects[j].from.name, aspects[j].to.name];

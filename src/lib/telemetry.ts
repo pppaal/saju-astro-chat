@@ -19,14 +19,14 @@ const SENSITIVE_KEYS = [
 
 function scrubValue(key: string, value: unknown): unknown {
   const lowerKey = key.toLowerCase();
-  if (SENSITIVE_KEYS.some((k) => lowerKey.includes(k))) return REDACTED;
+  if (SENSITIVE_KEYS.some((k) => lowerKey.includes(k))) {return REDACTED;}
   return value;
 }
 
 function scrubObject(obj: unknown, depth = 0): unknown {
-  if (depth > 2) return "[truncated]";
+  if (depth > 2) {return "[truncated]";}
   if (obj && typeof obj === "object") {
-    if (Array.isArray(obj)) return obj.map((v) => scrubObject(v, depth + 1));
+    if (Array.isArray(obj)) {return obj.map((v) => scrubObject(v, depth + 1));}
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
       out[k] = scrubValue(k, scrubObject(v, depth + 1));

@@ -88,7 +88,7 @@ export default function MatchChatPage({
   // 메시지 조회
   const loadMessages = useCallback(async (cursor?: string) => {
     try {
-      if (cursor) setLoadingMore(true);
+      if (cursor) {setLoadingMore(true);}
 
       const url = cursor
         ? `/api/destiny-match/chat?connectionId=${connectionId}&cursor=${cursor}`
@@ -115,7 +115,7 @@ export default function MatchChatPage({
 
   // 초기 로드
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === 'loading') {return;}
 
     if (!session) {
       router.push(`/auth/signin?callbackUrl=/destiny-match/chat/${connectionId}`);
@@ -135,7 +135,7 @@ export default function MatchChatPage({
 
   // 폴링으로 새 메시지 확인 (5초마다)
   useEffect(() => {
-    if (!session || loading) return;
+    if (!session || loading) {return;}
 
     const interval = setInterval(() => {
       loadMessages();
@@ -146,7 +146,7 @@ export default function MatchChatPage({
 
   // 메시지 전송
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || sending) return;
+    if (!newMessage.trim() || sending) {return;}
 
     const messageContent = newMessage.trim();
     setNewMessage('');
@@ -254,7 +254,7 @@ export default function MatchChatPage({
 
   // 날짜 구분선 표시 여부 확인
   const shouldShowDateSeparator = (currentMsg: Message, prevMsg: Message | null) => {
-    if (!prevMsg) return true;
+    if (!prevMsg) {return true;}
     const currentDate = new Date(currentMsg.createdAt).toDateString();
     const prevDate = new Date(prevMsg.createdAt).toDateString();
     return currentDate !== prevDate;

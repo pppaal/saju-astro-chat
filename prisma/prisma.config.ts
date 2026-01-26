@@ -1,26 +1,43 @@
-import { defineConfig } from 'prisma/config'
-import dotenv from 'dotenv'
-import { readFileSync, existsSync } from 'fs'
+import { defineConfig } from '@prisma/client/config'
+import { existsSync } from 'fs'
 import { resolve } from 'path'
 
-// Manually load .env.local
-const envPath = resolve(process.cwd(), '.env.local')
-if (existsSync(envPath)) {
-  dotenv.config({ path: envPath })
+// Load environment variables
+const loadEnv = () => {
+  // Try to load dotenv
+  try {
+    const dotenv = require('dotenv')
+
+    // Load .env first (base)
+    const envPath = resolve(process.cwd(), '.env')
+    if (existsSync(envPath)) {
+      dotenv.config({ path: envPath })
+    }
+
+    // Then load .env.local (override)
+    const envLocalPath = resolve(process.cwd(), '.env.local')
+    if (existsSync(envLocalPath)) {
+      dotenv.config({ path: envLocalPath, override: true })
+    }
+  } catch (err) {
+    // dotenv not available, use process.env directly
+  }
 }
 
+loadEnv()
+
 const databaseUrl = process.env.DATABASE_URL
+const directUrl = process.env.DIRECT_DATABASE_URL
 
 if (!databaseUrl) {
-  throw new Error(`DATABASE_URL not found. Checked: ${envPath}`)
+  throw new Error('DATABASE_URL not found in environment variables')
 }
 
 export default defineConfig({
-  schema: 'schema.prisma',
-  migrations: {
-    path: 'migrations',
-  },
-  datasource: {
-    url: databaseUrl,
+  datasources: {
+    db: {
+      url: databaseUrl,
+      directUrl: directUrl,
+    },
   },
 })

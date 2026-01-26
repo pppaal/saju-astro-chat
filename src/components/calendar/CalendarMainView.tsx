@@ -71,18 +71,18 @@ export default function CalendarMainView({
 
   // Year summary calculation
   const yearSummary = useMemo(() => {
-    if (!data?.allDates) return null;
+    if (!data?.allDates) {return null;}
 
     const result = { total: 0, grade0: 0, grade1: 0, grade2: 0, grade3: 0, grade4: 0 };
     for (const d of data.allDates) {
       const dateYear = new Date(d.date).getFullYear();
       if (dateYear === year) {
         result.total++;
-        if (d.grade === 0) result.grade0++;
-        else if (d.grade === 1) result.grade1++;
-        else if (d.grade === 2) result.grade2++;
-        else if (d.grade === 3) result.grade3++;
-        else if (d.grade >= 4) result.grade4++;
+        if (d.grade === 0) {result.grade0++;}
+        else if (d.grade === 1) {result.grade1++;}
+        else if (d.grade === 2) {result.grade2++;}
+        else if (d.grade === 3) {result.grade3++;}
+        else if (d.grade >= 4) {result.grade4++;}
       }
     }
     return result.total > 0 ? result : null;
@@ -90,7 +90,7 @@ export default function CalendarMainView({
 
   // Monthly fortune data for graph
   const fortuneData = useMemo(() => {
-    if (!data?.allDates) return [];
+    if (!data?.allDates) {return [];}
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const monthData: { day: number; grade: number; score: number }[] = [];
 
@@ -129,7 +129,7 @@ export default function CalendarMainView({
   }, [year, month]);
 
   const getDateInfo = useCallback((date: Date): ImportantDate | undefined => {
-    if (!data?.allDates) return undefined;
+    if (!data?.allDates) {return undefined;}
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
@@ -138,7 +138,7 @@ export default function CalendarMainView({
   }, [data?.allDates]);
 
   const getDayClassName = useCallback((date: Date | null): string => {
-    if (!date) return styles.emptyDay;
+    if (!date) {return styles.emptyDay;}
 
     const isToday =
       date.getDate() === today.getDate() &&
@@ -153,19 +153,19 @@ export default function CalendarMainView({
     const dateInfo = getDateInfo(date);
 
     let className = styles.day;
-    if (isToday) className += ` ${styles.today}`;
-    if (isSelected) className += ` ${styles.selected}`;
+    if (isToday) {className += ` ${styles.today}`;}
+    if (isSelected) {className += ` ${styles.selected}`;}
     if (dateInfo) {
       className += ` ${styles[`dayGrade${dateInfo.grade}`]}`;
     }
-    if (date.getDay() === 0) className += ` ${styles.sunday}`;
-    if (date.getDay() === 6) className += ` ${styles.saturday}`;
+    if (date.getDay() === 0) {className += ` ${styles.sunday}`;}
+    if (date.getDay() === 6) {className += ` ${styles.saturday}`;}
 
     return className;
   }, [today, selectedDay, getDateInfo]);
 
   const handleDayClick = useCallback((date: Date | null) => {
-    if (!date) return;
+    if (!date) {return;}
     onDayClick(date);
   }, [onDayClick]);
 
@@ -220,28 +220,38 @@ export default function CalendarMainView({
             <span className={styles.summaryBadge} title={locale === "ko" ? "최고의 날 (~5%)" : "Best Days (~5%)"}>
               <span className={styles.badgeEmoji}>🌟</span>
               <span className={styles.badgeLabel}>{locale === "ko" ? "최고" : "Best"}</span>
-              <span className={styles.badgeCount}>{yearSummary.grade0}/{yearSummary.total}</span>
+              <span className={styles.badgeCount}>
+                {locale === "ko" ? `${yearSummary.grade0}일` : `${yearSummary.grade0} days`}
+              </span>
             </span>
             <span className={styles.summaryBadge} title={locale === "ko" ? "좋은 날 (~15%)" : "Good Days (~15%)"}>
               <span className={styles.badgeEmoji}>✨</span>
               <span className={styles.badgeLabel}>{locale === "ko" ? "좋음" : "Good"}</span>
-              <span className={styles.badgeCount}>{yearSummary.grade1}/{yearSummary.total}</span>
+              <span className={styles.badgeCount}>
+                {locale === "ko" ? `${yearSummary.grade1}일` : `${yearSummary.grade1} days`}
+              </span>
             </span>
             <span className={styles.summaryBadge} title={locale === "ko" ? "보통 날 (~55%)" : "Normal Days (~55%)"}>
               <span className={styles.badgeEmoji}>◆</span>
               <span className={styles.badgeLabel}>{locale === "ko" ? "보통" : "Normal"}</span>
-              <span className={styles.badgeCount}>{yearSummary.grade2}/{yearSummary.total}</span>
+              <span className={styles.badgeCount}>
+                {locale === "ko" ? `${yearSummary.grade2}일` : `${yearSummary.grade2} days`}
+              </span>
             </span>
             <span className={`${styles.summaryBadge} ${styles.cautionBadge}`} title={locale === "ko" ? "안좋은 날 (~20%)" : "Bad Days (~20%)"}>
               <span className={styles.badgeEmoji}>⚠️</span>
               <span className={styles.badgeLabel}>{locale === "ko" ? "안좋음" : "Bad"}</span>
-              <span className={styles.badgeCount}>{yearSummary.grade3}/{yearSummary.total}</span>
+              <span className={styles.badgeCount}>
+                {locale === "ko" ? `${yearSummary.grade3}일` : `${yearSummary.grade3} days`}
+              </span>
             </span>
             {yearSummary.grade4 > 0 && (
               <span className={`${styles.summaryBadge} ${styles.worstBadge}`} title={locale === "ko" ? "최악의 날 (~5%)" : "Worst Days (~5%)"}>
                 <span className={styles.badgeEmoji}>☠️</span>
                 <span className={styles.badgeLabel}>{locale === "ko" ? "최악" : "Worst"}</span>
-                <span className={styles.badgeCount}>{yearSummary.grade4}/{yearSummary.total}</span>
+                <span className={styles.badgeCount}>
+                  {locale === "ko" ? `${yearSummary.grade4}일` : `${yearSummary.grade4} days`}
+                </span>
               </span>
             )}
           </div>

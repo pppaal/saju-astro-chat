@@ -56,7 +56,7 @@ export default function HistoryModal({
 
   // Keyboard handling and body scroll lock
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {return;}
 
     // Handle Escape key
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -75,7 +75,7 @@ export default function HistoryModal({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div

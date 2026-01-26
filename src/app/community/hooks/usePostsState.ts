@@ -19,7 +19,7 @@ export function filterAndSort(
   let list = posts.filter(p => p.parentId === null && p.status !== "hidden");
 
   // Category filter
-  if (category !== "all") list = list.filter(p => p.category === category);
+  if (category !== "all") {list = list.filter(p => p.category === category);}
 
   // Search filter
   if (searchQuery.trim()) {
@@ -35,8 +35,8 @@ export function filterAndSort(
   list = [...list];
 
   // Sort
-  if (tab === "new") list.sort((a, b) => b.createdAt - a.createdAt);
-  else list.sort((a, b) => b.likes - a.likes || b.createdAt - a.createdAt);
+  if (tab === "new") {list.sort((a, b) => b.createdAt - a.createdAt);}
+  else {list.sort((a, b) => b.likes - a.likes || b.createdAt - a.createdAt);}
 
   return list;
 }

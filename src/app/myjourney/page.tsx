@@ -187,7 +187,7 @@ function MyJourneyPage() {
 
       if (profileRes.ok) {
         const { user } = await profileRes.json();
-        if (user) setProfile(user);
+        if (user) {setProfile(user);}
       }
 
       if (creditsRes.ok) {
@@ -210,7 +210,7 @@ function MyJourneyPage() {
   }, [loadInitialData]);
 
   const loadHistory = useCallback(async () => {
-    if (status !== "authenticated") return;
+    if (status !== "authenticated") {return;}
     setHistoryLoading(true);
     try {
       const res = await fetch("/api/me/history", { cache: "no-store" });
@@ -230,7 +230,7 @@ function MyJourneyPage() {
   }, [loadHistory]);
 
   const loadFortune = useCallback(async () => {
-    if (!profile.birthDate || fortune) return;
+    if (!profile.birthDate || fortune) {return;}
     setFortuneLoading(true);
     try {
       const res = await fetch("/api/daily-fortune", {
@@ -257,7 +257,7 @@ function MyJourneyPage() {
   }, [loadFortune]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {return;}
     const fromQuery = search?.get("from");
     const looksLikeAuthReferrer =
       document.referrer.includes("/api/auth") ||
@@ -272,7 +272,7 @@ function MyJourneyPage() {
 
   const prevStatus = useRef(status);
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {return;}
     if (prevStatus.current !== status && status === "authenticated") {
       const state = history.state || {};
       history.replaceState({ ...state, __fromAuth: true, __entered: true }, "");
@@ -281,7 +281,7 @@ function MyJourneyPage() {
   }, [status]);
 
   const goBack = useCallback(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {return;}
     const state = history.state || {};
     if (state.__fromAuth || window.history.length <= 1) {
       router.replace("/");

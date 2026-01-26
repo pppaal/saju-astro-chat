@@ -390,7 +390,7 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
  * 면접/시험 질문 특수 처리용 매핑
  */
 export function getExamInterviewMapping(question: string, language: string) {
-  if (!isExamInterviewQuestion(question)) return null;
+  if (!isExamInterviewQuestion(question)) {return null;}
 
   const isInterview = /면접/.test(question);
   const targetSpread = isInterview ? "interview-result" : "exam-pass";

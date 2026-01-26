@@ -230,9 +230,9 @@ export function withErrorHandler<T>(
  */
 function extractLocale(req: Request): string {
   const acceptLang = req.headers.get("accept-language") || "";
-  if (acceptLang.includes("ko")) return "ko";
-  if (acceptLang.includes("ja")) return "ja";
-  if (acceptLang.includes("zh")) return "zh";
+  if (acceptLang.includes("ko")) {return "ko";}
+  if (acceptLang.includes("ja")) {return "ja";}
+  if (acceptLang.includes("zh")) {return "zh";}
   return "en";
 }
 

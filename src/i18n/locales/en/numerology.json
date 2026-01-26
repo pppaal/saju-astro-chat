@@ -1,0 +1,150 @@
+{
+  "numerology": {
+    "title": "Complete Numerology Reading",
+    "subtitle": "Professional-grade numerology analysis with 20+ calculations",
+    "formTitle": "Complete Numerology Reading",
+    "formSubtitle": "Enter your details for a comprehensive analysis",
+    "nameLabel": "Full Name",
+    "namePlaceholder": "English or Korean name",
+    "nameHint": "Korean names are fully supported",
+    "birthdateLabel": "Birthdate",
+    "birthtimeLabel": "Time of Birth",
+    "birthtimeHint": "If exact time is unknown, approximate is OK.",
+    "autoTimezone": "Timezone",
+    "birthCityLabel": "Birth city",
+    "birthCityPlaceholder": "e.g., Seoul, KR",
+    "currentCityLabel": "Current city",
+    "currentCityPlaceholder": "e.g., Tokyo, JP",
+    "currentCityHint": "Used for personalized lucky numbers",
+    "luckyDrawLabel": "Lucky Number Draw",
+    "countLabel": "Count",
+    "minPlaceholder": "Min",
+    "maxPlaceholder": "Max",
+    "advancedOptions": "Advanced Options",
+    "seedLabel": "Seed (reproducibility)",
+    "seedOptionNameBirth": "Name + Birthdate",
+    "seedOptionNameBirthCityTime": "Name + Birth + Cities + Time",
+    "seedOptionRandom": "Pure random",
+    "seedHint": "Determines how your lucky numbers are generated",
+    "moreOptions": "More Options",
+    "moreOptionsHint": "Time, location for more accuracy",
+    "buttonCalculate": "Generate Complete Reading",
+    "dropdownLoading": "Searching...",
+    "reset": "New Reading",
+    "resultsTitle": "Complete Numerology Profile",
+    "masterBadge": "Master",
+    "errors": {
+      "birthdate": "Please enter your birth date.",
+      "name": "Please enter your name for an accurate reading.",
+      "range": "Check the range: minimum must be less than maximum.",
+      "countExceedsRange": "Count cannot exceed the number range size.",
+      "generate": "An error occurred while generating numbers."
+    },
+    "sections": {
+      "core": "Core Numbers",
+      "advanced": "Advanced",
+      "name": "Name Analysis",
+      "karmic": "Karmic",
+      "cycles": "Life Cycles",
+      "timing": "Timing",
+      "lucky": "Lucky Numbers",
+      "more": "More"
+    },
+    "sectionDesc": {
+      "core": "The foundation of your numerological profile",
+      "advanced": "Deeper insights into your potential and growth",
+      "name": "What your name reveals about you",
+      "karmic": "Past life influences and lessons to learn",
+      "cycles": "Major life phases and challenges",
+      "timing": "Your personal and universal cycles right now",
+      "lucky": "Numbers aligned with your energy"
+    },
+    "coreNumbers": {
+      "lifePath": "Life Path",
+      "expression": "Expression",
+      "soulUrge": "Soul Urge",
+      "personality": "Personality",
+      "birthday": "Birthday"
+    },
+    "advancedNumbers": {
+      "maturity": "Maturity Number",
+      "maturitySubtitle": "Who you become",
+      "balance": "Balance Number",
+      "balanceSubtitle": "Crisis response",
+      "rationalThought": "Rational Thought",
+      "rationalThoughtSubtitle": "Logic style"
+    },
+    "nameAnalysis": {
+      "title": "Name Analysis",
+      "cornerstone": "Cornerstone",
+      "cornerstoneDesc": "How you start",
+      "capstone": "Capstone",
+      "capstoneDesc": "How you finish",
+      "firstVowel": "First Vowel",
+      "firstVowelDesc": "First reaction",
+      "hiddenPassion": "Hidden Passion",
+      "hiddenPassionDesc": "Inner drive",
+      "subconscious": "Subconscious Self",
+      "nameEnergyBreakdown": "Name Energy Breakdown"
+    },
+    "karmicSection": {
+      "debtTitle": "Karmic Debt Numbers",
+      "noDebt": "No Karmic Debt",
+      "noDebtDesc": "Your chart shows no karmic debt numbers. You start this life without specific past-life burdens to resolve.",
+      "lessonsTitle": "Karmic Lessons (Missing Numbers)",
+      "lessonsIntro": "Numbers missing from your name indicate areas for growth:"
+    },
+    "cyclesSection": {
+      "pinnaclesTitle": "Pinnacles (Life Themes)",
+      "challengesTitle": "Challenges (Obstacles to Overcome)",
+      "challenge": "Challenge"
+    },
+    "timingSection": {
+      "personalCycles": "Personal Cycles",
+      "universalCycles": "Universal Cycles (Everyone)",
+      "personalYear": "Personal Year",
+      "personalMonth": "Personal Month",
+      "personalDay": "Personal Day",
+      "universalYear": "Universal Year",
+      "universalMonth": "Universal Month",
+      "universalDay": "Universal Day"
+    },
+    "luckySection": {
+      "todayTitle": "Today's Lucky Numbers",
+      "todayNote": "These change daily based on your birth data",
+      "permanentTitle": "Permanent Lucky Numbers",
+      "permanentNote": "Calculated from your name, birthdate, and location - they never change.",
+      "adjustHint": "Try adjusting the options and calculate again."
+    },
+    "lucky": {
+      "errorBirthdate": "Please enter your birth date.",
+      "errorRequest": "Failed to analyze.",
+      "errorGeneral": "An error occurred. Please try again.",
+      "interpretation": "Lucky numbers generated based on your Life Path {{lifePath}}. These numbers resonate with your energy.",
+      "copied": "Numbers copied!",
+      "nameLabel": "Name (English, Optional)",
+      "nameHint": "Enter your name for more accurate lucky numbers",
+      "generateButton": "Generate Lucky Numbers",
+      "yourNumbers": "Your Lucky Numbers",
+      "copy": "Copy Numbers",
+      "regenerate": "Regenerate",
+      "tipsTitle": "Tips",
+      "tip1": "These numbers are derived from your birth date and name numerology energy",
+      "tip2": "Select 6 for Lotto 6/45 or use for other number games",
+      "tip3": "You can combine numbers or create patterns",
+      "tip4": "Generate new numbers regularly for variety",
+      "countLabel": "Number of lucky numbers to generate",
+      "countHint": "Select up to 15 numbers"
+    },
+    "inputSummary": {
+      "title": "Input Summary",
+      "name": "Name",
+      "korean": "(Korean)",
+      "birth": "Birth",
+      "current": "Current"
+    },
+    "shareTitle": "My Numerology Profile",
+    "shareText": "Check out my numerology reading on DestinyPal!",
+    "shareLabel": "Share"
+  }
+}

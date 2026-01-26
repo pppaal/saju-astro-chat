@@ -40,7 +40,7 @@ export default function ReportResultPage() {
   const [activeSection, setActiveSection] = useState(0);
 
   const loadReport = useCallback(async () => {
-    if (!reportId) return;
+    if (!reportId) {return;}
 
     setIsLoading(true);
     setError(null);

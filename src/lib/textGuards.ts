@@ -40,13 +40,13 @@ export function containsForbidden(value: string) {
 
 export function safetyMessage(locale: string) {
   const l = String(locale || "en").toLowerCase();
-  if (l.startsWith("ko")) return "규제/민감 주제로 답변이 제한됩니다. 다른 주제로 질문해 주세요.";
-  if (l.startsWith("ja")) return "規制・敏感なテーマのため回答を制限します。別の質問をしてください。";
-  if (l.startsWith("zh")) return "该主题受限制，无法回答。请换个问题。";
-  if (l.startsWith("es")) return "Tema restringido; no puedo responder. Pregunta sobre otra área.";
-  if (l.startsWith("fr")) return "Sujet restreint : je ne peux pas répondre. Merci de poser une autre question.";
-  if (l.startsWith("de")) return "Eingeschränktes Thema; bitte eine andere Frage stellen.";
-  if (l.startsWith("pt")) return "Tópico restrito; faça outra pergunta.";
-  if (l.startsWith("ru")) return "Тема ограничена правилами. Пожалуйста, спросите о другом.";
+  if (l.startsWith("ko")) {return "규제/민감 주제로 답변이 제한됩니다. 다른 주제로 질문해 주세요.";}
+  if (l.startsWith("ja")) {return "規制・敏感なテーマのため回答を制限します。別の質問をしてください。";}
+  if (l.startsWith("zh")) {return "该主题受限制，无法回答。请换个问题。";}
+  if (l.startsWith("es")) {return "Tema restringido; no puedo responder. Pregunta sobre otra área.";}
+  if (l.startsWith("fr")) {return "Sujet restreint : je ne peux pas répondre. Merci de poser une autre question.";}
+  if (l.startsWith("de")) {return "Eingeschränktes Thema; bitte eine andere Frage stellen.";}
+  if (l.startsWith("pt")) {return "Tópico restrito; faça outra pergunta.";}
+  if (l.startsWith("ru")) {return "Тема ограничена правилами. Пожалуйста, спросите о другом.";}
   return "That topic can't be handled. Please ask about another area.";
 }

@@ -31,7 +31,7 @@ export default function CategoryFilter({
   const { t } = useI18n();
 
   const getCategoryLabel = (cat: EventCategory | "all") => {
-    if (cat === "all") return t('calendar.categoryLabels.general', 'General');
+    if (cat === "all") {return t('calendar.categoryLabels.general', 'General');}
     return t(`calendar.categoryLabels.${cat}`, cat);
   };
 

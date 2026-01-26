@@ -50,7 +50,7 @@ export function useFormAutoSave<T>({
 
   // Load saved data on mount
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {return;}
 
     try {
       const savedData = localStorage.getItem(storageKey);
@@ -65,7 +65,7 @@ export function useFormAutoSave<T>({
 
   // Save data with debounce
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {return;}
 
     // Skip save on initial mount (data is being loaded)
     if (isInitialMount.current) {

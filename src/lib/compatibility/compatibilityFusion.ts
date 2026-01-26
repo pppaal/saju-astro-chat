@@ -381,16 +381,16 @@ function analyzeRelationshipDynamics(
   const p1MarsElement = p1Astro.mars.element;
 
   let emotionalIntensity = 50;
-  if (p1VenusElement === p2MarsElement) emotionalIntensity += 25;
-  if (p2VenusElement === p1MarsElement) emotionalIntensity += 25;
+  if (p1VenusElement === p2MarsElement) {emotionalIntensity += 25;}
+  if (p2VenusElement === p1MarsElement) {emotionalIntensity += 25;}
 
   // Intellectual Alignment (Sun-Moon)
   const sunSignMatch = p1Astro.sun.sign === p2Astro.sun.sign;
   const moonSignMatch = p1Astro.moon.sign === p2Astro.moon.sign;
 
   let intellectualAlignment = 50;
-  if (sunSignMatch) intellectualAlignment += 30;
-  if (moonSignMatch) intellectualAlignment += 20;
+  if (sunSignMatch) {intellectualAlignment += 30;}
+  if (moonSignMatch) {intellectualAlignment += 20;}
 
   // Spiritual Connection (graph clustering)
   const spiritualConnection = Math.min(100, graphAnalysis.clusterScore * 150);

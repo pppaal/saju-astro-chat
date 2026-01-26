@@ -41,7 +41,7 @@ export function getMatrixAnalysis(
   astro: AstroData | undefined,
   lang: string
 ): MatrixAnalysisResult | null {
-  if (!saju && !astro) return null;
+  if (!saju && !astro) {return null;}
 
   // Layer 1: 오행-서양원소 융합
   const elementFusions = analyzeElementFusion(saju, astro);
@@ -82,7 +82,7 @@ export function getFullMatrixAnalysis(
 ): FullMatrixAnalysisResult | null {
   // Get base analysis
   const baseResult = getMatrixAnalysis(saju, astro, lang);
-  if (!baseResult) return null;
+  if (!baseResult) {return null;}
 
   // Layer 4: 타이밍 오버레이
   const timingOverlays = analyzeTimingOverlay(saju, lang);

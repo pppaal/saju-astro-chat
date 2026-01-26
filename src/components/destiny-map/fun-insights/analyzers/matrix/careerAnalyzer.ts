@@ -18,7 +18,7 @@ export function analyzeCareerMatrix(
 ): CareerMatrixResult | null {
   const isKo = lang === 'ko';
 
-  if (!saju && !astro) return null;
+  if (!saju && !astro) {return null;}
 
   // 1. 십신-하우스 분석 (10하우스 중심)
   const careerHouses: HouseNumber[] = [10, 6, 2]; // 커리어, 직장, 재물

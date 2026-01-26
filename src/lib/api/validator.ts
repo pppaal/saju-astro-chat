@@ -38,7 +38,7 @@ export const DateSchema = z
   .refine(
     (date) => {
       const parsed = Date.parse(date);
-      if (Number.isNaN(parsed)) return false;
+      if (Number.isNaN(parsed)) {return false;}
       const year = new Date(parsed).getFullYear();
       return year >= 1900 && year <= 2100;
     },

@@ -158,10 +158,10 @@ function getElement(sign: string): string {
   const airSign = ['Gemini', 'Libra', 'Aquarius'];
   const waterSign = ['Cancer', 'Scorpio', 'Pisces'];
 
-  if (fireSign.includes(sign)) return 'fire';
-  if (earthSign.includes(sign)) return 'earth';
-  if (airSign.includes(sign)) return 'air';
-  if (waterSign.includes(sign)) return 'water';
+  if (fireSign.includes(sign)) {return 'fire';}
+  if (earthSign.includes(sign)) {return 'earth';}
+  if (airSign.includes(sign)) {return 'air';}
+  if (waterSign.includes(sign)) {return 'water';}
   return 'fire';
 }
 

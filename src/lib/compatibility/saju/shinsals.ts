@@ -73,9 +73,9 @@ export function analyzeShinsals(p1: SajuProfile, p2: SajuProfile): ShinsalAnalys
   const luckyCount = luckyInteractions.length;
   const unluckyCount = unluckyInteractions.length;
 
-  if (luckyCount >= unluckyCount + 2) overallImpact = 'very_positive';
-  else if (luckyCount > unluckyCount) overallImpact = 'positive';
-  else if (unluckyCount > luckyCount + 1) overallImpact = 'challenging';
+  if (luckyCount >= unluckyCount + 2) {overallImpact = 'very_positive';}
+  else if (luckyCount > unluckyCount) {overallImpact = 'positive';}
+  else if (unluckyCount > luckyCount + 1) {overallImpact = 'challenging';}
 
   return {
     person1Shinsals: p1Shinsals,

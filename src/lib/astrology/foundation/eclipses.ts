@@ -104,9 +104,9 @@ export function findEclipseImpact(
       const cusp = chart.houses[i].cusp;
       let nextCusp = chart.houses[nextI].cusp;
 
-      if (nextCusp < cusp) nextCusp += 360;
+      if (nextCusp < cusp) {nextCusp += 360;}
       let testLon = eclipse.longitude;
-      if (testLon < cusp) testLon += 360;
+      if (testLon < cusp) {testLon += 360;}
 
       if (testLon >= cusp && testLon < nextCusp) {
         eclipseHouse = i + 1;
@@ -263,7 +263,7 @@ export function checkEclipseSensitivity(
   const allPoints = [...chart.planets, chart.ascendant, chart.mc];
 
   for (const point of allPoints) {
-    if (point.name === "True Node") continue;
+    if (point.name === "True Node") {continue;}
 
     const diff = shortestAngle(point.longitude, node.longitude);
     // 노드와 합 또는 충

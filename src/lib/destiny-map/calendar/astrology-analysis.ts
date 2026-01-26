@@ -159,7 +159,7 @@ export const ECLIPSES: EclipseData[] = [
  * 오행 이름 정규화 (air → fire)
  */
 function normalizeElement(element: string): string {
-  if (element === "air") return "fire";
+  if (element === "air") {return "fire";}
   return element;
 }
 
@@ -217,7 +217,7 @@ export function getPlanetPosition(date: Date, planet: PlanetName): PlanetPositio
       break;
   }
 
-  if (longitude < 0) longitude += 360;
+  if (longitude < 0) {longitude += 360;}
 
   const signIndex = Math.floor(longitude / 30) % 12;
   const degree = longitude % 30;
@@ -454,7 +454,7 @@ export function checkVoidOfCourseMoon(date: Date): VoidOfCourseResult {
         }
       }
     }
-    if (hasUpcomingAspect) break;
+    if (hasUpcomingAspect) {break;}
   }
 
   // 달 이동 속도: 약 13도/일 = 약 0.54도/시간
@@ -548,18 +548,18 @@ export function getPlanetaryHourForDate(date: Date): PlanetaryHourResult {
  */
 export function getAspect(longitude1: number, longitude2: number): AspectResult {
   let diff = Math.abs(longitude1 - longitude2);
-  if (diff > 180) diff = 360 - diff;
+  if (diff > 180) {diff = 360 - diff;}
 
   // Conjunction (합)
-  if (diff <= 8) return { aspect: "conjunction", orb: diff };
+  if (diff <= 8) {return { aspect: "conjunction", orb: diff };}
   // Sextile (육분)
-  if (Math.abs(diff - 60) <= 6) return { aspect: "sextile", orb: Math.abs(diff - 60) };
+  if (Math.abs(diff - 60) <= 6) {return { aspect: "sextile", orb: Math.abs(diff - 60) };}
   // Square (사각)
-  if (Math.abs(diff - 90) <= 8) return { aspect: "square", orb: Math.abs(diff - 90) };
+  if (Math.abs(diff - 90) <= 8) {return { aspect: "square", orb: Math.abs(diff - 90) };}
   // Trine (삼분)
-  if (Math.abs(diff - 120) <= 8) return { aspect: "trine", orb: Math.abs(diff - 120) };
+  if (Math.abs(diff - 120) <= 8) {return { aspect: "trine", orb: Math.abs(diff - 120) };}
   // Opposition (충)
-  if (Math.abs(diff - 180) <= 8) return { aspect: "opposition", orb: Math.abs(diff - 180) };
+  if (Math.abs(diff - 180) <= 8) {return { aspect: "opposition", orb: Math.abs(diff - 180) };}
 
   return { aspect: null, orb: diff };
 }

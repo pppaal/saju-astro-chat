@@ -113,10 +113,10 @@ function getSibsin(dayStem: string, targetStem: string): SibsinType {
 }
 
 function getSibsinCategory(sibsin: SibsinType): SibsinCategory {
-  if (sibsin === '비견' || sibsin === '겁재') return '비겁';
-  if (sibsin === '식신' || sibsin === '상관') return '식상';
-  if (sibsin === '편재' || sibsin === '정재') return '재성';
-  if (sibsin === '편관' || sibsin === '정관') return '관성';
+  if (sibsin === '비견' || sibsin === '겁재') {return '비겁';}
+  if (sibsin === '식신' || sibsin === '상관') {return '식상';}
+  if (sibsin === '편재' || sibsin === '정재') {return '재성';}
+  if (sibsin === '편관' || sibsin === '정관') {return '관성';}
   return '인성';
 }
 
@@ -429,8 +429,8 @@ export function analyzeSibsinComprehensive(pillars: SajuPillars): SibsinComprehe
   const missingSibsin: SibsinType[] = [];
 
   for (const sibsin of SIBSIN_TYPES) {
-    if (count[sibsin] >= 2) dominantSibsin.push(sibsin);
-    if (count[sibsin] === 0) missingSibsin.push(sibsin);
+    if (count[sibsin] >= 2) {dominantSibsin.push(sibsin);}
+    if (count[sibsin] === 0) {missingSibsin.push(sibsin);}
   }
 
   const patterns = analyzeSibsinPatterns(count, categoryCount);
@@ -442,36 +442,36 @@ export function analyzeSibsinComprehensive(pillars: SajuPillars): SibsinComprehe
   const strengths: string[] = [];
   const weaknesses: string[] = [];
 
-  if (categoryCount.비겁 >= 2) strengths.push('강한 자아와 독립심');
-  else if (categoryCount.비겁 === 0) weaknesses.push('주체성 부족');
+  if (categoryCount.비겁 >= 2) {strengths.push('강한 자아와 독립심');}
+  else if (categoryCount.비겁 === 0) {weaknesses.push('주체성 부족');}
 
-  if (categoryCount.식상 >= 2) strengths.push('창의력과 표현력');
-  else if (categoryCount.식상 === 0) weaknesses.push('자기표현의 어려움');
+  if (categoryCount.식상 >= 2) {strengths.push('창의력과 표현력');}
+  else if (categoryCount.식상 === 0) {weaknesses.push('자기표현의 어려움');}
 
-  if (categoryCount.재성 >= 2) strengths.push('재물 관리와 현실 감각');
-  else if (categoryCount.재성 === 0) weaknesses.push('재물 운용의 어려움');
+  if (categoryCount.재성 >= 2) {strengths.push('재물 관리와 현실 감각');}
+  else if (categoryCount.재성 === 0) {weaknesses.push('재물 운용의 어려움');}
 
-  if (categoryCount.관성 >= 2) strengths.push('사회적 성취와 책임감');
-  else if (categoryCount.관성 === 0) weaknesses.push('사회적 인정 부족 가능');
+  if (categoryCount.관성 >= 2) {strengths.push('사회적 성취와 책임감');}
+  else if (categoryCount.관성 === 0) {weaknesses.push('사회적 인정 부족 가능');}
 
-  if (categoryCount.인성 >= 2) strengths.push('학습 능력과 분석력');
-  else if (categoryCount.인성 === 0) weaknesses.push('지원자 부족');
+  if (categoryCount.인성 >= 2) {strengths.push('학습 능력과 분석력');}
+  else if (categoryCount.인성 === 0) {weaknesses.push('지원자 부족');}
 
   const lifeThemes: string[] = [];
-  if (dominantSibsin.includes('정관') || dominantSibsin.includes('편관')) lifeThemes.push('직업과 사회적 성취');
-  if (dominantSibsin.includes('정재') || dominantSibsin.includes('편재')) lifeThemes.push('재물과 경제적 안정');
-  if (dominantSibsin.includes('식신') || dominantSibsin.includes('상관')) lifeThemes.push('창작과 자기표현');
-  if (dominantSibsin.includes('정인') || dominantSibsin.includes('편인')) lifeThemes.push('학문과 정신적 성장');
-  if (dominantSibsin.includes('비견') || dominantSibsin.includes('겁재')) lifeThemes.push('독립과 자기 확립');
+  if (dominantSibsin.includes('정관') || dominantSibsin.includes('편관')) {lifeThemes.push('직업과 사회적 성취');}
+  if (dominantSibsin.includes('정재') || dominantSibsin.includes('편재')) {lifeThemes.push('재물과 경제적 안정');}
+  if (dominantSibsin.includes('식신') || dominantSibsin.includes('상관')) {lifeThemes.push('창작과 자기표현');}
+  if (dominantSibsin.includes('정인') || dominantSibsin.includes('편인')) {lifeThemes.push('학문과 정신적 성장');}
+  if (dominantSibsin.includes('비견') || dominantSibsin.includes('겁재')) {lifeThemes.push('독립과 자기 확립');}
 
   const advice: string[] = [];
   for (const missing of missingSibsin.slice(0, 2)) {
     const category = getSibsinCategory(missing);
-    if (category === '비겁') advice.push('자기 주장과 독립심을 키우세요');
-    else if (category === '식상') advice.push('창의적 표현과 취미 활동을 늘리세요');
-    else if (category === '재성') advice.push('재테크와 경제 관념을 길러세요');
-    else if (category === '관성') advice.push('사회적 책임감과 직업 의식을 높이세요');
-    else if (category === '인성') advice.push('학습과 자기계발에 투자하세요');
+    if (category === '비겁') {advice.push('자기 주장과 독립심을 키우세요');}
+    else if (category === '식상') {advice.push('창의적 표현과 취미 활동을 늘리세요');}
+    else if (category === '재성') {advice.push('재테크와 경제 관념을 길러세요');}
+    else if (category === '관성') {advice.push('사회적 책임감과 직업 의식을 높이세요');}
+    else if (category === '인성') {advice.push('학습과 자기계발에 투자하세요');}
   }
 
   return {

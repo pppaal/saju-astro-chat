@@ -8,7 +8,7 @@ function appendAuthRefresh(callbackUrl: string) {
     if (!parsed.searchParams.has(AUTH_REFRESH_PARAM)) {
       parsed.searchParams.set(AUTH_REFRESH_PARAM, "1");
     }
-    if (isAbsolute) return parsed.toString();
+    if (isAbsolute) {return parsed.toString();}
     return `${parsed.pathname}${parsed.search}${parsed.hash}`;
   } catch {
     return callbackUrl;
@@ -20,7 +20,7 @@ export function buildSignInUrl(callbackUrl?: string) {
   if (!target && typeof window !== "undefined") {
     target = `${window.location.pathname}${window.location.search}${window.location.hash}`;
   }
-  if (!target) return DEFAULT_SIGNIN_PATH;
+  if (!target) {return DEFAULT_SIGNIN_PATH;}
   const normalized = appendAuthRefresh(target);
   return `${DEFAULT_SIGNIN_PATH}?callbackUrl=${encodeURIComponent(normalized)}`;
 }

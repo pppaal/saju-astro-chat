@@ -75,7 +75,7 @@ function getTransparentSipsung(pillars: SajuPillarsInput): Sipsung | null {
   const dayYinYang = getStemYinYang(dayS);
 
   const jijanggan = JIJANGGAN[monthB];
-  if (!jijanggan) return null;
+  if (!jijanggan) {return null;}
 
   // 정기 우선, 중기, 여기 순서로 투출 확인
   const order = ['정기', '중기', '여기'];
@@ -87,7 +87,7 @@ function getTransparentSipsung(pillars: SajuPillarsInput): Sipsung | null {
 
   for (const key of order) {
     const hiddenStem = jijanggan[key];
-    if (!hiddenStem) continue;
+    if (!hiddenStem) {continue;}
 
     // 천간에 투출되었는지 확인
     if (allStems.includes(hiddenStem)) {
@@ -165,8 +165,8 @@ function getStrength(pillars: SajuPillarsInput): '신강' | '신약' | '중화' 
   // 식상 + 재성 + 관성 = 일간을 소모/극하는 세력
   const opposing = counts['식신'] + counts['상관'] + counts['편재'] + counts['정재'] + counts['편관'] + counts['정관'];
 
-  if (supporting >= opposing + 2) return '신강';
-  if (opposing >= supporting + 2) return '신약';
+  if (supporting >= opposing + 2) {return '신강';}
+  if (opposing >= supporting + 2) {return '신약';}
   return '중화';
 }
 
@@ -180,8 +180,8 @@ function checkJonggyeok(pillars: SajuPillarsInput): GeokgukType | null {
     const bigeop = counts['비견'] + counts['겁재'];
     const insung = counts['편인'] + counts['정인'];
 
-    if (bigeop >= 5) return '종왕격';  // 비겁이 압도적
-    if (insung >= 4 && bigeop >= 2) return '종강격';  // 인성+비겁
+    if (bigeop >= 5) {return '종왕격';}  // 비겁이 압도적
+    if (insung >= 4 && bigeop >= 2) {return '종강격';}  // 인성+비겁
   }
 
   // 극신약: 다른 오행이 압도적
@@ -190,9 +190,9 @@ function checkJonggyeok(pillars: SajuPillarsInput): GeokgukType | null {
     const jaesung = counts['편재'] + counts['정재'];
     const gwansung = counts['편관'] + counts['정관'];
 
-    if (siksang >= 4) return '종아격';  // 식상 종격
-    if (jaesung >= 4) return '종재격';  // 재성 종격
-    if (gwansung >= 4) return '종살격';  // 관성 종격
+    if (siksang >= 4) {return '종아격';}  // 식상 종격
+    if (jaesung >= 4) {return '종재격';}  // 재성 종격
+    if (gwansung >= 4) {return '종살격';}  // 관성 종격
   }
 
   return null;
@@ -208,13 +208,13 @@ function checkBigyeok(pillars: SajuPillarsInput): GeokgukType | null {
     '甲': '寅', '乙': '卯', '丙': '巳', '丁': '午', '戊': '巳',
     '己': '午', '庚': '申', '辛': '酉', '壬': '亥', '癸': '子'
   };
-  if (rokjiMap[dayS] === monthB) return '건록격';
+  if (rokjiMap[dayS] === monthB) {return '건록격';}
 
   // 양인격: 월지가 일간의 양인지
   const yanginMap: Record<string, string> = {
     '甲': '卯', '丙': '午', '戊': '午', '庚': '酉', '壬': '子'
   };
-  if (yanginMap[dayS] === monthB) return '양인격';
+  if (yanginMap[dayS] === monthB) {return '양인격';}
 
   // 월겁격: 월지에 겁재가 있는 경우
   const jijanggan = JIJANGGAN[monthB];
@@ -224,7 +224,7 @@ function checkBigyeok(pillars: SajuPillarsInput): GeokgukType | null {
     const hiddenElement = getStemElement(jijanggan.정기);
     const hiddenYinYang = getStemYinYang(jijanggan.정기);
     const sipsung = getSipsung(dayElement, dayYinYang, hiddenElement, hiddenYinYang);
-    if (sipsung === '겁재') return '월겁격';
+    if (sipsung === '겁재') {return '월겁격';}
   }
 
   return null;
@@ -270,11 +270,11 @@ function checkSpecialGeokguk(pillars: SajuPillarsInput): GeokgukType | null {
   // 한 오행이 6개 이상이면 특수격
   for (const [element, count] of Object.entries(counts)) {
     if (count >= 6) {
-      if (element === '목' && dayElement === '목') return '곡직격';
-      if (element === '화' && dayElement === '화') return '염상격';
-      if (element === '토' && dayElement === '토') return '가색격';
-      if (element === '금' && dayElement === '금') return '종혁격';
-      if (element === '수' && dayElement === '수') return '윤하격';
+      if (element === '목' && dayElement === '목') {return '곡직격';}
+      if (element === '화' && dayElement === '화') {return '염상격';}
+      if (element === '토' && dayElement === '토') {return '가색격';}
+      if (element === '금' && dayElement === '금') {return '종혁격';}
+      if (element === '수' && dayElement === '수') {return '윤하격';}
     }
   }
 
@@ -416,11 +416,11 @@ function checkJapgigyeok(pillars: SajuPillarsInput): GeokgukType | null {
   const monthB = normalizeBranch(pillars.month.branch);
   const japgiMonths = ['辰', '戌', '丑', '未'];
 
-  if (!japgiMonths.includes(monthB)) return null;
+  if (!japgiMonths.includes(monthB)) {return null;}
 
   // 잡기월의 정기가 투출되지 않았는지 확인
   const jijanggan = JIJANGGAN[monthB];
-  if (!jijanggan) return null;
+  if (!jijanggan) {return null;}
 
   const allStems = [
     normalizeStem(pillars.year.stem),
@@ -479,69 +479,69 @@ export function evaluateGeokgukStatus(
   switch (geokguk) {
     case '식신격':
       // 성격 조건: 식신이 있고, 편인(도식)이 없어야
-      if (sipsungCounts['식신'] >= 1) positive.push('식신 존재');
-      if (sipsungCounts['편인'] === 0) positive.push('편인(도식) 없음');
-      else negative.push('편인(도식)이 식신을 극함');
-      if (sipsungCounts['편관'] >= 2) negative.push('편관 과다로 식신 소모');
+      if (sipsungCounts['식신'] >= 1) {positive.push('식신 존재');}
+      if (sipsungCounts['편인'] === 0) {positive.push('편인(도식) 없음');}
+      else {negative.push('편인(도식)이 식신을 극함');}
+      if (sipsungCounts['편관'] >= 2) {negative.push('편관 과다로 식신 소모');}
       break;
 
     case '상관격':
       // 성격 조건: 상관이 있고, 관성을 제어할 때
-      if (sipsungCounts['상관'] >= 1) positive.push('상관 존재');
+      if (sipsungCounts['상관'] >= 1) {positive.push('상관 존재');}
       if (sipsungCounts['정관'] >= 1 && sipsungCounts['상관'] >= 1) {
         negative.push('상관견관 - 관성 손상');
       }
-      if (sipsungCounts['편인'] === 0) positive.push('편인 없어 상관 보존');
+      if (sipsungCounts['편인'] === 0) {positive.push('편인 없어 상관 보존');}
       break;
 
     case '편재격':
       // 성격 조건: 편재가 있고, 비겁의 극이 없어야
-      if (sipsungCounts['편재'] >= 1) positive.push('편재 존재');
+      if (sipsungCounts['편재'] >= 1) {positive.push('편재 존재');}
       if (sipsungCounts['비견'] >= 2 || sipsungCounts['겁재'] >= 2) {
         negative.push('비겁 과다로 재성 분탈');
       }
-      if (sipsungCounts['편관'] >= 1) positive.push('관성이 비겁 제어');
+      if (sipsungCounts['편관'] >= 1) {positive.push('관성이 비겁 제어');}
       break;
 
     case '정재격':
       // 성격 조건: 정재가 있고, 겁재의 극이 없어야
-      if (sipsungCounts['정재'] >= 1) positive.push('정재 존재');
-      if (sipsungCounts['겁재'] >= 2) negative.push('겁재 과다로 재성 분탈');
-      if (sipsungCounts['정관'] >= 1) positive.push('관성이 비겁 제어');
+      if (sipsungCounts['정재'] >= 1) {positive.push('정재 존재');}
+      if (sipsungCounts['겁재'] >= 2) {negative.push('겁재 과다로 재성 분탈');}
+      if (sipsungCounts['정관'] >= 1) {positive.push('관성이 비겁 제어');}
       break;
 
     case '편관격':
       // 성격 조건: 편관이 있고, 식신의 제어가 있어야
-      if (sipsungCounts['편관'] >= 1) positive.push('편관 존재');
-      if (sipsungCounts['식신'] >= 1) positive.push('식신이 편관 제어(식신제살)');
+      if (sipsungCounts['편관'] >= 1) {positive.push('편관 존재');}
+      if (sipsungCounts['식신'] >= 1) {positive.push('식신이 편관 제어(식신제살)');}
       if (sipsungCounts['편관'] >= 3 && sipsungCounts['식신'] === 0) {
         negative.push('칠살 과다, 제어 없음');
       }
-      if (sipsungCounts['편인'] >= 1) negative.push('편인이 식신 파괴');
+      if (sipsungCounts['편인'] >= 1) {negative.push('편인이 식신 파괴');}
       break;
 
     case '정관격':
       // 성격 조건: 정관이 순수해야 (편관 혼잡 없음)
-      if (sipsungCounts['정관'] >= 1) positive.push('정관 존재');
-      if (sipsungCounts['편관'] >= 1) negative.push('관살혼잡');
-      if (sipsungCounts['상관'] >= 1) negative.push('상관견관');
-      if (sipsungCounts['정인'] >= 1) positive.push('인성 보호');
+      if (sipsungCounts['정관'] >= 1) {positive.push('정관 존재');}
+      if (sipsungCounts['편관'] >= 1) {negative.push('관살혼잡');}
+      if (sipsungCounts['상관'] >= 1) {negative.push('상관견관');}
+      if (sipsungCounts['정인'] >= 1) {positive.push('인성 보호');}
       break;
 
     case '편인격':
       // 성격 조건: 편인이 있고, 재성의 파괴가 없어야
-      if (sipsungCounts['편인'] >= 1) positive.push('편인 존재');
-      if (sipsungCounts['편재'] >= 2) negative.push('재성이 인성 파괴');
-      if (sipsungCounts['식신'] >= 1) negative.push('편인도식 - 식신 손상');
+      if (sipsungCounts['편인'] >= 1) {positive.push('편인 존재');}
+      if (sipsungCounts['편재'] >= 2) {negative.push('재성이 인성 파괴');}
+      if (sipsungCounts['식신'] >= 1) {negative.push('편인도식 - 식신 손상');}
       break;
 
     case '정인격':
       // 성격 조건: 정인이 있고, 재성의 파괴가 없어야
-      if (sipsungCounts['정인'] >= 1) positive.push('정인 존재');
+      if (sipsungCounts['정인'] >= 1) {positive.push('정인 존재');}
       if (sipsungCounts['정재'] >= 2 || sipsungCounts['편재'] >= 2) {
         negative.push('재성이 인성 파괴');
       }
-      if (sipsungCounts['정관'] >= 1) positive.push('관인상생');
+      if (sipsungCounts['정관'] >= 1) {positive.push('관인상생');}
       break;
 
     case '건록격':
@@ -625,7 +625,7 @@ export function evaluateHwagiGeokguk(pillars: SajuPillarsInput): {
 
   for (const def of hapDefs) {
     const hasHap = stems.includes(def.pair[0]) && stems.includes(def.pair[1]);
-    if (!hasHap) continue;
+    if (!hasHap) {continue;}
 
     const isDaymasterPart = def.pair.includes(dayS);
     const monthSupport = def.supportBranches.includes(monthB);
@@ -634,7 +634,7 @@ export function evaluateHwagiGeokguk(pillars: SajuPillarsInput): {
     const breakerElement = FIVE_ELEMENT_RELATIONS.극받는관계[def.resultElement];
     let breakerCount = 0;
     for (const stem of stems) {
-      if (getStemElement(stem) === breakerElement) breakerCount++;
+      if (getStemElement(stem) === breakerElement) {breakerCount++;}
     }
     const noBreaker = breakerCount < 2;
 

@@ -99,7 +99,7 @@ export function extractScore(text: string): number | null {
     const match = text.match(pattern);
     if (match) {
       const score = parseInt(match[1], 10);
-      if (score >= 0 && score <= 100) return score;
+      if (score >= 0 && score <= 100) {return score;}
     }
   }
   return null;

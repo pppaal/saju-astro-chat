@@ -15,22 +15,22 @@ interface ExtendedFixedStarData extends FixedStarData {
 export function getFixedStarsInsight(astro: AstroData | undefined, lang: string): { title: string; message: string; stars: string[]; emoji: string } | null {
   const isKo = lang === "ko";
   const fixedStars = astro?.fixedStars;
-  if (!Array.isArray(fixedStars) || fixedStars.length === 0) return null;
+  if (!Array.isArray(fixedStars) || fixedStars.length === 0) {return null;}
 
   const closeStars = fixedStars.filter((s): s is ExtendedFixedStarData => s != null && typeof s === 'object' && typeof s.orb === 'number' && s.orb < 1).slice(0, 3);
-  if (closeStars.length === 0) return null;
+  if (closeStars.length === 0) {return null;}
 
   const starNames = closeStars
     .map((s: ExtendedFixedStarData) => {
-      if (typeof s === 'string') return s;
-      if (typeof s.star === 'string') return s.star;
-      if (typeof s.name === 'string') return s.name;
-      if (isKo && typeof s.name_ko === 'string') return s.name_ko;
+      if (typeof s === 'string') {return s;}
+      if (typeof s.star === 'string') {return s.star;}
+      if (typeof s.name === 'string') {return s.name;}
+      if (isKo && typeof s.name_ko === 'string') {return s.name_ko;}
       return null;
     })
     .filter((name): name is string => typeof name === 'string' && name.length > 0);
 
-  if (starNames.length === 0) return null;
+  if (starNames.length === 0) {return null;}
 
   return {
     title: selectLang(isKo, titles),

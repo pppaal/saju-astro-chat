@@ -4,23 +4,23 @@ import { reduceToCore } from "./utils";
 
 const getNumberEssence = (num: NumerologyNumber): "정신적/독립적" | "물질적/현실적" | "창의적/감성적" | "기타" => {
   const n = reduceToCore(num);
-  if ([1, 5, 7, 11].includes(n)) return "정신적/독립적";
-  if ([2, 4, 8, 22].includes(n)) return "물질적/현실적";
-  if ([3, 6, 9, 33].includes(n)) return "창의적/감성적";
+  if ([1, 5, 7, 11].includes(n)) {return "정신적/독립적";}
+  if ([2, 4, 8, 22].includes(n)) {return "물질적/현실적";}
+  if ([3, 6, 9, 33].includes(n)) {return "창의적/감성적";}
   return "기타";
 };
 
 const getRelationshipType = (num1: NumerologyNumber, num2: NumerologyNumber): "조화" | "도전" | "중립" => {
   const a = reduceToCore(num1);
   const b = reduceToCore(num2);
-  if (a === b) return "조화";
-  if (getNumberEssence(a) === getNumberEssence(b)) return "조화";
+  if (a === b) {return "조화";}
+  if (getNumberEssence(a) === getNumberEssence(b)) {return "조화";}
   const e1 = getNumberEssence(a);
   const e2 = getNumberEssence(b);
   if (
     (e1 === "물질적/현실적" && e2 === "정신적/독립적") ||
     (e1 === "정신적/독립적" && e2 === "물질적/현실적")
-  ) return "도전";
+  ) {return "도전";}
   return "중립";
 };
 
@@ -73,7 +73,7 @@ export function getSynergyAnalysis(profile: CoreNumerologyProfile): string[] {
   const counts: Record<Essence, number> = { "정신적/독립적": 0, "물질적/현실적": 0, "창의적/감성적": 0 };
   all.forEach((n) => {
     const e = getNumberEssence(n);
-    if (e !== "기타") counts[e]++;
+    if (e !== "기타") {counts[e]++;}
   });
   const dominant = (Object.keys(counts) as Essence[]).reduce((a, b) => (counts[a] > counts[b] ? a : b), "정신적/독립적");
   if (counts[dominant] >= 3) {

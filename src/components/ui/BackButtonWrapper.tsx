@@ -40,12 +40,12 @@ export default function BackButtonWrapper() {
   const pathname = usePathname();
 
   // Always hide on home page
-  if (!pathname || pathname === "/") return null;
+  if (!pathname || pathname === "/") {return null;}
 
   // Hide on pages that have their own back button or navigation
   const shouldHide = PAGES_WITHOUT_BACK_BUTTON.some(prefix => {
     // Exact match for root pages
-    if (prefix === pathname) return true;
+    if (prefix === pathname) {return true;}
     // Match child routes, but exclude specific exceptions
     if (pathname.startsWith(prefix + "/")) {
       // Show back button on counselor subpages that don't have their own
@@ -58,6 +58,6 @@ export default function BackButtonWrapper() {
     return false;
   });
 
-  if (shouldHide) return null;
+  if (shouldHide) {return null;}
   return <BackButton />;
 }

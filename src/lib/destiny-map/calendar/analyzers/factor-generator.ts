@@ -139,13 +139,13 @@ export function generateFactors(input: FactorGeneratorInput): FactorGeneratorRes
   if (sajuResult.specialFactors.hasSonEomneun) {
     sajuFactorKeys.push('sonEomneunDay');
     recommendationKeys.push('moving', 'wedding', 'business');
-    if (!categories.includes('general')) categories.push('general');
+    if (!categories.includes('general')) {categories.push('general');}
   }
 
   if (sajuResult.specialFactors.hasGeonrok) {
     sajuFactorKeys.push('geonrokDay');
     recommendationKeys.push('career', 'authority', 'promotion');
-    if (!categories.includes('career')) categories.push('career');
+    if (!categories.includes('career')) {categories.push('career');}
   }
 
   if (sajuResult.specialFactors.isSamjaeYear) {
@@ -157,13 +157,13 @@ export function generateFactors(input: FactorGeneratorInput): FactorGeneratorRes
     sajuFactorKeys.push('yeokmaDay');
     recommendationKeys.push('travel', 'change', 'interview');
     warningKeys.push('instability');
-    if (!categories.includes('travel')) categories.push('travel');
+    if (!categories.includes('travel')) {categories.push('travel');}
   }
 
   if (yearBranch && isDohwaDay(yearBranch, ganzhi.branch)) {
     sajuFactorKeys.push('dohwaDay');
     recommendationKeys.push('dating', 'socializing', 'charm');
-    if (!categories.includes('love')) categories.push('love');
+    if (!categories.includes('love')) {categories.push('love');}
   }
 
   // ─────────────────────────────────────────────────────
@@ -188,20 +188,20 @@ export function generateFactors(input: FactorGeneratorInput): FactorGeneratorRes
 
       switch (daySipsin) {
         case '정재':
-          if (!categories.includes('wealth')) categories.push('wealth');
+          if (!categories.includes('wealth')) {categories.push('wealth');}
           recommendationKeys.push('stableWealth', 'savings');
           break;
         case '편재':
-          if (!categories.includes('wealth')) categories.push('wealth');
+          if (!categories.includes('wealth')) {categories.push('wealth');}
           recommendationKeys.push('speculation', 'windfall');
           warningKeys.push('riskManagement');
           break;
         case '정인':
-          if (!categories.includes('study')) categories.push('study');
+          if (!categories.includes('study')) {categories.push('study');}
           recommendationKeys.push('learning', 'certification', 'mother');
           break;
         case '편인':
-          if (!categories.includes('study')) categories.push('study');
+          if (!categories.includes('study')) {categories.push('study');}
           recommendationKeys.push('spirituality', 'unique');
           break;
         case '겁재':

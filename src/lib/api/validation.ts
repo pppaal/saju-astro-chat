@@ -34,7 +34,7 @@ export function validateFields<T extends Record<string, unknown>>(
   const errors: string[] = [];
 
   for (const [field, rule] of Object.entries(rules)) {
-    if (!rule) continue;
+    if (!rule) {continue;}
 
     const value = data[field];
     const fieldRule = rule as FieldRule<unknown>;
@@ -46,7 +46,7 @@ export function validateFields<T extends Record<string, unknown>>(
     }
 
     // Skip validation if value is empty and not required
-    if (value === undefined || value === null) continue;
+    if (value === undefined || value === null) {continue;}
 
     // Type check
     if (fieldRule.type) {
@@ -127,7 +127,7 @@ export const CommonValidators = {
     type: "string" as const,
     pattern: Patterns.DATE,
     custom: (value: unknown) => {
-      if (typeof value !== "string") return "Birth date must be a string";
+      if (typeof value !== "string") {return "Birth date must be a string";}
       const date = new Date(value);
       const year = date.getFullYear();
       if (year < 1900 || year > 2100) {
@@ -173,7 +173,7 @@ export const CommonValidators = {
     minLength: 10,
     maxLength: 10000,
     custom: (value: unknown) => {
-      if (typeof value !== "string") return "Dream text must be a string";
+      if (typeof value !== "string") {return "Dream text must be a string";}
       if (/<script/i.test(value)) {
         return "Invalid content detected";
       }

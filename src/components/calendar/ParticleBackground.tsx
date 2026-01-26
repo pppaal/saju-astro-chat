@@ -20,7 +20,7 @@ export default function ParticleBackground({ enabled }: ParticleBackgroundProps)
     particleColor: '#63d2ff',
   });
 
-  if (!enabled) return null;
+  if (!enabled) {return null;}
 
   return <canvas ref={canvasRef} className={styles.particleCanvas} />;
 }

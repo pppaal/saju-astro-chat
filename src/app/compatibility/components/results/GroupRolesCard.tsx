@@ -9,7 +9,7 @@ interface GroupRolesCardProps {
 
 export const GroupRolesCard: React.FC<GroupRolesCardProps> = React.memo(({ groupRoles, t }) => {
   const hasAnyRoles = Object.values(groupRoles).some(arr => arr && arr.length > 0);
-  if (!hasAnyRoles) return null;
+  if (!hasAnyRoles) {return null;}
 
   return (
     <div className={styles.resultCard}>

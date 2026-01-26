@@ -29,17 +29,17 @@ export function analyzeSibsinHouseFusion(
 ): SibsinHouseResult[] {
   const sibsinHouseFusions: SibsinHouseResult[] = [];
 
-  if (!saju) return sibsinHouseFusions;
+  if (!saju) {return sibsinHouseFusions;}
 
   const extSaju = saju as ExtendedSajuData;
   const sibsinList = extSaju?.sibsin || {};
 
   // 모든 십신 수집
   const allSibsin: SibsinKind[] = [];
-  if (sibsinList.year) allSibsin.push(sibsinList.year);
-  if (sibsinList.month) allSibsin.push(sibsinList.month);
-  if (sibsinList.day) allSibsin.push(sibsinList.day);
-  if (sibsinList.hour) allSibsin.push(sibsinList.hour);
+  if (sibsinList.year) {allSibsin.push(sibsinList.year);}
+  if (sibsinList.month) {allSibsin.push(sibsinList.month);}
+  if (sibsinList.day) {allSibsin.push(sibsinList.day);}
+  if (sibsinList.hour) {allSibsin.push(sibsinList.hour);}
 
   // 분석 대상 하우스 (기본값: 전체)
   const houses = targetHouses || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as HouseNumber[];

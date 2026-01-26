@@ -152,7 +152,7 @@ export function isYukhap(branch1: string, branch2: string): boolean {
 export function isSamhapPartial(branches: string[]): boolean {
   for (const element of Object.values(SAMHAP)) {
     const count = branches.filter(b => element.includes(b)).length;
-    if (count >= 2) return true;
+    if (count >= 2) {return true;}
   }
   return false;
 }
@@ -185,10 +185,10 @@ export function isXing(branch1: string, branch2: string): boolean {
 // ============================================================
 export function getJijanggan(branch: string): string[] {
   const jj = JIJANGGAN[branch];
-  if (!jj) return [];
+  if (!jj) {return [];}
   const result: string[] = [];
-  if (jj.여기) result.push(jj.여기);
-  if (jj.중기) result.push(jj.중기);
+  if (jj.여기) {result.push(jj.여기);}
+  if (jj.중기) {result.push(jj.중기);}
   result.push(jj.정기);
   return result;
 }

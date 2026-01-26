@@ -28,7 +28,7 @@ export const SituationTemplateSection: React.FC<SituationTemplateSectionProps> =
   question,
   translate,
 }) => {
-  if (!enhancedData?.situationTemplates || !question) return null;
+  if (!enhancedData?.situationTemplates || !question) {return null;}
 
   // For now showing career as example - could be enhanced with question type detection
   const situationTemplate = enhancedData.situationTemplates.career;

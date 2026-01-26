@@ -685,10 +685,10 @@ export function calculatePillarIndex(stem: string, branch: string): number {
   const stemIdx = STEM_ORDER.indexOf(stem);
   const branchIdx = BRANCH_ORDER.indexOf(branch);
 
-  if (stemIdx === -1 || branchIdx === -1) return -1;
+  if (stemIdx === -1 || branchIdx === -1) {return -1;}
 
   // 천간과 지지의 음양이 맞아야 유효한 조합
-  if (stemIdx % 2 !== branchIdx % 2) return -1;
+  if (stemIdx % 2 !== branchIdx % 2) {return -1;}
 
   // 60갑자 인덱스 공식
   // (천간인덱스 * 6 + 지지인덱스 / 2) % 60 + 1
@@ -701,7 +701,7 @@ export function calculatePillarIndex(stem: string, branch: string): number {
  */
 export function getPillarInfo(pillar: string): SixtyPillarInfo | null {
   const index = SIXTY_PILLARS.indexOf(pillar);
-  if (index === -1) return null;
+  if (index === -1) {return null;}
 
   const stem = pillar[0];
   const branch = pillar[1];
@@ -729,8 +729,8 @@ export function makePillar(stem: string, branch: string): string | null {
   const stemIdx = STEM_ORDER.indexOf(stem);
   const branchIdx = BRANCH_ORDER.indexOf(branch);
 
-  if (stemIdx === -1 || branchIdx === -1) return null;
-  if (stemIdx % 2 !== branchIdx % 2) return null; // 음양 불일치
+  if (stemIdx === -1 || branchIdx === -1) {return null;}
+  if (stemIdx % 2 !== branchIdx % 2) {return null;} // 음양 불일치
 
   return `${stem}${branch}`;
 }
@@ -739,7 +739,7 @@ export function makePillar(stem: string, branch: string): string | null {
  * 인덱스로 60갑자 조회 (1-60)
  */
 export function getPillarByIndex(index: number): string | null {
-  if (index < 1 || index > 60) return null;
+  if (index < 1 || index > 60) {return null;}
   return SIXTY_PILLARS[index - 1];
 }
 
@@ -751,7 +751,7 @@ export function getPillarByKoreanName(koreanName: string): string | null {
     const stem = pillar[0];
     const branch = pillar[1];
     const name = `${STEM_KOREAN[stem]}${BRANCH_KOREAN[branch]}`;
-    if (name === koreanName) return pillar;
+    if (name === koreanName) {return pillar;}
   }
   return null;
 }
@@ -768,14 +768,14 @@ export function getNaeum(pillar: string): string | null {
  */
 export function getNaeumElement(pillar: string): FiveElement | null {
   const naeum = NAEUM_DATA[pillar];
-  if (!naeum) return null;
+  if (!naeum) {return null;}
 
   // 납음명에서 오행 추출 (예: 해중금 -> 금)
-  if (naeum.includes('금')) return '금';
-  if (naeum.includes('목')) return '목';
-  if (naeum.includes('수')) return '수';
-  if (naeum.includes('화')) return '화';
-  if (naeum.includes('토')) return '토';
+  if (naeum.includes('금')) {return '금';}
+  if (naeum.includes('목')) {return '목';}
+  if (naeum.includes('수')) {return '수';}
+  if (naeum.includes('화')) {return '화';}
+  if (naeum.includes('토')) {return '토';}
 
   return null;
 }
@@ -792,7 +792,7 @@ export function getIljuInfo(pillar: string): IljuInfo | null {
  */
 export function getNextPillar(pillar: string): string | null {
   const index = SIXTY_PILLARS.indexOf(pillar);
-  if (index === -1) return null;
+  if (index === -1) {return null;}
   return SIXTY_PILLARS[(index + 1) % 60];
 }
 
@@ -801,7 +801,7 @@ export function getNextPillar(pillar: string): string | null {
  */
 export function getPreviousPillar(pillar: string): string | null {
   const index = SIXTY_PILLARS.indexOf(pillar);
-  if (index === -1) return null;
+  if (index === -1) {return null;}
   return SIXTY_PILLARS[(index + 59) % 60];
 }
 
@@ -811,7 +811,7 @@ export function getPreviousPillar(pillar: string): string | null {
 export function getPillarDistance(from: string, to: string): number {
   const fromIdx = SIXTY_PILLARS.indexOf(from);
   const toIdx = SIXTY_PILLARS.indexOf(to);
-  if (fromIdx === -1 || toIdx === -1) return -1;
+  if (fromIdx === -1 || toIdx === -1) {return -1;}
   return (toIdx - fromIdx + 60) % 60;
 }
 
@@ -820,7 +820,7 @@ export function getPillarDistance(from: string, to: string): number {
  */
 export function getPillarAfter(pillar: string, n: number): string | null {
   const index = SIXTY_PILLARS.indexOf(pillar);
-  if (index === -1) return null;
+  if (index === -1) {return null;}
   return SIXTY_PILLARS[((index + n) % 60 + 60) % 60];
 }
 
@@ -881,7 +881,7 @@ export function getIljuSummary(pillar: string): string | null {
   if (!info) {
     // 데이터가 없으면 기본 설명 생성
     const pillarInfo = getPillarInfo(pillar);
-    if (!pillarInfo) return null;
+    if (!pillarInfo) {return null;}
 
     return `${pillarInfo.koreanName}일주: ${pillarInfo.stemElement}일간이 ${pillarInfo.branchElement}지지 위에 있는 형상.`;
   }
@@ -895,7 +895,7 @@ export function getIljuSummary(pillar: string): string | null {
  */
 export function getGongmang(pillar: string): [string, string] | null {
   const index = SIXTY_PILLARS.indexOf(pillar);
-  if (index === -1) return null;
+  if (index === -1) {return null;}
 
   // 10개 단위로 순환 (갑자~계유, 갑술~계미, ...)
   const groupStart = Math.floor(index / 10) * 10;

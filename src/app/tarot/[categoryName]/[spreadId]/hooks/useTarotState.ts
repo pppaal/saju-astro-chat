@@ -63,8 +63,8 @@ export function useTarotState(
 
   // Load spread info on mount
   useEffect(() => {
-    if (!categoryName || !spreadId) return;
-    if (spreadInfo?.id === spreadId) return;
+    if (!categoryName || !spreadId) {return;}
+    if (spreadInfo?.id === spreadId) {return;}
 
     const theme = tarotThemes.find(t => t.id === categoryName);
     const spread = theme?.spreads.find(s => s.id === spreadId);

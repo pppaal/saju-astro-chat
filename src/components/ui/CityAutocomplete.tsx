@@ -131,7 +131,7 @@ export default function CityAutocomplete({
 
   // Search for cities when value changes
   useEffect(() => {
-    if (isSelected) return;
+    if (isSelected) {return;}
 
     const query = value.trim();
     if (query.length < SEARCH_CONFIG.MIN_QUERY_LENGTH) {
@@ -199,7 +199,7 @@ export default function CityAutocomplete({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showDropdown || suggestions.length === 0) return;
+    if (!showDropdown || suggestions.length === 0) {return;}
 
     switch (e.key) {
       case KEYBOARD_KEYS.ARROW_DOWN:

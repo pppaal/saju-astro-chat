@@ -130,11 +130,11 @@ export default function PricingPage() {
 
   // 결제 후 돌아갈 URL 저장 (referrer 또는 이전에 저장된 값 유지)
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {return;}
 
     // 이미 저장된 returnUrl이 있으면 유지
     const existingReturnUrl = localStorage.getItem("checkout_return_url");
-    if (existingReturnUrl) return;
+    if (existingReturnUrl) {return;}
 
     // referrer에서 같은 도메인의 경로 추출
     try {
@@ -164,7 +164,7 @@ export default function PricingPage() {
   }, [pt]);
 
   const formatPrice = (price: number, priceEn: number) => {
-    if (price === 0) return pt("free");
+    if (price === 0) {return pt("free");}
     if (isKo) {
       if (billingCycle === "yearly") {
         const yearly = Math.floor(price * YEARLY_DISCOUNT_MULTIPLIER);
@@ -180,7 +180,7 @@ export default function PricingPage() {
   };
 
   const getPeriod = () => {
-    if (billingCycle === "yearly") return pt("perYear");
+    if (billingCycle === "yearly") {return pt("perYear");}
     return pt("perMonth");
   };
 

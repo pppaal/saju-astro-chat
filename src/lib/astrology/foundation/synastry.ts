@@ -98,9 +98,9 @@ function getHouseForLongitude(longitude: number, houses: { cusp: number }[]): nu
     const cusp = houses[i].cusp;
     let nextCusp = houses[nextI].cusp;
 
-    if (nextCusp < cusp) nextCusp += 360;
+    if (nextCusp < cusp) {nextCusp += 360;}
     let testLon = norm;
-    if (testLon < cusp) testLon += 360;
+    if (testLon < cusp) {testLon += 360;}
 
     if (testLon >= cusp && testLon < nextCusp) {
       return i + 1;

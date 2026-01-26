@@ -25,13 +25,13 @@ export function selectLang<T>(isKo: boolean, obj: { ko: T; en: T }): T {
  * Extract day master name from saju data, converting Chinese to Korean if needed
  */
 export function extractDayMaster(saju: SajuData | undefined): string | null {
-  if (!saju?.dayMaster) return null;
+  if (!saju?.dayMaster) {return null;}
 
   const rawDayMaster = typeof saju.dayMaster === 'string'
     ? saju.dayMaster
     : (saju.dayMaster.name || saju.dayMaster.heavenlyStem);
 
-  if (!rawDayMaster) return null;
+  if (!rawDayMaster) {return null;}
 
   // Convert Chinese character to Korean if needed
   return tianGanMap[rawDayMaster] || rawDayMaster;
@@ -77,7 +77,7 @@ export function extractPlanetSign(
   astro: AstroData | undefined,
   planetName: string
 ): string | null {
-  if (!astro?.planets) return null;
+  if (!astro?.planets) {return null;}
 
   if (Array.isArray(astro.planets)) {
     const planet = astro.planets.find(

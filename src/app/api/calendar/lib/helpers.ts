@@ -19,7 +19,7 @@ export function getTranslation(key: string, translations: TranslationData): stri
   let result: unknown = translations;
   for (const k of keys) {
     result = (result as Record<string, unknown>)?.[k];
-    if (result === undefined) return key;
+    if (result === undefined) {return key;}
   }
   return typeof result === "string" ? result : key;
 }
@@ -34,7 +34,7 @@ export function validateBackendUrl(url: string) {
 }
 
 export function getPillarStemName(pillar: PillarData | SajuPillarAccessor | undefined): string {
-  if (!pillar) return "";
+  if (!pillar) {return "";}
   const p = pillar as SajuPillarAccessor;
   // PillarData format (heavenlyStem is object with name)
   if (typeof p.heavenlyStem === 'object' && p.heavenlyStem && 'name' in p.heavenlyStem) {
@@ -45,13 +45,13 @@ export function getPillarStemName(pillar: PillarData | SajuPillarAccessor | unde
     return p.stem.name || "";
   }
   // String format
-  if (typeof p.heavenlyStem === 'string') return p.heavenlyStem;
-  if (typeof p.stem === 'string') return p.stem;
+  if (typeof p.heavenlyStem === 'string') {return p.heavenlyStem;}
+  if (typeof p.stem === 'string') {return p.stem;}
   return "";
 }
 
 export function getPillarBranchName(pillar: PillarData | SajuPillarAccessor | undefined): string {
-  if (!pillar) return "";
+  if (!pillar) {return "";}
   const p = pillar as SajuPillarAccessor;
   // PillarData format (earthlyBranch is object with name)
   if (typeof p.earthlyBranch === 'object' && p.earthlyBranch && 'name' in p.earthlyBranch) {
@@ -62,20 +62,20 @@ export function getPillarBranchName(pillar: PillarData | SajuPillarAccessor | un
     return p.branch.name || "";
   }
   // String format
-  if (typeof p.earthlyBranch === 'string') return p.earthlyBranch;
-  if (typeof p.branch === 'string') return p.branch;
+  if (typeof p.earthlyBranch === 'string') {return p.earthlyBranch;}
+  if (typeof p.branch === 'string') {return p.branch;}
   return "";
 }
 
 // ==== Date helpers ====
 export function parseBirthDate(birthDateParam: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(birthDateParam);
-  if (!match) return null;
+  if (!match) {return null;}
   const [, y, m, d] = match;
   const year = Number(y);
   const month = Number(m);
   const day = Number(d);
-  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {return null;}
   const date = new Date(year, month - 1, day);
   if (
     Number.isNaN(date.getTime()) ||
@@ -110,16 +110,16 @@ export function generateSummary(
       return KO_MESSAGES.GRADE_2_LOW;
     } else if (grade === 3) {
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
-      if (reason) return `⚠️ ${reason}`;
+      if (reason) {return `⚠️ ${reason}`;}
       return KO_MESSAGES.GRADE_3[cat] || KO_MESSAGES.GRADE_3.general;
     } else if (grade === 4) {
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
-      if (reason) return `🚨 ${reason}`;
+      if (reason) {return `🚨 ${reason}`;}
       return KO_MESSAGES.GRADE_4[cat] || KO_MESSAGES.GRADE_4.general;
     } else {
       // Grade 5
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
-      if (reason) return `🚨🚨 ${reason} 모든 일정을 연기하세요!`;
+      if (reason) {return `🚨🚨 ${reason} 모든 일정을 연기하세요!`;}
       return KO_MESSAGES.GRADE_5[cat] || KO_MESSAGES.GRADE_5.general;
     }
   } else {
@@ -134,15 +134,15 @@ export function generateSummary(
       return EN_MESSAGES.GRADE_2_LOW;
     } else if (grade === 3) {
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
-      if (reason) return `⚠️ ${reason}`;
+      if (reason) {return `⚠️ ${reason}`;}
       return EN_MESSAGES.GRADE_3;
     } else if (grade === 4) {
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
-      if (reason) return `🚨 ${reason}`;
+      if (reason) {return `🚨 ${reason}`;}
       return EN_MESSAGES.GRADE_4;
     } else {
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang);
-      if (reason) return `🚨🚨 ${reason} Postpone everything!`;
+      if (reason) {return `🚨🚨 ${reason} Postpone everything!`;}
       return EN_MESSAGES.GRADE_5;
     }
   }
@@ -156,7 +156,7 @@ function getBadDayReason(
   astroFactorKeys?: string[],
   lang: "ko" | "en" = "ko"
 ): string | null {
-  if (!sajuFactorKeys && !astroFactorKeys) return null;
+  if (!sajuFactorKeys && !astroFactorKeys) {return null;}
 
   const saju = sajuFactorKeys || [];
   const astro = astroFactorKeys || [];
@@ -248,7 +248,7 @@ export function generateBestTimes(
   lang: "ko" | "en"
 ): string[] {
   // Grade 3(보통), Grade 4(나쁜 날)는 시간 추천 없음
-  if (grade >= 3) return [];
+  if (grade >= 3) {return [];}
 
   const cat = categories[0] || "general";
 
@@ -308,15 +308,15 @@ export function formatDateForResponse(
     orderedSajuFactors = [...translatedSajuFactors].sort((a, b) => {
       const aHasNeg = negativeKeywords.some(k => a.toLowerCase().includes(k) || a.includes(k));
       const bHasNeg = negativeKeywords.some(k => b.toLowerCase().includes(k) || b.includes(k));
-      if (aHasNeg && !bHasNeg) return -1;
-      if (!aHasNeg && bHasNeg) return 1;
+      if (aHasNeg && !bHasNeg) {return -1;}
+      if (!aHasNeg && bHasNeg) {return 1;}
       return 0;
     });
     orderedAstroFactors = [...translatedAstroFactors].sort((a, b) => {
       const aHasNeg = negativeKeywords.some(k => a.toLowerCase().includes(k) || a.includes(k));
       const bHasNeg = negativeKeywords.some(k => b.toLowerCase().includes(k) || b.includes(k));
-      if (aHasNeg && !bHasNeg) return -1;
-      if (!aHasNeg && bHasNeg) return 1;
+      if (aHasNeg && !bHasNeg) {return -1;}
+      if (!aHasNeg && bHasNeg) {return 1;}
       return 0;
     });
   }

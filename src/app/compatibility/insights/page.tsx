@@ -46,7 +46,7 @@ function CompatibilityInsightsContent() {
 
   // Parse URL params on mount
   useEffect(() => {
-    if (!searchParams) return;
+    if (!searchParams) {return;}
 
     try {
       const personsParam = searchParams.get('persons');

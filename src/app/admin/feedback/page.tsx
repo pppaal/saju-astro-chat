@@ -47,8 +47,8 @@ export default function FeedbackDashboard() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (service !== "all") params.set("service", service);
-      if (theme !== "all") params.set("theme", theme);
+      if (service !== "all") {params.set("service", service);}
+      if (theme !== "all") {params.set("theme", theme);}
 
       const res = await fetch(`/api/feedback?${params}`);
       if (res.ok) {
@@ -65,10 +65,10 @@ export default function FeedbackDashboard() {
   const fetchRecords = useCallback(async () => {
     try {
       const params = new URLSearchParams();
-      if (service !== "all") params.set("service", service);
-      if (theme !== "all") params.set("theme", theme);
+      if (service !== "all") {params.set("service", service);}
+      if (theme !== "all") {params.set("theme", theme);}
       params.set("records", "true");
-      if (showNegativeOnly) params.set("helpful", "false");
+      if (showNegativeOnly) {params.set("helpful", "false");}
 
       const res = await fetch(`/api/feedback/records?${params}`);
       if (res.ok) {
@@ -86,8 +86,8 @@ export default function FeedbackDashboard() {
   }, [service, theme, showNegativeOnly, fetchStats, fetchRecords]);
 
   const getSatisfactionColor = (rate: number) => {
-    if (rate >= 80) return "#22c55e";
-    if (rate >= 60) return "#eab308";
+    if (rate >= 80) {return "#22c55e";}
+    if (rate >= 60) {return "#eab308";}
     return "#ef4444";
   };
 

@@ -94,7 +94,7 @@ const getThemeLabel = (themeKey: string, lang: LangKey): string => {
 
 // Try to parse JSON from interpretation text
 function tryParseStructured(text: string): StructuredFortune | null {
-  if (!text) return null;
+  if (!text) {return null;}
 
   let cleanText = text
     .replace(/```json\s*/gi, '')
@@ -151,7 +151,7 @@ function LifeTimelineSection({
   data: StructuredFortune["lifeTimeline"];
   lang: LangKey;
 }) {
-  if (!data?.importantYears?.length) return null;
+  if (!data?.importantYears?.length) {return null;}
 
   const labels: Record<LangKey, { title: string; age: string; saju: string; astro: string }> = {
     ko: { title: "📅 인생 주요 시점", age: "세", saju: "사주", astro: "점성" },
@@ -203,7 +203,7 @@ function CategoryAnalysisSection({
   categories: Record<string, CategoryAnalysis>;
   lang: LangKey;
 }) {
-  if (!categories || Object.keys(categories).length === 0) return null;
+  if (!categories || Object.keys(categories).length === 0) {return null;}
 
   const labels: Record<LangKey, { saju: string; astro: string; cross: string }> = {
     ko: { saju: "사주 분석", astro: "점성 분석", cross: "교차 인사이트" },
@@ -276,7 +276,7 @@ function LuckyElementsSection({
   data: LuckyElements;
   lang: LangKey;
 }) {
-  if (!data) return null;
+  if (!data) {return null;}
 
   const labels: Record<LangKey, { title: string; colors: string; directions: string; numbers: string; items: string }> = {
     ko: { title: "🍀 행운의 요소", colors: "색상", directions: "방향", numbers: "숫자", items: "아이템" },
@@ -323,7 +323,7 @@ function LuckyElementsSection({
 // Key insights component
 function KeyInsightsSection({ insights, lang }: { insights: KeyInsight[]; lang: LangKey }) {
   const validInsights = insights?.filter(i => i.text && i.text.trim().length > 0);
-  if (!validInsights || validInsights.length === 0) return null;
+  if (!validInsights || validInsights.length === 0) {return null;}
 
   const typeIcons: Record<string, string> = {
     strength: "💪",
@@ -358,7 +358,7 @@ function KeyInsightsSection({ insights, lang }: { insights: KeyInsight[]; lang: 
 
 // Theme Sections component
 function ThemeSectionsDisplay({ sections, lang }: { sections: ThemeSection[]; lang: LangKey }) {
-  if (!sections || sections.length === 0) return null;
+  if (!sections || sections.length === 0) {return null;}
 
   return (
     <div className={styles.themeSections} role="region" aria-label="테마별 섹션">
@@ -427,11 +427,11 @@ const I18N: Record<LangKey, {
 
 // Helper to find theme data with case-insensitive key matching
 const findThemeData = (themes: Record<string, unknown> | undefined, themeKey: string) => {
-  if (!themes || !themeKey) return undefined;
-  if (themes[themeKey]) return { key: themeKey, data: themes[themeKey] };
+  if (!themes || !themeKey) {return undefined;}
+  if (themes[themeKey]) {return { key: themeKey, data: themes[themeKey] };}
   const normalizedKey = themeKey.toLowerCase();
   const matchingKey = Object.keys(themes).find(k => k.toLowerCase() === normalizedKey);
-  if (matchingKey) return { key: matchingKey, data: themes[matchingKey] };
+  if (matchingKey) {return { key: matchingKey, data: themes[matchingKey] };}
   return undefined;
 };
 
@@ -460,7 +460,7 @@ export default function Display({
 
   const structuredData = useMemo(() => {
     const text = String(interpretationText);
-    if (!text.trim()) return null;
+    if (!text.trim()) {return null;}
     return tryParseStructured(text);
   }, [interpretationText]);
 

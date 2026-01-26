@@ -183,7 +183,7 @@ export function calculateStatisticalSummary(values: number[]): StatisticalSummar
   let maxFreq = 0;
   for (const v of sorted) {
     frequency[v] = (frequency[v] || 0) + 1;
-    if (frequency[v] > maxFreq) maxFreq = frequency[v];
+    if (frequency[v] > maxFreq) {maxFreq = frequency[v];}
   }
   const mode = Object.entries(frequency)
     .filter(([_, f]) => f === maxFreq)
@@ -220,7 +220,7 @@ export function calculateStatisticalSummary(values: number[]): StatisticalSummar
  * 피어슨 상관계수 계산
  */
 export function calculateCorrelation(x: number[], y: number[]): number {
-  if (x.length !== y.length || x.length === 0) return 0;
+  if (x.length !== y.length || x.length === 0) {return 0;}
 
   const n = x.length;
   const meanX = x.reduce((sum, v) => sum + v, 0) / n;
@@ -567,10 +567,10 @@ export function analyzeElementCorrelations(
       const branches = [pillars.year.branch, pillars.month.branch, pillars.day.branch, pillars.hour.branch];
 
       for (const stem of stems) {
-        if (getStemElement(stem) === element) count++;
+        if (getStemElement(stem) === element) {count++;}
       }
       for (const branch of branches) {
-        if (getBranchElement(branch) === element) count++;
+        if (getBranchElement(branch) === element) {count++;}
       }
       return count;
     });
@@ -584,10 +584,10 @@ export function analyzeElementCorrelations(
     // 유의성 판단
     let significance: 'strong' | 'moderate' | 'weak' | 'none';
     const absCorr = Math.abs(correlation);
-    if (absCorr >= 0.7) significance = 'strong';
-    else if (absCorr >= 0.4) significance = 'moderate';
-    else if (absCorr >= 0.2) significance = 'weak';
-    else significance = 'none';
+    if (absCorr >= 0.7) {significance = 'strong';}
+    else if (absCorr >= 0.4) {significance = 'moderate';}
+    else if (absCorr >= 0.2) {significance = 'weak';}
+    else {significance = 'none';}
 
     results.push({
       variable1: `${element} 오행`,
@@ -612,7 +612,7 @@ export function performClusterAnalysis(
   sajuList: SajuResult[],
   k: number = 5
 ): ClusterAnalysis[] {
-  if (sajuList.length === 0) return [];
+  if (sajuList.length === 0) {return [];}
 
   // 특성 벡터 생성
   const features = sajuList.map(saju => extractFeatureVector(saju));
@@ -680,11 +680,11 @@ function extractFeatureVector(saju: SajuResult): number[] {
 
   for (const stem of stems) {
     const el = getStemElement(stem);
-    if (el in elements) (elements as Record<string, number>)[el]++;
+    if (el in elements) {(elements as Record<string, number>)[el]++;}
   }
   for (const branch of branches) {
     const el = getBranchElement(branch);
-    if (el in elements) (elements as Record<string, number>)[el]++;
+    if (el in elements) {(elements as Record<string, number>)[el]++;}
   }
 
   return [elements.목, elements.화, elements.토, elements.금, elements.수];
@@ -695,7 +695,7 @@ function euclideanDistance(a: number[], b: number[]): number {
 }
 
 function calculateCentroid(points: number[][]): number[] {
-  if (points.length === 0) return [];
+  if (points.length === 0) {return [];}
   const dims = points[0].length;
   const centroid = new Array(dims).fill(0);
 
@@ -751,11 +751,11 @@ export function detectAnomalies(
 
   for (const stem of stems) {
     const el = getStemElement(stem);
-    if (el in elements) (elements as Record<string, number>)[el]++;
+    if (el in elements) {(elements as Record<string, number>)[el]++;}
   }
   for (const branch of branches) {
     const el = getBranchElement(branch);
-    if (el in elements) (elements as Record<string, number>)[el]++;
+    if (el in elements) {(elements as Record<string, number>)[el]++;}
   }
 
   // 극단적 편중 (7개 이상)
@@ -834,7 +834,7 @@ export function calculatePopulationStats(
 
   // 월별 분포
   const monthDistribution: Record<number, number> = {};
-  for (let i = 1; i <= 12; i++) monthDistribution[i] = 0;
+  for (let i = 1; i <= 12; i++) {monthDistribution[i] = 0;}
   if (metadata?.birthMonth) {
     for (const month of metadata.birthMonth) {
       monthDistribution[month] = (monthDistribution[month] || 0) + 1;
@@ -843,7 +843,7 @@ export function calculatePopulationStats(
 
   // 시간별 분포
   const hourDistribution: Record<number, number> = {};
-  for (let i = 0; i < 24; i++) hourDistribution[i] = 0;
+  for (let i = 0; i < 24; i++) {hourDistribution[i] = 0;}
   if (metadata?.birthHour) {
     for (const hour of metadata.birthHour) {
       hourDistribution[hour] = (hourDistribution[hour] || 0) + 1;

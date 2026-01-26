@@ -208,11 +208,11 @@ export async function loadOrComputeAllData(
         astro
       );
 
-      if (profileResult.saju) saju = profileResult.saju;
-      if (profileResult.astro) astro = profileResult.astro as AstroDataStructure;
-      if (profileResult.birthDate) birthDate = profileResult.birthDate;
-      if (profileResult.birthTime) birthTime = profileResult.birthTime;
-      if (profileResult.gender) gender = profileResult.gender as 'male' | 'female';
+      if (profileResult.saju) {saju = profileResult.saju;}
+      if (profileResult.astro) {astro = profileResult.astro as AstroDataStructure;}
+      if (profileResult.birthDate) {birthDate = profileResult.birthDate;}
+      if (profileResult.birthTime) {birthTime = profileResult.birthTime;}
+      if (profileResult.gender) {gender = profileResult.gender as 'male' | 'female';}
 
       logger.debug('[dataLoader] Loaded profile data for user:', userId);
     } catch (e) {

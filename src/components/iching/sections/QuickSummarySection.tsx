@@ -26,7 +26,7 @@ export const QuickSummarySection: React.FC<QuickSummarySectionProps> = React.mem
   enhancedData,
   translate,
 }) => {
-  if (!enhancedData?.quickSummary) return null;
+  if (!enhancedData?.quickSummary) {return null;}
 
   return (
     <>

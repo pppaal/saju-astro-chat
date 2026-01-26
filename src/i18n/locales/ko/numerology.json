@@ -1,0 +1,150 @@
+{
+  "numerology": {
+    "title": "수비학 분석",
+    "subtitle": "생년월일과 이름으로 당신의 삶의 목적과 잠재력을 발견하세요.",
+    "formTitle": "수비학 분석",
+    "formSubtitle": "종합적인 분석을 위해 세부 정보를 입력하세요.",
+    "nameLabel": "이름",
+    "namePlaceholder": "영문 또는 한글 이름",
+    "nameHint": "한글 이름도 완벽하게 지원됩니다.",
+    "birthdateLabel": "생년월일",
+    "birthtimeLabel": "출생 시간",
+    "birthtimeHint": "정확한 시간을 알 수 없는 경우 대략적인 시간은 괜찮습니다.",
+    "autoTimezone": "시간대",
+    "birthCityLabel": "출생 도시",
+    "birthCityPlaceholder": "예: Seoul, KR",
+    "currentCityLabel": "지금 사는 곳은 어디신가요?",
+    "currentCityPlaceholder": "예: Tokyo, JP",
+    "currentCityHint": "맞춤형 행운의 숫자에 사용됩니다",
+    "luckyDrawLabel": "행운의 숫자 추첨",
+    "countLabel": "개수",
+    "minPlaceholder": "최소",
+    "maxPlaceholder": "최대",
+    "advancedOptions": "고급 옵션",
+    "seedLabel": "시드 (재현성)",
+    "seedOptionNameBirth": "이름 + 생년월일",
+    "seedOptionNameBirthCityTime": "이름 + 출생 + 도시 + 시간",
+    "seedOptionRandom": "완전 랜덤",
+    "seedHint": "행운의 숫자가 어떻게 생성되는지 결정합니다.",
+    "moreOptions": "추가 옵션",
+    "moreOptionsHint": "더 정확한 분석을 위한 시간, 위치",
+    "buttonCalculate": "분석 생성",
+    "dropdownLoading": "검색 중...",
+    "reset": "새로 분석",
+    "resultsTitle": "수비학 프로필",
+    "masterBadge": "마스터",
+    "errors": {
+      "birthdate": "생년월일을 입력해주세요.",
+      "name": "이름을 입력해주세요.",
+      "range": "범위를 확인하세요: 최소값은 최대값보다 작아야 합니다.",
+      "countExceedsRange": "개수는 숫자 범위 크기를 초과할 수 없습니다.",
+      "generate": "분석을 생성하는 중 오류가 발생했습니다."
+    },
+    "sections": {
+      "core": "핵심 숫자",
+      "advanced": "고급",
+      "name": "이름 분석",
+      "karmic": "카르마",
+      "cycles": "생애 주기",
+      "timing": "타이밍",
+      "lucky": "행운의 숫자",
+      "more": "더 보기"
+    },
+    "sectionDesc": {
+      "core": "수비학 프로필의 기초",
+      "advanced": "당신의 잠재력과 성장에 대한 더 깊은 통찰력",
+      "name": "이름이 당신에 대해 말해주는 것",
+      "karmic": "전생의 영향과 배워야 할 교훈",
+      "cycles": "주요 삶의 단계 및 과제",
+      "timing": "지금 당신의 개인 및 우주 주기",
+      "lucky": "내 에너지와 일치하는 숫자"
+    },
+    "coreNumbers": {
+      "lifePath": "인생 경로",
+      "expression": "표현수",
+      "soulUrge": "영혼 욕구",
+      "personality": "성격수",
+      "birthday": "생일"
+    },
+    "advancedNumbers": {
+      "maturity": "성숙 숫자",
+      "maturitySubtitle": "당신이 되어가는 모습",
+      "balance": "균형 숫자",
+      "balanceSubtitle": "위기 대응",
+      "rationalThought": "이성적 사고",
+      "rationalThoughtSubtitle": "논리 스타일"
+    },
+    "nameAnalysis": {
+      "title": "이름 분석",
+      "cornerstone": "초석",
+      "cornerstoneDesc": "시작하는 방법",
+      "capstone": "마무리석",
+      "capstoneDesc": "완료하는 방법",
+      "firstVowel": "첫 번째 모음",
+      "firstVowelDesc": "첫 반응",
+      "hiddenPassion": "숨겨진 열정",
+      "hiddenPassionDesc": "내면의 동력",
+      "subconscious": "잠재의식",
+      "nameEnergyBreakdown": "이름 에너지 분석"
+    },
+    "karmicSection": {
+      "debtTitle": "카르마 빚 숫자",
+      "noDebt": "카르마 빚 없음",
+      "noDebtDesc": "차트에 카르마 빚 숫자가 없습니다. 특별히 해결해야 할 전생의 부담 없이 이번 생을 시작합니다.",
+      "lessonsTitle": "카르마 수업 (누락된 숫자)",
+      "lessonsIntro": "이름에서 누락된 숫자는 성장을 위한 영역을 나타냅니다:"
+    },
+    "cyclesSection": {
+      "pinnaclesTitle": "정점 (인생 테마)",
+      "challengesTitle": "도전 과제 (극복해야 할 장애물)",
+      "challenge": "도전 과제"
+    },
+    "timingSection": {
+      "personalCycles": "개인 주기",
+      "universalCycles": "우주 주기 (모든 사람)",
+      "personalYear": "개인 연도",
+      "personalMonth": "개인 월",
+      "personalDay": "개인 일",
+      "universalYear": "우주 연도",
+      "universalMonth": "우주 월",
+      "universalDay": "우주 일"
+    },
+    "luckySection": {
+      "todayTitle": "오늘의 행운의 숫자",
+      "todayNote": "출생 데이터를 기반으로 매일 변경됩니다",
+      "permanentTitle": "영구 행운의 숫자",
+      "permanentNote": "이름, 생년월일, 위치를 기준으로 계산되며, 절대 변경되지 않습니다.",
+      "adjustHint": "옵션을 조정하고 다시 계산해 보세요."
+    },
+    "lucky": {
+      "errorBirthdate": "생년월일을 입력해주세요.",
+      "errorRequest": "분석에 실패했습니다.",
+      "errorGeneral": "오류가 발생했습니다. 다시 시도해주세요.",
+      "interpretation": "인생 경로 {{lifePath}}을(를) 기반으로 생성된 행운의 숫자입니다. 이 숫자들은 당신의 에너지와 공명합니다.",
+      "copied": "숫자가 복사되었습니다!",
+      "nameLabel": "이름 (영문, 선택사항)",
+      "nameHint": "더 정확한 행운의 숫자를 위해 이름을 입력하세요",
+      "generateButton": "행운의 숫자 생성",
+      "yourNumbers": "당신의 행운의 숫자",
+      "copy": "숫자 복사",
+      "regenerate": "다시 생성",
+      "tipsTitle": "팁",
+      "tip1": "이 숫자들은 생년월일과 이름의 수비학 에너지에서 도출됩니다",
+      "tip2": "로또 6/45의 경우 6개를 선택하거나 다른 숫자 게임에 사용하세요",
+      "tip3": "숫자를 조합하거나 패턴을 만들 수 있습니다",
+      "tip4": "다양성을 위해 정기적으로 새로운 숫자를 생성하세요",
+      "countLabel": "생성할 숫자 개수",
+      "countHint": "최대 15개까지 선택 가능"
+    },
+    "inputSummary": {
+      "title": "입력 요약",
+      "name": "이름",
+      "korean": "(한국어)",
+      "birth": "출생",
+      "current": "전류"
+    },
+    "shareTitle": "내 수비학 프로필",
+    "shareText": "DestinyPal에서 제가 읽은 수비학을 확인해보세요!",
+    "shareLabel": "공유"
+  }
+}

@@ -46,7 +46,7 @@ export interface ExtendedChartWithAsteroids extends Chart {
 const getAsteroidIds = (() => {
   let cache: Record<AsteroidName, number> | null = null;
   return () => {
-    if (cache) return cache;
+    if (cache) {return cache;}
     const swisseph = getSwisseph();
     cache = {
       Ceres: swisseph.SE_CERES,

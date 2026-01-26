@@ -47,8 +47,8 @@ export function getCategoryLabel(cat: EventCategory, locale: string): string {
  * Get score CSS class
  */
 export function getScoreClass(score: number): string {
-  if (score >= SCORE_THRESHOLDS.GOOD) return styles.high;
-  if (score >= 50) return styles.medium;
+  if (score >= SCORE_THRESHOLDS.GOOD) {return styles.high;}
+  if (score >= 50) {return styles.medium;}
   return styles.low;
 }
 
@@ -60,7 +60,7 @@ export function getDayClassName(
   selectedDay: Date | null,
   dateInfo: ImportantDate | null
 ): string {
-  if (!date) return styles.emptyDay;
+  if (!date) {return styles.emptyDay;}
 
   const today = new Date();
   const isToday =
@@ -74,13 +74,13 @@ export function getDayClassName(
     date.getFullYear() === selectedDay.getFullYear();
 
   let className = styles.day;
-  if (isToday) className += ` ${styles.today}`;
-  if (isSelected) className += ` ${styles.selected}`;
+  if (isToday) {className += ` ${styles.today}`;}
+  if (isSelected) {className += ` ${styles.selected}`;}
   if (dateInfo) {
     className += ` ${styles[`dayGrade${dateInfo.grade}`]}`;
   }
-  if (date.getDay() === 0) className += ` ${styles.sunday}`;
-  if (date.getDay() === 6) className += ` ${styles.saturday}`;
+  if (date.getDay() === 0) {className += ` ${styles.sunday}`;}
+  if (date.getDay() === 6) {className += ` ${styles.saturday}`;}
 
   return className;
 }

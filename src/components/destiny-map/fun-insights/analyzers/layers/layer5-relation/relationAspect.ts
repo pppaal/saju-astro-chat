@@ -60,7 +60,7 @@ export function getRelationAspectAnalysis(
   const isKo = lang === 'ko';
   const results: RelationAspectResult[] = [];
 
-  if (!saju && !astro) return results;
+  if (!saju && !astro) {return results;}
 
   // 실제 사주 데이터에서 지지 관계 추출
   const sajuRelations: BranchRelation[] = [];

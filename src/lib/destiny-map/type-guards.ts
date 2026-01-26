@@ -10,7 +10,7 @@ import type { Chart } from '@/lib/astrology/foundation/types';
  * Type guard for Chart objects
  */
 export function isChart(obj: unknown): obj is Chart {
-  if (typeof obj !== 'object' || obj === null) return false;
+  if (typeof obj !== 'object' || obj === null) {return false;}
 
   const candidate = obj as Record<string, unknown>;
 
@@ -32,7 +32,7 @@ export interface AstrologyChartFacts {
 }
 
 export function isAstrologyChartFacts(obj: unknown): obj is AstrologyChartFacts {
-  if (typeof obj !== 'object' || obj === null) return false;
+  if (typeof obj !== 'object' || obj === null) {return false;}
 
   const candidate = obj as Record<string, unknown>;
 
@@ -52,7 +52,7 @@ export interface SajuPillar {
 }
 
 export function isSajuPillar(obj: unknown): obj is SajuPillar {
-  if (typeof obj !== 'object' || obj === null) return false;
+  if (typeof obj !== 'object' || obj === null) {return false;}
 
   const candidate = obj as Record<string, unknown>;
 
@@ -76,7 +76,7 @@ export function isSajuPillar(obj: unknown): obj is SajuPillar {
  * Normalize unknown pillar format to standard SajuPillar
  */
 export function normalizePillar(raw: unknown): SajuPillar | null {
-  if (!raw || typeof raw !== 'object') return null;
+  if (!raw || typeof raw !== 'object') {return null;}
 
   const candidate = raw as Record<string, unknown>;
 
@@ -133,7 +133,7 @@ export interface Planet {
 }
 
 export function isPlanet(obj: unknown): obj is Planet {
-  if (typeof obj !== 'object' || obj === null) return false;
+  if (typeof obj !== 'object' || obj === null) {return false;}
 
   const candidate = obj as Record<string, unknown>;
 
@@ -147,7 +147,7 @@ export function isPlanet(obj: unknown): obj is Planet {
  * Type guard for array of planets
  */
 export function isPlanetArray(arr: unknown): arr is Planet[] {
-  if (!Array.isArray(arr)) return false;
+  if (!Array.isArray(arr)) {return false;}
 
   return arr.every(item => isPlanet(item));
 }
@@ -160,7 +160,7 @@ export function getNestedProperty<T = unknown>(
   path: string,
   defaultValue: T
 ): T {
-  if (typeof obj !== 'object' || obj === null) return defaultValue;
+  if (typeof obj !== 'object' || obj === null) {return defaultValue;}
 
   const keys = path.split('.');
   let current: unknown = obj;
@@ -214,17 +214,17 @@ export interface SajuDataStructure {
 }
 
 export function isSajuDataStructure(obj: unknown): obj is SajuDataStructure {
-  if (typeof obj !== 'object' || obj === null) return false;
+  if (typeof obj !== 'object' || obj === null) {return false;}
 
   const candidate = obj as Record<string, unknown>;
 
   // Must have dayMaster or pillars to be considered valid saju data
   if (candidate.dayMaster !== undefined) {
-    if (typeof candidate.dayMaster !== 'object') return false;
+    if (typeof candidate.dayMaster !== 'object') {return false;}
   }
 
   if (candidate.pillars !== undefined) {
-    if (typeof candidate.pillars !== 'object') return false;
+    if (typeof candidate.pillars !== 'object') {return false;}
   }
 
   return candidate.dayMaster !== undefined || candidate.pillars !== undefined;
@@ -234,7 +234,7 @@ export function isSajuDataStructure(obj: unknown): obj is SajuDataStructure {
  * Safely convert calculateSajuData result to SajuDataStructure
  */
 export function toSajuDataStructure(raw: unknown): SajuDataStructure | null {
-  if (!raw || typeof raw !== 'object') return null;
+  if (!raw || typeof raw !== 'object') {return null;}
 
   if (isSajuDataStructure(raw)) {
     return raw;
@@ -266,7 +266,7 @@ export interface CombinedResult {
 }
 
 export function isCombinedResult(obj: unknown): obj is CombinedResult {
-  if (typeof obj !== 'object' || obj === null) return false;
+  if (typeof obj !== 'object' || obj === null) {return false;}
   // CombinedResult is a loose structure, just check it's an object
   return true;
 }
@@ -312,7 +312,7 @@ export interface MatrixCalculationInput {
 }
 
 export function isMatrixCalculationInput(obj: unknown): obj is MatrixCalculationInput {
-  if (typeof obj !== 'object' || obj === null) return false;
+  if (typeof obj !== 'object' || obj === null) {return false;}
 
   // MatrixCalculationInput is flexible, just ensure it's an object
   // with at least some expected properties
@@ -351,14 +351,14 @@ export interface PlanetData {
 }
 
 export function isPlanetData(obj: unknown): obj is PlanetData {
-  if (typeof obj !== 'object' || obj === null) return false;
+  if (typeof obj !== 'object' || obj === null) {return false;}
 
   const candidate = obj as Record<string, unknown>;
   return typeof candidate.name === 'string';
 }
 
 export function isPlanetDataArray(arr: unknown): arr is PlanetData[] {
-  if (!Array.isArray(arr)) return false;
+  if (!Array.isArray(arr)) {return false;}
   return arr.every(isPlanetData);
 }
 
@@ -375,12 +375,12 @@ export interface HouseCusp {
 }
 
 export function isHouseCusp(obj: unknown): obj is HouseCusp {
-  if (typeof obj !== 'object' || obj === null) return false;
+  if (typeof obj !== 'object' || obj === null) {return false;}
   return true; // HouseCusp is flexible
 }
 
 export function toHouseCuspArray(arr: unknown[]): HouseCusp[] {
-  if (!Array.isArray(arr)) return [];
+  if (!Array.isArray(arr)) {return [];}
   return arr.filter(isHouseCusp);
 }
 
@@ -389,7 +389,7 @@ export function toHouseCuspArray(arr: unknown[]): HouseCusp[] {
 // ============================
 
 export function isHeaders(obj: unknown): obj is Headers {
-  if (typeof obj !== 'object' || obj === null) return false;
+  if (typeof obj !== 'object' || obj === null) {return false;}
 
   const candidate = obj as Record<string, unknown>;
   return (
@@ -410,11 +410,11 @@ export function toHeaders(obj: unknown): Headers | null {
 // ============================
 
 export function toRecord(obj: unknown): Record<string, unknown> | null {
-  if (typeof obj !== 'object' || obj === null) return null;
+  if (typeof obj !== 'object' || obj === null) {return null;}
   return obj as Record<string, unknown>;
 }
 
 export function safeRecord(obj: unknown): Record<string, unknown> {
-  if (typeof obj !== 'object' || obj === null) return {};
+  if (typeof obj !== 'object' || obj === null) {return {};}
   return obj as Record<string, unknown>;
 }

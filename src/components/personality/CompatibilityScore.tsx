@@ -36,9 +36,9 @@ export function CompatibilityScore({
 
   // Determine color based on score
   const getScoreColor = (score: number): string => {
-    if (score >= 80) return '#10b981'; // green
-    if (score >= 65) return '#3b82f6'; // blue
-    if (score >= 50) return '#f59e0b'; // amber
+    if (score >= 80) {return '#10b981';} // green
+    if (score >= 65) {return '#3b82f6';} // blue
+    if (score >= 50) {return '#f59e0b';} // amber
     return '#ef4444'; // red
   };
 

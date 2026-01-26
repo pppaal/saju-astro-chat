@@ -66,8 +66,8 @@ export function useTarotGame(): UseTarotGameReturn {
 
   // Initialize spread info
   useEffect(() => {
-    if (!categoryName || !spreadId) return;
-    if (spreadInfo?.id === spreadId) return;
+    if (!categoryName || !spreadId) {return;}
+    if (spreadInfo?.id === spreadId) {return;}
 
     const theme = tarotThemes.find((t) => t.id === categoryName);
     const spread = theme?.spreads.find((s) => s.id === spreadId);
@@ -109,9 +109,9 @@ export function useTarotGame(): UseTarotGameReturn {
   const handleCardClick = useCallback((index: number) => {
     const currentMap = selectionOrderRef.current;
 
-    if (gameState !== 'picking') return;
-    if (currentMap.size >= (spreadInfo?.cardCount ?? 0)) return;
-    if (currentMap.has(index)) return;
+    if (gameState !== 'picking') {return;}
+    if (currentMap.size >= (spreadInfo?.cardCount ?? 0)) {return;}
+    if (currentMap.has(index)) {return;}
 
     const newOrder = currentMap.size + 1;
     const newMap = new Map(currentMap).set(index, newOrder);
@@ -145,8 +145,8 @@ export function useTarotGame(): UseTarotGameReturn {
       fetchTriggeredRef.current = false;
     }
 
-    if (!spreadInfo || selectedIndices.length !== targetCardCount || gameState !== 'picking') return;
-    if (fetchTriggeredRef.current) return;
+    if (!spreadInfo || selectedIndices.length !== targetCardCount || gameState !== 'picking') {return;}
+    if (fetchTriggeredRef.current) {return;}
     fetchTriggeredRef.current = true;
 
     const fetchReading = async () => {

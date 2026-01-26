@@ -424,11 +424,11 @@ function getPeriodName(type: FortuneInput['type']): string {
 }
 
 function getElementRelation(dayElement: FiveElement, unseElement: FiveElement): string {
-  if (dayElement === unseElement) return '비화';
-  if (FIVE_ELEMENT_RELATIONS['생받는관계'][dayElement] === unseElement) return '생조';
-  if (FIVE_ELEMENT_RELATIONS['생하는관계'][dayElement] === unseElement) return '설기';
-  if (FIVE_ELEMENT_RELATIONS['극하는관계'][dayElement] === unseElement) return '극출';
-  if (FIVE_ELEMENT_RELATIONS['극받는관계'][dayElement] === unseElement) return '극입';
+  if (dayElement === unseElement) {return '비화';}
+  if (FIVE_ELEMENT_RELATIONS['생받는관계'][dayElement] === unseElement) {return '생조';}
+  if (FIVE_ELEMENT_RELATIONS['생하는관계'][dayElement] === unseElement) {return '설기';}
+  if (FIVE_ELEMENT_RELATIONS['극하는관계'][dayElement] === unseElement) {return '극출';}
+  if (FIVE_ELEMENT_RELATIONS['극받는관계'][dayElement] === unseElement) {return '극입';}
   return '중립';
 }
 

@@ -147,7 +147,7 @@ function CreditDisplay() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (status === "loading") {return;}
     if (!session?.user) {
       setCredits(null);
       setLoading(false);
@@ -199,7 +199,7 @@ function CreditDisplay() {
 // ============================================
 function DropdownMenuItem({ index, focusedIndex, item, menuItemsRef }: DropdownMenuItemProps) {
   const setRef = useCallback((el: HTMLButtonElement | null) => {
-    if (el) menuItemsRef.current[index] = el;
+    if (el) {menuItemsRef.current[index] = el;}
   }, [index, menuItemsRef]);
 
   const variantStyles = item.variant === "blue" ? styles.blueButton : styles.redButton;
@@ -268,7 +268,7 @@ function GlobalHeaderContent() {
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    if (!showDropdown) return;
+    if (!showDropdown) {return;}
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setShowDropdown(false);
@@ -288,7 +288,7 @@ function GlobalHeaderContent() {
 
   // Reset focused index when dropdown closes
   useEffect(() => {
-    if (!showDropdown) setFocusedIndex(-1);
+    if (!showDropdown) {setFocusedIndex(-1);}
   }, [showDropdown]);
 
   // Keyboard navigation for dropdown (WCAG 2.1 AA compliant)
@@ -333,7 +333,7 @@ function GlobalHeaderContent() {
   const headerAriaLabel = t("nav.header") || "Site header";
 
   // Hide on main page
-  if (isMainPage) return null;
+  if (isMainPage) {return null;}
 
   // Loading state
   if (loading) {

@@ -10,7 +10,7 @@ export function useFocusTrap(isOpen: boolean) {
 
   // Get all focusable elements within container
   const getFocusableElements = useCallback(() => {
-    if (!containerRef.current) return [];
+    if (!containerRef.current) {return [];}
 
     const focusableSelectors = [
       'a[href]:not([disabled]):not([tabindex="-1"])',
@@ -33,10 +33,10 @@ export function useFocusTrap(isOpen: boolean) {
   // Handle Tab key navigation
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (event.key !== 'Tab') return;
+      if (event.key !== 'Tab') {return;}
 
       const focusableElements = getFocusableElements();
-      if (focusableElements.length === 0) return;
+      if (focusableElements.length === 0) {return;}
 
       const firstElement = focusableElements[0];
       const lastElement = focusableElements[focusableElements.length - 1];
@@ -59,7 +59,7 @@ export function useFocusTrap(isOpen: boolean) {
   );
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {return;}
 
     // Store current active element to restore focus on close
     previousActiveElement.current = document.activeElement as HTMLElement;

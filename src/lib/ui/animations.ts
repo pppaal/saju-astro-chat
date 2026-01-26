@@ -251,7 +251,7 @@ export function delay(ms: number): Promise<void> {
  * Check if user prefers reduced motion
  */
 export function prefersReducedMotion(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') {return false;}
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
@@ -262,7 +262,7 @@ export function prefersReducedMotion(): boolean {
 export function getAccessibleDuration(
   duration: keyof typeof DURATION
 ): number {
-  if (prefersReducedMotion()) return 0;
+  if (prefersReducedMotion()) {return 0;}
 
   // Map string keys to their Ms counterparts
   const msMap: Record<string, number> = {

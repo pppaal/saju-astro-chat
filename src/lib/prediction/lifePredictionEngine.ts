@@ -190,7 +190,7 @@ export function analyzeMultiYearTrend(
 
   for (let year = startYear; year <= endYear; year++) {
     const age = year - input.birthYear;
-    if (age < 0) continue;
+    if (age < 0) {continue;}
 
     const yearGanji = calculateYearlyGanji(year);
     const twelveStage = calculatePreciseTwelveStage(input.dayStem, yearGanji.branch);
@@ -212,8 +212,8 @@ export function analyzeMultiYearTrend(
     }
 
     const yearElement = STEM_ELEMENT[yearGanji.stem];
-    if (input.yongsin?.includes(yearElement)) score += SCORING_WEIGHTS.YONGSIN_BONUS;
-    if (input.kisin?.includes(yearElement)) score -= SCORING_WEIGHTS.KISIN_PENALTY;
+    if (input.yongsin?.includes(yearElement)) {score += SCORING_WEIGHTS.YONGSIN_BONUS;}
+    if (input.kisin?.includes(yearElement)) {score -= SCORING_WEIGHTS.KISIN_PENALTY;}
 
     score = normalizeScore(score);
     const grade = scoreToGrade(score);
@@ -264,11 +264,11 @@ export function analyzeMultiYearTrend(
 
       let impact: DaeunTransitionPoint['impact'];
       const scoreDiff = currStage.score - prevStage.score;
-      if (scoreDiff >= 30) impact = 'major_positive';
-      else if (scoreDiff >= 10) impact = 'positive';
-      else if (scoreDiff <= -30) impact = 'major_challenging';
-      else if (scoreDiff <= -10) impact = 'challenging';
-      else impact = 'neutral';
+      if (scoreDiff >= 30) {impact = 'major_positive';}
+      else if (scoreDiff >= 10) {impact = 'positive';}
+      else if (scoreDiff <= -30) {impact = 'major_challenging';}
+      else if (scoreDiff <= -10) {impact = 'challenging';}
+      else {impact = 'neutral';}
 
       daeunTransitions.push({
         year,
@@ -382,8 +382,8 @@ export function analyzePastDate(
   }
 
   const dayElement = STEM_ELEMENT[dailyPillar.stem];
-  if (input.yongsin?.includes(dayElement)) score += SCORING_WEIGHTS.YONGSIN_BONUS_MINOR;
-  if (input.kisin?.includes(dayElement)) score -= SCORING_WEIGHTS.KISIN_PENALTY_MINOR;
+  if (input.yongsin?.includes(dayElement)) {score += SCORING_WEIGHTS.YONGSIN_BONUS_MINOR;}
+  if (input.kisin?.includes(dayElement)) {score -= SCORING_WEIGHTS.KISIN_PENALTY_MINOR;}
 
   score = normalizeScore(score, SCORE_BOUNDARIES.MIN, SCORE_BOUNDARIES.MAX);
   const grade = scoreToGrade(score);
@@ -912,9 +912,9 @@ export function generateComprehensivePrediction(
   const upcomingHighlights = extractUpcomingHighlights(multiYearTrend, lifeSync, currentYear);
 
   let confidence = 60;
-  if (input.daeunList && input.daeunList.length > 0) confidence += 15;
-  if (input.yongsin && input.yongsin.length > 0) confidence += 10;
-  if (input.birthHour !== undefined) confidence += 10;
+  if (input.daeunList && input.daeunList.length > 0) {confidence += 15;}
+  if (input.yongsin && input.yongsin.length > 0) {confidence += 10;}
+  if (input.birthHour !== undefined) {confidence += 10;}
   confidence = Math.min(95, confidence);
 
   return {

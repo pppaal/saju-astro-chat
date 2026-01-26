@@ -195,8 +195,8 @@ export class IChingStatisticsEngine {
           totalLines++;
         }
       }
-      if (reading.category) catDist[reading.category]++;
-      if (reading.outcome) outcomeDist[reading.outcome]++;
+      if (reading.category) {catDist[reading.category]++;}
+      if (reading.outcome) {outcomeDist[reading.outcome]++;}
     }
 
     // 가장 빈번한 변효
@@ -241,7 +241,7 @@ export class IChingStatisticsEngine {
 
     for (const reading of categoryReadings) {
       hexCounts[reading.hexagramNumber] = (hexCounts[reading.hexagramNumber] || 0) + 1;
-      if (reading.outcome) outcomes[reading.outcome]++;
+      if (reading.outcome) {outcomes[reading.outcome]++;}
     }
 
     const topHexagrams = Object.entries(hexCounts)
@@ -397,7 +397,7 @@ export class IChingStatisticsEngine {
 
   private findPeak(dist: Record<number, number>): number {
     const entries = Object.entries(dist);
-    if (entries.length === 0) return 0;
+    if (entries.length === 0) {return 0;}
     return parseInt(entries.sort((a, b) => b[1] - a[1])[0][0]);
   }
 

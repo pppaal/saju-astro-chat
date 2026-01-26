@@ -76,7 +76,7 @@ export default function TarotHistoryPage() {
 
     // Sort
     result.sort((a, b) => {
-      if (sortBy === "newest") return b.timestamp - a.timestamp;
+      if (sortBy === "newest") {return b.timestamp - a.timestamp;}
       return a.timestamp - b.timestamp;
     });
 
@@ -96,7 +96,7 @@ export default function TarotHistoryPage() {
           reversedCount: 0,
         };
         existing.count++;
-        if (card.isReversed) existing.reversedCount++;
+        if (card.isReversed) {existing.reversedCount++;}
         freqMap.set(card.name, existing);
       });
     });

@@ -144,7 +144,7 @@ export default function CommunityPage() {
   const addComment = (postId: string) => {
     guard(() => {
       const text = commentTexts[postId]?.trim();
-      if (!text) return;
+      if (!text) {return;}
 
       const newComment: Comment = {
         id: uid(),
@@ -199,7 +199,7 @@ export default function CommunityPage() {
   const addReply = (postId: string, commentId: string) => {
     guard(() => {
       const text = replyTexts[commentId]?.trim();
-      if (!text) return;
+      if (!text) {return;}
 
       const mentionMatch = text.match(/@(\w+)/);
       const mentionedUser = mentionMatch ? mentionMatch[1] : undefined;
