@@ -282,7 +282,7 @@ export interface TabProps {
   astro?: AstroData | null;
   lang: string;
   isKo: boolean;
-  data: TabData;
+  data: TabData | null;
   destinyNarrative?: DestinyNarrative | null;
   combinedLifeTheme?: (BilingualText & { detail?: BilingualText }) | null;
 }
