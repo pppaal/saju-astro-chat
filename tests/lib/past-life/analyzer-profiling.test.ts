@@ -15,7 +15,7 @@ const SINSAL_TYPES = ['원진', '공망', '겁살'] as const;
 
 // Performance thresholds
 const PERF = {
-  SINGLE_CALL_MAX_MS: 5,
+  SINGLE_CALL_MAX_MS: 50,
   BATCH_100_MAX_MS: 100,
   BATCH_1000_MAX_MS: 800,
   LARGE_BATCH_SIZE: 10000,

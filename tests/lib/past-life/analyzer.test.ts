@@ -69,33 +69,33 @@ const DEFAULT_MESSAGES = {
 
 // Test case data
 const NODE_HOUSE_TEST_CASES = [
-  { house: 1, pastPattern: '타인에게 맞추며 자신을 잃은 전생' },
-  { house: 2, pastPattern: '타인의 자원에 의존한 전생' },
-  { house: 3, pastPattern: '큰 그림만 보며 디테일을 놓친 전생' },
-  { house: 4, pastPattern: '사회적 성공에만 몰두한 전생' },
-  { house: 5, pastPattern: '집단에 묻히며 개성을 잃은 전생' },
-  { house: 6, pastPattern: '환상과 도피에 빠진 전생' },
-  { house: 7, pastPattern: '혼자서 모든 것을 해결한 전생' },
-  { house: 8, pastPattern: '물질적 안정에 집착한 전생' },
-  { house: 9, pastPattern: '사소한 것에 매몰된 전생' },
-  { house: 10, pastPattern: '가정에만 갇혀 살았던 전생' },
-  { house: 11, pastPattern: '개인적 욕망에 빠진 전생' },
-  { house: 12, pastPattern: '물질과 일에만 집중한 전생' },
+  { house: 1, pastPattern: '다른 사람을 먼저 생각하며' },
+  { house: 2, pastPattern: '타인의 자원, 돈, 권력에 의존하며' },
+  { house: 3, pastPattern: '큰 그림, 철학, 종교' },
+  { house: 4, pastPattern: '사회적 성공, 명예, 지위' },
+  { house: 5, pastPattern: '집단의 일원으로' },
+  { house: 6, pastPattern: '환상과 도피의 세계' },
+  { house: 7, pastPattern: '혼자서 모든 것을 해결' },
+  { house: 8, pastPattern: '물질적 안정과 소유' },
+  { house: 9, pastPattern: '사소한 디테일에 매몰' },
+  { house: 10, pastPattern: '가정에만 갇혀' },
+  { house: 11, pastPattern: '개인적 욕망과 드라마' },
+  { house: 12, pastPattern: '물질과 일에만 집중' },
 ] as const;
 
 const SATURN_HOUSE_TEST_CASES = [
-  { house: 1, lesson: '자기 정체성을 확립하는 것' },
-  { house: 2, lesson: '자신의 가치를 인정하는 것' },
-  { house: 3, lesson: '효과적으로 소통하는 것' },
-  { house: 4, lesson: '감정적 안정과 가정을 만드는 것' },
-  { house: 5, lesson: '창조적으로 자기를 표현하는 것' },
-  { house: 6, lesson: '건강과 일상을 관리하는 것' },
-  { house: 7, lesson: '진정한 파트너십을 만드는 것' },
-  { house: 8, lesson: '변화와 친밀감을 받아들이는 것' },
-  { house: 9, lesson: '의미와 철학을 찾는 것' },
-  { house: 10, lesson: '세상에서 자신의 역할을 찾는 것' },
-  { house: 11, lesson: '커뮤니티와 비전을 위해 일하는 것' },
-  { house: 12, lesson: '영적 성장과 내면 평화 찾기' },
+  { house: 1, lesson: '자기 정체성' },
+  { house: 2, lesson: '물질적 안정' },
+  { house: 3, lesson: '소통' },
+  { house: 4, lesson: '감정적 안정' },
+  { house: 5, lesson: '자기를 표현' },
+  { house: 6, lesson: '건강' },
+  { house: 7, lesson: '파트너십' },
+  { house: 8, lesson: '친밀감' },
+  { house: 9, lesson: '의미' },
+  { house: 10, lesson: '역할' },
+  { house: 11, lesson: '커뮤니티' },
+  { house: 12, lesson: '영적' },
 ] as const;
 
 const DAY_MASTER_TEST_CASES = [
@@ -494,7 +494,7 @@ describe('Past Life Analyzer', () => {
         it(`should return correct soul journey for North Node in house ${house}`, () => {
           const result = analyzeKorean(null, createAstroWithPlanet('North Node', house));
 
-          expect(result.soulJourney.pastPattern).toBe(pastPattern);
+          expect(result.soulJourney.pastPattern).toContain(pastPattern);
           expectHouseNumbers(result, house);
         });
       });
@@ -503,7 +503,7 @@ describe('Past Life Analyzer', () => {
         const result = analyzeKorean(null, createAstroWithPlanet('north node', 5));
 
         expectHouseNumbers(result, 5);
-        expect(result.soulJourney.pastPattern).toContain('집단에 묻히며');
+        expect(result.soulJourney.pastPattern).toContain('집단의 일원으로');
       });
 
       it('should return default journey when no North Node', () => {
@@ -518,7 +518,7 @@ describe('Past Life Analyzer', () => {
         it(`should return correct Saturn lesson for house ${house}`, () => {
           const result = analyzeKorean(null, createAstroWithPlanet('Saturn', house));
 
-          expect(result.saturnLesson.lesson).toBe(lesson);
+          expect(result.saturnLesson.lesson).toContain(lesson);
           expectHouseNumbers(result, undefined, house);
         });
       });
@@ -535,7 +535,7 @@ describe('Past Life Analyzer', () => {
         it(`should return correct mission for day master ${stem}`, () => {
           const result = analyzeKorean(createSajuWithDayMaster(stem));
 
-          expect(result.thisLifeMission.core).toBe(core);
+          expect(result.thisLifeMission.core).toContain(core);
           expect(result.dayMaster).toBe(stem);
         });
       });

@@ -29,7 +29,7 @@ export interface CommentSectionProps {
  * Shows comment input if logged in
  * Toggleable comments view
  */
-export const CommentSection: React.FC<CommentSectionProps> = React.memo(({
+export const CommentSection = React.memo<CommentSectionProps>(({
   comments,
   postId,
   isLoggedIn,

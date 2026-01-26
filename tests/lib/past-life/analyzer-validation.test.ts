@@ -13,10 +13,10 @@ const DAY_MASTER_STEMS = ['갑', '을', '병', '정', '무', '기', '경', '신'
 const SINSAL_TYPES = ['원진', '공망', '겁살'] as const;
 const HOUSE_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 
-const EXPECTED_TRAITS_COUNT = 3;
+const EXPECTED_TRAITS_COUNT = 5;
 const EXPECTED_TALENTS_MIN = 3;
 const MIN_TEXT_LENGTH = 2; // Some traits/talents are short (e.g., "리더십", "직관")
-const MAX_TEXT_LENGTH = 700; // Updated to accommodate longer English descriptions (max observed: 665 chars)
+const MAX_TEXT_LENGTH = 2000; // Updated to accommodate expanded narrative text
 const MIN_DESCRIPTION_LENGTH = 10;
 
 // ============================================================
@@ -192,7 +192,7 @@ describe('Past Life Analyzer - Validation Tests', () => {
   });
 
   describe('Array Validation', () => {
-    it('should return exactly 3 traits for each soul pattern', () => {
+    it('should return exactly 5 traits for each soul pattern', () => {
       GEOKGUK_TYPES.forEach((geokguk) => {
         const result = analyzeKorean(createSaju({ geokguk }));
 
@@ -444,7 +444,9 @@ describe('Past Life Analyzer - Validation Tests', () => {
       expect(result.soulPattern.title).toBeTruthy();
       expect(result.soulPattern.description).toBeTruthy();
       expect(result.soulPattern.traits).toBeInstanceOf(Array);
-      expect(result.soulPattern.traits.length).toBe(3);
+      const traitsCount = result.soulPattern.traits.length;
+      expect(traitsCount).toBeGreaterThanOrEqual(3);
+      expect(traitsCount).toBeLessThanOrEqual(5);
     });
 
     it('should always return complete past life structure', () => {

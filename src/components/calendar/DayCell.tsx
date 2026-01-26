@@ -2,6 +2,8 @@
 
 // src/components/calendar/DayCell.tsx
 import React from 'react';
+import { logger } from '@/lib/logger';
+
 import { useI18n } from '@/i18n/I18nProvider';
 import styles from './DestinyCalendar.module.css';
 
@@ -70,7 +72,7 @@ const DayCell = React.memo(function DayCell({
 
   // 디버깅: dateInfo 확인
   if (date && !dateInfo) {
-    // console.log(`No dateInfo for ${date.toISOString().split('T')[0]}`);
+    // logger.info(`No dateInfo for ${date.toISOString().split('T')[0]}`);
   }
 
   return (

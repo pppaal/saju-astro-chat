@@ -127,3 +127,9 @@ build-output*.txt
 # Refactoring documentation (temporary)
 REFACTORING*.md
 COMPONENT_EXTRACTION*.md
+
+# Migration documentation (temporary)
+MIGRATION*.md
+
+# Score check scripts
+score-check.js

@@ -755,7 +755,7 @@ export function findOptimalEventTiming(
     }
   }
 
-  if (optimalPeriods.length == 0 && candidatePeriods.length > 0) {
+  if (optimalPeriods.length === 0 && candidatePeriods.length > 0) {
     candidatePeriods.sort((a, b) => b.score - a.score);
     const fallback = candidatePeriods.slice(0, 3).map(p => ({
       ...p,

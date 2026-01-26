@@ -1,5 +1,7 @@
 ﻿import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
+import { logger } from '@/lib/logger';
+
 import { prisma } from "@/lib/db/prisma";
 
 function normalizeEmail(email?: string | null) {
@@ -40,7 +42,7 @@ export async function isAdminUser(userId: string): Promise<boolean> {
     // 폴백: 환경 변수 기반 체크 (마이그레이션 기간 동안만)
     return isAdminEmail(user.email);
   } catch (error) {
-    console.error('Error checking admin status:', error);
+    logger.error('Error checking admin status:', error);
     return false;
   }
 }

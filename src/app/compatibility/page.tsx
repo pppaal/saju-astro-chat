@@ -150,7 +150,7 @@ export default function CompatPage() {
                     showCircleDropdown={showCircleDropdown === idx}
                     locale={locale}
                     t={t}
-                    onUpdatePerson={updatePerson as (idx: number, field: string, value: any) => void}
+                    onUpdatePerson={updatePerson}
                     onSetPersons={setPersons}
                     onPickCity={onPickCity}
                     onToggleCircleDropdown={() => setShowCircleDropdown(showCircleDropdown === idx ? null : idx)}

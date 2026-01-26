@@ -11,7 +11,7 @@ export interface TimeStampProps {
  * TimeStamp component displays relative time (e.g., "2h ago")
  * Handles days/hours/minutes formatting with suppressHydrationWarning for SSR
  */
-export const TimeStamp: React.FC<TimeStampProps> = React.memo(({ epoch }) => {
+export const TimeStamp = React.memo<TimeStampProps>(({ epoch }) => {
   const [text, setText] = useState("");
   const { t } = useI18n();
 

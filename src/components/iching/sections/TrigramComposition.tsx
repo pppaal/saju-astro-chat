@@ -5,14 +5,15 @@
  */
 
 import React from "react";
+import type { TrigramInfo } from '@/lib/iChing/iChingPremiumData';
 import styles from "../ResultDisplay.module.css";
 
 /**
  * Component props interface
  */
 export interface TrigramCompositionProps {
-  upperTrigram: any;
-  lowerTrigram: any;
+  upperTrigram: TrigramInfo | null;
+  lowerTrigram: TrigramInfo | null;
   lang: "ko" | "en";
   translate: (key: string, fallback: string) => string;
 }
@@ -24,7 +25,7 @@ export interface TrigramCompositionProps {
  * @param props - Component props
  * @returns JSX element or null if trigrams are missing
  */
-export const TrigramComposition: React.FC<TrigramCompositionProps> = React.memo(({
+export const TrigramComposition = React.memo<TrigramCompositionProps>(({
   upperTrigram,
   lowerTrigram,
   lang,

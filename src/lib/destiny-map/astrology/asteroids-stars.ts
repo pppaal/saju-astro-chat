@@ -116,14 +116,14 @@ export interface AsteroidsStarsInput {
  * });
  *
  * // Nurturing style
- * console.log(`Ceres in ${asteroids.ceres?.sign} - nurturing through ${asteroids.ceres?.house}th house`);
+ * logger.info(`Ceres in ${asteroids.ceres?.sign} - nurturing through ${asteroids.ceres?.house}th house`);
  *
  * // Partnership needs
- * console.log(`Juno in ${asteroids.juno?.sign} - needs ${asteroids.juno?.house}th house themes in relationships`);
+ * logger.info(`Juno in ${asteroids.juno?.sign} - needs ${asteroids.juno?.house}th house themes in relationships`);
  *
  * // Check aspects
  * asteroids.aspects?.forEach(aspect => {
- *   console.log(`${aspect.asteroid} ${aspect.aspectType} ${aspect.planet}`);
+ *   logger.info(`${aspect.asteroid} ${aspect.aspectType} ${aspect.planet}`);
  * });
  * ```
  */
@@ -215,7 +215,7 @@ export async function calculateAsteroidsAnalysis(
  * });
  *
  * fixedStars?.forEach(star => {
- *   console.log(`${star.starName} conjunct ${star.planetName} - ${star.interpretation}`);
+ *   logger.info(`${star.starName} conjunct ${star.planetName} - ${star.interpretation}`);
  * });
  * ```
  */
@@ -289,12 +289,12 @@ export async function findFixedStarsAnalysis(
  * });
  *
  * if (eclipses.impact) {
- *   console.log(`Eclipse ${eclipses.impact.eclipseType} near ${eclipses.impact.affectedPoint}`);
- *   console.log(`Orb: ${eclipses.impact.orb}° - ${eclipses.impact.interpretation}`);
+ *   logger.info(`Eclipse ${eclipses.impact.eclipseType} near ${eclipses.impact.affectedPoint}`);
+ *   logger.info(`Orb: ${eclipses.impact.orb}° - ${eclipses.impact.interpretation}`);
  * }
  *
  * eclipses.upcoming.forEach(eclipse => {
- *   console.log(`${eclipse.type} on ${eclipse.date} at ${eclipse.sign} ${eclipse.degree}°`);
+ *   logger.info(`${eclipse.type} on ${eclipse.date} at ${eclipse.sign} ${eclipse.degree}°`);
  * });
  * ```
  */
@@ -364,13 +364,13 @@ export async function analyzeEclipsesImpact(
  * });
  *
  * // Asteroids
- * console.log(`Ceres: ${analysis.asteroids?.ceres?.sign}`);
+ * logger.info(`Ceres: ${analysis.asteroids?.ceres?.sign}`);
  *
  * // Fixed Stars
- * console.log(`Stars: ${analysis.fixedStars.length} conjunctions`);
+ * logger.info(`Stars: ${analysis.fixedStars.length} conjunctions`);
  *
  * // Eclipses
- * console.log(`Eclipse impact: ${analysis.eclipses.impact?.interpretation || 'none'}`);
+ * logger.info(`Eclipse impact: ${analysis.eclipses.impact?.interpretation || 'none'}`);
  * ```
  */
 export async function calculateAllAsteroidsStars(

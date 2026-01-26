@@ -150,6 +150,7 @@ export default function ShareButton({ variant = "full", className }: ShareButton
               <button
                 className={`${styles.copyBtn} ${copied ? styles.copied : ""}`}
                 onClick={copyToClipboard}
+                aria-label={copied ? (t("share.copied", "Link copied")) : (t("share.copy", "Copy link"))}
               >
                 {copied ? "✓" : "📋"}
               </button>

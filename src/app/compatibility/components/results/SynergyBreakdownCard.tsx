@@ -7,7 +7,7 @@ interface SynergyBreakdownCardProps {
   t: (key: string, fallback: string) => string;
 }
 
-export const SynergyBreakdownCard: React.FC<SynergyBreakdownCardProps> = React.memo(({ synergyBreakdown, t }) => {
+export const SynergyBreakdownCard = React.memo<SynergyBreakdownCardProps>(({ synergyBreakdown, t }) => {
   return (
     <div className={styles.resultCard}>
       <div className={styles.resultCardGlow} />

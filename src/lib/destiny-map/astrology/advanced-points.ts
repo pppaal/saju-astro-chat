@@ -68,7 +68,7 @@ export interface AdvancedPointsResult {
  *   longitude: 126.9780
  * });
  *
- * console.log(`Part of Fortune in ${points.partOfFortune?.sign}`);
+ * logger.info(`Part of Fortune in ${points.partOfFortune?.sign}`);
  * ```
  */
 export async function calculateAdvancedPoints(

@@ -5,13 +5,14 @@
  */
 
 import React from "react";
+import type { HexagramWisdomData } from '@/lib/iChing/ichingWisdom';
 import styles from "../ResultDisplay.module.css";
 
 /**
  * Component props interface
  */
 export interface TraditionalWisdomSectionProps {
-  wisdomData: any;
+  wisdomData: HexagramWisdomData | null;
   translate: (key: string, fallback: string) => string;
 }
 
@@ -22,7 +23,7 @@ export interface TraditionalWisdomSectionProps {
  * @param props - Component props
  * @returns JSX element or null if data is missing
  */
-export const TraditionalWisdomSection: React.FC<TraditionalWisdomSectionProps> = React.memo(({
+export const TraditionalWisdomSection = React.memo<TraditionalWisdomSectionProps>(({
   wisdomData,
   translate,
 }) => {

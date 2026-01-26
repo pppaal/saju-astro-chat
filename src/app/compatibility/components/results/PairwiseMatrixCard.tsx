@@ -7,7 +7,7 @@ interface PairwiseMatrixCardProps {
   t: (key: string, fallback: string) => string;
 }
 
-export const PairwiseMatrixCard: React.FC<PairwiseMatrixCardProps> = React.memo(({ pairwiseMatrix, t }) => {
+export const PairwiseMatrixCard = React.memo<PairwiseMatrixCardProps>(({ pairwiseMatrix, t }) => {
   if (!pairwiseMatrix || pairwiseMatrix.length === 0) {return null;}
 
   return (

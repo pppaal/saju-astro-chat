@@ -1,6 +1,37 @@
 import { useEffect, RefObject } from 'react';
 
-export function useCanvasAnimation(canvasRef: RefObject<HTMLCanvasElement>) {
+// Calculate moon phase based on date
+function getMoonPhase(date: Date): number {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+
+  let c = 0;
+  let e = 0;
+  let jd = 0;
+  let b = 0;
+
+  if (month < 3) {
+    const yearAdjust = year - 1;
+    const monthAdjust = month + 12;
+    c = Math.floor(yearAdjust / 100);
+    jd = Math.floor(365.25 * yearAdjust) + Math.floor(30.6001 * (monthAdjust + 1)) + day + 1720994.5;
+  } else {
+    c = Math.floor(year / 100);
+    jd = Math.floor(365.25 * year) + Math.floor(30.6001 * (month + 1)) + day + 1720994.5;
+  }
+
+  b = 2 - c + Math.floor(c / 4);
+  jd = jd + b;
+
+  const daysSinceNew = jd - 2451549.5;
+  const newMoons = daysSinceNew / 29.53;
+  const phase = (newMoons - Math.floor(newMoons)) * 29.53;
+
+  return phase / 29.53; // 0 = new moon, 0.5 = full moon
+}
+
+export function useCanvasAnimation(canvasRef: RefObject<HTMLCanvasElement>, birthDate?: string) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) {return;}
@@ -14,6 +45,9 @@ export function useCanvasAnimation(canvasRef: RefObject<HTMLCanvasElement>) {
     let isRunning = false;
     let lastFrame = 0;
     const frameInterval = 1000 / 30;
+
+    // Calculate moon phase if birthDate is provided
+    const moonPhase = birthDate ? getMoonPhase(new Date(birthDate)) : getMoonPhase(new Date());
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
@@ -47,20 +81,44 @@ export function useCanvasAnimation(canvasRef: RefObject<HTMLCanvasElement>) {
         ctx.fill();
       }
 
-      // Moon glow effect
-      const moonX = width * 0.8;
-      const moonY = height * 0.2;
-      const moonRadius = 60 + Math.sin(time) * 10;
+      // Moon with phase-based position and appearance
+      const moonX = width * (0.7 + moonPhase * 0.2); // Moon moves across sky based on phase
+      const moonY = height * (0.15 + Math.abs(moonPhase - 0.5) * 0.1); // Arc movement
+      const baseRadius = width < 640 ? 40 : 60;
+      const moonRadius = baseRadius + Math.sin(time) * 5;
 
+      // Moon glow - brighter during full moon
+      const glowIntensity = 0.1 + (1 - Math.abs(moonPhase - 0.5) * 2) * 0.15;
       const moonGradient = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, moonRadius * 2);
-      moonGradient.addColorStop(0, 'rgba(168, 237, 234, 0.15)');
-      moonGradient.addColorStop(0.5, 'rgba(168, 237, 234, 0.05)');
+      moonGradient.addColorStop(0, `rgba(168, 237, 234, ${glowIntensity})`);
+      moonGradient.addColorStop(0.5, `rgba(168, 237, 234, ${glowIntensity * 0.3})`);
       moonGradient.addColorStop(1, 'transparent');
 
       ctx.beginPath();
       ctx.arc(moonX, moonY, moonRadius * 2, 0, Math.PI * 2);
       ctx.fillStyle = moonGradient;
       ctx.fill();
+
+      // Draw moon body
+      ctx.beginPath();
+      ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(220, 240, 250, ${0.85 + Math.sin(time * 0.5) * 0.1})`;
+      ctx.fill();
+
+      // Moon phase shadow
+      if (moonPhase < 0.48 || moonPhase > 0.52) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+        ctx.clip();
+
+        const shadowOffset = (moonPhase - 0.5) * moonRadius * 2;
+        ctx.beginPath();
+        ctx.arc(moonX + shadowOffset, moonY, moonRadius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(10, 8, 24, 0.7)';
+        ctx.fill();
+        ctx.restore();
+      }
     };
 
     const animate = (timestamp = 0) => {
@@ -121,5 +179,5 @@ export function useCanvasAnimation(canvasRef: RefObject<HTMLCanvasElement>) {
       document.removeEventListener('visibilitychange', handleVisibility);
       mediaQuery.removeEventListener('change', handleVisibility);
     };
-  }, [canvasRef]);
+  }, [canvasRef, birthDate]);
 }

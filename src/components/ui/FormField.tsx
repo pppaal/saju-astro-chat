@@ -17,7 +17,7 @@ interface FormFieldProps {
   className?: string;
 }
 
-export const FormField: React.FC<FormFieldProps> = ({
+export function FormField({
   label,
   name,
   type = 'text',
@@ -31,7 +31,7 @@ export const FormField: React.FC<FormFieldProps> = ({
   icon,
   autoComplete,
   className = '',
-}) => {
+}: FormFieldProps) {
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
   const [isValid, setIsValid] = useState(false);

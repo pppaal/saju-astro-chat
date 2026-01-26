@@ -96,11 +96,14 @@ function DreamContent() {
     setPhase('birth-input');
   };
 
+  // Get current birth date for moon phase
+  const currentBirthDate = userProfile?.birthDate || birthInfo.userProfile?.birthDate || birthInfo.guestBirthInfo?.birthDate || birthInfo.birthDate;
+
   // Loading state
   if (profileLoading) {
     return (
       <div className={styles.container}>
-        <DreamBackground />
+        <DreamBackground birthDate={currentBirthDate} />
         <div className={styles.loadingContainer}>
           <div className={styles.loadingSpinner} />
           <p>{locale === 'ko' ? '로딩 중...' : 'Loading...'}</p>
@@ -111,7 +114,7 @@ function DreamContent() {
 
   return (
     <div className={styles.container}>
-      <DreamBackground />
+      <DreamBackground birthDate={currentBirthDate} />
       <BackButton />
 
       <main className={styles.main}>

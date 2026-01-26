@@ -36,7 +36,7 @@ export interface GraphNode {
   id: string;
   type: NodeType;
   label: string;
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
   score?: number;
 }
 
@@ -45,7 +45,7 @@ export interface GraphEdge {
   target: string;
   type: RelationType;
   weight: number;
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
 }
 
 export interface CompatibilityGraph {

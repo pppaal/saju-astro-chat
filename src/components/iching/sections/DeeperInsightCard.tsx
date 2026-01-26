@@ -5,15 +5,29 @@
  */
 
 import React from "react";
+import type { LuckyInfo } from '@/lib/iChing/iChingPremiumData';
 import styles from "../ResultDisplay.module.css";
+
+/** Nuclear hexagram calculation result */
+interface NuclearHexagram {
+  number: number;
+  name_ko: string;
+  name_en: string;
+}
+
+/** Related hexagrams calculation result */
+interface RelatedHexagrams {
+  inverted: { number: number; name_ko: string; name_en: string } | null;
+  opposite: { number: number; name_ko: string; name_en: string } | null;
+}
 
 /**
  * Component props interface
  */
 export interface DeeperInsightCardProps {
-  luckyInfo: any;
-  nuclearHexagram: any;
-  relatedHexagrams: any;
+  luckyInfo: LuckyInfo | null;
+  nuclearHexagram: NuclearHexagram | null;
+  relatedHexagrams: RelatedHexagrams | null;
   lang: "ko" | "en";
   translate: (key: string, fallback: string) => string;
 }
@@ -25,7 +39,7 @@ export interface DeeperInsightCardProps {
  * @param props - Component props
  * @returns JSX element or null if data is missing
  */
-export const DeeperInsightCard: React.FC<DeeperInsightCardProps> = React.memo(({
+export const DeeperInsightCard = React.memo<DeeperInsightCardProps>(({
   luckyInfo,
   nuclearHexagram,
   relatedHexagrams,

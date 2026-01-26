@@ -75,11 +75,20 @@ export default function NotificationBell() {
                   <div
                     key={notif.id}
                     className={`${styles.item} ${!notif.read ? styles.unread : ""}`}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => {
                       markAsRead(notif.id);
                       if (notif.link) {setIsOpen(false);}
                     }}
-                    role="listitem"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        markAsRead(notif.id);
+                        if (notif.link) {setIsOpen(false);}
+                      }
+                    }}
+                    aria-label={`${notif.title}. ${!notif.read ? (t("notifications.unread", "Unread") + ". ") : ""}${notif.message}`}
                   >
                     <div className={styles.itemIcon} aria-hidden="true">
                       {notif.avatar ? (

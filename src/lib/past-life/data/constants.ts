@@ -2,9 +2,9 @@
  * Constants for past-life analysis
  */
 
-import type { GeokgukType } from './types';
+import type { GeokgukType, BilingualText } from './types';
 
-const GEOKGUK_TALENTS: Record<GeokgukType, { ko: string; en: string }[]> = {
+export const GEOKGUK_TALENTS: Record<GeokgukType, { ko: string; en: string }[]> = {
   siksin: [
     { ko: "창작 능력", en: "Creative ability" },
     { ko: "미적 감각", en: "Aesthetic sense" },
@@ -64,7 +64,7 @@ const GEOKGUK_TALENTS: Record<GeokgukType, { ko: string; en: string }[]> = {
 };
 
 // 격국 이름 매핑 (한글 → 영문 타입)
-const GEOKGUK_NAME_MAPPING: Record<string, GeokgukType> = {
+export const GEOKGUK_NAME_MAPPING: Record<string, GeokgukType> = {
   '식신': 'siksin',
   '식신격': 'siksin',
   '상관': 'sanggwan',
@@ -85,7 +85,7 @@ const GEOKGUK_NAME_MAPPING: Record<string, GeokgukType> = {
 };
 
 // 카르마 부채 설정
-const KARMIC_DEBT_CONFIG = {
+export const KARMIC_DEBT_CONFIG = {
   MAX_ITEMS: 4,
   PATTERNS: {
     '원진': {
@@ -128,13 +128,13 @@ const KARMIC_DEBT_CONFIG = {
 } as const;
 
 // 토성 회귀 나이
-const SATURN_RETURN_AGES = {
+export const SATURN_RETURN_AGES = {
   FIRST: 29,
   SECOND: 58,
 } as const;
 
 // 카르마 패턴 매칭 (한글 + 한자)
-const KARMIC_PATTERN_MATCHERS: Record<string, string[]> = {
+export const KARMIC_PATTERN_MATCHERS: Record<string, string[]> = {
   '원진': ['원진', '元嗔'],
   '공망': ['공망', '空亡'],
   '겁살': ['겁살', '劫殺'],
@@ -147,16 +147,22 @@ const KARMIC_PATTERN_MATCHERS: Record<string, string[]> = {
 };
 
 // 유효한 천간 (Heavenly Stems)
-const VALID_HEAVENLY_STEMS = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'] as const;
+export const VALID_HEAVENLY_STEMS = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'] as const;
 
-// 행성 이름 별칭
-const PLANET_ALIASES = {
-  northNode: ['north', 'northnode'],
-  saturn: ['saturn'],
+// 기본값 (격국이 없을 때)
+export const DEFAULT_VALUES = {
+  SOUL_TYPE: { ko: "탐험가 영혼", en: "Explorer Soul" },
+  SOUL_TITLE: { ko: "탐험가의 영혼", en: "Explorer's Soul" },
+  SOUL_DESCRIPTION: {
+    ko: "다양한 경험을 통해 성장하는 영혼. 새로운 것을 배우고 도전하며 자신을 발견해가요.",
+    en: "A soul growing through diverse experiences. Learning new things and discovering yourself.",
+  },
+  SOUL_TRAITS: { ko: ["호기심", "적응력", "성장"], en: ["Curiosity", "Adaptability", "Growth"] },
+  SOUL_EMOJI: "🌟",
 } as const;
 
 // 폴백 이중언어 텍스트
-const FALLBACK_TEXTS = {
+export const FALLBACK_TEXTS = {
   PAST_LIFE: {
     likely: { ko: "다양한 역할을 경험한 영혼입니다.", en: "A soul that experienced various roles." },
     talents: { ko: "전생에서 쌓은 다양한 재능이 있어요.", en: "You have diverse talents from past lives." },
@@ -180,21 +186,24 @@ const FALLBACK_TEXTS = {
   DEFAULT_TALENTS: [
     { ko: "적응력", en: "Adaptability" },
     { ko: "학습 능력", en: "Learning ability" },
+    { ko: "회복력", en: "Resilience" },
+  ],
+};
 
 export const PLANET_ALIASES = {
-  northNode: ['North Node', 'northnode', 'true node'],
-  saturn: ['Saturn', 'saturn']
+  northNode: ['north', 'northnode'],
+  saturn: ['saturn']
 } as const;
 
 export const KARMA_SCORE_CONFIG = {
-  BASE_SCORE: 50,
+  BASE_SCORE: 65,
+  MIN_SCORE: 40,
   MAX_SCORE: 100,
-  MIN_SCORE: 0,
   BONUS: {
     GEOKGUK: 10,
-    NORTH_NODE: 10,
-    SATURN: 10,
-    DAY_MASTER: 10,
-    PER_KARMIC_DEBT: 5,
+    NORTH_NODE: 8,
+    SATURN: 5,
+    DAY_MASTER: 5,
+    PER_KARMIC_DEBT: 3,
   }
 } as const;

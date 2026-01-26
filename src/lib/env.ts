@@ -1,145 +1,214 @@
 /**
- * Runtime environment validation
- * This module validates critical environment variables at runtime
- * and provides type-safe access to them.
+ * Type-safe Environment Variables
+ *
+ * Provides a strongly-typed interface for accessing environment variables.
+ * Uses Zod for runtime validation and TypeScript for compile-time type safety.
+ *
+ * @example
+ * ```ts
+ * import { env } from '@/lib/env';
+ *
+ * // Type-safe access - env.DATABASE_URL is guaranteed to be string
+ * const db = await connectDatabase(env.DATABASE_URL);
+ *
+ * // Optional vars use ?? for defaults
+ * const port = env.PORT ?? '3000';
+ * ```
  */
 
-import { logger } from "@/lib/logger";
-
-// Required environment variables that must be present for the app to function
-const REQUIRED_SERVER_ENV = [
-  'NEXTAUTH_SECRET',
-  'NEXTAUTH_URL',
-  'DATABASE_URL',
-  'TOKEN_ENCRYPTION_KEY',
-] as const;
-
-// Required in production only
-const REQUIRED_PRODUCTION_ENV = [
-  'UPSTASH_REDIS_REST_URL',
-  'UPSTASH_REDIS_REST_TOKEN',
-] as const;
-
-// Warning-level: recommended but not strictly required
-const RECOMMENDED_ENV = [
-  'OPENAI_API_KEY',
-  'AI_BACKEND_URL',
-] as const;
-
-interface EnvValidationResult {
-  valid: boolean;
-  missing: string[];
-  warnings: string[];
-}
+import { z } from 'zod';
 
 /**
- * Validates environment variables at runtime
- * Call this early in app initialization to catch misconfigurations
+ * Environment variable schema
+ * Defines all environment variables with validation rules
  */
-export function validateEnv(): EnvValidationResult {
-  const isProduction = process.env.NODE_ENV === 'production';
-  const missing: string[] = [];
-  const warnings: string[] = [];
-
-  // Check required env vars
-  for (const key of REQUIRED_SERVER_ENV) {
-    if (!process.env[key]) {
-      missing.push(key);
-    }
-  }
-
-  // Check production-only env vars
-  if (isProduction) {
-    for (const key of REQUIRED_PRODUCTION_ENV) {
-      if (!process.env[key]) {
-        missing.push(key);
-      }
-    }
-  }
-
-  // Check recommended env vars (non-blocking)
-  for (const key of RECOMMENDED_ENV) {
-    if (!process.env[key]) {
-      warnings.push(key);
-    }
-  }
-
-  // Validate specific formats
-  const authSecret = process.env.NEXTAUTH_SECRET;
-  if (authSecret && authSecret.length < 32) {
-    missing.push('NEXTAUTH_SECRET (must be at least 32 characters)');
-  }
-
-  const tokenKey = process.env.TOKEN_ENCRYPTION_KEY;
-  if (tokenKey && tokenKey.length < 32) {
-    missing.push('TOKEN_ENCRYPTION_KEY (must be at least 32 characters)');
-  }
-
-  // Validate URLs in production
-  if (isProduction) {
-    const authUrl = process.env.NEXTAUTH_URL;
-    if (authUrl && !authUrl.startsWith('https://')) {
-      missing.push('NEXTAUTH_URL (must use HTTPS in production)');
-    }
-  }
-
-  return {
-    valid: missing.length === 0,
-    missing,
-    warnings,
-  };
-}
-
-/**
- * Logs environment validation results
- * Use this in server initialization
- */
-export function logEnvValidation(): void {
-  const result = validateEnv();
-
-  if (result.warnings.length > 0) {
-    logger.warn('[env] Recommended environment variables missing:', result.warnings.join(', '));
-  }
-
-  if (!result.valid) {
-    logger.error('[env] CRITICAL: Required environment variables missing:', result.missing.join(', '));
-    if (process.env.NODE_ENV === 'production') {
-      // In production, fail fast if critical env vars are missing
-      throw new Error(`Missing required environment variables: ${result.missing.join(', ')}`);
-    }
-  } else {
-    logger.info('[env] Environment validation passed');
-  }
-}
-
-/**
- * Type-safe environment variable access
- * Provides default values for development
- */
-export const env = {
-  // Auth
-  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || '',
-  NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+const envSchema = z.object({
+  // Node Environment
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
   // Database
-  DATABASE_URL: process.env.DATABASE_URL || '',
+  DATABASE_URL: z.string().url().min(1, 'DATABASE_URL is required'),
 
-  // API
-  ADMIN_API_TOKEN: process.env.ADMIN_API_TOKEN || '',
-  PUBLIC_API_TOKEN: process.env.PUBLIC_API_TOKEN || '',
+  // Authentication
+  NEXTAUTH_SECRET: z.string().min(32, 'NEXTAUTH_SECRET must be at least 32 characters'),
+  NEXTAUTH_URL: z.string().url().optional(),
 
-  // AI Backend
-  AI_BACKEND_URL: process.env.AI_BACKEND_URL || process.env.NEXT_PUBLIC_AI_BACKEND || '',
-  OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+  // Admin
+  ADMIN_API_TOKEN: z.string().optional(),
 
-  // Redis (Rate Limiting)
-  UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || '',
-  UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+  // Stripe
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 
-  // Security
-  TOKEN_ENCRYPTION_KEY: process.env.TOKEN_ENCRYPTION_KEY || '',
+  // Redis (Upstash)
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
 
-  // Feature flags
-  isProduction: process.env.NODE_ENV === 'production',
-  isDevelopment: process.env.NODE_ENV === 'development',
-} as const;
+  // OpenAI
+  OPENAI_API_KEY: z.string().optional(),
+
+  // Sentry
+  NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
+  SENTRY_AUTH_TOKEN: z.string().optional(),
+
+  // Firebase (Public)
+  NEXT_PUBLIC_FIREBASE_API_KEY: z.string().optional(),
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: z.string().optional(),
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID: z.string().optional(),
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: z.string().optional(),
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: z.string().optional(),
+  NEXT_PUBLIC_FIREBASE_APP_ID: z.string().optional(),
+  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: z.string().optional(),
+
+  // Firebase (Server)
+  FIREBASE_SERVICE_ACCOUNT: z.string().optional(),
+
+  // Web Push
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z.string().email().optional(),
+
+  // Analytics
+  NEXT_PUBLIC_GA_MEASUREMENT_ID: z.string().optional(),
+  NEXT_PUBLIC_CLARITY_PROJECT_ID: z.string().optional(),
+
+  // Email (Resend)
+  RESEND_API_KEY: z.string().optional(),
+
+  // Replicate AI
+  REPLICATE_API_TOKEN: z.string().optional(),
+
+  // Google OAuth
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+
+  // Kakao OAuth
+  KAKAO_CLIENT_ID: z.string().optional(),
+  KAKAO_CLIENT_SECRET: z.string().optional(),
+});
+
+/**
+ * Server-only environment variables schema
+ * These are required in production server environments
+ */
+const serverEnvSchema = envSchema.refine(
+  (env) => {
+    if (env.NODE_ENV === 'production') {
+      return (
+        env.ADMIN_API_TOKEN &&
+        env.STRIPE_SECRET_KEY &&
+        env.STRIPE_WEBHOOK_SECRET &&
+        env.UPSTASH_REDIS_REST_URL &&
+        env.UPSTASH_REDIS_REST_TOKEN
+      );
+    }
+    return true;
+  },
+  {
+    message: 'Production environment requires ADMIN_API_TOKEN, STRIPE_*, and UPSTASH_REDIS_* variables',
+  }
+);
+
+/**
+ * Parse and validate environment variables
+ * Throws if validation fails in production
+ */
+function parseEnv() {
+  const isServer = typeof window === 'undefined';
+  const schema = isServer ? serverEnvSchema : envSchema;
+
+  const parsed = schema.safeParse(process.env);
+
+  if (!parsed.success) {
+    console.error('❌ Invalid environment variables:', parsed.error.flatten().fieldErrors);
+
+    // Only throw in production to prevent breaking development
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Invalid environment variables - check console for details');
+    }
+
+    // In development, return partial env with defaults
+    return envSchema.parse({
+      ...process.env,
+      NODE_ENV: process.env.NODE_ENV || 'development',
+      DATABASE_URL: process.env.DATABASE_URL || '',
+      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'development-secret-min-32-chars-long!',
+    });
+  }
+
+  return parsed.data;
+}
+
+/**
+ * Validated and typed environment variables
+ *
+ * @example
+ * ```ts
+ * import { env } from '@/lib/env';
+ *
+ * // All required vars are guaranteed to exist
+ * const dbUrl = env.DATABASE_URL; // string
+ *
+ * // Optional vars are string | undefined
+ * const apiKey = env.OPENAI_API_KEY; // string | undefined
+ *
+ * // Use ?? for defaults
+ * const port = env.PORT ?? '3000';
+ * ```
+ */
+export const env = parseEnv();
+
+/**
+ * Type-safe environment variable type
+ */
+export type Env = z.infer<typeof envSchema>;
+
+/**
+ * Check if running in production
+ */
+export const isProduction = env.NODE_ENV === 'production';
+
+/**
+ * Check if running in development
+ */
+export const isDevelopment = env.NODE_ENV === 'development';
+
+/**
+ * Check if running in test
+ */
+export const isTest = env.NODE_ENV === 'test';
+
+/**
+ * Get required environment variable
+ * Throws if variable is not set
+ *
+ * @param key - Environment variable name
+ * @returns The environment variable value
+ * @throws Error if variable is not set
+ *
+ * @deprecated Use `env` object directly instead
+ */
+export function getRequiredEnv<K extends keyof Env>(key: K): NonNullable<Env[K]> {
+  const value = env[key];
+  if (value === undefined || value === null || value === '') {
+    throw new Error(`Missing required environment variable: ${String(key)}`);
+  }
+  return value as NonNullable<Env[K]>;
+}
+
+/**
+ * Get optional environment variable with default
+ *
+ * @param key - Environment variable name
+ * @param defaultValue - Default value if not set
+ * @returns The environment variable value or default
+ *
+ * @deprecated Use `env.VAR ?? 'default'` instead
+ */
+export function getOptionalEnv<K extends keyof Env>(
+  key: K,
+  defaultValue: string
+): string {
+  return (env[key] as string | undefined) ?? defaultValue;
+}

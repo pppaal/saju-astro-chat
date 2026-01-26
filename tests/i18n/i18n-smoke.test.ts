@@ -12,12 +12,12 @@ describe('i18n Smoke Tests', () => {
 
   describe('Locale Files (8)', () => {
     it('should have Korean locale', () => {
-      const filePath = resolve(localesDir, 'ko.json');
+      const filePath = resolve(localesDir, 'ko.ts');
       expect(existsSync(filePath)).toBe(true);
     });
 
     it('should have English locale', () => {
-      const filePath = resolve(localesDir, 'en.json');
+      const filePath = resolve(localesDir, 'en.ts');
       expect(existsSync(filePath)).toBe(true);
     });
 
@@ -63,10 +63,10 @@ describe('i18n Smoke Tests', () => {
 
   describe('i18n Summary', () => {
     it('should have all supported locale files', () => {
-      const locales = ['ko', 'en', 'ja', 'zh', 'es', 'fr', 'de', 'pt'];
+      const locales = ['ko.ts', 'en.ts', 'ja.json', 'zh.json', 'es.json', 'fr.json', 'de.json', 'pt.json'];
 
       locales.forEach((locale) => {
-        const filePath = resolve(localesDir, `${locale}.json`);
+        const filePath = resolve(localesDir, locale);
         expect(existsSync(filePath)).toBe(true);
       });
 

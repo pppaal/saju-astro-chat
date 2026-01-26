@@ -5,14 +5,15 @@
  */
 
 import React from "react";
+import type { SequenceAnalysis, HexagramPair } from '@/lib/iChing/ichingPatterns';
 import styles from "../ResultDisplay.module.css";
 
 /**
  * Component props interface
  */
 export interface SequenceAnalysisSectionProps {
-  sequenceData: any;
-  xuguaPairData: any;
+  sequenceData: SequenceAnalysis | null;
+  xuguaPairData: HexagramPair | null;
   lang: "ko" | "en";
   translate: (key: string, fallback: string) => string;
 }
@@ -24,7 +25,7 @@ export interface SequenceAnalysisSectionProps {
  * @param props - Component props
  * @returns JSX element or null if data is missing
  */
-export const SequenceAnalysisSection: React.FC<SequenceAnalysisSectionProps> = React.memo(({
+export const SequenceAnalysisSection = React.memo<SequenceAnalysisSectionProps>(({
   sequenceData,
   xuguaPairData,
   lang,

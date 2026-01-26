@@ -165,7 +165,7 @@ describe('cities/formatter', () => {
 
       it('should format various Asian cities', () => {
         expect(formatCityForDropdown('Beijing', 'CN', 'ko')).toBe('베이징, 중국');
-        expect(formatCityForDropdown('Taipei', 'TW', 'ko')).toBe('타이페이, 타이완');
+        expect(formatCityForDropdown('Taipei', 'TW', 'ko')).toBe('타이페이, 대만');
         expect(formatCityForDropdown('Hong Kong', 'HK', 'ko')).toBe('홍콩, 홍콩');
       });
     });
@@ -248,7 +248,7 @@ describe('cities/formatter', () => {
     });
 
     it('should handle Asian country codes', () => {
-      expect(getCountryNameInKorean('TW')).toBe('타이완');
+      expect(getCountryNameInKorean('TW')).toBe('대만');
       expect(getCountryNameInKorean('HK')).toBe('홍콩');
       expect(getCountryNameInKorean('SG')).toBe('싱가포르');
       expect(getCountryNameInKorean('VN')).toBe('베트남');

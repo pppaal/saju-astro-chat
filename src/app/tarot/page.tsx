@@ -504,12 +504,14 @@ export default function TarotHomePage() {
                     >
                       <span className={styles.recentIcon}>🕐</span>
                       <span className={styles.recentText}>{q}</span>
-                      <span
+                      <button
                         className={styles.recentDelete}
                         onClick={(e) => handleDeleteRecent(q, e)}
+                        aria-label={isKo ? "최근 질문 삭제" : "Delete recent question"}
+                        type="button"
                       >
                         ×
-                      </span>
+                      </button>
                     </button>
                   ))}
                 </div>

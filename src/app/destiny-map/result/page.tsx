@@ -375,14 +375,34 @@ export default function DestinyResultPage({
     }
   }, [lifePredictionTrend, result, sp, saveStatus]);
 
+  // Hooks must be called before any conditional returns
+  const handleReload = useCallback(() => window.location.reload(), []);
+
+  // Memoize merged astrology data for FunInsights
+  const mergedAstro = useMemo(() => {
+    const advAstro = result?.advancedAstrology || {};
+    return {
+      ...(result?.astro || result?.astrology || {}),
+      extraPoints: advAstro.extraPoints,
+      asteroids: advAstro.asteroids,
+      solarReturn: advAstro.solarReturn,
+      lunarReturn: advAstro.lunarReturn,
+      progressions: advAstro.progressions,
+      draconic: advAstro.draconic,
+      harmonics: advAstro.harmonics,
+      fixedStars: advAstro.fixedStars,
+      eclipses: advAstro.eclipses,
+      electional: advAstro.electional,
+      midpoints: advAstro.midpoints,
+    };
+  }, [result]);
+
   // ------------------------------------------------------------ //
   // ⏳ 상태별 렌더링
   // ------------------------------------------------------------ //
   if (loading) {
     return <AnalyzingLoader />;
   }
-
-  const handleReload = useCallback(() => window.location.reload(), []);
 
   if (error) {
     return (
@@ -425,25 +445,6 @@ export default function DestinyResultPage({
   // ------------------------------------------------------------ //
   const themeKeys = Object.keys(result?.themes || {});
   const lang: Lang = result?.lang === "en" ? "en" : "ko";
-
-  // Memoize merged astrology data for FunInsights
-  const mergedAstro = useMemo(() => {
-    const advAstro = result?.advancedAstrology || {};
-    return {
-      ...(result?.astro || result?.astrology || {}),
-      extraPoints: advAstro.extraPoints,
-      asteroids: advAstro.asteroids,
-      solarReturn: advAstro.solarReturn,
-      lunarReturn: advAstro.lunarReturn,
-      progressions: advAstro.progressions,
-      draconic: advAstro.draconic,
-      harmonics: advAstro.harmonics,
-      fixedStars: advAstro.fixedStars,
-      eclipses: advAstro.eclipses,
-      electional: advAstro.electional,
-      midpoints: advAstro.midpoints,
-    };
-  }, [result]);
 
   // 분석 기준일 포맷팅 - 사용자 위치(도시) 기준으로 표시
   const userCity = result?.profile?.city || "";

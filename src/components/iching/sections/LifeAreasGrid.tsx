@@ -5,13 +5,14 @@
  */
 
 import React from "react";
+import type { PremiumHexagramData } from '@/lib/iChing/iChingPremiumData';
 import styles from "../ResultDisplay.module.css";
 
 /**
  * Component props interface
  */
 export interface LifeAreasGridProps {
-  premiumData: any;
+  premiumData: PremiumHexagramData | null;
   lang: "ko" | "en";
   translate: (key: string, fallback: string) => string;
 }
@@ -23,7 +24,7 @@ export interface LifeAreasGridProps {
  * @param props - Component props
  * @returns JSX element or null if data is missing
  */
-export const LifeAreasGrid: React.FC<LifeAreasGridProps> = React.memo(({
+export const LifeAreasGrid = React.memo<LifeAreasGridProps>(({
   premiumData,
   lang,
   translate,

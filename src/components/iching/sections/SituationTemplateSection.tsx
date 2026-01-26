@@ -5,13 +5,14 @@
  */
 
 import React from "react";
+import type { EnhancedHexagramData } from '@/lib/iChing/types';
 import styles from "../ResultDisplay.module.css";
 
 /**
  * Component props interface
  */
 export interface SituationTemplateSectionProps {
-  enhancedData: any;
+  enhancedData: EnhancedHexagramData | null;
   question: string;
   translate: (key: string, fallback: string) => string;
 }
@@ -23,7 +24,7 @@ export interface SituationTemplateSectionProps {
  * @param props - Component props
  * @returns JSX element or null if data is missing
  */
-export const SituationTemplateSection: React.FC<SituationTemplateSectionProps> = React.memo(({
+export const SituationTemplateSection = React.memo<SituationTemplateSectionProps>(({
   enhancedData,
   question,
   translate,
@@ -41,7 +42,7 @@ export const SituationTemplateSection: React.FC<SituationTemplateSectionProps> =
           {translate("iching.yourQuestion", "Your Question")}
         </h3>
       </div>
-      <p className={styles.questionText}>"{question}"</p>
+      <p className={styles.questionText}>&ldquo;{question}&rdquo;</p>
 
       <div className={styles.situationAdvice}>
         <div className={styles.situationLabel}>

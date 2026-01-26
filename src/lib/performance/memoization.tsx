@@ -5,6 +5,8 @@
  */
 
 import { memo, useMemo, useCallback, useRef, useEffect, type ComponentType } from 'react';
+import { logger } from '@/lib/logger';
+
 
 // ============ Smart Memo Wrapper ============
 
@@ -55,7 +57,7 @@ export function shallowMemo<P extends Record<string, unknown>>(
  *
  * @example
  * const handleClick = useStableCallback((id: string) => {
- *   console.log('Clicked:', id);
+ *   logger.info('Clicked:', id);
  * });
  */
 export function useStableCallback<T extends (...args: never[]) => unknown>(
@@ -243,7 +245,9 @@ export function useRenderCount(componentName: string) {
   useEffect(() => {
     renderCount.current += 1;
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[Performance] ${componentName} rendered ${renderCount.current} times`);
+      // Performance tracking - intentionally using console in development
+      // eslint-disable-next-line no-console
+      logger.info(`[Performance] ${componentName} rendered ${renderCount.current} times`);
     }
   });
 
@@ -270,7 +274,9 @@ export function usePerformanceMeasure<T>(
       const start = performance.now();
       const result = factory();
       const end = performance.now();
-      console.log(`[Performance] ${label} took ${(end - start).toFixed(2)}ms`);
+      // Performance tracking - intentionally using console in development
+      // eslint-disable-next-line no-console
+      logger.info(`[Performance] ${label} took ${(end - start).toFixed(2)}ms`);
       return result;
     }
     return factory();

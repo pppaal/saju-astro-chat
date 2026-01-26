@@ -142,7 +142,20 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
       transition={{ delay: 0.3 }}
     >
       {/* 헤더 */}
-      <div className={styles.header} onClick={() => setIsExpanded(!isExpanded)}>
+      <div
+        className={styles.header}
+        role="button"
+        tabIndex={0}
+        onClick={() => setIsExpanded(!isExpanded)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsExpanded(!isExpanded);
+          }
+        }}
+        aria-expanded={isExpanded}
+        aria-label={isExpanded ? (locale === 'ko' ? 'AI 상담사 접기' : 'Collapse advisor chat') : (locale === 'ko' ? 'AI 상담사 펼치기' : 'Expand advisor chat')}
+      >
         <div className={styles.headerLeft}>
           <span className={styles.advisorIcon}>🔮</span>
           <div className={styles.headerText}>
@@ -150,7 +163,7 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
             <p>{locale === 'ko' ? '결과에 대해 더 물어보세요' : 'Ask more about your results'}</p>
           </div>
         </div>
-        <button className={styles.expandBtn}>
+        <button className={styles.expandBtn} aria-hidden="true" tabIndex={-1}>
           {isExpanded ? '▼' : '▲'}
         </button>
       </div>

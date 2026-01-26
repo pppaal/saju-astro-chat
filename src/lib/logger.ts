@@ -25,7 +25,7 @@ function toMeta(value: unknown): LogMetadata | undefined {
 // Simple logger that works in both browser and server
 export const logger = {
   info: (message: string, meta?: unknown) => {
-    console.log(`[INFO] ${message}`, toMeta(meta) || '');
+    console.info(`[INFO] ${message}`, toMeta(meta) || '');
   },
   warn: (message: string, meta?: unknown) => {
     console.warn(`[WARN] ${message}`, toMeta(meta) || '');

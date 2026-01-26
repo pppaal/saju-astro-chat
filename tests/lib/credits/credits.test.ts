@@ -137,8 +137,8 @@ describe("PLAN_CONFIG", () => {
   describe("premium plan", () => {
     const plan = PLAN_CONFIG.premium;
 
-    it("has 150 monthly credits", () => {
-      expect(plan.monthlyCredits).toBe(150);
+    it("has 200 monthly credits", () => {
+      expect(plan.monthlyCredits).toBe(200);
     });
 
     it("has compatibility limit of 10", () => {

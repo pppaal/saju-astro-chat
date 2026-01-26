@@ -116,7 +116,24 @@ export function buildDateRecommendationSection(
  * @param saju - Saju data structure
  * @returns Extracted saju data for date recommendations
  */
-export function extractSajuDataForRecommendation(saju: any): SajuData | null {
+interface SajuInput {
+  dayMaster?: {
+    heavenlyStem?: { name: string };
+    earthlyBranch?: { name: string };
+  };
+  pillars?: {
+    day?: {
+      heavenlyStem?: { name: string };
+      earthlyBranch?: { name: string };
+    };
+    month?: { earthlyBranch?: { name: string } };
+    year?: { earthlyBranch?: { name: string } };
+    hour?: { earthlyBranch?: { name: string } };
+  };
+  primaryYongsin?: string;
+}
+
+export function extractSajuDataForRecommendation(saju: SajuInput): SajuData | null {
   const dayStem = saju?.dayMaster?.heavenlyStem?.name || saju?.pillars?.day?.heavenlyStem?.name;
   const dayBranch = saju?.dayMaster?.earthlyBranch?.name || saju?.pillars?.day?.earthlyBranch?.name;
 

@@ -14,7 +14,7 @@ interface EmptyStateProps {
   className?: string;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({
+export function EmptyState({
   icon = '📭',
   title,
   description,
@@ -24,7 +24,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   actionButton,
   suggestions,
   className = '',
-}) => {
+}: EmptyStateProps) {
   return (
     <div className={`${styles.emptyState} ${className}`}>
       <div className={styles.iconContainer}>
@@ -74,7 +74,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 };
 
 // Preset empty states
-export const NoResultsFound: React.FC<{ onReset?: () => void }> = ({ onReset }) => (
+export const NoResultsFound = ({ onReset }: { onReset?: () => void }) => (
   <EmptyState
     icon="🔍"
     title="No results found"
@@ -84,7 +84,8 @@ export const NoResultsFound: React.FC<{ onReset?: () => void }> = ({ onReset }) 
   />
 );
 
-export const NoRecentQuestions: React.FC = () => (
+export function NoRecentQuestions() {
+  return (
   <EmptyState
     icon="💭"
     title="No recent questions yet"
@@ -95,9 +96,11 @@ export const NoRecentQuestions: React.FC = () => (
       "What career path suits me best?",
     ]}
   />
-);
+  );
+}
 
-export const NoSavedProfiles: React.FC = () => (
+export function NoSavedProfiles() {
+  return (
   <EmptyState
     icon="👤"
     title="No saved profiles"
@@ -105,9 +108,11 @@ export const NoSavedProfiles: React.FC = () => (
     actionLabel="Create your first profile"
     actionHref="/destiny-map"
   />
-);
+  );
+}
 
-export const NoCompatibilityResults: React.FC = () => (
+export function NoCompatibilityResults() {
+  return (
   <EmptyState
     icon="💔"
     title="No compatibility data"
@@ -115,9 +120,10 @@ export const NoCompatibilityResults: React.FC = () => (
     actionLabel="Check compatibility"
     actionHref="/compatibility"
   />
-);
+  );
+}
 
-export const ErrorState: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => (
+export const ErrorState = ({ onRetry }: { onRetry?: () => void }) => (
   <EmptyState
     icon="⚠️"
     title="Something went wrong"
@@ -127,7 +133,7 @@ export const ErrorState: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => (
   />
 );
 
-export const NetworkError: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => (
+export const NetworkError = ({ onRetry }: { onRetry?: () => void }) => (
   <EmptyState
     icon="📡"
     title="Connection lost"

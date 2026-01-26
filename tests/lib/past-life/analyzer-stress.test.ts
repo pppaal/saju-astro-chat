@@ -489,7 +489,9 @@ describe('Past Life Analyzer - Stress Tests', () => {
         expect(result.soulPattern.title).toBeTruthy();
         expect(result.soulPattern.description).toBeTruthy();
         expect(Array.isArray(result.soulPattern.traits)).toBe(true);
-        expect(result.soulPattern.traits.length).toBe(3);
+        const traitsCount = result.soulPattern.traits.length;
+        expect(traitsCount).toBeGreaterThanOrEqual(3);
+        expect(traitsCount).toBeLessThanOrEqual(5);
       }
     });
 

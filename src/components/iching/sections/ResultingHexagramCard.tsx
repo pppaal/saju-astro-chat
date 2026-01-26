@@ -6,6 +6,7 @@
 
 import React from "react";
 import { Hexagram } from "@/components/iching/types";
+import type { PremiumHexagramData } from '@/lib/iChing/iChingPremiumData';
 import styles from "../ResultDisplay.module.css";
 
 /**
@@ -13,7 +14,7 @@ import styles from "../ResultDisplay.module.css";
  */
 export interface ResultingHexagramCardProps {
   resultingHexagram: Hexagram | null;
-  resultingPremiumData: any;
+  resultingPremiumData: PremiumHexagramData | null;
   lang: "ko" | "en";
   translate: (key: string, fallback: string) => string;
 }
@@ -25,7 +26,7 @@ export interface ResultingHexagramCardProps {
  * @param props - Component props
  * @returns JSX element or null if no resulting hexagram
  */
-export const ResultingHexagramCard: React.FC<ResultingHexagramCardProps> = React.memo(({
+export const ResultingHexagramCard = React.memo<ResultingHexagramCardProps>(({
   resultingHexagram,
   resultingPremiumData,
   lang,

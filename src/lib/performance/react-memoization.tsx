@@ -6,6 +6,8 @@
 'use client';
 
 import { memo, useMemo, useCallback } from 'react';
+import { logger } from '@/lib/logger';
+
 import type { ComponentType, DependencyList } from 'react';
 
 /**
@@ -112,7 +114,7 @@ export function useRenderPerformance(componentName: string) {
     const entries = performance.getEntriesByName(measureName);
     const lastEntry = entries[entries.length - 1];
     if (lastEntry && lastEntry.duration > 16) {
-      console.warn(
+      logger.warn(
         `[Performance] ${componentName} render took ${lastEntry.duration.toFixed(2)}ms`
       );
     }

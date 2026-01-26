@@ -8,6 +8,8 @@
  */
 
 import { isJsonResponse } from './text-sanitization';
+import { logger } from '@/lib/logger';
+
 
 /**
  * Required sections for each fortune theme
@@ -161,7 +163,7 @@ function validateCrossReferences(text: string): ValidationWarning[] {
  * ```typescript
  * const warnings = validateSections('today', reportText);
  * if (warnings.length > 0) {
- *   console.warn('Report validation issues:', warnings);
+ *   logger.warn('Report validation issues:', warnings);
  * }
  * ```
  */

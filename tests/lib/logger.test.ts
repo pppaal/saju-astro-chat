@@ -6,13 +6,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { logger, logInfo, logError, logWarn, logDebug } from "@/lib/logger";
 
 describe("Logger", () => {
-  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+  let consoleInfoSpy: ReturnType<typeof vi.spyOn>;
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
   let consoleDebugSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    consoleInfoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
     consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     consoleDebugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
@@ -25,12 +25,12 @@ describe("Logger", () => {
   describe("logger.info", () => {
     it("should log info message", () => {
       logger.info("Test info message");
-      expect(consoleLogSpy).toHaveBeenCalledWith("[INFO] Test info message", "");
+      expect(consoleInfoSpy).toHaveBeenCalledWith("[INFO] Test info message", "");
     });
 
     it("should log info message with metadata object", () => {
       logger.info("User logged in", { userId: "123", action: "login" });
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(consoleInfoSpy).toHaveBeenCalledWith(
         "[INFO] User logged in",
         { userId: "123", action: "login" }
       );
@@ -38,12 +38,12 @@ describe("Logger", () => {
 
     it("should handle null metadata", () => {
       logger.info("Message", null);
-      expect(consoleLogSpy).toHaveBeenCalledWith("[INFO] Message", "");
+      expect(consoleInfoSpy).toHaveBeenCalledWith("[INFO] Message", "");
     });
 
     it("should handle undefined metadata", () => {
       logger.info("Message", undefined);
-      expect(consoleLogSpy).toHaveBeenCalledWith("[INFO] Message", "");
+      expect(consoleInfoSpy).toHaveBeenCalledWith("[INFO] Message", "");
     });
   });
 
@@ -107,7 +107,7 @@ describe("Logger", () => {
   describe("logInfo convenience function", () => {
     it("should call logger.info", () => {
       logInfo("Info message", { key: "value" });
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(consoleInfoSpy).toHaveBeenCalledWith(
         "[INFO] Info message",
         { key: "value" }
       );
@@ -185,7 +185,7 @@ describe("Logger", () => {
   describe("Metadata handling", () => {
     it("should wrap primitive values in object", () => {
       logger.info("Number value", 42);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(consoleInfoSpy).toHaveBeenCalledWith(
         "[INFO] Number value",
         { value: 42 }
       );
@@ -193,7 +193,7 @@ describe("Logger", () => {
 
     it("should wrap string values in object", () => {
       logger.info("String value", "test string");
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(consoleInfoSpy).toHaveBeenCalledWith(
         "[INFO] String value",
         { value: "test string" }
       );
@@ -201,7 +201,7 @@ describe("Logger", () => {
 
     it("should wrap array values in object", () => {
       logger.info("Array value", [1, 2, 3]);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(consoleInfoSpy).toHaveBeenCalledWith(
         "[INFO] Array value",
         { value: [1, 2, 3] }
       );
@@ -209,7 +209,7 @@ describe("Logger", () => {
 
     it("should pass object values directly", () => {
       logger.info("Object value", { a: 1, b: 2 });
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(consoleInfoSpy).toHaveBeenCalledWith(
         "[INFO] Object value",
         { a: 1, b: 2 }
       );
@@ -219,18 +219,18 @@ describe("Logger", () => {
   describe("Edge cases", () => {
     it("should handle empty string message", () => {
       logger.info("");
-      expect(consoleLogSpy).toHaveBeenCalledWith("[INFO] ", "");
+      expect(consoleInfoSpy).toHaveBeenCalledWith("[INFO] ", "");
     });
 
     it("should handle very long messages", () => {
       const longMessage = "a".repeat(10000);
       logger.info(longMessage);
-      expect(consoleLogSpy).toHaveBeenCalledWith(`[INFO] ${longMessage}`, "");
+      expect(consoleInfoSpy).toHaveBeenCalledWith(`[INFO] ${longMessage}`, "");
     });
 
     it("should handle special characters in message", () => {
       logger.info("Special chars: 한글 日本語 émoji 🎉");
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(consoleInfoSpy).toHaveBeenCalledWith(
         "[INFO] Special chars: 한글 日本語 émoji 🎉",
         ""
       );
@@ -245,7 +245,7 @@ describe("Logger", () => {
         },
       };
       logger.info("Nested", nested);
-      expect(consoleLogSpy).toHaveBeenCalledWith("[INFO] Nested", nested);
+      expect(consoleInfoSpy).toHaveBeenCalledWith("[INFO] Nested", nested);
     });
 
     it("should handle circular references in Error", () => {

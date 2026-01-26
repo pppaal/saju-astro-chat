@@ -132,7 +132,7 @@ describe("PLAN_CONFIG", () => {
 
   describe("premium plan", () => {
     it("has correct monthly credits", () => {
-      expect(PLAN_CONFIG.premium.monthlyCredits).toBe(150);
+      expect(PLAN_CONFIG.premium.monthlyCredits).toBe(200);
     });
 
     it("has compatibility limit of 10", () => {
@@ -345,7 +345,7 @@ describe("Plan upgrade paths", () => {
 
     expect(getUpgradeCredits("free", "starter")).toBe(18); // 25 - 7
     expect(getUpgradeCredits("starter", "pro")).toBe(55); // 80 - 25
-    expect(getUpgradeCredits("pro", "premium")).toBe(70); // 150 - 80
+    expect(getUpgradeCredits("pro", "premium")).toBe(120); // 200 - 80
   });
 });
 

@@ -7,7 +7,7 @@ interface GroupRolesCardProps {
   t: (key: string, fallback: string) => string;
 }
 
-export const GroupRolesCard: React.FC<GroupRolesCardProps> = React.memo(({ groupRoles, t }) => {
+export const GroupRolesCard = React.memo<GroupRolesCardProps>(({ groupRoles, t }) => {
   const hasAnyRoles = Object.values(groupRoles).some(arr => arr && arr.length > 0);
   if (!hasAnyRoles) {return null;}
 

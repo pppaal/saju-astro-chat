@@ -24,7 +24,7 @@ export interface ChangingLinesSectionProps {
  * @param props - Component props
  * @returns JSX element or null if no changing lines
  */
-export const ChangingLinesSection: React.FC<ChangingLinesSectionProps> = React.memo(({
+export const ChangingLinesSection = React.memo<ChangingLinesSectionProps>(({
   changingLines,
   lang,
   translate,

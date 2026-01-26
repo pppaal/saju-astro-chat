@@ -229,6 +229,7 @@ export async function preloadHexagramRange(
 export function clearEnhancedDataCache(): void {
   cache.en.clear();
   cache.ko.clear();
+  indexData = null;
 }
 
 /**

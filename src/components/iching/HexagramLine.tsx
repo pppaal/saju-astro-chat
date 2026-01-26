@@ -11,14 +11,14 @@ interface HexagramLineProps {
   locale?: string;
 }
 
-const HexagramLine: React.FC<HexagramLineProps> = ({
+function HexagramLine({
   type,
   isChanging,
   onClick,
   clickable = false,
   lineIndex,
   locale = 'ko'
-}) => {
+}: HexagramLineProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   // Gradient colors need to stay as inline styles (dynamic gradients)

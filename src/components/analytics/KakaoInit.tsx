@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import { logger } from '@/lib/logger';
+
 
 export function KakaoInit() {
   useEffect(() => {
@@ -12,7 +14,7 @@ export function KakaoInit() {
         try {
           window.Kakao.init(kakaoKey);
         } catch (error) {
-          console.error("Failed to initialize Kakao SDK:", error);
+          logger.error("Failed to initialize Kakao SDK:", error);
         }
       }
     };

@@ -131,6 +131,8 @@ export default function TarotHistoryPage() {
         <button
           className={`${styles.statsToggle} ${showStats ? styles.active : ""}`}
           onClick={() => setShowStats(!showStats)}
+          aria-label={isKo ? (showStats ? "통계 숨기기" : "통계 보기") : (showStats ? "Hide statistics" : "Show statistics")}
+          aria-expanded={showStats}
         >
           📊
         </button>
@@ -217,7 +219,16 @@ export default function TarotHistoryPage() {
             <motion.div
               key={reading.id}
               className={styles.readingCard}
+              role="button"
+              tabIndex={0}
               onClick={() => handleViewReading(reading)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleViewReading(reading);
+                }
+              }}
+              aria-label={`View ${reading.spreadName || reading.spread.title} reading from ${new Date(reading.timestamp).toLocaleDateString()}`}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
             >

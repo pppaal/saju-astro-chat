@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { logger } from '@/lib/logger';
+
 import { useRouter } from 'next/navigation';
 import { TOTAL_ICP_QUESTIONS, icpQuestions, type ICPQuestion } from '@/lib/icp/questions';
 import type { ICPQuizAnswers } from '@/lib/icp/types';
@@ -147,7 +149,7 @@ export default function ICPQuizPage() {
       localStorage.removeItem('icpQuizPage');
       router.push('/icp/result');
     } catch (error) {
-      console.error('[ICP Quiz] Error saving answers:', error);
+      logger.error('[ICP Quiz] Error saving answers:', error);
       showToast(
         isKo ? '결과 저장 중 오류가 발생했습니다.' : 'Error saving results. Please try again.',
         'error'

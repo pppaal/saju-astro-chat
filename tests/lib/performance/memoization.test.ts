@@ -364,14 +364,15 @@ describe('useRenderCount', () => {
     const originalEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = 'development';
 
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
 
     const { rerender } = renderHook(() => useRenderCount('TestComponent'));
 
     rerender();
 
     expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[Performance] TestComponent rendered')
+      expect.stringContaining('[INFO] [Performance] TestComponent rendered'),
+      ""
     );
 
     consoleSpy.mockRestore();
@@ -382,7 +383,7 @@ describe('useRenderCount', () => {
     const originalEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = 'production';
 
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
 
     const { rerender } = renderHook(() => useRenderCount('TestComponent'));
 
@@ -401,15 +402,17 @@ describe('usePerformanceMeasure', () => {
     process.env.NODE_ENV = 'development';
 
     const factory = vi.fn(() => 'result');
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
 
     const { result } = renderHook(() => usePerformanceMeasure('TestComputation', factory, []));
 
     expect(result.current).toBe('result');
     expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[Performance] TestComputation took')
+      expect.stringContaining('[INFO] [Performance] TestComputation took'),
+      ""
     );
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('ms'));
+    const firstCall = consoleSpy.mock.calls[0]?.[0] ?? "";
+    expect(firstCall).toContain("ms");
 
     consoleSpy.mockRestore();
     process.env.NODE_ENV = originalEnv;
@@ -420,7 +423,7 @@ describe('usePerformanceMeasure', () => {
     process.env.NODE_ENV = 'production';
 
     const factory = vi.fn(() => 'result');
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
 
     const { result } = renderHook(() => usePerformanceMeasure('TestComputation', factory, []));
 

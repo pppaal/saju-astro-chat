@@ -178,10 +178,20 @@ export default function NotificationsPage() {
               <div
                 key={notif.id}
                 className={`${styles.item} ${!notif.read ? styles.unread : ""}`}
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   if (!notif.read) {markAsRead(notif.id);}
                   if (notif.link) {window.location.href = notif.link;}
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (!notif.read) {markAsRead(notif.id);}
+                    if (notif.link) {window.location.href = notif.link;}
+                  }
+                }}
+                aria-label={`${notif.title}. ${!notif.read ? 'Unread notification.' : ''} ${notif.link ? 'Click to view details.' : ''}`}
               >
                 <div className={styles.itemIcon}>
                   {notif.avatar ? (

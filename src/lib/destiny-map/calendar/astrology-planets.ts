@@ -21,6 +21,8 @@
  */
 
 import { ZODIAC_TO_ELEMENT } from './constants';
+import { logger } from '@/lib/logger';
+
 import { normalizeElement } from './utils';
 
 /**
@@ -227,19 +229,19 @@ export function getPlanetSign(
  * @example
  * // 수성 역행 확인
  * if (isRetrograde(new Date(2025, 3, 15), 'mercury')) {
- *   console.log('Mercury is retrograde - avoid signing contracts');
+ *   logger.info('Mercury is retrograde - avoid signing contracts');
  * }
  *
  * @example
  * // 금성 역행 확인
  * if (isRetrograde(new Date(2025, 5, 1), 'venus')) {
- *   console.log('Venus is retrograde - review relationships');
+ *   logger.info('Venus is retrograde - review relationships');
  * }
  *
  * @example
  * // 토성 역행 확인 (장기적 영향)
  * if (isRetrograde(new Date(2025, 9, 1), 'saturn')) {
- *   console.log('Saturn is retrograde - internal discipline focus');
+ *   logger.info('Saturn is retrograde - internal discipline focus');
  * }
  */
 export function isRetrograde(date: Date, planet: RetrogradePlanet): boolean {

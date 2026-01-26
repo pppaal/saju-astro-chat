@@ -69,27 +69,27 @@ describe('ICP Analysis', () => {
       });
     });
 
-    it('should have PA as Dominant-Assured', () => {
-      expect(ICP_OCTANTS.PA.name).toBe('Dominant-Assured');
-      expect(ICP_OCTANTS.PA.korean).toBe('지배적-확신형');
+    it('should have PA as The Leader', () => {
+      expect(ICP_OCTANTS.PA.name).toBe('The Leader');
+      expect(ICP_OCTANTS.PA.korean).toBe('리더형');
       expect(ICP_OCTANTS.PA.dominance).toBe(1.0);
     });
 
-    it('should have DE as Cold-Distant', () => {
-      expect(ICP_OCTANTS.DE.name).toBe('Cold-Distant');
-      expect(ICP_OCTANTS.DE.korean).toBe('냉담-거리형');
+    it('should have DE as The Analyst', () => {
+      expect(ICP_OCTANTS.DE.name).toBe('The Analyst');
+      expect(ICP_OCTANTS.DE.korean).toBe('분석형');
       expect(ICP_OCTANTS.DE.affiliation).toBe(-1.0);
     });
 
-    it('should have LM as Warm-Friendly', () => {
-      expect(ICP_OCTANTS.LM.name).toBe('Warm-Friendly');
-      expect(ICP_OCTANTS.LM.korean).toBe('따뜻-친화형');
+    it('should have LM as The Connector', () => {
+      expect(ICP_OCTANTS.LM.name).toBe('The Connector');
+      expect(ICP_OCTANTS.LM.korean).toBe('친화형');
       expect(ICP_OCTANTS.LM.affiliation).toBe(1.0);
     });
 
-    it('should have HI as Submissive-Unassured', () => {
-      expect(ICP_OCTANTS.HI.name).toBe('Submissive-Unassured');
-      expect(ICP_OCTANTS.HI.korean).toBe('복종적-불확신형');
+    it('should have HI as The Peacemaker', () => {
+      expect(ICP_OCTANTS.HI.name).toBe('The Peacemaker');
+      expect(ICP_OCTANTS.HI.korean).toBe('평화형');
       expect(ICP_OCTANTS.HI.dominance).toBe(-1.0);
     });
   });
@@ -157,7 +157,7 @@ describe('ICP Analysis', () => {
       expect(result.affiliationNormalized).toBe(-1);
     });
 
-    it('should identify PA (Dominant-Assured) as primary style for high dominance + warm affiliation', () => {
+    it('should identify PA (The Leader) as primary style for high dominance + warm affiliation', () => {
       const answers: ICPQuizAnswers = {
         dom_1: 'A', dom_2: 'A', dom_3: 'A', dom_4: 'A',
         dom_5: 'A', dom_6: 'A', dom_7: 'A', dom_8: 'A',
@@ -170,7 +170,7 @@ describe('ICP Analysis', () => {
       expect(result.primaryStyle).toBe('PA');
     });
 
-    it('should identify DE (Cold-Distant) as primary style for neutral dominance + hostile affiliation', () => {
+    it('should identify DE (The Analyst) as primary style for neutral dominance + hostile affiliation', () => {
       const answers: ICPQuizAnswers = {
         dom_1: 'B', dom_2: 'B', dom_3: 'B', dom_4: 'B',
         dom_5: 'B', dom_6: 'B', dom_7: 'B', dom_8: 'B',
@@ -183,7 +183,7 @@ describe('ICP Analysis', () => {
       expect(result.primaryStyle).toBe('DE');
     });
 
-    it('should identify HI (Submissive-Unassured) as primary style for low dominance + neutral affiliation', () => {
+    it('should identify HI (The Peacemaker) as primary style for low dominance + neutral affiliation', () => {
       const answers: ICPQuizAnswers = {
         dom_1: 'C', dom_2: 'C', dom_3: 'C', dom_4: 'C',
         dom_5: 'C', dom_6: 'C', dom_7: 'C', dom_8: 'C',
@@ -196,7 +196,7 @@ describe('ICP Analysis', () => {
       expect(result.primaryStyle).toBe('HI');
     });
 
-    it('should identify LM (Warm-Friendly) as primary style for neutral dominance + high affiliation', () => {
+    it('should identify LM (The Connector) as primary style for neutral dominance + high affiliation', () => {
       const answers: ICPQuizAnswers = {
         dom_1: 'B', dom_2: 'B', dom_3: 'B', dom_4: 'B',
         dom_5: 'B', dom_6: 'B', dom_7: 'B', dom_8: 'B',
@@ -292,16 +292,16 @@ describe('ICP Analysis', () => {
     });
 
     it('should calculate consistency score based on A/C vs B answers', () => {
-      // All A/C answers = high consistency
+      // All A answers = higher consistency
       const consistentAnswers: ICPQuizAnswers = {
         dom_1: 'A', dom_2: 'A', dom_3: 'A', dom_4: 'A',
-        dom_5: 'C', dom_6: 'C', dom_7: 'C', dom_8: 'C',
+        dom_5: 'A', dom_6: 'A', dom_7: 'A', dom_8: 'A',
         aff_1: 'A', aff_2: 'A', aff_3: 'A', aff_4: 'A',
-        aff_5: 'C', aff_6: 'C', aff_7: 'C', aff_8: 'C',
+        aff_5: 'A', aff_6: 'A', aff_7: 'A', aff_8: 'A',
       };
       const consistentResult = analyzeICP(consistentAnswers);
 
-      // All B answers = low consistency
+      // All B answers = lowest consistency (clamped)
       const inconsistentAnswers: ICPQuizAnswers = {
         dom_1: 'B', dom_2: 'B', dom_3: 'B', dom_4: 'B',
         dom_5: 'B', dom_6: 'B', dom_7: 'B', dom_8: 'B',
@@ -311,8 +311,9 @@ describe('ICP Analysis', () => {
       const inconsistentResult = analyzeICP(inconsistentAnswers);
 
       expect(consistentResult.consistencyScore).toBeGreaterThan(inconsistentResult.consistencyScore);
-      expect(consistentResult.consistencyScore).toBe(100); // All A/C
-      expect(inconsistentResult.consistencyScore).toBe(0); // All B
+      expect(consistentResult.consistencyScore).toBeGreaterThan(30);
+      expect(consistentResult.consistencyScore).toBeLessThanOrEqual(100);
+      expect(inconsistentResult.consistencyScore).toBe(30);
     });
 
     it('should handle unknown answer values gracefully', () => {

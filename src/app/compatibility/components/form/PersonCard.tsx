@@ -31,14 +31,14 @@ interface PersonCardProps {
   showCircleDropdown: boolean;
   locale: string;
   t: (key: string, fallback: string) => string;
-  onUpdatePerson: (idx: number, field: string, value: any) => void;
+  onUpdatePerson: <K extends keyof PersonData>(idx: number, field: K, value: PersonData[K]) => void;
   onSetPersons: React.Dispatch<React.SetStateAction<PersonData[]>>;
   onPickCity: (idx: number, city: CityResult) => void;
   onToggleCircleDropdown: () => void;
   onFillFromCircle: (idx: number, person: CirclePerson) => void;
 }
 
-export const PersonCard: React.FC<PersonCardProps> = React.memo(({
+export const PersonCard = React.memo<PersonCardProps>(({
   person,
   index,
   isAuthenticated,

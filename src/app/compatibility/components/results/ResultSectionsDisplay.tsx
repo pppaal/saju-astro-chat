@@ -8,7 +8,7 @@ interface ResultSectionsDisplayProps {
   t: (key: string, fallback: string) => string;
 }
 
-export const ResultSectionsDisplay: React.FC<ResultSectionsDisplayProps> = React.memo(({ sections, t }) => {
+export const ResultSectionsDisplay = React.memo<ResultSectionsDisplayProps>(({ sections, t }) => {
   if (sections.length === 0) {return null;}
 
   return (

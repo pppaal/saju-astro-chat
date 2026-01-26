@@ -272,44 +272,49 @@ const FunInsights = memo(function FunInsights({ saju, astro, lang = "ko", theme 
     return getCombinedLifeTheme(saju, lang);
   }, [saju, lang]);
 
-  if (!data) {
-    return null;
-  }
-
+  // Hooks must be called before conditional returns
   // 오행 정규화 (탭 컴포넌트에 전달할 데이터보다 먼저 정의) - useMemo로 메모이제이션
   const normalizedElements = useMemo(() => {
+    if (!data) return [];
     const totalElements = Object.values(data.fiveElements).reduce((a, b) => (a as number) + (b as number), 0) as number;
     return Object.entries(data.fiveElements).map(([el, val]) => ({
       element: el,
       value: totalElements > 0 ? Math.round(((val as number) / totalElements) * 100) : 20,
       raw: val as number,
     })).sort((a, b) => b.value - a.value);
-  }, [data.fiveElements]);
+  }, [data]);
 
   // 탭 컴포넌트에 전달할 데이터 - useMemo로 메모이제이션
-  const tabData = useMemo(() => ({
-    dayMasterName: data.dayMasterName,
-    dayMasterInfo: data.dayMasterInfo,
-    dayElement: data.dayElement,
-    fiveElements: data.fiveElements,
-    strongest: data.strongest,
-    weakest: data.weakest,
-    sunSign: data.sunSign,
-    moonSign: data.moonSign,
-    ascSign: data.ascSign,
-    personalityAnalysis: getPersonalityAnalysis(saju, astro, lang),
-    loveAnalysis: getLoveAnalysis(saju, astro, lang),
-    careerAnalysis: getCareerAnalysis(saju, astro, lang),
-    karmaAnalysis: getKarmaAnalysis(saju, astro, lang),
-    healthAdvanced: null,
-    sibsinAnalysis: data.sibsinAnalysis,
-    healthAnalysis: data.healthAnalysis,
-    crossAnalysis: data.crossAnalysis,
-    currentFlow: data.currentFlow,
-    chironInsight: data.chironInsight,
-    luckyItems: data.luckyItems,
-    normalizedElements, // 오행 균형 차트용
-  } as unknown as TabData), [data, saju, astro, lang, normalizedElements]);
+  const tabData = useMemo(() => {
+    if (!data) return null;
+    return {
+      dayMasterName: data.dayMasterName,
+      dayMasterInfo: data.dayMasterInfo,
+      dayElement: data.dayElement,
+      fiveElements: data.fiveElements,
+      strongest: data.strongest,
+      weakest: data.weakest,
+      sunSign: data.sunSign,
+      moonSign: data.moonSign,
+      ascSign: data.ascSign,
+      personalityAnalysis: getPersonalityAnalysis(saju, astro, lang),
+      loveAnalysis: getLoveAnalysis(saju, astro, lang),
+      careerAnalysis: getCareerAnalysis(saju, astro, lang),
+      karmaAnalysis: getKarmaAnalysis(saju, astro, lang),
+      healthAdvanced: null,
+      sibsinAnalysis: data.sibsinAnalysis,
+      healthAnalysis: data.healthAnalysis,
+      crossAnalysis: data.crossAnalysis,
+      currentFlow: data.currentFlow,
+      chironInsight: data.chironInsight,
+      luckyItems: data.luckyItems,
+      normalizedElements, // 오행 균형 차트용
+    } as unknown as TabData;
+  }, [data, saju, astro, lang, normalizedElements]);
+
+  if (!data) {
+    return null;
+  }
 
   const sunData = data.sunSign ? zodiacData[data.sunSign] : null;
   const moonData = data.moonSign ? zodiacData[data.moonSign] : null;

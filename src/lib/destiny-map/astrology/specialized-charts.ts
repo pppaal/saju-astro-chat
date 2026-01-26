@@ -71,8 +71,8 @@ export interface SpecializedChartsInput {
  *   currentAge: 34
  * });
  *
- * console.log(`Soul Purpose (Draconic Sun): ${draconic.chart.sun.sign}`);
- * console.log(`Natal vs Draconic Sun: ${draconic.comparison.sunComparison}`);
+ * logger.info(`Soul Purpose (Draconic Sun): ${draconic.chart.sun.sign}`);
+ * logger.info(`Natal vs Draconic Sun: ${draconic.comparison.sunComparison}`);
  * ```
  */
 export async function calculateDraconicChartAnalysis(
@@ -160,16 +160,16 @@ export async function calculateDraconicChartAnalysis(
  * });
  *
  * // Check creativity (5th harmonic)
- * console.log(`Creative talents: ${harmonics.h5.planets[0].sign}`);
+ * logger.info(`Creative talents: ${harmonics.h5.planets[0].sign}`);
  *
  * // Check spiritual gifts (7th harmonic)
- * console.log(`Spiritual insights: ${harmonics.h7.planets[0].sign}`);
+ * logger.info(`Spiritual insights: ${harmonics.h7.planets[0].sign}`);
  *
  * // Check mastery (9th harmonic)
- * console.log(`Areas of mastery: ${harmonics.h9.planets[0].sign}`);
+ * logger.info(`Areas of mastery: ${harmonics.h9.planets[0].sign}`);
  *
  * // Overall harmonic strengths
- * console.log(`Profile: ${harmonics.profile.dominantHarmonics}`);
+ * logger.info(`Profile: ${harmonics.profile.dominantHarmonics}`);
  * ```
  */
 export async function calculateHarmonicChartsAnalysis(
@@ -236,13 +236,13 @@ export async function calculateHarmonicChartsAnalysis(
  * });
  *
  * // Soul purpose
- * console.log(`Soul Sun: ${specialized.draconic.chart.sun.sign}`);
+ * logger.info(`Soul Sun: ${specialized.draconic.chart.sun.sign}`);
  *
  * // Creative talents
- * console.log(`Creative H5: ${specialized.harmonics.h5.planets[0].sign}`);
+ * logger.info(`Creative H5: ${specialized.harmonics.h5.planets[0].sign}`);
  *
  * // Spiritual gifts
- * console.log(`Mystical H7: ${specialized.harmonics.h7.planets[0].sign}`);
+ * logger.info(`Mystical H7: ${specialized.harmonics.h7.planets[0].sign}`);
  * ```
  */
 export async function calculateAllSpecializedCharts(

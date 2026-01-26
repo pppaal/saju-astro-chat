@@ -2,6 +2,8 @@
 
 // src/components/calendar/BirthInfoForm.tsx
 import React from 'react';
+import { logger } from '@/lib/logger';
+
 import { useSession } from 'next-auth/react';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
@@ -68,7 +70,7 @@ export default function BirthInfoForm({
 
   const handleLoadProfile = async () => {
     if (status !== 'authenticated' || !session?.user?.id) {
-      console.warn('User not authenticated or session missing');
+      logger.warn('User not authenticated or session missing');
       return;
     }
 

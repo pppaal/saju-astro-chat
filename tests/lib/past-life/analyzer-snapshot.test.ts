@@ -16,13 +16,13 @@ const REFERENCE_OUTPUTS = {
   ARTIST_KO: {
     soulType: '창조자 영혼',
     emoji: '🎨',
-    traitsCount: 3,
+    traitsCount: 5,
     minScore: 60,
   },
   LEADER_KO: {
     soulType: '지도자 영혼',
     emoji: '👑',
-    traitsCount: 3,
+    traitsCount: 5,
     minScore: 60,
   },
   EXPLORER_KO: {

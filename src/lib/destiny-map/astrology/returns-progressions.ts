@@ -87,7 +87,7 @@ export interface ReturnsProgressionsInput {
  *   currentDate: { year: 2024, month: 1, day: 13 }
  * });
  *
- * console.log(`Solar Return ASC: ${solarReturn.summary.ascendant.sign}`);
+ * logger.info(`Solar Return ASC: ${solarReturn.summary.ascendant.sign}`);
  * ```
  */
 export async function calculateSolarReturnChart(
@@ -141,7 +141,7 @@ export async function calculateSolarReturnChart(
  *   currentDate: { year: 2024, month: 1, day: 13 }
  * });
  *
- * console.log(`Lunar Return Moon: ${lunarReturn.summary.moon.sign}`);
+ * logger.info(`Lunar Return Moon: ${lunarReturn.summary.moon.sign}`);
  * ```
  */
 export async function calculateLunarReturnChart(
@@ -203,7 +203,7 @@ export async function calculateLunarReturnChart(
  *   currentDate: { year: 2024, month: 1, day: 13 }
  * });
  *
- * console.log(`Progressed Moon phase: ${progressions.moonPhase.phase}`);
+ * logger.info(`Progressed Moon phase: ${progressions.moonPhase.phase}`);
  * ```
  */
 export async function calculateSecondaryProgressionsChart(
@@ -276,7 +276,7 @@ export async function calculateSecondaryProgressionsChart(
  *   currentDate: { year: 2024, month: 1, day: 13 }
  * });
  *
- * console.log(`Solar Arc Sun: ${solarArc.chart.planets[0].sign}`);
+ * logger.info(`Solar Arc Sun: ${solarArc.chart.planets[0].sign}`);
  * ```
  */
 export async function calculateSolarArcChart(
@@ -334,8 +334,8 @@ export async function calculateSolarArcChart(
  *   includeSolarArc: true
  * });
  *
- * console.log(`Secondary Moon: ${progressions.secondary.chart.planets[1].sign}`);
- * console.log(`Solar Arc Sun: ${progressions.solarArc?.chart.planets[0].sign}`);
+ * logger.info(`Secondary Moon: ${progressions.secondary.chart.planets[1].sign}`);
+ * logger.info(`Solar Arc Sun: ${progressions.solarArc?.chart.planets[0].sign}`);
  * ```
  */
 export async function calculateAllProgressions(

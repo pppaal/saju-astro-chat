@@ -70,6 +70,7 @@ export default function CalendarMainView({
   const MONTHS = locale === "ko" ? MONTHS_KO : MONTHS_EN;
 
   // Year summary calculation
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const yearSummary = useMemo(() => {
     if (!data?.allDates) {return null;}
 
@@ -90,6 +91,7 @@ export default function CalendarMainView({
   }, [data?.allDates, year]);
 
   // Monthly fortune data for graph
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const fortuneData = useMemo(() => {
     if (!data?.allDates) {return [];}
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -108,6 +110,7 @@ export default function CalendarMainView({
   }, [data?.allDates, year, month]);
 
   // Generate month days array
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const getMonthDays = useCallback(() => {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
@@ -129,6 +132,7 @@ export default function CalendarMainView({
     return days;
   }, [year, month]);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const getDateInfo = useCallback((date: Date): ImportantDate | undefined => {
     if (!data?.allDates) {return undefined;}
     const y = date.getFullYear();

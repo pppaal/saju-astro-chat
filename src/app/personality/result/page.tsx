@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
+import { logger } from '@/lib/logger';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
@@ -220,7 +222,7 @@ export default function ResultPage() {
         maxRetries: 3,
         timeoutMs: 15000,
         onRetry: (attempt, error, delay) => {
-          console.log(`[Persona Save] Retry ${attempt} after ${delay}ms: ${error.message}`);
+          logger.info(`[Persona Save] Retry ${attempt} after ${delay}ms: ${error.message}`);
         },
       });
 
@@ -232,7 +234,7 @@ export default function ResultPage() {
       }
     } catch (error) {
       if (error instanceof FetchWithRetryError) {
-        console.error('[Persona Save] Failed after retries:', error.message);
+        logger.error('[Persona Save] Failed after retries:', error.message);
       }
       setSaveStatus('error');
     }

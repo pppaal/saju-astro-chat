@@ -214,7 +214,7 @@ describe('useBirthInfo', () => {
         update: vi.fn(),
       });
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValue({
         ok: false,
       });
 
@@ -234,7 +234,7 @@ describe('useBirthInfo', () => {
         update: vi.fn(),
       });
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValue({
         ok: false,
       });
 
@@ -254,7 +254,7 @@ describe('useBirthInfo', () => {
         update: vi.fn(),
       });
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValue({
         ok: true,
         json: async () => ({ user: null }),
       });
@@ -354,7 +354,12 @@ describe('useBirthInfo', () => {
         update: vi.fn(),
       });
 
-      mockFetch.mockResolvedValueOnce({ ok: true });
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ user: null }),
+        })
+        .mockResolvedValueOnce({ ok: true });
 
       const { result } = renderHook(() => useBirthInfo('en'));
 

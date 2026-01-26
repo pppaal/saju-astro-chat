@@ -111,7 +111,7 @@ export function calculateMonthData(
     monthGanji,
     yearGanji,
     twelveStage,
-    sibsin: sibsin as any,
+    sibsin: sibsin as SibsinKind,
     solarTerm,
     solarTermMonth,
   };

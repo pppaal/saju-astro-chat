@@ -108,6 +108,42 @@ export default function TarotReadingPage() {
   const handleReset = () => router.push('/tarot');
   const toggleCardExpand = (index: number) => setExpandedCard(expandedCard === index ? null : index);
 
+  // Memoize card spread rendering
+  const cardSpreadElements = useMemo(() => Array.from({ length: 78 }).map((_, index) => {
+    const isSelected = selectionOrderMap.has(index);
+    const displayNumber = selectionOrderMap.get(index) || 0;
+    return (
+      <div
+        key={`card-${index}`}
+        className={`${styles.cardWrapper} ${isSelected ? styles.selected : ''} ${gameState === 'revealing' ? styles.revealing : ''} ${isSpreading ? styles.spreading : ''}`}
+        style={{
+          '--selection-order': displayNumber,
+          '--i': index,
+          '--card-gradient': selectedColor.gradient,
+          '--card-border': selectedColor.border,
+          '--card-back-image': `url(${selectedColor.backImage})`,
+        } as React.CSSProperties}
+        onClick={() => handleCardClick(index)}
+        role="button"
+        tabIndex={gameState === 'picking' && !isSelected && selectedIndices.length < (spreadInfo?.cardCount || 3) ? 0 : -1}
+        aria-label={`${language === 'ko' ? '카드' : 'Card'} ${index + 1}${isSelected ? ` - ${language === 'ko' ? '선택됨' : 'selected'}` : ''}`}
+        aria-pressed={isSelected}
+        onKeyDown={(e) => {
+          if ((e.key === 'Enter' || e.key === ' ') && gameState === 'picking') {
+            e.preventDefault();
+            handleCardClick(index);
+          }
+        }}
+      >
+        <div className={styles.cardBack}>
+          <div className={styles.cardPattern}></div>
+          <div className={styles.cardCenterIcon}>✦</div>
+        </div>
+        {isSelected && <div className={styles.selectionNumber}>{displayNumber}</div>}
+      </div>
+    );
+  }), [selectionOrderMap, gameState, isSpreading, selectedColor, spreadInfo?.cardCount, selectedIndices.length, language, handleCardClick]);
+
   // Session loading state
   if (status === 'loading') {
     return (
@@ -618,40 +654,7 @@ export default function TarotReadingPage() {
         )}
 
         <div className={styles.cardSpreadContainer}>
-          {useMemo(() => Array.from({ length: 78 }).map((_, index) => {
-            const isSelected = selectionOrderMap.has(index);
-            const displayNumber = selectionOrderMap.get(index) || 0;
-            return (
-              <div
-                key={`card-${index}`}
-                className={`${styles.cardWrapper} ${isSelected ? styles.selected : ''} ${gameState === 'revealing' ? styles.revealing : ''} ${isSpreading ? styles.spreading : ''}`}
-                style={{
-                  '--selection-order': displayNumber,
-                  '--i': index,
-                  '--card-gradient': selectedColor.gradient,
-                  '--card-border': selectedColor.border,
-                  '--card-back-image': `url(${selectedColor.backImage})`,
-                } as React.CSSProperties}
-                onClick={() => handleCardClick(index)}
-                role="button"
-                tabIndex={gameState === 'picking' && !isSelected && selectedIndices.length < effectiveCardCount ? 0 : -1}
-                aria-label={`${language === 'ko' ? '카드' : 'Card'} ${index + 1}${isSelected ? ` - ${language === 'ko' ? '선택됨' : 'selected'}` : ''}`}
-                aria-pressed={isSelected}
-                onKeyDown={(e) => {
-                  if ((e.key === 'Enter' || e.key === ' ') && gameState === 'picking') {
-                    e.preventDefault();
-                    handleCardClick(index);
-                  }
-                }}
-              >
-                <div className={styles.cardBack}>
-                  <div className={styles.cardPattern}></div>
-                  <div className={styles.cardCenterIcon}>✦</div>
-                </div>
-                {isSelected && <div className={styles.selectionNumber}>{displayNumber}</div>}
-              </div>
-            );
-          }), [selectionOrderMap, gameState, isSpreading, selectedColor, effectiveCardCount, selectedIndices.length, language, handleCardClick])}
+          {cardSpreadElements}
         </div>
       </div>
     );

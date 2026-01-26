@@ -211,7 +211,8 @@ describe("React Memoization Utilities", () => {
       cleanup?.();
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining("[Performance] SlowComponent render took")
+        expect.stringContaining("[WARN] [Performance] SlowComponent render took"),
+        ""
       );
 
       consoleSpy.mockRestore();

@@ -173,7 +173,16 @@ export default function CoupleTarotPage() {
                   <div
                     key={match.connectionId}
                     className={`${styles.partnerCard} ${selectedPartner?.connectionId === match.connectionId ? styles.selected : ''}`}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setSelectedPartner(match)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedPartner(match);
+                      }
+                    }}
+                    aria-label={`Select ${match.partner.displayName} for couple tarot reading`}
                   >
                     <div className={styles.partnerPhoto}>
                       {match.partner.photos?.[0] ? (
@@ -211,7 +220,16 @@ export default function CoupleTarotPage() {
                   <div
                     key={spread.id}
                     className={`${styles.spreadCard} ${selectedSpread === spread.id ? styles.selected : ''}`}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setSelectedSpread(spread.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedSpread(spread.id);
+                      }
+                    }}
+                    aria-label={spread.name}
                   >
                     <div className={styles.spreadIcon}>{spread.icon}</div>
                     <p className={styles.spreadName}>{spread.name}</p>
@@ -226,12 +244,17 @@ export default function CoupleTarotPage() {
               <h2 className={styles.sectionTitle}>
                 <span>💭</span> 궁금한 점 (선택)
               </h2>
+              <label htmlFor="couple-question-input" style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+                커플 타로 질문 입력
+              </label>
               <textarea
+                id="couple-question-input"
                 className={styles.questionInput}
                 placeholder="예: 우리의 관계는 어디로 향하고 있을까요? 서로에게 어떤 의미일까요?"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 maxLength={500}
+                aria-label="커플 타로 질문 입력"
               />
             </section>
 

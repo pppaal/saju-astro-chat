@@ -33,7 +33,7 @@ describe("Credit Service: Plan Configuration", () => {
   it("premium plan has highest limits", () => {
     const premium = PLAN_CONFIG.premium;
 
-    expect(premium.monthlyCredits).toBe(150);
+    expect(premium.monthlyCredits).toBe(200);
     expect(premium.compatibilityLimit).toBe(10);
     expect(premium.followUpLimit).toBe(10);
     expect(premium.historyRetention).toBe(365);
@@ -415,7 +415,7 @@ describe("Credit Service: Plan Upgrade Logic", () => {
   it("upgrades from starter to premium", () => {
     const result = calculateUpgrade("starter", "premium");
     expect(result?.newPlan).toBe("premium");
-    expect(result?.newMonthlyCredits).toBe(150);
+    expect(result?.newMonthlyCredits).toBe(200);
   });
 
   it("allows downgrade (same logic)", () => {

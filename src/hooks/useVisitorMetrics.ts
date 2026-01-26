@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { logger } from '@/lib/logger';
+
 
 export function useVisitorMetrics(metricsToken?: string) {
   const [todayVisitors, setTodayVisitors] = useState<number | null>(null);
@@ -23,7 +25,7 @@ export function useVisitorMetrics(metricsToken?: string) {
         setTotalVisitors(data.totalVisitors ?? null);
         setTotalMembers(data.totalMembers ?? null);
       } catch (err) {
-        console.error('Metrics fetch error:', err);
+        logger.error('Metrics fetch error:', err);
         setVisitorError('Failed to load metrics');
       }
     };

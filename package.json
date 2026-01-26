@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "postinstall": "prisma generate",
+    "vercel-build": "prisma migrate deploy && prisma generate && next build --webpack",
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
@@ -28,6 +29,9 @@
     "test:load:basic": "k6 run tests/performance/k6/basic-load.js",
     "test:load:stress": "k6 run tests/performance/k6/stress-test.js",
     "test:load:spike": "k6 run tests/performance/k6/spike-test.js",
+    "db:migrate": "prisma migrate deploy",
+    "db:status": "prisma migrate status",
+    "db:studio": "prisma studio",
     "test:load:endurance": "k6 run tests/performance/k6/endurance-test.js",
     "test:load:realistic": "k6 run tests/performance/k6/realistic-scenario.js",
     "security:owasp": "node scripts/owasp-zap-baseline.mjs",

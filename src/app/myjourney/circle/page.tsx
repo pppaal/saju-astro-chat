@@ -313,7 +313,7 @@ function CircleContent() {
                   }}
                   className={styles.checkbox}
                 />
-                <span>I don't know the birth time</span>
+                <span>I don&apos;t know the birth time</span>
               </label>
               {timeUnknown && (
                 <p className={styles.hint}>

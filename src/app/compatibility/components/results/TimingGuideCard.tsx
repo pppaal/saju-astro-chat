@@ -8,7 +8,7 @@ interface TimingGuideCardProps {
   t: (key: string, fallback: string) => string;
 }
 
-export const TimingGuideCard: React.FC<TimingGuideCardProps> = React.memo(({ timing, isGroupResult, t }) => {
+export const TimingGuideCard = React.memo<TimingGuideCardProps>(({ timing, isGroupResult, t }) => {
   return (
     <div className={styles.timingSection}>
       <div className={styles.resultCard}>

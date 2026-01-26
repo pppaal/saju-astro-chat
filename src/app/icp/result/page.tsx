@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
+import { logger } from '@/lib/logger';
+
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -141,7 +143,7 @@ export default function ICPResultPage() {
         setAnswers(parsed);
       }
     } catch (error) {
-      console.error('[ICP Result] Error loading answers:', error);
+      logger.error('[ICP Result] Error loading answers:', error);
     }
   }, []);
 
@@ -190,7 +192,7 @@ export default function ICPResultPage() {
     try {
       return analyzeICP(answers, locale);
     } catch (error) {
-      console.error('[ICP Result] Analysis error:', error);
+      logger.error('[ICP Result] Analysis error:', error);
       return null;
     }
   }, [answers, locale]);
@@ -263,7 +265,7 @@ export default function ICPResultPage() {
         isLoading: false,
       });
     } catch (error) {
-      console.error('[ICP Destiny] Error:', error);
+      logger.error('[ICP Destiny] Error:', error);
       setDestinyAdvice(prev => ({ ...prev, isLoading: false }));
     }
   }, [birthDate, birthTime, analysis]);
@@ -298,7 +300,7 @@ export default function ICPResultPage() {
         maxRetries: 3,
         timeoutMs: 15000,
         onRetry: (attempt, error, delay) => {
-          console.log(`[ICP Save] Retry ${attempt} after ${delay}ms: ${error.message}`);
+          logger.info(`[ICP Save] Retry ${attempt} after ${delay}ms: ${error.message}`);
         },
       });
 
@@ -310,7 +312,7 @@ export default function ICPResultPage() {
       }
     } catch (error) {
       if (error instanceof FetchWithRetryError) {
-        console.error('[ICP Save] Failed after retries:', error.message);
+        logger.error('[ICP Save] Failed after retries:', error.message);
       }
       setSaveStatus('error');
     }

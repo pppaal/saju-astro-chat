@@ -44,12 +44,12 @@ interface ResultDisplayProps {
  * @param props - Component props
  * @returns JSX element or null if no result
  */
-const ResultDisplay: React.FC<ResultDisplayProps> = ({
+function ResultDisplay({
   result,
   question = "",
   autoStartAi = true,
   onAiComplete,
-}) => {
+}: ResultDisplayProps) {
   const { translate, locale } = useI18n();
   const lang = locale === "ko" ? "ko" : "en";
 

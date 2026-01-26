@@ -13,7 +13,7 @@ interface GroupAnalysisSectionProps {
   t: (key: string, fallback: string) => string;
 }
 
-export const GroupAnalysisSection: React.FC<GroupAnalysisSectionProps> = React.memo(({
+export const GroupAnalysisSection = React.memo<GroupAnalysisSectionProps>(({
   groupAnalysis,
   synergyBreakdown,
   personCount,

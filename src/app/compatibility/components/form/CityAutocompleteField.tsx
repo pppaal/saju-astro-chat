@@ -32,7 +32,7 @@ interface CityAutocompleteFieldProps {
  * City input field with autocomplete dropdown functionality.
  * Shows city suggestions from the OpenWeather API and allows selection.
  */
-export const CityAutocompleteField: React.FC<CityAutocompleteFieldProps> = React.memo(({
+export const CityAutocompleteField = React.memo<CityAutocompleteFieldProps>(({
   id,
   value,
   suggestions,

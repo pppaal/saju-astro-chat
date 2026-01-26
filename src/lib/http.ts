@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { logger } from '@/lib/logger';
+
 
 /**
  * Options for fetchWithRetry
@@ -53,7 +55,7 @@ export class FetchWithRetryError extends Error {
  *   maxRetries: 3,
  *   timeoutMs: 15000,
  *   onRetry: (attempt, error, delay) => {
- *     console.log(`Retry ${attempt} after ${delay}ms: ${error.message}`);
+ *     logger.info(`Retry ${attempt} after ${delay}ms: ${error.message}`);
  *   }
  * });
  * ```

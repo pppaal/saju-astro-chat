@@ -5,13 +5,14 @@
  */
 
 import React from "react";
+import type { EnhancedHexagramData } from '@/lib/iChing/types';
 import styles from "../ResultDisplay.module.css";
 
 /**
  * Component props interface
  */
 export interface ActionableAdviceSectionProps {
-  enhancedData: any;
+  enhancedData: EnhancedHexagramData | null;
   translate: (key: string, fallback: string) => string;
 }
 
@@ -22,7 +23,7 @@ export interface ActionableAdviceSectionProps {
  * @param props - Component props
  * @returns JSX element or null if data is missing
  */
-export const ActionableAdviceSection: React.FC<ActionableAdviceSectionProps> = React.memo(({
+export const ActionableAdviceSection = React.memo<ActionableAdviceSectionProps>(({
   enhancedData,
   translate,
 }) => {

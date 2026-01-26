@@ -1,4 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { logger } from '@/lib/logger';
+
 
 export interface UseFormAutoSaveOptions<T> {
   /** Unique key for localStorage */
@@ -59,7 +61,7 @@ export function useFormAutoSave<T>({
         onLoad?.(parsed);
       }
     } catch (error) {
-      console.error('[useFormAutoSave] Failed to load saved data:', error);
+      logger.error('[useFormAutoSave] Failed to load saved data:', error);
     }
   }, [storageKey, enabled]); // Only run on mount
 
@@ -85,7 +87,7 @@ export function useFormAutoSave<T>({
         localStorage.setItem(storageKey, serialized);
         onSave?.(data);
       } catch (error) {
-        console.error('[useFormAutoSave] Failed to save data:', error);
+        logger.error('[useFormAutoSave] Failed to save data:', error);
       }
     }, delay);
 
@@ -101,7 +103,7 @@ export function useFormAutoSave<T>({
     try {
       localStorage.removeItem(storageKey);
     } catch (error) {
-      console.error('[useFormAutoSave] Failed to clear saved data:', error);
+      logger.error('[useFormAutoSave] Failed to clear saved data:', error);
     }
   }, [storageKey]);
 
@@ -110,7 +112,7 @@ export function useFormAutoSave<T>({
     try {
       return localStorage.getItem(storageKey) !== null;
     } catch (error) {
-      console.error('[useFormAutoSave] Failed to check saved data:', error);
+      logger.error('[useFormAutoSave] Failed to check saved data:', error);
       return false;
     }
   }, [storageKey]);
@@ -121,7 +123,7 @@ export function useFormAutoSave<T>({
       const savedData = localStorage.getItem(storageKey);
       return savedData ? (JSON.parse(savedData) as T) : null;
     } catch (error) {
-      console.error('[useFormAutoSave] Failed to get saved data:', error);
+      logger.error('[useFormAutoSave] Failed to get saved data:', error);
       return null;
     }
   }, [storageKey]);

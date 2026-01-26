@@ -17,7 +17,7 @@ type DivinationStatus = "idle" | "drawing" | "finished";
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-const IChingReader: React.FC = () => {
+function IChingReader() {
   const { translate, locale } = useI18n();
   const { data: session } = useSession();
   const [result, setResult] = useState<IChingResult | null>(null);

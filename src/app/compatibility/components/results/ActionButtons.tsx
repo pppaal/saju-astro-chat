@@ -19,7 +19,7 @@ interface ActionButtonsProps {
   t: (key: string, fallback: string) => string;
 }
 
-export const ActionButtons: React.FC<ActionButtonsProps> = React.memo(({ persons, resultText, t }) => {
+export const ActionButtons = React.memo<ActionButtonsProps>(({ persons, resultText, t }) => {
   const router = useRouter();
 
   return (

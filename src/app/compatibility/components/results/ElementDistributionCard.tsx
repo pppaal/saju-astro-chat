@@ -9,7 +9,7 @@ interface ElementDistributionCardProps {
   t: (key: string, fallback: string) => string;
 }
 
-export const ElementDistributionCard: React.FC<ElementDistributionCardProps> = React.memo(({
+export const ElementDistributionCard = React.memo<ElementDistributionCardProps>(({
   elementDistribution,
   personCount,
   t,

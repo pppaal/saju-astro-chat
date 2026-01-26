@@ -38,6 +38,8 @@ export {
 
 // Import dependencies for specialized functions
 import { getInteractionColor } from '@/lib/destiny-matrix/engine';
+import { logger } from '@/lib/logger';
+
 import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/layer1-element-core';
 import { SIBSIN_PLANET_MATRIX } from '@/lib/destiny-matrix/data/layer2-sibsin-planet';
 import { TWELVE_STAGE_HOUSE_MATRIX, TWELVE_STAGE_INFO } from '@/lib/destiny-matrix/data/layer6-stage-house';
@@ -136,7 +138,7 @@ export function getHealthMatrixAnalysis(
 
   // Validate inputs
   if (!saju && !astro) {
-    console.warn('[HealthMatrix] No saju or astro data provided');
+    logger.warn('[HealthMatrix] No saju or astro data provided');
     return null;
   }
 
@@ -145,7 +147,7 @@ export function getHealthMatrixAnalysis(
   // Ensure dayMaster element exists, default to 'wood' with warning
   const dayElement = saju?.dayMaster?.element;
   if (!dayElement) {
-    console.warn('[HealthMatrix] No dayMaster element found, defaulting to "wood"');
+    logger.warn('[HealthMatrix] No dayMaster element found, defaulting to "wood"');
   }
   const sajuEl = mapSajuElementToKo(dayElement || 'wood');
 

@@ -138,7 +138,7 @@ describe("Option scoring logic", () => {
       expect(firstDomQuestion).toBeDefined();
 
       const optionA = firstDomQuestion!.options.find(o => o.id === "A");
-      expect(optionA!.text).toContain("lead");
+      expect(optionA!.text).toContain("suggest a place");
     });
 
     it("C options represent submissive behavior", () => {
@@ -146,7 +146,7 @@ describe("Option scoring logic", () => {
       expect(firstDomQuestion).toBeDefined();
 
       const optionC = firstDomQuestion!.options.find(o => o.id === "C");
-      expect(optionC!.text).toContain("follow");
+      expect(optionC!.text).toContain("let others decide");
     });
   });
 
@@ -156,7 +156,7 @@ describe("Option scoring logic", () => {
       expect(firstAffQuestion).toBeDefined();
 
       const optionA = firstAffQuestion!.options.find(o => o.id === "A");
-      expect(optionA!.text).toContain("support");
+      expect(optionA!.text).toContain("call them right away");
     });
 
     it("C options represent distant/cold behavior", () => {
@@ -164,61 +164,61 @@ describe("Option scoring logic", () => {
       expect(firstAffQuestion).toBeDefined();
 
       const optionC = firstAffQuestion!.options.find(o => o.id === "C");
-      expect(optionC!.text).toContain("themselves");
+      expect(optionC!.text).toContain("give them space");
     });
   });
 });
 
 describe("Specific question content checks", () => {
   describe("dominance questions", () => {
-    it("dom_1 is about group discussions", () => {
+    it("dom_1 is about friend group", () => {
       const q = icpQuestions.find(q => q.id === "dom_1");
-      expect(q!.text).toContain("group discussions");
-      expect(q!.textKo).toContain("여러 사람이 모여");
+      expect(q!.text).toContain("friend group");
+      expect(q!.textKo).toContain("오늘 저녁");
     });
 
-    it("dom_3 is about conflicts", () => {
+    it("dom_3 is about weekend plans", () => {
       const q = icpQuestions.find(q => q.id === "dom_3");
-      expect(q!.text).toContain("conflicts");
-      expect(q!.textKo).toContain("충돌");
+      expect(q!.text).toContain("weekend plans");
+      expect(q!.textKo).toContain("주말 계획");
     });
 
-    it("dom_5 is about work/school", () => {
+    it("dom_5 is about group trips", () => {
       const q = icpQuestions.find(q => q.id === "dom_5");
-      expect(q!.text).toContain("work or school");
-      expect(q!.textKo).toContain("일하거나 공부");
+      expect(q!.text).toContain("group trip");
+      expect(q!.textKo).toContain("여행 계획");
     });
 
-    it("dom_14 is about competition", () => {
+    it("dom_14 is about price negotiation", () => {
       const q = icpQuestions.find(q => q.id === "dom_14");
-      expect(q!.text).toContain("competitive");
-      expect(q!.textKo).toContain("경쟁");
+      expect(q!.text).toContain("negotiating price");
+      expect(q!.textKo).toContain("가격 협상");
     });
   });
 
   describe("affiliation questions", () => {
-    it("aff_1 is about supporting upset friends", () => {
+    it("aff_1 is about helping a friend having a bad day", () => {
       const q = icpQuestions.find(q => q.id === "aff_1");
-      expect(q!.text).toContain("friend is upset");
-      expect(q!.textKo).toContain("친구가 힘들어");
+      expect(q!.text).toContain("bad day");
+      expect(q!.textKo).toContain("너무 힘들");
     });
 
-    it("aff_3 is about sharing personal feelings", () => {
+    it("aff_3 is about noticing someone eating lunch alone", () => {
       const q = icpQuestions.find(q => q.id === "aff_3");
-      expect(q!.text).toContain("personal feelings");
-      expect(q!.textKo).toContain("감정을 다른 사람에게");
+      expect(q!.text).toContain("eating lunch alone");
+      expect(q!.textKo).toContain("혼자 점심");
     });
 
-    it("aff_8 is about trust", () => {
+    it("aff_8 is about meeting someone new", () => {
       const q = icpQuestions.find(q => q.id === "aff_8");
-      expect(q!.text).toContain("Trust");
-      expect(q!.textKo).toContain("신뢰");
+      expect(q!.text).toContain("meeting someone new");
+      expect(q!.textKo).toContain("처음 보는 사람");
     });
 
-    it("aff_14 is about cooperation vs competition", () => {
+    it("aff_14 is about including someone who seems left out", () => {
       const q = icpQuestions.find(q => q.id === "aff_14");
-      expect(q!.text).toContain("Cooperation");
-      expect(q!.textKo).toContain("협력");
+      expect(q!.text).toContain("seems left out");
+      expect(q!.textKo).toContain("겉도는");
     });
   });
 });

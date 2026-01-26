@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/i18n/I18nProvider';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
+import type { EventType } from '@/components/life-prediction/PredictionChat/hooks/useEventTypeDetector';
 
 // Hooks
 import { useLifePredictionProfile } from '@/hooks/useLifePredictionProfile';
@@ -112,7 +113,7 @@ function LifePredictionContent() {
 
   // Handle prediction submission
   const onPredictionSubmit = React.useCallback(
-    async (question: string, eventType: any) => {
+    async (question: string, eventType: EventType | null) => {
       setCurrentQuestion(question);
       setCurrentEventType(eventType);
       setPhase('analyzing');
