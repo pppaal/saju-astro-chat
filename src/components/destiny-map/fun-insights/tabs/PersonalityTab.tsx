@@ -29,6 +29,11 @@ interface PersonalityAnalysis {
 }
 
 function PersonalityTab({ saju, astro, lang, isKo, data, destinyNarrative, combinedLifeTheme }: TabProps) {
+  // Early return if data is null
+  if (!data) {
+    return <div className="text-gray-400 text-center p-6">Loading...</div>;
+  }
+
   // TabData.personalityAnalysis is Record<string, unknown> | null, cast to local interface
   const personalityAnalysis = data.personalityAnalysis as PersonalityAnalysis | null;
   const strengthsWeaknesses = getStrengthsAndWeaknesses(saju ?? undefined, astro ?? undefined, lang);

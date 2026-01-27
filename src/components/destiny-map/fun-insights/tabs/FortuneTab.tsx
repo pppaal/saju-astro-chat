@@ -22,6 +22,11 @@ import {
 } from './fortune/components';
 
 function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
+  // Early return if data is null
+  if (!data) {
+    return <div className="text-gray-400 text-center p-6">Loading...</div>;
+  }
+
   const currentFlow = data.currentFlow as CurrentFlow | null;
   const dayElement = data.dayElement as string | undefined;
   const matrixAnalysis = getMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang);

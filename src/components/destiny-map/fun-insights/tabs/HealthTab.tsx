@@ -17,6 +17,11 @@ interface ChironInsight {
 }
 
 export default function HealthTab({ saju, astro, isKo, data }: TabProps) {
+  // Early return if data is null
+  if (!data) {
+    return <div className="text-gray-400 text-center p-6">Loading...</div>;
+  }
+
   const healthAnalysis = (data as Record<string, unknown>).healthAnalysis as HealthItem[] | null;
   const chironInsight = (data as Record<string, unknown>).chironInsight as ChironInsight | null;
   const dayMasterName = data.dayMasterName || "";

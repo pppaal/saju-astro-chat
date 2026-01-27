@@ -33,6 +33,11 @@ interface LoveAnalysis {
 }
 
 function LoveTab({ isKo, data, destinyNarrative, saju, astro, lang }: TabProps) {
+  // Early return if data is null
+  if (!data) {
+    return <div className="text-gray-400 text-center p-6">Loading...</div>;
+  }
+
   // TabData.loveAnalysis is Record<string, unknown> | null, cast to local interface
   const loveAnalysis = data.loveAnalysis as LoveAnalysis | null;
   const loveMatrix = getLoveMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang) as LoveMatrixResult | null;

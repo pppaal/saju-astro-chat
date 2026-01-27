@@ -9,7 +9,7 @@
 import React, { useEffect, useRef } from "react";
 import { IChingResult } from "@/components/iching/types";
 import { useI18n } from "@/i18n/I18nProvider";
-import { useAiStreaming, useHexagramData, useAiCompletion } from "./hooks";
+import { useAiStreaming, useHexagramDataAsync, useAiCompletion } from "./hooks";
 import {
   TrigramComposition,
   QuickSummarySection,
@@ -53,8 +53,8 @@ function ResultDisplay({
   const { translate, locale } = useI18n();
   const lang = locale === "ko" ? "ko" : "en";
 
-  // Custom hooks
-  const hexagramData = useHexagramData({ result, language: lang });
+  // Custom hooks (async version for better performance)
+  const hexagramData = useHexagramDataAsync({ result, language: lang });
 
   const {
     aiStatus,

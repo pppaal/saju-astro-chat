@@ -9,5 +9,8 @@ export type { AiStatus, AiStreamingState, UseAiStreamingReturn, UseAiStreamingPa
 export { useHexagramData } from "./useHexagramData";
 export type { HexagramData, UseHexagramDataParams } from "./useHexagramData";
 
+export { useHexagramDataAsync } from "./useHexagramDataAsync";
+export type { HexagramDataAsync, UseHexagramDataAsyncParams } from "./useHexagramDataAsync";
+
 export { useAiCompletion } from "./useAiCompletion";
 export type { AiTextSections, UseAiCompletionParams } from "./useAiCompletion";

@@ -45,6 +45,11 @@ interface CareerAnalysis {
 }
 
 function CareerTab({ saju, astro, lang, isKo, data, destinyNarrative }: TabProps) {
+  // Early return if data is null
+  if (!data) {
+    return <div className="text-gray-400 text-center p-6">Loading...</div>;
+  }
+
   // TabData.careerAnalysis is Record<string, unknown> | null, cast to local interface
   const careerAnalysis = data.careerAnalysis as CareerAnalysis | null;
   const careerMatrix = getCareerMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang) as CareerMatrixResult | null;

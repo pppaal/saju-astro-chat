@@ -21,6 +21,7 @@ import { KakaoInit } from "@/components/analytics/KakaoInit";
 import AuthProvider from "@/components/AuthProvider";
 import ScrollRestoration from "@/components/ui/ScrollRestoration";
 import GlobalHeader from "@/components/ui/GlobalHeader";
+import { WebVitalsReporter } from "@/components/performance/WebVitalsReporter";
 import { ReactNode, Suspense } from "react";
 import { Montserrat, Noto_Sans_KR, Cinzel, Lora, Merriweather } from "next/font/google";
 import { headers } from "next/headers";
@@ -236,6 +237,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
           <ErrorBoundaryProvider>
             <AuthProvider>
+              <WebVitalsReporter />
               <ScrollRestoration />
               <I18nProvider>
                 <ToastProvider>

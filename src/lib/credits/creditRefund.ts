@@ -73,7 +73,7 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
           apiRoute,
           errorMessage: errorMessage?.substring(0, 500), // 최대 500자
           transactionId,
-          metadata: (metadata || {}) as Record<string, unknown>,
+          metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : {},
         },
       });
     });
