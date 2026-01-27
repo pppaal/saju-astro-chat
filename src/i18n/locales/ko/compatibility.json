@@ -33,6 +33,12 @@
     "overallCompatibility": "종합 궁합",
     "score": "점수",
     "shareTitle": "우리의 궁합 결과",
-    "timezoneAutoSet": "도시를 기준으로 자동 설정"
+    "timezoneAutoSet": "도시를 기준으로 자동 설정",
+    "quickMode": "빠른 입력",
+    "detailedMode": "상세 입력",
+    "switchToQuickMode": "빠른 입력 모드로 전환",
+    "switchToDetailedMode": "상세 입력 모드로 전환",
+    "quickModeHint": "이름과 생년월일만 입력 - 빠르고 간단하게",
+    "detailedModeHint": "출생 시간과 위치 포함 - 정밀한 분석을 위해"
   }
 }

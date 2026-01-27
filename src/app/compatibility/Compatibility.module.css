@@ -310,6 +310,61 @@
   font-size: 16px;
 }
 
+/* Mode Toggle */
+.modeToggle {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(252, 182, 159, 0.15);
+}
+
+.modeToggleButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, rgba(252, 182, 159, 0.2), rgba(255, 236, 210, 0.15));
+  border: 2px solid rgba(252, 182, 159, 0.3);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.modeToggleButton:hover {
+  background: linear-gradient(135deg, rgba(252, 182, 159, 0.3), rgba(255, 236, 210, 0.2));
+  border-color: rgba(252, 182, 159, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(252, 182, 159, 0.25);
+}
+
+.modeToggleIcon {
+  font-size: 1.2rem;
+  filter: drop-shadow(0 2px 4px rgba(252, 182, 159, 0.3));
+}
+
+.modeToggleText {
+  flex: 1;
+}
+
+.modeHint {
+  margin: 0.75rem 0 0 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* Required Mark */
+.requiredMark {
+  color: rgba(252, 182, 159, 0.9);
+  font-weight: 700;
+  margin-left: 4px;
+  font-size: 1rem;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 1fr;

@@ -33,6 +33,12 @@
     "overallCompatibility": "Overall Compatibility",
     "score": "Score",
     "shareTitle": "Our Compatibility Result",
-    "timezoneAutoSet": "Automatically set based on city"
+    "timezoneAutoSet": "Automatically set based on city",
+    "quickMode": "Quick Mode",
+    "detailedMode": "Detailed Mode",
+    "switchToQuickMode": "Switch to Quick Mode",
+    "switchToDetailedMode": "Switch to Detailed Mode",
+    "quickModeHint": "Name and birth date only - fast and simple",
+    "detailedModeHint": "Includes birth time and location for precise analysis"
   }
 }
