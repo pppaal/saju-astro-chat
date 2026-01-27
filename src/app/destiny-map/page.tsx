@@ -313,23 +313,33 @@ function DestinyMapContent() {
           <form onSubmit={onSubmit} className={styles.form}>
             {/* Load My Profile Button - only for authenticated users */}
             {status === 'authenticated' && (
-              <button
-                type="button"
-                className={`${styles.loadProfileButton} ${profileLoaded ? styles.loadProfileSuccess : ''}`}
-                onClick={handleLoadProfile}
-                disabled={loadingProfile}
-              >
-                <span className={styles.loadProfileIcon}>
-                  {loadingProfile ? '...' : profileLoaded ? '✓' : '👤'}
-                </span>
-                <span className={styles.loadProfileText}>
-                  {loadingProfile
-                    ? (t('app.loadingProfile') || 'Loading...')
-                    : profileLoaded
-                    ? (t('app.profileLoaded') || 'Profile Loaded!')
-                    : (t('app.loadMyProfile') || 'Load My Profile')}
-                </span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  className={`${styles.loadProfileButton} ${profileLoaded ? styles.loadProfileSuccess : ''}`}
+                  onClick={handleLoadProfile}
+                  disabled={loadingProfile}
+                >
+                  <span className={styles.loadProfileIcon}>
+                    {loadingProfile ? '...' : profileLoaded ? '✓' : '👤'}
+                  </span>
+                  <span className={styles.loadProfileText}>
+                    {loadingProfile
+                      ? (t('app.loadingProfile') || 'Loading...')
+                      : profileLoaded
+                      ? (t('app.profileLoaded') || 'Profile Loaded!')
+                      : (t('app.loadMyProfile') || 'Load My Profile')}
+                  </span>
+                </button>
+                {profileLoaded && (
+                  <div className={styles.successBanner}>
+                    <span className={styles.successIcon}>✓</span>
+                    <span className={styles.successText}>
+                      {t('app.profileLoadedSuccess', '프로필을 성공적으로 불러왔습니다!')}
+                    </span>
+                  </div>
+                )}
+              </>
             )}
 
             <div className={styles.field}>
@@ -350,6 +360,7 @@ function DestinyMapContent() {
                 <label className={styles.label}>
                   <span className={styles.labelIcon}>📅</span>
                   {t('app.birthDate') || 'Birth Date'}
+                  <span className={styles.requiredMark}>*</span>
                 </label>
                 <input
                   className={styles.input}
@@ -363,6 +374,7 @@ function DestinyMapContent() {
                 <label className={styles.label}>
                   <span className={styles.labelIcon}>🕐</span>
                   {t('app.birthTime') || 'Birth Time'}
+                  <span className={styles.requiredMark}>*</span>
                 </label>
                 <input
                   className={styles.input}
@@ -379,6 +391,7 @@ function DestinyMapContent() {
                 <label className={styles.label}>
                   <span className={styles.labelIcon}>🌍</span>
                   {t('app.birthCity') || 'Birth City'}
+                  <span className={styles.requiredMark}>*</span>
                 </label>
                 <input
                   className={styles.input}

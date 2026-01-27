@@ -259,8 +259,9 @@ export default function MainPage() {
 
   const handleHintClick = useCallback((hint: string) => {
     setLifeQuestion(hint);
-    router.push(`/destiny-map?q=${encodeURIComponent(hint)}`);
-  }, [router]);
+    const service = SERVICE_OPTIONS.find(s => s.key === selectedService) || SERVICE_OPTIONS[0];
+    router.push(`${service.path}?q=${encodeURIComponent(hint)}`);
+  }, [router, selectedService]);
 
   // Scroll to top handler
   const scrollToTop = useCallback(() => {
@@ -398,13 +399,20 @@ export default function MainPage() {
             {/* AI Routing Guide */}
             <div className={styles.aiRoutingGuide}>
               <p className={styles.aiRoutingText}>
-                {translate("landing.aiRoutingText", "서비스를 선택하고 질문을 입력하세요")}
+                <span className={styles.aiRoutingIcon}>💡</span>
+                {translate("landing.aiRoutingText", "서비스를 선택하거나 바로 질문하세요")}
               </p>
               <div className={styles.serviceIconsRow}>
                 {SERVICE_OPTIONS.map((service) => (
-                  <span key={service.key} className={styles.serviceIcon} title={t(`menu.${service.key}`)}>
+                  <button
+                    key={service.key}
+                    type="button"
+                    className={`${styles.serviceIcon} ${selectedService === service.key ? styles.serviceIconActive : ''}`}
+                    title={t(`menu.${service.key}`)}
+                    onClick={() => handleServiceSelect(service.key)}
+                  >
                     {service.icon}
-                  </span>
+                  </button>
                 ))}
               </div>
             </div>
