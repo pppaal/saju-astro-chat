@@ -70,26 +70,70 @@ function createFilteredPrismaAdapter(): Adapter {
 
   return {
     ...baseAdapter,
+    // Override getUserByAccount to avoid Prisma 7.x compound unique key issue with PrismaPg adapter
+    // Error: "The column `(not available)` does not exist in the current database" (P2022)
+    getUserByAccount: async (providerAccountId: Pick<AdapterAccount, "provider" | "providerAccountId">) => {
+      try {
+        const account = await prisma.account.findFirst({
+          where: {
+            provider: providerAccountId.provider,
+            providerAccountId: providerAccountId.providerAccountId,
+          },
+          include: { user: true },
+        })
+        return (account?.user as AdapterUser) ?? null
+      } catch (error) {
+        logger.error('[auth] getUserByAccount failed:', error)
+        throw error
+      }
+    },
     // Generate referralCode for new OAuth users
     createUser: async (user: Omit<AdapterUser, "id">) => {
-      const referralCode = generateReferralCode()
-      const createdUser = await prisma.user.create({
-        data: {
-          ...user,
-          referralCode,
-        },
-      })
-      return createdUser as AdapterUser
+      try {
+        const referralCode = generateReferralCode()
+        const createdUser = await prisma.user.create({
+          data: {
+            ...user,
+            referralCode,
+          },
+        })
+        return createdUser as AdapterUser
+      } catch (error) {
+        logger.error('[auth] createUser failed:', error)
+        throw error
+      }
     },
     linkAccount: async (account: AdapterAccount) => {
-      const filteredAccount: Record<string, unknown> = {}
-      for (const [key, value] of Object.entries(account)) {
-        if (ALLOWED_ACCOUNT_FIELDS.has(key)) {
-          filteredAccount[key] = value
+      try {
+        const filteredAccount: Record<string, unknown> = {}
+        for (const [key, value] of Object.entries(account)) {
+          if (ALLOWED_ACCOUNT_FIELDS.has(key)) {
+            filteredAccount[key] = value
+          }
         }
+        const securedAccount = encryptAccountTokens(filteredAccount as AdapterAccount)
+        return baseAdapter.linkAccount?.(securedAccount)
+      } catch (error) {
+        logger.error('[auth] linkAccount failed:', error)
+        throw error
       }
-      const securedAccount = encryptAccountTokens(filteredAccount as AdapterAccount)
-      return baseAdapter.linkAccount?.(securedAccount)
+    },
+    // Override unlinkAccount to avoid compound unique key issue
+    unlinkAccount: async (providerAccountId: Pick<AdapterAccount, "provider" | "providerAccountId">) => {
+      try {
+        const account = await prisma.account.findFirst({
+          where: {
+            provider: providerAccountId.provider,
+            providerAccountId: providerAccountId.providerAccountId,
+          },
+        })
+        if (account) {
+          await prisma.account.delete({ where: { id: account.id } })
+        }
+      } catch (error) {
+        logger.error('[auth] unlinkAccount failed:', error)
+        throw error
+      }
     },
   }
 }
@@ -145,6 +189,10 @@ export const authOptions: NextAuthOptions = {
     },
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      logger.warn(`[auth] signIn callback: provider=${account?.provider} user=${user?.email} profile=${!!profile}`)
+      return true
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = (user).id ?? token.id
