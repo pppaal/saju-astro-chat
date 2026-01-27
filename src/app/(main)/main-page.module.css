@@ -3350,15 +3350,35 @@ to { opacity: 1; transform: translateY(0); }
     gap: 1rem;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 210, 255, 0.3) rgba(255, 255, 255, 0.05);
     padding: 1rem 0;
     margin: 1.5rem -1rem;
     padding-left: 1rem;
     padding-right: 1rem;
   }
-  .sajuPillars::-webkit-scrollbar { display: none; }
-  .pillar { flex: 0 0 auto; min-width: 100px; }
-  .pillarChar { padding: 1rem 1.5rem; }
+  .sajuPillars::-webkit-scrollbar {
+    height: 6px;
+  }
+  .sajuPillars::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+  }
+  .sajuPillars::-webkit-scrollbar-thumb {
+    background: rgba(99, 210, 255, 0.3);
+    border-radius: 10px;
+  }
+  .sajuPillars::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 210, 255, 0.5);
+  }
+  .pillar {
+    flex: 0 0 auto;
+    min-width: 150px;
+  }
+  .pillarChar {
+    padding: 1rem 1.5rem;
+    min-width: 130px;
+  }
   .stem, .branch { font-size: 1.8rem; }
   .branch { font-size: 1.6rem; }
 
@@ -3374,13 +3394,27 @@ to { opacity: 1; transform: translateY(0); }
     gap: 0.5rem;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 210, 255, 0.3) rgba(255, 255, 255, 0.05);
     padding-bottom: 0.5rem;
   }
-  .timelineTrack::-webkit-scrollbar { display: none; }
+  .timelineTrack::-webkit-scrollbar {
+    height: 6px;
+  }
+  .timelineTrack::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+  }
+  .timelineTrack::-webkit-scrollbar-thumb {
+    background: rgba(99, 210, 255, 0.3);
+    border-radius: 10px;
+  }
+  .timelineTrack::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 210, 255, 0.5);
+  }
   .luckPeriod {
     flex: 0 0 auto;
-    min-width: 90px;
+    min-width: 110px;
     padding: 0.8rem 1rem;
   }
 
