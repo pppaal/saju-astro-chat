@@ -11,27 +11,29 @@ type Service = {
   icon: string;
   href: string;
   gradient: string;
+  descriptionKo: string;
+  descriptionEn: string;
 };
 
 const SERVICES: Service[] = [
-  { id: "destinyMap", icon: "🗺️", href: "/destiny-map", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
-  { id: "aiReports", icon: "🤖", href: "/premium-reports", gradient: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)" },
-  { id: "lifePrediction", icon: "📈", href: "/life-prediction", gradient: "linear-gradient(135deg, #a855f7 0%, #6366f1 100%)" },
-  { id: "tarot", icon: "🔮", href: "/tarot", gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)" },
-  { id: "calendar", icon: "🗓️", href: "/calendar", gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" },
-  { id: "dream", icon: "🌙", href: "/dream", gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)" },
-  { id: "personality", icon: "🌈", href: "/personality", gradient: "linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)" },
-  { id: "icp", icon: "🎭", href: "/icp", gradient: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)" },
-  { id: "numerology", icon: "🔢", href: "/numerology", gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" },
-  { id: "astrology", icon: "✨", href: "/astrology", gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)" },
-  { id: "saju", icon: "☯️", href: "/saju", gradient: "linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)" },
-  { id: "compatibility", icon: "💕", href: "/compatibility", gradient: "linear-gradient(135deg, #f7b733 0%, #fc4a1a 100%)" },
-  { id: "pastLife", icon: "🔄", href: "/past-life", gradient: "linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)" },
-  { id: "iching", icon: "📜", href: "/iching", gradient: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)" },
+  { id: "destinyMap", icon: "🗺️", href: "/destiny-map", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", descriptionKo: "AI가 사주와 점성술을 융합하여 당신만의 운명 지도를 그립니다", descriptionEn: "AI-powered fusion of Saju and Astrology to map your destiny" },
+  { id: "aiReports", icon: "🤖", href: "/premium-reports", gradient: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)", descriptionKo: "심층 분석 리포트로 삶의 중요한 결정을 도와드립니다", descriptionEn: "In-depth analysis reports for life's important decisions" },
+  { id: "lifePrediction", icon: "📈", href: "/life-prediction", gradient: "linear-gradient(135deg, #a855f7 0%, #6366f1 100%)", descriptionKo: "인생의 흐름과 전환점을 예측하고 대비하세요", descriptionEn: "Predict and prepare for life's flow and turning points" },
+  { id: "tarot", icon: "🔮", href: "/tarot", gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)", descriptionKo: "타로 카드가 현재 상황과 미래를 통찰합니다", descriptionEn: "Tarot cards provide insight into your present and future" },
+  { id: "calendar", icon: "🗓️", href: "/calendar", gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)", descriptionKo: "매일의 운세와 중요한 날짜를 한눈에 확인하세요", descriptionEn: "View daily fortunes and important dates at a glance" },
+  { id: "dream", icon: "🌙", href: "/dream", gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)", descriptionKo: "꿈이 전하는 메시지를 AI가 해석해드립니다", descriptionEn: "AI interprets the messages your dreams convey" },
+  { id: "personality", icon: "🌈", href: "/personality", gradient: "linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)", descriptionKo: "성격 유형을 분석하여 자신을 더 깊이 이해하세요", descriptionEn: "Analyze your personality type for deeper self-understanding" },
+  { id: "icp", icon: "🎭", href: "/icp", gradient: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)", descriptionKo: "대인관계 스타일을 파악하여 소통을 개선하세요", descriptionEn: "Understand your interpersonal style to improve communication" },
+  { id: "numerology", icon: "🔢", href: "/numerology", gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", descriptionKo: "숫자에 담긴 운명의 비밀을 밝혀냅니다", descriptionEn: "Reveal the secrets of destiny hidden in numbers" },
+  { id: "astrology", icon: "✨", href: "/astrology", gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)", descriptionKo: "별자리와 행성이 당신에게 미치는 영향을 분석합니다", descriptionEn: "Analyze how zodiac signs and planets influence you" },
+  { id: "saju", icon: "☯️", href: "/saju", gradient: "linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)", descriptionKo: "사주팔자로 타고난 운명과 적성을 알아보세요", descriptionEn: "Discover your innate destiny and aptitude through Saju" },
+  { id: "compatibility", icon: "💕", href: "/compatibility", gradient: "linear-gradient(135deg, #f7b733 0%, #fc4a1a 100%)", descriptionKo: "사랑과 우정, 비즈니스 관계의 궁합을 분석합니다", descriptionEn: "Analyze compatibility in love, friendship, and business" },
+  { id: "pastLife", icon: "🔄", href: "/past-life", gradient: "linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)", descriptionKo: "전생의 흔적이 현재에 미치는 영향을 탐색합니다", descriptionEn: "Explore how past life traces influence your present" },
+  { id: "iching", icon: "📜", href: "/iching", gradient: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)", descriptionKo: "역경의 지혜로 현재 상황에 대한 조언을 얻으세요", descriptionEn: "Gain advice on your current situation through I Ching wisdom" },
 ];
 
 export default function AboutPage() {
-  const { translate } = useI18n();
+  const { translate, locale } = useI18n();
 
   return (
     <div className={styles.page}>
@@ -83,7 +85,7 @@ export default function AboutPage() {
                     {translate(`about.services.${service.id}.title`, service.id)}
                   </h3>
                   <p className={styles.serviceDesc}>
-                    {translate(`about.services.${service.id}.description`, "")}
+                    {locale === "ko" ? service.descriptionKo : service.descriptionEn}
                   </p>
                   <span className={styles.serviceArrow}>→</span>
                 </div>
