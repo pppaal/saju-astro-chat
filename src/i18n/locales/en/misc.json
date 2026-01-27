@@ -125,5 +125,15 @@
     "cancel": "Cancel",
     "saving": "Saving...",
     "error": "Error"
+  },
+  "myjourney": {
+    "profile": {
+      "title": "Profile Information",
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving...",
+      "notSet": "Not set"
+    }
   }
 }

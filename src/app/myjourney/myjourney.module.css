@@ -548,6 +548,165 @@
   line-height: 1.4;
 }
 
+/* Profile Information Card with Inline Editing */
+.profileInfoCard {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.profileInfoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.profileInfoHeader h3 {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.editButton {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.15), rgba(124, 242, 156, 0.1));
+  border: 1px solid rgba(99, 210, 255, 0.3);
+  border-radius: 10px;
+  color: #63d2ff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.editButton:hover {
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.25), rgba(124, 242, 156, 0.15));
+  border-color: rgba(99, 210, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 210, 255, 0.2);
+}
+
+.editIcon {
+  font-size: 0.9rem;
+}
+
+.editActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cancelButton,
+.saveButton {
+  padding: 0.5rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.cancelButton {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.cancelButton:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.saveButton {
+  background: linear-gradient(135deg, #63d2ff, #7cf29c);
+  color: #041018;
+  font-weight: 700;
+}
+
+.saveButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(99, 210, 255, 0.3);
+}
+
+.saveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.profileInfoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.875rem;
+}
+
+.profileInfoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.profileInfoLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.labelIcon {
+  font-size: 0.9rem;
+  filter: drop-shadow(0 2px 4px rgba(99, 210, 255, 0.2));
+}
+
+.profileInfoValue {
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.625rem 0.875rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.profileInfoInput {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(99, 210, 255, 0.2);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.profileInfoInput:focus {
+  outline: none;
+  border-color: rgba(99, 210, 255, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(99, 210, 255, 0.1);
+}
+
+.profileInfoInput::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
 /* Fortune Card - Simplified */
 .fortuneCard {
   background: rgba(255, 255, 255, 0.02);

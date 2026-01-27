@@ -125,5 +125,15 @@
     "cancel": "취소",
     "saving": "저장 중...",
     "error": "오류"
+  },
+  "myjourney": {
+    "profile": {
+      "title": "프로필 정보",
+      "edit": "수정",
+      "cancel": "취소",
+      "save": "저장",
+      "saving": "저장 중...",
+      "notSet": "미설정"
+    }
   }
 }
