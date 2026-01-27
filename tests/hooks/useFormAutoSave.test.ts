@@ -52,14 +52,19 @@ describe('useFormAutoSave', () => {
     });
 
     it('should use correct storage key prefix', () => {
-      const { result } = renderHook(() =>
-        useFormAutoSave({
-          key: 'my-form',
-          data: { name: 'Test' },
-        })
+      const { rerender } = renderHook(
+        ({ data }) =>
+          useFormAutoSave({
+            key: 'my-form',
+            data,
+          }),
+        { initialProps: { data: { name: 'Test' } } }
       );
 
-      // Trigger a save
+      // Change data to trigger save
+      rerender({ data: { name: 'Updated' } });
+
+      // Trigger a save after debounce
       act(() => {
         vi.advanceTimersByTime(1000);
       });

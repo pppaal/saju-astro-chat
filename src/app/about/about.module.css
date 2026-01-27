@@ -22,9 +22,9 @@
 }
 
 .main {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 120px 32px 64px;
+  padding: 80px 24px 48px;
   position: relative;
   z-index: 1;
 }
@@ -46,7 +46,7 @@
 
 .hero {
   text-align: center;
-  margin-bottom: 80px;
+  margin-bottom: 48px;
   animation: fadeInUp 0.8s ease-out;
 }
 
@@ -105,13 +105,13 @@
 
 /* Services Section */
 .servicesSection {
-  margin-bottom: 100px;
+  margin-bottom: 60px;
   animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 
 .sectionHeader {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 32px;
 }
 
 .eyebrow {
@@ -144,20 +144,20 @@
 /* Service Grid */
 .serviceGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
-  margin-top: 48px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 32px;
 }
 
 .serviceCard {
   position: relative;
   display: block;
-  border-radius: 24px;
-  padding: 40px 32px;
+  border-radius: 20px;
+  padding: 24px 20px;
   text-decoration: none;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  min-height: 240px;
+  min-height: 160px;
 }
 
 @media (hover: hover) {
@@ -197,13 +197,13 @@
 }
 
 .serviceIcon {
-  font-size: 48px;
-  margin-bottom: 8px;
+  font-size: 36px;
+  margin-bottom: 6px;
   filter: drop-shadow(0 4px 20px rgba(255,255,255,0.3));
 }
 
 .serviceTitle {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 700;
   color: #ffffff;
   margin: 0;
@@ -212,8 +212,8 @@
 
 .serviceDesc {
   color: rgba(255,255,255,0.9);
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.5;
   flex-grow: 1;
   text-shadow: 0 1px 4px rgba(0,0,0,0.3);
 }
@@ -404,10 +404,17 @@
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .serviceGrid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+}
+
 @media (max-width: 900px) {
   .serviceGrid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
   }
 
   .philosophyGrid {
@@ -418,7 +425,7 @@
 
 @media (max-width: 640px) {
   .main {
-    padding: 100px 20px 64px;
+    padding: 80px 16px 48px;
   }
 
   .heroTitle {
@@ -430,7 +437,8 @@
   }
 
   .serviceGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 
   .philosophyGrid {
@@ -438,8 +446,20 @@
   }
 
   .serviceCard {
-    padding: 32px 24px;
-    min-height: 200px;
+    padding: 20px 16px;
+    min-height: 140px;
+  }
+
+  .serviceIcon {
+    font-size: 28px;
+  }
+
+  .serviceTitle {
+    font-size: 16px;
+  }
+
+  .serviceDesc {
+    font-size: 12px;
   }
 
   .ctaButtons {
