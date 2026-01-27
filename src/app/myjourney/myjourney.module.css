@@ -611,6 +611,47 @@
   line-height: 1.2;
 }
 
+/* Lucky Items */
+.luckyItems {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.luckyItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  background: rgba(99, 210, 255, 0.08);
+  border: 1px solid rgba(99, 210, 255, 0.15);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  transition: all 0.3s ease;
+}
+
+.luckyItem:hover {
+  background: rgba(99, 210, 255, 0.12);
+  border-color: rgba(99, 210, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.luckyIcon {
+  font-size: 1rem;
+  filter: drop-shadow(0 2px 8px rgba(99, 210, 255, 0.3));
+}
+
+.luckyText {
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.2px;
+}
+
 /* Quick Menu - 4 Column Grid */
 .quickMenu {
   display: grid;
@@ -1044,7 +1085,11 @@
 /* Empty History */
 .emptyHistory {
   text-align: center;
-  padding: 1.5rem 1rem;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 .emptyIcon {
@@ -1052,6 +1097,25 @@
   display: block;
   margin-bottom: 0.75rem;
   opacity: 0.5;
+}
+
+.emptyHistoryCta {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #63d2ff 0%, #7cf29c 100%);
+  color: #041018;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 24px rgba(99, 210, 255, 0.3);
+}
+
+.emptyHistoryCta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(99, 210, 255, 0.4);
 }
 
 .emptyHistory > p {
@@ -1362,6 +1426,16 @@
 
   .fortuneScore {
     font-size: 1rem;
+  }
+
+  .luckyItems {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .luckyItem {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.75rem;
   }
 
   .quickMenu {

@@ -361,7 +361,11 @@ function MyJourneyPage() {
               </div>
             </div>
             {/* Fortune Orb */}
-            <div className={styles.fortuneOrb}>
+            <div
+              className={styles.fortuneOrb}
+              title={t("myjourney.fortune.orbTooltip", "Today's Overall Fortune")}
+              aria-label={fortune ? `${t("myjourney.fortune.orbTooltip", "Today's Overall Fortune")}: ${fortune.overall}` : undefined}
+            >
               {fortuneLoading ? (
                 <div className={styles.orbLoading}></div>
               ) : fortune ? (
@@ -379,28 +383,46 @@ function MyJourneyPage() {
           <div className={styles.fortuneCard}>
             <h3>{t("myjourney.fortune.title", "Today's Fortune")}</h3>
             {fortune ? (
-              <div className={styles.fortuneGrid}>
-                <div className={styles.fortuneItem}>
-                  <span className={styles.fortuneEmoji}>❤️</span>
-                  <span className={styles.fortuneScore}>{fortune.love}</span>
-                  <small>{t("myjourney.fortune.love", "Love")}</small>
+              <>
+                <div className={styles.fortuneGrid}>
+                  <div className={styles.fortuneItem}>
+                    <span className={styles.fortuneEmoji}>❤️</span>
+                    <span className={styles.fortuneScore}>{fortune.love}</span>
+                    <small>{t("myjourney.fortune.love", "Love")}</small>
+                  </div>
+                  <div className={styles.fortuneItem}>
+                    <span className={styles.fortuneEmoji}>💼</span>
+                    <span className={styles.fortuneScore}>{fortune.career}</span>
+                    <small>{t("myjourney.fortune.career", "Career")}</small>
+                  </div>
+                  <div className={styles.fortuneItem}>
+                    <span className={styles.fortuneEmoji}>💰</span>
+                    <span className={styles.fortuneScore}>{fortune.wealth}</span>
+                    <small>{t("myjourney.fortune.wealth", "Wealth")}</small>
+                  </div>
+                  <div className={styles.fortuneItem}>
+                    <span className={styles.fortuneEmoji}>🏥</span>
+                    <span className={styles.fortuneScore}>{fortune.health}</span>
+                    <small>{t("myjourney.fortune.health", "Health")}</small>
+                  </div>
                 </div>
-                <div className={styles.fortuneItem}>
-                  <span className={styles.fortuneEmoji}>💼</span>
-                  <span className={styles.fortuneScore}>{fortune.career}</span>
-                  <small>{t("myjourney.fortune.career", "Career")}</small>
-                </div>
-                <div className={styles.fortuneItem}>
-                  <span className={styles.fortuneEmoji}>💰</span>
-                  <span className={styles.fortuneScore}>{fortune.wealth}</span>
-                  <small>{t("myjourney.fortune.wealth", "Wealth")}</small>
-                </div>
-                <div className={styles.fortuneItem}>
-                  <span className={styles.fortuneEmoji}>🏥</span>
-                  <span className={styles.fortuneScore}>{fortune.health}</span>
-                  <small>{t("myjourney.fortune.health", "Health")}</small>
-                </div>
-              </div>
+                {(fortune.luckyColor || fortune.luckyNumber) && (
+                  <div className={styles.luckyItems}>
+                    {fortune.luckyColor && (
+                      <div className={styles.luckyItem}>
+                        <span className={styles.luckyIcon}>🎨</span>
+                        <span className={styles.luckyText}>{fortune.luckyColor}</span>
+                      </div>
+                    )}
+                    {fortune.luckyNumber && (
+                      <div className={styles.luckyItem}>
+                        <span className={styles.luckyIcon}>🔢</span>
+                        <span className={styles.luckyText}>{fortune.luckyNumber}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             ) : !profile.birthDate ? (
               <div className={styles.fortuneSetup}>
                 <p>{t("myjourney.fortune.setup", "Set your birth date first")}</p>
@@ -482,15 +504,17 @@ function MyJourneyPage() {
                               .trim();
                           }
 
+                          const serviceUrl = _SERVICE_URLS[record.service] || `/${record.service}`;
+
                           return (
-                            <div
+                            <Link
                               key={record.id}
+                              href={serviceUrl}
                               className={styles.serviceTag}
-                              style={{ cursor: 'default' }}
                             >
                               <span className={styles.tagIcon}>{SERVICE_ICONS[record.service] || "📖"}</span>
                               <span className={styles.tagName}>{serviceName}</span>
-                            </div>
+                            </Link>
                           );
                         })}
                       </div>
@@ -508,7 +532,10 @@ function MyJourneyPage() {
               </div>
             ) : (
               <div className={styles.emptyHistory}>
-                <p className={styles.emptyHint}>{t("myjourney.activity.empty")}</p>
+                <p className={styles.emptyHint}>{t("myjourney.activity.empty", "No activity yet")}</p>
+                <Link href="/destiny-map" className={styles.emptyHistoryCta}>
+                  {t("myjourney.activity.startFirst", "Start Your First Reading")} →
+                </Link>
               </div>
             )}
           </div>
