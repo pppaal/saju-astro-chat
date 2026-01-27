@@ -252,8 +252,10 @@ describe('Services Integration', () => {
     it('should export env validation', async () => {
       const module = await import('@/lib/env');
 
-      expect(module.validateEnv).toBeDefined();
       expect(module.env).toBeDefined();
+      expect(module.isProduction).toBeDefined();
+      expect(module.isDevelopment).toBeDefined();
+      expect(module.isTest).toBeDefined();
     });
   });
 

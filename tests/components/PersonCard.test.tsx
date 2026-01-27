@@ -4,6 +4,29 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PersonCard } from '@/components/compatibility/PersonCard';
 import type { PersonForm, SavedPerson } from '@/app/compatibility/lib';
 
+// Mock custom picker components to render simple inputs for testability
+vi.mock('@/components/ui/DateTimePicker', () => ({
+  default: ({ value, onChange, label }: { value: string; onChange: (v: string) => void; label?: string }) => (
+    <div>
+      <label htmlFor="mock-date">{label}</label>
+      <input id="mock-date" type="date" value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  ),
+}));
+
+vi.mock('@/components/ui/TimePicker', () => ({
+  default: ({ value, onChange, label }: { value: string; onChange: (v: string) => void; label?: string }) => (
+    <div>
+      <label htmlFor="mock-time">{label}</label>
+      <input id="mock-time" type="time" value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  ),
+}));
+
+vi.mock('./PersonCard.module.css', () => ({
+  default: new Proxy({}, { get: (_target, name) => name }),
+}));
+
 describe('PersonCard', () => {
   const mockT = (key: string, fallback?: string) => fallback || key;
   const mockOnUpdate = vi.fn();
