@@ -3,7 +3,8 @@
  * Complex analysis logic for karmic debts and scoring
  */
 
-import type { GeokgukType, HeavenlyStem, HouseNumber, PastLifeResult } from '../data/types';
+import type { GeokgukType, HeavenlyStem, HouseNumber } from '../data/types';
+import type { PastLifeResult } from '../types';
 import { KARMIC_DEBT_CONFIG, KARMIC_PATTERN_MATCHERS, KARMA_SCORE_CONFIG } from '../data/constants';
 
 interface SajuData {

@@ -126,9 +126,27 @@ interface SajuInput {
       heavenlyStem?: { name: string };
       earthlyBranch?: { name: string };
     };
-    month?: { earthlyBranch?: { name: string } };
-    year?: { earthlyBranch?: { name: string } };
-    hour?: { earthlyBranch?: { name: string } };
+    month?: {
+      heavenlyStem?: { name: string };
+      earthlyBranch?: { name: string };
+    };
+    year?: {
+      heavenlyStem?: { name: string };
+      earthlyBranch?: { name: string };
+    };
+    hour?: {
+      heavenlyStem?: { name: string };
+      earthlyBranch?: { name: string };
+    };
+    time?: {
+      heavenlyStem?: { name: string };
+      earthlyBranch?: { name: string };
+    };
+  };
+  advancedAnalysis?: {
+    yongsin?: {
+      primary?: string;
+    };
   };
   primaryYongsin?: string;
 }

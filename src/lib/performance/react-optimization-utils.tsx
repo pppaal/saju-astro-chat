@@ -123,7 +123,7 @@ export function useLazyLoad<T extends HTMLElement = HTMLDivElement>(
     };
   }, [threshold]);
 
-  return [ref, isVisible];
+  return [ref as React.RefObject<T>, isVisible];
 }
 
 /**
@@ -147,7 +147,7 @@ export function useEventCallback<T extends (...args: any[]) => any>(
  * usePrevious - Get previous value
  */
 export function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T>();
+  const ref = useRef<T | undefined>(undefined);
 
   useEffect(() => {
     ref.current = value;

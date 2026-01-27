@@ -3,7 +3,8 @@
  * Functions that build each section of the PastLifeResult
  */
 
-import type { GeokgukType, HeavenlyStem, HouseNumber, PastLifeResult } from '../data/types';
+import type { GeokgukType, HeavenlyStem, HouseNumber } from '../data/types';
+import type { PastLifeResult } from '../types';
 import { SOUL_PATTERNS } from '../data/soul-patterns';
 import { PAST_LIFE_THEMES } from '../data/past-life-themes';
 import { NODE_JOURNEY } from '../data/node-journey';
