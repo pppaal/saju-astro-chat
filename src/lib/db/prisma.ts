@@ -28,7 +28,15 @@ function createPrismaClient(): PrismaClient {
   const connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
-    throw new Error('DATABASE_URL environment variable is not set');
+    // Return a proxy that throws on first actual use rather than at import time.
+    // This prevents build-time failures when DATABASE_URL is not available.
+    logger.warn('[prisma] DATABASE_URL not set — Prisma client will fail on first query');
+    return new Proxy({} as PrismaClient, {
+      get(_, prop) {
+        if (prop === 'then') return undefined; // avoid treating as thenable
+        throw new Error('DATABASE_URL environment variable is not set');
+      },
+    });
   }
 
   // Create connection pool
