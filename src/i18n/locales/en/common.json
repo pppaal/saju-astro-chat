@@ -66,6 +66,20 @@
     "profileLoadFailed": "Failed to load profile. Please try again.",
     "noProfileData": "No saved profile data found. Please save your info in MyJourney first."
   },
+  "errors": {
+    "errorCode": "Error Code",
+    "tryAgain": "Try Again",
+    "contactSupport": "Contact Support",
+    "networkErrorTitle": "Network Error",
+    "networkErrorMessage": "Unable to connect to the server. Please check your internet connection and try again.",
+    "notFoundTitle": "Not Found",
+    "notFoundMessage": "The requested resource could not be found.",
+    "permissionDeniedTitle": "Permission Denied",
+    "permissionDeniedMessage": "You don't have permission to access this resource. Please contact support if you believe this is an error.",
+    "validationErrorTitle": "Validation Error",
+    "serverErrorTitle": "Server Error",
+    "serverErrorMessage": "A server error occurred. Please try again later."
+  },
   "menu": {
     "destinyMap": "Destiny Map",
     "aiReports": "AI Premium Reports",

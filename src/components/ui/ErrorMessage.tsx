@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useI18n } from '@/i18n/I18nProvider';
 import styles from './ErrorMessage.module.css';
 
 export interface ErrorMessageProps {
@@ -12,18 +13,34 @@ export interface ErrorMessageProps {
   retryLabel?: string;
   supportLabel?: string;
   variant?: 'inline' | 'card' | 'fullscreen';
+  // i18n keys for automatic translation (optional)
+  titleKey?: string;
+  messageKey?: string;
+  retryLabelKey?: string;
+  supportLabelKey?: string;
 }
 
 export default function ErrorMessage({
-  title = 'Error',
+  title,
   message,
   errorCode,
   onRetry,
   onSupport,
-  retryLabel = 'Try Again',
-  supportLabel = 'Contact Support',
+  retryLabel,
+  supportLabel,
   variant = 'card',
+  titleKey,
+  messageKey,
+  retryLabelKey,
+  supportLabelKey,
 }: ErrorMessageProps) {
+  const { translate } = useI18n();
+
+  // Use i18n if keys provided, otherwise fallback to props or defaults
+  const displayTitle = titleKey ? translate(titleKey, title || 'Error') : (title || 'Error');
+  const displayMessage = messageKey ? translate(messageKey, message) : message;
+  const displayRetryLabel = retryLabelKey ? translate(retryLabelKey, retryLabel || 'Try Again') : (retryLabel || 'Try Again');
+  const displaySupportLabel = supportLabelKey ? translate(supportLabelKey, supportLabel || 'Contact Support') : (supportLabel || 'Contact Support');
   const containerClass = `${styles.errorMessage} ${styles[variant]}`;
 
   return (
@@ -38,11 +55,11 @@ export default function ErrorMessage({
         )}
 
         <div className={styles.textContent}>
-          <h3 className={styles.title}>{title}</h3>
-          <p className={styles.message}>{message}</p>
+          <h3 className={styles.title}>{displayTitle}</h3>
+          <p className={styles.message}>{displayMessage}</p>
           {errorCode && (
             <p className={styles.errorCode}>
-              Error Code: <code>{errorCode}</code>
+              {translate('errors.errorCode', 'Error Code')}: <code>{errorCode}</code>
             </p>
           )}
         </div>
@@ -54,10 +71,10 @@ export default function ErrorMessage({
                 onClick={onRetry}
                 className={styles.retryButton}
                 type="button"
-                aria-label={retryLabel}
+                aria-label={displayRetryLabel}
               >
                 <span aria-hidden="true">🔄</span>
-                <span>{retryLabel}</span>
+                <span>{displayRetryLabel}</span>
               </button>
             )}
             {onSupport && (
@@ -65,10 +82,10 @@ export default function ErrorMessage({
                 onClick={onSupport}
                 className={styles.supportButton}
                 type="button"
-                aria-label={supportLabel}
+                aria-label={displaySupportLabel}
               >
                 <span aria-hidden="true">💬</span>
-                <span>{supportLabel}</span>
+                <span>{displaySupportLabel}</span>
               </button>
             )}
           </div>
@@ -82,10 +99,13 @@ export default function ErrorMessage({
 export function NetworkError({ onRetry }: { onRetry?: () => void }) {
   return (
     <ErrorMessage
+      titleKey="errors.networkErrorTitle"
       title="Network Error"
+      messageKey="errors.networkErrorMessage"
       message="Unable to connect to the server. Please check your internet connection and try again."
       errorCode="NET_001"
       onRetry={onRetry}
+      retryLabelKey="errors.tryAgain"
       variant="card"
     />
   );
@@ -95,7 +115,9 @@ export function NetworkError({ onRetry }: { onRetry?: () => void }) {
 export function NotFoundError({ message }: { message?: string }) {
   return (
     <ErrorMessage
+      titleKey="errors.notFoundTitle"
       title="Not Found"
+      messageKey="errors.notFoundMessage"
       message={message || "The requested resource could not be found."}
       errorCode="404"
       variant="card"
@@ -107,11 +129,29 @@ export function NotFoundError({ message }: { message?: string }) {
 export function PermissionError({ onRetry }: { onRetry?: () => void }) {
   return (
     <ErrorMessage
+      titleKey="errors.permissionDeniedTitle"
       title="Permission Denied"
+      messageKey="errors.permissionDeniedMessage"
       message="You don't have permission to access this resource. Please contact support if you believe this is an error."
       errorCode="AUTH_403"
       onRetry={onRetry}
+      retryLabelKey="errors.tryAgain"
+      supportLabelKey="errors.contactSupport"
       variant="card"
+    />
+  );
+}
+
+// Convenience component for form validation errors
+export function ValidationError({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return (
+    <ErrorMessage
+      titleKey="errors.validationErrorTitle"
+      title="Validation Error"
+      message={message}
+      errorCode="VAL_001"
+      onRetry={onRetry}
+      variant="inline"
     />
   );
 }
