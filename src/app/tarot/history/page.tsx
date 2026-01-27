@@ -228,7 +228,7 @@ export default function TarotHistoryPage() {
                   handleViewReading(reading);
                 }
               }}
-              aria-label={`View ${reading.spreadName || reading.spread.title} reading from ${new Date(reading.timestamp).toLocaleDateString()}`}
+              aria-label={`View ${reading.spread.title} reading from ${new Date(reading.timestamp).toLocaleDateString()}`}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
             >
