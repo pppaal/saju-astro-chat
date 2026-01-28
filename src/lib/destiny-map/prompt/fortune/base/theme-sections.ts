@@ -1,5 +1,4 @@
-// @ts-nocheck - Complex dynamic structures from external APIs
- 
+// @ts-nocheck - Dynamic structures from external APIs require loose typing
 /**
  * Theme-Specific Prompt Sections
  * 테마별 프롬프트 섹션 생성기

@@ -1,5 +1,4 @@
-// @ts-nocheck - Complex dynamic structures from external APIs
- 
+// @ts-nocheck - Dynamic structures from external APIs require loose typing
 /**
  * Structured Fortune Prompt Builder
  * @deprecated Use index.ts for main prompt generation. This file provides structured output format.
