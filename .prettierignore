@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+coverage/
+
+# Generated files
+prisma/migrations/
+package-lock.json
+pnpm-lock.yaml
+
+# Python
+.venv/
+venv/
+backend_ai/venv/
+__pycache__/
+
+# Test artifacts
+playwright-report/
+test-results/
+
+# Cache
+.turbo/
+.cache/

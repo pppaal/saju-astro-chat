@@ -1,5 +1,6 @@
 import next from 'eslint-config-next'
 import tseslint from '@typescript-eslint/eslint-plugin'
+import prettier from 'eslint-config-prettier'
 
 const config = [
   ...next,
@@ -86,7 +87,7 @@ const config = [
       'react-hooks/immutability': 'off',
       'react-hooks/exhaustive-deps': 'warn', // Warn instead of error
       // Code quality
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': ['error', { allow: ['warn', 'error'] }],
       'prefer-const': 'warn',
       'no-var': 'error',
       'eqeqeq': ['warn', 'always', { null: 'ignore' }],
@@ -128,6 +129,7 @@ const config = [
       ],
     },
   },
+  prettier,
 ]
 
 export default config
