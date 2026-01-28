@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
     const timeZone = tzLookup(latitude, longitude);
     const res = NextResponse.json({ timeZone });
     limit.headers.forEach((value, key) => res.headers.set(key, value));
+    res.headers.set("Cache-Control", "public, max-age=2592000, immutable");
     return res;
   } catch (e: unknown) {
     captureServerError(e, { route: "/api/latlon-to-timezone" });
