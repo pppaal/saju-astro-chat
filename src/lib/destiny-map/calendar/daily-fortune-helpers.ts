@@ -33,11 +33,11 @@ export function calculateAreaScores(
     careerAdj += 12;
   }
 
-  if (factors.some(f => f.includes("sipsin_Н Нzк") || f.includes("sipsin_бZ,Нzк"))) {
+  if (factors.some(f => f.includes("sipsin_정재") || f.includes("sipsin_편재"))) {
     wealthAdj += 12;
   }
 
-  if (factors.some(f => f.includes("sipsin_Н Н?,"))) {
+  if (factors.some(f => f.includes("sipsin_정인"))) {
     healthAdj += 8;
   }
 
