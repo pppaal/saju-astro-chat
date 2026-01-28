@@ -127,13 +127,17 @@ export const HEXAGRAM_NAMES_KO: Record<number, string> = {
 };
 
 /**
+ * Binary → 괘 번호 역방향 룩업 맵 (O(1) 검색)
+ */
+export const BINARY_TO_HEXAGRAM_MAP: Record<string, number> = Object.fromEntries(
+  Object.entries(HEXAGRAM_BINARY_MAP).map(([num, bin]) => [bin, parseInt(num)])
+);
+
+/**
  * Binary에서 괘 번호 찾기
  */
 export function findHexagramNumberByBinary(binary: string): number | null {
-  for (const [num, bin] of Object.entries(HEXAGRAM_BINARY_MAP)) {
-    if (bin === binary) {return parseInt(num);}
-  }
-  return null;
+  return BINARY_TO_HEXAGRAM_MAP[binary] ?? null;
 }
 
 /**

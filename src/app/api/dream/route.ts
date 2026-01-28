@@ -15,6 +15,7 @@ import { DreamRequestSchema, type DreamRequest } from '@/lib/validation';
 import type { ZodIssue } from 'zod';
 import { recordApiRequest } from '@/lib/metrics/index';
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 type SymbolCombination = {
   combination: string;
   meaning: string;
@@ -163,7 +164,7 @@ export async function POST(req: NextRequest) {
 
   try {
     // Parse and validate request body using Zod schema
-    const rawBody = await req.json().catch(() => null);
+    const rawBody = await parseRequestBody<any>(req, { context: 'Dream' });
     if (!rawBody) {
       recordApiRequest('dream', 'analyze', 'validation_error');
       return NextResponse.json(

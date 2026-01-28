@@ -1,5 +1,7 @@
 export { useChatSession } from './useChatSession';
 export { useChatFeedback } from './useChatFeedback';
+export { useFileUpload } from './useFileUpload';
+export { useChatApi } from './useChatApi';
 export { useInlineTarotState } from './useInlineTarotState';
 export type { Step, TarotState, UseInlineTarotStateReturn } from './useInlineTarotState';
 export { useInlineTarotAPI } from './useInlineTarotAPI';

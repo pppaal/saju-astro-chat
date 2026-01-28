@@ -367,7 +367,7 @@ describe("ichingWisdom", () => {
     it("handles invalid hexagram", () => {
       const result = deepWisdomAnalysis(0);
 
-      expect(result.personalizedAdvice).toContain("찾을 수 없습니다");
+      expect(result.personalizedAdvice).toContain("확인할 수 없습니다");
     });
 
     it("action plan has multiple steps", () => {

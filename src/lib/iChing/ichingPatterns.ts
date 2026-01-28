@@ -163,11 +163,12 @@ function reverseBinary(binary: string): string {
   return binary.split('').reverse().join('');
 }
 
+const BINARY_HEX_LOOKUP: Record<string, number> = Object.fromEntries(
+  Object.entries(HEXAGRAM_DATA).map(([num, data]) => [data.binary, Number(num)])
+);
+
 function findHexByBinary(binary: string): number {
-  for (const [num, data] of Object.entries(HEXAGRAM_DATA)) {
-    if (data.binary === binary) {return Number(num);}
-  }
-  return 0;
+  return BINARY_HEX_LOOKUP[binary] ?? 0;
 }
 
 // ============================================================================
@@ -637,12 +638,16 @@ function getRelationshipAdvice(
 }
 
 /**
- * 전체 64괘 관계망 생성
+ * 전체 64괘 관계망 생성 (결과 캐싱)
  */
+let _networkCache: { nodes: { id: number; name: string; group: string }[]; edges: { source: number; target: number; type: string }[] } | null = null;
+
 export function generateHexagramNetwork(): {
   nodes: { id: number; name: string; group: string }[];
   edges: { source: number; target: number; type: string }[];
 } {
+  if (_networkCache) return _networkCache;
+
   const nodes = Object.entries(HEXAGRAM_DATA).map(([num, data]) => ({
     id: Number(num),
     name: data.korean,
@@ -665,5 +670,6 @@ export function generateHexagramNetwork(): {
     }
   }
 
-  return { nodes, edges };
+  _networkCache = { nodes, edges };
+  return _networkCache;
 }

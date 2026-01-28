@@ -1,45 +1,41 @@
-// src/components/saju/result-display/components/UnseComponents.tsx
+import { useCallback, type FC, type ReactNode } from 'react';
+import {
+  ELEMENT_COLOR_CLASSES,
+  getElementOfChar,
+} from '../../constants/elements';
 
-import React from 'react';
-import type { GanjiValue } from '../types';
-import { elementColors } from '../constants';
-import { getGanjiName, getElementOfChar } from '../utils';
-import { sibsinTextStyle } from '../styles';
+type GanjiValue = string | { name: string } | null | undefined;
 
-export function UnseFlowContainer({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{
-      display: 'flex',
-      overflowX: 'auto',
-      padding: '1rem 0.5rem',
-      background: '#1e1e2f',
-      borderRadius: 12,
-      border: '1px solid #4f4f7a',
-    }}>
-      {children}
-    </div>
-  );
+function getGanjiName(val: GanjiValue): string {
+  if (typeof val === 'string') {return val;}
+  if (val && typeof val === 'object' && 'name' in val) {return val.name;}
+  return '';
 }
 
-interface UnsePillarProps {
+export const UnseFlowContainer: FC<{ children: ReactNode; 'aria-label'?: string }> = ({ children, 'aria-label': ariaLabel }) => (
+  <div
+    className="flex overflow-x-auto py-4 px-2 bg-slate-800 rounded-xl border border-slate-600"
+    role="listbox"
+    aria-label={ariaLabel}
+  >
+    {children}
+  </div>
+);
+
+interface UnsePillarProps<T> {
   topText: string;
   topSubText: string | object;
   cheon: GanjiValue;
   ji: GanjiValue;
   bottomSubText: string | object;
-  onClick?: () => void;
+  onClick?: (item: T) => void;
+  item?: T;
   isSelected?: boolean;
 }
 
-export function UnsePillar({
-  topText,
-  topSubText,
-  cheon,
-  ji,
-  bottomSubText,
-  onClick,
-  isSelected,
-}: UnsePillarProps) {
+export function UnsePillar<T>({
+  topText, topSubText, cheon, ji, bottomSubText, onClick, item, isSelected,
+}: UnsePillarProps<T>) {
   const cheonStr = getGanjiName(cheon);
   const jiStr = getGanjiName(ji);
   const topSubStr = typeof topSubText === 'string' ? topSubText : String(topSubText ?? '');
@@ -48,46 +44,44 @@ export function UnsePillar({
   const topEl = getElementOfChar(cheonStr);
   const bottomEl = getElementOfChar(jiStr);
 
+  const handleClick = useCallback(() => {
+    if (onClick && item !== undefined) {
+      onClick(item);
+    }
+  }, [onClick, item]);
+
   return (
-    <div
-      style={{
-        flex: '0 0 65px',
-        textAlign: 'center',
-        padding: '0 4px',
-        cursor: onClick ? 'pointer' : 'default',
-        background: isSelected ? 'rgba(58,109,240,0.2)' : 'transparent',
-        borderRadius: 8,
-        border: isSelected ? '1px solid #3a6df0' : '1px solid transparent',
-        transition: 'all 0.2s ease-in-out',
-        paddingTop: 5,
-        paddingBottom: 5,
-      }}
-      onClick={onClick}
+    <button
+      type="button"
+      className={`flex-none w-16 text-center px-1 py-1.5 rounded-lg transition-all duration-200
+        ${isSelected
+          ? 'bg-blue-500/20 border border-blue-500'
+          : 'border border-transparent hover:bg-white/5'
+        }
+        ${onClick ? 'cursor-pointer' : 'cursor-default'}
+      `}
+      onClick={handleClick}
+      role="option"
+      aria-selected={isSelected}
+      aria-label={`${topText} ${cheonStr}${jiStr}`}
     >
-      <div style={{ fontSize: '0.8rem', color: '#a0a0a0', whiteSpace: 'nowrap' }}>{topText}</div>
-      <div style={sibsinTextStyle}>{topSubStr}</div>
-      <div style={{
-        padding: '0.6rem 0',
-        fontSize: '1.2rem',
-        fontWeight: 'bold',
-        background: topEl ? elementColors[topEl] : '#2a2a3e',
-        borderRadius: 4,
-        color: '#fff',
-        borderBottom: '1px solid #161625',
-      }}>
+      <div className="text-xs text-gray-400 whitespace-nowrap">{topText}</div>
+      <div className="text-xs text-gray-500 h-5 flex items-center justify-center">{topSubStr}</div>
+      <div
+        className={`py-2.5 text-lg font-bold rounded text-white border-b border-slate-700 ${
+          topEl ? ELEMENT_COLOR_CLASSES[topEl] : 'bg-slate-700'
+        }`}
+      >
         {cheonStr}
       </div>
-      <div style={{
-        padding: '0.6rem 0',
-        fontSize: '1.2rem',
-        fontWeight: 'bold',
-        background: bottomEl ? elementColors[bottomEl] : '#2a2a3e',
-        borderRadius: 4,
-        color: '#fff',
-      }}>
+      <div
+        className={`py-2.5 text-lg font-bold rounded text-white ${
+          bottomEl ? ELEMENT_COLOR_CLASSES[bottomEl] : 'bg-slate-700'
+        }`}
+      >
         {jiStr}
       </div>
-      <div style={sibsinTextStyle}>{bottomSubStr}</div>
-    </div>
+      <div className="text-xs text-gray-500 h-5 flex items-center justify-center">{bottomSubStr}</div>
+    </button>
   );
 }

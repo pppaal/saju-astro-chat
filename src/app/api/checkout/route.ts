@@ -10,6 +10,7 @@ import { recordCounter } from '@/lib/metrics'
 import { enforceBodySize } from '@/lib/http'
 import { logger } from '@/lib/logger'
 import { csrfGuard } from '@/lib/security/csrf'
+import { parseRequestBody } from '@/lib/api/requestParser';
 import {
   getPriceId,
   getCreditPackPriceId,

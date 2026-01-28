@@ -222,6 +222,58 @@ describe('enhancedDataLoader', () => {
     });
   });
 
+  describe('error handling', () => {
+    it('should return null and log error when dynamic import fails (EN)', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Temporarily override the mock to simulate import failure
+      vi.doMock('@/lib/iChing/enhancedData', () => {
+        throw new Error('Module load failed');
+      });
+
+      // Clear cache and re-import to pick up the failing mock
+      clearEnhancedDataCache();
+      vi.resetModules();
+
+      const { getEnhancedHexagramData: freshGet } = await import(
+        '@/lib/iChing/enhancedDataLoader'
+      );
+      const data = await freshGet(1);
+
+      expect(data).toBeNull();
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to load enhanced data for hexagram 1'),
+        expect.any(Error)
+      );
+
+      errorSpy.mockRestore();
+    });
+
+    it('should return null and log error when dynamic import fails (KO)', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      vi.doMock('@/lib/iChing/enhancedData', () => {
+        throw new Error('Module load failed');
+      });
+
+      clearEnhancedDataCache();
+      vi.resetModules();
+
+      const { getEnhancedHexagramDataKo: freshGetKo } = await import(
+        '@/lib/iChing/enhancedDataLoader'
+      );
+      const data = await freshGetKo(1);
+
+      expect(data).toBeNull();
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to load enhanced Korean data for hexagram 1'),
+        expect.any(Error)
+      );
+
+      errorSpy.mockRestore();
+    });
+  });
+
   describe('clearEnhancedDataCache', () => {
     it('should clear all cached data so re-import is needed', async () => {
       const data1 = await getEnhancedHexagramData(1);

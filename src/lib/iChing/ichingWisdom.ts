@@ -3,6 +3,44 @@
  * 주역 지혜 생성기: 괘사/효사 심층 해석, AI 프롬프트 생성, 상황별 조언
  */
 
+import { DICTS } from '@/i18n/I18nProvider';
+
+type Locale = 'en' | 'ko';
+
+/** Helper to get an iching.wisdom translation key (with cache) */
+const _twCache: Record<string, string> = {};
+
+function tw(locale: Locale, key: string, vars?: Record<string, string | number>): string {
+  const cacheKey = `${locale}:${key}`;
+  let val = _twCache[cacheKey];
+  if (val === undefined) {
+    const dict = DICTS[locale] as Record<string, any>;
+    val = dict?.iching?.wisdom?.[key] ?? key;
+    _twCache[cacheKey] = val;
+  }
+  if (vars) {
+    let result = val;
+    for (const [k, v] of Object.entries(vars)) {
+      result = result.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+    }
+    return result;
+  }
+  return val;
+}
+
+const _twArrayCache: Record<string, string[]> = {};
+
+function twArray(locale: Locale, key: string): string[] {
+  const cacheKey = `${locale}:${key}`;
+  let val = _twArrayCache[cacheKey];
+  if (val === undefined) {
+    const dict = DICTS[locale] as Record<string, any>;
+    val = dict?.iching?.wisdom?.[key] ?? [];
+    _twArrayCache[cacheKey] = val;
+  }
+  return val;
+}
+
 // 64괘 기본 지혜 데이터
 export const HEXAGRAM_WISDOM: Record<number, HexagramWisdomData> = {
   1: {
@@ -146,31 +184,31 @@ export const YAO_POSITION_MEANINGS: Record<number, { general: string; timing: st
 };
 
 // 괘 지혜 생성 함수
-export function getHexagramWisdom(hexagramNumber: number): HexagramWisdomData | null {
+export function getHexagramWisdom(hexagramNumber: number, locale: Locale = 'ko'): HexagramWisdomData | null {
   if (hexagramNumber < 1 || hexagramNumber > 64) {return null;}
-  return HEXAGRAM_WISDOM[hexagramNumber] || createDefaultWisdom(hexagramNumber);
+  return HEXAGRAM_WISDOM[hexagramNumber] || createDefaultWisdom(hexagramNumber, locale);
 }
 
-function createDefaultWisdom(hexagramNumber: number): HexagramWisdomData {
+function createDefaultWisdom(hexagramNumber: number, locale: Locale = 'ko'): HexagramWisdomData {
   return {
     name: `괘${hexagramNumber}`,
     chinese: '',
-    keyword: '해석 필요',
+    keyword: tw(locale, 'defaultKeyword'),
     element: '',
     nature: '',
     gwaeSa: '',
-    meaning: '괘에 대한 상세 해석이 필요합니다.',
-    coreWisdom: '이 괘의 지혜를 탐구해보세요.',
+    meaning: tw(locale, 'defaultMeaning'),
+    coreWisdom: tw(locale, 'defaultCoreWisdom'),
     situationAdvice: {
-      career: '상황을 잘 살펴보세요.',
-      relationship: '관계에 주의를 기울이세요.',
-      health: '건강을 돌보세요.',
-      wealth: '재정을 신중히 관리하세요.',
-      spiritual: '내면을 성찰하세요.'
+      career: tw(locale, 'defaultCareer'),
+      relationship: tw(locale, 'defaultRelationship'),
+      health: tw(locale, 'defaultHealth'),
+      wealth: tw(locale, 'defaultWealth'),
+      spiritual: tw(locale, 'defaultSpiritual')
     },
     yaoWisdom: [],
-    warnings: ['주의가 필요합니다'],
-    opportunities: ['기회를 찾아보세요']
+    warnings: [tw(locale, 'defaultWarning')],
+    opportunities: [tw(locale, 'defaultOpportunity')]
   };
 }
 
@@ -178,10 +216,11 @@ function createDefaultWisdom(hexagramNumber: number): HexagramWisdomData {
 export function generateSituationalAdvice(
   hexagramNumber: number,
   situation: keyof SituationAdvice,
-  changingLines?: number[]
+  changingLines?: number[],
+  locale: Locale = 'ko'
 ): string {
-  const wisdom = getHexagramWisdom(hexagramNumber);
-  if (!wisdom) {return '괘를 확인해주세요.';}
+  const wisdom = getHexagramWisdom(hexagramNumber, locale);
+  if (!wisdom) {return tw(locale, 'checkHexagram');}
 
   let advice = wisdom.situationAdvice[situation];
 
@@ -191,7 +230,7 @@ export function generateSituationalAdvice(
       const positionMeaning = YAO_POSITION_MEANINGS[line];
       return `${line}효(${positionMeaning.general})의 변화: ${positionMeaning.timing}`;
     }).join('. ');
-    advice += ` 변효 해석: ${changingAdvice}`;
+    advice += tw(locale, 'changingLineNote') + changingAdvice;
   }
 
   return advice;
@@ -287,12 +326,13 @@ ${context.additionalContext}
 export function interpretChangingLines(
   originalHex: number,
   targetHex: number,
-  changingLines: number[]
+  changingLines: number[],
+  locale: Locale = 'ko'
 ): string {
-  const original = getHexagramWisdom(originalHex);
-  const target = getHexagramWisdom(targetHex);
+  const original = getHexagramWisdom(originalHex, locale);
+  const target = getHexagramWisdom(targetHex, locale);
 
-  if (!original || !target) {return '괘 정보를 확인할 수 없습니다.';}
+  if (!original || !target) {return tw(locale, 'noHexagramInfo');}
 
   const lineCount = changingLines.length;
   let interpretation = '';
@@ -411,57 +451,55 @@ export function interpretChangingLines(
 }
 
 // 일일 지혜 메시지 생성
-export function generateDailyWisdom(hexagramNumber: number, date: Date): string {
-  const wisdom = getHexagramWisdom(hexagramNumber);
+export function generateDailyWisdom(hexagramNumber: number, date: Date, locale: Locale = 'ko'): string {
+  const wisdom = getHexagramWisdom(hexagramNumber, locale);
   if (!wisdom) {return '';}
 
   const dayOfWeek = date.getDay();
-  const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+  const dayNames = twArray(locale, 'dayNames');
 
   // 요일별 테마
   const dayThemes: Record<number, keyof SituationAdvice> = {
-    0: 'spiritual',   // 일요일
-    1: 'career',      // 월요일
-    2: 'career',      // 화요일
-    3: 'health',      // 수요일
-    4: 'wealth',      // 목요일
-    5: 'relationship', // 금요일
-    6: 'spiritual'    // 토요일
+    0: 'spiritual',
+    1: 'career',
+    2: 'career',
+    3: 'health',
+    4: 'wealth',
+    5: 'relationship',
+    6: 'spiritual'
   };
 
   const theme = dayThemes[dayOfWeek];
   const advice = wisdom.situationAdvice[theme];
+  const dayName = dayNames[dayOfWeek] || '';
 
-  return `📿 오늘의 주역 지혜 (${dayNames[dayOfWeek]}요일)
+  return `📿 ${tw(locale, 'dailyWisdomTitle', { day: dayName })}
 
 【${wisdom.name}괘 ${wisdom.chinese}】
 ${wisdom.keyword}
 
-✨ 핵심: ${wisdom.coreWisdom}
+✨ ${tw(locale, 'dailyCore')}: ${wisdom.coreWisdom}
 
-📌 오늘의 조언 (${theme}):
+📌 ${tw(locale, 'dailyAdvice', { theme })}:
 ${advice}
 
-⚠️ 주의: ${wisdom.warnings[0] || '없음'}
-🌟 기회: ${wisdom.opportunities[0] || '탐색 중'}
+⚠️ ${tw(locale, 'dailyWarning')}: ${wisdom.warnings[0] || ''}
+🌟 ${tw(locale, 'dailyOpportunity')}: ${wisdom.opportunities[0] || ''}
 `;
 }
 
 // 괘 간 관계 지혜 분석
 export function analyzeHexagramRelationshipWisdom(
   hex1: number,
-  hex2: number
+  hex2: number,
+  locale: Locale = 'ko'
 ): { compatibility: string; advice: string; synergy: string[] } {
-  const wisdom1 = getHexagramWisdom(hex1);
-  const wisdom2 = getHexagramWisdom(hex2);
+  const wisdom1 = getHexagramWisdom(hex1, locale);
+  const wisdom2 = getHexagramWisdom(hex2, locale);
 
   if (!wisdom1 || !wisdom2) {
-    return { compatibility: '분석 불가', advice: '', synergy: [] };
+    return { compatibility: tw(locale, 'cannotAnalyze'), advice: '', synergy: [] };
   }
-
-  // 성질 비교
-  const nature1 = wisdom1.nature;
-  const nature2 = wisdom2.nature;
 
   let compatibility = '';
   let advice = '';
@@ -469,23 +507,23 @@ export function analyzeHexagramRelationshipWisdom(
 
   // 간단한 상성 분석
   if (wisdom1.element === wisdom2.element) {
-    compatibility = '동질 - 비슷한 에너지';
-    advice = '서로 잘 이해하지만 다양성이 부족할 수 있습니다.';
+    compatibility = tw(locale, 'compatibilitySame');
+    advice = tw(locale, 'adviceSameElement');
   } else if (
     (wisdom1.element.includes('천') && wisdom2.element.includes('지')) ||
     (wisdom1.element.includes('지') && wisdom2.element.includes('천'))
   ) {
-    compatibility = '상보 - 하늘과 땅의 조화';
-    advice = '음양의 조화로 서로를 완성합니다.';
-    synergy.push('창조적 협력', '균형 잡힌 성장');
+    compatibility = tw(locale, 'compatibilityComplementary');
+    advice = tw(locale, 'adviceComplementary');
+    synergy.push(tw(locale, 'synergyCreative'), tw(locale, 'synergyBalanced'));
   } else {
-    compatibility = '다양 - 서로 다른 에너지';
-    advice = '차이를 인정하고 배우면 성장합니다.';
+    compatibility = tw(locale, 'compatibilityDiverse');
+    advice = tw(locale, 'adviceDiverse');
   }
 
   // 키워드 시너지
   synergy.push(
-    `${wisdom1.keyword}과 ${wisdom2.keyword}의 결합`,
+    tw(locale, 'synergyKeywordCombination', { kw1: wisdom1.keyword, kw2: wisdom2.keyword }),
     ...wisdom1.opportunities.filter(o => wisdom2.opportunities.includes(o))
   );
 
@@ -496,24 +534,24 @@ export function analyzeHexagramRelationshipWisdom(
 export function generatePeriodicWisdom(
   hexagramNumber: number,
   period: 'yearly' | 'monthly' | 'weekly',
-  periodNumber: number
+  periodNumber: number,
+  locale: Locale = 'ko'
 ): string {
-  const wisdom = getHexagramWisdom(hexagramNumber);
+  const wisdom = getHexagramWisdom(hexagramNumber, locale);
   if (!wisdom) {return '';}
 
-  const periodNames = {
-    yearly: `${periodNumber}년`,
-    monthly: `${periodNumber}월`,
-    weekly: `제${periodNumber}주`
-  };
+  const periodKeyMap = {
+    yearly: 'periodYear',
+    monthly: 'periodMonth',
+    weekly: 'periodWeek'
+  } as const;
+  const periodLabel = tw(locale, periodKeyMap[period], { num: periodNumber });
 
   let focusArea: keyof SituationAdvice;
 
   if (period === 'yearly') {
-    // 연간은 전체적 조언
     focusArea = 'career';
   } else if (period === 'monthly') {
-    // 월별 테마
     const monthThemes: (keyof SituationAdvice)[] = [
       'spiritual', 'career', 'health', 'relationship', 'wealth',
       'spiritual', 'career', 'health', 'relationship', 'wealth',
@@ -521,42 +559,44 @@ export function generatePeriodicWisdom(
     ];
     focusArea = monthThemes[periodNumber % 12];
   } else {
-    // 주간 테마
     focusArea = ['career', 'relationship', 'health', 'spiritual'][periodNumber % 4] as keyof SituationAdvice;
   }
 
-  return `## ${periodNames[period]} 운세 - ${wisdom.name}괘 (${wisdom.chinese})
+  const title = tw(locale, 'fortuneTitle', { period: periodLabel, name: wisdom.name, chinese: wisdom.chinese });
 
-### 핵심 메시지
+  return `## ${title}
+
+### ${tw(locale, 'periodCoreMessage')}
 ${wisdom.coreWisdom}
 
-### ${focusArea} 운세
+### ${tw(locale, 'periodFortune', { area: focusArea })}
 ${wisdom.situationAdvice[focusArea]}
 
-### 이 시기의 기회
+### ${tw(locale, 'periodOpportunities')}
 ${wisdom.opportunities.map(o => `• ${o}`).join('\n')}
 
-### 주의할 점
+### ${tw(locale, 'periodCautions')}
 ${wisdom.warnings.map(w => `• ${w}`).join('\n')}
 
-### 실천 조언
-${wisdom.keyword}의 에너지를 활용하여 ${focusArea} 분야에서 발전을 도모하세요.
+### ${tw(locale, 'periodActionAdvice')}
+${tw(locale, 'periodActionTemplate', { keyword: wisdom.keyword, area: focusArea })}
 `;
 }
 
 // 심층 괘 분석 지혜
 export function deepWisdomAnalysis(
   hexagramNumber: number,
-  userProfile?: { birthYear?: number; gender?: 'M' | 'F' }
+  userProfile?: { birthYear?: number; gender?: 'M' | 'F' },
+  locale: Locale = 'ko'
 ): {
   personalizedAdvice: string;
   lifeLessson: string;
   actionPlan: string[];
 } {
-  const wisdom = getHexagramWisdom(hexagramNumber);
+  const wisdom = getHexagramWisdom(hexagramNumber, locale);
   if (!wisdom) {
     return {
-      personalizedAdvice: '괘 정보를 찾을 수 없습니다.',
+      personalizedAdvice: tw(locale, 'noHexagramInfo'),
       lifeLessson: '',
       actionPlan: []
     };
@@ -566,38 +606,29 @@ export function deepWisdomAnalysis(
 
   // 성별에 따른 조언 조정 (전통적 맥락에서)
   if (userProfile?.gender === 'M') {
-    personalizedAdvice += ' 군자의 덕을 본받아 강건하게 나아가세요.';
+    personalizedAdvice += tw(locale, 'genderMale');
   } else if (userProfile?.gender === 'F') {
-    personalizedAdvice += ' 곤덕(坤德)의 포용력을 발휘하세요.';
+    personalizedAdvice += tw(locale, 'genderFemale');
   }
 
   // 생년에 따른 조언 (12지지 기준 간략화)
   if (userProfile?.birthYear) {
     const yearBranch = (userProfile.birthYear - 4) % 12;
-    const branchAdvice = [
-      '자(子)년생: 지혜로 판단하세요.',
-      '축(丑)년생: 꾸준함이 승리합니다.',
-      '인(寅)년생: 용기를 내세요.',
-      '묘(卯)년생: 부드러움이 힘입니다.',
-      '진(辰)년생: 변화를 두려워 마세요.',
-      '사(巳)년생: 직관을 믿으세요.',
-      '오(午)년생: 열정을 태우세요.',
-      '미(未)년생: 조화를 추구하세요.',
-      '신(申)년생: 민첩하게 대응하세요.',
-      '유(酉)년생: 정확성이 중요합니다.',
-      '술(戌)년생: 충성심을 발휘하세요.',
-      '해(亥)년생: 깊이 생각하세요.'
-    ];
-    personalizedAdvice += ` ${branchAdvice[yearBranch]}`;
+    personalizedAdvice += ` ${tw(locale, `branchAdvice${yearBranch}`)}`;
   }
 
-  const lifeLessson = `${wisdom.name}괘가 가르치는 삶의 교훈: ${wisdom.keyword}의 의미를 깊이 이해하고, ${wisdom.warnings[0] || '부주의'}를 경계하며, ${wisdom.opportunities[0] || '기회'}를 향해 나아가세요.`;
+  const lifeLessson = tw(locale, 'lifeLessonTemplate', {
+    name: wisdom.name,
+    keyword: wisdom.keyword,
+    warning: wisdom.warnings[0] || '',
+    opportunity: wisdom.opportunities[0] || ''
+  });
 
   const actionPlan = [
-    `1단계: ${wisdom.coreWisdom.split('.')[0]}`,
-    `2단계: ${wisdom.situationAdvice.career}`,
-    `3단계: ${wisdom.situationAdvice.spiritual}`,
-    `최종 목표: ${wisdom.keyword}의 완성`
+    tw(locale, 'actionStep1', { text: wisdom.coreWisdom.split('.')[0] }),
+    tw(locale, 'actionStep2', { text: wisdom.situationAdvice.career }),
+    tw(locale, 'actionStep3', { text: wisdom.situationAdvice.spiritual }),
+    tw(locale, 'actionFinal', { keyword: wisdom.keyword })
   ];
 
   return { personalizedAdvice, lifeLessson, actionPlan };

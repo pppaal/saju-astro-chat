@@ -10,7 +10,6 @@ import type { PredictionContext, SajuData as ChatSajuData, AstroData as ChatAstr
 import FortuneDashboard from '@/components/life-prediction/FortuneDashboard';
 import AdvancedAnalysisPanel from '@/components/life-prediction/AdvancedAnalysisPanel';
 import { calculateSajuData } from '@/lib/Saju/saju';
-import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService';
 import type { MultiYearTrend } from '@/lib/prediction/life-prediction/types';
 import styles from './result.module.css';
 import { logger } from "@/lib/logger";
@@ -144,14 +143,20 @@ function LifePredictionResultContent({
         const sajuResult = calculateSajuData(birthDate, birthTime, sajuGender, 'solar', 'Asia/Seoul');
         setSaju(sajuResult as unknown as SajuData);
 
-        // Calculate astrology
+        // Calculate astrology via server API (swisseph is server-only)
         const [year, month, day] = birthDate.split('-').map(Number);
         const [hour, minute] = birthTime.split(':').map(Number);
-        const astroResult = await calculateNatalChart({
-          year, month, date: day, hour, minute,
-          latitude, longitude,
-          timeZone: 'Asia/Seoul'
+        const astroResponse = await fetch('/api/astrology', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            year, month, date: day, hour, minute,
+            latitude, longitude,
+            timeZone: 'Asia/Seoul',
+          }),
         });
+        const astroJson = await astroResponse.json();
+        const astroResult = astroJson.success ? astroJson.data : null;
         setAstro(astroResult as unknown as AstrologyData);
 
         // Extract day stem/branch for prediction

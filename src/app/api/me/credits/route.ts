@@ -11,6 +11,7 @@ import {
 import { enforceBodySize } from "@/lib/http";
 import { logger } from '@/lib/logger';
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 export const dynamic = "force-dynamic";
 
 const ALLOWED_CREDIT_TYPES = new Set<("reading" | "compatibility" | "followUp")>([

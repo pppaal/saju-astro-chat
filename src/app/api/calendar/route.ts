@@ -337,12 +337,12 @@ export async function GET(request: NextRequest) {
             .slice(0, 5 - topCandidates.length);
           topCandidates.push(...topGrade3);
         }
-        return topCandidates.slice(0, 10).map(d => formatDateForResponse(d, locale, koTranslations as TranslationData, enTranslations as TranslationData));
+        return topCandidates.slice(0, 10).map(d => formatDateForResponse(d, locale, koTranslations as unknown as TranslationData, enTranslations as unknown as TranslationData));
       })(),
-      goodDates: [...grade1, ...grade2].slice(0, 20).map(d => formatDateForResponse(d, locale, koTranslations as TranslationData, enTranslations as TranslationData)),
-      badDates: [...grade5, ...grade4].slice(0, 10).map(d => formatDateForResponse(d, locale, koTranslations as TranslationData, enTranslations as TranslationData)),
-      worstDates: grade5.slice(0, 5).map(d => formatDateForResponse(d, locale, koTranslations as TranslationData, enTranslations as TranslationData)),
-      allDates: filteredDates.map(d => formatDateForResponse(d, locale, koTranslations as TranslationData, enTranslations as TranslationData)),
+      goodDates: [...grade1, ...grade2].slice(0, 20).map(d => formatDateForResponse(d, locale, koTranslations as unknown as TranslationData, enTranslations as unknown as TranslationData)),
+      badDates: [...grade5, ...grade4].slice(0, 10).map(d => formatDateForResponse(d, locale, koTranslations as unknown as TranslationData, enTranslations as unknown as TranslationData)),
+      worstDates: grade5.slice(0, 5).map(d => formatDateForResponse(d, locale, koTranslations as unknown as TranslationData, enTranslations as unknown as TranslationData)),
+      allDates: filteredDates.map(d => formatDateForResponse(d, locale, koTranslations as unknown as TranslationData, enTranslations as unknown as TranslationData)),
       ...(aiDates && {
         aiInsights: {
           auspicious: aiDates.auspicious,

@@ -10,6 +10,7 @@ import { Card, DrawnCard } from "@/lib/Tarot/tarot.types";
 import { tarotDeck } from "@/lib/Tarot/tarot-data";
 import { checkCreditsOnly, creditErrorResponse } from "@/lib/credits/withCredits";
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 const MAX_ID_LEN = 64;
 const BODY_LIMIT = 8 * 1024;
 type TarotBody = {
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
     const oversized = enforceBodySize(req, BODY_LIMIT, limit.headers);
     if (oversized) {return oversized;}
 
-    const body = (await req.json().catch(() => null)) as TarotBody | null;
+    const body = (await parseRequestBody<any>(req, { context: 'Tarot' })) as TarotBody | null;
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "invalid_body" }, { status: 400, headers: limit.headers });
     }

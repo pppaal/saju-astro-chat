@@ -8,6 +8,7 @@ import { enforceBodySize } from "@/lib/http";
 import { sendWelcomeEmail } from "@/lib/email";
 import { logger } from '@/lib/logger';
 import { sanitizeError } from '@/lib/security/errorSanitizer';
+import { parseRequestBody } from '@/lib/api/requestParser';
 
 const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const MAX_NAME = 80;
@@ -32,7 +33,9 @@ export async function POST(req: Request) {
     const oversized = enforceBodySize(req, 32 * 1024, limit.headers);
     if (oversized) {return oversized;}
 
-    const body = (await req.json().catch(() => null)) as RegisterBody | null;
+    const body = await parseRequestBody<RegisterBody>(req, {
+      context: 'User registration',
+    });
     const email = typeof body?.email === "string" ? body.email.trim() : "";
     const password = typeof body?.password === "string" ? body.password : "";
     const name = typeof body?.name === "string" ? body.name.trim().slice(0, MAX_NAME) : undefined;

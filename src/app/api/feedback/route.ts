@@ -10,6 +10,7 @@ import { enforceBodySize } from "@/lib/http";
 import { apiClient } from "@/lib/api";
 import { logger } from '@/lib/logger';
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 type FeedbackBody = {
   service?: string;
   theme?: string;
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
     const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
     if (oversized) {return oversized;}
 
-    const body = (await req.json().catch(() => null)) as FeedbackBody | null;
+    const body = (await parseRequestBody<any>(req, { context: 'Feedback' })) as FeedbackBody | null;
 
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "invalid_body" }, { status: 400, headers: limit.headers });

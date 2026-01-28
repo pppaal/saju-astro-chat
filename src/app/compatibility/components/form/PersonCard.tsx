@@ -1,5 +1,5 @@
 import React from 'react';
-import { type Relation } from '../../lib';
+import { type PersonForm, type Relation } from '../../lib/types';
 import { PersonCardHeader } from './PersonCardHeader';
 import { CircleDropdown } from './CircleDropdown';
 import { CityAutocompleteField } from './CityAutocompleteField';
@@ -9,31 +9,16 @@ import type { CirclePerson } from '@/hooks/useMyCircle';
 import type { CityResult } from '@/lib/cities/types';
 import styles from '../../Compatibility.module.css';
 
-interface PersonData {
-  name: string;
-  date: string;
-  time: string;
-  cityQuery: string;
-  timeZone: string;
-  lat: number | null;
-  lon: number | null;
-  relation?: Relation;
-  relationNote?: string;
-  suggestions: CityResult[];
-  showDropdown: boolean;
-  isDetailedMode?: boolean; // 빠른/상세 모드 플래그
-}
-
 interface PersonCardProps {
-  person: PersonData;
+  person: PersonForm;
   index: number;
   isAuthenticated: boolean;
   circlePeople: CirclePerson[];
   showCircleDropdown: boolean;
   locale: string;
   t: (key: string, fallback: string) => string;
-  onUpdatePerson: <K extends keyof PersonData>(idx: number, field: K, value: PersonData[K]) => void;
-  onSetPersons: React.Dispatch<React.SetStateAction<PersonData[]>>;
+  onUpdatePerson: <K extends keyof PersonForm>(idx: number, field: K, value: PersonForm[K]) => void;
+  onSetPersons: React.Dispatch<React.SetStateAction<PersonForm[]>>;
   onPickCity: (idx: number, city: CityResult) => void;
   onToggleCircleDropdown: () => void;
   onFillFromCircle: (idx: number, person: CirclePerson) => void;

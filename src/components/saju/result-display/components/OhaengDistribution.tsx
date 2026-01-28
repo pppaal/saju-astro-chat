@@ -1,37 +1,44 @@
-// src/components/saju/result-display/components/OhaengDistribution.tsx
+import { useMemo } from 'react';
+import { ELEMENT_BAR_COLORS } from '../../constants/elements';
 
-import React from 'react';
+const OHAENG_ELEMENTS = [
+  { name: '목', key: 'wood' as const, colorClass: ELEMENT_BAR_COLORS.Wood },
+  { name: '화', key: 'fire' as const, colorClass: ELEMENT_BAR_COLORS.Fire },
+  { name: '토', key: 'earth' as const, colorClass: ELEMENT_BAR_COLORS.Earth },
+  { name: '금', key: 'metal' as const, colorClass: ELEMENT_BAR_COLORS.Metal },
+  { name: '수', key: 'water' as const, colorClass: ELEMENT_BAR_COLORS.Water },
+] as const;
 
-interface OhaengDistributionProps {
-  ohaengData: { [k in 'wood' | 'fire' | 'earth' | 'metal' | 'water']: number };
-}
-
-export default function OhaengDistribution({ ohaengData }: OhaengDistributionProps) {
-  const elements = [
-    { name: '목', key: 'wood' as const, color: '#2dbd7f' },
-    { name: '화', key: 'fire' as const, color: '#ff6b6b' },
-    { name: '토', key: 'earth' as const, color: '#f3a73f' },
-    { name: '금', key: 'metal' as const, color: '#4a90e2' },
-    { name: '수', key: 'water' as const, color: '#5b6bfa' },
-  ];
-
-  const total = Object.values(ohaengData).reduce((s, c) => s + c, 0);
+const OhaengDistribution = ({ ohaengData }: { ohaengData: { [k in 'wood'|'fire'|'earth'|'metal'|'water']: number } }) => {
+  const total = useMemo(
+    () => Object.values(ohaengData).reduce((s, c) => s + c, 0),
+    [ohaengData]
+  );
 
   return (
-    <div style={{ background: '#1e1e2f', padding: '1.5rem', borderRadius: 12, border: '1px solid #4f4f7a' }}>
-      {elements.map((el) => {
+    <div className="bg-slate-800 p-6 rounded-xl border border-slate-600" role="img" aria-label="오행 분포 차트">
+      {OHAENG_ELEMENTS.map((el) => {
         const count = ohaengData[el.key] || 0;
         const percentage = total > 0 ? (count / total) * 100 : 0;
         return (
-          <div key={el.name} style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-            <span style={{ width: 40 }}>{el.name}</span>
-            <div style={{ flex: 1, background: '#161625', borderRadius: 4, height: 20, marginRight: '1rem' }}>
-              <div style={{ width: `${percentage}%`, background: el.color, height: '100%', borderRadius: 4, transition: 'width 0.5s ease-in-out' }} />
+          <div key={el.name} className="flex items-center mb-4 last:mb-0">
+            <span className="w-10 text-gray-300">{el.name}</span>
+            <div className="flex-1 bg-slate-700 rounded h-5 mr-4 overflow-hidden">
+              <div
+                className={`h-full rounded transition-all duration-500 ${el.colorClass}`}
+                style={{ width: `${percentage}%` }}
+                role="progressbar"
+                aria-valuenow={count}
+                aria-valuemin={0}
+                aria-valuemax={total}
+              />
             </div>
-            <span style={{ width: 20, textAlign: 'right' }}>{count}</span>
+            <span className="w-5 text-right text-gray-300">{count}</span>
           </div>
         );
       })}
     </div>
   );
-}
+};
+
+export default OhaengDistribution;

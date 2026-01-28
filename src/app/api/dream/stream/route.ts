@@ -12,6 +12,7 @@ import { enforceBodySize } from "@/lib/http";
 import { cleanStringArray, isRecord } from "@/lib/api";
 import { logger } from '@/lib/logger';
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 interface StreamDreamRequest {
   dreamText: string;
   symbols?: string[];
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
     const oversized = enforceBodySize(req, MAX_STREAM_BODY);
     if (oversized) {return oversized;}
 
-    const body = (await req.json().catch(() => null)) as Partial<StreamDreamRequest> | null;
+    const body = (await parseRequestBody<any>(req, { context: 'Dream Stream' })) as Partial<StreamDreamRequest> | null;
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "invalid_body" }, { status: 400 });
     }

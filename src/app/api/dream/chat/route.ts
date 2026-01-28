@@ -14,6 +14,7 @@ import {
 import { logger } from '@/lib/logger';
 
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 // Message type imported from @/lib/api as ChatMessage, aliased below
 
 interface CulturalNotes {
@@ -272,7 +273,7 @@ export async function POST(req: NextRequest) {
     const oversized = enforceBodySize(req, MAX_CHAT_BODY);
     if (oversized) {return oversized;}
 
-    const body = await req.json().catch(() => null);
+    const body = await parseRequestBody<any>(req, { context: 'Dream Chat' });
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "invalid_body" }, { status: 400 });
     }

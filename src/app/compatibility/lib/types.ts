@@ -32,6 +32,7 @@ export type PersonForm = {
   showDropdown: boolean;
   relation?: Relation;
   relationNote?: string;
+  isDetailedMode?: boolean;
 };
 
 export type TimingData = {

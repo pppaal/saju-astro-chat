@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { ANIMATION_DELAYS } from '@/lib/constants/formulas';
 
-export function useTypingAnimation(texts: string[], initialDelay = 1000) {
+export function useTypingAnimation(texts: string[], initialDelay = ANIMATION_DELAYS.TYPING_START) {
   const [displayText, setDisplayText] = useState('');
 
   useEffect(() => {
@@ -21,9 +22,9 @@ export function useTypingAnimation(texts: string[], initialDelay = 1000) {
         if (charIndex === 0) {
           isDeleting = false;
           currentIndex = (currentIndex + 1) % texts.length;
-          timeoutId = setTimeout(type, 500);
+          timeoutId = setTimeout(type, ANIMATION_DELAYS.TYPING_NEXT_WORD);
         } else {
-          timeoutId = setTimeout(type, 30);
+          timeoutId = setTimeout(type, ANIMATION_DELAYS.TYPING_DELETE);
         }
       } else {
         setDisplayText(currentText.substring(0, charIndex + 1));
@@ -31,9 +32,9 @@ export function useTypingAnimation(texts: string[], initialDelay = 1000) {
 
         if (charIndex === currentText.length) {
           isDeleting = true;
-          timeoutId = setTimeout(type, 2000);
+          timeoutId = setTimeout(type, ANIMATION_DELAYS.TYPING_PAUSE_END);
         } else {
-          timeoutId = setTimeout(type, 80);
+          timeoutId = setTimeout(type, ANIMATION_DELAYS.TYPING_CHAR);
         }
       }
     };

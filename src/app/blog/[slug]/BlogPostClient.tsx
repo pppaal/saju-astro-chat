@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useI18n } from "@/i18n/I18nProvider";
 import ScrollToTop from "@/components/ui/ScrollToTop";
-import { blogPosts, BlogPost } from "@/data/blog-posts";
+import { blogPosts, type BlogPost } from "@/data/blog-posts";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { getCategoryRoute } from "@/lib/constants/routes";
 import styles from "./post.module.css";
 
 interface BlogPostClientProps {
@@ -76,7 +77,7 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
       <article className={styles.main}>
         {/* Header */}
         <header className={styles.header}>
-          <div className={styles.headerIcon}>{post.icon}</div>
+          <div className={styles.headerIcon} role="img" aria-label={isKo ? post.categoryKo : post.category}>{post.icon}</div>
           <span className={styles.category}>
             {isKo ? post.categoryKo : post.category}
           </span>
@@ -85,9 +86,9 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
             {isKo ? post.excerptKo : post.excerpt}
           </p>
           <div className={styles.meta}>
-            <span className={styles.date}>📅 {formatDate(post.date)}</span>
+            <span className={styles.date}><span role="img" aria-hidden="true">📅</span> {formatDate(post.date)}</span>
             <span className={styles.readTime}>
-              ⏱ {post.readTime} {isKo ? "분 읽기" : "min read"}
+              <span role="img" aria-hidden="true">⏱</span> {post.readTime} {isKo ? "분 읽기" : "min read"}
             </span>
           </div>
         </header>
@@ -119,7 +120,7 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
               ? `AI 기반 ${post.categoryKo} 리딩으로 맞춤형 인사이트를 받아보세요.`
               : `Get personalized insights with our AI-powered ${post.category} reading.`}
           </p>
-          <Link href={getCategoryLink(post.category)} className={styles.ctaButton}>
+          <Link href={getCategoryRoute(post.category)} className={styles.ctaButton}>
             {isKo ? `${post.categoryKo} 시작하기` : `Try ${post.category}`}
           </Link>
         </section>
@@ -137,7 +138,7 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
                   href={`/blog/${rPost.slug}`}
                   className={styles.relatedCard}
                 >
-                  <span className={styles.relatedIcon}>{rPost.icon}</span>
+                  <span className={styles.relatedIcon} role="img" aria-label={isKo ? rPost.categoryKo : rPost.category}>{rPost.icon}</span>
                   <h4 className={styles.relatedCardTitle}>
                     {isKo ? rPost.titleKo : rPost.title}
                   </h4>
@@ -154,19 +155,4 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
       <ScrollToTop label={isKo ? "맨 위로" : "Top"} />
     </main>
   );
-}
-
-function getCategoryLink(category: string): string {
-  const links: Record<string, string> = {
-    Saju: "/saju",
-    Astrology: "/astrology",
-    Tarot: "/tarot",
-    Numerology: "/numerology",
-    "I Ching": "/iching",
-    Dream: "/dream",
-    Compatibility: "/destiny-match",
-    Personality: "/personality",
-    "Destiny Map": "/destiny-map",
-  };
-  return links[category] || "/destiny-map";
 }

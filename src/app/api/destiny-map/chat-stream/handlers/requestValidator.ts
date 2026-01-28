@@ -7,6 +7,7 @@
 import { NextRequest } from 'next/server';
 import { isValidDate, isValidTime, isValidLatitude, isValidLongitude, LIMITS } from '@/lib/validation';
 import { ALLOWED_LANG, ALLOWED_GENDER, type SajuDataStructure, type AstroDataStructure } from '../lib';
+import { parseRequestBody } from '@/lib/api/requestParser';
 
 export interface ValidatedRequest {
   name?: string;
@@ -37,7 +38,7 @@ export interface ValidationError {
 export async function validateRequest(
   req: NextRequest
 ): Promise<{ data: ValidatedRequest } | { error: ValidationError }> {
-  const body = await req.json().catch(() => null);
+  const body = await parseRequestBody<any>(req, { context: 'Destiny Map chat stream validation' });
   if (!body) {
     return {
       error: { error: 'invalid_body', status: 400 },

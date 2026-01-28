@@ -1,6 +1,7 @@
 // src/hooks/calendar/useSavedDates.ts
 import { useState, useCallback, useEffect } from 'react';
 import { logger } from '@/lib/logger';
+import { UI_TIMEOUTS } from '@/lib/constants/formulas';
 
 interface UseSavedDatesReturn {
   savedDates: Set<string>;
@@ -61,7 +62,7 @@ export function useSavedDates(): UseSavedDatesReturn {
 
           setSaveMsg(willSave ? '날짜 저장 완료' : '저장 취소됨');
 
-          setTimeout(() => setSaveMsg(null), 2000);
+          setTimeout(() => setSaveMsg(null), UI_TIMEOUTS.TOAST_DISMISS);
 
           logger.info('[useSavedDates] Toggle save success', {
             date: dateStr,
@@ -74,7 +75,7 @@ export function useSavedDates(): UseSavedDatesReturn {
         const message = err instanceof Error ? err.message : 'Unknown error';
         logger.error('[useSavedDates] Toggle save failed', { error: message });
         setSaveMsg('저장 실패');
-        setTimeout(() => setSaveMsg(null), 2000);
+        setTimeout(() => setSaveMsg(null), UI_TIMEOUTS.TOAST_DISMISS);
       } finally {
         setSaving(false);
       }
@@ -85,7 +86,7 @@ export function useSavedDates(): UseSavedDatesReturn {
   // Auto-hide save message
   useEffect(() => {
     if (saveMsg) {
-      const timer = setTimeout(() => setSaveMsg(null), 2000);
+      const timer = setTimeout(() => setSaveMsg(null), UI_TIMEOUTS.TOAST_DISMISS);
       return () => clearTimeout(timer);
     }
   }, [saveMsg]);

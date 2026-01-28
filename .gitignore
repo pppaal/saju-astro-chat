@@ -133,3 +133,6 @@ MIGRATION*.md
 
 # Score check scripts
 score-check.js
+
+.vercel
+.env*.local

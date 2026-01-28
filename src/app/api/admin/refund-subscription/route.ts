@@ -13,6 +13,8 @@ import { logAdminAction } from "@/lib/auth/adminAudit";
 import { csrfGuard } from "@/lib/security/csrf";
 import { BASE_CREDIT_PRICE_KRW } from "@/lib/config/pricing";
 
+import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/formulas';
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2025-10-29.clover";
 // Use centralized pricing constant for refund calculations
 const MINI_CREDIT_PRICE_KRW = BASE_CREDIT_PRICE_KRW;
@@ -25,7 +27,7 @@ function getStripe() {
   return new Stripe(key, { apiVersion: STRIPE_API_VERSION });
 }
 
-function json(data: unknown, status = 200) {
+function json(data: unknown, status: number = HTTP_STATUS.OK) {
   return NextResponse.json(data, { status });
 }
 
@@ -132,7 +134,7 @@ export async function POST(req: Request) {
         ipAddress,
         userAgent,
       });
-      return json({ error: "Unauthorized" }, 401);
+      return json({ error: "Unauthorized" }, HTTP_STATUS.UNAUTHORIZED);
     }
 
     // Rate limiting for admin actions: max 10 refunds per hour per admin
@@ -152,16 +154,16 @@ export async function POST(req: Request) {
         ipAddress,
         userAgent,
       });
-      return json({ error: "Too many refund requests. Please try again later." }, 429);
+      return json({ error: "Too many refund requests. Please try again later." }, HTTP_STATUS.RATE_LIMITED);
     }
 
-    const body = await req.json().catch(() => null);
+    const body = await parseRequestBody<any>(req, { context: 'Admin Refund-subscription' });
     const subscriptionId =
       typeof body?.subscriptionId === "string" ? body.subscriptionId.trim() : "";
     const email = typeof body?.email === "string" ? body.email.trim() : "";
 
     if (!subscriptionId && !email) {
-      return json({ error: "subscriptionId or email is required" }, 400);
+      return json({ error: "subscriptionId or email is required" }, HTTP_STATUS.BAD_REQUEST);
     }
 
     const stripe = getStripe();
@@ -173,12 +175,12 @@ export async function POST(req: Request) {
 
     const invoice = await resolveInvoice(stripe, subscription);
     if (!invoice) {
-      return json({ error: "No invoice found for subscription" }, 400);
+      return json({ error: "No invoice found for subscription" }, HTTP_STATUS.BAD_REQUEST);
     }
 
     const paymentIntent = await resolvePaymentIntent(stripe, invoice);
     if (!paymentIntent) {
-      return json({ error: "No payment intent found for invoice" }, 400);
+      return json({ error: "No payment intent found for invoice" }, HTTP_STATUS.BAD_REQUEST);
     }
 
     const charge = await resolveCharge(stripe, paymentIntent);
@@ -186,12 +188,12 @@ export async function POST(req: Request) {
 
     const amountPaid = invoice.amount_paid ?? paymentIntent.amount_received ?? 0;
     if (amountPaid <= 0) {
-      return json({ error: "No paid amount found for subscription" }, 400);
+      return json({ error: "No paid amount found for subscription" }, HTTP_STATUS.BAD_REQUEST);
     }
 
     const currency = (invoice.currency || paymentIntent.currency || "krw").toLowerCase();
     if (currency !== "krw") {
-      return json({ error: "Only KRW refunds are supported" }, 400);
+      return json({ error: "Only KRW refunds are supported" }, HTTP_STATUS.BAD_REQUEST);
     }
 
     const dbSubscription = await prisma.subscription.findUnique({
@@ -199,7 +201,7 @@ export async function POST(req: Request) {
       select: { userId: true },
     });
     if (!dbSubscription) {
-      return json({ error: "Subscription not found in database" }, 404);
+      return json({ error: "Subscription not found in database" }, HTTP_STATUS.NOT_FOUND);
     }
 
     const credits = await getUserCredits(dbSubscription.userId);
@@ -280,6 +282,6 @@ export async function POST(req: Request) {
       userAgent,
     });
 
-    return json(sanitized, 500);
+    return json(sanitized, HTTP_STATUS.SERVER_ERROR);
   }
 }

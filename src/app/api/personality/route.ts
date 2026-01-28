@@ -5,6 +5,7 @@ import { enforceBodySize } from "@/lib/http";
 import { prisma } from "@/lib/db/prisma";
 import { logger } from '@/lib/logger';
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 export const dynamic = "force-dynamic";
 
 // GET: fetch personality result

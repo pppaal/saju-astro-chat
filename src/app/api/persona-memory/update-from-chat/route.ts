@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db/prisma";
 import { summarizeConversation } from "@/lib/ai/summarize";
 import { logger } from '@/lib/logger';
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 export const dynamic = "force-dynamic";
 
 // summarize.ts의 ChatMessage와 호환되는 타입 (system role 제외)

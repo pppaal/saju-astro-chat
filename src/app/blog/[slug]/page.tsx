@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { blogPosts } from "@/data/blog-posts";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { generateJsonLd } from "@/components/seo/SEO";
 import BlogPostClient from "./BlogPostClient";
 
 type Props = {
@@ -33,14 +35,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       tags: [post.category],
       url: `${baseUrl}/blog/${post.slug}`,
       siteName: "DestinyPal",
+      images: [
+        {
+          url: `${baseUrl}/og-image.png`,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt,
+      images: [`${baseUrl}/og-image.png`],
     },
     alternates: {
       canonical: `${baseUrl}/blog/${post.slug}`,
+      languages: {
+        "en": `${baseUrl}/blog/${post.slug}`,
+        "ko": `${baseUrl}/blog/${post.slug}`,
+      },
     },
   };
 }
@@ -59,5 +74,33 @@ export default async function BlogPostPage({ params }: Props) {
     notFound();
   }
 
-  return <BlogPostClient post={post} />;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com";
+
+  const articleJsonLd = generateJsonLd({
+    type: "Article",
+    name: post.title,
+    description: post.excerpt,
+    datePublished: post.date,
+    dateModified: post.date,
+    image: `${baseUrl}/og-image.png`,
+    url: `${baseUrl}/blog/${post.slug}`,
+    author: { name: "DestinyPal", url: baseUrl },
+  });
+
+  const breadcrumbJsonLd = generateJsonLd({
+    type: "BreadcrumbList",
+    breadcrumbs: [
+      { name: "Home", url: baseUrl },
+      { name: "Blog", url: `${baseUrl}/blog` },
+      { name: post.title, url: `${baseUrl}/blog/${post.slug}` },
+    ],
+  });
+
+  return (
+    <>
+      <JsonLd data={articleJsonLd} />
+      <JsonLd data={breadcrumbJsonLd} />
+      <BlogPostClient post={post} />
+    </>
+  );
 }

@@ -12,6 +12,7 @@ import {
 } from "@/lib/api";
 import { logger } from '@/lib/logger';
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 interface CardContext {
   position: string;
   name: string;
@@ -153,7 +154,7 @@ export async function POST(req: NextRequest) {
     if (initResult.error) {return initResult.error;}
     apiContext = initResult.context;
 
-    const body = await req.json().catch(() => null);
+    const body = await parseRequestBody<any>(req, { context: 'Tarot Chat' });
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         { error: "invalid_body" },

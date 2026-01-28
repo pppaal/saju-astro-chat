@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendScheduledNotifications } from "@/lib/notifications/pushService";
 import { logger } from '@/lib/logger';
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // Vercel Pro: 최대 60초
 

@@ -12,6 +12,7 @@ import { calculateSajuData } from '@/lib/Saju/saju';
 import { calculateNatalChart } from '@/lib/astrology';
 import { analyzePastLife } from '@/lib/past-life/analyzer';
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 /**
  * POST /api/past-life
  *
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json().catch(() => null);
+    const body = await parseRequestBody<any>(req, { context: 'Past-life' });
     if (!body) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }

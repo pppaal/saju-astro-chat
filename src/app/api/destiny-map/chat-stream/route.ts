@@ -55,6 +55,7 @@ import { buildDailyPrecisionSection } from "./builders/dailyPrecisionBuilder";
 import { buildDaeunTransitSection } from "./builders/daeunTransitBuilder";
 import { buildPastAnalysisSection, buildMultiYearTrendSection } from "./builders/lifeAnalysisBuilder";
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     const userId = context.userId;
 
-    const body = await req.json().catch(() => null);
+    const body = await parseRequestBody<any>(req, { context: 'Destiny-map Chat-stream' });
     if (!body) {
       return NextResponse.json(
         { error: "invalid_body" },

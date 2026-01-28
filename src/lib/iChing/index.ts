@@ -208,12 +208,14 @@ export function performCompleteAnalysis(
     userQuestion?: string;
     consultationType?: 'general' | 'career' | 'relationship' | 'health' | 'wealth' | 'spiritual';
     userProfile?: { birthYear?: number; gender?: 'M' | 'F' };
+    locale?: 'en' | 'ko';
   }
 ): CompleteIChingAnalysis {
+  const locale = options?.locale ?? 'ko';
   const binary = HEXAGRAM_BINARY_MAP[hexagramNumber] || '111111';
-  const comprehensive = performComprehensiveHexagramAnalysis(binary);
+  const comprehensive = performComprehensiveHexagramAnalysis(binary, locale);
   const relationships = analyzeHexagramRelationship(hexagramNumber, hexagramNumber);
-  const wisdom = getHexagramWisdom(hexagramNumber);
+  const wisdom = getHexagramWisdom(hexagramNumber, locale);
 
   // 변효 적용하여 지괘 계산
   let targetHexagramNumber: number | undefined;
@@ -254,12 +256,12 @@ export function performCompleteAnalysis(
   };
 
   if (options?.userProfile) {
-    result.personalizedAdvice = deepWisdomAnalysis(hexagramNumber, options.userProfile);
+    result.personalizedAdvice = deepWisdomAnalysis(hexagramNumber, options.userProfile, locale);
   }
 
   if (targetHexagramNumber) {
     const targetBinary = HEXAGRAM_BINARY_MAP[targetHexagramNumber];
-    result.targetComparison = compareHexagrams(binary, targetBinary);
+    result.targetComparison = compareHexagrams(binary, targetBinary, locale);
   }
 
   return result;

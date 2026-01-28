@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useI18n } from "@/i18n/I18nProvider";
 import ScrollToTop from "@/components/ui/ScrollToTop";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { blogPosts, categories } from "@/data/blog-posts";
 import styles from "./blog.module.css";
 
@@ -50,7 +51,7 @@ export default function BlogClient() {
       <div className={styles.main}>
         {/* Hero Section */}
         <section className={styles.hero}>
-          <div className={styles.heroIcon}>📚</div>
+          <div className={styles.heroIcon} role="img" aria-label={isKo ? "블로그" : "Blog"}>📚</div>
           <p className={styles.eyebrow}>DestinyPal Blog</p>
           <h1 className={styles.title}>
             {isKo ? "인사이트 & 가이드" : "Insights & Guides"}
@@ -63,17 +64,19 @@ export default function BlogClient() {
         </section>
 
         {/* Category Filter */}
-        <div className={styles.categoryFilter}>
+        <nav className={styles.categoryFilter} aria-label={isKo ? "블로그 카테고리 필터" : "Blog category filter"}>
           {categories.map((cat) => (
             <button
               key={cat.id}
               className={`${styles.categoryBtn} ${activeCategory === cat.id ? styles.active : ""}`}
               onClick={() => setActiveCategory(cat.id)}
+              aria-label={isKo ? `${cat.nameKo} 카테고리 필터` : `Filter by ${cat.name}`}
+              aria-pressed={activeCategory === cat.id}
             >
               {isKo ? cat.nameKo : cat.name}
             </button>
           ))}
-        </div>
+        </nav>
 
         {/* Blog Grid */}
         <div className={styles.blogGrid}>
@@ -84,13 +87,13 @@ export default function BlogClient() {
               className={`${styles.blogCard} ${styles.featuredPost}`}
             >
               <div className={styles.cardImage}>
-                <div className={styles.cardImagePlaceholder}>
+                <div className={styles.cardImagePlaceholder} role="img" aria-label={isKo ? featuredPost.categoryKo : featuredPost.category}>
                   {featuredPost.icon}
                 </div>
               </div>
               <div className={styles.cardContent}>
                 <span className={styles.featuredBadge}>
-                  ⭐ {isKo ? "추천" : "Featured"}
+                  <span role="img" aria-hidden="true">⭐</span> {isKo ? "추천" : "Featured"}
                 </span>
                 <span className={styles.cardCategory}>
                   {isKo ? featuredPost.categoryKo : featuredPost.category}
@@ -103,10 +106,10 @@ export default function BlogClient() {
                 </p>
                 <div className={styles.cardMeta}>
                   <span className={styles.cardDate}>
-                    📅 {formatDate(featuredPost.date)}
+                    <span role="img" aria-hidden="true">📅</span> {formatDate(featuredPost.date)}
                   </span>
                   <span className={styles.cardReadTime}>
-                    ⏱ {featuredPost.readTime} {isKo ? "분" : "min read"}
+                    <span role="img" aria-hidden="true">⏱</span> {featuredPost.readTime} {isKo ? "분" : "min read"}
                   </span>
                 </div>
               </div>
@@ -121,7 +124,7 @@ export default function BlogClient() {
               className={styles.blogCard}
             >
               <div className={styles.cardImage}>
-                <div className={styles.cardImagePlaceholder}>{post.icon}</div>
+                <div className={styles.cardImagePlaceholder} role="img" aria-label={isKo ? post.categoryKo : post.category}>{post.icon}</div>
               </div>
               <div className={styles.cardContent}>
                 <span className={styles.cardCategory}>
@@ -135,10 +138,10 @@ export default function BlogClient() {
                 </p>
                 <div className={styles.cardMeta}>
                   <span className={styles.cardDate}>
-                    📅 {formatDate(post.date)}
+                    <span role="img" aria-hidden="true">📅</span> {formatDate(post.date)}
                   </span>
                   <span className={styles.cardReadTime}>
-                    ⏱ {post.readTime} {isKo ? "분" : "min read"}
+                    <span role="img" aria-hidden="true">⏱</span> {post.readTime} {isKo ? "분" : "min read"}
                   </span>
                 </div>
               </div>
@@ -147,19 +150,13 @@ export default function BlogClient() {
         </div>
 
         {filteredPosts.length === 0 && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "60px 20px",
-              color: "rgba(255,255,255,0.6)",
-            }}
-          >
-            <p style={{ fontSize: "18px" }}>
-              {isKo
-                ? "이 카테고리에 아직 글이 없습니다."
-                : "No posts in this category yet."}
-            </p>
-          </div>
+          <EmptyState
+            icon="📝"
+            title={isKo ? "이 카테고리에 아직 글이 없습니다" : "No posts in this category yet"}
+            description={isKo ? "다른 카테고리를 탐색해보세요" : "Try exploring other categories"}
+            actionLabel={isKo ? "전체 보기" : "View All"}
+            onAction={() => setActiveCategory("all")}
+          />
         )}
       </div>
 

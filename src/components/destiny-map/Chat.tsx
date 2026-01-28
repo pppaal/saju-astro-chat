@@ -1,5 +1,5 @@
 // src/components/destiny-map/Chat.tsx
-// Refactored: uses extracted hooks and components for cleaner code
+// Refactored: decomposed into hooks (useFileUpload, useChatApi) and sub-components (MessagesPanel, ChatInputArea)
 
 "use client";
 
@@ -9,32 +9,24 @@ import InlineTarotModal, { type TarotResultSummary } from "./InlineTarotModal";
 import { logger } from "@/lib/logger";
 
 // Extracted modules
-import { CHAT_I18N, detectCrisis } from "./chat-i18n";
-import {
-  CHAT_TIMINGS,
-  CHAT_LIMITS,
-  type Message,
-  type FeedbackType,
-  type ConnectionStatus,
-} from "./chat-constants";
+import { CHAT_I18N } from "./chat-i18n";
+import { CHAT_TIMINGS } from "./chat-constants";
 import {
   generateMessageId,
-  getConnectionStatus,
-  getErrorMessage,
   buildReturningSummary,
-  streamProcessor,
 } from "./chat-utils";
-import {
-  generateFollowUpQuestions,
-  getSuggestedQuestions,
-} from "./chat-followups";
-import type { ChatProps, ChatPayload } from "./chat-types";
+import { getSuggestedQuestions } from "./chat-followups";
+import type { ChatProps } from "./chat-types";
+
+// Extracted hooks
+import { useChatSession } from "./hooks/useChatSession";
+import { useChatFeedback } from "./hooks/useChatFeedback";
+import { useFileUpload } from "./hooks/useFileUpload";
+import { useChatApi } from "./hooks/useChatApi";
 
 // Extracted components
-import MessageRow from "./MessageRow";
 import { CrisisModal, HistoryModal } from "./modals";
-import { extractTextFromPDF } from "./pdf-parser";
-import { useChatSession } from "./hooks/useChatSession";
+import { MessagesPanel, ChatInputArea } from "./chat-panels";
 
 const Chat = memo(function Chat({
   profile,
@@ -56,7 +48,7 @@ const Chat = memo(function Chat({
   const effectiveLang = lang === "ko" ? "ko" : "en";
   const tr = CHAT_I18N[effectiveLang];
 
-  // Use extracted session management hook
+  // Session management hook
   const {
     sessionIdRef,
     messages,
@@ -72,28 +64,90 @@ const Chat = memo(function Chat({
     startNewChat: hookStartNewChat,
   } = useChatSession({ theme, lang, initialContext, saju, astro });
 
-  // UI State
+  // Local UI state
   const [input, setInput] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [cvText, setCvText] = React.useState("");
-  const [cvName, setCvName] = React.useState("");
   const [notice, setNotice] = React.useState<string | null>(null);
-  const [usedFallback, setUsedFallback] = React.useState(false);
-  const [retryCount, setRetryCount] = React.useState(0);
-  const [connectionStatus, setConnectionStatus] = React.useState<ConnectionStatus>("online");
-  const [parsingPdf, setParsingPdf] = React.useState(false);
   const [showTarotPrompt, setShowTarotPrompt] = React.useState(false);
   const [showTarotModal, setShowTarotModal] = React.useState(false);
-  const [feedback, setFeedback] = React.useState<Record<string, FeedbackType>>({});
   const [showSuggestions, setShowSuggestions] = React.useState(true);
-  const [followUpQuestions, setFollowUpQuestions] = React.useState<string[]>([]);
-  const [showCrisisModal, setShowCrisisModal] = React.useState(false);
   const [showWelcomeBack, setShowWelcomeBack] = React.useState(false);
   const [showHistoryModal, setShowHistoryModal] = React.useState(false);
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const seedSentRef = React.useRef(false);
   const welcomeShownRef = React.useRef(false);
+
+  // File upload hook
+  const {
+    cvText,
+    cvName,
+    parsingPdf,
+    handleFileUpload,
+  } = useFileUpload({ lang, setNotice });
+
+  // Chat API hook
+  const {
+    loading,
+    retryCount,
+    connectionStatus,
+    usedFallback,
+    followUpQuestions,
+    setFollowUpQuestions,
+    handleSend: apiHandleSend,
+    showCrisisModal,
+    setShowCrisisModal,
+  } = useChatApi({
+    sessionIdRef,
+    messages,
+    setMessages,
+    profile,
+    theme,
+    lang,
+    saju,
+    astro,
+    advancedAstro,
+    predictionContext,
+    userContext,
+    cvText,
+    ragSessionId,
+    autoScroll,
+    messagesEndRef,
+    onSaveMessage,
+    setNotice,
+  });
+
+  // Feedback hook
+  const { feedback, handleFeedback } = useChatFeedback({
+    sessionId: sessionIdRef.current,
+    theme,
+    lang,
+    messages,
+  });
+
+  // Wrapper: handleSend bridges input state with the hook
+  const handleSend = React.useCallback(async (directText?: string) => {
+    const text = directText || input.trim();
+    if (!text) {return;}
+    setInput("");
+    setShowSuggestions(false);
+    await apiHandleSend(text);
+  }, [input, apiHandleSend]);
+
+  // Handle follow-up question click - uses ref to avoid stale closure
+  const handleSendRef = React.useRef<(text?: string) => Promise<void>>(null!);
+  handleSendRef.current = handleSend;
+
+  const handleFollowUp = React.useCallback((question: string) => {
+    setFollowUpQuestions([]);
+    setInput("");
+    handleSendRef.current(question);
+  }, [setFollowUpQuestions]);
+
+  // Handle suggested question click
+  const handleSuggestion = React.useCallback((question: string) => {
+    setInput(question);
+    setShowSuggestions(false);
+  }, []);
 
   // Auto-save messages to database
   React.useEffect(() => {
@@ -126,19 +180,16 @@ const Chat = memo(function Chat({
   React.useEffect(() => {
     if (!sessionLoaded) {return;}
     const visibleMsgs = messages.filter(m => m.role !== "system");
-    if (visibleMsgs.length < 2) {return;} // Need at least 1 Q&A pair
+    if (visibleMsgs.length < 2) {return;}
 
-    // Debounce: only update if 30s passed since last update
     const now = Date.now();
     if (now - lastUpdateRef.current < 30000) {return;}
 
-    // Only update when we have a complete Q&A (last message is assistant)
     const lastMsg = visibleMsgs[visibleMsgs.length - 1];
     if (lastMsg?.role !== "assistant" || !lastMsg.content || lastMsg.content.length < 50) {return;}
 
     lastUpdateRef.current = now;
 
-    // Fire and forget - don't block UI
     fetch("/api/persona-memory/update-from-chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -177,77 +228,6 @@ const Chat = memo(function Chat({
     return buildReturningSummary(userContext?.persona, lang);
   }, [userContext?.persona, lang]);
 
-  const getLastUserMessage = () => {
-    const lastUser = [...messages].reverse().find((m) => m.role === "user");
-    return lastUser?.content || "";
-  };
-
-  // Handle feedback click
-  const handleFeedback = React.useCallback(async (msgId: string, type: FeedbackType) => {
-    const previousFeedback = feedback[msgId];
-
-    if (previousFeedback === type) {
-      setFeedback((prev) => ({ ...prev, [msgId]: null }));
-      return;
-    }
-
-    setFeedback((prev) => ({ ...prev, [msgId]: type }));
-
-    const message = messages.find((m) => m.id === msgId);
-    const lastUserMsg = getLastUserMessage();
-
-    try {
-      const response = await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          service: "destiny-map",
-          theme,
-          sectionId: msgId,
-          helpful: type === "up",
-          locale: lang,
-          userHash: sessionIdRef.current,
-          recordId: msgId,
-          rating: type === "up" ? 5 : 1,
-          userQuestion: lastUserMsg,
-          consultationSummary: message?.content?.slice(0, 500),
-        }),
-      });
-
-      if (response.ok) {
-        logger.debug(`[Feedback] Sent: ${msgId} = ${type}`);
-      } else {
-        logger.warn("[Feedback] API error:", response.status);
-      }
-    } catch (err) {
-      logger.warn("[Feedback] Failed to send:", err);
-    }
-  }, [feedback, messages, theme, lang]);
-
-  // Handle follow-up question click - uses ref to avoid stale closure
-  const handleSendRef = React.useRef<(text?: string) => Promise<void>>(null!);
-  handleSendRef.current = handleSend;
-
-  const handleFollowUp = React.useCallback((question: string) => {
-    setFollowUpQuestions([]);
-    setInput("");
-    handleSendRef.current(question);
-  }, []);
-
-  // Handle suggested question click
-  const handleSuggestion = React.useCallback((question: string) => {
-    setInput(question);
-    setShowSuggestions(false);
-  }, []);
-
-  // Show tarot prompt after 2+ assistant responses
-  React.useEffect(() => {
-    const assistantMessages = messages.filter((m) => m.role === "assistant");
-    if (assistantMessages.length >= 2 && !showTarotPrompt) {
-      setShowTarotPrompt(true);
-    }
-  }, [messages, showTarotPrompt]);
-
   // Auto-insert returning context as system message
   React.useEffect(() => {
     if (!returningSummary) {return;}
@@ -259,71 +239,13 @@ const Chat = memo(function Chat({
     ]);
   }, [returningSummary, messages]);
 
-  const goToTarot = React.useCallback(() => setShowTarotModal(true), []);
-
-  // Handle tarot result from InlineTarotModal
-  const handleTarotComplete = (result: TarotResultSummary) => {
-    // Create a summary message to add to chat
-    const cardsSummary = result.cards
-      .map((c) => `• ${c.position}: ${c.name}${c.isReversed ? " (역방향)" : ""}`)
-      .join("\n");
-
-    const tarotMessage = `🃏 **타로 리딩 결과** - ${result.spreadTitle}
-
-**질문:** ${result.question}
-
-**뽑은 카드:**
-${cardsSummary}
-
-**전체 메시지:**
-${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}` : ""}${result.affirmation ? `\n\n**확언:** _${result.affirmation}_` : ""}`;
-
-    // Add as assistant message
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "assistant",
-        content: tarotMessage,
-        id: generateMessageId("assistant"),
-      },
-    ]);
-  };
-
-  // Format relative date
-  const formatRelativeDate = React.useCallback((dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {return tr.today;}
-    if (diffDays === 1) {return tr.yesterday;}
-    return `${diffDays} ${tr.daysAgo}`;
-  }, [tr.today, tr.yesterday, tr.daysAgo]);
-
-  // Open history modal (loads session list via hook)
-  const openHistoryModal = () => {
-    setShowHistoryModal(true);
-    loadSessionHistory();
-  };
-
-  // Wrap hook functions to also manage local UI state
-  const handleLoadSession = async (sessionId: string) => {
-    await loadSession(sessionId);
-    setShowHistoryModal(false);
-  };
-
-  // Start new chat (uses hook + reset UI state)
-  const startNewChat = () => {
-    hookStartNewChat();
-    setShowHistoryModal(false);
-    setFollowUpQuestions([]);
-    setShowSuggestions(true);
-  };
-
-  const extractConcernFromMessages = React.useCallback(() => {
-    const userMessages = messages.filter((m) => m.role === "user").map((m) => m.content);
-    return userMessages.slice(-2).join(" ").slice(0, 200);
-  }, [messages]);
+  // Show tarot prompt after 2+ assistant responses
+  React.useEffect(() => {
+    const assistantMessages = messages.filter((m) => m.role === "assistant");
+    if (assistantMessages.length >= 2 && !showTarotPrompt) {
+      setShowTarotPrompt(true);
+    }
+  }, [messages, showTarotPrompt]);
 
   // Seed event listener
   React.useEffect(() => {
@@ -346,233 +268,69 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading, autoScroll]);
 
-  // File upload handler
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {return;}
+  const goToTarot = React.useCallback(() => setShowTarotModal(true), []);
 
-    logger.info("[CV Upload] File:", { name: file.name, type: file.type, size: file.size });
-    setCvName(file.name);
+  // Handle tarot result from InlineTarotModal
+  const handleTarotComplete = (result: TarotResultSummary) => {
+    const cardsSummary = result.cards
+      .map((c) => `\u2022 ${c.position}: ${c.name}${c.isReversed ? " (\uC5ED\uBC29\uD5A5)" : ""}`)
+      .join("\n");
 
-    if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
-      setParsingPdf(true);
-      try {
-        const text = await extractTextFromPDF(file);
-        logger.info("[CV Upload] PDF parsed, text length:", { length: text.length });
-        if (text.length > 0) {
-          setCvText(text.slice(0, CHAT_LIMITS.MAX_CV_CHARS));
-          setNotice(lang === "ko" ? `이력서 로드 완료 (${text.length}자)` : `CV loaded (${text.length} chars)`);
-          setTimeout(() => setNotice(null), CHAT_TIMINGS.NOTICE_DISMISS);
-        } else {
-          setCvText("");
-          setNotice(lang === "ko" ? "PDF에서 텍스트를 추출할 수 없습니다" : "Could not extract text from PDF");
-        }
-      } catch (err: unknown) {
-        logger.error("[PDF] parse error:", err);
-        setCvText("");
-        const error = err as Error;
-        if (error?.message === "SCANNED_PDF") {
-          setNotice(lang === "ko"
-            ? "스캔된 PDF는 텍스트를 읽을 수 없습니다. 텍스트 기반 PDF를 업로드해주세요."
-            : "Scanned PDFs cannot be read. Please upload a text-based PDF.");
-        } else {
-          setNotice(lang === "ko" ? "PDF 파싱 실패" : "PDF parsing failed");
-        }
-      } finally {
-        setParsingPdf(false);
-      }
-    } else {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const text = typeof reader.result === "string" ? reader.result : "";
-        logger.info("[CV Upload] Text file loaded, length:", { length: text.length });
-        setCvText(text.slice(0, CHAT_LIMITS.MAX_CV_CHARS));
-        if (text.length > 0) {
-          setNotice(lang === "ko" ? `파일 로드 완료 (${text.length}자)` : `File loaded (${text.length} chars)`);
-          setTimeout(() => setNotice(null), CHAT_TIMINGS.NOTICE_DISMISS);
-        }
-      };
-      reader.onerror = () => {
-        logger.error("[FileReader] error:", reader.error);
-        setCvText("");
-        setCvName("");
-        setNotice(lang === "ko" ? "파일 읽기 실패" : "File reading failed");
-      };
-      reader.readAsText(file);
-    }
+    const tarotMessage = `\uD83C\uDCCF **\uD0C0\uB85C \uB9AC\uB529 \uACB0\uACFC** - ${result.spreadTitle}
+
+**\uC9C8\uBB38:** ${result.question}
+
+**\uBF51\uC740 \uCE74\uB4DC:**
+${cardsSummary}
+
+**\uC804\uCCB4 \uBA54\uC2DC\uC9C0:**
+${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guidance}` : ""}${result.affirmation ? `\n\n**\uD655\uC5B8:** _${result.affirmation}_` : ""}`;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        content: tarotMessage,
+        id: generateMessageId("assistant"),
+      },
+    ]);
   };
 
-  // Make API request with retry logic
-  async function makeRequest(payload: ChatPayload, attempt: number = 0): Promise<Response> {
-    const startTime = performance.now();
-    logger.debug(`[Chat] Request started (attempt ${attempt + 1})`);
+  // Format relative date
+  const formatRelativeDate = React.useCallback((dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
 
-    try {
-      const res = await fetch("/api/destiny-map/chat-stream", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-session-id": ragSessionId || sessionIdRef.current,
-        },
-        body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(CHAT_TIMINGS.REQUEST_TIMEOUT),
-      });
+    if (diffDays === 0) {return tr.today;}
+    if (diffDays === 1) {return tr.yesterday;}
+    return `${diffDays} ${tr.daysAgo}`;
+  }, [tr.today, tr.yesterday, tr.daysAgo]);
 
-      const responseTime = performance.now() - startTime;
-      logger.debug(`[Chat] Response received: ${responseTime.toFixed(0)}ms`);
+  // Open history modal
+  const openHistoryModal = () => {
+    setShowHistoryModal(true);
+    loadSessionHistory();
+  };
 
-      setConnectionStatus(getConnectionStatus(responseTime));
+  // Load session and close modal
+  const handleLoadSession = async (sessionId: string) => {
+    await loadSession(sessionId);
+    setShowHistoryModal(false);
+  };
 
-      if (!res.ok) {
-        if (res.status >= 500 && attempt < CHAT_LIMITS.MAX_RETRY_ATTEMPTS) {
-          logger.warn(`[Chat] Server error ${res.status}, retrying...`);
-          setRetryCount(attempt + 1);
-          await new Promise(resolve => setTimeout(resolve, CHAT_TIMINGS.RETRY_BASE_DELAY * (attempt + 1)));
-          return makeRequest(payload, attempt + 1);
-        }
-        throw new Error(await res.text());
-      }
-      if (!res.body) {throw new Error("No response body");}
-
-      setRetryCount(0);
-      return res;
-    } catch (error: unknown) {
-      const err = error as Error & { name?: string };
-      if (err.name === "AbortError" || err.name === "TimeoutError") {
-        setConnectionStatus("slow");
-        if (attempt < CHAT_LIMITS.MAX_RETRY_ATTEMPTS) {
-          logger.warn(`[Chat] Request timeout, retrying...`);
-          setRetryCount(attempt + 1);
-          await new Promise(resolve => setTimeout(resolve, CHAT_TIMINGS.RETRY_BASE_DELAY * (attempt + 1)));
-          return makeRequest(payload, attempt + 1);
-        }
-        throw new Error("Request timeout. Please check your connection.");
-      }
-      throw error;
-    }
-  }
-
-  // Helper: Update last assistant message content
-  const updateLastAssistantMessage = React.useCallback((content: string) => {
-    setMessages((prev) => {
-      const updated = [...prev];
-      const lastIdx = updated.length - 1;
-      if (lastIdx >= 0 && updated[lastIdx].role === "assistant") {
-        updated[lastIdx] = { ...updated[lastIdx], content };
-      }
-      return updated;
-    });
-  }, []);
-
-  // Process SSE stream response using StreamProcessor
-  async function processStream(
-    res: Response,
-    assistantMsgId: string,
-    userText: string
-  ): Promise<void> {
-    let lastScrollTime = 0;
-    const result = await streamProcessor.process(res, {
-      onChunk: (_accumulated, cleaned) => {
-        // Update message in real-time as chunks arrive
-        updateLastAssistantMessage(cleaned);
-        // Auto-scroll during streaming (throttled to every 100ms)
-        const now = Date.now();
-        if (autoScroll && now - lastScrollTime > 100) {
-          lastScrollTime = now;
-          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }
-      },
-      onError: () => {
-        setNotice(tr.error);
-      },
-    });
-
-    // Process final content
-    if (!result.content) {
-      updateLastAssistantMessage(tr.noResponse);
-    } else {
-      updateLastAssistantMessage(result.content);
-
-      // Set follow-up questions
-      if (result.followUps.length >= CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT) {
-        setFollowUpQuestions(result.followUps.slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT));
-      } else {
-        setFollowUpQuestions(generateFollowUpQuestions(theme, userText, lang, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT));
-      }
-
-      if (onSaveMessage) {
-        onSaveMessage(userText, result.content);
-      }
-    }
-  }
-
-  // Main send handler
-  async function handleSend(directText?: string) {
-    const text = directText || input.trim();
-    if (!text || loading) {return;}
-
-    // Crisis detection
-    if (detectCrisis(text, lang)) {
-      setShowCrisisModal(true);
-    }
-
-    setShowSuggestions(false);
+  // Start new chat (reset UI state)
+  const startNewChat = () => {
+    hookStartNewChat();
+    setShowHistoryModal(false);
     setFollowUpQuestions([]);
+    setShowSuggestions(true);
+  };
 
-    const userMsgId = generateMessageId("user");
-    const nextMessages: Message[] = [...messages, { role: "user", content: text, id: userMsgId }];
-    setLoading(true);
-    setMessages(nextMessages);
-    setInput("");
-    setNotice(null);
-    setUsedFallback(false);
-
-    const payload: ChatPayload = {
-      name: profile.name,
-      birthDate: profile.birthDate,
-      birthTime: profile.birthTime,
-      latitude: profile.latitude,
-      longitude: profile.longitude,
-      gender: profile.gender,
-      city: profile.city,
-      theme,
-      lang,
-      messages: nextMessages,
-      cvText,
-      saju,
-      astro,
-      advancedAstro,
-      predictionContext,
-      userContext,
-    };
-
-    try {
-      const res = await makeRequest(payload);
-
-      if (res.headers.get("x-fallback") === "1") {
-        setUsedFallback(true);
-      }
-
-      const assistantMsgId = generateMessageId("assistant");
-      setMessages((prev) => [...prev, { role: "assistant", content: "", id: assistantMsgId }]);
-      setLoading(false);
-
-      await processStream(res, assistantMsgId, text);
-    } catch (e: unknown) {
-      logger.error("[Chat] send error:", e);
-      setConnectionStatus("offline");
-
-      const errorMessage = getErrorMessage(e as Error, lang, tr);
-
-      setMessages((prev) => [...prev, {
-        role: "assistant",
-        content: errorMessage,
-        id: generateMessageId("error"),
-      }]);
-      setLoading(false);
-      setRetryCount(0);
-    }
-  }
+  const extractConcernFromMessages = React.useCallback(() => {
+    const userMessages = messages.filter((m) => m.role === "user").map((m) => m.content);
+    return userMessages.slice(-2).join(" ").slice(0, 200);
+  }, [messages]);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -589,8 +347,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
       {/* Connection Status Indicator */}
       {connectionStatus !== "online" && (
         <div className={`${styles.connectionStatus} ${styles[connectionStatus]}`}>
-          {connectionStatus === "slow" && "🐌 Slow connection detected"}
-          {connectionStatus === "offline" && "📡 Connection lost - Check your internet"}
+          {connectionStatus === "slow" && "\uD83D\uDC0C Slow connection detected"}
+          {connectionStatus === "offline" && "\uD83D\uDCE1 Connection lost - Check your internet"}
         </div>
       )}
 
@@ -621,7 +379,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
       {/* Welcome Back Banner */}
       {showWelcomeBack && (
         <div className={styles.welcomeBackBanner}>
-          <span>👋</span>
+          <span>{"\uD83D\uDC4B"}</span>
           <span>{tr.welcomeBack}</span>
         </div>
       )}
@@ -634,7 +392,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
           onClick={startNewChat}
           title={tr.newChat}
         >
-          ✨ {tr.newChat}
+          {"\u2728"} {tr.newChat}
         </button>
         <button
           type="button"
@@ -642,173 +400,45 @@ ${result.overallMessage}${result.guidance ? `\n\n**조언:** ${result.guidance}`
           onClick={openHistoryModal}
           title={tr.previousChats}
         >
-          📜 {tr.previousChats}
+          {"\uD83D\uDCDC"} {tr.previousChats}
         </button>
       </div>
 
       {/* Messages Panel */}
-      <div className={styles.messagesPanel}>
-        {notice && (
-          <div className={styles.noticeBar}>
-            <span className={styles.noticeIcon}>⚠️</span>
-            <span>{notice}</span>
-          </div>
-        )}
-
-        {visibleMessages.length === 0 && !loading && (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>🔮</div>
-            <p className={styles.emptyText}>{tr.empty}</p>
-
-            {showSuggestions && (
-              <div className={styles.suggestionsContainer}>
-                {suggestedQs.map((q, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    className={styles.suggestionChip}
-                    onClick={() => handleSuggestion(q)}
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {visibleMessages.map((m, i) => (
-          <MessageRow
-            key={m.id || i}
-            message={m}
-            index={i}
-            feedback={feedback}
-            lang={effectiveLang}
-            onFeedback={handleFeedback}
-            styles={styles}
-          />
-        ))}
-
-        {loading && (
-          <div className={`${styles.messageRow} ${styles.assistantRow}`}>
-            <div className={`${styles.counselorAvatar} ${styles.counselorThinking}`} />
-            <div className={styles.messageBubble}>
-              <div className={styles.thinkingMessage}>
-                <div className={styles.typingDots}>
-                  <span className={styles.typingDot} />
-                  <span className={styles.typingDot} />
-                  <span className={styles.typingDot} />
-                </div>
-                <span className={styles.thinkingText}>
-                  {retryCount > 0
-                    ? `${tr.thinking} (Retry ${retryCount}/3)`
-                    : tr.thinking}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Follow-up Questions */}
-        {!loading && followUpQuestions.length > 0 && visibleMessages.length > 0 && (
-          <div className={styles.followUpContainer}>
-            <span className={styles.followUpLabel}>
-              {lang === "ko" ? "이어서 물어보기" : "Continue asking"}
-            </span>
-            <div className={styles.followUpButtons}>
-              {followUpQuestions.map((q, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  className={styles.followUpChip}
-                  onClick={() => handleFollowUp(q)}
-                >
-                  <span className={styles.followUpIcon}>💬</span>
-                  {q}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tarot Transition Card */}
-        {showTarotPrompt && !loading && (
-          <div className={styles.tarotPromptCard}>
-            <div className={styles.tarotPromptIcon}>🃏</div>
-            <div className={styles.tarotPromptContent}>
-              <h4 className={styles.tarotPromptTitle}>{tr.tarotPrompt}</h4>
-              <p className={styles.tarotPromptDesc}>{tr.tarotDesc}</p>
-            </div>
-            <button
-              type="button"
-              onClick={goToTarot}
-              className={styles.tarotPromptButton}
-            >
-              <span>✨</span>
-              <span>{tr.tarotButton}</span>
-            </button>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
+      <MessagesPanel
+        visibleMessages={visibleMessages}
+        loading={loading}
+        retryCount={retryCount}
+        notice={notice}
+        showSuggestions={showSuggestions}
+        suggestedQs={suggestedQs}
+        followUpQuestions={followUpQuestions}
+        showTarotPrompt={showTarotPrompt}
+        feedback={feedback}
+        effectiveLang={effectiveLang}
+        tr={tr}
+        messagesEndRef={messagesEndRef}
+        onSuggestion={handleSuggestion}
+        onFeedback={handleFeedback}
+        onFollowUp={handleFollowUp}
+        onGoToTarot={goToTarot}
+        styles={styles}
+      />
 
       {/* Input Area */}
-      <div className={styles.inputArea}>
-        <div className={styles.inputRow}>
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder={tr.placeholder}
-            rows={2}
-            className={styles.textarea}
-            disabled={loading}
-          />
-          <button
-            type="button"
-            onClick={() => handleSend()}
-            disabled={loading || !input.trim()}
-            className={styles.sendButton}
-          >
-            <span className={styles.sendIcon}>✨</span>
-            <span className={styles.sendText}>{tr.send}</span>
-          </button>
-        </div>
-
-        {/* File Upload */}
-        <div className={styles.fileUploadArea}>
-          <label className={styles.fileLabel}>
-            <span className={styles.fileLabelIcon}>📎</span>
-            <span>{tr.uploadCv}</span>
-            <input
-              type="file"
-              accept=".txt,.md,.csv,.pdf"
-              className={styles.fileInput}
-              onChange={handleFileUpload}
-            />
-          </label>
-          {parsingPdf && (
-            <span className={styles.fileName}>
-              <span className={styles.loadingSpinner} />
-              {tr.parsingPdf}
-            </span>
-          )}
-          {cvName && !parsingPdf && (
-            <span className={styles.fileName}>
-              <span className={styles.fileIcon}>✓</span>
-              {tr.attached} {cvName}
-            </span>
-          )}
-        </div>
-
-        {usedFallback && (
-          <div className={styles.fallbackNote}>
-            <span className={styles.fallbackIcon}>ℹ️</span>
-            {tr.fallbackNote}
-          </div>
-        )}
-      </div>
+      <ChatInputArea
+        input={input}
+        loading={loading}
+        cvName={cvName}
+        parsingPdf={parsingPdf}
+        usedFallback={usedFallback}
+        tr={tr}
+        onInputChange={setInput}
+        onKeyDown={onKeyDown}
+        onSend={() => handleSend()}
+        onFileUpload={handleFileUpload}
+        styles={styles}
+      />
 
       {/* Inline Tarot Modal */}
       <InlineTarotModal

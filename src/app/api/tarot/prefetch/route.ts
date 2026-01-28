@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { initializeApiContext, createSimpleGuard } from "@/lib/api/middleware";
 import { apiClient } from "@/lib/api/ApiClient";
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 const MAX_ID_LEN = 64;
 type TarotPrefetchBody = {
   categoryId?: string;
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
     const { context, error } = await initializeApiContext(req, guardOptions);
     if (error) {return error;}
 
-    const body = (await req.json().catch(() => null)) as TarotPrefetchBody | null;
+    const body = (await parseRequestBody<any>(req, { context: 'Tarot Prefetch' })) as TarotPrefetchBody | null;
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "invalid_body" }, { status: 400 });
     }

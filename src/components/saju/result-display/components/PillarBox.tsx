@@ -1,18 +1,18 @@
-// src/components/saju/result-display/components/PillarBox.tsx
+import type { PillarData } from '../../../../lib/Saju';
+import {
+  ELEMENT_COLOR_CLASSES,
+  getElementOfChar,
+} from '../../constants/elements';
 
-import React from 'react';
-import type { PillarData } from '../types';
-import { elementColors } from '../constants';
-import { getElementOfChar } from '../utils';
-import { sibsinTextStyle, pillarCellStyle } from '../styles';
-
-interface PillarBoxProps {
+const PillarBox = ({
+  title,
+  heavenlyStem,
+  earthlyBranch,
+}: {
   title: string;
   heavenlyStem: PillarData['heavenlyStem'];
   earthlyBranch: PillarData['earthlyBranch'];
-}
-
-export default function PillarBox({ title, heavenlyStem, earthlyBranch }: PillarBoxProps) {
+}) => {
   const stemName = typeof heavenlyStem === 'string' ? heavenlyStem : (heavenlyStem?.name ?? '');
   const stemSibsin = typeof heavenlyStem === 'string' ? '' : (heavenlyStem?.sibsin ?? '');
   const branchName = typeof earthlyBranch === 'string' ? earthlyBranch : (earthlyBranch?.name ?? '');
@@ -22,17 +22,29 @@ export default function PillarBox({ title, heavenlyStem, earthlyBranch }: Pillar
   const branchEl = getElementOfChar(branchName);
 
   return (
-    <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{ fontSize: '0.9rem', color: '#b8b8c7', marginBottom: 4 }}>{title}</div>
-      <div style={sibsinTextStyle}>{String(stemSibsin)}</div>
-      <div style={{ ...pillarCellStyle, backgroundColor: stemEl ? elementColors[stemEl] : '#4a80e2' }}>
+    <div className="text-center flex flex-col items-center" role="group" aria-label={`${title} 기둥`}>
+      <div className="text-sm text-slate-400 mb-1">{title}</div>
+      <div className="text-xs text-gray-500 h-5 flex items-center justify-center">{String(stemSibsin)}</div>
+      <div
+        className={`w-14 h-14 flex items-center justify-center text-2xl font-extrabold text-white rounded-xl shadow-lg ${
+          stemEl ? ELEMENT_COLOR_CLASSES[stemEl] : 'bg-blue-500'
+        }`}
+        aria-label={`천간: ${stemName}`}
+      >
         {String(stemName)}
       </div>
-      <div style={{ height: 8 }} />
-      <div style={{ ...pillarCellStyle, backgroundColor: branchEl ? elementColors[branchEl] : '#f3a73f' }}>
+      <div className="h-2" />
+      <div
+        className={`w-14 h-14 flex items-center justify-center text-2xl font-extrabold text-white rounded-xl shadow-lg ${
+          branchEl ? ELEMENT_COLOR_CLASSES[branchEl] : 'bg-amber-500'
+        }`}
+        aria-label={`지지: ${branchName}`}
+      >
         {String(branchName)}
       </div>
-      <div style={{ ...sibsinTextStyle, marginTop: 6 }}>{String(branchSibsin)}</div>
+      <div className="text-xs text-gray-500 mt-1.5 h-5 flex items-center justify-center">{String(branchSibsin)}</div>
     </div>
   );
-}
+};
+
+export default PillarBox;

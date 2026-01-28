@@ -7,6 +7,7 @@ import {
 } from '@/lib/notifications/pushService';
 import { logger } from '@/lib/logger';
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 export const dynamic = 'force-dynamic';
 
 /**

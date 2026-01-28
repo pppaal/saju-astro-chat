@@ -10,6 +10,7 @@ import { getClientIp } from "@/lib/request-ip";
 import { logger } from '@/lib/logger';
 import { type ChatMessage } from "@/lib/api";
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 interface SaveDreamChatRequest {
   dreamId?: string;  // Optional: link to existing dream interpretation
   dreamText: string;
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json().catch(() => null);
+    const body = await parseRequestBody<any>(req, { context: 'Dream Chat Save' });
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         { error: "Invalid request body" },

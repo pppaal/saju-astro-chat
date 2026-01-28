@@ -169,14 +169,19 @@ export class IChingStatisticsEngine {
     };
   }
 
-  // 특정 괘 통계
+  // 특정 괘 통계 (단일 패스 최적화)
   getHexagramStatistics(hexagramNumber: number): HexagramStatistics {
-    const relevantReadings = this.readings.filter(
-      r => r.hexagramNumber === hexagramNumber || r.targetHexagram === hexagramNumber
-    );
+    let asOriginal = 0;
+    let asTarget = 0;
+    const relevantReadings: HexagramReading[] = [];
 
-    const asOriginal = this.readings.filter(r => r.hexagramNumber === hexagramNumber).length;
-    const asTarget = this.readings.filter(r => r.targetHexagram === hexagramNumber).length;
+    for (const r of this.readings) {
+      const isOrig = r.hexagramNumber === hexagramNumber;
+      const isTarg = r.targetHexagram === hexagramNumber;
+      if (isOrig) asOriginal++;
+      if (isTarg) asTarget++;
+      if (isOrig || isTarg) relevantReadings.push(r);
+    }
 
     const lineCounts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
     let totalLines = 0;
@@ -401,7 +406,7 @@ export class IChingStatisticsEngine {
     return parseInt(entries.sort((a, b) => b[1] - a[1])[0][0]);
   }
 
-  // 팔궁별 통계
+  // 팔궁별 통계 (단일 패스 최적화)
   analyzeByPalace(): Record<string, { count: number; hexagrams: number[] }> {
     // 팔궁 분류
     const palaces: Record<string, number[]> = {
@@ -415,11 +420,25 @@ export class IChingStatisticsEngine {
       '곤궁(坤宮)': [2, 24, 19, 11, 34, 43, 5, 8]
     };
 
-    const result: Record<string, { count: number; hexagrams: number[] }> = {};
-
+    // 역방향 룩업: hexNum → 궁 이름
+    const hexToPalace: Record<number, string> = {};
     for (const [palace, hexagrams] of Object.entries(palaces)) {
-      const count = this.readings.filter(r => hexagrams.includes(r.hexagramNumber)).length;
-      result[palace] = { count, hexagrams };
+      for (const hex of hexagrams) {
+        hexToPalace[hex] = palace;
+      }
+    }
+
+    const result: Record<string, { count: number; hexagrams: number[] }> = {};
+    for (const [palace, hexagrams] of Object.entries(palaces)) {
+      result[palace] = { count: 0, hexagrams };
+    }
+
+    // 단일 패스: readings 1회 순회
+    for (const r of this.readings) {
+      const palace = hexToPalace[r.hexagramNumber];
+      if (palace) {
+        result[palace].count++;
+      }
     }
 
     return result;

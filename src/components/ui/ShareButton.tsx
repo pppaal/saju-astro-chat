@@ -7,6 +7,7 @@ import { useI18n } from "@/i18n/I18nProvider";
 import styles from "./ShareButton.module.css";
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
 import { logger } from "@/lib/logger";
+import { UI_TIMEOUTS } from "@/lib/constants/formulas";
 
 interface ShareButtonProps {
   variant?: "full" | "compact";
@@ -60,7 +61,7 @@ export default function ShareButton({ variant = "full", className }: ShareButton
     try {
       await navigator.clipboard.writeText(referralUrl);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), UI_TIMEOUTS.TOAST_DISMISS);
     } catch (err) {
       logger.error("[ShareButton] Failed to copy:", err);
     }

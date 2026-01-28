@@ -1,41 +1,33 @@
-// src/components/saju/result-display/components/RelationsPanel.tsx
+import type { FC } from 'react';
 
-import React from 'react';
-import { pillarLabelMap } from '../constants';
+const PILLAR_LABEL_MAP: Record<'year'|'month'|'day'|'time', string> = {
+  time: '시지', day: '일지', month: '월지', year: '연지'
+};
 
-interface RelationsPanelProps {
-  relations?: { kind: string; pillars: ('year' | 'month' | 'day' | 'time')[]; detail?: string }[];
-}
-
-export default function RelationsPanel({ relations }: RelationsPanelProps) {
+const RelationsPanel: FC<{ relations?: { kind: string; pillars: ('year'|'month'|'day'|'time')[]; detail?: string }[] }> = ({ relations }) => {
   if (!relations || relations.length === 0) {
-    return <div style={{ color: '#9aa2c1' }}>표시할 합·충 정보가 없습니다.</div>;
+    return <div className="text-slate-400">표시할 합·충 정보가 없습니다.</div>;
   }
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-      gap: 10,
-      background: '#1e1e2f',
-      border: '1px solid #4f4f7a',
-      borderRadius: 12,
-      padding: 12,
-    }}>
+    <div
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 bg-slate-800 border border-slate-600 rounded-xl p-3"
+      role="list"
+      aria-label="합충 관계 목록"
+    >
       {relations.map((r, i) => (
-        <div key={i} style={{
-          background: 'rgba(255,255,255,0.06)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 8,
-          padding: '10px 12px',
-        }}>
-          <div style={{ fontWeight: 800, color: '#ffd479', marginBottom: 6 }}>{r.kind}</div>
-          <div style={{ fontSize: 13, color: '#cfd3e6' }}>
-            {r.pillars.map((p) => pillarLabelMap[p]).join(' · ')}
-          </div>
-          {r.detail && <div style={{ marginTop: 6, fontSize: 12, color: '#9aa2c1' }}>{r.detail}</div>}
+        <div
+          key={i}
+          className="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5"
+          role="listitem"
+        >
+          <div className="font-extrabold text-yellow-400 mb-1.5">{r.kind}</div>
+          <div className="text-sm text-slate-300">{r.pillars.map((p) => PILLAR_LABEL_MAP[p]).join(' · ')}</div>
+          {r.detail && <div className="mt-1.5 text-xs text-slate-400">{r.detail}</div>}
         </div>
       ))}
     </div>
   );
-}
+};
+
+export default RelationsPanel;

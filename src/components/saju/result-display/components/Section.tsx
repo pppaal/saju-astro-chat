@@ -1,26 +1,15 @@
-// src/components/saju/result-display/components/Section.tsx
+import type { ReactNode, FC } from 'react';
 
-import React from 'react';
+const Section: FC<{ title: string; children: ReactNode }> = ({ title, children }) => (
+  <section className="mb-12" aria-labelledby={`section-${title.replace(/\s/g, '-')}`}>
+    <h2
+      id={`section-${title.replace(/\s/g, '-')}`}
+      className="text-lg font-medium border-b border-slate-600 pb-3 mb-6 text-gray-400"
+    >
+      {title}
+    </h2>
+    {children}
+  </section>
+);
 
-interface SectionProps {
-  title: string;
-  children: React.ReactNode;
-}
-
-export default function Section({ title, children }: SectionProps) {
-  return (
-    <div style={{ marginBottom: '3rem' }}>
-      <h2 style={{
-        fontSize: '1.1rem',
-        fontWeight: 500,
-        borderBottom: '1px solid #4f4f7a',
-        paddingBottom: '0.8rem',
-        marginBottom: '1.5rem',
-        color: '#c0c0c0',
-      }}>
-        {title}
-      </h2>
-      {children}
-    </div>
-  );
-}
+export default Section;

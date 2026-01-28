@@ -11,6 +11,7 @@ import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize
 import { logger } from '@/lib/logger';
 import { type ChatMessage } from "@/lib/api";
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 120;

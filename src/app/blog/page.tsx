@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import BlogClient from "./BlogClient";
 
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com";
+
 export const metadata: Metadata = {
   title: "Blog | DestinyPal - Insights on Astrology, Saju, Tarot & More",
   description:
@@ -22,17 +24,30 @@ export const metadata: Metadata = {
     description:
       "Explore the wisdom of Eastern and Western divination systems",
     type: "website",
-    url: `${process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com"}/blog`,
+    url: `${baseUrl}/blog`,
     siteName: "DestinyPal",
+    images: [
+      {
+        url: `${baseUrl}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "DestinyPal Blog - Insights & Guides",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "DestinyPal Blog",
     description:
       "Explore the wisdom of Eastern and Western divination systems",
+    images: [`${baseUrl}/og-image.png`],
   },
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com"}/blog`,
+    canonical: `${baseUrl}/blog`,
+    languages: {
+      "en": `${baseUrl}/blog`,
+      "ko": `${baseUrl}/blog`,
+    },
   },
 };
 

@@ -26,6 +26,7 @@ import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations';
 import { logger } from '@/lib/logger';
 import { sanitizeError } from '@/lib/security/errorSanitizer';
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 // Services
 import {
   checkPremiumStatus,
@@ -46,7 +47,7 @@ import {
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req.headers as Headers);
-    const body = await req.json().catch(() => null);
+    const body = await parseRequestBody<any>(req, { context: 'Saju' });
     if (!body) {
       return NextResponse.json({ message: 'Invalid JSON body.' }, { status: 400 });
     }

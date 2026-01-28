@@ -16,6 +16,7 @@ import {
 } from "@/lib/api";
 import { logger } from '@/lib/logger';
 
+import { parseRequestBody } from '@/lib/api/requestParser';
 interface CardContext {
   position: string;
   name: string;
@@ -318,7 +319,7 @@ export async function POST(req: NextRequest) {
     const oversized = enforceBodySize(req, 256 * 1024);
     if (oversized) {return oversized;}
 
-    const body = await req.json().catch(() => null);
+    const body = await parseRequestBody<any>(req, { context: 'Tarot Chat Stream' });
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         { error: "invalid_body" },

@@ -336,13 +336,23 @@ function MyComponent({ result }) {
 ### 새로 생성된 파일
 1. `src/lib/env.ts` - 환경 변수 타입 안전성
 2. `src/lib/iChing/enhancedDataLoader.ts` - 동적 데이터 로더
-3. `PERFORMANCE_OPTIMIZATION.md` - 성능 최적화 가이드
-4. `FINAL_IMPROVEMENTS_SUMMARY.md` - 최종 요약
+3. `src/lib/api/requestParser.ts` - API 요청 파싱 유틸리티
+4. `src/lib/constants/formulas.ts` - 중앙화된 상수 정의
+5. `src/lib/constants/routes.ts` - 라우트 상수 정의
+6. `src/lib/Saju/types/common.ts` - Saju 공통 타입 정의
+7. `PERFORMANCE_OPTIMIZATION.md` - 성능 최적화 가이드
+8. `ADDITIONAL_IMPROVEMENTS_GUIDE.md` - 추가 개선 가이드
+9. `FINAL_IMPROVEMENTS_SUMMARY.md` - 최종 요약
+
+### 최적화된 파일
+1. `vercel.json` - Vercel 배포 최적화 (캐싱, cron)
+2. `src/app/blog/[slug]/BlogPostClient.tsx` - 중복 제거, 상수 사용
 
 ### 삭제된 코드
 - console.log 호출: 100+ 라인
 - any 타입 사용: 50+ 라인
 - React.FC 사용: 44개 컴포넌트
+- 백업 파일: 2개 (.refactored.tsx, 53KB)
 
 ## 🎯 달성한 목표
 

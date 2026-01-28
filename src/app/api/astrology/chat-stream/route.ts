@@ -7,6 +7,8 @@ import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize
 import { normalizeMessages as normalizeMessagesBase, type ChatMessage } from "@/lib/api";
 import { logger } from '@/lib/logger';
 
+import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/formulas';
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -88,7 +90,7 @@ export async function POST(req: NextRequest) {
     const { context, error } = await initializeApiContext(req, guardOptions);
     if (error) {return error;}
 
-    const body = (await req.json().catch(() => null)) as {
+    const body = (await parseRequestBody<any>(req, { context: 'Astrology Chat-stream' })) as {
       name?: string;
       birthDate?: string;
       birthTime?: string;
@@ -102,7 +104,7 @@ export async function POST(req: NextRequest) {
       userContext?: string;
     } | null;
     if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const name = typeof body.name === "string" ? body.name.trim().slice(0, MAX_NAME) : undefined;
@@ -123,13 +125,13 @@ export async function POST(req: NextRequest) {
       : undefined;
 
     if (!birthDate || !birthTime || !DATE_RE.test(birthDate) || !TIME_RE.test(birthTime)) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ error: "Missing required fields" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-      return NextResponse.json({ error: "Invalid coordinates" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid coordinates" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (!messages.length) {
-      return NextResponse.json({ error: "Missing messages" }, { status: 400 });
+      return NextResponse.json({ error: "Missing messages" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Credits already consumed by middleware
@@ -215,7 +217,7 @@ export async function POST(req: NextRequest) {
     logger.error("[Astrology Chat-Stream API error]", err);
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

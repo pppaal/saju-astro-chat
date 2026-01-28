@@ -2,6 +2,7 @@
 
 import { recordCounter, recordTiming } from "@/lib/metrics";
 import { logger } from "@/lib/logger";
+import { HTTP_TIMEOUTS } from "@/lib/constants/formulas";
 
 interface HealthStatus {
   healthy: boolean;
@@ -38,7 +39,7 @@ export async function checkBackendHealth(backendUrl: string): Promise<boolean> {
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    const timeout = setTimeout(() => controller.abort(), HTTP_TIMEOUTS.HEALTH_CHECK);
     const start = Date.now();
 
     const response = await fetch(`${backendUrl}/`, {
@@ -101,7 +102,7 @@ export async function callBackendWithFallback<T>(
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 120000); // 2 minutes
+    const timeout = setTimeout(() => controller.abort(), HTTP_TIMEOUTS.LONG_OPERATION);
     const start = Date.now();
 
     const response = await fetch(`${backendUrl}${endpoint}`, {

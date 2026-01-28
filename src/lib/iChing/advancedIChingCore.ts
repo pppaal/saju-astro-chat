@@ -4,6 +4,31 @@
  * 호괘, 착괘, 도괘, 상반괘, 복괘, 핵괘, 효위 분석
  */
 
+import { DICTS } from '@/i18n/I18nProvider';
+
+type Locale = 'en' | 'ko';
+
+/** Helper to get an iching.analysis translation key (with cache) */
+const _taCache: Record<string, string> = {};
+
+function ta(locale: Locale, key: string, vars?: Record<string, string | number>): string {
+  const cacheKey = `${locale}:${key}`;
+  let val = _taCache[cacheKey];
+  if (val === undefined) {
+    const dict = DICTS[locale] as Record<string, any>;
+    val = dict?.iching?.analysis?.[key] ?? key;
+    _taCache[cacheKey] = val;
+  }
+  if (vars) {
+    let result = val;
+    for (const [k, v] of Object.entries(vars)) {
+      result = result.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+    }
+    return result;
+  }
+  return val;
+}
+
 // ============================================================================
 // 타입 정의
 // ============================================================================
@@ -224,12 +249,12 @@ const HEXAGRAM_MAP: Record<string, { number: number; name: string; korean: strin
 // 헬퍼 함수
 // ============================================================================
 
-function getHexagramFromBinary(binary: string): HexagramBasic {
+function getHexagramFromBinary(binary: string, locale: Locale = 'ko'): HexagramBasic {
   const info = HEXAGRAM_MAP[binary];
   if (info) {
     return { number: info.number, binary, name: info.name, korean: info.korean };
   }
-  return { number: 0, binary, name: 'Unknown', korean: '미상' };
+  return { number: 0, binary, name: 'Unknown', korean: ta(locale, 'unknown') };
 }
 
 function getUpperTrigram(binary: string): string {
@@ -259,114 +284,93 @@ function reverseBinary(binary: string): string {
 /**
  * 호괘 분석 - 2,3,4,5효로 새 괘 생성
  */
-export function analyzeHoGwa(binary: string): HoGwaAnalysis {
+export function analyzeHoGwa(binary: string, locale: Locale = 'ko'): HoGwaAnalysis {
   // 2,3,4효 → 하괘, 3,4,5효 → 상괘
   const lowerHo = binary.slice(1, 4);  // 2,3,4효
   const upperHo = binary.slice(2, 5);  // 3,4,5효
   const hoBinary = lowerHo + upperHo;
 
-  const 호괘 = getHexagramFromBinary(hoBinary);
+  const 호괘 = getHexagramFromBinary(hoBinary, locale);
 
   return {
     호괘,
-    explanation: `본괘의 내부 핵심(2-5효)에서 추출한 괘로, 상황의 본질과 핵심 에너지를 나타냅니다.`,
-    innerMeaning: getHoGwaMeaning(호괘.number)
+    explanation: ta(locale, 'hoGwaExplanation'),
+    innerMeaning: getHoGwaMeaning(호괘.number, locale)
   };
 }
 
-function getHoGwaMeaning(num: number): string {
-  const meanings: Record<number, string> = {
-    1: '내면에 강한 창조력과 추진력이 숨어있습니다.',
-    2: '유연함과 수용성이 상황의 핵심입니다.',
-    11: '내면적으로 조화와 균형을 이루고 있습니다.',
-    12: '막힘이 있지만 변화의 씨앗이 있습니다.',
-    29: '어려움 속에서도 지혜가 흐르고 있습니다.',
-    30: '밝음과 명확함이 핵심 에너지입니다.'
-  };
-  return meanings[num] || '본질적인 변화의 에너지가 작용합니다.';
+function getHoGwaMeaning(num: number, locale: Locale): string {
+  const key = `hoGwaMeaning${num}`;
+  const dict = DICTS[locale] as Record<string, any>;
+  const val = dict?.iching?.analysis?.[key];
+  return val || ta(locale, 'hoGwaMeaningDefault');
 }
 
 /**
  * 착괘 분석 - 효 쌍 교환 (1↔2, 3↔4, 5↔6)
  */
-export function analyzeChakGwa(binary: string): ChakGwaAnalysis {
+export function analyzeChakGwa(binary: string, locale: Locale = 'ko'): ChakGwaAnalysis {
   const chars = binary.split('');
   const chakBinary = [chars[1], chars[0], chars[3], chars[2], chars[5], chars[4]].join('');
 
-  const 착괘 = getHexagramFromBinary(chakBinary);
+  const 착괘 = getHexagramFromBinary(chakBinary, locale);
 
   return {
     착괘,
-    explanation: '효 쌍을 교환한 괘로, 관계와 상호작용의 다른 측면을 보여줍니다.',
-    relationship: getChakGwaRelationship(착괘.number)
+    explanation: ta(locale, 'chakGwaExplanation'),
+    relationship: ta(locale, 'chakGwaRelationship')
   };
-}
-
-function getChakGwaRelationship(num: number): string {
-  return '상호 보완적 관계에서의 역할 전환을 의미합니다.';
 }
 
 /**
  * 도괘 분석 - 180도 뒤집기
  */
-export function analyzeDoGwa(binary: string): DoGwaAnalysis {
+export function analyzeDoGwa(binary: string, locale: Locale = 'ko'): DoGwaAnalysis {
   const doBinary = reverseBinary(binary);
-  const 도괘 = getHexagramFromBinary(doBinary);
+  const 도괘 = getHexagramFromBinary(doBinary, locale);
 
   return {
     도괘,
-    explanation: '괘를 뒤집은 것으로, 반대 입장이나 역방향에서 본 관점을 나타냅니다.',
-    reverseViewpoint: getDoGwaViewpoint(도괘.number)
+    explanation: ta(locale, 'doGwaExplanation'),
+    reverseViewpoint: ta(locale, 'doGwaViewpoint')
   };
-}
-
-function getDoGwaViewpoint(num: number): string {
-  return '상대방 관점 또는 시간이 흐른 후의 상황을 암시합니다.';
 }
 
 /**
  * 상반괘 분석 - 모든 효 음양 반전
  */
-export function analyzeSangbanGwa(binary: string): SangbanGwaAnalysis {
+export function analyzeSangbanGwa(binary: string, locale: Locale = 'ko'): SangbanGwaAnalysis {
   const sangbanBinary = flipBinary(binary);
-  const 상반괘 = getHexagramFromBinary(sangbanBinary);
+  const 상반괘 = getHexagramFromBinary(sangbanBinary, locale);
 
   return {
     상반괘,
-    explanation: '모든 효의 음양을 반전시킨 괘로, 완전히 반대되는 상황이나 힘을 나타냅니다.',
-    oppositeForce: getSangbanForce(상반괘.number)
+    explanation: ta(locale, 'sangbanGwaExplanation'),
+    oppositeForce: ta(locale, 'sangbanForce')
   };
-}
-
-function getSangbanForce(num: number): string {
-  return '상반된 에너지와의 균형이 필요한 시점을 암시합니다.';
 }
 
 /**
  * 복괘 분석 - 상괘/하괘 교환
  */
-export function analyzeBokGwa(binary: string): BokGwaAnalysis {
+export function analyzeBokGwa(binary: string, locale: Locale = 'ko'): BokGwaAnalysis {
   const upper = getUpperTrigram(binary);
   const lower = getLowerTrigram(binary);
   const bokBinary = upper + lower;  // 상하 교환
 
-  const 복괘 = getHexagramFromBinary(bokBinary);
+  const 복괘 = getHexagramFromBinary(bokBinary, locale);
 
   return {
     복괘,
-    explanation: '상괘와 하괘를 교환한 괘로, 내외의 전환이나 위치 변화를 의미합니다.',
-    transformation: getBokTransformation(복괘.number)
+    explanation: ta(locale, 'bokGwaExplanation'),
+    transformation: ta(locale, 'bokTransformation')
   };
-}
-
-function getBokTransformation(num: number): string {
-  return '내면과 외면, 원인과 결과의 위치가 바뀔 수 있음을 암시합니다.';
 }
 
 /**
  * 핵괘 분석 - 상핵(3,4,5효), 하핵(2,3,4효)
  */
-export function analyzeHaekGwa(binary: string): HaekGwaAnalysis {
+export function analyzeHaekGwa(binary: string, locale: Locale = 'ko'): HaekGwaAnalysis {
   const 하핵 = binary.slice(1, 4);  // 2,3,4효
   const 상핵 = binary.slice(2, 5);  // 3,4,5효
 
@@ -374,22 +378,25 @@ export function analyzeHaekGwa(binary: string): HaekGwaAnalysis {
   const 상핵Trigram = TRIGRAMS[상핵];
 
   return {
-    상핵: { binary: 상핵, name: 상핵Trigram?.korean || '미상' },
-    하핵: { binary: 하핵, name: 하핵Trigram?.korean || '미상' },
-    explanation: '괘의 핵심 에너지를 나타내는 중심부 소성괘입니다.',
-    coreEnergy: getHaekEnergy(하핵Trigram, 상핵Trigram)
+    상핵: { binary: 상핵, name: 상핵Trigram?.korean || ta(locale, 'unknown') },
+    하핵: { binary: 하핵, name: 하핵Trigram?.korean || ta(locale, 'unknown') },
+    explanation: ta(locale, 'haekGwaExplanation'),
+    coreEnergy: getHaekEnergy(하핵Trigram, 상핵Trigram, locale)
   };
 }
 
-function getHaekEnergy(lower: Trigram | undefined, upper: Trigram | undefined): string {
-  if (!lower || !upper) {return '핵심 에너지 분석 중';}
-  return `하핵 ${lower.korean}(${lower.nature})과 상핵 ${upper.korean}(${upper.nature})의 조합이 상황의 본질입니다.`;
+function getHaekEnergy(lower: Trigram | undefined, upper: Trigram | undefined, locale: Locale): string {
+  if (!lower || !upper) {return ta(locale, 'haekEnergyAnalyzing');}
+  return ta(locale, 'haekEnergyTemplate', {
+    lower: lower.korean, lowerNature: lower.nature,
+    upper: upper.korean, upperNature: upper.nature
+  });
 }
 
 /**
  * 상하괘(소성괘) 분석
  */
-export function analyzeTrigramInteraction(binary: string): TrigramAnalysis {
+export function analyzeTrigramInteraction(binary: string, locale: Locale = 'ko'): TrigramAnalysis {
   const upperBinary = getUpperTrigram(binary);
   const lowerBinary = getLowerTrigram(binary);
 
@@ -399,40 +406,41 @@ export function analyzeTrigramInteraction(binary: string): TrigramAnalysis {
   return {
     상괘,
     하괘,
-    interaction: `${하괘.nature}(${하괘.korean}) 위에 ${상괘.nature}(${상괘.korean})가 있습니다.`,
-    dynamicMeaning: getTrigramDynamic(하괘, 상괘)
+    interaction: ta(locale, 'trigramInteraction', {
+      lowerNature: 하괘.nature, lowerKo: 하괘.korean,
+      upperNature: 상괘.nature, upperKo: 상괘.korean
+    }),
+    dynamicMeaning: getTrigramDynamic(하괘, 상괘, locale)
   };
 }
 
-function getTrigramDynamic(lower: Trigram, upper: Trigram): string {
-  const dynamics: Record<string, string> = {
-    '건건': '하늘이 거듭되니 강건함이 최고조입니다.',
-    '곤곤': '땅이 거듭되니 수용과 포용의 극치입니다.',
-    '감감': '물이 거듭되니 깊은 지혜와 시련이 있습니다.',
-    '리리': '불이 거듭되니 밝음과 명석함이 강조됩니다.',
-    '건곤': '하늘과 땅이 만나니 평화와 조화입니다.',
-    '곤건': '땅과 하늘이 막히니 어려움이 있습니다.'
-  };
-
+function getTrigramDynamic(lower: Trigram, upper: Trigram, locale: Locale): string {
   const key = lower.korean + upper.korean;
-  return dynamics[key] || `${lower.nature}과 ${upper.nature}의 상호작용이 핵심입니다.`;
+  const dynamicKey = `trigramDynamic_${key}`;
+  const dict = DICTS[locale] as Record<string, any>;
+  const val = dict?.iching?.analysis?.[dynamicKey];
+  if (val) return val;
+  return ta(locale, 'trigramDynamicDefault', {
+    lowerNature: lower.nature, upperNature: upper.nature
+  });
 }
 
 /**
  * 효위(爻位) 분석
  */
-export function analyzeYaoPositions(binary: string): YaoPositionAnalysis[] {
+export function analyzeYaoPositions(binary: string, locale: Locale = 'ko'): YaoPositionAnalysis[] {
   const positions: YaoPositionAnalysis[] = [];
-  const yaoNames = ['초효', '이효', '삼효', '사효', '오효', '상효'];
+  const yaoNameKeys = ['yaoName1', 'yaoName2', 'yaoName3', 'yaoName4', 'yaoName5', 'yaoName6'];
 
   for (let i = 0; i < 6; i++) {
     const bit = binary[i];
-    const nature: '양' | '음' = bit === '1' ? '양' : '음';
+    const isYang = bit === '1';
+    const nature: '양' | '음' = isYang ? '양' : '음';
     const positionNumber = i + 1;
 
     // 양효는 홀수 위치, 음효는 짝수 위치가 정위
-    const isCorrect = (nature === '양' && positionNumber % 2 === 1) ||
-                      (nature === '음' && positionNumber % 2 === 0);
+    const isCorrect = (isYang && positionNumber % 2 === 1) ||
+                      (!isYang && positionNumber % 2 === 0);
 
     // 상응 관계: 1-4, 2-5, 3-6
     const correspondingPos = positionNumber <= 3 ? positionNumber + 3 : positionNumber - 3;
@@ -441,36 +449,29 @@ export function analyzeYaoPositions(binary: string): YaoPositionAnalysis[] {
 
     positions.push({
       position: positionNumber,
-      name: yaoNames[i],
+      name: ta(locale, yaoNameKeys[i]),
       nature,
       isCorrect,
       isResonant,
-      meaning: getYaoMeaning(positionNumber, nature, isCorrect),
-      advice: getYaoAdvice(positionNumber, nature, isResonant)
+      meaning: getYaoMeaning(positionNumber, isCorrect, locale),
+      advice: getYaoAdvice(positionNumber, isResonant, locale)
     });
   }
 
   return positions;
 }
 
-function getYaoMeaning(pos: number, nature: '양' | '음', isCorrect: boolean): string {
-  const positionMeanings: Record<number, string> = {
-    1: '시작 단계, 잠재력의 시기',
-    2: '성장 단계, 내적 발전',
-    3: '전환점, 내외의 경계',
-    4: '근신의 위치, 조심스러운 전진',
-    5: '군위, 최고의 위치',
-    6: '극한, 끝과 새로운 시작'
-  };
-
-  return `${positionMeanings[pos]} - ${isCorrect ? '정위(正位)로 안정적' : '부정위로 변화 필요'}`;
+function getYaoMeaning(pos: number, isCorrect: boolean, locale: Locale): string {
+  const posMeaning = ta(locale, `yaoPos${pos}`);
+  const correctness = isCorrect ? ta(locale, 'yaoPosCorrect') : ta(locale, 'yaoPosIncorrect');
+  return `${posMeaning} - ${correctness}`;
 }
 
-function getYaoAdvice(pos: number, nature: '양' | '음', isResonant: boolean): string {
+function getYaoAdvice(pos: number, isResonant: boolean, locale: Locale): string {
   if (isResonant) {
-    return `${pos}효와 상응하는 효가 조화를 이루어 협력이 가능합니다.`;
+    return ta(locale, 'yaoResonant', { pos });
   }
-  return `${pos}효의 상응 관계가 약하여 독자적 노력이 필요합니다.`;
+  return ta(locale, 'yaoNotResonant', { pos });
 }
 
 /**
@@ -478,7 +479,8 @@ function getYaoAdvice(pos: number, nature: '양' | '음', isResonant: boolean): 
  */
 export function analyzeChangingLines(
   fromBinary: string,
-  changingLines: number[]
+  changingLines: number[],
+  locale: Locale = 'ko'
 ): ChangingLineAnalysis {
   // 변효 적용
   const toBinaryArr = fromBinary.split('');
@@ -488,157 +490,170 @@ export function analyzeChangingLines(
   }
   const toBinary = toBinaryArr.join('');
 
-  const fromHexagram = getHexagramFromBinary(fromBinary);
-  const toHexagram = getHexagramFromBinary(toBinary);
+  const fromHexagram = getHexagramFromBinary(fromBinary, locale);
+  const toHexagram = getHexagramFromBinary(toBinary, locale);
 
   return {
     fromHexagram,
     toHexagram,
     changingLines,
-    interpretation: getChangingInterpretation(changingLines, fromHexagram.number, toHexagram.number),
-    transitionAdvice: getTransitionAdvice(changingLines, fromHexagram.number, toHexagram.number),
-    keyMoment: getKeyMoment(changingLines, fromHexagram, toHexagram)
+    interpretation: getChangingInterpretation(changingLines, fromHexagram.number, toHexagram.number, locale),
+    transitionAdvice: getTransitionAdvice(changingLines, fromHexagram.number, toHexagram.number, locale),
+    keyMoment: getKeyMoment(changingLines, fromHexagram, toHexagram, locale)
   };
 }
 
-function getChangingInterpretation(lines: number[], fromNum: number, toNum: number): string {
+function getChangingInterpretation(lines: number[], fromNum: number, toNum: number, locale: Locale): string {
   const lineCount = lines.length;
 
   if (lineCount === 0) {
-    return '【불변괘】 변효가 없으니 본괘의 괘사에 집중하세요.';
+    return ta(locale, 'changingNone');
   }
   if (lineCount === 1) {
-    return `【단변】 ${lines[0]}효 하나만 변하니, 본괘의 ${lines[0]}효 효사가 핵심입니다.`;
+    return ta(locale, 'changingSingle', { line: lines[0] });
   }
   if (lineCount === 2) {
     const sortedLines = [...lines].sort((a, b) => a - b);
     const upperLine = sortedLines[sortedLines.length - 1];
-    return `【이변】 ${sortedLines.join(', ')}효가 변합니다. 위 효인 ${upperLine}효의 효사를 중심으로 보세요.`;
+    return ta(locale, 'changingDouble', { lines: sortedLines.join(', '), upper: upperLine });
   }
   if (lineCount === 3) {
-    return `【삼변】 본괘와 지괘의 괘사를 함께 보되, 본괘 괘사가 중심입니다.`;
+    return ta(locale, 'changingTriple');
   }
   if (lineCount === 4) {
     const unchangedLines = [1, 2, 3, 4, 5, 6].filter(n => !lines.includes(n)).sort((a, b) => a - b);
     const lowerUnchanged = unchangedLines[0];
-    return `【사변】 변하지 않는 ${unchangedLines.join(', ')}효 중 아래 효인 ${lowerUnchanged}효의 지괘 효사를 보세요.`;
+    return ta(locale, 'changingQuadruple', { unchanged: unchangedLines.join(', '), lower: lowerUnchanged });
   }
   if (lineCount === 5) {
     const unchangedLine = [1, 2, 3, 4, 5, 6].find(n => !lines.includes(n));
-    return `【오변】 ${unchangedLine}효만 변하지 않습니다. 이 불변효의 지괘 효사가 핵심입니다.`;
+    return ta(locale, 'changingQuintuple', { line: unchangedLine ?? 0 });
   }
   if (lineCount === 6) {
-    // 특수 케이스: 건→곤 (용구), 곤→건 (용육)
     if (fromNum === 1 && toNum === 2) {
-      return '【전효변 - 용구(用九)】 "見群龍無首 吉" - 여러 용이 나타나되 우두머리가 없으니 길하다.';
+      return ta(locale, 'changingSixYongJiu');
     }
     if (fromNum === 2 && toNum === 1) {
-      return '【전효변 - 용육(用六)】 "利永貞" - 영원히 바르게 함이 이롭다.';
+      return ta(locale, 'changingSixYongYuk');
     }
-    return '【전효변】 6효가 모두 변하니, 지괘의 괘사를 보세요.';
+    return ta(locale, 'changingSix');
   }
   return '';
 }
 
-function getTransitionAdvice(lines: number[], fromNum: number, toNum: number): string {
+function getTransitionAdvice(lines: number[], fromNum: number, toNum: number, locale: Locale): string {
   const lineCount = lines.length;
 
-  if (lineCount === 0) {return '현 상황의 본질을 깊이 이해하고 그에 따르세요.';}
-  if (lineCount === 1) {return '변효의 위치가 변화의 핵심입니다. 그 시점에 집중하세요.';}
-  if (lineCount === 2) {return '두 변화가 연결되어 있습니다. 위 효가 더 중요합니다.';}
-  if (lineCount === 3) {return '본괘의 상황을 중심으로 보되, 지괘로의 변화도 참고하세요.';}
-  if (lineCount === 4) {return '변하지 않는 것에서 답을 찾으세요. 불변의 요소가 핵심입니다.';}
-  if (lineCount === 5) {return '유일하게 변하지 않는 효가 상황의 닻입니다.';}
+  if (lineCount === 0) {return ta(locale, 'transitionAdvice0');}
+  if (lineCount === 1) {return ta(locale, 'transitionAdvice1');}
+  if (lineCount === 2) {return ta(locale, 'transitionAdvice2');}
+  if (lineCount === 3) {return ta(locale, 'transitionAdvice3');}
+  if (lineCount === 4) {return ta(locale, 'transitionAdvice4');}
+  if (lineCount === 5) {return ta(locale, 'transitionAdvice5');}
   if (lineCount === 6) {
-    if (fromNum === 1 && toNum === 2) {return '강건함을 내려놓고 겸손히 수용하면 길합니다.';}
-    if (fromNum === 2 && toNum === 1) {return '끝까지 바른 도를 지키면 강건함을 얻습니다.';}
-    return '완전한 전환의 시기입니다. 지괘의 지혜를 따르세요.';
+    if (fromNum === 1 && toNum === 2) {return ta(locale, 'transitionAdvice6YongJiu');}
+    if (fromNum === 2 && toNum === 1) {return ta(locale, 'transitionAdvice6YongYuk');}
+    return ta(locale, 'transitionAdvice6Default');
   }
-  return '변화를 수용하고 새로운 국면에 대비하세요.';
+  return ta(locale, 'transitionAdvice0');
 }
 
-function getKeyMoment(lines: number[], fromHex: HexagramBasic, toHex: HexagramBasic): string {
+function getKeyMoment(lines: number[], fromHex: HexagramBasic, toHex: HexagramBasic, locale: Locale): string {
   const lineCount = lines.length;
 
   if (lineCount === 0) {
-    return `${fromHex.korean}의 상황이 안정적으로 유지됩니다.`;
+    return ta(locale, 'keyMomentStable', { name: fromHex.korean || '' });
   }
   if (lineCount === 6) {
     if (fromHex.number === 1 && toHex.number === 2) {
-      return '순양(純陽)이 순음(純陰)으로 - 하늘의 기운이 땅으로 내려갑니다.';
+      return ta(locale, 'keyMomentYongJiu');
     }
     if (fromHex.number === 2 && toHex.number === 1) {
-      return '순음(純陰)이 순양(純陽)으로 - 땅의 기운이 하늘로 올라갑니다.';
+      return ta(locale, 'keyMomentYongYuk');
     }
-    return `${fromHex.korean}이 완전히 ${toHex.korean}으로 전환됩니다.`;
+    return ta(locale, 'keyMomentFull', { from: fromHex.korean || '', to: toHex.korean || '' });
   }
-  return `${lineCount}개의 변효가 작용하여 ${fromHex.korean}에서 ${toHex.korean}으로 전환됩니다.`;
+  return ta(locale, 'keyMomentPartial', { count: lineCount, from: fromHex.korean || '', to: toHex.korean || '' });
 }
 
 /**
  * 종합 괘 분석
  */
-export function performComprehensiveHexagramAnalysis(binary: string): ComprehensiveHexagramAnalysis {
-  const 본괘 = getHexagramFromBinary(binary);
+export function performComprehensiveHexagramAnalysis(binary: string, locale: Locale = 'ko'): ComprehensiveHexagramAnalysis {
+  const 본괘 = getHexagramFromBinary(binary, locale);
+
+  // 한 번만 계산하여 중복 호출 제거
+  const trigrams = analyzeTrigramInteraction(binary, locale);
+  const hoGwa = analyzeHoGwa(binary, locale);
+  const yaoPositions = analyzeYaoPositions(binary, locale);
 
   return {
     본괘,
-    trigrams: analyzeTrigramInteraction(binary),
-    hoGwa: analyzeHoGwa(binary),
-    chakGwa: analyzeChakGwa(binary),
-    doGwa: analyzeDoGwa(binary),
-    sangbanGwa: analyzeSangbanGwa(binary),
-    bokGwa: analyzeBokGwa(binary),
-    haekGwa: analyzeHaekGwa(binary),
-    yaoPositions: analyzeYaoPositions(binary),
-    overallInsight: generateOverallInsight(binary),
-    actionAdvice: generateActionAdvice(binary)
+    trigrams,
+    hoGwa,
+    chakGwa: analyzeChakGwa(binary, locale),
+    doGwa: analyzeDoGwa(binary, locale),
+    sangbanGwa: analyzeSangbanGwa(binary, locale),
+    bokGwa: analyzeBokGwa(binary, locale),
+    haekGwa: analyzeHaekGwa(binary, locale),
+    yaoPositions,
+    overallInsight: generateOverallInsightFromData(trigrams, hoGwa, locale),
+    actionAdvice: generateActionAdviceFromData(yaoPositions, locale)
   };
 }
 
-function generateOverallInsight(binary: string): string {
-  const trigrams = analyzeTrigramInteraction(binary);
-  const hoGwa = analyzeHoGwa(binary);
-
-  return `본괘는 ${trigrams.하괘.nature}(${trigrams.하괘.korean}) 위에 ${trigrams.상괘.nature}(${trigrams.상괘.korean})가 있는 형상입니다. ` +
-         `내면의 핵심(호괘)은 ${hoGwa.호괘.korean}의 에너지를 담고 있습니다.`;
+function generateOverallInsightFromData(trigrams: TrigramAnalysis, hoGwa: HoGwaAnalysis, locale: Locale): string {
+  return ta(locale, 'overallInsight', {
+    lowerNature: trigrams.하괘.nature, lowerKo: trigrams.하괘.korean,
+    upperNature: trigrams.상괘.nature, upperKo: trigrams.상괘.korean,
+    hoGwa: hoGwa.호괘.korean || ''
+  });
 }
 
-function generateActionAdvice(binary: string): string[] {
-  const yaoPositions = analyzeYaoPositions(binary);
+function generateOverallInsight(binary: string, locale: Locale): string {
+  const trigrams = analyzeTrigramInteraction(binary, locale);
+  const hoGwa = analyzeHoGwa(binary, locale);
+  return generateOverallInsightFromData(trigrams, hoGwa, locale);
+}
+
+function generateActionAdviceFromData(yaoPositions: YaoPositionAnalysis[], locale: Locale): string[] {
   const advice: string[] = [];
 
   // 5효(군위) 분석
   const fifthYao = yaoPositions[4];
   if (fifthYao.isCorrect && fifthYao.isResonant) {
-    advice.push('지도자적 위치에서 조화를 이룰 수 있습니다.');
+    advice.push(ta(locale, 'adviceLeader'));
   }
 
   // 정위/부정위 비율
   const correctCount = yaoPositions.filter(y => y.isCorrect).length;
   if (correctCount >= 4) {
-    advice.push('전반적으로 안정적인 구조이니 현 상태를 유지하세요.');
+    advice.push(ta(locale, 'adviceStable'));
   } else if (correctCount <= 2) {
-    advice.push('불안정한 요소가 많으니 변화에 유연하게 대응하세요.');
+    advice.push(ta(locale, 'adviceUnstable'));
   }
 
   // 상응 관계 분석
   const resonantCount = yaoPositions.filter(y => y.isResonant).length;
   if (resonantCount >= 2) {
-    advice.push('협력과 조화의 기회가 있으니 관계를 활용하세요.');
+    advice.push(ta(locale, 'adviceCooperate'));
   }
 
   if (advice.length === 0) {
-    advice.push('중도를 지키며 때를 기다리세요.');
+    advice.push(ta(locale, 'adviceDefault'));
   }
 
   return advice;
 }
 
+function generateActionAdvice(binary: string, locale: Locale): string[] {
+  return generateActionAdviceFromData(analyzeYaoPositions(binary, locale), locale);
+}
+
 /**
  * 두 괘 비교 분석
  */
-export function compareHexagrams(binary1: string, binary2: string): {
+export function compareHexagrams(binary1: string, binary2: string, locale: Locale = 'ko'): {
   similarity: number;
   relationship: string;
   commonEnergy: string;
@@ -653,23 +668,23 @@ export function compareHexagrams(binary1: string, binary2: string): {
 
   let relationship: string;
   if (binary1 === binary2) {
-    relationship = '동일괘';
+    relationship = ta(locale, 'compareSame');
   } else if (flipBinary(binary1) === binary2) {
-    relationship = '상반괘 관계';
+    relationship = ta(locale, 'compareSangban');
   } else if (reverseBinary(binary1) === binary2) {
-    relationship = '도괘 관계';
+    relationship = ta(locale, 'compareDo');
   } else if (matchCount >= 5) {
-    relationship = '유사괘';
+    relationship = ta(locale, 'compareSimilar');
   } else if (matchCount <= 1) {
-    relationship = '대립괘';
+    relationship = ta(locale, 'compareOpposite');
   } else {
-    relationship = '일반 관계';
+    relationship = ta(locale, 'compareGeneral');
   }
 
   return {
     similarity,
     relationship,
-    commonEnergy: `${matchCount}개 효가 동일하여 ${Math.round(similarity)}%의 유사성을 보입니다.`,
-    differenceAnalysis: `${6 - matchCount}개 효가 다르며 이 부분에서 변화와 대조가 나타납니다.`
+    commonEnergy: ta(locale, 'compareCommon', { count: matchCount, pct: Math.round(similarity) }),
+    differenceAnalysis: ta(locale, 'compareDifference', { count: 6 - matchCount })
   };
 }
