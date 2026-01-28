@@ -10,8 +10,8 @@
  * - INP (Interaction to Next Paint)
  */
 
-import { Metric } from 'web-vitals';
-import { logger } from '@/lib/logger';
+import { Metric } from 'web-vitals'
+import { logger } from '@/lib/logger'
 
 // Thresholds for Core Web Vitals (Google's recommended values)
 const VITALS_THRESHOLDS = {
@@ -21,42 +21,40 @@ const VITALS_THRESHOLDS = {
   FCP: { good: 1800, poor: 3000 },
   TTFB: { good: 800, poor: 1800 },
   INP: { good: 200, poor: 500 },
-} as const;
+} as const
 
-type VitalName = keyof typeof VITALS_THRESHOLDS;
+type VitalName = keyof typeof VITALS_THRESHOLDS
 
 /**
  * Get rating for a metric value
  */
 function getRating(name: VitalName, value: number): 'good' | 'needs-improvement' | 'poor' {
-  const threshold = VITALS_THRESHOLDS[name];
+  const threshold = VITALS_THRESHOLDS[name]
   if (value <= threshold.good) {
-    return 'good';
+    return 'good'
   }
   if (value <= threshold.poor) {
-    return 'needs-improvement';
+    return 'needs-improvement'
   }
-  return 'poor';
+  return 'poor'
 }
 
 /**
  * Report Web Vital to analytics
  */
 export function reportWebVitals(metric: Metric) {
-  const { name, value, rating, id, navigationType } = metric;
+  const { name, value, rating, id, navigationType } = metric
 
   // Log to console in development
   if (process.env.NODE_ENV === 'development') {
-    const vitalRating = name in VITALS_THRESHOLDS
-      ? getRating(name as VitalName, value)
-      : rating;
+    const vitalRating = name in VITALS_THRESHOLDS ? getRating(name as VitalName, value) : rating
 
     logger.debug(`[Web Vitals] ${name}:`, {
       value: Math.round(value),
       rating: vitalRating,
       id,
       navigationType,
-    });
+    })
   }
 
   // Send to analytics in production
@@ -64,24 +62,24 @@ export function reportWebVitals(metric: Metric) {
     try {
       // Send to Google Analytics
       if (typeof window !== 'undefined' && 'gtag' in window) {
-        (window as any).gtag('event', name, {
+        window.gtag!('event', name, {
           event_category: 'Web Vitals',
           event_label: id,
           value: Math.round(value),
           metric_rating: rating,
           navigation_type: navigationType,
           non_interaction: true,
-        });
+        })
       }
 
       // Send to Vercel Analytics
       if (typeof window !== 'undefined' && 'va' in window) {
-        (window as any).va('track', 'Web Vitals', {
+        window.va!('track', 'Web Vitals', {
           metric: name,
           value: Math.round(value),
           rating,
           id,
-        });
+        })
       }
 
       // Log warnings for poor vitals
@@ -90,10 +88,10 @@ export function reportWebVitals(metric: Metric) {
           value: Math.round(value),
           id,
           navigationType,
-        });
+        })
       }
     } catch (error) {
-      logger.error('Failed to report web vitals', error);
+      logger.error('Failed to report web vitals', error)
     }
   }
 }
@@ -103,39 +101,41 @@ export function reportWebVitals(metric: Metric) {
  */
 export function initWebVitals() {
   if (typeof window === 'undefined') {
-    return;
+    return
   }
 
   // Dynamically import web-vitals to avoid SSR issues
-  import('web-vitals').then(({ onCLS, onFID, onFCP, onLCP, onTTFB, onINP }) => {
-    onCLS(reportWebVitals);
-    onFID(reportWebVitals);
-    onFCP(reportWebVitals);
-    onLCP(reportWebVitals);
-    onTTFB(reportWebVitals);
-    onINP(reportWebVitals);
-  }).catch((error) => {
-    logger.error('Failed to initialize web vitals', error);
-  });
+  import('web-vitals')
+    .then(({ onCLS, onFID, onFCP, onLCP, onTTFB, onINP }) => {
+      onCLS(reportWebVitals)
+      onFID(reportWebVitals)
+      onFCP(reportWebVitals)
+      onLCP(reportWebVitals)
+      onTTFB(reportWebVitals)
+      onINP(reportWebVitals)
+    })
+    .catch((error) => {
+      logger.error('Failed to initialize web vitals', error)
+    })
 }
 
 /**
  * Performance observer for custom metrics
  */
 export class PerformanceMonitor {
-  private static marks = new Map<string, number>();
+  private static marks = new Map<string, number>()
 
   /**
    * Mark the start of a performance measurement
    */
   static mark(name: string) {
     if (typeof performance === 'undefined') {
-      return;
+      return
     }
 
-    const markName = `${name}-start`;
-    performance.mark(markName);
-    this.marks.set(name, performance.now());
+    const markName = `${name}-start`
+    performance.mark(markName)
+    this.marks.set(name, performance.now())
   }
 
   /**
@@ -143,43 +143,43 @@ export class PerformanceMonitor {
    */
   static measure(name: string, reportToAnalytics = true) {
     if (typeof performance === 'undefined') {
-      return null;
+      return null
     }
 
-    const startMark = `${name}-start`;
-    const endMark = `${name}-end`;
+    const startMark = `${name}-start`
+    const endMark = `${name}-end`
 
     try {
-      performance.mark(endMark);
-      const measure = performance.measure(name, startMark, endMark);
-      const duration = Math.round(measure.duration);
+      performance.mark(endMark)
+      const measure = performance.measure(name, startMark, endMark)
+      const duration = Math.round(measure.duration)
 
       // Log in development
       if (process.env.NODE_ENV === 'development') {
-        logger.debug(`[Performance] ${name}: ${duration}ms`);
+        logger.debug(`[Performance] ${name}: ${duration}ms`)
       }
 
       // Report to analytics
       if (reportToAnalytics && process.env.NODE_ENV === 'production') {
         if (typeof window !== 'undefined' && 'gtag' in window) {
-          (window as any).gtag('event', 'timing_complete', {
+          window.gtag!('event', 'timing_complete', {
             name,
             value: duration,
             event_category: 'Performance',
-          });
+          })
         }
       }
 
       // Cleanup
-      performance.clearMarks(startMark);
-      performance.clearMarks(endMark);
-      performance.clearMeasures(name);
-      this.marks.delete(name);
+      performance.clearMarks(startMark)
+      performance.clearMarks(endMark)
+      performance.clearMeasures(name)
+      this.marks.delete(name)
 
-      return duration;
+      return duration
     } catch (error) {
-      logger.error(`Failed to measure performance for ${name}`, error);
-      return null;
+      logger.error(`Failed to measure performance for ${name}`, error)
+      return null
     }
   }
 
@@ -187,12 +187,12 @@ export class PerformanceMonitor {
    * Get current duration without ending the measurement
    */
   static getDuration(name: string): number | null {
-    const startTime = this.marks.get(name);
+    const startTime = this.marks.get(name)
     if (!startTime || typeof performance === 'undefined') {
-      return null;
+      return null
     }
 
-    return Math.round(performance.now() - startTime);
+    return Math.round(performance.now() - startTime)
   }
 
   /**
@@ -200,24 +200,24 @@ export class PerformanceMonitor {
    */
   static reportResourceTiming() {
     if (typeof performance === 'undefined' || !performance.getEntriesByType) {
-      return;
+      return
     }
 
-    const resources = performance.getEntriesByType('resource');
-    const slowResources = resources.filter((r: any) => r.duration > 1000);
+    const resources = performance.getEntriesByType('resource')
+    const slowResources = resources.filter((r) => r.duration > 1000)
 
     if (slowResources.length > 0) {
       logger.warn('Slow resource loading detected', {
         count: slowResources.length,
-        resources: slowResources.map((r: any) => ({
+        resources: slowResources.map((r) => ({
           name: r.name,
           duration: Math.round(r.duration),
-          size: r.transferSize,
+          size: (r as PerformanceResourceTiming).transferSize,
         })),
-      });
+      })
     }
   }
 }
 
 // Export for use in _app.tsx
-export default reportWebVitals;
+export default reportWebVitals

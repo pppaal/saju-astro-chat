@@ -1,67 +1,73 @@
 // src/app/api/tarot/interpret/route.ts
 // Premium Tarot Interpretation API using Hybrid RAG
 
-import { NextResponse } from "next/server";
-import { apiClient } from "@/lib/api/ApiClient";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
-import { prisma } from "@/lib/db/prisma";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
-import { captureServerError } from "@/lib/telemetry";
-import { requirePublicToken } from "@/lib/auth/publicToken";
-import { enforceBodySize } from "@/lib/http";
-import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
-import { sanitizeString } from "@/lib/api/sanitizers";
-import { logger } from '@/lib/logger';
-import { HTTP_STATUS } from '@/lib/constants/http';
-
+import { NextResponse } from 'next/server'
+import { apiClient } from '@/lib/api/ApiClient'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/authOptions'
+import { prisma } from '@/lib/db/prisma'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
+import { captureServerError } from '@/lib/telemetry'
+import { requirePublicToken } from '@/lib/auth/publicToken'
+import { enforceBodySize } from '@/lib/http'
+import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits'
+import { sanitizeString } from '@/lib/api/sanitizers'
+import { logger } from '@/lib/logger'
+import { HTTP_STATUS } from '@/lib/constants/http'
 
 interface CardInput {
-  name: string;
-  nameKo?: string;
-  isReversed: boolean;
-  position: string;
-  positionKo?: string;
-  meaning?: string;
-  meaningKo?: string;
-  keywords?: string[];
-  keywordsKo?: string[];
+  name: string
+  nameKo?: string
+  isReversed: boolean
+  position: string
+  positionKo?: string
+  meaning?: string
+  meaningKo?: string
+  keywords?: string[]
+  keywordsKo?: string[]
 }
 
 interface InterpretRequest {
-  categoryId: string;
-  spreadId: string;
-  spreadTitle: string;
-  cards: CardInput[];
-  userQuestion?: string;
-  language?: "ko" | "en";
-  birthdate?: string;  // User's birthdate 'YYYY-MM-DD' for personalization (Tier 4)
-  moonPhase?: string;  // Current moon phase for realtime context
+  categoryId: string
+  spreadId: string
+  spreadTitle: string
+  cards: CardInput[]
+  userQuestion?: string
+  language?: 'ko' | 'en'
+  birthdate?: string // User's birthdate 'YYYY-MM-DD' for personalization (Tier 4)
+  moonPhase?: string // Current moon phase for realtime context
 }
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const MAX_TITLE = 120;
-const MAX_QUESTION = 600;
-const MAX_POSITION = 80;
-const MAX_KEYWORDS = 8;
-const MAX_CARDS = 15;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const MAX_TITLE = 120
+const MAX_QUESTION = 600
+const MAX_POSITION = 80
+const MAX_KEYWORDS = 8
+const MAX_CARDS = 15
 
-function validateCard(card: Partial<CardInput> | null | undefined, idx: number): { error?: string; card?: CardInput } {
-  const name = sanitizeString(card?.name, MAX_TITLE);
-  const position = sanitizeString(card?.position, MAX_POSITION);
+function validateCard(
+  card: Partial<CardInput> | null | undefined,
+  idx: number
+): { error?: string; card?: CardInput } {
+  const name = sanitizeString(card?.name, MAX_TITLE)
+  const position = sanitizeString(card?.position, MAX_POSITION)
   if (!name || !position) {
-    return { error: `cards[${idx}]: name and position are required.` };
+    return { error: `cards[${idx}]: name and position are required.` }
   }
-  if (typeof card?.isReversed !== "boolean") {
-    return { error: `cards[${idx}]: isReversed must be boolean.` };
+  if (typeof card?.isReversed !== 'boolean') {
+    return { error: `cards[${idx}]: isReversed must be boolean.` }
   }
   const keywords = Array.isArray(card?.keywords)
-    ? card.keywords.filter((k: unknown): k is string => typeof k === "string").slice(0, MAX_KEYWORDS)
-    : undefined;
+    ? card.keywords
+        .filter((k: unknown): k is string => typeof k === 'string')
+        .slice(0, MAX_KEYWORDS)
+    : undefined
   const keywordsKo = Array.isArray(card?.keywordsKo)
-    ? card.keywordsKo.filter((k: unknown): k is string => typeof k === "string").slice(0, MAX_KEYWORDS)
-    : undefined;
+    ? card.keywordsKo
+        .filter((k: unknown): k is string => typeof k === 'string')
+        .slice(0, MAX_KEYWORDS)
+    : undefined
 
   return {
     card: {
@@ -75,112 +81,131 @@ function validateCard(card: Partial<CardInput> | null | undefined, idx: number):
       keywords,
       keywordsKo,
     } as CardInput,
-  };
+  }
 }
 
 export async function POST(req: Request) {
   try {
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`tarot-interpret:${ip}`, { limit: 10, windowSeconds: 60 });
+    const ip = getClientIp(req.headers)
+    const limit = await rateLimit(`tarot-interpret:${ip}`, { limit: 10, windowSeconds: 60 })
 
     if (!limit.allowed) {
       return NextResponse.json(
-        { error: "Too many requests. Please wait." },
+        { error: 'Too many requests. Please wait.' },
         { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      );
+      )
     }
 
-    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
+    const tokenCheck = requirePublicToken(req)
+    if (!tokenCheck.valid) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers }
+      )
     }
 
-    const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
-    if (oversized) {return oversized;}
+    const oversized = enforceBodySize(req, 256 * 1024, limit.headers)
+    if (oversized) {
+      return oversized
+    }
 
-    const body: InterpretRequest = await req.json();
-    const categoryId = sanitizeString(body?.categoryId, MAX_TITLE);
-    const spreadId = sanitizeString(body?.spreadId, MAX_TITLE);
-    const spreadTitle = sanitizeString(body?.spreadTitle, MAX_TITLE);
-    const language: "ko" | "en" = body?.language === "en" ? "en" : "ko";
-    const birthdate = sanitizeString(body?.birthdate, 20);
-    const moonPhase = sanitizeString(body?.moonPhase, 40);
-    const rawCards = Array.isArray(body?.cards) ? body.cards : [];
-    const userQuestion = sanitizeString(body?.userQuestion, MAX_QUESTION);
+    const body: InterpretRequest = await req.json()
+    const categoryId = sanitizeString(body?.categoryId, MAX_TITLE)
+    const spreadId = sanitizeString(body?.spreadId, MAX_TITLE)
+    const spreadTitle = sanitizeString(body?.spreadTitle, MAX_TITLE)
+    const language: 'ko' | 'en' = body?.language === 'en' ? 'en' : 'ko'
+    const birthdate = sanitizeString(body?.birthdate, 20)
+    const moonPhase = sanitizeString(body?.moonPhase, 40)
+    const rawCards = Array.isArray(body?.cards) ? body.cards : []
+    const userQuestion = sanitizeString(body?.userQuestion, MAX_QUESTION)
 
     if (!categoryId || !spreadId || rawCards.length === 0) {
       return NextResponse.json(
-        { error: "Missing required fields: categoryId, spreadId, cards" },
+        { error: 'Missing required fields: categoryId, spreadId, cards' },
         { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      );
+      )
     }
 
     if (rawCards.length > MAX_CARDS) {
       return NextResponse.json(
         { error: `Too many cards. Maximum ${MAX_CARDS} supported.` },
         { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      );
+      )
     }
 
-    const validatedCards: CardInput[] = [];
+    const validatedCards: CardInput[] = []
     for (let i = 0; i < rawCards.length; i++) {
-      const { card, error } = validateCard(rawCards[i], i);
+      const { card, error } = validateCard(rawCards[i], i)
       if (error) {
-        return NextResponse.json({ error }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
+        return NextResponse.json(
+          { error },
+          { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
+        )
       }
-      validatedCards.push(card!);
+      validatedCards.push(card!)
     }
 
     if (birthdate && (!DATE_RE.test(birthdate) || Number.isNaN(Date.parse(birthdate)))) {
-      return NextResponse.json({ error: "birthdate must be YYYY-MM-DD" }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
+      return NextResponse.json(
+        { error: 'birthdate must be YYYY-MM-DD' },
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
+      )
     }
 
     if (moonPhase && moonPhase.length < 2) {
-      return NextResponse.json({ error: "moonPhase is too short" }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
+      return NextResponse.json(
+        { error: 'moonPhase is too short' },
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
+      )
     }
 
-    const creditResult = await checkAndConsumeCredits("reading", 1);
+    const creditResult = await checkAndConsumeCredits('reading', 1)
     if (!creditResult.allowed) {
-      const res = creditErrorResponse(creditResult);
-      limit.headers.forEach((value, key) => res.headers.set(key, value));
-      return res;
+      const res = creditErrorResponse(creditResult)
+      limit.headers.forEach((value, key) => res.headers.set(key, value))
+      return res
     }
 
     // Call Python backend for Hybrid RAG interpretation (with fallback on connection failure)
-    let interpretation = null;
+    let interpretation = null
     try {
-      const response = await apiClient.post("/api/tarot/interpret", {
-        category: categoryId,
-        spread_id: spreadId,
-        spread_title: spreadTitle,
-        cards: validatedCards.map(c => ({
-          name: c.name,
-          is_reversed: c.isReversed,
-          position: c.position
-        })),
-        user_question: userQuestion,
-        language,
-        birthdate,
-        moon_phase: moonPhase
-      }, { timeout: 20000 });
+      const response = await apiClient.post(
+        '/api/tarot/interpret',
+        {
+          category: categoryId,
+          spread_id: spreadId,
+          spread_title: spreadTitle,
+          cards: validatedCards.map((c) => ({
+            name: c.name,
+            is_reversed: c.isReversed,
+            position: c.position,
+          })),
+          user_question: userQuestion,
+          language,
+          birthdate,
+          moon_phase: moonPhase,
+        },
+        { timeout: 20000 }
+      )
 
       if (response.ok) {
-        interpretation = response.data;
+        interpretation = response.data
       }
     } catch (fetchError) {
-      logger.warn("Backend connection failed, using fallback:", fetchError);
+      logger.warn('Backend connection failed, using fallback:', fetchError)
     }
 
     // Use backend response or GPT fallback
-    let result;
-    if (interpretation && !(interpretation as any).error) {
-      result = interpretation;
+    let result
+    if (interpretation && !(interpretation as Record<string, unknown>).error) {
+      result = interpretation
     } else {
-      logger.warn("Backend unavailable, using GPT interpretation");
-      result = await generateGPTInterpretation(validatedCards, spreadTitle, language, userQuestion);
+      logger.warn('Backend unavailable, using GPT interpretation')
+      result = await generateGPTInterpretation(validatedCards, spreadTitle, language, userQuestion)
     }
 
     // ======== 기록 저장 (로그인 사용자만) ========
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions)
     if (session?.user?.id) {
       try {
         await prisma.reading.create({
@@ -201,25 +226,24 @@ export async function POST(req: Request) {
               userQuestion,
             }),
           },
-        });
+        })
       } catch (saveErr) {
-        logger.warn('[Tarot API] Failed to save reading:', saveErr);
+        logger.warn('[Tarot API] Failed to save reading:', saveErr)
       }
     }
 
-    const res = NextResponse.json(result);
-    limit.headers.forEach((value, key) => res.headers.set(key, value));
-    return res;
-
+    const res = NextResponse.json(result)
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    return res
   } catch (err: unknown) {
-    captureServerError(err as Error, { route: "/api/tarot/interpret" });
+    captureServerError(err as Error, { route: '/api/tarot/interpret' })
 
     // Return fallback even on error
-    logger.error("Tarot interpretation error:", err);
+    logger.error('Tarot interpretation error:', err)
     return NextResponse.json(
-      { error: "Server error", fallback: true },
+      { error: 'Server error', fallback: true },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }
 
@@ -229,22 +253,22 @@ async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o',  // gpt-4o-mini → gpt-4o 업그레이드
+      model: 'gpt-4o', // gpt-4o-mini → gpt-4o 업그레이드
       messages: [{ role: 'user', content: prompt }],
       max_tokens: maxTokens,
-      temperature: 0.75,  // 창의성 약간 증가
+      temperature: 0.75, // 창의성 약간 증가
     }),
-  });
+  })
 
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.status}`);
+    throw new Error(`OpenAI API error: ${response.status}`)
   }
 
-  const data = await response.json();
-  return data.choices[0]?.message?.content || '';
+  const data = await response.json()
+  return data.choices[0]?.message?.content || ''
 }
 
 // GPT를 사용한 해석 생성 (백엔드 없이 직접 호출) - 통합 프롬프트로 속도 최적화
@@ -254,17 +278,19 @@ async function generateGPTInterpretation(
   language: string,
   userQuestion?: string
 ) {
-  const isKorean = language === "ko";
+  const isKorean = language === 'ko'
 
   // 위치별 카드 정보
-  const cardListText = cards.map((c, i) => {
-    const name = isKorean && c.nameKo ? c.nameKo : c.name;
-    const pos = isKorean && c.positionKo ? c.positionKo : c.position;
-    const keywords = (isKorean && c.keywordsKo ? c.keywordsKo : c.keywords) || [];
-    return `${i + 1}. [${pos}] ${name}${c.isReversed ? '(역방향)' : ''} - ${keywords.slice(0, 3).join(', ')}`;
-  }).join('\n');
+  const cardListText = cards
+    .map((c, i) => {
+      const name = isKorean && c.nameKo ? c.nameKo : c.name
+      const pos = isKorean && c.positionKo ? c.positionKo : c.position
+      const keywords = (isKorean && c.keywordsKo ? c.keywordsKo : c.keywords) || []
+      return `${i + 1}. [${pos}] ${name}${c.isReversed ? '(역방향)' : ''} - ${keywords.slice(0, 3).join(', ')}`
+    })
+    .join('\n')
 
-  const q = userQuestion || (isKorean ? '일반 운세' : 'general reading');
+  const q = userQuestion || (isKorean ? '일반 운세' : 'general reading')
 
   // 통합 프롬프트 (전체 해석 + 카드별 해석 + 조언을 한번에)
   const unifiedPrompt = isKorean
@@ -337,20 +363,20 @@ Respond in this JSON format:
 ## Prohibited
 - AI-sounding: "I believe", "I suggest", "I recommend" ❌
 - Generic platitudes: "Positive mindset is important" ❌
-- Short readings: Each card minimum 450 words, make it rich!`;
+- Short readings: Each card minimum 450 words, make it rich!`
 
   try {
-    const result = await callGPT(unifiedPrompt, 8000);  // 6000 → 8000 토큰으로 증가
+    const result = await callGPT(unifiedPrompt, 8000) // 6000 → 8000 토큰으로 증가
 
     // Parse JSON response
-    const jsonMatch = result.match(/\{[\s\S]*\}/);
+    const jsonMatch = result.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonMatch[0])
 
       return {
         overall_message: parsed.overall || '',
         card_insights: cards.map((card, i) => {
-          const cardData = parsed.cards?.[i] || {};
+          const cardData = parsed.cards?.[i] || {}
           return {
             position: card.position,
             card_name: card.name,
@@ -359,17 +385,16 @@ Respond in this JSON format:
             spirit_animal: null,
             chakra: null,
             element: null,
-            shadow: null
-          };
+            shadow: null,
+          }
         }),
-        guidance: parsed.advice || (isKorean ? "카드의 메시지에 귀 기울여보세요." : "Listen to the cards."),
-        affirmation: isKorean
-          ? "오늘 하루도 나답게 가면 돼요."
-          : "Just be yourself today.",
+        guidance:
+          parsed.advice || (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
+        affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
         combinations: [],
         followup_questions: [],
-        fallback: false
-      };
+        fallback: false,
+      }
     }
 
     // JSON 파싱 실패 시 전체 텍스트를 overall로 사용
@@ -383,17 +408,17 @@ Respond in this JSON format:
         spirit_animal: null,
         chakra: null,
         element: null,
-        shadow: null
+        shadow: null,
       })),
-      guidance: isKorean ? "카드의 메시지에 귀 기울여보세요." : "Listen to the cards.",
-      affirmation: isKorean ? "오늘도 화이팅!" : "You got this!",
+      guidance: isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.',
+      affirmation: isKorean ? '오늘도 화이팅!' : 'You got this!',
       combinations: [],
       followup_questions: [],
-      fallback: false
-    };
+      fallback: false,
+    }
   } catch (error) {
-    logger.error("GPT interpretation failed:", error);
-    return generateSimpleFallback(cards, spreadTitle, language, userQuestion);
+    logger.error('GPT interpretation failed:', error)
+    return generateSimpleFallback(cards, spreadTitle, language, userQuestion)
   }
 }
 
@@ -404,26 +429,26 @@ function generateSimpleFallback(
   language: string,
   _userQuestion?: string
 ) {
-  const isKorean = language === "ko";
+  const isKorean = language === 'ko'
 
   return {
     overall_message: isKorean
-      ? `${cards.map(c => c.nameKo || c.name).join(', ')} 카드가 나왔습니다.`
-      : `You drew: ${cards.map(c => c.name).join(', ')}.`,
+      ? `${cards.map((c) => c.nameKo || c.name).join(', ')} 카드가 나왔습니다.`
+      : `You drew: ${cards.map((c) => c.name).join(', ')}.`,
     card_insights: cards.map((card) => ({
       position: card.position,
       card_name: card.name,
       is_reversed: card.isReversed,
-      interpretation: isKorean && card.meaningKo ? card.meaningKo : (card.meaning || ''),
+      interpretation: isKorean && card.meaningKo ? card.meaningKo : card.meaning || '',
       spirit_animal: null,
       chakra: null,
       element: null,
-      shadow: null
+      shadow: null,
     })),
-    guidance: isKorean ? "카드의 메시지에 귀 기울여보세요." : "Listen to the cards.",
-    affirmation: isKorean ? "오늘도 화이팅!" : "You got this!",
+    guidance: isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.',
+    affirmation: isKorean ? '오늘도 화이팅!' : 'You got this!',
     combinations: [],
     followup_questions: [],
-    fallback: true
-  };
+    fallback: true,
+  }
 }
