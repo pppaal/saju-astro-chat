@@ -43,8 +43,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (optional to commit for CI/CD)
+# env files
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -53,6 +54,7 @@ yarn-error.log*
 *.tsbuildinfo
 tsconfig.tsbuildinfo
 next-env.d.ts
+tsc_output.txt
 
 # prisma
 /src/generated/prisma
@@ -66,11 +68,8 @@ next-env.d.ts
 # HuggingFace cache
 .hf_cache/
 
-# Windows reserved filename that can appear as phantom entry
+# Windows reserved filename
 nul
-
-# Sentry Config File
-.env.sentry-build-plugin
 
 # Backup files
 *.bak
@@ -89,6 +88,7 @@ tmp_calendar.json
 
 # Build/test verification artifacts
 build-*.txt
+build-output*.txt
 final-test-summary.txt
 failed-tests.txt
 failed-test-files.txt
@@ -116,23 +116,17 @@ public/fallback-*.js.map
 *.swp
 *.swo
 
-.vercel
-logs/
-
-.vercel
-
-# Build outputs
-build-output*.txt
-
-# Refactoring documentation (temporary)
+# Temporary documentation (historical reports)
 REFACTORING*.md
 COMPONENT_EXTRACTION*.md
-
-# Migration documentation (temporary)
 MIGRATION*.md
+PERFORMANCE*.md
+PHASE*.md
+*_SUMMARY.md
+*_COMPLETE.md
+IMPROVEMENTS*.md
+EXECUTIVE_SUMMARY.md
+UX-*.md
 
 # Score check scripts
 score-check.js
-
-.vercel
-.env*.local
