@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTypingAnimation } from "@/hooks/useTypingAnimation";
-import { useClickOutside } from "@/hooks/useMainPageHooks";
 import { SERVICE_OPTIONS } from "../serviceConfig";
 
 type CSSModule = Record<string, string>;
@@ -42,7 +41,15 @@ export default function ServiceSearchBox({ translate, t, styles }: ServiceSearch
     setShowServiceSelector(false);
     setServicePage(0);
   }, []);
-  useClickOutside(searchContainerRef, closeServiceSelector);
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        closeServiceSelector();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [closeServiceSelector]);
 
   useEffect(() => {
     if (servicePage > maxServicePage) {

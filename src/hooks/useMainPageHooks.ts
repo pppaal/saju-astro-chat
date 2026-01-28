@@ -3,7 +3,7 @@
  * Reusable hooks for main page functionality
  */
 
-import { useEffect, useState, type RefObject } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * Hook for scroll visibility detection
@@ -22,28 +22,6 @@ export function useScrollVisibility(threshold: number): boolean {
   }, [threshold]);
 
   return visible;
-}
-
-/**
- * Hook for detecting clicks outside a ref element
- * Useful for closing dropdowns/modals when clicking outside
- *
- * @param ref - React ref to the element
- * @param callback - Function to call when clicking outside
- */
-export function useClickOutside(
-  ref: RefObject<HTMLElement | null>,
-  callback: () => void
-): void {
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        callback();
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [ref, callback]);
 }
 
 /**
