@@ -268,12 +268,12 @@ export default function CalendarMainView({
 
       {/* Month Navigation */}
       <div className={styles.monthNav}>
-        <button className={styles.navBtn} onClick={onPrevMonth}>◀</button>
+        <button className={styles.navBtn} onClick={onPrevMonth} aria-label={locale === "ko" ? "이전 달" : "Previous month"}>◀</button>
         <div className={styles.monthDisplay}>
           <span className={styles.monthYear}>{year}</span>
           <span className={styles.monthName}>{MONTHS[month]}</span>
         </div>
-        <button className={styles.navBtn} onClick={onNextMonth}>▶</button>
+        <button className={styles.navBtn} onClick={onNextMonth} aria-label={locale === "ko" ? "다음 달" : "Next month"}>▶</button>
         <button className={styles.todayBtn} onClick={onGoToToday}>
           {locale === "ko" ? "오늘" : "Today"}
         </button>

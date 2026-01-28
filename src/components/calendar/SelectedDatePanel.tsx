@@ -110,6 +110,9 @@ export default function SelectedDatePanel({
               className={`${styles.saveBtn} ${isSaved ? styles.saved : ''}`}
               onClick={isSaved ? onUnsave : onSave}
               disabled={saving}
+              aria-label={isSaved
+                ? (locale === 'ko' ? '저장됨 (클릭하여 삭제)' : 'Saved (click to remove)')
+                : (locale === 'ko' ? '이 날짜 저장하기' : 'Save this date')}
               title={isSaved
                 ? (locale === 'ko' ? '저장됨 (클릭하여 삭제)' : 'Saved (click to remove)')
                 : (locale === 'ko' ? '이 날짜 저장하기' : 'Save this date')}
