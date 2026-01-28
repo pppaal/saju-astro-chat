@@ -2061,3 +2061,59 @@
     font-size: 14px;
   }
 }
+
+/* ========== Focus Visible ========== */
+.sendButton:focus-visible,
+.sessionBtn:focus-visible,
+.suggestionChip:focus-visible,
+.followUpChip:focus-visible,
+.tarotPromptButton:focus-visible,
+.feedbackBtn:focus-visible,
+.crisisCloseBtn:focus-visible,
+.crisisHotlineNumber:focus-visible,
+.historyCloseBtn:focus-visible,
+.historyItemContent:focus-visible,
+.historyItemDelete:focus-visible,
+.newChatBtn:focus-visible,
+.welcomeCloseBtn:focus-visible,
+.fileLabel:focus-visible,
+.voiceButton:focus-visible {
+  outline: 2px solid rgba(167, 139, 250, 0.8);
+  outline-offset: 2px;
+}
+
+.textarea:focus-visible {
+  outline: 2px solid rgba(139, 92, 246, 0.6);
+  outline-offset: 1px;
+}
+
+/* ========== Reduced Motion ========== */
+@media (prefers-reduced-motion: reduce) {
+  .chatContainer,
+  .emptyState,
+  .messageRow,
+  .avatar,
+  .thinkingMessage,
+  .typingDot,
+  .thinkingText,
+  .counselorAvatar,
+  .counselorAvatar::before,
+  .counselorThinking,
+  .counselorThinking::after,
+  .tarotPromptCard,
+  .tarotPromptCard::before,
+  .tarotPromptIcon,
+  .crisisModal,
+  .crisisIcon,
+  .welcomeBackBanner,
+  .welcomeIcon,
+  .connectionStatus,
+  .followUpContainer,
+  .fileName,
+  .voiceButton.recording,
+  .recordingDot,
+  .loadingSpinner {
+    animation: none !important;
+    transition: none !important;
+  }
+}

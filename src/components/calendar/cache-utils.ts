@@ -111,3 +111,18 @@ export function clearOldCache(): void {
     logger.error('[Cache] Failed to clear old cache:', err);
   }
 }
+
+/**
+ * 모든 캘린더 캐시 강제 삭제 (생년월일 변경 시 사용)
+ */
+export function clearAllCalendarCache(): void {
+  if (typeof window === 'undefined') {return;}
+
+  try {
+    const keys = Object.keys(localStorage);
+    const calendarKeys = keys.filter(k => k.startsWith('calendar_'));
+    calendarKeys.forEach(key => localStorage.removeItem(key));
+  } catch (err) {
+    logger.error('[Cache] Failed to clear all calendar cache:', err);
+  }
+}

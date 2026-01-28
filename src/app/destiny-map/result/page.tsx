@@ -87,10 +87,10 @@ function AnalyzingLoader() {
   }, []);
 
   return (
-    <main className={styles.loaderMain}>
+    <main className={styles.loaderMain} aria-busy="true" aria-live="polite">
       <BackButton />
-      <div className={styles.loaderCard}>
-        <div className={styles.loaderIcon}>
+      <div className={styles.loaderCard} role="status">
+        <div className={styles.loaderIcon} aria-hidden="true">
           <span className={styles.loaderIconSpin}>☯</span>
         </div>
 
@@ -101,11 +101,11 @@ function AnalyzingLoader() {
           {t("destinyMap.result.analyzingSubtitle", "Analyzing Your Destiny Chart")}
         </p>
 
-        <div className={styles.progressBar}>
+        <div className={styles.progressBar} role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100}>
           <div className={styles.progressFill} style={{ width: `${progress}%` }} />
         </div>
 
-        <div className={styles.progressPercent}>
+        <div className={styles.progressPercent} aria-live="polite">
           {Math.round(progress)}%
         </div>
 
@@ -476,25 +476,33 @@ export default function DestinyResultPage({
         </div>
 
         {/* 🗂️ 탭 네비게이션 */}
-        <div className={styles.tabContainer}>
+        <div className={styles.tabContainer} role="tablist" aria-label={lang === "ko" ? "결과 탭" : "Result tabs"}>
           <button
             onClick={() => setActiveTab("destiny")}
             className={`${styles.tabButton} ${activeTab === "destiny" ? styles.tabButtonDestinyActive : ""}`}
+            role="tab"
+            aria-selected={activeTab === "destiny"}
+            aria-controls="panel-destiny"
+            id="tab-destiny"
           >
-            <span className={styles.tabIcon}>🗺️</span>
+            <span className={styles.tabIcon} aria-hidden="true">🗺️</span>
             <span>{t("destinyMap.result.tabDestiny", "운명 분석")}</span>
           </button>
           <button
             onClick={() => setActiveTab("life-prediction")}
             className={`${styles.tabButton} ${activeTab === "life-prediction" ? styles.tabButtonLifeActive : ""}`}
+            role="tab"
+            aria-selected={activeTab === "life-prediction"}
+            aria-controls="panel-life-prediction"
+            id="tab-life-prediction"
           >
-            <span className={styles.tabIcon}>📈</span>
+            <span className={styles.tabIcon} aria-hidden="true">📈</span>
             <span>{t("destinyMap.result.tabLifePrediction", "10년 예측")}</span>
           </button>
         </div>
 
         {/* ===== DESTINY TAB ===== */}
-        {activeTab === "destiny" && (<>
+        {activeTab === "destiny" && (<div id="panel-destiny" role="tabpanel" aria-labelledby="tab-destiny">
         {/* 🌗 테마 전환 버튼 */}
         {themeKeys.length > 1 && (
           <div className={styles.themeButtonsContainer}>
@@ -568,11 +576,11 @@ export default function DestinyResultPage({
             <span className={styles.counselorButtonArrow}>→</span>
           </button>
         </div>
-        </>)}
+        </div>)}
 
         {/* ===== LIFE PREDICTION TAB ===== */}
         {activeTab === "life-prediction" && (
-          <div>
+          <div id="panel-life-prediction" role="tabpanel" aria-labelledby="tab-life-prediction">
             <div className={styles.lifePredictionHeader}>
               <h2 className={styles.lifePredictionTitle}>
                 {lang === "ko" ? "📈 10년 인생 예측" : "📈 10-Year Life Prediction"}

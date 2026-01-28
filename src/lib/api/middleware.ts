@@ -10,6 +10,7 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { requirePublicToken } from "@/lib/auth/publicToken";
+import { csrfGuard } from "@/lib/security/csrf";
 import { logger } from "@/lib/logger";
 import {
   createErrorResponse,
@@ -70,6 +71,8 @@ export interface MiddlewareOptions {
   credits?: CreditOptions;
   /** Route name for logging/metrics */
   route?: string;
+  /** Skip CSRF origin validation (default: false). CSRF is enforced on POST/PUT/PATCH/DELETE. */
+  skipCsrf?: boolean;
 }
 
 export interface ApiHandlerResult<T> {
@@ -114,6 +117,29 @@ export async function initializeApiContext(
   const ip = getClientIp(req.headers) || "unknown";
   const locale = extractLocale(req);
   const route = options.route || new URL(req.url).pathname;
+
+  // CSRF origin validation for state-changing methods
+  const mutatingMethods = ["POST", "PUT", "PATCH", "DELETE"];
+  if (!options.skipCsrf && mutatingMethods.includes(req.method)) {
+    const csrfError = csrfGuard(req.headers);
+    if (csrfError) {
+      logger.warn(`[CSRF] Origin validation failed`, { route, ip, method: req.method });
+      return {
+        context: {
+          ip,
+          locale,
+          session: null,
+          userId: null,
+          isAuthenticated: false,
+          isPremium: false,
+        },
+        error: NextResponse.json(
+          { error: "csrf_validation_failed" },
+          { status: 403 }
+        ),
+      };
+    }
+  }
 
   // Rate limiting
   if (options.rateLimit) {
@@ -201,6 +227,37 @@ export async function initializeApiContext(
         route,
       }),
     };
+  }
+
+  // Per-user rate limiting (applied after session is resolved)
+  if (options.rateLimit && userId) {
+    const { limit, windowSeconds, keyPrefix = "api" } = options.rateLimit;
+    const userRateLimitKey = `${keyPrefix}:${route}:user:${userId}`;
+
+    const userResult = await rateLimit(userRateLimitKey, { limit, windowSeconds });
+
+    if (!userResult.allowed) {
+      return {
+        context: {
+          ip,
+          locale,
+          session,
+          userId,
+          isAuthenticated: true,
+          isPremium,
+        },
+        error: createErrorResponse({
+          code: ErrorCodes.RATE_LIMITED,
+          locale,
+          route,
+          headers: {
+            "Retry-After": String(userResult.retryAfter || windowSeconds),
+            "X-RateLimit-Limit": String(limit),
+            "X-RateLimit-Remaining": "0",
+          },
+        }),
+      };
+    }
   }
 
   // Credit check/consumption

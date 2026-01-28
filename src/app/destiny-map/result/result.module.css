@@ -16,7 +16,7 @@
 
 .creditBadgeWrapper {
   position: fixed;
-  top: 20px;
+  top: 60px;
   right: 20px;
   z-index: 100;
   display: flex;
@@ -1633,7 +1633,7 @@
    ===================================================== */
 
 .loaderMain {
-  min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2086,7 +2086,7 @@
   }
 
   .creditBadgeWrapper {
-    top: 12px;
+    top: 52px;
     right: 12px;
   }
 
@@ -2620,5 +2620,51 @@
     padding: 8px 14px;
     font-size: 12px;
     border-radius: 10px;
+  }
+}
+
+/* ========== Focus Visible ========== */
+.badge:focus-visible,
+.tabButton:focus-visible,
+.counselorButton:focus-visible,
+.saveButton:focus-visible,
+.lifePredictionRetryButton:focus-visible,
+.retryButton:focus-visible {
+  outline: 2px solid rgba(167, 139, 250, 0.8);
+  outline-offset: 2px;
+}
+
+/* ========== Reduced Motion ========== */
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .header,
+  .section,
+  .summary,
+  .summary::before,
+  .summary::after,
+  .h2,
+  .sectionHeader,
+  .h2::before,
+  .sectionHeader::before,
+  .h2::after,
+  .sectionHeader::after,
+  .sectionTitle,
+  .sectionTitle::after,
+  .subTitle,
+  .subTitle::before,
+  .paragraph,
+  .list,
+  .listItem,
+  .blockquote,
+  .blockquote::before,
+  .themeSection,
+  .badge::before,
+  .loaderIconSpin,
+  .skeletonItem,
+  .summaryBox p,
+  .summaryBox li::before,
+  .divider {
+    animation: none !important;
+    transition: none !important;
   }
 }

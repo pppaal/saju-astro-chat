@@ -177,6 +177,48 @@ jobs:
           echo "Build size: $BUILD_SIZE"
           echo "::notice::Production build size: $BUILD_SIZE"
 
+      - name: Bundle size budget check
+        run: |
+          # Budget: max JS size per page (First Load JS) = 500KB
+          PAGE_BUDGET_KB=500
+          # Budget: total static JS = 20MB
+          TOTAL_BUDGET_KB=20480
+          FAILED=0
+
+          # Check total static JS size
+          STATIC_DIR=".next/static"
+          if [ -d "$STATIC_DIR" ]; then
+            TOTAL_JS_KB=$(find "$STATIC_DIR" -name "*.js" -exec du -k {} + | awk '{sum+=$1} END {print sum}')
+            echo "Total static JS: ${TOTAL_JS_KB}KB (budget: ${TOTAL_BUDGET_KB}KB)"
+            if [ "$TOTAL_JS_KB" -gt "$TOTAL_BUDGET_KB" ]; then
+              echo "::error::Total static JS (${TOTAL_JS_KB}KB) exceeds budget (${TOTAL_BUDGET_KB}KB)"
+              FAILED=1
+            fi
+          fi
+
+          # Check individual chunk sizes (warn on chunks > 250KB)
+          CHUNK_WARN_KB=250
+          if [ -d "$STATIC_DIR/chunks" ]; then
+            echo ""
+            echo "=== Large chunks (>${CHUNK_WARN_KB}KB) ==="
+            find "$STATIC_DIR/chunks" -name "*.js" -size +${CHUNK_WARN_KB}k -exec du -k {} + | sort -rn | while read size file; do
+              echo "::warning::Large chunk: $(basename $file) (${size}KB)"
+            done
+          fi
+
+          # Parse Next.js build output for page sizes if available
+          if [ -f ".next/trace" ]; then
+            echo ""
+            echo "=== Build trace available ==="
+          fi
+
+          if [ $FAILED -eq 1 ]; then
+            echo "::error::Bundle size budget exceeded. Run 'npm run build:analyze' locally to investigate."
+            exit 1
+          fi
+
+          echo "::notice::Bundle size check passed"
+
   # Security checks
   security-check:
     name: Security Scan

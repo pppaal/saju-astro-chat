@@ -75,16 +75,18 @@ describe('nodes-lilith', () => {
     });
 
     it('should detect karmic when south nodes share same sign', () => {
-      const p1NN = makePlanet('Leo', 'fire');
-      const p2NN = makePlanet('Taurus', 'earth');
+      // North nodes must have DIFFERENT signs AND DIFFERENT elements
+      // And no north node element should match any sun/moon element
+      const p1NN = makePlanet('Leo', 'fire');      // fire
+      const p2NN = makePlanet('Taurus', 'earth');   // earth (different from fire)
       const p1SN = makePlanet('Aquarius', 'air');
-      const p2SN = makePlanet('Aquarius', 'air');
+      const p2SN = makePlanet('Aquarius', 'air');   // same sign => karmic
 
       const result = analyzeNodes(
         p1NN, p1SN, p2NN, p2SN,
-        // Avoid soulmate trigger on sun/moon
-        makePlanet('Virgo', 'earth'), makePlanet('Capricorn', 'earth'),
-        makePlanet('Taurus', 'earth'), makePlanet('Virgo', 'earth')
+        // Sun/moon water: no match to fire or earth north node elements
+        makePlanet('Cancer', 'water'), makePlanet('Pisces', 'water'),
+        makePlanet('Scorpio', 'water'), makePlanet('Cancer', 'water')
       );
       expect(result.karmicRelationshipType).toBe('karmic');
       expect(result.southNodeConnection.compatibility).toBe(95);
@@ -196,15 +198,16 @@ describe('nodes-lilith', () => {
     });
 
     it('should boost magnetic attraction for lilith-venus connections', () => {
+      // p1 lilith element = fire, p2 venus element = fire => triggers p1Lilith-p2Venus connection
       const result = analyzeLilith(
-        makePlanet('Libra', 'air'),    // p1 lilith air
-        makePlanet('Taurus', 'earth'), // p2 lilith earth
+        makePlanet('Aries', 'fire'),     // p1 lilith fire
+        makePlanet('Taurus', 'earth'),   // p2 lilith earth (different, not incompatible with fire)
         p1Sun, p2Sun, p1Mars, p2Mars,
-        makePlanet('Gemini', 'air'),   // p1 venus air (does NOT match p2 lilith earth)
-        makePlanet('Aquarius', 'air'), // p2 venus air (matches p1 lilith air!)
+        makePlanet('Gemini', 'air'),     // p1 venus air
+        makePlanet('Leo', 'fire'),       // p2 venus fire (matches p1 lilith fire!)
       );
-      expect(result.repressedDesires.some(d => d.includes('Person2가 Person1의 매력에'))).toBe(true);
-      expect(result.healingOpportunities.some(d => d.includes('Person1이 Person2의 자기 수용'))).toBe(true);
+      expect(result.repressedDesires.some(d => d.includes('Person1이 Person2의 매력에'))).toBe(true);
+      expect(result.healingOpportunities.some(d => d.includes('Person2가 Person1의 자기 수용'))).toBe(true);
     });
 
     it('should add element-specific repressed desires', () => {

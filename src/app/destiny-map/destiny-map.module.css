@@ -1180,3 +1180,46 @@ select.input option {
   background: rgba(167, 139, 250, 0.3);
   color: #ffffff;
 }
+
+/* ========== Focus Visible ========== */
+.backButton:focus-visible,
+.submitButton:focus-visible,
+.loadProfileButton:focus-visible,
+.matrixButton:focus-visible,
+.genderSelect:focus-visible,
+.genderOption:focus-visible {
+  outline: 2px solid rgba(167, 139, 250, 0.8);
+  outline-offset: 2px;
+}
+
+.input:focus-visible {
+  outline: 2px solid rgba(139, 92, 246, 0.6);
+  outline-offset: 1px;
+}
+
+.dropdownItem:focus-visible {
+  outline: 2px solid rgba(167, 139, 250, 0.8);
+  outline-offset: -2px;
+}
+
+/* ========== Reduced Motion ========== */
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card::before,
+  .header,
+  .form,
+  .iconWrapper,
+  .features,
+  .matrixLink,
+  .error,
+  .loadProfileButton::before,
+  .submitButton::before,
+  .matrixButton::before,
+  .dropdownItem::before,
+  .genderDropdown,
+  .dropdown,
+  .successBanner {
+    animation: none !important;
+    transition: none !important;
+  }
+}
