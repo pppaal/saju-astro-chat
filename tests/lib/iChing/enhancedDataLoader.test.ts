@@ -241,9 +241,9 @@ describe('enhancedDataLoader', () => {
       const data = await freshGet(1);
 
       expect(data).toBeNull();
+      // Logger outputs JSON string in test/production env
       expect(errorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to load enhanced data for hexagram 1'),
-        expect.objectContaining({ message: expect.any(String) })
+        expect.stringContaining('Failed to load enhanced data for hexagram 1')
       );
 
       errorSpy.mockRestore();
@@ -265,9 +265,9 @@ describe('enhancedDataLoader', () => {
       const data = await freshGetKo(1);
 
       expect(data).toBeNull();
+      // Logger outputs JSON string in test/production env
       expect(errorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to load enhanced Korean data for hexagram 1'),
-        expect.objectContaining({ message: expect.any(String) })
+        expect.stringContaining('Failed to load enhanced Korean data for hexagram 1')
       );
 
       errorSpy.mockRestore();

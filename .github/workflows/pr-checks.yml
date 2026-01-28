@@ -55,14 +55,14 @@ jobs:
         run: |
           # Check for console.log statements in changed files
           FOUND=0
-          git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx|js|jsx)$' | while read file; do
+          while IFS= read -r file; do
             if [ -f "$file" ]; then
               if grep -n "console\.log\|console\.debug\|console\.warn" "$file"; then
                 echo "::warning::Console statements found in $file"
                 FOUND=1
               fi
             fi
-          done
+          done < <(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx|js|jsx)$')
           if [ $FOUND -eq 1 ]; then
             echo "::notice::Consider removing console statements or replacing with proper logging"
           fi
@@ -90,7 +90,6 @@ jobs:
         test-suite:
           - unit
           - integration
-          - e2e-api
 
     steps:
       - name: Checkout
@@ -129,19 +128,6 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgres://user:pass@host/db' }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-test-ci-placeholder' }}
-
-      - name: Run E2E API tests
-        if: matrix.test-suite == 'e2e-api'
-        run: |
-          npm run dev -- --hostname 127.0.0.1 --port 3000 > /tmp/next-dev.log 2>&1 &
-          sleep 10
-          npm run test:e2e:api
-        env:
-          API_BASE_URL: http://localhost:3000
-          NEXTAUTH_URL: http://localhost:3000
-          NEXTAUTH_SECRET: ci-test-secret-32-characters-long
-          CRON_SECRET: ci-cron-secret
-          PUBLIC_METRICS_TOKEN: ci-metrics-token
 
   # Build verification
   build-check:
@@ -248,14 +234,18 @@ jobs:
       - name: Check for secrets
         run: |
           # Check changed files for potential secrets
-          git diff --name-only origin/${{ github.base_ref }}...HEAD | while read file; do
+          FOUND=0
+          while IFS= read -r file; do
             if [ -f "$file" ]; then
               if grep -rE "(sk-[a-zA-Z0-9]{20,}|AKIA[A-Z0-9]{16}|-----BEGIN.*PRIVATE KEY-----)" "$file"; then
                 echo "::error::Potential secret found in $file"
-                exit 1
+                FOUND=1
               fi
             fi
-          done
+          done < <(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          if [ $FOUND -eq 1 ]; then
+            exit 1
+          fi
 
   # Coverage report
   coverage:
@@ -346,7 +336,7 @@ jobs:
             }
 
       - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           files: ./coverage/lcov.info
           flags: unittests

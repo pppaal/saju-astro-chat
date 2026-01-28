@@ -167,9 +167,9 @@ describe('ResponseBuilders', () => {
       const error = new Error('Test error');
       serverErrorResponse('Error occurred', error);
 
+      // Logger outputs single JSON string in test env
       expect(console.error).toHaveBeenCalledWith(
-        expect.stringContaining('[Server Error]:'),
-        expect.objectContaining({ message: 'Test error' })
+        expect.stringContaining('[Server Error]:')
       );
     });
 
@@ -182,9 +182,9 @@ describe('ResponseBuilders', () => {
     it('should handle non-Error objects', () => {
       serverErrorResponse('Error', { code: 'ERR_001' });
 
+      // Logger outputs single JSON string in test env
       expect(console.error).toHaveBeenCalledWith(
-        expect.stringContaining('[Server Error]:'),
-        expect.objectContaining({ code: 'ERR_001' })
+        expect.stringContaining('[Server Error]:')
       );
     });
   });

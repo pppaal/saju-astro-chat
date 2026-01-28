@@ -1,7 +1,13 @@
 import type { NextRequest } from "next/server";
+import { vi } from "vitest";
 import { GET as calendarGet } from "../src/app/api/calendar/route";
 import { POST as compatibilityPost } from "../src/app/api/compatibility/route";
 import { POST as feedbackPost } from "../src/app/api/feedback/route";
+
+// Mock CSRF guard — Request objects strip 'origin' header (forbidden header name)
+vi.mock("@/lib/security/csrf", () => ({
+  csrfGuard: () => null,
+}));
 
 const restoreEnv = (key: string, value: string | undefined) => {
   if (value === undefined) delete process.env[key];

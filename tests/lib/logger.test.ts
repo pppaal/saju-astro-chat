@@ -1,6 +1,11 @@
 /**
  * Tests for Logger module
- * src/lib/logger.ts
+ * src/lib/logger/index.ts (re-exported from src/lib/logger.ts)
+ *
+ * The structured logger behaves as follows:
+ * - In test env (NODE_ENV=test): only 'error' level logs are output
+ * - In non-development: output is JSON formatted (single string argument)
+ * - Info, warn, debug are suppressed in test environment
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { logger, logInfo, logError, logWarn, logDebug } from "@/lib/logger";
@@ -22,115 +27,72 @@ describe("Logger", () => {
     vi.restoreAllMocks();
   });
 
-  describe("logger.info", () => {
-    it("should log info message", () => {
+  describe("test environment log suppression", () => {
+    it("should suppress info in test env", () => {
       logger.info("Test info message");
-      expect(consoleInfoSpy).toHaveBeenCalledWith("[INFO] Test info message", "");
+      expect(consoleInfoSpy).not.toHaveBeenCalled();
     });
 
-    it("should log info message with metadata object", () => {
-      logger.info("User logged in", { userId: "123", action: "login" });
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        "[INFO] User logged in",
-        { userId: "123", action: "login" }
-      );
-    });
-
-    it("should handle null metadata", () => {
-      logger.info("Message", null);
-      expect(consoleInfoSpy).toHaveBeenCalledWith("[INFO] Message", "");
-    });
-
-    it("should handle undefined metadata", () => {
-      logger.info("Message", undefined);
-      expect(consoleInfoSpy).toHaveBeenCalledWith("[INFO] Message", "");
-    });
-  });
-
-  describe("logger.warn", () => {
-    it("should log warning message", () => {
+    it("should suppress warn in test env", () => {
       logger.warn("Test warning");
-      expect(consoleWarnSpy).toHaveBeenCalledWith("[WARN] Test warning", "");
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
     });
 
-    it("should log warning with metadata", () => {
-      logger.warn("Rate limit exceeded", { ip: "192.168.1.1", limit: 100 });
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        "[WARN] Rate limit exceeded",
-        { ip: "192.168.1.1", limit: 100 }
-      );
+    it("should suppress debug in test env", () => {
+      logger.debug("Debug info");
+      expect(consoleDebugSpy).not.toHaveBeenCalled();
     });
   });
 
-  describe("logger.error", () => {
-    it("should log error message", () => {
+  describe("logger.error (only level that logs in test env)", () => {
+    it("should log error message as JSON", () => {
       logger.error("Test error");
-      expect(consoleErrorSpy).toHaveBeenCalledWith("[ERROR] Test error", "");
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const output = consoleErrorSpy.mock.calls[0][0];
+      const parsed = JSON.parse(output);
+      expect(parsed.level).toBe("error");
+      expect(parsed.message).toBe("Test error");
+      expect(parsed.timestamp).toBeDefined();
     });
 
     it("should log error with Error object", () => {
       const error = new Error("Something went wrong");
       logger.error("API Error", error);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[ERROR] API Error",
-        expect.objectContaining({
-          message: "Something went wrong",
-          stack: expect.any(String),
-        })
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const parsed = JSON.parse(consoleErrorSpy.mock.calls[0][0]);
+      expect(parsed.level).toBe("error");
+      expect(parsed.message).toBe("API Error");
+      expect(parsed.error.message).toBe("Something went wrong");
+      expect(parsed.error.stack).toBeDefined();
     });
 
-    it("should log error with metadata", () => {
+    it("should log error with context object", () => {
       logger.error("Database error", { query: "SELECT *", table: "users" });
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[ERROR] Database error",
-        { query: "SELECT *", table: "users" }
-      );
-    });
-  });
-
-  describe("logger.debug", () => {
-    it("should log debug message in non-production", () => {
-      logger.debug("Debug info");
-      expect(consoleDebugSpy).toHaveBeenCalledWith("[DEBUG] Debug info", "");
-    });
-
-    it("should log debug with metadata", () => {
-      logger.debug("Request details", { method: "GET", path: "/api/test" });
-      expect(consoleDebugSpy).toHaveBeenCalledWith(
-        "[DEBUG] Request details",
-        { method: "GET", path: "/api/test" }
-      );
+      const parsed = JSON.parse(consoleErrorSpy.mock.calls[0][0]);
+      expect(parsed.message).toBe("Database error");
+      expect(parsed.context.query).toBe("SELECT *");
+      expect(parsed.context.table).toBe("users");
     });
   });
 
   describe("logInfo convenience function", () => {
-    it("should call logger.info", () => {
+    it("should be suppressed in test env", () => {
       logInfo("Info message", { key: "value" });
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        "[INFO] Info message",
-        { key: "value" }
-      );
+      expect(consoleInfoSpy).not.toHaveBeenCalled();
     });
   });
 
   describe("logWarn convenience function", () => {
-    it("should call logger.warn", () => {
+    it("should be suppressed in test env", () => {
       logWarn("Warning message", { key: "value" });
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        "[WARN] Warning message",
-        { key: "value" }
-      );
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
     });
   });
 
   describe("logDebug convenience function", () => {
-    it("should call logger.debug", () => {
+    it("should be suppressed in test env", () => {
       logDebug("Debug message", { key: "value" });
-      expect(consoleDebugSpy).toHaveBeenCalledWith(
-        "[DEBUG] Debug message",
-        { key: "value" }
-      );
+      expect(consoleDebugSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -138,120 +100,71 @@ describe("Logger", () => {
     it("should handle Error object", () => {
       const error = new Error("Test error");
       logError("Error occurred", error);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[ERROR] Error occurred",
-        expect.objectContaining({
-          error: "Test error",
-          stack: expect.any(String),
-        })
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const parsed = JSON.parse(consoleErrorSpy.mock.calls[0][0]);
+      expect(parsed.message).toBe("Error occurred");
+      expect(parsed.context.errorMessage).toBe("Test error");
+      expect(parsed.context.stack).toBeDefined();
     });
 
     it("should handle error-like object", () => {
       const errorLike = { message: "Custom error", code: "E001" };
       logError("Error occurred", errorLike);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[ERROR] Error occurred",
-        expect.objectContaining({
-          error: "Custom error",
-        })
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const parsed = JSON.parse(consoleErrorSpy.mock.calls[0][0]);
+      expect(parsed.message).toBe("Error occurred");
+      expect(parsed.context.errorMessage).toBe("Custom error");
     });
 
     it("should handle string error", () => {
       logError("Error occurred", "Simple string error");
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[ERROR] Error occurred",
-        expect.objectContaining({
-          error: "Simple string error",
-        })
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const parsed = JSON.parse(consoleErrorSpy.mock.calls[0][0]);
+      expect(parsed.context.errorMessage).toBe("Simple string error");
     });
 
     it("should include additional metadata", () => {
       const error = new Error("Test error");
       logError("Error occurred", error, { userId: "123", action: "save" });
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[ERROR] Error occurred",
-        expect.objectContaining({
-          error: "Test error",
-          userId: "123",
-          action: "save",
-        })
-      );
-    });
-  });
-
-  describe("Metadata handling", () => {
-    it("should wrap primitive values in object", () => {
-      logger.info("Number value", 42);
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        "[INFO] Number value",
-        { value: 42 }
-      );
-    });
-
-    it("should wrap string values in object", () => {
-      logger.info("String value", "test string");
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        "[INFO] String value",
-        { value: "test string" }
-      );
-    });
-
-    it("should wrap array values in object", () => {
-      logger.info("Array value", [1, 2, 3]);
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        "[INFO] Array value",
-        { value: [1, 2, 3] }
-      );
-    });
-
-    it("should pass object values directly", () => {
-      logger.info("Object value", { a: 1, b: 2 });
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        "[INFO] Object value",
-        { a: 1, b: 2 }
-      );
+      const parsed = JSON.parse(consoleErrorSpy.mock.calls[0][0]);
+      expect(parsed.context.errorMessage).toBe("Test error");
+      expect(parsed.context.userId).toBe("123");
+      expect(parsed.context.action).toBe("save");
     });
   });
 
   describe("Edge cases", () => {
-    it("should handle empty string message", () => {
-      logger.info("");
-      expect(consoleInfoSpy).toHaveBeenCalledWith("[INFO] ", "");
+    it("should handle empty string error message", () => {
+      logger.error("");
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const parsed = JSON.parse(consoleErrorSpy.mock.calls[0][0]);
+      expect(parsed.message).toBe("");
     });
 
-    it("should handle very long messages", () => {
+    it("should handle very long error messages", () => {
       const longMessage = "a".repeat(10000);
-      logger.info(longMessage);
-      expect(consoleInfoSpy).toHaveBeenCalledWith(`[INFO] ${longMessage}`, "");
+      logger.error(longMessage);
+      const parsed = JSON.parse(consoleErrorSpy.mock.calls[0][0]);
+      expect(parsed.message).toBe(longMessage);
     });
 
-    it("should handle special characters in message", () => {
-      logger.info("Special chars: 한글 日本語 émoji 🎉");
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        "[INFO] Special chars: 한글 日本語 émoji 🎉",
-        ""
-      );
+    it("should handle special characters in error message", () => {
+      logger.error("Special chars: 한글 日本語 émoji");
+      const parsed = JSON.parse(consoleErrorSpy.mock.calls[0][0]);
+      expect(parsed.message).toBe("Special chars: 한글 日本語 émoji");
     });
 
-    it("should handle nested objects", () => {
-      const nested = {
-        level1: {
-          level2: {
-            level3: "deep value",
-          },
-        },
-      };
-      logger.info("Nested", nested);
-      expect(consoleInfoSpy).toHaveBeenCalledWith("[INFO] Nested", nested);
-    });
-
-    it("should handle circular references in Error", () => {
+    it("should handle circular references in Error gracefully", () => {
       const error = new Error("Circular");
       logger.error("Error with circular", error);
       expect(consoleErrorSpy).toHaveBeenCalled();
+    });
+
+    it("should handle nested context objects", () => {
+      const nested = { level1: { level2: { level3: "deep value" } } };
+      logger.error("Nested", nested);
+      const parsed = JSON.parse(consoleErrorSpy.mock.calls[0][0]);
+      expect(parsed.context.level1.level2.level3).toBe("deep value");
     });
   });
 });
