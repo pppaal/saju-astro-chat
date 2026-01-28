@@ -160,7 +160,7 @@ export function useTarotGame(): UseTarotGameReturn {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-          tarotLogger.error('Tarot API error', undefined, { status: response.status, errorData });
+          tarotLogger.error('Tarot API error', { status: response.status, errorData });
           throw new Error(`Failed to fetch reading: ${errorData.error || response.statusText}`);
         }
 

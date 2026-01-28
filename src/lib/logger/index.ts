@@ -77,7 +77,7 @@ class Logger {
     });
   }
 
-  private log(level: LogLevel, message: string, contextOrError?: LogContext | Error) {
+  private log(level: LogLevel, message: string, contextOrError?: LogContext | Error | unknown) {
     if (!this.shouldLog(level)) {
       return;
     }
@@ -90,8 +90,10 @@ class Logger {
 
     if (contextOrError instanceof Error) {
       entry.error = contextOrError;
-    } else if (contextOrError) {
-      entry.context = contextOrError;
+    } else if (contextOrError && typeof contextOrError === 'object') {
+      entry.context = contextOrError as LogContext;
+    } else if (contextOrError !== undefined) {
+      entry.context = { value: contextOrError };
     }
 
     const formatted = this.formatMessage(entry);
@@ -132,30 +134,38 @@ class Logger {
   /**
    * 디버그 로그 (개발 환경에서만)
    */
-  debug(message: string, context?: LogContext) {
+  debug(message: string, context?: LogContext | unknown) {
     this.log('debug', message, context);
   }
 
   /**
    * 정보성 로그
    */
-  info(message: string, context?: LogContext) {
+  info(message: string, context?: LogContext | unknown) {
     this.log('info', message, context);
   }
 
   /**
    * 경고 로그
    */
-  warn(message: string, contextOrError?: LogContext | Error) {
+  warn(message: string, contextOrError?: LogContext | Error | unknown) {
     this.log('warn', message, contextOrError);
   }
 
   /**
    * 에러 로그 (자동으로 Sentry 전송)
+   * Accepts Error, LogContext, or any value as second argument
    */
-  error(message: string, error?: Error, context?: LogContext) {
-    const combined = error ? { ...context, error } : context;
-    this.log('error', message, error || combined);
+  error(message: string, contextOrError?: LogContext | Error | unknown) {
+    if (contextOrError instanceof Error) {
+      this.log('error', message, contextOrError);
+    } else if (contextOrError && typeof contextOrError === 'object') {
+      this.log('error', message, contextOrError as LogContext);
+    } else if (contextOrError !== undefined) {
+      this.log('error', message, { value: contextOrError });
+    } else {
+      this.log('error', message);
+    }
   }
 
   /**
@@ -179,20 +189,20 @@ class DomainLogger {
     return `[${this.domainName}] ${message}`;
   }
 
-  debug(message: string, context?: LogContext) {
+  debug(message: string, context?: LogContext | unknown) {
     this.parentLogger.debug(this.addDomain(message), context);
   }
 
-  info(message: string, context?: LogContext) {
+  info(message: string, context?: LogContext | unknown) {
     this.parentLogger.info(this.addDomain(message), context);
   }
 
-  warn(message: string, contextOrError?: LogContext | Error) {
+  warn(message: string, contextOrError?: LogContext | Error | unknown) {
     this.parentLogger.warn(this.addDomain(message), contextOrError);
   }
 
-  error(message: string, error?: Error, context?: LogContext) {
-    this.parentLogger.error(this.addDomain(message), error, context);
+  error(message: string, contextOrError?: LogContext | Error | unknown) {
+    this.parentLogger.error(this.addDomain(message), contextOrError);
   }
 }
 

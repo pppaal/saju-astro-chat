@@ -1,5 +1,25 @@
-/* eslint-disable no-console */
-// Type definitions for logger metadata
+/**
+ * Unified logger entry point
+ * Re-exports the structured logger from ./logger/index
+ * All imports of '@/lib/logger' use the production-grade logger
+ * with environment-aware formatting and Sentry integration.
+ */
+
+// Re-export the structured logger and domain loggers
+export {
+  logger,
+  authLogger,
+  paymentLogger,
+  apiLogger,
+  dbLogger,
+  sajuLogger,
+  astroLogger,
+  tarotLogger,
+} from './logger/index';
+
+export type { LogLevel, LogContext } from './logger/index';
+
+// Type definitions for backward compatibility
 export interface LogMetadata {
   [key: string]: unknown;
 }
@@ -10,57 +30,22 @@ export interface LogError {
   [key: string]: unknown;
 }
 
-// Helper to convert any value to LogMetadata
-function toMeta(value: unknown): LogMetadata | undefined {
-  if (value === undefined || value === null) {return undefined;}
-  if (value instanceof Error) {
-    return { message: value.message, stack: value.stack };
-  }
-  if (typeof value === 'object' && !Array.isArray(value)) {
-    return value as LogMetadata;
-  }
-  return { value };
-}
+// Re-import for convenience methods
+import { logger as structuredLogger } from './logger/index';
 
-// Simple logger that works in both browser and server
-export const logger = {
-  info: (message: string, meta?: unknown) => {
-    console.info(`[INFO] ${message}`, toMeta(meta) || '');
-  },
-  warn: (message: string, meta?: unknown) => {
-    console.warn(`[WARN] ${message}`, toMeta(meta) || '');
-  },
-  error: (message: string, meta?: unknown) => {
-    console.error(`[ERROR] ${message}`, toMeta(meta) || '');
-  },
-  debug: (message: string, meta?: unknown) => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.debug(`[DEBUG] ${message}`, toMeta(meta) || '');
-    }
-  },
-};
-
-// Export convenience methods
-export const logInfo = (message: string, meta?: LogMetadata) => logger.info(message, meta);
+// Export convenience methods (backward compatible)
+export const logInfo = (message: string, meta?: LogMetadata) => structuredLogger.info(message, meta);
 export const logError = (message: string, error?: Error | LogError | unknown, meta?: LogMetadata) => {
-  const errorObj = error instanceof Error
-    ? { message: error.message, stack: error.stack }
-    : typeof error === 'object' && error !== null
-    ? { message: (error as LogError).message || String(error), stack: (error as LogError).stack }
-    : { message: String(error) };
-
-  logger.error(message, { error: errorObj.message, stack: errorObj.stack, ...meta });
+  if (error instanceof Error) {
+    structuredLogger.error(message, { ...meta, errorMessage: error.message, stack: error.stack });
+  } else if (error && typeof error === 'object') {
+    const errObj = error as LogError;
+    structuredLogger.error(message, { ...meta, errorMessage: errObj.message, stack: errObj.stack });
+  } else if (error !== undefined) {
+    structuredLogger.error(message, { ...meta, errorMessage: String(error) });
+  } else {
+    structuredLogger.error(message, meta);
+  }
 };
-export const logWarn = (message: string, meta?: LogMetadata) => logger.warn(message, meta);
-export const logDebug = (message: string, meta?: LogMetadata) => logger.debug(message, meta);
-
-// Re-export domain loggers from structured logger module
-export {
-  authLogger,
-  paymentLogger,
-  apiLogger,
-  dbLogger,
-  sajuLogger,
-  astroLogger,
-  tarotLogger,
-} from './logger/index';
+export const logWarn = (message: string, meta?: LogMetadata) => structuredLogger.warn(message, meta);
+export const logDebug = (message: string, meta?: LogMetadata) => structuredLogger.debug(message, meta);
