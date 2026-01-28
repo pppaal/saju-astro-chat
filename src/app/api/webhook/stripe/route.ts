@@ -14,6 +14,7 @@ import {
   sendPaymentFailedEmail,
 } from "@/lib/email"
 import { logger } from "@/lib/logger"
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic"
 
@@ -44,7 +45,7 @@ export async function POST(request: Request) {
     recordCounter("stripe_webhook_config_error", 1, { reason: "missing_secret" })
     return NextResponse.json(
       { error: "Webhook secret not configured" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     )
   }
   const stripe = getStripe()
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
     captureServerError(new Error("stripe-signature header missing"), { route: "/api/webhook/stripe", ip })
     return NextResponse.json(
       { error: "Missing stripe-signature header" },
-      { status: 400 }
+      { status: HTTP_STATUS.BAD_REQUEST }
     )
   }
 
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
     captureServerError(err, { route: "/api/webhook/stripe", stage: "verify", ip })
     return NextResponse.json(
       { error: `Webhook signature verification failed: ${message}` },
-      { status: 400 }
+      { status: HTTP_STATUS.BAD_REQUEST }
     )
   }
 
@@ -125,7 +126,7 @@ export async function POST(request: Request) {
     captureServerError(err, { route: "/api/webhook/stripe", event: event.type })
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     )
   }
 }

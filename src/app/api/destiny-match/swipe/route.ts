@@ -8,13 +8,14 @@ import { authOptions } from '@/lib/auth/authOptions';
 import { prisma } from '@/lib/db/prisma';
 import { calculateDetailedCompatibility } from '@/lib/destiny-match/quickCompatibility';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // POST - 스와이프 처리
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const { targetProfileId, action, compatibilityScore } = await req.json();
@@ -23,14 +24,14 @@ export async function POST(req: NextRequest) {
     if (!targetProfileId) {
       return NextResponse.json(
         { error: 'targetProfileId is required' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
     if (!['like', 'pass', 'super_like'].includes(action)) {
       return NextResponse.json(
         { error: 'Invalid action. Must be like, pass, or super_like' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
     if (!myProfile) {
       return NextResponse.json(
         { error: '먼저 매칭 프로필을 설정해주세요' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
     if (!targetProfile) {
       return NextResponse.json(
         { error: '대상 프로필을 찾을 수 없습니다' },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
     if (targetProfile.userId === session.user.id) {
       return NextResponse.json(
         { error: '자신에게 스와이프할 수 없습니다' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
     if (action === 'super_like' && myProfile.superLikeCount <= 0) {
       return NextResponse.json(
         { error: '슈퍼라이크를 모두 사용했습니다' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -123,7 +124,7 @@ export async function POST(req: NextRequest) {
     if (existingSwipe) {
       return NextResponse.json(
         { error: '이미 스와이프한 프로필입니다' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -259,7 +260,7 @@ export async function POST(req: NextRequest) {
     logger.error('[destiny-match/swipe] POST error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to process swipe' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

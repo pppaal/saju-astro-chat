@@ -4,13 +4,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { Chart } from '@/lib/astrology/foundation/types';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export async function POST(req: NextRequest) {
   try {
     const { birthDate, birthTime, latitude, longitude, gender, timezone } = await req.json();
 
     if (!birthDate || !birthTime || !latitude || !longitude) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing required fields' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const genderVal = (gender === 'Male' || String(gender).toLowerCase() === 'male') ? 'male' : 'female';
@@ -324,6 +325,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     logger.error('[precompute-chart] Error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db/prisma";
 import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = "force-dynamic";
 
 // GET: fetch personality result
@@ -13,7 +14,7 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const result = await prisma.personalityResult.findUnique({
@@ -41,7 +42,7 @@ export async function GET() {
     return NextResponse.json({ saved: true, result });
   } catch (error) {
     logger.error("GET /api/personality error:", error);
-    return NextResponse.json({ error: "server_error" }, { status: 500 });
+    return NextResponse.json({ error: "server_error" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }
 
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const oversized = enforceBodySize(request, 16 * 1024);
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
     const consistencyScore = typeof body?.consistencyScore === "number" ? Math.max(0, Math.min(100, body.consistencyScore)) : null;
 
     if (!typeCode || !personaName) {
-      return NextResponse.json({ error: "missing_fields", message: "typeCode and personaName are required" }, { status: 400 });
+      return NextResponse.json({ error: "missing_fields", message: "typeCode and personaName are required" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Validate typeCode format: must be 4 characters [R|G][V|S][L|H][A|F]
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         error: "invalid_type_code",
         message: `Invalid typeCode format: "${typeCode}". Expected pattern: [R|G][V|S][L|H][A|F] (e.g., RVLA, GSHF)`,
-      }, { status: 400 });
+      }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Validate avatarGender
@@ -87,12 +88,12 @@ export async function POST(request: Request) {
       return NextResponse.json({
         error: "invalid_avatar_gender",
         message: `Invalid avatarGender: "${avatarGender}". Expected "M" or "F"`,
-      }, { status: 400 });
+      }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Validate analysisData
     if (!body?.analysisData || typeof body.analysisData !== "object") {
-      return NextResponse.json({ error: "invalid_analysis_data" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_analysis_data" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Upsert personality result
@@ -136,6 +137,6 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     logger.error("POST /api/personality error:", error);
-    return NextResponse.json({ error: "server_error" }, { status: 500 });
+    return NextResponse.json({ error: "server_error" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }

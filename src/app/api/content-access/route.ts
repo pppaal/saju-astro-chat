@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = "force-dynamic";
 
 type ContentAccessBody = {
@@ -63,12 +64,12 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const body = (await request.json().catch(() => null)) as ContentAccessBody | null;
     if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const service = typeof body.service === "string" ? body.service : "";
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
     if (!service || !contentType) {
       return NextResponse.json(
         { error: "Missing required fields: service, contentType" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -91,7 +92,7 @@ export async function POST(request: Request) {
     if (!validServices.includes(service)) {
       return NextResponse.json(
         { error: `Invalid service. Must be one of: ${validServices.join(", ")}` },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -117,7 +118,7 @@ export async function POST(request: Request) {
     logger.error("[ContentAccess POST error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -127,7 +128,7 @@ export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const { searchParams } = new URL(request.url);
@@ -174,7 +175,7 @@ export async function GET(request: Request) {
     logger.error("[ContentAccess GET error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

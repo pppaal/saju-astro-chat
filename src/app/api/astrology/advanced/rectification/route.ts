@@ -16,6 +16,7 @@ import {
   type LifeEventType,
   type ZodiacKo,
 } from "@/lib/astrology";
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 const VALID_EVENT_TYPES: LifeEventType[] = [
   "marriage", "divorce", "birth_of_child", "death_of_parent_mother",
@@ -30,10 +31,10 @@ export async function POST(request: Request) {
     const ip = getClientIp(request.headers);
     const limit = await rateLimit(`astro-rectification:${ip}`, { limit: 10, windowSeconds: 60 });
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: 429, headers: limit.headers });
+      return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
     }
     const tokenCheck = requirePublicToken(request); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
     }
 
     const body = await request.json();
@@ -51,7 +52,7 @@ export async function POST(request: Request) {
     if (!birthDate || latitude === undefined || longitude === undefined || !timeZone) {
       return NextResponse.json(
         { error: "birthDate, latitude, longitude, and timeZone are required." },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
     if (!year || !month || !day) {
       return NextResponse.json(
         { error: "birthDate must be YYYY-MM-DD format." },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
         if (!VALID_EVENT_TYPES.includes(event.type)) {
           return NextResponse.json(
             { error: `Invalid event type: ${event.type}. Valid types: ${VALID_EVENT_TYPES.join(", ")}` },
-            { status: 400, headers: limit.headers }
+            { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
           );
         }
         parsedEvents.push({
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
     if (parsedEvents.length === 0) {
       return NextResponse.json(
         { error: "At least one life event is required for rectification. Provide events array with date and type." },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -172,7 +173,7 @@ export async function POST(request: Request) {
           timeRange: { startHour, endHour, intervalMinutes },
         },
       },
-      { status: 200 }
+      { status: HTTP_STATUS.OK }
     );
 
     limit.headers.forEach((value, key) => res.headers.set(key, value));
@@ -183,7 +184,7 @@ export async function POST(request: Request) {
     captureServerError(error, { route: "/api/astrology/advanced/rectification" });
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -194,7 +195,7 @@ export async function GET(request: Request) {
     const ip = getClientIp(request.headers);
     const limit = await rateLimit(`astro-rectification-get:${ip}`, { limit: 30, windowSeconds: 60 });
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests." }, { status: 429, headers: limit.headers });
+      return NextResponse.json({ error: "Too many requests." }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
     }
 
     const { searchParams } = new URL(request.url);
@@ -207,7 +208,7 @@ export async function GET(request: Request) {
 
     if (sign && validSigns.includes(sign)) {
       const appearance = getAscendantAppearance(sign);
-      return NextResponse.json({ sign, appearance }, { status: 200 });
+      return NextResponse.json({ sign, appearance }, { status: HTTP_STATUS.OK });
     }
 
     // 전체 ASC 외모 정보 반환
@@ -225,7 +226,7 @@ export async function GET(request: Request) {
           "오시", "미시", "신시", "유시", "술시", "해시"
         ],
       },
-      { status: 200 }
+      { status: HTTP_STATUS.OK }
     );
 
     limit.headers.forEach((value, key) => res.headers.set(key, value));
@@ -235,7 +236,7 @@ export async function GET(request: Request) {
     captureServerError(error, { route: "/api/astrology/advanced/rectification GET" });
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

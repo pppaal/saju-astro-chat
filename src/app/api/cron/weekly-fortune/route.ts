@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { generateWeeklyFortuneImage } from '@/lib/replicate';
 import { saveWeeklyFortuneImage, getWeekNumber } from '@/lib/weeklyFortune';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // Vercel Cron이 호출할 엔드포인트
 // 매주 월요일 오전 9시 (KST) = 월요일 0시 (UTC) 실행
@@ -32,7 +33,7 @@ export async function GET(request: Request) {
     if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
   }
@@ -79,7 +80,7 @@ export async function GET(request: Request) {
         error: 'Failed to generate weekly fortune image',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

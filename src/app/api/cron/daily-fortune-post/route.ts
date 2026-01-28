@@ -6,6 +6,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { logger } from '@/lib/logger';
 import path from 'path';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 const execFileAsync = promisify(execFile);
 
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
     logger.warn('[Cron] Unauthorized request');
     return NextResponse.json(
       { error: 'Unauthorized' },
-      { status: 401 }
+      { status: HTTP_STATUS.UNAUTHORIZED }
     );
   }
 
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
         error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
   if (!apiKey || apiKey !== process.env.ADMIN_API_KEY) {
     return NextResponse.json(
       { error: 'Unauthorized' },
-      { status: 401 }
+      { status: HTTP_STATUS.UNAUTHORIZED }
     );
   }
 

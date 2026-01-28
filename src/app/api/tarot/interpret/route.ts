@@ -14,6 +14,7 @@ import { enforceBodySize } from "@/lib/http";
 import { checkAndConsumeCredits, creditErrorResponse } from "@/lib/credits/withCredits";
 import { sanitizeString } from "@/lib/api/sanitizers";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 
 interface CardInput {
@@ -85,12 +86,12 @@ export async function POST(req: Request) {
     if (!limit.allowed) {
       return NextResponse.json(
         { error: "Too many requests. Please wait." },
-        { status: 429, headers: limit.headers }
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
       );
     }
 
     const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
     }
 
     const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
@@ -109,14 +110,14 @@ export async function POST(req: Request) {
     if (!categoryId || !spreadId || rawCards.length === 0) {
       return NextResponse.json(
         { error: "Missing required fields: categoryId, spreadId, cards" },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
     if (rawCards.length > MAX_CARDS) {
       return NextResponse.json(
         { error: `Too many cards. Maximum ${MAX_CARDS} supported.` },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -124,17 +125,17 @@ export async function POST(req: Request) {
     for (let i = 0; i < rawCards.length; i++) {
       const { card, error } = validateCard(rawCards[i], i);
       if (error) {
-        return NextResponse.json({ error }, { status: 400, headers: limit.headers });
+        return NextResponse.json({ error }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
       }
       validatedCards.push(card!);
     }
 
     if (birthdate && (!DATE_RE.test(birthdate) || Number.isNaN(Date.parse(birthdate)))) {
-      return NextResponse.json({ error: "birthdate must be YYYY-MM-DD" }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "birthdate must be YYYY-MM-DD" }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
     }
 
     if (moonPhase && moonPhase.length < 2) {
-      return NextResponse.json({ error: "moonPhase is too short" }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "moonPhase is too short" }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
     }
 
     const creditResult = await checkAndConsumeCredits("reading", 1);
@@ -217,7 +218,7 @@ export async function POST(req: Request) {
     logger.error("Tarot interpretation error:", err);
     return NextResponse.json(
       { error: "Server error", fallback: true },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

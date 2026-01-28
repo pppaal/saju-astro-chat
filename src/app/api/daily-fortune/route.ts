@@ -8,6 +8,7 @@ import { getNowInTimezone, formatDateString } from "@/lib/datetime";
 import { getDailyFortuneScore } from "@/lib/destiny-map/destinyCalendar";
 import { logger } from '@/lib/logger';
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const body = await request.json();
@@ -49,10 +50,10 @@ export async function POST(request: Request) {
     const birthTime = typeof _birthTime === "string" && _birthTime.trim() ? _birthTime.trim() : undefined;
 
     if (!isValidDate(birthDate)) {
-      return NextResponse.json({ error: "Birth date required" }, { status: 400 });
+      return NextResponse.json({ error: "Birth date required" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (birthTime && !isValidTime(birthTime)) {
-      return NextResponse.json({ error: "Invalid birth time" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid birth time" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // ========================================
@@ -151,7 +152,7 @@ export async function POST(request: Request) {
     logger.error("[Daily Fortune Error]:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

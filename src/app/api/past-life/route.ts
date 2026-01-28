@@ -13,6 +13,7 @@ import { calculateNatalChart } from '@/lib/astrology';
 import { analyzePastLife } from '@/lib/past-life/analyzer';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 /**
  * POST /api/past-life
  *
@@ -35,23 +36,23 @@ export async function POST(req: Request) {
     if (!limit.allowed) {
       return NextResponse.json(
         { error: 'Rate limit exceeded', retryAfter: limit.reset },
-        { status: 429 }
+        { status: HTTP_STATUS.RATE_LIMITED }
       );
     }
 
     const body = await parseRequestBody<any>(req, { context: 'Past-life' });
     if (!body) {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const { birthDate, birthTime, latitude, longitude, timezone, locale = 'ko' } = body;
 
     // Validate required fields
     if (!birthDate) {
-      return NextResponse.json({ error: 'birthDate is required' }, { status: 400 });
+      return NextResponse.json({ error: 'birthDate is required' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (latitude === undefined || longitude === undefined) {
-      return NextResponse.json({ error: 'latitude and longitude are required' }, { status: 400 });
+      return NextResponse.json({ error: 'latitude and longitude are required' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Parse birth date and time
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
     const [hour, minute] = (birthTime || '12:00').split(':').map(Number);
 
     if (!year || !month || !day) {
-      return NextResponse.json({ error: 'Invalid birthDate format (use YYYY-MM-DD)' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid birthDate format (use YYYY-MM-DD)' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const isKo = locale === 'ko';
@@ -105,7 +106,7 @@ export async function POST(req: Request) {
     logger.error('[PastLife API] Unexpected error:', err);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

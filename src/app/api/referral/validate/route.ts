@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { findUserByReferralCode } from "@/lib/referral";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
     if (!code) {
       return NextResponse.json(
         { valid: false, error: "missing_code" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -32,7 +33,7 @@ export async function GET(request: Request) {
     logger.error("[Referral validate error]", err);
     return NextResponse.json(
       { valid: false, error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

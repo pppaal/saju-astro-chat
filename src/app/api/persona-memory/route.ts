@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,7 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const memory = await prisma.personaMemory.findUnique({
@@ -36,7 +37,7 @@ export async function GET() {
     logger.error("[PersonaMemory GET error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const body = await request.json();
@@ -113,7 +114,7 @@ export async function POST(request: Request) {
     logger.error("[PersonaMemory POST error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -123,7 +124,7 @@ export async function PATCH(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const body = await request.json();
@@ -136,7 +137,7 @@ export async function PATCH(request: Request) {
     if (!existing) {
       return NextResponse.json(
         { error: "not_found", message: "페르소나 기억이 없습니다. 먼저 생성해주세요." },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -196,7 +197,7 @@ export async function PATCH(request: Request) {
       default:
         return NextResponse.json(
           { error: "invalid_action", message: "지원하지 않는 액션입니다." },
-          { status: 400 }
+          { status: HTTP_STATUS.BAD_REQUEST }
         );
     }
 
@@ -222,7 +223,7 @@ export async function PATCH(request: Request) {
     logger.error("[PersonaMemory PATCH error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

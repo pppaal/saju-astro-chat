@@ -14,6 +14,7 @@ import { type ChatMessage } from "@/lib/api";
 import { parseRequestBody } from '@/lib/api/requestParser';
 import { ALLOWED_LOCALES, ALLOWED_GENDERS, MESSAGE_LIMITS, TEXT_LIMITS } from '@/lib/constants/api-limits';
 import { DATE_RE, TIME_RE, LIMITS } from '@/lib/validation/patterns';
+import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -117,19 +118,19 @@ export async function POST(request: NextRequest) {
     if (!isDev) {
       const session = await getServerSession(authOptions);
       if (!session?.user?.email) {
-        return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+        return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
       }
       userEmail = session.user.email;
 
       const paid = await checkStripeActive(userEmail);
       if (!paid) {
-        return NextResponse.json({ error: "payment_required" }, { status: 402 });
+        return NextResponse.json({ error: "payment_required" }, { status: HTTP_STATUS.PAYMENT_REQUIRED });
       }
     }
 
     const body = await request.json().catch(() => null);
     if (!body) {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const name = typeof body.name === "string" ? body.name.trim().slice(0, MAX_NAME) : undefined;
@@ -144,19 +145,19 @@ export async function POST(request: NextRequest) {
     const cvText = typeof body.cvText === "string" ? body.cvText : "";
 
     if (!birthDate || !birthTime || latitude === undefined || longitude === undefined) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ error: "Missing required fields" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (!DATE_RE.test(birthDate) || Number.isNaN(Date.parse(birthDate))) {
-      return NextResponse.json({ error: "Invalid birthDate" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid birthDate" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (!TIME_RE.test(birthTime)) {
-      return NextResponse.json({ error: "Invalid birthTime" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid birthTime" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
-      return NextResponse.json({ error: "Invalid latitude" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid latitude" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
-      return NextResponse.json({ error: "Invalid longitude" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid longitude" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Normalize messages
@@ -236,6 +237,6 @@ export async function POST(request: NextRequest) {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal Server Error";
     logger.error("[DestinyMap chat API error]", err);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }

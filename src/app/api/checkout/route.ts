@@ -20,6 +20,7 @@ import {
   type BillingCycle,
   type CreditPackKey
 } from '@/lib/payments/prices'
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const runtime = 'nodejs'
 
@@ -69,13 +70,13 @@ export async function POST(req: NextRequest) {
     const limit = await rateLimit(`checkout:${ip}`, { limit: 8, windowSeconds: 60 })
     const rateHeaders = new Headers(limit.headers)
     if (!limit.allowed) {
-      return NextResponse.json({ error: 'rate_limited' }, { status: 429, headers: rateHeaders })
+      return NextResponse.json({ error: 'rate_limited' }, { status: HTTP_STATUS.RATE_LIMITED, headers: rateHeaders })
     }
 
     // Authentication required
     const session = await getServerSession(authOptions)
     if (!session?.user) {
-      return NextResponse.json({ error: 'not_authenticated' }, { status: 401, headers: rateHeaders })
+      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED, headers: rateHeaders })
     }
     const sessionUser = session.user as SessionUser
 
@@ -84,7 +85,7 @@ export async function POST(req: NextRequest) {
       logger.error('ERR: NEXT_PUBLIC_BASE_URL missing')
       recordCounter('stripe_checkout_config_error', 1, { reason: 'missing_base_url' })
       captureServerError(new Error('NEXT_PUBLIC_BASE_URL missing'), { route: '/api/checkout', ip })
-      return NextResponse.json({ error: 'missing_base_url' }, { status: 500, headers: rateHeaders })
+      return NextResponse.json({ error: 'missing_base_url' }, { status: HTTP_STATUS.SERVER_ERROR, headers: rateHeaders })
     }
 
     const body = (await req.json().catch(() => ({}))) as CheckoutBody
@@ -93,10 +94,10 @@ export async function POST(req: NextRequest) {
     const creditPack = body.creditPack
 
     if (plan && creditPack) {
-      return NextResponse.json({ error: 'choose_one_of_plan_or_creditPack' }, { status: 400, headers: rateHeaders })
+      return NextResponse.json({ error: 'choose_one_of_plan_or_creditPack' }, { status: HTTP_STATUS.BAD_REQUEST, headers: rateHeaders })
     }
     if (!plan && !creditPack) {
-      return NextResponse.json({ error: 'missing_product' }, { status: 400, headers: rateHeaders })
+      return NextResponse.json({ error: 'missing_product' }, { status: HTTP_STATUS.BAD_REQUEST, headers: rateHeaders })
     }
 
     const stripe = getStripe()
@@ -104,13 +105,13 @@ export async function POST(req: NextRequest) {
       logger.error('ERR: STRIPE_SECRET_KEY missing')
       recordCounter('stripe_checkout_config_error', 1, { reason: 'missing_secret' })
       captureServerError(new Error('STRIPE_SECRET_KEY missing'), { route: '/api/checkout', ip })
-      return NextResponse.json({ error: 'missing_secret' }, { status: 500, headers: rateHeaders })
+      return NextResponse.json({ error: 'missing_secret' }, { status: HTTP_STATUS.SERVER_ERROR, headers: rateHeaders })
     }
 
     const email = sessionUser.email ?? ''
     if (!isValidEmail(email)) {
       logger.warn('[checkout] invalid email for session user', { userId: sessionUser.id })
-      return NextResponse.json({ error: 'invalid_email' }, { status: 400, headers: rateHeaders })
+      return NextResponse.json({ error: 'invalid_email' }, { status: HTTP_STATUS.BAD_REQUEST, headers: rateHeaders })
     }
 
     // Idempotency: use client-provided key when reasonable, otherwise generate
@@ -123,7 +124,7 @@ export async function POST(req: NextRequest) {
       if (!creditPrice || !allowedCreditPackIds().includes(creditPrice)) {
         logger.error('[checkout] credit pack price not allowed', { creditPack })
         recordCounter('stripe_checkout_price_error', 1, { type: 'credit_pack' })
-        return NextResponse.json({ error: 'invalid_credit_pack' }, { status: 400, headers: rateHeaders })
+        return NextResponse.json({ error: 'invalid_credit_pack' }, { status: HTTP_STATUS.BAD_REQUEST, headers: rateHeaders })
       }
 
       const checkout = await stripe.checkout.sessions.create(
@@ -144,10 +145,10 @@ export async function POST(req: NextRequest) {
       )
 
       if (!checkout.url) {
-        return NextResponse.json({ error: 'no_checkout_url' }, { status: 500, headers: rateHeaders })
+        return NextResponse.json({ error: 'no_checkout_url' }, { status: HTTP_STATUS.SERVER_ERROR, headers: rateHeaders })
       }
 
-      return NextResponse.json({ url: checkout.url }, { status: 200, headers: rateHeaders })
+      return NextResponse.json({ url: checkout.url }, { status: HTTP_STATUS.OK, headers: rateHeaders })
     }
 
     // Handle subscription purchase
@@ -157,7 +158,7 @@ export async function POST(req: NextRequest) {
     if (!price || !allowedPriceIds().includes(price)) {
       logger.error('[checkout] price not allowed', { plan: selectedPlan, billingCycle: selectedBilling })
       recordCounter('stripe_checkout_price_error', 1, { type: 'subscription' })
-      return NextResponse.json({ error: 'invalid_price' }, { status: 400, headers: rateHeaders })
+      return NextResponse.json({ error: 'invalid_price' }, { status: HTTP_STATUS.BAD_REQUEST, headers: rateHeaders })
     }
 
     const checkout = await stripe.checkout.sessions.create(
@@ -181,10 +182,10 @@ export async function POST(req: NextRequest) {
     )
 
     if (!checkout.url) {
-      return NextResponse.json({ error: 'no_checkout_url' }, { status: 500, headers: rateHeaders })
+      return NextResponse.json({ error: 'no_checkout_url' }, { status: HTTP_STATUS.SERVER_ERROR, headers: rateHeaders })
     }
 
-    return NextResponse.json({ url: checkout.url }, { status: 200, headers: rateHeaders })
+    return NextResponse.json({ url: checkout.url }, { status: HTTP_STATUS.OK, headers: rateHeaders })
   } catch (e: unknown) {
     const err = e as { raw?: { message?: string }; message?: string; code?: string }
     const msg = err?.raw?.message || err?.message || 'unknown'
@@ -193,7 +194,7 @@ export async function POST(req: NextRequest) {
     captureServerError(e, { route: '/api/checkout', message: msg })
     return NextResponse.json(
       { error: 'stripe_error', message: msg },
-      { status: 400 }
+      { status: HTTP_STATUS.BAD_REQUEST }
     )
   }
 }

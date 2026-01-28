@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { logger } from "@/lib/logger";
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export async function GET(
   req: NextRequest,
@@ -16,7 +17,7 @@ export async function GET(
     if (!sharedResult) {
       return NextResponse.json(
         { error: "Shared result not found" },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -45,7 +46,7 @@ export async function GET(
     logger.error("Error fetching shared result:", { error });
     return NextResponse.json(
       { error: "Failed to fetch shared result" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

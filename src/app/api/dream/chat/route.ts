@@ -89,6 +89,7 @@ interface EnhancedDreamContext {
 }
 
 import { ALLOWED_LOCALES, MESSAGE_LIMITS, TEXT_LIMITS, LIST_LIMITS, BODY_LIMITS } from '@/lib/constants/api-limits';
+import { HTTP_STATUS } from '@/lib/constants/http';
 const ALLOWED_CHAT_LOCALES = ALLOWED_LOCALES;
 const MAX_MESSAGES = MESSAGE_LIMITS.MAX_MESSAGES;
 const MAX_MESSAGE_LENGTH = MESSAGE_LIMITS.MAX_MESSAGE_LENGTH;
@@ -276,7 +277,7 @@ export async function POST(req: NextRequest) {
 
     const body = await parseRequestBody<any>(req, { context: 'Dream Chat' });
     if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const locale = typeof (body as Record<string, unknown>).locale === "string" && ALLOWED_CHAT_LOCALES.has((body as Record<string, unknown>).locale as string)
@@ -284,11 +285,11 @@ export async function POST(req: NextRequest) {
       : (context.locale as "ko" | "en");
     const messages = normalizeMessages((body as Record<string, unknown>).messages);
     if (!messages.length) {
-      return NextResponse.json({ error: "Messages required" }, { status: 400 });
+      return NextResponse.json({ error: "Messages required" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     const dreamContext = normalizeEnhancedDreamContext((body as Record<string, unknown>).dreamContext);
     if (!dreamContext) {
-      return NextResponse.json({ error: "Invalid dream context" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid dream context" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Credits already consumed by middleware
@@ -345,7 +346,7 @@ export async function POST(req: NextRequest) {
     logger.error("Dream chat error:", err);
     return NextResponse.json(
       { error: "Server error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

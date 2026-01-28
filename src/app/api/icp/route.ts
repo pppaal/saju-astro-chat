@@ -21,6 +21,7 @@ import { prisma, Prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
 import { parseJsonBody, validateFields } from '@/lib/api/validation';
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const latestResult = await prisma.iCPResult.findFirst({
@@ -55,7 +56,7 @@ export async function GET() {
     return NextResponse.json({ saved: true, result: latestResult });
   } catch (error) {
     logger.error("GET /api/icp error:", error);
-    return NextResponse.json({ error: "server_error" }, { status: 500 });
+    return NextResponse.json({ error: "server_error" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }
 

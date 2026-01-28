@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -85,6 +86,6 @@ export async function GET() {
       null,
       2
     ),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
+    { status: HTTP_STATUS.OK, headers: { 'Content-Type': 'application/json' } }
   );
 }

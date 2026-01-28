@@ -7,6 +7,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // GET - 특정 커플 타로 리딩 조회
 export async function GET(
@@ -16,7 +17,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const { readingId } = await params;
@@ -34,7 +35,7 @@ export async function GET(
     if (!reading) {
       return NextResponse.json(
         { error: '리딩을 찾을 수 없습니다' },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -42,7 +43,7 @@ export async function GET(
     if (!reading.isSharedReading) {
       return NextResponse.json(
         { error: '커플 리딩이 아닙니다' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -53,7 +54,7 @@ export async function GET(
     if (!isOwner && !isSharedWith) {
       return NextResponse.json(
         { error: '이 리딩에 대한 접근 권한이 없습니다' },
-        { status: 403 }
+        { status: HTTP_STATUS.FORBIDDEN }
       );
     }
 
@@ -108,7 +109,7 @@ export async function GET(
     logger.error('[couple-reading/[id]] GET error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to fetch reading' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

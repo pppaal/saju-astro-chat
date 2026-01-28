@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { linkReferrer } from "@/lib/referral";
 import { prisma } from "@/lib/db/prisma";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "not_authenticated" },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
     if (!referralCode) {
       return NextResponse.json(
         { error: "missing_referral_code" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
     logger.error("[Referral link error]", err);
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

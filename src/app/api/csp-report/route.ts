@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getClientIp } from "@/lib/request-ip";
 import { logger } from "@/lib/logger";
 import { rateLimit } from "@/lib/rateLimit";
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // Max body size for CSP reports (16KB)
 const MAX_REPORT_SIZE = 16 * 1024;
@@ -80,34 +81,34 @@ export async function POST(req: NextRequest) {
   // Rate limiting
   const limit = await rateLimit(`csp-report:${ip}`, RATE_LIMIT);
   if (!limit.allowed) {
-    return new NextResponse(null, { status: 429, headers: limit.headers });
+    return new NextResponse(null, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
   }
 
   try {
     // Check content length
     const contentLength = req.headers.get("content-length");
     if (contentLength && parseInt(contentLength, 10) > MAX_REPORT_SIZE) {
-      return new NextResponse(null, { status: 413 });
+      return new NextResponse(null, { status: HTTP_STATUS.PAYLOAD_TOO_LARGE });
     }
 
     // Parse the CSP report
     const text = await req.text();
     if (text.length > MAX_REPORT_SIZE) {
-      return new NextResponse(null, { status: 413 });
+      return new NextResponse(null, { status: HTTP_STATUS.PAYLOAD_TOO_LARGE });
     }
 
     let report: CSPViolationReport;
     try {
       report = JSON.parse(text);
     } catch {
-      return new NextResponse(null, { status: 400 });
+      return new NextResponse(null, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const cspReport = report["csp-report"];
 
     // Filter out ignored violations
     if (isIgnoredViolation(cspReport)) {
-      return new NextResponse(null, { status: 204, headers: limit.headers });
+      return new NextResponse(null, { status: HTTP_STATUS.NO_CONTENT, headers: limit.headers });
     }
 
     // Log the violation
@@ -133,10 +134,10 @@ export async function POST(req: NextRequest) {
     // 3. Send to security monitoring system
 
     // Return 204 No Content on success (standard for CSP reporting)
-    return new NextResponse(null, { status: 204, headers: limit.headers });
+    return new NextResponse(null, { status: HTTP_STATUS.NO_CONTENT, headers: limit.headers });
   } catch (error) {
     logger.error("[CSP Report] Failed to process report:", error);
-    return new NextResponse(null, { status: 500 });
+    return new NextResponse(null, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }
 

@@ -8,7 +8,7 @@ import { normalizeMessages as normalizeMessagesBase, type ChatMessage } from "@/
 import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
-import { HTTP_STATUS } from '@/lib/constants/formulas';
+import { HTTP_STATUS } from '@/lib/constants/http';
 import { ALLOWED_LOCALES, ALLOWED_GENDERS, MESSAGE_LIMITS, TEXT_LIMITS } from '@/lib/constants/api-limits';
 import { DATE_RE, TIME_RE } from '@/lib/validation/patterns';
 export const dynamic = "force-dynamic";

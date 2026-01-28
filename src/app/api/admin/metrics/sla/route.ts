@@ -16,6 +16,7 @@ import { getClientIp } from "@/lib/request-ip";
 import { getMetricsSnapshot } from "@/lib/metrics";
 import { SLA_THRESHOLDS } from "@/lib/metrics/schema";
 import { logger } from "@/lib/logger";
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(",").map((e) => e.trim().toLowerCase()) || [];
 
@@ -90,20 +91,20 @@ export async function GET(req: NextRequest) {
     if (!limit.allowed) {
       return NextResponse.json(
         { error: "Too many requests" },
-        { status: 429, headers: limit.headers }
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
       );
     }
 
     // Admin authentication
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
     }
 
     const isAdmin = ADMIN_EMAILS.includes(session.user.email.toLowerCase());
     if (!isAdmin) {
       logger.warn("[SLA] Unauthorized access attempt", { email: session.user.email });
-      return NextResponse.json({ error: "Forbidden" }, { status: 403, headers: limit.headers });
+      return NextResponse.json({ error: "Forbidden" }, { status: HTTP_STATUS.FORBIDDEN, headers: limit.headers });
     }
 
     // Get metrics snapshot
@@ -218,6 +219,6 @@ export async function GET(req: NextRequest) {
     );
   } catch (err) {
     logger.error("[SLA API Error]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }

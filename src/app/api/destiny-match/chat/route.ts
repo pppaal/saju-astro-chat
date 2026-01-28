@@ -10,13 +10,14 @@ import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
 import { sendPushNotification } from '@/lib/notifications/pushService';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // GET - 특정 매치의 채팅 메시지 조회
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const searchParams = req.nextUrl.searchParams;
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
     if (!connectionId) {
       return NextResponse.json(
         { error: 'connectionId is required' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
     if (!connection) {
       return NextResponse.json(
         { error: '매치를 찾을 수 없습니다' },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -53,7 +54,7 @@ export async function GET(req: NextRequest) {
     if (!isUser1 && !isUser2) {
       return NextResponse.json(
         { error: '이 채팅에 대한 권한이 없습니다' },
-        { status: 403 }
+        { status: HTTP_STATUS.FORBIDDEN }
       );
     }
 
@@ -95,7 +96,7 @@ export async function GET(req: NextRequest) {
     logger.error('[match-chat] GET error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to fetch messages' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -109,7 +110,7 @@ export async function POST(req: NextRequest) {
     if (!limit.allowed) {
       return NextResponse.json(
         { error: 'Too many requests. Please wait.' },
-        { status: 429, headers: limit.headers }
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
       );
     }
 
@@ -117,7 +118,7 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401, headers: limit.headers }
+        { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers }
       );
     }
 
@@ -127,7 +128,7 @@ export async function POST(req: NextRequest) {
     if (!connectionId || !content?.trim()) {
       return NextResponse.json(
         { error: 'connectionId and content are required' },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -135,7 +136,7 @@ export async function POST(req: NextRequest) {
     if (content.length > 2000) {
       return NextResponse.json(
         { error: '메시지가 너무 깁니다 (최대 2000자)' },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -161,14 +162,14 @@ export async function POST(req: NextRequest) {
     if (!connection) {
       return NextResponse.json(
         { error: '매치를 찾을 수 없습니다' },
-        { status: 404, headers: limit.headers }
+        { status: HTTP_STATUS.NOT_FOUND, headers: limit.headers }
       );
     }
 
     if (connection.status !== 'active') {
       return NextResponse.json(
         { error: '이 매치는 더 이상 활성 상태가 아닙니다' },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -178,7 +179,7 @@ export async function POST(req: NextRequest) {
     if (!isUser1 && !isUser2) {
       return NextResponse.json(
         { error: '이 채팅에 대한 권한이 없습니다' },
-        { status: 403, headers: limit.headers }
+        { status: HTTP_STATUS.FORBIDDEN, headers: limit.headers }
       );
     }
 
@@ -238,7 +239,7 @@ export async function POST(req: NextRequest) {
     logger.error('[match-chat] POST error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to send message' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

@@ -24,6 +24,7 @@ export const maxDuration = 180;
 const enableDebugLogs = process.env.ENABLE_DESTINY_LOGS === "true";
 
 import { ALLOWED_LOCALES, ALLOWED_GENDERS } from '@/lib/constants/api-limits';
+import { HTTP_STATUS } from '@/lib/constants/http';
 const ALLOWED_LANG = ALLOWED_LOCALES;
 const ALLOWED_GENDER = new Set([...ALLOWED_GENDERS, "prefer_not"]);
 
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!body) {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const name = typeof body.name === "string" ? body.name.trim().slice(0, LIMITS.NAME) : undefined;
@@ -118,22 +119,22 @@ export async function POST(request: NextRequest) {
     // Validate required fields using shared utilities
     if (!birthDate || !birthTime || latitude === undefined || longitude === undefined) {
       logger.error("[API] Missing required fields");
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ error: "Missing required fields" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (!isValidDate(birthDate)) {
-      return NextResponse.json({ error: "Invalid birthDate" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid birthDate" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (!isValidTime(birthTime)) {
-      return NextResponse.json({ error: "Invalid birthTime" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid birthTime" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (!isValidLatitude(latitude)) {
-      return NextResponse.json({ error: "Invalid latitude" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid latitude" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (!isValidLongitude(longitude)) {
-      return NextResponse.json({ error: "Invalid longitude" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid longitude" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (userTimezone && (!userTimezone.includes("/") || userTimezone.length < 3)) {
-      return NextResponse.json({ error: "Invalid userTimezone" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid userTimezone" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     if (enableDebugLogs) {
@@ -410,7 +411,7 @@ export async function POST(request: NextRequest) {
           warnings: validationWarnings,
           ...responsePayload,
         },
-        { status: 200 }
+        { status: HTTP_STATUS.OK }
       );
     }
 
@@ -419,6 +420,6 @@ export async function POST(request: NextRequest) {
     const message = err instanceof Error ? err.message : "Internal Server Error";
     logger.error("[DestinyMap API Error]:", err);
     recordCounter("destiny.report.failure", 1);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }

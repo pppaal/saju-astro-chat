@@ -3,6 +3,7 @@ import fs from "fs/promises";
 import path from "path";
 import { logger } from '@/lib/logger';
 import { getCityNameInKorean, getCountryNameInKorean } from '@/lib/cities/formatter';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const runtime = "nodejs";
 
@@ -116,6 +117,6 @@ export async function GET(request: Request) {
     return response;
   } catch (error) {
     logger.error("[cities] Failed to load city data", error);
-    return NextResponse.json({ error: "Failed to load cities" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to load cities" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }

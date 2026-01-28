@@ -12,6 +12,7 @@ import { parseRequestBody } from '@/lib/api/requestParser';
 
 import { PATTERNS } from '@/lib/constants/api-limits';
 import { LIMITS } from '@/lib/validation/patterns';
+import { HTTP_STATUS } from '@/lib/constants/http';
 const EMAIL_RE = PATTERNS.EMAIL;
 const MAX_NAME = LIMITS.NAME;
 const MAX_REFERRAL = LIMITS.REFERRAL_CODE;
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
     const ip = getClientIp(req.headers as Headers);
     const limit = await rateLimit(`register:${ip}`, { limit: 10, windowSeconds: 300 });
     if (!limit.allowed) {
-      return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: limit.headers });
+      return NextResponse.json({ error: "rate_limited" }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
     }
 
     const oversized = enforceBodySize(req, 32 * 1024, limit.headers);
@@ -44,18 +45,18 @@ export async function POST(req: Request) {
     const referralCode = typeof body?.referralCode === "string" ? body.referralCode.trim().slice(0, MAX_REFERRAL) : undefined;
 
     if (!email || !password) {
-      return NextResponse.json({ error: "missing_fields" }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "missing_fields" }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
     }
     if (!EMAIL_RE.test(email) || email.length > 254) {
-      return NextResponse.json({ error: "invalid_email" }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "invalid_email" }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
     }
     if (password.length < MIN_PASSWORD || password.length > MAX_PASSWORD) {
-      return NextResponse.json({ error: "invalid_password" }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "invalid_password" }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing?.passwordHash) {
-      return NextResponse.json({ error: "user_exists" }, { status: 409, headers: limit.headers });
+      return NextResponse.json({ error: "user_exists" }, { status: HTTP_STATUS.CONFLICT, headers: limit.headers });
     }
 
     const hash = await bcrypt.hash(password, 10);
@@ -86,6 +87,6 @@ export async function POST(req: Request) {
   } catch (err: unknown) {
     logger.error("[register] error", err);
     const sanitized = sanitizeError(err, 'authentication');
-    return NextResponse.json(sanitized, { status: 500 });
+    return NextResponse.json(sanitized, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }

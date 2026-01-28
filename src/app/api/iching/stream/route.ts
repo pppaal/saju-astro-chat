@@ -15,6 +15,7 @@ import {
   calculateNuclearHexagram,
   calculateRelatedHexagrams
 } from '@/lib/iChing/iChingPremiumData';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 interface ChangingLine {
   index: number;
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
     if (!hexagramNumber || !hexagramName) {
       return NextResponse.json(
         { error: "Hexagram data required" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -145,7 +146,7 @@ export async function POST(req: NextRequest) {
     logger.error("I Ching stream error:", err);
     return NextResponse.json(
       { error: "Server error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

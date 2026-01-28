@@ -17,6 +17,7 @@ import {
   findNatalAspectsPlus,
   buildEngineMeta,
 } from "@/lib/astrology";
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -132,10 +133,10 @@ export async function POST(request: Request) {
     const ip = getClientIp(request.headers);
     const limit = await rateLimit(`astro-details:${ip}`, { limit: 30, windowSeconds: 60 });
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: 429, headers: limit.headers });
+      return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
     }
     const tokenCheck = requirePublicToken(request); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
     }
 
     const body = await request.json();
@@ -146,18 +147,18 @@ export async function POST(request: Request) {
     if (!date || !time || latitude === undefined || longitude === undefined || !timeZone) {
       return NextResponse.json(
         { error: "date, time, latitude, longitude, and timeZone are required." },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
         latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-      return NextResponse.json({ error: "latitude/longitude out of range." }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "latitude/longitude out of range." }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
     }
 
     const [year, month, day] = String(date).split("-").map(Number);
     if (!year || !month || !day) {
-      return NextResponse.json({ error: "date must be YYYY-MM-DD." }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "date must be YYYY-MM-DD." }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
     }
 
     const { h, m } = parseHM(String(time));
@@ -168,7 +169,7 @@ export async function POST(request: Request) {
       String(timeZone)
     );
     if (!local.isValid()) {
-      return NextResponse.json({ error: "Invalid date/time/timeZone combination." }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "Invalid date/time/timeZone combination." }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
     }
 
     const opts = resolveOptions(options);
@@ -248,13 +249,13 @@ export async function POST(request: Request) {
         interpretation,
         advanced,
       },
-      { status: 200 }
+      { status: HTTP_STATUS.OK }
     );
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     return res;
   } catch (error) {
     captureServerError(error, { route: "/api/astrology/details" });
     const message = error instanceof Error ? error.message : "Unexpected server error.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }

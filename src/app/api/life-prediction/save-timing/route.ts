@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth/authOptions';
 import { prisma } from '@/lib/db/prisma';
 import { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 interface TimingResult {
   startDate: string;
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Authentication required' },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     if (!question || !results || results.length === 0) {
       return NextResponse.json(
         { success: false, error: 'question and results are required' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: error instanceof Error ? error.message : 'Internal server error'
       },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

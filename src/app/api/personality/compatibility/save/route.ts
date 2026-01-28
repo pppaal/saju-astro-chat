@@ -5,6 +5,7 @@ import { prisma, Prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
 import type { ICPQuizAnswers } from '@/lib/icp/types';
 import type { PersonaQuizAnswers } from '@/lib/persona/types';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -85,7 +86,7 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
     if (!person1?.icp || !person1?.persona || !person2?.icp || !person2?.persona || !compatibility) {
       return NextResponse.json(
         { error: 'Missing required fields' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -160,7 +161,7 @@ export async function POST(req: NextRequest) {
     logger.error('Error saving compatibility result:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -173,7 +174,7 @@ export async function GET(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -183,7 +184,7 @@ export async function GET(req: NextRequest) {
     if (!id) {
       return NextResponse.json(
         { error: 'Missing id parameter' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -197,7 +198,7 @@ export async function GET(req: NextRequest) {
     if (!compatibilityResult) {
       return NextResponse.json(
         { error: 'Compatibility result not found' },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -208,7 +209,7 @@ export async function GET(req: NextRequest) {
     logger.error('Error retrieving compatibility result:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

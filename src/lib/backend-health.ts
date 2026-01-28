@@ -2,7 +2,7 @@
 
 import { recordCounter, recordTiming } from "@/lib/metrics";
 import { logger } from "@/lib/logger";
-import { HTTP_TIMEOUTS } from "@/lib/constants/formulas";
+import { HTTP_TIMEOUTS } from "@/lib/constants/http";
 
 interface HealthStatus {
   healthy: boolean;

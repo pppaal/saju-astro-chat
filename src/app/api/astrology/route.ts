@@ -24,6 +24,7 @@ import {
 import { logger } from '@/lib/logger';
 import { validateRequestBody, astrologyRequestSchema } from '@/lib/api/zodValidation';
 import { validationError } from '@/lib/api/errorResponse';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -158,10 +159,10 @@ export async function POST(request: Request) {
     const ip = getClientIp(request.headers);
     const limit = await rateLimit(`astro:${ip}`, { limit: 30, windowSeconds: 60 });
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: 429, headers: limit.headers });
+      return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
     }
     const tokenCheck = requirePublicToken(request); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
     }
 
     const oversized = enforceBodySize(request as Request & { body?: ReadableStream }, BODY_LIMIT, limit.headers);
@@ -194,7 +195,7 @@ export async function POST(request: Request) {
       String(timeZone)
     );
     if (!local.isValid()) {
-      return NextResponse.json({ error: "Invalid date/time/timeZone combination." }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "Invalid date/time/timeZone combination." }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
     }
 
     const opts = resolveOptions(options);
@@ -326,7 +327,7 @@ export async function POST(request: Request) {
         advanced,
         debug: { locale: locKey, opts },
       },
-      { status: 200 }
+      { status: HTTP_STATUS.OK }
     );
     limit.headers.forEach((value, key) => res.headers.set(key, value));
     res.headers.set("Cache-Control", "no-store");
@@ -335,7 +336,7 @@ export async function POST(request: Request) {
     captureServerError(error as Error, { route: "/api/astrology" });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unexpected server error." },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

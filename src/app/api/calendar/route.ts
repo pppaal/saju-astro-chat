@@ -33,6 +33,7 @@ export const dynamic = "force-dynamic";
 
 import { ALLOWED_LOCALES } from '@/lib/constants/api-limits';
 import { TIME_RE, LIMITS } from '@/lib/validation/patterns';
+import { HTTP_STATUS } from '@/lib/constants/http';
 const VALID_CALENDAR_LOCALES = ALLOWED_LOCALES;
 const VALID_CALENDAR_GENDERS = new Set(["male", "female"]);
 const VALID_CALENDAR_CATEGORIES: readonly EventCategory[] = [
@@ -79,14 +80,14 @@ export async function GET(request: NextRequest) {
     if (!birthDateParam) {
       return NextResponse.json(
         { error: "Birth date required", message: "생년월일을 입력해주세요." },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
     // 생년월일 파싱 (UTC 오프셋 영향 없이 고정)
     const birthDate = parseBirthDate(birthDateParam);
     if (!birthDate) {
-      return NextResponse.json({ error: "Invalid birth date" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid birth date" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const birthTimeParam = (searchParams.get("birthTime") || "12:00").trim().slice(0, 5);
@@ -113,10 +114,10 @@ export async function GET(request: NextRequest) {
       : null;
 
     if (!CALENDAR_TIME_RE.test(birthTimeParam)) {
-      return NextResponse.json({ error: "Invalid birth time" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid birth time" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if ((yearParam && !CALENDAR_YEAR_RE.test(yearParam)) || !Number.isFinite(year) || year < 1900 || year > 2100) {
-      return NextResponse.json({ error: "Invalid year" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid year" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     // birthPlace는 항상 유효한 값이 있음 (기본값: Seoul)
     const coords = LOCATION_COORDS[birthPlace] || LOCATION_COORDS["Seoul"];
@@ -136,7 +137,7 @@ export async function GET(request: NextRequest) {
       logger.error("[Calendar] Saju calculation error:", sajuError);
       return NextResponse.json(
         { error: "Failed to calculate saju data" },
-        { status: 500 }
+        { status: HTTP_STATUS.SERVER_ERROR }
       );
     }
 
@@ -359,7 +360,7 @@ export async function GET(request: NextRequest) {
     logger.error("Calendar API error:", error);
     return NextResponse.json(
       { error: "Internal server error", message: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getWeeklyFortuneImage } from '@/lib/weeklyFortune';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // 클라이언트에서 주간 운세 이미지 조회
 export async function GET() {
@@ -14,7 +15,7 @@ export async function GET() {
           message: 'No weekly fortune image available yet'
         },
         {
-          status: 200,
+          status: HTTP_STATUS.OK,
           headers: {
             'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
           }
@@ -31,7 +32,7 @@ export async function GET() {
     logger.error('[WeeklyFortune] Error fetching', { error });
     return NextResponse.json(
       { error: 'Failed to fetch weekly fortune image' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

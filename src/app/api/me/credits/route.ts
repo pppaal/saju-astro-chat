@@ -21,6 +21,7 @@ const ALLOWED_CREDIT_TYPES = new Set<("reading" | "compatibility" | "followUp")>
 ]);
 const ALLOWED_FEATURES = new Set<FeatureType>(Object.keys(PLAN_CONFIG.free.features) as FeatureType[]);
 import { LIMITS } from '@/lib/validation/patterns';
+import { HTTP_STATUS } from '@/lib/constants/http';
 const MAX_CREDIT_AMOUNT = LIMITS.CREDIT_AMOUNT;
 type CreditType = "reading" | "compatibility" | "followUp";
 const isCreditType = (value: string): value is CreditType =>
@@ -69,7 +70,7 @@ export async function GET() {
     logger.error("[Credits GET error]", err);
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "not_authenticated", allowed: false },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -93,7 +94,7 @@ export async function POST(request: Request) {
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         { error: "invalid_body", allowed: false },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -102,7 +103,7 @@ export async function POST(request: Request) {
     if (typeRaw && !isCreditType(typeRaw)) {
       return NextResponse.json(
         { error: "invalid_type", allowed: false },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -122,7 +123,7 @@ export async function POST(request: Request) {
     if (featureRaw && !feature) {
       return NextResponse.json(
         { error: "invalid_feature", allowed: false },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -144,7 +145,7 @@ export async function POST(request: Request) {
     logger.error("[Credits POST error]", err);
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

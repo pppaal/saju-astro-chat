@@ -7,13 +7,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // GET - 내 매치 목록 조회
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const searchParams = req.nextUrl.searchParams;
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
     if (!myProfile) {
       return NextResponse.json(
         { error: '먼저 매칭 프로필을 설정해주세요' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -143,7 +144,7 @@ export async function GET(req: NextRequest) {
     logger.error('[destiny-match/matches] GET error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to fetch matches' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -153,7 +154,7 @@ export async function DELETE(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const { connectionId } = await req.json();
@@ -161,7 +162,7 @@ export async function DELETE(req: NextRequest) {
     if (!connectionId) {
       return NextResponse.json(
         { error: 'connectionId is required' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -173,7 +174,7 @@ export async function DELETE(req: NextRequest) {
     if (!myProfile) {
       return NextResponse.json(
         { error: '먼저 매칭 프로필을 설정해주세요' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -185,14 +186,14 @@ export async function DELETE(req: NextRequest) {
     if (!connection) {
       return NextResponse.json(
         { error: '매치를 찾을 수 없습니다' },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
     if (connection.user1Id !== myProfile.id && connection.user2Id !== myProfile.id) {
       return NextResponse.json(
         { error: '권한이 없습니다' },
-        { status: 403 }
+        { status: HTTP_STATUS.FORBIDDEN }
       );
     }
 
@@ -226,7 +227,7 @@ export async function DELETE(req: NextRequest) {
     logger.error('[destiny-match/matches] DELETE error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to unmatch' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

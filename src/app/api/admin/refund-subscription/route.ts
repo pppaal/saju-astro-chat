@@ -14,7 +14,7 @@ import { csrfGuard } from "@/lib/security/csrf";
 import { BASE_CREDIT_PRICE_KRW } from "@/lib/config/pricing";
 
 import { parseRequestBody } from '@/lib/api/requestParser';
-import { HTTP_STATUS } from '@/lib/constants/formulas';
+import { HTTP_STATUS } from '@/lib/constants/http';
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2025-10-29.clover";
 // Use centralized pricing constant for refund calculations
 const MINI_CREDIT_PRICE_KRW = BASE_CREDIT_PRICE_KRW;

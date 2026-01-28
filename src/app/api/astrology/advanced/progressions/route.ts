@@ -12,16 +12,17 @@ import {
   getProgressedMoonPhase,
   getProgressionSummary,
 } from "@/lib/astrology";
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request.headers);
     const limit = await rateLimit(`astro-progressions:${ip}`, { limit: 20, windowSeconds: 60 });
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: 429, headers: limit.headers });
+      return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
     }
     const tokenCheck = requirePublicToken(request); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
     }
 
     const body = await request.json();
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     if (!date || !time || latitude === undefined || longitude === undefined || !timeZone) {
       return NextResponse.json(
         { error: "date, time, latitude, longitude, and timeZone are required." },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
     if (!birthYear || !birthMonth || !birthDay || hour === undefined || minute === undefined) {
       return NextResponse.json(
         { error: "Invalid date or time format." },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -94,7 +95,7 @@ export async function POST(request: Request) {
         } : null,
         targetDate: target,
       },
-      { status: 200 }
+      { status: HTTP_STATUS.OK }
     );
 
     limit.headers.forEach((value, key) => res.headers.set(key, value));
@@ -105,7 +106,7 @@ export async function POST(request: Request) {
     captureServerError(error, { route: "/api/astrology/advanced/progressions" });
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

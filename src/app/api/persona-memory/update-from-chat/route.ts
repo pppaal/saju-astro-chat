@@ -9,6 +9,7 @@ import { summarizeConversation } from "@/lib/ai/summarize";
 import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = "force-dynamic";
 
 // summarize.ts의 ChatMessage와 호환되는 타입 (system role 제외)
@@ -36,12 +37,12 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const body = (await request.json().catch(() => null)) as RequestBody | null;
     if (!body || !body.messages || !Array.isArray(body.messages)) {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const { sessionId, theme, locale, messages, saju, astro } = body;
@@ -136,7 +137,7 @@ export async function POST(request: Request) {
     logger.error("[PersonaMemory update-from-chat error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

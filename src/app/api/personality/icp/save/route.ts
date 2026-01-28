@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth/authOptions';
 import { prisma, Prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
 import type { ICPQuizAnswers } from '@/lib/icp/types';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
           message: `Missing required fields: ${missing.join(', ')}`,
           fields: missing,
         },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
           error: 'invalid_primary_style',
           message: `Invalid primaryStyle: "${primaryStyle}". Must be one of: ${VALID_OCTANTS.join(', ')}`,
         },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
           error: 'invalid_secondary_style',
           message: `Invalid secondaryStyle: "${secondaryStyle}". Must be one of: ${VALID_OCTANTS.join(', ')}`,
         },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -100,7 +101,7 @@ export async function POST(req: NextRequest) {
           error: 'invalid_score_range',
           message: `dominanceScore must be between 0 and 100, got: ${dominanceScore}`,
         },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -110,7 +111,7 @@ export async function POST(req: NextRequest) {
           error: 'invalid_score_range',
           message: `affiliationScore must be between 0 and 100, got: ${affiliationScore}`,
         },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -140,7 +141,7 @@ export async function POST(req: NextRequest) {
     logger.error('Error saving ICP result:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -153,7 +154,7 @@ export async function GET(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -163,7 +164,7 @@ export async function GET(req: NextRequest) {
     if (!id) {
       return NextResponse.json(
         { error: 'Missing id parameter' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -177,7 +178,7 @@ export async function GET(req: NextRequest) {
     if (!icpResult) {
       return NextResponse.json(
         { error: 'ICP result not found' },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -188,7 +189,7 @@ export async function GET(req: NextRequest) {
     logger.error('Error retrieving ICP result:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

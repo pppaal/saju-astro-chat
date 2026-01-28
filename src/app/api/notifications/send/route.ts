@@ -5,6 +5,7 @@ import { sendNotification } from "@/lib/notifications/sse";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 
@@ -16,14 +17,14 @@ export async function POST(_request: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
   }
 
   try {
     const ip = getClientIp(_request.headers);
     const limit = await rateLimit(`notify:${session.user.id ?? session.user.email}:${ip}`, { limit: 20, windowSeconds: 60 });
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: limit.headers });
+      return NextResponse.json({ error: "Too many requests" }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
     }
 
     const body = await _request.json();
@@ -32,7 +33,7 @@ export async function POST(_request: NextRequest) {
     if (!targetUserId || !type || !title || !message) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -42,7 +43,7 @@ export async function POST(_request: NextRequest) {
     if (!allowedTargets.has(targetUserId)) {
       return NextResponse.json(
         { error: "Forbidden: cannot send to other users" },
-        { status: 403, headers: limit.headers }
+        { status: HTTP_STATUS.FORBIDDEN, headers: limit.headers }
       );
     }
 
@@ -64,7 +65,7 @@ export async function POST(_request: NextRequest) {
     logger.error("Error in send notification:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -77,13 +78,13 @@ export async function GET(_request: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
   }
 
   const ip = getClientIp(_request.headers);
   const limit = await rateLimit(`notify:test:${session.user.id ?? session.user.email}:${ip}`, { limit: 10, windowSeconds: 60 });
   if (!limit.allowed) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: limit.headers });
+    return NextResponse.json({ error: "Too many requests" }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
   }
 
   // Send a test notification to the current user

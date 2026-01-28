@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export type DreamHistoryItem = {
   id: string;
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const userId = session.user.id;
@@ -84,7 +85,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     logger.error('Error fetching dream history:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }
 
@@ -94,14 +95,14 @@ export async function DELETE(req: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 
     if (!id || id.length > 100) {
-      return NextResponse.json({ error: 'Missing id parameter' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing id parameter' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Verify ownership and delete
@@ -114,12 +115,12 @@ export async function DELETE(req: NextRequest) {
     });
 
     if (deleted.count === 0) {
-      return NextResponse.json({ error: 'Dream not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Dream not found' }, { status: HTTP_STATUS.NOT_FOUND });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
     logger.error('Error deleting dream:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }

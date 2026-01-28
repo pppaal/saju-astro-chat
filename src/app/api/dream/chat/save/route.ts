@@ -11,6 +11,7 @@ import { logger } from '@/lib/logger';
 import { type ChatMessage } from "@/lib/api";
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 interface SaveDreamChatRequest {
   dreamId?: string;  // Optional: link to existing dream interpretation
   dreamText: string;
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
     if (!limit.allowed) {
       return NextResponse.json(
         { error: "Too many requests" },
-        { status: 429, headers: limit.headers }
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
       );
     }
 
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Login required to save chat history" },
-        { status: 401, headers: limit.headers }
+        { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers }
       );
     }
 
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         { error: "Invalid request body" },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
         { error: "No messages to save" },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -138,7 +139,7 @@ export async function POST(req: Request) {
     logger.error("[DreamChatSave] Error:", err);
     return NextResponse.json(
       { error: "Failed to save chat history" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -152,7 +153,7 @@ export async function GET(req: Request) {
     if (!limit.allowed) {
       return NextResponse.json(
         { error: "Too many requests" },
-        { status: 429, headers: limit.headers }
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
       );
     }
 
@@ -160,7 +161,7 @@ export async function GET(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Login required" },
-        { status: 401, headers: limit.headers }
+        { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers }
       );
     }
 
@@ -220,7 +221,7 @@ export async function GET(req: Request) {
     logger.error("[DreamChatHistory] Error:", err);
     return NextResponse.json(
       { error: "Failed to fetch history" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

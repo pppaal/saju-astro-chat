@@ -8,6 +8,7 @@ import { apiClient } from "@/lib/api/ApiClient";
 import { enforceBodySize } from "@/lib/http";
 import { sanitizeString } from "@/lib/api/sanitizers";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 interface CardInput {
   name: string;
@@ -292,7 +293,7 @@ export async function POST(req: NextRequest) {
     if (!categoryId || rawCards.length === 0) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -533,7 +534,7 @@ ${cardListText}
     logger.error('Tarot stream error:', { error: err });
     return NextResponse.json(
       { error: "Server error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

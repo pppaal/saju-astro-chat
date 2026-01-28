@@ -9,6 +9,7 @@ import { prisma } from '@/lib/db/prisma';
 import { getCompatibilitySummary } from '@/lib/destiny-match/quickCompatibility';
 import { quickPersonalityScore } from '@/lib/destiny-match/personalityCompatibility';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // Haversine 공식으로 거리 계산 (km)
 function calculateDistance(
@@ -48,7 +49,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const searchParams = req.nextUrl.searchParams;
@@ -75,7 +76,7 @@ export async function GET(req: NextRequest) {
     if (!myProfile) {
       return NextResponse.json(
         { error: '먼저 매칭 프로필을 설정해주세요' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -319,7 +320,7 @@ export async function GET(req: NextRequest) {
     logger.error('[destiny-match/discover] GET error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to discover profiles' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

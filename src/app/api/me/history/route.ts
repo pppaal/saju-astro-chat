@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/authOptions"
 import { prisma } from "@/lib/db/prisma"
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 type ServiceRecord = {
   id: string
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
     const userId = session.user.id
@@ -329,6 +330,6 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     logger.error("Error fetching history:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }

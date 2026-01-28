@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getBackendUrl } from '@/lib/backend-url';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // ============================================================
 // 백엔드 RAG 컨텍스트 호출
@@ -153,7 +154,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ExplainRe
     if (!optimalPeriods || optimalPeriods.length === 0) {
       return NextResponse.json(
         { success: false, error: '분석 결과가 없습니다.' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 

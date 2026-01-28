@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // ===========================
 // GET - 리포트 조회
@@ -21,7 +22,7 @@ export async function GET(
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: { code: 'AUTH_REQUIRED', message: '로그인이 필요합니다.' } },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -55,7 +56,7 @@ export async function GET(
     if (!report) {
       return NextResponse.json(
         { success: false, error: { code: 'NOT_FOUND', message: '리포트를 찾을 수 없습니다.' } },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -94,7 +95,7 @@ export async function GET(
           message: '리포트 조회 중 오류가 발생했습니다.'
         }
       },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -113,7 +114,7 @@ export async function DELETE(
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: { code: 'AUTH_REQUIRED', message: '로그인이 필요합니다.' } },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -131,7 +132,7 @@ export async function DELETE(
     if (deleted.count === 0) {
       return NextResponse.json(
         { success: false, error: { code: 'NOT_FOUND', message: '리포트를 찾을 수 없습니다.' } },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -151,7 +152,7 @@ export async function DELETE(
           message: '리포트 삭제 중 오류가 발생했습니다.'
         }
       },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

@@ -40,6 +40,7 @@ import {
   performAdvancedAnalysis,
   isRecord,
 } from './services';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 /* -----------------------------
    Handler
@@ -49,12 +50,12 @@ export async function POST(req: Request) {
     const ip = getClientIp(req.headers as Headers);
     const body = await parseRequestBody<any>(req, { context: 'Saju' });
     if (!body) {
-      return NextResponse.json({ message: 'Invalid JSON body.' }, { status: 400 });
+      return NextResponse.json({ message: 'Invalid JSON body.' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const { birthDate: birthDateString, birthTime: birthTimeRaw, gender, calendarType, timezone, userTimezone } = body;
     if (!birthDateString || !birthTimeRaw || !gender || !calendarType || !timezone) {
-      return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
+      return NextResponse.json({ message: 'Missing required fields.' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // 세션 및 크레딧 확인
@@ -375,6 +376,6 @@ const rawShinsal = getShinsalHits(sajuPillars, {
   } catch (error) {
     logger.error('[API /api/saju] Uncaught error:', error);
     const sanitized = sanitizeError(error, 'internal');
-    return NextResponse.json(sanitized, { status: 500 });
+    return NextResponse.json(sanitized, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }

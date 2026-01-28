@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 // Edge 환경이면 Prisma/NextAuth 이슈가 있을 수 있어 Node 런타임을 강제
 export const runtime = 'nodejs'
 
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
 
   // 로그인 상태 확인
   if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
   }
 
   try {
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
 
     // 기본 유효성 검사
     if (!birthDate) {
-      return NextResponse.json({ error: 'Birth date is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Birth date is required' }, { status: HTTP_STATUS.BAD_REQUEST })
     }
 
     // DB 업데이트
@@ -52,9 +53,9 @@ export async function POST(request: Request) {
       },
     })
 
-    return NextResponse.json({ ok: true, user }, { status: 200 })
+    return NextResponse.json({ ok: true, user }, { status: HTTP_STATUS.OK })
   } catch (error) {
     logger.error("POST /api/user/update-birth-info error:", error)
-    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to update user' }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }

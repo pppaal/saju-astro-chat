@@ -3,13 +3,14 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/authOptions"
 import { prisma } from "@/lib/db/prisma"
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // GET - List all saved people
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
     const people = await prisma.savedPerson.findMany({
@@ -20,7 +21,7 @@ export async function GET() {
     return NextResponse.json({ people })
   } catch (error) {
     logger.error("Error fetching circle:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }
 
@@ -29,31 +30,31 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
     const body = await req.json()
     const { name, relation, birthDate, birthTime, gender, birthCity, latitude, longitude, tzId, note } = body
 
     if (!name || !relation) {
-      return NextResponse.json({ error: "Name and relation are required" }, { status: 400 })
+      return NextResponse.json({ error: "Name and relation are required" }, { status: HTTP_STATUS.BAD_REQUEST })
     }
 
     // 입력값 검증
     if (typeof name !== 'string' || name.length > 100) {
-      return NextResponse.json({ error: "Invalid name" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid name" }, { status: HTTP_STATUS.BAD_REQUEST })
     }
     if (typeof relation !== 'string' || relation.length > 50) {
-      return NextResponse.json({ error: "Invalid relation" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid relation" }, { status: HTTP_STATUS.BAD_REQUEST })
     }
     if (latitude != null && (typeof latitude !== 'number' || latitude < -90 || latitude > 90)) {
-      return NextResponse.json({ error: "Invalid latitude" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid latitude" }, { status: HTTP_STATUS.BAD_REQUEST })
     }
     if (longitude != null && (typeof longitude !== 'number' || longitude < -180 || longitude > 180)) {
-      return NextResponse.json({ error: "Invalid longitude" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid longitude" }, { status: HTTP_STATUS.BAD_REQUEST })
     }
     if (note && (typeof note !== 'string' || note.length > 500)) {
-      return NextResponse.json({ error: "Note too long (max 500)" }, { status: 400 })
+      return NextResponse.json({ error: "Note too long (max 500)" }, { status: HTTP_STATUS.BAD_REQUEST })
     }
 
     const person = await prisma.savedPerson.create({
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ person })
   } catch (error) {
     logger.error("Error adding person:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }
 
@@ -84,14 +85,14 @@ export async function DELETE(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
     const { searchParams } = new URL(req.url)
     const id = searchParams.get("id")
 
     if (!id) {
-      return NextResponse.json({ error: "ID is required" }, { status: 400 })
+      return NextResponse.json({ error: "ID is required" }, { status: HTTP_STATUS.BAD_REQUEST })
     }
 
     // Verify ownership
@@ -100,7 +101,7 @@ export async function DELETE(req: NextRequest) {
     })
 
     if (!person || person.userId !== session.user.id) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 })
+      return NextResponse.json({ error: "Not found" }, { status: HTTP_STATUS.NOT_FOUND })
     }
 
     await prisma.savedPerson.delete({
@@ -110,6 +111,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error) {
     logger.error("Error deleting person:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }

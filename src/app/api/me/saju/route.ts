@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth/authOptions';
 import { prisma } from '@/lib/db/prisma';
 import { calculateSajuData } from '@/lib/Saju';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // 오행 한글 매핑
 const ELEMENT_KOREAN: Record<string, string> = {
@@ -29,7 +30,7 @@ export async function GET() {
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: { code: 'AUTH_REQUIRED', message: '로그인이 필요합니다.' } },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -52,7 +53,7 @@ export async function GET() {
     if (!user) {
       return NextResponse.json(
         { success: false, error: { code: 'NOT_FOUND', message: '사용자를 찾을 수 없습니다.' } },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -166,7 +167,7 @@ export async function GET() {
           message: '사주 정보 조회 중 오류가 발생했습니다.',
         },
       },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

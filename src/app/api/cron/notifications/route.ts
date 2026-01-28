@@ -16,6 +16,7 @@ import { sendScheduledNotifications } from "@/lib/notifications/pushService";
 import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // Vercel Pro: 최대 60초
 
@@ -29,12 +30,12 @@ export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
 
   if (!cronSecret) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
+    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 
   // Vercel Cron은 CRON_SECRET 헤더를 자동으로 추가
   if (authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
   }
 
   try {
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
         error: message,
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
   const adminSecret = process.env.ADMIN_SECRET || process.env.CRON_SECRET;
 
   if (!adminSecret || authHeader !== `Bearer ${adminSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
   }
 
   try {
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: message,
       },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

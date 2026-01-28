@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { getUserReferralCode, getReferralUrl } from "@/lib/referral";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export async function POST() {
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "not_authenticated" },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -30,7 +31,7 @@ export async function POST() {
     logger.error("[Referral create-code error]", err);
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

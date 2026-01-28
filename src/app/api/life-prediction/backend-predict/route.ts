@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { scoreToGrade as standardScoreToGrade, type PredictionGrade } from '@/lib/prediction';
 import { logger } from '@/lib/logger';
 import { getBackendUrl } from '@/lib/backend-url';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // ============================================================
 // 타입 정의
@@ -84,14 +85,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!question) {
       return NextResponse.json(
         { success: false, error: '질문이 필요합니다.' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
     if (!birthYear || !birthMonth) {
       return NextResponse.json(
         { success: false, error: '생년월일이 필요합니다.' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -165,7 +166,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           error: '백엔드 서버 오류',
           fallback: true,
         },
-        { status: 503 }
+        { status: HTTP_STATUS.SERVICE_UNAVAILABLE }
       );
     }
 
@@ -174,7 +175,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (backendData.status === 'error') {
       return NextResponse.json(
         { success: false, error: backendData.message || '예측 실패' },
-        { status: 500 }
+        { status: HTTP_STATUS.SERVER_ERROR }
       );
     }
 
@@ -199,13 +200,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           error: '예측 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.',
           fallback: true,
         },
-        { status: 503 }
+        { status: HTTP_STATUS.SERVICE_UNAVAILABLE }
       );
     }
 
     return NextResponse.json(
       { success: false, error: '예측 처리 중 오류가 발생했습니다.' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

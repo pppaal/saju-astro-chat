@@ -7,6 +7,7 @@ import { getClientIp } from "@/lib/request-ip";
 import { captureServerError } from "@/lib/telemetry";
 import { cacheGet, cacheSet } from "@/lib/redis-cache";
 import { logger } from "@/lib/logger";
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 declare const __firebase_config: string | undefined;
 declare const __app_id: string | undefined;
@@ -124,10 +125,10 @@ export async function GET(request: Request) {
     const ip = getClientIp(request.headers);
     const limit = await rateLimit(`visitors:get:${ip}`, { limit: 30, windowSeconds: 60 });
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: limit.headers });
+      return NextResponse.json({ error: "Too many requests" }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
     }
     if (!requireToken(request)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
     if (!db) {
       // graceful fallback when Firebase is not configured
@@ -161,7 +162,7 @@ export async function GET(request: Request) {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     captureServerError(error, { route: "/api/visitors-today", method: "GET" });
-    return NextResponse.json({ error: `Failed to fetch count: ${message}` }, { status: 500 });
+    return NextResponse.json({ error: `Failed to fetch count: ${message}` }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }
 
@@ -170,10 +171,10 @@ export async function POST(request: Request) {
     const ip = getClientIp(request.headers);
     const limit = await rateLimit(`visitors:post:${ip}`, { limit: 20, windowSeconds: 60 });
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: limit.headers });
+      return NextResponse.json({ error: "Too many requests" }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
     }
     if (!requireToken(request)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
     if (!db) {
       // graceful fallback when Firebase is not configured
@@ -193,7 +194,7 @@ export async function POST(request: Request) {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     captureServerError(error, { route: "/api/visitors-today", method: "POST" });
-    return NextResponse.json({ error: `Failed to increment count: ${message}` }, { status: 500 });
+    return NextResponse.json({ error: `Failed to increment count: ${message}` }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }
 

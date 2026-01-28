@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import Stripe from "stripe";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 
@@ -52,11 +53,11 @@ export async function GET(request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
     if (!id) {
-      return NextResponse.json({ error: "invalid_params" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_params" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     const session = await getServerSession(authOptions);
     if (!session?.user?.id || !session?.user?.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     // 프리미엄 체크
@@ -68,7 +69,7 @@ export async function GET(request: Request, context: RouteContext) {
           message: "상담 기록 열람은 프리미엄 구독자 전용입니다.",
           message_en: "Consultation history is available for premium subscribers only."
         },
-        { status: 402 }
+        { status: HTTP_STATUS.PAYMENT_REQUIRED }
       );
     }
 
@@ -82,7 +83,7 @@ export async function GET(request: Request, context: RouteContext) {
     if (!consultation) {
       return NextResponse.json(
         { error: "not_found", message: "상담 기록을 찾을 수 없습니다." },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -94,7 +95,7 @@ export async function GET(request: Request, context: RouteContext) {
     logger.error("[Consultation GET by ID error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -107,11 +108,11 @@ export async function DELETE(
   try {
     const { id } = await context.params;
     if (!id) {
-      return NextResponse.json({ error: "invalid_params" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_params" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     // 본인 기록인지 확인
@@ -125,7 +126,7 @@ export async function DELETE(
     if (!existing) {
       return NextResponse.json(
         { error: "not_found", message: "상담 기록을 찾을 수 없습니다." },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -141,7 +142,7 @@ export async function DELETE(
     logger.error("[Consultation DELETE error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

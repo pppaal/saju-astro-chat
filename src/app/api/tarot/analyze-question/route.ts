@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { tarotThemes } from "@/lib/Tarot/tarot-spreads-data";
 import { logger } from '@/lib/logger';
 import { PATTERN_MAPPINGS, getExamInterviewMapping } from './pattern-mappings';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // ============================================================
 // Types
@@ -218,7 +219,7 @@ export async function POST(request: NextRequest) {
     if (!question || typeof question !== "string" || question.trim().length === 0) {
       return NextResponse.json(
         { error: "Question is required" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -307,7 +308,7 @@ export async function POST(request: NextRequest) {
     logger.error("Error analyzing question:", error);
     return NextResponse.json(
       { error: "Failed to analyze question" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

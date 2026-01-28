@@ -8,6 +8,7 @@ import {
 import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = 'force-dynamic';
 
 /**
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
   }
 
   try {
@@ -28,14 +29,14 @@ export async function POST(request: NextRequest) {
     if (!subscription || !subscription.endpoint || !subscription.keys) {
       return NextResponse.json(
         { error: 'Invalid subscription: missing endpoint or keys' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
     if (!subscription.keys.p256dh || !subscription.keys.auth) {
       return NextResponse.json(
         { error: 'Invalid subscription: missing p256dh or auth keys' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
     logger.error('Error saving push subscription:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -75,7 +76,7 @@ export async function DELETE(request: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
   }
 
   try {
@@ -85,7 +86,7 @@ export async function DELETE(request: NextRequest) {
     if (!endpoint) {
       return NextResponse.json(
         { error: 'Missing endpoint' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -100,7 +101,7 @@ export async function DELETE(request: NextRequest) {
     logger.error('Error removing push subscription:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

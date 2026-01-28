@@ -37,6 +37,7 @@ interface _ChatRequest {
 }
 
 import { ALLOWED_LOCALES, MESSAGE_LIMITS, TEXT_LIMITS, LIST_LIMITS } from '@/lib/constants/api-limits';
+import { HTTP_STATUS } from '@/lib/constants/http';
 const ALLOWED_TAROT_LANG = ALLOWED_LOCALES;
 const MAX_MESSAGES = MESSAGE_LIMITS.MAX_MESSAGES;
 const MAX_MESSAGE_LENGTH = MESSAGE_LIMITS.MAX_MESSAGE_LENGTH;
@@ -159,7 +160,7 @@ export async function POST(req: NextRequest) {
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         { error: "invalid_body" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -173,13 +174,13 @@ export async function POST(req: NextRequest) {
     if (!messages || messages.length === 0) {
       return NextResponse.json(
         { error: "Missing messages" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
     if (!context) {
       return NextResponse.json(
         { error: "Invalid tarot context" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -251,7 +252,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { error: "Server error", detail: process.env.NODE_ENV === "development" ? errorMessage : undefined },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

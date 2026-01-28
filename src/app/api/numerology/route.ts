@@ -11,6 +11,7 @@ import { getClientIp } from '@/lib/request-ip';
 import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 // Backend response types
 interface NumerologyProfile {
   life_path?: { life_path: number };
@@ -141,13 +142,13 @@ export async function POST(req: Request) {
     if (!limit.allowed) {
       return NextResponse.json(
         { error: 'Rate limit exceeded', retryAfter: limit.reset },
-        { status: 429 }
+        { status: HTTP_STATUS.RATE_LIMITED }
       );
     }
 
     const body = await parseRequestBody<any>(req, { context: 'Numerology' });
     if (!body) {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const action = body.action || 'analyze';
@@ -159,7 +160,7 @@ export async function POST(req: Request) {
     if (action === 'analyze') {
       // Single person numerology analysis
       if (!body.birthDate) {
-        return NextResponse.json({ error: 'birthDate is required' }, { status: 400 });
+        return NextResponse.json({ error: 'birthDate is required' }, { status: HTTP_STATUS.BAD_REQUEST });
       }
 
       endpoint = '/api/numerology/analyze';
@@ -177,7 +178,7 @@ export async function POST(req: Request) {
       if (!p1?.birthDate || !p2?.birthDate) {
         return NextResponse.json(
           { error: 'Both person1.birthDate and person2.birthDate are required' },
-          { status: 400 }
+          { status: HTTP_STATUS.BAD_REQUEST }
         );
       }
 
@@ -188,7 +189,7 @@ export async function POST(req: Request) {
         locale,
       };
     } else {
-      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid action' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Call backend using ApiClient
@@ -292,7 +293,7 @@ export async function POST(req: Request) {
     const msg = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       { error: `Internal Server Error: ${msg}` },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -310,7 +311,7 @@ export async function GET(req: Request) {
     const locale = url.searchParams.get('locale') || 'ko';
 
     if (!birthDate) {
-      return NextResponse.json({ error: 'birthDate query param is required' }, { status: 400 });
+      return NextResponse.json({ error: 'birthDate query param is required' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const ip = getClientIp(req.headers as Headers);
@@ -320,7 +321,7 @@ export async function GET(req: Request) {
     if (!limit.allowed) {
       return NextResponse.json(
         { error: 'Rate limit exceeded', retryAfter: limit.reset },
-        { status: 429 }
+        { status: HTTP_STATUS.RATE_LIMITED }
       );
     }
 
@@ -416,7 +417,7 @@ export async function GET(req: Request) {
     logger.error('[API /api/numerology GET] Error:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

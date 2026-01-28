@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,7 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     // Safe JSON parsing
@@ -18,17 +19,17 @@ export async function POST(request: Request) {
     try {
       const text = await request.text();
       if (!text || text.trim() === "") {
-        return NextResponse.json({ error: "empty_body" }, { status: 400 });
+        return NextResponse.json({ error: "empty_body" }, { status: HTTP_STATUS.BAD_REQUEST });
       }
       body = JSON.parse(text);
     } catch {
-      return NextResponse.json({ error: "invalid_json" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_json" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const { sessionId, theme, locale, messages } = body;
 
     if (!sessionId || !messages || !Array.isArray(messages)) {
-      return NextResponse.json({ error: "invalid_request" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_request" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Get user first
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "user_not_found" }, { status: 404 });
+      return NextResponse.json({ error: "user_not_found" }, { status: HTTP_STATUS.NOT_FOUND });
     }
 
     // Upsert: create if not exists, update if exists
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
     logger.error("[Counselor Session Save Error]:", error);
     return NextResponse.json(
       { error: "internal_server_error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

@@ -49,6 +49,7 @@ interface StreamDreamRequest {
 
 import { ALLOWED_LOCALES, BODY_LIMITS, TEXT_LIMITS, LIST_LIMITS } from '@/lib/constants/api-limits';
 import { DATE_RE, TIME_RE, LIMITS } from '@/lib/validation/patterns';
+import { HTTP_STATUS } from '@/lib/constants/http';
 const MAX_STREAM_BODY = BODY_LIMITS.STREAM;
 const MAX_TEXT_LEN = TEXT_LIMITS.MAX_DREAM_TEXT;
 const _MAX_LIST_ITEMS = LIST_LIMITS.MAX_LIST_ITEMS;
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
 
     const body = (await parseRequestBody<any>(req, { context: 'Dream Stream' })) as Partial<StreamDreamRequest> | null;
     if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const dreamTextRaw = typeof body.dreamText === "string" ? body.dreamText.trim() : "";
@@ -121,7 +122,7 @@ export async function POST(req: NextRequest) {
     if (!dreamText || dreamText.trim().length < 5) {
       return NextResponse.json(
         { error: "Dream description required (min 5 characters)" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -193,7 +194,7 @@ export async function POST(req: NextRequest) {
     logger.error("Dream stream error:", err);
     return NextResponse.json(
       { error: "Server error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

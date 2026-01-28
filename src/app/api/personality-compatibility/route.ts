@@ -4,6 +4,7 @@ import { analyzePersona, getPersonaCompatibility } from '@/lib/persona/analysis'
 import type { ICPQuizAnswers } from '@/lib/icp/types';
 import type { PersonaQuizAnswers } from '@/lib/persona/types';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
     if (!person1?.icpAnswers || !person1?.personaAnswers || !person2?.icpAnswers || !person2?.personaAnswers) {
       return NextResponse.json(
         { error: 'Missing required quiz answers' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -103,7 +104,7 @@ export async function POST(req: NextRequest) {
     logger.error('Personality compatibility error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

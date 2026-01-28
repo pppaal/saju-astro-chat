@@ -11,13 +11,14 @@ import { rateLimit } from '@/lib/rateLimit';
 import { getClientIp } from '@/lib/request-ip';
 import { sendPushNotification } from '@/lib/notifications/pushService';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // GET - 커플 타로 리딩 목록 조회 (내가 만들었거나 공유받은 것)
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const searchParams = req.nextUrl.searchParams;
@@ -67,7 +68,7 @@ export async function GET(req: NextRequest) {
     logger.error('[couple-reading] GET error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to fetch couple readings' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest) {
     if (!limit.allowed) {
       return NextResponse.json(
         { error: 'Too many requests. Please wait.' },
-        { status: 429, headers: limit.headers }
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
       );
     }
 
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401, headers: limit.headers }
+        { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers }
       );
     }
 
@@ -111,7 +112,7 @@ export async function POST(req: NextRequest) {
     if (!connectionId || !spreadId || !cards) {
       return NextResponse.json(
         { error: 'connectionId, spreadId, cards are required' },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -127,7 +128,7 @@ export async function POST(req: NextRequest) {
     if (!connection) {
       return NextResponse.json(
         { error: '매치를 찾을 수 없습니다' },
-        { status: 404, headers: limit.headers }
+        { status: HTTP_STATUS.NOT_FOUND, headers: limit.headers }
       );
     }
 
@@ -138,7 +139,7 @@ export async function POST(req: NextRequest) {
     if (!isUser1 && !isUser2) {
       return NextResponse.json(
         { error: '이 매치에 대한 권한이 없습니다' },
-        { status: 403, headers: limit.headers }
+        { status: HTTP_STATUS.FORBIDDEN, headers: limit.headers }
       );
     }
 
@@ -155,7 +156,7 @@ export async function POST(req: NextRequest) {
     if (!userCredits) {
       return NextResponse.json(
         { error: '크레딧 정보를 찾을 수 없습니다' },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -167,7 +168,7 @@ export async function POST(req: NextRequest) {
     if (availableCredits < 1) {
       return NextResponse.json(
         { error: '크레딧이 부족합니다. 크레딧을 충전해주세요.' },
-        { status: 402, headers: limit.headers }
+        { status: HTTP_STATUS.PAYMENT_REQUIRED, headers: limit.headers }
       );
     }
 
@@ -250,7 +251,7 @@ export async function POST(req: NextRequest) {
     logger.error('[couple-reading] POST error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to create couple reading' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -260,7 +261,7 @@ export async function DELETE(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const { readingId } = await req.json();
@@ -268,7 +269,7 @@ export async function DELETE(req: NextRequest) {
     if (!readingId) {
       return NextResponse.json(
         { error: 'readingId is required' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -280,7 +281,7 @@ export async function DELETE(req: NextRequest) {
     if (!reading) {
       return NextResponse.json(
         { error: '리딩을 찾을 수 없습니다' },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -288,7 +289,7 @@ export async function DELETE(req: NextRequest) {
     if (reading.paidByUserId !== session.user.id) {
       return NextResponse.json(
         { error: '결제한 사람만 삭제할 수 있습니다' },
-        { status: 403 }
+        { status: HTTP_STATUS.FORBIDDEN }
       );
     }
 
@@ -301,7 +302,7 @@ export async function DELETE(req: NextRequest) {
     logger.error('[couple-reading] DELETE error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to delete reading' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

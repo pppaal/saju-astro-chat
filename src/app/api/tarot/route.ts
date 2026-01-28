@@ -12,6 +12,7 @@ import { checkCreditsOnly, creditErrorResponse } from "@/lib/credits/withCredits
 
 import { parseRequestBody } from '@/lib/api/requestParser';
 import { LIMITS } from '@/lib/validation/patterns';
+import { HTTP_STATUS } from '@/lib/constants/http';
 const MAX_ID_LEN = LIMITS.ID;
 const BODY_LIMIT = 8 * 1024;
 type TarotBody = {
@@ -37,10 +38,10 @@ export async function POST(req: Request) {
     const ip = getClientIp(req.headers);
     const limit = await rateLimit(`tarot:${ip}`, { limit: 40, windowSeconds: 60 });
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests. Please wait." }, { status: 429, headers: limit.headers });
+      return NextResponse.json({ error: "Too many requests. Please wait." }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
     }
     const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
     }
 
     const oversized = enforceBodySize(req, BODY_LIMIT, limit.headers);
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
 
     const body = (await parseRequestBody<any>(req, { context: 'Tarot' })) as TarotBody | null;
     if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
     }
 
     const categoryIdRaw = typeof body.categoryId === "string" ? body.categoryId.trim() : "";
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
     if (!categoryId || !spreadId) {
       return NextResponse.json(
         { error: "categoryId and spreadId are required" },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -71,10 +72,10 @@ export async function POST(req: Request) {
     }
 
     const theme = tarotThemes.find((t) => t.id === categoryId);
-    if (!theme) {return NextResponse.json({ error: "Invalid category" }, { status: 404, headers: limit.headers });}
+    if (!theme) {return NextResponse.json({ error: "Invalid category" }, { status: HTTP_STATUS.NOT_FOUND, headers: limit.headers });}
 
     const spread = theme.spreads.find((s) => s.id === spreadId);
-    if (!spread) {return NextResponse.json({ error: "Invalid spread" }, { status: 404, headers: limit.headers });}
+    if (!spread) {return NextResponse.json({ error: "Invalid spread" }, { status: HTTP_STATUS.NOT_FOUND, headers: limit.headers });}
 
     const drawnCards = drawCards(spread.cardCount);
 
@@ -87,6 +88,6 @@ export async function POST(req: Request) {
     return res;
   } catch (err: unknown) {
     captureServerError(err, { route: "/api/tarot" });
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }

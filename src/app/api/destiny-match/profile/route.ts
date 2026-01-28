@@ -7,13 +7,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // GET - 내 프로필 조회
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const profile = await prisma.matchProfile.findUnique({
@@ -40,7 +41,7 @@ export async function GET() {
     logger.error('[destiny-match/profile] GET error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to fetch profile' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const body = await req.json();
@@ -75,28 +76,28 @@ export async function POST(req: NextRequest) {
     if (!displayName || displayName.trim().length < 2) {
       return NextResponse.json(
         { error: '표시 이름은 2자 이상이어야 합니다' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
     // 입력값 타입 및 범위 검증
     if (latitude !== undefined && (typeof latitude !== 'number' || latitude < -90 || latitude > 90)) {
-      return NextResponse.json({ error: 'Invalid latitude value' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid latitude value' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (longitude !== undefined && (typeof longitude !== 'number' || longitude < -180 || longitude > 180)) {
-      return NextResponse.json({ error: 'Invalid longitude value' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid longitude value' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (photos !== undefined && (!Array.isArray(photos) || photos.length > 10)) {
-      return NextResponse.json({ error: 'Photos must be an array with max 10 items' }, { status: 400 });
+      return NextResponse.json({ error: 'Photos must be an array with max 10 items' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (ageMin !== undefined && (typeof ageMin !== 'number' || ageMin < 18 || ageMin > 100)) {
-      return NextResponse.json({ error: 'Invalid ageMin value' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid ageMin value' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (ageMax !== undefined && (typeof ageMax !== 'number' || ageMax < 18 || ageMax > 100)) {
-      return NextResponse.json({ error: 'Invalid ageMax value' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid ageMax value' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (maxDistance !== undefined && (typeof maxDistance !== 'number' || maxDistance < 1 || maxDistance > 500)) {
-      return NextResponse.json({ error: 'Invalid maxDistance value' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid maxDistance value' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // 기존 프로필 확인
@@ -168,7 +169,7 @@ export async function POST(req: NextRequest) {
     logger.error('[destiny-match/profile] POST error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to save profile' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -178,7 +179,7 @@ export async function DELETE() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     await prisma.matchProfile.update({
@@ -194,7 +195,7 @@ export async function DELETE() {
     logger.error('[destiny-match/profile] DELETE error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to deactivate profile' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

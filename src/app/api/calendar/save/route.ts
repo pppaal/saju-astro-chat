@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 
@@ -13,13 +14,13 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const ip = getClientIp(req.headers);
     const limit = await rateLimit(`calendar-save:${ip}`, { limit: 30, windowSeconds: 60 });
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: limit.headers });
+      return NextResponse.json({ error: "Too many requests" }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
     }
 
     const body = await req.json();
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
     } = body;
 
     if (!date || grade === undefined || score === undefined || !title) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ error: "Missing required fields" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Upsert - 이미 있으면 업데이트, 없으면 생성
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, id: savedDate.id }, { headers: limit.headers });
   } catch (error) {
     logger.error("Failed to save calendar date:", error);
-    return NextResponse.json({ error: "Failed to save" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to save" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }
 
@@ -107,14 +108,14 @@ export async function DELETE(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const { searchParams } = new URL(req.url);
     const date = searchParams.get("date");
 
     if (!date) {
-      return NextResponse.json({ error: "Date is required" }, { status: 400 });
+      return NextResponse.json({ error: "Date is required" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     await prisma.savedCalendarDate.delete({
@@ -129,7 +130,7 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     logger.error("Failed to delete calendar date:", error);
-    return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }
 
@@ -138,7 +139,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const { searchParams } = new URL(req.url);
@@ -174,6 +175,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ savedDates });
   } catch (error) {
     logger.error("Failed to fetch saved calendar dates:", error);
-    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }

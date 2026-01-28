@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { rateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/request-ip";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // Cache the stats for 5 minutes to reduce DB load
 let cachedStats: { users: number; subscribers: number; timestamp: number } | null = null;
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
     if (!limit.allowed) {
       return NextResponse.json(
         { error: "Too many requests" },
-        { status: 429, headers: limit.headers }
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
       );
     }
 
@@ -62,7 +63,7 @@ export async function GET(request: Request) {
     logger.error("[Stats API Error]", { message: err?.message, stack: err?.stack });
     return NextResponse.json(
       { error: "Failed to fetch stats", details: err?.message, users: 0, subscribers: 0 },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

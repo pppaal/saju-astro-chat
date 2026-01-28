@@ -17,6 +17,7 @@ import {
   findAllAsteroidAspects,
   getAsteroidInfo,
 } from "@/lib/astrology";
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -28,10 +29,10 @@ export async function POST(request: Request) {
     const ip = getClientIp(request.headers);
     const limit = await rateLimit(`astro-asteroids:${ip}`, { limit: 20, windowSeconds: 60 });
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: 429, headers: limit.headers });
+      return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
     }
     const tokenCheck = requirePublicToken(request); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
     }
 
     const body = await request.json();
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
     if (!date || !time || latitude === undefined || longitude === undefined || !timeZone) {
       return NextResponse.json(
         { error: "date, time, latitude, longitude, and timeZone are required." },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
     if (!year || !month || !day || hour === undefined || minute === undefined) {
       return NextResponse.json(
         { error: "Invalid date or time format." },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -89,7 +90,7 @@ export async function POST(request: Request) {
     if ("error" in jdResult) {
       return NextResponse.json(
         { error: "Failed to calculate Julian Day." },
-        { status: 500, headers: limit.headers }
+        { status: HTTP_STATUS.SERVER_ERROR, headers: limit.headers }
       );
     }
 
@@ -147,7 +148,7 @@ export async function POST(request: Request) {
         },
         aspects,
       },
-      { status: 200 }
+      { status: HTTP_STATUS.OK }
     );
 
     limit.headers.forEach((value, key) => res.headers.set(key, value));
@@ -158,7 +159,7 @@ export async function POST(request: Request) {
     captureServerError(error, { route: "/api/astrology/advanced/asteroids" });
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

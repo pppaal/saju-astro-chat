@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth/authOptions';
 import { prisma, Prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
 import type { TimingAIPremiumReport, ThemedAIPremiumReport } from '@/lib/destiny-matrix/ai-report/types';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
     if (!reportType || !reportData || !title) {
       return NextResponse.json(
         { error: 'Missing required fields: reportType, reportData, title' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -56,14 +57,14 @@ export async function POST(req: NextRequest) {
     if (reportType === 'timing' && !period) {
       return NextResponse.json(
         { error: 'Period is required for timing reports' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
     if (reportType === 'themed' && !theme) {
       return NextResponse.json(
         { error: 'Theme is required for themed reports' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
     logger.error('Error saving Destiny Matrix report:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -114,7 +115,7 @@ export async function GET(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -124,7 +125,7 @@ export async function GET(req: NextRequest) {
     if (!id) {
       return NextResponse.json(
         { error: 'Missing id parameter' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -138,7 +139,7 @@ export async function GET(req: NextRequest) {
     if (!matrixReport) {
       return NextResponse.json(
         { error: 'Destiny Matrix report not found' },
-        { status: 404 }
+        { status: HTTP_STATUS.NOT_FOUND }
       );
     }
 
@@ -149,7 +150,7 @@ export async function GET(req: NextRequest) {
     logger.error('Error retrieving Destiny Matrix report:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

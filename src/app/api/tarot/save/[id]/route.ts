@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const { id } = await params;
@@ -24,7 +25,7 @@ export async function GET(
     });
 
     if (!user) {
-      return NextResponse.json({ error: "user_not_found" }, { status: 404 });
+      return NextResponse.json({ error: "user_not_found" }, { status: HTTP_STATUS.NOT_FOUND });
     }
 
     const reading = await prisma.tarotReading.findFirst({
@@ -35,7 +36,7 @@ export async function GET(
     });
 
     if (!reading) {
-      return NextResponse.json({ error: "reading_not_found" }, { status: 404 });
+      return NextResponse.json({ error: "reading_not_found" }, { status: HTTP_STATUS.NOT_FOUND });
     }
 
     return NextResponse.json({
@@ -60,7 +61,7 @@ export async function GET(
     logger.error("[Tarot Get Error]:", error);
     return NextResponse.json(
       { error: "internal_server_error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

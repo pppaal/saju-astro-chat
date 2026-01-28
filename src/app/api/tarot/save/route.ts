@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const body: SaveTarotRequest = await request.json();
@@ -57,28 +58,28 @@ export async function POST(request: Request) {
 
     // 입력 검증 강화
     if (!question || typeof question !== 'string' || question.length > 1000) {
-      return NextResponse.json({ error: "invalid_question" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_question" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (!spreadId || typeof spreadId !== 'string' || spreadId.length > 100) {
-      return NextResponse.json({ error: "invalid_spreadId" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_spreadId" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (!spreadTitle || typeof spreadTitle !== 'string' || spreadTitle.length > 200) {
-      return NextResponse.json({ error: "invalid_spreadTitle" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_spreadTitle" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (!cards || !Array.isArray(cards) || cards.length === 0 || cards.length > 20) {
-      return NextResponse.json({ error: "invalid_cards" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_cards" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (theme && (typeof theme !== 'string' || theme.length > 100)) {
-      return NextResponse.json({ error: "invalid_theme" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_theme" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (overallMessage && (typeof overallMessage !== 'string' || overallMessage.length > 5000)) {
-      return NextResponse.json({ error: "invalid_overallMessage" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_overallMessage" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (guidance && (typeof guidance !== 'string' || guidance.length > 2000)) {
-      return NextResponse.json({ error: "invalid_guidance" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_guidance" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     if (affirmation && (typeof affirmation !== 'string' || affirmation.length > 500)) {
-      return NextResponse.json({ error: "invalid_affirmation" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_affirmation" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const user = await prisma.user.findUnique({
@@ -87,7 +88,7 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "user_not_found" }, { status: 404 });
+      return NextResponse.json({ error: "user_not_found" }, { status: HTTP_STATUS.NOT_FOUND });
     }
 
     const tarotReading = await prisma.tarotReading.create({
@@ -116,7 +117,7 @@ export async function POST(request: Request) {
     logger.error("[Tarot Save Error]:", error);
     return NextResponse.json(
       { error: "internal_server_error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -125,7 +126,7 @@ export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const { searchParams } = new URL(request.url);
@@ -137,7 +138,7 @@ export async function GET(request: Request) {
     const limit = Math.min(Math.max(1, limitParam), 100); // 1-100
     const offset = Math.max(0, offsetParam);
     if (theme && theme.length > 100) {
-      return NextResponse.json({ error: "invalid_theme" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_theme" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const user = await prisma.user.findUnique({
@@ -146,7 +147,7 @@ export async function GET(request: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "user_not_found" }, { status: 404 });
+      return NextResponse.json({ error: "user_not_found" }, { status: HTTP_STATUS.NOT_FOUND });
     }
 
     const where = {
@@ -184,7 +185,7 @@ export async function GET(request: Request) {
     logger.error("[Tarot List Error]:", error);
     return NextResponse.json(
       { error: "internal_server_error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

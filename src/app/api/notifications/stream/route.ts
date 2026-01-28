@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/authOptions";
 import { registerClient, unregisterClient } from "@/lib/notifications/sse";
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -14,7 +15,7 @@ export async function GET(_request: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
-    return new Response("Unauthorized", { status: 401 });
+    return new Response("Unauthorized", { status: HTTP_STATUS.UNAUTHORIZED });
   }
 
   const userId = session.user.email;

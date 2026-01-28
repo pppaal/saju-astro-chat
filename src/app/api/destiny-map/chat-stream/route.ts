@@ -56,6 +56,7 @@ import { buildDaeunTransitSection } from "./builders/daeunTransitBuilder";
 import { buildPastAnalysisSection, buildMultiYearTrendSection } from "./builders/lifeAnalysisBuilder";
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
     if (!body) {
       return NextResponse.json(
         { error: "invalid_body" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -615,7 +616,7 @@ export async function POST(req: NextRequest) {
     logger.error("[Chat-Stream API error]", err);
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

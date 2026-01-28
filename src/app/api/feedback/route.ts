@@ -11,6 +11,7 @@ import { apiClient } from "@/lib/api";
 import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 type FeedbackBody = {
   service?: string;
   theme?: string;
@@ -51,12 +52,12 @@ export async function POST(req: NextRequest) {
     if (!limit.allowed) {
       return NextResponse.json(
         { error: "rate_limited", retryAfter: limit.reset },
-        { status: 429, headers: limit.headers }
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
       );
     }
     const tokenResult = requirePublicToken(req);
     if (!tokenResult.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
     }
 
     const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
     const body = (await parseRequestBody<any>(req, { context: 'Feedback' })) as FeedbackBody | null;
 
     if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400, headers: limit.headers });
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
     }
 
     const {
@@ -107,7 +108,7 @@ export async function POST(req: NextRequest) {
     if (!safeService || !safeTheme || !safeSectionId || typeof helpful !== "boolean") {
       return NextResponse.json(
         { error: "Missing required fields: service, theme, sectionId, helpful" },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -167,7 +168,7 @@ export async function POST(req: NextRequest) {
     logger.error("[Feedback API Error]:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Internal Server Error" },
-      { status: 500, headers: limitHeaders }
+      { status: HTTP_STATUS.SERVER_ERROR, headers: limitHeaders }
     );
   }
 }
@@ -229,7 +230,7 @@ export async function GET(req: NextRequest) {
     logger.error("[Feedback Stats Error]:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

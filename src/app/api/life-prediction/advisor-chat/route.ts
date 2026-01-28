@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware';
 import { apiClient } from '@/lib/api/ApiClient';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 interface PredictionResult {
   startDate: string;
@@ -169,7 +170,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!message?.trim()) {
       return NextResponse.json(
         { success: false, error: 'Message is required' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -307,7 +308,7 @@ ${ragContext ? `[Knowledge]\n${ragContext.slice(0, 800)}` : ''}
       logger.error('[Advisor Chat] OPENAI_API_KEY is not set');
       return NextResponse.json(
         { success: false, error: 'API key not configured' },
-        { status: 500 }
+        { status: HTTP_STATUS.SERVER_ERROR }
       );
     }
 
@@ -347,7 +348,7 @@ ${ragContext ? `[Knowledge]\n${ragContext.slice(0, 800)}` : ''}
     logger.error('[Advisor Chat] Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to generate response' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

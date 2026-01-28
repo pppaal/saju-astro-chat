@@ -20,6 +20,7 @@ import {
   type DashboardTimeRange,
 } from "@/lib/metrics/index";
 import { logger } from "@/lib/logger";
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // Helper to get admin emails (dynamic for testing)
 function getAdminEmails(): string[] {
@@ -34,20 +35,20 @@ export async function GET(req: NextRequest) {
     if (!limit.allowed) {
       return NextResponse.json(
         { error: "Too many requests" },
-        { status: 429, headers: limit.headers }
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
       );
     }
 
     // Admin authentication
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
     }
 
     const isAdmin = getAdminEmails().includes(session.user.email.toLowerCase());
     if (!isAdmin) {
       logger.warn("[Metrics] Unauthorized access attempt", { email: session.user.email });
-      return NextResponse.json({ error: "Forbidden" }, { status: 403, headers: limit.headers });
+      return NextResponse.json({ error: "Forbidden" }, { status: HTTP_STATUS.FORBIDDEN, headers: limit.headers });
     }
 
     // Parse query parameters
@@ -64,7 +65,7 @@ export async function GET(req: NextRequest) {
     if (!validationResult.success) {
       return NextResponse.json(
         { error: "Invalid parameters", details: validationResult.error.flatten() },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -72,7 +73,7 @@ export async function GET(req: NextRequest) {
     if (format === "prometheus") {
       const prometheusData = toPrometheus();
       return new NextResponse(prometheusData, {
-        status: 200,
+        status: HTTP_STATUS.OK,
         headers: {
           "Content-Type": "text/plain; charset=utf-8",
           ...Object.fromEntries(limit.headers),
@@ -105,7 +106,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(response, { headers: limit.headers });
   } catch (err) {
     logger.error("[Metrics API Error]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }
 

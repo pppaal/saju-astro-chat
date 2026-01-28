@@ -8,6 +8,7 @@ import type { MatrixCalculationInput } from '@/lib/destiny-matrix';
 import { calculateSajuData } from '@/lib/Saju/saju';
 import type { FiveElement } from '@/lib/Saju/types';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // Map Korean element names to standard format
 const ELEMENT_MAP: Record<string, FiveElement> = {
@@ -58,13 +59,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       error: 'Invalid format parameter',
       validFormats: ['summary'],
-    }, { status: 400 });
+    }, { status: HTTP_STATUS.BAD_REQUEST });
 
   } catch (error) {
     logger.error('Destiny Matrix GET error:', error);
     return NextResponse.json(
       { error: 'Failed to retrieve matrix info' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -169,7 +170,7 @@ export async function POST(req: NextRequest) {
         logger.error('Saju calculation failed:', sajuError);
         return NextResponse.json(
           { error: 'Failed to calculate saju from birth data' },
-          { status: 400 }
+          { status: HTTP_STATUS.BAD_REQUEST }
         );
       }
     }
@@ -178,7 +179,7 @@ export async function POST(req: NextRequest) {
     if (!dayMasterElement) {
       return NextResponse.json(
         { error: 'Either birthDate or dayMasterElement is required' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -254,7 +255,7 @@ export async function POST(req: NextRequest) {
     logger.error('Destiny Matrix POST error:', error);
     return NextResponse.json(
       { error: 'Failed to calculate matrix' },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

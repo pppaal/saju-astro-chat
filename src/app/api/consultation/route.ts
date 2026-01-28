@@ -6,6 +6,7 @@ import Stripe from "stripe";
 import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = "force-dynamic";
 
 const STRIPE_API_VERSION = "2025-10-29.clover" as Stripe.LatestApiVersion;
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id || !session?.user?.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     // 프리미엄 체크 - 상담 기록 저장은 프리미엄 전용
@@ -69,13 +70,13 @@ export async function POST(request: Request) {
           message: "상담 기록 저장은 프리미엄 구독자 전용입니다.",
           message_en: "Saving consultation history is available for premium subscribers only."
         },
-        { status: 402 }
+        { status: HTTP_STATUS.PAYMENT_REQUIRED }
       );
     }
 
     const body = (await request.json().catch(() => null)) as ConsultationBody | null;
     if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const {
@@ -91,7 +92,7 @@ export async function POST(request: Request) {
     if (!theme || !summary || !fullReport) {
       return NextResponse.json(
         { error: "Missing required fields: theme, summary, fullReport" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -121,7 +122,7 @@ export async function POST(request: Request) {
     logger.error("[Consultation POST error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -131,7 +132,7 @@ export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id || !session?.user?.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     // 프리미엄 체크
@@ -143,7 +144,7 @@ export async function GET(request: Request) {
           message: "상담 기록 열람은 프리미엄 구독자 전용입니다.",
           message_en: "Consultation history is available for premium subscribers only."
         },
-        { status: 402 }
+        { status: HTTP_STATUS.PAYMENT_REQUIRED }
       );
     }
 
@@ -190,7 +191,7 @@ export async function GET(request: Request) {
     logger.error("[Consultation GET error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

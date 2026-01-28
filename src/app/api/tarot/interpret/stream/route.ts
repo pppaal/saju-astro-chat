@@ -6,6 +6,7 @@ import { initializeApiContext, createPublicStreamGuard } from "@/lib/api/middlew
 import { createSSEStreamProxy, createFallbackSSEStream } from "@/lib/streaming";
 import { apiClient } from "@/lib/api/ApiClient";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 interface CardInput {
   name: string;
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
     if (!categoryId || !spreadId || !cards || cards.length === 0) {
       return NextResponse.json(
         { error: "Missing required fields: categoryId, spreadId, cards" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -85,7 +86,7 @@ export async function POST(req: NextRequest) {
     logger.error("Tarot interpret stream error:", err);
     return NextResponse.json(
       { error: "Server error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

@@ -16,6 +16,7 @@ import {
 } from '@/lib/destiny-matrix';
 import type { InsightDomain, MatrixCalculationInput, MatrixCell } from '@/lib/destiny-matrix';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // ===========================
 // POST - 리포트 생성
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
             details: validation.errors,
           },
         },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 

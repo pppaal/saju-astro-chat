@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma"
 import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 const isNonEmptyString = (val: unknown, max = 120) =>
   typeof val === "string" && val.trim().length > 0 && val.trim().length <= max
 
@@ -23,7 +24,7 @@ export async function GET() {
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
     const user = await prisma.user.findUnique({
@@ -52,13 +53,13 @@ export async function GET() {
     })
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+      return NextResponse.json({ error: "User not found" }, { status: HTTP_STATUS.NOT_FOUND })
     }
 
     return NextResponse.json({ user })
   } catch (error) {
     logger.error("Error fetching profile:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }
 
@@ -66,7 +67,7 @@ export async function PATCH(request: Request) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
     const body = await request.json().catch(() => ({}))
@@ -124,6 +125,6 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: true, userId: updated.id })
   } catch (error) {
     logger.error("Error updating profile:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }

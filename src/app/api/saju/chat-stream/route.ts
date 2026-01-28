@@ -6,6 +6,7 @@ import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize";
 import { logger } from '@/lib/logger';
 import { type ChatMessage } from "@/lib/api";
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
     if (!birthDate || !birthTime) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -173,7 +174,7 @@ export async function POST(req: NextRequest) {
     logger.error("[Saju Chat-Stream API error]", err);
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

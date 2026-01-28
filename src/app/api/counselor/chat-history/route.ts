@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = "force-dynamic";
 
 type ChatMessage = {
@@ -32,7 +33,7 @@ export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const { searchParams } = new URL(request.url);
@@ -80,7 +81,7 @@ export async function GET(request: Request) {
     logger.error("[CounselorChatHistory GET error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -90,12 +91,12 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const body = (await request.json().catch(() => null)) as CounselorChatPostBody | null;
     if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
@@ -131,7 +132,7 @@ export async function POST(request: Request) {
       if (!existingSession) {
         return NextResponse.json(
           { error: "session_not_found" },
-          { status: 404 }
+          { status: HTTP_STATUS.NOT_FOUND }
         );
       }
 
@@ -188,7 +189,7 @@ export async function POST(request: Request) {
     logger.error("[CounselorChatHistory POST error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }
@@ -198,12 +199,12 @@ export async function PATCH(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const body = (await request.json().catch(() => null)) as CounselorChatPatchBody | null;
     if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
@@ -213,7 +214,7 @@ export async function PATCH(request: Request) {
     if (!sessionId) {
       return NextResponse.json(
         { error: "session_id_required" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -233,7 +234,7 @@ export async function PATCH(request: Request) {
     logger.error("[CounselorChatHistory PATCH error]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // ============================================================
 // OpenAI API 호출 헬퍼
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<AnalyzeQu
     if (!question || question.trim().length === 0) {
       return NextResponse.json(
         { success: false, error: '질문이 비어있습니다.' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 

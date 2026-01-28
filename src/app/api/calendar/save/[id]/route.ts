@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { prisma } from "@/lib/db/prisma";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const { id } = await params;
@@ -27,13 +28,13 @@ export async function GET(
     });
 
     if (!savedDate) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "Not found" }, { status: HTTP_STATUS.NOT_FOUND });
     }
 
     return NextResponse.json({ savedDate });
   } catch (error) {
     logger.error("Failed to fetch saved calendar date:", error);
-    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }
 
@@ -45,7 +46,7 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const { id } = await params;
@@ -59,7 +60,7 @@ export async function DELETE(
     });
 
     if (!existingDate) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "Not found" }, { status: HTTP_STATUS.NOT_FOUND });
     }
 
     await prisma.savedCalendarDate.delete({
@@ -69,6 +70,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     logger.error("Failed to delete saved calendar date:", error);
-    return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
 }

@@ -4,17 +4,18 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/authOptions"
 import { prisma } from "@/lib/db/prisma"
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED })
   }
 
   try {
     const { date, kind = "daily", title, content } = await req.json()
     if (!date || !content) {
-      return NextResponse.json({ error: "date and content are required" }, { status: 400 })
+      return NextResponse.json({ error: "date and content are required" }, { status: HTTP_STATUS.BAD_REQUEST })
     }
 
     const d = new Date(date)
@@ -41,21 +42,21 @@ export async function POST(req: Request) {
     return NextResponse.json(saved)
   } catch (e) {
     logger.error("[Fortune API] Failed to save fortune:", e)
-    return NextResponse.json({ error: "Failed to save fortune" }, { status: 500 })
+    return NextResponse.json({ error: "Failed to save fortune" }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED })
   }
 
   try {
     const { searchParams } = new URL(req.url)
     const date = searchParams.get("date")
     const kind = searchParams.get("kind") || "daily"
-    if (!date) {return NextResponse.json({ error: "date is required" }, { status: 400 })}
+    if (!date) {return NextResponse.json({ error: "date is required" }, { status: HTTP_STATUS.BAD_REQUEST })}
 
     const d = new Date(date)
     const normalized = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
@@ -72,6 +73,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ fortune: row ?? null })
   } catch (e) {
     logger.error("[Fortune API] Failed to fetch fortune:", e)
-    return NextResponse.json({ error: "Failed to fetch fortune" }, { status: 500 })
+    return NextResponse.json({ error: "Failed to fetch fortune" }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }

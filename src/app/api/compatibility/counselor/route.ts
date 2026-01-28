@@ -12,6 +12,7 @@ import {
 } from "@/lib/compatibility/compatibilityFusion";
 import type { SajuProfile, AstrologyProfile } from "@/lib/compatibility/cosmicCompatibility";
 import type { FiveElement } from "@/lib/Saju/types";
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -190,7 +191,7 @@ export async function POST(req: NextRequest) {
     } = body;
 
     if (!persons || persons.length < 2) {
-      return NextResponse.json({ error: "At least 2 persons required" }, { status: 400 });
+      return NextResponse.json({ error: "At least 2 persons required" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const trimmedHistory = clampMessages(messages);
@@ -336,7 +337,7 @@ Based on the deep analysis above, provide friendly but professional guidance.
     logger.error("[Compatibility Counselor] Error:", { error: error });
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

@@ -14,16 +14,17 @@ import {
   getElectionalGuidelines,
   type ElectionalEventType,
 } from "@/lib/astrology";
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request.headers);
     const limit = await rateLimit(`astro-electional:${ip}`, { limit: 20, windowSeconds: 60 });
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: 429, headers: limit.headers });
+      return NextResponse.json({ error: "Too many requests. Try again soon." }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
     }
     const tokenCheck = requirePublicToken(request); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: limit.headers });
+      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
     }
 
     const body = await request.json();
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     if (!date || !time || latitude === undefined || longitude === undefined || !timeZone) {
       return NextResponse.json(
         { error: "date, time, latitude, longitude, and timeZone are required." },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -48,14 +49,14 @@ export async function POST(request: Request) {
     if (!basicOnly && !eventType) {
       return NextResponse.json(
         { error: "eventType is required (or set basicOnly: true for basic moon/VOC info)" },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
     if (eventType && !validEventTypes.includes(eventType)) {
       return NextResponse.json(
         { error: `Invalid eventType. Valid types: ${validEventTypes.join(", ")}` },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
     if (!year || !month || !day || hour === undefined || minute === undefined) {
       return NextResponse.json(
         { error: "Invalid date or time format." },
-        { status: 400, headers: limit.headers }
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       );
     }
 
@@ -99,7 +100,7 @@ export async function POST(request: Request) {
           dateTime: dateTime.toISOString(),
           basicOnly: true,
         },
-        { status: 200 }
+        { status: HTTP_STATUS.OK }
       );
 
       limit.headers.forEach((value, key) => res.headers.set(key, value));
@@ -131,7 +132,7 @@ export async function POST(request: Request) {
         eventType,
         dateTime: dateTime.toISOString(),
       },
-      { status: 200 }
+      { status: HTTP_STATUS.OK }
     );
 
     limit.headers.forEach((value, key) => res.headers.set(key, value));
@@ -142,7 +143,7 @@ export async function POST(request: Request) {
     captureServerError(error, { route: "/api/astrology/advanced/electional" });
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

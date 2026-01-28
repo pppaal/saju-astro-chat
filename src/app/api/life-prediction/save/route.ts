@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { saveConsultation } from '@/lib/consultation/saveConsultation';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 interface SaveLifePredictionRequest {
   multiYearTrend: {
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Authentication required' },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
     if (!multiYearTrend) {
       return NextResponse.json(
         { success: false, error: 'multiYearTrend is required' },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
     } else {
       return NextResponse.json(
         { success: false, error: 'Failed to save prediction' },
-        { status: 500 }
+        { status: HTTP_STATUS.SERVER_ERROR }
       );
     }
 
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: error instanceof Error ? error.message : 'Internal server error'
       },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

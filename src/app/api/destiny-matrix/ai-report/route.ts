@@ -34,6 +34,7 @@ import {
   getCreditBalance,
 } from '@/lib/credits/creditService';
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 // ===========================
 // 크레딧 비용 계산
@@ -115,7 +116,7 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: { code: 'AUTH_REQUIRED', message: '로그인이 필요합니다.' } },
-        { status: 401 }
+        { status: HTTP_STATUS.UNAUTHORIZED }
       );
     }
 
@@ -133,7 +134,7 @@ export async function POST(req: NextRequest) {
             upgrade: true,
           },
         },
-        { status: 403 }
+        { status: HTTP_STATUS.FORBIDDEN }
       );
     }
 
@@ -166,7 +167,7 @@ export async function POST(req: NextRequest) {
             current: balance.remainingCredits,
           },
         },
-        { status: 402 }
+        { status: HTTP_STATUS.PAYMENT_REQUIRED }
       );
     }
 
@@ -182,7 +183,7 @@ export async function POST(req: NextRequest) {
             details: validation.errors,
           },
         },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -277,7 +278,7 @@ export async function POST(req: NextRequest) {
             message: '크레딧 차감에 실패했습니다.',
           },
         },
-        { status: 500 }
+        { status: HTTP_STATUS.SERVER_ERROR }
       );
     }
 
@@ -313,7 +314,7 @@ export async function POST(req: NextRequest) {
       });
 
       return new NextResponse(Buffer.from(pdfBytes), {
-        status: 200,
+        status: HTTP_STATUS.OK,
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': `attachment; filename="destiny-matrix-report-${savedReport.id}.pdf"`,
@@ -361,7 +362,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       success: false,
       error: { message: 'Use POST to generate reports. Add ?format=docs for API documentation.' },
-    }, { status: 400 });
+    }, { status: HTTP_STATUS.BAD_REQUEST });
   }
 
   return NextResponse.json({

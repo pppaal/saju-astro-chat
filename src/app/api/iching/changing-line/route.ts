@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { initializeApiContext, createSimpleGuard } from "@/lib/api/middleware";
 import { apiClient } from "@/lib/api/ApiClient";
 import { logger } from '@/lib/logger';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 interface ChangingLineRequest {
   hexagramNumber: number;
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
     if (!hexagramNumber || lineIndex === undefined || lineIndex < 0 || lineIndex > 5) {
       return NextResponse.json(
         { error: "Valid hexagramNumber and lineIndex (0-5) required" },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
     logger.error("Changing line API error:", err);
     return NextResponse.json(
       { error: "Server error" },
-      { status: 500 }
+      { status: HTTP_STATUS.SERVER_ERROR }
     );
   }
 }

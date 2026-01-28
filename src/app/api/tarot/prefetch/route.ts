@@ -7,6 +7,7 @@ import { apiClient } from "@/lib/api/ApiClient";
 
 import { parseRequestBody } from '@/lib/api/requestParser';
 import { LIMITS } from '@/lib/validation/patterns';
+import { HTTP_STATUS } from '@/lib/constants/http';
 const MAX_ID_LEN = LIMITS.ID;
 type TarotPrefetchBody = {
   categoryId?: string;
@@ -27,14 +28,14 @@ export async function POST(req: NextRequest) {
 
     const body = (await parseRequestBody<any>(req, { context: 'Tarot Prefetch' })) as TarotPrefetchBody | null;
     if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
     const categoryIdRaw = typeof body.categoryId === "string" ? body.categoryId.trim() : "";
     const spreadIdRaw = typeof body.spreadId === "string" ? body.spreadId.trim() : "";
     const categoryId = categoryIdRaw.slice(0, MAX_ID_LEN);
     const spreadId = spreadIdRaw.slice(0, MAX_ID_LEN);
     if (!categoryId || !spreadId) {
-      return NextResponse.json({ error: "categoryId and spreadId are required" }, { status: 400 });
+      return NextResponse.json({ error: "categoryId and spreadId are required" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Fire-and-forget prefetch to backend
