@@ -249,9 +249,13 @@ function MyJourneyPage() {
       if (res.ok) {
         const data = await res.json();
         setFortune(data.fortune);
+      } else {
+        logger.error("Failed to load fortune: status", res.status);
+        setFortune(null);
       }
     } catch (e) {
       logger.error("Failed to load fortune:", e);
+      setFortune(null);
     } finally {
       setFortuneLoading(false);
     }
@@ -590,9 +594,13 @@ function MyJourneyPage() {
                 <p>{t("myjourney.fortune.setup", "Set your birth date first")}</p>
                 <Link href="/myjourney/profile">{t("myjourney.fortune.setupLink", "Setup Profile")}</Link>
               </div>
-            ) : (
+            ) : fortuneLoading ? (
               <div className={styles.fortuneLoading}>
                 <div className={styles.smallSpinner}></div>
+              </div>
+            ) : (
+              <div className={styles.fortuneSetup}>
+                <p>{t("myjourney.fortune.error", "Failed to load fortune. Please try again later.")}</p>
               </div>
             )}
           </div>
