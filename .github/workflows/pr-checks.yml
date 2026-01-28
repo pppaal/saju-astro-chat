@@ -169,6 +169,9 @@ jobs:
           PAGE_BUDGET_KB=500
           # Budget: total static JS = 20MB
           TOTAL_BUDGET_KB=20480
+          # Budget: individual chunk size
+          CHUNK_FAIL_KB=200    # Fail if any chunk exceeds this
+          CHUNK_WARN_KB=150    # Warn if any chunk exceeds this
           FAILED=0
 
           # Check total static JS size
@@ -182,14 +185,29 @@ jobs:
             fi
           fi
 
-          # Check individual chunk sizes (warn on chunks > 250KB)
-          CHUNK_WARN_KB=250
+          # Check individual chunk sizes
           if [ -d "$STATIC_DIR/chunks" ]; then
             echo ""
-            echo "=== Large chunks (>${CHUNK_WARN_KB}KB) ==="
-            find "$STATIC_DIR/chunks" -name "*.js" -size +${CHUNK_WARN_KB}k -exec du -k {} + | sort -rn | while read size file; do
-              echo "::warning::Large chunk: $(basename $file) (${size}KB)"
-            done
+            echo "=== Chunk size check ==="
+
+            # Fail on chunks > 200KB
+            while IFS= read -r line; do
+              size=$(echo "$line" | awk '{print $1}')
+              file=$(echo "$line" | awk '{print $2}')
+              if [ -n "$size" ] && [ "$size" -gt "$CHUNK_FAIL_KB" ]; then
+                echo "::error::Chunk exceeds ${CHUNK_FAIL_KB}KB limit: $(basename $file) (${size}KB)"
+                FAILED=1
+              fi
+            done < <(find "$STATIC_DIR/chunks" -name "*.js" -exec du -k {} + | sort -rn)
+
+            # Warn on chunks > 150KB (but < 200KB)
+            while IFS= read -r line; do
+              size=$(echo "$line" | awk '{print $1}')
+              file=$(echo "$line" | awk '{print $2}')
+              if [ -n "$size" ] && [ "$size" -gt "$CHUNK_WARN_KB" ] && [ "$size" -le "$CHUNK_FAIL_KB" ]; then
+                echo "::warning::Large chunk approaching limit: $(basename $file) (${size}KB)"
+              fi
+            done < <(find "$STATIC_DIR/chunks" -name "*.js" -exec du -k {} + | sort -rn)
           fi
 
           # Parse Next.js build output for page sizes if available

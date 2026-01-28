@@ -6,6 +6,7 @@ import { scoreToGrade as standardScoreToGrade, type PredictionGrade } from '@/li
 import { logger } from '@/lib/logger'
 import { getBackendUrl } from '@/lib/backend-url'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { withCircuitBreaker } from '@/lib/circuitBreaker'
 
 // ============================================================
 // 타입 정의
@@ -172,32 +173,45 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     logger.info(`[Backend Predict] Calling ${endpoint}`)
 
-    // 백엔드 API 호출
+    // 백엔드 API 호출 with circuit breaker
     const apiKey = process.env.ADMIN_API_TOKEN || ''
-    const backendRes = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify(requestBody),
-    })
 
-    if (!backendRes.ok) {
-      const errorText = await backendRes.text()
-      logger.error('[Backend Predict] Backend error:', errorText)
-      // 백엔드 오류 시에도 폴백 사용하도록
+    const { result: backendData, fromFallback } = await withCircuitBreaker<BackendResponse | null>(
+      'backend-predict',
+      async () => {
+        const backendRes = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-KEY': apiKey,
+          },
+          body: JSON.stringify(requestBody),
+          signal: AbortSignal.timeout(30000), // 30s timeout
+        })
+
+        if (!backendRes.ok) {
+          const errorText = await backendRes.text()
+          logger.error('[Backend Predict] Backend error:', errorText)
+          throw new Error('Backend request failed')
+        }
+
+        return backendRes.json()
+      },
+      null, // fallback value
+      { failureThreshold: 3, resetTimeoutMs: 60000 }
+    )
+
+    // Circuit breaker triggered or backend returned null
+    if (fromFallback || !backendData) {
       return NextResponse.json(
         {
           success: false,
-          error: '백엔드 서버 오류',
+          error: '예측 서버가 일시적으로 사용 불가합니다. 잠시 후 다시 시도해주세요.',
           fallback: true,
         },
         { status: HTTP_STATUS.SERVICE_UNAVAILABLE }
       )
     }
-
-    const backendData: BackendResponse = await backendRes.json()
 
     if (backendData.status === 'error') {
       return NextResponse.json(
