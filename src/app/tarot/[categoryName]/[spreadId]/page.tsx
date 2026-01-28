@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useCallback, useRef, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useCallback, useRef, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -24,7 +24,20 @@ const PersonalityInsight = dynamic(
   { ssr: false }
 );
 
-export default function TarotReadingPage() {
+export default function TarotReadingPageWrapper() {
+  return (
+    <Suspense fallback={
+      <div className={styles.loading}>
+        <div className={styles.loadingOrb}></div>
+        <p>✨ Loading...</p>
+      </div>
+    }>
+      <TarotReadingPage />
+    </Suspense>
+  );
+}
+
+function TarotReadingPage() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
