@@ -36,13 +36,14 @@ interface _ChatRequest {
   language?: "ko" | "en";
 }
 
-const ALLOWED_TAROT_LANG = new Set(["ko", "en"]);
-const MAX_MESSAGES = 20;
-const MAX_MESSAGE_LENGTH = 2000;
-const MAX_CARD_COUNT = 20;
-const MAX_CARD_TEXT = 400;
-const MAX_TITLE_TEXT = 200;
-const MAX_GUIDANCE_TEXT = 1200;
+import { ALLOWED_LOCALES, MESSAGE_LIMITS, TEXT_LIMITS, LIST_LIMITS } from '@/lib/constants/api-limits';
+const ALLOWED_TAROT_LANG = ALLOWED_LOCALES;
+const MAX_MESSAGES = MESSAGE_LIMITS.MAX_MESSAGES;
+const MAX_MESSAGE_LENGTH = MESSAGE_LIMITS.MAX_MESSAGE_LENGTH;
+const MAX_CARD_COUNT = LIST_LIMITS.MAX_CARDS;
+const MAX_CARD_TEXT = TEXT_LIMITS.MAX_CARD_TEXT;
+const MAX_TITLE_TEXT = TEXT_LIMITS.MAX_TITLE;
+const MAX_GUIDANCE_TEXT = TEXT_LIMITS.MAX_GUIDANCE;
 
 // Use shared normalizeMessages with local config
 function normalizeMessages(raw: unknown): ChatMessage[] {

@@ -11,7 +11,8 @@ import { tarotDeck } from "@/lib/Tarot/tarot-data";
 import { checkCreditsOnly, creditErrorResponse } from "@/lib/credits/withCredits";
 
 import { parseRequestBody } from '@/lib/api/requestParser';
-const MAX_ID_LEN = 64;
+import { LIMITS } from '@/lib/validation/patterns';
+const MAX_ID_LEN = LIMITS.ID;
 const BODY_LIMIT = 8 * 1024;
 type TarotBody = {
   categoryId?: string;

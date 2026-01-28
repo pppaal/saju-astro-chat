@@ -10,11 +10,13 @@ import { logger } from '@/lib/logger';
 import { sanitizeError } from '@/lib/security/errorSanitizer';
 import { parseRequestBody } from '@/lib/api/requestParser';
 
-const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-const MAX_NAME = 80;
-const MAX_REFERRAL = 32;
+import { PATTERNS } from '@/lib/constants/api-limits';
+import { LIMITS } from '@/lib/validation/patterns';
+const EMAIL_RE = PATTERNS.EMAIL;
+const MAX_NAME = LIMITS.NAME;
+const MAX_REFERRAL = LIMITS.REFERRAL_CODE;
 const MIN_PASSWORD = 8;
-const MAX_PASSWORD = 128;
+const MAX_PASSWORD = LIMITS.PASSWORD;
 type RegisterBody = {
   email?: string;
   password?: string;

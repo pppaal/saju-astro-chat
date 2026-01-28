@@ -31,7 +31,7 @@ function relationWeight(r?: Relation) {
   return 0.9; // other
 }
 
-const MAX_NOTE = 240;
+const MAX_NOTE = LIMITS.NOTE;
 
 
 export async function POST(req: NextRequest) {

@@ -88,13 +88,14 @@ interface EnhancedDreamContext {
   persona_memory?: PersonaMemory;
 }
 
-const ALLOWED_CHAT_LOCALES = new Set(["ko", "en"]);
-const MAX_MESSAGES = 20;
-const MAX_MESSAGE_LENGTH = 2000;
-const MAX_CONTEXT_FIELD = 2000;
-const _MAX_CONTEXT_ITEMS = 20;
+import { ALLOWED_LOCALES, MESSAGE_LIMITS, TEXT_LIMITS, LIST_LIMITS, BODY_LIMITS } from '@/lib/constants/api-limits';
+const ALLOWED_CHAT_LOCALES = ALLOWED_LOCALES;
+const MAX_MESSAGES = MESSAGE_LIMITS.MAX_MESSAGES;
+const MAX_MESSAGE_LENGTH = MESSAGE_LIMITS.MAX_MESSAGE_LENGTH;
+const MAX_CONTEXT_FIELD = TEXT_LIMITS.MAX_CONTEXT;
+const _MAX_CONTEXT_ITEMS = LIST_LIMITS.MAX_CONTEXT_ITEMS;
 const _MAX_CONTEXT_ITEM_LEN = 200;
-const MAX_CHAT_BODY = 96 * 1024; // Increased for additional context
+const MAX_CHAT_BODY = BODY_LIMITS.LARGE;
 
 // Type alias for local usage (Message = ChatMessage from @/lib/api)
 type Message = ChatMessage;

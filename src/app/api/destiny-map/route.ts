@@ -23,8 +23,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 180;
 const enableDebugLogs = process.env.ENABLE_DESTINY_LOGS === "true";
 
-const ALLOWED_LANG = new Set(["ko", "en"]);
-const ALLOWED_GENDER = new Set(["male", "female", "other", "prefer_not"]);
+import { ALLOWED_LOCALES, ALLOWED_GENDERS } from '@/lib/constants/api-limits';
+const ALLOWED_LANG = ALLOWED_LOCALES;
+const ALLOWED_GENDER = new Set([...ALLOWED_GENDERS, "prefer_not"]);
 
 // Basic HTML/script stripping to keep responses safe for UI rendering
 // IMPORTANT: Preserve JSON structure (curly braces) for structured responses

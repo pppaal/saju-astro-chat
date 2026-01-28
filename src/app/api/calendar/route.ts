@@ -31,7 +31,9 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const VALID_CALENDAR_LOCALES = new Set(["ko", "en"]);
+import { ALLOWED_LOCALES } from '@/lib/constants/api-limits';
+import { TIME_RE, LIMITS } from '@/lib/validation/patterns';
+const VALID_CALENDAR_LOCALES = ALLOWED_LOCALES;
 const VALID_CALENDAR_GENDERS = new Set(["male", "female"]);
 const VALID_CALENDAR_CATEGORIES: readonly EventCategory[] = [
   "wealth",
@@ -43,9 +45,9 @@ const VALID_CALENDAR_CATEGORIES: readonly EventCategory[] = [
   "general",
 ];
 const _VALID_CALENDAR_PLACES = new Set(Object.keys(LOCATION_COORDS));
-const CALENDAR_TIME_RE = /^\d{2}:\d{2}$/;
+const CALENDAR_TIME_RE = TIME_RE;
 const CALENDAR_YEAR_RE = /^\d{4}$/;
-const MAX_PLACE_LEN = 64;
+const MAX_PLACE_LEN = LIMITS.PLACE;
 
 /**
  * GET /api/calendar

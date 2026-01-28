@@ -20,7 +20,8 @@ const ALLOWED_CREDIT_TYPES = new Set<("reading" | "compatibility" | "followUp")>
   "followUp",
 ]);
 const ALLOWED_FEATURES = new Set<FeatureType>(Object.keys(PLAN_CONFIG.free.features) as FeatureType[]);
-const MAX_CREDIT_AMOUNT = 10;
+import { LIMITS } from '@/lib/validation/patterns';
+const MAX_CREDIT_AMOUNT = LIMITS.CREDIT_AMOUNT;
 type CreditType = "reading" | "compatibility" | "followUp";
 const isCreditType = (value: string): value is CreditType =>
   ALLOWED_CREDIT_TYPES.has(value as CreditType);

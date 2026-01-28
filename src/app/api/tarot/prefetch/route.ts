@@ -6,7 +6,8 @@ import { initializeApiContext, createSimpleGuard } from "@/lib/api/middleware";
 import { apiClient } from "@/lib/api/ApiClient";
 
 import { parseRequestBody } from '@/lib/api/requestParser';
-const MAX_ID_LEN = 64;
+import { LIMITS } from '@/lib/validation/patterns';
+const MAX_ID_LEN = LIMITS.ID;
 type TarotPrefetchBody = {
   categoryId?: string;
   spreadId?: string;

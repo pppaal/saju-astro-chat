@@ -47,14 +47,14 @@ interface StreamDreamRequest {
   };
 }
 
-const MAX_STREAM_BODY = 64 * 1024;
-const MAX_TEXT_LEN = 4000;
-const _MAX_LIST_ITEMS = 20;
+import { ALLOWED_LOCALES, BODY_LIMITS, TEXT_LIMITS, LIST_LIMITS } from '@/lib/constants/api-limits';
+import { DATE_RE, TIME_RE, LIMITS } from '@/lib/validation/patterns';
+const MAX_STREAM_BODY = BODY_LIMITS.STREAM;
+const MAX_TEXT_LEN = TEXT_LIMITS.MAX_DREAM_TEXT;
+const _MAX_LIST_ITEMS = LIST_LIMITS.MAX_LIST_ITEMS;
 const _MAX_LIST_ITEM_LEN = 120;
-const STREAM_LOCALES = new Set(["ko", "en"]);
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_RE = /^\d{2}:\d{2}$/;
-const MAX_TIMEZONE_LEN = 64;
+const STREAM_LOCALES = ALLOWED_LOCALES;
+const MAX_TIMEZONE_LEN = LIMITS.TIMEZONE;
 
 // cleanStringArray and isRecord imported from @/lib/api
 
