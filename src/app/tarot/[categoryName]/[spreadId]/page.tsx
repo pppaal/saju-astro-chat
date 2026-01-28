@@ -10,7 +10,6 @@ import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { getCardImagePath } from '@/lib/Tarot/tarot.types';
-import CreditBadge from '@/components/ui/CreditBadge';
 import { buildSignInUrl } from '@/lib/auth/signInUrl';
 import AuthGate from '@/components/auth/AuthGate';
 import styles from './tarot-reading.module.css';
@@ -222,7 +221,6 @@ export default function TarotReadingPage() {
       return (
         <div className={styles.deckSelectPage}>
           <div className={styles.backButtonWrapper}><BackButton /></div>
-          <div className={styles.creditBadgeWrapper}><CreditBadge variant="compact" /></div>
           <main className={styles.deckSelectMain}>
             <div className={styles.deckSelectContent}>
               {userTopic && (
@@ -287,14 +285,6 @@ export default function TarotReadingPage() {
       const insight = interpretation;
       return (
         <div className={styles.resultsContainer}>
-          <div className={styles.creditBadgeWrapper}>
-            <CreditBadge variant="compact" />
-            <Link href="/" className={styles.homeButton} aria-label="Home">
-              <span className={styles.homeIcon}>🏠</span>
-              <span className={styles.homeLabel}>홈</span>
-            </Link>
-          </div>
-
           {/* Header */}
           <div className={styles.resultsHeader}>
             <h1 className={styles.resultsTitle}>{language === 'ko' ? readingResult.spread.titleKo || readingResult.spread.title : readingResult.spread.title}</h1>
