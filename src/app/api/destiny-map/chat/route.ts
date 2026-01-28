@@ -12,20 +12,20 @@ import { logger } from '@/lib/logger';
 import { type ChatMessage } from "@/lib/api";
 
 import { parseRequestBody } from '@/lib/api/requestParser';
+import { ALLOWED_LOCALES, ALLOWED_GENDERS, MESSAGE_LIMITS, TEXT_LIMITS } from '@/lib/constants/api-limits';
+import { DATE_RE, TIME_RE, LIMITS } from '@/lib/validation/patterns';
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2025-10-29.clover";
 
-const ALLOWED_LANG = new Set(["ko", "en"]);
+const ALLOWED_LANG = ALLOWED_LOCALES;
 const ALLOWED_ROLE = new Set(["system", "user", "assistant"]);
-const MAX_THEME = 40;
-const MAX_MESSAGES = 10;
-const ALLOWED_GENDER = new Set(["male", "female", "other", "prefer_not"]);
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_RE = /^\d{2}:\d{2}$/;
-const MAX_NAME = 80;
-const MAX_CV = 1200;
+const MAX_THEME = LIMITS.THEME;
+const MAX_MESSAGES = MESSAGE_LIMITS.MAX_STREAM_MESSAGES;
+const ALLOWED_GENDER = new Set([...ALLOWED_GENDERS, "prefer_not"]);
+const MAX_NAME = LIMITS.NAME;
+const MAX_CV = LIMITS.CV_TEXT_SHORT;
 
 function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);
