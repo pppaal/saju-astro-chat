@@ -10,16 +10,28 @@ vi.mock('@/lib/db/prisma', () => ({
     user: {
       create: vi.fn(),
       findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    account: {
+      create: vi.fn(),
+      findFirst: vi.fn(),
+      delete: vi.fn(),
+    },
+    session: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    verificationToken: {
+      create: vi.fn(),
+      delete: vi.fn(),
     },
   },
 }));
 
-vi.mock('@next-auth/prisma-adapter', () => ({
-  PrismaAdapter: vi.fn(() => ({
-    createUser: vi.fn(),
-    linkAccount: vi.fn(),
-  })),
-}));
+// @next-auth/prisma-adapter is no longer used (replaced with custom adapter for Prisma 7.x)
 
 vi.mock('@/lib/auth/tokenRevoke', () => ({
   revokeGoogleTokensForAccount: vi.fn(),
@@ -528,11 +540,7 @@ describe('authOptions', () => {
     it('should filter out unknown account fields', async () => {
       process.env.NEXTAUTH_SECRET = 'test-secret';
 
-      const { PrismaAdapter } = await import('@next-auth/prisma-adapter');
-      const baseLinkAccount = vi.fn();
-      (PrismaAdapter as any).mockReturnValue({
-        linkAccount: baseLinkAccount,
-      });
+      const { prisma } = await import('@/lib/db/prisma');
 
       vi.resetModules();
       const { authOptions } = await import('@/lib/auth/authOptions');
@@ -548,7 +556,7 @@ describe('authOptions', () => {
           unknownField: 'should be filtered',
         } as any);
 
-        const callArgs = baseLinkAccount.mock.calls[0][0];
+        const callArgs = (prisma.account.create as any).mock.calls[0][0].data;
         expect(callArgs).not.toHaveProperty('unknownField');
         expect(callArgs).toHaveProperty('access_token');
       }
@@ -557,11 +565,7 @@ describe('authOptions', () => {
     it('should encrypt tokens before saving', async () => {
       process.env.NEXTAUTH_SECRET = 'test-secret';
 
-      const { PrismaAdapter } = await import('@next-auth/prisma-adapter');
-      const baseLinkAccount = vi.fn();
-      (PrismaAdapter as any).mockReturnValue({
-        linkAccount: baseLinkAccount,
-      });
+      const { prisma } = await import('@/lib/db/prisma');
 
       vi.resetModules();
       const { authOptions } = await import('@/lib/auth/authOptions');
@@ -578,7 +582,7 @@ describe('authOptions', () => {
           id_token: 'plaintext_id',
         } as any);
 
-        const callArgs = baseLinkAccount.mock.calls[0][0];
+        const callArgs = (prisma.account.create as any).mock.calls[0][0].data;
         expect(callArgs.access_token).toBe('encrypted_plaintext_token');
         expect(callArgs.refresh_token).toBe('encrypted_plaintext_refresh');
         expect(callArgs.id_token).toBe('encrypted_plaintext_id');
@@ -588,11 +592,7 @@ describe('authOptions', () => {
     it('should handle null tokens', async () => {
       process.env.NEXTAUTH_SECRET = 'test-secret';
 
-      const { PrismaAdapter } = await import('@next-auth/prisma-adapter');
-      const baseLinkAccount = vi.fn();
-      (PrismaAdapter as any).mockReturnValue({
-        linkAccount: baseLinkAccount,
-      });
+      const { prisma } = await import('@/lib/db/prisma');
 
       vi.resetModules();
       const { authOptions } = await import('@/lib/auth/authOptions');
@@ -606,7 +606,7 @@ describe('authOptions', () => {
           providerAccountId: '123',
         } as any);
 
-        const callArgs = baseLinkAccount.mock.calls[0][0];
+        const callArgs = (prisma.account.create as any).mock.calls[0][0].data;
         expect(callArgs).not.toHaveProperty('access_token');
         expect(callArgs).not.toHaveProperty('refresh_token');
       }

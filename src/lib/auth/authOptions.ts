@@ -2,7 +2,6 @@ import type { NextAuthOptions } from 'next-auth'
 import type { Adapter, AdapterAccount, AdapterUser } from 'next-auth/adapters'
 import GoogleProvider from 'next-auth/providers/google'
 import KakaoProvider from 'next-auth/providers/kakao'
-import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/db/prisma'
 import { revokeGoogleTokensForAccount, revokeGoogleTokensForUser } from '@/lib/auth/tokenRevoke'
@@ -62,16 +61,33 @@ function encryptAccountTokens(account: AdapterAccount) {
   return copy
 }
 
-// Custom adapter that filters out unknown account fields before saving
-// and generates referral codes for new users
+// Full custom Prisma adapter for Prisma 7.x compatibility.
+// @next-auth/prisma-adapter@1.0.7 uses compound unique keys (provider_providerAccountId)
+// which cause P2022 errors with Prisma 7.x. This adapter avoids compound keys entirely.
 function createFilteredPrismaAdapter(): Adapter {
   ensureEncryptionKey()
-  const baseAdapter = PrismaAdapter(prisma)
 
   return {
-    ...baseAdapter,
-    // Override getUserByAccount to avoid Prisma 7.x compound unique key issue with PrismaPg adapter
-    // Error: "The column `(not available)` does not exist in the current database" (P2022)
+    createUser: async (user: Omit<AdapterUser, "id">) => {
+      try {
+        const referralCode = generateReferralCode()
+        const createdUser = await prisma.user.create({
+          data: { ...user, referralCode },
+        })
+        return createdUser as AdapterUser
+      } catch (error) {
+        logger.error('[auth] createUser failed:', error)
+        throw error
+      }
+    },
+    getUser: async (id: string) => {
+      const user = await prisma.user.findUnique({ where: { id } })
+      return (user as AdapterUser) ?? null
+    },
+    getUserByEmail: async (email: string) => {
+      const user = await prisma.user.findUnique({ where: { email } })
+      return (user as AdapterUser) ?? null
+    },
     getUserByAccount: async (providerAccountId: Pick<AdapterAccount, "provider" | "providerAccountId">) => {
       try {
         const account = await prisma.account.findFirst({
@@ -87,21 +103,15 @@ function createFilteredPrismaAdapter(): Adapter {
         throw error
       }
     },
-    // Generate referralCode for new OAuth users
-    createUser: async (user: Omit<AdapterUser, "id">) => {
-      try {
-        const referralCode = generateReferralCode()
-        const createdUser = await prisma.user.create({
-          data: {
-            ...user,
-            referralCode,
-          },
-        })
-        return createdUser as AdapterUser
-      } catch (error) {
-        logger.error('[auth] createUser failed:', error)
-        throw error
-      }
+    updateUser: async (user: Partial<AdapterUser> & Pick<AdapterUser, "id">) => {
+      const updated = await prisma.user.update({
+        where: { id: user.id },
+        data: user,
+      })
+      return updated as AdapterUser
+    },
+    deleteUser: async (userId: string) => {
+      await prisma.user.delete({ where: { id: userId } })
     },
     linkAccount: async (account: AdapterAccount) => {
       try {
@@ -112,13 +122,12 @@ function createFilteredPrismaAdapter(): Adapter {
           }
         }
         const securedAccount = encryptAccountTokens(filteredAccount as AdapterAccount)
-        return baseAdapter.linkAccount?.(securedAccount)
+        await prisma.account.create({ data: securedAccount as never })
       } catch (error) {
         logger.error('[auth] linkAccount failed:', error)
         throw error
       }
     },
-    // Override unlinkAccount to avoid compound unique key issue
     unlinkAccount: async (providerAccountId: Pick<AdapterAccount, "provider" | "providerAccountId">) => {
       try {
         const account = await prisma.account.findFirst({
@@ -133,6 +142,39 @@ function createFilteredPrismaAdapter(): Adapter {
       } catch (error) {
         logger.error('[auth] unlinkAccount failed:', error)
         throw error
+      }
+    },
+    createSession: async (session) => {
+      return await prisma.session.create({ data: session })
+    },
+    getSessionAndUser: async (sessionToken: string) => {
+      const sessionAndUser = await prisma.session.findUnique({
+        where: { sessionToken },
+        include: { user: true },
+      })
+      if (!sessionAndUser) return null
+      const { user, ...session } = sessionAndUser
+      return { session, user: user as AdapterUser }
+    },
+    updateSession: async (session) => {
+      return await prisma.session.update({
+        where: { sessionToken: session.sessionToken },
+        data: session,
+      })
+    },
+    deleteSession: async (sessionToken: string) => {
+      await prisma.session.delete({ where: { sessionToken } })
+    },
+    createVerificationToken: async (data) => {
+      return await prisma.verificationToken.create({ data })
+    },
+    useVerificationToken: async (identifier_token) => {
+      try {
+        return await prisma.verificationToken.delete({
+          where: { identifier_token },
+        })
+      } catch {
+        return null
       }
     },
   }
