@@ -75,11 +75,6 @@ function MyJourneyPage() {
       <header className={styles.header}>
         <button className={styles.backBtn} onClick={goBack}>{"\u2190"}</button>
         <h1 className={styles.logo}>{t("myjourney.title", "My Journey")}</h1>
-        {session && (
-          <button className={styles.logoutBtn} onClick={handleLogout}>
-            {t("myjourney.logout", "Logout")}
-          </button>
-        )}
       </header>
 
         {/* ========== LOGGED IN - DASHBOARD ========== */}
