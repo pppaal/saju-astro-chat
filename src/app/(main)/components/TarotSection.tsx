@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useReducer } from "react";
+import { useCallback, useReducer, memo } from "react";
 import Image from "next/image";
 import styles from "../main-page.module.css";
 import { TAROT_DECK, TAROT_CARD_BACK, type TarotCard } from "@/data/home";
@@ -63,7 +63,7 @@ function fisherYatesShuffle<T>(array: T[]): T[] {
   return shuffled;
 }
 
-export default function TarotSection({ translate, locale }: TarotSectionProps) {
+function TarotSection({ translate, locale }: TarotSectionProps) {
   const [tarotState, dispatchTarot] = useReducer(tarotReducer, initialTarotState);
   const { flippedCards, selectedCards, isDeckSpread } = tarotState;
 
@@ -161,7 +161,9 @@ export default function TarotSection({ translate, locale }: TarotSectionProps) {
                       width={200}
                       height={350}
                       loading="lazy"
-                      quality={80}
+                      quality={75}
+                      placeholder="blur"
+                      blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjM1MCIgZmlsbD0iIzFhMWExYSIvPjwvc3ZnPg=="
                     />
                     <div className={styles.cardName}>
                       {locale === 'ko' ? selectedCards[index]?.nameKo : selectedCards[index]?.name}
@@ -182,3 +184,6 @@ export default function TarotSection({ translate, locale }: TarotSectionProps) {
     </section>
   );
 }
+
+// Memoize TarotSection - only re-render if translate or locale changes
+export default memo(TarotSection);

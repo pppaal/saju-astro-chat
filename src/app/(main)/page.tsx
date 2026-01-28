@@ -4,170 +4,41 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from "react";
 import styles from "./main-page.module.css";
 import { useI18n } from "@/i18n/I18nProvider";
-import { ChatDemoSection } from "@/components/home/ChatDemoSection";
 import { formatNumber } from "@/utils/numberFormat";
-import { ParticleCanvas, MainHeader, TarotSection } from "./components";
+import { useTypingAnimation } from "@/hooks/useTypingAnimation";
+import { useVisitorMetrics } from "@/hooks/useVisitorMetrics";
+import { useScrollVisibility, useClickOutside, useScrollAnimation } from "@/hooks/useMainPageHooks";
+
+// Critical components - loaded immediately
+import { MainHeader } from "./components";
+
+// Non-critical components - lazy loaded with suspense
+const ParticleCanvas = dynamic(() => import("./components").then(mod => ({ default: mod.ParticleCanvas })), {
+  ssr: false,
+  loading: () => null,
+});
+
+const TarotSection = dynamic(() => import("./components").then(mod => ({ default: mod.TarotSection })), {
+  ssr: false,
+  loading: () => <div className={styles.featureSectionSkeleton} />,
+});
+
+const ChatDemoSection = dynamic(() => import("@/components/home/ChatDemoSection").then(mod => ({ default: mod.ChatDemoSection })), {
+  ssr: false,
+  loading: () => <div className={styles.featureSectionSkeleton} />,
+});
 
 const WeeklyFortuneCard = dynamic(() => import("@/components/WeeklyFortuneCard"), {
   loading: () => <div className={styles.weeklyCardSkeleton} />,
 });
 
-// Custom hook for typing animation
-function useTypingAnimation(
-  placeholders: string[],
-  setPlaceholder: Dispatch<SetStateAction<string>>
-) {
-  useEffect(() => {
-    let currentIndex = 0;
-    let charIndex = 0;
-    let isDeleting = false;
-    let timeoutId: NodeJS.Timeout;
+const PrefetchLinks = dynamic(() => import("@/components/PrefetchLinks"), {
+  ssr: false,
+});
 
-    const type = () => {
-      const currentText = placeholders[currentIndex];
-
-      if (isDeleting) {
-        setPlaceholder(currentText.substring(0, charIndex - 1));
-        charIndex--;
-
-        if (charIndex === 0) {
-          isDeleting = false;
-          currentIndex = (currentIndex + 1) % placeholders.length;
-          timeoutId = setTimeout(type, 500);
-        } else {
-          timeoutId = setTimeout(type, 30);
-        }
-      } else {
-        setPlaceholder(currentText.substring(0, charIndex + 1));
-        charIndex++;
-
-        if (charIndex === currentText.length) {
-          isDeleting = true;
-          timeoutId = setTimeout(type, 2000);
-        } else {
-          timeoutId = setTimeout(type, 80);
-        }
-      }
-    };
-
-    timeoutId = setTimeout(type, 1000);
-    return () => clearTimeout(timeoutId);
-  }, [placeholders, setPlaceholder]);
-}
-
-// Custom hook for scroll visibility
-function useScrollVisibility(threshold: number) {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setVisible(window.scrollY > threshold);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [threshold]);
-
-  return visible;
-}
-
-// Custom hook for click outside
-function useClickOutside(
-  ref: React.RefObject<HTMLElement | null>,
-  callback: () => void
-) {
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        callback();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [ref, callback]);
-}
-
-// Custom hook for intersection observer
-function useScrollAnimation(selector: string, styles: Record<string, string>) {
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add(styles.visible);
-          }
-        });
-      },
-      { threshold: 0.2, rootMargin: "0px 0px -100px 0px" }
-    );
-
-    const elements = document.querySelectorAll(selector);
-    elements.forEach((el) => observer.observe(el));
-
-    return () => elements.forEach((el) => observer.unobserve(el));
-  }, [selector, styles]);
-}
-
-// Custom hook for visitor stats
-function useVisitorStats(metricsToken: string | undefined) {
-  const [stats, setStats] = useState<{
-    todayVisitors: number | null;
-    totalVisitors: number | null;
-    totalMembers: number | null;
-    error: string | null;
-  }>({
-    todayVisitors: null,
-    totalVisitors: null,
-    totalMembers: null,
-    error: null,
-  });
-  const trackedOnce = useRef(false);
-
-  useEffect(() => {
-    if (trackedOnce.current) {
-      return;
-    }
-    trackedOnce.current = true;
-
-    const headers: HeadersInit = {};
-    if (metricsToken) {
-      headers["x-metrics-token"] = metricsToken;
-    }
-
-    async function run() {
-      try {
-        fetch("/api/visitors-today", { method: "POST", headers }).catch(() => {});
-
-        const [visitorRes, statsRes] = await Promise.all([
-          fetch("/api/visitors-today", { headers }),
-          fetch("/api/stats")
-        ]);
-
-        const newStats = { ...stats };
-
-        if (visitorRes.ok) {
-          const data = await visitorRes.json();
-          newStats.todayVisitors = typeof data.count === "number" ? data.count : 0;
-          newStats.totalVisitors = typeof data.total === "number" ? data.total : 0;
-        }
-
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          newStats.totalMembers = typeof statsData.users === "number" ? statsData.users : 0;
-        }
-
-        setStats(newStats);
-      } catch {
-        setStats((prev) => ({ ...prev, error: "Could not load stats." }));
-      }
-    }
-
-    run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [metricsToken]);
-
-  return stats;
-}
 
 // Service options constant (outside component to prevent recreation)
 const SERVICE_OPTIONS = [
@@ -200,7 +71,6 @@ export default function MainPage() {
   }, [t]);
 
   const [lifeQuestion, setLifeQuestion] = useState("");
-  const [typingPlaceholder, setTypingPlaceholder] = useState("");
   const [showServiceSelector, setShowServiceSelector] = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [servicePage, setServicePage] = useState(0);
@@ -221,7 +91,7 @@ export default function MainPage() {
   ], [translate]);
 
   // Custom hooks
-  useTypingAnimation(placeholders, setTypingPlaceholder);
+  const typingPlaceholder = useTypingAnimation(placeholders, 1000);
   useScrollAnimation(`.${styles.featureSection}`, styles);
   const showScrollTop = useScrollVisibility(500);
   const closeServiceSelector = useCallback(() => {
@@ -231,7 +101,7 @@ export default function MainPage() {
   useClickOutside(searchContainerRef, closeServiceSelector);
 
   // Visitor stats
-  const { todayVisitors, totalVisitors, totalMembers, error: visitorError } = useVisitorStats(metricsToken);
+  const { todayVisitors, totalVisitors, totalMembers, visitorError } = useVisitorMetrics(metricsToken);
 
   useEffect(() => {
     if (servicePage > maxServicePage) {
@@ -890,6 +760,9 @@ export default function MainPage() {
           {translate("landing.scrollToTop", "Back to Top")}
         </span>
       </button>
+
+      {/* Prefetch critical routes in the background */}
+      <PrefetchLinks />
 
       <SpeedInsights />
     </main>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import styles from "../main-page.module.css";
@@ -13,7 +13,7 @@ import { SERVICE_LINKS } from "@/data/home";
 const NotificationBell = dynamic(() => import("@/components/notifications/NotificationBell"), { ssr: false });
 const HeaderUser = dynamic(() => import("../HeaderUser"), { ssr: false });
 
-export default function MainHeader() {
+function MainHeader() {
   const { t } = useI18n();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [servicePage, setServicePage] = useState(0);
@@ -167,3 +167,6 @@ export default function MainHeader() {
     </header>
   );
 }
+
+// Memoize MainHeader to prevent unnecessary re-renders
+export default memo(MainHeader);
