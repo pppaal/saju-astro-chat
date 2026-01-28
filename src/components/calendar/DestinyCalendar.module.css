@@ -90,7 +90,7 @@
   --cal-radius-lg: 16px;
   --cal-radius-xl: 24px;
 
-  min-height: 100vh;
+  min-height: 100svh;
   background: var(--cal-bg-primary);
   font-family: var(--cal-font);
   color: var(--cal-text-primary);
@@ -3565,5 +3565,56 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ===== Focus Visible - Calendar Buttons ===== */
+.navBtn:focus-visible,
+.todayBtn:focus-visible,
+.filterBtn:focus-visible,
+.editBirthBtn:focus-visible,
+.saveBtn:focus-visible,
+.saveBtnLarge:focus-visible,
+.retryBtn:focus-visible,
+.submitButton:focus-visible,
+.loadProfileButton:focus-visible {
+  outline: 2px solid var(--cal-accent-primary);
+  outline-offset: 2px;
+}
+
+.day:focus-visible {
+  outline: 2px solid var(--cal-accent-secondary);
+  outline-offset: -2px;
+}
+
+.sparkBar:focus-visible {
+  outline: 2px solid var(--cal-accent-blue);
+  outline-offset: 1px;
+}
+
+.highlightCard:focus-visible {
+  outline: 2px solid var(--cal-accent-primary);
+  outline-offset: 2px;
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .sparkBar,
+  .highlightCard,
+  .day,
+  .filterBtn,
+  .navBtn,
+  .saveBtn,
+  .saveBtnLarge,
+  .spinner,
+  .buttonSpinner,
+  .loadingOrb {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .daysGrid.slideLeft,
+  .daysGrid.slideRight {
+    animation: none !important;
   }
 }

@@ -243,7 +243,7 @@ describe('enhancedDataLoader', () => {
       expect(data).toBeNull();
       expect(errorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Failed to load enhanced data for hexagram 1'),
-        expect.any(Error)
+        expect.objectContaining({ message: expect.any(String) })
       );
 
       errorSpy.mockRestore();
@@ -267,7 +267,7 @@ describe('enhancedDataLoader', () => {
       expect(data).toBeNull();
       expect(errorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Failed to load enhanced Korean data for hexagram 1'),
-        expect.any(Error)
+        expect.objectContaining({ message: expect.any(String) })
       );
 
       errorSpy.mockRestore();

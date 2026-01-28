@@ -9,18 +9,18 @@ import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
 import { HTTP_STATUS } from '@/lib/constants/formulas';
+import { ALLOWED_LOCALES, ALLOWED_GENDERS, MESSAGE_LIMITS, TEXT_LIMITS } from '@/lib/constants/api-limits';
+import { DATE_RE, TIME_RE } from '@/lib/validation/patterns';
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const ALLOWED_LANG = new Set(["ko", "en"]);
-const ALLOWED_GENDER = new Set(["male", "female", "other"]);
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_RE = /^\d{2}:\d{2}$/;
-const MAX_NAME = 120;
-const MAX_THEME = 64;
-const MAX_MESSAGE_LEN = 2000;
-const MAX_MESSAGES = 10;
+const ALLOWED_LANG = ALLOWED_LOCALES;
+const ALLOWED_GENDER = ALLOWED_GENDERS;
+const MAX_NAME = TEXT_LIMITS.MAX_NAME;
+const MAX_THEME = TEXT_LIMITS.MAX_THEME;
+const MAX_MESSAGE_LEN = MESSAGE_LIMITS.MAX_MESSAGE_LENGTH;
+const MAX_MESSAGES = MESSAGE_LIMITS.MAX_STREAM_MESSAGES;
 
 function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max);

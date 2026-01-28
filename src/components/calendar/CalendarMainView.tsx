@@ -421,7 +421,16 @@ export default function CalendarMainView({
                     const clickedDate = new Date(year, month, d.day);
                     handleDayClick(clickedDate);
                   }}
-                  title={`${d.day}${locale === "ko" ? "일" : ""}: ${d.score}점`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleDayClick(new Date(year, month, d.day));
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${d.day}${locale === "ko" ? "일" : ""}: ${locale === "ko" ? "점수" : "score"} ${d.score}`}
+                  title={`${d.day}${locale === "ko" ? "일" : ""}: ${d.score}${locale === "ko" ? "점" : ""}`}
                 />
               );
             })}

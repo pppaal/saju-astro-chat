@@ -81,6 +81,15 @@ export default function MonthHighlights({
             key={i}
             className={`${styles.highlightCard} ${getGradeClass(d.grade)}`}
             onClick={() => onDateSelect(parseLocalDate(d.date), d)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onDateSelect(parseLocalDate(d.date), d);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={`${parseLocalDate(d.date).getDate()}${locale === "ko" ? "일" : ""} - ${d.title || getGradeTitle(d.grade)}, ${locale === "ko" ? "점수" : "score"}: ${d.score}`}
           >
             <div className={styles.highlightHeader}>
               <span className={styles.highlightDate}>

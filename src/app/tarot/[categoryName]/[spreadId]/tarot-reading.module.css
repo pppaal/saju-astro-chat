@@ -351,7 +351,7 @@
 /* ===== Results Screen ===== */
 .resultsContainer {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100svh;
   padding: 4rem 2rem;
   display: flex;
   flex-direction: column;
@@ -459,10 +459,10 @@
   font-size: 1rem;
   color: rgba(124, 242, 156, 0.95);
   font-style: italic;
-  max-width: 400px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 500px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  line-height: 1.5;
 }
 
 .resultsGrid {
@@ -492,7 +492,7 @@
   animation-delay: calc(var(--card-index, 0) * 0.1s);
   transition: all 0.4s ease;
   min-height: fit-content;
-  cursor: auto;
+  cursor: pointer;
 }
 
 @keyframes cardSlotElegant {
@@ -3570,7 +3570,7 @@
 
 /* ========== Login Required Screen ========== */
 .loginRequired {
-  min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   align-items: center;
   justify-content: center;
