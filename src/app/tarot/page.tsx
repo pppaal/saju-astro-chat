@@ -299,6 +299,8 @@ export default function TarotHomePage() {
       // 에러시 키워드 기반 폴백
       const result = getQuickRecommendation(question, isKo);
       router.push(result.path);
+    } finally {
+      setIsAnalyzing(false);
     }
   }, [question, dangerWarning, isLoadingPreview, previewInfo, analyzeWithAI, router, isKo]);
 
@@ -496,14 +498,20 @@ export default function TarotHomePage() {
                 <p className={styles.recentLabel}>{isKo ? "최근 질문" : "Recent"}</p>
                 <div className={styles.recentList}>
                   {recentQuestions.map((q, idx) => (
-                    <button
+                    <div
                       key={idx}
                       className={styles.recentItem}
-                      onClick={() => handleRecentQuestion(q)}
-                      disabled={isAnalyzing}
+                      role="group"
                     >
-                      <span className={styles.recentIcon}>🕐</span>
-                      <span className={styles.recentText}>{q}</span>
+                      <button
+                        className={styles.recentItemButton}
+                        onClick={() => handleRecentQuestion(q)}
+                        disabled={isAnalyzing}
+                        type="button"
+                      >
+                        <span className={styles.recentIcon}>🕐</span>
+                        <span className={styles.recentText}>{q}</span>
+                      </button>
                       <button
                         className={styles.recentDelete}
                         onClick={(e) => handleDeleteRecent(q, e)}
@@ -512,7 +520,7 @@ export default function TarotHomePage() {
                       >
                         ×
                       </button>
-                    </button>
+                    </div>
                   ))}
                 </div>
               </div>

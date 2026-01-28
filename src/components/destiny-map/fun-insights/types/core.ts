@@ -1,6 +1,6 @@
 /**
  * Core type definitions for fun-insights analyzers
- * Provides strict typing to eliminate @ts-nocheck usage
+ * Provides strict typing for all analyzers
  */
 
 // ========== Standardized Domain Types ==========

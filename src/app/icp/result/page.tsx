@@ -1,364 +1,40 @@
 'use client';
 
-import { useEffect, useMemo, useState, useCallback } from 'react';
-import { logger } from '@/lib/logger';
-
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import type { ICPQuizAnswers, ICPAnalysis, ICPOctantCode } from '@/lib/icp/types';
-import { analyzeICP } from '@/lib/icp/analysis';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
 import { ICPCircumplex } from '@/components/icp';
+import { AxisBar, ConfettiAnimation } from '@/components/shared';
+import OctantRadar from './OctantRadar';
+import useICPResult from './useICPResult';
+import useDestinyAdvice from './useDestinyAdvice';
 import styles from './result.module.css';
-import { buildSignInUrl } from '@/lib/auth/signInUrl';
-import { fetchWithRetry, FetchWithRetryError } from '@/lib/http';
-import {
-  getDailyFortuneScore,
-  calculateYearlyImportantDates,
-  calculateSajuProfileFromBirthDate,
-  calculateAstroProfileFromBirthDate,
-  type DailyFortuneResult,
-  type ImportantDate,
-} from '@/lib/destiny-map/destinyCalendar';
-
-// Confetti particle type
-interface ConfettiParticle {
-  id: number;
-  x: number;
-  y: number;
-  color: string;
-  size: number;
-  speedY: number;
-  speedX: number;
-  rotation: number;
-  rotationSpeed: number;
-}
-
-// Axis Bar Component
-const AxisBar = ({ label, score, left, right, delay }: {
-  label: string;
-  score: number;
-  left: string;
-  right: string;
-  delay: number;
-}) => {
-  const pct = Math.max(0, Math.min(100, score));
-  return (
-    <div className={styles.axisBar} style={{ animationDelay: `${delay}ms` }}>
-      <div className={styles.axisHeader}>
-        <span className={styles.axisLabel}>{label}</span>
-        <span className={styles.axisPercent}>{Math.round(pct)}%</span>
-      </div>
-      <div className={styles.axisTrack}>
-        <div
-          className={styles.axisFill}
-          style={{
-            width: `${pct}%`,
-            animationDelay: `${delay + 200}ms`
-          }}
-        />
-        <div className={styles.axisMarker} style={{ left: '50%' }} />
-      </div>
-      <div className={styles.axisPoles}>
-        <span>{left}</span>
-        <span>{right}</span>
-      </div>
-    </div>
-  );
-};
-
-// Octant Radar Component (simplified)
-const OctantRadar = ({ scores, isKo }: { scores: Record<string, number>; isKo: boolean }) => {
-  // 표준 ICP 모델 레이블과 일치 - 이모지 + 한글로 직관성 향상
-  const octantLabels: Record<string, { emoji: string; en: string; ko: string }> = {
-    PA: { emoji: '👑', en: 'Leader', ko: '리더형' },
-    BC: { emoji: '🏆', en: 'Achiever', ko: '성취형' },
-    DE: { emoji: '🧊', en: 'Analyst', ko: '분석형' },
-    FG: { emoji: '🌙', en: 'Observer', ko: '관찰형' },
-    HI: { emoji: '🕊️', en: 'Peacemaker', ko: '평화형' },
-    JK: { emoji: '🤝', en: 'Supporter', ko: '협력형' },
-    LM: { emoji: '💗', en: 'Connector', ko: '친화형' },
-    NO: { emoji: '🌻', en: 'Mentor', ko: '멘토형' },
-  };
-
-  const sortedOctants = Object.entries(scores)
-    .sort(([, a], [, b]) => b - a);
-
-  return (
-    <div className={styles.octantRadar}>
-      {sortedOctants.map(([code, score], index) => (
-        <div
-          key={code}
-          className={`${styles.octantBar} ${index === 0 ? styles.octantBarPrimary : ''}`}
-          style={{ animationDelay: `${index * 100}ms` }}
-        >
-          <div className={styles.octantInfo}>
-            <span className={styles.octantCode}>{octantLabels[code]?.emoji}</span>
-            <span className={styles.octantName}>
-              {isKo ? octantLabels[code]?.ko : octantLabels[code]?.en}
-            </span>
-          </div>
-          <div className={styles.octantTrack}>
-            <div
-              className={styles.octantFill}
-              style={{ width: `${score * 100}%` }}
-            />
-          </div>
-          <span className={styles.octantScore}>{Math.round(score * 100)}%</span>
-        </div>
-      ))}
-    </div>
-  );
-};
 
 export default function ICPResultPage() {
   const { locale } = useI18n();
   const isKo = locale === 'ko';
-  const { data: session, status: authStatus } = useSession();
-  const router = useRouter();
-  const [answers, setAnswers] = useState<ICPQuizAnswers>({});
-  const [mounted, setMounted] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [isSavedToDb, setIsSavedToDb] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [confettiParticles, setConfettiParticles] = useState<ConfettiParticle[]>([]);
 
-  // Destiny-based advice states
-  const [birthDate, setBirthDate] = useState<string>('');
-  const [birthTime, setBirthTime] = useState<string>('');
-  const [destinyAdvice, setDestinyAdvice] = useState<{
-    fortune: DailyFortuneResult | null;
-    growthDates: ImportantDate[];
-    isLoading: boolean;
-  }>({ fortune: null, growthDates: [], isLoading: false });
+  const {
+    mounted,
+    analysis,
+    authStatus,
+    saveStatus,
+    isSavedToDb,
+    showConfetti,
+    confettiParticles,
+    handleSaveResult,
+    handleDownload,
+    handleShare,
+  } = useICPResult(locale);
 
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const raw = localStorage.getItem('icpQuizAnswers');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setAnswers(parsed);
-      }
-    } catch (error) {
-      logger.error('[ICP Result] Error loading answers:', error);
-    }
-  }, []);
-
-  // Confetti celebration effect
-  const createConfetti = useCallback(() => {
-    const colors = ['#9d4edd', '#ffd166', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd'];
-    const particles: ConfettiParticle[] = [];
-
-    for (let i = 0; i < 150; i++) {
-      particles.push({
-        id: i,
-        x: Math.random() * 100,
-        y: -10 - Math.random() * 20,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        size: 6 + Math.random() * 8,
-        speedY: 2 + Math.random() * 3,
-        speedX: (Math.random() - 0.5) * 4,
-        rotation: Math.random() * 360,
-        rotationSpeed: (Math.random() - 0.5) * 10,
-      });
-    }
-
-    setConfettiParticles(particles);
-    setShowConfetti(true);
-
-    setTimeout(() => setShowConfetti(false), 4000);
-  }, []);
-
-  // Check if already saved to DB
-  useEffect(() => {
-    if (authStatus === 'authenticated' && session?.user) {
-      fetch('/api/icp')
-        .then(res => res.json())
-        .then(data => {
-          if (data.saved) {
-            setIsSavedToDb(true);
-          }
-        })
-        .catch(() => {});
-    }
-  }, [authStatus, session?.user]);
-
-  const analysis: ICPAnalysis | null = useMemo(() => {
-    const hasAnswers = Object.keys(answers).length > 0;
-    if (!hasAnswers) {return null;}
-    try {
-      return analyzeICP(answers, locale);
-    } catch (error) {
-      logger.error('[ICP Result] Analysis error:', error);
-      return null;
-    }
-  }, [answers, locale]);
-
-  // Trigger confetti when analysis is ready
-  useEffect(() => {
-    if (mounted && analysis) {
-      const confettiKey = `icp_confetti_shown_${analysis.primaryStyle}`;
-      const alreadyShown = sessionStorage.getItem(confettiKey);
-
-      if (!alreadyShown) {
-        const timer = setTimeout(() => {
-          createConfetti();
-          sessionStorage.setItem(confettiKey, 'true');
-        }, 500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [mounted, analysis, createConfetti]);
-
-  // ICP 유형별 성장 카테고리 매핑
-  const getGrowthCategories = (icpType: ICPOctantCode): string[] => {
-    const categoryMap: Record<ICPOctantCode, string[]> = {
-      PA: ['career', 'general'], // 리더형 - 커리어, 전반
-      BC: ['career', 'wealth'], // 성취형 - 커리어, 재물
-      DE: ['study', 'general'], // 분석형 - 학업, 전반
-      FG: ['study', 'health'], // 관찰형 - 학업, 건강
-      HI: ['love', 'health'], // 평화형 - 연애, 건강
-      JK: ['love', 'general'], // 협력형 - 연애, 전반
-      LM: ['love', 'travel'], // 친화형 - 연애, 여행
-      NO: ['career', 'love'], // 멘토형 - 커리어, 연애
-    };
-    return categoryMap[icpType] || ['general'];
-  };
-
-  // 운명 기반 조언 생성
-  const handleGenerateDestinyAdvice = useCallback(async () => {
-    if (!birthDate || !analysis) {return;}
-
-    setDestinyAdvice(prev => ({ ...prev, isLoading: true }));
-
-    try {
-      // 오늘의 운세
-      const fortune = getDailyFortuneScore(birthDate, birthTime || undefined);
-
-      // 성장에 좋은 날짜 (올해)
-      const sajuProfile = calculateSajuProfileFromBirthDate(new Date(birthDate));
-      const astroProfile = calculateAstroProfileFromBirthDate(new Date(birthDate));
-      const growthCategories = getGrowthCategories(analysis.primaryStyle as ICPOctantCode);
-
-      const yearlyDates = calculateYearlyImportantDates(
-        new Date().getFullYear(),
-        sajuProfile,
-        astroProfile,
-        { minGrade: 2, limit: 30 }
-      );
-
-      // ICP 유형에 맞는 날짜 필터링
-      const filteredDates = yearlyDates
-        .filter(d =>
-          d.categories.some(cat => growthCategories.includes(cat)) ||
-          d.grade <= 1
-        )
-        .sort((a, b) => a.grade - b.grade)
-        .slice(0, 5);
-
-      setDestinyAdvice({
-        fortune,
-        growthDates: filteredDates,
-        isLoading: false,
-      });
-    } catch (error) {
-      logger.error('[ICP Destiny] Error:', error);
-      setDestinyAdvice(prev => ({ ...prev, isLoading: false }));
-    }
-  }, [birthDate, birthTime, analysis]);
-
-  const handleSaveResult = async () => {
-    if (!analysis) {return;}
-
-    if (authStatus !== 'authenticated') {
-      router.push(buildSignInUrl('/icp/result'));
-      return;
-    }
-
-    setSaveStatus('saving');
-    try {
-      const res = await fetchWithRetry('/api/icp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          primaryStyle: analysis.primaryStyle,
-          secondaryStyle: analysis.secondaryStyle,
-          dominanceScore: analysis.dominanceScore,
-          affiliationScore: analysis.affiliationScore,
-          consistencyScore: analysis.consistencyScore,
-          analysisData: {
-            summary: isKo ? analysis.summaryKo : analysis.summary,
-            octantScores: analysis.octantScores,
-            primaryOctant: analysis.primaryOctant,
-            secondaryOctant: analysis.secondaryOctant,
-          },
-        }),
-      }, {
-        maxRetries: 3,
-        timeoutMs: 15000,
-        onRetry: (attempt, error, delay) => {
-          logger.info(`[ICP Save] Retry ${attempt} after ${delay}ms: ${error.message}`);
-        },
-      });
-
-      if (res.ok) {
-        setSaveStatus('saved');
-        setIsSavedToDb(true);
-      } else {
-        setSaveStatus('error');
-      }
-    } catch (error) {
-      if (error instanceof FetchWithRetryError) {
-        logger.error('[ICP Save] Failed after retries:', error.message);
-      }
-      setSaveStatus('error');
-    }
-  };
-
-  const handleDownload = () => {
-    if (!analysis) {return;}
-    const payload = {
-      answers,
-      primaryStyle: analysis.primaryStyle,
-      secondaryStyle: analysis.secondaryStyle,
-      dominanceScore: analysis.dominanceScore,
-      affiliationScore: analysis.affiliationScore,
-      consistencyScore: analysis.consistencyScore,
-      timestamp: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `icp_result_${analysis.primaryStyle}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleShare = async () => {
-    if (!analysis) {return;}
-
-    const summary = isKo ? analysis.summaryKo : analysis.summary;
-    const styleName = isKo ? analysis.primaryOctant.korean : analysis.primaryOctant.name;
-    const shareText = isKo
-      ? `나의 대인관계 스타일: ${styleName} (${analysis.primaryStyle})\n${summary}\n\nDestinyPal.me에서 진단해보세요`
-      : `My Interpersonal Style: ${styleName} (${analysis.primaryStyle})\n${summary}\n\nDiscover yours at DestinyPal.me`;
-
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: isKo ? '대인관계 스타일 진단' : 'Interpersonal Style', text: shareText });
-      } else {
-        navigator.clipboard.writeText(shareText);
-        alert(isKo ? '클립보드에 복사되었습니다!' : 'Copied to clipboard!');
-      }
-    } catch {
-      navigator.clipboard.writeText(shareText);
-      alert(isKo ? '클립보드에 복사되었습니다!' : 'Copied to clipboard!');
-    }
-  };
+  const {
+    birthDate,
+    setBirthDate,
+    birthTime,
+    setBirthTime,
+    destinyAdvice,
+    handleGenerateDestinyAdvice,
+  } = useDestinyAdvice(analysis);
 
   if (!mounted) {
     return (
@@ -438,22 +114,7 @@ export default function ICPResultPage() {
 
       {/* Confetti */}
       {showConfetti && (
-        <div className={styles.confettiContainer}>
-          {confettiParticles.map((particle) => (
-            <div
-              key={particle.id}
-              className={styles.confetti}
-              style={{
-                left: `${particle.x}%`,
-                backgroundColor: particle.color,
-                width: `${particle.size}px`,
-                height: `${particle.size}px`,
-                animationDuration: `${3 + Math.random() * 2}s`,
-                animationDelay: `${particle.id * 0.02}s`,
-              }}
-            />
-          ))}
-        </div>
+        <ConfettiAnimation particles={confettiParticles} styles={styles} />
       )}
 
       {/* Back Button */}
@@ -498,6 +159,7 @@ export default function ICPResultPage() {
               left={isKo ? '복종적' : 'Submissive'}
               right={isKo ? '지배적' : 'Dominant'}
               delay={0}
+              styles={styles}
             />
             <AxisBar
               label={isKo ? '친화성' : 'Affiliation'}
@@ -505,6 +167,7 @@ export default function ICPResultPage() {
               left={isKo ? '적대적' : 'Hostile'}
               right={isKo ? '친화적' : 'Friendly'}
               delay={100}
+              styles={styles}
             />
           </div>
         </section>

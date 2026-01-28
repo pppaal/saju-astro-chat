@@ -128,12 +128,14 @@ const TarotChat = memo(function TarotChat({
     }
   }, []); // Only run once on mount
 
-  // Skip auto-scroll on initial mount
+  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
+      return;
     }
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, streamingContent]);
 
   // Check if last message is from assistant (for showing suggestions)
   const lastMessage = messages[messages.length - 1];

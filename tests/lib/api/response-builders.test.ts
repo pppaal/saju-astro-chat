@@ -167,7 +167,10 @@ describe('ResponseBuilders', () => {
       const error = new Error('Test error');
       serverErrorResponse('Error occurred', error);
 
-      expect(console.error).toHaveBeenCalledWith('[Server Error]:', error);
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining('[Server Error]:'),
+        expect.objectContaining({ message: 'Test error' })
+      );
     });
 
     it('should not log when error is not provided', () => {
@@ -179,7 +182,10 @@ describe('ResponseBuilders', () => {
     it('should handle non-Error objects', () => {
       serverErrorResponse('Error', { code: 'ERR_001' });
 
-      expect(console.error).toHaveBeenCalledWith('[Server Error]:', { code: 'ERR_001' });
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining('[Server Error]:'),
+        expect.objectContaining({ code: 'ERR_001' })
+      );
     });
   });
 

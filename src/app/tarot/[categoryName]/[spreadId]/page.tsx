@@ -38,6 +38,7 @@ export default function TarotReadingPage() {
   const signInUrl = buildSignInUrl(callbackUrl);
   const detailedSectionRef = useRef<HTMLDivElement>(null);
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Custom hooks
   const {
@@ -100,9 +101,15 @@ export default function TarotReadingPage() {
     }
   }, []);
 
-  const handleSaveReading = useCallback(() => {
-    baseSaveReading(readingResult, spreadInfo, interpretation);
-  }, [baseSaveReading, readingResult, spreadInfo, interpretation]);
+  const handleSaveReading = useCallback(async () => {
+    if (isSaving || isSaved) return;
+    setIsSaving(true);
+    try {
+      await baseSaveReading(readingResult, spreadInfo, interpretation);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [baseSaveReading, readingResult, spreadInfo, interpretation, isSaving, isSaved]);
 
   const handleReset = () => router.push('/tarot');
   const toggleCardExpand = (index: number) => setExpandedCard(expandedCard === index ? null : index);
@@ -134,10 +141,7 @@ export default function TarotReadingPage() {
           }
         }}
       >
-        <div className={styles.cardBack}>
-          <div className={styles.cardPattern}></div>
-          <div className={styles.cardCenterIcon}>✦</div>
-        </div>
+        <div className={styles.cardBack}></div>
         {isSelected && <div className={styles.selectionNumber}>{displayNumber}</div>}
       </div>
     );
@@ -371,6 +375,8 @@ export default function TarotReadingPage() {
                             width={180}
                             height={315}
                             className={styles.resultCardImageLarge}
+                            placeholder="empty"
+                            onError={(e) => { e.currentTarget.style.opacity = '0.3'; }}
                           />
                           {drawnCard.isReversed && (
                             <div className={styles.reversedLabelLarge}>{translate('tarot.results.reversed', 'Reversed')}</div>
@@ -461,13 +467,13 @@ export default function TarotReadingPage() {
                   const isExpanded = expandedCard === index;
 
                   return (
-                    <div key={index} className={`${styles.resultCardSlot} ${styles.expanded}`} style={{ '--card-index': index } as React.CSSProperties}>
+                    <div key={index} className={`${styles.resultCardSlot} ${isExpanded ? styles.expanded : ''}`} style={{ '--card-index': index } as React.CSSProperties} onClick={() => toggleCardExpand(index)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCardExpand(index); } }}>
                       <div className={styles.positionBadgeWithNumber}>
                         <span className={styles.cardNumberSmall}>{index + 1}</span>
                         <span>{positionTitle}</span>
                       </div>
                       <div className={styles.imageContainer}>
-                        <Image src={getCardImagePath(drawnCard.card.id, selectedDeckStyle)} alt={drawnCard.card.name} width={180} height={315} className={styles.resultCardImage} />
+                        <Image src={getCardImagePath(drawnCard.card.id, selectedDeckStyle)} alt={drawnCard.card.name} width={180} height={315} className={styles.resultCardImage} onError={(e) => { e.currentTarget.style.opacity = '0.3'; }} />
                         {drawnCard.isReversed && <div className={styles.reversedLabel}>{translate('tarot.results.reversed', 'Reversed')}</div>}
                       </div>
                       <div className={styles.cardInfo}>
@@ -602,8 +608,8 @@ export default function TarotReadingPage() {
 
           {/* Action Buttons */}
           <div className={styles.actionButtons}>
-            <button onClick={handleSaveReading} className={`${styles.saveButton} ${isSaved ? styles.saved : ''}`} disabled={isSaved}>
-              {isSaved ? '✓' : '💾'} {isSaved ? (language === 'ko' ? '저장됨' : 'Saved') : (language === 'ko' ? '저장하기' : 'Save Reading')}
+            <button onClick={handleSaveReading} className={`${styles.saveButton} ${isSaved ? styles.saved : ''}`} disabled={isSaved || isSaving}>
+              {isSaved ? '✓' : isSaving ? '⏳' : '💾'} {isSaved ? (language === 'ko' ? '저장됨' : 'Saved') : isSaving ? (language === 'ko' ? '저장 중...' : 'Saving...') : (language === 'ko' ? '저장하기' : 'Save Reading')}
             </button>
             <button onClick={handleReset} className={styles.resetButton}>
               {language === 'ko' ? '새로 읽기' : 'New Reading'}

@@ -46,8 +46,8 @@
 /* ===== Card Selection Screen ===== */
 .readingContainer {
   width: 100vw;
-  height: 100vh;
-  max-height: 100vh;
+  height: 100svh;
+  max-height: 100svh;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -1149,7 +1149,24 @@
 }
 
 .expandHint {
+  font-size: 0.85rem;
+  color: rgba(99, 210, 255, 0.6);
+  text-align: center;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.expandHint:hover {
+  color: rgba(99, 210, 255, 0.9);
+}
+
+.resultCardSlot .premiumInsights {
   display: none;
+}
+
+.resultCardSlot.expanded .premiumInsights {
+  display: flex;
 }
 
 /* ===== Premium Insights ===== */
@@ -3710,5 +3727,57 @@
   .kakaoButton {
     padding: 0.75rem 1.25rem;
     font-size: 0.9rem;
+  }
+}
+
+/* ===== Focus Visible ===== */
+.startReadingButton:focus-visible,
+.saveButton:focus-visible,
+.resetButton:focus-visible,
+.chatButton:focus-visible,
+.scrollToDetailsButton:focus-visible,
+.redrawButton:focus-visible,
+.loginButton:focus-visible,
+.kakaoButton:focus-visible {
+  outline: 2px solid rgba(99, 210, 255, 0.8);
+  outline-offset: 2px;
+}
+
+.resultCardSlot:focus-visible,
+.resultCardHorizontal:focus-visible {
+  outline: 2px solid rgba(124, 242, 156, 0.8);
+  outline-offset: 2px;
+}
+
+.cardWrapper:focus-visible {
+  outline: 2px solid rgba(99, 210, 255, 0.8);
+  outline-offset: -2px;
+}
+
+.deckOption:focus-visible {
+  outline: 2px solid rgba(99, 210, 255, 0.8);
+  outline-offset: 2px;
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .loadingOrb,
+  .revealingOrb,
+  .typingIndicator span,
+  .cardWrapper,
+  .resultCardSlot,
+  .resultCardHorizontal,
+  .clickPrompt,
+  .resultsTitle,
+  .resultsSubtitle,
+  .userTopicDisplay,
+  .cardFlipInnerSlow,
+  .saveMessage {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .cardWrapper.spreading {
+    animation: none !important;
   }
 }

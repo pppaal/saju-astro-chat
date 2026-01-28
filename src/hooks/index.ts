@@ -19,3 +19,6 @@ export { useLifePredictionPhase } from './useLifePredictionPhase';
 export { useLifePredictionState } from './useLifePredictionState';
 export { useLifePredictionAnimation } from './useLifePredictionAnimation';
 export { useLifePredictionAPI } from './useLifePredictionAPI';
+
+// Shared Hooks
+export { useConfetti } from './useConfetti';

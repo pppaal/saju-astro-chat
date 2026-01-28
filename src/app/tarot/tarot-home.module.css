@@ -411,24 +411,35 @@
 .recentItem {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.9rem;
-  text-align: left;
-  cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.recentItem:hover:not(:disabled) {
+.recentItem:hover {
   background: rgba(99, 210, 255, 0.08);
   border-color: rgba(99, 210, 255, 0.2);
 }
 
-.recentItem:disabled {
+.recentItemButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0 0.75rem 1rem;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font-size: inherit;
+  background: none;
+  border: none;
+}
+
+.recentItemButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -448,9 +459,13 @@
 .recentDelete {
   font-size: 1.2rem;
   color: rgba(255, 255, 255, 0.4);
-  padding: 0.25rem 0.5rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 4px;
   transition: all 0.2s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .recentDelete:hover {
@@ -547,5 +562,29 @@
   .backButtonContainer {
     top: 0.5rem;
     left: 0.5rem;
+  }
+}
+
+/* ===== Focus Visible ===== */
+.readingButton:focus-visible,
+.clearButton:focus-visible,
+.recentItemButton:focus-visible,
+.recentDelete:focus-visible {
+  outline: 2px solid rgba(99, 210, 255, 0.8);
+  outline-offset: 2px;
+}
+
+.quickTag:focus-visible {
+  outline: 2px solid rgba(99, 210, 255, 0.8);
+  outline-offset: 2px;
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .iconWrapper,
+  .skeletonLine,
+  .previewIcon,
+  .dots span {
+    animation: none !important;
   }
 }

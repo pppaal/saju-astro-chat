@@ -3,7 +3,7 @@
  * Extracted from TarotChat.tsx lines 743-805
  */
 
-import React from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import type { ReadingResponse, InterpretationResult } from "../types";
 import type { LangKey } from "../data";
 import type { I18N } from "../data";
@@ -30,16 +30,59 @@ export const CardsModal = React.memo(function CardsModal({
   tr,
   styles
 }: CardsModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Focus trap and Escape key handling
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose();
+      return;
+    }
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }, [onClose]);
+
+  // Auto-focus close button on open
+  useEffect(() => {
+    if (show) {
+      closeBtnRef.current?.focus();
+    }
+  }, [show]);
+
   if (!show) {return null;}
 
   return (
-    <div className={styles.modalBackdrop} onClick={onClose}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+    <div className={styles.modalBackdrop} onClick={onClose} role="presentation">
+      <div
+        ref={modalRef}
+        className={styles.modalContent}
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={handleKeyDown}
+        role="dialog"
+        aria-modal="true"
+        aria-label={tr.cardContextTitle}
+      >
         <div className={styles.modalHeader}>
           <h3 className={styles.modalTitle}>{tr.cardContextTitle}</h3>
           <button
+            ref={closeBtnRef}
             className={styles.modalCloseBtn}
             onClick={onClose}
+            aria-label={language === 'ko' ? '닫기' : 'Close'}
           >
             ×
           </button>
