@@ -145,14 +145,14 @@ export default function ThemedReportPage() {
 
   if (status === 'loading' || profileLoading || sajuLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
         <div className="text-white">로딩 중...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-[100svh] bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
       <header className="py-8 px-4">
         <div className="max-w-4xl mx-auto">
@@ -176,7 +176,7 @@ export default function ThemedReportPage() {
               <button
                 key={key}
                 onClick={() => setSelectedTheme(key)}
-                className={`p-6 rounded-xl border-2 transition-all text-left ${
+                className={`p-6 rounded-xl border-2 transition-all text-left focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
                   selectedTheme === key
                     ? `border-white bg-gradient-to-br ${theme.color} bg-opacity-30`
                     : 'border-slate-700 bg-slate-800/50 hover:border-slate-500'
@@ -245,7 +245,7 @@ export default function ThemedReportPage() {
         <button
           onClick={handleGenerate}
           disabled={isGenerating || !profile.birthDate || !selectedTheme}
-          className={`w-full p-4 rounded-xl font-bold text-white flex items-center justify-center gap-3 transition-all ${
+          className={`w-full p-4 rounded-xl font-bold text-white flex items-center justify-center gap-3 transition-all focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
             isGenerating || !profile.birthDate || !selectedTheme
               ? 'bg-slate-600 cursor-not-allowed'
               : `bg-gradient-to-r ${selectedTheme ? THEME_INFO[selectedTheme].color : 'from-purple-500 to-pink-500'} hover:opacity-90`

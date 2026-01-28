@@ -118,6 +118,11 @@ export function useBirthInfo(locale: string) {
         });
 
         if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (data.cacheCleared) {
+            const { invalidateClientCaches } = await import('@/lib/cache/invalidateClientCaches');
+            await invalidateClientCaches();
+          }
           setUserProfile({
             birthDate: birthInfo.birthDate,
             birthTime: birthInfo.birthTime,

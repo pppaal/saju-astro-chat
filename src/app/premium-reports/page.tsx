@@ -101,7 +101,7 @@ export default function PremiumReportsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-[100svh] bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
       <header className="relative py-12 px-4 text-center">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-transparent to-blue-500/10" />
@@ -129,7 +129,7 @@ export default function PremiumReportsPage() {
               {/* Card Header */}
               <button
                 onClick={() => setSelectedType(selectedType === type.id ? null : type.id)}
-                className="w-full p-6 text-left flex items-center justify-between hover:bg-slate-700/30 transition-colors"
+                className="w-full p-6 text-left flex items-center justify-between hover:bg-slate-700/30 transition-colors focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
               >
                 <div className="flex items-center gap-4">
                   <span className="text-4xl">{type.emoji}</span>
@@ -158,7 +158,7 @@ export default function PremiumReportsPage() {
                   {type.id === 'comprehensive' ? (
                     <button
                       onClick={() => handleSelectReport('comprehensive')}
-                      className={`w-full p-4 rounded-xl bg-gradient-to-r ${type.color} text-white font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity`}
+                      className={`w-full p-4 rounded-xl bg-gradient-to-r ${type.color} text-white font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900`}
                     >
                       <span>종합 리포트 생성하기</span>
                       <span className="text-sm opacity-80">✦ 3 크레딧</span>
@@ -169,7 +169,7 @@ export default function PremiumReportsPage() {
                         <button
                           key={getOptionKey(option)}
                           onClick={() => handleSelectReport(type.id, option)}
-                          className="p-4 rounded-xl bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 transition-all group"
+                          className="p-4 rounded-xl bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 transition-all group focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                         >
                           <div className="flex items-center gap-3 mb-2">
                             <span className="text-2xl">{option.emoji}</span>

@@ -126,14 +126,14 @@ function TimingReportContent() {
 
   if (status === 'loading' || profileLoading || sajuLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
         <div className="text-white">로딩 중...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-[100svh] bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
       <header className="py-8 px-4">
         <div className="max-w-2xl mx-auto">
@@ -164,7 +164,7 @@ function TimingReportContent() {
             type="date"
             value={targetDate}
             onChange={(e) => setTargetDate(e.target.value)}
-            className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
           />
           <p className="text-gray-400 text-sm mt-2">
             {period === 'daily' && '선택한 날짜의 운세를 분석합니다.'}
@@ -205,7 +205,7 @@ function TimingReportContent() {
         <button
           onClick={handleGenerate}
           disabled={isGenerating || !profile.birthDate}
-          className={`w-full p-4 rounded-xl font-bold text-white flex items-center justify-center gap-3 transition-all ${
+          className={`w-full p-4 rounded-xl font-bold text-white flex items-center justify-center gap-3 transition-all focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
             isGenerating || !profile.birthDate
               ? 'bg-slate-600 cursor-not-allowed'
               : `bg-gradient-to-r ${periodInfo.color} hover:opacity-90`
@@ -236,7 +236,7 @@ function TimingReportContent() {
 export default function TimingReportPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
         <div className="text-white">로딩 중...</div>
       </div>
     }>

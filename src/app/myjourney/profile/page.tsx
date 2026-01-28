@@ -170,6 +170,10 @@ function ProfileContent() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {throw new Error(data?.error || t("profile.error.saveFailed", "Failed to save"));}
+      if (data.cacheCleared) {
+        const { invalidateClientCaches } = await import('@/lib/cache/invalidateClientCaches');
+        await invalidateClientCaches();
+      }
       setMsg(t("profile.success.saved", "Saved successfully!"));
       setHasSavedData(true);
       setIsEditMode(false);

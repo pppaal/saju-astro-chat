@@ -267,6 +267,7 @@ describe('useLifePredictionProfile', () => {
         })
         .mockResolvedValueOnce({
           ok: true,
+          json: async () => ({}),
         });
 
       const { result } = renderHook(() => useLifePredictionProfile('authenticated'));
@@ -286,11 +287,13 @@ describe('useLifePredictionProfile', () => {
         await result.current.handleBirthInfoSubmit(birthInfo);
       });
 
-      expect(result.current.userProfile).toEqual({
-        birthDate: '1988-12-25',
-        birthTime: '06:00',
-        gender: 'M',
-        birthCity: '인천',
+      await waitFor(() => {
+        expect(result.current.userProfile).toEqual({
+          birthDate: '1988-12-25',
+          birthTime: '06:00',
+          gender: 'M',
+          birthCity: '인천',
+        });
       });
     });
 

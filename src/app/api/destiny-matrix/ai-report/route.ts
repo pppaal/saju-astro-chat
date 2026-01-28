@@ -122,23 +122,7 @@ export async function POST(req: NextRequest) {
 
     const userId = session.user.id;
 
-    // 2. 기능 권한 확인 (pdfReport 기능)
-    const canUsePdf = await canUseFeature(userId, 'pdfReport');
-    if (!canUsePdf) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'FEATURE_LOCKED',
-            message: 'AI 리포트는 Pro 이상 플랜에서 사용 가능합니다.',
-            upgrade: true,
-          },
-        },
-        { status: HTTP_STATUS.FORBIDDEN }
-      );
-    }
-
-    // 3. 요청 파싱 (크레딧 계산을 위해 먼저)
+    // 2. 요청 파싱 (크레딧 계산을 위해 먼저)
     let body: unknown;
     try {
       body = await req.json();
@@ -303,8 +287,22 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // 13. PDF 형식 요청인 경우 (종합 리포트만 지원)
+    // 13. PDF 형식 요청인 경우 (종합 리포트만 지원, Pro 이상)
     if (format === 'pdf' && premiumReport) {
+      const canUsePdf = await canUseFeature(userId, 'pdfReport');
+      if (!canUsePdf) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'FEATURE_LOCKED',
+              message: 'PDF 리포트는 Pro 이상 플랜에서 사용 가능합니다.',
+              upgrade: true,
+            },
+          },
+          { status: HTTP_STATUS.FORBIDDEN }
+        );
+      }
       const pdfBytes = await generatePremiumPDF(premiumReport);
 
       // PDF 생성 상태 업데이트
@@ -569,13 +567,25 @@ function extractOverallScore(
 ): number | null {
   const r = report as unknown as Record<string, unknown>;
 
-  if (typeof r.overallScore === 'number') {return r.overallScore;}
-  if (typeof r.score === 'number') {return r.score;}
+  if (typeof r.overallScore === 'number') {return Math.round(r.overallScore);}
+  if (typeof r.score === 'number') {return Math.round(r.score);}
 
-  // timingScore에서 추출
-  if (r.timingScore && typeof r.timingScore === 'object') {
-    const ts = r.timingScore as Record<string, unknown>;
-    if (typeof ts.overall === 'number') {return ts.overall;}
+  // periodScore에서 추출 (타이밍 리포트)
+  if (r.periodScore && typeof r.periodScore === 'object') {
+    const ps = r.periodScore as Record<string, unknown>;
+    if (typeof ps.overall === 'number') {return Math.round(ps.overall);}
+  }
+
+  // themeScore에서 추출 (테마별 리포트)
+  if (r.themeScore && typeof r.themeScore === 'object') {
+    const ts = r.themeScore as Record<string, unknown>;
+    if (typeof ts.overall === 'number') {return Math.round(ts.overall);}
+  }
+
+  // matrixSummary에서 추출 (종합 리포트)
+  if (r.matrixSummary && typeof r.matrixSummary === 'object') {
+    const ms = r.matrixSummary as Record<string, unknown>;
+    if (typeof ms.overallScore === 'number') {return Math.round(ms.overallScore);}
   }
 
   return null;

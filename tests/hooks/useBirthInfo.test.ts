@@ -359,7 +359,7 @@ describe('useBirthInfo', () => {
           ok: true,
           json: async () => ({ user: null }),
         })
-        .mockResolvedValueOnce({ ok: true });
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ ok: true, cacheCleared: false }) });
 
       const { result } = renderHook(() => useBirthInfo('en'));
 

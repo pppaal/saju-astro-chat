@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useSession } from 'next-auth/react';
 import { AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -22,9 +22,6 @@ import {
   ResultsPhase,
 } from '@/components/life-prediction/phases';
 
-// Tabs Component
-import LifePredictionTabs from '@/components/life-prediction/LifePredictionTabs';
-
 // UI Components
 import BackButton from '@/components/ui/BackButton';
 import CreditBadge from '@/components/ui/CreditBadge';
@@ -38,9 +35,6 @@ function LifePredictionContent() {
   const { locale } = useI18n();
   const { status } = useSession();
   const signInUrl = buildSignInUrl();
-
-  // Show tabs initially
-  const [showTabs, setShowTabs] = useState(true);
 
   // Background animation
   const canvasRef = useLifePredictionAnimation();
@@ -145,17 +139,6 @@ function LifePredictionContent() {
   const birthDate = userProfile?.birthDate || guestBirthInfo?.birthDate;
   const gender = userProfile?.gender || guestBirthInfo?.gender;
 
-  // Handle start prediction from tabs
-  const handleStartPrediction = () => {
-    setShowTabs(false);
-  };
-
-  // Handle ask again - reset to tabs
-  const handleAskAgainWithTabs = () => {
-    handleAskAgain();
-    setShowTabs(true);
-  };
-
   // Loading state
   if (profileLoading) {
     return (
@@ -163,7 +146,7 @@ function LifePredictionContent() {
         <canvas ref={canvasRef} className={styles.backgroundCanvas} />
         <div className={styles.loadingContainer}>
           <div className={styles.loadingSpinner} />
-          <p>{locale === 'ko' ? '로딩 중...' : 'Loading...'}</p>
+          <p>{locale === 'ko' ? '...' : 'Loading...'}</p>
         </div>
       </div>
     );
@@ -181,13 +164,8 @@ function LifePredictionContent() {
         </div>
 
         <AnimatePresence mode="wait">
-          {/* Tabs View */}
-          {showTabs && (
-            <LifePredictionTabs onStartPrediction={handleStartPrediction} />
-          )}
-
           {/* Phase 1: Birth input */}
-          {!showTabs && phase === 'birth-input' && (
+          {phase === 'birth-input' && (
             <BirthInputPhase
               locale={locale as 'ko' | 'en'}
               status={status}
@@ -197,7 +175,7 @@ function LifePredictionContent() {
           )}
 
           {/* Phase 2: Question input */}
-          {!showTabs && phase === 'input' && (
+          {phase === 'input' && (
             <QuestionInputPhase
               birthDate={birthDate}
               gender={gender}
@@ -209,12 +187,12 @@ function LifePredictionContent() {
           )}
 
           {/* Phase 3: Analyzing */}
-          {!showTabs && phase === 'analyzing' && (
+          {phase === 'analyzing' && (
             <AnalyzingPhase eventType={currentEventType} />
           )}
 
           {/* Phase 4: Results */}
-          {!showTabs && phase === 'result' && (
+          {phase === 'result' && (
             <ResultsPhase
               birthDate={birthDate}
               gender={gender}
@@ -225,7 +203,7 @@ function LifePredictionContent() {
               isAuthenticated={status === 'authenticated'}
               onChangeBirthInfo={handleChangeBirthInfo}
               onSubmit={onPredictionSubmit}
-              onAskAgain={handleAskAgainWithTabs}
+              onAskAgain={handleAskAgain}
             />
           )}
         </AnimatePresence>

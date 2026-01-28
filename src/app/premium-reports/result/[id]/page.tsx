@@ -180,9 +180,9 @@ export default function ReportResultPage() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4" />
+      <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center" aria-busy="true">
+        <div className="text-center" role="status" aria-live="polite">
+          <div className="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4" aria-hidden="true" />
           <p className="text-white">리포트 불러오는 중...</p>
         </div>
       </div>
@@ -191,7 +191,7 @@ export default function ReportResultPage() {
 
   if (error || !report) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-400 mb-4">{error || '리포트를 찾을 수 없습니다.'}</p>
           <Link href="/premium-reports" className="text-purple-400 hover:text-purple-300">
@@ -203,7 +203,7 @@ export default function ReportResultPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-[100svh] bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
       <header className="py-8 px-4 border-b border-slate-700/50">
         <div className="max-w-4xl mx-auto">
@@ -225,13 +225,13 @@ export default function ReportResultPage() {
             <div className="flex gap-2">
               <button
                 onClick={handleDownloadPDF}
-                className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm flex items-center gap-2"
+                className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
               >
                 PDF 다운로드
               </button>
               <button
                 onClick={handleShare}
-                className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm flex items-center gap-2"
+                className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
               >
                 공유하기
               </button>
@@ -284,12 +284,16 @@ export default function ReportResultPage() {
       {/* Section Navigation */}
       {report.sections.length > 0 && (
         <div className="max-w-4xl mx-auto px-4 mt-6">
-          <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
+          <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide" role="tablist" aria-label="리포트 섹션">
             {report.sections.map((section, index) => (
               <button
                 key={index}
                 onClick={() => setActiveSection(index)}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
+                role="tab"
+                aria-selected={activeSection === index}
+                aria-controls={`section-panel-${index}`}
+                id={`section-tab-${index}`}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
                   activeSection === index
                     ? 'bg-purple-500 text-white'
                     : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
@@ -305,7 +309,7 @@ export default function ReportResultPage() {
       {/* Section Content */}
       {report.sections.length > 0 && (
         <main className="max-w-4xl mx-auto px-4 py-6 pb-20">
-          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50" role="tabpanel" id={`section-panel-${activeSection}`} aria-labelledby={`section-tab-${activeSection}`}>
             <h2 className="text-xl font-bold text-white mb-4">
               {report.sections[activeSection].title}
             </h2>
@@ -319,7 +323,7 @@ export default function ReportResultPage() {
             <button
               onClick={() => setActiveSection((prev) => Math.max(0, prev - 1))}
               disabled={activeSection === 0}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-4 py-2 rounded-lg focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
                 activeSection === 0
                   ? 'bg-slate-700 text-gray-500 cursor-not-allowed'
                   : 'bg-slate-700 text-white hover:bg-slate-600'
@@ -332,7 +336,7 @@ export default function ReportResultPage() {
                 setActiveSection((prev) => Math.min(report.sections.length - 1, prev + 1))
               }
               disabled={activeSection === report.sections.length - 1}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-4 py-2 rounded-lg focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
                 activeSection === report.sections.length - 1
                   ? 'bg-slate-700 text-gray-500 cursor-not-allowed'
                   : 'bg-slate-700 text-white hover:bg-slate-600'

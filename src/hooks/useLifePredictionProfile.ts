@@ -132,6 +132,11 @@ export function useLifePredictionProfile(
           });
 
           if (res.ok) {
+            const data = await res.json().catch(() => ({}));
+            if (data.cacheCleared) {
+              const { invalidateClientCaches } = await import('@/lib/cache/invalidateClientCaches');
+              await invalidateClientCaches();
+            }
             // Update profile state
             setUserProfile({
               birthDate: birthInfo.birthDate,
