@@ -17,6 +17,7 @@
  */
 
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 /**
  * Environment variable schema
@@ -121,7 +122,7 @@ function parseEnv() {
   const parsed = schema.safeParse(process.env);
 
   if (!parsed.success) {
-    console.error('❌ Invalid environment variables:', parsed.error.flatten().fieldErrors);
+    logger.error('Invalid environment variables:', parsed.error.flatten().fieldErrors);
 
     // Only throw in production to prevent breaking development
     if (process.env.NODE_ENV === 'production') {

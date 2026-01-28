@@ -51,7 +51,7 @@ export function reportWebVitals(metric: Metric) {
       ? getRating(name as VitalName, value)
       : rating;
 
-    console.log(`[Web Vitals] ${name}:`, {
+    logger.debug(`[Web Vitals] ${name}:`, {
       value: Math.round(value),
       rating: vitalRating,
       id,
@@ -156,7 +156,7 @@ export class PerformanceMonitor {
 
       // Log in development
       if (process.env.NODE_ENV === 'development') {
-        console.log(`[Performance] ${name}: ${duration}ms`);
+        logger.debug(`[Performance] ${name}: ${duration}ms`);
       }
 
       // Report to analytics

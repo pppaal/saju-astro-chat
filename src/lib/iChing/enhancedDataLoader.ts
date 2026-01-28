@@ -7,6 +7,7 @@
  */
 
 import type { EnhancedHexagramData, EnhancedHexagramDataKo } from './types';
+import { logger } from '@/lib/logger';
 
 /**
  * Cache for loaded enhanced data to avoid redundant imports
@@ -30,7 +31,7 @@ export async function getEnhancedHexagramData(
   hexagramNumber: number
 ): Promise<EnhancedHexagramData | null> {
   if (hexagramNumber < 1 || hexagramNumber > 64) {
-    console.warn(`Invalid hexagram number: ${hexagramNumber}`);
+    logger.warn(`Invalid hexagram number: ${hexagramNumber}`);
     return null;
   }
 
@@ -49,7 +50,7 @@ export async function getEnhancedHexagramData(
     const data = enhancedHexagramData[hexagramNumber];
 
     if (!data) {
-      console.warn(`No enhanced data found for hexagram ${hexagramNumber}`);
+      logger.warn(`No enhanced data found for hexagram ${hexagramNumber}`);
       return null;
     }
 
@@ -57,7 +58,7 @@ export async function getEnhancedHexagramData(
     enhancedDataCache[hexagramNumber] = data;
     return data;
   } catch (error) {
-    console.error(`Failed to load enhanced data for hexagram ${hexagramNumber}:`, error);
+    logger.error(`Failed to load enhanced data for hexagram ${hexagramNumber}:`, error);
     return null;
   }
 }
@@ -78,7 +79,7 @@ export async function getEnhancedHexagramDataKo(
   hexagramNumber: number
 ): Promise<EnhancedHexagramDataKo | null> {
   if (hexagramNumber < 1 || hexagramNumber > 64) {
-    console.warn(`Invalid hexagram number: ${hexagramNumber}`);
+    logger.warn(`Invalid hexagram number: ${hexagramNumber}`);
     return null;
   }
 
@@ -97,7 +98,7 @@ export async function getEnhancedHexagramDataKo(
     const data = enhancedHexagramDataKo[hexagramNumber];
 
     if (!data) {
-      console.warn(`No enhanced Korean data found for hexagram ${hexagramNumber}`);
+      logger.warn(`No enhanced Korean data found for hexagram ${hexagramNumber}`);
       return null;
     }
 
@@ -105,7 +106,7 @@ export async function getEnhancedHexagramDataKo(
     enhancedDataKoCache[hexagramNumber] = data;
     return data;
   } catch (error) {
-    console.error(`Failed to load enhanced Korean data for hexagram ${hexagramNumber}:`, error);
+    logger.error(`Failed to load enhanced Korean data for hexagram ${hexagramNumber}:`, error);
     return null;
   }
 }

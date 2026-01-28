@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DependencyList } from 'react';
+import { logger } from '@/lib/logger';
 
 /**
  * useDebounce - Debounce a value
@@ -282,7 +283,7 @@ export function withPerformance<P extends object>(
     useEffect(() => {
       renderCount.current += 1;
       if (process.env.NODE_ENV === 'development') {
-        console.log(`[Performance] ${componentName} rendered ${renderCount.current} times`);
+        logger.debug(`[Performance] ${componentName} rendered ${renderCount.current} times`);
       }
     });
 

@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 /**
  * Create a successful JSON response
@@ -92,7 +93,7 @@ export function serverErrorResponse(
 ): NextResponse {
   // Log error for debugging (could be sent to logging service)
   if (error) {
-    console.error('[Server Error]:', error);
+    logger.error('[Server Error]:', error);
   }
 
   return NextResponse.json(

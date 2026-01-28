@@ -7,6 +7,7 @@
  */
 
 import type { BlogPost } from './blog-posts';
+import { logger } from '@/lib/logger';
 
 // Cache loaded posts
 const postCache = new Map<string, BlogPost>();
@@ -33,7 +34,7 @@ export async function getBlogPostsIndex(): Promise<BlogPost[]> {
     indexCache = data;
     return data;
   } catch (error) {
-    console.error('Failed to load blog posts index:', error);
+    logger.error('Failed to load blog posts index:', error);
     throw error;
   }
 }
@@ -52,7 +53,7 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
     const response = await fetch(`/data/blog/${slug}.json`);
     if (!response.ok) {
       if (response.status === 404) {
-        console.warn(`Blog post not found: ${slug}`);
+        logger.warn(`Blog post not found: ${slug}`);
         return null;
       }
       throw new Error(`Failed to load blog post ${slug}: ${response.statusText}`);
@@ -62,7 +63,7 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
     postCache.set(slug, post);
     return post;
   } catch (error) {
-    console.error(`Failed to load blog post ${slug}:`, error);
+    logger.error(`Failed to load blog post ${slug}:`, error);
     return null;
   }
 }

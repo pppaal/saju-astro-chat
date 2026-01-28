@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { IChingResult } from "@/components/iching/types";
+import { logger } from "@/lib/logger";
 import {
   getPremiumHexagramData,
   getTrigramInfo,
@@ -172,7 +173,7 @@ export const useHexagramDataAsync = ({
           setEnhancedDataLoading(false);
         }
       } catch (error) {
-        console.error('Failed to load enhanced hexagram data:', error);
+        logger.error('Failed to load enhanced hexagram data:', error);
         if (!cancelled) {
           setEnhancedData(null);
           setEnhancedDataLoading(false);
