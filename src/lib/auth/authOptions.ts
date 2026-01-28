@@ -90,14 +90,15 @@ function createFilteredPrismaAdapter(): Adapter {
     },
     getUserByAccount: async (providerAccountId: Pick<AdapterAccount, "provider" | "providerAccountId">) => {
       try {
-        const account = await prisma.account.findFirst({
-          where: {
-            provider: providerAccountId.provider,
-            providerAccountId: providerAccountId.providerAccountId,
-          },
-          include: { user: true },
-        })
-        return (account?.user as AdapterUser) ?? null
+        // Use raw SQL to avoid Prisma 7.x driver adapter P2022 bug with compound unique keys
+        const users = await prisma.$queryRaw<AdapterUser[]>`
+          SELECT u.* FROM "User" u
+          INNER JOIN "Account" a ON a."userId" = u."id"
+          WHERE a."provider" = ${providerAccountId.provider}
+            AND a."providerAccountId" = ${providerAccountId.providerAccountId}
+          LIMIT 1
+        `
+        return users[0] ?? null
       } catch (error) {
         logger.error('[auth] getUserByAccount failed:', error)
         throw error
@@ -130,15 +131,12 @@ function createFilteredPrismaAdapter(): Adapter {
     },
     unlinkAccount: async (providerAccountId: Pick<AdapterAccount, "provider" | "providerAccountId">) => {
       try {
-        const account = await prisma.account.findFirst({
-          where: {
-            provider: providerAccountId.provider,
-            providerAccountId: providerAccountId.providerAccountId,
-          },
-        })
-        if (account) {
-          await prisma.account.delete({ where: { id: account.id } })
-        }
+        // Use raw SQL to avoid Prisma 7.x driver adapter P2022 bug with compound unique keys
+        await prisma.$executeRaw`
+          DELETE FROM "Account"
+          WHERE "provider" = ${providerAccountId.provider}
+            AND "providerAccountId" = ${providerAccountId.providerAccountId}
+        `
       } catch (error) {
         logger.error('[auth] unlinkAccount failed:', error)
         throw error
