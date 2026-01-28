@@ -14,11 +14,15 @@ const getGtag = () => {
   return (window as WindowWithGtag).gtag;
 };
 
+const GA_ID_RE = /^[A-Z0-9-]+$/i;
+
 export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { status } = useConsent();
   const consentGranted = status === "granted";
+
+  if (gaId && !GA_ID_RE.test(gaId)) {return null;}
 
   useEffect(() => {
     if (!gaId || !consentGranted) {return;}

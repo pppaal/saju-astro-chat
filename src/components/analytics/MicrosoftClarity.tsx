@@ -3,11 +3,13 @@
 import Script from "next/script";
 import { useConsent } from "@/contexts/ConsentContext";
 
+const CLARITY_ID_RE = /^[a-z0-9]+$/i;
+
 export function MicrosoftClarity({ clarityId, nonce }: { clarityId: string; nonce?: string }) {
   const { status } = useConsent();
   const consentGranted = status === "granted";
 
-  if (!clarityId || !consentGranted) {return null;}
+  if (!clarityId || !consentGranted || !CLARITY_ID_RE.test(clarityId)) {return null;}
 
   return (
     <Script
