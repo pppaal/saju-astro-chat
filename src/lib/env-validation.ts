@@ -12,7 +12,6 @@ const envSchema = z.object({
   // APIs
   OPENAI_API_KEY: z.string().startsWith('sk-').optional(),
   GOOGLE_GEMINI_API_KEY: z.string().optional(),
-  TOGETHER_API_KEY: z.string().optional(),
 
   // Stripe
   STRIPE_SECRET_KEY: z.string().startsWith('sk_'),

@@ -43,8 +43,7 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
    |
    ├── [128 API Routes] ──── [Flask AI Backend] ──── [LLM Providers]
    |                                                   ├─ OpenAI
-   |                                                   ├─ Replicate
-   |                                                   └─ Together AI
+   |                                                   └─ Replicate
    |
    └── [Third-party Services]
         ├─ NextAuth (OAuth)
