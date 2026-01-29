@@ -4,93 +4,90 @@
  * Reduces code duplication across 100+ API files
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
-import { requirePublicToken } from "@/lib/auth/publicToken";
-import { csrfGuard } from "@/lib/security/csrf";
-import { logger } from "@/lib/logger";
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/authOptions'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
+import { requirePublicToken } from '@/lib/auth/publicToken'
+import { csrfGuard } from '@/lib/security/csrf'
+import { logger } from '@/lib/logger'
 import {
   createErrorResponse,
   createSuccessResponse,
   ErrorCodes,
   type ErrorCode,
-} from "./errorHandler";
-import {
-  checkAndConsumeCredits,
-  type CreditType,
-} from "@/lib/credits";
-import { refundCredits } from "@/lib/credits/creditRefund";
+} from './errorHandler'
+import { checkAndConsumeCredits, type CreditType } from '@/lib/credits'
+import { refundCredits } from '@/lib/credits/creditRefund'
 
 // ============ Types ============
 
 export interface ApiContext {
-  ip: string;
-  locale: string;
-  session: Awaited<ReturnType<typeof getServerSession>> | null;
-  userId: string | null;
-  isAuthenticated: boolean;
-  isPremium: boolean;
+  ip: string
+  locale: string
+  session: Awaited<ReturnType<typeof getServerSession>> | null
+  userId: string | null
+  isAuthenticated: boolean
+  isPremium: boolean
   creditInfo?: {
-    remaining: number;
-    type?: CreditType;
-    consumed?: number;
-  };
+    remaining: number
+    type?: CreditType
+    consumed?: number
+  }
   // 🔄 NEW: API 실패 시 크레딧 자동 환불 함수
-  refundCreditsOnError?: (errorMessage: string, metadata?: Record<string, unknown>) => Promise<void>;
+  refundCreditsOnError?: (errorMessage: string, metadata?: Record<string, unknown>) => Promise<void>
 }
 
 export interface RateLimitOptions {
   /** Requests allowed per window */
-  limit: number;
+  limit: number
   /** Window size in seconds */
-  windowSeconds: number;
+  windowSeconds: number
   /** Optional key prefix for rate limiting */
-  keyPrefix?: string;
+  keyPrefix?: string
 }
 
 export interface CreditOptions {
   /** Credit type to consume */
-  type: CreditType;
+  type: CreditType
   /** Amount of credits to consume */
-  amount?: number;
+  amount?: number
   /** If true, only check credits without consuming */
-  checkOnly?: boolean;
+  checkOnly?: boolean
 }
 
 export interface MiddlewareOptions {
   /** Require valid public token */
-  requireToken?: boolean;
+  requireToken?: boolean
   /** Require authenticated session */
-  requireAuth?: boolean;
+  requireAuth?: boolean
   /** Rate limiting configuration */
-  rateLimit?: RateLimitOptions;
+  rateLimit?: RateLimitOptions
   /** Credit consumption configuration */
-  credits?: CreditOptions;
+  credits?: CreditOptions
   /** Route name for logging/metrics */
-  route?: string;
+  route?: string
   /** Skip CSRF origin validation (default: false). CSRF is enforced on POST/PUT/PATCH/DELETE. */
-  skipCsrf?: boolean;
+  skipCsrf?: boolean
 }
 
 export interface ApiHandlerResult<T> {
-  data?: T;
+  data?: T
   error?: {
-    code: ErrorCode;
-    message?: string;
-    details?: unknown;
-  };
-  status?: number;
-  headers?: Record<string, string>;
-  meta?: Record<string, unknown>;
+    code: ErrorCode
+    message?: string
+    details?: unknown
+  }
+  status?: number
+  headers?: Record<string, string>
+  meta?: Record<string, unknown>
 }
 
 type ApiHandler<T> = (
   req: NextRequest,
   context: ApiContext
-) => Promise<ApiHandlerResult<T> | NextResponse>;
+) => Promise<ApiHandlerResult<T> | NextResponse>
 
 // ============ Core Functions ============
 
@@ -98,13 +95,19 @@ type ApiHandler<T> = (
  * Extract locale from request headers
  */
 export function extractLocale(req: Request): string {
-  const acceptLang = req.headers.get("accept-language") || "";
-  const urlLocale = new URL(req.url).searchParams.get("locale");
+  const acceptLang = req.headers.get('accept-language') || ''
+  const urlLocale = new URL(req.url).searchParams.get('locale')
 
-  if (urlLocale === "ko" || acceptLang.includes("ko")) {return "ko";}
-  if (urlLocale === "ja" || acceptLang.includes("ja")) {return "ja";}
-  if (urlLocale === "zh" || acceptLang.includes("zh")) {return "zh";}
-  return "en";
+  if (urlLocale === 'ko' || acceptLang.includes('ko')) {
+    return 'ko'
+  }
+  if (urlLocale === 'ja' || acceptLang.includes('ja')) {
+    return 'ja'
+  }
+  if (urlLocale === 'zh' || acceptLang.includes('zh')) {
+    return 'zh'
+  }
+  return 'en'
 }
 
 /**
@@ -114,16 +117,16 @@ export async function initializeApiContext(
   req: NextRequest,
   options: MiddlewareOptions = {}
 ): Promise<{ context: ApiContext; error?: NextResponse }> {
-  const ip = getClientIp(req.headers) || "unknown";
-  const locale = extractLocale(req);
-  const route = options.route || new URL(req.url).pathname;
+  const ip = getClientIp(req.headers) || 'unknown'
+  const locale = extractLocale(req)
+  const route = options.route || new URL(req.url).pathname
 
   // CSRF origin validation for state-changing methods
-  const mutatingMethods = ["POST", "PUT", "PATCH", "DELETE"];
+  const mutatingMethods = ['POST', 'PUT', 'PATCH', 'DELETE']
   if (!options.skipCsrf && mutatingMethods.includes(req.method)) {
-    const csrfError = csrfGuard(req.headers);
+    const csrfError = csrfGuard(req.headers)
     if (csrfError) {
-      logger.warn(`[CSRF] Origin validation failed`, { route, ip, method: req.method });
+      logger.warn(`[CSRF] Origin validation failed`, { route, ip, method: req.method })
       return {
         context: {
           ip,
@@ -133,20 +136,17 @@ export async function initializeApiContext(
           isAuthenticated: false,
           isPremium: false,
         },
-        error: NextResponse.json(
-          { error: "csrf_validation_failed" },
-          { status: 403 }
-        ),
-      };
+        error: NextResponse.json({ error: 'csrf_validation_failed' }, { status: 403 }),
+      }
     }
   }
 
   // Rate limiting
   if (options.rateLimit) {
-    const { limit, windowSeconds, keyPrefix = "api" } = options.rateLimit;
-    const rateLimitKey = `${keyPrefix}:${route}:${ip}`;
+    const { limit, windowSeconds, keyPrefix = 'api' } = options.rateLimit
+    const rateLimitKey = `${keyPrefix}:${route}:${ip}`
 
-    const result = await rateLimit(rateLimitKey, { limit, windowSeconds });
+    const result = await rateLimit(rateLimitKey, { limit, windowSeconds })
 
     if (!result.allowed) {
       return {
@@ -163,18 +163,18 @@ export async function initializeApiContext(
           locale,
           route,
           headers: {
-            "Retry-After": String(result.retryAfter || windowSeconds),
-            "X-RateLimit-Limit": String(limit),
-            "X-RateLimit-Remaining": "0",
+            'Retry-After': String(result.retryAfter || windowSeconds),
+            'X-RateLimit-Limit': String(limit),
+            'X-RateLimit-Remaining': '0',
           },
         }),
-      };
+      }
     }
   }
 
   // Token validation
   if (options.requireToken) {
-    const tokenResult = requirePublicToken(req);
+    const tokenResult = requirePublicToken(req)
     if (!tokenResult.valid) {
       return {
         context: {
@@ -187,25 +187,23 @@ export async function initializeApiContext(
         },
         error: createErrorResponse({
           code: ErrorCodes.UNAUTHORIZED,
-          message: tokenResult.reason || "Invalid or missing token",
+          message: tokenResult.reason || 'Invalid or missing token',
           locale,
           route,
         }),
-      };
+      }
     }
   }
 
   // Session (optional fetch)
-  type SessionUser = { id?: string; plan?: string; email?: string | null };
-  let session: { user?: SessionUser } | null = null;
-  let userId: string | null = null;
-  let isPremium = false;
+  let session: Awaited<ReturnType<typeof getServerSession>> | null = null
+  let userId: string | null = null
+  let isPremium = false
 
   try {
-    const rawSession = await getServerSession(authOptions);
-    session = rawSession as { user?: SessionUser } | null;
-    userId = session?.user?.id || null;
-    isPremium = !!(session?.user?.plan && session.user.plan !== "free");
+    session = await getServerSession(authOptions)
+    userId = session?.user?.id || null
+    isPremium = !!(session?.user?.plan && session.user.plan !== 'free')
   } catch {
     // Session fetch failed, continue without it
   }
@@ -226,15 +224,15 @@ export async function initializeApiContext(
         locale,
         route,
       }),
-    };
+    }
   }
 
   // Per-user rate limiting (applied after session is resolved)
   if (options.rateLimit && userId) {
-    const { limit, windowSeconds, keyPrefix = "api" } = options.rateLimit;
-    const userRateLimitKey = `${keyPrefix}:${route}:user:${userId}`;
+    const { limit, windowSeconds, keyPrefix = 'api' } = options.rateLimit
+    const userRateLimitKey = `${keyPrefix}:${route}:user:${userId}`
 
-    const userResult = await rateLimit(userRateLimitKey, { limit, windowSeconds });
+    const userResult = await rateLimit(userRateLimitKey, { limit, windowSeconds })
 
     if (!userResult.allowed) {
       return {
@@ -251,17 +249,17 @@ export async function initializeApiContext(
           locale,
           route,
           headers: {
-            "Retry-After": String(userResult.retryAfter || windowSeconds),
-            "X-RateLimit-Limit": String(limit),
-            "X-RateLimit-Remaining": "0",
+            'Retry-After': String(userResult.retryAfter || windowSeconds),
+            'X-RateLimit-Limit': String(limit),
+            'X-RateLimit-Remaining': '0',
           },
         }),
-      };
+      }
     }
   }
 
   // Credit check/consumption
-  let creditInfo: { remaining: number } | undefined;
+  let creditInfo: { remaining: number } | undefined
 
   if (options.credits) {
     // Credits require authentication
@@ -277,17 +275,17 @@ export async function initializeApiContext(
         },
         error: createErrorResponse({
           code: ErrorCodes.UNAUTHORIZED,
-          message: "Authentication required for credit-based operations",
+          message: 'Authentication required for credit-based operations',
           locale,
           route,
         }),
-      };
+      }
     }
 
     const creditResult = await checkAndConsumeCredits(
       options.credits.type,
       options.credits.amount || 1
-    );
+    )
 
     if (!creditResult.allowed) {
       return {
@@ -304,43 +302,44 @@ export async function initializeApiContext(
             error: creditResult.error,
             code: creditResult.errorCode,
             remaining: creditResult.remaining,
-            upgradeUrl: "/pricing",
+            upgradeUrl: '/pricing',
           },
-          { status: creditResult.errorCode === "not_authenticated" ? 401 : 402 }
+          { status: creditResult.errorCode === 'not_authenticated' ? 401 : 402 }
         ),
-      };
+      }
     }
 
     creditInfo = {
       remaining: creditResult.remaining || 0,
-    };
+    }
   }
 
   // 🔄 크레딧 자동 환불 함수 생성
-  const refundCreditsOnError = options.credits && userId
-    ? async (errorMessage: string, metadata?: Record<string, unknown>) => {
-        try {
-          await refundCredits({
-            userId: userId!,
-            creditType: options.credits!.type,
-            amount: options.credits!.amount || 1,
-            reason: 'api_error',
-            apiRoute: options.route,
-            errorMessage,
-            metadata,
-          });
-          logger.info('[Middleware] Credits refunded due to API error', {
-            userId,
-            route: options.route,
-            creditType: options.credits!.type,
-            amount: options.credits!.amount || 1,
-          });
-        } catch (error) {
-          logger.error('[Middleware] Failed to refund credits', { error });
-          // 환불 실패는 로그만 남기고 원래 에러를 그대로 던짐
+  const refundCreditsOnError =
+    options.credits && userId
+      ? async (errorMessage: string, metadata?: Record<string, unknown>) => {
+          try {
+            await refundCredits({
+              userId: userId!,
+              creditType: options.credits!.type,
+              amount: options.credits!.amount || 1,
+              reason: 'api_error',
+              apiRoute: options.route,
+              errorMessage,
+              metadata,
+            })
+            logger.info('[Middleware] Credits refunded due to API error', {
+              userId,
+              route: options.route,
+              creditType: options.credits!.type,
+              amount: options.credits!.amount || 1,
+            })
+          } catch (error) {
+            logger.error('[Middleware] Failed to refund credits', { error })
+            // 환불 실패는 로그만 남기고 원래 에러를 그대로 던짐
+          }
         }
-      }
-    : undefined;
+      : undefined
 
   return {
     context: {
@@ -353,34 +352,31 @@ export async function initializeApiContext(
       creditInfo,
       refundCreditsOnError,
     },
-  };
+  }
 }
 
 /**
  * Wrap an API handler with middleware
  * Provides: rate limiting, auth, error handling, consistent responses
  */
-export function withApiMiddleware<T>(
-  handler: ApiHandler<T>,
-  options: MiddlewareOptions = {}
-) {
+export function withApiMiddleware<T>(handler: ApiHandler<T>, options: MiddlewareOptions = {}) {
   return async (req: NextRequest): Promise<NextResponse> => {
-    const route = options.route || new URL(req.url).pathname;
+    const route = options.route || new URL(req.url).pathname
 
     try {
       // Initialize context
-      const { context, error } = await initializeApiContext(req, options);
+      const { context, error } = await initializeApiContext(req, options)
 
       if (error) {
-        return error;
+        return error
       }
 
       // Execute handler
-      const result = await handler(req, context);
+      const result = await handler(req, context)
 
       // If handler returned NextResponse directly, use it
       if (result instanceof NextResponse) {
-        return result;
+        return result
       }
 
       // Handle error result
@@ -391,7 +387,7 @@ export function withApiMiddleware<T>(
           details: result.error.details,
           locale: context.locale,
           route,
-        });
+        })
       }
 
       // Success response
@@ -399,26 +395,26 @@ export function withApiMiddleware<T>(
         status: result.status,
         headers: result.headers,
         meta: result.meta,
-      });
+      })
     } catch (error) {
-      const e = error as Error & { code?: string };
-      logger.error(`[API Error] ${route}:`, e);
+      const e = error as Error & { code?: string }
+      logger.error(`[API Error] ${route}:`, e)
 
       // Classify error
-      let code: ErrorCode = ErrorCodes.INTERNAL_ERROR;
+      let code: ErrorCode = ErrorCodes.INTERNAL_ERROR
 
-      if (e.name === "AbortError" || e.message?.includes("timeout")) {
-        code = ErrorCodes.TIMEOUT;
-      } else if (e.message?.includes("rate limit") || e.message?.includes("too many")) {
-        code = ErrorCodes.RATE_LIMITED;
-      } else if (e.message?.includes("unauthorized") || e.message?.includes("auth")) {
-        code = ErrorCodes.UNAUTHORIZED;
-      } else if (e.message?.includes("not found")) {
-        code = ErrorCodes.NOT_FOUND;
-      } else if (e.message?.includes("validation") || e.message?.includes("invalid")) {
-        code = ErrorCodes.VALIDATION_ERROR;
-      } else if (e.code === "P2025" || e.message?.includes("database")) {
-        code = ErrorCodes.DATABASE_ERROR;
+      if (e.name === 'AbortError' || e.message?.includes('timeout')) {
+        code = ErrorCodes.TIMEOUT
+      } else if (e.message?.includes('rate limit') || e.message?.includes('too many')) {
+        code = ErrorCodes.RATE_LIMITED
+      } else if (e.message?.includes('unauthorized') || e.message?.includes('auth')) {
+        code = ErrorCodes.UNAUTHORIZED
+      } else if (e.message?.includes('not found')) {
+        code = ErrorCodes.NOT_FOUND
+      } else if (e.message?.includes('validation') || e.message?.includes('invalid')) {
+        code = ErrorCodes.VALIDATION_ERROR
+      } else if (e.code === 'P2025' || e.message?.includes('database')) {
+        code = ErrorCodes.DATABASE_ERROR
       }
 
       return createErrorResponse({
@@ -426,9 +422,9 @@ export function withApiMiddleware<T>(
         originalError: e,
         route,
         locale: extractLocale(req),
-      });
+      })
     }
-  };
+  }
 }
 
 // ============ Utility Functions ============
@@ -438,9 +434,9 @@ export function withApiMiddleware<T>(
  */
 export async function parseJsonBody<T>(req: NextRequest): Promise<T> {
   try {
-    return await req.json();
+    return await req.json()
   } catch {
-    throw new Error("Invalid JSON body");
+    throw new Error('Invalid JSON body')
   }
 }
 
@@ -452,14 +448,14 @@ export function validateRequired<T extends Record<string, unknown>>(
   fields: (keyof T)[]
 ): { valid: true } | { valid: false; missing: string[] } {
   const missing = fields.filter(
-    (field) => body[field] === undefined || body[field] === null || body[field] === ""
-  );
+    (field) => body[field] === undefined || body[field] === null || body[field] === ''
+  )
 
   if (missing.length > 0) {
-    return { valid: false, missing: missing.map(String) };
+    return { valid: false, missing: missing.map(String) }
   }
 
-  return { valid: true };
+  return { valid: true }
 }
 
 /**
@@ -472,7 +468,7 @@ export function apiError(
 ): ApiHandlerResult<never> {
   return {
     error: { code, message, details },
-  };
+  }
 }
 
 /**
@@ -486,7 +482,7 @@ export function apiSuccess<T>(
     data,
     status: options?.status,
     meta: options?.meta,
-  };
+  }
 }
 
 // ============ Convenience Presets ============
@@ -498,12 +494,12 @@ export function apiSuccess<T>(
  * - Optional credit consumption
  */
 export function createPublicStreamGuard(options: {
-  route: string;
-  limit?: number;
-  windowSeconds?: number;
-  requireCredits?: boolean;
-  creditType?: CreditType;
-  creditAmount?: number;
+  route: string
+  limit?: number
+  windowSeconds?: number
+  requireCredits?: boolean
+  creditType?: CreditType
+  creditAmount?: number
 }): MiddlewareOptions {
   return {
     route: options.route,
@@ -514,11 +510,11 @@ export function createPublicStreamGuard(options: {
     },
     credits: options.requireCredits
       ? {
-          type: options.creditType || "reading",
+          type: options.creditType || 'reading',
           amount: options.creditAmount || 1,
         }
       : undefined,
-  };
+  }
 }
 
 /**
@@ -528,12 +524,12 @@ export function createPublicStreamGuard(options: {
  * - Optional credit consumption
  */
 export function createAuthenticatedGuard(options: {
-  route: string;
-  limit?: number;
-  windowSeconds?: number;
-  requireCredits?: boolean;
-  creditType?: CreditType;
-  creditAmount?: number;
+  route: string
+  limit?: number
+  windowSeconds?: number
+  requireCredits?: boolean
+  creditType?: CreditType
+  creditAmount?: number
 }): MiddlewareOptions {
   return {
     route: options.route,
@@ -544,11 +540,11 @@ export function createAuthenticatedGuard(options: {
     },
     credits: options.requireCredits
       ? {
-          type: options.creditType || "reading",
+          type: options.creditType || 'reading',
           amount: options.creditAmount || 1,
         }
       : undefined,
-  };
+  }
 }
 
 /**
@@ -557,9 +553,9 @@ export function createAuthenticatedGuard(options: {
  * - Rate limited only
  */
 export function createSimpleGuard(options: {
-  route: string;
-  limit?: number;
-  windowSeconds?: number;
+  route: string
+  limit?: number
+  windowSeconds?: number
 }): MiddlewareOptions {
   return {
     route: options.route,
@@ -567,10 +563,10 @@ export function createSimpleGuard(options: {
       limit: options.limit || 60,
       windowSeconds: options.windowSeconds || 60,
     },
-  };
+  }
 }
 
 // Re-export error codes for convenience
-export { ErrorCodes } from "./errorHandler";
-export type { ErrorCode } from "./errorHandler";
-export type { CreditType };
+export { ErrorCodes } from './errorHandler'
+export type { ErrorCode } from './errorHandler'
+export type { CreditType }

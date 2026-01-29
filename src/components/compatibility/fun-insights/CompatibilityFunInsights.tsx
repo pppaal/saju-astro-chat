@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// This file handles complex type conversions from raw API data - explicit any types are intentional
-"use client";
+'use client'
 
-import { useState, useMemo } from 'react';
-import type { CompatibilityData, TabId } from './types';
-import { logger } from '@/lib/logger';
+import { useState, useMemo } from 'react'
+import type { CompatibilityData, TabId } from './types'
+import type { SajuProfile, AstrologyProfile } from '@/lib/compatibility/cosmicCompatibility'
+import { logger } from '@/lib/logger'
 import {
   OverviewTab,
   ChemistryTab,
@@ -14,7 +13,7 @@ import {
   DeepAstroTab,
   FutureTab,
   FusionTab,
-} from './tabs';
+} from './tabs'
 
 // Import advanced analysis functions
 import {
@@ -29,7 +28,7 @@ import {
   analyzeGanHap,
   analyzeGyeokguk,
   analyzeTwelveStates,
-} from '@/lib/compatibility/advancedSajuAnalysis';
+} from '@/lib/compatibility/advancedSajuAnalysis'
 
 import {
   analyzeAspects,
@@ -41,50 +40,48 @@ import {
   analyzeSaturnAspects,
   analyzeOuterPlanets,
   analyzeNodes,
-} from '@/lib/compatibility/advancedAstrologyAnalysis';
+} from '@/lib/compatibility/advancedAstrologyAnalysis'
 
 // Import cross-system analysis (Saju × Astrology fusion)
-import {
-  performCrossSystemAnalysis,
-} from '@/lib/compatibility/crossSystemAnalysis';
+import { performCrossSystemAnalysis } from '@/lib/compatibility/crossSystemAnalysis'
 
 interface Props {
   persons: Array<{
-    name: string;
-    date: string;
-    time: string;
-    city: string;
-    relation?: string;
-  }>;
-  person1Saju?: SajuRawData;
-  person2Saju?: SajuRawData;
-  person1Astro?: AstroRawData;
-  person2Astro?: AstroRawData;
-  lang?: string;
-  className?: string;
+    name: string
+    date: string
+    time: string
+    city: string
+    relation?: string
+  }>
+  person1Saju?: SajuRawData
+  person2Saju?: SajuRawData
+  person1Astro?: AstroRawData
+  person2Astro?: AstroRawData
+  lang?: string
+  className?: string
 }
 
 interface SajuRawData {
-  dayMaster?: { name?: string; heavenlyStem?: string; element?: string };
+  dayMaster?: { name?: string; heavenlyStem?: string; element?: string }
   pillars?: {
-    year?: { heavenlyStem?: string; earthlyBranch?: string };
-    month?: { heavenlyStem?: string; earthlyBranch?: string };
-    day?: { heavenlyStem?: string; earthlyBranch?: string };
-    time?: { heavenlyStem?: string; earthlyBranch?: string };
-  };
-  yearPillar?: { heavenlyStem?: string; earthlyBranch?: string };
-  monthPillar?: { heavenlyStem?: string; earthlyBranch?: string };
-  dayPillar?: { heavenlyStem?: string; earthlyBranch?: string };
-  timePillar?: { heavenlyStem?: string; earthlyBranch?: string };
-  fiveElements?: Record<string, number>;
-  elements?: Record<string, number>;
-  [key: string]: unknown;
+    year?: { heavenlyStem?: string; earthlyBranch?: string }
+    month?: { heavenlyStem?: string; earthlyBranch?: string }
+    day?: { heavenlyStem?: string; earthlyBranch?: string }
+    time?: { heavenlyStem?: string; earthlyBranch?: string }
+  }
+  yearPillar?: { heavenlyStem?: string; earthlyBranch?: string }
+  monthPillar?: { heavenlyStem?: string; earthlyBranch?: string }
+  dayPillar?: { heavenlyStem?: string; earthlyBranch?: string }
+  timePillar?: { heavenlyStem?: string; earthlyBranch?: string }
+  fiveElements?: Record<string, number>
+  elements?: Record<string, number>
+  [key: string]: unknown
 }
 
 interface AstroRawData {
-  planets?: Array<{ name?: string; sign?: string }> | Record<string, { sign?: string }>;
-  ascendant?: { sign?: string };
-  [key: string]: unknown;
+  planets?: Array<{ name?: string; sign?: string }> | Record<string, { sign?: string }>
+  ascendant?: { sign?: string }
+  [key: string]: unknown
 }
 
 export default function CompatibilityFunInsights({
@@ -96,18 +93,19 @@ export default function CompatibilityFunInsights({
   lang = 'ko',
   className = '',
 }: Props) {
-  const isKo = lang === 'ko';
-  const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const isKo = lang === 'ko'
+  const [activeTab, setActiveTab] = useState<TabId>('overview')
 
   // Perform advanced analysis
-  // Note: Type assertions used below due to flexible raw data shapes from API
   const analysisData = useMemo(() => {
     // Build Saju profiles from raw data
-    const buildSajuProfile = (saju: SajuRawData | null | undefined) => {
-      if (!saju) {return null;}
+    const buildSajuProfile = (saju: SajuRawData | null | undefined): SajuProfile | null => {
+      if (!saju) {
+        return null
+      }
 
-      const dayMasterName = saju?.dayMaster?.name || saju?.dayMaster?.heavenlyStem || '갑';
-      const dayMasterElement = saju?.dayMaster?.element || 'wood';
+      const dayMasterName = saju?.dayMaster?.name || saju?.dayMaster?.heavenlyStem || '갑'
+      const dayMasterElement = saju?.dayMaster?.element || 'wood'
 
       return {
         dayMaster: {
@@ -132,50 +130,53 @@ export default function CompatibilityFunInsights({
             branch: saju?.pillars?.time?.earthlyBranch || saju?.timePillar?.earthlyBranch || '子',
           },
         },
-        elements: saju?.fiveElements || saju?.elements || {
-          wood: 20,
-          fire: 20,
-          earth: 20,
-          metal: 20,
-          water: 20,
-        },
-      };
-    };
+        elements: saju?.fiveElements ||
+          saju?.elements || {
+            wood: 20,
+            fire: 20,
+            earth: 20,
+            metal: 20,
+            water: 20,
+          },
+      }
+    }
 
     // Build Astrology profiles from raw data
-    const buildAstroProfile = (astro: AstroRawData | null | undefined) => {
-      if (!astro) {return null;}
+    const buildAstroProfile = (astro: AstroRawData | null | undefined): AstrologyProfile | null => {
+      if (!astro) {
+        return null
+      }
 
       const getSignData = (source: AstroRawData, planetName: string) => {
         // Try multiple sources
         if (Array.isArray(source?.planets)) {
-          const planet = source.planets.find((p) =>
-            p.name?.toLowerCase() === planetName.toLowerCase()
-          );
+          const planet = source.planets.find(
+            (p) => p.name?.toLowerCase() === planetName.toLowerCase()
+          )
           if (planet?.sign) {
             return {
               sign: planet.sign.toLowerCase(),
               element: getElementFromSign(planet.sign.toLowerCase()),
-            };
+            }
           }
         }
 
         // Object-based planets
-        const planetsObj = source?.planets as Record<string, { sign?: string }> | undefined;
+        const planetsObj = source?.planets as Record<string, { sign?: string }> | undefined
         if (planetsObj && !Array.isArray(planetsObj) && planetsObj[planetName]) {
-          const sign = planetsObj[planetName].sign?.toLowerCase();
-          return { sign: sign || 'aries', element: getElementFromSign(sign || 'aries') };
+          const sign = planetsObj[planetName].sign?.toLowerCase()
+          return { sign: sign || 'aries', element: getElementFromSign(sign || 'aries') }
         }
 
         // Direct access
-        const directAccess = source as Record<string, { sign?: string }>;
+        const directAccess = source as Record<string, { sign?: string }>
         if (directAccess?.[planetName]?.sign) {
-          const sign = directAccess[planetName].sign!.toLowerCase();
-          return { sign, element: getElementFromSign(sign) };
+          const sign = directAccess[planetName].sign!.toLowerCase()
+          return { sign, element: getElementFromSign(sign) }
         }
 
-        return { sign: 'aries', element: 'fire' };
-      };
+        return { sign: 'aries', element: 'fire' }
+      }
 
       return {
         sun: getSignData(astro, 'sun'),
@@ -191,132 +192,146 @@ export default function CompatibilityFunInsights({
         northNode: getSignData(astro, 'northNode'),
         southNode: getSignData(astro, 'southNode'),
         ascendant: astro?.ascendant?.sign
-          ? { sign: astro.ascendant.sign.toLowerCase(), element: getElementFromSign(astro.ascendant.sign.toLowerCase()) }
+          ? {
+              sign: astro.ascendant.sign.toLowerCase(),
+              element: getElementFromSign(astro.ascendant.sign.toLowerCase()),
+            }
           : undefined,
-      };
-    };
+      }
+    }
 
-    const p1Saju = buildSajuProfile(person1Saju);
-    const p2Saju = buildSajuProfile(person2Saju);
-    const p1Astro = buildAstroProfile(person1Astro);
-    const p2Astro = buildAstroProfile(person2Astro);
+    const p1Saju = buildSajuProfile(person1Saju)
+    const p2Saju = buildSajuProfile(person2Saju)
+    const p1Astro = buildAstroProfile(person1Astro)
+    const p2Astro = buildAstroProfile(person2Astro)
 
     // Perform analyses with safe fallbacks
-    let sajuAnalysis = undefined;
-    let tenGods = undefined;
-    let shinsals = undefined;
-    let harmonies = undefined;
-    let conflicts = undefined;
-    let yongsin = undefined;
-    let seun = undefined;
-    let gongmang = undefined;
-    let ganHap = undefined;
-    let gyeokguk = undefined;
-    let twelveStates = undefined;
-    let aspects = undefined;
-    let synastry = undefined;
-    let compositeChart = undefined;
-    let houseOverlays = undefined;
-    let mercuryAspects = undefined;
-    let jupiterAspects = undefined;
-    let saturnAspects = undefined;
-    let outerPlanets = undefined;
-    let nodes = undefined;
+    let sajuAnalysis = undefined
+    let tenGods = undefined
+    let shinsals = undefined
+    let harmonies = undefined
+    let conflicts = undefined
+    let yongsin = undefined
+    let seun = undefined
+    let gongmang = undefined
+    let ganHap = undefined
+    let gyeokguk = undefined
+    let twelveStates = undefined
+    let aspects = undefined
+    let synastry = undefined
+    let compositeChart = undefined
+    let houseOverlays = undefined
+    let mercuryAspects = undefined
+    let jupiterAspects = undefined
+    let saturnAspects = undefined
+    let outerPlanets = undefined
+    let nodes = undefined
 
     // Get current year for Seun analysis
-    const currentYear = new Date().getFullYear();
+    const currentYear = new Date().getFullYear()
 
     try {
       if (p1Saju && p2Saju) {
-        // Type assertions needed as buildSajuProfile returns flexible shape
-        const s1 = p1Saju as any;
-        const s2 = p2Saju as any;
-        sajuAnalysis = performComprehensiveSajuAnalysis(s1, s2);
-        tenGods = analyzeTenGods(s1, s2);
-        shinsals = analyzeShinsals(s1, s2);
-        harmonies = analyzeHap(s1, s2);
-        conflicts = analyzeConflicts(s1, s2);
-        yongsin = analyzeYongsinCompatibility(s1, s2);
-        seun = analyzeSeunCompatibility(s1, s2, currentYear);
-        gongmang = analyzeGongmang(s1, s2);
-        ganHap = analyzeGanHap(s1, s2);
-        gyeokguk = analyzeGyeokguk(s1, s2);
-        twelveStates = analyzeTwelveStates(s1, s2);
+        const s1: SajuProfile = p1Saju
+        const s2: SajuProfile = p2Saju
+        sajuAnalysis = performComprehensiveSajuAnalysis(s1, s2)
+        tenGods = analyzeTenGods(s1, s2)
+        shinsals = analyzeShinsals(s1, s2)
+        harmonies = analyzeHap(s1, s2)
+        conflicts = analyzeConflicts(s1, s2)
+        yongsin = analyzeYongsinCompatibility(s1, s2)
+        seun = analyzeSeunCompatibility(s1, s2, currentYear)
+        gongmang = analyzeGongmang(s1, s2)
+        ganHap = analyzeGanHap(s1, s2)
+        gyeokguk = analyzeGyeokguk(s1, s2)
+        twelveStates = analyzeTwelveStates(s1, s2)
       }
     } catch (e) {
-      logger.error('Saju analysis error:', { error: e });
+      logger.error('Saju analysis error:', { error: e })
     }
 
     try {
       if (p1Astro && p2Astro) {
-        aspects = analyzeAspects(p1Astro, p2Astro);
-        synastry = analyzeSynastry(p1Astro, p2Astro);
-        compositeChart = analyzeCompositeChart(p1Astro, p2Astro);
-        houseOverlays = analyzeHouseOverlays(p1Astro, p2Astro);
+        aspects = analyzeAspects(p1Astro, p2Astro)
+        synastry = analyzeSynastry(p1Astro, p2Astro)
+        compositeChart = analyzeCompositeChart(p1Astro, p2Astro)
+        houseOverlays = analyzeHouseOverlays(p1Astro, p2Astro)
 
         // Extended astrology analysis (needs more planet data)
         if (p1Astro.mercury && p2Astro.mercury) {
           mercuryAspects = analyzeMercuryAspects(
-            p1Astro.mercury, p2Astro.mercury,
-            p1Astro.sun, p2Astro.sun
-          );
+            p1Astro.mercury,
+            p2Astro.mercury,
+            p1Astro.sun,
+            p2Astro.sun
+          )
         }
         if (p1Astro.jupiter && p2Astro.jupiter) {
           jupiterAspects = analyzeJupiterAspects(
-            p1Astro.jupiter, p2Astro.jupiter,
-            p1Astro.sun, p2Astro.sun
-          );
+            p1Astro.jupiter,
+            p2Astro.jupiter,
+            p1Astro.sun,
+            p2Astro.sun
+          )
         }
         if (p1Astro.saturn && p2Astro.saturn) {
           saturnAspects = analyzeSaturnAspects(
-            p1Astro.saturn, p2Astro.saturn,
-            p1Astro.sun, p2Astro.sun,
-            p1Astro.moon, p2Astro.moon
-          );
+            p1Astro.saturn,
+            p2Astro.saturn,
+            p1Astro.sun,
+            p2Astro.sun,
+            p1Astro.moon,
+            p2Astro.moon
+          )
         }
         if (p1Astro.uranus || p1Astro.neptune || p1Astro.pluto) {
           outerPlanets = analyzeOuterPlanets(
             { uranus: p1Astro.uranus, neptune: p1Astro.neptune, pluto: p1Astro.pluto },
             { uranus: p2Astro.uranus, neptune: p2Astro.neptune, pluto: p2Astro.pluto },
-            p1Astro.sun, p2Astro.sun
-          );
+            p1Astro.sun,
+            p2Astro.sun
+          )
         }
         if (p1Astro.northNode && p2Astro.northNode) {
           nodes = analyzeNodes(
-            p1Astro.northNode, p1Astro.southNode,
-            p2Astro.northNode, p2Astro.southNode,
-            p1Astro.sun, p2Astro.sun,
-            p1Astro.moon, p2Astro.moon
-          );
+            p1Astro.northNode,
+            p1Astro.southNode,
+            p2Astro.northNode,
+            p2Astro.southNode,
+            p1Astro.sun,
+            p2Astro.sun,
+            p1Astro.moon,
+            p2Astro.moon
+          )
         }
       }
     } catch (e) {
-      logger.error('Astrology analysis error:', { error: e });
+      logger.error('Astrology analysis error:', { error: e })
     }
 
     // Cross-System Analysis (Saju × Astrology Fusion)
-    let crossSystemAnalysis = undefined;
+    let crossSystemAnalysis = undefined
     try {
       if (p1Saju && p2Saju && p1Astro && p2Astro) {
-        crossSystemAnalysis = performCrossSystemAnalysis(p1Saju as any, p2Saju as any, p1Astro as any, p2Astro as any);
+        crossSystemAnalysis = performCrossSystemAnalysis(p1Saju, p2Saju, p1Astro, p2Astro)
       }
     } catch (e) {
-      logger.error('Cross-system analysis error:', { error: e });
+      logger.error('Cross-system analysis error:', { error: e })
     }
 
     // Calculate overall scores (now including cross-system score)
-    const sajuScore = sajuAnalysis?.overallScore || 65;
-    const astroScore = synastry?.compatibilityIndex || 65;
-    const crossScore = crossSystemAnalysis?.crossSystemScore || 65;
+    const sajuScore = sajuAnalysis?.overallScore || 65
+    const astroScore = synastry?.compatibilityIndex || 65
+    const crossScore = crossSystemAnalysis?.crossSystemScore || 65
     // Weighted average: Saju 35%, Astrology 35%, Cross-System Fusion 30%
-    const overallScore = Math.round(sajuScore * 0.35 + astroScore * 0.35 + crossScore * 0.30);
+    const overallScore = Math.round(sajuScore * 0.35 + astroScore * 0.35 + crossScore * 0.3)
 
     return {
       persons,
-      person1Saju: p1Saju as any,
-      person2Saju: p2Saju as any,
-      person1Astro: p1Astro as any,
-      person2Astro: p2Astro as any,
+      person1Saju: p1Saju,
+      person2Saju: p2Saju,
+      person1Astro: p1Astro,
+      person2Astro: p2Astro,
       // Basic Saju
       sajuAnalysis,
       tenGods,
@@ -348,8 +363,8 @@ export default function CompatibilityFunInsights({
       sajuScore,
       astroScore,
       crossScore,
-    };
-  }, [persons, person1Saju, person2Saju, person1Astro, person2Astro]);
+    }
+  }, [persons, person1Saju, person2Saju, person1Astro, person2Astro])
 
   // Tab definitions
   const tabs: { id: TabId; label: string; emoji: string }[] = [
@@ -361,7 +376,7 @@ export default function CompatibilityFunInsights({
     { id: 'deepSaju', label: isKo ? '심화사주' : 'Deep Saju', emoji: '🏛️' },
     { id: 'deepAstro', label: isKo ? '심화점성' : 'Deep Astro', emoji: '🌌' },
     { id: 'future', label: isKo ? '미래' : 'Future', emoji: '🔮' },
-  ];
+  ]
 
   return (
     <div className={`mt-8 space-y-6 ${className}`}>
@@ -386,44 +401,28 @@ export default function CompatibilityFunInsights({
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <OverviewTab data={analysisData} isKo={isKo} lang={lang} />
-      )}
+      {activeTab === 'overview' && <OverviewTab data={analysisData} isKo={isKo} lang={lang} />}
 
-      {activeTab === 'chemistry' && (
-        <ChemistryTab data={analysisData} isKo={isKo} lang={lang} />
-      )}
+      {activeTab === 'chemistry' && <ChemistryTab data={analysisData} isKo={isKo} lang={lang} />}
 
-      {activeTab === 'harmony' && (
-        <HarmonyTab data={analysisData} isKo={isKo} lang={lang} />
-      )}
+      {activeTab === 'harmony' && <HarmonyTab data={analysisData} isKo={isKo} lang={lang} />}
 
-      {activeTab === 'fusion' && (
-        <FusionTab data={analysisData} isKo={isKo} lang={lang} />
-      )}
+      {activeTab === 'fusion' && <FusionTab data={analysisData} isKo={isKo} lang={lang} />}
 
-      {activeTab === 'synastry' && (
-        <SynastryTab data={analysisData} isKo={isKo} lang={lang} />
-      )}
+      {activeTab === 'synastry' && <SynastryTab data={analysisData} isKo={isKo} lang={lang} />}
 
-      {activeTab === 'deepSaju' && (
-        <DeepSajuTab data={analysisData} isKo={isKo} lang={lang} />
-      )}
+      {activeTab === 'deepSaju' && <DeepSajuTab data={analysisData} isKo={isKo} lang={lang} />}
 
-      {activeTab === 'deepAstro' && (
-        <DeepAstroTab data={analysisData} isKo={isKo} lang={lang} />
-      )}
+      {activeTab === 'deepAstro' && <DeepAstroTab data={analysisData} isKo={isKo} lang={lang} />}
 
-      {activeTab === 'future' && (
-        <FutureTab data={analysisData} isKo={isKo} lang={lang} />
-      )}
+      {activeTab === 'future' && <FutureTab data={analysisData} isKo={isKo} lang={lang} />}
 
       {/* Footer */}
       <p className="text-center text-xs text-gray-500 mt-6">
         {isKo ? '사주 + 점성학 심화 궁합 분석' : 'Advanced Saju + Astrology Compatibility Analysis'}
       </p>
     </div>
-  );
+  )
 }
 
 // Helper function to get element from zodiac sign
@@ -441,6 +440,6 @@ function getElementFromSign(sign: string): string {
     cancer: 'water',
     scorpio: 'water',
     pisces: 'water',
-  };
-  return elementMap[sign.toLowerCase()] || 'fire';
+  }
+  return elementMap[sign.toLowerCase()] || 'fire'
 }
