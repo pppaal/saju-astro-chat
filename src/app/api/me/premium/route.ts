@@ -74,8 +74,10 @@ export async function GET(req: NextRequest) {
       })
     }
 
+    const userEmail = context.session.user.email
+
     // 프리미엄 체크
-    const isPremium = await checkStripeActive(context.session.user.email)
+    const isPremium = await checkStripeActive(userEmail)
 
     return NextResponse.json({
       isLoggedIn: true,
