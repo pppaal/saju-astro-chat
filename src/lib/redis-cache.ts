@@ -3,6 +3,9 @@
 
 import { logger } from "@/lib/logger";
 
+// Re-export cache version management
+export { CACHE_VERSIONS, getCacheKey } from './cache/cache-versions';
+
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -77,12 +80,24 @@ export async function cacheSet(
 }
 
 /**
- * Generate cache key from object
+ * Generate cache key from object with optional versioning
+ *
+ * Version helps invalidate cache when logic changes:
+ * - Increment version when calculation algorithm changes
+ * - Old cache entries automatically become stale
+ *
+ * @param prefix - Cache key prefix (e.g., "saju", "tarot", "compatibility")
+ * @param params - Parameters to include in key
+ * @param version - Optional version number (default: 1)
  */
-export function makeCacheKey(prefix: string, params: Record<string, unknown>): string {
+export function makeCacheKey(
+  prefix: string,
+  params: Record<string, unknown>,
+  version: number = 1
+): string {
   const sorted = Object.keys(params)
     .sort()
     .map((k) => `${k}:${params[k]}`)
     .join("|");
-  return `${prefix}:${sorted}`;
+  return `${prefix}:v${version}:${sorted}`;
 }

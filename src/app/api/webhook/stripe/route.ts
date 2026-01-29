@@ -80,9 +80,24 @@ export async function POST(request: Request) {
     )
   }
 
-  logger.info(`[Stripe Webhook] Event: ${event.type}`, { ip })
+  logger.info(`[Stripe Webhook] Event: ${event.type}`, { eventId: event.id, ip })
+
+  // 🔒 멱등성 체크: 이미 처리된 이벤트인지 확인 (Replay Attack 방지)
+  const existingEvent = await prisma.stripeEventLog.findUnique({
+    where: { eventId: event.id },
+  })
+
+  if (existingEvent) {
+    logger.info(`[Stripe Webhook] Event already processed: ${event.id}`, {
+      type: event.type,
+      processedAt: existingEvent.processedAt,
+    })
+    recordCounter("stripe_webhook_duplicate", 1, { event: event.type })
+    return NextResponse.json({ received: true, duplicate: true })
+  }
 
   try {
+    // 이벤트 처리
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session
@@ -118,12 +133,45 @@ export async function POST(request: Request) {
         logger.warn(`[Stripe Webhook] Unhandled event type: ${event.type}`)
     }
 
+    // ✅ 성공: 이벤트 처리 완료 기록
+    await prisma.stripeEventLog.create({
+      data: {
+        eventId: event.id,
+        type: event.type,
+        success: true,
+        metadata: {
+          livemode: event.livemode,
+          apiVersion: event.api_version,
+        },
+      },
+    })
+
     return NextResponse.json({ received: true })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error"
     logger.error(`[Stripe Webhook] Error handling ${event.type}:`, err)
     recordCounter("stripe_webhook_handler_error", 1, { event: event.type })
     captureServerError(err, { route: "/api/webhook/stripe", event: event.type })
+
+    // ❌ 실패: 이벤트 처리 실패 기록 (재처리 가능하도록)
+    try {
+      await prisma.stripeEventLog.create({
+        data: {
+          eventId: event.id,
+          type: event.type,
+          success: false,
+          errorMsg: message,
+          metadata: {
+            livemode: event.livemode,
+            apiVersion: event.api_version,
+            error: message,
+          },
+        },
+      })
+    } catch (logErr) {
+      logger.error('[Stripe Webhook] Failed to log error event:', logErr)
+    }
+
     return NextResponse.json(
       { error: message },
       { status: HTTP_STATUS.SERVER_ERROR }

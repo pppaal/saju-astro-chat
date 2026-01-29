@@ -187,6 +187,7 @@ export async function POST(req: NextRequest) {
     const fallbackInterpretation = lines.join('\n') + '\n\nNote: This is a playful heuristic score, not professional guidance.';
 
     // ======== 기록 저장 (로그인 사용자만) ========
+    // 🔒 GDPR/개인정보보호법 준수: 타인의 생년월일/시간은 저장하지 않음
     const session = await getServerSession(authOptions);
     if (session?.user?.id) {
       try {
@@ -196,14 +197,16 @@ export async function POST(req: NextRequest) {
             type: 'compatibility',
             title: `${names.slice(0, 2).join(' & ')} 궁합 분석 (${finalScore}점)`,
             content: JSON.stringify({
-              persons: persons.map((p, i) => ({
-                name: names[i],
-                date: p.date,
-                time: p.time,
-                relation: i > 0 ? p.relationToP1 : undefined,
-              })),
+              // ✅ 결과만 저장: 점수, 해석, 관계 레이블
               score: finalScore,
               pairScores: scores,
+              interpretation: aiInterpretation || fallbackInterpretation.substring(0, 500),
+              // ✅ 익명화된 레이블만 저장 (생년월일/시간은 저장 안 함)
+              personLabels: names.map((name, i) => ({
+                label: name || `Person ${i + 1}`,
+                relation: i > 0 ? persons[i].relationToP1 : 'self',
+              })),
+              // ❌ 저장하지 않음: date, time (타인의 개인정보)
             }),
           },
         });

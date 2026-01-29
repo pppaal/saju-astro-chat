@@ -1,5 +1,5 @@
 // src/lib/destiny-matrix/ai-report/aiBackend.ts
-// AI 백엔드 호출 함수들
+// AI 백엔드 호출 함수들 (Multi-provider failover 지원)
 
 import { logger } from '@/lib/logger'
 import type { AIPremiumReport } from './reportTypes'
@@ -13,6 +13,39 @@ interface AIBackendResponse<T> {
   tokensUsed?: number
 }
 
+// AI 프로바이더 설정
+interface AIProvider {
+  name: string
+  apiKey: string | undefined
+  endpoint: string
+  model: string
+  enabled: boolean
+}
+
+const AI_PROVIDERS: AIProvider[] = [
+  {
+    name: 'openai',
+    apiKey: process.env.OPENAI_API_KEY,
+    endpoint: 'https://api.openai.com/v1/chat/completions',
+    model: process.env.FUSION_MODEL || 'gpt-4o',
+    enabled: true,
+  },
+  {
+    name: 'replicate',
+    apiKey: process.env.REPLICATE_API_KEY,
+    endpoint: 'https://api.replicate.com/v1/predictions',
+    model: 'meta/llama-2-70b-chat',
+    enabled: !!process.env.REPLICATE_API_KEY,
+  },
+  {
+    name: 'together',
+    apiKey: process.env.TOGETHER_API_KEY,
+    endpoint: 'https://api.together.xyz/v1/chat/completions',
+    model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
+    enabled: !!process.env.TOGETHER_API_KEY,
+  },
+]
+
 // ===========================
 // 기본 AI 백엔드 호출
 // ===========================
@@ -25,88 +58,207 @@ export async function callAIBackend(
 }
 
 // ===========================
-// 제네릭 AI 백엔드 호출 (OpenAI 직접 호출)
+// 제네릭 AI 백엔드 호출 (Multi-provider failover)
 // ===========================
 
 export async function callAIBackendGeneric<T>(
   prompt: string,
   lang: 'ko' | 'en'
 ): Promise<AIBackendResponse<T>> {
-  const openaiKey = process.env.OPENAI_API_KEY
+  const systemMessage =
+    lang === 'ko'
+      ? '당신은 전문 운명 분석가입니다. 사주와 점성술을 융합하여 깊이 있는 통찰을 제공합니다. 응답은 반드시 JSON 형식으로 작성해주세요.'
+      : 'You are a professional destiny analyst. You provide deep insights by combining Eastern and Western astrology. Please respond in JSON format.'
 
-  if (!openaiKey) {
-    logger.error('[AI Backend] OPENAI_API_KEY not configured')
-    throw new Error('OpenAI API key not configured')
+  // 활성화된 프로바이더만 필터링
+  const enabledProviders = AI_PROVIDERS.filter((p) => p.enabled && p.apiKey)
+
+  if (enabledProviders.length === 0) {
+    logger.error('[AI Backend] No AI providers configured')
+    throw new Error('No AI providers available')
   }
 
+  // 각 프로바이더를 순서대로 시도
+  let lastError: Error | null = null
+
+  for (const provider of enabledProviders) {
+    try {
+      logger.info(`[AI Backend] Trying ${provider.name}...`)
+
+      const result = await callProviderAPI<T>(provider, prompt, systemMessage)
+
+      logger.info(`[AI Backend] ${provider.name} succeeded`, {
+        model: result.model,
+        tokensUsed: result.tokensUsed,
+      })
+
+      return result
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+      logger.warn(`[AI Backend] ${provider.name} failed, trying next provider`, {
+        error: lastError.message,
+      })
+      // 다음 프로바이더로 계속
+    }
+  }
+
+  // 모든 프로바이더 실패
+  logger.error('[AI Backend] All providers failed', { lastError })
+  throw new Error(`All AI providers failed. Last error: ${lastError?.message || 'Unknown'}`)
+}
+
+// ===========================
+// 개별 프로바이더 호출
+// ===========================
+
+async function callProviderAPI<T>(
+  provider: AIProvider,
+  prompt: string,
+  systemMessage: string
+): Promise<AIBackendResponse<T>> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT)
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${openaiKey}`,
-      },
-      body: JSON.stringify({
-        model: process.env.FUSION_MODEL || 'gpt-4o',
-        messages: [
-          {
-            role: 'system',
-            content:
-              lang === 'ko'
-                ? '당신은 전문 운명 분석가입니다. 사주와 점성술을 융합하여 깊이 있는 통찰을 제공합니다. 응답은 반드시 JSON 형식으로 작성해주세요.'
-                : 'You are a professional destiny analyst. You provide deep insights by combining Eastern and Western astrology. Please respond in JSON format.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        max_tokens: 4000,
+    // OpenAI 호환 API 호출
+    if (provider.name === 'openai' || provider.name === 'together') {
+      return await callOpenAICompatible<T>(provider, prompt, systemMessage, controller)
+    }
+
+    // Replicate API 호출 (다른 형식)
+    if (provider.name === 'replicate') {
+      return await callReplicate<T>(provider, prompt, systemMessage, controller)
+    }
+
+    throw new Error(`Unsupported provider: ${provider.name}`)
+  } finally {
+    clearTimeout(timeoutId)
+  }
+}
+
+// OpenAI 호환 API 호출 (OpenAI, Together AI)
+async function callOpenAICompatible<T>(
+  provider: AIProvider,
+  prompt: string,
+  systemMessage: string,
+  controller: AbortController
+): Promise<AIBackendResponse<T>> {
+  const response = await fetch(provider.endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${provider.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: provider.model,
+      messages: [
+        { role: 'system', content: systemMessage },
+        { role: 'user', content: prompt },
+      ],
+      max_tokens: 4000,
+      temperature: 0.7,
+    }),
+    signal: controller.signal,
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    logger.error(`[AI Backend] ${provider.name} API error`, { status: response.status, errorData })
+    throw new Error(`${provider.name} API error: ${response.status}`)
+  }
+
+  const data = await response.json()
+  const responseText = data?.choices?.[0]?.message?.content || ''
+
+  return {
+    sections: extractJSONFromResponse<T>(responseText),
+    model: data?.model || provider.model,
+    tokensUsed: data?.usage?.total_tokens,
+  }
+}
+
+// Replicate API 호출 (비동기 예측 방식)
+async function callReplicate<T>(
+  provider: AIProvider,
+  prompt: string,
+  systemMessage: string,
+  controller: AbortController
+): Promise<AIBackendResponse<T>> {
+  // 1. 예측 생성
+  const createResponse = await fetch(provider.endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Token ${provider.apiKey}`,
+    },
+    body: JSON.stringify({
+      version: provider.model,
+      input: {
+        prompt: `${systemMessage}\n\nUser: ${prompt}\nAssistant:`,
+        max_length: 4000,
         temperature: 0.7,
-      }),
-      signal: controller.signal,
+      },
+    }),
+    signal: controller.signal,
+  })
+
+  if (!createResponse.ok) {
+    throw new Error(`Replicate API error: ${createResponse.status}`)
+  }
+
+  const prediction = await createResponse.json()
+  const predictionUrl = prediction.urls?.get
+
+  // 2. 결과 폴링 (최대 60초)
+  let result = prediction
+  let attempts = 0
+  const maxAttempts = 30
+
+  while (result.status !== 'succeeded' && result.status !== 'failed' && attempts < maxAttempts) {
+    await new Promise((resolve) => setTimeout(resolve, 2000)) // 2초 대기
+    const statusResponse = await fetch(predictionUrl, {
+      headers: {
+        Authorization: `Token ${provider.apiKey}`,
+      },
     })
+    result = await statusResponse.json()
+    attempts++
+  }
 
-    clearTimeout(timeoutId)
+  if (result.status === 'failed') {
+    throw new Error('Replicate prediction failed')
+  }
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      logger.error('[AI Backend] OpenAI API error', { status: response.status, error: errorData })
-      throw new Error(`OpenAI API error: ${response.status}`)
+  if (result.status !== 'succeeded') {
+    throw new Error('Replicate prediction timeout')
+  }
+
+  const responseText = Array.isArray(result.output) ? result.output.join('') : result.output
+
+  return {
+    sections: extractJSONFromResponse<T>(responseText),
+    model: provider.model,
+    tokensUsed: undefined, // Replicate doesn't provide token usage
+  }
+}
+
+// JSON 추출 헬퍼 함수
+function extractJSONFromResponse<T>(responseText: string): T {
+  try {
+    // JSON 추출 (코드 블록 또는 순수 JSON)
+    const jsonMatch =
+      responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/\{[\s\S]*\}/)
+
+    if (jsonMatch) {
+      const jsonStr = jsonMatch[1] || jsonMatch[0]
+      return JSON.parse(jsonStr)
     }
 
-    const data = await response.json()
-    const responseText = data?.choices?.[0]?.message?.content || ''
-
-    let sections: T
-    try {
-      // JSON 추출 (코드 블록 또는 순수 JSON)
-      const jsonMatch =
-        responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        const jsonStr = jsonMatch[1] || jsonMatch[0]
-        sections = JSON.parse(jsonStr)
-      } else {
-        logger.warn('[AI Backend] No JSON found in response, using fallback')
-        sections = {} as T
-      }
-    } catch (parseError) {
-      logger.error('[AI Backend] Failed to parse JSON response', { error: parseError })
-      sections = {} as T
-    }
-
-    return {
-      sections,
-      model: data?.model || 'gpt-4o',
-      tokensUsed: data?.usage?.total_tokens,
-    }
-  } catch (error) {
-    clearTimeout(timeoutId)
-    logger.error('[AI Backend] Request failed', { error })
-    throw error
+    logger.warn('[AI Backend] No JSON found in response, using empty object')
+    return {} as T
+  } catch (parseError) {
+    logger.error('[AI Backend] Failed to parse JSON response', { error: parseError })
+    return {} as T
   }
 }
 

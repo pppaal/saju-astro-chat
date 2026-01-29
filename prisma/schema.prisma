@@ -950,3 +950,17 @@ model SharedResult {
   @@index([userId, createdAt])
   @@index([resultType, createdAt])
 }
+
+// 💳 Stripe Event Log - 웹훅 이벤트 중복 처리 방지 (멱등성)
+model StripeEventLog {
+  id          String   @id @default(cuid())
+  eventId     String   @unique // Stripe event.id
+  type        String   // event.type (checkout.session.completed, etc.)
+  processedAt DateTime @default(now())
+  success     Boolean  @default(true)
+  errorMsg    String?
+  metadata    Json?    // 디버깅용 메타데이터
+
+  @@index([type, processedAt])
+  @@index([processedAt])
+}

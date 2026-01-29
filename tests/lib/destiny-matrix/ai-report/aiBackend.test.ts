@@ -1,5 +1,5 @@
 // tests/lib/destiny-matrix/ai-report/aiBackend.test.ts
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { callAIBackendGeneric } from '@/lib/destiny-matrix/ai-report/aiBackend'
 
 describe('AI Backend', () => {
@@ -7,7 +7,8 @@ describe('AI Backend', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    process.env = { ...originalEnv, OPENAI_API_KEY: 'test-key-123' }
+    // Set only OpenAI key to avoid Together.xyz being preferred
+    process.env = { ...originalEnv, OPENAI_API_KEY: 'test-key-123', TOGETHER_API_KEY: undefined, REPLICATE_API_KEY: undefined }
   })
 
   afterEach(() => {
@@ -85,7 +86,7 @@ describe('AI Backend', () => {
         json: async () => ({ error: 'Internal error' }),
       })
 
-      await expect(callAIBackendGeneric('Test', 'ko')).rejects.toThrow('OpenAI API error: 500')
+      await expect(callAIBackendGeneric('Test', 'ko')).rejects.toThrow('openai API error: 500')
     })
 
     it('should return empty object if JSON parsing fails', async () => {
@@ -117,6 +118,6 @@ describe('AI Backend', () => {
         .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 200000)))
 
       await expect(callAIBackendGeneric('Test', 'ko')).rejects.toThrow()
-    }, 130000)
+    }, 125000)
   })
 })

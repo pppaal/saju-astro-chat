@@ -322,3 +322,174 @@ saju-astro-chat/
 ## License
 
 MIT
+
+---
+
+## Recent Improvements (2026-01)
+
+### Week 1: Security & Foundation ✅
+- **npm Vulnerabilities**: Reduced from 16 HIGH → 3 moderate (81% improvement)
+  - Updated Next.js 16.0.10 → 16.1.6
+  - Fixed lodash, tar, diff security issues
+- **Environment Validation**: Extended Zod schema for 8 critical API keys
+- **TypeScript**: 0 type errors confirmed
+- **Tests**: All 49 credit system tests passing
+
+### Week 2: Performance & Integration ✅
+- **Compatibility Backend**: Integrated Python compatibility module
+  - Module structure with `__init__.py`
+  - 5/5 integration tests passing
+- **Rate Limiting**: Unified system (deprecated old in-memory)
+  - Redis-based distributed rate limiting
+  - Consistent across all 128 endpoints
+- **Bundle Size CI**: Automatic enforcement
+  - Main bundle: <500KB
+  - Total JS: <3MB
+
+### Week 3: Testing & Documentation ✅
+- **Cache Versioning**: Auto-invalidation system
+  - Versioned cache keys (e.g., `saju:v1:...`)
+  - [CACHE_VERSIONING.md](src/lib/cache/CACHE_VERSIONING.md) documentation
+- **API Smoke Tests**: Extended coverage
+  - Compatibility: 3 tests
+  - Tarot: 2 tests
+  - Saju: 3 tests
+  - Total: 8/8 passing
+- **Architecture Documentation**: Updated [ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+---
+
+## Quick Start
+
+### Prerequisites
+- Node.js 20+
+- PostgreSQL (or Supabase account)
+- Redis (or Upstash account) - optional
+- Python 3.10+ (for backend AI)
+
+### Installation
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/saju-astro-chat.git
+cd saju-astro-chat
+
+# Install dependencies
+npm install
+
+# Setup environment
+cp .env.example .env
+# Edit .env with your credentials
+
+# Database setup
+npx prisma migrate deploy
+npx prisma generate
+
+# Run development server
+npm run dev
+
+# Backend AI (separate terminal)
+cd backend_ai
+pip install -r requirements.txt
+python main.py
+```
+
+### Environment Variables
+
+See [ENVIRONMENT_CHECKLIST.md](docs/ENVIRONMENT_CHECKLIST.md) for complete list.
+
+**Required:**
+- `DATABASE_URL`: PostgreSQL connection string
+- `NEXTAUTH_SECRET`: Random 32+ character string
+- `NEXTAUTH_URL`: Your app URL
+- `STRIPE_SECRET_KEY`: Stripe API key
+- `STRIPE_PUBLISHABLE_KEY`: Stripe public key
+
+**Optional:**
+- `REDIS_URL`: Redis connection (for caching)
+- `UPSTASH_REDIS_REST_URL`: Upstash Redis
+- `OPENAI_API_KEY`: OpenAI API key
+
+---
+
+## Testing
+
+```bash
+# Unit & Integration Tests
+npm test                      # All tests
+npm run test:coverage         # With coverage report
+npm run test:watch            # Watch mode
+
+# E2E Tests
+npm run test:e2e:browser      # Playwright UI mode
+npm run test:e2e:critical     # Critical flows only
+
+# Backend Tests
+npm run test:backend          # Python pytest
+
+# Performance Tests
+npm run test:load:basic       # k6 load test
+npm run test:load:stress      # Stress test
+
+# Security Tests
+npm run security:audit        # npm audit
+npm run security:owasp        # OWASP ZAP
+```
+
+---
+
+## Documentation
+
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: System architecture & request flows
+- **[API.md](docs/API.md)**: API endpoints documentation
+- **[DEPLOYMENT.md](DEPLOYMENT.md)**: Deployment guide
+- **[SECURITY_HARDENING.md](docs/SECURITY_HARDENING.md)**: Security best practices
+- **[CI_CD_PIPELINE.md](docs/CI_CD_PIPELINE.md)**: CI/CD workflows
+- **[REDIS_CACHE_GUIDE.md](docs/REDIS_CACHE_GUIDE.md)**: Caching strategies
+- **[CACHE_VERSIONING.md](src/lib/cache/CACHE_VERSIONING.md)**: Cache version management
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Code Quality Standards
+- TypeScript strict mode
+- ESLint + Prettier
+- 100% test coverage for critical paths
+- Pre-commit hooks (Husky)
+- Secret scanning (Gitleaks)
+
+---
+
+## License
+
+This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
+
+---
+
+## Support
+
+For issues and questions:
+- **GitHub Issues**: [Create an issue](https://github.com/yourusername/saju-astro-chat/issues)
+- **Email**: support@destinypal.com
+- **Documentation**: [docs/](docs/)
+
+---
+
+## Acknowledgments
+
+- Next.js team for excellent React framework
+- Prisma for type-safe database access
+- Vercel for hosting platform
+- OpenAI for LLM capabilities
+- All open-source contributors
+
+---
+
+**Built with ❤️ in South Korea**

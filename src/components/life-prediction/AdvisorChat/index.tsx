@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import styles from './AdvisorChat.module.css'
 import { logger } from '@/lib/logger'
@@ -31,7 +31,33 @@ interface AdvisorChatProps {
   onClose?: () => void
 }
 
-export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: AdvisorChatProps) {
+// 메시지 컴포넌트 메모이제이션
+const MessageItem = memo(({ message, styles }: { message: Message; styles: any }) => (
+  <div key={message.id} className={`${styles.message} ${styles[message.role]}`}>
+    {message.role === 'assistant' && <span className={styles.avatar}>🔮</span>}
+    <div className={styles.messageContent}>
+      <p>{message.content}</p>
+    </div>
+  </div>
+))
+MessageItem.displayName = 'MessageItem'
+
+// 로딩 인디케이터 메모이제이션
+const LoadingIndicator = memo(({ styles }: { styles: any }) => (
+  <div className={`${styles.message} ${styles.assistant}`}>
+    <span className={styles.avatar}>🔮</span>
+    <div className={styles.messageContent}>
+      <div className={styles.typing}>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+))
+LoadingIndicator.displayName = 'LoadingIndicator'
+
+function AdvisorChatComponent({ predictionContext, locale = 'ko', onClose }: AdvisorChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -39,21 +65,26 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // 초기 인사 메시지 메모이제이션
+  const greetingMessage = useMemo(
+    () => ({
+      id: 'greeting',
+      role: 'assistant' as const,
+      content:
+        locale === 'ko'
+          ? `안녕하세요! 예측 결과에 대해 궁금한 점이 있으시면 편하게 물어보세요. "${predictionContext.question}"에 대한 분석 결과를 바탕으로 더 자세한 조언을 드릴 수 있어요.`
+          : `Hello! Feel free to ask me anything about your prediction results. I can provide more detailed advice based on your question "${predictionContext.question}".`,
+      timestamp: new Date(),
+    }),
+    [locale, predictionContext.question]
+  )
+
   // 초기 인사 메시지
   useEffect(() => {
     if (messages.length === 0) {
-      const greeting: Message = {
-        id: 'greeting',
-        role: 'assistant',
-        content:
-          locale === 'ko'
-            ? `안녕하세요! 예측 결과에 대해 궁금한 점이 있으시면 편하게 물어보세요. "${predictionContext.question}"에 대한 분석 결과를 바탕으로 더 자세한 조언을 드릴 수 있어요.`
-            : `Hello! Feel free to ask me anything about your prediction results. I can provide more detailed advice based on your question "${predictionContext.question}".`,
-        timestamp: new Date(),
-      }
-      setMessages([greeting])
+      setMessages([greetingMessage])
     }
-  }, [locale, predictionContext.question, messages.length])
+  }, [greetingMessage, messages.length])
 
   // 스크롤 자동 이동
   useEffect(() => {
@@ -144,20 +175,41 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
     }
   }, [input, isLoading, messages, predictionContext, locale])
 
-  // 빠른 질문 버튼
-  const quickQuestions =
-    locale === 'ko'
-      ? ['이 시기에 주의할 점은?', '더 좋은 시기가 있을까요?', '구체적으로 어떻게 준비해야 해요?']
-      : [
-          'What should I be careful about?',
-          'Is there a better timing?',
-          'How should I prepare specifically?',
-        ]
+  // 빠른 질문 버튼 메모이제이션
+  const quickQuestions = useMemo(
+    () =>
+      locale === 'ko'
+        ? ['이 시기에 주의할 점은?', '더 좋은 시기가 있을까요?', '구체적으로 어떻게 준비해야 해요?']
+        : [
+            'What should I be careful about?',
+            'Is there a better timing?',
+            'How should I prepare specifically?',
+          ],
+    [locale]
+  )
 
-  const handleQuickQuestion = (question: string) => {
-    setInput(question)
-    setTimeout(() => sendMessage(), 100)
-  }
+  const handleQuickQuestion = useCallback(
+    (question: string) => {
+      setInput(question)
+      setTimeout(() => sendMessage(), 100)
+    },
+    [sendMessage]
+  )
+
+  // 헤더 토글 핸들러 메모이제이션
+  const handleToggleExpanded = useCallback(() => {
+    setIsExpanded((prev) => !prev)
+  }, [])
+
+  const handleKeyDownToggle = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        setIsExpanded((prev) => !prev)
+      }
+    },
+    []
+  )
 
   return (
     <motion.div
@@ -171,13 +223,8 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
         className={styles.header}
         role="button"
         tabIndex={0}
-        onClick={() => setIsExpanded(!isExpanded)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            setIsExpanded(!isExpanded)
-          }
-        }}
+        onClick={handleToggleExpanded}
+        onKeyDown={handleKeyDownToggle}
         aria-expanded={isExpanded}
         aria-label={
           isExpanded
@@ -213,26 +260,10 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
             {/* 메시지 영역 */}
             <div className={styles.messages}>
               {messages.map((message) => (
-                <div key={message.id} className={`${styles.message} ${styles[message.role]}`}>
-                  {message.role === 'assistant' && <span className={styles.avatar}>🔮</span>}
-                  <div className={styles.messageContent}>
-                    <p>{message.content}</p>
-                  </div>
-                </div>
+                <MessageItem key={message.id} message={message} styles={styles} />
               ))}
 
-              {isLoading && (
-                <div className={`${styles.message} ${styles.assistant}`}>
-                  <span className={styles.avatar}>🔮</span>
-                  <div className={styles.messageContent}>
-                    <div className={styles.typing}>
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {isLoading && <LoadingIndicator styles={styles} />}
 
               <div ref={messagesEndRef} />
             </div>
@@ -280,4 +311,6 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
   )
 }
 
+// 메모이제이션된 컴포넌트 export
+export const AdvisorChat = memo(AdvisorChatComponent)
 export default AdvisorChat

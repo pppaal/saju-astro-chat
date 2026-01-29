@@ -21,7 +21,23 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import styles from '../life-prediction.module.css';
 
 // Dynamic imports for heavy components
-const AdvisorChat = dynamic(
+const AdvisorChat = dynamic<{
+  predictionContext: {
+    question: string
+    eventType: string
+    results: Array<{
+      startDate: string
+      endDate: string
+      score: number
+      grade: string
+      reasons: string[]
+    }>
+    birthDate: string
+    gender: 'M' | 'F'
+  }
+  locale?: 'ko' | 'en'
+  onClose?: () => void
+}>(
   () => import('@/components/life-prediction/AdvisorChat').then((mod) => mod.default),
   { ssr: false }
 );

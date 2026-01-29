@@ -1,7 +1,7 @@
 // components/compatibility/CompatibilityTabs.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/i18n/I18nProvider';
 import styles from './CompatibilityTabs.module.css';
@@ -40,11 +40,20 @@ interface CompatibilityTabsProps {
   onStartAnalysis: () => void;
 }
 
-export default function CompatibilityTabs({ onStartAnalysis }: CompatibilityTabsProps) {
+function CompatibilityTabs({ onStartAnalysis }: CompatibilityTabsProps) {
   const { t, locale } = useI18n();
   const [activeTab, setActiveTab] = useState<TabType>('analysis');
 
-  const activeTabConfig = tabsConfig.find(tab => tab.id === activeTab);
+  // activeTabConfig 메모이제이션
+  const activeTabConfig = useMemo(
+    () => tabsConfig.find(tab => tab.id === activeTab),
+    [activeTab]
+  );
+
+  // 탭 변경 핸들러 메모이제이션
+  const handleTabChange = useCallback((tabId: TabType) => {
+    setActiveTab(tabId);
+  }, []);
 
   return (
     <div className={styles.container}>
@@ -54,7 +63,7 @@ export default function CompatibilityTabs({ onStartAnalysis }: CompatibilityTabs
           <motion.button
             key={tab.id}
             className={`${styles.tabButton} ${activeTab === tab.id ? styles.active : ''}`}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabChange(tab.id)}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -103,7 +112,13 @@ export default function CompatibilityTabs({ onStartAnalysis }: CompatibilityTabs
   );
 }
 
-function CompatibilityIntro({ onStart, locale, t }: { onStart: () => void; locale: string; t: (key: string, fallback: string) => string }) {
+// CompatibilityIntro 컴포넌트 메모이제이션
+const CompatibilityIntro = memo(({ onStart, locale, t }: { onStart: () => void; locale: string; t: (key: string, fallback: string) => string }) => {
+  const buttonText = useMemo(
+    () => locale === 'ko' ? '궁합 분석 시작하기' : 'Start Compatibility Analysis',
+    [locale]
+  );
+
   return (
     <div className={styles.introContainer}>
       <div className={styles.introIcon}>💕</div>
@@ -119,13 +134,15 @@ function CompatibilityIntro({ onStart, locale, t }: { onStart: () => void; local
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
-        {locale === 'ko' ? '궁합 분석 시작하기' : 'Start Compatibility Analysis'}
+        {buttonText}
       </motion.button>
     </div>
   );
-}
+});
+CompatibilityIntro.displayName = 'CompatibilityIntro';
 
-function AboutCompatibility({ t }: { t: (key: string, fallback: string) => string }) {
+// AboutCompatibility 컴포넌트 메모이제이션
+const AboutCompatibility = memo(({ t }: { t: (key: string, fallback: string) => string }) => {
   return (
     <div className={styles.aboutContainer}>
       <div className={styles.aboutSection}>
@@ -169,4 +186,6 @@ function AboutCompatibility({ t }: { t: (key: string, fallback: string) => strin
       </div>
     </div>
   );
-}
+});
+AboutCompatibility.displayName = 'AboutCompatibility';
+export default CompatibilityTabs;

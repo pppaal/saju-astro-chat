@@ -271,6 +271,40 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Bundle size check
+        run: |
+          echo "📦 Checking bundle sizes..."
+
+          # Find main bundle (pages or app directory)
+          MAIN_BUNDLE=$(find .next/static/chunks -name 'main-*.js' -o -name 'app-pages-*.js' | head -1)
+
+          if [ -n "$MAIN_BUNDLE" ]; then
+            MAIN_SIZE=$(stat -c%s "$MAIN_BUNDLE" 2>/dev/null || stat -f%z "$MAIN_BUNDLE" 2>/dev/null || echo "0")
+            MAIN_SIZE_KB=$((MAIN_SIZE / 1024))
+            echo "  Main bundle: ${MAIN_SIZE_KB}KB"
+
+            # Main bundle threshold: 500KB
+            if [ "$MAIN_SIZE" -gt 512000 ]; then
+              echo "❌ Main bundle too large: ${MAIN_SIZE_KB}KB (max: 500KB)"
+              exit 1
+            fi
+          else
+            echo "⚠️ Main bundle not found (might be app directory structure)"
+          fi
+
+          # Check total page JS size
+          TOTAL_JS_SIZE=$(find .next/static/chunks -name '*.js' -exec stat -c%s {} + 2>/dev/null | awk '{s+=$1} END {print s}' || echo "0")
+          TOTAL_JS_SIZE_KB=$((TOTAL_JS_SIZE / 1024))
+          echo "  Total JS: ${TOTAL_JS_SIZE_KB}KB"
+
+          # Total threshold: 3MB
+          if [ "$TOTAL_JS_SIZE" -gt 3145728 ]; then
+            echo "❌ Total JS bundle too large: ${TOTAL_JS_SIZE_KB}KB (max: 3072KB)"
+            exit 1
+          fi
+
+          echo "✅ Bundle size check passed"
+
       - name: Start dev server
         run: |
           npm run dev -- --hostname 127.0.0.1 --port 3000 > /tmp/next-dev.log 2>&1 &

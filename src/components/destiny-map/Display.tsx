@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, memo } from "react";
 import type { DestinyResult } from "./Analyzer";
 import styles from "@/app/destiny-map/result/result.module.css";
 
@@ -17,7 +17,33 @@ import {
   CategoryAnalysisSection,
 } from "./display/sections";
 
-export default function Display({
+// 테마 버튼 컴포넌트 메모이제이션
+const ThemeButton = memo(({
+  themeKey,
+  isActive,
+  onClick
+}: {
+  themeKey: string;
+  isActive: boolean;
+  onClick: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className={`px-3 py-1.5 rounded-lg cursor-pointer border transition-colors
+      ${isActive
+        ? 'bg-blue-600 text-white border-blue-600'
+        : 'bg-transparent text-inherit border-gray-600 hover:border-gray-400'
+      }`}
+    role="tab"
+    aria-selected={isActive}
+    aria-controls={`theme-panel-${themeKey}`}
+  >
+    {themeKey}
+  </button>
+));
+ThemeButton.displayName = 'ThemeButton';
+
+function Display({
   result,
   lang = "ko",
   theme,
@@ -28,11 +54,16 @@ export default function Display({
   theme?: string;
   reportType?: ReportType;
 }) {
-  const themeKeys = Object.keys(result?.themes || {});
+  const themeKeys = useMemo(() => Object.keys(result?.themes || {}), [result?.themes]);
   const [activeTheme, setActiveTheme] = useState(
     theme || themeKeys[0] || "focus_overall"
   );
   const tr = I18N[lang] ?? I18N.en;
+
+  // 테마 변경 핸들러 메모이제이션
+  const handleThemeChange = useCallback((key: string) => {
+    setActiveTheme(key);
+  }, []);
 
   const themeMatch = findThemeData(result?.themes, activeTheme);
   const themed = themeMatch?.data;
@@ -65,20 +96,12 @@ export default function Display({
           aria-label="테마 선택"
         >
           {themeKeys.map((key) => (
-            <button
+            <ThemeButton
               key={key}
-              onClick={() => setActiveTheme(key)}
-              className={`px-3 py-1.5 rounded-lg cursor-pointer border transition-colors
-                ${activeTheme === key
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-transparent text-inherit border-gray-600 hover:border-gray-400'
-                }`}
-              role="tab"
-              aria-selected={activeTheme === key}
-              aria-controls={`theme-panel-${key}`}
-            >
-              {key}
-            </button>
+              themeKey={key}
+              isActive={activeTheme === key}
+              onClick={() => handleThemeChange(key)}
+            />
           ))}
         </div>
       )}
@@ -175,3 +198,5 @@ export default function Display({
     </div>
   );
 }
+
+export default memo(Display);

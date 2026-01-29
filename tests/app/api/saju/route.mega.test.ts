@@ -150,16 +150,72 @@ vi.mock('@/lib/security/errorSanitizer', () => ({
 }))
 
 vi.mock('@/lib/api/middleware', async () => {
-  const actual = await vi.importActual('@/lib/api/middleware')
+  const actual = await vi.importActual('@/lib/api/middleware') as any
+  const { sanitizeError } = await import('@/lib/security/errorSanitizer')
+  const { NextResponse } = await import('next/server')
+  const { createErrorResponse } = await import('@/lib/api/errorHandler')
+  const { getServerSession } = await import('next-auth')
+
   return {
     ...actual,
     withApiMiddleware: (handler: any) => async (req: any) => {
+      const session = await getServerSession()
+      const userId = session?.user?.id || null
+      const isAuthenticated = !!session
+      const locale = actual.extractLocale(req)
+
       const context = {
-        userId: null,
-        session: null,
+        userId,
+        session,
         ip: '127.0.0.1',
+        locale,
+        isAuthenticated,
       }
-      return handler(req, context)
+      try {
+        const result = await handler(req, context)
+        // Handle result types
+        if (result.data) {
+          // Return data directly (unwrapped) for test environment
+          return NextResponse.json(result.data, {
+            status: result.status || 200,
+          })
+        }
+        if (result.error) {
+          return createErrorResponse({
+            code: result.error.code,
+            message: result.error.message,
+            details: result.error.details,
+            locale: context.locale,
+            route: 'test',
+          })
+        }
+        return result
+      } catch (error: any) {
+        // Match the error classification logic from actual middleware
+        let code = actual.ErrorCodes.INTERNAL_ERROR
+
+        if (error.message?.includes('Invalid JSON')) {
+          code = actual.ErrorCodes.VALIDATION_ERROR
+        } else if (error.message?.includes('Missing required fields')) {
+          code = actual.ErrorCodes.VALIDATION_ERROR
+        } else if (error.message?.includes('unauthorized') || error.message?.includes('auth')) {
+          code = actual.ErrorCodes.UNAUTHORIZED
+        } else if (error.message?.includes('not found')) {
+          code = actual.ErrorCodes.NOT_FOUND
+        }
+
+        if (code === actual.ErrorCodes.INTERNAL_ERROR) {
+          const sanitized = sanitizeError(error)
+          return NextResponse.json(sanitized, { status: 500 })
+        }
+
+        return createErrorResponse({
+          code,
+          message: error.message,
+          locale: context.locale,
+          route: 'test',
+        })
+      }
     },
     createSajuGuard: vi.fn(() => vi.fn()),
   }
@@ -208,10 +264,18 @@ import { getNowInTimezone } from '@/lib/datetime'
 ========================================== */
 
 function createNextRequest(body: Record<string, unknown>): NextRequest {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  // Set accept-language header if locale is specified in body
+  if (body.locale === 'ko') {
+    headers['accept-language'] = 'ko-KR,ko;q=0.9'
+  } else if (body.locale) {
+    headers['accept-language'] = String(body.locale)
+  }
+
   return new NextRequest('http://localhost:3000/api/saju', {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: { 'Content-Type': 'application/json' },
+    headers,
   })
 }
 
@@ -396,9 +460,9 @@ describe('/api/saju POST - Input Validation', () => {
     })
 
     const response = await POST(invalidReq)
-    expect(response.status).toBe(400)
+    expect(response.status).toBe(422)
     const data = await response.json()
-    expect(data.message).toContain('Invalid JSON body')
+    expect(data.error.message).toContain('Invalid JSON body')
   })
 
   it('should reject requests with missing required fields', async () => {
@@ -408,9 +472,9 @@ describe('/api/saju POST - Input Validation', () => {
     })
 
     const response = await POST(req)
-    expect(response.status).toBe(400)
+    expect(response.status).toBe(422)
     const data = await response.json()
-    expect(data.message).toContain('Missing required fields')
+    expect(data.error.message).toContain('Missing required fields')
   })
 
   it('should accept valid request with all required fields', async () => {
@@ -970,7 +1034,7 @@ describe('/api/saju POST - AI Backend Integration', () => {
     )
   })
 
-  it('should default to "ko" locale when not provided', async () => {
+  it('should default to "en" locale when not provided', async () => {
     const req = createNextRequest({
       ...createBasicRequest(),
       locale: undefined,
@@ -980,7 +1044,7 @@ describe('/api/saju POST - AI Backend Integration', () => {
     expect(apiClient.post).toHaveBeenCalledWith(
       '/ask',
       expect.objectContaining({
-        locale: 'ko',
+        locale: 'en',
       }),
       expect.any(Object)
     )

@@ -2,6 +2,7 @@
 // Comprehensive tests for Dates API
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { NextRequest } from 'next/server';
 import { GET } from '@/app/api/dates/route';
 
 describe('GET /api/dates', () => {
@@ -17,20 +18,31 @@ describe('GET /api/dates', () => {
     Date.now = originalDateNow;
   });
 
+  function createNextRequest(): NextRequest {
+    return new NextRequest('http://localhost:3000/api/dates', {
+      method: 'GET',
+      headers: { 'accept-language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7' },
+    });
+  }
+
   it('should return 200 status', async () => {
-    const response = await GET();
+    const req = createNextRequest();
+    const response = await GET(req);
     expect(response.status).toBe(200);
   });
 
   it('should return JSON response', async () => {
-    const response = await GET();
+    const req = createNextRequest();
+    const response = await GET(req);
     const contentType = response.headers.get('content-type');
     expect(contentType).toContain('application/json');
   });
 
   it('should include all expected fields', async () => {
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data).toHaveProperty('timestamp');
     expect(data).toHaveProperty('year');
@@ -42,8 +54,10 @@ describe('GET /api/dates', () => {
   });
 
   it('should return Asia/Seoul timezone', async () => {
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.timezone).toBe('Asia/Seoul');
   });
@@ -54,8 +68,10 @@ describe('GET /api/dates', () => {
     // KST (UTC+9): 2024-01-15 09:00:00
     Date.now = vi.fn(() => new Date('2024-01-15T00:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.year).toBe(2024);
     expect(data.month).toBe(1);
@@ -70,8 +86,10 @@ describe('GET /api/dates', () => {
     // KST (UTC+9): 2024-06-11 00:00:00 (next day!)
     Date.now = vi.fn(() => new Date('2024-06-10T15:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.year).toBe(2024);
     expect(data.month).toBe(6);
@@ -83,8 +101,10 @@ describe('GET /api/dates', () => {
     // January (month 1)
     Date.now = vi.fn(() => new Date('2024-01-05T00:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.dateText).toBe('2024-01-05');
     expect(data.dateText).toMatch(/^\d{4}-\d{2}-\d{2}$/);
@@ -94,8 +114,10 @@ describe('GET /api/dates', () => {
     // Day 1
     Date.now = vi.fn(() => new Date('2024-03-01T00:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.dateText).toBe('2024-03-01');
     expect(data.day).toBe(1);
@@ -105,8 +127,10 @@ describe('GET /api/dates', () => {
     // December (month 12)
     Date.now = vi.fn(() => new Date('2024-12-25T00:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.month).toBe(12);
     expect(data.dateText).toBe('2024-12-25');
@@ -116,8 +140,10 @@ describe('GET /api/dates', () => {
     // December 31, 2023 at 16:00 UTC → January 1, 2024 at 01:00 KST
     Date.now = vi.fn(() => new Date('2023-12-31T16:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.year).toBe(2024);
     expect(data.month).toBe(1);
@@ -130,8 +156,10 @@ describe('GET /api/dates', () => {
     // February 29, 2024 (leap year)
     Date.now = vi.fn(() => new Date('2024-02-29T00:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.year).toBe(2024);
     expect(data.month).toBe(2);
@@ -140,8 +168,10 @@ describe('GET /api/dates', () => {
   });
 
   it('should return valid ISO timestamp', async () => {
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
     expect(() => new Date(data.timestamp)).not.toThrow();
@@ -150,8 +180,10 @@ describe('GET /api/dates', () => {
   it('should format dateDisplay in Korean', async () => {
     Date.now = vi.fn(() => new Date('2024-05-20T00:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.dateDisplay).toBe('2024년 5월 20일');
     expect(data.dateDisplay).toMatch(/^\d{4}년 \d{1,2}월 \d{1,2}일$/);
@@ -161,8 +193,10 @@ describe('GET /api/dates', () => {
     // Midnight UTC → 9 AM Korea time (same day)
     Date.now = vi.fn(() => new Date('2024-08-15T00:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.year).toBe(2024);
     expect(data.month).toBe(8);
@@ -173,8 +207,10 @@ describe('GET /api/dates', () => {
     // 23:00 UTC → 8 AM next day Korea time
     Date.now = vi.fn(() => new Date('2024-08-15T23:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.year).toBe(2024);
     expect(data.month).toBe(8);
@@ -184,10 +220,12 @@ describe('GET /api/dates', () => {
   it('should return consistent data across multiple calls', async () => {
     Date.now = vi.fn(() => new Date('2024-07-10T12:00:00.000Z').getTime());
 
-    const response1 = await GET();
+    const req1 = createNextRequest();
+    const response1 = await GET(req1);
     const data1 = await response1.json();
 
-    const response2 = await GET();
+    const req2 = createNextRequest();
+    const response2 = await GET(req2);
     const data2 = await response2.json();
 
     expect(data1.year).toBe(data2.year);
@@ -200,8 +238,10 @@ describe('GET /api/dates', () => {
     // Test year 2030
     Date.now = vi.fn(() => new Date('2030-03-15T00:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.year).toBe(2030);
     expect(data.dateText).toContain('2030-');
@@ -209,8 +249,10 @@ describe('GET /api/dates', () => {
   });
 
   it('should return number types for year, month, day', async () => {
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(typeof data.year).toBe('number');
     expect(typeof data.month).toBe('number');
@@ -218,8 +260,10 @@ describe('GET /api/dates', () => {
   });
 
   it('should return string types for text fields', async () => {
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(typeof data.dateText).toBe('string');
     expect(typeof data.dateDisplay).toBe('string');
@@ -228,16 +272,20 @@ describe('GET /api/dates', () => {
   });
 
   it('should have valid month range (1-12)', async () => {
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.month).toBeGreaterThanOrEqual(1);
     expect(data.month).toBeLessThanOrEqual(12);
   });
 
   it('should have valid day range (1-31)', async () => {
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.day).toBeGreaterThanOrEqual(1);
     expect(data.day).toBeLessThanOrEqual(31);
@@ -247,8 +295,10 @@ describe('GET /api/dates', () => {
     // February 28, 2023 (non-leap year)
     Date.now = vi.fn(() => new Date('2023-02-28T00:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.year).toBe(2023);
     expect(data.month).toBe(2);
@@ -260,8 +310,10 @@ describe('GET /api/dates', () => {
     // This test verifies that Korea time is always >= UTC time
     Date.now = vi.fn(() => new Date('2024-05-01T01:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     // UTC: May 1 at 1 AM
     // KST: May 1 at 10 AM (still same day, just later)
@@ -270,16 +322,20 @@ describe('GET /api/dates', () => {
   });
 
   it('should format dateText in ISO 8601 format', async () => {
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     // YYYY-MM-DD format
     expect(data.dateText).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it('should handle milliseconds precision in timestamp', async () => {
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     const timestamp = new Date(data.timestamp);
     expect(timestamp.getTime()).toBeGreaterThan(0);
@@ -287,8 +343,10 @@ describe('GET /api/dates', () => {
   });
 
   it('should return current year as 4 digits', async () => {
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.year.toString()).toHaveLength(4);
     expect(data.year).toBeGreaterThan(2020);
@@ -298,8 +356,10 @@ describe('GET /api/dates', () => {
   it('should match dateText components with individual fields', async () => {
     Date.now = vi.fn(() => new Date('2024-11-07T00:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     const [year, month, day] = data.dateText.split('-');
     expect(parseInt(year)).toBe(data.year);
@@ -310,8 +370,10 @@ describe('GET /api/dates', () => {
   it('should match dateDisplay components with individual fields', async () => {
     Date.now = vi.fn(() => new Date('2024-09-03T00:00:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.dateDisplay).toContain(data.year.toString());
     expect(data.dateDisplay).toContain(data.month.toString());
@@ -322,8 +384,10 @@ describe('GET /api/dates', () => {
     // 00:01 UTC → 09:01 KST (same day)
     Date.now = vi.fn(() => new Date('2024-04-10T00:01:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.month).toBe(4);
     expect(data.day).toBe(10);
@@ -333,8 +397,10 @@ describe('GET /api/dates', () => {
     // 23:59 UTC → 08:59 next day KST
     Date.now = vi.fn(() => new Date('2024-04-10T23:59:00.000Z').getTime());
 
-    const response = await GET();
-    const data = await response.json();
+    const req = createNextRequest();
+    const response = await GET(req);
+    const result = await response.json();
+    const data = result.data;
 
     expect(data.month).toBe(4);
     expect(data.day).toBe(11); // Next day in Korea

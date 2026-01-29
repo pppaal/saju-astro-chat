@@ -37,42 +37,42 @@ describe("Redis Cache", () => {
   describe("makeCacheKey", () => {
     it("should create cache key with prefix", () => {
       const key = makeCacheKey("test", { id: "123" });
-      expect(key).toBe("test:id:123");
+      expect(key).toBe("test:v1:id:123");
     });
 
     it("should sort params alphabetically", () => {
       const key = makeCacheKey("user", { z: "last", a: "first", m: "middle" });
-      expect(key).toBe("user:a:first|m:middle|z:last");
+      expect(key).toBe("user:v1:a:first|m:middle|z:last");
     });
 
     it("should handle numeric values", () => {
       const key = makeCacheKey("cache", { count: 42, page: 1 });
-      expect(key).toBe("cache:count:42|page:1");
+      expect(key).toBe("cache:v1:count:42|page:1");
     });
 
     it("should handle boolean values", () => {
       const key = makeCacheKey("feature", { enabled: true, beta: false });
-      expect(key).toBe("feature:beta:false|enabled:true");
+      expect(key).toBe("feature:v1:beta:false|enabled:true");
     });
 
     it("should handle empty params", () => {
       const key = makeCacheKey("empty", {});
-      expect(key).toBe("empty:");
+      expect(key).toBe("empty:v1:");
     });
 
     it("should handle null and undefined values", () => {
       const key = makeCacheKey("nullable", { a: null, b: undefined });
-      expect(key).toBe("nullable:a:null|b:undefined");
+      expect(key).toBe("nullable:v1:a:null|b:undefined");
     });
 
     it("should handle complex objects as string", () => {
       const key = makeCacheKey("complex", { obj: { nested: "value" } });
-      expect(key).toBe("complex:obj:[object Object]");
+      expect(key).toBe("complex:v1:obj:[object Object]");
     });
 
     it("should handle array values", () => {
       const key = makeCacheKey("array", { items: [1, 2, 3] });
-      expect(key).toBe("array:items:1,2,3");
+      expect(key).toBe("array:v1:items:1,2,3");
     });
 
     it("should create unique keys for different params", () => {
@@ -101,7 +101,7 @@ describe("Redis Cache", () => {
 
     it("should handle Korean characters in values", () => {
       const key = makeCacheKey("saju", { name: "홍길동", birthYear: 1990 });
-      expect(key).toBe("saju:birthYear:1990|name:홍길동");
+      expect(key).toBe("saju:v1:birthYear:1990|name:홍길동");
     });
 
     it("should handle date objects as string", () => {
@@ -122,7 +122,7 @@ describe("Redis Cache", () => {
         locale: "ko",
       });
 
-      expect(key).toBe("destiny:day:15|gender:male|hour:10|locale:ko|month:5|year:1990");
+      expect(key).toBe("destiny:v1:day:15|gender:male|hour:10|locale:ko|month:5|year:1990");
     });
 
     it("should generate tarot reading cache key", () => {
@@ -132,7 +132,7 @@ describe("Redis Cache", () => {
         cards: "1,5,10,22,33",
       });
 
-      expect(key).toBe("tarot:cards:1,5,10,22,33|category:love|spread:celtic_cross");
+      expect(key).toBe("tarot:v1:cards:1,5,10,22,33|category:love|spread:celtic_cross");
     });
 
     it("should generate calendar analysis cache key", () => {
@@ -142,7 +142,7 @@ describe("Redis Cache", () => {
         userId: "user123",
       });
 
-      expect(key).toBe("calendar:endDate:2024-01-31|startDate:2024-01-01|userId:user123");
+      expect(key).toBe("calendar:v1:endDate:2024-01-31|startDate:2024-01-01|userId:user123");
     });
 
     it("should generate user session cache key", () => {
@@ -151,7 +151,7 @@ describe("Redis Cache", () => {
         deviceId: "mobile_ios",
       });
 
-      expect(key).toBe("session:deviceId:mobile_ios|userId:abc123");
+      expect(key).toBe("session:v1:deviceId:mobile_ios|userId:abc123");
     });
   });
 
@@ -176,6 +176,7 @@ describe("Redis Cache", () => {
 
       // Both convert to string in the key
       expect(key1).toBe(key2);
+      expect(key1).toBe("test:v1:id:123");
     });
   });
 
@@ -199,12 +200,12 @@ describe("Redis Cache", () => {
 
     it("should handle empty string prefix", () => {
       const key = makeCacheKey("", { a: 1 });
-      expect(key).toBe(":a:1");
+      expect(key).toBe(":v1:a:1");
     });
 
     it("should handle single character values", () => {
       const key = makeCacheKey("single", { a: "x", b: "y" });
-      expect(key).toBe("single:a:x|b:y");
+      expect(key).toBe("single:v1:a:x|b:y");
     });
   });
 

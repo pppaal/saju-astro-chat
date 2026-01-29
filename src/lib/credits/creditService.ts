@@ -186,59 +186,127 @@ async function consumeBonusCreditsFromPurchases(userId: string, amount: number):
   return totalConsumed
 }
 
-// 크레딧 소비
+// 크레딧 소비 (Race Condition 방지 - 트랜잭션 사용)
 export async function consumeCredits(
   userId: string,
   type: 'reading' | 'compatibility' | 'followUp' = 'reading',
   amount: number = 1
 ): Promise<{ success: boolean; error?: string }> {
-  const canUse = await canUseCredits(userId, type, amount)
-  if (!canUse.allowed) {
-    return { success: false, error: canUse.reason }
+  try {
+    // 트랜잭션 내에서 원자적으로 체크 + 차감
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. 크레딧 정보 가져오기 (트랜잭션 내에서)
+      const credits = await tx.userCredits.findUnique({
+        where: { userId },
+      })
+
+      if (!credits) {
+        throw new Error('사용자 크레딧 정보를 찾을 수 없습니다')
+      }
+
+      // 2. 사용 가능 여부 체크 (트랜잭션 내에서)
+      const available = credits.monthlyCredits - credits.usedCredits + credits.bonusCredits
+
+      if (type === 'reading') {
+        if (available < amount) {
+          throw new Error('크레딧이 부족합니다')
+        }
+      } else if (type === 'compatibility') {
+        if (credits.compatibilityUsed >= credits.compatibilityLimit) {
+          throw new Error('궁합 분석 한도를 초과했습니다')
+        }
+      } else if (type === 'followUp') {
+        if (credits.followUpUsed >= credits.followUpLimit) {
+          throw new Error('후속질문 한도를 초과했습니다')
+        }
+      }
+
+      // 3. 보너스 크레딧 먼저 사용 (만료 임박한 것부터)
+      let fromBonus = 0
+      let fromMonthly = amount
+
+      if (type === 'reading' && credits.bonusCredits > 0) {
+        fromBonus = Math.min(credits.bonusCredits, amount)
+        fromMonthly = amount - fromBonus
+
+        // BonusCreditPurchase 테이블에서 FIFO로 차감 (트랜잭션 내에서)
+        const actualBonusConsumed = await consumeBonusCreditsFromPurchasesInTx(tx, userId, fromBonus)
+        // 실제 차감된 양과 다르면 조정 (레거시 데이터 대응)
+        if (actualBonusConsumed < fromBonus) {
+          fromMonthly += fromBonus - actualBonusConsumed
+          fromBonus = actualBonusConsumed
+        }
+      }
+
+      // 4. 크레딧 차감 (트랜잭션 내에서 원자적으로)
+      const updateData: Record<string, { increment?: number; decrement?: number }> = {}
+
+      if (type === 'reading') {
+        if (fromBonus > 0) {
+          updateData.bonusCredits = { decrement: fromBonus }
+        }
+        if (fromMonthly > 0) {
+          updateData.usedCredits = { increment: fromMonthly }
+        }
+      } else if (type === 'compatibility') {
+        updateData.compatibilityUsed = { increment: amount }
+      } else if (type === 'followUp') {
+        updateData.followUpUsed = { increment: amount }
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await tx.userCredits.update({
+          where: { userId },
+          data: updateData,
+        })
+      }
+
+      return { success: true }
+    })
+
+    return result
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : '크레딧 소비 중 오류가 발생했습니다'
+    return { success: false, error: errorMessage }
+  }
+}
+
+// 트랜잭션 내에서 보너스 크레딧 차감 (헬퍼 함수)
+async function consumeBonusCreditsFromPurchasesInTx(
+  tx: any,
+  userId: string,
+  amountToConsume: number
+): Promise<number> {
+  const now = new Date()
+  const purchases = await tx.bonusCreditPurchase.findMany({
+    where: {
+      userId,
+      expired: false,
+      remaining: { gt: 0 },
+      expiresAt: { gt: now },
+    },
+    orderBy: { expiresAt: 'asc' },
+  })
+
+  if (purchases.length === 0) {
+    return 0
   }
 
-  const credits = await getUserCredits(userId)
+  let totalConsumed = 0
+  for (const purchase of purchases) {
+    if (totalConsumed >= amountToConsume) break
 
-  // 보너스 크레딧 먼저 사용 (만료 임박한 것부터)
-  let fromBonus = 0
-  let fromMonthly = amount
+    const toConsume = Math.min(purchase.remaining, amountToConsume - totalConsumed)
+    totalConsumed += toConsume
 
-  if (type === 'reading' && credits.bonusCredits > 0) {
-    fromBonus = Math.min(credits.bonusCredits, amount)
-    fromMonthly = amount - fromBonus
-
-    // BonusCreditPurchase 테이블에서 FIFO로 차감
-    const actualBonusConsumed = await consumeBonusCreditsFromPurchases(userId, fromBonus)
-    // 실제 차감된 양과 다르면 조정 (레거시 데이터 대응)
-    if (actualBonusConsumed < fromBonus) {
-      fromMonthly += fromBonus - actualBonusConsumed
-      fromBonus = actualBonusConsumed
-    }
-  }
-
-  const updateData: Record<string, { increment?: number; decrement?: number }> = {}
-
-  if (type === 'reading') {
-    if (fromBonus > 0) {
-      updateData.bonusCredits = { decrement: fromBonus }
-    }
-    if (fromMonthly > 0) {
-      updateData.usedCredits = { increment: fromMonthly }
-    }
-  } else if (type === 'compatibility') {
-    updateData.compatibilityUsed = { increment: amount }
-  } else if (type === 'followUp') {
-    updateData.followUpUsed = { increment: amount }
-  }
-
-  if (Object.keys(updateData).length > 0) {
-    await prisma.userCredits.update({
-      where: { userId },
-      data: updateData,
+    const newRemaining = purchase.remaining - toConsume
+    await tx.bonusCreditPurchase.update({
+      where: { id: purchase.id },
+      data: { remaining: newRemaining },
     })
   }
 
-  return { success: true }
+  return totalConsumed
 }
 
 // 구독 상태 확인 (active 또는 trialing인 경우만 유효)

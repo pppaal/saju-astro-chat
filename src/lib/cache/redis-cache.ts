@@ -98,29 +98,34 @@ export async function cacheDel(key: string): Promise<boolean> {
 }
 
 /**
- * Cache key generators for consistency
+ * Cache key generators with versioning for automatic invalidation
+ *
+ * Versioning strategy:
+ * - Include version in key (e.g., "saju:v1:...")
+ * - Increment version when calculation logic changes
+ * - Old cache entries become stale automatically
  */
 export const CacheKeys = {
   saju: (birthDate: string, birthTime: string, gender: string) =>
-    `saju:${birthDate}:${birthTime}:${gender}`,
+    `saju:v1:${birthDate}:${birthTime}:${gender}`,
 
   tarot: (userId: string, question: string, spread: string) =>
-    `tarot:${userId}:${btoa(question)}:${spread}`,
+    `tarot:v1:${userId}:${btoa(question)}:${spread}`,
 
   destinyMap: (birthDate: string, birthTime: string) =>
-    `destiny:${birthDate}:${birthTime}`,
+    `destiny:v1:${birthDate}:${birthTime}`,
 
   grading: (date: string, sajuData: string) =>
-    `grade:${date}:${btoa(sajuData).slice(0, 20)}`,
+    `grade:v1:${date}:${btoa(sajuData).slice(0, 20)}`,
 
   calendar: (year: number, month: number, userId: string) =>
-    `cal:${year}:${month}:${userId}`,
+    `cal:v1:${year}:${month}:${userId}`,
 
   yearlyCalendar: (birthDate: string, birthTime: string, gender: string, year: number, category?: string) =>
     `yearly:v2:${birthDate}:${birthTime}:${gender}:${year}${category ? `:${category}` : ''}`, // v2: 날짜 필터링 제거
 
   compatibility: (person1: string, person2: string) =>
-    `compat:${person1}:${person2}`,
+    `compat:v1:${person1}:${person2}`,
 } as const;
 
 /**

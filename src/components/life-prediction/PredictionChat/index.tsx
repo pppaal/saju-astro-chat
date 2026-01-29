@@ -92,7 +92,7 @@ export function PredictionChat({ onSubmit, isLoading = false, compact = false }:
         <>
           <h1 className={styles.title}>인생 타이밍 예측</h1>
           <p className={styles.subtitle}>
-            사주와 운세를 바탕으로 최적의 시기를 찾아드립니다
+            사주와 점성학을 바탕으로 최적의 시기를 찾아드립니다
           </p>
         </>
       )}
