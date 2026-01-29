@@ -1,18 +1,18 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { useSession } from 'next-auth/react';
-import { AnimatePresence } from 'framer-motion';
-import { useI18n } from '@/i18n/I18nProvider';
-import { buildSignInUrl } from '@/lib/auth/signInUrl';
-import type { EventType } from '@/components/life-prediction/PredictionChat/hooks/useEventTypeDetector';
+import React from 'react'
+import { useSession } from 'next-auth/react'
+import { AnimatePresence } from 'framer-motion'
+import { useI18n } from '@/i18n/I18nProvider'
+import { buildSignInUrl } from '@/lib/auth/signInUrl'
+import type { EventType } from '@/components/life-prediction/PredictionChat/hooks/useEventTypeDetector'
 
 // Hooks
-import { useLifePredictionProfile } from '@/hooks/useLifePredictionProfile';
-import { useLifePredictionPhase } from '@/hooks/useLifePredictionPhase';
-import { useLifePredictionState } from '@/hooks/useLifePredictionState';
-import { useLifePredictionAnimation } from '@/hooks/useLifePredictionAnimation';
-import { useLifePredictionAPI } from '@/hooks/useLifePredictionAPI';
+import { useLifePredictionProfile } from '@/hooks/useLifePredictionProfile'
+import { useLifePredictionPhase } from '@/hooks/useLifePredictionPhase'
+import { useLifePredictionState } from '@/hooks/useLifePredictionState'
+import { useLifePredictionAnimation } from '@/hooks/useLifePredictionAnimation'
+import { useLifePredictionAPI } from '@/hooks/useLifePredictionAPI'
 
 // Phase Components
 import {
@@ -20,24 +20,24 @@ import {
   QuestionInputPhase,
   AnalyzingPhase,
   ResultsPhase,
-} from '@/components/life-prediction/phases';
+} from '@/components/life-prediction/phases'
 
 // UI Components
-import BackButton from '@/components/ui/BackButton';
-import CreditBadge from '@/components/ui/CreditBadge';
-import styles from './life-prediction.module.css';
+import BackButton from '@/components/ui/BackButton'
+import CreditBadge from '@/components/ui/CreditBadge'
+import styles from './life-prediction.module.css'
 
 export default function LifePredictionPage() {
-  return <LifePredictionContent />;
+  return <LifePredictionContent />
 }
 
 function LifePredictionContent() {
-  const { locale } = useI18n();
-  const { status } = useSession();
-  const signInUrl = buildSignInUrl();
+  const { locale } = useI18n()
+  const { status } = useSession()
+  const signInUrl = buildSignInUrl()
 
   // Background animation
-  const canvasRef = useLifePredictionAnimation();
+  const canvasRef = useLifePredictionAnimation()
 
   // Profile management
   const {
@@ -46,7 +46,7 @@ function LifePredictionContent() {
     profileLoading,
     handleBirthInfoSubmit,
     handleChangeBirthInfo: resetBirthInfo,
-  } = useLifePredictionProfile(status);
+  } = useLifePredictionProfile(status)
 
   // Prediction state
   const {
@@ -61,14 +61,14 @@ function LifePredictionContent() {
     generalAdvice,
     setGeneralAdvice,
     resetAll,
-  } = useLifePredictionState();
+  } = useLifePredictionState()
 
   // Phase navigation
   const { phase, setPhase, handleAskAgain, handleChangeBirthInfo } = useLifePredictionPhase(
     'birth-input',
     resetAll,
     resetBirthInfo
-  );
+  )
 
   // API handler
   const { handleSubmit: submitPrediction } = useLifePredictionAPI(
@@ -76,52 +76,54 @@ function LifePredictionContent() {
     guestBirthInfo,
     locale,
     setError
-  );
+  )
 
   // Update phase based on profile
   React.useEffect(() => {
-    if (profileLoading) {return;}
+    if (profileLoading) {
+      return
+    }
 
     if (userProfile?.birthDate || guestBirthInfo?.birthDate) {
       if (phase === 'birth-input') {
-        setPhase('input');
+        setPhase('input')
       }
     } else {
-      setPhase('birth-input');
+      setPhase('birth-input')
     }
-  }, [profileLoading, userProfile, guestBirthInfo, phase, setPhase]);
+  }, [profileLoading, userProfile, guestBirthInfo, phase, setPhase])
 
   // Handle birth info submission
   const onBirthInfoSubmit = React.useCallback(
     async (birthInfo: {
-      birthDate: string;
-      birthTime: string;
-      gender: 'M' | 'F';
-      birthCity?: string;
+      birthDate: string
+      birthTime: string
+      gender: 'M' | 'F'
+      birthCity?: string
     }) => {
-      await handleBirthInfoSubmit(birthInfo);
-      setPhase('input');
+      await handleBirthInfoSubmit(birthInfo)
+      setPhase('input')
     },
     [handleBirthInfoSubmit, setPhase]
-  );
+  )
 
   // Handle prediction submission
   const onPredictionSubmit = React.useCallback(
     async (question: string, eventType: EventType | null) => {
-      setCurrentQuestion(question);
-      setCurrentEventType(eventType);
-      setPhase('analyzing');
-      setError(null);
-      setGeneralAdvice('');
+      setCurrentQuestion(question)
+      setCurrentEventType(eventType)
+      setPhase('analyzing')
+      setError(null)
+      setGeneralAdvice('')
 
-      const result = await submitPrediction(question, eventType);
+      const result = await submitPrediction(question, eventType)
 
       if (result) {
-        setResults(result.periods);
-        setGeneralAdvice(result.generalAdvice);
-        setPhase('result');
+        setResults(result.periods)
+        setGeneralAdvice(result.generalAdvice)
+        setPhase('result')
       } else {
-        setPhase('input');
+        setPhase('input')
       }
     },
     [
@@ -133,11 +135,11 @@ function LifePredictionContent() {
       submitPrediction,
       setResults,
     ]
-  );
+  )
 
   // Get birth info for display
-  const birthDate = userProfile?.birthDate || guestBirthInfo?.birthDate;
-  const gender = userProfile?.gender || guestBirthInfo?.gender;
+  const birthDate = userProfile?.birthDate || guestBirthInfo?.birthDate
+  const gender = userProfile?.gender || guestBirthInfo?.gender
 
   // Loading state
   if (profileLoading) {
@@ -149,7 +151,7 @@ function LifePredictionContent() {
           <p>{locale === 'ko' ? '...' : 'Loading...'}</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -158,11 +160,6 @@ function LifePredictionContent() {
       <BackButton />
 
       <main className={styles.main}>
-        {/* Credit badge */}
-        <div className={styles.creditBadgeWrapper}>
-          <CreditBadge variant="compact" />
-        </div>
-
         <AnimatePresence mode="wait">
           {/* Phase 1: Birth input */}
           {phase === 'birth-input' && (
@@ -187,9 +184,7 @@ function LifePredictionContent() {
           )}
 
           {/* Phase 3: Analyzing */}
-          {phase === 'analyzing' && (
-            <AnalyzingPhase eventType={currentEventType} />
-          )}
+          {phase === 'analyzing' && <AnalyzingPhase eventType={currentEventType} />}
 
           {/* Phase 4: Results */}
           {phase === 'result' && (
@@ -209,5 +204,5 @@ function LifePredictionContent() {
         </AnimatePresence>
       </main>
     </div>
-  );
+  )
 }

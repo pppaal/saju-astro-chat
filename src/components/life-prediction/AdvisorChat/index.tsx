@@ -1,43 +1,43 @@
-'use client';
+'use client'
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import styles from './AdvisorChat.module.css';
-import { logger } from '@/lib/logger';
+import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import styles from './AdvisorChat.module.css'
+import { logger } from '@/lib/logger'
 
 interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: Date
 }
 
 interface AdvisorChatProps {
   // 예측 컨텍스트
   predictionContext: {
-    question: string;
-    eventType: string;
+    question: string
+    eventType: string
     results: Array<{
-      startDate: string;
-      endDate: string;
-      score: number;
-      grade: string;
-      reasons: string[];
-    }>;
-    birthDate: string;
-    gender: 'M' | 'F';
-  };
-  locale?: 'ko' | 'en';
-  onClose?: () => void;
+      startDate: string
+      endDate: string
+      score: number
+      grade: string
+      reasons: string[]
+    }>
+    birthDate: string
+    gender: 'M' | 'F'
+  }
+  locale?: 'ko' | 'en'
+  onClose?: () => void
 }
 
 export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: AdvisorChatProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [messages, setMessages] = useState<Message[]>([])
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // 초기 인사 메시지
   useEffect(() => {
@@ -45,34 +45,37 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
       const greeting: Message = {
         id: 'greeting',
         role: 'assistant',
-        content: locale === 'ko'
-          ? `안녕하세요! 예측 결과에 대해 궁금한 점이 있으시면 편하게 물어보세요. "${predictionContext.question}"에 대한 분석 결과를 바탕으로 더 자세한 조언을 드릴 수 있어요.`
-          : `Hello! Feel free to ask me anything about your prediction results. I can provide more detailed advice based on your question "${predictionContext.question}".`,
+        content:
+          locale === 'ko'
+            ? `안녕하세요! 예측 결과에 대해 궁금한 점이 있으시면 편하게 물어보세요. "${predictionContext.question}"에 대한 분석 결과를 바탕으로 더 자세한 조언을 드릴 수 있어요.`
+            : `Hello! Feel free to ask me anything about your prediction results. I can provide more detailed advice based on your question "${predictionContext.question}".`,
         timestamp: new Date(),
-      };
-      setMessages([greeting]);
+      }
+      setMessages([greeting])
     }
-  }, [locale, predictionContext.question, messages.length]);
+  }, [locale, predictionContext.question, messages.length])
 
   // 스크롤 자동 이동
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   // 메시지 전송
   const sendMessage = useCallback(async () => {
-    if (!input.trim() || isLoading) {return;}
+    if (!input.trim() || isLoading) {
+      return
+    }
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       role: 'user',
       content: input.trim(),
       timestamp: new Date(),
-    };
+    }
 
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
+    setMessages((prev) => [...prev, userMessage])
+    setInput('')
+    setIsLoading(true)
 
     try {
       const response = await fetch('/api/life-prediction/advisor-chat', {
@@ -81,15 +84,15 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
         body: JSON.stringify({
           message: userMessage.content,
           context: predictionContext,
-          history: messages.slice(-6).map(m => ({
+          history: messages.slice(-6).map((m) => ({
             role: m.role,
             content: m.content,
           })),
           locale,
         }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (data.success && data.reply) {
         const assistantMessage: Message = {
@@ -97,42 +100,64 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
           role: 'assistant',
           content: data.reply,
           timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, assistantMessage]);
+        }
+        setMessages((prev) => [...prev, assistantMessage])
       } else {
-        throw new Error(data.error || 'Failed to get response');
+        throw new Error(data.error || 'Failed to get response')
       }
     } catch (error) {
-      logger.error('[AdvisorChat] Chat error:', error);
+      logger.error('[AdvisorChat] Chat error:', error)
+
+      // 에러 메시지 파싱
+      let errorContent =
+        locale === 'ko'
+          ? '죄송합니다. 응답을 가져오는 중 오류가 발생했습니다. 다시 시도해주세요.'
+          : 'Sorry, there was an error getting a response. Please try again.'
+
+      // 크레딧 부족 에러 처리
+      if (error instanceof Error && error.message.includes('credit')) {
+        errorContent =
+          locale === 'ko'
+            ? '🎫 AI 상담을 이용하려면 크레딧이 필요합니다. 로그인 후 크레딧을 충전해주세요.'
+            : '🎫 Credits required to use AI counseling. Please log in and recharge your credits.'
+      }
+      // 인증 에러 처리
+      else if (
+        error instanceof Error &&
+        (error.message.includes('auth') || error.message.includes('401'))
+      ) {
+        errorContent =
+          locale === 'ko'
+            ? '🔐 AI 상담을 이용하려면 로그인이 필요합니다.'
+            : '🔐 Please log in to use AI counseling.'
+      }
+
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
         role: 'assistant',
-        content: locale === 'ko'
-          ? '죄송합니다. 응답을 가져오는 중 오류가 발생했습니다. 다시 시도해주세요.'
-          : 'Sorry, there was an error getting a response. Please try again.',
+        content: errorContent,
         timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      }
+      setMessages((prev) => [...prev, errorMessage])
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, [input, isLoading, messages, predictionContext, locale]);
+  }, [input, isLoading, messages, predictionContext, locale])
 
   // 빠른 질문 버튼
-  const quickQuestions = locale === 'ko' ? [
-    '이 시기에 주의할 점은?',
-    '더 좋은 시기가 있을까요?',
-    '구체적으로 어떻게 준비해야 해요?',
-  ] : [
-    'What should I be careful about?',
-    'Is there a better timing?',
-    'How should I prepare specifically?',
-  ];
+  const quickQuestions =
+    locale === 'ko'
+      ? ['이 시기에 주의할 점은?', '더 좋은 시기가 있을까요?', '구체적으로 어떻게 준비해야 해요?']
+      : [
+          'What should I be careful about?',
+          'Is there a better timing?',
+          'How should I prepare specifically?',
+        ]
 
   const handleQuickQuestion = (question: string) => {
-    setInput(question);
-    setTimeout(() => sendMessage(), 100);
-  };
+    setInput(question)
+    setTimeout(() => sendMessage(), 100)
+  }
 
   return (
     <motion.div
@@ -149,12 +174,20 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
         onClick={() => setIsExpanded(!isExpanded)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setIsExpanded(!isExpanded);
+            e.preventDefault()
+            setIsExpanded(!isExpanded)
           }
         }}
         aria-expanded={isExpanded}
-        aria-label={isExpanded ? (locale === 'ko' ? 'AI 상담사 접기' : 'Collapse advisor chat') : (locale === 'ko' ? 'AI 상담사 펼치기' : 'Expand advisor chat')}
+        aria-label={
+          isExpanded
+            ? locale === 'ko'
+              ? 'AI 상담사 접기'
+              : 'Collapse advisor chat'
+            : locale === 'ko'
+              ? 'AI 상담사 펼치기'
+              : 'Expand advisor chat'
+        }
       >
         <div className={styles.headerLeft}>
           <span className={styles.advisorIcon}>🔮</span>
@@ -180,13 +213,8 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
             {/* 메시지 영역 */}
             <div className={styles.messages}>
               {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`${styles.message} ${styles[message.role]}`}
-                >
-                  {message.role === 'assistant' && (
-                    <span className={styles.avatar}>🔮</span>
-                  )}
+                <div key={message.id} className={`${styles.message} ${styles[message.role]}`}>
+                  {message.role === 'assistant' && <span className={styles.avatar}>🔮</span>}
                   <div className={styles.messageContent}>
                     <p>{message.content}</p>
                   </div>
@@ -249,7 +277,7 @@ export function AdvisorChat({ predictionContext, locale = 'ko', onClose }: Advis
         )}
       </AnimatePresence>
     </motion.div>
-  );
+  )
 }
 
-export default AdvisorChat;
+export default AdvisorChat
