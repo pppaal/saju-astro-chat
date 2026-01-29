@@ -6,24 +6,28 @@
 [![Prisma](https://img.shields.io/badge/Prisma-7-2D3748)](https://www.prisma.io/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
+[![Security](https://img.shields.io/badge/security-hardened-green)](#security)
+[![Secrets Scanning](https://img.shields.io/badge/secrets-gitleaks-blue)](https://github.com/gitleaks/gitleaks)
+[![Token Encryption](https://img.shields.io/badge/encryption-AES--256--GCM-brightgreen)](#oauth--authentication)
+
 AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비학, 꿈해몽, 전생분석, 궁합, 서양점성술 등 8개 이상의 점술 시스템을 AI와 결합한 SaaS 서비스.
 
 ---
 
 ## Project Scale
 
-| Category | Count |
-|----------|-------|
-| Pages & Routes | 35+ (72 page files) |
-| API Endpoints | 128 |
-| React Components | 317 |
-| Library Modules | 45 |
-| Database Models | 35 (Prisma) |
-| Test Files | 657 unit/integration + 25 E2E |
-| Dependencies | 156 |
-| Languages (i18n) | 10+ |
-| CI/CD Workflows | 13 |
-| Environment Variables | 66 |
+| Category              | Count                         |
+| --------------------- | ----------------------------- |
+| Pages & Routes        | 35+ (72 page files)           |
+| API Endpoints         | 128                           |
+| React Components      | 317                           |
+| Library Modules       | 45                            |
+| Database Models       | 35 (Prisma)                   |
+| Test Files            | 657 unit/integration + 25 E2E |
+| Dependencies          | 156                           |
+| Languages (i18n)      | 10+                           |
+| CI/CD Workflows       | 13                            |
+| Environment Variables | 66                            |
 
 ---
 
@@ -56,6 +60,7 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
 ## Core Features
 
 ### Divination Systems (8+)
+
 - **사주 (Four Pillars)** - 한국 전통 사주팔자 분석, 일주론, 대운/세운
 - **타로 (Tarot)** - 다중 스프레드, 3종 카드 덱 (Modern, Mystic, Nouveau)
 - **주역 (I Ching)** - 64괘 해석, 변효 분석
@@ -66,12 +71,14 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
 - **서양점성술 (Western Astrology)** - 출생 차트, 행성, 하우스, 프로그레션, 소행성, 이클립스 등 고급 분석
 
 ### AI & Streaming
+
 - 3개 LLM 프로바이더 통합 (OpenAI, Replicate, Together)
 - 실시간 스트리밍 응답 (SSE)
 - RAG (Retrieval-Augmented Generation) 파이프라인
 - 페르소나 메모리 (대화 맥락 축적)
 
 ### Premium & Monetization
+
 - 크레딧 기반 과금 시스템
 - Stripe 구독 관리
 - 프리미엄 리포트 생성
@@ -79,6 +86,7 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
 - 리퍼럴 보상 시스템
 
 ### User Features
+
 - 운명 캘린더 (일정 저장)
 - 상담 히스토리 (요약 포함)
 - 저장된 인물 관리 (가족, 친구, 파트너)
@@ -86,6 +94,7 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
 - 푸시 알림 (Web Push)
 
 ### Platform
+
 - PWA (오프라인 지원)
 - 모바일 앱 (Capacitor - iOS/Android)
 - 다국어 지원 (10개 이상 언어)
@@ -96,6 +105,7 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
 ## Tech Stack
 
 ### Frontend
+
 - **Framework:** Next.js 16 (App Router), React 19, TypeScript 5
 - **Styling:** Tailwind CSS 3, CSS Modules, Framer Motion
 - **State:** React Context, Server Components
@@ -103,6 +113,7 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
 - **PWA:** @ducanh2912/next-pwa
 
 ### Backend
+
 - **API:** Next.js API Routes (128 endpoints)
 - **AI Server:** Python Flask (RAG pipeline, LLM orchestration)
 - **Database:** PostgreSQL (Supabase) + Prisma 7 ORM (35 models)
@@ -110,6 +121,7 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
 - **Auth:** NextAuth 4 + Firebase
 
 ### Infrastructure
+
 - **Hosting:** Vercel (Frontend), Docker (Backend)
 - **Payments:** Stripe
 - **Email:** Resend
@@ -118,17 +130,37 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
 - **CI/CD:** GitHub Actions (13 workflows)
 
 ### Testing
+
 - **Unit/Integration:** Vitest (657+ test files)
 - **E2E:** Playwright (25 specs)
 - **Load:** k6 (basic, stress, spike, endurance)
 - **Accessibility:** vitest-axe, axe-core
 - **Security:** OWASP ZAP scanning
 
+### Security
+
+- **Token Encryption:** AES-256-GCM for OAuth tokens
+- **Secrets Scanning:** Gitleaks (pre-commit & CI/CD)
+- **Environment Validation:** Runtime type-safe env vars (Zod)
+- **Rate Limiting:** Redis-based IP & user throttling
+- **CSRF Protection:** Origin/Referer validation
+- **Security Headers:** CSP, X-Frame-Options, HSTS
+- **Logging:** Structured logging with auto-sanitization (no secrets in logs)
+- **Pre-commit Hooks:** Automatic secret detection & console.log prevention
+- **CI/CD Checks:** Token encryption validation, secret scanning, env validation
+
+**Security Resources:**
+
+- [Security Best Practices](docs/SECURITY_BEST_PRACTICES.md)
+- [Security Hardening Guide](docs/SECURITY_HARDENING.md)
+- [Security Cleanup Scripts](.security-cleanup/)
+
 ---
 
 ## Quickstart (Local)
 
 ### Prerequisites
+
 - Node.js 18+
 - Python 3.10+
 - PostgreSQL (or Supabase account)
@@ -178,37 +210,41 @@ docker compose up --build
 ## Scripts
 
 ### Development
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Next.js 개발 서버 시작 |
-| `npm run test:watch` | 테스트 워치 모드 |
+
+| Command                   | Description            |
+| ------------------------- | ---------------------- |
+| `npm run dev`             | Next.js 개발 서버 시작 |
+| `npm run test:watch`      | 테스트 워치 모드       |
 | `npm run typecheck:watch` | 실시간 TypeScript 체크 |
 
 ### Quality
-| Command | Description |
-|---------|-------------|
-| `npm run lint` | ESLint 실행 |
-| `npm run lint:fix` | ESLint 자동 수정 |
-| `npm run typecheck` | TypeScript 타입 체크 |
-| `npm run check:all` | lint + typecheck + tests 전체 실행 |
-| `npm run quality:check` | 커버리지 포함 품질 체크 |
+
+| Command                 | Description                        |
+| ----------------------- | ---------------------------------- |
+| `npm run lint`          | ESLint 실행                        |
+| `npm run lint:fix`      | ESLint 자동 수정                   |
+| `npm run typecheck`     | TypeScript 타입 체크               |
+| `npm run check:all`     | lint + typecheck + tests 전체 실행 |
+| `npm run quality:check` | 커버리지 포함 품질 체크            |
 
 ### Testing
-| Command | Description |
-|---------|-------------|
-| `npm test` | 전체 테스트 실행 |
-| `npm run test:coverage` | 커버리지 리포트 생성 |
-| `npm run test:e2e` | E2E 테스트 실행 |
-| `npm run test:performance` | 성능 테스트 실행 |
-| `npm run test:a11y` | 접근성 테스트 실행 |
+
+| Command                    | Description          |
+| -------------------------- | -------------------- |
+| `npm test`                 | 전체 테스트 실행     |
+| `npm run test:coverage`    | 커버리지 리포트 생성 |
+| `npm run test:e2e`         | E2E 테스트 실행      |
+| `npm run test:performance` | 성능 테스트 실행     |
+| `npm run test:a11y`        | 접근성 테스트 실행   |
 
 ### Build & Deploy
-| Command | Description |
-|---------|-------------|
-| `npm run build` | 프로덕션 빌드 |
-| `npm run build:analyze` | 번들 분석 빌드 |
-| `npm run start` | 프로덕션 서버 시작 |
-| `npm run check:env` | 환경변수 유효성 검증 |
+
+| Command                 | Description          |
+| ----------------------- | -------------------- |
+| `npm run build`         | 프로덕션 빌드        |
+| `npm run build:analyze` | 번들 분석 빌드       |
+| `npm run start`         | 프로덕션 서버 시작   |
+| `npm run check:env`     | 환경변수 유효성 검증 |
 
 ---
 
@@ -267,20 +303,20 @@ saju-astro-chat/
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | 시스템 아키텍처 |
-| [API.md](docs/API.md) | REST API 문서 |
-| [SECURITY_HARDENING.md](docs/SECURITY_HARDENING.md) | 보안 강화 가이드 |
-| [PERFORMANCE_OPTIMIZATION.md](docs/PERFORMANCE_OPTIMIZATION.md) | 성능 최적화 |
-| [PERFORMANCE_TESTING.md](docs/PERFORMANCE_TESTING.md) | 성능 테스트 |
-| [REDIS_CACHE_GUIDE.md](docs/REDIS_CACHE_GUIDE.md) | Redis 캐싱 가이드 |
-| [E2E_TESTING_GUIDE.md](docs/E2E_TESTING_GUIDE.md) | E2E 테스트 가이드 |
-| [CI_CD_PIPELINE.md](docs/CI_CD_PIPELINE.md) | CI/CD 파이프라인 |
-| [BUNDLE_OPTIMIZATION.md](docs/BUNDLE_OPTIMIZATION.md) | 번들 최적화 |
-| [TRACING.md](docs/TRACING.md) | 분산 트레이싱 (OpenTelemetry) |
-| [DEPLOYMENT.md](DEPLOYMENT.md) | 배포 가이드 |
-| [ENVIRONMENT_CHECKLIST.md](docs/ENVIRONMENT_CHECKLIST.md) | 환경변수 체크리스트 |
+| Document                                                        | Description                   |
+| --------------------------------------------------------------- | ----------------------------- |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md)                         | 시스템 아키텍처               |
+| [API.md](docs/API.md)                                           | REST API 문서                 |
+| [SECURITY_HARDENING.md](docs/SECURITY_HARDENING.md)             | 보안 강화 가이드              |
+| [PERFORMANCE_OPTIMIZATION.md](docs/PERFORMANCE_OPTIMIZATION.md) | 성능 최적화                   |
+| [PERFORMANCE_TESTING.md](docs/PERFORMANCE_TESTING.md)           | 성능 테스트                   |
+| [REDIS_CACHE_GUIDE.md](docs/REDIS_CACHE_GUIDE.md)               | Redis 캐싱 가이드             |
+| [E2E_TESTING_GUIDE.md](docs/E2E_TESTING_GUIDE.md)               | E2E 테스트 가이드             |
+| [CI_CD_PIPELINE.md](docs/CI_CD_PIPELINE.md)                     | CI/CD 파이프라인              |
+| [BUNDLE_OPTIMIZATION.md](docs/BUNDLE_OPTIMIZATION.md)           | 번들 최적화                   |
+| [TRACING.md](docs/TRACING.md)                                   | 분산 트레이싱 (OpenTelemetry) |
+| [DEPLOYMENT.md](DEPLOYMENT.md)                                  | 배포 가이드                   |
+| [ENVIRONMENT_CHECKLIST.md](docs/ENVIRONMENT_CHECKLIST.md)       | 환경변수 체크리스트           |
 
 ---
 

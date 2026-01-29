@@ -1,1 +1,53 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Lint-staged (existing)
 npx lint-staged
+
+# Secrets scan (new)
+echo "🔍 Scanning for secrets..."
+if command -v gitleaks &> /dev/null; then
+  gitleaks protect --staged --verbose --no-banner || {
+    echo ""
+    echo "❌ Gitleaks detected potential secrets in staged files!"
+    echo "   Review the findings above and remove any sensitive data."
+    echo "   If this is a false positive, you can:"
+    echo "   1. Add to .gitleaksignore file"
+    echo "   2. Use git commit --no-verify (NOT RECOMMENDED)"
+    exit 1
+  }
+  echo "✅ No secrets detected"
+else
+  echo "⚠️  gitleaks not installed, skipping secret scan"
+  echo "   Install: brew install gitleaks (Mac) or download from github.com/gitleaks/gitleaks"
+fi
+
+# Console.log check (new)
+echo "🔍 Checking for console statements..."
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx|js|jsx)$' || true)
+
+if [ -n "$STAGED_FILES" ]; then
+  CONSOLE_FOUND=0
+  for FILE in $STAGED_FILES; do
+    # Skip logger implementation and scripts
+    if [[ "$FILE" =~ src/lib/logger/ ]] || [[ "$FILE" =~ ^scripts/ ]]; then
+      continue
+    fi
+
+    # Check for console statements (exclude comments)
+    if grep -n "console\.log\|console\.debug" "$FILE" | grep -v "// @ts-expect-error console" | grep -v "/\* .* console" > /dev/null 2>&1; then
+      echo "❌ Found console statement in $FILE"
+      CONSOLE_FOUND=1
+    fi
+  done
+
+  if [ $CONSOLE_FOUND -eq 1 ]; then
+    echo ""
+    echo "Use logger instead: import { logger } from '@/lib/logger';"
+    echo "If you need to keep console for debugging, add: // @ts-expect-error console"
+    exit 1
+  fi
+  echo "✅ No console statements found"
+fi
+
+echo "✅ Pre-commit checks passed"

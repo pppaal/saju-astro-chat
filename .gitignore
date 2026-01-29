@@ -43,9 +43,18 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# Security cleanup artifacts
+.security-cleanup/
+
+# Local secrets
+*.secret
+secrets/
+credentials/
+
 # env files
 .env*
 !.env.example
+!.env.template
 
 # vercel
 .vercel

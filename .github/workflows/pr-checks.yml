@@ -53,19 +53,30 @@ jobs:
 
       - name: Check for console logs
         run: |
-          # Check for console.log statements in changed files
+          # Check for console.log statements in changed files (ERROR, not warning)
           FOUND=0
           while IFS= read -r file; do
             if [ -f "$file" ]; then
-              if grep -n "console\.log\|console\.debug\|console\.warn" "$file"; then
-                echo "::warning::Console statements found in $file"
+              # Skip logger implementation and scripts
+              if [[ "$file" =~ src/lib/logger/ ]] || [[ "$file" =~ ^scripts/ ]]; then
+                continue
+              fi
+
+              # Check for console statements (exclude comments)
+              if grep -n "console\.log\|console\.debug" "$file" | grep -v "// @ts-expect-error console" | grep -v "/\* .* console"; then
+                echo "::error file=$file::Console statements found. Use logger instead."
                 FOUND=1
               fi
             fi
           done < <(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx|js|jsx)$')
+
           if [ $FOUND -eq 1 ]; then
-            echo "::notice::Consider removing console statements or replacing with proper logging"
+            echo "❌ Remove console statements or use logger instead:"
+            echo "   import { logger } from '@/lib/logger';"
+            echo "   logger.info('message', { data });"
+            exit 1
           fi
+          echo "✅ No console statements found"
 
       - name: Lint changed files
         run: |
