@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession, type Session } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
@@ -26,7 +26,7 @@ import { refundCredits } from '@/lib/credits/creditRefund'
 export interface ApiContext {
   ip: string
   locale: string
-  session: Awaited<ReturnType<typeof getServerSession>> | null
+  session: (Session & { user?: { id: string; email?: string | null; plan?: string } }) | null
   userId: string | null
   isAuthenticated: boolean
   isPremium: boolean
@@ -86,7 +86,8 @@ export interface ApiHandlerResult<T> {
 
 type ApiHandler<T> = (
   req: NextRequest,
-  context: ApiContext
+  context: ApiContext,
+  ...args: unknown[]
 ) => Promise<ApiHandlerResult<T> | NextResponse>
 
 // ============ Core Functions ============
@@ -196,7 +197,7 @@ export async function initializeApiContext(
   }
 
   // Session (optional fetch)
-  let session: Awaited<ReturnType<typeof getServerSession>> | null = null
+  let session: Session | null = null
   let userId: string | null = null
   let isPremium = false
 
@@ -360,7 +361,7 @@ export async function initializeApiContext(
  * Provides: rate limiting, auth, error handling, consistent responses
  */
 export function withApiMiddleware<T>(handler: ApiHandler<T>, options: MiddlewareOptions = {}) {
-  return async (req: NextRequest): Promise<NextResponse> => {
+  return async (req: NextRequest, ...args: unknown[]): Promise<NextResponse> => {
     const route = options.route || new URL(req.url).pathname
 
     try {
@@ -371,8 +372,8 @@ export function withApiMiddleware<T>(handler: ApiHandler<T>, options: Middleware
         return error
       }
 
-      // Execute handler
-      const result = await handler(req, context)
+      // Execute handler (pass through any additional args like params for dynamic routes)
+      const result = await handler(req, context, ...args)
 
       // If handler returned NextResponse directly, use it
       if (result instanceof NextResponse) {
@@ -563,6 +564,100 @@ export function createSimpleGuard(options: {
       limit: options.limit || 60,
       windowSeconds: options.windowSeconds || 60,
     },
+  }
+}
+
+/**
+ * Preset for Saju (사주) calculation APIs
+ * - Requires public token
+ * - Rate limited (30/60s) - reduced from 60 due to computational cost
+ * - No credit consumption (initial analysis is free)
+ */
+export function createSajuGuard(options?: {
+  route?: string
+  limit?: number
+  windowSeconds?: number
+}): MiddlewareOptions {
+  return {
+    route: options?.route || 'saju',
+    requireToken: true,
+    rateLimit: {
+      limit: options?.limit || 30,
+      windowSeconds: options?.windowSeconds || 60,
+    },
+    // No credits required for initial saju calculation
+  }
+}
+
+/**
+ * Preset for Astrology calculation APIs
+ * - Requires public token
+ * - Rate limited (30/60s) - reduced from 60 due to ephemeris calculation cost
+ * - No credit consumption
+ */
+export function createAstrologyGuard(options?: {
+  route?: string
+  limit?: number
+  windowSeconds?: number
+}): MiddlewareOptions {
+  return {
+    route: options?.route || 'astrology',
+    requireToken: true,
+    rateLimit: {
+      limit: options?.limit || 30,
+      windowSeconds: options?.windowSeconds || 60,
+    },
+  }
+}
+
+/**
+ * Preset for Tarot reading APIs
+ * - Requires public token
+ * - Rate limited (20/60s) - reduced from 30 to prevent AI abuse
+ * - Optional credit consumption
+ */
+export function createTarotGuard(options?: {
+  route?: string
+  limit?: number
+  windowSeconds?: number
+  requireCredits?: boolean
+  creditAmount?: number
+}): MiddlewareOptions {
+  return {
+    route: options?.route || 'tarot',
+    requireToken: true,
+    rateLimit: {
+      limit: options?.limit || 20,
+      windowSeconds: options?.windowSeconds || 60,
+    },
+    credits: options?.requireCredits
+      ? {
+          type: 'reading',
+          amount: options?.creditAmount || 1,
+        }
+      : undefined,
+  }
+}
+
+/**
+ * Preset for Admin APIs
+ * - Requires authentication
+ * - Higher rate limit (100/60s)
+ * - No CSRF validation (admin APIs often called from external tools)
+ */
+export function createAdminGuard(options?: {
+  route?: string
+  limit?: number
+  windowSeconds?: number
+}): MiddlewareOptions {
+  return {
+    route: options?.route || 'admin',
+    requireAuth: true,
+    rateLimit: {
+      limit: options?.limit || 100,
+      windowSeconds: options?.windowSeconds || 60,
+    },
+    skipCsrf: true, // Admin APIs may be called from external monitoring tools
   }
 }
 

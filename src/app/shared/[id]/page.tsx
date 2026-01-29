@@ -1,45 +1,46 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import { useI18n } from '@/i18n/I18nProvider';
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import Link from 'next/link'
+import { useI18n } from '@/i18n/I18nProvider'
 
 interface SharedData {
-  type: string;
-  title: string;
-  description?: string;
-  data?: Record<string, unknown>;
+  type: string
+  title: string
+  description?: string
+  data?: Record<string, unknown>
 }
 
 export default function SharedResultPage() {
-  const { id } = useParams();
-  const { locale } = useI18n();
-  const isKo = locale === 'ko';
-  const [sharedData, setSharedData] = useState<SharedData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const params = useParams()
+  const id = params?.id as string
+  const { locale } = useI18n()
+  const isKo = locale === 'ko'
+  const [sharedData, setSharedData] = useState<SharedData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchSharedData = async () => {
       try {
-        const response = await fetch(`/api/share/${id}`);
+        const response = await fetch(`/api/share/${id}`)
         if (!response.ok) {
-          throw new Error('Not found');
+          throw new Error('Not found')
         }
-        const data = await response.json();
-        setSharedData(data);
+        const data = await response.json()
+        setSharedData(data)
       } catch {
-        setError(isKo ? '공유된 결과를 찾을 수 없습니다.' : 'Shared result not found.');
+        setError(isKo ? '공유된 결과를 찾을 수 없습니다.' : 'Shared result not found.')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
     if (id) {
-      fetchSharedData();
+      fetchSharedData()
     }
-  }, [id, isKo]);
+  }, [id, isKo])
 
   if (loading) {
     return (
@@ -49,7 +50,7 @@ export default function SharedResultPage() {
           <p className="text-gray-300">{isKo ? '로딩 중...' : 'Loading...'}</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (error || !sharedData) {
@@ -73,33 +74,65 @@ export default function SharedResultPage() {
           </Link>
         </div>
       </div>
-    );
+    )
   }
 
   // Get type-specific styling and icons
   const getTypeInfo = (type: string) => {
     switch (type) {
       case 'saju':
-        return { icon: '🎋', title: isKo ? '사주 분석' : 'Saju Analysis', color: 'from-emerald-500 to-teal-500' };
+        return {
+          icon: '🎋',
+          title: isKo ? '사주 분석' : 'Saju Analysis',
+          color: 'from-emerald-500 to-teal-500',
+        }
       case 'tarot':
-        return { icon: '🎴', title: isKo ? '타로 리딩' : 'Tarot Reading', color: 'from-purple-500 to-indigo-500' };
+        return {
+          icon: '🎴',
+          title: isKo ? '타로 리딩' : 'Tarot Reading',
+          color: 'from-purple-500 to-indigo-500',
+        }
       case 'astrology':
-        return { icon: '✨', title: isKo ? '별자리 운세' : 'Astrology Reading', color: 'from-blue-500 to-cyan-500' };
+        return {
+          icon: '✨',
+          title: isKo ? '별자리 운세' : 'Astrology Reading',
+          color: 'from-blue-500 to-cyan-500',
+        }
       case 'dream':
-        return { icon: '🌙', title: isKo ? '꿈 해몽' : 'Dream Interpretation', color: 'from-violet-500 to-purple-500' };
+        return {
+          icon: '🌙',
+          title: isKo ? '꿈 해몽' : 'Dream Interpretation',
+          color: 'from-violet-500 to-purple-500',
+        }
       case 'compatibility':
-        return { icon: '💕', title: isKo ? '궁합 분석' : 'Compatibility Analysis', color: 'from-pink-500 to-rose-500' };
+        return {
+          icon: '💕',
+          title: isKo ? '궁합 분석' : 'Compatibility Analysis',
+          color: 'from-pink-500 to-rose-500',
+        }
       case 'personality':
       case 'persona':
-        return { icon: '🧬', title: isKo ? '성격 분석' : 'Personality Analysis', color: 'from-amber-500 to-orange-500' };
+        return {
+          icon: '🧬',
+          title: isKo ? '성격 분석' : 'Personality Analysis',
+          color: 'from-amber-500 to-orange-500',
+        }
       case 'icp':
-        return { icon: '💡', title: isKo ? 'ICP 분석' : 'ICP Analysis', color: 'from-cyan-500 to-blue-500' };
+        return {
+          icon: '💡',
+          title: isKo ? 'ICP 분석' : 'ICP Analysis',
+          color: 'from-cyan-500 to-blue-500',
+        }
       default:
-        return { icon: '🔮', title: isKo ? '운세 결과' : 'Fortune Result', color: 'from-purple-500 to-pink-500' };
+        return {
+          icon: '🔮',
+          title: isKo ? '운세 결과' : 'Fortune Result',
+          color: 'from-purple-500 to-pink-500',
+        }
     }
-  };
+  }
 
-  const typeInfo = getTypeInfo(sharedData.type);
+  const typeInfo = getTypeInfo(sharedData.type)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900 p-4">
@@ -107,7 +140,9 @@ export default function SharedResultPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <span className="text-6xl mb-4 block">{typeInfo.icon}</span>
-          <h1 className={`text-3xl font-bold bg-gradient-to-r ${typeInfo.color} bg-clip-text text-transparent mb-2`}>
+          <h1
+            className={`text-3xl font-bold bg-gradient-to-r ${typeInfo.color} bg-clip-text text-transparent mb-2`}
+          >
             {typeInfo.title}
           </h1>
           <p className="text-gray-400">
@@ -151,9 +186,11 @@ export default function SharedResultPage() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-gray-500 text-sm">
-          <p>Powered by <span className="text-purple-400">DestinyPal</span></p>
+          <p>
+            Powered by <span className="text-purple-400">DestinyPal</span>
+          </p>
         </div>
       </div>
     </div>
-  );
+  )
 }

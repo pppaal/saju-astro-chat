@@ -105,12 +105,15 @@ export default function CompatibilityFunInsights({
       }
 
       const dayMasterName = saju?.dayMaster?.name || saju?.dayMaster?.heavenlyStem || '갑'
-      const dayMasterElement = saju?.dayMaster?.element || 'wood'
+      const dayMasterElement = saju?.dayMaster?.element || '목'
+      const dayMasterYinYang =
+        (saju as any)?.dayMaster?.yin_yang || (saju as any)?.dayMaster?.yinYang || '양'
 
       return {
         dayMaster: {
           name: dayMasterName,
-          element: dayMasterElement,
+          element: dayMasterElement as import('@/lib/Saju/types').FiveElement,
+          yin_yang: dayMasterYinYang as 'yin' | 'yang',
         },
         pillars: {
           year: {
@@ -130,14 +133,13 @@ export default function CompatibilityFunInsights({
             branch: saju?.pillars?.time?.earthlyBranch || saju?.timePillar?.earthlyBranch || '子',
           },
         },
-        elements: saju?.fiveElements ||
-          saju?.elements || {
-            wood: 20,
-            fire: 20,
-            earth: 20,
-            metal: 20,
-            water: 20,
-          },
+        elements: {
+          wood: saju?.fiveElements?.wood ?? saju?.elements?.wood ?? 20,
+          fire: saju?.fiveElements?.fire ?? saju?.elements?.fire ?? 20,
+          earth: saju?.fiveElements?.earth ?? saju?.elements?.earth ?? 20,
+          metal: saju?.fiveElements?.metal ?? saju?.elements?.metal ?? 20,
+          water: saju?.fiveElements?.water ?? saju?.elements?.water ?? 20,
+        },
       }
     }
 
@@ -328,10 +330,10 @@ export default function CompatibilityFunInsights({
 
     return {
       persons,
-      person1Saju: p1Saju,
-      person2Saju: p2Saju,
-      person1Astro: p1Astro,
-      person2Astro: p2Astro,
+      person1Saju: p1Saju ?? undefined,
+      person2Saju: p2Saju ?? undefined,
+      person1Astro: p1Astro ?? undefined,
+      person2Astro: p2Astro ?? undefined,
       // Basic Saju
       sajuAnalysis,
       tenGods,

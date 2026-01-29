@@ -1,16 +1,16 @@
-'use client';
+'use client'
 
-import { useState, useEffect, Suspense, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import Link from 'next/link';
+import { useState, useEffect, Suspense, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import Link from 'next/link'
 
 interface SajuData {
-  dayMasterElement: string;
-  dayMaster: string;
-  birthDate: string;
-  birthTime?: string;
+  dayMasterElement: string
+  dayMaster: string
+  birthDate: string
+  birthTime?: string
 }
 
 const PERIOD_INFO = {
@@ -35,61 +35,63 @@ const PERIOD_INFO = {
     credits: 3,
     color: 'from-purple-500 to-pink-500',
   },
-};
+}
 
 function TimingReportContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { data: session, status } = useSession();
-  const { profile, isLoading: profileLoading } = useUserProfile();
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { data: session, status } = useSession()
+  const { profile, isLoading: profileLoading } = useUserProfile()
 
-  const period = searchParams.get('period') as 'daily' | 'monthly' | 'yearly' || 'daily';
-  const periodInfo = PERIOD_INFO[period];
+  const period = (searchParams?.get('period') as 'daily' | 'monthly' | 'yearly') || 'daily'
+  const periodInfo = PERIOD_INFO[period]
 
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [targetDate, setTargetDate] = useState(() => {
-    return new Date().toISOString().split('T')[0];
-  });
-  const [sajuData, setSajuData] = useState<SajuData | null>(null);
-  const [sajuLoading, setSajuLoading] = useState(false);
+    return new Date().toISOString().split('T')[0]
+  })
+  const [sajuData, setSajuData] = useState<SajuData | null>(null)
+  const [sajuLoading, setSajuLoading] = useState(false)
 
   // 사주 정보 로드
   const loadSajuData = useCallback(async () => {
-    if (status !== 'authenticated') {return;}
+    if (status !== 'authenticated') {
+      return
+    }
 
-    setSajuLoading(true);
+    setSajuLoading(true)
     try {
-      const res = await fetch('/api/me/saju');
-      const data = await res.json();
+      const res = await fetch('/api/me/saju')
+      const data = await res.json()
       if (data.success && data.hasSaju) {
-        setSajuData(data.saju);
+        setSajuData(data.saju)
       }
     } catch {
       // 사주 로드 실패 시 무시 (기본값 사용)
     } finally {
-      setSajuLoading(false);
+      setSajuLoading(false)
     }
-  }, [status]);
+  }, [status])
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/auth/signin?callbackUrl=/premium-reports/timing?period=' + period);
+      router.push('/auth/signin?callbackUrl=/premium-reports/timing?period=' + period)
     }
-  }, [status, router, period]);
+  }, [status, router, period])
 
   useEffect(() => {
-    loadSajuData();
-  }, [loadSajuData]);
+    loadSajuData()
+  }, [loadSajuData])
 
   const handleGenerate = async () => {
     if (!profile.birthDate) {
-      setError('생년월일 정보가 필요합니다. 프로필을 먼저 설정해주세요.');
-      return;
+      setError('생년월일 정보가 필요합니다. 프로필을 먼저 설정해주세요.')
+      return
     }
 
-    setIsGenerating(true);
-    setError(null);
+    setIsGenerating(true)
+    setError(null)
 
     try {
       const response = await fetch('/api/destiny-matrix/ai-report', {
@@ -103,33 +105,33 @@ function TimingReportContent() {
           birthDate: profile.birthDate,
           lang: 'ko',
         }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!data.success) {
         if (data.error?.code === 'INSUFFICIENT_CREDITS') {
-          router.push('/pricing?reason=credits');
-          return;
+          router.push('/pricing?reason=credits')
+          return
         }
-        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.');
+        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.')
       }
 
       // 성공 - 결과 페이지로 이동
-      router.push(`/premium-reports/result/${data.report.id}?type=timing`);
+      router.push(`/premium-reports/result/${data.report.id}?type=timing`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     } finally {
-      setIsGenerating(false);
+      setIsGenerating(false)
     }
-  };
+  }
 
   if (status === 'loading' || profileLoading || sajuLoading) {
     return (
       <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
         <div className="text-white">로딩 중...</div>
       </div>
-    );
+    )
   }
 
   return (
@@ -143,7 +145,9 @@ function TimingReportContent() {
           >
             ← 리포트 선택으로
           </Link>
-          <div className={`mt-4 p-6 rounded-2xl bg-gradient-to-r ${periodInfo.color} bg-opacity-20`}>
+          <div
+            className={`mt-4 p-6 rounded-2xl bg-gradient-to-r ${periodInfo.color} bg-opacity-20`}
+          >
             <div className="flex items-center gap-4">
               <span className="text-5xl">{periodInfo.emoji}</span>
               <div>
@@ -178,16 +182,17 @@ function TimingReportContent() {
           <h2 className="text-lg font-bold text-white mb-4">분석 대상</h2>
           {profile.birthDate ? (
             <div className="space-y-2 text-gray-300">
-              <p><span className="text-gray-500">이름:</span> {profile.name || '미입력'}</p>
-              <p><span className="text-gray-500">생년월일:</span> {profile.birthDate}</p>
+              <p>
+                <span className="text-gray-500">이름:</span> {profile.name || '미입력'}
+              </p>
+              <p>
+                <span className="text-gray-500">생년월일:</span> {profile.birthDate}
+              </p>
             </div>
           ) : (
             <div className="text-center py-4">
               <p className="text-gray-400 mb-3">프로필 정보가 필요합니다.</p>
-              <Link
-                href="/destiny-map"
-                className="text-purple-400 hover:text-purple-300 underline"
-              >
+              <Link href="/destiny-map" className="text-purple-400 hover:text-purple-300 underline">
                 운세 분석에서 정보 입력하기
               </Link>
             </div>
@@ -230,17 +235,19 @@ function TimingReportContent() {
         </p>
       </main>
     </div>
-  );
+  )
 }
 
 export default function TimingReportPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
-        <div className="text-white">로딩 중...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
+          <div className="text-white">로딩 중...</div>
+        </div>
+      }
+    >
       <TimingReportContent />
     </Suspense>
-  );
+  )
 }

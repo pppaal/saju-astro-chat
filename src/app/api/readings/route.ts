@@ -1,77 +1,57 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
-import { prisma } from "@/lib/db/prisma";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
-import { logger } from '@/lib/logger';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest } from 'next/server'
+import { prisma } from '@/lib/db/prisma'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  parseJsonBody,
+  validateRequired,
+  apiError,
+  apiSuccess,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 
-export async function POST(req: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
-    }
+// POST: Create a new reading
+export const POST = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    const body = await parseJsonBody<{ type: string; title?: string; content: string }>(req)
+    const validation = validateRequired(body, ['type', 'content'])
 
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`readings:${ip}`, { limit: 20, windowSeconds: 60 });
-    if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests" }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
-    }
-
-    const body = await req.json();
-    const { type, title, content } = body;
-
-    if (!type || !content) {
-      return NextResponse.json({ error: "type and content are required" }, { status: HTTP_STATUS.BAD_REQUEST });
+    if (!validation.valid) {
+      return apiError(ErrorCodes.VALIDATION_ERROR, `Missing: ${validation.missing.join(', ')}`)
     }
 
     const reading = await prisma.reading.create({
       data: {
-        userId: session.user.id,
-        type,
-        title: title || null,
-        content,
+        userId: context.userId!,
+        type: body.type,
+        title: body.title || null,
+        content: body.content,
       },
-    });
+    })
 
-    return NextResponse.json({ success: true, id: reading.id }, { headers: limit.headers });
-  } catch (error) {
-    logger.error("Failed to save reading:", error);
-    return NextResponse.json({ error: "Failed to save reading" }, { status: HTTP_STATUS.SERVER_ERROR });
-  }
-}
+    return apiSuccess({ success: true, id: reading.id })
+  },
+  createAuthenticatedGuard({ route: 'readings/create', limit: 20 })
+)
 
-export async function GET(req: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
-    }
-
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`readings:${ip}`, { limit: 30, windowSeconds: 60 });
-    if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests" }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
-    }
-
-    const { searchParams } = new URL(req.url);
-    const type = searchParams.get("type");
-    const limitParam = parseInt(searchParams.get("limit") || "20", 10);
+// GET: Fetch user's readings
+export const GET = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    const { searchParams } = new URL(req.url)
+    const type = searchParams.get('type')
+    const limitParam = parseInt(searchParams.get('limit') || '20', 10)
 
     const readings = await prisma.reading.findMany({
       where: {
-        userId: session.user.id,
+        userId: context.userId!,
         ...(type ? { type } : {}),
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       take: Math.min(limitParam, 50),
-    });
+    })
 
-    return NextResponse.json({ readings }, { headers: limit.headers });
-  } catch (error) {
-    logger.error("Failed to fetch readings:", error);
-    return NextResponse.json({ error: "Failed to fetch readings" }, { status: HTTP_STATUS.SERVER_ERROR });
-  }
-}
+    return apiSuccess({ readings })
+  },
+  createAuthenticatedGuard({ route: 'readings/list', limit: 30 })
+)

@@ -1,76 +1,80 @@
 /**
  * Rate Limiting System
  *
+ * @deprecated This file is deprecated. Use @/lib/rateLimit instead which provides
+ * Redis-backed rate limiting with Upstash fallback for better performance and reliability.
+ * This in-memory implementation is kept for reference only.
+ *
  * Prevent API abuse with flexible rate limiting strategies
  */
 
-import { NextRequest } from 'next/server';
-import { rateLimitError } from '@/lib/api/errorResponse';
+import { NextRequest } from 'next/server'
+import { rateLimitError } from '@/lib/api/errorResponse'
 
 // ============ Rate Limit Store ============
 
 interface RateLimitEntry {
-  count: number;
-  resetTime: number;
+  count: number
+  resetTime: number
 }
 
 class RateLimitStore {
-  private store = new Map<string, RateLimitEntry>();
-  private cleanupInterval: NodeJS.Timeout | null = null;
+  private store = new Map<string, RateLimitEntry>()
+  private cleanupInterval: NodeJS.Timeout | null = null
 
   constructor() {
     // Clean up expired entries every 5 minutes
-    this.cleanupInterval = setInterval(() => this.cleanup(), 5 * 60 * 1000);
+    this.cleanupInterval = setInterval(() => this.cleanup(), 5 * 60 * 1000)
   }
 
   get(key: string): RateLimitEntry | undefined {
-    return this.store.get(key);
+    return this.store.get(key)
   }
 
   set(key: string, entry: RateLimitEntry): void {
-    this.store.set(key, entry);
+    this.store.set(key, entry)
   }
 
   delete(key: string): void {
-    this.store.delete(key);
+    this.store.delete(key)
   }
 
   cleanup(): void {
-    const now = Date.now();
+    const now = Date.now()
     for (const [key, entry] of this.store.entries()) {
       if (entry.resetTime < now) {
-        this.store.delete(key);
+        this.store.delete(key)
       }
     }
   }
 
   destroy(): void {
     if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
+      clearInterval(this.cleanupInterval)
     }
-    this.store.clear();
+    this.store.clear()
   }
 }
 
-const globalStore = new RateLimitStore();
+const globalStore = new RateLimitStore()
 
 // ============ Rate Limit Configuration ============
 
 export interface RateLimitConfig {
   /** Maximum requests allowed */
-  maxRequests: number;
+  maxRequests: number
 
   /** Time window in seconds */
-  windowSeconds: number;
+  windowSeconds: number
 
   /** Identifier strategy */
-  keyStrategy?: 'ip' | 'userId' | 'sessionId' | ((req: NextRequest) => string);
+  keyStrategy?: 'ip' | 'userId' | 'sessionId' | ((req: NextRequest) => string)
 
   /** Custom message */
-  message?: string;
+  message?: string
 
   /** Skip rate limiting for certain conditions */
-  skip?: (req: NextRequest) => boolean;
+  skip?: (req: NextRequest) => boolean
 }
 
 // ============ Preset Configurations ============
@@ -117,7 +121,7 @@ export const RATE_LIMITS = {
     maxRequests: 10,
     windowSeconds: 300,
   },
-} as const;
+} as const
 
 // ============ Rate Limit Checker ============
 
@@ -126,17 +130,17 @@ export const RATE_LIMITS = {
  */
 function getIdentifier(req: NextRequest, strategy?: RateLimitConfig['keyStrategy']): string {
   if (typeof strategy === 'function') {
-    return strategy(req);
+    return strategy(req)
   }
 
   switch (strategy) {
     case 'userId':
       // Get userId from session/auth header
       // This is a placeholder - implement based on your auth system
-      return req.headers.get('x-user-id') || 'anonymous';
+      return req.headers.get('x-user-id') || 'anonymous'
 
     case 'sessionId':
-      return req.cookies.get('sessionId')?.value || 'no-session';
+      return req.cookies.get('sessionId')?.value || 'no-session'
 
     case 'ip':
     default:
@@ -144,7 +148,7 @@ function getIdentifier(req: NextRequest, strategy?: RateLimitConfig['keyStrategy
         req.headers.get('x-forwarded-for')?.split(',')[0] ||
         req.headers.get('x-real-ip') ||
         'unknown'
-      );
+      )
   }
 }
 
@@ -153,41 +157,38 @@ function getIdentifier(req: NextRequest, strategy?: RateLimitConfig['keyStrategy
  *
  * @returns null if allowed, error response if rate limited
  */
-export function checkRateLimit(
-  req: NextRequest,
-  config: RateLimitConfig
-) {
+export function checkRateLimit(req: NextRequest, config: RateLimitConfig) {
   // Skip if specified
   if (config.skip?.(req)) {
-    return null;
+    return null
   }
 
-  const identifier = getIdentifier(req, config.keyStrategy);
-  const key = `ratelimit:${identifier}:${req.nextUrl.pathname}`;
-  const now = Date.now();
+  const identifier = getIdentifier(req, config.keyStrategy)
+  const key = `ratelimit:${identifier}:${req.nextUrl.pathname}`
+  const now = Date.now()
 
-  const entry = globalStore.get(key);
+  const entry = globalStore.get(key)
 
   if (!entry || entry.resetTime < now) {
     // First request or window expired, create new entry
     globalStore.set(key, {
       count: 1,
       resetTime: now + config.windowSeconds * 1000,
-    });
-    return null;
+    })
+    return null
   }
 
   if (entry.count >= config.maxRequests) {
     // Rate limit exceeded
-    const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
-    return rateLimitError(retryAfter);
+    const retryAfter = Math.ceil((entry.resetTime - now) / 1000)
+    return rateLimitError(retryAfter)
   }
 
   // Increment counter
-  entry.count += 1;
-  globalStore.set(key, entry);
+  entry.count += 1
+  globalStore.set(key, entry)
 
-  return null;
+  return null
 }
 
 /**
@@ -206,113 +207,110 @@ export function withRateLimit<T extends unknown[]>(
   config: RateLimitConfig
 ) {
   return async (req: NextRequest, ...args: T): Promise<Response> => {
-    const rateLimitResponse = checkRateLimit(req, config);
+    const rateLimitResponse = checkRateLimit(req, config)
     if (rateLimitResponse) {
-      return rateLimitResponse;
+      return rateLimitResponse
     }
 
-    return handler(req, ...args);
-  };
+    return handler(req, ...args)
+  }
 }
 
 // ============ Sliding Window Rate Limiter ============
 
 interface SlidingWindowEntry {
-  timestamps: number[];
+  timestamps: number[]
 }
 
 class SlidingWindowStore {
-  private store = new Map<string, SlidingWindowEntry>();
+  private store = new Map<string, SlidingWindowEntry>()
 
   check(key: string, maxRequests: number, windowMs: number): boolean {
-    const now = Date.now();
-    const entry = this.store.get(key) || { timestamps: [] };
+    const now = Date.now()
+    const entry = this.store.get(key) || { timestamps: [] }
 
     // Remove timestamps outside the window
-    entry.timestamps = entry.timestamps.filter((ts) => ts > now - windowMs);
+    entry.timestamps = entry.timestamps.filter((ts) => ts > now - windowMs)
 
     // Check if limit exceeded
     if (entry.timestamps.length >= maxRequests) {
-      return false;
+      return false
     }
 
     // Add current timestamp
-    entry.timestamps.push(now);
-    this.store.set(key, entry);
+    entry.timestamps.push(now)
+    this.store.set(key, entry)
 
-    return true;
+    return true
   }
 
   cleanup(): void {
-    const now = Date.now();
+    const now = Date.now()
     for (const [key, entry] of this.store.entries()) {
-      entry.timestamps = entry.timestamps.filter((ts) => ts > now - 3600000); // Keep 1 hour
+      entry.timestamps = entry.timestamps.filter((ts) => ts > now - 3600000) // Keep 1 hour
       if (entry.timestamps.length === 0) {
-        this.store.delete(key);
+        this.store.delete(key)
       }
     }
   }
 }
 
-const slidingStore = new SlidingWindowStore();
+const slidingStore = new SlidingWindowStore()
 
 /**
  * Sliding window rate limiter (more accurate)
  */
-export function checkSlidingRateLimit(
-  req: NextRequest,
-  config: RateLimitConfig
-) {
+export function checkSlidingRateLimit(req: NextRequest, config: RateLimitConfig) {
   if (config.skip?.(req)) {
-    return null;
+    return null
   }
 
-  const identifier = getIdentifier(req, config.keyStrategy);
-  const key = `sliding:${identifier}:${req.nextUrl.pathname}`;
-  const windowMs = config.windowSeconds * 1000;
+  const identifier = getIdentifier(req, config.keyStrategy)
+  const key = `sliding:${identifier}:${req.nextUrl.pathname}`
+  const windowMs = config.windowSeconds * 1000
 
-  const allowed = slidingStore.check(key, config.maxRequests, windowMs);
+  const allowed = slidingStore.check(key, config.maxRequests, windowMs)
 
   if (!allowed) {
-    return rateLimitError(config.windowSeconds);
+    return rateLimitError(config.windowSeconds)
   }
 
-  return null;
+  return null
 }
 
 // ============ IP Whitelist/Blacklist ============
 
-const whitelist = new Set<string>();
-const blacklist = new Set<string>();
+const whitelist = new Set<string>()
+const blacklist = new Set<string>()
 
 /**
  * Add IP to whitelist (bypass rate limiting)
  */
 export function whitelistIP(ip: string): void {
-  whitelist.add(ip);
+  whitelist.add(ip)
 }
 
 /**
  * Add IP to blacklist (always deny)
  */
 export function blacklistIP(ip: string): void {
-  blacklist.add(ip);
+  blacklist.add(ip)
 }
 
 /**
  * Check if IP is whitelisted
  */
 export function isWhitelisted(req: NextRequest): boolean {
-  const ip = getIdentifier(req, 'ip');
-  return whitelist.has(ip);
+  const ip = getIdentifier(req, 'ip')
+  return whitelist.has(ip)
 }
 
 /**
  * Check if IP is blacklisted
  */
 export function isBlacklisted(req: NextRequest): boolean {
-  const ip = getIdentifier(req, 'ip');
-  return blacklist.has(ip);
+  const ip = getIdentifier(req, 'ip')
+  return blacklist.has(ip)
 }
 
 // ============ Rate Limit Headers ============
@@ -325,20 +323,20 @@ export function addRateLimitHeaders(
   config: RateLimitConfig,
   req: NextRequest
 ): Response {
-  const identifier = getIdentifier(req, config.keyStrategy);
-  const key = `ratelimit:${identifier}:${req.nextUrl.pathname}`;
-  const entry = globalStore.get(key);
+  const identifier = getIdentifier(req, config.keyStrategy)
+  const key = `ratelimit:${identifier}:${req.nextUrl.pathname}`
+  const entry = globalStore.get(key)
 
   if (entry) {
-    const remaining = Math.max(0, config.maxRequests - entry.count);
-    const resetTime = Math.ceil(entry.resetTime / 1000);
+    const remaining = Math.max(0, config.maxRequests - entry.count)
+    const resetTime = Math.ceil(entry.resetTime / 1000)
 
-    response.headers.set('X-RateLimit-Limit', config.maxRequests.toString());
-    response.headers.set('X-RateLimit-Remaining', remaining.toString());
-    response.headers.set('X-RateLimit-Reset', resetTime.toString());
+    response.headers.set('X-RateLimit-Limit', config.maxRequests.toString())
+    response.headers.set('X-RateLimit-Remaining', remaining.toString())
+    response.headers.set('X-RateLimit-Reset', resetTime.toString())
   }
 
-  return response;
+  return response
 }
 
 // ============ Cleanup ============
@@ -347,8 +345,8 @@ export function addRateLimitHeaders(
  * Clean up rate limit store (call on server shutdown)
  */
 export function cleanup(): void {
-  globalStore.destroy();
-  slidingStore.cleanup();
+  globalStore.destroy()
+  slidingStore.cleanup()
 }
 
 // Export default rate limiter
@@ -363,4 +361,4 @@ export default {
   isBlacklisted,
   addHeaders: addRateLimitHeaders,
   cleanup,
-};
+}

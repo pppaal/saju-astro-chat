@@ -1,0 +1,404 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@capacitor/cli": {
+      "name": "@capacitor/cli",
+      "severity": "high",
+      "isDirect": true,
+      "via": ["tar"],
+      "effects": [],
+      "range": "0.0.10 - 1.1.1 || 3.0.0-alpha.0 - 8.0.2-nightly-20260119T150908.0",
+      "nodes": ["node_modules/@capacitor/cli"],
+      "fixAvailable": true
+    },
+    "@chevrotain/cst-dts-gen": {
+      "name": "@chevrotain/cst-dts-gen",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": ["@chevrotain/gast", "lodash"],
+      "effects": [],
+      "range": "10.0.0 - 10.5.0",
+      "nodes": ["node_modules/@chevrotain/cst-dts-gen"],
+      "fixAvailable": true
+    },
+    "@chevrotain/gast": {
+      "name": "@chevrotain/gast",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": ["lodash"],
+      "effects": [],
+      "range": "<=10.5.0",
+      "nodes": ["node_modules/@chevrotain/gast"],
+      "fixAvailable": true
+    },
+    "@mrleebo/prisma-ast": {
+      "name": "@mrleebo/prisma-ast",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": ["chevrotain"],
+      "effects": ["@prisma/dev"],
+      "range": ">=0.4.2",
+      "nodes": ["node_modules/@mrleebo/prisma-ast"],
+      "fixAvailable": true
+    },
+    "@prisma/dev": {
+      "name": "@prisma/dev",
+      "severity": "high",
+      "isDirect": false,
+      "via": ["@mrleebo/prisma-ast", "hono"],
+      "effects": ["prisma"],
+      "range": "*",
+      "nodes": ["node_modules/@prisma/dev"],
+      "fixAvailable": true
+    },
+    "cacache": {
+      "name": "cacache",
+      "severity": "high",
+      "isDirect": false,
+      "via": ["tar"],
+      "effects": ["make-fetch-happen"],
+      "range": "14.0.0 - 18.0.4",
+      "nodes": ["node_modules/cacache"],
+      "fixAvailable": {
+        "name": "swisseph",
+        "version": "0.5.5",
+        "isSemVerMajor": true
+      }
+    },
+    "chevrotain": {
+      "name": "chevrotain",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": ["@chevrotain/cst-dts-gen", "@chevrotain/gast", "lodash"],
+      "effects": ["@mrleebo/prisma-ast"],
+      "range": "10.0.0 - 10.5.0",
+      "nodes": ["node_modules/chevrotain"],
+      "fixAvailable": true
+    },
+    "diff": {
+      "name": "diff",
+      "severity": "low",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1112489,
+          "name": "diff",
+          "dependency": "diff",
+          "title": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
+          "url": "https://github.com/advisories/GHSA-73rr-hh4g-fpgx",
+          "severity": "low",
+          "cwe": ["CWE-400", "CWE-1333"],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<4.0.4"
+        }
+      ],
+      "effects": [],
+      "range": "<4.0.4",
+      "nodes": ["node_modules/diff"],
+      "fixAvailable": true
+    },
+    "hono": {
+      "name": "hono",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1112134,
+          "name": "hono",
+          "dependency": "hono",
+          "title": "Hono JWK Auth Middleware has JWT algorithm confusion when JWK lacks \"alg\" (untrusted header.alg fallback)",
+          "url": "https://github.com/advisories/GHSA-3vhc-576x-3qv4",
+          "severity": "high",
+          "cwe": ["CWE-347"],
+          "cvss": {
+            "score": 8.2,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:N"
+          },
+          "range": "<4.11.4"
+        },
+        {
+          "source": 1112135,
+          "name": "hono",
+          "dependency": "hono",
+          "title": "Hono JWT Middleware's JWT Algorithm Confusion via Unsafe Default (HS256) Allows Token Forgery and Auth Bypass",
+          "url": "https://github.com/advisories/GHSA-f67f-6cw9-8mq4",
+          "severity": "high",
+          "cwe": ["CWE-347"],
+          "cvss": {
+            "score": 8.2,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:N"
+          },
+          "range": "<4.11.4"
+        },
+        {
+          "source": 1112590,
+          "name": "hono",
+          "dependency": "hono",
+          "title": "hono cache middleware ignores \"Cache-Control: private\" leading to Web Cache Deception",
+          "url": "https://github.com/advisories/GHSA-6wqw-2p9w-4vw4",
+          "severity": "moderate",
+          "cwe": ["CWE-524", "CWE-613"],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"
+          },
+          "range": "<4.11.7"
+        },
+        {
+          "source": 1112591,
+          "name": "hono",
+          "dependency": "hono",
+          "title": "Hono IPv4 address validation bypass in IP Restriction Middleware allows IP spoofing",
+          "url": "https://github.com/advisories/GHSA-r354-f388-2fhh",
+          "severity": "moderate",
+          "cwe": ["CWE-185"],
+          "cvss": {
+            "score": 4.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+          },
+          "range": "<4.11.7"
+        },
+        {
+          "source": 1112597,
+          "name": "hono",
+          "dependency": "hono",
+          "title": "Hono has an Arbitrary Key Read in Serve static Middleware (Cloudflare Workers Adapter)",
+          "url": "https://github.com/advisories/GHSA-w332-q679-j88p",
+          "severity": "moderate",
+          "cwe": ["CWE-200", "CWE-284", "CWE-668"],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<4.11.7"
+        },
+        {
+          "source": 1112644,
+          "name": "hono",
+          "dependency": "hono",
+          "title": "Hono vulnerable to XSS through ErrorBoundary component ",
+          "url": "https://github.com/advisories/GHSA-9r54-q6cx-xmh5",
+          "severity": "moderate",
+          "cwe": ["CWE-79"],
+          "cvss": {
+            "score": 4.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:L/I:L/A:N"
+          },
+          "range": "<4.11.7"
+        }
+      ],
+      "effects": ["@prisma/dev"],
+      "range": "<=4.11.6",
+      "nodes": ["node_modules/hono"],
+      "fixAvailable": true
+    },
+    "lodash": {
+      "name": "lodash",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1112455,
+          "name": "lodash",
+          "dependency": "lodash",
+          "title": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
+          "url": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg",
+          "severity": "moderate",
+          "cwe": ["CWE-1321"],
+          "cvss": {
+            "score": 6.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:L"
+          },
+          "range": ">=4.0.0 <=4.17.22"
+        }
+      ],
+      "effects": ["@chevrotain/cst-dts-gen", "@chevrotain/gast", "chevrotain"],
+      "range": "4.0.0 - 4.17.21",
+      "nodes": ["node_modules/lodash"],
+      "fixAvailable": true
+    },
+    "make-fetch-happen": {
+      "name": "make-fetch-happen",
+      "severity": "high",
+      "isDirect": false,
+      "via": ["cacache"],
+      "effects": ["node-gyp"],
+      "range": "7.1.1 - 14.0.0",
+      "nodes": ["node_modules/make-fetch-happen"],
+      "fixAvailable": {
+        "name": "swisseph",
+        "version": "0.5.5",
+        "isSemVerMajor": true
+      }
+    },
+    "next": {
+      "name": "next",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1112592,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js self-hosted applications vulnerable to DoS via Image Optimizer remotePatterns configuration",
+          "url": "https://github.com/advisories/GHSA-9g9p-9gw9-jx7f",
+          "severity": "moderate",
+          "cwe": ["CWE-400", "CWE-770"],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=15.6.0-canary.0 <16.1.5"
+        },
+        {
+          "source": 1112637,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js has Unbounded Memory Consumption via PPR Resume Endpoint ",
+          "url": "https://github.com/advisories/GHSA-5f7q-jpqc-wp7h",
+          "severity": "moderate",
+          "cwe": ["CWE-400", "CWE-409", "CWE-770"],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=16.0.0-beta.0 <16.1.5"
+        },
+        {
+          "source": 1112646,
+          "name": "next",
+          "dependency": "next",
+          "title": "Next.js HTTP request deserialization can lead to DoS when using insecure React Server Components",
+          "url": "https://github.com/advisories/GHSA-h25m-26qc-wcjf",
+          "severity": "high",
+          "cwe": ["CWE-400", "CWE-502"],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=16.0.0-beta.0 <16.0.11"
+        }
+      ],
+      "effects": [],
+      "range": "15.6.0-canary.0 - 16.1.4",
+      "nodes": ["node_modules/next"],
+      "fixAvailable": true
+    },
+    "node-gyp": {
+      "name": "node-gyp",
+      "severity": "high",
+      "isDirect": false,
+      "via": ["make-fetch-happen", "tar"],
+      "effects": ["swisseph"],
+      "range": "<=10.3.1",
+      "nodes": ["node_modules/node-gyp"],
+      "fixAvailable": {
+        "name": "swisseph",
+        "version": "0.5.5",
+        "isSemVerMajor": true
+      }
+    },
+    "prisma": {
+      "name": "prisma",
+      "severity": "high",
+      "isDirect": true,
+      "via": ["@prisma/dev"],
+      "effects": [],
+      "range": "6.20.0-dev.1 - 7.3.0-integration-prisma6-fix-cloudflare-engine.3",
+      "nodes": ["node_modules/prisma"],
+      "fixAvailable": true
+    },
+    "swisseph": {
+      "name": "swisseph",
+      "severity": "high",
+      "isDirect": true,
+      "via": ["node-gyp"],
+      "effects": [],
+      "range": ">=0.5.6",
+      "nodes": ["node_modules/swisseph"],
+      "fixAvailable": {
+        "name": "swisseph",
+        "version": "0.5.5",
+        "isSemVerMajor": true
+      }
+    },
+    "tar": {
+      "name": "tar",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1112255,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "node-tar is Vulnerable to Arbitrary File Overwrite and Symlink Poisoning via Insufficient Path Sanitization",
+          "url": "https://github.com/advisories/GHSA-8qq5-rm4j-mr97",
+          "severity": "high",
+          "cwe": ["CWE-22"],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=7.5.2"
+        },
+        {
+          "source": 1112329,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "Race Condition in node-tar Path Reservations via Unicode Ligature Collisions on macOS APFS",
+          "url": "https://github.com/advisories/GHSA-r6q2-hw4h-h46w",
+          "severity": "high",
+          "cwe": ["CWE-176"],
+          "cvss": {
+            "score": 8.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:H/A:L"
+          },
+          "range": "<=7.5.3"
+        },
+        {
+          "source": 1112659,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "node-tar Vulnerable to Arbitrary File Creation/Overwrite via Hardlink Path Traversal",
+          "url": "https://github.com/advisories/GHSA-34x7-hfp2-rc4v",
+          "severity": "high",
+          "cwe": ["CWE-22", "CWE-59"],
+          "cvss": {
+            "score": 8.2,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:L/A:N"
+          },
+          "range": "<7.5.7"
+        }
+      ],
+      "effects": ["@capacitor/cli", "cacache", "node-gyp"],
+      "range": "<=7.5.6",
+      "nodes": ["node_modules/tar"],
+      "fixAvailable": {
+        "name": "swisseph",
+        "version": "0.5.5",
+        "isSemVerMajor": true
+      }
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 1,
+      "moderate": 5,
+      "high": 10,
+      "critical": 0,
+      "total": 16
+    },
+    "dependencies": {
+      "prod": 1040,
+      "dev": 362,
+      "optional": 141,
+      "peer": 11,
+      "peerOptional": 0,
+      "total": 1493
+    }
+  }
+}

@@ -116,14 +116,56 @@ export default function SajuResultDisplay({ result }: Props) {
     () => ({
       dayMaster: result.dayMaster,
       pillars: {
-        year: result.yearPillar,
-        month: result.monthPillar,
-        day: result.dayPillar,
-        time: result.timePillar,
+        year: {
+          heavenlyStem:
+            typeof result.yearPillar.heavenlyStem === 'string'
+              ? result.yearPillar.heavenlyStem
+              : result.yearPillar.heavenlyStem?.name,
+          earthlyBranch:
+            typeof result.yearPillar.earthlyBranch === 'string'
+              ? result.yearPillar.earthlyBranch
+              : result.yearPillar.earthlyBranch?.name,
+        },
+        month: {
+          heavenlyStem:
+            typeof result.monthPillar.heavenlyStem === 'string'
+              ? result.monthPillar.heavenlyStem
+              : result.monthPillar.heavenlyStem?.name,
+          earthlyBranch:
+            typeof result.monthPillar.earthlyBranch === 'string'
+              ? result.monthPillar.earthlyBranch
+              : result.monthPillar.earthlyBranch?.name,
+        },
+        day: {
+          heavenlyStem:
+            typeof result.dayPillar.heavenlyStem === 'string'
+              ? result.dayPillar.heavenlyStem
+              : result.dayPillar.heavenlyStem?.name,
+          earthlyBranch:
+            typeof result.dayPillar.earthlyBranch === 'string'
+              ? result.dayPillar.earthlyBranch
+              : result.dayPillar.earthlyBranch?.name,
+        },
+        time: {
+          heavenlyStem:
+            typeof result.timePillar.heavenlyStem === 'string'
+              ? result.timePillar.heavenlyStem
+              : result.timePillar.heavenlyStem?.name,
+          earthlyBranch:
+            typeof result.timePillar.earthlyBranch === 'string'
+              ? result.timePillar.earthlyBranch
+              : result.timePillar.earthlyBranch?.name,
+        },
       },
       fiveElements: result.fiveElements,
       unse: result.daeun,
-      sinsal: 'sinsal' in result ? result.sinsal : undefined,
+      sinsal: ('sinsal' in result ? result.sinsal : undefined) as
+        | {
+            luckyList?: { name: string }[]
+            unluckyList?: { name: string }[]
+            [key: string]: unknown
+          }
+        | undefined,
       advancedAnalysis: result.advancedAnalysis,
     }),
     [result]

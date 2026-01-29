@@ -17,25 +17,46 @@ import { logger } from '@/lib/logger'
 // ============================================
 
 const ALLOWED_ACCOUNT_FIELDS = new Set([
-  'id', 'userId', 'type', 'provider', 'providerAccountId',
-  'refresh_token', 'access_token', 'expires_at', 'token_type',
-  'scope', 'id_token', 'session_state',
+  'id',
+  'userId',
+  'type',
+  'provider',
+  'providerAccountId',
+  'refresh_token',
+  'access_token',
+  'expires_at',
+  'token_type',
+  'scope',
+  'id_token',
+  'session_state',
 ])
 
 function getCookieDomain() {
   const explicit = process.env.NEXTAUTH_COOKIE_DOMAIN?.trim()
-  if (explicit) {return explicit}
+  if (explicit) {
+    return explicit
+  }
 
   const baseUrl = process.env.NEXTAUTH_URL
-  if (!baseUrl) {return undefined}
+  if (!baseUrl) {
+    return undefined
+  }
 
   try {
     const host = new URL(baseUrl).hostname.toLowerCase()
-    if (host === 'localhost' || host.endsWith('.localhost')) {return undefined}
-    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {return undefined}
-    if (host.startsWith('www.')) {return `.${host.slice(4)}`}
+    if (host === 'localhost' || host.endsWith('.localhost')) {
+      return undefined
+    }
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
+      return undefined
+    }
+    if (host.startsWith('www.')) {
+      return `.${host.slice(4)}`
+    }
     const parts = host.split('.')
-    if (parts.length === 2) {return `.${host}`}
+    if (parts.length === 2) {
+      return `.${host}`
+    }
     return undefined
   } catch {
     return undefined
@@ -45,9 +66,12 @@ function getCookieDomain() {
 const cookieDomain = getCookieDomain()
 
 function ensureEncryptionKey() {
-  if (hasTokenEncryptionKey()) {return}
+  if (hasTokenEncryptionKey()) {
+    return
+  }
   const msg = 'TOKEN_ENCRYPTION_KEY is required to store OAuth tokens securely'
-  if (process.env.NODE_ENV === 'production') {
+  // Only throw in production runtime (not during build)
+  if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PHASE) {
     throw new Error(msg)
   }
   logger.warn(`[auth] ${msg} (development only: tokens will remain plaintext)`)
@@ -55,9 +79,15 @@ function ensureEncryptionKey() {
 
 function encryptAccountTokens(account: AdapterAccount) {
   const copy = { ...account }
-  if (copy.refresh_token) {copy.refresh_token = encryptToken(copy.refresh_token) ?? undefined}
-  if (copy.access_token) {copy.access_token = encryptToken(copy.access_token) ?? undefined}
-  if (copy.id_token) {copy.id_token = encryptToken(copy.id_token) ?? undefined}
+  if (copy.refresh_token) {
+    copy.refresh_token = encryptToken(copy.refresh_token) ?? undefined
+  }
+  if (copy.access_token) {
+    copy.access_token = encryptToken(copy.access_token) ?? undefined
+  }
+  if (copy.id_token) {
+    copy.id_token = encryptToken(copy.id_token) ?? undefined
+  }
   return copy
 }
 
@@ -68,7 +98,7 @@ function createFilteredPrismaAdapter(): Adapter {
   ensureEncryptionKey()
 
   return {
-    createUser: async (user: Omit<AdapterUser, "id">) => {
+    createUser: async (user: Omit<AdapterUser, 'id'>) => {
       try {
         const referralCode = generateReferralCode()
         const createdUser = await prisma.user.create({
@@ -88,7 +118,9 @@ function createFilteredPrismaAdapter(): Adapter {
       const user = await prisma.user.findUnique({ where: { email } })
       return (user as AdapterUser) ?? null
     },
-    getUserByAccount: async (providerAccountId: Pick<AdapterAccount, "provider" | "providerAccountId">) => {
+    getUserByAccount: async (
+      providerAccountId: Pick<AdapterAccount, 'provider' | 'providerAccountId'>
+    ) => {
       try {
         // Use raw SQL to avoid Prisma 7.x driver adapter P2022 bug with compound unique keys
         const users = await prisma.$queryRaw<AdapterUser[]>`
@@ -104,7 +136,7 @@ function createFilteredPrismaAdapter(): Adapter {
         throw error
       }
     },
-    updateUser: async (user: Partial<AdapterUser> & Pick<AdapterUser, "id">) => {
+    updateUser: async (user: Partial<AdapterUser> & Pick<AdapterUser, 'id'>) => {
       const updated = await prisma.user.update({
         where: { id: user.id },
         data: user,
@@ -129,7 +161,9 @@ function createFilteredPrismaAdapter(): Adapter {
         throw error
       }
     },
-    unlinkAccount: async (providerAccountId: Pick<AdapterAccount, "provider" | "providerAccountId">) => {
+    unlinkAccount: async (
+      providerAccountId: Pick<AdapterAccount, 'provider' | 'providerAccountId'>
+    ) => {
       try {
         // Use raw SQL to avoid Prisma 7.x driver adapter P2022 bug with compound unique keys
         await prisma.$executeRaw`
@@ -187,7 +221,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
-          prompt: "select_account",
+          prompt: 'select_account',
         },
       },
     })
@@ -216,9 +250,10 @@ export const authOptions: NextAuthOptions = {
   },
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === 'production'
-        ? '__Secure-next-auth.session-token'
-        : 'next-auth.session-token',
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Secure-next-auth.session-token'
+          : 'next-auth.session-token',
       options: {
         httpOnly: true,
         sameSite: 'lax',
@@ -230,13 +265,15 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      logger.warn(`[auth] signIn callback: provider=${account?.provider} user=${user?.email} profile=${!!profile}`)
+      logger.warn(
+        `[auth] signIn callback: provider=${account?.provider} user=${user?.email} profile=${!!profile}`
+      )
       return true
     },
     async jwt({ token, user }) {
       if (user) {
-        token.id = (user).id ?? token.id
-        token.email = (user).email ?? token.email
+        token.id = user.id ?? token.id
+        token.email = user.email ?? token.email
       }
       return token
     },
@@ -268,17 +305,23 @@ export const authOptions: NextAuthOptions = {
         })
       }
 
-      if (process.env.NODE_ENV !== 'production') {return}
+      if (process.env.NODE_ENV !== 'production') {
+        return
+      }
       Sentry.withScope((scope) => {
         scope.setTag('auth_event', 'sign_in')
         scope.setTag('provider', account?.provider ?? 'unknown')
         scope.setExtra('isNewUser', isNewUser ?? false)
-        if (user?.id) {scope.setUser({ id: String(user.id), email: user.email ?? undefined })}
+        if (user?.id) {
+          scope.setUser({ id: String(user.id), email: user.email ?? undefined })
+        }
         Sentry.captureMessage('auth.sign_in')
       })
     },
     async signOut({ token }) {
-      if (!token?.id) {return}
+      if (!token?.id) {
+        return
+      }
       try {
         await revokeGoogleTokensForUser(String(token.id))
         if (process.env.NODE_ENV === 'production') {

@@ -1,50 +1,50 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions';
+import { NextRequest } from 'next/server'
+import { savePushSubscription, removePushSubscription } from '@/lib/notifications/pushService'
 import {
-  savePushSubscription,
-  removePushSubscription,
-} from '@/lib/notifications/pushService';
-import { logger } from '@/lib/logger';
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  parseJsonBody,
+  apiError,
+  apiSuccess,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 
-import { parseRequestBody } from '@/lib/api/requestParser';
-import { HTTP_STATUS } from '@/lib/constants/http';
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
+
+interface PushSubscription {
+  endpoint: string
+  keys: {
+    p256dh: string
+    auth: string
+  }
+}
 
 /**
  * POST /api/push/subscribe
  * Save user's push notification subscription
  */
-export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
-  }
-
-  try {
-    const subscription = await request.json();
+export const POST = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    const subscription = await parseJsonBody<PushSubscription>(req)
 
     // Validate subscription object
-    if (!subscription || !subscription.endpoint || !subscription.keys) {
-      return NextResponse.json(
-        { error: 'Invalid subscription: missing endpoint or keys' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
+    if (!subscription?.endpoint || !subscription?.keys) {
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid subscription: missing endpoint or keys')
     }
 
     if (!subscription.keys.p256dh || !subscription.keys.auth) {
-      return NextResponse.json(
-        { error: 'Invalid subscription: missing p256dh or auth keys' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        'Invalid subscription: missing p256dh or auth keys'
+      )
     }
 
-    const userAgent = request.headers.get('user-agent') || undefined;
+    const userAgent = req.headers.get('user-agent') || undefined
 
     // Store subscription in database
     await savePushSubscription(
-      session.user.id,
+      context.userId!,
       {
         endpoint: subscription.endpoint,
         keys: {
@@ -53,55 +53,28 @@ export async function POST(request: NextRequest) {
         },
       },
       userAgent
-    );
+    )
 
-    return NextResponse.json({
-      success: true,
-      message: 'Subscription saved successfully',
-    });
-  } catch (error) {
-    logger.error('Error saving push subscription:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+    return apiSuccess({ success: true, message: 'Subscription saved successfully' })
+  },
+  createAuthenticatedGuard({ route: 'push/subscribe', limit: 20 })
+)
 
 /**
  * DELETE /api/push/subscribe
  * Remove user's push notification subscription
  */
-export async function DELETE(request: NextRequest) {
-  const session = await getServerSession(authOptions);
+export const DELETE = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    const body = await parseJsonBody<{ endpoint: string }>(req)
 
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
-  }
-
-  try {
-    const body = await request.json().catch(() => ({}));
-    const endpoint = body.endpoint;
-
-    if (!endpoint) {
-      return NextResponse.json(
-        { error: 'Missing endpoint' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
+    if (!body?.endpoint) {
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'Endpoint required')
     }
 
-    // Remove subscription from database
-    await removePushSubscription(endpoint);
+    await removePushSubscription(body.endpoint)
 
-    return NextResponse.json({
-      success: true,
-      message: 'Subscription removed successfully',
-    });
-  } catch (error) {
-    logger.error('Error removing push subscription:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+    return apiSuccess({ success: true, message: 'Subscription removed successfully' })
+  },
+  createAuthenticatedGuard({ route: 'push/unsubscribe', limit: 20 })
+)
