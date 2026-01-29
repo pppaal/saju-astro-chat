@@ -12,13 +12,22 @@ const envSchema = z.object({
   // APIs
   OPENAI_API_KEY: z.string().startsWith('sk-').optional(),
   GOOGLE_GEMINI_API_KEY: z.string().optional(),
+  TOGETHER_API_KEY: z.string().optional(),
 
   // Stripe
   STRIPE_SECRET_KEY: z.string().startsWith('sk_'),
   STRIPE_PUBLISHABLE_KEY: z.string().startsWith('pk_'),
+  STRIPE_WEBHOOK_SECRET: z.string().min(20).optional(),
+
+  // OAuth
+  GOOGLE_OAUTH_ID: z.string().optional(),
+  GOOGLE_OAUTH_SECRET: z.string().optional(),
+  KAKAO_OAUTH_ID: z.string().optional(),
+  KAKAO_OAUTH_SECRET: z.string().optional(),
 
   // Admin
   ADMIN_EMAILS: z.string(),
+  ADMIN_API_TOKEN: z.string().min(20).optional(),
 
   // Redis (optional)
   REDIS_URL: z.string().url().optional(),
@@ -32,15 +41,16 @@ export function validateEnv() {
     logger.info('✅ Environment variables validated successfully')
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const issues = error.issues || []
       logger.error('❌ Environment variable validation failed:', {
-        errors: error.errors.map((e) => ({
+        errors: issues.map((e: z.ZodIssue) => ({
           path: e.path.join('.'),
           message: e.message,
         })),
       })
 
       console.error('\n🚨 Missing or invalid environment variables:\n')
-      error.errors.forEach((err) => {
+      issues.forEach((err: z.ZodIssue) => {
         console.error(`  - ${err.path.join('.')}: ${err.message}`)
       })
       console.error('\nPlease check your .env file.\n')

@@ -78,6 +78,10 @@
   "overrides": {
     "node-gyp": "^10.0.1",
     "glob": "^10.4.7",
+    "lodash": "^4.17.23",
+    "hono": "^4.11.4",
+    "diff": "^4.0.4",
+    "tar": "^7.5.7",
     "swisseph": {
       "node-gyp": "^10.0.1"
     }
@@ -89,7 +93,7 @@
     "@capacitor/ios": "^8.0.0",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@prisma/adapter-pg": "^7.2.0",
-    "@prisma/client": "^7.2.0",
+    "@prisma/client": "^7.3.0",
     "@radix-ui/react-slot": "^1.2.4",
     "@sentry/nextjs": "^10.30.0",
     "@upstash/redis": "^1.36.1",
@@ -109,7 +113,7 @@
     "lru-cache": "^11.2.4",
     "lucide-react": "^0.562.0",
     "nanoid": "^5.1.6",
-    "next": "^16.0.10",
+    "next": "^16.1.5",
     "next-auth": "^4.24.13",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.530",
@@ -166,7 +170,7 @@
     "lint-staged": "^16.2.7",
     "postcss": "^8.5.6",
     "prettier": "^3.8.1",
-    "prisma": "^7.2.0",
+    "prisma": "^7.3.0",
     "tailwindcss": "^3.4.17",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
