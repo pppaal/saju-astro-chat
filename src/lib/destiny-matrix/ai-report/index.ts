@@ -5,14 +5,11 @@ export {
   generateAIPremiumReport,
   generateTimingReport,
   generateThemedReport,
-  type AIPremiumReport,
-  type AIReportGenerationOptions,
-} from './aiReportService';
+} from './aiReportService'
 
-export {
-  generatePremiumPDF,
-  type PDFGenerationOptions,
-} from './pdfGenerator';
+export type { AIPremiumReport, AIReportGenerationOptions } from './reportTypes'
+
+export { generatePremiumPDF, type PDFGenerationOptions } from './pdfGenerator'
 
 export {
   type ReportPeriod,
@@ -26,9 +23,6 @@ export {
   REPORT_CREDIT_COSTS,
   PERIOD_META,
   THEME_META,
-} from './types';
+} from './types'
 
-export {
-  buildTimingPrompt,
-  buildThemedPrompt,
-} from './prompts';
+export { buildTimingPrompt, buildThemedPrompt } from './prompts'

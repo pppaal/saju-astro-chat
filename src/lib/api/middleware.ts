@@ -88,7 +88,7 @@ type ApiHandler<T> = (
   req: NextRequest,
   context: ApiContext,
   ...args: unknown[]
-) => Promise<ApiHandlerResult<T> | NextResponse>
+) => Promise<ApiHandlerResult<T> | NextResponse | Response>
 
 // ============ Core Functions ============
 
@@ -375,9 +375,9 @@ export function withApiMiddleware<T>(handler: ApiHandler<T>, options: Middleware
       // Execute handler (pass through any additional args like params for dynamic routes)
       const result = await handler(req, context, ...args)
 
-      // If handler returned NextResponse directly, use it
-      if (result instanceof NextResponse) {
-        return result
+      // If handler returned a Response/NextResponse directly (e.g. SSE streams), use it
+      if (result instanceof Response) {
+        return result as NextResponse
       }
 
       // Handle error result
