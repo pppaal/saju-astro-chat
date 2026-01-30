@@ -1,14 +1,17 @@
-import Image from "next/image";
-import type { Fortune, Credits } from "../types";
+import Image from 'next/image'
+import type { Fortune, Credits } from '../types'
 
 interface ProfileCardProps {
-  styles: Record<string, string>;
-  session: { user?: { name?: string | null; image?: string | null } } | null;
-  credits: Credits | null;
-  fortune: Fortune | null;
-  fortuneLoading: boolean;
-  handleCreditsClick: () => void;
-  t: (key: string, fallback?: string) => string;
+  styles: Record<string, string>
+  session: { user?: { name?: string | null; image?: string | null } } | null
+  credits: Credits | null
+  fortune: Fortune | null
+  fortuneLoading: boolean
+  handleCreditsClick: () => void
+  handleEditProfile: () => void
+  handleReloadProfile: () => void
+  isReloadingProfile: boolean
+  t: (key: string, fallback?: string) => string
 }
 
 export function ProfileCard({
@@ -18,6 +21,9 @@ export function ProfileCard({
   fortune,
   fortuneLoading,
   handleCreditsClick,
+  handleEditProfile,
+  handleReloadProfile,
+  isReloadingProfile,
   t,
 }: ProfileCardProps) {
   return (
@@ -33,25 +39,53 @@ export function ProfileCard({
           />
         ) : (
           <div className={styles.profileAvatarPlaceholder}>
-            {(session?.user?.name || "U")[0].toUpperCase()}
+            {(session?.user?.name || 'U')[0].toUpperCase()}
           </div>
         )}
         <div className={styles.profileInfo}>
-          <h2>{session?.user?.name || "User"}</h2>
+          <div className={styles.profileNameRow}>
+            <h2>{session?.user?.name || 'User'}</h2>
+            <div className={styles.profileActions}>
+              <button
+                className={styles.profileActionBtn}
+                onClick={handleEditProfile}
+                title={t('myjourney.profile.edit', 'Edit')}
+              >
+                {'\u270F\uFE0F'}
+              </button>
+              <button
+                className={`${styles.profileActionBtn} ${isReloadingProfile ? styles.profileActionBtnSpinning : ''}`}
+                onClick={handleReloadProfile}
+                disabled={isReloadingProfile}
+                title={t('myjourney.profile.reload', 'Reload')}
+              >
+                {'\uD83D\uDD04'}
+              </button>
+            </div>
+          </div>
           {credits && (
             <div className={styles.membershipRow}>
-              <div className={`${styles.planBadge} ${styles[`plan${credits.plan.charAt(0).toUpperCase() + credits.plan.slice(1)}`]}`}>
-                <span className={styles.planIcon}>
-                  {credits.plan === 'free' ? '\uD83C\uDD93' : credits.plan === 'starter' ? '\u2B50' : credits.plan === 'pro' ? '\uD83D\uDC8E' : '\uD83D\uDC51'}
-                </span>
-                <span className={styles.planName}>{t(`myjourney.plan.${credits.plan}`, credits.plan.toUpperCase())}</span>
-              </div>
               <div
-                className={styles.creditsBadge}
-                onClick={handleCreditsClick}
+                className={`${styles.planBadge} ${styles[`plan${credits.plan.charAt(0).toUpperCase() + credits.plan.slice(1)}`]}`}
               >
+                <span className={styles.planIcon}>
+                  {credits.plan === 'free'
+                    ? '\uD83C\uDD93'
+                    : credits.plan === 'starter'
+                      ? '\u2B50'
+                      : credits.plan === 'pro'
+                        ? '\uD83D\uDC8E'
+                        : '\uD83D\uDC51'}
+                </span>
+                <span className={styles.planName}>
+                  {t(`myjourney.plan.${credits.plan}`, credits.plan.toUpperCase())}
+                </span>
+              </div>
+              <div className={styles.creditsBadge} onClick={handleCreditsClick}>
                 <span className={styles.creditsCount}>{credits.remaining}</span>
-                <span className={styles.creditsLabel}>{t("myjourney.credits.short", "credits")}</span>
+                <span className={styles.creditsLabel}>
+                  {t('myjourney.credits.short', 'credits')}
+                </span>
               </div>
             </div>
           )}
@@ -60,20 +94,24 @@ export function ProfileCard({
       {/* Fortune Orb */}
       <div
         className={styles.fortuneOrb}
-        title={t("myjourney.fortune.orbTooltip", "Today's Overall Fortune")}
-        aria-label={fortune ? `${t("myjourney.fortune.orbTooltip", "Today's Overall Fortune")}: ${fortune.overall}` : undefined}
+        title={t('myjourney.fortune.orbTooltip', "Today's Overall Fortune")}
+        aria-label={
+          fortune
+            ? `${t('myjourney.fortune.orbTooltip', "Today's Overall Fortune")}: ${fortune.overall}`
+            : undefined
+        }
       >
         {fortuneLoading ? (
           <div className={styles.orbLoading}></div>
         ) : fortune ? (
           <>
             <span className={styles.orbScore}>{fortune.overall}</span>
-            <span className={styles.orbLabel}>{t("myjourney.fortune.today", "Today")}</span>
+            <span className={styles.orbLabel}>{t('myjourney.fortune.today', 'Today')}</span>
           </>
         ) : (
           <span className={styles.orbEmpty}>?</span>
         )}
       </div>
     </div>
-  );
+  )
 }
