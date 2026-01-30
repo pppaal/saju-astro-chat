@@ -9,8 +9,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS "User_referralCode_key" ON "User"("referralCod
 CREATE INDEX IF NOT EXISTS "User_referrerId_idx" ON "User"("referrerId");
 
 -- AddForeignKey (User self-referral)
-ALTER TABLE "User" ADD CONSTRAINT "User_referrerId_fkey"
-  FOREIGN KEY ("referrerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE NO ACTION;
+DO $$ BEGIN
+  ALTER TABLE "User" ADD CONSTRAINT "User_referrerId_fkey"
+    FOREIGN KEY ("referrerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE NO ACTION;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: DailyFortune
 CREATE TABLE IF NOT EXISTS "DailyFortune" (
@@ -29,8 +32,11 @@ CREATE TABLE IF NOT EXISTS "DailyFortune" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "DailyFortune_userId_date_key" ON "DailyFortune"("userId", "date");
 CREATE INDEX IF NOT EXISTS "DailyFortune_userId_date_idx" ON "DailyFortune"("userId", "date");
-ALTER TABLE "DailyFortune" ADD CONSTRAINT "DailyFortune_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "DailyFortune" ADD CONSTRAINT "DailyFortune_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: UserInteraction
 CREATE TABLE IF NOT EXISTS "UserInteraction" (
@@ -47,8 +53,11 @@ CREATE TABLE IF NOT EXISTS "UserInteraction" (
 CREATE INDEX IF NOT EXISTS "UserInteraction_userId_createdAt_idx" ON "UserInteraction"("userId", "createdAt");
 CREATE INDEX IF NOT EXISTS "UserInteraction_userId_service_idx" ON "UserInteraction"("userId", "service");
 CREATE INDEX IF NOT EXISTS "UserInteraction_userId_theme_idx" ON "UserInteraction"("userId", "theme");
-ALTER TABLE "UserInteraction" ADD CONSTRAINT "UserInteraction_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "UserInteraction" ADD CONSTRAINT "UserInteraction_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: UserPreferences
 CREATE TABLE IF NOT EXISTS "UserPreferences" (
@@ -65,8 +74,11 @@ CREATE TABLE IF NOT EXISTS "UserPreferences" (
     CONSTRAINT "UserPreferences_pkey" PRIMARY KEY ("id")
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "UserPreferences_userId_key" ON "UserPreferences"("userId");
-ALTER TABLE "UserPreferences" ADD CONSTRAINT "UserPreferences_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "UserPreferences" ADD CONSTRAINT "UserPreferences_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: ConsultationHistory
 CREATE TABLE IF NOT EXISTS "ConsultationHistory" (
@@ -84,8 +96,11 @@ CREATE TABLE IF NOT EXISTS "ConsultationHistory" (
 );
 CREATE INDEX IF NOT EXISTS "ConsultationHistory_userId_createdAt_idx" ON "ConsultationHistory"("userId", "createdAt");
 CREATE INDEX IF NOT EXISTS "ConsultationHistory_userId_theme_idx" ON "ConsultationHistory"("userId", "theme");
-ALTER TABLE "ConsultationHistory" ADD CONSTRAINT "ConsultationHistory_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "ConsultationHistory" ADD CONSTRAINT "ConsultationHistory_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: SectionFeedback
 CREATE TABLE IF NOT EXISTS "SectionFeedback" (
@@ -124,8 +139,11 @@ CREATE TABLE IF NOT EXISTS "PersonaMemory" (
     CONSTRAINT "PersonaMemory_pkey" PRIMARY KEY ("id")
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "PersonaMemory_userId_key" ON "PersonaMemory"("userId");
-ALTER TABLE "PersonaMemory" ADD CONSTRAINT "PersonaMemory_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "PersonaMemory" ADD CONSTRAINT "PersonaMemory_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: SavedPerson
 CREATE TABLE IF NOT EXISTS "SavedPerson" (
@@ -171,8 +189,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS "Subscription_stripeSubscriptionId_key" ON "Su
 CREATE INDEX IF NOT EXISTS "Subscription_userId_idx" ON "Subscription"("userId");
 CREATE INDEX IF NOT EXISTS "Subscription_stripeCustomerId_idx" ON "Subscription"("stripeCustomerId");
 CREATE INDEX IF NOT EXISTS "Subscription_status_idx" ON "Subscription"("status");
-ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: PremiumContentAccess
 CREATE TABLE IF NOT EXISTS "PremiumContentAccess" (
@@ -190,8 +211,11 @@ CREATE TABLE IF NOT EXISTS "PremiumContentAccess" (
 CREATE INDEX IF NOT EXISTS "PremiumContentAccess_userId_createdAt_idx" ON "PremiumContentAccess"("userId", "createdAt");
 CREATE INDEX IF NOT EXISTS "PremiumContentAccess_userId_service_idx" ON "PremiumContentAccess"("userId", "service");
 CREATE INDEX IF NOT EXISTS "PremiumContentAccess_service_contentType_idx" ON "PremiumContentAccess"("service", "contentType");
-ALTER TABLE "PremiumContentAccess" ADD CONSTRAINT "PremiumContentAccess_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "PremiumContentAccess" ADD CONSTRAINT "PremiumContentAccess_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: CounselorChatSession
 CREATE TABLE IF NOT EXISTS "CounselorChatSession" (
@@ -210,8 +234,11 @@ CREATE TABLE IF NOT EXISTS "CounselorChatSession" (
 );
 CREATE INDEX IF NOT EXISTS "CounselorChatSession_userId_updatedAt_idx" ON "CounselorChatSession"("userId", "updatedAt");
 CREATE INDEX IF NOT EXISTS "CounselorChatSession_userId_theme_idx" ON "CounselorChatSession"("userId", "theme");
-ALTER TABLE "CounselorChatSession" ADD CONSTRAINT "CounselorChatSession_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "CounselorChatSession" ADD CONSTRAINT "CounselorChatSession_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: UserCredits
 CREATE TABLE IF NOT EXISTS "UserCredits" (
@@ -236,8 +263,11 @@ CREATE TABLE IF NOT EXISTS "UserCredits" (
 CREATE UNIQUE INDEX IF NOT EXISTS "UserCredits_userId_key" ON "UserCredits"("userId");
 CREATE INDEX IF NOT EXISTS "UserCredits_plan_idx" ON "UserCredits"("plan");
 CREATE INDEX IF NOT EXISTS "UserCredits_periodEnd_idx" ON "UserCredits"("periodEnd");
-ALTER TABLE "UserCredits" ADD CONSTRAINT "UserCredits_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "UserCredits" ADD CONSTRAINT "UserCredits_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: SavedCalendarDate
 CREATE TABLE IF NOT EXISTS "SavedCalendarDate" (
@@ -266,8 +296,11 @@ CREATE TABLE IF NOT EXISTS "SavedCalendarDate" (
 CREATE UNIQUE INDEX IF NOT EXISTS "SavedCalendarDate_userId_date_key" ON "SavedCalendarDate"("userId", "date");
 CREATE INDEX IF NOT EXISTS "SavedCalendarDate_userId_date_idx" ON "SavedCalendarDate"("userId", "date");
 CREATE INDEX IF NOT EXISTS "SavedCalendarDate_userId_year_idx" ON "SavedCalendarDate"("userId", "year");
-ALTER TABLE "SavedCalendarDate" ADD CONSTRAINT "SavedCalendarDate_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "SavedCalendarDate" ADD CONSTRAINT "SavedCalendarDate_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: BonusCreditPurchase
 CREATE TABLE IF NOT EXISTS "BonusCreditPurchase" (
@@ -302,8 +335,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS "ReferralReward_userId_referredUserId_rewardTy
 CREATE INDEX IF NOT EXISTS "ReferralReward_userId_idx" ON "ReferralReward"("userId");
 CREATE INDEX IF NOT EXISTS "ReferralReward_referredUserId_idx" ON "ReferralReward"("referredUserId");
 CREATE INDEX IF NOT EXISTS "ReferralReward_status_idx" ON "ReferralReward"("status");
-ALTER TABLE "ReferralReward" ADD CONSTRAINT "ReferralReward_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "ReferralReward" ADD CONSTRAINT "ReferralReward_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: TarotReading
 CREATE TABLE IF NOT EXISTS "TarotReading" (
@@ -332,8 +368,11 @@ CREATE INDEX IF NOT EXISTS "TarotReading_userId_createdAt_idx" ON "TarotReading"
 CREATE INDEX IF NOT EXISTS "TarotReading_userId_theme_idx" ON "TarotReading"("userId", "theme");
 CREATE INDEX IF NOT EXISTS "TarotReading_sharedWithUserId_idx" ON "TarotReading"("sharedWithUserId");
 CREATE INDEX IF NOT EXISTS "TarotReading_matchConnectionId_idx" ON "TarotReading"("matchConnectionId");
-ALTER TABLE "TarotReading" ADD CONSTRAINT "TarotReading_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "TarotReading" ADD CONSTRAINT "TarotReading_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: PushSubscription
 CREATE TABLE IF NOT EXISTS "PushSubscription" (
@@ -353,8 +392,11 @@ CREATE TABLE IF NOT EXISTS "PushSubscription" (
 CREATE UNIQUE INDEX IF NOT EXISTS "PushSubscription_endpoint_key" ON "PushSubscription"("endpoint");
 CREATE INDEX IF NOT EXISTS "PushSubscription_userId_idx" ON "PushSubscription"("userId");
 CREATE INDEX IF NOT EXISTS "PushSubscription_isActive_idx" ON "PushSubscription"("isActive");
-ALTER TABLE "PushSubscription" ADD CONSTRAINT "PushSubscription_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "PushSubscription" ADD CONSTRAINT "PushSubscription_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: EmailLog
 CREATE TABLE IF NOT EXISTS "EmailLog" (
@@ -395,8 +437,11 @@ CREATE TABLE IF NOT EXISTS "PersonalityResult" (
 CREATE UNIQUE INDEX IF NOT EXISTS "PersonalityResult_userId_key" ON "PersonalityResult"("userId");
 CREATE INDEX IF NOT EXISTS "PersonalityResult_typeCode_idx" ON "PersonalityResult"("typeCode");
 CREATE INDEX IF NOT EXISTS "PersonalityResult_createdAt_idx" ON "PersonalityResult"("createdAt");
-ALTER TABLE "PersonalityResult" ADD CONSTRAINT "PersonalityResult_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "PersonalityResult" ADD CONSTRAINT "PersonalityResult_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: ICPResult
 CREATE TABLE IF NOT EXISTS "ICPResult" (
@@ -416,8 +461,11 @@ CREATE TABLE IF NOT EXISTS "ICPResult" (
 );
 CREATE INDEX IF NOT EXISTS "ICPResult_userId_createdAt_idx" ON "ICPResult"("userId", "createdAt");
 CREATE INDEX IF NOT EXISTS "ICPResult_primaryStyle_idx" ON "ICPResult"("primaryStyle");
-ALTER TABLE "ICPResult" ADD CONSTRAINT "ICPResult_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "ICPResult" ADD CONSTRAINT "ICPResult_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: CompatibilityResult
 CREATE TABLE IF NOT EXISTS "CompatibilityResult" (
@@ -444,8 +492,11 @@ CREATE TABLE IF NOT EXISTS "CompatibilityResult" (
 CREATE INDEX IF NOT EXISTS "CompatibilityResult_userId_createdAt_idx" ON "CompatibilityResult"("userId", "createdAt");
 CREATE INDEX IF NOT EXISTS "CompatibilityResult_person1UserId_idx" ON "CompatibilityResult"("person1UserId");
 CREATE INDEX IF NOT EXISTS "CompatibilityResult_person2UserId_idx" ON "CompatibilityResult"("person2UserId");
-ALTER TABLE "CompatibilityResult" ADD CONSTRAINT "CompatibilityResult_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "CompatibilityResult" ADD CONSTRAINT "CompatibilityResult_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: DestinyMatrixReport
 CREATE TABLE IF NOT EXISTS "DestinyMatrixReport" (
@@ -470,8 +521,11 @@ CREATE INDEX IF NOT EXISTS "DestinyMatrixReport_userId_createdAt_idx" ON "Destin
 CREATE INDEX IF NOT EXISTS "DestinyMatrixReport_reportType_idx" ON "DestinyMatrixReport"("reportType");
 CREATE INDEX IF NOT EXISTS "DestinyMatrixReport_period_idx" ON "DestinyMatrixReport"("period");
 CREATE INDEX IF NOT EXISTS "DestinyMatrixReport_theme_idx" ON "DestinyMatrixReport"("theme");
-ALTER TABLE "DestinyMatrixReport" ADD CONSTRAINT "DestinyMatrixReport_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "DestinyMatrixReport" ADD CONSTRAINT "DestinyMatrixReport_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: MatchProfile
 CREATE TABLE IF NOT EXISTS "MatchProfile" (
@@ -509,8 +563,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS "MatchProfile_userId_key" ON "MatchProfile"("u
 CREATE INDEX IF NOT EXISTS "MatchProfile_isActive_isVisible_idx" ON "MatchProfile"("isActive", "isVisible");
 CREATE INDEX IF NOT EXISTS "MatchProfile_city_idx" ON "MatchProfile"("city");
 CREATE INDEX IF NOT EXISTS "MatchProfile_lastActiveAt_idx" ON "MatchProfile"("lastActiveAt");
-ALTER TABLE "MatchProfile" ADD CONSTRAINT "MatchProfile_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "MatchProfile" ADD CONSTRAINT "MatchProfile_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: MatchSwipe
 CREATE TABLE IF NOT EXISTS "MatchSwipe" (
@@ -529,10 +586,16 @@ CREATE INDEX IF NOT EXISTS "MatchSwipe_swiperId_idx" ON "MatchSwipe"("swiperId")
 CREATE INDEX IF NOT EXISTS "MatchSwipe_targetId_idx" ON "MatchSwipe"("targetId");
 CREATE INDEX IF NOT EXISTS "MatchSwipe_action_idx" ON "MatchSwipe"("action");
 CREATE INDEX IF NOT EXISTS "MatchSwipe_isMatched_idx" ON "MatchSwipe"("isMatched");
-ALTER TABLE "MatchSwipe" ADD CONSTRAINT "MatchSwipe_swiperId_fkey"
-  FOREIGN KEY ("swiperId") REFERENCES "MatchProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "MatchSwipe" ADD CONSTRAINT "MatchSwipe_targetId_fkey"
-  FOREIGN KEY ("targetId") REFERENCES "MatchProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "MatchSwipe" ADD CONSTRAINT "MatchSwipe_swiperId_fkey"
+    FOREIGN KEY ("swiperId") REFERENCES "MatchProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  ALTER TABLE "MatchSwipe" ADD CONSTRAINT "MatchSwipe_targetId_fkey"
+    FOREIGN KEY ("targetId") REFERENCES "MatchProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: MatchConnection
 CREATE TABLE IF NOT EXISTS "MatchConnection" (
@@ -554,10 +617,16 @@ CREATE INDEX IF NOT EXISTS "MatchConnection_user1Id_idx" ON "MatchConnection"("u
 CREATE INDEX IF NOT EXISTS "MatchConnection_user2Id_idx" ON "MatchConnection"("user2Id");
 CREATE INDEX IF NOT EXISTS "MatchConnection_status_idx" ON "MatchConnection"("status");
 CREATE INDEX IF NOT EXISTS "MatchConnection_createdAt_idx" ON "MatchConnection"("createdAt");
-ALTER TABLE "MatchConnection" ADD CONSTRAINT "MatchConnection_user1Id_fkey"
-  FOREIGN KEY ("user1Id") REFERENCES "MatchProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "MatchConnection" ADD CONSTRAINT "MatchConnection_user2Id_fkey"
-  FOREIGN KEY ("user2Id") REFERENCES "MatchProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "MatchConnection" ADD CONSTRAINT "MatchConnection_user1Id_fkey"
+    FOREIGN KEY ("user1Id") REFERENCES "MatchProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  ALTER TABLE "MatchConnection" ADD CONSTRAINT "MatchConnection_user2Id_fkey"
+    FOREIGN KEY ("user2Id") REFERENCES "MatchProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- CreateTable: MatchMessage
 CREATE TABLE IF NOT EXISTS "MatchMessage" (
@@ -573,7 +642,13 @@ CREATE TABLE IF NOT EXISTS "MatchMessage" (
 );
 CREATE INDEX IF NOT EXISTS "MatchMessage_connectionId_createdAt_idx" ON "MatchMessage"("connectionId", "createdAt");
 CREATE INDEX IF NOT EXISTS "MatchMessage_senderId_idx" ON "MatchMessage"("senderId");
-ALTER TABLE "MatchMessage" ADD CONSTRAINT "MatchMessage_connectionId_fkey"
-  FOREIGN KEY ("connectionId") REFERENCES "MatchConnection"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "MatchMessage" ADD CONSTRAINT "MatchMessage_senderId_fkey"
-  FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "MatchMessage" ADD CONSTRAINT "MatchMessage_connectionId_fkey"
+    FOREIGN KEY ("connectionId") REFERENCES "MatchConnection"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  ALTER TABLE "MatchMessage" ADD CONSTRAINT "MatchMessage_senderId_fkey"
+    FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;

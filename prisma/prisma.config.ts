@@ -1,4 +1,4 @@
-import { defineConfig } from '@prisma/client/config'
+import { defineConfig } from '@prisma/config'
 import { existsSync } from 'fs'
 import { resolve } from 'path'
 
@@ -33,11 +33,13 @@ if (!databaseUrl) {
   throw new Error('DATABASE_URL not found in environment variables')
 }
 
+// For migrations, use direct connection (port 5432) instead of pgbouncer (port 6543)
+const migrateUrl =
+  directUrl ||
+  databaseUrl.replace(':6543/', ':5432/').replace('pgbouncer=true', '').replace(/[&?]$/, '')
+
 export default defineConfig({
-  datasources: {
-    db: {
-      url: databaseUrl,
-      directUrl: directUrl,
-    },
+  datasource: {
+    url: migrateUrl,
   },
 })
