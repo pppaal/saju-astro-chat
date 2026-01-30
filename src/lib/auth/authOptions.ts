@@ -111,12 +111,30 @@ function createFilteredPrismaAdapter(): Adapter {
       }
     },
     getUser: async (id: string) => {
-      const user = await prisma.user.findUnique({ where: { id } })
-      return (user as AdapterUser) ?? null
+      try {
+        const user = await prisma.user.findUnique({ where: { id } })
+        return (user as AdapterUser) ?? null
+      } catch (error) {
+        logger.warn('[auth] getUser full select failed, using safe select:', error)
+        const user = await prisma.$queryRaw<AdapterUser[]>`
+          SELECT "id", "name", "email", "emailVerified", "image"
+          FROM "User" WHERE "id" = ${id} LIMIT 1
+        `
+        return user[0] ?? null
+      }
     },
     getUserByEmail: async (email: string) => {
-      const user = await prisma.user.findUnique({ where: { email } })
-      return (user as AdapterUser) ?? null
+      try {
+        const user = await prisma.user.findUnique({ where: { email } })
+        return (user as AdapterUser) ?? null
+      } catch (error) {
+        logger.warn('[auth] getUserByEmail full select failed, using safe select:', error)
+        const user = await prisma.$queryRaw<AdapterUser[]>`
+          SELECT "id", "name", "email", "emailVerified", "image"
+          FROM "User" WHERE "email" = ${email} LIMIT 1
+        `
+        return user[0] ?? null
+      }
     },
     getUserByAccount: async (
       providerAccountId: Pick<AdapterAccount, 'provider' | 'providerAccountId'>

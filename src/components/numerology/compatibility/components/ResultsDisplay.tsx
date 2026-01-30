@@ -1,21 +1,29 @@
-"use client";
+'use client'
 
-import { motion } from 'framer-motion';
-import DOMPurify from 'dompurify';
-import CompatibilityFunInsights from '@/components/compatibility/fun-insights/CompatibilityFunInsights';
-import { getScoreColor, getScoreEmoji, getGrade } from '../scoreHelpers';
-import type { CompatibilityResult, Person, RelationshipType } from '../types';
-import styles from '../../CompatibilityAnalyzer.module.css';
+import { motion } from 'framer-motion'
+const sanitize = (
+  dirty: string,
+  config?: { ALLOWED_TAGS?: string[]; ALLOWED_ATTR?: string[] }
+): string => {
+  if (typeof window === 'undefined') return dirty
+
+  const DOMPurify = require('dompurify')
+  return String(DOMPurify.sanitize(dirty, config))
+}
+import CompatibilityFunInsights from '@/components/compatibility/fun-insights/CompatibilityFunInsights'
+import { getScoreColor, getScoreEmoji, getGrade } from '../scoreHelpers'
+import type { CompatibilityResult, Person, RelationshipType } from '../types'
+import styles from '../../CompatibilityAnalyzer.module.css'
 
 interface ResultsDisplayProps {
-  result: CompatibilityResult;
-  person1: Person;
-  person2: Person;
-  relationshipType: RelationshipType;
-  showAdvanced: boolean;
-  setShowAdvanced: (show: boolean) => void;
-  locale: string;
-  t: (key: string, fallback: string) => string;
+  result: CompatibilityResult
+  person1: Person
+  person2: Person
+  relationshipType: RelationshipType
+  showAdvanced: boolean
+  setShowAdvanced: (show: boolean) => void
+  locale: string
+  t: (key: string, fallback: string) => string
 }
 
 export default function ResultsDisplay({
@@ -28,7 +36,7 @@ export default function ResultsDisplay({
   locale,
   t,
 }: ResultsDisplayProps) {
-  const apiLocale = locale === 'ko' ? 'ko' : 'en';
+  const apiLocale = locale === 'ko' ? 'ko' : 'en'
 
   return (
     <motion.div
@@ -87,15 +95,15 @@ export default function ResultsDisplay({
           <div
             className={styles.interpretationText}
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(
+              __html: sanitize(
                 (result.aiInterpretation || result.interpretation || '')
                   .replace(/\n/g, '<br/>')
                   .replace(/##\s*(.+)/g, '<strong>$1</strong>'),
                 {
                   ALLOWED_TAGS: ['br', 'strong', 'em', 'p', 'ul', 'ol', 'li'],
-                  ALLOWED_ATTR: []
+                  ALLOWED_ATTR: [],
                 }
-              )
+              ),
             }}
           />
         </div>
@@ -109,7 +117,9 @@ export default function ResultsDisplay({
           </h4>
           <ul className={styles.detailList}>
             {result.pair_score.saju_details.map((detail, idx) => (
-              <li key={idx} className={styles.detailItem}>{detail}</li>
+              <li key={idx} className={styles.detailItem}>
+                {detail}
+              </li>
             ))}
           </ul>
         </div>
@@ -123,7 +133,9 @@ export default function ResultsDisplay({
           </h4>
           <ul className={styles.detailList}>
             {result.pair_score.astro_details.map((detail, idx) => (
-              <li key={idx} className={styles.detailItem}>{detail}</li>
+              <li key={idx} className={styles.detailItem}>
+                {detail}
+              </li>
             ))}
           </ul>
         </div>
@@ -137,7 +149,9 @@ export default function ResultsDisplay({
           </h4>
           <ul className={styles.detailList}>
             {result.pair_score.fusion_insights.map((insight, idx) => (
-              <li key={idx} className={styles.detailItem}>{insight}</li>
+              <li key={idx} className={styles.detailItem}>
+                {insight}
+              </li>
             ))}
           </ul>
         </div>
@@ -185,7 +199,9 @@ export default function ResultsDisplay({
           </h4>
           <ul className={styles.actionList}>
             {result.action_items.map((item, idx) => (
-              <li key={idx} className={styles.actionItem}>{item}</li>
+              <li key={idx} className={styles.actionItem}>
+                {item}
+              </li>
             ))}
           </ul>
         </div>
@@ -239,5 +255,5 @@ export default function ResultsDisplay({
         </>
       )}
     </motion.div>
-  );
+  )
 }

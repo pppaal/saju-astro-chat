@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth/authOptions"
-import { prisma } from "@/lib/db/prisma"
-import { logger } from '@/lib/logger';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/authOptions'
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/logger'
+import { HTTP_STATUS } from '@/lib/constants/http'
 
 type ServiceRecord = {
   id: string
@@ -21,15 +21,17 @@ type DailyHistory = {
 
 // Format destiny map summary based on theme
 function formatDestinyMapSummary(theme?: string | null): string {
-  if (!theme) {return "Destiny Map 분석을 이용했습니다"}
+  if (!theme) {
+    return 'Destiny Map 분석을 이용했습니다'
+  }
 
   const themeLabels: Record<string, string> = {
-    "focus_overall": "종합 운세",
-    "focus_love": "연애운",
-    "focus_career": "직장/사업운",
-    "focus_money": "재물운",
-    "focus_health": "건강운",
-    "dream": "꿈 해석",
+    focus_overall: '종합 운세',
+    focus_love: '연애운',
+    focus_career: '직장/사업운',
+    focus_money: '재물운',
+    focus_health: '건강운',
+    dream: '꿈 해석',
   }
 
   const label = themeLabels[theme] || theme
@@ -41,28 +43,46 @@ export async function GET(request: Request) {
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
     const userId = session.user.id
 
     // Parse pagination parameters
     const { searchParams } = new URL(request.url)
-    const limit = Math.min(Math.max(1, parseInt(searchParams.get("limit") || "30")), 100)
-    const offset = Math.max(0, parseInt(searchParams.get("offset") || "0"))
-    const service = searchParams.get("service") // Optional filter by service type
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '30')), 100)
+    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0'))
+    const service = searchParams.get('service') // Optional filter by service type
 
     // Calculate per-table limits (distribute evenly, with some tables getting less)
     // Total target: limit records, distributed across 9 tables
     const perTableLimit = Math.ceil(limit / 3) // Each major category gets 1/3
     const minorTableLimit = Math.ceil(limit / 6) // Minor tables get less
 
+    // Safe query helper: returns empty array if table doesn't exist yet
+    const safeQuery = <T>(promise: Promise<T[]>): Promise<T[]> =>
+      promise.catch((err) => {
+        logger.warn('[History] Query failed (table may not exist):', err?.message)
+        return [] as T[]
+      })
+
     // Fetch service records from different tables with reduced limits
-    const [readings, tarotReadings, consultations, interactions, dailyFortunes, calendarDates, icpResults, compatibilityResults, matrixReports, personalityResults] = await Promise.all([
+    const [
+      readings,
+      tarotReadings,
+      consultations,
+      interactions,
+      dailyFortunes,
+      calendarDates,
+      icpResults,
+      compatibilityResults,
+      matrixReports,
+      personalityResults,
+    ] = await Promise.all([
       // Readings (astrology, dream, etc.)
       prisma.reading.findMany({
         where: { userId },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: perTableLimit,
         skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
@@ -75,7 +95,7 @@ export async function GET(request: Request) {
       // Tarot readings (separate table with AI interpretation)
       prisma.tarotReading.findMany({
         where: { userId },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: perTableLimit,
         skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
@@ -89,7 +109,7 @@ export async function GET(request: Request) {
       // Consultation history
       prisma.consultationHistory.findMany({
         where: { userId },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: perTableLimit,
         skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
@@ -103,9 +123,9 @@ export async function GET(request: Request) {
       prisma.userInteraction.findMany({
         where: {
           userId,
-          type: { in: ["complete", "view"] } // Filter in query, not in memory
+          type: { in: ['complete', 'view'] }, // Filter in query, not in memory
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: minorTableLimit,
         skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
@@ -119,7 +139,7 @@ export async function GET(request: Request) {
       // Daily fortunes - keep small
       prisma.dailyFortune.findMany({
         where: { userId },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: Math.min(minorTableLimit, 14), // Max 2 weeks
         select: {
           id: true,
@@ -131,7 +151,7 @@ export async function GET(request: Request) {
       // Saved calendar dates
       prisma.savedCalendarDate.findMany({
         where: { userId },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: minorTableLimit,
         skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
@@ -145,7 +165,7 @@ export async function GET(request: Request) {
       // ICP results
       prisma.iCPResult.findMany({
         where: { userId },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: minorTableLimit,
         skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
@@ -158,7 +178,7 @@ export async function GET(request: Request) {
       // Compatibility results
       prisma.compatibilityResult.findMany({
         where: { userId },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: minorTableLimit,
         skip: offset > 0 ? Math.floor(offset / 9) : 0,
         select: {
@@ -169,28 +189,30 @@ export async function GET(request: Request) {
           person2Name: true,
         },
       }),
-      // Destiny Matrix reports
-      prisma.destinyMatrixReport.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: minorTableLimit,
-        skip: offset > 0 ? Math.floor(offset / 9) : 0,
-        select: {
-          id: true,
-          createdAt: true,
-          reportType: true,
-          period: true,
-          theme: true,
-          title: true,
-          summary: true,
-          overallScore: true,
-          grade: true,
-        },
-      }),
+      // Destiny Matrix reports (table may not exist yet in some environments)
+      safeQuery(
+        prisma.destinyMatrixReport.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+          take: minorTableLimit,
+          skip: offset > 0 ? Math.floor(offset / 9) : 0,
+          select: {
+            id: true,
+            createdAt: true,
+            reportType: true,
+            period: true,
+            theme: true,
+            title: true,
+            summary: true,
+            overallScore: true,
+            grade: true,
+          },
+        })
+      ),
       // Personality test results
       prisma.personalityResult.findMany({
         where: { userId },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: minorTableLimit,
         skip: offset > 0 ? Math.floor(offset / 10) : 0,
         select: {
@@ -206,88 +228,95 @@ export async function GET(request: Request) {
     const allRecords: ServiceRecord[] = [
       ...readings.map((r) => ({
         id: r.id,
-        date: r.createdAt.toISOString().split("T")[0],
+        date: r.createdAt.toISOString().split('T')[0],
         service: r.type,
         theme: undefined as string | undefined,
         summary: r.title || undefined,
-        type: "reading" as string,
+        type: 'reading' as string,
       })),
       ...tarotReadings.map((t) => ({
         id: t.id,
-        date: t.createdAt.toISOString().split("T")[0],
-        service: "tarot" as string,
+        date: t.createdAt.toISOString().split('T')[0],
+        service: 'tarot' as string,
         theme: (t.theme || undefined) as string | undefined,
-        summary: t.question || t.spreadTitle || "타로 리딩",
-        type: "tarot-reading" as string,
+        summary: t.question || t.spreadTitle || '타로 리딩',
+        type: 'tarot-reading' as string,
       })),
       ...consultations.map((c) => ({
         id: c.id,
-        date: c.createdAt.toISOString().split("T")[0],
-        service: c.theme === "dream" ? "dream"
-          : c.theme === "life-prediction-timing" ? "life-prediction-timing"
-          : c.theme === "life-prediction" ? "life-prediction"
-          : "destiny-map",
-        theme: c.theme === "dream" ? undefined : (c.theme || undefined),
-        summary: c.theme === "dream" ? (c.summary || "꿈 해석")
-          : c.theme?.startsWith("life-prediction") ? (c.summary || "인생 예측")
-          : formatDestinyMapSummary(c.theme),
-        type: "consultation",
+        date: c.createdAt.toISOString().split('T')[0],
+        service:
+          c.theme === 'dream'
+            ? 'dream'
+            : c.theme === 'life-prediction-timing'
+              ? 'life-prediction-timing'
+              : c.theme === 'life-prediction'
+                ? 'life-prediction'
+                : 'destiny-map',
+        theme: c.theme === 'dream' ? undefined : c.theme || undefined,
+        summary:
+          c.theme === 'dream'
+            ? c.summary || '꿈 해석'
+            : c.theme?.startsWith('life-prediction')
+              ? c.summary || '인생 예측'
+              : formatDestinyMapSummary(c.theme),
+        type: 'consultation',
       })),
       ...interactions.map((i) => ({
         id: i.id,
-        date: i.createdAt.toISOString().split("T")[0],
+        date: i.createdAt.toISOString().split('T')[0],
         service: i.service,
         theme: (i.theme || undefined) as string | undefined,
         summary: undefined as string | undefined,
-        type: "interaction",
+        type: 'interaction',
       })),
       ...dailyFortunes.map((f) => ({
         id: f.id,
         date: f.date,
-        service: "daily-fortune",
+        service: 'daily-fortune',
         theme: undefined,
         summary: `Overall score: ${f.overallScore}`,
-        type: "fortune",
+        type: 'fortune',
       })),
       ...calendarDates.map((c) => ({
         id: c.id,
         date: c.date,
-        service: "destiny-calendar",
-        theme: c.grade <= 2 ? "좋은 날" : c.grade === 4 ? "주의 날" : "보통 날",
-        summary: c.title || "저장된 날짜",
-        type: "calendar",
+        service: 'destiny-calendar',
+        theme: c.grade <= 2 ? '좋은 날' : c.grade === 4 ? '주의 날' : '보통 날',
+        summary: c.title || '저장된 날짜',
+        type: 'calendar',
       })),
       ...icpResults.map((i) => ({
         id: i.id,
-        date: i.createdAt.toISOString().split("T")[0],
-        service: "personality-icp",
+        date: i.createdAt.toISOString().split('T')[0],
+        service: 'personality-icp',
         theme: i.primaryStyle,
         summary: `${i.primaryStyle}${i.secondaryStyle ? ` / ${i.secondaryStyle}` : ''} 스타일`,
-        type: "icp-result",
+        type: 'icp-result',
       })),
       ...compatibilityResults.map((c) => ({
         id: c.id,
-        date: c.createdAt.toISOString().split("T")[0],
-        service: "personality-compatibility",
+        date: c.createdAt.toISOString().split('T')[0],
+        service: 'personality-compatibility',
         theme: undefined,
         summary: `${c.person1Name || 'Person 1'} & ${c.person2Name || 'Person 2'} - 궁합 ${c.crossSystemScore}점`,
-        type: "compatibility-result",
+        type: 'compatibility-result',
       })),
       ...matrixReports.map((m) => ({
         id: m.id,
-        date: m.createdAt.toISOString().split("T")[0],
-        service: "destiny-matrix",
-        theme: m.reportType === "timing" ? m.period : m.theme,
+        date: m.createdAt.toISOString().split('T')[0],
+        service: 'destiny-matrix',
+        theme: m.reportType === 'timing' ? m.period : m.theme,
         summary: m.summary || m.title || `${m.grade || ''} ${m.overallScore || ''}점`,
-        type: "destiny-matrix-report",
+        type: 'destiny-matrix-report',
       })),
       ...personalityResults.map((p) => ({
         id: p.id,
-        date: p.createdAt.toISOString().split("T")[0],
-        service: "personality",
+        date: p.createdAt.toISOString().split('T')[0],
+        service: 'personality',
         theme: p.typeCode,
         summary: `${p.personaName} (${p.typeCode})`,
-        type: "personality-result",
+        type: 'personality-result',
       })),
     ]
 
@@ -297,13 +326,16 @@ export async function GET(request: Request) {
       : allRecords
 
     // Group by date
-    const filteredByDate = filteredRecords.reduce((acc, record) => {
-      if (!acc[record.date]) {
-        acc[record.date] = []
-      }
-      acc[record.date].push(record)
-      return acc
-    }, {} as Record<string, ServiceRecord[]>)
+    const filteredByDate = filteredRecords.reduce(
+      (acc, record) => {
+        if (!acc[record.date]) {
+          acc[record.date] = []
+        }
+        acc[record.date].push(record)
+        return acc
+      },
+      {} as Record<string, ServiceRecord[]>
+    )
 
     // Convert to array and sort by date (newest first)
     const history: DailyHistory[] = Object.entries(filteredByDate)
@@ -329,7 +361,10 @@ export async function GET(request: Request) {
       },
     })
   } catch (error) {
-    logger.error("Error fetching history:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: HTTP_STATUS.SERVER_ERROR })
+    logger.error('Error fetching history:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: HTTP_STATUS.SERVER_ERROR }
+    )
   }
 }

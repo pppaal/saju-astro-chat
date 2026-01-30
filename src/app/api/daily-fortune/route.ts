@@ -116,20 +116,22 @@ export async function POST(request: Request) {
     // ========================================
     // 3️⃣ 알림 전송
     // ========================================
-    sendNotification(session.user.email, {
-      type: 'system',
-      title: "🌟 Today's Fortune Ready!",
-      message: `Overall: ${fortune.overall}점 | Love: ${fortune.love} | Career: ${fortune.career} | Wealth: ${fortune.wealth}`,
-      link: '/myjourney',
-    }).catch((err: unknown) => {
-      logger.warn('[Daily Fortune] Failed to send notification:', err)
-    })
+    if (session?.user?.email) {
+      sendNotification(session.user.email, {
+        type: 'system',
+        title: "Today's Fortune Ready!",
+        message: `Overall: ${fortune.overall} | Love: ${fortune.love} | Career: ${fortune.career} | Wealth: ${fortune.wealth}`,
+        link: '/myjourney',
+      }).catch((err: unknown) => {
+        logger.warn('[Daily Fortune] Failed to send notification:', err)
+      })
+    }
 
     // ========================================
     // 4️⃣ 이메일 전송 (선택)
     // ========================================
     let emailSent = false
-    if (sendEmail) {
+    if (sendEmail && session?.user?.email) {
       try {
         await sendFortuneEmail(session.user.email, fortune)
         emailSent = true

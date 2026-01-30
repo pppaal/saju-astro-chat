@@ -186,7 +186,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             'X-API-KEY': apiKey,
           },
           body: JSON.stringify(requestBody),
-          signal: AbortSignal.timeout(30000), // 30s timeout
+          signal: AbortSignal.timeout(55000), // 55s timeout (Vercel Hobby 60s limit)
         })
 
         if (!backendRes.ok) {
@@ -232,6 +232,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // 백엔드 연결 실패 시 에러 반환
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+    const isTimeout =
+      error instanceof Error &&
+      (error.name === 'AbortError' ||
+        error.name === 'TimeoutError' ||
+        errorMessage.includes('timeout'))
+    if (isTimeout) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '예측 서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.',
+          fallback: true,
+        },
+        { status: HTTP_STATUS.SERVICE_UNAVAILABLE }
+      )
+    }
 
     if (errorMessage.includes('ECONNREFUSED') || errorMessage.includes('fetch failed')) {
       return NextResponse.json(
