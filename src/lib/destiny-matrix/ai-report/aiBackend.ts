@@ -4,8 +4,17 @@
 import { logger } from '@/lib/logger'
 import type { AIPremiumReport } from './reportTypes'
 
-// 기본 타임아웃: 2분
-const DEFAULT_TIMEOUT = 120000
+// 기본 타임아웃: 9초 (Vercel Hobby 플랜 10초 제한 고려)
+const DEFAULT_TIMEOUT = 9000
+
+// 플랜별 AI 토큰 한도
+// 종합 리포트(10개 섹션 JSON)에는 최소 2500+ 토큰 필요
+const TOKEN_LIMITS_BY_PLAN = {
+  free: 3000,
+  starter: 4000,
+  pro: 6000,
+  premium: 8000,
+} as const
 
 interface AIBackendResponse<T> {
   sections: T
@@ -22,27 +31,36 @@ interface AIProvider {
   enabled: boolean
 }
 
+function isValidApiKey(key: string | undefined): boolean {
+  if (!key) return false
+  const trimmed = key.trim()
+  if (trimmed.length === 0) return false
+  // 플레이스홀더 값 거부
+  const placeholders = ['REPLACE_ME', 'your-api-key', 'sk-xxx', 'YOUR_KEY', 'TODO', 'CHANGE_ME']
+  return !placeholders.includes(trimmed)
+}
+
 const AI_PROVIDERS: AIProvider[] = [
   {
     name: 'openai',
     apiKey: process.env.OPENAI_API_KEY,
     endpoint: 'https://api.openai.com/v1/chat/completions',
-    model: process.env.FUSION_MODEL || 'gpt-4o',
-    enabled: true,
+    model: process.env.FUSION_MODEL || 'gpt-4o-mini',
+    enabled: isValidApiKey(process.env.OPENAI_API_KEY),
   },
   {
     name: 'replicate',
     apiKey: process.env.REPLICATE_API_KEY,
     endpoint: 'https://api.replicate.com/v1/predictions',
     model: 'meta/llama-2-70b-chat',
-    enabled: !!process.env.REPLICATE_API_KEY,
+    enabled: isValidApiKey(process.env.REPLICATE_API_KEY),
   },
   {
     name: 'together',
     apiKey: process.env.TOGETHER_API_KEY,
     endpoint: 'https://api.together.xyz/v1/chat/completions',
     model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
-    enabled: !!process.env.TOGETHER_API_KEY,
+    enabled: isValidApiKey(process.env.TOGETHER_API_KEY),
   },
 ]
 
@@ -52,9 +70,10 @@ const AI_PROVIDERS: AIProvider[] = [
 
 export async function callAIBackend(
   prompt: string,
-  lang: 'ko' | 'en'
+  lang: 'ko' | 'en',
+  options?: { userPlan?: keyof typeof TOKEN_LIMITS_BY_PLAN }
 ): Promise<AIBackendResponse<AIPremiumReport['sections']>> {
-  return callAIBackendGeneric<AIPremiumReport['sections']>(prompt, lang)
+  return callAIBackendGeneric<AIPremiumReport['sections']>(prompt, lang, options)
 }
 
 // ===========================
@@ -63,12 +82,17 @@ export async function callAIBackend(
 
 export async function callAIBackendGeneric<T>(
   prompt: string,
-  lang: 'ko' | 'en'
+  lang: 'ko' | 'en',
+  options?: { userPlan?: keyof typeof TOKEN_LIMITS_BY_PLAN }
 ): Promise<AIBackendResponse<T>> {
   const systemMessage =
     lang === 'ko'
       ? '당신은 전문 운명 분석가입니다. 사주와 점성술을 융합하여 깊이 있는 통찰을 제공합니다. 응답은 반드시 JSON 형식으로 작성해주세요.'
       : 'You are a professional destiny analyst. You provide deep insights by combining Eastern and Western astrology. Please respond in JSON format.'
+
+  // 플랜별 토큰 한도 결정 (비용 절감)
+  const userPlan = options?.userPlan || 'free'
+  const maxTokens = TOKEN_LIMITS_BY_PLAN[userPlan]
 
   // 활성화된 프로바이더만 필터링
   const enabledProviders = AI_PROVIDERS.filter((p) => p.enabled && p.apiKey)
@@ -83,13 +107,18 @@ export async function callAIBackendGeneric<T>(
 
   for (const provider of enabledProviders) {
     try {
-      logger.info(`[AI Backend] Trying ${provider.name}...`)
+      logger.info(`[AI Backend] Trying ${provider.name}...`, {
+        plan: userPlan,
+        maxTokens,
+      })
 
-      const result = await callProviderAPI<T>(provider, prompt, systemMessage)
+      const result = await callProviderAPI<T>(provider, prompt, systemMessage, maxTokens)
 
       logger.info(`[AI Backend] ${provider.name} succeeded`, {
         model: result.model,
         tokensUsed: result.tokensUsed,
+        plan: userPlan,
+        limit: maxTokens,
       })
 
       return result
@@ -114,7 +143,8 @@ export async function callAIBackendGeneric<T>(
 async function callProviderAPI<T>(
   provider: AIProvider,
   prompt: string,
-  systemMessage: string
+  systemMessage: string,
+  maxTokens: number
 ): Promise<AIBackendResponse<T>> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT)
@@ -122,12 +152,12 @@ async function callProviderAPI<T>(
   try {
     // OpenAI 호환 API 호출
     if (provider.name === 'openai' || provider.name === 'together') {
-      return await callOpenAICompatible<T>(provider, prompt, systemMessage, controller)
+      return await callOpenAICompatible<T>(provider, prompt, systemMessage, maxTokens, controller)
     }
 
     // Replicate API 호출 (다른 형식)
     if (provider.name === 'replicate') {
-      return await callReplicate<T>(provider, prompt, systemMessage, controller)
+      return await callReplicate<T>(provider, prompt, systemMessage, maxTokens, controller)
     }
 
     throw new Error(`Unsupported provider: ${provider.name}`)
@@ -141,6 +171,7 @@ async function callOpenAICompatible<T>(
   provider: AIProvider,
   prompt: string,
   systemMessage: string,
+  maxTokens: number,
   controller: AbortController
 ): Promise<AIBackendResponse<T>> {
   const response = await fetch(provider.endpoint, {
@@ -155,7 +186,7 @@ async function callOpenAICompatible<T>(
         { role: 'system', content: systemMessage },
         { role: 'user', content: prompt },
       ],
-      max_tokens: 4000,
+      max_tokens: maxTokens,
       temperature: 0.7,
     }),
     signal: controller.signal,
@@ -182,6 +213,7 @@ async function callReplicate<T>(
   provider: AIProvider,
   prompt: string,
   systemMessage: string,
+  maxTokens: number,
   controller: AbortController
 ): Promise<AIBackendResponse<T>> {
   // 1. 예측 생성
@@ -195,7 +227,7 @@ async function callReplicate<T>(
       version: provider.model,
       input: {
         prompt: `${systemMessage}\n\nUser: ${prompt}\nAssistant:`,
-        max_length: 4000,
+        max_length: maxTokens,
         temperature: 0.7,
       },
     }),
@@ -244,6 +276,10 @@ async function callReplicate<T>(
 
 // JSON 추출 헬퍼 함수
 function extractJSONFromResponse<T>(responseText: string): T {
+  if (!responseText || responseText.trim().length === 0) {
+    throw new Error('AI response is empty - API key may be invalid or token limit too low')
+  }
+
   try {
     // JSON 추출 (코드 블록 또는 순수 JSON)
     const jsonMatch =
@@ -251,14 +287,38 @@ function extractJSONFromResponse<T>(responseText: string): T {
 
     if (jsonMatch) {
       const jsonStr = jsonMatch[1] || jsonMatch[0]
-      return JSON.parse(jsonStr)
+      const parsed = JSON.parse(jsonStr)
+
+      // 빈 객체 체크 - 의미있는 데이터가 있는지 확인
+      if (typeof parsed === 'object' && Object.keys(parsed).length === 0) {
+        throw new Error(
+          'AI returned empty JSON - token limit may be too low for the requested report'
+        )
+      }
+
+      return parsed
     }
 
-    logger.warn('[AI Backend] No JSON found in response, using empty object')
-    return {} as T
+    logger.error('[AI Backend] No JSON found in response', {
+      responseLength: responseText.length,
+      responsePreview: responseText.slice(0, 200),
+    })
+    throw new Error(
+      'No JSON found in AI response - response may have been truncated due to token limit'
+    )
   } catch (parseError) {
-    logger.error('[AI Backend] Failed to parse JSON response', { error: parseError })
-    return {} as T
+    if (parseError instanceof SyntaxError) {
+      logger.error('[AI Backend] Failed to parse JSON response (likely truncated)', {
+        error: parseError.message,
+        responseLength: responseText.length,
+        responsePreview: responseText.slice(0, 200),
+        responseTail: responseText.slice(-100),
+      })
+      throw new Error(
+        'AI response JSON is malformed - likely truncated due to insufficient token limit'
+      )
+    }
+    throw parseError
   }
 }
 
