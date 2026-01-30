@@ -91,8 +91,11 @@ export function useMyJourneyData({
     }
   }, [status])
 
+  const fortuneRef = useRef(fortune)
+  fortuneRef.current = fortune
+
   const loadFortune = useCallback(async () => {
-    if (!profile.birthDate || fortune) {
+    if (!profile.birthDate || fortuneRef.current) {
       return
     }
     setFortuneLoading(true)
@@ -118,7 +121,7 @@ export function useMyJourneyData({
     } finally {
       setFortuneLoading(false)
     }
-  }, [profile.birthDate, profile.birthTime, fortune])
+  }, [profile.birthDate, profile.birthTime])
 
   const goBack = useCallback(() => {
     if (typeof window === 'undefined') {
@@ -164,6 +167,7 @@ export function useMyJourneyData({
         })
       }
       setFortune(null)
+      fortuneRef.current = null
     } catch (e) {
       logger.error('Failed to reload profile:', e)
     } finally {
@@ -198,6 +202,7 @@ export function useMyJourneyData({
         setEditedProfile({})
         // Reload fortune with new data
         setFortune(null)
+        fortuneRef.current = null
       } else {
         logger.error('Failed to save profile')
       }

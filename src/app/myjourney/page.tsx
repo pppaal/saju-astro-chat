@@ -13,24 +13,6 @@ import { ProfileCard } from './components/ProfileCard'
 import { ProfileEditor } from './components/ProfileEditor'
 import { FortuneCard } from './components/FortuneCard'
 import { RecentActivity } from './components/RecentActivity'
-import { SERVICE_ICONS, SERVICE_NAME_KEYS, _SERVICE_URLS } from './serviceConfig'
-
-const ALL_SERVICES = [
-  'saju',
-  'tarot',
-  'compatibility',
-  'destiny-map',
-  'destiny-calendar',
-  'astrology',
-  'dream',
-  'iching',
-  'numerology',
-  'life-prediction',
-  'personality',
-  'aura',
-  'destiny-matrix',
-  'destiny-pal',
-] as const
 
 export default function MyJourneyClient() {
   return (
@@ -161,27 +143,6 @@ function MyJourneyPage() {
             <span className={styles.quickMenuIcon}>{'\u2728'}</span>
             <span>{t('myjourney.menu.upgrade', 'Upgrade')}</span>
           </Link>
-        </div>
-
-        {/* All Services */}
-        <div className={styles.allServicesSection}>
-          <h3 className={styles.allServicesTitle}>
-            {t('myjourney.services.allTitle', 'All Services')}
-          </h3>
-          <div className={styles.allServicesGrid}>
-            {ALL_SERVICES.map((key) => (
-              <Link
-                key={key}
-                href={_SERVICE_URLS[key] || `/${key}`}
-                className={styles.allServiceItem}
-              >
-                <span className={styles.allServiceIcon}>{SERVICE_ICONS[key] || ''}</span>
-                <span className={styles.allServiceName}>
-                  {t(SERVICE_NAME_KEYS[key] || `myjourney.services.${key}`, key)}
-                </span>
-              </Link>
-            ))}
-          </div>
         </div>
 
         {/* Recent Activity */}
