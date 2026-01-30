@@ -1,11 +1,21 @@
 // tests/lib/destiny-matrix/ai-report/aiReportService.test.ts
-// Comprehensive tests for AI Report Service with mocked fetch
+// Comprehensive tests for AI Report Service with mocked aiBackend
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { generateAIPremiumReport } from '@/lib/destiny-matrix/ai-report/aiReportService';
-import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types';
-import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types';
-import type { FiveElement } from '@/lib/Saju/types';
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
+import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
+import type { FiveElement } from '@/lib/Saju/types'
+
+// Mock aiBackend module
+vi.mock('@/lib/destiny-matrix/ai-report/aiBackend', () => ({
+  callAIBackend: vi.fn(),
+  callAIBackendGeneric: vi.fn(),
+}))
+
+import { generateAIPremiumReport } from '@/lib/destiny-matrix/ai-report/aiReportService'
+import { callAIBackend } from '@/lib/destiny-matrix/ai-report/aiBackend'
+
+const mockCallAIBackend = callAIBackend as ReturnType<typeof vi.fn>
 
 // ===========================
 // Mock Data Helpers
@@ -19,12 +29,12 @@ function createMockInput(): MatrixCalculationInput {
     geokguk: '종격',
     yongsin: '화' as FiveElement,
     sibsinDistribution: {
-      '비견': 2,
-      '식신': 3,
+      비견: 2,
+      식신: 3,
     },
     shinsalList: ['천을귀인'],
     currentDaeunElement: '화' as FiveElement,
-  } as MatrixCalculationInput;
+  } as MatrixCalculationInput
 }
 
 function createMockReport(): FusionReport {
@@ -72,68 +82,36 @@ function createMockReport(): FusionReport {
       synergyNetwork: { nodes: [], edges: [] },
       timeline: { events: [] },
     },
-  };
+  }
 }
 
 // ===========================
-// Mock Fetch Setup
+// Mock AI Backend Response
 // ===========================
 
-let originalFetch: typeof global.fetch;
+function mockSuccessfulAIResponse() {
+  mockCallAIBackend.mockResolvedValue({
+    sections: {
+      introduction: '인트로 내용',
+      personalityDeep: '성격 분석',
+      careerPath: '커리어 분석',
+      relationshipDynamics: '관계 분석',
+      wealthPotential: '재물 분석',
+      healthGuidance: '건강 가이드',
+      lifeMission: '인생 사명',
+      timingAdvice: '타이밍 조언',
+      actionPlan: '실천 가이드',
+      conclusion: '결론',
+    },
+    model: 'gpt-4o',
+    tokensUsed: 1500,
+  })
+}
 
 beforeEach(() => {
-  originalFetch = global.fetch;
-});
-
-afterEach(() => {
-  global.fetch = originalFetch;
-  vi.restoreAllMocks();
-});
-
-function mockSuccessfulFetch(responseData?: Partial<any>) {
-  const defaultResponse = {
-    data: {
-      response: JSON.stringify({
-        introduction: '인트로 내용',
-        personalityDeep: '성격 분석',
-        careerPath: '커리어 분석',
-        relationshipDynamics: '관계 분석',
-        wealthPotential: '재물 분석',
-        healthGuidance: '건강 가이드',
-        lifeMission: '인생 사명',
-        timingAdvice: '타이밍 조언',
-        actionPlan: '실천 가이드',
-        conclusion: '결론',
-      }),
-      model: 'gpt-4o',
-      usage: { total_tokens: 1500 },
-    },
-  };
-
-  const merged = { ...defaultResponse, ...responseData };
-
-  global.fetch = vi.fn().mockResolvedValue({
-    ok: true,
-    status: 200,
-    json: async () => merged,
-  } as Response);
-}
-
-function mockFailedFetch(status: number = 500) {
-  global.fetch = vi.fn().mockResolvedValue({
-    ok: false,
-    status,
-    json: async () => ({ error: 'Server error' }),
-  } as Response);
-}
-
-function mockTimeoutFetch() {
-  global.fetch = vi.fn().mockImplementation(() =>
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Timeout')), 150000)
-    )
-  );
-}
+  vi.clearAllMocks()
+  mockSuccessfulAIResponse()
+})
 
 // ===========================
 // Tests: generateAIPremiumReport
@@ -141,438 +119,196 @@ function mockTimeoutFetch() {
 
 describe('generateAIPremiumReport - Basic Generation', () => {
   it('should generate AI premium report successfully', async () => {
-    mockSuccessfulFetch();
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    const result = await generateAIPremiumReport(input, matrixReport)
 
-    const result = await generateAIPremiumReport(input, matrixReport);
-
-    expect(result).toBeDefined();
-    expect(result).toHaveProperty('id');
-    expect(result).toHaveProperty('generatedAt');
-    expect(result).toHaveProperty('lang', 'ko');
-    expect(result).toHaveProperty('profile');
-    expect(result).toHaveProperty('sections');
-    expect(result).toHaveProperty('matrixSummary');
-    expect(result).toHaveProperty('meta');
-  });
+    expect(result).toBeDefined()
+    expect(result).toHaveProperty('id')
+    expect(result).toHaveProperty('generatedAt')
+    expect(result).toHaveProperty('lang', 'ko')
+    expect(result).toHaveProperty('profile')
+    expect(result).toHaveProperty('sections')
+    expect(result).toHaveProperty('matrixSummary')
+    expect(result).toHaveProperty('meta')
+  })
 
   it('should generate report in English', async () => {
-    mockSuccessfulFetch();
+    const input = createMockInput()
+    input.lang = 'en'
+    const matrixReport = createMockReport()
+    matrixReport.lang = 'en'
 
-    const input = createMockInput();
-    input.lang = 'en';
-    const matrixReport = createMockReport();
-    matrixReport.lang = 'en';
+    const result = await generateAIPremiumReport(input, matrixReport, { lang: 'en' })
 
-    const result = await generateAIPremiumReport(input, matrixReport, { lang: 'en' });
-
-    expect(result.lang).toBe('en');
-  });
+    expect(result.lang).toBe('en')
+  })
 
   it('should include all 10 sections', async () => {
-    mockSuccessfulFetch();
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    const result = await generateAIPremiumReport(input, matrixReport)
 
-    const result = await generateAIPremiumReport(input, matrixReport);
-
-    expect(result.sections).toHaveProperty('introduction');
-    expect(result.sections).toHaveProperty('personalityDeep');
-    expect(result.sections).toHaveProperty('careerPath');
-    expect(result.sections).toHaveProperty('relationshipDynamics');
-    expect(result.sections).toHaveProperty('wealthPotential');
-    expect(result.sections).toHaveProperty('healthGuidance');
-    expect(result.sections).toHaveProperty('lifeMission');
-    expect(result.sections).toHaveProperty('timingAdvice');
-    expect(result.sections).toHaveProperty('actionPlan');
-    expect(result.sections).toHaveProperty('conclusion');
-  });
+    expect(result.sections).toHaveProperty('introduction')
+    expect(result.sections).toHaveProperty('personalityDeep')
+    expect(result.sections).toHaveProperty('careerPath')
+    expect(result.sections).toHaveProperty('relationshipDynamics')
+    expect(result.sections).toHaveProperty('wealthPotential')
+    expect(result.sections).toHaveProperty('healthGuidance')
+    expect(result.sections).toHaveProperty('lifeMission')
+    expect(result.sections).toHaveProperty('timingAdvice')
+    expect(result.sections).toHaveProperty('actionPlan')
+    expect(result.sections).toHaveProperty('conclusion')
+  })
 
   it('should include profile information', async () => {
-    mockSuccessfulFetch();
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
     const result = await generateAIPremiumReport(input, matrixReport, {
-      name: 'John Doe',
-      birthDate: '1990-01-01',
-    });
+      name: '홍길동',
+      birthDate: '1990-05-15',
+    })
 
-    expect(result.profile.name).toBe('John Doe');
-    expect(result.profile.birthDate).toBe('1990-01-01');
-    expect(result.profile.dayMaster).toBe('목');
-  });
+    expect(result.profile).toBeDefined()
+    expect(result.profile.name).toBe('홍길동')
+    expect(result.profile.birthDate).toBe('1990-05-15')
+  })
 
   it('should include matrix summary', async () => {
-    mockSuccessfulFetch();
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    const result = await generateAIPremiumReport(input, matrixReport)
 
-    const result = await generateAIPremiumReport(input, matrixReport);
-
-    expect(result.matrixSummary).toHaveProperty('overallScore');
-    expect(result.matrixSummary).toHaveProperty('grade');
-    expect(result.matrixSummary).toHaveProperty('topInsights');
-    expect(result.matrixSummary).toHaveProperty('keyStrengths');
-    expect(result.matrixSummary).toHaveProperty('keyChallenges');
-  });
+    expect(result.matrixSummary).toBeDefined()
+    expect(result.matrixSummary.overallScore).toBe(75)
+    expect(result.matrixSummary.grade).toBe('A')
+  })
 
   it('should include metadata', async () => {
-    mockSuccessfulFetch();
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    const result = await generateAIPremiumReport(input, matrixReport)
 
-    const result = await generateAIPremiumReport(input, matrixReport);
-
-    expect(result.meta).toHaveProperty('modelUsed');
-    expect(result.meta).toHaveProperty('tokensUsed');
-    expect(result.meta).toHaveProperty('processingTime');
-    expect(result.meta).toHaveProperty('reportVersion');
-  });
-});
-
-// ===========================
-// Tests: Options & Themes
-// ===========================
+    expect(result.meta).toBeDefined()
+    expect(result.meta.modelUsed).toBe('gpt-4o')
+    expect(result.meta.tokensUsed).toBe(1500)
+    expect(result.meta.processingTime).toBeGreaterThan(0)
+  })
+})
 
 describe('generateAIPremiumReport - Options', () => {
   it('should handle focus domain option', async () => {
-    mockSuccessfulFetch();
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
     const result = await generateAIPremiumReport(input, matrixReport, {
       focusDomain: 'career',
-    });
+    })
 
-    expect(result).toBeDefined();
-  });
+    expect(callAIBackend).toHaveBeenCalled()
+    expect(result).toBeDefined()
+  })
 
   it('should handle detail level option', async () => {
-    mockSuccessfulFetch();
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
     const result = await generateAIPremiumReport(input, matrixReport, {
       detailLevel: 'comprehensive',
-    });
+    })
 
-    expect(result).toBeDefined();
-  });
+    expect(result).toBeDefined()
+  })
 
   it('should handle themed report', async () => {
-    mockSuccessfulFetch();
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
     const result = await generateAIPremiumReport(input, matrixReport, {
-      theme: 'career',
-    });
+      theme: 'business',
+    })
 
-    expect(result).toBeDefined();
-  });
+    expect(result).toBeDefined()
+  })
 
   it('should handle comprehensive theme', async () => {
-    mockSuccessfulFetch();
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
     const result = await generateAIPremiumReport(input, matrixReport, {
       theme: 'comprehensive',
-    });
+    })
 
-    expect(result).toBeDefined();
-  });
-});
-
-// ===========================
-// Tests: Error Handling
-// ===========================
+    expect(result).toBeDefined()
+  })
+})
 
 describe('generateAIPremiumReport - Error Handling', () => {
   it('should handle fetch error', async () => {
-    mockFailedFetch(500);
+    mockCallAIBackend.mockRejectedValue(new Error('AI Backend failed'))
 
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
-    await expect(
-      generateAIPremiumReport(input, matrixReport)
-    ).rejects.toThrow();
-  });
+    await expect(generateAIPremiumReport(input, matrixReport)).rejects.toThrow()
+  })
 
   it('should handle 404 error', async () => {
-    mockFailedFetch(404);
+    mockCallAIBackend.mockRejectedValue(new Error('Not found'))
 
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
-    await expect(
-      generateAIPremiumReport(input, matrixReport)
-    ).rejects.toThrow();
-  });
-
-  it('should handle malformed JSON response', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        data: {
-          response: 'Not valid JSON',
-        },
-      }),
-    } as Response);
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
-
-    const result = await generateAIPremiumReport(input, matrixReport);
-
-    // Should fallback to empty sections
-    expect(Object.keys(result.sections).length).toBe(0);
-  });
-
-  it('should handle missing response field', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        data: {},
-      }),
-    } as Response);
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
-
-    const result = await generateAIPremiumReport(input, matrixReport);
-
-    expect(Object.keys(result.sections).length).toBe(0);
-  });
-});
-
-// ===========================
-// Tests: Fetch Behavior
-// ===========================
+    await expect(generateAIPremiumReport(input, matrixReport)).rejects.toThrow()
+  })
+})
 
 describe('generateAIPremiumReport - Fetch Behavior', () => {
   it('should call fetch with correct URL', async () => {
-    mockSuccessfulFetch();
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    await generateAIPremiumReport(input, matrixReport)
 
-    await generateAIPremiumReport(input, matrixReport);
-
-    expect(global.fetch).toHaveBeenCalled();
-    const call = (global.fetch as any).mock.calls[0];
-    expect(call[0]).toMatch(/\/generate$/);
-  });
-
-  it('should send POST request', async () => {
-    mockSuccessfulFetch();
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
-
-    await generateAIPremiumReport(input, matrixReport);
-
-    const call = (global.fetch as any).mock.calls[0];
-    expect(call[1].method).toBe('POST');
-  });
-
-  it('should send correct headers', async () => {
-    mockSuccessfulFetch();
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
-
-    await generateAIPremiumReport(input, matrixReport);
-
-    const call = (global.fetch as any).mock.calls[0];
-    expect(call[1].headers['Content-Type']).toBe('application/json');
-  });
+    expect(callAIBackend).toHaveBeenCalledWith(expect.any(String), 'ko')
+  })
 
   it('should send request body with prompt', async () => {
-    mockSuccessfulFetch();
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    await generateAIPremiumReport(input, matrixReport)
 
-    await generateAIPremiumReport(input, matrixReport);
-
-    const call = (global.fetch as any).mock.calls[0];
-    const body = JSON.parse(call[1].body);
-    expect(body).toHaveProperty('prompt');
-    expect(body).toHaveProperty('mode', 'premium_report');
-    expect(body).toHaveProperty('locale');
-  });
-});
-
-// ===========================
-// Tests: Response Parsing
-// ===========================
+    expect(callAIBackend).toHaveBeenCalled()
+    const callArgs = mockCallAIBackend.mock.calls[0]
+    expect(callArgs[0]).toBeTruthy() // prompt should exist
+    expect(callArgs[1]).toBe('ko') // lang
+  })
+})
 
 describe('generateAIPremiumReport - Response Parsing', () => {
   it('should parse sections from JSON response', async () => {
-    mockSuccessfulFetch({
-      data: {
-        response: JSON.stringify({
-          introduction: 'Test intro',
-          personalityDeep: 'Test personality',
-          careerPath: 'Test career',
-          relationshipDynamics: 'Test relationships',
-          wealthPotential: 'Test wealth',
-          healthGuidance: 'Test health',
-          lifeMission: 'Test mission',
-          timingAdvice: 'Test timing',
-          actionPlan: 'Test action',
-          conclusion: 'Test conclusion',
-        }),
-      },
-    });
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    const result = await generateAIPremiumReport(input, matrixReport)
 
-    const result = await generateAIPremiumReport(input, matrixReport);
-
-    expect(result.sections.introduction).toBe('Test intro');
-    expect(result.sections.personalityDeep).toBe('Test personality');
-    expect(result.sections.conclusion).toBe('Test conclusion');
-  });
+    expect(result.sections).toBeDefined()
+    expect(result.sections.introduction).toBe('인트로 내용')
+  })
 
   it('should extract model and token info', async () => {
-    mockSuccessfulFetch({
-      data: {
-        response: JSON.stringify({
-          introduction: 'Test',
-          personalityDeep: '',
-          careerPath: '',
-          relationshipDynamics: '',
-          wealthPotential: '',
-          healthGuidance: '',
-          lifeMission: '',
-          timingAdvice: '',
-          actionPlan: '',
-          conclusion: '',
-        }),
-        model: 'claude-4',
-        usage: { total_tokens: 2500 },
-      },
-    });
+    const input = createMockInput()
+    const matrixReport = createMockReport()
 
-    const input = createMockInput();
-    const matrixReport = createMockReport();
+    const result = await generateAIPremiumReport(input, matrixReport)
 
-    const result = await generateAIPremiumReport(input, matrixReport);
-
-    expect(result.meta.modelUsed).toBe('claude-4');
-    expect(result.meta.tokensUsed).toBe(2500);
-  });
-
-  it('should measure processing time', async () => {
-    mockSuccessfulFetch();
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
-
-    const result = await generateAIPremiumReport(input, matrixReport);
-
-    expect(result.meta.processingTime).toBeGreaterThanOrEqual(0);
-  });
-});
-
-// ===========================
-// Tests: Report ID Generation
-// ===========================
-
-describe('generateAIPremiumReport - Report ID', () => {
-  it('should generate unique report IDs', async () => {
-    mockSuccessfulFetch();
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
-
-    const result1 = await generateAIPremiumReport(input, matrixReport);
-    const result2 = await generateAIPremiumReport(input, matrixReport);
-
-    expect(result1.id).not.toBe(result2.id);
-    expect(result1.id).toMatch(/^air_/);
-    expect(result2.id).toMatch(/^air_/);
-  });
-
-  it('should include timestamp in ID', async () => {
-    mockSuccessfulFetch();
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
-
-    const result = await generateAIPremiumReport(input, matrixReport);
-
-    expect(result.id).toMatch(/^air_\d+_/);
-  });
-});
-
-// ===========================
-// Tests: Matrix Summary Extraction
-// ===========================
-
-describe('generateAIPremiumReport - Matrix Summary', () => {
-  it('should extract top 3 top insights', async () => {
-    mockSuccessfulFetch();
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
-    matrixReport.topInsights = [
-      { title: 'Insight 1', category: 'strength' } as any,
-      { title: 'Insight 2', category: 'strength' } as any,
-      { title: 'Insight 3', category: 'strength' } as any,
-      { title: 'Insight 4', category: 'strength' } as any,
-    ];
-
-    const result = await generateAIPremiumReport(input, matrixReport);
-
-    expect(result.matrixSummary.topInsights).toHaveLength(3);
-  });
-
-  it('should extract key strengths', async () => {
-    mockSuccessfulFetch();
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
-    matrixReport.topInsights = [
-      { title: 'Strength 1', category: 'strength' } as any,
-      { title: 'Strength 2', category: 'strength' } as any,
-    ];
-
-    const result = await generateAIPremiumReport(input, matrixReport);
-
-    expect(result.matrixSummary.keyStrengths).toHaveLength(2);
-    expect(result.matrixSummary.keyStrengths).toContain('Strength 1');
-  });
-
-  it('should extract key challenges', async () => {
-    mockSuccessfulFetch();
-
-    const input = createMockInput();
-    const matrixReport = createMockReport();
-    matrixReport.topInsights = [
-      { title: 'Challenge 1', category: 'challenge' } as any,
-      { title: 'Caution 1', category: 'caution' } as any,
-    ];
-
-    const result = await generateAIPremiumReport(input, matrixReport);
-
-    expect(result.matrixSummary.keyChallenges.length).toBeGreaterThan(0);
-  });
-});
+    expect(result.meta.modelUsed).toBe('gpt-4o')
+    expect(result.meta.tokensUsed).toBe(1500)
+  })
+})

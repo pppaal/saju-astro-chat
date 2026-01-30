@@ -247,7 +247,7 @@ export async function POST(req: Request) {
   }
 }
 
-// GPT-4o API 호출 헬퍼 (최고 품질 모델)
+// GPT-4o-mini API 호출 헬퍼 (속도 최적화)
 async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -256,10 +256,10 @@ async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o', // gpt-4o-mini → gpt-4o 업그레이드
+      model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: maxTokens,
-      temperature: 0.75, // 창의성 약간 증가
+      temperature: 0.75,
     }),
   })
 
@@ -305,7 +305,7 @@ ${cardListText}
 ## 출력 형식 (JSON)
 다음 형식으로 JSON 응답해:
 {
-  "overall": "전체 메시지 (800-1200자). 마치 친한 언니/오빠가 카페에서 타로를 봐주듯, 진심 어린 이야기로 시작해요. 카드들이 전체적으로 그리는 큰 그림을 먼저 보여주고, 질문자의 현재 에너지와 앞으로의 흐름을 자연스럽게 풀어주세요. 마지막엔 '결론:'으로 핵심 메시지 정리.",
+  "overall": "전체 메시지 (800-1200자). 질문자의 현재 상황에 공감하며 따뜻하게 시작해요. 카드들이 전체적으로 그리는 큰 그림을 먼저 보여주고, 질문자의 현재 에너지와 앞으로의 흐름을 자연스럽게 풀어주세요. 마지막엔 '결론:'으로 핵심 메시지 정리.",
   "cards": [
     {"position": "위치명", "interpretation": "카드 해석 (700-1000자, 최소 12-15줄). 유튜브 타로 리더처럼 풍성하게:\n\n1) **카드 비주얼 묘사** (2-3줄): '이 카드를 보면요~' 하며 색깔, 인물의 표정, 배경 상징물을 생생하게 그려내요. 예: '여기 보이는 노란 옷을 입은 사람이...'\n\n2) **위치별 의미** (3-4줄): 이 위치(과거/현재/미래/장애물 등)에서 이 카드가 나온 게 왜 의미 있는지, 질문자의 상황과 어떻게 맞아떨어지는지 구체적으로 연결해요.\n\n3) **감정적 레이어** (2-3줄): 이 카드가 전하는 감정, 에너지, 분위기를 섬세하게 전달해요. '지금 이런 느낌 받고 계시죠?' 같은 공감의 언어로.\n\n4) **실용적 메시지** (3-4줄): 이 카드가 말하는 구체적인 조언. 무엇을 하면 좋을지, 무엇을 조심해야 할지, 어떤 마음가짐이 필요한지 실천 가능하게.\n\n5) **숨은 의미** (1-2줄): 역방향이나 카드 조합에서만 보이는 깊은 통찰, 숨겨진 기회나 경고."}
   ],
@@ -340,7 +340,7 @@ ${cardListText}
 ## Output Format (JSON)
 Respond in this JSON format:
 {
-  "overall": "Overall message (500-700 words). Like a close friend reading tarot at a coffee shop, start with genuine insight. Show the big picture these cards paint together, the querent's current energy, and the flow ahead. End with 'Conclusion:' summarizing the core message.",
+  "overall": "Overall message (500-700 words). Start with warm empathy for the querent's current situation. Show the big picture these cards paint together, the querent's current energy, and the flow ahead. End with 'Conclusion:' summarizing the core message.",
   "cards": [
     {"position": "Position name", "interpretation": "Card interpretation (450-600 words, at least 12-15 lines). Rich like YouTube tarot readers:\n\n1) **Visual Description** (2-3 lines): 'When I look at this card...' Paint colors, facial expressions, background symbols vividly. Ex: 'The figure in yellow robes...'\n\n2) **Position Meaning** (3-4 lines): Why this card appearing in this position (past/present/future/obstacle) matters, how it connects to the querent's situation specifically.\n\n3) **Emotional Layer** (2-3 lines): The feelings, energy, atmosphere this card conveys delicately. Use empathetic language like 'You might be feeling this...'\n\n4) **Practical Message** (3-4 lines): Specific advice from this card. What to do, what to watch out for, what mindset is needed - actionable.\n\n5) **Hidden Meaning** (1-2 lines): Deep insights only visible in reversals or card combinations, hidden opportunities or warnings."}
   ],
@@ -366,7 +366,7 @@ Respond in this JSON format:
 - Short readings: Each card minimum 450 words, make it rich!`
 
   try {
-    const result = await callGPT(unifiedPrompt, 8000) // 6000 → 8000 토큰으로 증가
+    const result = await callGPT(unifiedPrompt, 4000)
 
     // Parse JSON response
     const jsonMatch = result.match(/\{[\s\S]*\}/)

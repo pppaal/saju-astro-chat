@@ -141,3 +141,4 @@ UX-*.md
 score-check.js
 
 .vercel
+.env*.local

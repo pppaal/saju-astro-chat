@@ -139,7 +139,9 @@
   border: 1px solid rgba(139, 92, 246, 0.3);
   border-radius: 24px;
   padding: 32px 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(139, 92, 246, 0.1);
   animation: cardAppear 0.6s var(--cal-spring);
   position: relative;
 }
@@ -206,8 +208,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .icon {
@@ -216,7 +223,7 @@
 }
 
 .pageTitle {
-  font-family: var(--font-cinzel), ui-serif, Georgia, "Times New Roman", serif;
+  font-family: var(--font-cinzel), ui-serif, Georgia, 'Times New Roman', serif;
   font-size: 2rem;
   font-weight: 800;
   color: white;
@@ -382,7 +389,9 @@
 }
 
 @keyframes spinBtn {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Login Hint - Dream Style */
@@ -534,8 +543,8 @@
   color: rgba(255, 255, 255, 0.4);
 }
 
-.input[type="date"]::-webkit-calendar-picker-indicator,
-.input[type="time"]::-webkit-calendar-picker-indicator {
+.input[type='date']::-webkit-calendar-picker-indicator,
+.input[type='time']::-webkit-calendar-picker-indicator {
   filter: invert(1);
   cursor: pointer;
 }
@@ -845,7 +854,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ========== Calendar Main View ========== */
@@ -866,8 +877,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  flex-wrap: nowrap;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .headerTitleSection {
@@ -934,7 +945,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .editBirthBtn {
@@ -981,12 +995,7 @@
   animation: fadeInBadge 0.3s ease-out;
 }
 
-/* 헤더 액션 영역 */
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+/* 헤더 액션 영역 - 중복 제거됨, 위의 .headerActions 참조 */
 
 /* 캐시 인디케이터 - v7 UI/UX 개선 */
 .cacheIndicator {
@@ -1022,8 +1031,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 @keyframes fadeInBadge {
@@ -1042,6 +1056,21 @@
   gap: 8px;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
+}
+
+.summaryTotal {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cal-text-tertiary);
+  white-space: nowrap;
+}
+
+.badgeDivider {
+  width: 1px;
+  height: 20px;
+  background: rgba(139, 92, 246, 0.3);
+  flex-shrink: 0;
 }
 
 .summaryBadge {
@@ -1079,6 +1108,23 @@
   font-weight: 800;
   font-size: 16px;
   background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.normalBadge {
+  background: rgba(100, 116, 139, 0.12);
+  border-color: rgba(100, 116, 139, 0.3);
+}
+
+.normalBadge:hover {
+  background: rgba(100, 116, 139, 0.18);
+  border-color: rgba(100, 116, 139, 0.5);
+}
+
+.normalBadge .badgeCount {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1511,7 +1557,7 @@
 .filterBtn.active {
   background: linear-gradient(135deg, var(--cal-accent-primary), var(--cal-accent-secondary));
   border-color: transparent;
-  color: #FFFFFF;
+  color: #ffffff;
   box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
 }
 
@@ -1524,7 +1570,9 @@
   background: linear-gradient(145deg, #1e1e3a, #252550);
   border: 2px solid rgba(139, 92, 246, 0.3);
   border-radius: 24px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .weekdaysHeader {
@@ -1673,9 +1721,15 @@
 }
 
 @keyframes selectPop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.03); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .day.selected .dayNumber {
@@ -1685,7 +1739,9 @@
 /* Today + Selected - Both borders */
 .day.today.selected {
   border: 2px solid var(--cal-accent-red) !important;
-  box-shadow: 0 0 8px rgba(244, 63, 94, 0.3), 0 0 12px rgba(59, 130, 246, 0.3);
+  box-shadow:
+    0 0 8px rgba(244, 63, 94, 0.3),
+    0 0 12px rgba(59, 130, 246, 0.3);
 }
 
 /* Grade Indicators - Small dot below number */
@@ -1711,13 +1767,17 @@
 .day.dayGrade0 {
   background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 50%, #fbbf24 100%) !important;
   border-color: #fbbf24 !important;
-  box-shadow: 0 0 20px rgba(251, 191, 36, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
+  box-shadow:
+    0 0 20px rgba(251, 191, 36, 0.5),
+    0 0 40px rgba(139, 92, 246, 0.3);
 }
 
 .day.dayGrade0 .dayNumber {
   color: #fff9e6 !important;
   font-weight: 800;
-  text-shadow: 0 0 10px rgba(251, 191, 36, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow:
+    0 0 10px rgba(251, 191, 36, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Grade 1: 좋은 날 (~15%) - Bright Blue */
@@ -1775,7 +1835,9 @@
 .day.selected.dayGrade2,
 .day.selected.dayGrade3,
 .day.selected.dayGrade4 {
-  box-shadow: 0 0 0 2px var(--cal-accent-blue), 0 0 12px rgba(59, 130, 246, 0.4) !important;
+  box-shadow:
+    0 0 0 2px var(--cal-accent-blue),
+    0 0 12px rgba(59, 130, 246, 0.4) !important;
 }
 
 /* ========== Legend ========== */
@@ -1953,7 +2015,9 @@
   border-radius: 20px;
   overflow: hidden;
   animation: slideUp 0.3s var(--cal-spring);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 @keyframes slideUp {
@@ -2055,8 +2119,13 @@
 }
 
 @keyframes iconFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
 }
 
 .crossVerifiedText {
@@ -2166,7 +2235,7 @@
   width: 20px;
   height: 20px;
   background: var(--cal-accent-blue);
-  color: #FFFFFF;
+  color: #ffffff;
   border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
@@ -2201,7 +2270,7 @@
 
 .categoryTag.love {
   background: rgba(255, 45, 85, 0.15);
-  color: #FF2D55;
+  color: #ff2d55;
 }
 
 .categoryTag.health {
@@ -2242,15 +2311,15 @@
 }
 
 .scoreFill.high {
-  background: linear-gradient(90deg, var(--cal-grade-great), #4CD964);
+  background: linear-gradient(90deg, var(--cal-grade-great), #4cd964);
 }
 
 .scoreFill.medium {
-  background: linear-gradient(90deg, var(--cal-grade-celestial), #FFD700);
+  background: linear-gradient(90deg, var(--cal-grade-celestial), #ffd700);
 }
 
 .scoreFill.low {
-  background: linear-gradient(90deg, var(--cal-grade-bad), #FF6B6B);
+  background: linear-gradient(90deg, var(--cal-grade-bad), #ff6b6b);
 }
 
 .scoreText {
@@ -2370,7 +2439,7 @@
   width: 20px;
   height: 20px;
   background: var(--cal-grade-great);
-  color: #FFFFFF;
+  color: #ffffff;
   border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
@@ -2451,8 +2520,13 @@
 }
 
 @keyframes urgentPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.85; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
 }
 
 .urgentWarningHeader {
@@ -2468,9 +2542,16 @@
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-2px); }
-  75% { transform: translateX(2px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
 }
 
 .urgentWarningTitle {
@@ -2629,22 +2710,38 @@
 
 .highlightCard.grade1 {
   border-color: rgba(59, 130, 246, 0.5);
-  background: linear-gradient(145deg, rgba(30, 30, 50, 0.8), rgba(30, 60, 120, 0.2)); /* 좋음 - 파랑 */
+  background: linear-gradient(
+    145deg,
+    rgba(30, 30, 50, 0.8),
+    rgba(30, 60, 120, 0.2)
+  ); /* 좋음 - 파랑 */
 }
 
 .highlightCard.grade2 {
   border-color: rgba(100, 116, 139, 0.5);
-  background: linear-gradient(145deg, rgba(30, 30, 50, 0.8), rgba(50, 50, 70, 0.2)); /* 보통 - 회색 */
+  background: linear-gradient(
+    145deg,
+    rgba(30, 30, 50, 0.8),
+    rgba(50, 50, 70, 0.2)
+  ); /* 보통 - 회색 */
 }
 
 .highlightCard.grade3 {
   border-color: rgba(249, 115, 22, 0.5);
-  background: linear-gradient(145deg, rgba(30, 30, 50, 0.8), rgba(120, 50, 20, 0.2)); /* 안좋음 - 주황 */
+  background: linear-gradient(
+    145deg,
+    rgba(30, 30, 50, 0.8),
+    rgba(120, 50, 20, 0.2)
+  ); /* 안좋음 - 주황 */
 }
 
 .highlightCard.grade4 {
   border-color: rgba(220, 38, 38, 0.5);
-  background: linear-gradient(145deg, rgba(30, 30, 50, 0.8), rgba(100, 20, 20, 0.2)); /* 최악 - 빨강 */
+  background: linear-gradient(
+    145deg,
+    rgba(30, 30, 50, 0.8),
+    rgba(100, 20, 20, 0.2)
+  ); /* 최악 - 빨강 */
 }
 
 .highlightHeader {
@@ -2764,7 +2861,7 @@
   background: var(--cal-accent-blue);
   border: none;
   border-radius: 12px;
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -2943,7 +3040,7 @@
   background: var(--cal-accent-blue);
   border: none;
   border-radius: 14px;
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -3026,7 +3123,7 @@
   background: var(--cal-accent-blue);
   border: none;
   border-radius: 12px;
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -3359,7 +3456,7 @@
 }
 
 .loadProfileButton::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: -100%;
