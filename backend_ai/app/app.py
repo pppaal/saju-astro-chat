@@ -325,6 +325,26 @@ except ImportError:
     HAS_ICP = False
     print("[app.py] ICP not available")
 
+# ---------------------------------------------------------------------------
+# Shared event loop for async operations in Flask sync context
+# ---------------------------------------------------------------------------
+import asyncio
+import threading
+
+_ASYNC_LOOP = None
+_ASYNC_LOOP_LOCK = threading.Lock()
+
+def _get_shared_loop():
+    """Get or create a shared event loop running on a background thread."""
+    global _ASYNC_LOOP
+    if _ASYNC_LOOP is None or _ASYNC_LOOP.is_closed():
+        with _ASYNC_LOOP_LOCK:
+            if _ASYNC_LOOP is None or _ASYNC_LOOP.is_closed():
+                _ASYNC_LOOP = asyncio.new_event_loop()
+                t = threading.Thread(target=_ASYNC_LOOP.run_forever, daemon=True)
+                t.start()
+    return _ASYNC_LOOP
+
 # Flask Application
 app = Flask(__name__)
 
@@ -498,52 +518,24 @@ def prefetch_all_rag_data(saju_data: dict, astro_data: dict, theme: str = "chat"
     - Connection pooling
     - Circuit breaker for resilience
 
+    Async coroutines are dispatched to a shared background event loop
+    via asyncio.run_coroutine_threadsafe(), avoiding the overhead of
+    creating and destroying a new event loop on every request.
+
     Returns:
         Dict with all pre-fetched RAG data
     """
-    import asyncio
-
-    # Use OptimizedRAGManager for better performance
     try:
         from backend_ai.app.rag.optimized_manager import fetch_all_rag_data_optimized
-
-        # Check if we're already in an event loop
-        try:
-            loop = asyncio.get_running_loop()
-            # We're in an async context - this shouldn't happen in Flask
-            # but handle gracefully
-            logger.warning("[PREFETCH] Called from async context - creating new loop")
-            new_loop = asyncio.new_event_loop()
-            try:
-                result = new_loop.run_until_complete(
-                    fetch_all_rag_data_optimized(saju_data, astro_data, theme, locale)
-                )
-            finally:
-                new_loop.close()
-            return result
-        except RuntimeError:
-            # No event loop running - safe to use asyncio.run()
-            return asyncio.run(
-                fetch_all_rag_data_optimized(saju_data, astro_data, theme, locale)
-            )
-
+        coro = fetch_all_rag_data_optimized(saju_data, astro_data, theme, locale)
     except ImportError:
-        # Fallback to old rag_manager if optimized not available
         logger.warning("[PREFETCH] OptimizedRAGManager not available, using fallback")
         from backend_ai.app.rag_manager import prefetch_all_rag_data_async
+        coro = prefetch_all_rag_data_async(saju_data, astro_data, theme, locale)
 
-        try:
-            loop = asyncio.get_running_loop()
-            new_loop = asyncio.new_event_loop()
-            try:
-                result = new_loop.run_until_complete(
-                    prefetch_all_rag_data_async(saju_data, astro_data, theme, locale)
-                )
-            finally:
-                new_loop.close()
-            return result
-        except RuntimeError:
-            return asyncio.run(prefetch_all_rag_data_async(saju_data, astro_data, theme, locale))
+    loop = _get_shared_loop()
+    future = asyncio.run_coroutine_threadsafe(coro, loop)
+    return future.result(timeout=15)
 
 # get_session_rag_cache and set_session_rag_cache are imported from cache_service
 
@@ -563,7 +555,7 @@ if os.getenv("WARMUP_ON_START", "").lower() in ("1", "true", "yes"):
 # AUTH + RATE LIMITING - Using Redis-backed service
 # ===============================================================
 ADMIN_TOKEN = os.getenv("ADMIN_API_TOKEN")
-UNPROTECTED_PATHS = {"/", "/health", "/health/full", "/counselor/init", "/api/destiny-story/generate-stream"}
+UNPROTECTED_PATHS = {"/", "/health", "/health/full", "/counselor/init", "/api/destiny-story/generate-stream", "/api/counseling/crisis-check"}
 
 # Import Redis-backed rate limiting service
 from backend_ai.app.services.rate_limit_service import check_rate_limit

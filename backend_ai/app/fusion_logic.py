@@ -23,12 +23,23 @@ from backend_ai.app.rule_engine import RuleEngine
 from backend_ai.app.sanitizer import is_suspicious_input, sanitize_user_input, validate_birth_data
 from backend_ai.app.signal_extractor import extract_signals, summarize_cross_signals, summarize_signals
 
+# Token counting utility
+try:
+    import tiktoken
+    _TIKTOKEN_ENC = tiktoken.encoding_for_model("gpt-4")
+    def _count_tokens(text: str) -> int:
+        return len(_TIKTOKEN_ENC.encode(text))
+except Exception:
+    def _count_tokens(text: str) -> int:
+        # Rough estimate: Korean ~1.5 chars/token, English ~4 chars/token
+        return max(1, len(text) // 3)
+
 # ===============================================================
 # CONSTANTS
 # ===============================================================
 _CACHE_VERSION = "v6"  # Personalized daeun meanings, remove keywords, filter 4-5 stars
-_PARALLEL_MAX_WORKERS = 8
-_PARALLEL_TASK_TIMEOUT = 5  # seconds
+_PARALLEL_MAX_WORKERS = 4
+_PARALLEL_TASK_TIMEOUT = 10  # seconds
 _MAX_STRUCTURED_PROMPT_LENGTH = 50000
 _MAX_CONTEXT_STORAGE = 2000
 _DEFAULT_AVG_LEN = 4800
@@ -838,6 +849,15 @@ def _build_full_context(
         f"{rlhf_fewshot_context}"
         f"{agentic_context}"
     )
+
+    # Token budget: truncate context if it exceeds model input limits
+    _MAX_CONTEXT_TOKENS = 12000  # Reserve ~4000 for system prompt + output
+    ctx_tokens = _count_tokens(base_context)
+    if ctx_tokens > _MAX_CONTEXT_TOKENS:
+        # Truncate from the end (less critical sections like agentic_context, rlhf)
+        ratio = _MAX_CONTEXT_TOKENS / ctx_tokens
+        max_chars = int(len(base_context) * ratio * 0.95)  # 5% safety margin
+        base_context = base_context[:max_chars] + "\n[...context truncated for token budget...]"
 
     return base_context, saju_text, astro_text, tarot_text, cross_summary
 

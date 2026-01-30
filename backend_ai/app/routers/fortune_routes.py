@@ -251,7 +251,7 @@ def fortune_score():
 
     except Exception as e:
         logger.exception(f"[ERROR] /api/fortune/score failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "서버 처리 중 오류가 발생했습니다."}), 500
 
 
 @fortune_bp.route('/score/breakdown', methods=['POST'])
@@ -306,7 +306,7 @@ def fortune_score_breakdown():
 
     except Exception as e:
         logger.exception(f"[ERROR] /api/fortune/score/breakdown failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "서버 처리 중 오류가 발생했습니다."}), 500
 
 
 @fortune_bp.route('/daily', methods=['POST'])
@@ -574,4 +574,4 @@ def fortune_daily():
 
     except Exception as e:
         logger.exception(f"[ERROR] /api/fortune/daily failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "서버 처리 중 오류가 발생했습니다."}), 500

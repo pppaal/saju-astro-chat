@@ -525,16 +525,18 @@ class StreamingService:
                     for chunk in stream:
                         if not chunk.choices or not chunk.choices[0].delta.content:
                             continue
-                        full_text += chunk.choices[0].delta.content
+                        token = chunk.choices[0].delta.content
+                        full_text += token
+                        yield _to_sse_event(token)
 
-                    # Post-processing
+                    # Post-processing: send as final events
                     full_text = _ensure_ko_prefix(full_text, locale)
 
                     if full_text.strip().startswith("[ERROR]") or not full_text.strip():
                         yield "data: [DONE]\n\n"
                         return
 
-                    # Add missing requirements addendum
+                    # Build addendum
                     addendum = _build_missing_requirements_addendum(
                         full_text,
                         locale,
@@ -543,36 +545,25 @@ class StreamingService:
                         today_date,
                     )
                     if addendum:
-                        full_text = _insert_addendum(full_text, addendum)
+                        yield _to_sse_event(f"\n\n{addendum}")
 
                     # Add RAG debug info
-                    debug_addendum = _build_rag_debug_addendum(rag_meta, locale) if debug_rag else ""
-                    if debug_addendum:
-                        sep = "\n\n" if full_text else ""
-                        full_text = f"{full_text}{sep}{debug_addendum}"
-
-                    # Format Korean spacing
-                    full_text = _format_korean_spacing(full_text)
-                    if debug_rag and full_text:
-                        full_text = full_text.rstrip() + "\n"
+                    if debug_rag:
+                        debug_addendum = _build_rag_debug_addendum(rag_meta, locale)
+                        if debug_addendum:
+                            yield _to_sse_event(f"\n\n{debug_addendum}")
 
                     # Add follow-up question if missing
                     if locale == "ko" and not full_text.rstrip().endswith("?"):
-                        followup = "혹시 지금 가장 궁금한 포인트가 뭐예요?"
-                        separator = "" if (full_text.endswith((" ", "\n", "\t")) or not full_text) else " "
-                        full_text += f"{separator}{followup}"
-
-                    # Stream in chunks
-                    chunk_size = _get_stream_chunk_size()
-                    for piece in _chunk_text(full_text, chunk_size):
-                        yield _to_sse_event(piece)
+                        followup = " 혹시 지금 가장 궁금한 포인트가 뭐예요?"
+                        yield _to_sse_event(followup)
 
                     # Signal end of stream
                     yield "data: [DONE]\n\n"
 
                 except Exception as e:
                     logger.error(f"[StreamingService] Streaming error: {e}")
-                    yield f"data: [ERROR] {str(e)}\n\n"
+                    yield "data: [ERROR] 일시적인 오류가 발생했습니다.\n\n"
 
             return Response(
                 stream_with_context(generate()),

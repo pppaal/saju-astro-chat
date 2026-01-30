@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from threading import Lock, RLock
 from typing import Dict, List, Optional, Any, Tuple
-from collections import OrderedDict
+from collections import OrderedDict, deque
 
 logger = logging.getLogger(__name__)
 
@@ -169,6 +169,7 @@ class RAGSystemLoader:
 
         self._initialized = False
         self._lock = Lock()
+        self._init_lock = Lock()
 
         # Availability flags
         self.has_graph_rag = False
@@ -261,51 +262,61 @@ class RAGSystemLoader:
     def get_graph_rag(self):
         """Get GraphRAG instance."""
         if self._graph_rag is None and self.has_graph_rag:
-            try:
-                from backend_ai.app.loaders import get_graph_rag
-                self._graph_rag = get_graph_rag()
-            except ImportError:
-                logger.warning("[RAGLoader] Could not import get_graph_rag")
+            with self._init_lock:
+                if self._graph_rag is None and self.has_graph_rag:
+                    try:
+                        from backend_ai.app.loaders import get_graph_rag
+                        self._graph_rag = get_graph_rag()
+                    except ImportError:
+                        logger.warning("[RAGLoader] Could not import get_graph_rag")
         return self._graph_rag
 
     def get_corpus_rag(self):
         """Get CorpusRAG instance."""
         if self._corpus_rag is None and self.has_corpus_rag:
-            try:
-                from backend_ai.app.loaders import get_corpus_rag
-                self._corpus_rag = get_corpus_rag()
-            except ImportError:
-                logger.warning("[RAGLoader] Could not import get_corpus_rag")
+            with self._init_lock:
+                if self._corpus_rag is None and self.has_corpus_rag:
+                    try:
+                        from backend_ai.app.loaders import get_corpus_rag
+                        self._corpus_rag = get_corpus_rag()
+                    except ImportError:
+                        logger.warning("[RAGLoader] Could not import get_corpus_rag")
         return self._corpus_rag
 
     def get_persona_rag(self):
         """Get PersonaEmbedRAG instance."""
         if self._persona_rag is None and self.has_persona_rag:
-            try:
-                from backend_ai.app.loaders import get_persona_embed_rag
-                self._persona_rag = get_persona_embed_rag()
-            except ImportError:
-                logger.warning("[RAGLoader] Could not import get_persona_embed_rag")
+            with self._init_lock:
+                if self._persona_rag is None and self.has_persona_rag:
+                    try:
+                        from backend_ai.app.loaders import get_persona_embed_rag
+                        self._persona_rag = get_persona_embed_rag()
+                    except ImportError:
+                        logger.warning("[RAGLoader] Could not import get_persona_embed_rag")
         return self._persona_rag
 
     def get_domain_rag(self):
         """Get DomainRAG instance."""
         if self._domain_rag is None and self.has_domain_rag:
-            try:
-                from backend_ai.app.loaders import get_domain_rag
-                self._domain_rag = get_domain_rag()
-            except ImportError:
-                logger.warning("[RAGLoader] Could not import get_domain_rag")
+            with self._init_lock:
+                if self._domain_rag is None and self.has_domain_rag:
+                    try:
+                        from backend_ai.app.loaders import get_domain_rag
+                        self._domain_rag = get_domain_rag()
+                    except ImportError:
+                        logger.warning("[RAGLoader] Could not import get_domain_rag")
         return self._domain_rag
 
     def get_chart_service(self):
         """Get ChartService instance."""
         if self._chart_service is None:
-            try:
-                from backend_ai.services.chart_service import ChartService
-                self._chart_service = ChartService()
-            except ImportError:
-                logger.warning("[RAGLoader] Could not import ChartService")
+            with self._init_lock:
+                if self._chart_service is None:
+                    try:
+                        from backend_ai.services.chart_service import ChartService
+                        self._chart_service = ChartService()
+                    except ImportError:
+                        logger.warning("[RAGLoader] Could not import ChartService")
         return self._chart_service
 
 
@@ -352,7 +363,7 @@ class OptimizedRAGManager:
         self._metrics_lock = Lock()
         self._total_requests = 0
         self._cache_hits = 0
-        self._timings: List[float] = []
+        self._timings: deque = deque(maxlen=100)
 
         self._warmed_up = False
         logger.info("[OptimizedRAGManager] Initialized")
@@ -478,8 +489,6 @@ class OptimizedRAGManager:
         with self._metrics_lock:
             self._total_requests += 1
             self._timings.append(elapsed_ms)
-            if len(self._timings) > 100:
-                self._timings = self._timings[-100:]
 
         # Log performance
         status = "OK" if elapsed_ms < self.config.target_p95_ms else "SLOW"
@@ -504,7 +513,7 @@ class OptimizedRAGManager:
         locale: str
     ) -> dict:
         """Execute all RAG fetches in parallel."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         # Create tasks for enabled RAG systems
         tasks = []
@@ -550,10 +559,15 @@ class OptimizedRAGManager:
             )
             task_names.append("domain")
 
-        # Cross-analysis is CPU-only, no executor needed
+        # Cross-analysis via executor to avoid blocking the event loop
         if self.config.enable_cross_analysis:
             async def _cross_wrapper():
-                return self._fetch_cross_analysis(saju_data, astro_data, theme, locale)
+                loop = asyncio.get_running_loop()
+                return await loop.run_in_executor(
+                    self.executor,
+                    self._fetch_cross_analysis,
+                    saju_data, astro_data, theme, locale
+                )
             tasks.append(_cross_wrapper())
             task_names.append("cross")
 

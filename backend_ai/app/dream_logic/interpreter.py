@@ -12,14 +12,11 @@ from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, Any
 
-try:
-    from backend_ai.app.redis_cache import get_cache
-    from backend_ai.app.dream import get_dream_rule_engine
-    from backend_ai.app.sanitizer import sanitize_dream_text, is_suspicious_input
-except ImportError:
-    from backend_ai.app.redis_cache import get_cache
-    from backend_ai.app.dream import get_dream_rule_engine
-    from backend_ai.app.sanitizer import sanitize_dream_text, is_suspicious_input
+from backend_ai.app.redis_cache import get_cache
+from backend_ai.app.dream import get_dream_rule_engine
+from backend_ai.app.sanitizer import sanitize_dream_text, is_suspicious_input
+
+load_dotenv()
 
 from .prompt_builder import build_dream_prompt
 from .utils import (
@@ -39,10 +36,7 @@ def _get_dream_embed_rag():
     """Lazy wrapper for dream_embeddings.get_dream_embed_rag."""
     global _dream_embed_rag
     if _dream_embed_rag is None:
-        try:
-            from backend_ai.app.dream_embeddings import get_dream_embed_rag as _get_rag
-        except ImportError:
-            from backend_ai.app.dream_embeddings import get_dream_embed_rag as _get_rag
+        from backend_ai.app.dream_embeddings import get_dream_embed_rag as _get_rag
         _dream_embed_rag = _get_rag()
     return _dream_embed_rag
 
@@ -243,8 +237,6 @@ def interpret_dream(facts: dict) -> dict:
         "birth": {...} optional
     }
     """
-    load_dotenv()
-
     try:
         # Check cache first
         cache = get_cache()
@@ -394,6 +386,5 @@ def interpret_dream(facts: dict) -> dict:
         traceback.print_exc()
         return {
             "status": "error",
-            "message": str(e),
-            "trace": traceback.format_exc()
+            "message": "꿈 해석 중 오류가 발생했습니다."
         }

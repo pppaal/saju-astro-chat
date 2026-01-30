@@ -13,11 +13,9 @@ Uses RRF (Reciprocal Rank Fusion) to combine results.
 
 import os
 import json
-import math
 import hashlib
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
-from functools import lru_cache
 from collections import defaultdict
 
 import torch
@@ -31,10 +29,7 @@ except ImportError:
     HAS_BM25 = False
     print("[HybridRAG] rank_bm25 not installed, using fallback keyword search")
 
-try:
-    from backend_ai.app.saju_astro_rag import get_model, embed_text, search_graphs, get_graph_rag
-except ImportError:
-    from backend_ai.app.saju_astro_rag import get_model, embed_text, search_graphs, get_graph_rag
+from backend_ai.app.saju_astro_rag import get_model, embed_text, search_graphs, get_graph_rag
 
 
 # ===============================================================

@@ -56,12 +56,13 @@ def _get_crisis_detector():
 
 
 def _get_openai_client():
-    """Get OpenAI client."""
+    """Get shared OpenAI client."""
     global _openai_client, OPENAI_AVAILABLE
     if _openai_client is None:
         try:
-            from openai import OpenAI
-            _openai_client = OpenAI()
+            from backend_ai.app.app import openai_client
+            _openai_client = openai_client
+            OPENAI_AVAILABLE = _openai_client is not None
         except Exception:
             OPENAI_AVAILABLE = False
             return None
@@ -423,8 +424,9 @@ def counseling_session_summary():
         openai_client = _get_openai_client()
         if OPENAI_AVAILABLE and openai_client:
             try:
+                from backend_ai.app.sanitizer import sanitize_dream_text as _sanitize_text
                 conv_text = "\n".join([
-                    f"{'사용자' if m['role'] == 'user' else '상담사'}: {m['content'][:300]}"
+                    f"{'사용자' if m['role'] == 'user' else '상담사'}: {_sanitize_text(m.get('content', '')[:300])}"
                     for m in messages[-10:]
                 ])
 

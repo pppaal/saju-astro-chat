@@ -16,6 +16,7 @@ Key features:
 
 import asyncio
 import logging
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Optional, Any
@@ -28,17 +29,20 @@ logger = logging.getLogger(__name__)
 # Global thread pool for model inference (limited to prevent OOM)
 _EXECUTOR = None
 _EXECUTOR_MAX_WORKERS = 4  # Balance between parallelism and memory usage
+_EXECUTOR_LOCK = threading.Lock()
 
 
 def get_executor() -> ThreadPoolExecutor:
     """Get or create thread pool executor for RAG operations."""
     global _EXECUTOR
     if _EXECUTOR is None:
-        _EXECUTOR = ThreadPoolExecutor(
-            max_workers=_EXECUTOR_MAX_WORKERS,
-            thread_name_prefix="rag_worker"
-        )
-        logger.info(f"[RAGManager] ThreadPoolExecutor created with {_EXECUTOR_MAX_WORKERS} workers")
+        with _EXECUTOR_LOCK:
+            if _EXECUTOR is None:
+                _EXECUTOR = ThreadPoolExecutor(
+                    max_workers=_EXECUTOR_MAX_WORKERS,
+                    thread_name_prefix="rag_worker"
+                )
+                logger.info(f"[RAGManager] ThreadPoolExecutor created with {_EXECUTOR_MAX_WORKERS} workers")
     return _EXECUTOR
 
 
@@ -215,7 +219,7 @@ class ThreadSafeRAGManager:
     async def _fetch_graph_rag(self, facts: dict, theme: str) -> dict:
         """Fetch GraphRAG data in thread-safe manner."""
         with PerformanceTimer("rag_graph_fetch", log=False) as timer:
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(
                 self.executor,
                 self._fetch_graph_rag_sync,
@@ -256,7 +260,7 @@ class ThreadSafeRAGManager:
     ) -> List[dict]:
         """Fetch CorpusRAG (Jung quotes) in thread-safe manner."""
         with PerformanceTimer("rag_corpus_fetch", log=False) as timer:
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(
                 self.executor,
                 self._fetch_corpus_rag_sync,
@@ -329,7 +333,7 @@ class ThreadSafeRAGManager:
     async def _fetch_persona_rag(self, query: str) -> dict:
         """Fetch PersonaEmbedRAG data in thread-safe manner."""
         with PerformanceTimer("rag_persona_fetch", log=False) as timer:
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(
                 self.executor,
                 self._fetch_persona_rag_sync,
@@ -362,7 +366,7 @@ class ThreadSafeRAGManager:
     async def _fetch_domain_rag(self, query: str, theme: str) -> List[dict]:
         """Fetch DomainRAG data in thread-safe manner."""
         with PerformanceTimer("rag_domain_fetch", log=False) as timer:
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(
                 self.executor,
                 self._fetch_domain_rag_sync,
@@ -405,11 +409,19 @@ class ThreadSafeRAGManager:
         theme: str,
         locale: str
     ) -> str:
-        """Fetch cross-analysis (no ML, fast)."""
+        """Fetch cross-analysis via executor to avoid blocking event loop."""
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(
+            self.executor,
+            self._fetch_cross_analysis_sync,
+            saju_data, astro_data, theme, locale
+        )
+
+    def _fetch_cross_analysis_sync(self, saju_data, astro_data, theme, locale) -> str:
+        """Synchronous cross-analysis fetch (runs in executor thread)."""
         try:
             from backend_ai.services.chart_service import ChartService
             chart_service = ChartService()
-            # Cross-analysis is CPU-only, no need for executor
             return chart_service.get_cross_analysis_for_chart(
                 saju_data, astro_data, theme, locale
             )
@@ -420,13 +432,16 @@ class ThreadSafeRAGManager:
 
 # Singleton instance
 _rag_manager: Optional[ThreadSafeRAGManager] = None
+_rag_manager_lock = threading.Lock()
 
 
 def get_rag_manager() -> ThreadSafeRAGManager:
     """Get or create singleton RAG manager instance."""
     global _rag_manager
     if _rag_manager is None:
-        _rag_manager = ThreadSafeRAGManager()
+        with _rag_manager_lock:
+            if _rag_manager is None:
+                _rag_manager = ThreadSafeRAGManager()
     return _rag_manager
 
 

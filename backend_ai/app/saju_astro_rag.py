@@ -11,8 +11,8 @@ Features:
 """
 
 import csv
-import hashlib
 import json
+import logging
 import os
 from functools import lru_cache
 from pathlib import Path
@@ -21,6 +21,8 @@ from typing import Dict, List, Optional
 import networkx as nx
 import torch
 from sentence_transformers import SentenceTransformer, util
+
+logger = logging.getLogger(__name__)
 
 # ===============================================================
 # CONSTANTS
@@ -152,20 +154,20 @@ def get_model(prefer_multilingual: bool = True) -> SentenceTransformer:
 
     if use_multilingual:
         try:
-            print(f"[SajuAstroRAG] Loading multilingual model: {_MODEL_NAME_MULTILINGUAL}")
-            print(f"[SajuAstroRAG] Using device: {device}")
+            logger.info("Loading multilingual model: %s", _MODEL_NAME_MULTILINGUAL)
+            logger.info("Using device: %s", device)
             _MODEL = SentenceTransformer(_MODEL_NAME_MULTILINGUAL, device=device)
             _MODEL_TYPE = "multilingual"
-            print("[SajuAstroRAG] Multilingual model loaded (ko/en/zh/ja support)")
+            logger.info("Multilingual model loaded (ko/en/zh/ja support)")
             return _MODEL
         except Exception as e:
-            print(f"[SajuAstroRAG] Multilingual model failed: {e}, falling back to English")
+            logger.warning("Multilingual model failed: %s, falling back to English", e)
 
-    print(f"[SajuAstroRAG] Loading English model: {_MODEL_NAME_ENGLISH}")
-    print(f"[SajuAstroRAG] Using device: {device}")
+    logger.info("Loading English model: %s", _MODEL_NAME_ENGLISH)
+    logger.info("Using device: %s", device)
     _MODEL = SentenceTransformer(_MODEL_NAME_ENGLISH, device=device)
     _MODEL_TYPE = "english"
-    print("[SajuAstroRAG] English model loaded successfully")
+    logger.info("English model loaded successfully")
     return _MODEL
 
 
@@ -195,7 +197,7 @@ def embed_text(text: str):
 def embed_batch(texts: List[str], batch_size: int = 16):
     """Embed multiple texts in batch for better performance."""
     model = get_model()
-    print(f"[SajuAstroRAG] Encoding {len(texts)} texts (batch={batch_size})...")
+    logger.info("Encoding %d texts (batch=%d)...", len(texts), batch_size)
     embeds = model.encode(
         texts,
         batch_size=batch_size,
@@ -203,7 +205,7 @@ def embed_batch(texts: List[str], batch_size: int = 16):
         normalize_embeddings=True,
         show_progress_bar=True,
     )
-    print(f"[SajuAstroRAG] Batch encoding complete: {embeds.shape}")
+    logger.info("Batch encoding complete: %s", embeds.shape)
     return embeds
 
 
@@ -270,7 +272,7 @@ class GraphRAG:
                 elif any(x in name for x in ("edge", "relation", "link")):
                     self._load_edges(path)
             except Exception as e:
-                print(f"[GraphRAG] CSV load failed ({path}): {e}")
+                logger.warning("CSV load failed (%s): %s", path, e)
 
         # Load rules JSONs
         if self.rules_dir.exists():
@@ -283,11 +285,11 @@ class GraphRAG:
                         loaded = {"items": loaded}
                     self.rules[key] = loaded
                 except Exception as e:
-                    print(f"[GraphRAG] Rule load failed ({json_path.name}): {e}")
+                    logger.warning("Rule load failed (%s): %s", json_path.name, e)
 
-        print(f"[GraphRAG] Loaded {len(self.graph.nodes)} nodes, {len(self.graph.edges)} edges")
+        logger.info("Loaded %d nodes, %d edges", len(self.graph.nodes), len(self.graph.edges))
         if self.rules:
-            print(f"[GraphRAG] Rules: {', '.join(sorted(self.rules.keys()))}")
+            logger.info("Rules: %s", ", ".join(sorted(self.rules.keys())))
 
     def _load_nodes(self, path: Path):
         """Load nodes from CSV."""
@@ -324,7 +326,7 @@ class GraphRAG:
         self.node_ids = ids
         if not texts:
             self.node_embeds = None
-            print("[GraphRAG] No node texts for embeddings")
+            logger.warning("No node texts for embeddings")
             return
 
         # Try loading from cache
@@ -333,11 +335,11 @@ class GraphRAG:
                 cache = torch.load(self.cache_path, map_location="cpu")
                 if cache.get("count") == len(texts):
                     self.node_embeds = cache["embeddings"]
-                    print(f"[GraphRAG] Loaded {self.node_embeds.size(0)} embeddings from cache")
+                    logger.info("Loaded %d embeddings from cache", self.node_embeds.size(0))
                     return
-                print("[GraphRAG] Cache stale (count mismatch), regenerating...")
+                logger.info("Cache stale (count mismatch), regenerating...")
             except Exception as e:
-                print(f"[GraphRAG] Cache load failed: {e}")
+                logger.warning("Cache load failed: %s", e)
 
         # Compute embeddings
         self.node_embeds = self.embed_model.encode(
@@ -345,15 +347,15 @@ class GraphRAG:
             convert_to_tensor=True,
             normalize_embeddings=True,
         )
-        print(f"[GraphRAG] Created {self.node_embeds.size(0)} node embeddings")
+        logger.info("Created %d node embeddings", self.node_embeds.size(0))
 
         # Save to cache
         if use_cache:
             try:
                 torch.save({"embeddings": self.node_embeds, "count": len(texts)}, self.cache_path)
-                print(f"[GraphRAG] Saved embeddings to cache: {self.cache_path}")
+                logger.info("Saved embeddings to cache: %s", self.cache_path)
             except Exception as e:
-                print(f"[GraphRAG] Cache save failed: {e}")
+                logger.warning("Cache save failed: %s", e)
 
     def query(self, facts: dict, top_k: int = 8, domain_priority: str = "saju") -> Dict:
         """Query graph with facts dict."""
@@ -451,7 +453,6 @@ _TEXTS_CACHE: Optional[List[str]] = None
 _CORPUS_EMBEDS_CACHE = None
 _CORPUS_EMBEDS_PATH: Optional[Path] = None
 _GRAPH_MTIME: Optional[float] = None
-_CACHE_EMBEDS: Dict[str, any] = {}
 
 
 def _latest_mtime(folder: Path) -> float:
@@ -494,7 +495,7 @@ def _load_graph_nodes(graph_root: Path) -> List[Dict]:
         if folder.is_dir():
             _load_from_folder(folder, all_nodes, sub)
 
-    print(f"[SajuAstroRAG] Loaded {len(all_nodes)} nodes")
+    logger.info("Loaded %d nodes", len(all_nodes))
     return all_nodes
 
 
@@ -571,7 +572,7 @@ def _load_csv_nodes(path: Path, all_nodes: List[Dict], source: str) -> None:
                         "source": source,
                     })
     except Exception as e:
-        print(f"[SajuAstroRAG] CSV error: {path} | {e}")
+        logger.warning("CSV error: %s | %s", path, e)
 
 
 def _process_interpretations_array(v: list, k: str, source: str, nodes: List[Dict]) -> None:
@@ -828,7 +829,7 @@ def _load_json_nodes(path: Path, all_nodes: List[Dict], source: str) -> None:
                 node.setdefault("source", source)
                 all_nodes.append(node)
     except Exception as e:
-        print(f"[SajuAstroRAG] JSON error: {path} | {e}")
+        logger.warning("JSON error: %s | %s", path, e)
 
 
 def _load_from_folder(folder: Path, all_nodes: List[Dict], source: str):
@@ -849,11 +850,11 @@ def _handle_embed_mismatch(texts: List[str], nodes: List[Dict], embeds) -> tuple
 
     strategy = os.getenv("RAG_EMBED_MISMATCH", "trim").lower()
     if strategy == "rebuild":
-        print("[SajuAstroRAG] Cached embeddings size mismatch; rebuilding cache")
+        logger.warning("Cached embeddings size mismatch; rebuilding cache")
         return texts, nodes, None
 
     min_len = min(len(texts), embeds.shape[0])
-    print("[SajuAstroRAG] Cached embeddings size mismatch; trimming cache")
+    logger.warning("Cached embeddings size mismatch; trimming cache")
     return texts[:min_len], nodes[:min_len], embeds[:min_len]
 
 
@@ -884,15 +885,11 @@ def search_graphs(query: str, top_k: int = 6, graph_root: Optional[str] = None) 
         _GRAPH_MTIME = current_mtime
 
     if not _NODES_CACHE or not _TEXTS_CACHE:
-        print("[SajuAstroRAG] No graph nodes found")
+        logger.warning("No graph nodes found")
         return []
 
-    # Query embedding with cache
-    cache_key = hashlib.sha1(query.encode("utf-8")).hexdigest()[:16]
-    q_emb = _CACHE_EMBEDS.get(cache_key)
-    if q_emb is None:
-        q_emb = embed_text(query)
-        _CACHE_EMBEDS[cache_key] = q_emb
+    # Query embedding (cached via @lru_cache on embed_text)
+    q_emb = embed_text(query)
 
     # Corpus embeddings
     nodes = _NODES_CACHE
@@ -901,11 +898,11 @@ def search_graphs(query: str, top_k: int = 6, graph_root: Optional[str] = None) 
     if _CORPUS_EMBEDS_CACHE is None:
         if _CORPUS_EMBEDS_PATH and _CORPUS_EMBEDS_PATH.exists():
             try:
-                print(f"[SajuAstroRAG] Loading cached embeddings: {_CORPUS_EMBEDS_PATH}")
+                logger.info("Loading cached embeddings: %s", _CORPUS_EMBEDS_PATH)
                 _CORPUS_EMBEDS_CACHE = torch.load(_CORPUS_EMBEDS_PATH, map_location="cpu")
                 texts, nodes, _CORPUS_EMBEDS_CACHE = _handle_embed_mismatch(texts, nodes, _CORPUS_EMBEDS_CACHE)
             except Exception as e:
-                print(f"[SajuAstroRAG] Failed to load embeddings cache: {e}")
+                logger.warning("Failed to load embeddings cache: %s", e)
                 _CORPUS_EMBEDS_CACHE = None
 
         if _CORPUS_EMBEDS_CACHE is None:
@@ -913,9 +910,9 @@ def search_graphs(query: str, top_k: int = 6, graph_root: Optional[str] = None) 
             try:
                 if _CORPUS_EMBEDS_PATH:
                     torch.save(_CORPUS_EMBEDS_CACHE, _CORPUS_EMBEDS_PATH)
-                    print(f"[SajuAstroRAG] Saved embeddings: {_CORPUS_EMBEDS_PATH}")
+                    logger.info("Saved embeddings: %s", _CORPUS_EMBEDS_PATH)
             except Exception as e:
-                print(f"[SajuAstroRAG] Failed to save embeddings: {e}")
+                logger.warning("Failed to save embeddings: %s", e)
 
     # Final mismatch check
     texts, nodes, _CORPUS_EMBEDS_CACHE = _handle_embed_mismatch(texts, nodes, _CORPUS_EMBEDS_CACHE)

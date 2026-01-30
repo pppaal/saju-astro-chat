@@ -64,20 +64,12 @@ except ImportError:
 
 
 # Import from refactored counseling package
-try:
-    from backend_ai.app.counseling import (
-        CrisisDetector,
-        TherapeuticQuestionGenerator,
-        JungianRAG,
-        get_jungian_rag,
-    )
-except ImportError:
-    from backend_ai.app.counseling import (
-        CrisisDetector,
-        TherapeuticQuestionGenerator,
-        JungianRAG,
-        get_jungian_rag,
-    )
+from backend_ai.app.counseling import (
+    CrisisDetector,
+    TherapeuticQuestionGenerator,
+    JungianRAG,
+    get_jungian_rag,
+)
 
 
 # ===============================================================
@@ -476,7 +468,7 @@ class JungianCounselingEngine:
             )
             return response.choices[0].message.content
         except Exception as e:
-            return f"응답 생성 중 오류가 발생했어요. 잠시 후 다시 시도해주세요. ({str(e)})"
+            return "응답 생성 중 오류가 발생했어요. 잠시 후 다시 시도해주세요."
 
     def _generate_fallback_response(self, user_message: str, session: CounselingSession) -> str:
         """템플릿 기반 폴백 응답"""
@@ -732,7 +724,7 @@ class JungianCounselingEngine:
             )
             return response.choices[0].message.content
         except Exception as e:
-            return f"응답 생성 중 오류가 발생했어요. 잠시 후 다시 시도해주세요. ({str(e)})"
+            return "응답 생성 중 오류가 발생했어요. 잠시 후 다시 시도해주세요."
 
     def health_check(self) -> Tuple[bool, str]:
         """시스템 상태 확인"""
