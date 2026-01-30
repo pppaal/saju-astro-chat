@@ -1,40 +1,40 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { MessageBox } from '../MessageBox';
-import { buildSignInUrl } from '@/lib/auth/signInUrl';
-import DateTimePicker from '@/components/ui/DateTimePicker';
-import TimePicker from '@/components/ui/TimePicker';
-import styles from './BirthInputPhase.module.css';
+import React from 'react'
+import { motion } from 'framer-motion'
+import { MessageBox } from '../MessageBox'
+import { buildSignInUrl } from '@/lib/auth/signInUrl'
+import DateTimePicker from '@/components/ui/DateTimePicker'
+import TimePicker from '@/components/ui/TimePicker'
+import styles from './BirthInputPhase.module.css'
 
 interface BirthInputPhaseProps {
-  locale: string;
-  status: string;
-  birthDate: string;
-  setBirthDate: (value: string) => void;
-  birthTime: string;
-  setBirthTime: (value: string) => void;
-  gender: 'M' | 'F';
-  setGender: (value: 'M' | 'F') => void;
-  birthCity: string;
-  setBirthCity: (value: string) => void;
-  showTimeInput: boolean;
-  setShowTimeInput: (value: boolean) => void;
-  showCityInput: boolean;
-  setShowCityInput: (value: boolean) => void;
-  loadingProfileBtn: boolean;
-  profileLoadedMsg: boolean;
-  profileLoadError: string | null;
-  showProfilePrompt?: boolean;
-  onLoadProfile: () => void;
-  onSubmit: (e: React.FormEvent) => void;
-  onSkip: () => void;
+  locale: string
+  status: string
+  birthDate: string
+  setBirthDate: (value: string) => void
+  birthTime: string
+  setBirthTime: (value: string) => void
+  gender: 'M' | 'F'
+  setGender: (value: 'M' | 'F') => void
+  birthCity: string
+  setBirthCity: (value: string) => void
+  showTimeInput: boolean
+  setShowTimeInput: (value: boolean) => void
+  showCityInput: boolean
+  setShowCityInput: (value: boolean) => void
+  loadingProfileBtn: boolean
+  profileLoadedMsg: boolean
+  profileLoadError: string | null
+  showProfilePrompt?: boolean
+  onLoadProfile: () => void
+  onSubmit: (e: React.FormEvent) => void
+  onSkip: () => void
 }
 
 const pageTransitionVariants = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   exit: { opacity: 0, y: -20, transition: { duration: 0.3 } },
-};
+}
 
 export function BirthInputPhase({
   locale,
@@ -59,8 +59,8 @@ export function BirthInputPhase({
   onSubmit,
   onSkip,
 }: BirthInputPhaseProps) {
-  const signInUrl = buildSignInUrl();
-  const isKo = locale === 'ko';
+  const signInUrl = buildSignInUrl()
+  const isKo = locale === 'ko'
 
   return (
     <motion.div
@@ -75,9 +75,7 @@ export function BirthInputPhase({
         <div className={styles.iconWrapper}>
           <span className={styles.icon}>🌙</span>
         </div>
-        <h1 className={styles.pageTitle}>
-          {isKo ? '꿈 해몽' : 'Dream Interpretation'}
-        </h1>
+        <h1 className={styles.pageTitle}>{isKo ? '꿈 해몽' : 'Dream Interpretation'}</h1>
         <p className={styles.pageSubtitle}>
           {isKo
             ? '당신의 꿈에 담긴 메시지를 해석해드립니다'
@@ -92,9 +90,7 @@ export function BirthInputPhase({
             {isKo ? '생년월일을 입력해주세요' : 'Enter Your Birth Info'}
           </h3>
           <p className={styles.formSubtitle}>
-            {isKo
-              ? '정확한 해석을 위해 필요한 정보입니다'
-              : 'Optional, but improves accuracy'}
+            {isKo ? '정확한 해석을 위해 필요한 정보입니다' : 'Optional, but improves accuracy'}
           </p>
         </div>
 
@@ -109,17 +105,20 @@ export function BirthInputPhase({
                   <>
                     <strong>저장된 프로필이 없습니다.</strong>
                     <br />
-                    <a href="/myjourney/profile" style={{ color: '#6366f1', textDecoration: 'underline' }}>
+                    <a href="/myjourney" style={{ color: '#6366f1', textDecoration: 'underline' }}>
                       My Journey 프로필
-                    </a>에서 생년월일을 먼저 저장하면 다음부터 자동으로 입력됩니다.
+                    </a>
+                    에서 생년월일을 먼저 저장하면 다음부터 자동으로 입력됩니다.
                   </>
                 ) : (
                   <>
                     <strong>No saved profile found.</strong>
                     <br />
-                    Save your birth info in <a href="/myjourney/profile" style={{ color: '#6366f1', textDecoration: 'underline' }}>
+                    Save your birth info in{' '}
+                    <a href="/myjourney" style={{ color: '#6366f1', textDecoration: 'underline' }}>
                       My Journey Profile
-                    </a> to auto-fill next time.
+                    </a>{' '}
+                    to auto-fill next time.
                   </>
                 )}
               </div>
@@ -135,13 +134,15 @@ export function BirthInputPhase({
             onClick={() => onLoadProfile()}
             disabled={loadingProfileBtn}
           >
-            <span className={styles.loadProfileIcon}>
-              {loadingProfileBtn ? '⏳' : '👤'}
-            </span>
+            <span className={styles.loadProfileIcon}>{loadingProfileBtn ? '⏳' : '👤'}</span>
             <span>
               {loadingProfileBtn
-                ? (isKo ? '불러오는 중...' : 'Loading...')
-                : (isKo ? '내 프로필 불러오기' : 'Load My Profile')}
+                ? isKo
+                  ? '불러오는 중...'
+                  : 'Loading...'
+                : isKo
+                  ? '내 프로필 불러오기'
+                  : 'Load My Profile'}
             </span>
             <span className={styles.loadProfileArrow}>→</span>
           </button>
@@ -157,13 +158,7 @@ export function BirthInputPhase({
         )}
 
         {/* Error message */}
-        {profileLoadError && (
-          <MessageBox
-            type="error"
-            icon="⚠️"
-            message={profileLoadError}
-          />
-        )}
+        {profileLoadError && <MessageBox type="error" icon="⚠️" message={profileLoadError} />}
 
         <form onSubmit={onSubmit} className={styles.form}>
           {/* Birth Date */}
@@ -216,12 +211,7 @@ export function BirthInputPhase({
 
             {showTimeInput && (
               <div className={styles.timeInputWrapper}>
-                <TimePicker
-                  value={birthTime}
-                  onChange={setBirthTime}
-                  label=""
-                  locale={locale}
-                />
+                <TimePicker value={birthTime} onChange={setBirthTime} label="" locale={locale} />
                 <p className={styles.timeHint}>
                   {isKo
                     ? '모르시면 12:00(정오)로 자동 설정됩니다'
@@ -252,31 +242,21 @@ export function BirthInputPhase({
                   placeholder={isKo ? '예: 서울, 부산, Seoul' : 'e.g., Seoul, New York'}
                 />
                 <p className={styles.timeHint}>
-                  {isKo
-                    ? '더 정확한 분석을 위해 입력해주세요'
-                    : 'For more accurate analysis'}
+                  {isKo ? '더 정확한 분석을 위해 입력해주세요' : 'For more accurate analysis'}
                 </p>
               </div>
             )}
           </div>
 
           {/* Submit Button */}
-          <button
-            type="submit"
-            className={styles.submitButton}
-            disabled={!birthDate}
-          >
+          <button type="submit" className={styles.submitButton} disabled={!birthDate}>
             <span>✨</span>
             <span>{isKo ? '다음으로' : 'Continue'}</span>
           </button>
         </form>
 
         <div className={styles.skipBirthRow}>
-          <button
-            type="button"
-            className={styles.skipBirthButton}
-            onClick={onSkip}
-          >
+          <button type="button" className={styles.skipBirthButton} onClick={onSkip}>
             {isKo ? '생년월일 없이 진행' : 'Skip for now'}
           </button>
           <p className={styles.skipBirthHint}>
@@ -300,5 +280,5 @@ export function BirthInputPhase({
         )}
       </div>
     </motion.div>
-  );
+  )
 }
