@@ -292,6 +292,31 @@ async function generateGPTInterpretation(
 
   const q = userQuestion || (isKorean ? '일반 운세' : 'general reading')
 
+  // 카드 개수에 맞춰 예시 생성
+  const cardExamples = cards
+    .map((c, i) => {
+      const pos = isKorean && c.positionKo ? c.positionKo : c.position
+      const ordinal = isKorean
+        ? `${i + 1}번째`
+        : i === 0
+          ? 'First'
+          : i === 1
+            ? 'Second'
+            : i === 2
+              ? 'Third'
+              : `${i + 1}th`
+      return isKorean
+        ? `    {
+      "position": "${pos}",
+      "interpretation": "${ordinal} 카드 해석 (700-1000자, 위와 동일한 형식)"
+    }`
+        : `    {
+      "position": "${pos}",
+      "interpretation": "${ordinal} card interpretation (450-600 words, same format as above)"
+    }`
+    })
+    .join(',\n')
+
   // 통합 프롬프트 (전체 해석 + 카드별 해석 + 조언을 한번에)
   const unifiedPrompt = isKorean
     ? `당신은 20년 경력의 직관적인 타로 리더예요. 유튜브에서 수백만 뷰를 받는 타로 채널처럼, 깊이 있고 섬세하게 해석해주세요.
@@ -302,15 +327,31 @@ async function generateGPTInterpretation(
 ## 뽑힌 카드
 ${cardListText}
 
+## 중요: 반드시 모든 ${cards.length}개 카드에 대해 해석을 작성하세요!
+각 카드마다 최소 700자 이상의 풍부한 해석을 제공해야 합니다.
+
 ## 출력 형식 (JSON)
-다음 형식으로 JSON 응답해:
+다음 형식으로 정확히 JSON 응답해:
 {
   "overall": "전체 메시지 (800-1200자). 질문자의 현재 상황에 공감하며 따뜻하게 시작해요. 카드들이 전체적으로 그리는 큰 그림을 먼저 보여주고, 질문자의 현재 에너지와 앞으로의 흐름을 자연스럽게 풀어주세요. 마지막엔 '결론:'으로 핵심 메시지 정리.",
   "cards": [
-    {"position": "위치명", "interpretation": "카드 해석 (700-1000자, 최소 12-15줄). 유튜브 타로 리더처럼 풍성하게:\n\n1) **카드 비주얼 묘사** (2-3줄): '이 카드를 보면요~' 하며 색깔, 인물의 표정, 배경 상징물을 생생하게 그려내요. 예: '여기 보이는 노란 옷을 입은 사람이...'\n\n2) **위치별 의미** (3-4줄): 이 위치(과거/현재/미래/장애물 등)에서 이 카드가 나온 게 왜 의미 있는지, 질문자의 상황과 어떻게 맞아떨어지는지 구체적으로 연결해요.\n\n3) **감정적 레이어** (2-3줄): 이 카드가 전하는 감정, 에너지, 분위기를 섬세하게 전달해요. '지금 이런 느낌 받고 계시죠?' 같은 공감의 언어로.\n\n4) **실용적 메시지** (3-4줄): 이 카드가 말하는 구체적인 조언. 무엇을 하면 좋을지, 무엇을 조심해야 할지, 어떤 마음가짐이 필요한지 실천 가능하게.\n\n5) **숨은 의미** (1-2줄): 역방향이나 카드 조합에서만 보이는 깊은 통찰, 숨겨진 기회나 경고."}
+${cardExamples}
   ],
   "advice": "실용적이고 구체적한 행동 지침 (180-250자). '오늘부터 이렇게 해보세요' 식의 단계별 조언. 추상적이지 않고 실천 가능한 것만."
 }
+
+## 카드 해석 작성 가이드
+각 카드 해석은 반드시 다음 구조를 포함해야 합니다 (700-1000자):
+
+1) **카드 비주얼 묘사** (2-3줄): '이 카드를 보면요~' 하며 색깔, 인물의 표정, 배경 상징물을 생생하게 그려내요.
+
+2) **위치별 의미** (3-4줄): 이 위치에서 이 카드가 나온 게 왜 의미 있는지, 질문자의 상황과 어떻게 맞아떨어지는지 구체적으로 연결해요.
+
+3) **감정적 레이어** (2-3줄): 이 카드가 전하는 감정, 에너지, 분위기를 섬세하게 전달해요.
+
+4) **실용적 메시지** (3-4줄): 이 카드가 말하는 구체적인 조언.
+
+5) **숨은 의미** (1-2줄): 역방향이나 카드 조합에서만 보이는 깊은 통찰.
 
 ## 해석 원칙 (매우 중요!)
 1. **질문에 직접 답변**: "${q}"를 항상 염두에 두고, 이 질문에 대한 답을 카드에서 찾아요
@@ -337,15 +378,31 @@ ${cardListText}
 ## Cards Drawn
 ${cardListText}
 
+## IMPORTANT: You MUST provide interpretation for ALL ${cards.length} cards!
+Each card must have at least 450 words of rich interpretation.
+
 ## Output Format (JSON)
-Respond in this JSON format:
+Respond in this exact JSON format:
 {
   "overall": "Overall message (500-700 words). Start with warm empathy for the querent's current situation. Show the big picture these cards paint together, the querent's current energy, and the flow ahead. End with 'Conclusion:' summarizing the core message.",
   "cards": [
-    {"position": "Position name", "interpretation": "Card interpretation (450-600 words, at least 12-15 lines). Rich like YouTube tarot readers:\n\n1) **Visual Description** (2-3 lines): 'When I look at this card...' Paint colors, facial expressions, background symbols vividly. Ex: 'The figure in yellow robes...'\n\n2) **Position Meaning** (3-4 lines): Why this card appearing in this position (past/present/future/obstacle) matters, how it connects to the querent's situation specifically.\n\n3) **Emotional Layer** (2-3 lines): The feelings, energy, atmosphere this card conveys delicately. Use empathetic language like 'You might be feeling this...'\n\n4) **Practical Message** (3-4 lines): Specific advice from this card. What to do, what to watch out for, what mindset is needed - actionable.\n\n5) **Hidden Meaning** (1-2 lines): Deep insights only visible in reversals or card combinations, hidden opportunities or warnings."}
+${cardExamples}
   ],
   "advice": "Practical, specific action steps (120-150 words). 'Starting today, try this...' style step-by-step guidance. Nothing abstract, only actionable."
 }
+
+## Card Interpretation Guide
+Each card interpretation MUST include the following structure (450-600 words):
+
+1) **Visual Description** (2-3 lines): 'When I look at this card...' Paint colors, facial expressions, background symbols vividly.
+
+2) **Position Meaning** (3-4 lines): Why this card appearing in this position matters, how it connects to the querent's situation.
+
+3) **Emotional Layer** (2-3 lines): The feelings, energy, atmosphere this card conveys.
+
+4) **Practical Message** (3-4 lines): Specific advice from this card.
+
+5) **Hidden Meaning** (1-2 lines): Deep insights from reversals or card combinations.
 
 ## Reading Principles (Critical!)
 1. **Answer the Question**: Always keep "${q}" in mind, find answers in the cards
@@ -373,21 +430,31 @@ Respond in this JSON format:
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0])
 
+      // 카드별 해석이 비어있거나 너무 짧으면 기본 meaning 사용
+      const card_insights = cards.map((card, i) => {
+        const cardData = parsed.cards?.[i] || {}
+        let interpretation = cardData.interpretation || ''
+
+        // 해석이 너무 짧거나 없으면 카드의 기본 meaning 사용
+        if (!interpretation || interpretation.length < 50) {
+          interpretation = isKorean && card.meaningKo ? card.meaningKo : card.meaning || ''
+        }
+
+        return {
+          position: card.position,
+          card_name: card.name,
+          is_reversed: card.isReversed,
+          interpretation,
+          spirit_animal: null,
+          chakra: null,
+          element: null,
+          shadow: null,
+        }
+      })
+
       return {
         overall_message: parsed.overall || '',
-        card_insights: cards.map((card, i) => {
-          const cardData = parsed.cards?.[i] || {}
-          return {
-            position: card.position,
-            card_name: card.name,
-            is_reversed: card.isReversed,
-            interpretation: cardData.interpretation || '',
-            spirit_animal: null,
-            chakra: null,
-            element: null,
-            shadow: null,
-          }
-        }),
+        card_insights,
         guidance:
           parsed.advice || (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
         affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',

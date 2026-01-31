@@ -12,6 +12,7 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import { getCardImagePath } from '@/lib/Tarot/tarot.types'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import AuthGate from '@/components/auth/AuthGate'
+import { CardPickingScreen } from '@/components/tarot/CardPickingScreen'
 import styles from './tarot-reading.module.css'
 
 // Local imports
@@ -132,60 +133,6 @@ function TarotReadingPage() {
 
   const handleReset = () => router.push('/tarot')
   const toggleCardExpand = (index: number) => setExpandedCard(expandedCard === index ? null : index)
-
-  // Memoize card spread rendering
-  const cardSpreadElements = useMemo(
-    () =>
-      Array.from({ length: 78 }).map((_, index) => {
-        const isSelected = selectionOrderMap.has(index)
-        const displayNumber = selectionOrderMap.get(index) || 0
-        return (
-          <div
-            key={`card-${index}`}
-            className={`${styles.cardWrapper} ${isSelected ? styles.selected : ''} ${gameState === 'revealing' ? styles.revealing : ''} ${isSpreading ? styles.spreading : ''}`}
-            style={
-              {
-                '--selection-order': displayNumber,
-                '--i': index,
-                '--card-gradient': selectedColor.gradient,
-                '--card-border': selectedColor.border,
-                '--card-back-image': `url(${selectedColor.backImage})`,
-              } as React.CSSProperties
-            }
-            onClick={() => handleCardClick(index)}
-            role="button"
-            tabIndex={
-              gameState === 'picking' &&
-              !isSelected &&
-              selectedIndices.length < (spreadInfo?.cardCount || 3)
-                ? 0
-                : -1
-            }
-            aria-label={`${language === 'ko' ? '카드' : 'Card'} ${index + 1}${isSelected ? ` - ${language === 'ko' ? '선택됨' : 'selected'}` : ''}`}
-            aria-pressed={isSelected}
-            onKeyDown={(e) => {
-              if ((e.key === 'Enter' || e.key === ' ') && gameState === 'picking') {
-                e.preventDefault()
-                handleCardClick(index)
-              }
-            }}
-          >
-            <div className={styles.cardBack}></div>
-            {isSelected && <div className={styles.selectionNumber}>{displayNumber}</div>}
-          </div>
-        )
-      }),
-    [
-      selectionOrderMap,
-      gameState,
-      isSpreading,
-      selectedColor,
-      spreadInfo?.cardCount,
-      selectedIndices.length,
-      language,
-      handleCardClick,
-    ]
-  )
 
   // Session loading state
   if (status === 'loading') {
@@ -856,52 +803,19 @@ function TarotReadingPage() {
       )
     }
 
-    // Card picking state
+    // Card picking state (picking or revealing)
     return (
-      <div className={styles.readingContainer}>
-        <div className={styles.backButtonWrapper}>
-          <BackButton />
-        </div>
-        <div className={styles.instructions}>
-          <h1 className={styles.instructionTitle}>
-            {language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title}
-          </h1>
-          <div className={styles.instructionContent}>
-            {gameState === 'revealing' && (
-              <>
-                <div className={styles.revealingOrb}></div>
-                <p className={styles.revealingText}>
-                  ✨{' '}
-                  {translate(
-                    'tarot.reading.revealing',
-                    'Selection Complete! Revealing your destiny...'
-                  )}
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-
-        {gameState === 'picking' && (
-          <div className={styles.topRightControls}>
-            <div className={styles.progressBadge}>
-              <span className={styles.progressLabel}>
-                {language === 'ko' ? '선택' : 'Selected'}
-              </span>
-              <span className={styles.progressCount}>
-                {selectedIndices.length} / {effectiveCardCount}
-              </span>
-            </div>
-            {selectedIndices.length > 0 && (
-              <button className={styles.redrawButton} onClick={handleRedraw}>
-                {translate('tarot.reading.redraw', '다시 그리기')}
-              </button>
-            )}
-          </div>
-        )}
-
-        <div className={styles.cardSpreadContainer}>{cardSpreadElements}</div>
-      </div>
+      <CardPickingScreen
+        locale={language}
+        spreadInfo={spreadInfo}
+        selectedColor={selectedColor}
+        selectedIndices={selectedIndices}
+        selectionOrderMap={selectionOrderMap}
+        gameState={gameState}
+        isSpreading={isSpreading}
+        onCardClick={handleCardClick}
+        onRedraw={handleRedraw}
+      />
     )
   })()
 
