@@ -25,6 +25,7 @@ const withPWA = withPWAInit({
     document: '/offline',
   },
   workboxOptions: {
+    maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // Allow ~3MB bundles in precache
     runtimeCaching: [
       {
         urlPattern: /^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,

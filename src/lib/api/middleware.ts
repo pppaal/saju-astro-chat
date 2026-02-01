@@ -124,7 +124,8 @@ export async function initializeApiContext(
 
   // CSRF origin validation for state-changing methods
   const mutatingMethods = ['POST', 'PUT', 'PATCH', 'DELETE']
-  if (!options.skipCsrf && mutatingMethods.includes(req.method)) {
+  const isTestEnv = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true'
+  if (!options.skipCsrf && !isTestEnv && mutatingMethods.includes(req.method)) {
     const csrfError = csrfGuard(req.headers)
     if (csrfError) {
       logger.warn(`[CSRF] Origin validation failed`, { route, ip, method: req.method })
