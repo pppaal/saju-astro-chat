@@ -40,7 +40,7 @@ const PERIOD_INFO = {
 function TimingReportContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const { profile, isLoading: profileLoading } = useUserProfile()
 
   const period = (searchParams?.get('period') as 'daily' | 'monthly' | 'yearly') || 'daily'
@@ -53,6 +53,12 @@ function TimingReportContent() {
   })
   const [sajuData, setSajuData] = useState<SajuData | null>(null)
   const [sajuLoading, setSajuLoading] = useState(false)
+
+  // 사용자 입력 정보 (프로필이 없는 경우 직접 입력)
+  const [manualName, setManualName] = useState('')
+  const [manualBirthDate, setManualBirthDate] = useState('')
+  const [manualBirthTime, setManualBirthTime] = useState('')
+  const [useCustomInfo, setUseCustomInfo] = useState(false)
 
   // 사주 정보 로드
   const loadSajuData = useCallback(async () => {
@@ -85,8 +91,12 @@ function TimingReportContent() {
   }, [loadSajuData])
 
   const handleGenerate = async () => {
-    if (!profile.birthDate) {
-      setError('생년월일 정보가 필요합니다. 프로필을 먼저 설정해주세요.')
+    // 프로필 또는 수동 입력 정보 사용
+    const finalName = profile.name || manualName || '사용자'
+    const finalBirthDate = profile.birthDate || manualBirthDate
+
+    if (!finalBirthDate) {
+      setError('생년월일을 입력해주세요.')
       return
     }
 
@@ -101,8 +111,9 @@ function TimingReportContent() {
           period,
           targetDate,
           dayMasterElement: sajuData?.dayMasterElement || '목',
-          name: profile.name,
-          birthDate: profile.birthDate,
+          name: finalName,
+          birthDate: finalBirthDate,
+          birthTime: profile.birthTime || manualBirthTime || undefined,
           lang: 'ko',
         }),
       })
@@ -179,8 +190,18 @@ function TimingReportContent() {
 
         {/* Profile Info */}
         <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 mb-6">
-          <h2 className="text-lg font-bold text-white mb-4">분석 대상</h2>
-          {profile.birthDate ? (
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-white">분석 대상 정보</h2>
+            {profile.birthDate && (
+              <button
+                onClick={() => setUseCustomInfo(!useCustomInfo)}
+                className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
+              >
+                {useCustomInfo ? '프로필 사용' : '다른 정보 입력'}
+              </button>
+            )}
+          </div>
+          {profile.birthDate && !useCustomInfo ? (
             <div className="space-y-2 text-gray-300">
               <p>
                 <span className="text-gray-500">이름:</span> {profile.name || '미입력'}
@@ -188,13 +209,58 @@ function TimingReportContent() {
               <p>
                 <span className="text-gray-500">생년월일:</span> {profile.birthDate}
               </p>
+              {profile.birthTime && (
+                <p>
+                  <span className="text-gray-500">출생시간:</span> {profile.birthTime}
+                </p>
+              )}
+              <p className="text-xs text-gray-500 mt-2">프로필에 저장된 정보를 사용합니다</p>
             </div>
           ) : (
-            <div className="text-center py-4">
-              <p className="text-gray-400 mb-3">프로필 정보가 필요합니다.</p>
-              <Link href="/destiny-map" className="text-purple-400 hover:text-purple-300 underline">
-                운세 분석에서 정보 입력하기
-              </Link>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  이름 (선택)
+                </label>
+                <input
+                  type="text"
+                  value={manualName}
+                  onChange={(e) => setManualName(e.target.value)}
+                  placeholder="예: 홍길동"
+                  className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  생년월일 (필수) <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={manualBirthDate}
+                  onChange={(e) => setManualBirthDate(e.target.value)}
+                  className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  출생시간 (선택)
+                </label>
+                <input
+                  type="time"
+                  value={manualBirthTime}
+                  onChange={(e) => setManualBirthTime(e.target.value)}
+                  className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">더 정확한 분석을 위해 입력하세요</p>
+              </div>
+              <div className="pt-2 border-t border-slate-700">
+                <p className="text-xs text-gray-400">
+                  프로필에 정보가 없습니다. 위 정보를 입력하거나{' '}
+                  <Link href="/destiny-map" className="text-purple-400 hover:text-purple-300 underline">
+                    운세 분석에서 프로필 설정
+                  </Link>
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -209,9 +275,9 @@ function TimingReportContent() {
         {/* Generate Button */}
         <button
           onClick={handleGenerate}
-          disabled={isGenerating || !profile.birthDate}
+          disabled={isGenerating || (!(profile.birthDate && !useCustomInfo) && !manualBirthDate)}
           className={`w-full p-4 rounded-xl font-bold text-white flex items-center justify-center gap-3 transition-all focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
-            isGenerating || !profile.birthDate
+            isGenerating || (!(profile.birthDate && !useCustomInfo) && !manualBirthDate)
               ? 'bg-slate-600 cursor-not-allowed'
               : `bg-gradient-to-r ${periodInfo.color} hover:opacity-90`
           }`}

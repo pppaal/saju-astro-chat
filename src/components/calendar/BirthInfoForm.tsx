@@ -273,6 +273,7 @@ export default function BirthInfoForm({
                       <li
                         key={`${s.name}-${s.country}-${idx}`}
                         role="option"
+                        aria-selected="false"
                         className={styles.dropdownItem}
                         onMouseDown={(e) => {
                           e.preventDefault()
@@ -299,7 +300,6 @@ export default function BirthInfoForm({
                 className={styles.genderButtons}
                 role="group"
                 aria-labelledby="gender-label"
-                aria-required="true"
               >
                 <button
                   type="button"

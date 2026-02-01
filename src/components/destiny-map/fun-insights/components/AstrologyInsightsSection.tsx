@@ -24,7 +24,7 @@ interface AstrologyInsightsSectionProps {
 }
 
 export function AstrologyInsightsSection({ astro, lang }: AstrologyInsightsSectionProps) {
-  const isKo = lang === "ko";
+  const _isKo = lang === "ko";
 
   // Get all insights
   const chironInsight = getChironInsight(astro, lang);

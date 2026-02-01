@@ -14,6 +14,9 @@ import {
 } from '@/lib/validation'
 import { sanitizeString } from '@/lib/api/sanitizers'
 import { logger } from '@/lib/logger'
+import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateSajuCompatibilityOnly } from '@/lib/compatibility/cosmicCompatibility'
+import type { SajuProfile } from '@/lib/compatibility/cosmicCompatibility'
 import type { Relation, PersonInput, CompatibilityBackendResponse } from './types'
 
 function bad(msg: string, status = 400) {
@@ -34,6 +37,31 @@ function relationWeight(r?: Relation) {
 }
 
 const MAX_NOTE = LIMITS.NOTE
+
+function buildSajuProfileFromBirth(
+  date: string, time: string, timezone: string
+): SajuProfile | null {
+  try {
+    const result = calculateSajuData(date, time, 'male', 'solar', timezone);
+    return {
+      dayMaster: {
+        name: result.dayMaster.name,
+        element: result.dayMaster.element,
+        yin_yang: result.dayMaster.yin_yang === '양' ? 'yang' : 'yin',
+      },
+      pillars: {
+        year:  { stem: result.yearPillar.heavenlyStem.name, branch: result.yearPillar.earthlyBranch.name },
+        month: { stem: result.monthPillar.heavenlyStem.name, branch: result.monthPillar.earthlyBranch.name },
+        day:   { stem: result.dayPillar.heavenlyStem.name, branch: result.dayPillar.earthlyBranch.name },
+        time:  { stem: result.timePillar.heavenlyStem.name, branch: result.timePillar.earthlyBranch.name },
+      },
+      elements: result.fiveElements,
+    };
+  } catch (e) {
+    logger.warn('[Compatibility] Saju profile build failed:', e);
+    return null;
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -107,19 +135,32 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Build Saju profiles once per person (cache to avoid redundant computation)
+    const sajuProfiles: (SajuProfile | null)[] = persons.map(p =>
+      buildSajuProfileFromBirth(p.date, p.time, p.timeZone)
+    );
+
     const scores = pairs.map(([a, b]) => {
-      const pa = persons[a]
-      const pb = persons[b]
-      const geo = Math.hypot(pa.latitude - pb.latitude, pa.longitude - pb.longitude)
-      const base = Math.max(0, 100 - Math.min(100, Math.round(geo)))
+      const profileA = sajuProfiles[a];
+      const profileB = sajuProfiles[b];
+
+      let base = 65; // neutral default if saju calculation fails
+      if (profileA && profileB) {
+        try {
+          const { score: sajuScore } = calculateSajuCompatibilityOnly(profileA, profileB);
+          base = sajuScore;
+        } catch (e) {
+          logger.warn('[Compatibility] Saju scoring failed for pair:', { a, b, error: e });
+        }
+      }
 
       let weight = 1.0
       if (a === 0) {
-        weight = relationWeight(pb.relationToP1)
+        weight = relationWeight(persons[b].relationToP1)
       } else if (b === 0) {
-        weight = relationWeight(pa.relationToP1)
+        weight = relationWeight(persons[a].relationToP1)
       } else {
-        weight = (relationWeight(pa.relationToP1) + relationWeight(pb.relationToP1)) / 2
+        weight = (relationWeight(persons[a].relationToP1) + relationWeight(persons[b].relationToP1)) / 2
       }
 
       const score = Math.round(base * weight)
@@ -131,13 +172,13 @@ export async function POST(req: NextRequest) {
     const lines: string[] = []
     lines.push(`## 종합 궁합 점수`)
     lines.push('')
-    lines.push('This result uses a playful heuristic based on distance and relation.')
+    lines.push('사주(四柱) 일간 오행 궁합 분석 결과입니다.')
     lines.push('')
     lines.push(`${names.slice(0, 2).join(' & ')}의 궁합 점수: ${avg}점/100`)
     lines.push('')
     lines.push(`## 관계 분석`)
     lines.push('')
-    lines.push('This result uses a playful heuristic based on distance and relation.')
+    lines.push('사주(四柱) 일간 오행 궁합 분석 결과입니다.')
     lines.push('')
     for (let i = 1; i < persons.length; i++) {
       const r = persons[i].relationToP1!
@@ -148,7 +189,7 @@ export async function POST(req: NextRequest) {
     lines.push('')
     lines.push(`## 상세 점수`)
     lines.push('')
-    lines.push('This result uses a playful heuristic based on distance and relation.')
+    lines.push('사주(四柱) 일간 오행 궁합 분석 결과입니다.')
     lines.push('')
     scores.forEach(({ pair: [a, b], score }) => {
       lines.push(`${names[a]} & ${names[b]}: ${score}점/100`)
@@ -156,7 +197,7 @@ export async function POST(req: NextRequest) {
     lines.push('')
     lines.push(`## 조언`)
     lines.push('')
-    lines.push('This result uses a playful heuristic based on distance and relation.')
+    lines.push('사주(四柱) 일간 오행 궁합 분석 결과입니다.')
     lines.push('')
     lines.push(
       'AI 기반 심화 분석을 위해 잠시 후 다시 시도해주세요. 현재는 기본 분석 결과만 제공됩니다.'

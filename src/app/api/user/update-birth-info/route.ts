@@ -20,9 +20,7 @@ export const runtime = 'nodejs'
  */
 async function invalidateBirthCaches(
   userId: string,
-  oldBirthDate: string | null,
-  oldBirthTime: string | null,
-  oldGender: string | null
+  oldBirthDate: string | null
 ): Promise<number> {
   const patterns: string[] = []
 
@@ -107,9 +105,7 @@ export const POST = withApiMiddleware(
     if (birthChanged && oldUser) {
       await invalidateBirthCaches(
         context.userId!,
-        oldUser.birthDate,
-        oldUser.birthTime,
-        oldUser.gender
+        oldUser.birthDate
       )
       cacheCleared = true
     }

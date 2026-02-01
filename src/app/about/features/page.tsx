@@ -271,7 +271,7 @@ export default function AboutFeaturesPage() {
               )}
             </p>
             <ul className="pp-bullets">
-              <li>Life Path / Expression / Soul Urge / Personality</li>
+              <li>{tt('numerologyDetail.lifePath', 'Life Path')} / {tt('numerologyDetail.expression', 'Expression')} / {tt('numerologyDetail.soulUrge', 'Soul Urge')} / {tt('numerologyDetail.personality', 'Personality')}</li>
               <li>
                 {tt(
                   "about.features.numerology.cityTz",

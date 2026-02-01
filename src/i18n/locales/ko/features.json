@@ -127,6 +127,10 @@
         "title": "인생 예측",
         "desc": "10년 운세 흐름과 인생 전환점"
       },
+      "lifePredictionTiming": {
+        "title": "인생 타이밍",
+        "desc": "최적의 시기와 전환점 분석"
+      },
       "destinyCalendar": {
         "title": "운명 캘린더",
         "desc": "중요한 날짜 저장"
@@ -159,10 +163,6 @@
         "title": "수비학",
         "desc": "숫자의 비밀"
       },
-      "aura": {
-        "title": "오라",
-        "desc": "에너지 필드 분석"
-      },
       "personality": {
         "title": "성격",
         "desc": "내면의 자아 탐구"
@@ -175,13 +175,17 @@
         "title": "성격 궁합",
         "desc": "ICP + Persona 종합 궁합 분석"
       },
-      "destinyPal": {
-        "title": "Destiny Pal",
-        "desc": "AI 상담 파트너"
-      },
       "destinyMatrix": {
         "title": "운명 매트릭스",
         "desc": "운명의 청사진"
+      },
+      "aiReports": {
+        "title": "AI 리포트",
+        "desc": "AI 기반 종합 분석 리포트"
+      },
+      "pastLife": {
+        "title": "전생 분석",
+        "desc": "전생의 인연과 카르마 분석"
       },
       "default": {
         "desc": "기록 보기"

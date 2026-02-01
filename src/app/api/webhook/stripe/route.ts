@@ -82,18 +82,38 @@ export async function POST(request: Request) {
 
   logger.info(`[Stripe Webhook] Event: ${event.type}`, { eventId: event.id, ip })
 
+  // 🔒 타임스탬프 검증: 5분 이상 오래된 이벤트는 거부 (Replay Attack 방지)
+  const eventAgeSeconds = Math.floor(Date.now() / 1000) - event.created
+  if (eventAgeSeconds > 300) {
+    logger.warn(`[Stripe Webhook] Stale event rejected (age: ${eventAgeSeconds}s)`, {
+      eventId: event.id,
+      type: event.type,
+    })
+    recordCounter("stripe_webhook_stale_event", 1, { event: event.type })
+    return NextResponse.json(
+      { error: "Event too old" },
+      { status: HTTP_STATUS.BAD_REQUEST }
+    )
+  }
+
   // 🔒 멱등성 체크: 이미 처리된 이벤트인지 확인 (Replay Attack 방지)
   const existingEvent = await prisma.stripeEventLog.findUnique({
     where: { eventId: event.id },
   })
 
-  if (existingEvent) {
+  if (existingEvent?.success) {
     logger.info(`[Stripe Webhook] Event already processed: ${event.id}`, {
       type: event.type,
       processedAt: existingEvent.processedAt,
     })
     recordCounter("stripe_webhook_duplicate", 1, { event: event.type })
     return NextResponse.json({ received: true, duplicate: true })
+  }
+  if (existingEvent && !existingEvent.success) {
+    logger.warn(`[Stripe Webhook] Reprocessing previously failed event: ${event.id}`, {
+      type: event.type,
+      processedAt: existingEvent.processedAt,
+    })
   }
 
   try {
@@ -134,8 +154,18 @@ export async function POST(request: Request) {
     }
 
     // ✅ 성공: 이벤트 처리 완료 기록
-    await prisma.stripeEventLog.create({
-      data: {
+    await prisma.stripeEventLog.upsert({
+      where: { eventId: event.id },
+      update: {
+        success: true,
+        errorMsg: null,
+        processedAt: new Date(),
+        metadata: {
+          livemode: event.livemode,
+          apiVersion: event.api_version,
+        },
+      },
+      create: {
         eventId: event.id,
         type: event.type,
         success: true,
@@ -155,8 +185,30 @@ export async function POST(request: Request) {
 
     // ❌ 실패: 이벤트 처리 실패 기록 (재처리 가능하도록)
     try {
-      await prisma.stripeEventLog.create({
-        data: {
+      const existingAfter = await prisma.stripeEventLog.findUnique({
+        where: { eventId: event.id },
+      })
+      if (existingAfter?.success) {
+        logger.info(`[Stripe Webhook] Event succeeded elsewhere: ${event.id}`, {
+          type: event.type,
+          processedAt: existingAfter.processedAt,
+        })
+        return NextResponse.json({ received: true, duplicate: true })
+      }
+
+      await prisma.stripeEventLog.upsert({
+        where: { eventId: event.id },
+        update: {
+          success: false,
+          errorMsg: message,
+          processedAt: new Date(),
+          metadata: {
+            livemode: event.livemode,
+            apiVersion: event.api_version,
+            error: message,
+          },
+        },
+        create: {
           eventId: event.id,
           type: event.type,
           success: false,

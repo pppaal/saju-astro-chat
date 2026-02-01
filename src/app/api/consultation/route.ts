@@ -1,11 +1,9 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
+import { NextRequest, NextResponse } from "next/server";
+import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from "@/lib/api/middleware";
 import { prisma } from "@/lib/db/prisma";
 import Stripe from "stripe";
 import { logger } from '@/lib/logger';
 
-import { parseRequestBody } from '@/lib/api/requestParser';
 import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = "force-dynamic";
 
@@ -54,15 +52,16 @@ async function checkStripeActive(email?: string): Promise<boolean> {
 }
 
 // POST: 상담 기록 저장 (프리미엄 전용)
-export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !session?.user?.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
-    }
+export const POST = withApiMiddleware(
+  async (request: NextRequest, context: ApiContext) => {
+    try {
+      const userEmail = context.session?.user?.email;
+      if (!userEmail) {
+        return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
+      }
 
-    // 프리미엄 체크 - 상담 기록 저장은 프리미엄 전용
-    const isPremium = await checkStripeActive(session.user.email);
+      // 프리미엄 체크 - 상담 기록 저장은 프리미엄 전용
+      const isPremium = await checkStripeActive(userEmail);
     if (!isPremium) {
       return NextResponse.json(
         {
@@ -96,10 +95,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // 상담 기록 저장
-    const consultation = await prisma.consultationHistory.create({
-      data: {
-        userId: session.user.id,
+      // 상담 기록 저장
+      const consultation = await prisma.consultationHistory.create({
+        data: {
+          userId: context.userId!,
         theme,
         summary,
         fullReport,
@@ -108,35 +107,42 @@ export async function POST(request: Request) {
         userQuestion: userQuestion || undefined,
         locale,
       },
-    });
+      });
 
-    // 페르소나 메모리 업데이트 (세션 카운트 증가, 테마 추가)
-    await updatePersonaMemory(session.user.id, theme);
+      // 페르소나 메모리 업데이트 (세션 카운트 증가, 테마 추가)
+      await updatePersonaMemory(context.userId!, theme);
 
-    return NextResponse.json({
-      success: true,
-      id: consultation.id,
-      createdAt: consultation.createdAt,
-    });
-  } catch (err: unknown) {
-    logger.error("[Consultation POST error]", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+      return NextResponse.json({
+        success: true,
+        id: consultation.id,
+        createdAt: consultation.createdAt,
+      });
+    } catch (err: unknown) {
+      logger.error("[Consultation POST error]", err);
+      return NextResponse.json(
+        { error: "Internal Server Error" },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      );
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/consultation',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)
 
 // GET: 상담 기록 목록 조회 (프리미엄 전용)
-export async function GET(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !session?.user?.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
-    }
+export const GET = withApiMiddleware(
+  async (request: NextRequest, context: ApiContext) => {
+    try {
+      const userEmail = context.session?.user?.email;
+      if (!userEmail) {
+        return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
+      }
 
-    // 프리미엄 체크
-    const isPremium = await checkStripeActive(session.user.email);
+      // 프리미엄 체크
+      const isPremium = await checkStripeActive(userEmail);
     if (!isPremium) {
       return NextResponse.json(
         {
@@ -153,8 +159,8 @@ export async function GET(request: Request) {
     const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 50);
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    // 쿼리 빌드
-    const where: { userId: string; theme?: string } = { userId: session.user.id };
+      // 쿼리 빌드
+      const where: { userId: string; theme?: string } = { userId: context.userId! };
     if (theme) {
       where.theme = theme;
     }
@@ -177,24 +183,30 @@ export async function GET(request: Request) {
       prisma.consultationHistory.count({ where }),
     ]);
 
-    return NextResponse.json({
-      success: true,
-      data: consultations,
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + consultations.length < total,
-      },
-    });
-  } catch (err: unknown) {
-    logger.error("[Consultation GET error]", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+      return NextResponse.json({
+        success: true,
+        data: consultations,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore: offset + consultations.length < total,
+        },
+      });
+    } catch (err: unknown) {
+      logger.error("[Consultation GET error]", err);
+      return NextResponse.json(
+        { error: "Internal Server Error" },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      );
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/consultation',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)
 
 // 페르소나 메모리 업데이트 헬퍼
 async function updatePersonaMemory(userId: string, theme: string) {

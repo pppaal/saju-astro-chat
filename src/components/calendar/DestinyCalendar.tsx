@@ -34,8 +34,6 @@ import type { EventCategory, ImportantDate, CalendarData, BirthInfo, CityHit } f
 
 // Hooks
 import { useParticleAnimation } from "@/hooks/calendar/useParticleAnimation";
-import { useCitySearch } from "@/hooks/calendar/useCitySearch";
-import { useProfileLoader } from "@/hooks/calendar/useProfileLoader";
 
 // Sub-components
 import BirthInfoFormInline from './BirthInfoFormInline';
@@ -65,7 +63,6 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   // UI state
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
-  const [cacheHit, setCacheHit] = useState(false);
 
   // Birth info state
   const [birthInfo, setBirthInfo] = useState<BirthInfo>({
@@ -134,7 +131,6 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   const fetchCalendar = useCallback(async (birthData: BirthInfo) => {
     setLoading(true);
     setError(null);
-    setCacheHit(false);
 
     try {
       // Check cache first
@@ -145,7 +141,6 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
         logger.debug('[Calendar] Cache HIT!', { year, category: activeCategory });
         setData(cachedData);
         setHasBirthInfo(true);
-        setCacheHit(true);
         setLoading(false);
         setSubmitting(false);
         return;

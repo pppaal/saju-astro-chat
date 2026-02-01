@@ -321,8 +321,6 @@ export function getKarmaAnalysis(
 
   // 일간 추출
   const dayMasterChar = extractDayMasterChar(saju);
-  const dayMaster = saju?.dayMaster?.name ||
-    saju?.dayMaster?.heavenlyStem || "";
 
   // North Node 하우스 (centralized utility 사용)
   const northNodeHouse = getPlanetHouse(astro, 'northnode');

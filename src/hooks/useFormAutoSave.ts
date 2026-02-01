@@ -63,7 +63,7 @@ export function useFormAutoSave<T>({
     } catch (error) {
       logger.error('[useFormAutoSave] Failed to load saved data:', error);
     }
-  }, [storageKey, enabled]); // Only run on mount
+  }, [storageKey, enabled, onLoad]); // Only run on mount
 
   // Save data with debounce
   useEffect(() => {
@@ -96,7 +96,7 @@ export function useFormAutoSave<T>({
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [data, delay, enabled, storageKey]); // Run when data changes
+  }, [data, delay, enabled, storageKey, onSave]); // Run when data changes
 
   // Clear saved data
   const clearSavedData = useCallback(() => {

@@ -9,6 +9,7 @@ import { detectCrisis } from "@/components/destiny-map/chat-i18n";
 import MarkdownMessage from "@/components/ui/MarkdownMessage";
 import { logger } from "@/lib/logger";
 import { CHAT_I18N, ASTROLOGY_FOLLOWUPS, type ChatLangKey } from "./constants";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type Message = { role: "system" | "user" | "assistant"; content: string; id?: string };
 
@@ -24,6 +25,7 @@ const MessageRow = memo(({
   onFeedback: (id: string, type: FeedbackType) => void;
   styles: Record<string, string>;
 }) => {
+  const { t } = useI18n();
   return (
     <div
       key={message.id || message.content.slice(0, 20)}
@@ -42,7 +44,7 @@ const MessageRow = memo(({
             type="button"
             className={`${styles.feedbackBtn} ${feedback[message.id || ""] === "up" ? styles.active : ""}`}
             onClick={() => onFeedback(message.id || "", "up")}
-            title="Good response"
+            title={t("feedback.good")}
           >
             &#x1F44D;
           </button>
@@ -50,7 +52,7 @@ const MessageRow = memo(({
             type="button"
             className={`${styles.feedbackBtn} ${feedback[message.id || ""] === "down" ? styles.active : ""}`}
             onClick={() => onFeedback(message.id || "", "down")}
-            title="Needs improvement"
+            title={t("feedback.needsImprovement")}
           >
             &#x1F44E;
           </button>
@@ -102,7 +104,7 @@ type AstrologyChatProps = {
   ragSessionId?: string;
 };
 
-export default function AstrologyChat({
+const AstrologyChat = memo(function AstrologyChat({
   profile,
   initialContext = "",
   lang = "ko",
@@ -515,4 +517,6 @@ export default function AstrologyChat({
       </form>
     </div>
   );
-}
+});
+
+export default AstrologyChat;

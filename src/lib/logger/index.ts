@@ -127,6 +127,8 @@ class Logger {
         if (entry.error) {
           captureServerError(entry.error, entry.context);
         }
+      }).catch(() => {
+        // Sentry 전송 실패는 무시 (로깅 루프 방지)
       });
     }
   }

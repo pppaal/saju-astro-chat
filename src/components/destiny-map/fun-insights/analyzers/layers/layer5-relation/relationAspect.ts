@@ -57,7 +57,7 @@ export function getRelationAspectAnalysis(
   astro: AstroData | undefined,
   lang: string
 ): RelationAspectResult[] {
-  const isKo = lang === 'ko';
+  const _isKo = lang === 'ko';
   const results: RelationAspectResult[] = [];
 
   if (!saju && !astro) {return results;}

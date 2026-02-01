@@ -8,7 +8,6 @@ import { apiFetch } from '@/lib/api';
 import { getStoredBirthDate } from '@/lib/userProfile';
 import { tarotLogger } from '@/lib/logger';
 import type { ReadingResponse, InterpretationResult } from '../constants/types';
-import type { DrawnCard } from '@/lib/Tarot/tarot.types';
 
 export interface FetchInterpretationInput {
   categoryId: string | undefined;

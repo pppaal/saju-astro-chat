@@ -1,8 +1,7 @@
 "use client";
 
 // src/components/calendar/CalendarMainView.tsx
-import React, { useCallback, useMemo } from 'react';
-import { useSession } from 'next-auth/react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
 import styles from './DestinyCalendar.module.css';
@@ -39,7 +38,7 @@ const MONTHS_KO = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월
 const MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const CATEGORIES: EventCategory[] = ["wealth", "career", "love", "health", "travel", "study"];
 
-export default function CalendarMainView({
+const CalendarMainView = memo(function CalendarMainView({
   data,
   currentDate,
   selectedDay,
@@ -60,7 +59,6 @@ export default function CalendarMainView({
   onUnsaveDate,
 }: CalendarMainViewProps) {
   const { locale } = useI18n();
-  const { status } = useSession();
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -70,7 +68,6 @@ export default function CalendarMainView({
   const MONTHS = locale === "ko" ? MONTHS_KO : MONTHS_EN;
 
   // Year summary calculation
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const yearSummary = useMemo(() => {
     if (!data?.allDates) {return null;}
 
@@ -91,7 +88,6 @@ export default function CalendarMainView({
   }, [data?.allDates, year]);
 
   // Monthly fortune data for graph
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const fortuneData = useMemo(() => {
     if (!data?.allDates) {return [];}
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -110,7 +106,6 @@ export default function CalendarMainView({
   }, [data?.allDates, year, month]);
 
   // Generate month days array
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const getMonthDays = useCallback(() => {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
@@ -132,7 +127,6 @@ export default function CalendarMainView({
     return days;
   }, [year, month]);
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const getDateInfo = useCallback((date: Date): ImportantDate | undefined => {
     if (!data?.allDates) {return undefined;}
     const y = date.getFullYear();
@@ -174,7 +168,7 @@ export default function CalendarMainView({
     onDayClick(date);
   }, [onDayClick]);
 
-  const handleDateSelect = useCallback((date: Date, info: ImportantDate) => {
+  const handleDateSelect = useCallback((date: Date, _info: ImportantDate) => {
     onDayClick(date);
   }, [onDayClick]);
 
@@ -253,15 +247,13 @@ export default function CalendarMainView({
                 {locale === "ko" ? `${yearSummary.grade4}일` : `${yearSummary.grade4} days`}
               </span>
             </span>
-            {yearSummary.grade5 > 0 && (
-              <span className={`${styles.summaryBadge} ${styles.worstBadge}`} title={locale === "ko" ? "최악의 날 (5등급)" : "Worst Days (grade 5)"}>
-                <span className={styles.badgeEmoji}>☠️</span>
-                <span className={styles.badgeLabel}>{locale === "ko" ? "최악" : "Worst"}</span>
-                <span className={styles.badgeCount}>
-                  {locale === "ko" ? `${yearSummary.grade5}일` : `${yearSummary.grade5} days`}
-                </span>
+            <span className={`${styles.summaryBadge} ${styles.worstBadge}`} title={locale === "ko" ? "최악의 날 (5등급)" : "Worst Days (grade 5)"}>
+              <span className={styles.badgeEmoji}>☠️</span>
+              <span className={styles.badgeLabel}>{locale === "ko" ? "최악" : "Worst"}</span>
+              <span className={styles.badgeCount}>
+                {locale === "ko" ? `${yearSummary.grade5}일` : `${yearSummary.grade5} days`}
               </span>
-            )}
+            </span>
           </div>
         )}
       </div>
@@ -462,4 +454,6 @@ export default function CalendarMainView({
       )}
     </div>
   );
-}
+});
+
+export default CalendarMainView;

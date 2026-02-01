@@ -1,4 +1,7 @@
+'use client';
+
 import type { NumerologyContent } from '../../lib';
+import { useI18n } from '@/i18n/I18nProvider';
 import styles from '../../history.module.css';
 
 type NumerologyDetailModalProps = {
@@ -6,6 +9,8 @@ type NumerologyDetailModalProps = {
 };
 
 export function NumerologyDetailModal({ detail }: NumerologyDetailModalProps) {
+  const { t } = useI18n();
+
   return (
     <div className={styles.numerologyDetail}>
       {/* Header */}
@@ -23,22 +28,22 @@ export function NumerologyDetailModal({ detail }: NumerologyDetailModalProps) {
         <div className={styles.numberGrid}>
           <div className={styles.numberBox}>
             <span className={styles.numberValue}>{detail.lifePath}</span>
-            <span className={styles.numberLabel}>Life Path</span>
+            <span className={styles.numberLabel}>{t("numerologyDetail.lifePath")}</span>
             <span className={styles.numberKorean}>인생 경로</span>
           </div>
           <div className={styles.numberBox}>
             <span className={styles.numberValue}>{detail.expression}</span>
-            <span className={styles.numberLabel}>Expression</span>
+            <span className={styles.numberLabel}>{t("numerologyDetail.expression")}</span>
             <span className={styles.numberKorean}>표현수</span>
           </div>
           <div className={styles.numberBox}>
             <span className={styles.numberValue}>{detail.soulUrge}</span>
-            <span className={styles.numberLabel}>Soul Urge</span>
+            <span className={styles.numberLabel}>{t("numerologyDetail.soulUrge")}</span>
             <span className={styles.numberKorean}>영혼의 욕구</span>
           </div>
           <div className={styles.numberBox}>
             <span className={styles.numberValue}>{detail.personality}</span>
-            <span className={styles.numberLabel}>Personality</span>
+            <span className={styles.numberLabel}>{t("numerologyDetail.personality")}</span>
             <span className={styles.numberKorean}>인격수</span>
           </div>
         </div>
@@ -50,7 +55,7 @@ export function NumerologyDetailModal({ detail }: NumerologyDetailModalProps) {
           <h3 className={styles.sectionTitle}>🌟 올해의 테마</h3>
           <div className={styles.personalYearBox}>
             <span className={styles.yearNumber}>{detail.personalYear}</span>
-            <span className={styles.yearLabel}>Personal Year Number</span>
+            <span className={styles.yearLabel}>{t("numerologyDetail.personalYearNumber")}</span>
           </div>
         </div>
       )}

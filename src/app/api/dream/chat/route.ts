@@ -275,19 +275,19 @@ export async function POST(req: NextRequest) {
     const oversized = enforceBodySize(req, MAX_CHAT_BODY);
     if (oversized) {return oversized;}
 
-    const body = await parseRequestBody<any>(req, { context: 'Dream Chat' });
+    const body = await parseRequestBody<Record<string, unknown>>(req, { context: 'Dream Chat' });
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
-    const locale = typeof (body as Record<string, unknown>).locale === "string" && ALLOWED_CHAT_LOCALES.has((body as Record<string, unknown>).locale as string)
-      ? (body as Record<string, unknown>).locale as "ko" | "en"
+    const locale = typeof body.locale === "string" && ALLOWED_CHAT_LOCALES.has(body.locale as string)
+      ? body.locale as "ko" | "en"
       : (context.locale as "ko" | "en");
-    const messages = normalizeMessages((body as Record<string, unknown>).messages);
+    const messages = normalizeMessages(body.messages);
     if (!messages.length) {
       return NextResponse.json({ error: "Messages required" }, { status: HTTP_STATUS.BAD_REQUEST });
     }
-    const dreamContext = normalizeEnhancedDreamContext((body as Record<string, unknown>).dreamContext);
+    const dreamContext = normalizeEnhancedDreamContext(body.dreamContext);
     if (!dreamContext) {
       return NextResponse.json({ error: "Invalid dream context" }, { status: HTTP_STATUS.BAD_REQUEST });
     }

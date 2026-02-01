@@ -464,7 +464,7 @@ updates:
 - [Workflow Syntax](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions)
 - [Vercel CLI Docs](https://vercel.com/docs/cli)
 - [Playwright CI Guide](https://playwright.dev/docs/ci)
-- [Project CI/CD Documentation](../docs/CI_CD_PIPELINE.md)
+- [Project CI/CD Documentation](../../docs/CI_CD_PIPELINE.md)
 
 ---
 

@@ -18,13 +18,10 @@ import type {
 // Layer modules
 import { analyzeElementFusion, getElementFusionDescription } from './elementFusion';
 import { analyzeSibsinPlanetFusion, getSibsinPlanetDescription } from './sibsinPlanetFusion';
-import { analyzeSibsinHouseFusion } from './sibsinHouseFusion';
 import { analyzeTimingOverlay } from './timingOverlay';
 import { analyzeRelationAspect } from './relationAspect';
 import { analyzeLifeCycle, getLifeCycleDescription } from './lifeCycle';
 import { analyzeAdvanced } from './advancedAnalysis';
-import { analyzeShinsalPlanet } from './shinsalPlanet';
-import { analyzeAsteroidHouse } from './asteroidHouse';
 import { analyzeExtraPoint } from './extraPoint';
 
 // Specialized analyzers

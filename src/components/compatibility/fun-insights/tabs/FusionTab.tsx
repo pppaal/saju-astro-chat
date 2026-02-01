@@ -17,6 +17,62 @@ export function FusionTab({ data, isKo }: TabProps) {
     );
   }
 
+  // Generate continuous flowing analysis text
+  const analysisLines: string[] = [];
+  if (isKo) {
+    analysisLines.push(`${name1}님과 ${name2}님의 동서양 융합 궁합 분석 결과입니다.`);
+    analysisLines.push(`동서융합 궁합 점수: ${cross.crossSystemScore}점/100 — 사주(동양)와 점성술(서양)을 교차 분석한 종합 점수입니다.`);
+    if (cross.dayMasterSunAnalysis?.person1?.description) {
+      analysisLines.push(`${name1}님의 일간-태양 분석: ${cross.dayMasterSunAnalysis.person1.description}`);
+    }
+    if (cross.dayMasterSunAnalysis?.person2?.description) {
+      analysisLines.push(`${name2}님의 일간-태양 분석: ${cross.dayMasterSunAnalysis.person2.description}`);
+    }
+    if (cross.dayMasterSunAnalysis?.crossHarmony?.interpretation) {
+      analysisLines.push(`교차 조화 해석: ${cross.dayMasterSunAnalysis.crossHarmony.interpretation}`);
+    }
+    const emotionalRes = cross.monthBranchMoonAnalysis?.emotionalResonance || 0;
+    if (emotionalRes > 0) {
+      analysisLines.push(`월지-달 별자리 감정적 공명도: ${emotionalRes}% — ${emotionalRes >= 70 ? '감정적으로 깊이 공명하여 서로를 직관적으로 이해합니다.' : '감정적 교류를 의식적으로 노력하면 더 깊어질 수 있습니다.'}`);
+    }
+    if (cross.monthBranchMoonAnalysis?.interpretation?.length > 0) {
+      analysisLines.push(...cross.monthBranchMoonAnalysis.interpretation.slice(0, 2));
+    }
+    const completionScore = cross.elementFusionAnalysis?.mutualCompletion?.completionScore || 0;
+    if (completionScore > 0) {
+      analysisLines.push(`오행-행성원소 상호 보완 점수: ${completionScore}% — ${completionScore >= 70 ? '서로에게 필요한 에너지를 채워줄 수 있는 이상적인 조합입니다.' : '일부 에너지를 서로 보완하며 균형을 잡을 수 있습니다.'}`);
+    }
+    if (cross.elementFusionAnalysis?.interpretation?.length > 0) {
+      analysisLines.push(...cross.elementFusionAnalysis.interpretation.slice(0, 2));
+    }
+    if (cross.pillarPlanetCorrespondence?.fusionReading) {
+      analysisLines.push(cross.pillarPlanetCorrespondence.fusionReading);
+    }
+    if (cross.fusionInsights?.length > 0) {
+      analysisLines.push(...cross.fusionInsights.slice(0, 3));
+    }
+  } else {
+    analysisLines.push(`East-West fusion analysis for ${name1} and ${name2}.`);
+    analysisLines.push(`Fusion score: ${cross.crossSystemScore}/100 — combining Saju (Eastern) and Astrology (Western).`);
+    if (cross.dayMasterSunAnalysis?.crossHarmony?.interpretation) {
+      analysisLines.push(`Cross harmony: ${cross.dayMasterSunAnalysis.crossHarmony.interpretation}`);
+    }
+    const emotionalRes = cross.monthBranchMoonAnalysis?.emotionalResonance || 0;
+    if (emotionalRes > 0) {
+      analysisLines.push(`Emotional resonance: ${emotionalRes}% — ${emotionalRes >= 70 ? 'deep intuitive understanding.' : 'intentional effort deepens the connection.'}`);
+    }
+    const completionScore = cross.elementFusionAnalysis?.mutualCompletion?.completionScore || 0;
+    if (completionScore > 0) {
+      analysisLines.push(`Mutual completion: ${completionScore}% — ${completionScore >= 70 ? 'ideal combination fulfilling each other\'s needs.' : 'partial complementarity with room to grow.'}`);
+    }
+    if (cross.pillarPlanetCorrespondence?.fusionReading) {
+      analysisLines.push(cross.pillarPlanetCorrespondence.fusionReading);
+    }
+    if (cross.fusionInsights?.length > 0) {
+      analysisLines.push(...cross.fusionInsights.slice(0, 3));
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -29,6 +85,20 @@ export function FusionTab({ data, isKo }: TabProps) {
             ? '사주(동양)와 점성술(서양)을 교차 분석한 결과'
             : 'Cross-analysis of Saju (Eastern) and Astrology (Western)'}
         </p>
+      </div>
+
+      {/* Continuous Analysis Text */}
+      <div className="rounded-2xl bg-slate-800/50 border border-slate-700/50 p-5 md:p-6">
+        <h3 className="text-lg font-bold text-gray-100 mb-4">
+          {isKo ? '동서융합 상세 분석' : 'Detailed Fusion Analysis'}
+        </h3>
+        <div className="space-y-3">
+          {analysisLines.map((line, idx) => (
+            <p key={idx} className="text-gray-200 text-sm leading-relaxed">
+              {line}
+            </p>
+          ))}
+        </div>
       </div>
 
       {/* Cross Score */}

@@ -199,8 +199,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="DestinyPal" />
         <meta name="theme-color" content="#0d1225" />
-        <JsonLd data={websiteJsonLd} />
-        <JsonLd data={organizationJsonLd} />
+        <JsonLd data={websiteJsonLd} nonce={nonce} />
+        <JsonLd data={organizationJsonLd} nonce={nonce} />
         {/* Kakao SDK for sharing */}
         <script defer src="https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js" nonce={nonce} />
         {process.env.NEXT_PUBLIC_KAKAO_APP_KEY && (

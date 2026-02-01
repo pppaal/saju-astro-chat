@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { logger } from "@/lib/logger";
 
 export default function DreamError({
@@ -31,12 +32,10 @@ export default function DreamError({
           >
             다시 시도
           </button>
-          <a
+          <Link
             href="/"
             className="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
-          >
-            홈으로
-          </a>
+          >홈으로</Link>
         </div>
         {error.digest && (
           <p className="mt-4 text-xs text-gray-500">Error ID: {error.digest}</p>

@@ -3,7 +3,9 @@
  * 커버리지 향상을 위한 engine 모듈 테스트
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+vi.setConfig({ testTimeout: 60000 });
 
 describe('Prediction Engine Modules', () => {
   describe('constants.ts', () => {

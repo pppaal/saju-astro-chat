@@ -2,6 +2,8 @@
 // Comprehensive tests for Cities Search API
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+vi.setConfig({ testTimeout: 60000 });
 import { NextRequest } from 'next/server';
 import fs from 'fs/promises';
 

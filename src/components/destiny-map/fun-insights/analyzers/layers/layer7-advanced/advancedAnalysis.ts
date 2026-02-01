@@ -52,7 +52,7 @@ export function getAdvancedAnalysisResult(
   astro: AstroData | undefined,
   lang: string
 ): AdvancedAnalysisResult[] {
-  const isKo = lang === 'ko';
+  const _isKo = lang === 'ko';
   const results: AdvancedAnalysisResult[] = [];
 
   if (!saju && !astro) {return results;}

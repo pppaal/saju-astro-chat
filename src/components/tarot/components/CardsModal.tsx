@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import type { ReadingResponse, InterpretationResult } from "../types";
 import type { LangKey } from "../data";
 import type { I18N } from "../data";
@@ -102,9 +103,11 @@ export const CardsModal = React.memo(function CardsModal({
               <div key={idx} className={styles.modalCardItem}>
                 <div className={styles.modalCardLeft}>
                   <div className={styles.modalCardImageWrapper}>
-                    <img
+                    <Image
                       src={dc.card.image}
                       alt={dc.card.name}
+                      fill
+                      sizes="140px"
                       className={`${styles.modalCardImage} ${dc.isReversed ? styles.reversed : ''}`}
                     />
                     {dc.isReversed && (

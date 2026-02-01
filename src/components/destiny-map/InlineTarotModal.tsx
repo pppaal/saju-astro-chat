@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { memo, useEffect } from "react";
 import TarotCard from "@/components/tarot/TarotCard";
 import type { Spread } from "@/lib/Tarot/tarot.types";
 import styles from "./InlineTarotModal.module.css";
@@ -42,7 +42,7 @@ interface InlineTarotModalProps {
   theme?: string;
 }
 
-export default function InlineTarotModal({
+const InlineTarotModal = memo(function InlineTarotModal({
   isOpen,
   onClose,
   onComplete,
@@ -236,7 +236,9 @@ export default function InlineTarotModal({
       </div>
     </div>
   );
-}
+});
+
+export default InlineTarotModal;
 
 // ─────────────────────────────────────────────────────
 // Sub-components for each step

@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
     if (initResult.error) {return initResult.error;}
     apiContext = initResult.context;
 
-    const body = await parseRequestBody<any>(req, { context: 'Tarot Chat' });
+    const body = await parseRequestBody<Record<string, unknown>>(req, { context: 'Tarot Chat' });
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         { error: "invalid_body" },
@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const bodyObj = body as Record<string, unknown>;
+    const bodyObj = body;
     const language = typeof bodyObj.language === "string" && ALLOWED_TAROT_LANG.has(bodyObj.language as string)
       ? bodyObj.language as "ko" | "en"
       : "ko";

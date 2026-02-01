@@ -19,6 +19,17 @@ async function getRedisClient(): Promise<RedisClientType | null> {
   if (!redisClient) {
     redisClient = createClient({
       url: process.env.REDIS_URL,
+      socket: {
+        connectTimeout: 5000,
+        keepAlive: 30000,
+        reconnectStrategy: (retries) => {
+          if (retries > 5) {
+            logger.error('[Redis] Max reconnection attempts reached');
+            return new Error('Max reconnection attempts reached');
+          }
+          return Math.min(retries * 200, 3000);
+        },
+      },
     });
 
     redisClient.on('error', (err) => {
@@ -52,6 +63,10 @@ export const CACHE_TTL = {
 /**
  * Generic cache get/set wrapper with fallback
  */
+/**
+ * Cache get - returns null on miss or error (cache-aside pattern).
+ * Errors are logged but never thrown; the app must work without cache.
+ */
 export async function cacheGet<T>(key: string): Promise<T | null> {
   try {
     const client = await getRedisClient();
@@ -62,11 +77,15 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
 
     return JSON.parse(data) as T;
   } catch (error) {
-    logger.error('[Redis] Get error', { error });
+    logger.warn('[Redis] Get failed, falling back to uncached path', { key, error });
     return null;
   }
 }
 
+/**
+ * Cache set - returns false on error (cache-aside pattern).
+ * Errors are logged but never thrown; write failures are non-fatal.
+ */
 export async function cacheSet(
   key: string,
   value: unknown,
@@ -79,11 +98,14 @@ export async function cacheSet(
     await client.setEx(key, ttl, JSON.stringify(value));
     return true;
   } catch (error) {
-    logger.error('[Redis] Set error', { error });
+    logger.warn('[Redis] Set failed', { key, error });
     return false;
   }
 }
 
+/**
+ * Cache delete - returns false on error (cache-aside pattern).
+ */
 export async function cacheDel(key: string): Promise<boolean> {
   try {
     const client = await getRedisClient();
@@ -92,7 +114,7 @@ export async function cacheDel(key: string): Promise<boolean> {
     await client.del(key);
     return true;
   } catch (error) {
-    logger.error('[Redis] Delete error', { error });
+    logger.warn('[Redis] Delete failed', { key, error });
     return false;
   }
 }

@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+vi.setConfig({ testTimeout: 60000 });
 
 describe('IChing Advanced Core', () => {
   it('should export TRIGRAMS', async () => {

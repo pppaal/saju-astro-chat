@@ -5,7 +5,6 @@ import { enforceBodySize } from "@/lib/http";
 import { prisma } from "@/lib/db/prisma";
 import { logger } from '@/lib/logger';
 
-import { parseRequestBody } from '@/lib/api/requestParser';
 import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = "force-dynamic";
 

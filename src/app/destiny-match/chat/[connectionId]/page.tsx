@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, use } from 'react';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -50,7 +51,6 @@ export default function MatchChatPage({
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -103,7 +103,6 @@ export default function MatchChatPage({
         } else {
           setMessages(data.messages || []);
         }
-        setHasMore(data.hasMore);
       }
     } catch (e) {
       logger.error('Load messages error:', { error: e });
@@ -294,9 +293,12 @@ export default function MatchChatPage({
           </Link>
           <div className={styles.chatPartnerPhoto}>
             {connection?.partner.photos?.[0] ? (
-              <img
+              <Image
                 src={connection.partner.photos[0]}
                 alt={connection.partner.displayName}
+                width={48}
+                height={48}
+                style={{ borderRadius: '50%', objectFit: 'cover' }}
               />
             ) : (
               <span>👤</span>

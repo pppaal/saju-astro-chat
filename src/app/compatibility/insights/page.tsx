@@ -137,33 +137,50 @@ function CompatibilityInsightsContent() {
       const errors: string[] = [];
 
       // Process responses and collect errors
+      // NOTE: API responses are wrapped as { data: { ...payload }, requestId, timestamp }
+      // We unwrap to get the actual payload for analysis components
       if (saju1Response.ok) {
-        const data = await saju1Response.json();
-        setPerson1Saju(data);
+        const json = await saju1Response.json();
+        const sajuPayload = json?.data ?? json;
+        setPerson1Saju(sajuPayload);
       } else {
         errors.push(`사주 데이터 조회 실패 (${personList[0].name})`);
         logger.error('Saju1 fetch failed:', { status: saju1Response.status });
       }
 
       if (saju2Response.ok) {
-        const data = await saju2Response.json();
-        setPerson2Saju(data);
+        const json = await saju2Response.json();
+        const sajuPayload = json?.data ?? json;
+        setPerson2Saju(sajuPayload);
       } else {
         errors.push(`사주 데이터 조회 실패 (${personList[1].name})`);
         logger.error('Saju2 fetch failed:', { status: saju2Response.status });
       }
 
       if (astro1Response.ok) {
-        const data = await astro1Response.json();
-        setPerson1Astro(data);
+        const json = await astro1Response.json();
+        const astroPayload = json?.data ?? json;
+        // Flatten chartData so planets/ascendant are at top level for buildAstroProfile
+        const astroData = {
+          ...astroPayload,
+          planets: astroPayload?.chartData?.planets ?? astroPayload?.planets,
+          ascendant: astroPayload?.chartData?.ascendant ?? astroPayload?.ascendant,
+        };
+        setPerson1Astro(astroData);
       } else {
         errors.push(`점성술 데이터 조회 실패 (${personList[0].name})`);
         logger.error('Astro1 fetch failed:', { status: astro1Response.status });
       }
 
       if (astro2Response.ok) {
-        const data = await astro2Response.json();
-        setPerson2Astro(data);
+        const json = await astro2Response.json();
+        const astroPayload = json?.data ?? json;
+        const astroData = {
+          ...astroPayload,
+          planets: astroPayload?.chartData?.planets ?? astroPayload?.planets,
+          ascendant: astroPayload?.chartData?.ascendant ?? astroPayload?.ascendant,
+        };
+        setPerson2Astro(astroData);
       } else {
         errors.push(`점성술 데이터 조회 실패 (${personList[1].name})`);
         logger.error('Astro2 fetch failed:', { status: astro2Response.status });

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/authOptions";
-import { registerClient, unregisterClient } from "@/lib/notifications/sse";
+import { registerClient, unregisterClient, drainQueuedNotifications } from "@/lib/notifications/sse";
 import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
@@ -38,13 +38,39 @@ export async function GET(_request: NextRequest) {
       controller.enqueue(`data: ${data}\n\n`);
 
       // Keep connection alive with heartbeat
-    const heartbeat = setInterval(() => {
-      controller.enqueue(`: heartbeat\n\n`);
-    }, 30000); // Every 30 seconds
+      const heartbeat = setInterval(() => {
+        controller.enqueue(`: heartbeat\n\n`);
+      }, 30000); // Every 30 seconds
+
+      // Drain queued notifications from Redis (cross-instance)
+      let draining = false;
+      const drainQueue = async () => {
+        if (draining) {return;}
+        draining = true;
+        try {
+          const queued = await drainQueuedNotifications(userId, 20);
+          for (const item of queued) {
+            try {
+              controller.enqueue(`data: ${JSON.stringify(item)}\n\n`);
+            } catch {
+              // Ignore enqueue errors
+            }
+          }
+        } finally {
+          draining = false;
+        }
+      };
+
+      // Initial drain + periodic polling
+      void drainQueue();
+      const queuePoller = setInterval(() => {
+        void drainQueue();
+      }, 5000);
 
       // Cleanup on connection close
       _request.signal.addEventListener("abort", () => {
         clearInterval(heartbeat);
+        clearInterval(queuePoller);
         unregisterClient(userId);
         try {
           controller.close();

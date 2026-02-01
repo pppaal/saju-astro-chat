@@ -1,11 +1,9 @@
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { clearCacheByPattern } from '@/lib/cache/redis-cache'
 
-import { parseRequestBody } from '@/lib/api/requestParser'
 import { HTTP_STATUS } from '@/lib/constants/http'
 const isNonEmptyString = (val: unknown, max = 120) =>
   typeof val === 'string' && val.trim().length > 0 && val.trim().length <= max
@@ -22,16 +20,11 @@ const isValidUrl = (val: unknown) => {
   }
 }
 
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+export const GET = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: context.userId! },
       select: {
         id: true,
         name: true,
@@ -59,24 +52,26 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: HTTP_STATUS.NOT_FOUND })
     }
 
-    return NextResponse.json({ user })
-  } catch (error) {
-    logger.error('Error fetching profile:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
-
-export async function PATCH(request: Request) {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+      return NextResponse.json({ user })
+    } catch (error) {
+      logger.error('Error fetching profile:', error)
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      )
     }
+  },
+  createAuthenticatedGuard({
+    route: '/api/me/profile',
+    limit: 120,
+    windowSeconds: 60,
+  })
+)
 
-    const body = await request.json().catch(() => ({}))
+export const PATCH = withApiMiddleware(
+  async (request: NextRequest, context: ApiContext) => {
+    try {
+      const body = await request.json().catch(() => ({}))
     const {
       name,
       image,
@@ -128,13 +123,13 @@ export async function PATCH(request: Request) {
     } | null = null
     if (hasBirthFields) {
       oldUser = await prisma.user.findUnique({
-        where: { id: session.user.id },
+        where: { id: context.userId! },
         select: { birthDate: true, birthTime: true, gender: true },
       })
     }
 
-    const updated = await prisma.user.update({
-      where: { id: session.user.id },
+    await prisma.user.update({
+      where: { id: context.userId! },
       data,
       select: { id: true },
     })
@@ -153,9 +148,9 @@ export async function PATCH(request: Request) {
           patterns.push(`destiny:${oldUser.birthDate}:*`)
           patterns.push(`yearly:v2:${oldUser.birthDate}:*`)
         }
-        patterns.push(`cal:*:*:${session.user.id}`)
+        patterns.push(`cal:*:*:${context.userId}`)
         await Promise.all(patterns.map((p) => clearCacheByPattern(p)))
-        logger.info(`[profile PATCH] Invalidated birth caches for user ${session.user.id}`)
+        logger.info(`[profile PATCH] Invalidated birth caches for user ${context.userId}`)
       }
     }
 
@@ -168,7 +163,7 @@ export async function PATCH(request: Request) {
 
     if (hasPrefs) {
       await prisma.userPreferences.upsert({
-        where: { userId: session.user.id },
+        where: { userId: context.userId! },
         update: {
           ...(isNonEmptyString(preferredLanguage, 8) && {
             preferredLanguage: preferredLanguage.trim(),
@@ -178,7 +173,7 @@ export async function PATCH(request: Request) {
           ...(isNonEmptyString(readingLength, 32) && { readingLength: readingLength.trim() }),
         },
         create: {
-          userId: session.user.id,
+          userId: context.userId!,
           preferredLanguage: isNonEmptyString(preferredLanguage, 8)
             ? preferredLanguage.trim()
             : 'en',
@@ -191,7 +186,7 @@ export async function PATCH(request: Request) {
 
     // Re-fetch full profile to return
     const fullUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: context.userId! },
       select: {
         id: true,
         name: true,
@@ -215,12 +210,18 @@ export async function PATCH(request: Request) {
       },
     })
 
-    return NextResponse.json({ user: fullUser })
-  } catch (error) {
-    logger.error('Error updating profile:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
+      return NextResponse.json({ user: fullUser })
+    } catch (error) {
+      logger.error('Error updating profile:', error)
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      )
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/me/profile',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)

@@ -1,12 +1,9 @@
 // src/app/api/feedback/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
+import { withApiMiddleware, createPublicStreamGuard, createSimpleGuard, type ApiContext } from "@/lib/api/middleware";
 import { prisma } from "@/lib/db/prisma";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
-import { requirePublicToken } from "@/lib/auth/publicToken";
 import { guardText, cleanText } from "@/lib/textGuards";
-import { enforceBodySize } from "@/lib/http";
 import { apiClient } from "@/lib/api";
 import { logger } from '@/lib/logger';
 
@@ -43,31 +40,14 @@ function trimValue(value: unknown, max = 120) {
   return String(value ?? "").trim().slice(0, max);
 }
 
-export async function POST(req: NextRequest) {
-  let limitHeaders: Headers | undefined;
-  try {
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`feedback:${ip}`, { limit: 20, windowSeconds: 60 });
-    limitHeaders = limit.headers;
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: "rate_limited", retryAfter: limit.reset },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      );
-    }
-    const tokenResult = requirePublicToken(req);
-    if (!tokenResult.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
-    }
+export const POST = withApiMiddleware(
+  async (req: NextRequest, _context: ApiContext) => {
+    try {
+      const body = await parseRequestBody<FeedbackBody>(req, { context: 'Feedback' });
 
-    const oversized = enforceBodySize(req, 256 * 1024, limit.headers);
-    if (oversized) {return oversized;}
-
-    const body = (await parseRequestBody<any>(req, { context: 'Feedback' })) as FeedbackBody | null;
-
-    if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
-    }
+      if (!body || typeof body !== "object") {
+        return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
+      }
 
     const {
       service,
@@ -104,13 +84,13 @@ export async function POST(req: NextRequest) {
         ? rating
         : null;
 
-    // Validation
-    if (!safeService || !safeTheme || !safeSectionId || typeof helpful !== "boolean") {
-      return NextResponse.json(
-        { error: "Missing required fields: service, theme, sectionId, helpful" },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      );
-    }
+      // Validation
+      if (!safeService || !safeTheme || !safeSectionId || typeof helpful !== "boolean") {
+        return NextResponse.json(
+          { error: "Missing required fields: service, theme, sectionId, helpful" },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        );
+      }
 
     // Save to local database
     const feedback = await prisma.sectionFeedback.create({
@@ -155,27 +135,33 @@ export async function POST(req: NextRequest) {
       logger.warn("[Feedback] RLHF backend not available:", rlhfErr);
     }
 
-    const res = NextResponse.json({
-      success: true,
-      id: feedback.id,
-      rlhfId: rlhfResult?.feedback_id,
-      badges: rlhfResult?.new_badges || [],
-    });
-    limit.headers.forEach((value, key) => res.headers.set(key, value));
-    res.headers.set("Cache-Control", "no-store");
-    return res;
-  } catch (error: unknown) {
-    logger.error("[Feedback API Error]:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal Server Error" },
-      { status: HTTP_STATUS.SERVER_ERROR, headers: limitHeaders }
-    );
-  }
-}
+      const res = NextResponse.json({
+        success: true,
+        id: feedback.id,
+        rlhfId: rlhfResult?.feedback_id,
+        badges: rlhfResult?.new_badges || [],
+      });
+      res.headers.set("Cache-Control", "no-store");
+      return res;
+    } catch (error: unknown) {
+      logger.error("[Feedback API Error]:", error);
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Internal Server Error" },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      );
+    }
+  },
+  createPublicStreamGuard({
+    route: '/api/feedback',
+    limit: 20,
+    windowSeconds: 60,
+  })
+)
 
 // GET: Fetch feedback stats (for admin/analytics)
-export async function GET(req: NextRequest) {
-  try {
+export const GET = withApiMiddleware(
+  async (req: NextRequest, _context: ApiContext) => {
+    try {
     const { searchParams } = new URL(req.url);
     const service = searchParams.get("service");
     const theme = searchParams.get("theme");
@@ -219,18 +205,24 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({
-      total,
-      positive,
-      negative: total - positive,
-      satisfactionRate,
-      bySection: sectionStats,
-    });
-  } catch (error: unknown) {
-    logger.error("[Feedback Stats Error]:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal Server Error" },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+      return NextResponse.json({
+        total,
+        positive,
+        negative: total - positive,
+        satisfactionRate,
+        bySection: sectionStats,
+      });
+    } catch (error: unknown) {
+      logger.error("[Feedback Stats Error]:", error);
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Internal Server Error" },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      );
+    }
+  },
+  createSimpleGuard({
+    route: '/api/feedback',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)

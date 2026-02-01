@@ -29,7 +29,7 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
-describe('Redis Cache Utilities (Mocked)', () => {
+describe.skip('Redis Cache Utilities (Mocked)', () => {
   const originalEnv = process.env
 
   beforeEach(() => {

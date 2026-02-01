@@ -55,7 +55,8 @@ export default function MonthHighlights({
       case 1: return styles.grade1;
       case 2: return styles.grade2;
       case 3: return styles.grade3;
-      default: return styles.grade4;
+      case 4: return styles.grade4;
+      default: return styles.grade5;
     }
   };
 
@@ -65,7 +66,8 @@ export default function MonthHighlights({
       1: locale === "ko" ? "좋은 날" : "Good Day",
       2: locale === "ko" ? "보통 날" : "Normal Day",
       3: locale === "ko" ? "안좋은 날" : "Bad Day",
-      4: locale === "ko" ? "최악의 날" : "Worst Day",
+      4: locale === "ko" ? "나쁜 날" : "Bad Day",
+      5: locale === "ko" ? "최악의 날" : "Worst Day",
     };
     return titles[grade as keyof typeof titles] || titles[2];
   };

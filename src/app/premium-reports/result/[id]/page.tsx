@@ -112,7 +112,7 @@ export default function ReportResultPage() {
         actionItems: apiReport.actionItems,
         fullData,
       })
-    } catch (err) {
+    } catch {
       setError('리포트를 불러오는데 실패했습니다.')
     } finally {
       setIsLoading(false)

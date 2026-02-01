@@ -3,7 +3,6 @@ import type { SajuData, AstroData } from '../types';
 import {
   extractDayMaster,
   extractFiveElementsSorted,
-  extractPlanetSign,
   selectLang
 } from './utils';
 

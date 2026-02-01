@@ -17,7 +17,7 @@ export function analyzeLoveMatrix(
   astro: AstroData | undefined,
   lang: string
 ): LoveMatrixResult | null {
-  const isKo = lang === 'ko';
+  const _isKo = lang === 'ko';
 
   if (!saju && !astro) {return null;}
 

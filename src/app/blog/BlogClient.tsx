@@ -1,17 +1,28 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useI18n } from "@/i18n/I18nProvider";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { blogPosts, categories } from "@/data/blog-posts";
+import { categories } from "@/data/blog-categories";
+import { getBlogPostsIndex } from "@/data/blogPostLoader";
+import type { BlogPost } from "@/data/blog-posts";
 import styles from "./blog.module.css";
 
 export default function BlogClient() {
   const { locale } = useI18n();
   const isKo = locale === "ko";
   const [activeCategory, setActiveCategory] = useState("all");
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+
+  useEffect(() => {
+    getBlogPostsIndex()
+      .then((posts) => {
+        setBlogPosts(posts);
+      })
+      .catch(() => {});
+  }, []);
 
   const filteredPosts = useMemo(() => {
     const posts =
@@ -22,7 +33,7 @@ export default function BlogClient() {
     return [...posts].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
-  }, [activeCategory]);
+  }, [activeCategory, blogPosts]);
 
   const featuredPost = filteredPosts.find((post) => post.featured);
   const regularPosts = filteredPosts.filter((post) => !post.featured);

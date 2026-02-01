@@ -5,7 +5,7 @@ import { logger } from "@/lib/logger";
 import type { Message, FeedbackType } from "../chat-constants";
 
 interface UseChatFeedbackOptions {
-  sessionId: string;
+  sessionIdRef: React.MutableRefObject<string>;
   theme: string;
   lang: string;
   messages: Message[];
@@ -20,7 +20,7 @@ interface UseChatFeedbackReturn {
  * Hook for managing message feedback (thumbs up/down)
  */
 export function useChatFeedback(options: UseChatFeedbackOptions): UseChatFeedbackReturn {
-  const { sessionId, theme, lang, messages } = options;
+  const { sessionIdRef, theme, lang, messages } = options;
   const [feedback, setFeedback] = React.useState<Record<string, FeedbackType>>({});
 
   const getLastUserMessage = React.useCallback(() => {
@@ -41,6 +41,7 @@ export function useChatFeedback(options: UseChatFeedbackOptions): UseChatFeedbac
 
     const message = messages.find((m) => m.id === msgId);
     const lastUserMsg = getLastUserMessage();
+    const sessionId = sessionIdRef.current;
 
     try {
       const response = await fetch("/api/feedback", {
@@ -68,7 +69,7 @@ export function useChatFeedback(options: UseChatFeedbackOptions): UseChatFeedbac
     } catch (err) {
       logger.warn("[Feedback] Failed to send:", err);
     }
-  }, [feedback, messages, theme, lang, sessionId, getLastUserMessage]);
+  }, [feedback, messages, theme, lang, sessionIdRef, getLastUserMessage]);
 
   return {
     feedback,

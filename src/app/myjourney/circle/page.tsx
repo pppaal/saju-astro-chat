@@ -10,6 +10,7 @@ import { searchCities } from "@/lib/cities";
 import tzLookup from "tz-lookup";
 import styles from "./circle.module.css";
 import { logger } from "@/lib/logger";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string };
 
@@ -28,15 +29,15 @@ type Person = {
 };
 
 const RELATIONS = [
-  { value: "partner", label: "Partner", icon: "❤️" },
-  { value: "family", label: "Family", icon: "👨‍👩‍👧‍👦" },
-  { value: "friend", label: "Friend", icon: "🤝" },
-  { value: "colleague", label: "Colleague", icon: "💼" },
+  { value: "partner", labelKey: "myjourney.circle.partner", icon: "❤️" },
+  { value: "family", labelKey: "myjourney.circle.family", icon: "👨‍👩‍👧‍👦" },
+  { value: "friend", labelKey: "myjourney.circle.friend", icon: "🤝" },
+  { value: "colleague", labelKey: "myjourney.circle.colleague", icon: "💼" },
 ];
 
 export default function CirclePage() {
   return (
-    <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
+    <Suspense fallback={<div className={styles.loading}>...</div>}>
       <CircleContent />
     </Suspense>
   );
@@ -45,6 +46,7 @@ export default function CirclePage() {
 function CircleContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { t, locale } = useI18n();
 
   const [people, setPeople] = useState<Person[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -144,13 +146,17 @@ function CircleContent() {
     setGenderOpen(false);
   };
 
-  const getRelationInfo = (val: string) => RELATIONS.find((r) => r.value === val) || RELATIONS[1];
+  const getRelationInfo = (val: string) => {
+    const found = RELATIONS.find((r) => r.value === val) || RELATIONS[1];
+    return { ...found, label: t(found.labelKey) };
+  };
   const getGenderInfo = (val: string) => {
     const genders = [
-      { value: "M", label: "Male", icon: "♂" },
-      { value: "F", label: "Female", icon: "♀" },
+      { value: "M", labelKey: "myjourney.circle.male", icon: "♂" },
+      { value: "F", labelKey: "myjourney.circle.female", icon: "♀" },
     ];
-    return genders.find((g) => g.value === val) || genders[0];
+    const found = genders.find((g) => g.value === val) || genders[0];
+    return { ...found, label: t(found.labelKey) };
   };
 
   const handleSave = async () => {
@@ -187,7 +193,7 @@ function CircleContent() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Remove this person from your circle?")) {return;}
+    if (!confirm(t("myjourney.circle.confirmDelete"))) {return;}
     try {
       const res = await fetch(`/api/me/circle?id=${id}`, { method: "DELETE" });
       if (res.ok) {
@@ -199,11 +205,12 @@ function CircleContent() {
   };
 
   const _getRelationInfo = (rel: string) => {
-    return RELATIONS.find((r) => r.value === rel) || { value: rel, label: rel, icon: "👤" };
+    const found = RELATIONS.find((r) => r.value === rel);
+    return found ? { ...found, label: t(found.labelKey) } : { value: rel, labelKey: rel, label: rel, icon: "👤" };
   };
 
   if (status === "loading" || loading) {
-    return <div className={styles.loading}>Loading...</div>;
+    return <div className={styles.loading}>{t("myjourney.circle.loading")}</div>;
   }
 
   if (!session) {
@@ -219,7 +226,7 @@ function CircleContent() {
     <main className={styles.container}>
       <div className={styles.header}>
         <BackButton onClick={() => router.back()} />
-        <h1 className={styles.title}>My Circle</h1>
+        <h1 className={styles.title}>{t("myjourney.circle.title")}</h1>
         <button
           className={styles.addButton}
           onClick={() => setShowForm(!showForm)}
@@ -229,27 +236,27 @@ function CircleContent() {
       </div>
 
       <p className={styles.subtitle}>
-        Save birth info of people you care about for quick compatibility readings
+        {t("myjourney.circle.subtitle")}
       </p>
 
       {/* Add Form */}
       {showForm && (
         <section className={styles.card}>
-          <h3 className={styles.formTitle}>Add Person</h3>
+          <h3 className={styles.formTitle}>{t("myjourney.circle.addPerson")}</h3>
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-              <label>Name *</label>
+              <label>{t("myjourney.circle.nameRequired")}</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className={styles.input}
-                placeholder="Name"
+                placeholder={t("myjourney.circle.name")}
               />
             </div>
 
             <div className={styles.formGroup}>
-              <label>Relationship *</label>
+              <label>{t("myjourney.circle.relationship")}</label>
               <div className={styles.selectWrapper}>
                 <button
                   type="button"
@@ -275,7 +282,7 @@ function CircleContent() {
                         }}
                       >
                         <span className={styles.selectOptionIcon}>{r.icon}</span>
-                        <span className={styles.selectOptionText}>{r.label}</span>
+                        <span className={styles.selectOptionText}>{t(r.labelKey)}</span>
                         {relation === r.value && <span className={styles.selectCheck}>✓</span>}
                       </button>
                     ))}
@@ -288,8 +295,8 @@ function CircleContent() {
               <DateTimePicker
                 value={birthDate}
                 onChange={(date) => setBirthDate(date)}
-                label="Birth Date"
-                locale="en"
+                label={t("myjourney.circle.birthDate")}
+                locale={locale}
               />
             </div>
 
@@ -297,9 +304,9 @@ function CircleContent() {
               <TimePicker
                 value={birthTime}
                 onChange={(time) => setBirthTime(time)}
-                label="Birth Time"
+                label={t("myjourney.circle.birthTime")}
                 disabled={timeUnknown}
-                locale="en"
+                locale={locale}
               />
               <label className={styles.checkboxLabel}>
                 <input
@@ -313,17 +320,17 @@ function CircleContent() {
                   }}
                   className={styles.checkbox}
                 />
-                <span>I don&apos;t know the birth time</span>
+                <span>{t("myjourney.circle.timeUnknown")}</span>
               </label>
               {timeUnknown && (
                 <p className={styles.hint}>
-                  Noon (12:00) will be used for calculations
+                  {t("myjourney.circle.timeUnknownHint")}
                 </p>
               )}
             </div>
 
             <div className={styles.formGroup}>
-              <label>Gender</label>
+              <label>{t("myjourney.circle.gender")}</label>
               <div className={styles.selectWrapper}>
                 <button
                   type="button"
@@ -338,8 +345,8 @@ function CircleContent() {
                 {genderOpen && (
                   <div className={styles.selectDropdown}>
                     {[
-                      { value: "M", label: "Male", icon: "♂" },
-                      { value: "F", label: "Female", icon: "♀" },
+                      { value: "M", labelKey: "myjourney.circle.male", icon: "♂" },
+                      { value: "F", labelKey: "myjourney.circle.female", icon: "♀" },
                     ].map((g) => (
                       <button
                         key={g.value}
@@ -352,7 +359,7 @@ function CircleContent() {
                         }}
                       >
                         <span className={styles.selectOptionIcon}>{g.icon}</span>
-                        <span className={styles.selectOptionText}>{g.label}</span>
+                        <span className={styles.selectOptionText}>{t(g.labelKey)}</span>
                         {gender === g.value && <span className={styles.selectCheck}>✓</span>}
                       </button>
                     ))}
@@ -362,7 +369,7 @@ function CircleContent() {
             </div>
 
             <div className={styles.formGroup}>
-              <label>Birth City</label>
+              <label>{t("myjourney.circle.birthCity")}</label>
               <div className={styles.cityInputWrapper}>
                 <input
                   type="text"
@@ -379,7 +386,7 @@ function CircleContent() {
                   }}
                   autoComplete="off"
                   className={styles.input}
-                  placeholder="Enter city name"
+                  placeholder={t("myjourney.circle.cityPlaceholder")}
                 />
                 {openCityDropdown && citySuggestions.length > 0 && (
                   <ul className={styles.dropdown}>
@@ -403,12 +410,12 @@ function CircleContent() {
           </div>
 
           <div className={styles.formGroup}>
-            <label>Note</label>
+            <label>{t("myjourney.circle.note")}</label>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
               className={styles.textarea}
-              placeholder="Any notes..."
+              placeholder={t("myjourney.circle.notePlaceholder")}
               rows={2}
             />
           </div>
@@ -421,14 +428,14 @@ function CircleContent() {
                 setShowForm(false);
               }}
             >
-              Cancel
+              {t("myjourney.circle.cancel")}
             </button>
             <button
               className={styles.saveButton}
               onClick={handleSave}
               disabled={saving || !name.trim()}
             >
-              {saving ? "Saving..." : "Save"}
+              {saving ? t("myjourney.circle.saving") : t("myjourney.circle.save")}
             </button>
           </div>
         </section>
@@ -438,12 +445,12 @@ function CircleContent() {
       {people.length === 0 ? (
         <div className={styles.empty}>
           <span className={styles.emptyIcon}>👥</span>
-          <p>No one in your circle yet</p>
+          <p>{t("myjourney.circle.emptyTitle")}</p>
           <button
             className={styles.emptyButton}
             onClick={() => setShowForm(true)}
           >
-            Add your first person
+            {t("myjourney.circle.emptyButton")}
           </button>
         </div>
       ) : (
@@ -453,7 +460,7 @@ function CircleContent() {
             .map((group) => (
               <div key={group.value} className={styles.group}>
                 <h3 className={styles.groupTitle}>
-                  {group.icon} {group.label}
+                  {group.icon} {t(group.labelKey)}
                 </h3>
                 <div className={styles.peopleList}>
                   {group.people.map((person) => (

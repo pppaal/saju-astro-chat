@@ -1,6 +1,6 @@
 // 사랑 스타일 분석 - 일간 + 오행 + 별자리 + 7하우스 + 애스펙트 + 십신 조합으로 개인화
 import type { SajuData, AstroData } from '../types';
-import type { ZodiacSign, AspectType, SibsinCategory, HouseNumber } from '../types/core';
+import type { ZodiacSign, SibsinCategory, HouseNumber } from '../types/core';
 import {
   extractDayMaster,
   extractFiveElementsSorted,

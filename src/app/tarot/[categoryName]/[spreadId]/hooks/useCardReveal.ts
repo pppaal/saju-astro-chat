@@ -4,7 +4,7 @@
  * 카드 순차 공개 로직 관리
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 
 export interface UseCardRevealReturn {
   revealedCards: number[];

@@ -349,7 +349,7 @@ export default function FaqPage() {
 
       <section className={styles.faqSection}>
         {filteredFaqs.length > 0 ? (
-          filteredFaqs.map((item, idx) => {
+          filteredFaqs.map((item) => {
             const originalIndex = faqs.indexOf(item);
             return (
               <FaqAccordion

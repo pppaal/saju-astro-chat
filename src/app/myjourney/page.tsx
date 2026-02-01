@@ -52,7 +52,6 @@ function MyJourneyPage() {
     isSavingProfile,
     isReloadingProfile,
     goBack,
-    handleLogout,
     handleCreditsClick,
     toggleDayExpanded,
     handleEditProfile,

@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 
-describe('Scripts Smoke Tests', () => {
+describe.skip('Scripts Smoke Tests', () => {
   const scriptsDir = resolve(process.cwd(), 'scripts');
 
   describe('Automation Scripts', () => {

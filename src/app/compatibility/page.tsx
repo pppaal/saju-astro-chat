@@ -45,7 +45,8 @@ export default function CompatPage() {
     useMyCircle(status);
 
   const {
-    isLoading, error, setError, resultText, timing, actionItems,
+    isLoading, error, setError, resultText,
+    overallScore: apiScore, timing, actionItems,
     groupAnalysis, synergyBreakdown, isGroupResult,
     validate, analyzeCompatibility, resetResults
   } = useCompatibilityAnalysis();
@@ -75,7 +76,7 @@ export default function CompatPage() {
 
   // Parse results for beautiful display
   const sections = resultText ? parseResultSections(resultText) : [];
-  const overallScore = resultText ? extractScore(resultText) : null;
+  const overallScore = apiScore ?? (resultText ? extractScore(resultText) : null);
 
   return (
     <ServicePageLayout

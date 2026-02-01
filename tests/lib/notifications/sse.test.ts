@@ -246,7 +246,7 @@ describe("sse", () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining("/publish/"),
+        expect.stringContaining("/pipeline"),
         expect.any(Object)
       );
     });
@@ -555,7 +555,7 @@ describe("sse", () => {
       });
 
       expect(logger.error).toHaveBeenCalledWith(
-        "[SSE] Failed to publish to Redis:",
+        "[SSE] Failed to queue in Redis:",
         expect.any(Error)
       );
     });

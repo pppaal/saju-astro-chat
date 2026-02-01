@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from 'react';
 import { findPlanetSign } from '../utils';
 import { dayMasterData } from '../data';
 import type { AstroData, SajuData, TabData } from '../types';
@@ -100,7 +101,7 @@ interface PentagonChartProps {
   data?: TabData | null;
 }
 
-export default function PentagonChart({ saju, astro, lang, isKo, data }: PentagonChartProps) {
+const PentagonChart = memo(function PentagonChart({ saju, astro, lang, isKo, data }: PentagonChartProps) {
   const sc = saju?.advancedAnalysis?.score ?? {};
   const strength = saju?.advancedAnalysis?.extended?.strength ?? {};
   const geokguk = saju?.advancedAnalysis?.extended?.geokguk ?? {};
@@ -392,4 +393,6 @@ export default function PentagonChart({ saju, astro, lang, isKo, data }: Pentago
       </div>
     </div>
   );
-}
+});
+
+export default PentagonChart;

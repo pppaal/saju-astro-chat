@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type AuthGateProps = {
   children: ReactNode;
@@ -19,9 +20,9 @@ type AuthGateProps = {
 
 export default function AuthGate({
   children,
-  title = "Sign in required",
-  description = "Please sign in to continue.",
-  ctaLabel = "Sign in",
+  title,
+  description,
+  ctaLabel,
   callbackUrl,
   fallback,
   loadingFallback,
@@ -29,8 +30,13 @@ export default function AuthGate({
   className,
 }: AuthGateProps) {
   const { status } = useSession();
+  const { t } = useI18n();
   const resolvedStatus = statusOverride ?? status;
   const signInUrl = buildSignInUrl(callbackUrl);
+
+  const resolvedTitle = title ?? t("auth.signInRequired");
+  const resolvedDesc = description ?? t("auth.signInDescription");
+  const resolvedCta = ctaLabel ?? t("auth.signIn");
 
   if (resolvedStatus === "loading") {
     return loadingFallback ?? null;
@@ -40,9 +46,9 @@ export default function AuthGate({
     if (fallback) {return <>{fallback}</>;}
     return (
       <div className={className}>
-        <h2>{title}</h2>
-        <p>{description}</p>
-        <Link href={signInUrl}>{ctaLabel}</Link>
+        <h2>{resolvedTitle}</h2>
+        <p>{resolvedDesc}</p>
+        <Link href={signInUrl}>{resolvedCta}</Link>
       </div>
     );
   }

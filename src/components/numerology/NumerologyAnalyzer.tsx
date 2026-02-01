@@ -128,7 +128,7 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
             id="englishName"
             value={englishName}
             onChange={(e) => setEnglishName(e.target.value)}
-            placeholder="John Smith"
+            placeholder={isKo ? '홍길동' : 'John Smith'}
             className={styles.input}
           />
           <span className={styles.hint}>{t('numerology.englishNameHint', 'Enter your English name to calculate Expression, Soul Urge, Personality numbers')}</span>
@@ -182,8 +182,8 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
           <div className={styles.numberGrid}>
             {result.lifePath && (
               <NumberCard
-                title="Life Path"
-                korean={isKo ? t('numerology.coreNumbers.lifePath', 'Life Path') : ''}
+                title={t('numerologyDetail.lifePath', 'Life Path')}
+                korean={isKo ? t('numerology.coreNumbers.lifePath', '인생 경로') : ''}
                 masterLabel={masterBadgeLabel}
                 number={result.lifePath.number}
                 meaning={result.lifePath.meaning}
@@ -192,8 +192,8 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
             )}
             {result.expression && (
               <NumberCard
-                title="Expression"
-                korean={isKo ? t('numerology.coreNumbers.expression', 'Expression') : ''}
+                title={t('numerologyDetail.expression', 'Expression')}
+                korean={isKo ? t('numerology.coreNumbers.expression', '표현수') : ''}
                 masterLabel={masterBadgeLabel}
                 number={result.expression.number}
                 meaning={result.expression.meaning}
@@ -202,8 +202,8 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
             )}
             {result.soulUrge && (
               <NumberCard
-                title="Soul Urge"
-                korean={isKo ? t('numerology.coreNumbers.soulUrge', 'Soul Urge') : ''}
+                title={t('numerologyDetail.soulUrge', 'Soul Urge')}
+                korean={isKo ? t('numerology.coreNumbers.soulUrge', '영혼의 욕구') : ''}
                 masterLabel={masterBadgeLabel}
                 number={result.soulUrge.number}
                 meaning={result.soulUrge.meaning}
@@ -212,8 +212,8 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
             )}
             {result.personality && (
               <NumberCard
-                title="Personality"
-                korean={isKo ? t('numerology.coreNumbers.personality', 'Personality') : ''}
+                title={t('numerologyDetail.personality', 'Personality')}
+                korean={isKo ? t('numerology.coreNumbers.personality', '인격수') : ''}
                 masterLabel={masterBadgeLabel}
                 number={result.personality.number}
                 meaning={result.personality.meaning}
@@ -229,7 +229,7 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
               <div className={styles.cyclesGrid}>
                 {result.personalYear && (
                   <div className={styles.cycleCard}>
-                    <div className={styles.cycleLabel}>Personal Year</div>
+                    <div className={styles.cycleLabel}>{t('numerologyDetail.personalYear', 'Personal Year')}</div>
                     <div className={styles.cycleNumber}>{result.personalYear.number}</div>
                     {result.personalYear.theme && (
                       <div className={styles.cycleTheme}>{result.personalYear.theme}</div>
@@ -238,7 +238,7 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
                 )}
                 {result.personalMonth && (
                   <div className={styles.cycleCard}>
-                    <div className={styles.cycleLabel}>Personal Month</div>
+                    <div className={styles.cycleLabel}>{t('numerologyDetail.personalMonth', 'Personal Month')}</div>
                     <div className={styles.cycleNumber}>{result.personalMonth.number}</div>
                     {result.personalMonth.theme && (
                       <div className={styles.cycleTheme}>{result.personalMonth.theme}</div>
@@ -247,7 +247,7 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
                 )}
                 {result.personalDay && (
                   <div className={styles.cycleCard}>
-                    <div className={styles.cycleLabel}>Personal Day</div>
+                    <div className={styles.cycleLabel}>{t('numerologyDetail.personalDay', 'Personal Day')}</div>
                     <div className={styles.cycleNumber}>{result.personalDay.number}</div>
                     {result.personalDay.theme && (
                       <div className={styles.cycleTheme}>{result.personalDay.theme}</div>

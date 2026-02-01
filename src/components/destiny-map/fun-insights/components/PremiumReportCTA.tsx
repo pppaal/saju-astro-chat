@@ -122,8 +122,8 @@ export default function PremiumReportCTA({
   compact = false,
   className = "",
 }: PremiumReportCTAProps) {
-  const { data: session, status } = useSession();
-  const { t, locale } = useI18n();
+  const { status } = useSession();
+  const { locale } = useI18n();
   const router = useRouter();
   const isKo = locale === "ko";
   const [isHovered, setIsHovered] = useState(false);

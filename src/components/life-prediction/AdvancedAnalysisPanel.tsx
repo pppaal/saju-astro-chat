@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import styles from './AdvancedAnalysisPanel.module.css';
 
 interface AdvancedAnalysis {
@@ -89,7 +89,7 @@ const QUALITY_STYLES: Record<string, string> = {
   neutral: 'neutral',
 };
 
-export default function AdvancedAnalysisPanel({ analysis, locale }: AdvancedAnalysisPanelProps) {
+const AdvancedAnalysisPanel = memo(function AdvancedAnalysisPanel({ analysis, locale }: AdvancedAnalysisPanelProps) {
   const [expandedTier, setExpandedTier] = useState<number | null>(1);
 
   const toggleTier = (tier: number) => {
@@ -458,4 +458,6 @@ export default function AdvancedAnalysisPanel({ analysis, locale }: AdvancedAnal
       )}
     </div>
   );
-}
+});
+
+export default AdvancedAnalysisPanel;

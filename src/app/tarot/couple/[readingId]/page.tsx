@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -151,7 +152,7 @@ export default function CoupleReadingDetailPage({
             <div style={{ textAlign: 'center' }}>
               <div className={styles.partnerPhoto} style={{ width: '70px', height: '70px', margin: '0 auto 0.5rem' }}>
                 {reading.creator.image ? (
-                  <img src={reading.creator.image} alt={reading.creator.name || ''} />
+                  <Image src={reading.creator.image} alt={reading.creator.name || ''} width={70} height={70} />
                 ) : (
                   '👤'
                 )}
@@ -167,7 +168,7 @@ export default function CoupleReadingDetailPage({
             <div style={{ textAlign: 'center' }}>
               <div className={styles.partnerPhoto} style={{ width: '70px', height: '70px', margin: '0 auto 0.5rem' }}>
                 {reading.partner?.image ? (
-                  <img src={reading.partner.image} alt={reading.partner.name || ''} />
+                  <Image src={reading.partner.image} alt={reading.partner.name || ''} width={70} height={70} />
                 ) : (
                   '👤'
                 )}

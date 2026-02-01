@@ -154,7 +154,6 @@ export default function DestinyResultPage({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<DestinyResult | null>(null);
   const [activeTheme, setActiveTheme] = useState("focus_love");
-  const [cachedAge, setCachedAge] = useState<string | null>(null);
 
   // Life Prediction states
   const [activeTab, setActiveTab] = useState<"destiny" | "life-prediction">("destiny");

@@ -9,11 +9,19 @@ import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 
 // Mock the I18n provider
 const mockSetLocale = vi.fn();
+const mockT = vi.fn((key: string) => {
+  const translations: Record<string, string> = {
+    'common.selectLanguage': 'Select language',
+  };
+  return translations[key] || key;
+});
+
 vi.mock('@/i18n/I18nProvider', () => ({
   useI18n: () => ({
     locale: 'en',
     setLocale: mockSetLocale,
     dir: 'ltr',
+    t: mockT,
   }),
   SUPPORTED_LOCALES: ['en', 'ko', 'es', 'fr', 'de', 'pt', 'ru', 'ja', 'zh', 'ar'],
 }));

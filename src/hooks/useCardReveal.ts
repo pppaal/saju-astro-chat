@@ -6,14 +6,14 @@ export function useCardReveal() {
 
   const handleCardReveal = useCallback((index: number) => {
     if (!Number.isInteger(index) || index < 0) {return;}
-    setRevealedCards((prev) => {
+    setRevealedCards(prev => {
       const nextToReveal = prev.length;
       if (index !== nextToReveal || prev.includes(index)) {
         return prev;
       }
       return [...prev, index];
     });
-  }, [revealedCards]);
+  }, []);
 
   const toggleCardExpand = useCallback((index: number) => {
     setExpandedCard(prev => prev === index ? null : index);

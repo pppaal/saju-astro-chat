@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { initializeApiContext, createPublicStreamGuard } from "@/lib/api/middleware";
+import { withApiMiddleware, createPublicStreamGuard, type ApiContext } from "@/lib/api/middleware";
 import {
   calculateYearlyImportantDates,
   type EventCategory,
@@ -62,19 +62,10 @@ const MAX_PLACE_LEN = LIMITS.PLACE;
  * - category: 카테고리 필터
  * - locale: 언어 (ko, en)
  */
-export async function GET(request: NextRequest) {
-  try {
-    // Apply middleware: public token auth + rate limiting (no credits for calendar)
-    const guardOptions = createPublicStreamGuard({
-      route: "calendar",
-      limit: 30,
-      windowSeconds: 60,
-    });
-
-    const { error } = await initializeApiContext(request, guardOptions);
-    if (error) {return error;}
-
-    const { searchParams } = new URL(request.url);
+export const GET = withApiMiddleware(
+  async (request: NextRequest, _context: ApiContext) => {
+    try {
+      const { searchParams } = new URL(request.url);
     const birthDateParam = searchParams.get("birthDate")?.trim().slice(0, 10);
 
     if (!birthDateParam) {
@@ -356,11 +347,17 @@ export async function GET(request: NextRequest) {
 
     res.headers.set("Cache-Control", "no-store");
     return res;
-  } catch (error: unknown) {
-    logger.error("Calendar API error:", error);
-    return NextResponse.json(
-      { error: "Internal server error", message: error instanceof Error ? error.message : "Unknown error" },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+    } catch (error: unknown) {
+      logger.error("Calendar API error:", error);
+      return NextResponse.json(
+        { error: "Internal server error", message: error instanceof Error ? error.message : "Unknown error" },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      );
+    }
+  },
+  createPublicStreamGuard({
+    route: "calendar",
+    limit: 30,
+    windowSeconds: 60,
+  })
+)

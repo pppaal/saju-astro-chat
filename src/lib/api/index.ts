@@ -7,6 +7,7 @@
 export {
   createErrorResponse,
   createSuccessResponse,
+  jsonErrorResponse,
   withErrorHandler,
   ErrorCodes,
   type ErrorCode,

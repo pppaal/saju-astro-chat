@@ -41,18 +41,12 @@ export function validateEnv() {
   } catch (error) {
     if (error instanceof z.ZodError) {
       const issues = error.issues || []
-      logger.error('❌ Environment variable validation failed:', {
+      logger.error('Environment variable validation failed', {
         errors: issues.map((e: z.ZodIssue) => ({
           path: e.path.join('.'),
           message: e.message,
         })),
       })
-
-      console.error('\n🚨 Missing or invalid environment variables:\n')
-      issues.forEach((err: z.ZodIssue) => {
-        console.error(`  - ${err.path.join('.')}: ${err.message}`)
-      })
-      console.error('\nPlease check your .env file.\n')
 
       process.exit(1)
     }

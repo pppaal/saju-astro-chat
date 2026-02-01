@@ -235,7 +235,6 @@ export function getWorkStyleInsight(
   const isFlow = rhythmScore > 60; // F
   const isAnchor = rhythmScore < 40; // A
   const isMidRhythm = !isFlow && !isAnchor;
-  const isDominant = dominance > 0;
 
   // 비전형 조합 (3가지)
   if (isVisionary && isFlow) {

@@ -3,6 +3,8 @@ import type { PersonForm, TimingData, GroupAnalysisData, SynergyBreakdown } from
 
 interface CompatibilityResult {
   interpretation?: string;
+  overall_score?: number;
+  average?: number;
   timing?: TimingData;
   action_items?: string[];
   is_group?: boolean;
@@ -15,6 +17,7 @@ export function useCompatibilityAnalysis() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resultText, setResultText] = useState<string | null>(null);
+  const [overallScore, setOverallScore] = useState<number | null>(null);
   const [timing, setTiming] = useState<TimingData | null>(null);
   const [actionItems, setActionItems] = useState<string[]>([]);
   const [groupAnalysis, setGroupAnalysis] = useState<GroupAnalysisData | null>(null);
@@ -82,6 +85,14 @@ export function useCompatibilityAnalysis() {
         setResultText(JSON.stringify(data, null, 2));
       }
 
+      // Extract numeric score from API response
+      const numericScore = data.overall_score ?? data.average ?? null;
+      if (typeof numericScore === 'number' && numericScore >= 0 && numericScore <= 100) {
+        setOverallScore(numericScore);
+      } else {
+        setOverallScore(null);
+      }
+
       // Set timing and action items from fusion system
       if (data.timing) {
         setTiming(data.timing);
@@ -116,6 +127,7 @@ export function useCompatibilityAnalysis() {
   const resetResults = useCallback(() => {
     setResultText(null);
     setError(null);
+    setOverallScore(null);
     setTiming(null);
     setActionItems([]);
     setGroupAnalysis(null);
@@ -128,6 +140,7 @@ export function useCompatibilityAnalysis() {
     error,
     setError,
     resultText,
+    overallScore,
     timing,
     actionItems,
     groupAnalysis,

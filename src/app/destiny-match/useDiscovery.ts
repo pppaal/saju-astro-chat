@@ -47,6 +47,10 @@ export interface UseDiscoveryReturn {
   rotation: number;
   opacity: number;
 
+  // Undo
+  canUndo: boolean;
+  handleUndo: () => Promise<void>;
+
   // Callbacks
   loadProfiles: () => Promise<void>;
   handleDragStart: (clientX: number, clientY: number) => void;
@@ -83,6 +87,11 @@ export function useDiscovery({
   const [error, setError] = useState<string | null>(null);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+
+  // Undo 상태
+  const [lastSwipeId, setLastSwipeId] = useState<string | null>(null);
+  const [lastSwipeTime, setLastSwipeTime] = useState<number>(0);
+  const canUndo = !!lastSwipeId && Date.now() - lastSwipeTime < 5 * 60 * 1000;
 
   const cardRef = useRef<HTMLDivElement>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -158,6 +167,14 @@ export function useDiscovery({
         return null;
       }
 
+      // Undo를 위해 swipeId 저장 (매칭되지 않은 경우만)
+      if (!data.isMatch && data.swipeId) {
+        setLastSwipeId(data.swipeId);
+        setLastSwipeTime(Date.now());
+      } else {
+        setLastSwipeId(null);
+      }
+
       // 매치 성사 시 알림
       if (data.isMatch) {
         alert('💕 매치 성사! 상대방도 당신을 좋아합니다!');
@@ -167,6 +184,33 @@ export function useDiscovery({
     } catch (err) {
       logger.error('Swipe error:', err);
       return null;
+    }
+  };
+
+  // Undo 처리
+  const handleUndo = async () => {
+    if (!lastSwipeId || !canUndo) return;
+
+    try {
+      const res = await fetch('/api/destiny-match/swipe', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ swipeId: lastSwipeId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        logger.error('Undo failed:', data.error);
+        return;
+      }
+
+      // 이전 프로필로 되돌리기
+      setCurrentIndex(prev => Math.max(0, prev - 1));
+      setLikedProfiles(prev => prev.slice(0, -1));
+      setPassedProfiles(prev => prev.slice(0, -1));
+      setLastSwipeId(null);
+    } catch (err) {
+      logger.error('Undo error:', err);
     }
   };
 
@@ -267,6 +311,8 @@ export function useDiscovery({
     hasMoreProfiles,
     rotation,
     opacity,
+    canUndo,
+    handleUndo,
     loadProfiles,
     handleDragStart,
     handleDragMove,

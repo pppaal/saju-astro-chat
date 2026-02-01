@@ -161,7 +161,7 @@ export default function LuckyNumbers() {
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="John Smith"
+            placeholder={locale === 'ko' ? '홍길동' : 'John Smith'}
             className={styles.input}
           />
           <span className={styles.hint}>{t('numerology.lucky.nameHint', 'Enter your name for more accurate lucky numbers')}</span>
@@ -219,24 +219,24 @@ export default function LuckyNumbers() {
           {/* Core Numbers Display */}
           <div className={styles.coreNumbers}>
             <div className={styles.coreNumberItem}>
-              <span className={styles.coreLabel}>Life Path</span>
+              <span className={styles.coreLabel}>{t('numerologyDetail.lifePath', 'Life Path')}</span>
               <span className={styles.coreValue}>{result.lifePath}</span>
             </div>
             {result.expression && (
               <div className={styles.coreNumberItem}>
-                <span className={styles.coreLabel}>Expression</span>
+                <span className={styles.coreLabel}>{t('numerologyDetail.expression', 'Expression')}</span>
                 <span className={styles.coreValue}>{result.expression}</span>
               </div>
             )}
             {result.soulUrge && (
               <div className={styles.coreNumberItem}>
-                <span className={styles.coreLabel}>Soul Urge</span>
+                <span className={styles.coreLabel}>{t('numerologyDetail.soulUrge', 'Soul Urge')}</span>
                 <span className={styles.coreValue}>{result.soulUrge}</span>
               </div>
             )}
             {result.personality && (
               <div className={styles.coreNumberItem}>
-                <span className={styles.coreLabel}>Personality</span>
+                <span className={styles.coreLabel}>{t('numerologyDetail.personality', 'Personality')}</span>
                 <span className={styles.coreValue}>{result.personality}</span>
               </div>
             )}

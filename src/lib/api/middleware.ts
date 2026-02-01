@@ -644,7 +644,7 @@ export function createTarotGuard(options?: {
  * Preset for Admin APIs
  * - Requires authentication
  * - Higher rate limit (100/60s)
- * - No CSRF validation (admin APIs often called from external tools)
+ * - CSRF enforced (external tools should use ADMIN_API_TOKEN via requireToken)
  */
 export function createAdminGuard(options?: {
   route?: string
@@ -658,7 +658,6 @@ export function createAdminGuard(options?: {
       limit: options?.limit || 100,
       windowSeconds: options?.windowSeconds || 60,
     },
-    skipCsrf: true, // Admin APIs may be called from external monitoring tools
   }
 }
 

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
 import {
-  createSSEStreamProxy,
   createFallbackSSEStream,
   createTransformedSSEStream,
 } from '@/lib/streaming'

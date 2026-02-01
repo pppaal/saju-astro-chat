@@ -38,7 +38,7 @@ export interface ValidationError {
 export async function validateRequest(
   req: NextRequest
 ): Promise<{ data: ValidatedRequest } | { error: ValidationError }> {
-  const body = await parseRequestBody<any>(req, { context: 'Destiny Map chat stream validation' });
+  const body = await parseRequestBody<Record<string, unknown>>(req, { context: 'Destiny Map chat stream validation' });
   if (!body) {
     return {
       error: { error: 'invalid_body', status: 400 },

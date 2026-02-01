@@ -51,11 +51,19 @@ vi.mock('@/lib/http', () => ({
   enforceBodySize: vi.fn(() => null),
 }));
 
-vi.mock('@/lib/api/response-builders', () => ({
+vi.mock('@/lib/api/errorHandler', () => ({
   jsonErrorResponse: vi.fn((msg) => ({
     json: () => Promise.resolve({ error: msg }),
     status: 400,
   })),
+  createErrorResponse: vi.fn(),
+  createSuccessResponse: vi.fn(),
+  ErrorCodes: {
+    BAD_REQUEST: 'BAD_REQUEST',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    RATE_LIMITED: 'RATE_LIMITED',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+  },
 }));
 
 vi.mock('@/lib/Saju/saju', () => ({
@@ -151,7 +159,7 @@ import { createTransformedSSEStream, createFallbackSSEStream } from '@/lib/strea
 import { apiClient } from '@/lib/api/ApiClient';
 import { containsForbidden } from '@/lib/textGuards';
 import { enforceBodySize } from '@/lib/http';
-import { jsonErrorResponse } from '@/lib/api/response-builders';
+import { jsonErrorResponse } from '@/lib/api/errorHandler';
 import { calculateSajuData } from '@/lib/Saju/saju';
 import { calculateNatalChart, calculateTransitChart, findMajorTransits, toChart } from '@/lib/astrology';
 import { buildAllDataPrompt } from '@/lib/destiny-map/prompt/fortune/base';

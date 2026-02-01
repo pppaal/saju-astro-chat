@@ -25,7 +25,7 @@ interface PushSubscription {
  * Save user's push notification subscription
  */
 export const POST = withApiMiddleware(
-  async (req: NextRequest, context: ApiContext) => {
+  async (req: NextRequest, _context: ApiContext) => {
     const subscription = await parseJsonBody<PushSubscription>(req)
 
     // Validate subscription object

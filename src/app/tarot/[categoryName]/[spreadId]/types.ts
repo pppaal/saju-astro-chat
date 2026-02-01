@@ -2,7 +2,7 @@
  * Tarot Reading Page Types
  */
 
-import type { Spread, DrawnCard, DeckStyle } from '@/lib/Tarot/tarot.types';
+import type { Spread, DrawnCard } from '@/lib/Tarot/tarot.types';
 
 export interface CardInsight {
   position: string;

@@ -109,23 +109,11 @@ export const SERVICE_CONFIG: Record<string, ServiceConfig> = {
     descKey: 'history.services.pastLife.desc',
     color: '#ff6e7f',
   },
-  'destiny-pal': {
-    icon: '🤝',
-    titleKey: 'history.services.destinyPal.title',
-    descKey: 'history.services.destinyPal.desc',
-    color: '#8b5cf6',
-  },
   'destiny-matrix': {
     icon: '🔷',
     titleKey: 'history.services.destinyMatrix.title',
     descKey: 'history.services.destinyMatrix.desc',
     color: '#6366f1',
-  },
-  aura: {
-    icon: '🔮',
-    titleKey: 'history.services.aura.title',
-    descKey: 'history.services.aura.desc',
-    color: '#c084fc',
   },
 }
 
@@ -148,9 +136,7 @@ export const ALL_SERVICES_ORDER = [
   'personality',
   'personality-icp',
   'personality-compatibility',
-  'aura',
   'destiny-matrix',
-  'destiny-pal',
   'daily-fortune',
   'past-life',
   'premium-reports',

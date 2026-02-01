@@ -19,14 +19,13 @@ import React, { useMemo, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { useI18n } from '@/i18n/I18nProvider';
 import type { NatalChartData, PlanetData } from '@/lib/astrology';
-import { buildSignInUrl } from '@/lib/auth/signInUrl';
 import FunInsights from '../destiny-map/FunInsights';
 
 // Types
 import type { AspectData, AdvancedData, LocalizedPlanet, LocalizedHouse } from './types';
 
 // Constants
-import { LABELS, PAYWALL_LABELS, PLANET_LABELS } from './constants';
+import { LABELS, PLANET_LABELS } from './constants';
 
 // Utils
 import {
@@ -41,7 +40,6 @@ import {
 // Components
 import {
   Card,
-  PaywallOverlay,
   PlanetsTable,
   HousesTable,
   AspectsTable,
@@ -69,14 +67,12 @@ export default function ResultDisplay({
   chartData,
   aspects,
   advanced,
-  isLoggedIn = false,
-  isPremium = false,
+  isLoggedIn: _isLoggedIn = false,
+  isPremium: _isPremium = false,
 }: ResultDisplayProps) {
   const { locale, dir } = useI18n?.() || { locale: 'en', dir: 'ltr' };
   const locKey = normalizeLocale(locale);
   const L = LABELS[locKey];
-  const PL = PAYWALL_LABELS[locKey] || PAYWALL_LABELS.en;
-  const signInUrl = buildSignInUrl();
 
   // Premium content access - temporarily allow all users
   const canAccessPremium = true;

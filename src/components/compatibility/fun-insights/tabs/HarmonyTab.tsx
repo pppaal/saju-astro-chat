@@ -4,7 +4,80 @@ import type { TabProps } from '../types';
 import { InsightCard, InsightContent, Badge } from '../InsightCard';
 
 export default function HarmonyTab({ data, isKo }: TabProps) {
-  const { harmonies, conflicts } = data;
+  const { harmonies, conflicts, persons } = data;
+
+  const person1Name = persons[0]?.name || (isKo ? '사람 1' : 'Person 1');
+  const person2Name = persons[1]?.name || (isKo ? '사람 2' : 'Person 2');
+
+  // Generate continuous flowing analysis text
+  const analysisLines: string[] = [];
+  if (isKo) {
+    analysisLines.push(`${person1Name}님과 ${person2Name}님의 합(合)과 충(沖) 관계를 분석했습니다.`);
+    const score = harmonies?.score || 50;
+    analysisLines.push(`합 관계 점수는 ${score}점입니다. ${score >= 70 ? '지지 간의 결합이 매우 강하여 자연스러운 유대감이 형성됩니다.' : score >= 50 ? '기본적인 합 관계가 있어 서로 조화를 이룰 수 있습니다.' : '합 관계가 약한 편이지만, 다른 요소로 보완이 가능합니다.'}`);
+    if (harmonies?.description) {
+      analysisLines.push(harmonies.description);
+    }
+    const yukhapCount = harmonies?.yukhap?.length || 0;
+    const samhapCount = harmonies?.samhap?.length || 0;
+    const banghapCount = harmonies?.banghap?.length || 0;
+    if (yukhapCount > 0) {
+      analysisLines.push(`육합(六合) ${yukhapCount}개 발견 — 지지 간의 자연스러운 결합으로 서로에 대한 끌림과 지지를 나타냅니다. ${harmonies!.yukhap!.slice(0, 2).join(', ')}`);
+    } else {
+      analysisLines.push('육합 관계가 없지만, 다른 합 관계나 긍정적 요소가 이를 보완할 수 있습니다.');
+    }
+    if (samhapCount > 0) {
+      analysisLines.push(`삼합(三合) ${samhapCount}개 발견 — 세 지지가 모여 강력한 오행 에너지를 형성하여 관계에 안정감을 줍니다. ${harmonies!.samhap!.slice(0, 2).join(', ')}`);
+    }
+    if (banghapCount > 0) {
+      analysisLines.push(`방합(方合) ${banghapCount}개 발견 — 같은 방향의 지지가 모여 계절의 에너지를 공유합니다.`);
+    }
+    const totalConflicts = conflicts?.totalConflicts || 0;
+    const severity = conflicts?.severity || 'minimal';
+    analysisLines.push(`충형파해 분석: 총 ${totalConflicts}개의 충돌이 발견되었으며, 심각도는 '${severity === 'minimal' ? '최소' : severity === 'mild' ? '약함' : severity === 'moderate' ? '보통' : '강함'}'입니다.`);
+    if (conflicts?.chung && conflicts.chung.length > 0) {
+      analysisLines.push(`충(沖) ${conflicts.chung.length}개 — 정반대 위치의 지지가 부딪혀 갈등을 만듭니다. ${conflicts.chung[0]}`);
+    }
+    if (conflicts?.hyeong && conflicts.hyeong.length > 0) {
+      analysisLines.push(`형(刑) ${conflicts.hyeong.length}개 — 세 지지가 모여 시련과 성장의 기회를 줍니다. ${conflicts.hyeong[0]}`);
+    }
+    if (conflicts?.pa && conflicts.pa.length > 0) {
+      analysisLines.push(`파(破) ${conflicts.pa.length}개 — 깨뜨리는 관계로 신뢰에 주의가 필요합니다.`);
+    }
+    if (conflicts?.hae && conflicts.hae.length > 0) {
+      analysisLines.push(`해(害) ${conflicts.hae.length}개 — 서로의 발전을 방해할 수 있으므로 의식적인 배려가 필요합니다.`);
+    }
+    if (conflicts?.mitigationAdvice && conflicts.mitigationAdvice.length > 0) {
+      analysisLines.push(`극복 조언: ${conflicts.mitigationAdvice[0]}`);
+    }
+  } else {
+    analysisLines.push(`Harmony and conflict analysis for ${person1Name} and ${person2Name}.`);
+    const score = harmonies?.score || 50;
+    analysisLines.push(`Harmony score: ${score}. ${score >= 70 ? 'Strong bonding between branches creates natural affinity.' : score >= 50 ? 'Basic harmony exists for mutual support.' : 'Harmony is on the weaker side but can be compensated.'}`);
+    if (harmonies?.description) {
+      analysisLines.push(harmonies.description);
+    }
+    const yukhapCount = harmonies?.yukhap?.length || 0;
+    if (yukhapCount > 0) {
+      analysisLines.push(`${yukhapCount} Six Harmony pair(s) found — natural bonding and attraction between branches.`);
+    }
+    const samhapCount = harmonies?.samhap?.length || 0;
+    if (samhapCount > 0) {
+      analysisLines.push(`${samhapCount} Three Harmony group(s) — powerful elemental energy providing stability.`);
+    }
+    const totalConflicts = conflicts?.totalConflicts || 0;
+    const severity = conflicts?.severity || 'minimal';
+    analysisLines.push(`Conflict analysis: ${totalConflicts} conflict(s), severity: ${severity}.`);
+    if (conflicts?.chung && conflicts.chung.length > 0) {
+      analysisLines.push(`${conflicts.chung.length} Clash(es) — opposing branches create tension. ${conflicts.chung[0]}`);
+    }
+    if (conflicts?.hyeong && conflicts.hyeong.length > 0) {
+      analysisLines.push(`${conflicts.hyeong.length} Punishment(s) — challenging dynamics that spur growth.`);
+    }
+    if (conflicts?.mitigationAdvice && conflicts.mitigationAdvice.length > 0) {
+      analysisLines.push(`Advice: ${conflicts.mitigationAdvice[0]}`);
+    }
+  }
 
   // Severity color mapping
   const severityColors: Record<string, { bg: string; border: string; text: string }> = {
@@ -33,6 +106,20 @@ export default function HarmonyTab({ data, isKo }: TabProps) {
           <p className="text-emerald-300">
             {harmonies?.description || (isKo ? '분석 중...' : 'Analyzing...')}
           </p>
+        </div>
+      </div>
+
+      {/* Continuous Analysis Text */}
+      <div className="rounded-2xl bg-slate-800/50 border border-slate-700/50 p-5 md:p-6">
+        <h3 className="text-lg font-bold text-gray-100 mb-4">
+          {isKo ? '합/충 상세 분석' : 'Detailed Harmony Analysis'}
+        </h3>
+        <div className="space-y-3">
+          {analysisLines.map((line, idx) => (
+            <p key={idx} className="text-gray-200 text-sm leading-relaxed">
+              {line}
+            </p>
+          ))}
         </div>
       </div>
 

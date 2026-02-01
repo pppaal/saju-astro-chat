@@ -8,6 +8,6 @@ export default function OgImage() {
   return generateOgImage({
     title: "AI I Ching Divination",
     subtitle: "Ancient wisdom of the 64 hexagrams meets modern AI",
-    emoji: "\u2631",
+    emoji: "\uD83D\uDD2E",
   });
 }

@@ -55,6 +55,36 @@ export default function FutureTab({ data, isKo }: TabProps) {
   const potentialChallenges = sajuAnalysis?.conflicts?.totalConflicts || 0;
   const strengthCount = (synastry?.strengths?.length || 0) + (sajuAnalysis?.detailedInsights?.length || 0);
 
+  // Generate continuous flowing analysis text
+  const analysisLines: string[] = [];
+  if (isKo) {
+    analysisLines.push(`${person1Name}님과 ${person2Name}님의 미래 전망을 분석합니다.`);
+    analysisLines.push(`장기 잠재력 점수는 ${averageScore}%로, ${averageScore >= 80 ? '매우 밝은 미래가 기대됩니다.' : averageScore >= 60 ? '꾸준한 노력으로 좋은 관계를 유지할 수 있습니다.' : '도전이 있지만 함께 극복하면 더 강해질 수 있습니다.'}`);
+    analysisLines.push(`현재 궁합 점수 ${overallScore}%를 기반으로, 서로의 이해와 노력을 통해 최대 ${Math.min(overallScore + 20, 100)}%까지 성장할 수 있습니다.`);
+    analysisLines.push(`관계의 강점이 ${strengthCount}개, 도전 요소가 ${potentialChallenges}개 발견되었습니다. ${strengthCount > potentialChallenges ? '강점이 도전을 넘어서므로 긍정적인 관계 발전이 기대됩니다.' : '도전 요소를 함께 극복하면서 성장하는 관계입니다.'}`);
+    analysisLines.push('초기 1-2년은 서로를 알아가는 시간으로, 차이점을 발견하고 조율하는 중요한 시기입니다.');
+    analysisLines.push('중기 3-5년에는 관계가 깊어지고 안정화되며, 공동의 목표를 세울 수 있습니다.');
+    analysisLines.push('장기적으로는 서로의 성장을 지지하는 성숙한 동반자 관계로 발전할 수 있습니다.');
+    if (sajuAnalysis?.detailedInsights && sajuAnalysis.detailedInsights.length > 0) {
+      analysisLines.push(`핵심 인사이트: ${sajuAnalysis.detailedInsights[0]}`);
+    }
+    if (synastry?.strengths && synastry.strengths.length > 0) {
+      analysisLines.push(`미래를 밝히는 강점: ${synastry.strengths.slice(0, 2).join(', ')}`);
+    }
+    analysisLines.push('서로의 차이를 장점으로 활용하고, 정기적인 소통과 감정 공유를 통해 관계를 더욱 발전시켜 나가세요.');
+  } else {
+    analysisLines.push(`Future outlook for ${person1Name} and ${person2Name}.`);
+    analysisLines.push(`Long-term potential: ${averageScore}%. ${averageScore >= 80 ? 'A very bright future ahead.' : averageScore >= 60 ? 'Steady effort will maintain a good relationship.' : 'Challenges ahead but overcoming them together strengthens the bond.'}`);
+    analysisLines.push(`Current compatibility of ${overallScore}% can grow to ${Math.min(overallScore + 20, 100)}% through mutual understanding.`);
+    analysisLines.push(`${strengthCount} strengths vs ${potentialChallenges} challenges. ${strengthCount > potentialChallenges ? 'Strengths outweigh challenges — positive growth expected.' : 'Together you can turn challenges into growth.'}`);
+    analysisLines.push('Early phase (1-2 years): discovering differences and building understanding.');
+    analysisLines.push('Middle phase (3-5 years): deepening bonds and setting shared goals.');
+    analysisLines.push('Long-term (5+ years): developing into mature companions supporting each other\'s growth.');
+    if (sajuAnalysis?.detailedInsights && sajuAnalysis.detailedInsights.length > 0) {
+      analysisLines.push(`Key insight: ${sajuAnalysis.detailedInsights[0]}`);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Future Outlook Hero */}
@@ -84,6 +114,20 @@ export default function FutureTab({ data, isKo }: TabProps) {
               />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Continuous Analysis Text */}
+      <div className="rounded-2xl bg-slate-800/50 border border-slate-700/50 p-5 md:p-6">
+        <h3 className="text-lg font-bold text-gray-100 mb-4">
+          {isKo ? '미래 전망 상세 분석' : 'Detailed Future Analysis'}
+        </h3>
+        <div className="space-y-3">
+          {analysisLines.map((line, idx) => (
+            <p key={idx} className="text-gray-200 text-sm leading-relaxed">
+              {line}
+            </p>
+          ))}
         </div>
       </div>
 

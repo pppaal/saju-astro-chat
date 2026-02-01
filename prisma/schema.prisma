@@ -79,6 +79,10 @@ model User {
   pushSubscriptions     PushSubscription[]      // 푸시 알림 구독
   matchProfile          MatchProfile?           // 매칭 프로필
   matchMessages         MatchMessage[]          // 매칭 채팅 메시지
+  blocksMade            UserBlock[]             @relation("BlocksMade")
+  blocksReceived        UserBlock[]             @relation("BlocksReceived")
+  reportsMade           UserReport[]            @relation("ReportsMade")
+  reportsReceived       UserReport[]            @relation("ReportsReceived")
 
   @@index([referrerId])
 }
@@ -770,7 +774,7 @@ model MatchProfile {
   connectionsAsUser1 MatchConnection[] @relation("ConnectionUser1")
   connectionsAsUser2 MatchConnection[] @relation("ConnectionUser2")
 
-  @@index([isActive, isVisible])
+  @@index([isActive, isVisible, lastActiveAt])
   @@index([city])
   @@index([lastActiveAt])
 }
@@ -864,6 +868,9 @@ model MatchMessage {
   // 읽음 상태
   isRead       Boolean  @default(false)
   readAt       DateTime?
+
+  // 삭제 여부 (soft delete)
+  isDeleted    Boolean  @default(false)
 
   @@index([connectionId, createdAt])
   @@index([senderId])
@@ -963,4 +970,44 @@ model StripeEventLog {
 
   @@index([type, processedAt])
   @@index([processedAt])
+}
+
+// ============================================
+// Destiny Match - 유저 차단 & 신고
+// ============================================
+
+// 🚫 유저 차단
+model UserBlock {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  blockerId String // 차단한 사람
+  blockedId String // 차단당한 사람
+  reason    String? // 차단 사유
+
+  blocker User @relation("BlocksMade", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("BlocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+}
+
+// 🚨 유저 신고
+model UserReport {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  reporterId  String
+  reportedId  String
+  category    String   // inappropriate, spam, fake, harassment, other
+  description String?  @db.Text
+  status      String   @default("pending") // pending, reviewed, resolved, dismissed
+
+  reporter User @relation("ReportsMade", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported User @relation("ReportsReceived", fields: [reportedId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([reportedId])
+  @@index([status])
 }

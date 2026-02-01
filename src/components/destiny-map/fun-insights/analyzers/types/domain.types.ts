@@ -201,6 +201,18 @@ export interface LuckyPeriodEntry {
   goodFor: string[];
 }
 
+// Caution Period Entry
+export interface CautionPeriodEntry {
+  period: string;
+  icon: string;
+  severity: 'high' | 'moderate' | 'mild';
+  score: number;
+  grade: 'C' | 'D';
+  description: { ko: string; en: string };
+  avoidFor: string[];
+  advice: { ko: string; en: string };
+}
+
 // Timing Matrix Analysis
 export interface TimingMatrixResult {
   overallScore?: number;
@@ -256,6 +268,7 @@ export interface TimingMatrixResult {
     day?: PeriodLuckEntry;
   };
   luckyPeriods?: LuckyPeriodEntry[];
+  cautionPeriods?: CautionPeriodEntry[];
   timingScore?: number;
   timingMessage?: { ko: string; en: string };
 }

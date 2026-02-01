@@ -21,11 +21,10 @@ export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string 
   const searchParams = useSearchParams();
   const { status } = useConsent();
   const consentGranted = status === "granted";
-
-  if (gaId && !GA_ID_RE.test(gaId)) {return null;}
+  const isGaIdValid = !gaId || GA_ID_RE.test(gaId);
 
   useEffect(() => {
-    if (!gaId || !consentGranted) {return;}
+    if (!gaId || !consentGranted || !isGaIdValid) {return;}
 
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
 
@@ -36,10 +35,11 @@ export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string 
         page_path: url,
       });
     }
-  }, [pathname, searchParams, gaId, consentGranted]);
+  }, [pathname, searchParams, gaId, consentGranted, isGaIdValid]);
 
   // Keep Google Consent Mode in sync with banner choice
   useEffect(() => {
+    if (!isGaIdValid) {return;}
     const gtag = getGtag();
     if (!gtag) {return;}
 
@@ -50,9 +50,9 @@ export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string 
       ad_user_data: consentState,
       ad_personalization: consentState,
     });
-  }, [consentGranted, status]);
+  }, [consentGranted, status, isGaIdValid]);
 
-  if (!gaId || !consentGranted) {return null;}
+  if (!gaId || !consentGranted || !isGaIdValid) {return null;}
 
   return (
     <>

@@ -93,15 +93,16 @@ function AdvisorChatComponent({ predictionContext, locale = 'ko', onClose }: Adv
   }, [messages])
 
   // 메시지 전송
-  const sendMessage = useCallback(async () => {
-    if (!input.trim() || isLoading) {
+  const sendMessage = useCallback(async (overrideInput?: string) => {
+    const messageText = (overrideInput ?? input).trim()
+    if (!messageText || isLoading) {
       return
     }
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: input.trim(),
+      content: messageText,
       timestamp: new Date(),
     }
 
@@ -192,7 +193,7 @@ function AdvisorChatComponent({ predictionContext, locale = 'ko', onClose }: Adv
   const handleQuickQuestion = useCallback(
     (question: string) => {
       setInput(question)
-      setTimeout(() => sendMessage(), 100)
+      sendMessage(question)
     },
     [sendMessage]
   )
@@ -295,7 +296,7 @@ function AdvisorChatComponent({ predictionContext, locale = 'ko', onClose }: Adv
                 className={styles.input}
               />
               <button
-                onClick={sendMessage}
+                onClick={() => sendMessage()}
                 disabled={!input.trim() || isLoading}
                 className={styles.sendBtn}
               >

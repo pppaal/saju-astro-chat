@@ -29,6 +29,8 @@ export const sectionTitleKeys: Record<string, string> = {
   'Venus Aspect': 'compatibilityPage.sections.venusAspect',
   'Mars Aspect': 'compatibilityPage.sections.marsAspect',
   'Overview': 'compatibilityPage.sections.overview',
+  'Relationship Analysis': 'compatibilityPage.sections.relationshipAnalysis',
+  'Detailed Scores': 'compatibilityPage.sections.detailedScores',
 };
 
 // Section patterns with icons for parsing results
@@ -48,4 +50,6 @@ export const sectionPatterns = [
   { pattern: /(?:^|\n)#+\s*(?:Moon|달|월)/i, icon: '🌙', title: 'Moon Sign' },
   { pattern: /(?:^|\n)#+\s*(?:Venus|금성)/i, icon: '💖', title: 'Venus Aspect' },
   { pattern: /(?:^|\n)#+\s*(?:Mars|화성)/i, icon: '🔥', title: 'Mars Aspect' },
+  { pattern: /(?:^|\n)#+\s*(?:Relationship|관계)\s*(?:Analysis|분석)/i, icon: '💑', title: 'Relationship Analysis' },
+  { pattern: /(?:^|\n)#+\s*(?:Detailed|상세)\s*(?:Scores?|점수)/i, icon: '📊', title: 'Detailed Scores' },
 ];

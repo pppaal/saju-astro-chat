@@ -35,6 +35,7 @@ export function ImageWithShimmer({
   onLoadError,
   shimmerColor,
   className = '',
+  alt = '',
   ...imageProps
 }: ImageWithShimmerProps) {
   const [isLoading, setIsLoading] = useState(true);
@@ -65,6 +66,7 @@ export function ImageWithShimmer({
       )}
       <Image
         {...imageProps}
+        alt={alt}
         className={`${styles.image} ${!isLoading ? styles.loaded : ''}`}
         onLoad={handleLoad}
         onError={handleError}

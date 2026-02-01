@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useMemo, useState, useRef, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { IChingData } from "@/lib/iChing/iChingData";
-import { IChingDataKo } from "@/lib/iChing/iChingData.ko";
+import type { Hexagram } from "@/lib/iChing/iChingData";
+import { getIChingDataByLocale } from "@/lib/iChing/iChingDataLoader";
 import { castMeihuaByTime } from "@/lib/iChing/ichingNumerology";
 import { HEXAGRAM_BINARY_MAP } from "@/lib/iChing/types";
 import HexagramLine from "./HexagramLine";
@@ -28,9 +28,21 @@ function IChingReader() {
   const [aiKey, setAiKey] = useState(0); // Key to force AI restart when lines change
   const aiRestartTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [aiInterpretation, setAiInterpretation] = useState<{ overview: string; changing: string; advice: string } | null>(null);
+  const [currentData, setCurrentData] = useState<Hexagram[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
-  // Select data based on current locale
-  const currentData = locale === 'ko' ? IChingDataKo : IChingData;
+  // Load hexagram data dynamically based on locale
+  useEffect(() => {
+    let cancelled = false;
+    setDataLoading(true);
+    getIChingDataByLocale(locale).then((data) => {
+      if (!cancelled) {
+        setCurrentData(data);
+        setDataLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [locale]);
 
   const hexByBinary = useMemo(() => {
     const map = new Map<string, IChingResult["primaryHexagram"]>();
@@ -295,6 +307,23 @@ function IChingReader() {
   const handleAiComplete = useCallback((aiText: { overview: string; changing: string; advice: string }) => {
     setAiInterpretation(aiText);
   }, []);
+
+  if (dataLoading) {
+    return (
+      <div className={styles.readerContainer}>
+        <div className={styles.statusContainer}>
+          <p className={styles.statusText}>
+            {translate("iching.casting", "Casting the lines")}
+            <span className={styles.statusDots}>
+              <span className={styles.statusDot}></span>
+              <span className={styles.statusDot}></span>
+              <span className={styles.statusDot}></span>
+            </span>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.readerContainer}>

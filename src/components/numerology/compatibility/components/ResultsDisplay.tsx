@@ -96,14 +96,14 @@ export default function ResultsDisplay({
             className={styles.interpretationText}
             dangerouslySetInnerHTML={{
               __html: sanitize(
-                (result.aiInterpretation || result.interpretation || '')
-                  .replace(/\n/g, '<br/>')
-                  .replace(/##\s*(.+)/g, '<strong>$1</strong>'),
+                (result.aiInterpretation || result.interpretation || ''),
                 {
-                  ALLOWED_TAGS: ['br', 'strong', 'em', 'p', 'ul', 'ol', 'li'],
+                  ALLOWED_TAGS: [],
                   ALLOWED_ATTR: [],
                 }
-              ),
+              )
+                .replace(/\n/g, '<br/>')
+                .replace(/##\s*(.+)/g, '<strong>$1</strong>'),
             }}
           />
         </div>

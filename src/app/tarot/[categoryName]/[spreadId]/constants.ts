@@ -3,7 +3,7 @@
  * 카드 색상, 테마 표시 정보 등
  */
 
-import { DECK_STYLES, DECK_STYLE_INFO, DeckStyle } from '@/lib/Tarot/tarot.types';
+import { DECK_STYLES, DECK_STYLE_INFO } from '@/lib/Tarot/tarot.types';
 
 // Card back color options - linked to deck styles
 export const CARD_COLORS = DECK_STYLES.map(style => ({

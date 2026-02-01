@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const { context, error } = await initializeApiContext(req, guardOptions);
     if (error) {return error;}
 
-    const body = (await parseRequestBody<any>(req, { context: 'Tarot Prefetch' })) as TarotPrefetchBody | null;
+    const body = await parseRequestBody<TarotPrefetchBody>(req, { context: 'Tarot Prefetch' });
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { type PersonForm, type Relation } from '../../lib/types';
 import { PersonCardHeader } from './PersonCardHeader';
 import { CircleDropdown } from './CircleDropdown';
@@ -40,18 +40,93 @@ export const PersonCard = React.memo<PersonCardProps>(({
 }) => {
   const idx = index;
   const isDetailedMode = person.isDetailedMode ?? false;
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const toggleMode = () => {
     onUpdatePerson(idx, 'isDetailedMode', !isDetailedMode);
   };
 
+  const loadMyProfile = useCallback(async () => {
+    setProfileLoading(true);
+    try {
+      const res = await fetch('/api/me/profile');
+      if (!res.ok) { return; }
+      const data = await res.json();
+      const user = data.user;
+      if (!user) { return; }
+
+      // Look up city coordinates if birthCity exists
+      let lat: number | null = null;
+      let lon: number | null = null;
+      if (user.birthCity) {
+        try {
+          const cityRes = await fetch(`/api/cities?q=${encodeURIComponent(user.birthCity)}&limit=1`, {
+            headers: { 'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
+          });
+          if (cityRes.ok) {
+            const cityData = await cityRes.json();
+            const cities = cityData.results || cityData.cities || cityData.data || [];
+            if (Array.isArray(cities) && cities.length > 0) {
+              lat = cities[0].lat ?? cities[0].latitude ?? null;
+              lon = cities[0].lon ?? cities[0].longitude ?? null;
+            }
+          }
+        } catch { /* ignore city lookup failure */ }
+      }
+
+      onSetPersons((prev) => {
+        const next = [...prev];
+        next[idx] = {
+          ...next[idx],
+          name: user.name || next[idx].name,
+          date: user.birthDate || '',
+          time: user.birthTime || '',
+          cityQuery: user.birthCity || '',
+          lat,
+          lon,
+          timeZone: user.tzId || next[idx].timeZone,
+        };
+        return next;
+      });
+    } catch { /* ignore */ } finally {
+      setProfileLoading(false);
+    }
+  }, [idx, onSetPersons]);
+
+  // Person 1: show profile load button + circle dropdown
+  // Person 2+: show circle dropdown only
+  const headerButton = (() => {
+    if (!isAuthenticated) { return undefined; }
+    if (idx === 0) {
+      return (
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className={styles.circleImportBtn}
+            onClick={loadMyProfile}
+            disabled={profileLoading}
+          >
+            {profileLoading ? '...' : '👤'} {t('compatibilityPage.loadMyProfile', 'My Profile')}
+          </button>
+          {circlePeople.length > 0 && (
+            <CircleDropdown circlePeople={circlePeople} isOpen={showCircleDropdown} onToggle={onToggleCircleDropdown} onSelect={(cp) => onFillFromCircle(idx, cp)} t={t} />
+          )}
+        </div>
+      );
+    }
+    if (circlePeople.length > 0) {
+      return (
+        <CircleDropdown circlePeople={circlePeople} isOpen={showCircleDropdown} onToggle={onToggleCircleDropdown} onSelect={(cp) => onFillFromCircle(idx, cp)} t={t} />
+      );
+    }
+    return undefined;
+  })();
+
   return (
     <div className={styles.personCard} style={{ animationDelay: `${idx * 0.1}s` }}>
       <div className={styles.cardGlow} />
       <PersonCardHeader index={idx} relation={person.relation} t={t}
-        circleImportButton={isAuthenticated && circlePeople.length > 0 ? (
-          <CircleDropdown circlePeople={circlePeople} isOpen={showCircleDropdown} onToggle={onToggleCircleDropdown} onSelect={(cp) => onFillFromCircle(idx, cp)} t={t} />
-        ) : undefined}
+        circleImportButton={headerButton}
       />
 
       {/* 빠른/상세 모드 토글 */}

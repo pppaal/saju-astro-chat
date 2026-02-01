@@ -200,8 +200,8 @@ Integration 테스트는 실제 DB를 사용하므로 상대적으로 느립니�
 
 ## 🔗 관련 문서
 
-- [Unit Tests](../README.md)
-- [E2E Tests](../e2e/README.md)
+- [Unit Tests](../../README.md)
+- [E2E Tests](../../e2e/critical-flows/README.md)
 - [Performance Tests](../performance/README.md)
 - [Prisma Documentation](https://www.prisma.io/docs)
 - [Supabase Documentation](https://supabase.com/docs)

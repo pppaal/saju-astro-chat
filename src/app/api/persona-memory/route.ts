@@ -1,6 +1,5 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
+import { NextRequest, NextResponse } from "next/server";
+import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from "@/lib/api/middleware";
 import { prisma } from "@/lib/db/prisma";
 import { logger } from '@/lib/logger';
 import { HTTP_STATUS } from '@/lib/constants/http';
@@ -8,16 +7,12 @@ import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = "force-dynamic";
 
 // GET: 페르소나 기억 조회 (로그인 필요)
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
-    }
-
-    const memory = await prisma.personaMemory.findUnique({
-      where: { userId: session.user.id },
-    });
+export const GET = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    try {
+      const memory = await prisma.personaMemory.findUnique({
+        where: { userId: context.userId! },
+      });
 
     if (!memory) {
       // 기억이 없으면 빈 객체 반환 (새 사용자)
@@ -28,29 +23,31 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({
-      success: true,
-      data: memory,
-      isNewUser: false,
-    });
-  } catch (err: unknown) {
-    logger.error("[PersonaMemory GET error]", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+      return NextResponse.json({
+        success: true,
+        data: memory,
+        isNewUser: false,
+      });
+    } catch (err: unknown) {
+      logger.error("[PersonaMemory GET error]", err);
+      return NextResponse.json(
+        { error: err instanceof Error ? err.message : "Internal Server Error" },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      );
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/persona-memory',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)
 
 // POST: 페르소나 기억 생성/업데이트
-export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
-    }
-
-    const body = await request.json();
+export const POST = withApiMiddleware(
+  async (request: NextRequest, context: ApiContext) => {
+    try {
+      const body = await request.json();
     const {
       dominantThemes,
       keyInsights,
@@ -62,14 +59,14 @@ export async function POST(request: Request) {
       sajuProfile,
     } = body;
 
-    const existing = await prisma.personaMemory.findUnique({
-      where: { userId: session.user.id },
-    });
+      const existing = await prisma.personaMemory.findUnique({
+        where: { userId: context.userId! },
+      });
 
-    if (existing) {
-      // 기존 기억 업데이트 (병합)
-      const updated = await prisma.personaMemory.update({
-        where: { userId: session.user.id },
+      if (existing) {
+        // 기존 기억 업데이트 (병합)
+        const updated = await prisma.personaMemory.update({
+          where: { userId: context.userId! },
         data: {
           dominantThemes: dominantThemes ?? existing.dominantThemes,
           keyInsights: keyInsights ?? existing.keyInsights,
@@ -82,16 +79,16 @@ export async function POST(request: Request) {
         },
       });
 
-      return NextResponse.json({
-        success: true,
-        data: updated,
-        action: "updated",
-      });
-    } else {
-      // 새 기억 생성
-      const created = await prisma.personaMemory.create({
-        data: {
-          userId: session.user.id,
+        return NextResponse.json({
+          success: true,
+          data: updated,
+          action: "updated",
+        });
+      } else {
+        // 새 기억 생성
+        const created = await prisma.personaMemory.create({
+          data: {
+            userId: context.userId!,
           dominantThemes,
           keyInsights,
           emotionalTone,
@@ -104,35 +101,37 @@ export async function POST(request: Request) {
         },
       });
 
-      return NextResponse.json({
-        success: true,
-        data: created,
-        action: "created",
-      });
+        return NextResponse.json({
+          success: true,
+          data: created,
+          action: "created",
+        });
+      }
+    } catch (err: unknown) {
+      logger.error("[PersonaMemory POST error]", err);
+      return NextResponse.json(
+        { error: err instanceof Error ? err.message : "Internal Server Error" },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      );
     }
-  } catch (err: unknown) {
-    logger.error("[PersonaMemory POST error]", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+  },
+  createAuthenticatedGuard({
+    route: '/api/persona-memory',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)
 
 // PATCH: 페르소나 기억 부분 업데이트 (통찰 추가 등)
-export async function PATCH(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
-    }
+export const PATCH = withApiMiddleware(
+  async (request: NextRequest, context: ApiContext) => {
+    try {
+      const body = await request.json();
+      const { action, data } = body;
 
-    const body = await request.json();
-    const { action, data } = body;
-
-    const existing = await prisma.personaMemory.findUnique({
-      where: { userId: session.user.id },
-    });
+      const existing = await prisma.personaMemory.findUnique({
+        where: { userId: context.userId! },
+      });
 
     if (!existing) {
       return NextResponse.json(
@@ -209,21 +208,27 @@ export async function PATCH(request: Request) {
       });
     }
 
-    const updated = await prisma.personaMemory.update({
-      where: { userId: session.user.id },
-      data: updateData,
-    });
+      const updated = await prisma.personaMemory.update({
+        where: { userId: context.userId! },
+        data: updateData,
+      });
 
-    return NextResponse.json({
-      success: true,
-      data: updated,
-      action,
-    });
-  } catch (err: unknown) {
-    logger.error("[PersonaMemory PATCH error]", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Internal Server Error" },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+      return NextResponse.json({
+        success: true,
+        data: updated,
+        action,
+      });
+    } catch (err: unknown) {
+      logger.error("[PersonaMemory PATCH error]", err);
+      return NextResponse.json(
+        { error: err instanceof Error ? err.message : "Internal Server Error" },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      );
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/persona-memory',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)

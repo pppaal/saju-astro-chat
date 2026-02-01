@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -170,9 +171,11 @@ export default function DestinyMatchesPage() {
                 >
                   <div className={styles.matchPhoto}>
                     {match.partner.photos?.[0] ? (
-                      <img
+                      <Image
                         src={match.partner.photos[0]}
                         alt={match.partner.displayName}
+                        width={56}
+                        height={56}
                         className={styles.photoImage}
                       />
                     ) : (
@@ -222,9 +225,11 @@ export default function DestinyMatchesPage() {
               {(selectedMatch.partner.photos || []).length > 0 ? (
                 (selectedMatch.partner.photos as string[]).map((photo, idx) => (
                   <div key={idx} className={styles.modalPhoto}>
-                    <img
+                    <Image
                       src={photo}
                       alt={`${selectedMatch.partner.displayName} ${idx + 1}`}
+                      width={160}
+                      height={160}
                       className={styles.photoImage}
                     />
                   </div>

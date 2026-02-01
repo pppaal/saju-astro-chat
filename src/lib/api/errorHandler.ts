@@ -25,6 +25,17 @@ export const ErrorCodes = {
   BACKEND_ERROR: "BACKEND_ERROR",
   TIMEOUT: "TIMEOUT",
   DATABASE_ERROR: "DATABASE_ERROR",
+  EXTERNAL_API_ERROR: "EXTERNAL_API_ERROR",
+
+  // Business Logic Errors
+  INVALID_TOKEN: "INVALID_TOKEN",
+  TOKEN_EXPIRED: "TOKEN_EXPIRED",
+  INSUFFICIENT_CREDITS: "INSUFFICIENT_CREDITS",
+  INVALID_DATE: "INVALID_DATE",
+  INVALID_TIME: "INVALID_TIME",
+  INVALID_COORDINATES: "INVALID_COORDINATES",
+  INVALID_FORMAT: "INVALID_FORMAT",
+  MISSING_FIELD: "MISSING_FIELD",
 } as const;
 
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
@@ -103,6 +114,60 @@ const ERROR_MESSAGES: Record<ErrorCode, Record<string, string>> = {
     ja: "データベースエラーが発生しました。もう一度お試しください。",
     zh: "发生数据库错误。请重试。",
   },
+  EXTERNAL_API_ERROR: {
+    en: "External service is temporarily unavailable.",
+    ko: "외부 서비스가 일시적으로 사용 불가합니다.",
+    ja: "外部サービスが一時的に利用できません。",
+    zh: "外部服务暂时不可用。",
+  },
+  INVALID_TOKEN: {
+    en: "Invalid or expired token.",
+    ko: "유효하지 않거나 만료된 토큰입니다.",
+    ja: "無効または期限切れのトークンです。",
+    zh: "令牌无效或已过期。",
+  },
+  TOKEN_EXPIRED: {
+    en: "Your session has expired. Please log in again.",
+    ko: "세션이 만료되었습니다. 다시 로그인해주세요.",
+    ja: "セッションが期限切れです。再度ログインしてください。",
+    zh: "会话已过期。请重新登录。",
+  },
+  INSUFFICIENT_CREDITS: {
+    en: "Insufficient credits. Please purchase more to continue.",
+    ko: "크레딧이 부족합니다. 계속하려면 크레딧을 구매해주세요.",
+    ja: "クレジットが不足しています。続行するには購入してください。",
+    zh: "积分不足。请购买更多积分以继续。",
+  },
+  INVALID_DATE: {
+    en: "Invalid date provided. Please use YYYY-MM-DD format.",
+    ko: "잘못된 날짜입니다. YYYY-MM-DD 형식을 사용해주세요.",
+    ja: "無効な日付です。YYYY-MM-DD形式で入力してください。",
+    zh: "日期无效。请使用YYYY-MM-DD格式。",
+  },
+  INVALID_TIME: {
+    en: "Invalid time provided. Please use HH:MM format.",
+    ko: "잘못된 시간입니다. HH:MM 형식을 사용해주세요.",
+    ja: "無効な時間です。HH:MM形式で入力してください。",
+    zh: "时间无效。请使用HH:MM格式。",
+  },
+  INVALID_COORDINATES: {
+    en: "Invalid geographic coordinates.",
+    ko: "잘못된 좌표입니다.",
+    ja: "無効な座標です。",
+    zh: "地理坐标无效。",
+  },
+  INVALID_FORMAT: {
+    en: "Invalid format. Please check your input.",
+    ko: "잘못된 형식입니다. 입력을 확인해주세요.",
+    ja: "形式が無効です。入力を確認してください。",
+    zh: "格式无效。请检查您的输入。",
+  },
+  MISSING_FIELD: {
+    en: "Required field is missing.",
+    ko: "필수 항목이 누락되었습니다.",
+    ja: "必須フィールドが不足しています。",
+    zh: "缺少必填字段。",
+  },
 };
 
 // Status codes for each error type
@@ -119,6 +184,15 @@ const STATUS_CODES: Record<ErrorCode, number> = {
   BACKEND_ERROR: 502,
   TIMEOUT: 504,
   DATABASE_ERROR: 500,
+  EXTERNAL_API_ERROR: 502,
+  INVALID_TOKEN: 401,
+  TOKEN_EXPIRED: 401,
+  INSUFFICIENT_CREDITS: 402,
+  INVALID_DATE: 400,
+  INVALID_TIME: 400,
+  INVALID_COORDINATES: 400,
+  INVALID_FORMAT: 400,
+  MISSING_FIELD: 400,
 };
 
 export interface APIErrorOptions {
@@ -234,6 +308,20 @@ function extractLocale(req: Request): string {
   if (acceptLang.includes("ja")) {return "ja";}
   if (acceptLang.includes("zh")) {return "zh";}
   return "en";
+}
+
+/**
+ * Create a plain JSON error Response for streaming endpoints.
+ * Returns a bare Response (not NextResponse) for SSE compatibility.
+ */
+export function jsonErrorResponse(
+  message: string,
+  status: number = 400
+): Response {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 /**

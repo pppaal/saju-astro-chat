@@ -97,10 +97,9 @@ function ResultDisplay({
 
   // Cleanup on unmount
   useEffect(() => {
+    const controller = abortControllerRef.current;
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      controller?.abort();
     };
   }, [abortControllerRef]);
 

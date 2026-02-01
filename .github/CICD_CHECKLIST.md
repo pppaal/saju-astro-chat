@@ -11,13 +11,13 @@ Use this checklist to ensure your CI/CD pipeline is fully configured and operati
   - Select: "Allow all actions and reusable workflows"
 
 - [ ] **Review workflow files**
-  - [ ] [.github/workflows/ci.yml](.github/workflows/ci.yml)
-  - [ ] [.github/workflows/pr-checks.yml](.github/workflows/pr-checks.yml)
-  - [ ] [.github/workflows/quality.yml](.github/workflows/quality.yml)
-  - [ ] [.github/workflows/security.yml](.github/workflows/security.yml)
-  - [ ] [.github/workflows/e2e-browser.yml](.github/workflows/e2e-browser.yml)
-  - [ ] [.github/workflows/deploy-production.yml](.github/workflows/deploy-production.yml)
-  - [ ] [.github/workflows/deploy-preview.yml](.github/workflows/deploy-preview.yml)
+  - [ ] [workflows/ci.yml](workflows/ci.yml)
+  - [ ] [workflows/pr-checks.yml](workflows/pr-checks.yml)
+  - [ ] [workflows/quality.yml](workflows/quality.yml)
+  - [ ] [workflows/security.yml](workflows/security.yml)
+  - [ ] [workflows/e2e-browser.yml](workflows/e2e-browser.yml)
+  - [ ] [workflows/deploy-production.yml](workflows/deploy-production.yml)
+  - [ ] [workflows/deploy-preview.yml](workflows/deploy-preview.yml)
 
 ## Phase 2: Secrets Configuration
 

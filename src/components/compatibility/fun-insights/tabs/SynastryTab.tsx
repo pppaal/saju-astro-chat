@@ -18,6 +18,74 @@ export default function SynastryTab({ data, isKo }: TabProps) {
     opposition: { emoji: '🔴', color: 'red' },
   };
 
+  // Generate continuous flowing analysis text
+  const analysisLines: string[] = [];
+  if (isKo) {
+    analysisLines.push(`${person1Name}님과 ${person2Name}님의 점성학적 시너지 분석 결과입니다.`);
+    const emotional = synastry?.emotionalConnection || 65;
+    const romantic = synastry?.romanticConnection || 70;
+    const intellectual = synastry?.intellectualConnection || 60;
+    analysisLines.push(`감정적 연결 ${emotional}점, 로맨틱 끌림 ${romantic}점, 지적 교감 ${intellectual}점으로 분석되었습니다.`);
+    if (emotional >= 75) {
+      analysisLines.push('감정적 연결이 매우 강합니다. 서로의 기쁨과 슬픔을 직관적으로 느끼며, 깊은 공감대를 형성합니다.');
+    } else if (emotional >= 50) {
+      analysisLines.push('감정적으로 안정된 교류가 가능하며, 시간이 지나면서 더 깊은 이해를 쌓아갈 수 있습니다.');
+    }
+    if (person1Astro?.sun?.sign && person2Astro?.sun?.sign) {
+      analysisLines.push(`${person1Name}님의 태양은 ${person1Astro.sun.sign}, ${person2Name}님의 태양은 ${person2Astro.sun.sign}에 위치합니다.`);
+    }
+    if (person1Astro?.moon?.sign && person2Astro?.moon?.sign) {
+      analysisLines.push(`달 별자리를 보면, ${person1Name}님은 ${person1Astro.moon.sign}, ${person2Name}님은 ${person2Astro.moon.sign}으로 감정 표현 방식에 차이가 있을 수 있습니다.`);
+    }
+    if (person1Astro?.venus?.sign && person2Astro?.venus?.sign) {
+      analysisLines.push(`사랑의 행성 금성은 ${person1Name}님이 ${person1Astro.venus.sign}, ${person2Name}님이 ${person2Astro.venus.sign}에 있어 연애 스타일의 특징을 보여줍니다.`);
+    }
+    const harmoniousCount = aspects?.harmoniousCount || 0;
+    const challengingCount = aspects?.challengingCount || 0;
+    analysisLines.push(`주요 애스펙트 분석: 조화 ${harmoniousCount}개, 도전 ${challengingCount}개가 발견되었습니다. ${harmoniousCount > challengingCount ? '조화로운 애스펙트가 더 많아 전반적으로 순탄한 관계가 기대됩니다.' : harmoniousCount === challengingCount ? '균형 잡힌 관계로, 조화와 도전이 공존합니다.' : '도전적 애스펙트가 많지만 이를 통해 서로 성장할 수 있습니다.'}`);
+    if (aspects?.majorAspects && aspects.majorAspects.length > 0) {
+      const firstAspect = aspects.majorAspects[0];
+      analysisLines.push(`주요 애스펙트: ${firstAspect.planet1} ↔ ${firstAspect.planet2} (${firstAspect.type}) — ${firstAspect.interpretation || (firstAspect.isHarmonious ? '조화로운 에너지' : '도전적 에너지')}`);
+    }
+    if (compositeChart?.coreTheme) {
+      analysisLines.push(`합성 차트의 핵심 테마: ${compositeChart.coreTheme}`);
+    }
+    if (compositeChart?.relationshipPurpose) {
+      analysisLines.push(compositeChart.relationshipPurpose);
+    }
+    const longevity = compositeChart?.longevityPotential || 70;
+    analysisLines.push(`장기 지속 가능성 점수는 ${longevity}점으로, ${longevity >= 75 ? '오래도록 함께할 수 있는 강한 기반을 가지고 있습니다.' : '노력과 소통으로 관계를 더욱 굳건히 할 수 있습니다.'}`);
+    if (synastry?.strengths && synastry.strengths.length > 0) {
+      analysisLines.push(`관계의 강점: ${synastry.strengths.slice(0, 3).join(', ')}`);
+    }
+    if (synastry?.challenges && synastry.challenges.length > 0) {
+      analysisLines.push(`주의할 점: ${synastry.challenges.slice(0, 2).join(', ')}`);
+    }
+  } else {
+    analysisLines.push(`Astrological synastry analysis for ${person1Name} and ${person2Name}.`);
+    const emotional = synastry?.emotionalConnection || 65;
+    const romantic = synastry?.romanticConnection || 70;
+    analysisLines.push(`Emotional: ${emotional}, Romantic: ${romantic}, Intellectual: ${synastry?.intellectualConnection || 60}.`);
+    if (person1Astro?.sun?.sign && person2Astro?.sun?.sign) {
+      analysisLines.push(`${person1Name}'s Sun in ${person1Astro.sun.sign}, ${person2Name}'s Sun in ${person2Astro.sun.sign}.`);
+    }
+    if (person1Astro?.venus?.sign && person2Astro?.venus?.sign) {
+      analysisLines.push(`Venus placements: ${person1Name} in ${person1Astro.venus.sign}, ${person2Name} in ${person2Astro.venus.sign} — shaping love styles.`);
+    }
+    const harmoniousCount = aspects?.harmoniousCount || 0;
+    const challengingCount = aspects?.challengingCount || 0;
+    analysisLines.push(`Aspects: ${harmoniousCount} harmonious, ${challengingCount} challenging. ${harmoniousCount > challengingCount ? 'A generally smooth relationship.' : 'Growth through challenges.'}`);
+    if (compositeChart?.coreTheme) {
+      analysisLines.push(`Composite chart theme: ${compositeChart.coreTheme}`);
+    }
+    if (synastry?.strengths && synastry.strengths.length > 0) {
+      analysisLines.push(`Strengths: ${synastry.strengths.slice(0, 3).join(', ')}`);
+    }
+    if (synastry?.challenges && synastry.challenges.length > 0) {
+      analysisLines.push(`Challenges: ${synastry.challenges.slice(0, 2).join(', ')}`);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Synastry Hero */}
@@ -49,6 +117,20 @@ export default function SynastryTab({ data, isKo }: TabProps) {
             <div className="text-2xl font-bold text-blue-300">{synastry?.intellectualConnection || 60}</div>
             <div className="text-xs text-gray-400 mt-1">{isKo ? '지적' : 'Mental'}</div>
           </div>
+        </div>
+      </div>
+
+      {/* Continuous Analysis Text */}
+      <div className="rounded-2xl bg-slate-800/50 border border-slate-700/50 p-5 md:p-6">
+        <h3 className="text-lg font-bold text-gray-100 mb-4">
+          {isKo ? '시너지 상세 분석' : 'Detailed Synastry Analysis'}
+        </h3>
+        <div className="space-y-3">
+          {analysisLines.map((line, idx) => (
+            <p key={idx} className="text-gray-200 text-sm leading-relaxed">
+              {line}
+            </p>
+          ))}
         </div>
       </div>
 

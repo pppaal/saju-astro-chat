@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -92,15 +92,15 @@ function DestinyMapContent() {
     };
   }, []);
 
-  const resolveCityTimezone = async (hit: CityHit, fallback?: string) => {
+  const resolveCityTimezone = useCallback(async (hit: CityHit, fallback?: string) => {
     if (hit.timezone) {return hit.timezone;}
     if (fallback) {return fallback;}
     const { default: tzLookup } = await loadTzLookup();
     return tzLookup(hit.lat, hit.lon);
-  };
+  }, []);
 
   // Load profile from DB for authenticated users
-  const handleLoadProfile = async () => {
+  const handleLoadProfile = useCallback(async () => {
     if (status !== 'authenticated') {return;}
 
     setLoadingProfile(true);
@@ -159,14 +159,14 @@ function DestinyMapContent() {
     } finally {
       setLoadingProfile(false);
     }
-  };
+  }, [status, t, resolveCityTimezone]);
 
   // Auto-load profile on mount for authenticated users
   useEffect(() => {
     if (status === 'authenticated' && !profileLoaded && !loadingProfile) {
       handleLoadProfile();
     }
-  }, [status, profileLoaded, loadingProfile]);
+  }, [status, profileLoaded, loadingProfile, handleLoadProfile]);
 
 
   // Track if user is actively typing (to avoid auto-opening dropdown on page load)
@@ -218,7 +218,7 @@ function DestinyMapContent() {
       }
     };
     tryFindCity();
-  }, [city]);
+  }, [city, resolveCityTimezone]);
 
   const onPick = (hit: CityHit) => {
     setIsUserTyping(false); // Prevent dropdown from reopening

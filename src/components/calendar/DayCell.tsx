@@ -2,7 +2,6 @@
 
 // src/components/calendar/DayCell.tsx
 import React from 'react';
-import { logger } from '@/lib/logger';
 
 import { useI18n } from '@/i18n/I18nProvider';
 import styles from './DestinyCalendar.module.css';

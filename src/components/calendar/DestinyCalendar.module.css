@@ -867,9 +867,6 @@
   padding: 20px 20px 18px;
   background: linear-gradient(145deg, #1a1a2e 0%, #252540 100%);
   border-bottom: 2px solid rgba(139, 92, 246, 0.2);
-  position: sticky;
-  top: 0;
-  z-index: 50;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
@@ -1447,7 +1444,7 @@
   padding: 14px 16px;
   background: var(--cal-bg-primary);
   position: sticky;
-  top: 52px;
+  top: 0;
   z-index: 45;
   border-bottom: 1px solid var(--cal-border-light);
   max-width: 680px;
@@ -1816,7 +1813,7 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Grade 4: 최악의 날 (~5%) - Deep Red */
+/* Grade 4: 나쁜 날 (~15%) - Deep Red */
 .day.dayGrade4 {
   background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%) !important;
   border-color: #ef4444 !important;
@@ -1829,12 +1826,30 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
+/* Grade 5: 최악의 날 (~5%) - Dark Red with skull glow */
+.day.dayGrade5 {
+  background: linear-gradient(135deg, #450a0a 0%, #991b1b 50%, #7f1d1d 100%) !important;
+  border-color: #dc2626 !important;
+  box-shadow:
+    0 0 16px rgba(220, 38, 38, 0.5),
+    0 0 32px rgba(127, 29, 29, 0.3);
+}
+
+.day.dayGrade5 .dayNumber {
+  color: #fca5a5 !important;
+  font-weight: 800;
+  text-shadow:
+    0 0 8px rgba(220, 38, 38, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
 /* Selected - keep grade colors but add blue glow */
 .day.selected.dayGrade0,
 .day.selected.dayGrade1,
 .day.selected.dayGrade2,
 .day.selected.dayGrade3,
-.day.selected.dayGrade4 {
+.day.selected.dayGrade4,
+.day.selected.dayGrade5 {
   box-shadow:
     0 0 0 2px var(--cal-accent-blue),
     0 0 12px rgba(59, 130, 246, 0.4) !important;
@@ -2003,7 +2018,11 @@
 }
 
 .sparkBar.grade4 {
-  background: #dc2626; /* 최악 */
+  background: #dc2626; /* 나쁨 */
+}
+
+.sparkBar.grade5 {
+  background: linear-gradient(180deg, #991b1b, #450a0a); /* 최악 */
 }
 
 /* ========== Selected Day Card ========== */
@@ -2741,7 +2760,16 @@
     145deg,
     rgba(30, 30, 50, 0.8),
     rgba(100, 20, 20, 0.2)
-  ); /* 최악 - 빨강 */
+  ); /* 나쁨 - 빨강 */
+}
+
+.highlightCard.grade5 {
+  border-color: rgba(153, 27, 27, 0.6);
+  background: linear-gradient(
+    145deg,
+    rgba(69, 10, 10, 0.8),
+    rgba(127, 29, 29, 0.3)
+  ); /* 최악 - 진한 빨강 */
 }
 
 .highlightHeader {
@@ -2808,7 +2836,12 @@
 
 .grade4 .highlightTitle,
 .grade4 .highlightDate {
-  color: #dc2626; /* 최악 - 빨강 */
+  color: #dc2626; /* 나쁨 - 빨강 */
+}
+
+.grade5 .highlightTitle,
+.grade5 .highlightDate {
+  color: #991b1b; /* 최악 - 진한 빨강 */
 }
 
 /* ========== Loading & Error States ========== */
@@ -2895,7 +2928,6 @@
 
   .monthNav {
     padding: 12px 16px;
-    top: 48px;
   }
 
   .day {
@@ -2966,7 +2998,8 @@
   .day.dayGrade1::after,
   .day.dayGrade2::after,
   .day.dayGrade3::after,
-  .day.dayGrade4::after {
+  .day.dayGrade4::after,
+  .day.dayGrade5::after {
     bottom: 2px;
     width: 4px;
     height: 4px;

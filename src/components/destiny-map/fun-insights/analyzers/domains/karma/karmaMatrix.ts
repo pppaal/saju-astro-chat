@@ -54,7 +54,7 @@ export function getKarmaMatrixAnalysis(
   astro: AstroData | undefined,
   lang: string
 ): KarmaMatrixResult | null {
-  const isKo = lang === 'ko';
+  const _isKo = lang === 'ko';
   if (!saju && !astro) {return null;}
 
   const extSaju = saju as ExtendedSajuData | undefined;

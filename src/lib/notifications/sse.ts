@@ -12,6 +12,8 @@ const clients = new Map<string, ReadableStreamDefaultController>();
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const QUEUE_TTL_SECONDS = 3600;
+const QUEUE_MAX_ITEMS = 100;
 
 export interface NotificationPayload {
   type: "like" | "comment" | "reply" | "mention" | "system";
@@ -83,13 +85,15 @@ export async function sendNotification(
     }
   }
 
-  // If no local connection, use Redis pub/sub
+  // If no local connection, queue for other instances
   if (UPSTASH_URL && UPSTASH_TOKEN) {
     try {
-      await publishNotificationToRedis(userId, data);
-      return true;
+      const queued = await queueNotificationInRedis(userId, data);
+      if (queued) {
+        return true;
+      }
     } catch (error) {
-      logger.error("[SSE] Failed to publish to Redis:", error);
+      logger.error("[SSE] Failed to queue in Redis:", error);
     }
   }
 
@@ -134,16 +138,80 @@ async function removeConnectionFromRedis(userId: string): Promise<void> {
 }
 
 /**
- * Publish notification to Redis pub/sub channel
+ * Queue notification in Redis for cross-instance delivery
  */
-async function publishNotificationToRedis(userId: string, notification: unknown): Promise<void> {
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) {return;}
+async function queueNotificationInRedis(userId: string, notification: unknown): Promise<boolean> {
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {return false;}
 
-  const channel = `sse:notify:${userId}`;
-  await fetch(`${UPSTASH_URL}/publish/${encodeURIComponent(channel)}/${encodeURIComponent(JSON.stringify(notification))}`, {
-    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
+  const key = `sse:queue:${userId}`;
+  const payload = JSON.stringify(notification);
+
+  const res = await fetch(`${UPSTASH_URL}/pipeline`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${UPSTASH_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify([
+      ["LPUSH", key, payload],
+      ["LTRIM", key, 0, QUEUE_MAX_ITEMS - 1],
+      ["EXPIRE", key, QUEUE_TTL_SECONDS],
+    ]),
     cache: "no-store",
   });
+
+  return res.ok;
+}
+
+/**
+ * Drain queued notifications for a user (FIFO)
+ */
+export async function drainQueuedNotifications(
+  userId: string,
+  maxItems: number = 20
+): Promise<unknown[]> {
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {return [];}
+
+  const key = `sse:queue:${userId}`;
+  const safeMax = Math.max(1, Math.min(maxItems, QUEUE_MAX_ITEMS));
+
+  try {
+    const res = await fetch(`${UPSTASH_URL}/pipeline`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${UPSTASH_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify([
+        ["LRANGE", key, 0, safeMax - 1],
+        ["LTRIM", key, safeMax, -1],
+      ]),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {return [];}
+
+    const data = await res.json();
+    if (!Array.isArray(data) || !data[0] || !Array.isArray(data[0].result)) {
+      return [];
+    }
+
+    const rawItems = data[0].result as unknown[];
+    const parsed: unknown[] = [];
+    for (const item of rawItems) {
+      if (typeof item !== "string") {continue;}
+      try {
+        parsed.push(JSON.parse(item));
+      } catch {
+        // Skip malformed entries
+      }
+    }
+
+    return parsed;
+  } catch (error) {
+    logger.error("[SSE] Failed to drain queue:", error);
+    return [];
+  }
 }
 
 /**

@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { initializeApiContext, createPublicStreamGuard } from "@/lib/api/middleware";
-import { createSSEStreamProxy, createFallbackSSEStream } from "@/lib/streaming";
+import { createSSEStreamProxy } from "@/lib/streaming";
 import { apiClient } from "@/lib/api/ApiClient";
 import { logger } from '@/lib/logger';
 import { HTTP_STATUS } from '@/lib/constants/http';

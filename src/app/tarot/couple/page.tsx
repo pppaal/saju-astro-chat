@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -186,9 +187,11 @@ export default function CoupleTarotPage() {
                   >
                     <div className={styles.partnerPhoto}>
                       {match.partner.photos?.[0] ? (
-                        <img
+                        <Image
                           src={match.partner.photos[0]}
                           alt={match.partner.displayName}
+                          width={50}
+                          height={50}
                         />
                       ) : (
                         '👤'

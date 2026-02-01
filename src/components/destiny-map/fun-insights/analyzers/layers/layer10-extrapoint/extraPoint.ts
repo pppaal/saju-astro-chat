@@ -6,7 +6,7 @@ import { EXTRAPOINT_ELEMENT_MATRIX, EXTRAPOINT_SIBSIN_MATRIX, EXTRAPOINT_INFO } 
 import type { ExtraPointName } from '@/lib/destiny-matrix/types';
 import type { SibsinKind } from '@/lib/Saju/types';
 import type { SajuData, AstroData } from '../../../types';
-import { mapSajuElementToKo, elementNameKo } from '../../utils';
+import { mapSajuElementToKo } from '../../utils';
 import type { ExtraPointResult } from '../../types';
 
 // Extended Saju data type for internal use
@@ -37,7 +37,7 @@ export function getExtraPointAnalysis(
   astro: AstroData | undefined,
   lang: string
 ): ExtraPointResult[] {
-  const isKo = lang === 'ko';
+  const _isKo = lang === 'ko';
   const results: ExtraPointResult[] = [];
 
   if (!saju && !astro) {return results;}

@@ -11,8 +11,7 @@ import { sanitizeLocaleText, maskTextWithName } from "@/lib/destiny-map/sanitize
 import { logger } from '@/lib/logger';
 import { type ChatMessage } from "@/lib/api";
 
-import { parseRequestBody } from '@/lib/api/requestParser';
-import { ALLOWED_LOCALES, ALLOWED_GENDERS, MESSAGE_LIMITS, TEXT_LIMITS } from '@/lib/constants/api-limits';
+import { ALLOWED_LOCALES, ALLOWED_GENDERS, MESSAGE_LIMITS } from '@/lib/constants/api-limits';
 import { DATE_RE, TIME_RE, LIMITS } from '@/lib/validation/patterns';
 import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = "force-dynamic";

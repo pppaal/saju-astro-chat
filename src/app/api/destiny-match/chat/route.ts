@@ -175,6 +175,23 @@ export const POST = withApiMiddleware(
       // 상대방 ID
       const recipientId = isUser1 ? connection.user2Profile.userId : connection.user1Profile.userId
 
+      // 차단 여부 확인
+      const block = await prisma.userBlock.findFirst({
+        where: {
+          OR: [
+            { blockerId: userId, blockedId: recipientId },
+            { blockerId: recipientId, blockedId: userId },
+          ],
+        },
+      })
+
+      if (block) {
+        return NextResponse.json(
+          { error: '차단된 사용자에게 메시지를 보낼 수 없습니다' },
+          { status: HTTP_STATUS.FORBIDDEN }
+        )
+      }
+
       // 메시지 저장 및 연결 업데이트
       const [message] = await prisma.$transaction([
         prisma.matchMessage.create({
@@ -230,6 +247,74 @@ export const POST = withApiMiddleware(
   createAuthenticatedGuard({
     route: '/api/destiny-match/chat',
     limit: 30,
+    windowSeconds: 60,
+  })
+)
+
+// DELETE - 메시지 삭제 (soft delete)
+export const DELETE = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    try {
+      const userId = context.userId!
+
+      const { messageId } = await req.json()
+
+      if (!messageId) {
+        return NextResponse.json(
+          { error: 'messageId is required' },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
+      }
+
+      // 메시지 조회
+      const message = await prisma.matchMessage.findUnique({
+        where: { id: messageId },
+      })
+
+      if (!message) {
+        return NextResponse.json(
+          { error: '메시지를 찾을 수 없습니다' },
+          { status: HTTP_STATUS.NOT_FOUND }
+        )
+      }
+
+      // 본인 메시지만 삭제 가능
+      if (message.senderId !== userId) {
+        return NextResponse.json(
+          { error: '본인이 보낸 메시지만 삭제할 수 있습니다' },
+          { status: HTTP_STATUS.FORBIDDEN }
+        )
+      }
+
+      // 이미 삭제된 메시지
+      if (message.isDeleted) {
+        return NextResponse.json(
+          { error: '이미 삭제된 메시지입니다' },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
+      }
+
+      // soft delete
+      await prisma.matchMessage.update({
+        where: { id: messageId },
+        data: {
+          content: '삭제된 메시지입니다',
+          isDeleted: true,
+        },
+      })
+
+      return NextResponse.json({ success: true })
+    } catch (error) {
+      logger.error('[match-chat] DELETE error:', { error })
+      return NextResponse.json(
+        { error: 'Failed to delete message' },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      )
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/destiny-match/chat',
+    limit: 20,
     windowSeconds: 60,
   })
 )

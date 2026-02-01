@@ -29,7 +29,7 @@ const westElementNameKo: Record<string, string> = {
 };
 
 // 오행(한글) → 서양 원소 매핑
-function mapSajuElementToWestern(element: string): 'fire' | 'earth' | 'air' | 'water' {
+function _mapSajuElementToWestern(element: string): 'fire' | 'earth' | 'air' | 'water' {
   const mapping: Record<string, 'fire' | 'earth' | 'air' | 'water'> = {
     '목': 'air',    // 목 → 바람 (성장, 확장)
     '화': 'fire',   // 화 → 불

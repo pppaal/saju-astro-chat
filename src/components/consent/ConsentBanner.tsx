@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useConsent } from "@/contexts/ConsentContext";
+import { useI18n } from "@/i18n/I18nProvider";
 import styles from "./consentBanner.module.css";
 
 export function ConsentBanner() {
   const { status, grant, deny } = useConsent();
+  const { t } = useI18n();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -17,18 +19,15 @@ export function ConsentBanner() {
   return (
     <div className={styles.banner} role="dialog" aria-live="polite">
       <div className={styles.text}>
-        <strong>Privacy choices</strong>
-        <p>
-          We use cookies and similar tech for analytics and ads. We block Google Analytics/AdSense
-          until you consent.
-        </p>
+        <strong>{t("consent.title")}</strong>
+        <p>{t("consent.description")}</p>
       </div>
       <div className={styles.actions}>
         <button className={styles.secondary} onClick={() => { deny(); setVisible(false); }}>
-          Reject
+          {t("consent.reject")}
         </button>
         <button className={styles.primary} onClick={() => { grant(); setVisible(false); }}>
-          Accept
+          {t("consent.accept")}
         </button>
       </div>
     </div>

@@ -1,11 +1,12 @@
 "use client";
 
+import { memo } from 'react';
 import type { TabProps } from './types';
 import { getTimingMatrixAnalysis } from '../analyzers/matrixAnalyzer';
 import type { TimingMatrixResult } from '../analyzers/types/domain.types';
 import { PremiumReportCTA } from '../components';
 
-export default function TimingTab({ isKo, saju, astro }: TabProps) {
+const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
   const timingMatrix = getTimingMatrixAnalysis(saju ?? undefined, astro ?? undefined, isKo ? 'ko' : 'en') as TimingMatrixResult | null;
 
   // 현재 날짜 기준 계산
@@ -377,6 +378,80 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
         </div>
       )}
 
+      {/* 피해야 할 시기 (L4 + L7) */}
+      {timingMatrix?.cautionPeriods && timingMatrix.cautionPeriods.length > 0 && (
+        <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-red-900/20 border border-red-500/30 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <h3 className="text-lg font-bold text-red-300">{isKo ? '피해야 할 시기' : 'Periods to Avoid'}</h3>
+              <p className="text-gray-500 text-xs">{isKo ? '주의가 필요한 시기 분석' : 'Caution period analysis'}</p>
+            </div>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 ml-auto">L4+L7</span>
+          </div>
+
+          <div className="space-y-3">
+            {timingMatrix.cautionPeriods.slice(0, 5).map((period, idx) => (
+              <div
+                key={idx}
+                className={`p-4 rounded-xl border ${
+                  period.severity === 'high'
+                    ? 'bg-red-500/15 border-red-500/30'
+                    : period.severity === 'moderate'
+                    ? 'bg-orange-500/10 border-orange-500/20'
+                    : 'bg-yellow-500/10 border-yellow-500/20'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{period.icon}</span>
+                    <span className="text-white font-bold text-sm">{period.period}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      period.severity === 'high'
+                        ? 'bg-red-500/30 text-red-300'
+                        : period.severity === 'moderate'
+                        ? 'bg-orange-500/30 text-orange-300'
+                        : 'bg-yellow-500/30 text-yellow-300'
+                    }`}>
+                      {period.severity === 'high' ? (isKo ? '위험' : 'High Risk')
+                        : period.severity === 'moderate' ? (isKo ? '주의' : 'Caution')
+                        : (isKo ? '경계' : 'Watch')}
+                    </span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                      period.grade === 'D' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'
+                    }`}>
+                      {period.grade}
+                    </span>
+                  </div>
+                  <span className="text-red-400 font-bold">{period.score}{isKo ? '점' : 'pts'}</span>
+                </div>
+                <p className="text-gray-300 text-sm leading-relaxed mb-2">
+                  {isKo ? period.description.ko : period.description.en}
+                </p>
+                <p className="text-gray-400 text-xs mb-2 italic">
+                  {isKo ? period.advice.ko : period.advice.en}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {period.avoidFor.map((item: string, i: number) => (
+                    <span key={i} className="text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-300">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <p className="text-amber-300 text-xs leading-relaxed">
+              {isKo
+                ? '* 주의 시기라고 해서 모든 것이 나쁜 것은 아닙니다. 내실을 다지고 준비하는 시간으로 활용하세요.'
+                : '* Caution periods are not all bad. Use them as time to strengthen your foundation and prepare.'}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* 데이터 없을 때 안내 */}
       {!timingMatrix && (
         <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-gray-900/50 border border-gray-600/30 p-6 text-center">
@@ -399,4 +474,6 @@ export default function TimingTab({ isKo, saju, astro }: TabProps) {
       />
     </div>
   );
-}
+});
+
+export default TimingTab;

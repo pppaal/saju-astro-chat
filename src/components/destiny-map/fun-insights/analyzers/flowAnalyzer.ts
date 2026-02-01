@@ -19,7 +19,6 @@ export function getCurrentFlowAnalysis(saju: SajuData | undefined, lang: string)
     // 더 정확한 방법: 대운 age를 이용
     if (daeunList.length > 0) {
       const firstDaeun = daeunList[0];
-      const daeunAge = firstDaeun.age || 0;
       birthYear = currentYear - 31; // 임시: 현재 나이 31세 가정 (나중에 개선)
     }
   }

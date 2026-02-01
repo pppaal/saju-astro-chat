@@ -24,7 +24,6 @@ import {
 
 // UI Components
 import BackButton from '@/components/ui/BackButton'
-import CreditBadge from '@/components/ui/CreditBadge'
 import styles from './life-prediction.module.css'
 
 export default function LifePredictionPage() {
@@ -58,7 +57,6 @@ function LifePredictionContent() {
     setResults,
     error,
     setError,
-    generalAdvice,
     setGeneralAdvice,
     resetAll,
   } = useLifePredictionState()

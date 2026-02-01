@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import type { CompatibilityData, TabId } from './types'
+import { memo, useState, useMemo } from 'react'
+import type { TabId } from './types'
 import type { SajuProfile, AstrologyProfile } from '@/lib/compatibility/cosmicCompatibility'
 import { logger } from '@/lib/logger'
 import {
@@ -84,7 +84,7 @@ interface AstroRawData {
   [key: string]: unknown
 }
 
-export default function CompatibilityFunInsights({
+const CompatibilityFunInsights = memo(function CompatibilityFunInsights({
   persons,
   person1Saju,
   person2Saju,
@@ -425,7 +425,9 @@ export default function CompatibilityFunInsights({
       </p>
     </div>
   )
-}
+});
+
+export default CompatibilityFunInsights;
 
 // Helper function to get element from zodiac sign
 function getElementFromSign(sign: string): string {

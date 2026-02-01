@@ -33,6 +33,8 @@ export default defineConfig({
         },
       },
     },
+    // Performance optimizations
+    maxConcurrency: 5,
     include: ["tests/**/*.{test,spec}.{ts,tsx}"],
     exclude: [
       "**/node_modules/**",
@@ -65,8 +67,16 @@ export default defineConfig({
         "src/**/*.d.ts",
         "src/**/*.test.{ts,tsx}",
         "src/**/*.spec.{ts,tsx}",
-        // UI-heavy areas covered by E2E instead of unit coverage.
-        "src/app/**",
+        // UI-heavy areas covered by E2E instead of unit coverage
+        // (API routes are kept for unit-test coverage).
+        "src/app/**/page.tsx",
+        "src/app/**/layout.tsx",
+        "src/app/**/error.tsx",
+        "src/app/**/loading.tsx",
+        "src/app/**/not-found.tsx",
+        "src/app/**/opengraph-image.tsx",
+        "src/app/**/*.module.css",
+        "src/app/**/components/**",
         "src/components/**",
         "src/styles/**",
         "src/data/**",
@@ -108,6 +118,12 @@ export default defineConfig({
           functions: 90,
           branches: 85,
           statements: 90,
+        },
+        "src/app/api/**": {
+          lines: 80,
+          functions: 80,
+          branches: 75,
+          statements: 80,
         },
       },
     },

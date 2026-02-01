@@ -4,14 +4,23 @@
  * 수비학 분석 API - 생년월일/이름 기반 수비학 프로필 및 궁합 분석
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api/middleware';
 import { apiClient } from "@/lib/api";
-import { rateLimit } from '@/lib/rateLimit';
-import { getClientIp } from '@/lib/request-ip';
 import { logger } from '@/lib/logger';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
 import { HTTP_STATUS } from '@/lib/constants/http';
+interface NumerologyBody {
+  action?: string;
+  birthDate?: string;
+  englishName?: string;
+  koreanName?: string;
+  locale?: string;
+  person1?: { birthDate: string; name?: string };
+  person2?: { birthDate: string; name?: string };
+}
+
 // Backend response types
 interface NumerologyProfile {
   life_path?: { life_path: number };
@@ -133,20 +142,10 @@ function generateNumerologyFallback(birthDate: string, locale: string): Numerolo
  *   "person2": { "birthDate": "...", "name": "..." }
  * }
  */
-export async function POST(req: Request) {
-  try {
-    const ip = getClientIp(req.headers as Headers);
-    const rlKey = `numerology:${ip}`;
-    const limit = await rateLimit(rlKey, { limit: 30, windowSeconds: 60 });
-
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Rate limit exceeded', retryAfter: limit.reset },
-        { status: HTTP_STATUS.RATE_LIMITED }
-      );
-    }
-
-    const body = await parseRequestBody<any>(req, { context: 'Numerology' });
+export const POST = withApiMiddleware(
+  async (req: NextRequest, _context: ApiContext) => {
+    try {
+      const body = await parseRequestBody<NumerologyBody>(req, { context: 'Numerology' });
     if (!body) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
@@ -286,46 +285,41 @@ export async function POST(req: Request) {
       return NextResponse.json(transformed);
     }
 
-    return NextResponse.json(result.data);
+      return NextResponse.json(result.data);
 
-  } catch (error) {
-    logger.error('[API /api/numerology] Error:', error);
-    const msg = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json(
-      { error: `Internal Server Error: ${msg}` },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+    } catch (error) {
+      logger.error('[API /api/numerology] Error:', error);
+      return NextResponse.json(
+        { error: 'Internal Server Error' },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      );
+    }
+  },
+  createSimpleGuard({
+    route: '/api/numerology',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)
 
 /**
  * GET /api/numerology?birthDate=YYYY-MM-DD&name=...
  * Quick single-person analysis
  */
-export async function GET(req: Request) {
-  try {
-    const url = new URL(req.url);
-    const birthDate = url.searchParams.get('birthDate');
-    const englishName = url.searchParams.get('name') || url.searchParams.get('englishName');
-    const koreanName = url.searchParams.get('koreanName');
-    const locale = url.searchParams.get('locale') || 'ko';
+export const GET = withApiMiddleware(
+  async (req: NextRequest, _context: ApiContext) => {
+    try {
+      const url = new URL(req.url);
+      const birthDate = url.searchParams.get('birthDate');
+      const englishName = url.searchParams.get('name') || url.searchParams.get('englishName');
+      const koreanName = url.searchParams.get('koreanName');
+      const locale = url.searchParams.get('locale') || 'ko';
 
-    if (!birthDate) {
-      return NextResponse.json({ error: 'birthDate query param is required' }, { status: HTTP_STATUS.BAD_REQUEST });
-    }
+      if (!birthDate) {
+        return NextResponse.json({ error: 'birthDate query param is required' }, { status: HTTP_STATUS.BAD_REQUEST });
+      }
 
-    const ip = getClientIp(req.headers as Headers);
-    const rlKey = `numerology-get:${ip}`;
-    const limit = await rateLimit(rlKey, { limit: 60, windowSeconds: 60 });
-
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Rate limit exceeded', retryAfter: limit.reset },
-        { status: HTTP_STATUS.RATE_LIMITED }
-      );
-    }
-
-    const result = await apiClient.post('/api/numerology/analyze', {
+      const result = await apiClient.post('/api/numerology/analyze', {
       birthDate,
       englishName,
       koreanName,
@@ -411,13 +405,19 @@ export async function GET(req: Request) {
       return NextResponse.json(transformed);
     }
 
-    return NextResponse.json(result.data);
+      return NextResponse.json(result.data);
 
-  } catch (error) {
-    logger.error('[API /api/numerology GET] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+    } catch (error) {
+      logger.error('[API /api/numerology GET] Error:', error);
+      return NextResponse.json(
+        { error: 'Internal Server Error' },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      );
+    }
+  },
+  createSimpleGuard({
+    route: '/api/numerology',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)

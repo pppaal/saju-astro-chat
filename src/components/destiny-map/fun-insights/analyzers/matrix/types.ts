@@ -4,15 +4,6 @@
  * Destiny Fusion Matrix™ 분석 타입 정의
  */
 
-import type {
-  WesternElement,
-  HouseNumber,
-  PlanetName,
-  ShinsalKind,
-  AsteroidName,
-  ExtraPointName,
-} from '@/lib/destiny-matrix/types';
-import type { FiveElement, SibsinKind, TwelveStage } from '@/lib/Saju/types';
 
 export interface MatrixFusion {
   level: string;

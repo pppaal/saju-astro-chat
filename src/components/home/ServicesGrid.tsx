@@ -97,7 +97,7 @@ export const ServicesGrid = memo(function ServicesGrid({
                             {translate(key, key)}
                           </h3>
                           <p className={styles.serviceCardDesc}>
-                            {translate(`${key}Desc`, getServiceFallbackDesc(serviceKey))}
+                            {translate(`${key}Desc`, translate(`services.${key}Desc`, getServiceFallbackDesc(serviceKey)))}
                           </p>
                         </Card>
                       </Link>

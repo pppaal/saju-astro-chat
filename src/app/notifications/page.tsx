@@ -14,7 +14,7 @@ import { buildSignInUrl } from "@/lib/auth/signInUrl";
 type FilterType = "all" | "unread" | "like" | "comment" | "reply" | "mention" | "system";
 
 export default function NotificationsPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const { notifications, markAsRead, markAllAsRead, deleteNotification, clearAll } = useNotifications();
   const [filter, setFilter] = useState<FilterType>("all");
   const { t } = useI18n();

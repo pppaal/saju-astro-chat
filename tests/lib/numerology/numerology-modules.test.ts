@@ -1,22 +1,21 @@
 import { describe, it, expect } from 'vitest';
+import { Numerology, getSynergyAnalysis } from '@/lib/numerology';
+import { describe as describeNum, luckyTag, describeLocale, getLuckyTag, getNumberTitle } from '@/lib/numerology/descriptions';
+import { MASTER_SET, reduceToCore } from '@/lib/numerology/utils';
 
 describe('Numerology Class', () => {
-  it('should export Numerology class', async () => {
-    const { Numerology } = await import('@/lib/numerology');
-
+  it('should export Numerology class', () => {
     expect(Numerology).toBeDefined();
     expect(typeof Numerology).toBe('function');
   });
 
-  it('should create instance with name and birthDate', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should create instance with name and birthDate', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
 
     expect(instance).toBeInstanceOf(Numerology);
   });
 
-  it('should calculate Life Path Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Life Path Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const lifePathNumber = instance.getLifePathNumber();
 
@@ -25,8 +24,7 @@ describe('Numerology Class', () => {
     expect(lifePathNumber).toBeLessThanOrEqual(33);
   });
 
-  it('should calculate Expression Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Expression Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const expressionNumber = instance.getExpressionNumber();
 
@@ -35,8 +33,7 @@ describe('Numerology Class', () => {
     expect(expressionNumber).toBeLessThanOrEqual(33);
   });
 
-  it('should calculate Soul Urge Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Soul Urge Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const soulUrgeNumber = instance.getSoulUrgeNumber();
 
@@ -45,8 +42,7 @@ describe('Numerology Class', () => {
     expect(soulUrgeNumber).toBeLessThanOrEqual(33);
   });
 
-  it('should calculate Personality Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Personality Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const personalityNumber = instance.getPersonalityNumber();
 
@@ -55,16 +51,14 @@ describe('Numerology Class', () => {
     expect(personalityNumber).toBeLessThanOrEqual(33);
   });
 
-  it('should calculate Birthday Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Birthday Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const birthdayNumber = instance.getBirthdayNumber();
 
     expect(birthdayNumber).toBe(15);
   });
 
-  it('should get Core Profile', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should get Core Profile', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const profile = instance.getCoreProfile();
 
@@ -75,8 +69,7 @@ describe('Numerology Class', () => {
     expect(profile).toHaveProperty('birthdayNumber');
   });
 
-  it('should calculate Personal Year Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Personal Year Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const personalYear = instance.getPersonalYearNumber(2024);
 
@@ -85,8 +78,7 @@ describe('Numerology Class', () => {
     expect(personalYear).toBeLessThanOrEqual(33);
   });
 
-  it('should calculate Personal Month Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Personal Month Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const personalMonth = instance.getPersonalMonthNumber(2024, 6);
 
@@ -95,8 +87,7 @@ describe('Numerology Class', () => {
     expect(personalMonth).toBeLessThanOrEqual(33);
   });
 
-  it('should calculate Personal Day Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Personal Day Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const personalDay = instance.getPersonalDayNumber(new Date('2024-06-15'));
 
@@ -105,8 +96,7 @@ describe('Numerology Class', () => {
     expect(personalDay).toBeLessThanOrEqual(33);
   });
 
-  it('should calculate Maturity Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Maturity Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const maturityNumber = instance.getMaturityNumber();
 
@@ -115,8 +105,7 @@ describe('Numerology Class', () => {
     expect(maturityNumber).toBeLessThanOrEqual(33);
   });
 
-  it('should calculate Balance Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Balance Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const balanceNumber = instance.getBalanceNumber();
 
@@ -125,8 +114,7 @@ describe('Numerology Class', () => {
     expect(balanceNumber).toBeLessThanOrEqual(33);
   });
 
-  it('should calculate Rational Thought Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Rational Thought Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const rationalThoughtNumber = instance.getRationalThoughtNumber();
 
@@ -135,8 +123,7 @@ describe('Numerology Class', () => {
     expect(rationalThoughtNumber).toBeLessThanOrEqual(33);
   });
 
-  it('should get Cornerstone', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should get Cornerstone', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const cornerstone = instance.getCornerstone();
 
@@ -146,8 +133,7 @@ describe('Numerology Class', () => {
     expect(typeof cornerstone.number).toBe('number');
   });
 
-  it('should get Capstone', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should get Capstone', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const capstone = instance.getCapstone();
 
@@ -157,8 +143,7 @@ describe('Numerology Class', () => {
     expect(typeof capstone.number).toBe('number');
   });
 
-  it('should get First Vowel', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should get First Vowel', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const firstVowel = instance.getFirstVowel();
 
@@ -168,8 +153,7 @@ describe('Numerology Class', () => {
     expect(typeof firstVowel.number).toBe('number');
   });
 
-  it('should get Subconscious', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should get Subconscious', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const subconscious = instance.getSubconscious();
 
@@ -178,24 +162,21 @@ describe('Numerology Class', () => {
     expect(subconscious).toBeLessThanOrEqual(9);
   });
 
-  it('should get Karmic Debt Numbers', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should get Karmic Debt Numbers', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const karmicDebtNumbers = instance.getKarmicDebtNumbers();
 
     expect(Array.isArray(karmicDebtNumbers)).toBe(true);
   });
 
-  it('should get Karmic Lessons', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should get Karmic Lessons', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const karmicLessons = instance.getKarmicLessons();
 
     expect(Array.isArray(karmicLessons)).toBe(true);
   });
 
-  it('should get Pinnacles', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should get Pinnacles', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const { pinnacles, ages } = instance.getPinnacles();
 
@@ -205,8 +186,7 @@ describe('Numerology Class', () => {
     expect(ages.length).toBe(4);
   });
 
-  it('should get Challenges', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should get Challenges', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const challenges = instance.getChallenges();
 
@@ -214,8 +194,7 @@ describe('Numerology Class', () => {
     expect(challenges.length).toBe(4);
   });
 
-  it('should calculate Universal Year Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Universal Year Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const universalYear = instance.getUniversalYearNumber(2024);
 
@@ -224,8 +203,7 @@ describe('Numerology Class', () => {
     expect(universalYear).toBeLessThanOrEqual(33);
   });
 
-  it('should calculate Universal Month Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Universal Month Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const universalMonth = instance.getUniversalMonthNumber(2024, 6);
 
@@ -234,8 +212,7 @@ describe('Numerology Class', () => {
     expect(universalMonth).toBeLessThanOrEqual(33);
   });
 
-  it('should calculate Universal Day Number', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should calculate Universal Day Number', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const universalDay = instance.getUniversalDayNumber(new Date('2024-06-15'));
 
@@ -244,8 +221,7 @@ describe('Numerology Class', () => {
     expect(universalDay).toBeLessThanOrEqual(33);
   });
 
-  it('should get Extended Profile', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should get Extended Profile', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const profile = instance.getExtendedProfile(new Date('2024-06-15'));
 
@@ -276,16 +252,14 @@ describe('Numerology Class', () => {
     expect(profile).toHaveProperty('universalDay');
   });
 
-  it('should handle Korean names', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should handle Korean names', () => {
     const instance = new Numerology('홍길동', new Date('1990-05-15'));
     const profile = instance.getExtendedProfile();
 
     expect(profile.isKoreanName).toBe(true);
   });
 
-  it('should handle English names', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should handle English names', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const profile = instance.getExtendedProfile();
 
@@ -294,71 +268,57 @@ describe('Numerology Class', () => {
 });
 
 describe('Numerology Types', () => {
-  it('should export CoreNumerologyProfile type', async () => {
-    const module = await import('@/lib/numerology');
-
+  it('should export CoreNumerologyProfile type', () => {
     // Type exports are checked implicitly by TypeScript
-    expect(module.Numerology).toBeDefined();
+    expect(Numerology).toBeDefined();
   });
 
-  it('should export ExtendedNumerologyProfile type', async () => {
-    const module = await import('@/lib/numerology');
-
-    expect(module.Numerology).toBeDefined();
+  it('should export ExtendedNumerologyProfile type', () => {
+    expect(Numerology).toBeDefined();
   });
 
-  it('should export MasterNumber type', async () => {
-    const module = await import('@/lib/numerology');
-
-    expect(module.Numerology).toBeDefined();
+  it('should export MasterNumber type', () => {
+    expect(Numerology).toBeDefined();
   });
 
-  it('should export NumerologyNumber type', async () => {
-    const module = await import('@/lib/numerology');
-
-    expect(module.Numerology).toBeDefined();
+  it('should export NumerologyNumber type', () => {
+    expect(Numerology).toBeDefined();
   });
 });
 
 describe('Numerology Descriptions', () => {
-  it('should export describe function', async () => {
-    const { describe: describeNum } = await import('@/lib/numerology/descriptions');
+  it('should export describe function', () => {
 
     expect(typeof describeNum).toBe('function');
   });
 
-  it('should describe lifePath number', async () => {
-    const { describe: describeNum } = await import('@/lib/numerology/descriptions');
+  it('should describe lifePath number', () => {
     const description = describeNum('lifePath', 1);
 
     expect(typeof description).toBe('string');
     expect(description.length).toBeGreaterThan(0);
   });
 
-  it('should describe expression number', async () => {
-    const { describe: describeNum } = await import('@/lib/numerology/descriptions');
+  it('should describe expression number', () => {
     const description = describeNum('expression', 5);
 
     expect(typeof description).toBe('string');
     expect(description.length).toBeGreaterThan(0);
   });
 
-  it('should export luckyTag mapping', async () => {
-    const { luckyTag } = await import('@/lib/numerology/descriptions');
+  it('should export luckyTag mapping', () => {
 
     expect(luckyTag).toBeDefined();
     expect(typeof luckyTag).toBe('object');
     expect(luckyTag[1]).toBeDefined();
   });
 
-  it('should export describeLocale function', async () => {
-    const { describeLocale } = await import('@/lib/numerology/descriptions');
+  it('should export describeLocale function', () => {
 
     expect(typeof describeLocale).toBe('function');
   });
 
-  it('should describe with locale', async () => {
-    const { describeLocale } = await import('@/lib/numerology/descriptions');
+  it('should describe with locale', () => {
     const enDescription = describeLocale('lifePath', 1, 'en');
     const koDescription = describeLocale('lifePath', 1, 'ko');
 
@@ -366,27 +326,23 @@ describe('Numerology Descriptions', () => {
     expect(typeof koDescription).toBe('string');
   });
 
-  it('should export getLuckyTag function', async () => {
-    const { getLuckyTag } = await import('@/lib/numerology/descriptions');
+  it('should export getLuckyTag function', () => {
 
     expect(typeof getLuckyTag).toBe('function');
   });
 
-  it('should get lucky tag with locale', async () => {
-    const { getLuckyTag } = await import('@/lib/numerology/descriptions');
+  it('should get lucky tag with locale', () => {
     const tag = getLuckyTag(1);
 
     expect(typeof tag).toBe('string');
   });
 
-  it('should export getNumberTitle function', async () => {
-    const { getNumberTitle } = await import('@/lib/numerology/descriptions');
+  it('should export getNumberTitle function', () => {
 
     expect(typeof getNumberTitle).toBe('function');
   });
 
-  it('should get number title', async () => {
-    const { getNumberTitle } = await import('@/lib/numerology/descriptions');
+  it('should get number title', () => {
     const title = getNumberTitle(1);
 
     expect(typeof title).toBe('string');
@@ -394,14 +350,12 @@ describe('Numerology Descriptions', () => {
 });
 
 describe('Numerology Analysis', () => {
-  it('should export getSynergyAnalysis function', async () => {
-    const { getSynergyAnalysis } = await import('@/lib/numerology/numerology-analysis');
+  it('should export getSynergyAnalysis function', () => {
 
     expect(typeof getSynergyAnalysis).toBe('function');
   });
 
-  it('should analyze synergy from profile', async () => {
-    const { Numerology, getSynergyAnalysis } = await import('@/lib/numerology');
+  it('should analyze synergy from profile', () => {
     const instance = new Numerology('John Doe', new Date('1990-05-15'));
     const profile = instance.getCoreProfile();
     const analysis = getSynergyAnalysis(profile);
@@ -411,8 +365,7 @@ describe('Numerology Analysis', () => {
 });
 
 describe('Numerology Utils', () => {
-  it('should export MASTER_SET', async () => {
-    const { MASTER_SET } = await import('@/lib/numerology/utils');
+  it('should export MASTER_SET', () => {
 
     expect(MASTER_SET).toBeDefined();
     expect(MASTER_SET instanceof Set).toBe(true);
@@ -421,22 +374,19 @@ describe('Numerology Utils', () => {
     expect(MASTER_SET.has(33)).toBe(true);
   });
 
-  it('should export reduceToCore function', async () => {
-    const { reduceToCore } = await import('@/lib/numerology/utils');
+  it('should export reduceToCore function', () => {
 
     expect(typeof reduceToCore).toBe('function');
   });
 
-  it('should reduce number to core', async () => {
-    const { reduceToCore } = await import('@/lib/numerology/utils');
+  it('should reduce number to core', () => {
 
     expect(reduceToCore(10)).toBe(1);
     expect(reduceToCore(29)).toBe(11); // Master number preserved
     expect(reduceToCore(5)).toBe(5);
   });
 
-  it('should preserve master numbers', async () => {
-    const { reduceToCore, MASTER_SET } = await import('@/lib/numerology/utils');
+  it('should preserve master numbers', () => {
 
     for (const master of MASTER_SET) {
       expect(reduceToCore(master)).toBe(master);
@@ -445,8 +395,7 @@ describe('Numerology Utils', () => {
 });
 
 describe('Numerology Master Numbers', () => {
-  it('should preserve master number 11 in calculations', async () => {
-    const { Numerology } = await import('@/lib/numerology');
+  it('should preserve master number 11 in calculations', () => {
     // Use a name/date that might produce master number
     const instance = new Numerology('Test User', new Date('2000-11-11'));
     const profile = instance.getExtendedProfile();
@@ -455,8 +404,7 @@ describe('Numerology Master Numbers', () => {
     expect(profile.lifePathNumber).toBeDefined();
   });
 
-  it('should handle all core keys in descriptions', async () => {
-    const { describe: describeNum } = await import('@/lib/numerology/descriptions');
+  it('should handle all core keys in descriptions', () => {
 
     const coreKeys = ['lifePath', 'expression', 'soulUrge', 'personality', 'personalYear', 'personalMonth', 'personalDay'];
 

@@ -4,10 +4,85 @@ import type { TabProps } from '../types';
 import { InsightCard, InsightContent, ScoreBar, Badge } from '../InsightCard';
 
 export default function OverviewTab({ data, isKo }: TabProps) {
-  const { persons, sajuAnalysis, synastry, overallScore = 75 } = data;
+  const { persons, sajuAnalysis, synastry, conflicts, harmonies, tenGods, shinsals, overallScore = 75 } = data;
 
   const person1Name = persons[0]?.name || (isKo ? '사람 1' : 'Person 1');
   const person2Name = persons[1]?.name || (isKo ? '사람 2' : 'Person 2');
+
+  // Generate continuous flowing analysis text
+  const analysisLines: string[] = [];
+  if (isKo) {
+    analysisLines.push(`${person1Name}님과 ${person2Name}님의 종합 궁합 점수는 ${overallScore}점입니다.`);
+    const grade = sajuAnalysis?.grade || 'B';
+    analysisLines.push(`궁합 등급은 ${grade} 등급으로, ${grade === 'S+' || grade === 'S' ? '매우 높은 수준의 조화를 이루고 있습니다.' : grade === 'A' ? '좋은 궁합을 가지고 있습니다.' : grade === 'B' ? '무난한 궁합이며 노력으로 더 좋아질 수 있습니다.' : '서로의 차이를 이해하고 노력이 필요합니다.'}`);
+    if (sajuAnalysis?.summary) {
+      analysisLines.push(sajuAnalysis.summary);
+    }
+    const tenGodBalance = sajuAnalysis?.tenGods?.interaction?.balance || 0;
+    if (tenGodBalance >= 70) {
+      analysisLines.push(`십성 조화도가 ${tenGodBalance}점으로 높은 편이며, 두 분은 서로를 자연스럽게 보완하는 관계입니다.`);
+    } else if (tenGodBalance >= 50) {
+      analysisLines.push(`십성 조화도가 ${tenGodBalance}점으로 보통 수준이며, 일부 영역에서 조율이 필요합니다.`);
+    } else {
+      analysisLines.push(`십성 조화도가 ${tenGodBalance}점으로 낮은 편이지만, 서로 다른 점이 오히려 성장의 기회가 됩니다.`);
+    }
+    const harmonyScore = sajuAnalysis?.harmonies?.score || harmonies?.score || 0;
+    if (harmonyScore > 0) {
+      analysisLines.push(`합(合) 관계 점수는 ${harmonyScore}점이며, ${harmonyScore >= 70 ? '지지 간의 결합이 강하여 자연스러운 유대감을 형성합니다.' : '기본적인 조화를 이루고 있으나 더 깊은 이해가 필요합니다.'}`);
+    }
+    const totalConflicts = conflicts?.totalConflicts || sajuAnalysis?.conflicts?.totalConflicts || 0;
+    if (totalConflicts > 0) {
+      analysisLines.push(`충형파해 ${totalConflicts}개가 발견되었으며, ${totalConflicts >= 3 ? '갈등 요소가 다소 많으므로 상호 이해와 양보가 중요합니다.' : '소수의 갈등 요소가 있으나 충분히 극복 가능합니다.'}`);
+    } else {
+      analysisLines.push('충형파해가 발견되지 않아 큰 갈등 없이 평화로운 관계를 유지할 수 있습니다.');
+    }
+    const emotionalScore = synastry?.emotionalConnection || 0;
+    const romanticScore = synastry?.romanticConnection || 0;
+    if (emotionalScore > 0 || romanticScore > 0) {
+      analysisLines.push(`점성학적으로 감정적 연결은 ${emotionalScore}점, 로맨틱 케미는 ${romanticScore}점입니다.`);
+      if (emotionalScore >= 75) {
+        analysisLines.push('감정적으로 깊은 공감대를 형성하며, 서로의 감정을 직관적으로 이해합니다.');
+      }
+      if (romanticScore >= 75) {
+        analysisLines.push('강한 로맨틱 끌림이 있어 첫 만남부터 특별한 연결을 느꼈을 수 있습니다.');
+      }
+    }
+    if (sajuAnalysis?.detailedInsights && sajuAnalysis.detailedInsights.length > 0) {
+      analysisLines.push(...sajuAnalysis.detailedInsights.slice(0, 3));
+    }
+    if (synastry?.strengths && synastry.strengths.length > 0) {
+      analysisLines.push(`관계의 강점: ${synastry.strengths.slice(0, 2).join(', ')}`);
+    }
+    if (conflicts?.mitigationAdvice && conflicts.mitigationAdvice.length > 0) {
+      analysisLines.push(`조언: ${conflicts.mitigationAdvice[0]}`);
+    }
+  } else {
+    analysisLines.push(`The overall compatibility score for ${person1Name} and ${person2Name} is ${overallScore} points.`);
+    const grade = sajuAnalysis?.grade || 'B';
+    analysisLines.push(`The compatibility grade is ${grade}, ${grade === 'S+' || grade === 'S' ? 'showing an exceptionally high level of harmony.' : grade === 'A' ? 'indicating good compatibility.' : grade === 'B' ? 'a decent match that can improve with effort.' : 'suggesting differences that require understanding and effort.'}`);
+    if (sajuAnalysis?.summary) {
+      analysisLines.push(sajuAnalysis.summary);
+    }
+    const tenGodBalance = sajuAnalysis?.tenGods?.interaction?.balance || 0;
+    analysisLines.push(`Ten Gods harmony is at ${tenGodBalance} points — ${tenGodBalance >= 70 ? 'you naturally complement each other.' : tenGodBalance >= 50 ? 'some areas need adjustment.' : 'your differences can become growth opportunities.'}`);
+    const totalConflicts = conflicts?.totalConflicts || sajuAnalysis?.conflicts?.totalConflicts || 0;
+    if (totalConflicts > 0) {
+      analysisLines.push(`${totalConflicts} conflict(s) detected. ${totalConflicts >= 3 ? 'Mutual understanding and compromise are important.' : 'These are manageable with awareness.'}`);
+    } else {
+      analysisLines.push('No major conflicts found — a peaceful relationship foundation.');
+    }
+    const emotionalScore = synastry?.emotionalConnection || 0;
+    const romanticScore = synastry?.romanticConnection || 0;
+    if (emotionalScore > 0 || romanticScore > 0) {
+      analysisLines.push(`Astrologically, emotional connection is ${emotionalScore} and romantic chemistry is ${romanticScore}.`);
+    }
+    if (sajuAnalysis?.detailedInsights && sajuAnalysis.detailedInsights.length > 0) {
+      analysisLines.push(...sajuAnalysis.detailedInsights.slice(0, 3));
+    }
+    if (synastry?.strengths && synastry.strengths.length > 0) {
+      analysisLines.push(`Strengths: ${synastry.strengths.slice(0, 2).join(', ')}`);
+    }
+  }
 
   // Grade color mapping
   const gradeColors: Record<string, string> = {
@@ -98,6 +173,20 @@ export default function OverviewTab({ data, isKo }: TabProps) {
             </p>
           </div>
         )}
+      </div>
+
+      {/* Continuous Analysis Text */}
+      <div className="rounded-2xl bg-slate-800/50 border border-slate-700/50 p-5 md:p-6">
+        <h3 className="text-lg font-bold text-gray-100 mb-4">
+          {isKo ? '종합 분석' : 'Comprehensive Analysis'}
+        </h3>
+        <div className="space-y-3">
+          {analysisLines.map((line, idx) => (
+            <p key={idx} className="text-gray-200 text-sm leading-relaxed">
+              {line}
+            </p>
+          ))}
+        </div>
       </div>
 
       {/* Score Breakdown */}

@@ -78,7 +78,7 @@ export class ErrorBoundary extends Component<Props, State> {
 /**
  * Chat Error Boundary - Specialized fallback for chat components
  */
-export function ChatErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
+export function ChatErrorFallback({ error: _error, reset }: { error: Error; reset: () => void }) {
   return (
     <div
       className="flex flex-col items-center justify-center px-4 py-12 text-center min-h-[400px]"

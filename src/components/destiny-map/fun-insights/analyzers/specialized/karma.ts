@@ -3,7 +3,6 @@
  * Specialized karma and soul pattern analysis combining Saju and Astrology data
  */
 
-import { logger } from '@/lib/logger';
 import { getInteractionColor } from '@/lib/destiny-matrix/engine';
 import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/layer1-element-core';
 import { RELATION_ASPECT_MATRIX } from '@/lib/destiny-matrix/data/layer5-relation-aspect';
@@ -42,7 +41,7 @@ export function getKarmaMatrixAnalysis(
   astro: AstroData | undefined,
   lang: string
 ): KarmaMatrixResult | null {
-  const isKo = lang === 'ko';
+  const _isKo = lang === 'ko';
   if (!saju && !astro) {return null;}
 
   const extSaju = saju as ExtendedSajuData | undefined;

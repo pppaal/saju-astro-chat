@@ -6,7 +6,6 @@ import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/i18n/I18nProvider";
 import { useToast } from "@/components/ui/Toast";
-import { PostSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
 import styles from "./community.module.css";
@@ -59,7 +58,7 @@ export default function CommunityPage() {
   const { posts, setPosts, getFilteredPosts } = usePostsState(seedPosts);
   const { tab, setTab, category, setCategory, searchQuery, setSearchQuery } = useFilterState();
   const { title, setTitle, mediaType, setMediaType, url, setUrl, body, setBody, tags, setTags, resetForm } = usePostFormState();
-  const { commentTexts, setCommentTexts, showComments, setShowComments, replyTexts, setReplyTexts, showReplies, setShowReplies, toggleShowComments, toggleShowReplies } = useCommentState();
+  const { commentTexts, setCommentTexts, showComments, replyTexts, setReplyTexts, showReplies, toggleShowComments, toggleShowReplies } = useCommentState();
   const { savedPosts, setSavedPosts } = useSavedPosts();
 
   // Sync posts with seed posts when locale changes
@@ -500,7 +499,6 @@ export default function CommunityPage() {
     </div>
   );
 }
-
 
 
 

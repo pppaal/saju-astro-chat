@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useI18n } from '@/i18n/I18nProvider';
 import { ICPOctantChart, PersonaRadarChart, CompatibilityScore } from '@/components/personality';
-import type { ICPOctantCode, PersonaAxisData, CrossSystemCompatibility, PersonaCompatibilityResult } from '@/lib/icp/types';
+import type { ICPOctantCode, CrossSystemCompatibility, PersonaCompatibilityResult } from '@/lib/icp/types';
 import type { PersonaAxisKey, PersonaAxisResult } from '@/lib/persona/types';
 import styles from './page.module.css';
 

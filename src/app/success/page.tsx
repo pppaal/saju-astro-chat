@@ -10,7 +10,7 @@ import styles from "./success.module.css";
 
 function SuccessContent() {
   const { t } = useI18n();
-  const { data: session, status, update } = useSession();
+  const { status, update } = useSession();
   const searchParams = useSearchParams();
   const sessionId = searchParams?.get("session_id") ?? null;
   const [returnUrl, setReturnUrl] = useState<string | null>(null);

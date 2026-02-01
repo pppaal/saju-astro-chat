@@ -127,6 +127,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // 백엔드 API 엔드포인트 선택
     let endpoint: string
     let requestBody: Record<string, unknown>
+    const apiKey = process.env.ADMIN_API_TOKEN || ''
 
     switch (type) {
       case 'timing':
@@ -171,31 +172,74 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         requestBody = { question, year: birthYear, month: birthMonth }
     }
 
-    logger.info(`[Backend Predict] Calling ${endpoint}`)
+    // Validate backend URL and API key
+    if (!BACKEND_URL || BACKEND_URL === 'http://localhost:5000') {
+      logger.warn('[Backend Predict] Backend URL not configured or using localhost')
+    }
 
-    // 백엔드 API 호출 with circuit breaker
-    const apiKey = process.env.ADMIN_API_TOKEN || ''
+    if (!apiKey) {
+      logger.warn('[Backend Predict] ADMIN_API_TOKEN not configured')
+    }
+
+    logger.info(`[Backend Predict] Calling ${endpoint}`, {
+      type,
+      hasApiKey: !!apiKey,
+      backendUrl: BACKEND_URL,
+    })
 
     const { result: backendData, fromFallback } = await withCircuitBreaker<BackendResponse | null>(
       'backend-predict',
       async () => {
-        const backendRes = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-API-KEY': apiKey,
-          },
-          body: JSON.stringify(requestBody),
-          signal: AbortSignal.timeout(55000), // 55s timeout (Vercel Hobby 60s limit)
-        })
+        try {
+          const backendRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-KEY': apiKey,
+            },
+            body: JSON.stringify(requestBody),
+            signal: AbortSignal.timeout(55000), // 55s timeout (Vercel Hobby 60s limit)
+          })
 
-        if (!backendRes.ok) {
-          const errorText = await backendRes.text()
-          logger.error('[Backend Predict] Backend error:', errorText)
-          throw new Error('Backend request failed')
+          if (!backendRes.ok) {
+            const errorText = await backendRes.text()
+            logger.error('[Backend Predict] Backend error:', {
+              status: backendRes.status,
+              statusText: backendRes.statusText,
+              endpoint,
+              type,
+              error: errorText.substring(0, 500), // Limit log size
+            })
+
+            // Provide more specific error messages based on status code
+            if (backendRes.status === HTTP_STATUS.UNAUTHORIZED) {
+              throw new Error('Backend authentication failed - check ADMIN_API_TOKEN')
+            } else if (backendRes.status === HTTP_STATUS.BAD_REQUEST) {
+              throw new Error(`Backend validation error: ${errorText}`)
+            } else if (backendRes.status === HTTP_STATUS.SERVICE_UNAVAILABLE) {
+              throw new Error('Backend service temporarily unavailable')
+            } else if (backendRes.status >= 500) {
+              throw new Error(`Backend server error: ${backendRes.status}`)
+            }
+
+            throw new Error(
+              `Backend request failed: ${backendRes.status} ${backendRes.statusText}`
+            )
+          }
+
+          return backendRes.json()
+        } catch (error) {
+          // Log network-level errors with more context
+          if (error instanceof Error) {
+            logger.error('[Backend Predict] Network error:', {
+              message: error.message,
+              name: error.name,
+              endpoint,
+              type,
+            })
+          }
+          throw error
         }
-
-        return backendRes.json()
       },
       null, // fallback value
       { failureThreshold: 3, resetTimeoutMs: 60000 }
@@ -203,6 +247,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Circuit breaker triggered or backend returned null
     if (fromFallback || !backendData) {
+      logger.warn('[Backend Predict] Using fallback:', {
+        fromFallback,
+        backendData: backendData === null ? 'null' : 'undefined',
+        endpoint,
+        type,
+      })
       return NextResponse.json(
         {
           success: false,

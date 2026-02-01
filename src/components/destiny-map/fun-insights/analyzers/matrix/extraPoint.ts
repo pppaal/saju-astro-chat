@@ -50,7 +50,7 @@ export function analyzeExtraPoint(
   astro: AstroData | undefined,
   lang: string
 ): ExtraPointResult[] {
-  const isKo = lang === 'ko';
+  const _isKo = lang === 'ko';
   const results: ExtraPointResult[] = [];
 
   if (!saju && !astro) {return results;}

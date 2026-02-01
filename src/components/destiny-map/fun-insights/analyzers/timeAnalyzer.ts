@@ -1,4 +1,3 @@
-import { elementTraits, elementKeyMap, monthElements } from '../data';
 import type { SajuData, AstroData, UnseItem } from '../types';
 
 interface TimeBasedFortuneResult {

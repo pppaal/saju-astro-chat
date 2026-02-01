@@ -423,7 +423,7 @@ Each card interpretation MUST include the following structure (450-600 words):
 - Short readings: Each card minimum 450 words, make it rich!`
 
   try {
-    const result = await callGPT(unifiedPrompt, 4000)
+    const result = await callGPT(unifiedPrompt, 8000)
 
     // Parse JSON response
     const jsonMatch = result.match(/\{[\s\S]*\}/)

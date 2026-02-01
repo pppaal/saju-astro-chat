@@ -335,6 +335,16 @@ export interface TimingMatrixResult {
     description: { ko: string; en: string };
     goodFor: string[];
   }>;
+  cautionPeriods: Array<{
+    icon: string;
+    period: string;
+    severity: 'high' | 'moderate' | 'mild';
+    score: number;
+    grade: 'C' | 'D';
+    description: { ko: string; en: string };
+    avoidFor: string[];
+    advice: { ko: string; en: string };
+  }>;
 }
 
 // ============================

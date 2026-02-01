@@ -49,6 +49,8 @@ export default function DestinyMatchPage() {
     handleLike,
     handlePass,
     handleSuperLike,
+    canUndo,
+    handleUndo,
   } = useDiscovery({ session, status, router, signInUrl });
 
   // Determine if a status screen should be shown instead of main content
@@ -149,6 +151,15 @@ export default function DestinyMatchPage() {
 
                 {/* Action Buttons */}
                 <div className={styles.actionButtons}>
+                  {canUndo && (
+                    <button
+                      onClick={handleUndo}
+                      className={`${styles.actionButton} ${styles.undoButton}`}
+                      title="Undo"
+                    >
+                      &#8634;
+                    </button>
+                  )}
                   <button
                     onClick={handlePass}
                     className={`${styles.actionButton} ${styles.passButton}`}

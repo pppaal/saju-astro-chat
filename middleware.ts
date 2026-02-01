@@ -93,41 +93,109 @@ function validateOrigin(request: NextRequest): boolean {
   return false
 }
 
+function buildCsp(nonce: string) {
+  const isProd = process.env.NODE_ENV === 'production'
+  const connectSrc = [
+    "'self'",
+    'https://api.destinypal.com',
+    'https://*.sentry.io',
+    'https://www.google-analytics.com',
+    'https://www.googletagmanager.com',
+    'https://www.clarity.ms',
+    'https://vitals.vercel-insights.com',
+    'wss:',
+  ]
+
+  const aiBackend = process.env.AI_BACKEND_URL
+  if (aiBackend && aiBackend.startsWith('https://')) {
+    connectSrc.push(aiBackend)
+  }
+
+  if (!isProd) {
+    connectSrc.push('http://localhost:5000', 'http://127.0.0.1:5000')
+  }
+
+  const scriptSrc = [
+    "'self'",
+    `'nonce-${nonce}'`,
+    'https://www.googletagmanager.com',
+    'https://www.google-analytics.com',
+    'https://www.clarity.ms',
+    'https://t1.kakaocdn.net',
+  ]
+
+  if (!isProd) {
+    scriptSrc.push("'unsafe-eval'")
+  }
+
+  const directives = [
+    `default-src 'self'`,
+    `base-uri 'self'`,
+    `object-src 'none'`,
+    `frame-ancestors 'none'`,
+    `form-action 'self'`,
+    `img-src 'self' data: blob: https:`,
+    `font-src 'self' data:`,
+    `style-src 'self' 'unsafe-inline'`,
+    `script-src ${scriptSrc.join(' ')}`,
+    `connect-src ${connectSrc.join(' ')}`,
+    `worker-src 'self' blob:`,
+    `manifest-src 'self'`,
+    `report-uri /api/csp-report`,
+    ...(isProd ? ['upgrade-insecure-requests'] : []),
+  ]
+
+  return directives.join('; ')
+}
+
 export function middleware(request: NextRequest) {
-  const { pathname, searchParams } = request.nextUrl
+  const { pathname } = request.nextUrl
 
   // Only apply to API routes
-  if (!pathname.startsWith('/api/')) {
+  if (pathname.startsWith('/api/')) {
+    // Only check mutating methods
+    const mutatingMethods = ['POST', 'PUT', 'PATCH', 'DELETE']
+    if (!mutatingMethods.includes(request.method)) {
+      return NextResponse.next()
+    }
+
+    // Skip certain routes
+    if (shouldSkipCsrf(pathname)) {
+      return NextResponse.next()
+    }
+
+    // Validate origin
+    if (!validateOrigin(request)) {
+      // Log the failed attempt (will appear in Vercel logs)
+      console.warn(`[CSRF] Origin validation failed: ${pathname}`, {
+        origin: request.headers.get('origin'),
+        referer: request.headers.get('referer'),
+        method: request.method,
+      })
+
+      return NextResponse.json({ error: 'csrf_validation_failed' }, { status: 403 })
+    }
+
     return NextResponse.next()
   }
 
-  // Only check mutating methods
-  const mutatingMethods = ['POST', 'PUT', 'PATCH', 'DELETE']
-  if (!mutatingMethods.includes(request.method)) {
+  const accept = request.headers.get('accept') || ''
+  if (!accept.includes('text/html')) {
     return NextResponse.next()
   }
 
-  // Skip certain routes
-  if (shouldSkipCsrf(pathname)) {
-    return NextResponse.next()
-  }
+  const nonce = crypto.randomUUID()
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
 
-  // Validate origin
-  if (!validateOrigin(request)) {
-    // Log the failed attempt (will appear in Vercel logs)
-    console.warn(`[CSRF] Origin validation failed: ${pathname}`, {
-      origin: request.headers.get('origin'),
-      referer: request.headers.get('referer'),
-      method: request.method,
-    })
-
-    return NextResponse.json({ error: 'csrf_validation_failed' }, { status: 403 })
-  }
-
-  return NextResponse.next()
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  })
+  response.headers.set('Content-Security-Policy', buildCsp(nonce))
+  return response
 }
 
 // Only run middleware on API routes
 export const config = {
-  matcher: '/api/:path*',
+  matcher: '/:path*',
 }

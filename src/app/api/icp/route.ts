@@ -14,9 +14,8 @@
  * - NO: Nurturant-Extroverted (양육적-외향형)
  */
 
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { NextRequest, NextResponse } from 'next/server';
+import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware';
 import { prisma, Prisma } from '@/lib/db/prisma';
 import { logger } from '@/lib/logger';
 import { parseJsonBody, validateFields } from '@/lib/api/validation';
@@ -26,15 +25,11 @@ import { HTTP_STATUS } from '@/lib/constants/http';
 export const dynamic = "force-dynamic";
 
 // GET: 저장된 ICP 결과 조회
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
-    }
-
-    const latestResult = await prisma.iCPResult.findFirst({
-      where: { userId: session.user.id },
+export const GET = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    try {
+      const latestResult = await prisma.iCPResult.findFirst({
+        where: { userId: context.userId! },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
@@ -53,26 +48,25 @@ export async function GET() {
       return NextResponse.json({ saved: false });
     }
 
-    return NextResponse.json({ saved: true, result: latestResult });
-  } catch (error) {
-    logger.error("GET /api/icp error:", error);
-    return NextResponse.json({ error: "server_error" }, { status: HTTP_STATUS.SERVER_ERROR });
-  }
-}
+      return NextResponse.json({ saved: true, result: latestResult });
+    } catch (error) {
+      logger.error("GET /api/icp error:", error);
+      return NextResponse.json({ error: "server_error" }, { status: HTTP_STATUS.SERVER_ERROR });
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/icp',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)
 
 // POST: ICP 결과 저장 (로그인 필요)
-export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return createErrorResponse({
-        code: ErrorCodes.UNAUTHORIZED,
-        message: "Authentication required",
-      });
-    }
-
-    // Parse and validate JSON body
-    const { data, error } = await parseJsonBody(request);
+export const POST = withApiMiddleware(
+  async (request: NextRequest, context: ApiContext) => {
+    try {
+      // Parse and validate JSON body
+      const { data, error } = await parseJsonBody(request);
     if (error) {
       return createErrorResponse({
         code: ErrorCodes.BAD_REQUEST,
@@ -143,10 +137,10 @@ export async function POST(request: Request) {
       locale?: string;
     };
 
-    // Save to database
-    const result = await prisma.iCPResult.create({
-      data: {
-        userId: session.user.id,
+      // Save to database
+      const result = await prisma.iCPResult.create({
+        data: {
+          userId: context.userId!,
         primaryStyle: icpData.primaryStyle,
         secondaryStyle: icpData.secondaryStyle,
         dominanceScore: icpData.dominanceScore,
@@ -158,21 +152,27 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      id: result.id,
-      primaryStyle: result.primaryStyle,
-      secondaryStyle: result.secondaryStyle,
-      dominanceScore: result.dominanceScore,
-      affiliationScore: result.affiliationScore,
-      message: "ICP result saved successfully",
-    });
-  } catch (error) {
-    logger.error("POST /api/icp error:", error);
-    return createErrorResponse({
-      code: ErrorCodes.INTERNAL_ERROR,
-      message: "Failed to save ICP result",
-      originalError: error as Error,
-    });
-  }
-}
+      return NextResponse.json({
+        success: true,
+        id: result.id,
+        primaryStyle: result.primaryStyle,
+        secondaryStyle: result.secondaryStyle,
+        dominanceScore: result.dominanceScore,
+        affiliationScore: result.affiliationScore,
+        message: "ICP result saved successfully",
+      });
+    } catch (error) {
+      logger.error("POST /api/icp error:", error);
+      return createErrorResponse({
+        code: ErrorCodes.INTERNAL_ERROR,
+        message: "Failed to save ICP result",
+        originalError: error as Error,
+      });
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/icp',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)

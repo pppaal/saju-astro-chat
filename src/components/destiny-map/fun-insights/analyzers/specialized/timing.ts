@@ -3,7 +3,6 @@
  * Specialized timing analysis combining Saju and Astrology data
  */
 
-import { logger } from '@/lib/logger';
 import { getInteractionColor } from '@/lib/destiny-matrix/engine';
 import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/layer1-element-core';
 import type { WesternElement } from '@/lib/destiny-matrix/types';
@@ -61,7 +60,7 @@ export function getTimingMatrixAnalysis(
           endAge: daeun.startAge + 10,
           isCurrent: daeun.current || daeun.isCurrent || false,
           element: daeunEl,
-          score: interaction.score,
+          score: interaction.score * 10,
           description: {
             ko: `${daeunEl} 대운 - ${interaction.keyword}`,
             en: `${daeunEl} Daeun - ${interaction.keywordEn}`,
@@ -124,7 +123,7 @@ export function getTimingMatrixAnalysis(
   // 4. 시기별 행운
   const yearEl = mapSajuElementToKo('wood');
   const yearInteraction = ELEMENT_CORE_GRID[sajuEl]?.[getWestElementFromSign(yearEl)];
-  const yearScore = yearInteraction?.score || 50;
+  const yearScore = (yearInteraction?.score || 5) * 10;
 
   const periodLuck = {
     year: {
@@ -159,24 +158,143 @@ export function getTimingMatrixAnalysis(
   if (currentDaeun?.element) {
     const daeunEl = mapSajuElementToKo(currentDaeun.element);
     const interaction = ELEMENT_CORE_GRID[sajuEl]?.[getWestElementFromSign(daeunEl)];
-    if (interaction && interaction.score >= 60) {
-      luckyPeriods.push({
-        icon: '⭐',
-        period: `${currentDaeun.startAge}세~`,
-        strength: interaction.score >= 70 ? 'strong' : 'moderate',
-        score: interaction.score,
-        description: {
-          ko: `${daeunEl} 대운 - 좋은 시기`,
-          en: `${daeunEl} Daeun - Good period`,
-        },
-        goodFor: isKo ? ['새로운 시작', '중요한 결정'] : ['New beginnings', 'Important decisions'],
-      });
+    if (interaction) {
+      const normalizedScore = interaction.score * 10;
+      if (normalizedScore >= 60) {
+        luckyPeriods.push({
+          icon: '⭐',
+          period: `${currentDaeun.startAge}세~`,
+          strength: normalizedScore >= 70 ? 'strong' : 'moderate',
+          score: normalizedScore,
+          description: {
+            ko: `${daeunEl} 대운 - 좋은 시기`,
+            en: `${daeunEl} Daeun - Good period`,
+          },
+          goodFor: isKo ? ['새로운 시작', '중요한 결정'] : ['New beginnings', 'Important decisions'],
+        });
+      }
     }
   }
 
-  // 종합 점수
-  const daeunScore = currentDaeun && currentDaeun.element ? ELEMENT_CORE_GRID[sajuEl]?.[getWestElementFromSign(mapSajuElementToKo(currentDaeun.element))]?.score || 50 : 50;
-  const overallScore = Math.round((yearScore + daeunScore) / 2);
+  // 미래 대운 중 행운의 시기도 추가
+  for (const daeun of daeunList.slice(0, 5)) {
+    if (daeun.element && daeun.startAge !== undefined && !(daeun.current || daeun.isCurrent)) {
+      const daeunEl = mapSajuElementToKo(daeun.element);
+      const interaction = ELEMENT_CORE_GRID[sajuEl]?.[getWestElementFromSign(daeunEl)];
+      if (interaction) {
+        const normalizedScore = interaction.score * 10;
+        if (normalizedScore >= 70) {
+          luckyPeriods.push({
+            icon: normalizedScore >= 90 ? '🌟' : '⭐',
+            period: `${daeun.startAge}~${daeun.startAge + 10}세`,
+            strength: normalizedScore >= 90 ? 'strong' : normalizedScore >= 70 ? 'moderate' : 'weak',
+            score: normalizedScore,
+            description: {
+              ko: `${daeunEl} 대운 - ${interaction.keyword}`,
+              en: `${daeunEl} Daeun - ${interaction.keywordEn}`,
+            },
+            goodFor: isKo
+              ? normalizedScore >= 90
+                ? ['큰 도전', '투자', '새로운 시작', '중요한 결정']
+                : ['새로운 시작', '중요한 결정']
+              : normalizedScore >= 90
+                ? ['Big challenges', 'Investments', 'New beginnings', 'Key decisions']
+                : ['New beginnings', 'Important decisions'],
+          });
+        }
+      }
+    }
+  }
+
+  // 6. 피해야 할 시기 (Caution Periods)
+  const cautionPeriods: TimingMatrixResult['cautionPeriods'] = [];
+
+  // 현재 대운 주의 시기 체크
+  if (currentDaeun?.element) {
+    const daeunEl = mapSajuElementToKo(currentDaeun.element);
+    const interaction = ELEMENT_CORE_GRID[sajuEl]?.[getWestElementFromSign(daeunEl)];
+    if (interaction) {
+      const normalizedScore = interaction.score * 10;
+      if (normalizedScore < 50) {
+        cautionPeriods.push({
+          icon: normalizedScore <= 20 ? '🚫' : '⚠️',
+          period: `${currentDaeun.startAge}세~ (${isKo ? '현재' : 'Now'})`,
+          severity: normalizedScore <= 20 ? 'high' : normalizedScore < 40 ? 'moderate' : 'mild',
+          score: normalizedScore,
+          grade: 'D',
+          description: {
+            ko: `${daeunEl} 대운 - ${interaction.keyword} (주의 필요)`,
+            en: `${daeunEl} Daeun - ${interaction.keywordEn} (Caution needed)`,
+          },
+          avoidFor: isKo
+            ? ['큰 투자', '중요한 계약', '급한 결정', '새 프로젝트 시작']
+            : ['Large investments', 'Important contracts', 'Rushed decisions', 'Starting new projects'],
+          advice: {
+            ko: interaction.advice || '내실을 다지고 건강 관리에 집중하세요.',
+            en: 'Focus on consolidation and health management.',
+          },
+        });
+      } else if (normalizedScore < 60) {
+        cautionPeriods.push({
+          icon: '⚠️',
+          period: `${currentDaeun.startAge}세~ (${isKo ? '현재' : 'Now'})`,
+          severity: 'mild',
+          score: normalizedScore,
+          grade: 'C',
+          description: {
+            ko: `${daeunEl} 대운 - ${interaction.keyword} (신중 필요)`,
+            en: `${daeunEl} Daeun - ${interaction.keywordEn} (Careful approach)`,
+          },
+          avoidFor: isKo
+            ? ['무리한 확장', '충동적 결정', '과로']
+            : ['Overexpansion', 'Impulsive decisions', 'Overwork'],
+          advice: {
+            ko: interaction.advice || '안정적인 흐름을 유지하며 기회를 기다리세요.',
+            en: 'Maintain a steady pace and wait for opportunities.',
+          },
+        });
+      }
+    }
+  }
+
+  // 미래 대운 중 주의 시기도 추가
+  for (const daeun of daeunList.slice(0, 5)) {
+    if (daeun.element && daeun.startAge !== undefined && !(daeun.current || daeun.isCurrent)) {
+      const daeunEl = mapSajuElementToKo(daeun.element);
+      const interaction = ELEMENT_CORE_GRID[sajuEl]?.[getWestElementFromSign(daeunEl)];
+      if (interaction) {
+        const normalizedScore = interaction.score * 10;
+        if (normalizedScore < 50) {
+          cautionPeriods.push({
+            icon: normalizedScore <= 20 ? '🚫' : '⚠️',
+            period: `${daeun.startAge}~${daeun.startAge + 10}세`,
+            severity: normalizedScore <= 20 ? 'high' : normalizedScore < 40 ? 'moderate' : 'mild',
+            score: normalizedScore,
+            grade: 'D',
+            description: {
+              ko: `${daeunEl} 대운 - ${interaction.keyword}`,
+              en: `${daeunEl} Daeun - ${interaction.keywordEn}`,
+            },
+            avoidFor: isKo
+              ? ['큰 투자', '급한 결정', '무리한 확장']
+              : ['Large investments', 'Rushed decisions', 'Overexpansion'],
+            advice: {
+              ko: interaction.advice || '내실을 다지고 건강 관리에 집중하세요.',
+              en: 'Focus on inner strength and health.',
+            },
+          });
+        }
+      }
+    }
+  }
+
+  // 종합 점수 (정규화된 점수 사용)
+  const rawDaeunScore = currentDaeun && currentDaeun.element
+    ? ELEMENT_CORE_GRID[sajuEl]?.[getWestElementFromSign(mapSajuElementToKo(currentDaeun.element))]?.score || 5
+    : 5;
+  const normalizedYearScore = (yearInteraction?.score || 5) * 10;
+  const normalizedDaeunScore = rawDaeunScore * 10;
+  const overallScore = Math.round((normalizedYearScore + normalizedDaeunScore) / 2);
   const overallMessage = {
     ko: overallScore >= 70
       ? '현재 전반적으로 좋은 타이밍입니다!'
@@ -198,5 +316,6 @@ export function getTimingMatrixAnalysis(
     retrogrades,
     periodLuck,
     luckyPeriods,
+    cautionPeriods,
   };
 }

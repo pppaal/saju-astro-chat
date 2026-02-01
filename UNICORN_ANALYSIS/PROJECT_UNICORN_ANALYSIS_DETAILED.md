@@ -34,7 +34,7 @@
 
 #### 구독 플랜 상세
 
-**파일**: [src/lib/config/pricing.ts](src/lib/config/pricing.ts)
+**파일**: [src/lib/config/pricing.ts](../src/lib/config/pricing.ts)
 
 | 플랜 | 월간 | 연간 | 크레딧 | 궁합 | 후속질문 | 히스토리 | 주요 기능 |
 |------|------|------|---------|------|----------|----------|----------|
@@ -92,7 +92,7 @@ const variants = {
 
 #### 크레딧 소비 로직
 
-**파일**: [src/lib/credits/creditService.ts](src/lib/credits/creditService.ts:189-242)
+**파일**: [src/lib/credits/creditService.ts](../src/lib/credits/creditService.ts#L189-L242)
 
 **소비 우선순위**:
 1. **보너스 크레딧 먼저 소진** (FIFO - 먼저 구매한 것부터)
@@ -114,7 +114,7 @@ const bonusPurchases = await prisma.bonusCreditPurchase.findMany({
 
 #### 크레딧 환불 시스템
 
-**파일**: [src/lib/credits/creditRefund.ts](src/lib/credits/creditRefund.ts:32-95)
+**파일**: [src/lib/credits/creditRefund.ts](../src/lib/credits/creditRefund.ts#L32-L95)
 
 **자동 환불 트리거**:
 - API 타임아웃 (120초 초과)
@@ -145,7 +145,7 @@ await prisma.creditRefundLog.create({
 
 ### 1.3 구독 환불 계산 시스템
 
-**파일**: [src/app/api/admin/refund-subscription/route.ts](src/app/api/admin/refund-subscription/route.ts:1-288)
+**파일**: [src/app/api/admin/refund-subscription/route.ts](../src/app/api/admin/refund-subscription/route.ts#L1-L288)
 
 #### 환불 공식
 
@@ -171,7 +171,7 @@ await prisma.creditRefundLog.create({
 
 ### 1.4 Stripe Webhook 통합
 
-**파일**: [src/app/api/webhook/stripe/route.ts](src/app/api/webhook/stripe/route.ts:1-475)
+**파일**: [src/app/api/webhook/stripe/route.ts](../src/app/api/webhook/stripe/route.ts#L1-L475)
 
 #### 처리 이벤트
 
@@ -205,7 +205,7 @@ await prisma.creditRefundLog.create({
 
 ### 1.5 추천 시스템 (Referral)
 
-**파일**: [src/lib/referral/referralService.ts](src/lib/referral/referralService.ts:1-200)
+**파일**: [src/lib/referral/referralService.ts](../src/lib/referral/referralService.ts#L1-L200)
 
 #### 보상 구조
 
@@ -245,7 +245,7 @@ await sendReferralRewardEmail({
 
 ### 2.1 푸시 알림 시스템
 
-**파일**: [src/lib/notifications/pushService.ts](src/lib/notifications/pushService.ts:1-448)
+**파일**: [src/lib/notifications/pushService.ts](../src/lib/notifications/pushService.ts#L1-L448)
 
 #### 인프라
 
@@ -270,7 +270,7 @@ model PushSubscription {
 
 #### 알림 유형
 
-**파일**: [src/lib/notifications/premiumNotifications.ts](src/lib/notifications/premiumNotifications.ts:1-319)
+**파일**: [src/lib/notifications/premiumNotifications.ts](../src/lib/notifications/premiumNotifications.ts#L1-L319)
 
 | 알림 타입 | 조건 | 발송 시간 | 빈도 |
 |----------|------|-----------|------|
@@ -305,34 +305,34 @@ const tone = persona?.emotionalTone || 'neutral';
 
 ### 2.2 이메일 알림 시스템
 
-**파일**: [src/lib/email/templates/](src/lib/email/templates/)
+**파일**: [src/lib/email/templates/](../src/lib/email/templates/)
 
 #### 이메일 템플릿 (8종)
 
-1. **[welcome.ts](src/lib/email/templates/welcome.ts)**: 회원가입 환영
+1. **[welcome.ts](../src/lib/email/templates/welcome.ts)**: 회원가입 환영
    - 첫 리딩 가이드
    - 추천 코드 안내
 
-2. **[paymentReceipt.ts](src/lib/email/templates/paymentReceipt.ts)**: 결제 영수증
+2. **[paymentReceipt.ts](../src/lib/email/templates/paymentReceipt.ts)**: 결제 영수증
    - 구매 내역 (크레딧 팩/구독)
    - 영수증 번호
    - 환불 정책 링크
 
-3. **[subscriptionConfirm.ts](src/lib/email/templates/subscriptionConfirm.ts)**: 구독 확인
+3. **[subscriptionConfirm.ts](../src/lib/email/templates/subscriptionConfirm.ts)**: 구독 확인
    - 플랜 상세 정보
    - 크레딧 지급 안내
    - 다음 결제일
 
-4. **[subscriptionCancelled.ts](src/lib/email/templates/subscriptionCancelled.ts)**: 구독 취소
+4. **[subscriptionCancelled.ts](../src/lib/email/templates/subscriptionCancelled.ts)**: 구독 취소
    - 남은 크레딧 안내
    - 재구독 CTA
 
-5. **[paymentFailed.ts](src/lib/email/templates/paymentFailed.ts)**: 결제 실패
+5. **[paymentFailed.ts](../src/lib/email/templates/paymentFailed.ts)**: 결제 실패
    - 실패 사유
    - 결제 방법 업데이트 링크
    - 재시도 안내
 
-6. **[referralReward.ts](src/lib/email/templates/referralReward.ts)**: 추천 보상
+6. **[referralReward.ts](../src/lib/email/templates/referralReward.ts)**: 추천 보상
    - 추천인/피추천인 정보
    - 지급된 크레딧
    - 추천 코드 공유 독려
@@ -438,7 +438,7 @@ model EmailLog {
 
 ### 3.1 AI 프롬프트 엔지니어링
 
-**파일**: [src/lib/destiny-matrix/ai-report/prompts/timingPrompts.ts](src/lib/destiny-matrix/ai-report/prompts/timingPrompts.ts)
+**파일**: [src/lib/destiny-matrix/ai-report/prompts/timingPrompts.ts](../src/lib/destiny-matrix/ai-report/prompts/timingPrompts.ts)
 
 #### 일일 리포트 프롬프트 (6,000-7,000자)
 
@@ -472,7 +472,7 @@ model EmailLog {
 
 ### 3.2 AI 백엔드 통합
 
-**파일**: [src/lib/destiny-matrix/ai-report/aiBackend.ts](src/lib/destiny-matrix/ai-report/aiBackend.ts:1-114)
+**파일**: [src/lib/destiny-matrix/ai-report/aiBackend.ts](../src/lib/destiny-matrix/ai-report/aiBackend.ts#L1-L114)
 
 #### 설정
 
@@ -528,7 +528,7 @@ const sections = {
 
 **패턴**: Server-Sent Events
 
-**예시 파일**: [src/app/api/tarot/chat/stream/route.ts](src/app/api/tarot/chat/stream/route.ts)
+**예시 파일**: [src/app/api/tarot/chat/stream/route.ts](../src/app/api/tarot/chat/stream/route.ts)
 
 ```typescript
 const encoder = new TextEncoder();
@@ -721,7 +721,7 @@ const systemPrompt = `
 
 ### 4.1 매칭 알고리즘 상세
 
-**파일**: [src/app/api/destiny-match/discover/route.ts](src/app/api/destiny-match/discover/route.ts:94-252)
+**파일**: [src/app/api/destiny-match/discover/route.ts](../src/app/api/destiny-match/discover/route.ts#L94-L252)
 
 #### 4단계 필터링
 
@@ -782,7 +782,7 @@ const paged = results.slice(offset, offset + limit);
 
 ### 4.2 스와이프 메커니즘
 
-**파일**: [src/app/api/destiny-match/swipe/route.ts](src/app/api/destiny-match/swipe/route.ts:1-267)
+**파일**: [src/app/api/destiny-match/swipe/route.ts](../src/app/api/destiny-match/swipe/route.ts#L1-L267)
 
 #### 스와이프 타입
 
@@ -969,7 +969,7 @@ c = 초대 전환율
 
 ### 5.1 인증 시스템
 
-**파일**: [src/lib/auth/authOptions.ts](src/lib/auth/authOptions.ts:1-150)
+**파일**: [src/lib/auth/authOptions.ts](../src/lib/auth/authOptions.ts#L1-L150)
 
 #### OAuth 제공자
 
@@ -1039,7 +1039,7 @@ cookies: {
 
 ### 5.2 Rate Limiting
 
-**파일**: [src/lib/cache/redis-rate-limit.ts](src/lib/cache/redis-rate-limit.ts)
+**파일**: [src/lib/cache/redis-rate-limit.ts](../src/lib/cache/redis-rate-limit.ts)
 
 #### 구현 전략
 
@@ -1083,7 +1083,7 @@ res.setHeader('X-RateLimit-Reset', resetTime);
 
 ### 5.3 CSRF 보호
 
-**파일**: [src/lib/security/csrf.ts](src/lib/security/csrf.ts)
+**파일**: [src/lib/security/csrf.ts](../src/lib/security/csrf.ts)
 
 ```typescript
 function csrfGuard(req: NextRequest): NextResponse | null {
@@ -1200,7 +1200,7 @@ model AdminAuditLog {
 
 ### 6.1 퍼널 분석
 
-**파일**: [src/app/api/admin/metrics/funnel/route.ts](src/app/api/admin/metrics/funnel/route.ts:1-173)
+**파일**: [src/app/api/admin/metrics/funnel/route.ts](../src/app/api/admin/metrics/funnel/route.ts#L1-L173)
 
 #### 추적 지표
 
@@ -1267,7 +1267,7 @@ const mrr = (avgPlanPrice / 100) * activeSubscriptions;
 
 ### 6.2 성능 모니터링
 
-**파일**: [src/lib/performance/web-vitals-reporter.ts](src/lib/performance/web-vitals-reporter.ts)
+**파일**: [src/lib/performance/web-vitals-reporter.ts](../src/lib/performance/web-vitals-reporter.ts)
 
 #### Web Vitals 추적
 

@@ -1,7 +1,7 @@
 "use client";
 
 // src/components/calendar/BirthInfoFormInline.tsx
-import React, { useState, useEffect, RefObject } from 'react';
+import React, { memo, useState, useEffect, RefObject } from 'react';
 import { useSession } from 'next-auth/react';
 import { useI18n } from '@/i18n/I18nProvider';
 import BackButton from '@/components/ui/BackButton';
@@ -39,11 +39,11 @@ function extractCityPart(input: string): string {
   return input.trim();
 }
 
-export default function BirthInfoFormInline({
+const BirthInfoFormInline = memo(function BirthInfoFormInline({
   canvasRef,
   birthInfo,
   setBirthInfo,
-  selectedCity,
+  selectedCity: _selectedCity,
   setSelectedCity,
   onSubmit,
   submitting,
@@ -392,4 +392,6 @@ export default function BirthInfoFormInline({
       </main>
     </div>
   );
-}
+});
+
+export default BirthInfoFormInline;

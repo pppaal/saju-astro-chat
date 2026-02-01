@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await parseRequestBody<any>(req, { context: 'Dream Chat Save' });
+    const body = await parseRequestBody<SaveDreamChatRequest>(req, { context: 'Dream Chat Save' });
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         { error: "Invalid request body" },
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { dreamText, messages, summary, locale = "ko" } = body as SaveDreamChatRequest;
+    const { dreamText, messages, summary, locale = "ko" } = body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(

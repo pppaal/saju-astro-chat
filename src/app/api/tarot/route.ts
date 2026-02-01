@@ -1,10 +1,7 @@
 // src/app/api/tarot/route.ts
-import { NextResponse } from "next/server";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
+import { NextRequest, NextResponse } from "next/server";
+import { withApiMiddleware, createPublicStreamGuard, type ApiContext } from "@/lib/api/middleware";
 import { captureServerError } from "@/lib/telemetry";
-import { requirePublicToken } from "@/lib/auth/publicToken";
-import { enforceBodySize } from "@/lib/http";
 import { tarotThemes } from "@/lib/Tarot/tarot-spreads-data";
 import { Card, DrawnCard } from "@/lib/Tarot/tarot.types";
 import { tarotDeck } from "@/lib/Tarot/tarot-data";
@@ -14,7 +11,6 @@ import { parseRequestBody } from '@/lib/api/requestParser';
 import { LIMITS } from '@/lib/validation/patterns';
 import { HTTP_STATUS } from '@/lib/constants/http';
 const MAX_ID_LEN = LIMITS.ID;
-const BODY_LIMIT = 8 * 1024;
 type TarotBody = {
   categoryId?: string;
   spreadId?: string;
@@ -33,61 +29,52 @@ function drawCards(count: number): DrawnCard[] {
   }));
 }
 
-export async function POST(req: Request) {
-  try {
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`tarot:${ip}`, { limit: 40, windowSeconds: 60 });
-    if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests. Please wait." }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
-    }
-    const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
-    }
-
-    const oversized = enforceBodySize(req, BODY_LIMIT, limit.headers);
-    if (oversized) {return oversized;}
-
-    const body = (await parseRequestBody<any>(req, { context: 'Tarot' })) as TarotBody | null;
-    if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers });
-    }
+export const POST = withApiMiddleware(
+  async (req: NextRequest, _context: ApiContext) => {
+    try {
+      const body = await parseRequestBody<TarotBody>(req, { context: 'Tarot' });
+      if (!body || typeof body !== "object") {
+        return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
+      }
 
     const categoryIdRaw = typeof body.categoryId === "string" ? body.categoryId.trim() : "";
     const spreadIdRaw = typeof body.spreadId === "string" ? body.spreadId.trim() : "";
     const categoryId = categoryIdRaw.slice(0, MAX_ID_LEN);
     const spreadId = spreadIdRaw.slice(0, MAX_ID_LEN);
 
-    if (!categoryId || !spreadId) {
-      return NextResponse.json(
-        { error: "categoryId and spreadId are required" },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      );
+      if (!categoryId || !spreadId) {
+        return NextResponse.json(
+          { error: "categoryId and spreadId are required" },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        );
+      }
+
+      const creditResult = await checkCreditsOnly("reading", 1);
+      if (!creditResult.allowed) {
+        return creditErrorResponse(creditResult);
+      }
+
+      const theme = tarotThemes.find((t) => t.id === categoryId);
+      if (!theme) {return NextResponse.json({ error: "Invalid category" }, { status: HTTP_STATUS.NOT_FOUND });}
+
+      const spread = theme.spreads.find((s) => s.id === spreadId);
+      if (!spread) {return NextResponse.json({ error: "Invalid spread" }, { status: HTTP_STATUS.NOT_FOUND });}
+
+      const drawnCards = drawCards(spread.cardCount);
+
+      return NextResponse.json({
+        category: theme.category,
+        spread,
+        drawnCards,
+      });
+    } catch (err: unknown) {
+      captureServerError(err, { route: "/api/tarot" });
+      return NextResponse.json({ error: "Server error" }, { status: HTTP_STATUS.SERVER_ERROR });
     }
-
-    const creditResult = await checkCreditsOnly("reading", 1);
-    if (!creditResult.allowed) {
-      const res = creditErrorResponse(creditResult);
-      limit.headers.forEach((value, key) => res.headers.set(key, value));
-      return res;
-    }
-
-    const theme = tarotThemes.find((t) => t.id === categoryId);
-    if (!theme) {return NextResponse.json({ error: "Invalid category" }, { status: HTTP_STATUS.NOT_FOUND, headers: limit.headers });}
-
-    const spread = theme.spreads.find((s) => s.id === spreadId);
-    if (!spread) {return NextResponse.json({ error: "Invalid spread" }, { status: HTTP_STATUS.NOT_FOUND, headers: limit.headers });}
-
-    const drawnCards = drawCards(spread.cardCount);
-
-    const res = NextResponse.json({
-      category: theme.category,
-      spread,
-      drawnCards,
-    });
-    limit.headers.forEach((value, key) => res.headers.set(key, value));
-    return res;
-  } catch (err: unknown) {
-    captureServerError(err, { route: "/api/tarot" });
-    return NextResponse.json({ error: "Server error" }, { status: HTTP_STATUS.SERVER_ERROR });
-  }
-}
+  },
+  createPublicStreamGuard({
+    route: '/api/tarot',
+    limit: 40,
+    windowSeconds: 60,
+  })
+)

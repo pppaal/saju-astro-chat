@@ -96,11 +96,15 @@ export default async function BlogPostPage({ params }: Props) {
     ],
   });
 
+  const relatedPosts = blogPosts
+    .filter((p) => p.category === post.category && p.slug !== post.slug)
+    .slice(0, 3);
+
   return (
     <>
       <JsonLd data={articleJsonLd} />
       <JsonLd data={breadcrumbJsonLd} />
-      <BlogPostClient post={post} />
+      <BlogPostClient post={post} relatedPosts={relatedPosts} />
     </>
   );
 }

@@ -6,9 +6,9 @@
 
 import { useCallback, useRef } from 'react';
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data';
-import type { DrawnCard, Spread, CardInsight } from '@/lib/Tarot/tarot.types';
+import type { DrawnCard, CardInsight } from '@/lib/Tarot/tarot.types';
 import { logger } from '@/lib/logger';
-import type { UseInlineTarotStateReturn, Step } from './useInlineTarotState';
+import type { UseInlineTarotStateReturn } from './useInlineTarotState';
 
 type LangKey = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'pt' | 'ru';
 
@@ -27,12 +27,24 @@ interface UseInlineTarotAPIOptions {
 }
 
 export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTarotAPIOptions) {
-  const { state, actions, recommendedSpreads, themeToCategory } = stateManager;
+  const { state, actions, recommendedSpreads } = stateManager;
+  const {
+    selectedSpread,
+    selectedCategory,
+    concern,
+    drawnCards,
+    overallMessage,
+    cardInsights,
+    guidance,
+    affirmation,
+    isSaving,
+    isSaved,
+  } = state;
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // AI auto-select spread based on question
   const analyzeQuestion = useCallback(async () => {
-    if (!state.concern.trim()) {return;}
+    if (!concern.trim()) {return;}
 
     actions.setIsAnalyzing(true);
     try {
@@ -43,7 +55,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
           'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
         },
         body: JSON.stringify({
-          question: state.concern,
+          question: concern,
           language: lang,
         }),
       });
@@ -69,7 +81,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
 
       if (!spread && recommendedSpreads.length > 0) {
         // Try different category if AI suggested one
-        if (data.themeId && data.themeId !== state.selectedCategory) {
+        if (data.themeId && data.themeId !== selectedCategory) {
           const newCategory = tarotThemes.find((t) => t.id === data.themeId);
           if (newCategory) {
             spread = newCategory.spreads.find((s) => s.id === selectedId);
@@ -96,54 +108,10 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
     } finally {
       actions.setIsAnalyzing(false);
     }
-  }, [state.concern, state.selectedCategory, lang, recommendedSpreads, actions]);
-
-  // Draw cards from API
-  const drawCards = useCallback(async () => {
-    if (!state.selectedSpread) {return;}
-
-    actions.setIsDrawing(true);
-    try {
-      const res = await fetch('/api/tarot', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
-        },
-        body: JSON.stringify({
-          categoryId: state.selectedCategory,
-          spreadId: state.selectedSpread.id,
-        }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
-        logger.error('[InlineTarot] API error:', { status: res.status, errorData });
-        throw new Error(`Failed to draw cards: ${res.status}`);
-      }
-
-      const data = await res.json();
-      actions.setDrawnCards(data.drawnCards);
-
-      // Animate card reveals
-      for (let i = 0; i < data.drawnCards.length; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        actions.incrementRevealedCount();
-      }
-
-      // Start interpretation
-      actions.setStep('interpreting');
-      await fetchInterpretation(data.drawnCards);
-    } catch (err) {
-      logger.error('[InlineTarot] draw error:', err);
-    } finally {
-      actions.setIsDrawing(false);
-    }
-  }, [state.selectedSpread, state.selectedCategory, actions]);
+  }, [concern, selectedCategory, lang, recommendedSpreads, actions]);
 
   // Fetch streaming interpretation
   const fetchInterpretation = useCallback(async (cards: DrawnCard[]) => {
-    const { selectedSpread } = state;
     if (!selectedSpread) {return;}
 
     // Cancel any existing request
@@ -153,7 +121,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
     abortControllerRef.current = new AbortController();
 
     const payload = {
-      categoryId: state.selectedCategory,
+      categoryId: selectedCategory,
       spreadId: selectedSpread.id,
       spreadTitle: lang === 'ko' ? selectedSpread.titleKo || selectedSpread.title : selectedSpread.title,
       cards: cards.map((dc, idx) => ({
@@ -170,7 +138,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
           : (lang === 'ko' ? dc.card.upright.keywordsKo || dc.card.upright.keywords : dc.card.upright.keywords),
       })),
       language: lang,
-      userQuestion: state.concern,
+      userQuestion: concern,
       birthdate: profile.birthDate,
     };
 
@@ -243,11 +211,53 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
       }
       actions.setStep('result');
     }
-  }, [state.selectedSpread, state.selectedCategory, state.concern, lang, profile.birthDate, actions]);
+  }, [selectedSpread, selectedCategory, concern, lang, profile.birthDate, actions]);
+
+  // Draw cards from API
+  const drawCards = useCallback(async () => {
+    if (!selectedSpread) {return;}
+
+    actions.setIsDrawing(true);
+    try {
+      const res = await fetch('/api/tarot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+        },
+        body: JSON.stringify({
+          categoryId: selectedCategory,
+          spreadId: selectedSpread.id,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        logger.error('[InlineTarot] API error:', { status: res.status, errorData });
+        throw new Error(`Failed to draw cards: ${res.status}`);
+      }
+
+      const data = await res.json();
+      actions.setDrawnCards(data.drawnCards);
+
+      // Animate card reveals
+      for (let i = 0; i < data.drawnCards.length; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        actions.incrementRevealedCount();
+      }
+
+      // Start interpretation
+      actions.setStep('interpreting');
+      await fetchInterpretation(data.drawnCards);
+    } catch (err) {
+      logger.error('[InlineTarot] draw error:', err);
+    } finally {
+      actions.setIsDrawing(false);
+    }
+  }, [selectedSpread, selectedCategory, actions, fetchInterpretation]);
 
   // Save tarot reading to database
   const saveReading = useCallback(async () => {
-    const { selectedSpread, drawnCards, overallMessage, cardInsights, guidance, affirmation, isSaving, isSaved, concern, selectedCategory } = state;
     if (isSaving || isSaved || !selectedSpread) {return;}
 
     actions.setIsSaving(true);
@@ -291,7 +301,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
     } finally {
       actions.setIsSaving(false);
     }
-  }, [state, lang, actions]);
+  }, [selectedSpread, drawnCards, overallMessage, cardInsights, guidance, affirmation, isSaving, isSaved, concern, selectedCategory, lang, actions]);
 
   // Cleanup on unmount
   const cleanup = useCallback(() => {

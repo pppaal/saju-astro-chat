@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
 
   try {
     // Parse and validate request body using Zod schema
-    const rawBody = await parseRequestBody<any>(req, { context: 'Dream' });
+    const rawBody = await parseRequestBody<Record<string, unknown>>(req, { context: 'Dream' });
     if (!rawBody) {
       recordApiRequest('dream', 'analyze', 'validation_error');
       return NextResponse.json(

@@ -30,8 +30,8 @@ export default function CalendarHeader({
   yearSummary,
   cacheHit,
   onEditClick,
-  isDarkTheme,
-  onThemeToggle,
+  isDarkTheme: _isDarkTheme,
+  onThemeToggle: _onThemeToggle,
 }: CalendarHeaderProps) {
   const { locale, t } = useI18n()
 

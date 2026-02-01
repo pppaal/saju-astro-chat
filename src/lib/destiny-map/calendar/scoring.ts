@@ -498,9 +498,9 @@ export function calculateTotalScore(
   // 최종 점수 (0-100 범위)
   const totalScore = Math.round(Math.max(0, Math.min(100, sajuScore + astroScore + crossBonus)));
 
-  // 등급 결정 (5등급 시스템)
-  // Grade 0: 최고 (72+, 충/형 없음) ~5%, Grade 1: 좋음 (65+) ~15%
-  // Grade 2: 보통 (45+) ~50%, Grade 3: 안좋음 (30+) ~25%, Grade 4: 최악 (<30) ~5%
+  // 등급 결정 (5등급 시스템 - v3 분포 개선)
+  // Grade 0: 최고 (68+) ~5-8%, Grade 1: 좋음 (62+) ~15%
+  // Grade 2: 보통 (42+) ~50%, Grade 3: 안좋음 (28+) ~25%, Grade 4: 최악 (<28) ~5%
   let grade: ImportanceGrade;
   if (totalScore >= GRADE_THRESHOLDS.grade0) {
     grade = 0;

@@ -23,6 +23,8 @@ export const BODY_LIMITS = {
   LARGE: 96 * 1024,
   /** Small body size limit (32KB) - for simple requests */
   SMALL: 32 * 1024,
+  /** Minimal body size limit (8KB) - for simple ID-only requests (e.g. tarot) */
+  MINIMAL: 8 * 1024,
   /** Stream request body limit */
   STREAM: 64 * 1024,
 } as const;

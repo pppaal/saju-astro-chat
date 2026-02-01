@@ -1,8 +1,11 @@
+'use client';
+
 import type { FC } from 'react';
 import type { PillarData } from '../../../../lib/Saju';
 import { Section, PillarBox } from '../components';
 import PillarSummaryTable from '../../PillarSummaryTable';
 import { buildPillarView } from '../../../../adapters/map-12';
+import { useI18n } from '@/i18n/I18nProvider';
 
 interface Props {
   yearPillar: PillarData;
@@ -16,18 +19,21 @@ interface Props {
 const PillarSection: FC<Props> = ({
   yearPillar, monthPillar, dayPillar, timePillar,
   dayMasterDisplay, tableByPillar,
-}) => (
+}) => {
+  const { t } = useI18n();
+
+  return (
   <Section title="사주 명식 (Four Pillars)">
     <div className="grid grid-cols-[64px_1fr] gap-x-3 bg-slate-800 p-3.5 rounded-xl border border-slate-600">
       {/* Rail labels */}
       <div className="grid grid-rows-[28px_56px_8px_56px_12px] items-center justify-items-start">
         <div className="h-full" />
         <span className="h-7 inline-flex items-center justify-center px-2.5 rounded-full border border-white/10 bg-white/5 text-xs font-semibold text-blue-300">
-          Stem
+          {t("saju.stem")}
         </span>
         <div className="h-2" />
         <span className="h-7 inline-flex items-center justify-center px-2.5 rounded-full border border-white/10 bg-white/5 text-xs font-semibold text-amber-300">
-          Branch
+          {t("saju.branch")}
         </span>
         <div className="h-full" />
       </div>
@@ -54,6 +60,7 @@ const PillarSection: FC<Props> = ({
       입니다.
     </p>
   </Section>
-);
+  );
+};
 
 export default PillarSection;

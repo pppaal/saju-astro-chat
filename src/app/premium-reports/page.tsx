@@ -82,7 +82,7 @@ const REPORT_TYPES: ReportType[] = [
 
 export default function PremiumReportsPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [selectedType, setSelectedType] = useState<string | null>(null);
 
   const handleSelectReport = (typeId: string, option?: { period?: string; theme?: string }) => {
@@ -92,7 +92,7 @@ export default function PremiumReportsPage() {
     }
 
     if (typeId === 'comprehensive') {
-      router.push('/premium-reports/result?type=comprehensive');
+      router.push('/premium-reports/comprehensive');
     } else if (option?.period) {
       router.push(`/premium-reports/timing?period=${option.period}`);
     } else if (option?.theme) {

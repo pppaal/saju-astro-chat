@@ -1,5 +1,6 @@
 'use client';
 
+import Link from "next/link";
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import styles from './ErrorBoundary.module.css';
 import { logger } from '@/lib/logger';
@@ -56,12 +57,12 @@ class ErrorBoundary extends Component<Props, State> {
               >
                 Try Again
               </button>
-              <a
+              <Link
                 href="/"
                 className={styles.homeButton}
               >
                 Go Home
-              </a>
+              </Link>
             </div>
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className={styles.errorDetails}>

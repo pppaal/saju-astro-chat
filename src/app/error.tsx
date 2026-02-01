@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { logger } from '@/lib/logger';
 
 export default function Error({
@@ -31,12 +32,12 @@ export default function Error({
           >
             Try again
           </button>
-          <a
+          <Link
             href="/"
             className="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
           >
             Go home
-          </a>
+          </Link>
         </div>
         {error.digest && (
           <p className="mt-4 text-xs text-gray-500">Error ID: {error.digest}</p>

@@ -124,7 +124,54 @@
     "edit": "수정",
     "cancel": "취소",
     "saving": "저장 중...",
-    "error": "오류"
+    "error": "오류",
+    "selectLanguage": "언어 선택"
+  },
+  "auth": {
+    "signInRequired": "로그인이 필요합니다",
+    "signInDescription": "계속하려면 로그인해 주세요.",
+    "signIn": "로그인"
+  },
+  "consent": {
+    "title": "개인정보 설정",
+    "description": "분석 및 광고를 위해 쿠키와 유사 기술을 사용합니다. 동의 전까지 Google Analytics/AdSense를 차단합니다.",
+    "reject": "거부",
+    "accept": "수락"
+  },
+  "numerologyDetail": {
+    "lifePath": "인생 경로",
+    "expression": "표현수",
+    "soulUrge": "영혼의 욕구",
+    "personality": "인격수",
+    "personalYear": "개인 연도",
+    "personalMonth": "개인 월",
+    "personalDay": "개인 일",
+    "personalYearNumber": "개인 연도 수"
+  },
+  "saju": {
+    "stem": "천간",
+    "branch": "지지"
+  },
+  "feedback": {
+    "good": "좋은 답변",
+    "needsImprovement": "개선 필요"
+  },
+  "services": {
+    "destinyMapDesc": "인생 경로 시각화",
+    "sajuDesc": "사주 풀이",
+    "astrologyDesc": "서양 점성술 분석",
+    "tarotDesc": "타로 카드 리딩",
+    "ichingDesc": "주역 점괘",
+    "dreamDesc": "꿈 해석",
+    "numerologyDesc": "수비학으로 운명 탐색",
+    "compatibilityDesc": "관계 궁합 분석",
+    "calendarDesc": "운세 캘린더",
+    "personalityDesc": "성격 분석",
+    "icpDesc": "연애 유형 분석",
+    "pastLifeDesc": "전생 탐구",
+    "aiReportsDesc": "AI 리포트",
+    "lifePredictionDesc": "인생 예측",
+    "defaultDesc": "운명을 탐험하세요"
   },
   "myjourney": {
     "profile": {
@@ -134,6 +181,36 @@
       "save": "저장",
       "saving": "저장 중...",
       "notSet": "미설정"
+    },
+    "circle": {
+      "title": "내 인연 서클",
+      "subtitle": "소중한 사람들의 생년월일을 저장하고 궁합을 확인하세요",
+      "addPerson": "인물 추가",
+      "loading": "로딩 중...",
+      "name": "이름",
+      "nameRequired": "이름 *",
+      "relationship": "관계 *",
+      "birthDate": "생년월일",
+      "birthTime": "출생 시간",
+      "timeUnknown": "출생 시간을 모릅니다",
+      "timeUnknownHint": "정오 (12:00)로 계산됩니다",
+      "gender": "성별",
+      "male": "남성",
+      "female": "여성",
+      "birthCity": "출생 도시",
+      "cityPlaceholder": "도시명을 입력하세요",
+      "note": "메모",
+      "notePlaceholder": "메모를 입력하세요...",
+      "cancel": "취소",
+      "save": "저장",
+      "saving": "저장 중...",
+      "emptyTitle": "아직 등록된 인연이 없습니다",
+      "emptyButton": "첫 번째 인연 추가하기",
+      "confirmDelete": "이 인물을 서클에서 삭제하시겠습니까?",
+      "partner": "연인",
+      "family": "가족",
+      "friend": "친구",
+      "colleague": "동료"
     }
   }
 }

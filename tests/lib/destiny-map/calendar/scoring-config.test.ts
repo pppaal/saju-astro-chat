@@ -22,9 +22,9 @@ describe('scoring-config', () => {
   describe('CATEGORY_MAX_SCORES', () => {
     it('should have correct saju category max scores', () => {
       expect(CATEGORY_MAX_SCORES.saju.daeun).toBe(8);
-      expect(CATEGORY_MAX_SCORES.saju.seun).toBe(12);
-      expect(CATEGORY_MAX_SCORES.saju.wolun).toBe(12);
-      expect(CATEGORY_MAX_SCORES.saju.iljin).toBe(13);
+      expect(CATEGORY_MAX_SCORES.saju.seun).toBe(10);
+      expect(CATEGORY_MAX_SCORES.saju.wolun).toBe(7);
+      expect(CATEGORY_MAX_SCORES.saju.iljin).toBe(20);
       expect(CATEGORY_MAX_SCORES.saju.yongsin).toBe(5);
       expect(CATEGORY_MAX_SCORES.saju.total).toBe(50);
     });
@@ -106,7 +106,7 @@ describe('scoring-config', () => {
     });
 
     it('should have reasonable maxRaw', () => {
-      expect(SEUN_SCORES.maxRaw).toBe(0.5);
+      expect(SEUN_SCORES.maxRaw).toBe(0.45);
     });
   });
 
@@ -127,7 +127,7 @@ describe('scoring-config', () => {
     });
 
     it('should have maxRaw value', () => {
-      expect(WOLUN_SCORES.maxRaw).toBe(0.4);
+      expect(WOLUN_SCORES.maxRaw).toBe(0.35);
     });
   });
 
@@ -171,7 +171,7 @@ describe('scoring-config', () => {
     });
 
     it('should have maxRaw value', () => {
-      expect(ILJIN_SCORES.maxRaw).toBe(0.6);
+      expect(ILJIN_SCORES.maxRaw).toBe(0.7);
     });
   });
 

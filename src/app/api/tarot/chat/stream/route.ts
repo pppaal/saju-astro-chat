@@ -321,7 +321,7 @@ export async function POST(req: NextRequest) {
     const oversized = enforceBodySize(req, 256 * 1024);
     if (oversized) {return oversized;}
 
-    const body = await parseRequestBody<any>(req, { context: 'Tarot Chat Stream' });
+    const body = await parseRequestBody<Record<string, unknown>>(req, { context: 'Tarot Chat Stream' });
     if (!body || typeof body !== "object") {
       return NextResponse.json(
         { error: "invalid_body" },
@@ -329,7 +329,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const bodyObj = body as Record<string, unknown>;
+    const bodyObj = body;
     const language = typeof bodyObj.language === "string" && ALLOWED_TAROT_LANG.has(bodyObj.language)
       ? (bodyObj.language as "ko" | "en")
       : (context.locale as "ko" | "en");

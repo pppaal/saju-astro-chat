@@ -16,7 +16,7 @@ const LANGUAGE_LABELS: Record<string, { label: string; flag: string }> = {
 };
 
 export default function LanguageSwitcher() {
-  const { locale, setLocale, dir } = useI18n();
+  const { locale, setLocale, dir, t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -115,7 +115,7 @@ export default function LanguageSwitcher() {
         aria-label="Language"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        title="Select language"
+        title={t("common.selectLanguage")}
         className={`flex items-center gap-2 px-3.5 py-2 rounded-xl backdrop-blur-md
           text-sm font-medium text-blue-50 cursor-pointer outline-none
           transition-all duration-200 ease-out

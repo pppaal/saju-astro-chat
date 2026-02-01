@@ -305,7 +305,9 @@ export async function GET(request: Request) {
       ...matrixReports.map((m) => ({
         id: m.id,
         date: m.createdAt.toISOString().split('T')[0],
-        service: 'destiny-matrix',
+        service: ['timing', 'themed', 'comprehensive'].includes(m.reportType)
+          ? 'premium-reports'
+          : 'destiny-matrix',
         theme: m.reportType === 'timing' ? m.period : m.theme,
         summary: m.summary || m.title || `${m.grade || ''} ${m.overallScore || ''}점`,
         type: 'destiny-matrix-report',

@@ -296,6 +296,7 @@ export default function SajuAnalyzer() {
             aria-autocomplete="list"
             aria-controls="city-suggestions"
             aria-expanded={showCitySuggestions}
+            role="combobox"
           />
           {showCitySuggestions && citySuggestions.length > 0 && (
             <ul
@@ -312,6 +313,7 @@ export default function SajuAnalyzer() {
                   <li
                     key={`${city.name}-${city.country}-${idx}`}
                     role="option"
+                    aria-selected="false"
                     className="px-4 py-3 cursor-pointer text-gray-200 border-b border-slate-600
                       hover:bg-slate-700 transition-colors last:border-b-0"
                     onMouseDown={() => handleCitySelect(city)}

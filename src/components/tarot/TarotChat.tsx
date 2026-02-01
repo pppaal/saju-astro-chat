@@ -12,7 +12,7 @@
  * Original: 908 lines → Refactored: ~200 lines
  */
 
-import React, { useState, useRef, useEffect, memo } from "react";
+import React, { useState, useRef, useEffect, memo, useMemo } from "react";
 import styles from "./TarotChat.module.css";
 import { tarotCounselors } from "@/lib/Tarot/tarot-counselors";
 
@@ -22,7 +22,6 @@ import type { TarotChatProps } from "./types";
 import {
   useMessages,
   useLoadingMessages,
-  useTarotChatInput,
   usePersistentContext,
   useQuestionEngine,
   useTarotStreaming
@@ -60,19 +59,23 @@ const TarotChat = memo(function TarotChat({
   const loadingMessages = LOADING_MESSAGES[language] || LOADING_MESSAGES.ko;
 
   // Session and storage keys
-  const sessionKeyRef = useRef<string>(`tarot-chat:${categoryName}:${spreadId}`);
-  const messagesStorageKey = `${sessionKeyRef.current}:messages`;
+  const sessionKey = useMemo(
+    () => `tarot-chat:${categoryName}:${spreadId}`,
+    [categoryName, spreadId]
+  );
+  const messagesStorageKey = `${sessionKey}:messages`;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
 
   // State
   const [showCardsModal, setShowCardsModal] = useState(false);
+  const [input, setInput] = useState("");
 
   // Custom hooks
   const [messages, setMessages] = useMessages(messagesStorageKey);
   const { loadingMessage, startLoadingMessages, stopLoadingMessages } = useLoadingMessages(loadingMessages);
   const { buildContext } = usePersistentContext(
-    sessionKeyRef.current,
+    sessionKey,
     readingResult,
     interpretation,
     categoryName,
@@ -99,6 +102,8 @@ const TarotChat = memo(function TarotChat({
     onLoadingStop: stopLoadingMessages
   });
 
+  const greetingSentRef = useRef(false);
+
   // Handle send with question tracking
   const onSend = React.useCallback(async (text?: string) => {
     const messageText = text || input.trim();
@@ -110,12 +115,18 @@ const TarotChat = memo(function TarotChat({
     // Clear input and send
     setInput("");
     await handleSend(messageText);
-  }, [loading, markQuestionUsed, handleSend]);
+  }, [input, loading, markQuestionUsed, handleSend, setInput]);
 
-  const { input, setInput, onKeyDown } = useTarotChatInput(() => onSend());
+  const onKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      void onSend();
+    }
+  }, [onSend]);
 
   // Show counselor greeting on first load
   useEffect(() => {
+    if (greetingSentRef.current) {return;}
     if (messages.length === 0 && counselorId) {
       const counselor = tarotCounselors.find(c => c.id === counselorId);
       if (counselor) {
@@ -124,9 +135,10 @@ const TarotChat = memo(function TarotChat({
           role: "assistant",
           content: greetingText
         }]);
+        greetingSentRef.current = true;
       }
     }
-  }, []); // Only run once on mount
+  }, [messages.length, counselorId, language, setMessages]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {

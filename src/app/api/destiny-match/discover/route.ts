@@ -82,12 +82,30 @@ export const GET = withApiMiddleware(
       })
       const swipedIds = swipedProfiles.map((s) => s.targetId)
 
+      // 차단된 유저 목록 (양방향 - 내가 차단한 사람 + 나를 차단한 사람)
+      const blocks = await prisma.userBlock.findMany({
+        where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+        select: { blockerId: true, blockedId: true },
+      })
+      const blockedUserIds = blocks.map((b) =>
+        b.blockerId === userId ? b.blockedId : b.blockerId
+      )
+
+      // 차단된 유저의 매칭 프로필 ID 조회
+      const blockedProfiles = blockedUserIds.length > 0
+        ? await prisma.matchProfile.findMany({
+            where: { userId: { in: blockedUserIds } },
+            select: { id: true },
+          })
+        : []
+      const blockedProfileIds = blockedProfiles.map((p) => p.id)
+
       // 매칭 대상 검색 조건
       const whereCondition: Record<string, unknown> = {
         isActive: true,
         isVisible: true,
         id: {
-          notIn: [myProfile.id, ...swipedIds],
+          notIn: [myProfile.id, ...swipedIds, ...blockedProfileIds],
         },
       }
 

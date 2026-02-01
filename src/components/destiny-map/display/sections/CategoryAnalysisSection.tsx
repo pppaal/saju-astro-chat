@@ -71,8 +71,6 @@ function CategoryAnalysisSection({
   categories: Record<string, CategoryAnalysis>;
   lang: LangKey;
 }) {
-  if (!categories || Object.keys(categories).length === 0) {return null;}
-
   const labels: Record<LangKey, { saju: string; astro: string; cross: string }> = {
     ko: { saju: "사주 분석", astro: "점성 분석", cross: "교차 인사이트" },
     en: { saju: "Saju Analysis", astro: "Astro Analysis", cross: "Cross Insight" },
@@ -89,6 +87,8 @@ function CategoryAnalysisSection({
       .filter(key => categories[key])
       .map(key => ({ key, ...categories[key] }));
   }, [categories]);
+
+  if (!categories || Object.keys(categories).length === 0) {return null;}
 
   return (
     <div className={styles.categorySection} role="region" aria-label="카테고리별 분석">

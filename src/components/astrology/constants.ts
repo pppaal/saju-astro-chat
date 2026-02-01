@@ -1,7 +1,6 @@
 // src/components/astrology/constants.ts
 // Constants and labels for ResultDisplay component
 
-import type { LocaleKey } from './types';
 
 // 행성 이미지 매핑
 export const PLANET_IMAGES: Record<string, string> = {

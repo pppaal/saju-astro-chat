@@ -151,7 +151,11 @@ export async function withCircuitBreaker<T>(
     return { result, fromFallback: false };
   } catch (error) {
     recordFailure(name, options);
-    logger.warn(`[CircuitBreaker:${name}] Request failed:`, error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    logger.warn(`[CircuitBreaker:${name}] Request failed:`, {
+      error: errorMsg,
+      errorName: error instanceof Error ? error.name : 'Unknown',
+    });
 
     const fallbackResult =
       typeof fallback === "function"

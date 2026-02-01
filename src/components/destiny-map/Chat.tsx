@@ -4,8 +4,9 @@
 "use client";
 
 import React, { memo } from "react";
+import dynamic from "next/dynamic";
 import styles from "./Chat.module.css";
-import InlineTarotModal, { type TarotResultSummary } from "./InlineTarotModal";
+import { type TarotResultSummary } from "./InlineTarotModal";
 import { logger } from "@/lib/logger";
 
 // Extracted modules
@@ -24,8 +25,10 @@ import { useChatFeedback } from "./hooks/useChatFeedback";
 import { useFileUpload } from "./hooks/useFileUpload";
 import { useChatApi } from "./hooks/useChatApi";
 
-// Extracted components
-import { CrisisModal, HistoryModal } from "./modals";
+// Extracted components (lazy-loaded modals for bundle size reduction)
+const InlineTarotModal = dynamic(() => import("./InlineTarotModal"), { ssr: false });
+const CrisisModal = dynamic(() => import("./modals").then(m => ({ default: m.CrisisModal })), { ssr: false });
+const HistoryModal = dynamic(() => import("./modals").then(m => ({ default: m.HistoryModal })), { ssr: false });
 import { MessagesPanel, ChatInputArea } from "./chat-panels";
 
 const Chat = memo(function Chat({
@@ -118,7 +121,7 @@ const Chat = memo(function Chat({
 
   // Feedback hook
   const { feedback, handleFeedback } = useChatFeedback({
-    sessionId: sessionIdRef.current,
+    sessionIdRef,
     theme,
     lang,
     messages,
@@ -135,7 +138,9 @@ const Chat = memo(function Chat({
 
   // Handle follow-up question click - uses ref to avoid stale closure
   const handleSendRef = React.useRef<(text?: string) => Promise<void>>(null!);
-  handleSendRef.current = handleSend;
+  React.useEffect(() => {
+    handleSendRef.current = handleSend;
+  }, [handleSend]);
 
   const handleFollowUp = React.useCallback((question: string) => {
     setFollowUpQuestions([]);
@@ -150,21 +155,30 @@ const Chat = memo(function Chat({
   }, []);
 
   // Auto-save messages to database
+  const pendingSaveRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestSavePayloadRef = React.useRef<string | null>(null);
+
   React.useEffect(() => {
     if (!sessionLoaded) {return;}
     if (messages.length === 0) {return;}
 
-    const saveTimer = setTimeout(async () => {
+    const payload = JSON.stringify({
+      sessionId: sessionIdRef.current,
+      theme: theme || "chat",
+      locale: lang || "ko",
+      messages: messages.filter(m => m.role !== "system"),
+    });
+    latestSavePayloadRef.current = payload;
+
+    if (pendingSaveRef.current) {clearTimeout(pendingSaveRef.current);}
+    pendingSaveRef.current = setTimeout(async () => {
+      pendingSaveRef.current = null;
+      latestSavePayloadRef.current = null;
       try {
         await fetch("/api/counselor/session/save", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: sessionIdRef.current,
-            theme: theme || "chat",
-            locale: lang || "ko",
-            messages: messages.filter(m => m.role !== "system"),
-          }),
+          body: payload,
         });
         logger.debug("[Chat] Session auto-saved:", { messageCount: messages.length });
       } catch (e) {
@@ -172,8 +186,21 @@ const Chat = memo(function Chat({
       }
     }, CHAT_TIMINGS.DEBOUNCE_SAVE);
 
-    return () => clearTimeout(saveTimer);
-  }, [messages, sessionLoaded, theme, lang]);
+    return () => {
+      if (pendingSaveRef.current) {clearTimeout(pendingSaveRef.current);}
+    };
+  }, [messages, sessionLoaded, theme, lang, sessionIdRef]);
+
+  // Flush pending save on page unload to prevent data loss
+  React.useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (latestSavePayloadRef.current) {
+        navigator.sendBeacon("/api/counselor/session/save", latestSavePayloadRef.current);
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
 
   // Auto-update PersonaMemory after conversation (when assistant responds)
   const lastUpdateRef = React.useRef<number>(0);
@@ -210,7 +237,7 @@ const Chat = memo(function Chat({
       .catch(e => {
         logger.warn("[Chat] Failed to update PersonaMemory:", e);
       });
-  }, [messages, sessionLoaded, theme, lang, saju, astro]);
+  }, [messages, sessionLoaded, theme, lang, saju, astro, sessionIdRef]);
 
   // Show welcome back message for returning users
   React.useEffect(() => {
@@ -231,13 +258,15 @@ const Chat = memo(function Chat({
   // Auto-insert returning context as system message
   React.useEffect(() => {
     if (!returningSummary) {return;}
-    const alreadyHas = messages.some((m) => m.role === "system" && m.content.includes("Returning context"));
-    if (alreadyHas) {return;}
-    setMessages((prev) => [
-      { role: "system", content: `Returning context: ${returningSummary}` },
-      ...prev,
-    ]);
-  }, [returningSummary, messages]);
+    setMessages((prev) => {
+      const alreadyHas = prev.some((m) => m.role === "system" && m.content.includes("Returning context"));
+      if (alreadyHas) {return prev;}
+      return [
+        { role: "system", content: `Returning context: ${returningSummary}` },
+        ...prev,
+      ];
+    });
+  }, [returningSummary, setMessages]);
 
   // Show tarot prompt after 2+ assistant responses
   React.useEffect(() => {
@@ -254,13 +283,13 @@ const Chat = memo(function Chat({
         setInput(e.detail);
         if (autoSendSeed && !seedSentRef.current) {
           seedSentRef.current = true;
-          handleSend(e.detail);
+          handleSendRef.current?.(e.detail);
         }
       }
     };
     window.addEventListener(seedEvent, onSeed as EventListener);
     return () => window.removeEventListener(seedEvent, onSeed as EventListener);
-  }, [seedEvent, autoSendSeed]);
+  }, [seedEvent, autoSendSeed, handleSendRef]);
 
   // Auto-scroll
   React.useEffect(() => {

@@ -6,7 +6,7 @@ import { guardText, containsForbidden, safetyMessage } from "@/lib/textGuards";
 import { sanitizeLocaleText } from "@/lib/destiny-map/sanitize";
 import { maskTextWithName } from "@/lib/security";
 import { enforceBodySize } from "@/lib/http";
-import { jsonErrorResponse } from "@/lib/api/response-builders";
+import { jsonErrorResponse } from "@/lib/api/errorHandler";
 import { calculateSajuData } from "@/lib/Saju/saju";
 import {
   calculateNatalChart,
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     const userId = context.userId;
 
-    const body = await parseRequestBody<any>(req, { context: 'Destiny-map Chat-stream' });
+    const body = await parseRequestBody<Record<string, unknown>>(req, { context: 'Destiny-map Chat-stream' });
     if (!body) {
       return NextResponse.json(
         { error: "invalid_body" },

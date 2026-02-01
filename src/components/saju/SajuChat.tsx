@@ -9,6 +9,7 @@ import { detectCrisis } from "@/components/destiny-map/chat-i18n";
 import MarkdownMessage from "@/components/ui/MarkdownMessage";
 import { logger } from "@/lib/logger";
 import { CHAT_I18N, SAJU_FOLLOWUPS, type ChatLangKey } from "./constants";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type Message = { role: "system" | "user" | "assistant"; content: string; id?: string };
 
@@ -24,6 +25,7 @@ const MessageRow = memo(({
   onFeedback: (id: string, type: FeedbackType) => void;
   styles: Record<string, string>;
 }) => {
+  const { t } = useI18n();
   return (
     <div
       key={message.id || message.content.slice(0, 20)}
@@ -42,7 +44,7 @@ const MessageRow = memo(({
             type="button"
             className={`${styles.feedbackBtn} ${feedback[message.id || ""] === "up" ? styles.active : ""}`}
             onClick={() => onFeedback(message.id || "", "up")}
-            title="Good response"
+            title={t("feedback.good")}
           >
             &#x1F44D;
           </button>
@@ -50,7 +52,7 @@ const MessageRow = memo(({
             type="button"
             className={`${styles.feedbackBtn} ${feedback[message.id || ""] === "down" ? styles.active : ""}`}
             onClick={() => onFeedback(message.id || "", "down")}
-            title="Needs improvement"
+            title={t("feedback.needsImprovement")}
           >
             &#x1F44E;
           </button>
@@ -100,7 +102,7 @@ type SajuChatProps = {
   ragSessionId?: string;
 };
 
-export default function SajuChat({
+const SajuChat = memo(function SajuChat({
   profile,
   initialContext = "",
   lang = "ko",
@@ -186,20 +188,25 @@ export default function SajuChat({
 
   // Handle seed event
   useEffect(() => {
+    let seedTimer: ReturnType<typeof setTimeout> | null = null;
     const handler = (e: Event) => {
       if (seedSentRef.current) {return;}
       seedSentRef.current = true;
       const question = (e as CustomEvent<string>).detail;
       if (question) {
         setInput(question);
-        setTimeout(() => {
+        seedTimer = setTimeout(() => {
+          seedTimer = null;
           const form = document.querySelector("form");
           if (form) {form.dispatchEvent(new Event("submit", { bubbles: true }));}
         }, 100);
       }
     };
     window.addEventListener(seedEvent, handler);
-    return () => window.removeEventListener(seedEvent, handler);
+    return () => {
+      window.removeEventListener(seedEvent, handler);
+      if (seedTimer) {clearTimeout(seedTimer);}
+    };
   }, [seedEvent]);
 
   // Voice recording
@@ -512,4 +519,6 @@ export default function SajuChat({
       </form>
     </div>
   );
-}
+});
+
+export default SajuChat;

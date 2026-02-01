@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
     const { context, error } = await initializeApiContext(req, guardOptions);
     if (error) {return error;}
 
-    const body = (await parseRequestBody<any>(req, { context: 'Astrology Chat-stream' })) as {
+    const body = await parseRequestBody<{
       name?: string;
       birthDate?: string;
       birthTime?: string;
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
       messages?: unknown;
       astro?: unknown;
       userContext?: string;
-    } | null;
+    }>(req, { context: 'Astrology Chat-stream' });
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }

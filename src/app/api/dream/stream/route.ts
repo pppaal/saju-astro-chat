@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
     const oversized = enforceBodySize(req, MAX_STREAM_BODY);
     if (oversized) {return oversized;}
 
-    const body = (await parseRequestBody<any>(req, { context: 'Dream Stream' })) as Partial<StreamDreamRequest> | null;
+    const body = await parseRequestBody<Partial<StreamDreamRequest>>(req, { context: 'Dream Stream' });
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
     }

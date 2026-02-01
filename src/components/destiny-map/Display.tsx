@@ -43,6 +43,8 @@ const ThemeButton = memo(({
 ));
 ThemeButton.displayName = 'ThemeButton';
 
+const EMPTY_THEMES: Record<string, unknown> = {};
+
 function Display({
   result,
   lang = "ko",
@@ -54,7 +56,8 @@ function Display({
   theme?: string;
   reportType?: ReportType;
 }) {
-  const themeKeys = useMemo(() => Object.keys(result?.themes || {}), [result?.themes]);
+  const themes = result?.themes ?? EMPTY_THEMES;
+  const themeKeys = useMemo(() => Object.keys(themes), [themes]);
   const [activeTheme, setActiveTheme] = useState(
     theme || themeKeys[0] || "focus_overall"
   );

@@ -157,7 +157,7 @@ export async function POST(req: Request) {
       return json({ error: "Too many refund requests. Please try again later." }, HTTP_STATUS.RATE_LIMITED);
     }
 
-    const body = await parseRequestBody<any>(req, { context: 'Admin Refund-subscription' });
+    const body = await parseRequestBody<{ subscriptionId?: string; email?: string }>(req, { context: 'Admin Refund-subscription' });
     const subscriptionId =
       typeof body?.subscriptionId === "string" ? body.subscriptionId.trim() : "";
     const email = typeof body?.email === "string" ? body.email.trim() : "";

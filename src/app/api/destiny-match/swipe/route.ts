@@ -267,3 +267,115 @@ export const POST = withApiMiddleware(
     windowSeconds: 60,
   })
 )
+
+// DELETE - 스와이프 되돌리기 (Undo)
+export const DELETE = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    try {
+      const userId = context.userId!
+
+      const { swipeId } = await req.json()
+
+      if (!swipeId) {
+        return NextResponse.json(
+          { error: 'swipeId is required' },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
+      }
+
+      // 내 프로필 조회
+      const myProfile = await prisma.matchProfile.findUnique({
+        where: { userId },
+      })
+
+      if (!myProfile) {
+        return NextResponse.json(
+          { error: '매칭 프로필을 찾을 수 없습니다' },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
+      }
+
+      // 스와이프 조회
+      const swipe = await prisma.matchSwipe.findUnique({
+        where: { id: swipeId },
+      })
+
+      if (!swipe) {
+        return NextResponse.json(
+          { error: '스와이프를 찾을 수 없습니다' },
+          { status: HTTP_STATUS.NOT_FOUND }
+        )
+      }
+
+      // 본인 스와이프만 되돌리기 가능
+      if (swipe.swiperId !== myProfile.id) {
+        return NextResponse.json(
+          { error: '본인의 스와이프만 되돌릴 수 있습니다' },
+          { status: HTTP_STATUS.FORBIDDEN }
+        )
+      }
+
+      // 5분 이내만 되돌리기 가능
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
+      if (swipe.createdAt < fiveMinutesAgo) {
+        return NextResponse.json(
+          { error: '5분 이내의 스와이프만 되돌릴 수 있습니다' },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
+      }
+
+      // 이미 매칭된 경우 되돌리기 불가
+      if (swipe.isMatched) {
+        return NextResponse.json(
+          { error: '이미 매칭된 스와이프는 되돌릴 수 없습니다' },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
+      }
+
+      // 트랜잭션으로 되돌리기
+      await prisma.$transaction(async (tx) => {
+        // 스와이프 삭제
+        await tx.matchSwipe.delete({ where: { id: swipeId } })
+
+        // 통계 롤백
+        if (swipe.action === 'like' || swipe.action === 'super_like') {
+          await tx.matchProfile.update({
+            where: { id: myProfile.id },
+            data: { likesGiven: { decrement: 1 } },
+          })
+          await tx.matchProfile.update({
+            where: { id: swipe.targetId },
+            data: { likesReceived: { decrement: 1 } },
+          })
+        }
+
+        // 슈퍼라이크 복원
+        if (swipe.action === 'super_like') {
+          await tx.matchProfile.update({
+            where: { id: myProfile.id },
+            data: { superLikeCount: { increment: 1 } },
+          })
+        }
+      })
+
+      logger.info('[destiny-match/swipe] Undo swipe', {
+        userId,
+        swipeId,
+        action: swipe.action,
+      })
+
+      return NextResponse.json({ success: true })
+    } catch (error) {
+      logger.error('[destiny-match/swipe] DELETE error:', { error })
+      return NextResponse.json(
+        { error: 'Failed to undo swipe' },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      )
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/destiny-match/swipe',
+    limit: 10,
+    windowSeconds: 60,
+  })
+)

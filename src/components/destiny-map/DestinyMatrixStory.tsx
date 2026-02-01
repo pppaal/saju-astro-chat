@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { memo, useState, useEffect, useMemo, useCallback } from "react";
 
 import type { FiveElement } from "@/lib/Saju/types";
 import { STEM_TO_ELEMENT, ELEMENT_KO_TO_EN as ELEMENT_EN } from "@/lib/Saju/stemElementMapping";
@@ -307,7 +307,7 @@ ${isKo ? "당신의 존재 자체가 기적이에요. ✨" : "Your very existenc
 `;
 }
 
-export default function DestinyMatrixStory({ saju, astro, lang = "ko", className = "", useAI = false }: Props) {
+const DestinyMatrixStory = memo(function DestinyMatrixStory({ saju, astro, lang = "ko", className = "", useAI = false }: Props) {
   const isKo = lang === "ko";
 
   // AI 스트리밍 상태
@@ -489,4 +489,6 @@ export default function DestinyMatrixStory({ saju, astro, lang = "ko", className
       )}
     </div>
   );
-}
+});
+
+export default DestinyMatrixStory;

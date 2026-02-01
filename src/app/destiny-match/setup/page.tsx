@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../DestinyMatch.module.css';
+import PhotoUploader from '../components/PhotoUploader';
 import { logger } from '@/lib/logger';
 
 const INTEREST_OPTIONS = [
@@ -30,6 +31,7 @@ export default function DestinyMatchSetupPage() {
     latitude: null as number | null,
     longitude: null as number | null,
     interests: [] as string[],
+    photos: [] as string[],
     ageMin: 18,
     ageMax: 50,
     maxDistance: 50,
@@ -64,6 +66,7 @@ export default function DestinyMatchSetupPage() {
             latitude: data.profile.latitude || null,
             longitude: data.profile.longitude || null,
             interests: data.profile.interests || [],
+            photos: data.profile.photos || [],
             ageMin: data.profile.ageMin || 18,
             ageMax: data.profile.ageMax || 50,
             maxDistance: data.profile.maxDistance || 50,
@@ -183,6 +186,18 @@ export default function DestinyMatchSetupPage() {
 
         <form onSubmit={handleSubmit} className={styles.setupForm}>
           {error && <div className={styles.errorMessage}>{error}</div>}
+
+          {/* 프로필 사진 */}
+          <section className={styles.formSection}>
+            <h3>프로필 사진</h3>
+            {session?.user?.id && (
+              <PhotoUploader
+                photos={formData.photos}
+                userId={session.user.id}
+                onChange={(photos) => setFormData((prev) => ({ ...prev, photos }))}
+              />
+            )}
+          </section>
 
           {/* 기본 정보 */}
           <section className={styles.formSection}>

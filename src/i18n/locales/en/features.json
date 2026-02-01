@@ -127,6 +127,10 @@
         "title": "Life Prediction",
         "desc": "10-year fortune flow and turning points"
       },
+      "lifePredictionTiming": {
+        "title": "Life Timing",
+        "desc": "Optimal timing and turning point analysis"
+      },
       "destinyCalendar": {
         "title": "Destiny Calendar",
         "desc": "Save important dates"
@@ -159,10 +163,6 @@
         "title": "Numerology",
         "desc": "Secrets of numbers"
       },
-      "aura": {
-        "title": "Aura",
-        "desc": "Energy field analysis"
-      },
       "personality": {
         "title": "Personality",
         "desc": "Inner self exploration"
@@ -175,13 +175,17 @@
         "title": "Personality Compatibility",
         "desc": "ICP + Persona comprehensive compatibility"
       },
-      "destinyPal": {
-        "title": "Destiny Pal",
-        "desc": "AI counseling partner"
-      },
       "destinyMatrix": {
         "title": "Destiny Matrix",
         "desc": "Blueprint of destiny"
+      },
+      "aiReports": {
+        "title": "AI Reports",
+        "desc": "AI-powered comprehensive analysis reports"
+      },
+      "pastLife": {
+        "title": "Past Life",
+        "desc": "Past life connections and karma analysis"
       },
       "default": {
         "desc": "View records"

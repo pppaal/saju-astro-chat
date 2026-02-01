@@ -17,7 +17,7 @@ interface UseMyJourneyDataParams {
 }
 
 export function useMyJourneyData({
-  session,
+  session: _session,
   status,
   router,
   searchParams,

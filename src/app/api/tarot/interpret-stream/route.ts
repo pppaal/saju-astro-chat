@@ -3,12 +3,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { initializeApiContext, createPublicStreamGuard } from "@/lib/api/middleware";
-import { createSSEStreamProxy, createFallbackSSEStream, createSSEEvent, createSSEDoneEvent } from "@/lib/streaming";
+import { createSSEEvent, createSSEDoneEvent } from "@/lib/streaming";
 import { apiClient } from "@/lib/api/ApiClient";
 import { enforceBodySize } from "@/lib/http";
 import { sanitizeString } from "@/lib/api/sanitizers";
 import { logger } from '@/lib/logger';
 import { HTTP_STATUS } from '@/lib/constants/http';
+import { recordExternalCall } from '@/lib/metrics/index';
 
 interface CardInput {
   name: string;
@@ -38,7 +39,7 @@ const MAX_TITLE = 120;
 const MAX_QUESTION = 600;
 const MAX_CARDS = 15;
 const BACKEND_TIMEOUT_MS = 20000;
-const OPENAI_TIMEOUT_MS = 20000;
+const OPENAI_TIMEOUT_MS = 30000;
 
 // Use centralized sanitizeString from @/lib/api/sanitizers
 
@@ -341,21 +342,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 간결한 프롬프트 (스트리밍용) + 개인화
-    const prompt = isKorean
+    // 카드 수에 맞는 JSON 예시 생성
+    const cardExamplesKo = rawCards.map((c, i) => {
+      const pos = isKorean && c.positionKo ? c.positionKo : c.position;
+      return `    {"position": "${pos || `카드 ${i + 1}`}", "interpretation": "이 위치에서 이 카드가 의미하는 바를 구체적으로 설명 (300-500자)"}`;
+    }).join(',\n');
+    const cardExamplesEn = rawCards.map((c, i) => {
+      return `    {"position": "${c.position || `Card ${i + 1}`}", "interpretation": "What this card means in this position specifically (180-280 words)"}`;
+    }).join(',\n');
+
+    // 시스템 프롬프트 분리 (OpenAI 자동 프롬프트 캐싱 활용 - 동일 프리픽스 재사용 시 비용 절감)
+    const systemPrompt = isKorean
       ? `당신은 친근한 타로 리더예요. 따뜻하고 공감하는 말투로 해석해주세요.
 
-## 스프레드: ${spreadTitle}
-## 질문: "${q}"
-${personalizationContext}
-## 뽑힌 카드
-${cardListText}
+## 중요: 반드시 모든 ${rawCards.length}개 카드에 대해 각각 해석을 작성하세요!
+cards 배열에 정확히 ${rawCards.length}개의 항목이 있어야 합니다. 하나도 빠뜨리지 마세요.
 
 ## 출력 형식 (JSON)
 {
-  "overall": "전체 메시지 (400-600자). 친근한 말투로 카드들이 전하는 큰 그림을 설명해요.${zodiac ? ` ${zodiac.signKo}의 ${zodiac.element} 원소 특성을 자연스럽게 연결해요.` : ''}${previousReadings.length > 0 ? ' 이전 상담 내용과의 연결점이 있다면 언급해요.' : ''}",
+  "overall": "전체 메시지 (400-600자). 친근한 말투로 카드들이 전하는 큰 그림을 설명해요.",
   "cards": [
-    {"position": "위치명", "interpretation": "카드 해석 (300-500자). 이 위치에서 이 카드가 의미하는 바를 구체적으로 설명해요."}
+${cardExamplesKo}
   ],
   "advice": "실용적인 조언 (100-150자). 구체적인 행동 지침."
 }
@@ -365,20 +372,32 @@ ${cardListText}
 ❌ 금지: "~것입니다", "~하겠습니다" (딱딱한 말투)`
       : `You are a warm, intuitive tarot reader. Give interpretations in a friendly, conversational tone.
 
-## Spread: ${spreadTitle}
+## IMPORTANT: You MUST provide interpretation for ALL ${rawCards.length} cards!
+The "cards" array must contain exactly ${rawCards.length} entries. Do not skip any card.
+
+## Output Format (JSON)
+{
+  "overall": "Overall message (250-350 words). Explain the big picture from these cards warmly.",
+  "cards": [
+${cardExamplesEn}
+  ],
+  "advice": "Practical advice (60-90 words). Specific action steps."
+}`;
+
+    // 유저 프롬프트 (요청마다 달라지는 동적 부분)
+    const userPrompt = isKorean
+      ? `## 스프레드: ${spreadTitle}
+## 질문: "${q}"
+${personalizationContext}
+## 뽑힌 카드
+${cardListText}
+${zodiac ? `\n질문자 별자리(${zodiac.signKo}, ${zodiac.element} 원소)를 자연스럽게 연결해서 해석해주세요.` : ''}${previousReadings.length > 0 ? '\n이전 상담 내용과의 연결점이 있다면 언급해주세요.' : ''}`
+      : `## Spread: ${spreadTitle}
 ## Question: "${q}"
 ${personalizationContext}
 ## Cards Drawn
 ${cardListText}
-
-## Output Format (JSON)
-{
-  "overall": "Overall message (250-350 words). Explain the big picture from these cards warmly.${zodiac ? ` Naturally incorporate ${zodiac.sign}'s ${zodiac.element} element traits.` : ''}${previousReadings.length > 0 ? ' Reference connections to previous readings if relevant.' : ''}",
-  "cards": [
-    {"position": "Position name", "interpretation": "Card interpretation (180-280 words). Explain what this card means in this position specifically."}
-  ],
-  "advice": "Practical advice (60-90 words). Specific action steps."
-}`;
+${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element traits.` : ''}${previousReadings.length > 0 ? '\nReference connections to previous readings if relevant.' : ''}`;
 
     // OpenAI Streaming
     if (!process.env.OPENAI_API_KEY) {
@@ -389,9 +408,10 @@ ${cardListText}
 
     const openaiController = new AbortController();
     const openaiTimeoutId = setTimeout(() => openaiController.abort(), OPENAI_TIMEOUT_MS);
+    const openaiStartTime = Date.now();
     let openaiResponse: Response;
     try {
-      logger.info("Tarot stream OpenAI request", { model: "gpt-4o-mini", promptLength: prompt.length });
+      logger.info("Tarot stream OpenAI request", { model: "gpt-4o-mini", systemLen: systemPrompt.length, userLen: userPrompt.length });
       openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -400,8 +420,11 @@ ${cardListText}
         },
         body: JSON.stringify({
           model: 'gpt-4o-mini',
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 4000,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          max_tokens: 8000,
           temperature: 0.75,
           stream: true,
           response_format: { type: "json_object" },
@@ -410,6 +433,7 @@ ${cardListText}
       });
     } catch (error) {
       clearTimeout(openaiTimeoutId);
+      recordExternalCall("openai", "gpt-4o-mini", "error", Date.now() - openaiStartTime);
       logger.error('OpenAI stream fetch error:', { error });
       logger.warn("Tarot stream fallback to backend");
       const fallbackBase = buildFallbackPayload(rawCards, language);
@@ -428,6 +452,7 @@ ${cardListText}
     clearTimeout(openaiTimeoutId);
 
     if (!openaiResponse.ok) {
+      recordExternalCall("openai", "gpt-4o-mini", "error", Date.now() - openaiStartTime);
       const errorText = await openaiResponse.text();
       logger.error('OpenAI stream error:', { status: openaiResponse.status, error: errorText });
       logger.warn("Tarot stream fallback to backend");
@@ -445,7 +470,9 @@ ${cardListText}
       return streamJsonPayload(fallback, { "X-Fallback": "1" });
     }
 
-    // SSE
+    // SSE - 성공 메트릭스 기록 (스트리밍 시작 시점)
+    recordExternalCall("openai", "gpt-4o-mini", "success", Date.now() - openaiStartTime);
+
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useI18n } from "@/i18n/I18nProvider";
 import ScrollToTop from "@/components/ui/ScrollToTop";
-import { blogPosts, type BlogPost } from "@/data/blog-posts";
+import type { BlogPost } from "@/data/blog-posts";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getCategoryRoute } from "@/lib/constants/routes";
@@ -11,9 +11,10 @@ import styles from "./post.module.css";
 
 interface BlogPostClientProps {
   post: BlogPost;
+  relatedPosts: BlogPost[];
 }
 
-export default function BlogPostClient({ post }: BlogPostClientProps) {
+export default function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
   const { locale } = useI18n();
   const isKo = locale === "ko";
 
@@ -59,11 +60,6 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
       return "";
     }
   };
-
-  // Find related posts (same category, excluding current)
-  const relatedPosts = blogPosts
-    .filter((p) => p.category === post.category && p.slug !== post.slug)
-    .slice(0, 3);
 
   return (
     <main className={styles.page}>

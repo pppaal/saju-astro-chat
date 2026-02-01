@@ -144,7 +144,7 @@ export function getHealthMatrixAnalysis(
   }
 
   // 3. 생명력 사이클 (L6 - 12운성) - removed from final type
-  let lifeCycleStage: {
+  let _lifeCycleStage: {
     stage: TwelveStageStandard;
     description: { ko: string; en: string };
     vitalityLevel: number;
@@ -165,7 +165,7 @@ export function getHealthMatrixAnalysis(
         '쇠': 4, '병': 3, '사': 2, '묘': 3, '절': 1, '태': 6, '양': 7,
       };
 
-      lifeCycleStage = {
+      _lifeCycleStage = {
         stage: normalizedStage,
         description: { ko: stageInfo.ko, en: stageInfo.en },
         vitalityLevel: vitalityScores[normalizedStage] || 5,
@@ -226,7 +226,7 @@ export function getHealthMatrixAnalysis(
   }
 
   // 5. Chiron 치유 분석 (L10) - removed from final type
-  let chironHealing: {
+  let _chironHealing: {
     woundArea: { ko: string; en: string };
     healingPath: { ko: string; en: string };
     healerPotential: { ko: string; en: string };
@@ -255,7 +255,7 @@ export function getHealthMatrixAnalysis(
       '수': { ko: '신뢰할 수 있는 사람에게 마음을 열어보세요', en: 'Open your heart to someone you trust' },
     };
 
-    chironHealing = {
+    _chironHealing = {
       woundArea: woundAreas[sajuEl] || { ko: '내면의 상처', en: 'Inner wounds' },
       healingPath: healingPaths[sajuEl] || { ko: '자기 돌봄을 실천하세요', en: 'Practice self-care' },
       healerPotential: {
@@ -274,8 +274,8 @@ export function getHealthMatrixAnalysis(
   const balanceBonus = balancedCount * 5;
   const deficitPenalty = deficientElements.length * 8;
   const excessPenalty = excessElements.length * 3;
-  const lifeCycleBonus = 0; // lifeCycleStage not in final type
-  const chironBonus = 0; // chironHealing not in final type
+  const lifeCycleBonus = 0; // _lifeCycleStage not in final type
+  const chironBonus = 0; // _chironHealing not in final type
 
   const vitalityScore = Math.min(100, Math.max(30, baseScore + balanceBonus - deficitPenalty - excessPenalty + lifeCycleBonus + chironBonus));
 

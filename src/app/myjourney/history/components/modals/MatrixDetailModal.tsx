@@ -1,5 +1,4 @@
 import type { DestinyMatrixContent } from '../../lib';
-import { logger } from '@/lib/logger';
 import styles from '../../history.module.css';
 
 type MatrixDetailModalProps = {

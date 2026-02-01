@@ -4,9 +4,8 @@
  * 전생 리딩 API - 사주 + 점성술 기반 전생 분석
  */
 
-import { NextResponse } from 'next/server';
-import { rateLimit } from '@/lib/rateLimit';
-import { getClientIp } from '@/lib/request-ip';
+import { NextRequest, NextResponse } from 'next/server';
+import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api/middleware';
 import { logger } from '@/lib/logger';
 import { calculateSajuData } from '@/lib/Saju/saju';
 import { calculateNatalChart } from '@/lib/astrology';
@@ -14,6 +13,15 @@ import { analyzePastLife } from '@/lib/past-life/analyzer';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
 import { HTTP_STATUS } from '@/lib/constants/http';
+interface PastLifeBody {
+  birthDate: string;
+  birthTime?: string;
+  latitude: number;
+  longitude: number;
+  timezone?: string;
+  locale?: string;
+}
+
 /**
  * POST /api/past-life
  *
@@ -27,20 +35,10 @@ import { HTTP_STATUS } from '@/lib/constants/http';
  *   "locale": "ko" | "en"
  * }
  */
-export async function POST(req: Request) {
-  try {
-    const ip = getClientIp(req.headers as Headers);
-    const rlKey = `past-life:${ip}`;
-    const limit = await rateLimit(rlKey, { limit: 20, windowSeconds: 60 });
-
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Rate limit exceeded', retryAfter: limit.reset },
-        { status: HTTP_STATUS.RATE_LIMITED }
-      );
-    }
-
-    const body = await parseRequestBody<any>(req, { context: 'Past-life' });
+export const POST = withApiMiddleware(
+  async (req: NextRequest, _context: ApiContext) => {
+    try {
+      const body = await parseRequestBody<PastLifeBody>(req, { context: 'Past-life' });
     if (!body) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
@@ -100,13 +98,19 @@ export async function POST(req: Request) {
     // Analyze past life
     const result = analyzePastLife(sajuData, astroData, isKo);
 
-    return NextResponse.json(result);
+      return NextResponse.json(result);
 
-  } catch (err) {
-    logger.error('[PastLife API] Unexpected error:', err);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+    } catch (err) {
+      logger.error('[PastLife API] Unexpected error:', err);
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      );
+    }
+  },
+  createSimpleGuard({
+    route: '/api/past-life',
+    limit: 20,
+    windowSeconds: 60,
+  })
+)

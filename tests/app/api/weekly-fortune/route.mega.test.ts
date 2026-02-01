@@ -3,7 +3,12 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
-import { GET } from '@/app/api/weekly-fortune/route';
+
+// Mock middleware first
+vi.mock('@/lib/api/middleware', () => ({
+  withApiMiddleware: (handler: any) => handler,
+  createSimpleGuard: vi.fn(() => ({})),
+}));
 
 // Mock dependencies
 vi.mock('@/lib/weeklyFortune', () => ({
@@ -18,6 +23,7 @@ vi.mock('@/lib/logger', () => ({
   },
 }));
 
+import { GET } from '@/app/api/weekly-fortune/route';
 import { getWeeklyFortuneImage } from '@/lib/weeklyFortune';
 import { logger } from '@/lib/logger';
 
@@ -39,7 +45,7 @@ describe('GET /api/weekly-fortune', () => {
       method: 'GET',
     });
 
-    const response = await GET();
+    const response = await GET(req, {} as any);
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -51,7 +57,10 @@ describe('GET /api/weekly-fortune', () => {
   it('should return null when no fortune image available', async () => {
     vi.mocked(getWeeklyFortuneImage).mockResolvedValue(null);
 
-    const response = await GET();
+    const req = new NextRequest('http://localhost:3000/api/weekly-fortune', {
+      method: 'GET',
+    });
+    const response = await GET(req, {} as any);
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -63,7 +72,10 @@ describe('GET /api/weekly-fortune', () => {
   it('should handle errors gracefully', async () => {
     vi.mocked(getWeeklyFortuneImage).mockRejectedValue(new Error('Database error'));
 
-    const response = await GET();
+    const req = new NextRequest('http://localhost:3000/api/weekly-fortune', {
+      method: 'GET',
+    });
+    const response = await GET(req, {} as any);
     const data = await response.json();
 
     expect(response.status).toBe(500);
@@ -80,7 +92,10 @@ describe('GET /api/weekly-fortune', () => {
       week: '2024-W01',
     });
 
-    const response = await GET();
+    const req = new NextRequest('http://localhost:3000/api/weekly-fortune', {
+      method: 'GET',
+    });
+    const response = await GET(req, {} as any);
 
     const cacheControl = response.headers.get('Cache-Control');
     expect(cacheControl).toContain('public');
@@ -91,7 +106,10 @@ describe('GET /api/weekly-fortune', () => {
   it('should set shorter cache for no data', async () => {
     vi.mocked(getWeeklyFortuneImage).mockResolvedValue(null);
 
-    const response = await GET();
+    const req = new NextRequest('http://localhost:3000/api/weekly-fortune', {
+      method: 'GET',
+    });
+    const response = await GET(req, {} as any);
 
     const cacheControl = response.headers.get('Cache-Control');
     expect(cacheControl).toContain('public');
@@ -109,7 +127,10 @@ describe('GET /api/weekly-fortune', () => {
       zodiacSign: 'Aries',
     });
 
-    const response = await GET();
+    const req = new NextRequest('http://localhost:3000/api/weekly-fortune', {
+      method: 'GET',
+    });
+    const response = await GET(req, {} as any);
     const data = await response.json();
 
     expect(data.imageUrl).toBe('https://example.com/fortune.png');

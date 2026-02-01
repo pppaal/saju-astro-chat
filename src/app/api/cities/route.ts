@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { withApiMiddleware, createSimpleGuard, type ApiContext } from "@/lib/api/middleware";
 import fs from "fs/promises";
 import path from "path";
 import { logger } from '@/lib/logger';
@@ -41,8 +42,9 @@ async function loadCities(): Promise<City[]> {
   return loading;
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+export const GET = withApiMiddleware(
+  async (request: NextRequest, _context: ApiContext) => {
+    const { searchParams } = new URL(request.url);
   const query = norm(searchParams.get("q"));
   const limitParam = Number(searchParams.get("limit"));
   const limit = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 200) : 200;
@@ -119,4 +121,10 @@ export async function GET(request: Request) {
     logger.error("[cities] Failed to load city data", error);
     return NextResponse.json({ error: "Failed to load cities" }, { status: HTTP_STATUS.SERVER_ERROR });
   }
-}
+  },
+  createSimpleGuard({
+    route: '/api/cities',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)
