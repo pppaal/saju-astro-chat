@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from '
 import { motion, AnimatePresence } from 'framer-motion'
 import styles from './AdvisorChat.module.css'
 import { logger } from '@/lib/logger'
+import { Spinner } from '@/components/ui'
 
 interface Message {
   id: string
@@ -201,15 +202,12 @@ function AdvisorChatComponent({ predictionContext, locale = 'ko', onClose }: Adv
     setIsExpanded((prev) => !prev)
   }, [])
 
-  const handleKeyDownToggle = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        setIsExpanded((prev) => !prev)
-      }
-    },
-    []
-  )
+  const handleKeyDownToggle = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      setIsExpanded((prev) => !prev)
+    }
+  }, [])
 
   return (
     <motion.div
@@ -301,7 +299,7 @@ function AdvisorChatComponent({ predictionContext, locale = 'ko', onClose }: Adv
                 disabled={!input.trim() || isLoading}
                 className={styles.sendBtn}
               >
-                {isLoading ? '...' : '→'}
+                {isLoading ? <Spinner size="sm" variant="white" label="답변 생성 중..." /> : '→'}
               </button>
             </div>
           </motion.div>

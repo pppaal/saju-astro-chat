@@ -1,31 +1,36 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import styles from './ResultCards.module.css';
-import { cardVariants, badgeVariants, scoreBarVariants, reasonVariants } from '../animations/cardAnimations';
+import React from 'react'
+import { motion } from 'framer-motion'
+import styles from './ResultCards.module.css'
+import {
+  cardVariants,
+  badgeVariants,
+  scoreBarVariants,
+  reasonVariants,
+} from '../animations/cardAnimations'
 
 export interface TimingPeriod {
-  startDate: string;
-  endDate: string;
-  score: number;
-  grade: 'S' | 'A+' | 'A' | 'B' | 'C' | 'D';
-  reasons: string[];
+  startDate: string
+  endDate: string
+  score: number
+  grade: 'S' | 'A+' | 'A' | 'B' | 'C' | 'D'
+  reasons: string[]
   specificDays?: Array<{
-    date: string;
-    quality: 'excellent' | 'good' | 'neutral';
-    reason?: string;
-  }>;
+    date: string
+    quality: 'excellent' | 'good' | 'neutral'
+    reason?: string
+  }>
 }
 
 interface TimingCardProps {
-  period: TimingPeriod;
-  rank: number;
-  onClick?: () => void;
+  period: TimingPeriod
+  rank: number
+  onClick?: () => void
 }
 
 // 공유 상수
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const
 
 // 등급별 라벨
 const GRADE_LABELS: Record<string, string> = {
@@ -35,10 +40,10 @@ const GRADE_LABELS: Record<string, string> = {
   B: '괜찮음',
   C: '보통',
   D: '주의',
-};
+}
 
 // 등급별 스타일 키 (타입 안전)
-type GradeStyleKey = 'gradeExcellent' | 'gradeGood' | 'gradeNeutral' | 'gradeCaution';
+type GradeStyleKey = 'gradeExcellent' | 'gradeGood' | 'gradeNeutral' | 'gradeCaution'
 const GRADE_STYLE_KEYS: Record<string, GradeStyleKey> = {
   S: 'gradeExcellent',
   'A+': 'gradeExcellent',
@@ -46,45 +51,49 @@ const GRADE_STYLE_KEYS: Record<string, GradeStyleKey> = {
   B: 'gradeNeutral',
   C: 'gradeCaution',
   D: 'gradeCaution',
-};
+}
 
 // 점수별 바 스타일 키
-type ScoreBarStyleKey = 'scoreBarHigh' | 'scoreBarMedium' | 'scoreBarLow';
+type ScoreBarStyleKey = 'scoreBarHigh' | 'scoreBarMedium' | 'scoreBarLow'
 function getScoreBarStyleKey(score: number): ScoreBarStyleKey {
-  if (score >= 80) {return 'scoreBarHigh';}
-  if (score >= 60) {return 'scoreBarMedium';}
-  return 'scoreBarLow';
+  if (score >= 80) {
+    return 'scoreBarHigh'
+  }
+  if (score >= 60) {
+    return 'scoreBarMedium'
+  }
+  return 'scoreBarLow'
 }
 
 // 날짜 포맷팅
 function formatDateRange(startDate: string, endDate: string): string {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const start = new Date(startDate)
+  const end = new Date(endDate)
 
-  const startMonth = start.getMonth() + 1;
-  const startDay = start.getDate();
-  const endMonth = end.getMonth() + 1;
-  const endDay = end.getDate();
+  const startMonth = start.getMonth() + 1
+  const startDay = start.getDate()
+  const endMonth = end.getMonth() + 1
+  const endDay = end.getDate()
 
   if (startMonth === endMonth) {
-    return `${start.getFullYear()}년 ${startMonth}월 ${startDay}일 ~ ${endDay}일`;
+    return `${start.getFullYear()}년 ${startMonth}월 ${startDay}일 ~ ${endDay}일`
   }
-  return `${start.getFullYear()}년 ${startMonth}월 ${startDay}일 ~ ${endMonth}월 ${endDay}일`;
+  return `${start.getFullYear()}년 ${startMonth}월 ${startDay}일 ~ ${endMonth}월 ${endDay}일`
 }
 
 function formatSpecificDay(dateStr: string): string {
-  const date = new Date(dateStr);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const weekday = WEEKDAYS[date.getDay()];
-  return `${month}/${day}(${weekday})`;
+  const date = new Date(dateStr)
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  const weekday = WEEKDAYS[date.getDay()]
+  return `${month}/${day}(${weekday})`
 }
 
 // rank 클래스 배열 (타입 안전)
-const RANK_CLASSES = ['rank1', 'rank2', 'rank3'] as const;
+const RANK_CLASSES = ['rank1', 'rank2', 'rank3'] as const
 
 export function TimingCard({ period, rank, onClick }: TimingCardProps) {
-  const rankClass = rank < 3 ? styles[RANK_CLASSES[rank]] : '';
+  const rankClass = rank < 3 ? styles[RANK_CLASSES[rank]] : ''
 
   return (
     <motion.div
@@ -95,21 +104,25 @@ export function TimingCard({ period, rank, onClick }: TimingCardProps) {
       exit="exit"
       whileHover="hover"
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault()
+          onClick()
+        }
+      }}
+      role="article"
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={`${rank + 1}순위 타이밍: ${formatDateRange(period.startDate, period.endDate)}, 점수 ${period.score}점, 등급 ${period.grade}`}
       layout
     >
       {/* 헤더: 순위 배지 + 날짜 정보 + 등급 */}
       <div className={styles.cardHeader}>
-        <motion.div
-          className={styles.rankBadge}
-          variants={badgeVariants}
-        >
+        <motion.div className={styles.rankBadge} variants={badgeVariants}>
           {rank + 1}
         </motion.div>
 
         <div className={styles.dateInfo}>
-          <h3 className={styles.datePeriod}>
-            {formatDateRange(period.startDate, period.endDate)}
-          </h3>
+          <h3 className={styles.datePeriod}>{formatDateRange(period.startDate, period.endDate)}</h3>
           <p className={styles.dateLabel}>추천 기간</p>
         </div>
 
@@ -174,7 +187,7 @@ export function TimingCard({ period, rank, onClick }: TimingCardProps) {
         </div>
       )}
     </motion.div>
-  );
+  )
 }
 
-export default TimingCard;
+export default TimingCard

@@ -1,14 +1,15 @@
-'use client';
+'use client'
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import styles from './PredictionChat.module.css';
-import { useTypingAnimation } from './hooks/useTypingAnimation';
-import { useEventTypeDetector, EVENT_ICONS, EventType } from './hooks/useEventTypeDetector';
+import React, { useState, useCallback, useRef, useEffect } from 'react'
+import styles from './PredictionChat.module.css'
+import { useTypingAnimation } from './hooks/useTypingAnimation'
+import { useEventTypeDetector, EVENT_ICONS, EventType } from './hooks/useEventTypeDetector'
+import { Spinner } from '@/components/ui'
 
 interface PredictionChatProps {
-  onSubmit: (question: string, eventType: EventType | null) => void;
-  isLoading?: boolean;
-  compact?: boolean;
+  onSubmit: (question: string, eventType: EventType | null) => void
+  isLoading?: boolean
+  compact?: boolean
 }
 
 // 힌트 버튼 데이터
@@ -21,7 +22,7 @@ const HINTS: readonly { type: EventType; text: string }[] = [
   { type: 'study', text: '시험 운이 좋은 때' },
   { type: 'relationship', text: '연애운 좋은 시기' },
   { type: 'health', text: '건강 관리 시기' },
-] as const;
+] as const
 
 // 컴팩트 모드용 빠른 힌트 (4개만)
 const COMPACT_HINTS: readonly { type: EventType; text: string }[] = [
@@ -29,7 +30,7 @@ const COMPACT_HINTS: readonly { type: EventType; text: string }[] = [
   { type: 'career', text: '취업' },
   { type: 'investment', text: '투자' },
   { type: 'move', text: '이사' },
-] as const;
+] as const
 
 // 타이핑 애니메이션 플레이스홀더
 const PLACEHOLDERS = [
@@ -38,7 +39,7 @@ const PLACEHOLDERS = [
   '취업 최적 시기가 궁금해요',
   '이사 가기 좋은 달은?',
   '투자 시작하기 좋은 시기',
-] as const;
+] as const
 
 // 타이핑 애니메이션 설정
 const TYPING_OPTIONS = {
@@ -46,54 +47,62 @@ const TYPING_OPTIONS = {
   deletingSpeed: 40,
   pauseDuration: 2500,
   pauseAfterDelete: 300,
-} as const;
+} as const
 
-export function PredictionChat({ onSubmit, isLoading = false, compact = false }: PredictionChatProps) {
-  const [question, setQuestion] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+export function PredictionChat({
+  onSubmit,
+  isLoading = false,
+  compact = false,
+}: PredictionChatProps) {
+  const [question, setQuestion] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // 타이핑 애니메이션
-  const { displayText } = useTypingAnimation([...PLACEHOLDERS], TYPING_OPTIONS);
+  const { displayText } = useTypingAnimation([...PLACEHOLDERS], TYPING_OPTIONS)
 
   // 이벤트 타입 감지
-  const { detectedType, icon, label } = useEventTypeDetector(question);
+  const { detectedType, icon, label } = useEventTypeDetector(question)
 
   // 폼 제출 핸들러
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    if (question.trim() && !isLoading) {
-      onSubmit(question.trim(), detectedType);
-    }
-  }, [question, detectedType, isLoading, onSubmit]);
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault()
+      if (question.trim() && !isLoading) {
+        onSubmit(question.trim(), detectedType)
+      }
+    },
+    [question, detectedType, isLoading, onSubmit]
+  )
 
   // 힌트 클릭 핸들러
   const handleHintClick = useCallback((hintText: string) => {
-    setQuestion(hintText);
-    inputRef.current?.focus();
-  }, []);
+    setQuestion(hintText)
+    inputRef.current?.focus()
+  }, [])
 
   // Enter 키 제출
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      handleSubmit(e);
-    }
-  }, [handleSubmit]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        handleSubmit(e)
+      }
+    },
+    [handleSubmit]
+  )
 
   // 컴팩트 모드가 아닐 때 자동 포커스
   useEffect(() => {
     if (!compact) {
-      inputRef.current?.focus();
+      inputRef.current?.focus()
     }
-  }, [compact]);
+  }, [compact])
 
   return (
     <div className={`${styles.container} ${compact ? styles.compact : ''}`}>
       {!compact && (
         <>
           <h1 className={styles.title}>인생 타이밍 예측</h1>
-          <p className={styles.subtitle}>
-            사주와 점성학을 바탕으로 최적의 시기를 찾아드립니다
-          </p>
+          <p className={styles.subtitle}>사주와 점성학을 바탕으로 최적의 시기를 찾아드립니다</p>
         </>
       )}
 
@@ -109,9 +118,7 @@ export function PredictionChat({ onSubmit, isLoading = false, compact = false }:
             )}
 
             {/* 검색 아이콘 (배지가 없을 때만) */}
-            {!detectedType && (
-              <span className={styles.searchIcon}>🔮</span>
-            )}
+            {!detectedType && <span className={styles.searchIcon}>🔮</span>}
 
             {/* 검색 입력 - CSS에서 .detectedBadge + .searchInput으로 패딩 처리 */}
             <input
@@ -133,7 +140,7 @@ export function PredictionChat({ onSubmit, isLoading = false, compact = false }:
               disabled={isLoading || !question.trim()}
               title="예측하기"
             >
-              {isLoading ? '⏳' : '➤'}
+              {isLoading ? <Spinner size="sm" variant="white" label="예측 중..." /> : '➤'}
             </button>
           </div>
 
@@ -175,7 +182,7 @@ export function PredictionChat({ onSubmit, isLoading = false, compact = false }:
         </form>
       </div>
     </div>
-  );
+  )
 }
 
-export default PredictionChat;
+export default PredictionChat
