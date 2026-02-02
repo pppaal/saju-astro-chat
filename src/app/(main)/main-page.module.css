@@ -4001,7 +4001,11 @@
 
   .questionSearchInput {
     padding: 18px 55px 18px 90px;
-    font-size: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .questionSearchInput::placeholder {
+    font-size: 0.85rem;
   }
 
   .serviceSelectBtn {
@@ -4031,6 +4035,19 @@
     border-radius: 20px 20px 0 0;
     padding: 16px 12px 24px;
     -webkit-overflow-scrolling: touch;
+    z-index: 1001;
+  }
+
+  /* Prevent body scroll when dropdown is open on mobile */
+  .serviceDropdown::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
   }
 
   .serviceDropdownGrid {

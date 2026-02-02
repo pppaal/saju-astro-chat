@@ -1,101 +1,16 @@
 'use client'
 
-import { useState, useRef, useEffect, useMemo, Suspense, useCallback } from 'react'
-import { signOut, useSession } from 'next-auth/react'
+import { useMemo, Suspense } from 'react'
+import { useSession } from 'next-auth/react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
-import Link from 'next/link'
-
-// ============================================
-// Shared Styles
-// ============================================
-const styles = {
-  buttonBase: `
-    transition-all duration-200
-    focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900
-  `,
-  blueButton: `
-    bg-blue-400/15 border border-blue-400/30 text-blue-200
-    hover:bg-blue-400/25 hover:border-blue-400/50
-    focus-visible:ring-blue-400
-  `,
-  redButton: `
-    bg-red-500/15 border border-red-500/30 text-red-400
-    hover:bg-red-500/25 hover:border-red-500/50
-    focus-visible:ring-red-400
-  `,
-  header: 'fixed top-4 right-4 z-[1000] flex flex-col items-end gap-2',
-} as const
-
-// ============================================
-// Icons
-// ============================================
-const iconProps = {
-  width: 16,
-  height: 16,
-  viewBox: '0 0 24 24',
-  fill: 'none',
-  stroke: 'currentColor',
-  strokeWidth: 2,
-  strokeLinecap: 'round' as const,
-  strokeLinejoin: 'round' as const,
-  'aria-hidden': true,
-}
-
-function HomeIcon({ size = 18 }: { size?: number }) {
-  return (
-    <svg {...iconProps} width={size} height={size} aria-hidden="true">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <polyline points="9 22 9 12 15 12 15 22" />
-    </svg>
-  )
-}
-
-function JourneyIcon() {
-  return (
-    <svg {...iconProps} aria-hidden="true">
-      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-      <path d="M2 17l10 5 10-5" />
-      <path d="M2 12l10 5 10-5" />
-    </svg>
-  )
-}
-
-function LogoutIcon() {
-  return (
-    <svg {...iconProps} aria-hidden="true">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <polyline points="16 17 21 12 16 7" />
-      <line x1="21" y1="12" x2="9" y2="12" />
-    </svg>
-  )
-}
-
-// ============================================
-// Types
-// ============================================
-interface MenuItem {
-  id: string
-  label: string
-  icon: React.ReactNode
-  variant: 'blue' | 'red'
-  onClick: () => void
-}
-
-interface HeaderWrapperProps {
-  children: React.ReactNode
-  headerRef?: React.RefObject<HTMLDivElement | null>
-  onKeyDown?: (e: React.KeyboardEvent) => void
-  ariaLabel: string
-}
-
-interface DropdownMenuItemProps {
-  index: number
-  focusedIndex: number
-  item: MenuItem
-  menuItemsRef: React.RefObject<HTMLButtonElement[]>
-}
+import { HomeButton } from './GlobalHeader/HomeButton'
+import { CreditDisplay } from './GlobalHeader/CreditDisplay'
+import { DropdownMenu } from './GlobalHeader/DropdownMenu'
+import { useDropdownMenu } from './GlobalHeader/hooks'
+import { styles } from './GlobalHeader/styles'
+import type { HeaderWrapperProps } from './GlobalHeader/types'
 
 // ============================================
 // Header Wrapper Component
@@ -115,121 +30,6 @@ function HeaderWrapper({ children, headerRef, onKeyDown, ariaLabel }: HeaderWrap
 }
 
 // ============================================
-// Home Button Component
-// ============================================
-function HomeButton() {
-  const pathname = usePathname()
-  const { t } = useI18n()
-
-  if (pathname === '/' || pathname === '') {
-    return null
-  }
-
-  return (
-    <Link
-      href="/"
-      className={`flex items-center justify-center w-9 h-9 rounded-full hover:scale-105
-        ${styles.buttonBase} ${styles.blueButton}`}
-      aria-label={t('nav.home') || 'Go to home page'}
-    >
-      <HomeIcon size={18} />
-    </Link>
-  )
-}
-
-// ============================================
-// Credit Display Component
-// ============================================
-function CreditDisplay() {
-  const { data: session, status } = useSession()
-  const { t } = useI18n()
-  const [credits, setCredits] = useState<number | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (status === 'loading') {
-      return
-    }
-    if (!session?.user) {
-      setCredits(null)
-      setLoading(false)
-      return
-    }
-
-    const fetchCredits = async () => {
-      try {
-        const res = await fetch('/api/me/credits')
-        if (res.ok) {
-          const data = await res.json()
-          setCredits(data.credits?.remaining ?? 0)
-        }
-      } catch {
-        // ignore
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchCredits()
-
-    const handleCreditUpdate = () => fetchCredits()
-    window.addEventListener('credit-update', handleCreditUpdate);
-    return () => window.removeEventListener('credit-update', handleCreditUpdate)
-  }, [session, status])
-
-  if (status === 'loading' || loading || !session?.user || credits === null) {
-    return null
-  }
-
-  return (
-    <Link
-      href="/pricing"
-      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl
-        text-[13px] font-semibold no-underline
-        ${styles.buttonBase} ${styles.blueButton}`}
-      aria-label={t('credits.viewCredits') || `${credits} credits remaining, click to view pricing`}
-    >
-      <span className="text-yellow-400" aria-hidden="true">
-        ✦
-      </span>
-      <span>{credits}</span>
-      <span className="text-blue-300/80 font-medium text-[12px]">credit left</span>
-    </Link>
-  )
-}
-
-// ============================================
-// Dropdown Menu Item Component
-// ============================================
-function DropdownMenuItem({ index, focusedIndex, item, menuItemsRef }: DropdownMenuItemProps) {
-  const setRef = useCallback(
-    (el: HTMLButtonElement | null) => {
-      if (el) {
-        menuItemsRef.current[index] = el
-      }
-    },
-    [index, menuItemsRef]
-  )
-
-  const variantStyles = item.variant === 'blue' ? styles.blueButton : styles.redButton
-
-  return (
-    <button
-      ref={setRef}
-      role="menuitem"
-      tabIndex={focusedIndex === index ? 0 : -1}
-      onClick={item.onClick}
-      className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
-        text-sm font-medium cursor-pointer hover:-translate-y-0.5
-        focus-visible:outline-none ${styles.buttonBase} ${variantStyles}`}
-    >
-      {item.icon}
-      {item.label}
-    </button>
-  )
-}
-
-// ============================================
 // Main GlobalHeaderContent Component
 // ============================================
 function GlobalHeaderContent() {
@@ -241,11 +41,16 @@ function GlobalHeaderContent() {
   const isMainPage = !pathname || pathname === '/' || pathname === ''
   const signInUrl = useMemo(() => buildSignInUrl(pathname || '/'), [pathname])
 
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [focusedIndex, setFocusedIndex] = useState(-1)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const triggerRef = useRef<HTMLButtonElement>(null)
-  const menuItemsRef = useRef<HTMLButtonElement[]>([])
+  const {
+    showDropdown,
+    setShowDropdown,
+    focusedIndex,
+    dropdownRef,
+    triggerRef,
+    menuItemsRef,
+    menuItems,
+    handleKeyDown,
+  } = useDropdownMenu()
 
   const loading = status === 'loading'
   const isAuthenticated = status === 'authenticated'
@@ -253,103 +58,6 @@ function GlobalHeaderContent() {
     session?.user?.name ||
     session?.user?.email ||
     (isAuthenticated ? t('common.account') || 'Account' : null)
-
-  // Dynamic menu items - automatically updates menuItemCount
-  const menuItems: MenuItem[] = useMemo(
-    () => [
-      {
-        id: 'myjourney',
-        label: t('nav.myJourney') || 'My Journey',
-        icon: <JourneyIcon />,
-        variant: 'blue',
-        onClick: () => {
-          setShowDropdown(false)
-          router.push('/myjourney')
-        },
-      },
-      {
-        id: 'logout',
-        label: t('community.logout') || 'Logout',
-        icon: <LogoutIcon />,
-        variant: 'red',
-        onClick: () => signOut({ callbackUrl: '/' }),
-      },
-    ],
-    [t, router]
-  )
-
-  const menuItemCount = menuItems.length
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    if (!showDropdown) {
-      return
-    }
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowDropdown(false)
-        setFocusedIndex(-1)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showDropdown])
-
-  // Focus menu item when focusedIndex changes
-  useEffect(() => {
-    if (showDropdown && focusedIndex >= 0 && menuItemsRef.current[focusedIndex]) {
-      menuItemsRef.current[focusedIndex].focus()
-    }
-  }, [focusedIndex, showDropdown])
-
-  // Reset focused index when dropdown closes
-  useEffect(() => {
-    if (!showDropdown) {
-      setFocusedIndex(-1)
-    }
-  }, [showDropdown])
-
-  // Keyboard navigation for dropdown (WCAG 2.1 AA compliant)
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (!showDropdown) {
-        if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          setShowDropdown(true)
-          setFocusedIndex(0)
-        }
-        return
-      }
-
-      switch (e.key) {
-        case 'Escape':
-          e.preventDefault()
-          setShowDropdown(false)
-          triggerRef.current?.focus()
-          break
-        case 'ArrowDown':
-          e.preventDefault()
-          setFocusedIndex((prev) => (prev + 1) % menuItemCount)
-          break
-        case 'ArrowUp':
-          e.preventDefault()
-          setFocusedIndex((prev) => (prev - 1 + menuItemCount) % menuItemCount)
-          break
-        case 'Home':
-          e.preventDefault()
-          setFocusedIndex(0)
-          break
-        case 'End':
-          e.preventDefault()
-          setFocusedIndex(menuItemCount - 1)
-          break
-        case 'Tab':
-          setShowDropdown(false)
-          break
-      }
-    },
-    [showDropdown, menuItemCount]
-  )
 
   const headerAriaLabel = t('nav.header') || 'Site header'
 
@@ -442,26 +150,7 @@ function GlobalHeaderContent() {
       <CreditDisplay />
 
       {showDropdown && (
-        <div
-          id="user-menu"
-          role="menu"
-          aria-orientation="vertical"
-          aria-labelledby="user-menu-button"
-          className="absolute top-[calc(100%+8px)] right-0 min-w-[160px]
-            bg-slate-900/95 backdrop-blur-xl border border-blue-400/20
-            rounded-2xl p-2 shadow-[0_8px_32px_rgba(0,0,0,0.4)]
-            z-[1000] flex flex-col gap-1"
-        >
-          {menuItems.map((item, index) => (
-            <DropdownMenuItem
-              key={item.id}
-              index={index}
-              focusedIndex={focusedIndex}
-              item={item}
-              menuItemsRef={menuItemsRef}
-            />
-          ))}
-        </div>
+        <DropdownMenu items={menuItems} focusedIndex={focusedIndex} menuItemsRef={menuItemsRef} />
       )}
     </HeaderWrapper>
   )

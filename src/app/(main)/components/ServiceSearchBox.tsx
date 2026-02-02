@@ -1,85 +1,105 @@
-"use client";
+'use client'
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useTypingAnimation } from "@/hooks/useTypingAnimation";
-import { SERVICE_OPTIONS } from "../serviceConfig";
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useTypingAnimation } from '@/hooks/useTypingAnimation'
+import { SERVICE_OPTIONS } from '../serviceConfig'
 
-type CSSModule = Record<string, string>;
+type CSSModule = Record<string, string>
 
 interface ServiceSearchBoxProps {
-  translate: (key: string, fallback: string) => string;
-  t: (key: string) => string;
-  styles: CSSModule;
+  translate: (key: string, fallback: string) => string
+  t: (key: string) => string
+  styles: CSSModule
 }
 
-const SERVICE_PAGE_SIZE = 7;
+const SERVICE_PAGE_SIZE = 7
 
 export default function ServiceSearchBox({ translate, t, styles }: ServiceSearchBoxProps) {
-  const router = useRouter();
+  const router = useRouter()
 
-  const [lifeQuestion, setLifeQuestion] = useState("");
-  const [showServiceSelector, setShowServiceSelector] = useState(false);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
-  const [servicePage, setServicePage] = useState(0);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const [lifeQuestion, setLifeQuestion] = useState('')
+  const [showServiceSelector, setShowServiceSelector] = useState(false)
+  const [selectedService, setSelectedService] = useState<string | null>(null)
+  const [servicePage, setServicePage] = useState(0)
+  const searchContainerRef = useRef<HTMLDivElement>(null)
 
-  const servicePageCount = Math.max(1, Math.ceil(SERVICE_OPTIONS.length / SERVICE_PAGE_SIZE));
-  const maxServicePage = servicePageCount - 1;
+  const servicePageCount = Math.max(1, Math.ceil(SERVICE_OPTIONS.length / SERVICE_PAGE_SIZE))
+  const maxServicePage = servicePageCount - 1
 
   // Memoized placeholders for typing animation
-  const placeholders = React.useMemo(() => [
-    translate("landing.hint1", "오늘의 운세가 궁금해요"),
-    translate("landing.hint2", "연애운이 어떨까요?"),
-    translate("landing.hint3", "이직해도 될까요?"),
-    translate("landing.searchPlaceholder", "오늘 무엇이 궁금하세요?"),
-  ], [translate]);
+  const placeholders = React.useMemo(
+    () => [
+      translate('landing.hint1', '오늘의 운세가 궁금해요'),
+      translate('landing.hint2', '연애운이 어떨까요?'),
+      translate('landing.hint3', '이직해도 될까요?'),
+      translate('landing.searchPlaceholder', '오늘 무엇이 궁금하세요?'),
+    ],
+    [translate]
+  )
 
-  const typingPlaceholder = useTypingAnimation(placeholders, 1000);
+  const typingPlaceholder = useTypingAnimation(placeholders, 1000)
 
   const closeServiceSelector = useCallback(() => {
-    setShowServiceSelector(false);
-    setServicePage(0);
-  }, []);
+    setShowServiceSelector(false)
+    setServicePage(0)
+  }, [])
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
-        closeServiceSelector();
+        closeServiceSelector()
       }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [closeServiceSelector]);
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [closeServiceSelector])
+
+  // Prevent body scroll when dropdown is open on mobile
+  useEffect(() => {
+    if (showServiceSelector) {
+      const originalStyle = window.getComputedStyle(document.body).overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalStyle
+      }
+    }
+  }, [showServiceSelector])
 
   useEffect(() => {
     if (servicePage > maxServicePage) {
-      setServicePage(maxServicePage);
+      setServicePage(maxServicePage)
     }
-  }, [servicePage, maxServicePage]);
+  }, [servicePage, maxServicePage])
 
   // Handle question submission - navigate to selected service with the question
-  const handleQuestionSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    const service = SERVICE_OPTIONS.find(s => s.key === selectedService) || SERVICE_OPTIONS[0];
-    if (lifeQuestion.trim()) {
-      router.push(`${service.path}?q=${encodeURIComponent(lifeQuestion.trim())}`);
-    } else {
-      router.push(service.path);
-    }
-    setShowServiceSelector(false);
-  }, [lifeQuestion, router, selectedService]);
+  const handleQuestionSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault()
+      const service = SERVICE_OPTIONS.find((s) => s.key === selectedService) || SERVICE_OPTIONS[0]
+      if (lifeQuestion.trim()) {
+        router.push(`${service.path}?q=${encodeURIComponent(lifeQuestion.trim())}`)
+      } else {
+        router.push(service.path)
+      }
+      setShowServiceSelector(false)
+    },
+    [lifeQuestion, router, selectedService]
+  )
 
   // Handle service selection
   const handleServiceSelect = useCallback((serviceKey: string) => {
-    setSelectedService(serviceKey);
-    setShowServiceSelector(false);
-  }, []);
+    setSelectedService(serviceKey)
+    setShowServiceSelector(false)
+  }, [])
 
-  const handleHintClick = useCallback((hint: string) => {
-    setLifeQuestion(hint);
-    const service = SERVICE_OPTIONS.find(s => s.key === selectedService) || SERVICE_OPTIONS[0];
-    router.push(`${service.path}?q=${encodeURIComponent(hint)}`);
-  }, [router, selectedService]);
+  const handleHintClick = useCallback(
+    (hint: string) => {
+      setLifeQuestion(hint)
+      const service = SERVICE_OPTIONS.find((s) => s.key === selectedService) || SERVICE_OPTIONS[0]
+      router.push(`${service.path}?q=${encodeURIComponent(hint)}`)
+    },
+    [router, selectedService]
+  )
 
   return (
     <div className={styles.questionSearchContainer} ref={searchContainerRef}>
@@ -90,10 +110,10 @@ export default function ServiceSearchBox({ translate, t, styles }: ServiceSearch
             type="button"
             className={styles.serviceSelectBtn}
             onClick={() => setShowServiceSelector(!showServiceSelector)}
-            title={translate("landing.selectService", "서비스 선택")}
+            title={translate('landing.selectService', '서비스 선택')}
           >
             <span className={styles.serviceSelectIcon}>
-              {SERVICE_OPTIONS.find(s => s.key === selectedService)?.icon || '🌟'}
+              {SERVICE_OPTIONS.find((s) => s.key === selectedService)?.icon || '🌟'}
             </span>
             <span className={styles.serviceSelectArrow}>▼</span>
           </button>
@@ -102,7 +122,10 @@ export default function ServiceSearchBox({ translate, t, styles }: ServiceSearch
           {showServiceSelector && (
             <div className={styles.serviceDropdown}>
               <div className={styles.serviceDropdownGrid}>
-                {SERVICE_OPTIONS.slice(servicePage * SERVICE_PAGE_SIZE, (servicePage + 1) * SERVICE_PAGE_SIZE).map((service) => (
+                {SERVICE_OPTIONS.slice(
+                  servicePage * SERVICE_PAGE_SIZE,
+                  (servicePage + 1) * SERVICE_PAGE_SIZE
+                ).map((service) => (
                   <button
                     key={service.key}
                     type="button"
@@ -150,13 +173,15 @@ export default function ServiceSearchBox({ translate, t, styles }: ServiceSearch
           )}
 
           <label htmlFor="destiny-question" className={styles.srOnly}>
-            {translate("landing.searchPlaceholder", "오늘 무엇이 궁금하세요?")}
+            {translate('landing.searchPlaceholder', '오늘 무엇이 궁금하세요?')}
           </label>
           <input
             id="destiny-question"
             type="text"
             className={styles.questionSearchInput}
-            placeholder={typingPlaceholder || translate("landing.searchPlaceholder", "오늘 무엇이 궁금하세요?")}
+            placeholder={
+              typingPlaceholder || translate('landing.searchPlaceholder', '오늘 무엇이 궁금하세요?')
+            }
             value={lifeQuestion}
             onChange={(e) => setLifeQuestion(e.target.value)}
             onFocus={() => setShowServiceSelector(false)}
@@ -170,23 +195,23 @@ export default function ServiceSearchBox({ translate, t, styles }: ServiceSearch
           <button
             type="button"
             className={styles.questionHint}
-            onClick={() => handleHintClick(translate("landing.hint1", "오늘의 운세가 궁금해요"))}
+            onClick={() => handleHintClick(translate('landing.hint1', '오늘의 운세가 궁금해요'))}
           >
-            {translate("landing.hint1", "오늘의 운세가 궁금해요")}
+            {translate('landing.hint1', '오늘의 운세가 궁금해요')}
           </button>
           <button
             type="button"
             className={styles.questionHint}
-            onClick={() => handleHintClick(translate("landing.hint2", "연애운이 어떨까요?"))}
+            onClick={() => handleHintClick(translate('landing.hint2', '연애운이 어떨까요?'))}
           >
-            {translate("landing.hint2", "연애운이 어떨까요?")}
+            {translate('landing.hint2', '연애운이 어떨까요?')}
           </button>
           <button
             type="button"
             className={styles.questionHint}
-            onClick={() => handleHintClick(translate("landing.hint3", "이직해도 될까요?"))}
+            onClick={() => handleHintClick(translate('landing.hint3', '이직해도 될까요?'))}
           >
-            {translate("landing.hint3", "이직해도 될까요?")}
+            {translate('landing.hint3', '이직해도 될까요?')}
           </button>
         </div>
       </form>
@@ -195,7 +220,7 @@ export default function ServiceSearchBox({ translate, t, styles }: ServiceSearch
       <div className={styles.aiRoutingGuide}>
         <p className={styles.aiRoutingText}>
           <span className={styles.aiRoutingIcon}>💡</span>
-          {translate("landing.aiRoutingText", "서비스를 선택하거나 바로 질문하세요")}
+          {translate('landing.aiRoutingText', '서비스를 선택하거나 바로 질문하세요')}
         </p>
         <div className={styles.serviceIconsRow}>
           {SERVICE_OPTIONS.map((service) => (
@@ -212,5 +237,5 @@ export default function ServiceSearchBox({ translate, t, styles }: ServiceSearch
         </div>
       </div>
     </div>
-  );
+  )
 }
