@@ -73,6 +73,7 @@ model User {
   savedCalendarDates    SavedCalendarDate[]     // 저장된 운명 캘린더 날짜들
   personalityResult     PersonalityResult?      // 성격 테스트 결과
   icpResults            ICPResult[]             // ICP 대인관계 스타일 결과
+  pastLifeResults       PastLifeResult[]        // 전생 리딩 결과
   compatibilityResults  CompatibilityResult[]   // 궁합 분석 결과
   destinyMatrixReports  DestinyMatrixReport[]   // Destiny Matrix AI 리포트
   tarotReadings         TarotReading[]          // 타로 리딩 기록
@@ -635,6 +636,35 @@ model ICPResult {
 
   @@index([userId, createdAt])
   @@index([primaryStyle])
+}
+
+// 전생 리딩 결과
+model PastLifeResult {
+  id                String   @id @default(cuid())
+  userId            String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // 생년월일 정보
+  birthDate         String   // YYYY-MM-DD
+  birthTime         String?  // HH:mm
+  latitude          Float?
+  longitude         Float?
+  timezone          String?
+
+  // 카르마 스코어
+  karmaScore        Int      // 0-100
+
+  // 전생 분석 결과 (JSON)
+  analysisData      Json     // soulPattern, pastLife, soulJourney, karmicDebts, thisLifeMission, talentsCarried, saturnLesson
+
+  // 언어
+  locale            String   @default("ko")
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([karmaScore])
 }
 
 // 성격 궁합 분석 결과

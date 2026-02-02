@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/i18n/I18nProvider';
 import styles from './PastLifeResults.module.css';
 import type { PastLifeResult } from '@/lib/past-life/types';
+import { usePastLifeSave } from './usePastLifeSave';
 
 type TabId = 'overview' | 'pastLife' | 'journey' | 'karma' | 'mission';
 
@@ -27,11 +28,34 @@ const tabsConfig: Tab[] = [
 interface Props {
   result: PastLifeResult;
   onReset: () => void;
+  birthDate: string;
+  birthTime?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
 }
 
-export default function PastLifeResults({ result, onReset }: Props) {
-  const { t } = useI18n();
+export default function PastLifeResults({
+  result,
+  onReset,
+  birthDate,
+  birthTime,
+  latitude,
+  longitude,
+  timezone,
+}: Props) {
+  const { t, locale } = useI18n();
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const { authStatus, saveStatus, isSavedToDb, handleSave, handleDownload, handleShare } =
+    usePastLifeSave({
+      result,
+      birthDate,
+      birthTime,
+      latitude,
+      longitude,
+      timezone,
+      locale,
+    });
 
   return (
     <div className={styles.container}>
@@ -46,6 +70,50 @@ export default function PastLifeResults({ result, onReset }: Props) {
           >
             ← {t('pastLife.results.newReading', 'New Reading')}
           </motion.button>
+          <div className={styles.actionButtons}>
+            <motion.button
+              className={`${styles.saveBtn} ${isSavedToDb ? styles.saved : ''}`}
+              onClick={handleSave}
+              disabled={saveStatus === 'saving' || isSavedToDb}
+              whileHover={{ scale: isSavedToDb ? 1 : 1.05 }}
+              whileTap={{ scale: isSavedToDb ? 1 : 0.95 }}
+            >
+              <span>
+                {saveStatus === 'saving'
+                  ? '⏳'
+                  : isSavedToDb
+                    ? '✅'
+                    : authStatus === 'authenticated'
+                      ? '💾'
+                      : '🔐'}
+              </span>
+              {saveStatus === 'saving'
+                ? t('pastLife.results.saving', 'Saving...')
+                : isSavedToDb
+                  ? t('pastLife.results.saved', 'Saved!')
+                  : authStatus === 'authenticated'
+                    ? t('pastLife.results.save', 'Save Result')
+                    : t('pastLife.results.loginToSave', 'Login to Save')}
+            </motion.button>
+            <motion.button
+              className={styles.shareBtn}
+              onClick={handleShare}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span>📤</span>
+              {t('pastLife.results.share', 'Share')}
+            </motion.button>
+            <motion.button
+              className={styles.downloadBtn}
+              onClick={handleDownload}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span>📥</span>
+              {t('pastLife.results.download', 'Download')}
+            </motion.button>
+          </div>
         </div>
 
         <div className={styles.scoreCard}>

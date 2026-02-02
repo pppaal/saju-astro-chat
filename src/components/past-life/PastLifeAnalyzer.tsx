@@ -123,7 +123,17 @@ export default function PastLifeAnalyzer() {
   };
 
   if (result) {
-    return <PastLifeResults result={result} onReset={handleReset} />;
+    return (
+      <PastLifeResults
+        result={result}
+        onReset={handleReset}
+        birthDate={birthDate}
+        birthTime={birthTime}
+        latitude={latitude ?? undefined}
+        longitude={longitude ?? undefined}
+        timezone={timezone}
+      />
+    );
   }
 
   return (

@@ -132,7 +132,7 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   },
   {
     check: isWeeklyMonthlyQuestion,
-    targetSpread: "weekly-outlook",
+    targetSpread: "weekly-forecast",
     themeId: "daily-reading",
     reason: "주간/월간 운세",
     koExplanation: "이번 주/달의 흐름을 카드로 살펴볼게요! 📅",
@@ -143,7 +143,7 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   // === Priority 11+: 카테고리 매핑 ===
   {
     check: isMoneyFortuneQuestion,
-    targetSpread: "financial-outlook",
+    targetSpread: "financial-snapshot",
     themeId: "money-finance",
     reason: "금전/재물 운세",
     koExplanation: "금전과 재물의 흐름을 카드로 살펴볼게요! 💰",
@@ -152,8 +152,8 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   },
   {
     check: isHealthFortuneQuestion,
-    targetSpread: "health-wellness",
-    themeId: "well-being-healing",
+    targetSpread: "mind-body-scan",
+    themeId: "well-being-health",
     reason: "건강 운세",
     koExplanation: "건강과 활력의 흐름을 카드로 살펴볼게요! 💪",
     enExplanation: "Let's explore your health and vitality! 💪",
@@ -161,7 +161,7 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   },
   {
     check: isFamilyRelationQuestion,
-    targetSpread: "relationship-potential",
+    targetSpread: "relationship-cross",
     themeId: "love-relationships",
     reason: "가족 관계 운세",
     koExplanation: "가족 관계의 흐름을 카드로 살펴볼게요! 👨‍👩‍👧",
@@ -170,7 +170,7 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   },
   {
     check: isBusinessQuestion,
-    targetSpread: "financial-outlook",
+    targetSpread: "financial-snapshot",
     themeId: "money-finance",
     reason: "사업/창업 운세",
     koExplanation: "사업과 창업의 흐름을 카드로 살펴볼게요! 📈",
@@ -206,7 +206,7 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   },
   {
     check: isWorkRelationQuestion,
-    targetSpread: "relationship-potential",
+    targetSpread: "relationship-cross",
     themeId: "love-relationships",
     reason: "직장 관계 운세",
     koExplanation: "직장 내 관계를 카드로 살펴볼게요! 👔",
@@ -242,7 +242,7 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   },
   {
     check: isFriendRelationQuestion,
-    targetSpread: "relationship-potential",
+    targetSpread: "relationship-cross",
     themeId: "love-relationships",
     reason: "친구 관계 운세",
     koExplanation: "친구 관계의 흐름을 카드로 살펴볼게요! 🤝",
@@ -251,7 +251,7 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   },
   {
     check: isMarriageRelationQuestion,
-    targetSpread: "relationship-potential",
+    targetSpread: "relationship-cross",
     themeId: "love-relationships",
     reason: "연애/결혼 운세",
     koExplanation: "연애와 결혼의 흐름을 카드로 살펴볼게요! 💍",
@@ -278,7 +278,7 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   },
   {
     check: isParentCareQuestion,
-    targetSpread: "relationship-potential",
+    targetSpread: "relationship-cross",
     themeId: "love-relationships",
     reason: "부모님 관계 운세",
     koExplanation: "부모님과의 관계와 효도의 방향을 카드로 살펴볼게요 👨‍👩‍👧",
@@ -287,8 +287,8 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   },
   {
     check: isSleepRestQuestion,
-    targetSpread: "inner-peace",
-    themeId: "well-being-healing",
+    targetSpread: "healing-path",
+    themeId: "well-being-health",
     reason: "수면/휴식 운세",
     koExplanation: "편안한 휴식과 수면의 방향을 카드로 살펴볼게요 😴",
     enExplanation: "Let's explore your path to restful sleep 😴",
@@ -296,7 +296,7 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   },
   {
     check: isOnlineShoppingQuestion,
-    targetSpread: "financial-outlook",
+    targetSpread: "financial-snapshot",
     themeId: "money-finance",
     reason: "쇼핑/구매 운세",
     koExplanation: "쇼핑과 구매 결정의 흐름을 카드로 살펴볼게요 🛒",
@@ -314,7 +314,7 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   },
   {
     check: isPhoneDeviceQuestion,
-    targetSpread: "financial-outlook",
+    targetSpread: "financial-snapshot",
     themeId: "money-finance",
     reason: "기기 구매 운세",
     koExplanation: "전자기기 구매와 교체 시기를 카드로 살펴볼게요 📱",
@@ -341,8 +341,8 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   },
   {
     check: isDietWeightQuestion,
-    targetSpread: "inner-peace",
-    themeId: "well-being-healing",
+    targetSpread: "healing-path",
+    themeId: "well-being-health",
     reason: "다이어트/체중관리 운세",
     koExplanation: "건강한 체중 관리와 다이어트 흐름을 카드로 살펴볼게요 💪",
     enExplanation: "Let's explore your weight management journey 💪",
@@ -377,7 +377,7 @@ export const PATTERN_MAPPINGS: PatternMapping[] = [
   },
   {
     check: isCoupleFightQuestion,
-    targetSpread: "relationship-potential",
+    targetSpread: "relationship-cross",
     themeId: "love-relationships",
     reason: "커플 화해 운세",
     koExplanation: "갈등 해결과 화해의 방향을 카드로 살펴볼게요 💕",
