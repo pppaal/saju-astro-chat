@@ -154,28 +154,6 @@
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 16px;
   margin-top: 32px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(136, 179, 247, 0.3) transparent;
-}
-
-.serviceGrid::-webkit-scrollbar {
-  height: 8px;
-}
-
-.serviceGrid::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.serviceGrid::-webkit-scrollbar-thumb {
-  background-color: rgba(136, 179, 247, 0.3);
-  border-radius: 4px;
-}
-
-.serviceGrid::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(136, 179, 247, 0.5);
 }
 
 .serviceCard {
@@ -472,20 +450,33 @@
     gap: 10px;
     scroll-snap-type: x mandatory;
     padding-bottom: 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(136, 179, 247, 0.3) transparent;
+  }
+
+  .serviceGrid::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .serviceGrid::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .serviceGrid::-webkit-scrollbar-thumb {
+    background-color: rgba(136, 179, 247, 0.3);
+    border-radius: 3px;
   }
 
   .serviceCard {
     flex: 0 0 calc(50% - 5px);
     scroll-snap-align: start;
+    padding: 20px 16px;
+    min-height: 140px;
   }
 
   .philosophyGrid {
     grid-template-columns: 1fr;
-  }
-
-  .serviceCard {
-    padding: 20px 16px;
-    min-height: 140px;
   }
 
   .serviceIcon {
@@ -994,6 +985,22 @@
     gap: 8px;
     scroll-snap-type: x mandatory;
     padding-bottom: 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(136, 179, 247, 0.3) transparent;
+  }
+
+  .serviceGrid::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .serviceGrid::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .serviceGrid::-webkit-scrollbar-thumb {
+    background-color: rgba(136, 179, 247, 0.3);
+    border-radius: 3px;
   }
 
   .serviceCard {

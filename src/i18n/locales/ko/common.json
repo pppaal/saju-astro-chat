@@ -100,5 +100,26 @@
   },
   "emoji": {
     "sparkles": "sparkles"
+  },
+  "auth": {
+    "signIn": "로그인",
+    "welcomeBack": "환영합니다!",
+    "signInToContinue": "계속하려면 로그인해주세요",
+    "signInWithGoogle": "Google로 로그인",
+    "termsConsentPrefix": "계속 진행하면",
+    "termsOfUse": "이용 약관",
+    "termsConsentJoin": "에 동의하고",
+    "privacyPolicy": "개인정보 처리방침",
+    "checkboxHint": "(동의하려면 체크박스를 선택해주세요)",
+    "secureAuthentication": "안전한 인증",
+    "dataProtected": "귀하의 데이터는 안전하게 보호됩니다",
+    "error": {
+      "oauthSignin": "OAuth 로그인 중 오류가 발생했습니다.",
+      "oauthCallback": "OAuth 콜백 처리 중 오류가 발생했습니다.",
+      "oauthAccountNotLinked": "이미 다른 방법으로 등록된 이메일입니다.",
+      "callback": "콜백 처리 중 오류가 발생했습니다.",
+      "default": "로그인 중 오류가 발생했습니다.",
+      "unexpected": "예상치 못한 오류가 발생했습니다."
+    }
   }
 }

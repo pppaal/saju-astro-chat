@@ -100,5 +100,26 @@
   },
   "emoji": {
     "sparkles": "sparkles"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "welcomeBack": "Welcome Back!",
+    "signInToContinue": "Sign in to continue",
+    "signInWithGoogle": "Sign in with Google",
+    "termsConsentPrefix": "By continuing, you agree to the",
+    "termsOfUse": "Terms of Use",
+    "termsConsentJoin": "and acknowledge the",
+    "privacyPolicy": "Privacy Policy",
+    "checkboxHint": "(Please check the box to agree)",
+    "secureAuthentication": "Secure Authentication",
+    "dataProtected": "Your data is protected and secure",
+    "error": {
+      "oauthSignin": "An error occurred during OAuth sign-in.",
+      "oauthCallback": "An error occurred during OAuth callback.",
+      "oauthAccountNotLinked": "This email is already registered with a different method.",
+      "callback": "An error occurred during callback.",
+      "default": "An error occurred during sign-in.",
+      "unexpected": "An unexpected error occurred."
+    }
   }
 }
