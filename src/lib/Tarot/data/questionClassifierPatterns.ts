@@ -65,7 +65,7 @@ export const yesNoEndingPatterns: RegExp[] = [
   /안할까\??$/,
   /안갈까\??$/,
   /안볼까\??$/,
-];
+]
 
 export const yesNoMidPatterns: RegExp[] = [
   /할까 말까/,
@@ -115,7 +115,7 @@ export const yesNoMidPatterns: RegExp[] = [
   /어떨까/,
   /할 만할까/,
   /가 만할까/,
-];
+]
 
 export const yesNoKeywordPatterns: RegExp[] = [
   // 운동/건강
@@ -238,7 +238,7 @@ export const yesNoKeywordPatterns: RegExp[] = [
   /핸드폰.*(바꿀까|살까)/,
   /머리.*(자를까|할까|염색)/,
   /미용실.*(갈까|가볼까)/,
-];
+]
 
 export const yesNoEnglishPatterns: RegExp[] = [
   // Core decision patterns
@@ -303,7 +303,7 @@ export const yesNoEnglishPatterns: RegExp[] = [
   /gonna (go|do|try|start|quit)/i,
   /wanna (go|do|try|start)/i,
   /gotta decide/i,
-];
+]
 
 // ============================================================
 // 상대방 마음 질문 패턴
@@ -376,7 +376,7 @@ export const crushPatterns: RegExp[] = [
   /feel the same/i,
   /love me back/i,
   /interested in me/i,
-];
+]
 
 // ============================================================
 // 재회/이별 질문 패턴
@@ -447,7 +447,7 @@ export const reconciliationPatterns: RegExp[] = [
   /miss me/i,
   /want me back/i,
   /rekindle/i,
-];
+]
 
 // ============================================================
 // 면접/시험 결과 질문 패턴
@@ -494,7 +494,7 @@ export const examInterviewPatterns: RegExp[] = [
   /will i pass/i,
   /did i pass/i,
   /pass the (exam|test|interview)/i,
-];
+]
 
 // ============================================================
 // 이직/퇴사 질문 패턴
@@ -545,7 +545,7 @@ export const jobChangePatterns: RegExp[] = [
   /thinking about (quitting|leaving)/i,
   /considering (quitting|leaving|changing)/i,
   /explore (new )?(career|job) options/i,
-];
+]
 
 // ============================================================
 // A vs B 비교 질문 패턴
@@ -588,7 +588,7 @@ export const comparisonPatterns: RegExp[] = [
   /choose between/i,
   /A or B/i,
   /option (A|1).*(option (B|2)|or)/i,
-];
+]
 
 // ============================================================
 // 타이밍/시기 질문 패턴
@@ -635,7 +635,14 @@ export const timingPatterns: RegExp[] = [
   /when to/i,
   /how long (until|before|should)/i,
   /timing/i,
-];
+  // English patterns (extended)
+  /what (month|year|time)/i,
+  /in how many (days|weeks|months)/i,
+  /how soon/i,
+  /right time to/i,
+  /best moment/i,
+  /when will it happen/i,
+]
 
 // ============================================================
 // 인연/소개팅 질문 패턴
@@ -680,13 +687,22 @@ export const findingPartnerPatterns: RegExp[] = [
   /솔로 ?탈출/,
   /솔로 ?끝/,
   /혼자.*(끝|벗어|언제)/,
+  // English patterns
   /find (love|partner|soulmate)/i,
   /meet (someone|the one)/i,
   /soulmate/i,
   /when will i find/i,
   /dating/i,
   /single.*(forever|end)/i,
-];
+  /when (will|can) i (find|meet)/i,
+  /my (future )?(partner|love|soulmate)/i,
+  /relationship prospects/i,
+  /love life/i,
+  /(find|meet) the (one|right person)/i,
+  /romantic (future|prospects)/i,
+  /when will love come/i,
+  /find someone special/i,
+]
 
 // ============================================================
 // 오늘 운세 질문 패턴
@@ -708,7 +724,7 @@ export const todayFortunePatterns: RegExp[] = [
   /daily (reading|card|fortune)/i,
   /today's (fortune|reading|card)/i,
   /how.*(today|my day)/i,
-];
+]
 
 // ============================================================
 // 주간/월간 운세 질문 패턴
@@ -741,7 +757,7 @@ export const weeklyMonthlyPatterns: RegExp[] = [
   /next month/i,
   /yearly/i,
   /this year/i,
-];
+]
 
 // ============================================================
 // 금전/재물 운세 질문 패턴
@@ -799,14 +815,26 @@ export const moneyFortunePatterns: RegExp[] = [
   /재산.*(어떻|늘|불어)/,
   /모을 ?수 ?있/,
   /부자.*(될|되나|가능)/,
+  // English patterns
   /money.*(luck|fortune|come|flow)/i,
-  /financial.*(situation|luck|fortune)/i,
+  /financial.*(situation|luck|fortune|prospects)/i,
   /wealth/i,
   /lottery/i,
   /will i get rich/i,
   /income/i,
   /salary.*(increase|raise)/i,
-];
+  /finances/i,
+  /financially/i,
+  /debt.*(pay off|clear)/i,
+  /make money/i,
+  /earn.*(more|money)/i,
+  /investment.*(luck|fortune|prospects)/i,
+  /stocks/i,
+  /crypto/i,
+  /bonus/i,
+  /windfall/i,
+  /jackpot/i,
+]
 
 // ============================================================
 // 건강 운세 질문 패턴
@@ -857,14 +885,29 @@ export const healthFortunePatterns: RegExp[] = [
   /체중.*(빠질|줄|어떻)/,
   /살.*(빠질|어떻)/,
   /다이어트.*(성공|어떻|결과)/,
+  // English patterns
   /health.*(fortune|luck|how|condition)/i,
   /will i recover/i,
   /surgery.*(result|success|how)/i,
   /get better/i,
   /heal/i,
   /pregnancy/i,
+  /fertile/i,
   /fertility/i,
-];
+  /physical.*(health|condition)/i,
+  /mental health/i,
+  /wellness/i,
+  /cure/i,
+  /treatment.*(work|success)/i,
+  /medical.*(results|condition)/i,
+  /lose weight/i,
+  /weight loss/i,
+  /diet.*(success|work)/i,
+  /stress/i,
+  /anxiety/i,
+  /depression/i,
+  /sleep.*(better|improve)/i,
+]
 
 // ============================================================
 // 가족 관계 질문 패턴
@@ -920,7 +963,7 @@ export const familyRelationPatterns: RegExp[] = [
   /spouse.*(relationship|issue)/i,
   /marriage.*(issue|problem|how)/i,
   /in-law/i,
-];
+]
 
 // ============================================================
 // 사업/창업 질문 패턴
@@ -968,7 +1011,7 @@ export const businessPatterns: RegExp[] = [
   /franchise/i,
   /company.*(start|run|success)/i,
   /self-employed/i,
-];
+]
 
 // ============================================================
 // 일반 운세/인생 질문 패턴
@@ -1043,7 +1086,7 @@ export const generalFortunePatterns: RegExp[] = [
   /advice/i,
   /guidance/i,
   /what should i (do|know)/i,
-];
+]
 
 // ============================================================
 // 학업/공부 운세 질문 패턴
@@ -1084,7 +1127,7 @@ export const studyFortunePatterns: RegExp[] = [
   /school.*(how|going)/i,
   /university.*(how|going)/i,
   /major.*(change|choose)/i,
-];
+]
 
 // ============================================================
 // 여행 운세 질문 패턴
@@ -1113,7 +1156,7 @@ export const travelPatterns: RegExp[] = [
   /vacation.*(fortune|luck|when|where)/i,
   /flight.*(safe|how)/i,
   /abroad/i,
-];
+]
 
 // ============================================================
 // 직장 내 관계 질문 패턴
@@ -1150,7 +1193,7 @@ export const workRelationPatterns: RegExp[] = [
   /colleague.*(relationship|how)/i,
   /office.*(politics|relationship)/i,
   /workplace.*(relationship|atmosphere)/i,
-];
+]
 
 // ============================================================
 // 법적/계약 문제 질문 패턴
@@ -1193,7 +1236,7 @@ export const legalPatterns: RegExp[] = [
   /sue|suing/i,
   /divorce.*(court|lawsuit)/i,
   /custody/i,
-];
+]
 
 // ============================================================
 // 운전/교통 질문 패턴
@@ -1227,7 +1270,7 @@ export const drivingPatterns: RegExp[] = [
   /car.*(buy|purchase|fortune)/i,
   /vehicle/i,
   /traffic.*(safe|accident)/i,
-];
+]
 
 // ============================================================
 // 반려동물 질문 패턴
@@ -1256,7 +1299,7 @@ export const petPatterns: RegExp[] = [
   /cat.*(health|how|sick)/i,
   /adopt.*(pet|dog|cat)/i,
   /vet/i,
-];
+]
 
 // ============================================================
 // 친구 관계 질문 패턴
@@ -1285,7 +1328,7 @@ export const friendRelationPatterns: RegExp[] = [
   /friendship.*(how|last|end)/i,
   /best friend.*(how|relationship)/i,
   /make.?friends/i,
-];
+]
 
 // ============================================================
 // 결혼/연애 관계 질문 패턴
@@ -1319,7 +1362,7 @@ export const marriageRelationPatterns: RegExp[] = [
   /girlfriend.*(how|relationship|feelings)/i,
   /partner.*(how|relationship)/i,
   /break.?up.*(should|how)/i,
-];
+]
 
 // ============================================================
 // 외모/패션 질문 패턴
@@ -1351,7 +1394,7 @@ export const beautyFashionPatterns: RegExp[] = [
   /appearance.*(how|improve)/i,
   /skin.*(how|condition|care)/i,
   /style.*(advice|how|change)/i,
-];
+]
 
 // ============================================================
 // 이사/부동산 질문 패턴
@@ -1390,7 +1433,7 @@ export const movingRealEstatePatterns: RegExp[] = [
   /house.*(buy|sell|fortune)/i,
   /apartment.*(buy|rent|how)/i,
   /home.*(buy|move|fortune)/i,
-];
+]
 
 // ============================================================
 // 효도/부모님 질문 패턴
@@ -1415,7 +1458,7 @@ export const parentCarePatterns: RegExp[] = [
   /father.*(health|care|how)/i,
   /filial/i,
   /elderly.?care/i,
-];
+]
 
 // ============================================================
 // 수면/휴식 질문 패턴
@@ -1443,7 +1486,7 @@ export const sleepRestPatterns: RegExp[] = [
   /tired.*(how|always|so)/i,
   /burnout/i,
   /fatigue/i,
-];
+]
 
 // ============================================================
 // 온라인쇼핑/중고거래 질문 패턴
@@ -1468,7 +1511,7 @@ export const onlineShoppingPatterns: RegExp[] = [
   /used.*(buy|sell|trade)/i,
   /delivery.*(when|how)/i,
   /scam.*(worry|check)/i,
-];
+]
 
 // ============================================================
 // 임대/월세/전세 질문 패턴
@@ -1495,7 +1538,7 @@ export const rentalLeasePatterns: RegExp[] = [
   /deposit.*(get back|how|pay)/i,
   /landlord.*(how|issue|deal)/i,
   /tenant.*(rights|how)/i,
-];
+]
 
 // ============================================================
 // 핸드폰/전자기기 질문 패턴
@@ -1528,7 +1571,7 @@ export const phoneDevicePatterns: RegExp[] = [
   /computer.*(buy|upgrade|how)/i,
   /device.*(buy|upgrade|how)/i,
   /iphone.*(buy|how|when)/i,
-];
+]
 
 // ============================================================
 // 헤어/외모변화 질문 패턴
@@ -1555,7 +1598,7 @@ export const hairAppearancePatterns: RegExp[] = [
   /perm.*(get|how|should)/i,
   /salon.*(go|how|when)/i,
   /makeover.*(how|should|get)/i,
-];
+]
 
 // ============================================================
 // 선물/기프트 질문 패턴
@@ -1587,7 +1630,7 @@ export const giftPresentPatterns: RegExp[] = [
   /what.*(give|buy|gift)/i,
   /birthday.?gift/i,
   /anniversary.?gift/i,
-];
+]
 
 // ============================================================
 // 다이어트/체중관리 질문 패턴
@@ -1620,7 +1663,7 @@ export const dietWeightPatterns: RegExp[] = [
   /exercise.*(start|how|should)/i,
   /workout.*(how|start|routine)/i,
   /fitness.*(how|start|goal)/i,
-];
+]
 
 // ============================================================
 // 외국어/언어학습 질문 패턴
@@ -1652,7 +1695,7 @@ export const languageLearningPatterns: RegExp[] = [
   /foreign.?language/i,
   /fluent/i,
   /TOEIC|TOEFL|IELTS/i,
-];
+]
 
 // ============================================================
 // 운전면허/차량 질문 패턴
@@ -1674,7 +1717,7 @@ export const driverLicensePatterns: RegExp[] = [
   /driving.?test.*(pass|how)/i,
   /car.*(buy|when|which)/i,
   /vehicle.*(buy|purchase)/i,
-];
+]
 
 // ============================================================
 // 봉사/기부/자선 질문 패턴
@@ -1702,7 +1745,7 @@ export const volunteerCharityPatterns: RegExp[] = [
   /charit.*(y|able).*(how|give|donate)/i,
   /help.*(others|community|how)/i,
   /give.?back.*(how|community)/i,
-];
+]
 
 // ============================================================
 // 커플싸움/화해 질문 패턴
@@ -1734,4 +1777,4 @@ export const coupleFightPatterns: RegExp[] = [
   /apologize.*(how|should|first)/i,
   /reconcile.*(how|should)/i,
   /not.?talking.*(how|what)/i,
-];
+]

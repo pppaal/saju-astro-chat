@@ -65,20 +65,41 @@ function getScoreBarStyleKey(score: number): ScoreBarStyleKey {
   return 'scoreBarLow'
 }
 
-// 날짜 포맷팅
+// 날짜 포맷팅 - 더 명확한 표시
 function formatDateRange(startDate: string, endDate: string): string {
   const start = new Date(startDate)
   const end = new Date(endDate)
+  const now = new Date()
 
+  const startYear = start.getFullYear()
+  const endYear = end.getFullYear()
   const startMonth = start.getMonth() + 1
   const startDay = start.getDate()
   const endMonth = end.getMonth() + 1
   const endDay = end.getDate()
+  const currentYear = now.getFullYear()
 
-  if (startMonth === endMonth) {
-    return `${start.getFullYear()}년 ${startMonth}월 ${startDay}일 ~ ${endDay}일`
+  // Calculate relative timing
+  const monthsFromNow = (startYear - currentYear) * 12 + (startMonth - (now.getMonth() + 1))
+  let relativeText = ''
+  if (monthsFromNow <= 0) {
+    relativeText = ' (현재)'
+  } else if (monthsFromNow <= 3) {
+    relativeText = ` (${monthsFromNow}개월 후)`
+  } else if (monthsFromNow <= 12) {
+    relativeText = ` (올해)`
+  } else if (monthsFromNow <= 24) {
+    relativeText = ` (내년)`
   }
-  return `${start.getFullYear()}년 ${startMonth}월 ${startDay}일 ~ ${endMonth}월 ${endDay}일`
+
+  // Format date range
+  if (startYear === endYear) {
+    if (startMonth === endMonth) {
+      return `${startYear}년 ${startMonth}월 ${startDay}일 ~ ${endDay}일${relativeText}`
+    }
+    return `${startYear}년 ${startMonth}월 ${startDay}일 ~ ${endMonth}월 ${endDay}일${relativeText}`
+  }
+  return `${startYear}년 ${startMonth}월 ${startDay}일 ~ ${endYear}년 ${endMonth}월 ${endDay}일${relativeText}`
 }
 
 function formatSpecificDay(dateStr: string): string {

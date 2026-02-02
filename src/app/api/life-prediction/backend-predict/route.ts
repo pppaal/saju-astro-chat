@@ -222,12 +222,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               throw new Error(`Backend server error: ${backendRes.status}`)
             }
 
-            throw new Error(
-              `Backend request failed: ${backendRes.status} ${backendRes.statusText}`
-            )
+            throw new Error(`Backend request failed: ${backendRes.status} ${backendRes.statusText}`)
           }
 
-          return backendRes.json();
+          return backendRes.json()
         } catch (error) {
           // Log network-level errors with more context
           if (error instanceof Error) {
@@ -252,7 +250,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         backendData: backendData === null ? 'null' : 'undefined',
         endpoint,
         type,
-      });
+      })
       return NextResponse.json(
         {
           success: false,
@@ -271,12 +269,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // 프론트엔드 형식으로 변환
-    const response = transformBackendResponse(backendData, type);
+    const response = transformBackendResponse(backendData, type)
 
     return NextResponse.json({
       success: true,
       data: response,
-    });
+    })
   } catch (error) {
     logger.error('[Backend Predict] Error:', error)
 
@@ -323,15 +321,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 function transformBackendResponse(data: BackendResponse, type: string): Record<string, unknown> {
   if (type === 'timing' && data.recommendations) {
     // timing 응답을 프론트엔드 형식으로 변환
-    const optimalPeriods = data.recommendations.map((rec, index) => ({
-      startDate: rec.start_date,
-      endDate: rec.end_date,
-      score: rec.score,
-      grade: scoreToGrade(rec.score),
-      reasons: formatReasons(rec.reasons, rec.advice),
-      specificDays: [], // 백엔드에서 제공되지 않으면 빈 배열
-      rank: index + 1,
-    }));
+    const optimalPeriods = data.recommendations
+      .map((rec, index) => ({
+        startDate: rec.start_date,
+        endDate: rec.end_date,
+        score: rec.score,
+        grade: scoreToGrade(rec.score),
+        reasons: formatReasons(rec.reasons, rec.advice),
+        specificDays: [], // 백엔드에서 제공되지 않으면 빈 배열
+        rank: index + 1,
+      }))
+      // Sort by score descending to ensure best periods first
+      .sort((a, b) => b.score - a.score)
+      // Take top 5 results
+      .slice(0, 5)
 
     return {
       eventType: data.event_type || 'general',
