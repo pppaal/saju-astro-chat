@@ -1,129 +1,127 @@
 //src/app/layout.tsx
 
-import type { Metadata, Viewport } from "next";
-import "./globals.css";
-import "../styles/mobile-touch.css";
-import StarrySky from "@/components/ui/StarrySky";
-import BackButtonWrapper from "@/components/ui/BackButtonWrapper";
-import Footer from "@/components/ui/Footer";
-import { I18nProvider } from "@/i18n/I18nProvider";
-import { ToastProvider } from "@/components/ui/Toast";
-import { CreditModalProvider } from "@/contexts/CreditModalContext";
-import { ErrorBoundaryProvider } from "@/components/providers/ErrorBoundaryProvider";
-import { ConsentProvider } from "@/contexts/ConsentContext";
-import { ConsentBanner } from "@/components/consent/ConsentBanner";
-import { NotificationProvider } from "@/contexts/NotificationContext";
-import { JsonLd } from "@/components/seo/JsonLd";
-import { generateJsonLd } from "@/components/seo/SEO";
-import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
-import { MicrosoftClarity } from "@/components/analytics/MicrosoftClarity";
-import { KakaoInit } from "@/components/analytics/KakaoInit";
-import AuthProvider from "@/components/AuthProvider";
-import ScrollRestoration from "@/components/ui/ScrollRestoration";
-import GlobalHeader from "@/components/ui/GlobalHeader";
-import { WebVitalsReporter } from "@/components/performance/WebVitalsReporter";
-import { ReactNode, Suspense } from "react";
-import { Montserrat, Noto_Sans_KR, Cinzel, Lora, Merriweather } from "next/font/google";
-import { headers } from "next/headers";
+import type { Metadata, Viewport } from 'next'
+import './globals.css'
+import '../styles/mobile-touch.css'
+import StarrySky from '@/components/ui/StarrySky'
+import BackButtonWrapper from '@/components/ui/BackButtonWrapper'
+import Footer from '@/components/ui/Footer'
+import { ErrorBoundaryProvider } from '@/components/providers/ErrorBoundaryProvider'
+import { ConsentProvider } from '@/contexts/ConsentContext'
+import { ConsentBanner } from '@/components/consent/ConsentBanner'
+import { NotificationProvider } from '@/contexts/NotificationContext'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { generateJsonLd } from '@/components/seo/SEO'
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
+import { MicrosoftClarity } from '@/components/analytics/MicrosoftClarity'
+import { KakaoInit } from '@/components/analytics/KakaoInit'
+import AuthProvider from '@/components/AuthProvider'
+import ScrollRestoration from '@/components/ui/ScrollRestoration'
+import GlobalHeader from '@/components/ui/GlobalHeader'
+import { WebVitalsReporter } from '@/components/performance/WebVitalsReporter'
+import { ReactNode, Suspense } from 'react'
+import { Montserrat, Noto_Sans_KR, Cinzel, Lora, Merriweather } from 'next/font/google'
+import { headers } from 'next/headers'
+import { ClientProviders } from './ClientProviders'
 
 // Primary fonts with optimized loading
 const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["400", "700", "800"],
-  display: "swap",
-  variable: "--font-montserrat",
-});
+  subsets: ['latin'],
+  weight: ['400', '700', '800'],
+  display: 'swap',
+  variable: '--font-montserrat',
+})
 
 const notoKr = Noto_Sans_KR({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-  variable: "--font-noto-kr",
-});
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  display: 'swap',
+  variable: '--font-noto-kr',
+})
 
 // Secondary fonts for specific pages
 const cinzel = Cinzel({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-  variable: "--font-cinzel",
-});
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  display: 'swap',
+  variable: '--font-cinzel',
+})
 
 const lora = Lora({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-  variable: "--font-lora",
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  display: 'swap',
+  variable: '--font-lora',
   preload: false,
-});
+})
 
 const merriweather = Merriweather({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-  variable: "--font-merriweather",
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  display: 'swap',
+  variable: '--font-merriweather',
   preload: false,
-});
-
+})
 
 export const viewport: Viewport = {
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  viewportFit: "cover",
-};
+  viewportFit: 'cover',
+}
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'),
   title: {
-    default: "DestinyPal | AI Spiritual Mental Care Platform",
-    template: "%s | DestinyPal",
+    default: 'DestinyPal | AI Spiritual Mental Care Platform',
+    template: '%s | DestinyPal',
   },
-  description: "Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform integrating Eastern & Western wisdom frameworks.",
+  description:
+    'Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform integrating Eastern & Western wisdom frameworks.',
   keywords: [
     // Korean keywords
-    "??",
-    "????",
-    "????",
-    "??",
-    "????",
-    "???",
-    "???",
-    "??? ??",
-    "???",
-    "???",
-    "???",
-    "??",
-    "AI ??",
-    "AI ??",
-    "????",
-    "????",
+    '??',
+    '????',
+    '????',
+    '??',
+    '????',
+    '???',
+    '???',
+    '??? ??',
+    '???',
+    '???',
+    '???',
+    '??',
+    'AI ??',
+    'AI ??',
+    '????',
+    '????',
     // English keywords
-    "free tarot reading",
-    "tarot online",
-    "horoscope today",
-    "astrology chart",
-    "numerology",
-    "birth chart",
-    "compatibility test",
-    "dream interpretation",
-    "saju",
-    "korean fortune telling",
-    "ai tarot",
-    "ai astrology",
-    "spiritual counseling",
-    "life prediction",
+    'free tarot reading',
+    'tarot online',
+    'horoscope today',
+    'astrology chart',
+    'numerology',
+    'birth chart',
+    'compatibility test',
+    'dream interpretation',
+    'saju',
+    'korean fortune telling',
+    'ai tarot',
+    'ai astrology',
+    'spiritual counseling',
+    'life prediction',
   ],
-  applicationName: "DestinyPal",
-  authors: [{ name: "DestinyPal" }],
-  creator: "DestinyPal",
-  publisher: "DestinyPal",
-  manifest: "/manifest.json",
+  applicationName: 'DestinyPal',
+  authors: [{ name: 'DestinyPal' }],
+  creator: 'DestinyPal',
+  publisher: 'DestinyPal',
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
-    title: "DestinyPal",
+    statusBarStyle: 'black-translucent',
+    title: 'DestinyPal',
   },
   formatDetection: {
     email: false,
@@ -131,29 +129,31 @@ export const metadata: Metadata = {
     telephone: false,
   },
   openGraph: {
-    type: "website",
-    locale: "en_US",
-    alternateLocale: ["ko_KR"],
-    url: "/",
-    siteName: "DestinyPal",
-    title: "DestinyPal | AI Spiritual Mental Care Platform",
-    description: "Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.",
+    type: 'website',
+    locale: 'en_US',
+    alternateLocale: ['ko_KR'],
+    url: '/',
+    siteName: 'DestinyPal',
+    title: 'DestinyPal | AI Spiritual Mental Care Platform',
+    description:
+      'Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.',
     images: [
       {
-        url: "/og-image.png",
+        url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: "DestinyPal - AI Spiritual Mental Care",
+        alt: 'DestinyPal - AI Spiritual Mental Care',
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
-    title: "DestinyPal | AI Spiritual Mental Care Platform",
-    description: "Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.",
-    images: ["/og-image.png"],
-    creator: "@destinypal",
-    site: "@destinypal",
+    card: 'summary_large_image',
+    title: 'DestinyPal | AI Spiritual Mental Care Platform',
+    description:
+      'Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.',
+    images: ['/og-image.png'],
+    creator: '@destinypal',
+    site: '@destinypal',
   },
   robots: {
     index: true,
@@ -161,37 +161,43 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
     },
   },
   alternates: {
-    canonical: "/",
+    canonical: '/',
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,
     yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
   },
-};
+}
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   // Get nonce from middleware
-  const headersList = await headers();
-  const nonce = headersList.get('x-nonce') || '';
+  const headersList = await headers()
+  const nonce = headersList.get('x-nonce') || ''
 
   const websiteJsonLd = generateJsonLd({
-    type: "WebSite",
-    name: "DestinyPal",
-    description: "Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.",
-  });
+    type: 'WebSite',
+    name: 'DestinyPal',
+    description:
+      'Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.',
+  })
 
   const organizationJsonLd = generateJsonLd({
-    type: "Organization",
-  });
+    type: 'Organization',
+  })
 
   return (
-    <html lang="ko" data-theme="dark" data-scroll-behavior="smooth" style={{ colorScheme: 'dark', backgroundColor: '#0d1225' }}>
+    <html
+      lang="ko"
+      data-theme="dark"
+      data-scroll-behavior="smooth"
+      style={{ colorScheme: 'dark', backgroundColor: '#0d1225' }}
+    >
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/logo/logo.png" />
@@ -228,10 +234,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <ConsentProvider>
           {/* Analytics */}
           <Suspense fallback={null}>
-            <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ""} nonce={nonce} />
+            <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ''} nonce={nonce} />
           </Suspense>
           <Suspense fallback={null}>
-            <MicrosoftClarity clarityId={process.env.NEXT_PUBLIC_CLARITY_ID || ""} nonce={nonce} />
+            <MicrosoftClarity clarityId={process.env.NEXT_PUBLIC_CLARITY_ID || ''} nonce={nonce} />
           </Suspense>
           <KakaoInit />
 
@@ -239,25 +245,18 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <AuthProvider>
               <WebVitalsReporter />
               <ScrollRestoration />
-              <I18nProvider>
-                <ToastProvider>
-                  <CreditModalProvider>
-                    <NotificationProvider>
-                      <StarrySky />
-                      <BackButtonWrapper />
-                      <GlobalHeader />
-                      <main id="main-content">{children}</main>
-                      <Footer />
-                    </NotificationProvider>
-                  </CreditModalProvider>
-                </ToastProvider>
-              </I18nProvider>
+              <ClientProviders>
+                <StarrySky />
+                <BackButtonWrapper />
+                <GlobalHeader />
+                <main id="main-content">{children}</main>
+                <Footer />
+                <ConsentBanner />
+              </ClientProviders>
             </AuthProvider>
           </ErrorBoundaryProvider>
-
-          <ConsentBanner />
         </ConsentProvider>
       </body>
     </html>
-  );
+  )
 }
