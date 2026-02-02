@@ -2,14 +2,13 @@
 
 import React, { Suspense, useEffect, useCallback, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
+import NextImage from 'next/image'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
-import { getCardImagePath } from '@/lib/Tarot/tarot.types'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import AuthGate from '@/components/auth/AuthGate'
 import { CardPickingScreen } from '@/components/tarot/CardPickingScreen'
@@ -19,6 +18,13 @@ import styles from './tarot-reading.module.css'
 import { useTarotGame, useTarotInterpretation } from './hooks'
 import { CARD_COLORS } from './constants'
 import { smoothScrollTo } from './utils'
+import {
+  HorizontalCardsGrid,
+  DetailedCardsSection,
+  OverallMessageChat,
+  CardInterpretationChat,
+  ActionButtons,
+} from './components'
 
 const PersonalityInsight = dynamic(() => import('@/components/personality/PersonalityInsight'), {
   ssr: false,
@@ -266,7 +272,7 @@ function TarotReadingPage() {
                     onClick={() => handleColorSelect(deck)}
                   >
                     <div className={styles.deckCardPreview}>
-                      <Image
+                      <NextImage
                         src={deck.backImage}
                         alt={deck.name}
                         width={100}
@@ -327,111 +333,17 @@ function TarotReadingPage() {
           </div>
 
           {/* Cards Grid */}
-          <div className={styles.resultsGridHorizontal}>
-            {readingResult.drawnCards.map((drawnCard, index) => {
-              const meaning = drawnCard.isReversed
-                ? drawnCard.card.reversed
-                : drawnCard.card.upright
-              const position = readingResult.spread.positions[index]
-              const positionTitle =
-                (language === 'ko' ? position?.titleKo || position?.title : position?.title) ||
-                (language === 'ko' ? `카드 ${index + 1}` : `Card ${index + 1}`)
-              const revealed = isCardRevealed(index)
-              const canReveal = canRevealCard(index);
-
-              return (
-                <div
-                  key={index}
-                  className={`${styles.resultCardHorizontal} ${revealed ? styles.revealed : ''} ${canReveal ? styles.canReveal : ''}`}
-                  style={
-                    {
-                      animationDelay: `${index * 0.15}s`,
-                      '--card-back-image': `url(${selectedColor.backImage})`,
-                      '--card-border': selectedColor.border,
-                    } as React.CSSProperties
-                  }
-                  onClick={() => !revealed && canReveal && handleCardReveal(index)}
-                  role="button"
-                  tabIndex={canReveal && !revealed ? 0 : -1}
-                  aria-label={
-                    revealed
-                      ? `${positionTitle}: ${language === 'ko' ? drawnCard.card.nameKo || drawnCard.card.name : drawnCard.card.name}${drawnCard.isReversed ? ` (${language === 'ko' ? '역위' : 'reversed'})` : ''}`
-                      : `${positionTitle} - ${canReveal ? (language === 'ko' ? '클릭하여 공개' : 'Click to reveal') : language === 'ko' ? '잠김' : 'Locked'}`
-                  }
-                  aria-pressed={revealed}
-                  onKeyDown={(e) => {
-                    if ((e.key === 'Enter' || e.key === ' ') && !revealed && canReveal) {
-                      e.preventDefault()
-                      handleCardReveal(index)
-                    }
-                  }}
-                >
-                  <div className={styles.cardNumberBadge}>{index + 1}</div>
-                  <div className={styles.positionBadgeHorizontal}>{positionTitle}</div>
-
-                  <div className={styles.cardContainerLarge}>
-                    {revealed ? (
-                      <div className={styles.cardFlipInnerSlow}>
-                        <div className={styles.cardBackResultLarge}></div>
-                        <div className={styles.cardFrontLarge}>
-                          <Image
-                            src={getCardImagePath(drawnCard.card.id, selectedDeckStyle)}
-                            alt={drawnCard.card.name}
-                            width={180}
-                            height={315}
-                            className={styles.resultCardImageLarge}
-                            placeholder="empty"
-                            onError={(e) => {
-                              e.currentTarget.style.opacity = '0.3'
-                            }}
-                          />
-                          {drawnCard.isReversed && (
-                            <div className={styles.reversedLabelLarge}>
-                              {translate('tarot.results.reversed', 'Reversed')}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        className={`${styles.cardBackLarge} ${canReveal ? styles.clickable : styles.locked}`}
-                      >
-                        <div className={styles.cardBackImageLarge}></div>
-                        {canReveal && (
-                          <div className={styles.clickPrompt}>
-                            {translate('tarot.results.clickToReveal', '클릭하세요')}
-                          </div>
-                        )}
-                        {!canReveal && <div className={styles.lockIcon}>🔒</div>}
-                      </div>
-                    )}
-                  </div>
-
-                  {revealed && (
-                    <div className={styles.cardInfoCompact}>
-                      <h3 className={styles.cardNameCompact}>
-                        {language === 'ko'
-                          ? drawnCard.card.nameKo || drawnCard.card.name
-                          : drawnCard.card.name}
-                      </h3>
-                      <div className={styles.keywordsCompact}>
-                        {(language === 'ko'
-                          ? meaning.keywordsKo || meaning.keywords
-                          : meaning.keywords
-                        )
-                          .slice(0, 2)
-                          .map((keyword, i) => (
-                            <span key={i} className={styles.keywordTagCompact}>
-                              {keyword}
-                            </span>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+          <HorizontalCardsGrid
+            readingResult={readingResult}
+            selectedColor={selectedColor}
+            selectedDeckStyle={selectedDeckStyle}
+            language={language}
+            revealedCards={revealedCards}
+            onCardReveal={handleCardReveal}
+            canRevealCard={canRevealCard}
+            isCardRevealed={isCardRevealed}
+            translate={translate}
+          />
 
           {/* Scroll to Details Button */}
           {revealedCards.length === readingResult.drawnCards.length && (
@@ -442,257 +354,32 @@ function TarotReadingPage() {
 
           {/* Detailed Section - Card meanings without AI */}
           {/* Shown first so users see basic card data before AI interpretation */}
-          {revealedCards.length === readingResult.drawnCards.length && (
-            <div className={styles.detailedCardsSection} ref={detailedSectionRef}>
-              <h2 className={styles.detailedSectionTitle}>
-                {translate('tarot.results.detailedReadings', '상세 해석')}
-              </h2>
-              <div className={styles.resultsGrid}>
-                {readingResult.drawnCards.map((drawnCard, index) => {
-                  const meaning = drawnCard.isReversed
-                    ? drawnCard.card.reversed
-                    : drawnCard.card.upright
-                  const position = readingResult.spread.positions[index]
-                  const positionTitle =
-                    (language === 'ko' ? position?.titleKo || position?.title : position?.title) ||
-                    (language === 'ko' ? `카드 ${index + 1}` : `Card ${index + 1}`)
-                  const cardInsight = insight?.card_insights?.[index]
-                  const isExpanded = expandedCard === index
-
-                  return (
-                    <div
-                      key={index}
-                      className={`${styles.resultCardSlot} ${isExpanded ? styles.expanded : ''}`}
-                      style={{ '--card-index': index } as React.CSSProperties}
-                      onClick={() => toggleCardExpand(index)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          toggleCardExpand(index)
-                        }
-                      }}
-                    >
-                      <div className={styles.positionBadgeWithNumber}>
-                        <span className={styles.cardNumberSmall}>{index + 1}</span>
-                        <span>{positionTitle}</span>
-                      </div>
-                      <div className={styles.imageContainer}>
-                        <Image
-                          src={getCardImagePath(drawnCard.card.id, selectedDeckStyle)}
-                          alt={drawnCard.card.name}
-                          width={180}
-                          height={315}
-                          className={styles.resultCardImage}
-                          onError={(e) => {
-                            e.currentTarget.style.opacity = '0.3'
-                          }}
-                        />
-                        {drawnCard.isReversed && (
-                          <div className={styles.reversedLabel}>
-                            {translate('tarot.results.reversed', 'Reversed')}
-                          </div>
-                        )}
-                      </div>
-                      <div className={styles.cardInfo}>
-                        <h3 className={styles.cardName}>
-                          {language === 'ko'
-                            ? drawnCard.card.nameKo || drawnCard.card.name
-                            : drawnCard.card.name}
-                        </h3>
-                        <div className={styles.keywords}>
-                          {(language === 'ko'
-                            ? meaning.keywordsKo || meaning.keywords
-                            : meaning.keywords
-                          ).map((keyword, i) => (
-                            <span key={i} className={styles.keywordTag}>
-                              {keyword}
-                            </span>
-                          ))}
-                        </div>
-                        <p className={styles.meaning}>
-                          {language === 'ko'
-                            ? meaning.meaningKo || meaning.meaning
-                            : meaning.meaning}
-                        </p>
-                        {cardInsight && (
-                          <div className={styles.premiumInsights}>
-                            {cardInsight.interpretation &&
-                              cardInsight.interpretation.length > 0 &&
-                              cardInsight.interpretation !== meaning.meaning &&
-                              cardInsight.interpretation !== meaning.meaningKo && (
-                                <div className={styles.insightSection}>
-                                  <h4 className={styles.insightTitle}>
-                                    🔮{' '}
-                                    {translate('tarot.insights.aiInterpretation', 'Deep Insight')}
-                                  </h4>
-                                  <p className={styles.insightText}>{cardInsight.interpretation}</p>
-                                </div>
-                              )}
-                            {cardInsight.spirit_animal && (
-                              <div className={styles.insightSection}>
-                                <h4 className={styles.insightTitle}>
-                                  🦋 {translate('tarot.insights.spiritAnimal', 'Spirit Animal')}
-                                </h4>
-                                <div className={styles.spiritAnimal}>
-                                  <span className={styles.animalName}>
-                                    {cardInsight.spirit_animal.name}
-                                  </span>
-                                  <p className={styles.animalMeaning}>
-                                    {cardInsight.spirit_animal.meaning}
-                                  </p>
-                                  <p className={styles.animalMessage}>
-                                    &quot;{cardInsight.spirit_animal.message}&quot;
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-                            {cardInsight.chakra && (
-                              <div className={styles.insightSection}>
-                                <h4 className={styles.insightTitle}>
-                                  🧘 {translate('tarot.insights.chakra', 'Chakra Connection')}
-                                </h4>
-                                <div className={styles.chakraInfo}>
-                                  <span
-                                    className={styles.chakraDot}
-                                    style={{ backgroundColor: cardInsight.chakra.color }}
-                                  ></span>
-                                  <span className={styles.chakraName}>
-                                    {cardInsight.chakra.name}
-                                  </span>
-                                  <p className={styles.chakraGuidance}>
-                                    {cardInsight.chakra.guidance}
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-                            {cardInsight.shadow && (
-                              <div className={styles.insightSection}>
-                                <h4 className={styles.insightTitle}>
-                                  🌙 {translate('tarot.insights.shadowWork', 'Shadow Work')}
-                                </h4>
-                                <p className={styles.shadowPrompt}>{cardInsight.shadow.prompt}</p>
-                                <p className={styles.shadowAffirmation}>
-                                  💫 {cardInsight.shadow.affirmation}
-                                </p>
-                              </div>
-                            )}
-                            {cardInsight.element && (
-                              <div className={styles.elementTag}>
-                                {cardInsight.element === 'Fire' && '🔥'}
-                                {cardInsight.element === 'Water' && '💧'}
-                                {cardInsight.element === 'Air' && '🌬️'}
-                                {cardInsight.element === 'Earth' && '🌍'}
-                                {cardInsight.element}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        <div className={styles.expandHint}>
-                          {isExpanded
-                            ? translate('tarot.results.clickToCollapse', '▲ Click to collapse')
-                            : translate('tarot.results.clickToExpand', '▼ Click for more insights')}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+          <DetailedCardsSection
+            readingResult={readingResult}
+            interpretation={interpretation}
+            language={language}
+            selectedDeckStyle={selectedDeckStyle}
+            revealedCards={revealedCards}
+            expandedCard={expandedCard}
+            onToggleExpand={toggleCardExpand}
+            detailedSectionRef={detailedSectionRef}
+            translate={translate}
+          />
 
           {/* AI Overall Message */}
-          {insight?.fallback ? (
-            <div className={styles.counselorChat}>
-              <div className={styles.chatMessage}>
-                <div className={styles.chatAvatar}>🔮</div>
-                <div className={styles.chatContent}>
-                  <div className={styles.chatName}>
-                    {language === 'ko' ? '타로 상담사' : 'Tarot Counselor'}
-                  </div>
-                  <div className={styles.chatBubble}>
-                    <div className={styles.typingIndicator}>
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : insight?.overall_message ? (
-            <div className={styles.counselorChat}>
-              <div className={styles.chatMessage}>
-                <div className={styles.chatAvatar}>🔮</div>
-                <div className={styles.chatContent}>
-                  <div className={styles.chatName}>
-                    {language === 'ko' ? '타로 상담사' : 'Tarot Counselor'}
-                  </div>
-                  <div className={styles.chatBubble}>
-                    <p className={styles.chatText}>{insight.overall_message}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : null}
+          <OverallMessageChat
+            message={insight?.overall_message}
+            isLoading={insight?.fallback}
+            language={language}
+          />
 
           {/* Card Interpretations - AI chat per card */}
-          {revealedCards.length === readingResult.drawnCards.length &&
-            insight &&
-            !insight.fallback && (
-              <div className={styles.cardInterpretationsChat}>
-                {readingResult.drawnCards.map((drawnCard, index) => {
-                  const cardInsight = insight?.card_insights?.[index]
-                  const position = readingResult.spread.positions[index]
-                  const positionTitle =
-                    (language === 'ko' ? position?.titleKo || position?.title : position?.title) ||
-                    `Card ${index + 1}`
-                  const cardName =
-                    language === 'ko'
-                      ? drawnCard.card.nameKo || drawnCard.card.name
-                      : drawnCard.card.name
-                  const meaning = drawnCard.isReversed
-                    ? drawnCard.card.reversed
-                    : drawnCard.card.upright
-
-                  const interp = cardInsight?.interpretation || ''
-                  const isPlaceholder =
-                    interp.includes('카드의 메시지에 귀 기울여') ||
-                    interp.includes('Listen to the card') ||
-                    (interp.includes('자리의') && interp.length < 100)
-                  if (
-                    !interp ||
-                    interp.length === 0 ||
-                    interp === meaning.meaning ||
-                    interp === meaning.meaningKo ||
-                    isPlaceholder
-                  ) {
-                    return null
-                  }
-
-                  return (
-                    <div key={index} className={styles.counselorChat}>
-                      <div className={styles.chatMessage}>
-                        <div className={styles.chatAvatar}>🃏</div>
-                        <div className={styles.chatContent}>
-                          <div className={styles.chatName}>
-                            <span className={styles.cardPosition}>{positionTitle}</span>
-                            <span className={styles.cardNameLabel}>
-                              {cardName}
-                              {drawnCard.isReversed ? ' (역방향)' : ''}
-                            </span>
-                          </div>
-                          <div className={`${styles.chatBubble} ${styles.cardBubble}`}>
-                            <p className={styles.chatText}>{cardInsight.interpretation}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
+          <CardInterpretationChat
+            readingResult={readingResult}
+            interpretation={interpretation}
+            language={language}
+            revealedCards={revealedCards}
+          />
 
           {/* Combinations */}
           {insight?.combinations && insight.combinations.length > 0 && (
@@ -776,29 +463,13 @@ function TarotReadingPage() {
           )}
 
           {/* Action Buttons */}
-          <div className={styles.actionButtons}>
-            <button
-              onClick={handleSaveReading}
-              className={`${styles.saveButton} ${isSaved ? styles.saved : ''}`}
-              disabled={isSaved || isSaving}
-            >
-              {isSaved ? '✓' : isSaving ? '⏳' : '💾'}{' '}
-              {isSaved
-                ? language === 'ko'
-                  ? '저장됨'
-                  : 'Saved'
-                : isSaving
-                  ? language === 'ko'
-                    ? '저장 중...'
-                    : 'Saving...'
-                  : language === 'ko'
-                    ? '저장하기'
-                    : 'Save Reading'}
-            </button>
-            <button onClick={handleReset} className={styles.resetButton}>
-              {language === 'ko' ? '새로 읽기' : 'New Reading'}
-            </button>
-          </div>
+          <ActionButtons
+            language={language}
+            isSaved={isSaved}
+            isSaving={isSaving}
+            onSave={handleSaveReading}
+            onReset={handleReset}
+          />
         </div>
       )
     }
@@ -817,7 +488,7 @@ function TarotReadingPage() {
         onRedraw={handleRedraw}
       />
     )
-  })();
+  })()
 
   return (
     <AuthGate statusOverride={status} callbackUrl={callbackUrl} fallback={loginFallback}>
