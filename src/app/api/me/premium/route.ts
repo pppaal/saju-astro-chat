@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { initializeApiContext, createSimpleGuard } from '@/lib/api/middleware'
+import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api/middleware'
 import Stripe from 'stripe'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 
 export const dynamic = 'force-dynamic'
@@ -61,33 +60,22 @@ async function checkStripeActive(email?: string): Promise<boolean> {
 }
 
 // GET: 현재 사용자의 프리미엄 상태 확인
-export async function GET(req: NextRequest) {
-  const { context, error } = await initializeApiContext(req, guard)
-  if (error) return error
-
-  try {
-    // 로그인 안 됨
-    if (!context.userId || !context.session?.user?.email) {
-      return NextResponse.json({
-        isLoggedIn: false,
-        isPremium: false,
-      })
-    }
-
-    const userEmail = context.session.user.email
-
-    // 프리미엄 체크
-    const isPremium = await checkStripeActive(userEmail)
-
+export const GET = withApiMiddleware(async (_req: NextRequest, context: ApiContext) => {
+  // 로그인 안 됨
+  if (!context.userId || !context.session?.user?.email) {
     return NextResponse.json({
-      isLoggedIn: true,
-      isPremium,
+      isLoggedIn: false,
+      isPremium: false,
     })
-  } catch (err: unknown) {
-    logger.error('[Premium check error]', err)
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Internal Server Error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
   }
-}
+
+  const userEmail = context.session.user.email
+
+  // 프리미엄 체크
+  const isPremium = await checkStripeActive(userEmail)
+
+  return NextResponse.json({
+    isLoggedIn: true,
+    isPremium,
+  })
+}, guard)
