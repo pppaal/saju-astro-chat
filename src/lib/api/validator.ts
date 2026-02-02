@@ -247,6 +247,26 @@ export const TarotPrefetchSchema = z.object({
 })
 export type TarotPrefetchRequest = z.infer<typeof TarotPrefetchSchema>
 
+/** Compatibility persons array request */
+export const CompatibilityPersonSchema = z.object({
+  name: z.string().max(LIMITS.NAME).optional(),
+  date: DateSchema,
+  time: TimeSchema,
+  latitude: LatitudeSchema,
+  longitude: LongitudeSchema,
+  timeZone: z.string().min(1).max(LIMITS.TIMEZONE),
+  city: z.string().max(LIMITS.CITY).optional(),
+  gender: z.string().optional(),
+  relationToP1: z.enum(['friend', 'lover', 'other']).optional(),
+  relationNoteToP1: z.string().max(LIMITS.NOTE).optional(),
+})
+
+export const CompatibilityPersonsRequestSchema = z.object({
+  persons: z.array(CompatibilityPersonSchema).min(2).max(4),
+  locale: LocaleSchema.default('ko'),
+})
+export type CompatibilityPersonsRequest = z.infer<typeof CompatibilityPersonsRequestSchema>
+
 // ============================================================
 // Validation Functions
 // ============================================================

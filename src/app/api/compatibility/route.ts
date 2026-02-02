@@ -1,5 +1,5 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
-import { initializeApiContext, createPublicStreamGuard } from '@/lib/api/middleware'
+import { withApiMiddleware, createPublicStreamGuard, type ApiContext } from '@/lib/api/middleware'
 import { apiClient } from '@/lib/api/ApiClient'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
@@ -39,10 +39,12 @@ function relationWeight(r?: Relation) {
 const MAX_NOTE = LIMITS.NOTE
 
 function buildSajuProfileFromBirth(
-  date: string, time: string, timezone: string
+  date: string,
+  time: string,
+  timezone: string
 ): SajuProfile | null {
   try {
-    const result = calculateSajuData(date, time, 'male', 'solar', timezone);
+    const result = calculateSajuData(date, time, 'male', 'solar', timezone)
     return {
       dayMaster: {
         name: result.dayMaster.name,
@@ -50,33 +52,33 @@ function buildSajuProfileFromBirth(
         yin_yang: result.dayMaster.yin_yang === '양' ? 'yang' : 'yin',
       },
       pillars: {
-        year:  { stem: result.yearPillar.heavenlyStem.name, branch: result.yearPillar.earthlyBranch.name },
-        month: { stem: result.monthPillar.heavenlyStem.name, branch: result.monthPillar.earthlyBranch.name },
-        day:   { stem: result.dayPillar.heavenlyStem.name, branch: result.dayPillar.earthlyBranch.name },
-        time:  { stem: result.timePillar.heavenlyStem.name, branch: result.timePillar.earthlyBranch.name },
+        year: {
+          stem: result.yearPillar.heavenlyStem.name,
+          branch: result.yearPillar.earthlyBranch.name,
+        },
+        month: {
+          stem: result.monthPillar.heavenlyStem.name,
+          branch: result.monthPillar.earthlyBranch.name,
+        },
+        day: {
+          stem: result.dayPillar.heavenlyStem.name,
+          branch: result.dayPillar.earthlyBranch.name,
+        },
+        time: {
+          stem: result.timePillar.heavenlyStem.name,
+          branch: result.timePillar.earthlyBranch.name,
+        },
       },
       elements: result.fiveElements,
-    };
+    }
   } catch (e) {
-    logger.warn('[Compatibility] Saju profile build failed:', e);
-    return null;
+    logger.warn('[Compatibility] Saju profile build failed:', e)
+    return null
   }
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    // Apply middleware: public token auth + rate limiting (no credits for compatibility)
-    const guardOptions = createPublicStreamGuard({
-      route: 'compatibility',
-      limit: 30,
-      windowSeconds: 60,
-    })
-
-    const { error } = await initializeApiContext(req, guardOptions)
-    if (error) {
-      return error
-    }
-
+export const POST = withApiMiddleware(
+  async (req: NextRequest, _context: ApiContext) => {
     const body = await req.json()
     const persons: PersonInput[] = Array.isArray(body?.persons) ? body.persons : []
 
@@ -136,21 +138,21 @@ export async function POST(req: NextRequest) {
     }
 
     // Build Saju profiles once per person (cache to avoid redundant computation)
-    const sajuProfiles: (SajuProfile | null)[] = persons.map(p =>
+    const sajuProfiles: (SajuProfile | null)[] = persons.map((p) =>
       buildSajuProfileFromBirth(p.date, p.time, p.timeZone)
-    );
+    )
 
     const scores = pairs.map(([a, b]) => {
-      const profileA = sajuProfiles[a];
-      const profileB = sajuProfiles[b];
+      const profileA = sajuProfiles[a]
+      const profileB = sajuProfiles[b]
 
-      let base = 65; // neutral default if saju calculation fails
+      let base = 65 // neutral default if saju calculation fails
       if (profileA && profileB) {
         try {
-          const { score: sajuScore } = calculateSajuCompatibilityOnly(profileA, profileB);
-          base = sajuScore;
+          const { score: sajuScore } = calculateSajuCompatibilityOnly(profileA, profileB)
+          base = sajuScore
         } catch (e) {
-          logger.warn('[Compatibility] Saju scoring failed for pair:', { a, b, error: e });
+          logger.warn('[Compatibility] Saju scoring failed for pair:', { a, b, error: e })
         }
       }
 
@@ -160,7 +162,8 @@ export async function POST(req: NextRequest) {
       } else if (b === 0) {
         weight = relationWeight(persons[a].relationToP1)
       } else {
-        weight = (relationWeight(persons[a].relationToP1) + relationWeight(persons[b].relationToP1)) / 2
+        weight =
+          (relationWeight(persons[a].relationToP1) + relationWeight(persons[b].relationToP1)) / 2
       }
 
       const score = Math.round(base * weight)
@@ -319,8 +322,10 @@ export async function POST(req: NextRequest) {
     })
     res.headers.set('Cache-Control', 'no-store')
     return res
-  } catch (e: unknown) {
-    captureServerError(e as Error, { route: '/api/compatibility' })
-    return bad(e instanceof Error ? e.message : 'Unexpected server error', 500)
-  }
-}
+  },
+  createPublicStreamGuard({
+    route: 'compatibility',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)
