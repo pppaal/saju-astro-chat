@@ -2,6 +2,7 @@
 // AI 백엔드 호출 함수들 (Multi-provider failover 지원)
 
 import { logger } from '@/lib/logger'
+import { recordExternalCall } from '@/lib/metrics/index'
 import type { AIPremiumReport } from './reportTypes'
 
 // 기본 타임아웃: 9초 (Vercel Hobby 플랜 10초 제한 고려)
@@ -106,6 +107,7 @@ export async function callAIBackendGeneric<T>(
   let lastError: Error | null = null
 
   for (const provider of enabledProviders) {
+    const startTime = Date.now()
     try {
       logger.info(`[AI Backend] Trying ${provider.name}...`, {
         plan: userPlan,
@@ -114,6 +116,7 @@ export async function callAIBackendGeneric<T>(
 
       const result = await callProviderAPI<T>(provider, prompt, systemMessage, maxTokens)
 
+      const durationMs = Date.now() - startTime
       logger.info(`[AI Backend] ${provider.name} succeeded`, {
         model: result.model,
         tokensUsed: result.tokensUsed,
@@ -121,12 +124,25 @@ export async function callAIBackendGeneric<T>(
         limit: maxTokens,
       })
 
+      // 토큰 사용량 메트릭스 기록
+      if (provider.name === 'openai') {
+        recordExternalCall("openai", result.model, "success", durationMs, {
+          input: result.tokensUsed ? Math.round(result.tokensUsed * 0.7) : undefined,
+          output: result.tokensUsed ? Math.round(result.tokensUsed * 0.3) : undefined,
+        })
+      }
+
       return result
     } catch (error) {
+      const durationMs = Date.now() - startTime
       lastError = error instanceof Error ? error : new Error(String(error))
       logger.warn(`[AI Backend] ${provider.name} failed, trying next provider`, {
         error: lastError.message,
       })
+
+      if (provider.name === 'openai') {
+        recordExternalCall("openai", provider.model, "error", durationMs)
+      }
       // 다음 프로바이더로 계속
     }
   }
@@ -305,7 +321,7 @@ function extractJSONFromResponse<T>(responseText: string): T {
     })
     throw new Error(
       'No JSON found in AI response - response may have been truncated due to token limit'
-    )
+    );
   } catch (parseError) {
     if (parseError instanceof SyntaxError) {
       logger.error('[AI Backend] Failed to parse JSON response (likely truncated)', {

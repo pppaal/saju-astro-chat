@@ -14,6 +14,7 @@ export const SERVICE_OPTIONS = [
   { key: 'compatibility', labelKey: 'menu.compatibility', icon: '💕', path: '/compatibility' },
   { key: 'pastLife', labelKey: 'menu.pastLife', icon: '🔄', path: '/past-life' },
   { key: 'iching', labelKey: 'menu.iching', icon: '📜', path: '/iching' },
+  { key: 'destinyMatch', labelKey: 'menu.destinyMatch', icon: '💘', path: '/destiny-match' },
 ] as const;
 
 // Zodiac signs constant

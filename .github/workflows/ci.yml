@@ -82,7 +82,8 @@ jobs:
 
       - name: Coverage threshold check
         run: |
-          # Extract coverage from json-summary
+          # Extract coverage from json-summary and validate against vitest.config.ts thresholds.
+          # Thresholds are read from vitest.config.ts (single source of truth) so they never drift.
           if [ -f coverage/coverage-summary.json ]; then
             LINES=$(node -e "console.log(require('./coverage/coverage-summary.json').total.lines.pct)")
             BRANCHES=$(node -e "console.log(require('./coverage/coverage-summary.json').total.branches.pct)")
@@ -95,11 +96,14 @@ jobs:
             echo "  Functions: ${FUNCTIONS}%"
             echo "  Statements: ${STATEMENTS}%"
 
-            # Thresholds (must match vitest.config.ts)
-            MIN_LINES=45
-            MIN_BRANCHES=78
-            MIN_FUNCTIONS=68
-            MIN_STATEMENTS=45
+            # Read thresholds from vitest.config.ts (single source of truth)
+            read MIN_LINES MIN_BRANCHES MIN_FUNCTIONS MIN_STATEMENTS <<< $(npx tsx -e "
+              import config from './vitest.config.ts';
+              const t = config.test.coverage.thresholds;
+              console.log([t.lines, t.branches, t.functions, t.statements].join(' '));
+            " 2>/dev/null)
+
+            echo "  Thresholds (from vitest.config.ts): lines=${MIN_LINES}% branches=${MIN_BRANCHES}% functions=${MIN_FUNCTIONS}% statements=${MIN_STATEMENTS}%"
 
             FAILED=0
 
@@ -160,6 +164,14 @@ jobs:
 
             const getIcon = (pct, threshold) => pct >= threshold ? '✅' : '❌';
 
+            // Read thresholds from vitest.config.ts (single source of truth)
+            const { execSync } = require('child_process');
+            const raw = execSync(
+              `npx tsx -e "import c from './vitest.config.ts'; const t = c.test.coverage.thresholds; console.log(JSON.stringify({lines:t.lines,branches:t.branches,functions:t.functions,statements:t.statements}))"`,
+              { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }
+            ).trim();
+            const thresholds = JSON.parse(raw);
+
             // Check for backend coverage
             let backendSection = '';
             if (fs.existsSync('backend_ai/coverage/coverage.json')) {
@@ -178,10 +190,10 @@ jobs:
             ### Frontend (TypeScript)
             | Metric | Coverage | Threshold | Status |
             |--------|----------|-----------|--------|
-            | Lines | ${total.lines.pct.toFixed(2)}% | 45% | ${getIcon(total.lines.pct, 45)} |
-            | Branches | ${total.branches.pct.toFixed(2)}% | 78% | ${getIcon(total.branches.pct, 78)} |
-            | Functions | ${total.functions.pct.toFixed(2)}% | 68% | ${getIcon(total.functions.pct, 68)} |
-            | Statements | ${total.statements.pct.toFixed(2)}% | 45% | ${getIcon(total.statements.pct, 45)} |
+            | Lines | ${total.lines.pct.toFixed(2)}% | ${thresholds.lines}% | ${getIcon(total.lines.pct, thresholds.lines)} |
+            | Branches | ${total.branches.pct.toFixed(2)}% | ${thresholds.branches}% | ${getIcon(total.branches.pct, thresholds.branches)} |
+            | Functions | ${total.functions.pct.toFixed(2)}% | ${thresholds.functions}% | ${getIcon(total.functions.pct, thresholds.functions)} |
+            | Statements | ${total.statements.pct.toFixed(2)}% | ${thresholds.statements}% | ${getIcon(total.statements.pct, thresholds.statements)} |
             ${backendSection}
             <details>
             <summary>Frontend Coverage Details</summary>

@@ -62,7 +62,7 @@ export async function GET(request: Request) {
     // Safe query helper: returns empty array if table doesn't exist yet
     const safeQuery = <T>(promise: Promise<T[]>): Promise<T[]> =>
       promise.catch((err) => {
-        logger.warn('[History] Query failed (table may not exist):', err?.message)
+        logger.warn('[History] Query failed (table may not exist):', err?.message);
         return [] as T[]
       })
 
@@ -333,7 +333,7 @@ export async function GET(request: Request) {
         if (!acc[record.date]) {
           acc[record.date] = []
         }
-        acc[record.date].push(record)
+        acc[record.date].push(record);
         return acc
       },
       {} as Record<string, ServiceRecord[]>
@@ -361,9 +361,9 @@ export async function GET(request: Request) {
         totalRecords,
         hasMore,
       },
-    })
+    });
   } catch (error) {
-    logger.error('Error fetching history:', error)
+    logger.error('Error fetching history:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: HTTP_STATUS.SERVER_ERROR }

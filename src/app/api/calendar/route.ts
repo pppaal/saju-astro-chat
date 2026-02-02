@@ -64,8 +64,7 @@ const MAX_PLACE_LEN = LIMITS.PLACE;
  */
 export const GET = withApiMiddleware(
   async (request: NextRequest, _context: ApiContext) => {
-    try {
-      const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(request.url);
     const birthDateParam = searchParams.get("birthDate")?.trim().slice(0, 10);
 
     if (!birthDateParam) {
@@ -347,13 +346,6 @@ export const GET = withApiMiddleware(
 
     res.headers.set("Cache-Control", "no-store");
     return res;
-    } catch (error: unknown) {
-      logger.error("Calendar API error:", error);
-      return NextResponse.json(
-        { error: "Internal server error", message: error instanceof Error ? error.message : "Unknown error" },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      );
-    }
   },
   createPublicStreamGuard({
     route: "calendar",

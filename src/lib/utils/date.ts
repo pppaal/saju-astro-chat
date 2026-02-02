@@ -84,7 +84,7 @@ export function isValidISODate(dateString: string): boolean {
     return false
   }
 
-  const date = parseISODate(dateString)
+  const date = parseISODate(dateString);
   return !isNaN(date.getTime())
 }
 
@@ -164,7 +164,7 @@ export function parseDateComponents(dateString: string): {
   month: number
   day: number
 } {
-  const [year, month, day] = dateString.split('-').map(Number)
+  const [year, month, day] = dateString.split('-').map(Number);
   return { year, month, day }
 }
 
@@ -177,7 +177,7 @@ export function parseTimeComponents(timeString: string): {
   hour: number
   minute: number
 } {
-  const [hour, minute] = timeString.split(':').map(Number)
+  const [hour, minute] = timeString.split(':').map(Number);
   return { hour, minute }
 }
 
@@ -233,7 +233,7 @@ export function calculateAge(birthDate: string | Date): number {
  */
 export function isToday(date: string | Date): boolean {
   const dateObj = typeof date === 'string' ? new Date(date) : date
-  const today = new Date()
+  const today = new Date();
   return (
     dateObj.getDate() === today.getDate() &&
     dateObj.getMonth() === today.getMonth() &&
@@ -250,7 +250,7 @@ export function isPast(date: string | Date): boolean {
   const dateObj = typeof date === 'string' ? new Date(date) : date
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  dateObj.setHours(0, 0, 0, 0)
+  dateObj.setHours(0, 0, 0, 0);
   return dateObj < today
 }
 
@@ -263,7 +263,7 @@ export function isFuture(date: string | Date): boolean {
   const dateObj = typeof date === 'string' ? new Date(date) : date
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  dateObj.setHours(0, 0, 0, 0)
+  dateObj.setHours(0, 0, 0, 0);
   return dateObj > today
 }
 
@@ -293,7 +293,7 @@ export function getDateRange(startDate: Date, endDate: Date): string[] {
  */
 export function addDays(date: Date, days: number): Date {
   const result = new Date(date)
-  result.setDate(result.getDate() + days)
+  result.setDate(result.getDate() + days);
   return result
 }
 
@@ -305,7 +305,7 @@ export function addDays(date: Date, days: number): Date {
  */
 export function addMonths(date: Date, months: number): Date {
   const result = new Date(date)
-  result.setMonth(result.getMonth() + months)
+  result.setMonth(result.getMonth() + months);
   return result
 }
 
@@ -317,6 +317,6 @@ export function addMonths(date: Date, months: number): Date {
  */
 export function addYears(date: Date, years: number): Date {
   const result = new Date(date)
-  result.setFullYear(result.getFullYear() + years)
+  result.setFullYear(result.getFullYear() + years);
   return result
 }

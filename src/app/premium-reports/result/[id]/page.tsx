@@ -111,7 +111,7 @@ export default function ReportResultPage() {
         insights: apiReport.insights,
         actionItems: apiReport.actionItems,
         fullData,
-      })
+      });
     } catch {
       setError('리포트를 불러오는데 실패했습니다.')
     } finally {
@@ -169,7 +169,7 @@ export default function ReportResultPage() {
           title: report?.title,
           text: report?.summary,
           url: window.location.href,
-        })
+        });
       } catch {
         // 사용자가 공유를 취소한 경우
       }

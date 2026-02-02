@@ -4,7 +4,6 @@ import { analyzeICP, getICPCompatibility, getCrossSystemCompatibility } from '@/
 import { analyzePersona, getPersonaCompatibility } from '@/lib/persona/analysis';
 import type { ICPQuizAnswers } from '@/lib/icp/types';
 import type { PersonaQuizAnswers } from '@/lib/persona/types';
-import { logger } from '@/lib/logger';
 import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const runtime = 'nodejs';
@@ -24,8 +23,7 @@ interface CompatibilityRequest {
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
-    try {
-      const body: CompatibilityRequest = await req.json();
+    const body: CompatibilityRequest = await req.json();
     const { person1, person2, locale = 'en' } = body;
 
     // Validate input
@@ -67,48 +65,41 @@ export const POST = withApiMiddleware(
       locale
     );
 
-      return NextResponse.json({
-        person1: {
-          icp: {
-            primaryStyle: icp1.primaryStyle,
-            secondaryStyle: icp1.secondaryStyle,
-            dominanceScore: icp1.dominanceScore,
-            affiliationScore: icp1.affiliationScore,
-            octantScores: icp1.octantScores,
-          },
-          persona: {
-            typeCode: persona1.typeCode,
-            personaName: persona1.personaName,
-            axes: persona1.axes,
-          },
+    return NextResponse.json({
+      person1: {
+        icp: {
+          primaryStyle: icp1.primaryStyle,
+          secondaryStyle: icp1.secondaryStyle,
+          dominanceScore: icp1.dominanceScore,
+          affiliationScore: icp1.affiliationScore,
+          octantScores: icp1.octantScores,
         },
-        person2: {
-          icp: {
-            primaryStyle: icp2.primaryStyle,
-            secondaryStyle: icp2.secondaryStyle,
-            dominanceScore: icp2.dominanceScore,
-            affiliationScore: icp2.affiliationScore,
-            octantScores: icp2.octantScores,
-          },
-          persona: {
-            typeCode: persona2.typeCode,
-            personaName: persona2.personaName,
-            axes: persona2.axes,
-          },
+        persona: {
+          typeCode: persona1.typeCode,
+          personaName: persona1.personaName,
+          axes: persona1.axes,
         },
-        compatibility: {
-          icp: icpCompatibility,
-          persona: personaCompatibility,
-          crossSystem: crossSystemCompatibility,
+      },
+      person2: {
+        icp: {
+          primaryStyle: icp2.primaryStyle,
+          secondaryStyle: icp2.secondaryStyle,
+          dominanceScore: icp2.dominanceScore,
+          affiliationScore: icp2.affiliationScore,
+          octantScores: icp2.octantScores,
         },
-      });
-    } catch (error) {
-      logger.error('Personality compatibility error:', error);
-      return NextResponse.json(
-        { error: 'Internal server error' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      );
-    }
+        persona: {
+          typeCode: persona2.typeCode,
+          personaName: persona2.personaName,
+          axes: persona2.axes,
+        },
+      },
+      compatibility: {
+        icp: icpCompatibility,
+        persona: personaCompatibility,
+        crossSystem: crossSystemCompatibility,
+      },
+    });
   },
   createSimpleGuard({
     route: '/api/personality-compatibility',

@@ -57,6 +57,10 @@
     "pastLife": {
       "label": "전생",
       "desc": "전생을 알아보세요"
+    },
+    "destinyMatch": {
+      "label": "데스티니 매치",
+      "desc": "운명의 상대 찾기"
     }
   }
 }

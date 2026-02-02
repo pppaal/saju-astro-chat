@@ -88,24 +88,20 @@ export async function checkPremiumFromDatabase(
     return { isPremium: cached, plan: cached ? "cached" : "free" };
   }
 
-  try {
-    // Check userCredits table
-    const userCredits = await prisma.userCredits.findUnique({
-      where: { userId },
-      select: { plan: true },
-    });
+  // DB errors propagate to caller (API middleware) instead of silently
+  // returning isPremium:false, which would lock premium users out.
+  const userCredits = await prisma.userCredits.findUnique({
+    where: { userId },
+    select: { plan: true },
+  });
 
-    const plan = userCredits?.plan || "free";
-    const isPremium = plan !== "free";
+  const plan = userCredits?.plan || "free";
+  const isPremium = plan !== "free";
 
-    // Cache the result
-    await setCachedPremiumStatus(userId, isPremium, plan);
+  // Cache the result (cache failures are non-fatal)
+  await setCachedPremiumStatus(userId, isPremium, plan);
 
-    return { isPremium, plan };
-  } catch (err) {
-    logger.error("[Premium Check] Database error:", err);
-    return { isPremium: false, plan: "free" };
-  }
+  return { isPremium, plan };
 }
 
 /**
@@ -121,26 +117,22 @@ export async function checkPremiumFromSubscription(
     return cached;
   }
 
-  try {
-    const subscription = await prisma.subscription.findFirst({
-      where: {
-        userId,
-        status: { in: ["active", "trialing"] },
-        currentPeriodEnd: { gt: new Date() },
-      },
-      select: { id: true, status: true },
-    });
+  // DB errors propagate to caller instead of returning false.
+  const subscription = await prisma.subscription.findFirst({
+    where: {
+      userId,
+      status: { in: ["active", "trialing"] },
+      currentPeriodEnd: { gt: new Date() },
+    },
+    select: { id: true, status: true },
+  });
 
-    const isPremium = !!subscription;
+  const isPremium = !!subscription;
 
-    // Cache the result
-    await setCachedPremiumStatus(userId, isPremium);
+  // Cache the result (cache failures are non-fatal)
+  await setCachedPremiumStatus(userId, isPremium);
 
-    return isPremium;
-  } catch (err) {
-    logger.error("[Premium Check] Subscription check error:", err);
-    return false;
-  }
+  return isPremium;
 }
 
 /**

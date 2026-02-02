@@ -257,46 +257,23 @@ export function createErrorResponse(options: APIErrorOptions): NextResponse {
 }
 
 /**
- * Wrap an API handler with error handling
+ * @deprecated Use withApiMiddleware from @/lib/api/middleware instead.
+ * This function has been replaced by withApiMiddleware which provides:
+ * - Unified auth, rate limiting, CSRF protection
+ * - Automatic error classification and handling
+ * - Credit consumption integration
+ * - Consistent response formatting
+ *
+ * All routes have been migrated to withApiMiddleware.
+ * This export will be removed in a future version.
  */
 export function withErrorHandler<T>(
-  handler: (req: Request) => Promise<T>,
-  route: string
+  _handler: (req: Request) => Promise<T>,
+  _route: string
 ) {
-  return async (req: Request): Promise<NextResponse> => {
-    try {
-      const result = await handler(req);
-      return result as unknown as NextResponse;
-    } catch (error) {
-      const e = error as Error & { code?: string };
-
-      // Classify the error
-      let code: ErrorCode = ErrorCodes.INTERNAL_ERROR;
-
-      if (e.name === "AbortError" || e.message?.includes("timeout")) {
-        code = ErrorCodes.TIMEOUT;
-      } else if (e.message?.includes("rate limit") || e.message?.includes("too many")) {
-        code = ErrorCodes.RATE_LIMITED;
-      } else if (e.message?.includes("unauthorized") || e.message?.includes("auth")) {
-        code = ErrorCodes.UNAUTHORIZED;
-      } else if (e.message?.includes("not found")) {
-        code = ErrorCodes.NOT_FOUND;
-      } else if (e.message?.includes("validation") || e.message?.includes("invalid")) {
-        code = ErrorCodes.VALIDATION_ERROR;
-      } else if (e.code === "P2025" || e.message?.includes("database")) {
-        code = ErrorCodes.DATABASE_ERROR;
-      }
-
-      logger.error(`[API Error] ${route}:`, e);
-
-      return createErrorResponse({
-        code,
-        originalError: e,
-        route,
-        locale: extractLocale(req),
-      });
-    }
-  };
+  throw new Error(
+    'withErrorHandler is deprecated. Use withApiMiddleware from @/lib/api/middleware instead.'
+  );
 }
 
 /**

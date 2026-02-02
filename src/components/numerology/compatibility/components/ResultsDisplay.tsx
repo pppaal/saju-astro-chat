@@ -7,7 +7,7 @@ const sanitize = (
 ): string => {
   if (typeof window === 'undefined') return dirty
 
-  const DOMPurify = require('dompurify')
+  const DOMPurify = require('dompurify');
   return String(DOMPurify.sanitize(dirty, config))
 }
 import CompatibilityFunInsights from '@/components/compatibility/fun-insights/CompatibilityFunInsights'

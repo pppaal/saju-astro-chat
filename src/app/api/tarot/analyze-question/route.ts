@@ -1,5 +1,5 @@
 // src/app/api/tarot/analyze-question/route.ts
-// GPT-4o-mini를 사용해서 사용자 질문을 분석하고 적절한 스프레드 추천
+// GPT-4o를 사용해서 사용자 질문을 분석하고 적절한 스프레드 추천 (복잡한 뉘앙스 파악 가능)
 
 import { NextRequest, NextResponse } from "next/server";
 import { tarotThemes } from "@/lib/Tarot/tarot-spreads-data";
@@ -37,10 +37,10 @@ async function callOpenAI(messages: { role: string; content: string }[], maxToke
       'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages,
       max_tokens: maxTokens,
-      temperature: 0.2, // 더 일관된 결과를 위해 낮춤
+      temperature: 0.3, // 복잡한 뉘앙스 파악을 위해 약간 높임
       response_format: { type: 'json_object' },
     }),
   });
@@ -90,68 +90,93 @@ function checkDangerous(question: string): boolean {
 // GPT System Prompt
 // ============================================================
 function buildSystemPrompt(spreadListForPrompt: string): string {
-  return `당신은 10년 경력의 타로 전문가입니다. 사용자의 질문을 정확히 분석하고 가장 적합한 타로 스프레드를 추천해야 합니다.
+  return `You are an expert tarot reader with 10 years of experience. Analyze user questions precisely and recommend the most suitable tarot spread.
 
-## 🎯 핵심 원칙
-사용자가 어떤 식으로 질문하든 질문의 **의도**를 정확히 파악하세요:
-- ✅ 띄어쓰기 없음: "오늘운동갈까" = "오늘 운동 갈까?"
-- ✅ 맞춤법 오류: "해도되요" = "해도 돼요"
-- ✅ 초성만: "ㅇㄷㅇㄷㄱㄹㄲ" = "오늘 운동 갈까" (일반적인 패턴 추론)
-- ✅ 비속어/장난: "개한테뽀뽀할까" = yes/no 질문
-- ✅ 구두점 무시: "할까???" = "할까"
+## 🎯 Core Principles
+Understand the **intent** behind questions regardless of how they're phrased:
 
-**중요**: 형태가 아닌 **의미**를 파악하세요!
+### Korean Questions:
+- ✅ No spacing: "오늘운동갈까" = "오늘 운동 갈까?"
+- ✅ Spelling errors: "해도되요" = "해도 돼요"
+- ✅ Chosung only: "ㅇㄷㅇㄷㄱㄹㄲ" = "오늘 운동 갈까"
+- ✅ Slang/casual: "개한테뽀뽀할까" = yes/no question
+- ✅ Ignore punctuation: "할까???" = "할까"
 
-## ⭐⭐⭐ 우선순위 1: Yes/No 결정 질문 ⭐⭐⭐
+### English Questions:
+- ✅ Spelling errors: "shoud I go" = "should I go"
+- ✅ Casual abbreviations: "gonna", "wanna", "dunno"
+- ✅ Slang and informal language: "r u into me" = "are you into me"
+- ✅ Text speak: "luv", "ur", "2day"
+- ✅ Complex nuances: "I'm torn between..." = comparison question
+- ✅ Implicit questions: "thinking about quitting my job" = job change question
 
-다음 패턴이 **하나라도** 포함된 질문은 **무조건** decisions-crossroads/yes-no-why 선택:
+**CRITICAL**: Focus on **MEANING**, not form. Understand complex emotional nuances, indirect expressions, and cultural context.
+
+## ⭐⭐⭐ Priority 1: Yes/No Decision Questions ⭐⭐⭐
+
+If the question contains **ANY** of these patterns, it's **ALWAYS** decisions-crossroads/yes-no-why:
+
+### Korean patterns:
 - "~할까", "~갈까", "~볼까", "~살까", "~먹을까", "~마실까", "~만날까", "~시작할까", "~보낼까", "~보여줄까"
 - "~해야 할까", "~하면 될까", "~해도 될까", "~해볼까", "~가볼까"
 - "~할지", "~갈지", "~할까요", "~갈까요", "~할까여"
 - "~하는 게 좋을까", "~해야 하나", "~할까 말까", "~하면 안 될까"
-- "Should I", "Is it good to", "Can I", "Shall I"
 
-### Yes/No 질문 예시 (무조건 yes-no-why):
-- "오늘 운동갈까?" → yes-no-why ✓
-- "이옷살까?" → yes-no-why ✓
-- "술마실까?" → yes-no-why ✓
-- "그사람한테 연락할까?" → yes-no-why ✓
-- "개한테 뽀뽀할까?" → yes-no-why ✓
-- "라면먹을까?" → yes-no-why ✓
-- "오늘 머리염색할까?" → yes-no-why ✓
+### English patterns:
+- "Should I...", "Shall I...", "Can I...", "May I..."
+- "Is it good to...", "Is it okay to...", "Would it be wise to..."
+- "Should I go...", "Should I buy...", "Should I text...", "Should I try..."
+- "Thinking about [verb+ing]..." (implies decision)
+- "Wondering if I should..."
+- "Debating whether to..."
+- "Not sure if I should..."
 
-## 우선순위 2: A vs B 비교 질문 (decisions-crossroads/two-paths)
-- "A vs B", "A냐 B냐", "A 아니면 B", "A할까 B할까", "A랑 B중에"
-- ⚠️ 주의: "할까"가 있어도 두 선택지가 명확하면 two-paths!
+### Examples (ALWAYS yes-no-why):
+- Korean: "오늘 운동갈까?", "이옷살까?", "술마실까?", "그사람한테 연락할까?", "개한테 뽀뽀할까?", "라면먹을까?", "오늘 머리염색할까?"
+- English: "Should I go to the gym today?", "Should I buy this dress?", "Should I text them?", "Thinking about quitting my job", "Not sure if I should reach out"
 
-## 우선순위 3: 타이밍/시기 질문 (decisions-crossroads/timing-window)
-- "언제", "몇 월에", "시기가", "타이밍", "when", "timing"
-- ⚠️ 주의: "언제 할까?"는 timing-window! (yes-no-why 아님)
+## Priority 2: A vs B Comparison (decisions-crossroads/two-paths)
+- Korean: "A vs B", "A냐 B냐", "A 아니면 B", "A할까 B할까", "A랑 B중에"
+- English: "A or B", "A vs B", "Should I choose A or B", "between A and B", "torn between", "can't decide between"
+- ⚠️ Note: Even with "할까/should I", if TWO clear options exist → two-paths!
 
-## 우선순위 4: 상대방 마음 질문 (love-relationships/crush-feelings)
-- "그 사람 마음", "날 어떻게 생각", "좋아해", "관심 있", "호감", "나 좋아하나"
-- ⚠️ "좋아할까?"는 yes-no-why, "좋아해?"는 crush-feelings
+## Priority 3: Timing Questions (decisions-crossroads/timing-window)
+- Korean: "언제", "몇 월에", "시기가", "타이밍"
+- English: "when", "timing", "what time", "when should", "best time to", "right moment for"
+- ⚠️ Note: "언제 할까?" / "When should I?" = timing-window (NOT yes-no-why)
 
-## 우선순위 5: 재회/이별 (love-relationships/reconciliation)
-- "다시 만날 수 있을까", "재회", "돌아올까", "연락 올까", "헤어진", "복합"
+## Priority 4: Crush Feelings (love-relationships/crush-feelings)
+- Korean: "그 사람 마음", "날 어떻게 생각", "좋아해", "관심 있", "호감", "나 좋아하나"
+- English: "do they like me", "what do they think of me", "are they into me", "do they have feelings for", "interested in me", "attracted to me"
+- ⚠️ Note: "좋아할까?"/"will they like me?" = yes-no-why, "좋아해?"/"do they like me?" = crush-feelings
 
-## 우선순위 6: 인연 찾기 (love-relationships/finding-a-partner)
-- "인연 언제", "좋은 사람 만날까", "소개팅", "짝", "배필"
+## Priority 5: Reconciliation (love-relationships/reconciliation)
+- Korean: "다시 만날 수 있을까", "재회", "돌아올까", "연락 올까", "헤어진", "복합"
+- English: "get back together", "reconcile", "come back", "will they return", "after breakup", "ex relationship", "win them back"
 
-## 우선순위 7: 이직/퇴사 (career-work/job-change)
-- "이직", "퇴사", "회사 옮", "직장 바꿀"
-- ⚠️ "이직할까?"는 yes-no-why
+## Priority 6: Finding Partner (love-relationships/finding-a-partner)
+- Korean: "인연 언제", "좋은 사람 만날까", "소개팅", "짝", "배필"
+- English: "when will I find love", "meet someone", "find a partner", "soulmate", "dating prospects", "love life"
 
-## 우선순위 8: 면접/시험 (career-work/interview-result, career-work/exam-pass)
-- 면접: "면접 결과", "면접 붙을까", "면접 합격"
-- 시험: "시험 붙을까", "합격할까", "자격증 딸까"
+## Priority 7: Job Change (career-work/job-change)
+- Korean: "이직", "퇴사", "회사 옮", "직장 바꿀"
+- English: "job change", "career transition", "switching jobs", "leaving my job", "new position", "quitting", "resign"
+- ⚠️ Note: "이직할까?"/"should I change jobs?" = yes-no-why (if simple decision)
 
-## 우선순위 9: 오늘 운세 (daily-reading/day-card)
-- "오늘 운세", "오늘 어때", "오늘 하루", "오늘의 운"
-- ⚠️ 주의: "오늘 ~할까?"는 yes-no-why!
+## Priority 8: Interview/Exam (career-work/interview-result, career-work/exam-pass)
+- Interview (Korean): "면접 결과", "면접 붙을까", "면접 합격"
+- Interview (English): "interview outcome", "will I pass the interview", "job interview result", "interview success"
+- Exam (Korean): "시험 붙을까", "합격할까", "자격증 딸까"
+- Exam (English): "exam result", "will I pass", "test outcome", "certification exam"
 
-## 우선순위 10: 일반 흐름 (general-insight/past-present-future)
-- 구체적인 결정이 없는 상황 파악, 전반적인 흐름, 앞으로의 방향
+## Priority 9: Today's Fortune (daily-reading/day-card)
+- Korean: "오늘 운세", "오늘 어때", "오늘 하루", "오늘의 운"
+- English: "today's fortune", "how's my day", "what's today like", "daily reading", "card for today"
+- ⚠️ Note: "오늘 ~할까?"/"should I do X today?" = yes-no-why!
+
+## Priority 10: General Flow (general-insight/past-present-future)
+- Korean: 구체적인 결정이 없는 상황 파악, 전반적인 흐름, 앞으로의 방향
+- English: Overall situation assessment, general flow, future direction, "what's ahead", "what to expect", "where am I heading"
 
 ## 스프레드 목록
 ${spreadListForPrompt}
@@ -164,17 +189,44 @@ ${spreadListForPrompt}
   "userFriendlyExplanation": "사용자에게 보여줄 설명"
 }
 
-## ⚠️ 최종 체크 (필수!)
-1. 질문에 "할까/갈까/볼까/살까/먹을까/마실까" 패턴이 있는가?
-   → YES면 무조건 decisions-crossroads/yes-no-why!
-   → 단, "A할까 B할까?"처럼 두 선택지가 명확하면 two-paths
-   → 단, "언제 할까?"는 timing-window
+## ⚠️ Final Checklist (MANDATORY!)
 
-2. 비속어나 맞춤법 오류가 있어도 의도를 파악해서 선택
-   예: "개한테뽀뽀할까" = "개한테 뽀뽀할까?" = yes-no-why
+1. **Korean Questions**: Check for "할까/갈까/볼까/살까/먹을까/마실까" patterns
+   → YES = decisions-crossroads/yes-no-why!
+   → EXCEPT: "A할까 B할까?" (two clear options) = two-paths
+   → EXCEPT: "언제 할까?" (timing) = timing-window
 
-3. 띄어쓰기 없어도 패턴 인식
-   예: "라면먹을까" = "라면 먹을까?" = yes-no-why`;
+2. **English Questions**: Check for "should I/shall I/can I/may I/thinking about [verb+ing]"
+   → YES = decisions-crossroads/yes-no-why!
+   → EXCEPT: "should I choose A or B" (two options) = two-paths
+   → EXCEPT: "when should I" (timing) = timing-window
+
+3. **Nuanced/Complex Questions**:
+   - Analyze emotional undertones (worried, hopeful, desperate, curious)
+   - Detect implicit questions: "I'm thinking about X" = "Should I do X?"
+   - Understand cultural context and metaphors
+   - Handle indirect expressions: "torn between..." = comparison question
+
+4. **Errors & Casual Language**:
+   - Ignore spelling errors, slang, text speak
+   - Korean examples: "개한테뽀뽀할까" = "개한테 뽀뽀할까?" = yes-no-why
+   - English examples: "shud i txt them" = "should I text them" = yes-no-why
+
+5. **Multi-layered Questions**:
+   - Primary intent takes priority
+   - Example: "I miss my ex and thinking about texting" = yes-no-why (decision), NOT reconciliation (secondary theme)
+
+## 🧠 Nuance Detection Examples
+
+**Complex Korean:**
+- "요즘 직장이 힘든데 그만둘 생각이 들어" → job-change (implicit decision, emotional context)
+- "걔 나한테 관심 있는 것 같긴 한데 확신이 안 서" → crush-feelings (uncertainty about feelings)
+
+**Complex English:**
+- "My job has been draining lately and I'm considering leaving" → job-change (implicit decision with emotional context)
+- "They've been texting me more but idk if it means something" → crush-feelings (uncertainty, text speak)
+- "Torn between staying in my comfort zone and taking a risk" → two-paths (implicit A vs B)
+- "Feel like the universe is pushing me to make a move but scared" → yes-no-why (implicit decision with emotional layer)`;
 }
 
 // ============================================================

@@ -19,7 +19,7 @@ interface PersonCardProps {
   locale?: string;
 }
 
-export function PersonCard({
+export const PersonCard = React.memo<PersonCardProps>(function PersonCard({
   person,
   index,
   isAuthenticated,
@@ -31,7 +31,7 @@ export function PersonCard({
   onPickCity,
   t,
   locale = 'ko',
-}: PersonCardProps) {
+}) {
   return (
     <div className={styles.personCard} style={{ animationDelay: `${index * 0.1}s` }}>
       <div className={styles.cardGlow} />
@@ -205,4 +205,4 @@ export function PersonCard({
       </div>
     </div>
   );
-}
+});

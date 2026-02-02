@@ -203,7 +203,7 @@ function relativeLuminance(hex: string) {
   const { r, g, b } = hexToRgb(hex)
   const red = channelToLinear(r)
   const green = channelToLinear(g)
-  const blue = channelToLinear(b)
+  const blue = channelToLinear(b);
   return (
     LUMINANCE_WEIGHTS.RED * red + LUMINANCE_WEIGHTS.GREEN * green + LUMINANCE_WEIGHTS.BLUE * blue
   )
@@ -216,7 +216,7 @@ export function getContrastRatio(foreground: string, background: string) {
   const lum2 = relativeLuminance(bg)
   const lighter = Math.max(lum1, lum2)
   const darker = Math.min(lum1, lum2)
-  const ratio = (lighter + 0.05) / (darker + 0.05)
+  const ratio = (lighter + 0.05) / (darker + 0.05);
   return Math.round(ratio * 100) / 100
 }
 
@@ -251,7 +251,7 @@ export function validateAriaAttributes(role: string, attributes: Record<string, 
   const missing = required.filter((attr) => !(attr in attributes))
   const invalid = Object.keys(attributes).filter(
     (attr) => !attr.startsWith('aria-') && attr !== 'role'
-  )
+  );
   return {
     valid: missing.length === 0 && invalid.length === 0,
     missing,
@@ -306,7 +306,7 @@ export function validateHeadingStructure(headings: HeadingInfo[]) {
       errors.push(`Heading level skips level from h${previousLevel} to h${heading.level}`)
     }
     previousLevel = heading.level
-  })
+  });
 
   return { valid: errors.length === 0, errors }
 }
@@ -432,7 +432,7 @@ export function generateAccessibilityReport(input: AccessibilityInput = {}): Acc
     (headingsChecked ? (headingResult.valid ? 1 : 0) : 0) +
     keyboardAccessible +
     touchValid
-  const score = totalChecks === 0 ? 100 : Math.round((passedChecks / totalChecks) * 100)
+  const score = totalChecks === 0 ? 100 : Math.round((passedChecks / totalChecks) * 100);
 
   return {
     score,

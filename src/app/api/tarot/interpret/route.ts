@@ -162,7 +162,7 @@ export async function POST(req: Request) {
     const creditResult = await checkAndConsumeCredits('reading', 1)
     if (!creditResult.allowed) {
       const res = creditErrorResponse(creditResult)
-      limit.headers.forEach((value, key) => res.headers.set(key, value))
+      limit.headers.forEach((value, key) => res.headers.set(key, value));
       return res
     }
 
@@ -226,20 +226,20 @@ export async function POST(req: Request) {
               userQuestion,
             }),
           },
-        })
+        });
       } catch (saveErr) {
         logger.warn('[Tarot API] Failed to save reading:', saveErr)
       }
     }
 
     const res = NextResponse.json(result)
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    limit.headers.forEach((value, key) => res.headers.set(key, value));
     return res
   } catch (err: unknown) {
     captureServerError(err as Error, { route: '/api/tarot/interpret' })
 
     // Return fallback even on error
-    logger.error('Tarot interpretation error:', err)
+    logger.error('Tarot interpretation error:', err);
     return NextResponse.json(
       { error: 'Server error', fallback: true },
       { status: HTTP_STATUS.SERVER_ERROR }
@@ -267,7 +267,7 @@ async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
     throw new Error(`OpenAI API error: ${response.status}`)
   }
 
-  const data = await response.json()
+  const data = await response.json();
   return data.choices[0]?.message?.content || ''
 }
 
@@ -450,7 +450,7 @@ Each card interpretation MUST include the following structure (450-600 words):
           element: null,
           shadow: null,
         }
-      })
+      });
 
       return {
         overall_message: parsed.overall || '',
@@ -484,7 +484,7 @@ Each card interpretation MUST include the following structure (450-600 words):
       fallback: false,
     }
   } catch (error) {
-    logger.error('GPT interpretation failed:', error)
+    logger.error('GPT interpretation failed:', error);
     return generateSimpleFallback(cards, spreadTitle, language, userQuestion)
   }
 }

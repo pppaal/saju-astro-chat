@@ -42,9 +42,9 @@ export const PersonCard = React.memo<PersonCardProps>(({
   const isDetailedMode = person.isDetailedMode ?? false;
   const [profileLoading, setProfileLoading] = useState(false);
 
-  const toggleMode = () => {
+  const toggleMode = useCallback(() => {
     onUpdatePerson(idx, 'isDetailedMode', !isDetailedMode);
-  };
+  }, [idx, onUpdatePerson, isDetailedMode]);
 
   const loadMyProfile = useCallback(async () => {
     setProfileLoading(true);

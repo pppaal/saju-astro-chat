@@ -241,16 +241,20 @@ export const yesNoKeywordPatterns: RegExp[] = [
 ];
 
 export const yesNoEnglishPatterns: RegExp[] = [
+  // Core decision patterns
   /should i/i,
   /shall i/i,
   /do i need to/i,
   /is it (okay|ok) (to|if)/i,
   /can i/i,
+  /may i/i,
   /would it be/i,
   /is it worth/i,
   /do you think i should/i,
   /would you recommend/i,
   /is it a good idea to/i,
+
+  // Specific actions
   /should i go/i,
   /should i buy/i,
   /should i eat/i,
@@ -259,13 +263,46 @@ export const yesNoEnglishPatterns: RegExp[] = [
   /should i quit/i,
   /should i continue/i,
   /should i stop/i,
+  /should i text/i,
+  /should i call/i,
+  /should i reach out/i,
+  /should i contact/i,
+  /should i ask/i,
+  /should i tell/i,
+  /should i confess/i,
+  /should i try/i,
+  /should i accept/i,
+  /should i reject/i,
+
+  // Timing & readiness
   /is it time to/i,
   /am i ready to/i,
-  /is this the right/i,
+  /is this the right (time|moment)/i,
   /will it be okay if/i,
   /is it safe to/i,
   /is it too late to/i,
   /is it too early to/i,
+
+  // Implicit decisions (text speak & casual)
+  /thinking about [a-z]+ing/i,
+  /wondering if i should/i,
+  /debating whether/i,
+  /not sure if i should/i,
+  /idk if i should/i,
+  /dunno if i should/i,
+  /contemplating/i,
+  /considering [a-z]+ing/i,
+
+  // Modal alternatives
+  /would i be wise to/i,
+  /oughta/i,
+  /ought to/i,
+  /better to/i,
+
+  // Casual & slang
+  /gonna (go|do|try|start|quit)/i,
+  /wanna (go|do|try|start)/i,
+  /gotta decide/i,
 ];
 
 // ============================================================
@@ -317,6 +354,7 @@ export const crushPatterns: RegExp[] = [
   /진심/,
   /진짜 ?마음/,
   /솔직한 ?마음/,
+  // English patterns
   /does (he|she|they) like me/i,
   /does (he|she|they) like .*나/i,
   /what does (he|she|they) think/i,
@@ -324,6 +362,20 @@ export const crushPatterns: RegExp[] = [
   /(his|her|their) feelings/i,
   /does (he|she|they) have feelings/i,
   /crush.*(feel|think|like)/i,
+  /is (he|she|they) into me/i,
+  /are (they|we) interested/i,
+  /does (he|she|they) care about me/i,
+  /am i on (his|her|their) mind/i,
+  /thinking about me/i,
+  /likes me back/i,
+  /have a crush on me/i,
+  /attracted to me/i,
+  /what (is|are) (he|she|they) feeling/i,
+  /reciprocate/i,
+  /mutual feelings/i,
+  /feel the same/i,
+  /love me back/i,
+  /interested in me/i,
 ];
 
 // ============================================================
@@ -373,12 +425,28 @@ export const reconciliationPatterns: RegExp[] = [
   /아직 ?마음/,
   /마음이 ?남/,
   /미련/,
+  // English patterns
   /ex.*(back|return|contact|miss|think)/i,
   /get back together/i,
   /reconcil/i,
   /come back/i,
   /will (he|she|they) come back/i,
   /will (he|she|they) contact/i,
+  /win (him|her|them) back/i,
+  /second chance/i,
+  /reunite/i,
+  /after (the )?(breakup|split)/i,
+  /broken up/i,
+  /broke up with/i,
+  /relationship end/i,
+  /will (he|she|they) reach out/i,
+  /will (he|she|they) text/i,
+  /will (he|she|they) call/i,
+  /still thinking about me/i,
+  /regret (breaking|leaving)/i,
+  /miss me/i,
+  /want me back/i,
+  /rekindle/i,
 ];
 
 // ============================================================
@@ -457,12 +525,26 @@ export const jobChangePatterns: RegExp[] = [
   /채용.*(될까|가능|어디)/,
   /창업.*(해도|좋을까|어떨까|성공)/,
   /사업.*(시작|해도|좋을까)/,
+  // English patterns
   /job change/i,
   /career change/i,
+  /career transition/i,
   /should i quit/i,
   /new job/i,
   /leave (my|the) (job|company)/i,
   /change (job|career)/i,
+  /switch (job|career|company)/i,
+  /resign/i,
+  /resignation/i,
+  /find (a )?new (job|position)/i,
+  /look for (a )?(new )?(job|work)/i,
+  /job prospects/i,
+  /career path/i,
+  /different (job|career|field)/i,
+  /move to (a )?(new|different) (company|role)/i,
+  /thinking about (quitting|leaving)/i,
+  /considering (quitting|leaving|changing)/i,
+  /explore (new )?(career|job) options/i,
 ];
 
 // ============================================================

@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
     // 2. 요청 파싱 (크레딧 계산을 위해 먼저)
     let body: unknown
     try {
-      body = await req.json()
+      body = await req.json();
     } catch {
       throw new DestinyMatrixError(ErrorCodes.VALIDATION_ERROR, {
         message: 'Invalid JSON in request body',
@@ -311,7 +311,7 @@ export async function POST(req: NextRequest) {
       await prisma.destinyMatrixReport.update({
         where: { id: savedReport.id },
         data: { pdfGenerated: true },
-      })
+      });
 
       return new NextResponse(Buffer.from(pdfBytes), {
         status: HTTP_STATUS.OK,
@@ -333,7 +333,7 @@ export async function POST(req: NextRequest) {
         ...aiReport,
         id: savedReport.id, // DB에 저장된 ID로 덮어쓰기
       },
-    })
+    });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
 
@@ -386,7 +386,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const wrappedError = wrapError(error)
+    const wrappedError = wrapError(error);
     return NextResponse.json(wrappedError.toJSON(), {
       status: wrappedError.getHttpStatus(),
     })

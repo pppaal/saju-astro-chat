@@ -5,6 +5,7 @@
 
 import { createClient, RedisClientType } from 'redis';
 import { logger } from '@/lib/logger';
+import type { CacheResult, CacheWriteResult } from './types';
 
 let redisClient: RedisClientType | null = null;
 
@@ -21,7 +22,7 @@ async function getRedisClient(): Promise<RedisClientType | null> {
       url: process.env.REDIS_URL,
       socket: {
         connectTimeout: 5000,
-        keepAlive: 30000,
+        keepAlive: true,
         reconnectStrategy: (retries) => {
           if (retries > 5) {
             logger.error('[Redis] Max reconnection attempts reached');
@@ -58,53 +59,71 @@ export const CACHE_TTL = {
   GRADING_RESULT: 60 * 60 * 24, // 1 day
   CALENDAR_DATA: 60 * 60 * 24, // 1 day
   COMPATIBILITY: 60 * 60 * 24 * 7, // 7 days
+  TRANSIT_CHART: 60 * 60, // 1 hour (천체 트랜짓은 시간 단위로 변동)
 } as const;
 
 /**
- * Generic cache get/set wrapper with fallback
+ * Cache get with structured result — distinguishes miss from error.
  */
-/**
- * Cache get - returns null on miss or error (cache-aside pattern).
- * Errors are logged but never thrown; the app must work without cache.
- */
-export async function cacheGet<T>(key: string): Promise<T | null> {
+export async function cacheGetResult<T>(key: string): Promise<CacheResult<T>> {
   try {
     const client = await getRedisClient();
-    if (!client) {return null;}
+    if (!client) {return { hit: false, data: null };}
 
     const data = await client.get(key);
-    if (!data) {return null;}
+    if (!data) {return { hit: false, data: null };}
 
-    return JSON.parse(data) as T;
+    return { hit: true, data: JSON.parse(data) as T };
   } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
     logger.warn('[Redis] Get failed, falling back to uncached path', { key, error });
-    return null;
+    return { hit: false, data: null, error: err };
   }
 }
 
 /**
- * Cache set - returns false on error (cache-aside pattern).
- * Errors are logged but never thrown; write failures are non-fatal.
+ * Cache get — returns value or null (backward-compatible convenience wrapper).
+ */
+export async function cacheGet<T>(key: string): Promise<T | null> {
+  const result = await cacheGetResult<T>(key);
+  return result.hit ? result.data : null;
+}
+
+/**
+ * Cache set with structured result.
+ */
+export async function cacheSetResult(
+  key: string,
+  value: unknown,
+  ttl: number = 3600
+): Promise<CacheWriteResult> {
+  try {
+    const client = await getRedisClient();
+    if (!client) {return { ok: false, error: new Error('Redis client unavailable') };}
+
+    await client.setEx(key, ttl, JSON.stringify(value));
+    return { ok: true };
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.warn('[Redis] Set failed', { key, error });
+    return { ok: false, error: err };
+  }
+}
+
+/**
+ * Cache set — returns boolean (backward-compatible convenience wrapper).
  */
 export async function cacheSet(
   key: string,
   value: unknown,
   ttl: number = 3600
 ): Promise<boolean> {
-  try {
-    const client = await getRedisClient();
-    if (!client) {return false;}
-
-    await client.setEx(key, ttl, JSON.stringify(value));
-    return true;
-  } catch (error) {
-    logger.warn('[Redis] Set failed', { key, error });
-    return false;
-  }
+  const result = await cacheSetResult(key, value, ttl);
+  return result.ok;
 }
 
 /**
- * Cache delete - returns false on error (cache-aside pattern).
+ * Cache delete — returns boolean (cache-aside pattern).
  */
 export async function cacheDel(key: string): Promise<boolean> {
   try {
@@ -148,6 +167,12 @@ export const CacheKeys = {
 
   compatibility: (person1: string, person2: string) =>
     `compat:v1:${person1}:${person2}`,
+
+  transitChart: (latitude: number, longitude: number) => {
+    const now = new Date();
+    const dateHour = `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}-${now.getUTCHours()}`;
+    return `transit:v1:${dateHour}:${latitude.toFixed(2)}:${longitude.toFixed(2)}`;
+  },
 } as const;
 
 /**

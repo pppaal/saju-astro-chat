@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
 export const dynamic = 'force-dynamic'
@@ -9,8 +8,7 @@ export const dynamic = 'force-dynamic'
 // GET: List all chat sessions for a user (optionally filtered by theme)
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
       const searchParams = req.nextUrl.searchParams
       const theme = searchParams.get('theme')
@@ -35,16 +33,9 @@ export const GET = withApiMiddleware(
           updatedAt: true,
           lastMessageAt: true,
         },
-      })
+      });
 
-      return NextResponse.json({ sessions })
-    } catch (error) {
-      logger.error('[Counselor Session List Error]:', error)
-      return NextResponse.json(
-        { error: 'internal_server_error' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({ sessions })
   },
   createAuthenticatedGuard({
     route: '/api/counselor/session/list',
@@ -56,8 +47,7 @@ export const GET = withApiMiddleware(
 // DELETE: Delete a specific chat session
 export const DELETE = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
       const searchParams = req.nextUrl.searchParams
       const sessionId = searchParams.get('sessionId')
@@ -83,16 +73,9 @@ export const DELETE = withApiMiddleware(
 
       await prisma.counselorChatSession.delete({
         where: { id: sessionId },
-      })
+      });
 
-      return NextResponse.json({ success: true })
-    } catch (error) {
-      logger.error('[Counselor Session Delete Error]:', error)
-      return NextResponse.json(
-        { error: 'internal_server_error' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({ success: true })
   },
   createAuthenticatedGuard({
     route: '/api/counselor/session/list',

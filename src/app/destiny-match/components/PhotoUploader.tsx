@@ -42,7 +42,7 @@ export default function PhotoUploader({
         const result = await uploadMatchPhoto(file, userId, (p: UploadProgress) => {
           setProgress(p.progress)
         })
-        onChange([...photos, result.url])
+        onChange([...photos, result.url]);
       } catch (err) {
         setError(err instanceof Error ? err.message : '업로드에 실패했습니다.')
       } finally {
@@ -74,7 +74,7 @@ export default function PhotoUploader({
       onChange(newPhotos)
     },
     [photos, onChange]
-  )
+  );
 
   return (
     <div className={styles.photoUploaderContainer}>

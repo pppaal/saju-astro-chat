@@ -5,14 +5,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
 // GET - 내 매치 목록 조회
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
       const searchParams = req.nextUrl.searchParams
       const status = searchParams.get('status') || 'active'
@@ -136,16 +134,9 @@ export const GET = withApiMiddleware(
             personalityName: partnerProfile.personalityName,
           },
         }
-      })
+      });
 
-      return NextResponse.json({ matches, total: matches.length })
-    } catch (error) {
-      logger.error('[destiny-match/matches] GET error:', { error: error })
-      return NextResponse.json(
-        { error: 'Failed to fetch matches' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({ matches, total: matches.length })
   },
   createAuthenticatedGuard({
     route: '/api/destiny-match/matches',
@@ -157,8 +148,7 @@ export const GET = withApiMiddleware(
 // DELETE - 매치 해제 (unmatch)
 export const DELETE = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
       const { connectionId } = await req.json()
 
@@ -220,13 +210,9 @@ export const DELETE = withApiMiddleware(
           },
           data: { matchCount: { decrement: 1 } },
         }),
-      ])
+      ]);
 
-      return NextResponse.json({ success: true })
-    } catch (error) {
-      logger.error('[destiny-match/matches] DELETE error:', { error: error })
-      return NextResponse.json({ error: 'Failed to unmatch' }, { status: HTTP_STATUS.SERVER_ERROR })
-    }
+    return NextResponse.json({ success: true })
   },
   createAuthenticatedGuard({
     route: '/api/destiny-match/matches',

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from 'react';
 import DateTimePicker from '@/components/ui/DateTimePicker';
 import TimePicker from '@/components/ui/TimePicker';
 import type { Person } from '../types';
@@ -12,6 +13,7 @@ interface PersonInputSectionProps {
   locale: string;
   t: (key: string, fallback: string) => string;
   namePlaceholder: string;
+  headerExtra?: ReactNode;
 }
 
 export default function PersonInputSection({
@@ -21,12 +23,14 @@ export default function PersonInputSection({
   locale,
   t,
   namePlaceholder,
+  headerExtra,
 }: PersonInputSectionProps) {
   const apiLocale = locale === 'ko' ? 'ko' : 'en';
 
   return (
     <div className={styles.personSection}>
       <h3 className={styles.personTitle}>{title}</h3>
+      {headerExtra}
       <div className={styles.inputGroup}>
         <DateTimePicker
           value={person.birthDate}

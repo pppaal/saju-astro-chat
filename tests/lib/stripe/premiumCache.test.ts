@@ -359,15 +359,13 @@ describe('checkPremiumFromDatabase', () => {
     expect(result.plan).toBe('free');
   });
 
-  it('should handle database error and return free', async () => {
+  it('should propagate database errors to caller', async () => {
     const { checkPremiumFromDatabase } = await import('@/lib/stripe/premiumCache');
 
     vi.mocked(cacheGet).mockResolvedValueOnce(null);
     vi.mocked(prisma.userCredits.findUnique).mockRejectedValueOnce(new Error('DB error'));
 
-    const result = await checkPremiumFromDatabase('user-error');
-    expect(result.isPremium).toBe(false);
-    expect(result.plan).toBe('free');
+    await expect(checkPremiumFromDatabase('user-error')).rejects.toThrow('DB error');
   });
 });
 
@@ -413,14 +411,13 @@ describe('checkPremiumFromSubscription', () => {
     expect(result).toBe(false);
   });
 
-  it('should handle database error and return false', async () => {
+  it('should propagate database errors to caller', async () => {
     const { checkPremiumFromSubscription } = await import('@/lib/stripe/premiumCache');
 
     vi.mocked(cacheGet).mockResolvedValueOnce(null);
     vi.mocked(prisma.subscription.findFirst).mockRejectedValueOnce(new Error('DB error'));
 
-    const result = await checkPremiumFromSubscription('user-error');
-    expect(result).toBe(false);
+    await expect(checkPremiumFromSubscription('user-error')).rejects.toThrow('DB error');
   });
 });
 

@@ -95,7 +95,7 @@ export function PredictionChat({
     if (!compact) {
       inputRef.current?.focus()
     }
-  }, [compact])
+  }, [compact]);
 
   return (
     <div className={`${styles.container} ${compact ? styles.compact : ''}`}>

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
 export const dynamic = 'force-dynamic'
@@ -29,8 +28,7 @@ type CounselorChatPatchBody = {
 // GET: 채팅 세션 히스토리 조회
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
       const searchParams = req.nextUrl.searchParams
       const theme = searchParams.get('theme') || undefined
@@ -65,21 +63,14 @@ export const GET = withApiMiddleware(
           recurringIssues: true,
           emotionalTone: true,
         },
-      })
+      });
 
-      return NextResponse.json({
-        success: true,
-        sessions: chatSessions,
-        persona: personaMemory,
-        isReturningUser: (personaMemory?.sessionCount || 0) > 0,
-      })
-    } catch (err: unknown) {
-      logger.error('[CounselorChatHistory GET error]', err)
-      return NextResponse.json(
-        { error: err instanceof Error ? err.message : 'Internal Server Error' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({
+      success: true,
+      sessions: chatSessions,
+      persona: personaMemory,
+      isReturningUser: (personaMemory?.sessionCount || 0) > 0,
+    })
   },
   createAuthenticatedGuard({
     route: '/api/counselor/chat-history',
@@ -91,8 +82,7 @@ export const GET = withApiMiddleware(
 // POST: 새 메시지 추가 (세션 생성/업데이트)
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
       const body = (await req.json().catch(() => null)) as CounselorChatPostBody | null
       if (!body || typeof body !== 'object') {
@@ -147,7 +137,7 @@ export const POST = withApiMiddleware(
             messageCount: updatedMessages.length,
             lastMessageAt: now,
           },
-        })
+        });
 
         return NextResponse.json({
           success: true,
@@ -178,7 +168,7 @@ export const POST = withApiMiddleware(
           update: {
             sessionCount: { increment: 1 },
           },
-        })
+        });
 
         return NextResponse.json({
           success: true,
@@ -186,13 +176,6 @@ export const POST = withApiMiddleware(
           action: 'created',
         })
       }
-    } catch (err: unknown) {
-      logger.error('[CounselorChatHistory POST error]', err)
-      return NextResponse.json(
-        { error: err instanceof Error ? err.message : 'Internal Server Error' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
   },
   createAuthenticatedGuard({
     route: '/api/counselor/chat-history',
@@ -204,8 +187,7 @@ export const POST = withApiMiddleware(
 // PATCH: 세션 메타 정보 업데이트 (요약, 주요 주제)
 export const PATCH = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
       const body = (await req.json().catch(() => null)) as CounselorChatPatchBody | null
       if (!body || typeof body !== 'object') {
@@ -231,19 +213,12 @@ export const PATCH = withApiMiddleware(
           ...(summary && { summary }),
           ...(keyTopics && { keyTopics }),
         },
-      })
+      });
 
-      return NextResponse.json({
-        success: true,
-        session: updated,
-      })
-    } catch (err: unknown) {
-      logger.error('[CounselorChatHistory PATCH error]', err)
-      return NextResponse.json(
-        { error: err instanceof Error ? err.message : 'Internal Server Error' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({
+      success: true,
+      session: updated,
+    })
   },
   createAuthenticatedGuard({
     route: '/api/counselor/chat-history',

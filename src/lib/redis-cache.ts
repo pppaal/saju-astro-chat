@@ -2,6 +2,7 @@
 // Simple Redis cache using Upstash REST API
 
 import { logger } from "@/lib/logger";
+import type { CacheResult, CacheWriteResult } from './cache/types';
 
 // Re-export cache version management
 export { CACHE_VERSIONS, getCacheKey } from './cache/cache-versions';
@@ -10,10 +11,10 @@ const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 /**
- * Get cached value from Redis
+ * Get cached value with structured result — distinguishes miss from error.
  */
-export async function cacheGet<T>(key: string): Promise<T | null> {
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) {return null;}
+export async function cacheGetResult<T>(key: string): Promise<CacheResult<T>> {
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {return { hit: false, data: null };}
 
   try {
     const res = await fetch(`${UPSTASH_URL}/get/${encodeURIComponent(key)}`, {
@@ -21,45 +22,51 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
       cache: "no-store",
     });
 
-    if (!res.ok) {return null;}
+    if (!res.ok) {return { hit: false, data: null };}
 
     const data = await res.json();
-    if (!data?.result) {return null;}
+    if (!data?.result) {return { hit: false, data: null };}
 
     const parsed = JSON.parse(data.result);
 
     // Handle legacy format where value was wrapped in { value, ex } object
-    // This ensures backward compatibility with old cache entries
     if (parsed && typeof parsed === 'object' && 'value' in parsed && 'ex' in parsed) {
       logger.debug("[Redis Cache] Converting legacy cache format");
-      // The 'value' field contains the actual stringified data
       if (typeof parsed.value === 'string') {
-        return JSON.parse(parsed.value) as T;
+        return { hit: true, data: JSON.parse(parsed.value) as T };
       }
-      return parsed.value as T;
+      return { hit: true, data: parsed.value as T };
     }
 
-    return parsed as T;
+    return { hit: true, data: parsed as T };
   } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
     logger.error("[Redis Cache] GET error:", err);
-    return null;
+    return { hit: false, data: null, error };
   }
 }
 
 /**
- * Set cached value in Redis with TTL
- * Uses Upstash REST API pipeline format: [["SET", key, value, "EX", seconds]]
+ * Get cached value — returns value or null (backward-compatible).
  */
-export async function cacheSet(
+export async function cacheGet<T>(key: string): Promise<T | null> {
+  const result = await cacheGetResult<T>(key);
+  return result.hit ? result.data : null;
+}
+
+/**
+ * Set cached value with structured result.
+ */
+export async function cacheSetResult(
   key: string,
   value: unknown,
-  ttlSeconds: number = 86400 // default 24 hours
-): Promise<boolean> {
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) {return false;}
+  ttlSeconds: number = 86400
+): Promise<CacheWriteResult> {
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {
+    return { ok: false, error: new Error('Upstash credentials not configured') };
+  }
 
   try {
-    // Use Upstash pipeline format for SET with EX (expiry)
-    // This is the correct way to set a value with TTL
     const res = await fetch(`${UPSTASH_URL}/pipeline`, {
       method: "POST",
       headers: {
@@ -72,11 +79,25 @@ export async function cacheSet(
       cache: "no-store",
     });
 
-    return res.ok;
+    if (res.ok) {return { ok: true };}
+    return { ok: false, error: new Error(`Upstash SET failed: ${res.status}`) };
   } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
     logger.error("[Redis Cache] SET error:", err);
-    return false;
+    return { ok: false, error };
   }
+}
+
+/**
+ * Set cached value — returns boolean (backward-compatible).
+ */
+export async function cacheSet(
+  key: string,
+  value: unknown,
+  ttlSeconds: number = 86400
+): Promise<boolean> {
+  const result = await cacheSetResult(key, value, ttlSeconds);
+  return result.ok;
 }
 
 /**

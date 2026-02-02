@@ -16,11 +16,11 @@ export async function GET() {
     const people = await prisma.savedPerson.findMany({
       where: { userId: session.user.id },
       orderBy: [{ relation: "asc" }, { name: "asc" }],
-    })
+    });
 
-    return NextResponse.json({ people })
+    return NextResponse.json({ people });
   } catch (error) {
-    logger.error("Error fetching circle:", error)
+    logger.error("Error fetching circle:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }
@@ -71,11 +71,11 @@ export async function POST(req: NextRequest) {
         tzId: tzId || null,
         note: note || null,
       },
-    })
+    });
 
-    return NextResponse.json({ person })
+    return NextResponse.json({ person });
   } catch (error) {
-    logger.error("Error adding person:", error)
+    logger.error("Error adding person:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }
@@ -106,11 +106,11 @@ export async function DELETE(req: NextRequest) {
 
     await prisma.savedPerson.delete({
       where: { id },
-    })
+    });
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error("Error deleting person:", error)
+    logger.error("Error deleting person:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }

@@ -96,7 +96,7 @@ describe('life-prediction API - Request Validation', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toContain('type is required');
+    expect(data.error.message).toContain('type is required');
   });
 
   it('should reject missing birthYear', async () => {
@@ -108,7 +108,7 @@ describe('life-prediction API - Request Validation', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toContain('birthYear');
+    expect(data.error.message).toContain('birthYear');
   });
 
   it('should reject missing dayStem', async () => {
@@ -120,7 +120,7 @@ describe('life-prediction API - Request Validation', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toContain('dayStem');
+    expect(data.error.message).toContain('dayStem');
   });
 
   it('should reject invalid gender', async () => {
@@ -131,7 +131,7 @@ describe('life-prediction API - Request Validation', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toContain('gender');
+    expect(data.error.message).toContain('gender');
   });
 
   it('should accept valid male gender', async () => {
@@ -658,7 +658,8 @@ describe('life-prediction API - Response Format', () => {
     const data = await response.json();
 
     expect(data.error).toBeDefined();
-    expect(typeof data.error).toBe('string');
+    expect(typeof data.error).toBe('object');
+    expect(data.error.message).toBeDefined();
   });
 });
 

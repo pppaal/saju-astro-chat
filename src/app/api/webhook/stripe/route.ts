@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   if (!webhookSecret) {
     logger.error("[Stripe Webhook] STRIPE_WEBHOOK_SECRET not configured")
     captureServerError(new Error("STRIPE_WEBHOOK_SECRET missing"), { route: "/api/webhook/stripe", stage: "config" })
-    recordCounter("stripe_webhook_config_error", 1, { reason: "missing_secret" })
+    recordCounter("stripe_webhook_config_error", 1, { reason: "missing_secret" });
     return NextResponse.json(
       { error: "Webhook secret not configured" },
       { status: HTTP_STATUS.SERVER_ERROR }
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
 
   if (!signature) {
     recordCounter("stripe_webhook_auth_error", 1, { reason: "missing_signature" })
-    captureServerError(new Error("stripe-signature header missing"), { route: "/api/webhook/stripe", ip })
+    captureServerError(new Error("stripe-signature header missing"), { route: "/api/webhook/stripe", ip });
     return NextResponse.json(
       { error: "Missing stripe-signature header" },
       { status: HTTP_STATUS.BAD_REQUEST }
@@ -68,12 +68,12 @@ export async function POST(request: Request) {
   let event: Stripe.Event
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error"
     logger.error("[Stripe Webhook] Signature verification failed:", { message })
     recordCounter("stripe_webhook_auth_error", 1, { reason: "verify_failed" })
-    captureServerError(err, { route: "/api/webhook/stripe", stage: "verify", ip })
+    captureServerError(err, { route: "/api/webhook/stripe", stage: "verify", ip });
     return NextResponse.json(
       { error: `Webhook signature verification failed: ${message}` },
       { status: HTTP_STATUS.BAD_REQUEST }
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
       eventId: event.id,
       type: event.type,
     })
-    recordCounter("stripe_webhook_stale_event", 1, { event: event.type })
+    recordCounter("stripe_webhook_stale_event", 1, { event: event.type });
     return NextResponse.json(
       { error: "Event too old" },
       { status: HTTP_STATUS.BAD_REQUEST }
@@ -106,7 +106,7 @@ export async function POST(request: Request) {
       type: event.type,
       processedAt: existingEvent.processedAt,
     })
-    recordCounter("stripe_webhook_duplicate", 1, { event: event.type })
+    recordCounter("stripe_webhook_duplicate", 1, { event: event.type });
     return NextResponse.json({ received: true, duplicate: true })
   }
   if (existingEvent && !existingEvent.success) {
@@ -174,9 +174,9 @@ export async function POST(request: Request) {
           apiVersion: event.api_version,
         },
       },
-    })
+    });
 
-    return NextResponse.json({ received: true })
+    return NextResponse.json({ received: true });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error"
     logger.error(`[Stripe Webhook] Error handling ${event.type}:`, err)
@@ -192,7 +192,7 @@ export async function POST(request: Request) {
         logger.info(`[Stripe Webhook] Event succeeded elsewhere: ${event.id}`, {
           type: event.type,
           processedAt: existingAfter.processedAt,
-        })
+        });
         return NextResponse.json({ received: true, duplicate: true })
       }
 
@@ -219,7 +219,7 @@ export async function POST(request: Request) {
             error: message,
           },
         },
-      })
+      });
     } catch (logErr) {
       logger.error('[Stripe Webhook] Failed to log error event:', logErr)
     }
@@ -276,7 +276,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // 보너스 크레딧 추가
   try {
     await addBonusCredits(userId, creditAmount)
-    logger.info(`[Stripe Webhook] Added ${creditAmount} bonus credits to user ${userId} (${creditPack} pack)`)
+    logger.info(`[Stripe Webhook] Added ${creditAmount} bonus credits to user ${userId} (${creditPack} pack)`);
   } catch (err) {
     logger.error('[Stripe Webhook] Failed to add bonus credits:', err)
     throw err
@@ -381,7 +381,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   // 크레딧 시스템 업그레이드
   try {
     await upgradePlan(user.id, plan as PlanType)
-    logger.info(`[Stripe Webhook] Credits upgraded for user ${user.id}: ${plan}`)
+    logger.info(`[Stripe Webhook] Credits upgraded for user ${user.id}: ${plan}`);
   } catch (creditErr) {
     logger.error(`[Stripe Webhook] Failed to upgrade credits:`, creditErr)
   }
@@ -441,7 +441,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   if (existing.plan !== plan && subscription.status === "active") {
     try {
       await upgradePlan(existing.userId, plan as PlanType)
-      logger.info(`[Stripe Webhook] Credits upgraded for plan change: ${existing.plan} -> ${plan}`)
+      logger.info(`[Stripe Webhook] Credits upgraded for plan change: ${existing.plan} -> ${plan}`);
     } catch (creditErr) {
       logger.error(`[Stripe Webhook] Failed to upgrade credits:`, creditErr)
     }
@@ -471,7 +471,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   // 구독 취소 시 free 플랜으로 다운그레이드
   try {
     await upgradePlan(existing.userId, "free")
-    logger.info(`[Stripe Webhook] Credits downgraded to free for user ${existing.userId}`)
+    logger.info(`[Stripe Webhook] Credits downgraded to free for user ${existing.userId}`);
   } catch (creditErr) {
     logger.error(`[Stripe Webhook] Failed to downgrade credits:`, creditErr)
   }
@@ -566,7 +566,7 @@ async function getPaymentMethodType(paymentIntentId: string): Promise<string | n
     const paymentMethodId = paymentIntent.payment_method as string
     if (!paymentMethodId) {return null}
 
-    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId)
+    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
     return paymentMethod.type // card, kakao_pay, etc.
   } catch {
     return null

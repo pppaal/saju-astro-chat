@@ -7,7 +7,8 @@ import {
   convertSajuDaeunToInfo,
   type LifePredictionInput,
 } from '@/lib/prediction';
-import { errorResponse } from '@/lib/api/response-builders';
+import { NextResponse } from 'next/server';
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler';
 import type { BaseRequest } from '../types';
 
 /**
@@ -62,27 +63,27 @@ export function buildPredictionInput(req: BaseRequest): LifePredictionInput {
 /**
  * 요청 유효성 검사
  */
-export function validateRequest(body: unknown): { valid: true } | { valid: false; errorResponse: ReturnType<typeof errorResponse> } {
+export function validateRequest(body: unknown): { valid: true } | { valid: false; errorResponse: NextResponse } {
   if (!body || typeof body !== 'object') {
-    return { valid: false, errorResponse: errorResponse('Invalid request body') };
+    return { valid: false, errorResponse: createErrorResponse({ code: ErrorCodes.BAD_REQUEST, message: 'Invalid request body' }) };
   }
 
   const req = body as Record<string, unknown>;
 
   if (!req.type) {
-    return { valid: false, errorResponse: errorResponse('type is required (multi-year, past-analysis, event-timing, comprehensive)') };
+    return { valid: false, errorResponse: createErrorResponse({ code: ErrorCodes.MISSING_FIELD, message: 'type is required (multi-year, past-analysis, event-timing, comprehensive)' }) };
   }
 
   if (!req.birthYear || !req.birthMonth || !req.birthDay) {
-    return { valid: false, errorResponse: errorResponse('birthYear, birthMonth, birthDay are required') };
+    return { valid: false, errorResponse: createErrorResponse({ code: ErrorCodes.MISSING_FIELD, message: 'birthYear, birthMonth, birthDay are required' }) };
   }
 
   if (!req.dayStem || !req.dayBranch) {
-    return { valid: false, errorResponse: errorResponse('dayStem and dayBranch are required') };
+    return { valid: false, errorResponse: createErrorResponse({ code: ErrorCodes.MISSING_FIELD, message: 'dayStem and dayBranch are required' }) };
   }
 
   if (!req.gender || !['male', 'female'].includes(req.gender as string)) {
-    return { valid: false, errorResponse: errorResponse('gender is required (male or female)') };
+    return { valid: false, errorResponse: createErrorResponse({ code: ErrorCodes.MISSING_FIELD, message: 'gender is required (male or female)' }) };
   }
 
   return { valid: true };

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from "@/lib/api/middleware";
 import { prisma } from "@/lib/db/prisma";
-import { logger } from '@/lib/logger';
 import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const dynamic = "force-dynamic";
@@ -9,13 +8,12 @@ export const dynamic = "force-dynamic";
 // GET: 페르소나 기억 조회 (로그인 필요)
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const memory = await prisma.personaMemory.findUnique({
-        where: { userId: context.userId! },
-      });
+    const memory = await prisma.personaMemory.findUnique({
+      where: { userId: context.userId! },
+    });
 
     if (!memory) {
-      // 기억이 없으면 빈 객체 반환 (새 사용자)
+      // 기억이 없으면 빈 객체 반환 (새 사용자);
       return NextResponse.json({
         success: true,
         data: null,
@@ -23,18 +21,11 @@ export const GET = withApiMiddleware(
       });
     }
 
-      return NextResponse.json({
-        success: true,
-        data: memory,
-        isNewUser: false,
-      });
-    } catch (err: unknown) {
-      logger.error("[PersonaMemory GET error]", err);
-      return NextResponse.json(
-        { error: err instanceof Error ? err.message : "Internal Server Error" },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      );
-    }
+    return NextResponse.json({
+      success: true,
+      data: memory,
+      isNewUser: false,
+    });
   },
   createAuthenticatedGuard({
     route: '/api/persona-memory',
@@ -46,8 +37,7 @@ export const GET = withApiMiddleware(
 // POST: 페르소나 기억 생성/업데이트
 export const POST = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
-    try {
-      const body = await request.json();
+    const body = await request.json();
     const {
       dominantThemes,
       keyInsights,
@@ -59,11 +49,11 @@ export const POST = withApiMiddleware(
       sajuProfile,
     } = body;
 
-      const existing = await prisma.personaMemory.findUnique({
-        where: { userId: context.userId! },
-      });
+    const existing = await prisma.personaMemory.findUnique({
+      where: { userId: context.userId! },
+    });
 
-      if (existing) {
+    if (existing) {
         // 기존 기억 업데이트 (병합)
         const updated = await prisma.personaMemory.update({
           where: { userId: context.userId! },
@@ -107,13 +97,6 @@ export const POST = withApiMiddleware(
           action: "created",
         });
       }
-    } catch (err: unknown) {
-      logger.error("[PersonaMemory POST error]", err);
-      return NextResponse.json(
-        { error: err instanceof Error ? err.message : "Internal Server Error" },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      );
-    }
   },
   createAuthenticatedGuard({
     route: '/api/persona-memory',
@@ -125,13 +108,12 @@ export const POST = withApiMiddleware(
 // PATCH: 페르소나 기억 부분 업데이트 (통찰 추가 등)
 export const PATCH = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
-    try {
-      const body = await request.json();
-      const { action, data } = body;
+    const body = await request.json();
+    const { action, data } = body;
 
-      const existing = await prisma.personaMemory.findUnique({
-        where: { userId: context.userId! },
-      });
+    const existing = await prisma.personaMemory.findUnique({
+      where: { userId: context.userId! },
+    });
 
     if (!existing) {
       return NextResponse.json(
@@ -208,23 +190,16 @@ export const PATCH = withApiMiddleware(
       });
     }
 
-      const updated = await prisma.personaMemory.update({
-        where: { userId: context.userId! },
-        data: updateData,
-      });
+    const updated = await prisma.personaMemory.update({
+      where: { userId: context.userId! },
+      data: updateData,
+    });
 
-      return NextResponse.json({
-        success: true,
-        data: updated,
-        action,
-      });
-    } catch (err: unknown) {
-      logger.error("[PersonaMemory PATCH error]", err);
-      return NextResponse.json(
-        { error: err instanceof Error ? err.message : "Internal Server Error" },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      );
-    }
+    return NextResponse.json({
+      success: true,
+      data: updated,
+      action,
+    });
   },
   createAuthenticatedGuard({
     route: '/api/persona-memory',

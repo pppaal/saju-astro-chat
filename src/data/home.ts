@@ -137,4 +137,5 @@ export const SERVICE_LINKS: ServiceLink[] = [
   { key: "compatibility", href: "/compatibility", icon: "💕" },
   { key: "pastLife", href: "/past-life", icon: "🔄" },
   { key: "iching", href: "/iching", icon: "📜" },
+  { key: "destinyMatch", href: "/destiny-match", icon: "💘" },
 ];

@@ -28,7 +28,7 @@ function getStripe(): Stripe | null {
   if (stripeInstance) {return stripeInstance}
   const key = process.env.STRIPE_SECRET_KEY
   if (!key) {return null}
-  stripeInstance = new Stripe(key)
+  stripeInstance = new Stripe(key);
   return stripeInstance
 }
 
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     const csrfError = csrfGuard(req.headers)
     if (csrfError) {
       logger.warn('[checkout] CSRF validation failed', { ip })
-      recordCounter('checkout_csrf_blocked', 1)
+      recordCounter('checkout_csrf_blocked', 1);
       return csrfError
     }
 
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     if (!base) {
       logger.error('ERR: NEXT_PUBLIC_BASE_URL missing')
       recordCounter('stripe_checkout_config_error', 1, { reason: 'missing_base_url' })
-      captureServerError(new Error('NEXT_PUBLIC_BASE_URL missing'), { route: '/api/checkout', ip })
+      captureServerError(new Error('NEXT_PUBLIC_BASE_URL missing'), { route: '/api/checkout', ip });
       return NextResponse.json({ error: 'missing_base_url' }, { status: HTTP_STATUS.SERVER_ERROR, headers: rateHeaders })
     }
 
@@ -103,13 +103,13 @@ export async function POST(req: NextRequest) {
     if (!stripe) {
       logger.error('ERR: STRIPE_SECRET_KEY missing')
       recordCounter('stripe_checkout_config_error', 1, { reason: 'missing_secret' })
-      captureServerError(new Error('STRIPE_SECRET_KEY missing'), { route: '/api/checkout', ip })
+      captureServerError(new Error('STRIPE_SECRET_KEY missing'), { route: '/api/checkout', ip });
       return NextResponse.json({ error: 'missing_secret' }, { status: HTTP_STATUS.SERVER_ERROR, headers: rateHeaders })
     }
 
     const email = sessionUser.email ?? ''
     if (!isValidEmail(email)) {
-      logger.warn('[checkout] invalid email for session user', { userId: sessionUser.id })
+      logger.warn('[checkout] invalid email for session user', { userId: sessionUser.id });
       return NextResponse.json({ error: 'invalid_email' }, { status: HTTP_STATUS.BAD_REQUEST, headers: rateHeaders })
     }
 
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
       const creditPrice = getCreditPackPriceId(creditPack)
       if (!creditPrice || !allowedCreditPackIds().includes(creditPrice)) {
         logger.error('[checkout] credit pack price not allowed', { creditPack })
-        recordCounter('stripe_checkout_price_error', 1, { type: 'credit_pack' })
+        recordCounter('stripe_checkout_price_error', 1, { type: 'credit_pack' });
         return NextResponse.json({ error: 'invalid_credit_pack' }, { status: HTTP_STATUS.BAD_REQUEST, headers: rateHeaders })
       }
 
@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
     const price = getPriceId(selectedPlan, selectedBilling)
     if (!price || !allowedPriceIds().includes(price)) {
       logger.error('[checkout] price not allowed', { plan: selectedPlan, billingCycle: selectedBilling })
-      recordCounter('stripe_checkout_price_error', 1, { type: 'subscription' })
+      recordCounter('stripe_checkout_price_error', 1, { type: 'subscription' });
       return NextResponse.json({ error: 'invalid_price' }, { status: HTTP_STATUS.BAD_REQUEST, headers: rateHeaders })
     }
 
@@ -184,13 +184,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'no_checkout_url' }, { status: HTTP_STATUS.SERVER_ERROR, headers: rateHeaders })
     }
 
-    return NextResponse.json({ url: checkout.url }, { status: HTTP_STATUS.OK, headers: rateHeaders })
+    return NextResponse.json({ url: checkout.url }, { status: HTTP_STATUS.OK, headers: rateHeaders });
   } catch (e: unknown) {
     const err = e as { raw?: { message?: string }; message?: string; code?: string }
     const msg = err?.raw?.message || err?.message || 'unknown'
     logger.error('Stripe error:', msg)
     recordCounter('stripe_checkout_error', 1, { reason: err?.code || 'unknown' })
-    captureServerError(e, { route: '/api/checkout', message: msg })
+    captureServerError(e, { route: '/api/checkout', message: msg });
     return NextResponse.json(
       { error: 'stripe_error', message: msg },
       { status: HTTP_STATUS.BAD_REQUEST }

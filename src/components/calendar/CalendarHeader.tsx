@@ -3,7 +3,6 @@
 // src/components/calendar/CalendarHeader.tsx
 import React from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
-import BackButton from '@/components/ui/BackButton'
 import CreditBadge from '@/components/ui/CreditBadge'
 import styles from './DestinyCalendar.module.css'
 
@@ -33,12 +32,10 @@ export default function CalendarHeader({
   isDarkTheme: _isDarkTheme,
   onThemeToggle: _onThemeToggle,
 }: CalendarHeaderProps) {
-  const { locale, t } = useI18n()
+  const { locale, t } = useI18n();
 
   return (
     <>
-      <BackButton />
-
       <div className={styles.calendarHeader}>
         <div className={styles.headerTop}>
           <div className={styles.headerTitleSection}>

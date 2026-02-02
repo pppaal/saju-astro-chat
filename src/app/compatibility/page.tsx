@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import ServicePageLayout from '@/components/ui/ServicePageLayout';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -51,16 +51,16 @@ export default function CompatPage() {
     validate, analyzeCompatibility, resetResults
   } = useCompatibilityAnalysis();
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     const errorMsg = validate(persons, count, t);
     if (errorMsg) {
       setError(errorMsg);
       return;
     }
     await analyzeCompatibility(persons);
-  };
+  }, [persons, count, t, validate, setError, analyzeCompatibility]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (resultText) {
       resetResults();
     } else if (!showTabs) {
@@ -68,15 +68,15 @@ export default function CompatPage() {
     } else {
       router.push('/');
     }
-  };
+  }, [resultText, showTabs, resetResults, router]);
 
-  const handleStartAnalysis = () => {
+  const handleStartAnalysis = useCallback(() => {
     setShowTabs(false);
-  };
+  }, []);
 
   // Parse results for beautiful display
-  const sections = resultText ? parseResultSections(resultText) : [];
-  const overallScore = apiScore ?? (resultText ? extractScore(resultText) : null);
+  const sections = useMemo(() => resultText ? parseResultSections(resultText) : [], [resultText]);
+  const overallScore = useMemo(() => apiScore ?? (resultText ? extractScore(resultText) : null), [apiScore, resultText]);
 
   return (
     <ServicePageLayout

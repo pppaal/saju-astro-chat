@@ -5,14 +5,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
 // GET - 내 프로필 조회
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
       const profile = await prisma.matchProfile.findUnique({
         where: { userId },
@@ -33,14 +31,7 @@ export const GET = withApiMiddleware(
         return NextResponse.json({ profile: null, needsSetup: true })
       }
 
-      return NextResponse.json({ profile, needsSetup: false })
-    } catch (error) {
-      logger.error('[destiny-match/profile] GET error:', { error: error })
-      return NextResponse.json(
-        { error: 'Failed to fetch profile' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({ profile, needsSetup: false })
   },
   createAuthenticatedGuard({
     route: '/api/destiny-match/profile',
@@ -52,8 +43,7 @@ export const GET = withApiMiddleware(
 // POST - 프로필 생성/업데이트
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
       const body = await req.json()
       const {
@@ -192,14 +182,7 @@ export const POST = withApiMiddleware(
         })
       }
 
-      return NextResponse.json({ profile, success: true })
-    } catch (error) {
-      logger.error('[destiny-match/profile] POST error:', { error: error })
-      return NextResponse.json(
-        { error: 'Failed to save profile' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({ profile, success: true })
   },
   createAuthenticatedGuard({
     route: '/api/destiny-match/profile',
@@ -211,8 +194,7 @@ export const POST = withApiMiddleware(
 // DELETE - 프로필 비활성화 (완전 삭제 아님)
 export const DELETE = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
       await prisma.matchProfile.update({
         where: { userId },
@@ -220,16 +202,9 @@ export const DELETE = withApiMiddleware(
           isActive: false,
           isVisible: false,
         },
-      })
+      });
 
-      return NextResponse.json({ success: true })
-    } catch (error) {
-      logger.error('[destiny-match/profile] DELETE error:', { error: error })
-      return NextResponse.json(
-        { error: 'Failed to deactivate profile' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({ success: true })
   },
   createAuthenticatedGuard({
     route: '/api/destiny-match/profile',

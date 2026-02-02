@@ -17,7 +17,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware';
 import { prisma, Prisma } from '@/lib/db/prisma';
-import { logger } from '@/lib/logger';
 import { parseJsonBody, validateFields } from '@/lib/api/validation';
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler';
 import { HTTP_STATUS } from '@/lib/constants/http';
@@ -27,9 +26,8 @@ export const dynamic = "force-dynamic";
 // GET: 저장된 ICP 결과 조회
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const latestResult = await prisma.iCPResult.findFirst({
-        where: { userId: context.userId! },
+    const latestResult = await prisma.iCPResult.findFirst({
+      where: { userId: context.userId! },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
@@ -48,11 +46,7 @@ export const GET = withApiMiddleware(
       return NextResponse.json({ saved: false });
     }
 
-      return NextResponse.json({ saved: true, result: latestResult });
-    } catch (error) {
-      logger.error("GET /api/icp error:", error);
-      return NextResponse.json({ error: "server_error" }, { status: HTTP_STATUS.SERVER_ERROR });
-    }
+    return NextResponse.json({ saved: true, result: latestResult });
   },
   createAuthenticatedGuard({
     route: '/api/icp',
@@ -64,9 +58,8 @@ export const GET = withApiMiddleware(
 // POST: ICP 결과 저장 (로그인 필요)
 export const POST = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
-    try {
-      // Parse and validate JSON body
-      const { data, error } = await parseJsonBody(request);
+    // Parse and validate JSON body
+    const { data, error } = await parseJsonBody(request);
     if (error) {
       return createErrorResponse({
         code: ErrorCodes.BAD_REQUEST,
@@ -137,10 +130,10 @@ export const POST = withApiMiddleware(
       locale?: string;
     };
 
-      // Save to database
-      const result = await prisma.iCPResult.create({
-        data: {
-          userId: context.userId!,
+    // Save to database
+    const result = await prisma.iCPResult.create({
+      data: {
+        userId: context.userId!,
         primaryStyle: icpData.primaryStyle,
         secondaryStyle: icpData.secondaryStyle,
         dominanceScore: icpData.dominanceScore,
@@ -152,23 +145,15 @@ export const POST = withApiMiddleware(
       },
     });
 
-      return NextResponse.json({
-        success: true,
-        id: result.id,
-        primaryStyle: result.primaryStyle,
-        secondaryStyle: result.secondaryStyle,
-        dominanceScore: result.dominanceScore,
-        affiliationScore: result.affiliationScore,
-        message: "ICP result saved successfully",
-      });
-    } catch (error) {
-      logger.error("POST /api/icp error:", error);
-      return createErrorResponse({
-        code: ErrorCodes.INTERNAL_ERROR,
-        message: "Failed to save ICP result",
-        originalError: error as Error,
-      });
-    }
+    return NextResponse.json({
+      success: true,
+      id: result.id,
+      primaryStyle: result.primaryStyle,
+      secondaryStyle: result.secondaryStyle,
+      dominanceScore: result.dominanceScore,
+      affiliationScore: result.affiliationScore,
+      message: "ICP result saved successfully",
+    });
   },
   createAuthenticatedGuard({
     route: '/api/icp',

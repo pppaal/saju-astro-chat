@@ -58,11 +58,11 @@ export async function GET(req: NextRequest) {
           partner: partnerInfo,
         }
       })
-    )
+    );
 
-    return NextResponse.json({ readings: readingsWithPartner })
+    return NextResponse.json({ readings: readingsWithPartner });
   } catch (error) {
-    logger.error('[couple-reading] GET error:', { error: error })
+    logger.error('[couple-reading] GET error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to fetch couple readings' },
       { status: HTTP_STATUS.SERVER_ERROR }
@@ -209,7 +209,7 @@ export async function POST(req: NextRequest) {
       await tx.matchConnection.update({
         where: { id: connectionId },
         data: { lastInteractionAt: new Date() },
-      })
+      });
 
       return reading
     })
@@ -241,10 +241,10 @@ export async function POST(req: NextRequest) {
       message: '커플 타로가 저장되었습니다. 파트너도 볼 수 있어요!',
     })
 
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    limit.headers.forEach((value, key) => res.headers.set(key, value));
     return res
   } catch (error) {
-    logger.error('[couple-reading] POST error:', { error: error })
+    logger.error('[couple-reading] POST error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to create couple reading' },
       { status: HTTP_STATUS.SERVER_ERROR }
@@ -293,11 +293,11 @@ export async function DELETE(req: NextRequest) {
 
     await prisma.tarotReading.delete({
       where: { id: readingId },
-    })
+    });
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('[couple-reading] DELETE error:', { error: error })
+    logger.error('[couple-reading] DELETE error:', { error: error });
     return NextResponse.json(
       { error: 'Failed to delete reading' },
       { status: HTTP_STATUS.SERVER_ERROR }

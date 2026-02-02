@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api/middleware';
 import { getWeeklyFortuneImage } from '@/lib/weeklyFortune';
-import { logger } from '@/lib/logger';
 import { HTTP_STATUS } from '@/lib/constants/http';
 
 // 클라이언트에서 주간 운세 이미지 조회
 export const GET = withApiMiddleware(
   async (_req: NextRequest, _context: ApiContext) => {
-    try {
-      const data = await getWeeklyFortuneImage();
+    const data = await getWeeklyFortuneImage();
 
     if (!data) {
       return NextResponse.json(
@@ -25,18 +23,11 @@ export const GET = withApiMiddleware(
       );
     }
 
-      return NextResponse.json(data, {
-        headers: {
-          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
-        }
-      });
-    } catch (error) {
-      logger.error('[WeeklyFortune] Error fetching', { error });
-      return NextResponse.json(
-        { error: 'Failed to fetch weekly fortune image' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      );
-    }
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+      }
+    });
   },
   createSimpleGuard({
     route: '/api/weekly-fortune',

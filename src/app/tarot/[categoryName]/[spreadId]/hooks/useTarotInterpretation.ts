@@ -81,7 +81,7 @@ function parseStreamedInterpretation(
   const jsonMatch = jsonText.match(/\{[\s\S]*\}/)
   if (!jsonMatch) throw new Error('No JSON found')
 
-  const parsed = JSON.parse(jsonMatch[0])
+  const parsed = JSON.parse(jsonMatch[0]);
 
   return {
     overall_message: parsed.overall || '',
@@ -157,7 +157,7 @@ export function useTarotInterpretation({
 
           if (contentType.includes('text/event-stream') && response.body) {
             // SSE 스트림 처리
-            const jsonText = await consumeSSEStream(response)
+            const jsonText = await consumeSSEStream(response);
             return parseStreamedInterpretation(
               jsonText,
               result.drawnCards,
@@ -196,7 +196,7 @@ export function useTarotInterpretation({
           }
         }
 
-        throw new Error('Stream interpretation failed')
+        throw new Error('Stream interpretation failed');
       } catch (streamError) {
         tarotLogger.error(
           'Streaming interpretation failed, trying non-stream fallback',
@@ -326,7 +326,7 @@ export function useTarotInterpretation({
 
         setIsSaved(true)
         setSaveMessage(language === 'ko' ? '저장되었습니다!' : 'Saved!')
-        setTimeout(() => setSaveMessage(''), 3000)
+        setTimeout(() => setSaveMessage(''), 3000);
       } catch (error) {
         tarotLogger.error('Failed to save reading', error instanceof Error ? error : undefined)
         setSaveMessage(language === 'ko' ? '저장 실패' : 'Save failed')
@@ -334,7 +334,7 @@ export function useTarotInterpretation({
       }
     },
     [categoryName, spreadId, selectedDeckStyle, language, isSaved, session, userTopic]
-  )
+  );
 
   return {
     isSaved,

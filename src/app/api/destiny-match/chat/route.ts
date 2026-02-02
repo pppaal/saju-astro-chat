@@ -12,8 +12,7 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 // GET - 특정 매치의 채팅 메시지 조회
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
       const searchParams = req.nextUrl.searchParams
       const connectionId = searchParams.get('connectionId')
@@ -82,20 +81,13 @@ export const GET = withApiMiddleware(
           isRead: true,
           readAt: new Date(),
         },
-      })
+      });
 
-      return NextResponse.json({
-        messages: messages.reverse(), // 시간순으로 정렬
-        hasMore,
-        nextCursor: hasMore ? messages[0]?.id : null,
-      })
-    } catch (error) {
-      logger.error('[match-chat] GET error:', { error: error })
-      return NextResponse.json(
-        { error: 'Failed to fetch messages' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({
+      messages: messages.reverse(), // 시간순으로 정렬
+      hasMore,
+      nextCursor: hasMore ? messages[0]?.id : null,
+    })
   },
   createAuthenticatedGuard({
     route: '/api/destiny-match/chat',
@@ -107,9 +99,8 @@ export const GET = withApiMiddleware(
 // POST - 메시지 전송
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
-      const userName = context.session?.user?.name
+    const userId = context.userId!
+    const userName = context.session?.user?.name
 
       const body = await req.json()
       const { connectionId, content, messageType = 'text' } = body
@@ -230,19 +221,12 @@ export const POST = withApiMiddleware(
         },
       }).catch((err) => {
         logger.warn('[match-chat] Failed to send push notification:', { err })
-      })
+      });
 
-      return NextResponse.json({
-        success: true,
-        message,
-      })
-    } catch (error) {
-      logger.error('[match-chat] POST error:', { error: error })
-      return NextResponse.json(
-        { error: 'Failed to send message' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({
+      success: true,
+      message,
+    })
   },
   createAuthenticatedGuard({
     route: '/api/destiny-match/chat',
@@ -254,8 +238,7 @@ export const POST = withApiMiddleware(
 // DELETE - 메시지 삭제 (soft delete)
 export const DELETE = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
       const { messageId } = await req.json()
 
@@ -301,16 +284,9 @@ export const DELETE = withApiMiddleware(
           content: '삭제된 메시지입니다',
           isDeleted: true,
         },
-      })
+      });
 
-      return NextResponse.json({ success: true })
-    } catch (error) {
-      logger.error('[match-chat] DELETE error:', { error })
-      return NextResponse.json(
-        { error: 'Failed to delete message' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({ success: true })
   },
   createAuthenticatedGuard({
     route: '/api/destiny-match/chat',

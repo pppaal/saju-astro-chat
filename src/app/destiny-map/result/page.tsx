@@ -256,7 +256,6 @@ export default function DestinyResultPage({
               },
               timestamp: Date.now(),
             }));
-            setCachedAge("0m");
           } catch (e) {
             logger.warn("[ResultPage] Failed to store chart data:", e);
           }
@@ -278,20 +277,6 @@ export default function DestinyResultPage({
     })();
   }, [sp, t]);
 
-  // Cached chart timestamp for UI hint
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem("destinyChartData");
-      if (!raw) {return;}
-      const parsed = JSON.parse(raw);
-      if (parsed?.timestamp) {
-        const minutes = Math.max(0, Math.floor((Date.now() - parsed.timestamp) / 60000));
-        setCachedAge(`${minutes}m ago`);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
 
   // Load Life Prediction when tab is switched
   const loadLifePrediction = useCallback(async () => {

@@ -54,14 +54,13 @@ async function checkStripeActive(email?: string): Promise<boolean> {
 // POST: 상담 기록 저장 (프리미엄 전용)
 export const POST = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
-    try {
-      const userEmail = context.session?.user?.email;
-      if (!userEmail) {
-        return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
-      }
+    const userEmail = context.session?.user?.email;
+    if (!userEmail) {
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
+    }
 
-      // 프리미엄 체크 - 상담 기록 저장은 프리미엄 전용
-      const isPremium = await checkStripeActive(userEmail);
+    // 프리미엄 체크 - 상담 기록 저장은 프리미엄 전용
+    const isPremium = await checkStripeActive(userEmail);
     if (!isPremium) {
       return NextResponse.json(
         {
@@ -95,10 +94,10 @@ export const POST = withApiMiddleware(
       );
     }
 
-      // 상담 기록 저장
-      const consultation = await prisma.consultationHistory.create({
-        data: {
-          userId: context.userId!,
+    // 상담 기록 저장
+    const consultation = await prisma.consultationHistory.create({
+      data: {
+        userId: context.userId!,
         theme,
         summary,
         fullReport,
@@ -107,23 +106,16 @@ export const POST = withApiMiddleware(
         userQuestion: userQuestion || undefined,
         locale,
       },
-      });
+    });
 
-      // 페르소나 메모리 업데이트 (세션 카운트 증가, 테마 추가)
-      await updatePersonaMemory(context.userId!, theme);
+    // 페르소나 메모리 업데이트 (세션 카운트 증가, 테마 추가)
+    await updatePersonaMemory(context.userId!, theme);
 
-      return NextResponse.json({
-        success: true,
-        id: consultation.id,
-        createdAt: consultation.createdAt,
-      });
-    } catch (err: unknown) {
-      logger.error("[Consultation POST error]", err);
-      return NextResponse.json(
-        { error: "Internal Server Error" },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      );
-    }
+    return NextResponse.json({
+      success: true,
+      id: consultation.id,
+      createdAt: consultation.createdAt,
+    });
   },
   createAuthenticatedGuard({
     route: '/api/consultation',
@@ -135,14 +127,13 @@ export const POST = withApiMiddleware(
 // GET: 상담 기록 목록 조회 (프리미엄 전용)
 export const GET = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
-    try {
-      const userEmail = context.session?.user?.email;
-      if (!userEmail) {
-        return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
-      }
+    const userEmail = context.session?.user?.email;
+    if (!userEmail) {
+      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
+    }
 
-      // 프리미엄 체크
-      const isPremium = await checkStripeActive(userEmail);
+    // 프리미엄 체크
+    const isPremium = await checkStripeActive(userEmail);
     if (!isPremium) {
       return NextResponse.json(
         {
@@ -159,8 +150,8 @@ export const GET = withApiMiddleware(
     const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 50);
     const offset = parseInt(searchParams.get("offset") || "0");
 
-      // 쿼리 빌드
-      const where: { userId: string; theme?: string } = { userId: context.userId! };
+    // 쿼리 빌드
+    const where: { userId: string; theme?: string } = { userId: context.userId! };
     if (theme) {
       where.theme = theme;
     }
@@ -183,23 +174,16 @@ export const GET = withApiMiddleware(
       prisma.consultationHistory.count({ where }),
     ]);
 
-      return NextResponse.json({
-        success: true,
-        data: consultations,
-        pagination: {
-          total,
-          limit,
-          offset,
-          hasMore: offset + consultations.length < total,
-        },
-      });
-    } catch (err: unknown) {
-      logger.error("[Consultation GET error]", err);
-      return NextResponse.json(
-        { error: "Internal Server Error" },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      );
-    }
+    return NextResponse.json({
+      success: true,
+      data: consultations,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + consultations.length < total,
+      },
+    });
   },
   createAuthenticatedGuard({
     route: '/api/consultation',

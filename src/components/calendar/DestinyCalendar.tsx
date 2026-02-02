@@ -24,7 +24,6 @@
 import React, { useState, useEffect, useCallback, useMemo, memo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useI18n } from "@/i18n/I18nProvider";
-import BackButton from "@/components/ui/BackButton";
 import styles from "./DestinyCalendar.module.css";
 import { logger } from "@/lib/logger";
 import { getUserProfile } from "@/lib/userProfile";
@@ -372,7 +371,6 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   if (loading) {
     return (
       <div className={styles.container}>
-        <BackButton />
         <div className={styles.loading}>
           <div className={styles.spinner} />
           <p>{locale === "ko" ? "운명 분석 중..." : "Analyzing destiny..."}</p>
@@ -385,7 +383,6 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   if (error) {
     return (
       <div className={styles.container}>
-        <BackButton />
         <div className={styles.errorState}>
           <div className={styles.errorIcon}>😢</div>
           <p>{error}</p>

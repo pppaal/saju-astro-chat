@@ -42,12 +42,11 @@ function trimValue(value: unknown, max = 120) {
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
-    try {
-      const body = await parseRequestBody<FeedbackBody>(req, { context: 'Feedback' });
+    const body = await parseRequestBody<FeedbackBody>(req, { context: 'Feedback' });
 
-      if (!body || typeof body !== "object") {
-        return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
-      }
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
+    }
 
     const {
       service,
@@ -84,8 +83,8 @@ export const POST = withApiMiddleware(
         ? rating
         : null;
 
-      // Validation
-      if (!safeService || !safeTheme || !safeSectionId || typeof helpful !== "boolean") {
+    // Validation
+    if (!safeService || !safeTheme || !safeSectionId || typeof helpful !== "boolean") {
         return NextResponse.json(
           { error: "Missing required fields: service, theme, sectionId, helpful" },
           { status: HTTP_STATUS.BAD_REQUEST }
@@ -135,21 +134,14 @@ export const POST = withApiMiddleware(
       logger.warn("[Feedback] RLHF backend not available:", rlhfErr);
     }
 
-      const res = NextResponse.json({
-        success: true,
-        id: feedback.id,
-        rlhfId: rlhfResult?.feedback_id,
-        badges: rlhfResult?.new_badges || [],
-      });
-      res.headers.set("Cache-Control", "no-store");
-      return res;
-    } catch (error: unknown) {
-      logger.error("[Feedback API Error]:", error);
-      return NextResponse.json(
-        { error: error instanceof Error ? error.message : "Internal Server Error" },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      );
-    }
+    const res = NextResponse.json({
+      success: true,
+      id: feedback.id,
+      rlhfId: rlhfResult?.feedback_id,
+      badges: rlhfResult?.new_badges || [],
+    });
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   },
   createPublicStreamGuard({
     route: '/api/feedback',
@@ -161,7 +153,6 @@ export const POST = withApiMiddleware(
 // GET: Fetch feedback stats (for admin/analytics)
 export const GET = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
-    try {
     const { searchParams } = new URL(req.url);
     const service = searchParams.get("service");
     const theme = searchParams.get("theme");
@@ -205,20 +196,13 @@ export const GET = withApiMiddleware(
       };
     });
 
-      return NextResponse.json({
-        total,
-        positive,
-        negative: total - positive,
-        satisfactionRate,
-        bySection: sectionStats,
-      });
-    } catch (error: unknown) {
-      logger.error("[Feedback Stats Error]:", error);
-      return NextResponse.json(
-        { error: error instanceof Error ? error.message : "Internal Server Error" },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      );
-    }
+    return NextResponse.json({
+      total,
+      positive,
+      negative: total - positive,
+      satisfactionRate,
+      bySection: sectionStats,
+    });
   },
   createSimpleGuard({
     route: '/api/feedback',

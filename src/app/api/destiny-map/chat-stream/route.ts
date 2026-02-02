@@ -57,6 +57,7 @@ import { buildPastAnalysisSection, buildMultiYearTrendSection } from "./builders
 
 import { parseRequestBody } from '@/lib/api/requestParser';
 import { HTTP_STATUS } from '@/lib/constants/http';
+import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache';
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -103,7 +104,7 @@ export async function POST(req: NextRequest) {
     const messages = Array.isArray(body.messages) ? body.messages.slice(-MAX_MESSAGES) : [];
     let saju = body.saju as SajuDataStructure | undefined;
     let astro = body.astro as AstroDataStructure | undefined;
-    const advancedAstro = body.advancedAstro;  // Advanced astrology features
+    const advancedAstro = body.advancedAstro as Partial<CombinedResult> | undefined;  // Advanced astrology features
     const predictionContext = body.predictionContext;  // Life prediction TIER 1-10
     const userContext = body.userContext;
     const cvText = typeof body.cvText === "string" ? body.cvText : "";
@@ -212,18 +213,24 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Compute current transits for future predictions
+    // Compute current transits for future predictions (cached per hour + location)
     let currentTransits: unknown[] = [];
     if (natalChartData) {
       try {
         const now = new Date();
         const isoNow = now.toISOString().slice(0, 19); // "YYYY-MM-DDTHH:mm:ss"
-        const transitChart = await calculateTransitChart({
-          iso: isoNow,
-          latitude: effectiveLatitude,
-          longitude: effectiveLongitude,
-          timeZone: "Asia/Seoul",
-        });
+
+        const transitCacheKey = CacheKeys.transitChart(effectiveLatitude, effectiveLongitude);
+        const transitChart = await cacheOrCalculate(
+          transitCacheKey,
+          () => calculateTransitChart({
+            iso: isoNow,
+            latitude: effectiveLatitude,
+            longitude: effectiveLongitude,
+            timeZone: "Asia/Seoul",
+          }),
+          CACHE_TTL.TRANSIT_CHART
+        );
 
         const natalChart = toChart(natalChartData);
         const majorTransits = findMajorTransits(transitChart, natalChart);

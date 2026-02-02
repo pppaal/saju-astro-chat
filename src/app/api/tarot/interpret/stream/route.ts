@@ -23,7 +23,7 @@ export const POST = withApiMiddleware(
       )
     }
 
-    const { category, spreadId, spreadTitle, cards, userQuestion, language } = parsed.data
+    const { category, spreadTitle, cards, userQuestion, language } = parsed.data
 
     // Extract optional counselor fields (not in schema yet)
     const counselorId = typeof body.counselorId === 'string' ? body.counselorId : undefined
@@ -58,7 +58,7 @@ export const POST = withApiMiddleware(
       logger.error('[TarotInterpretStream] Backend error:', {
         status: streamResult.status,
         error: streamResult.error,
-      })
+      });
       return NextResponse.json(
         { error: 'Backend error', detail: streamResult.error },
         { status: streamResult.status || 500 }

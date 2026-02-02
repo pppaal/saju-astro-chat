@@ -209,7 +209,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       const endAge = startAge + 9
       const isCurrent = currentAge >= startAge && currentAge <= endAge
       const marker = isCurrent ? '★현재★' : ''
-      const easyGanji = formatGanjiEasy(d.heavenlyStem, d.earthlyBranch)
+      const easyGanji = formatGanjiEasy(d.heavenlyStem, d.earthlyBranch);
       return `${startAge}-${endAge}세: ${easyGanji} ${marker}`
     })
     .join('\n  ')
@@ -232,7 +232,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       const aWithName = a as AnnualWithName
       const isCurrent = a.year === currentYear
       const marker = isCurrent ? '★현재★' : ''
-      const easyGanji = parseGanjiEasy(a.ganji ?? aWithName.name)
+      const easyGanji = parseGanjiEasy(a.ganji ?? aWithName.name);
       return `${a.year}년: ${easyGanji} ${marker}`
     })
     .join('\n  ')
@@ -253,7 +253,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       const mWithName = m as MonthlyItem & { name?: string }
       const isCurrent = m.year === currentYear && m.month === currentMonth
       const marker = isCurrent ? '★현재★' : ''
-      const easyGanji = parseGanjiEasy(m.ganji ?? mWithName.name)
+      const easyGanji = parseGanjiEasy(m.ganji ?? mWithName.name);
       return `${m.year}년 ${m.month}월: ${easyGanji} ${marker}`
     })
     .join('\n  ')

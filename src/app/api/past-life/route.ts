@@ -37,8 +37,7 @@ interface PastLifeBody {
  */
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
-    try {
-      const body = await parseRequestBody<PastLifeBody>(req, { context: 'Past-life' });
+    const body = await parseRequestBody<PastLifeBody>(req, { context: 'Past-life' });
     if (!body) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
@@ -98,15 +97,7 @@ export const POST = withApiMiddleware(
     // Analyze past life
     const result = analyzePastLife(sajuData, astroData, isKo);
 
-      return NextResponse.json(result);
-
-    } catch (err) {
-      logger.error('[PastLife API] Unexpected error:', err);
-      return NextResponse.json(
-        { error: 'Internal server error' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      );
-    }
+    return NextResponse.json(result);
   },
   createSimpleGuard({
     route: '/api/past-life',

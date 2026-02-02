@@ -39,7 +39,7 @@ export const POST = withApiMiddleware(
       logger.error('[ChangingLine] Backend error:', {
         status: response.status,
         error: response.error,
-      })
+      });
       return NextResponse.json(
         { error: 'Backend error', detail: response.error },
         { status: response.status || 500 }

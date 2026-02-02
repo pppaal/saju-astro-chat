@@ -35,7 +35,7 @@ export function DreamInputPhase({
 }: DreamInputPhaseProps) {
   const isKo = locale === 'ko'
   const hasBirthInfo = !!(userProfile?.birthDate || guestBirthInfo?.birthDate)
-  const [showBirthToggle, setShowBirthToggle] = useState(false)
+  const [showBirthToggle, setShowBirthToggle] = useState(false);
 
   return (
     <motion.div

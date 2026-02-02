@@ -29,7 +29,7 @@ export default function SharedResultPage() {
           throw new Error('Not found')
         }
         const data = await response.json()
-        setSharedData(data)
+        setSharedData(data);
       } catch {
         setError(isKo ? '공유된 결과를 찾을 수 없습니다.' : 'Shared result not found.')
       } finally {
@@ -132,7 +132,7 @@ export default function SharedResultPage() {
     }
   }
 
-  const typeInfo = getTypeInfo(sharedData.type)
+  const typeInfo = getTypeInfo(sharedData.type);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900 p-4">

@@ -17,47 +17,46 @@ function clampMessages(messages: ChatMessage[], max = 6) {
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const body = await req.json()
+    const body = await req.json()
       const { persons = [], compatibilityResult = '', lang = context.locale, messages = [] } = body
 
-      if (!persons || persons.length < 2) {
-        return NextResponse.json(
-          { error: 'At least 2 persons required' },
-          { status: HTTP_STATUS.BAD_REQUEST }
-        )
-      }
+    if (!persons || persons.length < 2) {
+      return NextResponse.json(
+        { error: 'At least 2 persons required' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
 
-      const trimmedHistory = clampMessages(messages)
+    const trimmedHistory = clampMessages(messages)
 
-      // Safety check
-      const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
-      if (lastUser && containsForbidden(lastUser.content)) {
-        return createFallbackSSEStream({
-          content: safetyMessage(lang),
-          done: true,
-        })
-      }
+    // Safety check
+    const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
+    if (lastUser && containsForbidden(lastUser.content)) {
+      return createFallbackSSEStream({
+        content: safetyMessage(lang),
+        done: true,
+      })
+    }
 
-      // Build conversation context
-      const historyText = trimmedHistory
+    // Build conversation context
+    const historyText = trimmedHistory
         .filter((m) => m.role !== 'system')
         .map((m) => `${m.role === 'user' ? 'Q' : 'A'}: ${guardText(m.content, 300)}`)
         .join('\n')
         .slice(0, 1500)
 
-      const userQuestion = lastUser ? guardText(lastUser.content, 500) : ''
+    const userQuestion = lastUser ? guardText(lastUser.content, 500) : ''
 
-      // Format persons info
-      const personsInfo = persons
+    // Format persons info
+    const personsInfo = persons
         .map(
           (p: { name?: string; date?: string; time?: string; relation?: string }, i: number) =>
             `Person ${i + 1}: ${p.name || `Person ${i + 1}`} (${p.date} ${p.time})${i > 0 ? ` - ${p.relation || 'partner'}` : ''}`
         )
         .join('\n')
 
-      // Build prompt for compatibility chat
-      const chatPrompt = [
+    // Build prompt for compatibility chat
+    const chatPrompt = [
         `== 궁합 상담 ==`,
         personsInfo,
         compatibilityResult
@@ -69,8 +68,8 @@ export const POST = withApiMiddleware(
         .filter(Boolean)
         .join('\n')
 
-      // Call backend AI
-      try {
+    // Call backend AI
+    try {
         const response = await apiClient.post(
           '/api/compatibility/chat',
           {
@@ -99,7 +98,7 @@ export const POST = withApiMiddleware(
         )
 
         // Stream response in chunks for better UX
-        const encoder = new TextEncoder()
+        const encoder = new TextEncoder();
         return new Response(
           new ReadableStream({
             start(controller) {
@@ -122,26 +121,19 @@ export const POST = withApiMiddleware(
               Connection: 'keep-alive',
             },
           }
-        )
+        );
       } catch (fetchError) {
-        logger.error('[Compatibility Chat] Backend error:', fetchError)
+      logger.error('[Compatibility Chat] Backend error:', fetchError)
 
-        const fallback =
-          lang === 'ko'
-            ? 'AI 서버 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요.'
-            : 'AI server connection issue. Please try again later.'
+      const fallback =
+        lang === 'ko'
+          ? 'AI 서버 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요.'
+          : 'AI server connection issue. Please try again later.'
 
-        return createFallbackSSEStream({
-          content: fallback,
-          done: true,
-        })
-      }
-    } catch (error) {
-      logger.error('[Compatibility Chat] Error:', error)
-      return NextResponse.json(
-        { error: 'Internal server error' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
+      return createFallbackSSEStream({
+        content: fallback,
+        done: true,
+      })
     }
   },
   createAuthenticatedGuard({

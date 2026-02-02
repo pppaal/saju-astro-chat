@@ -28,7 +28,7 @@ export const POST = withApiMiddleware(
         title: body.title || null,
         content: body.content,
       },
-    })
+    });
 
     return apiSuccess({ success: true, id: reading.id })
   },
@@ -49,7 +49,7 @@ export const GET = withApiMiddleware(
       },
       orderBy: { createdAt: 'desc' },
       take: Math.min(limitParam, 50),
-    })
+    });
 
     return apiSuccess({ readings })
   },

@@ -4,9 +4,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
-// Mock middleware first
+// Mock middleware with error boundary (mirrors real withApiMiddleware behavior)
 vi.mock('@/lib/api/middleware', () => ({
-  withApiMiddleware: (handler: any) => handler,
+  withApiMiddleware: (handler: any) => async (req: any, ...args: any[]) => {
+    try {
+      const result = await handler(req, {}, ...args);
+      return result;
+    } catch {
+      const { NextResponse } = await import('next/server');
+      return NextResponse.json(
+        { success: false, error: 'Internal server error' },
+        { status: 500 }
+      );
+    }
+  },
   createSimpleGuard: vi.fn(() => ({})),
 }));
 
@@ -20,6 +31,7 @@ vi.mock('@/lib/logger', () => ({
     warn: vi.fn(),
     error: vi.fn(),
     info: vi.fn(),
+    debug: vi.fn(),
   },
 }));
 
@@ -78,12 +90,10 @@ describe('GET /api/weekly-fortune', () => {
     const response = await GET(req, {} as any);
     const data = await response.json();
 
+    // Error now propagates to withApiMiddleware which returns standardized error format
     expect(response.status).toBe(500);
-    expect(data.error).toBe('Failed to fetch weekly fortune image');
-    expect(logger.error).toHaveBeenCalledWith(
-      '[WeeklyFortune] Error fetching',
-      expect.objectContaining({ error: expect.any(Error) })
-    );
+    expect(data.success).toBe(false);
+    expect(data.error).toBeDefined();
   });
 
   it('should set appropriate cache headers for success', async () => {

@@ -208,7 +208,7 @@ function AdvisorChatComponent({ predictionContext, locale = 'ko', onClose }: Adv
       e.preventDefault()
       setIsExpanded((prev) => !prev)
     }
-  }, [])
+  }, []);
 
   return (
     <motion.div

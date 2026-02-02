@@ -149,9 +149,9 @@ export async function POST(request: Request) {
           ? 'Fortune sent to your email!'
           : 'Fortune calculated! (Email delivery failed)'
         : 'Fortune calculated!',
-    })
+    });
   } catch (error: unknown) {
-    logger.error('[Daily Fortune Error]:', error)
+    logger.error('[Daily Fortune Error]:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: HTTP_STATUS.SERVER_ERROR }
@@ -198,7 +198,7 @@ async function sendFortuneEmail(email: string, fortune: FortuneData) {
       throw new Error('Email send failed')
     }
 
-    logger.info('[Daily Fortune] Email sent to:', email)
+    logger.info('[Daily Fortune] Email sent to:', email);
   } catch (error) {
     logger.warn('[Daily Fortune] Email send failed:', error)
   }

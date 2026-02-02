@@ -116,24 +116,9 @@ const nextConfig = {
   // Security and cache headers
   async headers() {
     // Security headers for all routes
+    // NOTE: CSP is handled exclusively by middleware.ts (nonce-based).
+    // Do NOT add CSP headers here to avoid duplication and conflicts.
     const isProd = process.env.NODE_ENV === 'production'
-
-    // Build connect-src dynamically to avoid HTTP in production
-    const connectSrc = [
-      "'self'",
-      'https://api.destinypal.com',
-      'https://*.sentry.io',
-      'https://www.google-analytics.com',
-      'https://www.clarity.ms',
-      'wss:',
-    ]
-    const aiBackend = process.env.AI_BACKEND_URL
-    if (aiBackend && aiBackend.startsWith('https://')) {
-      connectSrc.push(aiBackend)
-    }
-    if (!isProd) {
-      connectSrc.push('http://localhost:5000', 'http://127.0.0.1:5000')
-    }
 
     const securityHeaders = [
       { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -148,8 +133,6 @@ const nextConfig = {
       ...(isProd
         ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }]
         : []),
-      // CSP is now handled by middleware.ts with nonce-based security
-      // This provides better protection against XSS attacks
     ]
 
     return [

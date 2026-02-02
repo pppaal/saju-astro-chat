@@ -144,8 +144,7 @@ function generateNumerologyFallback(birthDate: string, locale: string): Numerolo
  */
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
-    try {
-      const body = await parseRequestBody<NumerologyBody>(req, { context: 'Numerology' });
+    const body = await parseRequestBody<NumerologyBody>(req, { context: 'Numerology' });
     if (!body) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
@@ -285,15 +284,7 @@ export const POST = withApiMiddleware(
       return NextResponse.json(transformed);
     }
 
-      return NextResponse.json(result.data);
-
-    } catch (error) {
-      logger.error('[API /api/numerology] Error:', error);
-      return NextResponse.json(
-        { error: 'Internal Server Error' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      );
-    }
+    return NextResponse.json(result.data);
   },
   createSimpleGuard({
     route: '/api/numerology',
@@ -308,18 +299,17 @@ export const POST = withApiMiddleware(
  */
 export const GET = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
-    try {
-      const url = new URL(req.url);
-      const birthDate = url.searchParams.get('birthDate');
-      const englishName = url.searchParams.get('name') || url.searchParams.get('englishName');
-      const koreanName = url.searchParams.get('koreanName');
-      const locale = url.searchParams.get('locale') || 'ko';
+    const url = new URL(req.url);
+    const birthDate = url.searchParams.get('birthDate');
+    const englishName = url.searchParams.get('name') || url.searchParams.get('englishName');
+    const koreanName = url.searchParams.get('koreanName');
+    const locale = url.searchParams.get('locale') || 'ko';
 
-      if (!birthDate) {
-        return NextResponse.json({ error: 'birthDate query param is required' }, { status: HTTP_STATUS.BAD_REQUEST });
-      }
+    if (!birthDate) {
+      return NextResponse.json({ error: 'birthDate query param is required' }, { status: HTTP_STATUS.BAD_REQUEST });
+    }
 
-      const result = await apiClient.post('/api/numerology/analyze', {
+    const result = await apiClient.post('/api/numerology/analyze', {
       birthDate,
       englishName,
       koreanName,
@@ -405,15 +395,7 @@ export const GET = withApiMiddleware(
       return NextResponse.json(transformed);
     }
 
-      return NextResponse.json(result.data);
-
-    } catch (error) {
-      logger.error('[API /api/numerology GET] Error:', error);
-      return NextResponse.json(
-        { error: 'Internal Server Error' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      );
-    }
+    return NextResponse.json(result.data);
   },
   createSimpleGuard({
     route: '/api/numerology',

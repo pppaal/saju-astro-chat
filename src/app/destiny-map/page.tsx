@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useReducer } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -48,40 +48,88 @@ export default function DestinyMapPage() {
   return <DestinyMapContent />;
 }
 
+interface FormState {
+  name: string;
+  birthDate: string;
+  birthTime: string;
+  city: string;
+  gender: 'Male' | 'Female';
+  genderOpen: boolean;
+  suggestions: CityHit[];
+  selectedCity: CityHit | null;
+  openSug: boolean;
+  cityErr: string | null;
+  loadingProfile: boolean;
+  profileLoaded: boolean;
+  userTimezone: string;
+  isUserTyping: boolean;
+}
+
+const initialFormState: FormState = {
+  name: '',
+  birthDate: '',
+  birthTime: '',
+  city: '',
+  gender: 'Male',
+  genderOpen: false,
+  suggestions: [],
+  selectedCity: null,
+  openSug: false,
+  cityErr: null,
+  loadingProfile: false,
+  profileLoaded: false,
+  userTimezone: 'Asia/Seoul',
+  isUserTyping: false,
+};
+
+type FormAction =
+  | { type: 'SET_FIELD'; field: keyof FormState; value: FormState[keyof FormState] }
+  | { type: 'SET_FIELDS'; fields: Partial<FormState> }
+  | { type: 'PICK_CITY'; city: string; selectedCity: CityHit }
+  | { type: 'UPDATE_SELECTED_CITY_TZ'; name: string; country: string; timezone: string };
+
+function formReducer(state: FormState, action: FormAction): FormState {
+  switch (action.type) {
+    case 'SET_FIELD':
+      return { ...state, [action.field]: action.value };
+    case 'SET_FIELDS':
+      return { ...state, ...action.fields };
+    case 'PICK_CITY':
+      return {
+        ...state,
+        isUserTyping: false,
+        city: action.city,
+        selectedCity: action.selectedCity,
+        openSug: false,
+      };
+    case 'UPDATE_SELECTED_CITY_TZ': {
+      const prev = state.selectedCity;
+      if (!prev || prev.name !== action.name || prev.country !== action.country) return state;
+      return { ...state, selectedCity: { ...prev, timezone: action.timezone } };
+    }
+    default:
+      return state;
+  }
+}
+
 function DestinyMapContent() {
   const router = useRouter();
   const { t, locale } = useI18n();
   const { status } = useSession();
 
-  const [name, setName] = useState('');
-  const [birthDate, setBirthDate] = useState('');
-  const [birthTime, setBirthTime] = useState('');
-  const [city, setCity] = useState('');
-  const [gender, setGender] = useState<'Male' | 'Female'>('Male');
-  const [genderOpen, setGenderOpen] = useState(false);
+  const [form, dispatch] = useReducer(formReducer, initialFormState);
 
-  const [suggestions, setSuggestions] = useState<CityHit[]>([]);
-  const [selectedCity, setSelectedCity] = useState<CityHit | null>(null);
-  const [openSug, setOpenSug] = useState(false);
-  const [cityErr, setCityErr] = useState<string | null>(null);
-
-  // Load profile from DB states
-  const [loadingProfile, setLoadingProfile] = useState(false);
-  const [profileLoaded, setProfileLoaded] = useState(false);
-
-  // 사용자 현재 위치 타임존 (운세 날짜 계산용) - client-side only
-  const [userTimezone, setUserTimezone] = useState('Asia/Seoul');
   useEffect(() => {
     let active = true;
     const resolveTimezone = async () => {
       try {
         const { getUserTimezone } = await loadTimezoneModule();
         if (active) {
-          setUserTimezone(getUserTimezone() || 'Asia/Seoul');
+          dispatch({ type: 'SET_FIELD', field: 'userTimezone', value: getUserTimezone() || 'Asia/Seoul' });
         }
       } catch {
         if (active) {
-          setUserTimezone('Asia/Seoul');
+          dispatch({ type: 'SET_FIELD', field: 'userTimezone', value: 'Asia/Seoul' });
         }
       }
     };
@@ -103,31 +151,35 @@ function DestinyMapContent() {
   const handleLoadProfile = useCallback(async () => {
     if (status !== 'authenticated') {return;}
 
-    setLoadingProfile(true);
-    setCityErr(null);
+    dispatch({ type: 'SET_FIELDS', fields: { loadingProfile: true, cityErr: null } });
 
     try {
       // Fetch directly from API to ensure fresh data
       const res = await fetch('/api/me/profile', { cache: 'no-store' });
       if (!res.ok) {
-        setCityErr(t('error.profileLoadFailed') || 'Failed to load profile. Please try again.');
-        setLoadingProfile(false);
+        dispatch({ type: 'SET_FIELDS', fields: {
+          cityErr: t('error.profileLoadFailed') || 'Failed to load profile. Please try again.',
+          loadingProfile: false,
+        }});
         return;
       }
 
       const { user } = await res.json();
       if (!user || !user.birthDate) {
-        setCityErr(t('error.noProfileData') || 'No saved profile data found. Please save your info in MyJourney first.');
-        setLoadingProfile(false);
+        dispatch({ type: 'SET_FIELDS', fields: {
+          cityErr: t('error.noProfileData') || 'No saved profile data found. Please save your info in MyJourney first.',
+          loadingProfile: false,
+        }});
         return;
       }
 
-      // Set form fields from DB data
-      if (user.name) {setName(user.name);}
-      if (user.birthDate) {setBirthDate(user.birthDate);}
-      if (user.birthTime) {setBirthTime(user.birthTime);}
+      // Build fields update from DB data
+      const fields: Partial<FormState> = {};
+      if (user.name) {fields.name = user.name;}
+      if (user.birthDate) {fields.birthDate = user.birthDate;}
+      if (user.birthTime) {fields.birthTime = user.birthTime;}
       if (user.birthCity) {
-        setCity(user.birthCity);
+        fields.city = user.birthCity;
         // Try to get city coordinates
         const cityName = user.birthCity.split(',')[0]?.trim();
         if (cityName) {
@@ -137,10 +189,7 @@ function DestinyMapContent() {
             if (hits && hits[0]) {
               const hit = hits[0];
               const timezone = await resolveCityTimezone(hit, user.tzId);
-              setSelectedCity({
-                ...hit,
-                timezone,
-              });
+              fields.selectedCity = { ...hit, timezone };
             }
           } catch {
             // City search failed, but continue with other data
@@ -149,58 +198,59 @@ function DestinyMapContent() {
         }
       }
       // Convert gender from DB format (M/F) to form format (Male/Female)
-      if (user.gender === 'M') {setGender('Male');}
-      else if (user.gender === 'F') {setGender('Female');}
+      if (user.gender === 'M') {fields.gender = 'Male';}
+      else if (user.gender === 'F') {fields.gender = 'Female';}
 
-      setProfileLoaded(true);
+      fields.profileLoaded = true;
+      fields.loadingProfile = false;
+      dispatch({ type: 'SET_FIELDS', fields });
     } catch (err) {
       logger.error('Failed to load profile:', err);
-      setCityErr(t('error.profileLoadFailed') || 'Failed to load profile. Please try again.');
-    } finally {
-      setLoadingProfile(false);
+      dispatch({ type: 'SET_FIELDS', fields: {
+        cityErr: t('error.profileLoadFailed') || 'Failed to load profile. Please try again.',
+        loadingProfile: false,
+      }});
     }
   }, [status, t, resolveCityTimezone]);
 
   // Auto-load profile on mount for authenticated users
   useEffect(() => {
-    if (status === 'authenticated' && !profileLoaded && !loadingProfile) {
+    if (status === 'authenticated' && !form.profileLoaded && !form.loadingProfile) {
       handleLoadProfile();
     }
-  }, [status, profileLoaded, loadingProfile, handleLoadProfile]);
+  }, [status, form.profileLoaded, form.loadingProfile, handleLoadProfile]);
 
-
-  // Track if user is actively typing (to avoid auto-opening dropdown on page load)
-  const [isUserTyping, setIsUserTyping] = useState(false);
-
+  // City search with debounce
   useEffect(() => {
-    const raw = city.trim();
+    const raw = form.city.trim();
     const q = extractCityPart(raw);
     if (q.length < 1) {
-      setSuggestions([]);
+      dispatch({ type: 'SET_FIELD', field: 'suggestions', value: [] });
       return;
     }
-    const t = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       try {
         logger.info('[DestinyMap] Searching cities for:', q);
         const { searchCities } = await loadCitiesModule();
         const hits = (await searchCities(q, { limit: 8 })) as CityHit[];
         logger.info('[DestinyMap] City search results:', hits);
-        setSuggestions(hits);
+        dispatch({ type: 'SET_FIELD', field: 'suggestions', value: hits });
         // Only open dropdown if user is actively typing
-        if (isUserTyping) {
-          setOpenSug(hits.length > 0);
+        if (form.isUserTyping) {
+          dispatch({ type: 'SET_FIELD', field: 'openSug', value: hits.length > 0 });
         }
       } catch (err) {
         logger.error('[DestinyMap] City search error:', err);
-        setSuggestions([]);
+        dispatch({ type: 'SET_FIELD', field: 'suggestions', value: [] });
       }
     }, 120);
-    return () => clearTimeout(t);
-  }, [city, isUserTyping]);
+    return () => clearTimeout(timer);
+  }, [form.city, form.isUserTyping]);
 
+  // City lookup for coordinates
   useEffect(() => {
     const tryFindCity = async () => {
-      const q = extractCityPart(city);
+      const q = extractCityPart(form.city);
       if (!q) {return;}
       try {
         const { searchCities } = await loadCitiesModule();
@@ -208,87 +258,106 @@ function DestinyMapContent() {
         if (hits && hits[0]) {
           const hit = hits[0];
           const timezone = await resolveCityTimezone(hit);
-          setSelectedCity({
-            ...hit,
-            timezone,
-          });
+          dispatch({ type: 'SET_FIELD', field: 'selectedCity', value: { ...hit, timezone } });
         }
       } catch (err) {
         logger.warn('[DestinyMap] city lookup failed', err);
       }
     };
     tryFindCity();
-  }, [city, resolveCityTimezone]);
+  }, [form.city, resolveCityTimezone]);
 
-  const onPick = (hit: CityHit) => {
-    setIsUserTyping(false); // Prevent dropdown from reopening
-    setCity(`${hit.name}, ${hit.country}`);
-    setSelectedCity({
-      ...hit,
-      timezone: hit.timezone,
-    });
-    setOpenSug(false);
+  const onPick = useCallback((hit: CityHit) => {
+    dispatch({ type: 'PICK_CITY', city: `${hit.name}, ${hit.country}`, selectedCity: { ...hit, timezone: hit.timezone } });
     resolveCityTimezone(hit)
       .then((timezone) => {
-        setSelectedCity((prev) => {
-          if (!prev || prev.name !== hit.name || prev.country !== hit.country) {return prev;}
-          return { ...prev, timezone };
-        });
+        dispatch({ type: 'UPDATE_SELECTED_CITY_TZ', name: hit.name, country: hit.country, timezone });
       })
       .catch(() => {});
-  };
+  }, [resolveCityTimezone]);
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    setCityErr(null);
+    dispatch({ type: 'SET_FIELD', field: 'cityErr', value: null });
 
-    const lat = selectedCity?.lat?.toString() ?? '';
-    const lon = selectedCity?.lon?.toString() ?? '';
-    let tz = selectedCity?.timezone ?? 'Asia/Seoul';
-    if (selectedCity && !selectedCity.timezone) {
+    const lat = form.selectedCity?.lat?.toString() ?? '';
+    const lon = form.selectedCity?.lon?.toString() ?? '';
+    let tz = form.selectedCity?.timezone ?? 'Asia/Seoul';
+    if (form.selectedCity && !form.selectedCity.timezone) {
       try {
-        tz = await resolveCityTimezone(selectedCity);
+        tz = await resolveCityTimezone(form.selectedCity);
       } catch {}
     }
 
-    if (!birthDate || !birthTime || !city) {
-      setCityErr(t('error.allFieldsRequired') || '⚠️ All fields are required');
+    if (!form.birthDate || !form.birthTime || !form.city) {
+      dispatch({ type: 'SET_FIELD', field: 'cityErr', value: t('error.allFieldsRequired') || '⚠️ All fields are required' });
       return;
     }
-    if (!selectedCity || !selectedCity.lat || !selectedCity.lon) {
-      setCityErr(t('error.selectValidCity') || '⚠️ Please select a valid city from the list');
+    if (!form.selectedCity || !form.selectedCity.lat || !form.selectedCity.lon) {
+      dispatch({ type: 'SET_FIELD', field: 'cityErr', value: t('error.selectValidCity') || '⚠️ Please select a valid city from the list' });
       return;
     }
 
     const params = new URLSearchParams();
-    params.set('name', name || '');
-    params.set('birthDate', birthDate || '');
-    params.set('birthTime', birthTime || '');
-    params.set('city', city || '');
-    params.set('gender', gender || '');
+    params.set('name', form.name || '');
+    params.set('birthDate', form.birthDate || '');
+    params.set('birthTime', form.birthTime || '');
+    params.set('city', form.city || '');
+    params.set('gender', form.gender || '');
     params.set('lang', locale || 'ko');
     params.set('latitude', lat);
     params.set('longitude', lon);
     if (tz) {params.set('tz', tz);}
-    params.set('userTz', userTimezone); // 사용자 현재 타임존 (운세 날짜용)
+    params.set('userTz', form.userTimezone); // 사용자 현재 타임존 (운세 날짜용)
 
     // Save user profile for reuse across services
     const { saveUserProfile } = await import('@/lib/userProfile');
     saveUserProfile({
-      name: name || undefined,
-      birthDate: birthDate || undefined,
-      birthTime: birthTime || undefined,
-      birthCity: city || undefined,
-      gender: gender as 'Male' | 'Female' | 'Other' | 'Prefer not to say',
+      name: form.name || undefined,
+      birthDate: form.birthDate || undefined,
+      birthTime: form.birthTime || undefined,
+      birthCity: form.city || undefined,
+      gender: form.gender as 'Male' | 'Female' | 'Other' | 'Prefer not to say',
       timezone: tz || undefined,
-      latitude: selectedCity?.lat,
-      longitude: selectedCity?.lon
+      latitude: form.selectedCity?.lat,
+      longitude: form.selectedCity?.lon
     });
 
     // 테마 선택 건너뛰고 바로 인생총운(life_path)으로 이동
     params.set('theme', 'focus_overall');
     router.push(`/destiny-map/result?${params.toString()}`);
-  };
+  }, [form, t, locale, router, resolveCityTimezone]);
+
+  const handleCityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch({ type: 'SET_FIELDS', fields: { city: e.target.value, isUserTyping: true, openSug: true } });
+  }, []);
+
+  const handleCityFocus = useCallback(() => {
+    loadCitiesModule().catch(() => {});
+  }, []);
+
+  const handleCityBlur = useCallback(() => {
+    setTimeout(() => dispatch({ type: 'SET_FIELD', field: 'openSug', value: false }), 150);
+    dispatch({ type: 'SET_FIELD', field: 'isUserTyping', value: false });
+  }, []);
+
+  const handleGenderToggle = useCallback(() => {
+    dispatch({ type: 'SET_FIELD', field: 'genderOpen', value: !form.genderOpen });
+  }, [form.genderOpen]);
+
+  const handleGenderBlur = useCallback(() => {
+    setTimeout(() => dispatch({ type: 'SET_FIELD', field: 'genderOpen', value: false }), 150);
+  }, []);
+
+  const handleSelectMale = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dispatch({ type: 'SET_FIELDS', fields: { gender: 'Male', genderOpen: false } });
+  }, []);
+
+  const handleSelectFemale = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dispatch({ type: 'SET_FIELDS', fields: { gender: 'Female', genderOpen: false } });
+  }, []);
 
   return (
     <div className={styles.container}>
@@ -316,22 +385,22 @@ function DestinyMapContent() {
               <>
                 <button
                   type="button"
-                  className={`${styles.loadProfileButton} ${profileLoaded ? styles.loadProfileSuccess : ''}`}
+                  className={`${styles.loadProfileButton} ${form.profileLoaded ? styles.loadProfileSuccess : ''}`}
                   onClick={handleLoadProfile}
-                  disabled={loadingProfile}
+                  disabled={form.loadingProfile}
                 >
                   <span className={styles.loadProfileIcon}>
-                    {loadingProfile ? '...' : profileLoaded ? '✓' : '👤'}
+                    {form.loadingProfile ? '...' : form.profileLoaded ? '✓' : '👤'}
                   </span>
                   <span className={styles.loadProfileText}>
-                    {loadingProfile
+                    {form.loadingProfile
                       ? (t('app.loadingProfile') || 'Loading...')
-                      : profileLoaded
+                      : form.profileLoaded
                       ? (t('app.profileLoaded') || 'Profile Loaded!')
                       : (t('app.loadMyProfile') || 'Load My Profile')}
                   </span>
                 </button>
-                {profileLoaded && (
+                {form.profileLoaded && (
                   <div className={styles.successBanner}>
                     <span className={styles.successIcon}>✓</span>
                     <span className={styles.successText}>
@@ -350,8 +419,8 @@ function DestinyMapContent() {
               <input
                 className={styles.input}
                 placeholder={t('app.namePh') || 'Your name (optional)'}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={form.name}
+                onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'name', value: e.target.value })}
               />
             </div>
 
@@ -365,8 +434,8 @@ function DestinyMapContent() {
                 <input
                   className={styles.input}
                   type="date"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
+                  value={form.birthDate}
+                  onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'birthDate', value: e.target.value })}
                   required
                 />
               </div>
@@ -379,8 +448,8 @@ function DestinyMapContent() {
                 <input
                   className={styles.input}
                   type="time"
-                  value={birthTime}
-                  onChange={(e) => setBirthTime(e.target.value)}
+                  value={form.birthTime}
+                  onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'birthTime', value: e.target.value })}
                   required
                 />
               </div>
@@ -396,25 +465,16 @@ function DestinyMapContent() {
                 <input
                   className={styles.input}
                   placeholder={t('app.cityPh') || 'Enter your city'}
-                  value={city}
-                  onChange={(e) => {
-                    setCity(e.target.value);
-                    setIsUserTyping(true);
-                    setOpenSug(true);
-                  }}
-                  onFocus={() => {
-                    loadCitiesModule().catch(() => {});
-                  }}
-                  onBlur={() => {
-                    setTimeout(() => setOpenSug(false), 150);
-                    setIsUserTyping(false);
-                  }}
+                  value={form.city}
+                  onChange={handleCityChange}
+                  onFocus={handleCityFocus}
+                  onBlur={handleCityBlur}
                   autoComplete="off"
                   required
                 />
-                {openSug && suggestions.length > 0 && (
+                {form.openSug && form.suggestions.length > 0 && (
                   <ul className={styles.dropdown}>
-                    {suggestions.map((s, idx) => (
+                    {form.suggestions.map((s: CityHit, idx: number) => (
                       <li
                         key={`${s.name}-${s.country}-${idx}`}
                         className={styles.dropdownItem}
@@ -429,7 +489,7 @@ function DestinyMapContent() {
                     ))}
                   </ul>
                 )}
-                {cityErr && <div className={styles.error}>{cityErr}</div>}
+                {form.cityErr && <div className={styles.error}>{form.cityErr}</div>}
               </div>
 
               <div className={styles.field}>
@@ -440,47 +500,39 @@ function DestinyMapContent() {
                 <div className={styles.genderSelectWrapper}>
                   <button
                     type="button"
-                    className={`${styles.genderSelect} ${genderOpen ? styles.genderSelectOpen : ''}`}
-                    onClick={() => setGenderOpen(!genderOpen)}
-                    onBlur={() => setTimeout(() => setGenderOpen(false), 150)}
+                    className={`${styles.genderSelect} ${form.genderOpen ? styles.genderSelectOpen : ''}`}
+                    onClick={handleGenderToggle}
+                    onBlur={handleGenderBlur}
                   >
                     <span className={styles.genderIcon}>
-                      {gender === 'Male' ? '♂' : '♀'}
+                      {form.gender === 'Male' ? '♂' : '♀'}
                     </span>
                     <span className={styles.genderText}>
-                      {gender === 'Male' ? (t('app.male') || '남성') : (t('app.female') || '여성')}
+                      {form.gender === 'Male' ? (t('app.male') || '남성') : (t('app.female') || '여성')}
                     </span>
-                    <span className={`${styles.genderArrow} ${genderOpen ? styles.genderArrowOpen : ''}`}>
+                    <span className={`${styles.genderArrow} ${form.genderOpen ? styles.genderArrowOpen : ''}`}>
                       ▾
                     </span>
                   </button>
-                  {genderOpen && (
+                  {form.genderOpen && (
                     <div className={styles.genderDropdown}>
                       <button
                         type="button"
-                        className={`${styles.genderOption} ${gender === 'Male' ? styles.genderOptionActive : ''}`}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          setGender('Male');
-                          setGenderOpen(false);
-                        }}
+                        className={`${styles.genderOption} ${form.gender === 'Male' ? styles.genderOptionActive : ''}`}
+                        onMouseDown={handleSelectMale}
                       >
                         <span className={styles.genderOptionIcon}>♂</span>
                         <span className={styles.genderOptionText}>{t('app.male') || '남성'}</span>
-                        {gender === 'Male' && <span className={styles.genderCheck}>✓</span>}
+                        {form.gender === 'Male' && <span className={styles.genderCheck}>✓</span>}
                       </button>
                       <button
                         type="button"
-                        className={`${styles.genderOption} ${gender === 'Female' ? styles.genderOptionActive : ''}`}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          setGender('Female');
-                          setGenderOpen(false);
-                        }}
+                        className={`${styles.genderOption} ${form.gender === 'Female' ? styles.genderOptionActive : ''}`}
+                        onMouseDown={handleSelectFemale}
                       >
                         <span className={styles.genderOptionIcon}>♀</span>
                         <span className={styles.genderOptionText}>{t('app.female') || '여성'}</span>
-                        {gender === 'Female' && <span className={styles.genderCheck}>✓</span>}
+                        {form.gender === 'Female' && <span className={styles.genderCheck}>✓</span>}
                       </button>
                     </div>
                   )}

@@ -268,7 +268,7 @@ export default function BirthInfoForm({
               {openSug && suggestions.length > 0 && (
                 <ul id="city-suggestions" role="listbox" className={styles.dropdown}>
                   {suggestions.map((s, idx) => {
-                    const formattedCity = formatCityForDropdown(s.name, s.country, locale)
+                    const formattedCity = formatCityForDropdown(s.name, s.country, locale);
                     return (
                       <li
                         key={`${s.name}-${s.country}-${idx}`}

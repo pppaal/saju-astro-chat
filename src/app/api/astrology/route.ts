@@ -45,7 +45,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // 1. Validate request body with Zod
   const validation = await validateRequestBody(req, astrologyRequestSchema)
   if (!validation.success) {
-    const errorMessage = validation.errors.map((e) => `${e.path}: ${e.message}`).join(', ')
+    const errorMessage = validation.errors.map((e) => `${e.path}: ${e.message}`).join(', ');
     return apiError(ErrorCodes.VALIDATION_ERROR, errorMessage, { errors: validation.errors })
   }
 
@@ -94,7 +94,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     .map((p) => {
       const name = localizePlanetLabel(p.name, locKey)
       const { signPart, degreePart } = splitSignAndDegree(p.formatted)
-      const sign = localizeSignLabel(signPart, locKey)
+      const sign = localizeSignLabel(signPart, locKey);
       return `${name}: ${sign} ${degreePart}`.trim()
     })
     .join('\n')
@@ -202,7 +202,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
             })),
           }),
         },
-      })
+      });
     } catch (saveErr) {
       logger.warn('[Astrology API] Failed to save reading:', saveErr)
     }

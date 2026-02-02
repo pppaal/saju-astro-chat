@@ -44,7 +44,7 @@ let lastCleanup = Date.now()
  */
 function initializeRedis(): Redis | null {
   if (!REDIS_URL) {
-    logger.debug('[RateLimit] REDIS_URL not configured')
+    logger.debug('[RateLimit] REDIS_URL not configured');
     return null
   }
 
@@ -82,7 +82,7 @@ function initializeRedis(): Redis | null {
     redisClient.connect().catch((error) => {
       logger.warn('[RateLimit] Redis connection failed:', error.message)
       redisAvailable = false
-    })
+    });
 
     return redisClient
   } catch (error) {
@@ -135,12 +135,12 @@ function inMemoryIncrement(key: string, windowSeconds: number): number {
 
   if (existing && existing.resetAt > now) {
     existing.count++
-    existing.lastAccess = Date.now()
+    existing.lastAccess = Date.now();
     return existing.count
   }
 
   // New window
-  inMemoryStore.set(key, { count: 1, resetAt: now + windowSeconds, lastAccess: Date.now() })
+  inMemoryStore.set(key, { count: 1, resetAt: now + windowSeconds, lastAccess: Date.now() });
   return 1
 }
 
@@ -218,7 +218,7 @@ async function upstashIncrement(key: string, windowSeconds: number): Promise<num
 
     return data[0].result as number
   } catch (error) {
-    logger.warn('[RateLimit] Upstash increment failed:', error)
+    logger.warn('[RateLimit] Upstash increment failed:', error);
     return null
   }
 }
@@ -279,14 +279,14 @@ export async function rateLimit(
   // Development mode without Redis: allow all
   if (process.env.NODE_ENV !== 'production' && !REDIS_URL && !UPSTASH_URL) {
     headers.set('X-RateLimit-Remaining', 'unlimited')
-    headers.set('X-RateLimit-Backend', 'disabled')
+    headers.set('X-RateLimit-Backend', 'disabled');
     return { allowed: true, limit, remaining: limit, reset: 0, headers, backend: 'disabled' }
   }
 
   // 1. Try IORedis first (fastest)
   const redisCount = await redisIncrement(fullKey, windowSeconds)
   if (redisCount !== null) {
-    recordCounter('api.rate_limit.check', 1, { backend: 'redis' })
+    recordCounter('api.rate_limit.check', 1, { backend: 'redis' });
     return buildResult(redisCount, 'redis')
   }
 
@@ -294,7 +294,7 @@ export async function rateLimit(
   const upstashCount = await upstashIncrement(fullKey, windowSeconds)
   if (upstashCount !== null) {
     recordCounter('api.rate_limit.check', 1, { backend: 'upstash' })
-    recordCounter('api.rate_limit.fallback', 1, { from: 'redis', to: 'upstash' })
+    recordCounter('api.rate_limit.fallback', 1, { from: 'redis', to: 'upstash' });
     return buildResult(upstashCount, 'upstash')
   }
 
@@ -304,7 +304,7 @@ export async function rateLimit(
     const memoryCount = inMemoryIncrement(fullKey, windowSeconds)
     recordCounter('api.rate_limit.check', 1, { backend: 'memory' })
     recordCounter('api.rate_limit.fallback', 1, { from: 'upstash', to: 'memory' })
-    logger.warn('[RateLimit] Using in-memory fallback in development')
+    logger.warn('[RateLimit] Using in-memory fallback in development');
     return buildResult(memoryCount, 'memory')
   }
 
@@ -312,7 +312,7 @@ export async function rateLimit(
   logger.error('[SECURITY] Rate limiting completely unavailable in production - denying request')
   recordCounter('api.rate_limit.misconfig', 1, { env: 'prod' })
   headers.set('X-RateLimit-Backend', 'disabled')
-  headers.set('X-RateLimit-Remaining', '0')
+  headers.set('X-RateLimit-Remaining', '0');
 
   return {
     allowed: false,
@@ -334,7 +334,7 @@ export async function resetRateLimit(key: string): Promise<boolean> {
     // Try Redis
     if (redisClient && redisAvailable) {
       try {
-        await redisClient.del(fullKey)
+        await redisClient.del(fullKey);
         return true
       } catch (error) {
         logger.warn('[RateLimit] Redis delete failed:', error)
@@ -361,10 +361,10 @@ export async function resetRateLimit(key: string): Promise<boolean> {
     }
 
     // In-memory
-    inMemoryStore.delete(fullKey)
+    inMemoryStore.delete(fullKey);
     return true
   } catch (error) {
-    logger.error('[RateLimit] Failed to reset rate limit:', error)
+    logger.error('[RateLimit] Failed to reset rate limit:', error);
     return false
   }
 }
@@ -381,7 +381,7 @@ export async function getRateLimitStatus(
     // Try Redis
     if (redisClient && redisAvailable) {
       try {
-        const [count, ttl] = await Promise.all([redisClient.get(fullKey), redisClient.ttl(fullKey)])
+        const [count, ttl] = await Promise.all([redisClient.get(fullKey), redisClient.ttl(fullKey)]);
 
         return {
           count: count ? parseInt(count, 10) : 0,
@@ -395,7 +395,7 @@ export async function getRateLimitStatus(
     // In-memory fallback
     const entry = inMemoryStore.get(fullKey)
     if (entry) {
-      const now = Math.floor(Date.now() / 1000)
+      const now = Math.floor(Date.now() / 1000);
       return {
         count: entry.count,
         ttl: Math.max(0, entry.resetAt - now),
@@ -404,7 +404,7 @@ export async function getRateLimitStatus(
 
     return { count: 0, ttl: 0 }
   } catch (error) {
-    logger.error('[RateLimit] Failed to get rate limit status:', error)
+    logger.error('[RateLimit] Failed to get rate limit status:', error);
     return null
   }
 }

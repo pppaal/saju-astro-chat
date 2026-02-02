@@ -3,7 +3,6 @@ import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { clearCacheByPattern } from '@/lib/cache/redis-cache'
-
 import { HTTP_STATUS } from '@/lib/constants/http'
 const isNonEmptyString = (val: unknown, max = 120) =>
   typeof val === 'string' && val.trim().length > 0 && val.trim().length <= max
@@ -13,7 +12,7 @@ const isValidUrl = (val: unknown) => {
     return false
   }
   try {
-    const url = new URL(val)
+    const url = new URL(val);
     return url.protocol === 'http:' || url.protocol === 'https:'
   } catch {
     return false
@@ -22,9 +21,8 @@ const isValidUrl = (val: unknown) => {
 
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id: context.userId! },
+    const user = await prisma.user.findUnique({
+      where: { id: context.userId! },
       select: {
         id: true,
         name: true,
@@ -52,14 +50,7 @@ export const GET = withApiMiddleware(
       return NextResponse.json({ error: 'User not found' }, { status: HTTP_STATUS.NOT_FOUND })
     }
 
-      return NextResponse.json({ user })
-    } catch (error) {
-      logger.error('Error fetching profile:', error)
-      return NextResponse.json(
-        { error: 'Internal server error' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({ user })
   },
   createAuthenticatedGuard({
     route: '/api/me/profile',
@@ -70,8 +61,7 @@ export const GET = withApiMiddleware(
 
 export const PATCH = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
-    try {
-      const body = await request.json().catch(() => ({}))
+    const body = await request.json().catch(() => ({}))
     const {
       name,
       image,
@@ -208,16 +198,9 @@ export const PATCH = withApiMiddleware(
           },
         },
       },
-    })
+    });
 
-      return NextResponse.json({ user: fullUser })
-    } catch (error) {
-      logger.error('Error updating profile:', error)
-      return NextResponse.json(
-        { error: 'Internal server error' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({ user: fullUser })
   },
   createAuthenticatedGuard({
     route: '/api/me/profile',

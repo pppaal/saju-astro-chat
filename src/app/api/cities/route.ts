@@ -55,7 +55,6 @@ export const GET = withApiMiddleware(
     return NextResponse.json({ results: [] });
   }
 
-  try {
     const data = await loadCities();
     logger.info("[cities API] Loaded cities count:", { count: data.length });
     const scored: { c: City; score: number }[] = [];
@@ -117,10 +116,6 @@ export const GET = withApiMiddleware(
     const response = NextResponse.json({ results });
     response.headers.set("Cache-Control", "public, max-age=86400");
     return response;
-  } catch (error) {
-    logger.error("[cities] Failed to load city data", error);
-    return NextResponse.json({ error: "Failed to load cities" }, { status: HTTP_STATUS.SERVER_ERROR });
-  }
   },
   createSimpleGuard({
     route: '/api/cities',

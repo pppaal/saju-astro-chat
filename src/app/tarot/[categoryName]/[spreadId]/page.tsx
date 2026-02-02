@@ -337,7 +337,7 @@ function TarotReadingPage() {
                 (language === 'ko' ? position?.titleKo || position?.title : position?.title) ||
                 (language === 'ko' ? `카드 ${index + 1}` : `Card ${index + 1}`)
               const revealed = isCardRevealed(index)
-              const canReveal = canRevealCard(index)
+              const canReveal = canRevealCard(index);
 
               return (
                 <div
@@ -817,7 +817,7 @@ function TarotReadingPage() {
         onRedraw={handleRedraw}
       />
     )
-  })()
+  })();
 
   return (
     <AuthGate statusOverride={status} callbackUrl={callbackUrl} fallback={loginFallback}>

@@ -1,7 +1,7 @@
 "use client";
 
 // src/components/calendar/SelectedDatePanel.tsx
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useI18n } from '@/i18n/I18nProvider';
 import styles from './DestinyCalendar.module.css';
@@ -92,6 +92,73 @@ export default function SelectedDatePanel({
   };
 
   const isSaved = selectedDate ? savedDates.has(selectedDate.date) : false;
+
+  const handleAddToCalendar = useCallback(() => {
+    if (!selectedDate || !selectedDay) return;
+
+    const dateStr = selectedDate.date.replace(/-/g, '');
+    // All-day event DTEND must be the NEXT day (exclusive end per RFC 5545)
+    const nextDay = new Date(selectedDay);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const endStr = `${nextDay.getFullYear()}${String(nextDay.getMonth() + 1).padStart(2, '0')}${String(nextDay.getDate()).padStart(2, '0')}`;
+
+    const title = selectedDate.title;
+    const catLabels: Record<EventCategory, string> = {
+      wealth: locale === 'ko' ? '재물운' : 'Wealth',
+      career: locale === 'ko' ? '커리어' : 'Career',
+      love: locale === 'ko' ? '연애운' : 'Love',
+      health: locale === 'ko' ? '건강운' : 'Health',
+      travel: locale === 'ko' ? '여행운' : 'Travel',
+      study: locale === 'ko' ? '학업운' : 'Study',
+      general: locale === 'ko' ? '전체운' : 'General',
+    };
+    const categories = selectedDate.categories
+      .map(cat => catLabels[cat])
+      .join(', ');
+    const descParts = [
+      selectedDate.description,
+      categories ? `${locale === 'ko' ? '카테고리' : 'Categories'}: ${categories}` : '',
+      `${locale === 'ko' ? '점수' : 'Score'}: ${selectedDate.score}/100`,
+    ];
+    if (selectedDate.recommendations.length > 0) {
+      descParts.push(`${locale === 'ko' ? '추천' : 'Recommendations'}:`);
+      selectedDate.recommendations.forEach(r => descParts.push(`- ${r}`));
+    }
+    if (selectedDate.warnings.length > 0) {
+      descParts.push(`${locale === 'ko' ? '주의' : 'Warnings'}:`);
+      selectedDate.warnings.forEach(w => descParts.push(`- ${w}`));
+    }
+    const description = descParts.filter(Boolean).join('\n');
+
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}T${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
+    const escapeICS = (text: string) =>
+      text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//SajuAstroChat//DestinyCalendar//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `DTSTART;VALUE=DATE:${dateStr}`,
+      `DTEND;VALUE=DATE:${endStr}`,
+      `DTSTAMP:${stamp}`,
+      `UID:destiny-${dateStr}@sajuastrochat`,
+      `SUMMARY:${escapeICS(title)}`,
+      `DESCRIPTION:${escapeICS(description)}`,
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    // iOS Safari doesn't support Blob URL + <a download>.
+    // Use data URI which works across iOS Safari, Android Chrome, and desktop.
+    const dataUri = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(icsContent);
+    window.open(dataUri, '_blank');
+  }, [selectedDate, selectedDay, locale]);
 
   return (
     <div className={styles.selectedDayInfo}>
@@ -328,6 +395,16 @@ export default function SelectedDatePanel({
               )}
             </button>
           )}
+
+          {/* Add to phone calendar button */}
+          <button
+            className={styles.calendarSyncBtn}
+            onClick={handleAddToCalendar}
+            aria-label={locale === 'ko' ? '휴대폰 캘린더에 추가' : 'Add to phone calendar'}
+          >
+            <span>📲</span>
+            <span>{locale === 'ko' ? '캘린더에 추가' : 'Add to Calendar'}</span>
+          </button>
         </div>
       ) : (
         <div className={styles.noInfo}>

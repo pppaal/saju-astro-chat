@@ -122,7 +122,7 @@ export async function POST(request: Request) {
       .map((p: PlanetData) => {
         const name = localizePlanetLabel(String(p.name || ''), locKey)
         const { signPart, degreePart } = splitSignAndDegree(String(p.formatted || ''))
-        const sign = localizeSignLabel(signPart, locKey)
+        const sign = localizeSignLabel(signPart, locKey);
         return `${name}: ${sign} ${degreePart}`.trim()
       })
       .join('\n')
@@ -180,7 +180,7 @@ export async function POST(request: Request) {
       },
       { status: HTTP_STATUS.OK }
     )
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    limit.headers.forEach((value, key) => res.headers.set(key, value));
     return res
   } catch (error) {
     captureServerError(error, { route: '/api/astrology/details' })

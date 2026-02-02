@@ -14,6 +14,7 @@ vi.mock('@/lib/logger', () => ({
     info: vi.fn(),
     error: vi.fn(),
     warn: vi.fn(),
+    debug: vi.fn(),
   },
 }));
 
@@ -266,12 +267,10 @@ describe('GET /api/cities', () => {
     const response = await GET(req);
     const data = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(data.error).toBe('Failed to load cities');
-    expect(logger.error).toHaveBeenCalledWith(
-      '[cities] Failed to load city data',
-      expect.any(Error)
-    );
+    // Error message "File not found" triggers middleware's NOT_FOUND classification
+    expect(response.status).toBe(404);
+    expect(data.success).toBe(false);
+    expect(data.error).toBeDefined();
   });
 
   it('should handle invalid JSON in cities file', async () => {
@@ -286,8 +285,10 @@ describe('GET /api/cities', () => {
     const response = await GET(req);
     const data = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(data.error).toBe('Failed to load cities');
+    // JSON parse error contains "invalid" which triggers middleware's VALIDATION_ERROR classification
+    expect(response.status).toBe(422);
+    expect(data.success).toBe(false);
+    expect(data.error).toBeDefined();
   });
 
   it('should handle BOM in JSON file', async () => {

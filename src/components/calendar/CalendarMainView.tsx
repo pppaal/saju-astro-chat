@@ -3,7 +3,6 @@
 // src/components/calendar/CalendarMainView.tsx
 import React, { memo, useCallback, useMemo } from 'react';
 import { useI18n } from '@/i18n/I18nProvider';
-import BackButton from '@/components/ui/BackButton';
 import styles from './DestinyCalendar.module.css';
 import { CATEGORY_EMOJI, WEEKDAYS_KO, WEEKDAYS_EN } from './constants';
 import { getGradeEmoji, getCategoryLabel, getScoreClass } from './utils';
@@ -188,8 +187,6 @@ const CalendarMainView = memo(function CalendarMainView({
 
   return (
     <div className={`${styles.container} ${!isDarkTheme ? styles.lightTheme : ''}`}>
-      <BackButton />
-
       {/* Header */}
       <div className={styles.calendarHeader}>
         <div className={styles.headerTop}>

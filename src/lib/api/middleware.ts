@@ -128,7 +128,7 @@ export async function initializeApiContext(
   if (!options.skipCsrf && !isTestEnv && mutatingMethods.includes(req.method)) {
     const csrfError = csrfGuard(req.headers)
     if (csrfError) {
-      logger.warn(`[CSRF] Origin validation failed`, { route, ip, method: req.method })
+      logger.warn(`[CSRF] Origin validation failed`, { route, ip, method: req.method });
       return {
         context: {
           ip,
@@ -205,7 +205,7 @@ export async function initializeApiContext(
   try {
     session = await getServerSession(authOptions)
     userId = session?.user?.id || null
-    isPremium = !!(session?.user?.plan && session.user.plan !== 'free')
+    isPremium = !!(session?.user?.plan && session.user.plan !== 'free');
   } catch {
     // Session fetch failed, continue without it
   }
@@ -335,7 +335,7 @@ export async function initializeApiContext(
               route: options.route,
               creditType: options.credits!.type,
               amount: options.credits!.amount || 1,
-            })
+            });
           } catch (error) {
             logger.error('[Middleware] Failed to refund credits', { error })
             // 환불 실패는 로그만 남기고 원래 에러를 그대로 던짐
@@ -397,7 +397,7 @@ export function withApiMiddleware<T>(handler: ApiHandler<T>, options: Middleware
         status: result.status,
         headers: result.headers,
         meta: result.meta,
-      })
+      });
     } catch (error) {
       const e = error as Error & { code?: string }
       logger.error(`[API Error] ${route}:`, e)
@@ -436,7 +436,7 @@ export function withApiMiddleware<T>(handler: ApiHandler<T>, options: Middleware
  */
 export async function parseJsonBody<T>(req: NextRequest): Promise<T> {
   try {
-    return await req.json()
+    return await req.json();
   } catch {
     throw new Error('Invalid JSON body')
   }

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { logger } from "@/lib/logger";
+import { useCreditModal } from "@/contexts/CreditModalContext";
 import { CHAT_I18N, detectCrisis, type LangKey } from "../chat-i18n";
 import {
   CHAT_TIMINGS,
@@ -71,6 +72,7 @@ export function useChatApi({
 }: UseChatApiOptions): UseChatApiReturn {
   const effectiveLang = lang === "ko" ? "ko" : "en";
   const tr = CHAT_I18N[effectiveLang];
+  const { showDepleted } = useCreditModal();
 
   const [loading, setLoading] = React.useState(false);
   const [retryCount, setRetryCount] = React.useState(0);
@@ -113,6 +115,13 @@ export function useChatApi({
       setConnectionStatus(getConnectionStatus(responseTime));
 
       if (!res.ok) {
+        // 402 Payment Required - 크레딧 부족
+        if (res.status === 402) {
+          logger.warn("[Chat] Insufficient credits (402)");
+          showDepleted();
+          throw new Error("INSUFFICIENT_CREDITS");
+        }
+
         if (res.status >= 500 && attempt < CHAT_LIMITS.MAX_RETRY_ATTEMPTS) {
           logger.warn(`[Chat] Server error ${res.status}, retrying...`);
           setRetryCount(attempt + 1);

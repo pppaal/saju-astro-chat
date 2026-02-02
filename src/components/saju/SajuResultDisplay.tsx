@@ -107,7 +107,7 @@ export default function SajuResultDisplay({ result }: Props) {
         ? dayPillar.heavenlyStem
         : (dayPillar.heavenlyStem?.name ?? '')
     const stemElement =
-      typeof dayPillar.heavenlyStem === 'string' ? '' : (dayPillar.heavenlyStem?.element ?? '')
+      typeof dayPillar.heavenlyStem === 'string' ? '' : (dayPillar.heavenlyStem?.element ?? '');
     return { name: stemName, element: stemElement }
   }, [result])
 

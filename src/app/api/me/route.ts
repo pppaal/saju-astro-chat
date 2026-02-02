@@ -10,7 +10,7 @@ export async function GET() {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
-    return NextResponse.json({ name })
+    return NextResponse.json({ name });
   } catch {
     // If decryption fails or secret is missing, return 401 instead of throwing
     return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED })

@@ -120,7 +120,7 @@ export async function GET() {
         userId: session.user.id,
         sajuProfile: sajuProfileData,
       },
-    })
+    });
 
     return NextResponse.json({
       success: true,
@@ -150,9 +150,9 @@ export async function GET() {
           },
         },
       },
-    })
+    });
   } catch (error) {
-    logger.error('Saju Profile Error:', error)
+    logger.error('Saju Profile Error:', error);
 
     return NextResponse.json(
       {

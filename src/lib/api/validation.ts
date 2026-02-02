@@ -26,6 +26,10 @@ type FieldRules<T> = {
 
 /**
  * Validate object against field rules
+ *
+ * @deprecated Use Zod schemas from @/lib/api/validator instead.
+ * Zod provides better type inference, composability, and error messages.
+ * Example: z.object({ field: z.string().min(1).max(100) })
  */
 export function validateFields<T extends Record<string, unknown>>(
   data: T,
@@ -191,6 +195,8 @@ export const CommonValidators = {
 
 /**
  * Validate destiny map input
+ *
+ * @deprecated Use DestinyMapSchema from @/lib/api/validator instead.
  */
 export function validateDestinyMapInput(data: Record<string, unknown>): ValidationResult {
   return validateFields(data, {
@@ -208,6 +214,8 @@ export function validateDestinyMapInput(data: Record<string, unknown>): Validati
 
 /**
  * Validate tarot input
+ *
+ * @deprecated Use TarotInterpretSchema from @/lib/api/validator instead.
  */
 export function validateTarotInput(data: Record<string, unknown>): ValidationResult {
   return validateFields(data, {
@@ -233,6 +241,8 @@ export function validateTarotInput(data: Record<string, unknown>): ValidationRes
 
 /**
  * Validate dream input
+ *
+ * @deprecated Use DreamSchema from @/lib/api/validator instead.
  */
 export function validateDreamInput(data: Record<string, unknown>): ValidationResult {
   return validateFields(data, {
@@ -243,6 +253,8 @@ export function validateDreamInput(data: Record<string, unknown>): ValidationRes
 
 /**
  * Validate birth data (Saju, Astrology, Compatibility)
+ *
+ * @deprecated Use PersonInputSchema from @/lib/api/validator instead.
  */
 export function validateBirthData(data: Record<string, unknown>): ValidationResult {
   return validateFields(data, {
@@ -257,6 +269,8 @@ export function validateBirthData(data: Record<string, unknown>): ValidationResu
 
 /**
  * Validate compatibility input
+ *
+ * @deprecated Use CompatibilityPersonsRequestSchema from @/lib/api/validator instead.
  */
 export function validateCompatibilityInput(data: Record<string, unknown>): ValidationResult {
   const baseValidation = validateFields(data, {

@@ -74,7 +74,7 @@ export async function checkBackendHealth(backendUrl: string): Promise<boolean> {
   const now = Date.now()
 
   if (isCircuitActive(now)) {
-    logger.warn('[Backend] Circuit breaker active')
+    logger.warn('[Backend] Circuit breaker active');
     return false
   }
 
@@ -99,19 +99,19 @@ export async function checkBackendHealth(backendUrl: string): Promise<boolean> {
     if (response.ok) {
       recordCounter('backend.health.success', 1, { backendUrl })
       logger.info('[Backend] Health check passed')
-      markSuccess(Date.now())
+      markSuccess(Date.now());
       return true
     }
 
     recordCounter('backend.health.failure', 1, { backendUrl })
-    markFailure(Date.now())
+    markFailure(Date.now());
     return false
   } catch (error) {
     const duration = Date.now() - start
     recordTiming('backend.health.latency_ms', duration, { backendUrl })
     recordCounter('backend.health.failure', 1, { backendUrl })
     logger.error('[Backend] Health check error', error)
-    markFailure(Date.now())
+    markFailure(Date.now());
     return false
   } finally {
     clearTimeout(timeoutId)
@@ -143,7 +143,7 @@ export async function callBackendWithFallback<TPayload extends Record<string, un
 ): Promise<{ success: boolean; data: TFallback | unknown }> {
   const healthy = await checkBackendHealth(backendUrl)
   if (!healthy) {
-    logger.warn('[Backend] Unhealthy, using fallback')
+    logger.warn('[Backend] Unhealthy, using fallback');
     return { success: false, data: fallback }
   }
 
@@ -169,16 +169,16 @@ export async function callBackendWithFallback<TPayload extends Record<string, un
 
     if (!response.ok) {
       recordCounter('backend.call.failure', 1, { endpoint: normalizedEndpoint })
-      markFailure(Date.now())
+      markFailure(Date.now());
       return { success: false, data: fallback }
     }
 
     let data: unknown = null
     try {
-      data = await response.json()
+      data = await response.json();
     } catch (error) {
       recordCounter('backend.call.failure', 1, { endpoint: normalizedEndpoint })
-      markFailure(Date.now())
+      markFailure(Date.now());
       return { success: false, data: fallback }
     }
 
@@ -193,11 +193,11 @@ export async function callBackendWithFallback<TPayload extends Record<string, un
         ? (data as { data: unknown }).data
         : data
 
-    recordCounter('backend.call.success', 1, { endpoint: normalizedEndpoint })
+    recordCounter('backend.call.success', 1, { endpoint: normalizedEndpoint });
     return { success: true, data: responseData }
   } catch (error) {
     recordCounter('backend.call.failure', 1, { endpoint: normalizedEndpoint })
-    markFailure(Date.now())
+    markFailure(Date.now());
     return { success: false, data: fallback }
   }
 }

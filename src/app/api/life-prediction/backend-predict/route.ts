@@ -227,7 +227,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             )
           }
 
-          return backendRes.json()
+          return backendRes.json();
         } catch (error) {
           // Log network-level errors with more context
           if (error instanceof Error) {
@@ -252,7 +252,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         backendData: backendData === null ? 'null' : 'undefined',
         endpoint,
         type,
-      })
+      });
       return NextResponse.json(
         {
           success: false,
@@ -271,12 +271,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // 프론트엔드 형식으로 변환
-    const response = transformBackendResponse(backendData, type)
+    const response = transformBackendResponse(backendData, type);
 
     return NextResponse.json({
       success: true,
       data: response,
-    })
+    });
   } catch (error) {
     logger.error('[Backend Predict] Error:', error)
 
@@ -331,7 +331,7 @@ function transformBackendResponse(data: BackendResponse, type: string): Record<s
       reasons: formatReasons(rec.reasons, rec.advice),
       specificDays: [], // 백엔드에서 제공되지 않으면 빈 배열
       rank: index + 1,
-    }))
+    }));
 
     return {
       eventType: data.event_type || 'general',

@@ -19,7 +19,7 @@ export function useDreamAnalysis(
         locale === 'ko'
           ? '꿈 내용을 최소 10자 이상 입력해주세요.'
           : 'Please describe your dream in at least 10 characters.'
-      )
+      );
       return false
     }
 
@@ -69,7 +69,7 @@ export function useDreamAnalysis(
       }
 
       const data = await res.json()
-      setResult(data)
+      setResult(data);
       return true
     } catch (err) {
       logger.error('Dream analysis failed:', err)
@@ -118,7 +118,7 @@ export function useDreamAnalysis(
     setDreamText('')
     setResult(null)
     setError(null)
-  }, [])
+  }, []);
 
   return {
     dreamText,

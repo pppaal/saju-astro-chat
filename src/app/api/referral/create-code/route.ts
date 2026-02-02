@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic'
 export const POST = withApiMiddleware(
   async (_req: NextRequest, context: ApiContext) => {
     const code = await getUserReferralCode(context.userId!)
-    const referralUrl = getReferralUrl(code)
+    const referralUrl = getReferralUrl(code);
 
     return apiSuccess({
       code,

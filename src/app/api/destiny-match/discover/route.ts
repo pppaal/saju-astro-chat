@@ -21,7 +21,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
       Math.cos((lat2 * Math.PI) / 180) *
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c
 }
 
@@ -43,9 +43,8 @@ function calculateAge(birthDate: string | null): number | null {
 // GET - 매칭 대상 검색
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      // context.userId는 이미 검증됨 (middleware에서 requireAuth: true)
-      const userId = context.userId!
+    // context.userId는 이미 검증됨 (middleware에서 requireAuth: true)
+    const userId = context.userId!
 
       const searchParams = req.nextUrl.searchParams
       const limit = parseInt(searchParams.get('limit') || '20')
@@ -253,7 +252,7 @@ export const GET = withApiMiddleware(
               decision: number
               rhythm: number
             }
-            personalityScore = quickPersonalityScore(myScores, theirScores)
+            personalityScore = quickPersonalityScore(myScores, theirScores);
           } catch (e) {
             logger.warn('[discover] Personality compatibility calc failed:', { e })
           }
@@ -345,19 +344,12 @@ export const GET = withApiMiddleware(
       }
 
       // 궁합 점수 기준 정렬
-      results.sort((a, b) => b.compatibilityScore - a.compatibilityScore)
+      results.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
 
-      return NextResponse.json({
-        profiles: results,
-        hasMore: profiles.length >= limit * 2,
-      })
-    } catch (error) {
-      logger.error('[destiny-match/discover] GET error:', { error: error })
-      return NextResponse.json(
-        { error: 'Failed to discover profiles' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({
+      profiles: results,
+      hasMore: profiles.length >= limit * 2,
+    })
   },
   createAuthenticatedGuard({
     route: '/api/destiny-match/discover',

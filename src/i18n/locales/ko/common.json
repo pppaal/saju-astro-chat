@@ -27,6 +27,7 @@
     "subtitle": "AI가 당신의 운명 지도를 펼칩니다.",
     "visitors": "오늘 방문자",
     "myJourney": "내 여정",
+    "destinyMatch": "데스티니 매치",
     "community": "커뮤니티",
     "back": "뒤로",
     "name": "이름",
@@ -94,7 +95,8 @@
     "compatibility": "궁합",
     "personality": "성격분석",
     "icp": "대인관계 스타일",
-    "pastLife": "전생"
+    "pastLife": "전생",
+    "destinyMatch": "데스티니 매치"
   },
   "emoji": {
     "sparkles": "sparkles"

@@ -54,7 +54,7 @@ async function checkStripeActive(email?: string): Promise<boolean> {
   }
 
   // Cache the result
-  await cacheSet(cacheKey, { isPremium }, PREMIUM_CACHE_TTL)
+  await cacheSet(cacheKey, { isPremium }, PREMIUM_CACHE_TTL);
 
   return isPremium
 }
@@ -72,7 +72,7 @@ export const GET = withApiMiddleware(async (_req: NextRequest, context: ApiConte
   const userEmail = context.session.user.email
 
   // 프리미엄 체크
-  const isPremium = await checkStripeActive(userEmail)
+  const isPremium = await checkStripeActive(userEmail);
 
   return NextResponse.json({
     isLoggedIn: true,

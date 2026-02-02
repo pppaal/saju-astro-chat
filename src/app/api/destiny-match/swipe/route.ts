@@ -12,28 +12,27 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 // POST - 스와이프 처리
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
-      const { targetProfileId, action, compatibilityScore } = await req.json()
+    const { targetProfileId, action, compatibilityScore } = await req.json()
 
-      // 유효성 검증
-      if (!targetProfileId) {
-        return NextResponse.json(
-          { error: 'targetProfileId is required' },
-          { status: HTTP_STATUS.BAD_REQUEST }
-        )
-      }
+    // 유효성 검증
+    if (!targetProfileId) {
+      return NextResponse.json(
+        { error: 'targetProfileId is required' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
 
-      if (!['like', 'pass', 'super_like'].includes(action)) {
-        return NextResponse.json(
-          { error: 'Invalid action. Must be like, pass, or super_like' },
-          { status: HTTP_STATUS.BAD_REQUEST }
-        )
-      }
+    if (!['like', 'pass', 'super_like'].includes(action)) {
+      return NextResponse.json(
+        { error: 'Invalid action. Must be like, pass, or super_like' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
 
-      // ✅ N+1 쿼리 최적화: 내 프로필과 대상 프로필을 병렬로 조회
-      const [myProfile, targetProfile] = await Promise.all([
+    // ✅ N+1 쿼리 최적화: 내 프로필과 대상 프로필을 병렬로 조회
+    const [myProfile, targetProfile] = await Promise.all([
         prisma.matchProfile.findUnique({
           where: { userId },
           include: {
@@ -215,7 +214,7 @@ export const POST = withApiMiddleware(
                   birthTime: targetProfile.user.birthTime || undefined,
                   gender: targetProfile.user.gender || undefined,
                 }
-              )
+              );
             } catch (e) {
               logger.warn('[swipe] Detailed compatibility failed:', { e })
             }
@@ -242,10 +241,10 @@ export const POST = withApiMiddleware(
         await tx.matchProfile.update({
           where: { id: updatedMyProfile.id },
           data: { lastActiveAt: new Date() },
-        })
+        });
 
         return { swipe, connection }
-      })
+      });
 
       return NextResponse.json({
         success: true,
@@ -253,13 +252,6 @@ export const POST = withApiMiddleware(
         swipeId: result.swipe.id,
         connectionId: result.connection?.id || null,
       })
-    } catch (error) {
-      logger.error('[destiny-match/swipe] POST error:', { error: error })
-      return NextResponse.json(
-        { error: 'Failed to process swipe' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
   },
   createAuthenticatedGuard({
     route: '/api/destiny-match/swipe',
@@ -271,12 +263,11 @@ export const POST = withApiMiddleware(
 // DELETE - 스와이프 되돌리기 (Undo)
 export const DELETE = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
-      const { swipeId } = await req.json()
+    const { swipeId } = await req.json()
 
-      if (!swipeId) {
+    if (!swipeId) {
         return NextResponse.json(
           { error: 'swipeId is required' },
           { status: HTTP_STATUS.BAD_REQUEST }
@@ -362,16 +353,9 @@ export const DELETE = withApiMiddleware(
         userId,
         swipeId,
         action: swipe.action,
-      })
+      });
 
-      return NextResponse.json({ success: true })
-    } catch (error) {
-      logger.error('[destiny-match/swipe] DELETE error:', { error })
-      return NextResponse.json(
-        { error: 'Failed to undo swipe' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({ success: true })
   },
   createAuthenticatedGuard({
     route: '/api/destiny-match/swipe',

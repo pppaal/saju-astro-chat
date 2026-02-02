@@ -41,7 +41,7 @@ export const DateSchema = z
       if (Number.isNaN(parsed)) {
         return false
       }
-      const year = new Date(parsed).getFullYear()
+      const year = new Date(parsed).getFullYear();
       return year >= 1900 && year <= 2100
     },
     { message: 'Invalid date or year out of range (1900-2100)' }
@@ -54,7 +54,7 @@ export const TimeSchema = z.string().regex(/^\d{2}:\d{2}$/, 'Time must be in HH:
 export const TimezoneSchema = z.string().refine(
   (tz) => {
     try {
-      Intl.DateTimeFormat(undefined, { timeZone: tz })
+      Intl.DateTimeFormat(undefined, { timeZone: tz });
       return true
     } catch {
       return false
@@ -276,7 +276,7 @@ export type CompatibilityPersonsRequest = z.infer<typeof CompatibilityPersonsReq
  */
 export function validate<T>(schema: ZodSchema<T>, data: unknown): ValidationResult<T> {
   try {
-    const result = schema.parse(data)
+    const result = schema.parse(data);
     return { success: true, data: result }
   } catch (error) {
     if (error instanceof ZodError) {
@@ -284,7 +284,7 @@ export function validate<T>(schema: ZodSchema<T>, data: unknown): ValidationResu
         field: e.path.join('.'),
         message: e.message,
         code: e.code,
-      }))
+      }));
       return { success: false, errors }
     }
     return {
@@ -298,7 +298,7 @@ export function validate<T>(schema: ZodSchema<T>, data: unknown): ValidationResu
  * Safe validate - returns null on failure instead of throwing
  */
 export function safeValidate<T>(schema: ZodSchema<T>, data: unknown): T | null {
-  const result = schema.safeParse(data)
+  const result = schema.safeParse(data);
   return result.success ? result.data : null
 }
 
@@ -337,7 +337,7 @@ export async function parseAndValidate<T>(
 
     let body: unknown
     try {
-      body = JSON.parse(text)
+      body = JSON.parse(text);
     } catch {
       return {
         error: {

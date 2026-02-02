@@ -37,7 +37,7 @@ const envSchema = z.object({
 export function validateEnv() {
   try {
     envSchema.parse(process.env)
-    logger.info('✅ Environment variables validated successfully')
+    logger.info('✅ Environment variables validated successfully');
   } catch (error) {
     if (error instanceof z.ZodError) {
       const issues = error.issues || []

@@ -262,7 +262,7 @@ export function useMyJourneyData({
     if (status === 'unauthenticated') {
       router.replace(signInUrl)
     }
-  }, [status, router, signInUrl])
+  }, [status, router, signInUrl]);
 
   return {
     // State

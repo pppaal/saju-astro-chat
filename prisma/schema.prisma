@@ -807,6 +807,7 @@ model MatchSwipe {
   @@index([targetId])
   @@index([action])
   @@index([isMatched])
+  @@index([swiperId, createdAt]) // discover 쿼리: 최근 스와이프 필터링 최적화
 }
 
 // 매치 연결 - 서로 좋아요한 경우

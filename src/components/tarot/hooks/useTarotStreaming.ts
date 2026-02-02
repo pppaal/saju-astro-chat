@@ -8,6 +8,7 @@ import type { Message } from "../types";
 import type { PersistedContext } from "../types/storage";
 import { apiFetch } from "@/lib/api";
 import { logger } from "@/lib/logger";
+import { useCreditModal } from "@/contexts/CreditModalContext";
 import { parseSSEStream, isSSEStream } from "../utils/streamingParser";
 import { buildContextWithNewCard } from "../utils/contextBuilder";
 
@@ -49,6 +50,7 @@ export function useTarotStreaming(params: UseTarotStreamingParams) {
     onLoadingStop
   } = params;
 
+  const { showDepleted } = useCreditModal();
   const [loading, setLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState<string>("");
   const [usedFallback, setUsedFallback] = useState(false);
@@ -83,6 +85,13 @@ export function useTarotStreaming(params: UseTarotStreamingParams) {
             userTopic: messageText
           })
         });
+
+        if (!drawResponse.ok && drawResponse.status === 402) {
+          devWarn("Insufficient credits when drawing card (402)");
+          showDepleted();
+          throw new Error("INSUFFICIENT_CREDITS");
+        }
+
         if (drawResponse.ok) {
           const drawData = await drawResponse.json();
           if (drawData.drawnCards && drawData.drawnCards.length > 0) {
@@ -91,6 +100,10 @@ export function useTarotStreaming(params: UseTarotStreamingParams) {
           }
         }
       } catch (drawErr) {
+        // 크레딧 부족 에러는 상위로 전파
+        if (drawErr instanceof Error && drawErr.message === "INSUFFICIENT_CREDITS") {
+          throw drawErr;
+        }
         devWarn('Failed to draw new card, using existing context:', drawErr);
       }
 
@@ -114,6 +127,12 @@ export function useTarotStreaming(params: UseTarotStreamingParams) {
       });
 
       if (!response.ok) {
+        // 402 Payment Required - 크레딧 부족
+        if (response.status === 402) {
+          devWarn("Insufficient credits (402)");
+          showDepleted();
+          throw new Error("INSUFFICIENT_CREDITS");
+        }
         throw new Error(`Stream failed: ${response.status}`);
       }
 

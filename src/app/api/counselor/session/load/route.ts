@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
 
 export const dynamic = 'force-dynamic'
 
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const userId = context.userId!
+    const userId = context.userId!
 
       const searchParams = req.nextUrl.searchParams
       const theme = searchParams.get('theme') || 'chat'
@@ -42,19 +39,12 @@ export const GET = withApiMiddleware(
         return NextResponse.json({ messages: [] })
       }
 
-      return NextResponse.json({
-        sessionId: chatSession.id,
-        messages: chatSession.messages,
-        summary: chatSession.summary,
-        keyTopics: chatSession.keyTopics,
-      })
-    } catch (error) {
-      logger.error('[Counselor Session Load Error]:', error)
-      return NextResponse.json(
-        { error: 'internal_server_error' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+    return NextResponse.json({
+      sessionId: chatSession.id,
+      messages: chatSession.messages,
+      summary: chatSession.summary,
+      keyTopics: chatSession.keyTopics,
+    })
   },
   createAuthenticatedGuard({
     route: '/api/counselor/session/load',

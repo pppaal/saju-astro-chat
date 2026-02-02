@@ -166,14 +166,14 @@ const CompatibilityFunInsights = memo(function CompatibilityFunInsights({
         // Object-based planets
         const planetsObj = source?.planets as Record<string, { sign?: string }> | undefined
         if (planetsObj && !Array.isArray(planetsObj) && planetsObj[planetName]) {
-          const sign = planetsObj[planetName].sign?.toLowerCase()
+          const sign = planetsObj[planetName].sign?.toLowerCase();
           return { sign: sign || 'aries', element: getElementFromSign(sign || 'aries') }
         }
 
         // Direct access
         const directAccess = source as Record<string, { sign?: string }>
         if (directAccess?.[planetName]?.sign) {
-          const sign = directAccess[planetName].sign!.toLowerCase()
+          const sign = directAccess[planetName].sign!.toLowerCase();
           return { sign, element: getElementFromSign(sign) }
         }
 
@@ -326,7 +326,7 @@ const CompatibilityFunInsights = memo(function CompatibilityFunInsights({
     const astroScore = synastry?.compatibilityIndex || 65
     const crossScore = crossSystemAnalysis?.crossSystemScore || 65
     // Weighted average: Saju 35%, Astrology 35%, Cross-System Fusion 30%
-    const overallScore = Math.round(sajuScore * 0.35 + astroScore * 0.35 + crossScore * 0.3)
+    const overallScore = Math.round(sajuScore * 0.35 + astroScore * 0.35 + crossScore * 0.3);
 
     return {
       persons,

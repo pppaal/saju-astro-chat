@@ -173,7 +173,7 @@ function CreditDisplay() {
     fetchCredits()
 
     const handleCreditUpdate = () => fetchCredits()
-    window.addEventListener('credit-update', handleCreditUpdate)
+    window.addEventListener('credit-update', handleCreditUpdate);
     return () => window.removeEventListener('credit-update', handleCreditUpdate)
   }, [session, status])
 
@@ -291,7 +291,7 @@ function GlobalHeaderContent() {
         setFocusedIndex(-1)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showDropdown])
 

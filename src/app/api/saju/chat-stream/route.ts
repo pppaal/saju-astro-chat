@@ -62,8 +62,7 @@ function sajuCounselorSystemPrompt(lang: string) {
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const body = await req.json()
+    const body = await req.json()
       const {
         name,
         birthDate,
@@ -76,20 +75,20 @@ export const POST = withApiMiddleware(
         userContext,
       } = body
 
-      if (!birthDate || !birthTime) {
-        return NextResponse.json(
-          { error: 'Missing required fields' },
-          { status: HTTP_STATUS.BAD_REQUEST }
-        )
-      }
+    if (!birthDate || !birthTime) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
 
-      // Credits already consumed by middleware
+    // Credits already consumed by middleware
 
-      const trimmedHistory = clampMessages(messages)
+    const trimmedHistory = clampMessages(messages)
 
-      // Safety check
-      const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
-      if (lastUser && containsForbidden(lastUser.content)) {
+    // Safety check
+    const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
+    if (lastUser && containsForbidden(lastUser.content)) {
         return createFallbackSSEStream({
           content: safetyMessage(lang),
           done: true,
@@ -156,23 +155,18 @@ export const POST = withApiMiddleware(
         })
       }
 
-      // Relay the stream from backend to frontend with sanitization
-      return createTransformedSSEStream({
-        source: streamResult.response,
-        transform: (chunk) => {
-          const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name)
-          return masked
-        },
-        route: 'SajuChatStream',
-        additionalHeaders: {
-          'X-Fallback': streamResult.response.headers.get('x-fallback') || '0',
-        },
-      })
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Internal Server Error'
-      logger.error('[Saju Chat-Stream API error]', err)
-      return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
-    }
+    // Relay the stream from backend to frontend with sanitization
+    return createTransformedSSEStream({
+      source: streamResult.response,
+      transform: (chunk) => {
+        const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name);
+        return masked
+      },
+      route: 'SajuChatStream',
+      additionalHeaders: {
+        'X-Fallback': streamResult.response.headers.get('x-fallback') || '0',
+      },
+    })
   },
   createAuthenticatedGuard({
     route: 'saju-chat-stream',

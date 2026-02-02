@@ -25,7 +25,7 @@ interface PushSubscription {
  * Save user's push notification subscription
  */
 export const POST = withApiMiddleware(
-  async (req: NextRequest, _context: ApiContext) => {
+  async (req: NextRequest, context: ApiContext) => {
     const subscription = await parseJsonBody<PushSubscription>(req)
 
     // Validate subscription object
@@ -53,7 +53,7 @@ export const POST = withApiMiddleware(
         },
       },
       userAgent
-    )
+    );
 
     return apiSuccess({ success: true, message: 'Subscription saved successfully' })
   },
@@ -65,14 +65,14 @@ export const POST = withApiMiddleware(
  * Remove user's push notification subscription
  */
 export const DELETE = withApiMiddleware(
-  async (req: NextRequest, context: ApiContext) => {
+  async (req: NextRequest, _context: ApiContext) => {
     const body = await parseJsonBody<{ endpoint: string }>(req)
 
     if (!body?.endpoint) {
       return apiError(ErrorCodes.VALIDATION_ERROR, 'Endpoint required')
     }
 
-    await removePushSubscription(body.endpoint)
+    await removePushSubscription(body.endpoint);
 
     return apiSuccess({ success: true, message: 'Subscription removed successfully' })
   },

@@ -132,7 +132,7 @@ class PremiumPDFRenderer {
       size: 10,
       font: this.bodyFont,
       color: rgb(0.5, 0.5, 0.5),
-    })
+    });
 
     return this.currentPage
   }
@@ -515,7 +515,7 @@ export async function generatePremiumPDF(
   renderer.drawClosingPage(report)
 
   // Save and return
-  const pdfBytes = await pdf.save()
+  const pdfBytes = await pdf.save();
   return pdfBytes
 }
 

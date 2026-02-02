@@ -2,13 +2,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from "@/lib/api/middleware"
 import { prisma } from "@/lib/db/prisma"
-import { logger } from '@/lib/logger';
 import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const { date, kind = "daily", title, content } = await req.json()
+    const { date, kind = "daily", title, content } = await req.json()
     if (!date || !content) {
       return NextResponse.json({ error: "date and content are required" }, { status: HTTP_STATUS.BAD_REQUEST })
     }
@@ -32,13 +30,9 @@ export const POST = withApiMiddleware(
         title: title ?? null,
         content,
       },
-    })
+    });
 
-      return NextResponse.json(saved)
-    } catch (e) {
-      logger.error("[Fortune API] Failed to save fortune:", e)
-      return NextResponse.json({ error: "Failed to save fortune" }, { status: HTTP_STATUS.SERVER_ERROR })
-    }
+    return NextResponse.json(saved)
   },
   createAuthenticatedGuard({
     route: '/api/fortune',
@@ -49,8 +43,7 @@ export const POST = withApiMiddleware(
 
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    try {
-      const { searchParams } = new URL(req.url)
+    const { searchParams } = new URL(req.url)
     const date = searchParams.get("date")
     const kind = searchParams.get("kind") || "daily"
     if (!date) {return NextResponse.json({ error: "date is required" }, { status: HTTP_STATUS.BAD_REQUEST })}
@@ -66,12 +59,8 @@ export const GET = withApiMiddleware(
           kind,
         },
       },
-    })
-      return NextResponse.json({ fortune: row ?? null })
-    } catch (e) {
-      logger.error("[Fortune API] Failed to fetch fortune:", e)
-      return NextResponse.json({ error: "Failed to fetch fortune" }, { status: HTTP_STATUS.SERVER_ERROR })
-    }
+    });
+    return NextResponse.json({ fortune: row ?? null })
   },
   createAuthenticatedGuard({
     route: '/api/fortune',

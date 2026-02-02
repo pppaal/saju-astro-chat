@@ -18,10 +18,10 @@ import { logger } from '@/lib/logger';
 
 // Response builders
 import {
-  successResponse,
-  errorResponse,
-  validationErrorResponse,
-} from '@/lib/api/response-builders';
+  createSuccessResponse,
+  createErrorResponse,
+  ErrorCodes,
+} from '@/lib/api/errorHandler';
 
 // Date formatters
 import { formatDateToISO } from '@/lib/prediction/utils';
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         const { startYear, endYear } = body;
 
         if (!startYear || !endYear) {
-          return errorResponse('startYear and endYear are required for multi-year analysis');
+          return createErrorResponse({ code: ErrorCodes.BAD_REQUEST, message: 'startYear and endYear are required for multi-year analysis' });
         }
 
         const trend = analyzeMultiYearTrend(input, startYear, endYear);
@@ -79,23 +79,18 @@ export async function POST(request: NextRequest) {
           locale
         ) + generateAdvancedPromptContext(currentYearAnalysis, locale);
 
-        return successResponse({
-          type: 'multi-year',
-          data: {
-            trend,
-            summary: trend.summary,
-            peakYears: trend.peakYears,
-            lowYears: trend.lowYears,
-            daeunTransitions: trend.daeunTransitions,
-            lifeCycles: trend.lifeCycles,
-            // 고급 분석 추가
-            advancedAnalysis: {
-              currentYear: currentYearAnalysis,
-              peakYearsInsights: peakYearsAnalysis,
-            },
+        return createSuccessResponse({
+          trend,
+          summary: trend.summary,
+          peakYears: trend.peakYears,
+          lowYears: trend.lowYears,
+          daeunTransitions: trend.daeunTransitions,
+          lifeCycles: trend.lifeCycles,
+          advancedAnalysis: {
+            currentYear: currentYearAnalysis,
+            peakYearsInsights: peakYearsAnalysis,
           },
-          promptContext,
-        });
+        }, { meta: { type: 'multi-year', promptContext } });
       }
 
       case 'past-analysis': {
@@ -105,7 +100,7 @@ export async function POST(request: NextRequest) {
           // 단일 날짜 분석
           const date = new Date(targetDate);
           if (isNaN(date.getTime())) {
-            return validationErrorResponse('targetDate', 'Invalid date format. Use YYYY-MM-DD');
+            return createErrorResponse({ code: ErrorCodes.INVALID_DATE, message: 'Invalid date format. Use YYYY-MM-DD', details: { field: 'targetDate' } });
           }
 
           const retrospective = analyzePastDate(input, date);
@@ -116,15 +111,10 @@ export async function POST(request: NextRequest) {
           const promptContext = generatePastAnalysisPromptContext(retrospective, locale)
             + generateAdvancedPromptContext(advancedAnalysis, locale);
 
-          return successResponse({
-            type: 'past-analysis',
-            mode: 'single',
-            data: {
-              ...retrospective,
-              advancedAnalysis,
-            },
-            promptContext,
-          });
+          return createSuccessResponse({
+            ...retrospective,
+            advancedAnalysis,
+          }, { meta: { type: 'past-analysis', mode: 'single', promptContext } });
 
         } else if (startDate && endDate) {
           // 기간 분석
@@ -132,13 +122,13 @@ export async function POST(request: NextRequest) {
           const end = new Date(endDate);
 
           if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            return validationErrorResponse('date', 'Invalid date format. Use YYYY-MM-DD');
+            return createErrorResponse({ code: ErrorCodes.INVALID_DATE, message: 'Invalid date format. Use YYYY-MM-DD', details: { field: 'date' } });
           }
 
           // 최대 30일로 제한
           const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
           if (daysDiff > 30) {
-            return errorResponse('Period cannot exceed 30 days');
+            return createErrorResponse({ code: ErrorCodes.BAD_REQUEST, message: 'Period cannot exceed 30 days' });
           }
 
           const retrospectives = analyzePastPeriod(input, start, end);
@@ -163,18 +153,14 @@ export async function POST(request: NextRequest) {
             worstDay,
           };
 
-          return successResponse({
-            type: 'past-analysis',
-            mode: 'period',
-            data: {
-              retrospectives,
-              summary,
-              advancedInsights,
-            },
-          });
+          return createSuccessResponse({
+            retrospectives,
+            summary,
+            advancedInsights,
+          }, { meta: { type: 'past-analysis', mode: 'period' } });
 
         } else {
-          return errorResponse('Either targetDate or both startDate and endDate are required');
+          return createErrorResponse({ code: ErrorCodes.BAD_REQUEST, message: 'Either targetDate or both startDate and endDate are required' });
         }
       }
 
@@ -182,11 +168,11 @@ export async function POST(request: NextRequest) {
         const { eventType, startYear, endYear } = body;
 
         if (!eventType) {
-          return errorResponse('eventType is required (marriage, career, investment, move, study, health, relationship)');
+          return createErrorResponse({ code: ErrorCodes.MISSING_FIELD, message: 'eventType is required (marriage, career, investment, move, study, health, relationship)' });
         }
 
         if (!startYear || !endYear) {
-          return errorResponse('startYear and endYear are required');
+          return createErrorResponse({ code: ErrorCodes.MISSING_FIELD, message: 'startYear and endYear are required' });
         }
 
         const result = findOptimalEventTiming(input, eventType, startYear, endYear);
@@ -209,29 +195,24 @@ export async function POST(request: NextRequest) {
         const promptContext = generateEventTimingPromptContext(result, locale)
           + generateAdvancedPromptContext(currentAnalysis, locale);
 
-        return successResponse({
-          type: 'event-timing',
-          data: {
-            eventType: result.eventType,
-            searchRange: result.searchRange,
-            optimalPeriods: optimalPeriodsWithAdvanced,
-            avoidPeriods: result.avoidPeriods.map(p => ({
-              ...p,
-              startDate: formatDateToISO(p.startDate),
-              endDate: formatDateToISO(p.endDate),
-            })),
-            nextBestWindow: result.nextBestWindow ? {
-              ...result.nextBestWindow,
-              startDate: formatDateToISO(result.nextBestWindow.startDate),
-              endDate: formatDateToISO(result.nextBestWindow.endDate),
-              specificDays: result.nextBestWindow.specificDays?.map(d => formatDateToISO(d)),
-            } : null,
-            advice: result.advice,
-            // 고급 분석 추가
-            currentAnalysis,
-          },
-          promptContext,
-        });
+        return createSuccessResponse({
+          eventType: result.eventType,
+          searchRange: result.searchRange,
+          optimalPeriods: optimalPeriodsWithAdvanced,
+          avoidPeriods: result.avoidPeriods.map(p => ({
+            ...p,
+            startDate: formatDateToISO(p.startDate),
+            endDate: formatDateToISO(p.endDate),
+          })),
+          nextBestWindow: result.nextBestWindow ? {
+            ...result.nextBestWindow,
+            startDate: formatDateToISO(result.nextBestWindow.startDate),
+            endDate: formatDateToISO(result.nextBestWindow.endDate),
+            specificDays: result.nextBestWindow.specificDays?.map(d => formatDateToISO(d)),
+          } : null,
+          advice: result.advice,
+          currentAnalysis,
+        }, { meta: { type: 'event-timing', promptContext } });
       }
 
       case 'comprehensive': {
@@ -265,37 +246,32 @@ export async function POST(request: NextRequest) {
           locale
         ) + generateAdvancedPromptContext(currentAnalysis, locale);
 
-        return successResponse({
-          type: 'comprehensive',
-          data: {
-            generatedAt: formatDateToISO(prediction.generatedAt),
-            confidence: enhancedConfidence,
-            multiYearTrend: {
-              ...prediction.multiYearTrend,
-              yearlyScores: prediction.multiYearTrend.yearlyScores.map(y => ({
-                ...y,
-                yearGanji: y.yearGanji,
-                twelveStage: y.twelveStage,
-              })),
-            },
-            upcomingHighlights: highlightsWithAdvanced,
-            lifeSync: prediction.lifeSync,
-            // TIER 1~3 고급 분석 추가
-            advancedAnalysis: {
-              current: currentAnalysis,
-              yearlyInsights: yearlyAdvancedInsights,
-              analysisLevels: ['TIER1_UltraPrecision', 'TIER2_DaeunTransit', 'TIER3_AdvancedAstrology'],
-            },
+        return createSuccessResponse({
+          generatedAt: formatDateToISO(prediction.generatedAt),
+          confidence: enhancedConfidence,
+          multiYearTrend: {
+            ...prediction.multiYearTrend,
+            yearlyScores: prediction.multiYearTrend.yearlyScores.map(y => ({
+              ...y,
+              yearGanji: y.yearGanji,
+              twelveStage: y.twelveStage,
+            })),
           },
-          promptContext,
-        });
+          upcomingHighlights: highlightsWithAdvanced,
+          lifeSync: prediction.lifeSync,
+          advancedAnalysis: {
+            current: currentAnalysis,
+            yearlyInsights: yearlyAdvancedInsights,
+            analysisLevels: ['TIER1_UltraPrecision', 'TIER2_DaeunTransit', 'TIER3_AdvancedAstrology'],
+          },
+        }, { meta: { type: 'comprehensive', promptContext } });
       }
 
       case 'weekly-timing': {
         const { eventType, startDate: startDateStr, endDate: endDateStr } = body as WeeklyTimingRequest;
 
         if (!eventType) {
-          return errorResponse('eventType is required');
+          return createErrorResponse({ code: ErrorCodes.MISSING_FIELD, message: 'eventType is required' });
         }
 
         const startDate = startDateStr ? new Date(startDateStr) : new Date();
@@ -311,46 +287,43 @@ export async function POST(request: NextRequest) {
           bestDays: (w.bestDays ?? []).map(d => formatDateToISO(d)),
         }));
 
-        return successResponse({
-          type: 'weekly-timing',
-          data: {
-            eventType: weeklyResult.eventType,
-            searchRange: {
-              startDate: formatDateToISO(weeklyResult.searchRange.startDate),
-              endDate: formatDateToISO(weeklyResult.searchRange.endDate),
-            },
-            weeklyPeriods: weeklyPeriodsFormatted,
-            bestWeek: weeklyResult.bestWeek ? {
-              ...weeklyResult.bestWeek,
-              startDate: formatDateToISO(weeklyResult.bestWeek.startDate),
-              endDate: formatDateToISO(weeklyResult.bestWeek.endDate),
-              bestDays: (weeklyResult.bestWeek.bestDays ?? []).map(d => formatDateToISO(d)),
-            } : null,
-            worstWeek: weeklyResult.worstWeek ? {
-              ...weeklyResult.worstWeek,
-              startDate: formatDateToISO(weeklyResult.worstWeek.startDate),
-              endDate: formatDateToISO(weeklyResult.worstWeek.endDate),
-              bestDays: (weeklyResult.worstWeek.bestDays ?? []).map(d => formatDateToISO(d)),
-            } : null,
-            summary: weeklyResult.summary,
+        return createSuccessResponse({
+          eventType: weeklyResult.eventType,
+          searchRange: {
+            startDate: formatDateToISO(weeklyResult.searchRange.startDate),
+            endDate: formatDateToISO(weeklyResult.searchRange.endDate),
           },
-        });
+          weeklyPeriods: weeklyPeriodsFormatted,
+          bestWeek: weeklyResult.bestWeek ? {
+            ...weeklyResult.bestWeek,
+            startDate: formatDateToISO(weeklyResult.bestWeek.startDate),
+            endDate: formatDateToISO(weeklyResult.bestWeek.endDate),
+            bestDays: (weeklyResult.bestWeek.bestDays ?? []).map(d => formatDateToISO(d)),
+          } : null,
+          worstWeek: weeklyResult.worstWeek ? {
+            ...weeklyResult.worstWeek,
+            startDate: formatDateToISO(weeklyResult.worstWeek.startDate),
+            endDate: formatDateToISO(weeklyResult.worstWeek.endDate),
+            bestDays: (weeklyResult.worstWeek.bestDays ?? []).map(d => formatDateToISO(d)),
+          } : null,
+          summary: weeklyResult.summary,
+        }, { meta: { type: 'weekly-timing' } });
       }
 
       default:
-        return errorResponse('Invalid type. Use multi-year, past-analysis, event-timing, weekly-timing, or comprehensive');
+        return createErrorResponse({ code: ErrorCodes.BAD_REQUEST, message: 'Invalid type. Use multi-year, past-analysis, event-timing, weekly-timing, or comprehensive' });
     }
 
   } catch (error) {
     logger.error('[life-prediction API error]', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    return errorResponse(errorMessage, 500);
+    return createErrorResponse({ code: ErrorCodes.INTERNAL_ERROR, message: errorMessage, originalError: error instanceof Error ? error : undefined });
   }
 }
 
 // GET 요청 - API 정보
 export async function GET() {
-  return successResponse({
+  return createSuccessResponse({
     name: 'Life Prediction API',
     version: '2.0.0',
     description: '종합 인생 예측 API - TIER 1~3 고급 분석 엔진 통합',

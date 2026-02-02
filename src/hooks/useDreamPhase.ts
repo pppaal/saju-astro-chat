@@ -48,7 +48,7 @@ export function useDreamPhase() {
     }
 
     loadProfile()
-  }, [status])
+  }, [status]);
 
   return {
     phase,

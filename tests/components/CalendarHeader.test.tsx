@@ -10,11 +10,6 @@ vi.mock('@/i18n/I18nProvider', () => ({
   }),
 }))
 
-vi.mock('@/components/ui/BackButton', () => ({
-  __esModule: true,
-  default: () => <button>Back</button>,
-}))
-
 vi.mock('@/components/ui/CreditBadge', () => ({
   __esModule: true,
   default: ({ variant }: { variant: string }) => <div>Credits ({variant})</div>,
@@ -52,11 +47,6 @@ describe('CalendarHeader', () => {
     it('should render year in subtitle', () => {
       render(<CalendarHeader {...defaultProps} />)
       expect(screen.getByText('Your special days in 2026')).toBeInTheDocument()
-    })
-
-    it('should render back button', () => {
-      render(<CalendarHeader {...defaultProps} />)
-      expect(screen.getByText('Back')).toBeInTheDocument()
     })
 
     it('should render credit badge', () => {

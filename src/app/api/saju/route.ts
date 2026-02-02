@@ -178,7 +178,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
       })
       .filter(Boolean)
       .join(' · ')
-    const shinsalKinds = rawShinsal.filter((h) => h.pillars.includes(pillar)).map((h) => h.kind)
+    const shinsalKinds = rawShinsal.filter((h) => h.pillars.includes(pillar)).map((h) => h.kind);
 
     return {
       stem: p.heavenlyStem.name,
@@ -329,7 +329,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
             },
           }),
         },
-      })
+      });
     } catch (saveErr) {
       logger.warn('[Saju API] Failed to save reading:', saveErr)
     }

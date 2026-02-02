@@ -51,6 +51,6 @@ export function getCacheKey(
   const sorted = Object.keys(params)
     .sort()
     .map((k) => `${k}:${params[k]}`)
-    .join('|')
+    .join('|');
   return `${prefix}:v${version}:${sorted}`
 }

@@ -174,11 +174,11 @@ export class PerformanceMonitor {
       performance.clearMarks(startMark)
       performance.clearMarks(endMark)
       performance.clearMeasures(name)
-      this.marks.delete(name)
+      this.marks.delete(name);
 
       return duration
     } catch (error) {
-      logger.error(`Failed to measure performance for ${name}`, error)
+      logger.error(`Failed to measure performance for ${name}`, error);
       return null
     }
   }

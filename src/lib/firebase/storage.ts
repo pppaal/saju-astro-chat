@@ -30,7 +30,7 @@ function getFirebaseStorage(): FirebaseStorage | null {
   try {
     const config = JSON.parse(configString)
     app = getApps().length > 0 ? getApp() : initializeApp(config)
-    storage = getStorage(app)
+    storage = getStorage(app);
     return storage
   } catch {
     return null
@@ -99,7 +99,7 @@ export async function uploadMatchPhoto(
         try {
           const url = await getDownloadURL(uploadTask.snapshot.ref)
           onProgress?.({ progress: 100, state: 'success' })
-          resolve({ url, path })
+          resolve({ url, path });
         } catch (error) {
           reject(new Error('다운로드 URL을 가져올 수 없습니다.'))
         }
@@ -117,7 +117,7 @@ export async function deleteMatchPhoto(photoPath: string): Promise<void> {
 
   try {
     const storageRef = ref(firebaseStorage, photoPath)
-    await deleteObject(storageRef)
+    await deleteObject(storageRef);
   } catch {
     // 이미 삭제된 파일이면 무시
   }

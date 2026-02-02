@@ -16,7 +16,7 @@ function getNextPeriodEnd(): Date {
 // 유저 크레딧 초기화 (신규 가입 시)
 export async function initializeUserCredits(userId: string, plan: PlanType = 'free') {
   const config = PLAN_CONFIG[plan]
-  const now = new Date()
+  const now = new Date();
 
   return prisma.userCredits.create({
     data: {
@@ -186,7 +186,17 @@ async function consumeBonusCreditsFromPurchases(userId: string, amount: number):
   return totalConsumed
 }
 
+/** Business logic error (insufficient credits, limits exceeded) — caught and returned as { success: false }. */
+class CreditBusinessError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'CreditBusinessError'
+  }
+}
+
 // 크레딧 소비 (Race Condition 방지 - 트랜잭션 사용)
+// Business errors → { success: false, error }
+// System errors (DB failure) → thrown to caller (API middleware handles)
 export async function consumeCredits(
   userId: string,
   type: 'reading' | 'compatibility' | 'followUp' = 'reading',
@@ -201,7 +211,7 @@ export async function consumeCredits(
       })
 
       if (!credits) {
-        throw new Error('사용자 크레딧 정보를 찾을 수 없습니다')
+        throw new CreditBusinessError('사용자 크레딧 정보를 찾을 수 없습니다')
       }
 
       // 2. 사용 가능 여부 체크 (트랜잭션 내에서)
@@ -209,15 +219,15 @@ export async function consumeCredits(
 
       if (type === 'reading') {
         if (available < amount) {
-          throw new Error('크레딧이 부족합니다')
+          throw new CreditBusinessError('크레딧이 부족합니다')
         }
       } else if (type === 'compatibility') {
         if (credits.compatibilityUsed >= credits.compatibilityLimit) {
-          throw new Error('궁합 분석 한도를 초과했습니다')
+          throw new CreditBusinessError('궁합 분석 한도를 초과했습니다')
         }
       } else if (type === 'followUp') {
         if (credits.followUpUsed >= credits.followUpLimit) {
-          throw new Error('후속질문 한도를 초과했습니다')
+          throw new CreditBusinessError('후속질문 한도를 초과했습니다')
         }
       }
 
@@ -262,12 +272,16 @@ export async function consumeCredits(
       }
 
       return { success: true }
-    })
+    });
 
     return result
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : '크레딧 소비 중 오류가 발생했습니다'
-    return { success: false, error: errorMessage }
+    // Business errors → return as result
+    if (error instanceof CreditBusinessError) {
+      return { success: false, error: error.message }
+    }
+    // System errors (Prisma, network) → rethrow for API middleware
+    throw error
   }
 }
 
@@ -347,7 +361,7 @@ export async function resetMonthlyCredits(userId: string) {
   if (!isSubscribed) {
     // 구독 만료 → free 플랜으로 다운그레이드
     const freeConfig = PLAN_CONFIG.free
-    const now = new Date()
+    const now = new Date();
 
     return prisma.userCredits.update({
       where: { userId },
@@ -368,7 +382,7 @@ export async function resetMonthlyCredits(userId: string) {
 
   // 구독 유효 → 현재 플랜 기준으로 리셋
   const config = PLAN_CONFIG[credits.plan as PlanType] || PLAN_CONFIG.free
-  const now = new Date()
+  const now = new Date();
 
   return prisma.userCredits.update({
     where: { userId },
@@ -465,7 +479,7 @@ export async function getValidBonusCredits(userId: string): Promise<number> {
       remaining: { gt: 0 },
     },
     select: { remaining: true },
-  })
+  });
 
   return validPurchases.reduce((sum, p) => sum + p.remaining, 0)
 }
