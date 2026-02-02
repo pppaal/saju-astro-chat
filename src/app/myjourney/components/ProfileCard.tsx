@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useRef, useState } from 'react'
+import { logger } from '@/lib/logger'
 import type { Fortune, Credits, Profile } from '../types'
 
 interface ProfileCardProps {
@@ -74,7 +75,7 @@ export function ProfileCard({
         alert(error.message || t('myjourney.profile.uploadFailed', 'Failed to upload photo'))
       }
     } catch (err) {
-      console.error('Photo upload error:', err)
+      logger.error('Photo upload error:', err instanceof Error ? err : new Error(String(err)))
       alert(t('myjourney.profile.uploadError', 'An error occurred while uploading'))
     } finally {
       setUploading(false)

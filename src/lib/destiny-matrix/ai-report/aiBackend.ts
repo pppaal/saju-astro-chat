@@ -37,7 +37,7 @@ function isValidApiKey(key: string | undefined): boolean {
   const trimmed = key.trim()
   if (trimmed.length === 0) return false
   // 플레이스홀더 값 거부
-  const placeholders = ['REPLACE_ME', 'your-api-key', 'sk-xxx', 'YOUR_KEY', 'TODO', 'CHANGE_ME']
+  const placeholders = ['REPLACE_ME', 'your-api-key', 'sk-xxx', 'YOUR_KEY', 'CHANGE_ME']
   return !placeholders.includes(trimmed)
 }
 
@@ -126,7 +126,7 @@ export async function callAIBackendGeneric<T>(
 
       // 토큰 사용량 메트릭스 기록
       if (provider.name === 'openai') {
-        recordExternalCall("openai", result.model, "success", durationMs, {
+        recordExternalCall('openai', result.model, 'success', durationMs, {
           input: result.tokensUsed ? Math.round(result.tokensUsed * 0.7) : undefined,
           output: result.tokensUsed ? Math.round(result.tokensUsed * 0.3) : undefined,
         })
@@ -141,7 +141,7 @@ export async function callAIBackendGeneric<T>(
       })
 
       if (provider.name === 'openai') {
-        recordExternalCall("openai", provider.model, "error", durationMs)
+        recordExternalCall('openai', provider.model, 'error', durationMs)
       }
       // 다음 프로바이더로 계속
     }
@@ -321,7 +321,7 @@ function extractJSONFromResponse<T>(responseText: string): T {
     })
     throw new Error(
       'No JSON found in AI response - response may have been truncated due to token limit'
-    );
+    )
   } catch (parseError) {
     if (parseError instanceof SyntaxError) {
       logger.error('[AI Backend] Failed to parse JSON response (likely truncated)', {
