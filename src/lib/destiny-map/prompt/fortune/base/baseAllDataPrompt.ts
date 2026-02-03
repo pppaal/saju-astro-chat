@@ -1,12 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * @deprecated This file is kept for backward compatibility. Use index.ts instead.
- * This file has loose type checking due to complex dynamic structures from external APIs.
+ * @deprecated This file is DEPRECATED. Use the modular structure in index.ts instead.
+ *
+ * REFACTORING COMPLETE:
+ * - Original 1,371 lines split into modular components
+ * - Data/logic/formatting separated into dedicated modules
+ * - New structure provides better maintainability and testability
+ *
+ * Migration path:
+ * Old: import { buildAllDataPrompt } from './baseAllDataPrompt'
+ * New: import { buildAllDataPrompt } from './index'
+ *
+ * This file is kept only for emergency backward compatibility.
+ * All new code should use the modular structure from index.ts.
  */
 import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
 import type { AstrologyData, SajuData } from '@/lib/destiny-map/astrology/types'
 import type { PlanetData, AspectHit } from '@/lib/astrology'
 import { logger } from '@/lib/logger'
+import { formatGanjiEasy } from './formatters/ganjiFormatter'
+import { getSignFromCusp } from './formatters/astrologyFormatter'
 import type {
   HouseData,
   PillarData,
@@ -61,42 +74,9 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   // ========== HELPER FUNCTIONS ==========
   const getPlanet = (name: string) => planets.find((p: PlanetData) => p.name === name)
 
-  // 한자 → 쉬운 한글 변환 맵
-  const stemToKorean: Record<string, string> = {
-    甲: '갑목(나무+)',
-    乙: '을목(나무-)',
-    丙: '병화(불+)',
-    丁: '정화(불-)',
-    戊: '무토(흙+)',
-    己: '기토(흙-)',
-    庚: '경금(쇠+)',
-    辛: '신금(쇠-)',
-    壬: '임수(물+)',
-    癸: '계수(물-)',
-  }
-  const branchToKorean: Record<string, string> = {
-    子: '자(쥐/물)',
-    丑: '축(소/흙)',
-    寅: '인(호랑이/나무)',
-    卯: '묘(토끼/나무)',
-    辰: '진(용/흙)',
-    巳: '사(뱀/불)',
-    午: '오(말/불)',
-    未: '미(양/흙)',
-    申: '신(원숭이/쇠)',
-    酉: '유(닭/쇠)',
-    戌: '술(개/흙)',
-    亥: '해(돼지/물)',
-  }
-  // 간지를 쉬운 형태로 변환
-  const formatGanjiEasy = (stem?: string, branch?: string) => {
-    if (!stem || !branch) {
-      return '-'
-    }
-    const stemKo = stemToKorean[stem] || stem
-    const branchKo = branchToKorean[branch] || branch
-    return `${stemKo} + ${branchKo}`
-  }
+  // Import from ganjiFormatter module to avoid duplication
+  // Note: This import is at function level for backward compatibility
+  // The mappings are now centralized in data/ganjiMappings.ts
 
   const formatPillar = (p: PillarData | undefined) => {
     if (!p) {
@@ -209,7 +189,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       const endAge = startAge + 9
       const isCurrent = currentAge >= startAge && currentAge <= endAge
       const marker = isCurrent ? '★현재★' : ''
-      const easyGanji = formatGanjiEasy(d.heavenlyStem, d.earthlyBranch);
+      const easyGanji = formatGanjiEasy(d.heavenlyStem, d.earthlyBranch)
       return `${startAge}-${endAge}세: ${easyGanji} ${marker}`
     })
     .join('\n  ')
@@ -232,7 +212,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       const aWithName = a as AnnualWithName
       const isCurrent = a.year === currentYear
       const marker = isCurrent ? '★현재★' : ''
-      const easyGanji = parseGanjiEasy(a.ganji ?? aWithName.name);
+      const easyGanji = parseGanjiEasy(a.ganji ?? aWithName.name)
       return `${a.year}년: ${easyGanji} ${marker}`
     })
     .join('\n  ')
@@ -253,7 +233,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       const mWithName = m as MonthlyItem & { name?: string }
       const isCurrent = m.year === currentYear && m.month === currentMonth
       const marker = isCurrent ? '★현재★' : ''
-      const easyGanji = parseGanjiEasy(m.ganji ?? mWithName.name);
+      const easyGanji = parseGanjiEasy(m.ganji ?? mWithName.name)
       return `${m.year}년 ${m.month}월: ${easyGanji} ${marker}`
     })
     .join('\n  ')
@@ -741,41 +721,9 @@ ${progressions.solarArc ? `• Solar Arc Sun: ${solarArcSun} → 외적 발전 �
   // ========== 연애/배우자 전용 분석 (love theme) ==========
   // 7하우스 커스프 계산
   const house7Cusp = houses?.[6]?.cusp ?? 0
-  const house7Sign = (() => {
-    const signs = [
-      'Aries',
-      'Taurus',
-      'Gemini',
-      'Cancer',
-      'Leo',
-      'Virgo',
-      'Libra',
-      'Scorpio',
-      'Sagittarius',
-      'Capricorn',
-      'Aquarius',
-      'Pisces',
-    ]
-    return signs[Math.floor(house7Cusp / 30)] || '-'
-  })()
+  const house7Sign = getSignFromCusp(house7Cusp)
   const house5Cusp = houses?.[4]?.cusp ?? 0
-  const house5Sign = (() => {
-    const signs = [
-      'Aries',
-      'Taurus',
-      'Gemini',
-      'Cancer',
-      'Leo',
-      'Virgo',
-      'Libra',
-      'Scorpio',
-      'Sagittarius',
-      'Capricorn',
-      'Aquarius',
-      'Pisces',
-    ]
-    return signs[Math.floor(house5Cusp / 30)] || '-'
-  })()
+  const house5Sign = getSignFromCusp(house5Cusp)
 
   const loveAnalysisSection =
     theme === 'love'

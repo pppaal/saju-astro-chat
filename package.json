@@ -94,6 +94,7 @@
     "@prisma/client": "^7.3.0",
     "@radix-ui/react-slot": "^1.2.4",
     "@sentry/nextjs": "^10.37.0",
+    "@upstash/redis": "^1.36.1",
     "@vercel/blob": "^2.0.1",
     "@vercel/speed-insights": "^1.2.0",
     "bcryptjs": "^2.4.3",

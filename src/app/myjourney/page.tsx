@@ -58,6 +58,7 @@ function MyJourneyPage() {
     handleCancelEdit,
     handleSaveProfile,
     handleReloadProfile,
+    handlePhotoUpdate,
   } = useMyJourneyData({
     session,
     status,
@@ -90,6 +91,7 @@ function MyJourneyPage() {
         <ProfileCard
           styles={styles}
           session={session}
+          profile={profile}
           credits={credits}
           fortune={fortune}
           fortuneLoading={fortuneLoading}
@@ -97,6 +99,7 @@ function MyJourneyPage() {
           handleEditProfile={handleEditProfile}
           handleReloadProfile={handleReloadProfile}
           isReloadingProfile={isReloadingProfile}
+          onPhotoUpdate={handlePhotoUpdate}
           t={t}
         />
 

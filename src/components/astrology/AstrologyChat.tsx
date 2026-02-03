@@ -1,264 +1,200 @@
 // src/components/astrology/AstrologyChat.tsx
 // Astrology-only counselor chat component (no saju)
 
-"use client";
+'use client'
 
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import styles from "./AstrologyChat.module.css";
-import { detectCrisis } from "@/components/destiny-map/chat-i18n";
-import MarkdownMessage from "@/components/ui/MarkdownMessage";
-import { logger } from "@/lib/logger";
-import { CHAT_I18N, ASTROLOGY_FOLLOWUPS, type ChatLangKey } from "./constants";
-import { useI18n } from "@/i18n/I18nProvider";
-
-type Message = { role: "system" | "user" | "assistant"; content: string; id?: string };
-
-// Memoized Message Component for performance
-const MessageRow = memo(({
-  message,
-  feedback,
-  onFeedback,
-  styles
-}: {
-  message: Message;
-  feedback: Record<string, FeedbackType>;
-  onFeedback: (id: string, type: FeedbackType) => void;
-  styles: Record<string, string>;
-}) => {
-  const { t } = useI18n();
-  return (
-    <div
-      key={message.id || message.content.slice(0, 20)}
-      className={`${styles.message} ${styles[message.role]}`}
-    >
-      <div className={styles.messageContent}>
-        {message.role === "assistant" ? (
-          <MarkdownMessage content={message.content} />
-        ) : (
-          message.content
-        )}
-      </div>
-      {message.role === "assistant" && message.content && (
-        <div className={styles.feedbackButtons}>
-          <button
-            type="button"
-            className={`${styles.feedbackBtn} ${feedback[message.id || ""] === "up" ? styles.active : ""}`}
-            onClick={() => onFeedback(message.id || "", "up")}
-            title={t("feedback.good")}
-          >
-            &#x1F44D;
-          </button>
-          <button
-            type="button"
-            className={`${styles.feedbackBtn} ${feedback[message.id || ""] === "down" ? styles.active : ""}`}
-            onClick={() => onFeedback(message.id || "", "down")}
-            title={t("feedback.needsImprovement")}
-          >
-            &#x1F44E;
-          </button>
-        </div>
-      )}
-    </div>
-  );
-});
-
-MessageRow.displayName = "MessageRow";
-
-type FeedbackType = "up" | "down" | null;
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import styles from './AstrologyChat.module.css'
+import { detectCrisis } from '@/components/destiny-map/chat-i18n'
+import { logger } from '@/lib/logger'
+import { CHAT_I18N, ASTROLOGY_FOLLOWUPS, type ChatLangKey } from './constants'
+import { SharedMessageRow, type Message, type FeedbackType } from '@/components/chat'
+import { useSeedEvent, useWelcomeBack } from '@/components/chat'
 
 type UserContext = {
   persona?: {
-    sessionCount?: number;
-    lastTopics?: string[];
-    emotionalTone?: string;
-    recurringIssues?: string[];
-  };
+    sessionCount?: number
+    lastTopics?: string[]
+    emotionalTone?: string
+    recurringIssues?: string[]
+  }
   recentSessions?: Array<{
-    id: string;
-    summary?: string;
-    keyTopics?: string[];
-    lastMessageAt?: string;
-  }>;
-};
+    id: string
+    summary?: string
+    keyTopics?: string[]
+    lastMessageAt?: string
+  }>
+}
 
 type AstrologyChatProps = {
   profile: {
-    name?: string;
-    birthDate?: string;
-    birthTime?: string;
-    city?: string;
-    gender?: string;
-    latitude?: number;
-    longitude?: number;
-  };
-  initialContext?: string;
-  lang?: ChatLangKey;
-  theme?: string;
-  seedEvent?: string;
-  astro?: Record<string, unknown> | null;
-  userContext?: UserContext;
-  chatSessionId?: string;
-  autoSendSeed?: boolean;
-  onSaveMessage?: (userMsg: string, assistantMsg: string) => void;
-  autoScroll?: boolean;
-  ragSessionId?: string;
-};
+    name?: string
+    birthDate?: string
+    birthTime?: string
+    city?: string
+    gender?: string
+    latitude?: number
+    longitude?: number
+  }
+  initialContext?: string
+  lang?: ChatLangKey
+  theme?: string
+  seedEvent?: string
+  astro?: Record<string, unknown> | null
+  userContext?: UserContext
+  chatSessionId?: string
+  autoSendSeed?: boolean
+  onSaveMessage?: (userMsg: string, assistantMsg: string) => void
+  autoScroll?: boolean
+  ragSessionId?: string
+}
 
 const AstrologyChat = memo(function AstrologyChat({
   profile,
-  initialContext = "",
-  lang = "ko",
-  theme = "life",
-  seedEvent = "astrology-chat:seed",
+  initialContext = '',
+  lang = 'ko',
+  theme = 'life',
+  seedEvent = 'astrology-chat:seed',
   astro,
   userContext,
   onSaveMessage,
   autoScroll = true,
   ragSessionId,
 }: AstrologyChatProps) {
-  const effectiveLang = lang === "ko" ? "ko" : "en";
-  const tr = CHAT_I18N[effectiveLang];
+  const effectiveLang = lang === 'ko' ? 'ko' : 'en'
+  const tr = CHAT_I18N[effectiveLang]
   const sessionIdRef = useRef<string>(
-    typeof crypto !== "undefined" && "randomUUID" in crypto
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
       : `session-${Date.now()}-${Math.random().toString(16).slice(2)}`
-  );
+  )
 
   const [messages, setMessages] = useState<Message[]>(
-    initialContext ? [{ role: "system", content: initialContext }] : []
-  );
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [usedFallback, setUsedFallback] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [feedback, setFeedback] = useState<Record<string, FeedbackType>>({});
-  const [showSuggestions, setShowSuggestions] = useState(true);
-  const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([]);
-  const [showCrisisModal, setShowCrisisModal] = useState(false);
-  const [showWelcomeBack, setShowWelcomeBack] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const seedSentRef = useRef(false);
-  const welcomeShownRef = useRef(false);
+    initialContext ? [{ role: 'system', content: initialContext }] : []
+  )
+  const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [usedFallback, setUsedFallback] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const [feedback, setFeedback] = useState<Record<string, FeedbackType>>({})
+  const [showSuggestions, setShowSuggestions] = useState(true)
+  const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([])
+  const [showCrisisModal, setShowCrisisModal] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const recognitionRef = useRef<SpeechRecognition | null>(null)
 
   // Memoized follow-up questions
-  const astrologyFollowUps = useMemo(() =>
-    lang === "ko" ? ASTROLOGY_FOLLOWUPS.ko : ASTROLOGY_FOLLOWUPS.en,
+  const astrologyFollowUps = useMemo(
+    () => (lang === 'ko' ? ASTROLOGY_FOLLOWUPS.ko : ASTROLOGY_FOLLOWUPS.en),
     [lang]
-  );
+  )
 
-  // Show welcome back message for returning users
-  useEffect(() => {
-    const sessionCount = userContext?.persona?.sessionCount;
-    if (sessionCount && sessionCount > 1 && !welcomeShownRef.current) {
-      welcomeShownRef.current = true;
-      setShowWelcomeBack(true);
-      const timer = setTimeout(() => setShowWelcomeBack(false), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [userContext?.persona?.sessionCount]);
+  // Shared hooks
+  const { showWelcome: showWelcomeBack } = useWelcomeBack({
+    shouldShow: Boolean(userContext?.persona?.sessionCount && userContext.persona.sessionCount > 1),
+  })
 
   const generateFollowUpQuestions = useCallback(() => {
-    const shuffled = [...astrologyFollowUps].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 3);
-  }, [astrologyFollowUps]);
+    const shuffled = [...astrologyFollowUps].sort(() => Math.random() - 0.5)
+    return shuffled.slice(0, 3)
+  }, [astrologyFollowUps])
 
   const handleSuggestionClick = useCallback((question: string) => {
-    setInput(question);
-    setShowSuggestions(false);
-  }, []);
+    setInput(question)
+    setShowSuggestions(false)
+  }, [])
 
   // Ref to store latest handleSubmit for follow-up questions
-  const handleSubmitRef = useRef<(text: string) => void>(null!);
+  const handleSubmitRef = useRef<(text: string) => void>(null!)
 
   // Handle follow-up question click - sends immediately
   const handleFollowUpClick = useCallback((question: string) => {
-    setFollowUpQuestions([]);
-    handleSubmitRef.current(question);
-  }, []);
+    setFollowUpQuestions([])
+    handleSubmitRef.current(question)
+  }, [])
 
   const scrollToBottom = useCallback(() => {
     if (autoScroll && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [autoScroll]);
+  }, [autoScroll])
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+    scrollToBottom()
+  }, [messages, scrollToBottom])
 
-  // Handle seed event
-  useEffect(() => {
-    const handler = (e: Event) => {
-      if (seedSentRef.current) {return;}
-      seedSentRef.current = true;
-      const question = (e as CustomEvent<string>).detail;
-      if (question) {
-        setInput(question);
-        setTimeout(() => {
-          const form = document.querySelector("form");
-          if (form) {form.dispatchEvent(new Event("submit", { bubbles: true }));}
-        }, 100);
-      }
-    };
-    window.addEventListener(seedEvent, handler);
-    return () => window.removeEventListener(seedEvent, handler);
-  }, [seedEvent]);
+  // Handle seed event with shared hook
+  useSeedEvent({
+    eventName: seedEvent,
+    onSeed: (seedText) => {
+      setInput(seedText)
+      setTimeout(() => {
+        const form = document.querySelector('form')
+        if (form) {
+          form.dispatchEvent(new Event('submit', { bubbles: true }))
+        }
+      }, 100)
+    },
+  })
 
   // Voice recording
   const toggleRecording = useCallback(() => {
     if (isRecording) {
-      recognitionRef.current?.stop();
-      setIsRecording(false);
+      recognitionRef.current?.stop()
+      setIsRecording(false)
     } else {
-      const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition
       if (!SpeechRecognitionClass) {
-        setNotice(lang === "ko" ? "음성 인식이 지원되지 않습니다." : "Speech recognition not supported.");
-        return;
+        setNotice(
+          lang === 'ko' ? '음성 인식이 지원되지 않습니다.' : 'Speech recognition not supported.'
+        )
+        return
       }
-      const recognition = new SpeechRecognitionClass();
-      recognition.lang = lang === "ko" ? "ko-KR" : "en-US";
-      recognition.interimResults = false;
+      const recognition = new SpeechRecognitionClass()
+      recognition.lang = lang === 'ko' ? 'ko-KR' : 'en-US'
+      recognition.interimResults = false
       recognition.onresult = (event: SpeechRecognitionEvent) => {
-        const transcript = event.results[0][0].transcript;
-        setInput((prev) => prev + " " + transcript);
-        setIsRecording(false);
-      };
-      recognition.onerror = () => setIsRecording(false);
-      recognition.onend = () => setIsRecording(false);
-      recognitionRef.current = recognition;
-      recognition.start();
-      setIsRecording(true);
+        const transcript = event.results[0][0].transcript
+        setInput((prev) => prev + ' ' + transcript)
+        setIsRecording(false)
+      }
+      recognition.onerror = () => setIsRecording(false)
+      recognition.onend = () => setIsRecording(false)
+      recognitionRef.current = recognition
+      recognition.start()
+      setIsRecording(true)
     }
-  }, [isRecording, lang]);
+  }, [isRecording, lang])
 
   // Submit handler - can be called with direct text for follow-up questions
   const handleSubmit = async (e?: React.FormEvent, directText?: string) => {
-    e?.preventDefault();
-    const trimmed = directText || input.trim();
-    if (!trimmed || loading) {return;}
+    e?.preventDefault()
+    const trimmed = directText || input.trim()
+    if (!trimmed || loading) {
+      return
+    }
 
     // Crisis detection
     if (detectCrisis(trimmed, effectiveLang)) {
-      setShowCrisisModal(true);
+      setShowCrisisModal(true)
     }
 
-    const userMsg: Message = { role: "user", content: trimmed, id: `user-${Date.now()}` };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-    setLoading(true);
-    setNotice(null);
-    setUsedFallback(false);
-    setShowSuggestions(false);
-    setFollowUpQuestions([]);
+    const userMsg: Message = { role: 'user', content: trimmed, id: `user-${Date.now()}` }
+    setMessages((prev) => [...prev, userMsg])
+    setInput('')
+    setLoading(true)
+    setNotice(null)
+    setUsedFallback(false)
+    setShowSuggestions(false)
+    setFollowUpQuestions([])
 
     try {
-      const response = await fetch("/api/astrology/chat-stream", {
-        method: "POST",
+      const response = await fetch('/api/astrology/chat-stream', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          ...(ragSessionId ? { "x-session-id": ragSessionId } : {}),
+          'Content-Type': 'application/json',
+          ...(ragSessionId ? { 'x-session-id': ragSessionId } : {}),
         },
         body: JSON.stringify({
           name: profile.name,
@@ -269,72 +205,74 @@ const AstrologyChat = memo(function AstrologyChat({
           longitude: profile.longitude,
           theme,
           lang,
-          messages: [...messages, userMsg].filter((m) => m.role !== "system"),
+          messages: [...messages, userMsg].filter((m) => m.role !== 'system'),
           astro,
           userContext,
         }),
-      });
+      })
 
       if (!response.ok || !response.body) {
-        throw new Error("Stream failed");
+        throw new Error('Stream failed')
       }
 
       // Check fallback header
-      if (response.headers.get("x-fallback") === "1") {
-        setUsedFallback(true);
+      if (response.headers.get('x-fallback') === '1') {
+        setUsedFallback(true)
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let assistantContent = "";
-      const assistantId = `assistant-${Date.now()}`;
-      let lastScrollTime = 0;
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let assistantContent = ''
+      const assistantId = `assistant-${Date.now()}`
+      let lastScrollTime = 0
 
-      setMessages((prev) => [...prev, { role: "assistant", content: "", id: assistantId }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: '', id: assistantId }])
 
       while (true) {
-        const { done, value } = await reader.read();
-        if (done) {break;}
+        const { done, value } = await reader.read()
+        if (done) {
+          break
+        }
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
+        const chunk = decoder.decode(value, { stream: true })
+        const lines = chunk.split('\n')
 
         for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") {continue;}
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+            if (data === '[DONE]') {
+              continue
+            }
 
             // Check for follow-up questions
-            if (data.includes("||FOLLOWUP||")) {
-              const parts = data.split("||FOLLOWUP||");
+            if (data.includes('||FOLLOWUP||')) {
+              const parts = data.split('||FOLLOWUP||')
               if (parts[0]) {
-                assistantContent += parts[0];
+                assistantContent += parts[0]
               }
               if (parts[1]) {
                 try {
-                  const followUps = JSON.parse(parts[1]);
+                  const followUps = JSON.parse(parts[1])
                   if (Array.isArray(followUps)) {
-                    setFollowUpQuestions(followUps.slice(0, 3));
+                    setFollowUpQuestions(followUps.slice(0, 3))
                   }
                 } catch {
-                  setFollowUpQuestions(generateFollowUpQuestions());
+                  setFollowUpQuestions(generateFollowUpQuestions())
                 }
               }
             } else {
-              assistantContent += data;
+              assistantContent += data
             }
 
             setMessages((prev) =>
-              prev.map((m) =>
-                m.id === assistantId ? { ...m, content: assistantContent } : m
-              )
-            );
+              prev.map((m) => (m.id === assistantId ? { ...m, content: assistantContent } : m))
+            )
 
             // Auto-scroll during streaming (throttled)
-            const now = Date.now();
+            const now = Date.now()
             if (autoScroll && now - lastScrollTime > 100) {
-              lastScrollTime = now;
-              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+              lastScrollTime = now
+              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
             }
           }
         }
@@ -342,53 +280,50 @@ const AstrologyChat = memo(function AstrologyChat({
 
       // If no follow-ups received, generate defaults
       if (followUpQuestions.length === 0) {
-        setFollowUpQuestions(generateFollowUpQuestions());
+        setFollowUpQuestions(generateFollowUpQuestions())
       }
 
       // Save message if callback provided
       if (onSaveMessage && assistantContent) {
-        onSaveMessage(trimmed, assistantContent);
+        onSaveMessage(trimmed, assistantContent)
       }
 
       if (!assistantContent) {
-        setNotice(tr.noResponse);
+        setNotice(tr.noResponse)
       }
     } catch (err) {
-      logger.error("[AstrologyChat] Error:", err);
-      setNotice(tr.error);
+      logger.error('[AstrologyChat] Error:', err)
+      setNotice(tr.error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Update ref for follow-up click handler
-  handleSubmitRef.current = (text: string) => handleSubmit(undefined, text);
+  handleSubmitRef.current = (text: string) => handleSubmit(undefined, text)
 
   // Feedback handler
   const handleFeedback = useCallback(async (messageId: string, type: FeedbackType) => {
-    setFeedback((prev) => ({ ...prev, [messageId]: type }));
+    setFeedback((prev) => ({ ...prev, [messageId]: type }))
     try {
-      await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messageId,
           type,
           sessionId: sessionIdRef.current,
-          source: "astrology-counselor",
+          source: 'astrology-counselor',
         }),
-      });
+      })
     } catch {
       // Silent fail
     }
-  }, []);
+  }, [])
 
-  const visibleMessages = useMemo(() =>
-    messages.filter((m) => m.role !== "system"),
-    [messages]
-  );
+  const visibleMessages = useMemo(() => messages.filter((m) => m.role !== 'system'), [messages])
 
-  const closeCrisisModal = useCallback(() => setShowCrisisModal(false), []);
+  const closeCrisisModal = useCallback(() => setShowCrisisModal(false), [])
 
   return (
     <div className={styles.chatContainer}>
@@ -409,11 +344,7 @@ const AstrologyChat = memo(function AstrologyChat({
               <strong>{tr.crisisHotline}:</strong>
               <span>{tr.crisisHotlineNumber}</span>
             </div>
-            <button
-              type="button"
-              className={styles.crisisClose}
-              onClick={closeCrisisModal}
-            >
+            <button type="button" className={styles.crisisClose} onClick={closeCrisisModal}>
               {tr.crisisClose}
             </button>
           </div>
@@ -429,7 +360,7 @@ const AstrologyChat = memo(function AstrologyChat({
         )}
 
         {visibleMessages.map((msg) => (
-          <MessageRow
+          <SharedMessageRow
             key={msg.id || msg.content.slice(0, 20)}
             message={msg}
             feedback={feedback}
@@ -438,7 +369,7 @@ const AstrologyChat = memo(function AstrologyChat({
           />
         ))}
 
-        {loading && visibleMessages[visibleMessages.length - 1]?.role !== "assistant" && (
+        {loading && visibleMessages[visibleMessages.length - 1]?.role !== 'assistant' && (
           <div className={`${styles.message} ${styles.assistant}`}>
             <div className={styles.messageContent}>
               <span className={styles.typingIndicator}>
@@ -503,12 +434,12 @@ const AstrologyChat = memo(function AstrologyChat({
           />
           <button
             type="button"
-            className={`${styles.voiceBtn} ${isRecording ? styles.recording : ""}`}
+            className={`${styles.voiceBtn} ${isRecording ? styles.recording : ''}`}
             onClick={toggleRecording}
             disabled={loading}
             title={isRecording ? tr.stopRecording : tr.recording}
           >
-            {isRecording ? "&#x23F9;" : "&#x1F3A4;"}
+            {isRecording ? '&#x23F9;' : '&#x1F3A4;'}
           </button>
           <button type="submit" className={styles.sendBtn} disabled={loading || !input.trim()}>
             {tr.send}
@@ -516,7 +447,7 @@ const AstrologyChat = memo(function AstrologyChat({
         </div>
       </form>
     </div>
-  );
-});
+  )
+})
 
-export default AstrologyChat;
+export default AstrologyChat

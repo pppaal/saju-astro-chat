@@ -1,0 +1,643 @@
+/* ============================================================
+   Mobile UX Enhancements
+   Additional mobile-specific improvements
+   ============================================================ */
+
+/* ============================================================
+   Pull-to-Refresh Indicator
+   ============================================================ */
+.pull-to-refresh {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.95), rgba(167, 139, 250, 0.95));
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+  z-index: 9999;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pull-to-refresh.active {
+  transform: translateX(-50%) translateY(0);
+}
+
+.pull-to-refresh-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spinner-rotate 0.8s linear infinite;
+}
+
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   Enhanced Tap Feedback
+   ============================================================ */
+.tap-feedback {
+  position: relative;
+  overflow: hidden;
+}
+
+.tap-feedback::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tap-feedback:active::after {
+  width: 200%;
+  height: 200%;
+  opacity: 1;
+  transition:
+    width 0.4s ease,
+    height 0.4s ease,
+    opacity 0.3s ease;
+}
+
+/* Card/List item tap feedback */
+.card-tap-feedback {
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.card-tap-feedback:active {
+  transform: scale(0.98);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================================
+   Swipe Gesture Indicators
+   ============================================================ */
+.swipeable {
+  position: relative;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.swipe-action-hint {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 12px 16px;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.swipe-action-hint.left {
+  left: 16px;
+}
+
+.swipe-action-hint.right {
+  right: 16px;
+}
+
+.swipeable:hover .swipe-action-hint {
+  opacity: 0.7;
+}
+
+/* ============================================================
+   Improved Form Layouts for Mobile
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Stack form fields vertically */
+  form .form-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Full-width form inputs */
+  form input,
+  form select,
+  form textarea {
+    width: 100% !important;
+    max-width: none;
+  }
+
+  /* Larger form labels */
+  form label {
+    font-size: 15px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  /* Better spacing between form groups */
+  form .form-group {
+    margin-bottom: 20px;
+  }
+
+  /* Sticky form submit buttons */
+  .form-submit-sticky {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-color);
+    padding: 16px;
+    margin: 0 -16px -16px;
+    border-top: 1px solid var(--panel-border);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .form-submit-sticky button {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+/* ============================================================
+   Loading Skeletons
+   ============================================================ */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Skeleton variants */
+.skeleton-text {
+  height: 16px;
+  margin-bottom: 8px;
+}
+
+.skeleton-text.large {
+  height: 24px;
+}
+
+.skeleton-text.small {
+  height: 12px;
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+}
+
+.skeleton-card {
+  height: 200px;
+  border-radius: 16px;
+}
+
+.skeleton-button {
+  height: 48px;
+  border-radius: 12px;
+}
+
+/* ============================================================
+   Enhanced Error States and Empty States
+   ============================================================ */
+.mobile-error-state,
+.mobile-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  min-height: 300px;
+}
+
+.mobile-error-icon,
+.mobile-empty-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.6;
+  animation: float-gentle 3s ease-in-out infinite;
+}
+
+@keyframes float-gentle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.mobile-error-title,
+.mobile-empty-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 12px;
+}
+
+.mobile-error-message,
+.mobile-empty-message {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  max-width: 400px;
+  margin: 0 0 24px;
+}
+
+.mobile-error-action,
+.mobile-empty-action {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.mobile-error-action:hover,
+.mobile-empty-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.6);
+}
+
+.mobile-error-action:active,
+.mobile-empty-action:active {
+  transform: translateY(0);
+}
+
+/* Specific error types */
+.mobile-error-network .mobile-error-icon::before {
+  content: '📡';
+}
+
+.mobile-error-404 .mobile-error-icon::before {
+  content: '🔍';
+}
+
+.mobile-error-permission .mobile-error-icon::before {
+  content: '🔒';
+}
+
+.mobile-empty-search .mobile-empty-icon::before {
+  content: '🔎';
+}
+
+.mobile-empty-inbox .mobile-empty-icon::before {
+  content: '📭';
+}
+
+/* ============================================================
+   Bottom Sheet (Mobile Modal Alternative)
+   ============================================================ */
+.bottom-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9998;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.bottom-sheet-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, rgba(26, 15, 46, 0.98), rgba(10, 5, 16, 0.98));
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 24px 24px 0 0;
+  padding: 24px;
+  max-height: 85vh;
+  overflow-y: auto;
+  z-index: 9999;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.bottom-sheet.active {
+  transform: translateY(0);
+}
+
+.bottom-sheet-handle {
+  width: 40px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.bottom-sheet-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 16px;
+}
+
+.bottom-sheet-content {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ============================================================
+   Floating Action Button (FAB)
+   ============================================================ */
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  border-radius: 50%;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.5);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fab:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.7);
+}
+
+.fab:active {
+  transform: translateY(0) scale(0.95);
+}
+
+@media (max-width: 768px) {
+  .fab {
+    bottom: 80px;
+    right: 16px;
+  }
+}
+
+/* ============================================================
+   Toast Notifications (Mobile Optimized)
+   ============================================================ */
+.toast-container {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  pointer-events: none;
+  width: 90%;
+  max-width: 400px;
+}
+
+.toast {
+  background: rgba(26, 15, 46, 0.98);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.toast-content {
+  flex: 1;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.toast-close:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Toast variants */
+.toast.success {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.toast.success .toast-icon {
+  color: #10b981;
+}
+
+.toast.error {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.toast.error .toast-icon {
+  color: #ef4444;
+}
+
+.toast.warning {
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.toast.warning .toast-icon {
+  color: #f59e0b;
+}
+
+.toast.info {
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.toast.info .toast-icon {
+  color: #3b82f6;
+}
+
+/* ============================================================
+   Optimized Touch Targets for Specific Components
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Navigation arrows */
+  .nav-arrow,
+  .carousel-arrow,
+  .slider-arrow {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 12px;
+  }
+
+  /* Pagination dots */
+  .pagination-dot {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 6px;
+  }
+
+  /* Close buttons */
+  [class*='close'],
+  [class*='dismiss'],
+  .modal-close,
+  .dialog-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Icon-only buttons */
+  button[aria-label]:not([class*='text']):not([class*='label']) {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+  }
+
+  /* Checkbox and radio inputs */
+  input[type='checkbox'],
+  input[type='radio'] {
+    min-width: 24px;
+    min-height: 24px;
+  }
+
+  /* Custom checkbox/radio labels */
+  input[type='checkbox'] + label,
+  input[type='radio'] + label {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+}
+
+/* ============================================================
+   Improved Scroll Indicators
+   ============================================================ */
+.scroll-indicator {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  background: linear-gradient(to left, var(--bg-color), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scroll-indicator.visible {
+  opacity: 1;
+}
+
+.scroll-indicator::after {
+  content: '›';
+  font-size: 32px;
+  color: rgba(255, 255, 255, 0.6);
+  animation: scroll-hint 2s ease-in-out infinite;
+}
+
+@keyframes scroll-hint {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateX(8px);
+    opacity: 1;
+  }
+}
+
+/* ============================================================
+   Accessibility Improvements for Mobile
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Ensure focus states are visible on mobile */
+  *:focus-visible {
+    outline: 3px solid #7c5cff !important;
+    outline-offset: 3px !important;
+  }
+
+  /* Better contrast for text on mobile */
+  body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Prevent zoom on double-tap */
+  * {
+    touch-action: manipulation;
+  }
+
+  /* Allow zoom on inputs only */
+  input,
+  select,
+  textarea {
+    touch-action: auto;
+  }
+}

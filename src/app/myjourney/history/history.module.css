@@ -62,19 +62,19 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(
-    circle,
-    rgba(99, 210, 255, 0.08) 0%,
-    transparent 50%
-  );
+  background: radial-gradient(circle, rgba(99, 210, 255, 0.08) 0%, transparent 50%);
   animation: rotate 25s linear infinite;
   pointer-events: none;
   z-index: -1;
 }
 
 @keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ========== Header ========== */
@@ -161,7 +161,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ========== Service Selection Grid ========== */
@@ -208,12 +210,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(99, 210, 255, 0.08),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, rgba(99, 210, 255, 0.08), transparent);
   transition: left 0.5s ease;
 }
 
@@ -240,8 +237,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 .serviceInfo {
@@ -637,8 +639,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal {
@@ -744,7 +750,7 @@
 
 .hexLine.broken::before,
 .hexLine.broken::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   width: 24px;
@@ -753,8 +759,12 @@
   border-radius: 4px;
 }
 
-.hexLine.broken::before { left: 0; }
-.hexLine.broken::after { right: 0; }
+.hexLine.broken::before {
+  left: 0;
+}
+.hexLine.broken::after {
+  right: 0;
+}
 
 .hexLine.changing {
   box-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
@@ -828,7 +838,7 @@
 }
 
 .sectionTitle::before {
-  content: "";
+  content: '';
   width: 4px;
   height: 16px;
   background: linear-gradient(180deg, #6366f1, #4f46e5);
@@ -1146,12 +1156,22 @@
   border: 1px solid rgba(236, 72, 153, 0.2);
   border-radius: 12px;
   padding: 1rem 1.25rem;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
 .tarotCard:hover {
   background: rgba(236, 72, 153, 0.12);
   transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.2);
+}
+
+.tarotCardExpanded {
+  background: rgba(236, 72, 153, 0.15);
+  border-color: rgba(236, 72, 153, 0.4);
+  box-shadow: 0 8px 24px rgba(236, 72, 153, 0.3);
 }
 
 .tarotCardHeader {
@@ -1219,6 +1239,48 @@
   background: rgba(139, 92, 246, 0.1);
   border-radius: 8px;
   text-align: center;
+}
+
+/* Tarot Card Image Styles */
+.cardImageWrapper {
+  position: relative;
+  width: 140px;
+  height: 245px;
+  margin: 0.75rem auto;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.tarotCard:hover .cardImageWrapper {
+  transform: scale(1.03);
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+}
+
+.cardImageWrapper.cardImageReversed {
+  transform: rotate(180deg);
+}
+
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.expandHint {
+  text-align: center;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  transition: color 0.2s ease;
+}
+
+.tarotCard:hover .expandHint {
+  color: rgba(236, 72, 153, 0.9);
 }
 
 /* ========== Responsive ========== */

@@ -278,6 +278,56 @@
 }
 
 /* ============================================================
+   Horizontal Scroll Improvements
+   ============================================================ */
+
+/* Better horizontal scroll indicators on mobile */
+.horizontal-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 153, 255, 0.3) transparent;
+}
+
+/* Add gradient fade indicators for horizontal scroll */
+.horizontal-scroll-fade {
+  position: relative;
+}
+
+.horizontal-scroll-fade::before,
+.horizontal-scroll-fade::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.horizontal-scroll-fade::before {
+  left: 0;
+  background: linear-gradient(to right, var(--bg-color), transparent);
+}
+
+.horizontal-scroll-fade::after {
+  right: 0;
+  background: linear-gradient(to left, var(--bg-color), transparent);
+}
+
+/* Snap scroll for cards/items */
+.scroll-snap-x {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-snap-x > * {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* ============================================================
    Print Media Query
    ============================================================ */
 

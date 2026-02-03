@@ -81,8 +81,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
 }
 
 .tarotIcon {
@@ -220,15 +225,24 @@
 
 .skeletonLine {
   height: 16px;
-  background: linear-gradient(90deg, rgba(99, 210, 255, 0.1) 0%, rgba(99, 210, 255, 0.2) 50%, rgba(99, 210, 255, 0.1) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(99, 210, 255, 0.1) 0%,
+    rgba(99, 210, 255, 0.2) 50%,
+    rgba(99, 210, 255, 0.1) 100%
+  );
   background-size: 200% 100%;
   border-radius: 8px;
   animation: shimmer 1.5s infinite;
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 /* ========== AI Explanation ========== */
@@ -246,8 +260,14 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ========== Reading Section ========== */
@@ -280,8 +300,15 @@
 }
 
 @keyframes sparkle {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.2); }
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 .previewIcon {
@@ -333,12 +360,22 @@
   animation: bounce 1.4s infinite ease-in-out both;
 }
 
-.dot:nth-child(1) { animation-delay: -0.32s; }
-.dot:nth-child(2) { animation-delay: -0.16s; }
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
 
 @keyframes bounce {
-  0%, 80%, 100% { transform: scale(0); }
-  40% { transform: scale(1); }
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
 }
 
 /* ========== Quick Tags ========== */
@@ -484,13 +521,38 @@
 }
 
 /* ========== Mobile Responsive ========== */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .main {
-    padding: 100px 16px 32px;
+    padding: 100px 16px 40px;
+    align-items: flex-start; /* Better for scrolling on mobile */
   }
 
   .contentWrapper {
     gap: 1.5rem;
+    padding-top: 1rem;
+  }
+
+  /* Touch-friendly buttons */
+  .clearButton {
+    width: 44px;
+    height: 44px;
+    right: 0.75rem;
+  }
+
+  .recentDelete {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .main {
+    padding: 90px 16px 32px;
+  }
+
+  .contentWrapper {
+    gap: 1.25rem;
   }
 
   /* Prevent back button and credit badge overlap on small screens */
@@ -507,6 +569,7 @@
   .iconWrapper {
     width: 80px;
     height: 80px;
+    margin-bottom: 1rem;
   }
 
   .tarotIcon {
@@ -514,16 +577,25 @@
   }
 
   .mainTitle {
-    font-size: 2rem;
+    font-size: 1.875rem;
+    margin-bottom: 0.5rem;
   }
 
   .subtitle {
     font-size: 0.9rem;
+    padding: 0 1rem;
   }
 
+  /* Better touch target for search */
   .searchInput {
-    padding: 1rem 3rem 1rem 3rem;
-    font-size: 1rem;
+    padding: 1.125rem 3.5rem 1.125rem 3.5rem;
+    font-size: 16px; /* Prevent iOS zoom */
+    min-height: 56px;
+  }
+
+  .searchIcon {
+    left: 1rem;
+    font-size: 1.125rem;
   }
 
   .readingSection {
@@ -541,13 +613,73 @@
     justify-content: center;
   }
 
-  .quickTagsList {
-    justify-content: center;
+  /* Quick questions - better spacing on mobile */
+  .quickSection {
+    width: 100%;
   }
 
-  .quickTag {
+  .quickLabel {
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .quickGrid {
+    gap: 0.625rem;
+  }
+
+  .quickButton {
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+    min-height: 48px;
+  }
+
+  .quickEmoji {
+    font-size: 1.125rem;
+  }
+}
+
+/* iPhone SE and very small screens */
+@media (max-width: 375px) {
+  .main {
+    padding: 80px 12px 24px;
+  }
+
+  .contentWrapper {
+    gap: 1rem;
+  }
+
+  .iconWrapper {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 0.75rem;
+  }
+
+  .tarotIcon {
+    font-size: 32px;
+  }
+
+  .mainTitle {
+    font-size: 1.625rem;
+  }
+
+  .subtitle {
     font-size: 0.85rem;
-    padding: 0.5rem 0.85rem;
+  }
+
+  .searchInput {
+    padding: 1rem 3rem 1rem 3rem;
+    font-size: 16px;
+    min-height: 52px;
+  }
+
+  .quickButton {
+    padding: 0.625rem 0.875rem;
+    min-height: 44px;
+    font-size: 0.8125rem;
+  }
+
+  .recentText {
+    font-size: 0.875rem;
   }
 }
 
@@ -579,12 +711,115 @@
   outline-offset: 2px;
 }
 
+/* ===== Preview Box & Submit Button Mobile Optimization ===== */
+.previewBox {
+  padding: 1rem;
+  border-radius: 16px;
+}
+
+.submitButton {
+  min-height: 56px;
+  font-size: 1.1rem;
+  transform: translateZ(0); /* GPU acceleration */
+}
+
+@media (max-width: 640px) {
+  .previewBox {
+    padding: 0.875rem 1rem;
+  }
+
+  .submitButton {
+    min-height: 52px;
+    font-size: 1.05rem;
+    padding: 0.875rem 1.75rem;
+  }
+
+  .previewBadge {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .previewText {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .submitButton {
+    min-height: 48px;
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+  }
+}
+
+/* Quick Questions Grid - Mobile Optimization */
+.quickGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .quickGrid {
+    grid-template-columns: 1fr;
+    gap: 0.625rem;
+  }
+
+  .quickButton {
+    justify-content: flex-start;
+    text-align: left;
+  }
+}
+
+@media (max-width: 375px) {
+  .quickGrid {
+    gap: 0.5rem;
+  }
+}
+
+/* Loading Spinner Mobile */
+.loadingSpinner {
+  display: inline-block;
+  font-size: 1.25rem;
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Danger Icon Mobile */
+.dangerIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .dangerWarning {
+    padding: 0.875rem 1rem;
+  }
+
+  .dangerIcon {
+    font-size: 1.125rem;
+  }
+
+  .dangerWarning p {
+    font-size: 0.875rem;
+  }
+}
+
 /* ===== Reduced Motion ===== */
 @media (prefers-reduced-motion: reduce) {
   .iconWrapper,
   .skeletonLine,
   .previewIcon,
-  .dots span {
+  .dots span,
+  .loadingSpinner {
     animation: none !important;
   }
 }

@@ -1,46 +1,46 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
-import { prisma } from "@/lib/db/prisma";
-import { logger } from '@/lib/logger';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  type ApiContext,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+} from '@/lib/api/middleware'
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/logger'
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'
 
 interface SaveTarotRequest {
-  question: string;
-  theme?: string;
-  spreadId: string;
-  spreadTitle: string;
+  question: string
+  theme?: string
+  spreadId: string
+  spreadTitle: string
   cards: Array<{
-    cardId: string;
-    name: string;
-    image: string;
-    isReversed: boolean;
-    position: string;
-  }>;
-  overallMessage?: string;
+    cardId: string
+    name: string
+    image: string
+    isReversed: boolean
+    position: string
+  }>
+  overallMessage?: string
   cardInsights?: Array<{
-    position: string;
-    card_name: string;
-    is_reversed: boolean;
-    interpretation: string;
-  }>;
-  guidance?: string;
-  affirmation?: string;
-  source?: "standalone" | "counselor";
-  counselorSessionId?: string;
-  locale?: string;
+    position: string
+    card_name: string
+    is_reversed: boolean
+    interpretation: string
+  }>
+  guidance?: string
+  affirmation?: string
+  source?: 'standalone' | 'counselor'
+  counselorSessionId?: string
+  locale?: string
 }
 
-export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
-    }
-
-    const body: SaveTarotRequest = await request.json();
+export const POST = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    const body: SaveTarotRequest = await req.json()
     const {
       question,
       theme,
@@ -51,49 +51,40 @@ export async function POST(request: Request) {
       cardInsights,
       guidance,
       affirmation,
-      source = "standalone",
+      source = 'standalone',
       counselorSessionId,
-      locale = "ko",
-    } = body;
+      locale = 'ko',
+    } = body
 
     // 입력 검증 강화
     if (!question || typeof question !== 'string' || question.length > 1000) {
-      return NextResponse.json({ error: "invalid_question" }, { status: HTTP_STATUS.BAD_REQUEST });
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_question')
     }
     if (!spreadId || typeof spreadId !== 'string' || spreadId.length > 100) {
-      return NextResponse.json({ error: "invalid_spreadId" }, { status: HTTP_STATUS.BAD_REQUEST });
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_spreadId')
     }
     if (!spreadTitle || typeof spreadTitle !== 'string' || spreadTitle.length > 200) {
-      return NextResponse.json({ error: "invalid_spreadTitle" }, { status: HTTP_STATUS.BAD_REQUEST });
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_spreadTitle')
     }
     if (!cards || !Array.isArray(cards) || cards.length === 0 || cards.length > 20) {
-      return NextResponse.json({ error: "invalid_cards" }, { status: HTTP_STATUS.BAD_REQUEST });
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_cards')
     }
     if (theme && (typeof theme !== 'string' || theme.length > 100)) {
-      return NextResponse.json({ error: "invalid_theme" }, { status: HTTP_STATUS.BAD_REQUEST });
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_theme')
     }
     if (overallMessage && (typeof overallMessage !== 'string' || overallMessage.length > 5000)) {
-      return NextResponse.json({ error: "invalid_overallMessage" }, { status: HTTP_STATUS.BAD_REQUEST });
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_overallMessage')
     }
     if (guidance && (typeof guidance !== 'string' || guidance.length > 2000)) {
-      return NextResponse.json({ error: "invalid_guidance" }, { status: HTTP_STATUS.BAD_REQUEST });
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_guidance')
     }
     if (affirmation && (typeof affirmation !== 'string' || affirmation.length > 500)) {
-      return NextResponse.json({ error: "invalid_affirmation" }, { status: HTTP_STATUS.BAD_REQUEST });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "user_not_found" }, { status: HTTP_STATUS.NOT_FOUND });
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_affirmation')
     }
 
     const tarotReading = await prisma.tarotReading.create({
       data: {
-        userId: user.id,
+        userId: context.userId!,
         question,
         theme,
         spreadId,
@@ -107,58 +98,43 @@ export async function POST(request: Request) {
         counselorSessionId,
         locale,
       },
-    });
+    })
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       readingId: tarotReading.id,
-    });
-  } catch (error) {
-    logger.error("[Tarot Save Error]:", error);
-    return NextResponse.json(
-      { error: "internal_server_error" },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+    })
+  },
+  createAuthenticatedGuard({
+    route: '/api/tarot/save',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)
 
-export async function GET(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const limitParam = parseInt(searchParams.get("limit") || "10", 10);
-    const offsetParam = parseInt(searchParams.get("offset") || "0", 10);
-    const theme = searchParams.get("theme");
+export const GET = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    const { searchParams } = new URL(req.url)
+    const limitParam = parseInt(searchParams.get('limit') || '10', 10)
+    const offsetParam = parseInt(searchParams.get('offset') || '0', 10)
+    const theme = searchParams.get('theme')
 
     // 입력 검증
-    const limit = Math.min(Math.max(1, limitParam), 100); // 1-100
-    const offset = Math.max(0, offsetParam);
+    const limit = Math.min(Math.max(1, limitParam), 100) // 1-100
+    const offset = Math.max(0, offsetParam)
     if (theme && theme.length > 100) {
-      return NextResponse.json({ error: "invalid_theme" }, { status: HTTP_STATUS.BAD_REQUEST });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "user_not_found" }, { status: HTTP_STATUS.NOT_FOUND });
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_theme')
     }
 
     const where = {
-      userId: user.id,
+      userId: context.userId!,
       ...(theme && { theme }),
-    };
+    }
 
     const [readings, total] = await Promise.all([
       prisma.tarotReading.findMany({
         where,
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: limit,
         skip: offset,
         select: {
@@ -173,19 +149,18 @@ export async function GET(request: Request) {
         },
       }),
       prisma.tarotReading.count({ where }),
-    ]);
+    ])
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       readings,
       total,
       hasMore: offset + readings.length < total,
-    });
-  } catch (error) {
-    logger.error("[Tarot List Error]:", error);
-    return NextResponse.json(
-      { error: "internal_server_error" },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+    })
+  },
+  createAuthenticatedGuard({
+    route: '/api/tarot/save',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)

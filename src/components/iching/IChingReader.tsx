@@ -1,113 +1,125 @@
-"use client";
+'use client'
 
-import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
-import { useSession } from "next-auth/react";
-import type { Hexagram } from "@/lib/iChing/iChingData";
-import { getIChingDataByLocale } from "@/lib/iChing/iChingDataLoader";
-import { castMeihuaByTime } from "@/lib/iChing/ichingNumerology";
-import { HEXAGRAM_BINARY_MAP } from "@/lib/iChing/types";
-import HexagramLine from "./HexagramLine";
-import ResultDisplay from "@/components/iching/ResultDisplay";
-import { IChingResult } from "@/components/iching/types";
-import { useI18n } from "@/i18n/I18nProvider";
-import styles from "./IChingReader.module.css";
+import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
+import type { Hexagram } from '@/lib/iChing/iChingData'
+import { getIChingDataByLocale } from '@/lib/iChing/iChingDataLoader'
+import { castMeihuaByTime } from '@/lib/iChing/ichingNumerology'
+import { HEXAGRAM_BINARY_MAP } from '@/lib/iChing/types'
+import HexagramLine from './HexagramLine'
+import ResultDisplayNew from '@/components/iching/ResultDisplayNew'
+import { QuickActions } from '@/components/iching/QuickActions'
+import { IChingResult } from '@/components/iching/types'
+import { useI18n } from '@/i18n/I18nProvider'
+import styles from './IChingReader.module.css'
 
-type LineResult = { value: number; isChanging: boolean };
-type DivinationStatus = "idle" | "drawing" | "finished";
+type LineResult = { value: number; isChanging: boolean }
+type DivinationStatus = 'idle' | 'drawing' | 'finished'
 
-const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
 
 function IChingReader() {
-  const { translate, locale } = useI18n();
-  const { data: session } = useSession();
-  const [result, setResult] = useState<IChingResult | null>(null);
-  const [status, setStatus] = useState<DivinationStatus>("idle");
-  const [drawnLines, setDrawnLines] = useState<LineResult[]>([]);
-  const [question, setQuestion] = useState("");
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const [aiKey, setAiKey] = useState(0); // Key to force AI restart when lines change
-  const aiRestartTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [aiInterpretation, setAiInterpretation] = useState<{ overview: string; changing: string; advice: string } | null>(null);
-  const [currentData, setCurrentData] = useState<Hexagram[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
+  const { translate, locale } = useI18n()
+  const { data: session } = useSession()
+  const [result, setResult] = useState<IChingResult | null>(null)
+  const [status, setStatus] = useState<DivinationStatus>('idle')
+  const [drawnLines, setDrawnLines] = useState<LineResult[]>([])
+  const [question, setQuestion] = useState('')
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [aiKey, setAiKey] = useState(0) // Key to force AI restart when lines change
+  const aiRestartTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [aiInterpretation, setAiInterpretation] = useState<{
+    overview: string
+    changing: string
+    advice: string
+  } | null>(null)
+  const [currentData, setCurrentData] = useState<Hexagram[]>([])
+  const [dataLoading, setDataLoading] = useState(true)
 
   // Load hexagram data dynamically based on locale
   useEffect(() => {
-    let cancelled = false;
-    setDataLoading(true);
+    let cancelled = false
+    setDataLoading(true)
     getIChingDataByLocale(locale).then((data) => {
       if (!cancelled) {
-        setCurrentData(data);
-        setDataLoading(false);
+        setCurrentData(data)
+        setDataLoading(false)
       }
-    });
-    return () => { cancelled = true; };
-  }, [locale]);
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [locale])
 
   const hexByBinary = useMemo(() => {
-    const map = new Map<string, IChingResult["primaryHexagram"]>();
-    currentData.forEach((h) => map.set(h.binary, h));
-    return map;
-  }, [currentData]);
+    const map = new Map<string, IChingResult['primaryHexagram']>()
+    currentData.forEach((h) => map.set(h.binary, h))
+    return map
+  }, [currentData])
 
   const handleDivination = async () => {
-    setStatus("drawing");
-    setResult(null);
-    setDrawnLines([]);
+    setStatus('drawing')
+    setResult(null)
+    setDrawnLines([])
 
-    const lines: LineResult[] = [];
-    let primaryBinary = "";
-    let resultingBinary = "";
+    const lines: LineResult[] = []
+    let primaryBinary = ''
+    let resultingBinary = ''
 
     for (let i = 0; i < 6; i++) {
-      await delay(500);
+      await delay(500)
       const sum =
         Math.floor(Math.random() * 2 + 2) +
         Math.floor(Math.random() * 2 + 2) +
-        Math.floor(Math.random() * 2 + 2);
+        Math.floor(Math.random() * 2 + 2)
 
-      let currentLine: LineResult;
+      let currentLine: LineResult
       if (sum === 6) {
-        currentLine = { value: 0, isChanging: true };
-        primaryBinary += "0";
-        resultingBinary += "1";
+        currentLine = { value: 0, isChanging: true }
+        primaryBinary += '0'
+        resultingBinary += '1'
       } else if (sum === 7) {
-        currentLine = { value: 1, isChanging: false };
-        primaryBinary += "1";
-        resultingBinary += "1";
+        currentLine = { value: 1, isChanging: false }
+        primaryBinary += '1'
+        resultingBinary += '1'
       } else if (sum === 8) {
-        currentLine = { value: 0, isChanging: false };
-        primaryBinary += "0";
-        resultingBinary += "0";
+        currentLine = { value: 0, isChanging: false }
+        primaryBinary += '0'
+        resultingBinary += '0'
       } else {
-        currentLine = { value: 1, isChanging: true };
-        primaryBinary += "1";
-        resultingBinary += "0";
+        currentLine = { value: 1, isChanging: true }
+        primaryBinary += '1'
+        resultingBinary += '0'
       }
 
-      lines.push(currentLine);
-      setDrawnLines([...lines]);
+      lines.push(currentLine)
+      setDrawnLines([...lines])
     }
 
-    await delay(500);
+    await delay(500)
 
-    const primaryHexagram = hexByBinary.get(primaryBinary);
+    const primaryHexagram = hexByBinary.get(primaryBinary)
     if (!primaryHexagram) {
-      const fallbackHexagram =
-        currentData[0] || { number: 0, binary: primaryBinary, name: "", symbol: "", judgment: "", image: "", lines: [] };
+      const fallbackHexagram = currentData[0] || {
+        number: 0,
+        binary: primaryBinary,
+        name: '',
+        symbol: '',
+        judgment: '',
+        image: '',
+        lines: [],
+      }
       setResult({
         primaryHexagram: fallbackHexagram,
         changingLines: [],
-        error: "Could not find the corresponding hexagram. Please check the data.",
-      });
-      setStatus("finished");
-      return;
+        error: 'Could not find the corresponding hexagram. Please check the data.',
+      })
+      setStatus('finished')
+      return
     }
 
     const resultingHexagram =
-      primaryBinary !== resultingBinary
-        ? hexByBinary.get(resultingBinary)
-        : undefined;
+      primaryBinary !== resultingBinary ? hexByBinary.get(resultingBinary) : undefined
 
     const changingLines = lines
       .map((line, index) => ({ ...line, index }))
@@ -115,55 +127,63 @@ function IChingReader() {
       .map((line) => ({
         index: line.index,
         text: primaryHexagram.lines[line.index],
-      }));
+      }))
 
-    setResult({ primaryHexagram, changingLines, resultingHexagram });
-    setStatus("finished");
-  };
+    setResult({ primaryHexagram, changingLines, resultingHexagram })
+    setStatus('finished')
+  }
 
   // Meihua (Time-based) divination using ichingNumerology
   const handleMeihuaDivination = async () => {
-    setStatus("drawing");
-    setResult(null);
-    setDrawnLines([]);
+    setStatus('drawing')
+    setResult(null)
+    setDrawnLines([])
 
     // Small delay for visual feedback
-    await delay(800);
+    await delay(800)
 
-    const meihua = castMeihuaByTime(new Date());
+    const meihua = castMeihuaByTime(new Date())
 
     // Convert binary to lines
-    const lines: LineResult[] = [];
+    const lines: LineResult[] = []
     for (let i = 0; i < 6; i++) {
-      const bit = meihua.본괘Binary[i];
-      const isChanging = i + 1 === meihua.변효;
-      lines.push({ value: bit === "1" ? 1 : 0, isChanging });
+      const bit = meihua.본괘Binary[i]
+      const isChanging = i + 1 === meihua.변효
+      lines.push({ value: bit === '1' ? 1 : 0, isChanging })
     }
-    setDrawnLines(lines);
+    setDrawnLines(lines)
 
     // Find hexagram from binary
-    let hexNumber = 1;
+    let hexNumber = 1
     for (const [num, bin] of Object.entries(HEXAGRAM_BINARY_MAP)) {
       if (bin === meihua.본괘Binary) {
-        hexNumber = parseInt(num);
-        break;
+        hexNumber = parseInt(num)
+        break
       }
     }
 
-    const primaryHexagram = currentData.find(h => h.number === hexNumber) ||
-      currentData[0] || { number: 0, binary: meihua.본괘Binary, name: "", symbol: "", judgment: "", image: "", lines: [] };
+    const primaryHexagram = currentData.find((h) => h.number === hexNumber) ||
+      currentData[0] || {
+        number: 0,
+        binary: meihua.본괘Binary,
+        name: '',
+        symbol: '',
+        judgment: '',
+        image: '',
+        lines: [],
+      }
 
     // Resulting hexagram
-    let resultingHexagram;
+    let resultingHexagram
     if (meihua.본괘Binary !== meihua.지괘Binary) {
-      let resultHexNumber = 1;
+      let resultHexNumber = 1
       for (const [num, bin] of Object.entries(HEXAGRAM_BINARY_MAP)) {
         if (bin === meihua.지괘Binary) {
-          resultHexNumber = parseInt(num);
-          break;
+          resultHexNumber = parseInt(num)
+          break
         }
       }
-      resultingHexagram = currentData.find(h => h.number === resultHexNumber);
+      resultingHexagram = currentData.find((h) => h.number === resultHexNumber)
     }
 
     const changingLines = lines
@@ -172,59 +192,61 @@ function IChingReader() {
       .map((line) => ({
         index: line.index,
         text: primaryHexagram.lines[line.index],
-      }));
+      }))
 
-    setResult({ primaryHexagram, changingLines, resultingHexagram });
-    setStatus("finished");
-  };
+    setResult({ primaryHexagram, changingLines, resultingHexagram })
+    setStatus('finished')
+  }
 
   const reset = () => {
-    setStatus("idle");
-    setResult(null);
-    setDrawnLines([]);
-    setQuestion("");
-    setSaveStatus("idle");
-    setAiKey(0);
-    setAiInterpretation(null);
+    setStatus('idle')
+    setResult(null)
+    setDrawnLines([])
+    setQuestion('')
+    setSaveStatus('idle')
+    setAiKey(0)
+    setAiInterpretation(null)
     // Clear any pending AI restart timer
     if (aiRestartTimerRef.current) {
-      clearTimeout(aiRestartTimerRef.current);
-      aiRestartTimerRef.current = null;
+      clearTimeout(aiRestartTimerRef.current)
+      aiRestartTimerRef.current = null
     }
-  };
+  }
 
   // Toggle changing line status when user clicks on a line
   const toggleChangingLine = (index: number) => {
-    if (status !== "finished" || !result?.primaryHexagram) {return;}
+    if (status !== 'finished' || !result?.primaryHexagram) {
+      return
+    }
 
     const newLines = drawnLines.map((line, i) =>
       i === index ? { ...line, isChanging: !line.isChanging } : line
-    );
-    setDrawnLines(newLines);
+    )
+    setDrawnLines(newLines)
 
     // Recalculate binary strings
-    let primaryBinary = "";
-    let resultingBinary = "";
+    let primaryBinary = ''
+    let resultingBinary = ''
 
-    newLines.forEach(line => {
-      const bit = line.value === 1 ? "1" : "0";
-      primaryBinary += bit;
+    newLines.forEach((line) => {
+      const bit = line.value === 1 ? '1' : '0'
+      primaryBinary += bit
       // If changing, flip the bit for resulting hexagram
       if (line.isChanging) {
-        resultingBinary += line.value === 1 ? "0" : "1";
+        resultingBinary += line.value === 1 ? '0' : '1'
       } else {
-        resultingBinary += bit;
+        resultingBinary += bit
       }
-    });
+    })
 
     // Get hexagrams
-    const primaryHexagram = hexByBinary.get(primaryBinary);
-    if (!primaryHexagram) {return;}
+    const primaryHexagram = hexByBinary.get(primaryBinary)
+    if (!primaryHexagram) {
+      return
+    }
 
     const resultingHexagram =
-      primaryBinary !== resultingBinary
-        ? hexByBinary.get(resultingBinary)
-        : undefined;
+      primaryBinary !== resultingBinary ? hexByBinary.get(resultingBinary) : undefined
 
     // Recalculate changing lines
     const changingLines = newLines
@@ -233,31 +255,33 @@ function IChingReader() {
       .map((line) => ({
         index: line.index,
         text: primaryHexagram.lines[line.index],
-      }));
+      }))
 
-    setResult({ primaryHexagram, changingLines, resultingHexagram });
-    setSaveStatus("idle"); // Reset save status since result changed
+    setResult({ primaryHexagram, changingLines, resultingHexagram })
+    setSaveStatus('idle') // Reset save status since result changed
 
     // Debounce AI restart - wait 800ms after last toggle before restarting
     if (aiRestartTimerRef.current) {
-      clearTimeout(aiRestartTimerRef.current);
+      clearTimeout(aiRestartTimerRef.current)
     }
-    setAiInterpretation(null); // Reset AI interpretation when lines change
+    setAiInterpretation(null) // Reset AI interpretation when lines change
     aiRestartTimerRef.current = setTimeout(() => {
-      setAiKey(prev => prev + 1);
-    }, 800);
-  };
+      setAiKey((prev) => prev + 1)
+    }, 800)
+  }
 
   const handleSave = async () => {
-    if (!session || !result || !result.primaryHexagram) {return;}
+    if (!session || !result || !result.primaryHexagram) {
+      return
+    }
 
-    setSaveStatus("saving");
+    setSaveStatus('saving')
     try {
       // Build hexagram lines for display
-      const hexagramLines = drawnLines.map(line => ({
+      const hexagramLines = drawnLines.map((line) => ({
         value: line.value,
-        isChanging: line.isChanging
-      }));
+        isChanging: line.isChanging,
+      }))
 
       const content = JSON.stringify({
         question,
@@ -271,49 +295,54 @@ function IChingReader() {
         },
         hexagramLines, // Save line data for visual display
         changingLines: result.changingLines,
-        resultingHexagram: result.resultingHexagram ? {
-          number: result.resultingHexagram.number,
-          name: result.resultingHexagram.name,
-          symbol: result.resultingHexagram.symbol,
-          binary: result.resultingHexagram.binary,
-          judgment: result.resultingHexagram.judgment,
-        } : null,
+        resultingHexagram: result.resultingHexagram
+          ? {
+              number: result.resultingHexagram.number,
+              name: result.resultingHexagram.name,
+              symbol: result.resultingHexagram.symbol,
+              binary: result.resultingHexagram.binary,
+              judgment: result.resultingHexagram.judgment,
+            }
+          : null,
         aiInterpretation: aiInterpretation || null, // Include AI interpretation
         locale,
         timestamp: new Date().toISOString(),
-      });
+      })
 
-      const res = await fetch("/api/readings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/readings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: "iching",
+          type: 'iching',
           title: `${result.primaryHexagram.name} ${result.primaryHexagram.symbol}`,
           content,
         }),
-      });
+      })
 
       if (res.ok) {
-        setSaveStatus("saved");
+        setSaveStatus('saved')
       } else {
-        setSaveStatus("error");
+        setSaveStatus('error')
       }
     } catch {
-      setSaveStatus("error");
+      setSaveStatus('error')
     }
-  };
+  }
 
   // Handler for AI completion
-  const handleAiComplete = useCallback((aiText: { overview: string; changing: string; advice: string }) => {
-    setAiInterpretation(aiText);
-  }, []);
+  const handleAiComplete = useCallback(
+    (aiText: { overview: string; changing: string; advice: string }) => {
+      setAiInterpretation(aiText)
+    },
+    []
+  )
 
   if (dataLoading) {
     return (
       <div className={styles.readerContainer}>
         <div className={styles.statusContainer}>
           <p className={styles.statusText}>
-            {translate("iching.casting", "Casting the lines")}
+            {translate('iching.casting', 'Casting the lines')}
             <span className={styles.statusDots}>
               <span className={styles.statusDot}></span>
               <span className={styles.statusDot}></span>
@@ -322,20 +351,20 @@ function IChingReader() {
           </p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className={styles.readerContainer}>
       {/* Lines Display */}
       <div className={styles.linesContainer}>
-        {(status === "drawing" || status === "finished") &&
+        {(status === 'drawing' || status === 'finished') &&
           drawnLines.map((line, index) => (
             <div key={index} className={styles.lineWrapper}>
               <HexagramLine
-                type={line.value === 1 ? "solid" : "broken"}
+                type={line.value === 1 ? 'solid' : 'broken'}
                 isChanging={line.isChanging}
-                clickable={status === "finished"}
+                clickable={status === 'finished'}
                 lineIndex={index}
                 onClick={() => toggleChangingLine(index)}
                 locale={locale}
@@ -343,35 +372,33 @@ function IChingReader() {
             </div>
           ))}
       </div>
-      {status === "finished" && (
+      {status === 'finished' && (
         <div className={styles.changingInfo}>
           <p className={styles.changingHint}>
-            {translate("iching.changingHint", "Click on a line to toggle changing status")}
+            {translate('iching.changingHint', 'Click on a line to toggle changing status')}
           </p>
-          {drawnLines.filter(l => l.isChanging).length > 0 && (
+          {drawnLines.filter((l) => l.isChanging).length > 0 && (
             <p className={styles.changingCount}>
-              {translate("iching.changingCount", "Changing lines")}: {drawnLines.filter(l => l.isChanging).length}
+              {translate('iching.changingCount', 'Changing lines')}:{' '}
+              {drawnLines.filter((l) => l.isChanging).length}
             </p>
           )}
         </div>
       )}
 
       {/* Idle State */}
-      {status === "idle" && (
+      {status === 'idle' && (
         <div className={styles.promptSection}>
           <p className={styles.promptText}>
-            {translate(
-              "iching.prompt",
-              "Calm your mind and press the button to receive guidance."
-            )}
+            {translate('iching.prompt', 'Calm your mind and press the button to receive guidance.')}
           </p>
           <div className={styles.questionSection}>
             <label className={styles.questionLabel}>
-              {translate("iching.question", "Your Question (Optional)")}
+              {translate('iching.question', 'Your Question (Optional)')}
             </label>
             <textarea
               className={styles.questionInput}
-              placeholder={translate("iching.questionPlaceholder", "What guidance do you seek?")}
+              placeholder={translate('iching.questionPlaceholder', 'What guidance do you seek?')}
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               rows={3}
@@ -379,23 +406,26 @@ function IChingReader() {
           </div>
           <div className={styles.buttonRow}>
             <button onClick={handleDivination} className={styles.castButton}>
-              {translate("iching.cast", "Cast Hexagram")}
+              {translate('iching.cast', 'Cast Hexagram')}
             </button>
             <button onClick={handleMeihuaDivination} className={styles.meihuaButton}>
-              {translate("iching.meihua", "Time Reading")}
+              {translate('iching.meihua', 'Time Reading')}
             </button>
           </div>
           <p className={styles.meihuaHint}>
-            {translate("iching.meihuaHint", "Time Reading uses Meihua numerology based on the current moment")}
+            {translate(
+              'iching.meihuaHint',
+              'Time Reading uses Meihua numerology based on the current moment'
+            )}
           </p>
         </div>
       )}
 
       {/* Drawing State */}
-      {status === "drawing" && (
+      {status === 'drawing' && (
         <div className={styles.statusContainer}>
           <p className={styles.statusText}>
-            {translate("iching.casting", "Casting the lines")}
+            {translate('iching.casting', 'Casting the lines')}
             <span className={styles.statusDots}>
               <span className={styles.statusDot}></span>
               <span className={styles.statusDot}></span>
@@ -406,7 +436,7 @@ function IChingReader() {
       )}
 
       {/* Finished State */}
-      {status === "finished" && (
+      {status === 'finished' && (
         <>
           {question && (
             <div className={styles.questionDisplay}>
@@ -414,33 +444,25 @@ function IChingReader() {
               <p className={styles.questionText}>{question}</p>
             </div>
           )}
-          <ResultDisplay key={aiKey} result={result} question={question} autoStartAi={true} onAiComplete={handleAiComplete} />
-          <div className={styles.buttonGroup}>
-            {session ? (
-              <button
-                onClick={handleSave}
-                className={`${styles.saveButton} ${saveStatus === "saved" ? styles.saved : ""}`}
-                disabled={saveStatus === "saving" || saveStatus === "saved" || !aiInterpretation}
-              >
-                {saveStatus === "saving" ? "..." :
-                 saveStatus === "saved" ? translate("iching.saved", "Reading Saved") :
-                 saveStatus === "error" ? translate("iching.saveError", "Failed to save") :
-                 !aiInterpretation ? translate("iching.waitingAi", "Waiting for AI...") :
-                 translate("iching.save", "Save Reading")}
-              </button>
-            ) : (
-              <p className={styles.loginHint}>
-                {translate("iching.loginToSave", "Log in to save your reading")}
-              </p>
-            )}
-            <button onClick={reset} className={styles.resetButton}>
-              {translate("iching.castAgain", "Cast Again")}
-            </button>
-          </div>
+          <ResultDisplayNew
+            key={aiKey}
+            result={result}
+            question={question}
+            autoStartAi={true}
+            onAiComplete={handleAiComplete}
+          />
+          <QuickActions
+            onSave={handleSave}
+            onReset={reset}
+            canSave={!!aiInterpretation}
+            isSaved={saveStatus === 'saved'}
+            saveStatus={saveStatus}
+            isLoggedIn={!!session}
+          />
         </>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default IChingReader;
+export default IChingReader

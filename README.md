@@ -1,5 +1,7 @@
 # DestinyPal
 
+> 📘 **[→ 전체 프로젝트 개요 보기 (OVERVIEW.md)](OVERVIEW.md)** - 모든 정보를 한 곳에서!
+
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb)](https://react.dev/)
@@ -302,20 +304,26 @@ saju-astro-chat/
 
 ## Documentation
 
-| Document                                                        | Description                   |
-| --------------------------------------------------------------- | ----------------------------- |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md)                         | 시스템 아키텍처               |
-| [API.md](docs/API.md)                                           | REST API 문서                 |
-| [SECURITY_HARDENING.md](docs/SECURITY_HARDENING.md)             | 보안 강화 가이드              |
-| [PERFORMANCE_OPTIMIZATION.md](docs/PERFORMANCE_OPTIMIZATION.md) | 성능 최적화                   |
-| [PERFORMANCE_TESTING.md](docs/PERFORMANCE_TESTING.md)           | 성능 테스트                   |
-| [REDIS_CACHE_GUIDE.md](docs/REDIS_CACHE_GUIDE.md)               | Redis 캐싱 가이드             |
-| [E2E_TESTING_GUIDE.md](docs/E2E_TESTING_GUIDE.md)               | E2E 테스트 가이드             |
-| [CI_CD_PIPELINE.md](docs/CI_CD_PIPELINE.md)                     | CI/CD 파이프라인              |
-| [BUNDLE_OPTIMIZATION.md](docs/BUNDLE_OPTIMIZATION.md)           | 번들 최적화                   |
-| [TRACING.md](docs/TRACING.md)                                   | 분산 트레이싱 (OpenTelemetry) |
-| [DEPLOYMENT.md](DEPLOYMENT.md)                                  | 배포 가이드                   |
-| [ENVIRONMENT_CHECKLIST.md](docs/ENVIRONMENT_CHECKLIST.md)       | 환경변수 체크리스트           |
+### 📚 Main Docs
+
+- **[Documentation Hub](docs/README.md)** - Central index for all documentation
+- **[Roadmap](ROADMAP.md)** - Technical development roadmap (2026-2030)
+- **[Unicorn Strategy](UNICORN_STRATEGY.md)** - Business strategy & KPI targets
+- **[Refactoring Guide](REFACTORING_GUIDE.md)** - Code improvement strategy
+
+### 🎯 Feature Docs
+
+- **[Credit Error Messages](docs/CREDIT_ERROR_MESSAGES.md)** - Improved UX for credit limits (NEW ✨)
+
+### 🔧 Technical Guides
+
+- **[API Guide](src/lib/api/README.md)** - API design principles
+- **[Cache Versioning](src/lib/cache/CACHE_VERSIONING.md)** - Cache management
+- **[AI Backend](backend_ai/APP_PY_REFACTORING_COMPLETE.md)** - Python backend structure
+
+### 📦 Archived
+
+- **[Old Docs](docs/archive/)** - Legacy documentation (placeholder files moved here)
 
 ---
 
@@ -328,6 +336,7 @@ MIT
 ## Recent Improvements (2026-01)
 
 ### Week 1: Security & Foundation ✅
+
 - **npm Vulnerabilities**: Reduced from 16 HIGH → 3 moderate (81% improvement)
   - Updated Next.js 16.0.10 → 16.1.6
   - Fixed lodash, tar, diff security issues
@@ -336,6 +345,7 @@ MIT
 - **Tests**: All 49 credit system tests passing
 
 ### Week 2: Performance & Integration ✅
+
 - **Compatibility Backend**: Integrated Python compatibility module
   - Module structure with `__init__.py`
   - 5/5 integration tests passing
@@ -347,6 +357,7 @@ MIT
   - Total JS: <3MB
 
 ### Week 3: Testing & Documentation ✅
+
 - **Cache Versioning**: Auto-invalidation system
   - Versioned cache keys (e.g., `saju:v1:...`)
   - [CACHE_VERSIONING.md](src/lib/cache/CACHE_VERSIONING.md) documentation
@@ -362,6 +373,7 @@ MIT
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js 20+
 - PostgreSQL (or Supabase account)
 - Redis (or Upstash account) - optional
@@ -399,6 +411,7 @@ python main.py
 See [ENVIRONMENT_CHECKLIST.md](docs/ENVIRONMENT_CHECKLIST.md) for complete list.
 
 **Required:**
+
 - `DATABASE_URL`: PostgreSQL connection string
 - `NEXTAUTH_SECRET`: Random 32+ character string
 - `NEXTAUTH_URL`: Your app URL
@@ -406,6 +419,7 @@ See [ENVIRONMENT_CHECKLIST.md](docs/ENVIRONMENT_CHECKLIST.md) for complete list.
 - `STRIPE_PUBLISHABLE_KEY`: Stripe public key
 
 **Optional:**
+
 - `REDIS_URL`: Redis connection (for caching)
 - `UPSTASH_REDIS_REST_URL`: Upstash Redis
 - `OPENAI_API_KEY`: OpenAI API key
@@ -438,15 +452,12 @@ npm run security:owasp        # OWASP ZAP
 
 ---
 
-## Documentation
+## Quick Links
 
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: System architecture & request flows
-- **[API.md](docs/API.md)**: API endpoints documentation
-- **[DEPLOYMENT.md](DEPLOYMENT.md)**: Deployment guide
-- **[SECURITY_HARDENING.md](docs/SECURITY_HARDENING.md)**: Security best practices
-- **[CI_CD_PIPELINE.md](docs/CI_CD_PIPELINE.md)**: CI/CD workflows
-- **[REDIS_CACHE_GUIDE.md](docs/REDIS_CACHE_GUIDE.md)**: Caching strategies
-- **[CACHE_VERSIONING.md](src/lib/cache/CACHE_VERSIONING.md)**: Cache version management
+- **[Documentation Hub](docs/README.md)** - All technical documentation
+- **[Roadmap](ROADMAP.md)** - Development priorities
+- **[API Guide](src/lib/api/README.md)** - API design
+- **[Tests](tests/README.md)** - Test strategy
 
 ---
 
@@ -459,6 +470,7 @@ npm run security:owasp        # OWASP ZAP
 5. Open a Pull Request
 
 ### Code Quality Standards
+
 - TypeScript strict mode
 - ESLint + Prettier
 - 100% test coverage for critical paths
@@ -476,6 +488,7 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 ## Support
 
 For issues and questions:
+
 - **GitHub Issues**: [Create an issue](https://github.com/yourusername/saju-astro-chat/issues)
 - **Email**: support@destinypal.com
 - **Documentation**: [docs/](docs/)

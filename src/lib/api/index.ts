@@ -13,7 +13,7 @@ export {
   ErrorCodes,
   type ErrorCode,
   type APIErrorOptions,
-} from "./errorHandler";
+} from './errorHandler'
 
 // Validation (legacy - prefer Zod schemas for new code)
 export {
@@ -30,7 +30,7 @@ export {
   CommonValidators,
   type ValidationResult,
   type FieldRule,
-} from "./validation";
+} from './validation'
 
 // Zod schemas (preferred for new code)
 export {
@@ -68,7 +68,7 @@ export {
   type FeedbackRequest,
   type ConsultationTheme,
   type ApiError,
-} from "./schemas";
+} from './schemas'
 
 // API Client
 export {
@@ -81,7 +81,7 @@ export {
   createApiClient,
   type ApiClientOptions,
   type ApiResponse,
-} from "./ApiClient";
+} from './ApiClient'
 
 // Sanitizers (use these for input sanitization)
 export {
@@ -94,5 +94,9 @@ export {
   sanitizeHtml,
   sanitizeEnum,
   type ChatRole,
-  type ChatMessage,
-} from "./sanitizers";
+  /** @deprecated Use ChatMessage from @/lib/api/validator instead for better type safety */
+  type ChatMessage as ChatMessageLegacy,
+} from './sanitizers'
+
+// Validator exports (preferred for new code)
+export { ChatMessageSchema, ChatMessagesSchema, type ChatMessage } from './validator'

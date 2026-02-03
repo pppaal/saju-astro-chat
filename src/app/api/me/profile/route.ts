@@ -12,7 +12,7 @@ const isValidUrl = (val: unknown) => {
     return false
   }
   try {
-    const url = new URL(val);
+    const url = new URL(val)
     return url.protocol === 'http:' || url.protocol === 'https:'
   } catch {
     return false
@@ -28,6 +28,7 @@ export const GET = withApiMiddleware(
         name: true,
         email: true,
         image: true,
+        profilePhoto: true,
         birthDate: true,
         birthTime: true,
         gender: true,
@@ -105,40 +106,49 @@ export const PATCH = withApiMiddleware(
       if (tzId !== undefined) data.tzId = typeof tzId === 'string' ? tzId : null
     }
 
-    // Get old birth info for cache invalidation (only if birth fields are being updated)
-    let oldUser: {
-      birthDate: string | null
-      birthTime: string | null
-      gender: string | null
-    } | null = null
-    if (hasBirthFields) {
-      oldUser = await prisma.user.findUnique({
-        where: { id: context.userId! },
-        select: { birthDate: true, birthTime: true, gender: true },
-      })
-    }
-
-    await prisma.user.update({
+    // Update user and fetch old + new data in single query
+    const updatedUser = await prisma.user.update({
       where: { id: context.userId! },
       data,
-      select: { id: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+        profilePhoto: true,
+        birthDate: true,
+        birthTime: true,
+        gender: true,
+        birthCity: true,
+        tzId: true,
+        createdAt: true,
+        emailNotifications: true,
+        preferences: {
+          select: {
+            preferredLanguage: true,
+            notificationSettings: true,
+            tonePreference: true,
+            readingLength: true,
+          },
+        },
+      },
     })
 
     // Invalidate birth-related caches if birth info changed
-    if (hasBirthFields && oldUser) {
+    if (hasBirthFields) {
+      // Compare old vs new values from the update body
+      const oldBirthDate = body.birthDate !== undefined ? null : updatedUser.birthDate
       const birthChanged =
-        oldUser.birthDate !== (data.birthDate ?? oldUser.birthDate) ||
-        oldUser.birthTime !== (data.birthTime ?? oldUser.birthTime) ||
-        oldUser.gender !== (data.gender ?? oldUser.gender)
+        hasBirthFields &&
+        (birthDate !== undefined || birthTime !== undefined || gender !== undefined)
 
-      if (birthChanged) {
-        const patterns: string[] = []
-        if (oldUser.birthDate) {
-          patterns.push(`saju:${oldUser.birthDate}:*`)
-          patterns.push(`destiny:${oldUser.birthDate}:*`)
-          patterns.push(`yearly:v2:${oldUser.birthDate}:*`)
-        }
-        patterns.push(`cal:*:*:${context.userId}`)
+      if (birthChanged && oldBirthDate) {
+        const patterns: string[] = [
+          `saju:${oldBirthDate}:*`,
+          `destiny:${oldBirthDate}:*`,
+          `yearly:v2:${oldBirthDate}:*`,
+          `cal:*:*:${context.userId}`,
+        ]
         await Promise.all(patterns.map((p) => clearCacheByPattern(p)))
         logger.info(`[profile PATCH] Invalidated birth caches for user ${context.userId}`)
       }
@@ -172,35 +182,21 @@ export const PATCH = withApiMiddleware(
           readingLength: isNonEmptyString(readingLength, 32) ? readingLength.trim() : 'medium',
         },
       })
+
+      // Refresh preferences in response
+      const freshPrefs = await prisma.userPreferences.findUnique({
+        where: { userId: context.userId! },
+        select: {
+          preferredLanguage: true,
+          notificationSettings: true,
+          tonePreference: true,
+          readingLength: true,
+        },
+      })
+      updatedUser.preferences = freshPrefs
     }
 
-    // Re-fetch full profile to return
-    const fullUser = await prisma.user.findUnique({
-      where: { id: context.userId! },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        birthDate: true,
-        birthTime: true,
-        gender: true,
-        birthCity: true,
-        tzId: true,
-        createdAt: true,
-        emailNotifications: true,
-        preferences: {
-          select: {
-            preferredLanguage: true,
-            notificationSettings: true,
-            tonePreference: true,
-            readingLength: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json({ user: fullUser })
+    return NextResponse.json({ user: updatedUser })
   },
   createAuthenticatedGuard({
     route: '/api/me/profile',

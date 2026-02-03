@@ -1,29 +1,29 @@
 // src/app/api/tarot/analyze-question/route.ts
-// GPT-4o를 사용해서 사용자 질문을 분석하고 적절한 스프레드 추천 (복잡한 뉘앙스 파악 가능)
+// GPT-4o-mini를 사용해서 사용자 질문을 분석하고 적절한 스프레드 추천 (비용 효율적)
 
-import { NextRequest, NextResponse } from "next/server";
-import { tarotThemes } from "@/lib/Tarot/tarot-spreads-data";
-import { logger } from '@/lib/logger';
-import { PATTERN_MAPPINGS, getExamInterviewMapping } from './pattern-mappings';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
+import { logger } from '@/lib/logger'
+import { PATTERN_MAPPINGS, getExamInterviewMapping } from './pattern-mappings'
+import { HTTP_STATUS } from '@/lib/constants/http'
 
 // ============================================================
 // Types
 // ============================================================
 interface ParsedResult {
-  themeId: string;
-  spreadId: string;
-  reason: string;
-  userFriendlyExplanation: string;
+  themeId: string
+  spreadId: string
+  reason: string
+  userFriendlyExplanation: string
 }
 
 interface SpreadOption {
-  id: string;
-  themeId: string;
-  title: string;
-  titleKo: string;
-  description: string;
-  cardCount: number;
+  id: string
+  themeId: string
+  title: string
+  titleKo: string
+  description: string
+  cardCount: number
 }
 
 // ============================================================
@@ -34,29 +34,29 @@ async function callOpenAI(messages: { role: string; content: string }[], maxToke
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o',
+      model: 'gpt-4o-mini', // 질문 분류는 단순 작업이므로 mini 사용 (96% 저렴)
       messages,
       max_tokens: maxTokens,
       temperature: 0.3, // 복잡한 뉘앙스 파악을 위해 약간 높임
       response_format: { type: 'json_object' },
     }),
-  });
+  })
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`OpenAI API error: ${error}`);
+    const error = await response.text()
+    throw new Error(`OpenAI API error: ${error}`)
   }
 
-  const data = await response.json();
-  return data.choices[0]?.message?.content || '';
+  const data = await response.json()
+  return data.choices[0]?.message?.content || ''
 }
 
 // 스프레드 정보를 GPT에게 전달할 형식으로 변환
 function getSpreadOptions(): SpreadOption[] {
-  const options: SpreadOption[] = [];
+  const options: SpreadOption[] = []
 
   for (const theme of tarotThemes) {
     for (const spread of theme.spreads) {
@@ -67,23 +67,34 @@ function getSpreadOptions(): SpreadOption[] {
         titleKo: spread.titleKo || spread.title,
         description: spread.descriptionKo || spread.description,
         cardCount: spread.cardCount,
-      });
+      })
     }
   }
 
-  return options;
+  return options
 }
 
 // 위험한 질문 체크
 const dangerousKeywords = [
-  "자살", "죽고 싶", "죽을래", "살기 싫", "끝내고 싶", "죽어버릴",
-  "자해", "목숨", "생을 마감", "세상 떠나",
-  "suicide", "kill myself", "end my life", "want to die"
-];
+  '자살',
+  '죽고 싶',
+  '죽을래',
+  '살기 싫',
+  '끝내고 싶',
+  '죽어버릴',
+  '자해',
+  '목숨',
+  '생을 마감',
+  '세상 떠나',
+  'suicide',
+  'kill myself',
+  'end my life',
+  'want to die',
+]
 
 function checkDangerous(question: string): boolean {
-  const normalized = question.toLowerCase();
-  return dangerousKeywords.some(kw => normalized.includes(kw.toLowerCase()));
+  const normalized = question.toLowerCase()
+  return dangerousKeywords.some((kw) => normalized.includes(kw.toLowerCase()))
 }
 
 // ============================================================
@@ -226,7 +237,7 @@ ${spreadListForPrompt}
 - "My job has been draining lately and I'm considering leaving" → job-change (implicit decision with emotional context)
 - "They've been texting me more but idk if it means something" → crush-feelings (uncertainty, text speak)
 - "Torn between staying in my comfort zone and taking a risk" → two-paths (implicit A vs B)
-- "Feel like the universe is pushing me to make a move but scared" → yes-no-why (implicit decision with emotional layer)`;
+- "Feel like the universe is pushing me to make a move but scared" → yes-no-why (implicit decision with emotional layer)`
 }
 
 // ============================================================
@@ -238,26 +249,30 @@ function applyPatternCorrections(
   language: string
 ): ParsedResult {
   // 1. 면접/시험 질문 특수 처리 (분기 로직 필요)
-  const examMapping = getExamInterviewMapping(question, language);
+  const examMapping = getExamInterviewMapping(question, language)
   if (examMapping && parsed.spreadId !== examMapping.spreadId) {
-    logger.info(`[analyze-question] Correcting: "${question}" → ${examMapping.spreadId} (was: ${parsed.spreadId})`);
-    return examMapping;
+    logger.info(
+      `[analyze-question] Correcting: "${question}" → ${examMapping.spreadId} (was: ${parsed.spreadId})`
+    )
+    return examMapping
   }
 
   // 2. PATTERN_MAPPINGS 테이블 순회 (priority 순으로 정렬됨)
   for (const mapping of PATTERN_MAPPINGS) {
     if (mapping.check(question) && parsed.spreadId !== mapping.targetSpread) {
-      logger.info(`[analyze-question] Correcting: "${question}" → ${mapping.targetSpread} (was: ${parsed.spreadId})`);
+      logger.info(
+        `[analyze-question] Correcting: "${question}" → ${mapping.targetSpread} (was: ${parsed.spreadId})`
+      )
       return {
         themeId: mapping.themeId,
         spreadId: mapping.targetSpread,
         reason: mapping.reason,
-        userFriendlyExplanation: language === "ko" ? mapping.koExplanation : mapping.enExplanation
-      };
+        userFriendlyExplanation: language === 'ko' ? mapping.koExplanation : mapping.enExplanation,
+      }
     }
   }
 
-  return parsed;
+  return parsed
 }
 
 // ============================================================
@@ -265,84 +280,87 @@ function applyPatternCorrections(
 // ============================================================
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { question, language = "ko" } = body;
+    const body = await request.json()
+    const { question, language = 'ko' } = body
 
-    if (!question || typeof question !== "string" || question.trim().length === 0) {
+    if (!question || typeof question !== 'string' || question.trim().length === 0) {
       return NextResponse.json(
-        { error: "Question is required" },
+        { error: 'Question is required' },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
-    const trimmedQuestion = question.trim().slice(0, 500);
+    const trimmedQuestion = question.trim().slice(0, 500)
 
     // 위험한 질문 체크
     if (checkDangerous(trimmedQuestion)) {
       return NextResponse.json({
         isDangerous: true,
-        message: language === "ko"
-          ? "힘든 시간을 보내고 계신 것 같아요. 전문가의 도움을 받으시길 권해드려요. 자살예방상담전화: 1393 (24시간)"
-          : "I sense you might be going through a difficult time. Please reach out to a professional who can help. Crisis helpline: 1393 (Korea) or your local emergency services.",
-      });
+        message:
+          language === 'ko'
+            ? '힘든 시간을 보내고 계신 것 같아요. 전문가의 도움을 받으시길 권해드려요. 자살예방상담전화: 1393 (24시간)'
+            : 'I sense you might be going through a difficult time. Please reach out to a professional who can help. Crisis helpline: 1393 (Korea) or your local emergency services.',
+      })
     }
 
     // 스프레드 옵션 목록
-    const spreadOptions = getSpreadOptions();
-    const spreadListForPrompt = spreadOptions.map(s =>
-      `- ${s.themeId}/${s.id}: ${s.titleKo} (${s.cardCount}장) - ${s.description}`
-    ).join("\n");
+    const spreadOptions = getSpreadOptions()
+    const spreadListForPrompt = spreadOptions
+      .map((s) => `- ${s.themeId}/${s.id}: ${s.titleKo} (${s.cardCount}장) - ${s.description}`)
+      .join('\n')
 
     // GPT-4o-mini로 분석
-    const systemPrompt = buildSystemPrompt(spreadListForPrompt);
+    const systemPrompt = buildSystemPrompt(spreadListForPrompt)
 
-    let responseText = "";
+    let responseText = ''
     try {
       responseText = await callOpenAI([
-        { role: "system", content: systemPrompt },
-        { role: "user", content: `사용자 질문: "${trimmedQuestion}"` }
-      ]);
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `사용자 질문: "${trimmedQuestion}"` },
+      ])
     } catch (error) {
-      logger.warn("[analyze-question] OpenAI unavailable, using fallback routing", error);
+      logger.warn('[analyze-question] OpenAI unavailable, using fallback routing', error)
     }
 
     const fallbackParsed: ParsedResult = {
-      themeId: "general-insight",
-      spreadId: "past-present-future",
-      reason: "일반적인 운세 확인",
-      userFriendlyExplanation: language === "ko"
-        ? "전반적인 흐름을 볼 수 있는 스프레드를 준비했어요"
-        : "I've prepared a spread to see the overall flow"
-    };
+      themeId: 'general-insight',
+      spreadId: 'past-present-future',
+      reason: '일반적인 운세 확인',
+      userFriendlyExplanation:
+        language === 'ko'
+          ? '전반적인 흐름을 볼 수 있는 스프레드를 준비했어요'
+          : "I've prepared a spread to see the overall flow",
+    }
 
-    let parsed: ParsedResult;
+    let parsed: ParsedResult
     try {
-      parsed = responseText ? JSON.parse(responseText) : fallbackParsed;
+      parsed = responseText ? JSON.parse(responseText) : fallbackParsed
     } catch {
-      parsed = fallbackParsed;
+      parsed = fallbackParsed
     }
 
     // GPT 결과를 패턴 매칭으로 보정
-    parsed = applyPatternCorrections(trimmedQuestion, parsed, language);
+    parsed = applyPatternCorrections(trimmedQuestion, parsed, language)
 
     // 선택된 스프레드 정보 찾기
     const selectedSpread = spreadOptions.find(
-      s => s.themeId === parsed.themeId && s.id === parsed.spreadId
-    );
+      (s) => s.themeId === parsed.themeId && s.id === parsed.spreadId
+    )
 
     if (!selectedSpread) {
       return NextResponse.json({
         isDangerous: false,
-        themeId: "general-insight",
-        spreadId: "past-present-future",
-        spreadTitle: "과거, 현재, 미래",
+        themeId: 'general-insight',
+        spreadId: 'past-present-future',
+        spreadTitle: '과거, 현재, 미래',
         cardCount: 3,
-        reason: "일반적인 운세 확인",
-        userFriendlyExplanation: language === "ko"
-          ? "전반적인 흐름을 볼 수 있는 스프레드를 준비했어요"
-          : "I've prepared a spread to see the overall flow",
+        reason: '일반적인 운세 확인',
+        userFriendlyExplanation:
+          language === 'ko'
+            ? '전반적인 흐름을 볼 수 있는 스프레드를 준비했어요'
+            : "I've prepared a spread to see the overall flow",
         path: `/tarot/general-insight/past-present-future?question=${encodeURIComponent(trimmedQuestion)}`,
-      });
+      })
     }
 
     return NextResponse.json({
@@ -354,13 +372,12 @@ export async function POST(request: NextRequest) {
       reason: parsed.reason,
       userFriendlyExplanation: parsed.userFriendlyExplanation,
       path: `/tarot/${parsed.themeId}/${parsed.spreadId}?question=${encodeURIComponent(trimmedQuestion)}`,
-    });
-
+    })
   } catch (error) {
-    logger.error("Error analyzing question:", error);
+    logger.error('Error analyzing question:', error)
     return NextResponse.json(
-      { error: "Failed to analyze question" },
+      { error: 'Failed to analyze question' },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }

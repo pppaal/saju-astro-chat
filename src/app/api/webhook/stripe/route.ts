@@ -1,28 +1,28 @@
-import { NextResponse } from "next/server"
-import { headers } from "next/headers"
-import Stripe from "stripe"
-import { prisma } from "@/lib/db/prisma"
-import { getPlanFromPriceId } from "@/lib/payments/prices"
-import { getClientIp } from "@/lib/request-ip"
-import { captureServerError } from "@/lib/telemetry"
-import { recordCounter } from "@/lib/metrics"
-import { upgradePlan, addBonusCredits, type PlanType } from "@/lib/credits/creditService"
+import { NextResponse } from 'next/server'
+import { headers } from 'next/headers'
+import Stripe from 'stripe'
+import { prisma } from '@/lib/db/prisma'
+import { getPlanFromPriceId } from '@/lib/payments/prices'
+import { getClientIp } from '@/lib/request-ip'
+import { captureServerError } from '@/lib/telemetry'
+import { recordCounter } from '@/lib/metrics'
+import { upgradePlan, addBonusCredits, type PlanType } from '@/lib/credits/creditService'
 import {
   sendPaymentReceiptEmail,
   sendSubscriptionConfirmEmail,
   sendSubscriptionCancelledEmail,
   sendPaymentFailedEmail,
-} from "@/lib/email"
-import { logger } from "@/lib/logger"
-import { HTTP_STATUS } from '@/lib/constants/http';
+} from '@/lib/email'
+import { logger } from '@/lib/logger'
+import { HTTP_STATUS } from '@/lib/constants/http'
 
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic'
 
-const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2025-10-29.clover"
+const STRIPE_API_VERSION: Stripe.LatestApiVersion = '2025-10-29.clover'
 
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error("STRIPE_SECRET_KEY is not configured")
+    throw new Error('STRIPE_SECRET_KEY is not configured')
   }
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: STRIPE_API_VERSION,
@@ -40,11 +40,14 @@ async function findUserByEmail(email: string) {
 export async function POST(request: Request) {
   const webhookSecret = getWebhookSecret()
   if (!webhookSecret) {
-    logger.error("[Stripe Webhook] STRIPE_WEBHOOK_SECRET not configured")
-    captureServerError(new Error("STRIPE_WEBHOOK_SECRET missing"), { route: "/api/webhook/stripe", stage: "config" })
-    recordCounter("stripe_webhook_config_error", 1, { reason: "missing_secret" });
+    logger.error('[Stripe Webhook] STRIPE_WEBHOOK_SECRET not configured')
+    captureServerError(new Error('STRIPE_WEBHOOK_SECRET missing'), {
+      route: '/api/webhook/stripe',
+      stage: 'config',
+    })
+    recordCounter('stripe_webhook_config_error', 1, { reason: 'missing_secret' })
     return NextResponse.json(
-      { error: "Webhook secret not configured" },
+      { error: 'Webhook secret not configured' },
       { status: HTTP_STATUS.SERVER_ERROR }
     )
   }
@@ -52,15 +55,18 @@ export async function POST(request: Request) {
 
   const body = await request.text()
   const headersList = await headers()
-  const signature = headersList.get("stripe-signature")
+  const signature = headersList.get('stripe-signature')
   // ReadonlyHeaders는 Headers 인터페이스와 호환되는 get/has 메서드를 가짐
   const ip = getClientIp(headersList as Headers)
 
   if (!signature) {
-    recordCounter("stripe_webhook_auth_error", 1, { reason: "missing_signature" })
-    captureServerError(new Error("stripe-signature header missing"), { route: "/api/webhook/stripe", ip });
+    recordCounter('stripe_webhook_auth_error', 1, { reason: 'missing_signature' })
+    captureServerError(new Error('stripe-signature header missing'), {
+      route: '/api/webhook/stripe',
+      ip,
+    })
     return NextResponse.json(
-      { error: "Missing stripe-signature header" },
+      { error: 'Missing stripe-signature header' },
       { status: HTTP_STATUS.BAD_REQUEST }
     )
   }
@@ -68,12 +74,12 @@ export async function POST(request: Request) {
   let event: Stripe.Event
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown error"
-    logger.error("[Stripe Webhook] Signature verification failed:", { message })
-    recordCounter("stripe_webhook_auth_error", 1, { reason: "verify_failed" })
-    captureServerError(err, { route: "/api/webhook/stripe", stage: "verify", ip });
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    logger.error('[Stripe Webhook] Signature verification failed:', { message })
+    recordCounter('stripe_webhook_auth_error', 1, { reason: 'verify_failed' })
+    captureServerError(err, { route: '/api/webhook/stripe', stage: 'verify', ip })
     return NextResponse.json(
       { error: `Webhook signature verification failed: ${message}` },
       { status: HTTP_STATUS.BAD_REQUEST }
@@ -89,62 +95,76 @@ export async function POST(request: Request) {
       eventId: event.id,
       type: event.type,
     })
-    recordCounter("stripe_webhook_stale_event", 1, { event: event.type });
-    return NextResponse.json(
-      { error: "Event too old" },
-      { status: HTTP_STATUS.BAD_REQUEST }
-    )
+    recordCounter('stripe_webhook_stale_event', 1, { event: event.type })
+    return NextResponse.json({ error: 'Event too old' }, { status: HTTP_STATUS.BAD_REQUEST })
   }
 
-  // 🔒 멱등성 체크: 이미 처리된 이벤트인지 확인 (Replay Attack 방지)
-  const existingEvent = await prisma.stripeEventLog.findUnique({
-    where: { eventId: event.id },
-  })
+  // 🔒 멱등성 체크: 원자적으로 처리 시도 (Race Condition 방지)
+  try {
+    // 먼저 이벤트 레코드를 생성하여 락을 획득 (unique constraint)
+    await prisma.stripeEventLog.create({
+      data: {
+        eventId: event.id,
+        type: event.type,
+        success: false, // 처리 시작 전 상태
+        metadata: {
+          livemode: event.livemode,
+          apiVersion: event.api_version,
+        },
+      },
+    })
+  } catch (err: any) {
+    // P2002: Unique constraint violation (이미 처리 중이거나 완료)
+    if (err.code === 'P2002') {
+      const existingEvent = await prisma.stripeEventLog.findUnique({
+        where: { eventId: event.id },
+      })
 
-  if (existingEvent?.success) {
-    logger.info(`[Stripe Webhook] Event already processed: ${event.id}`, {
-      type: event.type,
-      processedAt: existingEvent.processedAt,
-    })
-    recordCounter("stripe_webhook_duplicate", 1, { event: event.type });
-    return NextResponse.json({ received: true, duplicate: true })
-  }
-  if (existingEvent && !existingEvent.success) {
-    logger.warn(`[Stripe Webhook] Reprocessing previously failed event: ${event.id}`, {
-      type: event.type,
-      processedAt: existingEvent.processedAt,
-    })
+      if (existingEvent?.success) {
+        logger.info(`[Stripe Webhook] Event already processed: ${event.id}`, {
+          type: event.type,
+          processedAt: existingEvent.processedAt,
+        })
+        recordCounter('stripe_webhook_duplicate', 1, { event: event.type })
+        return NextResponse.json({ received: true, duplicate: true })
+      }
+
+      // 실패한 이벤트는 재처리 허용하지 않음 (별도 retry 로직 필요)
+      logger.warn(`[Stripe Webhook] Event processing in progress or failed: ${event.id}`)
+      return NextResponse.json({ received: true, duplicate: true })
+    }
+    throw err
   }
 
   try {
     // 이벤트 처리
     switch (event.type) {
-      case "checkout.session.completed": {
+      case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         await handleCheckoutCompleted(session)
         break
       }
-      case "customer.subscription.created": {
+      case 'customer.subscription.created': {
         const subscription = event.data.object as Stripe.Subscription
         await handleSubscriptionCreated(subscription)
         break
       }
-      case "customer.subscription.updated": {
+      case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
         await handleSubscriptionUpdated(subscription)
         break
       }
-      case "customer.subscription.deleted": {
+      case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
         await handleSubscriptionDeleted(subscription)
         break
       }
-      case "invoice.payment_succeeded": {
+      case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice
         await handlePaymentSucceeded(invoice)
         break
       }
-      case "invoice.payment_failed": {
+      case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
         await handlePaymentFailed(invoice)
         break
@@ -154,34 +174,21 @@ export async function POST(request: Request) {
     }
 
     // ✅ 성공: 이벤트 처리 완료 기록
-    await prisma.stripeEventLog.upsert({
+    await prisma.stripeEventLog.update({
       where: { eventId: event.id },
-      update: {
+      data: {
         success: true,
         errorMsg: null,
         processedAt: new Date(),
-        metadata: {
-          livemode: event.livemode,
-          apiVersion: event.api_version,
-        },
       },
-      create: {
-        eventId: event.id,
-        type: event.type,
-        success: true,
-        metadata: {
-          livemode: event.livemode,
-          apiVersion: event.api_version,
-        },
-      },
-    });
+    })
 
-    return NextResponse.json({ received: true });
+    return NextResponse.json({ received: true })
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown error"
+    const message = err instanceof Error ? err.message : 'Unknown error'
     logger.error(`[Stripe Webhook] Error handling ${event.type}:`, err)
-    recordCounter("stripe_webhook_handler_error", 1, { event: event.type })
-    captureServerError(err, { route: "/api/webhook/stripe", event: event.type })
+    recordCounter('stripe_webhook_handler_error', 1, { event: event.type })
+    captureServerError(err, { route: '/api/webhook/stripe', event: event.type })
 
     // ❌ 실패: 이벤트 처리 실패 기록 (재처리 가능하도록)
     try {
@@ -192,7 +199,7 @@ export async function POST(request: Request) {
         logger.info(`[Stripe Webhook] Event succeeded elsewhere: ${event.id}`, {
           type: event.type,
           processedAt: existingAfter.processedAt,
-        });
+        })
         return NextResponse.json({ received: true, duplicate: true })
       }
 
@@ -219,15 +226,12 @@ export async function POST(request: Request) {
             error: message,
           },
         },
-      });
+      })
     } catch (logErr) {
       logger.error('[Stripe Webhook] Failed to log error event:', logErr)
     }
 
-    return NextResponse.json(
-      { error: message },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }
 
@@ -240,7 +244,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return
   }
 
-  const creditPack = metadata.creditPack as 'mini' | 'standard' | 'plus' | 'mega' | 'ultimate' | undefined
+  const creditPack = metadata.creditPack as
+    | 'mini'
+    | 'standard'
+    | 'plus'
+    | 'mega'
+    | 'ultimate'
+    | undefined
   const userId = metadata.userId
 
   if (!creditPack || !userId) {
@@ -276,7 +286,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // 보너스 크레딧 추가
   try {
     await addBonusCredits(userId, creditAmount)
-    logger.info(`[Stripe Webhook] Added ${creditAmount} bonus credits to user ${userId} (${creditPack} pack)`);
+    logger.info(
+      `[Stripe Webhook] Added ${creditAmount} bonus credits to user ${userId} (${creditPack} pack)`
+    )
   } catch (err) {
     logger.error('[Stripe Webhook] Failed to add bonus credits:', err)
     throw err
@@ -317,7 +329,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   //   logger.warn('[Stripe Webhook] Could not save credit purchase record:', err.message)
   // })
 
-  logger.info(`[Stripe Webhook] Credit pack purchase completed: ${userId} bought ${creditPack} (${creditAmount} credits)`)
+  logger.info(
+    `[Stripe Webhook] Credit pack purchase completed: ${userId} bought ${creditPack} (${creditAmount} credits)`
+  )
 }
 
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
@@ -326,13 +340,13 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   const customer = await stripe.customers.retrieve(customerId)
 
   if (customer.deleted) {
-    logger.error("[Stripe Webhook] Customer deleted")
+    logger.error('[Stripe Webhook] Customer deleted')
     return
   }
 
   const email = (customer as Stripe.Customer).email
   if (!email) {
-    logger.error("[Stripe Webhook] Customer has no email")
+    logger.error('[Stripe Webhook] Customer has no email')
     return
   }
 
@@ -342,10 +356,10 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     return
   }
 
-  const priceId = subscription.items.data[0]?.price.id || ""
+  const priceId = subscription.items.data[0]?.price.id || ''
   const planInfo = getPlanFromPriceId(priceId)
   if (!planInfo) {
-    logger.error("[Stripe Webhook] Price not whitelisted", { priceId })
+    logger.error('[Stripe Webhook] Price not whitelisted', { priceId })
     return
   }
   const { plan, billingCycle } = planInfo
@@ -381,7 +395,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   // 크레딧 시스템 업그레이드
   try {
     await upgradePlan(user.id, plan as PlanType)
-    logger.info(`[Stripe Webhook] Credits upgraded for user ${user.id}: ${plan}`);
+    logger.info(`[Stripe Webhook] Credits upgraded for user ${user.id}: ${plan}`)
   } catch (creditErr) {
     logger.error(`[Stripe Webhook] Failed to upgrade credits:`, creditErr)
   }
@@ -401,7 +415,9 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     })
   }
 
-  logger.info(`[Stripe Webhook] Subscription created for user ${user.id}: ${plan} (${billingCycle})`)
+  logger.info(
+    `[Stripe Webhook] Subscription created for user ${user.id}: ${plan} (${billingCycle})`
+  )
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
@@ -414,7 +430,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     return
   }
 
-  const priceId = subscription.items.data[0]?.price.id || ""
+  const priceId = subscription.items.data[0]?.price.id || ''
   const planInfo = getPlanFromPriceId(priceId)
   const plan = planInfo?.plan ?? existing.plan
   const billingCycle = planInfo?.billingCycle ?? existing.billingCycle
@@ -438,10 +454,10 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   })
 
   // 플랜 변경 시 크레딧 업그레이드
-  if (existing.plan !== plan && subscription.status === "active") {
+  if (existing.plan !== plan && subscription.status === 'active') {
     try {
       await upgradePlan(existing.userId, plan as PlanType)
-      logger.info(`[Stripe Webhook] Credits upgraded for plan change: ${existing.plan} -> ${plan}`);
+      logger.info(`[Stripe Webhook] Credits upgraded for plan change: ${existing.plan} -> ${plan}`)
     } catch (creditErr) {
       logger.error(`[Stripe Webhook] Failed to upgrade credits:`, creditErr)
     }
@@ -463,15 +479,15 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   await prisma.subscription.update({
     where: { stripeSubscriptionId: subscription.id },
     data: {
-      status: "canceled",
+      status: 'canceled',
       canceledAt: new Date(),
     },
   })
 
   // 구독 취소 시 free 플랜으로 다운그레이드
   try {
-    await upgradePlan(existing.userId, "free")
-    logger.info(`[Stripe Webhook] Credits downgraded to free for user ${existing.userId}`);
+    await upgradePlan(existing.userId, 'free')
+    logger.info(`[Stripe Webhook] Credits downgraded to free for user ${existing.userId}`)
   } catch (creditErr) {
     logger.error(`[Stripe Webhook] Failed to downgrade credits:`, creditErr)
   }
@@ -494,27 +510,27 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
-  const subscriptionId = typeof invoice.subscription === "string"
-    ? invoice.subscription
-    : invoice.subscription?.id
-  if (!subscriptionId) {return}
+  const subscriptionId =
+    typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id
+  if (!subscriptionId) {
+    return
+  }
 
   const existing = await prisma.subscription.findUnique({
     where: { stripeSubscriptionId: subscriptionId },
   })
 
   if (existing) {
-    const paymentIntentId = typeof invoice.payment_intent === "string"
-      ? invoice.payment_intent
-      : invoice.payment_intent?.id
-    const paymentMethod = paymentIntentId
-      ? await getPaymentMethodType(paymentIntentId)
-      : null
+    const paymentIntentId =
+      typeof invoice.payment_intent === 'string'
+        ? invoice.payment_intent
+        : invoice.payment_intent?.id
+    const paymentMethod = paymentIntentId ? await getPaymentMethodType(paymentIntentId) : null
 
     await prisma.subscription.update({
       where: { stripeSubscriptionId: subscriptionId },
       data: {
-        status: "active",
+        status: 'active',
         paymentMethod,
       },
     })
@@ -524,10 +540,11 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-  const subscriptionId = typeof invoice.subscription === "string"
-    ? invoice.subscription
-    : invoice.subscription?.id
-  if (!subscriptionId) {return}
+  const subscriptionId =
+    typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id
+  if (!subscriptionId) {
+    return
+  }
 
   const existing = await prisma.subscription.findUnique({
     where: { stripeSubscriptionId: subscriptionId },
@@ -537,7 +554,7 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
     await prisma.subscription.update({
       where: { stripeSubscriptionId: subscriptionId },
       data: {
-        status: "past_due",
+        status: 'past_due',
       },
     })
 
@@ -564,9 +581,11 @@ async function getPaymentMethodType(paymentIntentId: string): Promise<string | n
     const stripe = getStripe()
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
     const paymentMethodId = paymentIntent.payment_method as string
-    if (!paymentMethodId) {return null}
+    if (!paymentMethodId) {
+      return null
+    }
 
-    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId)
     return paymentMethod.type // card, kakao_pay, etc.
   } catch {
     return null

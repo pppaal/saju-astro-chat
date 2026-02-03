@@ -1,64 +1,64 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import type { Session } from 'next-auth';
-import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import { logger } from '@/lib/logger';
-import type { UserProfile, ViewMode, Filters } from './types';
-import { convertToUserProfile } from './convertProfile';
+import { useState, useRef, useEffect, useCallback } from 'react'
+import type { Session } from 'next-auth'
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'
+import { logger } from '@/lib/logger'
+import type { UserProfile, ViewMode, Filters } from './types'
+import { convertToUserProfile } from './convertProfile'
 
 export interface UseDiscoveryParams {
-  session: Session | null;
-  status: 'loading' | 'authenticated' | 'unauthenticated';
-  router: AppRouterInstance;
-  signInUrl: string;
+  session: Session | null
+  status: 'loading' | 'authenticated' | 'unauthenticated'
+  router: AppRouterInstance
+  signInUrl: string
 }
 
 export interface UseDiscoveryReturn {
   // View state
-  viewMode: ViewMode;
-  setViewMode: (mode: ViewMode) => void;
+  viewMode: ViewMode
+  setViewMode: (mode: ViewMode) => void
 
   // Profile state
-  profiles: UserProfile[];
-  currentIndex: number;
-  likedProfiles: string[];
-  selectedProfile: UserProfile | null;
-  setSelectedProfile: (profile: UserProfile | null) => void;
+  profiles: UserProfile[]
+  currentIndex: number
+  likedProfiles: string[]
+  selectedProfile: UserProfile | null
+  setSelectedProfile: (profile: UserProfile | null) => void
 
   // Filter state
-  showFilters: boolean;
-  setShowFilters: (show: boolean) => void;
-  filters: Filters;
-  setFilters: (filters: Filters) => void;
+  showFilters: boolean
+  setShowFilters: (show: boolean) => void
+  filters: Filters
+  setFilters: (filters: Filters) => void
 
   // Loading/error state
-  isLoading: boolean;
-  error: string | null;
-  needsSetup: boolean;
-  hasMore: boolean;
+  isLoading: boolean
+  error: string | null
+  needsSetup: boolean
+  hasMore: boolean
 
   // Drag state
-  cardRef: React.RefObject<HTMLDivElement | null>;
-  dragOffset: { x: number; y: number };
-  isDragging: boolean;
+  cardRef: React.RefObject<HTMLDivElement | null>
+  dragOffset: { x: number; y: number }
+  isDragging: boolean
 
   // Computed
-  currentProfile: UserProfile | undefined;
-  hasMoreProfiles: boolean;
-  rotation: number;
-  opacity: number;
+  currentProfile: UserProfile | undefined
+  hasMoreProfiles: boolean
+  rotation: number
+  opacity: number
 
   // Undo
-  canUndo: boolean;
-  handleUndo: () => Promise<void>;
+  canUndo: boolean
+  handleUndo: () => Promise<void>
 
   // Callbacks
-  loadProfiles: () => Promise<void>;
-  handleDragStart: (clientX: number, clientY: number) => void;
-  handleDragMove: (clientX: number, clientY: number) => void;
-  handleDragEnd: () => void;
-  handleLike: () => Promise<void>;
-  handlePass: () => Promise<void>;
-  handleSuperLike: () => Promise<void>;
+  loadProfiles: () => Promise<void>
+  handleDragStart: (clientX: number, clientY: number) => void
+  handleDragMove: (clientX: number, clientY: number) => void
+  handleDragEnd: () => void
+  handleLike: () => Promise<void>
+  handlePass: () => Promise<void>
+  handleSuperLike: () => Promise<void>
 }
 
 export function useDiscovery({
@@ -67,87 +67,93 @@ export function useDiscovery({
   router,
   signInUrl,
 }: UseDiscoveryParams): UseDiscoveryReturn {
-  const [viewMode, setViewMode] = useState<ViewMode>('swipe');
-  const [profiles, setProfiles] = useState<UserProfile[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
-  const [_passedProfiles, setPassedProfiles] = useState<string[]>([]);
-  const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('swipe')
+  const [profiles, setProfiles] = useState<UserProfile[]>([])
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [likedProfiles, setLikedProfiles] = useState<string[]>([])
+  const [_passedProfiles, setPassedProfiles] = useState<string[]>([])
+  const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null)
+  const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState<Filters>({
     zodiacSign: 'all',
     sajuElement: 'all',
     minAge: 18,
     maxAge: 99,
     maxDistance: 50,
-  });
+  })
 
   // 로딩/에러 상태
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [needsSetup, setNeedsSetup] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [needsSetup, setNeedsSetup] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
 
   // Undo 상태
-  const [lastSwipeId, setLastSwipeId] = useState<string | null>(null);
-  const [lastSwipeTime, setLastSwipeTime] = useState<number>(0);
-  const canUndo = !!lastSwipeId && Date.now() - lastSwipeTime < 5 * 60 * 1000;
+  const [lastSwipeId, setLastSwipeId] = useState<string | null>(null)
+  const [lastSwipeTime, setLastSwipeTime] = useState<number>(0)
+  const canUndo = !!lastSwipeId && Date.now() - lastSwipeTime < 5 * 60 * 1000
 
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
 
-  const currentProfile = profiles[currentIndex];
-  const hasMoreProfiles = currentIndex < profiles.length;
+  const currentProfile = profiles[currentIndex]
+  const hasMoreProfiles = currentIndex < profiles.length
 
   // 프로필 로딩 함수
   const loadProfiles = useCallback(async () => {
-    if (!session?.user) { return; }
+    if (!session?.user) {
+      return
+    }
 
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true)
+    setError(null)
 
     try {
-      const params = new URLSearchParams();
-      params.set('limit', '20');
-      if (filters.zodiacSign !== 'all') { params.set('zodiac', filters.zodiacSign); }
-      if (filters.sajuElement !== 'all') { params.set('element', filters.sajuElement); }
+      const params = new URLSearchParams()
+      params.set('limit', '20')
+      if (filters.zodiacSign !== 'all') {
+        params.set('zodiac', filters.zodiacSign)
+      }
+      if (filters.sajuElement !== 'all') {
+        params.set('element', filters.sajuElement)
+      }
 
-      const res = await fetch(`/api/destiny-match/discover?${params.toString()}`);
-      const data = await res.json();
+      const res = await fetch(`/api/destiny-match/discover?${params.toString()}`)
+      const data = await res.json()
 
       if (!res.ok) {
         if (res.status === 400 && data.error?.includes('프로필')) {
-          setNeedsSetup(true);
-          return;
+          setNeedsSetup(true)
+          return
         }
-        throw new Error(data.error || '프로필을 불러오는데 실패했습니다');
+        throw new Error(data.error || '프로필을 불러오는데 실패했습니다')
       }
 
-      const convertedProfiles = (data.profiles || []).map(convertToUserProfile);
-      setProfiles(convertedProfiles);
-      setHasMore(data.hasMore);
-      setCurrentIndex(0);
+      const convertedProfiles = (data.profiles || []).map(convertToUserProfile)
+      setProfiles(convertedProfiles)
+      setHasMore(data.hasMore)
+      setCurrentIndex(0)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '오류가 발생했습니다');
+      setError(err instanceof Error ? err.message : '오류가 발생했습니다')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, [session?.user, filters.zodiacSign, filters.sajuElement]);
+  }, [session?.user, filters.zodiacSign, filters.sajuElement])
 
   // 세션 변경 시 프로필 로딩
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
-      loadProfiles();
+      loadProfiles()
     }
-  }, [status, session?.user, loadProfiles]);
+  }, [status, session?.user, loadProfiles])
 
   // 스와이프 API 호출
   const handleSwipeApi = async (
     profileId: string,
     action: 'like' | 'pass' | 'super_like',
-    compatibilityScore?: number,
+    compatibilityScore?: number
   ) => {
     try {
       const res = await fetch('/api/destiny-match/swipe', {
@@ -158,135 +164,190 @@ export function useDiscovery({
           action,
           compatibilityScore,
         }),
-      });
+      })
 
-      const data = await res.json();
+      const data = await res.json()
 
       if (!res.ok) {
-        logger.error('Swipe failed:', data.error);
-        return null;
+        logger.error('Swipe failed:', data.error)
+        return null
       }
 
       // Undo를 위해 swipeId 저장 (매칭되지 않은 경우만)
       if (!data.isMatch && data.swipeId) {
-        setLastSwipeId(data.swipeId);
-        setLastSwipeTime(Date.now());
+        setLastSwipeId(data.swipeId)
+        setLastSwipeTime(Date.now())
       } else {
-        setLastSwipeId(null);
+        setLastSwipeId(null)
       }
 
       // 매치 성사 시 알림
       if (data.isMatch) {
-        alert('💕 매치 성사! 상대방도 당신을 좋아합니다!');
+        alert('💕 매치 성사! 상대방도 당신을 좋아합니다!')
       }
 
-      return data;
+      return data
     } catch (err) {
-      logger.error('Swipe error:', err);
-      return null;
+      logger.error('Swipe error:', err)
+      return null
     }
-  };
+  }
 
   // Undo 처리
   const handleUndo = async () => {
-    if (!lastSwipeId || !canUndo) return;
+    if (!lastSwipeId || !canUndo) return
 
     try {
       const res = await fetch('/api/destiny-match/swipe', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ swipeId: lastSwipeId }),
-      });
+      })
 
       if (!res.ok) {
-        const data = await res.json();
-        logger.error('Undo failed:', data.error);
-        return;
+        const data = await res.json()
+        logger.error('Undo failed:', data.error)
+        return
       }
 
       // 이전 프로필로 되돌리기
-      setCurrentIndex(prev => Math.max(0, prev - 1));
-      setLikedProfiles(prev => prev.slice(0, -1));
-      setPassedProfiles(prev => prev.slice(0, -1));
-      setLastSwipeId(null);
+      setCurrentIndex((prev) => Math.max(0, prev - 1))
+      setLikedProfiles((prev) => prev.slice(0, -1))
+      setPassedProfiles((prev) => prev.slice(0, -1))
+      setLastSwipeId(null)
     } catch (err) {
-      logger.error('Undo error:', err);
+      logger.error('Undo error:', err)
     }
-  };
+  }
 
   // Swipe handlers
   const handleDragStart = (clientX: number, clientY: number) => {
     if (!session) {
-      router.push(signInUrl);
-      return;
+      router.push(signInUrl)
+      return
     }
-    setIsDragging(true);
-    setDragStart({ x: clientX, y: clientY });
-  };
+    setIsDragging(true)
+    setDragStart({ x: clientX, y: clientY })
+  }
 
   const handleDragMove = (clientX: number, clientY: number) => {
-    if (!isDragging) { return; }
-    const offsetX = clientX - dragStart.x;
-    const offsetY = clientY - dragStart.y;
-    setDragOffset({ x: offsetX, y: offsetY });
-  };
+    if (!isDragging) {
+      return
+    }
+    const offsetX = clientX - dragStart.x
+    const offsetY = clientY - dragStart.y
+    setDragOffset({ x: offsetX, y: offsetY })
+  }
 
   const handleDragEnd = () => {
-    if (!isDragging) { return; }
-    setIsDragging(false);
+    if (!isDragging) {
+      return
+    }
+    setIsDragging(false)
 
-    const threshold = 100;
+    const threshold = 100
     if (Math.abs(dragOffset.x) > threshold) {
       if (dragOffset.x > 0) {
-        handleLike();
+        handleLike()
       } else {
-        handlePass();
+        handlePass()
       }
     }
-    setDragOffset({ x: 0, y: 0 });
-  };
+    setDragOffset({ x: 0, y: 0 })
+  }
 
   const handleLike = async () => {
     if (!session) {
-      router.push(signInUrl);
-      return;
+      router.push(signInUrl)
+      return
     }
     if (currentProfile) {
       // API 호출
-      await handleSwipeApi(currentProfile.id, 'like', currentProfile.compatibility);
-      setLikedProfiles(prev => [...prev, currentProfile.id]);
-      setCurrentIndex(prev => prev + 1);
+      await handleSwipeApi(currentProfile.id, 'like', currentProfile.compatibility)
+      setLikedProfiles((prev) => [...prev, currentProfile.id])
+      setCurrentIndex((prev) => prev + 1)
     }
-  };
+  }
 
   const handlePass = async () => {
     if (!session) {
-      router.push(signInUrl);
-      return;
+      router.push(signInUrl)
+      return
     }
     if (currentProfile) {
       // API 호출
-      await handleSwipeApi(currentProfile.id, 'pass');
-      setPassedProfiles(prev => [...prev, currentProfile.id]);
-      setCurrentIndex(prev => prev + 1);
+      await handleSwipeApi(currentProfile.id, 'pass')
+      setPassedProfiles((prev) => [...prev, currentProfile.id])
+      setCurrentIndex((prev) => prev + 1)
     }
-  };
+  }
 
   const handleSuperLike = async () => {
     if (!session) {
-      router.push(signInUrl);
-      return;
+      router.push(signInUrl)
+      return
     }
     if (currentProfile) {
       // API 호출
-      await handleSwipeApi(currentProfile.id, 'super_like', currentProfile.compatibility);
-      setLikedProfiles(prev => [...prev, currentProfile.id]);
-      setCurrentIndex(prev => prev + 1);
+      await handleSwipeApi(currentProfile.id, 'super_like', currentProfile.compatibility)
+      setLikedProfiles((prev) => [...prev, currentProfile.id])
+      setCurrentIndex((prev) => prev + 1)
     }
-  };
+  }
 
-  const rotation = dragOffset.x * 0.1;
-  const opacity = 1 - Math.abs(dragOffset.x) / 300;
+  const rotation = dragOffset.x * 0.1
+  const opacity = 1 - Math.abs(dragOffset.x) / 300
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (viewMode !== 'swipe' || !currentProfile || selectedProfile) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input/textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return
+      }
+
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault()
+          handlePass()
+          break
+        case 'ArrowRight':
+          e.preventDefault()
+          handleLike()
+          break
+        case 'ArrowUp':
+          e.preventDefault()
+          handleSuperLike()
+          break
+        case 'z':
+        case 'Z':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            if (canUndo) handleUndo()
+          }
+          break
+        case 'i':
+        case 'I':
+          e.preventDefault()
+          if (currentProfile) setSelectedProfile(currentProfile)
+          break
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [
+    viewMode,
+    currentProfile,
+    selectedProfile,
+    canUndo,
+    handlePass,
+    handleLike,
+    handleSuperLike,
+    handleUndo,
+  ])
 
   return {
     viewMode,
@@ -320,5 +381,5 @@ export function useDiscovery({
     handleLike,
     handlePass,
     handleSuperLike,
-  };
+  }
 }

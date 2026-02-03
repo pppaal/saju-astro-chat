@@ -1,25 +1,20 @@
 # 🗺️ DestinyPal Development Roadmap
 
-> **2026-2030 기술 개발 로드맵**
+> **기술 개발 로드맵** | 2026-2030
+
+_비즈니스 전략은 [UNICORN_STRATEGY.md](UNICORN_STRATEGY.md) 참고_
 
 ---
 
 ## 📅 Overview
 
-이 로드맵은 DestinyPal의 기술 개발 방향을 단기(3개월), 중기(6-12개월), 장기(2-4년) 관점에서 정리합니다.
+이 로드맵은 DestinyPal의 **기술 개발 방향**을 단기(Q1-Q2 2026), 중기(Q3-Q4 2026), 장기(2027+) 관점에서 정리합니다.
 
-**목표**: Enterprise-Grade 플랫폼 → 글로벌 #1 AI 점술 플랫폼
+**목표**: Enterprise-Grade 플랫폼 → 글로벌 확장 가능 인프라
 
 ---
 
 ## 🚀 Phase 1: Foundation Optimization (2026 Q1-Q2)
-
-### 목표
-
-- 사용자 경험 극대화
-- AI 품질 안정화
-- 성능 최적화
-- 마케팅 기반 구축
 
 ### 1.1 사용자 경험 (UX)
 
@@ -28,160 +23,157 @@
 - [ ] **3단계 → 1단계 간소화**
   - 현재: 생년월일 → 성별/시간 → 서비스 선택
   - 목표: 생년월일 입력 → 즉시 첫 리딩 시작
-  - 파일: `src/components/calendar/BirthInfoForm.tsx`
-  - 예상 효과: 전환율 5% → 10%
+  - 파일: [src/components/calendar/BirthInfoForm.tsx](src/components/calendar/BirthInfoForm.tsx)
+  - 우선순위: P0
 
-- [ ] **크레딧 시스템 시각화**
-  - 프로그레스 바 추가 (잔여 크레딧/총 크레딧)
-  - 만료 예정 크레딧 알림
-  - 충전 추천 타이밍 (잔여 3 크레딧 이하)
-  - 파일: `src/components/ui/CreditDisplay.tsx` (신규)
+- [x] **크레딧 에러 메시지 개선** ✅ (2026-02-02)
+  - 크레딧 타입별 맞춤형 UI (reading/compatibility/followUp)
+  - 한도 초과 시 사용량 프로그레스 바
+  - 💡 설명 박스: "월간 한도 제한이란?"
+  - 파일: [src/components/ui/CreditDepletedModal.tsx](src/components/ui/CreditDepletedModal.tsx)
+  - 문서: [docs/CREDIT_ERROR_MESSAGES.md](docs/CREDIT_ERROR_MESSAGES.md)
+  - **예상 효과: 고객 지원 문의 50% 감소**
+  - 우선순위: P0 → ✅ 완료
 
 - [ ] **첫 리딩 경험 최적화**
-  - 무료 7 크레딧 → 즉시 사용 가능한 서비스 강조
   - 타로 1장 무료 체험 (크레딧 소모 없음)
-  - 결과 페이지에 "더 알아보기" CTA
-  - 파일: `src/app/(main)/page.tsx`
+  - 결과 페이지 CTA 개선
+  - 우선순위: P1
 
 #### 페르소나 메모리 강화
 
 - [ ] **대화 맥락 누적**
-  - 현재: `PersonaMemory` 모델 존재
-  - 개선: 자동 요약, 키워드 추출
-  - RAG 통합: 이전 상담 맥락 반영
-  - 파일: `src/lib/api/persona-memory/route.ts`
+  - 자동 요약, 키워드 추출
+  - RAG 통합: 이전 상담 반영
+  - 파일: [src/lib/api/persona-memory/route.ts](src/lib/api/persona-memory/route.ts)
+  - 우선순위: P1
 
-- [ ] **사용자별 AI 톤 조정**
-  - 사용자 선호도 학습 (직설적 vs 완곡)
+- [ ] **AI 톤 조정**
   - `UserPreferences.tonePreference` 활용
-  - 파일: `src/app/api/saju/chat-stream/route.ts`
+  - 파일: [src/app/api/saju/chat-stream/route.ts](src/app/api/saju/chat-stream/route.ts)
+  - 우선순위: P2
 
 ### 1.2 AI 품질 향상
 
-#### LLM 다양화
+#### OpenAI 모델 최적화
 
-- [ ] **Claude Opus 4.5 통합 강화**
-  - 현재: OpenAI 90%+, Claude 일부
-  - 목표: Claude 50%, OpenAI 50% (비용 최적화)
-  - 파일: `backend_ai/` (Python Flask)
-  - 예상 비용 절감: 30%
+- [x] **스마트 모델 라우팅 (현재 구현됨)**
+  - gpt-4o-mini: 타로 해석, 간단한 질문 분석 (96% 저렴)
+  - gpt-4o: 사주 종합 분석, 프리미엄 리포트, 어드바이저 채팅
+  - 파일: [tarot/interpret-stream/route.ts](src/app/api/tarot/interpret-stream/route.ts:422), [life-prediction/advisor-chat/route.ts](src/app/api/life-prediction/advisor-chat/route.ts:322)
+  - 비용 최적화: 이미 적용 중
+  - 우선순위: ✅ 완료
 
-- [ ] **Fallback 체인 개선**
-  - 순서: Claude → OpenAI → Replicate → Together AI
-  - 타임아웃: 10초 → 5초 (빠른 폴백)
-  - 파일: `backend_ai/llm/client.py`
+- [x] **Fallback 체인 구현됨**
+  - 순서: OpenAI → Replicate → Together AI
+  - 파일: [aiBackend.ts](src/lib/destiny-matrix/ai-report/aiBackend.ts:44-66)
+  - 우선순위: ✅ 완료
 
 #### RAG 파이프라인 최적화
 
 - [ ] **코퍼스 확장**
-  - 사주 코퍼스: 1,000개 → 5,000개 문서
-  - 타로 코퍼스: 500개 → 2,000개 문서
-  - 점성술 코퍼스: 신규 추가
+  - 사주: 1,000개 → 5,000개
+  - 타로: 500개 → 2,000개
+  - 점성술: 신규 추가
   - 파일: `backend_ai/corpus/`
+  - 우선순위: P1
 
 - [ ] **임베딩 정확도 개선**
-  - 현재: OpenAI `text-embedding-ada-002`
+  - 현재: `text-embedding-ada-002`
   - 목표: `text-embedding-3-large` 테스트
-  - 벡터 DB 최적화 (Pinecone/Weaviate 고려)
+  - 벡터 DB 최적화 (Pinecone/Weaviate)
+  - 우선순위: P2
 
 #### 피드백 루프 구축
 
 - [ ] **AI 품질 평가 시스템**
   - `SectionFeedback` 데이터 분석 대시보드
   - 낮은 평가 섹션 자동 감지
-  - 프롬프트 A/B 테스팅 프레임워크
-  - 파일: `src/app/api/feedback/route.ts`
+  - 프롬프트 A/B 테스팅
+  - 파일: [src/app/api/feedback/route.ts](src/app/api/feedback/route.ts)
+  - 우선순위: P1
 
 - [ ] **자동 프롬프트 개선**
   - 피드백 → 프롬프트 조정 추천
-  - 월 1회 프롬프트 리뷰 미팅
-  - 버전 관리 (Git에 프롬프트 히스토리)
+  - Git 버전 관리 (프롬프트 히스토리)
+  - 우선순위: P2
 
 ### 1.3 성능 최적화
 
 #### 번들 사이즈 축소
 
 - [ ] **3MB → 2MB 목표**
-  - 현재 최적화: 코드 스플리팅 (saju, tarot, iching)
-  - 추가 최적화:
-    - Chart.js → Recharts (경량 대체)
-    - Framer Motion → React Spring (선택적)
-    - 미사용 lodash 메서드 제거
-  - 파일: `next.config.ts`
+  - 현재: 코드 스플리팅 (saju, tarot, iching)
+  - 추가:
+    - Chart.js → Recharts
+    - 미사용 lodash 제거
+  - 파일: [next.config.ts](next.config.ts)
+  - 우선순위: P1
 
 - [ ] **이미지 최적화**
-  - WebP → AVIF 전환 (30% 추가 절감)
+  - WebP → AVIF (30% 추가 절감)
   - 레이지 로딩 강화
   - BlurHash 플레이스홀더
-  - 파일: `next.config.ts` (images config)
+  - 우선순위: P2
 
 #### Redis 캐싱 확대
 
 - [ ] **동적 TTL 시스템**
   - 현재: Saju 7일, Tarot 1일 고정
   - 목표: 사용 빈도 기반 TTL 조정
-  - 인기 조합 → TTL 14일
-  - 파일: `src/lib/cache/redis-cache.ts`
+  - 파일: [src/lib/cache/redis-cache.ts](src/lib/cache/redis-cache.ts)
+  - 우선순위: P2
 
 - [ ] **캐시 워밍 전략**
-  - 새벽 시간 인기 조합 프리로딩
-  - 예측 캐싱 (생년월일 패턴 분석)
+  - 새벽 인기 조합 프리로딩
+  - 예측 캐싱 (생년월일 패턴)
   - 파일: `scripts/cache-warming.ts` (신규)
+  - 우선순위: P3
 
 #### 데이터베이스 최적화
 
 - [ ] **N+1 쿼리 해결**
   - Prisma `include` 최적화
   - 배치 쿼리 활용
-  - 쿼리 프로파일링 도구 도입
-  - 파일: 전체 API routes
+  - 우선순위: P1
 
 - [ ] **인덱스 추가**
-  - 현재: userId, date, type 인덱스
-  - 추가: 복합 인덱스 (userId + createdAt + service)
-  - 파일: `prisma/schema.prisma`
+  - 복합 인덱스 (userId + createdAt + service)
+  - 파일: [prisma/schema.prisma](prisma/schema.prisma)
+  - 우선순위: P2
 
 ### 1.4 마케팅 & 성장
 
 #### SEO 최적화
 
 - [ ] **블로그 컨텐츠 활성화**
-  - 현재: `public/blog/` 존재하지만 미활용
-  - 목표: 월 10개 포스팅 (사주, 타로 가이드)
-  - 메타 태그, 사이트맵 완성
+  - 목표: 월 10개 포스팅
   - 파일: `public/blog/`, `next-sitemap.config.js`
+  - 우선순위: P0
 
-- [ ] **구조화된 데이터 (Schema.org)**
-  - LocalBusiness, FAQPage 마크업
-  - 리치 스니펫 최적화
-  - Google Search Console 모니터링
+- [ ] **구조화된 데이터**
+  - Schema.org 마크업 (LocalBusiness, FAQPage)
+  - 우선순위: P1
 
 #### SNS 자동화
 
 - [ ] **자동 포스팅 강화**
   - 현재: `scripts/auto-post-daily-fortune.mjs`
   - 확장: 인스타그램, 페이스북, 트위터
-  - 시간대별 최적 포스팅 (A/B 테스팅)
-  - 이미지 자동 생성 (운세 카드)
+  - 이미지 자동 생성
+  - 우선순위: P1
 
 #### 바이럴 기능
 
 - [ ] **공유 기능 강화**
   - `SharedResult` 모델 활용
-  - 소셜 미리보기 최적화 (OG 태그)
-  - 공유 시 추천 코드 자동 포함
-  - 파일: `src/app/shared/[id]/page.tsx`
+  - OG 태그 최적화
+  - 파일: [src/app/shared/[id]/page.tsx](src/app/shared/[id]/page.tsx)
+  - 우선순위: P1
 
 ---
 
 ## 🌏 Phase 2: Global Expansion (2026 Q3-Q4)
-
-### 목표
-
-- 일본, 대만 시장 진출
-- 다국어 UI 완성
-- 모바일 앱 성장
-- B2B 준비
 
 ### 2.1 현지화 (Localization)
 
@@ -190,80 +182,79 @@
 - [ ] **일본어 (ja) 추가**
   - 번역: `src/i18n/locales/ja/`
   - 일본식 용어 (사주 → 四柱推命)
-  - 현지 검수 (원어민 확인)
   - 예상 투입: 2주
+  - 우선순위: P0
 
 - [ ] **중국어 간체 (zh-CN) 추가**
-  - 중국 점술 용어 (자미두수 추가)
-  - 파일: `src/i18n/locales/zh-CN/`
+  - 중국 점술 용어 (자미두수)
+  - 우선순위: P1
 
-- [ ] **태국어 (th), 베트남어 (vi) 추가**
+- [ ] **태국어 (th), 베트남어 (vi)**
   - 동남아 진출 대비
-  - 현지 파트너십 연계
+  - 우선순위: P2
 
 #### 다통화 지원
 
 - [ ] **Stripe 다국가 결제**
-  - 현재: KRW (₩)
   - 추가: USD, JPY, CNY
-  - 환율 자동 반영 (daily update)
-  - 파일: `src/lib/payments/prices.ts`
+  - 환율 자동 반영
+  - 파일: [src/lib/payments/prices.ts](src/lib/payments/prices.ts)
+  - 우선순위: P0
 
 - [ ] **현지 결제 수단**
   - 일본: LINE Pay, PayPay
   - 중국: Alipay, WeChat Pay
-  - 태국: TrueMoney, Rabbit LINE Pay
+  - 우선순위: P1
 
 #### 문화적 현지화
 
 - [ ] **해석 스타일 조정**
-  - 한국: 직설적, 단도직입적
-  - 일본: 완곡, 간접적 표현
-  - 중국: 길흉화복 명확
-  - 파일: `backend_ai/prompts/` (언어별 프롬프트)
+  - 한국: 직설적
+  - 일본: 완곡
+  - 중국: 길흉 명확
+  - 파일: `backend_ai/prompts/` (언어별)
+  - 우선순위: P1
 
 ### 2.2 모바일 앱 성장
 
 #### 앱스토어 최적화 (ASO)
 
 - [ ] **키워드 연구**
-  - 한국: "사주", "타로", "운세"
-  - 일본: "占い", "タロット", "四柱推命"
-  - App Store, Google Play 키워드 최적화
+  - 한국: "사주", "타로"
+  - 일본: "占い", "タロット"
+  - 우선순위: P1
 
 - [ ] **스크린샷 & 비디오**
-  - 5개 스크린샷 (첫 리딩 흐름)
+  - 5개 스크린샷
   - 30초 프로모션 비디오
-  - 현지어 자막
-
-- [ ] **평가 & 리뷰 관리**
-  - 앱 내 평가 유도 (첫 리딩 후)
-  - 긍정 리뷰 → 스토어 이동
-  - 부정 피드백 → 개선 제안
+  - 우선순위: P1
 
 #### 푸시 알림 전략
 
 - [ ] **일일 운세 알림**
   - 아침 9시 (현지 시간)
-  - 개인화 메시지 (이름, 띠)
+  - 개인화 메시지
   - 오픈율 목표: 30%
+  - 우선순위: P1
 
 - [ ] **특별한 날 알림**
-  - 생일, 명절, 특수 천체 이벤트
-  - 크레딧 만료 임박 (3일 전)
-  - 프로모션 (연간 구독 할인)
+  - 생일, 명절, 천체 이벤트
+  - 크레딧 만료 임박
+  - 우선순위: P2
 
 - [ ] **푸시 A/B 테스팅**
   - 메시지 톤, 타이밍 최적화
-  - 파일: `src/app/api/push/subscribe/route.ts`
+  - 파일: [src/app/api/push/subscribe/route.ts](src/app/api/push/subscribe/route.ts)
+  - 우선순위: P2
 
 #### 네이티브 기능 추가
 
 - [ ] **Capacitor 플러그인**
   - 카메라 (AR 타로 준비)
   - 알림 (로컬, 원격)
-  - 생체 인증 (지문, Face ID)
+  - 생체 인증
   - 파일: `capacitor.config.ts`
+  - 우선순위: P2
 
 ### 2.3 B2B 준비
 
@@ -272,45 +263,39 @@
 - [ ] **API 문서화**
   - OpenAPI 3.0 스펙
   - Swagger UI
-  - 코드 예제 (Python, JS, Go)
-  - 파일: `docs/API.md` 확장
+  - 코드 예제 (Python, JS)
+  - 파일: [docs/API.md](docs/API.md) 확장
+  - 우선순위: P2
 
 - [ ] **API 키 관리**
   - 발급, 갱신, 폐기
   - Rate Limiting (티어별)
-  - 사용량 대시보드
   - 파일: `src/app/api/api-keys/` (신규)
+  - 우선순위: P2
 
 - [ ] **Webhook 시스템**
   - 리딩 완료 알림
   - 크레딧 소진 알림
-  - 구독 상태 변경
   - 파일: `src/app/api/webhooks/` (신규)
+  - 우선순위: P3
 
 #### 화이트라벨 솔루션
 
-- [ ] **커스터마이징 가능한 UI**
-  - 로고, 색상, 폰트 변경
+- [ ] **커스터마이징 UI**
+  - 로고, 색상, 폰트
   - 도메인 매핑
-  - 맞춤형 프롬프트
   - 파일: `src/app/white-label/` (신규)
+  - 우선순위: P3
 
 - [ ] **대시보드**
   - 사용량 분석
-  - 사용자 인사이트
   - 수익 리포트
   - 파일: `src/app/dashboard/` (신규)
+  - 우선순위: P3
 
 ---
 
 ## 🚀 Phase 3: Platform Expansion (2027-2028)
-
-### 목표
-
-- B2B API 정식 출시
-- 마켓플레이스 구축
-- 커뮤니티 플랫폼화
-- 아시아 전역 확장
 
 ### 3.1 마켓플레이스
 
@@ -318,33 +303,29 @@
 
 - [ ] **스프레드 마켓플레이스**
   - 타로 스프레드 업로드
-  - 수익 분배 (70% 개발자, 30% 플랫폼)
-  - 평가 & 리뷰 시스템
+  - 수익 분배 (70% 개발자)
   - 파일: `src/app/marketplace/` (신규)
 
 - [ ] **커스텀 해석 판매**
-  - 전문 역술인이 해석 패키지 판매
-  - 1:1 상담 예약 시스템
+  - 전문 역술인 해석 패키지
+  - 1:1 상담 예약
   - 에스크로 결제
   - 파일: `src/app/consultations/` (신규)
 
 - [ ] **플러그인 시스템**
   - 타사 점술 시스템 통합 (API)
-  - 예: 인도 점성술, 중국 자미두수
   - SDK 제공 (TypeScript, Python)
 
 #### 전문가 네트워크
 
 - [ ] **역술인 플랫폼**
-  - 프로필 등록, 포트폴리오
-  - 스케줄 관리, 예약 시스템
+  - 프로필, 포트폴리오
+  - 스케줄 관리
   - 수수료: 20%
-  - Upwork 모델 참고
 
 - [ ] **검증 시스템**
   - 자격증 확인
-  - 사용자 평가 (별점, 리뷰)
-  - 베스트 역술인 배지
+  - 사용자 평가
 
 ### 3.2 커뮤니티 플랫폼
 
@@ -353,245 +334,176 @@
 - [ ] **테마별 커뮤니티**
   - 사주 게시판, 타로 게시판
   - Q&A 섹션
-  - 경험 공유 (익명 지원)
   - 파일: `src/app/community/` (신규)
 
 - [ ] **라이브 방송**
   - 역술인 라이브 상담
   - 실시간 Q&A
-  - 유료 티켓팅 (수익 분배)
   - 기술 스택: WebRTC, Agora
 
 - [ ] **이벤트 & 챌린지**
   - 일일 타로 챌린지
-  - 운세 예측 대회
   - 보상: 크레딧, 배지
-
-#### 소셜 기능
-
-- [ ] **친구 추가 & 팔로우**
-  - 운세 공유
-  - 궁합 비교
-  - 공동 타로 리딩
-
-- [ ] **프로필 꾸미기**
-  - 아바타, 배경
-  - 배지 컬렉션
-  - 성격 타입 표시
 
 ### 3.3 아시아 전역 확장
 
 #### 추가 언어
 
-- [ ] **인도네시아어 (id)**
-- [ ] **말레이시아어 (ms)**
-- [ ] **힌디어 (hi)** (인도)
-- [ ] **아랍어 (ar)** (중동)
+- [ ] 인도네시아어 (id)
+- [ ] 말레이시아어 (ms)
+- [ ] 힌디어 (hi)
+- [ ] 아랍어 (ar)
 
 #### 현지 점술 시스템
 
-- [ ] **인도 점성술 (Vedic Astrology)**
+- [ ] **인도 점성술 (Vedic)**
   - 나크샤트라, 다샤 시스템
-  - 현지 전문가 협업
 
-- [ ] **중국 자미두수 (Ziwei Doushu)**
+- [ ] **중국 자미두수 (Ziwei)**
   - 12궁 시스템
-  - 중국 코퍼스 추가
 
-- [ ] **일본 사주팔자 (Shichusuimei)**
-  - 일본식 용어, 해석 스타일
-
-#### 현지 파트너십
-
-- [ ] **미디어 협업**
-  - 일본: 점술 잡지, TV 프로그램
-  - 중국: 웨이보, 더우인(틱톡 중국)
-  - 동남아: 현지 인플루언서
-
-- [ ] **통신사 제휴**
-  - 일본: NTT Docomo, Softbank
-  - 한국: SKT, KT, LG U+
-  - 통신사 빌링 결제
+- [ ] **일본 사주팔자**
+  - 일본식 용어, 해석
 
 ---
 
 ## 🌟 Phase 4: Innovation & Unicorn (2028-2030)
-
-### 목표
-
-- 멀티모달 AI 통합
-- 메타버스 진입
-- 글로벌 Top 3
-- Unicorn Valuation ($1B+)
 
 ### 4.1 멀티모달 AI
 
 #### 음성 AI
 
 - [ ] **대화형 상담**
-  - 음성 입력 → AI 음성 응답
   - 기술 스택: Whisper (STT), ElevenLabs (TTS)
   - 파일: `src/app/voice/` (신규)
 
 - [ ] **감정 인식**
   - 목소리 톤 분석
-  - 감정 기반 해석 조정
   - 기술 스택: Hume AI
-
-- [ ] **다국어 실시간 번역**
-  - 한국어 → 일본어 실시간 통역
-  - Zoom/Skype 같은 상담 경험
 
 #### 이미지 AI
 
 - [ ] **타로 카드 스캔**
-  - 스마트폰 카메라 → 타로 카드 인식
+  - 스마트폰 카메라 → 카드 인식
   - 기술 스택: OpenCV, TensorFlow
   - 파일: `src/app/tarot-scan/` (신규)
 
 - [ ] **얼굴 관상 분석**
-  - 사진 업로드 → AI 관상 해석
   - 기술 스택: Face-API.js
   - 주의: 윤리적 가이드라인 준수
-
-- [ ] **손금 분석**
-  - 손바닥 사진 → AI 손금 해석
-  - 현지 전문가 협업 (정확도 검증)
 
 #### AR/VR 통합
 
 - [ ] **AR 타로 카드**
-  - 스마트폰 카메라 → 3D 타로 카드
+  - 3D 타로 카드
   - 기술 스택: AR.js, WebXR
   - 파일: `src/app/ar-tarot/` (신규)
 
 - [ ] **VR 명상 공간**
   - 가상 사원, 자연 환경
   - 기술 스택: Three.js, A-Frame
-  - 파일: `src/app/vr-meditation/` (신규)
 
 - [ ] **메타버스 통합**
   - Roblox, Sandbox 연동
-  - 가상 타로 카페
-  - NFT 타로 카드 수집
+  - NFT 타로 카드
 
 ### 4.2 AI 고도화
 
 #### 파인튜닝 자동화
 
 - [ ] **사용자 피드백 학습**
-  - `SectionFeedback` → 자동 프롬프트 조정
-  - RLHF (인간 피드백 강화학습)
-  - 월 1회 자동 파인튜닝
+  - `SectionFeedback` → 자동 조정
+  - RLHF (강화학습)
 
-- [ ] **전문가 검증 시스템**
-  - 역술인이 AI 해석 평가
-  - 고품질 데이터셋 구축
-  - 파인튜닝용 데이터 (100K+ 쌍)
+- [ ] **전문가 검증**
+  - 역술인 AI 평가
+  - 고품질 데이터셋 (100K+)
 
 - [ ] **도메인 특화 모델**
-  - 사주 전용 모델 (GPT-4 파인튜닝)
-  - 타로 전용 모델
-  - 비용 vs 정확도 트레이드오프 분석
+  - 사주/타로 전용 모델
+  - GPT-4 파인튜닝
 
 #### 멀티모달 해석
 
 - [ ] **텍스트 + 이미지 + 음성**
-  - 통합 해석 (예: 타로 카드 이미지 + 사용자 질문 음성)
+  - 통합 해석
   - 기술 스택: GPT-4V, Gemini
 
 - [ ] **컨텍스트 인지 AI**
   - 날씨, 시간, 위치 반영
-  - 실시간 천체 이벤트 반영
-  - 파일: `src/lib/astrology/ephemeris.ts` 확장
+  - 실시간 천체 이벤트
+  - 파일: [src/lib/astrology/ephemeris.ts](src/lib/astrology/ephemeris.ts) 확장
 
 ### 4.3 플랫폼 비즈니스
 
 #### B2B SaaS
 
 - [ ] **기업용 HR 솔루션**
-  - 채용 성향 분석 (사주, 성격 테스트)
+  - 채용 성향 분석
   - 팀 빌딩 추천
   - 연간 계약 (최소 $10K)
 
 - [ ] **헬스케어 연동**
-  - 정신 건강 앱 통합 (Calm, Headspace)
-  - 웰빙 추천 (운세 기반)
+  - Calm, Headspace 통합
   - HIPAA 준수
 
 - [ ] **교육 플랫폼**
   - 점술 교육 코스
   - 자격증 프로그램
-  - LMS 통합
-
-#### 금융 상품
-
-- [ ] **점술 기반 투자 조언**
-  - 사주 → 재물운 → 투자 타이밍 제안
-  - 주의: 법적 리스크 (투자 조언 면책)
-
-- [ ] **보험 상품 제휴**
-  - 운세 기반 건강 관리 앱
-  - 보험사 파트너십 (웰빙 할인)
 
 ### 4.4 글로벌 확장 완성
 
 #### 나머지 대륙
 
-- [ ] **유럽 진출**
-  - 언어: 영어, 프랑스어, 독일어, 스페인어
-  - 현지 점술: 켈트 타로, 룬
+- [ ] **유럽**: 영어, 프랑스어, 독일어
+- [ ] **북미**: TikTok, Instagram 마케팅
+- [ ] **남미**: 포르투갈어, 스페인어
 
-- [ ] **북미 진출**
-  - 미국, 캐나다
-  - 현지 마케팅: TikTok, Instagram
-  - 현지 인플루언서 협업
-
-- [ ] **남미 진출**
-  - 언어: 포르투갈어, 스페인어
-  - 현지 점술: 산테리아, 아프로-카리브
-
-#### 글로벌 브랜드 구축
+#### 글로벌 브랜드
 
 - [ ] **국제 컨퍼런스**
-  - TechCrunch Disrupt, SXSW 참여
-  - 점술 + AI 컨퍼런스 개최
+  - TechCrunch Disrupt, SXSW
 
 - [ ] **글로벌 파트너십**
-  - Google, Apple 제휴
-  - 예: Google Assistant 통합, Siri 단축어
-
-- [ ] **미디어 노출**
-  - Forbes, TechCrunch 기사
-  - 다큐멘터리 협찬 (Netflix, Disney+)
+  - Google Assistant, Siri 통합
 
 ---
 
-## 📊 로드맵 우선순위 매트릭스
+## 📊 우선순위 매트릭스
 
 ### Critical Path (P0)
 
-- [ ] Claude Opus 4.5 통합 (AI 비용 절감)
+- [x] OpenAI 모델 최적화 (gpt-4o-mini 적용 완료)
+- [x] Redis 캐싱 구현 (calendar, daily-fortune, destiny-map 등)
+- [x] 크레딧 에러 메시지 개선 ✅ (2026-02-02)
 - [ ] 온보딩 간소화 (전환율 개선)
 - [ ] SEO 최적화 (유기적 성장)
+- [ ] 일본어 현지화 (아시아 확장)
+- [ ] 다통화 결제 (글로벌 수익화)
 
 ### High Priority (P1)
 
-- [ ] 일본어 현지화
+- [ ] RAG 코퍼스 확장
 - [ ] 번들 사이즈 축소
-- [ ] A/B 테스팅 프레임워크
+- [ ] SNS 자동 포스팅
+- [ ] 푸시 알림 전략
+- [ ] 중국어 현지화
 
 ### Medium Priority (P2)
 
+- [ ] 페르소나 메모리 강화
+- [ ] 임베딩 정확도 개선
+- [ ] Redis 동적 TTL
 - [ ] Public API 출시
-- [ ] 푸시 알림 전략
-- [ ] 커뮤니티 포럼
+- [ ] 태국어/베트남어
 
 ### Low Priority (P3)
 
+- [ ] 캐시 워밍 전략
+- [ ] Webhook 시스템
+- [ ] 화이트라벨 솔루션
 - [ ] AR/VR 통합 (실험적)
 - [ ] NFT 타로 카드
-- [ ] 메타버스 통합
 
 ---
 
@@ -599,38 +511,81 @@
 
 ### 2026 Q2
 
-- [ ] MAU 50K 달성
-- [ ] 유료 전환율 10%
+- [ ] MAU 50K
 - [ ] 일본어 출시
+- [x] AI 비용 최적화 완료 (gpt-4o-mini + Redis 캐싱)
+- [x] 크레딧 UX 개선 완료 (고객 지원 문의 감소 목표)
 
 ### 2026 Q4
 
-- [ ] MAU 100K 달성
-- [ ] ARR $1M
-- [ ] 시리즈 A 펀딩
+- [ ] MAU 100K
+- [ ] 다통화 지원
+- [ ] Public API 베타
 
 ### 2027 Q4
 
-- [ ] MAU 1M 달성
-- [ ] ARR $10M
-- [ ] 아시아 Top 5
+- [ ] MAU 1M
+- [ ] 마켓플레이스 출시
+- [ ] 10개 언어 지원
 
 ### 2030
 
-- [ ] MAU 10M 달성
-- [ ] ARR $200M
+- [ ] MAU 10M
+- [ ] 멀티모달 AI
 - [ ] **Unicorn Valuation ($1B+)**
 
 ---
 
-## 📝 Notes
+## 📝 기술 스택 요약
 
-- 이 로드맵은 분기별로 리뷰 및 업데이트됩니다.
-- 시장 반응, 기술 변화에 따라 우선순위가 조정될 수 있습니다.
-- 각 Feature는 MVP → Iterate → Scale 접근법을 따릅니다.
+### Frontend
+
+- Next.js 16, React 19, TypeScript 5
+- Tailwind CSS, Framer Motion
+- Capacitor 8 (iOS/Android)
+
+### Backend
+
+- Next.js API Routes (128 endpoints)
+- Python Flask (AI Engine)
+- PostgreSQL + Prisma 7 (35 models)
+- Redis (Upstash)
+
+### AI/ML
+
+- OpenAI GPT-4o, Claude Opus 4.5
+- RAG (Retrieval-Augmented Generation)
+- Sentence Transformers
+
+### Infrastructure
+
+- Vercel (Frontend)
+- Docker (Backend AI)
+- Stripe (Payments)
+- Sentry (Monitoring)
+
+---
+
+## 🔗 참고 문서
+
+### 전략 & 계획
+
+- [유니콘 전략](UNICORN_STRATEGY.md) - 비즈니스 전략, KPI 목표
+- [리팩토링 가이드](REFACTORING_GUIDE.md) - 코드 개선 전략
+
+### 기술 문서
+
+- [문서 허브](docs/README.md) - 중앙 문서 인덱스
+- [크레딧 에러 메시지](docs/CREDIT_ERROR_MESSAGES.md) - UX 개선 가이드
+- [API 가이드](src/lib/api/README.md) - API 설계 원칙
+- [AI 백엔드](backend_ai/APP_PY_REFACTORING_COMPLETE.md) - Python 백엔드 구조
+
+### 아카이브
+
+- [구 문서들](docs/archive/) - 레거시 문서 보관
 
 ---
 
 **마지막 업데이트**: 2026-02-02
 **작성자**: Claude Sonnet 4.5
-**버전**: v1.0
+**버전**: v2.0 (중복 제거, 기술 집중)

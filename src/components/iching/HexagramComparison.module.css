@@ -1,0 +1,433 @@
+/* ===== Comparison Container ===== */
+.comparisonContainer {
+  margin: 1.5rem 0;
+}
+
+.hexagramWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* ===== Hexagram Card ===== */
+.hexagramCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(30, 30, 50, 0.7), rgba(45, 25, 70, 0.5));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  border-radius: 20px;
+  min-width: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hexagramCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #8e2de2, #4a00e0, #8e2de2);
+}
+
+.hexagramTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.titleIcon {
+  font-size: 1.5rem;
+}
+
+.titleText {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(197, 166, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+/* ===== Hexagram Visual ===== */
+.hexagramVisual {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 14px;
+  border: 1px solid rgba(138, 43, 226, 0.2);
+}
+
+.line {
+  position: relative;
+  width: 80px;
+  height: 8px;
+  border-radius: 4px;
+  transition: all 0.4s ease;
+}
+
+.solid {
+  background: linear-gradient(90deg, rgba(197, 166, 255, 0.9), #ffffff, rgba(197, 166, 255, 0.9));
+  box-shadow: 0 0 15px rgba(197, 166, 255, 0.5);
+}
+
+.broken {
+  position: relative;
+  background: transparent;
+}
+
+.broken::before,
+.broken::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 32px;
+  height: 8px;
+  background: linear-gradient(90deg, rgba(197, 166, 255, 0.9), #ffffff);
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(197, 166, 255, 0.4);
+}
+
+.broken::before {
+  left: 0;
+}
+
+.broken::after {
+  right: 0;
+}
+
+/* ===== Changing Line Effects ===== */
+.changing {
+  animation: changingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes changingPulse {
+  0%,
+  100% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+  50% {
+    filter: brightness(1.3);
+    transform: scale(1.05);
+  }
+}
+
+.changingPulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.4), transparent);
+  border-radius: 50%;
+  animation: pulseExpand 1.5s ease-out infinite;
+}
+
+@keyframes pulseExpand {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+/* ===== Changed Line Effects ===== */
+.changed {
+  position: relative;
+}
+
+.changedBadge {
+  position: absolute;
+  top: 50%;
+  right: -24px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  border-radius: 50%;
+  font-size: 0.75rem;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+/* ===== Hexagram Info ===== */
+.hexagramInfo {
+  text-align: center;
+}
+
+.hexagramName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+}
+
+.hexagramNumber {
+  font-size: 0.85rem;
+  color: rgba(197, 166, 255, 0.7);
+}
+
+/* ===== Arrow ===== */
+.arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.arrowLine {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, #8e2de2, #4a00e0);
+  position: relative;
+}
+
+.arrowLine::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid #4a00e0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+
+.arrowIcon {
+  font-size: 2rem;
+  color: rgba(138, 43, 226, 0.8);
+  animation: arrowFloat 2s ease-in-out infinite;
+}
+
+@keyframes arrowFloat {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(8px);
+  }
+}
+
+.arrowLabel {
+  font-size: 0.8rem;
+  color: rgba(197, 166, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* ===== Changing Summary ===== */
+.changingSummary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding: 0.875rem 1.5rem;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 25px;
+}
+
+.summaryIcon {
+  font-size: 1.25rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.8;
+  }
+}
+
+.summaryText {
+  font-size: 0.95rem;
+  color: rgba(255, 230, 150, 0.95);
+  font-weight: 500;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .hexagramWrapper {
+    gap: 1.5rem;
+  }
+
+  .hexagramCard {
+    min-width: 180px;
+    padding: 1.25rem;
+  }
+
+  .line {
+    width: 70px;
+    height: 7px;
+  }
+
+  .broken::before,
+  .broken::after {
+    width: 28px;
+    height: 7px;
+  }
+
+  .arrow {
+    transform: rotate(90deg);
+  }
+
+  .arrowLabel {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .hexagramWrapper {
+    gap: 1rem;
+    flex-direction: column;
+  }
+
+  .hexagramCard {
+    min-width: 160px;
+    padding: 1rem;
+  }
+
+  .titleIcon {
+    font-size: 1.25rem;
+  }
+
+  .titleText {
+    font-size: 0.8rem;
+  }
+
+  .line {
+    width: 60px;
+    height: 6px;
+  }
+
+  .broken::before,
+  .broken::after {
+    width: 24px;
+    height: 6px;
+  }
+
+  .hexagramName {
+    font-size: 1rem;
+  }
+
+  .hexagramNumber {
+    font-size: 0.8rem;
+  }
+
+  .arrow {
+    transform: rotate(90deg);
+  }
+
+  .arrowIcon {
+    font-size: 1.75rem;
+  }
+
+  .changingSummary {
+    padding: 0.75rem 1.25rem;
+    margin-top: 1.25rem;
+  }
+
+  .summaryIcon {
+    font-size: 1.1rem;
+  }
+
+  .summaryText {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .hexagramCard {
+    min-width: 140px;
+    padding: 0.875rem;
+    border-radius: 16px;
+  }
+
+  .hexagramVisual {
+    padding: 0.75rem;
+    gap: 6px;
+    border-radius: 12px;
+  }
+
+  .line {
+    width: 50px;
+    height: 5px;
+  }
+
+  .broken::before,
+  .broken::after {
+    width: 20px;
+    height: 5px;
+  }
+
+  .changedBadge {
+    width: 18px;
+    height: 18px;
+    right: -20px;
+    font-size: 0.7rem;
+  }
+
+  .hexagramName {
+    font-size: 0.95rem;
+  }
+
+  .hexagramNumber {
+    font-size: 0.75rem;
+  }
+
+  .arrowIcon {
+    font-size: 1.5rem;
+  }
+
+  .changingSummary {
+    padding: 0.65rem 1rem;
+    margin-top: 1rem;
+    gap: 0.6rem;
+  }
+
+  .summaryIcon {
+    font-size: 1rem;
+  }
+
+  .summaryText {
+    font-size: 0.85rem;
+  }
+}

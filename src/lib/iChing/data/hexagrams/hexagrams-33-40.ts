@@ -1,0 +1,594 @@
+import { EnhancedHexagramData, EnhancedHexagramDataKo } from '../../types'
+
+export const enhancedHexagramData33to40: Record<number, EnhancedHexagramData> = {
+  33: {
+    visualImagery: {
+      scene: '산 아래 하늘이 있어 물러난다',
+      symbolism: '은퇴, 후퇴, 숨음, 때를 기다림',
+      colors: ['회색', '흰색', '연한 파랑'],
+      emoji: '🏔️',
+    },
+    quickSummary: {
+      oneLiner: '물러나 숨는 것이 지혜다. 때가 아니면 나서지 마라',
+      keywords: ['은퇴', '후퇴', '숨음', '기다림', '지혜'],
+      essence:
+        '지금은 앞으로 나아갈 때가 아닙니다. 물러나 힘을 기르고 때를 기다리세요. 숨는 것도 지혜입니다.',
+    },
+    actionableAdvice: {
+      dos: ['물러나 쉬세요', '때를 기다리세요', '내공을 쌓으세요', '조용히 준비하세요'],
+      donts: ['무리하게 나서지 마세요', '드러내지 마세요', '서두르지 마세요'],
+      timing: '물러나는 시기. 조용히 때를 기다리세요.',
+      nextSteps: [
+        '1단계: 물러나기',
+        '2단계: 조용히 힘 기르기',
+        '3단계: 때 기다리기',
+        '4단계: 준비되면 다시 나서기',
+      ],
+    },
+    situationTemplates: {
+      career: {
+        question: '회사에서 어떻게 처신해야 할까요?',
+        advice: '지금은 나서지 말고 조용히 일하세요. 때가 오면 다시 기회가 옵니다.',
+        timeline: '6개월-1년 조용히 지내다 다시 기회가 올 것입니다.',
+        actionItems: ['조용히 일하기', '드러내지 않기', '실력 쌓기', '때 기다리기'],
+      },
+      love: {
+        question: '연애를 어떻게 해야 할까요?',
+        advice: '지금은 적극적으로 나서지 마세요. 물러나 기다리는 것이 좋습니다.',
+        timeline: '잠시 기다리면 더 좋은 기회가 옵니다.',
+        actionItems: ['조급하게 다가가지 않기', '거리 두기', '자기 계발하기', '때 기다리기'],
+      },
+      health: {
+        question: '건강 관리를 어떻게 해야 할까요?',
+        advice: '무리하지 말고 쉬세요. 은퇴하듯 몸을 쉬게 해주세요.',
+        timeline: '충분히 쉬면 회복됩니다.',
+        actionItems: [
+          '충분히 휴식하기',
+          '무리한 활동 피하기',
+          '조용히 요양하기',
+          '회복에 집중하기',
+        ],
+      },
+      wealth: {
+        question: '투자를 어떻게 해야 할까요?',
+        advice: '지금은 투자를 물리고 현금을 보유하세요. 때가 오면 다시 투자하세요.',
+        timeline: '당분간 관망하다 좋은 기회를 기다리세요.',
+        actionItems: ['투자 줄이기', '현금 보유하기', '시장 관찰하기', '좋은 기회 기다리기'],
+      },
+      decision: {
+        question: '중요한 결정을 어떻게 해야 할까요?',
+        advice: '지금은 결정을 미루세요. 물러나 기다리는 것이 지혜입니다.',
+        actionItems: ['결정 미루기', '관망하기', '때 기다리기'],
+      },
+      timing: {
+        question: '언제 다시 나서면 될까요?',
+        advice: '최소 6개월-1년 후에 다시 나서세요.',
+        actionItems: ['당분간 숨기', '힘 기르기', '때 기다리기'],
+      },
+    },
+    plainLanguage: {
+      traditionalText:
+        '天山遯(천산둔) - 하늘이 산 아래로 물러나니 숨는다. 遯亨(둔형) - 물러나니 형통하다.',
+      modernExplanation:
+        '산 아래로 하늘이 물러가듯, 때가 아닐 때는 물러나는 것이 지혜입니다. 나서지 말고 조용히 힘을 기르며 때를 기다리세요.',
+      realLifeExample:
+        '정계에서 은퇴하여 조용히 지내다가 다시 복귀하는 것처럼, 때로는 물러나는 것이 더 나은 선택입니다.',
+      metaphor: '겨울에 동물이 동면하는 것은 약함이 아니라 생존의 지혜입니다.',
+    },
+    relatedConcepts: ['은퇴(隱退)', '후퇴(後退)', '둔거(遯居)', '양생(養生)'],
+    difficulty: 'medium',
+    favorability: 6,
+  },
+
+  34: {
+    visualImagery: {
+      scene: '우레 위에 하늘이(가) 있다',
+      symbolism: '강대한 힘, 힘이 충만하지만 바르게 사용해야 합니다',
+      colors: ['초록색', '연두색', '갈색'],
+      emoji: '⚡',
+    },
+    quickSummary: {
+      oneLiner: '강대한 힘',
+      keywords: ['관계', '재물', '타이밍'],
+      essence: '강대한 힘. 바름이 이롭다.',
+    },
+    actionableAdvice: {
+      dos: [
+        '힘이 있을 때 올바르게 사용하세요',
+        '관계에서 힘을 남용하지 마세요',
+        '재정적 여유가 있지만 낭비하지 마세요',
+      ],
+      donts: ['성급하게 판단하지 마세요', '조급하게 서두르지 마세요', '과신하지 마세요'],
+      timing: '힘의 시기. 그러나 절제가 필요합니다.',
+      nextSteps: [
+        '1단계: 현재 상황 파악하기',
+        '2단계: 적절한 행동 계획 세우기',
+        '3단계: 신중하게 실행하기',
+        '4단계: 결과 확인하고 조정하기',
+      ],
+    },
+    situationTemplates: {
+      career: {
+        question: '직장에서 어떻게 처신해야 할까요?',
+        advice: '힘이 있을 때 올바르게 사용하세요. 과시하지 마세요.',
+        timeline: '3-6개월 내 변화가 있을 것입니다.',
+        actionItems: ['현재 업무에 집중하기', '상사와 좋은 관계 유지하기', '실력 향상하기'],
+      },
+      love: {
+        question: '연애를 어떻게 해야 할까요?',
+        advice: '관계에서 힘을 남용하지 마세요.',
+        timeline: '인내심을 갖고 기다리면 좋은 결과가 있습니다.',
+        actionItems: ['솔직하게 대화하기', '상대방 입장 이해하기', '꾸준히 관심 표현하기'],
+      },
+      health: {
+        question: '건강 관리를 어떻게 해야 할까요?',
+        advice: '체력이 좋지만 과신하지 마세요.',
+        timeline: '꾸준히 관리하면 개선됩니다.',
+        actionItems: ['규칙적인 생활 습관 유지하기', '적절한 운동하기', '건강검진 받기'],
+      },
+      wealth: {
+        question: '재정 관리를 어떻게 해야 할까요?',
+        advice: '재정적 여유가 있지만 낭비하지 마세요.',
+        timeline: '장기적인 관점에서 접근하세요.',
+        actionItems: ['수입과 지출 관리하기', '저축하기', '투자 공부하기'],
+      },
+      decision: {
+        question: '중요한 결정을 어떻게 해야 할까요?',
+        advice: '바름이 이롭다.',
+        actionItems: ['충분히 생각하기', '조언 구하기', '신중하게 결정하기'],
+      },
+      timing: {
+        question: '언제 행동해야 할까요?',
+        advice: '힘의 시기. 그러나 절제가 필요합니다.',
+        actionItems: ['적절한 시기 기다리기', '준비 철저히 하기', '기회 놓치지 않기'],
+      },
+    },
+    plainLanguage: {
+      traditionalText: '雷天大壯 - 대장괘(大壯卦) - 큰 힘. 바름이 이롭다.',
+      modernExplanation:
+        '강대한 힘. 힘이 충만하지만 바르게 사용해야 합니다. 과도한 힘은 화를 부릅니다.',
+      realLifeExample: '실제 삶에서는 강대한 힘',
+      metaphor: '자연에서는 우레 위에 하늘이(가) 있다과 같습니다.',
+    },
+    relatedConcepts: ['관계', '재물', '타이밍'],
+    difficulty: 'medium',
+    favorability: 8,
+  },
+
+  35: {
+    visualImagery: {
+      scene: '불 위에 땅이(가) 있다',
+      symbolism: '태양이 땅 위로 떠오르듯 전진함, 밝은 미래로 나아갑니다',
+      colors: ['빨강색', '주황색', '노랑색'],
+      emoji: '☀️',
+    },
+    quickSummary: {
+      oneLiner: '태양이 땅 위로 떠오르듯 전진함',
+      keywords: ['발전', '관계', '건강', '재물', '타이밍'],
+      essence:
+        '태양이 땅 위로 떠오르듯 전진함. 강력한 제후는 말을 하사받고, 하루에 세 번 접견받는다.',
+    },
+    actionableAdvice: {
+      dos: ['승진과 발전의 좋은 시기입니다', '관계가 발전합니다', '재물이 늘어나는 시기입니다'],
+      donts: ['성급하게 판단하지 마세요', '조급하게 서두르지 마세요', '과신하지 마세요'],
+      timing: '전진의 시기. 적극적으로 나아가세요.',
+      nextSteps: [
+        '1단계: 현재 상황 파악하기',
+        '2단계: 적절한 행동 계획 세우기',
+        '3단계: 신중하게 실행하기',
+        '4단계: 결과 확인하고 조정하기',
+      ],
+    },
+    situationTemplates: {
+      career: {
+        question: '직장에서 어떻게 처신해야 할까요?',
+        advice: '승진과 발전의 좋은 시기입니다.',
+        timeline: '3-6개월 내 변화가 있을 것입니다.',
+        actionItems: ['현재 업무에 집중하기', '상사와 좋은 관계 유지하기', '실력 향상하기'],
+      },
+      love: {
+        question: '연애를 어떻게 해야 할까요?',
+        advice: '관계가 발전합니다. 적극적으로 나아가세요.',
+        timeline: '인내심을 갖고 기다리면 좋은 결과가 있습니다.',
+        actionItems: ['솔직하게 대화하기', '상대방 입장 이해하기', '꾸준히 관심 표현하기'],
+      },
+      health: {
+        question: '건강 관리를 어떻게 해야 할까요?',
+        advice: '건강이 호전됩니다.',
+        timeline: '꾸준히 관리하면 개선됩니다.',
+        actionItems: ['규칙적인 생활 습관 유지하기', '적절한 운동하기', '건강검진 받기'],
+      },
+      wealth: {
+        question: '재정 관리를 어떻게 해야 할까요?',
+        advice: '재물이 늘어나는 시기입니다.',
+        timeline: '장기적인 관점에서 접근하세요.',
+        actionItems: ['수입과 지출 관리하기', '저축하기', '투자 공부하기'],
+      },
+      decision: {
+        question: '중요한 결정을 어떻게 해야 할까요?',
+        advice: '강력한 제후는 말을 하사받고, 하루에 세 번 접견받는다.',
+        actionItems: ['충분히 생각하기', '조언 구하기', '신중하게 결정하기'],
+      },
+      timing: {
+        question: '언제 행동해야 할까요?',
+        advice: '전진의 시기. 적극적으로 나아가세요.',
+        actionItems: ['적절한 시기 기다리기', '준비 철저히 하기', '기회 놓치지 않기'],
+      },
+    },
+    plainLanguage: {
+      traditionalText:
+        '火地晉 - 진괘(晉卦) - 나아감. 강력한 제후는 말을 하사받고, 하루에 세 번 접견받는다.',
+      modernExplanation:
+        '태양이 땅 위로 떠오르듯 전진함. 밝은 미래로 나아갑니다. 승진과 발전의 시기.',
+      realLifeExample: '실제 삶에서는 태양이 땅 위로 떠오르듯 전진함',
+      metaphor: '자연에서는 불 위에 땅이(가) 있다과 같습니다.',
+    },
+    relatedConcepts: ['발전', '관계', '건강', '재물', '타이밍'],
+    difficulty: 'easy',
+    favorability: 7,
+  },
+
+  36: {
+    visualImagery: {
+      scene: '땅 위에 불이(가) 있다',
+      symbolism: '밝음이 땅 아래로 가라앉음, 어려운 시기에 재능을 숨기고 인내하세요',
+      colors: ['노랑색', '갈색', '베이지색'],
+      emoji: '🌑',
+    },
+    quickSummary: {
+      oneLiner: '밝음이 땅 아래로 가라앉음',
+      keywords: ['관계', '재물', '타이밍'],
+      essence: '밝음이 땅 아래로 가라앉음. 어려움에서 바름이 이롭다.',
+    },
+    actionableAdvice: {
+      dos: [
+        '재능을 드러내지 말고 때를 기다리세요',
+        '관계에서 어려움이 있을 수 있습니다',
+        '재정적 어려움이 있을 수 있습니다',
+      ],
+      donts: ['성급하게 판단하지 마세요', '조급하게 서두르지 마세요', '과신하지 마세요'],
+      timing: '어둠의 시기. 빛을 감추고 기다리세요.',
+      nextSteps: [
+        '1단계: 현재 상황 파악하기',
+        '2단계: 적절한 행동 계획 세우기',
+        '3단계: 신중하게 실행하기',
+        '4단계: 결과 확인하고 조정하기',
+      ],
+    },
+    situationTemplates: {
+      career: {
+        question: '직장에서 어떻게 처신해야 할까요?',
+        advice: '재능을 드러내지 말고 때를 기다리세요.',
+        timeline: '3-6개월 내 변화가 있을 것입니다.',
+        actionItems: ['현재 업무에 집중하기', '상사와 좋은 관계 유지하기', '실력 향상하기'],
+      },
+      love: {
+        question: '연애를 어떻게 해야 할까요?',
+        advice: '관계에서 어려움이 있을 수 있습니다. 인내하세요.',
+        timeline: '인내심을 갖고 기다리면 좋은 결과가 있습니다.',
+        actionItems: ['솔직하게 대화하기', '상대방 입장 이해하기', '꾸준히 관심 표현하기'],
+      },
+      health: {
+        question: '건강 관리를 어떻게 해야 할까요?',
+        advice: '활력이 저하될 수 있습니다. 휴식이 필요합니다.',
+        timeline: '꾸준히 관리하면 개선됩니다.',
+        actionItems: ['규칙적인 생활 습관 유지하기', '적절한 운동하기', '건강검진 받기'],
+      },
+      wealth: {
+        question: '재정 관리를 어떻게 해야 할까요?',
+        advice: '재정적 어려움이 있을 수 있습니다. 드러내지 말고 버티세요.',
+        timeline: '장기적인 관점에서 접근하세요.',
+        actionItems: ['수입과 지출 관리하기', '저축하기', '투자 공부하기'],
+      },
+      decision: {
+        question: '중요한 결정을 어떻게 해야 할까요?',
+        advice: '어려움에서 바름이 이롭다.',
+        actionItems: ['충분히 생각하기', '조언 구하기', '신중하게 결정하기'],
+      },
+      timing: {
+        question: '언제 행동해야 할까요?',
+        advice: '어둠의 시기. 빛을 감추고 기다리세요.',
+        actionItems: ['적절한 시기 기다리기', '준비 철저히 하기', '기회 놓치지 않기'],
+      },
+    },
+    plainLanguage: {
+      traditionalText: '地火明夷 - 명이괘(明夷卦) - 밝음의 상처. 어려움에서 바름이 이롭다.',
+      modernExplanation: '밝음이 땅 아래로 가라앉음. 어려운 시기에 재능을 숨기고 인내하세요.',
+      realLifeExample: '실제 삶에서는 밝음이 땅 아래로 가라앉음',
+      metaphor: '자연에서는 땅 위에 불이(가) 있다과 같습니다.',
+    },
+    relatedConcepts: ['관계', '재물', '타이밍'],
+    difficulty: 'hard',
+    favorability: 4,
+  },
+
+  37: {
+    visualImagery: {
+      scene: '바람 위에 불이(가) 있다',
+      symbolism: '가정의 화목, 가정에서의 역할과 질서가 중요합니다',
+      colors: ['초록색', '연두색', '갈색'],
+      emoji: '👨‍👩‍👧‍👦',
+    },
+    quickSummary: {
+      oneLiner: '가정의 화목',
+      keywords: ['건강', '재물', '타이밍'],
+      essence: '가정의 화목. 가정에서의 역할과 질서가 중요합니다.',
+    },
+    actionableAdvice: {
+      dos: [
+        '가족 같은 팀워크가 중요합니다',
+        '가정을 이루기 좋은 시기입니다',
+        '가계 재정 관리가 중요합니다',
+      ],
+      donts: ['성급하게 판단하지 마세요', '조급하게 서두르지 마세요', '과신하지 마세요'],
+      timing: '가정에 집중할 시기.',
+      nextSteps: [
+        '1단계: 현재 상황 파악하기',
+        '2단계: 적절한 행동 계획 세우기',
+        '3단계: 신중하게 실행하기',
+        '4단계: 결과 확인하고 조정하기',
+      ],
+    },
+    situationTemplates: {
+      career: {
+        question: '직장에서 어떻게 처신해야 할까요?',
+        advice: '가족 같은 팀워크가 중요합니다.',
+        timeline: '3-6개월 내 변화가 있을 것입니다.',
+        actionItems: ['현재 업무에 집중하기', '상사와 좋은 관계 유지하기', '실력 향상하기'],
+      },
+      love: {
+        question: '연애를 어떻게 해야 할까요?',
+        advice: '가정을 이루기 좋은 시기입니다.',
+        timeline: '인내심을 갖고 기다리면 좋은 결과가 있습니다.',
+        actionItems: ['솔직하게 대화하기', '상대방 입장 이해하기', '꾸준히 관심 표현하기'],
+      },
+      health: {
+        question: '건강 관리를 어떻게 해야 할까요?',
+        advice: '가족의 건강에도 신경 쓰세요.',
+        timeline: '꾸준히 관리하면 개선됩니다.',
+        actionItems: ['규칙적인 생활 습관 유지하기', '적절한 운동하기', '건강검진 받기'],
+      },
+      wealth: {
+        question: '재정 관리를 어떻게 해야 할까요?',
+        advice: '가계 재정 관리가 중요합니다.',
+        timeline: '장기적인 관점에서 접근하세요.',
+        actionItems: ['수입과 지출 관리하기', '저축하기', '투자 공부하기'],
+      },
+      decision: {
+        question: '중요한 결정을 어떻게 해야 할까요?',
+        advice: '',
+        actionItems: ['충분히 생각하기', '조언 구하기', '신중하게 결정하기'],
+      },
+      timing: {
+        question: '언제 행동해야 할까요?',
+        advice: '가정에 집중할 시기.',
+        actionItems: ['적절한 시기 기다리기', '준비 철저히 하기', '기회 놓치지 않기'],
+      },
+    },
+    plainLanguage: {
+      traditionalText: '風火家人 - 가인괘(家人卦). ',
+      modernExplanation: '가정의 화목. 가정에서의 역할과 질서가 중요합니다.',
+      realLifeExample: '실제 삶에서는 가정의 화목',
+      metaphor: '자연에서는 바람 위에 불이(가) 있다과 같습니다.',
+    },
+    relatedConcepts: ['건강', '재물', '타이밍'],
+    difficulty: 'easy',
+    favorability: 7,
+  },
+
+  38: {
+    visualImagery: {
+      scene: '불 위에 호수이(가) 있다',
+      symbolism: '대립과 다름, 다른 것도 화합할 수 있습니다',
+      colors: ['빨강색', '주황색', '노랑색'],
+      emoji: '🌟',
+    },
+    quickSummary: {
+      oneLiner: '대립과 다름',
+      keywords: ['타이밍', '지혜', '인내'],
+      essence: '대립과 다름. 다른 것도 화합할 수 있습니다.',
+    },
+    actionableAdvice: {
+      dos: [
+        '의견 차이가 있지만 조화를 찾으세요',
+        '다름을 인정하고 이해하세요',
+        '다양한 투자 포트폴리오가 좋습니다',
+      ],
+      donts: ['성급하게 판단하지 마세요', '조급하게 서두르지 마세요', '과신하지 마세요'],
+      timing: '대립의 시기. 화합을 모색하세요.',
+      nextSteps: [
+        '1단계: 현재 상황 파악하기',
+        '2단계: 적절한 행동 계획 세우기',
+        '3단계: 신중하게 실행하기',
+        '4단계: 결과 확인하고 조정하기',
+      ],
+    },
+    situationTemplates: {
+      career: {
+        question: '직장에서 어떻게 처신해야 할까요?',
+        advice: '의견 차이가 있지만 조화를 찾으세요.',
+        timeline: '3-6개월 내 변화가 있을 것입니다.',
+        actionItems: ['현재 업무에 집중하기', '상사와 좋은 관계 유지하기', '실력 향상하기'],
+      },
+      love: {
+        question: '연애를 어떻게 해야 할까요?',
+        advice: '다름을 인정하고 이해하세요.',
+        timeline: '인내심을 갖고 기다리면 좋은 결과가 있습니다.',
+        actionItems: ['솔직하게 대화하기', '상대방 입장 이해하기', '꾸준히 관심 표현하기'],
+      },
+      health: {
+        question: '건강 관리를 어떻게 해야 할까요?',
+        advice: '몸과 마음의 균형을 찾으세요.',
+        timeline: '꾸준히 관리하면 개선됩니다.',
+        actionItems: ['규칙적인 생활 습관 유지하기', '적절한 운동하기', '건강검진 받기'],
+      },
+      wealth: {
+        question: '재정 관리를 어떻게 해야 할까요?',
+        advice: '다양한 투자 포트폴리오가 좋습니다.',
+        timeline: '장기적인 관점에서 접근하세요.',
+        actionItems: ['수입과 지출 관리하기', '저축하기', '투자 공부하기'],
+      },
+      decision: {
+        question: '중요한 결정을 어떻게 해야 할까요?',
+        advice: '',
+        actionItems: ['충분히 생각하기', '조언 구하기', '신중하게 결정하기'],
+      },
+      timing: {
+        question: '언제 행동해야 할까요?',
+        advice: '대립의 시기. 화합을 모색하세요.',
+        actionItems: ['적절한 시기 기다리기', '준비 철저히 하기', '기회 놓치지 않기'],
+      },
+    },
+    plainLanguage: {
+      traditionalText: '火澤睽 - 규괘(睽卦). ',
+      modernExplanation: '대립과 다름. 다른 것도 화합할 수 있습니다.',
+      realLifeExample: '실제 삶에서는 대립과 다름',
+      metaphor: '자연에서는 불 위에 호수이(가) 있다과 같습니다.',
+    },
+    relatedConcepts: ['타이밍', '지혜', '인내'],
+    difficulty: 'medium',
+    favorability: 7,
+  },
+
+  39: {
+    visualImagery: {
+      scene: '물 위에 산이(가) 있다',
+      symbolism: '앞길이 막혀 있음, 물러서서 도움을 구하세요',
+      colors: ['파랑색', '검정색', '남색'],
+      emoji: '⛰️',
+    },
+    quickSummary: {
+      oneLiner: '앞길이 막혀 있음',
+      keywords: ['관계', '건강', '재물', '타이밍'],
+      essence: '앞길이 막혀 있음. 물러서서 도움을 구하세요.',
+    },
+    actionableAdvice: {
+      dos: ['장애물이 있습니다', '관계에 어려움이 있습니다', '재정적 어려움에 대비하세요'],
+      donts: ['성급하게 판단하지 마세요', '조급하게 서두르지 마세요', '과신하지 마세요'],
+      timing: '장애의 시기. 전문가의 도움을 구하세요.',
+      nextSteps: [
+        '1단계: 현재 상황 파악하기',
+        '2단계: 적절한 행동 계획 세우기',
+        '3단계: 신중하게 실행하기',
+        '4단계: 결과 확인하고 조정하기',
+      ],
+    },
+    situationTemplates: {
+      career: {
+        question: '직장에서 어떻게 처신해야 할까요?',
+        advice: '장애물이 있습니다. 우회하거나 도움을 구하세요.',
+        timeline: '3-6개월 내 변화가 있을 것입니다.',
+        actionItems: ['현재 업무에 집중하기', '상사와 좋은 관계 유지하기', '실력 향상하기'],
+      },
+      love: {
+        question: '연애를 어떻게 해야 할까요?',
+        advice: '관계에 어려움이 있습니다.',
+        timeline: '인내심을 갖고 기다리면 좋은 결과가 있습니다.',
+        actionItems: ['솔직하게 대화하기', '상대방 입장 이해하기', '꾸준히 관심 표현하기'],
+      },
+      health: {
+        question: '건강 관리를 어떻게 해야 할까요?',
+        advice: '건강에 문제가 있을 수 있습니다.',
+        timeline: '꾸준히 관리하면 개선됩니다.',
+        actionItems: ['규칙적인 생활 습관 유지하기', '적절한 운동하기', '건강검진 받기'],
+      },
+      wealth: {
+        question: '재정 관리를 어떻게 해야 할까요?',
+        advice: '재정적 어려움에 대비하세요.',
+        timeline: '장기적인 관점에서 접근하세요.',
+        actionItems: ['수입과 지출 관리하기', '저축하기', '투자 공부하기'],
+      },
+      decision: {
+        question: '중요한 결정을 어떻게 해야 할까요?',
+        advice: '',
+        actionItems: ['충분히 생각하기', '조언 구하기', '신중하게 결정하기'],
+      },
+      timing: {
+        question: '언제 행동해야 할까요?',
+        advice: '장애의 시기. 전문가의 도움을 구하세요.',
+        actionItems: ['적절한 시기 기다리기', '준비 철저히 하기', '기회 놓치지 않기'],
+      },
+    },
+    plainLanguage: {
+      traditionalText: '水山蹇 - 건괘(蹇卦). ',
+      modernExplanation: '앞길이 막혀 있음. 물러서서 도움을 구하세요.',
+      realLifeExample: '실제 삶에서는 앞길이 막혀 있음',
+      metaphor: '자연에서는 물 위에 산이(가) 있다과 같습니다.',
+    },
+    relatedConcepts: ['관계', '건강', '재물', '타이밍'],
+    difficulty: 'hard',
+    favorability: 7,
+  },
+
+  40: {
+    visualImagery: {
+      scene: '우레 위에 물이(가) 있다',
+      symbolism: '어려움이 풀림, 봄비가 내린 후의 해방감',
+      colors: ['초록색', '연두색', '갈색'],
+      emoji: '⚡',
+    },
+    quickSummary: {
+      oneLiner: '어려움이 풀림',
+      keywords: ['관계', '건강', '재물', '타이밍'],
+      essence: '어려움이 풀림. 봄비가 내린 후의 해방감.',
+    },
+    actionableAdvice: {
+      dos: ['막혔던 일이 풀립니다', '오해가 풀리고 관계가 회복됩니다', '재정적 문제가 해결됩니다'],
+      donts: ['성급하게 판단하지 마세요', '조급하게 서두르지 마세요', '과신하지 마세요'],
+      timing: '해결의 시기. 빨리 처리하세요.',
+      nextSteps: [
+        '1단계: 현재 상황 파악하기',
+        '2단계: 적절한 행동 계획 세우기',
+        '3단계: 신중하게 실행하기',
+        '4단계: 결과 확인하고 조정하기',
+      ],
+    },
+    situationTemplates: {
+      career: {
+        question: '직장에서 어떻게 처신해야 할까요?',
+        advice: '막혔던 일이 풀립니다.',
+        timeline: '3-6개월 내 변화가 있을 것입니다.',
+        actionItems: ['현재 업무에 집중하기', '상사와 좋은 관계 유지하기', '실력 향상하기'],
+      },
+      love: {
+        question: '연애를 어떻게 해야 할까요?',
+        advice: '오해가 풀리고 관계가 회복됩니다.',
+        timeline: '인내심을 갖고 기다리면 좋은 결과가 있습니다.',
+        actionItems: ['솔직하게 대화하기', '상대방 입장 이해하기', '꾸준히 관심 표현하기'],
+      },
+      health: {
+        question: '건강 관리를 어떻게 해야 할까요?',
+        advice: '병이 낫고 건강이 회복됩니다.',
+        timeline: '꾸준히 관리하면 개선됩니다.',
+        actionItems: ['규칙적인 생활 습관 유지하기', '적절한 운동하기', '건강검진 받기'],
+      },
+      wealth: {
+        question: '재정 관리를 어떻게 해야 할까요?',
+        advice: '재정적 문제가 해결됩니다.',
+        timeline: '장기적인 관점에서 접근하세요.',
+        actionItems: ['수입과 지출 관리하기', '저축하기', '투자 공부하기'],
+      },
+      decision: {
+        question: '중요한 결정을 어떻게 해야 할까요?',
+        advice: '',
+        actionItems: ['충분히 생각하기', '조언 구하기', '신중하게 결정하기'],
+      },
+      timing: {
+        question: '언제 행동해야 할까요?',
+        advice: '해결의 시기. 빨리 처리하세요.',
+        actionItems: ['적절한 시기 기다리기', '준비 철저히 하기', '기회 놓치지 않기'],
+      },
+    },
+    plainLanguage: {
+      traditionalText: '雷水解 - 해괘(解卦). ',
+      modernExplanation: '어려움이 풀림. 봄비가 내린 후의 해방감.',
+      realLifeExample: '실제 삶에서는 어려움이 풀림',
+      metaphor: '자연에서는 우레 위에 물이(가) 있다과 같습니다.',
+    },
+    relatedConcepts: ['관계', '건강', '재물', '타이밍'],
+    difficulty: 'medium',
+    favorability: 7,
+  },
+}
+
+export const enhancedHexagramDataKo33to40: Record<number, EnhancedHexagramDataKo> = {}

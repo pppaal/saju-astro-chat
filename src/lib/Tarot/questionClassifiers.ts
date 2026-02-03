@@ -15,7 +15,7 @@ import {
   isChosungOnly,
   decodeChosung,
   prepareForMatching,
-} from './utils/koreanTextNormalizer';
+} from './utils/koreanTextNormalizer'
 import {
   yesNoEndingPatterns,
   yesNoMidPatterns,
@@ -57,60 +57,70 @@ import {
   driverLicensePatterns,
   volunteerCharityPatterns,
   coupleFightPatterns,
-} from './data/questionClassifierPatterns';
+} from './data/questionClassifierPatterns'
 
 // ============================================================
 // Memoization cache for classifier results
 // ============================================================
-const classifierCache = new Map<string, Map<string, boolean>>();
-const CACHE_MAX_SIZE = 500;
-const MAX_CLASSIFIERS = 50; // 최대 classifier 개수 제한
+const classifierCache = new Map<string, Map<string, boolean>>()
+const CACHE_MAX_SIZE = 500
+const MAX_CLASSIFIERS = 50 // 최대 classifier 개수 제한
 
 function getCachedResult(classifierName: string, question: string): boolean | undefined {
-  const classifierMap = classifierCache.get(classifierName);
-  return classifierMap?.get(question);
+  const classifierMap = classifierCache.get(classifierName)
+  return classifierMap?.get(question)
 }
 
 function setCachedResult(classifierName: string, question: string, result: boolean): void {
-  let classifierMap = classifierCache.get(classifierName);
+  let classifierMap = classifierCache.get(classifierName)
   if (!classifierMap) {
     // 외부 Map 크기 제한 - 초과 시 가장 오래된 classifier 제거
     if (classifierCache.size >= MAX_CLASSIFIERS) {
-      const firstKey = classifierCache.keys().next().value;
-      if (firstKey) {classifierCache.delete(firstKey);}
+      const firstKey = classifierCache.keys().next().value
+      if (firstKey) {
+        classifierCache.delete(firstKey)
+      }
     }
-    classifierMap = new Map();
-    classifierCache.set(classifierName, classifierMap);
+    classifierMap = new Map()
+    classifierCache.set(classifierName, classifierMap)
   }
   // Limit cache size to prevent memory leaks
   if (classifierMap.size >= CACHE_MAX_SIZE) {
-    const firstKey = classifierMap.keys().next().value;
-    if (firstKey) {classifierMap.delete(firstKey);}
+    const firstKey = classifierMap.keys().next().value
+    if (firstKey) {
+      classifierMap.delete(firstKey)
+    }
   }
-  classifierMap.set(question, result);
+  classifierMap.set(question, result)
 }
 
 // Helper to test patterns with caching
-function testPatternsWithCache(classifierName: string, question: string, patterns: RegExp[]): boolean {
-  const cached = getCachedResult(classifierName, question);
-  if (cached !== undefined) {return cached;}
+function testPatternsWithCache(
+  classifierName: string,
+  question: string,
+  patterns: RegExp[]
+): boolean {
+  const cached = getCachedResult(classifierName, question)
+  if (cached !== undefined) {
+    return cached
+  }
 
-  const result = patterns.some(p => p.test(question));
-  setCachedResult(classifierName, question, result);
-  return result;
+  const result = patterns.some((p) => p.test(question))
+  setCachedResult(classifierName, question, result)
+  return result
 }
 
 // Pattern cache for lazy initialization
-const patternCache = new Map<string, RegExp[]>();
+const patternCache = new Map<string, RegExp[]>()
 
 // Helper to get or create patterns with lazy initialization
 function getOrCreatePatterns(name: string, createPatterns: () => RegExp[]): RegExp[] {
-  let patterns = patternCache.get(name);
+  let patterns = patternCache.get(name)
   if (!patterns) {
-    patterns = createPatterns();
-    patternCache.set(name, patterns);
+    patterns = createPatterns()
+    patternCache.set(name, patterns)
   }
-  return patterns;
+  return patterns
 }
 
 // Combined helper: lazy pattern creation + result caching
@@ -119,13 +129,13 @@ function testWithLazyPatterns(
   question: string,
   createPatterns: () => RegExp[]
 ): boolean {
-  const patterns = getOrCreatePatterns(classifierName, createPatterns);
-  return testPatternsWithCache(classifierName, question, patterns);
+  const patterns = getOrCreatePatterns(classifierName, createPatterns)
+  return testPatternsWithCache(classifierName, question, patterns)
 }
 
 // Clear cache (useful for testing)
 export function clearClassifierCache(): void {
-  classifierCache.clear();
+  classifierCache.clear()
 }
 
 // ============================================================
@@ -136,206 +146,267 @@ const allYesNoPatterns = [
   ...yesNoMidPatterns,
   ...yesNoKeywordPatterns,
   ...yesNoEnglishPatterns,
-];
+]
 
 // ============================================================
 // Classifier Functions
 // ============================================================
 
 export function isYesNoQuestion(question: string): boolean {
+  // 0. 일반 흐름 질문은 Yes/No가 아님
+  const generalFlowExclusions =
+    /앞으로|전반적|흐름|전체적|overall|general.*flow|what('?s| is) ahead/i
+  if (generalFlowExclusions.test(question)) {
+    return false
+  }
+
   // 1. 기본 패턴 매칭
   if (testPatternsWithCache('yesNo', question, allYesNoPatterns)) {
-    return true;
+    return true
   }
 
   // 2. 초성 질문 처리
-  const normalized = normalizeText(question);
+  const normalized = normalizeText(question)
   if (isChosungOnly(normalized)) {
-    const decoded = decodeChosung(normalized);
+    const decoded = decodeChosung(normalized)
     if (decoded && testPatternsWithCache('yesNo', decoded, allYesNoPatterns)) {
-      return true;
+      return true
     }
   }
 
   // 3. 강화된 Yes/No 매칭 (띄어쓰기 무시)
   if (enhancedYesNoMatch(question)) {
-    return true;
+    return true
   }
 
   // 4. Fuzzy 매칭 (정규화 + 맞춤법 보정)
-  return fuzzyMatch(question, allYesNoPatterns);
+  return fuzzyMatch(question, allYesNoPatterns)
 }
 
 export function isCrushQuestion(question: string): boolean {
-  return testPatternsWithCache('crush', question, crushPatterns);
+  return testPatternsWithCache('crush', question, crushPatterns)
 }
 
 export function isReconciliationQuestion(question: string): boolean {
-  return testPatternsWithCache('reconciliation', question, reconciliationPatterns);
+  return testPatternsWithCache('reconciliation', question, reconciliationPatterns)
 }
 
 export function isExamInterviewQuestion(question: string): boolean {
-  return testPatternsWithCache('examInterview', question, examInterviewPatterns);
+  return testPatternsWithCache('examInterview', question, examInterviewPatterns)
 }
 
 export function isJobChangeQuestion(question: string): boolean {
-  // 단순 "이직할까?"는 Yes/No로 처리되므로 더 구체적인 이직 상담만 여기서 처리
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('jobChange', question, jobChangePatterns);
+  return testPatternsWithCache('jobChange', question, jobChangePatterns)
 }
 
 export function isComparisonQuestion(question: string): boolean {
-  return testPatternsWithCache('comparison', question, comparisonPatterns);
+  return testPatternsWithCache('comparison', question, comparisonPatterns)
 }
 
 export function isTimingQuestion(question: string): boolean {
-  return testPatternsWithCache('timing', question, timingPatterns);
+  return testPatternsWithCache('timing', question, timingPatterns)
 }
 
 export function isFindingPartnerQuestion(question: string): boolean {
-  return testPatternsWithCache('findingPartner', question, findingPartnerPatterns);
+  return testPatternsWithCache('findingPartner', question, findingPartnerPatterns)
 }
 
 export function isTodayFortuneQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('todayFortune', question, todayFortunePatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('todayFortune', question, todayFortunePatterns)
 }
 
 export function isWeeklyMonthlyQuestion(question: string): boolean {
-  return testPatternsWithCache('weeklyMonthly', question, weeklyMonthlyPatterns);
+  return testPatternsWithCache('weeklyMonthly', question, weeklyMonthlyPatterns)
 }
 
 export function isMoneyFortuneQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('moneyFortune', question, moneyFortunePatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('moneyFortune', question, moneyFortunePatterns)
 }
 
 export function isHealthFortuneQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('healthFortune', question, healthFortunePatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('healthFortune', question, healthFortunePatterns)
 }
 
 export function isFamilyRelationQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('familyRelation', question, familyRelationPatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('familyRelation', question, familyRelationPatterns)
 }
 
 export function isBusinessQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('business', question, businessPatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('business', question, businessPatterns)
 }
 
 export function isGeneralFortuneQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  if (isTodayFortuneQuestion(question)) {return false;}
-  if (isWeeklyMonthlyQuestion(question)) {return false;}
-  return testPatternsWithCache('generalFortune', question, generalFortunePatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  if (isTodayFortuneQuestion(question)) {
+    return false
+  }
+  if (isWeeklyMonthlyQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('generalFortune', question, generalFortunePatterns)
 }
 
 export function isStudyFortuneQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('studyFortune', question, studyFortunePatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('studyFortune', question, studyFortunePatterns)
 }
 
 export function isTravelQuestion(question: string): boolean {
-  return testPatternsWithCache('travel', question, travelPatterns);
+  return testPatternsWithCache('travel', question, travelPatterns)
 }
 
 export function isWorkRelationQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('workRelation', question, workRelationPatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('workRelation', question, workRelationPatterns)
 }
 
 export function isLegalQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('legal', question, legalPatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('legal', question, legalPatterns)
 }
 
 export function isDrivingQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('driving', question, drivingPatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('driving', question, drivingPatterns)
 }
 
 export function isPetQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('pet', question, petPatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('pet', question, petPatterns)
 }
 
 export function isFriendRelationQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('friendRelation', question, friendRelationPatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('friendRelation', question, friendRelationPatterns)
 }
 
 export function isMarriageRelationQuestion(question: string): boolean {
-  if (isCrushQuestion(question)) {return false;}
-  if (isReconciliationQuestion(question)) {return false;}
-  if (isFindingPartnerQuestion(question)) {return false;}
-  return testPatternsWithCache('marriageRelation', question, marriageRelationPatterns);
+  if (isCrushQuestion(question)) {
+    return false
+  }
+  if (isReconciliationQuestion(question)) {
+    return false
+  }
+  if (isFindingPartnerQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('marriageRelation', question, marriageRelationPatterns)
 }
 
 export function isBeautyFashionQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('beautyFashion', question, beautyFashionPatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('beautyFashion', question, beautyFashionPatterns)
 }
 
 export function isMovingRealEstateQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('movingRealEstate', question, movingRealEstatePatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('movingRealEstate', question, movingRealEstatePatterns)
 }
 
 export function isParentCareQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('parentCare', question, parentCarePatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('parentCare', question, parentCarePatterns)
 }
 
 export function isSleepRestQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('sleepRest', question, sleepRestPatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('sleepRest', question, sleepRestPatterns)
 }
 
 export function isOnlineShoppingQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('onlineShopping', question, onlineShoppingPatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('onlineShopping', question, onlineShoppingPatterns)
 }
 
 export function isRentalLeaseQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('rentalLease', question, rentalLeasePatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('rentalLease', question, rentalLeasePatterns)
 }
 
 export function isPhoneDeviceQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('phoneDevice', question, phoneDevicePatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('phoneDevice', question, phoneDevicePatterns)
 }
 
 export function isHairAppearanceQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('hairAppearance', question, hairAppearancePatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('hairAppearance', question, hairAppearancePatterns)
 }
 
 export function isGiftPresentQuestion(question: string): boolean {
-  return testPatternsWithCache('giftPresent', question, giftPresentPatterns);
+  return testPatternsWithCache('giftPresent', question, giftPresentPatterns)
 }
 
 export function isDietWeightQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('dietWeight', question, dietWeightPatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('dietWeight', question, dietWeightPatterns)
 }
 
 export function isLanguageLearningQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('languageLearning', question, languageLearningPatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('languageLearning', question, languageLearningPatterns)
 }
 
 export function isDriverLicenseQuestion(question: string): boolean {
-  return testPatternsWithCache('driverLicense', question, driverLicensePatterns);
+  return testPatternsWithCache('driverLicense', question, driverLicensePatterns)
 }
 
 export function isVolunteerCharityQuestion(question: string): boolean {
-  return testPatternsWithCache('volunteerCharity', question, volunteerCharityPatterns);
+  return testPatternsWithCache('volunteerCharity', question, volunteerCharityPatterns)
 }
 
 export function isCoupleFightQuestion(question: string): boolean {
-  if (isYesNoQuestion(question)) {return false;}
-  return testPatternsWithCache('coupleFight', question, coupleFightPatterns);
+  if (isYesNoQuestion(question)) {
+    return false
+  }
+  return testPatternsWithCache('coupleFight', question, coupleFightPatterns)
 }

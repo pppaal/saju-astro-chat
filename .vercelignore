@@ -13,3 +13,9 @@ android
 .vs
 .cursor
 .claude
+docs
+tests
+e2e
+*.test.ts
+*.test.tsx
+*.spec.ts

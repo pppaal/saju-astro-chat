@@ -1,47 +1,64 @@
 //src/app/astrology/page.tsx
 
-'use client';
+'use client'
 
-import { useState, FormEvent, useMemo, useEffect } from 'react';
-import { getSupportedTimezones, getUserTimezone } from '@/lib/Saju/timezone';
-import ResultDisplay from '@/components/astrology/ResultDisplay';
-import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService';
-import type { AspectData, AdvancedData } from '@/components/astrology/ResultDisplay';
-import { searchCities } from '@/lib/cities';
-import tzLookup from 'tz-lookup';
-import { useI18n } from '@/i18n/I18nProvider';
-import ServicePageLayout from '@/components/ui/ServicePageLayout';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { saveUserProfile } from '@/lib/userProfile';
-import styles from './Astrology.module.css';
+import { useState, FormEvent, useMemo, useEffect } from 'react'
+import { getSupportedTimezones, getUserTimezone } from '@/lib/Saju/timezone'
+import ResultDisplay from '@/components/astrology/ResultDisplay'
+import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
+import type { AspectData, AdvancedData } from '@/components/astrology/ResultDisplay'
+import { searchCities } from '@/lib/cities'
+import tzLookup from 'tz-lookup'
+import { useI18n } from '@/i18n/I18nProvider'
+import ServicePageLayout from '@/components/ui/ServicePageLayout'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import { saveUserProfile } from '@/lib/userProfile'
+import styles from './Astrology.module.css'
 
-type CityItem = { name: string; country: string; lat: number; lon: number };
+type CityItem = { name: string; country: string; lat: number; lon: number }
 
 export default function Home() {
-  const { locale, t } = useI18n();
-  const router = useRouter();
-  const { status } = useSession();
-  const { profile, isLoading: profileLoading } = useUserProfile();
+  const { locale, t } = useI18n()
+  const router = useRouter()
+  const { status } = useSession()
+  const {
+    profile,
+    isLoading: profileLoading,
+    loadProfile,
+    loadingProfileBtn,
+    profileLoadedMsg,
+    profileLoadError,
+  } = useUserProfile({ skipAutoLoad: false })
 
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [date, setDate] = useState('')
+  const [time, setTime] = useState('')
+  const [profileLoaded, setProfileLoaded] = useState(false)
 
   // 프리미엄 상태 관리 - 임시로 모든 사용자에게 프리미엄 제공
-  const [isPremium, setIsPremium] = useState(true);
-  const isLoggedIn = status === 'authenticated';
+  const [isPremium, setIsPremium] = useState(true)
+  const isLoggedIn = status === 'authenticated'
 
   // Load profile data into form
   useEffect(() => {
-    if (profileLoading || profileLoaded) {return;}
-    if (profile.birthDate) {setDate(profile.birthDate);}
-    if (profile.birthTime) {setTime(profile.birthTime);}
-    if (profile.birthCity) {setCityQuery(profile.birthCity);}
-    if (profile.timezone) {setTimeZone(profile.timezone);}
-    setProfileLoaded(true);
-  }, [profile, profileLoading, profileLoaded]);
+    if (profileLoading || profileLoaded) {
+      return
+    }
+    if (profile.birthDate) {
+      setDate(profile.birthDate)
+    }
+    if (profile.birthTime) {
+      setTime(profile.birthTime)
+    }
+    if (profile.birthCity) {
+      setCityQuery(profile.birthCity)
+    }
+    if (profile.timezone) {
+      setTimeZone(profile.timezone)
+    }
+    setProfileLoaded(true)
+  }, [profile, profileLoading, profileLoaded])
 
   // 프리미엄 상태 체크
   useEffect(() => {
@@ -49,94 +66,99 @@ export default function Home() {
       fetch('/api/me/premium')
         .then((res) => res.json())
         .then((data) => {
-          if (data.isPremium) {setIsPremium(true);}
+          if (data.isPremium) {
+            setIsPremium(true)
+          }
         })
         .catch(() => {
           // 에러 시 기본값 유지
-        });
+        })
     }
-  }, [status]);
+  }, [status])
 
-  const [interpretation, setInterpretation] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [interpretation, setInterpretation] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const [chartData, setChartData] = useState<NatalChartData | null>(null);
-  const [aspects, setAspects] = useState<AspectData[] | null>(null);
-  const [advanced, setAdvanced] = useState<AdvancedData | null>(null);
+  const [chartData, setChartData] = useState<NatalChartData | null>(null)
+  const [aspects, setAspects] = useState<AspectData[] | null>(null)
+  const [advanced, setAdvanced] = useState<AdvancedData | null>(null)
 
-  const timezones = useMemo(() => getSupportedTimezones(), []);
+  const timezones = useMemo(() => getSupportedTimezones(), [])
   const [timeZone, setTimeZone] = useState<string>(() => {
-    const list = getSupportedTimezones();
-    return list[0] || getUserTimezone() || 'UTC';
-  });
+    const list = getSupportedTimezones()
+    return list[0] || getUserTimezone() || 'UTC'
+  })
 
-  const [cityQuery, setCityQuery] = useState<string>('');
-  const [suggestions, setSuggestions] = useState<CityItem[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [cityQuery, setCityQuery] = useState<string>('')
+  const [suggestions, setSuggestions] = useState<CityItem[]>([])
+  const [showDropdown, setShowDropdown] = useState(false)
 
-  const [latitude, setLatitude] = useState<number | null>(null);
-  const [longitude, setLongitude] = useState<number | null>(null);
+  const [latitude, setLatitude] = useState<number | null>(null)
+  const [longitude, setLongitude] = useState<number | null>(null)
 
   useEffect(() => {
-    const q = cityQuery.trim();
+    const q = cityQuery.trim()
     if (q.length < 2) {
-      setSuggestions([]);
-      return;
+      setSuggestions([])
+      return
     }
     const tmr = setTimeout(async () => {
       try {
-        const items = (await searchCities(q, { limit: 20 })) as CityItem[];
-        setSuggestions(items);
-        setShowDropdown(true);
+        const items = (await searchCities(q, { limit: 20 })) as CityItem[]
+        setSuggestions(items)
+        setShowDropdown(true)
       } catch {
-        setSuggestions([]);
+        setSuggestions([])
       }
-    }, 150);
-    return () => clearTimeout(tmr);
-  }, [cityQuery]);
+    }, 150)
+    return () => clearTimeout(tmr)
+  }, [cityQuery])
 
   const onPickCity = (item: CityItem) => {
-    setCityQuery(`${item.name}, ${item.country}`);
-    setLatitude(item.lat);
-    setLongitude(item.lon);
-    setShowDropdown(false);
+    setCityQuery(`${item.name}, ${item.country}`)
+    setLatitude(item.lat)
+    setLongitude(item.lon)
+    setShowDropdown(false)
 
     try {
-      const guessed = tzLookup(item.lat, item.lon);
-      if (guessed && typeof guessed === 'string') {setTimeZone(guessed);}
+      const guessed = tzLookup(item.lat, item.lon)
+      if (guessed && typeof guessed === 'string') {
+        setTimeZone(guessed)
+      }
     } catch {
       // ignore
     }
-  };
+  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    setInterpretation(null);
-    setChartData(null);
-    setAspects(null);
-    setAdvanced(null);
+    event.preventDefault()
+    setIsLoading(true)
+    setError(null)
+    setInterpretation(null)
+    setChartData(null)
+    setAspects(null)
+    setAdvanced(null)
 
     try {
       if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-        throw new Error(t('error.dateRequired') || 'Please enter a valid birth date (YYYY-MM-DD).');
+        throw new Error(t('error.dateRequired') || 'Please enter a valid birth date (YYYY-MM-DD).')
       }
       if (!time || !/^\d{2}:\d{2}$/.test(time)) {
-        throw new Error(t('error.timeRequired') || 'Please enter a valid birth time (HH:MM).');
+        throw new Error(t('error.timeRequired') || 'Please enter a valid birth time (HH:MM).')
       }
       if (latitude == null || longitude == null) {
-        throw new Error(t('error.cityRequired') || 'Please search and select your birth city.');
+        throw new Error(t('error.cityRequired') || 'Please search and select your birth city.')
       }
       if (!timeZone) {
-        throw new Error(t('error.timezoneRequired') || 'Please select a time zone.');
+        throw new Error(t('error.timezoneRequired') || 'Please select a time zone.')
       }
     } catch (e: unknown) {
-      setIsLoading(false);
-      const message = e instanceof Error ? e.message : (t('error.unknown') as string) || 'Unknown error.';
-      setError(message);
-      return;
+      setIsLoading(false)
+      const message =
+        e instanceof Error ? e.message : (t('error.unknown') as string) || 'Unknown error.'
+      setError(message)
+      return
     }
 
     try {
@@ -148,44 +170,44 @@ export default function Home() {
         timeZone,
         city: cityQuery,
         locale,
-      };
+      }
 
       const response = await fetch('/api/astrology', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-      });
+      })
 
-      const result = await response.json();
-      if (!response.ok) {throw new Error(result?.error || `Server error: ${response.status}`);}
-      if (result?.error) {throw new Error(result.error);}
+      const result = await response.json()
+      if (!response.ok) {
+        throw new Error(result?.error || `Server error: ${response.status}`)
+      }
+      if (result?.error) {
+        throw new Error(result.error)
+      }
 
       const possible =
         result?.interpretation ??
         result?.result ??
         result?.data?.interpretation ??
-        result?.data?.summary;
+        result?.data?.summary
 
       if (typeof possible === 'string' && possible.trim()) {
-        setInterpretation(possible);
+        setInterpretation(possible)
       } else {
-        throw new Error(t('error.noData') || 'No analysis data in server response.');
+        throw new Error(t('error.noData') || 'No analysis data in server response.')
       }
 
       if (result?.chartData && typeof result.chartData === 'object') {
-        setChartData(result.chartData as NatalChartData);
+        setChartData(result.chartData as NatalChartData)
       }
       if (Array.isArray(result?.aspects)) {
-        setAspects(result.aspects as Record<string, unknown>[]);
+        setAspects(result.aspects as Record<string, unknown>[])
       }
 
-      const adv =
-        result?.advanced ??
-        result?.data?.advanced ??
-        result?.chartData?.advanced ??
-        null;
+      const adv = result?.advanced ?? result?.data?.advanced ?? result?.chartData?.advanced ?? null
 
-      setAdvanced(adv && typeof adv === 'object' ? (adv as Record<string, unknown>) : null);
+      setAdvanced(adv && typeof adv === 'object' ? (adv as Record<string, unknown>) : null)
 
       // Save profile for reuse across services
       saveUserProfile({
@@ -193,32 +215,57 @@ export default function Home() {
         birthTime: time,
         birthCity: cityQuery,
         timezone: timeZone,
-      });
+      })
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : (t('error.unknown') as string) || 'Unknown error occurred.';
-      setError(message);
+      const message =
+        err instanceof Error
+          ? err.message
+          : (t('error.unknown') as string) || 'Unknown error occurred.'
+      setError(message)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleBack = () => {
     if (interpretation) {
-      setInterpretation(null);
-      setChartData(null);
-      setAspects(null);
-      setAdvanced(null);
-      setError(null);
+      setInterpretation(null)
+      setChartData(null)
+      setAspects(null)
+      setAdvanced(null)
+      setError(null)
     } else {
-      router.back();
+      router.back()
     }
-  };
+  }
+
+  const handleLoadProfile = async () => {
+    const success = await loadProfile(locale)
+    if (success && profile.birthDate) {
+      if (profile.birthDate) {
+        setDate(profile.birthDate)
+      }
+      if (profile.birthTime) {
+        setTime(profile.birthTime)
+      }
+      if (profile.birthCity) {
+        setCityQuery(profile.birthCity)
+        // Try to extract coordinates from profile if available
+        // Otherwise user will need to search again
+      }
+      if (profile.timezone) {
+        setTimeZone(profile.timezone)
+      }
+    }
+  }
 
   return (
     <ServicePageLayout
       icon="✧"
       title={t('ui.titleAstrology') || 'AI Natal Chart'}
-      subtitle={t('ui.subtitleAstrology') || 'Discover your cosmic map based on your birth information.'}
+      subtitle={
+        t('ui.subtitleAstrology') || 'Discover your cosmic map based on your birth information.'
+      }
       particleColor="#ffd782"
       onBack={handleBack}
       backLabel={t('app.back') || 'Back'}
@@ -231,9 +278,9 @@ export default function Home() {
               key={i}
               className={styles.constellation}
               style={{
-                left: `${((i * 37 + 13) % 100)}%`,
-                top: `${((i * 53 + 7) % 100)}%`,
-                animationDelay: `${(i % 4) + (i * 0.13)}s`,
+                left: `${(i * 37 + 13) % 100}%`,
+                top: `${(i * 53 + 7) % 100}%`,
+                animationDelay: `${(i % 4) + i * 0.13}s`,
                 animationDuration: `${3 + (i % 3)}s`,
               }}
             />
@@ -246,11 +293,48 @@ export default function Home() {
               <div className={styles.formIcon}>✧</div>
               <h1 className={styles.formTitle}>{t('ui.titleAstrology') || 'AI Natal Chart'}</h1>
               <p className={styles.formSubtitle}>
-                {t('ui.subtitleAstrology') || 'Discover your cosmic map based on your birth information.'}
+                {t('ui.subtitleAstrology') ||
+                  'Discover your cosmic map based on your birth information.'}
               </p>
             </div>
 
             <form onSubmit={handleSubmit}>
+              {/* Load Profile Button */}
+              {!profileLoaded && !profileLoadedMsg && (
+                <button
+                  type="button"
+                  onClick={handleLoadProfile}
+                  disabled={loadingProfileBtn}
+                  className="w-full mb-5 p-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700
+                    text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>{loadingProfileBtn ? '⏳' : '👤'}</span>
+                  <span>
+                    {loadingProfileBtn
+                      ? locale === 'ko'
+                        ? '불러오는 중...'
+                        : 'Loading...'
+                      : locale === 'ko'
+                        ? '내 프로필 불러오기'
+                        : 'Load My Profile'}
+                  </span>
+                </button>
+              )}
+
+              {/* Profile loaded success message */}
+              {profileLoadedMsg && (
+                <div className="mb-5 p-3 bg-green-600/20 border border-green-600 rounded-lg text-green-400 text-center">
+                  ✓ {locale === 'ko' ? '프로필 불러오기 완료!' : 'Profile loaded!'}
+                </div>
+              )}
+
+              {/* Profile load error */}
+              {profileLoadError && (
+                <div className="mb-5 p-3 bg-red-600/20 border border-red-600 rounded-lg text-red-400 text-sm">
+                  ⚠️ {profileLoadError}
+                </div>
+              )}
+
               <div className={`${styles.grid} ${styles.gridTwo}`}>
                 <div>
                   <label htmlFor="date" className={styles.label}>
@@ -305,7 +389,10 @@ export default function Home() {
                       <li
                         key={`${s.country}-${s.name}-${i}`}
                         className={styles.dropdownItem}
-                        onMouseDown={(e) => { e.preventDefault(); onPickCity(s); }}
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          onPickCity(s)
+                        }}
                       >
                         {s.name}, {s.country}
                       </li>
@@ -313,7 +400,8 @@ export default function Home() {
                   </ul>
                 )}
                 <p className={styles.inputHint}>
-                  {t('ui.tipChooseCity') || 'Tip: Choose a city; time zone will be set automatically.'}
+                  {t('ui.tipChooseCity') ||
+                    'Tip: Choose a city; time zone will be set automatically.'}
                 </p>
               </div>
 
@@ -326,12 +414,7 @@ export default function Home() {
                   <label htmlFor="timeZone" className={styles.label}>
                     {t('ui.timeZone') || 'Time Zone'}
                   </label>
-                  <input
-                    id="timeZone"
-                    readOnly
-                    value={timeZone}
-                    className={styles.input}
-                  />
+                  <input id="timeZone" readOnly value={timeZone} className={styles.input} />
                   <details className={styles.details}>
                     <summary className={styles.detailsSummary}>
                       {t('ui.changeManually') || 'Change manually'}
@@ -342,24 +425,38 @@ export default function Home() {
                       className={styles.select}
                     >
                       {timezones.map((tz) => (
-                        <option key={tz} value={tz}>{tz}</option>
+                        <option key={tz} value={tz}>
+                          {tz}
+                        </option>
                       ))}
                     </select>
                   </details>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={styles.submitButton}
-              >
+              <button type="submit" disabled={isLoading} className={styles.submitButton}>
                 <span className={styles.buttonGlow} />
                 {isLoading ? (
                   <>
-                    <svg className={styles.spinner} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a 8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    <svg
+                      className={styles.spinner}
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a 8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                     {t('ui.analyzing') || 'Analyzing...'}
                   </>
@@ -389,5 +486,5 @@ export default function Home() {
         )}
       </main>
     </ServicePageLayout>
-  );
+  )
 }

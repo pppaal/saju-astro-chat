@@ -14,70 +14,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/saju/route'
 
-// Mock dependencies
-vi.mock('next-auth', () => ({
-  getServerSession: vi.fn(),
-}))
+// ✨ REFACTORED: Use centralized mocks instead of duplicating vi.mock() calls
+import { mockNextAuth, mockStripe, mockPrisma, mockSajuLibraries } from '@/tests/mocks'
 
-vi.mock('@/lib/db/prisma', () => ({
-  prisma: {
-    reading: {
-      create: vi.fn(),
-    },
-  },
-}))
-
-vi.mock('stripe', () => {
-  return {
-    default: vi.fn().mockImplementation(() => ({
-      customers: {
-        search: vi.fn().mockResolvedValue({ data: [] }),
-      },
-      subscriptions: {
-        list: vi.fn().mockResolvedValue({ data: [] }),
-      },
-    })),
-  }
-})
-
-vi.mock('@/lib/Saju/saju', () => ({
-  calculateSajuData: vi.fn(),
-}))
-
-vi.mock('@/lib/Saju/unse', () => ({
-  getDaeunCycles: vi.fn(),
-  getAnnualCycles: vi.fn(),
-  getMonthlyCycles: vi.fn(),
-  getIljinCalendar: vi.fn(),
-}))
-
-vi.mock('@/lib/Saju/shinsal', () => ({
-  getShinsalHits: vi.fn(),
-  getTwelveStagesForPillars: vi.fn(),
-  getTwelveShinsalSingleByPillar: vi.fn(),
-}))
-
-vi.mock('@/lib/Saju/relations', () => ({
-  analyzeRelations: vi.fn(),
-  toAnalyzeInputFromSaju: vi.fn(),
-}))
-
-vi.mock('@/lib/Saju/geokguk', () => ({
-  determineGeokguk: vi.fn(),
-  getGeokgukDescription: vi.fn(),
-}))
-
-vi.mock('@/lib/Saju/yongsin', () => ({
-  determineYongsin: vi.fn(),
-  getYongsinDescription: vi.fn(),
-  getLuckyColors: vi.fn(),
-  getLuckyDirection: vi.fn(),
-  getLuckyNumbers: vi.fn(),
-}))
-
-vi.mock('@/lib/Saju/hyeongchung', () => ({
-  analyzeHyeongchung: vi.fn(),
-}))
+// Initialize centralized mocks
+mockNextAuth()
+mockStripe()
+mockPrisma()
+mockSajuLibraries()
 
 vi.mock('@/lib/Saju/tonggeun', () => ({
   calculateTonggeun: vi.fn(),
@@ -150,7 +94,7 @@ vi.mock('@/lib/security/errorSanitizer', () => ({
 }))
 
 vi.mock('@/lib/api/middleware', async () => {
-  const actual = await vi.importActual('@/lib/api/middleware') as any
+  const actual = (await vi.importActual('@/lib/api/middleware')) as any
   const { sanitizeError } = await import('@/lib/security/errorSanitizer')
   const { NextResponse } = await import('next/server')
   const { createErrorResponse } = await import('@/lib/api/errorHandler')

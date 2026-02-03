@@ -1,18 +1,12 @@
 'use client'
 
 // src/components/calendar/BirthInfoForm.tsx
-import React from 'react'
-import { logger } from '@/lib/logger'
-
+import React, { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
-import DateTimePicker from '@/components/ui/DateTimePicker'
-import TimePicker from '@/components/ui/TimePicker'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
-import { useCitySearch } from '@/hooks/calendar/useCitySearch'
-import { useProfileLoader } from '@/hooks/calendar/useProfileLoader'
-import { formatCityForDropdown } from '@/lib/cities/formatter'
+import { UnifiedBirthForm } from '@/components/common/BirthForm'
 import styles from './DestinyCalendar.module.css'
 
 interface BirthInfo {
@@ -50,50 +44,35 @@ export default function BirthInfoForm({
   const { status } = useSession()
   const signInUrl = buildSignInUrl()
 
-  const { suggestions, openSug, cityErr, setOpenSug, setSelectedCity, handleCitySelect } =
-    useCitySearch()
+  // Track if form is being submitted
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const { data: session } = useSession()
-  const { loadingProfile, profileLoaded, showProfilePrompt, loadProfile } = useProfileLoader(
-    session?.user?.id as string | undefined,
-    (info, city) => {
-      setBirthInfo(info)
-      setSelectedCity(city)
-    }
-  )
-
-  const handleLoadProfile = async () => {
-    if (status !== 'authenticated' || !session?.user?.id) {
-      logger.warn('User not authenticated or session missing')
-      return
-    }
-
-    const userId = session.user.id
-    await loadProfile(
-      userId,
-      (info, city) => {
-        setBirthInfo(info)
-        setSelectedCity(city)
-      },
-      false
-    )
-  }
-
-  const onPickCity = (city: {
-    name: string
-    country: string
-    lat: number
-    lon: number
+  const handleFormSubmit = async (formData: {
+    birthDate: string
+    birthTime: string
+    gender: 'M' | 'F' | 'Male' | 'Female'
+    birthCity?: string
+    latitude?: number
+    longitude?: number
     timezone?: string
   }) => {
-    handleCitySelect(city)
+    // Convert form data to parent's expected format
     setBirthInfo({
-      ...birthInfo,
-      birthPlace: `${city.name}, ${city.country}`,
-      latitude: city.lat,
-      longitude: city.lon,
-      timezone: city.timezone,
+      birthDate: formData.birthDate,
+      birthTime: formData.birthTime,
+      birthPlace: formData.birthCity || '',
+      gender:
+        formData.gender === 'M' ? 'Male' : formData.gender === 'F' ? 'Female' : formData.gender,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+      timezone: formData.timezone,
     })
+
+    // Trigger parent's submit handler after a brief delay to ensure state is updated
+    setTimeout(() => {
+      const fakeEvent = new Event('submit') as unknown as React.FormEvent
+      onSubmit(fakeEvent)
+    }, 0)
   }
 
   return (
@@ -115,262 +94,30 @@ export default function BirthInfoForm({
         </div>
 
         <div className={styles.birthFormCard}>
-          <div className={styles.formHeader}>
-            <span className={styles.formIcon}>🎂</span>
-            <h3 className={styles.formTitle}>{t('calendar.formTitle', 'Enter Your Birth Info')}</h3>
-            <p className={styles.formSubtitle}>
-              {t('calendar.formSubtitle', 'Required for accurate analysis')}
-            </p>
-          </div>
-
-          {/* Profile Prompt - No saved profile found */}
-          {status === 'authenticated' && showProfilePrompt && !profileLoaded && (
-            <div className={styles.profilePromptMessage}>
-              <span className={styles.profilePromptIcon}>💡</span>
-              <div className={styles.profilePromptText}>
-                <strong>
-                  {locale === 'ko' ? '저장된 프로필이 없습니다.' : 'No saved profile found.'}
-                </strong>
-                <br />
-                {locale === 'ko' ? (
-                  <>
-                    <a href="/myjourney" style={{ color: '#6366f1', textDecoration: 'underline' }}>
-                      My Journey 프로필
-                    </a>
-                    에서 생년월일을 먼저 저장하면 다음부터 자동으로 입력됩니다.
-                  </>
-                ) : (
-                  <>
-                    Save your birth info in{' '}
-                    <a href="/myjourney" style={{ color: '#6366f1', textDecoration: 'underline' }}>
-                      My Journey Profile
-                    </a>{' '}
-                    to auto-fill next time.
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Load Profile Button */}
-          {status === 'authenticated' && !profileLoaded && !showProfilePrompt && (
-            <button
-              type="button"
-              className={styles.loadProfileButton}
-              onClick={handleLoadProfile}
-              disabled={loadingProfile}
-            >
-              <span className={styles.loadProfileIcon}>{loadingProfile ? '⏳' : '👤'}</span>
-              <span className={styles.loadProfileText}>
-                {loadingProfile
-                  ? t('calendar.loadingProfile', 'Loading...')
-                  : t('calendar.loadMyProfile', 'Load My Profile')}
-              </span>
-              <span className={styles.loadProfileArrow}>→</span>
-            </button>
-          )}
-
-          {/* Profile loaded success message */}
-          {status === 'authenticated' && profileLoaded && (
-            <div className={styles.profileLoadedMessage}>
-              <span className={styles.profileLoadedIcon}>✓</span>
-              <span className={styles.profileLoadedText}>
-                {t('calendar.profileLoaded', 'Profile loaded!')}
-              </span>
-            </div>
-          )}
-
-          <form onSubmit={onSubmit} className={styles.form}>
-            {/* Birth Date */}
-            <div className={styles.fieldGroup}>
-              <DateTimePicker
-                value={birthInfo.birthDate}
-                onChange={(date) => setBirthInfo({ ...birthInfo, birthDate: date })}
-                label={locale === 'ko' ? '생년월일' : 'Birth Date'}
-                required
-                locale={locale}
-              />
-            </div>
-
-            {/* Birth Time */}
-            <div className={styles.fieldGroup}>
-              <TimePicker
-                value={birthInfo.birthTime}
-                onChange={(time) => setBirthInfo({ ...birthInfo, birthTime: time })}
-                label={locale === 'ko' ? '출생 시간' : 'Birth Time'}
-                required={!timeUnknown}
-                disabled={timeUnknown}
-                locale={locale}
-              />
-              <div className={styles.checkboxWrapper}>
-                <label className={styles.checkboxLabel}>
-                  <input
-                    type="checkbox"
-                    id="time-unknown-checkbox"
-                    checked={timeUnknown}
-                    onChange={(e) => {
-                      setTimeUnknown(e.target.checked)
-                      if (e.target.checked) {
-                        setBirthInfo({ ...birthInfo, birthTime: '' })
-                      }
-                    }}
-                    className={styles.checkbox}
-                    aria-describedby="time-unknown-help"
-                  />
-                  <span id="time-unknown-help">
-                    {locale === 'ko'
-                      ? '출생 시간을 모름 (정오 12:00으로 설정됩니다)'
-                      : 'Time unknown (will use 12:00 noon)'}
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            {/* Birth City */}
-            <div className={styles.fieldGroup} style={{ position: 'relative' }}>
-              <label className={styles.label} htmlFor="birth-city-input">
-                {locale === 'ko' ? '출생 도시' : 'Birth City'}
-                <span className={styles.required} aria-label="required">
-                  *
-                </span>
-              </label>
-              <input
-                id="birth-city-input"
-                className={styles.input}
-                placeholder={locale === 'ko' ? '도시를 입력하세요' : 'Enter your city'}
-                value={birthInfo.birthPlace}
-                onChange={(e) => {
-                  setBirthInfo({ ...birthInfo, birthPlace: e.target.value })
-                  setOpenSug(true)
-                }}
-                onBlur={() => {
-                  setTimeout(() => setOpenSug(false), 150)
-                }}
-                autoComplete="address-level2"
-                inputMode="text"
-                required
-                autoFocus
-                aria-required="true"
-                aria-invalid={cityErr ? 'true' : 'false'}
-                aria-describedby={cityErr ? 'city-error' : 'city-help'}
-                role="combobox"
-                aria-expanded={openSug && suggestions.length > 0}
-                aria-controls="city-suggestions"
-                aria-autocomplete="list"
-              />
-              {!cityErr && (
-                <span id="city-help" className={styles.helpText}>
-                  {locale === 'ko'
-                    ? '도시명을 2글자 이상 입력하세요'
-                    : 'Enter at least 2 characters'}
-                </span>
-              )}
-              {openSug && suggestions.length > 0 && (
-                <ul id="city-suggestions" role="listbox" className={styles.dropdown}>
-                  {suggestions.map((s, idx) => {
-                    const formattedCity = formatCityForDropdown(s.name, s.country, locale);
-                    return (
-                      <li
-                        key={`${s.name}-${s.country}-${idx}`}
-                        role="option"
-                        aria-selected="false"
-                        className={styles.dropdownItem}
-                        onMouseDown={(e) => {
-                          e.preventDefault()
-                          onPickCity(s)
-                        }}
-                      >
-                        {formattedCity}
-                      </li>
-                    )
-                  })}
-                </ul>
-              )}
-            </div>
-
-            {/* Gender */}
-            <div className={styles.fieldGroup}>
-              <label className={styles.label} id="gender-label">
-                {locale === 'ko' ? '성별' : 'Gender'}
-                <span className={styles.required} aria-label="required">
-                  *
-                </span>
-              </label>
-              <div
-                className={styles.genderButtons}
-                role="group"
-                aria-labelledby="gender-label"
-              >
-                <button
-                  type="button"
-                  className={`${styles.genderBtn} ${birthInfo.gender === 'Male' ? styles.active : ''}`}
-                  onClick={() => setBirthInfo({ ...birthInfo, gender: 'Male' })}
-                  aria-pressed={birthInfo.gender === 'Male'}
-                  aria-label={locale === 'ko' ? '남성' : 'Male'}
-                >
-                  <span aria-hidden="true">👨</span>
-                  <span>{locale === 'ko' ? '남성' : 'Male'}</span>
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.genderBtn} ${birthInfo.gender === 'Female' ? styles.active : ''}`}
-                  onClick={() => setBirthInfo({ ...birthInfo, gender: 'Female' })}
-                  aria-pressed={birthInfo.gender === 'Female'}
-                  aria-label={locale === 'ko' ? '여성' : 'Female'}
-                >
-                  <span aria-hidden="true">👩</span>
-                  <span>{locale === 'ko' ? '여성' : 'Female'}</span>
-                </button>
-              </div>
-            </div>
-
-            {cityErr && (
-              <div id="city-error" className={styles.error} role="alert">
-                {cityErr}
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <div className={styles.submitWrapper}>
-              <button
-                type="submit"
-                className={styles.submitButton}
-                disabled={
-                  submitting ||
-                  !birthInfo.birthDate ||
-                  (!birthInfo.birthTime && !timeUnknown) ||
-                  !birthInfo.birthPlace
-                }
-                aria-label={
-                  submitting
-                    ? t('calendar.analyzingButton', 'Analyzing...')
-                    : t('calendar.analyzeButton', 'View Destiny Calendar')
-                }
-              >
-                {submitting ? (
-                  <>
-                    <div className={styles.buttonSpinner} />
-                    <span>{t('calendar.analyzingButton', 'Analyzing...')}</span>
-                  </>
-                ) : (
-                  <>
-                    <span aria-hidden="true">✨</span>
-                    <span>{t('calendar.analyzeButton', 'View Destiny Calendar')}</span>
-                  </>
-                )}
-              </button>
-              {!submitting &&
-                (!birthInfo.birthDate ||
-                  (!birthInfo.birthTime && !timeUnknown) ||
-                  !birthInfo.birthPlace) && (
-                  <p className={styles.submitHint} role="status">
-                    {locale === 'ko'
-                      ? '* 필수 항목을 모두 입력해주세요'
-                      : '* Please fill in all required fields'}
-                  </p>
-                )}
-            </div>
-          </form>
+          <UnifiedBirthForm
+            onSubmit={handleFormSubmit}
+            locale={locale as 'ko' | 'en'}
+            initialData={{
+              birthDate: birthInfo.birthDate,
+              birthTime: birthInfo.birthTime,
+              gender: birthInfo.gender,
+              birthCity: birthInfo.birthPlace,
+              latitude: birthInfo.latitude,
+              longitude: birthInfo.longitude,
+              timezone: birthInfo.timezone,
+            }}
+            includeProfileLoader={true}
+            includeCity={true}
+            allowTimeUnknown={true}
+            genderFormat="long"
+            submitButtonText={t('calendar.analyzeButton', 'View Destiny Calendar')}
+            submitButtonIcon="✨"
+            loadingButtonText={t('calendar.analyzingButton', 'Analyzing...')}
+            showHeader={true}
+            headerIcon="🎂"
+            headerTitle={t('calendar.formTitle', 'Enter Your Birth Info')}
+            headerSubtitle={t('calendar.formSubtitle', 'Required for accurate analysis')}
+          />
 
           {status === 'unauthenticated' && (
             <div className={styles.loginHint}>

@@ -1,16 +1,16 @@
 // components/saju/SajuAnalyzer.tsx
 
-'use client';
+'use client'
 
-import { useState, useEffect, FormEvent, useMemo, useCallback } from 'react';
-import SajuResultDisplay from './SajuResultDisplay';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { saveUserProfile } from '@/lib/userProfile';
-import { searchCities } from '@/lib/cities';
-import tzLookup from 'tz-lookup';
-import DateTimePicker from '@/components/ui/DateTimePicker';
-import TimePicker from '@/components/ui/TimePicker';
-import { useI18n } from '@/i18n/I18nProvider';
+import { useState, useEffect, FormEvent, useMemo, useCallback } from 'react'
+import SajuResultDisplay from './SajuResultDisplay'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import { saveUserProfile } from '@/lib/userProfile'
+import { searchCities } from '@/lib/cities'
+import tzLookup from 'tz-lookup'
+import DateTimePicker from '@/components/ui/DateTimePicker'
+import TimePicker from '@/components/ui/TimePicker'
+import { useI18n } from '@/i18n/I18nProvider'
 import {
   getSupportedTimezones,
   getUserTimezone,
@@ -22,43 +22,50 @@ import {
   type WolunData,
   type IljinData,
   type PillarData,
-} from '../../lib/Saju';
+} from '../../lib/Saju'
 
 interface CityResult {
-  name: string;
-  country: string;
-  lat: number;
-  lon: number;
-  nameKr?: string;
-  countryKr?: string;
-  displayKr?: string;
-  displayEn?: string;
+  name: string
+  country: string
+  lat: number
+  lon: number
+  nameKr?: string
+  countryKr?: string
+  displayKr?: string
+  displayEn?: string
 }
 
 interface ApiFullResponse {
-  birthYear: number;
-  yearPillar: PillarData;
-  monthPillar: PillarData;
-  dayPillar: PillarData;
-  timePillar: PillarData;
-  daeun: { daeunsu: number; cycles: DaeunData[] };
-  fiveElements: { wood: number; fire: number; earth: number; metal: number; water: number };
-  dayMaster: DayMaster;
-  yeonun: YeonunData[];
-  wolun: WolunData[];
-  iljin: IljinData[];
-  gptPrompt: string;
+  birthYear: number
+  yearPillar: PillarData
+  monthPillar: PillarData
+  dayPillar: PillarData
+  timePillar: PillarData
+  daeun: { daeunsu: number; cycles: DaeunData[] }
+  fiveElements: { wood: number; fire: number; earth: number; metal: number; water: number }
+  dayMaster: DayMaster
+  yeonun: YeonunData[]
+  wolun: WolunData[]
+  iljin: IljinData[]
+  gptPrompt: string
 }
 
 export default function SajuAnalyzer() {
-  const { locale } = useI18n();
-  const userTz = useMemo(() => getUserTimezone(), []);
-  const tzList: string[] = useMemo(() => getSupportedTimezones(), []);
-  const baseInstant = useMemo(() => new Date(), []);
-  const [tzQuery, setTzQuery] = useState('');
-  const { profile, isLoading: profileLoading } = useUserProfile();
-  const [profileLoaded, setProfileLoaded] = useState(false);
-  const [timeUnknown, setTimeUnknown] = useState(false);
+  const { locale } = useI18n()
+  const userTz = useMemo(() => getUserTimezone(), [])
+  const tzList: string[] = useMemo(() => getSupportedTimezones(), [])
+  const baseInstant = useMemo(() => new Date(), [])
+  const [tzQuery, setTzQuery] = useState('')
+  const {
+    profile,
+    isLoading: profileLoading,
+    loadProfile,
+    loadingProfileBtn,
+    profileLoadedMsg,
+    profileLoadError,
+  } = useUserProfile({ skipAutoLoad: false })
+  const [profileLoaded, setProfileLoaded] = useState(false)
+  const [timeUnknown, setTimeUnknown] = useState(false)
 
   const [formData, setFormData] = useState({
     calendarType: 'solar' as 'solar' | 'lunar',
@@ -66,114 +73,149 @@ export default function SajuAnalyzer() {
     birthTime: '',
     gender: 'male' as 'male' | 'female',
     timezone: userTz,
-  });
+  })
 
-  const [sajuResult, setSajuResult] = useState<ApiFullResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [sajuResult, setSajuResult] = useState<ApiFullResponse | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const [cityQuery, setCityQuery] = useState('');
-  const [citySuggestions, setCitySuggestions] = useState<CityResult[]>([]);
-  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
-  const [selectedCity, setSelectedCity] = useState<string>('');
+  const [cityQuery, setCityQuery] = useState('')
+  const [citySuggestions, setCitySuggestions] = useState<CityResult[]>([])
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false)
+  const [selectedCity, setSelectedCity] = useState<string>('')
 
   useEffect(() => {
-    const q = cityQuery.trim();
+    const q = cityQuery.trim()
     if (q.length < 2) {
-      setCitySuggestions([]);
-      return;
+      setCitySuggestions([])
+      return
     }
     const tmr = setTimeout(async () => {
       try {
-        const items = (await searchCities(q, { limit: 20 })) as CityResult[];
-        setCitySuggestions(items);
-        setShowCitySuggestions(true);
+        const items = (await searchCities(q, { limit: 20 })) as CityResult[]
+        setCitySuggestions(items)
+        setShowCitySuggestions(true)
       } catch {
-        setCitySuggestions([]);
+        setCitySuggestions([])
       }
-    }, 150);
-    return () => clearTimeout(tmr);
-  }, [cityQuery]);
+    }, 150)
+    return () => clearTimeout(tmr)
+  }, [cityQuery])
 
-  const handleCitySelect = useCallback((city: CityResult) => {
-    // 한국어 표시 우선, 없으면 영어
-    const displayName = locale === 'ko' && city.displayKr ? city.displayKr : city.displayEn || `${city.name}, ${city.country}`;
-    setSelectedCity(displayName);
-    setCityQuery(displayName);
-    setShowCitySuggestions(false);
+  const handleCitySelect = useCallback(
+    (city: CityResult) => {
+      // 한국어 표시 우선, 없으면 영어
+      const displayName =
+        locale === 'ko' && city.displayKr
+          ? city.displayKr
+          : city.displayEn || `${city.name}, ${city.country}`
+      setSelectedCity(displayName)
+      setCityQuery(displayName)
+      setShowCitySuggestions(false)
 
-    try {
-      const tz = tzLookup(city.lat, city.lon);
-      if (tz && typeof tz === 'string') {
-        setFormData(prev => ({ ...prev, timezone: tz }));
+      try {
+        const tz = tzLookup(city.lat, city.lon)
+        if (tz && typeof tz === 'string') {
+          setFormData((prev) => ({ ...prev, timezone: tz }))
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
-    }
-  }, [locale]);
+    },
+    [locale]
+  )
 
   useEffect(() => {
-    if (profileLoading || profileLoaded) {return;}
+    if (profileLoading || profileLoaded) {
+      return
+    }
     if (profile.birthDate || profile.birthTime || profile.gender) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         birthDate: profile.birthDate || prev.birthDate,
         birthTime: profile.birthTime || prev.birthTime,
-        gender: (profile.gender === 'Male' ? 'male' : profile.gender === 'Female' ? 'female' : prev.gender) as 'male' | 'female',
+        gender: (profile.gender === 'Male'
+          ? 'male'
+          : profile.gender === 'Female'
+            ? 'female'
+            : prev.gender) as 'male' | 'female',
         timezone: profile.timezone || prev.timezone,
-      }));
+      }))
       if (profile.birthCity) {
-        setCityQuery(profile.birthCity);
-        setSelectedCity(profile.birthCity);
+        setCityQuery(profile.birthCity)
+        setSelectedCity(profile.birthCity)
       }
     }
-    setProfileLoaded(true);
-  }, [profile, profileLoading, profileLoaded]);
+    setProfileLoaded(true)
+  }, [profile, profileLoading, profileLoaded])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
   const filteredTz: string[] = useMemo(() => {
-    const q = tzQuery.trim().toLowerCase();
-    if (!q) {return tzList.slice(0, 200);}
-    return tzList.filter((t: string) => t.toLowerCase().includes(q)).slice(0, 200);
-  }, [tzList, tzQuery]);
+    const q = tzQuery.trim().toLowerCase()
+    if (!q) {
+      return tzList.slice(0, 200)
+    }
+    return tzList.filter((t: string) => t.toLowerCase().includes(q)).slice(0, 200)
+  }, [tzList, tzQuery])
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    setSajuResult(null);
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+    setSajuResult(null)
 
     try {
       // 출생시간 모름이면 12:00으로 설정
-      const effectiveBirthTime = formData.birthTime || '12:00';
-      const payload = { ...formData, birthTime: effectiveBirthTime, userTimezone: userTz };
+      const effectiveBirthTime = formData.birthTime || '12:00'
+      const payload = { ...formData, birthTime: effectiveBirthTime, userTimezone: userTz }
       const response = await fetch('/api/saju', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-      });
-      const data = await response.json();
+      })
+      const data = await response.json()
       if (!response.ok) {
-        throw new Error(data?.message || 'An unknown server error occurred.');
+        throw new Error(data?.message || 'An unknown server error occurred.')
       }
-      setSajuResult(data as ApiFullResponse);
+      setSajuResult(data as ApiFullResponse)
 
       saveUserProfile({
         birthDate: formData.birthDate,
         birthTime: formData.birthTime,
         gender: formData.gender === 'male' ? 'Male' : 'Female',
         timezone: formData.timezone,
-      });
+      })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch analysis data.');
+      setError(err instanceof Error ? err.message : 'Failed to fetch analysis data.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
+
+  const handleLoadProfile = async () => {
+    const success = await loadProfile(locale)
+    if (success && profile.birthDate) {
+      setFormData((prev) => ({
+        ...prev,
+        birthDate: profile.birthDate || prev.birthDate,
+        birthTime: profile.birthTime || prev.birthTime,
+        gender: (profile.gender === 'Male'
+          ? 'male'
+          : profile.gender === 'Female'
+            ? 'female'
+            : prev.gender) as 'male' | 'female',
+        timezone: profile.timezone || prev.timezone,
+      }))
+      if (profile.birthCity) {
+        setCityQuery(profile.birthCity)
+        setSelectedCity(profile.birthCity)
+      }
+    }
+  }
 
   return (
     <div className="w-full max-w-[600px] mx-auto">
@@ -182,6 +224,42 @@ export default function SajuAnalyzer() {
         className="bg-slate-800 p-8 rounded-xl border border-slate-600 mb-8"
         aria-label="사주 분석 입력 폼"
       >
+        {/* Load Profile Button */}
+        {!profileLoaded && !profileLoadedMsg && (
+          <button
+            type="button"
+            onClick={handleLoadProfile}
+            disabled={loadingProfileBtn}
+            className="w-full mb-5 p-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700
+              text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            <span>{loadingProfileBtn ? '⏳' : '👤'}</span>
+            <span>
+              {loadingProfileBtn
+                ? locale === 'ko'
+                  ? '불러오는 중...'
+                  : 'Loading...'
+                : locale === 'ko'
+                  ? '내 프로필 불러오기'
+                  : 'Load My Profile'}
+            </span>
+          </button>
+        )}
+
+        {/* Profile loaded success message */}
+        {profileLoadedMsg && (
+          <div className="mb-5 p-3 bg-green-600/20 border border-green-600 rounded-lg text-green-400 text-center">
+            ✓ {locale === 'ko' ? '프로필 불러오기 완료!' : 'Profile loaded!'}
+          </div>
+        )}
+
+        {/* Profile load error */}
+        {profileLoadError && (
+          <div className="mb-5 p-3 bg-red-600/20 border border-red-600 rounded-lg text-red-400 text-sm">
+            ⚠️ {profileLoadError}
+          </div>
+        )}
+
         {/* 양력/음력 */}
         <div className="mb-5">
           <label htmlFor="calendarType" className="block font-medium mb-2 text-gray-200">
@@ -204,7 +282,7 @@ export default function SajuAnalyzer() {
         <div className="mb-5">
           <DateTimePicker
             value={formData.birthDate}
-            onChange={(date) => setFormData(prev => ({ ...prev, birthDate: date }))}
+            onChange={(date) => setFormData((prev) => ({ ...prev, birthDate: date }))}
             label={locale === 'ko' ? '생년월일' : 'Birth Date'}
             required
             locale={locale}
@@ -215,7 +293,7 @@ export default function SajuAnalyzer() {
         <div className="mb-5">
           <TimePicker
             value={formData.birthTime}
-            onChange={(time) => setFormData(prev => ({ ...prev, birthTime: time }))}
+            onChange={(time) => setFormData((prev) => ({ ...prev, birthTime: time }))}
             label={locale === 'ko' ? '태어난 시간' : 'Birth Time'}
             required={!timeUnknown}
             disabled={timeUnknown}
@@ -226,9 +304,9 @@ export default function SajuAnalyzer() {
               type="checkbox"
               checked={timeUnknown}
               onChange={(e) => {
-                setTimeUnknown(e.target.checked);
+                setTimeUnknown(e.target.checked)
                 if (e.target.checked) {
-                  setFormData(prev => ({ ...prev, birthTime: '' }));
+                  setFormData((prev) => ({ ...prev, birthTime: '' }))
                 }
               }}
               className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500"
@@ -250,11 +328,12 @@ export default function SajuAnalyzer() {
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => setFormData(prev => ({ ...prev, gender: 'male' }))}
+              onClick={() => setFormData((prev) => ({ ...prev, gender: 'male' }))}
               className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all
-                ${formData.gender === 'male'
-                  ? 'border-blue-500 bg-blue-500/20 text-white'
-                  : 'border-slate-600 bg-slate-900 text-gray-400 hover:border-slate-500'
+                ${
+                  formData.gender === 'male'
+                    ? 'border-blue-500 bg-blue-500/20 text-white'
+                    : 'border-slate-600 bg-slate-900 text-gray-400 hover:border-slate-500'
                 }`}
             >
               <span>👨</span>
@@ -262,11 +341,12 @@ export default function SajuAnalyzer() {
             </button>
             <button
               type="button"
-              onClick={() => setFormData(prev => ({ ...prev, gender: 'female' }))}
+              onClick={() => setFormData((prev) => ({ ...prev, gender: 'female' }))}
               className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all
-                ${formData.gender === 'female'
-                  ? 'border-pink-500 bg-pink-500/20 text-white'
-                  : 'border-slate-600 bg-slate-900 text-gray-400 hover:border-slate-500'
+                ${
+                  formData.gender === 'female'
+                    ? 'border-pink-500 bg-pink-500/20 text-white'
+                    : 'border-slate-600 bg-slate-900 text-gray-400 hover:border-slate-500'
                 }`}
             >
               <span>👩</span>
@@ -307,8 +387,8 @@ export default function SajuAnalyzer() {
             >
               {citySuggestions.map((city, idx) => {
                 // 한국어 표시명 (있으면) + 영어 표시명
-                const displayKr = city.displayKr;
-                const displayEn = city.displayEn || `${city.name}, ${city.country}`;
+                const displayKr = city.displayKr
+                const displayEn = city.displayEn || `${city.name}, ${city.country}`
                 return (
                   <li
                     key={`${city.name}-${city.country}-${idx}`}
@@ -327,7 +407,7 @@ export default function SajuAnalyzer() {
                       displayEn
                     )}
                   </li>
-                );
+                )
               })}
             </ul>
           )}
@@ -362,18 +442,18 @@ export default function SajuAnalyzer() {
               aria-label="타임존 선택"
             >
               {filteredTz.map((tz: string) => {
-                const off = formatOffset(getOffsetMinutes(baseInstant, tz));
+                const off = formatOffset(getOffsetMinutes(baseInstant, tz))
                 return (
                   <option key={tz} value={tz}>
                     {tz} ({off})
                   </option>
-                );
+                )
               })}
             </select>
           </details>
           <p className="text-sm text-gray-400">
-            현재: <strong className="text-yellow-400">{formData.timezone}</strong>{' '}
-            ({formatOffset(getOffsetMinutes(baseInstant, formData.timezone))})
+            현재: <strong className="text-yellow-400">{formData.timezone}</strong> (
+            {formatOffset(getOffsetMinutes(baseInstant, formData.timezone))})
           </p>
         </div>
 
@@ -383,9 +463,10 @@ export default function SajuAnalyzer() {
           disabled={isLoading}
           className={`w-full p-4 rounded-md text-lg font-bold text-white transition-all duration-200
             focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800
-            ${isLoading
-              ? 'bg-slate-700 cursor-not-allowed opacity-60'
-              : 'bg-blue-600 hover:bg-blue-500 cursor-pointer'
+            ${
+              isLoading
+                ? 'bg-slate-700 cursor-not-allowed opacity-60'
+                : 'bg-blue-600 hover:bg-blue-500 cursor-pointer'
             }`}
           aria-busy={isLoading}
         >
@@ -400,5 +481,5 @@ export default function SajuAnalyzer() {
       )}
       {sajuResult && <SajuResultDisplay result={sajuResult} />}
     </div>
-  );
+  )
 }

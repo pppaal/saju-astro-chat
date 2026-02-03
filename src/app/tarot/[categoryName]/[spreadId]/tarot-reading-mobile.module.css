@@ -1,0 +1,477 @@
+/* ========================================
+   타로 리딩 페이지 - 모바일 추가 최적화
+   ======================================== */
+
+/* ===== Card Selection Stage - Mobile Improvements ===== */
+@media (max-width: 768px) {
+  .resultsGrid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 0 1rem;
+  }
+
+  .resultCardSlot {
+    padding: 1.75rem;
+  }
+
+  .imageContainer {
+    width: 180px;
+    height: 315px;
+  }
+
+  /* Better touch targets for cards */
+  .resultCardSlot {
+    min-height: 480px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Improve resultsHeader spacing */
+  .resultsHeader {
+    margin-bottom: 2.5rem;
+    padding: 0 1rem;
+  }
+
+  .resultsTitle {
+    font-size: 2rem;
+  }
+
+  .resultsSubtitle {
+    font-size: 1.1rem;
+  }
+
+  .userTopicDisplay {
+    padding: 0.625rem 1.25rem;
+    margin-top: 0.875rem;
+  }
+
+  .topicText {
+    font-size: 0.95rem;
+  }
+
+  /* Position badges - mobile friendly */
+  .positionBadge,
+  .positionBadgeWithNumber {
+    font-size: 1rem;
+    padding: 0.5rem 1.25rem;
+    min-height: 42px;
+  }
+
+  .cardNumberSmall {
+    min-width: 24px;
+    height: 24px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .resultsGrid {
+    gap: 1.5rem;
+    padding: 0 0.75rem;
+  }
+
+  .resultCardSlot {
+    padding: 1.5rem;
+    gap: 1.25rem;
+  }
+
+  .imageContainer {
+    width: 160px;
+    height: 280px;
+  }
+
+  .resultsTitle {
+    font-size: 1.75rem;
+  }
+
+  .resultsSubtitle {
+    font-size: 1rem;
+  }
+
+  .positionBadge,
+  .positionBadgeWithNumber {
+    font-size: 0.925rem;
+    padding: 0.5rem 1rem;
+    min-height: 40px;
+  }
+}
+
+/* ===== iPhone SE and Small Screens ===== */
+@media (max-width: 375px) {
+  .resultsHeader {
+    margin-bottom: 2rem;
+  }
+
+  .resultsTitle {
+    font-size: 1.5rem;
+  }
+
+  .resultsSubtitle {
+    font-size: 0.925rem;
+  }
+
+  .resultCardSlot {
+    padding: 1.25rem;
+    min-height: 420px;
+  }
+
+  .imageContainer {
+    width: 140px;
+    height: 245px;
+  }
+
+  .userTopicDisplay {
+    padding: 0.5rem 1rem;
+    margin-top: 0.75rem;
+  }
+
+  .topicIcon {
+    font-size: 1rem;
+  }
+
+  .topicText {
+    font-size: 0.875rem;
+  }
+}
+
+/* ===== Interpretation Results - Mobile ===== */
+@media (max-width: 768px) {
+  .overallMessage {
+    padding: 1.5rem;
+    margin-bottom: 2.5rem;
+    gap: 1.25rem;
+  }
+
+  .messageIcon {
+    font-size: 2rem;
+  }
+
+  .messageText {
+    font-size: 1.1rem;
+    line-height: 1.8;
+  }
+
+  .counselorSection {
+    margin-bottom: 2rem;
+  }
+
+  .counselorAvatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .counselorBubble {
+    padding: 1.25rem;
+  }
+
+  .counselorText {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+}
+
+@media (max-width: 480px) {
+  .overallMessage {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .messageIcon {
+    font-size: 1.75rem;
+  }
+
+  .messageText {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .counselorAvatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .counselorBubble {
+    padding: 1rem;
+  }
+
+  .counselorText {
+    font-size: 0.95rem;
+  }
+}
+
+/* ===== Action Buttons - Mobile Touch Friendly ===== */
+@media (max-width: 768px) {
+  .actionButtons {
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0 1rem;
+  }
+
+  .actionButton {
+    width: 100%;
+    min-height: 52px;
+    font-size: 1rem;
+    padding: 0.875rem 1.5rem;
+    justify-content: center;
+  }
+
+  .saveButton,
+  .newReadingButton,
+  .scrollButton {
+    min-height: 52px;
+  }
+}
+
+@media (max-width: 480px) {
+  .actionButton {
+    min-height: 48px;
+    font-size: 0.95rem;
+    padding: 0.75rem 1.25rem;
+  }
+}
+
+/* ===== Card Deck Display - Mobile ===== */
+@media (max-width: 768px) {
+  .cardContainer {
+    perspective: 800px;
+  }
+
+  .cardsWrapper {
+    gap: 1rem;
+    padding: 0 1rem;
+  }
+
+  .cardBackWrapper {
+    width: 140px;
+    height: 245px;
+  }
+
+  .cardBack {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .cardsWrapper {
+    gap: 0.75rem;
+    padding: 0 0.5rem;
+  }
+
+  .cardBackWrapper {
+    width: 120px;
+    height: 210px;
+  }
+}
+
+@media (max-width: 375px) {
+  .cardBackWrapper {
+    width: 100px;
+    height: 175px;
+  }
+}
+
+/* ===== Streaming/Loading States - Mobile ===== */
+@media (max-width: 768px) {
+  .streamingContainer {
+    padding: 2rem 1rem;
+  }
+
+  .streamingContentBox {
+    padding: 1.5rem;
+  }
+
+  .loadingOrb {
+    width: 60px;
+    height: 60px;
+  }
+
+  .revealingOrb {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .streamingContainer {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .streamingContentBox {
+    padding: 1.25rem;
+  }
+
+  .loadingOrb {
+    width: 50px;
+    height: 50px;
+  }
+
+  .revealingOrb {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* ===== Touch Feedback Enhancement ===== */
+@media (hover: none) and (pointer: coarse) {
+  /* Mobile touch devices */
+  .resultCardSlot:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+
+  .actionButton:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+
+  .cardBackWrapper:active {
+    transform: scale(0.95);
+  }
+
+  /* Remove hover effects on touch devices */
+  .resultCardSlot:hover {
+    transform: none;
+  }
+
+  .actionButton:hover {
+    transform: none;
+  }
+}
+
+/* ===== Performance Optimizations ===== */
+@media (max-width: 768px) {
+  /* Reduce animation complexity on mobile */
+  .cardFlipInner {
+    animation-duration: 1s; /* Faster animation */
+  }
+
+  .resultCardSlot {
+    animation-duration: 0.4s;
+  }
+
+  /* Optimize backdrop blur on mobile */
+  .streamingContentBox,
+  .overallMessage,
+  .resultCardSlot {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
+@media (max-width: 480px) {
+  /* Further reduce blur on low-end devices */
+  .streamingContentBox,
+  .overallMessage,
+  .resultCardSlot {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* Simplify animations */
+  @media (prefers-reduced-motion: no-preference) {
+    .cardFlipInner {
+      animation-duration: 0.8s;
+    }
+  }
+}
+
+/* ===== Progress Bar - Mobile ===== */
+@media (max-width: 640px) {
+  .progressBar {
+    width: 160px;
+    height: 5px;
+  }
+
+  .progressText {
+    font-size: 0.85rem;
+  }
+
+  .pickingText {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .progressBar {
+    width: 140px;
+  }
+
+  .instructionTitle {
+    font-size: 1.75rem;
+  }
+
+  .pickingText {
+    font-size: 0.875rem;
+  }
+}
+
+/* ===== Safe Area Insets ===== */
+@supports (padding: max(0px)) {
+  @media (max-width: 768px) {
+    .readingContainer {
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+
+    .resultsSection {
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+      padding-bottom: max(2rem, env(safe-area-inset-bottom));
+    }
+  }
+}
+
+/* ===== Landscape Mode Adjustments ===== */
+@media (max-width: 768px) and (orientation: landscape) {
+  .resultsHeader {
+    margin-bottom: 1.5rem;
+  }
+
+  .resultsTitle {
+    font-size: 1.75rem;
+  }
+
+  .resultCardSlot {
+    padding: 1.25rem;
+    min-height: auto;
+  }
+
+  .imageContainer {
+    width: 140px;
+    height: 245px;
+  }
+
+  .overallMessage {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .messageText {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+}
+
+/* ===== Fix for Very Small Heights ===== */
+@media (max-height: 600px) and (max-width: 768px) {
+  .instructions {
+    padding: 0.375rem 1rem;
+  }
+
+  .instructionTitle {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .instructionContent {
+    gap: 0.375rem;
+  }
+
+  .progressBar {
+    width: 120px;
+    height: 4px;
+  }
+}

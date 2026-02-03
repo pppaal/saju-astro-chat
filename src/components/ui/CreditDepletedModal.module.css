@@ -74,7 +74,8 @@
 }
 
 @keyframes pulse1 {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -85,7 +86,8 @@
 }
 
 @keyframes pulse2 {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -96,7 +98,8 @@
 }
 
 @keyframes pulse3 {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -118,7 +121,8 @@
 }
 
 @keyframes glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
   }
   50% {
@@ -140,7 +144,8 @@
 }
 
 @keyframes fadeInOut {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
   }
   50% {
@@ -149,7 +154,8 @@
 }
 
 @keyframes shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(-3deg);
   }
   50% {
@@ -194,7 +200,8 @@
 }
 
 @keyframes sparkle {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1) rotate(0deg);
     opacity: 1;
   }
@@ -395,6 +402,107 @@
     padding: 12px 20px;
     font-size: 13px;
   }
+}
+
+/* Limit Display (for compatibility/followUp) */
+.limitDisplay {
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 28px;
+}
+
+.limitBar {
+  width: 100%;
+  height: 8px;
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.limitBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #f87171, #ef4444);
+  transition: width 0.3s ease;
+}
+
+.limitText {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.limitLabel {
+  font-size: 12px;
+  color: #8b8aa3;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.limitValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f87171;
+}
+
+.planInfo {
+  font-size: 13px;
+  color: #a5a3c7;
+  margin: 8px 0 0;
+  text-align: center;
+}
+
+.planInfo strong {
+  color: #d4d2f0;
+}
+
+/* Explainer Box */
+.mainDesc {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: #a5a3c7;
+  line-height: 1.6;
+}
+
+.explainer {
+  display: flex;
+  gap: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: left;
+}
+
+.explainerIcon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.explainerContent {
+  flex: 1;
+}
+
+.explainerContent strong {
+  display: block;
+  font-size: 13px;
+  color: #d4d2f0;
+  margin-bottom: 6px;
+}
+
+.explainerContent p {
+  font-size: 12px;
+  color: #a5a3c7;
+  line-height: 1.5;
+  margin: 0 0 4px;
+}
+
+.noteText {
+  color: #8b8aa3 !important;
+  font-style: italic;
 }
 
 /* Extra small mobile */

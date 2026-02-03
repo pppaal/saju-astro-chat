@@ -2,8 +2,13 @@
 
 import React from 'react'
 import { useSession } from 'next-auth/react'
-import { AnimatePresence } from 'framer-motion'
+import dynamic from 'next/dynamic'
 import { useI18n } from '@/i18n/I18nProvider'
+
+// Dynamic import for framer-motion to reduce bundle size
+const AnimatePresence = dynamic(() => import('framer-motion').then((mod) => mod.AnimatePresence), {
+  ssr: false,
+})
 import BackButton from '@/components/ui/BackButton'
 import CreditBadge from '@/components/ui/CreditBadge'
 import { useDreamPhase } from '@/hooks/useDreamPhase'

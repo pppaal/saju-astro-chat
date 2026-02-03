@@ -1,15 +1,32 @@
-import type { TarotContent, ServiceRecord } from '../../lib';
-import { formatDate } from '../../lib';
-import styles from '../../history.module.css';
+import { useState } from 'react'
+import Image from 'next/image'
+import type { TarotContent, ServiceRecord } from '../../lib'
+import { formatDate } from '../../lib'
+import { getCardImagePath } from '@/lib/Tarot/tarot.types'
+import styles from '../../history.module.css'
 
 type TarotDetailModalProps = {
-  detail: TarotContent;
-  selectedRecord?: ServiceRecord;
-  recordDate?: string;
-};
+  detail: TarotContent
+  selectedRecord?: ServiceRecord
+  recordDate?: string
+}
 
 export function TarotDetailModal({ detail, selectedRecord, recordDate }: TarotDetailModalProps) {
-  const displayDate = recordDate || selectedRecord?.date;
+  const displayDate = recordDate || selectedRecord?.date
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set())
+
+  const toggleCard = (index: number) => {
+    setExpandedCards((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(index)) {
+        newSet.delete(index)
+      } else {
+        newSet.add(index)
+      }
+      return newSet
+    })
+  }
+
   return (
     <div className={styles.tarotDetail}>
       {/* Header */}
@@ -47,31 +64,65 @@ export function TarotDetailModal({ detail, selectedRecord, recordDate }: TarotDe
         <div className={styles.tarotCards}>
           {detail.cards.map((card, idx) => {
             const cardInsight = detail.cardInsights?.find(
-              ci => ci.card_name === card.name || ci.card_name === card.nameKo
-            );
+              (ci) => ci.card_name === card.name || ci.card_name === card.nameKo
+            )
+            const isExpanded = expandedCards.has(idx)
+            const cardImagePath = card.cardId
+              ? getCardImagePath(card.cardId)
+              : card.image || '/images/tarot/card-back.webp'
+
             return (
-              <div key={idx} className={styles.tarotCard}>
+              <div
+                key={idx}
+                className={`${styles.tarotCard} ${isExpanded ? styles.tarotCardExpanded : ''}`}
+                onClick={() => toggleCard(idx)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    toggleCard(idx)
+                  }
+                }}
+              >
                 <div className={styles.tarotCardHeader}>
-                  {card.position && (
-                    <span className={styles.cardPosition}>{card.position}</span>
-                  )}
-                  <span className={`${styles.cardOrientation} ${card.isReversed ? styles.reversed : ''}`}>
+                  {card.position && <span className={styles.cardPosition}>{card.position}</span>}
+                  <span
+                    className={`${styles.cardOrientation} ${card.isReversed ? styles.reversed : ''}`}
+                  >
                     {card.isReversed ? '역방향' : '정방향'}
                   </span>
                 </div>
-                <div className={styles.cardName}>
-                  {card.nameKo || card.name}
+
+                {/* Card Image */}
+                <div
+                  className={`${styles.cardImageWrapper} ${card.isReversed ? styles.cardImageReversed : ''}`}
+                >
+                  <Image
+                    src={cardImagePath}
+                    alt={card.nameKo || card.name}
+                    width={140}
+                    height={245}
+                    className={styles.cardImage}
+                  />
                 </div>
+
+                <div className={styles.cardName}>{card.nameKo || card.name}</div>
                 {card.nameKo && card.name !== card.nameKo && (
                   <div className={styles.cardNameEn}>{card.name}</div>
                 )}
-                {cardInsight?.interpretation && (
+
+                {isExpanded && cardInsight?.interpretation && (
                   <div className={styles.cardInsight}>
                     <p>{cardInsight.interpretation}</p>
                   </div>
                 )}
+
+                <div className={styles.expandHint}>
+                  {isExpanded ? '▲ 클릭하여 닫기' : '▼ 클릭하여 자세히 보기'}
+                </div>
               </div>
-            );
+            )
           })}
         </div>
       </div>
@@ -93,11 +144,7 @@ export function TarotDetailModal({ detail, selectedRecord, recordDate }: TarotDe
       )}
 
       {/* Timestamp */}
-      {displayDate && (
-        <p className={styles.timestamp}>
-          {formatDate(displayDate)}
-        </p>
-      )}
+      {displayDate && <p className={styles.timestamp}>{formatDate(displayDate)}</p>}
     </div>
-  );
+  )
 }

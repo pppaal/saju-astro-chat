@@ -4,29 +4,29 @@
  * First phase: Collect birth information from user.
  */
 
-'use client';
+'use client'
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { BirthInfoForm } from '@/components/life-prediction/BirthInfoForm';
-import { LoginHint } from '../components/LoginHint';
-import { pageTransitionVariants } from '@/components/life-prediction/animations/cardAnimations';
-import styles from '../life-prediction.module.css';
+import React from 'react'
+import { motion } from 'framer-motion'
+import { BirthInfoForm } from '@/components/life-prediction/BirthInfoForm'
+import { LoginHint } from '../components/LoginHint'
+import { pageTransitionVariants } from '@/components/life-prediction/animations/cardAnimations'
+import styles from '../life-prediction.module.css'
 
 interface BirthInputPhaseProps {
   /** Locale for text */
-  locale: 'ko' | 'en';
+  locale: 'ko' | 'en'
   /** Session status */
-  status: 'authenticated' | 'loading' | 'unauthenticated';
+  status: 'authenticated' | 'loading' | 'unauthenticated'
   /** Sign-in URL */
-  signInUrl: string;
+  signInUrl: string
   /** Submit handler */
   onSubmit: (birthInfo: {
-    birthDate: string;
-    birthTime: string;
-    gender: 'M' | 'F';
-    birthCity?: string;
-  }) => Promise<void>;
+    birthDate: string
+    birthTime: string
+    gender: 'M' | 'F'
+    birthCity?: string
+  }) => Promise<void>
 }
 
 /**
@@ -44,6 +44,21 @@ interface BirthInputPhaseProps {
  */
 export const BirthInputPhase = React.memo<BirthInputPhaseProps>(
   ({ locale, status, signInUrl, onSubmit }) => {
+    const handleSubmit = (birthInfo: {
+      birthDate: string
+      birthTime: string
+      gender: 'M' | 'F' | 'Male' | 'Female'
+      birthCity?: string
+    }) => {
+      // Normalize gender to short format
+      const normalizedGender =
+        birthInfo.gender === 'Male' ? 'M' : birthInfo.gender === 'Female' ? 'F' : birthInfo.gender
+      onSubmit({
+        ...birthInfo,
+        gender: normalizedGender,
+      })
+    }
+
     return (
       <motion.div
         key="birth-input"
@@ -64,14 +79,12 @@ export const BirthInputPhase = React.memo<BirthInputPhaseProps>(
           </p>
         </div>
 
-        <BirthInfoForm onSubmit={onSubmit} locale={locale} />
+        <BirthInfoForm onSubmit={handleSubmit as any} locale={locale} />
 
-        {status === 'unauthenticated' && (
-          <LoginHint signInUrl={signInUrl} locale={locale} />
-        )}
+        {status === 'unauthenticated' && <LoginHint signInUrl={signInUrl} locale={locale} />}
       </motion.div>
-    );
+    )
   }
-);
+)
 
-BirthInputPhase.displayName = 'BirthInputPhase';
+BirthInputPhase.displayName = 'BirthInputPhase'

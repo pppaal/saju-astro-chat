@@ -39,6 +39,33 @@
     "switchToQuickMode": "빠른 입력 모드로 전환",
     "switchToDetailedMode": "상세 입력 모드로 전환",
     "quickModeHint": "이름과 생년월일만 입력 - 빠르고 간단하게",
-    "detailedModeHint": "출생 시간과 위치 포함 - 정밀한 분석을 위해"
+    "detailedModeHint": "출생 시간과 위치 포함 - 정밀한 분석을 위해",
+    "insights": {
+      "viewDetailed": "상세 분석 보기",
+      "description": "사주 + 점성술 심화 분석"
+    },
+    "chat": {
+      "startChat": "AI 채팅 시작",
+      "title": "궁합 상담"
+    },
+    "counselor": {
+      "connect": "AI 상담사 연결하기",
+      "description": "더 깊은 상담 받기"
+    },
+    "tarot": {
+      "start": "타로 카드 보기",
+      "description": "연애운을 카드로 확인"
+    },
+    "growthActions": "성장을 위한 행동 지침",
+    "loadMyProfile": "내 프로필",
+    "fromCircle": "내 서클에서",
+    "timingGuide": "타이밍 가이드",
+    "thisMonth": "이번 달",
+    "groupActivities": "그룹 활동",
+    "recommendedDays": "추천 날짜",
+    "synergyBreakdown": "시너지 세부 분석",
+    "pairwiseMatrix": "1:1 궁합 매트릭스",
+    "groupRoles": "그룹 내 역할",
+    "groupElementDistribution": "그룹 오행 분포"
   }
 }

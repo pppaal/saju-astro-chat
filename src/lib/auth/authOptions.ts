@@ -70,10 +70,14 @@ function ensureEncryptionKey() {
     return
   }
   const msg = 'TOKEN_ENCRYPTION_KEY is required to store OAuth tokens securely'
-  // Only throw in production runtime (not during build)
-  if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PHASE) {
+
+  // Strict enforcement: always throw in production
+  if (process.env.NODE_ENV === 'production') {
+    logger.error('[auth] CRITICAL: Missing TOKEN_ENCRYPTION_KEY in production')
     throw new Error(msg)
   }
+
+  // Development: allow but warn loudly
   logger.warn(`[auth] ${msg} (development only: tokens will remain plaintext)`)
 }
 
@@ -95,7 +99,7 @@ function encryptAccountTokens(account: AdapterAccount) {
 // @next-auth/prisma-adapter@1.0.7 uses compound unique keys (provider_providerAccountId)
 // which cause P2022 errors with Prisma 7.x. This adapter avoids compound keys entirely.
 function createFilteredPrismaAdapter(): Adapter {
-  ensureEncryptionKey();
+  ensureEncryptionKey()
 
   return {
     createUser: async (user: Omit<AdapterUser, 'id'>) => {
@@ -103,7 +107,7 @@ function createFilteredPrismaAdapter(): Adapter {
         const referralCode = generateReferralCode()
         const createdUser = await prisma.user.create({
           data: { ...user, referralCode },
-        });
+        })
         return createdUser as AdapterUser
       } catch (error) {
         logger.error('[auth] createUser failed:', error)
@@ -112,7 +116,7 @@ function createFilteredPrismaAdapter(): Adapter {
     },
     getUser: async (id: string) => {
       try {
-        const user = await prisma.user.findUnique({ where: { id } });
+        const user = await prisma.user.findUnique({ where: { id } })
         return (user as AdapterUser) ?? null
       } catch (error) {
         logger.warn('[auth] getUser full select failed, using safe select:', error)
@@ -125,7 +129,7 @@ function createFilteredPrismaAdapter(): Adapter {
     },
     getUserByEmail: async (email: string) => {
       try {
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await prisma.user.findUnique({ where: { email } })
         return (user as AdapterUser) ?? null
       } catch (error) {
         logger.warn('[auth] getUserByEmail full select failed, using safe select:', error)
@@ -158,7 +162,7 @@ function createFilteredPrismaAdapter(): Adapter {
       const updated = await prisma.user.update({
         where: { id: user.id },
         data: user,
-      });
+      })
       return updated as AdapterUser
     },
     deleteUser: async (userId: string) => {
@@ -173,7 +177,7 @@ function createFilteredPrismaAdapter(): Adapter {
           }
         }
         const securedAccount = encryptAccountTokens(filteredAccount as AdapterAccount)
-        await prisma.account.create({ data: securedAccount as never });
+        await prisma.account.create({ data: securedAccount as never })
       } catch (error) {
         logger.error('[auth] linkAccount failed:', error)
         throw error
@@ -222,7 +226,7 @@ function createFilteredPrismaAdapter(): Adapter {
       try {
         return await prisma.verificationToken.delete({
           where: { identifier_token },
-        });
+        })
       } catch {
         return null
       }
@@ -285,7 +289,7 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       logger.warn(
         `[auth] signIn callback: provider=${account?.provider} user=${user?.email} profile=${!!profile}`
-      );
+      )
       return true
     },
     async jwt({ token, user }) {

@@ -1,0 +1,131 @@
+.profilePromptMsg {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 0.75rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #92400e;
+}
+
+.profilePromptIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.profilePromptText {
+  flex: 1;
+}
+
+.link {
+  color: #6366f1;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.link:hover {
+  color: #4f46e5;
+}
+
+.loadProfileBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 1.25rem;
+}
+
+.loadProfileBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+
+.loadProfileBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.loadProfileIcon {
+  font-size: 1.25rem;
+}
+
+.loadProfileText {
+  flex: 1;
+  text-align: left;
+}
+
+.loadProfileArrow {
+  font-size: 1.25rem;
+  transition: transform 0.2s ease;
+}
+
+.loadProfileBtn:hover:not(:disabled) .loadProfileArrow {
+  transform: translateX(4px);
+}
+
+.profileLoadedMsg {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: #d1fae5;
+  border: 1px solid #34d399;
+  border-radius: 0.75rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #065f46;
+}
+
+.profileLoadedIcon {
+  font-size: 1.25rem;
+  color: #10b981;
+}
+
+.loadErrorMsg {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: 0.75rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  color: #991b1b;
+}
+
+.loadErrorIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .profilePromptMsg,
+  .loadProfileBtn,
+  .profileLoadedMsg,
+  .loadErrorMsg {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .profilePromptIcon,
+  .loadProfileIcon,
+  .profileLoadedIcon,
+  .loadErrorIcon {
+    font-size: 1.1rem;
+  }
+}

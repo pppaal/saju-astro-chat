@@ -1,0 +1,175 @@
+/* ===== Collapsible Section ===== */
+.collapsible {
+  background: rgba(30, 30, 45, 0.4);
+  border: 1px solid rgba(138, 43, 226, 0.2);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.collapsible:hover {
+  border-color: rgba(138, 43, 226, 0.35);
+  background: rgba(30, 30, 45, 0.5);
+}
+
+.collapsible.highlight {
+  border-color: rgba(251, 191, 36, 0.3);
+  background: rgba(251, 191, 36, 0.05);
+}
+
+.collapsible.highlight:hover {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.collapsible.warning {
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(248, 113, 113, 0.05);
+}
+
+.collapsible.warning:hover {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(248, 113, 113, 0.08);
+}
+
+/* ===== Header ===== */
+.header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.header:hover {
+  background: rgba(138, 43, 226, 0.08);
+}
+
+.header:focus-visible {
+  outline: 2px solid rgba(138, 43, 226, 0.5);
+  outline-offset: -2px;
+}
+
+.headerOpen {
+  background: rgba(138, 43, 226, 0.06);
+  border-bottom: 1px solid rgba(138, 43, 226, 0.15);
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: rgba(224, 224, 255, 0.95);
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+/* ===== Chevron ===== */
+.chevron {
+  font-size: 1.5rem;
+  color: rgba(138, 43, 226, 0.7);
+  transition: transform 0.3s ease;
+  transform: rotate(0deg);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+}
+
+/* ===== Content ===== */
+.contentWrapper {
+  overflow: hidden;
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.content {
+  padding: 1rem 1.25rem 1.25rem 1.25rem;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .header {
+    padding: 0.875rem 1rem;
+  }
+
+  .icon {
+    font-size: 1.1rem;
+  }
+
+  .title {
+    font-size: 0.9rem;
+  }
+
+  .content {
+    padding: 0.875rem 1rem 1rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0.75rem 0.875rem;
+  }
+
+  .headerContent {
+    gap: 0.6rem;
+  }
+
+  .icon {
+    font-size: 1rem;
+  }
+
+  .title {
+    font-size: 0.85rem;
+  }
+
+  .chevron {
+    font-size: 1.3rem;
+  }
+
+  .content {
+    padding: 0.75rem 0.875rem 0.875rem 0.875rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .header {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .icon {
+    font-size: 0.95rem;
+  }
+
+  .title {
+    font-size: 0.8rem;
+  }
+
+  .chevron {
+    font-size: 1.2rem;
+  }
+
+  .content {
+    padding: 0.65rem 0.75rem 0.75rem 0.75rem;
+  }
+}

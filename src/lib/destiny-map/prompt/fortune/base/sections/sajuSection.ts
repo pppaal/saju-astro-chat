@@ -29,7 +29,11 @@ interface SajuSectionData {
 /**
  * 사주 기본 정보 추출
  */
-export function extractSajuBasics(saju: SajuData) {
+export function extractSajuBasics(saju: SajuData): {
+  pillarText: string
+  actualDayMaster: string
+  actualDayMasterElement: string
+} {
   const { pillars, dayMaster } = saju
 
   const pillarText =
@@ -44,8 +48,9 @@ export function extractSajuBasics(saju: SajuData) {
 
   const dayPillarStem = pillars?.day?.heavenlyStem?.name
   const dayPillarElement = pillars?.day?.heavenlyStem?.element
-  const actualDayMaster = dayMaster?.name || dayPillarStem || '-'
-  const actualDayMasterElement = dayMaster?.element || dayPillarElement || '-'
+  const actualDayMaster = (dayMaster?.name as string | undefined) || dayPillarStem || '-'
+  const actualDayMasterElement =
+    (dayMaster?.element as string | undefined) || dayPillarElement || '-'
 
   return {
     pillarText,

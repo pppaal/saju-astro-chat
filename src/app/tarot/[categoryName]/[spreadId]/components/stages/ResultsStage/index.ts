@@ -1,0 +1,6 @@
+export { ResultsStage } from './ResultsStage'
+export type { ResultsStageProps } from './ResultsStage'
+export { ResultsHeader } from './ResultsHeader'
+export { CombinationsSection } from './CombinationsSection'
+export { GuidanceSection } from './GuidanceSection'
+export { FollowupSection } from './FollowupSection'

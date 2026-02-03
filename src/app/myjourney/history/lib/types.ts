@@ -3,203 +3,207 @@
  * Extracted from page.tsx for modularity
  */
 
-import type { TimingAIPremiumReport, ThemedAIPremiumReport } from '@/lib/destiny-matrix/ai-report/types';
+import type {
+  TimingAIPremiumReport,
+  ThemedAIPremiumReport,
+} from '@/lib/destiny-matrix/ai-report/types'
 
 export type ServiceRecord = {
-  id: string;
-  date: string;
-  service: string;
-  theme?: string;
-  summary?: string;
-  type: string;
-  content?: string;
-};
+  id: string
+  date: string
+  service: string
+  theme?: string
+  summary?: string
+  type: string
+  content?: string
+}
 
 export type DailyHistory = {
-  date: string;
-  records: ServiceRecord[];
-};
+  date: string
+  records: ServiceRecord[]
+}
 
 export type DestinyMapContent = {
-  id: string;
-  theme: string;
-  summary: string;
-  fullReport?: string;
-  createdAt: string;
-  locale?: string;
-  userQuestion?: string;
-};
+  id: string
+  theme: string
+  summary: string
+  fullReport?: string
+  createdAt: string
+  locale?: string
+  userQuestion?: string
+}
 
 export type IChingContent = {
-  question?: string;
+  question?: string
   primaryHexagram: {
-    number: number;
-    name: string;
-    symbol: string;
-    binary?: string;
-    judgment?: string;
-    image?: string;
-  };
-  hexagramLines?: { value: number; isChanging: boolean }[];
-  changingLines?: { index: number; text: string }[];
+    number: number
+    name: string
+    symbol: string
+    binary?: string
+    judgment?: string
+    image?: string
+  }
+  hexagramLines?: { value: number; isChanging: boolean }[]
+  changingLines?: { index: number; text: string }[]
   resultingHexagram?: {
-    number: number;
-    name: string;
-    symbol: string;
-    binary?: string;
-    judgment?: string;
-  } | null;
+    number: number
+    name: string
+    symbol: string
+    binary?: string
+    judgment?: string
+  } | null
   aiInterpretation?: {
-    overview: string;
-    changing: string;
-    advice: string;
-  } | null;
-  locale?: string;
-  timestamp?: string;
-};
+    overview: string
+    changing: string
+    advice: string
+  } | null
+  locale?: string
+  timestamp?: string
+}
 
 export type CalendarContent = {
-  id: string;
-  date: string;
-  grade: number;
-  score: number;
-  title: string;
-  description: string;
-  summary?: string;
-  categories: string[];
-  bestTimes?: string[];
-  sajuFactors?: string[];
-  astroFactors?: string[];
-  recommendations?: string[];
-  warnings?: string[];
-  createdAt: string;
-};
+  id: string
+  date: string
+  grade: number
+  score: number
+  title: string
+  description: string
+  summary?: string
+  categories: string[]
+  bestTimes?: string[]
+  sajuFactors?: string[]
+  astroFactors?: string[]
+  recommendations?: string[]
+  warnings?: string[]
+  createdAt: string
+}
 
 export type TarotCard = {
-  name: string;
-  nameKo?: string;
-  isReversed: boolean;
-  position?: string;
-  image?: string;
-};
+  name: string
+  nameKo?: string
+  isReversed: boolean
+  position?: string
+  image?: string
+  cardId?: number
+}
 
 export type TarotCardInsight = {
-  position: string;
-  card_name: string;
-  is_reversed: boolean;
-  interpretation: string;
-};
+  position: string
+  card_name: string
+  is_reversed: boolean
+  interpretation: string
+}
 
 export type TarotContent = {
-  categoryId: string;
-  spreadId: string;
-  spreadTitle: string;
-  cards: TarotCard[];
-  userQuestion?: string;
-  overallMessage?: string;
-  cardInsights?: TarotCardInsight[];
-  guidance?: string;
-  affirmation?: string;
-};
+  categoryId: string
+  spreadId: string
+  spreadTitle: string
+  cards: TarotCard[]
+  userQuestion?: string
+  overallMessage?: string
+  cardInsights?: TarotCardInsight[]
+  guidance?: string
+  affirmation?: string
+}
 
 export type NumerologyContent = {
-  birthDate: string;
-  name: string;
-  lifePath: number;
-  expression: number;
-  soulUrge: number;
-  personality: number;
-  personalYear?: number;
-  date: string;
-};
+  birthDate: string
+  name: string
+  lifePath: number
+  expression: number
+  soulUrge: number
+  personality: number
+  personalYear?: number
+  date: string
+}
 
 export type ICPContent = {
-  id: string;
-  primaryStyle: string;
-  secondaryStyle: string | null;
-  dominanceScore: number;
-  affiliationScore: number;
-  octantScores: Record<string, number>;
+  id: string
+  primaryStyle: string
+  secondaryStyle: string | null
+  dominanceScore: number
+  affiliationScore: number
+  octantScores: Record<string, number>
   analysisData: {
-    description: string;
-    descriptionKo?: string;
-    strengths: string[];
-    strengthsKo?: string[];
-    challenges: string[];
-    challengesKo?: string[];
-  };
-  createdAt: string;
-};
+    description: string
+    descriptionKo?: string
+    strengths: string[]
+    strengthsKo?: string[]
+    challenges: string[]
+    challengesKo?: string[]
+  }
+  createdAt: string
+}
 
 export type PersonalityCompatibilityContent = {
-  id: string;
+  id: string
   person1: {
-    name?: string;
+    name?: string
     icp: {
-      primaryStyle: string;
-      secondaryStyle: string | null;
-      dominanceScore: number;
-      affiliationScore: number;
-      octantScores: Record<string, number>;
-    };
+      primaryStyle: string
+      secondaryStyle: string | null
+      dominanceScore: number
+      affiliationScore: number
+      octantScores: Record<string, number>
+    }
     persona: {
-      typeCode: string;
-      personaName: string;
-      energyScore: number;
-      cognitionScore: number;
-      decisionScore: number;
-      rhythmScore: number;
-    };
-  };
+      typeCode: string
+      personaName: string
+      energyScore: number
+      cognitionScore: number
+      decisionScore: number
+      rhythmScore: number
+    }
+  }
   person2: {
-    name?: string;
+    name?: string
     icp: {
-      primaryStyle: string;
-      secondaryStyle: string | null;
-      dominanceScore: number;
-      affiliationScore: number;
-      octantScores: Record<string, number>;
-    };
+      primaryStyle: string
+      secondaryStyle: string | null
+      dominanceScore: number
+      affiliationScore: number
+      octantScores: Record<string, number>
+    }
     persona: {
-      typeCode: string;
-      personaName: string;
-      energyScore: number;
-      cognitionScore: number;
-      decisionScore: number;
-      rhythmScore: number;
-    };
-  };
+      typeCode: string
+      personaName: string
+      energyScore: number
+      cognitionScore: number
+      decisionScore: number
+      rhythmScore: number
+    }
+  }
   compatibility: {
-    crossSystemScore: number;
-    icpScore: number;
-    personaScore: number;
-    level: string;
-    levelKo?: string;
-    description: string;
-    descriptionKo?: string;
-  };
-  createdAt: string;
-};
+    crossSystemScore: number
+    icpScore: number
+    personaScore: number
+    level: string
+    levelKo?: string
+    description: string
+    descriptionKo?: string
+  }
+  createdAt: string
+}
 
 export type DestinyMatrixContent = {
-  id: string;
-  reportType: 'timing' | 'themed';
-  period?: 'daily' | 'monthly' | 'yearly' | 'comprehensive';
-  theme?: 'love' | 'career' | 'wealth' | 'health' | 'family';
-  title: string;
-  summary?: string;
-  overallScore?: number;
-  grade?: string;
-  reportData: TimingAIPremiumReport | ThemedAIPremiumReport | null;
-  pdfGenerated: boolean;
-  locale: string;
-  createdAt: string;
-  updatedAt: string;
-};
+  id: string
+  reportType: 'timing' | 'themed'
+  period?: 'daily' | 'monthly' | 'yearly' | 'comprehensive'
+  theme?: 'love' | 'career' | 'wealth' | 'health' | 'family'
+  title: string
+  summary?: string
+  overallScore?: number
+  grade?: string
+  reportData: TimingAIPremiumReport | ThemedAIPremiumReport | null
+  pdfGenerated: boolean
+  locale: string
+  createdAt: string
+  updatedAt: string
+}
 
 export type ServiceConfig = {
-  icon: string;
-  titleKey: string;
-  descKey: string;
-  color: string;
-};
+  icon: string
+  titleKey: string
+  descKey: string
+  color: string
+}

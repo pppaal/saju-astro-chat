@@ -120,6 +120,10 @@ public/swe-worker-*.js.map
 public/fallback-*.js
 public/fallback-*.js.map
 
+# User uploaded files (but keep directory structure)
+public/uploads/profiles/*
+!public/uploads/profiles/.gitkeep
+
 # IDE
 .idea/
 *.swp

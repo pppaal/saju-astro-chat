@@ -1,0 +1,71 @@
+.container {
+  width: 100%;
+}
+
+.label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 0.25rem;
+}
+
+.genderButtons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.genderBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.genderBtn:hover:not(:disabled) {
+  border-color: #6366f1;
+  background: #f9fafb;
+  transform: translateY(-1px);
+}
+
+.genderBtn.active {
+  border-color: #6366f1;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.genderBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.genderBtn span:first-child {
+  font-size: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .genderBtn {
+    padding: 0.75rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .genderBtn span:first-child {
+    font-size: 1.1rem;
+  }
+}

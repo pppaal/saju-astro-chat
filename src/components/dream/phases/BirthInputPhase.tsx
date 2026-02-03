@@ -4,6 +4,8 @@ import { MessageBox } from '../MessageBox'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import DateTimePicker from '@/components/ui/DateTimePicker'
 import TimePicker from '@/components/ui/TimePicker'
+import { GenderSelector } from '@/components/common/BirthForm'
+import { ProfileLoader } from '@/components/common/BirthForm'
 import styles from './BirthInputPhase.module.css'
 
 interface BirthInputPhaseProps {
@@ -94,71 +96,16 @@ export function BirthInputPhase({
           </p>
         </div>
 
-        {/* Profile Prompt - No saved profile found */}
-        {status === 'authenticated' && showProfilePrompt && !profileLoadedMsg && (
-          <MessageBox
-            type="info"
-            icon="💡"
-            message={
-              <div>
-                {isKo ? (
-                  <>
-                    <strong>저장된 프로필이 없습니다.</strong>
-                    <br />
-                    <a href="/myjourney" style={{ color: '#6366f1', textDecoration: 'underline' }}>
-                      My Journey 프로필
-                    </a>
-                    에서 생년월일을 먼저 저장하면 다음부터 자동으로 입력됩니다.
-                  </>
-                ) : (
-                  <>
-                    <strong>No saved profile found.</strong>
-                    <br />
-                    Save your birth info in{' '}
-                    <a href="/myjourney" style={{ color: '#6366f1', textDecoration: 'underline' }}>
-                      My Journey Profile
-                    </a>{' '}
-                    to auto-fill next time.
-                  </>
-                )}
-              </div>
-            }
-          />
-        )}
-
-        {/* Load Profile Button */}
-        {status === 'authenticated' && !profileLoadedMsg && !showProfilePrompt && (
-          <button
-            type="button"
-            className={styles.loadProfileButton}
-            onClick={() => onLoadProfile()}
-            disabled={loadingProfileBtn}
-          >
-            <span className={styles.loadProfileIcon}>{loadingProfileBtn ? '⏳' : '👤'}</span>
-            <span>
-              {loadingProfileBtn
-                ? isKo
-                  ? '불러오는 중...'
-                  : 'Loading...'
-                : isKo
-                  ? '내 프로필 불러오기'
-                  : 'Load My Profile'}
-            </span>
-            <span className={styles.loadProfileArrow}>→</span>
-          </button>
-        )}
-
-        {/* Profile loaded success message */}
-        {status === 'authenticated' && profileLoadedMsg && (
-          <MessageBox
-            type="success"
-            icon="✓"
-            message={isKo ? '프로필 불러오기 완료!' : 'Profile loaded!'}
-          />
-        )}
-
-        {/* Error message */}
-        {profileLoadError && <MessageBox type="error" icon="⚠️" message={profileLoadError} />}
+        {/* Profile Loader - Unified Component */}
+        <ProfileLoader
+          status={status as 'authenticated' | 'loading' | 'unauthenticated'}
+          onLoadClick={onLoadProfile}
+          isLoading={loadingProfileBtn}
+          isLoaded={profileLoadedMsg}
+          error={profileLoadError}
+          showPrompt={showProfilePrompt}
+          locale={locale as 'ko' | 'en'}
+        />
 
         <form onSubmit={onSubmit} className={styles.form}>
           {/* Birth Date */}
@@ -172,30 +119,17 @@ export function BirthInputPhase({
             />
           </div>
 
-          {/* Gender */}
+          {/* Gender - Unified Component */}
           <div className={styles.fieldGroup}>
-            <label className={styles.label}>
-              {isKo ? '성별' : 'Gender'}
-              <span className={styles.required}>*</span>
-            </label>
-            <div className={styles.genderButtons}>
-              <button
-                type="button"
-                className={`${styles.genderBtn} ${gender === 'M' ? styles.active : ''}`}
-                onClick={() => setGender('M')}
-              >
-                <span>👨</span>
-                <span>{isKo ? '남성' : 'Male'}</span>
-              </button>
-              <button
-                type="button"
-                className={`${styles.genderBtn} ${gender === 'F' ? styles.active : ''}`}
-                onClick={() => setGender('F')}
-              >
-                <span>👩</span>
-                <span>{isKo ? '여성' : 'Female'}</span>
-              </button>
-            </div>
+            <GenderSelector
+              value={gender}
+              onChange={(value) => {
+                const shortValue = value === 'Male' ? 'M' : value === 'Female' ? 'F' : value
+                setGender(shortValue)
+              }}
+              locale={locale as 'ko' | 'en'}
+              outputFormat="short"
+            />
           </div>
 
           {/* Birth Time Toggle */}

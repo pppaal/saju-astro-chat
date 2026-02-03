@@ -5,6 +5,21 @@
   animation: fadeInUp 0.6s ease-out forwards;
   width: 100%;
   max-width: 1200px;
+  position: relative;
+}
+
+/* ===== Tab Content ===== */
+.tabContent {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInUp {
@@ -266,7 +281,7 @@
 }
 
 .changingAdviceItem::before {
-  content: "✓";
+  content: '✓';
   position: absolute;
   left: 0;
   color: rgba(100, 200, 100, 0.8);
@@ -284,7 +299,7 @@
 }
 
 .changingWarning::before {
-  content: "⚠ ";
+  content: '⚠ ';
 }
 
 /* ===== Resulting Hexagram ===== */
@@ -610,8 +625,13 @@
 }
 
 @keyframes shimmer {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .aiHeader {
@@ -627,8 +647,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 .aiTitle {
@@ -693,8 +718,14 @@
 }
 
 @keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
 }
 
 .aiLoadingState {
@@ -719,12 +750,20 @@
   animation: loadingBounce 1.4s infinite ease-in-out both;
 }
 
-.aiLoadingDot:nth-child(1) { animation-delay: -0.32s; }
-.aiLoadingDot:nth-child(2) { animation-delay: -0.16s; }
-.aiLoadingDot:nth-child(3) { animation-delay: 0s; }
+.aiLoadingDot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.aiLoadingDot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+.aiLoadingDot:nth-child(3) {
+  animation-delay: 0s;
+}
 
 @keyframes loadingBounce {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     transform: scale(0.7);
     opacity: 0.5;
   }

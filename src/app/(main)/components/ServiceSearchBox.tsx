@@ -54,6 +54,22 @@ export default function ServiceSearchBox({ translate, t, styles }: ServiceSearch
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [closeServiceSelector])
 
+  // Close dropdown when scrolling
+  useEffect(() => {
+    if (!showServiceSelector) {
+      return
+    }
+
+    const handleScroll = () => {
+      closeServiceSelector()
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [showServiceSelector, closeServiceSelector])
+
   // Prevent body scroll when dropdown is open on mobile
   useEffect(() => {
     if (showServiceSelector) {
