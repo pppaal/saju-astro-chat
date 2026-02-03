@@ -17,10 +17,10 @@ export {
   withCircuitBreaker,
   getCircuitStatus,
   resetAllCircuits,
-} from '../circuitBreaker';
+} from '../circuitBreaker'
 
 // Rate Limiting - API 요청 제한
-export { rateLimit } from '../rateLimit';
+export { rateLimit } from '../rateLimit'
 
 // Metrics - 성능/사용량 측정
 export {
@@ -31,14 +31,10 @@ export {
   resetMetrics,
   toPrometheus,
   toOtlp,
-} from '../metrics';
+} from '../metrics'
 
 // Telemetry - 원격 측정
-export { captureServerError } from '../telemetry';
+export { captureServerError } from '../telemetry'
 
 // Redis Cache
-export {
-  cacheGet,
-  cacheSet,
-  makeCacheKey,
-} from '../redis-cache';
+export { cacheGet, cacheSet, makeCacheKey } from '../cache/redis-cache'

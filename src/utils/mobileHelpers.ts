@@ -3,6 +3,27 @@
  * 모바일 환경을 위한 유틸리티 함수들
  */
 
+// Type definitions for Navigator APIs
+interface NavigatorConnection {
+  effectiveType?: 'slow-2g' | '2g' | '3g' | '4g' | '5g'
+  downlink?: number
+  rtt?: number
+  saveData?: boolean
+}
+
+interface BatteryManager {
+  charging: boolean
+  chargingTime: number
+  dischargingTime: number
+  level: number
+}
+
+interface ExtendedNavigator extends Navigator {
+  connection?: NavigatorConnection
+  getBattery?: () => Promise<BatteryManager>
+  msMaxTouchPoints?: number
+}
+
 /**
  * 키보드가 입력 필드를 가리지 않도록 스크롤
  * @param element - 스크롤할 요소
@@ -219,12 +240,13 @@ export function isAndroid(): boolean {
  * 네트워크 속도 감지 (Network Information API)
  */
 export function getNetworkSpeed(): 'slow' | 'medium' | 'fast' | 'unknown' {
-  if (!('connection' in navigator)) {
+  const extendedNavigator = navigator as ExtendedNavigator
+  if (!extendedNavigator.connection) {
     return 'unknown'
   }
 
-  const connection = (navigator as any).connection
-  const effectiveType = connection?.effectiveType
+  const connection = extendedNavigator.connection
+  const effectiveType = connection.effectiveType
 
   switch (effectiveType) {
     case 'slow-2g':
@@ -244,12 +266,13 @@ export function getNetworkSpeed(): 'slow' | 'medium' | 'fast' | 'unknown' {
  * 배터리 절약 모드 여부 확인
  */
 export async function isBatterySaverMode(): Promise<boolean> {
-  if (!('getBattery' in navigator)) {
+  const extendedNavigator = navigator as ExtendedNavigator
+  if (!extendedNavigator.getBattery) {
     return false
   }
 
   try {
-    const battery = await (navigator as any).getBattery()
+    const battery = await extendedNavigator.getBattery()
     // 배터리가 20% 이하이거나 충전 중이 아니면 절약 모드로 간주
     return battery.level < 0.2 && !battery.charging
   } catch {
@@ -282,10 +305,11 @@ export function prefersHighContrast(): boolean {
  * 터치 디바이스 여부 확인
  */
 export function isTouchDevice(): boolean {
+  const extendedNavigator = navigator as ExtendedNavigator
   return (
     'ontouchstart' in window ||
     navigator.maxTouchPoints > 0 ||
-    (navigator as any).msMaxTouchPoints > 0
+    (extendedNavigator.msMaxTouchPoints ?? 0) > 0
   )
 }
 

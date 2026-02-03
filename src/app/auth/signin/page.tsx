@@ -112,22 +112,6 @@ function SignInContent() {
                 {t('auth.signInWithGoogle')}
               </button>
             )}
-
-            {providers?.kakao && (
-              <button
-                className={`${styles.kakaoBtn} ${!agreed ? styles.disabledBtn : ''}`}
-                disabled={!agreed}
-                onClick={() => signIn('kakao', { callbackUrl })}
-              >
-                <svg viewBox="0 0 24 24" width="20" height="20">
-                  <path
-                    fill="#000"
-                    d="M12 3C6.5 3 2 6.58 2 11c0 2.88 1.93 5.41 4.82 6.84-.2.74-.76 2.67-.87 3.08-.14.51.18.5.38.37.15-.1 2.44-1.63 3.47-2.32.77.11 1.56.17 2.37.17C17.5 19.14 22 15.56 22 11S17.5 3 12 3z"
-                  />
-                </svg>
-                {t('auth.signInWithKakao', 'Sign in with Kakao')}
-              </button>
-            )}
           </div>
 
           <label className={styles.termsRow}>

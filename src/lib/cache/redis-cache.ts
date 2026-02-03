@@ -435,6 +435,29 @@ export async function getCacheInfo() {
   }
 }
 
+/**
+ * Generate cache key from object with optional versioning
+ *
+ * Version helps invalidate cache when logic changes:
+ * - Increment version when calculation algorithm changes
+ * - Old cache entries automatically become stale
+ *
+ * @param prefix - Cache key prefix (e.g., "saju", "tarot", "compatibility")
+ * @param params - Parameters to include in key
+ * @param version - Optional version number (default: 1)
+ */
+export function makeCacheKey(
+  prefix: string,
+  params: Record<string, unknown>,
+  version: number = 1
+): string {
+  const sorted = Object.keys(params)
+    .sort()
+    .map((k) => `${k}:${params[k]}`)
+    .join('|')
+  return `${prefix}:v${version}:${sorted}`
+}
+
 // Aliases for backwards compatibility
 export const getCache = cacheGet
 export const setCache = cacheSet

@@ -306,6 +306,14 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.profileNameRow::-webkit-scrollbar {
+  display: none;
 }
 
 .profileNameRow h2 {
@@ -314,6 +322,8 @@
   margin: 0;
   color: #fff;
   line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .profileActions {

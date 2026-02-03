@@ -5,7 +5,7 @@
 import { computeDestinyMap } from './astrologyengine'
 import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
-import { cacheGet, cacheSet, makeCacheKey } from '@/lib/redis-cache'
+import { cacheGet, cacheSet, makeCacheKey } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
 
 // Import from centralized modules
@@ -87,7 +87,7 @@ export async function generateReport({
 
   const cached = await cacheGet<ReportOutput>(cacheKey)
   if (cached) {
-    logger.debug('[DestinyMap] Cache HIT:', cacheKey);
+    logger.debug('[DestinyMap] Cache HIT:', cacheKey)
     return cached
   }
   logger.debug('[DestinyMap] Cache MISS:', cacheKey)
@@ -96,7 +96,7 @@ export async function generateReport({
   const promptWasTrimmed = safeExtra.length > 1200
   const effectivePrompt = promptWasTrimmed ? safeExtra.slice(0, 1200) : safeExtra
   if (extraPrompt && containsForbidden(extraPrompt)) {
-    const msg = safetyMessage(lang);
+    const msg = safetyMessage(lang)
     return {
       meta: {
         generator: 'DestinyMap_Report_via_Fusion',

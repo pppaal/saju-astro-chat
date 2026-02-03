@@ -8,8 +8,16 @@
 import { logger } from '@/lib/logger'
 import type { Redis as UpstashRedis } from '@upstash/redis'
 
-// Type for unified Redis client interface (using unknown for standard Redis due to complex generics)
-type RedisClient = UpstashRedis | { [key: string]: unknown }
+// Type for standard Redis client methods we use
+interface StandardRedisClient {
+  sAdd: (key: string, value: string) => Promise<number>
+  sCard: (key: string) => Promise<number>
+  expire: (key: string, seconds: number) => Promise<boolean>
+  del: (keys: string[]) => Promise<number>
+}
+
+// Type for unified Redis client interface
+type RedisClient = UpstashRedis | StandardRedisClient
 
 // In-memory fallback storage
 const memoryStore = {
@@ -75,17 +83,19 @@ export async function trackVisitor(visitorId: string): Promise<void> {
       // Check if using Upstash or standard Redis
       if ('sadd' in redis) {
         // Upstash Redis
+        const upstashRedis = redis as UpstashRedis
         await Promise.all([
-          redis.sadd(todayKey, visitorId),
-          redis.sadd(totalKey, visitorId),
-          redis.expire(todayKey, 86400 * 7), // Keep for 7 days
+          upstashRedis.sadd(todayKey, visitorId),
+          upstashRedis.sadd(totalKey, visitorId),
+          upstashRedis.expire(todayKey, 86400 * 7), // Keep for 7 days
         ])
       } else {
         // Standard Redis client
+        const standardRedis = redis as StandardRedisClient
         await Promise.all([
-          redis.sAdd(todayKey, visitorId),
-          redis.sAdd(totalKey, visitorId),
-          redis.expire(todayKey, 86400 * 7),
+          standardRedis.sAdd(todayKey, visitorId),
+          standardRedis.sAdd(totalKey, visitorId),
+          standardRedis.expire(todayKey, 86400 * 7),
         ])
       }
 
@@ -126,15 +136,19 @@ export async function getVisitorStats(): Promise<{
       // Check if using Upstash or standard Redis
       if ('scard' in redis) {
         // Upstash Redis
-        const [today, total] = await Promise.all([redis.scard(todayKey), redis.scard(totalKey)])
+        const upstashRedis = redis as UpstashRedis
+        const [today, total] = await Promise.all([
+          upstashRedis.scard(todayKey),
+          upstashRedis.scard(totalKey),
+        ])
         todayCount = Number(today) || 0
         totalCount = Number(total) || 0
       } else {
         // Standard Redis client
-        const redisClient = redis as { sCard: (key: string) => Promise<number> }
+        const standardRedis = redis as StandardRedisClient
         const [today, total] = await Promise.all([
-          redisClient.sCard(todayKey),
-          redisClient.sCard(totalKey),
+          standardRedis.sCard(todayKey),
+          standardRedis.sCard(totalKey),
         ])
         todayCount = Number(today) || 0
         totalCount = Number(total) || 0
@@ -183,8 +197,8 @@ export async function resetVisitorStats(): Promise<void> {
         await upstashRedis.del(todayKey, totalKey)
       } else {
         // Standard Redis client
-        const redisClient = redis as { del: (keys: string[]) => Promise<number> }
-        await redisClient.del([todayKey, totalKey])
+        const standardRedis = redis as StandardRedisClient
+        await standardRedis.del([todayKey, totalKey])
       }
 
       logger.info('[Visitor Tracker] Stats reset via Redis')

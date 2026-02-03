@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// This component handles flexible data from multiple API sources with varying shapes
 'use client'
 
 import { useMemo, useState, memo } from 'react'
@@ -125,12 +123,16 @@ interface Props {
 const reportCache = new Map<string, string>()
 
 function generateReport(saju: unknown, astro: unknown, lang: string, _theme: string): string {
+  // Type guard for saju data
+  const sajuData = saju as SajuData | undefined
+  const astroData = astro as AstroData | undefined
+
   // Create cache key from input parameters
   const cacheKey = JSON.stringify({
-    dayMaster: (saju as any)?.dayMaster?.name,
-    fiveElements: (saju as any)?.fiveElements,
-    sun: (astro as any)?.sun?.sign,
-    moon: (astro as any)?.moon?.sign,
+    dayMaster: sajuData?.dayMaster?.name,
+    fiveElements: sajuData?.fiveElements,
+    sun: findPlanetSign(astroData, 'sun'),
+    moon: findPlanetSign(astroData, 'moon'),
     lang,
   })
 
@@ -140,8 +142,6 @@ function generateReport(saju: unknown, astro: unknown, lang: string, _theme: str
   }
 
   const isKo = lang === 'ko'
-  const sajuData = saju as Record<string, any> | undefined
-  const astroData = astro as AstroData | undefined
 
   const rawDayMasterName = sajuData?.dayMaster?.name || sajuData?.dayMaster?.heavenlyStem
   const dayMasterName = rawDayMasterName ? tianGanMap[rawDayMasterName] || rawDayMasterName : null
@@ -201,8 +201,8 @@ Your strengths are ${dayMasterInfo.strength.en}, while ${dayMasterInfo.weakness.
   // Cache the result
   reportCache.set(cacheKey, report)
 
-  // Limit cache size to prevent memory leaks
-  if (reportCache.size > 100) {
+  // Limit cache size to prevent memory leaks (increased for production)
+  if (reportCache.size > 500) {
     const firstKey = reportCache.keys().next().value
     if (firstKey !== undefined) {
       reportCache.delete(firstKey)

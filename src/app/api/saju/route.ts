@@ -21,6 +21,7 @@ import {
 } from '@/lib/Saju/shinsal'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
 import { logger } from '@/lib/logger'
+import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 
 // Middleware imports
 import {
@@ -178,7 +179,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
       })
       .filter(Boolean)
       .join(' · ')
-    const shinsalKinds = rawShinsal.filter((h) => h.pillars.includes(pillar)).map((h) => h.kind);
+    const shinsalKinds = rawShinsal.filter((h) => h.pillars.includes(pillar)).map((h) => h.kind)
 
     return {
       stem: p.heavenlyStem.name,
@@ -265,45 +266,62 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   const analysisDate = `${userNow.year}-${String(userNow.month).padStart(2, '0')}-${String(userNow.day).padStart(2, '0')}`
   const fullAdvancedAnalysis = advancedResult
 
-  // 10. AI backend call (GPT)
+  // 10. AI backend call (GPT) with caching
   let aiInterpretation = ''
   let aiModelUsed = ''
 
-  try {
-    const response = await apiClient.post(
-      '/ask',
-      {
-        theme: 'saju',
-        prompt: gptPrompt,
-        saju: {
-          dayMaster: sajuResult.dayMaster,
-          fiveElements: sajuResult.fiveElements,
-          pillars: simplePillars,
-          daeun: daeunInfo,
-          yeonun,
-          wolun,
-        },
-        locale: context.locale,
-        advancedSaju: isPremium ? fullAdvancedAnalysis : null,
-      },
-      { timeout: 90000 }
-    )
+  // Cache key: birthDate + birthTime + gender + calendar + locale + premium status
+  const aiCacheKey = `saju:ai:v1:${birthDateString}:${adjustedBirthTime}:${gender}:${calendarType}:${context.locale}:${isPremium ? 'premium' : 'free'}`
 
-    if (response.ok) {
-      const data = (response.data as Record<string, unknown>)?.data as
-        | Record<string, unknown>
-        | undefined
-      aiInterpretation = (data?.fusion_layer || data?.report || '') as string
-      aiModelUsed = (data?.model || 'gpt-4o') as string
+  const cachedAI = await cacheGet<{ interpretation: string; model: string }>(aiCacheKey)
+
+  if (cachedAI) {
+    aiInterpretation = cachedAI.interpretation
+    aiModelUsed = cachedAI.model
+  } else {
+    try {
+      const response = await apiClient.post(
+        '/ask',
+        {
+          theme: 'saju',
+          prompt: gptPrompt,
+          saju: {
+            dayMaster: sajuResult.dayMaster,
+            fiveElements: sajuResult.fiveElements,
+            pillars: simplePillars,
+            daeun: daeunInfo,
+            yeonun,
+            wolun,
+          },
+          locale: context.locale,
+          advancedSaju: isPremium ? fullAdvancedAnalysis : null,
+        },
+        { timeout: 90000 }
+      )
+
+      if (response.ok) {
+        const data = (response.data as Record<string, unknown>)?.data as
+          | Record<string, unknown>
+          | undefined
+        aiInterpretation = (data?.fusion_layer || data?.report || '') as string
+        aiModelUsed = (data?.model || 'gpt-4o') as string
+
+        // Cache the AI interpretation for 7 days
+        await cacheSet(
+          aiCacheKey,
+          { interpretation: aiInterpretation, model: aiModelUsed },
+          CACHE_TTL.SAJU_RESULT
+        )
+      }
+    } catch (aiErr) {
+      logger.warn('[Saju API] AI backend call failed:', aiErr)
+      const dayMasterName = sajuResult.dayMaster?.name || ''
+      aiInterpretation =
+        context.locale === 'ko'
+          ? `${dayMasterName} 일간으로 태어나셨습니다. 현재 AI 해석 서비스가 일시적으로 이용 불가합니다. 기본 사주 분석 결과를 확인해주세요.`
+          : `You were born with ${dayMasterName} as your day master. AI interpretation is temporarily unavailable. Please check the basic Saju analysis results.`
+      aiModelUsed = 'fallback'
     }
-  } catch (aiErr) {
-    logger.warn('[Saju API] AI backend call failed:', aiErr)
-    const dayMasterName = sajuResult.dayMaster?.name || ''
-    aiInterpretation =
-      context.locale === 'ko'
-        ? `${dayMasterName} 일간으로 태어나셨습니다. 현재 AI 해석 서비스가 일시적으로 이용 불가합니다. 기본 사주 분석 결과를 확인해주세요.`
-        : `You were born with ${dayMasterName} as your day master. AI interpretation is temporarily unavailable. Please check the basic Saju analysis results.`
-    aiModelUsed = 'fallback'
   }
 
   // 11. Save reading record (logged-in users only)
@@ -329,7 +347,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
             },
           }),
         },
-      });
+      })
     } catch (saveErr) {
       logger.warn('[Saju API] Failed to save reading:', saveErr)
     }

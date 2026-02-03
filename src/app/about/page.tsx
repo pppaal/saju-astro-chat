@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRef, useEffect } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
 import ScrollToTop from '@/components/ui/ScrollToTop'
@@ -132,6 +133,43 @@ const SERVICES: Service[] = [
 
 export default function AboutPage() {
   const { translate, locale } = useI18n()
+  const serviceGridRef = useRef<HTMLDivElement>(null)
+  const isDragging = useRef(false)
+  const startX = useRef(0)
+  const scrollLeft = useRef(0)
+
+  useEffect(() => {
+    const grid = serviceGridRef.current
+    if (!grid) return
+
+    const handleTouchStart = (e: TouchEvent) => {
+      isDragging.current = true
+      startX.current = e.touches[0].pageX - grid.offsetLeft
+      scrollLeft.current = grid.scrollLeft
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isDragging.current) return
+      e.preventDefault()
+      const x = e.touches[0].pageX - grid.offsetLeft
+      const walk = (x - startX.current) * 2
+      grid.scrollLeft = scrollLeft.current - walk
+    }
+
+    const handleTouchEnd = () => {
+      isDragging.current = false
+    }
+
+    grid.addEventListener('touchstart', handleTouchStart, { passive: true })
+    grid.addEventListener('touchmove', handleTouchMove, { passive: false })
+    grid.addEventListener('touchend', handleTouchEnd)
+
+    return () => {
+      grid.removeEventListener('touchstart', handleTouchStart)
+      grid.removeEventListener('touchmove', handleTouchMove)
+      grid.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [])
 
   return (
     <div className={styles.page}>
@@ -177,7 +215,7 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className={styles.serviceGrid}>
+          <div ref={serviceGridRef} className={styles.serviceGrid}>
             {SERVICES.map((service) => (
               <Link
                 key={service.id}
@@ -188,9 +226,6 @@ export default function AboutPage() {
                 <div className={styles.cardOverlay} />
                 <div className={styles.cardContent}>
                   <div className={styles.serviceIcon}>{service.icon}</div>
-                  <h3 className={styles.serviceTitle}>
-                    {translate(`services.${service.id}.label`, service.id)}
-                  </h3>
                   <p className={styles.serviceDesc}>
                     {translate(
                       `services.${service.id}.desc`,

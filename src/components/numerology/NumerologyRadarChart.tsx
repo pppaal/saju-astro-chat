@@ -1,24 +1,73 @@
 // components/NumerologyRadarChart.tsx
-import React from 'react';
-import { Radar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
-  Tooltip,
-  type ChartOptions,
-} from 'chart.js';
-import { CoreNumerologyProfile } from '@/lib/numerology/numerology';
+'use client'
 
-ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip);
+import React, { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
+import type { CoreNumerologyProfile } from '@/lib/numerology/numerology'
+
+// Dynamically import Radar chart to code-split Chart.js (6.2MB)
+const Radar = dynamic(
+  () =>
+    import('react-chartjs-2').then((mod) => {
+      // Register Chart.js components on client side
+      import('chart.js').then((chartMod) => {
+        const ChartJS = chartMod.Chart
+        const { RadialLinearScale, PointElement, LineElement, Filler, Tooltip } = chartMod
+        ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip)
+      })
+      return mod.Radar
+    }),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        style={{
+          position: 'relative',
+          height: '400px',
+          maxWidth: '500px',
+          margin: '2rem auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#fff',
+        }}
+      >
+        Loading chart...
+      </div>
+    ),
+  }
+)
 
 interface Props {
-  profile: CoreNumerologyProfile;
+  profile: CoreNumerologyProfile
 }
 
 export default function NumerologyRadarChart({ profile }: Props) {
+  const [chartReady, setChartReady] = useState(false)
+
+  useEffect(() => {
+    setChartReady(true)
+  }, [])
+
+  if (!chartReady) {
+    return (
+      <div
+        style={{
+          position: 'relative',
+          height: '400px',
+          maxWidth: '500px',
+          margin: '2rem auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#fff',
+        }}
+      >
+        Loading chart...
+      </div>
+    )
+  }
+
   const data = {
     labels: [
       'Life Path (인생 경로)',
@@ -44,9 +93,9 @@ export default function NumerologyRadarChart({ profile }: Props) {
         pointHoverBorderColor: '#ffd166',
       },
     ],
-  };
+  }
 
-  const options: ChartOptions<'radar'> = {
+  const options = {
     scales: {
       r: {
         angleLines: { color: 'rgba(255, 255, 255, 0.2)' },
@@ -63,7 +112,7 @@ export default function NumerologyRadarChart({ profile }: Props) {
           backdropColor: 'rgba(255, 209, 102, 1)', // 배경색을 지정
           stepSize: 1,
           font: {
-            size: 10
+            size: 10,
           },
         },
         min: 0,
@@ -76,11 +125,11 @@ export default function NumerologyRadarChart({ profile }: Props) {
       },
     },
     maintainAspectRatio: false,
-  };
+  }
 
   return (
     <div style={{ position: 'relative', height: '400px', maxWidth: '500px', margin: '2rem auto' }}>
       <Radar data={data} options={options} />
     </div>
-  );
+  )
 }

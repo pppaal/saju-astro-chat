@@ -37,32 +37,33 @@ export async function GET(req: NextRequest) {
       take: 50,
     })
 
-    // 파트너 정보 추가
-    const readingsWithPartner = await Promise.all(
-      readings.map(async (reading) => {
-        const partnerId = reading.userId === userId ? reading.sharedWithUserId : reading.userId
+    // 파트너 정보 추가 (N+1 최적화: 배치 쿼리)
+    const partnerIds = readings
+      .map((reading) => (reading.userId === userId ? reading.sharedWithUserId : reading.userId))
+      .filter((id): id is string => id !== null)
 
-        let partnerInfo = null
-        if (partnerId) {
-          const partner = await prisma.user.findUnique({
-            where: { id: partnerId },
-            select: { id: true, name: true, image: true },
-          })
-          partnerInfo = partner
-        }
+    const partners = await prisma.user.findMany({
+      where: { id: { in: partnerIds } },
+      select: { id: true, name: true, image: true },
+    })
 
-        return {
-          ...reading,
-          isMyReading: reading.userId === userId,
-          isPaidByMe: reading.paidByUserId === userId,
-          partner: partnerInfo,
-        }
-      })
-    );
+    const partnerMap = new Map(partners.map((p) => [p.id, p]))
 
-    return NextResponse.json({ readings: readingsWithPartner });
+    const readingsWithPartner = readings.map((reading) => {
+      const partnerId = reading.userId === userId ? reading.sharedWithUserId : reading.userId
+      const partnerInfo = partnerId ? partnerMap.get(partnerId) || null : null
+
+      return {
+        ...reading,
+        isMyReading: reading.userId === userId,
+        isPaidByMe: reading.paidByUserId === userId,
+        partner: partnerInfo,
+      }
+    })
+
+    return NextResponse.json({ readings: readingsWithPartner })
   } catch (error) {
-    logger.error('[couple-reading] GET error:', { error: error });
+    logger.error('[couple-reading] GET error:', { error: error })
     return NextResponse.json(
       { error: 'Failed to fetch couple readings' },
       { status: HTTP_STATUS.SERVER_ERROR }
@@ -209,7 +210,7 @@ export async function POST(req: NextRequest) {
       await tx.matchConnection.update({
         where: { id: connectionId },
         data: { lastInteractionAt: new Date() },
-      });
+      })
 
       return reading
     })
@@ -241,10 +242,10 @@ export async function POST(req: NextRequest) {
       message: '커플 타로가 저장되었습니다. 파트너도 볼 수 있어요!',
     })
 
-    limit.headers.forEach((value, key) => res.headers.set(key, value));
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
     return res
   } catch (error) {
-    logger.error('[couple-reading] POST error:', { error: error });
+    logger.error('[couple-reading] POST error:', { error: error })
     return NextResponse.json(
       { error: 'Failed to create couple reading' },
       { status: HTTP_STATUS.SERVER_ERROR }
@@ -293,11 +294,11 @@ export async function DELETE(req: NextRequest) {
 
     await prisma.tarotReading.delete({
       where: { id: readingId },
-    });
+    })
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true })
   } catch (error) {
-    logger.error('[couple-reading] DELETE error:', { error: error });
+    logger.error('[couple-reading] DELETE error:', { error: error })
     return NextResponse.json(
       { error: 'Failed to delete reading' },
       { status: HTTP_STATUS.SERVER_ERROR }
