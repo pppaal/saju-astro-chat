@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { enforceBodySize } from '@/lib/http'
 import { prisma } from '@/lib/db/prisma'
+import { Prisma } from '@prisma/client'
 import { logger } from '@/lib/logger'
 import { personalitySaveRequestSchema } from '@/lib/api/zodValidation'
 
