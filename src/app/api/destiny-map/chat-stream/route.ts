@@ -13,14 +13,8 @@ import { parseRequestBody } from '@/lib/api/requestParser'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
 // Local modules
-import {
-  type ChatMessage,
-  type ProfileLoadResult,
-  clampMessages,
-  counselorSystemPrompt,
-  loadUserProfile,
-  loadPersonaMemory,
-} from './lib'
+import { type ChatMessage, clampMessages, counselorSystemPrompt, loadPersonaMemory } from './lib'
+import { loadUserProfile, type ProfileLoadResult } from './lib/profileLoader'
 import { validateDestinyMapRequest, type DestinyMapChatStreamInput } from './lib/validation'
 import { calculateChartData } from './lib/chart-calculator'
 import {

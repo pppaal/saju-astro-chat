@@ -7,6 +7,7 @@ import { getClientIp } from '@/lib/request-ip'
 import { csrfGuard } from '@/lib/security/csrf'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { calendarSaveRequestSchema, calendarQuerySchema, dateSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,7 +35,25 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const body = await req.json()
+    const rawBody = await req.json()
+
+    // Validate request body with Zod
+    const validationResult = calendarSaveRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[CalendarSave] validation failed', { errors: validationResult.error.errors })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.errors.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
+    const body = validationResult.data
     const {
       date,
       year,
@@ -54,13 +73,6 @@ export async function POST(req: NextRequest) {
       birthPlace,
       locale = 'ko',
     } = body
-
-    if (!date || grade === undefined || score === undefined || !title) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
 
     // Upsert - 이미 있으면 업데이트, 없으면 생성
     const savedDate = await prisma.savedCalendarDate.upsert({
@@ -143,11 +155,19 @@ export async function DELETE(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const date = searchParams.get('date')
+    const rawDate = searchParams.get('date')
 
-    if (!date) {
-      return NextResponse.json({ error: 'Date is required' }, { status: HTTP_STATUS.BAD_REQUEST })
+    // Validate date parameter
+    const dateValidation = dateSchema.safeParse(rawDate)
+    if (!dateValidation.success) {
+      logger.warn('[CalendarSave] Invalid date parameter', { date: rawDate })
+      return NextResponse.json(
+        { error: 'Invalid date format. Expected YYYY-MM-DD' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
     }
+
+    const date = dateValidation.data
 
     await prisma.savedCalendarDate.delete({
       where: {
@@ -174,16 +194,32 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const date = searchParams.get('date')
-    const year = searchParams.get('year')
-    const limitParam = parseInt(searchParams.get('limit') || '50', 10)
+
+    // Validate query parameters
+    const queryValidation = calendarQuerySchema.safeParse({
+      date: searchParams.get('date'),
+      year: searchParams.get('year'),
+      limit: searchParams.get('limit') || '50',
+    })
+
+    if (!queryValidation.success) {
+      logger.warn('[CalendarSave] Invalid query parameters', {
+        errors: queryValidation.error.errors,
+      })
+      return NextResponse.json(
+        { error: 'Invalid query parameters' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
+    const { date, year, limit: limitParam } = queryValidation.data
 
     const where: Record<string, unknown> = { userId: session.user.id }
 
     if (date) {
       where.date = date
     } else if (year) {
-      where.year = parseInt(year, 10)
+      where.year = year
     }
 
     const savedDates = await prisma.savedCalendarDate.findMany({
