@@ -8,6 +8,7 @@ import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { contentAccessSchema } from '@/lib/api/zodValidation'
 export const dynamic = 'force-dynamic'
 
 type ContentAccessBody = {
@@ -88,25 +89,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
-    const body = (await request.json().catch(() => null)) as ContentAccessBody | null
-    if (!body || typeof body !== 'object') {
+    const rawBody = (await request.json().catch(() => null)) as ContentAccessBody | null
+    if (!rawBody || typeof rawBody !== 'object') {
       return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
     }
 
-    const service = typeof body.service === 'string' ? body.service : ''
-    const contentType = typeof body.contentType === 'string' ? body.contentType : ''
-    const contentId = typeof body.contentId === 'string' ? body.contentId : null
-    const locale = typeof body.locale === 'string' ? body.locale : 'ko'
-    const metadata = body.metadata ?? null
-    const creditUsed = typeof body.creditUsed === 'number' ? body.creditUsed : 0
-
-    // 필수 필드 검증
-    if (!service || !contentType) {
+    // Validate with Zod
+    const validationResult = contentAccessSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Content access] validation failed', { errors: validationResult.error.issues })
       return NextResponse.json(
-        { error: 'Missing required fields: service, contentType' },
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
+
+    const {
+      service,
+      contentType,
+      contentId,
+      locale = 'ko',
+      metadata,
+      creditUsed = 0,
+    } = validationResult.data
 
     // 유효한 서비스 검증
     const validServices = [

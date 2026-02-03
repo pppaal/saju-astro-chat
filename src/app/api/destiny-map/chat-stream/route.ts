@@ -173,8 +173,8 @@ export async function POST(req: NextRequest) {
         latitude: effectiveLatitude,
         longitude: effectiveLongitude,
       },
-      effectiveSaju,
-      effectiveAstro
+      effectiveSaju as any, // TODO: Fix type compatibility
+      effectiveAstro as any // TODO: Fix type compatibility
     )
 
     const finalSaju = chartResult.saju

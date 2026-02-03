@@ -1,80 +1,99 @@
-import { NextRequest, NextResponse } from "next/server";
-import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from "@/lib/api/middleware";
-import { prisma } from "@/lib/db/prisma";
-import Stripe from "stripe";
-import { logger } from '@/lib/logger';
+import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
+import { prisma } from '@/lib/db/prisma'
+import Stripe from 'stripe'
+import { logger } from '@/lib/logger'
 
-import { HTTP_STATUS } from '@/lib/constants/http';
-export const dynamic = "force-dynamic";
+import { HTTP_STATUS } from '@/lib/constants/http'
+import { consultationSaveSchema } from '@/lib/api/zodValidation'
+export const dynamic = 'force-dynamic'
 
-const STRIPE_API_VERSION = "2025-10-29.clover" as Stripe.LatestApiVersion;
+const STRIPE_API_VERSION = '2025-10-29.clover' as Stripe.LatestApiVersion
 
 type ConsultationBody = {
-  theme?: string;
-  summary?: string;
-  fullReport?: string;
-  jungQuotes?: unknown;
-  signals?: unknown;
-  userQuestion?: string;
-  locale?: string;
-};
+  theme?: string
+  summary?: string
+  fullReport?: string
+  jungQuotes?: unknown
+  signals?: unknown
+  userQuestion?: string
+  locale?: string
+}
 
 // 이메일 형식 검증 (Stripe 쿼리 인젝션 방지)
 function isValidEmail(email: string): boolean {
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  return emailRegex.test(email) && email.length <= 254;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+  return emailRegex.test(email) && email.length <= 254
 }
 
 // Stripe 구독 확인 (프리미엄 체크)
 async function checkStripeActive(email?: string): Promise<boolean> {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key || !email || !isValidEmail(email)) {return false;}
+  const key = process.env.STRIPE_SECRET_KEY
+  if (!key || !email || !isValidEmail(email)) {
+    return false
+  }
 
-  const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
+  const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION })
   // Use parameterized API to prevent query injection
   const customers = await stripe.customers.list({
     email: email.toLowerCase(),
     limit: 3,
-  });
+  })
 
   for (const c of customers.data) {
     const subs = await stripe.subscriptions.list({
       customer: c.id,
-      status: "all",
+      status: 'all',
       limit: 5,
-    });
-    const active = subs.data.find((s) =>
-      ["active", "trialing", "past_due"].includes(s.status)
-    );
-    if (active) {return true;}
+    })
+    const active = subs.data.find((s) => ['active', 'trialing', 'past_due'].includes(s.status))
+    if (active) {
+      return true
+    }
   }
-  return false;
+  return false
 }
 
 // POST: 상담 기록 저장 (프리미엄 전용)
 export const POST = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
-    const userEmail = context.session?.user?.email;
+    const userEmail = context.session?.user?.email
     if (!userEmail) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
+      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
     // 프리미엄 체크 - 상담 기록 저장은 프리미엄 전용
-    const isPremium = await checkStripeActive(userEmail);
+    const isPremium = await checkStripeActive(userEmail)
     if (!isPremium) {
       return NextResponse.json(
         {
-          error: "premium_required",
-          message: "상담 기록 저장은 프리미엄 구독자 전용입니다.",
-          message_en: "Saving consultation history is available for premium subscribers only."
+          error: 'premium_required',
+          message: '상담 기록 저장은 프리미엄 구독자 전용입니다.',
+          message_en: 'Saving consultation history is available for premium subscribers only.',
         },
         { status: HTTP_STATUS.PAYMENT_REQUIRED }
-      );
+      )
     }
 
-    const body = (await request.json().catch(() => null)) as ConsultationBody | null;
-    if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "invalid_body" }, { status: HTTP_STATUS.BAD_REQUEST });
+    const rawBody = (await request.json().catch(() => null)) as ConsultationBody | null
+    if (!rawBody || typeof rawBody !== 'object') {
+      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+    }
+
+    // Validate with Zod
+    const validationResult = consultationSaveSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Consultation] validation failed', { errors: validationResult.error.issues })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
     }
 
     const {
@@ -84,14 +103,14 @@ export const POST = withApiMiddleware(
       jungQuotes,
       signals,
       userQuestion,
-      locale = "ko",
-    } = body;
+      locale = 'ko',
+    } = validationResult.data
 
     if (!theme || !summary || !fullReport) {
       return NextResponse.json(
-        { error: "Missing required fields: theme, summary, fullReport" },
+        { error: 'Missing required fields: theme, summary, fullReport' },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
     // 상담 기록 저장
@@ -106,16 +125,16 @@ export const POST = withApiMiddleware(
         userQuestion: userQuestion || undefined,
         locale,
       },
-    });
+    })
 
     // 페르소나 메모리 업데이트 (세션 카운트 증가, 테마 추가)
-    await updatePersonaMemory(context.userId!, theme);
+    await updatePersonaMemory(context.userId!, theme)
 
     return NextResponse.json({
       success: true,
       id: consultation.id,
       createdAt: consultation.createdAt,
-    });
+    })
   },
   createAuthenticatedGuard({
     route: '/api/consultation',
@@ -127,39 +146,39 @@ export const POST = withApiMiddleware(
 // GET: 상담 기록 목록 조회 (프리미엄 전용)
 export const GET = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
-    const userEmail = context.session?.user?.email;
+    const userEmail = context.session?.user?.email
     if (!userEmail) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
+      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
     // 프리미엄 체크
-    const isPremium = await checkStripeActive(userEmail);
+    const isPremium = await checkStripeActive(userEmail)
     if (!isPremium) {
       return NextResponse.json(
         {
-          error: "premium_required",
-          message: "상담 기록 열람은 프리미엄 구독자 전용입니다.",
-          message_en: "Consultation history is available for premium subscribers only."
+          error: 'premium_required',
+          message: '상담 기록 열람은 프리미엄 구독자 전용입니다.',
+          message_en: 'Consultation history is available for premium subscribers only.',
         },
         { status: HTTP_STATUS.PAYMENT_REQUIRED }
-      );
+      )
     }
 
-    const { searchParams } = new URL(request.url);
-    const theme = searchParams.get("theme");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 50);
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const { searchParams } = new URL(request.url)
+    const theme = searchParams.get('theme')
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50)
+    const offset = parseInt(searchParams.get('offset') || '0')
 
     // 쿼리 빌드
-    const where: { userId: string; theme?: string } = { userId: context.userId! };
+    const where: { userId: string; theme?: string } = { userId: context.userId! }
     if (theme) {
-      where.theme = theme;
+      where.theme = theme
     }
 
     const [consultations, total] = await Promise.all([
       prisma.consultationHistory.findMany({
         where,
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: limit,
         skip: offset,
         select: {
@@ -172,7 +191,7 @@ export const GET = withApiMiddleware(
         },
       }),
       prisma.consultationHistory.count({ where }),
-    ]);
+    ])
 
     return NextResponse.json({
       success: true,
@@ -183,7 +202,7 @@ export const GET = withApiMiddleware(
         offset,
         hasMore: offset + consultations.length < total,
       },
-    });
+    })
   },
   createAuthenticatedGuard({
     route: '/api/consultation',
@@ -197,20 +216,20 @@ async function updatePersonaMemory(userId: string, theme: string) {
   try {
     const existing = await prisma.personaMemory.findUnique({
       where: { userId },
-    });
+    })
 
     if (existing) {
       // 기존 메모리 업데이트
-      const currentThemes = (existing.dominantThemes as string[]) || [];
-      const lastTopics = (existing.lastTopics as string[]) || [];
+      const currentThemes = (existing.dominantThemes as string[]) || []
+      const lastTopics = (existing.lastTopics as string[]) || []
 
       // 테마 빈도 업데이트
       if (!currentThemes.includes(theme)) {
-        currentThemes.push(theme);
+        currentThemes.push(theme)
       }
 
       // 최근 토픽 업데이트 (최대 10개)
-      const updatedLastTopics = [theme, ...lastTopics.filter(t => t !== theme)].slice(0, 10);
+      const updatedLastTopics = [theme, ...lastTopics.filter((t) => t !== theme)].slice(0, 10)
 
       await prisma.personaMemory.update({
         where: { userId },
@@ -219,7 +238,7 @@ async function updatePersonaMemory(userId: string, theme: string) {
           lastTopics: updatedLastTopics,
           sessionCount: existing.sessionCount + 1,
         },
-      });
+      })
     } else {
       // 새 메모리 생성
       await prisma.personaMemory.create({
@@ -229,10 +248,10 @@ async function updatePersonaMemory(userId: string, theme: string) {
           lastTopics: [theme],
           sessionCount: 1,
         },
-      });
+      })
     }
   } catch (err) {
-    logger.error("[updatePersonaMemory error]", err);
+    logger.error('[updatePersonaMemory error]', err)
     // 메모리 업데이트 실패해도 상담 저장은 성공으로 처리
   }
 }

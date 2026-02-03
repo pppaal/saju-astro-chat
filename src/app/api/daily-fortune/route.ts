@@ -11,6 +11,7 @@ import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { dailyFortuneSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,22 +50,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
-    const { birthDate: _birthDate, birthTime: _birthTime, sendEmail = false, userTimezone } = body
+    const rawBody = await request.json()
 
-    const birthDate = typeof _birthDate === 'string' ? _birthDate.trim() : ''
-    const birthTime =
-      typeof _birthTime === 'string' && _birthTime.trim() ? _birthTime.trim() : undefined
-
-    if (!isValidDate(birthDate)) {
+    // Validate with Zod
+    const validationResult = dailyFortuneSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Daily fortune] validation failed', { errors: validationResult.error.issues })
       return NextResponse.json(
-        { error: 'Birth date required' },
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
-    if (birthTime && !isValidTime(birthTime)) {
-      return NextResponse.json({ error: 'Invalid birth time' }, { status: HTTP_STATUS.BAD_REQUEST })
-    }
+
+    const { birthDate, birthTime, sendEmail, userTimezone } = validationResult.data
 
     // ========================================
     // 1️⃣ 오늘의 운세 점수 계산 (destinyCalendar 로직 직접 사용)

@@ -35,6 +35,7 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import type { SajuRequestBody } from '@/lib/api/types'
+import { sajuCalculationRequestSchema } from '@/lib/api/zodValidation'
 
 // Services
 import {
@@ -54,19 +55,15 @@ import {
 ------------------------------*/
 export const POST = withApiMiddleware(async (req: NextRequest, context: ApiContext) => {
   // 1. Parse and validate request body
-  const body = await parseJsonBody<SajuRequestBody>(req)
-  const validation = validateRequired(body, [
-    'birthDate',
-    'birthTime',
-    'gender',
-    'calendarType',
-    'timezone',
-  ])
+  const rawBody = await parseJsonBody<SajuRequestBody>(req)
 
-  if (!validation.valid) {
+  // Validate with Zod
+  const validationResult = sajuCalculationRequestSchema.safeParse(rawBody)
+  if (!validationResult.success) {
+    logger.warn('[Saju] validation failed', { errors: validationResult.error.issues })
     return apiError(
       ErrorCodes.VALIDATION_ERROR,
-      `Missing required fields: ${validation.missing.join(', ')}`
+      `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
     )
   }
 
@@ -77,7 +74,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     calendarType,
     timezone,
     userTimezone,
-  } = body
+  } = validationResult.data
 
   // 2. Check premium status (credit-based)
   let isPremium = false

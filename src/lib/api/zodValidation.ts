@@ -307,7 +307,7 @@ export const lifePredictionBasicRequestSchema = z.object({
   analysisDepth: z.enum(['basic', 'detailed', 'comprehensive']).optional(),
 })
 
-export type LifePredictionRequestValidated = z.infer<typeof lifePredictionRequestSchema>
+export type LifePredictionBasicRequestValidated = z.infer<typeof lifePredictionBasicRequestSchema>
 
 /**
  * Life prediction multi-year save request validation
@@ -510,6 +510,15 @@ export const compatibilitySaveRequestSchema = z.object({
 })
 
 export type CompatibilitySaveRequestValidated = z.infer<typeof compatibilitySaveRequestSchema>
+
+/**
+ * Chat message schema (used in multiple places)
+ */
+export const chatMessageSchema = z.object({
+  role: z.enum(['user', 'assistant', 'system']),
+  content: z.string().min(1).max(10000),
+  timestamp: z.number().optional(),
+})
 
 /**
  * Compatibility chat request (follow-up questions after initial analysis)
@@ -777,15 +786,6 @@ export const advancedAstrologyRequestSchema = z.object({
 export type AdvancedAstrologyRequestValidated = z.infer<typeof advancedAstrologyRequestSchema>
 
 // ============ Chat History & Counselor Schemas ============
-
-/**
- * Chat message schema
- */
-export const chatMessageSchema = z.object({
-  role: z.enum(['user', 'assistant', 'system']),
-  content: z.string().min(1).max(10000),
-  timestamp: z.number().optional(),
-})
 
 /**
  * Chat history save request
@@ -1600,9 +1600,9 @@ export type DestinyMatrixQueryValidated = z.infer<typeof destinyMatrixQuerySchem
 // ============ Life Prediction Extended Schemas ============
 
 /**
- * Event type enum for life predictions
+ * Event type enum for life predictions (extended)
  */
-export const eventTypeSchema = z.enum([
+export const eventTypeExtendedSchema = z.enum([
   'marriage',
   'career',
   'investment',
@@ -1613,7 +1613,7 @@ export const eventTypeSchema = z.enum([
   'general',
 ])
 
-export type EventTypeValidated = z.infer<typeof eventTypeSchema>
+export type EventTypeExtendedValidated = z.infer<typeof eventTypeExtendedSchema>
 
 /**
  * Timing result schema
@@ -1627,9 +1627,9 @@ export const timingResultSchema = z.object({
 })
 
 /**
- * Life prediction save-timing request
+ * Life prediction save-timing request (detailed)
  */
-export const lifePredictionSaveTimingSchema = z.object({
+export const lifePredictionSaveTimingDetailedSchema = z.object({
   question: z.string().min(1).max(500).trim(),
   eventType: z.string().min(1).max(50).trim(),
   results: z.array(timingResultSchema).min(1).max(20),
@@ -1638,7 +1638,9 @@ export const lifePredictionSaveTimingSchema = z.object({
   locale: localeSchema.optional(),
 })
 
-export type LifePredictionSaveTimingValidated = z.infer<typeof lifePredictionSaveTimingSchema>
+export type LifePredictionSaveTimingDetailedValidated = z.infer<
+  typeof lifePredictionSaveTimingDetailedSchema
+>
 
 /**
  * Optimal period schema (for explain-results)
@@ -1847,3 +1849,463 @@ export const destinyMatchMatchesQuerySchema = z.object({
 })
 
 export type DestinyMatchMatchesQueryValidated = z.infer<typeof destinyMatchMatchesQuerySchema>
+
+// ============ Fortune & Daily Fortune Schemas ============
+
+/**
+ * Fortune save request
+ */
+export const fortuneSaveSchema = z.object({
+  date: z.string().min(1).max(30),
+  kind: z.enum(['daily', 'weekly', 'monthly', 'yearly']).optional().default('daily'),
+  title: z.string().max(200).trim().optional().nullable(),
+  content: z.string().min(1).max(10000),
+})
+
+export type FortuneSaveValidated = z.infer<typeof fortuneSaveSchema>
+
+/**
+ * Daily fortune request
+ */
+export const dailyFortuneSchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema.optional(),
+  sendEmail: z.boolean().optional().default(false),
+  userTimezone: timezoneSchema.optional(),
+})
+
+export type DailyFortuneValidated = z.infer<typeof dailyFortuneSchema>
+
+// ============ Numerology Schemas ============
+
+/**
+ * Numerology analyze request
+ */
+export const numerologyRequestSchema = z.object({
+  action: z.enum(['analyze', 'compatibility']).optional().default('analyze'),
+  birthDate: dateSchema,
+  englishName: z.string().max(200).trim().optional(),
+  koreanName: z.string().max(100).trim().optional(),
+  locale: localeSchema.optional(),
+  person1: z
+    .object({
+      birthDate: dateSchema,
+      name: z.string().max(200).trim().optional(),
+    })
+    .optional(),
+  person2: z
+    .object({
+      birthDate: dateSchema,
+      name: z.string().max(200).trim().optional(),
+    })
+    .optional(),
+})
+
+export type NumerologyRequestValidated = z.infer<typeof numerologyRequestSchema>
+
+// ============ Consultation Schemas ============
+
+/**
+ * Consultation save request
+ */
+export const consultationSaveSchema = z.object({
+  theme: z.string().max(100).trim().optional(),
+  summary: z.string().max(3000).trim().optional(),
+  fullReport: z.string().max(30000).optional(),
+  jungQuotes: z.unknown().optional(),
+  signals: z.unknown().optional(),
+  userQuestion: z.string().max(1000).trim().optional(),
+  locale: localeSchema.optional(),
+})
+
+export type ConsultationSaveValidated = z.infer<typeof consultationSaveSchema>
+
+// ============ Content Access Schemas ============
+
+/**
+ * Content access request
+ */
+export const contentAccessSchema = z.object({
+  service: z.string().min(1).max(100).trim(),
+  contentType: z.string().min(1).max(100).trim(),
+  contentId: z.string().max(200).trim().optional().nullable(),
+  locale: localeSchema.optional(),
+  metadata: z.unknown().optional(),
+  creditUsed: z.number().int().min(0).max(100).optional(),
+})
+
+export type ContentAccessValidated = z.infer<typeof contentAccessSchema>
+
+// ============ Saju Request Schema ============
+
+/**
+ * Saju calculation request (extended)
+ */
+export const sajuCalculationRequestSchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema,
+  gender: genderSchema,
+  calendarType: z.enum(['solar', 'lunar']),
+  timezone: timezoneSchema,
+  userTimezone: timezoneSchema.optional(),
+  latitude: latitudeSchema.optional(),
+  longitude: longitudeSchema.optional(),
+})
+
+export type SajuCalculationRequestValidated = z.infer<typeof sajuCalculationRequestSchema>
+
+// ============ Precompute Chart Schema ============
+
+/**
+ * Precompute chart request
+ */
+export const precomputeChartRequestSchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema,
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+  gender: z.string().max(20).optional(),
+  timezone: timezoneSchema.optional(),
+})
+
+export type PrecomputeChartRequestValidated = z.infer<typeof precomputeChartRequestSchema>
+
+// ============ Chat Schemas ============
+
+/**
+ * Tarot chat request
+ */
+export const tarotChatRequestSchema = z.object({
+  messages: z.array(chatMessageSchema).min(1).max(50),
+  context: z.object({
+    spread_title: z.string().max(200).trim(),
+    category: z.string().max(100).trim(),
+    cards: z
+      .array(
+        z.object({
+          position: z.string().max(200).trim(),
+          name: z.string().max(200).trim(),
+          isReversed: z.boolean().optional(),
+          is_reversed: z.boolean().optional(),
+          meaning: z.string().max(2000).trim(),
+          keywords: z.array(z.string().max(100)).max(20).optional(),
+        })
+      )
+      .max(15),
+    overall_message: z.string().max(10000),
+    guidance: z.string().max(5000),
+  }),
+  language: z.enum(['ko', 'en']).optional(),
+})
+
+export type TarotChatRequestValidated = z.infer<typeof tarotChatRequestSchema>
+
+/**
+ * Dream chat request - uses dreamContext (not context)
+ */
+export const dreamChatRequestSchema = z.object({
+  messages: z.array(chatMessageSchema).min(1).max(50),
+  dreamContext: z.object({
+    dreamText: z.string().min(5).max(10000),
+    summary: z.string().max(5000).optional(),
+    symbols: z.array(z.string().max(200)).max(30).optional(),
+    emotions: z.array(z.string().max(200)).max(30).optional(),
+    themes: z.array(z.string().max(200)).max(30).optional(),
+    recommendations: z.array(z.string().max(500)).max(20).optional(),
+    cultural_notes: z.record(z.string(), z.string().max(500)).optional(),
+    celestial: z.record(z.string(), z.unknown()).optional(),
+    saju: z.record(z.string(), z.unknown()).optional(),
+    previous_consultations: z.array(z.record(z.string(), z.unknown())).max(5).optional(),
+    persona_memory: z.record(z.string(), z.unknown()).optional(),
+  }),
+  locale: z.enum(['ko', 'en']).optional(),
+})
+
+export type DreamChatRequestValidated = z.infer<typeof dreamChatRequestSchema>
+
+/**
+ * Compatibility counselor chat request
+ */
+export const compatibilityCounselorRequestSchema = z.object({
+  persons: z.array(z.record(z.string(), z.unknown())).min(2).max(4),
+  person1Saju: z.record(z.string(), z.unknown()).nullable().optional(),
+  person2Saju: z.record(z.string(), z.unknown()).nullable().optional(),
+  person1Astro: z.record(z.string(), z.unknown()).nullable().optional(),
+  person2Astro: z.record(z.string(), z.unknown()).nullable().optional(),
+  lang: z.enum(['ko', 'en']).optional(),
+  messages: z.array(chatMessageSchema).max(50).optional(),
+  theme: z.enum(['general', 'love', 'business', 'family']).optional(),
+})
+
+export type CompatibilityCounselorRequestValidated = z.infer<
+  typeof compatibilityCounselorRequestSchema
+>
+
+// ============ Tarot Additional Schemas ============
+
+/**
+ * Tarot draw request (main tarot route POST)
+ */
+export const tarotDrawSchema = z.object({
+  categoryId: z.string().min(1).max(200).trim(),
+  spreadId: z.string().min(1).max(200).trim(),
+})
+
+export type TarotDrawValidated = z.infer<typeof tarotDrawSchema>
+
+/**
+ * Tarot interpret-stream request
+ */
+export const tarotInterpretStreamSchema = z.object({
+  categoryId: z.string().min(1).max(200).trim(),
+  spreadId: z.string().max(200).trim().optional(),
+  spreadTitle: z.string().max(200).trim().optional(),
+  cards: z
+    .array(
+      z.object({
+        name: z.string().min(1).max(200),
+        nameKo: z.string().max(200).optional(),
+        isReversed: z.boolean(),
+        position: z.string().min(1).max(200),
+        positionKo: z.string().max(200).optional(),
+        keywords: z.array(z.string().max(100)).max(20).optional(),
+        keywordsKo: z.array(z.string().max(100)).max(20).optional(),
+      })
+    )
+    .min(1)
+    .max(15),
+  userQuestion: z.string().max(600).trim().optional(),
+  language: z.enum(['ko', 'en']).optional(),
+  birthdate: z.string().max(12).optional(),
+  zodiacSign: z.string().max(50).optional(),
+  previousReadings: z.array(z.string().max(200)).max(3).optional(),
+  questionMood: z.enum(['worried', 'curious', 'hopeful', 'urgent', 'neutral']).optional(),
+})
+
+export type TarotInterpretStreamValidated = z.infer<typeof tarotInterpretStreamSchema>
+
+/**
+ * Tarot chat-stream request (extends tarotChatRequestSchema with counselor)
+ */
+export const tarotChatStreamRequestSchema = tarotChatRequestSchema.extend({
+  counselor_id: z.string().max(200).trim().optional(),
+  counselor_style: z.string().max(200).trim().optional(),
+})
+
+export type TarotChatStreamRequestValidated = z.infer<typeof tarotChatStreamRequestSchema>
+
+// ============ Dream Stream Schema ============
+
+/**
+ * Dream stream interpretation request
+ */
+export const dreamStreamSchema = z.object({
+  dreamText: z.string().min(5).max(5000).trim(),
+  symbols: z.array(z.string().max(120)).max(50).optional(),
+  emotions: z.array(z.string().max(120)).max(50).optional(),
+  themes: z.array(z.string().max(120)).max(50).optional(),
+  context: z.array(z.string().max(120)).max(50).optional(),
+  locale: z.enum(['ko', 'en']).optional(),
+  koreanTypes: z.array(z.string().max(120)).max(50).optional(),
+  koreanLucky: z.array(z.string().max(120)).max(50).optional(),
+  chinese: z.array(z.string().max(120)).max(50).optional(),
+  islamicTypes: z.array(z.string().max(120)).max(50).optional(),
+  western: z.array(z.string().max(120)).max(50).optional(),
+  hindu: z.array(z.string().max(120)).max(50).optional(),
+  japanese: z.array(z.string().max(120)).max(50).optional(),
+  birth: z
+    .object({
+      date: dateSchema.optional(),
+      time: timeSchema.optional(),
+      timezone: timezoneSchema.optional(),
+      latitude: latitudeSchema.optional(),
+      longitude: longitudeSchema.optional(),
+      gender: z.string().max(20).optional(),
+    })
+    .optional(),
+  sajuInfluence: z.record(z.string(), z.any()).optional(),
+})
+
+export type DreamStreamValidated = z.infer<typeof dreamStreamSchema>
+
+// ============ Saju Chat Stream Schema ============
+
+/**
+ * Saju chat-stream request
+ */
+export const sajuChatStreamSchema = z.object({
+  messages: z.array(chatMessageSchema).min(1).max(100),
+  saju: z.record(z.string(), z.any()).optional(),
+  locale: z.enum(['ko', 'en']).optional(),
+  context: z.record(z.string(), z.any()).optional(),
+})
+
+export type SajuChatStreamValidated = z.infer<typeof sajuChatStreamSchema>
+
+// ============ Astrology Schemas ============
+
+/**
+ * Astrology chat-stream request
+ */
+export const astrologyChatStreamSchema = z.object({
+  messages: z.array(chatMessageSchema).min(1).max(100),
+  birthData: z.record(z.string(), z.any()).optional(),
+  chartData: z.record(z.string(), z.any()).optional(),
+  locale: z.enum(['ko', 'en']).optional(),
+})
+
+export type AstrologyChatStreamValidated = z.infer<typeof astrologyChatStreamSchema>
+
+/**
+ * Astrology details request
+ */
+export const astrologyDetailsSchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema.optional(),
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+  timezone: timezoneSchema.optional(),
+  locale: localeSchema.optional(),
+})
+
+export type AstrologyDetailsValidated = z.infer<typeof astrologyDetailsSchema>
+
+// ============ Destiny Map Schemas ============
+
+/**
+ * Destiny map main request
+ */
+export const destinyMapRequestSchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema,
+  gender: genderSchema,
+  calendarType: z.enum(['solar', 'lunar']).optional().default('solar'),
+  timezone: timezoneSchema,
+  locale: localeSchema.optional(),
+  latitude: latitudeSchema.optional(),
+  longitude: longitudeSchema.optional(),
+})
+
+export type DestinyMapRequestValidated = z.infer<typeof destinyMapRequestSchema>
+
+/**
+ * Destiny map chat request
+ */
+export const destinyMapChatSchema = z.object({
+  messages: z.array(chatMessageSchema).min(1).max(100),
+  saju: z.record(z.string(), z.any()).optional(),
+  astro: z.record(z.string(), z.any()).optional(),
+  locale: z.enum(['ko', 'en']).optional(),
+  context: z.record(z.string(), z.any()).optional(),
+})
+
+export type DestinyMapChatValidated = z.infer<typeof destinyMapChatSchema>
+
+// ============ Utility Route Schemas ============
+
+/**
+ * Latlon to timezone request
+ */
+export const latlonToTimezoneSchema = z.object({
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+})
+
+export type LatlonToTimezoneValidated = z.infer<typeof latlonToTimezoneSchema>
+
+/**
+ * Past life request
+ */
+export const pastLifeRequestSchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema.optional(),
+  gender: genderSchema.optional(),
+  locale: localeSchema.optional(),
+})
+
+export type PastLifeRequestValidated = z.infer<typeof pastLifeRequestSchema>
+
+/**
+ * Cache chart request
+ */
+export const cacheChartSchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema.optional(),
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+  timezone: timezoneSchema.optional(),
+})
+
+export type CacheChartValidated = z.infer<typeof cacheChartSchema>
+
+/**
+ * Readings save request
+ */
+export const readingsSaveSchema = z.object({
+  type: z.string().min(1).max(50).trim(),
+  title: z.string().max(200).trim().optional(),
+  content: z.string().min(1).max(50000),
+  metadata: z.record(z.string(), z.any()).optional(),
+})
+
+export type ReadingsSaveValidated = z.infer<typeof readingsSaveSchema>
+
+/**
+ * Personality compatibility request
+ */
+export const personalityCompatibilitySchema = z.object({
+  person1: z.object({
+    typeCode: z.string().min(1).max(10),
+    personaName: z.string().max(100).optional(),
+    energyScore: z.number().min(0).max(100),
+    cognitionScore: z.number().min(0).max(100),
+    decisionScore: z.number().min(0).max(100),
+    rhythmScore: z.number().min(0).max(100),
+  }),
+  person2: z.object({
+    typeCode: z.string().min(1).max(10),
+    personaName: z.string().max(100).optional(),
+    energyScore: z.number().min(0).max(100),
+    cognitionScore: z.number().min(0).max(100),
+    decisionScore: z.number().min(0).max(100),
+    rhythmScore: z.number().min(0).max(100),
+  }),
+  locale: localeSchema.optional(),
+})
+
+export type PersonalityCompatibilityValidated = z.infer<typeof personalityCompatibilitySchema>
+
+/**
+ * Destiny matrix AI report request
+ */
+export const destinyMatrixAiReportSchema = z.object({
+  birthDate: dateSchema,
+  matrixData: z.record(z.string(), z.any()),
+  locale: localeSchema.optional(),
+  reportType: z.string().max(50).optional(),
+})
+
+export type DestinyMatrixAiReportValidated = z.infer<typeof destinyMatrixAiReportSchema>
+
+/**
+ * Destiny matrix report request
+ */
+export const destinyMatrixReportSchema = z.object({
+  birthDate: dateSchema,
+  locale: localeSchema.optional(),
+})
+
+export type DestinyMatrixReportValidated = z.infer<typeof destinyMatrixReportSchema>
+
+/**
+ * ICP request
+ */
+export const icpRequestSchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema.optional(),
+  gender: genderSchema.optional(),
+  locale: localeSchema.optional(),
+  analysisType: z.string().max(50).optional(),
+})
+
+export type IcpRequestValidated = z.infer<typeof icpRequestSchema>

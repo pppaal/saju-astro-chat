@@ -1,15 +1,32 @@
 // app/api/fortune/route.ts
-import { NextRequest, NextResponse } from "next/server"
-import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from "@/lib/api/middleware"
-import { prisma } from "@/lib/db/prisma"
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
+import { prisma } from '@/lib/db/prisma'
+import { HTTP_STATUS } from '@/lib/constants/http'
+import { fortuneSaveSchema } from '@/lib/api/zodValidation'
+import { logger } from '@/lib/logger'
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    const { date, kind = "daily", title, content } = await req.json()
-    if (!date || !content) {
-      return NextResponse.json({ error: "date and content are required" }, { status: HTTP_STATUS.BAD_REQUEST })
+    const rawBody = await req.json()
+
+    // Validate with Zod
+    const validationResult = fortuneSaveSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Fortune] validation failed', { errors: validationResult.error.issues })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
     }
+
+    const { date, kind, title, content } = validationResult.data
 
     const d = new Date(date)
     const normalized = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
@@ -30,7 +47,7 @@ export const POST = withApiMiddleware(
         title: title ?? null,
         content,
       },
-    });
+    })
 
     return NextResponse.json(saved)
   },
@@ -44,9 +61,11 @@ export const POST = withApiMiddleware(
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const { searchParams } = new URL(req.url)
-    const date = searchParams.get("date")
-    const kind = searchParams.get("kind") || "daily"
-    if (!date) {return NextResponse.json({ error: "date is required" }, { status: HTTP_STATUS.BAD_REQUEST })}
+    const date = searchParams.get('date')
+    const kind = searchParams.get('kind') || 'daily'
+    if (!date) {
+      return NextResponse.json({ error: 'date is required' }, { status: HTTP_STATUS.BAD_REQUEST })
+    }
 
     const d = new Date(date)
     const normalized = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
@@ -59,7 +78,7 @@ export const GET = withApiMiddleware(
           kind,
         },
       },
-    });
+    })
     return NextResponse.json({ fortune: row ?? null })
   },
   createAuthenticatedGuard({

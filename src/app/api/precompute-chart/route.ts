@@ -5,17 +5,29 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { precomputeChartRequestSchema } from '@/lib/api/zodValidation'
 
 export async function POST(req: NextRequest) {
   try {
-    const { birthDate, birthTime, latitude, longitude, gender, timezone } = await req.json()
+    const rawBody = await req.json()
 
-    if (!birthDate || !birthTime || !latitude || !longitude) {
+    // Validate with Zod
+    const validationResult = precomputeChartRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[precompute-chart] validation failed', { errors: validationResult.error.issues })
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
+
+    const { birthDate, birthTime, latitude, longitude, gender, timezone } = validationResult.data
 
     const genderVal =
       gender === 'Male' || String(gender).toLowerCase() === 'male' ? 'male' : 'female'
