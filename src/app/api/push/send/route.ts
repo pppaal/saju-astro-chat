@@ -1,57 +1,65 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions';
-import {
-  sendPushNotification,
-  sendTestNotification,
-} from '@/lib/notifications/pushService';
-import { logger } from '@/lib/logger';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth/authOptions'
+import { sendPushNotification, sendTestNotification } from '@/lib/notifications/pushService'
+import { logger } from '@/lib/logger'
+import { HTTP_STATUS } from '@/lib/constants/http'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
 /**
  * POST /api/push/send
  * Send a push notification to a user
  */
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+  }
+
+  const ip = getClientIp(request.headers)
+  const limit = await rateLimit(`push-send:${ip}`, { limit: 10, windowSeconds: 60 })
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Try again soon.' },
+      { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
+    )
   }
 
   try {
-    const body = await request.json();
-    const { targetUserId, title, message, icon, url, tag, test } = body;
+    const body = await request.json()
+    const { targetUserId, title, message, icon, url, tag, test } = body
 
     // 테스트 알림 발송
     if (test) {
-      const result = await sendTestNotification(session.user.id);
+      const result = await sendTestNotification(session.user.id)
       return NextResponse.json({
         success: result.success,
         sent: result.sent,
         failed: result.failed,
         error: result.error,
-      });
+      })
     }
 
     // 일반 알림 발송
-    const userId = targetUserId || session.user.id;
+    const userId = targetUserId || session.user.id
 
     // 본인에게만 발송 가능 (관리자 기능은 추후 추가)
     if (targetUserId && targetUserId !== session.user.id) {
       return NextResponse.json(
         { error: 'Cannot send to other users' },
         { status: HTTP_STATUS.FORBIDDEN }
-      );
+      )
     }
 
     if (!title || !message) {
       return NextResponse.json(
         { error: 'Missing required fields: title, message' },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
     const result = await sendPushNotification(userId, {
@@ -60,19 +68,21 @@ export async function POST(request: NextRequest) {
       icon: icon || '/icon-192.png',
       tag: tag || 'destinypal',
       data: { url: url || '/notifications' },
-    });
+    })
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       success: result.success,
       sent: result.sent,
       failed: result.failed,
       error: result.error,
-    });
+    })
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    return res
   } catch (error) {
-    logger.error('Error sending push notification:', error);
+    logger.error('Error sending push notification:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }
