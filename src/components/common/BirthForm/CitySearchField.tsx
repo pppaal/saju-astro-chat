@@ -30,20 +30,30 @@ export function CitySearchField({
   required = false,
   label,
 }: CitySearchFieldProps) {
-  const { suggestions, openSug, cityErr, setOpenSug, setSelectedCity, handleCitySelect } =
-    useCitySearch()
+  const {
+    suggestions,
+    openSug,
+    cityErr,
+    setOpenSug,
+    setSelectedCity,
+    handleCityInputChange,
+    handleCitySelect,
+  } = useCitySearch()
 
   const defaultLabel = locale === 'ko' ? '출생 도시' : 'Birth City'
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     onChange(newValue)
-    setOpenSug(true)
+    // Call the hook's city search function to get suggestions
+    handleCityInputChange(newValue)
   }
 
   const handleSelect = (city: CityHit) => {
     handleCitySelect(city)
     setSelectedCity(city)
+    const cityDisplay = `${city.name}, ${city.country}`
+    onChange(cityDisplay)
     onCitySelect(city)
   }
 
