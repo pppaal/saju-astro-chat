@@ -7,6 +7,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { idParamSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,10 +56,12 @@ async function checkStripeActive(email?: string): Promise<boolean> {
 // GET: 개별 상담 기록 조회 (프리미엄 전용)
 export async function GET(request: Request, context: RouteContext) {
   try {
-    const { id } = await context.params
-    if (!id) {
+    const rawParams = await context.params
+    const paramValidation = idParamSchema.safeParse(rawParams)
+    if (!paramValidation.success) {
       return NextResponse.json({ error: 'invalid_params' }, { status: HTTP_STATUS.BAD_REQUEST })
     }
+    const { id } = paramValidation.data
     const session = await getServerSession(authOptions)
     if (!session?.user?.id || !session?.user?.email) {
       return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
@@ -107,10 +110,12 @@ export async function GET(request: Request, context: RouteContext) {
 // DELETE: 상담 기록 삭제 (본인 기록만)
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
-    const { id } = await context.params
-    if (!id) {
+    const rawParams = await context.params
+    const paramValidation = idParamSchema.safeParse(rawParams)
+    if (!paramValidation.success) {
       return NextResponse.json({ error: 'invalid_params' }, { status: HTTP_STATUS.BAD_REQUEST })
     }
+    const { id } = paramValidation.data
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })

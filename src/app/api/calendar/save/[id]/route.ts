@@ -7,6 +7,7 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { idParamSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +19,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
-    const { id } = await params
+    const rawParams = await params
+    const paramValidation = idParamSchema.safeParse(rawParams)
+    if (!paramValidation.success) {
+      return NextResponse.json(
+        { error: 'Invalid id parameter' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+    const { id } = paramValidation.data
 
     const savedDate = await prisma.savedCalendarDate.findFirst({
       where: {
@@ -63,7 +72,15 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       )
     }
 
-    const { id } = await params
+    const rawParams = await params
+    const paramValidation = idParamSchema.safeParse(rawParams)
+    if (!paramValidation.success) {
+      return NextResponse.json(
+        { error: 'Invalid id parameter' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+    const { id } = paramValidation.data
 
     // 본인의 데이터만 삭제 가능
     const existingDate = await prisma.savedCalendarDate.findFirst({

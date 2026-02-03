@@ -7,12 +7,18 @@ import {
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
+import { idParamSchema } from '@/lib/api/zodValidation'
 
 export const GET = withApiMiddleware(
   async (_req: NextRequest, context: ApiContext, ...args: unknown[]) => {
     // Extract id from dynamic route params
     const { params } = args[0] as { params: Promise<{ id: string }> }
-    const { id } = await params
+    const rawParams = await params
+    const paramValidation = idParamSchema.safeParse(rawParams)
+    if (!paramValidation.success) {
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid id parameter')
+    }
+    const { id } = paramValidation.data
 
     const reading = await prisma.reading.findFirst({
       where: {

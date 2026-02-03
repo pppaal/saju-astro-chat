@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { idParamSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,7 +26,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       )
     }
 
-    const { id } = await params
+    const rawParams = await params
+    const paramValidation = idParamSchema.safeParse(rawParams)
+    if (!paramValidation.success) {
+      return NextResponse.json(
+        { error: 'Invalid id parameter' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+    const { id } = paramValidation.data
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },

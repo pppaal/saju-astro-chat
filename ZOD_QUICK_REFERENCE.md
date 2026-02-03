@@ -4,23 +4,25 @@
 
 ---
 
-## 📊 최종 통계 (Phase 5 완료)
+## 📊 최종 통계 (Phase 7 완료 - 80% 목표 달성!)
 
 ### 커버리지
 
 - **전체 API 라우트**: 134개
-- **Zod 검증 적용**: 61개 (**45.5%**) ← Phase 5 완료!
+- **Zod 검증 적용**: 107개 (**80%**) ← Phase 7 완료! 목표 달성!
 - **Phase 1**: 35개 (26%)
 - **Phase 2**: 41개 (31%)
 - **Phase 3**: 45개 (34%)
 - **Phase 4**: 52개 (39%)
 - **Phase 5**: 61개 (46%)
-- **증가율**: +281% 🚀
+- **Phase 6**: 74개 (55%)
+- **Phase 7**: 107개 (80%)
+- **증가율**: +569% 🚀
 
 ### 스키마 라이브러리
 
-- **전체 스키마 수**: 230+개
-- **파일 크기**: 1,805줄
+- **전체 스키마 수**: 280+개
+- **파일 크기**: 2,466줄
 - **커버 가능 라우트**: 134개 (100%)
 
 ---
@@ -108,6 +110,25 @@ destinyMatrixCalculationSchema // 운명 매트릭스 계산
 coupleTarotReadingPostSchema // 커플 타로 생성
 coupleTarotReadingDeleteSchema // 커플 타로 삭제
 coupleTarotReadingQuerySchema // 커플 타로 조회
+```
+
+### Query/URL Param (Phase 7 신규)
+
+```typescript
+paginationQuerySchema // limit, offset (z.coerce)
+dreamHistoryQuerySchema // 꿈 기록 조회 페이지네이션
+dreamHistoryDeleteQuerySchema // 꿈 기록 삭제
+counselorSessionListQuerySchema // 상담 세션 목록
+counselorSessionDeleteQuerySchema // 상담 세션 삭제
+counselorSessionLoadQuerySchema // 상담 세션 로드
+destinyMatchDiscoverQuerySchema // 매칭 발견 (gender, age 필터)
+destinyMatchMatchesQuerySchema // 매칭 목록
+destinyMatchUnmatchSchema // 매칭 해제
+citiesSearchQuerySchema // 도시 검색
+meHistoryQuerySchema // 내 기록 조회
+referralValidateQuerySchema // 추천 코드 검증
+idParamSchema // URL [id] 파라미터
+cronNotificationsTriggerSchema // 크론 알림 트리거
 ```
 
 ### 기타

@@ -248,35 +248,80 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
 
   const adv = advancedAnalysis as Record<string, unknown> | undefined
 
+  // Helper to safely get nested property
+  const getProperty = (obj: unknown, ...keys: string[]): unknown => {
+    let current = obj
+    for (const key of keys) {
+      if (current && typeof current === 'object' && key in current) {
+        current = (current as Record<string, unknown>)[key]
+      } else {
+        return undefined
+      }
+    }
+    return current
+  }
+
   // 신강/신약
-  const strengthText = adv?.extended?.strength
-    ? `${adv.extended.strength.level} (${adv.extended.strength.score ?? 0}점, 통근${adv.extended.strength.rootCount ?? 0}개)`
+  const extendedStrength = getProperty(adv, 'extended', 'strength') as
+    | { level?: string; score?: number; rootCount?: number }
+    | undefined
+  const strengthText = extendedStrength
+    ? `${extendedStrength.level ?? '-'} (${extendedStrength.score ?? 0}점, 통근${extendedStrength.rootCount ?? 0}개)`
     : '-'
 
   // 격국
-  const geokgukText = adv?.geokguk?.type ?? adv?.extended?.geokguk?.type ?? '-'
-  const geokgukDesc = adv?.geokguk?.description ?? adv?.extended?.geokguk?.description ?? ''
+  const geokgukText =
+    (getProperty(adv, 'geokguk', 'type') as string) ??
+    (getProperty(adv, 'extended', 'geokguk', 'type') as string) ??
+    '-'
+  const geokgukDesc =
+    (getProperty(adv, 'geokguk', 'description') as string) ??
+    (getProperty(adv, 'extended', 'geokguk', 'description') as string) ??
+    ''
 
   // 용신/희신/기신
-  const yongsinPrimary = adv?.yongsin?.primary?.element ?? adv?.extended?.yongsin?.primary ?? '-'
+  const yongsinPrimary =
+    (getProperty(adv, 'yongsin', 'primary', 'element') as string) ??
+    (getProperty(adv, 'extended', 'yongsin', 'primary') as string) ??
+    '-'
   const yongsinSecondary =
-    adv?.yongsin?.secondary?.element ?? adv?.extended?.yongsin?.secondary ?? '-'
-  const yongsinAvoid = adv?.yongsin?.avoid?.element ?? adv?.extended?.yongsin?.avoid ?? '-'
+    (getProperty(adv, 'yongsin', 'secondary', 'element') as string) ??
+    (getProperty(adv, 'extended', 'yongsin', 'secondary') as string) ??
+    '-'
+  const yongsinAvoid =
+    (getProperty(adv, 'yongsin', 'avoid', 'element') as string) ??
+    (getProperty(adv, 'extended', 'yongsin', 'avoid') as string) ??
+    '-'
 
   // 십신 분석
-  const sibsin = adv?.sibsin
-  const sibsinDist = sibsin?.count ?? sibsin?.distribution ?? sibsin?.counts ?? {}
+  const sibsin = getProperty(adv, 'sibsin') as Record<string, unknown> | undefined
+  const sibsinDist =
+    (getProperty(sibsin, 'count') as Record<string, number>) ??
+    (getProperty(sibsin, 'distribution') as Record<string, number>) ??
+    (getProperty(sibsin, 'counts') as Record<string, number>) ??
+    {}
   const sibsinDistText = Object.entries(sibsinDist)
     .filter(([, v]) => (v as number) > 0)
     .map(([k, v]) => `${k}(${v})`)
     .join(', ')
+
+  const dominantSibsin = getProperty(sibsin, 'dominantSibsin')
   const sibsinDominant =
-    sibsin?.dominantSibsin?.join?.(', ') ?? sibsin?.dominant ?? sibsin?.primary ?? '-'
-  const sibsinMissing = sibsin?.missingSibsin?.join?.(', ') ?? sibsin?.missing?.join?.(', ') ?? '-'
+    (Array.isArray(dominantSibsin) ? dominantSibsin.join(', ') : null) ??
+    (getProperty(sibsin, 'dominant') as string) ??
+    (getProperty(sibsin, 'primary') as string) ??
+    '-'
+
+  const missingSibsinArr = getProperty(sibsin, 'missingSibsin')
+  const missingArr = getProperty(sibsin, 'missing')
+  const sibsinMissing =
+    (Array.isArray(missingSibsinArr) ? missingSibsinArr.join(', ') : null) ??
+    (Array.isArray(missingArr) ? missingArr.join(', ') : null) ??
+    '-'
 
   // 십신 기반 인간관계/직업
-  const sibsinRelationships = sibsin?.relationships ?? []
-  const sibsinCareerAptitudes = sibsin?.careerAptitudes ?? []
+  const sibsinRelationships = (getProperty(sibsin, 'relationships') as Array<unknown>) ?? []
+  const sibsinCareerAptitudes = (getProperty(sibsin, 'careerAptitudes') as Array<unknown>) ?? []
   const relationshipText = Array.isArray(sibsinRelationships)
     ? sibsinRelationships
         .slice(0, 3)
