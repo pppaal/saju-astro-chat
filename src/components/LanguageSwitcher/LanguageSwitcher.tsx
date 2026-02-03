@@ -121,7 +121,7 @@ export default function LanguageSwitcher() {
         title={t('common.selectLanguage')}
         className={`flex items-center gap-2 px-3.5 py-2 rounded-xl backdrop-blur-md
           text-sm font-medium text-blue-50 cursor-pointer outline-none
-          transition-all duration-200 ease-out min-w-[120px] justify-center
+          transition-all duration-200 ease-out min-w-[140px] justify-center whitespace-nowrap
           ${
             isOpen
               ? 'bg-gradient-to-br from-cyan-400/20 to-blue-400/20 border border-cyan-400/40 shadow-[0_4px_20px_rgba(99,210,255,0.15)]'

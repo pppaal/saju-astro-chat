@@ -204,7 +204,9 @@ Your strengths are ${dayMasterInfo.strength.en}, while ${dayMasterInfo.weakness.
   // Limit cache size to prevent memory leaks
   if (reportCache.size > 100) {
     const firstKey = reportCache.keys().next().value
-    reportCache.delete(firstKey)
+    if (firstKey !== undefined) {
+      reportCache.delete(firstKey)
+    }
   }
 
   return report
@@ -268,8 +270,8 @@ const FunInsights = memo(function FunInsights({
       healthAnalysis: getHealthAnalysis(saju, lang || 'ko'),
       report: generateReport(saju, astro, lang || 'ko', theme || 'overall'),
       // 🔥 새로운 고급 분석 추가
-      chironInsight: getChironInsight(astro, lang),
-      currentFlow: getCurrentFlowAnalysis(saju, lang),
+      chironInsight: getChironInsight(astro, lang || 'ko'),
+      currentFlow: getCurrentFlowAnalysis(saju, lang || 'ko'),
     }
   }, [saju, astro, lang, theme, hasFiveElements, hasValidAstro])
 
@@ -315,7 +317,7 @@ const FunInsights = memo(function FunInsights({
 
   // combinedLifeTheme 계산
   const combinedLifeTheme = useMemo(() => {
-    return getCombinedLifeTheme(saju, lang)
+    return getCombinedLifeTheme(saju, lang || 'ko')
   }, [saju, lang])
 
   // Hooks must be called before conditional returns

@@ -436,27 +436,5 @@ export async function getCacheInfo() {
 }
 
 // Aliases for backwards compatibility
-export const getCache = cacheGetResult
-export const setCache = async <T>(
-  key: string,
-  value: T,
-  ttlSeconds?: number
-): Promise<CacheWriteResult> => {
-  const client = await getRedisClient()
-  if (!client) {
-    return { success: false, error: 'Redis not available' }
-  }
-
-  try {
-    const serialized = JSON.stringify(value)
-    if (ttlSeconds) {
-      await client.setEx(key, ttlSeconds, serialized)
-    } else {
-      await client.set(key, serialized)
-    }
-    return { success: true }
-  } catch (error) {
-    logger.error('[Redis] Set error', { key, error })
-    return { success: false, error: String(error) }
-  }
-}
+export const getCache = cacheGet
+export const setCache = cacheSet
