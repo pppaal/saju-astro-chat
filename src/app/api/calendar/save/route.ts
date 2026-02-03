@@ -40,11 +40,11 @@ export async function POST(req: NextRequest) {
     // Validate request body with Zod
     const validationResult = calendarSaveRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
-      logger.warn('[CalendarSave] validation failed', { errors: validationResult.error.errors })
+      logger.warn('[CalendarSave] validation failed', { errors: validationResult.error.issues })
       return NextResponse.json(
         {
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),
@@ -204,7 +204,7 @@ export async function GET(req: NextRequest) {
 
     if (!queryValidation.success) {
       logger.warn('[CalendarSave] Invalid query parameters', {
-        errors: queryValidation.error.errors,
+        errors: queryValidation.error.issues,
       })
       return NextResponse.json(
         { error: 'Invalid query parameters' },

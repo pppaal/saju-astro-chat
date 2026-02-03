@@ -46,9 +46,9 @@ export const POST = withApiMiddleware(
     // Validate request body with Zod
     const validationResult = tarotSaveRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
-      logger.warn('[TarotSave] validation failed', { errors: validationResult.error.errors })
+      logger.warn('[TarotSave] validation failed', { errors: validationResult.error.issues })
       return apiError(ErrorCodes.VALIDATION_ERROR, 'validation_failed', {
-        details: validationResult.error.errors.map((e) => ({
+        details: validationResult.error.issues.map((e) => ({
           path: e.path.join('.'),
           message: e.message,
         })),
@@ -113,7 +113,7 @@ export const GET = withApiMiddleware(
     })
 
     if (!queryValidation.success) {
-      logger.warn('[TarotSave] Invalid query parameters', { errors: queryValidation.error.errors })
+      logger.warn('[TarotSave] Invalid query parameters', { errors: queryValidation.error.issues })
       return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_query_parameters')
     }
 

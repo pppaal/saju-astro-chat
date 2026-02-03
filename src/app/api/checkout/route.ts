@@ -112,11 +112,11 @@ export async function POST(req: NextRequest) {
     // Validate request body with Zod
     const validationResult = checkoutRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
-      logger.warn('[checkout] validation failed', { errors: validationResult.error.errors })
+      logger.warn('[checkout] validation failed', { errors: validationResult.error.issues })
       return NextResponse.json(
         {
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),
