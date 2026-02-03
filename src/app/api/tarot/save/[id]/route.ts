@@ -1,31 +1,39 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
-import { prisma } from "@/lib/db/prisma";
-import { logger } from '@/lib/logger';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/authOptions'
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/logger'
+import { HTTP_STATUS } from '@/lib/constants/http'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
+      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
-    const { id } = await params;
+    const ip = getClientIp(request.headers)
+    const limit = await rateLimit(`tarot-save:${ip}`, { limit: 30, windowSeconds: 60 })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Try again soon.' },
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
+      )
+    }
+
+    const { id } = await params
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       select: { id: true },
-    });
+    })
 
     if (!user) {
-      return NextResponse.json({ error: "user_not_found" }, { status: HTTP_STATUS.NOT_FOUND });
+      return NextResponse.json({ error: 'user_not_found' }, { status: HTTP_STATUS.NOT_FOUND })
     }
 
     const reading = await prisma.tarotReading.findFirst({
@@ -33,13 +41,13 @@ export async function GET(
         id,
         userId: user.id,
       },
-    });
+    })
 
     if (!reading) {
-      return NextResponse.json({ error: "reading_not_found" }, { status: HTTP_STATUS.NOT_FOUND });
+      return NextResponse.json({ error: 'reading_not_found' }, { status: HTTP_STATUS.NOT_FOUND })
     }
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       success: true,
       reading: {
         id: reading.id,
@@ -56,12 +64,14 @@ export async function GET(
         locale: reading.locale,
         createdAt: reading.createdAt,
       },
-    });
+    })
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    return res
   } catch (error) {
-    logger.error("[Tarot Get Error]:", error);
+    logger.error('[Tarot Get Error]:', error)
     return NextResponse.json(
-      { error: "internal_server_error" },
+      { error: 'internal_server_error' },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }

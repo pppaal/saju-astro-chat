@@ -54,7 +54,7 @@ const RectificationRequestSchema = z.object({
         date: z.string(),
         type: z.string(),
         description: z.string().optional(),
-        importance: z.enum(['low', 'moderate', 'high']).optional(),
+        importance: z.enum(['minor', 'moderate', 'major']).optional(),
       })
     )
     .min(1, 'At least one event is required'),

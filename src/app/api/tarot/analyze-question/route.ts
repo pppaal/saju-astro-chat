@@ -7,6 +7,8 @@ import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
 import { logger } from '@/lib/logger'
 import { PATTERN_MAPPINGS, getExamInterviewMapping } from './pattern-mappings'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 
 // Zod schema for request body
 const AnalyzeQuestionSchema = z.object({
@@ -287,6 +289,15 @@ function applyPatternCorrections(
 // ============================================================
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIp(request.headers)
+    const limit = await rateLimit(`tarot-analyze:${ip}`, { limit: 10, windowSeconds: 60 })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Try again soon.' },
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
+      )
+    }
+
     // Validate request body with Zod
     const body = await request.json()
     const validation = AnalyzeQuestionSchema.safeParse(body)
@@ -376,7 +387,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       isDangerous: false,
       themeId: parsed.themeId,
       spreadId: parsed.spreadId,
@@ -386,6 +397,8 @@ export async function POST(request: NextRequest) {
       userFriendlyExplanation: parsed.userFriendlyExplanation,
       path: `/tarot/${parsed.themeId}/${parsed.spreadId}?question=${encodeURIComponent(trimmedQuestion)}`,
     })
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    return res
   } catch (error) {
     logger.error('Error analyzing question:', error)
     return NextResponse.json(

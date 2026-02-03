@@ -2,27 +2,37 @@
 // Destiny Fusion Matrix™ API Endpoint
 // © 2024 All Rights Reserved. Proprietary Technology.
 
-import { NextRequest, NextResponse } from 'next/server';
-import { calculateDestinyMatrix } from '@/lib/destiny-matrix';
-import type { MatrixCalculationInput } from '@/lib/destiny-matrix';
-import { calculateSajuData } from '@/lib/Saju/saju';
-import type { FiveElement } from '@/lib/Saju/types';
-import { logger } from '@/lib/logger';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
+import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
+import { calculateSajuData } from '@/lib/Saju/saju'
+import type { FiveElement } from '@/lib/Saju/types'
+import { logger } from '@/lib/logger'
+import { HTTP_STATUS } from '@/lib/constants/http'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 
 // Map Korean element names to standard format
 const ELEMENT_MAP: Record<string, FiveElement> = {
-  '목': '목', '화': '화', '토': '토', '금': '금', '수': '수',
-  'wood': '목', 'fire': '화', 'earth': '토', 'metal': '금', 'water': '수',
-};
+  목: '목',
+  화: '화',
+  토: '토',
+  금: '금',
+  수: '수',
+  wood: '목',
+  fire: '화',
+  earth: '토',
+  metal: '금',
+  water: '수',
+}
 
 /**
  * GET - Returns only summary metadata (NO raw matrix data)
  * Protected: Does not expose proprietary matrix cell data
  */
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const format = searchParams.get('format') || 'summary';
+  const { searchParams } = new URL(req.url)
+  const format = searchParams.get('format') || 'summary'
 
   try {
     // Only return summary - NEVER expose raw data
@@ -35,13 +45,33 @@ export async function GET(req: NextRequest) {
           { layer: 1, name: 'Element Core Grid', nameKo: '기운핵심격자', cells: 20 },
           { layer: 2, name: 'Sibsin-Planet Matrix', nameKo: '십신-행성 매트릭스', cells: 100 },
           { layer: 3, name: 'Sibsin-House Matrix', nameKo: '십신-하우스 매트릭스', cells: 120 },
-          { layer: 4, name: 'Timing Overlay Matrix', nameKo: '타이밍 오버레이 매트릭스', cells: 108 },
-          { layer: 5, name: 'Relation-Aspect Matrix', nameKo: '형충회합-애스펙트 매트릭스', cells: 72 },
-          { layer: 6, name: 'TwelveStage-House Matrix', nameKo: '십이운성-하우스 매트릭스', cells: 144 },
+          {
+            layer: 4,
+            name: 'Timing Overlay Matrix',
+            nameKo: '타이밍 오버레이 매트릭스',
+            cells: 108,
+          },
+          {
+            layer: 5,
+            name: 'Relation-Aspect Matrix',
+            nameKo: '형충회합-애스펙트 매트릭스',
+            cells: 72,
+          },
+          {
+            layer: 6,
+            name: 'TwelveStage-House Matrix',
+            nameKo: '십이운성-하우스 매트릭스',
+            cells: 144,
+          },
           { layer: 7, name: 'Advanced Analysis Matrix', nameKo: '고급분석 매트릭스', cells: 144 },
           { layer: 8, name: 'Shinsal-Planet Matrix', nameKo: '신살-행성 매트릭스', cells: 340 },
           { layer: 9, name: 'Asteroid-House Matrix', nameKo: '소행성-하우스 매트릭스', cells: 68 },
-          { layer: 10, name: 'ExtraPoint-Element Matrix', nameKo: '엑스트라포인트 매트릭스', cells: 90 },
+          {
+            layer: 10,
+            name: 'ExtraPoint-Element Matrix',
+            nameKo: '엑스트라포인트 매트릭스',
+            cells: 90,
+          },
         ],
         totalCells: 1206,
         interactionLevels: [
@@ -53,20 +83,22 @@ export async function GET(req: NextRequest) {
         ],
         // NO raw data exposed - only metadata
         notice: 'Raw matrix data is proprietary and not publicly accessible.',
-      });
+      })
     }
 
-    return NextResponse.json({
-      error: 'Invalid format parameter',
-      validFormats: ['summary'],
-    }, { status: HTTP_STATUS.BAD_REQUEST });
-
+    return NextResponse.json(
+      {
+        error: 'Invalid format parameter',
+        validFormats: ['summary'],
+      },
+      { status: HTTP_STATUS.BAD_REQUEST }
+    )
   } catch (error) {
-    logger.error('Destiny Matrix GET error:', error);
+    logger.error('Destiny Matrix GET error:', error)
     return NextResponse.json(
       { error: 'Failed to retrieve matrix info' },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }
 
@@ -76,7 +108,16 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const ip = getClientIp(req.headers)
+    const limit = await rateLimit(`matrix-calc:${ip}`, { limit: 20, windowSeconds: 60 })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Try again soon.' },
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
+      )
+    }
+
+    const body = await req.json()
     const {
       // Birth data (new simpler input)
       birthDate,
@@ -114,16 +155,16 @@ export async function POST(req: NextRequest) {
       // Options
       lang = 'ko',
     } = body as Partial<MatrixCalculationInput> & {
-      birthDate?: string;
-      birthTime?: string;
-      gender?: 'male' | 'female';
-      timezone?: string;
-      lang?: 'ko' | 'en';
-    };
+      birthDate?: string
+      birthTime?: string
+      gender?: 'male' | 'female'
+      timezone?: string
+      lang?: 'ko' | 'en'
+    }
 
-    let dayMasterElement = providedDayMaster;
-    let sibsinDistribution = providedSibsin;
-    let calculatedPillarElements = pillarElements;
+    let dayMasterElement = providedDayMaster
+    let sibsinDistribution = providedSibsin
+    let calculatedPillarElements = pillarElements
 
     // If birthDate is provided, calculate saju automatically
     if (birthDate && !dayMasterElement) {
@@ -134,11 +175,11 @@ export async function POST(req: NextRequest) {
           gender as 'male' | 'female',
           'solar',
           timezone
-        );
+        )
 
         // Extract day master element
-        const dayElement = sajuData.dayPillar?.heavenlyStem?.element;
-        dayMasterElement = dayElement ? (ELEMENT_MAP[dayElement] || dayElement) : undefined;
+        const dayElement = sajuData.dayPillar?.heavenlyStem?.element
+        dayMasterElement = dayElement ? ELEMENT_MAP[dayElement] || dayElement : undefined
 
         // Extract pillar elements
         calculatedPillarElements = [
@@ -150,28 +191,29 @@ export async function POST(req: NextRequest) {
           sajuData.dayPillar?.earthlyBranch?.element,
           sajuData.timePillar?.heavenlyStem?.element,
           sajuData.timePillar?.earthlyBranch?.element,
-        ].filter((e): e is FiveElement => Boolean(e)).map(e => ELEMENT_MAP[e] || e);
+        ]
+          .filter((e): e is FiveElement => Boolean(e))
+          .map((e) => ELEMENT_MAP[e] || e)
 
         // Build sibsin distribution from pillars
-        const sibsinMap: Record<string, number> = {};
-        const pillars = ['yearPillar', 'monthPillar', 'dayPillar', 'timePillar'] as const;
+        const sibsinMap: Record<string, number> = {}
+        const pillars = ['yearPillar', 'monthPillar', 'dayPillar', 'timePillar'] as const
         for (const pillar of pillars) {
-          const p = sajuData[pillar];
+          const p = sajuData[pillar]
           if (p?.heavenlyStem?.sibsin) {
-            sibsinMap[p.heavenlyStem.sibsin] = (sibsinMap[p.heavenlyStem.sibsin] || 0) + 1;
+            sibsinMap[p.heavenlyStem.sibsin] = (sibsinMap[p.heavenlyStem.sibsin] || 0) + 1
           }
           if (p?.earthlyBranch?.sibsin) {
-            sibsinMap[p.earthlyBranch.sibsin] = (sibsinMap[p.earthlyBranch.sibsin] || 0) + 1;
+            sibsinMap[p.earthlyBranch.sibsin] = (sibsinMap[p.earthlyBranch.sibsin] || 0) + 1
           }
         }
-        sibsinDistribution = sibsinMap;
-
+        sibsinDistribution = sibsinMap
       } catch (sajuError) {
-        logger.error('Saju calculation failed:', sajuError);
+        logger.error('Saju calculation failed:', sajuError)
         return NextResponse.json(
           { error: 'Failed to calculate saju from birth data' },
           { status: HTTP_STATUS.BAD_REQUEST }
-        );
+        )
       }
     }
 
@@ -180,7 +222,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'Either birthDate or dayMasterElement is required' },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
     // Build input
@@ -203,10 +245,10 @@ export async function POST(req: NextRequest) {
       asteroidHouses,
       extraPointSigns,
       lang,
-    };
+    }
 
     // Calculate matrix (server-side only)
-    const matrix = calculateDestinyMatrix(input);
+    const matrix = calculateDestinyMatrix(input)
 
     // Count matched cells per layer
     const cellCounts = {
@@ -220,27 +262,29 @@ export async function POST(req: NextRequest) {
       layer8: Object.keys(matrix.layer8_shinsalPlanet).length,
       layer9: Object.keys(matrix.layer9_asteroidHouse).length,
       layer10: Object.keys(matrix.layer10_extraPointElement).length,
-    };
-    const totalCells = Object.values(cellCounts).reduce((a, b) => a + b, 0);
+    }
+    const totalCells = Object.values(cellCounts).reduce((a, b) => a + b, 0)
 
     // Return ONLY processed results - NOT raw matrix data
-    return NextResponse.json({
+    const res = NextResponse.json({
       success: true,
       summary: {
         totalScore: matrix.summary.totalScore,
-        layersProcessed: Object.keys(cellCounts).filter(k => cellCounts[k as keyof typeof cellCounts] > 0).length,
+        layersProcessed: Object.keys(cellCounts).filter(
+          (k) => cellCounts[k as keyof typeof cellCounts] > 0
+        ).length,
         cellsMatched: totalCells,
         strengthCount: matrix.summary.strengthPoints?.length || 0,
         cautionCount: matrix.summary.cautionPoints?.length || 0,
       },
       // Return only high-level highlights, not raw cell data
       highlights: {
-        strengths: matrix.summary.strengthPoints?.slice(0, 3).map(h => ({
+        strengths: matrix.summary.strengthPoints?.slice(0, 3).map((h) => ({
           layer: h.layer,
           keyword: h.cell.interaction.keyword,
           score: h.cell.interaction.score,
         })),
-        cautions: matrix.summary.cautionPoints?.slice(0, 3).map(h => ({
+        cautions: matrix.summary.cautionPoints?.slice(0, 3).map((h) => ({
           layer: h.layer,
           keyword: h.cell.interaction.keyword,
           score: h.cell.interaction.score,
@@ -249,13 +293,14 @@ export async function POST(req: NextRequest) {
       synergies: matrix.summary.topSynergies?.slice(0, 3),
       // Copyright notice
       copyright: '© 2024 Destiny Fusion Matrix™. All Rights Reserved.',
-    });
-
+    })
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    return res
   } catch (error) {
-    logger.error('Destiny Matrix POST error:', error);
+    logger.error('Destiny Matrix POST error:', error)
     return NextResponse.json(
       { error: 'Failed to calculate matrix' },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }

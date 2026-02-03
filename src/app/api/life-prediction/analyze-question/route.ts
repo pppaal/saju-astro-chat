@@ -1,9 +1,11 @@
 // src/app/api/life-prediction/analyze-question/route.ts
 // AI 기반 질문 분석 API - GPT-4o-mini를 사용하여 사용자 질문을 해석
 
-import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/lib/logger';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { HTTP_STATUS } from '@/lib/constants/http'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 
 // ============================================================
 // OpenAI API 호출 헬퍼
@@ -13,7 +15,7 @@ async function callOpenAI(messages: { role: string; content: string }[], maxToke
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
       model: 'gpt-4o-mini',
@@ -22,15 +24,15 @@ async function callOpenAI(messages: { role: string; content: string }[], maxToke
       temperature: 0.1,
       response_format: { type: 'json_object' },
     }),
-  });
+  })
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`OpenAI API error: ${error}`);
+    const error = await response.text()
+    throw new Error(`OpenAI API error: ${error}`)
   }
 
-  const data = await response.json();
-  return data.choices[0]?.message?.content;
+  const data = await response.json()
+  return data.choices[0]?.message?.content
 }
 
 // ============================================================
@@ -44,22 +46,22 @@ export type EventType =
   | 'study'
   | 'health'
   | 'relationship'
-  | 'general';
+  | 'general'
 
 interface AnalyzeQuestionRequest {
-  question: string;
-  locale?: 'ko' | 'en';
+  question: string
+  locale?: 'ko' | 'en'
 }
 
 interface AnalyzeQuestionResponse {
-  success: boolean;
+  success: boolean
   data?: {
-    eventType: EventType;
-    eventLabel: string;
-    questionSummary: string;
-    analysisContext: string;
-  };
-  error?: string;
+    eventType: EventType
+    eventLabel: string
+    questionSummary: string
+    analysisContext: string
+  }
+  error?: string
 }
 
 // ============================================================
@@ -84,57 +86,74 @@ const ANALYSIS_SYSTEM_PROMPT = `당신은 사주/점성술 기반 인생 예측 
 
 4. analysisContext: 분석 결과를 설명할 때 사용할 맥락 (예: "부자가 되는 최적의 시기", "결혼 적기")
 
-반드시 유효한 JSON만 출력하세요. 다른 텍스트는 포함하지 마세요.`;
+반드시 유효한 JSON만 출력하세요. 다른 텍스트는 포함하지 마세요.`
 
 // ============================================================
 // POST 핸들러
 // ============================================================
 export async function POST(request: NextRequest): Promise<NextResponse<AnalyzeQuestionResponse>> {
   try {
-    const body: AnalyzeQuestionRequest = await request.json();
-    const { question, locale = 'ko' } = body;
+    const ip = getClientIp(request.headers)
+    const limit = await rateLimit(`life-analyze:${ip}`, { limit: 10, windowSeconds: 60 })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Too many requests. Try again soon.' },
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
+      )
+    }
+
+    const body: AnalyzeQuestionRequest = await request.json()
+    const { question, locale = 'ko' } = body
 
     if (!question || question.trim().length === 0) {
       return NextResponse.json(
         { success: false, error: '질문이 비어있습니다.' },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
     // OpenAI API 호출
     const responseText = await callOpenAI([
       { role: 'system', content: ANALYSIS_SYSTEM_PROMPT },
       { role: 'user', content: `질문: "${question}"` },
-    ]);
+    ])
     if (!responseText) {
-      throw new Error('AI 응답이 비어있습니다.');
+      throw new Error('AI 응답이 비어있습니다.')
     }
 
     // JSON 파싱
-    const analysisResult = JSON.parse(responseText);
+    const analysisResult = JSON.parse(responseText)
 
     // 유효성 검사
     const validEventTypes: EventType[] = [
-      'marriage', 'career', 'investment', 'move',
-      'study', 'health', 'relationship', 'general'
-    ];
+      'marriage',
+      'career',
+      'investment',
+      'move',
+      'study',
+      'health',
+      'relationship',
+      'general',
+    ]
 
     const eventType = validEventTypes.includes(analysisResult.eventType)
       ? analysisResult.eventType
-      : 'general';
+      : 'general'
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       success: true,
       data: {
         eventType,
         eventLabel: analysisResult.eventLabel || getDefaultLabel(eventType, locale),
         questionSummary: analysisResult.questionSummary || question.slice(0, 30),
-        analysisContext: analysisResult.analysisContext || `${getDefaultLabel(eventType, locale)} 분석`,
+        analysisContext:
+          analysisResult.analysisContext || `${getDefaultLabel(eventType, locale)} 분석`,
       },
-    });
-
+    })
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    return res
   } catch (error) {
-    logger.error('Question analysis failed:', error);
+    logger.error('Question analysis failed:', error)
 
     // 에러 시 기본값 반환 (서비스 계속 작동)
     return NextResponse.json({
@@ -145,7 +164,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<AnalyzeQu
         questionSummary: '운세 분석',
         analysisContext: '최적 시기 분석',
       },
-    });
+    })
   }
 }
 
@@ -162,7 +181,7 @@ function getDefaultLabel(eventType: EventType, locale: string): string {
     health: { ko: '건강', en: 'Health' },
     relationship: { ko: '연애운', en: 'Relationship' },
     general: { ko: '종합 운세', en: 'General Fortune' },
-  };
+  }
 
-  return labels[eventType]?.[locale as 'ko' | 'en'] || labels.general.ko;
+  return labels[eventType]?.[locale as 'ko' | 'en'] || labels.general.ko
 }

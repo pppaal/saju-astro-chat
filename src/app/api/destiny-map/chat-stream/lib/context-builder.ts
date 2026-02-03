@@ -7,6 +7,7 @@ import { buildAllDataPrompt } from '@/lib/destiny-map/prompt/fortune/base'
 import { extractBirthYear } from '@/lib/prediction/utils'
 import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
 import type { SajuDataStructure, AstroDataStructure, ChatMessage } from './index'
+import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 import {
   buildAdvancedTimingSection,
   buildDailyPrecisionSection,
@@ -190,7 +191,9 @@ export function buildPredictionSection(predictionContext: unknown, lang: string)
         lines.push('\n⚠️ Periods to Avoid:')
         for (const period of pc.avoidPeriods.slice(0, 3)) {
           const start = new Date(period.startDate).toLocaleDateString('en-US')
-          lines.push(`• ${start} (Score ${period.score}) - ${period.reasons?.slice(0, 2).join(', ')}`)
+          lines.push(
+            `• ${start} (Score ${period.score}) - ${period.reasons?.slice(0, 2).join(', ')}`
+          )
         }
       }
 
@@ -198,7 +201,9 @@ export function buildPredictionSection(predictionContext: unknown, lang: string)
         lines.push(`\n💡 Advice: ${pc.advice}`)
       }
       if (pc.tierAnalysis?.tier7to10?.confidence) {
-        lines.push(`\n📊 Analysis Confidence: ${Math.round(pc.tierAnalysis.tier7to10.confidence * 100)}%`)
+        lines.push(
+          `\n📊 Analysis Confidence: ${Math.round(pc.tierAnalysis.tier7to10.confidence * 100)}%`
+        )
       }
     }
 
@@ -227,22 +232,30 @@ export function buildLongTermMemorySection(
 
   if (personaMemoryContext) {
     memoryParts.push(
-      lang === 'ko' ? `[사용자 프로필] ${personaMemoryContext}` : `[User Profile] ${personaMemoryContext}`
+      lang === 'ko'
+        ? `[사용자 프로필] ${personaMemoryContext}`
+        : `[User Profile] ${personaMemoryContext}`
     )
   }
 
   if (recentSessionSummaries) {
     memoryParts.push(
-      lang === 'ko' ? `[이전 상담 기록]\n${recentSessionSummaries}` : `[Previous Sessions]\n${recentSessionSummaries}`
+      lang === 'ko'
+        ? `[이전 상담 기록]\n${recentSessionSummaries}`
+        : `[Previous Sessions]\n${recentSessionSummaries}`
     )
   }
 
   return [
     '',
     '═══════════════════════════════════════════════════════════════',
-    lang === 'ko' ? '[🧠 장기 기억 - 이전 상담 컨텍스트]' : '[🧠 LONG-TERM MEMORY - Previous Context]',
+    lang === 'ko'
+      ? '[🧠 장기 기억 - 이전 상담 컨텍스트]'
+      : '[🧠 LONG-TERM MEMORY - Previous Context]',
     '═══════════════════════════════════════════════════════════════',
-    lang === 'ko' ? '아래 정보를 참고하여 더 개인화된 상담을 제공하세요:' : 'Use this context for more personalized counseling:',
+    lang === 'ko'
+      ? '아래 정보를 참고하여 더 개인화된 상담을 제공하세요:'
+      : 'Use this context for more personalized counseling:',
     ...memoryParts,
     '',
   ].join('\n')
@@ -300,11 +313,25 @@ function buildAdvancedSections(
     const timingScoreSection = buildAdvancedTimingSection(saju, birthDate, theme, lang)
     const enhancedAnalysisSection = buildDailyPrecisionSection(saju, theme, lang)
     const daeunTransitSection = buildDaeunTransitSection(saju, birthDate, lang)
-    const pastAnalysisSection = buildPastAnalysisSection(saju, astro, birthDate, gender, lastUserMessage, lang)
-    const lifePredictionSection = buildMultiYearTrendSection(saju, astro, birthDate, gender, theme, lang)
+    const pastAnalysisSection = buildPastAnalysisSection(
+      saju,
+      astro,
+      birthDate,
+      gender,
+      lastUserMessage,
+      lang
+    )
+    const lifePredictionSection = buildMultiYearTrendSection(
+      saju,
+      astro,
+      birthDate,
+      gender,
+      theme,
+      lang
+    )
     const advancedAstroSection = generateTier3Analysis({ saju, astro, lang }).section
     const tier4AdvancedSection = generateTier4Analysis({
-      natalChartData: natalChartData || null,
+      natalChartData: (natalChartData as NatalChartData | undefined) || null,
       userAge: currentAge,
       currentYear,
       lang,

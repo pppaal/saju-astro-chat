@@ -2,15 +2,17 @@
 // AI 기반 결과 설명 생성 API - 사주 분석 결과를 사용자 친화적으로 변환
 // RAG 컨텍스트를 활용하여 더 풍부한 해석 제공
 
-import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/lib/logger';
-import { getBackendUrl } from '@/lib/backend-url';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { getBackendUrl } from '@/lib/backend-url'
+import { HTTP_STATUS } from '@/lib/constants/http'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 
 // ============================================================
 // 백엔드 RAG 컨텍스트 호출
 // ============================================================
-const BACKEND_URL = getBackendUrl();
+const BACKEND_URL = getBackendUrl()
 
 async function fetchRagContext(sipsin?: string, eventType?: string): Promise<string> {
   try {
@@ -21,26 +23,32 @@ async function fetchRagContext(sipsin?: string, eventType?: string): Promise<str
         sipsin,
         event_type: eventType,
       }),
-    });
+    })
 
     if (!response.ok) {
-      logger.warn('[explain-results] RAG context fetch failed:', response.status);
-      return '';
+      logger.warn('[explain-results] RAG context fetch failed:', response.status)
+      return ''
     }
 
-    const data = await response.json();
-    const ragContext = data.rag_context || {};
+    const data = await response.json()
+    const ragContext = data.rag_context || {}
 
     // RAG 컨텍스트를 하나의 문자열로 결합
-    const parts: string[] = [];
-    if (ragContext.sipsin) {parts.push(ragContext.sipsin);}
-    if (ragContext.timing) {parts.push(ragContext.timing);}
-    if (ragContext.query_result) {parts.push(ragContext.query_result);}
+    const parts: string[] = []
+    if (ragContext.sipsin) {
+      parts.push(ragContext.sipsin)
+    }
+    if (ragContext.timing) {
+      parts.push(ragContext.timing)
+    }
+    if (ragContext.query_result) {
+      parts.push(ragContext.query_result)
+    }
 
-    return parts.join('\n\n');
+    return parts.join('\n\n')
   } catch (error) {
-    logger.warn('[explain-results] RAG context error:', error);
-    return '';
+    logger.warn('[explain-results] RAG context error:', error)
+    return ''
   }
 }
 
@@ -52,7 +60,7 @@ async function callOpenAI(messages: { role: string; content: string }[], maxToke
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
       model: 'gpt-4o-mini',
@@ -61,55 +69,55 @@ async function callOpenAI(messages: { role: string; content: string }[], maxToke
       temperature: 0.3,
       response_format: { type: 'json_object' },
     }),
-  });
+  })
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`OpenAI API error: ${error}`);
+    const error = await response.text()
+    throw new Error(`OpenAI API error: ${error}`)
   }
 
-  const data = await response.json();
-  return data.choices[0]?.message?.content;
+  const data = await response.json()
+  return data.choices[0]?.message?.content
 }
 
 // ============================================================
 // 타입 정의
 // ============================================================
 interface OptimalPeriod {
-  startDate: string;
-  endDate: string;
-  score: number;
-  grade: string;
-  reasons: string[];
+  startDate: string
+  endDate: string
+  score: number
+  grade: string
+  reasons: string[]
 }
 
 interface ExplainRequest {
-  question: string;
-  eventType: string;
-  eventLabel: string;
-  optimalPeriods: OptimalPeriod[];
-  locale?: 'ko' | 'en';
+  question: string
+  eventType: string
+  eventLabel: string
+  optimalPeriods: OptimalPeriod[]
+  locale?: 'ko' | 'en'
   // RAG 관련 추가 필드
-  sipsin?: string;  // 현재 대운/세운의 십신
-  useRag?: boolean; // RAG 사용 여부 (기본: true)
+  sipsin?: string // 현재 대운/세운의 십신
+  useRag?: boolean // RAG 사용 여부 (기본: true)
 }
 
 interface ExplainedPeriod {
-  startDate: string;
-  endDate: string;
-  score: number;
-  grade: string;
-  reasons: string[];  // AI가 변환한 사용자 친화적 설명
-  summary: string;    // 한 문장 요약
+  startDate: string
+  endDate: string
+  score: number
+  grade: string
+  reasons: string[] // AI가 변환한 사용자 친화적 설명
+  summary: string // 한 문장 요약
 }
 
 interface ExplainResponse {
-  success: boolean;
+  success: boolean
   data?: {
-    periods: ExplainedPeriod[];
-    overallAdvice: string;
-  };
-  error?: string;
+    periods: ExplainedPeriod[]
+    overallAdvice: string
+  }
+  error?: string
 }
 
 // ============================================================
@@ -141,27 +149,36 @@ JSON 형식으로 각 기간에 대해:
 - "未-午 육합 → 화 기운 생성" → "✨ 열정과 추진력이 결합되어 목표 달성에 유리"
 - "대운 제왕" → "👑 인생의 전성기, 큰 결실을 맺을 수 있는 시기"
 
-반드시 유효한 JSON만 출력하세요.`;
+반드시 유효한 JSON만 출력하세요.`
 
 // ============================================================
 // POST 핸들러
 // ============================================================
 export async function POST(request: NextRequest): Promise<NextResponse<ExplainResponse>> {
   try {
-    const body: ExplainRequest = await request.json();
-    const { question, eventType, eventLabel, optimalPeriods, sipsin, useRag = true } = body;
+    const ip = getClientIp(request.headers)
+    const limit = await rateLimit(`life-explain:${ip}`, { limit: 10, windowSeconds: 60 })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Too many requests. Try again soon.' },
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
+      )
+    }
+
+    const body: ExplainRequest = await request.json()
+    const { question, eventType, eventLabel, optimalPeriods, sipsin, useRag = true } = body
 
     if (!optimalPeriods || optimalPeriods.length === 0) {
       return NextResponse.json(
         { success: false, error: '분석 결과가 없습니다.' },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
     // RAG 컨텍스트 가져오기 (백엔드에서)
-    let ragContext = '';
+    let ragContext = ''
     if (useRag) {
-      ragContext = await fetchRagContext(sipsin, eventType);
+      ragContext = await fetchRagContext(sipsin, eventType)
     }
 
     // 프롬프트 구성 (RAG 컨텍스트 포함)
@@ -170,60 +187,70 @@ export async function POST(request: NextRequest): Promise<NextResponse<ExplainRe
 **분석 주제:** ${eventLabel} (${eventType})
 
 **분석 결과 (기술적 용어):**
-${optimalPeriods.map((p, i) => `
+${optimalPeriods
+  .map(
+    (p, i) => `
 ${i + 1}위: ${p.startDate} ~ ${p.endDate}
    점수: ${p.score}점 (${p.grade}등급)
    이유: ${p.reasons.join(', ')}
-`).join('\n')}
-${ragContext ? `
+`
+  )
+  .join('\n')}
+${
+  ragContext
+    ? `
 **참고 지식 (RAG):**
 ${ragContext.slice(0, 1000)}
-` : ''}
+`
+    : ''
+}
 위 결과를 사용자의 질문("${question}")에 맞춰 쉽고 따뜻하게 설명해주세요.
 ${ragContext ? '참고 지식의 내용을 자연스럽게 녹여서 설명해주세요.' : ''}
-각 이유에 적절한 이모지를 붙여주세요.`;
+각 이유에 적절한 이모지를 붙여주세요.`
 
     // OpenAI API 호출
     const responseText = await callOpenAI([
       { role: 'system', content: EXPLAIN_SYSTEM_PROMPT },
       { role: 'user', content: userPrompt },
-    ]);
+    ])
     if (!responseText) {
-      throw new Error('AI 응답이 비어있습니다.');
+      throw new Error('AI 응답이 비어있습니다.')
     }
 
     // JSON 파싱
-    const aiResult = JSON.parse(responseText);
+    const aiResult = JSON.parse(responseText)
 
     // 결과 병합
     const explainedPeriods: ExplainedPeriod[] = optimalPeriods.map((period, index) => ({
       ...period,
       reasons: aiResult.periods?.[index]?.reasons || period.reasons,
       summary: aiResult.periods?.[index]?.summary || `${period.grade}등급 추천 시기`,
-    }));
+    }))
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       success: true,
       data: {
         periods: explainedPeriods,
         overallAdvice: aiResult.overallAdvice || `${eventLabel}에 좋은 시기를 찾았습니다.`,
       },
-    });
-
+    })
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    return res
   } catch (error) {
-    logger.error('Result explanation failed:', error);
+    logger.error('Result explanation failed:', error)
 
     // 에러 시 원본 반환
-    const body = await request.clone().json();
+    const body = await request.clone().json()
     return NextResponse.json({
       success: true,
       data: {
-        periods: body.optimalPeriods?.map((p: OptimalPeriod) => ({
-          ...p,
-          summary: `${p.grade}등급 추천 시기`,
-        })) || [],
+        periods:
+          body.optimalPeriods?.map((p: OptimalPeriod) => ({
+            ...p,
+            summary: `${p.grade}등급 추천 시기`,
+          })) || [],
         overallAdvice: '분석 결과를 확인해보세요.',
       },
-    });
+    })
   }
 }

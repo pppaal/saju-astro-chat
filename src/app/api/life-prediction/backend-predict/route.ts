@@ -7,6 +7,8 @@ import { logger } from '@/lib/logger'
 import { getBackendUrl } from '@/lib/backend-url'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { withCircuitBreaker } from '@/lib/circuitBreaker'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 
 // ============================================================
 // 타입 정의
@@ -71,6 +73,15 @@ const BACKEND_URL = getBackendUrl()
 // ============================================================
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const ip = getClientIp(request.headers)
+    const limit = await rateLimit(`life-backend:${ip}`, { limit: 10, windowSeconds: 60 })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Too many requests. Try again soon.' },
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
+      )
+    }
+
     const body: PredictRequest = await request.json()
     const {
       question,
@@ -271,10 +282,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // 프론트엔드 형식으로 변환
     const response = transformBackendResponse(backendData, type)
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       success: true,
       data: response,
     })
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    return res
   } catch (error) {
     logger.error('[Backend Predict] Error:', error)
 

@@ -31,6 +31,8 @@ import {
 import { canUseFeature, consumeCredits, getCreditBalance } from '@/lib/credits/creditService'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 
 // ===========================
 // 크레딧 비용 계산
@@ -120,10 +122,22 @@ export async function POST(req: NextRequest) {
 
     const userId = session.user.id
 
+    const ip = getClientIp(req.headers)
+    const limit = await rateLimit(`matrix-ai:${ip}`, { limit: 10, windowSeconds: 60 })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: { code: 'RATE_LIMITED', message: 'Too many requests. Try again soon.' },
+        },
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
+      )
+    }
+
     // 2. 요청 파싱 (크레딧 계산을 위해 먼저)
     let body: unknown
     try {
-      body = await req.json();
+      body = await req.json()
     } catch {
       throw new DestinyMatrixError(ErrorCodes.VALIDATION_ERROR, {
         message: 'Invalid JSON in request body',
@@ -311,7 +325,7 @@ export async function POST(req: NextRequest) {
       await prisma.destinyMatrixReport.update({
         where: { id: savedReport.id },
         data: { pdfGenerated: true },
-      });
+      })
 
       return new NextResponse(Buffer.from(pdfBytes), {
         status: HTTP_STATUS.OK,
@@ -324,7 +338,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 14. JSON 응답 (저장된 리포트 ID 포함)
-    return NextResponse.json({
+    const res = NextResponse.json({
       success: true,
       creditsUsed: creditCost,
       remainingCredits: balance.remainingCredits - creditCost,
@@ -333,7 +347,9 @@ export async function POST(req: NextRequest) {
         ...aiReport,
         id: savedReport.id, // DB에 저장된 ID로 덮어쓰기
       },
-    });
+    })
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    return res
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
 
@@ -386,7 +402,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const wrappedError = wrapError(error);
+    const wrappedError = wrapError(error)
     return NextResponse.json(wrappedError.toJSON(), {
       status: wrappedError.getHttpStatus(),
     })

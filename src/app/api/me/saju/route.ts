@@ -1,13 +1,15 @@
 // src/app/api/me/saju/route.ts
 // 사용자의 사주 기본 정보 조회 API (dayMasterElement 포함)
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { prisma } from '@/lib/db/prisma'
 import { calculateSajuData } from '@/lib/Saju'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 
 // 오행 한글 매핑
 const ELEMENT_KOREAN: Record<string, string> = {
@@ -23,7 +25,7 @@ const ELEMENT_KOREAN: Record<string, string> = {
   수: '수',
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -31,6 +33,18 @@ export async function GET() {
       return NextResponse.json(
         { success: false, error: { code: 'AUTH_REQUIRED', message: '로그인이 필요합니다.' } },
         { status: HTTP_STATUS.UNAUTHORIZED }
+      )
+    }
+
+    const ip = getClientIp(request.headers)
+    const limit = await rateLimit(`me-saju:${ip}`, { limit: 30, windowSeconds: 60 })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: { code: 'RATE_LIMITED', message: 'Too many requests. Try again soon.' },
+        },
+        { status: HTTP_STATUS.RATE_LIMITED, headers: Object.fromEntries(limit.headers.entries()) }
       )
     }
 
@@ -120,9 +134,9 @@ export async function GET() {
         userId: session.user.id,
         sajuProfile: sajuProfileData,
       },
-    });
+    })
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       success: true,
       hasSaju: true,
       saju: {
@@ -150,9 +164,11 @@ export async function GET() {
           },
         },
       },
-    });
+    })
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    return res
   } catch (error) {
-    logger.error('Saju Profile Error:', error);
+    logger.error('Saju Profile Error:', error)
 
     return NextResponse.json(
       {

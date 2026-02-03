@@ -1,38 +1,49 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
-import { prisma, Prisma } from '@/lib/db/prisma';
-import { logger } from '@/lib/logger';
-import type { TimingAIPremiumReport, ThemedAIPremiumReport } from '@/lib/destiny-matrix/ai-report/types';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/authOptions'
+import { prisma, Prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/logger'
+import type {
+  TimingAIPremiumReport,
+  ThemedAIPremiumReport,
+} from '@/lib/destiny-matrix/ai-report/types'
+import { HTTP_STATUS } from '@/lib/constants/http'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 interface SaveDestinyMatrixRequest {
-  reportType: 'timing' | 'themed';
-  period?: 'daily' | 'monthly' | 'yearly' | 'comprehensive';
-  theme?: 'love' | 'career' | 'wealth' | 'health' | 'family';
-  reportData: TimingAIPremiumReport | ThemedAIPremiumReport;
-  title: string;
-  summary?: string;
-  overallScore?: number;
-  grade?: string;
-  locale?: string;
+  reportType: 'timing' | 'themed'
+  period?: 'daily' | 'monthly' | 'yearly' | 'comprehensive'
+  theme?: 'love' | 'career' | 'wealth' | 'health' | 'family'
+  reportData: TimingAIPremiumReport | ThemedAIPremiumReport
+  title: string
+  summary?: string
+  overallScore?: number
+  grade?: string
+  locale?: string
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: HTTP_STATUS.UNAUTHORIZED }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
-    const body: SaveDestinyMatrixRequest = await req.json();
+    const ip = getClientIp(req.headers)
+    const limit = await rateLimit(`matrix-save:${ip}`, { limit: 20, windowSeconds: 60 })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Try again soon.' },
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
+      )
+    }
+
+    const body: SaveDestinyMatrixRequest = await req.json()
     const {
       reportType,
       period,
@@ -43,14 +54,14 @@ export async function POST(req: NextRequest) {
       overallScore,
       grade,
       locale = 'ko',
-    } = body;
+    } = body
 
     // Validate required fields
     if (!reportType || !reportData || !title) {
       return NextResponse.json(
         { error: 'Missing required fields: reportType, reportData, title' },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
     // Validate reportType and corresponding fields
@@ -58,14 +69,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'Period is required for timing reports' },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
     if (reportType === 'themed' && !theme) {
       return NextResponse.json(
         { error: 'Theme is required for themed reports' },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
     // Save Destiny Matrix report to database
@@ -83,7 +94,7 @@ export async function POST(req: NextRequest) {
         pdfGenerated: false,
         locale,
       },
-    });
+    })
 
     logger.info('Destiny Matrix report saved', {
       userId: session.user.id,
@@ -91,42 +102,41 @@ export async function POST(req: NextRequest) {
       reportType,
       period: period || null,
       theme: theme || null,
-    });
+    })
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       success: true,
       id: matrixReport.id,
       createdAt: matrixReport.createdAt,
-    });
+    })
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    return res
   } catch (error) {
-    logger.error('Error saving Destiny Matrix report:', error);
+    logger.error('Error saving Destiny Matrix report:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }
 
 // GET endpoint to retrieve Destiny Matrix report by ID
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: HTTP_STATUS.UNAUTHORIZED }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
+    const { searchParams } = new URL(req.url)
+    const id = searchParams.get('id')
 
     if (!id) {
       return NextResponse.json(
         { error: 'Missing id parameter' },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
     const matrixReport = await prisma.destinyMatrixReport.findFirst({
@@ -134,23 +144,23 @@ export async function GET(req: NextRequest) {
         id,
         userId: session.user.id,
       },
-    });
+    })
 
     if (!matrixReport) {
       return NextResponse.json(
         { error: 'Destiny Matrix report not found' },
         { status: HTTP_STATUS.NOT_FOUND }
-      );
+      )
     }
 
     return NextResponse.json({
       result: matrixReport,
-    });
+    })
   } catch (error) {
-    logger.error('Error retrieving Destiny Matrix report:', error);
+    logger.error('Error retrieving Destiny Matrix report:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }

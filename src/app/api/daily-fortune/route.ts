@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth/authOptions'
 import { prisma } from '@/lib/db/prisma'
@@ -9,6 +9,8 @@ import { getDailyFortuneScore } from '@/lib/destiny-map/destinyCalendar'
 import { logger } from '@/lib/logger'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,11 +33,20 @@ interface FortuneData {
  * 오늘의 운세 점수 계산 (AI 없이 사주+점성학 기반)
  * POST /api/daily-fortune
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+    }
+
+    const ip = getClientIp(request.headers)
+    const limit = await rateLimit(`daily-fortune:${ip}`, { limit: 20, windowSeconds: 60 })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Try again soon.' },
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
+      )
     }
 
     const body = await request.json()
@@ -141,7 +152,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       success: true,
       fortune,
       message: sendEmail
@@ -149,9 +160,11 @@ export async function POST(request: Request) {
           ? 'Fortune sent to your email!'
           : 'Fortune calculated! (Email delivery failed)'
         : 'Fortune calculated!',
-    });
+    })
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
+    return res
   } catch (error: unknown) {
-    logger.error('[Daily Fortune Error]:', error);
+    logger.error('[Daily Fortune Error]:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: HTTP_STATUS.SERVER_ERROR }
@@ -198,7 +211,7 @@ async function sendFortuneEmail(email: string, fortune: FortuneData) {
       throw new Error('Email send failed')
     }
 
-    logger.info('[Daily Fortune] Email sent to:', email);
+    logger.info('[Daily Fortune] Email sent to:', email)
   } catch (error) {
     logger.warn('[Daily Fortune] Email send failed:', error)
   }
