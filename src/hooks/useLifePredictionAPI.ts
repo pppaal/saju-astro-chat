@@ -172,25 +172,33 @@ export function useLifePredictionAPI(
         const dayPillar = pillars.day as Record<string, unknown>
         const timePillar = pillars.time as Record<string, unknown>
 
+        // Helper to safely get name property
+        const getName = (obj: unknown): string => {
+          if (obj && typeof obj === 'object' && 'name' in obj) {
+            return String(obj.name)
+          }
+          return ''
+        }
+
         // Extract stem/branch names
-        const dayStem = dayPillar.heavenlyStem?.name || dayPillar.stem?.name || ''
-        const dayBranch = dayPillar.earthlyBranch?.name || dayPillar.branch?.name || ''
-        const monthBranch = monthPillar.earthlyBranch?.name || monthPillar.branch?.name || ''
-        const yearBranch = yearPillar.earthlyBranch?.name || yearPillar.branch?.name || ''
+        const dayStem = getName(dayPillar.heavenlyStem) || getName(dayPillar.stem) || ''
+        const dayBranch = getName(dayPillar.earthlyBranch) || getName(dayPillar.branch) || ''
+        const monthBranch = getName(monthPillar.earthlyBranch) || getName(monthPillar.branch) || ''
+        const yearBranch = getName(yearPillar.earthlyBranch) || getName(yearPillar.branch) || ''
 
         // Collect all stems/branches
         const allStems = [
-          yearPillar.heavenlyStem?.name || yearPillar.stem?.name,
-          monthPillar.heavenlyStem?.name || monthPillar.stem?.name,
-          dayPillar.heavenlyStem?.name || dayPillar.stem?.name,
-          timePillar.heavenlyStem?.name || timePillar.stem?.name,
+          getName(yearPillar.heavenlyStem) || getName(yearPillar.stem),
+          getName(monthPillar.heavenlyStem) || getName(monthPillar.stem),
+          getName(dayPillar.heavenlyStem) || getName(dayPillar.stem),
+          getName(timePillar.heavenlyStem) || getName(timePillar.stem),
         ].filter(Boolean)
 
         const allBranches = [
-          yearPillar.earthlyBranch?.name || yearPillar.branch?.name,
-          monthPillar.earthlyBranch?.name || monthPillar.branch?.name,
-          dayPillar.earthlyBranch?.name || dayPillar.branch?.name,
-          timePillar.earthlyBranch?.name || timePillar.branch?.name,
+          getName(yearPillar.earthlyBranch) || getName(yearPillar.branch),
+          getName(monthPillar.earthlyBranch) || getName(monthPillar.branch),
+          getName(dayPillar.earthlyBranch) || getName(dayPillar.branch),
+          getName(timePillar.earthlyBranch) || getName(timePillar.branch),
         ].filter(Boolean)
 
         if (!dayStem || !dayBranch) {

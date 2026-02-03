@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
+import { meHistoryQuerySchema } from '@/lib/api/zodValidation'
 
 type ServiceRecord = {
   id: string
@@ -49,11 +50,20 @@ export async function GET(request: Request) {
 
     const userId = session.user.id
 
-    // Parse pagination parameters
+    // Parse and validate query parameters
     const { searchParams } = new URL(request.url)
-    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '30')), 100)
-    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0'))
-    const service = searchParams.get('service') // Optional filter by service type
+    const queryValidation = meHistoryQuerySchema.safeParse({
+      limit: searchParams.get('limit') ?? undefined,
+      offset: searchParams.get('offset') ?? undefined,
+      type: searchParams.get('service') ?? undefined,
+    })
+    if (!queryValidation.success) {
+      return NextResponse.json(
+        { error: 'validation_failed', details: queryValidation.error.issues },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+    const { limit, offset, type: service } = queryValidation.data
 
     // Check Redis cache first (5 minute TTL for history)
     const cacheKey = `user:${userId}:history:${limit}:${offset}:${service || 'all'}`

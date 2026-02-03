@@ -4,7 +4,8 @@ import fs from 'fs/promises'
 import path from 'path'
 import { logger } from '@/lib/logger'
 import { getCityNameInKorean, getCountryNameInKorean } from '@/lib/cities/formatter'
-// import { HTTP_STATUS } from '@/lib/constants/http'; // Unused
+import { citiesSearchQuerySchema } from '@/lib/api/zodValidation'
+import { HTTP_STATUS } from '@/lib/constants/http'
 
 export const runtime = 'nodejs'
 
@@ -50,9 +51,18 @@ async function loadCities(): Promise<City[]> {
 export const GET = withApiMiddleware(
   async (request: NextRequest, _context: ApiContext) => {
     const { searchParams } = new URL(request.url)
-    const query = norm(searchParams.get('q'))
-    const limitParam = Number(searchParams.get('limit'))
-    const limit = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 200) : 200
+    const queryValidation = citiesSearchQuerySchema.safeParse({
+      q: searchParams.get('q') ?? undefined,
+      limit: searchParams.get('limit') ?? undefined,
+    })
+    if (!queryValidation.success) {
+      return NextResponse.json(
+        { error: 'validation_failed', details: queryValidation.error.issues },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+    const query = norm(queryValidation.data.q)
+    const limit = queryValidation.data.limit
 
     logger.info('[cities API] Query:', { query, limit })
 

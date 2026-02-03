@@ -10,6 +10,7 @@ import { quickPersonalityScore } from '@/lib/destiny-match/personalityCompatibil
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { destinyMatchDiscoverQuerySchema } from '@/lib/api/zodValidation'
 
 // Haversine 공식으로 거리 계산 (km)
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -48,8 +49,17 @@ export const GET = withApiMiddleware(
     const userId = context.userId!
 
     const searchParams = req.nextUrl.searchParams
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const offset = parseInt(searchParams.get('offset') || '0')
+    const queryValidation = destinyMatchDiscoverQuerySchema.safeParse({
+      limit: searchParams.get('limit') ?? undefined,
+      offset: searchParams.get('offset') ?? undefined,
+    })
+    if (!queryValidation.success) {
+      return NextResponse.json(
+        { error: 'validation_failed', details: queryValidation.error.issues },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+    const { limit, offset } = queryValidation.data
     const zodiacFilter = searchParams.get('zodiac')
     const elementFilter = searchParams.get('element')
 

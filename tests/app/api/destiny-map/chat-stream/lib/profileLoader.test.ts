@@ -25,6 +25,7 @@ vi.mock('@/lib/db/prisma', () => ({
 // Mock logger
 vi.mock('@/lib/logger', () => ({
   logger: {
+    debug: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
@@ -66,7 +67,7 @@ describe('ProfileLoader', () => {
     })
 
     it('should load profile from database if data missing', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
         id: 'user123',
         birthDate: '1990-01-01',
         birthTime: '12:00',

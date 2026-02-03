@@ -11,13 +11,14 @@
  * }
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { sendScheduledNotifications } from "@/lib/notifications/pushService";
-import { logger } from '@/lib/logger';
+import { NextRequest, NextResponse } from 'next/server'
+import { sendScheduledNotifications } from '@/lib/notifications/pushService'
+import { logger } from '@/lib/logger'
+import { cronNotificationsTriggerSchema } from '@/lib/api/zodValidation'
 
-import { HTTP_STATUS } from '@/lib/constants/http';
-export const dynamic = "force-dynamic";
-export const maxDuration = 60; // Vercel Pro: 최대 60초
+import { HTTP_STATUS } from '@/lib/constants/http'
+export const dynamic = 'force-dynamic'
+export const maxDuration = 60 // Vercel Pro: 최대 60초
 
 /**
  * GET /api/cron/notifications
@@ -25,40 +26,43 @@ export const maxDuration = 60; // Vercel Pro: 최대 60초
  */
 export async function GET(request: NextRequest) {
   // Vercel Cron 인증
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = request.headers.get('authorization')
+  const cronSecret = process.env.CRON_SECRET
 
   if (!cronSecret) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: HTTP_STATUS.SERVER_ERROR });
+    return NextResponse.json(
+      { error: 'CRON_SECRET not configured' },
+      { status: HTTP_STATUS.SERVER_ERROR }
+    )
   }
 
   // Vercel Cron은 CRON_SECRET 헤더를 자동으로 추가
   if (authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
   }
 
   try {
     // 현재 시간 (KST 기준)
-    const now = new Date();
-    const kstOffset = 9 * 60; // UTC+9
-    const kstTime = new Date(now.getTime() + kstOffset * 60 * 1000);
-    const currentHour = kstTime.getUTCHours();
+    const now = new Date()
+    const kstOffset = 9 * 60 // UTC+9
+    const kstTime = new Date(now.getTime() + kstOffset * 60 * 1000)
+    const currentHour = kstTime.getUTCHours()
 
-    logger.warn(`[Cron] Running notification job at KST hour: ${currentHour}`);
+    logger.warn(`[Cron] Running notification job at KST hour: ${currentHour}`)
 
-    const result = await sendScheduledNotifications(currentHour);
+    const result = await sendScheduledNotifications(currentHour)
 
-    logger.warn(`[Cron] Notification job completed:`, result);
+    logger.warn(`[Cron] Notification job completed:`, result)
 
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
       hour: currentHour,
       ...result,
-    });
+    })
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    logger.error("[Cron] Notification job failed:", error);
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    logger.error('[Cron] Notification job failed:', error)
 
     return NextResponse.json(
       {
@@ -67,7 +71,7 @@ export async function GET(request: NextRequest) {
         timestamp: new Date().toISOString(),
       },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }
 
@@ -77,30 +81,40 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   // 관리자 인증 (간단한 API 키 방식)
-  const authHeader = request.headers.get("authorization");
-  const adminSecret = process.env.ADMIN_SECRET || process.env.CRON_SECRET;
+  const authHeader = request.headers.get('authorization')
+  const adminSecret = process.env.ADMIN_SECRET || process.env.CRON_SECRET
 
   if (!adminSecret || authHeader !== `Bearer ${adminSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
   }
 
   try {
-    const body = await request.json().catch(() => ({}));
-    const hour = body.hour ?? new Date().getHours();
+    const rawBody = await request.json().catch(() => ({}))
+    const validationResult = cronNotificationsTriggerSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[cron/notifications] validation failed', {
+        errors: validationResult.error.issues,
+      })
+      return NextResponse.json(
+        { error: 'validation_failed', details: validationResult.error.issues },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+    const hour = validationResult.data.hour ?? new Date().getHours()
 
-    logger.warn(`[Manual] Running notification job for hour: ${hour}`);
+    logger.warn(`[Manual] Running notification job for hour: ${hour}`)
 
-    const result = await sendScheduledNotifications(hour);
+    const result = await sendScheduledNotifications(hour)
 
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
       hour,
       ...result,
-    });
+    })
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    logger.error("[Manual] Notification job failed:", error);
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    logger.error('[Manual] Notification job failed:', error)
 
     return NextResponse.json(
       {
@@ -108,6 +122,6 @@ export async function POST(request: NextRequest) {
         error: message,
       },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }

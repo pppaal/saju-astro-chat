@@ -7,6 +7,7 @@ import {
   type MiddlewareOptions,
 } from '@/lib/api/middleware'
 import { findUserByReferralCode } from '@/lib/referral'
+import { referralValidateQuerySchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,11 +19,15 @@ export const GET = withApiMiddleware<{
 }>(
   async (req: NextRequest) => {
     const searchParams = req.nextUrl.searchParams
-    const code = searchParams.get('code')
-
-    if (!code) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'Missing referral code', { valid: false })
+    const queryValidation = referralValidateQuerySchema.safeParse({
+      code: searchParams.get('code') ?? undefined,
+    })
+    if (!queryValidation.success) {
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'Missing or invalid referral code', {
+        valid: false,
+      })
     }
+    const { code } = queryValidation.data
 
     const referrer = await findUserByReferralCode(code)
 

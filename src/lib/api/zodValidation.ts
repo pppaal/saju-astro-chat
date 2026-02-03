@@ -2349,3 +2349,118 @@ export const icpSaveSchema = z.object({
 })
 
 export type IcpSaveValidated = z.infer<typeof icpSaveSchema>
+
+// ============================================================
+// Phase 7: Additional route schemas
+// ============================================================
+
+/**
+ * Destiny Match - unmatch (DELETE body)
+ */
+export const destinyMatchUnmatchSchema = z.object({
+  connectionId: z.string().min(1).max(100),
+})
+
+export type DestinyMatchUnmatchValidated = z.infer<typeof destinyMatchUnmatchSchema>
+
+/**
+ * Cron notifications - manual trigger (POST body)
+ */
+export const cronNotificationsTriggerSchema = z.object({
+  hour: z.number().int().min(0).max(23).optional(),
+})
+
+export type CronNotificationsTriggerValidated = z.infer<typeof cronNotificationsTriggerSchema>
+
+/**
+ * Query param schemas for GET/DELETE endpoints
+ */
+
+/** Pagination query params (limit, offset) */
+export const paginationQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+  offset: z.coerce.number().int().min(0).optional().default(0),
+})
+
+/** Dream history GET query params */
+export const dreamHistoryQuerySchema = paginationQuerySchema.extend({
+  // inherits limit, offset
+})
+
+/** Dream history DELETE query params */
+export const dreamHistoryDeleteQuerySchema = z.object({
+  id: z.string().min(1).max(100),
+})
+
+/** Counselor session list GET query params */
+export const counselorSessionListQuerySchema = z.object({
+  theme: z.string().max(50).optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional().default(20),
+})
+
+/** Counselor session DELETE query params */
+export const counselorSessionDeleteQuerySchema = z.object({
+  sessionId: z.string().min(1).max(100),
+})
+
+/** Destiny match discover GET query params */
+export const destinyMatchDiscoverQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).optional().default(20),
+  offset: z.coerce.number().int().min(0).optional().default(0),
+  gender: z.enum(['M', 'F', 'all']).optional(),
+  ageMin: z.coerce.number().int().min(18).max(100).optional(),
+  ageMax: z.coerce.number().int().min(18).max(100).optional(),
+  city: z.string().max(100).optional(),
+})
+
+/** Destiny match matches GET query params */
+export const destinyMatchMatchesQuerySchema = z.object({
+  status: z.string().max(50).optional().default('active'),
+  connectionId: z.string().max(100).optional(),
+})
+
+/** Reports/[id] - URL param validation */
+export const idParamSchema = z.object({
+  id: z.string().min(1).max(100),
+})
+
+/** Calendar GET query params */
+export const calendarQuerySchema = z.object({
+  year: z.coerce.number().int().min(1900).max(2100),
+  month: z.coerce.number().int().min(1).max(12),
+  birthDate: dateSchema,
+  birthTime: timeSchema.optional(),
+  latitude: z.coerce.number().min(-90).max(90).optional(),
+  longitude: z.coerce.number().min(-180).max(180).optional(),
+  timezone: timezoneSchema.optional(),
+  locale: localeSchema.optional(),
+})
+
+/** Cities search GET query params */
+export const citiesSearchQuerySchema = z.object({
+  q: z.string().min(1).max(100),
+  limit: z.coerce.number().int().min(1).max(50).optional().default(10),
+})
+
+/** Me history GET query params */
+export const meHistoryQuerySchema = paginationQuerySchema.extend({
+  type: z.string().max(50).optional(),
+  theme: z.string().max(50).optional(),
+})
+
+/** Referral validate GET query params */
+export const referralValidateQuerySchema = z.object({
+  code: z.string().min(1).max(50),
+})
+
+/** Weekly fortune GET query params */
+export const weeklyFortuneQuerySchema = z.object({
+  locale: localeSchema.optional(),
+  birthDate: dateSchema.optional(),
+})
+
+/** Counselor session load GET query params */
+export const counselorSessionLoadQuerySchema = z.object({
+  theme: z.string().max(50).optional().default('chat'),
+  sessionId: z.string().max(100).optional(),
+})
