@@ -15,6 +15,9 @@ vi.mock('@/lib/db/prisma', () => ({
 vi.mock('@/lib/logger', () => ({
   logger: {
     error: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
   },
 }))
 
