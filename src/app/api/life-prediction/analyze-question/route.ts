@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { lifePredictionAnalyzeQuestionSchema } from '@/lib/api/zodValidation'
 
 // ============================================================
 // OpenAI API 호출 헬퍼
@@ -102,15 +103,26 @@ export async function POST(request: NextRequest): Promise<NextResponse<AnalyzeQu
       )
     }
 
-    const body: AnalyzeQuestionRequest = await request.json()
-    const { question, locale = 'ko' } = body
+    const rawBody = await request.json()
 
-    if (!question || question.trim().length === 0) {
+    // Validate with Zod
+    const validationResult = lifePredictionAnalyzeQuestionSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[analyze-question] validation failed', { errors: validationResult.error.issues })
       return NextResponse.json(
-        { success: false, error: '질문이 비어있습니다.' },
+        {
+          success: false,
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
+
+    const { question, locale = 'ko' } = validationResult.data
 
     // OpenAI API 호출
     const responseText = await callOpenAI([

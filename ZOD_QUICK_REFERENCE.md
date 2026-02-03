@@ -4,21 +4,24 @@
 
 ---
 
-## 📊 최종 통계 (Phase 3 일부 완료)
+## 📊 최종 통계 (Phase 5 완료)
 
 ### 커버리지
 
 - **전체 API 라우트**: 134개
-- **Zod 검증 적용**: 45개 (**33.6%**) ← Phase 3 일부 완료!
+- **Zod 검증 적용**: 61개 (**45.5%**) ← Phase 5 완료!
 - **Phase 1**: 35개 (26%)
 - **Phase 2**: 41개 (31%)
-- **증가율**: +181% 🚀
+- **Phase 3**: 45개 (34%)
+- **Phase 4**: 52개 (39%)
+- **Phase 5**: 61개 (46%)
+- **증가율**: +281% 🚀
 
 ### 스키마 라이브러리
 
-- **전체 스키마 수**: 190+개
-- **파일 크기**: 1,351줄
-- **커버 가능 라우트**: 120+개 (90%)
+- **전체 스키마 수**: 230+개
+- **파일 크기**: 1,805줄
+- **커버 가능 라우트**: 134개 (100%)
 
 ---
 
@@ -94,6 +97,17 @@ lifePredictionMultiYearSaveSchema // 인생 예측 저장
 ```typescript
 iChingStreamRequestSchema // I Ching 해석
 dreamAnalysisSchema // 꿈 분석
+tarotInterpretRequestSchema // 타로 해석 (Phase 4 신규)
+```
+
+### Auth & Validation (Phase 4 신규)
+
+```typescript
+userRegistrationRequestSchema // 회원가입
+destinyMatrixCalculationSchema // 운명 매트릭스 계산
+coupleTarotReadingPostSchema // 커플 타로 생성
+coupleTarotReadingDeleteSchema // 커플 타로 삭제
+coupleTarotReadingQuerySchema // 커플 타로 조회
 ```
 
 ### 기타
@@ -106,12 +120,12 @@ chatHistorySaveRequestSchema // 채팅 히스토리
 
 ---
 
-## ✅ 검증 적용 완료 라우트 (41개)
+## ✅ 검증 적용 완료 라우트 (61개)
 
 ### 결제 & 인증
 
 - ✅ `/api/checkout`
-- ✅ `/api/auth/register`
+- ✅ `/api/auth/register` ← Phase 4 강화
 
 ### 데이터 저장
 
@@ -119,12 +133,24 @@ chatHistorySaveRequestSchema // 채팅 히스토리
 - ✅ `/api/tarot/save` (POST, GET)
 - ✅ `/api/destiny-matrix/save`
 - ✅ `/api/life-prediction/save`
+- ✅ `/api/life-prediction/save-timing` ← Phase 5 신규
 
 ### 점술 서비스
 
 - ✅ `/api/iching/stream`
 - ✅ `/api/dream` (3개)
 - ✅ `/api/dream/chat/save`
+- ✅ `/api/tarot/interpret` ← Phase 4 신규
+- ✅ `/api/tarot/couple-reading` (GET, POST, DELETE) ← Phase 4 신규
+- ✅ `/api/destiny-matrix` (GET, POST) ← Phase 4 신규
+- ✅ `/api/life-prediction/explain-results` ← Phase 5 신규
+- ✅ `/api/life-prediction/analyze-question` ← Phase 5 신규
+- ✅ `/api/life-prediction/backend-predict` ← Phase 5 신규
+
+### 알림
+
+- ✅ `/api/push/send` ← Phase 5 신규
+- ✅ `/api/notifications/send`
 - ✅ `/api/astrology`
 - ✅ `/api/saju`
 - ✅ `/api/tarot` (3개)

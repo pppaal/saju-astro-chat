@@ -9,6 +9,8 @@ import {
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
+import { pushSubscribeSchema, pushUnsubscribeSchema } from '@/lib/api/zodValidation'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,20 +28,21 @@ interface PushSubscription {
  */
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    const subscription = await parseJsonBody<PushSubscription>(req)
+    const rawBody = await parseJsonBody<PushSubscription>(req)
 
-    // Validate subscription object
-    if (!subscription?.endpoint || !subscription?.keys) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid subscription: missing endpoint or keys')
+    // Validate with Zod
+    const validationResult = pushSubscribeSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Push subscribe] validation failed', { errors: validationResult.error.issues })
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid subscription', {
+        details: validationResult.error.issues.map((e) => ({
+          path: e.path.join('.'),
+          message: e.message,
+        })),
+      })
     }
 
-    if (!subscription.keys.p256dh || !subscription.keys.auth) {
-      return apiError(
-        ErrorCodes.VALIDATION_ERROR,
-        'Invalid subscription: missing p256dh or auth keys'
-      )
-    }
-
+    const subscription = validationResult.data
     const userAgent = req.headers.get('user-agent') || undefined
 
     // Store subscription in database
@@ -53,7 +56,7 @@ export const POST = withApiMiddleware(
         },
       },
       userAgent
-    );
+    )
 
     return apiSuccess({ success: true, message: 'Subscription saved successfully' })
   },
@@ -66,13 +69,15 @@ export const POST = withApiMiddleware(
  */
 export const DELETE = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
-    const body = await parseJsonBody<{ endpoint: string }>(req)
+    const rawBody = await parseJsonBody<{ endpoint: string }>(req)
 
-    if (!body?.endpoint) {
+    // Validate with Zod
+    const deleteValidation = pushUnsubscribeSchema.safeParse(rawBody)
+    if (!deleteValidation.success) {
       return apiError(ErrorCodes.VALIDATION_ERROR, 'Endpoint required')
     }
 
-    await removePushSubscription(body.endpoint);
+    await removePushSubscription(deleteValidation.data.endpoint)
 
     return apiSuccess({ success: true, message: 'Subscription removed successfully' })
   },

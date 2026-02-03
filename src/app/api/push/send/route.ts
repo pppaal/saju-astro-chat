@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { pushSendRequestSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,8 +31,25 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json()
-    const { targetUserId, title, message, icon, url, tag, test } = body
+    const rawBody = await request.json()
+
+    // Validate with Zod
+    const validationResult = pushSendRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[push/send] validation failed', { errors: validationResult.error.issues })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
+    const { targetUserId, title, message, icon, url, tag, test } = validationResult.data
 
     // 테스트 알림 발송
     if (test) {
@@ -52,13 +70,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Cannot send to other users' },
         { status: HTTP_STATUS.FORBIDDEN }
-      )
-    }
-
-    if (!title || !message) {
-      return NextResponse.json(
-        { error: 'Missing required fields: title, message' },
-        { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
 

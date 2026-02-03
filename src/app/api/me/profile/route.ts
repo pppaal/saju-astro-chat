@@ -88,9 +88,15 @@ export const PATCH = withApiMiddleware(
     if (body.readingLength) data.readingLength = body.readingLength
 
     // Birth info fields
-    if (body.birthDate !== undefined) data.birthDate = body.birthDate
-    if (body.birthTime !== undefined) data.birthTime = body.birthTime
-    if (body.gender !== undefined) data.gender = body.gender
+    const birthDate = body.birthDate
+    const birthTime = body.birthTime
+    const gender = body.gender
+    const hasBirthFields =
+      birthDate !== undefined || birthTime !== undefined || gender !== undefined
+
+    if (birthDate !== undefined) data.birthDate = birthDate
+    if (birthTime !== undefined) data.birthTime = birthTime
+    if (gender !== undefined) data.gender = gender
     if (body.birthCity !== undefined) data.birthCity = body.birthCity
     if (body.tzId !== undefined) data.tzId = body.tzId
 

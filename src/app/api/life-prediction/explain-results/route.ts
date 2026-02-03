@@ -8,6 +8,7 @@ import { getBackendUrl } from '@/lib/backend-url'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { lifePredictionExplainResultsSchema } from '@/lib/api/zodValidation'
 
 // ============================================================
 // 백엔드 RAG 컨텍스트 호출
@@ -165,15 +166,33 @@ export async function POST(request: NextRequest): Promise<NextResponse<ExplainRe
       )
     }
 
-    const body: ExplainRequest = await request.json()
-    const { question, eventType, eventLabel, optimalPeriods, sipsin, useRag = true } = body
+    const rawBody = await request.json()
 
-    if (!optimalPeriods || optimalPeriods.length === 0) {
+    // Validate with Zod
+    const validationResult = lifePredictionExplainResultsSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[explain-results] validation failed', { errors: validationResult.error.issues })
       return NextResponse.json(
-        { success: false, error: '분석 결과가 없습니다.' },
+        {
+          success: false,
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
+
+    const {
+      question,
+      eventType,
+      eventLabel,
+      optimalPeriods,
+      sipsin,
+      useRag = true,
+    } = validationResult.data
 
     // RAG 컨텍스트 가져오기 (백엔드에서)
     let ragContext = ''

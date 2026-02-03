@@ -136,11 +136,11 @@ export async function POST(req: NextRequest) {
         userId: session.user.id,
         person1UserId: person1.userId || null,
         person1Name: person1.name || 'Person 1',
-        person1ICP: person1.icp,
+        person1ICP: person1.icp as Prisma.InputJsonValue,
         person1Persona: person1.persona,
         person2UserId: person2.userId || null,
         person2Name: person2.name || 'Person 2',
-        person2ICP: person2.icp,
+        person2ICP: person2.icp as Prisma.InputJsonValue,
         person2Persona: person2.persona,
         icpCompatibility: {
           score: compatibility.icpScore,

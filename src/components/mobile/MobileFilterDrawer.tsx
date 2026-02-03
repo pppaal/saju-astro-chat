@@ -41,7 +41,7 @@ export function MobileFilterDrawer({
 
   useEffect(() => {
     // Initialize with current values
-    const initial: Record<string, any> = {}
+    const initial: Record<string, string | number | boolean> = {}
     filterGroups.forEach((group) => {
       if (group.selectedValue !== undefined) {
         initial[group.id] = group.selectedValue

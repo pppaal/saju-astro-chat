@@ -87,9 +87,9 @@ export async function POST(req: NextRequest) {
         secondaryStyle,
         dominanceScore,
         affiliationScore,
-        octantScores,
+        octantScores: octantScores as Prisma.InputJsonValue,
         analysisData,
-        answers: answers ? (answers as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
+        answers: answers ? (answers as Prisma.InputJsonValue) : Prisma.JsonNull,
         locale,
       },
     })

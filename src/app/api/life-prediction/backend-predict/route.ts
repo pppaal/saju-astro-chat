@@ -9,6 +9,7 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 import { withCircuitBreaker } from '@/lib/circuitBreaker'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { lifePredictionBackendPredictSchema } from '@/lib/api/zodValidation'
 
 // ============================================================
 // 타입 정의
@@ -82,7 +83,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    const body: PredictRequest = await request.json()
+    const rawBody = await request.json()
+
+    // Validate with Zod
+    const validationResult = lifePredictionBackendPredictSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[backend-predict] validation failed', { errors: validationResult.error.issues })
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
     const {
       question,
       birthYear,
@@ -91,49 +110,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       birthHour = 12,
       gender = 'unknown',
       type = 'timing',
-    } = body
-
-    // 필수 파라미터 검증
-    if (!question) {
-      return NextResponse.json(
-        { success: false, error: '질문이 필요합니다.' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    if (!birthYear || !birthMonth) {
-      return NextResponse.json(
-        { success: false, error: '생년월일이 필요합니다.' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    // 생년월일 범위 검증
-    const currentYear = new Date().getFullYear()
-    if (birthYear < 1900 || birthYear > currentYear) {
-      return NextResponse.json(
-        { success: false, error: '유효하지 않은 출생년도입니다.' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-    if (birthMonth < 1 || birthMonth > 12) {
-      return NextResponse.json(
-        { success: false, error: '월은 1-12 사이여야 합니다.' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-    if (birthDay < 1 || birthDay > 31) {
-      return NextResponse.json(
-        { success: false, error: '일은 1-31 사이여야 합니다.' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-    if (birthHour < 0 || birthHour > 23) {
-      return NextResponse.json(
-        { success: false, error: '시간은 0-23 사이여야 합니다.' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
+    } = validationResult.data
 
     // 백엔드 API 엔드포인트 선택
     let endpoint: string

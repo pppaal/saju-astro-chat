@@ -246,7 +246,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
 
   // ========== ADVANCED SAJU ANALYSIS ==========
 
-  const adv = advancedAnalysis as Record<string, any> | undefined
+  const adv = advancedAnalysis as Record<string, unknown> | undefined
 
   // 신강/신약
   const strengthText = adv?.extended?.strength

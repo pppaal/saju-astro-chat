@@ -152,7 +152,7 @@ export function useLifePredictionAPI(
         }
 
         const pillars = (sajuData as Record<string, unknown>).pillars as
-          | Record<string, any>
+          | Record<string, unknown>
           | undefined
         if (!pillars) {
           const periods: TimingPeriod[] = [
@@ -167,10 +167,10 @@ export function useLifePredictionAPI(
           return { periods, generalAdvice: '' }
         }
 
-        const yearPillar = pillars.year as Record<string, any>
-        const monthPillar = pillars.month as Record<string, any>
-        const dayPillar = pillars.day as Record<string, any>
-        const timePillar = pillars.time as Record<string, any>
+        const yearPillar = pillars.year as Record<string, unknown>
+        const monthPillar = pillars.month as Record<string, unknown>
+        const dayPillar = pillars.day as Record<string, unknown>
+        const timePillar = pillars.time as Record<string, unknown>
 
         // Extract stem/branch names
         const dayStem = dayPillar.heavenlyStem?.name || dayPillar.stem?.name || ''

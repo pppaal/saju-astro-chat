@@ -44,7 +44,7 @@ export function extractAdvancedAnalysis(adv: Record<string, unknown> | undefined
   }
 
   // 신강/신약
-  const extended = adv.extended as Record<string, any> | undefined
+  const extended = adv.extended as Record<string, unknown> | undefined
   const strengthObj = extended?.strength as
     | { level?: string; score?: number; rootCount?: number }
     | undefined

@@ -20,24 +20,28 @@ export const ChatMessageSchema = z.object({
 /**
  * Saju data structure schema (flexible object for now)
  */
-export const SajuDataStructureSchema = z.object({
-  dayMaster: z.any().optional(),
-  unse: z.any().optional(),
-}).passthrough() // Allow additional properties
+export const SajuDataStructureSchema = z
+  .object({
+    dayMaster: z.unknown().optional(),
+    unse: z.unknown().optional(),
+  })
+  .passthrough() // Allow additional properties
 
 /**
  * Astro data structure schema (flexible object for now)
  */
-export const AstroDataStructureSchema = z.object({
-  sun: z.any().optional(),
-  moon: z.any().optional(),
-  mercury: z.any().optional(),
-  venus: z.any().optional(),
-  mars: z.any().optional(),
-  jupiter: z.any().optional(),
-  saturn: z.any().optional(),
-  ascendant: z.any().optional(),
-}).passthrough()
+export const AstroDataStructureSchema = z
+  .object({
+    sun: z.unknown().optional(),
+    moon: z.unknown().optional(),
+    mercury: z.unknown().optional(),
+    venus: z.unknown().optional(),
+    mars: z.unknown().optional(),
+    jupiter: z.unknown().optional(),
+    saturn: z.unknown().optional(),
+    ascendant: z.unknown().optional(),
+  })
+  .passthrough()
 
 /**
  * Main request body schema for destiny-map chat-stream
@@ -61,11 +65,11 @@ export const DestinyMapChatStreamSchema = z.object({
   // Pre-computed chart data (optional)
   saju: SajuDataStructureSchema.optional(),
   astro: AstroDataStructureSchema.optional(),
-  advancedAstro: z.any().optional(), // CombinedResult partial
+  advancedAstro: z.unknown().optional(), // CombinedResult partial
 
   // Prediction and user context
-  predictionContext: z.any().optional(),
-  userContext: z.any().optional(),
+  predictionContext: z.unknown().optional(),
+  userContext: z.unknown().optional(),
   cvText: z.string().optional(),
 })
 

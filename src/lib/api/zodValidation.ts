@@ -153,7 +153,7 @@ export const stripeWebhookEventSchema = z.object({
   id: z.string().min(1),
   type: z.string().min(1),
   data: z.object({
-    object: z.record(z.any()),
+    object: z.record(z.string(), z.unknown()),
   }),
   created: z.number().positive(),
   livemode: z.boolean(),
@@ -176,8 +176,8 @@ export const calendarSaveRequestSchema = z.object({
   summary: z.string().max(1000).trim().optional(),
   categories: z.array(z.string().max(50)).optional(),
   bestTimes: z.array(z.string().max(100)).optional(),
-  sajuFactors: z.record(z.any()).optional(),
-  astroFactors: z.record(z.any()).optional(),
+  sajuFactors: z.record(z.string(), z.unknown()).optional(),
+  astroFactors: z.record(z.string(), z.unknown()).optional(),
   recommendations: z.array(z.string().max(500)).optional(),
   warnings: z.array(z.string().max(500)).optional(),
   birthDate: dateSchema.optional(),
@@ -339,8 +339,8 @@ export const lifePredictionMultiYearSaveSchema = z.object({
       )
       .optional(),
   }),
-  saju: z.record(z.any()).optional(),
-  astro: z.record(z.any()).optional(),
+  saju: z.record(z.string(), z.unknown()).optional(),
+  astro: z.record(z.string(), z.unknown()).optional(),
   locale: z.enum(['ko', 'en']).optional(),
 })
 
@@ -353,8 +353,8 @@ export const lifePredictionSaveRequestSchema = z.object({
   question: z.string().min(1).max(1000).trim(),
   prediction: z.string().max(10000),
   category: z.string().max(100).optional(),
-  birthInfo: z.record(z.any()).optional(),
-  metadata: z.record(z.any()).optional(),
+  birthInfo: z.record(z.string(), z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   locale: localeSchema.optional(),
 })
 
@@ -382,7 +382,7 @@ export const destinyMatrixSaveRequestSchema = z
     reportType: z.enum(['timing', 'themed']),
     period: z.enum(['daily', 'monthly', 'yearly', 'comprehensive']).optional(),
     theme: z.enum(['love', 'career', 'wealth', 'health', 'family']).optional(),
-    reportData: z.record(z.any()),
+    reportData: z.record(z.string(), z.unknown()),
     title: z.string().min(1).max(300).trim(),
     summary: z.string().max(2000).optional(),
     overallScore: z.number().min(0).max(100).optional(),
@@ -542,7 +542,7 @@ export const icpScoreSchema = z.object({
   secondaryStyle: z.string().max(50).nullable().optional(),
   dominanceScore: z.number().min(-100).max(100),
   affiliationScore: z.number().min(-100).max(100),
-  octantScores: z.record(z.number()).optional(),
+  octantScores: z.record(z.string(), z.number()).optional(),
 })
 
 /**
@@ -566,16 +566,16 @@ export const personalityCompatibilitySaveRequestSchema = z.object({
     name: z.string().max(120).optional(),
     icp: icpScoreSchema,
     persona: personaTypeSchema,
-    icpAnswers: z.any().optional(), // ICPQuizAnswers type
-    personaAnswers: z.any().optional(), // PersonaQuizAnswers type
+    icpAnswers: z.unknown().optional(), // ICPQuizAnswers type
+    personaAnswers: z.unknown().optional(), // PersonaQuizAnswers type
   }),
   person2: z.object({
     userId: z.string().optional(),
     name: z.string().max(120).optional(),
     icp: icpScoreSchema,
     persona: personaTypeSchema,
-    icpAnswers: z.any().optional(),
-    personaAnswers: z.any().optional(),
+    icpAnswers: z.unknown().optional(),
+    personaAnswers: z.unknown().optional(),
   }),
   compatibility: z.object({
     icpScore: z.number().min(0).max(100),
@@ -730,7 +730,7 @@ export const shareResultRequestSchema = z.object({
   title: z.string().min(1).max(200).trim(),
   description: z.string().max(2000).trim().optional(),
   resultType: z.string().min(1).max(50).trim(),
-  resultData: z.record(z.any()).optional(),
+  resultData: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type ShareResultRequestValidated = z.infer<typeof shareResultRequestSchema>
@@ -770,7 +770,7 @@ export const advancedAstrologyRequestSchema = z.object({
     'rectification',
   ]),
   targetDate: dateSchema.optional(),
-  options: z.record(z.any()).optional(),
+  options: z.record(z.string(), z.unknown()).optional(),
   locale: localeSchema.optional(),
 })
 
@@ -827,13 +827,13 @@ export const pastLifeSaveRequestSchema = z.object({
   timezone: timezoneSchema.optional(),
   karmaScore: z.number().min(0).max(100),
   analysisData: z.object({
-    soulPattern: z.any(),
-    pastLife: z.any(),
-    soulJourney: z.any(),
-    karmicDebts: z.array(z.any()),
-    thisLifeMission: z.any(),
+    soulPattern: z.unknown(),
+    pastLife: z.unknown(),
+    soulJourney: z.unknown(),
+    karmicDebts: z.array(z.unknown()),
+    thisLifeMission: z.unknown(),
     talentsCarried: z.array(z.string().max(200)),
-    saturnLesson: z.any(),
+    saturnLesson: z.unknown(),
   }),
   locale: localeSchema.optional(),
 })
@@ -864,7 +864,7 @@ export const userProfileUpdateSchema = z.object({
   image: z.string().url().max(500).optional().nullable(),
   emailNotifications: z.boolean().optional(),
   preferredLanguage: localeSchema.optional(),
-  notificationSettings: z.record(z.any()).optional(),
+  notificationSettings: z.record(z.string(), z.unknown()).optional(),
   tonePreference: z.string().max(50).optional(),
   readingLength: z.string().max(50).optional(),
   birthDate: dateSchema.optional().nullable(),
@@ -1312,7 +1312,7 @@ export const personalitySaveRequestSchema = z.object({
   rhythmScore: z.number().min(0).max(100),
   consistencyScore: z.number().min(0).max(100).nullable().optional(),
   analysisData: z.object({}).passthrough(),
-  answers: z.any().optional(),
+  answers: z.unknown().optional(),
 })
 
 export type PersonalitySaveRequestValidated = z.infer<typeof personalitySaveRequestSchema>
@@ -1330,7 +1330,7 @@ export const icpSaveRequestSchema = z.object({
   secondaryStyle: icpOctantSchema.nullable().optional(),
   dominanceScore: z.number().min(-100).max(100),
   affiliationScore: z.number().min(-100).max(100),
-  octantScores: z.record(z.number()),
+  octantScores: z.record(z.string(), z.number()),
   analysisData: z.object({
     description: z.string().max(5000),
     descriptionKo: z.string().max(5000).optional(),
@@ -1342,7 +1342,7 @@ export const icpSaveRequestSchema = z.object({
     tipsKo: z.array(z.string().max(500)).optional(),
     compatibleStyles: z.array(z.string()).optional(),
   }),
-  answers: z.any().optional(),
+  answers: z.unknown().optional(),
   locale: localeSchema.optional(),
 })
 
@@ -1443,8 +1443,8 @@ export const personaMemoryUpdateSchema = z.object({
   theme: z.string().min(1).max(100).trim(),
   locale: localeSchema,
   messages: z.array(chatMessageSchema).min(1).max(200),
-  saju: z.record(z.any()).optional(),
-  astro: z.record(z.any()).optional(),
+  saju: z.record(z.string(), z.unknown()).optional(),
+  astro: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type PersonaMemoryUpdateValidated = z.infer<typeof personaMemoryUpdateSchema>
@@ -1466,9 +1466,9 @@ export type UserRegistrationRequestValidated = z.infer<typeof userRegistrationRe
 // ============ Tarot Schemas ============
 
 /**
- * Tarot card schema
+ * Tarot card schema (detailed)
  */
-export const tarotCardSchema = z.object({
+export const tarotCardDetailedSchema = z.object({
   name: z.string().min(1).max(120).trim(),
   nameKo: z.string().max(120).trim().optional(),
   isReversed: z.boolean(),
@@ -1481,20 +1481,22 @@ export const tarotCardSchema = z.object({
 })
 
 /**
- * Tarot interpretation request
+ * Tarot interpretation request (enhanced)
  */
-export const tarotInterpretRequestSchema = z.object({
+export const tarotInterpretEnhancedRequestSchema = z.object({
   categoryId: z.string().min(1).max(120).trim(),
   spreadId: z.string().min(1).max(120).trim(),
   spreadTitle: z.string().min(1).max(120).trim(),
-  cards: z.array(tarotCardSchema).min(1).max(15),
+  cards: z.array(tarotCardDetailedSchema).min(1).max(15),
   userQuestion: z.string().max(600).trim().optional(),
   language: z.enum(['ko', 'en']).optional(),
   birthdate: dateSchema.optional(),
   moonPhase: z.string().min(2).max(40).trim().optional(),
 })
 
-export type TarotInterpretRequestValidated = z.infer<typeof tarotInterpretRequestSchema>
+export type TarotInterpretEnhancedRequestValidated = z.infer<
+  typeof tarotInterpretEnhancedRequestSchema
+>
 
 /**
  * Couple tarot reading POST request
@@ -1503,11 +1505,11 @@ export const coupleTarotReadingPostSchema = z.object({
   connectionId: z.string().min(1).max(200).trim(),
   spreadId: z.string().min(1).max(120).trim(),
   spreadTitle: z.string().max(120).trim().optional(),
-  cards: z.any(), // JSON array
+  cards: z.unknown(), // JSON array
   question: z.string().max(600).trim().optional(),
   theme: z.string().max(100).trim().optional(),
   overallMessage: z.string().max(10000).optional(),
-  cardInsights: z.any().optional(),
+  cardInsights: z.unknown().optional(),
   guidance: z.string().max(5000).optional(),
   affirmation: z.string().max(500).optional(),
 })
@@ -1553,8 +1555,8 @@ export const destinyMatrixCalculationSchema = z
     // Saju data (legacy direct input)
     dayMasterElement: fiveElementSchema.optional(),
     pillarElements: z.array(fiveElementSchema).optional(),
-    sibsinDistribution: z.record(z.number()).optional(),
-    twelveStages: z.record(z.any()).optional(),
+    sibsinDistribution: z.record(z.string(), z.number()).optional(),
+    twelveStages: z.record(z.string(), z.unknown()).optional(),
     relations: z.array(z.string()).optional(),
     geokguk: z.string().max(100).optional(),
     yongsin: z.array(z.string()).optional(),
@@ -1566,16 +1568,16 @@ export const destinyMatrixCalculationSchema = z
 
     // Astrology data
     dominantWesternElement: z.string().max(50).optional(),
-    planetHouses: z.record(z.any()).optional(),
-    planetSigns: z.record(z.any()).optional(),
-    aspects: z.array(z.any()).optional(),
-    activeTransits: z.array(z.any()).optional(),
+    planetHouses: z.record(z.string(), z.unknown()).optional(),
+    planetSigns: z.record(z.string(), z.unknown()).optional(),
+    aspects: z.array(z.unknown()).optional(),
+    activeTransits: z.array(z.unknown()).optional(),
 
     // Asteroid data (Layer 9)
-    asteroidHouses: z.record(z.any()).optional(),
+    asteroidHouses: z.record(z.string(), z.unknown()).optional(),
 
     // Extra Point data (Layer 10)
-    extraPointSigns: z.record(z.any()).optional(),
+    extraPointSigns: z.record(z.string(), z.unknown()).optional(),
 
     // Options
     lang: z.enum(['ko', 'en']).optional(),
@@ -1594,3 +1596,254 @@ export const destinyMatrixQuerySchema = z.object({
 })
 
 export type DestinyMatrixQueryValidated = z.infer<typeof destinyMatrixQuerySchema>
+
+// ============ Life Prediction Extended Schemas ============
+
+/**
+ * Event type enum for life predictions
+ */
+export const eventTypeSchema = z.enum([
+  'marriage',
+  'career',
+  'investment',
+  'move',
+  'study',
+  'health',
+  'relationship',
+  'general',
+])
+
+export type EventTypeValidated = z.infer<typeof eventTypeSchema>
+
+/**
+ * Timing result schema
+ */
+export const timingResultSchema = z.object({
+  startDate: z.string().min(1).max(20),
+  endDate: z.string().min(1).max(20),
+  score: z.number().min(0).max(100),
+  grade: z.string().min(1).max(10),
+  reasons: z.array(z.string().max(500)),
+})
+
+/**
+ * Life prediction save-timing request
+ */
+export const lifePredictionSaveTimingSchema = z.object({
+  question: z.string().min(1).max(500).trim(),
+  eventType: z.string().min(1).max(50).trim(),
+  results: z.array(timingResultSchema).min(1).max(20),
+  birthDate: dateSchema,
+  gender: z.enum(['M', 'F']),
+  locale: localeSchema.optional(),
+})
+
+export type LifePredictionSaveTimingValidated = z.infer<typeof lifePredictionSaveTimingSchema>
+
+/**
+ * Optimal period schema (for explain-results)
+ */
+export const optimalPeriodSchema = z.object({
+  startDate: z.string().min(1).max(20),
+  endDate: z.string().min(1).max(20),
+  score: z.number().min(0).max(100),
+  grade: z.string().min(1).max(10),
+  reasons: z.array(z.string().max(500)),
+})
+
+/**
+ * Life prediction explain-results request
+ */
+export const lifePredictionExplainResultsSchema = z.object({
+  question: z.string().min(1).max(500).trim(),
+  eventType: z.string().min(1).max(50).trim(),
+  eventLabel: z.string().min(1).max(100).trim(),
+  optimalPeriods: z.array(optimalPeriodSchema).min(1).max(20),
+  locale: localeSchema.optional(),
+  sipsin: z.string().max(200).optional(),
+  useRag: z.boolean().optional(),
+})
+
+export type LifePredictionExplainResultsValidated = z.infer<
+  typeof lifePredictionExplainResultsSchema
+>
+
+/**
+ * Life prediction analyze-question request
+ */
+export const lifePredictionAnalyzeQuestionSchema = z.object({
+  question: z.string().min(1).max(500).trim(),
+  locale: localeSchema.optional(),
+})
+
+export type LifePredictionAnalyzeQuestionValidated = z.infer<
+  typeof lifePredictionAnalyzeQuestionSchema
+>
+
+/**
+ * Life prediction backend-predict request
+ */
+export const lifePredictionBackendPredictSchema = z.object({
+  question: z.string().min(1).max(500).trim(),
+  birthYear: z.number().int().min(1900).max(2100),
+  birthMonth: z.number().int().min(1).max(12),
+  birthDay: z.number().int().min(1).max(31).optional(),
+  birthHour: z.number().int().min(0).max(23).optional(),
+  gender: z.enum(['male', 'female', 'unknown']).optional(),
+  locale: localeSchema.optional(),
+  type: z.enum(['timing', 'forecast', 'luck']).optional(),
+})
+
+export type LifePredictionBackendPredictValidated = z.infer<
+  typeof lifePredictionBackendPredictSchema
+>
+
+// ============ Push Notification Schemas ============
+
+/**
+ * Push notification send request
+ */
+export const pushSendRequestSchema = z.object({
+  targetUserId: z.string().max(200).optional(),
+  title: z.string().min(1).max(200).trim(),
+  message: z.string().min(1).max(1000).trim(),
+  icon: z.string().max(500).optional(),
+  url: z.string().max(500).optional(),
+  tag: z.string().max(100).optional(),
+  test: z.boolean().optional(),
+})
+
+export type PushSendRequestValidated = z.infer<typeof pushSendRequestSchema>
+
+// ============ Destiny Match Schemas ============
+
+/**
+ * Destiny match swipe request
+ */
+export const destinyMatchSwipeSchema = z.object({
+  targetProfileId: z.string().min(1).max(200).trim(),
+  action: z.enum(['like', 'pass', 'super_like']),
+  compatibilityScore: z.number().min(0).max(100).optional().nullable(),
+})
+
+export type DestinyMatchSwipeValidated = z.infer<typeof destinyMatchSwipeSchema>
+
+/**
+ * Destiny match swipe undo request
+ */
+export const destinyMatchSwipeUndoSchema = z.object({
+  swipeId: z.string().min(1).max(200).trim(),
+})
+
+export type DestinyMatchSwipeUndoValidated = z.infer<typeof destinyMatchSwipeUndoSchema>
+
+/**
+ * Destiny match block request
+ */
+export const destinyMatchBlockSchema = z.object({
+  blockedUserId: z.string().min(1).max(200).trim(),
+  reason: z.string().max(500).trim().optional(),
+})
+
+export type DestinyMatchBlockValidated = z.infer<typeof destinyMatchBlockSchema>
+
+/**
+ * Destiny match profile create/update request
+ */
+export const destinyMatchProfileSchema = z.object({
+  displayName: z.string().min(2).max(64).trim(),
+  bio: z.string().max(500).trim().optional().nullable(),
+  occupation: z.string().max(100).trim().optional().nullable(),
+  photos: z.array(z.string().max(500)).max(10).optional(),
+  city: z.string().max(200).trim().optional().nullable(),
+  latitude: latitudeSchema.optional().nullable(),
+  longitude: longitudeSchema.optional().nullable(),
+  interests: z.array(z.string().max(100)).max(30).optional(),
+  ageMin: z.number().int().min(18).max(100).optional(),
+  ageMax: z.number().int().min(18).max(100).optional(),
+  maxDistance: z.number().int().min(1).max(500).optional(),
+  genderPreference: z.string().max(20).optional(),
+  isActive: z.boolean().optional(),
+  isVisible: z.boolean().optional(),
+})
+
+export type DestinyMatchProfileValidated = z.infer<typeof destinyMatchProfileSchema>
+
+/**
+ * Life prediction save-timing request
+ */
+export const lifePredictionSaveTimingSchema = z.object({
+  question: z.string().min(1).max(500).trim(),
+  eventType: z.string().min(1).max(50).trim(),
+  results: z
+    .array(
+      z.object({
+        startDate: z.string().min(1).max(30),
+        endDate: z.string().min(1).max(30),
+        score: z.number().min(0).max(100),
+        grade: z.string().min(1).max(10),
+        reasons: z.array(z.string().max(500)).max(20),
+      })
+    )
+    .min(1)
+    .max(50),
+  birthDate: dateSchema,
+  gender: genderSchema,
+  locale: localeSchema.optional(),
+})
+
+export type LifePredictionSaveTimingValidated = z.infer<typeof lifePredictionSaveTimingSchema>
+
+/**
+ * Push subscribe request
+ */
+export const pushSubscribeSchema = z.object({
+  endpoint: z.string().min(1).max(2000),
+  keys: z.object({
+    p256dh: z.string().min(1).max(500),
+    auth: z.string().min(1).max(500),
+  }),
+})
+
+export type PushSubscribeValidated = z.infer<typeof pushSubscribeSchema>
+
+/**
+ * Push unsubscribe request
+ */
+export const pushUnsubscribeSchema = z.object({
+  endpoint: z.string().min(1).max(2000),
+})
+
+export type PushUnsubscribeValidated = z.infer<typeof pushUnsubscribeSchema>
+
+/**
+ * Destiny match chat message request
+ */
+export const destinyMatchChatSchema = z.object({
+  connectionId: z.string().min(1).max(200).trim(),
+  content: z.string().min(1).max(2000).trim(),
+  messageType: z.enum(['text', 'image', 'emoji']).optional().default('text'),
+})
+
+export type DestinyMatchChatValidated = z.infer<typeof destinyMatchChatSchema>
+
+/**
+ * Destiny match report request
+ */
+export const destinyMatchReportSchema = z.object({
+  reportedUserId: z.string().min(1).max(200).trim(),
+  category: z.enum(['inappropriate', 'spam', 'fake', 'harassment', 'other']),
+  description: z.string().max(1000).trim().optional(),
+})
+
+export type DestinyMatchReportValidated = z.infer<typeof destinyMatchReportSchema>
+
+/**
+ * Destiny match matches query
+ */
+export const destinyMatchMatchesQuerySchema = z.object({
+  status: z.enum(['active', 'blocked', 'all']).optional().default('active'),
+  limit: z.number().int().min(1).max(100).optional().default(50),
+})
+
+export type DestinyMatchMatchesQueryValidated = z.infer<typeof destinyMatchMatchesQuerySchema>

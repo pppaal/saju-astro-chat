@@ -10,23 +10,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
-
-interface TimingResult {
-  startDate: string
-  endDate: string
-  score: number
-  grade: string
-  reasons: string[]
-}
-
-interface SaveTimingRequest {
-  question: string
-  eventType: string
-  results: TimingResult[]
-  birthDate: string
-  gender: 'M' | 'F'
-  locale?: 'ko' | 'en'
-}
+import { lifePredictionSaveTimingSchema } from '@/lib/api/zodValidation'
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,15 +32,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = (await request.json()) as SaveTimingRequest
-    const { question, eventType, results, birthDate, gender, locale = 'ko' } = body
+    const rawBody = await request.json()
 
-    if (!question || !results || results.length === 0) {
+    // Validate with Zod
+    const validationResult = lifePredictionSaveTimingSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[life-prediction/save-timing] validation failed', {
+        errors: validationResult.error.issues,
+      })
       return NextResponse.json(
-        { success: false, error: 'question and results are required' },
+        {
+          success: false,
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
+
+    const { question, eventType, results, birthDate, gender, locale = 'ko' } = validationResult.data
 
     // 최고 결과
     const topResult = results[0]

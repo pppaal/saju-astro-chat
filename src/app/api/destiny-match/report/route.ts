@@ -7,28 +7,33 @@ import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
-
-const VALID_CATEGORIES = ['inappropriate', 'spam', 'fake', 'harassment', 'other'] as const
+import { destinyMatchReportSchema } from '@/lib/api/zodValidation'
 
 // POST - 유저 신고
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const userId = context.userId!
-    const { reportedUserId, category, description } = await req.json()
+    const rawBody = await req.json()
 
-    if (!reportedUserId) {
+    // Validate with Zod
+    const validationResult = destinyMatchReportSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Destiny match report] validation failed', {
+        errors: validationResult.error.issues,
+      })
       return NextResponse.json(
-        { error: 'reportedUserId is required' },
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
 
-    if (!category || !VALID_CATEGORIES.includes(category)) {
-      return NextResponse.json(
-        { error: `category must be one of: ${VALID_CATEGORIES.join(', ')}` },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
+    const { reportedUserId, category, description } = validationResult.data
 
     if (reportedUserId === userId) {
       return NextResponse.json(
@@ -67,7 +72,7 @@ export const POST = withApiMiddleware(
       reporterId: userId,
       reportedId: reportedUserId,
       category,
-    });
+    })
 
     return NextResponse.json({ success: true, message: '신고가 접수되었습니다.' })
   },

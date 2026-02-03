@@ -374,7 +374,7 @@ describe('Tier3 Advanced Astro Analysis', () => {
       expect(typeof result.moonPhase).toBe('string')
     })
 
-    it('should show void of course warning when active', () => {
+    it('should show void of course warning when active', async () => {
       const { checkVoidOfCourse } = await import('@/lib/astrology/foundation/electional')
       vi.mocked(checkVoidOfCourse).mockReturnValueOnce({
         isVoid: true,
@@ -412,7 +412,7 @@ describe('Tier3 Advanced Astro Analysis', () => {
       expect(result.section).toContain('🖤 릴리스')
     })
 
-    it('should handle no matched patterns', () => {
+    it('should handle no matched patterns', async () => {
       const { analyzePatterns } = await import('@/lib/Saju/patternMatcher')
       vi.mocked(analyzePatterns).mockReturnValueOnce({
         matchedPatterns: [],
@@ -430,7 +430,7 @@ describe('Tier3 Advanced Astro Analysis', () => {
       expect(result).toBeDefined()
     })
 
-    it('should filter rare patterns correctly', () => {
+    it('should filter rare patterns correctly', async () => {
       const { analyzePatterns } = await import('@/lib/Saju/patternMatcher')
       vi.mocked(analyzePatterns).mockReturnValueOnce({
         matchedPatterns: [

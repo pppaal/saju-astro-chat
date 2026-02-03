@@ -110,8 +110,8 @@ export async function POST(req: NextRequest) {
         birthTime,
         latitude,
         longitude,
-        saju,
-        astro
+        saju as any, // TODO: Fix type compatibility
+        astro as any // TODO: Fix type compatibility
       )
       if (profileResult.saju) {
         effectiveSaju = profileResult.saju

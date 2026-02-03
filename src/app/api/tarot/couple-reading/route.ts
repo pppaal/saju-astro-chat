@@ -12,6 +12,11 @@ import { getClientIp } from '@/lib/request-ip'
 import { sendPushNotification } from '@/lib/notifications/pushService'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import {
+  coupleTarotReadingPostSchema,
+  coupleTarotReadingDeleteSchema,
+  coupleTarotReadingQuerySchema,
+} from '@/lib/api/zodValidation'
 
 // GET - 커플 타로 리딩 목록 조회 (내가 만들었거나 공유받은 것)
 export async function GET(req: NextRequest) {
@@ -24,7 +29,29 @@ export async function GET(req: NextRequest) {
     const userId = session.user.id
 
     const searchParams = req.nextUrl.searchParams
-    const connectionId = searchParams.get('connectionId')
+
+    // Validate query parameters
+    const validationResult = coupleTarotReadingQuerySchema.safeParse({
+      connectionId: searchParams.get('connectionId'),
+    })
+
+    if (!validationResult.success) {
+      logger.warn('[Couple reading] GET validation failed', {
+        errors: validationResult.error.issues,
+      })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
+    const { connectionId } = validationResult.data
 
     // 내가 만들었거나 공유받은 커플 타로 리딩 조회
     const readings = await prisma.tarotReading.findMany({
@@ -94,9 +121,28 @@ export async function POST(req: NextRequest) {
 
     const userId = session.user.id
 
-    const body = await req.json()
+    const rawBody = await req.json()
+
+    // Validate with Zod
+    const validationResult = coupleTarotReadingPostSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Couple reading] POST validation failed', {
+        errors: validationResult.error.issues,
+      })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
+      )
+    }
+
     const {
-      connectionId, // MatchConnection ID
+      connectionId,
       spreadId,
       spreadTitle,
       cards,
@@ -106,15 +152,7 @@ export async function POST(req: NextRequest) {
       cardInsights,
       guidance,
       affirmation,
-    } = body
-
-    // 필수 필드 검증
-    if (!connectionId || !spreadId || !cards) {
-      return NextResponse.json(
-        { error: 'connectionId, spreadId, cards are required' },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
-    }
+    } = validationResult.data
 
     // 매치 연결 확인
     const connection = await prisma.matchConnection.findUnique({
@@ -263,14 +301,27 @@ export async function DELETE(req: NextRequest) {
 
     const userId = session.user.id
 
-    const { readingId } = await req.json()
+    const rawBody = await req.json()
 
-    if (!readingId) {
+    // Validate with Zod
+    const validationResult = coupleTarotReadingDeleteSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Couple reading] DELETE validation failed', {
+        errors: validationResult.error.issues,
+      })
       return NextResponse.json(
-        { error: 'readingId is required' },
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
+
+    const { readingId } = validationResult.data
 
     // 리딩 조회
     const reading = await prisma.tarotReading.findUnique({

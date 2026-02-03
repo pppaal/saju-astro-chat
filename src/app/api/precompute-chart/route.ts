@@ -197,14 +197,14 @@ export async function POST(req: NextRequest) {
 
             try {
               ;(advancedSajuData as Record<string, unknown>).score =
-                sajuModule.calculateComprehensiveScore(pillarsForAnalysisAny)
+                sajuModule.calculateComprehensiveScore(pillarsForAnalysis)
             } catch (err) {
               logger.debug('[precompute] Partial calculation failed', { error: err })
             }
 
             try {
               ;(advancedSajuData as Record<string, unknown>).ultraAdvanced =
-                sajuModule.performUltraAdvancedAnalysis(pillarsForAnalysisAny)
+                sajuModule.performUltraAdvancedAnalysis(pillarsForAnalysis)
             } catch (err) {
               logger.debug('[precompute] Partial calculation failed', { error: err })
             }

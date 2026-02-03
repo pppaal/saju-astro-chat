@@ -47,10 +47,11 @@ export async function POST(request: NextRequest) {
     const ip = getClientIp(request.headers)
     const limit = await rateLimit(`life-predict:${ip}`, { limit: 10, windowSeconds: 60 })
     if (!limit.allowed) {
-      return createErrorResponse(
-        { code: ErrorCodes.RATE_LIMITED, message: 'Too many requests. Try again soon.' },
-        { headers: limit.headers }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.RATE_LIMITED,
+        message: 'Too many requests. Try again soon.',
+        headers: limit.headers,
+      })
     }
 
     const rawBody = (await request.json()) as PredictionRequest

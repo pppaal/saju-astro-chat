@@ -106,8 +106,8 @@ export async function POST(request: Request) {
           consistencyScore !== null && consistencyScore !== undefined
             ? Math.round(consistencyScore)
             : null,
-        analysisData,
-        answers: answers || null,
+        analysisData: analysisData as Prisma.InputJsonValue,
+        answers: answers ? (answers as Prisma.InputJsonValue) : null,
       },
       update: {
         typeCode,
@@ -121,8 +121,8 @@ export async function POST(request: Request) {
           consistencyScore !== null && consistencyScore !== undefined
             ? Math.round(consistencyScore)
             : null,
-        analysisData,
-        answers: answers || null,
+        analysisData: analysisData as Prisma.InputJsonValue,
+        answers: answers ? (answers as Prisma.InputJsonValue) : null,
         updatedAt: new Date(),
       },
     })
