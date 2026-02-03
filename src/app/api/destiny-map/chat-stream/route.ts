@@ -15,15 +15,13 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 // Local modules
 import {
   type ChatMessage,
+  type ProfileLoadResult,
   clampMessages,
   counselorSystemPrompt,
   loadUserProfile,
   loadPersonaMemory,
 } from './lib'
-import {
-  validateDestinyMapRequest,
-  type DestinyMapChatStreamInput,
-} from './lib/validation'
+import { validateDestinyMapRequest, type DestinyMapChatStreamInput } from './lib/validation'
 import { calculateChartData } from './lib/chart-calculator'
 import {
   buildContextSections,
@@ -69,7 +67,9 @@ export async function POST(req: NextRequest) {
 
     const validation = validateDestinyMapRequest(body)
     if (!validation.success) {
-      const errors = validation.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')
+      const errors = validation.error.issues
+        .map((e) => `${e.path.join('.')}: ${e.message}`)
+        .join(', ')
       logger.warn('[chat-stream] Validation failed', { errors: validation.error.issues })
       return NextResponse.json(
         { error: 'Validation failed', details: errors, issues: validation.error.issues },
@@ -78,7 +78,23 @@ export async function POST(req: NextRequest) {
     }
 
     const validated = validation.data
-    const { name, birthDate, birthTime, gender, latitude, longitude, theme, lang, messages, saju, astro, advancedAstro, predictionContext, userContext, cvText } = validated
+    const {
+      name,
+      birthDate,
+      birthTime,
+      gender,
+      latitude,
+      longitude,
+      theme,
+      lang,
+      messages,
+      saju,
+      astro,
+      advancedAstro,
+      predictionContext,
+      userContext,
+      cvText,
+    } = validated
 
     // ========================================
     // 🔄 AUTO-LOAD: Try to load birth info from user profile if missing
@@ -94,7 +110,7 @@ export async function POST(req: NextRequest) {
     const needsProfileLoad = userId && (!birthDate || !birthTime || !latitude || !longitude)
 
     if (needsProfileLoad) {
-      const profileResult = await loadUserProfile(
+      const profileResult: ProfileLoadResult = await loadUserProfile(
         userId,
         birthDate,
         birthTime,
@@ -246,7 +262,9 @@ export async function POST(req: NextRequest) {
       themeContext,
       '',
       // 기본 사주/점성 데이터
-      contextSections.v3Snapshot ? `[사주/점성 기본 데이터]\n${contextSections.v3Snapshot.slice(0, 5000)}` : '',
+      contextSections.v3Snapshot
+        ? `[사주/점성 기본 데이터]\n${contextSections.v3Snapshot.slice(0, 5000)}`
+        : '',
       // 🔮 고급 분석 섹션들 (모듈화된 빌더 사용)
       contextSections.timingScoreSection ? `\n${contextSections.timingScoreSection}` : '',
       contextSections.enhancedAnalysisSection ? `\n${contextSections.enhancedAnalysisSection}` : '',
