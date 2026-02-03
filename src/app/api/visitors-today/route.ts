@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 import { initializeApp, getApps, getApp, FirebaseApp, type FirebaseOptions } from 'firebase/app'
 import { getFirestore, doc, getDoc, setDoc, increment, Firestore } from 'firebase/firestore'
 import { getAuth, signInAnonymously, signInWithCustomToken, Auth } from 'firebase/auth'
@@ -8,6 +9,11 @@ import { captureServerError } from '@/lib/telemetry'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
+
+// Zod schema for metrics token validation
+const MetricsTokenSchema = z.object({
+  'x-metrics-token': z.string().optional(),
+})
 
 declare const __firebase_config: string | undefined
 declare const __app_id: string | undefined
@@ -119,13 +125,26 @@ function withHeaders(res: NextResponse, headers?: Headers) {
   return res
 }
 
-function requireToken(req: Request) {
+function requireToken(req: Request): boolean {
   const expected = process.env.PUBLIC_METRICS_TOKEN
   const publicExpected = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN
+
+  // If no token is configured, allow access
   if (!expected && !publicExpected) {
     return true
   }
-  const token = req.headers.get('x-metrics-token')
+
+  // Validate header format with Zod
+  const headerValidation = MetricsTokenSchema.safeParse({
+    'x-metrics-token': req.headers.get('x-metrics-token'),
+  })
+
+  if (!headerValidation.success) {
+    logger.warn('[visitors-today] Invalid token header format')
+    return false
+  }
+
+  const token = headerValidation.data['x-metrics-token']
   return (expected && token === expected) || (publicExpected && token === publicExpected)
 }
 
