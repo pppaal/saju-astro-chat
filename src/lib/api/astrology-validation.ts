@@ -59,11 +59,13 @@ export function validateAstrologyRequest<T>(
   const result = schema.safeParse(body)
 
   if (!result.success) {
-    const errorMessages = result.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`)
+    const errorMessages = result.error.issues.map(
+      (e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`
+    )
     return {
       success: false,
       error: errorMessages.join(', '),
-      issues: result.error.errors,
+      issues: result.error.issues,
     }
   }
 

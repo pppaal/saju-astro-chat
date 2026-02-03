@@ -150,7 +150,8 @@ export interface UltraAdvancedAnalysis {
   jonggeok: JonggeokAnalysis
   hwagyeok: HwagyeokAnalysis
   iljuDeep: IljuDeepAnalysis
-  gongmangDeep: GongmangDeepAnalysis
+  gongmang: GongmangDeepAnalysis
   samgi: SamgiAnalysis
-  summary: string
+  specialFormations: string[]
+  masterySummary: string
 }

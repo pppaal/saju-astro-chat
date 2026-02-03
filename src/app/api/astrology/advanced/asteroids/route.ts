@@ -59,15 +59,15 @@ export async function POST(request: Request) {
     const validation = AsteroidsRequestSchema.safeParse(body)
 
     if (!validation.success) {
-      const errors = validation.error.errors
-        .map((e) => `${e.path.join('.')}: ${e.message}`)
+      const errors = validation.error.issues
+        .map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
         .join(', ')
-      logger.warn('[Asteroids API] Validation failed', { errors: validation.error.errors })
+      logger.warn('[Asteroids API] Validation failed', { errors: validation.error.issues })
       return NextResponse.json(
         {
           error: 'Validation failed',
           details: errors,
-          issues: validation.error.errors,
+          issues: validation.error.issues,
         },
         { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       )

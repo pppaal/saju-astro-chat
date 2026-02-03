@@ -52,72 +52,6 @@ const JONGGEOK_TYPE_MAP = {
   대세: '종세격' as JonggeokType,
 } as const
 
-/** 일주론 심화 분석 */
-export interface IljuDeepAnalysis {
-  ilju: string // 일주 (예: 甲子)
-  dayMaster: string
-  dayBranch: string
-  naeum: string // 납음
-  iljuCharacter: string // 일주 특성
-  hiddenStems: string[] // 지장간
-  sibsinRelation: {
-    jijangganSibsin: SibsinKind[]
-    dominantRelation: string
-  }
-  twelveStage: string // 12운성
-  gongmang: string[] // 공망
-  characteristics: string[]
-  strengths: string[]
-  weaknesses: string[]
-  careerAptitude: string[]
-  relationshipStyle: string
-  healthFocus: string[]
-  luckyFactors: {
-    direction: string
-    color: string
-    number: number[]
-  }
-}
-
-/** 공망 심화 분석 */
-export interface GongmangDeepAnalysis {
-  gongmangBranches: string[]
-  affectedPillars: PillarKind[]
-  type: '진공' | '가공' | '반공' | '해공'
-  interpretation: string
-  effects: {
-    positive: string[]
-    negative: string[]
-  }
-  remedy: string[]
-}
-
-/** 삼기 분석 */
-export interface SamgiAnalysis {
-  hasSamgi: boolean
-  type?: '천상삼기' | '지하삼기' | '인중삼기'
-  stems?: string[]
-  description: string
-  blessing: string[]
-}
-
-/** 형충회합 고급 분석 */
-export interface AdvancedInteractionAnalysis {
-  interactions: Array<{
-    type: string
-    participants: string[]
-    strength: number
-    result?: FiveElement
-    status: '성립' | '부분성립' | '불성립' | '해소'
-    reason: string
-  }>
-  netEffect: {
-    elementChanges: Partial<Record<FiveElement, number>>
-    overallImpact: string
-  }
-  warnings: string[]
-}
-
 // ============================================================
 // 종격 분석
 // ============================================================
@@ -818,16 +752,6 @@ export function analyzeSamgi(pillars: SajuPillars): SamgiAnalysis {
 // ============================================================
 // 종합 고급 분석
 // ============================================================
-
-export interface UltraAdvancedAnalysis {
-  jonggeok: JonggeokAnalysis
-  hwagyeok: HwagyeokAnalysis
-  iljuDeep: IljuDeepAnalysis
-  gongmang: GongmangDeepAnalysis
-  samgi: SamgiAnalysis
-  specialFormations: string[]
-  masterySummary: string
-}
 
 /**
  * 종합 고급 분석
