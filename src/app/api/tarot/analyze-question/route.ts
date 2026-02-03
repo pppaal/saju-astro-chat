@@ -2,10 +2,17 @@
 // GPT-4o-mini를 사용해서 사용자 질문을 분석하고 적절한 스프레드 추천 (비용 효율적)
 
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
 import { logger } from '@/lib/logger'
 import { PATTERN_MAPPINGS, getExamInterviewMapping } from './pattern-mappings'
 import { HTTP_STATUS } from '@/lib/constants/http'
+
+// Zod schema for request body
+const AnalyzeQuestionSchema = z.object({
+  question: z.string().min(1, 'Question is required').max(500, 'Question too long (max 500)'),
+  language: z.enum(['ko', 'en']).default('ko'),
+})
 
 // ============================================================
 // Types
@@ -280,17 +287,23 @@ function applyPatternCorrections(
 // ============================================================
 export async function POST(request: NextRequest) {
   try {
+    // Validate request body with Zod
     const body = await request.json()
-    const { question, language = 'ko' } = body
+    const validation = AnalyzeQuestionSchema.safeParse(body)
 
-    if (!question || typeof question !== 'string' || question.trim().length === 0) {
+    if (!validation.success) {
+      const errors = validation.error.issues
+        .map((e) => `${e.path.join('.')}: ${e.message}`)
+        .join(', ')
+      logger.warn('[tarot/analyze-question] Validation failed', { errors: validation.error.issues })
       return NextResponse.json(
-        { error: 'Question is required' },
+        { error: 'Validation failed', details: errors },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
 
-    const trimmedQuestion = question.trim().slice(0, 500)
+    const { question, language } = validation.data
+    const trimmedQuestion = question.trim()
 
     // 위험한 질문 체크
     if (checkDangerous(trimmedQuestion)) {
