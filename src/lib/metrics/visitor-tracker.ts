@@ -6,6 +6,10 @@
  */
 
 import { logger } from '@/lib/logger'
+import type { Redis as UpstashRedis } from '@upstash/redis'
+
+// Type for unified Redis client interface (using unknown for standard Redis due to complex generics)
+type RedisClient = UpstashRedis | { [key: string]: unknown }
 
 // In-memory fallback storage
 const memoryStore = {
@@ -17,7 +21,7 @@ const memoryStore = {
 /**
  * Get Redis client with lazy loading
  */
-async function getRedisClient() {
+async function getRedisClient(): Promise<RedisClient | null> {
   try {
     // Try Upstash REST API first (recommended for Vercel)
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
@@ -44,10 +48,16 @@ async function getRedisClient() {
 }
 
 /**
- * Get today's date string for key suffix
+ * Get today's date string for key suffix in KST timezone
  */
 function getTodayKey(): string {
-  return new Date().toISOString().split('T')[0] // YYYY-MM-DD
+  const now = new Date()
+  const kstOffset = 9 * 60 * 60 * 1000
+  const kstDate = new Date(now.getTime() + kstOffset)
+  const year = kstDate.getUTCFullYear()
+  const month = String(kstDate.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(kstDate.getUTCDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 /**
@@ -121,9 +131,10 @@ export async function getVisitorStats(): Promise<{
         totalCount = Number(total) || 0
       } else {
         // Standard Redis client
+        const redisClient = redis as { sCard: (key: string) => Promise<number> }
         const [today, total] = await Promise.all([
-          (redis as any).sCard(todayKey),
-          (redis as any).sCard(totalKey),
+          redisClient.sCard(todayKey),
+          redisClient.sCard(totalKey),
         ])
         todayCount = Number(today) || 0
         totalCount = Number(total) || 0
@@ -168,10 +179,12 @@ export async function resetVisitorStats(): Promise<void> {
 
       if ('del' in redis) {
         // Upstash Redis
-        await (redis as any).del(todayKey, totalKey)
+        const upstashRedis = redis as UpstashRedis
+        await upstashRedis.del(todayKey, totalKey)
       } else {
         // Standard Redis client
-        await (redis as any).del([todayKey, totalKey])
+        const redisClient = redis as { del: (keys: string[]) => Promise<number> }
+        await redisClient.del([todayKey, totalKey])
       }
 
       logger.info('[Visitor Tracker] Stats reset via Redis')
