@@ -10,6 +10,7 @@ import type {
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { destinyMatrixSaveRequestSchema } from '@/lib/api/zodValidation'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -43,7 +44,27 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const body: SaveDestinyMatrixRequest = await req.json()
+    const rawBody = await req.json()
+
+    // Validate request body with Zod
+    const validationResult = destinyMatrixSaveRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[DestinyMatrixSave] validation failed', {
+        errors: validationResult.error.errors,
+      })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.errors.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
+    const body = validationResult.data
     const {
       reportType,
       period,
@@ -55,29 +76,6 @@ export async function POST(req: NextRequest) {
       grade,
       locale = 'ko',
     } = body
-
-    // Validate required fields
-    if (!reportType || !reportData || !title) {
-      return NextResponse.json(
-        { error: 'Missing required fields: reportType, reportData, title' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    // Validate reportType and corresponding fields
-    if (reportType === 'timing' && !period) {
-      return NextResponse.json(
-        { error: 'Period is required for timing reports' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    if (reportType === 'themed' && !theme) {
-      return NextResponse.json(
-        { error: 'Theme is required for themed reports' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
 
     // Save Destiny Matrix report to database
     const matrixReport = await prisma.destinyMatrixReport.create({

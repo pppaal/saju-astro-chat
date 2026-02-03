@@ -9,6 +9,7 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
+import { tarotSaveRequestSchema, tarotQuerySchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,7 +41,21 @@ interface SaveTarotRequest {
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    const body: SaveTarotRequest = await req.json()
+    const rawBody = await req.json()
+
+    // Validate request body with Zod
+    const validationResult = tarotSaveRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[TarotSave] validation failed', { errors: validationResult.error.errors })
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'validation_failed', {
+        details: validationResult.error.errors.map((e) => ({
+          path: e.path.join('.'),
+          message: e.message,
+        })),
+      })
+    }
+
+    const body = validationResult.data
     const {
       question,
       theme,
@@ -55,32 +70,6 @@ export const POST = withApiMiddleware(
       counselorSessionId,
       locale = 'ko',
     } = body
-
-    // 입력 검증 강화
-    if (!question || typeof question !== 'string' || question.length > 1000) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_question')
-    }
-    if (!spreadId || typeof spreadId !== 'string' || spreadId.length > 100) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_spreadId')
-    }
-    if (!spreadTitle || typeof spreadTitle !== 'string' || spreadTitle.length > 200) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_spreadTitle')
-    }
-    if (!cards || !Array.isArray(cards) || cards.length === 0 || cards.length > 20) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_cards')
-    }
-    if (theme && (typeof theme !== 'string' || theme.length > 100)) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_theme')
-    }
-    if (overallMessage && (typeof overallMessage !== 'string' || overallMessage.length > 5000)) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_overallMessage')
-    }
-    if (guidance && (typeof guidance !== 'string' || guidance.length > 2000)) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_guidance')
-    }
-    if (affirmation && (typeof affirmation !== 'string' || affirmation.length > 500)) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_affirmation')
-    }
 
     const tarotReading = await prisma.tarotReading.create({
       data: {
@@ -115,16 +104,20 @@ export const POST = withApiMiddleware(
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const { searchParams } = new URL(req.url)
-    const limitParam = parseInt(searchParams.get('limit') || '10', 10)
-    const offsetParam = parseInt(searchParams.get('offset') || '0', 10)
-    const theme = searchParams.get('theme')
 
-    // 입력 검증
-    const limit = Math.min(Math.max(1, limitParam), 100) // 1-100
-    const offset = Math.max(0, offsetParam)
-    if (theme && theme.length > 100) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_theme')
+    // Validate query parameters with Zod
+    const queryValidation = tarotQuerySchema.safeParse({
+      limit: searchParams.get('limit') || '10',
+      offset: searchParams.get('offset') || '0',
+      theme: searchParams.get('theme'),
+    })
+
+    if (!queryValidation.success) {
+      logger.warn('[TarotSave] Invalid query parameters', { errors: queryValidation.error.errors })
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_query_parameters')
     }
+
+    const { limit = 10, offset = 0, theme } = queryValidation.data
 
     const where = {
       userId: context.userId!,

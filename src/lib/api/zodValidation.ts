@@ -230,6 +230,373 @@ export const sajuRequestSchema = z.object({
 })
 
 export type SajuRequest = z.infer<typeof sajuRequestSchema>
+/**
+ * Tarot card schema for save endpoint
+ */
+export const tarotCardSaveSchema = z.object({
+  cardId: z.string().max(100),
+  name: z.string().min(1).max(120),
+  image: z.string().max(500),
+  isReversed: z.boolean(),
+  position: z.string().min(1).max(100),
+})
+
+/**
+ * Tarot card insight schema
+ */
+export const tarotCardInsightSchema = z.object({
+  position: z.string().max(100),
+  card_name: z.string().max(120),
+  is_reversed: z.boolean(),
+  interpretation: z.string().max(5000),
+})
+
+/**
+ * Tarot reading save request validation
+ */
+export const tarotSaveRequestSchema = z.object({
+  question: z.string().min(1).max(1000).trim(),
+  theme: z.string().max(100).trim().optional(),
+  spreadId: z.string().min(1).max(100),
+  spreadTitle: z.string().min(1).max(200),
+  cards: z.array(tarotCardSaveSchema).min(1).max(20),
+  overallMessage: z.string().max(5000).optional(),
+  cardInsights: z.array(tarotCardInsightSchema).optional(),
+  guidance: z.string().max(2000).optional(),
+  affirmation: z.string().max(500).optional(),
+  source: z.enum(['standalone', 'counselor']).optional(),
+  counselorSessionId: z.string().max(100).optional(),
+  locale: localeSchema.optional(),
+})
+
+export type TarotSaveRequestValidated = z.infer<typeof tarotSaveRequestSchema>
+
+/**
+ * Tarot query parameters validation
+ */
+export const tarotQuerySchema = z.object({
+  limit: z
+    .string()
+    .regex(/^\d+$/)
+    .transform((val) => Math.min(Math.max(1, Number(val)), 100))
+    .optional(),
+  offset: z
+    .string()
+    .regex(/^\d+$/)
+    .transform((val) => Math.max(0, Number(val)))
+    .optional(),
+  theme: z.string().max(100).optional(),
+})
+
+export type TarotQueryValidated = z.infer<typeof tarotQuerySchema>
+
+// ============ Life Prediction Schemas ============
+
+/**
+ * Life prediction request validation
+ */
+export const lifePredictionRequestSchema = z.object({
+  question: z.string().min(1).max(1000).trim(),
+  birthDate: dateSchema,
+  birthTime: timeSchema,
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+  timezone: timezoneSchema,
+  gender: genderSchema.optional(),
+  locale: localeSchema.optional(),
+  analysisDepth: z.enum(['basic', 'detailed', 'comprehensive']).optional(),
+})
+
+export type LifePredictionRequestValidated = z.infer<typeof lifePredictionRequestSchema>
+
+/**
+ * Life prediction save request validation
+ */
+export const lifePredictionSaveRequestSchema = z.object({
+  question: z.string().min(1).max(1000).trim(),
+  prediction: z.string().max(10000),
+  category: z.string().max(100).optional(),
+  birthInfo: z.record(z.any()).optional(),
+  metadata: z.record(z.any()).optional(),
+  locale: localeSchema.optional(),
+})
+
+export type LifePredictionSaveRequestValidated = z.infer<typeof lifePredictionSaveRequestSchema>
+
+// ============ Destiny Matrix Schemas ============
+
+/**
+ * Destiny matrix request validation
+ */
+export const destinyMatrixRequestSchema = z.object({
+  birthDate: dateSchema,
+  name: z.string().min(1).max(120).trim().optional(),
+  gender: genderSchema.optional(),
+  locale: localeSchema.optional(),
+})
+
+export type DestinyMatrixRequestValidated = z.infer<typeof destinyMatrixRequestSchema>
+
+/**
+ * Destiny matrix save request validation
+ */
+export const destinyMatrixSaveRequestSchema = z
+  .object({
+    reportType: z.enum(['timing', 'themed']),
+    period: z.enum(['daily', 'monthly', 'yearly', 'comprehensive']).optional(),
+    theme: z.enum(['love', 'career', 'wealth', 'health', 'family']).optional(),
+    reportData: z.record(z.any()),
+    title: z.string().min(1).max(300).trim(),
+    summary: z.string().max(2000).optional(),
+    overallScore: z.number().min(0).max(100).optional(),
+    grade: z.string().max(10).optional(),
+    locale: localeSchema.optional(),
+  })
+  .refine(
+    (data) => {
+      // If reportType is 'timing', period is required
+      if (data.reportType === 'timing' && !data.period) {
+        return false
+      }
+      return true
+    },
+    {
+      message: 'period is required for timing reports',
+      path: ['period'],
+    }
+  )
+  .refine(
+    (data) => {
+      // If reportType is 'themed', theme is required
+      if (data.reportType === 'themed' && !data.theme) {
+        return false
+      }
+      return true
+    },
+    {
+      message: 'theme is required for themed reports',
+      path: ['theme'],
+    }
+  )
+
+export type DestinyMatrixSaveRequestValidated = z.infer<typeof destinyMatrixSaveRequestSchema>
+
+// ============ Compatibility Schemas ============
+
+/**
+ * Person data for compatibility
+ */
+export const personDataSchema = z.object({
+  name: z.string().min(1).max(120).trim(),
+  birthDate: dateSchema,
+  birthTime: timeSchema,
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+  timezone: timezoneSchema,
+  gender: genderSchema.optional(),
+})
+
+/**
+ * Compatibility request validation (supports 2-4 people)
+ */
+export const compatibilityRequestSchema = z.object({
+  people: z.array(personDataSchema).min(2).max(4),
+  analysisType: z.enum(['romantic', 'friendship', 'business', 'family']).optional(),
+  locale: localeSchema.optional(),
+})
+
+export type CompatibilityRequestValidated = z.infer<typeof compatibilityRequestSchema>
+
+/**
+ * Compatibility save request validation
+ */
+export const compatibilitySaveRequestSchema = z.object({
+  people: z.array(personDataSchema).min(2).max(4),
+  analysisType: z.string().max(50).optional(),
+  compatibilityScore: z.number().min(0).max(100).optional(),
+  report: z.string().max(15000),
+  insights: z.array(z.string().max(1000)).optional(),
+  locale: localeSchema.optional(),
+})
+
+export type CompatibilitySaveRequestValidated = z.infer<typeof compatibilitySaveRequestSchema>
+
+// ============ I Ching Schemas ============
+
+/**
+ * I Ching request validation
+ */
+export const iChingRequestSchema = z.object({
+  question: z.string().min(1).max(500).trim(),
+  method: z.enum(['coins', 'yarrow', 'digital']).optional(),
+  hexagramNumber: z.number().int().min(1).max(64).optional(),
+  changingLines: z.array(z.number().int().min(1).max(6)).max(6).optional(),
+  locale: localeSchema.optional(),
+})
+
+export type IChingRequestValidated = z.infer<typeof iChingRequestSchema>
+
+// ============ Referral System Schemas ============
+
+/**
+ * Referral claim request validation
+ */
+export const referralClaimRequestSchema = z.object({
+  code: z.string().min(1).max(50).trim(),
+})
+
+export type ReferralClaimRequestValidated = z.infer<typeof referralClaimRequestSchema>
+
+/**
+ * Referral link generation request
+ */
+export const referralLinkRequestSchema = z.object({
+  customCode: z
+    .string()
+    .min(3)
+    .max(50)
+    .regex(/^[a-zA-Z0-9_-]+$/)
+    .optional(),
+})
+
+export type ReferralLinkRequestValidated = z.infer<typeof referralLinkRequestSchema>
+
+// ============ Notification Schemas ============
+
+/**
+ * Notification send request validation
+ */
+export const notificationSendRequestSchema = z.object({
+  userId: z.string().max(100).optional(),
+  title: z.string().min(1).max(200).trim(),
+  message: z.string().min(1).max(1000).trim(),
+  type: z.enum(['info', 'success', 'warning', 'error']).optional(),
+  link: z.string().max(500).url().optional(),
+  priority: z.enum(['low', 'normal', 'high']).optional(),
+})
+
+export type NotificationSendRequestValidated = z.infer<typeof notificationSendRequestSchema>
+
+// ============ Share & Image Generation Schemas ============
+
+/**
+ * Share image generation request
+ */
+export const shareImageRequestSchema = z.object({
+  type: z.enum(['tarot', 'astrology', 'saju', 'compatibility', 'dream']),
+  title: z.string().min(1).max(200).trim(),
+  content: z.string().max(2000).trim(),
+  theme: z.enum(['light', 'dark']).optional(),
+  locale: localeSchema.optional(),
+})
+
+export type ShareImageRequestValidated = z.infer<typeof shareImageRequestSchema>
+
+// ============ Cron Job Schemas ============
+
+/**
+ * Cron job authentication token
+ */
+export const cronAuthSchema = z.object({
+  token: z.string().min(1),
+})
+
+export type CronAuthValidated = z.infer<typeof cronAuthSchema>
+
+// ============ Advanced Astrology Schemas ============
+
+/**
+ * Advanced astrology request (for specialized calculations)
+ */
+export const advancedAstrologyRequestSchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema,
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+  timezone: timezoneSchema,
+  calculationType: z.enum([
+    'asteroids',
+    'draconic',
+    'eclipses',
+    'electional',
+    'fixed-stars',
+    'harmonics',
+    'lunar-return',
+    'midpoints',
+    'progressions',
+    'rectification',
+  ]),
+  targetDate: dateSchema.optional(),
+  options: z.record(z.any()).optional(),
+  locale: localeSchema.optional(),
+})
+
+export type AdvancedAstrologyRequestValidated = z.infer<typeof advancedAstrologyRequestSchema>
+
+// ============ Chat History & Counselor Schemas ============
+
+/**
+ * Chat message schema
+ */
+export const chatMessageSchema = z.object({
+  role: z.enum(['user', 'assistant', 'system']),
+  content: z.string().min(1).max(10000),
+  timestamp: z.number().optional(),
+})
+
+/**
+ * Chat history save request
+ */
+export const chatHistorySaveRequestSchema = z.object({
+  sessionId: z.string().max(100),
+  theme: z.string().max(100).optional(),
+  messages: z.array(chatMessageSchema).min(1).max(100),
+  summary: z.string().max(1000).optional(),
+  keyTopics: z.array(z.string().max(100)).max(20).optional(),
+  locale: localeSchema.optional(),
+})
+
+export type ChatHistorySaveRequestValidated = z.infer<typeof chatHistorySaveRequestSchema>
+
+// ============ Feedback Schemas ============
+
+/**
+ * Feedback request validation
+ */
+export const feedbackRequestSchema = z.object({
+  type: z.enum(['bug', 'feature', 'improvement', 'other']),
+  subject: z.string().min(1).max(200).trim(),
+  message: z.string().min(10).max(5000).trim(),
+  email: z.string().email().max(254).optional(),
+  page: z.string().max(500).optional(),
+  severity: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+})
+
+export type FeedbackRequestValidated = z.infer<typeof feedbackRequestSchema>
+
+// ============ Pagination Schema ============
+
+/**
+ * Standard pagination query parameters
+ */
+export const paginationSchema = z.object({
+  limit: z
+    .string()
+    .regex(/^\d+$/)
+    .transform((val) => Math.min(Math.max(1, Number(val)), 100))
+    .optional()
+    .default('20'),
+  offset: z
+    .string()
+    .regex(/^\d+$/)
+    .transform((val) => Math.max(0, Number(val)))
+    .optional()
+    .default('0'),
+  sortBy: z.string().max(50).optional(),
+  sortOrder: z.enum(['asc', 'desc']).optional(),
+})
+
+export type PaginationValidated = z.infer<typeof paginationSchema>
 
 // ============ Tarot API Schemas ============
 
