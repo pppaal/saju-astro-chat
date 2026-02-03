@@ -13,7 +13,7 @@
 // - hyeongchung.ts: Main analysis orchestrator
 
 // Re-export all types from modules
-export * from './hyeongchung'
+export * from './hyeongchung/types'
 
 // Import types for internal use
 import type {

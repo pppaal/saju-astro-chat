@@ -8,23 +8,9 @@ import { enforceBodySize } from '@/lib/http'
 import { sendWelcomeEmail } from '@/lib/email'
 import { logger } from '@/lib/logger'
 import { sanitizeError } from '@/lib/security/errorSanitizer'
-import { parseRequestBody } from '@/lib/api/requestParser'
 import { csrfGuard } from '@/lib/security/csrf'
-
-import { PATTERNS } from '@/lib/constants/api-limits'
-import { LIMITS } from '@/lib/validation/patterns'
 import { HTTP_STATUS } from '@/lib/constants/http'
-const EMAIL_RE = PATTERNS.EMAIL
-const MAX_NAME = LIMITS.NAME
-const MAX_REFERRAL = LIMITS.REFERRAL_CODE
-const MIN_PASSWORD = 8
-const MAX_PASSWORD = LIMITS.PASSWORD
-type RegisterBody = {
-  email?: string
-  password?: string
-  name?: string
-  referralCode?: string
-}
+import { userRegistrationRequestSchema } from '@/lib/api/zodValidation'
 
 export async function POST(req: Request) {
   try {
@@ -49,35 +35,25 @@ export async function POST(req: Request) {
       return oversized
     }
 
-    const body = await parseRequestBody<RegisterBody>(req, {
-      context: 'User registration',
-    })
-    const email = typeof body?.email === 'string' ? body.email.trim() : ''
-    const password = typeof body?.password === 'string' ? body.password : ''
-    const name = typeof body?.name === 'string' ? body.name.trim().slice(0, MAX_NAME) : undefined
-    const referralCode =
-      typeof body?.referralCode === 'string'
-        ? body.referralCode.trim().slice(0, MAX_REFERRAL)
-        : undefined
+    const rawBody = await req.json()
 
-    if (!email || !password) {
+    // Validate with Zod
+    const validationResult = userRegistrationRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Register] validation failed', { errors: validationResult.error.issues })
       return NextResponse.json(
-        { error: 'missing_fields' },
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       )
     }
-    if (!EMAIL_RE.test(email) || email.length > 254) {
-      return NextResponse.json(
-        { error: 'invalid_email' },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
-    }
-    if (password.length < MIN_PASSWORD || password.length > MAX_PASSWORD) {
-      return NextResponse.json(
-        { error: 'invalid_password' },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
-    }
+
+    const { email, password, name, referralCode } = validationResult.data
 
     const existing = await prisma.user.findUnique({ where: { email } })
     if (existing?.passwordHash) {

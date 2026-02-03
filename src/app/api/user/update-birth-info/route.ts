@@ -10,6 +10,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { clearCacheByPattern } from '@/lib/cache/redis-cache'
+import { userBirthInfoUpdateSchema } from '@/lib/api/zodValidation'
 
 // Edge 환경이면 Prisma/NextAuth 이슈가 있을 수 있어 Node 런타임을 강제
 export const runtime = 'nodejs'
@@ -18,10 +19,7 @@ export const runtime = 'nodejs'
  * 생년월일 변경 시 관련 Redis 캐시를 무효화한다.
  * 이전 birthDate/birthTime/gender 기반의 saju, destiny, yearly, calendar 키를 삭제.
  */
-async function invalidateBirthCaches(
-  userId: string,
-  oldBirthDate: string | null
-): Promise<number> {
+async function invalidateBirthCaches(userId: string, oldBirthDate: string | null): Promise<number> {
   const patterns: string[] = []
 
   if (oldBirthDate) {
@@ -54,7 +52,7 @@ async function invalidateBirthCaches(
 export const POST = withApiMiddleware(
   async (req: NextRequest, context) => {
     // Parse and validate request body
-    const body = await parseJsonBody<{
+    const rawBody = await parseJsonBody<{
       birthDate?: string
       birthTime?: string
       gender?: string
@@ -62,12 +60,21 @@ export const POST = withApiMiddleware(
       tzId?: string
     }>(req)
 
-    const { birthDate, birthTime, gender, birthCity, tzId } = body
-
-    // Basic validation
-    if (!birthDate) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'Birth date is required')
+    // Validate with Zod
+    const validationResult = userBirthInfoUpdateSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Update birth info] validation failed', {
+        errors: validationResult.error.issues,
+      })
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'Validation failed', {
+        details: validationResult.error.issues.map((e) => ({
+          path: e.path.join('.'),
+          message: e.message,
+        })),
+      })
     }
+
+    const { birthDate, birthTime, gender, birthCity, tzId } = validationResult.data
 
     // Get existing profile for cache invalidation
     const oldUser = await prisma.user.findUnique({
@@ -103,10 +110,7 @@ export const POST = withApiMiddleware(
 
     let cacheCleared = false
     if (birthChanged && oldUser) {
-      await invalidateBirthCaches(
-        context.userId!,
-        oldUser.birthDate
-      )
+      await invalidateBirthCaches(context.userId!, oldUser.birthDate)
       cacheCleared = true
     }
 

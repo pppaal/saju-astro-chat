@@ -58,11 +58,11 @@ export async function POST(request: NextRequest) {
     // Zod 유효성 검사
     const validationResult = lifePredictionRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
-      logger.warn('[Life prediction] validation failed', { errors: validationResult.error.errors })
+      logger.warn('[Life prediction] validation failed', { errors: validationResult.error.issues })
       return createErrorResponse({
         code: ErrorCodes.BAD_REQUEST,
         message: 'Validation failed',
-        details: validationResult.error.errors.map((e) => ({
+        details: validationResult.error.issues.map((e) => ({
           path: e.path.join('.'),
           message: e.message,
         })),

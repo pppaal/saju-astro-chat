@@ -12,9 +12,9 @@ import { captureServerError } from '@/lib/telemetry'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { enforceBodySize } from '@/lib/http'
 import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits'
-import { sanitizeString } from '@/lib/api/sanitizers'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { tarotInterpretRequestSchema } from '@/lib/api/zodValidation'
 
 interface CardInput {
   name: string
@@ -26,62 +26,6 @@ interface CardInput {
   meaningKo?: string
   keywords?: string[]
   keywordsKo?: string[]
-}
-
-interface InterpretRequest {
-  categoryId: string
-  spreadId: string
-  spreadTitle: string
-  cards: CardInput[]
-  userQuestion?: string
-  language?: 'ko' | 'en'
-  birthdate?: string // User's birthdate 'YYYY-MM-DD' for personalization (Tier 4)
-  moonPhase?: string // Current moon phase for realtime context
-}
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
-const MAX_TITLE = 120
-const MAX_QUESTION = 600
-const MAX_POSITION = 80
-const MAX_KEYWORDS = 8
-const MAX_CARDS = 15
-
-function validateCard(
-  card: Partial<CardInput> | null | undefined,
-  idx: number
-): { error?: string; card?: CardInput } {
-  const name = sanitizeString(card?.name, MAX_TITLE)
-  const position = sanitizeString(card?.position, MAX_POSITION)
-  if (!name || !position) {
-    return { error: `cards[${idx}]: name and position are required.` }
-  }
-  if (typeof card?.isReversed !== 'boolean') {
-    return { error: `cards[${idx}]: isReversed must be boolean.` }
-  }
-  const keywords = Array.isArray(card?.keywords)
-    ? card.keywords
-        .filter((k: unknown): k is string => typeof k === 'string')
-        .slice(0, MAX_KEYWORDS)
-    : undefined
-  const keywordsKo = Array.isArray(card?.keywordsKo)
-    ? card.keywordsKo
-        .filter((k: unknown): k is string => typeof k === 'string')
-        .slice(0, MAX_KEYWORDS)
-    : undefined
-
-  return {
-    card: {
-      name,
-      nameKo: sanitizeString(card?.nameKo, MAX_TITLE) || undefined,
-      isReversed: card.isReversed,
-      position,
-      positionKo: sanitizeString(card?.positionKo, MAX_POSITION) || undefined,
-      meaning: sanitizeString(card?.meaning, MAX_TITLE) || undefined,
-      meaningKo: sanitizeString(card?.meaningKo, MAX_TITLE) || undefined,
-      keywords,
-      keywordsKo,
-    } as CardInput,
-  }
 }
 
 export async function POST(req: Request) {
@@ -109,60 +53,39 @@ export async function POST(req: Request) {
       return oversized
     }
 
-    const body: InterpretRequest = await req.json()
-    const categoryId = sanitizeString(body?.categoryId, MAX_TITLE)
-    const spreadId = sanitizeString(body?.spreadId, MAX_TITLE)
-    const spreadTitle = sanitizeString(body?.spreadTitle, MAX_TITLE)
-    const language: 'ko' | 'en' = body?.language === 'en' ? 'en' : 'ko'
-    const birthdate = sanitizeString(body?.birthdate, 20)
-    const moonPhase = sanitizeString(body?.moonPhase, 40)
-    const rawCards = Array.isArray(body?.cards) ? body.cards : []
-    const userQuestion = sanitizeString(body?.userQuestion, MAX_QUESTION)
+    const rawBody = await req.json()
 
-    if (!categoryId || !spreadId || rawCards.length === 0) {
+    // Validate with Zod
+    const validationResult = tarotInterpretRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Tarot interpret] validation failed', { errors: validationResult.error.issues })
       return NextResponse.json(
-        { error: 'Missing required fields: categoryId, spreadId, cards' },
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
       )
     }
 
-    if (rawCards.length > MAX_CARDS) {
-      return NextResponse.json(
-        { error: `Too many cards. Maximum ${MAX_CARDS} supported.` },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
-    }
-
-    const validatedCards: CardInput[] = []
-    for (let i = 0; i < rawCards.length; i++) {
-      const { card, error } = validateCard(rawCards[i], i)
-      if (error) {
-        return NextResponse.json(
-          { error },
-          { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-        )
-      }
-      validatedCards.push(card!)
-    }
-
-    if (birthdate && (!DATE_RE.test(birthdate) || Number.isNaN(Date.parse(birthdate)))) {
-      return NextResponse.json(
-        { error: 'birthdate must be YYYY-MM-DD' },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
-    }
-
-    if (moonPhase && moonPhase.length < 2) {
-      return NextResponse.json(
-        { error: 'moonPhase is too short' },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
-    }
+    const {
+      categoryId,
+      spreadId,
+      spreadTitle,
+      cards: validatedCards,
+      userQuestion,
+      language = 'ko',
+      birthdate,
+      moonPhase,
+    } = validationResult.data
 
     const creditResult = await checkAndConsumeCredits('reading', 1)
     if (!creditResult.allowed) {
       const res = creditErrorResponse(creditResult)
-      limit.headers.forEach((value, key) => res.headers.set(key, value));
+      limit.headers.forEach((value, key) => res.headers.set(key, value))
       return res
     }
 
@@ -226,20 +149,20 @@ export async function POST(req: Request) {
               userQuestion,
             }),
           },
-        });
+        })
       } catch (saveErr) {
         logger.warn('[Tarot API] Failed to save reading:', saveErr)
       }
     }
 
     const res = NextResponse.json(result)
-    limit.headers.forEach((value, key) => res.headers.set(key, value));
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
     return res
   } catch (err: unknown) {
     captureServerError(err as Error, { route: '/api/tarot/interpret' })
 
     // Return fallback even on error
-    logger.error('Tarot interpretation error:', err);
+    logger.error('Tarot interpretation error:', err)
     return NextResponse.json(
       { error: 'Server error', fallback: true },
       { status: HTTP_STATUS.SERVER_ERROR }
@@ -267,7 +190,7 @@ async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
     throw new Error(`OpenAI API error: ${response.status}`)
   }
 
-  const data = await response.json();
+  const data = await response.json()
   return data.choices[0]?.message?.content || ''
 }
 
@@ -450,7 +373,7 @@ Each card interpretation MUST include the following structure (450-600 words):
           element: null,
           shadow: null,
         }
-      });
+      })
 
       return {
         overall_message: parsed.overall || '',
@@ -484,7 +407,7 @@ Each card interpretation MUST include the following structure (450-600 words):
       fallback: false,
     }
   } catch (error) {
-    logger.error('GPT interpretation failed:', error);
+    logger.error('GPT interpretation failed:', error)
     return generateSimpleFallback(cards, spreadTitle, language, userQuestion)
   }
 }

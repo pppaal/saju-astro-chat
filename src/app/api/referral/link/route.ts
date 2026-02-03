@@ -34,11 +34,11 @@ export async function POST(request: NextRequest) {
     // Validate with Zod
     const validationResult = referralClaimRequestSchema.safeParse({ code: rawBody.referralCode })
     if (!validationResult.success) {
-      logger.warn('[Referral link] validation failed', { errors: validationResult.error.errors })
+      logger.warn('[Referral link] validation failed', { errors: validationResult.error.issues })
       return NextResponse.json(
         {
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),

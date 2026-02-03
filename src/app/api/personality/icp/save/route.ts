@@ -7,6 +7,7 @@ import type { ICPQuizAnswers } from '@/lib/icp/types'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { icpSaveRequestSchema } from '@/lib/api/zodValidation'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -49,7 +50,24 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const body: SaveICPRequest = await req.json()
+    const rawBody: SaveICPRequest = await req.json()
+
+    // Validate with Zod
+    const validationResult = icpSaveRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[ICP save] validation failed', { errors: validationResult.error.issues })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
     const {
       primaryStyle,
       secondaryStyle,
@@ -59,82 +77,7 @@ export async function POST(req: NextRequest) {
       analysisData,
       answers,
       locale = 'en',
-    } = body
-
-    // Validate required fields
-    if (
-      !primaryStyle ||
-      dominanceScore === undefined ||
-      affiliationScore === undefined ||
-      !octantScores
-    ) {
-      const missing = []
-      if (!primaryStyle) {
-        missing.push('primaryStyle')
-      }
-      if (dominanceScore === undefined) {
-        missing.push('dominanceScore')
-      }
-      if (affiliationScore === undefined) {
-        missing.push('affiliationScore')
-      }
-      if (!octantScores) {
-        missing.push('octantScores')
-      }
-
-      return NextResponse.json(
-        {
-          error: 'missing_required_fields',
-          message: `Missing required fields: ${missing.join(', ')}`,
-          fields: missing,
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    // Validate primaryStyle is a valid ICP octant
-    const VALID_OCTANTS = ['PA', 'BC', 'DE', 'FG', 'HI', 'JK', 'LM', 'NO']
-    if (!VALID_OCTANTS.includes(primaryStyle)) {
-      return NextResponse.json(
-        {
-          error: 'invalid_primary_style',
-          message: `Invalid primaryStyle: "${primaryStyle}". Must be one of: ${VALID_OCTANTS.join(', ')}`,
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    // Validate secondaryStyle if provided
-    if (secondaryStyle && !VALID_OCTANTS.includes(secondaryStyle)) {
-      return NextResponse.json(
-        {
-          error: 'invalid_secondary_style',
-          message: `Invalid secondaryStyle: "${secondaryStyle}". Must be one of: ${VALID_OCTANTS.join(', ')}`,
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    // Validate score ranges
-    if (dominanceScore < 0 || dominanceScore > 100) {
-      return NextResponse.json(
-        {
-          error: 'invalid_score_range',
-          message: `dominanceScore must be between 0 and 100, got: ${dominanceScore}`,
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    if (affiliationScore < 0 || affiliationScore > 100) {
-      return NextResponse.json(
-        {
-          error: 'invalid_score_range',
-          message: `affiliationScore must be between 0 and 100, got: ${affiliationScore}`,
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
+    } = validationResult.data
 
     // Save ICP result to database
     const icpResult = await prisma.iCPResult.create({

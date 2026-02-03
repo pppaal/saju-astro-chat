@@ -1,19 +1,20 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
-import { enforceBodySize } from "@/lib/http";
-import { prisma } from "@/lib/db/prisma";
-import { logger } from '@/lib/logger';
+import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/authOptions'
+import { enforceBodySize } from '@/lib/http'
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/logger'
+import { personalitySaveRequestSchema } from '@/lib/api/zodValidation'
 
-import { HTTP_STATUS } from '@/lib/constants/http';
-export const dynamic = "force-dynamic";
+import { HTTP_STATUS } from '@/lib/constants/http'
+export const dynamic = 'force-dynamic'
 
 // GET: fetch personality result
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
+      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
     const result = await prisma.personalityResult.findUnique({
@@ -32,68 +33,62 @@ export async function GET() {
         createdAt: true,
         updatedAt: true,
       },
-    });
+    })
 
     if (!result) {
-      return NextResponse.json({ saved: false });
+      return NextResponse.json({ saved: false })
     }
 
-    return NextResponse.json({ saved: true, result });
+    return NextResponse.json({ saved: true, result })
   } catch (error) {
-    logger.error("GET /api/personality error:", error);
-    return NextResponse.json({ error: "server_error" }, { status: HTTP_STATUS.SERVER_ERROR });
+    logger.error('GET /api/personality error:', error)
+    return NextResponse.json({ error: 'server_error' }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }
 
 // POST: store personality result
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: HTTP_STATUS.UNAUTHORIZED });
+      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
-    const oversized = enforceBodySize(request, 16 * 1024);
-    if (oversized) {return oversized;}
-
-    const body = await request.json().catch(() => null);
-
-    // Validate required fields
-    const typeCode = typeof body?.typeCode === "string" ? body.typeCode.trim().slice(0, 4).toUpperCase() : "";
-    const personaName = typeof body?.personaName === "string" ? body.personaName.trim().slice(0, 100) : "";
-    const avatarGender = typeof body?.avatarGender === "string" ? body.avatarGender.trim() : "M";
-
-    const energyScore = typeof body?.energyScore === "number" ? Math.max(0, Math.min(100, body.energyScore)) : 0;
-    const cognitionScore = typeof body?.cognitionScore === "number" ? Math.max(0, Math.min(100, body.cognitionScore)) : 0;
-    const decisionScore = typeof body?.decisionScore === "number" ? Math.max(0, Math.min(100, body.decisionScore)) : 0;
-    const rhythmScore = typeof body?.rhythmScore === "number" ? Math.max(0, Math.min(100, body.rhythmScore)) : 0;
-    const consistencyScore = typeof body?.consistencyScore === "number" ? Math.max(0, Math.min(100, body.consistencyScore)) : null;
-
-    if (!typeCode || !personaName) {
-      return NextResponse.json({ error: "missing_fields", message: "typeCode and personaName are required" }, { status: HTTP_STATUS.BAD_REQUEST });
+    const oversized = enforceBodySize(request, 16 * 1024)
+    if (oversized) {
+      return oversized
     }
 
-    // Validate typeCode format: must be 4 characters [R|G][V|S][L|H][A|F]
-    const VALID_TYPE_CODE_PATTERN = /^[RG][VS][LH][AF]$/;
-    if (!VALID_TYPE_CODE_PATTERN.test(typeCode)) {
-      return NextResponse.json({
-        error: "invalid_type_code",
-        message: `Invalid typeCode format: "${typeCode}". Expected pattern: [R|G][V|S][L|H][A|F] (e.g., RVLA, GSHF)`,
-      }, { status: HTTP_STATUS.BAD_REQUEST });
+    const rawBody = await request.json().catch(() => null)
+
+    // Validate with Zod
+    const validationResult = personalitySaveRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Personality save] validation failed', { errors: validationResult.error.issues })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
     }
 
-    // Validate avatarGender
-    if (!["M", "F"].includes(avatarGender)) {
-      return NextResponse.json({
-        error: "invalid_avatar_gender",
-        message: `Invalid avatarGender: "${avatarGender}". Expected "M" or "F"`,
-      }, { status: HTTP_STATUS.BAD_REQUEST });
-    }
-
-    // Validate analysisData
-    if (!body?.analysisData || typeof body.analysisData !== "object") {
-      return NextResponse.json({ error: "invalid_analysis_data" }, { status: HTTP_STATUS.BAD_REQUEST });
-    }
+    const {
+      typeCode,
+      personaName,
+      avatarGender,
+      energyScore,
+      cognitionScore,
+      decisionScore,
+      rhythmScore,
+      consistencyScore,
+      analysisData,
+      answers,
+    } = validationResult.data
 
     // Upsert personality result
     const result = await prisma.personalityResult.upsert({
@@ -107,9 +102,12 @@ export async function POST(request: Request) {
         cognitionScore: Math.round(cognitionScore),
         decisionScore: Math.round(decisionScore),
         rhythmScore: Math.round(rhythmScore),
-        consistencyScore: consistencyScore !== null ? Math.round(consistencyScore) : null,
-        analysisData: body.analysisData,
-        answers: body.answers || null,
+        consistencyScore:
+          consistencyScore !== null && consistencyScore !== undefined
+            ? Math.round(consistencyScore)
+            : null,
+        analysisData,
+        answers: answers || null,
       },
       update: {
         typeCode,
@@ -119,12 +117,15 @@ export async function POST(request: Request) {
         cognitionScore: Math.round(cognitionScore),
         decisionScore: Math.round(decisionScore),
         rhythmScore: Math.round(rhythmScore),
-        consistencyScore: consistencyScore !== null ? Math.round(consistencyScore) : null,
-        analysisData: body.analysisData,
-        answers: body.answers || null,
+        consistencyScore:
+          consistencyScore !== null && consistencyScore !== undefined
+            ? Math.round(consistencyScore)
+            : null,
+        analysisData,
+        answers: answers || null,
         updatedAt: new Date(),
       },
-    });
+    })
 
     return NextResponse.json({
       success: true,
@@ -133,9 +134,9 @@ export async function POST(request: Request) {
         typeCode: result.typeCode,
         personaName: result.personaName,
       },
-    });
+    })
   } catch (error) {
-    logger.error("POST /api/personality error:", error);
-    return NextResponse.json({ error: "server_error" }, { status: HTTP_STATUS.SERVER_ERROR });
+    logger.error('POST /api/personality error:', error)
+    return NextResponse.json({ error: 'server_error' }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }

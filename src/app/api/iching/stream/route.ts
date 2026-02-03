@@ -64,11 +64,11 @@ export async function POST(req: NextRequest) {
     // Validate request body with Zod
     const validationResult = iChingStreamRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
-      logger.warn('[IChingStream] validation failed', { errors: validationResult.error.errors })
+      logger.warn('[IChingStream] validation failed', { errors: validationResult.error.issues })
       return NextResponse.json(
         {
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),

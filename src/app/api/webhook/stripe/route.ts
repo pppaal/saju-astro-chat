@@ -113,9 +113,9 @@ export async function POST(request: Request) {
         },
       },
     })
-  } catch (err: any) {
+  } catch (err: unknown) {
     // P2002: Unique constraint violation (이미 처리 중이거나 완료)
-    if (err.code === 'P2002') {
+    if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
       const existingEvent = await prisma.stripeEventLog.findUnique({
         where: { eventId: event.id },
       })

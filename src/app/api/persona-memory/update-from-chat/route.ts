@@ -11,6 +11,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { personaMemoryUpdateSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,12 +52,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = (await request.json().catch(() => null)) as RequestBody | null
-    if (!body || !body.messages || !Array.isArray(body.messages)) {
+    const rawBody = (await request.json().catch(() => null)) as RequestBody | null
+    if (!rawBody) {
       return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
     }
 
-    const { sessionId, theme, locale, messages, saju, astro } = body
+    // Validate with Zod
+    const validationResult = personaMemoryUpdateSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Persona memory update] validation failed', {
+        errors: validationResult.error.issues,
+      })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
+    const { sessionId, theme, locale, messages, saju, astro } = validationResult.data
     const userId = session.user.id
 
     // 1. 대화 요약 생성 (system role 제외)

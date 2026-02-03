@@ -27,7 +27,7 @@ export interface PlanetData {
   house: number
   speed?: number
   retrograde?: boolean
-  [key: string]: any // Allow flexible properties for prompt builder compatibility
+  [key: string]: unknown // Allow flexible properties for prompt builder compatibility
 }
 
 export interface NatalChartData {

@@ -24,12 +24,12 @@ export const POST = withApiMiddleware(
     const validationResult = compatibilityChatRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[Compatibility chat] validation failed', {
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
       })
       return NextResponse.json(
         {
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),

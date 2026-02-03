@@ -86,12 +86,12 @@ export const POST = withApiMiddleware(
     const validationResult = counselorSessionSaveRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[Counselor session save] validation failed', {
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
       })
       return NextResponse.json(
         {
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),

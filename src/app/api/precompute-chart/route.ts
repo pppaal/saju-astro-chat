@@ -129,14 +129,21 @@ export async function POST(req: NextRequest) {
                 earthlyBranch: pillars.time?.earthlyBranch,
                 jijanggan: pillars.time?.jijanggan || {},
               },
-            } // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Type assertion needed for various Saju analysis functions with different signatures
-            const pillarsForAnalysisAny = pillarsForAnalysis as any
+            }
+
+            // Convert to the format expected by analyzeExtendedSaju (yearPillar, monthPillar, etc.)
+            const pillarsForExtendedAnalysis = {
+              yearPillar: pillarsForAnalysis.year,
+              monthPillar: pillarsForAnalysis.month,
+              dayPillar: pillarsForAnalysis.day,
+              timePillar: pillarsForAnalysis.time,
+            }
 
             advancedSajuData = {}
 
             try {
               ;(advancedSajuData as Record<string, unknown>).extended =
-                sajuModule.analyzeExtendedSaju(dayMasterForAnalysis, pillarsForAnalysisAny)
+                sajuModule.analyzeExtendedSaju(dayMasterForAnalysis, pillarsForExtendedAnalysis)
             } catch (err) {
               logger.debug('[precompute] Partial calculation failed', { error: err })
             }

@@ -52,12 +52,12 @@ export async function POST(_request: NextRequest) {
     const validationResult = notificationSendSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[Notifications send] validation failed', {
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
       })
       return NextResponse.json(
         {
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),

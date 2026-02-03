@@ -33,18 +33,20 @@ interface AdvisorChatProps {
 }
 
 // 메시지 컴포넌트 메모이제이션
-const MessageItem = memo(({ message, styles }: { message: Message; styles: any }) => (
-  <div key={message.id} className={`${styles.message} ${styles[message.role]}`}>
-    {message.role === 'assistant' && <span className={styles.avatar}>🔮</span>}
-    <div className={styles.messageContent}>
-      <p>{message.content}</p>
+const MessageItem = memo(
+  ({ message, styles }: { message: Message; styles: Record<string, string> }) => (
+    <div key={message.id} className={`${styles.message} ${styles[message.role]}`}>
+      {message.role === 'assistant' && <span className={styles.avatar}>🔮</span>}
+      <div className={styles.messageContent}>
+        <p>{message.content}</p>
+      </div>
     </div>
-  </div>
-))
+  )
+)
 MessageItem.displayName = 'MessageItem'
 
 // 로딩 인디케이터 메모이제이션
-const LoadingIndicator = memo(({ styles }: { styles: any }) => (
+const LoadingIndicator = memo(({ styles }: { styles: Record<string, string> }) => (
   <div className={`${styles.message} ${styles.assistant}`}>
     <span className={styles.avatar}>🔮</span>
     <div className={styles.messageContent}>
@@ -93,89 +95,92 @@ function AdvisorChatComponent({ predictionContext, locale = 'ko', onClose }: Adv
   }, [messages])
 
   // 메시지 전송
-  const sendMessage = useCallback(async (overrideInput?: string) => {
-    const messageText = (overrideInput ?? input).trim()
-    if (!messageText || isLoading) {
-      return
-    }
-
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: messageText,
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
-    setInput('')
-    setIsLoading(true)
-
-    try {
-      const response = await fetch('/api/life-prediction/advisor-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: userMessage.content,
-          context: predictionContext,
-          history: messages.slice(-6).map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-          locale,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data.success && data.reply) {
-        const assistantMessage: Message = {
-          id: `assistant-${Date.now()}`,
-          role: 'assistant',
-          content: data.reply,
-          timestamp: new Date(),
-        }
-        setMessages((prev) => [...prev, assistantMessage])
-      } else {
-        throw new Error(data.error || 'Failed to get response')
-      }
-    } catch (error) {
-      logger.error('[AdvisorChat] Chat error:', error)
-
-      // 에러 메시지 파싱
-      let errorContent =
-        locale === 'ko'
-          ? '죄송합니다. 응답을 가져오는 중 오류가 발생했습니다. 다시 시도해주세요.'
-          : 'Sorry, there was an error getting a response. Please try again.'
-
-      // 크레딧 부족 에러 처리
-      if (error instanceof Error && error.message.includes('credit')) {
-        errorContent =
-          locale === 'ko'
-            ? '🎫 AI 상담을 이용하려면 크레딧이 필요합니다. 로그인 후 크레딧을 충전해주세요.'
-            : '🎫 Credits required to use AI counseling. Please log in and recharge your credits.'
-      }
-      // 인증 에러 처리
-      else if (
-        error instanceof Error &&
-        (error.message.includes('auth') || error.message.includes('401'))
-      ) {
-        errorContent =
-          locale === 'ko'
-            ? '🔐 AI 상담을 이용하려면 로그인이 필요합니다.'
-            : '🔐 Please log in to use AI counseling.'
+  const sendMessage = useCallback(
+    async (overrideInput?: string) => {
+      const messageText = (overrideInput ?? input).trim()
+      if (!messageText || isLoading) {
+        return
       }
 
-      const errorMessage: Message = {
-        id: `error-${Date.now()}`,
-        role: 'assistant',
-        content: errorContent,
+      const userMessage: Message = {
+        id: `user-${Date.now()}`,
+        role: 'user',
+        content: messageText,
         timestamp: new Date(),
       }
-      setMessages((prev) => [...prev, errorMessage])
-    } finally {
-      setIsLoading(false)
-    }
-  }, [input, isLoading, messages, predictionContext, locale])
+
+      setMessages((prev) => [...prev, userMessage])
+      setInput('')
+      setIsLoading(true)
+
+      try {
+        const response = await fetch('/api/life-prediction/advisor-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: userMessage.content,
+            context: predictionContext,
+            history: messages.slice(-6).map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+            locale,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (data.success && data.reply) {
+          const assistantMessage: Message = {
+            id: `assistant-${Date.now()}`,
+            role: 'assistant',
+            content: data.reply,
+            timestamp: new Date(),
+          }
+          setMessages((prev) => [...prev, assistantMessage])
+        } else {
+          throw new Error(data.error || 'Failed to get response')
+        }
+      } catch (error) {
+        logger.error('[AdvisorChat] Chat error:', error)
+
+        // 에러 메시지 파싱
+        let errorContent =
+          locale === 'ko'
+            ? '죄송합니다. 응답을 가져오는 중 오류가 발생했습니다. 다시 시도해주세요.'
+            : 'Sorry, there was an error getting a response. Please try again.'
+
+        // 크레딧 부족 에러 처리
+        if (error instanceof Error && error.message.includes('credit')) {
+          errorContent =
+            locale === 'ko'
+              ? '🎫 AI 상담을 이용하려면 크레딧이 필요합니다. 로그인 후 크레딧을 충전해주세요.'
+              : '🎫 Credits required to use AI counseling. Please log in and recharge your credits.'
+        }
+        // 인증 에러 처리
+        else if (
+          error instanceof Error &&
+          (error.message.includes('auth') || error.message.includes('401'))
+        ) {
+          errorContent =
+            locale === 'ko'
+              ? '🔐 AI 상담을 이용하려면 로그인이 필요합니다.'
+              : '🔐 Please log in to use AI counseling.'
+        }
+
+        const errorMessage: Message = {
+          id: `error-${Date.now()}`,
+          role: 'assistant',
+          content: errorContent,
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, errorMessage])
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [input, isLoading, messages, predictionContext, locale]
+  )
 
   // 빠른 질문 버튼 메모이제이션
   const quickQuestions = useMemo(
@@ -208,7 +213,7 @@ function AdvisorChatComponent({ predictionContext, locale = 'ko', onClose }: Adv
       e.preventDefault()
       setIsExpanded((prev) => !prev)
     }
-  }, []);
+  }, [])
 
   return (
     <motion.div

@@ -57,11 +57,11 @@ export const POST = withApiMiddleware(
     // Validate with Zod
     const validationResult = sectionFeedbackRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
-      logger.warn('[Feedback] validation failed', { errors: validationResult.error.errors })
+      logger.warn('[Feedback] validation failed', { errors: validationResult.error.issues })
       return NextResponse.json(
         {
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),

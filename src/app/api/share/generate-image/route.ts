@@ -29,12 +29,12 @@ export async function POST(req: NextRequest) {
     const validationResult = shareResultRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[Share generate-image] validation failed', {
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
       })
       return NextResponse.json(
         {
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),

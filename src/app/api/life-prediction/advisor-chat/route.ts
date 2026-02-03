@@ -191,13 +191,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const validationResult = lifePredictionAdvisorChatRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[Life prediction advisor chat] validation failed', {
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
       })
       return NextResponse.json(
         {
           success: false,
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),

@@ -11,6 +11,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { destinyMatrixCalculationSchema, destinyMatrixQuerySchema } from '@/lib/api/zodValidation'
 
 // Map Korean element names to standard format
 const ELEMENT_MAP: Record<string, FiveElement> = {
@@ -31,10 +32,32 @@ const ELEMENT_MAP: Record<string, FiveElement> = {
  * Protected: Does not expose proprietary matrix cell data
  */
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const format = searchParams.get('format') || 'summary'
-
   try {
+    const { searchParams } = new URL(req.url)
+
+    // Validate query parameters
+    const validationResult = destinyMatrixQuerySchema.safeParse({
+      format: searchParams.get('format') || 'summary',
+    })
+
+    if (!validationResult.success) {
+      logger.warn('[Destiny Matrix] GET validation failed', {
+        errors: validationResult.error.issues,
+      })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
+    const { format } = validationResult.data
+
     // Only return summary - NEVER expose raw data
     if (format === 'summary' || format === 'full') {
       return NextResponse.json({
@@ -117,15 +140,31 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const body = await req.json()
+    const rawBody = await req.json()
+
+    // Validate with Zod
+    const validationResult = destinyMatrixCalculationSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Destiny Matrix] POST validation failed', {
+        errors: validationResult.error.issues,
+      })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
+      )
+    }
+
     const {
-      // Birth data (new simpler input)
       birthDate,
       birthTime = '12:00',
       gender = 'male',
       timezone = 'Asia/Seoul',
-
-      // Saju data (legacy direct input)
       dayMasterElement: providedDayMaster,
       pillarElements = [],
       sibsinDistribution: providedSibsin = {},
@@ -135,32 +174,16 @@ export async function POST(req: NextRequest) {
       yongsin,
       currentDaeunElement,
       currentSaeunElement,
-
-      // Shinsal data (Layer 8)
       shinsalList = [],
-
-      // Astrology data
       dominantWesternElement,
       planetHouses = {},
       planetSigns = {},
       aspects = [],
       activeTransits = [],
-
-      // Asteroid data (Layer 9)
       asteroidHouses = {},
-
-      // Extra Point data (Layer 10)
       extraPointSigns = {},
-
-      // Options
       lang = 'ko',
-    } = body as Partial<MatrixCalculationInput> & {
-      birthDate?: string
-      birthTime?: string
-      gender?: 'male' | 'female'
-      timezone?: string
-      lang?: 'ko' | 'en'
-    }
+    } = validationResult.data
 
     let dayMasterElement = providedDayMaster
     let sibsinDistribution = providedSibsin
@@ -217,13 +240,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Validate required fields
-    if (!dayMasterElement) {
-      return NextResponse.json(
-        { error: 'Either birthDate or dayMasterElement is required' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
+    // Note: Zod schema already validates that either birthDate or dayMasterElement is provided
 
     // Build input
     const input: MatrixCalculationInput = {

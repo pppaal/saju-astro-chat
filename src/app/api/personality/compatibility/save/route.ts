@@ -114,12 +114,12 @@ export async function POST(req: NextRequest) {
     const validationResult = personalityCompatibilitySaveRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[Personality compatibility save] validation failed', {
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
       })
       return NextResponse.json(
         {
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),

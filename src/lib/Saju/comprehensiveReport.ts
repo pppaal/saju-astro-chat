@@ -495,7 +495,7 @@ export function generateQuickSummary(pillars: SajuInput): string {
     .join(' ')}\n`
   summary += `**오행 상태**: ${elementAnalysis.interpretation}\n`
 
-  summary += `\n**형충회합**: ${interactionScore.grade}등급 - ${interactionScore.interpretation}\n`
+  summary += `\n**형충회합**: ${interactionScore.balance} (긍정: ${interactionScore.positive}, 부정: ${interactionScore.negative})\n`
 
   return summary
 }

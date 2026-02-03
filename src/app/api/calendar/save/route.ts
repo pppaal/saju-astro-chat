@@ -8,6 +8,7 @@ import { csrfGuard } from '@/lib/security/csrf'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { calendarSaveRequestSchema, calendarQuerySchema, dateSchema } from '@/lib/api/zodValidation'
+import type { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -90,9 +91,9 @@ export async function POST(req: NextRequest) {
         description: description || '',
         summary: summary || '',
         categories: categories || [],
-        bestTimes: bestTimes || '',
-        sajuFactors: sajuFactors as any,
-        astroFactors: astroFactors as any,
+        bestTimes: bestTimes && bestTimes.length > 0 ? bestTimes : [],
+        sajuFactors: (sajuFactors || {}) as Prisma.JsonValue,
+        astroFactors: (astroFactors || {}) as Prisma.JsonValue,
         recommendations: recommendations || '',
         warnings: warnings || '',
         birthDate: birthDate || '',
@@ -110,9 +111,9 @@ export async function POST(req: NextRequest) {
         description: description || '',
         summary: summary || '',
         categories: categories || [],
-        bestTimes: bestTimes || '',
-        sajuFactors: sajuFactors as any,
-        astroFactors: astroFactors as any,
+        bestTimes: bestTimes && bestTimes.length > 0 ? bestTimes : [],
+        sajuFactors: (sajuFactors || {}) as Prisma.JsonValue,
+        astroFactors: (astroFactors || {}) as Prisma.JsonValue,
         recommendations: recommendations || '',
         warnings: warnings || '',
         birthDate: birthDate || '',

@@ -4,7 +4,7 @@ import React from 'react'
 import Image from 'next/image'
 import type { ReadingResult } from '../../types'
 import type { CardColor } from '../../constants'
-import { getCardImagePath, type DeckStyle } from '@/lib/Tarot/tarot.types'
+import { getCardImagePath, type DeckStyle, type DrawnCard } from '@/lib/Tarot/tarot.types'
 import styles from '../../tarot-reading.module.css'
 
 interface HorizontalCardsGridProps {
@@ -31,7 +31,7 @@ export function HorizontalCardsGrid({
 }: HorizontalCardsGridProps) {
   return (
     <div className={styles.resultsGridHorizontal}>
-      {readingResult.drawnCards.map((drawnCard: any, index: number) => {
+      {readingResult.drawnCards.map((drawnCard: DrawnCard, index: number) => {
         const meaning = drawnCard.isReversed ? drawnCard.card.reversed : drawnCard.card.upright
         const position = readingResult.spread.positions[index]
         const positionTitle =
@@ -118,7 +118,7 @@ export function HorizontalCardsGrid({
                 <div className={styles.keywordsCompact}>
                   {(language === 'ko' ? meaning.keywordsKo || meaning.keywords : meaning.keywords)
                     .slice(0, 2)
-                    .map((keyword: any, i: number) => (
+                    .map((keyword: string, i: number) => (
                       <span key={i} className={styles.keywordTagCompact}>
                         {keyword}
                       </span>

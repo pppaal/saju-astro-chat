@@ -10,21 +10,21 @@ import styles from './MobileFilterDrawer.module.css'
 interface FilterOption {
   id: string
   label: string
-  value: any
+  value: string | number | boolean
 }
 
 interface FilterGroup {
   id: string
   label: string
   options: FilterOption[]
-  selectedValue?: any
+  selectedValue?: string | number | boolean
 }
 
 interface MobileFilterDrawerProps {
   isOpen: boolean
   onClose: () => void
   filterGroups: FilterGroup[]
-  onApply: (filters: Record<string, any>) => void
+  onApply: (filters: Record<string, string | number | boolean>) => void
   onReset: () => void
 }
 
@@ -35,7 +35,9 @@ export function MobileFilterDrawer({
   onApply,
   onReset,
 }: MobileFilterDrawerProps) {
-  const [selectedFilters, setSelectedFilters] = React.useState<Record<string, any>>({})
+  const [selectedFilters, setSelectedFilters] = React.useState<
+    Record<string, string | number | boolean>
+  >({})
 
   useEffect(() => {
     // Initialize with current values
@@ -58,7 +60,7 @@ export function MobileFilterDrawer({
     return () => bodyScrollLock.unlock()
   }, [isOpen])
 
-  const handleFilterChange = (groupId: string, value: any) => {
+  const handleFilterChange = (groupId: string, value: string | number | boolean) => {
     setSelectedFilters((prev) => ({
       ...prev,
       [groupId]: value,

@@ -61,12 +61,12 @@ export const PATCH = withApiMiddleware(
     const validationResult = userProfileUpdateSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[User profile update] validation failed', {
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
       })
       return NextResponse.json(
         {
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),

@@ -55,11 +55,11 @@ export async function POST(req: Request) {
     // Validate with Zod
     const validationResult = dreamChatSaveRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
-      logger.warn('[Dream chat save] validation failed', { errors: validationResult.error.errors })
+      logger.warn('[Dream chat save] validation failed', { errors: validationResult.error.issues })
       return NextResponse.json(
         {
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),

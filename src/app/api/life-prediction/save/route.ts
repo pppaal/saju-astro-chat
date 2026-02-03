@@ -61,13 +61,13 @@ export async function POST(request: NextRequest) {
     const validationResult = lifePredictionMultiYearSaveSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[LifePredictionSave] validation failed', {
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
       })
       return NextResponse.json(
         {
           success: false,
           error: 'validation_failed',
-          details: validationResult.error.errors.map((e) => ({
+          details: validationResult.error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),

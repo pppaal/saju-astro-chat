@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { PLAN_CONFIG, type PlanType, type PlanFeatures } from '@/lib/config/pricing'
+import type { Prisma } from '@prisma/client'
 
 // Re-export for backward compatibility
 export { PLAN_CONFIG }
@@ -16,7 +17,7 @@ function getNextPeriodEnd(): Date {
 // 유저 크레딧 초기화 (신규 가입 시)
 export async function initializeUserCredits(userId: string, plan: PlanType = 'free') {
   const config = PLAN_CONFIG[plan]
-  const now = new Date();
+  const now = new Date()
 
   return prisma.userCredits.create({
     data: {
@@ -240,7 +241,11 @@ export async function consumeCredits(
         fromMonthly = amount - fromBonus
 
         // BonusCreditPurchase 테이블에서 FIFO로 차감 (트랜잭션 내에서)
-        const actualBonusConsumed = await consumeBonusCreditsFromPurchasesInTx(tx, userId, fromBonus)
+        const actualBonusConsumed = await consumeBonusCreditsFromPurchasesInTx(
+          tx,
+          userId,
+          fromBonus
+        )
         // 실제 차감된 양과 다르면 조정 (레거시 데이터 대응)
         if (actualBonusConsumed < fromBonus) {
           fromMonthly += fromBonus - actualBonusConsumed
@@ -272,7 +277,7 @@ export async function consumeCredits(
       }
 
       return { success: true }
-    });
+    })
 
     return result
   } catch (error) {
@@ -287,7 +292,7 @@ export async function consumeCredits(
 
 // 트랜잭션 내에서 보너스 크레딧 차감 (헬퍼 함수)
 async function consumeBonusCreditsFromPurchasesInTx(
-  tx: any,
+  tx: Prisma.TransactionClient,
   userId: string,
   amountToConsume: number
 ): Promise<number> {
@@ -361,7 +366,7 @@ export async function resetMonthlyCredits(userId: string) {
   if (!isSubscribed) {
     // 구독 만료 → free 플랜으로 다운그레이드
     const freeConfig = PLAN_CONFIG.free
-    const now = new Date();
+    const now = new Date()
 
     return prisma.userCredits.update({
       where: { userId },
@@ -382,7 +387,7 @@ export async function resetMonthlyCredits(userId: string) {
 
   // 구독 유효 → 현재 플랜 기준으로 리셋
   const config = PLAN_CONFIG[credits.plan as PlanType] || PLAN_CONFIG.free
-  const now = new Date();
+  const now = new Date()
 
   return prisma.userCredits.update({
     where: { userId },
@@ -479,7 +484,7 @@ export async function getValidBonusCredits(userId: string): Promise<number> {
       remaining: { gt: 0 },
     },
     select: { remaining: true },
-  });
+  })
 
   return validPurchases.reduce((sum, p) => sum + p.remaining, 0)
 }

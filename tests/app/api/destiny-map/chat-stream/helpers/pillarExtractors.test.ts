@@ -163,33 +163,29 @@ describe('Pillar Extractors', () => {
   })
 
   describe('extractCurrentDaeun', () => {
-    const mockDaeunCycles: DaeunCycleItem[] = [
+    const mockDaeunList: DaeunCycleItem[] = [
       {
         stem: '甲',
         branch: '寅',
         startAge: 5,
-        endAge: 14,
-        index: 0,
       },
       {
         stem: '乙',
         branch: '卯',
         startAge: 15,
-        endAge: 24,
-        index: 1,
       },
       {
         stem: '丙',
         branch: '辰',
         startAge: 25,
-        endAge: 34,
-        index: 2,
       },
     ] as any
 
     const sajuWithDaeun = {
       ...mockSaju,
-      daeunCycles: mockDaeunCycles,
+      unse: {
+        daeun: mockDaeunList,
+      },
     } as any
 
     it('should extract current daeun for age in range', () => {
@@ -199,7 +195,6 @@ describe('Pillar Extractors', () => {
       expect(result?.stem).toBe('乙')
       expect(result?.branch).toBe('卯')
       expect(result?.startAge).toBe(15)
-      expect(result?.endAge).toBe(24)
     })
 
     it('should handle age at start of cycle', () => {
@@ -234,16 +229,16 @@ describe('Pillar Extractors', () => {
       expect(result).toBeUndefined()
     })
 
-    it('should return undefined for saju without daeunCycles', () => {
+    it('should return undefined for saju without unse.daeun', () => {
       const result = extractCurrentDaeun(mockSaju as SajuDataStructure, 20)
 
       expect(result).toBeUndefined()
     })
 
-    it('should return undefined for empty daeunCycles', () => {
+    it('should return undefined for empty unse.daeun', () => {
       const sajuWithEmptyDaeun = {
         ...mockSaju,
-        daeunCycles: [],
+        unse: { daeun: [] },
       } as any
 
       const result = extractCurrentDaeun(sajuWithEmptyDaeun, 20)
@@ -269,7 +264,6 @@ describe('Pillar Extractors', () => {
       expect(result).toBeDefined()
       expect(result?.stem).toBe('甲')
       expect(result?.branch).toBe('寅')
-      expect(result?.index).toBe(0)
     })
 
     it('should work with last cycle', () => {
@@ -278,7 +272,6 @@ describe('Pillar Extractors', () => {
       expect(result).toBeDefined()
       expect(result?.stem).toBe('丙')
       expect(result?.branch).toBe('辰')
-      expect(result?.index).toBe(2)
     })
   })
 
@@ -323,7 +316,9 @@ describe('Pillar Extractors', () => {
 
     it('should handle decimal age', () => {
       const sajuWithDaeun = {
-        daeunCycles: [{ stem: '甲', branch: '寅', startAge: 5, endAge: 14 }],
+        unse: {
+          daeun: [{ stem: '甲', branch: '寅', startAge: 5 }],
+        },
       } as any
 
       const result = extractCurrentDaeun(sajuWithDaeun, 10.5)
