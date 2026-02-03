@@ -4,7 +4,7 @@ import React from 'react'
 import Image from 'next/image'
 import type { ReadingResult } from '../../types'
 import type { CardColor } from '../../constants'
-import { getCardImagePath } from '@/lib/Tarot/tarot.types'
+import { getCardImagePath, type DeckStyle } from '@/lib/Tarot/tarot.types'
 import styles from '../../tarot-reading.module.css'
 
 interface HorizontalCardsGridProps {
@@ -76,7 +76,7 @@ export function HorizontalCardsGrid({
                   <div className={styles.cardBackResultLarge}></div>
                   <div className={styles.cardFrontLarge}>
                     <Image
-                      src={getCardImagePath(drawnCard.card.id, selectedDeckStyle as any)}
+                      src={getCardImagePath(drawnCard.card.id, selectedDeckStyle as DeckStyle)}
                       alt={drawnCard.card.name}
                       width={180}
                       height={315}

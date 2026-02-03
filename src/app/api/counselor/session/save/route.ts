@@ -5,6 +5,8 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 import { enforceBodySize } from '@/lib/http'
 import { ALLOWED_LOCALES, BODY_LIMITS } from '@/lib/constants/api-limits'
 import { LIMITS } from '@/lib/validation'
+import { counselorSessionSaveRequestSchema } from '@/lib/api/zodValidation'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,19 +24,27 @@ type StoredMessage = {
 const ALLOWED_ROLES = new Set<StoredMessage['role']>(['system', 'user', 'assistant'])
 
 function normalizeMessages(raw: unknown): StoredMessage[] {
-  if (!Array.isArray(raw)) {return []}
+  if (!Array.isArray(raw)) {
+    return []
+  }
 
   const normalized: StoredMessage[] = []
   for (const entry of raw.slice(-MAX_MESSAGES)) {
-    if (!entry || typeof entry !== 'object') {continue}
+    if (!entry || typeof entry !== 'object') {
+      continue
+    }
     const msg = entry as Record<string, unknown>
     const role =
       typeof msg.role === 'string' && ALLOWED_ROLES.has(msg.role as StoredMessage['role'])
         ? (msg.role as StoredMessage['role'])
         : null
     const content = typeof msg.content === 'string' ? msg.content.trim() : ''
-    if (!role) {continue}
-    if (!content) {continue}
+    if (!role) {
+      continue
+    }
+    if (!content) {
+      continue
+    }
 
     const id = typeof msg.id === 'string' ? msg.id.trim().slice(0, MAX_ID_LENGTH) : undefined
     const timestamp =
@@ -56,27 +66,41 @@ export const POST = withApiMiddleware(
     const userId = context.userId!
 
     const oversized = enforceBodySize(req, BODY_LIMITS.LARGE)
-      if (oversized) {return oversized}
+    if (oversized) {
+      return oversized
+    }
 
     // Safe JSON parsing
-    let body
+    let rawBody
     try {
       const text = await req.text()
       if (!text || text.trim() === '') {
         return NextResponse.json({ error: 'empty_body' }, { status: HTTP_STATUS.BAD_REQUEST })
       }
-      body = JSON.parse(text);
+      rawBody = JSON.parse(text)
     } catch {
       return NextResponse.json({ error: 'invalid_json' }, { status: HTTP_STATUS.BAD_REQUEST })
     }
 
-    const sessionIdRaw = typeof body?.sessionId === 'string' ? body.sessionId.trim() : ''
-    const themeRaw = typeof body?.theme === 'string' ? body.theme.trim() : ''
-    const localeRaw = typeof body?.locale === 'string' ? body.locale.trim() : ''
-    const sessionId = sessionIdRaw.slice(0, LIMITS.ID)
-    const theme = themeRaw ? themeRaw.slice(0, LIMITS.THEME) : 'chat'
-    const locale = ALLOWED_LOCALES.has(localeRaw) ? localeRaw : 'ko'
-    const messages = normalizeMessages(body?.messages)
+    // Validate with Zod
+    const validationResult = counselorSessionSaveRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Counselor session save] validation failed', {
+        errors: validationResult.error.errors,
+      })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.errors.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
+    const { sessionId, theme = 'chat', messages, locale = 'ko' } = validationResult.data
 
     if (!sessionId || !messages.length) {
       return NextResponse.json({ error: 'invalid_request' }, { status: HTTP_STATUS.BAD_REQUEST })
@@ -95,7 +119,7 @@ export const POST = withApiMiddleware(
       ? await prisma.counselorChatSession.update({
           where: { id: sessionId },
           data: {
-            messages,
+            messages: messages as never,
             messageCount: messages.length,
             lastMessageAt: new Date(),
           },
@@ -110,7 +134,7 @@ export const POST = withApiMiddleware(
             messageCount: messages.length,
             lastMessageAt: new Date(),
           },
-        });
+        })
 
     return NextResponse.json({ success: true, sessionId: chatSession.id })
   },

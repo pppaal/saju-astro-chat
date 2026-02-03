@@ -33,8 +33,10 @@ import {
   analyzeYearWithAdvanced,
   generateAdvancedPromptContext,
   buildPredictionInput,
-  validateRequest,
 } from './services'
+
+// Zod validation
+import { lifePredictionRequestSchema } from '@/lib/api/zodValidation'
 
 // ============================================================
 // API 핸들러
@@ -51,13 +53,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = (await request.json()) as PredictionRequest
+    const rawBody = (await request.json()) as PredictionRequest
 
-    // 유효성 검사
-    const validation = validateRequest(body)
-    if (!validation.valid) {
-      return validation.errorResponse
+    // Zod 유효성 검사
+    const validationResult = lifePredictionRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Life prediction] validation failed', { errors: validationResult.error.errors })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Validation failed',
+        details: validationResult.error.errors.map((e) => ({
+          path: e.path.join('.'),
+          message: e.message,
+        })),
+      })
     }
+
+    const body = validationResult.data as PredictionRequest
 
     const input = buildPredictionInput(body)
     const locale = body.locale || 'ko'

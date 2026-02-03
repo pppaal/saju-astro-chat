@@ -7,6 +7,7 @@ import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middle
 import { apiClient } from '@/lib/api/ApiClient'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { lifePredictionAdvisorChatRequestSchema } from '@/lib/api/zodValidation'
 
 interface PredictionResult {
   startDate: string
@@ -184,15 +185,28 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return error
     }
 
-    const body: ChatRequest = await request.json()
-    const { message, context, history, locale, sessionId } = body
+    const rawBody: ChatRequest = await request.json()
 
-    if (!message?.trim()) {
+    // Validate with Zod
+    const validationResult = lifePredictionAdvisorChatRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Life prediction advisor chat] validation failed', {
+        errors: validationResult.error.errors,
+      })
       return NextResponse.json(
-        { success: false, error: 'Message is required' },
+        {
+          success: false,
+          error: 'validation_failed',
+          details: validationResult.error.errors.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
+
+    const { message, context, history, locale, sessionId } = validationResult.data
 
     // ============================================================
     // v3.0: 백엔드 counseling engine 우선 사용

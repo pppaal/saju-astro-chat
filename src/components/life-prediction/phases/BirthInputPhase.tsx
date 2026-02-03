@@ -44,16 +44,16 @@ interface BirthInputPhaseProps {
  */
 export const BirthInputPhase = React.memo<BirthInputPhaseProps>(
   ({ locale, status, signInUrl, onSubmit }) => {
-    const handleSubmit = (birthInfo: {
+    const handleSubmit = async (birthInfo: {
       birthDate: string
       birthTime: string
       gender: 'M' | 'F' | 'Male' | 'Female'
       birthCity?: string
-    }) => {
+    }): Promise<void> => {
       // Normalize gender to short format
       const normalizedGender =
         birthInfo.gender === 'Male' ? 'M' : birthInfo.gender === 'Female' ? 'F' : birthInfo.gender
-      onSubmit({
+      await onSubmit({
         ...birthInfo,
         gender: normalizedGender,
       })
@@ -79,7 +79,7 @@ export const BirthInputPhase = React.memo<BirthInputPhaseProps>(
           </p>
         </div>
 
-        <BirthInfoForm onSubmit={handleSubmit as any} locale={locale} />
+        <BirthInfoForm onSubmit={handleSubmit} locale={locale} />
 
         {status === 'unauthenticated' && <LoginHint signInUrl={signInUrl} locale={locale} />}
       </motion.div>

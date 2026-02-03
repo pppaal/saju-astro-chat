@@ -4,28 +4,30 @@
  * 전생 리딩 결과 저장 API
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware';
-import { prisma } from '@/lib/db/prisma';
-import { logger } from '@/lib/logger';
+import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/logger'
+import { pastLifeSaveRequestSchema } from '@/lib/api/zodValidation'
+import { HTTP_STATUS } from '@/lib/constants/http'
 
 interface SavePastLifeBody {
-  birthDate: string;
-  birthTime?: string;
-  latitude?: number;
-  longitude?: number;
-  timezone?: string;
-  karmaScore: number;
+  birthDate: string
+  birthTime?: string
+  latitude?: number
+  longitude?: number
+  timezone?: string
+  karmaScore: number
   analysisData: {
-    soulPattern: unknown;
-    pastLife: unknown;
-    soulJourney: unknown;
-    karmicDebts: unknown[];
-    thisLifeMission: unknown;
-    talentsCarried: string[];
-    saturnLesson: unknown;
-  };
-  locale?: string;
+    soulPattern: unknown
+    pastLife: unknown
+    soulJourney: unknown
+    karmicDebts: unknown[]
+    thisLifeMission: unknown
+    talentsCarried: string[]
+    saturnLesson: unknown
+  }
+  locale?: string
 }
 
 /**
@@ -34,9 +36,28 @@ interface SavePastLifeBody {
  */
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    const body = await req.json().catch(() => null);
-    if (!body) {
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    const rawBody = await req.json().catch(() => null)
+    if (!rawBody) {
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
+    // Validate with Zod
+    const validationResult = pastLifeSaveRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Past Life save] validation failed', { errors: validationResult.error.errors })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.errors.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
     }
 
     const {
@@ -48,15 +69,7 @@ export const POST = withApiMiddleware(
       karmaScore,
       analysisData,
       locale = 'ko',
-    } = body as SavePastLifeBody;
-
-    // Validate required fields
-    if (!birthDate || karmaScore === undefined || !analysisData) {
-      return NextResponse.json(
-        { error: 'Missing required fields: birthDate, karmaScore, analysisData' },
-        { status: 400 }
-      );
-    }
+    } = validationResult.data
 
     try {
       // Save to database
@@ -72,25 +85,22 @@ export const POST = withApiMiddleware(
           analysisData: analysisData as never,
           locale,
         },
-      });
+      })
 
       logger.info('[PastLife Save] Saved successfully', {
         userId: context.userId,
         resultId: result.id,
         karmaScore,
-      });
+      })
 
       return NextResponse.json({
         success: true,
         id: result.id,
         message: 'Past life result saved successfully',
-      });
+      })
     } catch (error) {
-      logger.error('[PastLife Save] Failed to save:', error);
-      return NextResponse.json(
-        { error: 'Failed to save past life result' },
-        { status: 500 }
-      );
+      logger.error('[PastLife Save] Failed to save:', error)
+      return NextResponse.json({ error: 'Failed to save past life result' }, { status: 500 })
     }
   },
   createAuthenticatedGuard({
@@ -98,7 +108,7 @@ export const POST = withApiMiddleware(
     limit: 30,
     windowSeconds: 60,
   })
-);
+)
 
 /**
  * GET /api/past-life/save
@@ -119,19 +129,19 @@ export const GET = withApiMiddleware(
           locale: true,
           createdAt: true,
         },
-      });
+      })
 
       if (!latestResult) {
-        return NextResponse.json({ saved: false });
+        return NextResponse.json({ saved: false })
       }
 
       return NextResponse.json({
         saved: true,
         result: latestResult,
-      });
+      })
     } catch (error) {
-      logger.error('[PastLife Save] Failed to fetch:', error);
-      return NextResponse.json({ saved: false, error: 'Failed to fetch result' }, { status: 500 });
+      logger.error('[PastLife Save] Failed to fetch:', error)
+      return NextResponse.json({ saved: false, error: 'Failed to fetch result' }, { status: 500 })
     }
   },
   createAuthenticatedGuard({
@@ -139,4 +149,4 @@ export const GET = withApiMiddleware(
     limit: 60,
     windowSeconds: 60,
   })
-);
+)

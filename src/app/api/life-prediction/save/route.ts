@@ -9,6 +9,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { lifePredictionMultiYearSaveSchema } from '@/lib/api/zodValidation'
 
 interface SaveLifePredictionRequest {
   multiYearTrend: {
@@ -54,15 +55,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = (await request.json()) as SaveLifePredictionRequest
-    const { multiYearTrend, saju, astro, locale = 'ko' } = body
+    const rawBody = await request.json()
 
-    if (!multiYearTrend) {
+    // Validate request body with Zod
+    const validationResult = lifePredictionMultiYearSaveSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[LifePredictionSave] validation failed', {
+        errors: validationResult.error.errors,
+      })
       return NextResponse.json(
-        { success: false, error: 'multiYearTrend is required' },
+        {
+          success: false,
+          error: 'validation_failed',
+          details: validationResult.error.errors.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
+
+    const body = validationResult.data
+    const { multiYearTrend, saju, astro, locale = 'ko' } = body
 
     // 요약 및 전체 리포트 생성
     const summary = multiYearTrend.summary || generateSummary(multiYearTrend, locale)

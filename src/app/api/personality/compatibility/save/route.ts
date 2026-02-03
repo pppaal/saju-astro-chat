@@ -9,6 +9,7 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { personalityCompatibilitySaveRequestSchema } from '@/lib/api/zodValidation'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -107,22 +108,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
-    const body: SaveCompatibilityRequest = await req.json()
-    const { person1, person2, compatibility, locale = 'en' } = body
+    const rawBody: SaveCompatibilityRequest = await req.json()
 
-    // Validate required fields
-    if (
-      !person1?.icp ||
-      !person1?.persona ||
-      !person2?.icp ||
-      !person2?.persona ||
-      !compatibility
-    ) {
+    // Validate with Zod
+    const validationResult = personalityCompatibilitySaveRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Personality compatibility save] validation failed', {
+        errors: validationResult.error.errors,
+      })
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        {
+          error: 'validation_failed',
+          details: validationResult.error.errors.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
+
+    const { person1, person2, compatibility, locale = 'en' } = validationResult.data
 
     // Save compatibility result to database
     const compatibilityResult = await prisma.compatibilityResult.create({

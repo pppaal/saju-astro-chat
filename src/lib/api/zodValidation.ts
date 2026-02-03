@@ -434,13 +434,68 @@ export const personDataSchema = z.object({
 })
 
 /**
- * Compatibility request validation (supports 2-4 people)
+ * Relation type for compatibility
  */
-export const compatibilityRequestSchema = z.object({
-  people: z.array(personDataSchema).min(2).max(4),
-  analysisType: z.enum(['romantic', 'friendship', 'business', 'family']).optional(),
-  locale: localeSchema.optional(),
-})
+export const relationTypeSchema = z.enum(['friend', 'lover', 'other'])
+
+/**
+ * Person input for /api/compatibility endpoint with relation data
+ */
+export const compatibilityPersonInputSchema = z
+  .object({
+    name: z.string().max(120).optional(),
+    date: dateSchema,
+    time: timeSchema,
+    latitude: z
+      .number()
+      .refine((val) => val >= -90 && val <= 90, { message: 'Latitude must be between -90 and 90' }),
+    longitude: z
+      .number()
+      .refine((val) => val >= -180 && val <= 180, {
+        message: 'Longitude must be between -180 and 180',
+      }),
+    timeZone: z.string().min(1).max(80).trim(),
+    city: z.string().max(200).optional(),
+    relationToP1: relationTypeSchema.optional(), // Required for person 2+
+    relationNoteToP1: z.string().max(500).optional(), // Required when relationToP1 = 'other'
+  })
+  .refine(
+    (data) => {
+      // relationNoteToP1 must exist when relationToP1 is 'other'
+      if (data.relationToP1 === 'other') {
+        return !!data.relationNoteToP1?.trim()
+      }
+      return true
+    },
+    {
+      message: 'relationNoteToP1 required when relationToP1 is "other"',
+      path: ['relationNoteToP1'],
+    }
+  )
+
+/**
+ * Compatibility request validation for /api/compatibility (supports 2-4 people)
+ */
+export const compatibilityRequestSchema = z
+  .object({
+    persons: z.array(compatibilityPersonInputSchema).min(2).max(4),
+    locale: localeSchema.optional(),
+  })
+  .refine(
+    (data) => {
+      // Persons after first must have relationToP1
+      for (let i = 1; i < data.persons.length; i++) {
+        if (!data.persons[i].relationToP1) {
+          return false
+        }
+      }
+      return true
+    },
+    {
+      message: 'All persons after first must have relationToP1',
+      path: ['persons'],
+    }
+  )
 
 export type CompatibilityRequestValidated = z.infer<typeof compatibilityRequestSchema>
 
@@ -457,6 +512,102 @@ export const compatibilitySaveRequestSchema = z.object({
 })
 
 export type CompatibilitySaveRequestValidated = z.infer<typeof compatibilitySaveRequestSchema>
+
+/**
+ * Compatibility chat request (follow-up questions after initial analysis)
+ */
+export const compatibilityChatRequestSchema = z.object({
+  persons: z
+    .array(
+      z.object({
+        name: z.string().max(120).optional(),
+        date: dateSchema.optional(),
+        time: timeSchema.optional(),
+        relation: z.string().max(50).optional(),
+      })
+    )
+    .min(2)
+    .max(4),
+  compatibilityResult: z.string().max(10000).optional(),
+  messages: z.array(chatMessageSchema).max(20),
+  lang: localeSchema.optional(),
+  locale: localeSchema.optional(),
+})
+
+export type CompatibilityChatRequestValidated = z.infer<typeof compatibilityChatRequestSchema>
+
+/**
+ * ICP (Interpersonal Circumplex) score data
+ */
+export const icpScoreSchema = z.object({
+  primaryStyle: z.string().max(50),
+  secondaryStyle: z.string().max(50).nullable().optional(),
+  dominanceScore: z.number().min(-100).max(100),
+  affiliationScore: z.number().min(-100).max(100),
+  octantScores: z.record(z.number()).optional(),
+})
+
+/**
+ * Persona type data
+ */
+export const personaTypeSchema = z.object({
+  typeCode: z.string().max(10),
+  personaName: z.string().max(100),
+  energyScore: z.number().min(0).max(100),
+  cognitionScore: z.number().min(0).max(100),
+  decisionScore: z.number().min(0).max(100),
+  rhythmScore: z.number().min(0).max(100),
+})
+
+/**
+ * Personality/ICP compatibility save request
+ */
+export const personalityCompatibilitySaveRequestSchema = z.object({
+  person1: z.object({
+    userId: z.string().optional(),
+    name: z.string().max(120).optional(),
+    icp: icpScoreSchema,
+    persona: personaTypeSchema,
+    icpAnswers: z.any().optional(), // ICPQuizAnswers type
+    personaAnswers: z.any().optional(), // PersonaQuizAnswers type
+  }),
+  person2: z.object({
+    userId: z.string().optional(),
+    name: z.string().max(120).optional(),
+    icp: icpScoreSchema,
+    persona: personaTypeSchema,
+    icpAnswers: z.any().optional(),
+    personaAnswers: z.any().optional(),
+  }),
+  compatibility: z.object({
+    icpScore: z.number().min(0).max(100),
+    icpLevel: z.string().max(50),
+    icpLevelKo: z.string().max(50).optional(),
+    icpDescription: z.string().max(2000),
+    icpDescriptionKo: z.string().max(2000).optional(),
+    personaScore: z.number().min(0).max(100),
+    personaLevel: z.string().max(50),
+    personaLevelKo: z.string().max(50).optional(),
+    personaDescription: z.string().max(2000),
+    personaDescriptionKo: z.string().max(2000).optional(),
+    crossSystemScore: z.number().min(0).max(100),
+    crossSystemLevel: z.string().max(50),
+    crossSystemLevelKo: z.string().max(50).optional(),
+    crossSystemDescription: z.string().max(2000),
+    crossSystemDescriptionKo: z.string().max(2000).optional(),
+    synergies: z.array(z.string().max(500)).optional(),
+    synergiesKo: z.array(z.string().max(500)).optional(),
+    tensions: z.array(z.string().max(500)).optional(),
+    tensionsKo: z.array(z.string().max(500)).optional(),
+    insights: z.array(z.string().max(500)).optional(),
+    insightsKo: z.array(z.string().max(500)).optional(),
+  }),
+  locale: localeSchema.optional(),
+})
+
+export type PersonalityCompatibilitySaveRequestValidated = z.infer<
+  typeof personalityCompatibilitySaveRequestSchema
+>
 
 // ============ I Ching Schemas ============
 
@@ -704,6 +855,28 @@ export const counselorSessionSaveRequestSchema = z.object({
 })
 
 export type CounselorSessionSaveRequestValidated = z.infer<typeof counselorSessionSaveRequestSchema>
+
+// ============ User Profile Schemas ============
+
+/**
+ * User profile update request validation
+ */
+export const userProfileUpdateSchema = z.object({
+  name: z.string().min(1).max(64).trim().optional(),
+  image: z.string().url().max(500).optional().nullable(),
+  emailNotifications: z.boolean().optional(),
+  preferredLanguage: localeSchema.optional(),
+  notificationSettings: z.record(z.any()).optional(),
+  tonePreference: z.string().max(50).optional(),
+  readingLength: z.string().max(50).optional(),
+  birthDate: dateSchema.optional().nullable(),
+  birthTime: timeSchema.optional().nullable(),
+  gender: genderSchema.optional().nullable(),
+  birthCity: z.string().max(200).trim().optional().nullable(),
+  tzId: timezoneSchema.optional().nullable(),
+})
+
+export type UserProfileUpdateValidated = z.infer<typeof userProfileUpdateSchema>
 
 // ============ Feedback Schemas ============
 
@@ -961,3 +1134,165 @@ export function sanitizeInput(input: string, maxLength = 10000): string {
     .replace(/on\w+=/gi, '') // Remove event handlers
     .slice(0, maxLength)
 }
+
+// ============ Life Prediction Schemas ============
+
+/**
+ * Event type for timing predictions
+ */
+export const eventTypeSchema = z.enum([
+  'marriage',
+  'career',
+  'investment',
+  'move',
+  'study',
+  'health',
+  'relationship',
+])
+
+/**
+ * Base prediction input (common fields for all prediction types)
+ */
+export const basePredictionInputSchema = z.object({
+  birthYear: z.number().int().min(1900).max(2100),
+  birthMonth: z.number().int().min(1).max(12),
+  birthDay: z.number().int().min(1).max(31),
+  birthHour: z.number().int().min(0).max(23).optional(),
+  gender: z.enum(['male', 'female', 'M', 'F']),
+  dayStem: z.string().max(10),
+  dayBranch: z.string().max(10),
+  monthBranch: z.string().max(10),
+  yearBranch: z.string().max(10),
+  allStems: z.array(z.string().max(10)).length(4).optional(),
+  allBranches: z.array(z.string().max(10)).length(4).optional(),
+  daeunList: z
+    .array(
+      z.object({
+        start: z.number().int(),
+        end: z.number().int(),
+        stem: z.string().max(10),
+        branch: z.string().max(10),
+      })
+    )
+    .optional(),
+  yongsin: z.array(z.string().max(50)).optional(),
+  kisin: z.array(z.string().max(50)).optional(),
+  locale: localeSchema.optional(),
+})
+
+/**
+ * Multi-year trend prediction request
+ */
+export const multiYearPredictionRequestSchema = basePredictionInputSchema
+  .extend({
+    type: z.literal('multi-year'),
+    startYear: z.number().int().min(1900).max(2200),
+    endYear: z.number().int().min(1900).max(2200),
+  })
+  .refine((data) => data.endYear > data.startYear, {
+    message: 'endYear must be greater than startYear',
+    path: ['endYear'],
+  })
+
+/**
+ * Past analysis prediction request
+ */
+export const pastAnalysisPredictionRequestSchema = basePredictionInputSchema
+  .extend({
+    type: z.literal('past-analysis'),
+    targetDate: dateSchema.optional(),
+    startDate: dateSchema.optional(),
+    endDate: dateSchema.optional(),
+  })
+  .refine(
+    (data) => {
+      // Either targetDate OR (startDate AND endDate)
+      const hasTarget = !!data.targetDate
+      const hasRange = !!data.startDate && !!data.endDate
+      return hasTarget || hasRange
+    },
+    {
+      message: 'Either targetDate or both startDate and endDate are required',
+      path: ['targetDate'],
+    }
+  )
+
+/**
+ * Event timing prediction request
+ */
+export const eventTimingPredictionRequestSchema = basePredictionInputSchema
+  .extend({
+    type: z.literal('event-timing'),
+    eventType: eventTypeSchema,
+    startYear: z.number().int().min(1900).max(2200),
+    endYear: z.number().int().min(1900).max(2200),
+  })
+  .refine((data) => data.endYear > data.startYear, {
+    message: 'endYear must be greater than startYear',
+    path: ['endYear'],
+  })
+
+/**
+ * Weekly timing prediction request
+ */
+export const weeklyTimingPredictionRequestSchema = basePredictionInputSchema.extend({
+  type: z.literal('weekly-timing'),
+  eventType: eventTypeSchema,
+  startDate: dateSchema.optional(),
+  endDate: dateSchema.optional(),
+})
+
+/**
+ * Comprehensive prediction request
+ */
+export const comprehensivePredictionRequestSchema = basePredictionInputSchema.extend({
+  type: z.literal('comprehensive'),
+  yearsRange: z.number().int().min(1).max(30).optional().default(10),
+})
+
+/**
+ * Union of all prediction request types
+ */
+export const lifePredictionRequestSchema = z.discriminatedUnion('type', [
+  multiYearPredictionRequestSchema,
+  pastAnalysisPredictionRequestSchema,
+  eventTimingPredictionRequestSchema,
+  weeklyTimingPredictionRequestSchema,
+  comprehensivePredictionRequestSchema,
+])
+
+export type LifePredictionRequestValidated = z.infer<typeof lifePredictionRequestSchema>
+
+/**
+ * Life prediction advisor chat request
+ */
+export const lifePredictionAdvisorChatRequestSchema = z.object({
+  message: z.string().min(1).max(2000).trim(),
+  sessionId: z.string().max(200).optional(),
+  context: z.object({
+    question: z.string().max(500),
+    eventType: z.string().max(100),
+    results: z
+      .array(
+        z.object({
+          startDate: z.string(),
+          endDate: z.string(),
+          score: z.number().min(0).max(100),
+          grade: z.string().max(10),
+          reasons: z.array(z.string().max(500)),
+        })
+      )
+      .max(20),
+    birthDate: z.string().max(50),
+    gender: z.enum(['M', 'F']),
+    sipsin: z.string().max(100).optional(),
+    daeun: z.string().max(100).optional(),
+    yongsin: z.array(z.string().max(50)).optional(),
+  }),
+  history: z.array(chatMessageSchema).max(50),
+  locale: z.enum(['ko', 'en']),
+})
+
+export type LifePredictionAdvisorChatRequestValidated = z.infer<
+  typeof lifePredictionAdvisorChatRequestSchema
+>

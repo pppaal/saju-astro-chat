@@ -5,19 +5,14 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { prisma } from '@/lib/db/prisma'
 import { captureServerError } from '@/lib/telemetry'
-import {
-  isValidDate,
-  isValidTime,
-  isValidLatitude,
-  isValidLongitude,
-  LIMITS,
-} from '@/lib/validation'
+import { LIMITS } from '@/lib/validation'
 import { sanitizeString } from '@/lib/api/sanitizers'
 import { logger } from '@/lib/logger'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { calculateSajuCompatibilityOnly } from '@/lib/compatibility/cosmicCompatibility'
 import type { SajuProfile } from '@/lib/compatibility/cosmicCompatibility'
 import type { Relation, PersonInput, CompatibilityBackendResponse } from './types'
+import { compatibilityRequestSchema } from '@/lib/api/zodValidation'
 
 function bad(msg: string, status = 400) {
   return NextResponse.json({ error: msg }, { status })
@@ -79,54 +74,39 @@ function buildSajuProfileFromBirth(
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
-    const body = await req.json()
-    const persons: PersonInput[] = Array.isArray(body?.persons) ? body.persons : []
+    const rawBody = await req.json()
 
-    if (persons.length < 2 || persons.length > 4) {
-      return bad('Provide between 2 and 4 people for compatibility.', 400)
+    // Validate with Zod
+    const validationResult = compatibilityRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Compatibility] validation failed', { errors: validationResult.error.errors })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.errors.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: 400 }
+      )
     }
 
-    for (let i = 0; i < persons.length; i++) {
-      const p = persons[i] || ({} as PersonInput)
-      p.name = sanitizeString(p.name, LIMITS.NAME)
-      p.city = sanitizeString(p.city, LIMITS.CITY)
-      p.relationNoteToP1 = sanitizeString(p.relationNoteToP1, MAX_NOTE)
-
-      if (!p?.date || !p?.time || !p?.timeZone) {
-        return bad(`${i + 1}: date, time, and timeZone are required.`, 400)
-      }
-      if (!isValidDate(p.date)) {
-        return bad(`${i + 1}: date must be YYYY-MM-DD.`, 400)
-      }
-      if (!isValidTime(p.time)) {
-        return bad(`${i + 1}: time must be HH:mm (24h).`, 400)
-      }
-      if (
-        typeof p.latitude !== 'number' ||
-        typeof p.longitude !== 'number' ||
-        !Number.isFinite(p.latitude) ||
-        !Number.isFinite(p.longitude)
-      ) {
-        return bad(`${i + 1}: latitude/longitude must be numbers.`, 400)
-      }
-      if (!isValidLatitude(p.latitude) || !isValidLongitude(p.longitude)) {
-        return bad(`${i + 1}: latitude/longitude out of range.`, 400)
-      }
-      if (!p.timeZone || typeof p.timeZone !== 'string' || !p.timeZone.trim()) {
-        return bad(`${i + 1}: timeZone is required.`, 400)
-      }
-      p.timeZone = p.timeZone.trim().slice(0, 80)
-      if (i > 0 && !p.relationToP1) {
-        return bad(`${i + 1}: relationToP1 is required.`, 400)
-      }
-      if (i > 0 && !['friend', 'lover', 'other'].includes(p.relationToP1 as string)) {
-        return bad(`${i + 1}: relationToP1 must be friend | lover | other.`, 400)
-      }
-      if (i > 0 && p.relationToP1 === 'other' && !p.relationNoteToP1?.trim()) {
-        return bad(`${i + 1}: add a short note for relationToP1 = "other".`, 400)
-      }
-      persons[i] = p
-    }
+    const body = validationResult.data
+    const persons: PersonInput[] = body.persons.map(
+      (p, i) =>
+        ({
+          name: sanitizeString(p.name, LIMITS.NAME),
+          date: p.date,
+          time: p.time,
+          latitude: p.latitude,
+          longitude: p.longitude,
+          timeZone: p.timeZone,
+          city: sanitizeString(p.city, LIMITS.CITY),
+          relationToP1: i > 0 ? p.relationToP1 : undefined,
+          relationNoteToP1: sanitizeString(p.relationNoteToP1, MAX_NOTE),
+        }) as PersonInput
+    )
 
     const names = persons.map((p, i) => p.name?.trim() || `Person ${i + 1}`)
 

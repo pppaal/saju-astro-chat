@@ -62,7 +62,13 @@ interface Props {
 }
 
 interface SajuRawData {
-  dayMaster?: { name?: string; heavenlyStem?: string; element?: string }
+  dayMaster?: {
+    name?: string
+    heavenlyStem?: string
+    element?: string
+    yin_yang?: string
+    yinYang?: string
+  }
   pillars?: {
     year?: { heavenlyStem?: string; earthlyBranch?: string }
     month?: { heavenlyStem?: string; earthlyBranch?: string }
@@ -106,8 +112,7 @@ const CompatibilityFunInsights = memo(function CompatibilityFunInsights({
 
       const dayMasterName = saju?.dayMaster?.name || saju?.dayMaster?.heavenlyStem || '갑'
       const dayMasterElement = saju?.dayMaster?.element || '목'
-      const dayMasterYinYang =
-        (saju as any)?.dayMaster?.yin_yang || (saju as any)?.dayMaster?.yinYang || '양'
+      const dayMasterYinYang = saju?.dayMaster?.yin_yang || saju?.dayMaster?.yinYang || '양'
 
       return {
         dayMaster: {
@@ -166,14 +171,14 @@ const CompatibilityFunInsights = memo(function CompatibilityFunInsights({
         // Object-based planets
         const planetsObj = source?.planets as Record<string, { sign?: string }> | undefined
         if (planetsObj && !Array.isArray(planetsObj) && planetsObj[planetName]) {
-          const sign = planetsObj[planetName].sign?.toLowerCase();
+          const sign = planetsObj[planetName].sign?.toLowerCase()
           return { sign: sign || 'aries', element: getElementFromSign(sign || 'aries') }
         }
 
         // Direct access
         const directAccess = source as Record<string, { sign?: string }>
         if (directAccess?.[planetName]?.sign) {
-          const sign = directAccess[planetName].sign!.toLowerCase();
+          const sign = directAccess[planetName].sign!.toLowerCase()
           return { sign, element: getElementFromSign(sign) }
         }
 
@@ -326,7 +331,7 @@ const CompatibilityFunInsights = memo(function CompatibilityFunInsights({
     const astroScore = synastry?.compatibilityIndex || 65
     const crossScore = crossSystemAnalysis?.crossSystemScore || 65
     // Weighted average: Saju 35%, Astrology 35%, Cross-System Fusion 30%
-    const overallScore = Math.round(sajuScore * 0.35 + astroScore * 0.35 + crossScore * 0.3);
+    const overallScore = Math.round(sajuScore * 0.35 + astroScore * 0.35 + crossScore * 0.3)
 
     return {
       persons,
@@ -425,9 +430,9 @@ const CompatibilityFunInsights = memo(function CompatibilityFunInsights({
       </p>
     </div>
   )
-});
+})
 
-export default CompatibilityFunInsights;
+export default CompatibilityFunInsights
 
 // Helper function to get element from zodiac sign
 function getElementFromSign(sign: string): string {

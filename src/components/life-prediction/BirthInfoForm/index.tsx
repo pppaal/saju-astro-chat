@@ -14,7 +14,7 @@ interface BirthInfo {
 }
 
 interface BirthInfoFormProps {
-  onSubmit: (birthInfo: BirthInfo) => void
+  onSubmit: (birthInfo: BirthInfo) => void | Promise<void>
   locale?: 'ko' | 'en'
   initialData?: Partial<BirthInfo>
 }

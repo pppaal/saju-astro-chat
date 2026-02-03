@@ -6,6 +6,7 @@ import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { logger } from '@/lib/logger'
 import { type ChatMessage } from '@/lib/api'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { compatibilityChatRequestSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -17,15 +18,28 @@ function clampMessages(messages: ChatMessage[], max = 6) {
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    const body = await req.json()
-      const { persons = [], compatibilityResult = '', lang = context.locale, messages = [] } = body
+    const rawBody = await req.json()
 
-    if (!persons || persons.length < 2) {
+    // Validate with Zod
+    const validationResult = compatibilityChatRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Compatibility chat] validation failed', {
+        errors: validationResult.error.errors,
+      })
       return NextResponse.json(
-        { error: 'At least 2 persons required' },
+        {
+          error: 'validation_failed',
+          details: validationResult.error.errors.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
+
+    const body = validationResult.data
+    const { persons, compatibilityResult = '', lang = context.locale, messages } = body
 
     const trimmedHistory = clampMessages(messages)
 
@@ -40,89 +54,87 @@ export const POST = withApiMiddleware(
 
     // Build conversation context
     const historyText = trimmedHistory
-        .filter((m) => m.role !== 'system')
-        .map((m) => `${m.role === 'user' ? 'Q' : 'A'}: ${guardText(m.content, 300)}`)
-        .join('\n')
-        .slice(0, 1500)
+      .filter((m) => m.role !== 'system')
+      .map((m) => `${m.role === 'user' ? 'Q' : 'A'}: ${guardText(m.content, 300)}`)
+      .join('\n')
+      .slice(0, 1500)
 
     const userQuestion = lastUser ? guardText(lastUser.content, 500) : ''
 
     // Format persons info
     const personsInfo = persons
-        .map(
-          (p: { name?: string; date?: string; time?: string; relation?: string }, i: number) =>
-            `Person ${i + 1}: ${p.name || `Person ${i + 1}`} (${p.date} ${p.time})${i > 0 ? ` - ${p.relation || 'partner'}` : ''}`
-        )
-        .join('\n')
+      .map(
+        (p: { name?: string; date?: string; time?: string; relation?: string }, i: number) =>
+          `Person ${i + 1}: ${p.name || `Person ${i + 1}`} (${p.date} ${p.time})${i > 0 ? ` - ${p.relation || 'partner'}` : ''}`
+      )
+      .join('\n')
 
     // Build prompt for compatibility chat
     const chatPrompt = [
-        `== 궁합 상담 ==`,
-        personsInfo,
-        compatibilityResult
-          ? `\n== 이전 분석 결과 ==\n${guardText(compatibilityResult, 2000)}`
-          : '',
-        historyText ? `\n== 대화 ==\n${historyText}` : '',
-        `\n== 질문 ==\n${userQuestion}`,
-      ]
-        .filter(Boolean)
-        .join('\n')
+      `== 궁합 상담 ==`,
+      personsInfo,
+      compatibilityResult ? `\n== 이전 분석 결과 ==\n${guardText(compatibilityResult, 2000)}` : '',
+      historyText ? `\n== 대화 ==\n${historyText}` : '',
+      `\n== 질문 ==\n${userQuestion}`,
+    ]
+      .filter(Boolean)
+      .join('\n')
 
     // Call backend AI
     try {
-        const response = await apiClient.post(
-          '/api/compatibility/chat',
-          {
-            persons,
-            prompt: chatPrompt,
-            question: userQuestion,
-            history: trimmedHistory,
-            locale: lang,
-            compatibility_context: compatibilityResult,
+      const response = await apiClient.post(
+        '/api/compatibility/chat',
+        {
+          persons,
+          prompt: chatPrompt,
+          question: userQuestion,
+          history: trimmedHistory,
+          locale: lang,
+          compatibility_context: compatibilityResult,
+        },
+        { timeout: 60000 }
+      )
+
+      if (!response.ok) {
+        throw new Error(`Backend returned ${response.status}`)
+      }
+
+      const aiData = response.data as Record<string, unknown>
+      const answer = String(
+        (aiData?.data as Record<string, unknown>)?.response ||
+          aiData?.response ||
+          aiData?.interpretation ||
+          (lang === 'ko'
+            ? '죄송합니다. 응답을 생성할 수 없습니다. 다시 시도해 주세요.'
+            : 'Sorry, unable to generate a response. Please try again.')
+      )
+
+      // Stream response in chunks for better UX
+      const encoder = new TextEncoder()
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            const chunks = answer.match(/.{1,50}/g) || [answer]
+            chunks.forEach((chunk: string, index: number) => {
+              setTimeout(() => {
+                controller.enqueue(encoder.encode(`data: ${chunk}\n\n`))
+                if (index === chunks.length - 1) {
+                  controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+                  controller.close()
+                }
+              }, index * 20)
+            })
           },
-          { timeout: 60000 }
-        )
-
-        if (!response.ok) {
-          throw new Error(`Backend returned ${response.status}`)
+        }),
+        {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive',
+          },
         }
-
-        const aiData = response.data as Record<string, unknown>
-        const answer = String(
-          (aiData?.data as Record<string, unknown>)?.response ||
-            aiData?.response ||
-            aiData?.interpretation ||
-            (lang === 'ko'
-              ? '죄송합니다. 응답을 생성할 수 없습니다. 다시 시도해 주세요.'
-              : 'Sorry, unable to generate a response. Please try again.')
-        )
-
-        // Stream response in chunks for better UX
-        const encoder = new TextEncoder();
-        return new Response(
-          new ReadableStream({
-            start(controller) {
-              const chunks = answer.match(/.{1,50}/g) || [answer]
-              chunks.forEach((chunk: string, index: number) => {
-                setTimeout(() => {
-                  controller.enqueue(encoder.encode(`data: ${chunk}\n\n`))
-                  if (index === chunks.length - 1) {
-                    controller.enqueue(encoder.encode('data: [DONE]\n\n'))
-                    controller.close()
-                  }
-                }, index * 20)
-              })
-            },
-          }),
-          {
-            headers: {
-              'Content-Type': 'text/event-stream',
-              'Cache-Control': 'no-cache',
-              Connection: 'keep-alive',
-            },
-          }
-        );
-      } catch (fetchError) {
+      )
+    } catch (fetchError) {
       logger.error('[Compatibility Chat] Backend error:', fetchError)
 
       const fallback =

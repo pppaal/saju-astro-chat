@@ -7,6 +7,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { referralClaimRequestSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,15 +29,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
-    const { referralCode } = body
+    const rawBody = await request.json()
 
-    if (!referralCode) {
+    // Validate with Zod
+    const validationResult = referralClaimRequestSchema.safeParse({ code: rawBody.referralCode })
+    if (!validationResult.success) {
+      logger.warn('[Referral link] validation failed', { errors: validationResult.error.errors })
       return NextResponse.json(
-        { error: 'missing_referral_code' },
+        {
+          error: 'validation_failed',
+          details: validationResult.error.errors.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
+
+    const { code: referralCode } = validationResult.data
 
     // 이미 추천인이 연결되어 있는지 확인
     const user = await prisma.user.findUnique({

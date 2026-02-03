@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { shareResultRequestSchema } from '@/lib/api/zodValidation'
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,14 +23,27 @@ export async function POST(req: NextRequest) {
     // Allow sharing without login, but track userId if available
     const userId = session?.user?.id || null
 
-    const { title, description, resultData, resultType } = await req.json()
+    const rawBody = await req.json()
 
-    if (!title || !resultType) {
+    // Validate with Zod
+    const validationResult = shareResultRequestSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Share generate-image] validation failed', {
+        errors: validationResult.error.errors,
+      })
       return NextResponse.json(
-        { error: 'Title and resultType are required' },
+        {
+          error: 'validation_failed',
+          details: validationResult.error.errors.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
+
+    const { title, description, resultData, resultType } = validationResult.data
 
     // Store share data in database
     const sharedResult = await prisma.sharedResult.create({
