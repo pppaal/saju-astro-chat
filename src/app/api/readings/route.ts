@@ -10,25 +10,34 @@ import {
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
+import { readingsSaveSchema } from '@/lib/api/zodValidation'
+import { logger } from '@/lib/logger'
 
 // POST: Create a new reading
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    const body = await parseJsonBody<{ type: string; title?: string; content: string }>(req)
-    const validation = validateRequired(body, ['type', 'content'])
+    const rawBody = await parseJsonBody<{ type: string; title?: string; content: string }>(req)
 
-    if (!validation.valid) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, `Missing: ${validation.missing.join(', ')}`)
+    // Validate with Zod
+    const validationResult = readingsSaveSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Readings] validation failed', { errors: validationResult.error.issues })
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
+      )
     }
+
+    const { type, title, content } = validationResult.data
 
     const reading = await prisma.reading.create({
       data: {
         userId: context.userId!,
-        type: body.type,
-        title: body.title || null,
-        content: body.content,
+        type,
+        title: title || null,
+        content,
       },
-    });
+    })
 
     return apiSuccess({ success: true, id: reading.id })
   },
@@ -49,7 +58,7 @@ export const GET = withApiMiddleware(
       },
       orderBy: { createdAt: 'desc' },
       take: Math.min(limitParam, 50),
-    });
+    })
 
     return apiSuccess({ readings })
   },

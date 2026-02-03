@@ -2219,7 +2219,9 @@ export type LatlonToTimezoneValidated = z.infer<typeof latlonToTimezoneSchema>
 export const pastLifeRequestSchema = z.object({
   birthDate: dateSchema,
   birthTime: timeSchema.optional(),
-  gender: genderSchema.optional(),
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+  timezone: timezoneSchema.optional(),
   locale: localeSchema.optional(),
 })
 
@@ -2237,6 +2239,26 @@ export const cacheChartSchema = z.object({
 })
 
 export type CacheChartValidated = z.infer<typeof cacheChartSchema>
+
+/**
+ * Cache chart save request (POST) - extends cacheChartSchema with data
+ */
+export const cacheChartSaveSchema = cacheChartSchema.extend({
+  birthTime: timeSchema, // required for POST
+  data: z.record(z.string(), z.unknown()),
+})
+
+export type CacheChartSaveValidated = z.infer<typeof cacheChartSaveSchema>
+
+/**
+ * Cache chart delete request
+ */
+export const cacheChartDeleteSchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema,
+})
+
+export type CacheChartDeleteValidated = z.infer<typeof cacheChartDeleteSchema>
 
 /**
  * Readings save request
@@ -2309,3 +2331,21 @@ export const icpRequestSchema = z.object({
 })
 
 export type IcpRequestValidated = z.infer<typeof icpRequestSchema>
+
+/**
+ * ICP result save request
+ */
+const icpOctantStyle = z.enum(['PA', 'BC', 'DE', 'FG', 'HI', 'JK', 'LM', 'NO'])
+
+export const icpSaveSchema = z.object({
+  primaryStyle: icpOctantStyle,
+  secondaryStyle: icpOctantStyle.optional(),
+  dominanceScore: z.number().min(-100).max(100),
+  affiliationScore: z.number().min(-100).max(100),
+  octantScores: z.record(z.string(), z.number()).optional(),
+  analysisData: z.record(z.string(), z.unknown()).optional(),
+  answers: z.record(z.string(), z.unknown()).optional(),
+  locale: localeSchema.optional(),
+})
+
+export type IcpSaveValidated = z.infer<typeof icpSaveSchema>

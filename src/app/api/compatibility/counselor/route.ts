@@ -255,10 +255,10 @@ export async function POST(req: NextRequest) {
     let fusionContext = ''
 
     try {
-      const p1Saju = buildSajuProfile(person1Saju)
-      const p2Saju = buildSajuProfile(person2Saju)
-      const p1Astro = buildAstroProfile(person1Astro)
-      const p2Astro = buildAstroProfile(person2Astro)
+      const p1Saju = buildSajuProfile(person1Saju as any) // TODO: Fix type compatibility
+      const p2Saju = buildSajuProfile(person2Saju as any)
+      const p1Astro = buildAstroProfile(person1Astro as any)
+      const p2Astro = buildAstroProfile(person2Astro as any)
 
       if (p1Saju && p2Saju && p1Astro && p2Astro) {
         fusionResult = calculateFusionCompatibility(p1Saju, p1Astro, p2Saju, p2Astro)

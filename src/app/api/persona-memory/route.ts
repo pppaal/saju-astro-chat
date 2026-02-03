@@ -1,16 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
-import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from "@/lib/api/middleware";
-import { prisma } from "@/lib/db/prisma";
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
+import { prisma } from '@/lib/db/prisma'
+import { HTTP_STATUS } from '@/lib/constants/http'
+import { logger } from '@/lib/logger'
+import { z } from 'zod'
 
-export const dynamic = "force-dynamic";
+const personaMemoryPostSchema = z.object({
+  dominantThemes: z.array(z.string().max(200)).max(50).optional(),
+  keyInsights: z.array(z.string().max(1000)).max(50).optional(),
+  emotionalTone: z.string().max(200).optional(),
+  growthAreas: z.array(z.string().max(200)).max(50).optional(),
+  lastTopics: z.array(z.string().max(200)).max(50).optional(),
+  recurringIssues: z.array(z.string().max(500)).max(50).optional(),
+  birthChart: z.record(z.string(), z.any()).optional(),
+  sajuProfile: z.record(z.string(), z.any()).optional(),
+})
+
+export const dynamic = 'force-dynamic'
 
 // GET: 페르소나 기억 조회 (로그인 필요)
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const memory = await prisma.personaMemory.findUnique({
       where: { userId: context.userId! },
-    });
+    })
 
     if (!memory) {
       // 기억이 없으면 빈 객체 반환 (새 사용자);
@@ -18,14 +31,14 @@ export const GET = withApiMiddleware(
         success: true,
         data: null,
         isNewUser: true,
-      });
+      })
     }
 
     return NextResponse.json({
       success: true,
       data: memory,
       isNewUser: false,
-    });
+    })
   },
   createAuthenticatedGuard({
     route: '/api/persona-memory',
@@ -37,7 +50,24 @@ export const GET = withApiMiddleware(
 // POST: 페르소나 기억 생성/업데이트
 export const POST = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
-    const body = await request.json();
+    const rawBody = await request.json()
+
+    // Validate with Zod
+    const validationResult = personaMemoryPostSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Persona memory] validation failed', { errors: validationResult.error.issues })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
     const {
       dominantThemes,
       keyInsights,
@@ -47,38 +77,38 @@ export const POST = withApiMiddleware(
       recurringIssues,
       birthChart,
       sajuProfile,
-    } = body;
+    } = validationResult.data
 
     const existing = await prisma.personaMemory.findUnique({
       where: { userId: context.userId! },
-    });
+    })
 
     if (existing) {
-        // 기존 기억 업데이트 (병합)
-        const updated = await prisma.personaMemory.update({
-          where: { userId: context.userId! },
+      // 기존 기억 업데이트 (병합)
+      const updated = await prisma.personaMemory.update({
+        where: { userId: context.userId! },
         data: {
-          dominantThemes: dominantThemes ?? existing.dominantThemes,
-          keyInsights: keyInsights ?? existing.keyInsights,
-          emotionalTone: emotionalTone ?? existing.emotionalTone,
-          growthAreas: growthAreas ?? existing.growthAreas,
-          lastTopics: lastTopics ?? existing.lastTopics,
-          recurringIssues: recurringIssues ?? existing.recurringIssues,
-          birthChart: birthChart ?? existing.birthChart,
-          sajuProfile: sajuProfile ?? existing.sajuProfile,
+          dominantThemes: (dominantThemes ?? existing.dominantThemes) as any,
+          keyInsights: (keyInsights ?? existing.keyInsights) as any,
+          emotionalTone: (emotionalTone ?? existing.emotionalTone) as any,
+          growthAreas: (growthAreas ?? existing.growthAreas) as any,
+          lastTopics: (lastTopics ?? existing.lastTopics) as any,
+          recurringIssues: (recurringIssues ?? existing.recurringIssues) as any,
+          birthChart: (birthChart ?? existing.birthChart) as any,
+          sajuProfile: (sajuProfile ?? existing.sajuProfile) as any,
         },
-      });
+      })
 
-        return NextResponse.json({
-          success: true,
-          data: updated,
-          action: "updated",
-        });
-      } else {
-        // 새 기억 생성
-        const created = await prisma.personaMemory.create({
-          data: {
-            userId: context.userId!,
+      return NextResponse.json({
+        success: true,
+        data: updated,
+        action: 'updated',
+      })
+    } else {
+      // 새 기억 생성
+      const created = await prisma.personaMemory.create({
+        data: {
+          userId: context.userId!,
           dominantThemes,
           keyInsights,
           emotionalTone,
@@ -89,14 +119,14 @@ export const POST = withApiMiddleware(
           birthChart,
           sajuProfile,
         },
-      });
+      })
 
-        return NextResponse.json({
-          success: true,
-          data: created,
-          action: "created",
-        });
-      }
+      return NextResponse.json({
+        success: true,
+        data: created,
+        action: 'created',
+      })
+    }
   },
   createAuthenticatedGuard({
     route: '/api/persona-memory',
@@ -108,98 +138,98 @@ export const POST = withApiMiddleware(
 // PATCH: 페르소나 기억 부분 업데이트 (통찰 추가 등)
 export const PATCH = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
-    const body = await request.json();
-    const { action, data } = body;
+    const body = await request.json()
+    const { action, data } = body
 
     const existing = await prisma.personaMemory.findUnique({
       where: { userId: context.userId! },
-    });
+    })
 
     if (!existing) {
       return NextResponse.json(
-        { error: "not_found", message: "페르소나 기억이 없습니다. 먼저 생성해주세요." },
+        { error: 'not_found', message: '페르소나 기억이 없습니다. 먼저 생성해주세요.' },
         { status: HTTP_STATUS.NOT_FOUND }
-      );
+      )
     }
 
-    const updateData: Record<string, unknown> = {};
+    const updateData: Record<string, unknown> = {}
 
     switch (action) {
-      case "add_insight":
+      case 'add_insight':
         // 새 통찰 추가
-        const currentInsights = (existing.keyInsights as string[]) || [];
+        const currentInsights = (existing.keyInsights as string[]) || []
         if (data.insight && !currentInsights.includes(data.insight)) {
-          updateData.keyInsights = [...currentInsights, data.insight];
+          updateData.keyInsights = [...currentInsights, data.insight]
         }
-        break;
+        break
 
-      case "add_growth_area":
+      case 'add_growth_area':
         // 성장 영역 추가
-        const currentGrowth = (existing.growthAreas as string[]) || [];
+        const currentGrowth = (existing.growthAreas as string[]) || []
         if (data.area && !currentGrowth.includes(data.area)) {
-          updateData.growthAreas = [...currentGrowth, data.area];
+          updateData.growthAreas = [...currentGrowth, data.area]
         }
-        break;
+        break
 
-      case "add_recurring_issue":
+      case 'add_recurring_issue':
         // 반복 이슈 추가
-        const currentIssues = (existing.recurringIssues as string[]) || [];
+        const currentIssues = (existing.recurringIssues as string[]) || []
         if (data.issue && !currentIssues.includes(data.issue)) {
-          updateData.recurringIssues = [...currentIssues, data.issue];
+          updateData.recurringIssues = [...currentIssues, data.issue]
         }
-        break;
+        break
 
-      case "update_emotional_tone":
+      case 'update_emotional_tone':
         // 감정 톤 업데이트
         if (data.tone) {
-          updateData.emotionalTone = data.tone;
+          updateData.emotionalTone = data.tone
         }
-        break;
+        break
 
-      case "increment_session":
+      case 'increment_session':
         // 세션 카운트 증가
-        updateData.sessionCount = existing.sessionCount + 1;
-        break;
+        updateData.sessionCount = existing.sessionCount + 1
+        break
 
-      case "update_birth_chart":
+      case 'update_birth_chart':
         // 출생 차트 캐싱
         if (data.birthChart) {
-          updateData.birthChart = data.birthChart;
+          updateData.birthChart = data.birthChart
         }
-        break;
+        break
 
-      case "update_saju_profile":
+      case 'update_saju_profile':
         // 사주 프로필 캐싱
         if (data.sajuProfile) {
-          updateData.sajuProfile = data.sajuProfile;
+          updateData.sajuProfile = data.sajuProfile
         }
-        break;
+        break
 
       default:
         return NextResponse.json(
-          { error: "invalid_action", message: "지원하지 않는 액션입니다." },
+          { error: 'invalid_action', message: '지원하지 않는 액션입니다.' },
           { status: HTTP_STATUS.BAD_REQUEST }
-        );
+        )
     }
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({
         success: true,
-        message: "변경 사항이 없습니다.",
+        message: '변경 사항이 없습니다.',
         data: existing,
-      });
+      })
     }
 
     const updated = await prisma.personaMemory.update({
       where: { userId: context.userId! },
       data: updateData,
-    });
+    })
 
     return NextResponse.json({
       success: true,
       data: updated,
       action,
-    });
+    })
   },
   createAuthenticatedGuard({
     route: '/api/persona-memory',

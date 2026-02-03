@@ -79,7 +79,7 @@ export async function POST(_request: NextRequest) {
     }
 
     const sent = await sendNotification(targetUserId, {
-      type,
+      type: type as 'like' | 'comment' | 'reply' | 'mention' | 'system',
       title,
       message,
       link,

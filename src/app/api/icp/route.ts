@@ -14,14 +14,14 @@
  * - NO: Nurturant-Extroverted (양육적-외향형)
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware';
-import { prisma, Prisma } from '@/lib/db/prisma';
-import { parseJsonBody, validateFields } from '@/lib/api/validation';
-import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
+import { prisma, Prisma } from '@/lib/db/prisma'
+import { HTTP_STATUS } from '@/lib/constants/http'
+import { icpSaveSchema } from '@/lib/api/zodValidation'
+import { logger } from '@/lib/logger'
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'
 
 // GET: 저장된 ICP 결과 조회
 export const GET = withApiMiddleware(
@@ -40,13 +40,13 @@ export const GET = withApiMiddleware(
         locale: true,
         createdAt: true,
       },
-    });
+    })
 
     if (!latestResult) {
-      return NextResponse.json({ saved: false });
+      return NextResponse.json({ saved: false })
     }
 
-    return NextResponse.json({ saved: true, result: latestResult });
+    return NextResponse.json({ saved: true, result: latestResult })
   },
   createAuthenticatedGuard({
     route: '/api/icp',
@@ -58,77 +58,23 @@ export const GET = withApiMiddleware(
 // POST: ICP 결과 저장 (로그인 필요)
 export const POST = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
-    // Parse and validate JSON body
-    const { data, error } = await parseJsonBody(request);
-    if (error) {
-      return createErrorResponse({
-        code: ErrorCodes.BAD_REQUEST,
-        message: error,
-      });
+    const rawBody = await request.json()
+    const validationResult = icpSaveSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[ICP] validation failed', { errors: validationResult.error.issues })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
     }
 
-    // Validate ICP data
-    if (!data) {
-      return createErrorResponse({
-        code: ErrorCodes.VALIDATION_ERROR,
-        message: "ICP data is required",
-      });
-    }
-
-    const validation = validateFields(data, {
-      primaryStyle: {
-        required: true,
-        type: "string",
-        enum: ["PA", "BC", "DE", "FG", "HI", "JK", "LM", "NO"],
-      },
-      secondaryStyle: {
-        type: "string",
-        enum: ["PA", "BC", "DE", "FG", "HI", "JK", "LM", "NO"],
-      },
-      dominanceScore: {
-        required: true,
-        type: "number",
-        min: -100,
-        max: 100,
-      },
-      affiliationScore: {
-        required: true,
-        type: "number",
-        min: -100,
-        max: 100,
-      },
-      octantScores: {
-        type: "object",
-      },
-      analysisData: {
-        type: "object",
-      },
-      answers: {
-        type: "object",
-      },
-      locale: {
-        type: "string",
-      },
-    });
-
-    if (!validation.valid) {
-      return createErrorResponse({
-        code: ErrorCodes.VALIDATION_ERROR,
-        message: "Invalid ICP data",
-        details: validation.errors,
-      });
-    }
-
-    const icpData = data as {
-      primaryStyle: string;
-      secondaryStyle?: string;
-      dominanceScore: number;
-      affiliationScore: number;
-      octantScores?: Record<string, number>;
-      analysisData?: Record<string, unknown>;
-      answers?: Record<string, unknown>;
-      locale?: string;
-    };
+    const icpData = validationResult.data
 
     // Save to database
     const result = await prisma.iCPResult.create({
@@ -143,7 +89,7 @@ export const POST = withApiMiddleware(
         answers: (icpData.answers || {}) as Prisma.JsonObject,
         locale: icpData.locale || 'en',
       },
-    });
+    })
 
     return NextResponse.json({
       success: true,
@@ -152,8 +98,8 @@ export const POST = withApiMiddleware(
       secondaryStyle: result.secondaryStyle,
       dominanceScore: result.dominanceScore,
       affiliationScore: result.affiliationScore,
-      message: "ICP result saved successfully",
-    });
+      message: 'ICP result saved successfully',
+    })
   },
   createAuthenticatedGuard({
     route: '/api/icp',

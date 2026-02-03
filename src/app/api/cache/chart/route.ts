@@ -3,24 +3,20 @@
  * Provides Redis-backed caching for chart calculations
  */
 
-import { withApiMiddleware, apiSuccess, apiError, ErrorCodes } from '@/lib/api/middleware';
-import {
-  loadChartData,
-  saveChartData,
-  clearChartCache,
-} from '@/lib/cache/chart-cache-server';
+import { withApiMiddleware, apiSuccess, apiError, ErrorCodes } from '@/lib/api/middleware'
+import { loadChartData, saveChartData, clearChartCache } from '@/lib/cache/chart-cache-server'
+import { cacheChartSaveSchema, cacheChartDeleteSchema } from '@/lib/api/zodValidation'
+import { logger } from '@/lib/logger'
 
 // Type for cached chart data
 type ChartData = {
-  saju?: Record<string, unknown>;
-  astro?: Record<string, unknown>;
-  advancedAstro?: Record<string, unknown>;
-};
+  saju?: Record<string, unknown>
+  astro?: Record<string, unknown>
+  advancedAstro?: Record<string, unknown>
+}
 
 // Response type for GET endpoint
-type GetCacheResponse =
-  | { cached: false; data: null }
-  | { cached: true; data: ChartData };
+type GetCacheResponse = { cached: false; data: null } | { cached: true; data: ChartData }
 
 /**
  * GET /api/cache/chart
@@ -28,39 +24,39 @@ type GetCacheResponse =
  */
 export const GET = withApiMiddleware<GetCacheResponse>(
   async (req) => {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(req.url)
 
-    const birthDate = searchParams.get('birthDate');
-    const birthTime = searchParams.get('birthTime');
-    const latitudeStr = searchParams.get('latitude');
-    const longitudeStr = searchParams.get('longitude');
+    const birthDate = searchParams.get('birthDate')
+    const birthTime = searchParams.get('birthTime')
+    const latitudeStr = searchParams.get('latitude')
+    const longitudeStr = searchParams.get('longitude')
 
     // Validate required parameters
     if (!birthDate || !birthTime || !latitudeStr || !longitudeStr) {
       return apiError(
         ErrorCodes.VALIDATION_ERROR,
         'Missing required parameters: birthDate, birthTime, latitude, longitude'
-      );
+      )
     }
 
-    const latitude = parseFloat(latitudeStr);
-    const longitude = parseFloat(longitudeStr);
+    const latitude = parseFloat(latitudeStr)
+    const longitude = parseFloat(longitudeStr)
 
     if (isNaN(latitude) || isNaN(longitude)) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid latitude or longitude');
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid latitude or longitude')
     }
 
     // Load from cache
-    const cached = await loadChartData(birthDate, birthTime, latitude, longitude);
+    const cached = await loadChartData(birthDate, birthTime, latitude, longitude)
 
     if (!cached) {
-      return apiSuccess({ cached: false, data: null });
+      return apiSuccess({ cached: false, data: null })
     }
 
     return apiSuccess({
       cached: true,
       data: cached,
-    });
+    })
   },
   {
     requireToken: true,
@@ -70,7 +66,7 @@ export const GET = withApiMiddleware<GetCacheResponse>(
       keyPrefix: 'cache:chart:get',
     },
   }
-);
+)
 
 /**
  * POST /api/cache/chart
@@ -78,36 +74,26 @@ export const GET = withApiMiddleware<GetCacheResponse>(
  */
 export const POST = withApiMiddleware(
   async (req) => {
-    const body = await req.json();
-
-    const { birthDate, birthTime, latitude, longitude, data } = body;
-
-    // Validate required fields
-    if (!birthDate || !birthTime || latitude === undefined || longitude === undefined || !data) {
+    const rawBody = await req.json()
+    const validationResult = cacheChartSaveSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[cache/chart POST] validation failed', { errors: validationResult.error.issues })
       return apiError(
         ErrorCodes.VALIDATION_ERROR,
-        'Missing required fields: birthDate, birthTime, latitude, longitude, data'
-      );
+        `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
+      )
     }
 
-    if (typeof latitude !== 'number' || typeof longitude !== 'number') {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid latitude or longitude');
-    }
+    const { birthDate, birthTime, latitude, longitude, data } = validationResult.data
 
     // Save to cache
-    const success = await saveChartData(
-      birthDate,
-      birthTime,
-      latitude,
-      longitude,
-      data
-    );
+    const success = await saveChartData(birthDate, birthTime, latitude, longitude, data)
 
     if (!success) {
-      return apiError(ErrorCodes.INTERNAL_ERROR, 'Failed to save chart data to cache');
+      return apiError(ErrorCodes.INTERNAL_ERROR, 'Failed to save chart data to cache')
     }
 
-    return apiSuccess({ success: true });
+    return apiSuccess({ success: true })
   },
   {
     requireToken: true,
@@ -117,7 +103,7 @@ export const POST = withApiMiddleware(
       keyPrefix: 'cache:chart:post',
     },
   }
-);
+)
 
 /**
  * DELETE /api/cache/chart
@@ -125,25 +111,28 @@ export const POST = withApiMiddleware(
  */
 export const DELETE = withApiMiddleware(
   async (req) => {
-    const body = await req.json();
-
-    const { birthDate, birthTime } = body;
-
-    if (!birthDate || !birthTime) {
+    const rawBody = await req.json()
+    const validationResult = cacheChartDeleteSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[cache/chart DELETE] validation failed', {
+        errors: validationResult.error.issues,
+      })
       return apiError(
         ErrorCodes.VALIDATION_ERROR,
-        'Missing required fields: birthDate, birthTime'
-      );
+        `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
+      )
     }
+
+    const { birthDate, birthTime } = validationResult.data
 
     // Clear cache
-    const success = await clearChartCache(birthDate, birthTime);
+    const success = await clearChartCache(birthDate, birthTime)
 
     if (!success) {
-      return apiError(ErrorCodes.INTERNAL_ERROR, 'Failed to clear chart cache');
+      return apiError(ErrorCodes.INTERNAL_ERROR, 'Failed to clear chart cache')
     }
 
-    return apiSuccess({ success: true });
+    return apiSuccess({ success: true })
   },
   {
     requireToken: true,
@@ -153,4 +142,4 @@ export const DELETE = withApiMiddleware(
       keyPrefix: 'cache:chart:delete',
     },
   }
-);
+)

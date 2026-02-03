@@ -12,6 +12,15 @@ import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { lifePredictionSaveTimingSchema } from '@/lib/api/zodValidation'
 
+// Type definitions
+interface TimingResult {
+  startDate: string
+  endDate: string
+  score: number
+  grade: string
+  reasons: string[]
+}
+
 export async function POST(request: NextRequest) {
   try {
     // 인증 확인
@@ -67,7 +76,7 @@ export async function POST(request: NextRequest) {
         : `"${question}" - Grade ${topResult.grade} (${topResult.score}pts)`
 
     // 상세 리포트 생성
-    const fullReport = generateFullReport(question, eventType, results, locale)
+    const fullReport = generateFullReport(question, eventType, results, locale as 'ko' | 'en')
 
     // ConsultationHistory에 저장
     const signals = {

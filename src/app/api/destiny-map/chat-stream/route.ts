@@ -212,7 +212,7 @@ export async function POST(req: NextRequest) {
     const contextSections = buildContextSections({
       saju: finalSaju,
       astro: finalAstro,
-      advancedAstro,
+      advancedAstro: advancedAstro as any, // TODO: Fix type compatibility
       natalChartData,
       currentTransits,
       birthDate: effectiveBirthDate,

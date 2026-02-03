@@ -1,51 +1,74 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api/middleware';
-import { analyzeICP, getICPCompatibility, getCrossSystemCompatibility } from '@/lib/icp/analysis';
-import { analyzePersona, getPersonaCompatibility } from '@/lib/persona/analysis';
-import type { ICPQuizAnswers } from '@/lib/icp/types';
-import type { PersonaQuizAnswers } from '@/lib/persona/types';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api/middleware'
+import { analyzeICP, getICPCompatibility, getCrossSystemCompatibility } from '@/lib/icp/analysis'
+import { analyzePersona, getPersonaCompatibility } from '@/lib/persona/analysis'
+import type { ICPQuizAnswers } from '@/lib/icp/types'
+import type { PersonaQuizAnswers } from '@/lib/persona/types'
+import { HTTP_STATUS } from '@/lib/constants/http'
+import { personalityCompatibilitySchema } from '@/lib/api/zodValidation'
+import { logger } from '@/lib/logger'
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 interface CompatibilityRequest {
   person1: {
-    icpAnswers: ICPQuizAnswers;
-    personaAnswers: PersonaQuizAnswers;
-  };
+    icpAnswers: ICPQuizAnswers
+    personaAnswers: PersonaQuizAnswers
+  }
   person2: {
-    icpAnswers: ICPQuizAnswers;
-    personaAnswers: PersonaQuizAnswers;
-  };
-  locale?: string;
+    icpAnswers: ICPQuizAnswers
+    personaAnswers: PersonaQuizAnswers
+  }
+  locale?: string
 }
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
-    const body: CompatibilityRequest = await req.json();
-    const { person1, person2, locale = 'en' } = body;
+    const rawBody = await req.json()
+
+    // Validate with Zod
+    const validationResult = personalityCompatibilitySchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Personality compatibility] validation failed', {
+        errors: validationResult.error.issues,
+      })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
+    const body: CompatibilityRequest = rawBody
+    const { person1, person2, locale = 'en' } = body
 
     // Validate input
-    if (!person1?.icpAnswers || !person1?.personaAnswers || !person2?.icpAnswers || !person2?.personaAnswers) {
+    if (
+      !person1?.icpAnswers ||
+      !person1?.personaAnswers ||
+      !person2?.icpAnswers ||
+      !person2?.personaAnswers
+    ) {
       return NextResponse.json(
         { error: 'Missing required quiz answers' },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
     // Analyze both persons
-    const icp1 = analyzeICP(person1.icpAnswers, locale);
-    const icp2 = analyzeICP(person2.icpAnswers, locale);
-    const persona1 = analyzePersona(person1.personaAnswers, locale);
-    const persona2 = analyzePersona(person2.personaAnswers, locale);
+    const icp1 = analyzeICP(person1.icpAnswers, locale)
+    const icp2 = analyzeICP(person2.icpAnswers, locale)
+    const persona1 = analyzePersona(person1.personaAnswers, locale)
+    const persona2 = analyzePersona(person2.personaAnswers, locale)
 
     // Calculate compatibility scores
-    const icpCompatibility = getICPCompatibility(
-      icp1.primaryStyle,
-      icp2.primaryStyle,
-      locale
-    );
+    const icpCompatibility = getICPCompatibility(icp1.primaryStyle, icp2.primaryStyle, locale)
 
     const personaCompatibility = getPersonaCompatibility(
       persona1.typeCode,
@@ -53,7 +76,7 @@ export const POST = withApiMiddleware(
       persona1.axes,
       persona2.axes,
       locale
-    );
+    )
 
     const crossSystemCompatibility = getCrossSystemCompatibility(
       icp1.primaryStyle,
@@ -63,7 +86,7 @@ export const POST = withApiMiddleware(
       persona1.axes,
       persona2.axes,
       locale
-    );
+    )
 
     return NextResponse.json({
       person1: {
@@ -99,7 +122,7 @@ export const POST = withApiMiddleware(
         persona: personaCompatibility,
         crossSystem: crossSystemCompatibility,
       },
-    });
+    })
   },
   createSimpleGuard({
     route: '/api/personality-compatibility',

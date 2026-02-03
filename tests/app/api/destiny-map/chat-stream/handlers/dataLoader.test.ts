@@ -4,6 +4,9 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { loadOrComputeAllData } from '@/app/api/destiny-map/chat-stream/handlers/dataLoader'
+import { loadUserProfile } from '@/app/api/destiny-map/chat-stream/lib/profileLoader'
+import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateNatalChart, calculateTransitChart } from '@/lib/astrology'
 
 // Mock dependencies
 vi.mock('@/lib/Saju/saju', () => ({
@@ -52,12 +55,12 @@ vi.mock('@/lib/destiny-map/type-guards', () => ({
 }))
 
 vi.mock('@/lib/prediction/utils', () => ({
-  parseDateComponents: vi.fn((date: string) => ({
+  parseDateComponents: vi.fn(() => ({
     year: 1990,
     month: 1,
     day: 1,
   })),
-  parseTimeComponents: vi.fn((time: string) => ({
+  parseTimeComponents: vi.fn(() => ({
     hour: 12,
     minute: 0,
   })),
@@ -136,8 +139,6 @@ describe('Data Loader', () => {
     })
 
     it('should load user profile when userId is provided', async () => {
-      const { loadUserProfile } = await import('../lib/profileLoader')
-
       await loadOrComputeAllData('user-123', baseData)
 
       expect(loadUserProfile).toHaveBeenCalledWith(
@@ -152,7 +153,6 @@ describe('Data Loader', () => {
     })
 
     it('should use profile data when returned', async () => {
-      const { loadUserProfile } = await import('../lib/profileLoader')
       vi.mocked(loadUserProfile).mockResolvedValueOnce({
         saju: { dayMaster: { heavenlyStem: '丙' } } as any,
         astro: { sun: { name: 'Sun' } } as any,
@@ -169,7 +169,6 @@ describe('Data Loader', () => {
     })
 
     it('should handle profile load failure gracefully', async () => {
-      const { loadUserProfile } = await import('../lib/profileLoader')
       vi.mocked(loadUserProfile).mockRejectedValueOnce(new Error('DB error'))
 
       const result = await loadOrComputeAllData('user-123', baseData)
@@ -195,12 +194,10 @@ describe('Data Loader', () => {
         astro: existingAstro,
       })
 
-      // Existing astro doesn't produce natalChartData
       expect(result.currentTransits).toEqual([])
     })
 
     it('should handle saju computation failure', async () => {
-      const { calculateSajuData } = await import('@/lib/Saju/saju')
       vi.mocked(calculateSajuData).mockImplementationOnce(() => {
         throw new Error('Saju error')
       })
@@ -211,7 +208,6 @@ describe('Data Loader', () => {
     })
 
     it('should handle astro computation failure', async () => {
-      const { calculateNatalChart } = await import('@/lib/astrology')
       vi.mocked(calculateNatalChart).mockRejectedValueOnce(new Error('Astro error'))
 
       const result = await loadOrComputeAllData(undefined, baseData)
@@ -220,7 +216,6 @@ describe('Data Loader', () => {
     })
 
     it('should handle transit computation failure', async () => {
-      const { calculateTransitChart } = await import('@/lib/astrology')
       vi.mocked(calculateTransitChart).mockRejectedValueOnce(new Error('Transit error'))
 
       const result = await loadOrComputeAllData(undefined, baseData)

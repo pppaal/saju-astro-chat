@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
-import {
-  createFallbackSSEStream,
-  createTransformedSSEStream,
-} from '@/lib/streaming'
+import { createFallbackSSEStream, createTransformedSSEStream } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize'
 import { logger } from '@/lib/logger'
 import { type ChatMessage } from '@/lib/api'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { sajuChatStreamSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -62,18 +60,36 @@ function sajuCounselorSystemPrompt(lang: string) {
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    const body = await req.json()
-      const {
-        name,
-        birthDate,
-        birthTime,
-        gender = 'male',
-        theme = 'life',
-        lang = context.locale,
-        messages = [],
-        saju,
-        userContext,
-      } = body
+    const rawBody = await req.json()
+
+    // Validate core fields with Zod
+    const validationResult = sajuChatStreamSchema.safeParse(rawBody)
+    if (!validationResult.success) {
+      logger.warn('[Saju chat-stream] validation failed', { errors: validationResult.error.issues })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
+    const body = rawBody
+    const {
+      name,
+      birthDate,
+      birthTime,
+      gender = 'male',
+      theme = 'life',
+      lang = context.locale,
+      messages = [],
+      saju,
+      userContext,
+    } = body
 
     if (!birthDate || !birthTime) {
       return NextResponse.json(
@@ -89,77 +105,77 @@ export const POST = withApiMiddleware(
     // Safety check
     const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
     if (lastUser && containsForbidden(lastUser.content)) {
-        return createFallbackSSEStream({
-          content: safetyMessage(lang),
-          done: true,
-        })
-      }
+      return createFallbackSSEStream({
+        content: safetyMessage(lang),
+        done: true,
+      })
+    }
 
-      // Build conversation context
-      const historyText = trimmedHistory
-        .filter((m) => m.role !== 'system')
-        .map((m) => `${m.role === 'user' ? 'Q' : 'A'}: ${guardText(m.content, 300)}`)
-        .join('\n')
-        .slice(0, 1500)
+    // Build conversation context
+    const historyText = trimmedHistory
+      .filter((m) => m.role !== 'system')
+      .map((m) => `${m.role === 'user' ? 'Q' : 'A'}: ${guardText(m.content, 300)}`)
+      .join('\n')
+      .slice(0, 1500)
 
-      const userQuestion = lastUser ? guardText(lastUser.content, 500) : ''
+    const userQuestion = lastUser ? guardText(lastUser.content, 500) : ''
 
-      // Build saju-focused prompt
-      const chatPrompt = [
-        sajuCounselorSystemPrompt(lang),
-        `Name: ${name || 'User'}`,
-        `Birth: ${birthDate} ${birthTime}`,
-        `Gender: ${gender}`,
-        `Theme: ${theme}`,
-        historyText ? `\nConversation:\n${historyText}` : '',
-        `\nQuestion: ${userQuestion}`,
-      ]
-        .filter(Boolean)
-        .join('\n')
+    // Build saju-focused prompt
+    const chatPrompt = [
+      sajuCounselorSystemPrompt(lang),
+      `Name: ${name || 'User'}`,
+      `Birth: ${birthDate} ${birthTime}`,
+      `Gender: ${gender}`,
+      `Theme: ${theme}`,
+      historyText ? `\nConversation:\n${historyText}` : '',
+      `\nQuestion: ${userQuestion}`,
+    ]
+      .filter(Boolean)
+      .join('\n')
 
-      // Get session_id from header for RAG cache
-      const sessionId = req.headers.get('x-session-id') || undefined
+    // Get session_id from header for RAG cache
+    const sessionId = req.headers.get('x-session-id') || undefined
 
-      // Call backend streaming endpoint using apiClient
-      const streamResult = await apiClient.postSSEStream(
-        '/saju/ask-stream',
-        {
-          theme,
-          prompt: chatPrompt,
-          locale: lang,
-          saju: saju || undefined,
-          birth: { date: birthDate, time: birthTime, gender },
-          history: trimmedHistory.filter((m) => m.role !== 'system'),
-          session_id: sessionId,
-          user_context: userContext || undefined,
-          counselor_type: 'saju', // Indicate saju-only mode
-        },
-        { timeout: 60000 }
-      )
+    // Call backend streaming endpoint using apiClient
+    const streamResult = await apiClient.postSSEStream(
+      '/saju/ask-stream',
+      {
+        theme,
+        prompt: chatPrompt,
+        locale: lang,
+        saju: saju || undefined,
+        birth: { date: birthDate, time: birthTime, gender },
+        history: trimmedHistory.filter((m) => m.role !== 'system'),
+        session_id: sessionId,
+        user_context: userContext || undefined,
+        counselor_type: 'saju', // Indicate saju-only mode
+      },
+      { timeout: 60000 }
+    )
 
-      if (!streamResult.ok) {
-        logger.error('[SajuChatStream] Backend error:', {
-          status: streamResult.status,
-          error: streamResult.error,
-        })
+    if (!streamResult.ok) {
+      logger.error('[SajuChatStream] Backend error:', {
+        status: streamResult.status,
+        error: streamResult.error,
+      })
 
-        const fallback =
-          lang === 'ko'
-            ? 'AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
-            : 'Could not connect to AI service. Please try again.'
+      const fallback =
+        lang === 'ko'
+          ? 'AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+          : 'Could not connect to AI service. Please try again.'
 
-        return createFallbackSSEStream({
-          content: fallback,
-          done: true,
-          'X-Fallback': '1',
-        })
-      }
+      return createFallbackSSEStream({
+        content: fallback,
+        done: true,
+        'X-Fallback': '1',
+      })
+    }
 
     // Relay the stream from backend to frontend with sanitization
     return createTransformedSSEStream({
       source: streamResult.response,
       transform: (chunk) => {
-        const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name);
+        const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name)
         return masked
       },
       route: 'SajuChatStream',

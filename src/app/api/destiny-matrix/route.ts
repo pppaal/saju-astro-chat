@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
 import { calculateSajuData } from '@/lib/Saju/saju'
-import type { FiveElement } from '@/lib/Saju/types'
+import type { FiveElement, RelationHit } from '@/lib/Saju/types'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
@@ -256,19 +256,19 @@ export async function POST(req: NextRequest) {
       pillarElements: calculatedPillarElements,
       sibsinDistribution,
       twelveStages,
-      relations: relations as unknown, // TODO: Fix Zod schema to use proper RelationHit type
-      geokguk: geokguk as unknown, // TODO: Fix Zod schema to use proper GeokgukType
-      yongsin: yongsin as unknown, // TODO: Fix Zod schema
+      relations: relations as any as RelationHit[], // TODO: Fix Zod schema to use proper RelationHit type
+      geokguk: geokguk as any, // TODO: Fix Zod schema to use proper GeokgukType
+      yongsin: yongsin as any, // TODO: Fix Zod schema
       currentDaeunElement,
       currentSaeunElement,
-      shinsalList: shinsalList as unknown, // TODO: Fix Zod schema for ShinsalKind[]
-      dominantWesternElement: dominantWesternElement as unknown, // TODO: Fix Zod schema
-      planetHouses: planetHouses as unknown,
-      planetSigns: planetSigns as unknown,
-      aspects: aspects as unknown,
-      activeTransits: activeTransits as unknown,
-      asteroidHouses: asteroidHouses as unknown,
-      extraPointSigns: extraPointSigns as unknown,
+      shinsalList: shinsalList as any, // TODO: Fix Zod schema for ShinsalKind[]
+      dominantWesternElement: dominantWesternElement as any, // TODO: Fix Zod schema
+      planetHouses: planetHouses as any,
+      planetSigns: planetSigns as any,
+      aspects: aspects as any,
+      activeTransits: activeTransits as any,
+      asteroidHouses: asteroidHouses as any,
+      extraPointSigns: extraPointSigns as any,
       lang,
     }
 

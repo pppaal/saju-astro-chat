@@ -24,6 +24,7 @@ const enableDebugLogs = process.env.ENABLE_DESTINY_LOGS === 'true'
 
 import { ALLOWED_LOCALES, ALLOWED_GENDERS } from '@/lib/constants/api-limits'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { destinyMapRequestSchema } from '@/lib/api/zodValidation'
 const ALLOWED_LANG = ALLOWED_LOCALES
 const ALLOWED_GENDER = new Set([...ALLOWED_GENDERS, 'prefer_not'])
 
@@ -102,6 +103,22 @@ export const POST = withApiMiddleware(
 
     if (!body) {
       return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+    }
+
+    // Validate core fields with Zod
+    const validationResult = destinyMapRequestSchema.safeParse(body)
+    if (!validationResult.success) {
+      logger.warn('[DestinyMap] validation failed', { errors: validationResult.error.issues })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
     }
 
     const name = typeof body.name === 'string' ? body.name.trim().slice(0, LIMITS.NAME) : undefined

@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse({
         code: ErrorCodes.RATE_LIMITED,
         message: 'Too many requests. Try again soon.',
-        headers: limit.headers,
+        headers: limit.headers as any, // TODO: Fix type compatibility
       })
     }
 

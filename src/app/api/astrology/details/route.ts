@@ -26,6 +26,8 @@ import {
   parseHM,
 } from '@/lib/astrology/localization'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { astrologyDetailsSchema } from '@/lib/api/zodValidation'
+import { logger } from '@/lib/logger'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -49,30 +51,35 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
+
+    // Validate with Zod
+    const validationResult = astrologyDetailsSchema.safeParse({
+      birthDate: body?.date,
+      birthTime: body?.time,
+      latitude: body?.latitude,
+      longitude: body?.longitude,
+      timezone: body?.timeZone,
+      locale: body?.locale,
+    })
+    if (!validationResult.success) {
+      logger.warn('[Astrology details] validation failed', {
+        errors: validationResult.error.issues,
+      })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: validationResult.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
+      )
+    }
+
     const { date, time, latitude, longitude, timeZone, locale, options } = body ?? {}
     const L = pickLabels(locale)
     const locKey = normalizeLocale(locale)
-
-    if (!date || !time || latitude === undefined || longitude === undefined || !timeZone) {
-      return NextResponse.json(
-        { error: 'date, time, latitude, longitude, and timeZone are required.' },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
-    }
-
-    if (
-      !Number.isFinite(latitude) ||
-      !Number.isFinite(longitude) ||
-      latitude < -90 ||
-      latitude > 90 ||
-      longitude < -180 ||
-      longitude > 180
-    ) {
-      return NextResponse.json(
-        { error: 'latitude/longitude out of range.' },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
-    }
 
     const [year, month, day] = String(date).split('-').map(Number)
     if (!year || !month || !day) {
@@ -122,7 +129,7 @@ export async function POST(request: Request) {
       .map((p: PlanetData) => {
         const name = localizePlanetLabel(String(p.name || ''), locKey)
         const { signPart, degreePart } = splitSignAndDegree(String(p.formatted || ''))
-        const sign = localizeSignLabel(signPart, locKey);
+        const sign = localizeSignLabel(signPart, locKey)
         return `${name}: ${sign} ${degreePart}`.trim()
       })
       .join('\n')
@@ -180,7 +187,7 @@ export async function POST(request: Request) {
       },
       { status: HTTP_STATUS.OK }
     )
-    limit.headers.forEach((value, key) => res.headers.set(key, value));
+    limit.headers.forEach((value, key) => res.headers.set(key, value))
     return res
   } catch (error) {
     captureServerError(error, { route: '/api/astrology/details' })
