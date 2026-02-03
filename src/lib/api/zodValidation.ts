@@ -652,6 +652,59 @@ export const chatHistorySaveRequestSchema = z.object({
 
 export type ChatHistorySaveRequestValidated = z.infer<typeof chatHistorySaveRequestSchema>
 
+/**
+ * Dream chat save request validation
+ */
+export const dreamChatSaveRequestSchema = z.object({
+  dreamId: z.string().max(100).optional(),
+  dreamText: z.string().min(1).max(5000).trim(),
+  messages: z.array(chatMessageSchema).min(1).max(100),
+  summary: z.string().max(1000).trim().optional(),
+  locale: localeSchema.optional(),
+})
+
+export type DreamChatSaveRequestValidated = z.infer<typeof dreamChatSaveRequestSchema>
+
+// ============ Past Life Schemas ============
+
+/**
+ * Past life result save request validation
+ */
+export const pastLifeSaveRequestSchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema.optional(),
+  latitude: latitudeSchema.optional(),
+  longitude: longitudeSchema.optional(),
+  timezone: timezoneSchema.optional(),
+  karmaScore: z.number().min(0).max(100),
+  analysisData: z.object({
+    soulPattern: z.any(),
+    pastLife: z.any(),
+    soulJourney: z.any(),
+    karmicDebts: z.array(z.any()),
+    thisLifeMission: z.any(),
+    talentsCarried: z.array(z.string().max(200)),
+    saturnLesson: z.any(),
+  }),
+  locale: localeSchema.optional(),
+})
+
+export type PastLifeSaveRequestValidated = z.infer<typeof pastLifeSaveRequestSchema>
+
+// ============ Counselor Session Schemas ============
+
+/**
+ * Counselor session save request validation
+ */
+export const counselorSessionSaveRequestSchema = z.object({
+  sessionId: z.string().min(1).max(100).trim(),
+  theme: z.string().max(100).trim().optional(),
+  messages: z.array(chatMessageSchema).min(1).max(200),
+  locale: localeSchema.optional(),
+})
+
+export type CounselorSessionSaveRequestValidated = z.infer<typeof counselorSessionSaveRequestSchema>
+
 // ============ Feedback Schemas ============
 
 /**
@@ -756,20 +809,20 @@ export const dreamAnalysisSchema = z.object({
 
 export type DreamAnalysisRequest = z.infer<typeof dreamAnalysisSchema>
 
-// ============ Compatibility Schema ============
+// ============ Compatibility Schema (Alternative) ============
 
-export const compatibilityRequestSchema = z.object({
+export const compatibilityAnalysisSchema = z.object({
   person1: birthInfoSchema,
   person2: birthInfoSchema,
   analysisType: z.enum(['romantic', 'friendship', 'business', 'family']).optional(),
   locale: localeSchema.optional(),
 })
 
-export type CompatibilityRequest = z.infer<typeof compatibilityRequestSchema>
+export type CompatibilityAnalysis = z.infer<typeof compatibilityAnalysisSchema>
 
-// ============ I Ching Schema ============
+// ============ I Ching Schema (Alternative) ============
 
-export const iChingRequestSchema = z.object({
+export const iChingAnalysisSchema = z.object({
   question: z
     .string()
     .min(1)
@@ -781,11 +834,11 @@ export const iChingRequestSchema = z.object({
   locale: localeSchema.optional(),
 })
 
-export type IChingRequest = z.infer<typeof iChingRequestSchema>
+export type IChingAnalysis = z.infer<typeof iChingAnalysisSchema>
 
-// ============ Chat Message Schema ============
+// ============ Chat Message Schema (Alternative) ============
 
-export const chatMessageSchema = z.object({
+export const chatMessageRequestSchema = z.object({
   message: z
     .string()
     .min(1)
@@ -796,7 +849,7 @@ export const chatMessageSchema = z.object({
   locale: localeSchema.optional(),
 })
 
-export type ChatMessageRequest = z.infer<typeof chatMessageSchema>
+export type ChatMessageRequestValidated = z.infer<typeof chatMessageRequestSchema>
 
 // ============ Pagination Schema ============
 
