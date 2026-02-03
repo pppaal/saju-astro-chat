@@ -1,7 +1,6 @@
 import type { NextAuthOptions } from 'next-auth'
 import type { Adapter, AdapterAccount, AdapterUser } from 'next-auth/adapters'
 import GoogleProvider from 'next-auth/providers/google'
-import KakaoProvider from 'next-auth/providers/kakao'
 import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/db/prisma'
 import { revokeGoogleTokensForAccount, revokeGoogleTokensForUser } from '@/lib/auth/tokenRevoke'
@@ -11,7 +10,7 @@ import { sendWelcomeEmail } from '@/lib/email'
 import { logger } from '@/lib/logger'
 
 // ============================================
-// OAuth providers (Google, Kakao)
+// OAuth providers (Google)
 // - Persist only expected fields to Prisma (drop provider-specific extras)
 // - Add more providers by setting env vars without changing core logic
 // ============================================
@@ -246,15 +245,6 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
           prompt: 'select_account',
         },
       },
-    })
-  )
-}
-
-if (process.env.KAKAO_CLIENT_ID && process.env.KAKAO_CLIENT_SECRET) {
-  providers.push(
-    KakaoProvider({
-      clientId: process.env.KAKAO_CLIENT_ID,
-      clientSecret: process.env.KAKAO_CLIENT_SECRET,
     })
   )
 }

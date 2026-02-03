@@ -4,19 +4,19 @@
  * 로그인 요구 UI
  */
 
-'use client';
+'use client'
 
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import styles from '../tarot-reading.module.css';
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import styles from '../tarot-reading.module.css'
 
 interface LoginPromptProps {
-  signInUrl: string;
-  language: string;
+  signInUrl: string
+  language: string
 }
 
 export default function LoginPrompt({ signInUrl, language }: LoginPromptProps) {
-  const router = useRouter();
+  const router = useRouter()
 
   return (
     <div className={styles.loginRequired}>
@@ -50,16 +50,7 @@ export default function LoginPrompt({ signInUrl, language }: LoginPromptProps) {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            {language === 'ko' ? 'Google로 로그인' : 'Sign in with Google'}
-          </button>
-          <button className={styles.kakaoButton} onClick={() => router.push(signInUrl)}>
-            <svg className={styles.kakaoIcon} viewBox="0 0 24 24" width="20" height="20">
-              <path
-                fill="#000"
-                d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.88 5.32 4.71 6.73-.15.53-.96 3.39-1 3.56 0 .09.03.18.1.24.08.06.18.07.27.03.36-.14 4.16-2.73 4.67-3.06.41.05.83.08 1.25.08 5.52 0 10-3.58 10-8s-4.48-8-10-8z"
-              />
-            </svg>
-            {language === 'ko' ? '카카오로 로그인' : 'Sign in with Kakao'}
+            {language === 'ko' ? 'Google로 로그인' : 'Sign In with Google'}
           </button>
         </div>
         <Link href="/tarot" className={styles.backLink}>
@@ -67,5 +58,5 @@ export default function LoginPrompt({ signInUrl, language }: LoginPromptProps) {
         </Link>
       </div>
     </div>
-  );
+  )
 }
