@@ -204,13 +204,64 @@ export interface FuturePredictionDetailed {
     themes: string[]
   }
 
-  // 종합 해석
-  interpretation: {
-    summary: string
+  // 최적 시간대 (일별 분석 시)
+  optimalHours?: {
+    best: { hour: number; activity: string; score: number }[]
+    avoid: { hour: number; reason: string }[]
+  }
+
+  // 구체적 조언
+  advice: {
+    dos: string[]
+    donts: string[]
+    focus: string[]
     opportunities: string[]
-    challenges: string[]
-    recommendations: string[]
+    warnings: string[]
   }
 
   confidence: number
+  dataQuality: 'high' | 'medium' | 'low'
+}
+
+// ============================================================
+// 신뢰도 관련 타입
+// ============================================================
+
+/** 신뢰도 요인 */
+export interface ConfidenceFactors {
+  birthTimeAccuracy: 'exact' | 'within_hour' | 'within_2hours' | 'unknown'
+  methodAlignment: number // 동서양 일치도 0-100
+  dataCompleteness: number // 데이터 완성도 0-100
+  historicalValidation?: number // 과거 검증 정확도 0-100
+}
+
+/** 예측 신뢰도 등급 */
+export type ConfidenceGrade = 'A+' | 'A' | 'B+' | 'B' | 'C+' | 'C' | 'D' | 'F'
+
+/** 통합 신뢰도 결과 */
+export interface UnifiedConfidenceResult {
+  score: number // 0-100 점수
+  grade: ConfidenceGrade // 등급
+  breakdown: {
+    birthTime: { score: number; weight: number }
+    dataCompleteness: { score: number; weight: number }
+    methodAlignment: { score: number; weight: number }
+    historicalValidation?: { score: number; weight: number }
+  }
+  interpretation: string // 해석
+  recommendations: string[] // 신뢰도 향상 방법
+}
+
+// ============================================================
+// 사건 점수 관련 타입
+// ============================================================
+
+/** 사건 유형별 점수 */
+export interface EventCategoryScores {
+  career: number
+  finance: number
+  relationship: number
+  health: number
+  travel: number
+  education: number
 }

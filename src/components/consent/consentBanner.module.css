@@ -3,6 +3,8 @@
   bottom: 1rem;
   right: 1rem;
   left: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
   z-index: 1000;
   background: rgba(20, 20, 24, 0.92);
   color: #f8f8fb;
@@ -44,7 +46,10 @@
   padding: 0.6rem 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    opacity 0.1s ease;
 }
 
 .actions button:active {
@@ -67,6 +72,8 @@
   .banner {
     flex-direction: column;
     align-items: flex-start;
+    max-width: 600px;
+    margin: 0 auto;
   }
   .actions {
     width: 100%;

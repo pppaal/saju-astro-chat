@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth/authOptions'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 
 type ServiceRecord = {
   id: string
@@ -54,6 +55,18 @@ export async function GET(request: Request) {
     const offset = Math.max(0, parseInt(searchParams.get('offset') || '0'))
     const service = searchParams.get('service') // Optional filter by service type
 
+    // Check Redis cache first (5 minute TTL for history)
+    const cacheKey = `user:${userId}:history:${limit}:${offset}:${service || 'all'}`
+    try {
+      const cached = await cacheGet<DailyHistory[]>(cacheKey)
+      if (cached) {
+        logger.info('[History] Cache hit')
+        return NextResponse.json({ history: cached })
+      }
+    } catch (err) {
+      logger.warn('[History] Cache read failed:', err)
+    }
+
     // Calculate per-table limits (distribute evenly, with some tables getting less)
     // Total target: limit records, distributed across 9 tables
     const perTableLimit = Math.ceil(limit / 3) // Each major category gets 1/3
@@ -62,7 +75,7 @@ export async function GET(request: Request) {
     // Safe query helper: returns empty array if table doesn't exist yet
     const safeQuery = <T>(promise: Promise<T[]>): Promise<T[]> =>
       promise.catch((err) => {
-        logger.warn('[History] Query failed (table may not exist):', err?.message);
+        logger.warn('[History] Query failed (table may not exist):', err?.message)
         return [] as T[]
       })
 
@@ -333,7 +346,7 @@ export async function GET(request: Request) {
         if (!acc[record.date]) {
           acc[record.date] = []
         }
-        acc[record.date].push(record);
+        acc[record.date].push(record)
         return acc
       },
       {} as Record<string, ServiceRecord[]>
@@ -352,6 +365,14 @@ export async function GET(request: Request) {
     const totalRecords = allRecords.length
     const hasMore = totalRecords >= limit || history.length >= limit
 
+    // Cache the result for 5 minutes (300 seconds)
+    try {
+      await cacheSet(cacheKey, history, 300)
+      logger.info('[History] Cached result')
+    } catch (err) {
+      logger.warn('[History] Cache write failed:', err)
+    }
+
     return NextResponse.json({
       history,
       pagination: {
@@ -361,9 +382,9 @@ export async function GET(request: Request) {
         totalRecords,
         hasMore,
       },
-    });
+    })
   } catch (error) {
-    logger.error('Error fetching history:', error);
+    logger.error('Error fetching history:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: HTTP_STATUS.SERVER_ERROR }

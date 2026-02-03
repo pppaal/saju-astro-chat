@@ -115,7 +115,7 @@ function MainHeader() {
                         <span className={styles.dropItemIcon}>{s.icon}</span>
                         <div className={styles.dropItemText}>
                           <span className={styles.dropItemLabel}>
-                            {t(`services.${s.key}.label`)}
+                            {t(`menu.${s.key}`)}
                             {s.comingSoon && (
                               <span className={styles.comingSoonBadge}>
                                 {t('common.comingSoon')}

@@ -24,9 +24,7 @@
 
 /* ========== Back Button ========== */
 .backButtonContainer {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
+  /* BackButton component already has position: fixed, so we don't need it here */
   z-index: 100;
 }
 
@@ -35,7 +33,7 @@
   position: fixed;
   top: 1rem;
   right: 1rem;
-  z-index: 100;
+  z-index: 99; /* Lower than BackButton to avoid conflicts */
 }
 
 /* ========== Main Content ========== */
@@ -556,11 +554,7 @@
   }
 
   /* Prevent back button and credit badge overlap on small screens */
-  .backButtonContainer {
-    top: 0.75rem;
-    left: 0.75rem;
-  }
-
+  /* BackButton handles its own positioning, we just ensure CreditBadge doesn't overlap */
   .creditBadgeWrapper {
     top: 0.75rem;
     right: 0.75rem;

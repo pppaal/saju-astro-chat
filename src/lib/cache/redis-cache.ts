@@ -144,6 +144,8 @@ export const CACHE_TTL = {
   CALENDAR_DATA: 60 * 60 * 24, // 1 day
   COMPATIBILITY: 60 * 60 * 24 * 7, // 7 days
   TRANSIT_CHART: 60 * 60, // 1 hour (천체 트랜짓은 시간 단위로 변동)
+  NATAL_CHART: 60 * 60 * 24 * 30, // 30 days (출생 차트는 거의 불변)
+  SAJU: 60 * 60 * 24 * 7, // 7 days (사주 계산 결과)
 } as const
 
 /**
@@ -271,8 +273,8 @@ export async function cacheDel(key: string): Promise<boolean> {
  * - Old cache entries become stale automatically
  */
 export const CacheKeys = {
-  saju: (birthDate: string, birthTime: string, gender: string) =>
-    `saju:v1:${birthDate}:${birthTime}:${gender}`,
+  saju: (birthDate: string, birthTime: string, gender: string, calendar: string = 'solar') =>
+    `saju:v1:${birthDate}:${birthTime}:${gender}:${calendar}`,
 
   tarot: (userId: string, question: string, spread: string) =>
     `tarot:v1:${userId}:${safeBase64Encode(question)}:${spread}`,
@@ -299,6 +301,9 @@ export const CacheKeys = {
     const dateHour = `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}-${now.getUTCHours()}`
     return `transit:v1:${dateHour}:${latitude.toFixed(2)}:${longitude.toFixed(2)}`
   },
+
+  natalChart: (birthDate: string, birthTime: string, latitude: number, longitude: number) =>
+    `natal:v1:${birthDate}:${birthTime}:${latitude.toFixed(2)}:${longitude.toFixed(2)}`,
 } as const
 
 /**
@@ -427,5 +432,31 @@ export async function getCacheInfo() {
   } catch (error) {
     logger.error('[Redis] Info error', { error })
     return null
+  }
+}
+
+// Aliases for backwards compatibility
+export const getCache = cacheGetResult
+export const setCache = async <T>(
+  key: string,
+  value: T,
+  ttlSeconds?: number
+): Promise<CacheWriteResult> => {
+  const client = await getRedisClient()
+  if (!client) {
+    return { success: false, error: 'Redis not available' }
+  }
+
+  try {
+    const serialized = JSON.stringify(value)
+    if (ttlSeconds) {
+      await client.setEx(key, ttlSeconds, serialized)
+    } else {
+      await client.set(key, serialized)
+    }
+    return { success: true }
+  } catch (error) {
+    logger.error('[Redis] Set error', { key, error })
+    return { success: false, error: String(error) }
   }
 }

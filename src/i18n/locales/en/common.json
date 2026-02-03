@@ -102,16 +102,16 @@
     "sparkles": "sparkles"
   },
   "auth": {
-    "signIn": "Sign In",
-    "welcomeBack": "Welcome Back!",
+    "signIn": "Sign in",
+    "welcomeBack": "Welcome back!",
     "signInToContinue": "Sign in to continue",
     "signInWithGoogle": "Sign in with Google",
     "termsConsentPrefix": "By continuing, you agree to the",
-    "termsOfUse": "Terms of Use",
+    "termsOfUse": "Terms of use",
     "termsConsentJoin": "and acknowledge the",
-    "privacyPolicy": "Privacy Policy",
+    "privacyPolicy": "Privacy policy",
     "checkboxHint": "(Please check the box to agree)",
-    "secureAuthentication": "Secure Authentication",
+    "secureAuthentication": "Secure authentication",
     "dataProtected": "Your data is protected and secure",
     "error": {
       "oauthSignin": "An error occurred during OAuth sign-in.",

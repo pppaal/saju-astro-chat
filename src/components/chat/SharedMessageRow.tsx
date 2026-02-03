@@ -64,6 +64,16 @@ export const SharedMessageRow = memo(
         )}
       </div>
     )
+  },
+  // Custom comparison function - only re-render if message content or feedback changed
+  (prevProps, nextProps) => {
+    return (
+      prevProps.message.content === nextProps.message.content &&
+      prevProps.message.id === nextProps.message.id &&
+      prevProps.message.role === nextProps.message.role &&
+      prevProps.feedback[prevProps.message.id || ''] ===
+        nextProps.feedback[nextProps.message.id || '']
+    )
   }
 )
 

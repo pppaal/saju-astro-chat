@@ -45,9 +45,21 @@
   background: rgba(99, 210, 255, 0.05);
   border: 1px solid rgba(99, 210, 255, 0.15);
   border-radius: 16px;
-  padding: 1.25rem;
+  padding: 0;
   margin-bottom: 1.5rem;
   overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease,
+    padding 0.3s ease;
+}
+
+.statsPanelVisible {
+  padding: 1.25rem;
+  max-height: 1000px;
+  opacity: 1;
 }
 
 .statsSectionTitle {
@@ -171,12 +183,19 @@
   border-radius: 16px;
   padding: 1rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    all 0.2s ease,
+    transform 0.1s ease;
 }
 
 .readingCard:hover {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(99, 210, 255, 0.2);
+  transform: scale(1.01);
+}
+
+.readingCard:active {
+  transform: scale(0.99);
 }
 
 .readingHeader {
@@ -306,13 +325,26 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0);
+  backdrop-filter: blur(0px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
   z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.3s ease,
+    backdrop-filter 0.3s ease,
+    background 0.3s ease;
+}
+
+.modalOverlayVisible {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .modalContent {
@@ -325,6 +357,16 @@
   max-height: 80vh;
   overflow-y: auto;
   position: relative;
+  transform: scale(0.9);
+  opacity: 0;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
+
+.modalContentVisible {
+  transform: scale(1);
+  opacity: 1;
 }
 
 .modalClose {
