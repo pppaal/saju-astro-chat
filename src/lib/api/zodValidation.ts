@@ -310,6 +310,43 @@ export const lifePredictionRequestSchema = z.object({
 export type LifePredictionRequestValidated = z.infer<typeof lifePredictionRequestSchema>
 
 /**
+ * Life prediction multi-year save request validation
+ */
+export const lifePredictionMultiYearSaveSchema = z.object({
+  multiYearTrend: z.object({
+    startYear: z.number().int().min(1900).max(2100),
+    endYear: z.number().int().min(1900).max(2100),
+    overallTrend: z.string().max(2000),
+    peakYears: z.array(z.number().int()).max(20),
+    lowYears: z.array(z.number().int()).max(20),
+    summary: z.string().max(3000),
+    yearlyScores: z
+      .array(
+        z.object({
+          year: z.number().int(),
+          score: z.number().min(0).max(100),
+          grade: z.string().max(10),
+          themes: z.array(z.string().max(100)).optional(),
+        })
+      )
+      .optional(),
+    daeunTransitions: z
+      .array(
+        z.object({
+          year: z.number().int(),
+          description: z.string().max(1000),
+        })
+      )
+      .optional(),
+  }),
+  saju: z.record(z.any()).optional(),
+  astro: z.record(z.any()).optional(),
+  locale: z.enum(['ko', 'en']).optional(),
+})
+
+export type LifePredictionMultiYearSaveValidated = z.infer<typeof lifePredictionMultiYearSaveSchema>
+
+/**
  * Life prediction save request validation
  */
 export const lifePredictionSaveRequestSchema = z.object({
@@ -436,6 +473,51 @@ export const iChingRequestSchema = z.object({
 
 export type IChingRequestValidated = z.infer<typeof iChingRequestSchema>
 
+/**
+ * I Ching changing line schema
+ */
+export const iChingChangingLineSchema = z.object({
+  index: z.number().int().min(1).max(6),
+  text: z.string().max(1000),
+})
+
+/**
+ * I Ching resulting hexagram schema
+ */
+export const iChingResultingHexagramSchema = z.object({
+  number: z.number().int().min(1).max(64),
+  name: z.string().max(200),
+  symbol: z.string().max(20),
+  judgment: z.string().max(2000).optional(),
+})
+
+/**
+ * I Ching stream request validation (for streaming interpretation)
+ */
+export const iChingStreamRequestSchema = z.object({
+  hexagramNumber: z.number().int().min(1).max(64),
+  hexagramName: z.string().min(1).max(200),
+  hexagramSymbol: z.string().max(20),
+  judgment: z.string().max(2000),
+  image: z.string().max(2000),
+  coreMeaning: z.string().max(1000).optional(),
+  changingLines: z.array(iChingChangingLineSchema).max(6).optional(),
+  resultingHexagram: iChingResultingHexagramSchema.optional(),
+  question: z.string().max(500).optional(),
+  locale: z.enum(['ko', 'en']).optional(),
+  themes: z
+    .object({
+      career: z.string().max(500).optional(),
+      love: z.string().max(500).optional(),
+      health: z.string().max(500).optional(),
+      wealth: z.string().max(500).optional(),
+      timing: z.string().max(500).optional(),
+    })
+    .optional(),
+})
+
+export type IChingStreamRequestValidated = z.infer<typeof iChingStreamRequestSchema>
+
 // ============ Referral System Schemas ============
 
 /**
@@ -491,6 +573,18 @@ export const shareImageRequestSchema = z.object({
 })
 
 export type ShareImageRequestValidated = z.infer<typeof shareImageRequestSchema>
+
+/**
+ * Share result generation request (for database storage)
+ */
+export const shareResultRequestSchema = z.object({
+  title: z.string().min(1).max(200).trim(),
+  description: z.string().max(2000).trim().optional(),
+  resultType: z.string().min(1).max(50).trim(),
+  resultData: z.record(z.any()).optional(),
+})
+
+export type ShareResultRequestValidated = z.infer<typeof shareResultRequestSchema>
 
 // ============ Cron Job Schemas ============
 
@@ -573,6 +667,29 @@ export const feedbackRequestSchema = z.object({
 })
 
 export type FeedbackRequestValidated = z.infer<typeof feedbackRequestSchema>
+
+/**
+ * Section feedback request validation (for specific service sections)
+ */
+export const sectionFeedbackRequestSchema = z.object({
+  service: z.string().min(1).max(64).trim(),
+  theme: z.string().min(1).max(64).trim(),
+  sectionId: z.string().min(1).max(80).trim(),
+  helpful: z.boolean(),
+  dayMaster: z.string().max(32).trim().optional(),
+  sunSign: z.string().max(32).trim().optional(),
+  locale: localeSchema.optional(),
+  userHash: z.string().max(128).trim().optional(),
+  // Extended fields for RLHF
+  recordId: z.string().max(120).trim().optional(),
+  rating: z.number().int().min(1).max(5).optional(),
+  feedbackText: z.string().max(600).trim().optional(),
+  userQuestion: z.string().max(600).trim().optional(),
+  consultationSummary: z.string().max(600).trim().optional(),
+  contextUsed: z.string().max(600).trim().optional(),
+})
+
+export type SectionFeedbackRequestValidated = z.infer<typeof sectionFeedbackRequestSchema>
 
 // ============ Pagination Schema ============
 
@@ -683,14 +800,14 @@ export type ChatMessageRequest = z.infer<typeof chatMessageSchema>
 
 // ============ Pagination Schema ============
 
-export const paginationSchema = z.object({
+export const paginationParamsSchema = z.object({
   page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(100).default(20),
   sortBy: z.string().optional(),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 })
 
-export type PaginationParams = z.infer<typeof paginationSchema>
+export type PaginationParams = z.infer<typeof paginationParamsSchema>
 
 // ============ Validation Helper Functions ============
 
