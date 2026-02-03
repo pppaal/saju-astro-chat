@@ -1,4 +1,4 @@
-import React, { RefObject } from 'react';
+import React, { RefObject, useMemo, useCallback, memo } from 'react';
 import type { ChatMessage } from '@/lib/dream/types';
 import styles from './ChatSection.module.css';
 
@@ -13,7 +13,7 @@ interface ChatSectionProps {
   onSendMessage: () => void;
 }
 
-export function ChatSection({
+export const ChatSection = memo(function ChatSection({
   locale,
   dreamText,
   chatMessages,
@@ -23,14 +23,15 @@ export function ChatSection({
   chatMessagesRef,
   onSendMessage,
 }: ChatSectionProps) {
-  const isKo = locale === 'ko';
+  const isKo = useMemo(() => locale === 'ko', [locale]);
+  const dreamPreview = useMemo(() => dreamText.slice(0, 30), [dreamText]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       onSendMessage();
     }
-  };
+  }, [onSendMessage]);
 
   return (
     <div className={styles.chatContainer}>
@@ -51,8 +52,8 @@ export function ChatSection({
           <div className={styles.chatAvatar}>🌙</div>
           <div className={styles.chatBubble}>
             {isKo
-              ? `꿈 해석 결과를 보셨군요. "${dreamText.slice(0, 30)}..." 꿈에 대해 더 궁금한 점이 있으시면 편하게 물어보세요.`
-              : `I see you've received your dream interpretation. Feel free to ask me anything about your dream "${dreamText.slice(0, 30)}..."`
+              ? `꿈 해석 결과를 보셨군요. "${dreamPreview}..." 꿈에 대해 더 궁금한 점이 있으시면 편하게 물어보세요.`
+              : `I see you've received your dream interpretation. Feel free to ask me anything about your dream "${dreamPreview}..."`
             }
           </div>
         </div>
@@ -93,4 +94,4 @@ export function ChatSection({
       </div>
     </div>
   );
-}
+});

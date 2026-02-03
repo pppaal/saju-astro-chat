@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import Image from "next/image";
 import styles from "./TarotCard.module.css";
 
@@ -68,7 +68,7 @@ const elementIcons: Record<string, string> = {
   Earth: "🌍"
 };
 
-export default function TarotCard({
+const TarotCard = memo(function TarotCard({
   name,
   image,
   isReversed = false,
@@ -223,4 +223,6 @@ export default function TarotCard({
       </div>
     </div>
   );
-}
+});
+
+export default TarotCard;

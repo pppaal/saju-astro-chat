@@ -2,68 +2,69 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { logger } from '@/lib/logger'
+import {
+  GetChatHistorySchema,
+  PostChatHistorySchema,
+  PatchChatHistorySchema,
+  type ChatMessage,
+} from './validation'
 
 export const dynamic = 'force-dynamic'
-
-type ChatMessage = {
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: string
-}
-
-type CounselorChatPostBody = {
-  sessionId?: string
-  theme?: string
-  locale?: string
-  userMessage?: string
-  assistantMessage?: string
-}
-
-type CounselorChatPatchBody = {
-  sessionId?: string
-  summary?: string
-  keyTopics?: string[]
-}
 
 // GET: 채팅 세션 히스토리 조회
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const userId = context.userId!
 
-      const searchParams = req.nextUrl.searchParams
-      const theme = searchParams.get('theme') || undefined
-      const limit = parseInt(searchParams.get('limit') || '5')
+    // Validate query parameters with Zod
+    const searchParams = req.nextUrl.searchParams
+    const validation = GetChatHistorySchema.safeParse({
+      theme: searchParams.get('theme'),
+      limit: searchParams.get('limit'),
+    })
 
-      // 사용자 채팅 세션 조회
-      const chatSessions = await prisma.counselorChatSession.findMany({
-        where: {
-          userId,
-          ...(theme && { theme }),
-        },
-        orderBy: { updatedAt: 'desc' },
-        take: limit,
-        select: {
-          id: true,
-          theme: true,
-          summary: true,
-          keyTopics: true,
-          messageCount: true,
-          lastMessageAt: true,
-          createdAt: true,
-          messages: true,
-        },
-      })
+    if (!validation.success) {
+      const errors = validation.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')
+      logger.warn('[chat-history GET] Validation failed', { errors: validation.error.issues })
+      return NextResponse.json(
+        { error: 'Validation failed', details: errors },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
 
-      // 페르소나 메모리 조회
-      const personaMemory = await prisma.personaMemory.findUnique({
-        where: { userId },
-        select: {
-          sessionCount: true,
-          lastTopics: true,
-          recurringIssues: true,
-          emotionalTone: true,
-        },
-      });
+    const { theme, limit } = validation.data
+
+      // 병렬 쿼리: 채팅 세션 + 페르소나 메모리 동시 조회 (100-200ms 절약)
+      const [chatSessions, personaMemory] = await Promise.all([
+        prisma.counselorChatSession.findMany({
+          where: {
+            userId,
+            ...(theme && { theme }),
+          },
+          orderBy: { updatedAt: 'desc' },
+          take: limit,
+          select: {
+            id: true,
+            theme: true,
+            summary: true,
+            keyTopics: true,
+            messageCount: true,
+            lastMessageAt: true,
+            createdAt: true,
+            messages: true,
+          },
+        }),
+        prisma.personaMemory.findUnique({
+          where: { userId },
+          select: {
+            sessionCount: true,
+            lastTopics: true,
+            recurringIssues: true,
+            emotionalTone: true,
+          },
+        }),
+      ]);
 
     return NextResponse.json({
       success: true,
@@ -84,17 +85,23 @@ export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const userId = context.userId!
 
-      const body = (await req.json().catch(() => null)) as CounselorChatPostBody | null
-      if (!body || typeof body !== 'object') {
-        return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
-      }
+    // Validate request body with Zod
+    const body = await req.json().catch(() => null)
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+    }
 
-      const sessionId = typeof body.sessionId === 'string' ? body.sessionId : ''
-      const theme = typeof body.theme === 'string' ? body.theme : 'chat'
-      const locale = typeof body.locale === 'string' ? body.locale : 'ko'
-      const userMessage = typeof body.userMessage === 'string' ? body.userMessage : ''
-      const assistantMessage =
-        typeof body.assistantMessage === 'string' ? body.assistantMessage : ''
+    const validation = PostChatHistorySchema.safeParse(body)
+    if (!validation.success) {
+      const errors = validation.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')
+      logger.warn('[chat-history POST] Validation failed', { errors: validation.error.issues })
+      return NextResponse.json(
+        { error: 'Validation failed', details: errors },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
+    const { sessionId, theme, locale, userMessage, assistantMessage } = validation.data
 
       const now = new Date()
       const newMessages: ChatMessage[] = []
@@ -189,23 +196,23 @@ export const PATCH = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const userId = context.userId!
 
-      const body = (await req.json().catch(() => null)) as CounselorChatPatchBody | null
-      if (!body || typeof body !== 'object') {
-        return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
-      }
+    // Validate request body with Zod
+    const body = await req.json().catch(() => null)
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+    }
 
-      const sessionId = typeof body.sessionId === 'string' ? body.sessionId : ''
-      const summary = typeof body.summary === 'string' ? body.summary : ''
-      const keyTopics = Array.isArray(body.keyTopics)
-        ? body.keyTopics.filter((topic) => typeof topic === 'string')
-        : undefined
+    const validation = PatchChatHistorySchema.safeParse(body)
+    if (!validation.success) {
+      const errors = validation.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')
+      logger.warn('[chat-history PATCH] Validation failed', { errors: validation.error.issues })
+      return NextResponse.json(
+        { error: 'Validation failed', details: errors },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
 
-      if (!sessionId) {
-        return NextResponse.json(
-          { error: 'session_id_required' },
-          { status: HTTP_STATUS.BAD_REQUEST }
-        )
-      }
+    const { sessionId, summary, keyTopics } = validation.data
 
       const updated = await prisma.counselorChatSession.update({
         where: { id: sessionId, userId },

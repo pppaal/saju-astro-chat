@@ -1,7 +1,7 @@
 "use client";
 
 // src/components/calendar/SelectedDatePanel.tsx
-import React, { useCallback } from 'react';
+import React, { useCallback, memo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useI18n } from '@/i18n/I18nProvider';
 import styles from './DestinyCalendar.module.css';
@@ -61,7 +61,7 @@ const GRADE_STYLES: Record<number, { bg: string; border: string; text: string }>
 const WEEKDAYS_KO = ["일", "월", "화", "수", "목", "금", "토"];
 const WEEKDAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export default function SelectedDatePanel({
+const SelectedDatePanel = memo(function SelectedDatePanel({
   selectedDay,
   selectedDate,
   savedDates,
@@ -413,4 +413,6 @@ export default function SelectedDatePanel({
       )}
     </div>
   );
-}
+});
+
+export default SelectedDatePanel;

@@ -1,104 +1,127 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
-import { prisma, Prisma } from '@/lib/db/prisma';
-import { logger } from '@/lib/logger';
-import type { ICPQuizAnswers } from '@/lib/icp/types';
-import type { PersonaQuizAnswers } from '@/lib/persona/types';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/authOptions'
+import { prisma, Prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/logger'
+import type { ICPQuizAnswers } from '@/lib/icp/types'
+import type { PersonaQuizAnswers } from '@/lib/persona/types'
+import { HTTP_STATUS } from '@/lib/constants/http'
+import { csrfGuard } from '@/lib/security/csrf'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 interface SaveCompatibilityRequest {
   person1: {
-    userId?: string;
-    name?: string;
+    userId?: string
+    name?: string
     icp: {
-      primaryStyle: string;
-      secondaryStyle: string | null;
-      dominanceScore: number;
-      affiliationScore: number;
-      octantScores: Record<string, number>;
-    };
+      primaryStyle: string
+      secondaryStyle: string | null
+      dominanceScore: number
+      affiliationScore: number
+      octantScores: Record<string, number>
+    }
     persona: {
-      typeCode: string;
-      personaName: string;
-      energyScore: number;
-      cognitionScore: number;
-      decisionScore: number;
-      rhythmScore: number;
-    };
-    icpAnswers?: ICPQuizAnswers;
-    personaAnswers?: PersonaQuizAnswers;
-  };
+      typeCode: string
+      personaName: string
+      energyScore: number
+      cognitionScore: number
+      decisionScore: number
+      rhythmScore: number
+    }
+    icpAnswers?: ICPQuizAnswers
+    personaAnswers?: PersonaQuizAnswers
+  }
   person2: {
-    userId?: string;
-    name?: string;
+    userId?: string
+    name?: string
     icp: {
-      primaryStyle: string;
-      secondaryStyle: string | null;
-      dominanceScore: number;
-      affiliationScore: number;
-      octantScores: Record<string, number>;
-    };
+      primaryStyle: string
+      secondaryStyle: string | null
+      dominanceScore: number
+      affiliationScore: number
+      octantScores: Record<string, number>
+    }
     persona: {
-      typeCode: string;
-      personaName: string;
-      energyScore: number;
-      cognitionScore: number;
-      decisionScore: number;
-      rhythmScore: number;
-    };
-    icpAnswers?: ICPQuizAnswers;
-    personaAnswers?: PersonaQuizAnswers;
-  };
+      typeCode: string
+      personaName: string
+      energyScore: number
+      cognitionScore: number
+      decisionScore: number
+      rhythmScore: number
+    }
+    icpAnswers?: ICPQuizAnswers
+    personaAnswers?: PersonaQuizAnswers
+  }
   compatibility: {
-    icpScore: number;
-    icpLevel: string;
-    icpLevelKo?: string;
-    icpDescription: string;
-    icpDescriptionKo?: string;
-    personaScore: number;
-    personaLevel: string;
-    personaLevelKo?: string;
-    personaDescription: string;
-    personaDescriptionKo?: string;
-    crossSystemScore: number;
-    crossSystemLevel: string;
-    crossSystemLevelKo?: string;
-    crossSystemDescription: string;
-    crossSystemDescriptionKo?: string;
-    synergies?: string[];
-    synergiesKo?: string[];
-    tensions?: string[];
-    tensionsKo?: string[];
-    insights?: string[];
-    insightsKo?: string[];
-  };
-  locale?: string;
+    icpScore: number
+    icpLevel: string
+    icpLevelKo?: string
+    icpDescription: string
+    icpDescriptionKo?: string
+    personaScore: number
+    personaLevel: string
+    personaLevelKo?: string
+    personaDescription: string
+    personaDescriptionKo?: string
+    crossSystemScore: number
+    crossSystemLevel: string
+    crossSystemLevelKo?: string
+    crossSystemDescription: string
+    crossSystemDescriptionKo?: string
+    synergies?: string[]
+    synergiesKo?: string[]
+    tensions?: string[]
+    tensionsKo?: string[]
+    insights?: string[]
+    insightsKo?: string[]
+  }
+  locale?: string
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: HTTP_STATUS.UNAUTHORIZED }
-      );
+    // CSRF Protection
+    const csrfError = csrfGuard(req.headers)
+    if (csrfError) {
+      logger.warn('[CompatibilitySave] CSRF validation failed')
+      return csrfError
     }
 
-    const body: SaveCompatibilityRequest = await req.json();
-    const { person1, person2, compatibility, locale = 'en' } = body;
+    // Rate Limiting
+    const ip = getClientIp(req.headers)
+    const limit = await rateLimit(`compatibility-save:${ip}`, { limit: 30, windowSeconds: 60 })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
+      )
+    }
+
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+    }
+
+    const body: SaveCompatibilityRequest = await req.json()
+    const { person1, person2, compatibility, locale = 'en' } = body
 
     // Validate required fields
-    if (!person1?.icp || !person1?.persona || !person2?.icp || !person2?.persona || !compatibility) {
+    if (
+      !person1?.icp ||
+      !person1?.persona ||
+      !person2?.icp ||
+      !person2?.persona ||
+      !compatibility
+    ) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
     // Save compatibility result to database
@@ -140,52 +163,60 @@ export async function POST(req: NextRequest) {
           insights: compatibility.insights,
           insightsKo: compatibility.insightsKo,
         },
-        person1Answers: person1.icpAnswers && person1.personaAnswers
-          ? { icp: person1.icpAnswers, persona: person1.personaAnswers } as unknown as Prisma.InputJsonValue
-          : Prisma.JsonNull,
-        person2Answers: person2.icpAnswers && person2.personaAnswers
-          ? { icp: person2.icpAnswers, persona: person2.personaAnswers } as unknown as Prisma.InputJsonValue
-          : Prisma.JsonNull,
+        person1Answers:
+          person1.icpAnswers && person1.personaAnswers
+            ? ({
+                icp: person1.icpAnswers,
+                persona: person1.personaAnswers,
+              } as unknown as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
+        person2Answers:
+          person2.icpAnswers && person2.personaAnswers
+            ? ({
+                icp: person2.icpAnswers,
+                persona: person2.personaAnswers,
+              } as unknown as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
         locale,
       },
-    });
+    })
 
-    logger.info('Compatibility result saved', { userId: session.user.id, id: compatibilityResult.id });
+    logger.info('Compatibility result saved', {
+      userId: session.user.id,
+      id: compatibilityResult.id,
+    })
 
     return NextResponse.json({
       success: true,
       id: compatibilityResult.id,
       createdAt: compatibilityResult.createdAt,
-    });
+    })
   } catch (error) {
-    logger.error('Error saving compatibility result:', error);
+    logger.error('Error saving compatibility result:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }
 
 // GET endpoint to retrieve compatibility result by ID
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: HTTP_STATUS.UNAUTHORIZED }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
+    const { searchParams } = new URL(req.url)
+    const id = searchParams.get('id')
 
     if (!id) {
       return NextResponse.json(
         { error: 'Missing id parameter' },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
     const compatibilityResult = await prisma.compatibilityResult.findFirst({
@@ -193,23 +224,23 @@ export async function GET(req: NextRequest) {
         id,
         userId: session.user.id,
       },
-    });
+    })
 
     if (!compatibilityResult) {
       return NextResponse.json(
         { error: 'Compatibility result not found' },
         { status: HTTP_STATUS.NOT_FOUND }
-      );
+      )
     }
 
     return NextResponse.json({
       result: compatibilityResult,
-    });
+    })
   } catch (error) {
-    logger.error('Error retrieving compatibility result:', error);
+    logger.error('Error retrieving compatibility result:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }

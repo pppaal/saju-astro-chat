@@ -30,25 +30,24 @@ export async function GET() {
       user = { referralCode: code };
     }
 
-    // Count total referrals
-    const totalReferrals = await prisma.user.count({
-      where: { referrerId: userId },
-    });
+    // 최적화: Prisma aggregation 사용 (메모리 필터링 제거)
+    const [totalReferrals, pendingCount, completedStats] = await Promise.all([
+      prisma.user.count({
+        where: { referrerId: userId },
+      }),
+      prisma.referralReward.count({
+        where: { userId, status: "pending" },
+      }),
+      prisma.referralReward.aggregate({
+        where: { userId, status: "completed" },
+        _count: true,
+        _sum: { creditsAwarded: true },
+      }),
+    ]);
 
-    // Get referral rewards
-    const rewards = await prisma.referralReward.findMany({
-      where: { userId },
-      select: {
-        status: true,
-        creditsAwarded: true,
-      },
-    });
-
-    const pendingRewards = rewards.filter((r) => r.status === "pending").length;
-    const completedRewards = rewards.filter((r) => r.status === "completed").length;
-    const totalCreditsEarned = rewards
-      .filter((r) => r.status === "completed")
-      .reduce((sum, r) => sum + r.creditsAwarded, 0);
+    const pendingRewards = pendingCount;
+    const completedRewards = completedStats._count;
+    const totalCreditsEarned = completedStats._sum.creditsAwarded || 0;
 
     return NextResponse.json({
       referralCode: user.referralCode,

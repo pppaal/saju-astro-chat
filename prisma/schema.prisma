@@ -202,6 +202,7 @@ model ConsultationHistory {
 
   @@index([userId, createdAt])
   @@index([userId, theme])
+  @@index([userId, theme, createdAt]) // theme별 정렬 조회 최적화
 }
 
 // 섹션별 피드백 - AI 품질 개선용
@@ -906,6 +907,7 @@ model MatchMessage {
 
   @@index([connectionId, createdAt])
   @@index([senderId])
+  @@index([connectionId, isRead, senderId]) // 읽지 않은 메시지 조회 최적화
 }
 
 // 🔒 Admin Audit Log - 관리자 작업 감사 로그

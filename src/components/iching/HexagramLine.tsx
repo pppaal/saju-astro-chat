@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback, memo } from 'react';
 
 interface HexagramLineProps {
   type: 'solid' | 'broken';
@@ -11,7 +11,7 @@ interface HexagramLineProps {
   locale?: string;
 }
 
-function HexagramLine({
+const HexagramLine = memo(function HexagramLine({
   type,
   isChanging,
   onClick,
@@ -21,19 +21,25 @@ function HexagramLine({
 }: HexagramLineProps) {
   const [isHovered, setIsHovered] = useState(false);
 
-  // Gradient colors need to stay as inline styles (dynamic gradients)
-  const lineColor = isChanging
-    ? 'linear-gradient(90deg, #fbbf24, #f59e0b)'
-    : 'linear-gradient(90deg, rgba(197, 166, 255, 0.9), #ffffff, rgba(197, 166, 255, 0.9))';
+  // Gradient colors 메모이제이션
+  const lineColor = useMemo(() =>
+    isChanging
+      ? 'linear-gradient(90deg, #fbbf24, #f59e0b)'
+      : 'linear-gradient(90deg, rgba(197, 166, 255, 0.9), #ffffff, rgba(197, 166, 255, 0.9))',
+    [isChanging]
+  );
 
-  const hoverLineColor = isChanging
-    ? 'linear-gradient(90deg, #fcd34d, #fbbf24)'
-    : 'linear-gradient(90deg, rgba(220, 200, 255, 1), #ffffff, rgba(220, 200, 255, 1))';
+  const hoverLineColor = useMemo(() =>
+    isChanging
+      ? 'linear-gradient(90deg, #fcd34d, #fbbf24)'
+      : 'linear-gradient(90deg, rgba(220, 200, 255, 1), #ffffff, rgba(220, 200, 255, 1))',
+    [isChanging]
+  );
 
   const currentLineColor = clickable && isHovered ? hoverLineColor : lineColor;
 
-  // Dynamic box-shadow values
-  const getBoxShadow = () => {
+  // Box-shadow 메모이제이션
+  const boxShadow = useMemo(() => {
     if (isChanging) {
       return isHovered
         ? '0 0 16px rgba(251, 191, 36, 0.8)'
@@ -42,34 +48,37 @@ function HexagramLine({
     return isHovered
       ? '0 0 12px rgba(255, 255, 255, 0.5)'
       : '0 0 8px rgba(255, 255, 255, 0.3)';
-  };
+  }, [isChanging, isHovered]);
 
-  // Localized text
-  const lineLabel = locale === 'ko' ? '효' : '';
-  const changingLabel = locale === 'ko' ? '변' : '⟳';
-  const tooltipText = locale === 'ko'
-    ? '클릭하여 변효 설정/해제'
-    : 'Click to toggle changing line';
+  // Localized text 메모이제이션
+  const lineLabel = useMemo(() => locale === 'ko' ? '효' : '', [locale]);
+  const changingLabel = useMemo(() => locale === 'ko' ? '변' : '⟳', [locale]);
+  const tooltipText = useMemo(() =>
+    locale === 'ko'
+      ? '클릭하여 변효 설정/해제'
+      : 'Click to toggle changing line',
+    [locale]
+  );
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     if (clickable && onClick) {
       onClick();
     }
-  };
+  }, [clickable, onClick]);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     if (clickable) {setIsHovered(true);}
-  };
+  }, [clickable]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     setIsHovered(false);
-  };
+  }, []);
 
-  // Line segment style (for broken lines)
-  const lineSegmentStyle = {
+  // Line segment style 메모이제이션
+  const lineSegmentStyle = useMemo(() => ({
     background: currentLineColor,
-    boxShadow: getBoxShadow(),
-  };
+    boxShadow: boxShadow,
+  }), [currentLineColor, boxShadow]);
 
   if (type === 'broken') {
     return (
@@ -150,7 +159,7 @@ function HexagramLine({
           ${clickable && isHovered ? 'scale-x-105' : 'scale-x-100'}`}
         style={{
           background: currentLineColor,
-          boxShadow: getBoxShadow(),
+          boxShadow: boxShadow,
         }}
       />
 
@@ -163,6 +172,6 @@ function HexagramLine({
       )}
     </div>
   );
-};
+});
 
 export default HexagramLine;

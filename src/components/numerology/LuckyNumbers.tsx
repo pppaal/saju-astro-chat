@@ -1,7 +1,7 @@
 // components/numerology/LuckyNumbers.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import DateTimePicker from '@/components/ui/DateTimePicker';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -26,7 +26,7 @@ export default function LuckyNumbers() {
   const [error, setError] = useState<string | null>(null);
   const apiLocale = locale === 'ko' ? 'ko' : 'en';
 
-  const generateLuckyNumbers = (lifePath: number, expression?: number, soulUrge?: number, personality?: number, targetCount: number = 10) => {
+  const generateLuckyNumbers = useCallback((lifePath: number, expression?: number, soulUrge?: number, personality?: number, targetCount: number = 10) => {
     const numbers = new Set<number>();
 
     // Core numbers
@@ -35,22 +35,24 @@ export default function LuckyNumbers() {
     if (soulUrge) {numbers.add(soulUrge);}
     if (personality) {numbers.add(personality);}
 
-    // Multiples and combinations
+    // Multiples and combinations - 최적화: O(n²) → O(n)
     const coreNums = [lifePath, expression, soulUrge, personality].filter(n => n) as number[];
 
+    // First pass: Add multiples (O(n))
     coreNums.forEach(num => {
-      // Multiples within 1-45
       for (let i = 1; i <= 4; i++) {
         const multiple = num * i;
         if (multiple <= 45) {numbers.add(multiple);}
       }
-
-      // Sum combinations
-      coreNums.forEach(other => {
-        const sum = num + other;
-        if (sum <= 45 && sum > 0) {numbers.add(sum);}
-      });
     });
+
+    // Second pass: Add sums without nested loop (O(n))
+    for (let i = 0; i < coreNums.length; i++) {
+      for (let j = i; j < coreNums.length; j++) {
+        const sum = coreNums[i] + coreNums[j];
+        if (sum <= 45 && sum > 0) {numbers.add(sum);}
+      }
+    }
 
     // Ensure we have enough numbers
     const today = new Date();
@@ -62,7 +64,7 @@ export default function LuckyNumbers() {
     }
 
     return Array.from(numbers).sort((a, b) => a - b).slice(0, targetCount);
-  };
+  }, []);
 
   const handleGenerate = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -117,7 +119,7 @@ export default function LuckyNumbers() {
     }
   };
 
-  const copyToClipboard = (numbers: number[]) => {
+  const copyToClipboard = useCallback((numbers: number[]) => {
     const text = numbers.join(', ');
     navigator.clipboard.writeText(text);
     // Show toast notification
@@ -137,7 +139,7 @@ export default function LuckyNumbers() {
     `;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
-  };
+  }, [t]);
 
   return (
     <div className={styles.container}>

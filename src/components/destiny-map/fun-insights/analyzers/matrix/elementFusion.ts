@@ -91,7 +91,20 @@ function getFusionDescriptionEn(sajuEl: string, westEl: string, planet: string, 
 }
 
 /**
- * 오행-원소 융합 분석
+ * Analyzes the fusion between Saju Five Elements and Western Four Elements
+ *
+ * This function combines the Five Elements system from Saju (사주) with the Four Elements
+ * from Western astrology to identify synergies and conflicts in a person's energy patterns.
+ *
+ * @param saju - Saju birth data containing Five Elements information
+ * @param astro - Western astrology data containing planetary positions and zodiac signs
+ * @returns Array of element fusion results with interaction details, scores, and descriptions
+ *
+ * @example
+ * ```typescript
+ * const fusions = analyzeElementFusion(sajuData, astroData);
+ * // Returns: [{ sajuElement: '목', westElement: 'air', planet: 'Jupiter', fusion: {...} }]
+ * ```
  */
 export function analyzeElementFusion(
   saju: SajuData | undefined,
@@ -156,7 +169,22 @@ export function analyzeElementFusion(
 }
 
 /**
- * 개별 오행-원소 융합 설명 조회
+ * Retrieves a formatted description for a specific element fusion combination
+ *
+ * This function looks up the interaction data between a Saju Five Element and
+ * a Western Four Element, returning a formatted string with the keyword, level,
+ * and score information.
+ *
+ * @param sajuElement - The Five Element from Saju (木/火/土/金/水)
+ * @param westElement - The Western element (fire/earth/air/water)
+ * @param lang - Language code ('ko' for Korean, 'en' for English)
+ * @returns Formatted description string, or null if no interaction data found
+ *
+ * @example
+ * ```typescript
+ * const desc = getElementFusionDescription('목', 'air', 'ko');
+ * // Returns: "목(사주) × air(서양) = 조화로운 흐름 (극강 시너지, 점수: 10/10)"
+ * ```
  */
 export function getElementFusionDescription(
   sajuElement: FiveElement,

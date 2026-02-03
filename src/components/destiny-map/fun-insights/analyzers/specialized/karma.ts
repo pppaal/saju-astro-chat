@@ -33,8 +33,33 @@ function getWestElementFromSign(sign: string): WesternElement {
 }
 
 /**
- * Analyze karmic patterns using destiny matrix
- * Combines Saju soul patterns with astrological karmic indicators
+ * Analyzes karmic patterns using the Destiny Fusion Matrix™
+ *
+ * This specialized analysis explores the soul's journey and karmic lessons by combining:
+ * 1. **Soul Pattern (영혼 패턴)**: Analyzes the 격국 (Geokguk) pattern combined with
+ *    Draconic progressions to reveal the soul's core blueprint
+ * 2. **Node Axis Analysis**: Examines North Node (future path) and South Node (past patterns)
+ *    interactions with the day master element
+ * 3. **Karmic Shinsals**: Identifies karmic Shinsal (신살) influences like 역마, 백호, etc.
+ * 4. **Karmic Lessons**: Extracts lessons from relation-aspect patterns and advanced analysis
+ *
+ * The analysis reveals past life patterns, current karmic missions, and soul evolution paths.
+ *
+ * @param saju - Saju birth data with Geokguk pattern and Shinsal information
+ * @param astro - Western astrology data with North/South Nodes and karmic aspects
+ * @param lang - Language code ('ko' for Korean, 'en' for English)
+ * @returns Comprehensive karma matrix analysis with soul patterns and lessons, or null if no data
+ *
+ * @example
+ * ```typescript
+ * const karma = getKarmaMatrixAnalysis(sajuData, astroData, 'ko');
+ * // Returns: {
+ * //   soulPattern: { geokguk: '식신격', fusion: {...}, soulTheme: {...} },
+ * //   nodeAxis: { northNode: {...}, southNode: {...}, karmaBalance: 75 },
+ * //   karmaShinsals: [{ shinsal: '역마', category: 'dynamic', ... }],
+ * //   karmaLessons: ['과거의 집착 해방', ...]
+ * // }
+ * ```
  */
 export function getKarmaMatrixAnalysis(
   saju: SajuData | ExtendedSajuData | undefined,

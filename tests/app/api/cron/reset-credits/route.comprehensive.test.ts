@@ -3,29 +3,32 @@
  * Tests scheduled tasks, authentication, and credit management
  */
 
-import { GET, POST } from '@/app/api/cron/reset-credits/route'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
-import { resetAllExpiredCredits, expireBonusCredits } from '@/lib/credits/creditService'
 
 // Mock dependencies
-jest.mock('@/lib/credits/creditService', () => ({
-  resetAllExpiredCredits: jest.fn(),
-  expireBonusCredits: jest.fn(),
+vi.mock('@/lib/credits/creditService', () => ({
+  resetAllExpiredCredits: vi.fn(),
+  expireBonusCredits: vi.fn(),
 }))
 
-jest.mock('@/lib/logger', () => ({
+vi.mock('@/lib/logger', () => ({
   logger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
   },
 }))
+
+import { GET, POST } from '@/app/api/cron/reset-credits/route'
+import { resetAllExpiredCredits, expireBonusCredits } from '@/lib/credits/creditService'
 
 describe('/api/cron/reset-credits', () => {
   const originalEnv = process.env
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     process.env = { ...originalEnv }
   })
 
@@ -53,11 +56,11 @@ describe('/api/cron/reset-credits', () => {
 
     it('should accept valid CRON_SECRET', async () => {
       process.env.CRON_SECRET = 'my-secret-key'
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(expireBonusCredits).mockResolvedValue({
         expired: 5,
         totalAmount: 500,
       })
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue({
         resetCount: 10,
         totalUsers: 100,
       })
@@ -77,10 +80,10 @@ describe('/api/cron/reset-credits', () => {
     it('should allow requests in development when CRON_SECRET not set', async () => {
       process.env.NODE_ENV = 'development'
       delete process.env.CRON_SECRET
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(expireBonusCredits).mockResolvedValue({
         expired: 0,
       })
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue({
         resetCount: 0,
       })
 
@@ -153,8 +156,8 @@ describe('/api/cron/reset-credits', () => {
         affectedUsers: 8,
       }
 
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue(bonusResult)
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(expireBonusCredits).mockResolvedValue(bonusResult)
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue({
         resetCount: 0,
       })
 
@@ -179,10 +182,10 @@ describe('/api/cron/reset-credits', () => {
         creditsReset: 2500,
       }
 
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(expireBonusCredits).mockResolvedValue({
         expired: 0,
       })
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue(monthlyResult)
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue(monthlyResult)
 
       const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
         method: 'GET',
@@ -199,10 +202,10 @@ describe('/api/cron/reset-credits', () => {
     })
 
     it('should run both operations in sequence', async () => {
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(expireBonusCredits).mockResolvedValue({
         expired: 5,
       })
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue({
         resetCount: 10,
       })
 
@@ -219,18 +222,16 @@ describe('/api/cron/reset-credits', () => {
       expect(expireBonusCredits).toHaveBeenCalled()
       expect(resetAllExpiredCredits).toHaveBeenCalled()
 
-      // Verify order (bonus expiration first, then monthly reset)
-      const bonusCall = (expireBonusCredits as jest.Mock).mock.invocationCallOrder[0]
-      const resetCall = (resetAllExpiredCredits as jest.Mock).mock.invocationCallOrder[0]
-      expect(bonusCall).toBeLessThan(resetCall)
+      // Verify order using toHaveBeenCalledBefore (from vitest-mock-extended or manual check)
+      expect(expireBonusCredits).toHaveBeenCalledBefore(resetAllExpiredCredits as any)
     })
 
     it('should handle zero results', async () => {
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(expireBonusCredits).mockResolvedValue({
         expired: 0,
         totalAmount: 0,
       })
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue({
         resetCount: 0,
         totalUsers: 0,
       })
@@ -252,11 +253,11 @@ describe('/api/cron/reset-credits', () => {
     })
 
     it('should handle large batch results', async () => {
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(expireBonusCredits).mockResolvedValue({
         expired: 1000,
         totalAmount: 100000,
       })
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue({
         resetCount: 5000,
         totalUsers: 10000,
       })
@@ -283,7 +284,7 @@ describe('/api/cron/reset-credits', () => {
     })
 
     it('should handle expireBonusCredits errors', async () => {
-      ;(expireBonusCredits as jest.Mock).mockRejectedValue(new Error('Database connection failed'))
+      vi.mocked(expireBonusCredits).mockRejectedValue(new Error('Database connection failed'))
 
       const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
         method: 'GET',
@@ -300,10 +301,10 @@ describe('/api/cron/reset-credits', () => {
     })
 
     it('should handle resetAllExpiredCredits errors', async () => {
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(expireBonusCredits).mockResolvedValue({
         expired: 5,
       })
-      ;(resetAllExpiredCredits as jest.Mock).mockRejectedValue(new Error('Transaction failed'))
+      vi.mocked(resetAllExpiredCredits).mockRejectedValue(new Error('Transaction failed'))
 
       const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
         method: 'GET',
@@ -320,7 +321,7 @@ describe('/api/cron/reset-credits', () => {
     })
 
     it('should handle non-Error exceptions', async () => {
-      ;(expireBonusCredits as jest.Mock).mockRejectedValue('String error')
+      vi.mocked(expireBonusCredits).mockRejectedValue('String error')
 
       const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
         method: 'GET',
@@ -338,12 +339,12 @@ describe('/api/cron/reset-credits', () => {
 
     it('should not fail if bonus expiration partially succeeds', async () => {
       // Simulate partial success scenario
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(expireBonusCredits).mockResolvedValue({
         expired: 5,
         failed: 2,
         errors: ['User not found', 'Transaction conflict'],
       })
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue({
         resetCount: 10,
       })
 
@@ -378,8 +379,8 @@ describe('/api/cron/reset-credits', () => {
         totalUsers: 100,
       }
 
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue(bonusResult)
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue(monthlyResult)
+      vi.mocked(expireBonusCredits).mockResolvedValue(bonusResult)
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue(monthlyResult)
 
       const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
         method: 'GET',
@@ -416,8 +417,8 @@ describe('/api/cron/reset-credits', () => {
         },
       }
 
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue(bonusResult)
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue(monthlyResult)
+      vi.mocked(expireBonusCredits).mockResolvedValue(bonusResult)
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue(monthlyResult)
 
       const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
         method: 'GET',
@@ -440,10 +441,10 @@ describe('/api/cron/reset-credits', () => {
     })
 
     it('should support POST requests', async () => {
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(expireBonusCredits).mockResolvedValue({
         expired: 5,
       })
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue({
         resetCount: 10,
       })
 
@@ -480,8 +481,8 @@ describe('/api/cron/reset-credits', () => {
       const bonusResult = { expired: 5 }
       const monthlyResult = { resetCount: 10 }
 
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue(bonusResult)
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue(monthlyResult)
+      vi.mocked(expireBonusCredits).mockResolvedValue(bonusResult)
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue(monthlyResult)
 
       const getReq = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
         method: 'GET',
@@ -500,9 +501,9 @@ describe('/api/cron/reset-credits', () => {
       const getResponse = await GET(getReq)
       const getData = await getResponse.json()
 
-      jest.clearAllMocks()
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue(bonusResult)
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue(monthlyResult)
+      vi.clearAllMocks()
+      vi.mocked(expireBonusCredits).mockResolvedValue(bonusResult)
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue(monthlyResult)
 
       const postResponse = await POST(postReq)
       const postData = await postResponse.json()
@@ -514,10 +515,10 @@ describe('/api/cron/reset-credits', () => {
   describe('Security', () => {
     it('should not expose CRON_SECRET in responses', async () => {
       process.env.CRON_SECRET = 'super-secret-key'
-      ;(expireBonusCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(expireBonusCredits).mockResolvedValue({
         expired: 5,
       })
-      ;(resetAllExpiredCredits as jest.Mock).mockResolvedValue({
+      vi.mocked(resetAllExpiredCredits).mockResolvedValue({
         resetCount: 10,
       })
 
@@ -537,7 +538,7 @@ describe('/api/cron/reset-credits', () => {
 
     it('should not leak sensitive information in error messages', async () => {
       process.env.CRON_SECRET = 'test-secret'
-      ;(expireBonusCredits as jest.Mock).mockRejectedValue(
+      vi.mocked(expireBonusCredits).mockRejectedValue(
         new Error('Database password: secret123 connection failed')
       )
 

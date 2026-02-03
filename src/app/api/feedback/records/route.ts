@@ -1,25 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from 'zod';
 import { prisma } from "@/lib/db/prisma";
 import { logger } from '@/lib/logger';
 import { HTTP_STATUS } from '@/lib/constants/http';
 
+// Zod schema for GET query parameters
+const FeedbackRecordsQuerySchema = z.object({
+  service: z.string().optional(),
+  theme: z.string().optional(),
+  helpful: z.enum(['true', 'false']).transform(val => val === 'true').optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const service = searchParams.get("service");
-    const theme = searchParams.get("theme");
-    const helpful = searchParams.get("helpful");
-    const limit = parseInt(searchParams.get("limit") || "100", 10);
+
+    // Validate query parameters with Zod
+    const validation = FeedbackRecordsQuerySchema.safeParse({
+      service: searchParams.get("service"),
+      theme: searchParams.get("theme"),
+      helpful: searchParams.get("helpful"),
+      limit: searchParams.get("limit"),
+    });
+
+    if (!validation.success) {
+      const errors = validation.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ');
+      logger.warn('[feedback/records] Validation failed', { errors: validation.error.issues });
+      return NextResponse.json(
+        { error: 'Validation failed', details: errors },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      );
+    }
+
+    const { service, theme, helpful, limit } = validation.data;
 
     const where: { service?: string; theme?: string; helpful?: boolean } = {};
-    if (service) {where.service = service;}
-    if (theme) {where.theme = theme;}
-    if (helpful !== null) {where.helpful = helpful === "true";}
+    if (service) { where.service = service; }
+    if (theme) { where.theme = theme; }
+    if (helpful !== undefined) { where.helpful = helpful; }
 
     const records = await prisma.sectionFeedback.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      take: Math.min(limit, 500),
+      take: limit,
       select: {
         id: true,
         service: true,

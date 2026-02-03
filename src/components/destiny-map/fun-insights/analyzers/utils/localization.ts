@@ -4,7 +4,26 @@
 import { elementNameKo, westElementNameKo } from './elementMapping';
 
 /**
- * Gets localized description for fusion level
+ * Gets localized description for a fusion interaction level
+ *
+ * Converts a fusion level keyword into human-readable text in Korean or English.
+ * The levels represent different qualities of energetic interaction between elements,
+ * planets, or other astrological/Saju factors.
+ *
+ * @param level - Fusion level keyword:
+ *   - 'extreme': Highest synergy, perfect resonance (극강 시너지)
+ *   - 'amplify': Strengthening effect (증폭 효과)
+ *   - 'balance': Harmonious equilibrium (균형 상태)
+ *   - 'clash': Minor tension or friction (긴장 관계)
+ *   - 'conflict': Opposing or contradictory energy (상충 에너지)
+ * @param isKo - If true, returns Korean text; if false, returns English text
+ * @returns Localized description string for the fusion level
+ *
+ * @example
+ * ```typescript
+ * getLevelDescription('extreme', true) // Returns: '극강 시너지'
+ * getLevelDescription('balance', false) // Returns: 'Balanced State'
+ * ```
  */
 export function getLevelDescription(level: string, isKo: boolean): string {
   const descriptions: Record<string, { ko: string; en: string }> = {
@@ -18,7 +37,23 @@ export function getLevelDescription(level: string, isKo: boolean): string {
 }
 
 /**
- * Generates fusion description in Korean
+ * Generates a detailed fusion description in Korean
+ *
+ * Creates a natural-language Korean description explaining how a person's Saju element
+ * interacts with a planet's Western element. The description varies based on the
+ * interaction level, from perfect resonance to conflict.
+ *
+ * @param sajuEl - Saju Five Element in Korean ('목', '화', '토', '금', '수')
+ * @param westEl - Western Four Element ('fire', 'earth', 'air', 'water')
+ * @param planet - Planet name (e.g., 'Sun', 'Moon', 'Venus', '태양', '달')
+ * @param level - Interaction level ('extreme', 'amplify', 'balance', 'clash', 'conflict')
+ * @returns Korean fusion description with emotive, engaging language
+ *
+ * @example
+ * ```typescript
+ * getFusionDescriptionKo('목', 'air', '태양', 'extreme')
+ * // Returns: "당신의 나무 기운과 태양의 바람 에너지가 완벽하게 공명해요!"
+ * ```
  */
 export function getFusionDescriptionKo(
   sajuEl: string,
@@ -41,7 +76,23 @@ export function getFusionDescriptionKo(
 }
 
 /**
- * Generates fusion description in English
+ * Generates a detailed fusion description in English
+ *
+ * Creates a natural-language English description explaining how a person's Saju element
+ * interacts with a planet's Western element. The description varies based on the
+ * interaction level, from perfect resonance to conflict.
+ *
+ * @param sajuEl - Saju Five Element in Korean ('목', '화', '토', '금', '수')
+ * @param westEl - Western Four Element ('fire', 'earth', 'air', 'water')
+ * @param planet - Planet name (e.g., 'Sun', 'Moon', 'Venus')
+ * @param level - Interaction level ('extreme', 'amplify', 'balance', 'clash', 'conflict')
+ * @returns English fusion description with clear, accessible language
+ *
+ * @example
+ * ```typescript
+ * getFusionDescriptionEn('목', 'air', 'Sun', 'extreme')
+ * // Returns: "Your 목 energy and Sun's air element resonate perfectly!"
+ * ```
  */
 export function getFusionDescriptionEn(
   sajuEl: string,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, memo } from 'react';
 import DreamSymbolCard from '@/components/dream/DreamSymbolCard';
 import { SectionHeader } from '../SectionHeader';
 import styles from './DreamSymbolsSection.module.css';
@@ -18,9 +18,11 @@ interface DreamSymbolsSectionProps {
   locale: string;
 }
 
-export function DreamSymbolsSection({ symbols, locale }: DreamSymbolsSectionProps) {
-  const isKo = locale === 'ko';
-  const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
+// 색상 배열을 컴포넌트 외부로 이동 (재생성 방지)
+const SYMBOL_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
+
+export const DreamSymbolsSection = memo(function DreamSymbolsSection({ symbols, locale }: DreamSymbolsSectionProps) {
+  const isKo = useMemo(() => locale === 'ko', [locale]);
 
   return (
     <div className={styles.symbolsSection}>
@@ -31,10 +33,10 @@ export function DreamSymbolsSection({ symbols, locale }: DreamSymbolsSectionProp
       />
       <div className={styles.symbolsScroll}>
         {symbols.map((sym, i) => {
-          const color = colors[i % colors.length];
+          const color = SYMBOL_COLORS[i % SYMBOL_COLORS.length];
           return (
             <DreamSymbolCard
-              key={i}
+              key={sym.label}
               symbol={sym.label}
               meaning={sym.meaning}
               interpretations={sym.interpretations}
@@ -46,4 +48,4 @@ export function DreamSymbolsSection({ symbols, locale }: DreamSymbolsSectionProp
       </div>
     </div>
   );
-}
+});

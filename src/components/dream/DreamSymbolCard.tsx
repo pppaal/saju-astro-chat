@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import styles from './DreamSymbolCard.module.css';
 
@@ -18,7 +18,7 @@ export interface DreamSymbolCardProps {
   locale?: 'ko' | 'en';
 }
 
-export default function DreamSymbolCard({
+const DreamSymbolCard = memo(function DreamSymbolCard({
   symbol,
   meaning,
   interpretations,
@@ -27,9 +27,25 @@ export default function DreamSymbolCard({
 }: DreamSymbolCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
 
-  const handleFlip = () => {
-    setIsFlipped(!isFlipped);
-  };
+  const handleFlip = useCallback(() => {
+    setIsFlipped((prev) => !prev);
+  }, []);
+
+  // Gradient 스타일 메모이제이션
+  const frontGradient = useMemo(
+    () => `linear-gradient(135deg, ${color}20, ${color}40)`,
+    [color]
+  );
+  const backGradient = useMemo(
+    () => `linear-gradient(135deg, ${color}30, ${color}50)`,
+    [color]
+  );
+  const glowGradient = useMemo(
+    () => `radial-gradient(circle, ${color}30, transparent)`,
+    [color]
+  );
+  const borderColor = useMemo(() => `${color}60`, [color]);
+  const borderColorBack = useMemo(() => `${color}70`, [color]);
 
   return (
     <div className={styles.cardContainer}>
@@ -44,8 +60,8 @@ export default function DreamSymbolCard({
         <div
           className={styles.cardFront}
           style={{
-            background: `linear-gradient(135deg, ${color}20, ${color}40)`,
-            borderColor: `${color}60`,
+            background: frontGradient,
+            borderColor: borderColor,
           }}
         >
           <div className={styles.frontContent}>
@@ -61,7 +77,7 @@ export default function DreamSymbolCard({
           </div>
           <div
             className={styles.cardGlow}
-            style={{ background: `radial-gradient(circle, ${color}30, transparent)` }}
+            style={{ background: glowGradient }}
           />
         </div>
 
@@ -69,8 +85,8 @@ export default function DreamSymbolCard({
         <div
           className={styles.cardBack}
           style={{
-            background: `linear-gradient(135deg, ${color}30, ${color}50)`,
-            borderColor: `${color}70`,
+            background: backGradient,
+            borderColor: borderColorBack,
           }}
         >
           <div className={styles.backContent}>
@@ -130,4 +146,6 @@ export default function DreamSymbolCard({
       </motion.div>
     </div>
   );
-}
+});
+
+export default DreamSymbolCard;

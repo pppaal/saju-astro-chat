@@ -2,64 +2,38 @@ import { NextRequest, NextResponse } from 'next/server'
 import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware'
 import { createTransformedSSEStream, createFallbackSSEStream } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'
-import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
+import { containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { sanitizeLocaleText } from '@/lib/destiny-map/sanitize'
 import { maskTextWithName } from '@/lib/security'
 import { enforceBodySize } from '@/lib/http'
 import { jsonErrorResponse } from '@/lib/api/errorHandler'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import {
-  calculateNatalChart,
-  calculateTransitChart,
-  findMajorTransits,
-  toChart,
-} from '@/lib/astrology'
-import { buildAllDataPrompt } from '@/lib/destiny-map/prompt/fortune/base'
-import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
-import {
-  isValidDate,
-  isValidTime,
-  isValidLatitude,
-  isValidLongitude,
-  LIMITS,
-} from '@/lib/validation'
+import { isValidDate, isValidTime, isValidLatitude, isValidLongitude } from '@/lib/validation'
 import { logger } from '@/lib/logger'
-import { toSajuDataStructure } from '@/lib/destiny-map/type-guards'
-import { parseDateComponents, parseTimeComponents, extractBirthYear } from '@/lib/prediction/utils'
+import { parseRequestBody } from '@/lib/api/requestParser'
+import { HTTP_STATUS } from '@/lib/constants/http'
 
-// Local modules (extracted from this file)
+// Local modules
 import {
   type ChatMessage,
-  type SajuDataStructure,
-  type AstroDataStructure,
-  ALLOWED_LANG,
-  ALLOWED_GENDER,
-  MAX_MESSAGES,
   clampMessages,
   counselorSystemPrompt,
   loadUserProfile,
   loadPersonaMemory,
 } from './lib'
-import { generateTier3Analysis, generateTier4Analysis } from './analysis'
-
-// Builders
-import { buildAdvancedTimingSection } from './builders/advancedTimingBuilder'
-import { buildDailyPrecisionSection } from './builders/dailyPrecisionBuilder'
-import { buildDaeunTransitSection } from './builders/daeunTransitBuilder'
 import {
-  buildPastAnalysisSection,
-  buildMultiYearTrendSection,
-} from './builders/lifeAnalysisBuilder'
+  validateDestinyMapRequest,
+  type DestinyMapChatStreamInput,
+} from './lib/validation'
+import { calculateChartData } from './lib/chart-calculator'
+import {
+  buildContextSections,
+  buildPredictionSection,
+  buildLongTermMemorySection,
+} from './lib/context-builder'
 
-import { parseRequestBody } from '@/lib/api/requestParser'
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 60
-
-// Constants that are only used locally in this file
-const ALLOWED_ROLE = new Set(['system', 'user', 'assistant'])
 
 export async function POST(req: NextRequest) {
   try {
@@ -85,6 +59,7 @@ export async function POST(req: NextRequest) {
 
     const userId = context.userId
 
+    // Parse and validate request body using Zod
     const body = await parseRequestBody<Record<string, unknown>>(req, {
       context: 'Destiny-map Chat-stream',
     })
@@ -92,36 +67,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
     }
 
-    const name = typeof body.name === 'string' ? body.name.trim().slice(0, LIMITS.NAME) : undefined
-    const birthDate = typeof body.birthDate === 'string' ? body.birthDate.trim() : ''
-    const birthTime = typeof body.birthTime === 'string' ? body.birthTime.trim() : ''
-    const gender =
-      typeof body.gender === 'string' && ALLOWED_GENDER.has(body.gender) ? body.gender : 'male'
-    const latitude = typeof body.latitude === 'number' ? body.latitude : Number(body.latitude)
-    const longitude = typeof body.longitude === 'number' ? body.longitude : Number(body.longitude)
-    const theme = typeof body.theme === 'string' ? body.theme.trim().slice(0, LIMITS.THEME) : 'chat'
-    const lang = typeof body.lang === 'string' && ALLOWED_LANG.has(body.lang) ? body.lang : 'ko'
-    const messages = Array.isArray(body.messages) ? body.messages.slice(-MAX_MESSAGES) : []
-    let saju = body.saju as SajuDataStructure | undefined
-    let astro = body.astro as AstroDataStructure | undefined
-    const advancedAstro = body.advancedAstro as Partial<CombinedResult> | undefined // Advanced astrology features
-    const predictionContext = body.predictionContext // Life prediction TIER 1-10
-    const userContext = body.userContext
-    const cvText = typeof body.cvText === 'string' ? body.cvText : ''
+    const validation = validateDestinyMapRequest(body)
+    if (!validation.success) {
+      const errors = validation.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')
+      logger.warn('[chat-stream] Validation failed', { errors: validation.error.issues })
+      return NextResponse.json(
+        { error: 'Validation failed', details: errors, issues: validation.error.issues },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+
+    const validated = validation.data
+    const { name, birthDate, birthTime, gender, latitude, longitude, theme, lang, messages, saju, astro, advancedAstro, predictionContext, userContext, cvText } = validated
 
     // ========================================
     // 🔄 AUTO-LOAD: Try to load birth info from user profile if missing
     // ========================================
-    let effectiveBirthDate = birthDate
-    let effectiveBirthTime = birthTime
-    const effectiveLatitude = latitude
-    const effectiveLongitude = longitude
+    let effectiveBirthDate = birthDate || ''
+    let effectiveBirthTime = birthTime || ''
+    let effectiveLatitude = latitude || 0
+    let effectiveLongitude = longitude || 0
     let effectiveGender = gender
+    let effectiveSaju = saju
+    let effectiveAstro = astro
 
-    if (
-      userId &&
-      (!birthDate || !birthTime || !isValidLatitude(latitude) || !isValidLongitude(longitude))
-    ) {
+    const needsProfileLoad = userId && (!birthDate || !birthTime || !latitude || !longitude)
+
+    if (needsProfileLoad) {
       const profileResult = await loadUserProfile(
         userId,
         birthDate,
@@ -132,10 +104,10 @@ export async function POST(req: NextRequest) {
         astro
       )
       if (profileResult.saju) {
-        saju = profileResult.saju
+        effectiveSaju = profileResult.saju
       }
       if (profileResult.astro) {
-        astro = profileResult.astro as AstroDataStructure
+        effectiveAstro = profileResult.astro
       }
       if (profileResult.birthDate) {
         effectiveBirthDate = profileResult.birthDate
@@ -143,33 +115,30 @@ export async function POST(req: NextRequest) {
       if (profileResult.birthTime) {
         effectiveBirthTime = profileResult.birthTime
       }
+      if (profileResult.latitude) {
+        effectiveLatitude = profileResult.latitude
+      }
+      if (profileResult.longitude) {
+        effectiveLongitude = profileResult.longitude
+      }
       if (profileResult.gender) {
-        effectiveGender = profileResult.gender
+        effectiveGender = profileResult.gender as 'male' | 'female'
       }
     }
 
-    if (
-      !effectiveBirthDate ||
-      !effectiveBirthTime ||
-      !isValidLatitude(effectiveLatitude) ||
-      !isValidLongitude(effectiveLongitude)
-    ) {
-      return jsonErrorResponse('Missing required fields')
+    // Validate effective values
+    if (!effectiveBirthDate || !isValidDate(effectiveBirthDate)) {
+      return jsonErrorResponse('Invalid or missing birthDate')
     }
-    if (!isValidDate(effectiveBirthDate)) {
-      return jsonErrorResponse('Invalid birthDate')
-    }
-    if (!isValidTime(effectiveBirthTime)) {
-      return jsonErrorResponse('Invalid birthTime')
+    if (!effectiveBirthTime || !isValidTime(effectiveBirthTime)) {
+      return jsonErrorResponse('Invalid or missing birthTime')
     }
     if (!isValidLatitude(effectiveLatitude)) {
-      return jsonErrorResponse('Invalid latitude')
+      return jsonErrorResponse('Invalid or missing latitude')
     }
     if (!isValidLongitude(effectiveLongitude)) {
-      return jsonErrorResponse('Invalid longitude')
+      return jsonErrorResponse('Invalid or missing longitude')
     }
-
-    // Credits already consumed by middleware
 
     // ========================================
     // 🧠 LONG-TERM MEMORY: Load PersonaMemory and recent session summaries
@@ -183,147 +152,27 @@ export async function POST(req: NextRequest) {
       recentSessionSummaries = memoryResult.recentSessionSummaries
     }
 
-    // Compute saju if not provided or empty (with caching)
-    if (!saju || !saju.dayMaster) {
-      try {
-        const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'
-        const sajuCacheKey = CacheKeys.saju(
-          effectiveBirthDate,
-          effectiveBirthTime,
-          effectiveGender,
-          'solar'
-        )
-        const computedSaju = await cacheOrCalculate(
-          sajuCacheKey,
-          () =>
-            Promise.resolve(
-              calculateSajuData(
-                effectiveBirthDate,
-                effectiveBirthTime,
-                effectiveGender as 'male' | 'female',
-                'solar',
-                userTz
-              )
-            ),
-          CACHE_TTL.SAJU // 7 days - birth data doesn't change
-        )
-        const validatedSaju = toSajuDataStructure(computedSaju)
-        if (validatedSaju) {
-          saju = validatedSaju as SajuDataStructure
-        }
-        logger.debug('[chat-stream] Computed saju:', saju?.dayMaster?.heavenlyStem)
-      } catch (e) {
-        logger.warn('[chat-stream] Failed to compute saju:', e)
-      }
-    }
+    // ========================================
+    // 📊 COMPUTE CHART DATA: Saju, Astro, Transits (with caching)
+    // ========================================
+    const chartResult = await calculateChartData(
+      {
+        birthDate: effectiveBirthDate,
+        birthTime: effectiveBirthTime,
+        gender: effectiveGender,
+        latitude: effectiveLatitude,
+        longitude: effectiveLongitude,
+      },
+      effectiveSaju,
+      effectiveAstro
+    )
 
-    // 🔍 DEBUG: Log saju.unse to verify daeun data
-    logger.warn('[chat-stream] saju.unse exists:', !!saju?.unse)
-    logger.warn('[chat-stream] saju.unse.daeun count:', saju?.unse?.daeun?.length ?? 0)
-    if (saju?.unse?.daeun?.[0]) {
-      logger.warn('[chat-stream] First daeun:', JSON.stringify(saju.unse.daeun[0]))
-    }
+    const finalSaju = chartResult.saju
+    const finalAstro = chartResult.astro
+    const { natalChartData, currentTransits } = chartResult
 
-    // Compute astro if not provided or empty (with caching)
-    let natalChartData: Awaited<ReturnType<typeof calculateNatalChart>> | null = null
-    if (!astro || !astro.sun) {
-      try {
-        const { year, month, day } = parseDateComponents(effectiveBirthDate)
-        const { hour, minute } = parseTimeComponents(effectiveBirthTime)
-
-        const natalCacheKey = CacheKeys.natalChart(
-          effectiveBirthDate,
-          effectiveBirthTime,
-          effectiveLatitude,
-          effectiveLongitude
-        )
-        natalChartData = await cacheOrCalculate(
-          natalCacheKey,
-          () =>
-            calculateNatalChart({
-              year,
-              month,
-              date: day,
-              hour,
-              minute,
-              latitude: effectiveLatitude,
-              longitude: effectiveLongitude,
-              timeZone: 'Asia/Seoul', // Default timezone
-            }),
-          CACHE_TTL.NATAL_CHART // 30 days - birth chart doesn't change
-        )
-
-        // Transform planets array to expected format
-        const getPlanet = (name: string) => natalChartData!.planets.find((p) => p.name === name)
-        astro = {
-          sun: getPlanet('Sun'),
-          moon: getPlanet('Moon'),
-          mercury: getPlanet('Mercury'),
-          venus: getPlanet('Venus'),
-          mars: getPlanet('Mars'),
-          jupiter: getPlanet('Jupiter'),
-          saturn: getPlanet('Saturn'),
-          ascendant: natalChartData.ascendant,
-        }
-        logger.warn('[chat-stream] Computed astro:', (astro?.sun as { sign?: string })?.sign)
-      } catch (e) {
-        logger.warn('[chat-stream] Failed to compute astro:', e)
-      }
-    }
-
-    // Compute current transits for future predictions (cached per hour + location)
-    let currentTransits: unknown[] = []
-    if (natalChartData) {
-      try {
-        const now = new Date()
-        const isoNow = now.toISOString().slice(0, 19) // "YYYY-MM-DDTHH:mm:ss"
-
-        const transitCacheKey = CacheKeys.transitChart(effectiveLatitude, effectiveLongitude)
-        const transitChart = await cacheOrCalculate(
-          transitCacheKey,
-          () =>
-            calculateTransitChart({
-              iso: isoNow,
-              latitude: effectiveLatitude,
-              longitude: effectiveLongitude,
-              timeZone: 'Asia/Seoul',
-            }),
-          CACHE_TTL.TRANSIT_CHART
-        )
-
-        const natalChart = toChart(natalChartData)
-        const majorTransits = findMajorTransits(transitChart, natalChart)
-        currentTransits = majorTransits.map((t) => ({
-          transitPlanet: t.transitPlanet,
-          natalPoint: t.natalPoint,
-          aspectType: t.type,
-          orb: t.orb?.toFixed(1),
-          isApplying: t.isApplying,
-        }))
-        logger.warn('[chat-stream] Current transits found:', currentTransits.length)
-      } catch (e) {
-        logger.warn('[chat-stream] Failed to compute transits:', e)
-      }
-    }
-
-    const normalizedMessages: ChatMessage[] = []
-    for (const m of messages) {
-      if (!m || typeof m !== 'object') {
-        continue
-      }
-      const record = m as Record<string, unknown>
-      const role =
-        typeof record.role === 'string' && ALLOWED_ROLE.has(record.role)
-          ? (record.role as ChatMessage['role'])
-          : null
-      const content = typeof record.content === 'string' ? record.content.trim() : ''
-      if (!role || !content) {
-        continue
-      }
-      normalizedMessages.push({ role, content: content.slice(0, 2000) })
-    }
-
-    const trimmedHistory = clampMessages(normalizedMessages)
+    // Messages are already validated by Zod as ChatMessage[]
+    const trimmedHistory = clampMessages(messages)
 
     // Safety check
     const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
@@ -347,170 +196,29 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Build simple conversation context (NO heavy computation)
-    const historyText = trimmedHistory
-      .filter((m) => m.role !== 'system')
-      .map((m) => `${m.role === 'user' ? 'Q' : 'A'}: ${guardText(m.content, 300)}`)
-      .join('\n')
-      .slice(0, 1500)
+    // ========================================
+    // 📝 BUILD CONTEXT SECTIONS: Using modular context builder
+    // ========================================
+    const contextSections = buildContextSections({
+      saju: finalSaju,
+      astro: finalAstro,
+      advancedAstro,
+      natalChartData,
+      currentTransits,
+      birthDate: effectiveBirthDate,
+      gender: effectiveGender,
+      theme,
+      lang,
+      trimmedHistory,
+      lastUserMessage: lastUser?.content,
+    })
 
-    const userQuestion = lastUser ? guardText(lastUser.content, 500) : ''
-
-    // v3.1: Build comprehensive data snapshot if saju/astro data is available
-    // This is a lightweight string-building operation (no heavy computation)
-    let v3Snapshot = ''
-    if (saju || astro) {
-      try {
-        // Add transits to astrology object
-        const astroWithTransits = astro
-          ? {
-              ...astro,
-              transits: currentTransits,
-            }
-          : undefined
-
-        // CombinedResult 인터페이스에 맞게 구성 (saju/astrology는 빈 객체로 기본값)
-        const combinedResult: CombinedResult = {
-          saju: (saju ?? {}) as unknown as CombinedResult['saju'],
-          astrology: (astroWithTransits ?? {}) as unknown as CombinedResult['astrology'],
-          extraPoints: advancedAstro?.extraPoints,
-          asteroids: advancedAstro?.asteroids,
-          solarReturn: advancedAstro?.solarReturn,
-          lunarReturn: advancedAstro?.lunarReturn,
-          progressions: advancedAstro?.progressions,
-          draconic: advancedAstro?.draconic,
-          harmonics: advancedAstro?.harmonics,
-          fixedStars: advancedAstro?.fixedStars,
-          eclipses: advancedAstro?.eclipses,
-          electional: advancedAstro?.electional,
-          midpoints: advancedAstro?.midpoints,
-          meta: { generator: 'chat-stream', generatedAt: new Date().toISOString() },
-          summary: '',
-        }
-
-        // 🔍 DEBUG: Check what advanced data is available
-        logger.warn(`[chat-stream] Advanced astro check:`, {
-          hasExtraPoints: !!advancedAstro?.extraPoints,
-          hasAsteroids: !!advancedAstro?.asteroids,
-          hasSolarReturn: !!advancedAstro?.solarReturn,
-          hasLunarReturn: !!advancedAstro?.lunarReturn,
-          hasProgressions: !!advancedAstro?.progressions,
-          hasDraconic: !!advancedAstro?.draconic,
-          hasHarmonics: !!advancedAstro?.harmonics,
-          hasFixedStars: !!advancedAstro?.fixedStars,
-          hasEclipses: !!advancedAstro?.eclipses,
-          hasElectional: !!advancedAstro?.electional,
-          hasMidpoints: !!advancedAstro?.midpoints,
-          hasTransits: currentTransits.length > 0,
-        })
-
-        v3Snapshot = buildAllDataPrompt(lang, theme, combinedResult)
-        logger.warn(`[chat-stream] v3.1 snapshot built: ${v3Snapshot.length} chars`)
-      } catch (e) {
-        logger.warn('[chat-stream] Failed to build v3.1 snapshot:', e)
-      }
-    }
-
-    // Build prediction context section if available (TIER 1-10 분석 결과)
-    let predictionSection = ''
-    if (predictionContext) {
-      try {
-        const pc = predictionContext as {
-          eventType?: string
-          eventLabel?: string
-          optimalPeriods?: Array<{
-            startDate: string
-            endDate: string
-            score: number
-            grade: string
-            reasons?: string[]
-          }>
-          avoidPeriods?: Array<{ startDate: string; score: number; reasons?: string[] }>
-          advice?: string
-          tierAnalysis?: { tier7to10?: { confidence: number } }
-        }
-        const lines: string[] = []
-
-        if (lang === 'ko') {
-          lines.push('\n\n[🔮 인생 예측 분석 결과 (TIER 1-10)]')
-          if (pc.eventType) {
-            lines.push(`이벤트 유형: ${pc.eventLabel || pc.eventType}`)
-          }
-
-          if (pc.optimalPeriods?.length) {
-            lines.push('\n✅ 최적 시기:')
-            for (const period of pc.optimalPeriods.slice(0, 5)) {
-              const start = new Date(period.startDate).toLocaleDateString('ko-KR')
-              const end = new Date(period.endDate).toLocaleDateString('ko-KR')
-              lines.push(`• ${start} ~ ${end} (${period.grade}등급, ${period.score}점)`)
-              if (period.reasons?.length) {
-                lines.push(`  이유: ${period.reasons.slice(0, 3).join(', ')}`)
-              }
-            }
-          }
-
-          if (pc.avoidPeriods?.length) {
-            lines.push('\n⚠️ 피해야 할 시기:')
-            for (const period of pc.avoidPeriods.slice(0, 3)) {
-              const start = new Date(period.startDate).toLocaleDateString('ko-KR')
-              lines.push(
-                `• ${start} (${period.score}점) - ${period.reasons?.slice(0, 2).join(', ')}`
-              )
-            }
-          }
-
-          if (pc.advice) {
-            lines.push(`\n💡 조언: ${pc.advice}`)
-          }
-          if (pc.tierAnalysis?.tier7to10?.confidence) {
-            lines.push(
-              `\n📊 분석 신뢰도: ${Math.round(pc.tierAnalysis.tier7to10.confidence * 100)}%`
-            )
-          }
-        } else {
-          lines.push('\n\n[🔮 Life Prediction Analysis (TIER 1-10)]')
-          if (pc.eventType) {
-            lines.push(`Event Type: ${pc.eventLabel || pc.eventType}`)
-          }
-
-          if (pc.optimalPeriods?.length) {
-            lines.push('\n✅ Optimal Periods:')
-            for (const period of pc.optimalPeriods.slice(0, 5)) {
-              const start = new Date(period.startDate).toLocaleDateString('en-US')
-              const end = new Date(period.endDate).toLocaleDateString('en-US')
-              lines.push(`• ${start} ~ ${end} (Grade ${period.grade}, Score ${period.score})`)
-              if (period.reasons?.length) {
-                lines.push(`  Reasons: ${period.reasons.slice(0, 3).join(', ')}`)
-              }
-            }
-          }
-
-          if (pc.avoidPeriods?.length) {
-            lines.push('\n⚠️ Periods to Avoid:')
-            for (const period of pc.avoidPeriods.slice(0, 3)) {
-              const start = new Date(period.startDate).toLocaleDateString('en-US')
-              lines.push(
-                `• ${start} (Score ${period.score}) - ${period.reasons?.slice(0, 2).join(', ')}`
-              )
-            }
-          }
-
-          if (pc.advice) {
-            lines.push(`\n💡 Advice: ${pc.advice}`)
-          }
-          if (pc.tierAnalysis?.tier7to10?.confidence) {
-            lines.push(
-              `\n📊 Analysis Confidence: ${Math.round(pc.tierAnalysis.tier7to10.confidence * 100)}%`
-            )
-          }
-        }
-
-        predictionSection = lines.join('\n')
-        logger.warn(`[chat-stream] Prediction context built: ${predictionSection.length} chars`)
-      } catch (e) {
-        logger.warn('[chat-stream] Failed to build prediction context:', e)
-      }
-    }
+    const predictionSection = buildPredictionSection(predictionContext, lang)
+    const longTermMemorySection = buildLongTermMemorySection(
+      personaMemoryContext,
+      recentSessionSummaries,
+      lang
+    )
 
     // Theme descriptions for context
     const themeDescriptions: Record<string, { ko: string; en: string }> = {
@@ -531,99 +239,6 @@ export async function POST(req: NextRequest) {
         ? `현재 상담 테마: ${theme} (${themeDesc.ko})\n이 테마에 맞춰 답변해주세요.`
         : `Current theme: ${theme} (${themeDesc.en})\nFocus your answer on this theme.`
 
-    // ========================================
-    // 📅 ADVANCED ANALYSIS SECTIONS: Using modular builders
-    // ========================================
-    let timingScoreSection = ''
-    let enhancedAnalysisSection = ''
-    let daeunTransitSection = ''
-    let advancedAstroSection = ''
-    let tier4AdvancedSection = ''
-    let pastAnalysisSection = ''
-    let lifePredictionSection = ''
-
-    if (saju?.dayMaster) {
-      try {
-        // Current year and age calculation
-        const currentYear = new Date().getFullYear()
-        const birthYear = effectiveBirthDate ? extractBirthYear(effectiveBirthDate) : undefined
-        const currentAge = birthYear ? currentYear - birthYear : undefined
-
-        // Build all analysis sections using modular builders
-        timingScoreSection = buildAdvancedTimingSection(saju, effectiveBirthDate, theme, lang)
-
-        enhancedAnalysisSection = buildDailyPrecisionSection(saju, theme, lang)
-
-        daeunTransitSection = buildDaeunTransitSection(saju, effectiveBirthDate, lang)
-
-        pastAnalysisSection = buildPastAnalysisSection(
-          saju,
-          astro,
-          effectiveBirthDate,
-          effectiveGender as 'male' | 'female',
-          lastUser?.content || '',
-          lang
-        )
-
-        lifePredictionSection = buildMultiYearTrendSection(
-          saju,
-          astro,
-          effectiveBirthDate,
-          effectiveGender as 'male' | 'female',
-          theme,
-          lang
-        )
-
-        advancedAstroSection = generateTier3Analysis({ saju, astro, lang }).section
-        tier4AdvancedSection = generateTier4Analysis({
-          natalChartData: natalChartData || null,
-          userAge: currentAge,
-          currentYear,
-          lang,
-        }).section
-
-        logger.warn('[chat-stream] All analysis sections built using modular builders')
-      } catch (e) {
-        logger.warn('[chat-stream] Failed to generate advanced timing scores:', e)
-      }
-    }
-
-    // Build long-term memory context section
-    let longTermMemorySection = ''
-    if (personaMemoryContext || recentSessionSummaries) {
-      const memoryParts: string[] = []
-
-      if (personaMemoryContext) {
-        memoryParts.push(
-          lang === 'ko'
-            ? `[사용자 프로필] ${personaMemoryContext}`
-            : `[User Profile] ${personaMemoryContext}`
-        )
-      }
-
-      if (recentSessionSummaries) {
-        memoryParts.push(
-          lang === 'ko'
-            ? `[이전 상담 기록]\n${recentSessionSummaries}`
-            : `[Previous Sessions]\n${recentSessionSummaries}`
-        )
-      }
-
-      longTermMemorySection = [
-        '',
-        '═══════════════════════════════════════════════════════════════',
-        lang === 'ko'
-          ? '[🧠 장기 기억 - 이전 상담 컨텍스트]'
-          : '[🧠 LONG-TERM MEMORY - Previous Context]',
-        '═══════════════════════════════════════════════════════════════',
-        lang === 'ko'
-          ? '아래 정보를 참고하여 더 개인화된 상담을 제공하세요:'
-          : 'Use this context for more personalized counseling:',
-        ...memoryParts,
-        '',
-      ].join('\n')
-    }
-
     // Build prompt - FULL analysis with all advanced engines
     const chatPrompt = [
       counselorSystemPrompt(lang),
@@ -631,22 +246,22 @@ export async function POST(req: NextRequest) {
       themeContext,
       '',
       // 기본 사주/점성 데이터
-      v3Snapshot ? `[사주/점성 기본 데이터]\n${v3Snapshot.slice(0, 5000)}` : '',
+      contextSections.v3Snapshot ? `[사주/점성 기본 데이터]\n${contextSections.v3Snapshot.slice(0, 5000)}` : '',
       // 🔮 고급 분석 섹션들 (모듈화된 빌더 사용)
-      timingScoreSection ? `\n${timingScoreSection}` : '',
-      enhancedAnalysisSection ? `\n${enhancedAnalysisSection}` : '',
-      daeunTransitSection ? `\n${daeunTransitSection}` : '',
-      advancedAstroSection ? `\n${advancedAstroSection}` : '',
-      tier4AdvancedSection ? `\n${tier4AdvancedSection}` : '',
-      pastAnalysisSection ? `\n${pastAnalysisSection}` : '',
-      lifePredictionSection ? `\n${lifePredictionSection}` : '',
+      contextSections.timingScoreSection ? `\n${contextSections.timingScoreSection}` : '',
+      contextSections.enhancedAnalysisSection ? `\n${contextSections.enhancedAnalysisSection}` : '',
+      contextSections.daeunTransitSection ? `\n${contextSections.daeunTransitSection}` : '',
+      contextSections.advancedAstroSection ? `\n${contextSections.advancedAstroSection}` : '',
+      contextSections.tier4AdvancedSection ? `\n${contextSections.tier4AdvancedSection}` : '',
+      contextSections.pastAnalysisSection ? `\n${contextSections.pastAnalysisSection}` : '',
+      contextSections.lifePredictionSection ? `\n${contextSections.lifePredictionSection}` : '',
       // 🧠 장기 기억 - 이전 상담 컨텍스트
       longTermMemorySection ? `\n${longTermMemorySection}` : '',
       // 📊 인생 예측 컨텍스트 (프론트엔드에서 전달된 경우)
       predictionSection ? `\n${predictionSection}` : '',
       // 📜 대화 히스토리
-      historyText ? `\n대화:\n${historyText}` : '',
-      `\n질문: ${userQuestion}`,
+      contextSections.historyText ? `\n대화:\n${contextSections.historyText}` : '',
+      `\n질문: ${contextSections.userQuestion}`,
     ]
       .filter(Boolean)
       .join('\n')
@@ -662,8 +277,8 @@ export async function POST(req: NextRequest) {
         prompt: chatPrompt,
         locale: lang,
         // Pass pre-computed chart data if available (instant response)
-        saju: saju || undefined,
-        astro: astro || undefined,
+        saju: finalSaju || undefined,
+        astro: finalAstro || undefined,
         // Advanced astrology features (draconic, harmonics, progressions, etc.)
         advanced_astro: advancedAstro || undefined,
         // Fallback: Pass birth info for backend to compute if needed

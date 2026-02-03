@@ -44,8 +44,34 @@ const getControllerElement = ElementRelations.getController.bind(ElementRelation
 const getGeneratorElement = ElementRelations.getGenerator.bind(ElementRelations);
 
 /**
- * Analyze health aspects using destiny matrix
- * Combines Saju element balance with astrological health indicators
+ * Analyzes health aspects using the Destiny Fusion Matrix™
+ *
+ * This comprehensive health analysis combines multiple dimensions:
+ * 1. **Five Elements Balance**: Evaluates the distribution of 오행 (Wood/Fire/Earth/Metal/Water)
+ *    from Saju to identify excess or deficiency patterns
+ * 2. **Vulnerable Body Areas**: Maps element imbalances to specific organs and body systems
+ * 3. **Lifecycle Vitality**: Assesses current vitality level based on 12 Stages (12운성)
+ * 4. **Health Shinsals**: Identifies health-related Shinsal (신살) influences
+ * 5. **Chiron Healing**: Analyzes healing potential through the Wounded Healer archetype
+ *
+ * The function calculates an overall vitality score and provides actionable health insights.
+ *
+ * @param saju - Saju birth data with element distribution, Sibsin, and 12 Stages
+ * @param astro - Western astrology data with planetary positions and houses (for Chiron)
+ * @param lang - Language code ('ko' for Korean, 'en' for English)
+ * @returns Comprehensive health matrix analysis with vitality score, or null if no data
+ *
+ * @example
+ * ```typescript
+ * const health = getHealthMatrixAnalysis(sajuData, astroData, 'ko');
+ * // Returns: {
+ * //   vitalityScore: 75,
+ * //   elementBalance: [{ element: '목', score: 20, status: 'balanced' }, ...],
+ * //   vulnerableAreas: [{ organ: '간, 담', element: '목', risk: 'high', ... }],
+ * //   lifeCycleStage: { stage: '장생', vitalityLevel: 90, ... },
+ * //   chironHealing: { woundArea: {...}, healingPath: {...}, ... }
+ * // }
+ * ```
  */
 export function getHealthMatrixAnalysis(
   saju: SajuData | ExtendedSajuData | undefined,

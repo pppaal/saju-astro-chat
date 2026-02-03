@@ -65,7 +65,7 @@ const RectificationRequestSchema = z.object({
       intervalMinutes: z.number().int().min(1).max(60).optional(),
     })
     .optional(),
-  appearanceProfile: z.record(z.unknown()).optional(),
+  appearanceProfile: z.record(z.string(), z.unknown()).optional(),
   sajuSijin: z.string().optional(),
 })
 

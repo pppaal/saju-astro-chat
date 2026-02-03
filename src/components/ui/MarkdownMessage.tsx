@@ -3,7 +3,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useMemo, memo } from "react";
 import ReactMarkdown from "react-markdown";
 import styles from "./MarkdownMessage.module.css";
 
@@ -12,63 +12,57 @@ interface MarkdownMessageProps {
   className?: string;
 }
 
-export default function MarkdownMessage({ content, className }: MarkdownMessageProps) {
+// ReactMarkdown components를 컴포넌트 외부로 이동 (재생성 방지)
+const MARKDOWN_COMPONENTS = {
+  strong: ({ children }: { children: React.ReactNode }) => (
+    <strong className={styles.strong}>{children}</strong>
+  ),
+  em: ({ children }: { children: React.ReactNode }) => (
+    <em className={styles.em}>{children}</em>
+  ),
+  p: ({ children }: { children: React.ReactNode }) => (
+    <p className={styles.paragraph}>{children}</p>
+  ),
+  ul: ({ children }: { children: React.ReactNode }) => (
+    <ul className={styles.list}>{children}</ul>
+  ),
+  ol: ({ children }: { children: React.ReactNode }) => (
+    <ol className={styles.orderedList}>{children}</ol>
+  ),
+  li: ({ children }: { children: React.ReactNode }) => (
+    <li className={styles.listItem}>{children}</li>
+  ),
+  code: ({ children }: { children: React.ReactNode }) => (
+    <code className={styles.code}>{children}</code>
+  ),
+  a: ({ href, children }: { href?: string; children: React.ReactNode }) => (
+    <a href={href} className={styles.link} target="_blank" rel="noopener noreferrer">
+      {children}
+    </a>
+  ),
+  h1: ({ children }: { children: React.ReactNode }) => (
+    <h1 className={styles.heading1}>{children}</h1>
+  ),
+  h2: ({ children }: { children: React.ReactNode }) => (
+    <h2 className={styles.heading2}>{children}</h2>
+  ),
+  h3: ({ children }: { children: React.ReactNode }) => (
+    <h3 className={styles.heading3}>{children}</h3>
+  ),
+  blockquote: ({ children }: { children: React.ReactNode }) => (
+    <blockquote className={styles.blockquote}>{children}</blockquote>
+  ),
+  hr: () => <hr className={styles.hr} />,
+};
+
+const MarkdownMessage = memo(function MarkdownMessage({ content, className }: MarkdownMessageProps) {
   return (
     <div className={`${styles.markdown} ${className || ""}`}>
-      <ReactMarkdown
-        components={{
-          // 굵은 텍스트
-          strong: ({ children }) => (
-            <strong className={styles.strong}>{children}</strong>
-          ),
-          // 기울임
-          em: ({ children }) => (
-            <em className={styles.em}>{children}</em>
-          ),
-          // 단락
-          p: ({ children }) => (
-            <p className={styles.paragraph}>{children}</p>
-          ),
-          // 리스트
-          ul: ({ children }) => (
-            <ul className={styles.list}>{children}</ul>
-          ),
-          ol: ({ children }) => (
-            <ol className={styles.orderedList}>{children}</ol>
-          ),
-          li: ({ children }) => (
-            <li className={styles.listItem}>{children}</li>
-          ),
-          // 코드
-          code: ({ children }) => (
-            <code className={styles.code}>{children}</code>
-          ),
-          // 링크
-          a: ({ href, children }) => (
-            <a href={href} className={styles.link} target="_blank" rel="noopener noreferrer">
-              {children}
-            </a>
-          ),
-          // 헤딩 (사용 시)
-          h1: ({ children }) => (
-            <h1 className={styles.heading1}>{children}</h1>
-          ),
-          h2: ({ children }) => (
-            <h2 className={styles.heading2}>{children}</h2>
-          ),
-          h3: ({ children }) => (
-            <h3 className={styles.heading3}>{children}</h3>
-          ),
-          // 인용구
-          blockquote: ({ children }) => (
-            <blockquote className={styles.blockquote}>{children}</blockquote>
-          ),
-          // 구분선
-          hr: () => <hr className={styles.hr} />,
-        }}
-      >
+      <ReactMarkdown components={MARKDOWN_COMPONENTS}>
         {content}
       </ReactMarkdown>
     </div>
   );
-}
+});
+
+export default MarkdownMessage;
