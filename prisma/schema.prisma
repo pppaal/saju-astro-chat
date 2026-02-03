@@ -36,26 +36,26 @@ model Session {
 }
 
 model User {
-  id                    String                  @id @default(cuid())
+  id                    String                 @id @default(cuid())
   name                  String?
-  email                 String?                 @unique
+  email                 String?                @unique
   emailVerified         DateTime?
-  image                 String?                 // OAuth provider image
-  profilePhoto          String?                 // User uploaded custom profile photo
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @updatedAt
+  image                 String? // OAuth provider image
+  profilePhoto          String? // User uploaded custom profile photo
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
   birthDate             String?
   birthTime             String?
   gender                String?
   birthCity             String?
   tzId                  String?
   passwordHash          String?
-  emailNotifications    Boolean                 @default(false)
-  role                  String                  @default("user") // user, admin, superadmin
-  referralCode          String?                 @unique // 내 고유 추천 코드
-  referrerId            String?                 // 나를 추천한 유저 ID
-  referrer              User?                   @relation("Referrals", fields: [referrerId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  referrals             User[]                  @relation("Referrals") // 내가 추천한 유저들
+  emailNotifications    Boolean                @default(false)
+  role                  String                 @default("user") // user, admin, superadmin
+  referralCode          String?                @unique // 내 고유 추천 코드
+  referrerId            String? // 나를 추천한 유저 ID
+  referrer              User?                  @relation("Referrals", fields: [referrerId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  referrals             User[]                 @relation("Referrals") // 내가 추천한 유저들
   accounts              Account[]
   sessions              Session[]
   readings              Reading[]
@@ -70,21 +70,21 @@ model User {
   premiumContentAccess  PremiumContentAccess[]
   credits               UserCredits?
   counselorChatSessions CounselorChatSession[]
-  referralRewards       ReferralReward[]        // 내가 받은 추천 보상들
-  savedCalendarDates    SavedCalendarDate[]     // 저장된 운명 캘린더 날짜들
-  personalityResult     PersonalityResult?      // 성격 테스트 결과
-  icpResults            ICPResult[]             // ICP 대인관계 스타일 결과
-  pastLifeResults       PastLifeResult[]        // 전생 리딩 결과
-  compatibilityResults  CompatibilityResult[]   // 궁합 분석 결과
-  destinyMatrixReports  DestinyMatrixReport[]   // Destiny Matrix AI 리포트
-  tarotReadings         TarotReading[]          // 타로 리딩 기록
-  pushSubscriptions     PushSubscription[]      // 푸시 알림 구독
-  matchProfile          MatchProfile?           // 매칭 프로필
-  matchMessages         MatchMessage[]          // 매칭 채팅 메시지
-  blocksMade            UserBlock[]             @relation("BlocksMade")
-  blocksReceived        UserBlock[]             @relation("BlocksReceived")
-  reportsMade           UserReport[]            @relation("ReportsMade")
-  reportsReceived       UserReport[]            @relation("ReportsReceived")
+  referralRewards       ReferralReward[] // 내가 받은 추천 보상들
+  savedCalendarDates    SavedCalendarDate[] // 저장된 운명 캘린더 날짜들
+  personalityResult     PersonalityResult? // 성격 테스트 결과
+  icpResults            ICPResult[] // ICP 대인관계 스타일 결과
+  pastLifeResults       PastLifeResult[] // 전생 리딩 결과
+  compatibilityResults  CompatibilityResult[] // 궁합 분석 결과
+  destinyMatrixReports  DestinyMatrixReport[] // Destiny Matrix AI 리포트
+  tarotReadings         TarotReading[] // 타로 리딩 기록
+  pushSubscriptions     PushSubscription[] // 푸시 알림 구독
+  matchProfile          MatchProfile? // 매칭 프로필
+  matchMessages         MatchMessage[] // 매칭 채팅 메시지
+  blocksMade            UserBlock[]            @relation("BlocksMade")
+  blocksReceived        UserBlock[]            @relation("BlocksReceived")
+  reportsMade           UserReport[]           @relation("ReportsMade")
+  reportsReceived       UserReport[]           @relation("ReportsReceived")
 
   @@index([referrerId])
 }
@@ -191,12 +191,12 @@ model ConsultationHistory {
   id           String   @id @default(cuid())
   userId       String
   createdAt    DateTime @default(now())
-  theme        String   // love, career, life_path, etc.
-  summary      String   // 상담 요약 (1-2줄)
+  theme        String // love, career, life_path, etc.
+  summary      String // 상담 요약 (1-2줄)
   fullReport   String   @db.Text // 전체 리포트 내용
-  jungQuotes   Json?    // 사용된 Jung 인용문들
-  signals      Json?    // 점성술/사주 시그널
-  userQuestion String?  // 사용자 질문 (있을 경우)
+  jungQuotes   Json? // 사용된 Jung 인용문들
+  signals      Json? // 점성술/사주 시그널
+  userQuestion String? // 사용자 질문 (있을 경우)
   locale       String   @default("ko")
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -206,24 +206,24 @@ model ConsultationHistory {
 
 // 섹션별 피드백 - AI 품질 개선용
 model SectionFeedback {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
 
   // 익명 식별자 (생년월일 해시)
-  userHash    String?
+  userHash String?
 
   // 피드백 대상
-  service     String   // destiny-map, dream, tarot, etc.
-  theme       String   // focus_love, focus_career, etc.
-  sectionId   String   // personality, relationships, career, etc.
+  service   String // destiny-map, dream, tarot, etc.
+  theme     String // focus_love, focus_career, etc.
+  sectionId String // personality, relationships, career, etc.
 
   // 피드백 데이터
-  helpful     Boolean  // true = 👍, false = 👎
+  helpful Boolean // true = 👍, false = 👎
 
   // 컨텍스트 (분석용)
-  dayMaster   String?  // 甲木, 乙木, etc.
-  sunSign     String?  // Aries, Taurus, etc.
-  locale      String   @default("ko")
+  dayMaster String? // 甲木, 乙木, etc.
+  sunSign   String? // Aries, Taurus, etc.
+  locale    String  @default("ko")
 
   @@index([service, theme])
   @@index([sectionId, helpful])
@@ -233,49 +233,49 @@ model SectionFeedback {
 
 // 페르소나 기억 - 사용자별 맥락 정보 누적
 model PersonaMemory {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 핵심 맥락 정보
-  dominantThemes  Json?    // 자주 묻는 주제들 (예: ["love", "career"])
-  keyInsights     Json?    // 중요한 통찰들 (예: ["그림자 작업 필요", "아니마 투사 경향"])
-  emotionalTone   String?  // 전반적인 감정 톤 (예: "불안", "성장지향")
-  growthAreas     Json?    // 성장 영역 (예: ["관계", "자기표현"])
+  dominantThemes Json? // 자주 묻는 주제들 (예: ["love", "career"])
+  keyInsights    Json? // 중요한 통찰들 (예: ["그림자 작업 필요", "아니마 투사 경향"])
+  emotionalTone  String? // 전반적인 감정 톤 (예: "불안", "성장지향")
+  growthAreas    Json? // 성장 영역 (예: ["관계", "자기표현"])
 
   // 상담 맥락
-  lastTopics      Json?    // 최근 상담 주제들
-  recurringIssues Json?    // 반복되는 이슈들
-  sessionCount    Int      @default(0) // 총 상담 횟수
+  lastTopics      Json? // 최근 상담 주제들
+  recurringIssues Json? // 반복되는 이슈들
+  sessionCount    Int   @default(0) // 총 상담 횟수
 
   // 점성술/사주 핵심 정보 (캐싱)
-  birthChart      Json?    // 핵심 차트 정보
-  sajuProfile     Json?    // 사주 프로필
+  birthChart  Json? // 핵심 차트 정보
+  sajuProfile Json? // 사주 프로필
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // 내 사람들 - 가족, 친구, 연인 정보 저장
 model SavedPerson {
-  id          String   @id @default(cuid())
-  userId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 기본 정보
-  name        String
-  relation    String   // family, friend, partner, colleague
-  birthDate   String?
-  birthTime   String?
-  gender      String?  // M, F, U
-  birthCity   String?
-  latitude    Float?
-  longitude   Float?
-  tzId        String?
+  name      String
+  relation  String // family, friend, partner, colleague
+  birthDate String?
+  birthTime String?
+  gender    String? // M, F, U
+  birthCity String?
+  latitude  Float?
+  longitude Float?
+  tzId      String?
 
   // 메모
-  note        String?
+  note String?
 
   @@index([userId])
   @@index([userId, relation])
@@ -283,31 +283,31 @@ model SavedPerson {
 
 // 구독/결제 기록 - Stripe와 동기화
 model Subscription {
-  id                   String    @id @default(cuid())
-  userId               String
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Stripe 정보
   stripeCustomerId     String?
-  stripeSubscriptionId String?   @unique
+  stripeSubscriptionId String? @unique
   stripePriceId        String?
 
   // 구독 상태
-  status               String    // active, trialing, past_due, canceled, unpaid
-  plan                 String    // free, basic, premium
-  billingCycle         String?   // monthly, annual
+  status       String // active, trialing, past_due, canceled, unpaid
+  plan         String // free, basic, premium
+  billingCycle String? // monthly, annual
 
   // 기간
-  currentPeriodStart   DateTime?
-  currentPeriodEnd     DateTime?
-  canceledAt           DateTime?
-  cancelAtPeriodEnd    Boolean   @default(false)
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  canceledAt         DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
 
   // 결제 방법
-  paymentMethod        String?   // card, kakao, etc.
+  paymentMethod String? // card, kakao, etc.
 
-  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([stripeCustomerId])
@@ -316,23 +316,23 @@ model Subscription {
 
 // 프리미엄 콘텐츠 열람 기록
 model PremiumContentAccess {
-  id          String   @id @default(cuid())
-  userId      String
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
 
   // 콘텐츠 정보
-  service     String   // astrology, saju, tarot, dream, destiny-map
-  contentType String   // details, advanced, full_report, etc.
-  contentId   String?  // 특정 콘텐츠 ID (있는 경우)
+  service     String // astrology, saju, tarot, dream, destiny-map
+  contentType String // details, advanced, full_report, etc.
+  contentId   String? // 특정 콘텐츠 ID (있는 경우)
 
   // 접근 컨텍스트
-  locale      String   @default("ko")
-  metadata    Json?    // 추가 정보 (테마, 입력값 등)
+  locale   String @default("ko")
+  metadata Json? // 추가 정보 (테마, 입력값 등)
 
   // 비용 (크레딧 시스템 대비)
-  creditUsed  Int      @default(0)
+  creditUsed Int @default(0)
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([userId, service])
@@ -341,27 +341,27 @@ model PremiumContentAccess {
 
 // 상담사 채팅 세션 - 프리미엄 대화 히스토리
 model CounselorChatSession {
-  id           String   @id @default(cuid())
-  userId       String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 세션 정보
-  theme        String   @default("chat") // career, love, health, etc.
-  locale       String   @default("ko")
+  theme  String @default("chat") // career, love, health, etc.
+  locale String @default("ko")
 
   // 대화 메시지들 (JSON 배열)
-  messages     Json     // [{role: "user"|"assistant", content: "...", timestamp: "..."}]
+  messages Json // [{role: "user"|"assistant", content: "...", timestamp: "..."}]
 
   // 세션 요약 (AI가 생성)
-  summary      String?  // 대화 요약 (다음 방문 시 참조용)
-  keyTopics    Json?    // 주요 주제들 ["취업", "2025년 상반기"]
+  summary   String? // 대화 요약 (다음 방문 시 참조용)
+  keyTopics Json? // 주요 주제들 ["취업", "2025년 상반기"]
 
   // 메타데이터
-  messageCount Int      @default(0)
+  messageCount  Int      @default(0)
   lastMessageAt DateTime @default(now())
 
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, updatedAt])
   @@index([userId, theme])
@@ -369,36 +369,36 @@ model CounselorChatSession {
 
 // 유저 크레딧 관리 - 플랜별 사용량 추적
 model UserCredits {
-  id                String   @id @default(cuid())
-  userId            String   @unique
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 현재 플랜
-  plan              String   @default("free") // free, starter, pro, premium
+  plan String @default("free") // free, starter, pro, premium
 
   // 월간 크레딧 (리딩 횟수)
-  monthlyCredits    Int      @default(1)  // 플랜별 월간 한도
-  usedCredits       Int      @default(0)  // 이번 달 사용량
-  bonusCredits      Int      @default(0)  // 보너스/구매 크레딧 (리셋 안됨)
-  totalBonusReceived Int     @default(0)  // 총 받은 보너스 (total 계산용)
+  monthlyCredits     Int @default(1) // 플랜별 월간 한도
+  usedCredits        Int @default(0) // 이번 달 사용량
+  bonusCredits       Int @default(0) // 보너스/구매 크레딧 (리셋 안됨)
+  totalBonusReceived Int @default(0) // 총 받은 보너스 (total 계산용)
 
   // 기능별 사용량 (월간)
-  compatibilityUsed Int      @default(0)  // 궁합 분석 사용 횟수
-  followUpUsed      Int      @default(0)  // 후속질문 사용 횟수
+  compatibilityUsed Int @default(0) // 궁합 분석 사용 횟수
+  followUpUsed      Int @default(0) // 후속질문 사용 횟수
 
   // 플랜별 한도
-  compatibilityLimit Int     @default(0)  // 궁합 한도 (free:0, starter:2, pro:5, premium:10)
-  followUpLimit      Int     @default(0)  // 후속질문 한도
+  compatibilityLimit Int @default(0) // 궁합 한도 (free:0, starter:2, pro:5, premium:10)
+  followUpLimit      Int @default(0) // 후속질문 한도
 
   // 기간 추적
-  periodStart       DateTime @default(now()) // 현재 월간 기간 시작
-  periodEnd         DateTime?                // 현재 월간 기간 종료
+  periodStart DateTime  @default(now()) // 현재 월간 기간 시작
+  periodEnd   DateTime? // 현재 월간 기간 종료
 
   // 히스토리 보관 기간 (일)
-  historyRetention  Int      @default(7)  // free:7, starter:30, pro:90, premium:365
+  historyRetention Int @default(7) // free:7, starter:30, pro:90, premium:365
 
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([plan])
   @@index([periodEnd])
@@ -406,38 +406,38 @@ model UserCredits {
 
 // 운명 캘린더 저장 - 날짜별 운세 정보
 model SavedCalendarDate {
-  id          String   @id @default(cuid())
-  userId      String
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
 
   // 날짜 정보
-  date        String   // YYYY-MM-DD
-  year        Int      // 조회 연도
+  date String // YYYY-MM-DD
+  year Int // 조회 연도
 
   // 운세 정보
-  grade       Int      // 0-4 (천운~나쁜날)
-  score       Int      // 0-100
+  grade       Int // 0-4 (천운~나쁜날)
+  score       Int // 0-100
   title       String
-  description String   @db.Text
-  summary     String?  // 한줄 요약
+  description String  @db.Text
+  summary     String? // 한줄 요약
 
   // 카테고리
-  categories  Json     // ["wealth", "career", "love", ...]
+  categories Json // ["wealth", "career", "love", ...]
 
   // 분석 요소
-  bestTimes       Json?    // 좋은 시간대
-  sajuFactors     Json?    // 사주 분석 요소
-  astroFactors    Json?    // 점성술 분석 요소
-  recommendations Json?    // 추천 사항
-  warnings        Json?    // 주의 사항
+  bestTimes       Json? // 좋은 시간대
+  sajuFactors     Json? // 사주 분석 요소
+  astroFactors    Json? // 점성술 분석 요소
+  recommendations Json? // 추천 사항
+  warnings        Json? // 주의 사항
 
   // 사용자 생년월일 정보 (참고용)
-  birthDate   String?
-  birthTime   String?
-  birthPlace  String?
-  locale      String   @default("ko")
+  birthDate  String?
+  birthTime  String?
+  birthPlace String?
+  locale     String  @default("ko")
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
   @@index([userId, date])
@@ -446,21 +446,21 @@ model SavedCalendarDate {
 
 // 보너스 크레딧 구매/지급 기록 - 각 구매별 만료일 추적
 model BonusCreditPurchase {
-  id              String   @id @default(cuid())
-  userId          String
-  createdAt       DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
 
   // 크레딧 정보
-  amount          Int      // 구매한 크레딧 수
-  remaining       Int      // 남은 크레딧 수
+  amount    Int // 구매한 크레딧 수
+  remaining Int // 남은 크레딧 수
 
   // 만료 정보 (구매일로부터 3개월)
-  expiresAt       DateTime
-  expired         Boolean  @default(false)
+  expiresAt DateTime
+  expired   Boolean  @default(false)
 
   // 구매 정보
-  source          String   @default("purchase") // purchase, referral, promotion, gift
-  stripePaymentId String?  // Stripe 결제 ID (해당하는 경우)
+  source          String  @default("purchase") // purchase, referral, promotion, gift
+  stripePaymentId String? // Stripe 결제 ID (해당하는 경우)
 
   @@index([userId])
   @@index([userId, expired])
@@ -469,20 +469,20 @@ model BonusCreditPurchase {
 
 // 추천 보상 기록
 model ReferralReward {
-  id              String   @id @default(cuid())
-  userId          String   // 보상 받은 사람 (추천인)
-  referredUserId  String   // 추천받아 가입한 사람
-  createdAt       DateTime @default(now())
+  id             String   @id @default(cuid())
+  userId         String // 보상 받은 사람 (추천인)
+  referredUserId String // 추천받아 가입한 사람
+  createdAt      DateTime @default(now())
 
   // 보상 정보
-  creditsAwarded  Int      @default(3)  // 지급된 크레딧
-  rewardType      String   @default("signup_complete") // signup_complete, first_analysis
+  creditsAwarded Int    @default(3) // 지급된 크레딧
+  rewardType     String @default("signup_complete") // signup_complete, first_analysis
 
   // 상태
-  status          String   @default("pending") // pending, completed, expired
-  completedAt     DateTime?
+  status      String    @default("pending") // pending, completed, expired
+  completedAt DateTime?
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, referredUserId, rewardType]) // 중복 보상 방지
   @@index([userId])
@@ -492,64 +492,64 @@ model ReferralReward {
 
 // 타로 리딩 결과 저장
 model TarotReading {
-  id              String   @id @default(cuid())
-  userId          String
-  createdAt       DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
 
   // 질문/관심사
-  question        String   @db.Text
-  theme           String?  // love, career, general, etc.
+  question String  @db.Text
+  theme    String? // love, career, general, etc.
 
   // 스프레드 정보
-  spreadId        String   // 스프레드 ID
-  spreadTitle     String   // 스프레드 이름
+  spreadId    String // 스프레드 ID
+  spreadTitle String // 스프레드 이름
 
   // 뽑은 카드들 (JSON)
-  cards           Json     // [{cardId, name, image, isReversed, position}]
+  cards Json // [{cardId, name, image, isReversed, position}]
 
   // AI 해석 결과
-  overallMessage  String?  @db.Text
-  cardInsights    Json?    // 카드별 해석
-  guidance        String?  @db.Text
-  affirmation     String?
+  overallMessage String? @db.Text
+  cardInsights   Json? // 카드별 해석
+  guidance       String? @db.Text
+  affirmation    String?
 
   // 출처 (counselor = 상담사 내 타로, standalone = 타로 페이지)
-  source          String   @default("standalone")
+  source String @default("standalone")
 
   // 상담 세션 연결 (상담 중 타로인 경우)
   counselorSessionId String?
 
   // 커플 타로 (공유 리딩)
-  isSharedReading Boolean  @default(false) // 커플 공유 리딩 여부
-  sharedWithUserId String?                  // 공유 대상 파트너 ID
-  matchConnectionId String?                 // 매칭 연결 ID (MatchConnection)
-  paidByUserId    String?                   // 결제한 사용자 ID
+  isSharedReading   Boolean @default(false) // 커플 공유 리딩 여부
+  sharedWithUserId  String? // 공유 대상 파트너 ID
+  matchConnectionId String? // 매칭 연결 ID (MatchConnection)
+  paidByUserId      String? // 결제한 사용자 ID
 
-  locale          String   @default("ko")
+  locale String @default("ko")
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([userId, theme])
-  @@index([sharedWithUserId])
-  @@index([matchConnectionId])
+  @@index([sharedWithUserId, createdAt])
+  @@index([matchConnectionId, createdAt])
 }
 
 // 푸시 알림 구독 정보
 model PushSubscription {
-  id          String    @id @default(cuid())
-  userId      String
-  endpoint    String    @unique
-  p256dh      String
-  auth        String
-  userAgent   String?
-  isActive    Boolean   @default(true)
-  failCount   Int       @default(0)
-  lastUsedAt  DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String    @id @default(cuid())
+  userId     String
+  endpoint   String    @unique
+  p256dh     String
+  auth       String
+  userAgent  String?
+  isActive   Boolean   @default(true)
+  failCount  Int       @default(0)
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([isActive])
@@ -557,16 +557,16 @@ model PushSubscription {
 
 // 이메일 발송 로그
 model EmailLog {
-  id          String   @id @default(cuid())
-  userId      String?
-  email       String
-  type        String   // welcome, payment_receipt, subscription_confirm, etc.
-  subject     String
-  status      String   @default("sent") // sent, failed, bounced
-  errorMsg    String?
-  provider    String   // resend, sendgrid, nodemailer
-  messageId   String?
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String
+  type      String // welcome, payment_receipt, subscription_confirm, etc.
+  subject   String
+  status    String   @default("sent") // sent, failed, bounced
+  errorMsg  String?
+  provider  String // resend, sendgrid, nodemailer
+  messageId String?
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([type])
@@ -575,32 +575,32 @@ model EmailLog {
 
 // 성격 테스트 결과 (Nova Persona)
 model PersonalityResult {
-  id                String   @id @default(cuid())
-  userId            String   @unique
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 타입 코드 및 페르소나 정보
-  typeCode          String   // RVLA, GSHA, etc. (4글자)
-  personaName       String   // 페르소나 이름
-  avatarGender      String   @default("M") // M, F
+  typeCode     String // RVLA, GSHA, etc. (4글자)
+  personaName  String // 페르소나 이름
+  avatarGender String @default("M") // M, F
 
   // 4가지 축 스코어 (0-100)
-  energyScore       Int      // Radiant(100) <-> Grounded(0)
-  cognitionScore    Int      // Visionary(100) <-> Structured(0)
-  decisionScore     Int      // Logic(100) <-> Empathic(0)
-  rhythmScore       Int      // Flow(100) <-> Anchor(0)
+  energyScore    Int // Radiant(100) <-> Grounded(0)
+  cognitionScore Int // Visionary(100) <-> Structured(0)
+  decisionScore  Int // Logic(100) <-> Empathic(0)
+  rhythmScore    Int // Flow(100) <-> Anchor(0)
 
   // 일관성 점수
-  consistencyScore  Int?     // 0-100
+  consistencyScore Int? // 0-100
 
   // 분석 결과 (JSON)
-  analysisData      Json     // summary, keyMotivations, strengths, challenges, etc.
+  analysisData Json // summary, keyMotivations, strengths, challenges, etc.
 
   // 답변 데이터 (백업용)
-  answers           Json?    // 전체 답변 데이터
+  answers Json? // 전체 답변 데이터
 
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([typeCode])
   @@index([createdAt])
@@ -608,32 +608,32 @@ model PersonalityResult {
 
 // ICP 대인관계 스타일 결과
 model ICPResult {
-  id                String   @id @default(cuid())
-  userId            String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 주 스타일과 부 스타일
-  primaryStyle      String   // BC, PA, NO, LM, JK, HI, FG, DE
-  secondaryStyle    String?  // 부차 스타일 (있을 경우)
+  primaryStyle   String // BC, PA, NO, LM, JK, HI, FG, DE
+  secondaryStyle String? // 부차 스타일 (있을 경우)
 
   // 축 점수 (0-100)
-  dominanceScore    Int      // 지배성 축 점수
-  affiliationScore  Int      // 친화성 축 점수
+  dominanceScore   Int // 지배성 축 점수
+  affiliationScore Int // 친화성 축 점수
 
   // 8개 옥탄트 점수 (JSON)
-  octantScores      Json     // { BC: 0.8, PA: 0.6, ... }
+  octantScores Json // { BC: 0.8, PA: 0.6, ... }
 
   // 분석 결과 (JSON)
-  analysisData      Json     // description, strengths, challenges, relationships, etc.
+  analysisData Json // description, strengths, challenges, relationships, etc.
 
   // 답변 데이터 (백업용)
-  answers           Json?    // 전체 답변 데이터
+  answers Json? // 전체 답변 데이터
 
   // 언어
-  locale            String   @default("en")
+  locale String @default("en")
 
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([primaryStyle])
@@ -641,28 +641,28 @@ model ICPResult {
 
 // 전생 리딩 결과
 model PastLifeResult {
-  id                String   @id @default(cuid())
-  userId            String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 생년월일 정보
-  birthDate         String   // YYYY-MM-DD
-  birthTime         String?  // HH:mm
-  latitude          Float?
-  longitude         Float?
-  timezone          String?
+  birthDate String // YYYY-MM-DD
+  birthTime String? // HH:mm
+  latitude  Float?
+  longitude Float?
+  timezone  String?
 
   // 카르마 스코어
-  karmaScore        Int      // 0-100
+  karmaScore Int // 0-100
 
   // 전생 분석 결과 (JSON)
-  analysisData      Json     // soulPattern, pastLife, soulJourney, karmicDebts, thisLifeMission, talentsCarried, saturnLesson
+  analysisData Json // soulPattern, pastLife, soulJourney, karmicDebts, thisLifeMission, talentsCarried, saturnLesson
 
   // 언어
-  locale            String   @default("ko")
+  locale String @default("ko")
 
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([karmaScore])
@@ -670,36 +670,36 @@ model PastLifeResult {
 
 // 성격 궁합 분석 결과
 model CompatibilityResult {
-  id                String   @id @default(cuid())
-  userId            String   // 분석을 요청한 사용자
-  createdAt         DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String // 분석을 요청한 사용자
+  createdAt DateTime @default(now())
 
   // Person 1 정보 (일반적으로 userId와 동일)
-  person1UserId     String?  // 사용자 ID (있을 경우)
-  person1Name       String?  // 이름 또는 레이블
-  person1ICP        Json     // ICP 결과 요약
-  person1Persona    Json     // Persona 결과 요약
+  person1UserId  String? // 사용자 ID (있을 경우)
+  person1Name    String? // 이름 또는 레이블
+  person1ICP     Json // ICP 결과 요약
+  person1Persona Json // Persona 결과 요약
 
   // Person 2 정보
-  person2UserId     String?  // 사용자 ID (있을 경우)
-  person2Name       String?  // 이름 또는 레이블
-  person2ICP        Json     // ICP 결과 요약
-  person2Persona    Json     // Persona 결과 요약
+  person2UserId  String? // 사용자 ID (있을 경우)
+  person2Name    String? // 이름 또는 레이블
+  person2ICP     Json // ICP 결과 요약
+  person2Persona Json // Persona 결과 요약
 
   // 궁합 분석 결과
-  icpCompatibility      Json // ICP 궁합 점수 및 설명
-  personaCompatibility  Json // Persona 궁합 점수 및 설명
-  crossSystemScore      Int  // 종합 궁합 점수 (0-100)
-  crossSystemAnalysis   Json // 종합 분석 결과
+  icpCompatibility     Json // ICP 궁합 점수 및 설명
+  personaCompatibility Json // Persona 궁합 점수 및 설명
+  crossSystemScore     Int // 종합 궁합 점수 (0-100)
+  crossSystemAnalysis  Json // 종합 분석 결과
 
   // 답변 데이터 (백업용)
-  person1Answers    Json?    // Person 1의 전체 답변
-  person2Answers    Json?    // Person 2의 전체 답변
+  person1Answers Json? // Person 1의 전체 답변
+  person2Answers Json? // Person 2의 전체 답변
 
   // 언어
-  locale            String   @default("en")
+  locale String @default("en")
 
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([person1UserId])
@@ -708,33 +708,33 @@ model CompatibilityResult {
 
 // Destiny Matrix AI 프리미엄 리포트
 model DestinyMatrixReport {
-  id            String   @id @default(cuid())
-  userId        String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 리포트 타입 및 분류
-  reportType    String   // "timing" 또는 "themed"
-  period        String?  // 타이밍 리포트용: "daily", "monthly", "yearly", "comprehensive"
-  theme         String?  // 테마 리포트용: "love", "career", "wealth", "health", "family"
+  reportType String // "timing" 또는 "themed"
+  period     String? // 타이밍 리포트용: "daily", "monthly", "yearly", "comprehensive"
+  theme      String? // 테마 리포트용: "love", "career", "wealth", "health", "family"
 
   // 리포트 전체 데이터 (JSON)
-  reportData    Json     // TimingAIPremiumReport 또는 ThemedAIPremiumReport 전체 객체
+  reportData Json // TimingAIPremiumReport 또는 ThemedAIPremiumReport 전체 객체
 
   // 표시용 요약 정보
-  title         String   // 리포트 제목 (예: "2024년 1월 종합 운세")
-  summary       String?  // 짧은 요약
-  overallScore  Int?     // 종합 점수 (0-100)
-  grade         String?  // S, A, B, C, D
+  title        String // 리포트 제목 (예: "2024년 1월 종합 운세")
+  summary      String? // 짧은 요약
+  overallScore Int? // 종합 점수 (0-100)
+  grade        String? // S, A, B, C, D
 
   // PDF 관련
-  pdfGenerated  Boolean  @default(false)
-  pdfUrl        String?  // PDF가 저장된 경로 (향후 스토리지 사용시)
+  pdfGenerated Boolean @default(false)
+  pdfUrl       String? // PDF가 저장된 경로 (향후 스토리지 사용시)
 
   // 언어
-  locale        String   @default("ko")
+  locale String @default("ko")
 
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([reportType])
@@ -748,58 +748,58 @@ model DestinyMatrixReport {
 
 // 매칭 프로필 - 사용자의 매칭용 프로필
 model MatchProfile {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 기본 정보
-  displayName     String           // 표시 이름
-  bio             String?  @db.Text // 자기소개
-  occupation      String?          // 직업
+  displayName String // 표시 이름
+  bio         String? @db.Text // 자기소개
+  occupation  String? // 직업
 
   // 프로필 사진 (URL 배열)
-  photos          Json     @default("[]") // ["url1", "url2", ...]
+  photos Json @default("[]") // ["url1", "url2", ...]
 
   // 위치 정보
-  city            String?          // 도시
-  latitude        Float?
-  longitude       Float?
+  city      String? // 도시
+  latitude  Float?
+  longitude Float?
 
   // 매칭 설정
-  isActive        Boolean  @default(true)   // 매칭 활성화 여부
-  isVisible       Boolean  @default(true)   // 프로필 노출 여부
-  verified        Boolean  @default(false)  // 인증 여부
+  isActive  Boolean @default(true) // 매칭 활성화 여부
+  isVisible Boolean @default(true) // 프로필 노출 여부
+  verified  Boolean @default(false) // 인증 여부
 
   // 선호 설정
-  ageMin          Int      @default(18)
-  ageMax          Int      @default(99)
-  maxDistance     Int      @default(50)     // km
-  genderPreference String  @default("all")  // M, F, all
+  ageMin           Int    @default(18)
+  ageMax           Int    @default(99)
+  maxDistance      Int    @default(50) // km
+  genderPreference String @default("all") // M, F, all
 
   // 관심사
-  interests       Json     @default("[]")   // ["Tarot", "Meditation", ...]
+  interests Json @default("[]") // ["Tarot", "Meditation", ...]
 
   // 성격 테스트 결과 (PersonalityResult 연동)
-  personalityType   String?    // 4글자 타입 코드 (RVLA, GSHA 등)
-  personalityName   String?    // 페르소나 이름
-  personalityScores Json?      // { energy, cognition, decision, rhythm }
+  personalityType   String? // 4글자 타입 코드 (RVLA, GSHA 등)
+  personalityName   String? // 페르소나 이름
+  personalityScores Json? // { energy, cognition, decision, rhythm }
 
   // 통계
-  likesReceived   Int      @default(0)
-  likesGiven      Int      @default(0)
-  matchCount      Int      @default(0)
-  superLikeCount  Int      @default(3)      // 사용 가능한 슈퍼라이크 수
-  superLikeResetAt DateTime?                // 슈퍼라이크 마지막 리셋 시간
+  likesReceived    Int       @default(0)
+  likesGiven       Int       @default(0)
+  matchCount       Int       @default(0)
+  superLikeCount   Int       @default(3) // 사용 가능한 슈퍼라이크 수
+  superLikeResetAt DateTime? // 슈퍼라이크 마지막 리셋 시간
 
   // 마지막 활동
-  lastActiveAt    DateTime @default(now())
+  lastActiveAt DateTime @default(now())
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // 보낸/받은 스와이프
-  sentSwipes      MatchSwipe[]     @relation("SentSwipes")
-  receivedSwipes  MatchSwipe[]     @relation("ReceivedSwipes")
+  sentSwipes     MatchSwipe[] @relation("SentSwipes")
+  receivedSwipes MatchSwipe[] @relation("ReceivedSwipes")
 
   // 매치 연결
   connectionsAsUser1 MatchConnection[] @relation("ConnectionUser1")
@@ -812,26 +812,26 @@ model MatchProfile {
 
 // 스와이프 기록 - 좋아요/패스/슈퍼라이크
 model MatchSwipe {
-  id              String   @id @default(cuid())
-  createdAt       DateTime @default(now())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
 
   // 스와이프 한 사람
-  swiperId        String
-  swiperProfile   MatchProfile @relation("SentSwipes", fields: [swiperId], references: [id], onDelete: Cascade)
+  swiperId      String
+  swiperProfile MatchProfile @relation("SentSwipes", fields: [swiperId], references: [id], onDelete: Cascade)
 
   // 스와이프 받은 사람
-  targetId        String
-  targetProfile   MatchProfile @relation("ReceivedSwipes", fields: [targetId], references: [id], onDelete: Cascade)
+  targetId      String
+  targetProfile MatchProfile @relation("ReceivedSwipes", fields: [targetId], references: [id], onDelete: Cascade)
 
   // 스와이프 타입
-  action          String   // like, pass, super_like
+  action String // like, pass, super_like
 
   // 궁합 점수 (스와이프 시점에 계산된 점수)
   compatibilityScore Int?
 
   // 매치 여부 (상대방도 like 했는지)
-  isMatched       Boolean  @default(false)
-  matchedAt       DateTime?
+  isMatched Boolean   @default(false)
+  matchedAt DateTime?
 
   @@unique([swiperId, targetId]) // 한 번만 스와이프 가능
   @@index([swiperId])
@@ -843,66 +843,66 @@ model MatchSwipe {
 
 // 매치 연결 - 서로 좋아요한 경우
 model MatchConnection {
-  id              String   @id @default(cuid())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 연결된 두 사용자
-  user1Id         String
-  user1Profile    MatchProfile @relation("ConnectionUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user1Id      String
+  user1Profile MatchProfile @relation("ConnectionUser1", fields: [user1Id], references: [id], onDelete: Cascade)
 
-  user2Id         String
-  user2Profile    MatchProfile @relation("ConnectionUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  user2Id      String
+  user2Profile MatchProfile @relation("ConnectionUser2", fields: [user2Id], references: [id], onDelete: Cascade)
 
   // 궁합 분석 결과 (캐싱)
   compatibilityScore Int?
-  compatibilityData  Json?   // 상세 궁합 분석 결과
+  compatibilityData  Json? // 상세 궁합 분석 결과
 
   // 상태
-  status          String   @default("active") // active, unmatched, blocked
+  status String @default("active") // active, unmatched, blocked
 
   // 마지막 상호작용
   lastInteractionAt DateTime @default(now())
 
   // 대화 시작 여부
-  chatStarted     Boolean  @default(false)
+  chatStarted Boolean @default(false)
 
   // 슈퍼라이크로 매치되었는지
   isSuperLikeMatch Boolean @default(false)
 
+  // 채팅 메시지
+  messages MatchMessage[]
+
   @@unique([user1Id, user2Id])
   @@index([user1Id])
   @@index([user2Id])
-  @@index([status])
+  @@index([status, createdAt])
   @@index([createdAt])
-
-  // 채팅 메시지
-  messages MatchMessage[]
 }
 
 // 매치 채팅 메시지
 model MatchMessage {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
 
   // 연결
   connectionId String
   connection   MatchConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
 
   // 발신자
-  senderId     String
-  sender       User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   // 메시지 내용
-  content      String
-  messageType  String   @default("text") // text, image, sticker, tarot_share
+  content     String
+  messageType String @default("text") // text, image, sticker, tarot_share
 
   // 읽음 상태
-  isRead       Boolean  @default(false)
-  readAt       DateTime?
+  isRead Boolean   @default(false)
+  readAt DateTime?
 
   // 삭제 여부 (soft delete)
-  isDeleted    Boolean  @default(false)
+  isDeleted Boolean @default(false)
 
   @@index([connectionId, createdAt])
   @@index([senderId])
@@ -910,28 +910,28 @@ model MatchMessage {
 
 // 🔒 Admin Audit Log - 관리자 작업 감사 로그
 model AdminAuditLog {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
 
   // 관리자 정보
   adminEmail  String
   adminUserId String?
 
   // 작업 정보
-  action      String   // refund_subscription, update_credits, ban_user, etc.
-  targetType  String?  // user, subscription, credit, etc.
-  targetId    String?  // 대상의 ID
+  action     String // refund_subscription, update_credits, ban_user, etc.
+  targetType String? // user, subscription, credit, etc.
+  targetId   String? // 대상의 ID
 
   // 작업 세부사항 (JSON)
-  metadata    Json?    // { amount, reason, before, after, etc. }
+  metadata Json? // { amount, reason, before, after, etc. }
 
   // 결과
-  success     Boolean  @default(true)
+  success      Boolean @default(true)
   errorMessage String?
 
   // IP 및 User Agent
-  ipAddress   String?
-  userAgent   String?
+  ipAddress String?
+  userAgent String?
 
   @@index([adminEmail, createdAt])
   @@index([action, createdAt])
@@ -940,26 +940,26 @@ model AdminAuditLog {
 
 // 🔄 Credit Refund Log - 크레딧 자동 환불 로그
 model CreditRefundLog {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
 
   // 사용자 정보
-  userId      String
+  userId String
 
   // 크레딧 정보
-  creditType  String   // reading, compatibility, followUp
-  amount      Int      // 환불된 크레딧 수량
+  creditType String // reading, compatibility, followUp
+  amount     Int // 환불된 크레딧 수량
 
   // 원인 정보
-  reason      String   // api_error, timeout, ai_backend_failure, etc.
-  apiRoute    String?  // 실패한 API 경로
+  reason       String // api_error, timeout, ai_backend_failure, etc.
+  apiRoute     String? // 실패한 API 경로
   errorMessage String? // 에러 메시지
 
   // 원본 트랜잭션 ID (추적용)
   transactionId String?
 
   // 메타데이터 (JSON)
-  metadata    Json?
+  metadata Json?
 
   @@index([userId, createdAt])
   @@index([creditType, createdAt])
@@ -968,23 +968,23 @@ model CreditRefundLog {
 
 // 🔗 Shared Result - 공유된 결과 저장
 model SharedResult {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  expiresAt   DateTime? // 만료 시간 (null = 영구)
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  expiresAt DateTime? // 만료 시간 (null = 영구)
 
   // 공유자 정보
-  userId      String?  // 비로그인 공유도 허용
+  userId String? // 비로그인 공유도 허용
 
   // 결과 타입
-  resultType  String   // saju, tarot, astrology, dream, compatibility, personality, icp
+  resultType String // saju, tarot, astrology, dream, compatibility, personality, icp
 
   // 결과 내용
   title       String
-  description String?  @db.Text
-  resultData  Json?    // 추가 데이터 (선택)
+  description String? @db.Text
+  resultData  Json? // 추가 데이터 (선택)
 
   // 조회 통계
-  viewCount   Int      @default(0)
+  viewCount Int @default(0)
 
   @@index([userId, createdAt])
   @@index([resultType, createdAt])
@@ -994,11 +994,11 @@ model SharedResult {
 model StripeEventLog {
   id          String   @id @default(cuid())
   eventId     String   @unique // Stripe event.id
-  type        String   // event.type (checkout.session.completed, etc.)
+  type        String // event.type (checkout.session.completed, etc.)
   processedAt DateTime @default(now())
   success     Boolean  @default(true)
   errorMsg    String?
-  metadata    Json?    // 디버깅용 메타데이터
+  metadata    Json? // 디버깅용 메타데이터
 
   @@index([type, processedAt])
   @@index([processedAt])
@@ -1027,14 +1027,14 @@ model UserBlock {
 
 // 🚨 유저 신고
 model UserReport {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
 
   reporterId  String
   reportedId  String
-  category    String   // inappropriate, spam, fake, harassment, other
-  description String?  @db.Text
-  status      String   @default("pending") // pending, reviewed, resolved, dismissed
+  category    String // inappropriate, spam, fake, harassment, other
+  description String? @db.Text
+  status      String  @default("pending") // pending, reviewed, resolved, dismissed
 
   reporter User @relation("ReportsMade", fields: [reporterId], references: [id], onDelete: Cascade)
   reported User @relation("ReportsReceived", fields: [reportedId], references: [id], onDelete: Cascade)

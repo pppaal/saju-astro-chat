@@ -36,14 +36,6 @@ export const GET = withApiMiddleware(
         tzId: true,
         createdAt: true,
         emailNotifications: true,
-        preferences: {
-          select: {
-            preferredLanguage: true,
-            notificationSettings: true,
-            tonePreference: true,
-            readingLength: true,
-          },
-        },
       },
     })
 
@@ -123,14 +115,6 @@ export const PATCH = withApiMiddleware(
         tzId: true,
         createdAt: true,
         emailNotifications: true,
-        preferences: {
-          select: {
-            preferredLanguage: true,
-            notificationSettings: true,
-            tonePreference: true,
-            readingLength: true,
-          },
-        },
       },
     })
 
@@ -155,46 +139,47 @@ export const PATCH = withApiMiddleware(
     }
 
     // Upsert user preferences if any preference fields provided
-    const hasPrefs =
-      isNonEmptyString(preferredLanguage, 8) ||
-      notificationSettings ||
-      isNonEmptyString(tonePreference, 32) ||
-      isNonEmptyString(readingLength, 32)
+    // TEMPORARILY DISABLED: Preferences table may not be synced in production
+    // const hasPrefs =
+    //   isNonEmptyString(preferredLanguage, 8) ||
+    //   notificationSettings ||
+    //   isNonEmptyString(tonePreference, 32) ||
+    //   isNonEmptyString(readingLength, 32)
 
-    if (hasPrefs) {
-      await prisma.userPreferences.upsert({
-        where: { userId: context.userId! },
-        update: {
-          ...(isNonEmptyString(preferredLanguage, 8) && {
-            preferredLanguage: preferredLanguage.trim(),
-          }),
-          ...(notificationSettings && { notificationSettings }),
-          ...(isNonEmptyString(tonePreference, 32) && { tonePreference: tonePreference.trim() }),
-          ...(isNonEmptyString(readingLength, 32) && { readingLength: readingLength.trim() }),
-        },
-        create: {
-          userId: context.userId!,
-          preferredLanguage: isNonEmptyString(preferredLanguage, 8)
-            ? preferredLanguage.trim()
-            : 'en',
-          notificationSettings: notificationSettings || null,
-          tonePreference: isNonEmptyString(tonePreference, 32) ? tonePreference.trim() : 'casual',
-          readingLength: isNonEmptyString(readingLength, 32) ? readingLength.trim() : 'medium',
-        },
-      })
+    // if (hasPrefs) {
+    //   await prisma.userPreferences.upsert({
+    //     where: { userId: context.userId! },
+    //     update: {
+    //       ...(isNonEmptyString(preferredLanguage, 8) && {
+    //         preferredLanguage: preferredLanguage.trim(),
+    //       }),
+    //       ...(notificationSettings && { notificationSettings }),
+    //       ...(isNonEmptyString(tonePreference, 32) && { tonePreference: tonePreference.trim() }),
+    //       ...(isNonEmptyString(readingLength, 32) && { readingLength: readingLength.trim() }),
+    //     },
+    //     create: {
+    //       userId: context.userId!,
+    //       preferredLanguage: isNonEmptyString(preferredLanguage, 8)
+    //         ? preferredLanguage.trim()
+    //         : 'en',
+    //       notificationSettings: notificationSettings || null,
+    //       tonePreference: isNonEmptyString(tonePreference, 32) ? tonePreference.trim() : 'casual',
+    //       readingLength: isNonEmptyString(readingLength, 32) ? readingLength.trim() : 'medium',
+    //     },
+    //   })
 
-      // Refresh preferences in response
-      const freshPrefs = await prisma.userPreferences.findUnique({
-        where: { userId: context.userId! },
-        select: {
-          preferredLanguage: true,
-          notificationSettings: true,
-          tonePreference: true,
-          readingLength: true,
-        },
-      })
-      updatedUser.preferences = freshPrefs
-    }
+    //   // Refresh preferences in response
+    //   const freshPrefs = await prisma.userPreferences.findUnique({
+    //     where: { userId: context.userId! },
+    //     select: {
+    //       preferredLanguage: true,
+    //       notificationSettings: true,
+    //       tonePreference: true,
+    //       readingLength: true,
+    //     },
+    //   })
+    //   updatedUser.preferences = freshPrefs
+    // }
 
     return NextResponse.json({ user: updatedUser })
   },

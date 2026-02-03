@@ -60,8 +60,24 @@ function DreamContent() {
   }, [birthInfo.userProfile, userProfile, setUserProfile])
 
   // Handlers
-  const handleBirthInfoSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleBirthInfoSubmit = async (birthData: {
+    birthDate: string
+    birthTime: string
+    gender: 'M' | 'F' | 'Male' | 'Female'
+    birthCity?: string
+  }) => {
+    // Normalize gender to 'M' | 'F' format
+    const normalizedGender =
+      birthData.gender === 'Male' ? 'M' : birthData.gender === 'Female' ? 'F' : birthData.gender
+
+    // Update birthInfo hook state
+    birthInfo.setBirthDate(birthData.birthDate)
+    birthInfo.setBirthTime(birthData.birthTime)
+    birthInfo.setGender(normalizedGender)
+    if (birthData.birthCity) {
+      birthInfo.setBirthCity(birthData.birthCity)
+    }
+
     const success = await birthInfo.saveBirthInfo()
     if (success) {
       setPhase('dream-input')
@@ -132,22 +148,11 @@ function DreamContent() {
               locale={locale}
               status={status}
               birthDate={birthInfo.birthDate}
-              setBirthDate={birthInfo.setBirthDate}
               birthTime={birthInfo.birthTime}
-              setBirthTime={birthInfo.setBirthTime}
               gender={birthInfo.gender}
-              setGender={birthInfo.setGender}
               birthCity={birthInfo.birthCity}
-              setBirthCity={birthInfo.setBirthCity}
               showTimeInput={birthInfo.showTimeInput}
-              setShowTimeInput={birthInfo.setShowTimeInput}
               showCityInput={birthInfo.showCityInput}
-              setShowCityInput={birthInfo.setShowCityInput}
-              loadingProfileBtn={birthInfo.loadingProfileBtn}
-              profileLoadedMsg={birthInfo.profileLoadedMsg}
-              profileLoadError={birthInfo.profileLoadError}
-              showProfilePrompt={birthInfo.showProfilePrompt}
-              onLoadProfile={birthInfo.loadProfile}
               onSubmit={handleBirthInfoSubmit}
               onSkip={handleSkipBirthInfo}
             />

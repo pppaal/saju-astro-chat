@@ -10,7 +10,7 @@ import { CitySearchField } from './CitySearchField'
 import { logger } from '@/lib/logger'
 import styles from './UnifiedBirthForm.module.css'
 
-interface BirthInfo {
+export interface BirthInfo {
   birthDate: string
   birthTime: string
   gender: 'M' | 'F' | 'Male' | 'Female'

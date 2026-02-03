@@ -1,16 +1,17 @@
-'use client';
+'use client'
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import Link from 'next/link';
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import Link from 'next/link'
+import DateTimePicker from '@/components/ui/DateTimePicker'
 
 interface SajuData {
-  dayMasterElement: string;
-  dayMaster: string;
-  birthDate: string;
-  birthTime?: string;
+  dayMasterElement: string
+  dayMaster: string
+  birthDate: string
+  birthTime?: string
 }
 
 const THEME_INFO = {
@@ -54,72 +55,74 @@ const THEME_INFO = {
     color: 'from-purple-500 to-violet-500',
     sections: ['심층 분석', '가족 역학', '타이밍', '조화 방안', '실천 가이드'],
   },
-};
+}
 
-type ThemeType = keyof typeof THEME_INFO;
+type ThemeType = keyof typeof THEME_INFO
 
 export default function ThemedReportPage() {
-  const router = useRouter();
-  const { status } = useSession();
-  const { profile, isLoading: profileLoading } = useUserProfile();
+  const router = useRouter()
+  const { status } = useSession()
+  const { profile, isLoading: profileLoading } = useUserProfile()
 
-  const [selectedTheme, setSelectedTheme] = useState<ThemeType | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [sajuData, setSajuData] = useState<SajuData | null>(null);
-  const [sajuLoading, setSajuLoading] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState<ThemeType | null>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [sajuData, setSajuData] = useState<SajuData | null>(null)
+  const [sajuLoading, setSajuLoading] = useState(false)
 
   // 사용자 입력 정보 (프로필이 없는 경우 직접 입력)
-  const [manualName, setManualName] = useState('');
-  const [manualBirthDate, setManualBirthDate] = useState('');
-  const [manualBirthTime, setManualBirthTime] = useState('');
-  const [useCustomInfo, setUseCustomInfo] = useState(false);
+  const [manualName, setManualName] = useState('')
+  const [manualBirthDate, setManualBirthDate] = useState('')
+  const [manualBirthTime, setManualBirthTime] = useState('')
+  const [useCustomInfo, setUseCustomInfo] = useState(false)
 
   // 사주 정보 로드
   const loadSajuData = useCallback(async () => {
-    if (status !== 'authenticated') {return;}
+    if (status !== 'authenticated') {
+      return
+    }
 
-    setSajuLoading(true);
+    setSajuLoading(true)
     try {
-      const res = await fetch('/api/me/saju');
-      const data = await res.json();
+      const res = await fetch('/api/me/saju')
+      const data = await res.json()
       if (data.success && data.hasSaju) {
-        setSajuData(data.saju);
+        setSajuData(data.saju)
       }
     } catch {
       // 사주 로드 실패 시 무시 (기본값 사용)
     } finally {
-      setSajuLoading(false);
+      setSajuLoading(false)
     }
-  }, [status]);
+  }, [status])
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/auth/signin?callbackUrl=/premium-reports/themed');
+      router.push('/auth/signin?callbackUrl=/premium-reports/themed')
     }
-  }, [status, router]);
+  }, [status, router])
 
   useEffect(() => {
-    loadSajuData();
-  }, [loadSajuData]);
+    loadSajuData()
+  }, [loadSajuData])
 
   const handleGenerate = async () => {
     if (!selectedTheme) {
-      setError('테마를 선택해주세요.');
-      return;
+      setError('테마를 선택해주세요.')
+      return
     }
 
     // 프로필 또는 수동 입력 정보 사용
-    const finalName = profile.name || manualName || '사용자';
-    const finalBirthDate = profile.birthDate || manualBirthDate;
+    const finalName = profile.name || manualName || '사용자'
+    const finalBirthDate = profile.birthDate || manualBirthDate
 
     if (!finalBirthDate) {
-      setError('생년월일을 입력해주세요.');
-      return;
+      setError('생년월일을 입력해주세요.')
+      return
     }
 
-    setIsGenerating(true);
-    setError(null);
+    setIsGenerating(true)
+    setError(null)
 
     try {
       const response = await fetch('/api/destiny-matrix/ai-report', {
@@ -133,33 +136,33 @@ export default function ThemedReportPage() {
           birthTime: profile.birthTime || manualBirthTime || undefined,
           lang: 'ko',
         }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!data.success) {
         if (data.error?.code === 'INSUFFICIENT_CREDITS') {
-          router.push('/pricing?reason=credits');
-          return;
+          router.push('/pricing?reason=credits')
+          return
         }
-        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.');
+        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.')
       }
 
       // 성공 - 결과 페이지로 이동
-      router.push(`/premium-reports/result/${data.report.id}?type=themed`);
+      router.push(`/premium-reports/result/${data.report.id}?type=themed`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     } finally {
-      setIsGenerating(false);
+      setIsGenerating(false)
     }
-  };
+  }
 
   if (status === 'loading' || profileLoading || sajuLoading) {
     return (
       <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
         <div className="text-white">로딩 중...</div>
       </div>
-    );
+    )
   }
 
   return (
@@ -182,7 +185,7 @@ export default function ThemedReportPage() {
       <main className="max-w-4xl mx-auto px-4 pb-20">
         {/* Theme Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {(Object.entries(THEME_INFO) as [ThemeType, typeof THEME_INFO[ThemeType]][]).map(
+          {(Object.entries(THEME_INFO) as [ThemeType, (typeof THEME_INFO)[ThemeType]][]).map(
             ([key, theme]) => (
               <button
                 key={key}
@@ -255,9 +258,7 @@ export default function ThemedReportPage() {
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  이름 (선택)
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">이름 (선택)</label>
                 <input
                   type="text"
                   value={manualName}
@@ -267,14 +268,12 @@ export default function ThemedReportPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  생년월일 (필수) <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="date"
+                <DateTimePicker
                   value={manualBirthDate}
-                  onChange={(e) => setManualBirthDate(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  onChange={setManualBirthDate}
+                  label="생년월일 (필수)"
+                  required
+                  locale="ko"
                 />
               </div>
               <div>
@@ -314,9 +313,15 @@ export default function ThemedReportPage() {
         {/* Generate Button */}
         <button
           onClick={handleGenerate}
-          disabled={isGenerating || (!(profile.birthDate && !useCustomInfo) && !manualBirthDate) || !selectedTheme}
+          disabled={
+            isGenerating ||
+            (!(profile.birthDate && !useCustomInfo) && !manualBirthDate) ||
+            !selectedTheme
+          }
           className={`w-full p-4 rounded-xl font-bold text-white flex items-center justify-center gap-3 transition-all focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
-            isGenerating || (!(profile.birthDate && !useCustomInfo) && !manualBirthDate) || !selectedTheme
+            isGenerating ||
+            (!(profile.birthDate && !useCustomInfo) && !manualBirthDate) ||
+            !selectedTheme
               ? 'bg-slate-600 cursor-not-allowed'
               : `bg-gradient-to-r ${selectedTheme ? THEME_INFO[selectedTheme].color : 'from-purple-500 to-pink-500'} hover:opacity-90`
           }`}
@@ -348,5 +353,5 @@ export default function ThemedReportPage() {
         </p>
       </main>
     </div>
-  );
+  )
 }

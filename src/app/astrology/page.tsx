@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { saveUserProfile } from '@/lib/userProfile'
 import styles from './Astrology.module.css'
+import DateTimePicker from '@/components/ui/DateTimePicker'
 
 type CityItem = { name: string; country: string; lat: number; lon: number }
 
@@ -337,17 +338,12 @@ export default function Home() {
 
               <div className={`${styles.grid} ${styles.gridTwo}`}>
                 <div>
-                  <label htmlFor="date" className={styles.label}>
-                    {t('app.birthDate') || 'Birth Date'}
-                  </label>
-                  <input
-                    type="date"
-                    id="date"
-                    name="date"
-                    required
+                  <DateTimePicker
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className={styles.input}
+                    onChange={setDate}
+                    label={t('app.birthDate') || 'Birth Date'}
+                    required
+                    locale={locale as 'ko' | 'en'}
                   />
                 </div>
 

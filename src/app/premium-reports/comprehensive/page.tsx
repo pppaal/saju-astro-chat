@@ -1,74 +1,77 @@
-'use client';
+'use client'
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import Link from 'next/link';
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import Link from 'next/link'
+import DateTimePicker from '@/components/ui/DateTimePicker'
 
 interface SajuData {
-  dayMasterElement: string;
-  dayMaster: string;
-  birthDate: string;
-  birthTime?: string;
+  dayMasterElement: string
+  dayMaster: string
+  birthDate: string
+  birthTime?: string
 }
 
 export default function ComprehensiveReportPage() {
-  const router = useRouter();
-  const { status } = useSession();
-  const { profile, isLoading: profileLoading } = useUserProfile();
+  const router = useRouter()
+  const { status } = useSession()
+  const { profile, isLoading: profileLoading } = useUserProfile()
 
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [sajuData, setSajuData] = useState<SajuData | null>(null);
-  const [sajuLoading, setSajuLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [sajuData, setSajuData] = useState<SajuData | null>(null)
+  const [sajuLoading, setSajuLoading] = useState(false)
 
   // 사용자 입력 정보 (프로필이 없는 경우 직접 입력)
-  const [manualName, setManualName] = useState('');
-  const [manualBirthDate, setManualBirthDate] = useState('');
-  const [manualBirthTime, setManualBirthTime] = useState('');
-  const [useCustomInfo, setUseCustomInfo] = useState(false);
+  const [manualName, setManualName] = useState('')
+  const [manualBirthDate, setManualBirthDate] = useState('')
+  const [manualBirthTime, setManualBirthTime] = useState('')
+  const [useCustomInfo, setUseCustomInfo] = useState(false)
 
   // 사주 정보 로드
   const loadSajuData = useCallback(async () => {
-    if (status !== 'authenticated') {return;}
+    if (status !== 'authenticated') {
+      return
+    }
 
-    setSajuLoading(true);
+    setSajuLoading(true)
     try {
-      const res = await fetch('/api/me/saju');
-      const data = await res.json();
+      const res = await fetch('/api/me/saju')
+      const data = await res.json()
       if (data.success && data.hasSaju) {
-        setSajuData(data.saju);
+        setSajuData(data.saju)
       }
     } catch {
       // 사주 로드 실패 시 무시 (기본값 사용)
     } finally {
-      setSajuLoading(false);
+      setSajuLoading(false)
     }
-  }, [status]);
+  }, [status])
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/auth/signin?callbackUrl=/premium-reports/comprehensive');
+      router.push('/auth/signin?callbackUrl=/premium-reports/comprehensive')
     }
-  }, [status, router]);
+  }, [status, router])
 
   useEffect(() => {
-    loadSajuData();
-  }, [loadSajuData]);
+    loadSajuData()
+  }, [loadSajuData])
 
   const handleGenerate = async () => {
     // 프로필 또는 수동 입력 정보 사용
-    const finalName = profile.name || manualName || '사용자';
-    const finalBirthDate = profile.birthDate || manualBirthDate;
+    const finalName = profile.name || manualName || '사용자'
+    const finalBirthDate = profile.birthDate || manualBirthDate
 
     if (!finalBirthDate) {
-      setError('생년월일을 입력해주세요.');
-      return;
+      setError('생년월일을 입력해주세요.')
+      return
     }
 
-    setIsGenerating(true);
-    setError(null);
+    setIsGenerating(true)
+    setError(null)
 
     try {
       const response = await fetch('/api/destiny-matrix/ai-report', {
@@ -83,33 +86,33 @@ export default function ComprehensiveReportPage() {
           detailLevel: 'comprehensive',
           lang: 'ko',
         }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!data.success) {
         if (data.error?.code === 'INSUFFICIENT_CREDITS') {
-          router.push('/pricing?reason=credits');
-          return;
+          router.push('/pricing?reason=credits')
+          return
         }
-        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.');
+        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.')
       }
 
       // 성공 - 결과 페이지로 이동
-      router.push(`/premium-reports/result/${data.report.id}?type=comprehensive`);
+      router.push(`/premium-reports/result/${data.report.id}?type=comprehensive`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     } finally {
-      setIsGenerating(false);
+      setIsGenerating(false)
     }
-  };
+  }
 
   if (status === 'loading' || profileLoading || sajuLoading) {
     return (
       <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
         <div className="text-white">로딩 중...</div>
       </div>
-    );
+    )
   }
 
   return (
@@ -199,9 +202,7 @@ export default function ComprehensiveReportPage() {
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  이름 (선택)
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">이름 (선택)</label>
                 <input
                   type="text"
                   value={manualName}
@@ -211,14 +212,12 @@ export default function ComprehensiveReportPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  생년월일 (필수) <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="date"
+                <DateTimePicker
                   value={manualBirthDate}
-                  onChange={(e) => setManualBirthDate(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  onChange={setManualBirthDate}
+                  label="생년월일 (필수)"
+                  required
+                  locale="ko"
                 />
               </div>
               <div>
@@ -290,5 +289,5 @@ export default function ComprehensiveReportPage() {
         </p>
       </main>
     </div>
-  );
+  )
 }

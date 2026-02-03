@@ -1,34 +1,19 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { MessageBox } from '../MessageBox'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
-import DateTimePicker from '@/components/ui/DateTimePicker'
-import TimePicker from '@/components/ui/TimePicker'
-import { GenderSelector } from '@/components/common/BirthForm'
-import { ProfileLoader } from '@/components/common/BirthForm'
+import { UnifiedBirthForm, type BirthInfo } from '@/components/common/BirthForm'
 import styles from './BirthInputPhase.module.css'
 
 interface BirthInputPhaseProps {
   locale: string
   status: string
   birthDate: string
-  setBirthDate: (value: string) => void
   birthTime: string
-  setBirthTime: (value: string) => void
   gender: 'M' | 'F'
-  setGender: (value: 'M' | 'F') => void
   birthCity: string
-  setBirthCity: (value: string) => void
   showTimeInput: boolean
-  setShowTimeInput: (value: boolean) => void
   showCityInput: boolean
-  setShowCityInput: (value: boolean) => void
-  loadingProfileBtn: boolean
-  profileLoadedMsg: boolean
-  profileLoadError: string | null
-  showProfilePrompt?: boolean
-  onLoadProfile: () => void
-  onSubmit: (e: React.FormEvent) => void
+  onSubmit: (birthInfo: BirthInfo) => void
   onSkip: () => void
 }
 
@@ -42,27 +27,20 @@ export function BirthInputPhase({
   locale,
   status,
   birthDate,
-  setBirthDate,
   birthTime,
-  setBirthTime,
   gender,
-  setGender,
   birthCity,
-  setBirthCity,
   showTimeInput,
-  setShowTimeInput,
   showCityInput,
-  setShowCityInput,
-  loadingProfileBtn,
-  profileLoadedMsg,
-  profileLoadError,
-  showProfilePrompt = false,
-  onLoadProfile,
   onSubmit,
   onSkip,
 }: BirthInputPhaseProps) {
   const signInUrl = buildSignInUrl()
   const isKo = locale === 'ko'
+
+  const handleFormSubmit = (birthInfo: BirthInfo) => {
+    onSubmit(birthInfo)
+  }
 
   return (
     <motion.div
@@ -86,109 +64,32 @@ export function BirthInputPhase({
       </div>
 
       <div className={styles.birthFormCard}>
-        <div className={styles.formHeader}>
-          <span className={styles.formIcon}>🎂</span>
-          <h3 className={styles.formTitle}>
-            {isKo ? '생년월일을 입력해주세요' : 'Enter Your Birth Info'}
-          </h3>
-          <p className={styles.formSubtitle}>
-            {isKo ? '정확한 해석을 위해 필요한 정보입니다' : 'Optional, but improves accuracy'}
-          </p>
-        </div>
-
-        {/* Profile Loader - Unified Component */}
-        <ProfileLoader
-          status={status as 'authenticated' | 'loading' | 'unauthenticated'}
-          onLoadClick={onLoadProfile}
-          isLoading={loadingProfileBtn}
-          isLoaded={profileLoadedMsg}
-          error={profileLoadError}
-          showPrompt={showProfilePrompt}
+        {/* UnifiedBirthForm with Dream-specific configuration */}
+        <UnifiedBirthForm
+          onSubmit={handleFormSubmit}
           locale={locale as 'ko' | 'en'}
+          initialData={{
+            birthDate,
+            birthTime,
+            gender,
+            birthCity,
+          }}
+          includeProfileLoader={true}
+          includeCity={false}
+          includeCityToggle={true}
+          allowTimeUnknown={true}
+          genderFormat="short"
+          submitButtonText={isKo ? '다음으로' : 'Continue'}
+          submitButtonIcon="✨"
+          showHeader={true}
+          headerIcon="🎂"
+          headerTitle={isKo ? '생년월일을 입력해주세요' : 'Enter Your Birth Info'}
+          headerSubtitle={
+            isKo ? '정확한 해석을 위해 필요한 정보입니다' : 'Optional, but improves accuracy'
+          }
         />
 
-        <form onSubmit={onSubmit} className={styles.form}>
-          {/* Birth Date */}
-          <div className={styles.fieldGroup}>
-            <DateTimePicker
-              value={birthDate}
-              onChange={setBirthDate}
-              label={isKo ? '생년월일' : 'Birth Date'}
-              required
-              locale={locale}
-            />
-          </div>
-
-          {/* Gender - Unified Component */}
-          <div className={styles.fieldGroup}>
-            <GenderSelector
-              value={gender}
-              onChange={(value) => {
-                const shortValue = value === 'Male' ? 'M' : value === 'Female' ? 'F' : value
-                setGender(shortValue)
-              }}
-              locale={locale as 'ko' | 'en'}
-              outputFormat="short"
-            />
-          </div>
-
-          {/* Birth Time Toggle */}
-          <div className={styles.fieldGroup}>
-            <button
-              type="button"
-              className={styles.toggleBtn}
-              onClick={() => setShowTimeInput(!showTimeInput)}
-            >
-              <span className={styles.toggleIcon}>{showTimeInput ? '▼' : '▶'}</span>
-              <span>{isKo ? '태어난 시간 입력 (선택)' : 'Birth Time (Optional)'}</span>
-            </button>
-
-            {showTimeInput && (
-              <div className={styles.timeInputWrapper}>
-                <TimePicker value={birthTime} onChange={setBirthTime} label="" locale={locale} />
-                <p className={styles.timeHint}>
-                  {isKo
-                    ? '모르시면 12:00(정오)로 자동 설정됩니다'
-                    : 'Defaults to 12:00 PM if unknown'}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Birth City Toggle */}
-          <div className={styles.fieldGroup}>
-            <button
-              type="button"
-              className={styles.toggleBtn}
-              onClick={() => setShowCityInput(!showCityInput)}
-            >
-              <span className={styles.toggleIcon}>{showCityInput ? '▼' : '▶'}</span>
-              <span>{isKo ? '태어난 도시 입력 (선택)' : 'Birth City (Optional)'}</span>
-            </button>
-
-            {showCityInput && (
-              <div className={styles.timeInputWrapper}>
-                <input
-                  type="text"
-                  value={birthCity}
-                  onChange={(e) => setBirthCity(e.target.value)}
-                  className={styles.input}
-                  placeholder={isKo ? '예: 서울, 부산, Seoul' : 'e.g., Seoul, New York'}
-                />
-                <p className={styles.timeHint}>
-                  {isKo ? '더 정확한 분석을 위해 입력해주세요' : 'For more accurate analysis'}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Submit Button */}
-          <button type="submit" className={styles.submitButton} disabled={!birthDate}>
-            <span>✨</span>
-            <span>{isKo ? '다음으로' : 'Continue'}</span>
-          </button>
-        </form>
-
+        {/* Skip button - Dream-specific feature */}
         <div className={styles.skipBirthRow}>
           <button type="button" className={styles.skipBirthButton} onClick={onSkip}>
             {isKo ? '생년월일 없이 진행' : 'Skip for now'}
@@ -200,6 +101,7 @@ export function BirthInputPhase({
           </p>
         </div>
 
+        {/* Login hint - Dream-specific feature */}
         {status === 'unauthenticated' && (
           <div className={styles.loginHint}>
             <p>

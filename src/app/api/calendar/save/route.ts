@@ -1,29 +1,40 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
-import { prisma } from "@/lib/db/prisma";
-import { rateLimit } from "@/lib/rateLimit";
-import { getClientIp } from "@/lib/request-ip";
-import { logger } from '@/lib/logger';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/authOptions'
+import { prisma } from '@/lib/db/prisma'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
+import { csrfGuard } from '@/lib/security/csrf'
+import { logger } from '@/lib/logger'
+import { HTTP_STATUS } from '@/lib/constants/http'
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'
 
 // POST - 날짜 저장
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    // CSRF Protection
+    const csrfError = csrfGuard(req.headers)
+    if (csrfError) {
+      logger.warn('[CalendarSave] CSRF validation failed')
+      return csrfError
+    }
+
+    const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
-    const ip = getClientIp(req.headers);
-    const limit = await rateLimit(`calendar-save:${ip}`, { limit: 30, windowSeconds: 60 });
+    const ip = getClientIp(req.headers)
+    const limit = await rateLimit(`calendar-save:${ip}`, { limit: 30, windowSeconds: 60 })
     if (!limit.allowed) {
-      return NextResponse.json({ error: "Too many requests" }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
+      )
     }
 
-    const body = await req.json();
+    const body = await req.json()
     const {
       date,
       year,
@@ -41,11 +52,14 @@ export async function POST(req: NextRequest) {
       birthDate,
       birthTime,
       birthPlace,
-      locale = "ko",
-    } = body;
+      locale = 'ko',
+    } = body
 
     if (!date || grade === undefined || score === undefined || !title) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: HTTP_STATUS.BAD_REQUEST });
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
     }
 
     // Upsert - 이미 있으면 업데이트, 없으면 생성
@@ -94,28 +108,45 @@ export async function POST(req: NextRequest) {
         birthPlace,
         locale,
       },
-    });
+    })
 
-    return NextResponse.json({ success: true, id: savedDate.id }, { headers: limit.headers });
+    return NextResponse.json({ success: true, id: savedDate.id }, { headers: limit.headers })
   } catch (error) {
-    logger.error("Failed to save calendar date:", error);
-    return NextResponse.json({ error: "Failed to save" }, { status: HTTP_STATUS.SERVER_ERROR });
+    logger.error('Failed to save calendar date:', error)
+    return NextResponse.json({ error: 'Failed to save' }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }
 
 // DELETE - 저장된 날짜 삭제
 export async function DELETE(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
+    // CSRF Protection
+    const csrfError = csrfGuard(req.headers)
+    if (csrfError) {
+      logger.warn('[CalendarSave] CSRF validation failed on DELETE')
+      return csrfError
     }
 
-    const { searchParams } = new URL(req.url);
-    const date = searchParams.get("date");
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+    }
+
+    // Rate Limiting
+    const ip = getClientIp(req.headers)
+    const limit = await rateLimit(`calendar-delete:${ip}`, { limit: 20, windowSeconds: 60 })
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
+      )
+    }
+
+    const { searchParams } = new URL(req.url)
+    const date = searchParams.get('date')
 
     if (!date) {
-      return NextResponse.json({ error: "Date is required" }, { status: HTTP_STATUS.BAD_REQUEST });
+      return NextResponse.json({ error: 'Date is required' }, { status: HTTP_STATUS.BAD_REQUEST })
     }
 
     await prisma.savedCalendarDate.delete({
@@ -125,34 +156,34 @@ export async function DELETE(req: NextRequest) {
           date,
         },
       },
-    });
+    })
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true })
   } catch (error) {
-    logger.error("Failed to delete calendar date:", error);
-    return NextResponse.json({ error: "Failed to delete" }, { status: HTTP_STATUS.SERVER_ERROR });
+    logger.error('Failed to delete calendar date:', error)
+    return NextResponse.json({ error: 'Failed to delete' }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }
 
 // GET - 저장된 날짜 조회
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
 
-    const { searchParams } = new URL(req.url);
-    const date = searchParams.get("date");
-    const year = searchParams.get("year");
-    const limitParam = parseInt(searchParams.get("limit") || "50", 10);
+    const { searchParams } = new URL(req.url)
+    const date = searchParams.get('date')
+    const year = searchParams.get('year')
+    const limitParam = parseInt(searchParams.get('limit') || '50', 10)
 
-    const where: Record<string, unknown> = { userId: session.user.id };
+    const where: Record<string, unknown> = { userId: session.user.id }
 
     if (date) {
-      where.date = date;
+      where.date = date
     } else if (year) {
-      where.year = parseInt(year, 10);
+      where.year = parseInt(year, 10)
     }
 
     const savedDates = await prisma.savedCalendarDate.findMany({
@@ -168,13 +199,13 @@ export async function GET(req: NextRequest) {
         categories: true,
         createdAt: true,
       },
-      orderBy: { date: "asc" },
+      orderBy: { date: 'asc' },
       take: Math.min(limitParam, 365),
-    });
+    })
 
-    return NextResponse.json({ savedDates });
+    return NextResponse.json({ savedDates })
   } catch (error) {
-    logger.error("Failed to fetch saved calendar dates:", error);
-    return NextResponse.json({ error: "Failed to fetch" }, { status: HTTP_STATUS.SERVER_ERROR });
+    logger.error('Failed to fetch saved calendar dates:', error)
+    return NextResponse.json({ error: 'Failed to fetch' }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }

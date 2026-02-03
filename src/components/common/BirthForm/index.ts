@@ -1,4 +1,5 @@
 export { UnifiedBirthForm } from './UnifiedBirthForm'
+export type { BirthInfo } from './UnifiedBirthForm'
 export { GenderSelector } from './GenderSelector'
 export { ProfileLoader } from './ProfileLoader'
 export { CitySearchField } from './CitySearchField'

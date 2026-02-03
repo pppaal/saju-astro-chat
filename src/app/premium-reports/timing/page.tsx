@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import Link from 'next/link'
+import DateTimePicker from '@/components/ui/DateTimePicker'
 
 interface SajuData {
   dayMasterElement: string
@@ -129,7 +130,7 @@ function TimingReportContent() {
       }
 
       // 성공 - 결과 페이지로 이동
-      router.push(`/premium-reports/result/${data.report.id}?type=timing`);
+      router.push(`/premium-reports/result/${data.report.id}?type=timing`)
     } catch (err) {
       setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     } finally {
@@ -175,11 +176,13 @@ function TimingReportContent() {
         {/* Date Selector */}
         <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 mb-6">
           <h2 className="text-lg font-bold text-white mb-4">분석 기준일 선택</h2>
-          <input
-            type="date"
+          <DateTimePicker
             value={targetDate}
-            onChange={(e) => setTargetDate(e.target.value)}
-            className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+            onChange={setTargetDate}
+            label=""
+            locale="ko"
+            maxDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+            minDate="1900-01-01"
           />
           <p className="text-gray-400 text-sm mt-2">
             {period === 'daily' && '선택한 날짜의 운세를 분석합니다.'}
@@ -219,9 +222,7 @@ function TimingReportContent() {
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  이름 (선택)
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">이름 (선택)</label>
                 <input
                   type="text"
                   value={manualName}
@@ -231,14 +232,12 @@ function TimingReportContent() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  생년월일 (필수) <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="date"
+                <DateTimePicker
                   value={manualBirthDate}
-                  onChange={(e) => setManualBirthDate(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  onChange={setManualBirthDate}
+                  label="생년월일 (필수)"
+                  required
+                  locale="ko"
                 />
               </div>
               <div>
@@ -256,7 +255,10 @@ function TimingReportContent() {
               <div className="pt-2 border-t border-slate-700">
                 <p className="text-xs text-gray-400">
                   프로필에 정보가 없습니다. 위 정보를 입력하거나{' '}
-                  <Link href="/destiny-map" className="text-purple-400 hover:text-purple-300 underline">
+                  <Link
+                    href="/destiny-map"
+                    className="text-purple-400 hover:text-purple-300 underline"
+                  >
                     운세 분석에서 프로필 설정
                   </Link>
                 </p>

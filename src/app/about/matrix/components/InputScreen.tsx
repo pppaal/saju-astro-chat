@@ -1,19 +1,20 @@
-import React from 'react';
-import { DAY_MASTERS, GEOKGUKS } from '../constants';
-import { Particles } from './Particles';
+import React from 'react'
+import { DAY_MASTERS, GEOKGUKS } from '../constants'
+import { Particles } from './Particles'
+import DateTimePicker from '@/components/ui/DateTimePicker'
 
 interface InputScreenProps {
-  styles: Record<string, string>;
-  birthDate: string;
-  setBirthDate: (value: string) => void;
-  birthTime: string;
-  setBirthTime: (value: string) => void;
-  dayMaster: string;
-  setDayMaster: (value: string) => void;
-  geokguk: string;
-  setGeokguk: (value: string) => void;
-  onBack: () => void;
-  onSubmit: () => void;
+  styles: Record<string, string>
+  birthDate: string
+  setBirthDate: (value: string) => void
+  birthTime: string
+  setBirthTime: (value: string) => void
+  dayMaster: string
+  setDayMaster: (value: string) => void
+  geokguk: string
+  setGeokguk: (value: string) => void
+  onBack: () => void
+  onSubmit: () => void
 }
 
 export function InputScreen({
@@ -46,12 +47,11 @@ export function InputScreen({
 
         <div className={styles.inputForm}>
           <div className={styles.formGroup}>
-            <label>생년월일</label>
-            <input
-              type="date"
+            <DateTimePicker
               value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
-              className={styles.dateInput}
+              onChange={setBirthDate}
+              label="생년월일"
+              locale="ko"
             />
           </div>
 
@@ -66,7 +66,9 @@ export function InputScreen({
           </div>
 
           <div className={styles.formGroup}>
-            <label>일간 (日干) <span className={styles.required}>*</span></label>
+            <label>
+              일간 (日干) <span className={styles.required}>*</span>
+            </label>
             <div className={styles.dayMasterGrid}>
               {DAY_MASTERS.map((dm) => (
                 <button
@@ -75,7 +77,15 @@ export function InputScreen({
                   onClick={() => setDayMaster(dm)}
                 >
                   <span className={styles.dmIcon}>
-                    {dm === '목' ? '🌳' : dm === '화' ? '🔥' : dm === '토' ? '🏔️' : dm === '금' ? '⚔️' : '💧'}
+                    {dm === '목'
+                      ? '🌳'
+                      : dm === '화'
+                        ? '🔥'
+                        : dm === '토'
+                          ? '🏔️'
+                          : dm === '금'
+                            ? '⚔️'
+                            : '💧'}
                   </span>
                   <span className={styles.dmLabel}>{dm}</span>
                 </button>
@@ -92,21 +102,19 @@ export function InputScreen({
             >
               <option value="">선택 안함</option>
               {GEOKGUKS.map((g) => (
-                <option key={g.value} value={g.value}>{g.label}</option>
+                <option key={g.value} value={g.value}>
+                  {g.label}
+                </option>
               ))}
             </select>
           </div>
 
-          <button
-            className={styles.analyzeBtn}
-            onClick={onSubmit}
-            disabled={!dayMaster}
-          >
+          <button className={styles.analyzeBtn} onClick={onSubmit} disabled={!dayMaster}>
             <span>🌌</span>
             <span>매트릭스 분석 시작</span>
           </button>
         </div>
       </div>
     </div>
-  );
+  )
 }

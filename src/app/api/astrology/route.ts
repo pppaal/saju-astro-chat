@@ -24,6 +24,7 @@ import {
 } from '@/lib/astrology/localization'
 import { logger } from '@/lib/logger'
 import { validateRequestBody, astrologyRequestSchema } from '@/lib/api/zodValidation'
+import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 
 // Middleware imports
 import {
@@ -45,7 +46,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // 1. Validate request body with Zod
   const validation = await validateRequestBody(req, astrologyRequestSchema)
   if (!validation.success) {
-    const errorMessage = validation.errors.map((e) => `${e.path}: ${e.message}`).join(', ');
+    const errorMessage = validation.errors.map((e) => `${e.path}: ${e.message}`).join(', ')
     return apiError(ErrorCodes.VALIDATION_ERROR, errorMessage, { errors: validation.errors })
   }
 
@@ -94,7 +95,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     .map((p) => {
       const name = localizePlanetLabel(p.name, locKey)
       const { signPart, degreePart } = splitSignAndDegree(p.formatted)
-      const sign = localizeSignLabel(signPart, locKey);
+      const sign = localizeSignLabel(signPart, locKey)
       return `${name}: ${sign} ${degreePart}`.trim()
     })
     .join('\n')
@@ -143,41 +144,58 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     aspectsPlus,
   }
 
-  // 7. AI backend call (GPT)
+  // 7. AI backend call (GPT) with caching
   let aiInterpretation = ''
   let aiModelUsed = ''
 
-  try {
-    const astroPrompt = `Analyze this natal chart as an expert astrologer:\n\nAscendant: ${ascStr}\nMC: ${mcStr}\n\nPlanet Positions:\n${planetLines}\n\nProvide insights on personality, life path, strengths, and challenges.`
+  // Cache key: birthDate + birthTime + lat + lon + timezone + locale
+  const aiCacheKey = `astrology:ai:v1:${date}:${time}:${latitude.toFixed(2)}:${longitude.toFixed(2)}:${timeZone}:${locKey}`
 
-    const response = await apiClient.post(
-      '/ask',
-      {
-        theme: 'astrology',
-        prompt: astroPrompt,
-        astro: {
-          ascendant: natal.ascendant,
-          mc: natal.mc,
-          planets: natal.planets,
-          houses,
-          aspects: aspectsPlus,
+  const cachedAI = await cacheGet<{ interpretation: string; model: string }>(aiCacheKey)
+
+  if (cachedAI) {
+    aiInterpretation = cachedAI.interpretation
+    aiModelUsed = cachedAI.model
+  } else {
+    try {
+      const astroPrompt = `Analyze this natal chart as an expert astrologer:\n\nAscendant: ${ascStr}\nMC: ${mcStr}\n\nPlanet Positions:\n${planetLines}\n\nProvide insights on personality, life path, strengths, and challenges.`
+
+      const response = await apiClient.post(
+        '/ask',
+        {
+          theme: 'astrology',
+          prompt: astroPrompt,
+          astro: {
+            ascendant: natal.ascendant,
+            mc: natal.mc,
+            planets: natal.planets,
+            houses,
+            aspects: aspectsPlus,
+          },
+          locale: locKey,
         },
-        locale: locKey,
-      },
-      { timeout: 60000 }
-    )
+        { timeout: 60000 }
+      )
 
-    if (response.ok) {
-      const resData = response.data as {
-        data?: { fusion_layer?: string; report?: string; model?: string }
+      if (response.ok) {
+        const resData = response.data as {
+          data?: { fusion_layer?: string; report?: string; model?: string }
+        }
+        aiInterpretation = resData?.data?.fusion_layer || resData?.data?.report || ''
+        aiModelUsed = resData?.data?.model || 'gpt-4o'
+
+        // Cache the AI interpretation for 30 days (natal charts don't change)
+        await cacheSet(
+          aiCacheKey,
+          { interpretation: aiInterpretation, model: aiModelUsed },
+          CACHE_TTL.NATAL_CHART
+        )
       }
-      aiInterpretation = resData?.data?.fusion_layer || resData?.data?.report || ''
-      aiModelUsed = resData?.data?.model || 'gpt-4o'
+    } catch (aiErr) {
+      logger.warn('[Astrology API] AI backend call failed:', aiErr)
+      aiInterpretation = ''
+      aiModelUsed = 'error-fallback'
     }
-  } catch (aiErr) {
-    logger.warn('[Astrology API] AI backend call failed:', aiErr)
-    aiInterpretation = ''
-    aiModelUsed = 'error-fallback'
   }
 
   // 8. Save reading record (logged-in users only)
@@ -202,7 +220,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
             })),
           }),
         },
-      });
+      })
     } catch (saveErr) {
       logger.warn('[Astrology API] Failed to save reading:', saveErr)
     }

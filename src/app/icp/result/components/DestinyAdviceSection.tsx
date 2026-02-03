@@ -1,17 +1,18 @@
-import type { DailyFortuneResult, ImportantDate } from '@/lib/destiny-map/destinyCalendar';
+import type { DailyFortuneResult, ImportantDate } from '@/lib/destiny-map/destinyCalendar'
+import DateTimePicker from '@/components/ui/DateTimePicker'
 
 interface DestinyAdviceSectionProps {
-  styles: Record<string, string>;
-  isKo: boolean;
-  primaryOctantLabel: string;
-  birthDate: string;
-  setBirthDate: (value: string) => void;
-  birthTime: string;
-  setBirthTime: (value: string) => void;
-  isLoading: boolean;
-  fortune: DailyFortuneResult | null;
-  growthDates: ImportantDate[];
-  onGenerate: () => void;
+  styles: Record<string, string>
+  isKo: boolean
+  primaryOctantLabel: string
+  birthDate: string
+  setBirthDate: (value: string) => void
+  birthTime: string
+  setBirthTime: (value: string) => void
+  isLoading: boolean
+  fortune: DailyFortuneResult | null
+  growthDates: ImportantDate[]
+  onGenerate: () => void
 }
 
 const CATEGORY_NAMES: Record<string, { ko: string; en: string }> = {
@@ -22,7 +23,7 @@ const CATEGORY_NAMES: Record<string, { ko: string; en: string }> = {
   study: { ko: '학업', en: 'Study' },
   travel: { ko: '여행', en: 'Travel' },
   general: { ko: '전반', en: 'General' },
-};
+}
 
 export default function DestinyAdviceSection({
   styles,
@@ -51,22 +52,15 @@ export default function DestinyAdviceSection({
 
       <div className={styles.destinyInputs}>
         <div className={styles.inputGroup}>
-          <label htmlFor="birthDate">
-            {isKo ? '생년월일' : 'Birth Date'}
-          </label>
-          <input
-            type="date"
-            id="birthDate"
+          <DateTimePicker
             value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
-            className={styles.dateInput}
-            max={new Date().toISOString().split('T')[0]}
+            onChange={setBirthDate}
+            label={isKo ? '생년월일' : 'Birth Date'}
+            locale={isKo ? 'ko' : 'en'}
           />
         </div>
         <div className={styles.inputGroup}>
-          <label htmlFor="birthTime">
-            {isKo ? '출생 시간 (선택)' : 'Birth Time (optional)'}
-          </label>
+          <label htmlFor="birthTime">{isKo ? '출생 시간 (선택)' : 'Birth Time (optional)'}</label>
           <input
             type="time"
             id="birthTime"
@@ -81,8 +75,12 @@ export default function DestinyAdviceSection({
           className={styles.destinyButton}
         >
           {isLoading
-            ? (isKo ? '분석 중...' : 'Analyzing...')
-            : (isKo ? '운명 분석하기' : 'Analyze Destiny')}
+            ? isKo
+              ? '분석 중...'
+              : 'Analyzing...'
+            : isKo
+              ? '운명 분석하기'
+              : 'Analyze Destiny'}
         </button>
       </div>
 
@@ -138,9 +136,12 @@ export default function DestinyAdviceSection({
                       })}
                     </span>
                     <span className={styles.dateCategory}>
-                      {d.categories.slice(0, 2).map(c => {
-                        return isKo ? CATEGORY_NAMES[c]?.ko || c : CATEGORY_NAMES[c]?.en || c;
-                      }).join(', ')}
+                      {d.categories
+                        .slice(0, 2)
+                        .map((c) => {
+                          return isKo ? CATEGORY_NAMES[c]?.ko || c : CATEGORY_NAMES[c]?.en || c
+                        })
+                        .join(', ')}
                     </span>
                     <span className={styles.dateScore}>{d.score}점</span>
                   </div>
@@ -156,5 +157,5 @@ export default function DestinyAdviceSection({
         </div>
       )}
     </section>
-  );
+  )
 }
