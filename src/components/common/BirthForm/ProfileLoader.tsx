@@ -61,24 +61,50 @@ export function ProfileLoader({
   // Show load profile button when profile not loaded yet and no prompt
   if (!isLoaded && !showPrompt) {
     return (
-      <button
-        type="button"
-        className={styles.loadProfileBtn}
-        onClick={onLoadClick}
-        disabled={isLoading}
-      >
-        <span className={styles.loadProfileIcon}>{isLoading ? '⏳' : '👤'}</span>
-        <span className={styles.loadProfileText}>
-          {isLoading
-            ? locale === 'ko'
-              ? '불러오는 중...'
-              : 'Loading...'
-            : locale === 'ko'
-              ? '내 프로필 불러오기'
-              : 'Load My Profile'}
-        </span>
-        <span className={styles.loadProfileArrow}>→</span>
-      </button>
+      <>
+        <button
+          type="button"
+          className={styles.loadProfileBtn}
+          onClick={onLoadClick}
+          disabled={isLoading}
+        >
+          <span className={styles.loadProfileIcon}>{isLoading ? '⏳' : '👤'}</span>
+          <span className={styles.loadProfileText}>
+            {isLoading
+              ? locale === 'ko'
+                ? '불러오는 중...'
+                : 'Loading...'
+              : locale === 'ko'
+                ? '내 프로필 불러오기'
+                : 'Load My Profile'}
+          </span>
+          <span className={styles.loadProfileArrow}>→</span>
+        </button>
+        {!isLoading && (
+          <div className={styles.profileHintMsg}>
+            <span className={styles.profileHintIcon}>💡</span>
+            <span className={styles.profileHintText}>
+              {locale === 'ko' ? (
+                <>
+                  프로필이 불러와지지 않으면{' '}
+                  <a href="/myjourney" className={styles.link}>
+                    My Journey
+                  </a>
+                  에서 프로필 작성을 먼저 해주세요.
+                </>
+              ) : (
+                <>
+                  If your profile doesn&apos;t load, please create it in{' '}
+                  <a href="/myjourney" className={styles.link}>
+                    My Journey
+                  </a>{' '}
+                  first.
+                </>
+              )}
+            </span>
+          </div>
+        )}
+      </>
     )
   }
 
