@@ -14,14 +14,89 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/saju/route'
 
-// ✨ REFACTORED: Use centralized mocks instead of duplicating vi.mock() calls
-import { mockNextAuth, mockStripe, mockPrisma, mockSajuLibraries } from '../../../mocks'
+// Inline mocks instead of centralized mocks (avoids vi.mock hoisting issue with mockPrismaWithData)
+vi.mock('next-auth', () => ({
+  getServerSession: vi.fn(() => Promise.resolve(null)),
+}))
 
-// Initialize centralized mocks
-mockNextAuth()
-mockStripe()
-mockPrisma()
-mockSajuLibraries()
+vi.mock('stripe', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    customers: {
+      search: vi.fn().mockResolvedValue({ data: [] }),
+    },
+    subscriptions: {
+      list: vi.fn().mockResolvedValue({ data: [] }),
+    },
+  })),
+}))
+
+vi.mock('@/lib/db/prisma', () => ({
+  prisma: {
+    reading: {
+      create: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+      findUnique: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([]),
+      update: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+      delete: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+    },
+    user: {
+      create: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+      findUnique: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([]),
+      update: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+      delete: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+    },
+  },
+}))
+
+vi.mock('@/lib/cache/redis-cache', () => ({
+  cacheGet: vi.fn().mockResolvedValue(null),
+  cacheSet: vi.fn().mockResolvedValue(undefined),
+  CACHE_TTL: { SAJU_RESULT: 604800 },
+}))
+
+vi.mock('@/lib/Saju/saju', () => ({
+  calculateSajuData: vi.fn(),
+}))
+
+vi.mock('@/lib/Saju/unse', () => ({
+  getDaeunCycles: vi.fn().mockReturnValue([]),
+  getAnnualCycles: vi.fn().mockReturnValue([]),
+  getMonthlyCycles: vi.fn().mockReturnValue([]),
+  getIljinCalendar: vi.fn().mockReturnValue([]),
+}))
+
+vi.mock('@/lib/Saju/shinsal', () => ({
+  getShinsalHits: vi.fn().mockReturnValue([]),
+  getTwelveStagesForPillars: vi.fn().mockReturnValue({}),
+  getTwelveShinsalSingleByPillar: vi.fn().mockReturnValue({}),
+}))
+
+vi.mock('@/lib/Saju/relations', () => ({
+  analyzeRelations: vi.fn().mockReturnValue({ harmonies: [], conflicts: [] }),
+  toAnalyzeInputFromSaju: vi.fn().mockReturnValue({}),
+}))
+
+vi.mock('@/lib/Saju/geokguk', () => ({
+  determineGeokguk: vi.fn(),
+  getGeokgukDescription: vi.fn(),
+}))
+
+vi.mock('@/lib/Saju/yongsin', () => ({
+  determineYongsin: vi.fn(),
+  getYongsinDescription: vi.fn(),
+  getLuckyColors: vi.fn(),
+  getLuckyDirection: vi.fn(),
+  getLuckyNumbers: vi.fn(),
+}))
+
+vi.mock('@/lib/Saju/hyeongchung', () => ({
+  analyzeHyeongchung: vi.fn(),
+}))
+
+vi.mock('@/lib/Saju/advancedSajuCore', () => ({
+  analyzeAdvancedSaju: vi.fn(),
+}))
 
 vi.mock('@/lib/Saju/tonggeun', () => ({
   calculateTonggeun: vi.fn(),
@@ -418,7 +493,7 @@ describe('/api/saju POST - Input Validation', () => {
     const response = await POST(req)
     expect(response.status).toBe(422)
     const data = await response.json()
-    expect(data.error.message).toContain('Missing required fields')
+    expect(data.error.message).toContain('Validation failed')
   })
 
   it('should accept valid request with all required fields', async () => {
@@ -1031,33 +1106,48 @@ describe('/api/saju POST - GPT Prompt Generation', () => {
     vi.mocked(getServerSession).mockResolvedValue(null)
   })
 
-  it('should generate GPT prompt with Saju data', async () => {
+  it('should send GPT prompt with Saju data to AI backend', async () => {
     const req = createNextRequest(createBasicRequest())
-    const response = await POST(req)
-    const data = await response.json()
+    await POST(req)
 
-    expect(data.gptPrompt).toBeDefined()
-    expect(typeof data.gptPrompt).toBe('string')
-    expect(data.gptPrompt).toContain('Analyze the following Saju')
+    // The route sends the prompt to the AI backend via apiClient.post,
+    // it is no longer returned in the response as gptPrompt
+    expect(apiClient.post).toHaveBeenCalledWith(
+      '/ask',
+      expect.objectContaining({
+        prompt: expect.stringContaining('Analyze the following Saju'),
+      }),
+      expect.any(Object)
+    )
   })
 
-  it('should include four pillars in GPT prompt', async () => {
+  it('should include four pillars in GPT prompt sent to backend', async () => {
     const req = createNextRequest(createBasicRequest())
-    const response = await POST(req)
-    const data = await response.json()
+    await POST(req)
 
-    expect(data.gptPrompt).toContain('Four Pillars')
+    expect(apiClient.post).toHaveBeenCalledWith(
+      '/ask',
+      expect.objectContaining({
+        prompt: expect.stringContaining('Four Pillars'),
+      }),
+      expect.any(Object)
+    )
   })
 
-  it('should include five elements distribution in GPT prompt', async () => {
+  it('should include five elements distribution in GPT prompt sent to backend', async () => {
     const req = createNextRequest(createBasicRequest())
-    const response = await POST(req)
-    const data = await response.json()
+    await POST(req)
 
-    expect(data.gptPrompt).toContain('Five Elements Distribution')
+    expect(apiClient.post).toHaveBeenCalledWith(
+      '/ask',
+      expect.objectContaining({
+        prompt: expect.stringContaining('Five Elements Distribution'),
+      }),
+      expect.any(Object)
+    )
   })
 
-  it('should include current grand cycle in GPT prompt', async () => {
+  it('should include current grand cycle in GPT prompt sent to backend', async () => {
     vi.mocked(getDaeunCycles).mockReturnValue({
       cycles: [
         { age: 10, heavenlyStem: '癸', earthlyBranch: '酉' },
@@ -1067,10 +1157,15 @@ describe('/api/saju POST - GPT Prompt Generation', () => {
     })
 
     const req = createNextRequest(createBasicRequest())
-    const response = await POST(req)
-    const data = await response.json()
+    await POST(req)
 
-    expect(data.gptPrompt).toContain('Current Grand Cycle')
+    expect(apiClient.post).toHaveBeenCalledWith(
+      '/ask',
+      expect.objectContaining({
+        prompt: expect.stringContaining('Current Grand Cycle'),
+      }),
+      expect.any(Object)
+    )
   })
 })
 

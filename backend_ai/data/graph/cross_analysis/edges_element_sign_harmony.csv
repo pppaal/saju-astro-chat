@@ -1,0 +1,61 @@
+id,source,target,relation,harmony_score,interaction_type,description
+HARMONY_FIRE_ARIES,SAJU_ELEMENT_화,ASTRO_SIGN_ARIES,오행사인조화,95,상생공명,화(火)의 강렬한 에너지와 양자리의 불꽃같은 추진력이 완벽한 상생공명을 이룬다. 두 기운이 만나면 폭발적인 열정과 리더십이 극대화되어 강력한 시너지를 발휘한다.
+HARMONY_FIRE_TAURUS,SAJU_ELEMENT_화,ASTRO_SIGN_TAURUS,오행사인조화,72,상생지원,화(火)가 토(土)를 생하는 화생토의 원리로 황소자리의 안정적 기반을 따뜻하게 지원한다. 불의 에너지가 대지를 데워 풍요를 촉진하듯 상생의 흐름이 자연스럽게 이어진다.
+HARMONY_FIRE_GEMINI,SAJU_ELEMENT_화,ASTRO_SIGN_GEMINI,오행사인조화,68,중립조화,화(火)의 열기와 쌍둥이자리의 바람 기운이 만나 활발한 소통과 변화의 에너지를 만든다. 풍조화의 관계로 서로를 자극하되 과도하면 불안정해질 수 있어 균형이 필요하다.
+HARMONY_FIRE_CANCER,SAJU_ELEMENT_화,ASTRO_SIGN_CANCER,오행사인조화,35,상극긴장,화(火)와 게자리의 수(水) 기운이 수극화의 상극 관계를 형성하여 본질적 긴장이 존재한다. 물이 불을 끄려 하고 불이 물을 증발시키려 하여 상호 소모적 역학이 작용한다.
+HARMONY_FIRE_LEO,SAJU_ELEMENT_화,ASTRO_SIGN_LEO,오행사인조화,93,상생공명,화(火)의 찬란한 빛과 사자자리의 왕성한 불꽃이 최상의 상생공명으로 빛난다. 두 화기가 합쳐져 카리스마와 창조적 에너지가 극대화되며 강렬한 존재감을 발산한다.
+HARMONY_FIRE_VIRGO,SAJU_ELEMENT_화,ASTRO_SIGN_VIRGO,오행사인조화,70,상생지원,화생토의 원리로 화(火)가 처녀자리의 토(土) 기운에 따뜻한 활력을 불어넣는다. 불의 에너지가 세밀한 분석력을 가진 처녀자리에게 실행력과 추진력을 상생적으로 보탠다.
+HARMONY_FIRE_LIBRA,SAJU_ELEMENT_화,ASTRO_SIGN_LIBRA,오행사인조화,65,중립조화,화(火)의 직진적 에너지와 천칭자리의 균형 잡힌 풍(風) 기운이 풍조화를 이룬다. 바람이 불을 키우듯 서로를 북돋울 수 있으나 조화로운 균형점을 찾는 것이 관건이다.
+HARMONY_FIRE_SCORPIO,SAJU_ELEMENT_화,ASTRO_SIGN_SCORPIO,오행사인조화,38,상극긴장,화(火)와 전갈자리의 깊은 수(水) 기운이 화극수의 상극적 긴장을 만들어낸다. 강렬한 불과 깊은 물이 부딪히며 갈등이 생기지만 이 긴장이 변혁적 성장의 동력이 될 수 있다.
+HARMONY_FIRE_SAGITTARIUS,SAJU_ELEMENT_화,ASTRO_SIGN_SAGITTARIUS,오행사인조화,92,상생공명,화(火)의 확장하는 에너지와 사수자리의 탐험적 불꽃이 상생공명하여 무한한 가능성을 연다. 두 화기가 만나 지적 열정과 모험심이 배가되어 큰 비전을 실현하는 힘이 된다.
+HARMONY_FIRE_CAPRICORN,SAJU_ELEMENT_화,ASTRO_SIGN_CAPRICORN,오행사인조화,74,상생지원,화생토의 상생 원리에 따라 화(火)가 염소자리의 견고한 토(土) 기운을 활성화시킨다. 불의 열정이 염소자리의 인내심과 만나 목표 달성을 위한 강력한 원동력으로 작용한다.
+HARMONY_FIRE_AQUARIUS,SAJU_ELEMENT_화,ASTRO_SIGN_AQUARIUS,오행사인조화,67,중립조화,화(火)의 열정과 물병자리의 혁신적 풍(風) 기운이 풍조화의 역학 속에서 독창적 에너지를 만든다. 바람이 불길을 퍼뜨리듯 창의적 아이디어가 확산되나 방향성 조율이 중요하다.
+HARMONY_FIRE_PISCES,SAJU_ELEMENT_화,ASTRO_SIGN_PISCES,오행사인조화,32,상극긴장,화(火)의 뜨거운 기운과 물고기자리의 유연한 수(水) 기운이 수극화의 상극 구도를 형성한다. 물이 불을 잠재우려 하여 에너지 충돌이 발생하지만 상호 이해를 통해 증기처럼 새로운 형태의 힘을 만들 수 있다.
+HARMONY_EARTH_ARIES,SAJU_ELEMENT_토,ASTRO_SIGN_ARIES,오행사인조화,78,상생지원,화생토의 원리로 양자리의 화(火) 기운이 토(土)를 생하여 상생적 지원 관계를 형성한다. 양자리의 불꽃같은 추진력이 토의 안정적 기반 위에서 건설적 성과로 이어진다.
+HARMONY_EARTH_TAURUS,SAJU_ELEMENT_토,ASTRO_SIGN_TAURUS,오행사인조화,95,상생공명,토(土)의 안정적 에너지와 황소자리의 대지 기운이 완벽한 상생공명을 이룬다. 두 토기가 결합하여 물질적 풍요와 흔들림 없는 인내력이 극대화되는 최상의 조합이다.
+HARMONY_EARTH_GEMINI,SAJU_ELEMENT_토,ASTRO_SIGN_GEMINI,오행사인조화,50,중립조화,토(土)의 무거운 안정감과 쌍둥이자리의 가벼운 풍(風) 기운이 중립적 조화를 이룬다. 서로 다른 성질이 만나 새로운 관점을 제공하지만 근본적 차이로 인해 깊은 공명은 어렵다.
+HARMONY_EARTH_CANCER,SAJU_ELEMENT_토,ASTRO_SIGN_CANCER,오행사인조화,40,상극긴장,토극수의 상극 원리로 토(土)가 게자리의 수(水) 기운을 억제하는 긴장이 존재한다. 토가 물의 흐름을 막으려 하여 감정 표현에 제약이 생기지만 이를 통해 감정의 깊이를 다질 수 있다.
+HARMONY_EARTH_LEO,SAJU_ELEMENT_토,ASTRO_SIGN_LEO,오행사인조화,76,상생지원,사자자리의 화(火) 기운이 화생토의 상생 원리로 토(土)를 풍요롭게 만든다. 사자자리의 열정적 에너지가 토의 기반을 강화하여 실질적인 성취와 인정을 동시에 얻게 한다.
+HARMONY_EARTH_VIRGO,SAJU_ELEMENT_토,ASTRO_SIGN_VIRGO,오행사인조화,93,상생공명,토(土)의 실용적 에너지와 처녀자리의 세밀한 대지 기운이 상생공명하여 완벽을 추구한다. 두 토기의 결합은 분석력과 실행력을 겸비한 탁월한 현실 감각을 발휘하게 한다.
+HARMONY_EARTH_LIBRA,SAJU_ELEMENT_토,ASTRO_SIGN_LIBRA,오행사인조화,52,중립조화,토(土)의 묵직한 안정감과 천칭자리의 조화로운 풍(風) 기운이 중립적 균형을 이룬다. 근본적으로 다른 원소의 만남이지만 상호 보완을 통해 실질적 아름다움을 창조할 수 있다.
+HARMONY_EARTH_SCORPIO,SAJU_ELEMENT_토,ASTRO_SIGN_SCORPIO,오행사인조화,42,상극도전,토극수의 상극 관계로 토(土)가 전갈자리의 심층적 수(水) 기운과 도전적 역학을 형성한다. 토가 물을 가두려 하고 물이 토를 침식하려 하여 갈등이 있으나 이 긴장이 깊은 통찰력을 기른다.
+HARMONY_EARTH_SAGITTARIUS,SAJU_ELEMENT_토,ASTRO_SIGN_SAGITTARIUS,오행사인조화,80,상생지원,사수자리의 화(火) 기운이 화생토의 원리로 토(土)의 기반을 확장시키는 상생 관계이다. 탐험적 열정이 안정적 토대 위에서 실현 가능한 비전으로 구체화되어 성장을 돕는다.
+HARMONY_EARTH_CAPRICORN,SAJU_ELEMENT_토,ASTRO_SIGN_CAPRICORN,오행사인조화,91,상생공명,토(土)의 견고한 에너지와 염소자리의 강인한 대지 기운이 상생공명하여 최고의 안정성을 구현한다. 두 토기가 만나 장기적 목표 달성과 사회적 성취를 위한 탄탄한 기반을 만든다.
+HARMONY_EARTH_AQUARIUS,SAJU_ELEMENT_토,ASTRO_SIGN_AQUARIUS,오행사인조화,48,중립조화,토(土)의 보수적 안정감과 물병자리의 혁신적 풍(風) 기운 사이에 중립적 긴장이 존재한다. 전통과 혁신의 만남으로 갈등이 있을 수 있으나 균형을 찾으면 실용적 혁신을 이룰 수 있다.
+HARMONY_EARTH_PISCES,SAJU_ELEMENT_토,ASTRO_SIGN_PISCES,오행사인조화,37,상극긴장,토극수의 상극 원리에 따라 토(土)가 물고기자리의 유연한 수(水) 기운을 제한하는 긴장이 있다. 토의 현실적 무게가 물고기자리의 꿈과 상상력을 억누를 수 있어 상호 양보와 이해가 필요하다.
+HARMONY_METAL_ARIES,SAJU_ELEMENT_금,ASTRO_SIGN_ARIES,오행사인조화,38,상극긴장,화극금의 상극 원리로 양자리의 화(火) 기운이 금(金)을 녹이려는 강한 긴장이 존재한다. 불이 금속을 단련하듯 고통스러운 과정이지만 이를 통해 더 강인한 의지력이 단련될 수 있다.
+HARMONY_METAL_TAURUS,SAJU_ELEMENT_금,ASTRO_SIGN_TAURUS,오행사인조화,83,상생지원,토생금의 상생 원리로 황소자리의 토(土) 기운이 금(金)을 생하여 강력한 지원 관계를 형성한다. 대지가 금속을 품듯 안정적 기반 위에서 금의 가치와 결단력이 빛을 발한다.
+HARMONY_METAL_GEMINI,SAJU_ELEMENT_금,ASTRO_SIGN_GEMINI,오행사인조화,78,상생지원,금(金)의 날카로운 판단력과 쌍둥이자리의 지적 풍(風) 기운이 기질유사의 조화를 이룬다. 금의 명확한 논리와 쌍둥이자리의 빠른 사고가 만나 탁월한 분석력과 소통 능력을 발휘한다.
+HARMONY_METAL_CANCER,SAJU_ELEMENT_금,ASTRO_SIGN_CANCER,오행사인조화,72,상생지원,금생수의 상생 원리로 금(金)이 게자리의 수(水) 기운을 생하여 풍요롭게 한다. 금의 구조적 힘이 게자리의 감정적 흐름을 보호하고 안정적인 정서적 그릇을 제공한다.
+HARMONY_METAL_LEO,SAJU_ELEMENT_금,ASTRO_SIGN_LEO,오행사인조화,40,상극도전,사자자리의 강렬한 화(火) 기운이 화극금의 상극으로 금(金)에 도전적 압력을 가한다. 불꽃이 금속을 시험하듯 힘든 과정이지만 이 단련을 통해 더욱 순도 높은 가치를 실현할 수 있다.
+HARMONY_METAL_VIRGO,SAJU_ELEMENT_금,ASTRO_SIGN_VIRGO,오행사인조화,85,상생지원,토생금의 상생으로 처녀자리의 토(土) 기운이 금(金)의 정밀함을 극대화하는 최상의 지원 관계이다. 세밀한 분석력과 금의 날카로운 판단력이 결합하여 완벽에 가까운 결과물을 만들어낸다.
+HARMONY_METAL_LIBRA,SAJU_ELEMENT_금,ASTRO_SIGN_LIBRA,오행사인조화,82,상생공명,금(金)의 균형 잡힌 심미안과 천칭자리의 조화로운 풍(風) 기운이 기질유사의 공명을 이룬다. 금의 아름다움에 대한 감각과 천칭자리의 균형 추구가 만나 세련된 조화미를 창출한다.
+HARMONY_METAL_SCORPIO,SAJU_ELEMENT_금,ASTRO_SIGN_SCORPIO,오행사인조화,74,상생지원,금생수의 상생 원리로 금(金)이 전갈자리의 심층적 수(水) 기운을 지원하고 강화한다. 금의 결단력이 전갈자리의 깊은 통찰력과 만나 강인한 변혁의 힘을 만들어낸다.
+HARMONY_METAL_SAGITTARIUS,SAJU_ELEMENT_금,ASTRO_SIGN_SAGITTARIUS,오행사인조화,42,상극긴장,사수자리의 화(火) 기운이 화극금의 상극으로 금(金)의 구조적 틀에 도전한다. 자유로운 불꽃이 금의 틀을 깨뜨리려 하여 긴장이 있지만 유연한 적응을 통해 성장할 수 있다.
+HARMONY_METAL_CAPRICORN,SAJU_ELEMENT_금,ASTRO_SIGN_CAPRICORN,오행사인조화,81,상생지원,토생금의 상생으로 염소자리의 강인한 토(土) 기운이 금(金)의 가치를 높이는 든든한 지원자이다. 견고한 기반 위에서 금의 결단력과 실행력이 배가되어 목표 달성의 확률을 높인다.
+HARMONY_METAL_AQUARIUS,SAJU_ELEMENT_금,ASTRO_SIGN_AQUARIUS,오행사인조화,80,상생공명,금(金)의 혁신적 단절력과 물병자리의 진보적 풍(風) 기운이 기질유사의 공명을 형성한다. 금의 날카로운 통찰과 물병자리의 미래 지향적 사고가 결합하여 혁신적 돌파구를 연다.
+HARMONY_METAL_PISCES,SAJU_ELEMENT_금,ASTRO_SIGN_PISCES,오행사인조화,71,상생지원,금생수의 상생 원리로 금(金)이 물고기자리의 유연한 수(水) 기운에 구조적 지원을 제공한다. 금의 명확한 형태가 물고기자리의 풍부한 상상력에 실현 가능한 틀을 제공하여 꿈을 현실로 만든다.
+HARMONY_WATER_ARIES,SAJU_ELEMENT_수,ASTRO_SIGN_ARIES,오행사인조화,33,상극긴장,수극화의 상극 원리로 수(水)의 흐름이 양자리의 화(火) 기운과 본질적으로 충돌한다. 물이 불을 끄려 하고 불이 물을 증발시키려 하여 상호 소모가 발생하나 극복 시 큰 성장을 이룬다.
+HARMONY_WATER_TAURUS,SAJU_ELEMENT_수,ASTRO_SIGN_TAURUS,오행사인조화,40,상극긴장,토극수의 상극 원리에 따라 황소자리의 토(土) 기운이 수(水)의 자유로운 흐름을 제한한다. 대지가 물을 가두듯 감정의 흐름이 막힐 수 있으나 이를 통해 깊은 정서적 저수지를 형성할 수 있다.
+HARMONY_WATER_GEMINI,SAJU_ELEMENT_수,ASTRO_SIGN_GEMINI,오행사인조화,72,상생지원,금생수의 연장선에서 쌍둥이자리의 풍(風) 기운이 수(水)의 지적 흐름을 활성화한다. 바람이 물결을 일으키듯 다양한 아이디어가 수의 직관력과 만나 창의적 통찰을 만들어낸다.
+HARMONY_WATER_CANCER,SAJU_ELEMENT_수,ASTRO_SIGN_CANCER,오행사인조화,95,상생공명,수(水)의 깊은 감성과 게자리의 풍부한 물 기운이 완벽한 상생공명을 이룬다. 두 수기가 합쳐져 직관력과 감정의 깊이가 극대화되며 타인을 돌보는 따뜻한 에너지가 넘친다.
+HARMONY_WATER_LEO,SAJU_ELEMENT_수,ASTRO_SIGN_LEO,오행사인조화,35,상극도전,수극화의 상극으로 수(水)가 사자자리의 강렬한 화(火) 기운에 도전적 역학을 형성한다. 물이 불의 위세를 꺾으려 하여 갈등이 심하지만 이 대립이 겸손과 내면의 힘을 기르는 계기가 된다.
+HARMONY_WATER_VIRGO,SAJU_ELEMENT_수,ASTRO_SIGN_VIRGO,오행사인조화,38,상극긴장,토극수의 상극 원리로 처녀자리의 토(土) 기운이 수(水)의 자유로운 흐름을 분석적으로 제한한다. 토의 세밀한 통제가 물의 직관적 흐름을 방해할 수 있으나 조화를 이루면 정교한 감성 표현이 가능하다.
+HARMONY_WATER_LIBRA,SAJU_ELEMENT_수,ASTRO_SIGN_LIBRA,오행사인조화,73,상생지원,금생수의 연장선에서 천칭자리의 풍(風) 기운이 수(水)의 조화로운 흐름을 지원한다. 균형 잡힌 바람이 물의 흐름을 부드럽게 이끌어 감성과 이성의 조화를 이루게 한다.
+HARMONY_WATER_SCORPIO,SAJU_ELEMENT_수,ASTRO_SIGN_SCORPIO,오행사인조화,93,상생공명,수(水)의 심오한 에너지와 전갈자리의 심층적 물 기운이 상생공명하여 비밀스러운 힘을 발휘한다. 두 수기의 결합은 초월적 직관력과 변혁의 능력을 극대화하여 깊은 내면의 진실을 꿰뚫는다.
+HARMONY_WATER_SAGITTARIUS,SAJU_ELEMENT_수,ASTRO_SIGN_SAGITTARIUS,오행사인조화,30,상극도전,수극화의 상극으로 수(水)가 사수자리의 자유로운 화(火) 기운과 강한 대립을 형성한다. 물이 불의 모험적 기세를 꺾으려 하여 도전적이지만 이 갈등 속에서 지혜로운 균형감각을 터득할 수 있다.
+HARMONY_WATER_CAPRICORN,SAJU_ELEMENT_수,ASTRO_SIGN_CAPRICORN,오행사인조화,43,상극긴장,토극수의 상극 원리로 염소자리의 강인한 토(土) 기운이 수(水)의 흐름을 단단히 억제한다. 토의 구조적 제한이 물의 자유로운 감성을 가두지만 이를 통해 감정의 깊이와 인내력이 동시에 강화된다.
+HARMONY_WATER_AQUARIUS,SAJU_ELEMENT_수,ASTRO_SIGN_AQUARIUS,오행사인조화,70,상생지원,금생수의 연장선에서 물병자리의 혁신적 풍(風) 기운이 수(水)의 직관적 흐름에 새로운 방향을 제시한다. 진보적 사고가 물의 깊은 감성과 만나 인류애적 비전과 감정적 공감을 동시에 실현한다.
+HARMONY_WATER_PISCES,SAJU_ELEMENT_수,ASTRO_SIGN_PISCES,오행사인조화,92,상생공명,수(水)의 무한한 흐름과 물고기자리의 경계 없는 물 기운이 상생공명하여 영적 차원을 연다. 두 수기가 하나로 합쳐져 직관력과 상상력이 극대화되며 초월적 감성의 세계를 경험하게 한다.
+HARMONY_WOOD_ARIES,SAJU_ELEMENT_목,ASTRO_SIGN_ARIES,오행사인조화,78,상생지원,목생화의 상생 원리로 목(木)이 양자리의 화(火) 기운을 키워주는 지원 관계를 형성한다. 나무가 불의 연료가 되듯 목의 성장 에너지가 양자리의 추진력을 더욱 강화시킨다.
+HARMONY_WOOD_TAURUS,SAJU_ELEMENT_목,ASTRO_SIGN_TAURUS,오행사인조화,50,상극도전,목극토의 상극 원리로 목(木)이 황소자리의 토(土) 기운에 도전적 역학을 만든다. 나무뿌리가 대지를 파고들듯 목의 성장 욕구가 토의 안정을 흔들지만 이를 통해 새로운 가능성이 싹튼다.
+HARMONY_WOOD_GEMINI,SAJU_ELEMENT_목,ASTRO_SIGN_GEMINI,오행사인조화,63,중립조화,목(木)의 유연한 성장력과 쌍둥이자리의 변화무쌍한 풍(風) 기운이 중립적 조화를 이룬다. 바람에 흔들리는 나무처럼 적응력이 높아지며 다양한 방향으로의 성장이 촉진된다.
+HARMONY_WOOD_CANCER,SAJU_ELEMENT_목,ASTRO_SIGN_CANCER,오행사인조화,83,상생지원,수생목의 상생 원리로 게자리의 수(水) 기운이 목(木)의 성장을 풍요롭게 촉진한다. 물이 나무를 키우듯 게자리의 감성적 돌봄이 목의 잠재력을 꽃피우는 최적의 양분이 된다.
+HARMONY_WOOD_LEO,SAJU_ELEMENT_목,ASTRO_SIGN_LEO,오행사인조화,76,상생지원,목생화의 상생으로 목(木)이 사자자리의 화(火) 기운에 힘찬 연료를 제공한다. 목의 성장 에너지가 사자자리의 창조적 불꽃을 지속시켜 장기적인 열정과 표현력을 유지하게 한다.
+HARMONY_WOOD_VIRGO,SAJU_ELEMENT_목,ASTRO_SIGN_VIRGO,오행사인조화,48,상극긴장,목극토의 상극 원리로 목(木)의 확장 에너지가 처녀자리의 토(土) 기운과 긴장을 형성한다. 나무가 토양의 양분을 흡수하듯 목의 성장이 처녀자리의 안정성을 소모할 수 있어 균형 조절이 필요하다.
+HARMONY_WOOD_LIBRA,SAJU_ELEMENT_목,ASTRO_SIGN_LIBRA,오행사인조화,62,중립조화,목(木)의 곧은 성장력과 천칭자리의 균형 잡힌 풍(風) 기운이 중립적 조화를 이룬다. 바람이 나무의 성장 방향에 영향을 주듯 천칭자리의 균형 감각이 목의 성장에 방향성을 부여한다.
+HARMONY_WOOD_SCORPIO,SAJU_ELEMENT_목,ASTRO_SIGN_SCORPIO,오행사인조화,82,상생지원,수생목의 상생 원리로 전갈자리의 깊은 수(水) 기운이 목(木)의 변혁적 성장을 촉진한다. 심층의 물이 나무뿌리를 깊이 키우듯 전갈자리의 통찰력이 목의 내면적 성장을 강력하게 지원한다.
+HARMONY_WOOD_SAGITTARIUS,SAJU_ELEMENT_목,ASTRO_SIGN_SAGITTARIUS,오행사인조화,80,상생지원,목생화의 상생으로 목(木)이 사수자리의 탐험적 화(火) 기운을 힘차게 살려준다. 나무가 불을 키우듯 목의 풍부한 에너지가 사수자리의 모험심과 지적 열정을 지속적으로 유지시킨다.
+HARMONY_WOOD_CAPRICORN,SAJU_ELEMENT_목,ASTRO_SIGN_CAPRICORN,오행사인조화,53,상극도전,목극토의 상극 원리로 목(木)이 염소자리의 견고한 토(土) 기운에 도전적 압력을 가한다. 성장하는 나무가 단단한 대지를 뚫으려 하듯 갈등이 있으나 이 과정에서 강인한 생명력이 발현된다.
+HARMONY_WOOD_AQUARIUS,SAJU_ELEMENT_목,ASTRO_SIGN_AQUARIUS,오행사인조화,61,중립조화,목(木)의 자연적 성장력과 물병자리의 혁신적 풍(風) 기운이 중립적 조화 속에서 만난다. 새로운 바람이 나무에 신선한 씨앗을 전하듯 혁신적 아이디어가 목의 성장에 새로운 가능성을 더한다.
+HARMONY_WOOD_PISCES,SAJU_ELEMENT_목,ASTRO_SIGN_PISCES,오행사인조화,85,상생지원,수생목의 상생 원리로 물고기자리의 풍부한 수(水) 기운이 목(木)의 성장을 최대한 촉진한다. 끝없는 물의 흐름이 나무에 생명력을 불어넣듯 물고기자리의 풍부한 감성이 목의 창조적 성장을 꽃피운다.

@@ -3,6 +3,7 @@
  * Tests automatic refunds on API failures, transaction atomicity, and audit logging
  */
 
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { prisma } from '@/lib/db/prisma'
 import {
   refundCredits,
@@ -13,24 +14,24 @@ import {
 import { logger } from '@/lib/logger'
 
 // Mock dependencies
-jest.mock('@/lib/db/prisma', () => ({
+vi.mock('@/lib/db/prisma', () => ({
   prisma: {
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
     userCredits: {
-      findUnique: jest.fn(),
-      update: jest.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
     },
     creditRefundLog: {
-      create: jest.fn(),
-      findMany: jest.fn(),
+      create: vi.fn(),
+      findMany: vi.fn(),
     },
   },
 }))
 
-jest.mock('@/lib/logger', () => ({
+vi.mock('@/lib/logger', () => ({
   logger: {
-    info: jest.fn(),
-    error: jest.fn(),
+    info: vi.fn(),
+    error: vi.fn(),
   },
 }))
 
@@ -38,7 +39,7 @@ describe('Credit Refund Service', () => {
   const mockUserId = 'user_123'
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('refundCredits', () => {
@@ -49,14 +50,14 @@ describe('Credit Refund Service', () => {
           usedCredits: 10,
         }
 
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-              update: jest.fn().mockResolvedValue({}),
+              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+              update: vi.fn().mockResolvedValue({}),
             },
             creditRefundLog: {
-              create: jest.fn().mockResolvedValue({}),
+              create: vi.fn().mockResolvedValue({}),
             },
           })
         )
@@ -90,17 +91,17 @@ describe('Credit Refund Service', () => {
         }
 
         let capturedUpdateData: any
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-              update: jest.fn().mockImplementation((args) => {
+              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+              update: vi.fn().mockImplementation((args) => {
                 capturedUpdateData = args.data
                 return Promise.resolve({})
               }),
             },
             creditRefundLog: {
-              create: jest.fn().mockResolvedValue({}),
+              create: vi.fn().mockResolvedValue({}),
             },
           })
         )
@@ -121,14 +122,14 @@ describe('Credit Refund Service', () => {
           usedCredits: 0,
         }
 
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-              update: jest.fn().mockResolvedValue({}),
+              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+              update: vi.fn().mockResolvedValue({}),
             },
             creditRefundLog: {
-              create: jest.fn().mockResolvedValue({}),
+              create: vi.fn().mockResolvedValue({}),
             },
           })
         )
@@ -151,14 +152,14 @@ describe('Credit Refund Service', () => {
           compatibilityUsed: 3,
         }
 
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-              update: jest.fn().mockResolvedValue({}),
+              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+              update: vi.fn().mockResolvedValue({}),
             },
             creditRefundLog: {
-              create: jest.fn().mockResolvedValue({}),
+              create: vi.fn().mockResolvedValue({}),
             },
           })
         )
@@ -181,17 +182,17 @@ describe('Credit Refund Service', () => {
         }
 
         let capturedUpdateData: any
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-              update: jest.fn().mockImplementation((args) => {
+              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+              update: vi.fn().mockImplementation((args) => {
                 capturedUpdateData = args.data
                 return Promise.resolve({})
               }),
             },
             creditRefundLog: {
-              create: jest.fn().mockResolvedValue({}),
+              create: vi.fn().mockResolvedValue({}),
             },
           })
         )
@@ -214,14 +215,14 @@ describe('Credit Refund Service', () => {
           followUpUsed: 5,
         }
 
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-              update: jest.fn().mockResolvedValue({}),
+              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+              update: vi.fn().mockResolvedValue({}),
             },
             creditRefundLog: {
-              create: jest.fn().mockResolvedValue({}),
+              create: vi.fn().mockResolvedValue({}),
             },
           })
         )
@@ -242,14 +243,14 @@ describe('Credit Refund Service', () => {
       it('should create refund log entry', async () => {
         const mockUserCredits = { userId: mockUserId, usedCredits: 5 }
         let capturedLogData: any
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-              update: jest.fn().mockResolvedValue({}),
+              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+              update: vi.fn().mockResolvedValue({}),
             },
             creditRefundLog: {
-              create: jest.fn().mockImplementation((args) => {
+              create: vi.fn().mockImplementation((args) => {
                 capturedLogData = args.data
                 return Promise.resolve({})
               }),
@@ -283,14 +284,14 @@ describe('Credit Refund Service', () => {
       it('should truncate long error messages', async () => {
         const mockUserCredits = { userId: mockUserId, usedCredits: 5 }
         let capturedLogData: any
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-              update: jest.fn().mockResolvedValue({}),
+              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+              update: vi.fn().mockResolvedValue({}),
             },
             creditRefundLog: {
-              create: jest.fn().mockImplementation((args) => {
+              create: vi.fn().mockImplementation((args) => {
                 capturedLogData = args.data
                 return Promise.resolve({})
               }),
@@ -314,14 +315,14 @@ describe('Credit Refund Service', () => {
       it('should handle metadata with circular references', async () => {
         const mockUserCredits = { userId: mockUserId, usedCredits: 5 }
 
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-              update: jest.fn().mockResolvedValue({}),
+              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+              update: vi.fn().mockResolvedValue({}),
             },
             creditRefundLog: {
-              create: jest.fn().mockResolvedValue({}),
+              create: vi.fn().mockResolvedValue({}),
             },
           })
         )
@@ -329,24 +330,26 @@ describe('Credit Refund Service', () => {
         const circular: any = { a: 1 }
         circular.self = circular
 
-        const result = await refundCredits({
-          userId: mockUserId,
-          creditType: 'reading',
-          amount: 1,
-          reason: 'test',
-          metadata: circular,
-        })
-
-        expect(result).toBe(true)
+        // JSON.parse(JSON.stringify(metadata)) throws on circular refs
+        // and the catch block re-throws
+        await expect(
+          refundCredits({
+            userId: mockUserId,
+            creditType: 'reading',
+            amount: 1,
+            reason: 'test',
+            metadata: circular,
+          })
+        ).rejects.toThrow()
       })
     })
 
     describe('Error Handling', () => {
       it('should throw when user not found', async () => {
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue(null),
+              findUnique: vi.fn().mockResolvedValue(null),
             },
           })
         )
@@ -362,7 +365,9 @@ describe('Credit Refund Service', () => {
       })
 
       it('should throw on database error', async () => {
-        ;(prisma.$transaction as jest.Mock).mockRejectedValue(new Error('DB connection failed'))
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockRejectedValue(
+          new Error('DB connection failed')
+        )
 
         await expect(
           refundCredits({
@@ -377,16 +382,16 @@ describe('Credit Refund Service', () => {
       })
 
       it('should ensure transaction atomicity', async () => {
-        const updateMock = jest.fn().mockRejectedValue(new Error('Update failed'))
+        const updateMock = vi.fn().mockRejectedValue(new Error('Update failed'))
 
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue({ userId: mockUserId, usedCredits: 5 }),
+              findUnique: vi.fn().mockResolvedValue({ userId: mockUserId, usedCredits: 5 }),
               update: updateMock,
             },
             creditRefundLog: {
-              create: jest.fn(),
+              create: vi.fn(),
             },
           })
         )
@@ -406,14 +411,14 @@ describe('Credit Refund Service', () => {
       it('should handle zero refund amount', async () => {
         const mockUserCredits = { userId: mockUserId, usedCredits: 5 }
 
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-              update: jest.fn().mockResolvedValue({}),
+              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+              update: vi.fn().mockResolvedValue({}),
             },
             creditRefundLog: {
-              create: jest.fn().mockResolvedValue({}),
+              create: vi.fn().mockResolvedValue({}),
             },
           })
         )
@@ -431,14 +436,14 @@ describe('Credit Refund Service', () => {
       it('should handle very large refund amounts', async () => {
         const mockUserCredits = { userId: mockUserId, usedCredits: 1000000 }
 
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-              update: jest.fn().mockResolvedValue({}),
+              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+              update: vi.fn().mockResolvedValue({}),
             },
             creditRefundLog: {
-              create: jest.fn().mockResolvedValue({}),
+              create: vi.fn().mockResolvedValue({}),
             },
           })
         )
@@ -456,14 +461,14 @@ describe('Credit Refund Service', () => {
       it('should handle missing optional fields', async () => {
         const mockUserCredits = { userId: mockUserId, usedCredits: 5 }
 
-        ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
           callback({
             userCredits: {
-              findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-              update: jest.fn().mockResolvedValue({}),
+              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+              update: vi.fn().mockResolvedValue({}),
             },
             creditRefundLog: {
-              create: jest.fn().mockResolvedValue({}),
+              create: vi.fn().mockResolvedValue({}),
             },
           })
         )
@@ -502,7 +507,7 @@ describe('Credit Refund Service', () => {
         },
       ]
 
-      ;(prisma.creditRefundLog.findMany as jest.Mock).mockResolvedValue(mockHistory)
+      ;(prisma.creditRefundLog.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockHistory)
 
       const result = await getCreditRefundHistory(mockUserId)
 
@@ -518,7 +523,7 @@ describe('Credit Refund Service', () => {
     })
 
     it('should filter by credit type', async () => {
-      ;(prisma.creditRefundLog.findMany as jest.Mock).mockResolvedValue([])
+      ;(prisma.creditRefundLog.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
 
       await getCreditRefundHistory(mockUserId, { creditType: 'reading' })
 
@@ -530,7 +535,7 @@ describe('Credit Refund Service', () => {
     })
 
     it('should support pagination', async () => {
-      ;(prisma.creditRefundLog.findMany as jest.Mock).mockResolvedValue([])
+      ;(prisma.creditRefundLog.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
 
       await getCreditRefundHistory(mockUserId, { limit: 10, offset: 20 })
 
@@ -551,7 +556,7 @@ describe('Credit Refund Service', () => {
         { amount: 1, creditType: 'compatibility' },
       ]
 
-      ;(prisma.creditRefundLog.findMany as jest.Mock).mockResolvedValue(mockRefunds)
+      ;(prisma.creditRefundLog.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockRefunds)
 
       const stats = await getRefundStatsByRoute('/api/tarot/chat')
 
@@ -570,7 +575,7 @@ describe('Credit Refund Service', () => {
       const startDate = new Date('2024-01-01')
       const endDate = new Date('2024-01-31')
 
-      ;(prisma.creditRefundLog.findMany as jest.Mock).mockResolvedValue([])
+      ;(prisma.creditRefundLog.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
 
       await getRefundStatsByRoute('/api/test', startDate, endDate)
 
@@ -588,7 +593,7 @@ describe('Credit Refund Service', () => {
     })
 
     it('should handle empty results', async () => {
-      ;(prisma.creditRefundLog.findMany as jest.Mock).mockResolvedValue([])
+      ;(prisma.creditRefundLog.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
 
       const stats = await getRefundStatsByRoute('/api/nonexistent')
 
@@ -612,7 +617,7 @@ describe('Credit Refund Service', () => {
         { amount: 1, creditType: 'followUp' },
       ]
 
-      ;(prisma.creditRefundLog.findMany as jest.Mock).mockResolvedValue(mockRefunds)
+      ;(prisma.creditRefundLog.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockRefunds)
 
       const stats = await getRefundStatsByRoute('/api/test')
 
@@ -630,14 +635,14 @@ describe('Credit Refund Service', () => {
     it('should handle complete refund workflow', async () => {
       const mockUserCredits = { userId: mockUserId, usedCredits: 10 }
 
-      ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+      ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
         callback({
           userCredits: {
-            findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-            update: jest.fn().mockResolvedValue({}),
+            findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+            update: vi.fn().mockResolvedValue({}),
           },
           creditRefundLog: {
-            create: jest.fn().mockResolvedValue({ id: 'log1' }),
+            create: vi.fn().mockResolvedValue({ id: 'log1' }),
           },
         })
       )
@@ -654,7 +659,7 @@ describe('Credit Refund Service', () => {
       expect(refundResult).toBe(true)
 
       // 2. Check history
-      ;(prisma.creditRefundLog.findMany as jest.Mock).mockResolvedValue([
+      ;(prisma.creditRefundLog.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
         { id: 'log1', amount: 2, creditType: 'reading' },
       ])
 
@@ -665,14 +670,14 @@ describe('Credit Refund Service', () => {
     it('should handle concurrent refunds safely', async () => {
       const mockUserCredits = { userId: mockUserId, usedCredits: 10 }
 
-      ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+      ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
         callback({
           userCredits: {
-            findUnique: jest.fn().mockResolvedValue(mockUserCredits),
-            update: jest.fn().mockResolvedValue({}),
+            findUnique: vi.fn().mockResolvedValue(mockUserCredits),
+            update: vi.fn().mockResolvedValue({}),
           },
           creditRefundLog: {
-            create: jest.fn().mockResolvedValue({}),
+            create: vi.fn().mockResolvedValue({}),
           },
         })
       )

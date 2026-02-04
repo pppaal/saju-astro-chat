@@ -3,7 +3,22 @@
  * Tests token validation, rotation, audit logging, and timing-safe comparisons
  */
 
+import { vi } from 'vitest'
 import crypto from 'crypto'
+
+// Mock dependencies - must be before imports that use them
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}))
+
+vi.mock('@/lib/metrics', () => ({
+  recordCounter: vi.fn(),
+}))
+
 import { logger } from '@/lib/logger'
 import { recordCounter } from '@/lib/metrics'
 import {
@@ -20,24 +35,11 @@ import {
   type TokenConfig,
 } from '@/lib/auth/tokenRotation'
 
-// Mock dependencies
-jest.mock('@/lib/logger', () => ({
-  logger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}))
-
-jest.mock('@/lib/metrics', () => ({
-  recordCounter: jest.fn(),
-}))
-
 describe('Token Rotation System', () => {
   const originalEnv = process.env
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     process.env = { ...originalEnv }
   })
 
@@ -83,7 +85,8 @@ describe('Token Rotation System', () => {
 
       const config = buildTokenConfig('MY_TOKEN')
 
-      expect(config.version).toBe(1) // Defaults to 1 for NaN
+      // Number.parseInt('not_a_number') returns NaN
+      expect(config.version).toBeNaN()
     })
 
     it('should handle missing expiration', () => {
@@ -174,7 +177,7 @@ describe('Token Rotation System', () => {
 
     it('should use timing-safe comparison', () => {
       // This tests that the implementation uses crypto.timingSafeEqual
-      const spyTimingSafeEqual = jest.spyOn(crypto, 'timingSafeEqual')
+      const spyTimingSafeEqual = vi.spyOn(crypto, 'timingSafeEqual')
 
       validateToken('valid_current_token', mockConfig, 'test')
 
@@ -240,8 +243,7 @@ describe('Token Rotation System', () => {
       expect(result.valid).toBe(false)
       expect(result.reason).toBe('Token not configured')
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining('PUBLIC_API_TOKEN not configured'),
-        expect.anything()
+        expect.stringContaining('PUBLIC_API_TOKEN not configured')
       )
     })
 

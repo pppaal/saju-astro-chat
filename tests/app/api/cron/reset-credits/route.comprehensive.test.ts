@@ -77,15 +77,9 @@ describe('/api/cron/reset-credits', () => {
       expect(response.status).toBe(200)
     })
 
-    it('should allow requests in development when CRON_SECRET not set', async () => {
+    it('should reject requests in development when CRON_SECRET not set', async () => {
       process.env.NODE_ENV = 'development'
       delete process.env.CRON_SECRET
-      vi.mocked(expireBonusCredits).mockResolvedValue({
-        expired: 0,
-      })
-      vi.mocked(resetAllExpiredCredits).mockResolvedValue({
-        resetCount: 0,
-      })
 
       const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
         method: 'GET',
@@ -93,7 +87,8 @@ describe('/api/cron/reset-credits', () => {
 
       const response = await GET(req)
 
-      expect(response.status).toBe(200)
+      // Route always rejects when CRON_SECRET is not set, regardless of environment
+      expect(response.status).toBe(401)
     })
 
     it('should reject requests in production when CRON_SECRET not set', async () => {
@@ -297,7 +292,7 @@ describe('/api/cron/reset-credits', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Database connection failed')
+      expect(data.error).toBe('Internal Server Error')
     })
 
     it('should handle resetAllExpiredCredits errors', async () => {
@@ -317,7 +312,7 @@ describe('/api/cron/reset-credits', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Transaction failed')
+      expect(data.error).toBe('Internal Server Error')
     })
 
     it('should handle non-Error exceptions', async () => {

@@ -1,17 +1,17 @@
 // tests/app/api/content-access/route.mega.test.ts
 // Comprehensive tests for Content Access API
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NextRequest } from 'next/server';
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { NextRequest } from 'next/server'
 
 // Mock dependencies BEFORE imports
 vi.mock('next-auth', () => ({
   getServerSession: vi.fn(),
-}));
+}))
 
 vi.mock('@/lib/auth/authOptions', () => ({
   authOptions: {},
-}));
+}))
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
@@ -21,30 +21,42 @@ vi.mock('@/lib/db/prisma', () => ({
       count: vi.fn(),
     },
   },
-}));
+}))
 
 vi.mock('@/lib/logger', () => ({
   logger: {
     error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
   },
-}));
+}))
 
-import { POST, GET } from '@/app/api/content-access/route';
-import { getServerSession } from 'next-auth';
-import { prisma } from '@/lib/db/prisma';
+vi.mock('@/lib/telemetry', () => ({
+  captureServerError: vi.fn(),
+}))
 
-const mockGetServerSession = vi.mocked(getServerSession);
-const mockPrisma = vi.mocked(prisma);
+vi.mock('@/lib/metrics', () => ({
+  recordCounter: vi.fn(),
+  recordTiming: vi.fn(),
+}))
+
+import { POST, GET } from '@/app/api/content-access/route'
+import { getServerSession } from 'next-auth'
+import { prisma } from '@/lib/db/prisma'
+
+const mockGetServerSession = vi.mocked(getServerSession)
+const mockPrisma = vi.mocked(prisma)
 
 describe('POST /api/content-access', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-  });
+    vi.clearAllMocks()
+  })
 
   it('should save content access record successfully', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     mockPrisma.premiumContentAccess.create.mockResolvedValue({
       id: 'access-123',
@@ -54,7 +66,7 @@ describe('POST /api/content-access', () => {
       contentId: 'content-456',
       locale: 'ko',
       creditUsed: 1,
-    } as any);
+    } as any)
 
     const req = new NextRequest('http://localhost:3000/api/content-access', {
       method: 'POST',
@@ -65,14 +77,14 @@ describe('POST /api/content-access', () => {
         locale: 'ko',
         creditUsed: 1,
       }),
-    });
+    })
 
-    const response = await POST(req);
-    const data = await response.json();
+    const response = await POST(req)
+    const data = await response.json()
 
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
-    expect(data.id).toBe('access-123');
+    expect(response.status).toBe(200)
+    expect(data.success).toBe(true)
+    expect(data.data.id).toBe('access-123')
     expect(mockPrisma.premiumContentAccess.create).toHaveBeenCalledWith({
       data: {
         userId: 'user-123',
@@ -83,11 +95,11 @@ describe('POST /api/content-access', () => {
         metadata: null,
         creditUsed: 1,
       },
-    });
-  });
+    })
+  })
 
   it('should return 401 when not authenticated', async () => {
-    mockGetServerSession.mockResolvedValue(null);
+    mockGetServerSession.mockResolvedValue(null)
 
     const req = new NextRequest('http://localhost:3000/api/content-access', {
       method: 'POST',
@@ -95,74 +107,74 @@ describe('POST /api/content-access', () => {
         service: 'astrology',
         contentType: 'reading',
       }),
-    });
+    })
 
-    const response = await POST(req);
-    const data = await response.json();
+    const response = await POST(req)
+    const data = await response.json()
 
-    expect(response.status).toBe(401);
-    expect(data.error).toBe('not_authenticated');
-  });
+    expect(response.status).toBe(401)
+    expect(data.error.code).toBe('UNAUTHORIZED')
+  })
 
-  it('should return 400 when body is invalid', async () => {
+  it('should return 422 when body is invalid', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     const req = new NextRequest('http://localhost:3000/api/content-access', {
       method: 'POST',
       body: 'invalid json',
-    });
+    })
 
-    const response = await POST(req);
-    const data = await response.json();
+    const response = await POST(req)
+    const data = await response.json()
 
-    expect(response.status).toBe(400);
-    expect(data.error).toBe('invalid_body');
-  });
+    expect(response.status).toBe(400)
+    expect(data.error.code).toBe('BAD_REQUEST')
+  })
 
-  it('should return 400 when service is missing', async () => {
+  it('should return 422 when service is missing', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     const req = new NextRequest('http://localhost:3000/api/content-access', {
       method: 'POST',
       body: JSON.stringify({
         contentType: 'reading',
       }),
-    });
+    })
 
-    const response = await POST(req);
-    const data = await response.json();
+    const response = await POST(req)
+    const data = await response.json()
 
-    expect(response.status).toBe(400);
-    expect(data.error).toContain('Missing required fields');
-  });
+    expect(response.status).toBe(422)
+    expect(data.error.code).toBe('VALIDATION_ERROR')
+  })
 
-  it('should return 400 when contentType is missing', async () => {
+  it('should return 422 when contentType is missing', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     const req = new NextRequest('http://localhost:3000/api/content-access', {
       method: 'POST',
       body: JSON.stringify({
         service: 'astrology',
       }),
-    });
+    })
 
-    const response = await POST(req);
-    const data = await response.json();
+    const response = await POST(req)
+    const data = await response.json()
 
-    expect(response.status).toBe(400);
-    expect(data.error).toContain('Missing required fields');
-  });
+    expect(response.status).toBe(422)
+    expect(data.error.code).toBe('VALIDATION_ERROR')
+  })
 
-  it('should return 400 for invalid service', async () => {
+  it('should return 422 for invalid service', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     const req = new NextRequest('http://localhost:3000/api/content-access', {
       method: 'POST',
@@ -170,24 +182,25 @@ describe('POST /api/content-access', () => {
         service: 'invalid-service',
         contentType: 'reading',
       }),
-    });
+    })
 
-    const response = await POST(req);
-    const data = await response.json();
+    const response = await POST(req)
+    const data = await response.json()
 
-    expect(response.status).toBe(400);
-    expect(data.error).toContain('Invalid service');
-  });
+    expect(response.status).toBe(422)
+    expect(data.error.code).toBe('VALIDATION_ERROR')
+    expect(data.error.message).toContain('Invalid service')
+  })
 
   it('should accept all valid services', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     mockPrisma.premiumContentAccess.create.mockResolvedValue({
       id: 'access-123',
       createdAt: new Date(),
-    } as any);
+    } as any)
 
     const validServices = [
       'astrology',
@@ -198,7 +211,7 @@ describe('POST /api/content-access', () => {
       'numerology',
       'iching',
       'compatibility',
-    ];
+    ]
 
     for (const service of validServices) {
       const req = new NextRequest('http://localhost:3000/api/content-access', {
@@ -207,22 +220,22 @@ describe('POST /api/content-access', () => {
           service,
           contentType: 'reading',
         }),
-      });
+      })
 
-      const response = await POST(req);
-      expect(response.status).toBe(200);
+      const response = await POST(req)
+      expect(response.status).toBe(200)
     }
-  });
+  })
 
   it('should default locale to "ko" when not provided', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     mockPrisma.premiumContentAccess.create.mockResolvedValue({
       id: 'access-123',
       createdAt: new Date(),
-    } as any);
+    } as any)
 
     const req = new NextRequest('http://localhost:3000/api/content-access', {
       method: 'POST',
@@ -230,26 +243,26 @@ describe('POST /api/content-access', () => {
         service: 'astrology',
         contentType: 'reading',
       }),
-    });
+    })
 
-    await POST(req);
+    await POST(req)
 
     expect(mockPrisma.premiumContentAccess.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         locale: 'ko',
       }),
-    });
-  });
+    })
+  })
 
   it('should handle custom locale', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     mockPrisma.premiumContentAccess.create.mockResolvedValue({
       id: 'access-123',
       createdAt: new Date(),
-    } as any);
+    } as any)
 
     const req = new NextRequest('http://localhost:3000/api/content-access', {
       method: 'POST',
@@ -258,26 +271,26 @@ describe('POST /api/content-access', () => {
         contentType: 'reading',
         locale: 'en',
       }),
-    });
+    })
 
-    await POST(req);
+    await POST(req)
 
     expect(mockPrisma.premiumContentAccess.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         locale: 'en',
       }),
-    });
-  });
+    })
+  })
 
   it('should handle contentId as null when not provided', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     mockPrisma.premiumContentAccess.create.mockResolvedValue({
       id: 'access-123',
       createdAt: new Date(),
-    } as any);
+    } as any)
 
     const req = new NextRequest('http://localhost:3000/api/content-access', {
       method: 'POST',
@@ -285,26 +298,26 @@ describe('POST /api/content-access', () => {
         service: 'astrology',
         contentType: 'reading',
       }),
-    });
+    })
 
-    await POST(req);
+    await POST(req)
 
     expect(mockPrisma.premiumContentAccess.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         contentId: null,
       }),
-    });
-  });
+    })
+  })
 
   it('should handle metadata field', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     mockPrisma.premiumContentAccess.create.mockResolvedValue({
       id: 'access-123',
       createdAt: new Date(),
-    } as any);
+    } as any)
 
     const req = new NextRequest('http://localhost:3000/api/content-access', {
       method: 'POST',
@@ -313,26 +326,26 @@ describe('POST /api/content-access', () => {
         contentType: 'reading',
         metadata: { key: 'value' },
       }),
-    });
+    })
 
-    await POST(req);
+    await POST(req)
 
     expect(mockPrisma.premiumContentAccess.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         metadata: { key: 'value' },
       }),
-    });
-  });
+    })
+  })
 
   it('should handle creditUsed field', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     mockPrisma.premiumContentAccess.create.mockResolvedValue({
       id: 'access-123',
       createdAt: new Date(),
-    } as any);
+    } as any)
 
     const req = new NextRequest('http://localhost:3000/api/content-access', {
       method: 'POST',
@@ -341,26 +354,26 @@ describe('POST /api/content-access', () => {
         contentType: 'reading',
         creditUsed: 5,
       }),
-    });
+    })
 
-    await POST(req);
+    await POST(req)
 
     expect(mockPrisma.premiumContentAccess.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         creditUsed: 5,
       }),
-    });
-  });
+    })
+  })
 
   it('should default creditUsed to 0', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     mockPrisma.premiumContentAccess.create.mockResolvedValue({
       id: 'access-123',
       createdAt: new Date(),
-    } as any);
+    } as any)
 
     const req = new NextRequest('http://localhost:3000/api/content-access', {
       method: 'POST',
@@ -368,27 +381,27 @@ describe('POST /api/content-access', () => {
         service: 'astrology',
         contentType: 'reading',
       }),
-    });
+    })
 
-    await POST(req);
+    await POST(req)
 
     expect(mockPrisma.premiumContentAccess.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         creditUsed: 0,
       }),
-    });
-  });
-});
+    })
+  })
+})
 
 describe('GET /api/content-access', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-  });
+    vi.clearAllMocks()
+  })
 
   it('should fetch user content access logs', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     const mockLogs = [
       {
@@ -400,127 +413,123 @@ describe('GET /api/content-access', () => {
         locale: 'ko',
         creditUsed: 1,
       },
-    ];
+    ]
 
-    mockPrisma.premiumContentAccess.findMany.mockResolvedValue(mockLogs as any);
-    mockPrisma.premiumContentAccess.count.mockResolvedValue(1);
+    mockPrisma.premiumContentAccess.findMany.mockResolvedValue(mockLogs as any)
+    mockPrisma.premiumContentAccess.count.mockResolvedValue(1)
 
-    const req = new NextRequest('http://localhost:3000/api/content-access');
+    const req = new NextRequest('http://localhost:3000/api/content-access')
 
-    const response = await GET(req);
-    const data = await response.json();
+    const response = await GET(req)
+    const data = await response.json()
 
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
-    expect(data.data).toHaveLength(1);
-    expect(data.data[0].id).toBe('log-1');
-    expect(data.data[0].service).toBe('astrology');
-    expect(data.data[0].createdAt).toBe('2024-01-01T00:00:00.000Z');
-    expect(data.pagination.total).toBe(1);
-  });
+    expect(response.status).toBe(200)
+    expect(data.success).toBe(true)
+    expect(data.data.data).toHaveLength(1)
+    expect(data.data.data[0].id).toBe('log-1')
+    expect(data.data.data[0].service).toBe('astrology')
+    expect(data.data.data[0].createdAt).toBe('2024-01-01T00:00:00.000Z')
+    expect(data.data.pagination.total).toBe(1)
+  })
 
   it('should return 401 when not authenticated', async () => {
-    mockGetServerSession.mockResolvedValue(null);
+    mockGetServerSession.mockResolvedValue(null)
 
-    const req = new NextRequest('http://localhost:3000/api/content-access');
+    const req = new NextRequest('http://localhost:3000/api/content-access')
 
-    const response = await GET(req);
-    const data = await response.json();
+    const response = await GET(req)
+    const data = await response.json()
 
-    expect(response.status).toBe(401);
-    expect(data.error).toBe('not_authenticated');
-  });
+    expect(response.status).toBe(401)
+    expect(data.error.code).toBe('UNAUTHORIZED')
+  })
 
   it('should filter by service when provided', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
-    mockPrisma.premiumContentAccess.findMany.mockResolvedValue([]);
-    mockPrisma.premiumContentAccess.count.mockResolvedValue(0);
+    mockPrisma.premiumContentAccess.findMany.mockResolvedValue([])
+    mockPrisma.premiumContentAccess.count.mockResolvedValue(0)
 
-    const req = new NextRequest(
-      'http://localhost:3000/api/content-access?service=tarot'
-    );
+    const req = new NextRequest('http://localhost:3000/api/content-access?service=tarot')
 
-    await GET(req);
+    await GET(req)
 
     expect(mockPrisma.premiumContentAccess.findMany).toHaveBeenCalledWith({
       where: { userId: 'user-123', service: 'tarot' },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      take: 20,
       skip: 0,
-      select: expect.any(Object),
-    });
-  });
+      select: {
+        id: true,
+        service: true,
+        contentType: true,
+        contentId: true,
+        createdAt: true,
+        locale: true,
+        creditUsed: true,
+      },
+    })
+  })
 
   it('should respect limit parameter', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
-    mockPrisma.premiumContentAccess.findMany.mockResolvedValue([]);
-    mockPrisma.premiumContentAccess.count.mockResolvedValue(0);
+    mockPrisma.premiumContentAccess.findMany.mockResolvedValue([])
+    mockPrisma.premiumContentAccess.count.mockResolvedValue(0)
 
-    const req = new NextRequest(
-      'http://localhost:3000/api/content-access?limit=10'
-    );
+    const req = new NextRequest('http://localhost:3000/api/content-access?limit=10')
 
-    await GET(req);
+    await GET(req)
 
     expect(mockPrisma.premiumContentAccess.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         take: 10,
       })
-    );
-  });
+    )
+  })
 
-  it('should cap limit at 100', async () => {
+  it('should reject limit exceeding 100 with validation error', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
-    mockPrisma.premiumContentAccess.findMany.mockResolvedValue([]);
-    mockPrisma.premiumContentAccess.count.mockResolvedValue(0);
+    const req = new NextRequest('http://localhost:3000/api/content-access?limit=200')
 
-    const req = new NextRequest(
-      'http://localhost:3000/api/content-access?limit=200'
-    );
+    const response = await GET(req)
+    const data = await response.json()
 
-    await GET(req);
-
-    expect(mockPrisma.premiumContentAccess.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        take: 100,
-      })
-    );
-  });
+    // z.coerce.number().max(100) rejects values > 100
+    expect(response.status).toBe(422)
+    expect(data.error.code).toBe('VALIDATION_ERROR')
+  })
 
   it('should respect offset parameter', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
-    mockPrisma.premiumContentAccess.findMany.mockResolvedValue([]);
-    mockPrisma.premiumContentAccess.count.mockResolvedValue(0);
+    mockPrisma.premiumContentAccess.findMany.mockResolvedValue([])
+    mockPrisma.premiumContentAccess.count.mockResolvedValue(0)
 
-    const req = new NextRequest(
-      'http://localhost:3000/api/content-access?offset=25'
-    );
+    const req = new NextRequest('http://localhost:3000/api/content-access?offset=25')
 
-    await GET(req);
+    await GET(req)
 
     expect(mockPrisma.premiumContentAccess.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         skip: 25,
       })
-    );
-  });
+    )
+  })
 
   it('should calculate hasMore in pagination', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
     const mockLogs = Array(10)
       .fill(null)
@@ -532,32 +541,32 @@ describe('GET /api/content-access', () => {
         createdAt: new Date(),
         locale: 'ko',
         creditUsed: 1,
-      }));
+      }))
 
-    mockPrisma.premiumContentAccess.findMany.mockResolvedValue(mockLogs as any);
-    mockPrisma.premiumContentAccess.count.mockResolvedValue(100);
+    mockPrisma.premiumContentAccess.findMany.mockResolvedValue(mockLogs as any)
+    mockPrisma.premiumContentAccess.count.mockResolvedValue(100)
 
-    const req = new NextRequest('http://localhost:3000/api/content-access');
+    const req = new NextRequest('http://localhost:3000/api/content-access')
 
-    const response = await GET(req);
-    const data = await response.json();
+    const response = await GET(req)
+    const data = await response.json()
 
-    expect(data.pagination.hasMore).toBe(true);
-  });
+    expect(data.data.pagination.hasMore).toBe(true)
+  })
 
   it('should set hasMore to false when at end', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-123', email: 'test@example.com' },
-    } as any);
+    } as any)
 
-    mockPrisma.premiumContentAccess.findMany.mockResolvedValue([]);
-    mockPrisma.premiumContentAccess.count.mockResolvedValue(0);
+    mockPrisma.premiumContentAccess.findMany.mockResolvedValue([])
+    mockPrisma.premiumContentAccess.count.mockResolvedValue(0)
 
-    const req = new NextRequest('http://localhost:3000/api/content-access');
+    const req = new NextRequest('http://localhost:3000/api/content-access')
 
-    const response = await GET(req);
-    const data = await response.json();
+    const response = await GET(req)
+    const data = await response.json()
 
-    expect(data.pagination.hasMore).toBe(false);
-  });
-});
+    expect(data.data.pagination.hasMore).toBe(false)
+  })
+})

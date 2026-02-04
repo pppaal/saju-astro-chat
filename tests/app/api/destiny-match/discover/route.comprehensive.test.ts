@@ -240,7 +240,7 @@ describe('/api/destiny-match/discover', () => {
       expect(prisma.matchProfile.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            user: { gender: 'female' },
+            user: expect.objectContaining({ gender: 'female' }),
           }),
         })
       )
@@ -257,10 +257,10 @@ describe('/api/destiny-match/discover', () => {
 
       await GET(req)
 
-      // Check that the where condition doesn't include user filter
+      // Check that the where condition doesn't include gender filter (user still has birthDate)
       const findManyCalls = vi.mocked(prisma.matchProfile.findMany).mock.calls
       const mainSearchCall = findManyCalls[findManyCalls.length - 1]
-      expect(mainSearchCall[0].where.user).toBeUndefined()
+      expect(mainSearchCall[0].where.user?.gender).toBeUndefined()
     })
 
     it('should only show active and visible profiles', async () => {
@@ -289,36 +289,25 @@ describe('/api/destiny-match/discover', () => {
       vi.mocked(prisma.matchProfile.findUnique).mockResolvedValue(mockMyProfile as any)
       vi.mocked(prisma.matchSwipe.findMany).mockResolvedValue([])
       vi.mocked(prisma.userBlock.findMany).mockResolvedValue([])
-
-      const tooYoung = createMockProfile({
-        user: { ...createMockProfile().user, birthDate: '2010-01-01' }, // Too young
-      })
-      const tooOld = createMockProfile({
-        user: { ...createMockProfile().user, birthDate: '1970-01-01' }, // Too old
-      })
-      const justRight = createMockProfile({
-        user: { ...createMockProfile().user, birthDate: '1992-08-20' }, // Age ~32
-      })
-
-      vi.mocked(prisma.matchProfile.findMany).mockResolvedValue([
-        tooYoung,
-        tooOld,
-        justRight,
-      ] as any)
-      vi.mocked(getCompatibilitySummary).mockResolvedValue({
-        score: 80,
-        grade: 'A',
-        emoji: '💖',
-        tagline: 'Great match',
-      } as any)
+      vi.mocked(prisma.matchProfile.findMany).mockResolvedValue([])
 
       const req = new NextRequest('http://localhost:3000/api/destiny-match/discover')
 
-      const response = await GET(req)
-      const data = await response.json()
+      await GET(req)
 
-      expect(data.profiles.length).toBe(1)
-      expect(data.profiles[0].id).toBe('profile-456')
+      // Age filtering now happens at DB level via birthDate range
+      expect(prisma.matchProfile.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            user: expect.objectContaining({
+              birthDate: expect.objectContaining({
+                gte: expect.any(String),
+                lte: expect.any(String),
+              }),
+            }),
+          }),
+        })
+      )
     })
 
     it('should filter by bidirectional age preferences', async () => {
@@ -436,25 +425,23 @@ describe('/api/destiny-match/discover', () => {
       vi.mocked(prisma.matchProfile.findUnique).mockResolvedValue(mockMyProfile as any)
       vi.mocked(prisma.matchSwipe.findMany).mockResolvedValue([])
       vi.mocked(prisma.userBlock.findMany).mockResolvedValue([])
-
-      const seoulProfile = createMockProfile({ city: 'SEOUL' }) // Different case
-      const busanProfile = createMockProfile({ id: 'profile-busan', city: 'Busan' })
-
-      vi.mocked(prisma.matchProfile.findMany).mockResolvedValue([seoulProfile, busanProfile] as any)
-      vi.mocked(getCompatibilitySummary).mockResolvedValue({
-        score: 75,
-        grade: 'B',
-        emoji: '✨',
-        tagline: 'Good',
-      } as any)
+      vi.mocked(prisma.matchProfile.findMany).mockResolvedValue([])
 
       const req = new NextRequest('http://localhost:3000/api/destiny-match/discover')
 
-      const response = await GET(req)
-      const data = await response.json()
+      await GET(req)
 
-      expect(data.profiles.length).toBe(1)
-      expect(data.profiles[0].city).toBe('SEOUL')
+      // City filtering now happens at DB level via case-insensitive equals
+      expect(prisma.matchProfile.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            city: expect.objectContaining({
+              equals: mockMyProfile.city,
+              mode: 'insensitive',
+            }),
+          }),
+        })
+      )
     })
 
     it('should handle whitespace in city names', async () => {
@@ -644,7 +631,7 @@ describe('/api/destiny-match/discover', () => {
 
       expect(prisma.matchProfile.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          take: 60, // limit * 3
+          take: 40, // limit * 2
         })
       )
     })

@@ -13,6 +13,59 @@ vi.mock('@/lib/auth/authOptions', () => ({
   authOptions: {},
 }))
 
+vi.mock('@/lib/api/middleware', () => ({
+  withApiMiddleware: vi.fn((handler, _options) => {
+    return async (...args: any[]) => {
+      const { getServerSession } = await import('next-auth')
+      const { authOptions } = await import('@/lib/auth/authOptions')
+      const { NextResponse } = await import('next/server')
+
+      let session: any = null
+      try {
+        session = await getServerSession(authOptions)
+      } catch {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+
+      // No session at all -> 401
+      if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+
+      const context = {
+        session,
+        userId: session?.user?.id || null,
+        isAuthenticated: !!session?.user,
+        isPremium: false,
+        ip: '127.0.0.1',
+        locale: 'en',
+      }
+
+      const result = await handler(args[0] || {}, context)
+
+      // Handle apiSuccess-style result { data }
+      if (result && result.data !== undefined) {
+        return NextResponse.json(result.data, { status: result.status || 200 })
+      }
+      // Handle error result
+      if (result && result.error) {
+        return NextResponse.json(
+          { error: result.error.message || result.error.code },
+          { status: 401 }
+        )
+      }
+      return result
+    }
+  }),
+  createAuthenticatedGuard: vi.fn(() => ({})),
+  apiSuccess: vi.fn((data, opts) => ({ data, status: opts?.status })),
+  apiError: vi.fn((code, message) => ({ error: { code, message } })),
+  ErrorCodes: {
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+  },
+}))
+
 import { GET } from '@/app/api/me/route'
 import { getServerSession } from 'next-auth'
 

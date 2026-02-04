@@ -5,123 +5,183 @@
 
 import {
   ErrorCodes,
-  ERROR_MESSAGES,
-  STATUS_CODES,
   createErrorResponse,
   createSuccessResponse,
+  withErrorHandler,
+  jsonErrorResponse,
   type APIErrorOptions,
 } from '@/lib/api/errorHandler'
 
 describe('API Error Handler', () => {
   describe('ErrorCodes', () => {
-    it('should have all standard error codes', () => {
-      expect(ErrorCodes.BAD_REQUEST).toBe('bad_request')
-      expect(ErrorCodes.UNAUTHORIZED).toBe('unauthorized')
-      expect(ErrorCodes.FORBIDDEN).toBe('forbidden')
-      expect(ErrorCodes.NOT_FOUND).toBe('not_found')
-      expect(ErrorCodes.RATE_LIMIT).toBe('rate_limit_exceeded')
-      expect(ErrorCodes.PAYLOAD_TOO_LARGE).toBe('payload_too_large')
-      expect(ErrorCodes.VALIDATION_ERROR).toBe('validation_error')
-      expect(ErrorCodes.INTERNAL_ERROR).toBe('internal_error')
+    it('should have all client error codes', () => {
+      expect(ErrorCodes.BAD_REQUEST).toBe('BAD_REQUEST')
+      expect(ErrorCodes.UNAUTHORIZED).toBe('UNAUTHORIZED')
+      expect(ErrorCodes.FORBIDDEN).toBe('FORBIDDEN')
+      expect(ErrorCodes.NOT_FOUND).toBe('NOT_FOUND')
+      expect(ErrorCodes.RATE_LIMITED).toBe('RATE_LIMITED')
+      expect(ErrorCodes.PAYLOAD_TOO_LARGE).toBe('PAYLOAD_TOO_LARGE')
+      expect(ErrorCodes.VALIDATION_ERROR).toBe('VALIDATION_ERROR')
     })
 
-    it('should have credit-specific error codes', () => {
-      expect(ErrorCodes.INSUFFICIENT_CREDITS).toBe('insufficient_credits')
-      expect(ErrorCodes.COMPATIBILITY_LIMIT).toBe('compatibility_limit_exceeded')
-      expect(ErrorCodes.FOLLOWUP_LIMIT).toBe('followup_limit_exceeded')
+    it('should have all server error codes', () => {
+      expect(ErrorCodes.INTERNAL_ERROR).toBe('INTERNAL_ERROR')
+      expect(ErrorCodes.SERVICE_UNAVAILABLE).toBe('SERVICE_UNAVAILABLE')
+      expect(ErrorCodes.BACKEND_ERROR).toBe('BACKEND_ERROR')
+      expect(ErrorCodes.TIMEOUT).toBe('TIMEOUT')
+      expect(ErrorCodes.DATABASE_ERROR).toBe('DATABASE_ERROR')
+      expect(ErrorCodes.EXTERNAL_API_ERROR).toBe('EXTERNAL_API_ERROR')
     })
 
-    it('should have feature-specific error codes', () => {
-      expect(ErrorCodes.FEATURE_NOT_AVAILABLE).toBe('feature_not_available')
-      expect(ErrorCodes.UPGRADE_REQUIRED).toBe('upgrade_required')
+    it('should have all business logic error codes', () => {
+      expect(ErrorCodes.INVALID_TOKEN).toBe('INVALID_TOKEN')
+      expect(ErrorCodes.TOKEN_EXPIRED).toBe('TOKEN_EXPIRED')
+      expect(ErrorCodes.INSUFFICIENT_CREDITS).toBe('INSUFFICIENT_CREDITS')
+      expect(ErrorCodes.INVALID_DATE).toBe('INVALID_DATE')
+      expect(ErrorCodes.INVALID_TIME).toBe('INVALID_TIME')
+      expect(ErrorCodes.INVALID_COORDINATES).toBe('INVALID_COORDINATES')
+      expect(ErrorCodes.INVALID_FORMAT).toBe('INVALID_FORMAT')
+      expect(ErrorCodes.MISSING_FIELD).toBe('MISSING_FIELD')
+    })
+
+    it('should have exactly 21 error codes', () => {
+      expect(Object.keys(ErrorCodes)).toHaveLength(21)
     })
   })
 
-  describe('ERROR_MESSAGES', () => {
+  describe('Error Messages (via createErrorResponse)', () => {
     describe('Multi-language Support', () => {
-      it('should have messages in all supported languages', () => {
-        const languages = ['en', 'ko', 'ja', 'zh']
+      it('should have messages in all supported languages', async () => {
+        const locales = ['en', 'ko', 'ja', 'zh']
 
-        for (const lang of languages) {
-          expect(ERROR_MESSAGES[lang]).toBeDefined()
-          expect(ERROR_MESSAGES[lang][ErrorCodes.BAD_REQUEST]).toBeDefined()
-          expect(ERROR_MESSAGES[lang][ErrorCodes.UNAUTHORIZED]).toBeDefined()
-          expect(ERROR_MESSAGES[lang][ErrorCodes.INSUFFICIENT_CREDITS]).toBeDefined()
+        for (const locale of locales) {
+          const response = createErrorResponse({
+            code: ErrorCodes.BAD_REQUEST,
+            locale,
+          })
+          const data = await response.json()
+          expect(data.error.message).toBeDefined()
+          expect(data.error.message.length).toBeGreaterThan(0)
         }
       })
 
-      it('should have consistent error codes across languages', () => {
-        const enCodes = Object.keys(ERROR_MESSAGES.en)
-        const koCodes = Object.keys(ERROR_MESSAGES.ko)
-        const jaCodes = Object.keys(ERROR_MESSAGES.ja)
-        const zhCodes = Object.keys(ERROR_MESSAGES.zh)
+      it('should have distinct messages per locale for a given error', async () => {
+        const locales = ['en', 'ko', 'ja', 'zh']
+        const messages: string[] = []
 
-        expect(enCodes.sort()).toEqual(koCodes.sort())
-        expect(enCodes.sort()).toEqual(jaCodes.sort())
-        expect(enCodes.sort()).toEqual(zhCodes.sort())
+        for (const locale of locales) {
+          const response = createErrorResponse({
+            code: ErrorCodes.UNAUTHORIZED,
+            locale,
+          })
+          const data = await response.json()
+          messages.push(data.error.message)
+        }
+
+        // All messages should be unique
+        const uniqueMessages = new Set(messages)
+        expect(uniqueMessages.size).toBe(locales.length)
       })
 
-      it('should have non-empty messages', () => {
-        for (const lang of ['en', 'ko', 'ja', 'zh']) {
-          const messages = ERROR_MESSAGES[lang]
-          for (const [code, message] of Object.entries(messages)) {
-            expect(message).toBeTruthy()
-            expect(message.length).toBeGreaterThan(0)
-          }
+      it('should have non-empty messages for all error codes', async () => {
+        const codes = Object.values(ErrorCodes)
+        for (const code of codes) {
+          const response = createErrorResponse({ code })
+          const data = await response.json()
+          expect(data.error.message).toBeTruthy()
+          expect(data.error.message.length).toBeGreaterThan(0)
         }
       })
 
-      it('should have Korean messages for common errors', () => {
-        expect(ERROR_MESSAGES.ko[ErrorCodes.UNAUTHORIZED]).toContain('인증')
-        expect(ERROR_MESSAGES.ko[ErrorCodes.INSUFFICIENT_CREDITS]).toContain('크레딧')
-        expect(ERROR_MESSAGES.ko[ErrorCodes.RATE_LIMIT]).toContain('제한')
+      it('should have Korean messages for common errors', async () => {
+        const koUnauthorized = await createErrorResponse({
+          code: ErrorCodes.UNAUTHORIZED,
+          locale: 'ko',
+        }).json()
+        expect(koUnauthorized.error.message).toContain('로그인')
+
+        const koCredits = await createErrorResponse({
+          code: ErrorCodes.INSUFFICIENT_CREDITS,
+          locale: 'ko',
+        }).json()
+        expect(koCredits.error.message).toContain('크레딧')
+
+        const koRateLimit = await createErrorResponse({
+          code: ErrorCodes.RATE_LIMITED,
+          locale: 'ko',
+        }).json()
+        expect(koRateLimit.error.message).toContain('요청')
       })
     })
 
     describe('Error Message Quality', () => {
-      it('should have user-friendly English messages', () => {
-        expect(ERROR_MESSAGES.en[ErrorCodes.BAD_REQUEST]).toContain('request')
-        expect(ERROR_MESSAGES.en[ErrorCodes.UNAUTHORIZED]).toContain('authorized')
-        expect(ERROR_MESSAGES.en[ErrorCodes.INSUFFICIENT_CREDITS]).toContain('credit')
+      it('should have user-friendly English messages', async () => {
+        const badRequest = await createErrorResponse({
+          code: ErrorCodes.BAD_REQUEST,
+        }).json()
+        expect(badRequest.error.message.toLowerCase()).toContain('request')
+
+        const unauthorized = await createErrorResponse({
+          code: ErrorCodes.UNAUTHORIZED,
+        }).json()
+        expect(unauthorized.error.message.toLowerCase()).toContain('log in')
+
+        const credits = await createErrorResponse({
+          code: ErrorCodes.INSUFFICIENT_CREDITS,
+        }).json()
+        expect(credits.error.message.toLowerCase()).toContain('credit')
       })
 
-      it('should not expose internal details', () => {
-        for (const lang of ['en', 'ko', 'ja', 'zh']) {
-          const messages = Object.values(ERROR_MESSAGES[lang])
-          for (const message of messages) {
-            expect(message.toLowerCase()).not.toContain('database')
-            expect(message.toLowerCase()).not.toContain('sql')
-            expect(message.toLowerCase()).not.toContain('prisma')
-          }
+      it('should not expose internal implementation details in English messages', async () => {
+        const codes = Object.values(ErrorCodes)
+        for (const code of codes) {
+          const data = await createErrorResponse({ code }).json()
+          const msg = data.error.message.toLowerCase()
+          expect(msg).not.toContain('sql')
+          expect(msg).not.toContain('prisma')
         }
       })
     })
   })
 
-  describe('STATUS_CODES', () => {
+  describe('Status Code Mapping (via createErrorResponse)', () => {
     it('should map error codes to correct HTTP status', () => {
-      expect(STATUS_CODES[ErrorCodes.BAD_REQUEST]).toBe(400)
-      expect(STATUS_CODES[ErrorCodes.UNAUTHORIZED]).toBe(401)
-      expect(STATUS_CODES[ErrorCodes.FORBIDDEN]).toBe(403)
-      expect(STATUS_CODES[ErrorCodes.NOT_FOUND]).toBe(404)
-      expect(STATUS_CODES[ErrorCodes.RATE_LIMIT]).toBe(429)
-      expect(STATUS_CODES[ErrorCodes.INTERNAL_ERROR]).toBe(500)
+      expect(createErrorResponse({ code: ErrorCodes.BAD_REQUEST }).status).toBe(400)
+      expect(createErrorResponse({ code: ErrorCodes.UNAUTHORIZED }).status).toBe(401)
+      expect(createErrorResponse({ code: ErrorCodes.FORBIDDEN }).status).toBe(403)
+      expect(createErrorResponse({ code: ErrorCodes.NOT_FOUND }).status).toBe(404)
+      expect(createErrorResponse({ code: ErrorCodes.RATE_LIMITED }).status).toBe(429)
+      expect(createErrorResponse({ code: ErrorCodes.INTERNAL_ERROR }).status).toBe(500)
     })
 
-    it('should use 400 for validation errors', () => {
-      expect(STATUS_CODES[ErrorCodes.VALIDATION_ERROR]).toBe(400)
-      expect(STATUS_CODES[ErrorCodes.PAYLOAD_TOO_LARGE]).toBe(413)
+    it('should use correct status for validation errors', () => {
+      expect(createErrorResponse({ code: ErrorCodes.VALIDATION_ERROR }).status).toBe(422)
+      expect(createErrorResponse({ code: ErrorCodes.PAYLOAD_TOO_LARGE }).status).toBe(413)
     })
 
-    it('should use 402 for payment required errors', () => {
-      expect(STATUS_CODES[ErrorCodes.INSUFFICIENT_CREDITS]).toBe(402)
-      expect(STATUS_CODES[ErrorCodes.UPGRADE_REQUIRED]).toBe(402)
+    it('should use 402 for insufficient credits', () => {
+      expect(createErrorResponse({ code: ErrorCodes.INSUFFICIENT_CREDITS }).status).toBe(402)
     })
 
-    it('should use 403 for feature restrictions', () => {
-      expect(STATUS_CODES[ErrorCodes.FEATURE_NOT_AVAILABLE]).toBe(403)
-      expect(STATUS_CODES[ErrorCodes.COMPATIBILITY_LIMIT]).toBe(403)
-      expect(STATUS_CODES[ErrorCodes.FOLLOWUP_LIMIT]).toBe(403)
+    it('should use correct status for server errors', () => {
+      expect(createErrorResponse({ code: ErrorCodes.SERVICE_UNAVAILABLE }).status).toBe(503)
+      expect(createErrorResponse({ code: ErrorCodes.BACKEND_ERROR }).status).toBe(502)
+      expect(createErrorResponse({ code: ErrorCodes.TIMEOUT }).status).toBe(504)
+      expect(createErrorResponse({ code: ErrorCodes.DATABASE_ERROR }).status).toBe(500)
+      expect(createErrorResponse({ code: ErrorCodes.EXTERNAL_API_ERROR }).status).toBe(502)
+    })
+
+    it('should use correct status for auth/token errors', () => {
+      expect(createErrorResponse({ code: ErrorCodes.INVALID_TOKEN }).status).toBe(401)
+      expect(createErrorResponse({ code: ErrorCodes.TOKEN_EXPIRED }).status).toBe(401)
+    })
+
+    it('should use 400 for input validation codes', () => {
+      expect(createErrorResponse({ code: ErrorCodes.INVALID_DATE }).status).toBe(400)
+      expect(createErrorResponse({ code: ErrorCodes.INVALID_TIME }).status).toBe(400)
+      expect(createErrorResponse({ code: ErrorCodes.INVALID_COORDINATES }).status).toBe(400)
+      expect(createErrorResponse({ code: ErrorCodes.INVALID_FORMAT }).status).toBe(400)
+      expect(createErrorResponse({ code: ErrorCodes.MISSING_FIELD }).status).toBe(400)
     })
   })
 
@@ -136,16 +196,21 @@ describe('API Error Handler', () => {
         expect(response.headers.get('Content-Type')).toBe('application/json')
       })
 
-      it('should create error response with custom message', () => {
+      it('should create error response with custom message', async () => {
         const response = createErrorResponse({
           code: ErrorCodes.VALIDATION_ERROR,
           message: 'Email is required',
         })
 
-        expect(response.status).toBe(400)
+        expect(response.status).toBe(422)
+        const data = await response.json()
+        expect(data.error.message).toBe('Email is required')
       })
 
-      it('should include error details', async () => {
+      it('should include error details in development mode', async () => {
+        const originalEnv = process.env.NODE_ENV
+        process.env.NODE_ENV = 'development'
+
         const response = createErrorResponse({
           code: ErrorCodes.VALIDATION_ERROR,
           details: [
@@ -156,8 +221,10 @@ describe('API Error Handler', () => {
 
         const data = await response.json()
 
-        expect(data.error).toBe('validation_error')
-        expect(data.details).toHaveLength(2)
+        expect(data.error.code).toBe('VALIDATION_ERROR')
+        expect(data.error.details).toHaveLength(2)
+
+        process.env.NODE_ENV = originalEnv
       })
     })
 
@@ -169,7 +236,8 @@ describe('API Error Handler', () => {
 
         const data = await response.json()
 
-        expect(data.message).toBe(ERROR_MESSAGES.en[ErrorCodes.UNAUTHORIZED])
+        // Default locale is 'en'
+        expect(data.error.message).toContain('log in')
       })
 
       it('should return Korean message when specified', async () => {
@@ -180,7 +248,7 @@ describe('API Error Handler', () => {
 
         const data = await response.json()
 
-        expect(data.message).toBe(ERROR_MESSAGES.ko[ErrorCodes.UNAUTHORIZED])
+        expect(data.error.message).toContain('로그인')
       })
 
       it('should return Japanese message when specified', async () => {
@@ -191,7 +259,7 @@ describe('API Error Handler', () => {
 
         const data = await response.json()
 
-        expect(data.message).toBe(ERROR_MESSAGES.ja[ErrorCodes.INSUFFICIENT_CREDITS])
+        expect(data.error.message).toContain('クレジット')
       })
 
       it('should fallback to English for unsupported locale', async () => {
@@ -202,7 +270,8 @@ describe('API Error Handler', () => {
 
         const data = await response.json()
 
-        expect(data.message).toBe(ERROR_MESSAGES.en[ErrorCodes.BAD_REQUEST])
+        // Falls back to English
+        expect(data.error.message).toContain('Invalid request')
       })
     })
 
@@ -217,7 +286,7 @@ describe('API Error Handler', () => {
 
         const data = await response.json()
 
-        expect(data.message).toBe(customMessage)
+        expect(data.error.message).toBe(customMessage)
       })
 
       it('should preserve custom message regardless of locale', async () => {
@@ -231,24 +300,29 @@ describe('API Error Handler', () => {
 
         const data = await response.json()
 
-        expect(data.message).toBe(customMessage)
+        expect(data.error.message).toBe(customMessage)
       })
     })
 
     describe('Error Response Format', () => {
-      it('should have standard error format', async () => {
+      it('should have standard error format with success:false and error object', async () => {
         const response = createErrorResponse({
           code: ErrorCodes.NOT_FOUND,
         })
 
         const data = await response.json()
 
-        expect(data).toHaveProperty('error')
-        expect(data).toHaveProperty('message')
-        expect(data.error).toBe('not_found')
+        expect(data.success).toBe(false)
+        expect(data.error).toBeDefined()
+        expect(data.error.code).toBe('NOT_FOUND')
+        expect(data.error.message).toBeDefined()
+        expect(data.error.status).toBe(404)
       })
 
-      it('should include details when provided', async () => {
+      it('should include details in error object in development mode', async () => {
+        const originalEnv = process.env.NODE_ENV
+        process.env.NODE_ENV = 'development'
+
         const details = { userId: '123', reason: 'Invalid credentials' }
 
         const response = createErrorResponse({
@@ -258,7 +332,25 @@ describe('API Error Handler', () => {
 
         const data = await response.json()
 
-        expect(data.details).toEqual(details)
+        expect(data.error.details).toEqual(details)
+
+        process.env.NODE_ENV = originalEnv
+      })
+
+      it('should not include details in production mode', async () => {
+        const originalEnv = process.env.NODE_ENV
+        process.env.NODE_ENV = 'production'
+
+        const response = createErrorResponse({
+          code: ErrorCodes.BAD_REQUEST,
+          details: { sensitive: 'info' },
+        })
+
+        const data = await response.json()
+
+        expect(data.error.details).toBeUndefined()
+
+        process.env.NODE_ENV = originalEnv
       })
 
       it('should not include details when not provided', async () => {
@@ -268,7 +360,7 @@ describe('API Error Handler', () => {
 
         const data = await response.json()
 
-        expect(data.details).toBeUndefined()
+        expect(data.error.details).toBeUndefined()
       })
     })
 
@@ -279,7 +371,7 @@ describe('API Error Handler', () => {
           { code: ErrorCodes.UNAUTHORIZED, status: 401 },
           { code: ErrorCodes.FORBIDDEN, status: 403 },
           { code: ErrorCodes.NOT_FOUND, status: 404 },
-          { code: ErrorCodes.RATE_LIMIT, status: 429 },
+          { code: ErrorCodes.RATE_LIMITED, status: 429 },
           { code: ErrorCodes.INTERNAL_ERROR, status: 500 },
         ]
 
@@ -299,10 +391,13 @@ describe('API Error Handler', () => {
         const data = await response.json()
 
         expect(response.status).toBe(500)
-        expect(data.error).toBe('unknown_error')
+        expect(data.error.code).toBe('unknown_error')
       })
 
-      it('should handle empty details array', async () => {
+      it('should handle empty details array in development', async () => {
+        const originalEnv = process.env.NODE_ENV
+        process.env.NODE_ENV = 'development'
+
         const response = createErrorResponse({
           code: ErrorCodes.VALIDATION_ERROR,
           details: [],
@@ -310,10 +405,15 @@ describe('API Error Handler', () => {
 
         const data = await response.json()
 
-        expect(data.details).toEqual([])
+        expect(data.error.details).toEqual([])
+
+        process.env.NODE_ENV = originalEnv
       })
 
-      it('should handle null details', async () => {
+      it('should handle null details in development', async () => {
+        const originalEnv = process.env.NODE_ENV
+        process.env.NODE_ENV = 'development'
+
         const response = createErrorResponse({
           code: ErrorCodes.BAD_REQUEST,
           details: null as any,
@@ -321,7 +421,10 @@ describe('API Error Handler', () => {
 
         const data = await response.json()
 
-        expect(data.details).toBeNull()
+        // null is falsy, so the `if (details)` check means it won't be included
+        expect(data.error.details).toBeUndefined()
+
+        process.env.NODE_ENV = originalEnv
       })
     })
   })
@@ -329,34 +432,37 @@ describe('API Error Handler', () => {
   describe('createSuccessResponse', () => {
     describe('Basic Success Response', () => {
       it('should create success response with data', async () => {
-        const data = { id: '123', name: 'Test' }
+        const payload = { id: '123', name: 'Test' }
 
-        const response = createSuccessResponse(data)
+        const response = createSuccessResponse(payload)
 
         expect(response.status).toBe(200)
         expect(response.headers.get('Content-Type')).toBe('application/json')
 
         const body = await response.json()
-        expect(body).toEqual(data)
+        expect(body.success).toBe(true)
+        expect(body.data).toEqual(payload)
       })
 
       it('should create success response with array data', async () => {
-        const data = [
+        const payload = [
           { id: '1', name: 'Item 1' },
           { id: '2', name: 'Item 2' },
         ]
 
-        const response = createSuccessResponse(data)
+        const response = createSuccessResponse(payload)
 
         const body = await response.json()
-        expect(body).toEqual(data)
+        expect(body.success).toBe(true)
+        expect(body.data).toEqual(payload)
       })
 
       it('should create success response with null data', async () => {
         const response = createSuccessResponse(null)
 
         const body = await response.json()
-        expect(body).toBeNull()
+        expect(body.success).toBe(true)
+        expect(body.data).toBeNull()
       })
     })
 
@@ -404,19 +510,37 @@ describe('API Error Handler', () => {
       })
     })
 
+    describe('Meta Support', () => {
+      it('should include meta when provided', async () => {
+        const response = createSuccessResponse({ items: [] }, { meta: { page: 1, total: 100 } })
+
+        const body = await response.json()
+        expect(body.meta).toEqual({ page: 1, total: 100 })
+      })
+
+      it('should not include meta when not provided', async () => {
+        const response = createSuccessResponse({ items: [] })
+
+        const body = await response.json()
+        expect(body.meta).toBeUndefined()
+      })
+    })
+
     describe('Edge Cases', () => {
       it('should handle empty object', async () => {
         const response = createSuccessResponse({})
 
         const body = await response.json()
-        expect(body).toEqual({})
+        expect(body.success).toBe(true)
+        expect(body.data).toEqual({})
       })
 
       it('should handle empty array', async () => {
         const response = createSuccessResponse([])
 
         const body = await response.json()
-        expect(body).toEqual([])
+        expect(body.success).toBe(true)
+        expect(body.data).toEqual([])
       })
 
       it('should handle primitive values', async () => {
@@ -424,13 +548,18 @@ describe('API Error Handler', () => {
         const numberResponse = createSuccessResponse(42)
         const booleanResponse = createSuccessResponse(true)
 
-        expect(await stringResponse.json()).toBe('success')
-        expect(await numberResponse.json()).toBe(42)
-        expect(await booleanResponse.json()).toBe(true)
+        const stringBody = await stringResponse.json()
+        const numberBody = await numberResponse.json()
+        const booleanBody = await booleanResponse.json()
+
+        expect(stringBody.success).toBe(true)
+        expect(stringBody.data).toBe('success')
+        expect(numberBody.data).toBe(42)
+        expect(booleanBody.data).toBe(true)
       })
 
       it('should handle nested objects', async () => {
-        const data = {
+        const payload = {
           user: {
             id: '123',
             profile: {
@@ -440,11 +569,42 @@ describe('API Error Handler', () => {
           },
         }
 
-        const response = createSuccessResponse(data)
+        const response = createSuccessResponse(payload)
 
         const body = await response.json()
-        expect(body).toEqual(data)
+        expect(body.success).toBe(true)
+        expect(body.data).toEqual(payload)
       })
+    })
+  })
+
+  describe('withErrorHandler (deprecated)', () => {
+    it('should throw an error when called', () => {
+      const handler = async () => new Response('OK')
+      expect(() => withErrorHandler(handler, '/test')).toThrow('withErrorHandler is deprecated')
+    })
+  })
+
+  describe('jsonErrorResponse', () => {
+    it('should create a plain Response with error message', async () => {
+      const response = jsonErrorResponse('Something went wrong', 500)
+
+      expect(response.status).toBe(500)
+      expect(response.headers.get('Content-Type')).toBe('application/json')
+
+      const data = await response.json()
+      expect(data.error).toBe('Something went wrong')
+    })
+
+    it('should default to 400 status', async () => {
+      const response = jsonErrorResponse('Bad input')
+
+      expect(response.status).toBe(400)
+    })
+
+    it('should return a plain Response, not NextResponse', () => {
+      const response = jsonErrorResponse('error')
+      expect(response).toBeInstanceOf(Response)
     })
   })
 
@@ -461,9 +621,11 @@ describe('API Error Handler', () => {
         const response = createErrorResponse({ code })
         const data = await response.json()
 
-        expect(data).toHaveProperty('error')
-        expect(data).toHaveProperty('message')
-        expect(data.error).toBe(code)
+        expect(data.success).toBe(false)
+        expect(data.error).toBeDefined()
+        expect(data.error.code).toBe(code)
+        expect(data.error.message).toBeDefined()
+        expect(data.error.status).toBeDefined()
       }
     })
 
@@ -481,7 +643,8 @@ describe('API Error Handler', () => {
       expect(successResponse.status).toBe(200)
 
       const successData = await successResponse.json()
-      expect(successData.token).toBe('abc123')
+      expect(successData.success).toBe(true)
+      expect(successData.data.token).toBe('abc123')
     })
 
     it('should support multilingual error reporting', async () => {
@@ -491,9 +654,9 @@ describe('API Error Handler', () => {
       const koResponse = await createErrorResponse({ code, locale: 'ko' }).json()
       const jaResponse = await createErrorResponse({ code, locale: 'ja' }).json()
 
-      expect(enResponse.message).not.toBe(koResponse.message)
-      expect(enResponse.message).not.toBe(jaResponse.message)
-      expect(koResponse.message).not.toBe(jaResponse.message)
+      expect(enResponse.error.message).not.toBe(koResponse.error.message)
+      expect(enResponse.error.message).not.toBe(jaResponse.error.message)
+      expect(koResponse.error.message).not.toBe(jaResponse.error.message)
     })
   })
 })

@@ -1,8 +1,34 @@
 /**
  * Redis Cache Tests
+ *
+ * Aligned with the actual @upstash/redis implementation in src/lib/cache/redis-cache.ts
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
+// Mock Upstash Redis client
+const mockRedisInstance = {
+  get: vi.fn(),
+  set: vi.fn(),
+  del: vi.fn(),
+  mget: vi.fn(),
+  scan: vi.fn(),
+  ping: vi.fn(),
+}
+
+vi.mock('@upstash/redis', () => ({
+  Redis: vi.fn(() => mockRedisInstance),
+}))
+
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
+}))
+
 import {
   cacheGet,
   cacheSet,
@@ -10,33 +36,27 @@ import {
   cacheOrCalculate,
   cacheGetMany,
   clearCacheByPattern,
+  getCacheInfo,
+  disconnectRedis,
   CacheKeys,
   CACHE_TTL,
 } from '@/lib/cache/redis-cache'
-
-// Mock redis client
-const mockRedisClient = {
-  connect: vi.fn().mockResolvedValue(undefined),
-  on: vi.fn(),
-  get: vi.fn(),
-  setEx: vi.fn(),
-  del: vi.fn(),
-  mGet: vi.fn(),
-  keys: vi.fn(),
-  info: vi.fn(),
-}
-
-vi.mock('redis', () => ({
-  createClient: vi.fn(() => mockRedisClient),
-}))
 
 describe('Redis Cache', () => {
   const originalEnv = process.env
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.resetModules()
-    process.env = { ...originalEnv }
+    process.env = {
+      ...originalEnv,
+      UPSTASH_REDIS_REST_URL: 'https://test.upstash.io',
+      UPSTASH_REDIS_REST_TOKEN: 'test-token',
+    }
+  })
+
+  afterEach(async () => {
+    process.env = originalEnv
+    await disconnectRedis()
   })
 
   describe('CACHE_TTL', () => {
@@ -51,7 +71,7 @@ describe('Redis Cache', () => {
   describe('CacheKeys', () => {
     it('generates saju cache key', () => {
       const key = CacheKeys.saju('1990-01-01', '12:00', 'M')
-      expect(key).toBe('saju:v1:1990-01-01:12:00:M')
+      expect(key).toBe('saju:v1:1990-01-01:12:00:M:solar')
     })
 
     it('generates tarot cache key', () => {
@@ -82,13 +102,15 @@ describe('Redis Cache', () => {
 
     it('generates yearly calendar key without category', () => {
       const key = CacheKeys.yearlyCalendar('1990-01-01', '12:00', 'M', 2024)
-      expect(key).toBe('yearly:v2:1990-01-01:12:00:M:2024')
+      expect(key).toBe('yearly:v2:1990-01-01:12:00:M:2024:all')
     })
   })
 
   describe('cacheGet', () => {
-    it('returns null when REDIS_URL not set', async () => {
-      delete process.env.REDIS_URL
+    it('returns null when Upstash not configured', async () => {
+      delete process.env.UPSTASH_REDIS_REST_URL
+      delete process.env.UPSTASH_REDIS_REST_TOKEN
+      await disconnectRedis()
 
       const result = await cacheGet('test-key')
 
@@ -97,8 +119,10 @@ describe('Redis Cache', () => {
   })
 
   describe('cacheSet', () => {
-    it('returns false when REDIS_URL not set', async () => {
-      delete process.env.REDIS_URL
+    it('returns false when Upstash not configured', async () => {
+      delete process.env.UPSTASH_REDIS_REST_URL
+      delete process.env.UPSTASH_REDIS_REST_TOKEN
+      await disconnectRedis()
 
       const result = await cacheSet('test-key', { data: 'test' })
 
@@ -107,8 +131,10 @@ describe('Redis Cache', () => {
   })
 
   describe('cacheDel', () => {
-    it('returns false when REDIS_URL not set', async () => {
-      delete process.env.REDIS_URL
+    it('returns false when Upstash not configured', async () => {
+      delete process.env.UPSTASH_REDIS_REST_URL
+      delete process.env.UPSTASH_REDIS_REST_TOKEN
+      await disconnectRedis()
 
       const result = await cacheDel('test-key')
 
@@ -118,6 +144,8 @@ describe('Redis Cache', () => {
 
   describe('cacheOrCalculate', () => {
     it('calls calculate function when cache misses', async () => {
+      mockRedisInstance.get.mockResolvedValueOnce(null)
+      mockRedisInstance.set.mockResolvedValueOnce('OK')
       const calculate = vi.fn().mockResolvedValue({ data: 'calculated' })
 
       const result = await cacheOrCalculate('test-key', calculate, 3600)
@@ -128,20 +156,22 @@ describe('Redis Cache', () => {
   })
 
   describe('cacheGetMany', () => {
-    it('returns array of nulls when REDIS_URL not set', async () => {
-      const originalEnv = process.env.REDIS_URL
-      delete process.env.REDIS_URL
+    it('returns array of nulls when Upstash not configured', async () => {
+      delete process.env.UPSTASH_REDIS_REST_URL
+      delete process.env.UPSTASH_REDIS_REST_TOKEN
+      await disconnectRedis()
 
       const result = await cacheGetMany(['key1', 'key2', 'key3'])
 
       expect(result).toEqual([null, null, null])
-      process.env.REDIS_URL = originalEnv
     })
   })
 
   describe('clearCacheByPattern', () => {
-    it('returns 0 when REDIS_URL not set', async () => {
-      delete process.env.REDIS_URL
+    it('returns 0 when Upstash not configured', async () => {
+      delete process.env.UPSTASH_REDIS_REST_URL
+      delete process.env.UPSTASH_REDIS_REST_TOKEN
+      await disconnectRedis()
 
       const result = await clearCacheByPattern('test:*')
 
@@ -200,7 +230,9 @@ describe('Redis Cache', () => {
 
   describe('error handling patterns', () => {
     it('cacheOrCalculate returns calculated value on cache miss', async () => {
-      delete process.env.REDIS_URL
+      delete process.env.UPSTASH_REDIS_REST_URL
+      delete process.env.UPSTASH_REDIS_REST_TOKEN
+      await disconnectRedis()
 
       const calculate = vi.fn().mockResolvedValue({ computed: true })
       const result = await cacheOrCalculate('key', calculate)
@@ -210,7 +242,9 @@ describe('Redis Cache', () => {
     })
 
     it('cacheGetMany returns correct length array', async () => {
-      delete process.env.REDIS_URL
+      delete process.env.UPSTASH_REDIS_REST_URL
+      delete process.env.UPSTASH_REDIS_REST_TOKEN
+      await disconnectRedis()
 
       const keys = ['key1', 'key2', 'key3', 'key4', 'key5']
       const result = await cacheGetMany(keys)
@@ -220,67 +254,58 @@ describe('Redis Cache', () => {
     })
   })
 
-  describe('Redis operations with mocked client', () => {
-    beforeEach(() => {
-      process.env.REDIS_URL = 'redis://localhost:6379'
-      mockRedisClient.connect.mockResolvedValue(undefined)
-      mockRedisClient.on.mockImplementation(() => mockRedisClient)
-    })
-
-    it('cacheGet retrieves and parses data from Redis', async () => {
+  describe('Redis operations with mocked Upstash client', () => {
+    it('cacheGet retrieves data from Redis', async () => {
       const testData = { test: 'data', value: 123 }
-      mockRedisClient.get.mockResolvedValueOnce(JSON.stringify(testData))
+      // Upstash auto-deserializes JSON, so the mock returns the object directly
+      mockRedisInstance.get.mockResolvedValueOnce(testData)
 
       const result = await cacheGet('test-key')
 
-      expect(mockRedisClient.get).toHaveBeenCalledWith('test-key')
+      expect(mockRedisInstance.get).toHaveBeenCalledWith('test-key')
       expect(result).toEqual(testData)
     })
 
     it('cacheGet returns null for non-existent key', async () => {
-      mockRedisClient.get.mockResolvedValueOnce(null)
+      mockRedisInstance.get.mockResolvedValueOnce(null)
 
       const result = await cacheGet('non-existent')
 
       expect(result).toBeNull()
     })
 
-    it('cacheGet handles JSON parse errors', async () => {
-      mockRedisClient.get.mockResolvedValueOnce('invalid json')
-
-      const result = await cacheGet('bad-json')
-
-      expect(result).toBeNull()
-    })
-
     it('cacheGet handles Redis errors', async () => {
-      mockRedisClient.get.mockRejectedValueOnce(new Error('Redis error'))
+      mockRedisInstance.get.mockRejectedValueOnce(new Error('Redis error'))
 
       const result = await cacheGet('error-key')
 
       expect(result).toBeNull()
     })
 
-    it('cacheSet stores data with TTL', async () => {
-      mockRedisClient.setEx.mockResolvedValueOnce('OK')
+    it('cacheSet stores data with TTL using set with ex option', async () => {
+      mockRedisInstance.set.mockResolvedValueOnce('OK')
 
       const data = { test: 'value' }
       const result = await cacheSet('test-key', data, 3600)
 
-      expect(mockRedisClient.setEx).toHaveBeenCalledWith('test-key', 3600, JSON.stringify(data))
+      expect(mockRedisInstance.set).toHaveBeenCalledWith('test-key', JSON.stringify(data), {
+        ex: 3600,
+      })
       expect(result).toBe(true)
     })
 
     it('cacheSet uses default TTL when not specified', async () => {
-      mockRedisClient.setEx.mockResolvedValueOnce('OK')
+      mockRedisInstance.set.mockResolvedValueOnce('OK')
 
       await cacheSet('test-key', { data: 'test' })
 
-      expect(mockRedisClient.setEx).toHaveBeenCalledWith('test-key', 3600, expect.any(String))
+      expect(mockRedisInstance.set).toHaveBeenCalledWith('test-key', expect.any(String), {
+        ex: 3600,
+      })
     })
 
     it('cacheSet handles Redis errors', async () => {
-      mockRedisClient.setEx.mockRejectedValueOnce(new Error('Set error'))
+      mockRedisInstance.set.mockRejectedValueOnce(new Error('Set error'))
 
       const result = await cacheSet('error-key', { data: 'test' })
 
@@ -288,16 +313,16 @@ describe('Redis Cache', () => {
     })
 
     it('cacheDel removes key from Redis', async () => {
-      mockRedisClient.del.mockResolvedValueOnce(1)
+      mockRedisInstance.del.mockResolvedValueOnce(1)
 
       const result = await cacheDel('test-key')
 
-      expect(mockRedisClient.del).toHaveBeenCalledWith('test-key')
+      expect(mockRedisInstance.del).toHaveBeenCalledWith('test-key')
       expect(result).toBe(true)
     })
 
     it('cacheDel handles Redis errors', async () => {
-      mockRedisClient.del.mockRejectedValueOnce(new Error('Delete error'))
+      mockRedisInstance.del.mockRejectedValueOnce(new Error('Delete error'))
 
       const result = await cacheDel('error-key')
 
@@ -306,7 +331,7 @@ describe('Redis Cache', () => {
 
     it('cacheOrCalculate uses cached value when available', async () => {
       const cachedData = { cached: true }
-      mockRedisClient.get.mockResolvedValueOnce(JSON.stringify(cachedData))
+      mockRedisInstance.get.mockResolvedValueOnce(cachedData)
 
       const calculate = vi.fn()
       const result = await cacheOrCalculate('cached-key', calculate, 3600)
@@ -316,8 +341,8 @@ describe('Redis Cache', () => {
     })
 
     it('cacheOrCalculate calculates and caches on miss', async () => {
-      mockRedisClient.get.mockResolvedValueOnce(null)
-      mockRedisClient.setEx.mockResolvedValueOnce('OK')
+      mockRedisInstance.get.mockResolvedValueOnce(null)
+      mockRedisInstance.set.mockResolvedValueOnce('OK')
 
       const calculatedData = { calculated: true }
       const calculate = vi.fn().mockResolvedValue(calculatedData)
@@ -330,16 +355,16 @@ describe('Redis Cache', () => {
       // Wait a bit for fire-and-forget cache set
       await new Promise((resolve) => setTimeout(resolve, 10))
 
-      expect(mockRedisClient.setEx).toHaveBeenCalledWith(
+      expect(mockRedisInstance.set).toHaveBeenCalledWith(
         'miss-key',
-        7200,
-        JSON.stringify(calculatedData)
+        JSON.stringify(calculatedData),
+        { ex: 7200 }
       )
     })
 
     it('cacheOrCalculate handles cache set failure gracefully', async () => {
-      mockRedisClient.get.mockResolvedValueOnce(null)
-      mockRedisClient.setEx.mockRejectedValueOnce(new Error('Set failed'))
+      mockRedisInstance.get.mockResolvedValueOnce(null)
+      mockRedisInstance.set.mockRejectedValueOnce(new Error('Set failed'))
 
       const calculatedData = { data: 'test' }
       const calculate = vi.fn().mockResolvedValue(calculatedData)
@@ -352,156 +377,81 @@ describe('Redis Cache', () => {
     it('cacheGetMany retrieves multiple keys', async () => {
       const data1 = { value: 1 }
       const data2 = { value: 2 }
-      mockRedisClient.mGet.mockResolvedValueOnce([
-        JSON.stringify(data1),
-        JSON.stringify(data2),
-        null,
-      ])
+      // Upstash mget returns array directly
+      mockRedisInstance.mget.mockResolvedValueOnce([data1, data2, null])
 
       const result = await cacheGetMany(['key1', 'key2', 'key3'])
 
-      expect(mockRedisClient.mGet).toHaveBeenCalledWith(['key1', 'key2', 'key3'])
+      expect(mockRedisInstance.mget).toHaveBeenCalledWith('key1', 'key2', 'key3')
       expect(result).toEqual([data1, data2, null])
     })
 
     it('cacheGetMany handles Redis errors', async () => {
-      mockRedisClient.mGet.mockRejectedValueOnce(new Error('mGet error'))
+      mockRedisInstance.mget.mockRejectedValueOnce(new Error('mGet error'))
 
       const result = await cacheGetMany(['key1', 'key2'])
 
       expect(result).toEqual([null, null])
     })
 
-    it('cacheGetMany handles parse errors in results', async () => {
-      mockRedisClient.mGet.mockResolvedValueOnce([
-        JSON.stringify({ valid: true }),
-        'invalid json',
-        null,
-      ])
-
-      const result = await cacheGetMany(['key1', 'key2', 'key3'])
-
-      // Individual parse errors cause the whole operation to fail and return all nulls
-      expect(result.every((r) => r === null)).toBe(true)
-    })
-
-    it('clearCacheByPattern clears matching keys', async () => {
-      mockRedisClient.keys.mockResolvedValueOnce(['saju:key1', 'saju:key2', 'saju:key3'])
-      mockRedisClient.del.mockResolvedValueOnce(3)
+    it('clearCacheByPattern clears matching keys using scan', async () => {
+      // Upstash scan returns [cursor, keys]
+      mockRedisInstance.scan.mockResolvedValueOnce([0, ['saju:key1', 'saju:key2', 'saju:key3']])
+      mockRedisInstance.del.mockResolvedValueOnce(3)
 
       const result = await clearCacheByPattern('saju:*')
 
-      expect(mockRedisClient.keys).toHaveBeenCalledWith('saju:*')
-      expect(mockRedisClient.del).toHaveBeenCalledWith(['saju:key1', 'saju:key2', 'saju:key3'])
+      expect(mockRedisInstance.scan).toHaveBeenCalled()
+      expect(mockRedisInstance.del).toHaveBeenCalledWith('saju:key1', 'saju:key2', 'saju:key3')
       expect(result).toBe(3)
     })
 
     it('clearCacheByPattern returns 0 when no keys match', async () => {
-      mockRedisClient.keys.mockResolvedValueOnce([])
+      mockRedisInstance.scan.mockResolvedValueOnce([0, []])
 
       const result = await clearCacheByPattern('nonexistent:*')
 
-      expect(mockRedisClient.del).not.toHaveBeenCalled()
+      expect(mockRedisInstance.del).not.toHaveBeenCalled()
       expect(result).toBe(0)
     })
 
     it('clearCacheByPattern handles Redis errors', async () => {
-      mockRedisClient.keys.mockRejectedValueOnce(new Error('Keys error'))
+      mockRedisInstance.scan.mockRejectedValueOnce(new Error('Scan error'))
 
       const result = await clearCacheByPattern('pattern:*')
 
       expect(result).toBe(0)
     })
 
-    it('getCacheInfo retrieves Redis stats', async () => {
-      const infoData = 'total_connections_received:10\ntotal_commands_processed:100'
-      mockRedisClient.info.mockResolvedValueOnce(infoData)
+    it('getCacheInfo returns connected on PONG', async () => {
+      mockRedisInstance.ping.mockResolvedValueOnce('PONG')
 
-      const result = await import('@/lib/cache/redis-cache').then((mod) => mod.getCacheInfo())
+      const result = await getCacheInfo()
 
-      expect(mockRedisClient.info).toHaveBeenCalledWith('stats')
-      expect(result).toBe(infoData)
+      expect(mockRedisInstance.ping).toHaveBeenCalled()
+      expect(result).toBe('connected')
     })
 
     it('getCacheInfo handles Redis errors', async () => {
-      mockRedisClient.info.mockRejectedValueOnce(new Error('Info error'))
+      mockRedisInstance.ping.mockRejectedValueOnce(new Error('Info error'))
 
-      const result = await import('@/lib/cache/redis-cache').then((mod) => mod.getCacheInfo())
+      const result = await getCacheInfo()
 
       expect(result).toBeNull()
     })
 
     it('getCacheInfo returns null when Redis not configured', async () => {
-      delete process.env.REDIS_URL
-      vi.resetModules()
+      delete process.env.UPSTASH_REDIS_REST_URL
+      delete process.env.UPSTASH_REDIS_REST_TOKEN
+      await disconnectRedis()
 
-      const result = await import('@/lib/cache/redis-cache').then((mod) => mod.getCacheInfo())
-
-      expect(result).toBeNull()
-    })
-  })
-
-  describe('Redis client initialization', () => {
-    it('creates Redis client on first use', async () => {
-      process.env.REDIS_URL = 'redis://localhost:6379'
-      vi.resetModules()
-
-      const redis = await import('redis')
-      mockRedisClient.get.mockResolvedValueOnce(null)
-
-      const { cacheGet } = await import('@/lib/cache/redis-cache')
-      await cacheGet('test')
-
-      expect(redis.createClient).toHaveBeenCalled()
-      expect(mockRedisClient.connect).toHaveBeenCalled()
-      expect(mockRedisClient.on).toHaveBeenCalledWith('error', expect.any(Function))
-    })
-
-    it('reuses existing Redis client', async () => {
-      process.env.REDIS_URL = 'redis://localhost:6379'
-      vi.resetModules()
-
-      const redis = await import('redis')
-      mockRedisClient.get.mockResolvedValue(null)
-
-      const { cacheGet } = await import('@/lib/cache/redis-cache')
-      await cacheGet('test1')
-      await cacheGet('test2')
-
-      // createClient should only be called once
-      expect(redis.createClient).toHaveBeenCalledTimes(1)
-    })
-
-    it('handles connection errors gracefully', async () => {
-      process.env.REDIS_URL = 'redis://localhost:6379'
-      vi.resetModules()
-
-      mockRedisClient.connect.mockRejectedValueOnce(new Error('Connection failed'))
-
-      const { cacheGet } = await import('@/lib/cache/redis-cache')
-      const result = await cacheGet('test')
+      const result = await getCacheInfo()
 
       expect(result).toBeNull()
-    })
-
-    it('registers error handler on client', async () => {
-      process.env.REDIS_URL = 'redis://localhost:6379'
-      vi.resetModules()
-
-      mockRedisClient.get.mockResolvedValueOnce(null)
-
-      const { cacheGet } = await import('@/lib/cache/redis-cache')
-      await cacheGet('test')
-
-      expect(mockRedisClient.on).toHaveBeenCalledWith('error', expect.any(Function))
     })
   })
 
   describe('Complex data type handling', () => {
-    beforeEach(() => {
-      process.env.REDIS_URL = 'redis://localhost:6379'
-    })
-
     it('handles nested objects', async () => {
       const complexData = {
         user: {
@@ -513,21 +463,21 @@ describe('Redis Cache', () => {
         },
       }
 
-      mockRedisClient.setEx.mockResolvedValueOnce('OK')
+      mockRedisInstance.set.mockResolvedValueOnce('OK')
 
       await cacheSet('complex', complexData)
 
-      const serialized = (mockRedisClient.setEx as any).mock.calls[0][2]
+      const serialized = (mockRedisInstance.set as ReturnType<typeof vi.fn>).mock.calls[0][1]
       expect(JSON.parse(serialized)).toEqual(complexData)
     })
 
     it('handles arrays', async () => {
       const arrayData = [1, 2, 3, { nested: true }]
-      mockRedisClient.setEx.mockResolvedValueOnce('OK')
+      mockRedisInstance.set.mockResolvedValueOnce('OK')
 
       await cacheSet('array', arrayData)
 
-      const serialized = (mockRedisClient.setEx as any).mock.calls[0][2]
+      const serialized = (mockRedisInstance.set as ReturnType<typeof vi.fn>).mock.calls[0][1]
       expect(JSON.parse(serialized)).toEqual(arrayData)
     })
 
@@ -540,10 +490,10 @@ describe('Redis Cache', () => {
         float: 123.456,
       }
 
-      mockRedisClient.setEx.mockResolvedValueOnce('OK')
+      mockRedisInstance.set.mockResolvedValueOnce('OK')
       await cacheSet('special', specialData)
 
-      const serialized = (mockRedisClient.setEx as any).mock.calls[0][2]
+      const serialized = (mockRedisInstance.set as ReturnType<typeof vi.fn>).mock.calls[0][1]
       const parsed = JSON.parse(serialized)
 
       expect(parsed.nullValue).toBeNull()

@@ -3,215 +3,213 @@
  * Tests for environment variable validation
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 
 // Mock logger
-vi.mock("@/lib/logger", () => ({
+vi.mock('@/lib/logger', () => ({
   logger: {
     info: vi.fn(),
     error: vi.fn(),
   },
-}));
+}))
 
-import { validateEnv } from "@/lib/env-validation";
-import { logger } from "@/lib/logger";
+import { validateEnv } from '@/lib/env-validation'
+import { logger } from '@/lib/logger'
 
-describe("validateEnv", () => {
-  const originalEnv = process.env;
-  const originalExit = process.exit;
+describe('validateEnv', () => {
+  const originalEnv = process.env
+  const originalExit = process.exit
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    process.env = { ...originalEnv };
-    process.exit = vi.fn() as any;
-  });
+    vi.clearAllMocks()
+    process.env = { ...originalEnv }
+    process.exit = vi.fn() as any
+  })
 
   afterEach(() => {
-    process.env = originalEnv;
-    process.exit = originalExit;
-  });
+    process.env = originalEnv
+    process.exit = originalExit
+  })
 
-  it("should pass validation with all required env vars", () => {
+  it('should pass validation with all required env vars', () => {
     process.env = {
-      DATABASE_URL: "postgresql://localhost:5432/db",
-      NEXTAUTH_SECRET: "a".repeat(32),
-      NEXTAUTH_URL: "http://localhost:3000",
-      STRIPE_SECRET_KEY: "sk_test_123",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_123",
-      ADMIN_EMAILS: "admin@example.com",
-    };
+      DATABASE_URL: 'postgresql://localhost:5432/db',
+      NEXTAUTH_SECRET: 'a'.repeat(32),
+      NEXTAUTH_URL: 'http://localhost:3000',
+      STRIPE_SECRET_KEY: 'sk_test_123',
+      STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
+      ADMIN_EMAILS: 'admin@example.com',
+    }
 
-    validateEnv();
+    validateEnv()
 
-    expect(logger.info).toHaveBeenCalledWith(
-      "✅ Environment variables validated successfully"
-    );
-    expect(process.exit).not.toHaveBeenCalled();
-  });
+    expect(logger.info).toHaveBeenCalledWith('✅ Environment variables validated successfully')
+    expect(process.exit).not.toHaveBeenCalled()
+  })
 
-  it("should pass with optional env vars included", () => {
+  it('should pass with optional env vars included', () => {
     process.env = {
-      DATABASE_URL: "postgresql://localhost:5432/db",
-      NEXTAUTH_SECRET: "a".repeat(32),
-      NEXTAUTH_URL: "http://localhost:3000",
-      STRIPE_SECRET_KEY: "sk_test_123",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_123",
-      ADMIN_EMAILS: "admin@example.com",
-      OPENAI_API_KEY: "sk-abc123",
-      GOOGLE_GEMINI_API_KEY: "gemini-key",
-      REDIS_URL: "redis://localhost:6379",
-      UPSTASH_REDIS_REST_URL: "https://redis.upstash.io",
-      UPSTASH_REDIS_REST_TOKEN: "token123",
-    };
+      DATABASE_URL: 'postgresql://localhost:5432/db',
+      NEXTAUTH_SECRET: 'a'.repeat(32),
+      NEXTAUTH_URL: 'http://localhost:3000',
+      STRIPE_SECRET_KEY: 'sk_test_123',
+      STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
+      ADMIN_EMAILS: 'admin@example.com',
+      OPENAI_API_KEY: 'sk-abc123',
+      GOOGLE_GEMINI_API_KEY: 'gemini-key',
+      REDIS_URL: 'redis://localhost:6379',
+      UPSTASH_REDIS_REST_URL: 'https://redis.upstash.io',
+      UPSTASH_REDIS_REST_TOKEN: 'token123',
+    }
 
-    validateEnv();
+    validateEnv()
 
-    expect(logger.info).toHaveBeenCalledWith(
-      "✅ Environment variables validated successfully"
-    );
-  });
+    expect(logger.info).toHaveBeenCalledWith('✅ Environment variables validated successfully')
+  })
 
-  it("should fail when DATABASE_URL is missing", () => {
+  it('should fail when DATABASE_URL is missing', () => {
     process.env = {
-      NEXTAUTH_SECRET: "a".repeat(32),
-      NEXTAUTH_URL: "http://localhost:3000",
-      STRIPE_SECRET_KEY: "sk_test_123",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_123",
-      ADMIN_EMAILS: "admin@example.com",
-    };
+      NEXTAUTH_SECRET: 'a'.repeat(32),
+      NEXTAUTH_URL: 'http://localhost:3000',
+      STRIPE_SECRET_KEY: 'sk_test_123',
+      STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
+      ADMIN_EMAILS: 'admin@example.com',
+    }
 
-    expect(() => validateEnv()).toThrow();
-  });
+    expect(() => validateEnv()).toThrow()
+  })
 
-  it("should fail when DATABASE_URL is invalid URL", () => {
+  it('should fail when DATABASE_URL is invalid URL', () => {
     process.env = {
-      DATABASE_URL: "not-a-url",
-      NEXTAUTH_SECRET: "a".repeat(32),
-      NEXTAUTH_URL: "http://localhost:3000",
-      STRIPE_SECRET_KEY: "sk_test_123",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_123",
-      ADMIN_EMAILS: "admin@example.com",
-    };
+      DATABASE_URL: 'not-a-url',
+      NEXTAUTH_SECRET: 'a'.repeat(32),
+      NEXTAUTH_URL: 'http://localhost:3000',
+      STRIPE_SECRET_KEY: 'sk_test_123',
+      STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
+      ADMIN_EMAILS: 'admin@example.com',
+    }
 
-    expect(() => validateEnv()).toThrow();
-  });
+    expect(() => validateEnv()).toThrow()
+  })
 
-  it("should fail when NEXTAUTH_SECRET is too short", () => {
+  it('should fail when NEXTAUTH_SECRET is too short', () => {
     process.env = {
-      DATABASE_URL: "postgresql://localhost:5432/db",
-      NEXTAUTH_SECRET: "tooshort",
-      NEXTAUTH_URL: "http://localhost:3000",
-      STRIPE_SECRET_KEY: "sk_test_123",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_123",
-      ADMIN_EMAILS: "admin@example.com",
-    };
+      DATABASE_URL: 'postgresql://localhost:5432/db',
+      NEXTAUTH_SECRET: 'tooshort',
+      NEXTAUTH_URL: 'http://localhost:3000',
+      STRIPE_SECRET_KEY: 'sk_test_123',
+      STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
+      ADMIN_EMAILS: 'admin@example.com',
+    }
 
-    expect(() => validateEnv()).toThrow();
-  });
+    expect(() => validateEnv()).toThrow()
+  })
 
-  it("should fail when NEXTAUTH_URL is invalid", () => {
+  it('should fail when NEXTAUTH_URL is invalid', () => {
     process.env = {
-      DATABASE_URL: "postgresql://localhost:5432/db",
-      NEXTAUTH_SECRET: "a".repeat(32),
-      NEXTAUTH_URL: "not-a-url",
-      STRIPE_SECRET_KEY: "sk_test_123",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_123",
-      ADMIN_EMAILS: "admin@example.com",
-    };
+      DATABASE_URL: 'postgresql://localhost:5432/db',
+      NEXTAUTH_SECRET: 'a'.repeat(32),
+      NEXTAUTH_URL: 'not-a-url',
+      STRIPE_SECRET_KEY: 'sk_test_123',
+      STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
+      ADMIN_EMAILS: 'admin@example.com',
+    }
 
-    expect(() => validateEnv()).toThrow();
-  });
+    expect(() => validateEnv()).toThrow()
+  })
 
-  it("should fail when STRIPE_SECRET_KEY missing sk_ prefix", () => {
+  it('should fail when STRIPE_SECRET_KEY missing sk_ prefix', () => {
     process.env = {
-      DATABASE_URL: "postgresql://localhost:5432/db",
-      NEXTAUTH_SECRET: "a".repeat(32),
-      NEXTAUTH_URL: "http://localhost:3000",
-      STRIPE_SECRET_KEY: "bad_key",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_123",
-      ADMIN_EMAILS: "admin@example.com",
-    };
+      DATABASE_URL: 'postgresql://localhost:5432/db',
+      NEXTAUTH_SECRET: 'a'.repeat(32),
+      NEXTAUTH_URL: 'http://localhost:3000',
+      STRIPE_SECRET_KEY: 'bad_key',
+      STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
+      ADMIN_EMAILS: 'admin@example.com',
+    }
 
-    expect(() => validateEnv()).toThrow();
-  });
+    expect(() => validateEnv()).toThrow()
+  })
 
-  it("should fail when STRIPE_PUBLISHABLE_KEY missing pk_ prefix", () => {
+  it('should fail when STRIPE_PUBLISHABLE_KEY missing pk_ prefix', () => {
     process.env = {
-      DATABASE_URL: "postgresql://localhost:5432/db",
-      NEXTAUTH_SECRET: "a".repeat(32),
-      NEXTAUTH_URL: "http://localhost:3000",
-      STRIPE_SECRET_KEY: "sk_test_123",
-      STRIPE_PUBLISHABLE_KEY: "bad_key",
-      ADMIN_EMAILS: "admin@example.com",
-    };
+      DATABASE_URL: 'postgresql://localhost:5432/db',
+      NEXTAUTH_SECRET: 'a'.repeat(32),
+      NEXTAUTH_URL: 'http://localhost:3000',
+      STRIPE_SECRET_KEY: 'sk_test_123',
+      STRIPE_PUBLISHABLE_KEY: 'bad_key',
+      ADMIN_EMAILS: 'admin@example.com',
+    }
 
-    expect(() => validateEnv()).toThrow();
-  });
+    expect(() => validateEnv()).toThrow()
+  })
 
-  it("should fail when ADMIN_EMAILS is missing", () => {
+  it('should fail when ADMIN_EMAILS is missing', () => {
     process.env = {
-      DATABASE_URL: "postgresql://localhost:5432/db",
-      NEXTAUTH_SECRET: "a".repeat(32),
-      NEXTAUTH_URL: "http://localhost:3000",
-      STRIPE_SECRET_KEY: "sk_test_123",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_123",
-    };
+      DATABASE_URL: 'postgresql://localhost:5432/db',
+      NEXTAUTH_SECRET: 'a'.repeat(32),
+      NEXTAUTH_URL: 'http://localhost:3000',
+      STRIPE_SECRET_KEY: 'sk_test_123',
+      STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
+    }
 
-    expect(() => validateEnv()).toThrow();
-  });
+    expect(() => validateEnv()).toThrow()
+  })
 
-  it("should fail when OPENAI_API_KEY missing sk- prefix", () => {
+  it('should fail when OPENAI_API_KEY missing sk- prefix', () => {
     process.env = {
-      DATABASE_URL: "postgresql://localhost:5432/db",
-      NEXTAUTH_SECRET: "a".repeat(32),
-      NEXTAUTH_URL: "http://localhost:3000",
-      STRIPE_SECRET_KEY: "sk_test_123",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_123",
-      ADMIN_EMAILS: "admin@example.com",
-      OPENAI_API_KEY: "bad_key",
-    };
+      DATABASE_URL: 'postgresql://localhost:5432/db',
+      NEXTAUTH_SECRET: 'a'.repeat(32),
+      NEXTAUTH_URL: 'http://localhost:3000',
+      STRIPE_SECRET_KEY: 'sk_test_123',
+      STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
+      ADMIN_EMAILS: 'admin@example.com',
+      OPENAI_API_KEY: 'bad_key',
+    }
 
-    expect(() => validateEnv()).toThrow();
-  });
+    expect(() => validateEnv()).toThrow()
+  })
 
-  it("should fail when REDIS_URL is invalid", () => {
+  it('should ignore REDIS_URL (not in schema)', () => {
     process.env = {
-      DATABASE_URL: "postgresql://localhost:5432/db",
-      NEXTAUTH_SECRET: "a".repeat(32),
-      NEXTAUTH_URL: "http://localhost:3000",
-      STRIPE_SECRET_KEY: "sk_test_123",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_123",
-      ADMIN_EMAILS: "admin@example.com",
-      REDIS_URL: "not-a-url",
-    };
+      DATABASE_URL: 'postgresql://localhost:5432/db',
+      NEXTAUTH_SECRET: 'a'.repeat(32),
+      NEXTAUTH_URL: 'http://localhost:3000',
+      STRIPE_SECRET_KEY: 'sk_test_123',
+      STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
+      ADMIN_EMAILS: 'admin@example.com',
+      REDIS_URL: 'not-a-url',
+    }
 
-    expect(() => validateEnv()).toThrow();
-  });
+    // REDIS_URL is no longer in the validation schema (replaced by UPSTASH_REDIS_REST_URL)
+    validateEnv()
+    expect(process.exit).not.toHaveBeenCalled()
+  })
 
-  it("should fail when UPSTASH_REDIS_REST_URL is invalid", () => {
+  it('should fail when UPSTASH_REDIS_REST_URL is invalid', () => {
     process.env = {
-      DATABASE_URL: "postgresql://localhost:5432/db",
-      NEXTAUTH_SECRET: "a".repeat(32),
-      NEXTAUTH_URL: "http://localhost:3000",
-      STRIPE_SECRET_KEY: "sk_test_123",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_123",
-      ADMIN_EMAILS: "admin@example.com",
-      UPSTASH_REDIS_REST_URL: "invalid",
-    };
+      DATABASE_URL: 'postgresql://localhost:5432/db',
+      NEXTAUTH_SECRET: 'a'.repeat(32),
+      NEXTAUTH_URL: 'http://localhost:3000',
+      STRIPE_SECRET_KEY: 'sk_test_123',
+      STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
+      ADMIN_EMAILS: 'admin@example.com',
+      UPSTASH_REDIS_REST_URL: 'invalid',
+    }
 
-    expect(() => validateEnv()).toThrow();
-  });
+    expect(() => validateEnv()).toThrow()
+  })
 
-  it("should exit process with code 1 on validation failure", () => {
+  it('should exit process with code 1 on validation failure', () => {
     process.env = {
-      NEXTAUTH_SECRET: "short",
-      NEXTAUTH_URL: "http://localhost:3000",
-      STRIPE_SECRET_KEY: "sk_test_123",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_123",
-      ADMIN_EMAILS: "admin@example.com",
-    };
+      NEXTAUTH_SECRET: 'short',
+      NEXTAUTH_URL: 'http://localhost:3000',
+      STRIPE_SECRET_KEY: 'sk_test_123',
+      STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
+      ADMIN_EMAILS: 'admin@example.com',
+    }
 
-    expect(() => validateEnv()).toThrow();
-    expect(process.exit).toHaveBeenCalledWith(1);
-  });
-});
+    expect(() => validateEnv()).toThrow()
+    expect(process.exit).toHaveBeenCalledWith(1)
+  })
+})

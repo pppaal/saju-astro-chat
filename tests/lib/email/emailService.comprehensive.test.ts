@@ -3,6 +3,28 @@
  * Tests email sending, templates, provider selection, and audit logging
  */
 
+import { vi } from 'vitest'
+
+// Mock dependencies - must be before imports that use them
+vi.mock('@/lib/db/prisma', () => ({
+  prisma: {
+    emailLog: {
+      create: vi.fn(),
+    },
+  },
+}))
+
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}))
+
+vi.mock('@/lib/email/providers', () => ({
+  getEmailProvider: vi.fn(),
+}))
+
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { getEmailProvider } from '@/lib/email/providers'
@@ -16,31 +38,11 @@ import {
   sendReferralRewardEmail,
 } from '@/lib/email/emailService'
 
-// Mock dependencies
-jest.mock('@/lib/db/prisma', () => ({
-  prisma: {
-    emailLog: {
-      create: jest.fn(),
-    },
-  },
-}))
-
-jest.mock('@/lib/logger', () => ({
-  logger: {
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}))
-
-jest.mock('@/lib/email/providers', () => ({
-  getEmailProvider: jest.fn(),
-}))
-
 describe('Email Service', () => {
   const originalEnv = process.env
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     process.env = { ...originalEnv }
   })
 
@@ -54,14 +56,14 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({
+        send: vi.fn().mockResolvedValue({
           success: true,
           messageId: 'msg_123',
         }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendEmail(
         'welcome',
@@ -94,8 +96,7 @@ describe('Email Service', () => {
       expect(result.success).toBe(false)
       expect(result.error).toBe('Email provider not configured')
       expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('No email provider configured'),
-        expect.anything()
+        expect.stringContaining('No email provider configured')
       )
     })
 
@@ -113,11 +114,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockRejectedValue(new Error('SMTP connection failed')),
+        send: vi.fn().mockRejectedValue(new Error('SMTP connection failed')),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendEmail('welcome', 'user@example.com', {
         userName: 'Test',
@@ -137,14 +138,14 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({
+        send: vi.fn().mockResolvedValue({
           success: true,
           messageId: 'msg_456',
         }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       await sendEmail(
         'payment_receipt',
@@ -177,14 +178,14 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'sendgrid',
-        send: jest.fn().mockResolvedValue({
+        send: vi.fn().mockResolvedValue({
           success: false,
           error: 'Invalid recipient',
         }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       await sendEmail('welcome', 'invalid@', { userName: 'Test', locale: 'en' })
 
@@ -201,13 +202,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockRejectedValue(
-        new Error('Database connection lost')
-      )
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockRejectedValue(new Error('Database connection lost'))
 
       const result = await sendEmail('welcome', 'user@example.com', {
         userName: 'Test',
@@ -229,11 +228,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendWelcomeEmail(
         'user_123',
@@ -257,11 +256,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendWelcomeEmail('user_123', 'user@example.com', '')
 
@@ -273,11 +272,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       await sendWelcomeEmail('user_123', 'user@example.com', 'Test')
 
@@ -291,11 +290,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendPaymentReceiptEmail('user_123', 'user@example.com', {
         userName: 'John Doe',
@@ -319,11 +318,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendPaymentReceiptEmail('user_123', 'user@example.com', {
         amount: 10000,
@@ -341,11 +340,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendSubscriptionConfirmEmail('user_123', 'user@example.com', {
         userName: 'John',
@@ -370,11 +369,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendSubscriptionCancelledEmail('user_123', 'user@example.com', {
         userName: 'John',
@@ -392,11 +391,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendPaymentFailedEmail('user_123', 'user@example.com', {
         userName: 'John',
@@ -418,11 +417,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendReferralRewardEmail('user_123', 'user@example.com', {
         userName: 'John',
@@ -439,11 +438,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendReferralRewardEmail('user_123', 'user@example.com', {
         creditsAwarded: 5,
@@ -460,11 +459,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       await sendWelcomeEmail('user_123', 'test@test.com', 'Test')
 
@@ -477,11 +476,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'sendgrid',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       await sendWelcomeEmail('user_123', 'test@test.com', 'Test')
 
@@ -495,11 +494,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockRejectedValue('String error'),
+        send: vi.fn().mockRejectedValue('String error'),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendEmail('welcome', 'test@test.com', {
         userName: 'Test',
@@ -515,14 +514,14 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({
+        send: vi.fn().mockResolvedValue({
           success: false,
           error: 'Rate limit exceeded',
         }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendEmail('welcome', 'test@test.com', {
         userName: 'Test',
@@ -538,14 +537,14 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({
+        send: vi.fn().mockResolvedValue({
           success: false,
           error: 'Invalid email address',
         }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendEmail('welcome', 'invalid-email', {
         userName: 'Test',
@@ -564,11 +563,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendEmail('welcome', longEmail, {
         userName: 'Test',
@@ -583,11 +582,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const sends = [
         sendWelcomeEmail('user1', 'user1@test.com', 'User 1'),
@@ -606,11 +605,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendWelcomeEmail(
         'user_123',
@@ -626,11 +625,11 @@ describe('Email Service', () => {
 
       const mockProvider = {
         name: 'resend',
-        send: jest.fn().mockResolvedValue({ success: true }),
+        send: vi.fn().mockResolvedValue({ success: true }),
       }
 
-      ;(getEmailProvider as jest.Mock).mockReturnValue(mockProvider)
-      ;(prisma.emailLog.create as jest.Mock).mockResolvedValue({})
+      ;(getEmailProvider as any).mockReturnValue(mockProvider)
+      ;(prisma.emailLog.create as any).mockResolvedValue({})
 
       const result = await sendEmail(
         'welcome',

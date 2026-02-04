@@ -1,9 +1,10 @@
 /**
  * Tests for Redis Rate Limiting
  *
- * NOTE: These tests require Redis or Upstash to be configured.
- * In development without Redis, rateLimit uses in-memory or disabled mode.
- * Tests are skipped if no Redis backend is available.
+ * Tests the actual rateLimit API behavior.
+ * In development without Upstash configured, rate limiting uses disabled mode.
+ *
+ * Aligned with @upstash/redis implementation in src/lib/cache/redis-rate-limit.ts
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
@@ -14,11 +15,23 @@ import {
   rateLimitHealthCheck,
 } from '@/lib/cache/redis-rate-limit'
 
+vi.mock('@/lib/metrics', () => ({
+  recordCounter: vi.fn(),
+}))
+
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
+}))
+
 describe('Redis Rate Limiting', () => {
   const testKey = 'test-rate-limit-' + Date.now()
 
   beforeEach(async () => {
-    vi.resetModules()
     // Reset rate limit before each test
     await resetRateLimit(testKey)
   })
@@ -31,7 +44,7 @@ describe('Redis Rate Limiting', () => {
     // In disabled mode, remaining equals limit; otherwise >= limit-1
     expect(result.remaining).toBeGreaterThanOrEqual(result.backend === 'disabled' ? 5 : 4)
     expect(result.headers).toBeInstanceOf(Headers)
-    expect(result.backend).toMatch(/redis|upstash|memory|disabled/)
+    expect(result.backend).toMatch(/upstash|memory|disabled/)
   })
 
   it('should deny requests over limit (when backend available)', async () => {
@@ -152,11 +165,9 @@ describe('Redis Rate Limiting', () => {
   it('should perform health check', async () => {
     const health = await rateLimitHealthCheck()
 
-    expect(health).toHaveProperty('redis')
     expect(health).toHaveProperty('upstash')
     expect(health).toHaveProperty('memory')
 
-    expect(typeof health.redis).toBe('boolean')
     expect(typeof health.upstash).toBe('boolean')
     expect(typeof health.memory).toBe('boolean')
   })

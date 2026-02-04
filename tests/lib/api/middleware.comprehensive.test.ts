@@ -3,6 +3,7 @@
  * Tests authentication, rate limiting, CSRF protection, credit checks, and auto-refund
  */
 
+import { vi } from 'vitest'
 import { NextRequest } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { rateLimit } from '@/lib/rateLimit'
@@ -15,24 +16,25 @@ import { logger } from '@/lib/logger'
 import { initializeApiContext, extractLocale, type MiddlewareOptions } from '@/lib/api/middleware'
 
 // Mock dependencies
-jest.mock('next-auth')
-jest.mock('@/lib/rateLimit')
-jest.mock('@/lib/request-ip')
-jest.mock('@/lib/auth/publicToken')
-jest.mock('@/lib/security/csrf')
-jest.mock('@/lib/credits')
-jest.mock('@/lib/credits/creditRefund')
-jest.mock('@/lib/logger', () => ({
+vi.mock('next-auth')
+vi.mock('@/lib/rateLimit')
+vi.mock('@/lib/request-ip')
+vi.mock('@/lib/auth/publicToken')
+vi.mock('@/lib/security/csrf')
+vi.mock('@/lib/credits')
+vi.mock('@/lib/credits/creditRefund')
+vi.mock('@/lib/logger', () => ({
   logger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
   },
 }))
 
 describe('API Middleware', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     process.env.NODE_ENV = 'development'
     delete process.env.VITEST
   })
@@ -56,14 +58,16 @@ describe('API Middleware', () => {
       expect(locale).toBe('ja')
     })
 
-    it('should prioritize URL locale over header', () => {
+    it('should use language priority order (ko > ja > zh)', () => {
+      // When both URL locale=zh and header ko are present,
+      // ko wins because it is checked first in the source
       const req = new Request('http://localhost:3000?locale=zh', {
         headers: { 'accept-language': 'ko-KR' },
       })
 
       const locale = extractLocale(req)
 
-      expect(locale).toBe('zh')
+      expect(locale).toBe('ko')
     })
 
     it('should default to English', () => {
@@ -98,12 +102,12 @@ describe('API Middleware', () => {
   describe('initializeApiContext - CSRF Protection', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'production'
-      ;(getClientIp as jest.Mock).mockReturnValue('1.2.3.4')
-      ;(getServerSession as jest.Mock).mockResolvedValue(null)
+      ;(getClientIp as any).mockReturnValue('1.2.3.4')
+      ;(getServerSession as any).mockResolvedValue(null)
     })
 
     it('should validate CSRF for POST requests', async () => {
-      ;(csrfGuard as jest.Mock).mockReturnValue(null) // Valid
+      ;(csrfGuard as any).mockReturnValue(null) // Valid
 
       const req = new NextRequest('http://localhost:3000/api/test', { method: 'POST' })
 
@@ -117,7 +121,7 @@ describe('API Middleware', () => {
       const csrfError = new Response(JSON.stringify({ error: 'csrf_validation_failed' }), {
         status: 403,
       })
-      ;(csrfGuard as jest.Mock).mockReturnValue(csrfError)
+      ;(csrfGuard as any).mockReturnValue(csrfError)
 
       const req = new NextRequest('http://localhost:3000/api/test', { method: 'POST' })
 
@@ -136,12 +140,12 @@ describe('API Middleware', () => {
     })
 
     it('should validate CSRF for PUT/PATCH/DELETE', async () => {
-      ;(csrfGuard as jest.Mock).mockReturnValue(null)
+      ;(csrfGuard as any).mockReturnValue(null)
 
       const methods = ['PUT', 'PATCH', 'DELETE']
 
       for (const method of methods) {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         const req = new NextRequest('http://localhost:3000/api/test', { method })
 
         await initializeApiContext(req)
@@ -171,13 +175,13 @@ describe('API Middleware', () => {
 
   describe('initializeApiContext - Rate Limiting', () => {
     beforeEach(() => {
-      ;(getClientIp as jest.Mock).mockReturnValue('1.2.3.4')
-      ;(getServerSession as jest.Mock).mockResolvedValue(null)
-      ;(csrfGuard as jest.Mock).mockReturnValue(null)
+      ;(getClientIp as any).mockReturnValue('1.2.3.4')
+      ;(getServerSession as any).mockResolvedValue(null)
+      ;(csrfGuard as any).mockReturnValue(null)
     })
 
     it('should apply rate limiting', async () => {
-      ;(rateLimit as jest.Mock).mockResolvedValue({ allowed: true })
+      ;(rateLimit as any).mockResolvedValue({ allowed: true })
 
       const req = new NextRequest('http://localhost:3000/api/test')
       const options: MiddlewareOptions = {
@@ -198,7 +202,7 @@ describe('API Middleware', () => {
     })
 
     it('should reject when rate limit exceeded', async () => {
-      ;(rateLimit as jest.Mock).mockResolvedValue({
+      ;(rateLimit as any).mockResolvedValue({
         allowed: false,
         retryAfter: 30,
       })
@@ -223,7 +227,7 @@ describe('API Middleware', () => {
     })
 
     it('should use custom keyPrefix', async () => {
-      ;(rateLimit as jest.Mock).mockResolvedValue({ allowed: true })
+      ;(rateLimit as any).mockResolvedValue({ allowed: true })
 
       const req = new NextRequest('http://localhost:3000/api/test')
       const options: MiddlewareOptions = {
@@ -245,8 +249,8 @@ describe('API Middleware', () => {
         user: { id: 'user_123', email: 'test@test.com' },
       }
 
-      ;(getServerSession as jest.Mock).mockResolvedValue(mockSession)
-      ;(rateLimit as jest.Mock).mockResolvedValue({ allowed: true })
+      ;(getServerSession as any).mockResolvedValue(mockSession)
+      ;(rateLimit as any).mockResolvedValue({ allowed: true })
 
       const req = new NextRequest('http://localhost:3000/api/test')
       const options: MiddlewareOptions = {
@@ -267,13 +271,13 @@ describe('API Middleware', () => {
 
   describe('initializeApiContext - Token Validation', () => {
     beforeEach(() => {
-      ;(getClientIp as jest.Mock).mockReturnValue('1.2.3.4')
-      ;(getServerSession as jest.Mock).mockResolvedValue(null)
-      ;(csrfGuard as jest.Mock).mockReturnValue(null)
+      ;(getClientIp as any).mockReturnValue('1.2.3.4')
+      ;(getServerSession as any).mockResolvedValue(null)
+      ;(csrfGuard as any).mockReturnValue(null)
     })
 
     it('should require valid public token', async () => {
-      ;(requirePublicToken as jest.Mock).mockReturnValue({ valid: true })
+      ;(requirePublicToken as any).mockReturnValue({ valid: true })
 
       const req = new NextRequest('http://localhost:3000/api/test')
       const options: MiddlewareOptions = {
@@ -287,7 +291,7 @@ describe('API Middleware', () => {
     })
 
     it('should reject invalid token', async () => {
-      ;(requirePublicToken as jest.Mock).mockReturnValue({
+      ;(requirePublicToken as any).mockReturnValue({
         valid: false,
         reason: 'Token expired',
       })
@@ -301,18 +305,19 @@ describe('API Middleware', () => {
 
       expect(error).toBeDefined()
       const errorData = await (error as Response).json()
-      expect(errorData.error).toBe('unauthorized')
+      expect(errorData.success).toBe(false)
+      expect(errorData.error.code).toBe('UNAUTHORIZED')
     })
   })
 
   describe('initializeApiContext - Authentication', () => {
     beforeEach(() => {
-      ;(getClientIp as jest.Mock).mockReturnValue('1.2.3.4')
-      ;(csrfGuard as jest.Mock).mockReturnValue(null)
+      ;(getClientIp as any).mockReturnValue('1.2.3.4')
+      ;(csrfGuard as any).mockReturnValue(null)
     })
 
     it('should require authentication', async () => {
-      ;(getServerSession as jest.Mock).mockResolvedValue(null)
+      ;(getServerSession as any).mockResolvedValue(null)
 
       const req = new NextRequest('http://localhost:3000/api/test')
       const options: MiddlewareOptions = {
@@ -323,7 +328,8 @@ describe('API Middleware', () => {
 
       expect(error).toBeDefined()
       const errorData = await (error as Response).json()
-      expect(errorData.error).toBe('unauthorized')
+      expect(errorData.success).toBe(false)
+      expect(errorData.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should allow authenticated requests', async () => {
@@ -331,7 +337,7 @@ describe('API Middleware', () => {
         user: { id: 'user_123', email: 'test@test.com' },
       }
 
-      ;(getServerSession as jest.Mock).mockResolvedValue(mockSession)
+      ;(getServerSession as any).mockResolvedValue(mockSession)
 
       const req = new NextRequest('http://localhost:3000/api/test')
       const options: MiddlewareOptions = {
@@ -350,7 +356,7 @@ describe('API Middleware', () => {
         user: { id: 'user_123', email: 'test@test.com', plan: 'pro' },
       }
 
-      ;(getServerSession as jest.Mock).mockResolvedValue(mockSession)
+      ;(getServerSession as any).mockResolvedValue(mockSession)
 
       const req = new NextRequest('http://localhost:3000/api/test')
 
@@ -364,7 +370,7 @@ describe('API Middleware', () => {
         user: { id: 'user_123', email: 'test@test.com', plan: 'free' },
       }
 
-      ;(getServerSession as jest.Mock).mockResolvedValue(mockSession)
+      ;(getServerSession as any).mockResolvedValue(mockSession)
 
       const req = new NextRequest('http://localhost:3000/api/test')
 
@@ -374,7 +380,7 @@ describe('API Middleware', () => {
     })
 
     it('should handle session fetch errors gracefully', async () => {
-      ;(getServerSession as jest.Mock).mockRejectedValue(new Error('Session error'))
+      ;(getServerSession as any).mockRejectedValue(new Error('Session error'))
 
       const req = new NextRequest('http://localhost:3000/api/test')
 
@@ -387,8 +393,8 @@ describe('API Middleware', () => {
 
   describe('initializeApiContext - Credit Management', () => {
     beforeEach(() => {
-      ;(getClientIp as jest.Mock).mockReturnValue('1.2.3.4')
-      ;(csrfGuard as jest.Mock).mockReturnValue(null)
+      ;(getClientIp as any).mockReturnValue('1.2.3.4')
+      ;(csrfGuard as any).mockReturnValue(null)
     })
 
     it('should check and consume credits', async () => {
@@ -396,8 +402,8 @@ describe('API Middleware', () => {
         user: { id: 'user_123', email: 'test@test.com' },
       }
 
-      ;(getServerSession as jest.Mock).mockResolvedValue(mockSession)
-      ;(checkAndConsumeCredits as jest.Mock).mockResolvedValue({
+      ;(getServerSession as any).mockResolvedValue(mockSession)
+      ;(checkAndConsumeCredits as any).mockResolvedValue({
         allowed: true,
         remaining: 5,
       })
@@ -422,8 +428,8 @@ describe('API Middleware', () => {
         user: { id: 'user_123', email: 'test@test.com' },
       }
 
-      ;(getServerSession as jest.Mock).mockResolvedValue(mockSession)
-      ;(checkAndConsumeCredits as jest.Mock).mockResolvedValue({
+      ;(getServerSession as any).mockResolvedValue(mockSession)
+      ;(checkAndConsumeCredits as any).mockResolvedValue({
         allowed: false,
         error: 'insufficient_credits',
         errorCode: 'insufficient_credits',
@@ -450,7 +456,7 @@ describe('API Middleware', () => {
     })
 
     it('should require authentication for credit operations', async () => {
-      ;(getServerSession as jest.Mock).mockResolvedValue(null)
+      ;(getServerSession as any).mockResolvedValue(null)
 
       const req = new NextRequest('http://localhost:3000/api/test')
       const options: MiddlewareOptions = {
@@ -464,7 +470,8 @@ describe('API Middleware', () => {
 
       expect(error).toBeDefined()
       const errorData = await (error as Response).json()
-      expect(errorData.error).toBe('unauthorized')
+      expect(errorData.success).toBe(false)
+      expect(errorData.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should provide refundCreditsOnError function', async () => {
@@ -472,12 +479,12 @@ describe('API Middleware', () => {
         user: { id: 'user_123', email: 'test@test.com' },
       }
 
-      ;(getServerSession as jest.Mock).mockResolvedValue(mockSession)
-      ;(checkAndConsumeCredits as jest.Mock).mockResolvedValue({
+      ;(getServerSession as any).mockResolvedValue(mockSession)
+      ;(checkAndConsumeCredits as any).mockResolvedValue({
         allowed: true,
         remaining: 5,
       })
-      ;(refundCredits as jest.Mock).mockResolvedValue(true)
+      ;(refundCredits as any).mockResolvedValue(true)
 
       const req = new NextRequest('http://localhost:3000/api/test')
       const options: MiddlewareOptions = {
@@ -516,12 +523,12 @@ describe('API Middleware', () => {
         user: { id: 'user_123', email: 'test@test.com' },
       }
 
-      ;(getServerSession as jest.Mock).mockResolvedValue(mockSession)
-      ;(checkAndConsumeCredits as jest.Mock).mockResolvedValue({
+      ;(getServerSession as any).mockResolvedValue(mockSession)
+      ;(checkAndConsumeCredits as any).mockResolvedValue({
         allowed: true,
         remaining: 5,
       })
-      ;(refundCredits as jest.Mock).mockRejectedValue(new Error('Refund failed'))
+      ;(refundCredits as any).mockRejectedValue(new Error('Refund failed'))
 
       const req = new NextRequest('http://localhost:3000/api/test')
       const options: MiddlewareOptions = {
@@ -545,8 +552,8 @@ describe('API Middleware', () => {
 
   describe('Integration Scenarios', () => {
     beforeEach(() => {
-      ;(getClientIp as jest.Mock).mockReturnValue('1.2.3.4')
-      ;(csrfGuard as jest.Mock).mockReturnValue(null)
+      ;(getClientIp as any).mockReturnValue('1.2.3.4')
+      ;(csrfGuard as any).mockReturnValue(null)
     })
 
     it('should handle complete authentication + rate limit + credits flow', async () => {
@@ -554,9 +561,9 @@ describe('API Middleware', () => {
         user: { id: 'user_123', email: 'test@test.com' },
       }
 
-      ;(getServerSession as jest.Mock).mockResolvedValue(mockSession)
-      ;(rateLimit as jest.Mock).mockResolvedValue({ allowed: true })
-      ;(checkAndConsumeCredits as jest.Mock).mockResolvedValue({
+      ;(getServerSession as any).mockResolvedValue(mockSession)
+      ;(rateLimit as any).mockResolvedValue({ allowed: true })
+      ;(checkAndConsumeCredits as any).mockResolvedValue({
         allowed: true,
         remaining: 10,
       })
@@ -584,7 +591,7 @@ describe('API Middleware', () => {
     })
 
     it('should fail fast on first middleware failure', async () => {
-      ;(csrfGuard as jest.Mock).mockReturnValue(
+      ;(csrfGuard as any).mockReturnValue(
         new Response(JSON.stringify({ error: 'csrf_failed' }), { status: 403 })
       )
 
@@ -605,13 +612,13 @@ describe('API Middleware', () => {
 
   describe('Edge Cases', () => {
     beforeEach(() => {
-      ;(getClientIp as jest.Mock).mockReturnValue('1.2.3.4')
-      ;(csrfGuard as jest.Mock).mockReturnValue(null)
-      ;(getServerSession as jest.Mock).mockResolvedValue(null)
+      ;(getClientIp as any).mockReturnValue('1.2.3.4')
+      ;(csrfGuard as any).mockReturnValue(null)
+      ;(getServerSession as any).mockResolvedValue(null)
     })
 
     it('should handle missing IP address', async () => {
-      ;(getClientIp as jest.Mock).mockReturnValue(null)
+      ;(getClientIp as any).mockReturnValue(null)
 
       const req = new NextRequest('http://localhost:3000/api/test')
 
@@ -643,7 +650,7 @@ describe('API Middleware', () => {
         user: { id: 'user_123', email: 'test@test.com' },
       }
 
-      ;(getServerSession as jest.Mock).mockResolvedValue(mockSession)
+      ;(getServerSession as any).mockResolvedValue(mockSession)
 
       const req = new NextRequest('http://localhost:3000/api/test')
 

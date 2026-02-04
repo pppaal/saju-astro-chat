@@ -37,9 +37,11 @@ vi.mock('@/lib/logger', () => ({
 describe('Premium Status Cache', () => {
   const mockUserId = 'user_123'
 
-  beforeEach(() => {
-    vi.clearAllMocks()
+  beforeEach(async () => {
     vi.useFakeTimers()
+    // Clear the in-memory cache from previous tests (invalidatePremiumCache deletes from memoryCache)
+    await invalidatePremiumCache(mockUserId)
+    vi.clearAllMocks()
   })
 
   afterEach(() => {

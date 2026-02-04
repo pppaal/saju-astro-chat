@@ -314,6 +314,39 @@ class TestLLMSafety:
         assert result is None
 
 
+# ─── API 키 없이 실행 가능한 안전성 테스트 ───────
+
+class TestNoKeysSafety:
+    """API 키 없이도 실행 가능한 안전성 테스트."""
+
+    def test_evaluator_invalid_provider_no_key(self):
+        """잘못된 provider는 빈 결과 (키 불필요)."""
+        evaluator = RAGEvaluator(llm_provider="nonexistent", use_llm=True)
+        result = evaluator._call_judge_llm("test prompt")
+        assert result == {}
+
+    def test_summarizer_invalid_provider_no_key(self):
+        """요약기 잘못된 provider (키 불필요)."""
+        from app.rag.community_summarizer import HierarchicalSummarizer
+        summarizer = HierarchicalSummarizer(llm_provider="nonexistent", use_llm=True)
+        result = summarizer._call_llm("test prompt")
+        assert result is None
+
+    def test_local_fallback_always_works(self):
+        """use_llm=False는 항상 동작."""
+        evaluator = RAGEvaluator(use_llm=False)
+        score = evaluator._compute_faithfulness(
+            answer="갑목 일간은 리더십이 강합니다",
+            context="갑목은 리더십, 책임감이 특징입니다",
+        )
+        assert 0.0 <= score <= 1.0
+
+    def test_model_change_detection_import(self):
+        """모델 변경 감지 함수 import 가능."""
+        from scripts.migrate_to_chromadb import detect_model_change
+        assert callable(detect_model_change)
+
+
 # ─── 전체 데이터셋 LLM 평가 (선택적) ─────────────
 
 @skip_no_openai

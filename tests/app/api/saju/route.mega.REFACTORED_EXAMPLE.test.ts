@@ -17,14 +17,117 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/saju/route'
 
-// ✨ NEW: Use centralized mocks instead of duplicating vi.mock() calls
-import {
-  mockNextAuth,
-  mockPremiumUser,
-  mockStripe,
-  mockPrisma,
-  mockSajuLibraries,
-} from '../../../mocks'
+// Inline mocks instead of centralized mocks (avoids vi.mock hoisting issue with mockPrismaWithData)
+
+// Hoisted session holder - accessible inside vi.mock factories
+const { sessionHolder } = vi.hoisted(() => ({
+  sessionHolder: {
+    session: null as {
+      user?: { name?: string; email?: string; id?: string }
+      expires?: string
+    } | null,
+  },
+}))
+
+vi.mock('next-auth', () => ({
+  getServerSession: vi.fn(() => Promise.resolve(sessionHolder.session)),
+}))
+
+vi.mock('stripe', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    customers: {
+      search: vi.fn().mockResolvedValue({ data: [] }),
+    },
+    subscriptions: {
+      list: vi.fn().mockResolvedValue({ data: [] }),
+    },
+  })),
+}))
+
+vi.mock('@/lib/db/prisma', () => ({
+  prisma: {
+    reading: {
+      create: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+      findUnique: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([]),
+      update: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+      delete: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+    },
+    user: {
+      create: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+      findUnique: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([]),
+      update: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+      delete: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+    },
+  },
+}))
+
+vi.mock('@/lib/cache/redis-cache', () => ({
+  cacheGet: vi.fn().mockResolvedValue(null),
+  cacheSet: vi.fn().mockResolvedValue(undefined),
+  CACHE_TTL: { SAJU_RESULT: 604800 },
+}))
+
+vi.mock('@/lib/Saju/saju', () => ({
+  calculateSajuData: vi.fn(),
+}))
+
+vi.mock('@/lib/Saju/unse', () => ({
+  getDaeunCycles: vi.fn().mockReturnValue([]),
+  getAnnualCycles: vi.fn().mockReturnValue([]),
+  getMonthlyCycles: vi.fn().mockReturnValue([]),
+  getIljinCalendar: vi.fn().mockReturnValue([]),
+}))
+
+vi.mock('@/lib/Saju/shinsal', () => ({
+  getShinsalHits: vi.fn().mockReturnValue([]),
+  getTwelveStagesForPillars: vi.fn().mockReturnValue({}),
+  getTwelveShinsalSingleByPillar: vi.fn().mockReturnValue({}),
+}))
+
+vi.mock('@/lib/Saju/relations', () => ({
+  analyzeRelations: vi.fn().mockReturnValue({ harmonies: [], conflicts: [] }),
+  toAnalyzeInputFromSaju: vi.fn().mockReturnValue({}),
+}))
+
+vi.mock('@/lib/Saju/geokguk', () => ({
+  determineGeokguk: vi.fn(),
+  getGeokgukDescription: vi.fn(),
+}))
+
+vi.mock('@/lib/Saju/yongsin', () => ({
+  determineYongsin: vi.fn(),
+  getYongsinDescription: vi.fn(),
+  getLuckyColors: vi.fn(),
+  getLuckyDirection: vi.fn(),
+  getLuckyNumbers: vi.fn(),
+}))
+
+vi.mock('@/lib/Saju/hyeongchung', () => ({
+  analyzeHyeongchung: vi.fn(),
+}))
+
+vi.mock('@/lib/Saju/advancedSajuCore', () => ({
+  analyzeAdvancedSaju: vi.fn(),
+}))
+
+function mockNextAuth(
+  sessionData?: { user?: { name?: string; email?: string; id?: string }; expires?: string } | null
+) {
+  const DEFAULT_SESSION = {
+    user: { name: 'Test User', email: 'test@example.com', id: 'test-user-id' },
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+  }
+  sessionHolder.session = sessionData === undefined ? { ...DEFAULT_SESSION } : sessionData
+}
+
+function mockPremiumUser() {
+  mockNextAuth({
+    user: { name: 'Premium User', email: 'premium@example.com', id: 'premium-user-id' },
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+  })
+}
 
 // Additional specific mocks (not yet centralized)
 vi.mock('@/lib/Saju/tonggeun', () => ({
@@ -97,15 +200,112 @@ vi.mock('@/lib/security/errorSanitizer', () => ({
   sanitizeError: vi.fn((err) => ({ message: 'Internal error' })),
 }))
 
+vi.mock('@/lib/api/middleware', async () => {
+  const actual = (await vi.importActual('@/lib/api/middleware')) as any
+  const { sanitizeError } = await import('@/lib/security/errorSanitizer')
+  const { NextResponse } = await import('next/server')
+  const { createErrorResponse } = await import('@/lib/api/errorHandler')
+
+  return {
+    ...actual,
+    withApiMiddleware: (handler: any) => async (req: any) => {
+      const session = sessionHolder.session
+      const userId = session?.user?.id || null
+      const isAuthenticated = !!session
+      const locale = actual.extractLocale(req)
+
+      const context = {
+        userId,
+        session,
+        ip: '127.0.0.1',
+        locale,
+        isAuthenticated,
+      }
+      try {
+        const result = await handler(req, context)
+        if (result.data) {
+          return NextResponse.json(result.data, {
+            status: result.status || 200,
+          })
+        }
+        if (result.error) {
+          return createErrorResponse({
+            code: result.error.code,
+            message: result.error.message,
+            details: result.error.details,
+            locale: context.locale,
+            route: 'test',
+          })
+        }
+        return result
+      } catch (error: any) {
+        let code = actual.ErrorCodes.INTERNAL_ERROR
+
+        if (error.message?.includes('Invalid JSON')) {
+          code = actual.ErrorCodes.VALIDATION_ERROR
+        } else if (error.message?.includes('Missing required fields')) {
+          code = actual.ErrorCodes.VALIDATION_ERROR
+        } else if (error.message?.includes('unauthorized') || error.message?.includes('auth')) {
+          code = actual.ErrorCodes.UNAUTHORIZED
+        } else if (error.message?.includes('not found')) {
+          code = actual.ErrorCodes.NOT_FOUND
+        }
+
+        if (code === actual.ErrorCodes.INTERNAL_ERROR) {
+          const sanitized = sanitizeError(error)
+          return NextResponse.json(sanitized, { status: 500 })
+        }
+
+        return createErrorResponse({
+          code,
+          message: error.message,
+          locale: context.locale,
+          route: 'test',
+        })
+      }
+    },
+    createSajuGuard: vi.fn(() => vi.fn()),
+  }
+})
+
+vi.mock('@/lib/api/errorHandler', () => ({
+  createErrorResponse: vi.fn((opts) => {
+    const { NextResponse } = require('next/server')
+    const statusMap: Record<string, number> = {
+      VALIDATION_ERROR: 422,
+      UNAUTHORIZED: 401,
+      NOT_FOUND: 404,
+      RATE_LIMITED: 429,
+      INTERNAL_ERROR: 500,
+    }
+    return NextResponse.json(
+      { error: { code: opts.code, message: opts.message } },
+      { status: statusMap[opts.code] || 500 }
+    )
+  }),
+  createSuccessResponse: vi.fn(),
+  ErrorCodes: {
+    BAD_REQUEST: 'BAD_REQUEST',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    RATE_LIMITED: 'RATE_LIMITED',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    NOT_FOUND: 'NOT_FOUND',
+    DATABASE_ERROR: 'DATABASE_ERROR',
+    TIMEOUT: 'TIMEOUT',
+  },
+}))
+
+vi.mock('@/lib/auth/authOptions', () => ({
+  authOptions: {},
+}))
+
 describe('Saju API Route (REFACTORED)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    // ✨ NEW: Setup common mocks with one-liners
+    // Setup common mocks
     mockNextAuth()
-    mockStripe()
-    mockPrisma()
-    mockSajuLibraries()
   })
 
   describe('Authentication & Premium Status', () => {

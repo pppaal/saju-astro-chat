@@ -3,13 +3,18 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, act, waitFor } from '@testing-library/react'
+import { renderHook, act } from '@testing-library/react'
 import {
   usePullToRefresh,
   useHapticFeedback,
   useBottomSheet,
   useSwipeGesture,
-  useVirtualKeyboard,
+  useKeyboardHeight,
+  useIsMobile,
+  useOrientation,
+  useOnlineStatus,
+  useTapFeedback,
+  useScrollDirection,
 } from '@/hooks/useMobileEnhancements'
 
 describe('useMobileEnhancements', () => {
@@ -53,16 +58,11 @@ describe('useMobileEnhancements', () => {
   })
 
   describe('useHapticFeedback', () => {
-    it('should return haptic feedback functions', () => {
+    it('should return a triggerHaptic function', () => {
       const { result } = renderHook(() => useHapticFeedback())
 
       expect(result.current).toBeDefined()
-      expect(result.current).toHaveProperty('light')
-      expect(result.current).toHaveProperty('medium')
-      expect(result.current).toHaveProperty('heavy')
-      expect(result.current).toHaveProperty('success')
-      expect(result.current).toHaveProperty('warning')
-      expect(result.current).toHaveProperty('error')
+      expect(typeof result.current).toBe('function')
     })
 
     it('should handle vibrate API not available', () => {
@@ -72,9 +72,10 @@ describe('useMobileEnhancements', () => {
 
       const { result } = renderHook(() => useHapticFeedback())
 
-      expect(() => result.current.light()).not.toThrow()
-      expect(() => result.current.medium()).not.toThrow()
-      expect(() => result.current.heavy()).not.toThrow()
+      // Should not throw when vibrate is unavailable
+      expect(() => result.current('light')).not.toThrow()
+      expect(() => result.current('medium')).not.toThrow()
+      expect(() => result.current('heavy')).not.toThrow()
 
       // Restore
       navigator.vibrate = originalVibrate
@@ -87,122 +88,99 @@ describe('useMobileEnhancements', () => {
       const { result } = renderHook(() => useHapticFeedback())
 
       act(() => {
-        result.current.light()
+        result.current('light')
       })
-      expect(vibrateMock).toHaveBeenCalled()
+      expect(vibrateMock).toHaveBeenCalledWith(10)
 
       act(() => {
-        result.current.medium()
+        result.current('medium')
       })
-      expect(vibrateMock).toHaveBeenCalled()
+      expect(vibrateMock).toHaveBeenCalledWith(20)
 
       act(() => {
-        result.current.heavy()
+        result.current('heavy')
       })
-      expect(vibrateMock).toHaveBeenCalled()
+      expect(vibrateMock).toHaveBeenCalledWith(50)
     })
 
-    it('should provide success feedback', () => {
+    it('should default to medium intensity', () => {
       const vibrateMock = vi.fn()
       navigator.vibrate = vibrateMock
 
       const { result } = renderHook(() => useHapticFeedback())
 
       act(() => {
-        result.current.success()
+        result.current()
       })
 
-      expect(vibrateMock).toHaveBeenCalled()
-    })
-
-    it('should provide warning feedback', () => {
-      const vibrateMock = vi.fn()
-      navigator.vibrate = vibrateMock
-
-      const { result } = renderHook(() => useHapticFeedback())
-
-      act(() => {
-        result.current.warning()
-      })
-
-      expect(vibrateMock).toHaveBeenCalled()
-    })
-
-    it('should provide error feedback', () => {
-      const vibrateMock = vi.fn()
-      navigator.vibrate = vibrateMock
-
-      const { result } = renderHook(() => useHapticFeedback())
-
-      act(() => {
-        result.current.error()
-      })
-
-      expect(vibrateMock).toHaveBeenCalled()
+      expect(vibrateMock).toHaveBeenCalledWith(20)
     })
   })
 
   describe('useBottomSheet', () => {
-    it('should return bottom sheet state and controls', () => {
+    it('should return tuple [isOpen, open, close]', () => {
       const { result } = renderHook(() => useBottomSheet())
 
       expect(result.current).toBeDefined()
-      expect(result.current).toHaveProperty('isOpen')
-      expect(result.current).toHaveProperty('open')
-      expect(result.current).toHaveProperty('close')
-      expect(result.current).toHaveProperty('toggle')
+      expect(Array.isArray(result.current)).toBe(true)
+      expect(result.current).toHaveLength(3)
+      expect(typeof result.current[0]).toBe('boolean')
+      expect(typeof result.current[1]).toBe('function')
+      expect(typeof result.current[2]).toBe('function')
     })
 
     it('should start with closed state', () => {
       const { result } = renderHook(() => useBottomSheet())
 
-      expect(result.current.isOpen).toBe(false)
+      const [isOpen] = result.current
+      expect(isOpen).toBe(false)
     })
 
     it('should open bottom sheet', () => {
       const { result } = renderHook(() => useBottomSheet())
 
       act(() => {
-        result.current.open()
+        result.current[1]() // open
       })
 
-      expect(result.current.isOpen).toBe(true)
+      expect(result.current[0]).toBe(true)
     })
 
     it('should close bottom sheet', () => {
       const { result } = renderHook(() => useBottomSheet())
 
       act(() => {
-        result.current.open()
+        result.current[1]() // open
       })
-      expect(result.current.isOpen).toBe(true)
+      expect(result.current[0]).toBe(true)
 
       act(() => {
-        result.current.close()
+        result.current[2]() // close
       })
-      expect(result.current.isOpen).toBe(false)
+      expect(result.current[0]).toBe(false)
     })
 
-    it('should toggle bottom sheet', () => {
+    it('should set body overflow hidden when open', () => {
       const { result } = renderHook(() => useBottomSheet())
 
-      expect(result.current.isOpen).toBe(false)
-
       act(() => {
-        result.current.toggle()
+        result.current[1]() // open
       })
-      expect(result.current.isOpen).toBe(true)
 
-      act(() => {
-        result.current.toggle()
-      })
-      expect(result.current.isOpen).toBe(false)
+      expect(document.body.style.overflow).toBe('hidden')
     })
 
-    it('should accept initial open state', () => {
-      const { result } = renderHook(() => useBottomSheet(true))
+    it('should restore body overflow when closed', () => {
+      const { result } = renderHook(() => useBottomSheet())
 
-      expect(result.current.isOpen).toBe(true)
+      act(() => {
+        result.current[1]() // open
+      })
+      act(() => {
+        result.current[2]() // close
+      })
+
+      expect(document.body.style.overflow).toBe('')
     })
   })
 
@@ -211,34 +189,27 @@ describe('useMobileEnhancements', () => {
       const onSwipeLeft = vi.fn()
       const onSwipeRight = vi.fn()
 
-      const { result } = renderHook(() => useSwipeGesture({ onSwipeLeft, onSwipeRight }))
+      const { result } = renderHook(() => useSwipeGesture(onSwipeLeft, onSwipeRight))
 
       expect(result.current).toBeDefined()
       expect(result.current).toHaveProperty('current')
     })
 
     it('should handle missing callbacks', () => {
-      const { result } = renderHook(() => useSwipeGesture({}))
+      const { result } = renderHook(() => useSwipeGesture())
 
       expect(result.current).toBeDefined()
     })
 
     it('should accept threshold parameter', () => {
-      const { result } = renderHook(() => useSwipeGesture({ threshold: 100 }))
-
-      expect(result.current).toBeDefined()
-    })
-
-    it('should accept velocity parameter', () => {
-      const { result } = renderHook(() => useSwipeGesture({ minVelocity: 0.5 }))
+      const { result } = renderHook(() => useSwipeGesture(undefined, undefined, 100))
 
       expect(result.current).toBeDefined()
     })
   })
 
-  describe('useVirtualKeyboard', () => {
+  describe('useKeyboardHeight', () => {
     beforeEach(() => {
-      // Mock visualViewport
       Object.defineProperty(window, 'visualViewport', {
         value: {
           height: 800,
@@ -250,29 +221,73 @@ describe('useMobileEnhancements', () => {
       })
     })
 
-    it('should return keyboard state', () => {
-      const { result } = renderHook(() => useVirtualKeyboard())
+    it('should return keyboard height', () => {
+      const { result } = renderHook(() => useKeyboardHeight())
 
-      expect(result.current).toBeDefined()
-      expect(result.current).toHaveProperty('isKeyboardOpen')
-      expect(result.current).toHaveProperty('keyboardHeight')
+      expect(typeof result.current).toBe('number')
     })
 
-    it('should start with keyboard closed', () => {
-      const { result } = renderHook(() => useVirtualKeyboard())
+    it('should start with keyboard height 0', () => {
+      const { result } = renderHook(() => useKeyboardHeight())
 
-      expect(result.current.isKeyboardOpen).toBe(false)
-      expect(result.current.keyboardHeight).toBe(0)
+      expect(result.current).toBe(0)
     })
 
     it('should handle visualViewport not available', () => {
       // @ts-ignore
       delete window.visualViewport
 
-      const { result } = renderHook(() => useVirtualKeyboard())
+      const { result } = renderHook(() => useKeyboardHeight())
 
-      expect(result.current.isKeyboardOpen).toBe(false)
-      expect(result.current.keyboardHeight).toBe(0)
+      expect(result.current).toBe(0)
+    })
+  })
+
+  describe('useIsMobile', () => {
+    it('should return boolean', () => {
+      const { result } = renderHook(() => useIsMobile())
+
+      expect(typeof result.current).toBe('boolean')
+    })
+  })
+
+  describe('useOrientation', () => {
+    it('should return portrait or landscape', () => {
+      const { result } = renderHook(() => useOrientation())
+
+      expect(['portrait', 'landscape']).toContain(result.current)
+    })
+  })
+
+  describe('useOnlineStatus', () => {
+    it('should return boolean', () => {
+      const { result } = renderHook(() => useOnlineStatus())
+
+      expect(typeof result.current).toBe('boolean')
+    })
+  })
+
+  describe('useTapFeedback', () => {
+    it('should return a callback function', () => {
+      const { result } = renderHook(() => useTapFeedback())
+
+      expect(typeof result.current).toBe('function')
+    })
+  })
+
+  describe('useScrollDirection', () => {
+    it('should return tuple [direction, scrollY]', () => {
+      const { result } = renderHook(() => useScrollDirection())
+
+      expect(Array.isArray(result.current)).toBe(true)
+      expect(result.current).toHaveLength(2)
+    })
+
+    it('should start with null direction and 0 scrollY', () => {
+      const { result } = renderHook(() => useScrollDirection())
+
+      expect(result.current[0]).toBeNull()
+      expect(result.current[1]).toBe(0)
     })
   })
 
@@ -285,24 +300,24 @@ describe('useMobileEnhancements', () => {
       navigator.vibrate = vibrateMock
 
       act(() => {
-        hapticResult.current.light()
-        sheetResult.current.open()
+        hapticResult.current('light')
+        sheetResult.current[1]() // open
       })
 
       expect(vibrateMock).toHaveBeenCalled()
-      expect(sheetResult.current.isOpen).toBe(true)
+      expect(sheetResult.current[0]).toBe(true)
     })
 
     it('should work together - swipe and haptic', () => {
       const onSwipeLeft = vi.fn()
-      const { result: swipeResult } = renderHook(() => useSwipeGesture({ onSwipeLeft }))
+      const { result: swipeResult } = renderHook(() => useSwipeGesture(onSwipeLeft))
       const { result: hapticResult } = renderHook(() => useHapticFeedback())
 
       const vibrateMock = vi.fn()
       navigator.vibrate = vibrateMock
 
       act(() => {
-        hapticResult.current.success()
+        hapticResult.current('medium')
       })
 
       expect(swipeResult.current).toBeDefined()
@@ -315,13 +330,13 @@ describe('useMobileEnhancements', () => {
       const { result } = renderHook(() => useBottomSheet())
 
       act(() => {
-        result.current.open()
-        result.current.close()
-        result.current.open()
-        result.current.close()
+        result.current[1]() // open
+        result.current[2]() // close
+        result.current[1]() // open
+        result.current[2]() // close
       })
 
-      expect(result.current.isOpen).toBe(false)
+      expect(result.current[0]).toBe(false)
     })
 
     it('should handle multiple haptic calls', () => {
@@ -331,9 +346,9 @@ describe('useMobileEnhancements', () => {
       const { result } = renderHook(() => useHapticFeedback())
 
       act(() => {
-        result.current.light()
-        result.current.medium()
-        result.current.heavy()
+        result.current('light')
+        result.current('medium')
+        result.current('heavy')
       })
 
       expect(vibrateMock).toHaveBeenCalledTimes(3)
@@ -343,7 +358,7 @@ describe('useMobileEnhancements', () => {
       const { result, unmount } = renderHook(() => useBottomSheet())
 
       act(() => {
-        result.current.open()
+        result.current[1]() // open
       })
 
       expect(() => unmount()).not.toThrow()

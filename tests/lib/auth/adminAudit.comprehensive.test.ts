@@ -3,6 +3,26 @@
  * Tests audit log creation, querying, filtering, and error handling
  */
 
+import { vi } from 'vitest'
+
+// Mock dependencies - must be before imports that use them
+vi.mock('@/lib/db/prisma', () => ({
+  prisma: {
+    adminAuditLog: {
+      create: vi.fn(),
+      findMany: vi.fn(),
+    },
+  },
+  Prisma: {},
+}))
+
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    error: vi.fn(),
+  },
+}))
+
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import {
@@ -11,26 +31,6 @@ import {
   getTargetAuditHistory,
   type AdminAuditParams,
 } from '@/lib/auth/adminAudit'
-
-// Mock dependencies
-jest.mock('@/lib/db/prisma', () => ({
-  prisma: {
-    adminAuditLog: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-    },
-  },
-  Prisma: {
-    // Mock Prisma types if needed
-  },
-}))
-
-jest.mock('@/lib/logger', () => ({
-  logger: {
-    info: jest.fn(),
-    error: jest.fn(),
-  },
-}))
 
 describe('Admin Audit Logging System', () => {
   beforeEach(() => {

@@ -126,6 +126,78 @@ EVAL_DATASET: List[EvalSample] = [
         expected_domains=["corpus"],
         theme="life_path",
     ),
+
+    # ─── 추가 평가 샘플: 형충파해/합화/크로스도메인 ───
+
+    # 형충파해 관련
+    EvalSample(
+        question="인신충이 있으면 어떤 영향이 있나요?",
+        ground_truth="인신충은 인목과 신금의 충돌로 6충 중 가장 격렬. 목금상극으로 교통사고, 수술, 법적 분쟁 위험. 직업 변동이 급격하며 간/폐 건강 주의. 과감한 도전과 경쟁에서 강하지만 안전 최우선.",
+        expected_entities=["인", "신", "충"],
+        expected_domains=["saju"],
+        theme="life_path",
+        facts={"branch_relation": "인신충"},
+    ),
+    EvalSample(
+        question="삼형살(인사신)이 사주에 있으면 어떤가?",
+        ground_truth="인사신 삼형살은 무은지형으로 은혜를 모르는 형벌. 권력 다툼, 법적 갈등 가능. 간/폐/심장 건강 주의. 법조/의료 분야 적합. 시련을 통해 성장하는 타입.",
+        expected_entities=["인", "사", "신", "삼형"],
+        expected_domains=["saju"],
+        theme="life_path",
+    ),
+
+    # 합화오행 관련
+    EvalSample(
+        question="갑기합토는 어떤 의미인가?",
+        ground_truth="갑기합토는 갑목과 기토가 만나 토로 변환되는 천간합. 토가 왕한 계절에 합화 성립. 성격이 부드러워지고 포용력이 생김. 부동산/교육/중재 분야 유리. 다만 추진력이 약해질 수 있음.",
+        expected_entities=["갑", "기", "합", "토"],
+        expected_domains=["saju"],
+        theme="life_path",
+        facts={"combination": "갑기합토"},
+    ),
+    EvalSample(
+        question="인오술 삼합은 어떤 에너지인가?",
+        ground_truth="인오술 삼합은 화(火)의 삼합으로 가장 강력한 결합. 나무(인)가 불(오)을 피우고 흙(술)이 보존. 리더십, 카리스마, 열정이 극강. 정치/연예/스포츠 분야 성공. 화가 과하면 다혈질 주의.",
+        expected_entities=["인", "오", "술", "삼합", "화"],
+        expected_domains=["saju"],
+        theme="life_path",
+    ),
+
+    # 크로스도메인: 타로-사주
+    EvalSample(
+        question="사주에서 식신이 강한 사람에게 어울리는 타로 카드는?",
+        ground_truth="식신은 온화한 표현력과 감성, 음식/예술 관련 재능으로 타로의 Empress(여황제)와 유사. 풍요와 창조의 에너지. 또한 Cups 수트의 감성적 특질과도 연결됨.",
+        expected_entities=["식신", "Empress", "Cups"],
+        expected_domains=["saju", "tarot"],
+        theme="life_path",
+    ),
+
+    # 크로스도메인: 사주-점성술 타이밍
+    EvalSample(
+        question="대운이 바뀌는 시기와 토성 리턴은 어떤 관계가 있나?",
+        ground_truth="사주 대운 전환(약 10년 주기)과 첫 번째 토성 리턴(29.5세)이 겹치면 인생 방향이 근본적으로 재설정. 20대의 실험이 끝나고 진짜 인생이 시작되는 시점. 결혼/이직 등 큰 결정의 시기.",
+        expected_entities=["대운", "토성", "Saturn"],
+        expected_domains=["saju", "astro"],
+        theme="life_path",
+    ),
+
+    # 크로스도메인: 오행-별자리
+    EvalSample(
+        question="오행에서 화(火)가 강한 사주와 점성술의 화성 사인(Aries, Leo, Sagittarius)은 어떤 공통점이 있나?",
+        ground_truth="사주의 화(火) 에너지와 점성술의 Fire 사인은 열정, 추진력, 리더십의 공통 에너지. 화가 강하면 행동력과 카리스마가 있으나 과하면 다혈질적. 양 시스템 모두 적절한 제어(水/토성)를 강조.",
+        expected_entities=["화", "Fire", "Aries", "Leo"],
+        expected_domains=["saju", "astro"],
+        theme="life_path",
+    ),
+
+    # 크로스도메인: 주역-사주
+    EvalSample(
+        question="주역의 건괘(乾卦)와 사주에서 어떤 상태가 유사한가?",
+        ground_truth="건괘(乾)는 순수한 양의 에너지로 창조와 리더십을 상징. 사주에서 일간이 제왕(帝旺)이나 건록(建祿)에 있을 때와 유사. 비견의 독립적 에너지와도 연결. 최고의 상태이지만 항극필반을 주의.",
+        expected_entities=["건", "乾", "제왕", "건록", "비견"],
+        expected_domains=["saju", "iching"],
+        theme="life_path",
+    ),
 ]
 
 

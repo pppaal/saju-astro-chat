@@ -24,6 +24,38 @@ interface MockStripeSubscription {
   }
 }
 
+// Hoisted data holder for vi.mock factory
+const { stripeHolder } = vi.hoisted(() => ({
+  stripeHolder: {
+    customers: [] as MockStripeCustomer[],
+    subscriptions: [] as MockStripeSubscription[],
+  },
+}))
+
+// Register mock at module level - factory uses hoisted holder
+vi.mock('stripe', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    customers: {
+      search: vi.fn().mockImplementation(() => Promise.resolve({ data: stripeHolder.customers })),
+      retrieve: vi.fn().mockImplementation((id: string) => {
+        const customer = stripeHolder.customers.find((c) => c.id === id)
+        return customer
+          ? Promise.resolve(customer)
+          : Promise.reject(new Error('Customer not found'))
+      }),
+    },
+    subscriptions: {
+      list: vi.fn().mockImplementation(() => Promise.resolve({ data: stripeHolder.subscriptions })),
+      retrieve: vi.fn().mockImplementation((id: string) => {
+        const subscription = stripeHolder.subscriptions.find((s) => s.id === id)
+        return subscription
+          ? Promise.resolve(subscription)
+          : Promise.reject(new Error('Subscription not found'))
+      }),
+    },
+  })),
+}))
+
 /**
  * Mock Stripe with customizable customers and subscriptions
  */
@@ -31,39 +63,16 @@ export function mockStripe(options?: {
   customers?: MockStripeCustomer[]
   subscriptions?: MockStripeSubscription[]
 }) {
-  const customers = options?.customers ?? []
-  const subscriptions = options?.subscriptions ?? []
-
-  vi.mock('stripe', () => ({
-    default: vi.fn().mockImplementation(() => ({
-      customers: {
-        search: vi.fn().mockResolvedValue({ data: customers }),
-        retrieve: vi.fn().mockImplementation((id: string) => {
-          const customer = customers.find((c) => c.id === id)
-          return customer
-            ? Promise.resolve(customer)
-            : Promise.reject(new Error('Customer not found'))
-        }),
-      },
-      subscriptions: {
-        list: vi.fn().mockResolvedValue({ data: subscriptions }),
-        retrieve: vi.fn().mockImplementation((id: string) => {
-          const subscription = subscriptions.find((s) => s.id === id)
-          return subscription
-            ? Promise.resolve(subscription)
-            : Promise.reject(new Error('Subscription not found'))
-        }),
-      },
-    })),
-  }))
+  stripeHolder.customers = options?.customers ?? []
+  stripeHolder.subscriptions = options?.subscriptions ?? []
 
   return {
     customers: {
-      search: vi.fn().mockResolvedValue({ data: customers }),
+      search: vi.fn().mockResolvedValue({ data: stripeHolder.customers }),
       retrieve: vi.fn(),
     },
     subscriptions: {
-      list: vi.fn().mockResolvedValue({ data: subscriptions }),
+      list: vi.fn().mockResolvedValue({ data: stripeHolder.subscriptions }),
       retrieve: vi.fn(),
     },
   }

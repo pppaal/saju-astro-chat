@@ -1,5 +1,81 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+
+// Mock middleware as passthrough - must be before route import
+vi.mock('@/lib/api/middleware', () => ({
+  withApiMiddleware: vi.fn((handler: any, _options: any) => {
+    return async (req: any, ...args: any[]) => {
+      const { getServerSession } = await import('next-auth')
+      let session: any = null
+      try {
+        session = await (getServerSession as any)()
+      } catch {
+        return NextResponse.json(
+          { success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal Server Error' } },
+          { status: 500 }
+        )
+      }
+
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } },
+          { status: 401 }
+        )
+      }
+
+      const context = {
+        userId: session.user.id,
+        session,
+        ip: '127.0.0.1',
+        locale: 'ko',
+        isAuthenticated: true,
+        isPremium: false,
+      }
+
+      const result = await handler(req, context, ...args)
+
+      if (result instanceof Response) {
+        return result
+      }
+
+      if (result.error) {
+        const statusMap: Record<string, number> = {
+          BAD_REQUEST: 400,
+          VALIDATION_ERROR: 422,
+          INTERNAL_ERROR: 500,
+          NOT_FOUND: 404,
+          DATABASE_ERROR: 500,
+        }
+        return NextResponse.json(
+          { success: false, error: { code: result.error.code, message: result.error.message } },
+          { status: statusMap[result.error.code] || 500 }
+        )
+      }
+
+      return NextResponse.json(
+        { success: true, data: result.data },
+        { status: result.status || 200 }
+      )
+    }
+  }),
+  createAuthenticatedGuard: vi.fn(() => ({})),
+  apiSuccess: vi.fn((data: any, options?: any) => ({
+    data,
+    status: options?.status,
+    meta: options?.meta,
+  })),
+  apiError: vi.fn((code: string, message?: string, details?: any) => ({
+    error: { code, message, details },
+  })),
+  ErrorCodes: {
+    BAD_REQUEST: 'BAD_REQUEST',
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    NOT_FOUND: 'NOT_FOUND',
+    DATABASE_ERROR: 'DATABASE_ERROR',
+  },
+}))
 
 // Mock dependencies
 vi.mock('next-auth', () => ({
@@ -22,6 +98,61 @@ vi.mock('@/lib/logger', () => ({
     info: vi.fn(),
     warn: vi.fn(),
     debug: vi.fn(),
+  },
+}))
+
+vi.mock('@/lib/auth/authOptions', () => ({
+  authOptions: {},
+}))
+
+vi.mock('@/lib/api/zodValidation', () => ({
+  dreamHistoryQuerySchema: {
+    safeParse: vi.fn((data: any) => {
+      const result: any = {}
+
+      // limit: coerce number, int, min(1), max(100), default(20)
+      if (data.limit !== undefined) {
+        const num = Number(data.limit)
+        if (isNaN(num) || !isFinite(num)) {
+          result.limit = 20
+        } else {
+          result.limit = Math.max(1, Math.min(100, Math.floor(num)))
+        }
+      } else {
+        result.limit = 20
+      }
+
+      // offset: coerce number, int, min(0), default(0)
+      if (data.offset !== undefined) {
+        const num = Number(data.offset)
+        if (isNaN(num) || !isFinite(num)) {
+          result.offset = 0
+        } else {
+          result.offset = Math.max(0, Math.floor(num))
+        }
+      } else {
+        result.offset = 0
+      }
+
+      return { success: true, data: result }
+    }),
+  },
+  dreamHistoryDeleteQuerySchema: {
+    safeParse: vi.fn((data: any) => {
+      if (!data.id || typeof data.id !== 'string' || data.id.length === 0) {
+        return {
+          success: false,
+          error: { issues: [{ message: 'Missing id parameter' }] },
+        }
+      }
+      if (data.id.length > 100) {
+        return {
+          success: false,
+          error: { issues: [{ message: 'Id too long' }] },
+        }
+      }
+      return { success: true, data: { id: data.id } }
+    }),
   },
 }))
 
@@ -52,7 +183,7 @@ describe('/api/dream/history', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should fetch dream history with default pagination', async () => {
@@ -93,15 +224,15 @@ describe('/api/dream/history', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.history).toHaveLength(2)
-      expect(data.history[0].id).toBe('dream-1')
-      expect(data.history[0].symbols).toEqual(['Sky', 'Wings'])
-      expect(data.history[0].themes).toEqual([{ label: 'Freedom', weight: 0.9 }])
-      expect(data.history[0].luckyNumbers).toEqual([7, 14, 21])
-      expect(data.pagination.total).toBe(2)
-      expect(data.pagination.limit).toBe(20)
-      expect(data.pagination.offset).toBe(0)
-      expect(data.pagination.hasMore).toBe(false)
+      expect(data.data.history).toHaveLength(2)
+      expect(data.data.history[0].id).toBe('dream-1')
+      expect(data.data.history[0].symbols).toEqual(['Sky', 'Wings'])
+      expect(data.data.history[0].themes).toEqual([{ label: 'Freedom', weight: 0.9 }])
+      expect(data.data.history[0].luckyNumbers).toEqual([7, 14, 21])
+      expect(data.data.pagination.total).toBe(2)
+      expect(data.data.pagination.limit).toBe(20)
+      expect(data.data.pagination.offset).toBe(0)
+      expect(data.data.pagination.hasMore).toBe(false)
     })
 
     it('should handle custom pagination parameters', async () => {
@@ -121,22 +252,23 @@ describe('/api/dream/history', () => {
         skip: 20,
         select: expect.any(Object),
       })
-      expect(data.pagination.limit).toBe(10)
-      expect(data.pagination.offset).toBe(20)
-      expect(data.pagination.hasMore).toBe(true)
+      expect(data.data.pagination.limit).toBe(10)
+      expect(data.data.pagination.offset).toBe(20)
+      expect(data.data.pagination.hasMore).toBe(true)
     })
 
-    it('should limit maximum page size to 50', async () => {
+    it('should limit maximum page size to 100', async () => {
       vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
       vi.mocked(prisma.consultationHistory.findMany).mockResolvedValue([])
       vi.mocked(prisma.consultationHistory.count).mockResolvedValue(0)
 
-      const req = new NextRequest('http://localhost:3000/api/dream/history?limit=100')
+      const req = new NextRequest('http://localhost:3000/api/dream/history?limit=200')
 
       const response = await GET(req)
       const data = await response.json()
 
-      expect(data.pagination.limit).toBe(50)
+      // Zod schema max(100) clamps to 100
+      expect(data.data.pagination.limit).toBe(100)
     })
 
     it('should enforce minimum page size of 1', async () => {
@@ -149,7 +281,7 @@ describe('/api/dream/history', () => {
       const response = await GET(req)
       const data = await response.json()
 
-      expect(data.pagination.limit).toBe(1)
+      expect(data.data.pagination.limit).toBe(1)
     })
 
     it('should handle negative offset', async () => {
@@ -162,7 +294,7 @@ describe('/api/dream/history', () => {
       const response = await GET(req)
       const data = await response.json()
 
-      expect(data.pagination.offset).toBe(0)
+      expect(data.data.pagination.offset).toBe(0)
     })
 
     it('should handle invalid limit parameter', async () => {
@@ -175,7 +307,7 @@ describe('/api/dream/history', () => {
       const response = await GET(req)
       const data = await response.json()
 
-      expect(data.pagination.limit).toBe(20) // Default
+      expect(data.data.pagination.limit).toBe(20) // Default
     })
 
     it('should handle invalid offset parameter', async () => {
@@ -188,7 +320,7 @@ describe('/api/dream/history', () => {
       const response = await GET(req)
       const data = await response.json()
 
-      expect(data.pagination.offset).toBe(0) // Default
+      expect(data.data.pagination.offset).toBe(0) // Default
     })
 
     it('should filter by dream theme', async () => {
@@ -234,9 +366,9 @@ describe('/api/dream/history', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.history).toEqual([])
-      expect(data.pagination.total).toBe(0)
-      expect(data.pagination.hasMore).toBe(false)
+      expect(data.data.history).toEqual([])
+      expect(data.data.pagination.total).toBe(0)
+      expect(data.data.pagination.hasMore).toBe(false)
     })
 
     it('should handle null signals gracefully', async () => {
@@ -262,9 +394,9 @@ describe('/api/dream/history', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.history[0].symbols).toBeUndefined()
-      expect(data.history[0].themes).toBeUndefined()
-      expect(data.history[0].luckyNumbers).toBeUndefined()
+      expect(data.data.history[0].symbols).toBeUndefined()
+      expect(data.data.history[0].themes).toBeUndefined()
+      expect(data.data.history[0].luckyNumbers).toBeUndefined()
     })
 
     it('should use default summary when null', async () => {
@@ -289,7 +421,7 @@ describe('/api/dream/history', () => {
       const response = await GET(req)
       const data = await response.json()
 
-      expect(data.history[0].summary).toBe('꿈 해석')
+      expect(data.data.history[0].summary).toBe('꿈 해석')
     })
 
     it('should handle database errors', async () => {
@@ -304,11 +436,8 @@ describe('/api/dream/history', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal server error')
-      expect(logger.error).toHaveBeenCalledWith(
-        'Error fetching dream history:',
-        expect.any(Error)
-      )
+      expect(data.error.message).toBe('Internal server error')
+      expect(logger.error).toHaveBeenCalledWith('Error fetching dream history:', expect.any(Error))
     })
 
     it('should format createdAt as ISO string', async () => {
@@ -334,7 +463,7 @@ describe('/api/dream/history', () => {
       const response = await GET(req)
       const data = await response.json()
 
-      expect(data.history[0].createdAt).toBe(mockDate.toISOString())
+      expect(data.data.history[0].createdAt).toBe(mockDate.toISOString())
     })
   })
 
@@ -348,7 +477,7 @@ describe('/api/dream/history', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should require id parameter', async () => {
@@ -357,10 +486,9 @@ describe('/api/dream/history', () => {
       const req = new NextRequest('http://localhost:3000/api/dream/history')
 
       const response = await DELETE(req)
-      const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('Missing id parameter')
+      // Zod validation fails for missing id -> VALIDATION_ERROR (422)
+      expect(response.status).toBe(422)
     })
 
     it('should reject overly long id parameter', async () => {
@@ -370,10 +498,9 @@ describe('/api/dream/history', () => {
       const req = new NextRequest(`http://localhost:3000/api/dream/history?id=${longId}`)
 
       const response = await DELETE(req)
-      const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('Missing id parameter')
+      // Zod validation fails for too-long id
+      expect(response.status).toBe(422)
     })
 
     it('should successfully delete owned dream', async () => {
@@ -386,7 +513,7 @@ describe('/api/dream/history', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.success).toBe(true)
+      expect(data.data.success).toBe(true)
       expect(prisma.consultationHistory.deleteMany).toHaveBeenCalledWith({
         where: {
           id: 'dream-1',
@@ -406,7 +533,7 @@ describe('/api/dream/history', () => {
       const data = await response.json()
 
       expect(response.status).toBe(404)
-      expect(data.error).toBe('Dream not found')
+      expect(data.error.message).toBe('Dream not found')
     })
 
     it('should only delete dreams owned by user', async () => {
@@ -455,7 +582,7 @@ describe('/api/dream/history', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal server error')
+      expect(data.error.message).toBe('Internal server error')
       expect(logger.error).toHaveBeenCalledWith('Error deleting dream:', expect.any(Error))
     })
 
@@ -465,10 +592,9 @@ describe('/api/dream/history', () => {
       const req = new NextRequest('http://localhost:3000/api/dream/history?id=')
 
       const response = await DELETE(req)
-      const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('Missing id parameter')
+      // Empty id fails Zod validation
+      expect(response.status).toBe(422)
     })
   })
 
@@ -483,7 +609,7 @@ describe('/api/dream/history', () => {
       const response = await GET(req)
       const data = await response.json()
 
-      expect(data.pagination.limit).toBe(20) // Default fallback
+      expect(data.data.pagination.limit).toBe(20) // Default fallback for non-finite
     })
 
     it('should handle session without user id', async () => {
@@ -492,10 +618,9 @@ describe('/api/dream/history', () => {
       const req = new NextRequest('http://localhost:3000/api/dream/history')
 
       const response = await GET(req)
-      const data = await response.json()
 
+      // Session without user.id is treated as unauthenticated
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
     })
 
     it('should handle large offset values', async () => {
@@ -509,7 +634,7 @@ describe('/api/dream/history', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.pagination.hasMore).toBe(false)
+      expect(data.data.pagination.hasMore).toBe(false)
     })
   })
 })

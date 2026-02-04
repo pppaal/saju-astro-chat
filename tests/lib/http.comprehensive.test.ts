@@ -1,20 +1,56 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { fetchWithRetry, FetchWithRetryError, enforceBodySize } from '@/lib/http'
 
 // Mock global fetch
 global.fetch = vi.fn()
 
+/**
+ * Helper to create a Request-like object with a Content-Length header.
+ * happy-dom strips Content-Length (forbidden request header per Fetch spec),
+ * so we build a minimal shim whose .headers.get() returns the value we need.
+ */
+function requestWithContentLength(contentLength: string | null, body?: string | null): Request {
+  const hdrs = new Headers()
+  // Store the content-length value in a custom map and override get()
+  const headerMap = new Map<string, string>()
+  if (contentLength !== null) {
+    headerMap.set('content-length', contentLength)
+  }
+
+  return {
+    headers: {
+      get(name: string) {
+        const lower = name.toLowerCase()
+        if (headerMap.has(lower)) {
+          return headerMap.get(lower)!
+        }
+        return hdrs.get(name)
+      },
+      has(name: string) {
+        return headerMap.has(name.toLowerCase()) || hdrs.has(name)
+      },
+      forEach: hdrs.forEach.bind(hdrs),
+    },
+    url: 'http://localhost:3000/api/test',
+    method: 'POST',
+    body,
+  } as unknown as Request
+}
+
 describe('http.ts', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.useFakeTimers()
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
   })
 
   describe('fetchWithRetry', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
     it('should succeed on first attempt', async () => {
       const mockResponse = new Response('success', { status: 200 })
       vi.mocked(fetch).mockResolvedValueOnce(mockResponse)
@@ -110,31 +146,45 @@ describe('http.ts', () => {
     it('should throw after max retries', async () => {
       vi.mocked(fetch).mockRejectedValue(new Error('Network error'))
 
-      const promise = fetchWithRetry('https://api.example.com/test', {}, { maxRetries: 2 })
+      // Eagerly attach .catch to prevent unhandled rejection warning
+      const promise = fetchWithRetry('https://api.example.com/test', {}, { maxRetries: 2 }).catch(
+        (error) => error
+      )
 
-      await vi.runAllTimersAsync()
+      // Advance through each retry's timer in a loop to handle chained timers
+      for (let i = 0; i < 10; i++) {
+        await vi.advanceTimersByTimeAsync(30000)
+      }
 
-      await expect(promise).rejects.toThrow(FetchWithRetryError)
+      const error = await promise
+      expect(error).toBeInstanceOf(FetchWithRetryError)
       expect(fetch).toHaveBeenCalledTimes(3) // Initial + 2 retries
     })
 
     it('should use exponential backoff', async () => {
       const delays: number[] = []
-      const onRetry = vi.fn((attempt, error, delay) => {
+      const onRetry = vi.fn((_attempt: number, _error: Error, delay: number) => {
         delays.push(delay)
       })
 
       vi.mocked(fetch).mockRejectedValue(new Error('Network error'))
 
-      const promise = fetchWithRetry('https://api.example.com/test', {}, {
-        maxRetries: 3,
-        initialDelayMs: 1000,
-        onRetry,
-      })
+      const promise = fetchWithRetry(
+        'https://api.example.com/test',
+        {},
+        {
+          maxRetries: 3,
+          initialDelayMs: 1000,
+          onRetry,
+        }
+      ).catch((error) => error)
 
-      await vi.runAllTimersAsync()
+      for (let i = 0; i < 15; i++) {
+        await vi.advanceTimersByTimeAsync(30000)
+      }
 
-      await expect(promise).rejects.toThrow()
+      const error = await promise
+      expect(error).toBeInstanceOf(FetchWithRetryError)
 
       expect(onRetry).toHaveBeenCalledTimes(3)
       // Each delay should be roughly 2x the previous (with jitter)
@@ -145,25 +195,32 @@ describe('http.ts', () => {
 
     it('should respect maxDelayMs', async () => {
       const delays: number[] = []
-      const onRetry = vi.fn((attempt, error, delay) => {
+      const onRetry = vi.fn((_attempt: number, _error: Error, delay: number) => {
         delays.push(delay)
       })
 
       vi.mocked(fetch).mockRejectedValue(new Error('Network error'))
 
-      const promise = fetchWithRetry('https://api.example.com/test', {}, {
-        maxRetries: 5,
-        initialDelayMs: 10000,
-        maxDelayMs: 15000,
-        onRetry,
-      })
+      const promise = fetchWithRetry(
+        'https://api.example.com/test',
+        {},
+        {
+          maxRetries: 5,
+          initialDelayMs: 10000,
+          maxDelayMs: 15000,
+          onRetry,
+        }
+      ).catch((error) => error)
 
-      await vi.runAllTimersAsync()
+      for (let i = 0; i < 20; i++) {
+        await vi.advanceTimersByTimeAsync(30000)
+      }
 
-      await expect(promise).rejects.toThrow()
+      const error = await promise
+      expect(error).toBeInstanceOf(FetchWithRetryError)
 
       // All delays should be <= maxDelayMs
-      delays.forEach(delay => {
+      delays.forEach((delay) => {
         expect(delay).toBeLessThanOrEqual(15000)
       })
     })
@@ -175,21 +232,21 @@ describe('http.ts', () => {
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValueOnce(new Response('success', { status: 200 }))
 
-      const promise = fetchWithRetry('https://api.example.com/test', {}, {
-        maxRetries: 3,
-        onRetry,
-      })
+      const promise = fetchWithRetry(
+        'https://api.example.com/test',
+        {},
+        {
+          maxRetries: 3,
+          onRetry,
+        }
+      )
 
       await vi.runAllTimersAsync()
 
       await promise
 
       expect(onRetry).toHaveBeenCalledTimes(1)
-      expect(onRetry).toHaveBeenCalledWith(
-        1,
-        expect.any(Error),
-        expect.any(Number)
-      )
+      expect(onRetry).toHaveBeenCalledWith(1, expect.any(Error), expect.any(Number))
     })
 
     it('should handle custom retry status codes', async () => {
@@ -197,9 +254,13 @@ describe('http.ts', () => {
         .mockResolvedValueOnce(new Response('error', { status: 418 })) // Teapot
         .mockResolvedValueOnce(new Response('success', { status: 200 }))
 
-      const promise = fetchWithRetry('https://api.example.com/test', {}, {
-        retryStatusCodes: [418],
-      })
+      const promise = fetchWithRetry(
+        'https://api.example.com/test',
+        {},
+        {
+          retryStatusCodes: [418],
+        }
+      )
 
       await vi.runAllTimersAsync()
 
@@ -231,42 +292,59 @@ describe('http.ts', () => {
     it('should include attempts in error', async () => {
       vi.mocked(fetch).mockRejectedValue(new Error('Network error'))
 
-      const promise = fetchWithRetry('https://api.example.com/test', {}, { maxRetries: 2 })
+      const promise = fetchWithRetry(
+        'https://api.example.com/test',
+        {},
+        {
+          maxRetries: 2,
+          initialDelayMs: 100,
+        }
+      ).catch((error) => error) // Catch to prevent unhandled rejection
 
-      await vi.runAllTimersAsync()
-
-      try {
-        await promise
-        expect.fail('Should have thrown')
-      } catch (error) {
-        expect(error).toBeInstanceOf(FetchWithRetryError)
-        const fetchError = error as FetchWithRetryError
-        expect(fetchError.attempts).toBe(3)
+      for (let i = 0; i < 10; i++) {
+        await vi.advanceTimersByTimeAsync(30000)
       }
+
+      const error = await promise
+      expect(error).toBeInstanceOf(FetchWithRetryError)
+      expect((error as FetchWithRetryError).attempts).toBe(3)
     })
 
     it('should mark timeout errors correctly', async () => {
-      vi.mocked(fetch).mockImplementation(() => {
+      // Mock fetch that listens to the AbortSignal so the internal timeout
+      // controller.abort() cleanly rejects the promise.
+      vi.mocked(fetch).mockImplementation((_url, init) => {
         return new Promise((_, reject) => {
-          setTimeout(() => reject(new DOMException('Aborted', 'AbortError')), 100)
+          const signal = (init as RequestInit)?.signal
+          if (signal) {
+            const onAbort = () => {
+              reject(new DOMException('Aborted', 'AbortError'))
+            }
+            if (signal.aborted) {
+              onAbort()
+              return
+            }
+            signal.addEventListener('abort', onAbort, { once: true })
+          }
         })
       })
 
-      const promise = fetchWithRetry('https://api.example.com/test', {}, {
-        timeoutMs: 50,
-        maxRetries: 0,
-      })
+      // Eagerly attach .catch to prevent unhandled rejection warning
+      const promise = fetchWithRetry(
+        'https://api.example.com/test',
+        {},
+        {
+          timeoutMs: 50,
+          maxRetries: 0,
+        }
+      ).catch((error) => error)
 
-      await vi.runAllTimersAsync()
+      // Advance past the timeout
+      await vi.advanceTimersByTimeAsync(100)
 
-      try {
-        await promise
-        expect.fail('Should have thrown')
-      } catch (error) {
-        expect(error).toBeInstanceOf(FetchWithRetryError)
-        const fetchError = error as FetchWithRetryError
-        expect(fetchError.isTimeout).toBe(true)
-      }
+      const error = await promise
+      expect(error).toBeInstanceOf(FetchWithRetryError)
+      expect((error as FetchWithRetryError).isTimeout).toBe(true)
     })
 
     it('should handle external abort signal', async () => {
@@ -295,12 +373,10 @@ describe('http.ts', () => {
   })
 
   describe('enforceBodySize', () => {
+    // Uses requestWithContentLength helper because happy-dom strips
+    // Content-Length as a forbidden request header per the Fetch spec.
     it('should return null for requests within size limit', () => {
-      const req = new Request('http://localhost:3000/api/test', {
-        method: 'POST',
-        headers: { 'Content-Length': '1000' },
-        body: 'x'.repeat(1000),
-      })
+      const req = requestWithContentLength('1000', 'x'.repeat(1000))
 
       const result = enforceBodySize(req, 2000)
 
@@ -308,11 +384,7 @@ describe('http.ts', () => {
     })
 
     it('should return error response for oversized requests', () => {
-      const req = new Request('http://localhost:3000/api/test', {
-        method: 'POST',
-        headers: { 'Content-Length': '300000' },
-        body: 'x'.repeat(300000),
-      })
+      const req = requestWithContentLength('300000', 'x'.repeat(300000))
 
       const result = enforceBodySize(req, 256 * 1024)
 
@@ -321,10 +393,7 @@ describe('http.ts', () => {
     })
 
     it('should include limit in error response', async () => {
-      const req = new Request('http://localhost:3000/api/test', {
-        method: 'POST',
-        headers: { 'Content-Length': '300000' },
-      })
+      const req = requestWithContentLength('300000')
 
       const result = enforceBodySize(req, 256 * 1024)
       const data = await result?.json()
@@ -334,10 +403,7 @@ describe('http.ts', () => {
     })
 
     it('should return null when Content-Length header is missing', () => {
-      const req = new Request('http://localhost:3000/api/test', {
-        method: 'POST',
-        body: 'test',
-      })
+      const req = requestWithContentLength(null, 'test')
 
       const result = enforceBodySize(req, 1000)
 
@@ -345,11 +411,7 @@ describe('http.ts', () => {
     })
 
     it('should return null for invalid Content-Length', () => {
-      const req = new Request('http://localhost:3000/api/test', {
-        method: 'POST',
-        headers: { 'Content-Length': 'invalid' },
-        body: 'test',
-      })
+      const req = requestWithContentLength('invalid', 'test')
 
       const result = enforceBodySize(req, 1000)
 
@@ -357,11 +419,7 @@ describe('http.ts', () => {
     })
 
     it('should return null for negative Content-Length', () => {
-      const req = new Request('http://localhost:3000/api/test', {
-        method: 'POST',
-        headers: { 'Content-Length': '-100' },
-        body: 'test',
-      })
+      const req = requestWithContentLength('-100', 'test')
 
       const result = enforceBodySize(req, 1000)
 
@@ -369,10 +427,7 @@ describe('http.ts', () => {
     })
 
     it('should use default maxBytes of 256KB', () => {
-      const req = new Request('http://localhost:3000/api/test', {
-        method: 'POST',
-        headers: { 'Content-Length': String(300 * 1024) },
-      })
+      const req = requestWithContentLength(String(300 * 1024))
 
       const result = enforceBodySize(req)
 
@@ -381,10 +436,7 @@ describe('http.ts', () => {
     })
 
     it('should pass through custom headers', () => {
-      const req = new Request('http://localhost:3000/api/test', {
-        method: 'POST',
-        headers: { 'Content-Length': '300000' },
-      })
+      const req = requestWithContentLength('300000')
 
       const customHeaders = {
         'X-RateLimit-Limit': '10',
@@ -398,11 +450,7 @@ describe('http.ts', () => {
     })
 
     it('should handle exact size limit', () => {
-      const req = new Request('http://localhost:3000/api/test', {
-        method: 'POST',
-        headers: { 'Content-Length': '1000' },
-        body: 'x'.repeat(1000),
-      })
+      const req = requestWithContentLength('1000', 'x'.repeat(1000))
 
       const result = enforceBodySize(req, 1000)
 
@@ -410,10 +458,7 @@ describe('http.ts', () => {
     })
 
     it('should handle zero Content-Length', () => {
-      const req = new Request('http://localhost:3000/api/test', {
-        method: 'POST',
-        headers: { 'Content-Length': '0' },
-      })
+      const req = requestWithContentLength('0')
 
       const result = enforceBodySize(req, 1000)
 
@@ -421,10 +466,7 @@ describe('http.ts', () => {
     })
 
     it('should reject when Content-Length is one byte over', () => {
-      const req = new Request('http://localhost:3000/api/test', {
-        method: 'POST',
-        headers: { 'Content-Length': '1001' },
-      })
+      const req = requestWithContentLength('1001')
 
       const result = enforceBodySize(req, 1000)
 
@@ -453,6 +495,14 @@ describe('http.ts', () => {
   })
 
   describe('Edge Cases', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
     it('should handle very large maxRetries', async () => {
       let callCount = 0
       vi.mocked(fetch).mockImplementation(() => {
@@ -463,10 +513,14 @@ describe('http.ts', () => {
         return Promise.resolve(new Response('success', { status: 200 }))
       })
 
-      const promise = fetchWithRetry('https://api.example.com/test', {}, {
-        maxRetries: 50,
-        initialDelayMs: 10,
-      })
+      const promise = fetchWithRetry(
+        'https://api.example.com/test',
+        {},
+        {
+          maxRetries: 50,
+          initialDelayMs: 10,
+        }
+      )
 
       await vi.runAllTimersAsync()
 
@@ -479,19 +533,15 @@ describe('http.ts', () => {
     it('should handle zero maxRetries', async () => {
       vi.mocked(fetch).mockRejectedValue(new Error('Network error'))
 
-      const promise = fetchWithRetry('https://api.example.com/test', {}, { maxRetries: 0 })
-
-      await vi.runAllTimersAsync()
-
-      await expect(promise).rejects.toThrow(FetchWithRetryError)
+      // With maxRetries: 0, the promise rejects immediately (no retry delay).
+      await expect(
+        fetchWithRetry('https://api.example.com/test', {}, { maxRetries: 0 })
+      ).rejects.toThrow(FetchWithRetryError)
       expect(fetch).toHaveBeenCalledTimes(1) // Only initial attempt
     })
 
     it('should handle Content-Length with whitespace', () => {
-      const req = new Request('http://localhost:3000/api/test', {
-        method: 'POST',
-        headers: { 'Content-Length': ' 2000 ' },
-      })
+      const req = requestWithContentLength(' 2000 ')
 
       const result = enforceBodySize(req, 1000)
 
@@ -500,10 +550,7 @@ describe('http.ts', () => {
     })
 
     it('should handle Infinity in Content-Length', () => {
-      const req = new Request('http://localhost:3000/api/test', {
-        method: 'POST',
-        headers: { 'Content-Length': 'Infinity' },
-      })
+      const req = requestWithContentLength('Infinity')
 
       const result = enforceBodySize(req, 1000)
 

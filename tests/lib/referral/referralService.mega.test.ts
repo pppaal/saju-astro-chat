@@ -3,6 +3,7 @@
  * Tests code generation, linking, reward claiming, stats, and security
  */
 
+import { vi } from 'vitest'
 import { prisma } from '@/lib/db/prisma'
 import { addBonusCredits } from '@/lib/credits/creditService'
 import { sendReferralRewardEmail } from '@/lib/email'
@@ -18,41 +19,41 @@ import {
 } from '@/lib/referral/referralService'
 
 // Mock dependencies
-jest.mock('@/lib/db/prisma', () => ({
+vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     user: {
-      findUnique: jest.fn(),
-      findFirst: jest.fn(),
-      findMany: jest.fn(),
-      update: jest.fn(),
-      count: jest.fn(),
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      count: vi.fn(),
     },
     referralReward: {
-      create: jest.fn(),
-      findFirst: jest.fn(),
-      findMany: jest.fn(),
-      update: jest.fn(),
+      create: vi.fn(),
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
     },
   },
 }))
 
-jest.mock('@/lib/credits/creditService', () => ({
-  addBonusCredits: jest.fn(),
+vi.mock('@/lib/credits/creditService', () => ({
+  addBonusCredits: vi.fn(),
 }))
 
-jest.mock('@/lib/email', () => ({
-  sendReferralRewardEmail: jest.fn(),
+vi.mock('@/lib/email', () => ({
+  sendReferralRewardEmail: vi.fn(),
 }))
 
-jest.mock('@/lib/logger', () => ({
+vi.mock('@/lib/logger', () => ({
   logger: {
-    error: jest.fn(),
+    error: vi.fn(),
   },
 }))
 
 describe('Referral Service', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('generateReferralCode', () => {
@@ -82,7 +83,7 @@ describe('Referral Service', () => {
   describe('getUserReferralCode', () => {
     it('should return existing code if available', async () => {
       const mockUser = { referralCode: 'ABC12345' }
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser)
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
 
       const code = await getUserReferralCode('user_123')
 
@@ -91,8 +92,12 @@ describe('Referral Service', () => {
     })
 
     it('should generate and save new code if none exists', async () => {
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ referralCode: null })
-      ;(prisma.user.update as jest.Mock).mockResolvedValue({ referralCode: 'NEW12345' })
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        referralCode: null,
+      })
+      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        referralCode: 'NEW12345',
+      })
 
       const code = await getUserReferralCode('user_123')
 
@@ -108,8 +113,10 @@ describe('Referral Service', () => {
     })
 
     it('should handle missing user', async () => {
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
-      ;(prisma.user.update as jest.Mock).mockResolvedValue({ referralCode: 'GEN12345' })
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        referralCode: 'GEN12345',
+      })
 
       const code = await getUserReferralCode('nonexistent')
 
@@ -125,7 +132,7 @@ describe('Referral Service', () => {
         referralCode: 'ABC12345',
       }
 
-      ;(prisma.user.findFirst as jest.Mock).mockResolvedValue(mockUser)
+      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
 
       const result = await findUserByReferralCode('ABC12345')
 
@@ -138,7 +145,7 @@ describe('Referral Service', () => {
     })
 
     it('should convert code to uppercase', async () => {
-      ;(prisma.user.findFirst as jest.Mock).mockResolvedValue(null)
+      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
 
       await findUserByReferralCode('abc12345')
 
@@ -150,7 +157,7 @@ describe('Referral Service', () => {
     })
 
     it('should return null for invalid code', async () => {
-      ;(prisma.user.findFirst as jest.Mock).mockResolvedValue(null)
+      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
 
       const result = await findUserByReferralCode('INVALID')
 
@@ -166,16 +173,16 @@ describe('Referral Service', () => {
     }
 
     beforeEach(() => {
-      ;(prisma.user.findFirst as jest.Mock).mockResolvedValue(mockReferrer)
-      ;(prisma.user.update as jest.Mock).mockResolvedValue({})
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockReferrer)
+      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: 'referrer_123',
         email: 'referrer@test.com',
         name: 'Referrer User',
       })
-      ;(prisma.referralReward.create as jest.Mock).mockResolvedValue({})
-      ;(addBonusCredits as jest.Mock).mockResolvedValue({})
-      ;(sendReferralRewardEmail as jest.Mock).mockResolvedValue({})
+      ;(prisma.referralReward.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(addBonusCredits as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(sendReferralRewardEmail as ReturnType<typeof vi.fn>).mockResolvedValue({})
     })
 
     it('should link new user to referrer', async () => {
@@ -227,7 +234,9 @@ describe('Referral Service', () => {
     })
 
     it('should handle email send failure gracefully', async () => {
-      ;(sendReferralRewardEmail as jest.Mock).mockRejectedValue(new Error('SMTP error'))
+      ;(sendReferralRewardEmail as ReturnType<typeof vi.fn>).mockRejectedValue(
+        new Error('SMTP error')
+      )
 
       const result = await linkReferrer('new_user_123', 'REF12345')
 
@@ -236,7 +245,7 @@ describe('Referral Service', () => {
     })
 
     it('should reject invalid referral code', async () => {
-      ;(prisma.user.findFirst as jest.Mock).mockResolvedValue(null)
+      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
 
       const result = await linkReferrer('new_user_123', 'INVALID')
 
@@ -254,7 +263,9 @@ describe('Referral Service', () => {
     })
 
     it('should handle database errors', async () => {
-      ;(prisma.user.update as jest.Mock).mockRejectedValue(new Error('DB connection failed'))
+      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockRejectedValue(
+        new Error('DB connection failed')
+      )
 
       const result = await linkReferrer('new_user_123', 'REF12345')
 
@@ -264,7 +275,7 @@ describe('Referral Service', () => {
     })
 
     it('should handle missing referrer email', async () => {
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: 'referrer_123',
         email: null,
         name: 'Referrer User',
@@ -288,9 +299,11 @@ describe('Referral Service', () => {
         rewardType: 'first_analysis',
       }
 
-      ;(prisma.referralReward.findFirst as jest.Mock).mockResolvedValue(mockPendingReward)
-      ;(prisma.referralReward.update as jest.Mock).mockResolvedValue({})
-      ;(addBonusCredits as jest.Mock).mockResolvedValue({})
+      ;(prisma.referralReward.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+        mockPendingReward
+      )
+      ;(prisma.referralReward.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(addBonusCredits as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       const result = await claimReferralReward('new_user_123')
 
@@ -308,7 +321,7 @@ describe('Referral Service', () => {
     })
 
     it('should return error when no pending reward', async () => {
-      ;(prisma.referralReward.findFirst as jest.Mock).mockResolvedValue(null)
+      ;(prisma.referralReward.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
 
       const result = await claimReferralReward('user_123')
 
@@ -318,7 +331,7 @@ describe('Referral Service', () => {
     })
 
     it('should handle database errors', async () => {
-      ;(prisma.referralReward.findFirst as jest.Mock).mockRejectedValue(
+      ;(prisma.referralReward.findFirst as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error('DB query failed')
       )
 
@@ -377,9 +390,9 @@ describe('Referral Service', () => {
         },
       ]
 
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser)
-      ;(prisma.user.findMany as jest.Mock).mockResolvedValue(mockReferrals)
-      ;(prisma.referralReward.findMany as jest.Mock).mockResolvedValue(mockRewards)
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockReferrals)
+      ;(prisma.referralReward.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockRewards)
 
       const stats = await getReferralStats('user_123')
 
@@ -393,10 +406,14 @@ describe('Referral Service', () => {
     })
 
     it('should generate code if missing', async () => {
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ referralCode: null })
-      ;(prisma.user.update as jest.Mock).mockResolvedValue({ referralCode: 'GEN12345' })
-      ;(prisma.user.findMany as jest.Mock).mockResolvedValue([])
-      ;(prisma.referralReward.findMany as jest.Mock).mockResolvedValue([])
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        referralCode: null,
+      })
+      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        referralCode: 'GEN12345',
+      })
+      ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
+      ;(prisma.referralReward.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
 
       const stats = await getReferralStats('user_123')
 
@@ -413,9 +430,11 @@ describe('Referral Service', () => {
         },
       ]
 
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ referralCode: 'TEST1234' })
-      ;(prisma.user.findMany as jest.Mock).mockResolvedValue(mockReferrals)
-      ;(prisma.referralReward.findMany as jest.Mock).mockResolvedValue([])
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        referralCode: 'TEST1234',
+      })
+      ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockReferrals)
+      ;(prisma.referralReward.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
 
       const stats = await getReferralStats('user_123')
 
@@ -429,9 +448,11 @@ describe('Referral Service', () => {
         { id: 'ref3', name: 'User 3', createdAt: new Date(), readings: [] },
       ]
 
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ referralCode: 'TEST1234' })
-      ;(prisma.user.findMany as jest.Mock).mockResolvedValue(mockReferrals)
-      ;(prisma.referralReward.findMany as jest.Mock).mockResolvedValue([])
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        referralCode: 'TEST1234',
+      })
+      ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockReferrals)
+      ;(prisma.referralReward.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
 
       const stats = await getReferralStats('user_123')
 
@@ -446,9 +467,11 @@ describe('Referral Service', () => {
         { id: '3', creditsAwarded: 10, status: 'completed', createdAt: new Date() },
       ]
 
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ referralCode: 'TEST1234' })
-      ;(prisma.user.findMany as jest.Mock).mockResolvedValue([])
-      ;(prisma.referralReward.findMany as jest.Mock).mockResolvedValue(mockRewards)
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        referralCode: 'TEST1234',
+      })
+      ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
+      ;(prisma.referralReward.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockRewards)
 
       const stats = await getReferralStats('user_123')
 
@@ -456,9 +479,11 @@ describe('Referral Service', () => {
     })
 
     it('should return empty stats for new user', async () => {
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ referralCode: 'NEW12345' })
-      ;(prisma.user.findMany as jest.Mock).mockResolvedValue([])
-      ;(prisma.referralReward.findMany as jest.Mock).mockResolvedValue([])
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        referralCode: 'NEW12345',
+      })
+      ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
+      ;(prisma.referralReward.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
 
       const stats = await getReferralStats('new_user')
 
@@ -473,9 +498,14 @@ describe('Referral Service', () => {
 
   describe('getReferralUrl', () => {
     it('should generate URL with default base', () => {
+      const originalEnv = process.env.NEXT_PUBLIC_BASE_URL
+      delete process.env.NEXT_PUBLIC_BASE_URL
+
       const url = getReferralUrl('TEST1234')
 
       expect(url).toBe('https://destinypal.me/?ref=TEST1234')
+
+      process.env.NEXT_PUBLIC_BASE_URL = originalEnv
     })
 
     it('should use provided base URL', () => {
@@ -510,9 +540,9 @@ describe('Referral Service', () => {
         creditsAwarded: 5,
       }
 
-      ;(prisma.referralReward.findFirst as jest.Mock).mockResolvedValue(mockReward)
-      ;(prisma.referralReward.update as jest.Mock).mockResolvedValue({})
-      ;(addBonusCredits as jest.Mock).mockResolvedValue({})
+      ;(prisma.referralReward.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockReward)
+      ;(prisma.referralReward.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(addBonusCredits as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       const results = await Promise.all([
         claimReferralReward('user_123'),
@@ -542,9 +572,11 @@ describe('Referral Service', () => {
           readings: i % 2 === 0 ? [{ id: `r${i}` }] : [],
         }))
 
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ referralCode: 'LONG1234' })
-      ;(prisma.user.findMany as jest.Mock).mockResolvedValue(mockReferrals)
-      ;(prisma.referralReward.findMany as jest.Mock).mockResolvedValue([])
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        referralCode: 'LONG1234',
+      })
+      ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockReferrals)
+      ;(prisma.referralReward.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
 
       const stats = await getReferralStats('user_123')
 
@@ -559,16 +591,18 @@ describe('Referral Service', () => {
         referralCode: 'REF12345',
       }
 
-      ;(prisma.user.findFirst as jest.Mock).mockResolvedValue(mockReferrer)
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockReferrer)
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: 'referrer_123',
         email: 'not-an-email',
         name: 'Referrer',
       })
-      ;(prisma.user.update as jest.Mock).mockResolvedValue({})
-      ;(prisma.referralReward.create as jest.Mock).mockResolvedValue({})
-      ;(addBonusCredits as jest.Mock).mockResolvedValue({})
-      ;(sendReferralRewardEmail as jest.Mock).mockRejectedValue(new Error('Invalid email'))
+      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(prisma.referralReward.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(addBonusCredits as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(sendReferralRewardEmail as ReturnType<typeof vi.fn>).mockRejectedValue(
+        new Error('Invalid email')
+      )
 
       const result = await linkReferrer('new_user_123', 'REF12345')
 
@@ -576,7 +610,7 @@ describe('Referral Service', () => {
     })
 
     it('should prevent reward duplication', async () => {
-      ;(prisma.referralReward.findFirst as jest.Mock).mockResolvedValue(null)
+      ;(prisma.referralReward.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
 
       const result = await claimReferralReward('user_123')
 
@@ -588,12 +622,14 @@ describe('Referral Service', () => {
   describe('Integration Scenarios', () => {
     it('should handle complete referral flow', async () => {
       // 1. Get referrer code
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ referralCode: 'REF12345' })
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        referralCode: 'REF12345',
+      })
       const code = await getUserReferralCode('referrer_123')
       expect(code).toBe('REF12345')
 
       // 2. Validate code
-      ;(prisma.user.findFirst as jest.Mock).mockResolvedValue({
+      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: 'referrer_123',
         name: 'Referrer',
         referralCode: 'REF12345',
@@ -602,24 +638,24 @@ describe('Referral Service', () => {
       expect(referrer).toBeDefined()
 
       // 3. Link new user
-      ;(prisma.user.update as jest.Mock).mockResolvedValue({})
-      ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: 'referrer_123',
         email: 'ref@test.com',
         name: 'Referrer',
       })
-      ;(prisma.referralReward.create as jest.Mock).mockResolvedValue({})
-      ;(addBonusCredits as jest.Mock).mockResolvedValue({})
-      ;(sendReferralRewardEmail as jest.Mock).mockResolvedValue({})
+      ;(prisma.referralReward.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(addBonusCredits as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(sendReferralRewardEmail as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       const linkResult = await linkReferrer('new_user_123', 'REF12345')
       expect(linkResult.success).toBe(true)
 
       // 4. Check stats
-      ;(prisma.user.findMany as jest.Mock).mockResolvedValue([
+      ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
         { id: 'new_user_123', name: 'New User', createdAt: new Date(), readings: [] },
       ])
-      ;(prisma.referralReward.findMany as jest.Mock).mockResolvedValue([
+      ;(prisma.referralReward.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
         {
           id: 'r1',
           creditsAwarded: 3,

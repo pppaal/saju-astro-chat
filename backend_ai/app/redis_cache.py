@@ -235,7 +235,7 @@ class RedisCache:
             if len(self.memory_cache) >= 500:
                 # LRU eviction: remove oldest 100 entries
                 oldest_keys = sorted(
-                    self._memory_timestamps.keys(),
+                    self.memory_cache.keys(),
                     key=lambda k: self._memory_timestamps.get(k, 0)
                 )[:100]
                 for k in oldest_keys:

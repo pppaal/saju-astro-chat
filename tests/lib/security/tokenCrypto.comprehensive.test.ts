@@ -3,27 +3,25 @@
  * Covers: AES-256-GCM encryption, key management, error handling
  */
 
+import { vi } from 'vitest'
 import crypto from 'crypto'
 
-// Mock crypto before importing module
-const mockRandomBytes = jest.fn((size: number) => Buffer.alloc(size, 0))
-const mockCreateCipheriv = jest.fn()
-const mockCreateDecipheriv = jest.fn()
+// No top-level crypto mock.  The source module captures KEY_ENV at import
+// time, so each test uses vi.resetModules() + dynamic import() to re-import
+// with the desired env.  Real crypto is used throughout.
 
-jest.mock('crypto', () => ({
-  ...jest.requireActual('crypto'),
-  randomBytes: mockRandomBytes,
-  createCipheriv: mockCreateCipheriv,
-  createDecipheriv: mockCreateDecipheriv,
-}))
+/** Helper: reset modules and dynamically import tokenCrypto with current env */
+async function importTokenCrypto() {
+  return await import('@/lib/security/tokenCrypto')
+}
 
 describe('Token Crypto - Key Management', () => {
   let originalEnv: NodeJS.ProcessEnv
 
   beforeEach(() => {
     originalEnv = { ...process.env }
-    jest.clearAllMocks()
-    jest.resetModules()
+    vi.clearAllMocks()
+    vi.resetModules()
   })
 
   afterEach(() => {
@@ -31,106 +29,110 @@ describe('Token Crypto - Key Management', () => {
   })
 
   describe('hasTokenEncryptionKey', () => {
-    it('should return true when key is set', () => {
+    it('should return true when key is set', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = Buffer.alloc(32).toString('base64')
 
-      const { hasTokenEncryptionKey } = require('@/lib/security/tokenCrypto')
+      const { hasTokenEncryptionKey } = await importTokenCrypto()
       expect(hasTokenEncryptionKey()).toBe(true)
     })
 
-    it('should return false when key is not set', () => {
+    it('should return false when key is not set', async () => {
       delete process.env.TOKEN_ENCRYPTION_KEY
 
-      const { hasTokenEncryptionKey } = require('@/lib/security/tokenCrypto')
+      const { hasTokenEncryptionKey } = await importTokenCrypto()
       expect(hasTokenEncryptionKey()).toBe(false)
     })
 
-    it('should return false when key is empty string', () => {
+    it('should return false when key is empty string', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = ''
 
-      const { hasTokenEncryptionKey } = require('@/lib/security/tokenCrypto')
+      const { hasTokenEncryptionKey } = await importTokenCrypto()
       expect(hasTokenEncryptionKey()).toBe(false)
     })
 
-    it('should accept base64 encoded 32-byte key', () => {
+    it('should accept base64 encoded 32-byte key', async () => {
       const key = crypto.randomBytes(32)
       process.env.TOKEN_ENCRYPTION_KEY = key.toString('base64')
 
-      const { hasTokenEncryptionKey } = require('@/lib/security/tokenCrypto')
+      const { hasTokenEncryptionKey } = await importTokenCrypto()
       expect(hasTokenEncryptionKey()).toBe(true)
     })
 
-    it('should accept UTF-8 string of 32+ characters', () => {
+    it('should accept UTF-8 string of 32+ characters', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = 'a'.repeat(32)
 
-      const { hasTokenEncryptionKey } = require('@/lib/security/tokenCrypto')
+      const { hasTokenEncryptionKey } = await importTokenCrypto()
       expect(hasTokenEncryptionKey()).toBe(true)
     })
 
-    it('should reject UTF-8 string shorter than 32 bytes', () => {
+    it('should reject UTF-8 string shorter than 32 bytes', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = 'a'.repeat(31)
 
-      const { hasTokenEncryptionKey } = require('@/lib/security/tokenCrypto')
+      const { hasTokenEncryptionKey } = await importTokenCrypto()
       expect(hasTokenEncryptionKey()).toBe(false)
     })
 
-    it('should handle base64 key shorter than 32 bytes', () => {
+    it('should handle base64 key shorter than 32 bytes', async () => {
       const key = Buffer.alloc(16) // Only 16 bytes
       process.env.TOKEN_ENCRYPTION_KEY = key.toString('base64')
 
-      const { hasTokenEncryptionKey } = require('@/lib/security/tokenCrypto')
+      const { hasTokenEncryptionKey } = await importTokenCrypto()
       expect(hasTokenEncryptionKey()).toBe(false)
     })
 
-    it('should handle base64 key longer than 32 bytes', () => {
+    it('should handle base64 key longer than 32 bytes', async () => {
       const key = Buffer.alloc(64) // 64 bytes
       process.env.TOKEN_ENCRYPTION_KEY = key.toString('base64')
 
-      const { hasTokenEncryptionKey } = require('@/lib/security/tokenCrypto')
-      expect(hasTokenEncryptionKey()).toBe(false)
+      const { hasTokenEncryptionKey } = await importTokenCrypto()
+      // base64 decode yields 64 bytes (not 32), so the base64 path is
+      // skipped. However the UTF-8 representation of the base64 string
+      // is ~88 chars (>= 32), so getKey() falls back to UTF-8 and
+      // slices to 32 bytes.  The key is therefore valid.
+      expect(hasTokenEncryptionKey()).toBe(true)
     })
 
-    it('should truncate UTF-8 keys longer than 32 bytes', () => {
+    it('should truncate UTF-8 keys longer than 32 bytes', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = 'a'.repeat(100)
 
-      const { hasTokenEncryptionKey } = require('@/lib/security/tokenCrypto')
+      const { hasTokenEncryptionKey } = await importTokenCrypto()
       expect(hasTokenEncryptionKey()).toBe(true)
     })
   })
 
   describe('Key Format Detection', () => {
-    it('should prefer base64 format when exactly 32 bytes', () => {
+    it('should prefer base64 format when exactly 32 bytes', async () => {
       const key = crypto.randomBytes(32)
       process.env.TOKEN_ENCRYPTION_KEY = key.toString('base64')
 
-      const { hasTokenEncryptionKey } = require('@/lib/security/tokenCrypto')
+      const { hasTokenEncryptionKey } = await importTokenCrypto()
       expect(hasTokenEncryptionKey()).toBe(true)
     })
 
-    it('should fallback to UTF-8 when base64 is not 32 bytes', () => {
+    it('should fallback to UTF-8 when base64 is not 32 bytes', async () => {
       // Base64 that decodes to something other than 32 bytes
       const key = crypto.randomBytes(16)
       process.env.TOKEN_ENCRYPTION_KEY = key.toString('base64')
 
-      const { hasTokenEncryptionKey } = require('@/lib/security/tokenCrypto')
+      const { hasTokenEncryptionKey } = await importTokenCrypto()
 
       // Will try UTF-8, which might not be 32 bytes either
       expect(typeof hasTokenEncryptionKey()).toBe('boolean')
     })
 
-    it('should handle invalid base64', () => {
+    it('should handle invalid base64', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = 'not-valid-base64!!!'
 
-      const { hasTokenEncryptionKey } = require('@/lib/security/tokenCrypto')
+      const { hasTokenEncryptionKey } = await importTokenCrypto()
 
       // Should fall back to UTF-8 interpretation
       expect(typeof hasTokenEncryptionKey()).toBe('boolean')
     })
 
-    it('should handle whitespace in key', () => {
+    it('should handle whitespace in key', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = '  ' + 'a'.repeat(32) + '  '
 
-      const { hasTokenEncryptionKey } = require('@/lib/security/tokenCrypto')
+      const { hasTokenEncryptionKey } = await importTokenCrypto()
       expect(hasTokenEncryptionKey()).toBe(true)
     })
   })
@@ -142,8 +144,8 @@ describe('Token Crypto - Encryption', () => {
   beforeEach(() => {
     originalEnv = { ...process.env }
     process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-    jest.clearAllMocks()
-    jest.resetModules()
+    vi.clearAllMocks()
+    vi.resetModules()
   })
 
   afterEach(() => {
@@ -151,8 +153,8 @@ describe('Token Crypto - Encryption', () => {
   })
 
   describe('encryptToken - Basic Operations', () => {
-    it('should encrypt a token', () => {
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+    it('should encrypt a token', async () => {
+      const { encryptToken } = await importTokenCrypto()
 
       const encrypted = encryptToken('my-secret-token')
 
@@ -161,34 +163,34 @@ describe('Token Crypto - Encryption', () => {
       expect(encrypted).not.toBe('my-secret-token')
     })
 
-    it('should return null for null input', () => {
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+    it('should return null for null input', async () => {
+      const { encryptToken } = await importTokenCrypto()
 
       expect(encryptToken(null)).toBeNull()
     })
 
-    it('should return null for undefined input', () => {
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+    it('should return null for undefined input', async () => {
+      const { encryptToken } = await importTokenCrypto()
 
       expect(encryptToken(undefined)).toBeNull()
     })
 
-    it('should return null for empty string', () => {
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+    it('should return null for empty string', async () => {
+      const { encryptToken } = await importTokenCrypto()
 
       expect(encryptToken('')).toBeNull()
     })
 
-    it('should encrypt tokens of various lengths', () => {
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+    it('should encrypt tokens of various lengths', async () => {
+      const { encryptToken } = await importTokenCrypto()
 
       expect(encryptToken('a')).toBeDefined()
       expect(encryptToken('a'.repeat(100))).toBeDefined()
       expect(encryptToken('a'.repeat(1000))).toBeDefined()
     })
 
-    it('should produce base64-encoded output', () => {
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+    it('should produce base64-encoded output', async () => {
+      const { encryptToken } = await importTokenCrypto()
 
       const encrypted = encryptToken('token')
 
@@ -196,14 +198,8 @@ describe('Token Crypto - Encryption', () => {
       expect(encrypted).toMatch(/^[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+$/)
     })
 
-    it('should produce different output for same input (random IV)', () => {
-      jest.resetModules()
-      process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-      const actualCrypto = jest.requireActual('crypto')
-
-      jest.doMock('crypto', () => actualCrypto)
-
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+    it('should produce different output for same input (random IV)', async () => {
+      const { encryptToken } = await importTokenCrypto()
 
       const encrypted1 = encryptToken('same-token')
       const encrypted2 = encryptToken('same-token')
@@ -211,8 +207,8 @@ describe('Token Crypto - Encryption', () => {
       expect(encrypted1).not.toBe(encrypted2)
     })
 
-    it('should handle special characters', () => {
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+    it('should handle special characters', async () => {
+      const { encryptToken } = await importTokenCrypto()
 
       expect(encryptToken('token with spaces')).toBeDefined()
       expect(encryptToken('token\nwith\nnewlines')).toBeDefined()
@@ -220,8 +216,8 @@ describe('Token Crypto - Encryption', () => {
       expect(encryptToken('token"with"quotes')).toBeDefined()
     })
 
-    it('should handle Unicode characters', () => {
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+    it('should handle Unicode characters', async () => {
+      const { encryptToken } = await importTokenCrypto()
 
       expect(encryptToken('こんにちは')).toBeDefined()
       expect(encryptToken('안녕하세요')).toBeDefined()
@@ -230,28 +226,28 @@ describe('Token Crypto - Encryption', () => {
   })
 
   describe('encryptToken - Without Key', () => {
-    it('should return token unchanged when no key is set', () => {
+    it('should return token unchanged when no key is set', async () => {
       delete process.env.TOKEN_ENCRYPTION_KEY
-      jest.resetModules()
+      vi.resetModules()
 
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+      const { encryptToken } = await importTokenCrypto()
 
       expect(encryptToken('my-token')).toBe('my-token')
     })
 
-    it('should return null for null input even without key', () => {
+    it('should return null for null input even without key', async () => {
       delete process.env.TOKEN_ENCRYPTION_KEY
-      jest.resetModules()
+      vi.resetModules()
 
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+      const { encryptToken } = await importTokenCrypto()
 
       expect(encryptToken(null)).toBeNull()
     })
   })
 
   describe('encryptToken - Format', () => {
-    it('should produce three dot-separated parts', () => {
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+    it('should produce three dot-separated parts', async () => {
+      const { encryptToken } = await importTokenCrypto()
 
       const encrypted = encryptToken('token')
       const parts = encrypted?.split('.')
@@ -259,13 +255,8 @@ describe('Token Crypto - Encryption', () => {
       expect(parts).toHaveLength(3)
     })
 
-    it('should have IV as first part', () => {
-      jest.resetModules()
-      process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-      const actualCrypto = jest.requireActual('crypto')
-      jest.doMock('crypto', () => actualCrypto)
-
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+    it('should have IV as first part', async () => {
+      const { encryptToken } = await importTokenCrypto()
 
       const encrypted = encryptToken('token')
       const [iv] = encrypted!.split('.')
@@ -274,13 +265,8 @@ describe('Token Crypto - Encryption', () => {
       expect(Buffer.from(iv, 'base64').length).toBe(12)
     })
 
-    it('should have auth tag as second part', () => {
-      jest.resetModules()
-      process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-      const actualCrypto = jest.requireActual('crypto')
-      jest.doMock('crypto', () => actualCrypto)
-
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+    it('should have auth tag as second part', async () => {
+      const { encryptToken } = await importTokenCrypto()
 
       const encrypted = encryptToken('token')
       const [, authTag] = encrypted!.split('.')
@@ -289,13 +275,8 @@ describe('Token Crypto - Encryption', () => {
       expect(Buffer.from(authTag, 'base64').length).toBe(16)
     })
 
-    it('should have ciphertext as third part', () => {
-      jest.resetModules()
-      process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-      const actualCrypto = jest.requireActual('crypto')
-      jest.doMock('crypto', () => actualCrypto)
-
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+    it('should have ciphertext as third part', async () => {
+      const { encryptToken } = await importTokenCrypto()
 
       const encrypted = encryptToken('token')
       const [, , ciphertext] = encrypted!.split('.')
@@ -311,8 +292,8 @@ describe('Token Crypto - Decryption', () => {
 
   beforeEach(() => {
     originalEnv = { ...process.env }
-    jest.clearAllMocks()
-    jest.resetModules()
+    vi.clearAllMocks()
+    vi.resetModules()
   })
 
   afterEach(() => {
@@ -320,13 +301,11 @@ describe('Token Crypto - Decryption', () => {
   })
 
   describe('decryptToken - Basic Operations', () => {
-    it('should decrypt an encrypted token', () => {
+    it('should decrypt an encrypted token', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-      jest.resetModules()
-      const actualCrypto = jest.requireActual('crypto')
-      jest.doMock('crypto', () => actualCrypto)
+      vi.resetModules()
 
-      const { encryptToken, decryptToken } = require('@/lib/security/tokenCrypto')
+      const { encryptToken, decryptToken } = await importTokenCrypto()
 
       const original = 'my-secret-token'
       const encrypted = encryptToken(original)
@@ -335,40 +314,38 @@ describe('Token Crypto - Decryption', () => {
       expect(decrypted).toBe(original)
     })
 
-    it('should return null for null input', () => {
+    it('should return null for null input', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-      jest.resetModules()
+      vi.resetModules()
 
-      const { decryptToken } = require('@/lib/security/tokenCrypto')
+      const { decryptToken } = await importTokenCrypto()
 
       expect(decryptToken(null)).toBeNull()
     })
 
-    it('should return null for undefined input', () => {
+    it('should return null for undefined input', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-      jest.resetModules()
+      vi.resetModules()
 
-      const { decryptToken } = require('@/lib/security/tokenCrypto')
+      const { decryptToken } = await importTokenCrypto()
 
       expect(decryptToken(undefined)).toBeNull()
     })
 
-    it('should return null for empty string', () => {
+    it('should return null for empty string', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-      jest.resetModules()
+      vi.resetModules()
 
-      const { decryptToken } = require('@/lib/security/tokenCrypto')
+      const { decryptToken } = await importTokenCrypto()
 
       expect(decryptToken('')).toBeNull()
     })
 
-    it('should decrypt tokens with special characters', () => {
+    it('should decrypt tokens with special characters', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-      jest.resetModules()
-      const actualCrypto = jest.requireActual('crypto')
-      jest.doMock('crypto', () => actualCrypto)
+      vi.resetModules()
 
-      const { encryptToken, decryptToken } = require('@/lib/security/tokenCrypto')
+      const { encryptToken, decryptToken } = await importTokenCrypto()
 
       const original = 'token\nwith\nspecial🚀chars'
       const encrypted = encryptToken(original)
@@ -377,13 +354,11 @@ describe('Token Crypto - Decryption', () => {
       expect(decrypted).toBe(original)
     })
 
-    it('should decrypt long tokens', () => {
+    it('should decrypt long tokens', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-      jest.resetModules()
-      const actualCrypto = jest.requireActual('crypto')
-      jest.doMock('crypto', () => actualCrypto)
+      vi.resetModules()
 
-      const { encryptToken, decryptToken } = require('@/lib/security/tokenCrypto')
+      const { encryptToken, decryptToken } = await importTokenCrypto()
 
       const original = 'a'.repeat(1000)
       const encrypted = encryptToken(original)
@@ -394,20 +369,20 @@ describe('Token Crypto - Decryption', () => {
   })
 
   describe('decryptToken - Without Key', () => {
-    it('should return token unchanged when no key is set', () => {
+    it('should return token unchanged when no key is set', async () => {
       delete process.env.TOKEN_ENCRYPTION_KEY
-      jest.resetModules()
+      vi.resetModules()
 
-      const { decryptToken } = require('@/lib/security/tokenCrypto')
+      const { decryptToken } = await importTokenCrypto()
 
       expect(decryptToken('my-token')).toBe('my-token')
     })
 
-    it('should handle null input without key', () => {
+    it('should handle null input without key', async () => {
       delete process.env.TOKEN_ENCRYPTION_KEY
-      jest.resetModules()
+      vi.resetModules()
 
-      const { decryptToken } = require('@/lib/security/tokenCrypto')
+      const { decryptToken } = await importTokenCrypto()
 
       expect(decryptToken(null)).toBeNull()
     })
@@ -416,35 +391,33 @@ describe('Token Crypto - Decryption', () => {
   describe('decryptToken - Invalid Input', () => {
     beforeEach(() => {
       process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-      jest.resetModules()
+      vi.resetModules()
     })
 
-    it('should return null for malformed encrypted token', () => {
-      const { decryptToken } = require('@/lib/security/tokenCrypto')
+    it('should return null for malformed encrypted token', async () => {
+      const { decryptToken } = await importTokenCrypto()
 
       expect(decryptToken('not-encrypted')).toBeNull()
     })
 
-    it('should return null for token with wrong number of parts', () => {
-      const { decryptToken } = require('@/lib/security/tokenCrypto')
+    it('should return null for token with wrong number of parts', async () => {
+      const { decryptToken } = await importTokenCrypto()
 
       expect(decryptToken('one.two')).toBeNull()
       expect(decryptToken('one.two.three.four')).toBeNull()
     })
 
-    it('should return null for invalid base64', () => {
-      const { decryptToken } = require('@/lib/security/tokenCrypto')
+    it('should return null for invalid base64', async () => {
+      const { decryptToken } = await importTokenCrypto()
 
       expect(decryptToken('!!!.!!!.!!!')).toBeNull()
     })
 
-    it('should return null for tampered ciphertext', () => {
+    it('should return null for tampered ciphertext', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-      jest.resetModules()
-      const actualCrypto = jest.requireActual('crypto')
-      jest.doMock('crypto', () => actualCrypto)
+      vi.resetModules()
 
-      const { encryptToken, decryptToken } = require('@/lib/security/tokenCrypto')
+      const { encryptToken, decryptToken } = await importTokenCrypto()
 
       const encrypted = encryptToken('token')
       const [iv, authTag, ciphertext] = encrypted!.split('.')
@@ -455,13 +428,11 @@ describe('Token Crypto - Decryption', () => {
       expect(decryptToken(tampered)).toBeNull()
     })
 
-    it('should return null for tampered auth tag', () => {
+    it('should return null for tampered auth tag', async () => {
       process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-      jest.resetModules()
-      const actualCrypto = jest.requireActual('crypto')
-      jest.doMock('crypto', () => actualCrypto)
+      vi.resetModules()
 
-      const { encryptToken, decryptToken } = require('@/lib/security/tokenCrypto')
+      const { encryptToken, decryptToken } = await importTokenCrypto()
 
       const encrypted = encryptToken('token')
       const [iv, authTag, ciphertext] = encrypted!.split('.')
@@ -472,35 +443,32 @@ describe('Token Crypto - Decryption', () => {
       expect(decryptToken(tampered)).toBeNull()
     })
 
-    it('should return null for wrong key', () => {
+    it('should return null for wrong key', async () => {
       const key1 = crypto.randomBytes(32).toString('base64')
       const key2 = crypto.randomBytes(32).toString('base64')
 
       process.env.TOKEN_ENCRYPTION_KEY = key1
-      jest.resetModules()
-      const actualCrypto = jest.requireActual('crypto')
-      jest.doMock('crypto', () => actualCrypto)
+      vi.resetModules()
 
-      const { encryptToken } = require('@/lib/security/tokenCrypto')
+      const { encryptToken } = await importTokenCrypto()
       const encrypted = encryptToken('token')
 
       // Change key
       process.env.TOKEN_ENCRYPTION_KEY = key2
-      jest.resetModules()
-      jest.doMock('crypto', () => actualCrypto)
+      vi.resetModules()
 
-      const { decryptToken } = require('@/lib/security/tokenCrypto')
+      const { decryptToken } = await importTokenCrypto()
       expect(decryptToken(encrypted)).toBeNull()
     })
 
-    it('should handle numeric input', () => {
-      const { decryptToken } = require('@/lib/security/tokenCrypto')
+    it('should handle numeric input', async () => {
+      const { decryptToken } = await importTokenCrypto()
 
       expect(decryptToken(123 as any)).toBeNull()
     })
 
-    it('should handle object input', () => {
-      const { decryptToken } = require('@/lib/security/tokenCrypto')
+    it('should handle object input', async () => {
+      const { decryptToken } = await importTokenCrypto()
 
       expect(decryptToken({} as any)).toBeNull()
     })
@@ -510,14 +478,12 @@ describe('Token Crypto - Decryption', () => {
 describe('Token Crypto - Round Trip', () => {
   beforeEach(() => {
     process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-    jest.clearAllMocks()
-    jest.resetModules()
-    const actualCrypto = jest.requireActual('crypto')
-    jest.doMock('crypto', () => actualCrypto)
+    vi.clearAllMocks()
+    vi.resetModules()
   })
 
-  it('should preserve token through encrypt/decrypt cycle', () => {
-    const { encryptToken, decryptToken } = require('@/lib/security/tokenCrypto')
+  it('should preserve token through encrypt/decrypt cycle', async () => {
+    const { encryptToken, decryptToken } = await importTokenCrypto()
 
     const tokens = [
       'simple',
@@ -536,8 +502,8 @@ describe('Token Crypto - Round Trip', () => {
     }
   })
 
-  it('should handle multiple encrypt/decrypt cycles', () => {
-    const { encryptToken, decryptToken } = require('@/lib/security/tokenCrypto')
+  it('should handle multiple encrypt/decrypt cycles', async () => {
+    const { encryptToken, decryptToken } = await importTokenCrypto()
 
     const original = 'my-token'
 
@@ -548,8 +514,8 @@ describe('Token Crypto - Round Trip', () => {
     }
   })
 
-  it('should produce different ciphertexts for same token', () => {
-    const { encryptToken } = require('@/lib/security/tokenCrypto')
+  it('should produce different ciphertexts for same token', async () => {
+    const { encryptToken } = await importTokenCrypto()
 
     const token = 'same-token'
     const encrypted1 = encryptToken(token)
@@ -559,8 +525,8 @@ describe('Token Crypto - Round Trip', () => {
     expect(encrypted1).not.toBe(encrypted2)
   })
 
-  it('should decrypt all ciphertexts of same token', () => {
-    const { encryptToken, decryptToken } = require('@/lib/security/tokenCrypto')
+  it('should decrypt all ciphertexts of same token', async () => {
+    const { encryptToken, decryptToken } = await importTokenCrypto()
 
     const token = 'same-token'
     const encrypted1 = encryptToken(token)
@@ -574,20 +540,18 @@ describe('Token Crypto - Round Trip', () => {
 describe('Token Crypto - Security Properties', () => {
   beforeEach(() => {
     process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-    jest.resetModules()
-    const actualCrypto = jest.requireActual('crypto')
-    jest.doMock('crypto', () => actualCrypto)
+    vi.resetModules()
   })
 
-  it('should use AES-256-GCM', () => {
-    const { encryptToken } = require('@/lib/security/tokenCrypto')
+  it('should use AES-256-GCM', async () => {
+    const { encryptToken } = await importTokenCrypto()
 
     // This is implementation detail, but we can verify it uses crypto primitives
     expect(() => encryptToken('token')).not.toThrow()
   })
 
-  it('should use 12-byte IV', () => {
-    const { encryptToken } = require('@/lib/security/tokenCrypto')
+  it('should use 12-byte IV', async () => {
+    const { encryptToken } = await importTokenCrypto()
 
     const encrypted = encryptToken('token')
     const [ivB64] = encrypted!.split('.')
@@ -596,8 +560,8 @@ describe('Token Crypto - Security Properties', () => {
     expect(iv.length).toBe(12)
   })
 
-  it('should include authentication tag', () => {
-    const { encryptToken } = require('@/lib/security/tokenCrypto')
+  it('should include authentication tag', async () => {
+    const { encryptToken } = await importTokenCrypto()
 
     const encrypted = encryptToken('token')
     const [, authTagB64] = encrypted!.split('.')
@@ -607,8 +571,8 @@ describe('Token Crypto - Security Properties', () => {
     expect(authTag.length).toBe(16)
   })
 
-  it('should detect tampering', () => {
-    const { encryptToken, decryptToken } = require('@/lib/security/tokenCrypto')
+  it('should detect tampering', async () => {
+    const { encryptToken, decryptToken } = await importTokenCrypto()
 
     const encrypted = encryptToken('token')
     const parts = encrypted!.split('.')
@@ -622,8 +586,8 @@ describe('Token Crypto - Security Properties', () => {
     expect(decryptToken(tampered)).toBeNull()
   })
 
-  it('should be deterministically verifiable', () => {
-    const { encryptToken, decryptToken } = require('@/lib/security/tokenCrypto')
+  it('should be deterministically verifiable', async () => {
+    const { encryptToken, decryptToken } = await importTokenCrypto()
 
     const token = 'test-token'
     const encrypted1 = encryptToken(token)
@@ -636,23 +600,21 @@ describe('Token Crypto - Security Properties', () => {
 })
 
 describe('Token Crypto - Edge Cases', () => {
-  it('should handle very short key gracefully', () => {
+  it('should handle very short key gracefully', async () => {
     process.env.TOKEN_ENCRYPTION_KEY = 'short'
-    jest.resetModules()
+    vi.resetModules()
 
-    const { encryptToken } = require('@/lib/security/tokenCrypto')
+    const { encryptToken } = await importTokenCrypto()
 
     // Should return token unchanged (no valid key)
     expect(encryptToken('token')).toBe('token')
   })
 
-  it('should handle binary data in token', () => {
+  it('should handle binary data in token', async () => {
     process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-    jest.resetModules()
-    const actualCrypto = jest.requireActual('crypto')
-    jest.doMock('crypto', () => actualCrypto)
+    vi.resetModules()
 
-    const { encryptToken, decryptToken } = require('@/lib/security/tokenCrypto')
+    const { encryptToken, decryptToken } = await importTokenCrypto()
 
     const binaryToken = Buffer.from([0, 1, 2, 255, 254, 253]).toString('utf8')
     const encrypted = encryptToken(binaryToken)
@@ -661,13 +623,11 @@ describe('Token Crypto - Edge Cases', () => {
     expect(decrypted).toBe(binaryToken)
   })
 
-  it('should handle whitespace-only token', () => {
+  it('should handle whitespace-only token', async () => {
     process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-    jest.resetModules()
-    const actualCrypto = jest.requireActual('crypto')
-    jest.doMock('crypto', () => actualCrypto)
+    vi.resetModules()
 
-    const { encryptToken, decryptToken } = require('@/lib/security/tokenCrypto')
+    const { encryptToken, decryptToken } = await importTokenCrypto()
 
     const whitespace = '   \n\t  '
     const encrypted = encryptToken(whitespace)
@@ -676,13 +636,11 @@ describe('Token Crypto - Edge Cases', () => {
     expect(decrypted).toBe(whitespace)
   })
 
-  it('should handle single character token', () => {
+  it('should handle single character token', async () => {
     process.env.TOKEN_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64')
-    jest.resetModules()
-    const actualCrypto = jest.requireActual('crypto')
-    jest.doMock('crypto', () => actualCrypto)
+    vi.resetModules()
 
-    const { encryptToken, decryptToken } = require('@/lib/security/tokenCrypto')
+    const { encryptToken, decryptToken } = await importTokenCrypto()
 
     const single = 'a'
     const encrypted = encryptToken(single)

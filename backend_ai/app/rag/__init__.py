@@ -90,6 +90,62 @@ except ImportError:
     HierarchicalSummarizer = None
     get_hierarchical_summarizer = None
 
+# CrossEncoder Re-ranker - optional, loaded when USE_RERANKER=1
+try:
+    from .reranker import (
+        CrossEncoderReranker,
+        get_reranker,
+        USE_RERANKER,
+    )
+except ImportError:
+    CrossEncoderReranker = None
+    get_reranker = None
+    USE_RERANKER = False
+
+# HyDE (Hypothetical Document Embeddings) - optional, loaded when USE_HYDE=1
+try:
+    from .hyde import (
+        HyDEGenerator,
+        get_hyde_generator,
+        USE_HYDE,
+    )
+except ImportError:
+    HyDEGenerator = None
+    get_hyde_generator = None
+    USE_HYDE = False
+
+# Semantic Chunker - optional
+try:
+    from .semantic_chunker import (
+        SemanticChunker,
+        ChunkConfig,
+        TextChunk,
+        get_semantic_chunker,
+        split_sentences,
+    )
+except ImportError:
+    SemanticChunker = None
+    ChunkConfig = None
+    TextChunk = None
+    get_semantic_chunker = None
+    split_sentences = None
+
+# Tracing / Observability - optional, loaded when USE_TRACING=1
+try:
+    from .tracing import (
+        RAGTraceEvent,
+        RAGTrace,
+        RAGTracer,
+        get_rag_tracer,
+        USE_TRACING,
+    )
+except ImportError:
+    RAGTraceEvent = None
+    RAGTrace = None
+    RAGTracer = None
+    get_rag_tracer = None
+    USE_TRACING = False
+
 __all__ = [
     # Types
     "RAGResult",
@@ -125,4 +181,24 @@ __all__ = [
     "CommunitySummary",
     "HierarchicalSummarizer",
     "get_hierarchical_summarizer",
+    # Re-ranker (optional)
+    "CrossEncoderReranker",
+    "get_reranker",
+    "USE_RERANKER",
+    # HyDE (optional)
+    "HyDEGenerator",
+    "get_hyde_generator",
+    "USE_HYDE",
+    # Semantic Chunker (optional)
+    "SemanticChunker",
+    "ChunkConfig",
+    "TextChunk",
+    "get_semantic_chunker",
+    "split_sentences",
+    # Tracing (optional)
+    "RAGTraceEvent",
+    "RAGTrace",
+    "RAGTracer",
+    "get_rag_tracer",
+    "USE_TRACING",
 ]

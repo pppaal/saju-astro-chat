@@ -48,4 +48,11 @@ if (result.error) {
   process.exit(1);
 }
 
-process.exit(typeof result.status === 'number' ? result.status : 1);
+// ZAP exit codes: 0 = pass, 1 = fail (errors found), 2 = warnings only
+// Treat exit code 2 (warnings only, no failures) as success
+const exitCode = typeof result.status === 'number' ? result.status : 1;
+if (exitCode === 2) {
+  console.log('ZAP baseline completed with warnings (no failures). Treating as success.');
+  process.exit(0);
+}
+process.exit(exitCode);

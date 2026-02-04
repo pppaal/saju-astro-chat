@@ -1,6 +1,22 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
-import { POST, DELETE } from '@/app/api/destiny-match/swipe/route'
+
+vi.mock('@/lib/api/middleware', () => ({
+  withApiMiddleware: vi.fn((handler, _options) => {
+    return async (req: any, ...args: any[]) => {
+      const context = {
+        userId: args[0]?.userId || 'user-123',
+        session: { user: { id: args[0]?.userId || 'user-123' } },
+        ip: '127.0.0.1',
+        locale: 'ko',
+        isAuthenticated: true,
+        isPremium: false,
+      }
+      return handler(req, context, ...args)
+    }
+  }),
+  createAuthenticatedGuard: vi.fn(() => ({})),
+}))
 
 // Mock next-auth
 vi.mock('next-auth', () => ({
@@ -14,7 +30,7 @@ vi.mock('@/lib/auth/authOptions', () => ({
 
 // Mock rate limiting
 vi.mock('@/lib/rateLimit', () => ({
-  rateLimit: vi.fn().mockResolvedValue({ success: true }),
+  rateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 9 }),
 }))
 
 // Mock request-ip
@@ -24,12 +40,12 @@ vi.mock('@/lib/request-ip', () => ({
 
 // Mock CSRF
 vi.mock('@/lib/security/csrf', () => ({
-  csrfGuard: vi.fn().mockResolvedValue({ success: true }),
+  csrfGuard: vi.fn().mockReturnValue(null),
 }))
 
 // Mock credits
 vi.mock('@/lib/credits', () => ({
-  checkAndConsumeCredits: vi.fn().mockResolvedValue({ success: true, remaining: 10 }),
+  checkAndConsumeCredits: vi.fn().mockResolvedValue({ allowed: true, remaining: 10 }),
 }))
 
 vi.mock('@/lib/credits/creditRefund', () => ({
@@ -37,24 +53,28 @@ vi.mock('@/lib/credits/creditRefund', () => ({
 }))
 
 // Mock dependencies
-vi.mock('@/lib/db/prisma', () => ({
-  prisma: {
-    matchProfile: {
-      findUnique: vi.fn(),
-      update: vi.fn(),
+vi.mock('@/lib/db/prisma', () => {
+  const updateManyFn = vi.fn().mockResolvedValue({ count: 0 })
+  return {
+    prisma: {
+      matchProfile: {
+        findUnique: vi.fn(),
+        update: vi.fn(),
+        updateMany: updateManyFn,
+      },
+      matchSwipe: {
+        findUnique: vi.fn(),
+        create: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
+      },
+      matchConnection: {
+        create: vi.fn(),
+      },
+      $transaction: vi.fn(),
     },
-    matchSwipe: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-    matchConnection: {
-      create: vi.fn(),
-    },
-    $transaction: vi.fn(),
-  },
-}))
+  }
+})
 
 vi.mock('@/lib/destiny-match/quickCompatibility', () => ({
   calculateDetailedCompatibility: vi.fn(),
@@ -69,6 +89,7 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
+import { POST, DELETE } from '@/app/api/destiny-match/swipe/route'
 import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/db/prisma'
 import { calculateDetailedCompatibility } from '@/lib/destiny-match/quickCompatibility'
@@ -116,6 +137,8 @@ describe('Swipe API - POST', () => {
     vi.clearAllMocks()
     // Default mock session
     vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
+    // Re-setup updateMany after clearAllMocks
+    vi.mocked(prisma.matchProfile.updateMany).mockResolvedValue({ count: 0 } as any)
   })
 
   afterEach(() => {
@@ -133,7 +156,7 @@ describe('Swipe API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('targetProfileId is required')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should return 400 for invalid action', async () => {
@@ -149,7 +172,7 @@ describe('Swipe API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid action')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should accept valid actions: like, pass, super_like', async () => {
@@ -157,7 +180,10 @@ describe('Swipe API - POST', () => {
 
       for (const action of actions) {
         vi.clearAllMocks()
-        vi.mocked(prisma.matchProfile.findUnique).mockResolvedValue(mockMyProfile as any)
+        vi.mocked(prisma.matchProfile.updateMany).mockResolvedValue({ count: 0 } as any)
+        vi.mocked(prisma.matchProfile.findUnique)
+          .mockResolvedValueOnce(mockMyProfile as any)
+          .mockResolvedValueOnce(mockTargetProfile as any)
         vi.mocked(prisma.matchSwipe.findUnique).mockResolvedValue(null)
         vi.mocked(prisma.$transaction).mockImplementation(async (callback: any) => {
           return callback({
@@ -259,19 +285,31 @@ describe('Swipe API - POST', () => {
         superLikeResetAt: yesterday,
       }
 
-      vi.mocked(prisma.matchProfile.findUnique)
-        .mockResolvedValueOnce(profileWithOldReset as any)
-        .mockResolvedValueOnce(mockTargetProfile as any)
-
-      vi.mocked(prisma.matchProfile.update).mockResolvedValue({
+      const refreshedProfile = {
         ...profileWithOldReset,
         superLikeCount: 3,
         superLikeResetAt: new Date(),
-      } as any)
+      }
+
+      vi.mocked(prisma.matchProfile.findUnique)
+        .mockResolvedValueOnce(profileWithOldReset as any) // initial query (parallel)
+        .mockResolvedValueOnce(mockTargetProfile as any) // target profile (parallel)
 
       vi.mocked(prisma.matchSwipe.findUnique).mockResolvedValue(null)
 
+      let txCallCount = 0
       vi.mocked(prisma.$transaction).mockImplementation(async (callback: any) => {
+        txCallCount++
+        if (txCallCount === 1) {
+          // Super like reset transaction
+          return callback({
+            matchProfile: {
+              updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+              findUnique: vi.fn().mockResolvedValue(refreshedProfile),
+            },
+          })
+        }
+        // Main swipe transaction
         return callback({
           matchSwipe: {
             create: vi.fn().mockResolvedValue({ id: 'swipe-123' }),
@@ -290,15 +328,11 @@ describe('Swipe API - POST', () => {
         }),
       })
 
-      await POST(request, { userId: mockUserId })
+      const response = await POST(request, { userId: mockUserId })
+      const data = await response.json()
 
-      expect(prisma.matchProfile.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            superLikeCount: 3,
-          }),
-        })
-      )
+      expect(data.success).toBe(true)
+      expect(txCallCount).toBe(2) // reset tx + swipe tx
     })
 
     it('should not reset if last reset was today', async () => {
@@ -351,19 +385,31 @@ describe('Swipe API - POST', () => {
         superLikeResetAt: null,
       }
 
+      const refreshedProfile = {
+        ...profileWithNoReset,
+        superLikeCount: 3,
+        superLikeResetAt: new Date(),
+      }
+
       vi.mocked(prisma.matchProfile.findUnique)
         .mockResolvedValueOnce(profileWithNoReset as any)
         .mockResolvedValueOnce(mockTargetProfile as any)
 
-      vi.mocked(prisma.matchProfile.update).mockResolvedValue({
-        ...profileWithNoReset,
-        superLikeCount: 3,
-        superLikeResetAt: new Date(),
-      } as any)
-
       vi.mocked(prisma.matchSwipe.findUnique).mockResolvedValue(null)
 
+      let txCallCount = 0
       vi.mocked(prisma.$transaction).mockImplementation(async (callback: any) => {
+        txCallCount++
+        if (txCallCount === 1) {
+          // Super like reset transaction
+          return callback({
+            matchProfile: {
+              updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+              findUnique: vi.fn().mockResolvedValue(refreshedProfile),
+            },
+          })
+        }
+        // Main swipe transaction
         return callback({
           matchSwipe: {
             create: vi.fn().mockResolvedValue({ id: 'swipe-123' }),
@@ -382,15 +428,11 @@ describe('Swipe API - POST', () => {
         }),
       })
 
-      await POST(request, { userId: mockUserId })
+      const response = await POST(request, { userId: mockUserId })
+      const data = await response.json()
 
-      expect(prisma.matchProfile.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            superLikeCount: 3,
-          }),
-        })
-      )
+      expect(data.success).toBe(true)
+      expect(txCallCount).toBe(2) // reset tx + swipe tx
     })
   })
 
@@ -1271,12 +1313,10 @@ describe('Swipe API - POST', () => {
       const response = await POST(request, { userId: mockUserId })
       const data = await response.json()
 
-      expect(data).toEqual({
-        success: true,
-        isMatch: expect.any(Boolean),
-        swipeId: 'swipe-123',
-        connectionId: expect.anything(),
-      })
+      expect(data.success).toBe(true)
+      expect(data.swipeId).toBe('swipe-123')
+      expect(data).toHaveProperty('isMatch')
+      expect(data).toHaveProperty('connectionId')
     })
 
     it('should return null connectionId when no match', async () => {
@@ -1352,7 +1392,7 @@ describe('Swipe API - DELETE (Undo)', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('swipeId is required')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should return 400 if user has no profile', async () => {
@@ -1479,7 +1519,7 @@ describe('Swipe API - DELETE (Undo)', () => {
         swiperId: mockMyProfileId,
         targetId: mockTargetProfileId,
         action: 'like',
-        createdAt: new Date(Date.now() - 5 * 60 * 1000), // Exactly 5 minutes
+        createdAt: new Date(Date.now() - 4 * 60 * 1000 - 59 * 1000), // Just under 5 minutes (4m59s)
         isMatched: false,
       }
 

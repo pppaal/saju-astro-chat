@@ -3,7 +3,9 @@
  * Tests deduction, refund, balance checking, plan upgrades, and bonus credit expiration
  */
 
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { prisma } from '@/lib/db/prisma'
+import { PLAN_CONFIG } from '@/lib/config/pricing'
 import {
   initializeUserCredits,
   getUserCredits,
@@ -20,24 +22,24 @@ import {
 } from '@/lib/credits/creditService'
 
 // Mock Prisma
-jest.mock('@/lib/db/prisma', () => ({
+vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     userCredits: {
-      create: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      findMany: jest.fn(),
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      findMany: vi.fn(),
     },
     bonusCreditPurchase: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      update: jest.fn(),
-      updateMany: jest.fn(),
+      create: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
     },
     subscription: {
-      findFirst: jest.fn(),
+      findFirst: vi.fn(),
     },
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
   },
 }))
 
@@ -46,26 +48,27 @@ describe('Credit Service', () => {
   const mockNow = new Date('2024-01-15T10:00:00Z')
 
   beforeEach(() => {
-    jest.clearAllMocks()
-    jest.useFakeTimers()
-    jest.setSystemTime(mockNow)
+    vi.clearAllMocks()
+    vi.useFakeTimers()
+    vi.setSystemTime(mockNow)
   })
 
   afterEach(() => {
-    jest.useRealTimers()
+    vi.useRealTimers()
   })
 
   describe('initializeUserCredits', () => {
     it('should create free plan credits for new user', async () => {
+      const freeConfig = PLAN_CONFIG.free
       const mockCredits = {
         userId: mockUserId,
         plan: 'free',
-        monthlyCredits: 3,
+        monthlyCredits: freeConfig.monthlyCredits,
         usedCredits: 0,
         bonusCredits: 0,
       }
 
-      ;(prisma.userCredits.create as jest.Mock).mockResolvedValue(mockCredits)
+      ;(prisma.userCredits.create as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
       const result = await initializeUserCredits(mockUserId, 'free')
 
@@ -75,7 +78,7 @@ describe('Credit Service', () => {
           data: expect.objectContaining({
             userId: mockUserId,
             plan: 'free',
-            monthlyCredits: 3,
+            monthlyCredits: freeConfig.monthlyCredits,
             usedCredits: 0,
             bonusCredits: 0,
           }),
@@ -84,14 +87,15 @@ describe('Credit Service', () => {
     })
 
     it('should create pro plan credits', async () => {
+      const proConfig = PLAN_CONFIG.pro
       const mockCredits = {
         userId: mockUserId,
         plan: 'pro',
-        monthlyCredits: 30,
+        monthlyCredits: proConfig.monthlyCredits,
         usedCredits: 0,
       }
 
-      ;(prisma.userCredits.create as jest.Mock).mockResolvedValue(mockCredits)
+      ;(prisma.userCredits.create as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
       await initializeUserCredits(mockUserId, 'pro')
 
@@ -99,18 +103,18 @@ describe('Credit Service', () => {
         expect.objectContaining({
           data: expect.objectContaining({
             plan: 'pro',
-            monthlyCredits: 30,
+            monthlyCredits: proConfig.monthlyCredits,
           }),
         })
       )
     })
 
     it('should set period end to next month', async () => {
-      ;(prisma.userCredits.create as jest.Mock).mockResolvedValue({})
+      ;(prisma.userCredits.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       await initializeUserCredits(mockUserId)
 
-      const callArgs = (prisma.userCredits.create as jest.Mock).mock.calls[0][0]
+      const callArgs = (prisma.userCredits.create as ReturnType<typeof vi.fn>).mock.calls[0][0]
       const periodEnd = callArgs.data.periodEnd
 
       // Should be Feb 1, 2024
@@ -124,12 +128,12 @@ describe('Credit Service', () => {
       const mockCredits = {
         userId: mockUserId,
         plan: 'free',
-        monthlyCredits: 3,
+        monthlyCredits: PLAN_CONFIG.free.monthlyCredits,
         usedCredits: 1,
         periodEnd: new Date('2024-02-01'),
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockCredits)
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
       const result = await getUserCredits(mockUserId)
 
@@ -137,8 +141,8 @@ describe('Credit Service', () => {
     })
 
     it('should create credits if not found', async () => {
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(null)
-      ;(prisma.userCredits.create as jest.Mock).mockResolvedValue({ plan: 'free' })
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+      ;(prisma.userCredits.create as ReturnType<typeof vi.fn>).mockResolvedValue({ plan: 'free' })
 
       await getUserCredits(mockUserId)
 
@@ -152,9 +156,9 @@ describe('Credit Service', () => {
         periodEnd: new Date('2024-01-10'), // Expired
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(expiredCredits)
-      ;(prisma.subscription.findFirst as jest.Mock).mockResolvedValue(null)
-      ;(prisma.userCredits.update as jest.Mock).mockResolvedValue({ plan: 'free' })
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(expiredCredits)
+      ;(prisma.subscription.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+      ;(prisma.userCredits.update as ReturnType<typeof vi.fn>).mockResolvedValue({ plan: 'free' })
 
       await getUserCredits(mockUserId)
 
@@ -178,7 +182,7 @@ describe('Credit Service', () => {
         periodEnd: new Date('2024-02-01'),
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockCredits)
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
       const balance = await getCreditBalance(mockUserId)
 
@@ -202,7 +206,7 @@ describe('Credit Service', () => {
         periodEnd: new Date('2024-02-01'),
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockCredits)
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
       const balance = await getCreditBalance(mockUserId)
 
@@ -226,7 +230,7 @@ describe('Credit Service', () => {
         periodEnd: new Date('2024-02-01'),
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockCredits)
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
       const balance = await getCreditBalance(mockUserId)
 
@@ -250,7 +254,7 @@ describe('Credit Service', () => {
         periodEnd: new Date('2024-02-01'),
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockCredits)
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
       const result = await canUseCredits(mockUserId, 'reading', 3)
 
@@ -273,7 +277,7 @@ describe('Credit Service', () => {
         periodEnd: new Date('2024-02-01'),
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockCredits)
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
       const result = await canUseCredits(mockUserId, 'reading', 5)
 
@@ -296,7 +300,7 @@ describe('Credit Service', () => {
         periodEnd: new Date('2024-02-01'),
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockCredits)
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
       const result = await canUseCredits(mockUserId, 'compatibility', 1)
 
@@ -319,7 +323,7 @@ describe('Credit Service', () => {
         periodEnd: new Date('2024-02-01'),
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockCredits)
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
       const result = await canUseCredits(mockUserId, 'compatibility', 1)
 
@@ -342,7 +346,7 @@ describe('Credit Service', () => {
         periodEnd: new Date('2024-02-01'),
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockCredits)
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
       const result = await canUseCredits(mockUserId, 'followUp', 2)
 
@@ -364,11 +368,11 @@ describe('Credit Service', () => {
         followUpLimit: 3,
       }
 
-      ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+      ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
         callback({
           userCredits: {
-            findUnique: jest.fn().mockResolvedValue(mockCredits),
-            update: jest.fn().mockResolvedValue({}),
+            findUnique: vi.fn().mockResolvedValue(mockCredits),
+            update: vi.fn().mockResolvedValue({}),
           },
         })
       )
@@ -395,15 +399,15 @@ describe('Credit Service', () => {
         { id: 'p2', remaining: 1, expiresAt: new Date('2024-05-01') },
       ]
 
-      ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+      ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
         callback({
           userCredits: {
-            findUnique: jest.fn().mockResolvedValue(mockCredits),
-            update: jest.fn().mockResolvedValue({}),
+            findUnique: vi.fn().mockResolvedValue(mockCredits),
+            update: vi.fn().mockResolvedValue({}),
           },
           bonusCreditPurchase: {
-            findMany: jest.fn().mockResolvedValue(mockPurchases),
-            update: jest.fn().mockResolvedValue({}),
+            findMany: vi.fn().mockResolvedValue(mockPurchases),
+            update: vi.fn().mockResolvedValue({}),
           },
         })
       )
@@ -425,10 +429,10 @@ describe('Credit Service', () => {
         followUpLimit: 3,
       }
 
-      ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
+      ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) => {
         const tx = {
           userCredits: {
-            findUnique: jest.fn().mockResolvedValue(mockCredits),
+            findUnique: vi.fn().mockResolvedValue(mockCredits),
           },
         }
         return callback(tx)
@@ -452,11 +456,11 @@ describe('Credit Service', () => {
         followUpLimit: 3,
       }
 
-      ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) =>
+      ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
         callback({
           userCredits: {
-            findUnique: jest.fn().mockResolvedValue(mockCredits),
-            update: jest.fn().mockResolvedValue({}),
+            findUnique: vi.fn().mockResolvedValue(mockCredits),
+            update: vi.fn().mockResolvedValue({}),
           },
         })
       )
@@ -479,11 +483,11 @@ describe('Credit Service', () => {
       }
 
       // Simulate concurrent requests
-      ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
+      ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) => {
         const tx = {
           userCredits: {
-            findUnique: jest.fn().mockResolvedValue(mockCredits),
-            update: jest.fn().mockResolvedValue({}),
+            findUnique: vi.fn().mockResolvedValue(mockCredits),
+            update: vi.fn().mockResolvedValue({}),
           },
         }
         return callback(tx)
@@ -501,12 +505,12 @@ describe('Credit Service', () => {
 
   describe('addBonusCredits', () => {
     it('should add bonus credits and create purchase record', async () => {
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue({
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         userId: mockUserId,
         plan: 'free',
       })
-      ;(prisma.bonusCreditPurchase.create as jest.Mock).mockResolvedValue({})
-      ;(prisma.userCredits.update as jest.Mock).mockResolvedValue({})
+      ;(prisma.bonusCreditPurchase.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(prisma.userCredits.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       await addBonusCredits(mockUserId, 10, 'purchase', 'stripe_pi_123')
 
@@ -533,16 +537,19 @@ describe('Credit Service', () => {
     })
 
     it('should set expiration to 3 months from now', async () => {
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue({ userId: mockUserId })
-      ;(prisma.bonusCreditPurchase.create as jest.Mock).mockResolvedValue({})
-      ;(prisma.userCredits.update as jest.Mock).mockResolvedValue({})
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: mockUserId,
+      })
+      ;(prisma.bonusCreditPurchase.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(prisma.userCredits.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       await addBonusCredits(mockUserId, 5, 'referral')
 
-      const callArgs = (prisma.bonusCreditPurchase.create as jest.Mock).mock.calls[0][0]
+      const callArgs = (prisma.bonusCreditPurchase.create as ReturnType<typeof vi.fn>).mock
+        .calls[0][0]
       const expiresAt = callArgs.data.expiresAt
 
-      expect(expiresAt.getMonth()).toBe(4) // April (3 months after Jan)
+      expect(expiresAt.getMonth()).toBe(3) // April (3 months after Jan, 0-indexed)
     })
   })
 
@@ -553,8 +560,10 @@ describe('Credit Service', () => {
         { id: 'p2', userId: 'user2', remaining: 3 },
       ]
 
-      ;(prisma.bonusCreditPurchase.findMany as jest.Mock).mockResolvedValue(mockExpiredPurchases)
-      ;(prisma.$transaction as jest.Mock).mockResolvedValue([{}, {}])
+      ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(
+        mockExpiredPurchases
+      )
+      ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockResolvedValue([{}, {}])
 
       const result = await expireBonusCredits()
 
@@ -568,10 +577,12 @@ describe('Credit Service', () => {
         { id: 'p2', userId: 'user2', remaining: 3 },
       ]
 
-      ;(prisma.bonusCreditPurchase.findMany as jest.Mock).mockResolvedValue(mockExpiredPurchases)
+      ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(
+        mockExpiredPurchases
+      )
 
       // Mock Promise.allSettled with one success, one failure
-      jest.spyOn(Promise, 'allSettled').mockResolvedValue([
+      vi.spyOn(Promise, 'allSettled').mockResolvedValue([
         { status: 'fulfilled', value: undefined },
         { status: 'rejected', reason: new Error('DB error') },
       ] as any)
@@ -591,8 +602,10 @@ describe('Credit Service', () => {
         usedCredits: 3,
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(existingCredits)
-      ;(prisma.userCredits.update as jest.Mock).mockResolvedValue({})
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(
+        existingCredits
+      )
+      ;(prisma.userCredits.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       await upgradePlan(mockUserId, 'pro')
 
@@ -600,7 +613,7 @@ describe('Credit Service', () => {
         expect.objectContaining({
           data: expect.objectContaining({
             plan: 'pro',
-            monthlyCredits: 30,
+            monthlyCredits: PLAN_CONFIG.pro.monthlyCredits,
             usedCredits: 0,
             compatibilityUsed: 0,
             followUpUsed: 0,
@@ -610,8 +623,8 @@ describe('Credit Service', () => {
     })
 
     it('should create credits if none exist', async () => {
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(null)
-      ;(prisma.userCredits.create as jest.Mock).mockResolvedValue({})
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+      ;(prisma.userCredits.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       await upgradePlan(mockUserId, 'pro')
 
@@ -627,9 +640,9 @@ describe('Credit Service', () => {
         usedCredits: 20,
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockCredits)
-      ;(prisma.subscription.findFirst as jest.Mock).mockResolvedValue(null)
-      ;(prisma.userCredits.update as jest.Mock).mockResolvedValue({})
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
+      ;(prisma.subscription.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+      ;(prisma.userCredits.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       await resetMonthlyCredits(mockUserId)
 
@@ -637,7 +650,7 @@ describe('Credit Service', () => {
         expect.objectContaining({
           data: expect.objectContaining({
             plan: 'free',
-            monthlyCredits: 3,
+            monthlyCredits: PLAN_CONFIG.free.monthlyCredits,
             usedCredits: 0,
           }),
         })
@@ -657,17 +670,22 @@ describe('Credit Service', () => {
         currentPeriodEnd: new Date('2024-02-01'),
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockCredits)
-      ;(prisma.subscription.findFirst as jest.Mock).mockResolvedValue(mockSubscription)
-      ;(prisma.userCredits.update as jest.Mock).mockResolvedValue({})
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
+      ;(prisma.subscription.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+        mockSubscription
+      )
+      ;(prisma.userCredits.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       await resetMonthlyCredits(mockUserId)
 
+      // When subscription is active, the plan is maintained (not changed)
+      // and credits are reset based on current plan config
+      const proConfig = PLAN_CONFIG.pro
       expect(prisma.userCredits.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            plan: undefined, // Should not change plan
             usedCredits: 0,
+            monthlyCredits: proConfig.monthlyCredits,
           }),
         })
       )
@@ -681,7 +699,7 @@ describe('Credit Service', () => {
         plan: 'free',
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockCredits)
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
       const result = await canUseFeature(mockUserId, 'priority')
 
@@ -704,7 +722,7 @@ describe('Credit Service', () => {
         periodEnd: new Date('2024-02-01'),
       }
 
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockCredits)
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
 
       const balance = await getCreditBalance(mockUserId)
 
@@ -712,9 +730,11 @@ describe('Credit Service', () => {
     })
 
     it('should handle very large bonus credits', async () => {
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue({ userId: mockUserId })
-      ;(prisma.bonusCreditPurchase.create as jest.Mock).mockResolvedValue({})
-      ;(prisma.userCredits.update as jest.Mock).mockResolvedValue({})
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: mockUserId,
+      })
+      ;(prisma.bonusCreditPurchase.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(prisma.userCredits.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       await addBonusCredits(mockUserId, 1000000, 'promotion')
 

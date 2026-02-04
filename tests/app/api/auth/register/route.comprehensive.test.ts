@@ -29,12 +29,22 @@ vi.mock('@/lib/logger', () => ({
     error: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),
+    debug: vi.fn(),
   },
 }))
 
 vi.mock('@/lib/security/errorSanitizer', () => ({
   sanitizeError: vi.fn((err) => ({ error: 'internal_error' })),
 }))
+
+vi.mock('@/lib/security/csrf', () => ({
+  csrfGuard: vi.fn().mockReturnValue(null),
+}))
+
+vi.mock('@/lib/api/zodValidation', async () => {
+  const actual = await vi.importActual('@/lib/api/zodValidation')
+  return actual
+})
 
 describe('/api/auth/register', () => {
   const mockRateLimitHeaders = {
@@ -211,7 +221,7 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('missing_fields')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should return error when password is missing', async () => {
@@ -227,7 +237,7 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('missing_fields')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should return error for invalid email format', async () => {
@@ -244,7 +254,7 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('invalid_email')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should return error for email too long', async () => {
@@ -263,7 +273,7 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('invalid_email')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should return error for password too short', async () => {
@@ -280,7 +290,7 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('invalid_password')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should return error for password too long', async () => {
@@ -299,18 +309,10 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('invalid_password')
+      expect(data.error).toBe('validation_failed')
     })
 
-    it('should trim email whitespace', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
-      vi.mocked(bcrypt.hash).mockResolvedValue('hashedPassword' as never)
-      vi.mocked(prisma.user.upsert).mockResolvedValue({
-        id: 'user-123',
-        email: 'test@example.com',
-        referralCode: 'REF123456',
-      } as any)
-
+    it('should reject email with leading/trailing whitespace (Zod validates before trim)', async () => {
       const req = new Request('http://localhost:3000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -320,11 +322,11 @@ describe('/api/auth/register', () => {
         }),
       })
 
-      await POST(req)
+      const response = await POST(req)
+      const data = await response.json()
 
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({
-        where: { email: 'test@example.com' },
-      })
+      expect(response.status).toBe(400)
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should trim name whitespace', async () => {
@@ -353,15 +355,7 @@ describe('/api/auth/register', () => {
       expect(upsertCall.create.name).toBe('Test User')
     })
 
-    it('should truncate name to max length', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
-      vi.mocked(bcrypt.hash).mockResolvedValue('hashedPassword' as never)
-      vi.mocked(prisma.user.upsert).mockResolvedValue({
-        id: 'user-123',
-        email: 'test@example.com',
-        referralCode: 'REF123456',
-      } as any)
-
+    it('should reject name exceeding max length', async () => {
       const longName = 'a'.repeat(200)
 
       const req = new Request('http://localhost:3000/api/auth/register', {
@@ -374,13 +368,14 @@ describe('/api/auth/register', () => {
         }),
       })
 
-      await POST(req)
+      const response = await POST(req)
+      const data = await response.json()
 
-      const upsertCall = vi.mocked(prisma.user.upsert).mock.calls[0][0]
-      expect(upsertCall.create.name?.length).toBeLessThanOrEqual(100)
+      expect(response.status).toBe(400)
+      expect(data.error).toBe('validation_failed')
     })
 
-    it('should trim and truncate referral code', async () => {
+    it('should trim referral code whitespace', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
       vi.mocked(bcrypt.hash).mockResolvedValue('hashedPassword' as never)
       vi.mocked(prisma.user.upsert).mockResolvedValue({

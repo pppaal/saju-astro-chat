@@ -23,6 +23,7 @@
     "test:fast": "vitest run --exclude tests/components/ui-components.test.tsx --exclude tests/lib/modules-smoke.test.ts --exclude tests/lib/services-integration.test.ts",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
+    "test:coverage:open": "vitest run --coverage && npx open-cli coverage/index.html",
     "test:a11y": "vitest run tests/a11y",
     "test:a11y:watch": "vitest watch tests/a11y",
     "test:e2e": "vitest run tests/e2e",

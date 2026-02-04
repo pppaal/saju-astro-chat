@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import path from 'path';
-import { existsSync, readFileSync } from 'fs';
+import { describe, it, expect } from 'vitest'
+import path from 'path'
+import { existsSync, readFileSync } from 'fs'
 
 const resolveModuleFile = (modulePath: string) => {
-  const basePath = path.join(process.cwd(), 'src', modulePath);
+  const basePath = path.join(process.cwd(), 'src', modulePath)
   const candidates = [
     `${basePath}.ts`,
     `${basePath}.tsx`,
@@ -13,32 +13,31 @@ const resolveModuleFile = (modulePath: string) => {
     path.join(basePath, 'index.tsx'),
     path.join(basePath, 'index.js'),
     path.join(basePath, 'index.jsx'),
-  ];
+  ]
 
   for (const candidate of candidates) {
     if (existsSync(candidate)) {
-      return candidate;
+      return candidate
     }
   }
 
-  return null;
-};
+  return null
+}
 
 const assertModules = (modulePaths: string[]) => {
   modulePaths.forEach((modulePath) => {
-    const filePath = resolveModuleFile(modulePath);
+    const filePath = resolveModuleFile(modulePath)
     if (!filePath) {
-      throw new Error(`Missing module file for ${modulePath}`);
+      throw new Error(`Missing module file for ${modulePath}`)
     }
 
-    const content = readFileSync(filePath, 'utf8');
-    expect(content).toMatch(/export\s+|module\.exports/);
-  });
-};
+    const content = readFileSync(filePath, 'utf8')
+    expect(content).toMatch(/export\s+|module\.exports/)
+  })
+}
 
 const serviceModules = [
   'lib/db/prisma',
-  'lib/redis-cache',
   'lib/chartDataCache',
   'lib/stripe/premiumCache',
   'lib/circuitBreaker',
@@ -74,7 +73,7 @@ const serviceModules = [
   'lib/api/middleware',
   'lib/errors/ApiError',
   'lib/replicate',
-];
+]
 
 const componentModules = [
   'components/calendar/DestinyCalendar',
@@ -107,13 +106,13 @@ const componentModules = [
   'components/ui/ShareButton',
   'components/ui/PageLoading',
   'components/ErrorBoundary',
-];
+]
 
 const contextModules = [
   'contexts/NotificationContext',
   'contexts/CalendarContext',
   'i18n/I18nProvider',
-];
+]
 
 const hookModules = [
   'hooks/calendar/useCalendarData',
@@ -123,56 +122,54 @@ const hookModules = [
   'hooks/calendar/useMonthNavigation',
   'hooks/calendar/useParticleAnimation',
   'hooks/useChatSession',
-];
+]
 
-const reducerModules = [
-  'reducers/calendarReducer',
-];
+const reducerModules = ['reducers/calendarReducer']
 
 describe('Comprehensive Module Imports - Phase 3', () => {
-  describe('Service Layer (37 modules)', () => {
+  describe('Service Layer (36 modules)', () => {
     it('should have service modules', () => {
-      expect(serviceModules.length).toBe(37);
-      assertModules(serviceModules);
-    });
-  });
+      expect(serviceModules.length).toBe(36)
+      assertModules(serviceModules)
+    })
+  })
 
   describe('Component Layer (30 modules)', () => {
     it('should have component modules', () => {
-      expect(componentModules.length).toBe(30);
-      assertModules(componentModules);
-    });
-  });
+      expect(componentModules.length).toBe(30)
+      assertModules(componentModules)
+    })
+  })
 
   describe('Context & Hooks (10 modules)', () => {
     it('should have context providers', () => {
-      expect(contextModules.length).toBe(3);
-      assertModules(contextModules);
-    });
+      expect(contextModules.length).toBe(3)
+      assertModules(contextModules)
+    })
 
     it('should have hook modules', () => {
-      expect(hookModules.length).toBe(7);
-      assertModules(hookModules);
-    });
-  });
+      expect(hookModules.length).toBe(7)
+      assertModules(hookModules)
+    })
+  })
 
   describe('Reducer (1 module)', () => {
     it('should have calendar reducer', () => {
-      expect(reducerModules.length).toBe(1);
-      assertModules(reducerModules);
-    });
-  });
+      expect(reducerModules.length).toBe(1)
+      assertModules(reducerModules)
+    })
+  })
 
   describe('Phase 3 Summary', () => {
-    it('should have all Phase 3 modules (78 total)', () => {
+    it('should have all Phase 3 modules (77 total)', () => {
       const total =
         serviceModules.length +
         componentModules.length +
         contextModules.length +
         hookModules.length +
-        reducerModules.length;
+        reducerModules.length
 
-      expect(total).toBe(78);
-    });
-  });
-});
+      expect(total).toBe(77)
+    })
+  })
+})

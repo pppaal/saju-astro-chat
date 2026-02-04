@@ -349,7 +349,11 @@ describe('Metrics - Timings', () => {
 
       const snapshot = getMetricsSnapshot()
       expect(snapshot.timings[0].p50).toBe(10)
-      expect(snapshot.timings[0].p95).toBeGreaterThan(100)
+      // With 100 samples, p95 index = ceil(95/100 * 100) - 1 = 94
+      // sorted[94] = 10 (indices 0-94 are all 10)
+      // p99 index = ceil(99/100 * 100) - 1 = 98, sorted[98] = 1000
+      expect(snapshot.timings[0].p95).toBe(10)
+      expect(snapshot.timings[0].p99).toBe(1000)
     })
 
     it('should handle decimal percentile results', () => {

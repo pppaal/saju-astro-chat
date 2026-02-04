@@ -355,10 +355,11 @@ class TestRedisConnection:
     @patch("backend_ai.app.redis_cache.REDIS_AVAILABLE", True)
     def test_init_with_redis_connection_failure(self):
         """Test initialization handles Redis connection failure gracefully."""
-        with patch("backend_ai.app.redis_cache.redis") as mock_redis:
+        with patch("backend_ai.app.redis_cache.redis") as mock_redis, \
+             patch("backend_ai.app.redis_cache.ConnectionPool") as mock_pool:
             mock_client = MagicMock()
             mock_client.ping.side_effect = Exception("Connection refused")
-            mock_redis.from_url.return_value = mock_client
+            mock_redis.Redis.return_value = mock_client
 
             from backend_ai.app.redis_cache import RedisCache
 
