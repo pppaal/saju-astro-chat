@@ -1,0 +1,7 @@
+title = "gitleaks config"
+
+[allowlist]
+  description = "Allowlist for CI fallback values"
+  paths = [
+    '''.github/workflows/.*\.yml''',
+  ]

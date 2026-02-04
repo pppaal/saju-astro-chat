@@ -150,16 +150,19 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [])
 
-  // Load locale dictionary when locale changes
+  // Load locale dictionary when locale changes (only loads the needed locale)
   useEffect(() => {
     if (!dictsLoaded) return
+    // Skip if already cached
+    if (dictsCache[locale]) return
 
     loadLocaleDict(locale).then((dict) => {
       // Fill missing translations with English fallback
       if (locale !== 'en' && dictsCache.en) {
         fillMissing(dictsCache.en, dict)
       }
-      // Force re-render after loading
+      // Force re-render after loading new locale
+      setDictsLoaded((prev) => !prev)
       setDictsLoaded(true)
     })
   }, [locale, dictsLoaded])
@@ -228,7 +231,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
       return path.split('.').pop() || path
     }
-  }, [locale, dictsLoaded])
+  }, [locale])
 
   const value = useMemo<I18nContextType>(
     () => ({
