@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import Stripe from 'stripe'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 import { idParamSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
@@ -33,7 +36,6 @@ async function checkStripeActive(email?: string): Promise<boolean> {
   }
 
   const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION })
-  // Use parameterized API to prevent query injection
   const customers = await stripe.customers.list({
     email: email.toLowerCase(),
     limit: 3,
@@ -54,112 +56,89 @@ async function checkStripeActive(email?: string): Promise<boolean> {
 }
 
 // GET: 개별 상담 기록 조회 (프리미엄 전용)
-export async function GET(request: Request, context: RouteContext) {
-  try {
-    const rawParams = await context.params
-    const paramValidation = idParamSchema.safeParse(rawParams)
-    if (!paramValidation.success) {
-      return NextResponse.json({ error: 'invalid_params' }, { status: HTTP_STATUS.BAD_REQUEST })
-    }
-    const { id } = paramValidation.data
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id || !session?.user?.email) {
-      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
-    }
-
-    // 프리미엄 체크
-    const isPremium = await checkStripeActive(session.user.email)
-    if (!isPremium) {
-      return NextResponse.json(
-        {
-          error: 'premium_required',
-          message: '상담 기록 열람은 프리미엄 구독자 전용입니다.',
-          message_en: 'Consultation history is available for premium subscribers only.',
-        },
-        { status: HTTP_STATUS.PAYMENT_REQUIRED }
-      )
-    }
-
-    const consultation = await prisma.consultationHistory.findFirst({
-      where: {
-        id,
-        userId: session.user.id, // 본인 기록만 조회 가능
-      },
-    })
-
-    if (!consultation) {
-      return NextResponse.json(
-        { error: 'not_found', message: '상담 기록을 찾을 수 없습니다.' },
-        { status: HTTP_STATUS.NOT_FOUND }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: consultation,
-    })
-  } catch (err: unknown) {
-    logger.error('[Consultation GET by ID error]', err)
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+export async function GET(request: Request, routeContext: RouteContext) {
+  const rawParams = await routeContext.params
+  const paramValidation = idParamSchema.safeParse(rawParams)
+  if (!paramValidation.success) {
+    return NextResponse.json({ error: 'invalid_params' }, { status: 400 })
   }
+  const { id } = paramValidation.data
+
+  const handler = withApiMiddleware(
+    async (_req: NextRequest, context: ApiContext) => {
+      const userEmail = context.session?.user?.email
+      if (!userEmail) {
+        return apiError(ErrorCodes.UNAUTHORIZED, 'not_authenticated')
+      }
+
+      const isPremium = await checkStripeActive(userEmail)
+      if (!isPremium) {
+        return apiError(ErrorCodes.FORBIDDEN, '상담 기록 열람은 프리미엄 구독자 전용입니다.')
+      }
+
+      try {
+        const consultation = await prisma.consultationHistory.findFirst({
+          where: {
+            id,
+            userId: context.userId!,
+          },
+        })
+
+        if (!consultation) {
+          return apiError(ErrorCodes.NOT_FOUND, '상담 기록을 찾을 수 없습니다.')
+        }
+
+        return apiSuccess({ data: consultation })
+      } catch (err) {
+        logger.error('[Consultation GET by ID error]', err)
+        return apiError(ErrorCodes.DATABASE_ERROR, 'Internal Server Error')
+      }
+    },
+    createAuthenticatedGuard({
+      route: '/api/consultation/[id]',
+      limit: 60,
+      windowSeconds: 60,
+    })
+  )
+
+  return handler(request as unknown as NextRequest)
 }
 
 // DELETE: 상담 기록 삭제 (본인 기록만)
-export async function DELETE(request: NextRequest, context: RouteContext) {
-  try {
-    const rawParams = await context.params
-    const paramValidation = idParamSchema.safeParse(rawParams)
-    if (!paramValidation.success) {
-      return NextResponse.json({ error: 'invalid_params' }, { status: HTTP_STATUS.BAD_REQUEST })
-    }
-    const { id } = paramValidation.data
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
-    }
-
-    const ip = getClientIp(request.headers)
-    const limit = await rateLimit(`consult-delete:${ip}`, { limit: 20, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Try again soon.' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
-
-    // 본인 기록인지 확인
-    const existing = await prisma.consultationHistory.findFirst({
-      where: {
-        id,
-        userId: session.user.id,
-      },
-    })
-
-    if (!existing) {
-      return NextResponse.json(
-        { error: 'not_found', message: '상담 기록을 찾을 수 없습니다.' },
-        { status: HTTP_STATUS.NOT_FOUND }
-      )
-    }
-
-    await prisma.consultationHistory.delete({
-      where: { id },
-    })
-
-    const res = NextResponse.json({
-      success: true,
-      message: '상담 기록이 삭제되었습니다.',
-    })
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
-    return res
-  } catch (err: unknown) {
-    logger.error('[Consultation DELETE error]', err)
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+export async function DELETE(request: NextRequest, routeContext: RouteContext) {
+  const rawParams = await routeContext.params
+  const paramValidation = idParamSchema.safeParse(rawParams)
+  if (!paramValidation.success) {
+    return NextResponse.json({ error: 'invalid_params' }, { status: 400 })
   }
+  const { id } = paramValidation.data
+
+  const handler = withApiMiddleware(
+    async (_req: NextRequest, context: ApiContext) => {
+      try {
+        const result = await prisma.consultationHistory.deleteMany({
+          where: {
+            id,
+            userId: context.userId!,
+          },
+        })
+
+        if (result.count === 0) {
+          return apiError(ErrorCodes.NOT_FOUND, '상담 기록을 찾을 수 없습니다.')
+        }
+
+        return apiSuccess({ message: '상담 기록이 삭제되었습니다.' })
+      } catch (err) {
+        logger.error('[Consultation DELETE error]', err)
+        return apiError(ErrorCodes.DATABASE_ERROR, 'Internal Server Error')
+      }
+    },
+    createAuthenticatedGuard({
+      route: '/api/consultation/[id]',
+      limit: 20,
+      windowSeconds: 60,
+    })
+  )
+
+  return handler(request)
 }

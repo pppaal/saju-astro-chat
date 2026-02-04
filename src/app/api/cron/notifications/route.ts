@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   // 관리자 인증 (간단한 API 키 방식)
   const authHeader = request.headers.get('authorization')
-  const adminSecret = process.env.ADMIN_SECRET || process.env.CRON_SECRET
+  const adminSecret = process.env.ADMIN_SECRET
 
   if (!adminSecret || authHeader !== `Bearer ${adminSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
