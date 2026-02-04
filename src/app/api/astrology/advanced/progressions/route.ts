@@ -2,7 +2,6 @@
 // Secondary Progressions & Solar Arc API 엔드포인트
 
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
@@ -49,7 +48,7 @@ export async function POST(request: Request) {
 
     if (!validation.success) {
       const errors = validation.error.issues
-        .map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
+        .map((e) => `${e.path.join('.')}: ${e.message}`)
         .join(', ')
       logger.warn('[Progressions API] Validation failed', { errors: validation.error.issues })
       return NextResponse.json(
@@ -127,7 +126,7 @@ export async function POST(request: Request) {
     res.headers.set('Cache-Control', 'no-store')
     return res
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unexpected server error.'
+    const message = 'Internal Server Error'
     captureServerError(error, { route: '/api/astrology/advanced/progressions' })
     return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
   }

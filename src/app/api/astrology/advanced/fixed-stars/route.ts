@@ -2,7 +2,6 @@
 // 항성 (Fixed Stars) 분석 API 엔드포인트
 
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
@@ -41,7 +40,7 @@ export async function POST(request: Request) {
 
     if (!validation.success) {
       const errors = validation.error.issues
-        .map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
+        .map((e) => `${e.path.join('.')}: ${e.message}`)
         .join(', ')
       logger.warn('[FixedStars API] Validation failed', { errors: validation.error.issues })
       return NextResponse.json(
@@ -102,7 +101,7 @@ export async function POST(request: Request) {
   } catch (error: unknown) {
     captureServerError(error, { route: '/api/astrology/advanced/fixed-stars' })
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unexpected server error.' },
+      { error: 'Internal Server Error' },
       { status: HTTP_STATUS.SERVER_ERROR }
     )
   }

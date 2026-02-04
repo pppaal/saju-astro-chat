@@ -2,7 +2,6 @@
 // 4대 소행성 (Ceres, Pallas, Juno, Vesta) API 엔드포인트
 
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
@@ -51,7 +50,7 @@ export async function POST(request: Request) {
 
     if (!validation.success) {
       const errors = validation.error.issues
-        .map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
+        .map((e) => `${e.path.join('.')}: ${e.message}`)
         .join(', ')
       logger.warn('[Asteroids API] Validation failed', { errors: validation.error.issues })
       return NextResponse.json(
@@ -169,7 +168,7 @@ export async function POST(request: Request) {
     res.headers.set('Cache-Control', 'no-store')
     return res
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unexpected server error.'
+    const message = 'Internal Server Error'
     captureServerError(error, { route: '/api/astrology/advanced/asteroids' })
     return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
   }

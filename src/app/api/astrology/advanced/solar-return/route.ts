@@ -2,7 +2,6 @@
 // Solar Return (태양 회귀) API 엔드포인트
 
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
@@ -37,7 +36,7 @@ export async function POST(request: Request) {
 
     if (!validation.success) {
       const errors = validation.error.issues
-        .map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
+        .map((e) => `${e.path.join('.')}: ${e.message}`)
         .join(', ')
       logger.warn('[SolarReturn API] Validation failed', { errors: validation.error.issues })
       return NextResponse.json(
