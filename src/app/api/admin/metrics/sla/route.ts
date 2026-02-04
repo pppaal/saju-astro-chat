@@ -20,8 +20,7 @@ import {
 import { getMetricsSnapshot } from '@/lib/metrics'
 import { SLA_THRESHOLDS } from '@/lib/metrics/schema'
 import { logger } from '@/lib/logger'
-
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || []
+import { isAdminUser } from '@/lib/auth/admin'
 
 const API_REQUEST_METRICS = [
   'api.request.total',
@@ -75,14 +74,20 @@ interface SLAReport {
 export const GET = withApiMiddleware(
   async (_req: NextRequest, context: ApiContext) => {
     try {
-      const userEmail = context.session?.user?.email
-      if (!userEmail) {
+      if (!context.userId || !context.session?.user?.email) {
+        logger.warn('[SLA] No session or userId', {
+          hasSession: !!context.session,
+          hasUserId: !!context.userId,
+        })
         return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
       }
 
-      const isAdmin = ADMIN_EMAILS.includes(userEmail.toLowerCase())
+      const isAdmin = await isAdminUser(context.userId)
       if (!isAdmin) {
-        logger.warn('[SLA] Unauthorized access attempt', { email: userEmail })
+        logger.warn('[SLA] Unauthorized access attempt', {
+          email: context.session.user.email,
+          userId: context.userId,
+        })
         return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
       }
 

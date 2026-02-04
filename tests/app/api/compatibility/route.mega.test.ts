@@ -6,7 +6,7 @@ import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/compatibility/route'
 
 // ✨ REFACTORED: Use centralized mocks
-import { mockNextAuth, mockPrisma } from '@/tests/mocks'
+import { mockNextAuth, mockPrisma } from '../../../mocks'
 
 // Initialize common mocks
 mockNextAuth()

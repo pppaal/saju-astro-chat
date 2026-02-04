@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // ✨ REFACTORED: Use centralized mocks
-import { mockNextAuth } from '@/tests/mocks'
+import { mockNextAuth } from '../../../mocks'
 
 // Initialize auth mock
 mockNextAuth()

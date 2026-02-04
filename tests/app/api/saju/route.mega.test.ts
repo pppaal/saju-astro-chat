@@ -15,7 +15,7 @@ import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/saju/route'
 
 // ✨ REFACTORED: Use centralized mocks instead of duplicating vi.mock() calls
-import { mockNextAuth, mockStripe, mockPrisma, mockSajuLibraries } from '@/tests/mocks'
+import { mockNextAuth, mockStripe, mockPrisma, mockSajuLibraries } from '../../../mocks'
 
 // Initialize centralized mocks
 mockNextAuth()

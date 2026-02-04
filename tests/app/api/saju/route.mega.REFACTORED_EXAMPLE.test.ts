@@ -24,7 +24,7 @@ import {
   mockStripe,
   mockPrisma,
   mockSajuLibraries,
-} from '@/tests/mocks'
+} from '../../../mocks'
 
 // Additional specific mocks (not yet centralized)
 vi.mock('@/lib/Saju/tonggeun', () => ({

@@ -3,10 +3,10 @@
  * Smoke tests to verify all major modules can be imported without errors
  * This ensures no breaking changes in module structure
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest'
 
 // Longer timeout for module import tests (60 seconds)
-const IMPORT_TIMEOUT = 60000;
+const IMPORT_TIMEOUT = 60000
 
 describe.skip('Modules Smoke Tests', () => {
   describe('Saju Modules', () => {
@@ -23,14 +23,14 @@ describe.skip('Modules Smoke Tests', () => {
         import('@/lib/Saju/compatibilityEngine'),
         import('@/lib/Saju/sajuCache'),
         import('@/lib/Saju/visualizationData'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(11);
+      expect(modules.length).toBe(11)
       modules.forEach((module, index) => {
-        expect(module).toBeDefined();
-        expect(Object.keys(module).length).toBeGreaterThan(0);
-      });
-    });
+        expect(module).toBeDefined()
+        expect(Object.keys(module).length).toBeGreaterThan(0)
+      })
+    })
 
     it('should import advanced saju modules', async () => {
       const modules = await Promise.all([
@@ -44,30 +44,34 @@ describe.skip('Modules Smoke Tests', () => {
         import('@/lib/Saju/comprehensiveReport'),
         import('@/lib/Saju/fortuneSimulator'),
         import('@/lib/Saju/stemBranchUtils'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(10);
+      expect(modules.length).toBe(10)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
-  });
+        expect(module).toBeDefined()
+      })
+    })
+  })
 
   describe('Destiny Map Modules', () => {
-    it('should import core destiny map modules', async () => {
-      const modules = await Promise.all([
-        import('@/lib/destiny-map/destinyCalendar'),
-        import('@/lib/destiny-map/reportService'),
-        import('@/lib/destiny-map/astrologyengine'),
-        import('@/lib/destiny-map/local-report-generator'),
-        import('@/lib/destiny-map/report-helpers'),
-      ]);
+    it(
+      'should import core destiny map modules',
+      async () => {
+        const modules = await Promise.all([
+          import('@/lib/destiny-map/destinyCalendar'),
+          import('@/lib/destiny-map/reportService'),
+          import('@/lib/destiny-map/astrologyengine'),
+          import('@/lib/destiny-map/local-report-generator'),
+          import('@/lib/destiny-map/report-helpers'),
+        ])
 
-      expect(modules.length).toBe(5);
-      modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    }, IMPORT_TIMEOUT);
+        expect(modules.length).toBe(5)
+        modules.forEach((module) => {
+          expect(module).toBeDefined()
+        })
+      },
+      IMPORT_TIMEOUT
+    )
 
     it('should import calendar modules', async () => {
       const modules = await Promise.all([
@@ -78,13 +82,13 @@ describe.skip('Modules Smoke Tests', () => {
         import('@/lib/destiny-map/calendar/category-scoring'),
         import('@/lib/destiny-map/calendar/activity-scoring'),
         import('@/lib/destiny-map/calendar/daily-fortune-helpers'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(7);
+      expect(modules.length).toBe(7)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
+        expect(module).toBeDefined()
+      })
+    })
 
     it('should import destiny matrix modules', async () => {
       const modules = await Promise.all([
@@ -92,13 +96,13 @@ describe.skip('Modules Smoke Tests', () => {
         import('@/lib/destiny-matrix/cache'),
         import('@/lib/destiny-matrix/house-system'),
         import('@/lib/destiny-matrix/interpreter/insight-generator'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(4);
+      expect(modules.length).toBe(4)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
+        expect(module).toBeDefined()
+      })
+    })
 
     it('should import destiny matrix data layers', async () => {
       const modules = await Promise.all([
@@ -106,14 +110,14 @@ describe.skip('Modules Smoke Tests', () => {
         import('@/lib/destiny-matrix/data/layer2-sibsin-planet'),
         import('@/lib/destiny-matrix/data/layer3-sibsin-house'),
         import('@/lib/destiny-matrix/data/layer8-shinsal-planet'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(4);
+      expect(modules.length).toBe(4)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-        expect(Object.keys(module).length).toBeGreaterThan(0);
-      });
-    });
+        expect(module).toBeDefined()
+        expect(Object.keys(module).length).toBeGreaterThan(0)
+      })
+    })
 
     it('should import fortune prompt modules', async () => {
       const modules = await Promise.all([
@@ -125,14 +129,14 @@ describe.skip('Modules Smoke Tests', () => {
         import('@/lib/destiny-map/prompt/fortune/base/index'),
         import('@/lib/destiny-map/prompt/fortune/base/baseAllDataPrompt'),
         import('@/lib/destiny-map/prompt/fortune/base/structuredPrompt'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(8);
+      expect(modules.length).toBe(8)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
-  });
+        expect(module).toBeDefined()
+      })
+    })
+  })
 
   describe('Astrology Modules', () => {
     it('should import foundation modules', async () => {
@@ -147,13 +151,13 @@ describe.skip('Modules Smoke Tests', () => {
         import('@/lib/astrology/foundation/eclipses'),
         import('@/lib/astrology/foundation/harmonics'),
         import('@/lib/astrology/foundation/midpoints'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(10);
+      expect(modules.length).toBe(10)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
+        expect(module).toBeDefined()
+      })
+    })
 
     it('should import advanced astrology modules', async () => {
       const modules = await Promise.all([
@@ -165,33 +169,33 @@ describe.skip('Modules Smoke Tests', () => {
         import('@/lib/astrology/foundation/utils'),
         import('@/lib/astrology/foundation/shared'),
         import('@/lib/astrology/foundation/ephe'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(8);
+      expect(modules.length).toBe(8)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
+        expect(module).toBeDefined()
+      })
+    })
 
     it('should import astrology advanced modules', async () => {
       const modules = await Promise.all([
         import('@/lib/astrology/advanced/meta'),
         import('@/lib/astrology/advanced/options'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(2);
+      expect(modules.length).toBe(2)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
+        expect(module).toBeDefined()
+      })
+    })
 
     it('should import astrology index', async () => {
-      const module = await import('@/lib/astrology/index');
+      const module = await import('@/lib/astrology/index')
 
-      expect(module).toBeDefined();
-      expect(Object.keys(module).length).toBeGreaterThan(0);
-    });
-  });
+      expect(module).toBeDefined()
+      expect(Object.keys(module).length).toBeGreaterThan(0)
+    })
+  })
 
   describe('Tarot Modules', () => {
     it('should import all tarot modules', async () => {
@@ -202,116 +206,114 @@ describe.skip('Modules Smoke Tests', () => {
         import('@/lib/Tarot/tarot-storage'),
         import('@/lib/Tarot/tarot-recommend'),
         import('@/lib/Tarot/tarot-recommend.data'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(6);
+      expect(modules.length).toBe(6)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
-  });
+        expect(module).toBeDefined()
+      })
+    })
+  })
 
   describe('Utility Modules', () => {
     it('should import validation modules', async () => {
-      const modules = await Promise.all([
-        import('@/lib/validation/calendar-schema'),
-      ]);
+      const modules = await Promise.all([import('@/lib/validation/calendar-schema')])
 
-      expect(modules.length).toBe(1);
+      expect(modules.length).toBe(1)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
+        expect(module).toBeDefined()
+      })
+    })
 
     it('should import type guard modules', async () => {
-      const modules = await Promise.all([
-        import('@/lib/destiny-map/type-guards'),
-      ]);
+      const modules = await Promise.all([import('@/lib/destiny-map/type-guards')])
 
-      expect(modules.length).toBe(1);
+      expect(modules.length).toBe(1)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
+        expect(module).toBeDefined()
+      })
+    })
 
-    it('should import auth modules', async () => {
-      const modules = await Promise.all([
-        import('@/lib/auth/authOptions'),
-        import('@/lib/auth/publicToken'),
-        import('@/lib/auth/tokenRevoke'),
-      ]);
+    it(
+      'should import auth modules',
+      async () => {
+        const modules = await Promise.all([
+          import('@/lib/auth/authOptions'),
+          import('@/lib/auth/publicToken'),
+          import('@/lib/auth/tokenRevoke'),
+        ])
 
-      expect(modules.length).toBe(3);
-      modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    }, IMPORT_TIMEOUT);
+        expect(modules.length).toBe(3)
+        modules.forEach((module) => {
+          expect(module).toBeDefined()
+        })
+      },
+      IMPORT_TIMEOUT
+    )
 
     it('should import service modules', async () => {
       const modules = await Promise.all([
         import('@/lib/db/prisma'),
-        import('@/lib/redis-cache'),
+        import('@/lib/cache/redis-cache'),
         import('@/lib/circuitBreaker'),
         import('@/lib/rateLimit'),
         import('@/lib/chartDataCache'),
         import('@/lib/backend-health'),
         import('@/lib/backend-url'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(7);
+      expect(modules.length).toBe(7)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
+        expect(module).toBeDefined()
+      })
+    })
 
     it('should import notification modules', async () => {
       const modules = await Promise.all([
         import('@/lib/notifications/pushService'),
         import('@/lib/notifications/premiumNotifications'),
         import('@/lib/notifications/sse'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(3);
+      expect(modules.length).toBe(3)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
+        expect(module).toBeDefined()
+      })
+    })
 
     it('should import AI modules', async () => {
       const modules = await Promise.all([
         import('@/lib/ai/recommendations'),
         import('@/lib/ai/summarize'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(2);
+      expect(modules.length).toBe(2)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
+        expect(module).toBeDefined()
+      })
+    })
 
     it('should import email modules', async () => {
       const modules = await Promise.all([
         import('@/lib/email/emailService'),
         import('@/lib/email/providers/resendProvider'),
-      ]);
+      ])
 
-      expect(modules.length).toBe(2);
+      expect(modules.length).toBe(2)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
+        expect(module).toBeDefined()
+      })
+    })
 
     it('should import payment modules', async () => {
-      const modules = await Promise.all([
-        import('@/lib/stripe/premiumCache'),
-      ]);
+      const modules = await Promise.all([import('@/lib/stripe/premiumCache')])
 
-      expect(modules.length).toBe(1);
+      expect(modules.length).toBe(1)
       modules.forEach((module) => {
-        expect(module).toBeDefined();
-      });
-    });
-  });
+        expect(module).toBeDefined()
+      })
+    })
+  })
 
   describe('Module Count Summary', () => {
     it('should have imported all major module categories', async () => {
@@ -407,7 +409,7 @@ describe.skip('Modules Smoke Tests', () => {
         import('@/lib/auth/publicToken'),
         import('@/lib/auth/tokenRevoke'),
         import('@/lib/db/prisma'),
-        import('@/lib/redis-cache'),
+        import('@/lib/cache/redis-cache'),
         import('@/lib/circuitBreaker'),
         import('@/lib/rateLimit'),
         import('@/lib/chartDataCache'),
@@ -419,15 +421,15 @@ describe.skip('Modules Smoke Tests', () => {
         import('@/lib/ai/recommendations'),
         import('@/lib/ai/summarize'),
         import('@/lib/email/emailService'),
-      ]);
+      ])
 
       // Total: 94 modules
-      expect(allModules.length).toBe(94);
+      expect(allModules.length).toBe(94)
 
       // Verify all imported successfully
       allModules.forEach((module, index) => {
-        expect(module).toBeDefined();
-      });
-    });
-  });
-});
+        expect(module).toBeDefined()
+      })
+    })
+  })
+})

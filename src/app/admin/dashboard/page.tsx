@@ -1,121 +1,149 @@
-"use client";
+'use client'
 
-import React, { useState, useEffect, useCallback } from "react";
-import styles from "./dashboard.module.css";
-import { SLA_THRESHOLDS } from "@/lib/metrics/schema";
-import { formatNumber } from "@/utils/numberFormat";
+import React, { useState, useEffect, useCallback } from 'react'
+import styles from './dashboard.module.css'
+import { SLA_THRESHOLDS } from '@/lib/metrics/schema'
+import { formatNumber } from '@/utils/numberFormat'
 
 type FunnelMetrics = {
   visitors: {
-    daily: number;
-    weekly: number;
-    monthly: number;
-    trend: number;
-  };
+    daily: number
+    weekly: number
+    monthly: number
+    trend: number
+  }
   registrations: {
-    total: number;
-    daily: number;
-    conversionRate: number;
-  };
+    total: number
+    daily: number
+    conversionRate: number
+  }
   activations: {
-    total: number;
-    rate: number;
-  };
+    total: number
+    rate: number
+  }
   subscriptions: {
-    active: number;
-    new: number;
-    churned: number;
-    mrr: number;
-  };
+    active: number
+    new: number
+    churned: number
+    mrr: number
+  }
   engagement: {
-    dailyActiveUsers: number;
-    weeklyActiveUsers: number;
-    avgSessionDuration: number;
-    readingsPerUser: number;
-  };
-};
+    dailyActiveUsers: number
+    weeklyActiveUsers: number
+    avgSessionDuration: number
+    readingsPerUser: number
+  }
+}
 
 type PerformanceMetrics = {
   api: {
-    totalRequests: number;
-    errorRate: number;
-    avgLatencyMs: number;
-    p95LatencyMs: number;
-  };
-  services: Record<string, {
-    requests: number;
-    errors: number;
-    avgLatencyMs: number;
-  }>;
-};
+    totalRequests: number
+    errorRate: number
+    avgLatencyMs: number
+    p95LatencyMs: number
+  }
+  services: Record<
+    string,
+    {
+      requests: number
+      errors: number
+      avgLatencyMs: number
+    }
+  >
+}
 
-type TimeRange = "1h" | "24h" | "7d" | "30d";
+type TimeRange = '1h' | '24h' | '7d' | '30d'
 
 export default function MetricsDashboard() {
-  const [funnel, setFunnel] = useState<FunnelMetrics | null>(null);
-  const [performance, setPerformance] = useState<PerformanceMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<TimeRange>("24h");
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [funnel, setFunnel] = useState<FunnelMetrics | null>(null)
+  const [performance, setPerformance] = useState<PerformanceMetrics | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [timeRange, setTimeRange] = useState<TimeRange>('24h')
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [apiError, setApiError] = useState<string | null>(null)
 
   const fetchMetrics = useCallback(async () => {
-    setLoading(true);
+    setLoading(true)
+    setApiError(null)
     try {
       const [funnelRes, perfRes] = await Promise.all([
         fetch(`/api/admin/metrics/funnel?timeRange=${timeRange}`),
         fetch(`/api/admin/metrics?timeRange=${timeRange}`),
-      ]);
+      ])
+
+      const errors: string[] = []
 
       if (funnelRes.ok) {
-        const data = await funnelRes.json();
-        setFunnel(data.data || generateMockFunnelData());
+        const data = await funnelRes.json()
+        if (data.data) {
+          setFunnel(data.data)
+        } else {
+          errors.push('Funnel API: 응답에 data 없음')
+          setFunnel(null)
+        }
       } else {
-        setFunnel(generateMockFunnelData());
+        const errBody = await funnelRes.json().catch(() => ({}))
+        errors.push(
+          `Funnel API: ${funnelRes.status} ${errBody.error?.message || errBody.error || funnelRes.statusText}`
+        )
+        setFunnel(null)
       }
 
       if (perfRes.ok) {
-        const data = await perfRes.json();
-        setPerformance(data.data?.overview ? {
-          api: {
-            totalRequests: data.data.overview.totalRequests,
-            errorRate: data.data.overview.errorRate,
-            avgLatencyMs: data.data.overview.avgLatencyMs,
-            p95LatencyMs: data.data.overview.p95LatencyMs || data.data.overview.avgLatencyMs * 1.5,
-          },
-          services: data.data.services || {},
-        } : generateMockPerformanceData());
+        const data = await perfRes.json()
+        if (data.data?.overview) {
+          setPerformance({
+            api: {
+              totalRequests: data.data.overview.totalRequests,
+              errorRate: data.data.overview.errorRate,
+              avgLatencyMs: data.data.overview.avgLatencyMs,
+              p95LatencyMs:
+                data.data.overview.p95LatencyMs || data.data.overview.avgLatencyMs * 1.5,
+            },
+            services: data.data.services || {},
+          })
+        } else {
+          setPerformance(null)
+        }
       } else {
-        setPerformance(generateMockPerformanceData());
+        const errBody = await perfRes.json().catch(() => ({}))
+        errors.push(
+          `Metrics API: ${perfRes.status} ${errBody.error?.message || errBody.error || perfRes.statusText}`
+        )
+        setPerformance(null)
       }
 
-      setLastUpdated(new Date());
-    } catch {
-      setFunnel(generateMockFunnelData());
-      setPerformance(generateMockPerformanceData());
+      if (errors.length > 0) {
+        setApiError(errors.join(' | '))
+      }
+      setLastUpdated(new Date())
+    } catch (err) {
+      setApiError(`네트워크 오류: ${err instanceof Error ? err.message : String(err)}`)
+      setFunnel(null)
+      setPerformance(null)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [timeRange]);
+  }, [timeRange])
 
   useEffect(() => {
-    fetchMetrics();
-    const interval = setInterval(fetchMetrics, 60000);
-    return () => clearInterval(interval);
-  }, [fetchMetrics]);
+    fetchMetrics()
+    const interval = setInterval(fetchMetrics, 60000)
+    return () => clearInterval(interval)
+  }, [fetchMetrics])
 
   const getSlaStatus = (value: number, threshold: number, inverse = false) => {
-    const pass = inverse ? value <= threshold : value >= threshold;
-    return pass ? "pass" : "fail";
-  };
-
+    const pass = inverse ? value <= threshold : value >= threshold
+    return pass ? 'pass' : 'fail'
+  }
 
   const formatCurrency = (num: number) => {
-    return new Intl.NumberFormat("ko-KR", {
-      style: "currency",
-      currency: "KRW",
+    return new Intl.NumberFormat('ko-KR', {
+      style: 'currency',
+      currency: 'KRW',
       maximumFractionDigits: 0,
-    }).format(num);
-  };
+    }).format(num)
+  }
 
   return (
     <div className={styles.container}>
@@ -126,10 +154,10 @@ export default function MetricsDashboard() {
         </div>
         <div className={styles.headerRight}>
           <div className={styles.timeRangeSelector}>
-            {(["1h", "24h", "7d", "30d"] as TimeRange[]).map((range) => (
+            {(['1h', '24h', '7d', '30d'] as TimeRange[]).map((range) => (
               <button
                 key={range}
-                className={`${styles.timeRangeBtn} ${timeRange === range ? styles.active : ""}`}
+                className={`${styles.timeRangeBtn} ${timeRange === range ? styles.active : ''}`}
                 onClick={() => setTimeRange(range)}
               >
                 {range}
@@ -142,9 +170,24 @@ export default function MetricsDashboard() {
         </div>
       </header>
 
+      {apiError && (
+        <div
+          style={{
+            background: '#dc2626',
+            color: 'white',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            fontSize: '14px',
+          }}
+        >
+          API 오류: {apiError}
+        </div>
+      )}
+
       {lastUpdated && (
         <div className={styles.lastUpdated}>
-          마지막 업데이트: {lastUpdated.toLocaleTimeString("ko-KR")}
+          마지막 업데이트: {lastUpdated.toLocaleTimeString('ko-KR')}
         </div>
       )}
 
@@ -156,22 +199,26 @@ export default function MetricsDashboard() {
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>SLA 상태 (Acceptance Criteria)</h2>
             <div className={styles.slaGrid}>
-              <div className={`${styles.slaCard} ${styles[getSlaStatus(performance?.api.p95LatencyMs || 0, SLA_THRESHOLDS.P95_LATENCY_MS, true)]}`}>
+              <div
+                className={`${styles.slaCard} ${styles[getSlaStatus(performance?.api.p95LatencyMs || 0, SLA_THRESHOLDS.P95_LATENCY_MS, true)]}`}
+              >
                 <div className={styles.slaLabel}>p95 API Latency</div>
                 <div className={styles.slaValue}>
-                  {performance?.api.p95LatencyMs?.toFixed(0) || "—"}ms
+                  {performance?.api.p95LatencyMs?.toFixed(0) || '—'}ms
                 </div>
                 <div className={styles.slaThreshold}>
-                  목표: {"<"} {SLA_THRESHOLDS.P95_LATENCY_MS}ms
+                  목표: {'<'} {SLA_THRESHOLDS.P95_LATENCY_MS}ms
                 </div>
               </div>
-              <div className={`${styles.slaCard} ${styles[getSlaStatus(performance?.api.errorRate || 0, SLA_THRESHOLDS.ERROR_RATE_PERCENT, true)]}`}>
+              <div
+                className={`${styles.slaCard} ${styles[getSlaStatus(performance?.api.errorRate || 0, SLA_THRESHOLDS.ERROR_RATE_PERCENT, true)]}`}
+              >
                 <div className={styles.slaLabel}>Error Rate</div>
                 <div className={styles.slaValue}>
-                  {performance?.api.errorRate?.toFixed(2) || "0"}%
+                  {performance?.api.errorRate?.toFixed(2) || '0'}%
                 </div>
                 <div className={styles.slaThreshold}>
-                  목표: {"<"} {SLA_THRESHOLDS.ERROR_RATE_PERCENT}%
+                  목표: {'<'} {SLA_THRESHOLDS.ERROR_RATE_PERCENT}%
                 </div>
               </div>
               <div className={`${styles.slaCard} ${styles.info}`}>
@@ -179,9 +226,7 @@ export default function MetricsDashboard() {
                 <div className={styles.slaValue}>
                   {formatNumber(performance?.api.totalRequests || 0)}
                 </div>
-                <div className={styles.slaThreshold}>
-                  기간: {timeRange}
-                </div>
+                <div className={styles.slaThreshold}>기간: {timeRange}</div>
               </div>
             </div>
           </section>
@@ -193,31 +238,47 @@ export default function MetricsDashboard() {
               <div className={styles.funnelStep}>
                 <div className={styles.funnelIcon}>👥</div>
                 <div className={styles.funnelLabel}>방문자</div>
-                <div className={styles.funnelValue}>{formatNumber(funnel?.visitors.daily || 0)}</div>
-                <div className={styles.funnelTrend} data-positive={funnel?.visitors.trend && funnel.visitors.trend > 0}>
-                  {funnel?.visitors.trend && funnel.visitors.trend > 0 ? "↑" : "↓"} {Math.abs(funnel?.visitors.trend || 0).toFixed(1)}%
+                <div className={styles.funnelValue}>
+                  {formatNumber(funnel?.visitors.daily || 0)}
+                </div>
+                <div
+                  className={styles.funnelTrend}
+                  data-positive={funnel?.visitors.trend && funnel.visitors.trend > 0}
+                >
+                  {funnel?.visitors.trend && funnel.visitors.trend > 0 ? '↑' : '↓'}{' '}
+                  {Math.abs(funnel?.visitors.trend || 0).toFixed(1)}%
                 </div>
               </div>
               <div className={styles.funnelArrow}>→</div>
               <div className={styles.funnelStep}>
                 <div className={styles.funnelIcon}>📝</div>
                 <div className={styles.funnelLabel}>회원가입</div>
-                <div className={styles.funnelValue}>{formatNumber(funnel?.registrations.daily || 0)}</div>
-                <div className={styles.funnelRate}>{funnel?.registrations.conversionRate?.toFixed(1)}%</div>
+                <div className={styles.funnelValue}>
+                  {formatNumber(funnel?.registrations.daily || 0)}
+                </div>
+                <div className={styles.funnelRate}>
+                  {funnel?.registrations.conversionRate?.toFixed(1)}%
+                </div>
               </div>
               <div className={styles.funnelArrow}>→</div>
               <div className={styles.funnelStep}>
                 <div className={styles.funnelIcon}>✅</div>
                 <div className={styles.funnelLabel}>활성화</div>
-                <div className={styles.funnelValue}>{formatNumber(funnel?.activations.total || 0)}</div>
+                <div className={styles.funnelValue}>
+                  {formatNumber(funnel?.activations.total || 0)}
+                </div>
                 <div className={styles.funnelRate}>{funnel?.activations.rate?.toFixed(1)}%</div>
               </div>
               <div className={styles.funnelArrow}>→</div>
               <div className={styles.funnelStep}>
                 <div className={styles.funnelIcon}>💎</div>
                 <div className={styles.funnelLabel}>구독</div>
-                <div className={styles.funnelValue}>{formatNumber(funnel?.subscriptions.active || 0)}</div>
-                <div className={styles.funnelMrr}>{formatCurrency(funnel?.subscriptions.mrr || 0)}/월</div>
+                <div className={styles.funnelValue}>
+                  {formatNumber(funnel?.subscriptions.active || 0)}
+                </div>
+                <div className={styles.funnelMrr}>
+                  {formatCurrency(funnel?.subscriptions.mrr || 0)}/월
+                </div>
               </div>
             </div>
           </section>
@@ -228,22 +289,30 @@ export default function MetricsDashboard() {
             <div className={styles.metricsGrid}>
               <div className={styles.metricCard}>
                 <div className={styles.metricLabel}>DAU</div>
-                <div className={styles.metricValue}>{formatNumber(funnel?.engagement.dailyActiveUsers || 0)}</div>
+                <div className={styles.metricValue}>
+                  {formatNumber(funnel?.engagement.dailyActiveUsers || 0)}
+                </div>
                 <div className={styles.metricSubtext}>일일 활성 사용자</div>
               </div>
               <div className={styles.metricCard}>
                 <div className={styles.metricLabel}>WAU</div>
-                <div className={styles.metricValue}>{formatNumber(funnel?.engagement.weeklyActiveUsers || 0)}</div>
+                <div className={styles.metricValue}>
+                  {formatNumber(funnel?.engagement.weeklyActiveUsers || 0)}
+                </div>
                 <div className={styles.metricSubtext}>주간 활성 사용자</div>
               </div>
               <div className={styles.metricCard}>
                 <div className={styles.metricLabel}>세션 시간</div>
-                <div className={styles.metricValue}>{funnel?.engagement.avgSessionDuration?.toFixed(1) || 0}분</div>
+                <div className={styles.metricValue}>
+                  {funnel?.engagement.avgSessionDuration?.toFixed(1) || 0}분
+                </div>
                 <div className={styles.metricSubtext}>평균 체류 시간</div>
               </div>
               <div className={styles.metricCard}>
                 <div className={styles.metricLabel}>리딩/사용자</div>
-                <div className={styles.metricValue}>{funnel?.engagement.readingsPerUser?.toFixed(1) || 0}</div>
+                <div className={styles.metricValue}>
+                  {funnel?.engagement.readingsPerUser?.toFixed(1) || 0}
+                </div>
                 <div className={styles.metricSubtext}>사용자당 리딩 수</div>
               </div>
             </div>
@@ -259,19 +328,21 @@ export default function MetricsDashboard() {
               </div>
               <div className={styles.subscriptionCard}>
                 <div className={styles.subscriptionLabel}>신규 가입</div>
-                <div className={styles.subscriptionValue} style={{ color: "#22c55e" }}>
+                <div className={styles.subscriptionValue} style={{ color: '#22c55e' }}>
                   +{funnel?.subscriptions.new || 0}
                 </div>
               </div>
               <div className={styles.subscriptionCard}>
                 <div className={styles.subscriptionLabel}>이탈</div>
-                <div className={styles.subscriptionValue} style={{ color: "#ef4444" }}>
+                <div className={styles.subscriptionValue} style={{ color: '#ef4444' }}>
                   -{funnel?.subscriptions.churned || 0}
                 </div>
               </div>
               <div className={styles.subscriptionCard}>
                 <div className={styles.subscriptionLabel}>MRR</div>
-                <div className={styles.subscriptionValue}>{formatCurrency(funnel?.subscriptions.mrr || 0)}</div>
+                <div className={styles.subscriptionValue}>
+                  {formatCurrency(funnel?.subscriptions.mrr || 0)}
+                </div>
               </div>
             </div>
           </section>
@@ -291,7 +362,9 @@ export default function MetricsDashboard() {
                   <div key={service} className={styles.tableRow}>
                     <span className={styles.serviceName}>{service}</span>
                     <span>{formatNumber(metrics.requests)}</span>
-                    <span className={metrics.errors > 0 ? styles.errorCount : ""}>{metrics.errors}</span>
+                    <span className={metrics.errors > 0 ? styles.errorCount : ''}>
+                      {metrics.errors}
+                    </span>
                     <span>{metrics.avgLatencyMs.toFixed(0)}ms</span>
                   </div>
                 ))}
@@ -301,7 +374,7 @@ export default function MetricsDashboard() {
         </>
       )}
     </div>
-  );
+  )
 }
 
 function generateMockFunnelData(): FunnelMetrics {
@@ -333,7 +406,7 @@ function generateMockFunnelData(): FunnelMetrics {
       avgSessionDuration: 8.5,
       readingsPerUser: 2.3,
     },
-  };
+  }
 }
 
 function generateMockPerformanceData(): PerformanceMetrics {
@@ -345,10 +418,10 @@ function generateMockPerformanceData(): PerformanceMetrics {
       p95LatencyMs: 520,
     },
     services: {
-      "destiny-map": { requests: 12500, errors: 15, avgLatencyMs: 320 },
+      'destiny-map': { requests: 12500, errors: 15, avgLatencyMs: 320 },
       tarot: { requests: 18200, errors: 8, avgLatencyMs: 180 },
       dream: { requests: 8400, errors: 12, avgLatencyMs: 290 },
       astrology: { requests: 6130, errors: 5, avgLatencyMs: 210 },
     },
-  };
+  }
 }

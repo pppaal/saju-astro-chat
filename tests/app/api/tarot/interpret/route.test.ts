@@ -70,7 +70,7 @@ describe('POST /api/tarot/interpret', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.error).toContain('Missing required fields')
+    expect(data.error).toBe('validation_failed')
   })
 
   it('should return 400 if cards array is empty', async () => {
@@ -87,7 +87,7 @@ describe('POST /api/tarot/interpret', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.error).toContain('Missing required fields')
+    expect(data.error).toBe('validation_failed')
   })
 
   it('should return 400 if too many cards', async () => {
@@ -110,7 +110,7 @@ describe('POST /api/tarot/interpret', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.error).toContain('Too many cards')
+    expect(data.error).toBe('validation_failed')
   })
 
   it('should return 400 if card is missing required fields', async () => {
@@ -133,7 +133,7 @@ describe('POST /api/tarot/interpret', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.error).toContain('isReversed')
+    expect(data.error).toBe('validation_failed')
   })
 
   it('should return 400 if birthdate format is invalid', async () => {
@@ -157,7 +157,7 @@ describe('POST /api/tarot/interpret', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.error).toContain('birthdate')
+    expect(data.error).toBe('validation_failed')
   })
 
   it('should return 400 if moonPhase is too short', async () => {
@@ -181,21 +181,10 @@ describe('POST /api/tarot/interpret', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.error).toContain('moonPhase')
+    expect(data.error).toBe('validation_failed')
   })
 
-  it('should validate and sanitize card keywords', async () => {
-    const { apiClient } = await import('@/lib/api/ApiClient')
-
-    vi.mocked(apiClient.post).mockResolvedValue({
-      ok: true,
-      data: {
-        overall_message: 'Test overall',
-        card_insights: [],
-        guidance: 'Test guidance',
-      },
-    })
-
+  it('should reject cards with too many keywords (max 8)', async () => {
     const req = new NextRequest('http://localhost/api/tarot/interpret', {
       method: 'POST',
       body: JSON.stringify({
@@ -225,8 +214,41 @@ describe('POST /api/tarot/interpret', () => {
 
     const response = await POST(req)
 
+    expect(response.status).toBe(400)
+  })
+
+  it('should accept cards with valid keywords (max 8)', async () => {
+    const { apiClient } = await import('@/lib/api/ApiClient')
+
+    vi.mocked(apiClient.post).mockResolvedValue({
+      ok: true,
+      data: {
+        overall_message: 'Test overall',
+        card_insights: [],
+        guidance: 'Test guidance',
+      },
+    })
+
+    const req = new NextRequest('http://localhost/api/tarot/interpret', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: 'love',
+        spreadId: 'three-card',
+        spreadTitle: 'Love Spread',
+        cards: [
+          {
+            name: 'The Fool',
+            isReversed: false,
+            position: 'Past',
+            keywords: ['new', 'beginning', 'adventure', 'freedom'],
+          },
+        ],
+      }),
+    })
+
+    const response = await POST(req)
+
     expect(response.status).toBe(200)
-    // Keywords should be limited to MAX_KEYWORDS (8)
     const callArgs = vi.mocked(apiClient.post).mock.calls[0]
     expect(callArgs).toBeDefined()
   })
@@ -379,19 +401,8 @@ describe('POST /api/tarot/interpret', () => {
     expect(callArgs[1].language).toBe('ko')
   })
 
-  it('should sanitize string inputs', async () => {
-    const { apiClient } = await import('@/lib/api/ApiClient')
-
-    vi.mocked(apiClient.post).mockResolvedValue({
-      ok: true,
-      data: {
-        overall_message: 'Test',
-        card_insights: [],
-        guidance: 'Test',
-      },
-    })
-
-    const longTitle = 'x'.repeat(200)
+  it('should reject strings exceeding max length via Zod validation', async () => {
+    const longTitle = 'x'.repeat(200) // Exceeds max(120)
 
     const req = new NextRequest('http://localhost/api/tarot/interpret', {
       method: 'POST',
@@ -410,8 +421,9 @@ describe('POST /api/tarot/interpret', () => {
     })
 
     const response = await POST(req)
+    const data = await response.json()
 
-    expect(response.status).toBe(200)
-    // Strings should be sanitized to max lengths
+    expect(response.status).toBe(400)
+    expect(data.error).toBe('validation_failed')
   })
 })

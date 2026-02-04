@@ -3,7 +3,8 @@
  * Tests Redis caching, memory fallback, database queries, and cache invalidation
  */
 
-import { cacheGet, cacheSet, makeCacheKey } from '@/lib/redis-cache'
+import { vi } from 'vitest'
+import { cacheGet, cacheSet, makeCacheKey } from '@/lib/cache/redis-cache'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import {
@@ -16,20 +17,20 @@ import {
 } from '@/lib/stripe/premiumCache'
 
 // Mock dependencies
-jest.mock('@/lib/redis-cache')
-jest.mock('@/lib/db/prisma', () => ({
+vi.mock('@/lib/cache/redis-cache')
+vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     userCredits: {
-      findUnique: jest.fn(),
+      findUnique: vi.fn(),
     },
     subscription: {
-      findFirst: jest.fn(),
+      findFirst: vi.fn(),
     },
   },
 }))
-jest.mock('@/lib/logger', () => ({
+vi.mock('@/lib/logger', () => ({
   logger: {
-    warn: jest.fn(),
+    warn: vi.fn(),
   },
 }))
 
@@ -37,12 +38,12 @@ describe('Premium Status Cache', () => {
   const mockUserId = 'user_123'
 
   beforeEach(() => {
-    jest.clearAllMocks()
-    jest.useFakeTimers()
+    vi.clearAllMocks()
+    vi.useFakeTimers()
   })
 
   afterEach(() => {
-    jest.useRealTimers()
+    vi.useRealTimers()
   })
 
   describe('getCachedPremiumStatus', () => {
@@ -53,8 +54,8 @@ describe('Premium Status Cache', () => {
         checkedAt: Date.now(),
       }
 
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(mockCacheEntry)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(mockCacheEntry)
 
       const result = await getCachedPremiumStatus(mockUserId)
 
@@ -69,8 +70,8 @@ describe('Premium Status Cache', () => {
         checkedAt: Date.now() - 400000, // 6+ minutes old
       }
 
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(mockCacheEntry)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(mockCacheEntry)
 
       const result = await getCachedPremiumStatus(mockUserId)
 
@@ -78,8 +79,10 @@ describe('Premium Status Cache', () => {
     })
 
     it('should fallback to memory cache when Redis fails', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockRejectedValue(new Error('Redis connection failed'))
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockRejectedValue(
+        new Error('Redis connection failed')
+      )
 
       // Memory cache should still work
       const result = await getCachedPremiumStatus(mockUserId)
@@ -92,8 +95,8 @@ describe('Premium Status Cache', () => {
     })
 
     it('should return null when both caches miss', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
 
       const result = await getCachedPremiumStatus(mockUserId)
 
@@ -102,15 +105,15 @@ describe('Premium Status Cache', () => {
 
     it('should validate cache TTL (5 minutes)', async () => {
       const now = Date.now()
-      jest.setSystemTime(now)
+      vi.setSystemTime(now)
 
       const recentEntry = {
         isPremium: true,
         checkedAt: now - 240000, // 4 minutes old
       }
 
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(recentEntry)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(recentEntry)
 
       const result = await getCachedPremiumStatus(mockUserId)
 
@@ -120,8 +123,8 @@ describe('Premium Status Cache', () => {
 
   describe('setCachedPremiumStatus', () => {
     it('should cache premium status in Redis and memory', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
 
       await setCachedPremiumStatus(mockUserId, true, 'pro')
 
@@ -137,8 +140,8 @@ describe('Premium Status Cache', () => {
     })
 
     it('should handle Redis SET failure gracefully', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheSet as jest.Mock).mockRejectedValue(new Error('Redis write failed'))
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockRejectedValue(new Error('Redis write failed'))
 
       // Should not throw
       await setCachedPremiumStatus(mockUserId, false, 'free')
@@ -150,8 +153,8 @@ describe('Premium Status Cache', () => {
     })
 
     it('should cache free user status', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
 
       await setCachedPremiumStatus(mockUserId, false, 'free')
 
@@ -166,8 +169,8 @@ describe('Premium Status Cache', () => {
     })
 
     it('should cache without plan parameter', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
 
       await setCachedPremiumStatus(mockUserId, true)
 
@@ -190,8 +193,8 @@ describe('Premium Status Cache', () => {
         checkedAt: Date.now(),
       }
 
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(mockCacheEntry)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(mockCacheEntry)
 
       const result = await checkPremiumFromDatabase(mockUserId)
 
@@ -205,10 +208,12 @@ describe('Premium Status Cache', () => {
         plan: 'pro',
       }
 
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(mockUserCredits)
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
+      ;(
+        prisma.userCredits.findUnique as vi.Mocked<typeof prisma.userCredits.findUnique>
+      ).mockResolvedValue(mockUserCredits)
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
 
       const result = await checkPremiumFromDatabase(mockUserId)
 
@@ -221,10 +226,12 @@ describe('Premium Status Cache', () => {
     })
 
     it('should cache database query result', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue({ plan: 'premium' })
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
+      ;(
+        prisma.userCredits.findUnique as vi.Mocked<typeof prisma.userCredits.findUnique>
+      ).mockResolvedValue({ plan: 'premium' })
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
 
       await checkPremiumFromDatabase(mockUserId)
 
@@ -239,10 +246,12 @@ describe('Premium Status Cache', () => {
     })
 
     it('should detect free user from database', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue({ plan: 'free' })
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
+      ;(
+        prisma.userCredits.findUnique as vi.Mocked<typeof prisma.userCredits.findUnique>
+      ).mockResolvedValue({ plan: 'free' })
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
 
       const result = await checkPremiumFromDatabase(mockUserId)
 
@@ -251,10 +260,12 @@ describe('Premium Status Cache', () => {
     })
 
     it('should handle missing user credits', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue(null)
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
+      ;(
+        prisma.userCredits.findUnique as vi.Mocked<typeof prisma.userCredits.findUnique>
+      ).mockResolvedValue(null)
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
 
       const result = await checkPremiumFromDatabase(mockUserId)
 
@@ -263,20 +274,22 @@ describe('Premium Status Cache', () => {
     })
 
     it('should propagate database errors', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
-      ;(prisma.userCredits.findUnique as jest.Mock).mockRejectedValue(
-        new Error('Database connection lost')
-      )
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
+      ;(
+        prisma.userCredits.findUnique as vi.Mocked<typeof prisma.userCredits.findUnique>
+      ).mockRejectedValue(new Error('Database connection lost'))
 
       await expect(checkPremiumFromDatabase(mockUserId)).rejects.toThrow('Database connection lost')
     })
 
     it('should handle cache SET failure during DB query', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue({ plan: 'pro' })
-      ;(cacheSet as jest.Mock).mockRejectedValue(new Error('Cache write failed'))
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
+      ;(
+        prisma.userCredits.findUnique as vi.Mocked<typeof prisma.userCredits.findUnique>
+      ).mockResolvedValue({ plan: 'pro' })
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockRejectedValue(new Error('Cache write failed'))
 
       // Should still return result even if caching fails
       const result = await checkPremiumFromDatabase(mockUserId)
@@ -293,8 +306,8 @@ describe('Premium Status Cache', () => {
         checkedAt: Date.now(),
       }
 
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(mockCacheEntry)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(mockCacheEntry)
 
       const result = await checkPremiumFromSubscription(mockUserId)
 
@@ -308,10 +321,12 @@ describe('Premium Status Cache', () => {
         status: 'active',
       }
 
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
-      ;(prisma.subscription.findFirst as jest.Mock).mockResolvedValue(mockSubscription)
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
+      ;(
+        prisma.subscription.findFirst as vi.Mocked<typeof prisma.subscription.findFirst>
+      ).mockResolvedValue(mockSubscription)
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
 
       const result = await checkPremiumFromSubscription(mockUserId)
 
@@ -333,10 +348,12 @@ describe('Premium Status Cache', () => {
         status: 'trialing',
       }
 
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
-      ;(prisma.subscription.findFirst as jest.Mock).mockResolvedValue(mockSubscription)
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
+      ;(
+        prisma.subscription.findFirst as vi.Mocked<typeof prisma.subscription.findFirst>
+      ).mockResolvedValue(mockSubscription)
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
 
       const result = await checkPremiumFromSubscription(mockUserId)
 
@@ -344,10 +361,12 @@ describe('Premium Status Cache', () => {
     })
 
     it('should return false when no active subscription', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
-      ;(prisma.subscription.findFirst as jest.Mock).mockResolvedValue(null)
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
+      ;(
+        prisma.subscription.findFirst as vi.Mocked<typeof prisma.subscription.findFirst>
+      ).mockResolvedValue(null)
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
 
       const result = await checkPremiumFromSubscription(mockUserId)
 
@@ -355,10 +374,12 @@ describe('Premium Status Cache', () => {
     })
 
     it('should cache subscription query result', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
-      ;(prisma.subscription.findFirst as jest.Mock).mockResolvedValue({ id: 'sub_123' })
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
+      ;(
+        prisma.subscription.findFirst as vi.Mocked<typeof prisma.subscription.findFirst>
+      ).mockResolvedValue({ id: 'sub_123' })
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
 
       await checkPremiumFromSubscription(mockUserId)
 
@@ -372,9 +393,11 @@ describe('Premium Status Cache', () => {
     })
 
     it('should propagate database errors', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
-      ;(prisma.subscription.findFirst as jest.Mock).mockRejectedValue(new Error('DB query failed'))
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
+      ;(
+        prisma.subscription.findFirst as vi.Mocked<typeof prisma.subscription.findFirst>
+      ).mockRejectedValue(new Error('DB query failed'))
 
       await expect(checkPremiumFromSubscription(mockUserId)).rejects.toThrow('DB query failed')
     })
@@ -382,8 +405,8 @@ describe('Premium Status Cache', () => {
 
   describe('invalidatePremiumCache', () => {
     it('should invalidate Redis cache', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
 
       await invalidatePremiumCache(mockUserId)
 
@@ -395,8 +418,8 @@ describe('Premium Status Cache', () => {
     })
 
     it('should handle Redis invalidation failure', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheSet as jest.Mock).mockRejectedValue(new Error('Redis error'))
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockRejectedValue(new Error('Redis error'))
 
       // Should not throw
       await invalidatePremiumCache(mockUserId)
@@ -426,14 +449,16 @@ describe('Premium Status Cache', () => {
   describe('Integration Scenarios', () => {
     it('should handle complete cache miss -> DB query -> cache set flow', async () => {
       // Cache miss
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
 
       // DB query
-      ;(prisma.userCredits.findUnique as jest.Mock).mockResolvedValue({ plan: 'premium' })
+      ;(
+        prisma.userCredits.findUnique as vi.Mocked<typeof prisma.userCredits.findUnique>
+      ).mockResolvedValue({ plan: 'premium' })
 
       // Cache set
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
 
       const result = await checkPremiumFromDatabase(mockUserId)
 
@@ -445,8 +470,8 @@ describe('Premium Status Cache', () => {
 
     it('should handle subscription status change', async () => {
       // Initial check - premium
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue({
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue({
         isPremium: true,
         checkedAt: Date.now(),
       })
@@ -455,12 +480,14 @@ describe('Premium Status Cache', () => {
       expect(result).toBe(true)
 
       // Invalidate after cancellation
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
       await invalidatePremiumCache(mockUserId)
 
       // Second check - not premium
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
-      ;(prisma.subscription.findFirst as jest.Mock).mockResolvedValue(null)
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
+      ;(
+        prisma.subscription.findFirst as vi.Mocked<typeof prisma.subscription.findFirst>
+      ).mockResolvedValue(null)
 
       result = await checkPremiumFromSubscription(mockUserId)
       expect(result).toBe(false)
@@ -468,12 +495,12 @@ describe('Premium Status Cache', () => {
 
     it('should handle Redis failure with memory fallback', async () => {
       // Set in memory first
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheSet as jest.Mock).mockResolvedValue(undefined)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheSet as vi.Mocked<typeof cacheSet>).mockResolvedValue(undefined)
       await setCachedPremiumStatus(mockUserId, true, 'pro')
 
       // Redis fails on read
-      ;(cacheGet as jest.Mock).mockRejectedValue(new Error('Redis down'))
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockRejectedValue(new Error('Redis down'))
 
       // Should still work (though will miss in this test due to module isolation)
       const result = await getCachedPremiumStatus(mockUserId)
@@ -484,8 +511,8 @@ describe('Premium Status Cache', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty userId', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:')
-      ;(cacheGet as jest.Mock).mockResolvedValue(null)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(null)
 
       const result = await getCachedPremiumStatus('')
 
@@ -493,8 +520,8 @@ describe('Premium Status Cache', () => {
     })
 
     it('should handle concurrent cache requests', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue({
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue({
         isPremium: true,
         checkedAt: Date.now(),
       })
@@ -516,8 +543,8 @@ describe('Premium Status Cache', () => {
         checkedAt: Date.now() - 86400000, // 1 day old
       }
 
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue(veryOldEntry)
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue(veryOldEntry)
 
       const result = await getCachedPremiumStatus(mockUserId)
 
@@ -525,8 +552,8 @@ describe('Premium Status Cache', () => {
     })
 
     it('should handle malformed cache data', async () => {
-      ;(makeCacheKey as jest.Mock).mockReturnValue('premium:user_123')
-      ;(cacheGet as jest.Mock).mockResolvedValue({ invalid: 'data' })
+      ;(makeCacheKey as vi.Mocked<typeof makeCacheKey>).mockReturnValue('premium:user_123')
+      ;(cacheGet as vi.Mocked<typeof cacheGet>).mockResolvedValue({ invalid: 'data' })
 
       const result = await getCachedPremiumStatus(mockUserId)
 

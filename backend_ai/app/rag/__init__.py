@@ -64,6 +64,20 @@ except ImportError:
     get_vector_store = None
     get_domain_vector_store = None
 
+# Evaluation (RAGAS-style) - optional
+try:
+    from .evaluation import (
+        EvalSample,
+        EvalResult,
+        RAGEvaluator,
+        EVAL_DATASET,
+    )
+except ImportError:
+    EvalSample = None
+    EvalResult = None
+    RAGEvaluator = None
+    EVAL_DATASET = None
+
 # Community summarizer - optional, loaded when USE_COMMUNITY_SUMMARY=1
 try:
     from .community_summarizer import (
@@ -102,6 +116,11 @@ __all__ = [
     "VectorStoreManager",
     "get_vector_store",
     "get_domain_vector_store",
+    # Evaluation (optional)
+    "EvalSample",
+    "EvalResult",
+    "RAGEvaluator",
+    "EVAL_DATASET",
     # Community summarizer (optional)
     "CommunitySummary",
     "HierarchicalSummarizer",

@@ -17,7 +17,7 @@ import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/destiny-map/chat-stream/route'
 
 // ✨ REFACTORED: Import centralized mock for Saju
-import { mockSajuCore } from '@/tests/mocks'
+import { mockSajuCore } from '../../../../mocks'
 
 // Initialize Saju mock
 mockSajuCore()

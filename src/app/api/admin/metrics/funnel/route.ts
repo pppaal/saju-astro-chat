@@ -15,9 +15,8 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
+import { isAdminUser } from '@/lib/auth/admin'
 import { DashboardTimeRangeSchema, type DashboardTimeRange } from '@/lib/metrics/schema'
-
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || []
 
 function getDateRange(timeRange: DashboardTimeRange): { start: Date; end: Date } {
   const end = new Date()
@@ -47,14 +46,21 @@ function getDateRange(timeRange: DashboardTimeRange): { start: Date; end: Date }
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     try {
-      const userEmail = context.session?.user?.email
-      if (!userEmail) {
+      if (!context.userId || !context.session?.user?.email) {
+        logger.warn('[Funnel] No session or userId', {
+          hasSession: !!context.session,
+          hasUserId: !!context.userId,
+          hasEmail: !!context.session?.user?.email,
+        })
         return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
       }
 
-      const isAdmin = ADMIN_EMAILS.includes(userEmail.toLowerCase())
+      const isAdmin = await isAdminUser(context.userId)
       if (!isAdmin) {
-        logger.warn('[Funnel] Unauthorized access attempt', { email: userEmail })
+        logger.warn('[Funnel] Unauthorized access attempt', {
+          email: context.session.user.email,
+          userId: context.userId,
+        })
         return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
       }
 
