@@ -39,6 +39,7 @@ jobs:
         env:
           NODE_ENV: production
           NEXT_PUBLIC_VERSION: pr-${{ github.event.pull_request.number }}
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
 
       - name: Deploy to Vercel Preview
         id: deploy

@@ -68,13 +68,14 @@ const config = [
       '@typescript-eslint': tseslint,
     },
     rules: {
-      // TypeScript strict rules (relaxed for gradual improvement)
-      '@typescript-eslint/no-explicit-any': 'warn', // Changed to warn for gradual improvement
+      // TypeScript strict rules
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
-        'warn', // Changed to warn for gradual improvement
+        'error',
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
           ignoreRestSiblings: true,
         },
       ],
@@ -85,10 +86,11 @@ const config = [
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/purity': 'off',
       'react-hooks/immutability': 'off',
-      'react-hooks/exhaustive-deps': 'warn', // Warn instead of error
+      'react-hooks/preserve-manual-memoization': 'off',
+      'react-hooks/exhaustive-deps': 'error',
       // Code quality
       'no-console': ['error', { allow: ['warn', 'error'] }],
-      'prefer-const': 'warn',
+      'prefer-const': 'error',
       'no-var': 'error',
       'eqeqeq': ['warn', 'always', { null: 'ignore' }],
       'curly': ['warn', 'all'],
@@ -103,7 +105,7 @@ const config = [
     },
     rules: {
       '@typescript-eslint/no-unused-vars': 'off', // More lenient for lib files
-      '@typescript-eslint/no-explicit-any': 'warn', // Allow gradual improvement in lib
+      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
   {
@@ -111,7 +113,7 @@ const config = [
     files: ['src/lib/performance/**/*.{ts,tsx}'],
     rules: {
       'react-hooks/refs': 'off', // Advanced ref patterns intentionally used
-      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/exhaustive-deps': 'error',
       'react-hooks/use-memo': 'off', // Allow custom memo patterns
     },
   },
@@ -120,10 +122,11 @@ const config = [
     files: ['src/app/api/**/*.{ts,tsx}'],
     rules: {
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_|^context$',
+          caughtErrorsIgnorePattern: '^_',
           ignoreRestSiblings: true,
         },
       ],

@@ -36,7 +36,7 @@ jobs:
       - name: Verify token encryption
         run: node scripts/verify-token-encryption.js
         env:
-          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'ci-placeholder-token-encryption-key-32bytes' }}
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
 
       - name: Env check
         run: npm run check:env
@@ -51,7 +51,7 @@ jobs:
           PUBLIC_METRICS_TOKEN: ${{ secrets.PUBLIC_METRICS_TOKEN || 'ci-metrics-token' }}
           NEXT_PUBLIC_PUBLIC_METRICS_TOKEN: ${{ secrets.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN || 'ci-metrics-token' }}
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgres://user:pass@host/db' }}
-          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'ci-placeholder-token-encryption-key-32bytes' }}
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
           PUBLIC_API_TOKEN: ${{ secrets.PUBLIC_API_TOKEN || 'ci-placeholder' }}
           NEXT_PUBLIC_API_TOKEN: ${{ secrets.NEXT_PUBLIC_API_TOKEN || 'ci-placeholder' }}
           NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'ci-placeholder' }}
@@ -284,6 +284,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
 
       - name: Bundle size check
         run: |

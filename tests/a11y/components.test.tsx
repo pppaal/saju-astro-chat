@@ -3,20 +3,20 @@
  * Tests shadcn/ui components and key application components for WCAG compliance
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import { render, cleanup } from '@testing-library/react';
-import { configureAxe, axe } from './axe-helper';
-import React from 'react';
+import { describe, it, expect, beforeEach } from 'vitest'
+import { render, cleanup } from '@testing-library/react'
+import { configureAxe, axe } from './axe-helper'
+import React from 'react'
 
 // Import shadcn/ui components
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectOption } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Spinner } from '@/components/ui/spinner';
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectOption } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { Spinner } from '@/components/ui/spinner'
 import {
   Card,
   CardHeader,
@@ -24,12 +24,12 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
-} from '@/components/ui/card-shadcn';
+} from '@/components/ui/card-shadcn'
 
 describe('Accessibility: shadcn/ui Components', () => {
   beforeEach(() => {
-    cleanup();
-  });
+    cleanup()
+  })
 
   describe('Button', () => {
     it('should have no accessibility violations', async () => {
@@ -41,25 +41,23 @@ describe('Accessibility: shadcn/ui Components', () => {
           <Button disabled>Disabled</Button>
           <Button isLoading>Loading</Button>
         </div>
-      );
+      )
 
-      const results = await axe(container);
-      expect(results.violations).toHaveLength(0);
-    });
+      const results = await axe(container)
+      expect(results.violations).toHaveLength(0)
+    })
 
     it('should have accessible loading state', async () => {
-      const { container, getByRole } = render(
-        <Button isLoading>Submit</Button>
-      );
+      const { container, getByRole } = render(<Button isLoading>Submit</Button>)
 
-      const button = getByRole('button');
-      expect(button).toHaveAttribute('aria-busy', 'true');
-      expect(button).toBeDisabled();
+      const button = getByRole('button')
+      expect(button).toHaveAttribute('aria-busy', 'true')
+      expect(button).toBeDisabled()
 
-      const results = await axe(container);
-      expect(results.violations).toHaveLength(0);
-    });
-  });
+      const results = await axe(container)
+      expect(results.violations).toHaveLength(0)
+    })
+  })
 
   describe('Input', () => {
     it('should have no accessibility violations with label', async () => {
@@ -68,35 +66,30 @@ describe('Accessibility: shadcn/ui Components', () => {
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" placeholder="Enter email" />
         </div>
-      );
+      )
 
-      const results = await axe(container);
-      expect(results.violations).toHaveLength(0);
-    });
+      const results = await axe(container)
+      expect(results.violations).toHaveLength(0)
+    })
 
     it('should have accessible error state', async () => {
       const { container } = render(
         <div>
           <Label htmlFor="username">Username</Label>
-          <Input
-            id="username"
-            type="text"
-            error
-            aria-describedby="username-error"
-          />
+          <Input id="username" type="text" error aria-describedby="username-error" />
           <span id="username-error" role="alert">
             Username is required
           </span>
         </div>
-      );
+      )
 
-      const input = container.querySelector('input');
-      expect(input).toHaveAttribute('aria-invalid', 'true');
+      const input = container.querySelector('input')
+      expect(input).toHaveAttribute('aria-invalid', 'true')
 
-      const results = await axe(container);
-      expect(results.violations).toHaveLength(0);
-    });
-  });
+      const results = await axe(container)
+      expect(results.violations).toHaveLength(0)
+    })
+  })
 
   describe('Select', () => {
     it('should have no accessibility violations', async () => {
@@ -110,30 +103,26 @@ describe('Accessibility: shadcn/ui Components', () => {
             <SelectOption value="jp">Japan</SelectOption>
           </Select>
         </div>
-      );
+      )
 
-      const results = await axe(container);
-      expect(results.violations).toHaveLength(0);
-    });
-  });
+      const results = await axe(container)
+      expect(results.violations).toHaveLength(0)
+    })
+  })
 
   describe('Textarea', () => {
     it('should have no accessibility violations', async () => {
       const { container } = render(
         <div>
           <Label htmlFor="bio">Biography</Label>
-          <Textarea
-            id="bio"
-            placeholder="Tell us about yourself"
-            rows={4}
-          />
+          <Textarea id="bio" placeholder="Tell us about yourself" rows={4} />
         </div>
-      );
+      )
 
-      const results = await axe(container);
-      expect(results.violations).toHaveLength(0);
-    });
-  });
+      const results = await axe(container)
+      expect(results.violations).toHaveLength(0)
+    })
+  })
 
   describe('Badge', () => {
     it('should have no accessibility violations', async () => {
@@ -144,12 +133,12 @@ describe('Accessibility: shadcn/ui Components', () => {
           <Badge variant="warning">Warning</Badge>
           <Badge variant="destructive">Error</Badge>
         </div>
-      );
+      )
 
-      const results = await axe(container);
-      expect(results.violations).toHaveLength(0);
-    });
-  });
+      const results = await axe(container)
+      expect(results.violations).toHaveLength(0)
+    })
+  })
 
   describe('Alert', () => {
     it('should have no accessibility violations', async () => {
@@ -175,11 +164,11 @@ describe('Accessibility: shadcn/ui Components', () => {
             <AlertDescription>Something went wrong.</AlertDescription>
           </Alert>
         </div>
-      );
+      )
 
-      const results = await axe(container);
-      expect(results.violations).toHaveLength(0);
-    });
+      const results = await axe(container)
+      expect(results.violations).toHaveLength(0)
+    })
 
     it('should have role="alert"', async () => {
       const { getAllByRole } = render(
@@ -187,12 +176,12 @@ describe('Accessibility: shadcn/ui Components', () => {
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>An error occurred</AlertDescription>
         </Alert>
-      );
+      )
 
-      const alerts = getAllByRole('alert');
-      expect(alerts.length).toBeGreaterThan(0);
-    });
-  });
+      const alerts = getAllByRole('alert')
+      expect(alerts.length).toBeGreaterThan(0)
+    })
+  })
 
   describe('Card', () => {
     it('should have no accessibility violations', async () => {
@@ -209,12 +198,12 @@ describe('Accessibility: shadcn/ui Components', () => {
             <Button>Action</Button>
           </CardFooter>
         </Card>
-      );
+      )
 
-      const results = await axe(container);
-      expect(results.violations).toHaveLength(0);
-    });
-  });
+      const results = await axe(container)
+      expect(results.violations).toHaveLength(0)
+    })
+  })
 
   describe('Spinner', () => {
     it('should have no accessibility violations', async () => {
@@ -224,19 +213,19 @@ describe('Accessibility: shadcn/ui Components', () => {
           <Spinner label="Loading data" />
           <Spinner size="lg" variant="white" />
         </div>
-      );
+      )
 
-      const results = await axe(container);
-      expect(results.violations).toHaveLength(0);
-    });
+      const results = await axe(container)
+      expect(results.violations).toHaveLength(0)
+    })
 
     it('should have accessible status role', async () => {
-      const { getByRole } = render(<Spinner label="Processing" />);
+      const { getByRole } = render(<Spinner label="Processing" />)
 
-      const spinner = getByRole('status');
-      expect(spinner).toHaveAttribute('aria-label', 'Processing');
-    });
-  });
+      const spinner = getByRole('status')
+      expect(spinner).toHaveAttribute('aria-label', 'Processing')
+    })
+  })
 
   describe('Form with multiple components', () => {
     it('should have no accessibility violations in a complete form', async () => {
@@ -273,10 +262,10 @@ describe('Accessibility: shadcn/ui Components', () => {
 
           <Button type="submit">Register</Button>
         </form>
-      );
+      )
 
-      const results = await axe(container);
-      expect(results.violations).toHaveLength(0);
-    });
-  });
-});
+      const results = await axe(container)
+      expect(results.violations).toHaveLength(0)
+    })
+  })
+})

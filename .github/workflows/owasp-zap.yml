@@ -52,7 +52,7 @@ jobs:
       - name: Run OWASP ZAP baseline
         run: npm run security:owasp
         env:
-          OWASP_TARGET_URL: http://host.docker.internal:3000
+          ZAP_TARGET_URL: http://host.docker.internal:3000
           OWASP_DOCKER_ARGS: --add-host=host.docker.internal:host-gateway
 
       - name: Upload OWASP reports

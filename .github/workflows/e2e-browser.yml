@@ -44,6 +44,7 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
 
       - name: Start server in background
         run: |
