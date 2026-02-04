@@ -108,7 +108,7 @@ export async function POST(request: Request) {
             ? Math.round(consistencyScore)
             : null,
         analysisData: analysisData as Prisma.InputJsonValue,
-        answers: answers ? (answers as Prisma.InputJsonValue) : null,
+        answers: answers ? (answers as Prisma.InputJsonValue) : Prisma.DbNull,
       },
       update: {
         typeCode,
@@ -123,7 +123,7 @@ export async function POST(request: Request) {
             ? Math.round(consistencyScore)
             : null,
         analysisData: analysisData as Prisma.InputJsonValue,
-        answers: answers ? (answers as Prisma.InputJsonValue) : null,
+        answers: answers ? (answers as Prisma.InputJsonValue) : Prisma.DbNull,
         updatedAt: new Date(),
       },
     })

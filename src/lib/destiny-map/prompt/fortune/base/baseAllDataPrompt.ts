@@ -325,80 +325,108 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
   const relationshipText = Array.isArray(sibsinRelationships)
     ? sibsinRelationships
         .slice(0, 3)
-        .map((r: SibsinRelation) => `${r.type}:${r.quality ?? r.description ?? ''}`)
+        .map((r: unknown) => {
+          const rel = r as Record<string, unknown>
+          return `${rel.type ?? ''}:${rel.quality ?? rel.description ?? ''}`
+        })
         .join('; ')
     : '-'
   const careerText = Array.isArray(sibsinCareerAptitudes)
     ? sibsinCareerAptitudes
         .slice(0, 4)
-        .map((c: CareerAptitude) => `${c.field}(${c.score ?? 0})`)
+        .map((c: unknown) => {
+          const ca = c as Record<string, unknown>
+          return `${ca.field ?? ''}(${ca.score ?? 0})`
+        })
         .join(', ')
     : '-'
 
   // 형충회합
-  const hyeongchung = adv?.hyeongchung ?? {}
-  const chungText = hyeongchung.chung?.length
-    ? hyeongchung.chung
-        .map((c: BranchInteraction) => `${c.branch1 ?? c.from}-${c.branch2 ?? c.to}`)
+  const hyeongchung = (getProperty(adv, 'hyeongchung') ?? {}) as Record<string, unknown>
+  const chungArr = getProperty(hyeongchung, 'chung') as Array<Record<string, unknown>> | undefined
+  const chungText = chungArr?.length
+    ? chungArr.map((c) => `${c.branch1 ?? c.from ?? ''}-${c.branch2 ?? c.to ?? ''}`).join(', ')
+    : '-'
+  const hapArr = getProperty(hyeongchung, 'hap') as Array<Record<string, unknown>> | undefined
+  const hapText = hapArr?.length
+    ? hapArr
+        .map((h) => `${h.branch1 ?? h.from ?? ''}-${h.branch2 ?? h.to ?? ''}→${h.result ?? ''}`)
         .join(', ')
     : '-'
-  const hapText = hyeongchung.hap?.length
-    ? hyeongchung.hap
-        .map(
-          (h: BranchInteraction) => `${h.branch1 ?? h.from}-${h.branch2 ?? h.to}→${h.result ?? ''}`
-        )
-        .join(', ')
-    : '-'
-  const samhapText = hyeongchung.samhap?.length
-    ? hyeongchung.samhap
-        .map((s: { branches?: string[] }) => s.branches?.join?.('-') ?? '-')
+  const samhapArr = getProperty(hyeongchung, 'samhap') as Array<Record<string, unknown>> | undefined
+  const samhapText = samhapArr?.length
+    ? samhapArr
+        .map((s) => {
+          const branches = s.branches
+          return Array.isArray(branches) ? branches.join('-') : '-'
+        })
         .join('; ')
     : '-'
 
   // 건강/직업
-  const healthCareer = adv?.healthCareer ?? {}
+  const healthCareer = (getProperty(adv, 'healthCareer') ?? {}) as Record<string, unknown>
+  const healthVuln = getProperty(healthCareer, 'health', 'vulnerabilities')
   const healthWeak =
-    healthCareer.health?.vulnerabilities?.join?.(', ') ??
-    healthCareer.health?.weakOrgans?.join?.(', ') ??
-    '-'
+    (Array.isArray(healthVuln) ? healthVuln.join(', ') : null) ??
+    (() => {
+      const wo = getProperty(healthCareer, 'health', 'weakOrgans')
+      return Array.isArray(wo) ? wo.join(', ') : '-'
+    })()
+  const suitableArr = getProperty(healthCareer, 'career', 'suitableFields')
   const suitableCareers =
-    healthCareer.career?.suitableFields?.join?.(', ') ??
-    healthCareer.career?.aptitudes?.join?.(', ') ??
-    '-'
+    (Array.isArray(suitableArr) ? suitableArr.join(', ') : null) ??
+    (() => {
+      const apt = getProperty(healthCareer, 'career', 'aptitudes')
+      return Array.isArray(apt) ? apt.join(', ') : '-'
+    })()
 
   // 종합 점수
-  const score = adv?.score ?? {}
-  const scoreText =
-    (score.total ?? score.overall)
-      ? `총${score.total ?? score.overall}/100 (사업${score.business ?? score.career ?? 0}, 재물${score.wealth ?? score.finance ?? 0}, 건강${score.health ?? 0})`
-      : '-'
+  const score = (getProperty(adv, 'score') ?? {}) as Record<string, unknown>
+  const scoreTotal = (score.total ?? score.overall) as number | undefined
+  const scoreText = scoreTotal
+    ? `총${scoreTotal}/100 (사업${score.business ?? score.career ?? 0}, 재물${score.wealth ?? score.finance ?? 0}, 건강${score.health ?? 0})`
+    : '-'
 
   // 통근/투출/회국/득령 (고급 분석)
-  const tonggeunText = adv?.tonggeun
-    ? `${adv.tonggeun.stem ?? '-'}→${adv.tonggeun.rootBranch ?? '-'} (${adv.tonggeun.strength ?? '-'})`
+  const tonggeun = getProperty(adv, 'tonggeun') as Record<string, unknown> | undefined
+  const tonggeunText = tonggeun
+    ? `${tonggeun.stem ?? '-'}→${tonggeun.rootBranch ?? '-'} (${tonggeun.strength ?? '-'})`
     : '-'
-  const tuechulText = adv?.tuechul?.length
-    ? adv.tuechul
+  const tuechulArr = getProperty(adv, 'tuechul') as Array<Record<string, unknown>> | undefined
+  const tuechulText = tuechulArr?.length
+    ? tuechulArr
         .slice(0, 3)
-        .map((t: TuechulItem) => `${t.element ?? t.stem}(${t.type ?? '-'})`)
+        .map((t) => `${t.element ?? t.stem ?? ''}(${t.type ?? '-'})`)
         .join(', ')
     : '-'
-  const hoegukText = adv?.hoeguk?.length
-    ? adv.hoeguk
+  const hoegukArr = getProperty(adv, 'hoeguk') as Array<Record<string, unknown>> | undefined
+  const hoegukText = hoegukArr?.length
+    ? hoegukArr
         .slice(0, 2)
-        .map((h: HoegukItem) => `${h.type ?? h.name}→${h.resultElement ?? '-'}`)
+        .map((h) => `${h.type ?? h.name ?? ''}→${h.resultElement ?? '-'}`)
         .join('; ')
     : '-'
-  const deukryeongText = adv?.deukryeong
-    ? `${adv.deukryeong.status ?? adv.deukryeong.type ?? '-'} (${adv.deukryeong.score ?? 0}점)`
+  const deukryeong = getProperty(adv, 'deukryeong') as Record<string, unknown> | undefined
+  const deukryeongText = deukryeong
+    ? `${deukryeong.status ?? deukryeong.type ?? '-'} (${deukryeong.score ?? 0}점)`
     : '-'
 
   // 고급 분석 (종격, 화격, 일주론, 공망)
-  const ultra = adv?.ultraAdvanced ?? {}
-  const jonggeokText = ultra.jonggeok?.type ?? ultra.jonggeok?.name ?? ''
-  const iljuText = ultra.iljuAnalysis?.character ?? ultra.iljuAnalysis?.personality ?? ''
+  const ultra = (getProperty(adv, 'ultraAdvanced') ?? {}) as Record<string, unknown>
+  const jonggeokText =
+    (getProperty(ultra, 'jonggeok', 'type') as string) ??
+    (getProperty(ultra, 'jonggeok', 'name') as string) ??
+    ''
+  const iljuText =
+    (getProperty(ultra, 'iljuAnalysis', 'character') as string) ??
+    (getProperty(ultra, 'iljuAnalysis', 'personality') as string) ??
+    ''
+  const gongmangBranches = getProperty(ultra, 'gongmang', 'branches')
+  const gongmangEmpty = getProperty(ultra, 'gongmang', 'emptyBranches')
   const gongmangText =
-    ultra.gongmang?.branches?.join?.(', ') ?? ultra.gongmang?.emptyBranches?.join?.(', ') ?? ''
+    (Array.isArray(gongmangBranches) ? gongmangBranches.join(', ') : null) ??
+    (Array.isArray(gongmangEmpty) ? gongmangEmpty.join(', ') : null) ??
+    ''
 
   // ========== EXTRA ASTROLOGY POINTS (Chiron, Lilith, Vertex, Part of Fortune) ==========
   type ExtraPoint = { sign?: string; house?: number }

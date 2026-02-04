@@ -9,7 +9,10 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
-import { personalityCompatibilitySaveRequestSchema } from '@/lib/api/zodValidation'
+import {
+  personalityCompatibilitySaveRequestSchema,
+  personalityCompatibilitySaveGetQuerySchema,
+} from '@/lib/api/zodValidation'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -216,7 +219,10 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const id = searchParams.get('id')
+    const queryValidation = personalityCompatibilitySaveGetQuerySchema.safeParse({
+      id: searchParams.get('id') || undefined,
+    })
+    const id = queryValidation.success ? queryValidation.data.id : null
 
     if (!id) {
       return NextResponse.json(

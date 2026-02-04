@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic'
  */
 const notificationSendSchema = z.object({
   targetUserId: z.string().min(1).max(200),
-  type: z.string().min(1).max(50),
+  type: z.enum(['like', 'comment', 'reply', 'mention', 'system']),
   title: z.string().min(1).max(200).trim(),
   message: z.string().min(1).max(1000).trim(),
   link: z.string().max(500).optional(),
@@ -79,7 +79,7 @@ export async function POST(_request: NextRequest) {
     }
 
     const sent = await sendNotification(targetUserId, {
-      type: type as 'like' | 'comment' | 'reply' | 'mention' | 'system',
+      type,
       title,
       message,
       link,

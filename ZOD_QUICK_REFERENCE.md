@@ -141,37 +141,55 @@ chatHistorySaveRequestSchema // 채팅 히스토리
 
 ---
 
-## ✅ 검증 적용 완료 라우트 (61개)
+## ✅ 검증 적용 완료 라우트 (107개)
 
 ### 결제 & 인증
 
 - ✅ `/api/checkout`
-- ✅ `/api/auth/register` ← Phase 4 강화
+- ✅ `/api/auth/register`
 
 ### 데이터 저장
 
 - ✅ `/api/calendar/save` (POST, GET, DELETE)
+- ✅ `/api/calendar/save/[id]` (GET, DELETE) ← Phase 7
 - ✅ `/api/tarot/save` (POST, GET)
+- ✅ `/api/tarot/save/[id]` (GET) ← Phase 7
 - ✅ `/api/destiny-matrix/save`
 - ✅ `/api/life-prediction/save`
-- ✅ `/api/life-prediction/save-timing` ← Phase 5 신규
+- ✅ `/api/life-prediction/save-timing`
 
 ### 점술 서비스
 
 - ✅ `/api/iching/stream`
 - ✅ `/api/dream` (3개)
 - ✅ `/api/dream/chat/save`
-- ✅ `/api/tarot/interpret` ← Phase 4 신규
-- ✅ `/api/tarot/couple-reading` (GET, POST, DELETE) ← Phase 4 신규
-- ✅ `/api/destiny-matrix` (GET, POST) ← Phase 4 신규
-- ✅ `/api/life-prediction/explain-results` ← Phase 5 신규
-- ✅ `/api/life-prediction/analyze-question` ← Phase 5 신규
-- ✅ `/api/life-prediction/backend-predict` ← Phase 5 신규
+- ✅ `/api/dream/history` (GET, DELETE) ← Phase 7
+- ✅ `/api/tarot/interpret`
+- ✅ `/api/tarot/couple-reading` (GET, POST, DELETE)
+- ✅ `/api/destiny-matrix` (GET, POST)
+- ✅ `/api/destiny-matrix/ai-report`
+- ✅ `/api/destiny-matrix/report`
+- ✅ `/api/life-prediction/explain-results`
+- ✅ `/api/life-prediction/analyze-question`
+- ✅ `/api/life-prediction/backend-predict`
 
-### 알림
+### 상담 & 세션
 
-- ✅ `/api/push/send` ← Phase 5 신규
+- ✅ `/api/feedback`
+- ✅ `/api/counselor/chat-history`
+- ✅ `/api/counselor/session/list` (GET, DELETE) ← Phase 7
+- ✅ `/api/counselor/session/load` ← Phase 7
+- ✅ `/api/consultation/[id]` (GET, DELETE) ← Phase 7
+- ✅ `/api/destiny-map/chat-stream`
+
+### 알림 & 푸시
+
+- ✅ `/api/push/send`
 - ✅ `/api/notifications/send`
+- ✅ `/api/cron/notifications` ← Phase 7
+
+### 점성술 & 사주
+
 - ✅ `/api/astrology`
 - ✅ `/api/saju`
 - ✅ `/api/tarot` (3개)
@@ -190,43 +208,46 @@ chatHistorySaveRequestSchema // 채팅 히스토리
 - ✅ `/api/astrology/advanced/rectification`
 - ✅ `/api/astrology/advanced/solar-return`
 
-### 궁합 분석 (3개) ← Phase 2 신규!
+### 궁합 분석
 
-- ✅ `/api/compatibility` (POST) - `compatibilityRequestSchema`
-- ✅ `/api/compatibility/chat` (POST) - `compatibilityChatRequestSchema`
-- ✅ `/api/personality/compatibility/save` (POST) - `personalityCompatibilitySaveRequestSchema`
+- ✅ `/api/compatibility` (POST)
+- ✅ `/api/compatibility/chat` (POST)
+- ✅ `/api/personality/compatibility/save` (POST)
 
 ### 사용자 & 프로필
 
 - ✅ `/api/me/circle` (GET, POST, DELETE)
 - ✅ `/api/me/profile`
+- ✅ `/api/me/history` ← Phase 7
 - ✅ `/api/user/update-birth-info`
 
-### 상담 & 피드백
+### 매칭 & 소셜
 
-- ✅ `/api/feedback`
-- ✅ `/api/counselor/chat-history`
-- ✅ `/api/destiny-map/chat-stream`
+- ✅ `/api/destiny-match/discover` ← Phase 7
+- ✅ `/api/destiny-match/matches` (DELETE) ← Phase 7
+- ✅ `/api/referral/validate` ← Phase 7
 
-### 알림 & 공유 & 추천
+### 리포트 & 리딩
 
-- ✅ `/api/notifications/send`
+- ✅ `/api/reports/[id]` (GET, DELETE) ← Phase 7
+- ✅ `/api/readings/[id]` (GET) ← Phase 7
+
+### 유틸리티
+
+- ✅ `/api/cities` ← Phase 7
 - ✅ `/api/share/generate-image`
 - ✅ `/api/referral/link`
 
 ---
 
-## 📦 즉시 적용 가능 (스키마 준비됨)
+## 🚫 Zod 불필요 라우트 (27개)
 
-### 추천 시스템
-
-- `/api/referral/claim` → `referralClaimRequestSchema` (body 없음)
-- `/api/referral/link` → `referralLinkRequestSchema`
-
-### 알림 & 공유
-
-- `/api/notifications/send` → `notificationSendRequestSchema`
-- `/api/share/generate-image` → `shareImageRequestSchema`
+- `auth/[...nextauth]` - NextAuth 내부 처리
+- `auth/revoke`, `referral/claim`, `referral/create-code` - Body 없음
+- `cron/daily-fortune-post`, `cron/reset-credits`, `cron/weekly-fortune` - Body 없음 (헤더 인증)
+- `metrics/track` - Body 없음 (IP/헤더 기반)
+- `user/upload-photo` - FormData (Zod 비적용)
+- `webhook/stripe` - Stripe signature 검증
 
 ---
 
@@ -341,3 +362,5 @@ interface MyInterface {
 
 **프로젝트**: Saju Astro Chat
 **작성자**: Claude Code Assistant
+**최종 업데이트**: 2026-02-03 (Phase 7 완료 - 80% 목표 달성)
+**버전**: 7.0

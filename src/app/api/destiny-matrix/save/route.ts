@@ -10,7 +10,10 @@ import type {
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
-import { destinyMatrixSaveRequestSchema } from '@/lib/api/zodValidation'
+import {
+  destinyMatrixSaveRequestSchema,
+  destinyMatrixSaveGetQuerySchema,
+} from '@/lib/api/zodValidation'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -128,7 +131,10 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const id = searchParams.get('id')
+    const queryValidation = destinyMatrixSaveGetQuerySchema.safeParse({
+      id: searchParams.get('id') || undefined,
+    })
+    const id = queryValidation.success ? queryValidation.data.id : null
 
     if (!id) {
       return NextResponse.json(

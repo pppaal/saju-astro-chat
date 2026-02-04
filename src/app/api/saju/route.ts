@@ -94,10 +94,11 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   const birthDate = toDate(`${birthDateString}T${birthTimeRaw}:00`, { timeZone: timezone })
   const adjustedBirthTime = String(birthTimeRaw)
 
+  const sajuGender = gender.toLowerCase() === 'female' ? ('female' as const) : ('male' as const)
   const sajuResult = calculateSajuData(
     birthDateString,
     adjustedBirthTime,
-    gender,
+    sajuGender,
     calendarType,
     timezone,
     false
@@ -130,7 +131,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // 5. Calculate fortune cycles (운세)
   const daeunInfo = getDaeunCycles(
     birthDate,
-    gender,
+    sajuGender,
     sajuPillars,
     sajuResult.dayMaster,
     'Asia/Seoul'

@@ -5,7 +5,11 @@
 
 import { withApiMiddleware, apiSuccess, apiError, ErrorCodes } from '@/lib/api/middleware'
 import { loadChartData, saveChartData, clearChartCache } from '@/lib/cache/chart-cache-server'
-import { cacheChartSaveSchema, cacheChartDeleteSchema } from '@/lib/api/zodValidation'
+import {
+  cacheChartSaveSchema,
+  cacheChartDeleteSchema,
+  cacheChartGetQuerySchema,
+} from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
 
 // Type for cached chart data
@@ -26,25 +30,23 @@ export const GET = withApiMiddleware<GetCacheResponse>(
   async (req) => {
     const { searchParams } = new URL(req.url)
 
-    const birthDate = searchParams.get('birthDate')
-    const birthTime = searchParams.get('birthTime')
-    const latitudeStr = searchParams.get('latitude')
-    const longitudeStr = searchParams.get('longitude')
-
-    // Validate required parameters
-    if (!birthDate || !birthTime || !latitudeStr || !longitudeStr) {
+    // Validate query params with Zod
+    const queryValidation = cacheChartGetQuerySchema.safeParse({
+      birthDate: searchParams.get('birthDate'),
+      birthTime: searchParams.get('birthTime'),
+      latitude: searchParams.get('latitude'),
+      longitude: searchParams.get('longitude'),
+    })
+    if (!queryValidation.success) {
+      logger.warn('[Cache chart GET] query validation failed', {
+        errors: queryValidation.error.issues,
+      })
       return apiError(
         ErrorCodes.VALIDATION_ERROR,
-        'Missing required parameters: birthDate, birthTime, latitude, longitude'
+        `Validation failed: ${queryValidation.error.issues.map((e) => e.message).join(', ')}`
       )
     }
-
-    const latitude = parseFloat(latitudeStr)
-    const longitude = parseFloat(longitudeStr)
-
-    if (isNaN(latitude) || isNaN(longitude)) {
-      return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid latitude or longitude')
-    }
+    const { birthDate, birthTime, latitude, longitude } = queryValidation.data
 
     // Load from cache
     const cached = await loadChartData(birthDate, birthTime, latitude, longitude)

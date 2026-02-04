@@ -8,7 +8,7 @@ import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { contentAccessSchema } from '@/lib/api/zodValidation'
+import { contentAccessSchema, contentAccessGetQuerySchema } from '@/lib/api/zodValidation'
 export const dynamic = 'force-dynamic'
 
 type ContentAccessBody = {
@@ -173,9 +173,24 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url)
-    const service = searchParams.get('service')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100)
-    const offset = parseInt(searchParams.get('offset') || '0')
+    const queryValidation = contentAccessGetQuerySchema.safeParse({
+      service: searchParams.get('service') || undefined,
+      limit: searchParams.get('limit') || undefined,
+      offset: searchParams.get('offset') || undefined,
+    })
+    if (!queryValidation.success) {
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: queryValidation.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
+    const { service, limit, offset } = queryValidation.data
 
     // 쿼리 빌드
     const where: { userId: string; service?: string } = { userId: session.user.id }

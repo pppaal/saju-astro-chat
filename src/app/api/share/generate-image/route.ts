@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
         resultType,
         title,
         description: description || null,
-        resultData: resultData || null,
+        resultData: resultData ? (resultData as Prisma.InputJsonValue) : Prisma.JsonNull,
         // Set expiry to 30 days from now
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       },

@@ -10,7 +10,7 @@ import {
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
-import { readingsSaveSchema } from '@/lib/api/zodValidation'
+import { readingsSaveSchema, readingsGetQuerySchema } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
 
 // POST: Create a new reading
@@ -48,8 +48,20 @@ export const POST = withApiMiddleware(
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const { searchParams } = new URL(req.url)
-    const type = searchParams.get('type')
-    const limitParam = parseInt(searchParams.get('limit') || '20', 10)
+    const queryValidation = readingsGetQuerySchema.safeParse({
+      type: searchParams.get('type') || undefined,
+      limit: searchParams.get('limit') || undefined,
+    })
+    if (!queryValidation.success) {
+      logger.warn('[Readings GET] query validation failed', {
+        errors: queryValidation.error.issues,
+      })
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${queryValidation.error.issues.map((e) => e.message).join(', ')}`
+      )
+    }
+    const { type, limit } = queryValidation.data
 
     const readings = await prisma.reading.findMany({
       where: {
@@ -57,7 +69,7 @@ export const GET = withApiMiddleware(
         ...(type ? { type } : {}),
       },
       orderBy: { createdAt: 'desc' },
-      take: Math.min(limitParam, 50),
+      take: limit,
     })
 
     return apiSuccess({ readings })

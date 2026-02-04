@@ -5,32 +5,18 @@ import {
   withApiMiddleware,
   createPublicStreamGuard,
   createSimpleGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { guardText, cleanText } from '@/lib/textGuards'
 import { apiClient } from '@/lib/api'
 import { logger } from '@/lib/logger'
-import { sectionFeedbackRequestSchema } from '@/lib/api/zodValidation'
+import { sectionFeedbackRequestSchema, feedbackGetQuerySchema } from '@/lib/api/zodValidation'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
-import { HTTP_STATUS } from '@/lib/constants/http'
-type FeedbackBody = {
-  service?: string
-  theme?: string
-  sectionId?: string
-  helpful?: boolean
-  dayMaster?: string
-  sunSign?: string
-  locale?: string
-  userHash?: string
-  recordId?: string
-  rating?: number
-  feedbackText?: string
-  userQuestion?: string
-  consultationSummary?: string
-  contextUsed?: string
-}
 type RlhfResponse = {
   feedback_id?: string
   new_badges?: string[]
@@ -48,25 +34,18 @@ function trimValue(value: unknown, max = 120) {
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
-    const rawBody = await parseRequestBody<FeedbackBody>(req, { context: 'Feedback' })
+    const rawBody = await parseRequestBody(req, { context: 'Feedback' })
 
     if (!rawBody || typeof rawBody !== 'object') {
-      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return apiError(ErrorCodes.BAD_REQUEST, 'Invalid request body')
     }
 
-    // Validate with Zod
     const validationResult = sectionFeedbackRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
-      logger.warn('[Feedback] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
+      logger.warn('[Feedback POST] validation failed', { errors: validationResult.error.issues })
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
       )
     }
 
@@ -149,8 +128,20 @@ export const POST = withApiMiddleware(
 export const GET = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
     const { searchParams } = new URL(req.url)
-    const service = searchParams.get('service')
-    const theme = searchParams.get('theme')
+    const queryValidation = feedbackGetQuerySchema.safeParse({
+      service: searchParams.get('service') || undefined,
+      theme: searchParams.get('theme') || undefined,
+    })
+    if (!queryValidation.success) {
+      logger.warn('[Feedback GET] query validation failed', {
+        errors: queryValidation.error.issues,
+      })
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${queryValidation.error.issues.map((e) => e.message).join(', ')}`
+      )
+    }
+    const { service, theme } = queryValidation.data
 
     const where: { service?: string; theme?: string } = {}
     if (service) {

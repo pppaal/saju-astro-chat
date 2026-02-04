@@ -145,7 +145,7 @@ function requireToken(req: Request): boolean {
   }
 
   const token = headerValidation.data['x-metrics-token']
-  return (expected && token === expected) || (publicExpected && token === publicExpected)
+  return (!!expected && token === expected) || (!!publicExpected && token === publicExpected)
 }
 
 export async function GET(request: Request) {

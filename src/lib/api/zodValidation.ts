@@ -63,9 +63,12 @@ export const longitudeSchema = z
   .max(180, 'Longitude must be <= 180')
 
 /**
- * Gender validation
+ * Gender validation (case-insensitive, normalizes to lowercase)
  */
-export const genderSchema = z.enum(['Male', 'Female', 'Other', 'male', 'female', 'other'])
+export const genderSchema = z
+  .string()
+  .transform((v) => v.toLowerCase())
+  .pipe(z.enum(['male', 'female', 'other']))
 
 /**
  * Language/Locale validation
@@ -1845,6 +1848,7 @@ export type DestinyMatchReportValidated = z.infer<typeof destinyMatchReportSchem
  */
 export const destinyMatchMatchesQuerySchema = z.object({
   status: z.enum(['active', 'blocked', 'all']).optional().default('active'),
+  connectionId: z.string().max(100).optional(),
   limit: z.number().int().min(1).max(100).optional().default(50),
 })
 
@@ -2413,8 +2417,8 @@ export const destinyMatchDiscoverQuerySchema = z.object({
   city: z.string().max(100).optional(),
 })
 
-/** Destiny match matches GET query params */
-export const destinyMatchMatchesQuerySchema = z.object({
+/** Destiny match matches GET query params (extended with connectionId) */
+export const destinyMatchMatchesExtendedQuerySchema = z.object({
   status: z.string().max(50).optional().default('active'),
   connectionId: z.string().max(100).optional(),
 })
@@ -2424,8 +2428,8 @@ export const idParamSchema = z.object({
   id: z.string().min(1).max(100),
 })
 
-/** Calendar GET query params */
-export const calendarQuerySchema = z.object({
+/** Calendar page GET query params (for calendar main page with birth info) */
+export const calendarPageQuerySchema = z.object({
   year: z.coerce.number().int().min(1900).max(2100),
   month: z.coerce.number().int().min(1).max(12),
   birthDate: dateSchema,
@@ -2463,4 +2467,173 @@ export const weeklyFortuneQuerySchema = z.object({
 export const counselorSessionLoadQuerySchema = z.object({
   theme: z.string().max(50).optional().default('chat'),
   sessionId: z.string().max(100).optional(),
+})
+
+// ============================================================
+// Phase 8: GET query param schemas for remaining routes
+// ============================================================
+
+/** Calendar main GET query params */
+export const calendarMainQuerySchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema.optional().default('12:00'),
+  birthPlace: z.string().max(100).trim().optional().default('Seoul'),
+  year: z.coerce.number().int().min(1900).max(2100).optional(),
+  gender: genderSchema.optional().default('male'),
+  locale: localeSchema.optional().default('ko'),
+  category: z.enum(['wealth', 'career', 'love', 'health', 'travel', 'study', 'general']).optional(),
+})
+
+/** Numerology GET query params */
+export const numerologyGetQuerySchema = z.object({
+  birthDate: dateSchema,
+  name: z.string().max(100).optional(),
+  englishName: z.string().max(100).optional(),
+  koreanName: z.string().max(100).optional(),
+  locale: localeSchema.optional().default('ko'),
+})
+
+/** Readings GET query params */
+export const readingsGetQuerySchema = z.object({
+  type: z.string().max(50).optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional().default(20),
+})
+
+/** Cache chart GET query params */
+export const cacheChartGetQuerySchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema,
+  latitude: z.coerce.number().min(-90).max(90),
+  longitude: z.coerce.number().min(-180).max(180),
+})
+
+/** Fortune GET query params */
+export const fortuneGetQuerySchema = z.object({
+  date: dateSchema,
+  kind: z.string().max(50).optional().default('daily'),
+})
+
+/** Content access GET query params */
+export const contentAccessGetQuerySchema = paginationQuerySchema.extend({
+  service: z.string().max(50).optional(),
+})
+
+/** Consultation GET query params */
+export const consultationGetQuerySchema = z.object({
+  theme: z.string().max(50).optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional().default(20),
+  offset: z.coerce.number().int().min(0).optional().default(0),
+})
+
+/** Destiny match chat GET query params */
+export const destinyMatchChatGetQuerySchema = z.object({
+  connectionId: z.string().min(1).max(100),
+  cursor: z.string().max(100).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(50),
+})
+
+/** Feedback GET query params */
+export const feedbackGetQuerySchema = z.object({
+  service: z.string().max(50).optional(),
+  theme: z.string().max(50).optional(),
+})
+
+/** Dream chat save GET query params */
+export const dreamChatSaveGetQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).optional().default(20),
+})
+
+/** Destiny matrix save GET query params */
+export const destinyMatrixSaveGetQuerySchema = z.object({
+  id: z.string().max(100).optional(),
+})
+
+/** Personality compatibility save GET query params */
+export const personalityCompatibilitySaveGetQuerySchema = z.object({
+  id: z.string().max(100).optional(),
+})
+
+/** Personality ICP save GET query params */
+export const personalityIcpSaveGetQuerySchema = z.object({
+  id: z.string().max(100).optional(),
+})
+
+/** Persona memory PATCH action schema */
+export const personaMemoryPatchSchema = z.object({
+  action: z.enum([
+    'add_insight',
+    'add_growth_area',
+    'add_recurring_issue',
+    'update_emotional_tone',
+    'increment_session',
+    'update_birth_chart',
+    'update_saju_profile',
+  ]),
+  data: z.record(z.string(), z.any()).optional(),
+})
+
+// ============ Phase 9: Consolidated Local Schemas ============
+
+/** Persona memory POST schema (from persona-memory/route.ts) */
+export const personaMemoryPostSchema = z.object({
+  dominantThemes: z.array(z.string().max(200)).max(50).optional(),
+  keyInsights: z.array(z.string().max(1000)).max(50).optional(),
+  emotionalTone: z.string().max(200).optional(),
+  growthAreas: z.array(z.string().max(200)).max(50).optional(),
+  lastTopics: z.array(z.string().max(200)).max(50).optional(),
+  recurringIssues: z.array(z.string().max(500)).max(50).optional(),
+  birthChart: z.record(z.string(), z.any()).optional(),
+  sajuProfile: z.record(z.string(), z.any()).optional(),
+})
+
+/** Notification send schema (from notifications/send/route.ts) */
+export const notificationSendSchema = z.object({
+  targetUserId: z.string().min(1).max(200),
+  type: z.enum(['like', 'comment', 'reply', 'mention', 'system']),
+  title: z.string().min(1).max(200).trim(),
+  message: z.string().min(1).max(1000).trim(),
+  link: z.string().max(500).optional(),
+  avatar: z.string().max(500).optional(),
+})
+
+/** Tarot analyze question schema (from tarot/analyze-question/route.ts) */
+export const tarotAnalyzeQuestionSchema = z.object({
+  question: z.string().min(1, 'Question is required').max(500, 'Question too long (max 500)'),
+  language: z.enum(['ko', 'en']).default('ko'),
+})
+
+/** CSP violation report schema (from csp-report/route.ts) */
+export const cspReportSchema = z.object({
+  'csp-report': z
+    .object({
+      'document-uri': z.string().optional(),
+      referrer: z.string().optional(),
+      'violated-directive': z.string().optional(),
+      'effective-directive': z.string().optional(),
+      'original-policy': z.string().optional(),
+      disposition: z.string().optional(),
+      'blocked-uri': z.string().optional(),
+      'line-number': z.number().optional(),
+      'column-number': z.number().optional(),
+      'source-file': z.string().optional(),
+      'status-code': z.number().optional(),
+      'script-sample': z.string().optional(),
+    })
+    .optional(),
+})
+
+/** Feedback records GET query schema (from feedback/records/route.ts) */
+export const feedbackRecordsQuerySchema = z.object({
+  service: z.string().optional(),
+  theme: z.string().optional(),
+  helpful: z
+    .enum(['true', 'false'])
+    .transform((val) => val === 'true')
+    .optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+})
+
+/** Visitors today metrics token schema (from visitors-today/route.ts) */
+export const metricsTokenSchema = z.object({
+  'x-metrics-token': z.string().optional(),
 })

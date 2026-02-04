@@ -11,7 +11,7 @@ import { logger } from '@/lib/logger'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { numerologyRequestSchema } from '@/lib/api/zodValidation'
+import { numerologyRequestSchema, numerologyGetQuerySchema } from '@/lib/api/zodValidation'
 interface NumerologyBody {
   action?: string
   birthDate?: string
@@ -390,21 +390,34 @@ export const POST = withApiMiddleware(
 export const GET = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
     const url = new URL(req.url)
-    const birthDate = url.searchParams.get('birthDate')
-    const englishName = url.searchParams.get('name') || url.searchParams.get('englishName')
-    const koreanName = url.searchParams.get('koreanName')
-    const locale = url.searchParams.get('locale') || 'ko'
-
-    if (!birthDate) {
+    const queryValidation = numerologyGetQuerySchema.safeParse({
+      birthDate: url.searchParams.get('birthDate'),
+      name: url.searchParams.get('name') || undefined,
+      englishName: url.searchParams.get('englishName') || undefined,
+      koreanName: url.searchParams.get('koreanName') || undefined,
+      locale: url.searchParams.get('locale') || undefined,
+    })
+    if (!queryValidation.success) {
+      logger.warn('[Numerology GET] query validation failed', {
+        errors: queryValidation.error.issues,
+      })
       return NextResponse.json(
-        { error: 'birthDate query param is required' },
+        {
+          error: 'validation_failed',
+          details: queryValidation.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
 
+    const { birthDate, name, englishName, koreanName, locale } = queryValidation.data
+
     const result = await apiClient.post('/api/numerology/analyze', {
       birthDate,
-      englishName,
+      englishName: englishName || name,
       koreanName,
       locale,
     })

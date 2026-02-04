@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { fortuneSaveSchema } from '@/lib/api/zodValidation'
+import { fortuneSaveSchema, fortuneGetQuerySchema } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
 
 export const POST = withApiMiddleware(
@@ -61,11 +61,24 @@ export const POST = withApiMiddleware(
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const { searchParams } = new URL(req.url)
-    const date = searchParams.get('date')
-    const kind = searchParams.get('kind') || 'daily'
-    if (!date) {
-      return NextResponse.json({ error: 'date is required' }, { status: HTTP_STATUS.BAD_REQUEST })
+    const queryValidation = fortuneGetQuerySchema.safeParse({
+      date: searchParams.get('date'),
+      kind: searchParams.get('kind') || undefined,
+    })
+    if (!queryValidation.success) {
+      logger.warn('[Fortune GET] query validation failed', { errors: queryValidation.error.issues })
+      return NextResponse.json(
+        {
+          error: 'validation_failed',
+          details: queryValidation.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
     }
+    const { date, kind } = queryValidation.data
 
     const d = new Date(date)
     const normalized = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))

@@ -1,24 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
+import { NextRequest } from 'next/server'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import Stripe from 'stripe'
 import { logger } from '@/lib/logger'
 
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { consultationSaveSchema } from '@/lib/api/zodValidation'
+import { consultationSaveSchema, consultationGetQuerySchema } from '@/lib/api/zodValidation'
 export const dynamic = 'force-dynamic'
 
 const STRIPE_API_VERSION = '2025-10-29.clover' as Stripe.LatestApiVersion
-
-type ConsultationBody = {
-  theme?: string
-  summary?: string
-  fullReport?: string
-  jungQuotes?: unknown
-  signals?: unknown
-  userQuestion?: string
-  locale?: string
-}
 
 // 이메일 형식 검증 (Stripe 쿼리 인젝션 방지)
 function isValidEmail(email: string): boolean {
@@ -59,40 +55,27 @@ export const POST = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
     const userEmail = context.session?.user?.email
     if (!userEmail) {
-      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
+      return apiError(ErrorCodes.UNAUTHORIZED, 'not_authenticated')
     }
 
-    // 프리미엄 체크 - 상담 기록 저장은 프리미엄 전용
     const isPremium = await checkStripeActive(userEmail)
     if (!isPremium) {
-      return NextResponse.json(
-        {
-          error: 'premium_required',
-          message: '상담 기록 저장은 프리미엄 구독자 전용입니다.',
-          message_en: 'Saving consultation history is available for premium subscribers only.',
-        },
-        { status: HTTP_STATUS.PAYMENT_REQUIRED }
-      )
+      return apiError(ErrorCodes.FORBIDDEN, '상담 기록 저장은 프리미엄 구독자 전용입니다.')
     }
 
-    const rawBody = (await request.json().catch(() => null)) as ConsultationBody | null
+    const rawBody = await request.json().catch(() => null)
     if (!rawBody || typeof rawBody !== 'object') {
-      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return apiError(ErrorCodes.BAD_REQUEST, 'Invalid request body')
     }
 
-    // Validate with Zod
     const validationResult = consultationSaveSchema.safeParse(rawBody)
     if (!validationResult.success) {
-      logger.warn('[Consultation] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
+      logger.warn('[Consultation POST] validation failed', {
+        errors: validationResult.error.issues,
+      })
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
       )
     }
 
@@ -107,34 +90,36 @@ export const POST = withApiMiddleware(
     } = validationResult.data
 
     if (!theme || !summary || !fullReport) {
-      return NextResponse.json(
-        { error: 'Missing required fields: theme, summary, fullReport' },
-        { status: HTTP_STATUS.BAD_REQUEST }
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        'Missing required fields: theme, summary, fullReport'
       )
     }
 
-    // 상담 기록 저장
-    const consultation = await prisma.consultationHistory.create({
-      data: {
-        userId: context.userId!,
-        theme,
-        summary,
-        fullReport,
-        jungQuotes: jungQuotes || undefined,
-        signals: signals || undefined,
-        userQuestion: userQuestion || undefined,
-        locale,
-      },
-    })
+    try {
+      const consultation = await prisma.consultationHistory.create({
+        data: {
+          userId: context.userId!,
+          theme,
+          summary,
+          fullReport,
+          jungQuotes: jungQuotes || undefined,
+          signals: signals || undefined,
+          userQuestion: userQuestion || undefined,
+          locale,
+        },
+      })
 
-    // 페르소나 메모리 업데이트 (세션 카운트 증가, 테마 추가)
-    await updatePersonaMemory(context.userId!, theme)
+      await updatePersonaMemory(context.userId!, theme)
 
-    return NextResponse.json({
-      success: true,
-      id: consultation.id,
-      createdAt: consultation.createdAt,
-    })
+      return apiSuccess({
+        id: consultation.id,
+        createdAt: consultation.createdAt,
+      })
+    } catch (err) {
+      logger.error('[Consultation POST] Database error', { error: err })
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to save consultation')
+    }
   },
   createAuthenticatedGuard({
     route: '/api/consultation',
@@ -148,61 +133,68 @@ export const GET = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
     const userEmail = context.session?.user?.email
     if (!userEmail) {
-      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
+      return apiError(ErrorCodes.UNAUTHORIZED, 'not_authenticated')
     }
 
-    // 프리미엄 체크
     const isPremium = await checkStripeActive(userEmail)
     if (!isPremium) {
-      return NextResponse.json(
-        {
-          error: 'premium_required',
-          message: '상담 기록 열람은 프리미엄 구독자 전용입니다.',
-          message_en: 'Consultation history is available for premium subscribers only.',
-        },
-        { status: HTTP_STATUS.PAYMENT_REQUIRED }
-      )
+      return apiError(ErrorCodes.FORBIDDEN, '상담 기록 열람은 프리미엄 구독자 전용입니다.')
     }
 
     const { searchParams } = new URL(request.url)
-    const theme = searchParams.get('theme')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50)
-    const offset = parseInt(searchParams.get('offset') || '0')
-
-    // 쿼리 빌드
-    const where: { userId: string; theme?: string } = { userId: context.userId! }
-    if (theme) {
-      where.theme = theme
-    }
-
-    const [consultations, total] = await Promise.all([
-      prisma.consultationHistory.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        skip: offset,
-        select: {
-          id: true,
-          theme: true,
-          summary: true,
-          createdAt: true,
-          locale: true,
-          userQuestion: true,
-        },
-      }),
-      prisma.consultationHistory.count({ where }),
-    ])
-
-    return NextResponse.json({
-      success: true,
-      data: consultations,
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + consultations.length < total,
-      },
+    const queryValidation = consultationGetQuerySchema.safeParse({
+      theme: searchParams.get('theme') || undefined,
+      limit: searchParams.get('limit') || undefined,
+      offset: searchParams.get('offset') || undefined,
     })
+    if (!queryValidation.success) {
+      logger.warn('[Consultation GET] query validation failed', {
+        errors: queryValidation.error.issues,
+      })
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${queryValidation.error.issues.map((e) => e.message).join(', ')}`
+      )
+    }
+    const { theme, limit, offset } = queryValidation.data
+
+    try {
+      const where: { userId: string; theme?: string } = { userId: context.userId! }
+      if (theme) {
+        where.theme = theme
+      }
+
+      const [consultations, total] = await Promise.all([
+        prisma.consultationHistory.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          take: limit,
+          skip: offset,
+          select: {
+            id: true,
+            theme: true,
+            summary: true,
+            createdAt: true,
+            locale: true,
+            userQuestion: true,
+          },
+        }),
+        prisma.consultationHistory.count({ where }),
+      ])
+
+      return apiSuccess({
+        data: consultations,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore: offset + consultations.length < total,
+        },
+      })
+    } catch (err) {
+      logger.error('[Consultation GET] Database error', { error: err })
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to fetch consultations')
+    }
   },
   createAuthenticatedGuard({
     route: '/api/consultation',

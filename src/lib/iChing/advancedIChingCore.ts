@@ -16,7 +16,9 @@ function ta(locale: Locale, key: string, vars?: Record<string, string | number>)
   let val = _taCache[cacheKey]
   if (val === undefined) {
     const dict = DICTS[locale] as Record<string, unknown>
-    val = dict?.iching?.analysis?.[key] ?? key
+    const iching = dict?.iching as Record<string, unknown> | undefined
+    const analysis = iching?.analysis as Record<string, string> | undefined
+    val = analysis?.[key] ?? key
     _taCache[cacheKey] = val
   }
   if (vars) {
@@ -358,7 +360,9 @@ export function analyzeHoGwa(binary: string, locale: Locale = 'ko'): HoGwaAnalys
 function getHoGwaMeaning(num: number, locale: Locale): string {
   const key = `hoGwaMeaning${num}`
   const dict = DICTS[locale] as Record<string, unknown>
-  const val = dict?.iching?.analysis?.[key]
+  const iching = dict?.iching as Record<string, unknown> | undefined
+  const analysis = iching?.analysis as Record<string, string> | undefined
+  const val = analysis?.[key]
   return val || ta(locale, 'hoGwaMeaningDefault')
 }
 
@@ -484,7 +488,9 @@ function getTrigramDynamic(lower: Trigram, upper: Trigram, locale: Locale): stri
   const key = lower.korean + upper.korean
   const dynamicKey = `trigramDynamic_${key}`
   const dict = DICTS[locale] as Record<string, unknown>
-  const val = dict?.iching?.analysis?.[dynamicKey]
+  const iching = dict?.iching as Record<string, unknown> | undefined
+  const analysis = iching?.analysis as Record<string, string> | undefined
+  const val = analysis?.[dynamicKey]
   if (val) return val
   return ta(locale, 'trigramDynamicDefault', {
     lowerNature: lower.nature,

@@ -9,7 +9,7 @@ import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { logger } from '@/lib/logger'
 import { type ChatMessage } from '@/lib/api'
-import { dreamChatSaveRequestSchema } from '@/lib/api/zodValidation'
+import { dreamChatSaveRequestSchema, dreamChatSaveGetQuerySchema } from '@/lib/api/zodValidation'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { HTTP_STATUS } from '@/lib/constants/http'
@@ -179,7 +179,10 @@ export async function GET(req: Request) {
     }
 
     const { searchParams } = new URL(req.url)
-    const limitCount = Math.min(parseInt(searchParams.get('limit') || '10'), 50)
+    const queryValidation = dreamChatSaveGetQuerySchema.safeParse({
+      limit: searchParams.get('limit') || undefined,
+    })
+    const limitCount = queryValidation.success ? queryValidation.data.limit : 20
 
     // Get recent dream consultations
     const consultations = await prisma.consultationHistory.findMany({

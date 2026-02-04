@@ -15,7 +15,9 @@ function tw(locale: Locale, key: string, vars?: Record<string, string | number>)
   let val = _twCache[cacheKey]
   if (val === undefined) {
     const dict = DICTS[locale] as Record<string, unknown>
-    val = dict?.iching?.wisdom?.[key] ?? key
+    const iching = dict?.iching as Record<string, unknown> | undefined
+    const wisdom = iching?.wisdom as Record<string, string> | undefined
+    val = wisdom?.[key] ?? key
     _twCache[cacheKey] = val
   }
   if (vars) {
@@ -35,7 +37,9 @@ function twArray(locale: Locale, key: string): string[] {
   let val = _twArrayCache[cacheKey]
   if (val === undefined) {
     const dict = DICTS[locale] as Record<string, unknown>
-    val = dict?.iching?.wisdom?.[key] ?? []
+    const iching = dict?.iching as Record<string, unknown> | undefined
+    const wisdom = iching?.wisdom as Record<string, string[]> | undefined
+    val = wisdom?.[key] ?? []
     _twArrayCache[cacheKey] = val
   }
   return val
