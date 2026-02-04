@@ -189,3 +189,11 @@ export const EclipsesRequestSchema = AdvancedAstrologyRequestSchema.extend({
 export const DraconicRequestSchema = AdvancedAstrologyRequestSchema.extend({
   compareToNatal: z.boolean().optional().default(true),
 })
+
+/** Progressions request schema */
+export const ProgressionsRequestSchema = AdvancedAstrologyRequestSchema.extend({
+  targetDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+})

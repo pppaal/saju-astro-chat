@@ -2,13 +2,12 @@
 // Secondary Progressions & Solar Arc API 엔드포인트
 
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { logger } from '@/lib/logger'
-import { AdvancedAstrologyRequestSchema } from '@/lib/api/astrology-validation'
+import { ProgressionsRequestSchema } from '@/lib/api/astrology-validation'
 import {
   calculateSecondaryProgressions,
   calculateSolarArcDirections,
@@ -16,14 +15,6 @@ import {
   getProgressionSummary,
 } from '@/lib/astrology'
 import { HTTP_STATUS } from '@/lib/constants/http'
-
-// Zod schema for input validation
-const ProgressionsRequestSchema = AdvancedAstrologyRequestSchema.extend({
-  targetDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-})
 
 export async function POST(request: Request) {
   try {
