@@ -2,6 +2,8 @@
 """
 기존 PyTorch .pt 임베딩을 ChromaDB로 마이그레이션.
 
+Phase 6 연동: 임베딩 모델 변경 시 차원 불일치를 감지하고 자동 재인덱싱.
+
 Usage:
     # 전체 마이그레이션
     python -m scripts.migrate_to_chromadb
@@ -14,6 +16,9 @@ Usage:
 
     # 통계만 확인
     python -m scripts.migrate_to_chromadb --stats
+
+    # 모델 변경 감지 + 자동 재인덱싱
+    RAG_EMBEDDING_MODEL=e5-large python -m scripts.migrate_to_chromadb --auto-detect
 """
 
 import argparse
@@ -256,6 +261,59 @@ def show_stats():
             logger.info("  %-20s: (없음) %s", name, e)
 
 
+def detect_model_change() -> bool:
+    """Phase 6 모델 변경 감지.
+
+    현재 임베딩 모델의 차원과 ChromaDB에 저장된 임베딩 차원을 비교하여
+    모델 변경 여부를 감지한다.
+
+    Returns:
+        True: 재인덱싱 필요 (모델 변경됨 또는 데이터 없음)
+        False: 재인덱싱 불필요 (동일 모델)
+    """
+    try:
+        from app.rag.model_manager import get_embedding_manager
+        from app.rag.vector_store import VectorStoreManager
+
+        mgr = get_embedding_manager()
+        current_dim = mgr.dimension
+        model_key = mgr.model_key
+
+        logger.info("현재 임베딩 모델: %s (%dD)", model_key, current_dim)
+
+        vs = VectorStoreManager(collection_name="graph_nodes")
+        if not vs.has_data():
+            logger.info("ChromaDB에 데이터 없음 → 마이그레이션 필요")
+            return True
+
+        # ChromaDB에서 첫 번째 임베딩의 차원 확인
+        try:
+            result = vs.collection.peek(limit=1)
+            if result and result.get("embeddings") and result["embeddings"][0]:
+                stored_dim = len(result["embeddings"][0])
+                logger.info("ChromaDB 저장 차원: %dD", stored_dim)
+
+                if stored_dim != current_dim:
+                    logger.warning(
+                        "차원 불일치! 저장=%dD, 현재=%dD → 재인덱싱 필요",
+                        stored_dim, current_dim,
+                    )
+                    return True
+                else:
+                    logger.info("차원 일치 (%dD) → 재인덱싱 불필요", current_dim)
+                    return False
+            else:
+                logger.info("ChromaDB peek 실패 → 마이그레이션 필요")
+                return True
+        except Exception as e:
+            logger.warning("차원 확인 실패: %s → 마이그레이션 필요", e)
+            return True
+
+    except ImportError as e:
+        logger.warning("모델 매니저 로드 실패: %s", e)
+        return True
+
+
 def main():
     parser = argparse.ArgumentParser(description="PyTorch .pt -> ChromaDB 마이그레이션")
     parser.add_argument("--reset", action="store_true", help="기존 데이터 초기화 후 재인덱싱")
@@ -263,11 +321,22 @@ def main():
     parser.add_argument("--stats", action="store_true", help="통계만 출력")
     parser.add_argument("--graph-only", action="store_true", help="GraphRAG만 마이그레이션")
     parser.add_argument("--corpus-only", action="store_true", help="search_graphs corpus만 마이그레이션")
+    parser.add_argument("--auto-detect", action="store_true", help="모델 변경 감지 후 필요 시에만 재인덱싱 (Phase 6)")
     args = parser.parse_args()
 
     if args.stats:
         show_stats()
         return
+
+    # --auto-detect: 모델 변경 여부 감지
+    if args.auto_detect:
+        needs_migration = detect_model_change()
+        if not needs_migration:
+            logger.info("재인덱싱 불필요. 종료합니다.")
+            show_stats()
+            return
+        logger.info("모델 변경 감지 → 전체 재인덱싱 실행 (reset=True)")
+        args.reset = True
 
     start = time.time()
 

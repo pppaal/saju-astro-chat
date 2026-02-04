@@ -3,7 +3,7 @@ import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/
 import { prisma } from '@/lib/db/prisma'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { enforceBodySize } from '@/lib/http'
-import { ALLOWED_LOCALES, BODY_LIMITS } from '@/lib/constants/api-limits'
+import { BODY_LIMITS } from '@/lib/constants/api-limits'
 import { LIMITS } from '@/lib/validation'
 import { counselorSessionSaveRequestSchema } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'

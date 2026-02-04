@@ -4,7 +4,6 @@ import { apiClient } from '@/lib/api/ApiClient'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { prisma } from '@/lib/db/prisma'
-import { captureServerError } from '@/lib/telemetry'
 import { LIMITS } from '@/lib/validation'
 import { sanitizeString } from '@/lib/api/sanitizers'
 import { logger } from '@/lib/logger'
@@ -13,10 +12,6 @@ import { calculateSajuCompatibilityOnly } from '@/lib/compatibility/cosmicCompat
 import type { SajuProfile } from '@/lib/compatibility/cosmicCompatibility'
 import type { Relation, PersonInput, CompatibilityBackendResponse } from './types'
 import { compatibilityRequestSchema } from '@/lib/api/zodValidation'
-
-function bad(msg: string, status = 400) {
-  return NextResponse.json({ error: msg }, { status })
-}
 
 function relationWeight(r?: Relation) {
   if (!r) {

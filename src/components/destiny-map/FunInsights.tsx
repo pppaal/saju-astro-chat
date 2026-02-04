@@ -15,23 +15,13 @@ import {
   type TabId,
 } from './fun-insights/tabs'
 import type { TabData } from './fun-insights/types'
-import {
-  extractSajuProfile,
-  extractAstroProfile,
-  calculateMonthlyImportantDates,
-  type ImportantDate,
-} from '@/lib/destiny-map/destinyCalendar'
 
 // Import data
 import {
   elementTraits,
   dayMasterData,
   zodiacData,
-  elementKeyMap,
   tianGanMap,
-  elementRelations,
-  astroToSaju,
-  monthElements,
   LIFE_THEMES,
   EMOTION_PATTERNS,
   RELATIONSHIP_STYLES,
@@ -44,14 +34,10 @@ import { findPlanetSign } from './fun-insights/utils'
 
 // Import analyzers
 import {
-  getSibsinDistribution,
   getSibsinAnalysis,
   getCrossAnalysis,
   getHealthAnalysis,
-  getTimeBasedFortune,
-  getStrengthsAndWeaknesses,
   getCurrentFlowAnalysis,
-  getCurrentTimingAnalysis,
   getLoveAnalysis,
   getCareerAnalysis,
   getKarmaAnalysis,
@@ -59,17 +45,7 @@ import {
 } from './fun-insights/analyzers'
 
 // Import astrology insights
-import {
-  getChironInsight,
-  getPartOfFortuneInsight,
-  getVertexInsight,
-  getDraconicInsight,
-  getHarmonicsInsight,
-  getLilithInsight,
-  getAsteroidsInsight,
-  getFixedStarsInsight,
-  getEclipsesInsight,
-} from './fun-insights/astrology'
+import { getChironInsight } from './fun-insights/astrology'
 
 // Import generators
 import {
