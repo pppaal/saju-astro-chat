@@ -8,7 +8,7 @@ import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { logger } from '@/lib/logger'
-import { AdvancedAstrologyRequestSchema } from '@/lib/api/astrology-validation'
+import { MidpointsRequestSchema } from '@/lib/api/astrology-validation'
 import {
   calculateNatalChart,
   toChart,
@@ -16,11 +16,6 @@ import {
   findMidpointActivations,
 } from '@/lib/astrology'
 import { HTTP_STATUS } from '@/lib/constants/http'
-
-// Zod schema for input validation
-const MidpointsRequestSchema = AdvancedAstrologyRequestSchema.extend({
-  orb: z.number().min(0).max(5).optional().default(1.5),
-})
 
 export async function POST(request: Request) {
   try {

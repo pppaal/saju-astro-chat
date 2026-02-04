@@ -19,6 +19,7 @@ import {
   type ZodiacKo,
 } from '@/lib/astrology'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { RectificationRequestSchema } from '@/lib/api/astrology-validation'
 
 const VALID_EVENT_TYPES: LifeEventType[] = [
   'marriage',
@@ -41,33 +42,6 @@ const VALID_EVENT_TYPES: LifeEventType[] = [
   'health_crisis',
   'other',
 ]
-
-// Zod schema for input validation
-const RectificationRequestSchema = z.object({
-  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Birth date must be in YYYY-MM-DD format'),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  timeZone: z.string().min(1),
-  events: z
-    .array(
-      z.object({
-        date: z.string(),
-        type: z.string(),
-        description: z.string().optional(),
-        importance: z.enum(['minor', 'moderate', 'major']).optional(),
-      })
-    )
-    .min(1, 'At least one event is required'),
-  approximateTimeRange: z
-    .object({
-      startHour: z.number().int().min(0).max(23).optional(),
-      endHour: z.number().int().min(0).max(23).optional(),
-      intervalMinutes: z.number().int().min(1).max(60).optional(),
-    })
-    .optional(),
-  appearanceProfile: z.record(z.string(), z.unknown()).optional(),
-  sajuSijin: z.string().optional(),
-})
 
 export async function POST(request: Request) {
   try {

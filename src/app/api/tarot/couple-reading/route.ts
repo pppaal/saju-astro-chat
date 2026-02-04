@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { prisma } from '@/lib/db/prisma'
+import { Prisma } from '@prisma/client'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { sendPushNotification } from '@/lib/notifications/pushService'
@@ -229,10 +230,10 @@ export async function POST(req: NextRequest) {
           question: question || '커플 타로',
           theme: theme || 'love',
           spreadId,
-          spreadTitle: spreadTitle || '커플 스프레드',
-          cards,
-          overallMessage,
-          cardInsights,
+          spreadTitle: (spreadTitle || '커플 스프레드') as string,
+          cards: cards as Prisma.InputJsonValue,
+          overallMessage: overallMessage as string,
+          cardInsights: cardInsights ? (cardInsights as Prisma.InputJsonValue) : Prisma.DbNull,
           guidance,
           affirmation,
           source: 'couple',

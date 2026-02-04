@@ -2,19 +2,13 @@
 // GPT-4o-mini를 사용해서 사용자 질문을 분석하고 적절한 스프레드 추천 (비용 효율적)
 
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
 import { logger } from '@/lib/logger'
 import { PATTERN_MAPPINGS, getExamInterviewMapping } from './pattern-mappings'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
-
-// Zod schema for request body
-const AnalyzeQuestionSchema = z.object({
-  question: z.string().min(1, 'Question is required').max(500, 'Question too long (max 500)'),
-  language: z.enum(['ko', 'en']).default('ko'),
-})
+import { tarotAnalyzeQuestionSchema as AnalyzeQuestionSchema } from '@/lib/api/zodValidation'
 
 // ============================================================
 // Types

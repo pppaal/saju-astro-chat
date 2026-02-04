@@ -7,6 +7,7 @@ import { getClientIp } from '@/lib/request-ip'
 import { logger } from '@/lib/logger'
 import { rateLimit } from '@/lib/rateLimit'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { cspReportSchema } from '@/lib/api/zodValidation'
 
 // Max body size for CSP reports (16KB)
 const MAX_REPORT_SIZE = 16 * 1024
@@ -14,27 +15,7 @@ const MAX_REPORT_SIZE = 16 * 1024
 // Rate limit: 100 reports per IP per minute (CSP can generate many reports)
 const RATE_LIMIT = { limit: 100, windowSeconds: 60 }
 
-// Zod schema for CSP violation report
-const CSPReportSchema = z.object({
-  'csp-report': z
-    .object({
-      'document-uri': z.string().optional(),
-      referrer: z.string().optional(),
-      'violated-directive': z.string().optional(),
-      'effective-directive': z.string().optional(),
-      'original-policy': z.string().optional(),
-      disposition: z.string().optional(),
-      'blocked-uri': z.string().optional(),
-      'line-number': z.number().optional(),
-      'column-number': z.number().optional(),
-      'source-file': z.string().optional(),
-      'status-code': z.number().optional(),
-      'script-sample': z.string().optional(),
-    })
-    .optional(),
-})
-
-type CSPViolationReport = z.infer<typeof CSPReportSchema>
+type CSPViolationReport = z.infer<typeof cspReportSchema>
 
 // Known false positives to filter out
 const IGNORED_BLOCKED_URIS = [
@@ -112,7 +93,7 @@ export async function POST(req: NextRequest) {
       return new NextResponse(null, { status: HTTP_STATUS.BAD_REQUEST })
     }
 
-    const validation = CSPReportSchema.safeParse(parsedBody)
+    const validation = cspReportSchema.safeParse(parsedBody)
     if (!validation.success) {
       logger.warn('[csp-report] Invalid CSP report format', { errors: validation.error.issues })
       return new NextResponse(null, { status: HTTP_STATUS.BAD_REQUEST })

@@ -45,7 +45,7 @@ async function getRedisClient(): Promise<RedisClient | null> {
       const { createClient } = await import('redis')
       const client = createClient({ url: process.env.REDIS_URL })
       await client.connect()
-      return client
+      return client as unknown as RedisClient
     }
 
     return null

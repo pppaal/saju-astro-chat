@@ -9,19 +9,7 @@ import {
 } from '@/lib/api/middleware'
 import { prisma, Prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { z } from 'zod'
-import { personaMemoryPatchSchema } from '@/lib/api/zodValidation'
-
-const personaMemoryPostSchema = z.object({
-  dominantThemes: z.array(z.string().max(200)).max(50).optional(),
-  keyInsights: z.array(z.string().max(1000)).max(50).optional(),
-  emotionalTone: z.string().max(200).optional(),
-  growthAreas: z.array(z.string().max(200)).max(50).optional(),
-  lastTopics: z.array(z.string().max(200)).max(50).optional(),
-  recurringIssues: z.array(z.string().max(500)).max(50).optional(),
-  birthChart: z.record(z.string(), z.any()).optional(),
-  sajuProfile: z.record(z.string(), z.any()).optional(),
-})
+import { personaMemoryPostSchema, personaMemoryPatchSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 

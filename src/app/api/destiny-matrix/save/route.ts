@@ -1,15 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { NextRequest } from 'next/server'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { prisma, Prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import type {
-  TimingAIPremiumReport,
-  ThemedAIPremiumReport,
-} from '@/lib/destiny-matrix/ai-report/types'
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 import {
   destinyMatrixSaveRequestSchema,
   destinyMatrixSaveGetQuerySchema,
@@ -18,56 +17,22 @@ import {
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-interface SaveDestinyMatrixRequest {
-  reportType: 'timing' | 'themed'
-  period?: 'daily' | 'monthly' | 'yearly' | 'comprehensive'
-  theme?: 'love' | 'career' | 'wealth' | 'health' | 'family'
-  reportData: TimingAIPremiumReport | ThemedAIPremiumReport
-  title: string
-  summary?: string
-  overallScore?: number
-  grade?: string
-  locale?: string
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
-    }
-
-    const ip = getClientIp(req.headers)
-    const limit = await rateLimit(`matrix-save:${ip}`, { limit: 20, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Try again soon.' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
-
+// POST: Save Destiny Matrix report
+export const POST = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
     const rawBody = await req.json()
 
-    // Validate request body with Zod
     const validationResult = destinyMatrixSaveRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
-      logger.warn('[DestinyMatrixSave] validation failed', {
+      logger.warn('[DestinyMatrixSave POST] validation failed', {
         errors: validationResult.error.issues,
       })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
       )
     }
 
-    const body = validationResult.data
     const {
       reportType,
       period,
@@ -78,93 +43,86 @@ export async function POST(req: NextRequest) {
       overallScore,
       grade,
       locale = 'ko',
-    } = body
+    } = validationResult.data
 
-    // Save Destiny Matrix report to database
-    const matrixReport = await prisma.destinyMatrixReport.create({
-      data: {
-        userId: session.user.id,
+    try {
+      const matrixReport = await prisma.destinyMatrixReport.create({
+        data: {
+          userId: context.userId!,
+          reportType,
+          period: period || null,
+          theme: theme || null,
+          reportData: reportData as Prisma.InputJsonValue,
+          title,
+          summary: summary || null,
+          overallScore: overallScore || null,
+          grade: grade || null,
+          pdfGenerated: false,
+          locale,
+        },
+      })
+
+      logger.info('Destiny Matrix report saved', {
+        userId: context.userId,
+        id: matrixReport.id,
         reportType,
-        period: period || null,
-        theme: theme || null,
-        reportData: reportData as unknown as Prisma.InputJsonValue,
-        title,
-        summary: summary || null,
-        overallScore: overallScore || null,
-        grade: grade || null,
-        pdfGenerated: false,
-        locale,
-      },
-    })
+      })
 
-    logger.info('Destiny Matrix report saved', {
-      userId: session.user.id,
-      id: matrixReport.id,
-      reportType,
-      period: period || null,
-      theme: theme || null,
-    })
-
-    const res = NextResponse.json({
-      success: true,
-      id: matrixReport.id,
-      createdAt: matrixReport.createdAt,
-    })
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
-    return res
-  } catch (error) {
-    logger.error('Error saving Destiny Matrix report:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
-
-// GET endpoint to retrieve Destiny Matrix report by ID
-export async function GET(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+      return apiSuccess({
+        id: matrixReport.id,
+        createdAt: matrixReport.createdAt,
+      })
+    } catch (err) {
+      logger.error('[DestinyMatrixSave POST] Database error', { error: err })
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to save Destiny Matrix report')
     }
+  },
+  createAuthenticatedGuard({
+    route: '/api/destiny-matrix/save',
+    limit: 20,
+    windowSeconds: 60,
+  })
+)
 
+// GET: Retrieve Destiny Matrix report by ID
+export const GET = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
     const { searchParams } = new URL(req.url)
     const queryValidation = destinyMatrixSaveGetQuerySchema.safeParse({
       id: searchParams.get('id') || undefined,
     })
-    const id = queryValidation.success ? queryValidation.data.id : null
+
+    if (!queryValidation.success) {
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'Missing or invalid id parameter')
+    }
+
+    const { id } = queryValidation.data
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Missing id parameter' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'Missing id parameter')
     }
 
-    const matrixReport = await prisma.destinyMatrixReport.findFirst({
-      where: {
-        id,
-        userId: session.user.id,
-      },
-    })
+    try {
+      const matrixReport = await prisma.destinyMatrixReport.findFirst({
+        where: {
+          id,
+          userId: context.userId!,
+        },
+      })
 
-    if (!matrixReport) {
-      return NextResponse.json(
-        { error: 'Destiny Matrix report not found' },
-        { status: HTTP_STATUS.NOT_FOUND }
-      )
+      if (!matrixReport) {
+        return apiError(ErrorCodes.NOT_FOUND, 'Destiny Matrix report not found')
+      }
+
+      return apiSuccess({ result: matrixReport })
+    } catch (err) {
+      logger.error('[DestinyMatrixSave GET] Database error', { error: err })
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to retrieve Destiny Matrix report')
     }
-
-    return NextResponse.json({
-      result: matrixReport,
-    })
-  } catch (error) {
-    logger.error('Error retrieving Destiny Matrix report:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
+  },
+  createAuthenticatedGuard({
+    route: '/api/destiny-matrix/save',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)

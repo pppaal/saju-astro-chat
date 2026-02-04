@@ -2,13 +2,12 @@
 // 항성 (Fixed Stars) 분석 API 엔드포인트
 
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { logger } from '@/lib/logger'
-import { AdvancedAstrologyRequestSchema } from '@/lib/api/astrology-validation'
+import { FixedStarsRequestSchema } from '@/lib/api/astrology-validation'
 import {
   calculateNatalChart,
   toChart,
@@ -16,11 +15,6 @@ import {
   getAllFixedStars,
 } from '@/lib/astrology'
 import { HTTP_STATUS } from '@/lib/constants/http'
-
-// Zod schema for input validation
-const FixedStarsRequestSchema = AdvancedAstrologyRequestSchema.extend({
-  orb: z.number().min(0).max(5).optional().default(1.0),
-})
 
 export async function POST(request: Request) {
   try {

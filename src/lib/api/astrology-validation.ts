@@ -106,3 +106,86 @@ export const CoordinateValidation = {
     return { valid: true }
   },
 }
+
+// ============ Advanced Astrology Endpoint Schemas ============
+
+/** Asteroids request schema */
+export const AsteroidsRequestSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+  time: z.string().regex(/^\d{2}:\d{2}$/, 'Time must be in HH:MM format'),
+  latitude: z.number().min(-90, 'Latitude must be >= -90').max(90, 'Latitude must be <= 90'),
+  longitude: z.number().min(-180, 'Longitude must be >= -180').max(180, 'Longitude must be <= 180'),
+  timeZone: z.string().min(1, 'Timezone is required'),
+  includeAspects: z.boolean().optional().default(true),
+})
+
+/** Rectification request schema */
+export const RectificationRequestSchema = z.object({
+  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Birth date must be in YYYY-MM-DD format'),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  timeZone: z.string().min(1),
+  events: z
+    .array(
+      z.object({
+        date: z.string(),
+        type: z.string(),
+        description: z.string().optional(),
+        importance: z.enum(['minor', 'moderate', 'major']).optional(),
+      })
+    )
+    .min(1, 'At least one event is required'),
+  approximateTimeRange: z
+    .object({
+      startHour: z.number().int().min(0).max(23).optional(),
+      endHour: z.number().int().min(0).max(23).optional(),
+      intervalMinutes: z.number().int().min(1).max(60).optional(),
+    })
+    .optional(),
+  appearanceProfile: z.record(z.string(), z.unknown()).optional(),
+  sajuSijin: z.string().optional(),
+})
+
+/** Solar return request schema */
+export const SolarReturnRequestSchema = AdvancedAstrologyRequestSchema.extend({
+  year: z.number().int().optional(),
+})
+
+/** Lunar return request schema */
+export const LunarReturnRequestSchema = AdvancedAstrologyRequestSchema.extend({
+  year: z.number().int().optional(),
+  month: z.number().int().min(1).max(12).optional(),
+})
+
+/** Midpoints request schema */
+export const MidpointsRequestSchema = AdvancedAstrologyRequestSchema.extend({
+  orb: z.number().min(0).max(5).optional().default(1.5),
+})
+
+/** Harmonics request schema */
+export const HarmonicsRequestSchema = AdvancedAstrologyRequestSchema.extend({
+  harmonic: z.number().int().min(1).max(144).optional(),
+  currentAge: z.number().int().min(0).max(150).optional(),
+  fullProfile: z.boolean().optional().default(false),
+})
+
+/** Fixed stars request schema */
+export const FixedStarsRequestSchema = AdvancedAstrologyRequestSchema.extend({
+  orb: z.number().min(0).max(5).optional().default(1.0),
+})
+
+/** Electional request schema */
+export const ElectionalRequestSchema = AdvancedAstrologyRequestSchema.extend({
+  eventType: z.string().optional(),
+  basicOnly: z.boolean().optional(),
+})
+
+/** Eclipses request schema */
+export const EclipsesRequestSchema = AdvancedAstrologyRequestSchema.extend({
+  orb: z.number().min(0).max(10).optional().default(3.0),
+})
+
+/** Draconic request schema */
+export const DraconicRequestSchema = AdvancedAstrologyRequestSchema.extend({
+  compareToNatal: z.boolean().optional().default(true),
+})

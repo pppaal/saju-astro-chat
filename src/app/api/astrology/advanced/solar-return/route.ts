@@ -9,14 +9,9 @@ import { captureServerError } from '@/lib/telemetry'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { sanitizeError } from '@/lib/security/errorSanitizer'
 import { logger } from '@/lib/logger'
-import { AdvancedAstrologyRequestSchema } from '@/lib/api/astrology-validation'
+import { SolarReturnRequestSchema } from '@/lib/api/astrology-validation'
 import { calculateSolarReturn, getSolarReturnSummary } from '@/lib/astrology'
 import { HTTP_STATUS } from '@/lib/constants/http'
-
-// Zod schema for input validation
-const SolarReturnRequestSchema = AdvancedAstrologyRequestSchema.extend({
-  year: z.number().int().optional(),
-})
 
 export async function POST(request: Request) {
   try {

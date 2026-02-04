@@ -1,48 +1,48 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from 'zod';
-import { prisma } from "@/lib/db/prisma";
-import { logger } from '@/lib/logger';
-import { HTTP_STATUS } from '@/lib/constants/http';
-
-// Zod schema for GET query parameters
-const FeedbackRecordsQuerySchema = z.object({
-  service: z.string().optional(),
-  theme: z.string().optional(),
-  helpful: z.enum(['true', 'false']).transform(val => val === 'true').optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(50),
-});
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/logger'
+import { HTTP_STATUS } from '@/lib/constants/http'
+import { feedbackRecordsQuerySchema as FeedbackRecordsQuerySchema } from '@/lib/api/zodValidation'
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(req.url)
 
     // Validate query parameters with Zod
     const validation = FeedbackRecordsQuerySchema.safeParse({
-      service: searchParams.get("service"),
-      theme: searchParams.get("theme"),
-      helpful: searchParams.get("helpful"),
-      limit: searchParams.get("limit"),
-    });
+      service: searchParams.get('service'),
+      theme: searchParams.get('theme'),
+      helpful: searchParams.get('helpful'),
+      limit: searchParams.get('limit'),
+    })
 
     if (!validation.success) {
-      const errors = validation.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ');
-      logger.warn('[feedback/records] Validation failed', { errors: validation.error.issues });
+      const errors = validation.error.issues
+        .map((e) => `${e.path.join('.')}: ${e.message}`)
+        .join(', ')
+      logger.warn('[feedback/records] Validation failed', { errors: validation.error.issues })
       return NextResponse.json(
         { error: 'Validation failed', details: errors },
         { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      )
     }
 
-    const { service, theme, helpful, limit } = validation.data;
+    const { service, theme, helpful, limit } = validation.data
 
-    const where: { service?: string; theme?: string; helpful?: boolean } = {};
-    if (service) { where.service = service; }
-    if (theme) { where.theme = theme; }
-    if (helpful !== undefined) { where.helpful = helpful; }
+    const where: { service?: string; theme?: string; helpful?: boolean } = {}
+    if (service) {
+      where.service = service
+    }
+    if (theme) {
+      where.theme = theme
+    }
+    if (helpful !== undefined) {
+      where.helpful = helpful
+    }
 
     const records = await prisma.sectionFeedback.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       take: limit,
       select: {
         id: true,
@@ -56,14 +56,14 @@ export async function GET(req: NextRequest) {
         userHash: true,
         createdAt: true,
       },
-    });
+    })
 
-    return NextResponse.json({ records });
+    return NextResponse.json({ records })
   } catch (error: unknown) {
-    logger.error("[Feedback Records Error]:", error);
+    logger.error('[Feedback Records Error]:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal Server Error" },
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }

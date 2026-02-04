@@ -20,21 +20,12 @@ import {
 } from '@/lib/astrology'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { logger } from '@/lib/logger'
+import { AsteroidsRequestSchema } from '@/lib/api/astrology-validation'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
 const swisseph = require('swisseph')
-
-// Zod schema for input validation
-const AsteroidsRequestSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
-  time: z.string().regex(/^\d{2}:\d{2}$/, 'Time must be in HH:MM format'),
-  latitude: z.number().min(-90, 'Latitude must be >= -90').max(90, 'Latitude must be <= 90'),
-  longitude: z.number().min(-180, 'Longitude must be >= -180').max(180, 'Longitude must be <= 180'),
-  timeZone: z.string().min(1, 'Timezone is required'),
-  includeAspects: z.boolean().optional().default(true),
-})
 
 export async function POST(request: Request) {
   try {

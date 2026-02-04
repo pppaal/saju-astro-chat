@@ -9,15 +9,9 @@ import { captureServerError } from '@/lib/telemetry'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { sanitizeError } from '@/lib/security/errorSanitizer'
 import { logger } from '@/lib/logger'
-import { AdvancedAstrologyRequestSchema } from '@/lib/api/astrology-validation'
+import { LunarReturnRequestSchema } from '@/lib/api/astrology-validation'
 import { calculateLunarReturn, getLunarReturnSummary } from '@/lib/astrology'
 import { HTTP_STATUS } from '@/lib/constants/http'
-
-// Zod schema for input validation
-const LunarReturnRequestSchema = AdvancedAstrologyRequestSchema.extend({
-  year: z.number().int().optional(),
-  month: z.number().int().min(1).max(12).optional(),
-})
 
 export async function POST(request: Request) {
   try {

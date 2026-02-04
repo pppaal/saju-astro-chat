@@ -6,21 +6,9 @@ import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { z } from 'zod'
+import { notificationSendSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
-
-/**
- * Notification send request schema
- */
-const notificationSendSchema = z.object({
-  targetUserId: z.string().min(1).max(200),
-  type: z.enum(['like', 'comment', 'reply', 'mention', 'system']),
-  title: z.string().min(1).max(200).trim(),
-  message: z.string().min(1).max(1000).trim(),
-  link: z.string().max(500).optional(),
-  avatar: z.string().max(500).optional(),
-})
 
 /**
  * POST /api/notifications/send

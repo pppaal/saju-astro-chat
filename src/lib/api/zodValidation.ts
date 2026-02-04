@@ -2423,6 +2423,11 @@ export const destinyMatchMatchesExtendedQuerySchema = z.object({
   connectionId: z.string().max(100).optional(),
 })
 
+/** URL [readingId] param validation */
+export const readingIdParamSchema = z.object({
+  readingId: z.string().min(1).max(100),
+})
+
 /** Reports/[id] - URL param validation */
 export const idParamSchema = z.object({
   id: z.string().min(1).max(100),

@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 import { initializeApp, getApps, getApp, FirebaseApp, type FirebaseOptions } from 'firebase/app'
 import { getFirestore, doc, getDoc, setDoc, increment, Firestore } from 'firebase/firestore'
 import { getAuth, signInAnonymously, signInWithCustomToken, Auth } from 'firebase/auth'
@@ -9,11 +8,7 @@ import { captureServerError } from '@/lib/telemetry'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
-
-// Zod schema for metrics token validation
-const MetricsTokenSchema = z.object({
-  'x-metrics-token': z.string().optional(),
-})
+import { metricsTokenSchema as MetricsTokenSchema } from '@/lib/api/zodValidation'
 
 declare const __firebase_config: string | undefined
 declare const __app_id: string | undefined
@@ -144,7 +139,7 @@ function requireToken(req: Request): boolean {
     return false
   }
 
-  const token = headerValidation.data['x-metrics-token']
+  const token = headerValidation.data['x-metrics-token'] as string | undefined
   return (!!expected && token === expected) || (!!publicExpected && token === publicExpected)
 }
 

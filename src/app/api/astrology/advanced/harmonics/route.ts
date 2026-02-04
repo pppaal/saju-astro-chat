@@ -2,13 +2,12 @@
 // 하모닉 분석 API 엔드포인트
 
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { logger } from '@/lib/logger'
-import { AdvancedAstrologyRequestSchema } from '@/lib/api/astrology-validation'
+import { HarmonicsRequestSchema } from '@/lib/api/astrology-validation'
 import {
   calculateNatalChart,
   toChart,
@@ -18,13 +17,6 @@ import {
   getHarmonicMeaning,
 } from '@/lib/astrology'
 import { HTTP_STATUS } from '@/lib/constants/http'
-
-// Zod schema for input validation
-const HarmonicsRequestSchema = AdvancedAstrologyRequestSchema.extend({
-  harmonic: z.number().int().min(1).max(144).optional(),
-  currentAge: z.number().int().min(0).max(150).optional(),
-  fullProfile: z.boolean().optional().default(false),
-})
 
 export async function POST(request: Request) {
   try {

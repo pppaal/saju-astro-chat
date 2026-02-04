@@ -5,22 +5,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api/middleware'
+import {
+  withApiMiddleware,
+  createSimpleGuard,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { apiClient } from '@/lib/api'
 import { logger } from '@/lib/logger'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
-import { HTTP_STATUS } from '@/lib/constants/http'
 import { numerologyRequestSchema, numerologyGetQuerySchema } from '@/lib/api/zodValidation'
-interface NumerologyBody {
-  action?: string
-  birthDate?: string
-  englishName?: string
-  koreanName?: string
-  locale?: string
-  person1?: { birthDate: string; name?: string }
-  person2?: { birthDate: string; name?: string }
-}
 
 // Backend response types
 interface NumerologyProfile {
@@ -211,24 +207,17 @@ function generateNumerologyFallback(
  */
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
-    const rawBody = await parseRequestBody<NumerologyBody>(req, { context: 'Numerology' })
+    const rawBody = await parseRequestBody(req, { context: 'Numerology' })
     if (!rawBody) {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return apiError(ErrorCodes.BAD_REQUEST, 'Invalid JSON body')
     }
 
-    // Validate with Zod
     const validationResult = numerologyRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
-      logger.warn('[Numerology] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
+      logger.warn('[Numerology POST] validation failed', { errors: validationResult.error.issues })
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
       )
     }
 
@@ -255,9 +244,9 @@ export const POST = withApiMiddleware(
       const p2 = body.person2
 
       if (!p1?.birthDate || !p2?.birthDate) {
-        return NextResponse.json(
-          { error: 'Both person1.birthDate and person2.birthDate are required' },
-          { status: HTTP_STATUS.BAD_REQUEST }
+        return apiError(
+          ErrorCodes.VALIDATION_ERROR,
+          'Both person1.birthDate and person2.birthDate are required'
         )
       }
 
@@ -268,7 +257,7 @@ export const POST = withApiMiddleware(
         locale,
       }
     } else {
-      return NextResponse.json({ error: 'Invalid action' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return apiError(ErrorCodes.BAD_REQUEST, 'Invalid action')
     }
 
     // Call backend using ApiClient
@@ -401,15 +390,9 @@ export const GET = withApiMiddleware(
       logger.warn('[Numerology GET] query validation failed', {
         errors: queryValidation.error.issues,
       })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: queryValidation.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${queryValidation.error.issues.map((e) => e.message).join(', ')}`
       )
     }
 

@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
         resultType,
         title,
         description: description || null,
-        resultData: resultData ? (resultData as Prisma.InputJsonValue) : Prisma.JsonNull,
+        resultData: resultData ? (resultData as Prisma.InputJsonValue) : Prisma.DbNull,
         // Set expiry to 30 days from now
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       },

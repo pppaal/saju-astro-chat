@@ -8,7 +8,7 @@ import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { logger } from '@/lib/logger'
-import { AdvancedAstrologyRequestSchema } from '@/lib/api/astrology-validation'
+import { ElectionalRequestSchema } from '@/lib/api/astrology-validation'
 import {
   calculateNatalChart,
   toChart,
@@ -19,7 +19,6 @@ import {
 } from '@/lib/astrology'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
-// Zod schema for input validation
 const validEventTypes: ElectionalEventType[] = [
   'business_start',
   'signing_contracts',
@@ -41,11 +40,6 @@ const validEventTypes: ElectionalEventType[] = [
   'lawsuit',
   'court_appearance',
 ]
-
-const ElectionalRequestSchema = AdvancedAstrologyRequestSchema.extend({
-  eventType: z.string().optional(),
-  basicOnly: z.boolean().optional(),
-})
 
 export async function POST(request: Request) {
   try {
