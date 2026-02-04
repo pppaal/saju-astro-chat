@@ -6,8 +6,8 @@
     "*.css"
   ],
   "scripts": {
-    "postinstall": "prisma generate",
-    "vercel-build": "prisma migrate deploy && prisma generate && next build",
+    "postinstall": "prisma generate --config prisma.config.ts",
+    "vercel-build": "prisma migrate deploy --config prisma.config.ts && prisma generate --config prisma.config.ts && next build",
     "dev": "next dev",
     "build": "next build",
     "build:webpack": "cross-env NEXT_PRIVATE_DISABLE_TURBOPACK=1 next build",

@@ -39,6 +39,10 @@ const migrateUrl =
   databaseUrl.replace(':6543/', ':5432/').replace('pgbouncer=true', '').replace(/[&?]$/, '')
 
 export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  migrations: {
+    path: 'prisma/migrations',
+  },
   datasource: {
     url: migrateUrl,
   },
