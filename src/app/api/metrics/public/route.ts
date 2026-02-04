@@ -31,9 +31,17 @@ export async function GET(req: NextRequest) {
     // Verify Bearer token
     const authHeader = req.headers.get('Authorization')
     const token = authHeader?.replace('Bearer ', '')
-    const expectedToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN
+    const expectedToken =
+      process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN || process.env.PUBLIC_METRICS_TOKEN
 
     if (!expectedToken || token !== expectedToken) {
+      logger.warn('[Public Metrics] Auth failed', {
+        hasAuthHeader: !!authHeader,
+        hasToken: !!token,
+        hasExpectedToken: !!expectedToken,
+        tokenLength: token?.length,
+        expectedLength: expectedToken?.length,
+      })
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers }
