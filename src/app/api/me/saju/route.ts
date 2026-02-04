@@ -1,15 +1,18 @@
 // src/app/api/me/saju/route.ts
 // 사용자의 사주 기본 정보 조회 API (dayMasterElement 포함)
 
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { NextRequest } from 'next/server'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { calculateSajuData } from '@/lib/Saju'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 
 // 오행 한글 매핑
 const ELEMENT_KOREAN: Record<string, string> = {
@@ -25,160 +28,127 @@ const ELEMENT_KOREAN: Record<string, string> = {
   수: '수',
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: { code: 'AUTH_REQUIRED', message: '로그인이 필요합니다.' } },
-        { status: HTTP_STATUS.UNAUTHORIZED }
-      )
-    }
-
-    const ip = getClientIp(request.headers)
-    const limit = await rateLimit(`me-saju:${ip}`, { limit: 30, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'RATE_LIMITED', message: 'Too many requests. Try again soon.' },
-        },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: Object.fromEntries(limit.headers.entries()) }
-      )
-    }
-
-    // 사용자 프로필 조회
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        birthDate: true,
-        birthTime: true,
-        gender: true,
-        tzId: true,
-        personaMemory: {
-          select: {
-            sajuProfile: true,
+export const GET = withApiMiddleware<Record<string, unknown>>(
+  async (_req: NextRequest, context: ApiContext) => {
+    try {
+      // 사용자 프로필 조회
+      const user = await prisma.user.findUnique({
+        where: { id: context.userId! },
+        select: {
+          birthDate: true,
+          birthTime: true,
+          gender: true,
+          tzId: true,
+          personaMemory: {
+            select: {
+              sajuProfile: true,
+            },
           },
         },
-      },
-    })
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: { code: 'NOT_FOUND', message: '사용자를 찾을 수 없습니다.' } },
-        { status: HTTP_STATUS.NOT_FOUND }
-      )
-    }
-
-    // 생년월일이 없으면 사주 계산 불가
-    if (!user.birthDate) {
-      return NextResponse.json({
-        success: true,
-        hasSaju: false,
-        message: '생년월일 정보가 없습니다.',
       })
-    }
 
-    // 캐싱된 사주 프로필이 있으면 사용
-    if (user.personaMemory?.sajuProfile) {
-      const cached = user.personaMemory.sajuProfile as Record<string, unknown>
-      if (cached.dayMasterElement) {
-        return NextResponse.json({
-          success: true,
-          hasSaju: true,
-          saju: {
-            dayMasterElement:
-              ELEMENT_KOREAN[cached.dayMasterElement as string] || cached.dayMasterElement,
-            dayMaster: cached.dayMaster,
-            birthDate: user.birthDate,
-            birthTime: user.birthTime,
-          },
-        })
+      if (!user) {
+        return apiError(ErrorCodes.NOT_FOUND, '사용자를 찾을 수 없습니다.')
       }
-    }
 
-    // 사주 계산
-    const gender = user.gender === 'M' ? 'male' : user.gender === 'F' ? 'female' : 'male'
-    const timezone = user.tzId || 'Asia/Seoul'
-    const birthTime = user.birthTime || '12:00' // 시간 모르면 정오로 가정
+      // 생년월일이 없으면 사주 계산 불가
+      if (!user.birthDate) {
+        return apiSuccess({
+          hasSaju: false,
+          message: '생년월일 정보가 없습니다.',
+        } as Record<string, unknown>)
+      }
 
-    const sajuResult = calculateSajuData(user.birthDate, birthTime, gender, 'solar', timezone)
+      // 캐싱된 사주 프로필이 있으면 사용
+      if (user.personaMemory?.sajuProfile) {
+        const cached = user.personaMemory.sajuProfile as Record<string, unknown>
+        if (cached.dayMasterElement) {
+          return apiSuccess({
+            hasSaju: true,
+            saju: {
+              dayMasterElement:
+                ELEMENT_KOREAN[cached.dayMasterElement as string] || cached.dayMasterElement,
+              dayMaster: cached.dayMaster,
+              birthDate: user.birthDate,
+              birthTime: user.birthTime,
+            },
+          } as Record<string, unknown>)
+        }
+      }
 
-    if (!sajuResult || !sajuResult.dayMaster) {
-      return NextResponse.json({
-        success: true,
-        hasSaju: false,
-        message: '사주 계산에 실패했습니다.',
-      })
-    }
+      // 사주 계산
+      const gender = user.gender === 'M' ? 'male' : user.gender === 'F' ? 'female' : 'male'
+      const timezone = user.tzId || 'Asia/Seoul'
+      const birthTime = user.birthTime || '12:00'
 
-    const dayMasterElement =
-      ELEMENT_KOREAN[sajuResult.dayMaster.element] || sajuResult.dayMaster.element
+      const sajuResult = calculateSajuData(user.birthDate, birthTime, gender, 'solar', timezone)
 
-    // PersonaMemory에 캐싱 (있으면 업데이트, 없으면 생성)
-    const sajuProfileData = {
-      dayMaster: sajuResult.dayMaster.name,
-      dayMasterElement: dayMasterElement,
-      yinYang: sajuResult.dayMaster.yin_yang as string,
-      updatedAt: new Date().toISOString(),
-    }
+      if (!sajuResult || !sajuResult.dayMaster) {
+        return apiSuccess({
+          hasSaju: false,
+          message: '사주 계산에 실패했습니다.',
+        } as Record<string, unknown>)
+      }
 
-    await prisma.personaMemory.upsert({
-      where: { userId: session.user.id },
-      update: {
-        sajuProfile: sajuProfileData,
-        updatedAt: new Date(),
-      },
-      create: {
-        userId: session.user.id,
-        sajuProfile: sajuProfileData,
-      },
-    })
+      const dayMasterElement =
+        ELEMENT_KOREAN[sajuResult.dayMaster.element] || sajuResult.dayMaster.element
 
-    const res = NextResponse.json({
-      success: true,
-      hasSaju: true,
-      saju: {
-        dayMasterElement,
+      // PersonaMemory에 캐싱
+      const sajuProfileData = {
         dayMaster: sajuResult.dayMaster.name,
-        dayMasterYinYang: sajuResult.dayMaster.yin_yang,
-        birthDate: user.birthDate,
-        birthTime: user.birthTime,
-        pillars: {
-          year: {
-            stem: sajuResult.yearPillar?.heavenlyStem?.name,
-            branch: sajuResult.yearPillar?.earthlyBranch?.name,
-          },
-          month: {
-            stem: sajuResult.monthPillar?.heavenlyStem?.name,
-            branch: sajuResult.monthPillar?.earthlyBranch?.name,
-          },
-          day: {
-            stem: sajuResult.dayPillar?.heavenlyStem?.name,
-            branch: sajuResult.dayPillar?.earthlyBranch?.name,
-          },
-          time: {
-            stem: sajuResult.timePillar?.heavenlyStem?.name,
-            branch: sajuResult.timePillar?.earthlyBranch?.name,
-          },
-        },
-      },
-    })
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
-    return res
-  } catch (error) {
-    logger.error('Saju Profile Error:', error)
+        dayMasterElement: dayMasterElement,
+        yinYang: sajuResult.dayMaster.yin_yang as string,
+        updatedAt: new Date().toISOString(),
+      }
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: '사주 정보 조회 중 오류가 발생했습니다.',
+      await prisma.personaMemory.upsert({
+        where: { userId: context.userId! },
+        update: {
+          sajuProfile: sajuProfileData,
+          updatedAt: new Date(),
         },
-      },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
+        create: {
+          userId: context.userId!,
+          sajuProfile: sajuProfileData,
+        },
+      })
+
+      return apiSuccess({
+        hasSaju: true,
+        saju: {
+          dayMasterElement,
+          dayMaster: sajuResult.dayMaster.name,
+          dayMasterYinYang: sajuResult.dayMaster.yin_yang,
+          birthDate: user.birthDate,
+          birthTime: user.birthTime,
+          pillars: {
+            year: {
+              stem: sajuResult.yearPillar?.heavenlyStem?.name,
+              branch: sajuResult.yearPillar?.earthlyBranch?.name,
+            },
+            month: {
+              stem: sajuResult.monthPillar?.heavenlyStem?.name,
+              branch: sajuResult.monthPillar?.earthlyBranch?.name,
+            },
+            day: {
+              stem: sajuResult.dayPillar?.heavenlyStem?.name,
+              branch: sajuResult.dayPillar?.earthlyBranch?.name,
+            },
+            time: {
+              stem: sajuResult.timePillar?.heavenlyStem?.name,
+              branch: sajuResult.timePillar?.earthlyBranch?.name,
+            },
+          },
+        },
+      } as Record<string, unknown>)
+    } catch (err) {
+      logger.error('Saju Profile Error:', err)
+      return apiError(ErrorCodes.INTERNAL_ERROR, '사주 정보 조회 중 오류가 발생했습니다.')
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/me/saju',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)

@@ -15,7 +15,7 @@ import { referralClaimRequestSchema } from '@/lib/api/zodValidation'
 export const dynamic = 'force-dynamic'
 
 // POST: OAuth 로그인 후 추천 코드 연결
-export const POST = withApiMiddleware(
+export const POST = withApiMiddleware<Record<string, unknown>>(
   async (request: NextRequest, context: ApiContext) => {
     const rawBody = await request.json()
 
@@ -38,7 +38,7 @@ export const POST = withApiMiddleware(
       })
 
       if (user?.referrerId) {
-        return apiSuccess({ linked: false, reason: 'already_linked' })
+        return apiSuccess({ linked: false, reason: 'already_linked' } as Record<string, unknown>)
       }
 
       // 가입 후 24시간 이내에만 추천 코드 연결 가능
@@ -47,16 +47,16 @@ export const POST = withApiMiddleware(
         : 0
 
       if (hoursSinceCreation > 24) {
-        return apiSuccess({ linked: false, reason: 'too_late' })
+        return apiSuccess({ linked: false, reason: 'too_late' } as Record<string, unknown>)
       }
 
       const result = await linkReferrer(context.userId!, referralCode)
 
       if (!result.success) {
-        return apiSuccess({ linked: false, reason: result.error })
+        return apiSuccess({ linked: false, reason: result.error } as Record<string, unknown>)
       }
 
-      return apiSuccess({ linked: true, referrerId: result.referrerId })
+      return apiSuccess({ linked: true, referrerId: result.referrerId } as Record<string, unknown>)
     } catch (err) {
       logger.error('[Referral link error]', err)
       return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal Server Error')

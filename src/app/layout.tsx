@@ -71,7 +71,10 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://destinypal.com')
+  ),
   title: {
     default: 'DestinyPal | AI Spiritual Mental Care Platform',
     template: '%s | DestinyPal',

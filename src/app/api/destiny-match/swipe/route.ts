@@ -130,15 +130,25 @@ export const POST = withApiMiddleware(
       )
     }
 
-    // 이미 스와이프했는지 확인
-    const existingSwipe = await prisma.matchSwipe.findUnique({
-      where: {
-        swiperId_targetId: {
-          swiperId: updatedMyProfile.id,
-          targetId: targetProfileId,
+    // 이미 스와이프했는지 + 상대방 역방향 스와이프 병렬 조회
+    const [existingSwipe, reverseSwipe] = await Promise.all([
+      prisma.matchSwipe.findUnique({
+        where: {
+          swiperId_targetId: {
+            swiperId: updatedMyProfile.id,
+            targetId: targetProfileId,
+          },
         },
-      },
-    })
+      }),
+      prisma.matchSwipe.findUnique({
+        where: {
+          swiperId_targetId: {
+            swiperId: targetProfileId,
+            targetId: updatedMyProfile.id,
+          },
+        },
+      }),
+    ])
 
     if (existingSwipe) {
       return NextResponse.json(
@@ -146,16 +156,6 @@ export const POST = withApiMiddleware(
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
-
-    // 상대방이 나에게 이미 like 했는지 확인
-    const reverseSwipe = await prisma.matchSwipe.findUnique({
-      where: {
-        swiperId_targetId: {
-          swiperId: targetProfileId,
-          targetId: updatedMyProfile.id,
-        },
-      },
-    })
 
     const isMatch =
       (action === 'like' || action === 'super_like') &&

@@ -107,8 +107,17 @@ function buildCsp(nonce: string) {
   ]
 
   const aiBackend = process.env.AI_BACKEND_URL
-  if (aiBackend && aiBackend.startsWith('https://')) {
-    connectSrc.push(aiBackend)
+  if (aiBackend) {
+    try {
+      const parsed = new URL(aiBackend)
+      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+        connectSrc.push(aiBackend)
+      } else {
+        console.warn(`[Middleware] AI_BACKEND_URL has invalid protocol: ${parsed.protocol}`)
+      }
+    } catch {
+      console.warn(`[Middleware] AI_BACKEND_URL is malformed: ${aiBackend}`)
+    }
   }
 
   if (!isProd) {
