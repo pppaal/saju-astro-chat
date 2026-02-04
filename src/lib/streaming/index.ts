@@ -7,7 +7,7 @@ export {
   streamProcessor,
   type StreamResult,
   type StreamProcessorOptions,
-} from "./StreamProcessor";
+} from './StreamProcessor'
 
 // Server-side stream proxying
 export {
@@ -20,4 +20,11 @@ export {
   createTransformedSSEStream,
   type StreamProxyOptions,
   type StreamTransformOptions,
-} from "./serverStreamProxy";
+} from './serverStreamProxy'
+
+// Streaming route factory
+export {
+  createStreamRoute,
+  type StreamRouteConfig,
+  type StreamPayloadResult,
+} from './createStreamRoute'

@@ -24,9 +24,12 @@ if (!target) {
 
 mkdirSync(outDir, { recursive: true });
 
+const extraDockerArgs = (process.env.OWASP_DOCKER_ARGS || '').split(/\s+/).filter(Boolean);
+
 const dockerArgs = [
   'run',
   '--rm',
+  ...extraDockerArgs,
   '-v',
   `${outDir}:/zap/wrk`,
   image,

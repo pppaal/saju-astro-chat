@@ -49,15 +49,18 @@ jobs:
           tail -n 200 /tmp/next-dev.log || true
           exit 1
 
+      - name: Prepare OWASP output directory
+        run: mkdir -p reports/security && chmod 777 reports/security
+
       - name: Run OWASP ZAP baseline
         run: npm run security:owasp
         env:
-          ZAP_TARGET_URL: http://host.docker.internal:3000
-          OWASP_DOCKER_ARGS: --add-host=host.docker.internal:host-gateway
+          ZAP_TARGET_URL: http://127.0.0.1:3000
+          OWASP_DOCKER_ARGS: --network host
 
       - name: Upload OWASP reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: owasp-zap-reports
-          path: reports/owasp
+          path: reports/security
