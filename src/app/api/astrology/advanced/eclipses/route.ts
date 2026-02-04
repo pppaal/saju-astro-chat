@@ -16,7 +16,7 @@ import {
   checkEclipseSensitivity,
 } from '@/lib/astrology'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { AdvancedAstrologyRequestSchema } from '@/lib/api/astrology-validation'
+import { EclipsesRequestSchema } from '@/lib/api/astrology-validation'
 
 export async function POST(request: Request) {
   try {
@@ -38,9 +38,6 @@ export async function POST(request: Request) {
 
     // Validate request body with Zod
     const body = await request.json().catch(() => ({}))
-    const EclipsesRequestSchema = AdvancedAstrologyRequestSchema.extend({
-      orb: z.number().min(0).max(10).optional().default(3.0),
-    })
     const validation = EclipsesRequestSchema.safeParse(body)
 
     if (!validation.success) {

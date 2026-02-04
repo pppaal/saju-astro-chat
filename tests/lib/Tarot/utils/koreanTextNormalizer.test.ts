@@ -168,4 +168,164 @@ describe('Korean Text Normalizer', () => {
       expect(pattern).toContain('123')
     })
   })
+
+  describe('normalizeText', () => {
+    it('lowercases English', () => {
+      expect(normalizeText('Hello World')).toBe('helloworld')
+    })
+
+    it('removes all whitespace', () => {
+      expect(normalizeText('a  b  c')).toBe('abc')
+    })
+
+    it('removes punctuation', () => {
+      expect(normalizeText('안녕하세요?!')).toBe('안녕하세요')
+    })
+
+    it('handles mixed Korean and English', () => {
+      expect(normalizeText('오늘 today!')).toBe('오늘today')
+    })
+
+    it('trims whitespace', () => {
+      expect(normalizeText('  hello  ')).toBe('hello')
+    })
+  })
+
+  describe('prepareForMatching', () => {
+    it('includes original text', () => {
+      const result = prepareForMatching('오늘 운세')
+      expect(result).toContain('오늘 운세')
+    })
+
+    it('includes normalized text', () => {
+      const result = prepareForMatching('오늘 운세?')
+      expect(result).toContain('오늘운세')
+    })
+
+    it('expands chosung questions', () => {
+      const result = prepareForMatching('ㅇㄷㅎㄹㄲ')
+      expect(result.length).toBeGreaterThan(2)
+    })
+
+    it('deduplicates results', () => {
+      const result = prepareForMatching('hello')
+      const unique = new Set(result)
+      expect(result.length).toBe(unique.size)
+    })
+
+    it('applies typo fixes', () => {
+      const result = prepareForMatching('되요')
+      expect(result.some((v) => v.includes('돼요'))).toBe(true)
+    })
+  })
+
+  describe('fuzzyMatch', () => {
+    it('matches normalized text', () => {
+      expect(fuzzyMatch('할 까 요?', [/할까/])).toBe(true)
+    })
+
+    it('returns false when no match', () => {
+      expect(fuzzyMatch('안녕', [/할까/, /갈까/])).toBe(false)
+    })
+
+    it('matches case-insensitively', () => {
+      expect(fuzzyMatch('HELLO', [/hello/])).toBe(true)
+    })
+
+    it('matches with typo correction', () => {
+      expect(fuzzyMatch('되요', [/돼요/])).toBe(true)
+    })
+  })
+
+  describe('enhancedYesNoMatch', () => {
+    it('matches 할까 ending', () => {
+      expect(enhancedYesNoMatch('운동 할까')).toBe(true)
+    })
+
+    it('matches 갈까 ending', () => {
+      expect(enhancedYesNoMatch('여행 갈까')).toBe(true)
+    })
+
+    it('matches 살까 ending', () => {
+      expect(enhancedYesNoMatch('옷 살까')).toBe(true)
+    })
+
+    it('matches 먹을까 ending', () => {
+      expect(enhancedYesNoMatch('라면 먹을까')).toBe(true)
+    })
+
+    it('matches 마실까 ending', () => {
+      expect(enhancedYesNoMatch('술 마실까')).toBe(true)
+    })
+
+    it('matches 좋을까 ending', () => {
+      expect(enhancedYesNoMatch('이게 좋을까')).toBe(true)
+    })
+
+    it('matches 할까말까 pattern', () => {
+      expect(enhancedYesNoMatch('할까 말까')).toBe(true)
+    })
+
+    it('matches 해야하나', () => {
+      expect(enhancedYesNoMatch('해야 하나')).toBe(true)
+    })
+
+    it('does not match general text', () => {
+      expect(enhancedYesNoMatch('오늘 운세 알려줘')).toBe(false)
+    })
+  })
+
+  describe('decodeChosung', () => {
+    it('decodes known pattern 오늘운동갈까', () => {
+      expect(decodeChosung('ㅇㄷㅇㄷㄱㄹㄲ')).toBe('오늘운동갈까')
+    })
+
+    it('decodes 할까', () => {
+      expect(decodeChosung('ㅎㄹㄲ')).toBe('할까')
+    })
+
+    it('decodes 먹을까', () => {
+      expect(decodeChosung('ㅁㅇㄹㄲ')).toBe('먹을까')
+    })
+
+    it('decodes 어떨까', () => {
+      expect(decodeChosung('ㅇㄷㅎㄹㄲ')).toBe('어떨까')
+    })
+
+    it('returns null for unknown pattern', () => {
+      expect(decodeChosung('ㅁㅁㅁㅁ')).toBeNull()
+    })
+
+    it('returns null for non-chosung text', () => {
+      expect(decodeChosung('안녕하세요')).toBeNull()
+    })
+  })
+
+  describe('similarity', () => {
+    it('returns 1 for identical strings', () => {
+      expect(similarity('hello', 'hello')).toBe(1)
+    })
+
+    it('returns low similarity for very different strings', () => {
+      expect(similarity('abc', 'xyz')).toBeLessThan(0.5)
+    })
+
+    it('returns high similarity for similar strings', () => {
+      expect(similarity('hello', 'hallo')).toBeGreaterThan(0.7)
+    })
+
+    it('handles one empty string', () => {
+      expect(similarity('hello', '')).toBe(0)
+    })
+
+    it('is symmetric', () => {
+      const ab = similarity('abc', 'abd')
+      const ba = similarity('abd', 'abc')
+      expect(ab).toBeCloseTo(ba, 5)
+    })
+
+    it('calculates Korean text similarity', () => {
+      expect(similarity('안녕하세요', '안녕하셨어요')).toBeGreaterThan(0.5)
+    })
+  })
 })

@@ -16,7 +16,7 @@ import {
   getDraconicPlanetMeaning,
 } from '@/lib/astrology'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { AdvancedAstrologyRequestSchema } from '@/lib/api/astrology-validation'
+import { DraconicRequestSchema } from '@/lib/api/astrology-validation'
 
 export async function POST(request: Request) {
   try {
@@ -38,9 +38,6 @@ export async function POST(request: Request) {
 
     // Validate request body with Zod
     const body = await request.json().catch(() => ({}))
-    const DraconicRequestSchema = AdvancedAstrologyRequestSchema.extend({
-      compareToNatal: z.boolean().optional().default(true),
-    })
     const validation = DraconicRequestSchema.safeParse(body)
 
     if (!validation.success) {

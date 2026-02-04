@@ -666,14 +666,15 @@ AI 실수 → Zod 차단 → 안전한 서비스
 
 ### Phase 7 ✅ (최종)
 
-- [x] 280+ Zod 스키마 (2,466줄)
-- [x] 107개 라우트 검증 적용 (80%)
+- [x] 280+ Zod 스키마 (2,644줄)
+- [x] 110개 라우트 검증 적용 (82%)
 - [x] Query param 검증 (dream/history, counselor/session, cities, me/history 등)
-- [x] URL param 검증 (calendar/save/[id], consultation/[id], reports/[id] 등)
+- [x] URL param 검증 (calendar/save/[id], consultation/[id], reports/[id], share/[id] 등)
 - [x] Pagination 스키마 재사용 패턴 도입
-- [x] **80% 커버리지 목표 달성** ✅
+- [x] gender 타입 안전성 강화 (calendar, saju)
+- [x] **80% 커버리지 목표 초과 달성 (82%)** ✅
 
-### 남은 27개 라우트 (Zod 불필요)
+### 남은 24개 라우트 (Zod 불필요)
 
 - NextAuth 내부 (`auth/[...nextauth]`)
 - Body 없는 라우트 (cron jobs, auth/revoke, referral/claim 등)
@@ -686,10 +687,10 @@ AI 실수 → Zod 차단 → 안전한 서비스
 
 ### 달성한 것 (Phase 7 최종)
 
-**커버리지**: 12% → 80% (+569%, 68%p 증가)
+**커버리지**: 12% → 82% (+588%, 70%p 증가)
 **스키마**: 28개 → 280+개 (+900%)
-**코드 라인**: 200줄 → 2,466줄 (+1133%)
-**검증 라우트**: 16개 → 107개 (+569%)
+**코드 라인**: 200줄 → 2,644줄 (+1222%)
+**검증 라우트**: 16개 → 110개 (+588%)
 
 ### 얻은 것
 
@@ -710,7 +711,7 @@ AI 실수 → Zod 차단 → 안전한 서비스
 > z.coerce로 query param을 안전하게 파싱하고,
 > 무수한 런타임 버그를 컴파일 타임에 차단한다."
 
-**프로젝트 상태**: ✅ **Phase 7 완료 - 80% 목표 달성!**
+**프로젝트 상태**: ✅ **Phase 7 완료 - 82% (목표 80% 초과 달성!)**
 
 ---
 
