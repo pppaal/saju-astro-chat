@@ -114,6 +114,7 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
   const [followUpQuestions, setFollowUpQuestions] = useState<string[]>(initialFollowUps)
   const [showSuggestions, setShowSuggestions] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   // Session history state
   const [sessionLoaded, setSessionLoaded] = useState(false)
@@ -136,13 +137,24 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
     })
   }, [sessionId, enableDbPersistence, enablePersonaMemory])
 
-  // Persist messages to sessionStorage
+  // Persist messages to sessionStorage (debounced to avoid blocking main thread)
+  const sessionSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     if (storageKey && typeof window !== 'undefined' && messages.length > 0) {
-      try {
-        sessionStorage.setItem(storageKey, JSON.stringify(messages))
-      } catch {
-        // Ignore storage errors
+      if (sessionSaveTimerRef.current) {
+        clearTimeout(sessionSaveTimerRef.current)
+      }
+      sessionSaveTimerRef.current = setTimeout(() => {
+        try {
+          sessionStorage.setItem(storageKey, JSON.stringify(messages))
+        } catch {
+          // Ignore storage errors
+        }
+      }, 500)
+    }
+    return () => {
+      if (sessionSaveTimerRef.current) {
+        clearTimeout(sessionSaveTimerRef.current)
       }
     }
   }, [messages, storageKey])
@@ -155,7 +167,7 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
 
     const saveTimer = setTimeout(async () => {
       try {
-        await fetch('/api/counselor/session/save', {
+        const res = await fetch('/api/counselor/session/save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -165,9 +177,16 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
             messages: messages.filter((m) => m.role !== 'system'),
           }),
         })
-        logger.debug('[useChatSession] Auto-saved to DB', { messageCount: messages.length })
+        if (res.ok) {
+          setSaveError(null)
+          logger.debug('[useChatSession] Auto-saved to DB', { messageCount: messages.length })
+        } else {
+          setSaveError('Failed to save session')
+          logger.warn('[useChatSession] Failed to save session: HTTP', res.status)
+        }
       } catch (e) {
         logger.warn('[useChatSession] Failed to save session:', e)
+        setSaveError('Failed to save session')
       }
     }, 2000) // 2s debounce
 
@@ -378,6 +397,7 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
     setShowSuggestions,
     error,
     setError,
+    saveError,
 
     // Session
     sessionId,

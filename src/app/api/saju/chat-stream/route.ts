@@ -1,19 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
-import { createFallbackSSEStream, createTransformedSSEStream } from '@/lib/streaming'
-import { apiClient } from '@/lib/api/ApiClient'
+import { NextResponse } from 'next/server'
+import { createStreamRoute, createFallbackSSEStream } from '@/lib/streaming'
+import { createAuthenticatedGuard } from '@/lib/api/middleware'
+import { sajuChatStreamSchema, type SajuChatStreamValidated } from '@/lib/api/zodValidation'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize'
-import { logger } from '@/lib/logger'
-import { type ChatMessage } from '@/lib/api'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { sajuChatStreamSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-function clampMessages(messages: ChatMessage[], max = 6) {
+function clampMessages(messages: { role: string; content: string }[], max = 6) {
   return messages.slice(-max)
 }
 
@@ -58,38 +55,34 @@ function sajuCounselorSystemPrompt(lang: string) {
     : base.join('\n')
 }
 
-export const POST = withApiMiddleware(
-  async (req: NextRequest, context: ApiContext) => {
-    const rawBody = await req.json()
-
-    // Validate core fields with Zod
-    const validationResult = sajuChatStreamSchema.safeParse(rawBody)
-    if (!validationResult.success) {
-      logger.warn('[Saju chat-stream] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    const body = rawBody
-    const {
-      name,
-      birthDate,
-      birthTime,
-      gender = 'male',
-      theme = 'life',
-      lang = context.locale,
-      messages = [],
-      saju,
-      userContext,
-    } = body
+export const POST = createStreamRoute<SajuChatStreamValidated>({
+  route: 'SajuChatStream',
+  guard: createAuthenticatedGuard({
+    route: 'saju-chat-stream',
+    limit: 60,
+    windowSeconds: 60,
+    requireCredits: true,
+    creditType: 'reading',
+    creditAmount: 1,
+  }),
+  schema: sajuChatStreamSchema,
+  fallbackMessage: {
+    ko: 'AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+    en: 'Could not connect to AI service. Please try again.',
+  },
+  transform(chunk, validated) {
+    const lang = validated.locale || 'ko'
+    return maskTextWithName(sanitizeLocaleText(chunk, lang), undefined)
+  },
+  async buildPayload(validated, context, req, rawBody) {
+    const name = typeof rawBody.name === 'string' ? rawBody.name.trim().slice(0, 100) : undefined
+    const birthDate = typeof rawBody.birthDate === 'string' ? rawBody.birthDate.trim() : ''
+    const birthTime = typeof rawBody.birthTime === 'string' ? rawBody.birthTime.trim() : ''
+    const gender = typeof rawBody.gender === 'string' ? rawBody.gender : 'male'
+    const theme = typeof rawBody.theme === 'string' ? rawBody.theme.trim().slice(0, 100) : 'life'
+    const lang = validated.locale || (context.locale as string)
+    const userContext =
+      typeof rawBody.userContext === 'string' ? rawBody.userContext.slice(0, 1000) : undefined
 
     if (!birthDate || !birthTime) {
       return NextResponse.json(
@@ -98,9 +91,7 @@ export const POST = withApiMiddleware(
       )
     }
 
-    // Credits already consumed by middleware
-
-    const trimmedHistory = clampMessages(messages)
+    const trimmedHistory = clampMessages(validated.messages)
 
     // Safety check
     const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
@@ -120,7 +111,6 @@ export const POST = withApiMiddleware(
 
     const userQuestion = lastUser ? guardText(lastUser.content, 500) : ''
 
-    // Build saju-focused prompt
     const chatPrompt = [
       sajuCounselorSystemPrompt(lang),
       `Name: ${name || 'User'}`,
@@ -133,63 +123,21 @@ export const POST = withApiMiddleware(
       .filter(Boolean)
       .join('\n')
 
-    // Get session_id from header for RAG cache
     const sessionId = req.headers.get('x-session-id') || undefined
 
-    // Call backend streaming endpoint using apiClient
-    const streamResult = await apiClient.postSSEStream(
-      '/saju/ask-stream',
-      {
+    return {
+      endpoint: '/saju/ask-stream',
+      body: {
         theme,
         prompt: chatPrompt,
         locale: lang,
-        saju: saju || undefined,
+        saju: validated.saju || undefined,
         birth: { date: birthDate, time: birthTime, gender },
         history: trimmedHistory.filter((m) => m.role !== 'system'),
         session_id: sessionId,
         user_context: userContext || undefined,
-        counselor_type: 'saju', // Indicate saju-only mode
+        counselor_type: 'saju',
       },
-      { timeout: 60000 }
-    )
-
-    if (!streamResult.ok) {
-      logger.error('[SajuChatStream] Backend error:', {
-        status: streamResult.status,
-        error: streamResult.error,
-      })
-
-      const fallback =
-        lang === 'ko'
-          ? 'AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
-          : 'Could not connect to AI service. Please try again.'
-
-      return createFallbackSSEStream({
-        content: fallback,
-        done: true,
-        'X-Fallback': '1',
-      })
     }
-
-    // Relay the stream from backend to frontend with sanitization
-    return createTransformedSSEStream({
-      source: streamResult.response,
-      transform: (chunk) => {
-        const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name)
-        return masked
-      },
-      route: 'SajuChatStream',
-      additionalHeaders: {
-        'X-Fallback': streamResult.response.headers.get('x-fallback') || '0',
-      },
-    })
   },
-  createAuthenticatedGuard({
-    route: 'saju-chat-stream',
-    limit: 60,
-    windowSeconds: 60,
-    requireCredits: true,
-    creditType: 'reading',
-    creditAmount: 1,
-  })
-)
+})

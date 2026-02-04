@@ -15,6 +15,7 @@ import { prisma } from '@/lib/db/prisma'
 import { sendPushNotification } from '@/lib/notifications/pushService'
 import { logger } from '@/lib/logger'
 import { destinyMatchChatSchema, destinyMatchChatGetQuerySchema } from '@/lib/api/zodValidation'
+import { sanitizeHtml } from '@/lib/api/sanitizers'
 import { z } from 'zod'
 
 const deleteMessageSchema = z.object({
@@ -131,7 +132,8 @@ export const POST = withApiMiddleware(
       )
     }
 
-    const { connectionId, content, messageType } = validationResult.data
+    const { connectionId, content: rawContent, messageType } = validationResult.data
+    const content = sanitizeHtml(rawContent, 2000)
 
     try {
       // 연결 확인
@@ -152,7 +154,14 @@ export const POST = withApiMiddleware(
       }
 
       if (connection.status !== 'active') {
-        return apiError(ErrorCodes.BAD_REQUEST, '이 매치는 더 이상 활성 상태가 아닙니다')
+        const statusMessages: Record<string, string> = {
+          blocked: '차단된 매치에서는 메시지를 보낼 수 없습니다',
+          unmatched: '매치가 해제되어 메시지를 보낼 수 없습니다',
+          expired: '만료된 매치에서는 메시지를 보낼 수 없습니다',
+        }
+        const message =
+          statusMessages[connection.status] ?? '이 매치는 더 이상 활성 상태가 아닙니다'
+        return apiError(ErrorCodes.BAD_REQUEST, message)
       }
 
       const isUser1 = connection.user1Profile.userId === userId
@@ -185,7 +194,7 @@ export const POST = withApiMiddleware(
           data: {
             connectionId,
             senderId: userId,
-            content: content.trim(),
+            content,
             messageType,
           },
           include: {

@@ -4,6 +4,24 @@
 
 import { z } from 'zod'
 
+// ============ Timezone Validation Cache ============
+
+const validTimezoneCache = new Set<string>()
+const invalidTimezoneCache = new Set<string>()
+
+function isValidTimezone(tz: string): boolean {
+  if (validTimezoneCache.has(tz)) return true
+  if (invalidTimezoneCache.has(tz)) return false
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: tz })
+    validTimezoneCache.add(tz)
+    return true
+  } catch {
+    invalidTimezoneCache.add(tz)
+    return false
+  }
+}
+
 // ============ Primitive Schemas ============
 
 export const dateSchema = z
@@ -30,7 +48,7 @@ export const timezoneSchema = z
   .string()
   .min(1, 'Timezone is required')
   .max(64, 'Timezone is too long')
-  .regex(/^[A-Za-z/_+-]+$/, 'Invalid timezone format')
+  .refine(isValidTimezone, { message: 'Invalid timezone' })
 
 export const latitudeSchema = z
   .number()
@@ -89,38 +107,21 @@ export type ChatMessageRequestValidated = z.infer<typeof chatMessageRequestSchem
 
 // ============ Pagination Schemas ============
 
-export const paginationSchema = z.object({
-  limit: z
-    .string()
-    .regex(/^\d+$/)
-    .transform((val) => Math.min(Math.max(1, Number(val)), 100))
-    .optional()
-    .default(20),
-  offset: z
-    .string()
-    .regex(/^\d+$/)
-    .transform((val) => Math.max(0, Number(val)))
-    .optional()
-    .default(0),
+export const paginationQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+  offset: z.coerce.number().int().min(0).optional().default(0),
   sortBy: z.string().max(50).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
 })
 
-export type PaginationValidated = z.infer<typeof paginationSchema>
+export type PaginationQueryValidated = z.infer<typeof paginationQuerySchema>
 
-export const paginationParamsSchema = z.object({
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(20),
-  sortBy: z.string().optional(),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
-})
-
-export type PaginationParams = z.infer<typeof paginationParamsSchema>
-
-export const paginationQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
-  offset: z.coerce.number().int().min(0).optional().default(0),
-})
+/** @deprecated Use paginationQuerySchema instead */
+export const paginationSchema = paginationQuerySchema
+/** @deprecated Use paginationQuerySchema instead */
+export const paginationParamsSchema = paginationQuerySchema
+export type PaginationValidated = PaginationQueryValidated
+export type PaginationParams = PaginationQueryValidated
 
 // ============ Common Param Schemas ============
 

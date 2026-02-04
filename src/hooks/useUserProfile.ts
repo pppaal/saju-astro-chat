@@ -29,6 +29,7 @@ interface UseUserProfileReturn {
   loadingProfileBtn: boolean
   profileLoadedMsg: boolean
   profileLoadError: string | null
+  autoLoadError: string | null
   showProfilePrompt: boolean
   loadProfile: (locale?: string) => Promise<boolean>
   resetLoadState: () => void
@@ -59,8 +60,11 @@ export function useUserProfile(options: UseUserProfileOptions = {}): UseUserProf
 
   const isAuthenticated = status === 'authenticated'
 
+  const [profileAutoLoadError, setAutoLoadError] = useState<string | null>(null)
+
   const internalLoadProfile = async () => {
     setIsLoading(true)
+    setAutoLoadError(null)
     try {
       if (isAuthenticated && !options.skipFetch) {
         // Authenticated: fetch from API and sync
@@ -70,7 +74,9 @@ export function useUserProfile(options: UseUserProfileOptions = {}): UseUserProf
         // Not authenticated: use localStorage only
         setProfile(getUserProfile())
       }
-    } catch {
+    } catch (err) {
+      logger.error('Failed to auto-load profile:', err)
+      setAutoLoadError('Failed to load profile')
       setProfile(getUserProfile())
     } finally {
       setIsLoading(false)
@@ -170,6 +176,7 @@ export function useUserProfile(options: UseUserProfileOptions = {}): UseUserProf
     loadingProfileBtn,
     profileLoadedMsg,
     profileLoadError,
+    autoLoadError: profileAutoLoadError,
     showProfilePrompt,
     loadProfile,
     resetLoadState,

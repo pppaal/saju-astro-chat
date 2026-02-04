@@ -1,20 +1,20 @@
-"use client";
+'use client'
 
-import React from "react";
-import type { Copy } from "../chat-i18n";
+import React from 'react'
+import type { Copy } from '../chat-i18n'
 
 interface ChatInputAreaProps {
-  input: string;
-  loading: boolean;
-  cvName: string;
-  parsingPdf: boolean;
-  usedFallback: boolean;
-  tr: Copy;
-  onInputChange: (value: string) => void;
-  onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-  onSend: () => void;
-  onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
-  styles: Record<string, string>;
+  input: string
+  loading: boolean
+  cvName: string
+  parsingPdf: boolean
+  usedFallback: boolean
+  tr: Copy
+  onInputChange: (value: string) => void
+  onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
+  onSend: () => void
+  onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>
+  styles: Record<string, string>
 }
 
 export const ChatInputArea = React.memo(function ChatInputArea({
@@ -38,6 +38,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder={tr.placeholder}
+          aria-label={tr.placeholder}
           rows={2}
           className={styles.textarea}
           disabled={loading}
@@ -86,5 +87,5 @@ export const ChatInputArea = React.memo(function ChatInputArea({
         </div>
       )}
     </div>
-  );
-});
+  )
+})

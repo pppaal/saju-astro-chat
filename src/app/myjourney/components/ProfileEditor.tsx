@@ -9,6 +9,7 @@ interface ProfileEditorProps {
   editedProfile: Profile
   setEditedProfile: Dispatch<SetStateAction<Profile>>
   isSavingProfile: boolean
+  saveError?: string | null
   handleEditProfile: () => void
   handleCancelEdit: () => void
   handleSaveProfile: () => void
@@ -22,6 +23,7 @@ export function ProfileEditor({
   editedProfile,
   setEditedProfile,
   isSavingProfile,
+  saveError,
   handleEditProfile,
   handleCancelEdit,
   handleSaveProfile,
@@ -61,6 +63,12 @@ export function ProfileEditor({
           </div>
         )}
       </div>
+
+      {saveError && isEditingProfile && (
+        <div style={{ color: '#ff6b6b', fontSize: '0.85rem', padding: '0.5rem 0' }}>
+          {saveError}
+        </div>
+      )}
 
       <div className={styles.profileInfoGrid}>
         {/* Birth Date */}

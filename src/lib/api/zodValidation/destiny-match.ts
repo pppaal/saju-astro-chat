@@ -86,11 +86,6 @@ export const destinyMatchDiscoverQuerySchema = z.object({
   city: z.string().max(100).optional(),
 })
 
-export const destinyMatchMatchesExtendedQuerySchema = z.object({
-  status: z.string().max(50).optional().default('active'),
-  connectionId: z.string().max(100).optional(),
-})
-
 export const destinyMatchChatGetQuerySchema = z.object({
   connectionId: z.string().min(1).max(100),
   cursor: z.string().max(100).optional(),

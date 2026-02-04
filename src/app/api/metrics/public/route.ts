@@ -30,9 +30,12 @@ export async function GET(req: NextRequest) {
 
     // Verify Bearer token
     const authHeader = req.headers.get('Authorization')
-    const token = authHeader?.replace('Bearer ', '')
-    const expectedToken =
-      process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN || process.env.PUBLIC_METRICS_TOKEN
+    const token = authHeader?.replace('Bearer ', '').trim()
+    const expectedToken = (
+      process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN ||
+      process.env.PUBLIC_METRICS_TOKEN ||
+      process.env.METRICS_TOKEN
+    )?.trim()
 
     if (!expectedToken || token !== expectedToken) {
       logger.warn('[Public Metrics] Auth failed', {

@@ -8,6 +8,16 @@ import { useI18n } from '@/i18n/I18nProvider'
 import styles from './destiny-map.module.css'
 import { logger } from '@/lib/logger'
 import DateTimePicker from '@/components/ui/DateTimePicker'
+import {
+  type CityHit,
+  formReducer,
+  initialFormState,
+  loadCitiesModule,
+  loadTimezoneModule,
+  extractCityPart,
+  resolveCityTimezone,
+} from './useDestinyForm'
+import { useDestinyProfile } from './useDestinyProfile'
 
 const CreditBadge = dynamic(() => import('@/components/ui/CreditBadge'), { ssr: false })
 const BackButton = dynamic(() => import('@/components/ui/BackButton'), { ssr: false })
@@ -15,110 +25,8 @@ const ParticleBackground = dynamic(() => import('@/components/destiny-map/Partic
   ssr: false,
 })
 
-type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string }
-
-const loadCitiesModule = (() => {
-  let promise: Promise<typeof import('@/lib/cities')> | null = null
-  return () => {
-    if (!promise) {
-      promise = import('@/lib/cities')
-    }
-    return promise
-  }
-})()
-
-const loadTimezoneModule = (() => {
-  let promise: Promise<typeof import('@/lib/Saju/timezone')> | null = null
-  return () => {
-    if (!promise) {
-      promise = import('@/lib/Saju/timezone')
-    }
-    return promise
-  }
-})()
-
-const loadTzLookup = (() => {
-  let promise: Promise<typeof import('tz-lookup')> | null = null
-  return () => {
-    if (!promise) {
-      promise = import('tz-lookup')
-    }
-    return promise
-  }
-})()
-
-function extractCityPart(input: string) {
-  const s = String(input || '').trim()
-  const idx = s.indexOf(',')
-  return (idx >= 0 ? s.slice(0, idx) : s).trim()
-}
-
 export default function DestinyMapPage() {
   return <DestinyMapContent />
-}
-
-interface FormState {
-  name: string
-  birthDate: string
-  birthTime: string
-  city: string
-  gender: 'Male' | 'Female'
-  genderOpen: boolean
-  suggestions: CityHit[]
-  selectedCity: CityHit | null
-  openSug: boolean
-  cityErr: string | null
-  loadingProfile: boolean
-  profileLoaded: boolean
-  userTimezone: string
-  isUserTyping: boolean
-}
-
-const initialFormState: FormState = {
-  name: '',
-  birthDate: '',
-  birthTime: '',
-  city: '',
-  gender: 'Male',
-  genderOpen: false,
-  suggestions: [],
-  selectedCity: null,
-  openSug: false,
-  cityErr: null,
-  loadingProfile: false,
-  profileLoaded: false,
-  userTimezone: 'Asia/Seoul',
-  isUserTyping: false,
-}
-
-type FormAction =
-  | { type: 'SET_FIELD'; field: keyof FormState; value: FormState[keyof FormState] }
-  | { type: 'SET_FIELDS'; fields: Partial<FormState> }
-  | { type: 'PICK_CITY'; city: string; selectedCity: CityHit }
-  | { type: 'UPDATE_SELECTED_CITY_TZ'; name: string; country: string; timezone: string }
-
-function formReducer(state: FormState, action: FormAction): FormState {
-  switch (action.type) {
-    case 'SET_FIELD':
-      return { ...state, [action.field]: action.value }
-    case 'SET_FIELDS':
-      return { ...state, ...action.fields }
-    case 'PICK_CITY':
-      return {
-        ...state,
-        isUserTyping: false,
-        city: action.city,
-        selectedCity: action.selectedCity,
-        openSug: false,
-      }
-    case 'UPDATE_SELECTED_CITY_TZ': {
-      const prev = state.selectedCity
-      if (!prev || prev.name !== action.name || prev.country !== action.country) return state
-      return { ...state, selectedCity: { ...prev, timezone: action.timezone } }
-    }
-    default:
-      return state
-  }
 }
 
 function DestinyMapContent() {
@@ -153,111 +61,13 @@ function DestinyMapContent() {
     }
   }, [])
 
-  const resolveCityTimezone = useCallback(async (hit: CityHit, fallback?: string) => {
-    if (hit.timezone) {
-      return hit.timezone
-    }
-    if (fallback) {
-      return fallback
-    }
-    const { default: tzLookup } = await loadTzLookup()
-    return tzLookup(hit.lat, hit.lon)
-  }, [])
-
-  // Load profile from DB for authenticated users
-  const handleLoadProfile = useCallback(async () => {
-    if (status !== 'authenticated') {
-      return
-    }
-
-    dispatch({ type: 'SET_FIELDS', fields: { loadingProfile: true, cityErr: null } })
-
-    try {
-      // Fetch directly from API to ensure fresh data
-      const res = await fetch('/api/me/profile', { cache: 'no-store' })
-      if (!res.ok) {
-        dispatch({
-          type: 'SET_FIELDS',
-          fields: {
-            cityErr: t('error.profileLoadFailed') || 'Failed to load profile. Please try again.',
-            loadingProfile: false,
-          },
-        })
-        return
-      }
-
-      const { user } = await res.json()
-      if (!user || !user.birthDate) {
-        dispatch({
-          type: 'SET_FIELDS',
-          fields: {
-            cityErr:
-              t('error.noProfileData') ||
-              'No saved profile data found. Please save your info in MyJourney first.',
-            loadingProfile: false,
-          },
-        })
-        return
-      }
-
-      // Build fields update from DB data
-      const fields: Partial<FormState> = {}
-      if (user.name) {
-        fields.name = user.name
-      }
-      if (user.birthDate) {
-        fields.birthDate = user.birthDate
-      }
-      if (user.birthTime) {
-        fields.birthTime = user.birthTime
-      }
-      if (user.birthCity) {
-        fields.city = user.birthCity
-        // Try to get city coordinates
-        const cityName = user.birthCity.split(',')[0]?.trim()
-        if (cityName) {
-          try {
-            const { searchCities } = await loadCitiesModule()
-            const hits = (await searchCities(cityName, { limit: 1 })) as CityHit[]
-            if (hits && hits[0]) {
-              const hit = hits[0]
-              const timezone = await resolveCityTimezone(hit, user.tzId)
-              fields.selectedCity = { ...hit, timezone }
-            }
-          } catch {
-            // City search failed, but continue with other data
-            logger.warn('City search failed for:', cityName)
-          }
-        }
-      }
-      // Convert gender from DB format (M/F) to form format (Male/Female)
-      if (user.gender === 'M') {
-        fields.gender = 'Male'
-      } else if (user.gender === 'F') {
-        fields.gender = 'Female'
-      }
-
-      fields.profileLoaded = true
-      fields.loadingProfile = false
-      dispatch({ type: 'SET_FIELDS', fields })
-    } catch (err) {
-      logger.error('Failed to load profile:', err)
-      dispatch({
-        type: 'SET_FIELDS',
-        fields: {
-          cityErr: t('error.profileLoadFailed') || 'Failed to load profile. Please try again.',
-          loadingProfile: false,
-        },
-      })
-    }
-  }, [status, t, resolveCityTimezone])
-
-  // Auto-load profile on mount for authenticated users
-  useEffect(() => {
-    if (status === 'authenticated' && !form.profileLoaded && !form.loadingProfile) {
-      handleLoadProfile()
-    }
-  }, [status, form.profileLoaded, form.loadingProfile, handleLoadProfile])
+  const { handleLoadProfile } = useDestinyProfile(
+    status,
+    dispatch,
+    t,
+    form.profileLoaded,
+    form.loadingProfile
+  )
 
   // City search with debounce
   useEffect(() => {
@@ -306,28 +116,25 @@ function DestinyMapContent() {
       }
     }
     tryFindCity()
-  }, [form.city, resolveCityTimezone])
+  }, [form.city])
 
-  const onPick = useCallback(
-    (hit: CityHit) => {
-      dispatch({
-        type: 'PICK_CITY',
-        city: `${hit.name}, ${hit.country}`,
-        selectedCity: { ...hit, timezone: hit.timezone },
-      })
-      resolveCityTimezone(hit)
-        .then((timezone) => {
-          dispatch({
-            type: 'UPDATE_SELECTED_CITY_TZ',
-            name: hit.name,
-            country: hit.country,
-            timezone,
-          })
+  const onPick = useCallback((hit: CityHit) => {
+    dispatch({
+      type: 'PICK_CITY',
+      city: `${hit.name}, ${hit.country}`,
+      selectedCity: { ...hit, timezone: hit.timezone },
+    })
+    resolveCityTimezone(hit)
+      .then((timezone) => {
+        dispatch({
+          type: 'UPDATE_SELECTED_CITY_TZ',
+          name: hit.name,
+          country: hit.country,
+          timezone,
         })
-        .catch(() => {})
-    },
-    [resolveCityTimezone]
-  )
+      })
+      .catch(() => {})
+  }, [])
 
   const onSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -391,7 +198,7 @@ function DestinyMapContent() {
       params.set('theme', 'focus_overall')
       router.push(`/destiny-map/result?${params.toString()}`)
     },
-    [form, t, locale, router, resolveCityTimezone]
+    [form, t, locale, router]
   )
 
   const handleCityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

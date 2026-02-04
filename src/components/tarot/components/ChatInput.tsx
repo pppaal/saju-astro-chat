@@ -3,17 +3,17 @@
  * Extracted from TarotChat.tsx lines 886-902
  */
 
-import React from "react";
-import type { I18N } from "../data";
+import React from 'react'
+import type { I18N } from '../data'
 
 interface ChatInputProps {
-  value: string;
-  onChange: (value: string) => void;
-  onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-  onSend: () => void;
-  disabled: boolean;
-  tr: (typeof I18N)['ko'];
-  styles: Record<string, string>;
+  value: string
+  onChange: (value: string) => void
+  onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
+  onSend: () => void
+  disabled: boolean
+  tr: (typeof I18N)['ko']
+  styles: Record<string, string>
 }
 
 /**
@@ -26,7 +26,7 @@ export const ChatInput = React.memo(function ChatInput({
   onSend,
   disabled,
   tr,
-  styles
+  styles,
 }: ChatInputProps) {
   return (
     <div className={styles.inputArea}>
@@ -35,17 +35,14 @@ export const ChatInput = React.memo(function ChatInput({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
         placeholder={tr.placeholder}
+        aria-label={tr.placeholder}
         rows={2}
         className={styles.textarea}
         disabled={disabled}
       />
-      <button
-        onClick={onSend}
-        disabled={disabled || !value.trim()}
-        className={styles.sendButton}
-      >
+      <button onClick={onSend} disabled={disabled || !value.trim()} className={styles.sendButton}>
         {tr.send}
       </button>
     </div>
-  );
-});
+  )
+})

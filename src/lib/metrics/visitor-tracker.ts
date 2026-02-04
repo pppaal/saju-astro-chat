@@ -8,6 +8,9 @@
 import { Redis } from '@upstash/redis'
 import { logger } from '@/lib/logger'
 
+// Legacy visitor count from Firebase Firestore (migrated to Redis)
+const LEGACY_TOTAL_OFFSET = 1572
+
 // In-memory fallback storage
 const memoryStore = {
   today: new Set<string>(),
@@ -106,7 +109,7 @@ export async function getVisitorStats(): Promise<{
 
       return {
         todayVisitors: Number(todayCount) || 0,
-        totalVisitors: Number(totalCount) || 0,
+        totalVisitors: (Number(totalCount) || 0) + LEGACY_TOTAL_OFFSET,
       }
     } else {
       // Fallback to in-memory
@@ -118,7 +121,7 @@ export async function getVisitorStats(): Promise<{
 
       return {
         todayVisitors: memoryStore.today.size,
-        totalVisitors: memoryStore.total.size,
+        totalVisitors: memoryStore.total.size + LEGACY_TOTAL_OFFSET,
       }
     }
   } catch (error) {

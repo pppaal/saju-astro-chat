@@ -9,6 +9,7 @@ export function useDreamPhase() {
   const [phase, setPhase] = useState<Phase>('dream-input')
   const [profileLoading, setProfileLoading] = useState(true)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [profileError, setProfileError] = useState<string | null>(null)
 
   // Load user profile on mount - always go to dream-input regardless
   useEffect(() => {
@@ -23,6 +24,7 @@ export function useDreamPhase() {
       }
 
       setProfileLoading(true)
+      setProfileError(null)
       try {
         const res = await fetch('/api/me/profile', { cache: 'no-store' })
         if (res.ok) {
@@ -39,21 +41,26 @@ export function useDreamPhase() {
               timezone: user.tzId,
             })
           }
+        } else {
+          setProfileError('Failed to load profile')
+          logger.error('Failed to load profile: HTTP', res.status)
         }
       } catch (err) {
         logger.error('Failed to load profile:', err)
+        setProfileError('Failed to load profile')
       } finally {
         setProfileLoading(false)
       }
     }
 
     loadProfile()
-  }, [status]);
+  }, [status])
 
   return {
     phase,
     setPhase,
     profileLoading,
+    profileError,
     userProfile,
     setUserProfile,
   }

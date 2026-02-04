@@ -48,6 +48,7 @@ function LifePredictionContent() {
     userProfile,
     guestBirthInfo,
     profileLoading,
+    profileError,
     handleBirthInfoSubmit,
     handleChangeBirthInfo: resetBirthInfo,
   } = useLifePredictionProfile(status)
@@ -163,6 +164,19 @@ function LifePredictionContent() {
       <BackButton />
 
       <main className={styles.main}>
+        {profileError && (
+          <div
+            style={{
+              color: '#ff6b6b',
+              fontSize: '0.85rem',
+              textAlign: 'center',
+              padding: '0.5rem 1rem',
+            }}
+          >
+            {profileError}
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
           {/* Phase 1: Birth input */}
           {phase === 'birth-input' && (

@@ -186,13 +186,27 @@ export function useMyJourneyData({
     setEditedProfile({})
   }, [])
 
+  const [saveError, setSaveError] = useState<string | null>(null)
+
   const handleSaveProfile = useCallback(async () => {
     setIsSavingProfile(true)
+    setSaveError(null)
     try {
+      // Convert empty strings to null for optional fields that have format validation
+      const payload: Record<string, unknown> = {}
+      if (editedProfile.birthDate) payload.birthDate = editedProfile.birthDate
+      else if (editedProfile.birthDate === '') payload.birthDate = null
+      if (editedProfile.birthTime) payload.birthTime = editedProfile.birthTime
+      else if (editedProfile.birthTime === '') payload.birthTime = null
+      if (editedProfile.gender) payload.gender = editedProfile.gender
+      else if (editedProfile.gender === '') payload.gender = null
+      if (editedProfile.birthCity !== undefined) payload.birthCity = editedProfile.birthCity || null
+      if (editedProfile.tzId !== undefined) payload.tzId = editedProfile.tzId || null
+
       const res = await fetch('/api/me/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editedProfile),
+        body: JSON.stringify(payload),
       })
 
       if (res.ok) {
@@ -204,10 +218,14 @@ export function useMyJourneyData({
         setFortune(null)
         fortuneRef.current = null
       } else {
-        logger.error('Failed to save profile')
+        const errorData = await res.json().catch(() => ({}))
+        const msg = errorData.details?.[0]?.message || errorData.error || 'Failed to save profile'
+        logger.error('Failed to save profile:', msg)
+        setSaveError(msg)
       }
     } catch (e) {
       logger.error('Failed to save profile:', e)
+      setSaveError('Network error. Please try again.')
     } finally {
       setIsSavingProfile(false)
     }
@@ -283,6 +301,8 @@ export function useMyJourneyData({
     setEditedProfile,
     isSavingProfile,
     isReloadingProfile,
+    saveError,
+    setSaveError,
 
     // Callbacks
     goBack,

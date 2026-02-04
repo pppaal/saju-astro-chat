@@ -38,7 +38,7 @@ export function CitySearchField({
     setSelectedCity,
     handleCityInputChange,
     handleCitySelect,
-  } = useCitySearch()
+  } = useCitySearch(locale)
 
   const defaultLabel = locale === 'ko' ? '출생 도시' : 'Birth City'
 

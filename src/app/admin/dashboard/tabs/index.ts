@@ -1,0 +1,8 @@
+export { UsersTab } from './UsersTab'
+export { RevenueTab } from './RevenueTab'
+export { MatchingTab } from './MatchingTab'
+export { NotificationsTab } from './NotificationsTab'
+export { ContentTab } from './ContentTab'
+export { ModerationTab } from './ModerationTab'
+export { AuditTab } from './AuditTab'
+export { SystemTab } from './SystemTab'

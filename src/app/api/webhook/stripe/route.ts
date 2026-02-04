@@ -34,6 +34,12 @@ const getWebhookSecret = () => process.env.STRIPE_WEBHOOK_SECRET
 async function findUserByEmail(email: string) {
   return prisma.user.findUnique({
     where: { email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+    },
   })
 }
 

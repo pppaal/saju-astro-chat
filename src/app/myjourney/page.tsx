@@ -51,6 +51,7 @@ function MyJourneyPage() {
     setEditedProfile,
     isSavingProfile,
     isReloadingProfile,
+    saveError,
     goBack,
     handleCreditsClick,
     toggleDayExpanded,
@@ -111,6 +112,7 @@ function MyJourneyPage() {
           editedProfile={editedProfile}
           setEditedProfile={setEditedProfile}
           isSavingProfile={isSavingProfile}
+          saveError={saveError}
           handleEditProfile={handleEditProfile}
           handleCancelEdit={handleCancelEdit}
           handleSaveProfile={handleSaveProfile}

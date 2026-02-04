@@ -52,6 +52,10 @@ export const GET = withApiMiddleware(
     const queryValidation = destinyMatchDiscoverQuerySchema.safeParse({
       limit: searchParams.get('limit') ?? undefined,
       offset: searchParams.get('offset') ?? undefined,
+      gender: searchParams.get('gender') ?? undefined,
+      ageMin: searchParams.get('ageMin') ?? undefined,
+      ageMax: searchParams.get('ageMax') ?? undefined,
+      city: searchParams.get('city') ?? undefined,
     })
     if (!queryValidation.success) {
       return NextResponse.json(
@@ -59,7 +63,7 @@ export const GET = withApiMiddleware(
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
-    const { limit, offset } = queryValidation.data
+    const { limit, offset, gender, ageMin, ageMax, city } = queryValidation.data
     const zodiacFilter = searchParams.get('zodiac')
     const elementFilter = searchParams.get('element')
 
@@ -118,16 +122,49 @@ export const GET = withApiMiddleware(
       },
     }
 
-    // 성별 필터 (내 선호도 기반)
-    if (myProfile.genderPreference !== 'all') {
+    // 성별 필터 (쿼리 파라미터 우선, 없으면 프로필 선호도)
+    const effectiveGenderPref = gender ?? myProfile.genderPreference
+    if (effectiveGenderPref !== 'all') {
       whereCondition.user = {
-        gender: myProfile.genderPreference,
+        gender: effectiveGenderPref,
       }
     }
 
-    // 도시 필터 제거 - 대신 나중에 case-insensitive로 필터링
+    // 나이 필터를 DB 레벨에서 적용 (쿼리 파라미터 우선, 없으면 프로필 선호도)
+    const effectiveAgeMin = ageMin ?? myProfile.ageMin
+    const effectiveAgeMax = ageMax ?? myProfile.ageMax
+    const now = new Date()
+    const maxBirthDate = new Date(
+      now.getFullYear() - effectiveAgeMin,
+      now.getMonth(),
+      now.getDate()
+    )
+    const minBirthDate = new Date(
+      now.getFullYear() - effectiveAgeMax - 1,
+      now.getMonth(),
+      now.getDate()
+    )
 
-    // 프로필 검색 (양방향 필터링을 위해 추가 정보 포함)
+    // Merge user filter with age range
+    const existingUserFilter = (whereCondition.user as Record<string, unknown>) || {}
+    whereCondition.user = {
+      ...existingUserFilter,
+      birthDate: {
+        gte: minBirthDate.toISOString().split('T')[0],
+        lte: maxBirthDate.toISOString().split('T')[0],
+      },
+    }
+
+    // 도시 필터를 DB 레벨에서 적용 (쿼리 파라미터 우선, 없으면 프로필 도시)
+    const effectiveCity = city ?? myProfile.city
+    if (effectiveCity) {
+      whereCondition.city = {
+        equals: effectiveCity,
+        mode: 'insensitive',
+      }
+    }
+
+    // 프로필 검색 (DB 레벨 필터링 적용으로 over-fetch 감소)
     const profiles = await prisma.matchProfile.findMany({
       where: whereCondition,
       select: {
@@ -160,40 +197,31 @@ export const GET = withApiMiddleware(
         },
       },
       orderBy: { lastActiveAt: 'desc' },
-      take: limit * 3, // 양방향 필터링으로 인해 더 많이 가져옴
+      take: limit * 2, // Reduced from 3x - DB-level filtering handles most cases
       skip: offset,
     })
 
     // 내 나이 계산
     const myAge = calculateAge(myProfile.user.birthDate)
 
-    // 1단계: 기본 필터링 (DB 레벨 + 메모리 레벨)
+    // 1단계: 추가 필터링 (양방향 체크 - DB 레벨에서 처리 불가능한 부분)
     const filteredProfiles = profiles.filter((profile) => {
-      // 나이 필터 (양방향)
-      const age = calculateAge(profile.user.birthDate)
-      if (age !== null) {
-        if (age < myProfile.ageMin || age > myProfile.ageMax) {
+      // 양방향 나이 필터: 상대가 내 나이를 수용하는지 확인
+      if (myAge !== null) {
+        if (myAge < profile.ageMin || myAge > profile.ageMax) {
           return false
-        }
-        if (myAge !== null) {
-          if (myAge < profile.ageMin || myAge > profile.ageMax) {
-            return false
-          }
         }
       }
 
-      // 성별 필터 (양방향)
+      // 명시적 나이 필터가 있는데 상대의 생년월일이 없으면 제외
+      const profileAge = calculateAge(profile.user.birthDate)
+      if (profileAge === null && (ageMin !== undefined || ageMax !== undefined)) {
+        return false
+      }
+
+      // 양방향 성별 필터: 상대가 내 성별을 수용하는지 확인
       if (profile.genderPreference !== 'all') {
         if (profile.genderPreference !== myProfile.user.gender) {
-          return false
-        }
-      }
-
-      // 도시 필터 (case-insensitive)
-      if (myProfile.city && profile.city) {
-        const myCity = myProfile.city.toLowerCase().trim()
-        const theirCity = profile.city.toLowerCase().trim()
-        if (myCity !== theirCity) {
           return false
         }
       }

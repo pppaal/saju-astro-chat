@@ -62,8 +62,8 @@ export const personaMemoryPostSchema = z.object({
   growthAreas: z.array(z.string().max(200)).max(50).optional(),
   lastTopics: z.array(z.string().max(200)).max(50).optional(),
   recurringIssues: z.array(z.string().max(500)).max(50).optional(),
-  birthChart: z.record(z.string(), z.any()).optional(),
-  sajuProfile: z.record(z.string(), z.any()).optional(),
+  birthChart: z.record(z.string(), z.unknown()).optional(),
+  sajuProfile: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const personaMemoryPatchSchema = z.object({
@@ -76,7 +76,7 @@ export const personaMemoryPatchSchema = z.object({
     'update_birth_chart',
     'update_saju_profile',
   ]),
-  data: z.record(z.string(), z.any()).optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const personaMemoryUpdateSchema = z.object({
@@ -200,8 +200,8 @@ export const personalitySaveRequestSchema = z.object({
   decisionScore: z.number().min(0).max(100),
   rhythmScore: z.number().min(0).max(100),
   consistencyScore: z.number().min(0).max(100).nullable().optional(),
-  analysisData: z.object({}).passthrough(),
-  answers: z.unknown().optional(),
+  analysisData: z.record(z.string(), z.unknown()),
+  answers: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type PersonalitySaveRequestValidated = z.infer<typeof personalitySaveRequestSchema>
@@ -242,7 +242,7 @@ export const icpSaveRequestSchema = z.object({
     tipsKo: z.array(z.string().max(500)).optional(),
     compatibleStyles: z.array(z.string()).optional(),
   }),
-  answers: z.unknown().optional(),
+  answers: z.record(z.string(), z.unknown()).optional(),
   locale: localeSchema.optional(),
 })
 
@@ -267,16 +267,16 @@ export const personalityCompatibilitySaveRequestSchema = z.object({
     name: z.string().max(120).optional(),
     icp: icpScoreSchema,
     persona: personaTypeSchema,
-    icpAnswers: z.unknown().optional(),
-    personaAnswers: z.unknown().optional(),
+    icpAnswers: z.record(z.string(), z.unknown()).optional(),
+    personaAnswers: z.record(z.string(), z.unknown()).optional(),
   }),
   person2: z.object({
     userId: z.string().optional(),
     name: z.string().max(120).optional(),
     icp: icpScoreSchema,
     persona: personaTypeSchema,
-    icpAnswers: z.unknown().optional(),
-    personaAnswers: z.unknown().optional(),
+    icpAnswers: z.record(z.string(), z.unknown()).optional(),
+    personaAnswers: z.record(z.string(), z.unknown()).optional(),
   }),
   compatibility: z.object({
     icpScore: z.number().min(0).max(100),
@@ -411,7 +411,7 @@ export const contentAccessSchema = z.object({
   contentType: z.string().min(1).max(100).trim(),
   contentId: z.string().max(200).trim().optional().nullable(),
   locale: localeSchema.optional(),
-  metadata: z.unknown().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   creditUsed: z.number().int().min(0).max(100).optional(),
 })
 
@@ -446,7 +446,7 @@ export const readingsSaveSchema = z.object({
   type: z.string().min(1).max(50).trim(),
   title: z.string().max(200).trim().optional(),
   content: z.string().min(1).max(50000),
-  metadata: z.record(z.string(), z.any()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type ReadingsSaveValidated = z.infer<typeof readingsSaveSchema>

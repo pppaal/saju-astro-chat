@@ -79,36 +79,43 @@ export const POST = withApiMiddleware(
       )
     }
 
-    // Super Like 일일 리셋 체크 (atomic: WHERE 조건으로 race condition 방지)
+    // Super Like 일일 리셋 체크 (트랜잭션으로 원자성 보장)
     let updatedMyProfile = myProfile
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const resetResult = await prisma.matchProfile.updateMany({
-      where: {
-        userId,
-        OR: [{ superLikeResetAt: null }, { superLikeResetAt: { lt: today } }],
-      },
-      data: {
-        superLikeCount: 3, // 일일 3개로 리셋
-        superLikeResetAt: new Date(),
-      },
-    })
+    const needsReset = !myProfile.superLikeResetAt || new Date(myProfile.superLikeResetAt) < today
 
-    if (resetResult.count > 0) {
-      // 리셋이 실제로 발생한 경우에만 새 데이터 조회
-      const refreshed = await prisma.matchProfile.findUnique({
-        where: { userId },
-        include: {
-          user: {
-            select: {
-              birthDate: true,
-              birthTime: true,
-              gender: true,
-            },
+    if (needsReset) {
+      const refreshed = await prisma.$transaction(async (tx) => {
+        const resetResult = await tx.matchProfile.updateMany({
+          where: {
+            userId,
+            OR: [{ superLikeResetAt: null }, { superLikeResetAt: { lt: today } }],
           },
-        },
+          data: {
+            superLikeCount: 3, // 일일 3개로 리셋
+            superLikeResetAt: new Date(),
+          },
+        })
+
+        if (resetResult.count > 0) {
+          return tx.matchProfile.findUnique({
+            where: { userId },
+            include: {
+              user: {
+                select: {
+                  birthDate: true,
+                  birthTime: true,
+                  gender: true,
+                },
+              },
+            },
+          })
+        }
+        return null
       })
+
       if (refreshed) {
         updatedMyProfile = refreshed
       }

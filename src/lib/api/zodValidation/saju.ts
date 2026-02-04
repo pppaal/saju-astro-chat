@@ -43,9 +43,9 @@ export type SajuCalculationRequestValidated = z.infer<typeof sajuCalculationRequ
 
 export const sajuChatStreamSchema = z.object({
   messages: z.array(chatMessageSchema).min(1).max(100),
-  saju: z.record(z.string(), z.any()).optional(),
+  saju: z.record(z.string(), z.unknown()).optional(),
   locale: z.enum(['ko', 'en']).optional(),
-  context: z.record(z.string(), z.any()).optional(),
+  context: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type SajuChatStreamValidated = z.infer<typeof sajuChatStreamSchema>
@@ -59,7 +59,7 @@ export const astrologyRequestSchema = z.object({
   longitude: z.union([longitudeSchema, z.string().transform((val) => parseFloat(val))]),
   timeZone: timezoneSchema,
   locale: localeSchema.optional(),
-  options: z.object({}).passthrough().optional(),
+  options: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type AstrologyRequest = z.infer<typeof astrologyRequestSchema>
@@ -91,8 +91,8 @@ export type AdvancedAstrologyRequestValidated = z.infer<typeof advancedAstrology
 
 export const astrologyChatStreamSchema = z.object({
   messages: z.array(chatMessageSchema).min(1).max(100),
-  birthData: z.record(z.string(), z.any()).optional(),
-  chartData: z.record(z.string(), z.any()).optional(),
+  birthData: z.record(z.string(), z.unknown()).optional(),
+  chartData: z.record(z.string(), z.unknown()).optional(),
   locale: z.enum(['ko', 'en']).optional(),
 })
 
@@ -137,10 +137,10 @@ export type DestinyMapRequestValidated = z.infer<typeof destinyMapRequestSchema>
 
 export const destinyMapChatSchema = z.object({
   messages: z.array(chatMessageSchema).min(1).max(100),
-  saju: z.record(z.string(), z.any()).optional(),
-  astro: z.record(z.string(), z.any()).optional(),
+  saju: z.record(z.string(), z.unknown()).optional(),
+  astro: z.record(z.string(), z.unknown()).optional(),
   locale: z.enum(['ko', 'en']).optional(),
-  context: z.record(z.string(), z.any()).optional(),
+  context: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type DestinyMapChatValidated = z.infer<typeof destinyMapChatSchema>
@@ -236,7 +236,7 @@ export type DestinyMatrixQueryValidated = z.infer<typeof destinyMatrixQuerySchem
 
 export const destinyMatrixAiReportSchema = z.object({
   birthDate: dateSchema,
-  matrixData: z.record(z.string(), z.any()),
+  matrixData: z.record(z.string(), z.unknown()),
   locale: localeSchema.optional(),
   reportType: z.string().max(50).optional(),
 })

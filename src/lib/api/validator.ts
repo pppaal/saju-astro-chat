@@ -41,7 +41,7 @@ export const DateSchema = z
       if (Number.isNaN(parsed)) {
         return false
       }
-      const year = new Date(parsed).getFullYear();
+      const year = new Date(parsed).getFullYear()
       return year >= 1900 && year <= 2100
     },
     { message: 'Invalid date or year out of range (1900-2100)' }
@@ -50,18 +50,8 @@ export const DateSchema = z
 /** Time format: HH:MM */
 export const TimeSchema = z.string().regex(/^\d{2}:\d{2}$/, 'Time must be in HH:MM format')
 
-/** IANA timezone */
-export const TimezoneSchema = z.string().refine(
-  (tz) => {
-    try {
-      Intl.DateTimeFormat(undefined, { timeZone: tz });
-      return true
-    } catch {
-      return false
-    }
-  },
-  { message: 'Invalid timezone' }
-)
+/** IANA timezone - re-exported from zodValidation */
+export const TimezoneSchema = timezoneSchema
 
 /** Supported locales */
 export const LocaleSchema = z.enum(['ko', 'en', 'ja', 'zh', 'vi', 'th', 'id', 'de', 'fr', 'es'])
@@ -103,13 +93,9 @@ export const BirthDataSchema = z.object({
 })
 export type BirthData = z.infer<typeof BirthDataSchema>
 
-/** Standard API pagination */
-export const PaginationSchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-  sortBy: z.string().max(50).optional(),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
-})
+/** Standard API pagination - re-exported from zodValidation */
+import { paginationQuerySchema, timezoneSchema } from './zodValidation/common'
+export const PaginationSchema = paginationQuerySchema
 export type Pagination = z.infer<typeof PaginationSchema>
 
 /** Common query parameters */
@@ -276,7 +262,7 @@ export type CompatibilityPersonsRequest = z.infer<typeof CompatibilityPersonsReq
  */
 export function validate<T>(schema: ZodSchema<T>, data: unknown): ValidationResult<T> {
   try {
-    const result = schema.parse(data);
+    const result = schema.parse(data)
     return { success: true, data: result }
   } catch (error) {
     if (error instanceof ZodError) {
@@ -284,7 +270,7 @@ export function validate<T>(schema: ZodSchema<T>, data: unknown): ValidationResu
         field: e.path.join('.'),
         message: e.message,
         code: e.code,
-      }));
+      }))
       return { success: false, errors }
     }
     return {
@@ -298,7 +284,7 @@ export function validate<T>(schema: ZodSchema<T>, data: unknown): ValidationResu
  * Safe validate - returns null on failure instead of throwing
  */
 export function safeValidate<T>(schema: ZodSchema<T>, data: unknown): T | null {
-  const result = schema.safeParse(data);
+  const result = schema.safeParse(data)
   return result.success ? result.data : null
 }
 
@@ -337,7 +323,7 @@ export async function parseAndValidate<T>(
 
     let body: unknown
     try {
-      body = JSON.parse(text);
+      body = JSON.parse(text)
     } catch {
       return {
         error: {

@@ -73,15 +73,29 @@ function cleanupInMemory(): void {
     }
   }
 
-  // LRU eviction if still over limit
+  // LRU eviction if still over limit (partial scan instead of full sort)
   if (inMemoryStore.size > MAX_MEMORY_ENTRIES) {
-    const entries = Array.from(inMemoryStore.entries()).sort(
-      (a, b) => a[1].lastAccess - b[1].lastAccess
-    )
+    const targetRemoval = inMemoryStore.size - MAX_MEMORY_ENTRIES + 1000
+    let oldestTime = Infinity
+    let oldestKey: string | null = null
+    let removed = 0
 
-    const toRemove = entries.slice(0, inMemoryStore.size - MAX_MEMORY_ENTRIES + 1000)
-    for (const [key] of toRemove) {
-      inMemoryStore.delete(key)
+    // Multi-pass removal: find and remove oldest entries iteratively
+    while (removed < targetRemoval && inMemoryStore.size > 0) {
+      oldestTime = Infinity
+      oldestKey = null
+      for (const [key, value] of inMemoryStore) {
+        if (value.lastAccess < oldestTime) {
+          oldestTime = value.lastAccess
+          oldestKey = key
+        }
+      }
+      if (oldestKey) {
+        inMemoryStore.delete(oldestKey)
+        removed++
+      } else {
+        break
+      }
     }
   }
 }

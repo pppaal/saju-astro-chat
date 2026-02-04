@@ -49,7 +49,8 @@ export default function CompatPage() {
 
   useCityAutocomplete(persons, setPersons)
 
-  const { circlePeople, showCircleDropdown, setShowCircleDropdown } = useMyCircle(status)
+  const { circlePeople, showCircleDropdown, setShowCircleDropdown, circleError } =
+    useMyCircle(status)
 
   const {
     isLoading,
@@ -210,6 +211,13 @@ export default function CompatPage() {
               {profileLoadError && (
                 <div className="mb-5 p-3 bg-red-600/20 border border-red-600 rounded-lg text-red-400 text-sm">
                   ⚠️ {profileLoadError}
+                </div>
+              )}
+
+              {/* Circle load error */}
+              {circleError && (
+                <div className="mb-5 p-3 bg-red-600/20 border border-red-600 rounded-lg text-red-400 text-sm">
+                  ⚠️ {circleError}
                 </div>
               )}
 

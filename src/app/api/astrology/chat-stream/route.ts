@@ -1,43 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware'
-import { createTransformedSSEStream, createFallbackSSEStream } from '@/lib/streaming'
-import { apiClient } from '@/lib/api/ApiClient'
+import { NextResponse } from 'next/server'
+import { createStreamRoute, createFallbackSSEStream } from '@/lib/streaming'
+import { createAuthenticatedGuard } from '@/lib/api/middleware'
+import {
+  astrologyChatStreamSchema,
+  type AstrologyChatStreamValidated,
+} from '@/lib/api/zodValidation'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize'
-import { normalizeMessages as normalizeMessagesBase, type ChatMessage } from '@/lib/api'
-import { logger } from '@/lib/logger'
-
-import { parseRequestBody } from '@/lib/api/requestParser'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { astrologyChatStreamSchema } from '@/lib/api/zodValidation'
-import {
-  ALLOWED_LOCALES,
-  ALLOWED_GENDERS,
-  MESSAGE_LIMITS,
-  TEXT_LIMITS,
-} from '@/lib/constants/api-limits'
 import { DATE_RE, TIME_RE } from '@/lib/validation/patterns'
+
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-const ALLOWED_LANG = ALLOWED_LOCALES
-const ALLOWED_GENDER = ALLOWED_GENDERS
-const MAX_NAME = TEXT_LIMITS.MAX_NAME
-const MAX_THEME = TEXT_LIMITS.MAX_THEME
-const MAX_MESSAGE_LEN = MESSAGE_LIMITS.MAX_MESSAGE_LENGTH
-const MAX_MESSAGES = MESSAGE_LIMITS.MAX_STREAM_MESSAGES
-
-function clampMessages(messages: ChatMessage[], max = 6) {
+function clampMessages(messages: { role: string; content: string }[], max = 6) {
   return messages.slice(-max)
-}
-
-// Use shared normalizeMessages with local config
-function normalizeMessages(raw: unknown): ChatMessage[] {
-  return normalizeMessagesBase(raw, {
-    maxMessages: MAX_MESSAGES,
-    maxLength: MAX_MESSAGE_LEN,
-  })
 }
 
 function astrologyCounselorSystemPrompt(lang: string) {
@@ -81,64 +59,42 @@ function astrologyCounselorSystemPrompt(lang: string) {
     : base.join('\n')
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    // Apply middleware: authentication + rate limiting + credit consumption
-    const guardOptions = createAuthenticatedGuard({
-      route: 'astrology-chat-stream',
-      limit: 60,
-      windowSeconds: 60,
-      requireCredits: true,
-      creditType: 'reading',
-      creditAmount: 1,
-    })
-
-    const { context, error } = await initializeApiContext(req, guardOptions)
-    if (error) {
-      return error
-    }
-
-    const rawBody = await parseRequestBody<Record<string, unknown>>(req, {
-      context: 'Astrology Chat-stream',
-    })
-    if (!rawBody || typeof rawBody !== 'object') {
-      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
-    }
-
-    // Validate core structure with Zod
-    const validationResult = astrologyChatStreamSchema.safeParse(rawBody)
-    if (!validationResult.success) {
-      logger.warn('[Astrology chat-stream] validation failed', {
-        errors: validationResult.error.issues,
-      })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    const body = rawBody as Record<string, unknown>
-    const name = typeof body.name === 'string' ? body.name.trim().slice(0, MAX_NAME) : undefined
-    const birthDate = typeof body.birthDate === 'string' ? body.birthDate.trim().slice(0, 10) : ''
-    const birthTime = typeof body.birthTime === 'string' ? body.birthTime.trim().slice(0, 5) : ''
-    const gender =
-      typeof body.gender === 'string' && ALLOWED_GENDER.has(body.gender) ? body.gender : 'male'
-    const latitude = typeof body.latitude === 'number' ? body.latitude : Number(body.latitude)
-    const longitude = typeof body.longitude === 'number' ? body.longitude : Number(body.longitude)
-    const themeRaw = typeof body.theme === 'string' ? body.theme.trim() : 'life'
-    const theme = themeRaw.slice(0, MAX_THEME) || 'life'
-    const lang =
-      typeof body.lang === 'string' && ALLOWED_LANG.has(body.lang) ? body.lang : context.locale
-    const messages = normalizeMessages(body.messages)
-    const astro = typeof body.astro === 'object' && body.astro !== null ? body.astro : undefined
+export const POST = createStreamRoute<AstrologyChatStreamValidated>({
+  route: 'AstrologyChatStream',
+  guard: createAuthenticatedGuard({
+    route: 'astrology-chat-stream',
+    limit: 60,
+    windowSeconds: 60,
+    requireCredits: true,
+    creditType: 'reading',
+    creditAmount: 1,
+  }),
+  schema: astrologyChatStreamSchema,
+  fallbackMessage: {
+    ko: 'AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+    en: 'Could not connect to AI service. Please try again.',
+  },
+  transform(chunk, validated) {
+    const lang = validated.locale || 'ko'
+    return maskTextWithName(sanitizeLocaleText(chunk, lang), undefined)
+  },
+  async buildPayload(validated, context, req, rawBody) {
+    const name = typeof rawBody.name === 'string' ? rawBody.name.trim().slice(0, 100) : undefined
+    const birthDate =
+      typeof rawBody.birthDate === 'string' ? rawBody.birthDate.trim().slice(0, 10) : ''
+    const birthTime =
+      typeof rawBody.birthTime === 'string' ? rawBody.birthTime.trim().slice(0, 5) : ''
+    const gender = typeof rawBody.gender === 'string' ? rawBody.gender : 'male'
+    const latitude =
+      typeof rawBody.latitude === 'number' ? rawBody.latitude : Number(rawBody.latitude)
+    const longitude =
+      typeof rawBody.longitude === 'number' ? rawBody.longitude : Number(rawBody.longitude)
+    const theme = typeof rawBody.theme === 'string' ? rawBody.theme.trim().slice(0, 100) : 'life'
+    const lang = validated.locale || (context.locale as string)
+    const astro =
+      typeof rawBody.astro === 'object' && rawBody.astro !== null ? rawBody.astro : undefined
     const userContext =
-      typeof body.userContext === 'string' ? body.userContext.slice(0, 1000) : undefined
+      typeof rawBody.userContext === 'string' ? rawBody.userContext.slice(0, 1000) : undefined
 
     if (!birthDate || !birthTime || !DATE_RE.test(birthDate) || !TIME_RE.test(birthTime)) {
       return NextResponse.json(
@@ -159,13 +115,8 @@ export async function POST(req: NextRequest) {
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
-    if (!messages.length) {
-      return NextResponse.json({ error: 'Missing messages' }, { status: HTTP_STATUS.BAD_REQUEST })
-    }
 
-    // Credits already consumed by middleware
-
-    const trimmedHistory = clampMessages(messages)
+    const trimmedHistory = clampMessages(validated.messages)
 
     // Safety check
     const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
@@ -185,7 +136,6 @@ export async function POST(req: NextRequest) {
 
     const userQuestion = lastUser ? guardText(lastUser.content, 500) : ''
 
-    // Build astrology-focused prompt
     const chatPrompt = [
       astrologyCounselorSystemPrompt(lang),
       `Name: ${name || 'User'}`,
@@ -199,13 +149,11 @@ export async function POST(req: NextRequest) {
       .filter(Boolean)
       .join('\n')
 
-    // Get session_id from header for RAG cache
     const sessionId = req.headers.get('x-session-id') || undefined
 
-    // Call backend streaming endpoint using apiClient
-    const streamResult = await apiClient.postSSEStream(
-      '/astrology/ask-stream',
-      {
+    return {
+      endpoint: '/astrology/ask-stream',
+      body: {
         theme,
         prompt: chatPrompt,
         locale: lang,
@@ -214,44 +162,8 @@ export async function POST(req: NextRequest) {
         history: trimmedHistory.filter((m) => m.role !== 'system'),
         session_id: sessionId,
         user_context: userContext || undefined,
-        counselor_type: 'astrology', // Indicate astrology-only mode
+        counselor_type: 'astrology',
       },
-      { timeout: 60000 }
-    )
-
-    if (!streamResult.ok) {
-      logger.error('[AstrologyChatStream] Backend error:', {
-        status: streamResult.status,
-        error: streamResult.error,
-      })
-
-      const fallback =
-        lang === 'ko'
-          ? 'AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
-          : 'Could not connect to AI service. Please try again.'
-
-      return createFallbackSSEStream({
-        content: fallback,
-        done: true,
-        'X-Fallback': '1',
-      })
     }
-
-    // Relay the stream from backend to frontend with sanitization
-    return createTransformedSSEStream({
-      source: streamResult.response,
-      transform: (chunk) => {
-        const masked = maskTextWithName(sanitizeLocaleText(chunk, lang), name)
-        return masked
-      },
-      route: 'AstrologyChatStream',
-      additionalHeaders: {
-        'X-Fallback': streamResult.response.headers.get('x-fallback') || '0',
-      },
-    })
-  } catch (err: unknown) {
-    const message = 'Internal Server Error'
-    logger.error('[Astrology Chat-Stream API error]', err)
-    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
-  }
-}
+  },
+})

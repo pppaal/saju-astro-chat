@@ -145,7 +145,7 @@ export const dreamStreamSchema = z.object({
       gender: z.string().max(20).optional(),
     })
     .optional(),
-  sajuInfluence: z.record(z.string(), z.any()).optional(),
+  sajuInfluence: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type DreamStreamValidated = z.infer<typeof dreamStreamSchema>
@@ -216,13 +216,13 @@ export const pastLifeSaveRequestSchema = z.object({
   timezone: timezoneSchema.optional(),
   karmaScore: z.number().min(0).max(100),
   analysisData: z.object({
-    soulPattern: z.unknown(),
-    pastLife: z.unknown(),
-    soulJourney: z.unknown(),
-    karmicDebts: z.array(z.unknown()),
-    thisLifeMission: z.unknown(),
+    soulPattern: z.record(z.string(), z.unknown()),
+    pastLife: z.record(z.string(), z.unknown()),
+    soulJourney: z.record(z.string(), z.unknown()),
+    karmicDebts: z.array(z.record(z.string(), z.unknown())),
+    thisLifeMission: z.record(z.string(), z.unknown()),
     talentsCarried: z.array(z.string().max(200)),
-    saturnLesson: z.unknown(),
+    saturnLesson: z.record(z.string(), z.unknown()),
   }),
   locale: localeSchema.optional(),
 })

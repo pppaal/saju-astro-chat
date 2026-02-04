@@ -31,7 +31,8 @@ function DreamContent() {
   const { status } = useSession()
 
   // Phase management - starts directly at dream-input
-  const { phase, setPhase, profileLoading, userProfile, setUserProfile } = useDreamPhase()
+  const { phase, setPhase, profileLoading, profileError, userProfile, setUserProfile } =
+    useDreamPhase()
 
   // Birth info management
   const birthInfo = useBirthInfo(locale)
@@ -141,6 +142,19 @@ function DreamContent() {
         <div className={styles.creditBadgeWrapper}>
           <CreditBadge variant="compact" />
         </div>
+
+        {(profileError || birthInfo.saveError) && (
+          <div
+            style={{
+              color: '#ff6b6b',
+              fontSize: '0.85rem',
+              textAlign: 'center',
+              padding: '0.5rem 1rem',
+            }}
+          >
+            {profileError || birthInfo.saveError}
+          </div>
+        )}
 
         <AnimatePresence mode="wait">
           {phase === 'birth-input' && (

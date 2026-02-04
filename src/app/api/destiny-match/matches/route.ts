@@ -47,23 +47,41 @@ export const GET = withApiMiddleware(
       }
 
       // 특정 connectionId로 조회하거나 전체 조회
-      const whereClause = connectionId
-        ? {
-            id: connectionId,
-            status,
-            OR: [{ user1Id: myProfile.id }, { user2Id: myProfile.id }],
-          }
-        : {
-            status,
-            OR: [{ user1Id: myProfile.id }, { user2Id: myProfile.id }],
-          }
+      const statusFilter = status === 'all' ? {} : { status }
+      const whereClause = {
+        ...(connectionId ? { id: connectionId } : {}),
+        ...statusFilter,
+        OR: [{ user1Id: myProfile.id }, { user2Id: myProfile.id }],
+      }
 
       // 내 매치 조회 (user1 또는 user2로 연결된 것)
+      // select() instead of include() to fetch only needed columns
       const connections = await prisma.matchConnection.findMany({
         where: whereClause,
-        include: {
+        select: {
+          id: true,
+          createdAt: true,
+          isSuperLikeMatch: true,
+          compatibilityScore: true,
+          compatibilityData: true,
+          chatStarted: true,
+          lastInteractionAt: true,
+          user1Id: true,
+          user2Id: true,
           user1Profile: {
-            include: {
+            select: {
+              id: true,
+              userId: true,
+              displayName: true,
+              bio: true,
+              occupation: true,
+              photos: true,
+              city: true,
+              interests: true,
+              verified: true,
+              lastActiveAt: true,
+              personalityType: true,
+              personalityName: true,
               user: {
                 select: {
                   birthDate: true,
@@ -74,7 +92,19 @@ export const GET = withApiMiddleware(
             },
           },
           user2Profile: {
-            include: {
+            select: {
+              id: true,
+              userId: true,
+              displayName: true,
+              bio: true,
+              occupation: true,
+              photos: true,
+              city: true,
+              interests: true,
+              verified: true,
+              lastActiveAt: true,
+              personalityType: true,
+              personalityName: true,
               user: {
                 select: {
                   birthDate: true,
