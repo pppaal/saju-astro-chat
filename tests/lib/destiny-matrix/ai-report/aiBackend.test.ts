@@ -1,6 +1,13 @@
 // tests/lib/destiny-matrix/ai-report/aiBackend.test.ts
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
+// Set env vars before any module evaluation (vi.hoisted runs before vi.mock)
+vi.hoisted(() => {
+  process.env.OPENAI_API_KEY = 'test-openai-key'
+  delete process.env.TOGETHER_API_KEY
+  delete process.env.REPLICATE_API_KEY
+})
+
 // Mock logger before importing the module
 vi.mock('@/lib/logger', () => ({
   logger: {
@@ -10,11 +17,6 @@ vi.mock('@/lib/logger', () => ({
     debug: vi.fn(),
   },
 }))
-
-// Set env before module import
-process.env.OPENAI_API_KEY = 'test-openai-key'
-delete process.env.TOGETHER_API_KEY
-delete process.env.REPLICATE_API_KEY
 
 import { callAIBackendGeneric } from '@/lib/destiny-matrix/ai-report/aiBackend'
 
