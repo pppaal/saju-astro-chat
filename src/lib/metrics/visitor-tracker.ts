@@ -1,23 +1,12 @@
 /**
  * Visitor Tracking Module for Vercel Serverless
  *
- * Uses Redis (Upstash) for persistent visitor tracking across serverless functions
+ * Uses Upstash Redis for persistent visitor tracking across serverless functions
  * Falls back to in-memory storage if Redis is not available
  */
 
+import { Redis } from '@upstash/redis'
 import { logger } from '@/lib/logger'
-import type { Redis as UpstashRedis } from '@upstash/redis'
-
-// Type for standard Redis client methods we use
-interface StandardRedisClient {
-  sAdd: (key: string, value: string) => Promise<number>
-  sCard: (key: string) => Promise<number>
-  expire: (key: string, seconds: number) => Promise<boolean>
-  del: (keys: string[]) => Promise<number>
-}
-
-// Type for unified Redis client interface
-type RedisClient = UpstashRedis | StandardRedisClient
 
 // In-memory fallback storage
 const memoryStore = {
@@ -26,33 +15,27 @@ const memoryStore = {
   lastReset: new Date().toDateString(),
 }
 
+// Upstash Redis client singleton
+let redis: Redis | null = null
+
 /**
- * Get Redis client with lazy loading
+ * Get Redis client
  */
-async function getRedisClient(): Promise<RedisClient | null> {
-  try {
-    // Try Upstash REST API first (recommended for Vercel)
-    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-      const { Redis } = await import('@upstash/redis')
-      return new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
-      })
-    }
-
-    // Fall back to standard Redis
-    if (process.env.REDIS_URL) {
-      const { createClient } = await import('redis')
-      const client = createClient({ url: process.env.REDIS_URL })
-      await client.connect()
-      return client as unknown as RedisClient
-    }
-
-    return null
-  } catch (error) {
-    logger.error('[Visitor Tracker] Redis connection failed', error)
+function getRedisClient(): Redis | null {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
     return null
   }
+
+  if (redis) {
+    return redis
+  }
+
+  redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  })
+
+  return redis
 }
 
 /**
@@ -73,31 +56,17 @@ function getTodayKey(): string {
  */
 export async function trackVisitor(visitorId: string): Promise<void> {
   try {
-    const redis = await getRedisClient()
+    const client = getRedisClient()
 
-    if (redis) {
-      // Redis mode - use Sets for deduplication
+    if (client) {
       const todayKey = `visitors:today:${getTodayKey()}`
       const totalKey = `visitors:total`
 
-      // Check if using Upstash or standard Redis
-      if ('sadd' in redis) {
-        // Upstash Redis
-        const upstashRedis = redis as UpstashRedis
-        await Promise.all([
-          upstashRedis.sadd(todayKey, visitorId),
-          upstashRedis.sadd(totalKey, visitorId),
-          upstashRedis.expire(todayKey, 86400 * 7), // Keep for 7 days
-        ])
-      } else {
-        // Standard Redis client
-        const standardRedis = redis as StandardRedisClient
-        await Promise.all([
-          standardRedis.sAdd(todayKey, visitorId),
-          standardRedis.sAdd(totalKey, visitorId),
-          standardRedis.expire(todayKey, 86400 * 7),
-        ])
-      }
+      await Promise.all([
+        client.sadd(todayKey, visitorId),
+        client.sadd(totalKey, visitorId),
+        client.expire(todayKey, 86400 * 7), // Keep for 7 days
+      ])
 
       logger.debug('[Visitor Tracker] Tracked visitor via Redis', { visitorId })
     } else {
@@ -124,35 +93,16 @@ export async function getVisitorStats(): Promise<{
   totalVisitors: number
 }> {
   try {
-    const redis = await getRedisClient()
+    const client = getRedisClient()
 
-    if (redis) {
+    if (client) {
       const todayKey = `visitors:today:${getTodayKey()}`
       const totalKey = `visitors:total`
 
-      let todayCount: number = 0
-      let totalCount: number = 0
-
-      // Check if using Upstash or standard Redis
-      if ('scard' in redis) {
-        // Upstash Redis
-        const upstashRedis = redis as UpstashRedis
-        const [today, total] = await Promise.all([
-          upstashRedis.scard(todayKey),
-          upstashRedis.scard(totalKey),
-        ])
-        todayCount = Number(today) || 0
-        totalCount = Number(total) || 0
-      } else {
-        // Standard Redis client
-        const standardRedis = redis as StandardRedisClient
-        const [today, total] = await Promise.all([
-          standardRedis.sCard(todayKey),
-          standardRedis.sCard(totalKey),
-        ])
-        todayCount = Number(today) || 0
-        totalCount = Number(total) || 0
-      }
+      const [todayCount, totalCount] = await Promise.all([
+        client.scard(todayKey),
+        client.scard(totalKey),
+      ])
 
       return {
         todayVisitors: Number(todayCount) || 0,
@@ -185,21 +135,13 @@ export async function getVisitorStats(): Promise<{
  */
 export async function resetVisitorStats(): Promise<void> {
   try {
-    const redis = await getRedisClient()
+    const client = getRedisClient()
 
-    if (redis) {
+    if (client) {
       const todayKey = `visitors:today:${getTodayKey()}`
       const totalKey = `visitors:total`
 
-      if ('del' in redis) {
-        // Upstash Redis
-        const upstashRedis = redis as UpstashRedis
-        await upstashRedis.del(todayKey, totalKey)
-      } else {
-        // Standard Redis client
-        const standardRedis = redis as StandardRedisClient
-        await standardRedis.del([todayKey, totalKey])
-      }
+      await client.del(todayKey, totalKey)
 
       logger.info('[Visitor Tracker] Stats reset via Redis')
     } else {

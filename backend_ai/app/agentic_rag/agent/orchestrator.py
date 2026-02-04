@@ -12,6 +12,25 @@ from .state import AgentAction, AgentState, AgentNode
 from ..entity_extractor import EntityExtractor
 from ..graph_traversal import DeepGraphTraversal
 
+# Phase 3: 개선된 엔티티 추출기 (fallback: 기존 EntityExtractor)
+try:
+    from ..llm_entity_extractor import LLMEntityExtractor
+    _HAS_LLM_EXTRACTOR = True
+except ImportError:
+    _HAS_LLM_EXTRACTOR = False
+
+# Phase 4: 계층적 커뮤니티 요약 (fallback: 사용 안함)
+try:
+    from app.rag.community_summarizer import (
+        HierarchicalSummarizer,
+        get_hierarchical_summarizer,
+        USE_COMMUNITY_SUMMARY,
+    )
+    _HAS_SUMMARIZER = True
+except ImportError:
+    _HAS_SUMMARIZER = False
+    USE_COMMUNITY_SUMMARY = False
+
 # Optional: Try to import GraphRAG
 try:
     from saju_astro_rag import get_graph_rag, search_graphs
@@ -40,7 +59,10 @@ class AgentOrchestrator:
     """
 
     def __init__(self, lazy_load: bool = True):
-        self.entity_extractor = EntityExtractor()
+        if _HAS_LLM_EXTRACTOR:
+            self.entity_extractor = LLMEntityExtractor()
+        else:
+            self.entity_extractor = EntityExtractor()
         self._lazy_load = lazy_load
         self._deep_traversal = None
         self._graph_rag = None
@@ -249,6 +271,18 @@ class AgentOrchestrator:
         """Synthesize all results into coherent context."""
         context_parts = []
 
+        # Phase 4: 계층적 커뮤니티 요약 (최상위에 배치 → 큰 그림 먼저)
+        hierarchical_context = ""
+        if _HAS_SUMMARIZER and USE_COMMUNITY_SUMMARY:
+            try:
+                summarizer = get_hierarchical_summarizer()
+                relevant = summarizer.get_relevant_summaries(state.query, top_k=3)
+                if relevant:
+                    hierarchical_context = summarizer.format_hierarchical_context(relevant)
+                    context_parts.append(hierarchical_context)
+            except Exception:
+                pass
+
         # Add entity summary
         if state.entities:
             entity_summary = ", ".join(f"{e.normalized}({e.type.value})" for e in state.entities[:10])
@@ -278,10 +312,12 @@ class AgentOrchestrator:
         state.context = "\n\n".join(context_parts)
 
         # Calculate confidence
+        has_summary = bool(hierarchical_context)
         confidence_factors = [
-            0.3 if state.entities else 0.0,
-            0.3 if state.graph_results else 0.0,
-            0.4 if state.traversal_paths else 0.0,
+            0.2 if state.entities else 0.0,
+            0.25 if state.graph_results else 0.0,
+            0.35 if state.traversal_paths else 0.0,
+            0.2 if has_summary else 0.0,
         ]
         state.confidence = sum(confidence_factors)
 

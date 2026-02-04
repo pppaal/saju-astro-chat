@@ -1,81 +1,70 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
+import {
+  withApiMiddleware,
+  createSimpleGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 import { shareResultRequestSchema } from '@/lib/api/zodValidation'
 
-export async function POST(req: NextRequest) {
-  try {
-    const ip = getClientIp(req.headers)
-    const limit = await rateLimit(`share-image:${ip}`, { limit: 10, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Try again soon.' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
+export const POST = withApiMiddleware(
+  async (req: NextRequest, _context: ApiContext) => {
+    try {
+      // Allow sharing without login, but track userId if available
+      const session = await getServerSession(authOptions)
+      const userId = session?.user?.id || null
 
-    const session = await getServerSession(authOptions)
-    // Allow sharing without login, but track userId if available
-    const userId = session?.user?.id || null
+      const rawBody = await req.json()
 
-    const rawBody = await req.json()
+      const validationResult = shareResultRequestSchema.safeParse(rawBody)
+      if (!validationResult.success) {
+        logger.warn('[Share generate-image] validation failed', {
+          errors: validationResult.error.issues,
+        })
+        return apiError(
+          ErrorCodes.VALIDATION_ERROR,
+          `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
+        )
+      }
 
-    // Validate with Zod
-    const validationResult = shareResultRequestSchema.safeParse(rawBody)
-    if (!validationResult.success) {
-      logger.warn('[Share generate-image] validation failed', {
-        errors: validationResult.error.issues,
-      })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
+      const { title, description, resultData, resultType } = validationResult.data
+
+      const sharedResult = await prisma.sharedResult.create({
+        data: {
+          userId,
+          resultType,
+          title,
+          description: description || null,
+          resultData: resultData ? (resultData as Prisma.InputJsonValue) : Prisma.DbNull,
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      })
+
+      const baseUrl =
+        process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'https://destinypal.com'
+      const imageUrl = `/api/share/og-image?shareId=${sharedResult.id}&title=${encodeURIComponent(title)}&type=${resultType}`
+
+      return apiSuccess({
+        success: true,
+        shareId: sharedResult.id,
+        imageUrl,
+        shareUrl: `${baseUrl}/shared/${sharedResult.id}`,
+      })
+    } catch (error) {
+      logger.error('Share image generation error:', { error: error })
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to generate share image')
     }
-
-    const { title, description, resultData, resultType } = validationResult.data
-
-    // Store share data in database
-    const sharedResult = await prisma.sharedResult.create({
-      data: {
-        userId,
-        resultType,
-        title,
-        description: description || null,
-        resultData: resultData ? (resultData as Prisma.InputJsonValue) : Prisma.DbNull,
-        // Set expiry to 30 days from now
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      },
-    })
-
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'https://destinypal.com'
-    const imageUrl = `/api/share/og-image?shareId=${sharedResult.id}&title=${encodeURIComponent(title)}&type=${resultType}`
-
-    const res = NextResponse.json({
-      success: true,
-      shareId: sharedResult.id,
-      imageUrl,
-      shareUrl: `${baseUrl}/shared/${sharedResult.id}`,
-    })
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
-    return res
-  } catch (error) {
-    logger.error('Share image generation error:', { error: error })
-    return NextResponse.json(
-      { error: 'Failed to generate share image' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
+  },
+  createSimpleGuard({
+    route: 'share-generate-image',
+    limit: 10,
+    windowSeconds: 60,
+  })
+)

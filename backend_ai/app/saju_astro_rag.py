@@ -376,7 +376,7 @@ class GraphRAG:
     def _query_chromadb(self, facts_str: str, top_k: int, domain_priority: str) -> Dict:
         """ChromaDB HNSW 인덱스 기반 검색 (O(log n))."""
         try:
-            from backend_ai.app.rag.vector_store import get_vector_store
+            from app.rag.vector_store import get_vector_store
 
             query_emb = self.embed_model.encode(
                 facts_str,
@@ -954,7 +954,7 @@ def search_graphs(query: str, top_k: int = 6, graph_root: Optional[str] = None) 
 def _search_graphs_chromadb(query: str, top_k: int = 6) -> List[Dict]:
     """ChromaDB corpus_nodes 컬렉션에서 ANN 검색."""
     try:
-        from backend_ai.app.rag.vector_store import VectorStoreManager
+        from app.rag.vector_store import VectorStoreManager
 
         vs = VectorStoreManager(collection_name="corpus_nodes")
         if not vs.has_data():

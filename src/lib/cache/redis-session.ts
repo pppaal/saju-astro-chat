@@ -3,171 +3,103 @@
  * Distributed session storage for Next.js with fallback to in-memory
  *
  * Features:
- * - Redis-based distributed session storage
+ * - Upstash Redis (HTTP/REST, serverless-friendly)
  * - Automatic fallback to in-memory cache
  * - Session TTL management
- * - Optimized for serverless environments
  * - AES-256-GCM encryption for session data (when TOKEN_ENCRYPTION_KEY is set)
  */
 
-import Redis from 'ioredis';
-import { logger } from '@/lib/logger';
-import { encryptToken, decryptToken, hasTokenEncryptionKey } from '@/lib/security/tokenCrypto';
+import { Redis } from '@upstash/redis'
+import { logger } from '@/lib/logger'
+import { encryptToken, decryptToken, hasTokenEncryptionKey } from '@/lib/security/tokenCrypto'
 
 // Session configuration
-const SESSION_TTL_SECONDS = 24 * 60 * 60; // 24 hours
-const SESSION_PREFIX = 'session:';
-const ENCRYPTION_ENABLED = hasTokenEncryptionKey();
+const SESSION_TTL_SECONDS = 24 * 60 * 60 // 24 hours
+const SESSION_PREFIX = 'session:'
+const ENCRYPTION_ENABLED = hasTokenEncryptionKey()
 
 // Log encryption status on module load
 if (ENCRYPTION_ENABLED) {
-  logger.info('[RedisSession] Session encryption enabled (AES-256-GCM)');
+  logger.info('[RedisSession] Session encryption enabled (AES-256-GCM)')
 } else {
-  logger.warn('[RedisSession] Session encryption disabled - set TOKEN_ENCRYPTION_KEY for production');
+  logger.warn(
+    '[RedisSession] Session encryption disabled - set TOKEN_ENCRYPTION_KEY for production'
+  )
 }
 
-// Redis client singleton
-let redisClient: Redis | null = null;
-let isRedisAvailable = true;
+// Upstash Redis client singleton
+let redisClient: Redis | null = null
 
 // In-memory fallback for when Redis is unavailable
 interface MemorySessionData {
-  data: unknown;
-  expiresAt: number;
+  data: unknown
+  expiresAt: number
 }
 
-const memoryStore = new Map<string, MemorySessionData>();
-const MEMORY_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const memoryStore = new Map<string, MemorySessionData>()
+const MEMORY_CLEANUP_INTERVAL = 5 * 60 * 1000 // 5 minutes
 
 /**
- * Initialize Redis client with connection pooling
+ * Get or create Upstash Redis client
  */
-function initializeRedis(): Redis | null {
-  if (!process.env.REDIS_URL) {
-    logger.warn('[RedisSession] REDIS_URL not configured, using in-memory fallback');
-    isRedisAvailable = false;
-    return null;
+function getRedisClient(): Redis | null {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    return null
   }
 
   if (redisClient) {
-    return redisClient;
+    return redisClient
   }
 
-  try {
-    redisClient = new Redis(process.env.REDIS_URL, {
-      maxRetriesPerRequest: 3,
-      retryStrategy: (times) => {
-        if (times > 3) {
-          logger.error('[RedisSession] Max retries exceeded, switching to memory fallback');
-          isRedisAvailable = false;
-          return null;
-        }
-        return Math.min(times * 100, 3000);
-      },
-      reconnectOnError: (err) => {
-        const targetError = 'READONLY';
-        if (err.message.includes(targetError)) {
-          return true;
-        }
-        return false;
-      },
-      lazyConnect: true,
-      keepAlive: 30000,
-      connectTimeout: 10000,
-      commandTimeout: 5000,
-      enableOfflineQueue: false,
-    });
+  redisClient = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  })
 
-    // Event handlers
-    redisClient.on('connect', () => {
-      logger.info('[RedisSession] Connected to Redis');
-      isRedisAvailable = true;
-    });
-
-    redisClient.on('error', (error) => {
-      logger.error('[RedisSession] Redis error:', error);
-      isRedisAvailable = false;
-    });
-
-    redisClient.on('close', () => {
-      logger.warn('[RedisSession] Redis connection closed');
-      isRedisAvailable = false;
-    });
-
-    redisClient.on('reconnecting', () => {
-      logger.info('[RedisSession] Reconnecting to Redis...');
-    });
-
-    // Connect lazily
-    redisClient.connect().catch((error) => {
-      logger.error('[RedisSession] Initial connection failed:', error);
-      isRedisAvailable = false;
-    });
-
-    return redisClient;
-  } catch (error) {
-    logger.error('[RedisSession] Failed to initialize Redis:', error);
-    isRedisAvailable = false;
-    return null;
-  }
-}
-
-/**
- * Get Redis client or null if unavailable
- */
-function getRedisClient(): Redis | null {
-  if (!isRedisAvailable) {
-    return null;
-  }
-
-  if (!redisClient) {
-    return initializeRedis();
-  }
-
-  return redisClient;
+  return redisClient
 }
 
 /**
  * Cleanup expired in-memory sessions
  */
 function cleanupMemoryStore(): void {
-  const now = Date.now();
-  let cleaned = 0;
+  const now = Date.now()
+  let cleaned = 0
 
   for (const [key, value] of memoryStore.entries()) {
     if (value.expiresAt < now) {
-      memoryStore.delete(key);
-      cleaned++;
+      memoryStore.delete(key)
+      cleaned++
     }
   }
 
   if (cleaned > 0) {
-    logger.debug(`[RedisSession] Cleaned up ${cleaned} expired memory sessions`);
+    logger.debug(`[RedisSession] Cleaned up ${cleaned} expired memory sessions`)
   }
 }
 
 // Setup periodic cleanup for memory store
 if (typeof setInterval !== 'undefined') {
-  setInterval(cleanupMemoryStore, MEMORY_CLEANUP_INTERVAL);
+  setInterval(cleanupMemoryStore, MEMORY_CLEANUP_INTERVAL)
 }
 
 /**
  * Generate session key
  */
 function getSessionKey(sessionId: string): string {
-  return `${SESSION_PREFIX}${sessionId}`;
+  return `${SESSION_PREFIX}${sessionId}`
 }
 
 /**
  * Encrypt session data if encryption is enabled
  */
 function encryptSessionData(data: unknown): string {
-  const jsonData = JSON.stringify(data);
+  const jsonData = JSON.stringify(data)
   if (!ENCRYPTION_ENABLED) {
-    return jsonData;
+    return jsonData
   }
-  const encrypted = encryptToken(jsonData);
-  return encrypted ?? jsonData;
+  const encrypted = encryptToken(jsonData)
+  return encrypted ?? jsonData
 }
 
 /**
@@ -176,26 +108,26 @@ function encryptSessionData(data: unknown): string {
 function decryptSessionData<T>(payload: string): T | null {
   if (!ENCRYPTION_ENABLED) {
     try {
-      return JSON.parse(payload) as T;
+      return JSON.parse(payload) as T
     } catch {
-      return null;
+      return null
     }
   }
 
-  const decrypted = decryptToken(payload);
+  const decrypted = decryptToken(payload)
   if (!decrypted) {
     // Fallback: try parsing as unencrypted JSON (for backward compatibility)
     try {
-      return JSON.parse(payload) as T;
+      return JSON.parse(payload) as T
     } catch {
-      return null;
+      return null
     }
   }
 
   try {
-    return JSON.parse(decrypted) as T;
+    return JSON.parse(decrypted) as T
   } catch {
-    return null;
+    return null
   }
 }
 
@@ -207,20 +139,18 @@ export async function setSession(
   data: unknown,
   ttlSeconds: number = SESSION_TTL_SECONDS
 ): Promise<boolean> {
-  const key = getSessionKey(sessionId);
+  const key = getSessionKey(sessionId)
 
   try {
-    const client = getRedisClient();
-    const encryptedData = encryptSessionData(data);
+    const client = getRedisClient()
+    const encryptedData = encryptSessionData(data)
 
-    if (client && isRedisAvailable) {
-      // Try Redis first
+    if (client) {
       try {
-        await client.setex(key, ttlSeconds, encryptedData);
-        return true;
+        await client.set(key, encryptedData, { ex: ttlSeconds })
+        return true
       } catch (error) {
-        logger.warn('[RedisSession] Redis setex failed, falling back to memory:', error);
-        isRedisAvailable = false;
+        logger.warn('[RedisSession] Redis set failed, falling back to memory:', error)
       }
     }
 
@@ -228,57 +158,53 @@ export async function setSession(
     memoryStore.set(key, {
       data: encryptedData,
       expiresAt: Date.now() + ttlSeconds * 1000,
-    });
+    })
 
-    return true;
+    return true
   } catch (error) {
-    logger.error('[RedisSession] Failed to set session:', error);
-    return false;
+    logger.error('[RedisSession] Failed to set session:', error)
+    return false
   }
 }
 
 /**
  * Retrieve session data
  */
-export async function getSession<T = unknown>(
-  sessionId: string
-): Promise<T | null> {
-  const key = getSessionKey(sessionId);
+export async function getSession<T = unknown>(sessionId: string): Promise<T | null> {
+  const key = getSessionKey(sessionId)
 
   try {
-    const client = getRedisClient();
+    const client = getRedisClient()
 
-    if (client && isRedisAvailable) {
-      // Try Redis first
+    if (client) {
       try {
-        const encryptedData = await client.get(key);
+        const encryptedData = await client.get<string>(key)
         if (encryptedData) {
-          return decryptSessionData<T>(encryptedData);
+          return decryptSessionData<T>(encryptedData)
         }
       } catch (error) {
-        logger.warn('[RedisSession] Redis get failed, falling back to memory:', error);
-        isRedisAvailable = false;
+        logger.warn('[RedisSession] Redis get failed, falling back to memory:', error)
       }
     }
 
     // Fallback to memory
-    const memoryData = memoryStore.get(key);
+    const memoryData = memoryStore.get(key)
     if (memoryData) {
       if (memoryData.expiresAt > Date.now()) {
         // Memory stores encrypted string now
         if (typeof memoryData.data === 'string') {
-          return decryptSessionData<T>(memoryData.data);
+          return decryptSessionData<T>(memoryData.data)
         }
-        return memoryData.data as T;
+        return memoryData.data as T
       }
       // Expired
-      memoryStore.delete(key);
+      memoryStore.delete(key)
     }
 
-    return null;
+    return null
   } catch (error) {
-    logger.error('[RedisSession] Failed to get session:', error);
-    return null;
+    logger.error('[RedisSession] Failed to get session:', error)
+    return null
   }
 }
 
@@ -286,26 +212,26 @@ export async function getSession<T = unknown>(
  * Delete session
  */
 export async function deleteSession(sessionId: string): Promise<boolean> {
-  const key = getSessionKey(sessionId);
+  const key = getSessionKey(sessionId)
 
   try {
-    const client = getRedisClient();
+    const client = getRedisClient()
 
-    if (client && isRedisAvailable) {
+    if (client) {
       try {
-        await client.del(key);
+        await client.del(key)
       } catch (error) {
-        logger.warn('[RedisSession] Redis delete failed:', error);
+        logger.warn('[RedisSession] Redis delete failed:', error)
       }
     }
 
     // Also delete from memory
-    memoryStore.delete(key);
+    memoryStore.delete(key)
 
-    return true;
+    return true
   } catch (error) {
-    logger.error('[RedisSession] Failed to delete session:', error);
-    return false;
+    logger.error('[RedisSession] Failed to delete session:', error)
+    return false
   }
 }
 
@@ -316,65 +242,73 @@ export async function touchSession(
   sessionId: string,
   ttlSeconds: number = SESSION_TTL_SECONDS
 ): Promise<boolean> {
-  const key = getSessionKey(sessionId);
+  const key = getSessionKey(sessionId)
 
   try {
-    const client = getRedisClient();
+    const client = getRedisClient()
 
-    if (client && isRedisAvailable) {
+    if (client) {
       try {
-        await client.expire(key, ttlSeconds);
-        return true;
+        await client.expire(key, ttlSeconds)
+        return true
       } catch (error) {
-        logger.warn('[RedisSession] Redis expire failed:', error);
-        isRedisAvailable = false;
+        logger.warn('[RedisSession] Redis expire failed:', error)
       }
     }
 
     // Fallback: update memory expiration
-    const memoryData = memoryStore.get(key);
+    const memoryData = memoryStore.get(key)
     if (memoryData) {
-      memoryData.expiresAt = Date.now() + ttlSeconds * 1000;
-      return true;
+      memoryData.expiresAt = Date.now() + ttlSeconds * 1000
+      return true
     }
 
-    return false;
+    return false
   } catch (error) {
-    logger.error('[RedisSession] Failed to touch session:', error);
-    return false;
+    logger.error('[RedisSession] Failed to touch session:', error)
+    return false
   }
 }
 
 /**
  * Get all sessions by pattern (use with caution in production)
  */
-export async function getSessionsByPattern(
-  pattern: string = '*'
-): Promise<string[]> {
+export async function getSessionsByPattern(pattern: string = '*'): Promise<string[]> {
   try {
-    const client = getRedisClient();
+    const client = getRedisClient()
 
-    if (client && isRedisAvailable) {
+    if (client) {
       try {
-        const keys = await client.keys(`${SESSION_PREFIX}${pattern}`);
-        return keys.map((key) => key.replace(SESSION_PREFIX, ''));
+        let cursor = 0 as number | string
+        const allKeys: string[] = []
+
+        do {
+          const result: [number | string, string[]] = await client.scan(cursor, {
+            match: `${SESSION_PREFIX}${pattern}`,
+            count: 100,
+          })
+          cursor = result[0]
+          allKeys.push(...result[1])
+        } while (String(cursor) !== '0')
+
+        return allKeys.map((key) => key.replace(SESSION_PREFIX, ''))
       } catch (error) {
-        logger.warn('[RedisSession] Redis keys scan failed:', error);
+        logger.warn('[RedisSession] Redis scan failed:', error)
       }
     }
 
     // Fallback: return memory keys
-    const memoryKeys: string[] = [];
+    const memoryKeys: string[] = []
     for (const key of memoryStore.keys()) {
       if (key.startsWith(SESSION_PREFIX)) {
-        memoryKeys.push(key.replace(SESSION_PREFIX, ''));
+        memoryKeys.push(key.replace(SESSION_PREFIX, ''))
       }
     }
 
-    return memoryKeys;
+    return memoryKeys
   } catch (error) {
-    logger.error('[RedisSession] Failed to get sessions by pattern:', error);
-    return [];
+    logger.error('[RedisSession] Failed to get sessions by pattern:', error)
+    return []
   }
 }
 
@@ -383,31 +317,42 @@ export async function getSessionsByPattern(
  */
 export async function getSessionCount(): Promise<number> {
   try {
-    const client = getRedisClient();
+    const client = getRedisClient()
 
-    if (client && isRedisAvailable) {
+    if (client) {
       try {
-        const keys = await client.keys(`${SESSION_PREFIX}*`);
-        return keys.length;
+        let cursor = 0 as number | string
+        let count = 0
+
+        do {
+          const result: [number | string, string[]] = await client.scan(cursor, {
+            match: `${SESSION_PREFIX}*`,
+            count: 100,
+          })
+          cursor = result[0]
+          count += result[1].length
+        } while (String(cursor) !== '0')
+
+        return count
       } catch (error) {
-        logger.warn('[RedisSession] Redis count failed:', error);
+        logger.warn('[RedisSession] Redis count failed:', error)
       }
     }
 
     // Fallback: count memory sessions
-    let count = 0;
-    const now = Date.now();
+    let count = 0
+    const now = Date.now()
 
     for (const [key, value] of memoryStore.entries()) {
       if (key.startsWith(SESSION_PREFIX) && value.expiresAt > now) {
-        count++;
+        count++
       }
     }
 
-    return count;
+    return count
   } catch (error) {
-    logger.error('[RedisSession] Failed to get session count:', error);
-    return 0;
+    logger.error('[RedisSession] Failed to get session count:', error)
+    return 0
   }
 }
 
@@ -416,32 +361,43 @@ export async function getSessionCount(): Promise<number> {
  */
 export async function clearAllSessions(): Promise<number> {
   try {
-    const client = getRedisClient();
-    let count = 0;
+    const client = getRedisClient()
+    let count = 0
 
-    if (client && isRedisAvailable) {
+    if (client) {
       try {
-        const keys = await client.keys(`${SESSION_PREFIX}*`);
-        if (keys.length > 0) {
-          count = await client.del(...keys);
-        }
+        let cursor = 0 as number | string
+
+        do {
+          const result: [number | string, string[]] = await client.scan(cursor, {
+            match: `${SESSION_PREFIX}*`,
+            count: 100,
+          })
+          cursor = result[0]
+          const keys = result[1]
+
+          if (keys.length > 0) {
+            await client.del(...keys)
+            count += keys.length
+          }
+        } while (String(cursor) !== '0')
       } catch (error) {
-        logger.warn('[RedisSession] Redis clear failed:', error);
+        logger.warn('[RedisSession] Redis clear failed:', error)
       }
     }
 
     // Also clear memory
     for (const key of memoryStore.keys()) {
       if (key.startsWith(SESSION_PREFIX)) {
-        memoryStore.delete(key);
-        count++;
+        memoryStore.delete(key)
+        count++
       }
     }
 
-    return count;
+    return count
   } catch (error) {
-    logger.error('[RedisSession] Failed to clear sessions:', error);
-    return 0;
+    logger.error('[RedisSession] Failed to clear sessions:', error)
+    return 0
   }
 }
 
@@ -449,52 +405,43 @@ export async function clearAllSessions(): Promise<number> {
  * Check if session encryption is enabled
  */
 export function isEncryptionEnabled(): boolean {
-  return ENCRYPTION_ENABLED;
+  return ENCRYPTION_ENABLED
 }
 
 /**
  * Health check for Redis connection
  */
 export async function healthCheck(): Promise<{
-  redis: boolean;
-  memory: boolean;
-  sessionCount: number;
-  encrypted: boolean;
+  redis: boolean
+  memory: boolean
+  sessionCount: number
+  encrypted: boolean
 }> {
-  const client = getRedisClient();
-  let redisHealthy = false;
+  const client = getRedisClient()
+  let redisHealthy = false
 
   if (client) {
     try {
-      await client.ping();
-      redisHealthy = true;
-      isRedisAvailable = true;
+      const pong = await client.ping()
+      redisHealthy = pong === 'PONG'
     } catch {
-      redisHealthy = false;
-      isRedisAvailable = false;
+      redisHealthy = false
     }
   }
 
-  const sessionCount = await getSessionCount();
+  const sessionCount = await getSessionCount()
 
   return {
     redis: redisHealthy,
     memory: memoryStore.size > 0,
     sessionCount,
     encrypted: ENCRYPTION_ENABLED,
-  };
+  }
 }
 
 /**
- * Gracefully disconnect Redis (for shutdown)
+ * Gracefully disconnect Redis (no-op for Upstash HTTP)
  */
 export async function disconnect(): Promise<void> {
-  if (redisClient) {
-    try {
-      await redisClient.quit();
-      redisClient = null;
-    } catch (error) {
-      logger.error('[RedisSession] Failed to disconnect:', error);
-    }
-  }
+  redisClient = null
 }

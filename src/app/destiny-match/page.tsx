@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from './DestinyMatch.module.css'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
+import { useI18n } from '@/i18n/I18nProvider'
+import BackButton from '@/components/ui/BackButton'
+import CreditBadge from '@/components/ui/CreditBadge'
 import { useDiscovery } from './useDiscovery'
 import {
   FilterPanel,
@@ -20,6 +23,7 @@ export default function DestinyMatchPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const signInUrl = buildSignInUrl('/destiny-match')
+  const { t } = useI18n()
 
   const {
     viewMode,
@@ -59,6 +63,12 @@ export default function DestinyMatchPage() {
 
   return (
     <div className={styles.page}>
+      {/* Shared Navigation Components */}
+      <BackButton onClick={() => router.push('/')} label={t('destinyMatch.back', 'Back')} />
+      <div className={styles.creditBadgeWrapper}>
+        <CreditBadge variant="compact" />
+      </div>
+
       {/* Background Stars */}
       <div className={styles.stars}>
         {[...Array(50)].map((_, i) => (
@@ -77,57 +87,71 @@ export default function DestinyMatchPage() {
       <div className={styles.container}>
         {/* Header */}
         <header className={styles.header}>
-          <Link href="/" className={styles.backButton} aria-label="Back to home">
-            <span aria-hidden="true">←</span>
-            <span>Back</span>
-          </Link>
           <div className={styles.titleContainer}>
-            <h1 className={styles.title}>
-              <span className={styles.titleIcon} aria-hidden="true">
-                ✨
-              </span>
-              Destiny Match
-            </h1>
-            <p className={styles.subtitle}>Find your cosmic connection</p>
+            <div className={styles.iconWrapper}>
+              <div className={styles.headerIcon}>💘</div>
+            </div>
+            <h1 className={styles.title}>{t('destinyMatch.title', 'Destiny Match')}</h1>
+            <p className={styles.subtitle}>
+              {t('destinyMatch.subtitle', 'Find your cosmic connection')}
+            </p>
           </div>
           <div className={styles.headerButtons}>
             <button
               onClick={() => setViewMode(viewMode === 'swipe' ? 'grid' : 'swipe')}
               className={`${styles.iconButton} ${styles.viewModeButton}`}
-              title={viewMode === 'swipe' ? 'Switch to Grid View' : 'Switch to Swipe View'}
-              aria-label={viewMode === 'swipe' ? 'Switch to Grid View' : 'Switch to Swipe View'}
+              title={
+                viewMode === 'swipe'
+                  ? t('destinyMatch.switchToGrid', 'Switch to Grid View')
+                  : t('destinyMatch.switchToSwipe', 'Switch to Swipe View')
+              }
+              aria-label={
+                viewMode === 'swipe'
+                  ? t('destinyMatch.switchToGrid', 'Switch to Grid View')
+                  : t('destinyMatch.switchToSwipe', 'Switch to Swipe View')
+              }
               type="button"
             >
               <span className={styles.iconButtonIcon} aria-hidden="true">
                 {viewMode === 'swipe' ? '⊞' : '🎴'}
               </span>
               <span className={styles.iconButtonLabel}>
-                {viewMode === 'swipe' ? 'Grid' : 'Swipe'}
+                {viewMode === 'swipe'
+                  ? t('destinyMatch.grid', 'Grid')
+                  : t('destinyMatch.swipe', 'Swipe')}
               </span>
             </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`${styles.iconButton} ${showFilters ? styles.iconButtonActive : ''}`}
-              title={showFilters ? 'Hide Filters' : 'Show Filters'}
-              aria-label={showFilters ? 'Hide Filters' : 'Show Filters'}
+              title={
+                showFilters
+                  ? t('destinyMatch.hideFilters', 'Hide Filters')
+                  : t('destinyMatch.showFilters', 'Show Filters')
+              }
+              aria-label={
+                showFilters
+                  ? t('destinyMatch.hideFilters', 'Hide Filters')
+                  : t('destinyMatch.showFilters', 'Show Filters')
+              }
               aria-expanded={showFilters}
               type="button"
             >
               <span className={styles.iconButtonIcon} aria-hidden="true">
                 ⚙
               </span>
-              <span className={styles.iconButtonLabel}>Filter</span>
+              <span className={styles.iconButtonLabel}>{t('destinyMatch.filter', 'Filter')}</span>
             </button>
             <Link
               href="/destiny-match/matches"
               className={styles.iconButton}
-              title="View Matches"
-              aria-label="View your matches"
+              title={t('destinyMatch.viewMatches', 'View your matches')}
+              aria-label={t('destinyMatch.viewMatches', 'View your matches')}
             >
               <span className={styles.iconButtonIcon} aria-hidden="true">
                 💕
               </span>
-              <span className={styles.iconButtonLabel}>Matches</span>
+              <span className={styles.iconButtonLabel}>{t('destinyMatch.matches', 'Matches')}</span>
             </Link>
           </div>
         </header>
@@ -185,7 +209,7 @@ export default function DestinyMatchPage() {
                       <button
                         onClick={handleUndo}
                         className={`${styles.actionButton} ${styles.undoButton}`}
-                        title="Undo"
+                        title={t('destinyMatch.undo', 'Undo')}
                       >
                         &#8634;
                       </button>
@@ -193,21 +217,21 @@ export default function DestinyMatchPage() {
                     <button
                       onClick={handlePass}
                       className={`${styles.actionButton} ${styles.passButton}`}
-                      title="Pass"
+                      title={t('destinyMatch.pass', 'Pass')}
                     >
                       &#10005;
                     </button>
                     <button
                       onClick={handleSuperLike}
                       className={`${styles.actionButton} ${styles.superLikeButton}`}
-                      title="Super Like"
+                      title={t('destinyMatch.superLike', 'Super Like')}
                     >
                       &#11088;
                     </button>
                     <button
                       onClick={handleLike}
                       className={`${styles.actionButton} ${styles.likeButton}`}
-                      title="Like"
+                      title={t('destinyMatch.like', 'Like')}
                     >
                       &#10084;&#65039;
                     </button>
@@ -232,7 +256,7 @@ export default function DestinyMatchPage() {
         {likedProfiles.length > 0 && (
           <div className={styles.likesCounter}>
             <span className={styles.likesIcon}>&#128150;</span>
-            {likedProfiles.length} Likes
+            {likedProfiles.length} {t('destinyMatch.likes', 'Likes')}
           </div>
         )}
 

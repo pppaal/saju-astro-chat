@@ -328,9 +328,9 @@ jobs:
             | Functions | ${formatPct(total.functions.pct)} | ${total.functions.covered} | ${total.functions.total} |
             | Branches | ${formatPct(total.branches.pct)} | ${total.branches.covered} | ${total.branches.total} |
 
-            **Overall Coverage:** ${total.lines.pct >= 60 ? '✅' : '⚠️'} ${total.lines.pct}% (Target: 60%)
+            **Overall Coverage:** ${total.lines.pct >= 80 ? '✅' : '⚠️'} ${total.lines.pct}% (Target: 80%)
 
-            ${total.lines.pct < 60 ? '> ⚠️ Coverage is below the 60% threshold. Please add more tests.' : ''}
+            ${total.lines.pct < 80 ? '> ⚠️ Coverage is below the 80% threshold. Please add more tests.' : ''}
 
             ---
             <sub>Updated for commit ${context.sha.substring(0, 7)}</sub>

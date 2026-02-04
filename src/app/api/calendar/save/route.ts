@@ -1,248 +1,207 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { NextRequest } from 'next/server'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
-import { csrfGuard } from '@/lib/security/csrf'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
 import { calendarSaveRequestSchema, calendarQuerySchema, dateSchema } from '@/lib/api/zodValidation'
 import type { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
 // POST - 날짜 저장
-export async function POST(req: NextRequest) {
-  try {
-    // CSRF Protection
-    const csrfError = csrfGuard(req.headers)
-    if (csrfError) {
-      logger.warn('[CalendarSave] CSRF validation failed')
-      return csrfError
-    }
+export const POST = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    try {
+      const rawBody = await req.json()
 
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
-    }
+      const validationResult = calendarSaveRequestSchema.safeParse(rawBody)
+      if (!validationResult.success) {
+        logger.warn('[CalendarSave] validation failed', { errors: validationResult.error.issues })
+        return apiError(
+          ErrorCodes.VALIDATION_ERROR,
+          `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
+        )
+      }
 
-    const ip = getClientIp(req.headers)
-    const limit = await rateLimit(`calendar-save:${ip}`, { limit: 30, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
-
-    const rawBody = await req.json()
-
-    // Validate request body with Zod
-    const validationResult = calendarSaveRequestSchema.safeParse(rawBody)
-    if (!validationResult.success) {
-      logger.warn('[CalendarSave] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    const body = validationResult.data
-    const {
-      date,
-      year,
-      grade,
-      score,
-      title,
-      description,
-      summary,
-      categories,
-      bestTimes,
-      sajuFactors,
-      astroFactors,
-      recommendations,
-      warnings,
-      birthDate,
-      birthTime,
-      birthPlace,
-      locale = 'ko',
-    } = body
-
-    // Upsert - 이미 있으면 업데이트, 없으면 생성
-    const savedDate = await prisma.savedCalendarDate.upsert({
-      where: {
-        userId_date: {
-          userId: session.user.id,
-          date,
-        },
-      },
-      update: {
-        year: year || new Date(date).getFullYear(),
-        grade,
-        score,
-        title,
-        description: description || '',
-        summary: summary || '',
-        categories: categories || [],
-        bestTimes: bestTimes && bestTimes.length > 0 ? bestTimes : [],
-        sajuFactors: sajuFactors ? (sajuFactors as Prisma.InputJsonValue) : {},
-        astroFactors: astroFactors ? (astroFactors as Prisma.InputJsonValue) : {},
-        recommendations: recommendations || '',
-        warnings: warnings || '',
-        birthDate: birthDate || '',
-        birthTime: birthTime || '',
-        birthPlace: birthPlace || '',
-        locale,
-      },
-      create: {
-        userId: session.user.id,
+      const body = validationResult.data
+      const {
         date,
-        year: year || new Date(date).getFullYear(),
+        year,
         grade,
         score,
         title,
-        description: description || '',
-        summary: summary || '',
-        categories: categories || [],
-        bestTimes: bestTimes && bestTimes.length > 0 ? bestTimes : [],
-        sajuFactors: sajuFactors ? (sajuFactors as Prisma.InputJsonValue) : {},
-        astroFactors: astroFactors ? (astroFactors as Prisma.InputJsonValue) : {},
-        recommendations: recommendations || '',
-        warnings: warnings || '',
-        birthDate: birthDate || '',
-        birthTime: birthTime || '',
-        birthPlace: birthPlace || '',
-        locale,
-      },
-    })
+        description,
+        summary,
+        categories,
+        bestTimes,
+        sajuFactors,
+        astroFactors,
+        recommendations,
+        warnings,
+        birthDate,
+        birthTime,
+        birthPlace,
+        locale = 'ko',
+      } = body
 
-    return NextResponse.json({ success: true, id: savedDate.id }, { headers: limit.headers })
-  } catch (error) {
-    logger.error('Failed to save calendar date:', error)
-    return NextResponse.json({ error: 'Failed to save' }, { status: HTTP_STATUS.SERVER_ERROR })
-  }
-}
+      const savedDate = await prisma.savedCalendarDate.upsert({
+        where: {
+          userId_date: {
+            userId: context.userId!,
+            date,
+          },
+        },
+        update: {
+          year: year || new Date(date).getFullYear(),
+          grade,
+          score,
+          title,
+          description: description || '',
+          summary: summary || '',
+          categories: categories || [],
+          bestTimes: bestTimes && bestTimes.length > 0 ? bestTimes : [],
+          sajuFactors: sajuFactors ? (sajuFactors as Prisma.InputJsonValue) : {},
+          astroFactors: astroFactors ? (astroFactors as Prisma.InputJsonValue) : {},
+          recommendations: recommendations || '',
+          warnings: warnings || '',
+          birthDate: birthDate || '',
+          birthTime: birthTime || '',
+          birthPlace: birthPlace || '',
+          locale,
+        },
+        create: {
+          userId: context.userId!,
+          date,
+          year: year || new Date(date).getFullYear(),
+          grade,
+          score,
+          title,
+          description: description || '',
+          summary: summary || '',
+          categories: categories || [],
+          bestTimes: bestTimes && bestTimes.length > 0 ? bestTimes : [],
+          sajuFactors: sajuFactors ? (sajuFactors as Prisma.InputJsonValue) : {},
+          astroFactors: astroFactors ? (astroFactors as Prisma.InputJsonValue) : {},
+          recommendations: recommendations || '',
+          warnings: warnings || '',
+          birthDate: birthDate || '',
+          birthTime: birthTime || '',
+          birthPlace: birthPlace || '',
+          locale,
+        },
+      })
+
+      return apiSuccess({ success: true, id: savedDate.id })
+    } catch (error) {
+      logger.error('Failed to save calendar date:', error)
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to save')
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/calendar/save',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)
 
 // DELETE - 저장된 날짜 삭제
-export async function DELETE(req: NextRequest) {
-  try {
-    // CSRF Protection
-    const csrfError = csrfGuard(req.headers)
-    if (csrfError) {
-      logger.warn('[CalendarSave] CSRF validation failed on DELETE')
-      return csrfError
-    }
+export const DELETE = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    try {
+      const { searchParams } = new URL(req.url)
+      const rawDate = searchParams.get('date')
 
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
-    }
+      const dateValidation = dateSchema.safeParse(rawDate)
+      if (!dateValidation.success) {
+        logger.warn('[CalendarSave] Invalid date parameter', { date: rawDate })
+        return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid date format. Expected YYYY-MM-DD')
+      }
 
-    // Rate Limiting
-    const ip = getClientIp(req.headers)
-    const limit = await rateLimit(`calendar-delete:${ip}`, { limit: 20, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
+      const date = dateValidation.data
 
-    const { searchParams } = new URL(req.url)
-    const rawDate = searchParams.get('date')
-
-    // Validate date parameter
-    const dateValidation = dateSchema.safeParse(rawDate)
-    if (!dateValidation.success) {
-      logger.warn('[CalendarSave] Invalid date parameter', { date: rawDate })
-      return NextResponse.json(
-        { error: 'Invalid date format. Expected YYYY-MM-DD' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    const date = dateValidation.data
-
-    await prisma.savedCalendarDate.delete({
-      where: {
-        userId_date: {
-          userId: session.user.id,
-          date,
+      await prisma.savedCalendarDate.delete({
+        where: {
+          userId_date: {
+            userId: context.userId!,
+            date,
+          },
         },
-      },
-    })
+      })
 
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    logger.error('Failed to delete calendar date:', error)
-    return NextResponse.json({ error: 'Failed to delete' }, { status: HTTP_STATUS.SERVER_ERROR })
-  }
-}
+      return apiSuccess({ success: true })
+    } catch (error) {
+      logger.error('Failed to delete calendar date:', error)
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to delete')
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/calendar/save',
+    limit: 20,
+    windowSeconds: 60,
+  })
+)
 
 // GET - 저장된 날짜 조회
-export async function GET(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
-    }
+export const GET = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    try {
+      const { searchParams } = new URL(req.url)
 
-    const { searchParams } = new URL(req.url)
-
-    // Validate query parameters
-    const queryValidation = calendarQuerySchema.safeParse({
-      date: searchParams.get('date'),
-      year: searchParams.get('year'),
-      limit: searchParams.get('limit') || '50',
-    })
-
-    if (!queryValidation.success) {
-      logger.warn('[CalendarSave] Invalid query parameters', {
-        errors: queryValidation.error.issues,
+      const queryValidation = calendarQuerySchema.safeParse({
+        date: searchParams.get('date'),
+        year: searchParams.get('year'),
+        limit: searchParams.get('limit') || '50',
       })
-      return NextResponse.json(
-        { error: 'Invalid query parameters' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+
+      if (!queryValidation.success) {
+        logger.warn('[CalendarSave] Invalid query parameters', {
+          errors: queryValidation.error.issues,
+        })
+        return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid query parameters')
+      }
+
+      const { date, year, limit: limitParam } = queryValidation.data
+
+      const where: Record<string, unknown> = { userId: context.userId! }
+
+      if (date) {
+        where.date = date
+      } else if (year) {
+        where.year = year
+      }
+
+      const savedDates = await prisma.savedCalendarDate.findMany({
+        where,
+        select: {
+          id: true,
+          date: true,
+          year: true,
+          grade: true,
+          score: true,
+          title: true,
+          summary: true,
+          categories: true,
+          createdAt: true,
+        },
+        orderBy: { date: 'asc' },
+        take: Math.min(limitParam, 365),
+      })
+
+      return apiSuccess({ savedDates })
+    } catch (error) {
+      logger.error('Failed to fetch saved calendar dates:', error)
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to fetch')
     }
-
-    const { date, year, limit: limitParam } = queryValidation.data
-
-    const where: Record<string, unknown> = { userId: session.user.id }
-
-    if (date) {
-      where.date = date
-    } else if (year) {
-      where.year = year
-    }
-
-    const savedDates = await prisma.savedCalendarDate.findMany({
-      where,
-      select: {
-        id: true,
-        date: true,
-        year: true,
-        grade: true,
-        score: true,
-        title: true,
-        summary: true,
-        categories: true,
-        createdAt: true,
-      },
-      orderBy: { date: 'asc' },
-      take: Math.min(limitParam, 365),
-    })
-
-    return NextResponse.json({ savedDates })
-  } catch (error) {
-    logger.error('Failed to fetch saved calendar dates:', error)
-    return NextResponse.json({ error: 'Failed to fetch' }, { status: HTTP_STATUS.SERVER_ERROR })
-  }
-}
+  },
+  createAuthenticatedGuard({
+    route: '/api/calendar/save',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)

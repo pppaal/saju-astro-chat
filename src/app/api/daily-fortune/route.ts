@@ -1,6 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth/authOptions'
+import { NextRequest } from 'next/server'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { sendNotification } from '@/lib/notifications/sse'
 import { isValidDate, isValidTime } from '@/lib/validation'
@@ -8,14 +14,10 @@ import { getNowInTimezone, formatDateString } from '@/lib/datetime'
 import { getDailyFortuneScore } from '@/lib/destiny-map/destinyCalendar'
 import { logger } from '@/lib/logger'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 import { dailyFortuneSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
-// Fortune data type
 interface FortuneData {
   love: number
   career: number
@@ -30,155 +32,113 @@ interface FortuneData {
   source?: string
 }
 
-/**
- * 오늘의 운세 점수 계산 (AI 없이 사주+점성학 기반)
- * POST /api/daily-fortune
- */
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
-    }
-
-    const ip = getClientIp(request.headers)
-    const limit = await rateLimit(`daily-fortune:${ip}`, { limit: 20, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Try again soon.' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
-
+export const POST = withApiMiddleware(
+  async (request: NextRequest, context: ApiContext) => {
     const rawBody = await request.json()
 
-    // Validate with Zod
     const validationResult = dailyFortuneSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[Daily fortune] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
       )
     }
 
     const { birthDate, birthTime, sendEmail, userTimezone } = validationResult.data
 
-    // ========================================
-    // 1️⃣ 오늘의 운세 점수 계산 (destinyCalendar 로직 직접 사용)
-    // ========================================
-    const userNow = getNowInTimezone(userTimezone)
-    const targetDate = new Date(userNow.year, userNow.month - 1, userNow.day)
+    try {
+      const userNow = getNowInTimezone(userTimezone)
+      const targetDate = new Date(userNow.year, userNow.month - 1, userNow.day)
 
-    // destinyCalendar의 getDailyFortuneScore 사용 (Redis 캐싱 적용)
-    const dateKey = formatDateString(userNow.year, userNow.month, userNow.day)
-    const cacheKey = CacheKeys.grading(dateKey, `${birthDate}:${birthTime || '12:00'}`)
+      const dateKey = formatDateString(userNow.year, userNow.month, userNow.day)
+      const cacheKey = CacheKeys.grading(dateKey, `${birthDate}:${birthTime || '12:00'}`)
 
-    const fortuneResult = await cacheOrCalculate(
-      cacheKey,
-      async () => getDailyFortuneScore(birthDate, birthTime, targetDate),
-      CACHE_TTL.GRADING_RESULT // 1 day
-    )
+      const fortuneResult = await cacheOrCalculate(
+        cacheKey,
+        async () => getDailyFortuneScore(birthDate, birthTime, targetDate),
+        CACHE_TTL.GRADING_RESULT
+      )
 
-    const fortune: FortuneData = {
-      love: fortuneResult.love,
-      career: fortuneResult.career,
-      wealth: fortuneResult.wealth,
-      health: fortuneResult.health,
-      overall: fortuneResult.overall,
-      luckyColor: fortuneResult.luckyColor,
-      luckyNumber: fortuneResult.luckyNumber,
-      date: dateKey,
-      userTimezone: userTimezone || 'Asia/Seoul',
-      alerts: fortuneResult.alerts || [],
-      source: 'destinyCalendar',
-    }
-
-    // ========================================
-    // 2️⃣ 데이터베이스에 저장
-    // ========================================
-    // Use session.user.id directly instead of querying user table (N+1 optimization)
-    if (session.user.id) {
-      await prisma.dailyFortune
-        .create({
-          data: {
-            userId: session.user.id,
-            date: fortune.date, // 사용자 타임존 기준 날짜
-            loveScore: fortune.love,
-            careerScore: fortune.career,
-            wealthScore: fortune.wealth,
-            healthScore: fortune.health,
-            overallScore: fortune.overall,
-            luckyColor: fortune.luckyColor,
-            luckyNumber: fortune.luckyNumber,
-          },
-        })
-        .catch((err: unknown) => {
-          // P2002 = unique constraint violation (이미 오늘 운세가 있음)
-          const prismaError = err as { code?: string }
-          if (prismaError?.code !== 'P2002') {
-            logger.error('[Daily Fortune] Failed to save fortune to DB:', err)
-          }
-        })
-    }
-
-    // ========================================
-    // 3️⃣ 알림 전송
-    // ========================================
-    if (session?.user?.email) {
-      sendNotification(session.user.email, {
-        type: 'system',
-        title: "Today's Fortune Ready!",
-        message: `Overall: ${fortune.overall} | Love: ${fortune.love} | Career: ${fortune.career} | Wealth: ${fortune.wealth}`,
-        link: '/myjourney',
-      }).catch((err: unknown) => {
-        logger.warn('[Daily Fortune] Failed to send notification:', err)
-      })
-    }
-
-    // ========================================
-    // 4️⃣ 이메일 전송 (선택)
-    // ========================================
-    let emailSent = false
-    if (sendEmail && session?.user?.email) {
-      try {
-        await sendFortuneEmail(session.user.email, fortune)
-        emailSent = true
-      } catch (emailErr) {
-        logger.error('[Daily Fortune] Failed to send email:', emailErr)
-        // 이메일 실패해도 운세 결과는 반환
+      const fortune: FortuneData = {
+        love: fortuneResult.love,
+        career: fortuneResult.career,
+        wealth: fortuneResult.wealth,
+        health: fortuneResult.health,
+        overall: fortuneResult.overall,
+        luckyColor: fortuneResult.luckyColor,
+        luckyNumber: fortuneResult.luckyNumber,
+        date: dateKey,
+        userTimezone: userTimezone || 'Asia/Seoul',
+        alerts: fortuneResult.alerts || [],
+        source: 'destinyCalendar',
       }
+
+      if (context.userId) {
+        await prisma.dailyFortune
+          .create({
+            data: {
+              userId: context.userId,
+              date: fortune.date,
+              loveScore: fortune.love,
+              careerScore: fortune.career,
+              wealthScore: fortune.wealth,
+              healthScore: fortune.health,
+              overallScore: fortune.overall,
+              luckyColor: fortune.luckyColor,
+              luckyNumber: fortune.luckyNumber,
+            },
+          })
+          .catch((err: unknown) => {
+            const prismaError = err as { code?: string }
+            if (prismaError?.code !== 'P2002') {
+              logger.error('[Daily Fortune] Failed to save fortune to DB:', err)
+            }
+          })
+      }
+
+      const userEmail = context.session?.user?.email
+      if (userEmail) {
+        sendNotification(userEmail, {
+          type: 'system',
+          title: "Today's Fortune Ready!",
+          message: `Overall: ${fortune.overall} | Love: ${fortune.love} | Career: ${fortune.career} | Wealth: ${fortune.wealth}`,
+          link: '/myjourney',
+        }).catch((err: unknown) => {
+          logger.warn('[Daily Fortune] Failed to send notification:', err)
+        })
+      }
+
+      let emailSent = false
+      if (sendEmail && userEmail) {
+        try {
+          await sendFortuneEmail(userEmail, fortune)
+          emailSent = true
+        } catch (emailErr) {
+          logger.error('[Daily Fortune] Failed to send email:', emailErr)
+        }
+      }
+
+      return apiSuccess({
+        fortune,
+        message: sendEmail
+          ? emailSent
+            ? 'Fortune sent to your email!'
+            : 'Fortune calculated! (Email delivery failed)'
+          : 'Fortune calculated!',
+      })
+    } catch (err) {
+      logger.error('[Daily Fortune Error]:', err)
+      return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal Server Error')
     }
+  },
+  createAuthenticatedGuard({
+    route: '/api/daily-fortune',
+    limit: 20,
+    windowSeconds: 60,
+  })
+)
 
-    const res = NextResponse.json({
-      success: true,
-      fortune,
-      message: sendEmail
-        ? emailSent
-          ? 'Fortune sent to your email!'
-          : 'Fortune calculated! (Email delivery failed)'
-        : 'Fortune calculated!',
-    })
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
-    return res
-  } catch (error: unknown) {
-    logger.error('[Daily Fortune Error]:', error)
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
-
-/**
- * 이메일로 운세 전송
- */
 async function sendFortuneEmail(email: string, fortune: FortuneData) {
   try {
     const response = await fetch(`${process.env.NEXTAUTH_URL}/api/email/send`, {
@@ -191,7 +151,6 @@ async function sendFortuneEmail(email: string, fortune: FortuneData) {
           <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 8px;">
             <h1 style="color: #6c5ce7; margin-bottom: 4px;">Today's Fortune</h1>
             <p style="margin-top: 0; color: #444;">${fortune.date}</p>
-
             <div style="background: #f5f5f8; padding: 16px; border-radius: 12px; margin: 16px 0;">
               <h2 style="color: #1e293b; margin: 0 0 8px;">Overall: ${fortune.overall}/100</h2>
               <p style="margin: 4px 0;">Love: ${fortune.love}/100</p>
@@ -199,12 +158,10 @@ async function sendFortuneEmail(email: string, fortune: FortuneData) {
               <p style="margin: 4px 0;">Wealth: ${fortune.wealth}/100</p>
               <p style="margin: 4px 0;">Health: ${fortune.health}/100</p>
             </div>
-
             <div style="background: linear-gradient(135deg, #4f46e5, #8b5cf6); color: #fff; padding: 16px; border-radius: 12px;">
               <p style="margin: 0;">Lucky Color: <strong>${fortune.luckyColor}</strong></p>
               <p style="margin: 4px 0 0;">Lucky Number: <strong>${fortune.luckyNumber}</strong></p>
             </div>
-
             <p style="margin-top: 20px; color: #475569;">Have a great day with DestinyPal.</p>
           </div>
         `,

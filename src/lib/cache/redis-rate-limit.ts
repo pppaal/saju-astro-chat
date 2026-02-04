@@ -1,31 +1,26 @@
 /**
- * Redis-based Rate Limiting with Upstash Fallback
- * High-performance distributed rate limiting using IORedis
- * Falls back to Upstash REST API and in-memory storage
+ * Redis-based Rate Limiting using @upstash/redis
  *
  * Features:
- * - IORedis for optimal performance
- * - Upstash REST fallback
+ * - Upstash REST API (HTTP, serverless-friendly)
  * - In-memory fallback for maximum reliability
  * - Sliding window algorithm
  * - Configurable per-route limits
  */
 
-import Redis from 'ioredis'
+import { Redis } from '@upstash/redis'
 import { recordCounter } from '@/lib/metrics'
 import { logger } from '@/lib/logger'
 
 // Configuration
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN
-const REDIS_URL = process.env.REDIS_URL
 
 // Rate limit prefix for Redis keys
 const RATE_LIMIT_PREFIX = 'rl:'
 
-// Redis client singleton
+// Upstash Redis client singleton
 let redisClient: Redis | null = null
-let redisAvailable = true
 
 // In-memory fallback store with automatic cleanup and LRU eviction
 interface RateLimitEntry {
@@ -40,11 +35,10 @@ const MAX_MEMORY_ENTRIES = 10_000 // Prevent unbounded growth
 let lastCleanup = Date.now()
 
 /**
- * Initialize IORedis client
+ * Initialize Upstash Redis client
  */
-function initializeRedis(): Redis | null {
-  if (!REDIS_URL) {
-    logger.debug('[RateLimit] REDIS_URL not configured');
+function getRedisClient(): Redis | null {
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {
     return null
   }
 
@@ -52,44 +46,12 @@ function initializeRedis(): Redis | null {
     return redisClient
   }
 
-  try {
-    redisClient = new Redis(REDIS_URL, {
-      maxRetriesPerRequest: 2,
-      retryStrategy: (times) => {
-        if (times > 2) {
-          redisAvailable = false
-          return null
-        }
-        return Math.min(times * 50, 500)
-      },
-      lazyConnect: true,
-      enableOfflineQueue: false,
-      connectTimeout: 3000,
-      commandTimeout: 2000,
-    })
+  redisClient = new Redis({
+    url: UPSTASH_URL,
+    token: UPSTASH_TOKEN,
+  })
 
-    redisClient.on('connect', () => {
-      logger.info('[RateLimit] Connected to Redis')
-      redisAvailable = true
-    })
-
-    redisClient.on('error', (error) => {
-      logger.warn('[RateLimit] Redis error:', error.message)
-      redisAvailable = false
-    })
-
-    // Connect lazily
-    redisClient.connect().catch((error) => {
-      logger.warn('[RateLimit] Redis connection failed:', error.message)
-      redisAvailable = false
-    });
-
-    return redisClient
-  } catch (error) {
-    logger.warn('[RateLimit] Failed to initialize Redis:', error)
-    redisAvailable = false
-    return null
-  }
+  return redisClient
 }
 
 /**
@@ -135,27 +97,26 @@ function inMemoryIncrement(key: string, windowSeconds: number): number {
 
   if (existing && existing.resetAt > now) {
     existing.count++
-    existing.lastAccess = Date.now();
+    existing.lastAccess = Date.now()
     return existing.count
   }
 
   // New window
-  inMemoryStore.set(key, { count: 1, resetAt: now + windowSeconds, lastAccess: Date.now() });
+  inMemoryStore.set(key, { count: 1, resetAt: now + windowSeconds, lastAccess: Date.now() })
   return 1
 }
 
 /**
- * Increment counter using IORedis
+ * Increment counter using Upstash Redis
  */
-async function redisIncrement(key: string, windowSeconds: number): Promise<number | null> {
-  const client = redisClient || initializeRedis()
+async function upstashIncrement(key: string, windowSeconds: number): Promise<number | null> {
+  const client = getRedisClient()
 
-  if (!client || !redisAvailable) {
+  if (!client) {
     return null
   }
 
   try {
-    // Use pipeline for atomic INCR + EXPIRE
     const pipeline = client.pipeline()
     pipeline.incr(key)
     pipeline.expire(key, windowSeconds)
@@ -166,59 +127,15 @@ async function redisIncrement(key: string, windowSeconds: number): Promise<numbe
       return null
     }
 
-    const [incrError, count] = results[0]
+    const count = results[0] as number
 
-    if (incrError || typeof count !== 'number') {
+    if (typeof count !== 'number') {
       return null
     }
 
     return count
   } catch (error) {
-    logger.warn('[RateLimit] Redis increment failed:', error)
-    redisAvailable = false
-    return null
-  }
-}
-
-/**
- * Increment counter using Upstash REST API
- */
-async function upstashIncrement(key: string, windowSeconds: number): Promise<number | null> {
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) {
-    return null
-  }
-
-  try {
-    const url = `${UPSTASH_URL}/pipeline`
-    const body = JSON.stringify([
-      ['INCR', key],
-      ['EXPIRE', key, windowSeconds],
-    ])
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${UPSTASH_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body,
-      cache: 'no-store',
-      signal: AbortSignal.timeout(3000), // 3s timeout
-    })
-
-    if (!res.ok) {
-      return null
-    }
-
-    const data = await res.json()
-
-    if (!Array.isArray(data) || !data[0] || typeof data[0].result !== 'number') {
-      return null
-    }
-
-    return data[0].result as number
-  } catch (error) {
-    logger.warn('[RateLimit] Upstash increment failed:', error);
+    logger.warn('[RateLimit] Upstash increment failed:', error)
     return null
   }
 }
@@ -230,15 +147,14 @@ export type RateLimitResult = {
   reset: number
   retryAfter?: number
   headers: Headers
-  backend: 'redis' | 'upstash' | 'memory' | 'disabled'
+  backend: 'upstash' | 'memory' | 'disabled'
 }
 
 /**
- * Main rate limiting function with cascading fallback
- * 1. Try IORedis
- * 2. Fall back to Upstash REST
- * 3. Fall back to in-memory
- * 4. In production without any backend: deny all
+ * Main rate limiting function with fallback
+ * 1. Try Upstash Redis
+ * 2. Fall back to in-memory
+ * 3. In production without any backend: deny all
  */
 export async function rateLimit(
   key: string,
@@ -256,7 +172,7 @@ export async function rateLimit(
    */
   const buildResult = (
     count: number,
-    backend: 'redis' | 'upstash' | 'memory' | 'disabled'
+    backend: 'upstash' | 'memory' | 'disabled'
   ): RateLimitResult => {
     const remaining = Math.max(0, limit - count)
     const allowed = count <= limit
@@ -277,42 +193,34 @@ export async function rateLimit(
   }
 
   // Development mode without Redis: allow all
-  if (process.env.NODE_ENV !== 'production' && !REDIS_URL && !UPSTASH_URL) {
+  if (process.env.NODE_ENV !== 'production' && !UPSTASH_URL) {
     headers.set('X-RateLimit-Remaining', 'unlimited')
-    headers.set('X-RateLimit-Backend', 'disabled');
+    headers.set('X-RateLimit-Backend', 'disabled')
     return { allowed: true, limit, remaining: limit, reset: 0, headers, backend: 'disabled' }
   }
 
-  // 1. Try IORedis first (fastest)
-  const redisCount = await redisIncrement(fullKey, windowSeconds)
-  if (redisCount !== null) {
-    recordCounter('api.rate_limit.check', 1, { backend: 'redis' });
-    return buildResult(redisCount, 'redis')
-  }
-
-  // 2. Fall back to Upstash REST
+  // 1. Try Upstash Redis
   const upstashCount = await upstashIncrement(fullKey, windowSeconds)
   if (upstashCount !== null) {
     recordCounter('api.rate_limit.check', 1, { backend: 'upstash' })
-    recordCounter('api.rate_limit.fallback', 1, { from: 'redis', to: 'upstash' });
     return buildResult(upstashCount, 'upstash')
   }
 
-  // 3. Fall back to in-memory
+  // 2. Fall back to in-memory
   if (process.env.NODE_ENV !== 'production') {
     // In development: use in-memory and allow
     const memoryCount = inMemoryIncrement(fullKey, windowSeconds)
     recordCounter('api.rate_limit.check', 1, { backend: 'memory' })
     recordCounter('api.rate_limit.fallback', 1, { from: 'upstash', to: 'memory' })
-    logger.warn('[RateLimit] Using in-memory fallback in development');
+    logger.warn('[RateLimit] Using in-memory fallback in development')
     return buildResult(memoryCount, 'memory')
   }
 
-  // 4. Production without any backend: DENY for security
+  // 3. Production without any backend: DENY for security
   logger.error('[SECURITY] Rate limiting completely unavailable in production - denying request')
   recordCounter('api.rate_limit.misconfig', 1, { env: 'prod' })
   headers.set('X-RateLimit-Backend', 'disabled')
-  headers.set('X-RateLimit-Remaining', '0');
+  headers.set('X-RateLimit-Remaining', '0')
 
   return {
     allowed: false,
@@ -331,40 +239,22 @@ export async function resetRateLimit(key: string): Promise<boolean> {
   const fullKey = `${RATE_LIMIT_PREFIX}${key}`
 
   try {
-    // Try Redis
-    if (redisClient && redisAvailable) {
-      try {
-        await redisClient.del(fullKey);
-        return true
-      } catch (error) {
-        logger.warn('[RateLimit] Redis delete failed:', error)
-      }
-    }
-
     // Try Upstash
-    if (UPSTASH_URL && UPSTASH_TOKEN) {
+    const client = getRedisClient()
+    if (client) {
       try {
-        const url = `${UPSTASH_URL}/del/${encodeURIComponent(fullKey)}`
-        const res = await fetch(url, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${UPSTASH_TOKEN}`,
-          },
-        })
-
-        if (res.ok) {
-          return true
-        }
+        await client.del(fullKey)
+        return true
       } catch (error) {
         logger.warn('[RateLimit] Upstash delete failed:', error)
       }
     }
 
     // In-memory
-    inMemoryStore.delete(fullKey);
+    inMemoryStore.delete(fullKey)
     return true
   } catch (error) {
-    logger.error('[RateLimit] Failed to reset rate limit:', error);
+    logger.error('[RateLimit] Failed to reset rate limit:', error)
     return false
   }
 }
@@ -378,24 +268,31 @@ export async function getRateLimitStatus(
   const fullKey = `${RATE_LIMIT_PREFIX}${key}`
 
   try {
-    // Try Redis
-    if (redisClient && redisAvailable) {
+    // Try Upstash
+    const client = getRedisClient()
+    if (client) {
       try {
-        const [count, ttl] = await Promise.all([redisClient.get(fullKey), redisClient.ttl(fullKey)]);
+        const pipeline = client.pipeline()
+        pipeline.get(fullKey)
+        pipeline.ttl(fullKey)
+        const results = await pipeline.exec()
+
+        const count = results[0] as string | null
+        const ttl = results[1] as number
 
         return {
-          count: count ? parseInt(count, 10) : 0,
+          count: count ? parseInt(String(count), 10) : 0,
           ttl: ttl || 0,
         }
       } catch (error) {
-        logger.warn('[RateLimit] Redis get status failed:', error)
+        logger.warn('[RateLimit] Upstash get status failed:', error)
       }
     }
 
     // In-memory fallback
     const entry = inMemoryStore.get(fullKey)
     if (entry) {
-      const now = Math.floor(Date.now() / 1000);
+      const now = Math.floor(Date.now() / 1000)
       return {
         count: entry.count,
         ttl: Math.max(0, entry.resetAt - now),
@@ -404,49 +301,32 @@ export async function getRateLimitStatus(
 
     return { count: 0, ttl: 0 }
   } catch (error) {
-    logger.error('[RateLimit] Failed to get rate limit status:', error);
+    logger.error('[RateLimit] Failed to get rate limit status:', error)
     return null
   }
 }
 
 /**
- * Health check for rate limiting backends
+ * Health check for rate limiting backend
  */
 export async function rateLimitHealthCheck(): Promise<{
-  redis: boolean
   upstash: boolean
   memory: boolean
 }> {
-  let redisHealthy = false
   let upstashHealthy = false
 
-  // Check Redis
-  if (redisClient) {
-    try {
-      await redisClient.ping()
-      redisHealthy = true
-      redisAvailable = true
-    } catch {
-      redisHealthy = false
-      redisAvailable = false
-    }
-  }
-
   // Check Upstash
-  if (UPSTASH_URL && UPSTASH_TOKEN) {
+  const client = getRedisClient()
+  if (client) {
     try {
-      const res = await fetch(`${UPSTASH_URL}/ping`, {
-        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
-        signal: AbortSignal.timeout(2000),
-      })
-      upstashHealthy = res.ok
+      const pong = await client.ping()
+      upstashHealthy = pong === 'PONG'
     } catch {
       upstashHealthy = false
     }
   }
 
   return {
-    redis: redisHealthy,
     upstash: upstashHealthy,
     memory: inMemoryStore.size > 0,
   }

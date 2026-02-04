@@ -1,15 +1,15 @@
 /**
  * Redis caching utilities for expensive calculations
  * Saju, Tarot, Destiny Map results
+ *
+ * Uses @upstash/redis (HTTP/REST) — no persistent connections needed.
  */
 
-import { createClient, RedisClientType } from 'redis'
+import { Redis } from '@upstash/redis'
 import { logger } from '@/lib/logger'
 import type { CacheResult, CacheWriteResult } from './types'
 
-let redisClient: RedisClientType | null = null
-let isConnecting = false
-let connectionPromise: Promise<RedisClientType | null> | null = null
+let redis: Redis | null = null
 
 /**
  * Base64 encoding that works in both Node.js and browser
@@ -22,115 +22,32 @@ function safeBase64Encode(str: string): string {
 }
 
 /**
- * Get or create Redis client with proper connection management
- * Prevents connection leaks by ensuring only one connection attempt at a time
+ * Get or create Upstash Redis client (singleton, stateless HTTP — no connection management needed)
  */
-async function getRedisClient(): Promise<RedisClientType | null> {
-  if (!process.env.REDIS_URL) {
+function getRedisClient(): Redis | null {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
     return null
   }
 
-  // Return existing connected client
-  if (redisClient?.isOpen) {
-    return redisClient
+  if (redis) {
+    return redis
   }
 
-  // Wait for ongoing connection attempt
-  if (isConnecting && connectionPromise) {
-    return connectionPromise
-  }
+  redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  })
 
-  // Start new connection
-  isConnecting = true
-  connectionPromise = (async () => {
-    try {
-      // Clean up any existing disconnected client
-      if (redisClient && !redisClient.isOpen) {
-        try {
-          await redisClient.quit()
-        } catch {
-          // Ignore quit errors on already closed connections
-        }
-        redisClient = null
-      }
-
-      redisClient = createClient({
-        url: process.env.REDIS_URL,
-        socket: {
-          connectTimeout: 5000,
-          keepAlive: true,
-          reconnectStrategy: (retries) => {
-            if (retries > 5) {
-              logger.error('[Redis] Max reconnection attempts reached')
-              return new Error('Max reconnection attempts reached')
-            }
-            return Math.min(retries * 200, 3000)
-          },
-        },
-      })
-
-      redisClient.on('error', (err) => {
-        logger.error('[Redis] Connection error', { error: err })
-      })
-
-      await redisClient.connect()
-      logger.info('[Redis] Connected successfully')
-      return redisClient
-    } catch (error) {
-      logger.error('[Redis] Failed to connect', { error })
-      redisClient = null
-      return null
-    } finally {
-      isConnecting = false
-      connectionPromise = null
-    }
-  })()
-
-  return connectionPromise
+  return redis
 }
 
 /**
  * Gracefully disconnect Redis client
+ * No-op for Upstash (HTTP-based, no persistent connection)
  */
 export async function disconnectRedis(): Promise<void> {
-  if (redisClient) {
-    try {
-      await redisClient.quit()
-      logger.info('[Redis] Disconnected successfully')
-      redisClient = null
-    } catch (error) {
-      logger.error('[Redis] Error during disconnect', { error })
-      // Force disconnect if graceful quit fails
-      try {
-        if (redisClient) {
-          await redisClient.disconnect()
-        }
-        redisClient = null
-      } catch (forceError) {
-        logger.error('[Redis] Force disconnect failed', { error: forceError })
-      }
-    }
-  }
-}
-
-/**
- * Setup cleanup handlers for graceful shutdown
- */
-if (typeof process !== 'undefined') {
-  const cleanup = async () => {
-    await disconnectRedis()
-  }
-
-  process.on('SIGINT', cleanup)
-  process.on('SIGTERM', cleanup)
-  process.on('exit', () => {
-    // Synchronous cleanup on exit
-    if (redisClient) {
-      redisClient.disconnect().catch(() => {
-        // Ignore errors during exit
-      })
-    }
-  })
+  // Upstash uses HTTP REST — nothing to disconnect
+  redis = null
 }
 
 /**
@@ -171,17 +88,17 @@ export async function cacheGetResult<T>(key: string): Promise<CacheResult<T>> {
   try {
     validateCacheKey(key)
 
-    const client = await getRedisClient()
+    const client = getRedisClient()
     if (!client) {
       return { hit: false, data: null }
     }
 
-    const data = await client.get(key)
-    if (!data) {
+    const data = await client.get<T>(key)
+    if (data === null || data === undefined) {
       return { hit: false, data: null }
     }
 
-    return { hit: true, data: JSON.parse(data) as T }
+    return { hit: true, data }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     logger.warn('[Redis] Get failed, falling back to uncached path', { key, error })
@@ -213,12 +130,12 @@ export async function cacheSetResult(
       throw new Error('TTL must be between 1 second and 1 year')
     }
 
-    const client = await getRedisClient()
+    const client = getRedisClient()
     if (!client) {
       return { ok: false, error: new Error('Redis client unavailable') }
     }
 
-    await client.setEx(key, ttl, JSON.stringify(value))
+    await client.set(key, JSON.stringify(value), { ex: ttl })
     return { ok: true }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
@@ -242,7 +159,7 @@ export async function cacheDelResult(key: string): Promise<CacheWriteResult> {
   try {
     validateCacheKey(key)
 
-    const client = await getRedisClient()
+    const client = getRedisClient()
     if (!client) {
       return { ok: false, error: new Error('Redis client unavailable') }
     }
@@ -292,7 +209,7 @@ export const CacheKeys = {
     gender: string,
     year: number,
     category?: string
-  ) => `yearly:v2:${birthDate}:${birthTime}:${gender}:${year}:${category || 'all'}`, // v2: 날짜 필터링 제거, category 명시화로 키 충돌 방지
+  ) => `yearly:v2:${birthDate}:${birthTime}:${gender}:${year}:${category || 'all'}`,
 
   compatibility: (person1: string, person2: string) => `compat:v1:${person1}:${person2}`,
 
@@ -343,14 +260,13 @@ export async function cacheGetManyResult<T>(keys: string[]): Promise<CacheResult
     // Validate all keys
     keys.forEach(validateCacheKey)
 
-    const client = await getRedisClient()
+    const client = getRedisClient()
     if (!client) {
       return { hit: false, data: null }
     }
 
-    const results = await client.mGet(keys)
-    const data = results.map((item) => (item ? (JSON.parse(item) as T) : null))
-    return { hit: true, data }
+    const results = await client.mget<(T | null)[]>(...keys)
+    return { hit: true, data: results }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     logger.error('[Redis] Batch get error', { error })
@@ -368,7 +284,6 @@ export async function cacheGetMany<T>(keys: string[]): Promise<(T | null)[]> {
 
 /**
  * Clear cache by pattern using SCAN (production-safe, non-blocking)
- * SCAN is preferred over KEYS in production to avoid blocking Redis
  */
 export async function clearCacheByPattern(pattern: string): Promise<number> {
   try {
@@ -376,35 +291,28 @@ export async function clearCacheByPattern(pattern: string): Promise<number> {
       throw new Error('Pattern must be a non-empty string')
     }
 
-    const client = await getRedisClient()
+    const client = getRedisClient()
     if (!client) {
       return 0
     }
 
-    let cursor: number | string = 0
+    let cursor = 0 as number | string
     let deletedCount = 0
-    const batchSize = 100 // Delete in batches to avoid memory issues
 
     do {
-      // Use SCAN instead of KEYS to avoid blocking Redis
-      const result = await client.scan(String(cursor), {
-        MATCH: pattern,
-        COUNT: 100,
+      const result: [number | string, string[]] = await client.scan(cursor, {
+        match: pattern,
+        count: 100,
       })
 
-      cursor =
-        typeof result.cursor === 'string' ? parseInt(result.cursor, 10) : Number(result.cursor)
-      const keys = result.keys
+      cursor = result[0]
+      const keys = result[1]
 
       if (keys.length > 0) {
-        // Delete in batches
-        for (let i = 0; i < keys.length; i += batchSize) {
-          const batch = keys.slice(i, i + batchSize)
-          await client.del(batch)
-          deletedCount += batch.length
-        }
+        await client.del(...keys)
+        deletedCount += keys.length
       }
-    } while (cursor !== 0)
+    } while (String(cursor) !== '0')
 
     if (deletedCount > 0) {
       logger.info(`[Redis] Cleared ${deletedCount} keys matching pattern: ${pattern}`)
@@ -418,17 +326,17 @@ export async function clearCacheByPattern(pattern: string): Promise<number> {
 }
 
 /**
- * Get cache statistics
+ * Get cache info (simplified for Upstash — returns connection status)
  */
-export async function getCacheInfo() {
+export async function getCacheInfo(): Promise<string | null> {
   try {
-    const client = await getRedisClient()
+    const client = getRedisClient()
     if (!client) {
       return null
     }
 
-    const info = await client.info('stats')
-    return info
+    const pong = await client.ping()
+    return pong === 'PONG' ? 'connected' : null
   } catch (error) {
     logger.error('[Redis] Info error', { error })
     return null
@@ -437,14 +345,6 @@ export async function getCacheInfo() {
 
 /**
  * Generate cache key from object with optional versioning
- *
- * Version helps invalidate cache when logic changes:
- * - Increment version when calculation algorithm changes
- * - Old cache entries automatically become stale
- *
- * @param prefix - Cache key prefix (e.g., "saju", "tarot", "compatibility")
- * @param params - Parameters to include in key
- * @param version - Optional version number (default: 1)
  */
 export function makeCacheKey(
   prefix: string,

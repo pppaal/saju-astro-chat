@@ -68,7 +68,7 @@ jobs:
             | Functions | ${total.functions.pct}% |
             | Branches | ${total.branches.pct}% |
 
-            ${total.lines.pct >= 60 ? '✅' : '⚠️'} Target: 60%
+            ${total.lines.pct >= 80 ? '✅' : '⚠️'} Target: 80%
             `;
 
             github.rest.issues.createComment({

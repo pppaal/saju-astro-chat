@@ -27,10 +27,13 @@ from functools import lru_cache
 import torch
 from sentence_transformers import util
 
-from backend_ai.app.rag import BaseEmbeddingRAG, RAGResult
-from backend_ai.app.rag.model_manager import get_shared_model
+from app.rag import BaseEmbeddingRAG, RAGResult
+from app.rag.model_manager import get_shared_model
 
 logger = logging.getLogger(__name__)
+
+# ChromaDB Feature Flag
+_USE_CHROMADB = os.environ.get("USE_CHROMADB", "0") == "1"
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -145,6 +148,9 @@ class DomainRAG:
         """
         Search within a specific domain.
 
+        USE_CHROMADB=1일 때 ChromaDB domain_{domain} 컬렉션에서 검색.
+        그 외에는 기존 PyTorch cosine sim 검색.
+
         Args:
             domain: Domain to search in
             query: Search query
@@ -154,6 +160,57 @@ class DomainRAG:
         Returns:
             List of results with text and score
         """
+        if _USE_CHROMADB:
+            return self._search_chromadb(domain, query, top_k, min_score)
+
+        return self._search_legacy(domain, query, top_k, min_score)
+
+    def _search_chromadb(
+        self,
+        domain: str,
+        query: str,
+        top_k: int = 5,
+        min_score: float = 0.3,
+    ) -> List[Dict]:
+        """ChromaDB 기반 도메인 검색."""
+        try:
+            from app.rag.vector_store import get_domain_vector_store
+
+            vs = get_domain_vector_store(domain)
+            if not vs.has_data():
+                logger.info("[DomainRAG] ChromaDB domain_%s 비어있음, legacy fallback", domain)
+                return self._search_legacy(domain, query, top_k, min_score)
+
+            query_emb = self._embed_query(query)
+            if query_emb is None:
+                return []
+
+            q_list = query_emb.cpu().numpy().tolist()
+            results = vs.search(
+                query_embedding=q_list,
+                top_k=top_k,
+                min_score=min_score,
+            )
+
+            return [
+                {"text": r["text"], "score": r["score"], "domain": domain}
+                for r in results
+            ]
+
+        except ImportError:
+            return self._search_legacy(domain, query, top_k, min_score)
+        except Exception as e:
+            logger.warning("[DomainRAG] ChromaDB 검색 실패: %s, legacy fallback", e)
+            return self._search_legacy(domain, query, top_k, min_score)
+
+    def _search_legacy(
+        self,
+        domain: str,
+        query: str,
+        top_k: int = 5,
+        min_score: float = 0.3,
+    ) -> List[Dict]:
+        """기존 PyTorch cosine sim 도메인 검색."""
         # Load domain if not already loaded
         if not self._load_domain(domain):
             return []

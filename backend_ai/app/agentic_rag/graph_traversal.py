@@ -2,12 +2,19 @@
 """
 Deep Graph Traversal for multi-hop knowledge discovery.
 Supports BFS/DFS traversal with depth control and weighted path scoring.
+
+Phase 2 업그레이드: Community-aware + PPR + Beam Search 탐색 지원.
+USE_ENHANCED_TRAVERSAL=1 환경변수로 고급 탐색 활성화.
 """
 
+import os
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 
 from .entity_extractor import EntityExtractor
+
+# Phase 2 Feature Flag
+_USE_ENHANCED = os.environ.get("USE_ENHANCED_TRAVERSAL", "1") == "1"
 
 # Optional: Try to import networkx
 try:
@@ -68,6 +75,9 @@ class DeepGraphTraversal:
         """
         Perform multi-hop traversal from start entities.
 
+        USE_ENHANCED_TRAVERSAL=1일 때 Community-aware + PPR + Beam Search 사용.
+        실패 시 기존 BFS로 자동 fallback.
+
         Args:
             start_entities: Starting node IDs (e.g., ["Jupiter", "Sagittarius"])
             max_depth: Maximum traversal depth (hops)
@@ -81,14 +91,71 @@ class DeepGraphTraversal:
         if self.graph is None:
             return []
 
+        if _USE_ENHANCED:
+            result = self._traverse_enhanced(
+                start_entities, max_depth, max_paths, min_weight
+            )
+            if result is not None:
+                return result
+
+        return self._traverse_legacy(
+            start_entities, max_depth, max_paths, min_weight, relation_filter
+        )
+
+    def _traverse_enhanced(
+        self,
+        start_entities: List[str],
+        max_depth: int,
+        max_paths: int,
+        min_weight: float,
+    ) -> Optional[List[TraversalPath]]:
+        """Community-aware + PPR + Beam Search 기반 고급 탐색."""
+        try:
+            from app.rag.graph_algorithms import GraphAlgorithms
+
+            algo = GraphAlgorithms(self.graph)
+            enhanced_paths = algo.enhanced_traverse(
+                start_entities=start_entities,
+                max_depth=max_depth,
+                max_paths=max_paths,
+                min_weight=min_weight,
+                use_ppr=True,
+                diversity_weight=0.3,
+            )
+
+            results = []
+            for ep in enhanced_paths:
+                results.append(
+                    TraversalPath(
+                        nodes=ep.nodes,
+                        edges=ep.edges,
+                        total_weight=ep.combined_score,
+                        context=ep.context,
+                    )
+                )
+
+            return results
+
+        except ImportError:
+            return None
+        except Exception:
+            return None
+
+    def _traverse_legacy(
+        self,
+        start_entities: List[str],
+        max_depth: int,
+        max_paths: int,
+        min_weight: float,
+        relation_filter: List[str] = None,
+    ) -> List[TraversalPath]:
+        """기존 BFS 기반 탐색."""
         all_paths = []
 
         for start in start_entities:
-            # Find matching nodes in graph
             start_nodes = self._find_nodes(start)
 
             for start_node in start_nodes:
-                # BFS traversal
                 paths = self._bfs_traverse(
                     start_node,
                     max_depth,
@@ -96,10 +163,8 @@ class DeepGraphTraversal:
                 )
                 all_paths.extend(paths)
 
-        # Score and rank paths
         scored_paths = self._score_paths(all_paths)
 
-        # Filter by weight and return top paths
         filtered = [p for p in scored_paths if p.total_weight >= min_weight]
         return sorted(filtered, key=lambda p: -p.total_weight)[:max_paths]
 

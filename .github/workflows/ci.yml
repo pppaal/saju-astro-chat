@@ -181,7 +181,7 @@ jobs:
             ### Backend (Python)
             | Metric | Coverage | Threshold | Status |
             |--------|----------|-----------|--------|
-            | Total | ${backendPct.toFixed(2)}% | 60% | ${getIcon(backendPct, 60)} |
+            | Total | ${backendPct.toFixed(2)}% | 80% | ${getIcon(backendPct, 80)} |
             `;
             }
 
@@ -269,7 +269,7 @@ jobs:
             TOTAL=$(python3 -c "import json; d=json.load(open('backend_ai/coverage/coverage.json')); print(d['totals']['percent_covered'])")
             echo "📊 Backend Coverage: ${TOTAL}%"
 
-            MIN_COVERAGE=60
+            MIN_COVERAGE=80
             if (( $(echo "$TOTAL < $MIN_COVERAGE" | bc -l) )); then
               echo "❌ Backend coverage ${TOTAL}% is below threshold ${MIN_COVERAGE}%"
               exit 1

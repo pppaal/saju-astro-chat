@@ -99,13 +99,17 @@ function MainHeader() {
             className={styles.navButton}
             onClick={() => setActiveMenu(activeMenu === 'services' ? null : 'services')}
           >
-            {t('common.ourService')}
+            {translate('common.ourService', 'Services')}
           </button>
           {activeMenu === 'services' && (
             <div className={styles.dropdown}>
               <div className={styles.dropdownHeader}>
-                <span className={styles.dropdownTitle}>{t('services.title')}</span>
-                <span className={styles.dropdownSubtitle}>{t('services.subtitle')}</span>
+                <span className={styles.dropdownTitle}>
+                  {translate('services.title', 'Services')}
+                </span>
+                <span className={styles.dropdownSubtitle}>
+                  {translate('services.subtitle', 'Explore our services')}
+                </span>
               </div>
               <Grid className={styles.dropdownGrid} columns={3}>
                 {SERVICE_LINKS.slice(servicePage * pageSize, (servicePage + 1) * pageSize).map(
@@ -184,14 +188,16 @@ function MainHeader() {
           {translate('common.blog', 'Blog')}
         </Link>
         <Link href="/myjourney" className={styles.navLink}>
-          {t('app.myJourney')}
+          {translate('app.myJourney', 'My Journey')}
         </Link>
         <Link href="/destiny-match" className={styles.navLink}>
-          {t('app.destinyMatch')}
+          {translate('app.destinyMatch', 'Destiny Match')}
         </Link>
         <span className={`${styles.navLink} ${styles.navLinkDisabled}`}>
-          {t('app.community')}
-          <span className={styles.comingSoonBadgeSmall}>{t('common.comingSoon')}</span>
+          {translate('app.community', 'Community')}
+          <span className={styles.comingSoonBadgeSmall}>
+            {translate('common.comingSoon', 'Coming Soon')}
+          </span>
         </span>
       </nav>
       <div className={styles.headerLinks}>

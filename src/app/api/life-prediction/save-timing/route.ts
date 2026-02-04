@@ -1,18 +1,20 @@
 // src/app/api/life-prediction/save-timing/route.ts
 // Life Prediction 타이밍 결과 저장 API
 
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { NextRequest } from 'next/server'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { Prisma } from '@prisma/client'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 import { lifePredictionSaveTimingSchema } from '@/lib/api/zodValidation'
 
-// Type definitions
 interface TimingResult {
   startDate: string
   endDate: string
@@ -21,115 +23,81 @@ interface TimingResult {
   reasons: string[]
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    // 인증 확인
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: HTTP_STATUS.UNAUTHORIZED }
-      )
-    }
-
-    const ip = getClientIp(request.headers)
-    const limit = await rateLimit(`life-timing:${ip}`, { limit: 30, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { success: false, error: 'Too many requests. Try again soon.' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
-
+export const POST = withApiMiddleware(
+  async (request: NextRequest, context: ApiContext) => {
     const rawBody = await request.json()
 
-    // Validate with Zod
     const validationResult = lifePredictionSaveTimingSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[life-prediction/save-timing] validation failed', {
         errors: validationResult.error.issues,
       })
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
       )
     }
 
     const { question, eventType, results, birthDate, gender, locale = 'ko' } = validationResult.data
 
-    // 최고 결과
-    const topResult = results[0]
-    const _startDate = new Date(topResult.startDate)
-    const _endDate = new Date(topResult.endDate)
+    try {
+      const topResult = results[0]
 
-    // 요약 생성
-    const summary =
-      locale === 'ko'
-        ? `"${question}" - ${topResult.grade}등급 (${topResult.score}점)`
-        : `"${question}" - Grade ${topResult.grade} (${topResult.score}pts)`
+      const summary =
+        locale === 'ko'
+          ? `"${question}" - ${topResult.grade}등급 (${topResult.score}점)`
+          : `"${question}" - Grade ${topResult.grade} (${topResult.score}pts)`
 
-    // 상세 리포트 생성
-    const fullReport = generateFullReport(question, eventType, results, locale as 'ko' | 'en')
+      const fullReport = generateFullReport(question, eventType, results, locale as 'ko' | 'en')
 
-    // ConsultationHistory에 저장
-    const signals = {
-      question,
-      eventType,
-      birthDate,
-      gender,
-      topResult: {
-        startDate: topResult.startDate,
-        endDate: topResult.endDate,
-        score: topResult.score,
-        grade: topResult.grade,
-        reasons: topResult.reasons,
-      },
-      totalResults: results.length,
-      allResults: results.slice(0, 5).map((r) => ({
-        startDate: r.startDate,
-        endDate: r.endDate,
-        score: r.score,
-        grade: r.grade,
-        reasons: r.reasons,
-      })),
+      const signals = {
+        question,
+        eventType,
+        birthDate,
+        gender,
+        topResult: {
+          startDate: topResult.startDate,
+          endDate: topResult.endDate,
+          score: topResult.score,
+          grade: topResult.grade,
+          reasons: topResult.reasons,
+        },
+        totalResults: results.length,
+        allResults: results.slice(0, 5).map((r) => ({
+          startDate: r.startDate,
+          endDate: r.endDate,
+          score: r.score,
+          grade: r.grade,
+          reasons: r.reasons,
+        })),
+      }
+
+      const consultation = await prisma.consultationHistory.create({
+        data: {
+          userId: context.userId!,
+          theme: 'life-prediction-timing',
+          summary,
+          fullReport,
+          signals: signals as Prisma.InputJsonValue,
+          locale,
+        },
+      })
+
+      return apiSuccess({
+        consultationId: consultation.id,
+        message: locale === 'ko' ? '예측 결과가 저장되었습니다' : 'Prediction saved successfully',
+      })
+    } catch (err) {
+      logger.error('[life-prediction/save-timing API error]', err)
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Internal server error')
     }
-
-    const consultation = await prisma.consultationHistory.create({
-      data: {
-        userId: session.user.id,
-        theme: 'life-prediction-timing',
-        summary,
-        fullReport,
-        signals: signals as Prisma.InputJsonValue,
-        locale,
-      },
-    })
-
-    const res = NextResponse.json({
-      success: true,
-      consultationId: consultation.id,
-      message: locale === 'ko' ? '예측 결과가 저장되었습니다' : 'Prediction saved successfully',
-    })
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
-    return res
-  } catch (error) {
-    logger.error('[life-prediction/save-timing API error]', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Internal server error',
-      },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
+  },
+  createAuthenticatedGuard({
+    route: '/api/life-prediction/save-timing',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)
 
 function generateFullReport(
   question: string,

@@ -7,10 +7,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth/authOptions'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import {
   getMetricsSnapshot,
   toPrometheus,
@@ -20,12 +23,10 @@ import {
   type DashboardTimeRange,
 } from '@/lib/metrics/index'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
 
 // Helper to check if user is admin (via database role + env fallback)
 async function isUserAdmin(userId: string, email: string): Promise<boolean> {
   try {
-    // Primary: Check database role
     const { prisma } = await import('@/lib/db/prisma')
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -36,7 +37,6 @@ async function isUserAdmin(userId: string, email: string): Promise<boolean> {
       return true
     }
 
-    // Fallback: Check env variable (for emergency access)
     const adminEmails =
       process.env.ADMIN_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || []
     return adminEmails.includes(email.toLowerCase())
@@ -46,100 +46,78 @@ async function isUserAdmin(userId: string, email: string): Promise<boolean> {
   }
 }
 
-export async function GET(req: NextRequest) {
-  try {
-    // Rate limit
-    const ip = getClientIp(req.headers)
-    const limit = await rateLimit(`metrics:${ip}`, { limit: 30, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
+export const GET = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    try {
+      const userEmail = context.session?.user?.email
+      if (!userEmail || !context.userId) {
+        return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
+      }
 
-    // Admin authentication
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email || !session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers }
-      )
-    }
+      const adminCheck = await isUserAdmin(context.userId, userEmail)
+      if (!adminCheck) {
+        logger.warn('[Metrics] Unauthorized access attempt', {
+          email: userEmail,
+          userId: context.userId,
+        })
+        return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
+      }
 
-    const adminCheck = await isUserAdmin(session.user.id, session.user.email)
-    if (!adminCheck) {
-      logger.warn('[Metrics] Unauthorized access attempt', {
-        email: session.user.email,
-        userId: session.user.id,
+      const { searchParams } = new URL(req.url)
+      const format = searchParams.get('format') || 'json'
+      const timeRange = (searchParams.get('timeRange') || '24h') as DashboardTimeRange
+
+      const validationResult = DashboardRequestSchema.safeParse({
+        timeRange,
+        includeRaw: searchParams.get('includeRaw') === 'true',
       })
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: HTTP_STATUS.FORBIDDEN, headers: limit.headers }
-      )
+
+      if (!validationResult.success) {
+        return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid parameters')
+      }
+
+      // Return raw formats (these need NextResponse directly for custom content types)
+      if (format === 'prometheus') {
+        const prometheusData = toPrometheus()
+        return new NextResponse(prometheusData, {
+          status: 200,
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        }) as unknown as ReturnType<typeof apiError>
+      }
+
+      if (format === 'otlp') {
+        const otlpData = toOtlp()
+        return NextResponse.json(otlpData) as unknown as ReturnType<typeof apiError>
+      }
+
+      const snapshot = getMetricsSnapshot()
+      const summary = generateDashboardSummary(snapshot, timeRange)
+
+      const response: {
+        success: boolean
+        data: DashboardSummary
+        raw?: ReturnType<typeof getMetricsSnapshot>
+      } = {
+        success: true,
+        data: summary,
+      }
+
+      if (validationResult.data.includeRaw) {
+        response.raw = snapshot
+      }
+
+      return NextResponse.json(response) as unknown as ReturnType<typeof apiError>
+    } catch (err) {
+      logger.error('[Metrics API Error]', err)
+      return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')
     }
-
-    // Parse query parameters
-    const { searchParams } = new URL(req.url)
-    const format = searchParams.get('format') || 'json'
-    const timeRange = (searchParams.get('timeRange') || '24h') as DashboardTimeRange
-
-    // Validate request
-    const validationResult = DashboardRequestSchema.safeParse({
-      timeRange,
-      includeRaw: searchParams.get('includeRaw') === 'true',
-    })
-
-    if (!validationResult.success) {
-      return NextResponse.json(
-        { error: 'Invalid parameters', details: validationResult.error.flatten() },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
-    }
-
-    // Return raw formats
-    if (format === 'prometheus') {
-      const prometheusData = toPrometheus()
-      return new NextResponse(prometheusData, {
-        status: HTTP_STATUS.OK,
-        headers: {
-          'Content-Type': 'text/plain; charset=utf-8',
-          ...Object.fromEntries(limit.headers),
-        },
-      })
-    }
-
-    if (format === 'otlp') {
-      const otlpData = toOtlp()
-      return NextResponse.json(otlpData, { headers: limit.headers })
-    }
-
-    // Generate dashboard summary
-    const snapshot = getMetricsSnapshot()
-    const summary = generateDashboardSummary(snapshot, timeRange)
-
-    const response: {
-      success: boolean
-      data: DashboardSummary
-      raw?: ReturnType<typeof getMetricsSnapshot>
-    } = {
-      success: true,
-      data: summary,
-    }
-
-    if (validationResult.data.includeRaw) {
-      response.raw = snapshot
-    }
-
-    return NextResponse.json(response, { headers: limit.headers })
-  } catch (err) {
-    logger.error('[Metrics API Error]', err)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
+  },
+  createAuthenticatedGuard({
+    route: '/api/admin/metrics',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)
 
 // Metric names for accurate filtering
 const REQUEST_METRICS = [
@@ -155,23 +133,16 @@ const ERROR_METRICS = ['api.error.total']
 
 const CREDIT_METRICS = ['credits.usage.total']
 
-/**
- * Check if metric name matches any allowed names
- */
 function matchesMetricName(name: string, allowed: string[]): boolean {
   return allowed.includes(name)
 }
 
-/**
- * Generate dashboard summary from metrics snapshot
- */
 function generateDashboardSummary(
   snapshot: ReturnType<typeof getMetricsSnapshot>,
   timeRange: DashboardTimeRange
 ): DashboardSummary {
   const { counters, timings, gauges } = snapshot
 
-  // Calculate overview metrics
   let totalRequests = 0
   let totalErrors = 0
   let totalLatencySum = 0
@@ -191,13 +162,11 @@ function generateDashboardSummary(
   const errorCounts: Record<string, number> = {}
   const creditsByService: Record<string, number> = {}
 
-  // Process counters with precise metric matching
   for (const counter of counters) {
     const name = counter.name
     const labels = counter.labels || {}
     const service = String(labels.service || labels.theme || 'unknown')
 
-    // API requests - only count explicit request metrics
     if (matchesMetricName(name, REQUEST_METRICS)) {
       totalRequests += counter.value
 
@@ -213,7 +182,6 @@ function generateDashboardSummary(
       serviceMetrics[service].requests += counter.value
     }
 
-    // Errors - only count explicit error metrics
     if (matchesMetricName(name, ERROR_METRICS)) {
       totalErrors += counter.value
 
@@ -233,13 +201,11 @@ function generateDashboardSummary(
       errorCounts[errorKey] = (errorCounts[errorKey] || 0) + counter.value
     }
 
-    // Credits - only count credit usage metrics
     if (matchesMetricName(name, CREDIT_METRICS)) {
       creditsByService[service] = (creditsByService[service] || 0) + counter.value
     }
   }
 
-  // Process timings (with p95 support)
   for (const timing of timings) {
     const labels = timing.labels || {}
     const service = String(labels.service || labels.theme || 'unknown')
@@ -247,7 +213,6 @@ function generateDashboardSummary(
     totalLatencySum += timing.sum
     totalLatencyCount += timing.count
 
-    // Collect p95 value from timing
     if (timing.p95 !== undefined) {
       allLatencySamples.push(timing.p95)
     }
@@ -261,11 +226,8 @@ function generateDashboardSummary(
     }
   }
 
-  // Calculate overall p95 as max of individual p95s (conservative upper bound)
-  // Note: Taking p95 of p95s is statistically incorrect; max gives a valid upper bound
   const overallP95 = allLatencySamples.length > 0 ? Math.max(...allLatencySamples) : 0
 
-  // Process gauges for active users
   let activeUsers = 0
   for (const gauge of gauges) {
     if (gauge.name.includes('session') || gauge.name.includes('active')) {
@@ -273,7 +235,6 @@ function generateDashboardSummary(
     }
   }
 
-  // Build service summary with p95 (max of p95s per service)
   const services: DashboardSummary['services'] = {}
   for (const [service, metrics] of Object.entries(serviceMetrics)) {
     if (service === 'unknown') {
@@ -288,7 +249,6 @@ function generateDashboardSummary(
     }
   }
 
-  // Build top errors list
   const topErrors: DashboardSummary['topErrors'] = Object.entries(errorCounts)
     .map(([key, count]) => {
       const [service, category] = key.split(':')

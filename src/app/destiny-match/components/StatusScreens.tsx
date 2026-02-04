@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { useI18n } from '@/i18n/I18nProvider'
 
 type CSSStyles = { readonly [key: string]: string }
 
@@ -26,6 +27,8 @@ export function StatusScreens({
   onRetry,
   styles,
 }: StatusScreensProps) {
+  const { t } = useI18n()
+
   // 로딩 중
   if (isSessionLoading || isLoading) {
     return (
@@ -33,8 +36,12 @@ export function StatusScreens({
         <div className={styles.statusIconContainer}>
           <div className={styles.statusIcon}>✨</div>
         </div>
-        <h2 className={styles.statusTitle}>프로필을 불러오는 중...</h2>
-        <p className={styles.statusText}>잠시만 기다려주세요</p>
+        <h2 className={styles.statusTitle}>
+          {t('destinyMatch.status.loading', '프로필을 불러오는 중...')}
+        </h2>
+        <p className={styles.statusText}>
+          {t('destinyMatch.status.loadingWait', '잠시만 기다려주세요')}
+        </p>
       </div>
     )
   }
@@ -52,14 +59,24 @@ export function StatusScreens({
             🌟
           </div>
         </div>
-        <h2 className={styles.statusTitle}>운명의 만남을 시작하세요</h2>
+        <h2 className={styles.statusTitle}>
+          {t('destinyMatch.status.startTitle', '운명의 만남을 시작하세요')}
+        </h2>
         <p className={styles.statusText}>
-          사주와 별자리 기반으로
-          <br />
-          완벽한 궁합의 상대를 찾아드립니다
+          {t(
+            'destinyMatch.status.startDesc',
+            '사주와 별자리 기반으로\n완벽한 궁합의 상대를 찾아드립니다'
+          )
+            .split('\n')
+            .map((line, i) => (
+              <span key={i}>
+                {i > 0 && <br />}
+                {line}
+              </span>
+            ))}
         </p>
         <button onClick={onSignIn} className={styles.statusButton}>
-          로그인하고 시작하기
+          {t('destinyMatch.status.signIn', '로그인하고 시작하기')}
         </button>
       </div>
     )
@@ -72,14 +89,21 @@ export function StatusScreens({
         <div className={styles.statusIconContainer}>
           <div className={styles.statusIcon}>📝</div>
         </div>
-        <h2 className={styles.statusTitle}>프로필을 만들어주세요</h2>
+        <h2 className={styles.statusTitle}>
+          {t('destinyMatch.status.setupTitle', '프로필을 만들어주세요')}
+        </h2>
         <p className={styles.statusText}>
-          매칭을 시작하려면
-          <br />
-          간단한 프로필 설정이 필요합니다
+          {t('destinyMatch.status.setupDesc', '매칭을 시작하려면\n간단한 프로필 설정이 필요합니다')
+            .split('\n')
+            .map((line, i) => (
+              <span key={i}>
+                {i > 0 && <br />}
+                {line}
+              </span>
+            ))}
         </p>
         <button onClick={onSetup} className={styles.statusButton}>
-          프로필 만들기
+          {t('destinyMatch.status.setupButton', '프로필 만들기')}
         </button>
       </div>
     )
@@ -92,10 +116,12 @@ export function StatusScreens({
         <div className={styles.statusIconContainer}>
           <div className={styles.statusIcon}>😢</div>
         </div>
-        <h2 className={styles.statusTitle}>오류가 발생했습니다</h2>
+        <h2 className={styles.statusTitle}>
+          {t('destinyMatch.status.errorTitle', '오류가 발생했습니다')}
+        </h2>
         <p className={styles.statusText}>{error}</p>
         <button onClick={onRetry} className={styles.statusButton}>
-          다시 시도하기
+          {t('destinyMatch.status.retry', '다시 시도하기')}
         </button>
       </div>
     )
@@ -111,22 +137,30 @@ interface NoMoreCardsProps {
 }
 
 export function NoMoreCards({ profileCount, loadProfiles, styles }: NoMoreCardsProps) {
+  const { t } = useI18n()
+
   return (
     <div className={styles.noMoreCards}>
       <div className={styles.noMoreIcon}>&#127775;</div>
-      <h2>{profileCount === 0 ? '아직 매칭 상대가 없습니다' : '모든 프로필을 확인했어요!'}</h2>
+      <h2>
+        {profileCount === 0
+          ? t('destinyMatch.noMore.empty', '아직 매칭 상대가 없습니다')
+          : t('destinyMatch.noMore.done', '모든 프로필을 확인했어요!')}
+      </h2>
       <p>
-        {profileCount === 0 ? '나중에 다시 확인해주세요' : '나중에 더 많은 인연이 기다리고 있어요'}
+        {profileCount === 0
+          ? t('destinyMatch.noMore.emptyDesc', '나중에 다시 확인해주세요')
+          : t('destinyMatch.noMore.doneDesc', '나중에 더 많은 인연이 기다리고 있어요')}
       </p>
       <button onClick={loadProfiles} className={styles.resetButton}>
-        새로고침
+        {t('destinyMatch.noMore.refresh', '새로고침')}
       </button>
       <Link
         href="/destiny-match/matches"
         className={styles.resetButton}
         style={{ marginTop: '10px', display: 'inline-block' }}
       >
-        매치 확인하기
+        {t('destinyMatch.noMore.viewMatches', '매치 확인하기')}
       </Link>
     </div>
   )

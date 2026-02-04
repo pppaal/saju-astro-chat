@@ -3,10 +3,10 @@
  * Monitors Redis connection status and cache health
  */
 
-import { withApiMiddleware, apiSuccess } from '@/lib/api/middleware';
-import { healthCheck as sessionHealthCheck } from '@/lib/cache/redis-session';
-import { rateLimitHealthCheck } from '@/lib/cache/redis-rate-limit';
-import { getCacheInfo } from '@/lib/cache/redis-cache';
+import { withApiMiddleware, apiSuccess } from '@/lib/api/middleware'
+import { healthCheck as sessionHealthCheck } from '@/lib/cache/redis-session'
+import { rateLimitHealthCheck } from '@/lib/cache/redis-rate-limit'
+import { getCacheInfo } from '@/lib/cache/redis-cache'
 
 /**
  * GET /api/health/redis
@@ -19,9 +19,9 @@ export const GET = withApiMiddleware(
       sessionHealthCheck(),
       rateLimitHealthCheck(),
       getCacheInfo(),
-    ]);
+    ])
 
-    const timestamp = new Date().toISOString();
+    const timestamp = new Date().toISOString()
 
     return apiSuccess({
       timestamp,
@@ -31,7 +31,6 @@ export const GET = withApiMiddleware(
         sessionCount: sessionHealth.sessionCount,
       },
       rateLimit: {
-        redis: rateLimitHealth.redis,
         upstash: rateLimitHealth.upstash,
         memory: rateLimitHealth.memory,
       },
@@ -39,13 +38,11 @@ export const GET = withApiMiddleware(
         info: cacheInfo ? 'available' : 'unavailable',
       },
       overall: {
-        status: sessionHealth.redis || rateLimitHealth.redis || rateLimitHealth.upstash
-          ? 'healthy'
-          : 'degraded',
+        status: sessionHealth.redis || rateLimitHealth.upstash ? 'healthy' : 'degraded',
         redisAvailable: sessionHealth.redis,
         fallbackActive: sessionHealth.memory || rateLimitHealth.memory,
       },
-    });
+    })
   },
   {
     requireToken: true,
@@ -55,4 +52,4 @@ export const GET = withApiMiddleware(
       keyPrefix: 'health:redis',
     },
   }
-);
+)

@@ -52,6 +52,30 @@ from .optimized_manager import (
     TTLLRUCache,
 )
 
+# Vector store (ChromaDB) - optional, loaded when USE_CHROMADB=1
+try:
+    from .vector_store import (
+        VectorStoreManager,
+        get_vector_store,
+        get_domain_vector_store,
+    )
+except ImportError:
+    VectorStoreManager = None
+    get_vector_store = None
+    get_domain_vector_store = None
+
+# Community summarizer - optional, loaded when USE_COMMUNITY_SUMMARY=1
+try:
+    from .community_summarizer import (
+        CommunitySummary,
+        HierarchicalSummarizer,
+        get_hierarchical_summarizer,
+    )
+except ImportError:
+    CommunitySummary = None
+    HierarchicalSummarizer = None
+    get_hierarchical_summarizer = None
+
 __all__ = [
     # Types
     "RAGResult",
@@ -74,4 +98,12 @@ __all__ = [
     "warmup_optimized_rag",
     "RAGConfig",
     "TTLLRUCache",
+    # Vector store (optional)
+    "VectorStoreManager",
+    "get_vector_store",
+    "get_domain_vector_store",
+    # Community summarizer (optional)
+    "CommunitySummary",
+    "HierarchicalSummarizer",
+    "get_hierarchical_summarizer",
 ]

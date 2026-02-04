@@ -595,8 +595,10 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
             if (content) {
               controller.enqueue(encoder.encode(createSSEEvent({ content })))
             }
-          } catch {
-            // Skip invalid JSON
+          } catch (parseErr) {
+            logger.warn('[Tarot stream] Invalid JSON chunk skipped', {
+              data: data.substring(0, 100),
+            })
           }
         }
 
@@ -626,9 +628,18 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
           }
         } catch (error) {
           logger.error('Stream error:', { error: error })
+          try {
+            controller.enqueue(encoder.encode(createSSEEvent({ error: 'Stream interrupted' })))
+          } catch {
+            /* stream may already be closed */
+          }
         } finally {
           logger.info('Tarot stream SSE finished', { sawContent })
-          controller.close()
+          try {
+            controller.close()
+          } catch {
+            /* already closed */
+          }
         }
       },
     })

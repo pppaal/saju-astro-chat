@@ -32,12 +32,34 @@ async function loadLocaleDict(locale: Locale): Promise<DictValue> {
     import(`./locales/${locale}/pastlife.json`),
     import(`./locales/${locale}/compatibility.json`),
     import(`./locales/${locale}/destinymap.json`),
+    import(`./locales/${locale}/destinyMatch.json`),
     import(`./locales/${locale}/features.json`),
     import(`./locales/${locale}/misc.json`),
   ])
 
-  // Merge all modules into single dictionary
-  const dict = modules.reduce((acc, mod) => ({ ...acc, ...mod.default }), {} as DictValue)
+  // Deep merge helper for combining translation modules with overlapping namespaces
+  const deepMerge = (target: DictValue, source: DictValue): DictValue => {
+    for (const key of Object.keys(source)) {
+      if (
+        target[key] &&
+        typeof target[key] === 'object' &&
+        !Array.isArray(target[key]) &&
+        typeof source[key] === 'object' &&
+        !Array.isArray(source[key])
+      ) {
+        target[key] = deepMerge({ ...(target[key] as DictValue) }, source[key] as DictValue)
+      } else {
+        target[key] = source[key]
+      }
+    }
+    return target
+  }
+
+  // Merge all modules into single dictionary (deep merge to preserve overlapping namespaces)
+  const dict = modules.reduce(
+    (acc, mod) => deepMerge(acc, mod.default as DictValue),
+    {} as DictValue
+  )
 
   // Merge extensions
   if (allExtensions[locale]) {

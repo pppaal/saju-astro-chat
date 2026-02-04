@@ -1,99 +1,75 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth/authOptions'
+import { NextRequest } from 'next/server'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { sendPushNotification, sendTestNotification } from '@/lib/notifications/pushService'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 import { pushSendRequestSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
-/**
- * POST /api/push/send
- * Send a push notification to a user
- */
-export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions)
+export const POST = withApiMiddleware(
+  async (request: NextRequest, context: ApiContext) => {
+    try {
+      const rawBody = await request.json()
 
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
-  }
+      const validationResult = pushSendRequestSchema.safeParse(rawBody)
+      if (!validationResult.success) {
+        logger.warn('[push/send] validation failed', { errors: validationResult.error.issues })
+        return apiError(
+          ErrorCodes.VALIDATION_ERROR,
+          `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
+        )
+      }
 
-  const ip = getClientIp(request.headers)
-  const limit = await rateLimit(`push-send:${ip}`, { limit: 10, windowSeconds: 60 })
-  if (!limit.allowed) {
-    return NextResponse.json(
-      { error: 'Too many requests. Try again soon.' },
-      { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-    )
-  }
+      const { targetUserId, title, message, icon, url, tag, test } = validationResult.data
 
-  try {
-    const rawBody = await request.json()
+      // 테스트 알림 발송
+      if (test) {
+        const result = await sendTestNotification(context.userId!)
+        return apiSuccess({
+          success: result.success,
+          sent: result.sent,
+          failed: result.failed,
+          error: result.error,
+        } as Record<string, unknown>)
+      }
 
-    // Validate with Zod
-    const validationResult = pushSendRequestSchema.safeParse(rawBody)
-    if (!validationResult.success) {
-      logger.warn('[push/send] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
+      // 일반 알림 발송
+      const userId = targetUserId || context.userId!
 
-    const { targetUserId, title, message, icon, url, tag, test } = validationResult.data
+      // 본인에게만 발송 가능 (관리자 기능은 추후 추가)
+      if (targetUserId && targetUserId !== context.userId) {
+        return apiError(ErrorCodes.FORBIDDEN, 'Cannot send to other users')
+      }
 
-    // 테스트 알림 발송
-    if (test) {
-      const result = await sendTestNotification(session.user.id)
-      return NextResponse.json({
+      const result = await sendPushNotification(userId, {
+        title,
+        message,
+        icon: icon || '/icon-192.png',
+        tag: tag || 'destinypal',
+        data: { url: url || '/notifications' },
+      })
+
+      return apiSuccess({
         success: result.success,
         sent: result.sent,
         failed: result.failed,
         error: result.error,
-      })
+      } as Record<string, unknown>)
+    } catch (error) {
+      logger.error('Error sending push notification:', error)
+      return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')
     }
-
-    // 일반 알림 발송
-    const userId = targetUserId || session.user.id
-
-    // 본인에게만 발송 가능 (관리자 기능은 추후 추가)
-    if (targetUserId && targetUserId !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Cannot send to other users' },
-        { status: HTTP_STATUS.FORBIDDEN }
-      )
-    }
-
-    const result = await sendPushNotification(userId, {
-      title,
-      message,
-      icon: icon || '/icon-192.png',
-      tag: tag || 'destinypal',
-      data: { url: url || '/notifications' },
-    })
-
-    const res = NextResponse.json({
-      success: result.success,
-      sent: result.sent,
-      failed: result.failed,
-      error: result.error,
-    })
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
-    return res
-  } catch (error) {
-    logger.error('Error sending push notification:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
+  },
+  createAuthenticatedGuard({
+    route: '/api/push/send',
+    limit: 10,
+    windowSeconds: 60,
+  })
+)

@@ -5,6 +5,7 @@ import { registerClient, unregisterClient, drainQueuedNotifications } from '@/li
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -65,8 +66,8 @@ export async function GET(_request: NextRequest) {
           for (const item of queued) {
             try {
               controller.enqueue(`data: ${JSON.stringify(item)}\n\n`)
-            } catch {
-              // Ignore enqueue errors
+            } catch (enqueueErr) {
+              logger.warn('[notifications/stream] Enqueue failed, stream may be closed', { userId })
             }
           }
         } finally {

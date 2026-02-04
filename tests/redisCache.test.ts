@@ -5,7 +5,7 @@
  * - 정렬 일관성
  */
 
-import { makeCacheKey } from '@/lib/redis-cache'
+import { makeCacheKey } from '@/lib/cache/redis-cache'
 
 describe('makeCacheKey: Basic Functionality', () => {
   it('generates key with prefix and params', () => {

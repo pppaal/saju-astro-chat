@@ -28,8 +28,7 @@ const envSchema = z.object({
   ADMIN_EMAILS: z.string(),
   ADMIN_API_TOKEN: z.string().min(20).optional(),
 
-  // Redis (optional)
-  REDIS_URL: z.string().url().optional(),
+  // Redis (Upstash)
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
 })
@@ -37,7 +36,7 @@ const envSchema = z.object({
 export function validateEnv() {
   try {
     envSchema.parse(process.env)
-    logger.info('✅ Environment variables validated successfully');
+    logger.info('✅ Environment variables validated successfully')
   } catch (error) {
     if (error instanceof z.ZodError) {
       const issues = error.issues || []

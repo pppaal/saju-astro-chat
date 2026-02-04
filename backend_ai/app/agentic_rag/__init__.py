@@ -32,6 +32,12 @@ from .entity_extractor import (
     EntityExtractor,
 )
 
+# Phase 3: Enhanced Entity Extraction (LLM + Pattern hybrid)
+try:
+    from .llm_entity_extractor import LLMEntityExtractor
+except ImportError:
+    LLMEntityExtractor = None
+
 # Graph Traversal
 from .graph_traversal import (
     TraversalPath,
@@ -62,6 +68,7 @@ __all__ = [
     "EntityType",
     "Entity",
     "EntityExtractor",
+    "LLMEntityExtractor",
     # Graph Traversal
     "TraversalPath",
     "DeepGraphTraversal",

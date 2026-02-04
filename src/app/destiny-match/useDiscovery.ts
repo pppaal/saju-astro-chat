@@ -124,11 +124,13 @@ export function useDiscovery({
       const data = await res.json()
 
       if (!res.ok) {
-        if (res.status === 400 && data.error?.includes('프로필')) {
+        if (res.status === 400 && typeof data.error === 'string' && data.error.includes('프로필')) {
           setNeedsSetup(true)
           return
         }
-        throw new Error(data.error || '프로필을 불러오는데 실패했습니다')
+        const errorMsg =
+          typeof data.error === 'string' ? data.error : '프로필을 불러오는데 실패했습니다'
+        throw new Error(errorMsg)
       }
 
       const convertedProfiles = (data.profiles || []).map(convertToUserProfile)
@@ -136,7 +138,9 @@ export function useDiscovery({
       setHasMore(data.hasMore)
       setCurrentIndex(0)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '오류가 발생했습니다')
+      const message =
+        err instanceof Error ? err.message : typeof err === 'string' ? err : '오류가 발생했습니다'
+      setError(message)
     } finally {
       setIsLoading(false)
     }

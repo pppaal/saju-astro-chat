@@ -4,6 +4,7 @@
  */
 
 import { render, screen } from '@testing-library/react'
+import { vi } from 'vitest'
 import { ClientProviders } from '@/app/ClientProviders'
 import { useI18n } from '@/i18n/I18nProvider'
 import { useToast } from '@/components/ui/Toast'
@@ -11,32 +12,32 @@ import { useCreditModal } from '@/contexts/CreditModalContext'
 import { useNotification } from '@/contexts/NotificationContext'
 
 // Mock all provider modules
-jest.mock('@/i18n/I18nProvider', () => ({
+vi.mock('@/i18n/I18nProvider', () => ({
   I18nProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="i18n-provider">{children}</div>
   ),
-  useI18n: jest.fn(),
+  useI18n: vi.fn(),
 }))
 
-jest.mock('@/components/ui/Toast', () => ({
+vi.mock('@/components/ui/Toast', () => ({
   ToastProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="toast-provider">{children}</div>
   ),
-  useToast: jest.fn(),
+  useToast: vi.fn(),
 }))
 
-jest.mock('@/contexts/CreditModalContext', () => ({
+vi.mock('@/contexts/CreditModalContext', () => ({
   CreditModalProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="credit-modal-provider">{children}</div>
   ),
-  useCreditModal: jest.fn(),
+  useCreditModal: vi.fn(),
 }))
 
-jest.mock('@/contexts/NotificationContext', () => ({
+vi.mock('@/contexts/NotificationContext', () => ({
   NotificationProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="notification-provider">{children}</div>
   ),
-  useNotification: jest.fn(),
+  useNotification: vi.fn(),
 }))
 
 describe('ClientProviders', () => {
@@ -92,7 +93,7 @@ describe('ClientProviders', () => {
   })
 
   it('should nest providers in correct order', () => {
-    const { container } = render(
+    render(
       <ClientProviders>
         <div data-testid="content">Content</div>
       </ClientProviders>
@@ -127,7 +128,7 @@ describe('ClientProviders', () => {
   })
 
   it('should handle empty children', () => {
-    const { container } = render(<ClientProviders>{null}</ClientProviders>)
+    render(<ClientProviders>{null}</ClientProviders>)
 
     // Should still render all providers
     expect(screen.getByTestId('i18n-provider')).toBeInTheDocument()
@@ -137,7 +138,7 @@ describe('ClientProviders', () => {
   })
 
   it('should handle undefined children', () => {
-    const { container } = render(<ClientProviders>{undefined}</ClientProviders>)
+    render(<ClientProviders>{undefined}</ClientProviders>)
 
     expect(screen.getByTestId('i18n-provider')).toBeInTheDocument()
   })
@@ -166,11 +167,11 @@ describe('ClientProviders', () => {
 
   it('should allow children to access I18n context', () => {
     const mockI18n = {
-      t: jest.fn((key) => key),
+      t: vi.fn((key: string) => key),
       locale: 'ko',
-      setLocale: jest.fn(),
+      setLocale: vi.fn(),
     }
-    ;(useI18n as jest.Mock).mockReturnValue(mockI18n)
+    vi.mocked(useI18n).mockReturnValue(mockI18n)
 
     const TestComponent = () => {
       const i18n = useI18n()
@@ -188,11 +189,11 @@ describe('ClientProviders', () => {
 
   it('should allow children to access Toast context', () => {
     const mockToast = {
-      show: jest.fn(),
-      showSuccess: jest.fn(),
-      showError: jest.fn(),
+      show: vi.fn(),
+      showSuccess: vi.fn(),
+      showError: vi.fn(),
     }
-    ;(useToast as jest.Mock).mockReturnValue(mockToast)
+    vi.mocked(useToast).mockReturnValue(mockToast)
 
     const TestComponent = () => {
       const toast = useToast()
@@ -211,10 +212,10 @@ describe('ClientProviders', () => {
   it('should allow children to access CreditModal context', () => {
     const mockCreditModal = {
       isOpen: false,
-      open: jest.fn(),
-      close: jest.fn(),
+      open: vi.fn(),
+      close: vi.fn(),
     }
-    ;(useCreditModal as jest.Mock).mockReturnValue(mockCreditModal)
+    vi.mocked(useCreditModal).mockReturnValue(mockCreditModal)
 
     const TestComponent = () => {
       const modal = useCreditModal()
@@ -233,10 +234,10 @@ describe('ClientProviders', () => {
   it('should allow children to access Notification context', () => {
     const mockNotification = {
       notifications: [],
-      addNotification: jest.fn(),
-      removeNotification: jest.fn(),
+      addNotification: vi.fn(),
+      removeNotification: vi.fn(),
     }
-    ;(useNotification as jest.Mock).mockReturnValue(mockNotification)
+    vi.mocked(useNotification).mockReturnValue(mockNotification)
 
     const TestComponent = () => {
       const notif = useNotification()
@@ -320,7 +321,7 @@ describe('ClientProviders', () => {
 
   it('should render all providers even with render errors in children', () => {
     // Suppress console.error for this test
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     const ErrorComponent = () => {
       throw new Error('Render error')

@@ -52,13 +52,14 @@ class VectorStoreManager:
         self._collection_name = collection_name
         self._client = None
         self._collection = None
-        self._init_lock = Lock()
+        self._client_lock = Lock()
+        self._collection_lock = Lock()
 
     @property
     def client(self):
         """Lazy-initialize ChromaDB persistent client."""
         if self._client is None:
-            with self._init_lock:
+            with self._client_lock:
                 if self._client is None:
                     import chromadb
                     from chromadb.config import Settings
@@ -81,7 +82,7 @@ class VectorStoreManager:
     def collection(self):
         """Get or create ChromaDB collection with HNSW cosine index."""
         if self._collection is None:
-            with self._init_lock:
+            with self._collection_lock:
                 if self._collection is None:
                     self._collection = self.client.get_or_create_collection(
                         name=self._collection_name,
