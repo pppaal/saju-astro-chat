@@ -180,12 +180,12 @@ export async function POST(req: NextRequest) {
     return res
   } catch (err: unknown) {
     captureServerError(err as Error, { route: '/api/tarot/chat' })
-    const errorMessage = err instanceof Error ? err.message : String(err)
-    logger.error('Tarot chat error:', { message: errorMessage, error: err })
+    const rawErrorMessage = err instanceof Error ? err.message : String(err)
+    logger.error('Tarot chat error:', { message: rawErrorMessage, error: err })
 
     // 🔄 크레딧 자동 환불 (API 에러 발생 시)
     if (apiContext?.refundCreditsOnError) {
-      await apiContext.refundCreditsOnError(errorMessage, {
+      await apiContext.refundCreditsOnError(rawErrorMessage, {
         errorType: err instanceof Error ? err.constructor.name : 'UnknownError',
         hasMessages: !!messages,
         hasContext: !!context,
@@ -194,8 +194,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error: 'Server error',
-        detail: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+        error: 'Internal Server Error',
       },
       { status: HTTP_STATUS.SERVER_ERROR }
     )

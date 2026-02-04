@@ -65,6 +65,9 @@ export function usePullToRefresh(
       }
     }
 
+    let outerTimer: ReturnType<typeof setTimeout> | null = null
+    let innerTimer: ReturnType<typeof setTimeout> | null = null
+
     const handleTouchEnd = async () => {
       const distance = currentY.current - startY.current
 
@@ -77,10 +80,10 @@ export function usePullToRefresh(
           try {
             await onRefresh()
           } finally {
-            setTimeout(() => {
+            outerTimer = setTimeout(() => {
               if (refreshIndicator) {
                 refreshIndicator.classList.remove('active')
-                setTimeout(() => {
+                innerTimer = setTimeout(() => {
                   refreshIndicator?.remove()
                   refreshIndicator = null
                 }, 300)
@@ -106,6 +109,8 @@ export function usePullToRefresh(
       container.removeEventListener('touchstart', handleTouchStart)
       container.removeEventListener('touchmove', handleTouchMove)
       container.removeEventListener('touchend', handleTouchEnd)
+      if (outerTimer) clearTimeout(outerTimer)
+      if (innerTimer) clearTimeout(innerTimer)
       if (refreshIndicator) {
         refreshIndicator.remove()
       }
@@ -151,10 +156,8 @@ export function useTapFeedback() {
  *
  * @example
  * const swipeRef = useSwipeGesture(
- *   () => // @ts-expect-error console
-  console.log('Swiped left'),
- *   () => // @ts-expect-error console
-  console.log('Swiped right')
+ *   () => logger.info('Swiped left'),
+ *   () => logger.info('Swiped right')
  * );
  *
  * return <div ref={swipeRef}>Swipeable content</div>

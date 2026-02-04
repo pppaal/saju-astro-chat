@@ -78,7 +78,7 @@ function isValidEmail(email: string): boolean {
 }
 
 async function checkStripeActive(email?: string) {
-  if (!process.env.REQUIRE_PAID_CHAT || process.env.REQUIRE_PAID_CHAT === 'false') {
+  if (process.env.REQUIRE_PAID_CHAT !== 'true') {
     return true
   }
   const key = process.env.STRIPE_SECRET_KEY
@@ -285,7 +285,7 @@ export async function POST(request: NextRequest) {
     res.headers.set('X-Fallback', success ? '0' : '1')
     return res
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal Server Error'
+    const message = 'Internal Server Error'
     logger.error('[DestinyMap chat API error]', err)
     return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
   }

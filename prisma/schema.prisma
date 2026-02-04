@@ -85,6 +85,7 @@ model User {
   blocksReceived        UserBlock[]            @relation("BlocksReceived")
   reportsMade           UserReport[]           @relation("ReportsMade")
   reportsReceived       UserReport[]           @relation("ReportsReceived")
+  savedPersons          SavedPerson[]
 
   @@index([referrerId])
 }
@@ -277,6 +278,8 @@ model SavedPerson {
 
   // 메모
   note String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([userId, relation])

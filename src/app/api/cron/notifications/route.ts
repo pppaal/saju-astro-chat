@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       ...result,
     })
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
+    const message = 'Internal server error'
     logger.error('[Cron] Notification job failed:', error)
 
     return NextResponse.json(
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       ...result,
     })
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
+    const message = 'Internal server error'
     logger.error('[Manual] Notification job failed:', error)
 
     return NextResponse.json(

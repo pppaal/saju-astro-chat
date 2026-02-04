@@ -1,97 +1,70 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { NextRequest } from 'next/server'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { linkReferrer } from '@/lib/referral'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 import { referralClaimRequestSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
 // POST: OAuth 로그인 후 추천 코드 연결
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
-    }
-
-    const ip = getClientIp(request.headers)
-    const limit = await rateLimit(`referral-link:${ip}`, { limit: 30, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Try again soon.' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
-
+export const POST = withApiMiddleware(
+  async (request: NextRequest, context: ApiContext) => {
     const rawBody = await request.json()
 
-    // Validate with Zod
     const validationResult = referralClaimRequestSchema.safeParse({ code: rawBody.referralCode })
     if (!validationResult.success) {
       logger.warn('[Referral link] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
       )
     }
 
     const { code: referralCode } = validationResult.data
 
-    // 이미 추천인이 연결되어 있는지 확인
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { referrerId: true, createdAt: true },
-    })
-
-    if (user?.referrerId) {
-      return NextResponse.json({
-        linked: false,
-        reason: 'already_linked',
+    try {
+      // 이미 추천인이 연결되어 있는지 확인
+      const user = await prisma.user.findUnique({
+        where: { id: context.userId! },
+        select: { referrerId: true, createdAt: true },
       })
+
+      if (user?.referrerId) {
+        return apiSuccess({ linked: false, reason: 'already_linked' })
+      }
+
+      // 가입 후 24시간 이내에만 추천 코드 연결 가능
+      const hoursSinceCreation = user?.createdAt
+        ? (Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60)
+        : 0
+
+      if (hoursSinceCreation > 24) {
+        return apiSuccess({ linked: false, reason: 'too_late' })
+      }
+
+      const result = await linkReferrer(context.userId!, referralCode)
+
+      if (!result.success) {
+        return apiSuccess({ linked: false, reason: result.error })
+      }
+
+      return apiSuccess({ linked: true, referrerId: result.referrerId })
+    } catch (err) {
+      logger.error('[Referral link error]', err)
+      return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal Server Error')
     }
-
-    // 가입 후 24시간 이내에만 추천 코드 연결 가능
-    const hoursSinceCreation = user?.createdAt
-      ? (Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60)
-      : 0
-
-    if (hoursSinceCreation > 24) {
-      return NextResponse.json({
-        linked: false,
-        reason: 'too_late',
-      })
-    }
-
-    const result = await linkReferrer(session.user.id, referralCode)
-
-    if (!result.success) {
-      return NextResponse.json({
-        linked: false,
-        reason: result.error,
-      })
-    }
-
-    const res = NextResponse.json({
-      linked: true,
-      referrerId: result.referrerId,
-    })
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
-    return res
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal Server Error'
-    logger.error('[Referral link error]', err)
-    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
-  }
-}
+  },
+  createAuthenticatedGuard({
+    route: '/api/referral/link',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)

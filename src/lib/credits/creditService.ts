@@ -172,16 +172,16 @@ async function consumeBonusCreditsFromPurchases(userId: string, amount: number):
     remainingToConsume -= toConsume
   }
 
-  // Batch update using transaction (avoids N+1 queries)
+  // Sequential update using interactive transaction (prevents deadlocks from concurrent access)
   if (updates.length > 0) {
-    await prisma.$transaction(
-      updates.map(({ id, decrement }) =>
-        prisma.bonusCreditPurchase.update({
+    await prisma.$transaction(async (tx) => {
+      for (const { id, decrement } of updates) {
+        await tx.bonusCreditPurchase.update({
           where: { id },
           data: { remaining: { decrement } },
         })
-      )
-    )
+      }
+    })
   }
 
   return totalConsumed

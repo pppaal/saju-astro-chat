@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse({
         code: ErrorCodes.RATE_LIMITED,
         message: 'Too many requests. Try again soon.',
-        headers: limit.headers as any, // TODO: Fix type compatibility
+        headers: Object.fromEntries(limit.headers.entries()),
       })
     }
 
@@ -403,7 +403,7 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     logger.error('[life-prediction API error]', error)
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error'
+    const errorMessage = 'Internal server error'
     return createErrorResponse({
       code: ErrorCodes.INTERNAL_ERROR,
       message: errorMessage,

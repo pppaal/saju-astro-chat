@@ -8,7 +8,7 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { put } from '@vercel/blob'
+import { put, del } from '@vercel/blob'
 
 export const runtime = 'nodejs'
 
@@ -58,23 +58,37 @@ export const POST = withApiMiddleware(
       // Get public URL from Blob
       const photoUrl = blob.url
 
-      // Update user profile
-      const user = await prisma.user.update({
-        where: { id: context.userId! },
-        data: { profilePhoto: photoUrl },
-        select: {
-          id: true,
-          name: true,
-          image: true,
-          profilePhoto: true,
-          matchProfile: {
-            select: {
-              id: true,
-              photos: true,
+      // Update user profile (rollback blob on failure)
+      let user
+      try {
+        user = await prisma.user.update({
+          where: { id: context.userId! },
+          data: { profilePhoto: photoUrl },
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            profilePhoto: true,
+            matchProfile: {
+              select: {
+                id: true,
+                photos: true,
+              },
             },
           },
-        },
-      })
+        })
+      } catch (dbError) {
+        // DB update failed - clean up orphaned blob
+        try {
+          await del(blob.url)
+        } catch (delError) {
+          logger.error('[upload-photo] Failed to clean up orphaned blob', {
+            url: blob.url,
+            error: delError instanceof Error ? delError.message : 'Unknown',
+          })
+        }
+        throw dbError
+      }
 
       // Sync with MatchProfile if exists
       if (user.matchProfile) {

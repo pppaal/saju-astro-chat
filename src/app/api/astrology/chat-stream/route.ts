@@ -250,7 +250,7 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal Server Error'
+    const message = 'Internal Server Error'
     logger.error('[Astrology Chat-Stream API error]', err)
     return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
   }

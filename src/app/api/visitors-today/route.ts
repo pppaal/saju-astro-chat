@@ -186,12 +186,9 @@ export async function GET(request: Request) {
     const res = NextResponse.json(data)
     return withHeaders(res, limit.headers)
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
+    const message = 'Internal Server Error'
     captureServerError(error, { route: '/api/visitors-today', method: 'GET' })
-    return NextResponse.json(
-      { error: `Failed to fetch count: ${message}` },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }
 
@@ -224,11 +221,8 @@ export async function POST(request: Request) {
     const res = NextResponse.json({ success: true })
     return withHeaders(res, limit.headers)
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
+    const message = 'Internal Server Error'
     captureServerError(error, { route: '/api/visitors-today', method: 'POST' })
-    return NextResponse.json(
-      { error: `Failed to increment count: ${message}` },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }

@@ -22,6 +22,9 @@ import networkx as nx
 import torch
 from sentence_transformers import SentenceTransformer, util
 
+# ChromaDB Feature Flag: USE_CHROMADB=1 환경변수로 활성화
+_USE_CHROMADB = os.environ.get("USE_CHROMADB", "0") == "1"
+
 logger = logging.getLogger(__name__)
 
 # ===============================================================
@@ -358,9 +361,78 @@ class GraphRAG:
                 logger.warning("Cache save failed: %s", e)
 
     def query(self, facts: dict, top_k: int = 8, domain_priority: str = "saju") -> Dict:
-        """Query graph with facts dict."""
+        """Query graph with facts dict.
+
+        USE_CHROMADB=1일 때 ChromaDB HNSW 검색 사용 (O(log n)).
+        그 외에는 기존 PyTorch cosine sim 전체 스캔 (O(n)).
+        """
         facts_str = json.dumps(facts, ensure_ascii=False)
 
+        if _USE_CHROMADB:
+            return self._query_chromadb(facts_str, top_k, domain_priority)
+
+        return self._query_legacy(facts_str, top_k, domain_priority)
+
+    def _query_chromadb(self, facts_str: str, top_k: int, domain_priority: str) -> Dict:
+        """ChromaDB HNSW 인덱스 기반 검색 (O(log n))."""
+        try:
+            from backend_ai.app.rag.vector_store import get_vector_store
+
+            query_emb = self.embed_model.encode(
+                facts_str,
+                convert_to_tensor=False,
+                normalize_embeddings=True,
+            ).tolist()
+
+            vs = get_vector_store()
+            if not vs.has_data():
+                logger.warning("[GraphRAG] ChromaDB에 데이터 없음, legacy fallback")
+                return self._query_legacy(facts_str, top_k, domain_priority)
+
+            results = vs.search(
+                query_embedding=query_emb,
+                top_k=top_k,
+                min_score=0.1,
+            )
+
+            matched_nodes = [r["text"] for r in results]
+            matched_ids = [r["metadata"].get("original_id", r["id"]) for r in results]
+            matched_score = [r["score"] for r in results]
+
+            # 그래프 관계 탐색 (기존 NetworkX 활용)
+            edges = [
+                {"src": u, "dst": v, "rel": d.get("relation"), "desc": d.get("desc", "")}
+                for u, v, d in self.graph.edges(data=True)
+                if u in matched_ids or v in matched_ids
+            ]
+
+            rule_summary = self._apply_rules(domain_priority, facts_str) if domain_priority in self.rules else None
+
+            context_lines = [
+                f"{matched_ids[i]} | {matched_nodes[i]} (score: {matched_score[i]:.3f})"
+                for i in range(len(matched_nodes))
+            ]
+            edge_lines = [f"{e['src']}->{e['dst']}({e['rel']})" for e in edges[:30]]
+            context_text = "\n".join(context_lines + edge_lines)
+
+            return {
+                "matched_nodes": matched_nodes,
+                "matched_ids": matched_ids,
+                "related_edges": edges,
+                "rule_summary": rule_summary,
+                "context_text": context_text,
+                "stats": {"nodes": len(matched_nodes), "edges": len(edges), "backend": "chromadb"},
+            }
+
+        except ImportError:
+            logger.warning("[GraphRAG] chromadb 미설치, legacy fallback")
+            return self._query_legacy(facts_str, top_k, domain_priority)
+        except Exception as e:
+            logger.warning("[GraphRAG] ChromaDB 검색 실패: %s, legacy fallback", e)
+            return self._query_legacy(facts_str, top_k, domain_priority)
+
+    def _query_legacy(self, facts_str: str, top_k: int, domain_priority: str) -> Dict:
+        """기존 PyTorch cosine similarity 전체 스캔 (O(n))."""
         if self.node_embeds is None or self.node_embeds.size(0) == 0:
             return {
                 "matched_nodes": [],
@@ -407,7 +479,7 @@ class GraphRAG:
             "related_edges": edges,
             "rule_summary": rule_summary,
             "context_text": context_text,
-            "stats": {"nodes": len(matched_nodes), "edges": len(edges)},
+            "stats": {"nodes": len(matched_nodes), "edges": len(edges), "backend": "legacy"},
         }
 
     def _apply_rules(self, domain: str, facts_str: str) -> Optional[List[str]]:
@@ -862,6 +934,9 @@ def search_graphs(query: str, top_k: int = 6, graph_root: Optional[str] = None) 
     """
     Simple embedding-based search in graph data.
 
+    USE_CHROMADB=1일 때 ChromaDB corpus_nodes 컬렉션에서 검색.
+    그 외에는 기존 PyTorch cosine sim 전체 스캔.
+
     Args:
         query: Natural language search query
         top_k: Number of results to return
@@ -870,6 +945,54 @@ def search_graphs(query: str, top_k: int = 6, graph_root: Optional[str] = None) 
     Returns:
         List of matching nodes with scores
     """
+    if _USE_CHROMADB:
+        return _search_graphs_chromadb(query, top_k)
+
+    return _search_graphs_legacy(query, top_k, graph_root)
+
+
+def _search_graphs_chromadb(query: str, top_k: int = 6) -> List[Dict]:
+    """ChromaDB corpus_nodes 컬렉션에서 ANN 검색."""
+    try:
+        from backend_ai.app.rag.vector_store import VectorStoreManager
+
+        vs = VectorStoreManager(collection_name="corpus_nodes")
+        if not vs.has_data():
+            logger.warning("[search_graphs] ChromaDB corpus_nodes 비어있음, legacy fallback")
+            return _search_graphs_legacy(query, top_k)
+
+        q_emb = embed_text(query)
+        q_list = q_emb.cpu().numpy().tolist()
+
+        results = vs.search(
+            query_embedding=q_list,
+            top_k=top_k,
+            min_score=0.1,
+        )
+
+        output = []
+        for r in results:
+            node = {
+                "description": r["text"],
+                "score": r["score"],
+                "source": r["metadata"].get("source", ""),
+                "type": r["metadata"].get("type", ""),
+                "label": r["metadata"].get("label", ""),
+            }
+            output.append(node)
+
+        return output
+
+    except ImportError:
+        logger.warning("[search_graphs] chromadb 미설치, legacy fallback")
+        return _search_graphs_legacy(query, top_k)
+    except Exception as e:
+        logger.warning("[search_graphs] ChromaDB 검색 실패: %s, legacy fallback", e)
+        return _search_graphs_legacy(query, top_k)
+
+
+def _search_graphs_legacy(query: str, top_k: int = 6, graph_root: Optional[str] = None) -> List[Dict]:
+    """기존 search_graphs 구현 (PyTorch cosine sim 전체 스캔)."""
     global _NODES_CACHE, _TEXTS_CACHE, _CORPUS_EMBEDS_CACHE, _CORPUS_EMBEDS_PATH, _GRAPH_MTIME
 
     graph_path = Path(graph_root) if graph_root else Path(__file__).parent.parent / "data" / "graph"
@@ -885,20 +1008,15 @@ def search_graphs(query: str, top_k: int = 6, graph_root: Optional[str] = None) 
         _GRAPH_MTIME = current_mtime
 
     if not _NODES_CACHE or not _TEXTS_CACHE:
-        logger.warning("No graph nodes found")
         return []
 
-    # Query embedding (cached via @lru_cache on embed_text)
     q_emb = embed_text(query)
-
-    # Corpus embeddings
     nodes = _NODES_CACHE
     texts = _TEXTS_CACHE
 
     if _CORPUS_EMBEDS_CACHE is None:
         if _CORPUS_EMBEDS_PATH and _CORPUS_EMBEDS_PATH.exists():
             try:
-                logger.info("Loading cached embeddings: %s", _CORPUS_EMBEDS_PATH)
                 _CORPUS_EMBEDS_CACHE = torch.load(_CORPUS_EMBEDS_PATH, map_location="cpu")
                 texts, nodes, _CORPUS_EMBEDS_CACHE = _handle_embed_mismatch(texts, nodes, _CORPUS_EMBEDS_CACHE)
             except Exception as e:
@@ -910,14 +1028,11 @@ def search_graphs(query: str, top_k: int = 6, graph_root: Optional[str] = None) 
             try:
                 if _CORPUS_EMBEDS_PATH:
                     torch.save(_CORPUS_EMBEDS_CACHE, _CORPUS_EMBEDS_PATH)
-                    logger.info("Saved embeddings: %s", _CORPUS_EMBEDS_PATH)
             except Exception as e:
                 logger.warning("Failed to save embeddings: %s", e)
 
-    # Final mismatch check
     texts, nodes, _CORPUS_EMBEDS_CACHE = _handle_embed_mismatch(texts, nodes, _CORPUS_EMBEDS_CACHE)
 
-    # Search
     scores = util.cos_sim(q_emb, _CORPUS_EMBEDS_CACHE)[0]
     best_indices = torch.topk(scores, k=min(top_k, len(texts)))
 

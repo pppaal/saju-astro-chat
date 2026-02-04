@@ -68,7 +68,7 @@ export async function GET() {
       periodEnd: balance.periodEnd,
     })
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal Server Error'
+    const message = 'Internal Server Error'
     logger.error('[Credits GET error]', err)
     return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
   }
@@ -132,7 +132,7 @@ export async function POST(request: Request) {
     const result = await canUseCredits(session.user.id, type, amount)
     return NextResponse.json(result)
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal Server Error'
+    const message = 'Internal Server Error'
     logger.error('[Credits POST error]', err)
     return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
   }

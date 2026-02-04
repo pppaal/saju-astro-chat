@@ -22,6 +22,8 @@ import {
   buildPredictionSection,
   buildLongTermMemorySection,
 } from './lib/context-builder'
+import type { SajuDataStructure, AstroDataStructure } from './lib/types'
+import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -104,35 +106,42 @@ export async function POST(req: NextRequest) {
     const needsProfileLoad = userId && (!birthDate || !birthTime || !latitude || !longitude)
 
     if (needsProfileLoad) {
-      const profileResult: ProfileLoadResult = await loadUserProfile(
-        userId,
-        birthDate,
-        birthTime,
-        latitude,
-        longitude,
-        saju as any, // TODO: Fix type compatibility
-        astro as any // TODO: Fix type compatibility
-      )
-      if (profileResult.saju) {
-        effectiveSaju = profileResult.saju
-      }
-      if (profileResult.astro) {
-        effectiveAstro = profileResult.astro
-      }
-      if (profileResult.birthDate) {
-        effectiveBirthDate = profileResult.birthDate
-      }
-      if (profileResult.birthTime) {
-        effectiveBirthTime = profileResult.birthTime
-      }
-      if (profileResult.latitude) {
-        effectiveLatitude = profileResult.latitude
-      }
-      if (profileResult.longitude) {
-        effectiveLongitude = profileResult.longitude
-      }
-      if (profileResult.gender) {
-        effectiveGender = profileResult.gender as 'male' | 'female'
+      try {
+        const profileResult: ProfileLoadResult = await loadUserProfile(
+          userId,
+          birthDate,
+          birthTime,
+          latitude,
+          longitude,
+          saju as SajuDataStructure | undefined,
+          astro as AstroDataStructure | undefined
+        )
+        if (profileResult.saju) {
+          effectiveSaju = profileResult.saju
+        }
+        if (profileResult.astro) {
+          effectiveAstro = profileResult.astro
+        }
+        if (profileResult.birthDate) {
+          effectiveBirthDate = profileResult.birthDate
+        }
+        if (profileResult.birthTime) {
+          effectiveBirthTime = profileResult.birthTime
+        }
+        if (profileResult.latitude) {
+          effectiveLatitude = profileResult.latitude
+        }
+        if (profileResult.longitude) {
+          effectiveLongitude = profileResult.longitude
+        }
+        if (profileResult.gender) {
+          effectiveGender = profileResult.gender as 'male' | 'female'
+        }
+      } catch (profileError) {
+        logger.warn('[chat-stream] Failed to load user profile, proceeding with provided data', {
+          userId,
+          error: profileError instanceof Error ? profileError.message : 'Unknown error',
+        })
       }
     }
 
@@ -173,8 +182,8 @@ export async function POST(req: NextRequest) {
         latitude: effectiveLatitude,
         longitude: effectiveLongitude,
       },
-      effectiveSaju as any, // TODO: Fix type compatibility
-      effectiveAstro as any // TODO: Fix type compatibility
+      effectiveSaju as SajuDataStructure | undefined,
+      effectiveAstro as AstroDataStructure | undefined
     )
 
     const finalSaju = chartResult.saju
@@ -212,7 +221,7 @@ export async function POST(req: NextRequest) {
     const contextSections = buildContextSections({
       saju: finalSaju,
       astro: finalAstro,
-      advancedAstro: advancedAstro as any, // TODO: Fix type compatibility
+      advancedAstro: advancedAstro as Partial<CombinedResult> | undefined,
       natalChartData,
       currentTransits,
       birthDate: effectiveBirthDate,
@@ -344,7 +353,7 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal Server Error'
+    const message = 'Internal Server Error'
     logger.error('[Chat-Stream API error]', err)
     return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
   }

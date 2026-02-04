@@ -269,13 +269,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     logger.error('[Backend Predict] Error:', error)
 
     // 백엔드 연결 실패 시 에러 반환
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const rawErrorMessage = error instanceof Error ? error.message : ''
 
     const isTimeout =
       error instanceof Error &&
       (error.name === 'AbortError' ||
         error.name === 'TimeoutError' ||
-        errorMessage.includes('timeout'))
+        rawErrorMessage.includes('timeout'))
     if (isTimeout) {
       return NextResponse.json(
         {
@@ -287,7 +287,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    if (errorMessage.includes('ECONNREFUSED') || errorMessage.includes('fetch failed')) {
+    if (rawErrorMessage.includes('ECONNREFUSED') || rawErrorMessage.includes('fetch failed')) {
       return NextResponse.json(
         {
           success: false,

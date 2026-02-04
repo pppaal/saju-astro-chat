@@ -351,15 +351,15 @@ export async function POST(req: NextRequest) {
     limit.headers.forEach((value, key) => res.headers.set(key, value))
     return res
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
+    const rawErrorMessage = error instanceof Error ? error.message : String(error)
 
     logger.error('AI Report Generation Error:', {
-      message: errorMessage,
+      message: rawErrorMessage,
       name: error instanceof Error ? error.name : 'Unknown',
     })
 
     // AI 프로바이더 관련 에러는 사용자에게 친절한 메시지로 변환
-    if (errorMessage.includes('No AI providers available')) {
+    if (rawErrorMessage.includes('No AI providers available')) {
       return NextResponse.json(
         {
           success: false,
@@ -372,7 +372,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (errorMessage.includes('All AI providers failed') || errorMessage.includes('API error')) {
+    if (
+      rawErrorMessage.includes('All AI providers failed') ||
+      rawErrorMessage.includes('API error')
+    ) {
       return NextResponse.json(
         {
           success: false,
@@ -386,9 +389,9 @@ export async function POST(req: NextRequest) {
     }
 
     if (
-      errorMessage.includes('aborted') ||
-      errorMessage.includes('timeout') ||
-      errorMessage.includes('AbortError')
+      rawErrorMessage.includes('aborted') ||
+      rawErrorMessage.includes('timeout') ||
+      rawErrorMessage.includes('AbortError')
     ) {
       return NextResponse.json(
         {

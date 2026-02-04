@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
   } catch (err: unknown) {
     logger.error('[PersonaMemory update-from-chat error]', err)
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Internal Server Error' },
+      { error: 'Internal Server Error' },
       { status: HTTP_STATUS.SERVER_ERROR }
     )
   }

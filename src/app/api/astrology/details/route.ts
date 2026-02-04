@@ -191,7 +191,7 @@ export async function POST(request: Request) {
     return res
   } catch (error) {
     captureServerError(error, { route: '/api/astrology/details' })
-    const message = error instanceof Error ? error.message : 'Unexpected server error.'
+    const message = 'Internal Server Error'
     return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }

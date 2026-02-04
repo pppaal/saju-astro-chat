@@ -310,14 +310,14 @@ export async function POST(req: Request) {
       adminUserId,
       action: 'refund_failed',
       metadata: {
-        error: err instanceof Error ? err.message : 'Unknown error',
+        error: 'Internal server error',
         body: await req
           .clone()
           .json()
           .catch(() => null),
       },
       success: false,
-      errorMessage: err instanceof Error ? err.message : 'Unknown error',
+      errorMessage: 'Internal server error',
       ipAddress,
       userAgent,
     })

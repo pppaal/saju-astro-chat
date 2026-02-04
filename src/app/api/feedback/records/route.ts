@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
   } catch (error: unknown) {
     logger.error('[Feedback Records Error]:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal Server Error' },
+      { error: 'Internal Server Error' },
       { status: HTTP_STATUS.SERVER_ERROR }
     )
   }

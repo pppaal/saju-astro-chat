@@ -1,24 +1,17 @@
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { NextRequest } from 'next/server'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { csrfGuard } from '@/lib/security/csrf'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 
-import { HTTP_STATUS } from '@/lib/constants/http'
 import { contentAccessSchema, contentAccessGetQuerySchema } from '@/lib/api/zodValidation'
 export const dynamic = 'force-dynamic'
-
-type ContentAccessBody = {
-  service?: string
-  contentType?: string
-  contentId?: string
-  locale?: string
-  metadata?: unknown
-  creditUsed?: number
-}
 
 type PremiumContentAccessRecord = {
   id: string
@@ -64,49 +57,33 @@ const premiumContentAccess = (
   prisma as unknown as { premiumContentAccess: PremiumContentAccessDelegate }
 ).premiumContentAccess
 
+const VALID_SERVICES = [
+  'astrology',
+  'saju',
+  'tarot',
+  'dream',
+  'destiny-map',
+  'numerology',
+  'iching',
+  'compatibility',
+] as const
+
 // POST: 프리미엄 콘텐츠 열람 기록 저장
-export async function POST(request: Request) {
-  try {
-    // CSRF Protection
-    const csrfError = csrfGuard(request.headers)
-    if (csrfError) {
-      logger.warn('[ContentAccess] CSRF validation failed')
-      return csrfError
-    }
-
-    // Rate Limiting
-    const ip = getClientIp(request.headers)
-    const limit = await rateLimit(`content-access:${ip}`, { limit: 60, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
-
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
-    }
-
-    const rawBody = (await request.json().catch(() => null)) as ContentAccessBody | null
+export const POST = withApiMiddleware(
+  async (request: NextRequest, context: ApiContext) => {
+    const rawBody = await request.json().catch(() => null)
     if (!rawBody || typeof rawBody !== 'object') {
-      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return apiError(ErrorCodes.BAD_REQUEST, 'Invalid request body')
     }
 
-    // Validate with Zod
     const validationResult = contentAccessSchema.safeParse(rawBody)
     if (!validationResult.success) {
-      logger.warn('[Content access] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
+      logger.warn('[ContentAccess POST] validation failed', {
+        errors: validationResult.error.issues,
+      })
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
       )
     }
 
@@ -119,59 +96,45 @@ export async function POST(request: Request) {
       creditUsed = 0,
     } = validationResult.data
 
-    // 유효한 서비스 검증
-    const validServices = [
-      'astrology',
-      'saju',
-      'tarot',
-      'dream',
-      'destiny-map',
-      'numerology',
-      'iching',
-      'compatibility',
-    ]
-    if (!validServices.includes(service)) {
-      return NextResponse.json(
-        { error: `Invalid service. Must be one of: ${validServices.join(', ')}` },
-        { status: HTTP_STATUS.BAD_REQUEST }
+    if (!VALID_SERVICES.includes(service as (typeof VALID_SERVICES)[number])) {
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Invalid service. Must be one of: ${VALID_SERVICES.join(', ')}`
       )
     }
 
-    // 열람 기록 저장
-    const accessLog = await premiumContentAccess.create({
-      data: {
-        userId: session.user.id,
-        service,
-        contentType,
-        contentId: contentId || null,
-        locale,
-        metadata: metadata || null,
-        creditUsed,
-      },
-    })
+    try {
+      const accessLog = await premiumContentAccess.create({
+        data: {
+          userId: context.userId!,
+          service,
+          contentType,
+          contentId: contentId || null,
+          locale,
+          metadata: metadata || null,
+          creditUsed,
+        },
+      })
 
-    return NextResponse.json({
-      success: true,
-      id: accessLog.id,
-      createdAt: accessLog.createdAt,
-    })
-  } catch (err: unknown) {
-    logger.error('[ContentAccess POST error]', err)
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Internal Server Error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
+      return apiSuccess({
+        id: accessLog.id,
+        createdAt: accessLog.createdAt,
+      })
+    } catch (err) {
+      logger.error('[ContentAccess POST] Database error', { error: err })
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to save content access log')
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/content-access',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)
 
 // GET: 내 콘텐츠 열람 기록 조회
-export async function GET(request: Request) {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
-    }
-
+export const GET = withApiMiddleware(
+  async (request: NextRequest, context: ApiContext) => {
     const { searchParams } = new URL(request.url)
     const queryValidation = contentAccessGetQuerySchema.safeParse({
       service: searchParams.get('service') || undefined,
@@ -179,59 +142,55 @@ export async function GET(request: Request) {
       offset: searchParams.get('offset') || undefined,
     })
     if (!queryValidation.success) {
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: queryValidation.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${queryValidation.error.issues.map((e) => e.message).join(', ')}`
       )
     }
     const { service, limit, offset } = queryValidation.data
 
-    // 쿼리 빌드
-    const where: { userId: string; service?: string } = { userId: session.user.id }
-    if (service) {
-      where.service = service
-    }
+    try {
+      const where: { userId: string; service?: string } = { userId: context.userId! }
+      if (service) {
+        where.service = service
+      }
 
-    const [accessLogs, total] = await Promise.all([
-      premiumContentAccess.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        skip: offset,
-        select: {
-          id: true,
-          service: true,
-          contentType: true,
-          contentId: true,
-          createdAt: true,
-          locale: true,
-          creditUsed: true,
+      const [accessLogs, total] = await Promise.all([
+        premiumContentAccess.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          take: limit,
+          skip: offset,
+          select: {
+            id: true,
+            service: true,
+            contentType: true,
+            contentId: true,
+            createdAt: true,
+            locale: true,
+            creditUsed: true,
+          },
+        }),
+        premiumContentAccess.count({ where }),
+      ])
+
+      return apiSuccess({
+        data: accessLogs,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore: offset + accessLogs.length < total,
         },
-      }),
-      premiumContentAccess.count({ where }),
-    ])
-
-    return NextResponse.json({
-      success: true,
-      data: accessLogs,
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + accessLogs.length < total,
-      },
-    })
-  } catch (err: unknown) {
-    logger.error('[ContentAccess GET error]', err)
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Internal Server Error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
+      })
+    } catch (err) {
+      logger.error('[ContentAccess GET] Database error', { error: err })
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to fetch content access logs')
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/content-access',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)

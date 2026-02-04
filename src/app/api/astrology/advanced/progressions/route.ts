@@ -2,6 +2,7 @@
 // Secondary Progressions & Solar Arc API 엔드포인트
 
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'

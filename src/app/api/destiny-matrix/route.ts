@@ -7,6 +7,18 @@ import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import type { FiveElement, RelationHit } from '@/lib/Saju/types'
+import type {
+  GeokgukType,
+  ShinsalKind,
+  WesternElement,
+  PlanetName,
+  HouseNumber,
+  ZodiacKo,
+  AspectType,
+  TransitCycle,
+  AsteroidName,
+  ExtraPointName,
+} from '@/lib/destiny-matrix/types'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { rateLimit } from '@/lib/rateLimit'
@@ -256,19 +268,23 @@ export async function POST(req: NextRequest) {
       pillarElements: calculatedPillarElements,
       sibsinDistribution,
       twelveStages,
-      relations: relations as any as RelationHit[], // TODO: Fix Zod schema to use proper RelationHit type
-      geokguk: geokguk as any, // TODO: Fix Zod schema to use proper GeokgukType
-      yongsin: yongsin as any, // TODO: Fix Zod schema
+      relations: relations as unknown as RelationHit[],
+      geokguk: geokguk as GeokgukType | undefined,
+      yongsin: yongsin?.[0] as FiveElement | undefined,
       currentDaeunElement,
       currentSaeunElement,
-      shinsalList: shinsalList as any, // TODO: Fix Zod schema for ShinsalKind[]
-      dominantWesternElement: dominantWesternElement as any, // TODO: Fix Zod schema
-      planetHouses: planetHouses as any,
-      planetSigns: planetSigns as any,
-      aspects: aspects as any,
-      activeTransits: activeTransits as any,
-      asteroidHouses: asteroidHouses as any,
-      extraPointSigns: extraPointSigns as any,
+      shinsalList: shinsalList as unknown as ShinsalKind[] | undefined,
+      dominantWesternElement: dominantWesternElement as WesternElement | undefined,
+      planetHouses: planetHouses as Partial<Record<PlanetName, HouseNumber>>,
+      planetSigns: planetSigns as Partial<Record<PlanetName, ZodiacKo>>,
+      aspects: aspects as unknown as Array<{
+        planet1: PlanetName
+        planet2: PlanetName
+        type: AspectType
+      }>,
+      activeTransits: activeTransits as unknown as TransitCycle[] | undefined,
+      asteroidHouses: asteroidHouses as Partial<Record<AsteroidName, HouseNumber>> | undefined,
+      extraPointSigns: extraPointSigns as Partial<Record<ExtraPointName, ZodiacKo>> | undefined,
       lang,
     }
 

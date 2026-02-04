@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import { generateWeeklyFortuneImage } from '@/lib/replicate';
-import { saveWeeklyFortuneImage, getWeekNumber } from '@/lib/weeklyFortune';
-import { logger } from '@/lib/logger';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextResponse } from 'next/server'
+import { generateWeeklyFortuneImage } from '@/lib/replicate'
+import { saveWeeklyFortuneImage, getWeekNumber } from '@/lib/weeklyFortune'
+import { logger } from '@/lib/logger'
+import { HTTP_STATUS } from '@/lib/constants/http'
 
 // Vercel Cron이 호출할 엔드포인트
 // 매주 월요일 오전 9시 (KST) = 월요일 0시 (UTC) 실행
@@ -21,36 +21,33 @@ const WEEKLY_THEMES = [
   'enchanted forest with fairy lights',
   'lotus flower blooming on still pond',
   'majestic waterfall in misty mountains',
-];
+]
 
 export async function GET(request: Request) {
   // Vercel Cron 인증 확인
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = request.headers.get('authorization')
+  const cronSecret = process.env.CRON_SECRET
 
   // 프로덕션에서는 CRON_SECRET 검증
   if (process.env.NODE_ENV === 'production' && cronSecret) {
     if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: HTTP_STATUS.UNAUTHORIZED }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
     }
   }
 
   try {
-    logger.warn('[WeeklyFortune] Starting image generation...');
+    logger.warn('[WeeklyFortune] Starting image generation...')
 
     // 이미지 생성
-    const imageUrl = await generateWeeklyFortuneImage();
+    const imageUrl = await generateWeeklyFortuneImage()
 
     if (!imageUrl) {
-      throw new Error('Failed to generate image');
+      throw new Error('Failed to generate image')
     }
 
     // 주차 정보
-    const weekNumber = getWeekNumber();
-    const themeIndex = weekNumber % WEEKLY_THEMES.length;
+    const weekNumber = getWeekNumber()
+    const themeIndex = weekNumber % WEEKLY_THEMES.length
 
     // Redis에 저장
     const saved = await saveWeeklyFortuneImage({
@@ -58,13 +55,13 @@ export async function GET(request: Request) {
       generatedAt: new Date().toISOString(),
       weekNumber,
       theme: WEEKLY_THEMES[themeIndex],
-    });
+    })
 
     if (!saved) {
-      logger.error('[WeeklyFortune] Failed to save to Redis');
+      logger.error('[WeeklyFortune] Failed to save to Redis')
     }
 
-    logger.warn('[WeeklyFortune] Image generated and saved successfully');
+    logger.warn('[WeeklyFortune] Image generated and saved successfully')
 
     return NextResponse.json({
       success: true,
@@ -72,20 +69,20 @@ export async function GET(request: Request) {
       weekNumber,
       theme: WEEKLY_THEMES[themeIndex],
       generatedAt: new Date().toISOString(),
-    });
+    })
   } catch (error) {
-    logger.error('[WeeklyFortune] Error:', error);
+    logger.error('[WeeklyFortune] Error:', error)
     return NextResponse.json(
       {
         error: 'Failed to generate weekly fortune image',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        details: 'Internal server error',
       },
       { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    )
   }
 }
 
 // POST도 지원 (수동 트리거용)
 export async function POST(request: Request) {
-  return GET(request);
+  return GET(request)
 }

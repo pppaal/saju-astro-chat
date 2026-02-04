@@ -76,12 +76,12 @@ export async function POST(request: Request) {
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    logger.error('[Stripe Webhook] Signature verification failed:', { message })
+    const internalMessage = err instanceof Error ? err.message : 'Unknown error'
+    logger.error('[Stripe Webhook] Signature verification failed:', { message: internalMessage })
     recordCounter('stripe_webhook_auth_error', 1, { reason: 'verify_failed' })
     captureServerError(err, { route: '/api/webhook/stripe', stage: 'verify', ip })
     return NextResponse.json(
-      { error: `Webhook signature verification failed: ${message}` },
+      { error: 'Webhook signature verification failed' },
       { status: HTTP_STATUS.BAD_REQUEST }
     )
   }
@@ -185,7 +185,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ received: true })
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
+    const internalMessage = err instanceof Error ? err.message : 'Unknown error'
     logger.error(`[Stripe Webhook] Error handling ${event.type}:`, err)
     recordCounter('stripe_webhook_handler_error', 1, { event: event.type })
     captureServerError(err, { route: '/api/webhook/stripe', event: event.type })
@@ -207,23 +207,23 @@ export async function POST(request: Request) {
         where: { eventId: event.id },
         update: {
           success: false,
-          errorMsg: message,
+          errorMsg: internalMessage,
           processedAt: new Date(),
           metadata: {
             livemode: event.livemode,
             apiVersion: event.api_version,
-            error: message,
+            error: internalMessage,
           },
         },
         create: {
           eventId: event.id,
           type: event.type,
           success: false,
-          errorMsg: message,
+          errorMsg: internalMessage,
           metadata: {
             livemode: event.livemode,
             apiVersion: event.api_version,
-            error: message,
+            error: internalMessage,
           },
         },
       })
@@ -231,7 +231,10 @@ export async function POST(request: Request) {
       logger.error('[Stripe Webhook] Failed to log error event:', logErr)
     }
 
-    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: HTTP_STATUS.SERVER_ERROR }
+    )
   }
 }
 

@@ -101,7 +101,7 @@ export async function GET(request: Request, context: RouteContext) {
   } catch (err: unknown) {
     logger.error('[Consultation GET by ID error]', err)
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Internal Server Error' },
+      { error: 'Internal Server Error' },
       { status: HTTP_STATUS.SERVER_ERROR }
     )
   }
@@ -158,7 +158,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   } catch (err: unknown) {
     logger.error('[Consultation DELETE error]', err)
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Internal Server Error' },
+      { error: 'Internal Server Error' },
       { status: HTTP_STATUS.SERVER_ERROR }
     )
   }

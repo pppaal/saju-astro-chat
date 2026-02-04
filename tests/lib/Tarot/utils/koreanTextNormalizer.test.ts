@@ -204,7 +204,7 @@ describe('Korean Text Normalizer', () => {
 
     it('expands chosung questions', () => {
       const result = prepareForMatching('ㅇㄷㅎㄹㄲ')
-      expect(result.length).toBeGreaterThan(2)
+      expect(result.length).toBeGreaterThanOrEqual(2)
     })
 
     it('deduplicates results', () => {

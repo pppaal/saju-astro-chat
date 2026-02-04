@@ -1,80 +1,69 @@
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
-import { enforceBodySize } from '@/lib/http'
+import { NextRequest } from 'next/server'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { Prisma } from '@prisma/client'
 import { logger } from '@/lib/logger'
 import { personalitySaveRequestSchema } from '@/lib/api/zodValidation'
 
-import { HTTP_STATUS } from '@/lib/constants/http'
 export const dynamic = 'force-dynamic'
 
 // GET: fetch personality result
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
+export const GET = withApiMiddleware(
+  async (_req: NextRequest, context: ApiContext) => {
+    try {
+      const result = await prisma.personalityResult.findUnique({
+        where: { userId: context.userId! },
+        select: {
+          id: true,
+          typeCode: true,
+          personaName: true,
+          avatarGender: true,
+          energyScore: true,
+          cognitionScore: true,
+          decisionScore: true,
+          rhythmScore: true,
+          consistencyScore: true,
+          analysisData: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      })
+
+      if (!result) {
+        return apiSuccess({ saved: false })
+      }
+
+      return apiSuccess({ saved: true, result })
+    } catch (err) {
+      logger.error('GET /api/personality error:', err)
+      return apiError(ErrorCodes.DATABASE_ERROR, 'server_error')
     }
-
-    const result = await prisma.personalityResult.findUnique({
-      where: { userId: session.user.id },
-      select: {
-        id: true,
-        typeCode: true,
-        personaName: true,
-        avatarGender: true,
-        energyScore: true,
-        cognitionScore: true,
-        decisionScore: true,
-        rhythmScore: true,
-        consistencyScore: true,
-        analysisData: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    })
-
-    if (!result) {
-      return NextResponse.json({ saved: false })
-    }
-
-    return NextResponse.json({ saved: true, result })
-  } catch (error) {
-    logger.error('GET /api/personality error:', error)
-    return NextResponse.json({ error: 'server_error' }, { status: HTTP_STATUS.SERVER_ERROR })
-  }
-}
+  },
+  createAuthenticatedGuard({
+    route: '/api/personality',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)
 
 // POST: store personality result
-export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'not_authenticated' }, { status: HTTP_STATUS.UNAUTHORIZED })
-    }
-
-    const oversized = enforceBodySize(request, 16 * 1024)
-    if (oversized) {
-      return oversized
-    }
-
+export const POST = withApiMiddleware(
+  async (request: NextRequest, context: ApiContext) => {
     const rawBody = await request.json().catch(() => null)
 
-    // Validate with Zod
     const validationResult = personalitySaveRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[Personality save] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
       )
     }
 
@@ -91,53 +80,59 @@ export async function POST(request: Request) {
       answers,
     } = validationResult.data
 
-    // Upsert personality result
-    const result = await prisma.personalityResult.upsert({
-      where: { userId: session.user.id },
-      create: {
-        userId: session.user.id,
-        typeCode,
-        personaName,
-        avatarGender,
-        energyScore: Math.round(energyScore),
-        cognitionScore: Math.round(cognitionScore),
-        decisionScore: Math.round(decisionScore),
-        rhythmScore: Math.round(rhythmScore),
-        consistencyScore:
-          consistencyScore !== null && consistencyScore !== undefined
-            ? Math.round(consistencyScore)
-            : null,
-        analysisData: analysisData as Prisma.InputJsonValue,
-        answers: answers ? (answers as Prisma.InputJsonValue) : Prisma.DbNull,
-      },
-      update: {
-        typeCode,
-        personaName,
-        avatarGender,
-        energyScore: Math.round(energyScore),
-        cognitionScore: Math.round(cognitionScore),
-        decisionScore: Math.round(decisionScore),
-        rhythmScore: Math.round(rhythmScore),
-        consistencyScore:
-          consistencyScore !== null && consistencyScore !== undefined
-            ? Math.round(consistencyScore)
-            : null,
-        analysisData: analysisData as Prisma.InputJsonValue,
-        answers: answers ? (answers as Prisma.InputJsonValue) : Prisma.DbNull,
-        updatedAt: new Date(),
-      },
-    })
+    try {
+      const result = await prisma.personalityResult.upsert({
+        where: { userId: context.userId! },
+        create: {
+          userId: context.userId!,
+          typeCode,
+          personaName,
+          avatarGender,
+          energyScore: Math.round(energyScore),
+          cognitionScore: Math.round(cognitionScore),
+          decisionScore: Math.round(decisionScore),
+          rhythmScore: Math.round(rhythmScore),
+          consistencyScore:
+            consistencyScore !== null && consistencyScore !== undefined
+              ? Math.round(consistencyScore)
+              : null,
+          analysisData: analysisData as Prisma.InputJsonValue,
+          answers: answers ? (answers as Prisma.InputJsonValue) : Prisma.DbNull,
+        },
+        update: {
+          typeCode,
+          personaName,
+          avatarGender,
+          energyScore: Math.round(energyScore),
+          cognitionScore: Math.round(cognitionScore),
+          decisionScore: Math.round(decisionScore),
+          rhythmScore: Math.round(rhythmScore),
+          consistencyScore:
+            consistencyScore !== null && consistencyScore !== undefined
+              ? Math.round(consistencyScore)
+              : null,
+          analysisData: analysisData as Prisma.InputJsonValue,
+          answers: answers ? (answers as Prisma.InputJsonValue) : Prisma.DbNull,
+          updatedAt: new Date(),
+        },
+      })
 
-    return NextResponse.json({
-      success: true,
-      result: {
-        id: result.id,
-        typeCode: result.typeCode,
-        personaName: result.personaName,
-      },
-    })
-  } catch (error) {
-    logger.error('POST /api/personality error:', error)
-    return NextResponse.json({ error: 'server_error' }, { status: HTTP_STATUS.SERVER_ERROR })
-  }
-}
+      return apiSuccess({
+        success: true,
+        result: {
+          id: result.id,
+          typeCode: result.typeCode,
+          personaName: result.personaName,
+        },
+      })
+    } catch (err) {
+      logger.error('POST /api/personality error:', err)
+      return apiError(ErrorCodes.DATABASE_ERROR, 'server_error')
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/personality',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)

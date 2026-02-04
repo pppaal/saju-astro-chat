@@ -6,26 +6,27 @@ import {
   apiError,
   ErrorCodes,
   type ApiContext,
+  type ApiHandlerResult,
 } from '@/lib/api/middleware'
 import { prisma, Prisma } from '@/lib/db/prisma'
+import type { PersonaMemory } from '@prisma/client'
 import { logger } from '@/lib/logger'
 import { personaMemoryPostSchema, personaMemoryPatchSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
 // GET: 페르소나 기억 조회 (로그인 필요)
-export const GET = withApiMiddleware(
+export const GET = withApiMiddleware<{ data: PersonaMemory | null; isNewUser: boolean }>(
   async (_req: NextRequest, context: ApiContext) => {
     try {
       const memory = await prisma.personaMemory.findUnique({
         where: { userId: context.userId! },
       })
 
-      if (!memory) {
-        return apiSuccess({ data: null, isNewUser: true } as any)
-      }
-
-      return apiSuccess({ data: memory, isNewUser: false } as any)
+      return apiSuccess({
+        data: memory ?? null,
+        isNewUser: !memory,
+      })
     } catch (err) {
       logger.error('[PersonaMemory GET] Database error', { error: err })
       return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to fetch persona memory')
@@ -39,7 +40,7 @@ export const GET = withApiMiddleware(
 )
 
 // POST: 페르소나 기억 생성/업데이트
-export const POST = withApiMiddleware(
+export const POST = withApiMiddleware<{ data: PersonaMemory; action: string }>(
   async (request: NextRequest, context: ApiContext) => {
     const rawBody = await request.json()
 
@@ -117,7 +118,11 @@ export const POST = withApiMiddleware(
 )
 
 // PATCH: 페르소나 기억 부분 업데이트 (통찰 추가 등)
-export const PATCH = withApiMiddleware(
+export const PATCH = withApiMiddleware<{
+  data: PersonaMemory
+  action: string
+  changed?: boolean
+}>(
   async (request: NextRequest, context: ApiContext) => {
     const rawBody = await request.json()
 
@@ -197,7 +202,7 @@ export const PATCH = withApiMiddleware(
       }
 
       if (Object.keys(updateData).length === 0) {
-        return apiSuccess({ message: '변경 사항이 없습니다.', data: existing } as any)
+        return apiSuccess({ data: existing, action, changed: false })
       }
 
       const updated = await prisma.personaMemory.update({
@@ -205,7 +210,7 @@ export const PATCH = withApiMiddleware(
         data: updateData,
       })
 
-      return apiSuccess({ data: updated, action } as any)
+      return apiSuccess({ data: updated, action, changed: true })
     } catch (err) {
       logger.error('[PersonaMemory PATCH] Database error', { error: err })
       return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to update persona memory')

@@ -1,70 +1,37 @@
 // src/app/api/dream/chat/save/route.ts
 // Dream Chat History Save API - 드림 상담 대화 저장
 
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { NextRequest } from 'next/server'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 import { logger } from '@/lib/logger'
 import { type ChatMessage } from '@/lib/api'
 import { dreamChatSaveRequestSchema, dreamChatSaveGetQuerySchema } from '@/lib/api/zodValidation'
-
 import { parseRequestBody } from '@/lib/api/requestParser'
-import { HTTP_STATUS } from '@/lib/constants/http'
-interface SaveDreamChatRequest {
-  dreamId?: string // Optional: link to existing dream interpretation
-  dreamText: string
-  messages: ChatMessage[]
-  summary?: string
-  locale?: string
-}
 
-export async function POST(req: Request) {
-  try {
-    const ip = getClientIp(req.headers)
-    const limit = await rateLimit(`dream-chat-save:${ip}`, { limit: 30, windowSeconds: 60 })
-
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
-
-    // Auth check - only logged in users can save
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Login required to save chat history' },
-        { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers }
-      )
-    }
-
-    const rawBody = await parseRequestBody<SaveDreamChatRequest>(req, {
-      context: 'Dream Chat Save',
-    })
+// POST: 드림 상담 대화 저장
+export const POST = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    const rawBody = await parseRequestBody(req, { context: 'Dream Chat Save' })
     if (!rawBody || typeof rawBody !== 'object') {
-      return NextResponse.json(
-        { error: 'Invalid request body' },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
+      return apiError(ErrorCodes.BAD_REQUEST, 'Invalid request body')
     }
 
-    // Validate with Zod
     const validationResult = dreamChatSaveRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
-      logger.warn('[Dream chat save] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
+      logger.warn('[DreamChatSave POST] validation failed', {
+        errors: validationResult.error.issues,
+      })
+      return apiError(
+        ErrorCodes.VALIDATION_ERROR,
+        `Validation failed: ${validationResult.error.issues.map((e) => e.message).join(', ')}`
       )
     }
 
@@ -75,154 +42,127 @@ export async function POST(req: Request) {
       .map((m) => `${m.role === 'user' ? '👤' : '🌙'} ${m.content}`)
       .join('\n\n')
 
-    // Extract summary from first assistant message if not provided
     const autoSummary =
       summary || messages.find((m) => m.role === 'assistant')?.content.slice(0, 200) || '드림 상담'
 
-    // Extract user questions for context
     const userQuestions = messages
       .filter((m) => m.role === 'user')
       .map((m) => m.content)
       .join(' | ')
 
-    // Save to ConsultationHistory
-    const consultation = await prisma.consultationHistory.create({
-      data: {
-        userId: session.user.id,
-        theme: 'dream',
-        summary: autoSummary,
-        fullReport,
-        jungQuotes: undefined, // Could be enhanced to extract Jung quotes from responses
-        signals: dreamText ? { dreamText: dreamText.slice(0, 1000) } : undefined,
-        userQuestion: userQuestions.slice(0, 500),
-        locale,
-      },
-    })
-
-    // Update PersonaMemory
     try {
-      const existing = await prisma.personaMemory.findUnique({
-        where: { userId: session.user.id },
+      const consultation = await prisma.consultationHistory.create({
+        data: {
+          userId: context.userId!,
+          theme: 'dream',
+          summary: autoSummary,
+          fullReport,
+          jungQuotes: undefined,
+          signals: dreamText ? { dreamText: dreamText.slice(0, 1000) } : undefined,
+          userQuestion: userQuestions.slice(0, 500),
+          locale,
+        },
       })
 
-      if (existing) {
-        const lastTopics = (existing.lastTopics as string[]) || []
-        const dominantThemes = (existing.dominantThemes as string[]) || []
+      // Update PersonaMemory (non-blocking, errors don't fail the request)
+      try {
+        const existing = await prisma.personaMemory.findUnique({
+          where: { userId: context.userId! },
+        })
 
-        // Add "dream" to themes if not present
-        if (!dominantThemes.includes('dream')) {
-          dominantThemes.push('dream')
+        if (existing) {
+          const lastTopics = (existing.lastTopics as string[]) || []
+          const dominantThemes = (existing.dominantThemes as string[]) || []
+
+          if (!dominantThemes.includes('dream')) {
+            dominantThemes.push('dream')
+          }
+
+          const updatedTopics = ['dream', ...lastTopics.filter((t) => t !== 'dream')].slice(0, 10)
+
+          await prisma.personaMemory.update({
+            where: { userId: context.userId! },
+            data: {
+              dominantThemes,
+              lastTopics: updatedTopics,
+              sessionCount: existing.sessionCount + 1,
+            },
+          })
+        } else {
+          await prisma.personaMemory.create({
+            data: {
+              userId: context.userId!,
+              dominantThemes: ['dream'],
+              lastTopics: ['dream'],
+              sessionCount: 1,
+            },
+          })
         }
-
-        // Add to recent topics
-        const updatedTopics = ['dream', ...lastTopics.filter((t) => t !== 'dream')].slice(0, 10)
-
-        await prisma.personaMemory.update({
-          where: { userId: session.user.id },
-          data: {
-            dominantThemes,
-            lastTopics: updatedTopics,
-            sessionCount: existing.sessionCount + 1,
-          },
-        })
-      } else {
-        await prisma.personaMemory.create({
-          data: {
-            userId: session.user.id,
-            dominantThemes: ['dream'],
-            lastTopics: ['dream'],
-            sessionCount: 1,
-          },
-        })
+      } catch (memoryError) {
+        logger.error('[DreamChatSave] PersonaMemory update failed', { error: memoryError })
       }
-    } catch (memoryError) {
-      logger.error('[DreamChatSave] PersonaMemory update failed:', memoryError)
-      // Continue - main save succeeded
-    }
 
-    return NextResponse.json(
-      {
-        success: true,
+      return apiSuccess({
         consultationId: consultation.id,
         message: 'Chat history saved',
-      },
-      { headers: limit.headers }
-    )
-  } catch (err) {
-    logger.error('[DreamChatSave] Error:', err)
-    return NextResponse.json(
-      { error: 'Failed to save chat history' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
-
-// GET - 이전 드림 상담 기록 조회
-export async function GET(req: Request) {
-  try {
-    const ip = getClientIp(req.headers)
-    const limit = await rateLimit(`dream-chat-history:${ip}`, { limit: 30, windowSeconds: 60 })
-
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
+      })
+    } catch (err) {
+      logger.error('[DreamChatSave POST] Database error', { error: err })
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to save chat history')
     }
+  },
+  createAuthenticatedGuard({
+    route: '/api/dream/chat/save',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)
 
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Login required' },
-        { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers }
-      )
-    }
-
+// GET: 이전 드림 상담 기록 조회
+export const GET = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
     const { searchParams } = new URL(req.url)
     const queryValidation = dreamChatSaveGetQuerySchema.safeParse({
       limit: searchParams.get('limit') || undefined,
     })
     const limitCount = queryValidation.success ? queryValidation.data.limit : 20
 
-    // Get recent dream consultations
-    const consultations = await prisma.consultationHistory.findMany({
-      where: {
-        userId: session.user.id,
-        theme: 'dream',
-      },
-      orderBy: { createdAt: 'desc' },
-      take: limitCount,
-      select: {
-        id: true,
-        createdAt: true,
-        summary: true,
-        fullReport: true,
-        signals: true,
-        userQuestion: true,
-      },
-    })
+    try {
+      const consultations = await prisma.consultationHistory.findMany({
+        where: {
+          userId: context.userId!,
+          theme: 'dream',
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limitCount,
+        select: {
+          id: true,
+          createdAt: true,
+          summary: true,
+          fullReport: true,
+          signals: true,
+          userQuestion: true,
+        },
+      })
 
-    // Get persona memory for context
-    const memory = await prisma.personaMemory.findUnique({
-      where: { userId: session.user.id },
-      select: {
-        sessionCount: true,
-        dominantThemes: true,
-        lastTopics: true,
-        keyInsights: true,
-        emotionalTone: true,
-      },
-    })
+      const memory = await prisma.personaMemory.findUnique({
+        where: { userId: context.userId! },
+        select: {
+          sessionCount: true,
+          dominantThemes: true,
+          lastTopics: true,
+          keyInsights: true,
+          emotionalTone: true,
+        },
+      })
 
-    return NextResponse.json(
-      {
+      return apiSuccess({
         consultations: consultations.map((c) => ({
           id: c.id,
           createdAt: c.createdAt.toISOString(),
           summary: c.summary,
           dreamText: (c.signals as Record<string, unknown>)?.dreamText || null,
           userQuestions: c.userQuestion,
-          // Parse fullReport back to messages
           messages: parseMessagesFromReport(c.fullReport),
         })),
         memory: memory
@@ -234,17 +174,18 @@ export async function GET(req: Request) {
               emotionalTone: memory.emotionalTone,
             }
           : null,
-      },
-      { headers: limit.headers }
-    )
-  } catch (err) {
-    logger.error('[DreamChatHistory] Error:', err)
-    return NextResponse.json(
-      { error: 'Failed to fetch history' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
+      })
+    } catch (err) {
+      logger.error('[DreamChatSave GET] Database error', { error: err })
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to fetch history')
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/dream/chat/save',
+    limit: 30,
+    windowSeconds: 60,
+  })
+)
 
 // Helper to parse messages from saved fullReport
 function parseMessagesFromReport(fullReport: string): ChatMessage[] {

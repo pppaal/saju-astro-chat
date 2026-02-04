@@ -24,7 +24,7 @@ function clampMessages(messages: ChatMessage[], max = 8) {
 }
 
 // Build SajuProfile from raw saju data
-function buildSajuProfile(saju: Record<string, unknown>): SajuProfile | null {
+function buildSajuProfile(saju: Record<string, unknown> | null | undefined): SajuProfile | null {
   if (!saju) {
     return null
   }
@@ -77,7 +77,9 @@ function buildSajuProfile(saju: Record<string, unknown>): SajuProfile | null {
 }
 
 // Build AstrologyProfile from raw astro data
-function buildAstroProfile(astro: Record<string, unknown>): AstrologyProfile | null {
+function buildAstroProfile(
+  astro: Record<string, unknown> | null | undefined
+): AstrologyProfile | null {
   if (!astro) {
     return null
   }
@@ -255,10 +257,10 @@ export async function POST(req: NextRequest) {
     let fusionContext = ''
 
     try {
-      const p1Saju = buildSajuProfile(person1Saju as any) // TODO: Fix type compatibility
-      const p2Saju = buildSajuProfile(person2Saju as any)
-      const p1Astro = buildAstroProfile(person1Astro as any)
-      const p2Astro = buildAstroProfile(person2Astro as any)
+      const p1Saju = buildSajuProfile(person1Saju)
+      const p2Saju = buildSajuProfile(person2Saju)
+      const p1Astro = buildAstroProfile(person1Astro)
+      const p2Astro = buildAstroProfile(person2Astro)
 
       if (p1Saju && p2Saju && p1Astro && p2Astro) {
         fusionResult = calculateFusionCompatibility(p1Saju, p1Astro, p2Saju, p2Astro)

@@ -1,66 +1,64 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
-import { prisma } from "@/lib/db/prisma";
-import { logger } from '@/lib/logger';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { NextRequest } from 'next/server'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  apiSuccess,
+  apiError,
+  ErrorCodes,
+  type ApiContext,
+} from '@/lib/api/middleware'
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/logger'
 
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: HTTP_STATUS.UNAUTHORIZED });
-    }
+export const GET = withApiMiddleware(
+  async (_req: NextRequest, context: ApiContext) => {
+    try {
+      const userId = context.userId!
 
-    const userId = session.user.id;
-
-    // Get or create referral code
-    let user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { referralCode: true },
-    });
-
-    if (!user?.referralCode) {
-      // Generate unique referral code (8 characters)
-      const code = Math.random().toString(36).substring(2, 10).toUpperCase();
-      await prisma.user.update({
+      // Get or create referral code
+      let user = await prisma.user.findUnique({
         where: { id: userId },
-        data: { referralCode: code },
-      });
-      user = { referralCode: code };
+        select: { referralCode: true },
+      })
+
+      if (!user?.referralCode) {
+        const code = Math.random().toString(36).substring(2, 10).toUpperCase()
+        await prisma.user.update({
+          where: { id: userId },
+          data: { referralCode: code },
+        })
+        user = { referralCode: code }
+      }
+
+      const [totalReferrals, pendingCount, completedStats] = await Promise.all([
+        prisma.user.count({
+          where: { referrerId: userId },
+        }),
+        prisma.referralReward.count({
+          where: { userId, status: 'pending' },
+        }),
+        prisma.referralReward.aggregate({
+          where: { userId, status: 'completed' },
+          _count: true,
+          _sum: { creditsAwarded: true },
+        }),
+      ])
+
+      return apiSuccess({
+        referralCode: user.referralCode,
+        totalReferrals,
+        pendingRewards: pendingCount,
+        completedRewards: completedStats._count,
+        totalCreditsEarned: completedStats._sum.creditsAwarded || 0,
+      })
+    } catch (err) {
+      logger.error('Referral stats error:', { error: err })
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to fetch referral stats')
     }
-
-    // 최적화: Prisma aggregation 사용 (메모리 필터링 제거)
-    const [totalReferrals, pendingCount, completedStats] = await Promise.all([
-      prisma.user.count({
-        where: { referrerId: userId },
-      }),
-      prisma.referralReward.count({
-        where: { userId, status: "pending" },
-      }),
-      prisma.referralReward.aggregate({
-        where: { userId, status: "completed" },
-        _count: true,
-        _sum: { creditsAwarded: true },
-      }),
-    ]);
-
-    const pendingRewards = pendingCount;
-    const completedRewards = completedStats._count;
-    const totalCreditsEarned = completedStats._sum.creditsAwarded || 0;
-
-    return NextResponse.json({
-      referralCode: user.referralCode,
-      totalReferrals,
-      pendingRewards,
-      completedRewards,
-      totalCreditsEarned,
-    });
-  } catch (error) {
-    logger.error("Referral stats error:", { error: error });
-    return NextResponse.json(
-      { error: "Failed to fetch referral stats" },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
-  }
-}
+  },
+  createAuthenticatedGuard({
+    route: '/api/referral/stats',
+    limit: 60,
+    windowSeconds: 60,
+  })
+)
