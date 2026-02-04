@@ -13,9 +13,9 @@ import { parseRequestBody } from '@/lib/api/requestParser'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
 // Local modules
-import { type ChatMessage, clampMessages, counselorSystemPrompt, loadPersonaMemory } from './lib'
+import { clampMessages, counselorSystemPrompt, loadPersonaMemory } from './lib'
 import { loadUserProfile, type ProfileLoadResult } from './lib/profileLoader'
-import { validateDestinyMapRequest, type DestinyMapChatStreamInput } from './lib/validation'
+import { validateDestinyMapRequest } from './lib/validation'
 import { calculateChartData } from './lib/chart-calculator'
 import {
   buildContextSections,
@@ -27,9 +27,12 @@ import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-export const maxDuration = 60
+export const maxDuration = 120
 
 export async function POST(req: NextRequest) {
+  // Declare context at function scope so it's accessible in catch block for credit refund
+  let context: Awaited<ReturnType<typeof initializeApiContext>>['context'] | null = null
+
   try {
     const oversized = enforceBodySize(req, 256 * 1024) // 256KB for large chart data
     if (oversized) {
@@ -46,7 +49,8 @@ export async function POST(req: NextRequest) {
       creditAmount: 1,
     })
 
-    const { context, error } = await initializeApiContext(req, guardOptions)
+    const { context: ctx, error } = await initializeApiContext(req, guardOptions)
+    context = ctx
     if (error) {
       return error
     }
@@ -328,6 +332,14 @@ export async function POST(req: NextRequest) {
         error: streamResult.error,
       })
 
+      // Refund credits on backend failure
+      if (context.refundCreditsOnError) {
+        await context.refundCreditsOnError(`Backend stream error: ${streamResult.status}`, {
+          route: 'destiny-map-chat-stream',
+          status: streamResult.status,
+        })
+      }
+
       const fallback =
         lang === 'ko'
           ? 'AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
@@ -355,6 +367,14 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     const message = 'Internal Server Error'
     logger.error('[Chat-Stream API error]', err)
+
+    // Refund credits on unexpected errors
+    if (context?.refundCreditsOnError) {
+      await context.refundCreditsOnError(err instanceof Error ? err.message : 'Unknown error', {
+        route: 'destiny-map-chat-stream',
+      })
+    }
+
     return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
   }
 }

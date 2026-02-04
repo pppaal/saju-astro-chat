@@ -7,25 +7,24 @@ import { tarotDeck } from '@/lib/Tarot/tarot-data'
 import { checkCreditsOnly, creditErrorResponse } from '@/lib/credits/withCredits'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
-import { LIMITS } from '@/lib/validation/patterns'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { recordApiRequest } from '@/lib/metrics/index'
 import { tarotDrawSchema } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
-const MAX_ID_LEN = LIMITS.ID
 type TarotBody = {
   categoryId?: string
   spreadId?: string
 }
 
 function drawCards(count: number): DrawnCard[] {
+  // Partial Fisher-Yates: 필요한 카드 수만큼만 셔플 (O(count) vs O(deck.length))
   const deck = [...tarotDeck]
-  // Fisher-Yates 셔플 - 완벽한 랜덤 분포
-  for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
+  const n = Math.min(count, deck.length)
+  for (let i = 0; i < n; i++) {
+    const j = i + Math.floor(Math.random() * (deck.length - i))
     ;[deck[i], deck[j]] = [deck[j], deck[i]]
   }
-  return deck.slice(0, count).map((card: Card) => ({
+  return deck.slice(0, n).map((card: Card) => ({
     card,
     isReversed: Math.random() < 0.5,
   }))

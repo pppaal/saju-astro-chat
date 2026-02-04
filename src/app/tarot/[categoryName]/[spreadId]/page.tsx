@@ -65,12 +65,7 @@ function TarotReadingPage() {
         }
       })
     }
-  }, [
-    gameHook.readingResult,
-    gameHook.interpretation?.fallback,
-    interpretationHook.fetchInterpretation,
-    gameHook.setInterpretation,
-  ])
+  }, [gameHook, interpretationHook])
 
   // Card reveal with auto-scroll
   const handleCardReveal = useCallback(
@@ -86,7 +81,7 @@ function TarotReadingPage() {
         }, 800)
       }
     },
-    [gameHook.handleCardReveal, gameHook.readingResult?.drawnCards.length]
+    [gameHook, detailedSectionRef]
   )
 
   const scrollToDetails = useCallback(() => {
@@ -107,14 +102,7 @@ function TarotReadingPage() {
     } finally {
       setIsSaving(false)
     }
-  }, [
-    interpretationHook.handleSaveReading,
-    gameHook.readingResult,
-    gameHook.spreadInfo,
-    gameHook.interpretation,
-    isSaving,
-    interpretationHook.isSaved,
-  ])
+  }, [interpretationHook, gameHook, isSaving])
 
   const handleReset = () => router.push('/tarot')
   const toggleCardExpand = (index: number) => setExpandedCard(expandedCard === index ? null : index)

@@ -1,19 +1,16 @@
-import type { DestinyMatrixContent } from '@/app/myjourney/history/lib/types';
-import { logger } from '@/lib/logger';
-import styles from './DetailModal.module.css';
+import type { DestinyMatrixContent } from '@/app/myjourney/history/lib/types'
+import styles from './DetailModal.module.css'
 
 type MatrixDetailProps = {
-  detail: DestinyMatrixContent;
-};
+  detail: DestinyMatrixContent
+}
 
 export function MatrixDetail({ detail }: MatrixDetailProps) {
   return (
     <div className={styles.matrixDetail}>
       {/* Header */}
       <div className={styles.modalHeader}>
-        <h3>
-          🔷 {detail.title}
-        </h3>
+        <h3>🔷 {detail.title}</h3>
       </div>
 
       {/* Score Badge */}
@@ -22,16 +19,19 @@ export function MatrixDetail({ detail }: MatrixDetailProps) {
           <div className={styles.scoreBadge}>
             {detail.grade && (
               <span className={styles.gradeEmoji}>
-                {detail.grade === 'S' ? '⭐' :
-                 detail.grade === 'A' ? '💫' :
-                 detail.grade === 'B' ? '✨' :
-                 detail.grade === 'C' ? '💠' : '🔷'}
+                {detail.grade === 'S'
+                  ? '⭐'
+                  : detail.grade === 'A'
+                    ? '💫'
+                    : detail.grade === 'B'
+                      ? '✨'
+                      : detail.grade === 'C'
+                        ? '💠'
+                        : '🔷'}
               </span>
             )}
             <span className={styles.scoreText}>{detail.overallScore}/100</span>
-            {detail.grade && (
-              <span className={styles.gradeLabel}>{detail.grade} 등급</span>
-            )}
+            {detail.grade && <span className={styles.gradeLabel}>{detail.grade} 등급</span>}
           </div>
         </div>
       )}
@@ -51,37 +51,42 @@ export function MatrixDetail({ detail }: MatrixDetailProps) {
           유형: {detail.reportType === 'timing' ? '타이밍 리포트' : '테마 리포트'}
         </p>
         {detail.period && (
-          <p className={styles.infoLabel}>기간: {
-            detail.period === 'daily' ? '일간' :
-            detail.period === 'monthly' ? '월간' :
-            detail.period === 'yearly' ? '연간' : '종합'
-          }</p>
+          <p className={styles.infoLabel}>
+            기간:{' '}
+            {detail.period === 'daily'
+              ? '일간'
+              : detail.period === 'monthly'
+                ? '월간'
+                : detail.period === 'yearly'
+                  ? '연간'
+                  : '종합'}
+          </p>
         )}
         {detail.theme && (
-          <p className={styles.infoLabel}>테마: {
-            detail.theme === 'love' ? '연애운' :
-            detail.theme === 'career' ? '직업운' :
-            detail.theme === 'wealth' ? '재물운' :
-            detail.theme === 'health' ? '건강운' : '가정운'
-          }</p>
+          <p className={styles.infoLabel}>
+            테마:{' '}
+            {detail.theme === 'love'
+              ? '연애운'
+              : detail.theme === 'career'
+                ? '직업운'
+                : detail.theme === 'wealth'
+                  ? '재물운'
+                  : detail.theme === 'health'
+                    ? '건강운'
+                    : '가정운'}
+          </p>
         )}
       </div>
 
       {/* PDF Download Button - PDF generation not yet supported for timing/themed reports */}
       <div className={styles.actionSection}>
-        <button
-          className={styles.pdfButton}
-          disabled
-          title="PDF 다운로드 기능은 준비 중입니다"
-        >
+        <button className={styles.pdfButton} disabled title="PDF 다운로드 기능은 준비 중입니다">
           📄 PDF 다운로드 (준비중)
         </button>
       </div>
 
       {/* Timestamp */}
-      <p className={styles.timestamp}>
-        {new Date(detail.createdAt).toLocaleString()}
-      </p>
+      <p className={styles.timestamp}>{new Date(detail.createdAt).toLocaleString()}</p>
     </div>
-  );
+  )
 }

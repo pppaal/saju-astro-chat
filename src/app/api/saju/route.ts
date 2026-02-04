@@ -28,7 +28,6 @@ import {
   withApiMiddleware,
   createSajuGuard,
   parseJsonBody,
-  validateRequired,
   apiError,
   apiSuccess,
   ErrorCodes,
@@ -392,9 +391,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
         }
       })
       .filter((x) => x.name && x.scope),
-    shinsalRaw: rawShinsal,
     relations,
-    gptPrompt,
     aiInterpretation,
     aiModelUsed,
     advancedAnalysis: fullAdvancedAnalysis,

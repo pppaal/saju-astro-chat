@@ -4,7 +4,6 @@ import {
   withApiMiddleware,
   createAuthenticatedGuard,
   parseJsonBody,
-  validateRequired,
   apiError,
   apiSuccess,
   ErrorCodes,
@@ -62,17 +61,27 @@ export const GET = withApiMiddleware(
       )
     }
     const { type, limit } = queryValidation.data
+    const page = Number(new URL(req.url).searchParams.get('page')) || 1
+    const skip = (page - 1) * limit
 
     const readings = await prisma.reading.findMany({
       where: {
         userId: context.userId!,
         ...(type ? { type } : {}),
       },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       orderBy: { createdAt: 'desc' },
       take: limit,
+      skip,
     })
 
-    return apiSuccess({ readings })
+    return apiSuccess({ readings, page, limit })
   },
   createAuthenticatedGuard({ route: 'readings/list', limit: 30 })
 )

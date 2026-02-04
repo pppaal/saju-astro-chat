@@ -119,6 +119,12 @@ export function useDiscovery({
       if (filters.sajuElement !== 'all') {
         params.set('element', filters.sajuElement)
       }
+      if (filters.minAge !== 18) {
+        params.set('ageMin', String(filters.minAge))
+      }
+      if (filters.maxAge !== 99) {
+        params.set('ageMax', String(filters.maxAge))
+      }
 
       const res = await fetch(`/api/destiny-match/discover?${params.toString()}`)
       const data = await res.json()
@@ -144,7 +150,7 @@ export function useDiscovery({
     } finally {
       setIsLoading(false)
     }
-  }, [session?.user, filters.zodiacSign, filters.sajuElement])
+  }, [session?.user, filters.zodiacSign, filters.sajuElement, filters.minAge, filters.maxAge])
 
   // 세션 변경 시 프로필 로딩
   useEffect(() => {
@@ -154,51 +160,54 @@ export function useDiscovery({
   }, [status, session?.user, loadProfiles])
 
   // 스와이프 API 호출
-  const handleSwipeApi = async (
-    profileId: string,
-    action: 'like' | 'pass' | 'super_like',
-    compatibilityScore?: number
-  ) => {
-    try {
-      const res = await fetch('/api/destiny-match/swipe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          targetProfileId: profileId,
-          action,
-          compatibilityScore,
-        }),
-      })
+  const handleSwipeApi = useCallback(
+    async (
+      profileId: string,
+      action: 'like' | 'pass' | 'super_like',
+      compatibilityScore?: number
+    ) => {
+      try {
+        const res = await fetch('/api/destiny-match/swipe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            targetProfileId: profileId,
+            action,
+            compatibilityScore,
+          }),
+        })
 
-      const data = await res.json()
+        const data = await res.json()
 
-      if (!res.ok) {
-        logger.error('Swipe failed:', data.error)
+        if (!res.ok) {
+          logger.error('Swipe failed:', data.error)
+          return null
+        }
+
+        // Undo를 위해 swipeId 저장 (매칭되지 않은 경우만)
+        if (!data.isMatch && data.swipeId) {
+          setLastSwipeId(data.swipeId)
+          setLastSwipeTime(Date.now())
+        } else {
+          setLastSwipeId(null)
+        }
+
+        // 매치 성사 시 알림
+        if (data.isMatch) {
+          alert('💕 매치 성사! 상대방도 당신을 좋아합니다!')
+        }
+
+        return data
+      } catch (err) {
+        logger.error('Swipe error:', err)
         return null
       }
-
-      // Undo를 위해 swipeId 저장 (매칭되지 않은 경우만)
-      if (!data.isMatch && data.swipeId) {
-        setLastSwipeId(data.swipeId)
-        setLastSwipeTime(Date.now())
-      } else {
-        setLastSwipeId(null)
-      }
-
-      // 매치 성사 시 알림
-      if (data.isMatch) {
-        alert('💕 매치 성사! 상대방도 당신을 좋아합니다!')
-      }
-
-      return data
-    } catch (err) {
-      logger.error('Swipe error:', err)
-      return null
-    }
-  }
+    },
+    []
+  )
 
   // Undo 처리
-  const handleUndo = async () => {
+  const handleUndo = useCallback(async () => {
     if (!lastSwipeId || !canUndo) return
 
     try {
@@ -222,7 +231,7 @@ export function useDiscovery({
     } catch (err) {
       logger.error('Undo error:', err)
     }
-  }
+  }, [lastSwipeId, canUndo])
 
   // Swipe handlers
   const handleDragStart = (clientX: number, clientY: number) => {
@@ -260,7 +269,7 @@ export function useDiscovery({
     setDragOffset({ x: 0, y: 0 })
   }
 
-  const handleLike = async () => {
+  const handleLike = useCallback(async () => {
     if (!session) {
       router.push(signInUrl)
       return
@@ -271,9 +280,9 @@ export function useDiscovery({
       setLikedProfiles((prev) => [...prev, currentProfile.id])
       setCurrentIndex((prev) => prev + 1)
     }
-  }
+  }, [session, router, signInUrl, currentProfile, handleSwipeApi])
 
-  const handlePass = async () => {
+  const handlePass = useCallback(async () => {
     if (!session) {
       router.push(signInUrl)
       return
@@ -284,9 +293,9 @@ export function useDiscovery({
       setPassedProfiles((prev) => [...prev, currentProfile.id])
       setCurrentIndex((prev) => prev + 1)
     }
-  }
+  }, [session, router, signInUrl, currentProfile, handleSwipeApi])
 
-  const handleSuperLike = async () => {
+  const handleSuperLike = useCallback(async () => {
     if (!session) {
       router.push(signInUrl)
       return
@@ -297,7 +306,7 @@ export function useDiscovery({
       setLikedProfiles((prev) => [...prev, currentProfile.id])
       setCurrentIndex((prev) => prev + 1)
     }
-  }
+  }, [session, router, signInUrl, currentProfile, handleSwipeApi])
 
   const rotation = dragOffset.x * 0.1
   const opacity = 1 - Math.abs(dragOffset.x) / 300

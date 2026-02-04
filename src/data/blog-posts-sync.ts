@@ -40,13 +40,13 @@ function loadBlogPostsSync(): BlogPost[] {
 
     try {
       content = readFileSync(enPath, 'utf-8')
-    } catch (error) {
+    } catch (_error) {
       console.warn(`Missing English content for ${metadata.slug}`)
     }
 
     try {
       contentKo = readFileSync(koPath, 'utf-8')
-    } catch (error) {
+    } catch (_error) {
       // Korean content is optional
     }
 

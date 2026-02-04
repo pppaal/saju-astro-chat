@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 /**
  * Web Vitals Reporter Component
@@ -12,16 +12,15 @@
  * - INP (Interaction to Next Paint)
  */
 
-import { useEffect } from 'react';
-import { useReportWebVitals } from 'next/web-vitals';
-import { reportWebVitals } from '@/lib/performance/web-vitals-reporter';
+import { useReportWebVitals } from 'next/web-vitals'
+import { reportWebVitals } from '@/lib/performance/web-vitals-reporter'
 
 export function WebVitalsReporter() {
   useReportWebVitals((metric) => {
-    reportWebVitals(metric);
-  });
+    reportWebVitals(metric)
+  })
 
-  return null;
+  return null
 }
 
-export default WebVitalsReporter;
+export default WebVitalsReporter

@@ -1,74 +1,78 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { useI18n } from "@/i18n/I18nProvider";
-import styles from "./ReferralCard.module.css";
-import { logger } from '@/lib/logger';
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useI18n } from '@/i18n/I18nProvider'
+import styles from './ReferralCard.module.css'
+import { logger } from '@/lib/logger'
 
 interface ReferralStats {
-  referralCode: string;
-  totalReferrals: number;
-  pendingRewards: number;
-  completedRewards: number;
-  totalCreditsEarned: number;
+  referralCode: string
+  totalReferrals: number
+  pendingRewards: number
+  completedRewards: number
+  totalCreditsEarned: number
 }
 
 export default function ReferralCard() {
-  const { data: session } = useSession();
-  const { t } = useI18n();
-  const [stats, setStats] = useState<ReferralStats | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { data: session } = useSession()
+  const { t } = useI18n()
+  const [stats, setStats] = useState<ReferralStats | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (session?.user?.id) {
-      fetchReferralStats();
+      fetchReferralStats()
     }
-  }, [session]);
+  }, [session])
 
   const fetchReferralStats = async () => {
     try {
-      const response = await fetch("/api/referral/stats");
-      const data = await response.json();
-      setStats(data);
+      const response = await fetch('/api/referral/stats')
+      const data = await response.json()
+      setStats(data)
     } catch (error) {
-      logger.error("Failed to fetch referral stats:", { error: error });
+      logger.error('Failed to fetch referral stats:', { error: error })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const copyReferralLink = () => {
-    if (!stats?.referralCode) {return;}
+    if (!stats?.referralCode) {
+      return
+    }
 
-    const referralLink = `${window.location.origin}?ref=${stats.referralCode}`;
-    navigator.clipboard.writeText(referralLink);
-    setCopied(true);
+    const referralLink = `${window.location.origin}?ref=${stats.referralCode}`
+    navigator.clipboard.writeText(referralLink)
+    setCopied(true)
 
-    setTimeout(() => setCopied(false), 2000);
-  };
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   const shareReferral = async () => {
-    if (!stats?.referralCode) {return;}
+    if (!stats?.referralCode) {
+      return
+    }
 
-    const referralLink = `${window.location.origin}?ref=${stats.referralCode}`;
-    const shareText = t("referral.shareText");
+    const referralLink = `${window.location.origin}?ref=${stats.referralCode}`
+    const shareText = t('referral.shareText')
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "DestinyPal - 무료 운세 보기",
+          title: 'DestinyPal - 무료 운세 보기',
           text: shareText,
           url: referralLink,
-        });
-      } catch (err) {
+        })
+      } catch (_err) {
         // User cancelled, do nothing
       }
     } else {
-      copyReferralLink();
+      copyReferralLink()
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -77,11 +81,11 @@ export default function ReferralCard() {
           <div className={styles.spinner} />
         </div>
       </div>
-    );
+    )
   }
 
   if (!stats) {
-    return null;
+    return null
   }
 
   return (
@@ -89,27 +93,27 @@ export default function ReferralCard() {
       <div className={styles.header}>
         <div className={styles.icon}>🎁</div>
         <div>
-          <h3 className={styles.title}>{t("referral.title")}</h3>
-          <p className={styles.subtitle}>{t("referral.subtitle")}</p>
+          <h3 className={styles.title}>{t('referral.title')}</h3>
+          <p className={styles.subtitle}>{t('referral.subtitle')}</p>
         </div>
       </div>
 
       <div className={styles.stats}>
         <div className={styles.statItem}>
           <div className={styles.statValue}>{stats.totalReferrals}</div>
-          <div className={styles.statLabel}>{t("referral.totalReferrals")}</div>
+          <div className={styles.statLabel}>{t('referral.totalReferrals')}</div>
         </div>
         <div className={styles.statDivider} />
         <div className={styles.statItem}>
           <div className={styles.statValue}>{stats.totalCreditsEarned}</div>
-          <div className={styles.statLabel}>{t("referral.creditsEarned")}</div>
+          <div className={styles.statLabel}>{t('referral.creditsEarned')}</div>
         </div>
       </div>
 
       <div className={styles.rewards}>
         <div className={styles.rewardBadge}>
           <span className={styles.rewardEmoji}>✨</span>
-          <span>{t("referral.reward")}</span>
+          <span>{t('referral.reward')}</span>
         </div>
       </div>
 
@@ -133,7 +137,7 @@ export default function ReferralCard() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                {t("referral.copied")}
+                {t('referral.copied')}
               </>
             ) : (
               <>
@@ -153,7 +157,7 @@ export default function ReferralCard() {
                     strokeWidth="2"
                   />
                 </svg>
-                {t("referral.copy")}
+                {t('referral.copy')}
               </>
             )}
           </button>
@@ -167,18 +171,18 @@ export default function ReferralCard() {
               strokeWidth="2"
             />
           </svg>
-          {t("referral.share")}
+          {t('referral.share')}
         </button>
       </div>
 
       <div className={styles.howItWorks}>
-        <h4>{t("referral.howItWorks")}</h4>
+        <h4>{t('referral.howItWorks')}</h4>
         <ol className={styles.steps}>
-          <li>{t("referral.step1")}</li>
-          <li>{t("referral.step2")}</li>
-          <li>{t("referral.step3")}</li>
+          <li>{t('referral.step1')}</li>
+          <li>{t('referral.step2')}</li>
+          <li>{t('referral.step3')}</li>
         </ol>
       </div>
     </div>
-  );
+  )
 }

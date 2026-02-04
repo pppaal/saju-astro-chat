@@ -11,25 +11,6 @@ import { logger } from '@/lib/logger'
 import { pastLifeSaveRequestSchema } from '@/lib/api/zodValidation'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
-interface SavePastLifeBody {
-  birthDate: string
-  birthTime?: string
-  latitude?: number
-  longitude?: number
-  timezone?: string
-  karmaScore: number
-  analysisData: {
-    soulPattern: unknown
-    pastLife: unknown
-    soulJourney: unknown
-    karmicDebts: unknown[]
-    thisLifeMission: unknown
-    talentsCarried: string[]
-    saturnLesson: unknown
-  }
-  locale?: string
-}
-
 /**
  * POST /api/past-life/save
  * 전생 리딩 결과 저장 (로그인 필요)

@@ -9,7 +9,6 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { sendNotification } from '@/lib/notifications/sse'
-import { isValidDate, isValidTime } from '@/lib/validation'
 import { getNowInTimezone, formatDateString } from '@/lib/datetime'
 import { getDailyFortuneScore } from '@/lib/destiny-map/destinyCalendar'
 import { logger } from '@/lib/logger'

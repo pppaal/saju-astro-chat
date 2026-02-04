@@ -32,7 +32,7 @@ const BirthInfoFormInline = memo(function BirthInfoFormInline({
   birthInfo,
   setBirthInfo,
   onSubmit,
-  submitting,
+  submitting: _submitting,
 }: BirthInfoFormInlineProps) {
   const { locale } = useI18n()
   const { status } = useSession()

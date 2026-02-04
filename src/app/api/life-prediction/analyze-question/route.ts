@@ -49,11 +49,6 @@ export type EventType =
   | 'relationship'
   | 'general'
 
-interface AnalyzeQuestionRequest {
-  question: string
-  locale?: 'ko' | 'en'
-}
-
 interface AnalyzeQuestionResponse {
   success: boolean
   data?: {

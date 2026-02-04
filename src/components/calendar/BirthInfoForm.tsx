@@ -1,7 +1,7 @@
 'use client'
 
 // src/components/calendar/BirthInfoForm.tsx
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
@@ -36,16 +36,13 @@ export default function BirthInfoForm({
   birthInfo,
   setBirthInfo,
   onSubmit,
-  submitting,
-  timeUnknown,
-  setTimeUnknown,
+  submitting: _submitting,
+  timeUnknown: _timeUnknown,
+  setTimeUnknown: _setTimeUnknown,
 }: BirthInfoFormProps) {
   const { locale, t } = useI18n()
   const { status } = useSession()
   const signInUrl = buildSignInUrl()
-
-  // Track if form is being submitted
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleFormSubmit = async (formData: {
     birthDate: string

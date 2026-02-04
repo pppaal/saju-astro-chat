@@ -30,8 +30,8 @@ export function BirthInputPhase({
   birthTime,
   gender,
   birthCity,
-  showTimeInput,
-  showCityInput,
+  showTimeInput: _showTimeInput,
+  showCityInput: _showCityInput,
   onSubmit,
   onSkip,
 }: BirthInputPhaseProps) {

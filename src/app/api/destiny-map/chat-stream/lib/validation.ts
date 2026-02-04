@@ -3,17 +3,10 @@
 
 import { z } from 'zod'
 import { LIMITS } from '@/lib/validation'
+import { chatMessageSchema } from '@/lib/api/zodValidation'
 
-// Allow sets for validation
-export const ALLOWED_LANG = new Set(['ko', 'en'])
-export const ALLOWED_GENDER = new Set(['male', 'female'])
-const ALLOWED_ROLE = new Set(['system', 'user', 'assistant'])
-
-/**
- * Chat message schema
- */
-export const ChatMessageSchema = z.object({
-  role: z.enum(['system', 'user', 'assistant']),
+// Route-specific: this endpoint uses a 2000 char limit for messages
+const chatStreamMessageSchema = chatMessageSchema.extend({
   content: z.string().min(1).max(2000),
 })
 
@@ -60,16 +53,16 @@ export const DestinyMapChatStreamSchema = z.object({
   lang: z.enum(['ko', 'en']).default('ko'),
 
   // Chat messages (max 50 messages)
-  messages: z.array(ChatMessageSchema).max(50).default([]),
+  messages: z.array(chatStreamMessageSchema).max(50).default([]),
 
   // Pre-computed chart data (optional)
   saju: SajuDataStructureSchema.optional(),
   astro: AstroDataStructureSchema.optional(),
-  advancedAstro: z.unknown().optional(), // CombinedResult partial
+  advancedAstro: z.record(z.string(), z.unknown()).optional(),
 
   // Prediction and user context
-  predictionContext: z.unknown().optional(),
-  userContext: z.unknown().optional(),
+  predictionContext: z.record(z.string(), z.unknown()).optional(),
+  userContext: z.record(z.string(), z.unknown()).optional(),
   cvText: z.string().optional(),
 })
 

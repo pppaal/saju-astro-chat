@@ -9,7 +9,7 @@ import Footer from '@/components/ui/Footer'
 import { ErrorBoundaryProvider } from '@/components/providers/ErrorBoundaryProvider'
 import { ConsentProvider } from '@/contexts/ConsentContext'
 import { ConsentBanner } from '@/components/consent/ConsentBanner'
-import { NotificationProvider } from '@/contexts/NotificationContext'
+
 import { JsonLd } from '@/components/seo/JsonLd'
 import { generateJsonLd } from '@/components/seo/SEO'
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'

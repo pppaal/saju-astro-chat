@@ -6,10 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createPublicStreamGuard, type ApiContext } from '@/lib/api/middleware'
-import {
-  calculateYearlyImportantDates,
-  type EventCategory,
-} from '@/lib/destiny-map/destinyCalendar'
+import { calculateYearlyImportantDates } from '@/lib/destiny-map/destinyCalendar'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
 import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '@/lib/Saju/stemElementMapping'
@@ -32,11 +29,26 @@ import {
 
 export const dynamic = 'force-dynamic'
 
-import { ALLOWED_LOCALES } from '@/lib/constants/api-limits'
-import { TIME_RE, LIMITS } from '@/lib/validation/patterns'
+import { LIMITS } from '@/lib/validation/patterns'
 import { HTTP_STATUS } from '@/lib/constants/http'
 const _VALID_CALENDAR_PLACES = new Set(Object.keys(LOCATION_COORDS))
 const MAX_PLACE_LEN = LIMITS.PLACE
+
+// Zodiac → element mapping (extracted to avoid duplication in try/catch blocks)
+const ZODIAC_TO_ELEMENT: Record<string, string> = {
+  Aries: 'fire',
+  Leo: 'fire',
+  Sagittarius: 'fire',
+  Taurus: 'earth',
+  Virgo: 'earth',
+  Capricorn: 'earth',
+  Gemini: 'metal',
+  Libra: 'metal',
+  Aquarius: 'metal',
+  Cancer: 'water',
+  Scorpio: 'water',
+  Pisces: 'water',
+}
 
 /**
  * GET /api/calendar
@@ -179,22 +191,6 @@ export const GET = withApiMiddleware(
       const sunSign = sunPlanet?.sign || 'Aries'
       const sunLongitude = sunPlanet?.longitude || 0
 
-      // 별자리 → 오행 매핑
-      const ZODIAC_TO_ELEMENT: Record<string, string> = {
-        Aries: 'fire',
-        Leo: 'fire',
-        Sagittarius: 'fire',
-        Taurus: 'earth',
-        Virgo: 'earth',
-        Capricorn: 'earth',
-        Gemini: 'metal',
-        Libra: 'metal',
-        Aquarius: 'metal', // air → metal
-        Cancer: 'water',
-        Scorpio: 'water',
-        Pisces: 'water',
-      }
-
       astroProfile = {
         sunSign,
         sunElement: ZODIAC_TO_ELEMENT[sunSign] || 'fire',
@@ -232,21 +228,6 @@ export const GET = withApiMiddleware(
         sunSign = 'Aquarius'
       } else {
         sunSign = 'Pisces'
-      }
-
-      const ZODIAC_TO_ELEMENT: Record<string, string> = {
-        Aries: 'fire',
-        Leo: 'fire',
-        Sagittarius: 'fire',
-        Taurus: 'earth',
-        Virgo: 'earth',
-        Capricorn: 'earth',
-        Gemini: 'metal',
-        Libra: 'metal',
-        Aquarius: 'metal',
-        Cancer: 'water',
-        Scorpio: 'water',
-        Pisces: 'water',
       }
 
       astroProfile = {
@@ -307,13 +288,26 @@ export const GET = withApiMiddleware(
     // AI 백엔드 호출 시도
     const aiDates = await fetchAIDates(sajuData, astroData, category || 'overall')
 
-    // 6등급별 그룹화
-    const grade0 = filteredDates.filter((d) => d.grade === 0) // 천운의 날
-    const grade1 = filteredDates.filter((d) => d.grade === 1) // 아주 좋은 날
-    const grade2 = filteredDates.filter((d) => d.grade === 2) // 좋은 날
-    const grade3 = filteredDates.filter((d) => d.grade === 3) // 보통 날
-    const grade4 = filteredDates.filter((d) => d.grade === 4) // 나쁜 날
-    const grade5 = filteredDates.filter((d) => d.grade === 5) // 최악의 날
+    // 6등급별 그룹화 (single-pass instead of 6 separate filter calls)
+    const gradeGroups: Record<number, typeof filteredDates> = {
+      0: [],
+      1: [],
+      2: [],
+      3: [],
+      4: [],
+      5: [],
+    }
+    for (const d of filteredDates) {
+      if (d.grade >= 0 && d.grade <= 5) {
+        gradeGroups[d.grade].push(d)
+      }
+    }
+    const grade0 = gradeGroups[0] // 천운의 날
+    const grade1 = gradeGroups[1] // 아주 좋은 날
+    const grade2 = gradeGroups[2] // 좋은 날
+    const grade3 = gradeGroups[3] // 보통 날
+    const grade4 = gradeGroups[4] // 나쁜 날
+    const grade5 = gradeGroups[5] // 최악의 날
 
     // AI 날짜 병합
     let aiEnhanced = false
@@ -407,7 +401,8 @@ export const GET = withApiMiddleware(
       }),
     })
 
-    res.headers.set('Cache-Control', 'no-store')
+    // Cache for 1 hour - calendar data is deterministic for the same birthDate/year
+    res.headers.set('Cache-Control', 'private, max-age=3600, stale-while-revalidate=1800')
     return res
   },
   createPublicStreamGuard({

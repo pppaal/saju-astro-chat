@@ -1,70 +1,76 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-
-interface TimingSection {
-  title: string;
-  content: string;
-  icon?: string;
-}
+import { useState } from 'react'
 
 interface DomainAnalysis {
-  career: string;
-  love: string;
-  wealth: string;
-  health: string;
+  career: string
+  love: string
+  wealth: string
+  health: string
 }
 
 export interface TimingReportData {
-  id: string;
-  period: 'daily' | 'monthly' | 'yearly';
-  targetDate: string;
-  score: number;
-  overview: string;
-  energy: string;
-  opportunities: string;
-  cautions: string;
-  domains: DomainAnalysis;
-  actionPlan: string;
-  keywords: string[];
-  createdAt: string;
+  id: string
+  period: 'daily' | 'monthly' | 'yearly'
+  targetDate: string
+  score: number
+  overview: string
+  energy: string
+  opportunities: string
+  cautions: string
+  domains: DomainAnalysis
+  actionPlan: string
+  keywords: string[]
+  createdAt: string
 }
 
 interface TimingReportViewProps {
-  report: TimingReportData;
-  onDownloadPDF?: () => void;
-  onShare?: () => void;
+  report: TimingReportData
+  onDownloadPDF?: () => void
+  onShare?: () => void
 }
 
 const PERIOD_LABELS = {
   daily: '오늘',
   monthly: '이번 달',
   yearly: '올해',
-};
+}
 
 const DOMAIN_INFO = {
   career: { label: '커리어', emoji: '💼', color: 'from-blue-500 to-indigo-500' },
   love: { label: '사랑', emoji: '💕', color: 'from-pink-500 to-rose-500' },
   wealth: { label: '재물', emoji: '💰', color: 'from-yellow-500 to-amber-500' },
   health: { label: '건강', emoji: '🏥', color: 'from-green-500 to-emerald-500' },
-};
+}
 
 export function TimingReportView({ report, onDownloadPDF, onShare }: TimingReportViewProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'domains' | 'action'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'domains' | 'action'>('overview')
 
   const getScoreEmoji = (score: number) => {
-    if (score >= 80) {return '🌟';}
-    if (score >= 60) {return '✨';}
-    if (score >= 40) {return '💫';}
-    return '🌙';
-  };
+    if (score >= 80) {
+      return '🌟'
+    }
+    if (score >= 60) {
+      return '✨'
+    }
+    if (score >= 40) {
+      return '💫'
+    }
+    return '🌙'
+  }
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) {return 'from-yellow-400 to-orange-500';}
-    if (score >= 60) {return 'from-green-400 to-emerald-500';}
-    if (score >= 40) {return 'from-blue-400 to-cyan-500';}
-    return 'from-purple-400 to-indigo-500';
-  };
+    if (score >= 80) {
+      return 'from-yellow-400 to-orange-500'
+    }
+    if (score >= 60) {
+      return 'from-green-400 to-emerald-500'
+    }
+    if (score >= 40) {
+      return 'from-blue-400 to-cyan-500'
+    }
+    return 'from-purple-400 to-indigo-500'
+  }
 
   return (
     <div className="space-y-6">
@@ -98,9 +104,7 @@ export function TimingReportView({ report, onDownloadPDF, onShare }: TimingRepor
         <button
           onClick={() => setActiveTab('overview')}
           className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-            activeTab === 'overview'
-              ? 'bg-purple-500 text-white'
-              : 'text-gray-400 hover:text-white'
+            activeTab === 'overview' ? 'bg-purple-500 text-white' : 'text-gray-400 hover:text-white'
           }`}
         >
           총평
@@ -108,9 +112,7 @@ export function TimingReportView({ report, onDownloadPDF, onShare }: TimingRepor
         <button
           onClick={() => setActiveTab('domains')}
           className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-            activeTab === 'domains'
-              ? 'bg-purple-500 text-white'
-              : 'text-gray-400 hover:text-white'
+            activeTab === 'domains' ? 'bg-purple-500 text-white' : 'text-gray-400 hover:text-white'
           }`}
         >
           영역별
@@ -118,9 +120,7 @@ export function TimingReportView({ report, onDownloadPDF, onShare }: TimingRepor
         <button
           onClick={() => setActiveTab('action')}
           className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-            activeTab === 'action'
-              ? 'bg-purple-500 text-white'
-              : 'text-gray-400 hover:text-white'
+            activeTab === 'action' ? 'bg-purple-500 text-white' : 'text-gray-400 hover:text-white'
           }`}
         >
           실천 가이드
@@ -216,5 +216,5 @@ export function TimingReportView({ report, onDownloadPDF, onShare }: TimingRepor
         )}
       </div>
     </div>
-  );
+  )
 }

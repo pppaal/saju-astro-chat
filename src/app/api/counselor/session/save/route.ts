@@ -4,62 +4,10 @@ import { prisma } from '@/lib/db/prisma'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { enforceBodySize } from '@/lib/http'
 import { BODY_LIMITS } from '@/lib/constants/api-limits'
-import { LIMITS } from '@/lib/validation'
 import { counselorSessionSaveRequestSchema } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
-
-const MAX_MESSAGES = 200
-const MAX_MESSAGE_LENGTH = LIMITS.MESSAGE
-const MAX_ID_LENGTH = LIMITS.ID
-
-type StoredMessage = {
-  role: 'system' | 'user' | 'assistant'
-  content: string
-  id?: string
-  timestamp?: string
-}
-
-const ALLOWED_ROLES = new Set<StoredMessage['role']>(['system', 'user', 'assistant'])
-
-function normalizeMessages(raw: unknown): StoredMessage[] {
-  if (!Array.isArray(raw)) {
-    return []
-  }
-
-  const normalized: StoredMessage[] = []
-  for (const entry of raw.slice(-MAX_MESSAGES)) {
-    if (!entry || typeof entry !== 'object') {
-      continue
-    }
-    const msg = entry as Record<string, unknown>
-    const role =
-      typeof msg.role === 'string' && ALLOWED_ROLES.has(msg.role as StoredMessage['role'])
-        ? (msg.role as StoredMessage['role'])
-        : null
-    const content = typeof msg.content === 'string' ? msg.content.trim() : ''
-    if (!role) {
-      continue
-    }
-    if (!content) {
-      continue
-    }
-
-    const id = typeof msg.id === 'string' ? msg.id.trim().slice(0, MAX_ID_LENGTH) : undefined
-    const timestamp =
-      typeof msg.timestamp === 'string' ? msg.timestamp.trim().slice(0, 64) : undefined
-
-    normalized.push({
-      role,
-      content: content.slice(0, MAX_MESSAGE_LENGTH),
-      ...(id ? { id } : {}),
-      ...(timestamp ? { timestamp } : {}),
-    })
-  }
-
-  return normalized
-}
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {

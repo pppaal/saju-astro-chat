@@ -92,17 +92,6 @@ interface OptimalPeriod {
   reasons: string[]
 }
 
-interface ExplainRequest {
-  question: string
-  eventType: string
-  eventLabel: string
-  optimalPeriods: OptimalPeriod[]
-  locale?: 'ko' | 'en'
-  // RAG 관련 추가 필드
-  sipsin?: string // 현재 대운/세운의 십신
-  useRag?: boolean // RAG 사용 여부 (기본: true)
-}
-
 interface ExplainedPeriod {
   startDate: string
   endDate: string

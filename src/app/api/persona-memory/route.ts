@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
   createAuthenticatedGuard,
@@ -6,7 +6,6 @@ import {
   apiError,
   ErrorCodes,
   type ApiContext,
-  type ApiHandlerResult,
 } from '@/lib/api/middleware'
 import { prisma, Prisma } from '@/lib/db/prisma'
 import type { PersonaMemory } from '@prisma/client'

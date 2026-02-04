@@ -66,7 +66,7 @@ export async function GET(_request: NextRequest) {
           for (const item of queued) {
             try {
               controller.enqueue(`data: ${JSON.stringify(item)}\n\n`)
-            } catch (enqueueErr) {
+            } catch (_enqueueErr) {
               logger.warn('[notifications/stream] Enqueue failed, stream may be closed', { userId })
             }
           }

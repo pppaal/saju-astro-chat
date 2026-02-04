@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api/middleware'
 import Stripe from 'stripe'
-import { logger } from '@/lib/logger'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 
 export const dynamic = 'force-dynamic'
@@ -54,7 +53,7 @@ async function checkStripeActive(email?: string): Promise<boolean> {
   }
 
   // Cache the result
-  await cacheSet(cacheKey, { isPremium }, PREMIUM_CACHE_TTL);
+  await cacheSet(cacheKey, { isPremium }, PREMIUM_CACHE_TTL)
 
   return isPremium
 }
@@ -72,7 +71,7 @@ export const GET = withApiMiddleware(async (_req: NextRequest, context: ApiConte
   const userEmail = context.session.user.email
 
   // 프리미엄 체크
-  const isPremium = await checkStripeActive(userEmail);
+  const isPremium = await checkStripeActive(userEmail)
 
   return NextResponse.json({
     isLoggedIn: true,

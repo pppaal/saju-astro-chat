@@ -5,7 +5,6 @@ import {
   withApiMiddleware,
   createPublicStreamGuard,
   createSimpleGuard,
-  apiSuccess,
   apiError,
   ErrorCodes,
   type ApiContext,
@@ -24,12 +23,6 @@ type RlhfResponse = {
 type SectionGroup = {
   sectionId: string
   _count: { _all: number }
-}
-
-function trimValue(value: unknown, max = 120) {
-  return String(value ?? '')
-    .trim()
-    .slice(0, max)
 }
 
 export const POST = withApiMiddleware(

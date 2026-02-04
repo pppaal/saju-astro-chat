@@ -60,7 +60,11 @@ const LoadingIndicator = memo(({ styles }: { styles: Record<string, string> }) =
 ))
 LoadingIndicator.displayName = 'LoadingIndicator'
 
-function AdvisorChatComponent({ predictionContext, locale = 'ko', onClose }: AdvisorChatProps) {
+function AdvisorChatComponent({
+  predictionContext,
+  locale = 'ko',
+  onClose: _onClose,
+}: AdvisorChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)

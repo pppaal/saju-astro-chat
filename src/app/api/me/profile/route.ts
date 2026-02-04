@@ -5,20 +5,6 @@ import { logger } from '@/lib/logger'
 import { clearCacheByPattern } from '@/lib/cache/redis-cache'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { userProfileUpdateSchema } from '@/lib/api/zodValidation'
-const isNonEmptyString = (val: unknown, max = 120) =>
-  typeof val === 'string' && val.trim().length > 0 && val.trim().length <= max
-
-const isValidUrl = (val: unknown) => {
-  if (typeof val !== 'string' || !val.trim()) {
-    return false
-  }
-  try {
-    const url = new URL(val)
-    return url.protocol === 'http:' || url.protocol === 'https:'
-  } catch {
-    return false
-  }
-}
 
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
@@ -120,6 +106,13 @@ export const PATCH = withApiMiddleware(
       },
     })
 
+    // Invalidate user-specific caches on any profile update
+    if (context.userId) {
+      clearCacheByPattern(`user:${context.userId}:*`).catch((err) => {
+        logger.warn(`[profile PATCH] User cache invalidation failed:`, err)
+      })
+    }
+
     // Invalidate birth-related caches if birth info changed
     if (hasBirthFields) {
       // Compare old vs new values from the update body
@@ -128,15 +121,23 @@ export const PATCH = withApiMiddleware(
         hasBirthFields &&
         (birthDate !== undefined || birthTime !== undefined || gender !== undefined)
 
-      if (birthChanged && oldBirthDate) {
-        const patterns: string[] = [
-          `saju:${oldBirthDate}:*`,
-          `destiny:${oldBirthDate}:*`,
-          `yearly:v2:${oldBirthDate}:*`,
-          `cal:*:*:${context.userId}`,
-        ]
-        await Promise.all(patterns.map((p) => clearCacheByPattern(p)))
-        logger.info(`[profile PATCH] Invalidated birth caches for user ${context.userId}`)
+      if (birthChanged) {
+        const dateToInvalidate = oldBirthDate || updatedUser.birthDate
+        if (dateToInvalidate) {
+          const patterns: string[] = [
+            `saju:${dateToInvalidate}:*`,
+            `destiny:${dateToInvalidate}:*`,
+            `yearly:v2:${dateToInvalidate}:*`,
+          ]
+          // User-specific cache: use exact key instead of wildcard scan
+          if (context.userId) {
+            patterns.push(`cal:user:${context.userId}`)
+          }
+          Promise.all(patterns.map((p) => clearCacheByPattern(p))).catch((err) => {
+            logger.warn(`[profile PATCH] Cache invalidation failed:`, err)
+          })
+          logger.info(`[profile PATCH] Invalidated birth caches for user ${context.userId}`)
+        }
       }
     }
 

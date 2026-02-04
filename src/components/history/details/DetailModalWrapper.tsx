@@ -1,11 +1,11 @@
-import { DestinyMapDetail } from './DestinyMapDetail';
-import { CalendarDetail } from './CalendarDetail';
-import { TarotDetail } from './TarotDetail';
-import { IChingDetail } from './IChingDetail';
-import { NumerologyDetail } from './NumerologyDetail';
-import { ICPDetail } from './ICPDetail';
-import { CompatibilityDetail } from './CompatibilityDetail';
-import { MatrixDetail } from './MatrixDetail';
+import { DestinyMapDetail } from './DestinyMapDetail'
+import { CalendarDetail } from './CalendarDetail'
+import { TarotDetail } from './TarotDetail'
+import { IChingDetail } from './IChingDetail'
+import { NumerologyDetail } from './NumerologyDetail'
+import { ICPDetail } from './ICPDetail'
+import { CompatibilityDetail } from './CompatibilityDetail'
+import { MatrixDetail } from './MatrixDetail'
 import type {
   ServiceRecord,
   DestinyMapContent,
@@ -16,10 +16,10 @@ import type {
   ICPContent,
   PersonalityCompatibilityContent,
   DestinyMatrixContent,
-} from '@/app/myjourney/history/lib/types';
-import styles from './DetailModal.module.css';
+} from '@/app/myjourney/history/lib/types'
+import styles from './DetailModal.module.css'
 
-type DetailContent =
+type _DetailContent =
   | DestinyMapContent
   | CalendarContent
   | TarotContent
@@ -27,21 +27,21 @@ type DetailContent =
   | NumerologyContent
   | ICPContent
   | PersonalityCompatibilityContent
-  | DestinyMatrixContent;
+  | DestinyMatrixContent
 
 type DetailModalWrapperProps = {
-  record: ServiceRecord | null;
-  destinyMapDetail: DestinyMapContent | null;
-  calendarDetail: CalendarContent | null;
-  tarotDetail: TarotContent | null;
-  ichingDetail: IChingContent | null;
-  numerologyDetail: NumerologyContent | null;
-  icpDetail: ICPContent | null;
-  compatibilityDetail: PersonalityCompatibilityContent | null;
-  matrixDetail: DestinyMatrixContent | null;
-  loading: boolean;
-  onClose: () => void;
-};
+  record: ServiceRecord | null
+  destinyMapDetail: DestinyMapContent | null
+  calendarDetail: CalendarContent | null
+  tarotDetail: TarotContent | null
+  ichingDetail: IChingContent | null
+  numerologyDetail: NumerologyContent | null
+  icpDetail: ICPContent | null
+  compatibilityDetail: PersonalityCompatibilityContent | null
+  matrixDetail: DestinyMatrixContent | null
+  loading: boolean
+  onClose: () => void
+}
 
 export function DetailModalWrapper({
   record,
@@ -56,7 +56,9 @@ export function DetailModalWrapper({
   loading,
   onClose,
 }: DetailModalWrapperProps) {
-  if (!record) {return null;}
+  if (!record) {
+    return null
+  }
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -93,5 +95,5 @@ export function DetailModalWrapper({
         )}
       </div>
     </div>
-  );
+  )
 }

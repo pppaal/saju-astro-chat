@@ -1,69 +1,26 @@
 // src/app/api/dream/stream/route.ts
 // Streaming Dream Interpretation API - Real-time SSE for fast display
 
-import { NextRequest, NextResponse } from 'next/server'
+import { createStreamRoute } from '@/lib/streaming'
+import { createPublicStreamGuard } from '@/lib/api/middleware'
+import { dreamStreamSchema, type DreamStreamValidated } from '@/lib/api/zodValidation'
+import { cleanStringArray, isRecord } from '@/lib/api'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { prisma } from '@/lib/db/prisma'
-import { initializeApiContext, createPublicStreamGuard } from '@/lib/api/middleware'
-import { createSSEStreamProxy, createFallbackSSEStream } from '@/lib/streaming'
-import { apiClient } from '@/lib/api/ApiClient'
-import { enforceBodySize } from '@/lib/http'
-import { cleanStringArray, isRecord } from '@/lib/api'
 import { logger } from '@/lib/logger'
-
-import { parseRequestBody } from '@/lib/api/requestParser'
-import { dreamStreamSchema } from '@/lib/api/zodValidation'
-interface StreamDreamRequest {
-  dreamText: string
-  symbols?: string[]
-  emotions?: string[]
-  themes?: string[]
-  context?: string[]
-  locale?: 'ko' | 'en'
-  // Cultural symbols
-  koreanTypes?: string[]
-  koreanLucky?: string[]
-  chinese?: string[]
-  islamicTypes?: string[]
-  western?: string[]
-  hindu?: string[]
-  japanese?: string[]
-  // Birth data for astrology/saju analysis
-  birth?: {
-    date: string
-    time: string
-    timezone?: string
-    latitude?: number
-    longitude?: number
-    gender?: string
-  }
-  sajuInfluence?: {
-    pillars?: Record<string, unknown>
-    dayMaster?: Record<string, unknown>
-    currentDaeun?: Record<string, unknown> | null
-    currentSaeun?: Record<string, unknown> | null
-    currentWolun?: Record<string, unknown> | null
-    todayIljin?: Record<string, unknown> | null
-  }
-}
-
-import { ALLOWED_LOCALES, BODY_LIMITS, TEXT_LIMITS, LIST_LIMITS } from '@/lib/constants/api-limits'
+import { BODY_LIMITS, TEXT_LIMITS } from '@/lib/constants/api-limits'
 import { DATE_RE, TIME_RE, LIMITS } from '@/lib/validation/patterns'
-import { HTTP_STATUS } from '@/lib/constants/http'
-const MAX_STREAM_BODY = BODY_LIMITS.STREAM
+
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const maxDuration = 60
+
 const MAX_TEXT_LEN = TEXT_LIMITS.MAX_DREAM_TEXT
-const _MAX_LIST_ITEMS = LIST_LIMITS.MAX_LIST_ITEMS
-const _MAX_LIST_ITEM_LEN = 120
-const STREAM_LOCALES = ALLOWED_LOCALES
 const MAX_TIMEZONE_LEN = LIMITS.TIMEZONE
 
-// cleanStringArray and isRecord imported from @/lib/api
-
 function sanitizeBirth(raw: unknown) {
-  if (!isRecord(raw)) {
-    return undefined
-  }
+  if (!isRecord(raw)) return undefined
   const date = typeof raw.date === 'string' && DATE_RE.test(raw.date) ? raw.date : undefined
   const time = typeof raw.time === 'string' && TIME_RE.test(raw.time) ? raw.time : undefined
   const timezone =
@@ -77,56 +34,26 @@ function sanitizeBirth(raw: unknown) {
   if (!date && !time && latitude === undefined && longitude === undefined && !timezone && !gender) {
     return undefined
   }
-
   return { date, time, timezone, latitude, longitude, gender }
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    // Apply middleware: rate limiting + public token auth + credit consumption
-    const guardOptions = createPublicStreamGuard({
-      route: 'dream-stream',
-      limit: 10,
-      windowSeconds: 60,
-      requireCredits: true,
-      creditType: 'reading',
-      creditAmount: 1,
-    })
-
-    const { context, error } = await initializeApiContext(req, guardOptions)
-    if (error) {
-      return error
-    }
-
-    const oversized = enforceBodySize(req, MAX_STREAM_BODY)
-    if (oversized) {
-      return oversized
-    }
-
-    const rawBody = await parseRequestBody<Partial<StreamDreamRequest>>(req, {
-      context: 'Dream Stream',
-    })
-    if (!rawBody || typeof rawBody !== 'object') {
-      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
-    }
-
-    // Validate with Zod
-    const validationResult = dreamStreamSchema.safeParse(rawBody)
-    if (!validationResult.success) {
-      logger.warn('[Dream stream] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    const validated = validationResult.data
+export const POST = createStreamRoute<DreamStreamValidated>({
+  route: 'DreamStream',
+  guard: createPublicStreamGuard({
+    route: 'dream-stream',
+    limit: 10,
+    windowSeconds: 60,
+    requireCredits: true,
+    creditType: 'reading',
+    creditAmount: 1,
+  }),
+  schema: dreamStreamSchema,
+  maxBodySize: BODY_LIMITS.STREAM,
+  fallbackMessage: {
+    ko: '일시적으로 꿈 해석 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해주세요.',
+    en: 'Dream interpretation service temporarily unavailable. Please try again later.',
+  },
+  async buildPayload(validated, context) {
     const dreamText = validated.dreamText.slice(0, MAX_TEXT_LEN)
     const symbols = cleanStringArray(validated.symbols)
     const emotions = cleanStringArray(validated.emotions)
@@ -143,75 +70,53 @@ export async function POST(req: NextRequest) {
     const birth = sanitizeBirth(validated.birth)
     const sajuInfluence = isRecord(validated.sajuInfluence) ? validated.sajuInfluence : undefined
 
-    // Call backend streaming endpoint using apiClient
-    const streamResult = await apiClient.postSSEStream('/api/dream/interpret-stream', {
-      dream: dreamText,
-      symbols,
-      emotions,
-      themes,
-      context: contextArray,
-      locale,
-      koreanTypes,
-      koreanLucky,
-      chinese,
-      islamicTypes,
-      western,
-      hindu,
-      japanese,
-      birth,
-      sajuInfluence,
-    })
-
-    if (!streamResult.ok) {
-      logger.error('[DreamStream] Backend error:', {
-        status: streamResult.status,
-        error: streamResult.error,
-      })
-
-      return createFallbackSSEStream({
-        content:
-          locale === 'ko'
-            ? '일시적으로 꿈 해석 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해주세요.'
-            : 'Dream interpretation service temporarily unavailable. Please try again later.',
-        done: true,
-        error: streamResult.error,
-      })
+    return {
+      endpoint: '/api/dream/interpret-stream',
+      body: {
+        dream: dreamText,
+        symbols,
+        emotions,
+        themes,
+        context: contextArray,
+        locale,
+        koreanTypes,
+        koreanLucky,
+        chinese,
+        islamicTypes,
+        western,
+        hindu,
+        japanese,
+        birth,
+        sajuInfluence,
+      },
     }
-
-    // ======== 기록 저장 (로그인 사용자만) ========
+  },
+  async afterStream(validated, context) {
     const session = await getServerSession(authOptions)
-    if (session?.user?.id || context.userId) {
-      try {
-        const userId = session?.user?.id || context.userId
-        const symbolsStr = symbols.slice(0, 5).join(', ')
-        await prisma.reading.create({
-          data: {
-            userId: userId!,
-            type: 'dream',
-            title: symbolsStr ? `꿈 해석: ${symbolsStr}` : '꿈 해석',
-            content: JSON.stringify({
-              dreamText: dreamText.slice(0, 500),
-              symbols,
-              emotions,
-              themes,
-              context: contextArray,
-              koreanTypes,
-              koreanLucky,
-            }),
-          },
-        })
-      } catch (saveErr) {
-        logger.warn('[Dream API] Failed to save reading:', saveErr)
-      }
-    }
+    const userId = session?.user?.id || context.userId
+    if (!userId) return
 
-    // Proxy the SSE stream from backend to client
-    return createSSEStreamProxy({
-      source: streamResult.response,
-      route: 'DreamStream',
-    })
-  } catch (err: unknown) {
-    logger.error('Dream stream error:', err)
-    return NextResponse.json({ error: 'Server error' }, { status: HTTP_STATUS.SERVER_ERROR })
-  }
-}
+    try {
+      const symbols = cleanStringArray(validated.symbols)
+      const symbolsStr = symbols.slice(0, 5).join(', ')
+      await prisma.reading.create({
+        data: {
+          userId,
+          type: 'dream',
+          title: symbolsStr ? `꿈 해석: ${symbolsStr}` : '꿈 해석',
+          content: JSON.stringify({
+            dreamText: validated.dreamText.slice(0, 500),
+            symbols,
+            emotions: cleanStringArray(validated.emotions),
+            themes: cleanStringArray(validated.themes),
+            context: cleanStringArray(validated.context),
+            koreanTypes: cleanStringArray(validated.koreanTypes),
+            koreanLucky: cleanStringArray(validated.koreanLucky),
+          }),
+        },
+      })
+    } catch (saveErr) {
+      logger.warn('[Dream API] Failed to save reading:', saveErr)
+    }
+  },
+})

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
   createAuthenticatedGuard,
@@ -12,32 +12,6 @@ import { logger } from '@/lib/logger'
 import { tarotSaveRequestSchema, tarotQuerySchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
-
-interface SaveTarotRequest {
-  question: string
-  theme?: string
-  spreadId: string
-  spreadTitle: string
-  cards: Array<{
-    cardId: string
-    name: string
-    image: string
-    isReversed: boolean
-    position: string
-  }>
-  overallMessage?: string
-  cardInsights?: Array<{
-    position: string
-    card_name: string
-    is_reversed: boolean
-    interpretation: string
-  }>
-  guidance?: string
-  affirmation?: string
-  source?: 'standalone' | 'counselor'
-  counselorSessionId?: string
-  locale?: string
-}
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {

@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import styles from './ResultTabs.module.css'
 
 type TabId = 'overview' | 'traditional' | 'practical' | 'advanced'

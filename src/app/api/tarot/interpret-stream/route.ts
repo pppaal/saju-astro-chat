@@ -6,7 +6,6 @@ import { initializeApiContext, createPublicStreamGuard } from '@/lib/api/middlew
 import { createSSEEvent, createSSEDoneEvent } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'
 import { enforceBodySize } from '@/lib/http'
-import { sanitizeString } from '@/lib/api/sanitizers'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { recordExternalCall } from '@/lib/metrics/index'
@@ -22,23 +21,6 @@ interface CardInput {
   keywordsKo?: string[]
 }
 
-interface StreamInterpretRequest {
-  categoryId: string
-  spreadId: string
-  spreadTitle: string
-  cards: CardInput[]
-  userQuestion?: string
-  language?: 'ko' | 'en'
-  // 개인화 정보
-  birthdate?: string // YYYY-MM-DD
-  zodiacSign?: string // 별자리
-  previousReadings?: string[] // 이전 상담 요약
-  questionMood?: 'worried' | 'curious' | 'hopeful' | 'urgent' | 'neutral' // 질문 감정
-}
-
-const MAX_TITLE = 120
-const MAX_QUESTION = 600
-const MAX_CARDS = 15
 const BACKEND_TIMEOUT_MS = 20000
 const OPENAI_TIMEOUT_MS = 30000
 
@@ -595,7 +577,7 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
             if (content) {
               controller.enqueue(encoder.encode(createSSEEvent({ content })))
             }
-          } catch (parseErr) {
+          } catch (_parseErr) {
             logger.warn('[Tarot stream] Invalid JSON chunk skipped', {
               data: data.substring(0, 100),
             })

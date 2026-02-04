@@ -46,7 +46,7 @@ const Chat = memo(function Chat({
   advancedAstro,
   predictionContext,
   userContext,
-  chatSessionId,
+  chatSessionId: _chatSessionId,
   onSaveMessage,
   autoScroll = true,
   ragSessionId,

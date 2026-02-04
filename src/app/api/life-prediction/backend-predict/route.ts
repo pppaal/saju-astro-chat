@@ -14,17 +14,6 @@ import { lifePredictionBackendPredictSchema } from '@/lib/api/zodValidation'
 // ============================================================
 // 타입 정의
 // ============================================================
-interface PredictRequest {
-  question: string
-  birthYear: number
-  birthMonth: number
-  birthDay?: number
-  birthHour?: number
-  gender?: 'male' | 'female' | 'unknown'
-  locale?: 'ko' | 'en'
-  type?: 'timing' | 'forecast' | 'luck'
-}
-
 interface BackendResponse {
   status: 'success' | 'error'
   message?: string

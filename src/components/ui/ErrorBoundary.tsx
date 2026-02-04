@@ -1,42 +1,42 @@
-'use client';
+'use client'
 
-import Link from "next/link";
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import styles from './ErrorBoundary.module.css';
-import { logger } from '@/lib/logger';
+import Link from 'next/link'
+import React, { Component, ErrorInfo, ReactNode } from 'react'
+import styles from './ErrorBoundary.module.css'
+import { logger } from '@/lib/logger'
 
 interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
+  children: ReactNode
+  fallback?: ReactNode
 }
 
 interface State {
-  hasError: boolean;
-  error: Error | null;
+  hasError: boolean
+  error: Error | null
 }
 
 class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false, error: null };
+    super(props)
+    this.state = { hasError: false, error: null }
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error }
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    logger.error('ErrorBoundary caught an error', error);
+  componentDidCatch(error: Error, _errorInfo: ErrorInfo) {
+    logger.error('ErrorBoundary caught an error', error)
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null });
-  };
+    this.setState({ hasError: false, error: null })
+  }
 
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        return this.props.fallback;
+        return this.props.fallback
       }
 
       return (
@@ -50,35 +50,26 @@ class ErrorBoundary extends Component<Props, State> {
               {this.state.error?.message || 'An unexpected error occurred'}
             </p>
             <div className={styles.actions}>
-              <button
-                onClick={this.handleReset}
-                className={styles.retryButton}
-                type="button"
-              >
+              <button onClick={this.handleReset} className={styles.retryButton} type="button">
                 Try Again
               </button>
-              <Link
-                href="/"
-                className={styles.homeButton}
-              >
+              <Link href="/" className={styles.homeButton}>
                 Go Home
               </Link>
             </div>
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className={styles.errorDetails}>
                 <summary className={styles.detailsSummary}>Error Details</summary>
-                <pre className={styles.errorStack}>
-                  {this.state.error.stack}
-                </pre>
+                <pre className={styles.errorStack}>{this.state.error.stack}</pre>
               </details>
             )}
           </div>
         </div>
-      );
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }
 
-export default ErrorBoundary;
+export default ErrorBoundary

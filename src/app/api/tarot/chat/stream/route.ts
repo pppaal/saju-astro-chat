@@ -34,14 +34,8 @@ interface TarotContext {
   guidance: string
 }
 
-import {
-  ALLOWED_LOCALES,
-  MESSAGE_LIMITS,
-  TEXT_LIMITS,
-  LIST_LIMITS,
-} from '@/lib/constants/api-limits'
+import { MESSAGE_LIMITS, TEXT_LIMITS, LIST_LIMITS } from '@/lib/constants/api-limits'
 import { HTTP_STATUS } from '@/lib/constants/http'
-const ALLOWED_TAROT_LANG = ALLOWED_LOCALES
 const MAX_MESSAGES = MESSAGE_LIMITS.MAX_MESSAGES
 const MAX_MESSAGE_LENGTH = MESSAGE_LIMITS.MAX_MESSAGE_LENGTH
 const MAX_CARD_COUNT = LIST_LIMITS.MAX_CARDS
@@ -298,7 +292,44 @@ function generateFallbackMessage(
   }
 }
 
+// LRU-style in-memory cache for personality data with TTL and periodic cleanup
+const PERSONALITY_CACHE_MAX = 100
+const PERSONALITY_CACHE_TTL = 1000 * 60 * 60 // 1시간
+const personalityCache = new Map<string, { data: PersonalityData | null; timestamp: number }>()
+
+// Periodic cleanup of expired entries (runs every 10 minutes)
+let _cleanupTimer: ReturnType<typeof setInterval> | null = null
+function ensureCacheCleanup() {
+  if (_cleanupTimer) return
+  _cleanupTimer = setInterval(
+    () => {
+      const now = Date.now()
+      for (const [key, entry] of personalityCache) {
+        if (now - entry.timestamp > PERSONALITY_CACHE_TTL) {
+          personalityCache.delete(key)
+        }
+      }
+    },
+    10 * 60 * 1000
+  )
+  // Allow the process to exit without waiting for this timer
+  if (_cleanupTimer && typeof _cleanupTimer === 'object' && 'unref' in _cleanupTimer) {
+    _cleanupTimer.unref()
+  }
+}
+
 async function fetchUserPersonality(userId: string): Promise<PersonalityData | null> {
+  ensureCacheCleanup()
+
+  // 캐시 확인 (LRU: move accessed entry to end)
+  const cached = personalityCache.get(userId)
+  if (cached && Date.now() - cached.timestamp < PERSONALITY_CACHE_TTL) {
+    // Move to end for LRU ordering
+    personalityCache.delete(userId)
+    personalityCache.set(userId, cached)
+    return cached.data
+  }
+
   try {
     const personalityResult = await prisma.personalityResult.findUnique({
       where: { userId },
@@ -314,11 +345,12 @@ async function fetchUserPersonality(userId: string): Promise<PersonalityData | n
     })
 
     if (!personalityResult || !personalityResult.analysisData) {
+      personalityCache.set(userId, { data: null, timestamp: Date.now() })
       return null
     }
 
     const analysisData = personalityResult.analysisData as Record<string, unknown>
-    return {
+    const result: PersonalityData = {
       typeCode: personalityResult.typeCode,
       personaName: personalityResult.personaName,
       energyScore: personalityResult.energyScore,
@@ -338,6 +370,16 @@ async function fetchUserPersonality(userId: string): Promise<PersonalityData | n
           : undefined,
       },
     }
+
+    personalityCache.set(userId, { data: result, timestamp: Date.now() })
+    // LRU eviction: remove oldest entries when cache exceeds limit
+    while (personalityCache.size > PERSONALITY_CACHE_MAX) {
+      const oldestKey = personalityCache.keys().next().value
+      if (oldestKey) personalityCache.delete(oldestKey)
+      else break
+    }
+
+    return result
   } catch (err) {
     logger.error('[TarotChatStream] Failed to fetch personality:', err)
     return null

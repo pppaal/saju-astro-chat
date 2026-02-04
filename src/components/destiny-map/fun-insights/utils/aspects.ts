@@ -2,53 +2,57 @@
  * Aspect finding and analysis utilities
  */
 
-import type { StandardPlanetName, AspectType } from '../types/core';
-import type { AstroData, AspectData } from '../types';
-import { extractAspectPlanetName, normalizeAspectType } from './planets';
+import type { StandardPlanetName, AspectType } from '../types/core'
+import type { AstroData } from '../types'
+import { extractAspectPlanetName, normalizeAspectType } from './planets'
 
 // ========== Aspect Info Types ==========
 
 export interface AspectInfo {
-  planet1: StandardPlanetName;
-  planet2: StandardPlanetName;
-  type: AspectType;
-  orb?: number;
+  planet1: StandardPlanetName
+  planet2: StandardPlanetName
+  type: AspectType
+  orb?: number
 }
 
 export interface DetailedAspectInfo extends AspectInfo {
-  isHarmonious: boolean;
-  isChallenging: boolean;
-  strength: 'exact' | 'close' | 'wide';
+  isHarmonious: boolean
+  isChallenging: boolean
+  strength: 'exact' | 'close' | 'wide'
 }
 
 // ========== Aspect Classification ==========
 
-const HARMONIOUS_ASPECTS: AspectType[] = ['trine', 'sextile'];
-const CHALLENGING_ASPECTS: AspectType[] = ['square', 'opposition'];
-const CONJUNCTION_NEUTRAL: AspectType[] = ['conjunction'];
-
+const HARMONIOUS_ASPECTS: AspectType[] = ['trine', 'sextile']
+const CHALLENGING_ASPECTS: AspectType[] = ['square', 'opposition']
 /**
  * Checks if an aspect type is harmonious (trine, sextile)
  */
 export function isHarmoniousAspect(type: AspectType): boolean {
-  return HARMONIOUS_ASPECTS.includes(type);
+  return HARMONIOUS_ASPECTS.includes(type)
 }
 
 /**
  * Checks if an aspect type is challenging (square, opposition)
  */
 export function isChallengingAspect(type: AspectType): boolean {
-  return CHALLENGING_ASPECTS.includes(type);
+  return CHALLENGING_ASPECTS.includes(type)
 }
 
 /**
  * Get aspect strength based on orb
  */
 export function getAspectStrength(orb: number | undefined): 'exact' | 'close' | 'wide' {
-  if (orb === undefined) {return 'close';}
-  if (orb <= 1) {return 'exact';}
-  if (orb <= 3) {return 'close';}
-  return 'wide';
+  if (orb === undefined) {
+    return 'close'
+  }
+  if (orb <= 1) {
+    return 'exact'
+  }
+  if (orb <= 3) {
+    return 'close'
+  }
+  return 'wide'
 }
 
 // ========== Aspect Finding ==========
@@ -66,14 +70,18 @@ export function findAspect(
   planet1: StandardPlanetName,
   planet2: StandardPlanetName
 ): AspectInfo | null {
-  if (!astro?.aspects || !Array.isArray(astro.aspects)) {return null;}
+  if (!astro?.aspects || !Array.isArray(astro.aspects)) {
+    return null
+  }
 
   for (const aspect of astro.aspects) {
-    const from = extractAspectPlanetName(aspect.from);
-    const to = extractAspectPlanetName(aspect.to);
-    const type = normalizeAspectType(aspect.type);
+    const from = extractAspectPlanetName(aspect.from)
+    const to = extractAspectPlanetName(aspect.to)
+    const type = normalizeAspectType(aspect.type)
 
-    if (!from || !to || !type) {continue;}
+    if (!from || !to || !type) {
+      continue
+    }
 
     // Check both directions
     if ((from === planet1 && to === planet2) || (from === planet2 && to === planet1)) {
@@ -81,12 +89,12 @@ export function findAspect(
         planet1: from,
         planet2: to,
         type,
-        orb: aspect.orb
-      };
+        orb: aspect.orb,
+      }
     }
   }
 
-  return null;
+  return null
 }
 
 /**
@@ -97,15 +105,17 @@ export function findAspectDetailed(
   planet1: StandardPlanetName,
   planet2: StandardPlanetName
 ): DetailedAspectInfo | null {
-  const basic = findAspect(astro, planet1, planet2);
-  if (!basic) {return null;}
+  const basic = findAspect(astro, planet1, planet2)
+  if (!basic) {
+    return null
+  }
 
   return {
     ...basic,
     isHarmonious: isHarmoniousAspect(basic.type),
     isChallenging: isChallengingAspect(basic.type),
-    strength: getAspectStrength(basic.orb)
-  };
+    strength: getAspectStrength(basic.orb),
+  }
 }
 
 /**
@@ -115,28 +125,32 @@ export function findPlanetAspects(
   astro: AstroData | undefined,
   planet: StandardPlanetName
 ): AspectInfo[] {
-  if (!astro?.aspects || !Array.isArray(astro.aspects)) {return [];}
+  if (!astro?.aspects || !Array.isArray(astro.aspects)) {
+    return []
+  }
 
-  const results: AspectInfo[] = [];
+  const results: AspectInfo[] = []
 
   for (const aspect of astro.aspects) {
-    const from = extractAspectPlanetName(aspect.from);
-    const to = extractAspectPlanetName(aspect.to);
-    const type = normalizeAspectType(aspect.type);
+    const from = extractAspectPlanetName(aspect.from)
+    const to = extractAspectPlanetName(aspect.to)
+    const type = normalizeAspectType(aspect.type)
 
-    if (!from || !to || !type) {continue;}
+    if (!from || !to || !type) {
+      continue
+    }
 
     if (from === planet || to === planet) {
       results.push({
         planet1: from,
         planet2: to,
         type,
-        orb: aspect.orb
-      });
+        orb: aspect.orb,
+      })
     }
   }
 
-  return results;
+  return results
 }
 
 /**
@@ -146,8 +160,7 @@ export function findHarmoniousAspects(
   astro: AstroData | undefined,
   planet: StandardPlanetName
 ): AspectInfo[] {
-  return findPlanetAspects(astro, planet)
-    .filter(a => isHarmoniousAspect(a.type));
+  return findPlanetAspects(astro, planet).filter((a) => isHarmoniousAspect(a.type))
 }
 
 /**
@@ -157,8 +170,7 @@ export function findChallengingAspects(
   astro: AstroData | undefined,
   planet: StandardPlanetName
 ): AspectInfo[] {
-  return findPlanetAspects(astro, planet)
-    .filter(a => isChallengingAspect(a.type));
+  return findPlanetAspects(astro, planet).filter((a) => isChallengingAspect(a.type))
 }
 
 /**
@@ -170,14 +182,16 @@ export function hasAspect(
   planet2: StandardPlanetName,
   aspectTypes?: AspectType[]
 ): boolean {
-  const aspect = findAspect(astro, planet1, planet2);
-  if (!aspect) {return false;}
-
-  if (aspectTypes && aspectTypes.length > 0) {
-    return aspectTypes.includes(aspect.type);
+  const aspect = findAspect(astro, planet1, planet2)
+  if (!aspect) {
+    return false
   }
 
-  return true;
+  if (aspectTypes && aspectTypes.length > 0) {
+    return aspectTypes.includes(aspect.type)
+  }
+
+  return true
 }
 
 /**
@@ -188,7 +202,7 @@ export function hasHarmoniousAspect(
   planet1: StandardPlanetName,
   planet2: StandardPlanetName
 ): boolean {
-  return hasAspect(astro, planet1, planet2, HARMONIOUS_ASPECTS);
+  return hasAspect(astro, planet1, planet2, HARMONIOUS_ASPECTS)
 }
 
 /**
@@ -199,7 +213,7 @@ export function hasChallengingAspect(
   planet1: StandardPlanetName,
   planet2: StandardPlanetName
 ): boolean {
-  return hasAspect(astro, planet1, planet2, CHALLENGING_ASPECTS);
+  return hasAspect(astro, planet1, planet2, CHALLENGING_ASPECTS)
 }
 
 // ========== Aspect Summary ==========
@@ -218,9 +232,9 @@ export function getAspectTypeDescription(type: AspectType, isKo: boolean): strin
     semisextile: { ko: '세미섹스타일(30°)', en: 'Semisextile (30°)' },
     semisquare: { ko: '세미스퀘어(45°)', en: 'Semisquare (45°)' },
     sesquiquadrate: { ko: '세스퀴쿼드레이트(135°)', en: 'Sesquiquadrate (135°)' },
-  };
+  }
 
-  return isKo ? descriptions[type].ko : descriptions[type].en;
+  return isKo ? descriptions[type].ko : descriptions[type].en
 }
 
 /**
@@ -230,7 +244,7 @@ export function countAspectsByType(
   astro: AstroData | undefined,
   planet: StandardPlanetName
 ): Record<AspectType, number> {
-  const aspects = findPlanetAspects(astro, planet);
+  const aspects = findPlanetAspects(astro, planet)
   const counts: Record<AspectType, number> = {
     conjunction: 0,
     opposition: 0,
@@ -241,11 +255,11 @@ export function countAspectsByType(
     semisextile: 0,
     semisquare: 0,
     sesquiquadrate: 0,
-  };
-
-  for (const aspect of aspects) {
-    counts[aspect.type]++;
   }
 
-  return counts;
+  for (const aspect of aspects) {
+    counts[aspect.type]++
+  }
+
+  return counts
 }

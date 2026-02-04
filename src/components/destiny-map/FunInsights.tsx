@@ -20,7 +20,6 @@ import type { TabData } from './fun-insights/types'
 import {
   elementTraits,
   dayMasterData,
-  zodiacData,
   tianGanMap,
   LIFE_THEMES,
   EMOTION_PATTERNS,
@@ -48,13 +47,13 @@ import {
 import { getChironInsight } from './fun-insights/astrology'
 
 // Import generators
-import {
-  getRecommendedDates,
-  getSimpleRecommendedDates,
-  getLuckyItems,
-  getPersonalizedAdvice,
-  getCombinedLifeTheme,
-} from './fun-insights/generators'
+import { getRecommendedDates, getLuckyItems, getCombinedLifeTheme } from './fun-insights/generators'
+
+// Import report generator
+import { generateReport } from './fun-insights/generators/reportGenerator'
+
+// Import HeroSection component
+import HeroSection from './fun-insights/HeroSection'
 
 // Saju data type definition
 interface SajuData {
@@ -93,99 +92,6 @@ interface Props {
   lang?: string
   theme?: string
   className?: string
-}
-
-// Memoized report generator - cached at module level to avoid recalculation
-const reportCache = new Map<string, string>()
-
-function generateReport(saju: unknown, astro: unknown, lang: string, _theme: string): string {
-  // Type guard for saju data
-  const sajuData = saju as SajuData | undefined
-  const astroData = astro as AstroData | undefined
-
-  // Create cache key from input parameters
-  const cacheKey = JSON.stringify({
-    dayMaster: sajuData?.dayMaster?.name,
-    fiveElements: sajuData?.fiveElements,
-    sun: findPlanetSign(astroData, 'sun'),
-    moon: findPlanetSign(astroData, 'moon'),
-    lang,
-  })
-
-  // Return cached result if available
-  if (reportCache.has(cacheKey)) {
-    return reportCache.get(cacheKey)!
-  }
-
-  const isKo = lang === 'ko'
-
-  const rawDayMasterName = sajuData?.dayMaster?.name || sajuData?.dayMaster?.heavenlyStem
-  const dayMasterName = rawDayMasterName ? tianGanMap[rawDayMasterName] || rawDayMasterName : null
-  const dayMasterInfo = dayMasterName ? dayMasterData[dayMasterName] : null
-  const dayElement = dayMasterInfo?.element
-
-  const sunSign = findPlanetSign(astroData, 'sun')
-  const moonSign = findPlanetSign(astroData, 'moon')
-  const sunData = sunSign ? zodiacData[sunSign] : null
-  const moonData = moonSign ? zodiacData[moonSign] : null
-
-  const fiveElements = sajuData?.fiveElements || {}
-  const sorted = Object.entries(fiveElements).sort(([, a], [, b]) => (b as number) - (a as number))
-  const strongest = sorted[0]
-  const weakest = sorted[sorted.length - 1]
-
-  if (!dayMasterInfo) {
-    return isKo ? '사주 데이터를 분석 중입니다...' : 'Analyzing Saju data...'
-  }
-
-  const report = isKo
-    ? `【동양 × 서양 운세 융합 분석】
-
-${dayMasterInfo.hanja}${dayMasterInfo.ko.replace('갑목', '금')}(${dayElement ? elementTraits[dayElement]?.ko : ''}) 일간을 가진 당신은 ${dayMasterInfo.personality.ko}입니다.
-
-${
-  sunData && moonData
-    ? `태양 ${sunData.ko}(${sunData.trait.ko})와 달 ${moonData.ko}(${moonData.trait.ko})의 조합으로, 외적으로는 ${sunData.trait.ko} 모습을, 내면에서는 ${moonData.trait.ko} 감성을 지닙니다.`
-    : sunData
-      ? `태양 ${sunData.ko}의 영향으로 ${sunData.trait.ko} 성향이 드러납니다.`
-      : ''
-}
-
-【오행 밸런스】
-${strongest ? `강점: ${elementTraits[strongest[0]]?.ko}(${strongest[1]}%) - ${strongest[0] === 'wood' ? '성장과 발전' : strongest[0] === 'fire' ? '열정과 표현' : strongest[0] === 'earth' ? '안정과 신뢰' : strongest[0] === 'metal' ? '결단과 실행' : '지혜와 유연함'}의 에너지가 풍부합니다.` : ''}
-${weakest ? `보완점: ${elementTraits[weakest[0]]?.ko}(${weakest[1]}%) - 이 기운을 보완하면 더 균형 잡힌 삶을 살 수 있습니다.` : ''}
-
-${dayMasterInfo.strength.ko}이 장점이며, ${dayMasterInfo.weakness.ko}은 주의가 필요합니다.`
-    : `【Eastern × Western Fortune Analysis】
-
-As ${dayMasterInfo.en} (${dayElement ? elementTraits[dayElement]?.en : ''}), you are ${dayMasterInfo.personality.en}.
-
-${
-  sunData && moonData
-    ? `With Sun in ${sunData.en} (${sunData.trait.en}) and Moon in ${moonData.en} (${moonData.trait.en}), you show ${sunData.trait.en} externally while feeling ${moonData.trait.en} internally.`
-    : sunData
-      ? `Sun in ${sunData.en} influences your ${sunData.trait.en} tendencies.`
-      : ''
-}
-
-【Five Elements Balance】
-${strongest ? `Strength: ${elementTraits[strongest[0]]?.en} (${strongest[1]}%) - Rich in ${strongest[0] === 'wood' ? 'growth' : strongest[0] === 'fire' ? 'passion' : strongest[0] === 'earth' ? 'stability' : strongest[0] === 'metal' ? 'decisiveness' : 'wisdom'} energy.` : ''}
-${weakest ? `To improve: ${elementTraits[weakest[0]]?.en} (${weakest[1]}%) - Boosting this brings better balance.` : ''}
-
-Your strengths are ${dayMasterInfo.strength.en}, while ${dayMasterInfo.weakness.en} needs attention.`
-
-  // Cache the result
-  reportCache.set(cacheKey, report)
-
-  // Limit cache size to prevent memory leaks (increased for production)
-  if (reportCache.size > 500) {
-    const firstKey = reportCache.keys().next().value
-    if (firstKey !== undefined) {
-      reportCache.delete(firstKey)
-    }
-  }
-
-  return report
 }
 
 // ============================================================
@@ -269,7 +175,7 @@ const FunInsights = memo(function FunInsights({
   }, [data])
 
   // 운명이 풀리는 선택 5가지 - 외부 함수 사용으로 간소화
-  const destinyChoices = useMemo(() => {
+  const _destinyChoices = useMemo(() => {
     if (!data) {
       return []
     }
@@ -345,147 +251,12 @@ const FunInsights = memo(function FunInsights({
     return null
   }
 
-  const sunData = data.sunSign ? zodiacData[data.sunSign] : null
-  const moonData = data.moonSign ? zodiacData[data.moonSign] : null
-
   return (
     <div className={`mt-8 space-y-6 ${className}`}>
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* 운명의 한 줄 요약 - 히어로 */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-purple-900/40 to-slate-900 border border-purple-500/30 p-6 md:p-8">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl" />
-
-        {/* 운명 한 줄 */}
-        <div className="relative mb-6">
-          <p className="text-xl md:text-2xl text-gray-100 leading-relaxed font-medium">
-            {isKo ? (
-              <>
-                &quot;<span className="text-amber-400">{data.dayMasterInfo.personality.ko}</span>이
-                세상에 드러내되,{' '}
-                <span className="text-purple-400">{sunData?.ko || '알 수 없음'}</span>의 외면과{' '}
-                <span className="text-blue-400">{moonData?.ko || '알 수 없음'}</span>의 내면으로{' '}
-                <span className="text-emerald-400">
-                  &apos;{destinyNarrative?.lifeTheme?.ko || '나만의 길'}&apos;
-                </span>
-                을 이루는 운명.&quot;
-              </>
-            ) : (
-              <>
-                &quot;A <span className="text-amber-400">{data.dayMasterInfo.personality.en}</span>{' '}
-                showing to the world, with{' '}
-                <span className="text-purple-400">{sunData?.en || 'Unknown'}</span> exterior and{' '}
-                <span className="text-blue-400">{moonData?.en || 'Unknown'}</span> interior, walking
-                the path of{' '}
-                <span className="text-emerald-400">
-                  &apos;{destinyNarrative?.lifeTheme?.en || 'your own way'}&apos;
-                </span>
-                .&quot;
-              </>
-            )}
-          </p>
-        </div>
-
-        {/* 핵심 프로필 뱃지 */}
-        <div className="relative flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 border border-amber-500/30">
-            <span className="text-lg">{data.dayMasterInfo.animal}</span>
-            <span className="text-amber-300 font-medium">
-              {isKo
-                ? data.dayMasterName === '신'
-                  ? '보석 같은 사람'
-                  : data.dayMasterName === '갑'
-                    ? '리더 같은 사람'
-                    : data.dayMasterName === '을'
-                      ? '유연한 사람'
-                      : data.dayMasterName === '병'
-                        ? '밝은 사람'
-                        : data.dayMasterName === '정'
-                          ? '따뜻한 사람'
-                          : data.dayMasterName === '무'
-                            ? '든든한 사람'
-                            : data.dayMasterName === '기'
-                              ? '포용적인 사람'
-                              : data.dayMasterName === '경'
-                                ? '시원시원한 사람'
-                                : data.dayMasterName === '임'
-                                  ? '깊은 사람'
-                                  : data.dayMasterName === '계'
-                                    ? '순수한 사람'
-                                    : '특별한 사람'
-                : data.dayMasterName === '신'
-                  ? 'Gem-like'
-                  : data.dayMasterName === '갑'
-                    ? 'Leader'
-                    : data.dayMasterName === '을'
-                      ? 'Flexible'
-                      : data.dayMasterName === '병'
-                        ? 'Bright'
-                        : data.dayMasterName === '정'
-                          ? 'Warm'
-                          : data.dayMasterName === '무'
-                            ? 'Solid'
-                            : data.dayMasterName === '기'
-                              ? 'Nurturing'
-                              : data.dayMasterName === '경'
-                                ? 'Decisive'
-                                : data.dayMasterName === '임'
-                                  ? 'Deep'
-                                  : data.dayMasterName === '계'
-                                    ? 'Pure'
-                                    : 'Special'}
-            </span>
-          </div>
-          {sunData && (
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 border border-purple-500/30">
-              <span className="text-lg">{sunData.emoji}</span>
-              <span className="text-purple-300 font-medium">
-                {isKo ? `겉모습: ${sunData.ko}` : `Outer: ${sunData.en}`}
-              </span>
-            </div>
-          )}
-          {moonData && (
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/20 border border-blue-500/30">
-              <span className="text-lg">🌙</span>
-              <span className="text-blue-300 font-medium">
-                {isKo ? `속마음: ${moonData.ko}` : `Inner: ${moonData.en}`}
-              </span>
-            </div>
-          )}
-          <div
-            className="flex items-center gap-2 px-4 py-2 rounded-full"
-            style={{
-              backgroundColor: elementTraits[data.strongest[0]]?.bgColor,
-              border: `1px solid ${elementTraits[data.strongest[0]]?.color}`,
-            }}
-          >
-            <span className="text-lg">{elementTraits[data.strongest[0]]?.emoji}</span>
-            <span
-              className="font-medium"
-              style={{ color: elementTraits[data.strongest[0]]?.color }}
-            >
-              {isKo
-                ? `많은 쪽: ${elementTraits[data.strongest[0]]?.ko}`
-                : `Strong: ${elementTraits[data.strongest[0]]?.en}`}
-            </span>
-          </div>
-          <div
-            className="flex items-center gap-2 px-4 py-2 rounded-full"
-            style={{
-              backgroundColor: elementTraits[data.weakest[0]]?.bgColor,
-              border: `1px solid ${elementTraits[data.weakest[0]]?.color}`,
-            }}
-          >
-            <span className="text-lg">{elementTraits[data.weakest[0]]?.emoji}</span>
-            <span className="font-medium" style={{ color: elementTraits[data.weakest[0]]?.color }}>
-              {isKo
-                ? `부족한 쪽: ${elementTraits[data.weakest[0]]?.ko}`
-                : `Weak: ${elementTraits[data.weakest[0]]?.en}`}
-            </span>
-          </div>
-        </div>
-      </div>
+      <HeroSection isKo={isKo} data={data} destinyNarrative={destinyNarrative} />
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* 탭 네비게이션 */}

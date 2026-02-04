@@ -1,15 +1,13 @@
-'use client';
-
-import { useState } from 'react';
+'use client'
 
 interface CreditConfirmModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  creditCost: number;
-  currentCredits: number;
-  reportTitle: string;
-  isLoading?: boolean;
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: () => void
+  creditCost: number
+  currentCredits: number
+  reportTitle: string
+  isLoading?: boolean
 }
 
 export function CreditConfirmModal({
@@ -21,17 +19,16 @@ export function CreditConfirmModal({
   reportTitle,
   isLoading = false,
 }: CreditConfirmModalProps) {
-  const hasEnoughCredits = currentCredits >= creditCost;
+  const hasEnoughCredits = currentCredits >= creditCost
 
-  if (!isOpen) {return null;}
+  if (!isOpen) {
+    return null
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
       <div className="relative bg-slate-800 rounded-2xl p-6 max-w-md w-full mx-4 border border-slate-700 shadow-2xl">
@@ -71,7 +68,8 @@ export function CreditConfirmModal({
           {hasEnoughCredits && (
             <div className="bg-slate-700/50 rounded-xl p-4">
               <p className="text-gray-400 text-sm">
-                리포트 생성 후 잔여 크레딧: <span className="text-white font-medium">{currentCredits - creditCost}</span> 크레딧
+                리포트 생성 후 잔여 크레딧:{' '}
+                <span className="text-white font-medium">{currentCredits - creditCost}</span> 크레딧
               </p>
             </div>
           )}
@@ -112,5 +110,5 @@ export function CreditConfirmModal({
         </div>
       </div>
     </div>
-  );
+  )
 }
