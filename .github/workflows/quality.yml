@@ -26,6 +26,8 @@ jobs:
 
       - name: 📦 Install dependencies
         run: npm ci
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
       - name: 🔍 Lint check
         run: npm run lint
@@ -94,6 +96,8 @@ jobs:
 
       - name: 📦 Install dependencies
         run: npm ci
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
       - name: 🏗️ Build
         run: npm run build

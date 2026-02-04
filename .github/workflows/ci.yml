@@ -30,6 +30,8 @@ jobs:
 
       - name: Install deps
         run: npm ci
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
       - name: Verify token encryption
         run: node scripts/verify-token-encryption.js
