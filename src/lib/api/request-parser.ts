@@ -67,10 +67,10 @@ export async function parseJsonBodyStrict(
  * Previously duplicated in 68+ routes
  */
 export function formatValidationErrors(
-  issues: Array<{ path: (string | number)[]; message: string }>
+  issues: Array<{ path: PropertyKey[]; message: string }>
 ): ValidationErrorDetail[] {
   return issues.map((e) => ({
-    path: e.path.join('.'),
+    path: e.path.map(String).join('.'),
     message: e.message,
   }))
 }
@@ -80,7 +80,7 @@ export function formatValidationErrors(
  * Previously duplicated in 82+ routes
  */
 export function createValidationFailure(
-  issues: Array<{ path: (string | number)[]; message: string }>,
+  issues: Array<{ path: PropertyKey[]; message: string }>,
   route: string
 ): ReturnType<typeof apiError> {
   const details = formatValidationErrors(issues)
