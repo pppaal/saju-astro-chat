@@ -160,7 +160,9 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
   } = useSessionHistory({
     theme,
     setMessages,
-    sessionIdRef,
+    onSessionIdChange: (newId) => {
+      sessionIdRef.current = newId
+    },
   })
 
   // Scroll to bottom of messages
