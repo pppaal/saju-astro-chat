@@ -159,7 +159,7 @@ export function useAsyncState<T>(options: UseAsyncStateOptions<T> = {}): UseAsyn
   // Execute async function
   const execute = useCallback(
     async <R = T>(asyncFn: () => Promise<R>): Promise<R | null> => {
-      lastAsyncFnRef.current = asyncFn as () => Promise<T>
+      lastAsyncFnRef.current = asyncFn as unknown as () => Promise<T>
       setHasLastAsyncFn(true)
 
       setState((prev) => ({
