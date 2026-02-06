@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useShareMenu } from '@/hooks'
 
 interface ShareData {
   title: string
@@ -37,6 +36,7 @@ interface ShareButtonPropsWithCard {
 type ShareButtonProps = ShareButtonPropsWithData | ShareButtonPropsWithCard
 
 export function ShareButton(props: ShareButtonProps) {
+  const [showMenu, setShowMenu] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
 
   // Determine if using card mode or data mode
@@ -52,22 +52,7 @@ export function ShareButton(props: ShareButtonProps) {
   const className = props.className || ''
   const children = props.children
 
-  // Use useShareMenu hook for sharing logic
-  const {
-    isOpen: showMenu,
-    close: closeMenu,
-    copyToClipboard,
-    shareTwitter: shareTwitterHook,
-    shareFacebook: shareFacebookHook,
-    shareNative,
-    hasNativeShare,
-  } = useShareMenu({
-    url: shareUrl,
-    message: `${data.title}\n${data.description}\n\n#DestinyPal #운세 #사주`,
-    title: data.title,
-  })
-
-  // 카카오 공유 (Kakao SDK specific - not in hook)
+  // 카카오 공유
   const shareKakao = () => {
     if (typeof window !== 'undefined' && (window as Window & { Kakao?: KakaoType }).Kakao) {
       const Kakao = (window as Window & { Kakao: KakaoType }).Kakao
@@ -95,7 +80,7 @@ export function ShareButton(props: ShareButtonProps) {
     } else {
       alert('카카오톡 공유 기능을 불러오는 중입니다. 잠시 후 다시 시도해주세요.')
     }
-    closeMenu()
+    setShowMenu(false)
   }
 
   // 인스타그램 스토리 공유
@@ -128,25 +113,56 @@ export function ShareButton(props: ShareButtonProps) {
     } else {
       alert('공유할 이미지가 없습니다.')
     }
-    closeMenu()
+    setShowMenu(false)
   }
 
-  // 링크 복사 with alert (using hook's copyToClipboard)
+  // 트위터(X) 공유
+  const shareTwitter = () => {
+    const text = encodeURIComponent(`${data.title}\n${data.description}\n\n#DestinyPal #운세 #사주`)
+    const url = encodeURIComponent(shareUrl)
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank')
+    setShowMenu(false)
+  }
+
+  // 페이스북 공유
+  const shareFacebook = () => {
+    const url = encodeURIComponent(shareUrl)
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank')
+    setShowMenu(false)
+  }
+
+  // 링크 복사
   const copyLink = async () => {
-    const success = await copyToClipboard()
-    if (success) {
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      alert('링크가 복사되었습니다!')
+    } catch {
+      // fallback
+      const textarea = document.createElement('textarea')
+      textarea.value = shareUrl
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
       alert('링크가 복사되었습니다!')
     }
+    setShowMenu(false)
   }
 
-  // 네이티브 공유 (모바일) - using hook's shareNative and hasNativeShare
+  // 네이티브 공유 (모바일)
   const nativeShare = async () => {
-    if (hasNativeShare) {
-      await shareNative()
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: data.title,
+          text: data.description,
+          url: shareUrl,
+        })
+      } catch {
+        // 사용자가 취소한 경우
+      }
     } else {
-      // Open menu if native share not available
-      const event = new CustomEvent('share-menu-toggle')
-      document.dispatchEvent(event)
+      setShowMenu(true)
     }
   }
 
@@ -167,12 +183,12 @@ export function ShareButton(props: ShareButtonProps) {
 
       {showMenu && (
         <>
-          <div className="fixed inset-0 z-40" onClick={closeMenu} />
+          <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
           <div className="absolute bottom-full left-0 mb-2 bg-gray-900 rounded-lg shadow-xl p-2 z-50 min-w-[160px]">
             <ShareMenuItem onClick={shareKakao} icon="💬" label="카카오톡" />
             <ShareMenuItem onClick={shareInstagram} icon="📸" label="인스타그램" />
-            <ShareMenuItem onClick={shareTwitterHook} icon="𝕏" label="X (트위터)" />
-            <ShareMenuItem onClick={shareFacebookHook} icon="📘" label="페이스북" />
+            <ShareMenuItem onClick={shareTwitter} icon="𝕏" label="X (트위터)" />
+            <ShareMenuItem onClick={shareFacebook} icon="📘" label="페이스북" />
             <ShareMenuItem onClick={copyLink} icon="🔗" label="링크 복사" />
           </div>
         </>

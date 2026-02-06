@@ -193,8 +193,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.success).toBe(false)
-      expect(data.error.message).toBe('Webhook secret not configured')
+      expect(data.error).toBe('Webhook secret not configured')
       expect(vi.mocked(logger.error)).toHaveBeenCalled()
       expect(vi.mocked(captureServerError)).toHaveBeenCalled()
       expect(vi.mocked(recordCounter)).toHaveBeenCalledWith('stripe_webhook_config_error', 1, {
@@ -209,8 +208,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.success).toBe(false)
-      expect(data.error.message).toBe('Webhook secret not configured')
+      expect(data.error).toBe('Webhook secret not configured')
     })
   })
 
@@ -225,8 +223,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.message).toBe('Missing stripe-signature header')
+      expect(data.error).toBe('Missing stripe-signature header')
       expect(vi.mocked(recordCounter)).toHaveBeenCalledWith('stripe_webhook_auth_error', 1, {
         reason: 'missing_signature',
       })
@@ -246,8 +243,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.message).toBe('Webhook signature verification failed')
+      expect(data.error).toBe('Webhook signature verification failed')
       expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
         expect.stringContaining('Signature verification failed'),
         expect.objectContaining({ message: 'Invalid signature' })
@@ -266,8 +262,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.message).toBe('Webhook signature verification failed')
+      expect(data.error).toBe('Webhook signature verification failed')
     })
   })
 
@@ -289,8 +284,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.message).toBe('Event too old')
+      expect(data.error).toBe('Event too old')
       expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
         expect.stringContaining('Stale event rejected'),
         expect.any(Object)
@@ -1435,8 +1429,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.success).toBe(false)
-      expect(data.error.message).toBe('Internal Server Error')
+      expect(data.error).toBe('Internal Server Error')
       expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
         expect.stringContaining('Error handling customer.subscription.deleted'),
         expect.any(Error)

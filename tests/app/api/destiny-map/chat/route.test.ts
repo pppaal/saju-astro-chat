@@ -14,7 +14,6 @@ vi.mock('@/lib/api/middleware', () => ({
     rateLimit: { limit: 45, windowSeconds: 60 },
     credits: { type: 'followUp', amount: 1 },
   })),
-  extractLocale: vi.fn(() => 'ko'),
 }))
 
 // Mock next-auth
@@ -123,22 +122,6 @@ vi.mock('@/lib/api/zodValidation', () => ({
       return { success: true, data: obj }
     }),
   },
-  createValidationErrorResponse: vi.fn(
-    (zodError: { issues: Array<{ path: (string | number)[]; message: string }> }) => {
-      const details = zodError.issues.map((issue) => ({
-        path: issue.path.join('.') || 'root',
-        message: issue.message,
-      }))
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'VALIDATION_ERROR', message: 'validation_failed', status: 400 },
-          details,
-        },
-        { status: 400 }
-      )
-    }
-  ),
 }))
 
 // Mock constants
@@ -167,74 +150,6 @@ vi.mock('@/lib/validation/patterns', () => ({
     CV_TEXT_SHORT: 1200,
   },
 }))
-
-// Mock error handler
-vi.mock('@/lib/api/errorHandler', () => {
-  const STATUS_CODES: Record<string, number> = {
-    BAD_REQUEST: 400,
-    UNAUTHORIZED: 401,
-    FORBIDDEN: 403,
-    NOT_FOUND: 404,
-    RATE_LIMITED: 429,
-    VALIDATION_ERROR: 422,
-    PAYLOAD_TOO_LARGE: 413,
-    PAYMENT_REQUIRED: 402,
-    INTERNAL_ERROR: 500,
-    SERVICE_UNAVAILABLE: 503,
-    BACKEND_ERROR: 502,
-    TIMEOUT: 504,
-    DATABASE_ERROR: 500,
-    EXTERNAL_API_ERROR: 502,
-    INVALID_TOKEN: 401,
-    TOKEN_EXPIRED: 401,
-    INSUFFICIENT_CREDITS: 402,
-    INVALID_DATE: 400,
-    INVALID_TIME: 400,
-    INVALID_COORDINATES: 400,
-    INVALID_FORMAT: 400,
-    MISSING_FIELD: 400,
-  }
-  return {
-    createErrorResponse: vi.fn((options: { code: string; message?: string }) => {
-      const status = STATUS_CODES[options.code] || 500
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: options.code,
-            message: options.message || options.code,
-            status,
-          },
-        },
-        { status }
-      )
-    }),
-    ErrorCodes: {
-      BAD_REQUEST: 'BAD_REQUEST',
-      UNAUTHORIZED: 'UNAUTHORIZED',
-      FORBIDDEN: 'FORBIDDEN',
-      NOT_FOUND: 'NOT_FOUND',
-      RATE_LIMITED: 'RATE_LIMITED',
-      VALIDATION_ERROR: 'VALIDATION_ERROR',
-      PAYLOAD_TOO_LARGE: 'PAYLOAD_TOO_LARGE',
-      PAYMENT_REQUIRED: 'PAYMENT_REQUIRED',
-      INTERNAL_ERROR: 'INTERNAL_ERROR',
-      SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
-      BACKEND_ERROR: 'BACKEND_ERROR',
-      TIMEOUT: 'TIMEOUT',
-      DATABASE_ERROR: 'DATABASE_ERROR',
-      EXTERNAL_API_ERROR: 'EXTERNAL_API_ERROR',
-      INVALID_TOKEN: 'INVALID_TOKEN',
-      TOKEN_EXPIRED: 'TOKEN_EXPIRED',
-      INSUFFICIENT_CREDITS: 'INSUFFICIENT_CREDITS',
-      INVALID_DATE: 'INVALID_DATE',
-      INVALID_TIME: 'INVALID_TIME',
-      INVALID_COORDINATES: 'INVALID_COORDINATES',
-      INVALID_FORMAT: 'INVALID_FORMAT',
-      MISSING_FIELD: 'MISSING_FIELD',
-    },
-  }
-})
 
 // ============================================================
 // Import route AFTER all mocks
@@ -375,8 +290,7 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       process.env.NODE_ENV = originalEnv
 
       expect(response.status).toBe(401)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('UNAUTHORIZED')
+      expect(data.error).toBe('not_authenticated')
     })
 
     it('should skip Stripe check in development mode', async () => {
@@ -415,8 +329,7 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       process.env.REQUIRE_PAID_CHAT = originalRequirePaid
 
       expect(response.status).toBe(402)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('PAYMENT_REQUIRED')
+      expect(data.error).toBe('payment_required')
     })
 
     it('should allow access when subscription is trialing', async () => {
@@ -475,8 +388,7 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('BAD_REQUEST')
+      expect(data.error).toBe('invalid_body')
     })
 
     it('should return 400 when body is empty', async () => {
@@ -506,8 +418,7 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(data.error).toBe('validation_failed')
       expect(data.details).toBeDefined()
     })
 
@@ -517,8 +428,7 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(data.error).toBe('validation_failed')
     })
   })
 
@@ -535,8 +445,7 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('MISSING_FIELD')
+      expect(data.error).toBe('Missing required fields')
     })
 
     it('should return 400 for invalid birthDate format', async () => {
@@ -545,8 +454,7 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('INVALID_DATE')
+      expect(data.error).toBe('Invalid birthDate')
     })
 
     it('should return 400 for invalid birthTime format', async () => {
@@ -555,31 +463,28 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('INVALID_TIME')
+      expect(data.error).toBe('Invalid birthTime')
     })
 
-    it('should return 422 for latitude out of range', async () => {
+    it('should return 400 for latitude out of range', async () => {
       const request = createPostRequest(validBody({ latitude: 999 }))
       const response = await POST(request)
       const data = await response.json()
 
-      expect(response.status).toBe(422)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(response.status).toBe(400)
+      expect(data.error).toBe('Invalid latitude')
     })
 
-    it('should return 422 for longitude out of range', async () => {
+    it('should return 400 for longitude out of range', async () => {
       const request = createPostRequest(validBody({ longitude: -999 }))
       const response = await POST(request)
       const data = await response.json()
 
-      expect(response.status).toBe(422)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(response.status).toBe(400)
+      expect(data.error).toBe('Invalid longitude')
     })
 
-    it('should return 422 for string latitude that cannot parse to valid number', async () => {
+    it('should return 400 for string latitude that cannot parse to valid number', async () => {
       // Note: NaN and Infinity are converted to null in JSON.stringify, which becomes 0 via Number()
       // So we test with a string that cannot be parsed to a valid coordinate number
       const request = createPostRequest(validBody({ latitude: 'not_a_number' }))
@@ -587,9 +492,8 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       const data = await response.json()
 
       // 'not_a_number' -> Number('not_a_number') -> NaN, which fails Number.isFinite check
-      expect(response.status).toBe(422)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(response.status).toBe(400)
+      expect(data.error).toBe('Invalid latitude')
     })
   })
 
@@ -939,8 +843,7 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error).toBe('Internal Server Error')
     })
 
     it('should return 500 on backend API timeout', async () => {
@@ -951,8 +854,7 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error).toBe('Internal Server Error')
     })
 
     it('should log errors using logger.error', async () => {

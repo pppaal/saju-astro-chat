@@ -77,19 +77,6 @@ vi.mock('@/lib/api/zodValidation', () => ({
       }
     }),
   },
-  createValidationErrorResponse: vi.fn(() => {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Input validation failed. Please check your data.',
-          status: 422,
-        },
-      },
-      { status: 422 }
-    )
-  }),
 }))
 
 // Mock middleware with passthrough pattern
@@ -281,7 +268,7 @@ describe('/api/calendar/save/[id]', () => {
         const { GET } = await import('@/app/api/calendar/save/[id]/route')
         const response = await GET(req, routeContext)
 
-        expect(response.status).toBe(422)
+        expect(response.status).toBe(400)
       })
 
       it('should reject ID longer than 100 characters', async () => {
@@ -292,7 +279,7 @@ describe('/api/calendar/save/[id]', () => {
         const { GET } = await import('@/app/api/calendar/save/[id]/route')
         const response = await GET(req, routeContext)
 
-        expect(response.status).toBe(422)
+        expect(response.status).toBe(400)
       })
 
       it('should accept valid ID at exactly 100 characters', async () => {
@@ -530,7 +517,7 @@ describe('/api/calendar/save/[id]', () => {
         const { DELETE } = await import('@/app/api/calendar/save/[id]/route')
         const response = await DELETE(req, routeContext)
 
-        expect(response.status).toBe(422)
+        expect(response.status).toBe(400)
       })
 
       it('should reject ID longer than 100 characters for delete', async () => {
@@ -543,7 +530,7 @@ describe('/api/calendar/save/[id]', () => {
         const { DELETE } = await import('@/app/api/calendar/save/[id]/route')
         const response = await DELETE(req, routeContext)
 
-        expect(response.status).toBe(422)
+        expect(response.status).toBe(400)
       })
     })
 

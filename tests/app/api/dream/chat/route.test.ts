@@ -12,7 +12,6 @@ const mockCreatePublicStreamGuard = vi.fn(() => ({}))
 vi.mock('@/lib/api/middleware', () => ({
   initializeApiContext: (...args: unknown[]) => mockInitializeApiContext(...args),
   createPublicStreamGuard: (...args: unknown[]) => mockCreatePublicStreamGuard(...args),
-  extractLocale: vi.fn(() => 'ko'),
 }))
 
 // Mock streaming utilities
@@ -55,24 +54,6 @@ vi.mock('@/lib/api/zodValidation', () => ({
   dreamChatRequestSchema: {
     safeParse: (...args: unknown[]) => mockSafeParse(...args),
   },
-  createValidationErrorResponse: vi.fn(
-    (zodError: { issues: Array<{ path: (string | number)[]; message: string }> }) => {
-      const details = zodError.issues.map(
-        (issue: { path: (string | number)[]; message: string }) => ({
-          path: issue.path.join('.') || 'root',
-          message: issue.message,
-        })
-      )
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'VALIDATION_ERROR', message: 'validation_failed', status: 400 },
-          details,
-        },
-        { status: 400 }
-      )
-    }
-  ),
 }))
 
 // Mock HTTP constants
@@ -88,74 +69,6 @@ vi.mock('@/lib/constants/http', () => ({
     SERVER_ERROR: 500,
   },
 }))
-
-// Mock error handler
-vi.mock('@/lib/api/errorHandler', () => {
-  const STATUS_CODES: Record<string, number> = {
-    BAD_REQUEST: 400,
-    UNAUTHORIZED: 401,
-    FORBIDDEN: 403,
-    NOT_FOUND: 404,
-    RATE_LIMITED: 429,
-    VALIDATION_ERROR: 422,
-    PAYLOAD_TOO_LARGE: 413,
-    PAYMENT_REQUIRED: 402,
-    INTERNAL_ERROR: 500,
-    SERVICE_UNAVAILABLE: 503,
-    BACKEND_ERROR: 502,
-    TIMEOUT: 504,
-    DATABASE_ERROR: 500,
-    EXTERNAL_API_ERROR: 502,
-    INVALID_TOKEN: 401,
-    TOKEN_EXPIRED: 401,
-    INSUFFICIENT_CREDITS: 402,
-    INVALID_DATE: 400,
-    INVALID_TIME: 400,
-    INVALID_COORDINATES: 400,
-    INVALID_FORMAT: 400,
-    MISSING_FIELD: 400,
-  }
-  return {
-    createErrorResponse: vi.fn((options: { code: string; message?: string }) => {
-      const status = STATUS_CODES[options.code] || 500
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: options.code,
-            message: options.message || options.code,
-            status,
-          },
-        },
-        { status }
-      )
-    }),
-    ErrorCodes: {
-      BAD_REQUEST: 'BAD_REQUEST',
-      UNAUTHORIZED: 'UNAUTHORIZED',
-      FORBIDDEN: 'FORBIDDEN',
-      NOT_FOUND: 'NOT_FOUND',
-      RATE_LIMITED: 'RATE_LIMITED',
-      VALIDATION_ERROR: 'VALIDATION_ERROR',
-      PAYLOAD_TOO_LARGE: 'PAYLOAD_TOO_LARGE',
-      PAYMENT_REQUIRED: 'PAYMENT_REQUIRED',
-      INTERNAL_ERROR: 'INTERNAL_ERROR',
-      SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
-      BACKEND_ERROR: 'BACKEND_ERROR',
-      TIMEOUT: 'TIMEOUT',
-      DATABASE_ERROR: 'DATABASE_ERROR',
-      EXTERNAL_API_ERROR: 'EXTERNAL_API_ERROR',
-      INVALID_TOKEN: 'INVALID_TOKEN',
-      TOKEN_EXPIRED: 'TOKEN_EXPIRED',
-      INSUFFICIENT_CREDITS: 'INSUFFICIENT_CREDITS',
-      INVALID_DATE: 'INVALID_DATE',
-      INVALID_TIME: 'INVALID_TIME',
-      INVALID_COORDINATES: 'INVALID_COORDINATES',
-      INVALID_FORMAT: 'INVALID_FORMAT',
-      MISSING_FIELD: 'MISSING_FIELD',
-    },
-  }
-})
 
 // Mock API limits
 vi.mock('@/lib/constants/api-limits', () => ({
@@ -359,8 +272,7 @@ describe('Dream Chat API - POST /api/dream/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(data.error).toBe('validation_failed')
       expect(data.details).toContainEqual({
         path: 'messages',
         message: 'Required',
@@ -376,8 +288,7 @@ describe('Dream Chat API - POST /api/dream/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should return 400 when dreamContext is missing', async () => {
@@ -389,8 +300,7 @@ describe('Dream Chat API - POST /api/dream/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should return 400 when dreamText in context is too short', async () => {
@@ -410,8 +320,6 @@ describe('Dream Chat API - POST /api/dream/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
       expect(data.details).toContainEqual(
         expect.objectContaining({ path: 'dreamContext.dreamText' })
       )
@@ -561,9 +469,9 @@ describe('Dream Chat API - POST /api/dream/chat', () => {
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
       const data = await response.json()
 
-      expect(response.status).toBe(502)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('BACKEND_ERROR')
+      expect(response.status).toBe(500)
+      expect(data.error).toBe('Backend error')
+      expect(data.detail).toBe('Backend service unavailable')
     })
 
     it('should log backend errors', async () => {
@@ -633,8 +541,7 @@ describe('Dream Chat API - POST /api/dream/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error).toBe('Server error')
     })
 
     it('should log unexpected errors', async () => {
@@ -675,8 +582,7 @@ describe('Dream Chat API - POST /api/dream/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error).toBe('Server error')
     })
   })
 

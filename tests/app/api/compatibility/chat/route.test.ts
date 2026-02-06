@@ -23,13 +23,6 @@ vi.mock('@/lib/api/middleware', () => ({
     rateLimit: { limit: 60, windowSeconds: 60 },
     credits: { type: 'compatibility', amount: 1 },
   })),
-  extractLocale: vi.fn((req: NextRequest) => {
-    const acceptLang = req.headers.get('accept-language') || ''
-    if (acceptLang.includes('ko')) return 'ko'
-    if (acceptLang.includes('ja')) return 'ja'
-    if (acceptLang.includes('zh')) return 'zh'
-    return 'en'
-  }),
   apiSuccess: vi.fn((data: unknown) => ({ data })),
   apiError: vi.fn((code: string, message?: string) => ({
     error: { code, message },
@@ -159,22 +152,6 @@ vi.mock('@/lib/api/zodValidation', () => ({
       }
     }),
   },
-  createValidationErrorResponse: vi.fn(
-    (zodError: { issues: Array<{ path: (string | number)[]; message: string }> }) => {
-      const details = zodError.issues.map((issue) => ({
-        path: issue.path.join('.') || 'root',
-        message: issue.message,
-      }))
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'VALIDATION_ERROR', message: 'validation_failed', status: 400 },
-          details,
-        },
-        { status: 400 }
-      )
-    }
-  ),
 }))
 
 // Mock HTTP constants
@@ -346,8 +323,7 @@ describe('Compatibility Chat API - POST /api/compatibility/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(data.error).toBe('validation_failed')
       expect(data.details).toEqual(
         expect.arrayContaining([expect.objectContaining({ path: 'persons' })])
       )
@@ -362,8 +338,7 @@ describe('Compatibility Chat API - POST /api/compatibility/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should return 400 when persons has more than 4 entries', async () => {
@@ -377,8 +352,7 @@ describe('Compatibility Chat API - POST /api/compatibility/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should return 400 when messages array is missing', async () => {
@@ -387,8 +361,7 @@ describe('Compatibility Chat API - POST /api/compatibility/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should return 400 when messages exceeds maximum (20)', async () => {
@@ -413,8 +386,7 @@ describe('Compatibility Chat API - POST /api/compatibility/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(data.error).toBe('validation_failed')
     })
 
     it('should accept valid language values (ko, en)', async () => {

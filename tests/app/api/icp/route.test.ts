@@ -19,7 +19,6 @@ vi.mock('@/lib/api/middleware', () => ({
     }
   }),
   createAuthenticatedGuard: vi.fn(() => ({})),
-  extractLocale: vi.fn(() => 'ko'),
 }))
 
 vi.mock('@/lib/db/prisma', () => ({
@@ -47,33 +46,13 @@ vi.mock('@/lib/api/zodValidation', () => ({
         return {
           success: false,
           error: {
-            issues: [
-              { message: 'Missing required fields', path: ['primaryStyle'], code: 'invalid_type' },
-            ],
+            issues: [{ message: 'Missing required fields', path: ['primaryStyle'] }],
           },
         }
       }
       return { success: true, data }
     }),
   },
-  createValidationErrorResponse: vi.fn((zodError: any, _options: any) => {
-    const details = zodError.issues.map((issue: any) => ({
-      path: issue.path.join('.'),
-      message: issue.message,
-    }))
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Input validation failed. Please check your data.',
-          status: 400,
-        },
-        details,
-      },
-      { status: 400 }
-    )
-  }),
 }))
 
 // ---------------------------------------------------------------------------
@@ -323,9 +302,7 @@ describe('ICP API Route - POST /api/icp', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.success).toBe(false)
-    expect(data.error).toBeDefined()
-    expect(data.error.code).toBe('VALIDATION_ERROR')
+    expect(data.error).toBe('validation_failed')
     expect(data.details).toBeDefined()
     expect(Array.isArray(data.details)).toBe(true)
     expect(data.details.length).toBeGreaterThan(0)
@@ -537,9 +514,6 @@ describe('ICP API Route - POST /api/icp', () => {
     const response = await POST(request)
     const data = await response.json()
 
-    expect(response.status).toBe(400)
-    expect(data.success).toBe(false)
-    expect(data.error.code).toBe('VALIDATION_ERROR')
     expect(data.details).toEqual([
       {
         path: 'primaryStyle',

@@ -27,8 +27,15 @@ def _get_fortune_module():
     global _fortune_module, HAS_FORTUNE_SCORE
     if _fortune_module is None:
         try:
-            from backend_ai.app import fortune_score_engine as _fs
-            _fortune_module = _fs
+            from backend_ai.app.fortune_score_engine import (
+                calculate_fortune_score as _calc_score,
+                get_fortune_score_engine as _get_engine
+            )
+            # Create a simple namespace to hold the functions
+            _fortune_module = type('FortuneModule', (), {
+                'calculate_fortune_score': staticmethod(_calc_score),
+                'get_fortune_score_engine': staticmethod(_get_engine)
+            })()
         except ImportError as e:
             logger.warning(f"[Fortune] Could not import fortune_score_engine: {e}")
             HAS_FORTUNE_SCORE = False

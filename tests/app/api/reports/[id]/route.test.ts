@@ -41,35 +41,31 @@ vi.mock('@/lib/logger', () => ({
 }))
 
 // Mock Zod validation schemas
-vi.mock('@/lib/api/zodValidation', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/api/zodValidation')>()
-  return {
-    ...actual,
-    idParamSchema: {
-      safeParse: vi.fn((data: Record<string, unknown>) => {
-        const errors: { path: string[]; message: string }[] = []
+vi.mock('@/lib/api/zodValidation', () => ({
+  idParamSchema: {
+    safeParse: vi.fn((data: Record<string, unknown>) => {
+      const errors: { path: string[]; message: string }[] = []
 
-        if (!data.id || typeof data.id !== 'string' || data.id.trim().length === 0) {
-          errors.push({ path: ['id'], message: 'ID is required' })
-        } else if (data.id.length > 100) {
-          errors.push({ path: ['id'], message: 'ID must be at most 100 characters' })
-        }
+      if (!data.id || typeof data.id !== 'string' || data.id.trim().length === 0) {
+        errors.push({ path: ['id'], message: 'ID is required' })
+      } else if (data.id.length > 100) {
+        errors.push({ path: ['id'], message: 'ID must be at most 100 characters' })
+      }
 
-        if (errors.length > 0) {
-          return {
-            success: false,
-            error: { issues: errors },
-          }
-        }
-
+      if (errors.length > 0) {
         return {
-          success: true,
-          data: { id: data.id },
+          success: false,
+          error: { issues: errors },
         }
-      }),
-    },
-  }
-})
+      }
+
+      return {
+        success: true,
+        data: { id: data.id },
+      }
+    }),
+  },
+}))
 
 // Mock middleware with passthrough pattern
 vi.mock('@/lib/api/middleware', () => ({
@@ -282,9 +278,8 @@ describe('/api/reports/[id]', () => {
         const response = await GET(req, routeContext)
         const result = await response.json()
 
-        expect(response.status).toBeGreaterThanOrEqual(400)
-        expect(response.status).toBeLessThan(500)
-        expect(result.success).toBe(false)
+        expect(response.status).toBe(400)
+        expect(result.error).toBe('invalid_params')
       })
 
       it('should reject ID longer than 100 characters', async () => {
@@ -296,9 +291,8 @@ describe('/api/reports/[id]', () => {
         const response = await GET(req, routeContext)
         const result = await response.json()
 
-        expect(response.status).toBeGreaterThanOrEqual(400)
-        expect(response.status).toBeLessThan(500)
-        expect(result.success).toBe(false)
+        expect(response.status).toBe(400)
+        expect(result.error).toBe('invalid_params')
       })
 
       it('should accept valid ID at exactly 100 characters', async () => {
@@ -685,9 +679,8 @@ describe('/api/reports/[id]', () => {
         const response = await DELETE(req, routeContext)
         const result = await response.json()
 
-        expect(response.status).toBeGreaterThanOrEqual(400)
-        expect(response.status).toBeLessThan(500)
-        expect(result.success).toBe(false)
+        expect(response.status).toBe(400)
+        expect(result.error).toBe('invalid_params')
       })
 
       it('should reject ID longer than 100 characters for delete', async () => {
@@ -701,9 +694,8 @@ describe('/api/reports/[id]', () => {
         const response = await DELETE(req, routeContext)
         const result = await response.json()
 
-        expect(response.status).toBeGreaterThanOrEqual(400)
-        expect(response.status).toBeLessThan(500)
-        expect(result.success).toBe(false)
+        expect(response.status).toBe(400)
+        expect(result.error).toBe('invalid_params')
       })
     })
 

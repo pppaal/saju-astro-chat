@@ -23,41 +23,37 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
-vi.mock('@/lib/api/zodValidation', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/api/zodValidation')>()
-  return {
-    ...actual,
-    idParamSchema: {
-      safeParse: vi.fn((data: any) => {
-        if (!data.id || typeof data.id !== 'string') {
-          return {
-            success: false,
-            error: {
-              issues: [{ path: ['id'], message: 'Invalid id parameter' }],
-            },
-          }
+vi.mock('@/lib/api/zodValidation', () => ({
+  idParamSchema: {
+    safeParse: vi.fn((data: any) => {
+      if (!data.id || typeof data.id !== 'string') {
+        return {
+          success: false,
+          error: {
+            issues: [{ path: ['id'], message: 'Invalid id parameter' }],
+          },
         }
-        if (data.id.length === 0) {
-          return {
-            success: false,
-            error: {
-              issues: [{ path: ['id'], message: 'String must contain at least 1 character(s)' }],
-            },
-          }
+      }
+      if (data.id.length === 0) {
+        return {
+          success: false,
+          error: {
+            issues: [{ path: ['id'], message: 'String must contain at least 1 character(s)' }],
+          },
         }
-        if (data.id.length > 100) {
-          return {
-            success: false,
-            error: {
-              issues: [{ path: ['id'], message: 'String must contain at most 100 character(s)' }],
-            },
-          }
+      }
+      if (data.id.length > 100) {
+        return {
+          success: false,
+          error: {
+            issues: [{ path: ['id'], message: 'String must contain at most 100 character(s)' }],
+          },
         }
-        return { success: true, data: { id: data.id } }
-      }),
-    },
-  }
-})
+      }
+      return { success: true, data: { id: data.id } }
+    }),
+  },
+}))
 
 // ---------------------------------------------------------------------------
 // Imports AFTER mocks
@@ -106,19 +102,21 @@ describe('Share API - GET /api/share/[id]', () => {
   // Validation
   // -------------------------------------------------------------------------
   describe('Input Validation', () => {
-    it('should return 422 when id parameter is missing', async () => {
+    it('should return 400 when id parameter is missing', async () => {
       const request = createRequest('')
       const params = createParams('')
 
       const response = await GET(request, params)
       const data = await response.json()
 
-      expect(response.status).toBe(422)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(response.status).toBe(400)
+      expect(data.error).toBe('validation_failed')
+      expect(data.details).toEqual(
+        expect.arrayContaining([expect.objectContaining({ path: 'id' })])
+      )
     })
 
-    it('should return 422 when id is too long (> 100 characters)', async () => {
+    it('should return 400 when id is too long (> 100 characters)', async () => {
       const longId = 'a'.repeat(101)
       const request = createRequest(longId)
       const params = createParams(longId)
@@ -126,9 +124,16 @@ describe('Share API - GET /api/share/[id]', () => {
       const response = await GET(request, params)
       const data = await response.json()
 
-      expect(response.status).toBe(422)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(response.status).toBe(400)
+      expect(data.error).toBe('validation_failed')
+      expect(data.details).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            path: 'id',
+            message: expect.stringContaining('100'),
+          }),
+        ])
+      )
     })
 
     it('should accept valid id with maximum length (100 characters)', async () => {
@@ -177,9 +182,7 @@ describe('Share API - GET /api/share/[id]', () => {
       const data = await response.json()
 
       expect(response.status).toBe(404)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('NOT_FOUND')
-      expect(data.error.message).toBe('Shared result not found')
+      expect(data.error).toBe('Shared result not found')
     })
 
     it('should query database with correct id', async () => {
@@ -200,7 +203,7 @@ describe('Share API - GET /api/share/[id]', () => {
   // Expiration
   // -------------------------------------------------------------------------
   describe('Expiration Handling', () => {
-    it('should return 404 when shared result has expired', async () => {
+    it('should return 410 when shared result has expired', async () => {
       const expiredResult = {
         ...mockSharedResult,
         expiresAt: new Date(Date.now() - 1000), // 1 second in the past
@@ -213,10 +216,8 @@ describe('Share API - GET /api/share/[id]', () => {
       const response = await GET(request, params)
       const data = await response.json()
 
-      expect(response.status).toBe(404)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('NOT_FOUND')
-      expect(data.error.message).toBe('Shared result has expired')
+      expect(response.status).toBe(410)
+      expect(data.error).toBe('Shared result has expired')
     })
 
     it('should not return 410 when expiresAt is null', async () => {
@@ -251,7 +252,7 @@ describe('Share API - GET /api/share/[id]', () => {
       expect(response.status).toBe(200)
     })
 
-    it('should return 404 when expiresAt is exactly now', async () => {
+    it('should return 410 when expiresAt is exactly now', async () => {
       const now = new Date()
       const exactlyExpiredResult = {
         ...mockSharedResult,
@@ -264,7 +265,7 @@ describe('Share API - GET /api/share/[id]', () => {
 
       const response = await GET(request, params)
 
-      expect(response.status).toBe(404)
+      expect(response.status).toBe(410)
     })
   })
 
@@ -414,8 +415,7 @@ describe('Share API - GET /api/share/[id]', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error).toBe('Failed to fetch shared result')
       expect(logger.error).toHaveBeenCalledWith('Error fetching shared result:', {
         error: expect.any(Error),
       })
@@ -432,8 +432,7 @@ describe('Share API - GET /api/share/[id]', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error).toBe('Failed to fetch shared result')
     })
 
     it('should log error with context when exception occurs', async () => {

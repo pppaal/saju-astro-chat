@@ -1,33 +1,107 @@
-/**
- * Placeholder tests for useTarotDemo hook
- * NOTE: The source file src/hooks/useTarotDemo.ts does not exist yet
- * These tests will be activated when the module is implemented
- */
-import { describe, it, expect } from 'vitest'
+import { renderHook, act } from '@testing-library/react'
+import { useTarotDemo } from '@/hooks/useTarotDemo'
 
-describe('useTarotDemo (not implemented)', () => {
-  it.skip('should initialize with default state', () => {
-    expect(true).toBe(true)
+describe('useTarotDemo', () => {
+  it('should initialize with default state', () => {
+    const { result } = renderHook(() => useTarotDemo())
+
+    expect(result.current.flippedCards).toEqual([false, false, false, false])
+    expect(result.current.selectedCards).toEqual([])
+    expect(result.current.isDeckSpread).toBe(false)
   })
 
-  it.skip('should draw 4 random cards', () => {
-    expect(true).toBe(true)
+  it('should draw 4 random cards', () => {
+    const { result } = renderHook(() => useTarotDemo())
+
+    act(() => {
+      result.current.drawCards()
+    })
+
+    expect(result.current.selectedCards).toHaveLength(4)
+    expect(result.current.isDeckSpread).toBe(true)
+    expect(result.current.flippedCards).toEqual([false, false, false, false])
   })
 
-  it.skip('should flip a card when clicked', () => {
-    expect(true).toBe(true)
+  it('should flip a card when clicked', () => {
+    const { result } = renderHook(() => useTarotDemo())
+
+    // First draw cards
+    act(() => {
+      result.current.drawCards()
+    })
+
+    // Then flip first card
+    act(() => {
+      result.current.flipCard(0)
+    })
+
+    expect(result.current.flippedCards[0]).toBe(true)
+    expect(result.current.flippedCards[1]).toBe(false)
+    expect(result.current.flippedCards[2]).toBe(false)
+    expect(result.current.flippedCards[3]).toBe(false)
   })
 
-  it.skip('should toggle card flip state', () => {
-    expect(true).toBe(true)
+  it('should toggle card flip state', () => {
+    const { result } = renderHook(() => useTarotDemo())
+
+    act(() => {
+      result.current.drawCards()
+    })
+
+    // Flip card
+    act(() => {
+      result.current.flipCard(1)
+    })
+    expect(result.current.flippedCards[1]).toBe(true)
+
+    // Flip back
+    act(() => {
+      result.current.flipCard(1)
+    })
+    expect(result.current.flippedCards[1]).toBe(false)
   })
 
-  it.skip('should reset to initial state', () => {
-    expect(true).toBe(true)
+  it('should reset to initial state', () => {
+    const { result } = renderHook(() => useTarotDemo())
+
+    // Draw and flip some cards
+    act(() => {
+      result.current.drawCards()
+      result.current.flipCard(0)
+      result.current.flipCard(1)
+    })
+
+    // Reset
+    act(() => {
+      result.current.resetTarot()
+    })
+
+    expect(result.current.flippedCards).toEqual([false, false, false, false])
+    expect(result.current.selectedCards).toEqual([])
+    expect(result.current.isDeckSpread).toBe(false)
   })
 
-  it.skip('placeholder - source file does not exist', () => {
-    // This test passes to indicate the test file is valid
-    // but the actual source module is not yet implemented
+  it('should not flip cards if none are selected', () => {
+    const { result } = renderHook(() => useTarotDemo())
+
+    act(() => {
+      result.current.flipCard(0)
+    })
+
+    // Should remain unchanged
+    expect(result.current.flippedCards).toEqual([false, false, false, false])
+  })
+
+  it('should draw unique cards (no duplicates)', () => {
+    const { result } = renderHook(() => useTarotDemo())
+
+    act(() => {
+      result.current.drawCards()
+    })
+
+    const cardNames = result.current.selectedCards.map((card) => card.name)
+    const uniqueNames = new Set(cardNames)
+
+    expect(uniqueNames.size).toBe(4) // All 4 cards should be unique
   })
 })

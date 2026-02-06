@@ -131,37 +131,34 @@ vi.mock('@/lib/api/zodValidation', () => ({
       if (data === null || typeof data !== 'object') {
         return {
           success: false,
-          error: { issues: [{ message: 'Expected object', path: [] }] },
+          error: { issues: [{ message: 'Expected object' }] },
         }
       }
 
       if (!data.id || typeof data.id !== 'string') {
         return {
           success: false,
-          error: { issues: [{ message: 'Expected string for id', path: ['id'] }] },
+          error: { issues: [{ message: 'Expected string for id' }] },
         }
       }
 
       if (data.id.length < 1) {
         return {
           success: false,
-          error: { issues: [{ message: 'ID must be at least 1 character', path: ['id'] }] },
+          error: { issues: [{ message: 'ID must be at least 1 character' }] },
         }
       }
 
       if (data.id.length > 100) {
         return {
           success: false,
-          error: { issues: [{ message: 'ID must be at most 100 characters', path: ['id'] }] },
+          error: { issues: [{ message: 'ID must be at most 100 characters' }] },
         }
       }
 
       return { success: true, data: { id: data.id } }
     }),
   },
-  createValidationErrorResponse: vi.fn((_zodError: any, _options?: any) => {
-    return NextResponse.json({ error: 'invalid_params' }, { status: 400 })
-  }),
 }))
 
 // ---------- Imports (after mocks) ----------

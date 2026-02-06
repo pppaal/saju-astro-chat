@@ -79,7 +79,9 @@ describe('Config Files Smoke Tests', () => {
     })
 
     // Skipped: validateEnv module does not exist (only env.ts exists)
-    it.skip('should import validateEnv (skipped - module does not exist)', async () => {})
+    it.skip('should import validateEnv (skipped - module does not exist)', async () => {
+      expect(true).toBe(true)
+    })
   })
 
   describe('Config Summary', () => {

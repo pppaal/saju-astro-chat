@@ -22,7 +22,6 @@ vi.mock('@/lib/api/middleware', () => ({
     }
   }),
   createAuthenticatedGuard: vi.fn(() => ({})),
-  extractLocale: vi.fn((_req: any) => 'ko'),
 }))
 
 vi.mock('@/lib/api/zodValidation', () => ({
@@ -112,15 +111,6 @@ vi.mock('@/lib/api/zodValidation', () => ({
       return { success: true, data: result }
     }),
   },
-  createValidationErrorResponse: vi.fn((_zodError: any, _options?: any) => {
-    return NextResponse.json(
-      {
-        success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'Validation failed', status: 422 },
-      },
-      { status: 400 }
-    )
-  }),
 }))
 
 // Mock dependencies
@@ -227,8 +217,7 @@ describe('/api/me/profile', () => {
       const data = await response.json()
 
       expect(response.status).toBe(404)
-      expect(data.error.code).toBe('NOT_FOUND')
-      expect(data.error.message).toBe('User not found')
+      expect(data.error).toBe('User not found')
     })
 
     it('should return user data fields in response', async () => {

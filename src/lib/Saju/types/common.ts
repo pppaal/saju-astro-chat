@@ -25,25 +25,12 @@ export interface SimpleFourPillars {
 }
 
 /**
- * Five elements count in Korean
- */
-export interface FiveElementsCountKo {
-  목: number
-  화: number
-  토: number
-  금: number
-  수: number
-}
-
-/**
  * Basic Saju analysis result
  */
 export interface SajuResult {
   fourPillars: SimpleFourPillars
   dayMaster?: string
-  fiveElements?: FiveElementsCountKo
-  daeun?: DaeunCycle[]
-  shinsal?: string[]
+  [key: string]: unknown
 }
 
 /**
@@ -79,19 +66,6 @@ export type Element = '목' | '화' | '토' | '금' | '수'
 export type YinYang = '음' | '양'
 
 /**
- * Fortune level for cycles
- */
-export type FortuneLevel = 'excellent' | 'good' | 'neutral' | 'challenging' | 'difficult'
-
-/**
- * Hidden stem info within a branch
- */
-export interface HiddenStemInfo {
-  stem: HeavenlyStem
-  percentage: number
-}
-
-/**
  * Pillar with detailed information
  */
 export interface DetailedPillar {
@@ -99,11 +73,14 @@ export interface DetailedPillar {
   earthlyBranch: EarthlyBranch
   element: Element
   yinYang: YinYang
-  hidden?: HiddenStemInfo[]
+  hidden?: {
+    stem: HeavenlyStem
+    percentage: number
+  }[]
 }
 
 /**
- * Element count summary (legacy - use FiveElementsCountKo)
+ * Element count summary
  */
 export interface ElementCount {
   목: number
@@ -133,7 +110,7 @@ export interface DaeunCycle {
   heavenlyStem: HeavenlyStem
   earthlyBranch: EarthlyBranch
   element: Element
-  fortuneLevel: FortuneLevel
+  fortuneLevel: 'excellent' | 'good' | 'neutral' | 'challenging' | 'difficult'
 }
 
 /**
@@ -144,5 +121,5 @@ export interface YearlyCycle {
   heavenlyStem: HeavenlyStem
   earthlyBranch: EarthlyBranch
   element: Element
-  fortuneLevel: FortuneLevel
+  fortuneLevel: 'excellent' | 'good' | 'neutral' | 'challenging' | 'difficult'
 }

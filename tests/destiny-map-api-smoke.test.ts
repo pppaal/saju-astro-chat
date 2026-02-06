@@ -1,5 +1,3 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
-
 // Mock heavy deps before importing route handlers
 vi.mock('@/lib/destiny-map/astrologyengine', () => ({
   computeDestinyMap: vi.fn(async () => ({
@@ -24,7 +22,6 @@ vi.mock('@/lib/api/middleware', () => ({
   initializeApiContext: vi.fn(async () => ({ context: {}, error: null })),
   createAuthenticatedGuard: vi.fn(() => ({})),
   createSimpleGuard: vi.fn(() => ({})),
-  extractLocale: vi.fn(() => 'en'),
 }))
 
 vi.mock('next-auth/next', () => ({
