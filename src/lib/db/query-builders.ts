@@ -98,9 +98,8 @@ export function createUserFindMany<T>(modelName: keyof typeof prisma) {
     // Calculate skip from offset or page
     const skip = offset ?? (page ? (page - 1) * limit : 0)
 
-    const model = prisma[modelName] as {
-      findMany: (args: Record<string, unknown>) => Promise<T[]>
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const model = prisma[modelName] as any
 
     return model.findMany({
       where: { userId, ...where },
@@ -127,9 +126,8 @@ export function createUserFindFirst<T>(modelName: keyof typeof prisma) {
   return async (options: FindFirstOptions): Promise<T | null> => {
     const { userId, id, select, include } = options
 
-    const model = prisma[modelName] as {
-      findFirst: (args: Record<string, unknown>) => Promise<T | null>
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const model = prisma[modelName] as any
 
     return model.findFirst({
       where: { id, userId },
@@ -155,10 +153,8 @@ export function createUserDelete(modelName: keyof typeof prisma) {
   ): Promise<{ deleted: true } | { deleted: false; reason: 'not_found' | 'not_owner' }> => {
     const { userId, id } = options
 
-    const model = prisma[modelName] as {
-      findFirst: (args: Record<string, unknown>) => Promise<{ id: string; userId: string } | null>
-      delete: (args: { where: { id: string } }) => Promise<unknown>
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const model = prisma[modelName] as any
 
     // Verify ownership
     const existing = await model.findFirst({
@@ -192,9 +188,8 @@ export function createUserCreate<TData, TResult>(modelName: keyof typeof prisma)
   return async (options: CreateOptions<TData>): Promise<TResult> => {
     const { userId, data } = options
 
-    const model = prisma[modelName] as {
-      create: (args: { data: Record<string, unknown> }) => Promise<TResult>
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const model = prisma[modelName] as any
 
     return model.create({
       data: { userId, ...data },
@@ -215,13 +210,8 @@ export function createUserUpsert<TData, TResult>(modelName: keyof typeof prisma)
   return async (options: UpsertOptions<TData>): Promise<TResult> => {
     const { userId, data, uniqueField = 'userId' } = options
 
-    const model = prisma[modelName] as {
-      upsert: (args: {
-        where: Record<string, string>
-        update: Record<string, unknown>
-        create: Record<string, unknown>
-      }) => Promise<TResult>
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const model = prisma[modelName] as any
 
     return model.upsert({
       where: { [uniqueField]: userId },
