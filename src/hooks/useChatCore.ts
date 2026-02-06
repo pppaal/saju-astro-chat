@@ -64,7 +64,7 @@ export interface ChatCoreState {
 
   // Refs
   sessionIdRef: React.MutableRefObject<string>
-  messagesEndRef: React.RefObject<HTMLDivElement>
+  messagesEndRef: React.RefObject<HTMLDivElement | null>
 
   // Utilities
   scrollToBottom: () => void
