@@ -56,7 +56,9 @@ export interface UseFieldReturn<T> extends FieldState<T> {
   /** Event handlers for input */
   inputProps: {
     value: T
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
+    onChange: (
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    ) => void
     onBlur: () => void
   }
 }
@@ -90,11 +92,11 @@ export function useField<T extends string | number | boolean>(
   const [value, setValueState] = useState<T>(initialValue)
   const [error, setError] = useState<string | null>(null)
   const [touched, setTouched] = useState(false)
+  const [dirty, setDirty] = useState(false)
   const initialValueRef = useRef(initialValue)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
   // Derived state
-  const dirty = value !== initialValueRef.current
   const isValid = error === null
 
   // Cleanup debounce on unmount
@@ -119,6 +121,7 @@ export function useField<T extends string | number | boolean>(
     (newValue: T) => {
       const transformed = transform ? transform(newValue) : newValue
       setValueState(transformed)
+      setDirty(transformed !== initialValueRef.current)
 
       if (validateOnChange && validate) {
         if (debounceMs > 0) {
@@ -141,13 +144,16 @@ export function useField<T extends string | number | boolean>(
     setValueState(initialValueRef.current)
     setError(null)
     setTouched(false)
+    setDirty(false)
   }, [])
 
   // Input props
   const inputProps = useMemo(
     () => ({
       value,
-      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      onChange: (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+      ) => {
         setValue(e.target.value as T)
       },
       onBlur: () => {
@@ -233,15 +239,8 @@ export interface UseSearchFieldReturn<T> {
  *   },
  * })
  */
-export function useSearchField<T>(
-  options: UseSearchFieldOptions<T>
-): UseSearchFieldReturn<T> {
-  const {
-    initialValue = '',
-    debounceMs = 300,
-    onSearch,
-    minChars = 1,
-  } = options
+export function useSearchField<T>(options: UseSearchFieldOptions<T>): UseSearchFieldReturn<T> {
+  const { initialValue = '', debounceMs = 300, onSearch, minChars = 1 } = options
 
   const [query, setQueryState] = useState(initialValue)
   const [results, setResults] = useState<T[]>([])
@@ -388,7 +387,9 @@ export interface UseFormReturn<T extends Record<string, unknown>> {
   /** Set field error */
   setFieldError: <K extends keyof T>(field: K, error: string | null) => void
   /** Get field props */
-  getFieldProps: <K extends keyof T>(field: K) => {
+  getFieldProps: <K extends keyof T>(
+    field: K
+  ) => {
     name: K
     value: T[K]
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void

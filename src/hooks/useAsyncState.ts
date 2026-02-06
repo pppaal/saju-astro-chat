@@ -73,9 +73,7 @@ export interface UseAsyncStateReturn<T> extends AsyncState<T> {
  *   })
  * }
  */
-export function useAsyncState<T>(
-  options: UseAsyncStateOptions<T> = {}
-): UseAsyncStateReturn<T> {
+export function useAsyncState<T>(options: UseAsyncStateOptions<T> = {}): UseAsyncStateReturn<T> {
   const {
     initialData = null,
     errorResetDelay,
@@ -92,6 +90,7 @@ export function useAsyncState<T>(
   })
 
   const [retryCount, setRetryCount] = useState(0)
+  const [hasLastAsyncFn, setHasLastAsyncFn] = useState(false)
   const lastAsyncFnRef = useRef<(() => Promise<T>) | null>(null)
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -154,12 +153,14 @@ export function useAsyncState<T>(
     })
     setRetryCount(0)
     lastAsyncFnRef.current = null
+    setHasLastAsyncFn(false)
   }, [initialData])
 
   // Execute async function
   const execute = useCallback(
     async <R = T>(asyncFn: () => Promise<R>): Promise<R | null> => {
       lastAsyncFnRef.current = asyncFn as () => Promise<T>
+      setHasLastAsyncFn(true)
 
       setState((prev) => ({
         ...prev,
@@ -230,7 +231,7 @@ export function useAsyncState<T>(
     reset,
     execute,
     retryCount,
-    canRetry: enableRetry && retryCount < maxRetries && lastAsyncFnRef.current !== null,
+    canRetry: enableRetry && retryCount < maxRetries && hasLastAsyncFn,
     retry,
   }
 }
