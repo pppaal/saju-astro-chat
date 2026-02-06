@@ -9,7 +9,7 @@ import type { ChatMessage } from '@/lib/api/validator'
 
 interface UseSessionPersistenceOptions {
   messages: ChatMessage[]
-  sessionIdRef: React.MutableRefObject<string>
+  sessionId: string
   storageKey?: string
   enableDbPersistence?: boolean
   enablePersonaMemory?: boolean
@@ -23,7 +23,7 @@ interface UseSessionPersistenceOptions {
 export function useSessionPersistence(options: UseSessionPersistenceOptions): { saveError: string | null } {
   const {
     messages,
-    sessionIdRef,
+    sessionId,
     storageKey,
     enableDbPersistence = false,
     enablePersonaMemory = false,
@@ -71,7 +71,7 @@ export function useSessionPersistence(options: UseSessionPersistenceOptions): { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            sessionId: sessionIdRef.current,
+            sessionId: sessionId,
             theme,
             locale: lang,
             messages: messages.filter((m) => m.role !== 'system').slice(-200),
@@ -91,7 +91,7 @@ export function useSessionPersistence(options: UseSessionPersistenceOptions): { 
     }, 2000) // 2s debounce
 
     return () => clearTimeout(saveTimer)
-  }, [messages, sessionLoaded, theme, lang, enableDbPersistence, sessionIdRef])
+  }, [messages, sessionLoaded, theme, lang, enableDbPersistence, sessionId])
 
   // Auto-update PersonaMemory
   useEffect(() => {
@@ -120,7 +120,7 @@ export function useSessionPersistence(options: UseSessionPersistenceOptions): { 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        sessionId: sessionIdRef.current,
+        sessionId: sessionId,
         theme,
         locale: lang,
         messages: visibleMsgs.slice(-200),
@@ -136,7 +136,7 @@ export function useSessionPersistence(options: UseSessionPersistenceOptions): { 
       .catch((e) => {
         logger.warn('[useChatSession] Failed to update PersonaMemory:', e)
       })
-  }, [messages, sessionLoaded, theme, lang, saju, astro, enablePersonaMemory, sessionIdRef])
+  }, [messages, sessionLoaded, theme, lang, saju, astro, enablePersonaMemory, sessionId])
 
   return { saveError }
 }

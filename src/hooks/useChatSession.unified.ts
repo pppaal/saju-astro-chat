@@ -136,7 +136,7 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
   // Persistence effects (sessionStorage, DB auto-save, persona memory)
   const { saveError } = useSessionPersistence({
     messages,
-    sessionIdRef,
+    sessionId,
     storageKey,
     enableDbPersistence,
     enablePersonaMemory,
