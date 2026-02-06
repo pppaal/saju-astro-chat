@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { invalidateClientCaches } from '@/lib/cache/invalidateClientCaches';
-import { clearChartCache } from '@/lib/chartDataCache';
+import { clearChartCache } from '@/lib/cache/chartDataCache';
 import { clearChartCache as clearChartCacheClient } from '@/lib/cache/chart-cache-client';
-import { clearAllCaches as clearSajuCaches } from '@/lib/Saju/sajuCache';
+import { clearAllCaches as clearSajuCaches } from '@/lib/Saju/cache';
 import { clearAllCalendarCache } from '@/components/calendar/cache-utils';
 import { logger } from '@/lib/logger';
 
 // Mock all cache clearing functions
-vi.mock('@/lib/chartDataCache');
+vi.mock('@/lib/cache/chartDataCache');
 vi.mock('@/lib/cache/chart-cache-client');
-vi.mock('@/lib/Saju/sajuCache');
+vi.mock('@/lib/Saju/cache');
 vi.mock('@/components/calendar/cache-utils');
 vi.mock('@/lib/logger');
 

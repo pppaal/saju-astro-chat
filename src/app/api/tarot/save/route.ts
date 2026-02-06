@@ -15,7 +15,10 @@ export const dynamic = 'force-dynamic'
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    const rawBody = await req.json()
+    const rawBody = await req.json().catch(() => null)
+    if (!rawBody || typeof rawBody !== 'object') {
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid JSON body')
+    }
 
     // Validate request body with Zod
     const validationResult = tarotSaveRequestSchema.safeParse(rawBody)

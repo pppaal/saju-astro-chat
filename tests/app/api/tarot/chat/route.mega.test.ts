@@ -9,6 +9,7 @@ import { POST } from '@/app/api/tarot/chat/route'
 vi.mock('@/lib/api/middleware', () => ({
   initializeApiContext: vi.fn(),
   createAuthenticatedGuard: vi.fn(),
+  extractLocale: vi.fn().mockReturnValue('ko'),
 }))
 
 vi.mock('@/lib/api/ApiClient', () => ({
@@ -40,6 +41,29 @@ vi.mock('@/lib/constants/http', () => ({
     RATE_LIMITED: 429,
     SERVER_ERROR: 500,
   },
+}))
+
+vi.mock('@/lib/api/errorHandler', () => ({
+  ErrorCodes: {
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    BAD_REQUEST: 'BAD_REQUEST',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+  },
+  createErrorResponse: vi.fn(() => {
+    // Return a Response object that matches what the route returns for internal errors
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'An unexpected error occurred. Please try again.',
+          status: 500,
+        },
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    )
+  }),
 }))
 
 vi.mock('@/lib/api/zodValidation', () => ({
@@ -81,6 +105,20 @@ vi.mock('@/lib/api/zodValidation', () => ({
       }
     }),
   },
+  createValidationErrorResponse: vi.fn(() => {
+    // Return a Response object that matches what the route returns for validation errors
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Input validation failed. Please check your data.',
+          status: 422,
+        },
+      }),
+      { status: 422, headers: { 'Content-Type': 'application/json' } }
+    )
+  }),
 }))
 
 import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware'
@@ -207,8 +245,10 @@ describe('POST /api/tarot/chat', () => {
       const data = await response.json()
 
       // Zod schema only allows 'ko' and 'en', so 'fr' is rejected
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      // The route uses createValidationErrorResponse which returns a structured error
+      expect(response.status).toBe(422)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should handle multiple messages in conversation', async () => {
@@ -516,8 +556,10 @@ describe('POST /api/tarot/chat', () => {
       const data = await response.json()
 
       // req.json() throws on null body, caught by outer catch -> 500
+      // The route uses createErrorResponse which returns a structured error
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should reject invalid JSON', async () => {
@@ -531,8 +573,10 @@ describe('POST /api/tarot/chat', () => {
       const data = await response.json()
 
       // req.json() throws on invalid JSON, caught by outer catch -> 500
+      // The route uses createErrorResponse which returns a structured error
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should reject empty messages array', async () => {
@@ -540,8 +584,10 @@ describe('POST /api/tarot/chat', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      // The route uses createValidationErrorResponse which returns a structured error
+      expect(response.status).toBe(422)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should reject null messages', async () => {
@@ -549,8 +595,10 @@ describe('POST /api/tarot/chat', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      // The route uses createValidationErrorResponse which returns a structured error
+      expect(response.status).toBe(422)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should reject missing context', async () => {
@@ -558,8 +606,10 @@ describe('POST /api/tarot/chat', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      // The route uses createValidationErrorResponse which returns a structured error
+      expect(response.status).toBe(422)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should accept context with empty spread_title (Zod allows empty)', async () => {

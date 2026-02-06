@@ -8,7 +8,7 @@ import {
   ELEMENT_COLORS,
   getElementOfChar,
   getGanjiName,
-} from '@/lib/Saju/element-utils';
+} from '@/lib/Saju/stemBranchUtils';
 
 describe('Saju/element-utils comprehensive tests', () => {
   describe('ElementEN type', () => {

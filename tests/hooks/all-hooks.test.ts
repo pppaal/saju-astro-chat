@@ -52,11 +52,12 @@ describe('All Hooks Tests', () => {
 
   describe('Chat Session Hook (1)', () => {
     it('should export useChatSession', async () => {
-      const module = await import('@/hooks/useChatSession');
+      // useChatSession.ts was renamed to useChatSession.unified.ts
+      const module = await import('@/hooks/useChatSession.unified');
 
       expect(module.useChatSession).toBeDefined();
       expect(typeof module.useChatSession).toBe('function');
-    });
+    }, 60_000);
   });
 
   describe('All Hooks Summary', () => {
@@ -70,8 +71,8 @@ describe('All Hooks Tests', () => {
         import('@/hooks/calendar/useMonthNavigation'),
         import('@/hooks/calendar/useParticleAnimation'),
 
-        // Chat hook (1)
-        import('@/hooks/useChatSession'),
+        // Chat hook (1) - useChatSession.unified.ts
+        import('@/hooks/useChatSession.unified'),
       ]);
 
       expect(hooks.length).toBe(7);

@@ -18,6 +18,7 @@ export const ErrorCodes = {
   RATE_LIMITED: "RATE_LIMITED",
   VALIDATION_ERROR: "VALIDATION_ERROR",
   PAYLOAD_TOO_LARGE: "PAYLOAD_TOO_LARGE",
+  PAYMENT_REQUIRED: "PAYMENT_REQUIRED",
 
   // 5xx Server Errors
   INTERNAL_ERROR: "INTERNAL_ERROR",
@@ -83,6 +84,12 @@ const ERROR_MESSAGES: Record<ErrorCode, Record<string, string>> = {
     ko: "요청 데이터가 너무 큽니다.",
     ja: "リクエストデータが大きすぎます。",
     zh: "请求数据过大。",
+  },
+  PAYMENT_REQUIRED: {
+    en: "Payment required. Please subscribe to continue.",
+    ko: "결제가 필요합니다. 계속하려면 구독해주세요.",
+    ja: "お支払いが必要です。続行するには購読してください。",
+    zh: "需要付款。请订阅以继续。",
   },
   INTERNAL_ERROR: {
     en: "An unexpected error occurred. Please try again.",
@@ -179,6 +186,7 @@ const STATUS_CODES: Record<ErrorCode, number> = {
   RATE_LIMITED: 429,
   VALIDATION_ERROR: 422,
   PAYLOAD_TOO_LARGE: 413,
+  PAYMENT_REQUIRED: 402,
   INTERNAL_ERROR: 500,
   SERVICE_UNAVAILABLE: 503,
   BACKEND_ERROR: 502,
@@ -202,7 +210,7 @@ export interface APIErrorOptions {
   locale?: string;
   route?: string;
   originalError?: Error;
-  headers?: Record<string, string>;
+  headers?: Record<string, string> | Headers;
 }
 
 /**
@@ -216,8 +224,13 @@ export function createErrorResponse(options: APIErrorOptions): NextResponse {
     locale = "en",
     route,
     originalError,
-    headers = {},
+    headers: inputHeaders,
   } = options;
+
+  // Convert Headers to Record if needed
+  const headers: Record<string, string> = inputHeaders instanceof Headers
+    ? Object.fromEntries(inputHeaders.entries())
+    : (inputHeaders ?? {});
 
   const status = STATUS_CODES[code] || 500;
   const userMessage = message || ERROR_MESSAGES[code]?.[locale] || ERROR_MESSAGES[code]?.en || "An error occurred";

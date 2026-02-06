@@ -4,6 +4,7 @@
  */
 
 import { logger } from "@/lib/logger";
+import { DESTINY_MAP_CACHE, CACHE_KEY } from "@/lib/constants/cache";
 
 export interface CacheConfig {
   ttl: number;        // Time to live in milliseconds
@@ -11,8 +12,8 @@ export interface CacheConfig {
 }
 
 export const DEFAULT_CACHE_CONFIG: CacheConfig = {
-  ttl: 5 * 60 * 1000,  // 5 minutes
-  maxSize: 50,
+  ttl: DESTINY_MAP_CACHE.TTL_MS,
+  maxSize: DESTINY_MAP_CACHE.MAX_SIZE,
 };
 
 interface CacheEntry<T> {
@@ -144,6 +145,7 @@ export class CacheManager<T> {
 
 /**
  * Generate cache key for destiny map calculations
+ * - null byte 구분자 + JSON 직렬화로 키 충돌 방지
  */
 export function generateDestinyMapCacheKey(input: {
   birthDate: string;
@@ -154,15 +156,16 @@ export function generateDestinyMapCacheKey(input: {
   tz?: string;
 }): string {
   const { birthDate, birthTime, latitude, longitude, gender, tz } = input;
+  const sep = CACHE_KEY.SEPARATOR;
 
-  // Format: birthDate|birthTime|lat|lon|gender|tz
-  // Exclude user name for privacy and better cache hits
-  return [
+  // JSON 직렬화로 안전한 키 생성
+  const params = [
     birthDate,
     birthTime,
-    latitude.toFixed(4),
-    longitude.toFixed(4),
+    Number(latitude.toFixed(4)),
+    Number(longitude.toFixed(4)),
     gender || 'male',
     tz || 'auto',
-  ].join('|');
+  ];
+  return `${CACHE_KEY.PREFIX.DESTINY_MAP}${sep}${params.map(p => JSON.stringify(p)).join(sep)}`;
 }

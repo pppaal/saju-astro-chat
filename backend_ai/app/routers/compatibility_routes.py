@@ -7,6 +7,12 @@ import time
 from datetime import datetime
 from flask import Blueprint, request, jsonify, g
 
+from backend_ai.app.exceptions import (
+    BackendAIError,
+    ServiceUnavailableError,
+    ValidationError,
+)
+
 logger = logging.getLogger(__name__)
 
 compatibility_bp = Blueprint('compatibility', __name__, url_prefix='/api/compatibility')
@@ -55,7 +61,7 @@ def compatibility_analysis():
     """
     m = _get_compatibility()
     if not m:
-        return jsonify({"status": "error", "message": "Compatibility engine not available"}), 501
+        raise ServiceUnavailableError("Compatibility engine not available")
 
     try:
         data = request.get_json(force=True)
@@ -72,9 +78,9 @@ def compatibility_analysis():
         locale = data.get("locale", "ko")
 
         if len(people) < 2:
-            return jsonify({"status": "error", "message": "At least two people are required"}), 400
+            raise ValidationError("At least two people are required", field="people")
         if len(people) > 5:
-            return jsonify({"status": "error", "message": "Maximum 5 people supported"}), 400
+            raise ValidationError("Maximum 5 people supported", field="people")
 
         if len(people) <= 2:
             result = m.interpret_compatibility(people, relationship_type, locale)
@@ -84,9 +90,11 @@ def compatibility_analysis():
         status_code = 200 if result.get("status") == "success" else 500
         return jsonify(result), status_code
 
+    except BackendAIError:
+        raise  # Re-raise BackendAIError subclasses for global handler
     except Exception as e:
         logger.exception(f"[ERROR] /api/compatibility failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        raise BackendAIError(str(e), "INTERNAL_ERROR")
 
 
 @compatibility_bp.route("/chat", methods=["POST"])
@@ -96,7 +104,7 @@ def compatibility_chat():
     """
     m = _get_compatibility()
     if not m:
-        return jsonify({"status": "error", "message": "Compatibility engine not available"}), 501
+        raise ServiceUnavailableError("Compatibility engine not available")
 
     try:
         data = request.get_json(force=True)
@@ -111,10 +119,10 @@ def compatibility_chat():
         prompt = data.get("prompt", "")
 
         if not persons or len(persons) < 2:
-            return jsonify({"status": "error", "message": "At least 2 persons required"}), 400
+            raise ValidationError("At least 2 persons required", field="persons")
 
         if not question and not prompt:
-            return jsonify({"status": "error", "message": "No question provided"}), 400
+            raise ValidationError("No question provided", field="question")
 
         start_time = time.time()
         is_korean = locale == "ko"
@@ -206,6 +214,8 @@ Counseling style:
             "performance": {"duration_ms": duration_ms}
         })
 
+    except BackendAIError:
+        raise  # Re-raise BackendAIError subclasses for global handler
     except Exception as e:
         logger.exception(f"[ERROR] /api/compatibility/chat failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        raise BackendAIError(str(e), "INTERNAL_ERROR")

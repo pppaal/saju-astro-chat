@@ -48,7 +48,8 @@ export const GET = withApiMiddleware(
       // 연결 확인 및 권한 검증
       const connection = await prisma.matchConnection.findUnique({
         where: { id: connectionId },
-        include: {
+        select: {
+          id: true,
           user1Profile: { select: { userId: true } },
           user2Profile: { select: { userId: true } },
         },
@@ -71,7 +72,14 @@ export const GET = withApiMiddleware(
         orderBy: { createdAt: 'desc' },
         take: limit + 1, // 다음 페이지 확인용
         ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-        include: {
+        select: {
+          id: true,
+          content: true,
+          messageType: true,
+          senderId: true,
+          createdAt: true,
+          isRead: true,
+          isDeleted: true,
           sender: {
             select: { id: true, name: true, image: true },
           },
@@ -139,7 +147,9 @@ export const POST = withApiMiddleware(
       // 연결 확인
       const connection = await prisma.matchConnection.findUnique({
         where: { id: connectionId },
-        include: {
+        select: {
+          id: true,
+          status: true,
           user1Profile: {
             select: { userId: true, displayName: true },
           },
@@ -197,7 +207,12 @@ export const POST = withApiMiddleware(
             content,
             messageType,
           },
-          include: {
+          select: {
+            id: true,
+            content: true,
+            messageType: true,
+            senderId: true,
+            createdAt: true,
             sender: {
               select: { id: true, name: true, image: true },
             },

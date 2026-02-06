@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import styles from './ParticleCanvas.module.css';
 
 interface Particle {
@@ -26,7 +26,7 @@ const MOUSE_INTERACTION_RADIUS = 200;
 const PARTICLE_BASE_SPEED = 0.5;
 const PARTICLE_COLOR = '#88b3f7';
 
-export default function ParticleCanvas() {
+function ParticleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   useEffect(() => {
@@ -200,3 +200,5 @@ export default function ParticleCanvas() {
 
   return <canvas ref={canvasRef} className={styles.particleCanvas} />;
 }
+
+export default memo(ParticleCanvas);

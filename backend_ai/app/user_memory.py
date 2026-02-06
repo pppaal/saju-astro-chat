@@ -20,6 +20,8 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 from functools import lru_cache
 
+from backend_ai.app.utils.json_safe import safe_json_loads
+
 def _ping_redis(client, timeout_sec: float) -> bool:
     result = {"ok": False}
 
@@ -126,11 +128,11 @@ class UserMemory:
 
         if HAS_REDIS:
             data = _redis_client.get(full_key)
-            return json.loads(data) if data else None
+            return safe_json_loads(data, default=None, context="user_memory") if data else None
         else:
             entry = _memory_store.get(full_key)
             if entry and entry["expires"] > datetime.now():
-                return json.loads(entry["data"])
+                return safe_json_loads(entry["data"], default=None, context="user_memory")
             return None
 
     def _append_list(self, key: str, item: Any, max_items: int = 50):

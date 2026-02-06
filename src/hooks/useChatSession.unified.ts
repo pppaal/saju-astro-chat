@@ -10,6 +10,8 @@ import {
   generateMessageId as generateMessageIdFromUtils,
 } from '@/components/destiny-map/chat-utils'
 import type { ChatMessage } from '@/lib/api/validator'
+import { useSessionPersistence } from '@/hooks/useSessionPersistence'
+import { useSessionHistory } from '@/hooks/useSessionHistory'
 
 /**
  * Feedback type for messages
@@ -85,8 +87,7 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
   } = options
 
   // Session ID (stable across renders)
-  const sessionIdRef = useRef<string>(generateSessionId())
-  const [sessionId] = useState<string>(() => sessionIdRef.current)
+  const [sessionId] = useState<string>(() => generateSessionId())
 
   // Core state
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
@@ -114,18 +115,13 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
   const [followUpQuestions, setFollowUpQuestions] = useState<string[]>(initialFollowUps)
   const [showSuggestions, setShowSuggestions] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [saveError, setSaveError] = useState<string | null>(null)
 
-  // Session history state
+  // Session loaded state
   const [sessionLoaded, setSessionLoaded] = useState(false)
-  const [sessionHistory, setSessionHistory] = useState<SessionItem[]>([])
-  const [historyLoading, setHistoryLoading] = useState(false)
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
-  const lastPersonaUpdateRef = useRef<number>(0)
 
   // Mark session as loaded on mount
   useEffect(() => {
@@ -137,106 +133,34 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
     })
   }, [sessionId, enableDbPersistence, enablePersonaMemory])
 
-  // Persist messages to sessionStorage (debounced to avoid blocking main thread)
-  const sessionSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  useEffect(() => {
-    if (storageKey && typeof window !== 'undefined' && messages.length > 0) {
-      if (sessionSaveTimerRef.current) {
-        clearTimeout(sessionSaveTimerRef.current)
-      }
-      sessionSaveTimerRef.current = setTimeout(() => {
-        try {
-          sessionStorage.setItem(storageKey, JSON.stringify(messages))
-        } catch {
-          // Ignore storage errors
-        }
-      }, 500)
-    }
-    return () => {
-      if (sessionSaveTimerRef.current) {
-        clearTimeout(sessionSaveTimerRef.current)
-      }
-    }
-  }, [messages, storageKey])
+  // Persistence effects (sessionStorage, DB auto-save, persona memory)
+  const { saveError } = useSessionPersistence({
+    messages,
+    sessionIdRef,
+    storageKey,
+    enableDbPersistence,
+    enablePersonaMemory,
+    sessionLoaded,
+    theme,
+    lang,
+    saju,
+    astro,
+  })
 
-  // Auto-save messages to database
-  useEffect(() => {
-    if (!enableDbPersistence || !sessionLoaded || messages.length === 0) {
-      return
-    }
-
-    const saveTimer = setTimeout(async () => {
-      try {
-        const res = await fetch('/api/counselor/session/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: sessionIdRef.current,
-            theme,
-            locale: lang,
-            messages: messages.filter((m) => m.role !== 'system'),
-          }),
-        })
-        if (res.ok) {
-          setSaveError(null)
-          logger.debug('[useChatSession] Auto-saved to DB', { messageCount: messages.length })
-        } else {
-          setSaveError('Failed to save session')
-          logger.warn('[useChatSession] Failed to save session: HTTP', res.status)
-        }
-      } catch (e) {
-        logger.warn('[useChatSession] Failed to save session:', e)
-        setSaveError('Failed to save session')
-      }
-    }, 2000) // 2s debounce
-
-    return () => clearTimeout(saveTimer)
-  }, [messages, sessionLoaded, theme, lang, enableDbPersistence])
-
-  // Auto-update PersonaMemory
-  useEffect(() => {
-    if (!enablePersonaMemory || !sessionLoaded) {
-      return
-    }
-
-    const visibleMsgs = messages.filter((m) => m.role !== 'system')
-    if (visibleMsgs.length < 2) {
-      return
-    }
-
-    const now = Date.now()
-    if (now - lastPersonaUpdateRef.current < 30000) {
-      return // Throttle to max once per 30s
-    }
-
-    const lastMsg = visibleMsgs[visibleMsgs.length - 1]
-    if (lastMsg?.role !== 'assistant' || !lastMsg.content || lastMsg.content.length < 50) {
-      return
-    }
-
-    lastPersonaUpdateRef.current = now
-
-    fetch('/api/persona-memory/update-from-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: sessionIdRef.current,
-        theme,
-        locale: lang,
-        messages: visibleMsgs,
-        saju: saju || undefined,
-        astro: astro || undefined,
-      }),
-    })
-      .then((res) => {
-        if (res.ok) {
-          logger.debug('[useChatSession] PersonaMemory updated')
-        }
-      })
-      .catch((e) => {
-        logger.warn('[useChatSession] Failed to update PersonaMemory:', e)
-      })
-  }, [messages, sessionLoaded, theme, lang, saju, astro, enablePersonaMemory])
+  // Session history CRUD operations
+  const {
+    sessionHistory,
+    historyLoading,
+    deleteConfirmId,
+    setDeleteConfirmId,
+    loadSessionHistory,
+    loadSession,
+    deleteSession,
+  } = useSessionHistory({
+    theme,
+    setMessages,
+    sessionIdRef,
+  })
 
   // Scroll to bottom of messages
   const scrollToBottom = useCallback(() => {
@@ -288,56 +212,6 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
       ...prev,
       [messageIndex]: prev[messageIndex] === type ? null : type,
     }))
-  }, [])
-
-  // Load session history
-  const loadSessionHistory = useCallback(async () => {
-    setHistoryLoading(true)
-    try {
-      const res = await fetch(`/api/counselor/session/list?theme=${theme}&limit=20`)
-      if (res.ok) {
-        const data = await res.json()
-        setSessionHistory(data.sessions || [])
-      }
-    } catch (e) {
-      logger.warn('[useChatSession] Failed to load history:', e)
-    } finally {
-      setHistoryLoading(false)
-    }
-  }, [theme])
-
-  // Load a specific session
-  const loadSession = useCallback(
-    async (sid: string) => {
-      try {
-        const res = await fetch(`/api/counselor/session/load?theme=${theme}&sessionId=${sid}`)
-        if (res.ok) {
-          const data = await res.json()
-          if (data.messages && Array.isArray(data.messages)) {
-            setMessages(data.messages)
-            sessionIdRef.current = data.sessionId || sid
-          }
-        }
-      } catch (e) {
-        logger.warn('[useChatSession] Failed to load session:', e)
-      }
-    },
-    [theme]
-  )
-
-  // Delete a session
-  const deleteSession = useCallback(async (sid: string) => {
-    try {
-      const res = await fetch(`/api/counselor/session/list?sessionId=${sid}`, {
-        method: 'DELETE',
-      })
-      if (res.ok) {
-        setSessionHistory((prev) => prev.filter((s) => s.id !== sid))
-        setDeleteConfirmId(null)
-      }
-    } catch (e) {
-      logger.warn('[useChatSession] Failed to delete session:', e)
-    }
   }, [])
 
   // Clear the chat

@@ -1,0 +1,1813 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Saju Astro Chat API",
+    "version": "1.0.0",
+    "description": "A comprehensive API for Eastern and Western divination services including Saju (Four Pillars), Western Astrology, Tarot, Dream Analysis, I Ching, Compatibility, and more.",
+    "contact": {
+      "name": "Saju Astro Chat Support",
+      "email": "support@sajuastro.chat"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://sajuastro.chat",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    }
+  ],
+  "tags": [
+    { "name": "Saju", "description": "Four Pillars of Destiny (사주팔자) calculations and analysis" },
+    { "name": "Astrology", "description": "Western astrology chart calculations and interpretations" },
+    { "name": "Tarot", "description": "Tarot card readings and interpretations" },
+    { "name": "Dream", "description": "Dream analysis and interpretation" },
+    { "name": "I Ching", "description": "I Ching (주역) divination" },
+    { "name": "Compatibility", "description": "Relationship compatibility analysis" },
+    { "name": "Life Prediction", "description": "Life event timing and predictions" },
+    { "name": "Destiny Map", "description": "Comprehensive destiny analysis" },
+    { "name": "Calendar", "description": "Personalized fortune calendar" },
+    { "name": "Destiny Match", "description": "Destiny-based matchmaking" },
+    { "name": "Numerology", "description": "Numerology calculations" },
+    { "name": "Past Life", "description": "Past life and karmic analysis" },
+    { "name": "Auth", "description": "Authentication endpoints" },
+    { "name": "User", "description": "User profile and account management" },
+    { "name": "Payment", "description": "Subscription and credit purchases" },
+    { "name": "Feedback", "description": "User feedback and bug reports" },
+    { "name": "Utilities", "description": "Utility endpoints" },
+    { "name": "System", "description": "System health and monitoring" }
+  ],
+  "paths": {
+    "/api/saju": {
+      "post": {
+        "summary": "Calculate Saju (Four Pillars of Destiny)",
+        "description": "Calculates the Four Pillars (Saju) based on birth date, time, and location.",
+        "tags": ["Saju"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SajuRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Saju calculation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SajuResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/saju/chat-stream": {
+      "post": {
+        "summary": "Chat with Saju AI counselor (streaming)",
+        "description": "Start a streaming chat session with the Saju AI counselor.",
+        "tags": ["Saju"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SajuChatRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Streaming response",
+            "content": {
+              "text/event-stream": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/astrology": {
+      "post": {
+        "summary": "Calculate Western astrology chart",
+        "description": "Calculates a Western astrology natal chart based on birth data and location.",
+        "tags": ["Astrology"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AstrologyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful astrology calculation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AstrologyResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/astrology/chat-stream": {
+      "post": {
+        "summary": "Chat with Astrology AI (streaming)",
+        "description": "Start a streaming chat session about astrology.",
+        "tags": ["Astrology"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AstrologyChatRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Streaming response",
+            "content": {
+              "text/event-stream": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/astrology/details": {
+      "post": {
+        "summary": "Get detailed astrology analysis",
+        "description": "Returns detailed analysis of planetary positions, aspects, and houses.",
+        "tags": ["Astrology"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AstrologyDetailsRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Detailed astrology data",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/astrology/advanced/solar-return": {
+      "post": {
+        "summary": "Calculate Solar Return chart",
+        "description": "Calculates the Solar Return chart for a specific year.",
+        "tags": ["Astrology"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AdvancedAstrologyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Solar Return chart data",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/astrology/advanced/lunar-return": {
+      "post": {
+        "summary": "Calculate Lunar Return chart",
+        "tags": ["Astrology"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AdvancedAstrologyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lunar Return chart data",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/astrology/advanced/progressions": {
+      "post": {
+        "summary": "Calculate Secondary Progressions",
+        "tags": ["Astrology"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AdvancedAstrologyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Progressions data",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tarot/draw": {
+      "post": {
+        "summary": "Draw tarot cards",
+        "description": "Randomly draw tarot cards for a specific spread.",
+        "tags": ["Tarot"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TarotDrawRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Drawn cards",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TarotDrawResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tarot/interpret": {
+      "post": {
+        "summary": "Get tarot reading interpretation",
+        "description": "Interprets a tarot card spread with AI-powered insights.",
+        "tags": ["Tarot"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TarotInterpretRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Interpretation result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TarotInterpretResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tarot/interpret-stream": {
+      "post": {
+        "summary": "Get tarot interpretation (streaming)",
+        "tags": ["Tarot"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TarotInterpretRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Streaming interpretation",
+            "content": {
+              "text/event-stream": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tarot/chat": {
+      "post": {
+        "summary": "Chat about tarot reading",
+        "tags": ["Tarot"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TarotChatRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tarot/readings": {
+      "get": {
+        "summary": "Get saved tarot readings",
+        "tags": ["Tarot"],
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } },
+          { "name": "offset", "in": "query", "schema": { "type": "integer", "default": 0 } },
+          { "name": "theme", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of readings",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Save a tarot reading",
+        "tags": ["Tarot"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TarotSaveRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reading saved",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dream/analyze": {
+      "post": {
+        "summary": "Analyze a dream",
+        "description": "Performs AI-powered dream analysis with cultural interpretations.",
+        "tags": ["Dream"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DreamAnalyzeRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dream analysis result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DreamAnalyzeResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dream/stream": {
+      "post": {
+        "summary": "Stream dream analysis",
+        "tags": ["Dream"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DreamStreamRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Streaming analysis",
+            "content": {
+              "text/event-stream": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dream/chat": {
+      "post": {
+        "summary": "Chat about a dream",
+        "tags": ["Dream"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DreamChatRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/compatibility": {
+      "post": {
+        "summary": "Calculate compatibility",
+        "description": "Analyzes compatibility between 2-4 people using Saju and Western astrology.",
+        "tags": ["Compatibility"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CompatibilityRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Compatibility analysis",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CompatibilityResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/compatibility/chat": {
+      "post": {
+        "summary": "Chat about compatibility",
+        "tags": ["Compatibility"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CompatibilityChatRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/iching": {
+      "post": {
+        "summary": "Get I Ching reading",
+        "description": "Performs I Ching divination with hexagram generation.",
+        "tags": ["I Ching"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/IChingRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "I Ching reading",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/IChingResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/iching/stream": {
+      "post": {
+        "summary": "Stream I Ching interpretation",
+        "tags": ["I Ching"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/IChingStreamRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Streaming interpretation",
+            "content": {
+              "text/event-stream": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/life-prediction": {
+      "post": {
+        "summary": "Get life prediction",
+        "description": "Analyzes life events and timing predictions.",
+        "tags": ["Life Prediction"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LifePredictionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Life prediction result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/life-prediction/advisor-chat": {
+      "post": {
+        "summary": "Chat with life prediction advisor",
+        "tags": ["Life Prediction"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LifePredictionAdvisorChatRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Advisor response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/destiny-map": {
+      "post": {
+        "summary": "Generate destiny map",
+        "description": "Creates comprehensive destiny analysis combining Saju and astrology.",
+        "tags": ["Destiny Map"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DestinyMapRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Destiny map data",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/destiny-map/chat-stream": {
+      "post": {
+        "summary": "Chat about destiny map (streaming)",
+        "tags": ["Destiny Map"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DestinyMapChatRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Streaming response",
+            "content": {
+              "text/event-stream": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/calendar": {
+      "get": {
+        "summary": "Get fortune calendar",
+        "description": "Returns personalized daily fortune ratings.",
+        "tags": ["Calendar"],
+        "parameters": [
+          { "name": "year", "in": "query", "required": true, "schema": { "type": "integer" } },
+          { "name": "month", "in": "query", "required": true, "schema": { "type": "integer", "minimum": 1, "maximum": 12 } },
+          { "name": "birthDate", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "birthTime", "in": "query", "schema": { "type": "string" } },
+          { "name": "locale", "in": "query", "schema": { "type": "string", "enum": ["ko", "en"] } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Calendar data",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CalendarResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/calendar/save": {
+      "post": {
+        "summary": "Save calendar date",
+        "tags": ["Calendar"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CalendarSaveRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Date saved",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/destiny-match/profile": {
+      "get": {
+        "summary": "Get match profile",
+        "tags": ["Destiny Match"],
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DestinyMatchProfileResponse" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update match profile",
+        "tags": ["Destiny Match"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DestinyMatchProfileRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/destiny-match/discover": {
+      "get": {
+        "summary": "Discover matches",
+        "tags": ["Destiny Match"],
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20 } },
+          { "name": "offset", "in": "query", "schema": { "type": "integer", "default": 0 } },
+          { "name": "gender", "in": "query", "schema": { "type": "string", "enum": ["M", "F", "all"] } },
+          { "name": "ageMin", "in": "query", "schema": { "type": "integer", "minimum": 18 } },
+          { "name": "ageMax", "in": "query", "schema": { "type": "integer", "maximum": 100 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Potential matches",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/destiny-match/swipe": {
+      "post": {
+        "summary": "Swipe on profile",
+        "tags": ["Destiny Match"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DestinyMatchSwipeRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Swipe result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/destiny-match/matches": {
+      "get": {
+        "summary": "Get matches",
+        "tags": ["Destiny Match"],
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["active", "blocked", "all"] } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of matches",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/destiny-match/chat": {
+      "post": {
+        "summary": "Send message to match",
+        "tags": ["Destiny Match"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DestinyMatchChatRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message sent",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get chat messages",
+        "tags": ["Destiny Match"],
+        "parameters": [
+          { "name": "connectionId", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "cursor", "in": "query", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chat messages",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/numerology": {
+      "post": {
+        "summary": "Calculate numerology",
+        "tags": ["Numerology"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/NumerologyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Numerology result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/past-life": {
+      "post": {
+        "summary": "Get past life reading",
+        "tags": ["Past Life"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PastLifeRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Past life reading",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "summary": "Register new user",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserRegistrationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already exists",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me": {
+      "get": {
+        "summary": "Get current user",
+        "tags": ["User"],
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UserProfileResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update current user",
+        "tags": ["User"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserProfileUpdateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me/credits": {
+      "get": {
+        "summary": "Get user credits",
+        "tags": ["User"],
+        "responses": {
+          "200": {
+            "description": "Credit balance",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CreditsResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/checkout": {
+      "post": {
+        "summary": "Create checkout session",
+        "tags": ["Payment"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CheckoutRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checkout session",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CheckoutResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/feedback": {
+      "post": {
+        "summary": "Submit feedback",
+        "tags": ["Feedback"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/FeedbackRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feedback submitted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cities": {
+      "get": {
+        "summary": "Search cities",
+        "tags": ["Utilities"],
+        "parameters": [
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10, "maximum": 50 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "City results",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CitiesResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "summary": "Health check",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "API healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "timestamp": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/daily-fortune": {
+      "post": {
+        "summary": "Get daily fortune",
+        "tags": ["Calendar"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DailyFortuneRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Daily fortune",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "sessionAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "next-auth.session-token",
+        "description": "NextAuth.js session cookie"
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string", "example": "VALIDATION_ERROR" },
+              "message": { "type": "string", "example": "Invalid birth date format" }
+            }
+          }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "required": ["success", "data"],
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": { "type": "object" }
+        }
+      },
+      "ChatMessage": {
+        "type": "object",
+        "required": ["role", "content"],
+        "properties": {
+          "role": { "type": "string", "enum": ["user", "assistant", "system"] },
+          "content": { "type": "string", "maxLength": 10000 },
+          "timestamp": { "type": "integer" }
+        }
+      },
+      "SajuRequest": {
+        "type": "object",
+        "required": ["birthDate", "birthTime", "gender", "calendarType", "timezone"],
+        "properties": {
+          "birthDate": { "type": "string", "example": "1990-05-15", "description": "Birth date in YYYY-MM-DD format" },
+          "birthTime": { "type": "string", "example": "14:30", "description": "Birth time in HH:MM format" },
+          "gender": { "type": "string", "enum": ["male", "female"], "example": "male" },
+          "calendarType": { "type": "string", "enum": ["solar", "lunar"], "example": "solar" },
+          "timezone": { "type": "string", "example": "Asia/Seoul", "description": "IANA timezone" },
+          "userTimezone": { "type": "string", "description": "User's current timezone (for display)" },
+          "locale": { "type": "string", "enum": ["ko", "en"], "default": "ko" }
+        }
+      },
+      "SajuResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "yearPillar": { "$ref": "#/components/schemas/Pillar" },
+              "monthPillar": { "$ref": "#/components/schemas/Pillar" },
+              "dayPillar": { "$ref": "#/components/schemas/Pillar" },
+              "hourPillar": { "$ref": "#/components/schemas/Pillar" },
+              "dayMaster": { "$ref": "#/components/schemas/StemInfo" },
+              "fiveElementBalance": {
+                "type": "object",
+                "additionalProperties": { "type": "number" }
+              },
+              "daeunList": {
+                "type": "array",
+                "items": { "type": "object" }
+              },
+              "currentDaeun": { "type": "object" },
+              "currentSaeun": { "type": "object" }
+            }
+          }
+        }
+      },
+      "Pillar": {
+        "type": "object",
+        "properties": {
+          "stem": { "$ref": "#/components/schemas/StemInfo" },
+          "branch": { "$ref": "#/components/schemas/BranchInfo" },
+          "sibseong": { "type": "string" },
+          "jijanggan": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "StemInfo": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "甲" },
+          "element": { "type": "string", "example": "목" },
+          "yin_yang": { "type": "string", "example": "양" }
+        }
+      },
+      "BranchInfo": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "子" },
+          "element": { "type": "string", "example": "수" },
+          "yin_yang": { "type": "string", "example": "양" },
+          "animal": { "type": "string", "example": "쥐" }
+        }
+      },
+      "SajuChatRequest": {
+        "type": "object",
+        "required": ["messages"],
+        "properties": {
+          "messages": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ChatMessage" },
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "saju": { "type": "object", "description": "Saju data for context" },
+          "locale": { "type": "string", "enum": ["ko", "en"] },
+          "context": { "type": "object" }
+        }
+      },
+      "AstrologyRequest": {
+        "type": "object",
+        "required": ["date", "time", "latitude", "longitude", "timeZone"],
+        "properties": {
+          "date": { "type": "string", "example": "1990-05-15" },
+          "time": { "type": "string", "example": "14:30" },
+          "latitude": { "type": "number", "example": 37.5665 },
+          "longitude": { "type": "number", "example": 126.978 },
+          "timeZone": { "type": "string", "example": "Asia/Seoul" },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "AstrologyResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "planets": { "type": "object" },
+              "houses": { "type": "object" },
+              "aspects": { "type": "array" },
+              "sunSign": { "type": "string" },
+              "moonSign": { "type": "string" },
+              "ascendant": { "type": "string" }
+            }
+          }
+        }
+      },
+      "AstrologyChatRequest": {
+        "type": "object",
+        "required": ["messages"],
+        "properties": {
+          "messages": { "type": "array", "items": { "$ref": "#/components/schemas/ChatMessage" } },
+          "birthData": { "type": "object" },
+          "chartData": { "type": "object" },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "AstrologyDetailsRequest": {
+        "type": "object",
+        "required": ["birthDate", "latitude", "longitude"],
+        "properties": {
+          "birthDate": { "type": "string" },
+          "birthTime": { "type": "string" },
+          "latitude": { "type": "number" },
+          "longitude": { "type": "number" },
+          "timezone": { "type": "string" },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "AdvancedAstrologyRequest": {
+        "type": "object",
+        "required": ["birthDate", "birthTime", "latitude", "longitude", "timezone", "calculationType"],
+        "properties": {
+          "birthDate": { "type": "string" },
+          "birthTime": { "type": "string" },
+          "latitude": { "type": "number" },
+          "longitude": { "type": "number" },
+          "timezone": { "type": "string" },
+          "calculationType": {
+            "type": "string",
+            "enum": ["asteroids", "draconic", "eclipses", "electional", "fixed-stars", "harmonics", "lunar-return", "midpoints", "progressions", "rectification", "solar-return"]
+          },
+          "targetDate": { "type": "string" },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "TarotCard": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "The Fool" },
+          "nameKo": { "type": "string", "example": "바보" },
+          "isReversed": { "type": "boolean" },
+          "position": { "type": "string", "example": "Present" },
+          "positionKo": { "type": "string", "example": "현재" },
+          "meaning": { "type": "string" },
+          "keywords": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "TarotDrawRequest": {
+        "type": "object",
+        "required": ["categoryId", "spreadId"],
+        "properties": {
+          "categoryId": { "type": "string", "example": "love" },
+          "spreadId": { "type": "string", "example": "three-card" }
+        }
+      },
+      "TarotDrawResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "cards": { "type": "array", "items": { "$ref": "#/components/schemas/TarotCard" } }
+            }
+          }
+        }
+      },
+      "TarotInterpretRequest": {
+        "type": "object",
+        "required": ["categoryId", "spreadId", "spreadTitle", "cards"],
+        "properties": {
+          "categoryId": { "type": "string" },
+          "spreadId": { "type": "string" },
+          "spreadTitle": { "type": "string" },
+          "cards": { "type": "array", "items": { "$ref": "#/components/schemas/TarotCard" } },
+          "userQuestion": { "type": "string", "maxLength": 600 },
+          "language": { "type": "string", "enum": ["ko", "en"], "default": "ko" },
+          "birthdate": { "type": "string" }
+        }
+      },
+      "TarotInterpretResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "overallMessage": { "type": "string" },
+              "cardInsights": { "type": "array" },
+              "guidance": { "type": "string" },
+              "affirmation": { "type": "string" }
+            }
+          }
+        }
+      },
+      "TarotChatRequest": {
+        "type": "object",
+        "required": ["messages", "context"],
+        "properties": {
+          "messages": { "type": "array", "items": { "$ref": "#/components/schemas/ChatMessage" } },
+          "context": { "type": "object" },
+          "language": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "TarotSaveRequest": {
+        "type": "object",
+        "required": ["question", "spreadId", "spreadTitle", "cards"],
+        "properties": {
+          "question": { "type": "string" },
+          "spreadId": { "type": "string" },
+          "spreadTitle": { "type": "string" },
+          "cards": { "type": "array" },
+          "overallMessage": { "type": "string" },
+          "cardInsights": { "type": "array" },
+          "guidance": { "type": "string" },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "DreamAnalyzeRequest": {
+        "type": "object",
+        "required": ["dream"],
+        "properties": {
+          "dream": { "type": "string", "minLength": 10, "maxLength": 10000 },
+          "locale": { "type": "string", "enum": ["ko", "en"] },
+          "birthInfo": { "type": "object" }
+        }
+      },
+      "DreamAnalyzeResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "summary": { "type": "string" },
+              "symbols": { "type": "array", "items": { "type": "string" } },
+              "emotions": { "type": "array", "items": { "type": "string" } },
+              "themes": { "type": "array", "items": { "type": "string" } },
+              "cultural_notes": { "type": "object" },
+              "recommendations": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      },
+      "DreamStreamRequest": {
+        "type": "object",
+        "required": ["dreamText"],
+        "properties": {
+          "dreamText": { "type": "string", "minLength": 5, "maxLength": 5000 },
+          "symbols": { "type": "array", "items": { "type": "string" } },
+          "emotions": { "type": "array", "items": { "type": "string" } },
+          "themes": { "type": "array", "items": { "type": "string" } },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "DreamChatRequest": {
+        "type": "object",
+        "required": ["messages", "dreamContext"],
+        "properties": {
+          "messages": { "type": "array", "items": { "$ref": "#/components/schemas/ChatMessage" } },
+          "dreamContext": { "type": "object" },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "CompatibilityRequest": {
+        "type": "object",
+        "required": ["persons"],
+        "properties": {
+          "persons": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 4,
+            "items": { "$ref": "#/components/schemas/PersonInput" }
+          },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "PersonInput": {
+        "type": "object",
+        "required": ["date", "time", "latitude", "longitude", "timeZone"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 120 },
+          "date": { "type": "string" },
+          "time": { "type": "string" },
+          "latitude": { "type": "number" },
+          "longitude": { "type": "number" },
+          "timeZone": { "type": "string" },
+          "city": { "type": "string" },
+          "relationToP1": { "type": "string", "enum": ["friend", "lover", "other"] }
+        }
+      },
+      "CompatibilityResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "overallScore": { "type": "number" },
+              "sajuCompatibility": { "type": "object" },
+              "astroCompatibility": { "type": "object" },
+              "insights": { "type": "array", "items": { "type": "string" } },
+              "recommendations": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      },
+      "CompatibilityChatRequest": {
+        "type": "object",
+        "required": ["persons", "messages"],
+        "properties": {
+          "persons": { "type": "array" },
+          "compatibilityResult": { "type": "string" },
+          "messages": { "type": "array", "items": { "$ref": "#/components/schemas/ChatMessage" } },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "IChingRequest": {
+        "type": "object",
+        "required": ["question"],
+        "properties": {
+          "question": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "method": { "type": "string", "enum": ["coins", "yarrow", "digital"] },
+          "hexagramNumber": { "type": "integer", "minimum": 1, "maximum": 64 },
+          "changingLines": { "type": "array", "items": { "type": "integer", "minimum": 1, "maximum": 6 } },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "IChingResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "hexagramNumber": { "type": "integer" },
+              "hexagramName": { "type": "string" },
+              "hexagramSymbol": { "type": "string" },
+              "judgment": { "type": "string" },
+              "image": { "type": "string" },
+              "changingLines": { "type": "array" },
+              "resultingHexagram": { "type": "object" }
+            }
+          }
+        }
+      },
+      "IChingStreamRequest": {
+        "type": "object",
+        "required": ["hexagramNumber", "hexagramName", "hexagramSymbol", "judgment", "image"],
+        "properties": {
+          "hexagramNumber": { "type": "integer" },
+          "hexagramName": { "type": "string" },
+          "hexagramSymbol": { "type": "string" },
+          "judgment": { "type": "string" },
+          "image": { "type": "string" },
+          "changingLines": { "type": "array" },
+          "resultingHexagram": { "type": "object" },
+          "question": { "type": "string" },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "LifePredictionRequest": {
+        "type": "object",
+        "required": ["question", "birthDate", "birthTime", "latitude", "longitude", "timezone"],
+        "properties": {
+          "question": { "type": "string", "minLength": 1, "maxLength": 1000 },
+          "birthDate": { "type": "string" },
+          "birthTime": { "type": "string" },
+          "latitude": { "type": "number" },
+          "longitude": { "type": "number" },
+          "timezone": { "type": "string" },
+          "gender": { "type": "string", "enum": ["male", "female"] },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "LifePredictionAdvisorChatRequest": {
+        "type": "object",
+        "required": ["message", "context", "history", "locale"],
+        "properties": {
+          "message": { "type": "string" },
+          "sessionId": { "type": "string" },
+          "context": { "type": "object" },
+          "history": { "type": "array", "items": { "$ref": "#/components/schemas/ChatMessage" } },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "DestinyMapRequest": {
+        "type": "object",
+        "required": ["birthDate", "birthTime", "gender", "timezone"],
+        "properties": {
+          "birthDate": { "type": "string" },
+          "birthTime": { "type": "string" },
+          "gender": { "type": "string", "enum": ["male", "female"] },
+          "calendarType": { "type": "string", "enum": ["solar", "lunar"], "default": "solar" },
+          "timezone": { "type": "string" },
+          "latitude": { "type": "number" },
+          "longitude": { "type": "number" },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "DestinyMapChatRequest": {
+        "type": "object",
+        "required": ["messages"],
+        "properties": {
+          "messages": { "type": "array", "items": { "$ref": "#/components/schemas/ChatMessage" } },
+          "saju": { "type": "object" },
+          "astro": { "type": "object" },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "CalendarResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "days": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "date": { "type": "string" },
+                    "score": { "type": "number" },
+                    "grade": { "type": "integer" },
+                    "summary": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CalendarSaveRequest": {
+        "type": "object",
+        "required": ["date", "grade", "score", "title"],
+        "properties": {
+          "date": { "type": "string" },
+          "grade": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "score": { "type": "number", "minimum": 0, "maximum": 100 },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "summary": { "type": "string" },
+          "categories": { "type": "array", "items": { "type": "string" } },
+          "recommendations": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "DailyFortuneRequest": {
+        "type": "object",
+        "required": ["birthDate"],
+        "properties": {
+          "birthDate": { "type": "string" },
+          "birthTime": { "type": "string" },
+          "sendEmail": { "type": "boolean", "default": false },
+          "userTimezone": { "type": "string" }
+        }
+      },
+      "DestinyMatchProfileRequest": {
+        "type": "object",
+        "required": ["displayName"],
+        "properties": {
+          "displayName": { "type": "string", "minLength": 2, "maxLength": 64 },
+          "bio": { "type": "string", "maxLength": 500 },
+          "occupation": { "type": "string", "maxLength": 100 },
+          "photos": { "type": "array", "items": { "type": "string" }, "maxItems": 10 },
+          "city": { "type": "string" },
+          "latitude": { "type": "number" },
+          "longitude": { "type": "number" },
+          "interests": { "type": "array", "items": { "type": "string" } },
+          "ageMin": { "type": "integer", "minimum": 18 },
+          "ageMax": { "type": "integer", "maximum": 100 },
+          "maxDistance": { "type": "integer", "minimum": 1, "maximum": 500 },
+          "genderPreference": { "type": "string" },
+          "isActive": { "type": "boolean" },
+          "isVisible": { "type": "boolean" }
+        }
+      },
+      "DestinyMatchProfileResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": { "$ref": "#/components/schemas/DestinyMatchProfileRequest" }
+        }
+      },
+      "DestinyMatchSwipeRequest": {
+        "type": "object",
+        "required": ["targetProfileId", "action"],
+        "properties": {
+          "targetProfileId": { "type": "string" },
+          "action": { "type": "string", "enum": ["like", "pass", "super_like"] },
+          "compatibilityScore": { "type": "number", "minimum": 0, "maximum": 100 }
+        }
+      },
+      "DestinyMatchChatRequest": {
+        "type": "object",
+        "required": ["connectionId", "content"],
+        "properties": {
+          "connectionId": { "type": "string" },
+          "content": { "type": "string", "minLength": 1, "maxLength": 2000 },
+          "messageType": { "type": "string", "enum": ["text", "image", "emoji"], "default": "text" }
+        }
+      },
+      "NumerologyRequest": {
+        "type": "object",
+        "required": ["birthDate"],
+        "properties": {
+          "action": { "type": "string", "enum": ["analyze", "compatibility"], "default": "analyze" },
+          "birthDate": { "type": "string" },
+          "englishName": { "type": "string" },
+          "koreanName": { "type": "string" },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "PastLifeRequest": {
+        "type": "object",
+        "required": ["birthDate", "latitude", "longitude"],
+        "properties": {
+          "birthDate": { "type": "string" },
+          "birthTime": { "type": "string" },
+          "latitude": { "type": "number" },
+          "longitude": { "type": "number" },
+          "timezone": { "type": "string" },
+          "locale": { "type": "string", "enum": ["ko", "en"] }
+        }
+      },
+      "UserRegistrationRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email", "maxLength": 254 },
+          "password": { "type": "string", "minLength": 8, "maxLength": 128 },
+          "name": { "type": "string", "maxLength": 100 },
+          "referralCode": { "type": "string", "maxLength": 50 }
+        }
+      },
+      "UserProfileResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "email": { "type": "string" },
+              "name": { "type": "string" },
+              "image": { "type": "string" },
+              "birthDate": { "type": "string" },
+              "birthTime": { "type": "string" },
+              "gender": { "type": "string" },
+              "birthCity": { "type": "string" },
+              "tzId": { "type": "string" },
+              "createdAt": { "type": "string" }
+            }
+          }
+        }
+      },
+      "UserProfileUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 64 },
+          "image": { "type": "string", "format": "uri" },
+          "emailNotifications": { "type": "boolean" },
+          "birthDate": { "type": "string" },
+          "birthTime": { "type": "string" },
+          "gender": { "type": "string", "enum": ["male", "female", "other"] },
+          "birthCity": { "type": "string" },
+          "tzId": { "type": "string" }
+        }
+      },
+      "CreditsResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "balance": { "type": "integer" },
+              "bonusCredits": { "type": "integer" },
+              "isPremium": { "type": "boolean" }
+            }
+          }
+        }
+      },
+      "CheckoutRequest": {
+        "type": "object",
+        "properties": {
+          "plan": { "type": "string", "enum": ["starter", "pro", "premium"] },
+          "billingCycle": { "type": "string", "enum": ["monthly", "yearly"] },
+          "creditPack": { "type": "string", "enum": ["mini", "standard", "plus", "mega", "ultimate"] }
+        }
+      },
+      "CheckoutResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "url": { "type": "string", "description": "Stripe checkout URL" },
+              "sessionId": { "type": "string" }
+            }
+          }
+        }
+      },
+      "FeedbackRequest": {
+        "type": "object",
+        "required": ["type", "subject", "message"],
+        "properties": {
+          "type": { "type": "string", "enum": ["bug", "feature", "improvement", "other"] },
+          "subject": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "message": { "type": "string", "minLength": 10, "maxLength": 5000 },
+          "email": { "type": "string", "format": "email" },
+          "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] }
+        }
+      },
+      "CitiesResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "country": { "type": "string" },
+                "latitude": { "type": "number" },
+                "longitude": { "type": "number" },
+                "timezone": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    { "sessionAuth": [] }
+  ]
+}

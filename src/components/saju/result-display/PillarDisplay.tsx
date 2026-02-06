@@ -1,6 +1,6 @@
 import React from 'react'
 import type { PillarData } from '@/lib/Saju'
-import { getElementOfChar, ELEMENT_COLORS } from '@/lib/Saju/element-utils'
+import { getElementOfChar, ELEMENT_COLORS } from '@/lib/Saju/stemBranchUtils'
 
 interface PillarBoxProps {
   title: string

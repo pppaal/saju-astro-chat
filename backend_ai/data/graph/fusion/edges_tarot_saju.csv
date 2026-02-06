@@ -1,0 +1,27 @@
+source_id,target_id,relation_type,weight,description
+TM_fool,OH_목양,symbolic_resonance,0.85,바보 카드의 새로운 시작과 갑목의 개척 정신이 공명. 두려움 없이 새로운 여정을 시작하는 에너지.
+TM_magician,OH_화양,archetype_match,0.90,마법사의 창조력과 병화의 밝은 에너지가 결합. 의지로 현실을 만들어가는 능력.
+TM_high_priestess,OH_수음,intuition_link,0.92,여사제의 직관과 계수의 섬세한 감수성이 조화. 깊은 내면의 지혜를 접촉하는 능력.
+TM_empress,OH_토음,fertility_match,0.88,여황제의 풍요와 기토의 포용력이 연결. 생명을 키우고 풍요를 창조하는 모성적 에너지.
+TM_emperor,OH_금양,authority_link,0.87,황제의 권위와 경금의 결단력이 조화. 질서를 세우고 구조를 만드는 리더십.
+TM_hierophant,SG_정관,tradition_match,0.85,교황의 전통과 정관의 규범이 연결. 사회적 질서와 가르침을 전달하는 역할.
+TM_lovers,SG_정재,relationship_link,0.83,연인 카드와 정재의 안정적 관계가 공명. 올바른 선택과 조화로운 파트너십.
+TM_chariot,SG_편관,willpower_match,0.86,전차의 의지력과 편관의 추진력이 결합. 장애물을 극복하고 목표를 향해 전진.
+TM_strength,OH_화음,inner_power,0.84,힘 카드의 내면 힘과 정화의 따뜻한 에너지가 조화. 부드러운 힘으로 야성을 다스림.
+TM_hermit,SG_편인,wisdom_match,0.91,은둔자와 편인의 탐구정신이 연결. 내면으로 들어가 진정한 지혜를 찾는 여정.
+TM_wheel,POS_대운,fate_cycle,0.95,운명의 수레바퀴와 대운의 큰 흐름이 직접 연결. 인생의 큰 사이클과 전환점.
+TM_justice,SG_정관,karma_law,0.89,정의 카드와 정관의 법칙이 조화. 인과응보와 공정한 판단의 원리.
+TM_hanged,SG_편인,surrender_link,0.82,매달린 사람의 관점전환과 편인의 새로운 시각이 연결. 포기를 통한 깨달음.
+TM_death,POS_대운,transformation,0.88,죽음 카드의 변환과 대운 교체기가 연결. 끝남을 통한 새로운 시작.
+TM_temperance,OH_토양,balance_match,0.86,절제 카드의 균형과 무토의 중용이 조화. 대극을 조화시키는 지혜.
+TM_devil,JS_억압된욕망,shadow_link,0.93,악마 카드와 억압된 욕망 그림자가 직접 연결. 속박과 중독의 패턴.
+TM_tower,SG_칠살,destruction_match,0.87,탑 카드의 붕괴와 칠살의 격변이 연결. 낡은 구조의 해체와 충격적 변화.
+TM_star,SG_식신,hope_link,0.85,별 카드의 희망과 식신의 표현력이 조화. 영감과 치유의 에너지.
+TM_moon,JS_숨겨진의존성,unconscious_link,0.84,달 카드의 무의식과 숨겨진 의존성이 연결. 환상과 두려움의 영역.
+TM_sun,OH_화양,vitality_match,0.94,태양 카드의 활력과 병화의 밝은 에너지가 완벽히 조화. 순수한 기쁨과 성공.
+TM_judgment,JI_자기만남,awakening_link,0.90,심판 카드와 자기(Self) 접촉기가 연결. 부름에 응답하고 진정한 자기를 발견.
+TM_world,JI_개성화완성,completion_match,0.96,세계 카드와 개성화 완성이 직접 연결. 전체성의 실현과 통합.
+TM_wands_ace,OH_화양,fire_start,0.88,완드 에이스와 병화의 새로운 시작 에너지가 연결. 창조적 불꽃의 점화.
+TM_cups_ace,OH_수양,water_start,0.87,컵 에이스와 임수의 감정적 시작이 연결. 사랑과 직관의 원천.
+TM_swords_ace,OH_금양,air_start,0.86,소드 에이스와 경금의 명석함이 연결. 진실을 꿰뚫는 지성.
+TM_pent_ace,OH_토양,earth_start,0.89,펜타클 에이스와 무토의 물질적 안정이 연결. 번영의 기반.

@@ -11,6 +11,7 @@ import { getClientIp } from '@/lib/request-ip'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { logger } from '@/lib/logger'
 import { getVisitorStats } from '@/lib/metrics/visitor-tracker'
+import { timingSafeCompare } from '@/lib/security/timingSafe'
 
 export async function GET(req: NextRequest) {
   try {
@@ -37,13 +38,12 @@ export async function GET(req: NextRequest) {
       process.env.METRICS_TOKEN
     )?.trim()
 
-    if (!expectedToken || token !== expectedToken) {
+    // Use timing-safe comparison to prevent timing attacks
+    if (!expectedToken || !token || !timingSafeCompare(token, expectedToken)) {
       logger.warn('[Public Metrics] Auth failed', {
         hasAuthHeader: !!authHeader,
         hasToken: !!token,
         hasExpectedToken: !!expectedToken,
-        tokenLength: token?.length,
-        expectedLength: expectedToken?.length,
       })
       return NextResponse.json(
         { error: 'Unauthorized' },

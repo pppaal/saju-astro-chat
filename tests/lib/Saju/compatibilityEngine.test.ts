@@ -11,7 +11,7 @@ import {
   analyzeComprehensiveCompatibility,
   analyzeMultiPersonCompatibility,
   CompatibilitySubject,
-} from '@/lib/Saju/compatibilityEngine';
+} from '@/lib/Saju/compatibility';
 import type { SajuPillars, PillarData } from '@/lib/Saju/types';
 
 // 테스트 헬퍼 함수

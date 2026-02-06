@@ -1,0 +1,23 @@
+id,label,type,symbol,category,korean_name,jung_interpretation,collective_unconscious,personal_unconscious,integration_path,description
+JDS_water,물,jung_dream,Water,element,물,무의식자체/감정/생명,집단무의식의상징/생명의근원,개인적감정상태/억압된감정,감정을의식화하고흐르게함,융은 물을 무의식 자체의 상징으로 봄. 물의 상태가 무의식과 감정의 상태를 반영.
+JDS_house,집,jung_dream,House,structure,집,자아의구조/정신의집,인류공통의자아상징,개인의정신구조/자아상태,방마다의미탐구/전체통합,집은 자아의 구조. 지하실은 무의식, 다락은 상위자아, 각 방은 자아의 다른 측면.
+JDS_shadow_figure,그림자인물,jung_dream,Shadow_Figure,archetype,그림자인물,억압된자아/그림자원형,인류공통의어두운면,개인이억압한특성,직면/인정/통합,동성의 위협적 인물은 대개 그림자. 그들의 특성이 자신이 억압한 면.
+JDS_anima,아니마인물,jung_dream,Anima_Figure,archetype,아니마인물,남성내면의여성성,집단적여성원형,개인적여성성경험,내면여성성통합,남성 꿈에 나타나는 여성 인물은 아니마. 관계 방식이 내면 여성성과의 관계 반영.
+JDS_animus,아니무스인물,jung_dream,Animus_Figure,archetype,아니무스인물,여성내면의남성성,집단적남성원형,개인적남성성경험,내면남성성통합,여성 꿈에 나타나는 남성 인물은 아니무스. 의견과 판단의 내면 목소리.
+JDS_wise_old,현자,jung_dream,Wise_Old_Man,archetype,노현자,지혜의원형/자기의메신저,인류공통의지혜원형,개인이추구하는지혜,지혜를의식에통합,늙은 현명한 인물은 자기(Self)의 메신저. 중요한 지혜나 방향을 전달.
+JDS_great_mother,대모,jung_dream,Great_Mother,archetype,대모신,모성원형/생명과죽음,인류공통의모성원형,개인적모성경험,긍정부정적모성통합,거대한 여성 이미지는 대모 원형. 양육과 삼킴, 생명과 죽음의 양면.
+JDS_child,신성한아이,jung_dream,Divine_Child,archetype,신성한아이,새로운시작/자기의씨앗,인류공통의재탄생원형,잃어버린순수/내면아이,내면아이돌봄/새시작,특별한 아이는 새로운 가능성과 자기의 씨앗. 미래의 전체성이 잠재함.
+JDS_hero,영웅,jung_dream,Hero,archetype,영웅,자아의여정/장애극복,인류공통의영웅여정,개인의성장과제,영웅여정완수/겸손,영웅 이미지는 자아의 성장 여정. 장애를 극복하고 보물을 얻어 돌아오는 여정.
+JDS_trickster,트릭스터,jung_dream,Trickster,archetype,트릭스터,혼돈/변화/경계허물기,인류공통의트릭스터,자신의장난기/반항심,유머로경직성깨기,장난꾸러기나 속이는 인물은 트릭스터. 고정된 질서를 흔들고 변화를 촉발.
+JDS_mandala,만다라,jung_dream,Mandala,symbol,만다라,전체성/자기/통합,인류공통의전체성상징,개인의통합상태,전체성을향한여정,원이나 대칭 패턴은 만다라. 자기(Self)와 전체성을 향한 무의식의 노력.
+JDS_quaternity,사위,jung_dream,Quaternity,symbol,사위/넷,전체성/균형/완성,사방위/네요소의보편성,개인의균형상태,네측면의균형,넷으로 나뉜 것은 전체성의 상징. 네 방향, 네 요소, 네 기능의 균형.
+JDS_serpent,뱀,jung_dream,Serpent,animal,뱀,변환/치유/본능/쿤달리니,인류공통의변환상징,개인의변환과정/성에너지,변환에너지수용,뱀은 변환과 치유의 상징. 허물을 벗는 재생과 상승하는 쿤달리니 에너지.
+JDS_death,죽음,jung_dream,Death,theme,죽음,변환/옛것의끝/재탄생,인류공통의죽음재생원형,개인의변화과정,옛것을보내고새것맞이,꿈에서 죽음은 끝이 아닌 변환. 옛 자아나 상황이 끝나고 새것이 시작됨.
+JDS_descent,하강,jung_dream,Descent,journey,하강,무의식으로의여정/내면탐구,신화속저승여행,개인의무의식탐험,어둠을통과하여빛으로,아래로 내려가는 것은 무의식으로의 여정. 지하, 물속, 동굴로의 하강.
+JDS_ascent,상승,jung_dream,Ascent,journey,상승,의식확장/영적성장/초월,신화속천상여행,개인의의식성장,하강후의상승/통합,위로 올라가는 것은 의식의 확장. 산 정상, 비행, 상승은 영적 성장.
+JDS_treasure,보물,jung_dream,Treasure,object,보물,자기/내면의가치/목표,영웅이찾는보물원형,개인이추구하는가치,진정한보물발견,숨겨진 보물은 자기(Self)나 진정한 가치의 상징. 여정의 목표이자 보상.
+JDS_marriage,결혼,jung_dream,Sacred_Marriage,union,신성한결합,대극의통합/아니마아니무스합일,히에로스가모스원형,개인의내면통합,내면의남성성여성성통합,꿈에서 결혼은 대극의 통합. 의식과 무의식, 남성성과 여성성의 합일.
+JDS_enemy,적,jung_dream,Enemy,figure,적,투사된그림자/내면의적,집단적적원형,개인이투사한그림자,투사거두기/내면직면,적은 대개 자신의 그림자 투사. 그들의 특성이 자신이 부정하는 면.
+JDS_journey,여행,jung_dream,Journey,theme,여정,개성화과정/인생여정,인류공통의여정원형,개인의성장경로,여정을의식적으로걷기,여행과 여정은 개성화 과정의 상징. 출발, 시련, 변환, 귀환의 단계.
+JDS_birth,탄생,jung_dream,Birth,theme,탄생,새로운의식/가능성/재탄생,인류공통의탄생원형,개인의새시작,새로운자아탄생수용,탄생은 새로운 의식이나 가능성의 출현. 어둠에서 빛으로 나오는 과정.
+JDS_animals,동물,jung_dream,Animals,general,동물일반,본능/자연적자아/무의식,집단적본능원형,개인의본능상태,본능과문명의균형,동물은 본능과 자연적 자아를 상징. 어떤 동물이냐에 따라 의미가 달라짐.

@@ -13,7 +13,7 @@ import {
   getOffsetMinutes,
   formatOffset,
 } from "@/lib/Saju/timezone";
-import { STEM_LABELS, BRANCH_LABELS } from "@/lib/Saju/labels";
+import { STEM_LABELS, BRANCH_LABELS } from "@/lib/Saju/constants";
 
 describe("Saju constants", () => {
   it("has 10 stems and 12 branches with unique names", () => {

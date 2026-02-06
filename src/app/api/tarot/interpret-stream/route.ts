@@ -1,15 +1,15 @@
 // src/app/api/tarot/interpret-stream/route.ts
 // Direct OpenAI Streaming Tarot Interpretation API
 
-import { NextRequest, NextResponse } from 'next/server'
-import { initializeApiContext, createPublicStreamGuard } from '@/lib/api/middleware'
+import { NextRequest } from 'next/server'
+import { initializeApiContext, createPublicStreamGuard, extractLocale } from '@/lib/api/middleware'
 import { createSSEEvent, createSSEDoneEvent } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'
 import { enforceBodySize } from '@/lib/http'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
 import { recordExternalCall } from '@/lib/metrics/index'
-import { tarotInterpretStreamSchema } from '@/lib/api/zodValidation'
+import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 
 interface CardInput {
   name: string
@@ -318,16 +318,10 @@ export async function POST(req: NextRequest) {
       logger.warn('[Tarot interpret-stream] validation failed', {
         errors: validationResult.error.issues,
       })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validationResult.error, {
+        locale: extractLocale(req),
+        route: 'tarot/interpret-stream',
+      })
     }
 
     const body = validationResult.data
@@ -635,6 +629,10 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
     })
   } catch (err) {
     logger.error('Tarot stream error:', { error: err })
-    return NextResponse.json({ error: 'Server error' }, { status: HTTP_STATUS.SERVER_ERROR })
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'tarot/interpret-stream',
+      originalError: err instanceof Error ? err : new Error(String(err)),
+    })
   }
 }

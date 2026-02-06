@@ -5,17 +5,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createPublicStreamGuard, type ApiContext } from '@/lib/api/middleware'
+import { withApiMiddleware, createPublicStreamGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { calculateYearlyImportantDates } from '@/lib/destiny-map/destinyCalendar'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
-import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '@/lib/Saju/stemElementMapping'
+import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '@/lib/Saju/constants'
 import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
 import type { TranslationData } from '@/types/calendar-api'
 import { logger } from '@/lib/logger'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
-import { calendarMainQuerySchema } from '@/lib/api/zodValidation'
+import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 
 // Import from extracted modules
 import {
@@ -78,16 +79,10 @@ export const GET = withApiMiddleware(
     })
     if (!queryValidation.success) {
       logger.warn('[Calendar] query validation failed', { errors: queryValidation.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: queryValidation.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(queryValidation.error, {
+        locale: extractLocale(request),
+        route: 'calendar',
+      })
     }
 
     const {
@@ -106,7 +101,11 @@ export const GET = withApiMiddleware(
     // 생년월일 파싱 (UTC 오프셋 영향 없이 고정)
     const birthDate = parseBirthDate(birthDateParam)
     if (!birthDate) {
-      return NextResponse.json({ error: 'Invalid birth date' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_DATE,
+        locale: extractLocale(request),
+        route: 'calendar',
+      })
     }
     // birthPlace는 항상 유효한 값이 있음 (기본값: Seoul)
     const coords = LOCATION_COORDS[birthPlace] || LOCATION_COORDS['Seoul']
@@ -119,10 +118,13 @@ export const GET = withApiMiddleware(
       sajuResult = calculateSajuData(birthDateParam, birthTimeParam, sajuGender, 'solar', timezone)
     } catch (sajuError) {
       logger.error('[Calendar] Saju calculation error:', sajuError)
-      return NextResponse.json(
-        { error: 'Failed to calculate saju data' },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.INTERNAL_ERROR,
+        message: 'Failed to calculate saju data',
+        locale: extractLocale(request),
+        route: 'calendar',
+        originalError: sajuError instanceof Error ? sajuError : new Error(String(sajuError)),
+      })
     }
 
     // 사주 데이터에서 필요한 정보 추출

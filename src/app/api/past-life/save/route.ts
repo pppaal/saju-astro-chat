@@ -5,11 +5,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
+import { withApiMiddleware, createAuthenticatedGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { pastLifeSaveRequestSchema } from '@/lib/api/zodValidation'
-import { HTTP_STATUS } from '@/lib/constants/http'
+import { pastLifeSaveRequestSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 
 /**
  * POST /api/past-life/save
@@ -19,26 +19,22 @@ export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const rawBody = await req.json().catch(() => null)
     if (!rawBody) {
-      return NextResponse.json(
-        { error: 'Invalid request body' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Invalid request body',
+        locale: extractLocale(req),
+        route: 'past-life/save',
+      })
     }
 
     // Validate with Zod
     const validationResult = pastLifeSaveRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[Past Life save] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validationResult.error, {
+        locale: extractLocale(req),
+        route: 'past-life/save',
+      })
     }
 
     const {
@@ -81,7 +77,12 @@ export const POST = withApiMiddleware(
       })
     } catch (error) {
       logger.error('[PastLife Save] Failed to save:', error)
-      return NextResponse.json({ error: 'Failed to save past life result' }, { status: 500 })
+      return createErrorResponse({
+        code: ErrorCodes.DATABASE_ERROR,
+        message: 'Failed to save past life result',
+        route: 'past-life/save',
+        originalError: error instanceof Error ? error : new Error(String(error)),
+      })
     }
   },
   createAuthenticatedGuard({
@@ -122,7 +123,12 @@ export const GET = withApiMiddleware(
       })
     } catch (error) {
       logger.error('[PastLife Save] Failed to fetch:', error)
-      return NextResponse.json({ saved: false, error: 'Failed to fetch result' }, { status: 500 })
+      return createErrorResponse({
+        code: ErrorCodes.DATABASE_ERROR,
+        message: 'Failed to fetch result',
+        route: 'past-life/save',
+        originalError: error instanceof Error ? error : new Error(String(error)),
+      })
     }
   },
   createAuthenticatedGuard({

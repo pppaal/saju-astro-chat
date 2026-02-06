@@ -144,8 +144,8 @@ export const GET = withApiMiddleware(
       where.theme = theme
     }
 
-    // Get aggregated stats
-    const [total, positive, bySectionTotals, bySectionPositives] = (await Promise.all([
+    // Get aggregated stats with individual error handling
+    const results = await Promise.allSettled([
       prisma.sectionFeedback.count({ where }),
       prisma.sectionFeedback.count({ where: { ...where, helpful: true } }),
       prisma.sectionFeedback.groupBy({
@@ -158,7 +158,20 @@ export const GET = withApiMiddleware(
         where: { ...where, helpful: true },
         _count: { _all: true },
       }),
-    ])) as [number, number, SectionGroup[], SectionGroup[]]
+    ])
+
+    // Extract values with fallbacks for failed queries
+    const total = results[0].status === 'fulfilled' ? results[0].value : 0
+    const positive = results[1].status === 'fulfilled' ? results[1].value : 0
+    const bySectionTotals: SectionGroup[] = results[2].status === 'fulfilled' ? results[2].value : []
+    const bySectionPositives: SectionGroup[] = results[3].status === 'fulfilled' ? results[3].value : []
+
+    // Log any failures for debugging
+    results.forEach((r, i) => {
+      if (r.status === 'rejected') {
+        logger.warn(`[Feedback] Query ${i} failed:`, r.reason instanceof Error ? r.reason.message : 'Unknown error')
+      }
+    })
 
     const satisfactionRate = total > 0 ? Math.round((positive / total) * 100) : 0
 

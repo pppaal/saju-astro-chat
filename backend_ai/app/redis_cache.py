@@ -16,6 +16,8 @@ import time
 from threading import Lock
 from typing import Optional, Any, Dict
 
+from backend_ai.app.utils.json_safe import safe_json_loads
+
 logger = logging.getLogger("backend_ai.cache")
 
 try:
@@ -172,7 +174,7 @@ class RedisCache:
                     self._hits += 1
                     self._circuit_breaker.record_success()
                     logger.debug(f"✅ Redis cache HIT: {key[:50]}...")
-                    return json.loads(cached)
+                    return safe_json_loads(cached, default=None, context="redis_cache.get")
                 self._misses += 1
             except Exception as e:
                 self._errors += 1

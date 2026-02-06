@@ -221,3 +221,110 @@ export function sanitizeInput(input: string, maxLength = 10000): string {
     .replace(/on\w+=/gi, '')
     .slice(0, maxLength)
 }
+
+// ============ Zod Error to API Error Mapping ============
+
+import { createErrorResponse, ErrorCodes, type ErrorCode } from '../errorHandler'
+
+/**
+ * Zod 검증 에러 상세 정보
+ */
+export interface ValidationErrorDetail {
+  path: string
+  message: string
+  code?: string
+}
+
+// Zod v4 compatible issue type
+type ZodIssue = z.core.$ZodIssue
+
+/**
+ * Zod 에러를 표준화된 검증 에러 상세로 변환
+ */
+export function formatZodErrors(zodError: z.ZodError): ValidationErrorDetail[] {
+  return zodError.issues.map((issue: ZodIssue) => ({
+    path: issue.path.map(String).join('.'),
+    message: issue.message,
+    code: issue.code,
+  }))
+}
+
+/**
+ * Zod 에러를 ErrorCode로 매핑
+ * 첫 번째 이슈 기반으로 적절한 ErrorCode 반환
+ */
+export function mapZodErrorToCode(zodError: z.ZodError): ErrorCode {
+  const firstIssue = zodError.issues[0]
+  if (!firstIssue) return ErrorCodes.VALIDATION_ERROR
+
+  const path = firstIssue.path.map(String).join('.').toLowerCase()
+  const msg = firstIssue.message.toLowerCase()
+  const issueCode = firstIssue.code
+
+  // 특정 필드에 따른 에러 코드 매핑
+  if (path.includes('date') || msg.includes('date')) {
+    return ErrorCodes.INVALID_DATE
+  }
+  if (path.includes('time') || msg.includes('time')) {
+    return ErrorCodes.INVALID_TIME
+  }
+  if (path.includes('lat') || path.includes('lon') || path.includes('coord')) {
+    return ErrorCodes.INVALID_COORDINATES
+  }
+  // Check for missing/undefined fields
+  if (issueCode === 'invalid_type') {
+    // Zod v4 uses 'input' property for the actual received value
+    const issue = firstIssue as { input?: unknown }
+    if (issue.input === undefined) {
+      return ErrorCodes.MISSING_FIELD
+    }
+  }
+  if (msg.includes('format') || issueCode === 'invalid_format') {
+    return ErrorCodes.INVALID_FORMAT
+  }
+
+  return ErrorCodes.VALIDATION_ERROR
+}
+
+/**
+ * Zod 검증 결과를 표준 API 에러 응답으로 변환
+ * 일관된 에러 형식을 보장
+ */
+export function createValidationErrorResponse(
+  zodError: z.ZodError,
+  options: {
+    locale?: string
+    route?: string
+  } = {}
+) {
+  const code = mapZodErrorToCode(zodError)
+  const details = formatZodErrors(zodError)
+
+  return createErrorResponse({
+    code,
+    details,
+    locale: options.locale || 'en',
+    route: options.route,
+  })
+}
+
+/**
+ * Zod safeParse 결과를 처리하는 헬퍼
+ * 성공 시 데이터 반환, 실패 시 표준화된 에러 응답 반환
+ */
+export function handleZodValidation<T>(
+  result: { success: true; data: T } | { success: false; error: z.ZodError },
+  options: {
+    locale?: string
+    route?: string
+  } = {}
+): { success: true; data: T } | { success: false; response: ReturnType<typeof createErrorResponse> } {
+  if (result.success) {
+    return { success: true, data: result.data }
+  }
+
+  return {
+    success: false,
+    response: createValidationErrorResponse(result.error, options),
+  }
+}

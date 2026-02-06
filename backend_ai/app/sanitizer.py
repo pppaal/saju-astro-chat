@@ -3,7 +3,8 @@
 import os
 import re
 import logging
-from typing import Optional
+from datetime import datetime
+from typing import Optional, Tuple
 
 logger = logging.getLogger("backend_ai.sanitizer")
 
@@ -206,15 +207,17 @@ def sanitize_json_value(value: str) -> str:
 def validate_birth_data(
     birth_date: Optional[str],
     birth_time: Optional[str],
-    birth_year: Optional[int] = None
-) -> tuple[bool, str]:
+    birth_year: Optional[int] = None,
+    strict: bool = True
+) -> Tuple[bool, str]:
     """
-    Validate birth data inputs.
+    Validate birth data inputs with strict calendar validation.
 
     Args:
         birth_date: Date string (YYYY-MM-DD format expected)
         birth_time: Time string (HH:MM format expected)
         birth_year: Optional year as integer
+        strict: If True, validate that date/time are real calendar values
 
     Returns:
         Tuple of (is_valid, error_message)
@@ -232,19 +235,130 @@ def validate_birth_data(
             if year < 1900 or year > 2100:
                 errors.append(f"Birth year out of range: {year}")
 
+            # Strict validation: ensure date actually exists on calendar
+            if strict:
+                try:
+                    datetime.strptime(birth_date, "%Y-%m-%d")
+                except ValueError as e:
+                    errors.append(f"Invalid calendar date: {birth_date} ({e})")
+
     # Validate birth_time format
     if birth_time:
         time_pattern = r'^\d{2}:\d{2}(:\d{2})?$'
         if not re.match(time_pattern, birth_time):
             errors.append(f"Invalid birth_time format: {birth_time}")
+        elif strict:
+            # Strict validation: ensure time is valid (00:00 - 23:59)
+            try:
+                parts = birth_time.split(":")
+                hour = int(parts[0])
+                minute = int(parts[1])
+                second = int(parts[2]) if len(parts) > 2 else 0
+
+                if not (0 <= hour <= 23):
+                    errors.append(f"Invalid hour: {hour} (must be 0-23)")
+                if not (0 <= minute <= 59):
+                    errors.append(f"Invalid minute: {minute} (must be 0-59)")
+                if not (0 <= second <= 59):
+                    errors.append(f"Invalid second: {second} (must be 0-59)")
+            except (ValueError, IndexError) as e:
+                errors.append(f"Invalid time format: {birth_time} ({e})")
 
     # Validate birth_year if provided separately
     if birth_year is not None:
-        if birth_year < 1900 or birth_year > 2100:
+        if not isinstance(birth_year, int):
+            try:
+                birth_year = int(birth_year)
+            except (ValueError, TypeError):
+                errors.append(f"Birth year must be an integer: {birth_year}")
+                birth_year = None
+
+        if birth_year is not None and (birth_year < 1900 or birth_year > 2100):
             errors.append(f"Birth year out of range: {birth_year}")
 
     if errors:
         return False, "; ".join(errors)
+
+    return True, ""
+
+
+def validate_birth_date_strict(date_str: str) -> Tuple[bool, str]:
+    """
+    Strictly validate a birth date string.
+
+    Ensures the date:
+    - Matches YYYY-MM-DD format
+    - Is a real calendar date (no Feb 30, etc.)
+    - Is within reasonable range (1900-2100)
+    - Is not in the future
+
+    Args:
+        date_str: Date string to validate
+
+    Returns:
+        Tuple of (is_valid, error_message)
+    """
+    if not date_str:
+        return False, "Birth date is required"
+
+    # Format check
+    date_pattern = r'^\d{4}-\d{2}-\d{2}$'
+    if not re.match(date_pattern, date_str):
+        return False, f"Invalid format: expected YYYY-MM-DD, got {date_str}"
+
+    # Parse and validate
+    try:
+        parsed_date = datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError as e:
+        return False, f"Invalid calendar date: {e}"
+
+    # Year range check
+    year = parsed_date.year
+    if year < 1900:
+        return False, f"Birth year too old: {year} (minimum 1900)"
+    if year > 2100:
+        return False, f"Birth year too far in future: {year} (maximum 2100)"
+
+    # Future date check
+    if parsed_date > datetime.now():
+        return False, f"Birth date cannot be in the future: {date_str}"
+
+    return True, ""
+
+
+def validate_birth_time_strict(time_str: str) -> Tuple[bool, str]:
+    """
+    Strictly validate a birth time string.
+
+    Ensures the time:
+    - Matches HH:MM or HH:MM:SS format
+    - Has valid hour (0-23), minute (0-59), second (0-59)
+
+    Args:
+        time_str: Time string to validate
+
+    Returns:
+        Tuple of (is_valid, error_message)
+    """
+    if not time_str:
+        return True, ""  # Birth time is optional
+
+    # Format check
+    time_pattern = r'^(\d{2}):(\d{2})(?::(\d{2}))?$'
+    match = re.match(time_pattern, time_str)
+    if not match:
+        return False, f"Invalid format: expected HH:MM or HH:MM:SS, got {time_str}"
+
+    hour = int(match.group(1))
+    minute = int(match.group(2))
+    second = int(match.group(3)) if match.group(3) else 0
+
+    if not (0 <= hour <= 23):
+        return False, f"Invalid hour: {hour} (must be 0-23)"
+    if not (0 <= minute <= 59):
+        return False, f"Invalid minute: {minute} (must be 0-59)"
+    if not (0 <= second <= 59):
+        return False, f"Invalid second: {second} (must be 0-59)"
 
     return True, ""
 

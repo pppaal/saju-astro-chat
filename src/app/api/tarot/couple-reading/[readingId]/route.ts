@@ -2,7 +2,7 @@
  * Couple Tarot Reading Detail API
  * 특정 커플 타로 리딩 조회
  */
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
   createAuthenticatedGuard,
@@ -13,7 +13,7 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { readingIdParamSchema } from '@/lib/api/zodValidation'
+import { readingIdParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 
 type RouteContext = {
   params: Promise<{ readingId: string }>
@@ -24,7 +24,9 @@ export async function GET(request: Request, routeContext: RouteContext) {
   const rawParams = await routeContext.params
   const paramValidation = readingIdParamSchema.safeParse(rawParams)
   if (!paramValidation.success) {
-    return NextResponse.json({ error: 'invalid_params' }, { status: 400 })
+    return createValidationErrorResponse(paramValidation.error, {
+      route: 'tarot/couple-reading/[readingId]',
+    })
   }
   const { readingId } = paramValidation.data
 

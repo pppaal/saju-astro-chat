@@ -24,3 +24,16 @@ export {
 } from "./api-limits";
 
 export { HTTP_STATUS, HTTP_TIMEOUTS, CACHE_MAX_AGE } from "./http";
+
+export {
+  SAJU_CACHE,
+  DAEUN_CACHE,
+  COMPATIBILITY_CACHE,
+  DESTINY_MAP_CACHE,
+  DEFAULT_CACHE,
+  CACHE_KEY,
+  type SajuCacheConfig,
+  type DaeunCacheConfig,
+  type CompatibilityCacheConfig,
+  type DestinyMapCacheConfig,
+} from "./cache";

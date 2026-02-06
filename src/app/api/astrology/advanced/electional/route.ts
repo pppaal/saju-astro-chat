@@ -7,7 +7,11 @@ import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { logger } from '@/lib/logger'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { extractLocale } from '@/lib/api/middleware'
 import { ElectionalRequestSchema } from '@/lib/api/astrology-validation'
+import { createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { HTTP_STATUS } from '@/lib/constants/http'
 import {
   calculateNatalChart,
   toChart,
@@ -16,7 +20,6 @@ import {
   getElectionalGuidelines,
   type ElectionalEventType,
 } from '@/lib/astrology'
-import { HTTP_STATUS } from '@/lib/constants/http'
 
 const validEventTypes: ElectionalEventType[] = [
   'business_start',
@@ -42,20 +45,25 @@ const validEventTypes: ElectionalEventType[] = [
 
 export async function POST(request: Request) {
   try {
+    const locale = extractLocale(request)
     const ip = getClientIp(request.headers)
     const limit = await rateLimit(`astro-electional:${ip}`, { limit: 20, windowSeconds: 60 })
     if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Try again soon.' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.RATE_LIMITED,
+        locale,
+        route: 'astrology/advanced/electional',
+        headers: limit.headers,
+      })
     }
     const tokenCheck = requirePublicToken(request)
     if (!tokenCheck.valid) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.UNAUTHORIZED,
+        locale,
+        route: 'astrology/advanced/electional',
+        headers: limit.headers,
+      })
     }
 
     // Validate request body with Zod
@@ -63,35 +71,32 @@ export async function POST(request: Request) {
     const validation = ElectionalRequestSchema.safeParse(body)
 
     if (!validation.success) {
-      const errors = validation.error.issues
-        .map((e) => `${e.path.join('.')}: ${e.message}`)
-        .join(', ')
       logger.warn('[Electional API] Validation failed', { errors: validation.error.issues })
-      return NextResponse.json(
-        {
-          error: 'Validation failed',
-          details: errors,
-          issues: validation.error.issues,
-        },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
+      return createValidationErrorResponse(validation.error, {
+        locale,
+        route: 'astrology/advanced/electional',
+      })
     }
 
     const { date, time, latitude, longitude, timeZone, eventType, basicOnly } = validation.data
 
     // Validate eventType if provided
     if (!basicOnly && !eventType) {
-      return NextResponse.json(
-        { error: 'eventType is required (or set basicOnly: true for basic moon/VOC info)' },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.MISSING_FIELD,
+        message: 'eventType is required (or set basicOnly: true for basic moon/VOC info)',
+        locale,
+        route: 'astrology/advanced/electional',
+      })
     }
 
     if (eventType && !validEventTypes.includes(eventType as ElectionalEventType)) {
-      return NextResponse.json(
-        { error: `Invalid eventType. Valid types: ${validEventTypes.join(', ')}` },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.VALIDATION_ERROR,
+        message: `Invalid eventType. Valid types: ${validEventTypes.join(', ')}`,
+        locale,
+        route: 'astrology/advanced/electional',
+      })
     }
 
     const [year, month, day] = date.split('-').map(Number)
@@ -170,8 +175,11 @@ export async function POST(request: Request) {
     res.headers.set('Cache-Control', 'no-store')
     return res
   } catch (error: unknown) {
-    const message = 'Internal Server Error'
     captureServerError(error, { route: '/api/astrology/advanced/electional' })
-    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'astrology/advanced/electional',
+      originalError: error instanceof Error ? error : new Error(String(error)),
+    })
   }
 }

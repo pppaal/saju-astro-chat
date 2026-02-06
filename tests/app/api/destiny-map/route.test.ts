@@ -44,6 +44,7 @@ vi.mock('@/lib/api/middleware', () => ({
     }
   }),
   createSimpleGuard: vi.fn(() => ({})),
+  extractLocale: vi.fn((_req: any) => 'ko'),
 }))
 
 // ---------------------------------------------------------------------------
@@ -130,7 +131,7 @@ vi.mock('@/lib/api/zodValidation', () => ({
         return {
           success: false,
           error: {
-            issues: [{ path: [], message: 'Expected object' }],
+            issues: [{ path: [], message: 'Expected object', code: 'invalid_type' }],
           },
         }
       }
@@ -139,7 +140,7 @@ vi.mock('@/lib/api/zodValidation', () => ({
         return {
           success: false,
           error: {
-            issues: [{ path: ['birthDate'], message: 'Required' }],
+            issues: [{ path: ['birthDate'], message: 'Required', code: 'invalid_type' }],
           },
         }
       }
@@ -148,13 +149,32 @@ vi.mock('@/lib/api/zodValidation', () => ({
         return {
           success: false,
           error: {
-            issues: [{ path: ['timezone'], message: 'Timezone is required' }],
+            issues: [{ path: ['timezone'], message: 'Timezone is required', code: 'invalid_type' }],
           },
         }
       }
       return { success: true, data }
     }),
   },
+  createValidationErrorResponse: vi.fn((zodError: any, options: any) => {
+    const details = zodError.issues.map((issue: any) => ({
+      path: issue.path.join('.'),
+      message: issue.message,
+      code: issue.code,
+    }))
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Input validation failed. Please check your data.',
+          status: 422,
+        },
+        details,
+      },
+      { status: 422 }
+    )
+  }),
 }))
 
 // ---------------------------------------------------------------------------
@@ -344,7 +364,8 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('invalid_body')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('BAD_REQUEST')
     })
 
     it('should return 400 when body is null (empty)', async () => {
@@ -366,7 +387,7 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
   // Zod validation
   // -------------------------------------------------------------------------
   describe('Zod Schema Validation', () => {
-    it('should return 400 with validation_failed when Zod rejects input', async () => {
+    it('should return 422 with validation error when Zod rejects input', async () => {
       // Missing birthDate + birthTime => Zod fails
       const request = makePostRequest({
         gender: 'male',
@@ -378,13 +399,14 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
       const response = await POST(request)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
       expect(data.details).toBeDefined()
       expect(Array.isArray(data.details)).toBe(true)
     })
 
-    it('should return 400 when timezone is missing (Zod requires it)', async () => {
+    it('should return 422 when timezone is missing (Zod requires it)', async () => {
       const request = makePostRequest({
         birthDate: '1990-05-15',
         birthTime: '14:30',
@@ -397,8 +419,9 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
       const response = await POST(request)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
   })
 
@@ -412,7 +435,8 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Invalid birthDate')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 for invalid birthTime format', async () => {
@@ -421,7 +445,8 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Invalid birthTime')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
     it('should return 400 for out-of-range latitude', async () => {
@@ -430,7 +455,9 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Invalid latitude')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INVALID_COORDINATES')
+      expect(data.error.message).toBe('Invalid latitude')
     })
 
     it('should return 400 for out-of-range longitude', async () => {
@@ -439,7 +466,9 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Invalid longitude')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INVALID_COORDINATES')
+      expect(data.error.message).toBe('Invalid longitude')
     })
 
     it('should return 400 for invalid userTimezone (no slash)', async () => {

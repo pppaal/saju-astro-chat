@@ -12,6 +12,16 @@ import {
   chatMessageSchema,
   paginationQuerySchema,
 } from './common'
+import {
+  sajuChatContextSchema,
+  sajuPillarsSchema,
+  fiveElementsDistributionSchema,
+} from './domains/saju-domain'
+import {
+  astrologyChartFactsSchema,
+  planetHousesSchema,
+  planetSignsSchema,
+} from './domains/astro-domain'
 
 // ============ Auth Schemas ============
 
@@ -26,14 +36,24 @@ export type UserRegistrationRequestValidated = z.infer<typeof userRegistrationRe
 
 // ============ User Profile Schemas ============
 
+export const notificationSettingsSchema = z.object({
+  dailyFortune: z.boolean().optional(),
+  weeklyFortune: z.boolean().optional(),
+  monthlyFortune: z.boolean().optional(),
+  specialEvents: z.boolean().optional(),
+  promotions: z.boolean().optional(),
+  preferredTime: z.string().regex(/^([01]?\d|2[0-3]):([0-5]\d)$/).optional(),
+  timezone: timezoneSchema.optional(),
+})
+
 export const userProfileUpdateSchema = z.object({
   name: z.string().min(1).max(64).trim().optional(),
   image: z.string().url().max(500).optional().nullable(),
   emailNotifications: z.boolean().optional(),
   preferredLanguage: localeSchema.optional(),
-  notificationSettings: z.record(z.string(), z.unknown()).optional(),
-  tonePreference: z.string().max(50).optional(),
-  readingLength: z.string().max(50).optional(),
+  notificationSettings: notificationSettingsSchema.optional(),
+  tonePreference: z.enum(['formal', 'casual', 'mystical', 'friendly']).optional(),
+  readingLength: z.enum(['brief', 'moderate', 'detailed']).optional(),
   birthDate: dateSchema.optional().nullable(),
   birthTime: timeSchema.optional().nullable(),
   gender: genderSchema.optional().nullable(),
@@ -55,15 +75,47 @@ export type UserBirthInfoUpdateValidated = z.infer<typeof userBirthInfoUpdateSch
 
 // ============ Persona Memory Schemas ============
 
+export const birthChartMemorySchema = z.object({
+  sunSign: z.string().max(30).optional(),
+  moonSign: z.string().max(30).optional(),
+  ascendant: z.string().max(30).optional(),
+  dominantElement: z.enum(['fire', 'earth', 'air', 'water']).optional(),
+  dominantModality: z.enum(['cardinal', 'fixed', 'mutable']).optional(),
+  planetHouses: planetHousesSchema.optional(),
+})
+
+export const sajuProfileMemorySchema = z.object({
+  dayMaster: z.string().max(10).optional(),
+  dayMasterElement: z.enum(['목', '화', '토', '금', '수']).optional(),
+  dominantElement: z.enum(['목', '화', '토', '금', '수']).optional(),
+  yongsin: z.string().max(10).optional(),
+  geokguk: z.string().max(50).optional(),
+  pillars: z.object({
+    year: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
+    month: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
+    day: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
+    time: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
+  }).optional(),
+})
+
 export const personaMemoryPostSchema = z.object({
   dominantThemes: z.array(z.string().max(200)).max(50).optional(),
   keyInsights: z.array(z.string().max(1000)).max(50).optional(),
-  emotionalTone: z.string().max(200).optional(),
+  emotionalTone: z.enum(['positive', 'negative', 'neutral', 'mixed', 'anxious', 'hopeful']).optional(),
   growthAreas: z.array(z.string().max(200)).max(50).optional(),
   lastTopics: z.array(z.string().max(200)).max(50).optional(),
   recurringIssues: z.array(z.string().max(500)).max(50).optional(),
-  birthChart: z.record(z.string(), z.unknown()).optional(),
-  sajuProfile: z.record(z.string(), z.unknown()).optional(),
+  birthChart: birthChartMemorySchema.optional(),
+  sajuProfile: sajuProfileMemorySchema.optional(),
+})
+
+export const personaMemoryPatchDataSchema = z.object({
+  insight: z.string().max(1000).optional(),
+  growthArea: z.string().max(200).optional(),
+  recurringIssue: z.string().max(500).optional(),
+  emotionalTone: z.enum(['positive', 'negative', 'neutral', 'mixed', 'anxious', 'hopeful']).optional(),
+  birthChart: birthChartMemorySchema.optional(),
+  sajuProfile: sajuProfileMemorySchema.optional(),
 })
 
 export const personaMemoryPatchSchema = z.object({
@@ -76,7 +128,7 @@ export const personaMemoryPatchSchema = z.object({
     'update_birth_chart',
     'update_saju_profile',
   ]),
-  data: z.record(z.string(), z.unknown()).optional(),
+  data: personaMemoryPatchDataSchema.optional(),
 })
 
 export const personaMemoryUpdateSchema = z.object({
@@ -84,8 +136,13 @@ export const personaMemoryUpdateSchema = z.object({
   theme: z.string().min(1).max(100).trim(),
   locale: localeSchema,
   messages: z.array(chatMessageSchema).min(1).max(200),
-  saju: z.record(z.string(), z.unknown()).optional(),
-  astro: z.record(z.string(), z.unknown()).optional(),
+  saju: sajuChatContextSchema.optional(),
+  astro: z.object({
+    sunSign: z.string().max(30).optional(),
+    moonSign: z.string().max(30).optional(),
+    ascendant: z.string().max(30).optional(),
+    dominantElement: z.enum(['fire', 'earth', 'air', 'water']).optional(),
+  }).optional(),
 })
 
 export type PersonaMemoryUpdateValidated = z.infer<typeof personaMemoryUpdateSchema>
@@ -189,6 +246,22 @@ export const feedbackRecordsQuerySchema = z.object({
 
 // ============ Personality & ICP Schemas ============
 
+export const personalityAnalysisDataSchema = z.object({
+  description: z.string().max(5000),
+  descriptionKo: z.string().max(5000).optional(),
+  strengths: z.array(z.string().max(500)),
+  strengthsKo: z.array(z.string().max(500)).optional(),
+  weaknesses: z.array(z.string().max(500)).optional(),
+  weaknessesKo: z.array(z.string().max(500)).optional(),
+  compatibleTypes: z.array(z.string().max(20)).optional(),
+  careerSuggestions: z.array(z.string().max(200)).optional(),
+})
+
+export const personalityAnswersSchema = z.record(
+  z.string().max(50),
+  z.union([z.number().min(1).max(5), z.string().max(100)])
+)
+
 export const personalitySaveRequestSchema = z.object({
   typeCode: z
     .string()
@@ -200,8 +273,8 @@ export const personalitySaveRequestSchema = z.object({
   decisionScore: z.number().min(0).max(100),
   rhythmScore: z.number().min(0).max(100),
   consistencyScore: z.number().min(0).max(100).nullable().optional(),
-  analysisData: z.record(z.string(), z.unknown()),
-  answers: z.record(z.string(), z.unknown()).optional(),
+  analysisData: personalityAnalysisDataSchema,
+  answers: personalityAnswersSchema.optional(),
 })
 
 export type PersonalitySaveRequestValidated = z.infer<typeof personalitySaveRequestSchema>
@@ -225,24 +298,36 @@ export const personaTypeSchema = z.object({
   rhythmScore: z.number().min(0).max(100),
 })
 
+export const icpOctantScoresSchema = z.record(
+  icpOctantSchema,
+  z.number().min(0).max(100)
+)
+
+export const icpAnalysisDataSchema = z.object({
+  description: z.string().max(5000),
+  descriptionKo: z.string().max(5000).optional(),
+  strengths: z.array(z.string().max(500)),
+  strengthsKo: z.array(z.string().max(500)).optional(),
+  challenges: z.array(z.string().max(500)),
+  challengesKo: z.array(z.string().max(500)).optional(),
+  tips: z.array(z.string().max(500)).optional(),
+  tipsKo: z.array(z.string().max(500)).optional(),
+  compatibleStyles: z.array(icpOctantSchema).optional(),
+})
+
+export const icpAnswersSchema = z.record(
+  z.string().max(50),
+  z.union([z.number().min(1).max(7), z.string().max(100)])
+)
+
 export const icpSaveRequestSchema = z.object({
   primaryStyle: icpOctantSchema,
   secondaryStyle: icpOctantSchema.nullable().optional(),
   dominanceScore: z.number().min(-100).max(100),
   affiliationScore: z.number().min(-100).max(100),
-  octantScores: z.record(z.string(), z.number()),
-  analysisData: z.object({
-    description: z.string().max(5000),
-    descriptionKo: z.string().max(5000).optional(),
-    strengths: z.array(z.string().max(500)),
-    strengthsKo: z.array(z.string().max(500)).optional(),
-    challenges: z.array(z.string().max(500)),
-    challengesKo: z.array(z.string().max(500)).optional(),
-    tips: z.array(z.string().max(500)).optional(),
-    tipsKo: z.array(z.string().max(500)).optional(),
-    compatibleStyles: z.array(z.string()).optional(),
-  }),
-  answers: z.record(z.string(), z.unknown()).optional(),
+  octantScores: icpOctantScoresSchema,
+  analysisData: icpAnalysisDataSchema,
+  answers: icpAnswersSchema.optional(),
   locale: localeSchema.optional(),
 })
 
@@ -253,31 +338,26 @@ export const icpSaveSchema = z.object({
   secondaryStyle: icpOctantSchema.optional(),
   dominanceScore: z.number().min(-100).max(100),
   affiliationScore: z.number().min(-100).max(100),
-  octantScores: z.record(z.string(), z.number()).optional(),
-  analysisData: z.record(z.string(), z.unknown()).optional(),
-  answers: z.record(z.string(), z.unknown()).optional(),
+  octantScores: icpOctantScoresSchema.optional(),
+  analysisData: icpAnalysisDataSchema.optional(),
+  answers: icpAnswersSchema.optional(),
   locale: localeSchema.optional(),
 })
 
 export type IcpSaveValidated = z.infer<typeof icpSaveSchema>
 
+export const personalityCompatibilityPersonSchema = z.object({
+  userId: z.string().max(100).optional(),
+  name: z.string().max(120).optional(),
+  icp: icpScoreSchema,
+  persona: personaTypeSchema,
+  icpAnswers: icpAnswersSchema.optional(),
+  personaAnswers: personalityAnswersSchema.optional(),
+})
+
 export const personalityCompatibilitySaveRequestSchema = z.object({
-  person1: z.object({
-    userId: z.string().optional(),
-    name: z.string().max(120).optional(),
-    icp: icpScoreSchema,
-    persona: personaTypeSchema,
-    icpAnswers: z.record(z.string(), z.unknown()).optional(),
-    personaAnswers: z.record(z.string(), z.unknown()).optional(),
-  }),
-  person2: z.object({
-    userId: z.string().optional(),
-    name: z.string().max(120).optional(),
-    icp: icpScoreSchema,
-    persona: personaTypeSchema,
-    icpAnswers: z.record(z.string(), z.unknown()).optional(),
-    personaAnswers: z.record(z.string(), z.unknown()).optional(),
-  }),
+  person1: personalityCompatibilityPersonSchema,
+  person2: personalityCompatibilityPersonSchema,
   compatibility: z.object({
     icpScore: z.number().min(0).max(100),
     icpLevel: z.string().max(50),
@@ -350,12 +430,26 @@ export type IcpRequestValidated = z.infer<typeof icpRequestSchema>
 
 // ============ Consultation Schemas ============
 
+export const jungQuoteSchema = z.object({
+  quote: z.string().max(2000),
+  source: z.string().max(200).optional(),
+  archetype: z.string().max(100).optional(),
+  relevance: z.string().max(500).optional(),
+})
+
+export const consultationSignalSchema = z.object({
+  type: z.enum(['positive', 'negative', 'neutral', 'warning', 'opportunity']),
+  category: z.enum(['career', 'love', 'health', 'wealth', 'spiritual', 'general']).optional(),
+  message: z.string().max(500),
+  strength: z.number().min(0).max(100).optional(),
+})
+
 export const consultationSaveSchema = z.object({
   theme: z.string().max(100).trim().optional(),
   summary: z.string().max(3000).trim().optional(),
   fullReport: z.string().max(30000).optional(),
-  jungQuotes: z.unknown().optional(),
-  signals: z.unknown().optional(),
+  jungQuotes: z.array(jungQuoteSchema).max(10).optional(),
+  signals: z.array(consultationSignalSchema).max(20).optional(),
   userQuestion: z.string().max(1000).trim().optional(),
   locale: localeSchema.optional(),
 })
@@ -406,12 +500,20 @@ export const counselorSessionDeleteQuerySchema = z.object({
 
 // ============ Content Access & Share Schemas ============
 
+export const contentAccessMetadataSchema = z.object({
+  source: z.enum(['web', 'mobile', 'api']).optional(),
+  referrer: z.string().max(500).optional(),
+  sessionId: z.string().max(100).optional(),
+  deviceType: z.enum(['desktop', 'tablet', 'mobile']).optional(),
+  feature: z.string().max(100).optional(),
+})
+
 export const contentAccessSchema = z.object({
   service: z.string().min(1).max(100).trim(),
   contentType: z.string().min(1).max(100).trim(),
   contentId: z.string().max(200).trim().optional().nullable(),
   locale: localeSchema.optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: contentAccessMetadataSchema.optional(),
   creditUsed: z.number().int().min(0).max(100).optional(),
 })
 
@@ -431,22 +533,40 @@ export const shareImageRequestSchema = z.object({
 
 export type ShareImageRequestValidated = z.infer<typeof shareImageRequestSchema>
 
+export const shareResultDataSchema = z.object({
+  score: z.number().min(0).max(100).optional(),
+  grade: z.string().max(10).optional(),
+  highlights: z.array(z.string().max(500)).optional(),
+  imageUrl: z.string().url().max(500).optional(),
+  shareableText: z.string().max(1000).optional(),
+})
+
 export const shareResultRequestSchema = z.object({
   title: z.string().min(1).max(200).trim(),
   description: z.string().max(2000).trim().optional(),
-  resultType: z.string().min(1).max(50).trim(),
-  resultData: z.record(z.string(), z.unknown()).optional(),
+  resultType: z.enum(['tarot', 'astrology', 'saju', 'compatibility', 'dream', 'numerology', 'iching']),
+  resultData: shareResultDataSchema.optional(),
 })
 
 export type ShareResultRequestValidated = z.infer<typeof shareResultRequestSchema>
 
 // ============ Readings Schemas ============
 
+export const readingsMetadataSchema = z.object({
+  spread: z.string().max(50).optional(),
+  question: z.string().max(1000).optional(),
+  cards: z.array(z.string().max(100)).optional(),
+  hexagram: z.number().int().min(1).max(64).optional(),
+  dreamSymbols: z.array(z.string().max(100)).optional(),
+  birthDate: dateSchema.optional(),
+  score: z.number().min(0).max(100).optional(),
+})
+
 export const readingsSaveSchema = z.object({
-  type: z.string().min(1).max(50).trim(),
+  type: z.enum(['tarot', 'iching', 'dream', 'numerology', 'daily-fortune', 'compatibility']),
   title: z.string().max(200).trim().optional(),
   content: z.string().min(1).max(50000),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: readingsMetadataSchema.optional(),
 })
 
 export type ReadingsSaveValidated = z.infer<typeof readingsSaveSchema>

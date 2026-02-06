@@ -1,7 +1,8 @@
 // tests/hooks/useChatSession.test.ts
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useChatSession, generateMessageId } from '@/hooks/useChatSession';
+// useChatSession.ts was renamed to useChatSession.unified.ts
+import { useChatSession, generateMessageId } from '@/hooks/useChatSession.unified';
 
 // Mock sessionStorage
 const mockSessionStorage = (() => {

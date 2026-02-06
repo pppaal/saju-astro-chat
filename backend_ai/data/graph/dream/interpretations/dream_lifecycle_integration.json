@@ -1,0 +1,253 @@
+{
+  "meta": {
+    "type": "dream_lifecycle",
+    "version": "1.0",
+    "description": "인생 주기별 꿈의 특성과 해석. 연령대/인생 단계에 따른 꿈의 의미 변화."
+  },
+  "lifecycle_stages": [
+    {
+      "id": "DL_유아기",
+      "stage": "유아기",
+      "age_range": "0-6세",
+      "jung_stage": "페르소나 형성 전기",
+      "saju_period": "년주 영향기",
+      "common_dreams": ["부모와 함께하는 꿈", "동물 꿈", "괴물/무서운 존재", "날아다니는 꿈"],
+      "dream_characteristics": {
+        "imagery": "단순하고 직접적. 감각적 경험 중심.",
+        "emotions": "두려움과 안도가 명확히 구분됨.",
+        "symbols": "아직 복잡한 상징 체계 미발달. 구체적 이미지."
+      },
+      "common_nightmares": ["괴물", "어둠", "혼자 남겨짐", "큰 동물"],
+      "developmental_meaning": "세상에 대한 기본 신뢰 형성. 안전/불안전의 구분.",
+      "parent_guidance": "악몽 후 안심시키기. 안전한 환경 확인. 무섭지 않다고 부정하지 말고 '무서웠구나' 공감.",
+      "astro_correlation": "달(어머니/안전)이 강조되는 시기"
+    },
+    {
+      "id": "DL_아동기",
+      "stage": "아동기",
+      "age_range": "7-12세",
+      "jung_stage": "페르소나 형성기",
+      "saju_period": "월주 영향 시작",
+      "common_dreams": ["학교 관련 꿈", "친구 꿈", "슈퍼히어로/영웅", "동물과 대화", "마법 능력"],
+      "dream_characteristics": {
+        "imagery": "상상력 풍부. 마법적/환상적 요소 많음.",
+        "emotions": "모험심, 정의감, 소속 욕구.",
+        "symbols": "영웅, 악당, 마법 등 명확한 이분법적 상징."
+      },
+      "common_nightmares": ["학교 시험", "왕따", "부모 상실", "추격"],
+      "developmental_meaning": "사회화 과정. 규칙 학습. 또래 관계 형성. 자아 개념 발달.",
+      "parent_guidance": "꿈 이야기 경청. 영웅 꿈을 통한 자신감 지지. 악몽의 사회적 원인(왕따 등) 탐색.",
+      "astro_correlation": "수성(학습/소통)이 강조되는 시기"
+    },
+    {
+      "id": "DL_청소년기",
+      "stage": "청소년기",
+      "age_range": "13-19세",
+      "jung_stage": "그림자 직면기",
+      "saju_period": "대운 첫 교체 전후",
+      "common_dreams": ["성적인 꿈", "정체성 혼란", "변신", "쫓기는 꿈", "비행/추락", "이성 관련"],
+      "dream_characteristics": {
+        "imagery": "강렬하고 혼란스러움. 신체 변화 반영.",
+        "emotions": "극단적 감정. 불안, 흥분, 분노, 열정.",
+        "symbols": "변신, 가면, 거울, 문, 길 등 정체성 상징."
+      },
+      "common_nightmares": ["나체로 공공장소", "시험 실패", "추락", "정체 노출", "쫓김"],
+      "developmental_meaning": "정체성 형성. 성적 성숙. 부모로부터 분리 개별화. 그림자와 첫 만남.",
+      "interpretation_focus": "정체성 탐색의 일환으로 이해. 성적 꿈은 자연스러운 발달 과정.",
+      "astro_correlation": "명왕성/천왕성(변화/반항)이 강조되는 시기"
+    },
+    {
+      "id": "DL_청년기",
+      "stage": "청년기",
+      "age_range": "20-35세",
+      "jung_stage": "아니마/아니무스 투사기",
+      "saju_period": "첫 대운 본격화",
+      "common_dreams": ["연애/결혼 꿈", "직업/성공", "시험/면접", "여행/모험", "이상적 파트너"],
+      "dream_characteristics": {
+        "imagery": "목표 지향적. 미래 투사.",
+        "emotions": "야망, 불안, 사랑, 좌절.",
+        "symbols": "길, 계단, 문, 높은 곳 등 상승/진보 상징."
+      },
+      "common_nightmares": ["시험/면접 실패", "늦음", "준비 안 됨", "연인 상실", "직장 해고"],
+      "developmental_meaning": "사회적 자아 확립. 친밀감 형성. 직업 정체성. 아니마/아니무스 투사.",
+      "interpretation_focus": "연애 꿈에서 내면의 이성 인식하기. 성공/실패 꿈의 실제 의미 탐색.",
+      "astro_correlation": "금성(관계)/목성(확장)이 강조되는 시기"
+    },
+    {
+      "id": "DL_중년기",
+      "stage": "중년기",
+      "age_range": "36-55세",
+      "jung_stage": "자기(Self) 접촉기",
+      "saju_period": "대운 중반, 용신 변화 시기",
+      "common_dreams": ["물속 깊이 들어감", "보물 발견", "죽음/재생", "조상", "집 탐험", "자녀 관련"],
+      "dream_characteristics": {
+        "imagery": "깊이 있고 상징적. 무의식 소재 풍부.",
+        "emotions": "의미 탐색, 상실감, 재발견, 통합.",
+        "symbols": "물, 지하, 보물, 죽음과 재생, 원(만다라)."
+      },
+      "common_nightmares": ["죽음", "질병", "상실", "길 잃음", "과거 회귀"],
+      "developmental_meaning": "중년 위기. 삶의 의미 재정립. 억압된 면 통합. 자기(Self) 발견.",
+      "interpretation_focus": "죽음 꿈은 재탄생의 기회. 깊은 물은 무의식 탐험. 보물은 숨겨진 자기.",
+      "astro_correlation": "토성 리턴(29세, 58세)/천왕성 오포지션(40대 초)"
+    },
+    {
+      "id": "DL_장년기",
+      "stage": "장년기",
+      "age_range": "56-70세",
+      "jung_stage": "지혜자(Elder) 진입기",
+      "saju_period": "시주 영향 시작",
+      "common_dreams": ["정원 가꾸기", "집 정리", "여행 마무리", "후손", "스승/지혜자", "고향"],
+      "dream_characteristics": {
+        "imagery": "정리, 통합, 전수의 이미지.",
+        "emotions": "수용, 감사, 아쉬움, 평화.",
+        "symbols": "정원, 집, 책, 후손, 빛, 문."
+      },
+      "common_nightmares": ["건강 문제", "가족 상실", "쓸모없어짐", "잊혀짐"],
+      "developmental_meaning": "삶의 통합. 레거시 정리. 지혜 전수 준비. 죽음 수용 시작.",
+      "interpretation_focus": "정리 꿈은 인생 통합의 과제. 전수 꿈은 지혜자 역할 수용.",
+      "astro_correlation": "토성/목성(지혜/전수)이 강조되는 시기"
+    },
+    {
+      "id": "DL_노년기",
+      "stage": "노년기",
+      "age_range": "71세+",
+      "jung_stage": "초월 준비기",
+      "saju_period": "시주 본격 영향",
+      "common_dreams": ["돌아가신 분들", "빛", "여행/출발", "평화로운 풍경", "어린 시절", "통합의 상징"],
+      "dream_characteristics": {
+        "imagery": "평화롭고 초월적. 빛의 이미지.",
+        "emotions": "평온, 수용, 완성감, 그리움.",
+        "symbols": "빛, 문, 다리, 정원, 재회."
+      },
+      "common_fears": ["고통스러운 죽음", "잊혀짐", "가족과의 이별"],
+      "developmental_meaning": "죽음 준비. 삶의 완성. 초월에 대한 개방.",
+      "interpretation_focus": "돌아가신 분 꿈은 저편과의 연결. 빛 꿈은 초월 경험. 여행 꿈은 이행 준비.",
+      "astro_correlation": "해왕성/목성(초월/영성)이 강조되는 시기"
+    }
+  ],
+  "life_transitions": [
+    {
+      "id": "LT_입학",
+      "transition": "입학/졸업",
+      "typical_dreams": ["새 학교", "시험", "친구", "길 찾기"],
+      "meaning": "새로운 단계에 대한 적응. 역할 변화.",
+      "saju_timing": "대운 교체기와 겹칠 때 더 강렬"
+    },
+    {
+      "id": "LT_취업",
+      "transition": "취업/실직",
+      "typical_dreams": ["면접", "새 직장", "해고", "미로"],
+      "meaning": "사회적 정체성의 변화. 자기 가치에 대한 질문.",
+      "saju_timing": "관성/재성 운의 변화와 연관"
+    },
+    {
+      "id": "LT_결혼",
+      "transition": "결혼/이혼",
+      "typical_dreams": ["결혼식", "파트너", "집", "분리"],
+      "meaning": "친밀감과 독립성의 균형. 아니마/아니무스 투사.",
+      "saju_timing": "합(合)/충(沖) 시기와 연관"
+    },
+    {
+      "id": "LT_출산",
+      "transition": "임신/출산",
+      "typical_dreams": ["아기", "보호", "태몽", "변신"],
+      "meaning": "창조성. 새로운 자기의 탄생. 부모로서의 정체성.",
+      "saju_timing": "식상 활성화 시기"
+    },
+    {
+      "id": "LT_상실",
+      "transition": "사별/상실",
+      "typical_dreams": ["돌아가신 분", "재회", "이별", "빈 공간"],
+      "meaning": "애도 과정. 관계의 내면화. 삶과 죽음의 의미.",
+      "saju_timing": "충(沖)/형(刑) 시기, 공망 관련"
+    },
+    {
+      "id": "LT_은퇴",
+      "transition": "은퇴",
+      "typical_dreams": ["여행", "정원", "과거 직장", "새 시작"],
+      "meaning": "직업 정체성 이후의 자기. 삶의 재정의.",
+      "saju_timing": "시주 영향 강화, 대운 교체"
+    },
+    {
+      "id": "LT_질병",
+      "transition": "심각한 질병",
+      "typical_dreams": ["치유", "싸움", "여행", "변환"],
+      "meaning": "생사의 의미. 몸과 마음의 관계. 근본적 가치관 재정립.",
+      "saju_timing": "기신 활성화, 형충파해 시기"
+    }
+  ],
+  "dream_development_patterns": {
+    "description": "나이에 따른 꿈의 발달 패턴",
+    "patterns": [
+      {
+        "age_range": "유아-아동",
+        "dream_length": "짧음",
+        "self_appearance": "자주 등장",
+        "narrative_complexity": "단순",
+        "symbol_use": "구체적/직접적",
+        "emotional_range": "기본 감정 중심"
+      },
+      {
+        "age_range": "청소년",
+        "dream_length": "중간-김",
+        "self_appearance": "자주, 때로 관찰자",
+        "narrative_complexity": "복잡해짐",
+        "symbol_use": "상징적 사고 발달",
+        "emotional_range": "복잡한 감정, 극단적"
+      },
+      {
+        "age_range": "성인",
+        "dream_length": "다양",
+        "self_appearance": "다양한 역할",
+        "narrative_complexity": "복잡/다층적",
+        "symbol_use": "풍부한 상징",
+        "emotional_range": "미묘하고 복합적"
+      },
+      {
+        "age_range": "노년",
+        "dream_length": "짧아지는 경향",
+        "self_appearance": "관찰자 증가",
+        "narrative_complexity": "단순해지거나 매우 상징적",
+        "symbol_use": "원형적/초월적",
+        "emotional_range": "평화/수용 경향"
+      }
+    ]
+  },
+  "recurring_dreams_by_age": {
+    "description": "연령대별 흔한 반복꿈과 의미",
+    "by_age": [
+      {
+        "age_group": "아동-청소년",
+        "recurring_dreams": [
+          {"dream": "쫓기는 꿈", "meaning": "스트레스, 압박, 직면해야 할 두려움"},
+          {"dream": "날아다니는 꿈", "meaning": "자유에 대한 갈망, 성장"},
+          {"dream": "나체 꿈", "meaning": "취약함, 정체성 불안"}
+        ]
+      },
+      {
+        "age_group": "청년",
+        "recurring_dreams": [
+          {"dream": "시험/면접 불합격", "meaning": "수행 불안, 자기 의심"},
+          {"dream": "늦는 꿈", "meaning": "시간 압박, 기회 상실 두려움"},
+          {"dream": "이빨 빠지는 꿈", "meaning": "자기 이미지 불안, 변화"}
+        ]
+      },
+      {
+        "age_group": "중년",
+        "recurring_dreams": [
+          {"dream": "집 탐험", "meaning": "자기 탐색, 숨겨진 면 발견"},
+          {"dream": "길 잃음", "meaning": "인생 방향에 대한 질문"},
+          {"dream": "과거 회귀", "meaning": "미해결 과제, 통합 필요"}
+        ]
+      },
+      {
+        "age_group": "노년",
+        "recurring_dreams": [
+          {"dream": "돌아가신 분", "meaning": "애도, 재회 갈망, 죽음 준비"},
+          {"dream": "여행/출발", "meaning": "이행 준비, 삶의 여정 마무리"},
+          {"dream": "고향/어린 시절", "meaning": "근원으로의 회귀, 통합"}
+        ]
+      }
+    ]
+  }
+}

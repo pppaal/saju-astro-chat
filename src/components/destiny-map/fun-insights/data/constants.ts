@@ -1,5 +1,5 @@
 // Re-export from centralized location for backwards compatibility
-export { ELEMENT_EN_TO_KO as elementKeyMapReverse } from '@/lib/Saju/stemElementMapping';
+export { ELEMENT_EN_TO_KO as elementKeyMapReverse } from '@/lib/Saju/constants';
 
 export const elementKeyMap: Record<string, string> = {
   "목": "wood", "화": "fire", "토": "earth", "금": "metal", "수": "water",

@@ -303,6 +303,7 @@ function AdvisorChatComponent({
                 placeholder={locale === 'ko' ? '궁금한 점을 물어보세요...' : 'Ask me anything...'}
                 disabled={isLoading}
                 className={styles.input}
+                maxLength={2000}
               />
               <button
                 onClick={() => sendMessage()}

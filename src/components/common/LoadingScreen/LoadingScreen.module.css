@@ -1,0 +1,195 @@
+/**
+ * Loading Screen Styles
+ * Shared styles for all loading screen variations
+ */
+
+.loadingScreen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  z-index: 50;
+  overflow: hidden;
+}
+
+.loadingContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  z-index: 10;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Particle Background */
+.particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  animation: twinkle 3s infinite ease-in-out;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* Orbital Animation */
+.loadingOrbit {
+  position: relative;
+  width: 160px;
+  height: 160px;
+}
+
+.orbitCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+.orbitRing {
+  position: absolute;
+  inset: 0;
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.orbitIcon {
+  position: absolute;
+  font-size: 1.5rem;
+  animation: orbitItem 3s ease-in-out infinite;
+  animation-delay: var(--orbit-delay, 0s);
+}
+
+.orbitIcon:nth-child(1) { top: 0; left: 50%; transform: translateX(-50%); }
+.orbitIcon:nth-child(2) { top: 15%; right: 15%; }
+.orbitIcon:nth-child(3) { top: 50%; right: 0; transform: translateY(-50%); }
+.orbitIcon:nth-child(4) { bottom: 15%; right: 15%; }
+.orbitIcon:nth-child(5) { bottom: 0; left: 50%; transform: translateX(-50%); }
+.orbitIcon:nth-child(6) { bottom: 15%; left: 15%; }
+.orbitIcon:nth-child(7) { top: 50%; left: 0; transform: translateY(-50%); }
+.orbitIcon:nth-child(8) { top: 15%; left: 15%; }
+
+@keyframes orbitItem {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* Loading Text */
+.loadingTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.loadingSubtitle {
+  font-size: 1rem;
+  color: #a0aec0;
+  margin: 0;
+}
+
+/* Loading Steps */
+.loadingSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.loadingStep {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #a78bfa;
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.loadingStep:nth-child(1) { animation-delay: 0.2s; }
+.loadingStep:nth-child(2) { animation-delay: 0.4s; }
+.loadingStep:nth-child(3) { animation-delay: 0.6s; }
+.loadingStep:nth-child(4) { animation-delay: 0.8s; }
+.loadingStep:nth-child(5) { animation-delay: 1.0s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stepIcon {
+  font-size: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .loadingOrbit {
+    width: 120px;
+    height: 120px;
+  }
+
+  .orbitCenter {
+    font-size: 2rem;
+  }
+
+  .orbitIcon {
+    font-size: 1.25rem;
+  }
+
+  .loadingTitle {
+    font-size: 1.25rem;
+  }
+
+  .loadingStep {
+    font-size: 0.75rem;
+  }
+}

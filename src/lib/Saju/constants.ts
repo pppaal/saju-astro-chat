@@ -249,3 +249,131 @@ export function getSolarTermKST(year: number, month: number): Date | null {
   const ms = Date.UTC(Y, M - 1, D, h - 9, m, 0, 0);
   return new Date(ms);
 }
+
+// ============================================
+// 천간/지지 라벨 (Hangul + Romanization)
+// ============================================
+export const STEM_LABELS: Record<string, { hangul: string; roman: string }> = {
+  '甲': { hangul: '갑', roman: 'Gap' },
+  '乙': { hangul: '을', roman: 'Eul' },
+  '丙': { hangul: '병', roman: 'Byeong' },
+  '丁': { hangul: '정', roman: 'Jeong' },
+  '戊': { hangul: '무', roman: 'Mu' },
+  '己': { hangul: '기', roman: 'Gi' },
+  '庚': { hangul: '경', roman: 'Gyeong' },
+  '辛': { hangul: '신', roman: 'Sin' },
+  '壬': { hangul: '임', roman: 'Im' },
+  '癸': { hangul: '계', roman: 'Gye' },
+};
+
+export const BRANCH_LABELS: Record<string, { hangul: string; roman: string }> = {
+  '子': { hangul: '자', roman: 'Ja' },
+  '丑': { hangul: '축', roman: 'Chuk' },
+  '寅': { hangul: '인', roman: 'In' },
+  '卯': { hangul: '묘', roman: 'Myo' },
+  '辰': { hangul: '진', roman: 'Jin' },
+  '巳': { hangul: '사', roman: 'Sa' },
+  '午': { hangul: '오', roman: 'O' },
+  '未': { hangul: '미', roman: 'Mi' },
+  '申': { hangul: '신', roman: 'Sin' },
+  '酉': { hangul: '유', roman: 'Yu' },
+  '戌': { hangul: '술', roman: 'Sul' },
+  '亥': { hangul: '해', roman: 'Hae' },
+};
+
+// ============================================
+// 천간 → 오행 매핑 (한글/한자 모두 지원)
+// ============================================
+export const STEM_TO_ELEMENT: Record<string, FiveElement> = {
+  // 한자
+  "甲": "목", "乙": "목", "丙": "화", "丁": "화",
+  "戊": "토", "己": "토", "庚": "금", "辛": "금",
+  "壬": "수", "癸": "수",
+  // 한글
+  "갑": "목", "을": "목", "병": "화", "정": "화",
+  "무": "토", "기": "토", "경": "금", "신": "금",
+  "임": "수", "계": "수",
+};
+
+// 지지 → 오행 매핑
+export const BRANCH_TO_ELEMENT: Record<string, FiveElement> = {
+  // 한자
+  '子': '수', '丑': '토', '寅': '목', '卯': '목',
+  '辰': '토', '巳': '화', '午': '화', '未': '토',
+  '申': '금', '酉': '금', '戌': '토', '亥': '수',
+  // 한글
+  '자': '수', '축': '토', '인': '목', '묘': '목',
+  '진': '토', '사': '화', '오': '화', '미': '토',
+  '신': '금', '유': '금', '술': '토', '해': '수',
+};
+
+// ============================================
+// 오행 한/영 변환
+// ============================================
+export const ELEMENT_KO_TO_EN: Record<string, string> = {
+  "목": "Wood", "화": "Fire", "토": "Earth", "금": "Metal", "수": "Water"
+};
+
+export const ELEMENT_EN_TO_KO: Record<string, FiveElement> = {
+  "wood": "목", "fire": "화", "earth": "토", "metal": "금", "water": "수",
+  "Wood": "목", "Fire": "화", "Earth": "토", "Metal": "금", "Water": "수"
+};
+
+// ============================================
+// 유틸리티 함수
+// ============================================
+
+/** 천간에서 오행 추출 (한자/한글 모두 지원) */
+export function getElementFromStem(stem: string): FiveElement | null {
+  return STEM_TO_ELEMENT[stem] || null;
+}
+
+/** 지지에서 오행 추출 (한자/한글 모두 지원) */
+export function getElementFromBranch(branch: string): FiveElement | null {
+  return BRANCH_TO_ELEMENT[branch] || null;
+}
+
+/** 오행 한글 → 영어 */
+export function getElementEnglish(koreanElement: string): string {
+  return ELEMENT_KO_TO_EN[koreanElement] || koreanElement;
+}
+
+/** 오행 영어 → 한글 */
+export function getElementKorean(englishElement: string): FiveElement | string {
+  return ELEMENT_EN_TO_KO[englishElement] || ELEMENT_EN_TO_KO[englishElement.toLowerCase()] || englishElement;
+}
+
+// ============================================
+// 영어 오행 매핑 (English element keys)
+// ============================================
+export const STEM_TO_ELEMENT_EN: Record<string, string> = {
+  // 한자
+  "甲": "wood", "乙": "wood", "丙": "fire", "丁": "fire",
+  "戊": "earth", "己": "earth", "庚": "metal", "辛": "metal",
+  "壬": "water", "癸": "water",
+  // 한글
+  "갑": "wood", "을": "wood", "병": "fire", "정": "fire",
+  "무": "earth", "기": "earth", "경": "metal", "신": "metal",
+  "임": "water", "계": "water",
+};
+
+export const BRANCH_TO_ELEMENT_EN: Record<string, string> = {
+  // 한자
+  '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+  '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+  '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water',
+  // 한글
+  '자': 'water', '축': 'earth', '인': 'wood', '묘': 'wood',
+  '진': 'earth', '사': 'fire', '오': 'fire', '미': 'earth',
+  '신': 'metal', '유': 'metal', '술': 'earth', '해': 'water',
+};
+
+/** 천간에서 영어 오행 추출 */
+export function getElementEnFromStem(stem: string): string | null {
+  return STEM_TO_ELEMENT_EN[stem] || null;
+}
+
+/** 지지에서 영어 오행 추출 */
+export function getElementEnFromBranch(branch: string): string | null {
+  return BRANCH_TO_ELEMENT_EN[branch] || null;
+}

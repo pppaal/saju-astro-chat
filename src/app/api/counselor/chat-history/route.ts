@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
+import { withApiMiddleware, createAuthenticatedGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
-import { HTTP_STATUS } from '@/lib/constants/http'
 import { logger } from '@/lib/logger'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 import {
   GetChatHistorySchema,
   PostChatHistorySchema,
@@ -25,12 +26,11 @@ export const GET = withApiMiddleware(
     })
 
     if (!validation.success) {
-      const errors = validation.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')
       logger.warn('[chat-history GET] Validation failed', { errors: validation.error.issues })
-      return NextResponse.json(
-        { error: 'Validation failed', details: errors },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validation.error, {
+        locale: extractLocale(req),
+        route: 'counselor/chat-history',
+      })
     }
 
     const { theme, limit } = validation.data
@@ -88,17 +88,21 @@ export const POST = withApiMiddleware(
     // Validate request body with Zod
     const body = await req.json().catch(() => null)
     if (!body || typeof body !== 'object') {
-      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Invalid request body',
+        locale: extractLocale(req),
+        route: 'counselor/chat-history',
+      })
     }
 
     const validation = PostChatHistorySchema.safeParse(body)
     if (!validation.success) {
-      const errors = validation.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')
       logger.warn('[chat-history POST] Validation failed', { errors: validation.error.issues })
-      return NextResponse.json(
-        { error: 'Validation failed', details: errors },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validation.error, {
+        locale: extractLocale(req),
+        route: 'counselor/chat-history',
+      })
     }
 
     const { sessionId, theme, locale, userMessage, assistantMessage } = validation.data
@@ -128,10 +132,12 @@ export const POST = withApiMiddleware(
         })
 
         if (!existingSession) {
-          return NextResponse.json(
-            { error: 'session_not_found' },
-            { status: HTTP_STATUS.NOT_FOUND }
-          )
+          return createErrorResponse({
+            code: ErrorCodes.NOT_FOUND,
+            message: 'Session not found',
+            locale: extractLocale(req),
+            route: 'counselor/chat-history',
+          })
         }
 
         const existingMessages = (existingSession.messages as ChatMessage[]) || []
@@ -199,17 +205,21 @@ export const PATCH = withApiMiddleware(
     // Validate request body with Zod
     const body = await req.json().catch(() => null)
     if (!body || typeof body !== 'object') {
-      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Invalid request body',
+        locale: extractLocale(req),
+        route: 'counselor/chat-history',
+      })
     }
 
     const validation = PatchChatHistorySchema.safeParse(body)
     if (!validation.success) {
-      const errors = validation.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')
       logger.warn('[chat-history PATCH] Validation failed', { errors: validation.error.issues })
-      return NextResponse.json(
-        { error: 'Validation failed', details: errors },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validation.error, {
+        locale: extractLocale(req),
+        route: 'counselor/chat-history',
+      })
     }
 
     const { sessionId, summary, keyTopics } = validation.data

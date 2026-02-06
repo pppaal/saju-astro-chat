@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import type { TabProps } from './types';
 import { getMatrixAnalysis, getTimingOverlayAnalysis, getRelationAspectAnalysis, getAdvancedAnalysisResult, getExtraPointAnalysis } from '../analyzers';
 import { PremiumReportCTA } from '../components';
@@ -22,6 +22,32 @@ import {
 } from './fortune/components';
 
 function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
+  // Memoize expensive layer analysis calculations to prevent re-computation on every render
+  const matrixAnalysis = useMemo(
+    () => getMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang),
+    [saju, astro, lang]
+  );
+
+  const timingOverlays = useMemo(
+    () => getTimingOverlayAnalysis(saju ?? undefined, astro ?? undefined, lang),
+    [saju, astro, lang]
+  );
+
+  const relationAspects = useMemo(
+    () => getRelationAspectAnalysis(saju ?? undefined, astro ?? undefined, lang),
+    [saju, astro, lang]
+  );
+
+  const advancedAnalysis = useMemo(
+    () => getAdvancedAnalysisResult(saju ?? undefined, astro ?? undefined, lang),
+    [saju, astro, lang]
+  );
+
+  const extraPoints = useMemo(
+    () => getExtraPointAnalysis(saju ?? undefined, astro ?? undefined, lang),
+    [saju, astro, lang]
+  );
+
   // Early return if data is null
   if (!data) {
     return <div className="text-gray-400 text-center p-6">Loading...</div>;
@@ -29,13 +55,6 @@ function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
 
   const currentFlow = data.currentFlow as CurrentFlow | null;
   const dayElement = data.dayElement as string | undefined;
-  const matrixAnalysis = getMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang);
-
-  // Layer analysis (Layer 4, 5, 7, 10)
-  const timingOverlays = getTimingOverlayAnalysis(saju ?? undefined, astro ?? undefined, lang);
-  const relationAspects = getRelationAspectAnalysis(saju ?? undefined, astro ?? undefined, lang);
-  const advancedAnalysis = getAdvancedAnalysisResult(saju ?? undefined, astro ?? undefined, lang);
-  const extraPoints = getExtraPointAnalysis(saju ?? undefined, astro ?? undefined, lang);
 
   // Extract saju data
   const sajuExt = saju as SajuDataExtended | undefined;

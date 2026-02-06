@@ -21,7 +21,7 @@ interface UseCitySearchReturn {
   setOpenSug: (open: boolean) => void
   setSelectedCity: (city: CityHit | null) => void
   handleCityInputChange: (value: string) => void
-  handleCitySelect: (city: CityHit) => void
+  handleCitySelect: (city: CityHit) => CityHit
 }
 
 /**
@@ -55,7 +55,7 @@ export function useCitySearch(locale = 'ko'): UseCitySearchReturn {
 
       debounceTimer.current = setTimeout(async () => {
         try {
-          const results = await searchCities(trimmed)
+          const results = await searchCities(trimmed, { limit: 20 })
 
           if (results.length === 0) {
             setCityErr(locale === 'ko' ? '도시를 찾을 수 없습니다' : 'City not found')
@@ -79,7 +79,7 @@ export function useCitySearch(locale = 'ko'): UseCitySearchReturn {
   )
 
   const handleCitySelect = useCallback(
-    (city: CityHit) => {
+    (city: CityHit): CityHit => {
       try {
         const tz = city.timezone || tzLookup(city.lat, city.lon)
         const enrichedCity = { ...city, timezone: tz }
@@ -93,11 +93,14 @@ export function useCitySearch(locale = 'ko'): UseCitySearchReturn {
           city: city.name,
           timezone: tz,
         })
+
+        return enrichedCity
       } catch (err) {
         logger.error('[useCitySearch] Timezone lookup failed', {
           error: err instanceof Error ? err.message : 'Unknown',
         })
         setCityErr(locale === 'ko' ? '타임존 조회 실패' : 'Timezone lookup failed')
+        return city
       }
     },
     [locale]

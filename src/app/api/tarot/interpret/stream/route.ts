@@ -1,26 +1,33 @@
 // src/app/api/tarot/interpret/stream/route.ts
 // Streaming Tarot Interpretation API - Real-time SSE for first interpretation
 
-import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createPublicStreamGuard, type ApiContext } from '@/lib/api/middleware'
+import { NextRequest } from 'next/server'
+import { withApiMiddleware, createPublicStreamGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
 import { createSSEStreamProxy } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'
 import { logger } from '@/lib/logger'
 import { TarotInterpretSchema } from '@/lib/api/validator'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
     const body = await req.json().catch(() => null)
     if (!body) {
-      return NextResponse.json({ error: 'invalid_body' }, { status: 400 })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Invalid request body',
+        locale: extractLocale(req),
+        route: 'tarot/interpret/stream',
+      })
     }
 
     const parsed = TarotInterpretSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ') },
-        { status: 400 }
-      )
+      return createValidationErrorResponse(parsed.error, {
+        locale: extractLocale(req),
+        route: 'tarot/interpret/stream',
+      })
     }
 
     const { category, spreadTitle, cards, userQuestion, language } = parsed.data
@@ -59,10 +66,12 @@ export const POST = withApiMiddleware(
         status: streamResult.status,
         error: streamResult.error,
       });
-      return NextResponse.json(
-        { error: 'Backend error', detail: streamResult.error },
-        { status: streamResult.status || 500 }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.BACKEND_ERROR,
+        message: streamResult.error || 'Backend service error',
+        locale: extractLocale(req),
+        route: 'tarot/interpret/stream',
+      })
     }
 
     // Relay the SSE stream

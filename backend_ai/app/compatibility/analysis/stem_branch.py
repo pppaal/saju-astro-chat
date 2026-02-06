@@ -27,8 +27,9 @@ def _get_branches_from_pillars(pillars: dict) -> list:
     """사주 기둥에서 지지 추출 헬퍼 함수"""
     branches = []
     for pillar_name in ["year", "month", "day", "hour"]:
-        pillar = pillars.get(pillar_name, "")
-        if len(pillar) >= 2:
+        pillar = pillars.get(pillar_name)
+        # Null safety: ensure pillar is a string with at least 2 characters
+        if pillar and isinstance(pillar, str) and len(pillar) >= 2:
             branches.append(pillar[1])
     return branches
 

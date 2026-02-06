@@ -1,6 +1,6 @@
 import React from 'react';
 import type { IljinData } from '@/lib/Saju';
-import { getGanjiName } from '@/lib/Saju/element-utils';
+import { getGanjiName } from '@/lib/Saju/stemBranchUtils';
 import type { GanjiValue } from '@/lib/Saju/saju-result.types';
 
 interface IljinCalendarProps {

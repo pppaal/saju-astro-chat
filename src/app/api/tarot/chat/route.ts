@@ -2,12 +2,13 @@
 // Tarot Chat API - Follow-up conversation about tarot readings
 
 import { NextRequest, NextResponse } from 'next/server'
-import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware'
+import { initializeApiContext, createAuthenticatedGuard, extractLocale } from '@/lib/api/middleware'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { apiClient } from '@/lib/api/ApiClient'
 import { captureServerError } from '@/lib/telemetry'
 import { type ChatMessage } from '@/lib/api'
 import { logger } from '@/lib/logger'
-import { tarotChatRequestSchema } from '@/lib/api/zodValidation'
+import { tarotChatRequestSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 interface CardContext {
   position: string
   name: string
@@ -25,7 +26,7 @@ interface TarotContext {
   guidance: string
 }
 
-import { HTTP_STATUS } from '@/lib/constants/http'
+import { HTTP_STATUS as _HTTP_STATUS } from '@/lib/constants/http'
 
 function buildSystemInstruction(context: TarotContext, language: 'ko' | 'en') {
   const cardLines = context.cards
@@ -103,16 +104,10 @@ export async function POST(req: NextRequest) {
     const validationResult = tarotChatRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[tarot/chat] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validationResult.error, {
+        locale: extractLocale(req),
+        route: 'tarot-chat',
+      })
     }
 
     const {
@@ -155,12 +150,17 @@ export async function POST(req: NextRequest) {
       { timeout: 20000 }
     )
 
-    // Use backend response or fallback
-    const responseData = response.data as { reply?: string } | null | undefined
-    if (response.ok && responseData && 'reply' in responseData && responseData.reply) {
-      const res = NextResponse.json({ reply: responseData.reply })
-      res.headers.set('X-Fallback', '0')
-      return res
+    // Use backend response or fallback with runtime type validation
+    if (response.ok && response.data) {
+      const responseData = response.data as Record<string, unknown>
+      const reply = responseData?.reply
+
+      // Validate that reply is a non-empty string before using
+      if (typeof reply === 'string' && reply.length > 0) {
+        const res = NextResponse.json({ reply })
+        res.headers.set('X-Fallback', '0')
+        return res
+      }
     }
 
     // 🔄 Backend 실패 시 크레딧 환불 (Fallback 사용은 품질 저하이므로)
@@ -192,12 +192,12 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    return NextResponse.json(
-      {
-        error: 'Internal Server Error',
-      },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      locale: extractLocale(req),
+      route: 'tarot-chat',
+      originalError: err instanceof Error ? err : new Error(String(err)),
+    })
   }
 }
 

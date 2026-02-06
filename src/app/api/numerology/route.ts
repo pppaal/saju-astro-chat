@@ -9,11 +9,13 @@ import {
   withApiMiddleware,
   createSimpleGuard,
   apiError,
+  extractLocale,
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
 import { apiClient } from '@/lib/api'
 import { logger } from '@/lib/logger'
+import { createErrorResponse } from '@/lib/api/errorHandler'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { numerologyRequestSchema, numerologyGetQuerySchema } from '@/lib/api/zodValidation'
@@ -275,16 +277,15 @@ export const POST = withApiMiddleware(
         return NextResponse.json({ ...fallbackResponse, fromFallback: true })
       }
 
-      return NextResponse.json(
-        {
-          error:
-            locale === 'ko'
-              ? '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
-              : 'Backend service error',
-          status: result.status,
-        },
-        { status: result.status }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.BACKEND_ERROR,
+        message:
+          locale === 'ko'
+            ? '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+            : 'Backend service error',
+        locale,
+        route: 'numerology',
+      })
     }
 
     // Transform backend response to frontend format
@@ -406,7 +407,12 @@ export const GET = withApiMiddleware(
     })
 
     if (!result.ok) {
-      return NextResponse.json({ error: 'Backend service error' }, { status: result.status })
+      return createErrorResponse({
+        code: ErrorCodes.BACKEND_ERROR,
+        message: 'Backend service error',
+        locale: extractLocale(req),
+        route: 'numerology',
+      })
     }
 
     // Transform backend response to frontend format

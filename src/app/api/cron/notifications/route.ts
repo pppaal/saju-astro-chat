@@ -14,9 +14,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendScheduledNotifications } from '@/lib/notifications/pushService'
 import { logger } from '@/lib/logger'
-import { cronNotificationsTriggerSchema } from '@/lib/api/zodValidation'
-
-import { HTTP_STATUS } from '@/lib/constants/http'
+import { cronNotificationsTriggerSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { timingSafeCompare } from '@/lib/security/timingSafe'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { extractLocale } from '@/lib/api/middleware'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // Vercel Pro: 최대 60초
 
@@ -30,15 +31,22 @@ export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET
 
   if (!cronSecret) {
-    return NextResponse.json(
-      { error: 'CRON_SECRET not configured' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      message: 'CRON_SECRET not configured',
+      route: 'cron/notifications',
+    })
   }
 
   // Vercel Cron은 CRON_SECRET 헤더를 자동으로 추가
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+  // Use timing-safe comparison to prevent timing attacks
+  const providedToken = authHeader?.replace('Bearer ', '').trim() ?? ''
+  if (!timingSafeCompare(providedToken, cronSecret)) {
+    return createErrorResponse({
+      code: ErrorCodes.UNAUTHORIZED,
+      locale: extractLocale(request),
+      route: 'cron/notifications',
+    })
   }
 
   try {
@@ -61,17 +69,13 @@ export async function GET(request: NextRequest) {
       ...result,
     })
   } catch (error: unknown) {
-    const message = 'Internal server error'
     logger.error('[Cron] Notification job failed:', error)
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: message,
-        timestamp: new Date().toISOString(),
-      },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'cron/notifications',
+      originalError: error instanceof Error ? error : new Error(String(error)),
+    })
   }
 }
 
@@ -84,8 +88,14 @@ export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   const adminSecret = process.env.ADMIN_SECRET
 
-  if (!adminSecret || authHeader !== `Bearer ${adminSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+  // Use timing-safe comparison to prevent timing attacks
+  const providedAdminToken = authHeader?.replace('Bearer ', '').trim() ?? ''
+  if (!adminSecret || !timingSafeCompare(providedAdminToken, adminSecret)) {
+    return createErrorResponse({
+      code: ErrorCodes.UNAUTHORIZED,
+      locale: extractLocale(request),
+      route: 'cron/notifications',
+    })
   }
 
   try {
@@ -95,10 +105,10 @@ export async function POST(request: NextRequest) {
       logger.warn('[cron/notifications] validation failed', {
         errors: validationResult.error.issues,
       })
-      return NextResponse.json(
-        { error: 'validation_failed', details: validationResult.error.issues },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validationResult.error, {
+        locale: extractLocale(request),
+        route: 'cron/notifications',
+      })
     }
     const hour = validationResult.data.hour ?? new Date().getHours()
 
@@ -113,15 +123,12 @@ export async function POST(request: NextRequest) {
       ...result,
     })
   } catch (error: unknown) {
-    const message = 'Internal server error'
     logger.error('[Manual] Notification job failed:', error)
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: message,
-      },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'cron/notifications',
+      originalError: error instanceof Error ? error : new Error(String(error)),
+    })
   }
 }

@@ -6,7 +6,8 @@ import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { logger } from '@/lib/logger'
 import path from 'path'
-import { HTTP_STATUS } from '@/lib/constants/http'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { extractLocale } from '@/lib/api/middleware'
 
 const execFileAsync = promisify(execFile)
 
@@ -28,7 +29,11 @@ export async function GET(request: NextRequest) {
 
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
     logger.warn('[Cron] Unauthorized request')
-    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+    return createErrorResponse({
+      code: ErrorCodes.UNAUTHORIZED,
+      locale: extractLocale(request),
+      route: 'cron/daily-fortune-post',
+    })
   }
 
   logger.info('[Cron] Starting daily fortune auto-post...')
@@ -62,14 +67,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     logger.error('[Cron] Execution failed:', error)
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Internal server error',
-        timestamp: new Date().toISOString(),
-      },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'cron/daily-fortune-post',
+      originalError: error instanceof Error ? error : new Error(String(error)),
+    })
   }
 }
 
@@ -81,7 +83,11 @@ export async function POST(request: NextRequest) {
   const apiKey = request.headers.get('x-api-key')
 
   if (!apiKey || apiKey !== process.env.ADMIN_API_KEY) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+    return createErrorResponse({
+      code: ErrorCodes.UNAUTHORIZED,
+      locale: extractLocale(request),
+      route: 'cron/daily-fortune-post',
+    })
   }
 
   // GET과 동일한 로직 실행

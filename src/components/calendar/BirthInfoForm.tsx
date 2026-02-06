@@ -1,46 +1,42 @@
 'use client'
 
 // src/components/calendar/BirthInfoForm.tsx
-import React from 'react'
+// Consolidated BirthInfoForm component with optional canvas support
+import React, { memo, RefObject } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { UnifiedBirthForm } from '@/components/common/BirthForm'
 import styles from './DestinyCalendar.module.css'
-
-interface BirthInfo {
-  birthDate: string
-  birthTime: string
-  birthPlace: string
-  gender: 'Male' | 'Female'
-  latitude?: number
-  longitude?: number
-  timezone?: string
-}
+import { ICONS } from './constants'
+import type { BirthInfo, CityHit } from './types'
 
 interface BirthInfoFormProps {
+  /** Optional canvas ref for particle animation */
+  canvasRef?: RefObject<HTMLCanvasElement | null>
   birthInfo: BirthInfo
-  setBirthInfo: (info: BirthInfo) => void
+  setBirthInfo: (info: BirthInfo | ((prev: BirthInfo) => BirthInfo)) => void
+  selectedCity?: CityHit | null
+  setSelectedCity?: (city: CityHit | null) => void
   onSubmit: (e: React.FormEvent) => void
-  submitting: boolean
-  timeUnknown: boolean
-  setTimeUnknown: (value: boolean) => void
+  submitting?: boolean
+  timeUnknown?: boolean
+  setTimeUnknown?: (value: boolean) => void
+  cityErr?: string | null
+  setCityErr?: (err: string | null) => void
+  profileLoaded?: boolean
+  setProfileLoaded?: (loaded: boolean) => void
 }
 
-const ICONS = {
-  calendar: '📅',
-} as const
-
-export default function BirthInfoForm({
+const BirthInfoForm = memo(function BirthInfoForm({
+  canvasRef,
   birthInfo,
   setBirthInfo,
   onSubmit,
   submitting: _submitting,
-  timeUnknown: _timeUnknown,
-  setTimeUnknown: _setTimeUnknown,
 }: BirthInfoFormProps) {
-  const { locale, t } = useI18n()
+  const { locale } = useI18n()
   const { status } = useSession()
   const signInUrl = buildSignInUrl()
 
@@ -74,6 +70,7 @@ export default function BirthInfoForm({
 
   return (
     <div className={styles.introContainer}>
+      {canvasRef && <canvas ref={canvasRef} className={styles.particleCanvas} />}
       <BackButton />
 
       <main className={styles.introMain}>
@@ -81,12 +78,13 @@ export default function BirthInfoForm({
           <div className={styles.iconWrapper}>
             <span className={styles.icon}>{ICONS.calendar}</span>
           </div>
-          <h1 className={styles.pageTitle}>{t('calendar.pageTitle', 'Destiny Calendar')}</h1>
+          <h1 className={styles.pageTitle}>
+            {locale === 'ko' ? '운명 캘린더' : 'Destiny Calendar'}
+          </h1>
           <p className={styles.pageSubtitle}>
-            {t(
-              'calendar.pageSubtitle',
-              'Cross-analyze Eastern and Western fortune to find your important dates'
-            )}
+            {locale === 'ko'
+              ? '동서양 운세를 교차 분석하여 당신만의 중요한 날짜를 찾아드립니다'
+              : 'Cross-analyze Eastern and Western fortune to find your important dates'}
           </p>
         </div>
 
@@ -107,13 +105,17 @@ export default function BirthInfoForm({
             includeCity={true}
             allowTimeUnknown={true}
             genderFormat="long"
-            submitButtonText={t('calendar.analyzeButton', 'View Destiny Calendar')}
+            submitButtonText={locale === 'ko' ? '운명의 날 찾기' : 'Find Your Destiny Days'}
             submitButtonIcon="✨"
-            loadingButtonText={t('calendar.analyzingButton', 'Analyzing...')}
+            loadingButtonText={locale === 'ko' ? '분석 중...' : 'Analyzing...'}
             showHeader={true}
             headerIcon="🎂"
-            headerTitle={t('calendar.formTitle', 'Enter Your Birth Info')}
-            headerSubtitle={t('calendar.formSubtitle', 'Required for accurate analysis')}
+            headerTitle={locale === 'ko' ? '생년월일을 입력해주세요' : 'Enter Your Birth Info'}
+            headerSubtitle={
+              locale === 'ko'
+                ? '정확한 분석을 위해 필요한 정보입니다'
+                : 'Required for accurate analysis'
+            }
           />
 
           {status === 'unauthenticated' && (
@@ -150,4 +152,9 @@ export default function BirthInfoForm({
       </main>
     </div>
   )
-}
+})
+
+export default BirthInfoForm
+
+// Backward compatibility alias
+export { BirthInfoForm as BirthInfoFormInline }

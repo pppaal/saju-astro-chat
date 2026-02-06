@@ -357,6 +357,9 @@ app.config['COMPRESS_MIMETYPES'] = [
 app.config['COMPRESS_LEVEL'] = 6  # Balance between compression ratio and CPU usage
 app.config['COMPRESS_MIN_SIZE'] = 500  # Only compress responses > 500 bytes
 
+# Security: Request size limits to prevent DoS attacks
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max request size
+
 # CORS configuration - restrict to specific origins for security
 CORS_ORIGINS = [
     "http://localhost:3000",
@@ -388,8 +391,11 @@ try:
     if os.getenv("SENTRY_DSN"):
         sentry_sdk.init(dsn=os.getenv("SENTRY_DSN"))
         logger.info("Sentry initialized for Flask backend.")
+except ImportError:  # pragma: no cover
+    logger.info("Sentry SDK not installed, skipping initialization")
 except Exception as e:  # pragma: no cover
-    logger.warning(f"Sentry init skipped: {e}")
+    # Log specific error type for debugging without exposing sensitive details
+    logger.warning(f"Sentry init skipped: {type(e).__name__}")
 
 # ===============================================================
 # 🔌 REGISTER MODULAR BLUEPRINTS
@@ -447,8 +453,15 @@ def get_cross_analysis_for_chart(saju_data: dict, astro_data: dict, theme: str =
         from backend_ai.services.chart_service import ChartService
         chart_service = ChartService()
         return chart_service.get_cross_analysis_for_chart(saju_data, astro_data, theme, locale)
+    except ImportError as e:
+        logger.warning(f"[get_cross_analysis_for_chart] ChartService not available: {e}")
+        return ""
+    except (ValueError, TypeError) as e:
+        logger.warning(f"[get_cross_analysis_for_chart] Invalid input: {type(e).__name__}")
+        return ""
     except Exception as e:
-        logger.warning(f"[get_cross_analysis_for_chart] Failed: {e}")
+        # Log error type without potentially sensitive error message
+        logger.error(f"[get_cross_analysis_for_chart] Unexpected error: {type(e).__name__}")
         return ""
 
 def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale: str = "ko", birth_year: int = None) -> str:
@@ -457,8 +470,15 @@ def get_theme_fusion_rules(saju_data: dict, astro_data: dict, theme: str, locale
         from backend_ai.services.chart_service import ChartService
         chart_service = ChartService()
         return chart_service.get_theme_fusion_rules(saju_data, astro_data, theme, locale, birth_year)
+    except ImportError as e:
+        logger.warning(f"[get_theme_fusion_rules] ChartService not available: {e}")
+        return ""
+    except (ValueError, TypeError) as e:
+        logger.warning(f"[get_theme_fusion_rules] Invalid input: {type(e).__name__}")
+        return ""
     except Exception as e:
-        logger.warning(f"[get_theme_fusion_rules] Failed: {e}")
+        # Log error type without potentially sensitive error message
+        logger.error(f"[get_theme_fusion_rules] Unexpected error: {type(e).__name__}")
         return ""
 
 # Functions moved to services:
@@ -625,61 +645,75 @@ def after_request(response):
             f"[REQ] id={getattr(g, 'request_id', '')} path={request.path} "
             f"status={response.status_code} dur_ms={int(duration*1000)}"
         )
-    except Exception:
-        pass
+    except Exception as e:
+        # Log the error type for debugging, don't silently swallow
+        logger.debug(f"[REQ] Logging failed: {type(e).__name__}")
     return response
 
 # ===============================================================
-# GLOBAL ERROR HANDLERS - Consistent error responses
+# GLOBAL ERROR HANDLERS - Unified format with frontend
+# Format: { success: false, error: { code, message, status } }
 # ===============================================================
+
+from backend_ai.app.exceptions import BackendAIError
+
+def _create_error_response(code: str, message: str, status: int, details: dict = None):
+    """Create standardized error response aligned with frontend format."""
+    response = {
+        "success": False,
+        "error": {
+            "code": code,
+            "message": message,
+            "status": status,
+        },
+    }
+    request_id = getattr(g, "request_id", None)
+    if request_id:
+        response["error"]["request_id"] = request_id
+    # Include details only in development
+    if os.getenv("FLASK_ENV") == "development" and details:
+        response["error"]["details"] = details
+    return jsonify(response), status
 
 @app.errorhandler(400)
 def bad_request(e):
-    return jsonify({
-        "status": "error",
-        "code": 400,
-        "message": "Bad request",
-        "request_id": getattr(g, "request_id", None)
-    }), 400
+    return _create_error_response("BAD_REQUEST", "Invalid request. Please check your input.", 400)
 
 @app.errorhandler(404)
 def not_found(e):
-    return jsonify({
-        "status": "error",
-        "code": 404,
-        "message": "Endpoint not found",
-        "request_id": getattr(g, "request_id", None)
-    }), 404
+    return _create_error_response("NOT_FOUND", "The requested resource was not found.", 404)
 
 @app.errorhandler(405)
 def method_not_allowed(e):
-    return jsonify({
-        "status": "error",
-        "code": 405,
-        "message": "Method not allowed",
-        "request_id": getattr(g, "request_id", None)
-    }), 405
+    return _create_error_response("BAD_REQUEST", "Method not allowed for this endpoint.", 405)
+
+@app.errorhandler(413)
+def payload_too_large(e):
+    return _create_error_response("PAYLOAD_TOO_LARGE", "Request data is too large.", 413)
+
+@app.errorhandler(429)
+def rate_limited(e):
+    return _create_error_response("RATE_LIMITED", "Too many requests. Please wait a moment.", 429)
 
 @app.errorhandler(500)
 def internal_error(e):
     logger.exception(f"[ERROR] Unhandled exception: {e}")
-    return jsonify({
-        "status": "error",
-        "code": 500,
-        "message": "Internal server error",
-        "request_id": getattr(g, "request_id", None)
-    }), 500
+    return _create_error_response("INTERNAL_ERROR", "An unexpected error occurred. Please try again.", 500)
+
+@app.errorhandler(BackendAIError)
+def handle_backend_error(e):
+    """Handle custom BackendAIError exceptions with unified format."""
+    logger.warning(f"[BackendAIError] {e.code}: {e.message}")
+    return jsonify(e.to_dict()), e.status_code
 
 @app.errorhandler(Exception)
 def handle_exception(e):
     """Catch-all for unhandled exceptions."""
     logger.exception(f"[ERROR] Unhandled exception: {e}")
-    return jsonify({
-        "status": "error",
-        "code": 500,
-        "message": "An unexpected error occurred",
-        "request_id": getattr(g, "request_id", None)
-    }), 500
+    # Check if it's a BackendAIError subclass
+    if isinstance(e, BackendAIError):
+        return jsonify(e.to_dict()), e.status_code
+    return _create_error_response("INTERNAL_ERROR", "An unexpected error occurred.", 500)
 
 # ===============================================================
 # MIGRATION SUMMARY (Phase 2-4)

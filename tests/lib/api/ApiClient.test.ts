@@ -249,18 +249,16 @@ describe("apiFetch", () => {
     global.fetch = originalFetch;
   });
 
-  it("adds X-API-Token for internal API calls", async () => {
-    process.env.NEXT_PUBLIC_API_TOKEN = "public-token";
+  it("uses credentials include for internal API calls", async () => {
     mockFetch.mockResolvedValueOnce({ ok: true });
 
     await apiFetch("/api/test", {});
 
+    // apiFetch uses cookies for auth, not tokens
     expect(mockFetch).toHaveBeenCalledWith(
       "/api/test",
       expect.objectContaining({
-        headers: expect.objectContaining({
-          "X-API-Token": "public-token",
-        }),
+        credentials: "include",
       })
     );
   });

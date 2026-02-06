@@ -15,23 +15,30 @@ import {
   getProgressionSummary,
 } from '@/lib/astrology'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { extractLocale } from '@/lib/api/middleware'
 
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request.headers)
     const limit = await rateLimit(`astro-progressions:${ip}`, { limit: 20, windowSeconds: 60 })
     if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Try again soon.' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.RATE_LIMITED,
+        locale: extractLocale(request),
+        route: 'astrology/advanced/progressions',
+        headers: Object.fromEntries(limit.headers.entries()),
+      })
     }
     const tokenCheck = requirePublicToken(request)
     if (!tokenCheck.valid) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.UNAUTHORIZED,
+        locale: extractLocale(request),
+        route: 'astrology/advanced/progressions',
+        headers: Object.fromEntries(limit.headers.entries()),
+      })
     }
 
     // Validate request body with Zod
@@ -39,18 +46,11 @@ export async function POST(request: Request) {
     const validation = ProgressionsRequestSchema.safeParse(body)
 
     if (!validation.success) {
-      const errors = validation.error.issues
-        .map((e) => `${e.path.join('.')}: ${e.message}`)
-        .join(', ')
       logger.warn('[Progressions API] Validation failed', { errors: validation.error.issues })
-      return NextResponse.json(
-        {
-          error: 'Validation failed',
-          details: errors,
-          issues: validation.error.issues,
-        },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
+      return createValidationErrorResponse(validation.error, {
+        locale: extractLocale(request),
+        route: 'astrology/advanced/progressions',
+      })
     }
 
     const { date, time, latitude, longitude, timeZone, targetDate } = validation.data
@@ -118,8 +118,11 @@ export async function POST(request: Request) {
     res.headers.set('Cache-Control', 'no-store')
     return res
   } catch (error: unknown) {
-    const message = 'Internal Server Error'
     captureServerError(error, { route: '/api/astrology/advanced/progressions' })
-    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'astrology/advanced/progressions',
+      originalError: error instanceof Error ? error : new Error(String(error)),
+    })
   }
 }

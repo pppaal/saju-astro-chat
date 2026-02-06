@@ -4,7 +4,7 @@
  */
 
 // Re-export from centralized locations
-export { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '@/lib/Saju/stemElementMapping';
+export { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '@/lib/Saju/constants';
 export { STEM_NAMES as STEMS, BRANCH_NAMES as BRANCHES } from '@/lib/Saju/constants';
 
 // Re-export 한글 키 버전 (constants.ts에 정의된 것)

@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, type Mock } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useSession } from 'next-auth/react';
@@ -7,15 +7,16 @@ import { useDreamAnalysis } from '@/hooks/useDreamAnalysis';
 import { useDreamPhase } from '@/hooks/useDreamPhase';
 
 // Mock the hooks
+vi.mock('next-auth/react');
 vi.mock('@/hooks/useBirthInfo');
 vi.mock('@/hooks/useDreamAnalysis');
 vi.mock('@/hooks/useDreamPhase');
 
 describe('Dream Page Integration', () => {
-  const mockUseSession = useSession as ReturnType<typeof vi.fn>;
-  const mockUseBirthInfo = useBirthInfo as ReturnType<typeof vi.fn>;
-  const mockUseDreamAnalysis = useDreamAnalysis as ReturnType<typeof vi.fn>;
-  const mockUseDreamPhase = useDreamPhase as ReturnType<typeof vi.fn>;
+  const mockUseSession = useSession as Mock;
+  const mockUseBirthInfo = useBirthInfo as Mock;
+  const mockUseDreamAnalysis = useDreamAnalysis as Mock;
+  const mockUseDreamPhase = useDreamPhase as Mock;
 
   beforeEach(() => {
     mockUseSession.mockReturnValue({

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
+import { withApiMiddleware, createAuthenticatedGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
-import { HTTP_STATUS } from '@/lib/constants/http'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import {
   counselorSessionListQuerySchema,
   counselorSessionDeleteQuerySchema,
+  createValidationErrorResponse,
 } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
@@ -20,10 +21,10 @@ export const GET = withApiMiddleware(
       limit: searchParams.get('limit') ?? undefined,
     })
     if (!queryValidation.success) {
-      return NextResponse.json(
-        { error: 'validation_failed', details: queryValidation.error.issues },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(queryValidation.error, {
+        locale: extractLocale(req),
+        route: 'counselor/session/list',
+      })
     }
     const { theme, limit } = queryValidation.data
 
@@ -67,10 +68,10 @@ export const DELETE = withApiMiddleware(
       sessionId: searchParams.get('sessionId') ?? undefined,
     })
     if (!deleteValidation.success) {
-      return NextResponse.json(
-        { error: 'validation_failed', details: deleteValidation.error.issues },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(deleteValidation.error, {
+        locale: extractLocale(req),
+        route: 'counselor/session/list',
+      })
     }
     const { sessionId } = deleteValidation.data
 
@@ -83,7 +84,12 @@ export const DELETE = withApiMiddleware(
     })
 
     if (!chatSession) {
-      return NextResponse.json({ error: 'session_not_found' }, { status: HTTP_STATUS.NOT_FOUND })
+      return createErrorResponse({
+        code: ErrorCodes.NOT_FOUND,
+        message: 'Session not found',
+        locale: extractLocale(req),
+        route: 'counselor/session/list',
+      })
     }
 
     await prisma.counselorChatSession.delete({

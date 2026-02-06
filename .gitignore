@@ -10,6 +10,8 @@
 
 # testing
 /coverage
+.coverage
+*.coverage
 /playwright-report/
 /test-results/
 .playwright/
@@ -108,6 +110,11 @@ C*tmptest_files.txt
 c*dev*saju-astro-chatpublicsw.js
 c*temptested_files.txt
 c*tmptest_yongsin.json
+C*UserspjyrhAppDataLocalTempclaudefailed_tests.txt
+C*UserspjyrhAppDataLocalTempclaudetest-output.txt
+
+# Claude Code temp files
+**/AppData/Local/Temp/claude/**
 
 # Local tool configs / generated assets
 .claude/settings.local.json

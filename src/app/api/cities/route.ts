@@ -38,11 +38,23 @@ async function loadCities(): Promise<City[]> {
   if (!loading) {
     loading = (async () => {
       const filePath = path.join(process.cwd(), 'public', 'data', 'cities.min.json')
-      const raw = await fs.readFile(filePath, 'utf-8')
-      const sanitized = raw.replace(/^\uFEFF/, '')
-      const data = JSON.parse(sanitized)
-      cachedCities = Array.isArray(data) ? data : []
-      return cachedCities
+      try {
+        const raw = await fs.readFile(filePath, 'utf-8')
+        const sanitized = raw.replace(/^\uFEFF/, '')
+        const data = JSON.parse(sanitized)
+        cachedCities = Array.isArray(data) ? data : []
+        return cachedCities
+      } catch (err) {
+        // Reset loading state on failure to allow retry
+        loading = null
+        if (err instanceof SyntaxError) {
+          logger.error('[cities] Invalid JSON format in cities.min.json')
+          throw new Error('City data file is corrupted')
+        }
+        // File not found or other I/O error
+        logger.error('[cities] Failed to load cities data:', err instanceof Error ? err.message : 'Unknown error')
+        throw new Error('City data unavailable')
+      }
     })()
   }
   return loading

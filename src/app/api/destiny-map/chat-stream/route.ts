@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware'
+import { initializeApiContext, createAuthenticatedGuard, extractLocale } from '@/lib/api/middleware'
 import { createTransformedSSEStream, createFallbackSSEStream } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { sanitizeLocaleText } from '@/lib/destiny-map/sanitize'
 import { maskTextWithName } from '@/lib/security'
 import { enforceBodySize } from '@/lib/http'
-import { jsonErrorResponse } from '@/lib/api/errorHandler'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { isValidDate, isValidTime, isValidLatitude, isValidLongitude } from '@/lib/validation'
 import { logger } from '@/lib/logger'
 import { parseRequestBody } from '@/lib/api/requestParser'
-import { HTTP_STATUS } from '@/lib/constants/http'
+import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 
 // Local modules
 import { clampMessages, counselorSystemPrompt, loadPersonaMemory } from './lib'
@@ -62,19 +62,21 @@ export async function POST(req: NextRequest) {
       context: 'Destiny-map Chat-stream',
     })
     if (!body) {
-      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Invalid request body',
+        locale: extractLocale(req),
+        route: 'destiny-map/chat-stream',
+      })
     }
 
     const validation = validateDestinyMapRequest(body)
     if (!validation.success) {
-      const errors = validation.error.issues
-        .map((e) => `${e.path.join('.')}: ${e.message}`)
-        .join(', ')
       logger.warn('[chat-stream] Validation failed', { errors: validation.error.issues })
-      return NextResponse.json(
-        { error: 'Validation failed', details: errors, issues: validation.error.issues },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validation.error, {
+        locale: extractLocale(req),
+        route: 'destiny-map/chat-stream',
+      })
     }
 
     const validated = validation.data
@@ -151,16 +153,36 @@ export async function POST(req: NextRequest) {
 
     // Validate effective values
     if (!effectiveBirthDate || !isValidDate(effectiveBirthDate)) {
-      return jsonErrorResponse('Invalid or missing birthDate')
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_DATE,
+        message: 'Invalid or missing birthDate',
+        locale: extractLocale(req),
+        route: 'destiny-map/chat-stream',
+      })
     }
     if (!effectiveBirthTime || !isValidTime(effectiveBirthTime)) {
-      return jsonErrorResponse('Invalid or missing birthTime')
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_TIME,
+        message: 'Invalid or missing birthTime',
+        locale: extractLocale(req),
+        route: 'destiny-map/chat-stream',
+      })
     }
     if (!isValidLatitude(effectiveLatitude)) {
-      return jsonErrorResponse('Invalid or missing latitude')
+      return createErrorResponse({
+        code: ErrorCodes.VALIDATION_ERROR,
+        message: 'Invalid or missing latitude',
+        locale: extractLocale(req),
+        route: 'destiny-map/chat-stream',
+      })
     }
     if (!isValidLongitude(effectiveLongitude)) {
-      return jsonErrorResponse('Invalid or missing longitude')
+      return createErrorResponse({
+        code: ErrorCodes.VALIDATION_ERROR,
+        message: 'Invalid or missing longitude',
+        locale: extractLocale(req),
+        route: 'destiny-map/chat-stream',
+      })
     }
 
     // ========================================
@@ -365,7 +387,6 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (err: unknown) {
-    const message = 'Internal Server Error'
     logger.error('[Chat-Stream API error]', err)
 
     // Refund credits on unexpected errors
@@ -375,6 +396,10 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'destiny-map/chat-stream',
+      originalError: err instanceof Error ? err : new Error(String(err)),
+    })
   }
 }

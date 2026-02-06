@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './DateTimePicker.module.css';
 
 interface DateTimePickerProps {
@@ -22,11 +22,54 @@ export default function DateTimePicker({
   maxDate = new Date().toISOString().split('T')[0],
   minDate = '1900-01-01',
 }: DateTimePickerProps) {
-  // Parse current value
-  const [year, month, day] = value ? value.split('-').map(Number) : [0, 0, 0];
+  // Parse external value into individual parts
+  const parseValue = (v: string): [number, number, number] => {
+    if (!v) return [0, 0, 0];
+    const parts = v.split('-').map(Number);
+    return [parts[0] || 0, parts[1] || 0, parts[2] || 0];
+  };
+
+  const [parsed] = useState(() => parseValue(value));
+  const [selectedYear, setSelectedYear] = useState(parsed[0]);
+  const [selectedMonth, setSelectedMonth] = useState(parsed[1]);
+  const [selectedDay, setSelectedDay] = useState(parsed[2]);
+
+  // Track whether internal state was updated from props to avoid infinite loops
+  const updatingFromProps = useRef(false);
+
+  // Sync internal state when external value changes (e.g. profile load)
+  useEffect(() => {
+    const [y, m, d] = parseValue(value);
+    if (y !== selectedYear || m !== selectedMonth || d !== selectedDay) {
+      updatingFromProps.current = true;
+      setSelectedYear(y);
+      setSelectedMonth(m);
+      setSelectedDay(d);
+    }
+    // Only react to external value changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  // Emit full date only when all three fields are selected
+  useEffect(() => {
+    if (updatingFromProps.current) {
+      updatingFromProps.current = false;
+      return;
+    }
+
+    if (selectedYear && selectedMonth && selectedDay) {
+      const newDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
+      if (newDate !== value) {
+        onChange(newDate);
+      }
+    } else if (!selectedYear && !selectedMonth && !selectedDay && value) {
+      // All cleared — reset
+      onChange('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedYear, selectedMonth, selectedDay]);
 
   // Generate year options (1900 to current year)
-  const currentYear = new Date().getFullYear();
   const minYear = parseInt(minDate.split('-')[0]);
   const maxYear = parseInt(maxDate.split('-')[0]);
   const years = Array.from({ length: maxYear - minYear + 1 }, (_, i) => maxYear - i);
@@ -38,49 +81,36 @@ export default function DateTimePicker({
   const getDaysInMonth = (y: number, m: number) => {
     return new Date(y, m, 0).getDate();
   };
-  const daysInMonth = year && month ? getDaysInMonth(year, month) : 31;
+  const daysInMonth = selectedYear && selectedMonth ? getDaysInMonth(selectedYear, selectedMonth) : 31;
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newYear = parseInt(e.target.value);
-    if (!newYear) {
-      onChange('');
-      return;
+    const newYear = parseInt(e.target.value) || 0;
+    setSelectedYear(newYear);
+    // Adjust day if it exceeds days in the selected month
+    if (newYear && selectedMonth && selectedDay) {
+      const maxDays = getDaysInMonth(newYear, selectedMonth);
+      if (selectedDay > maxDays) {
+        setSelectedDay(maxDays);
+      }
     }
-    const currentMonth = month || 1;
-    const currentDay = day || 1;
-    // Adjust day if it exceeds the days in the new month
-    const maxDays = getDaysInMonth(newYear, currentMonth);
-    const adjustedDay = Math.min(currentDay, maxDays);
-    const newDate = `${newYear}-${String(currentMonth).padStart(2, '0')}-${String(adjustedDay).padStart(2, '0')}`;
-    onChange(newDate);
   };
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newMonth = parseInt(e.target.value);
-    if (!newMonth) {
-      onChange('');
-      return;
+    const newMonth = parseInt(e.target.value) || 0;
+    setSelectedMonth(newMonth);
+    // Adjust day if it exceeds days in the new month
+    if (selectedYear && newMonth && selectedDay) {
+      const maxDays = getDaysInMonth(selectedYear, newMonth);
+      if (selectedDay > maxDays) {
+        setSelectedDay(maxDays);
+      }
     }
-    const selectedYear = year || currentYear;
-    const currentDay = day || 1;
-    // Adjust day if it exceeds the days in the new month
-    const maxDays = getDaysInMonth(selectedYear, newMonth);
-    const adjustedDay = Math.min(currentDay, maxDays);
-    const newDate = `${selectedYear}-${String(newMonth).padStart(2, '0')}-${String(adjustedDay).padStart(2, '0')}`;
-    onChange(newDate);
   };
 
   const handleDayChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newDay = parseInt(e.target.value);
-    if (!newDay) {
-      onChange('');
-      return;
-    }
-    const selectedYear = year || currentYear;
-    const selectedMonth = month || 1;
-    const newDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(newDay).padStart(2, '0')}`;
-    onChange(newDate);
+    const newDay = parseInt(e.target.value) || 0;
+    setSelectedDay(newDay);
   };
 
   const monthNames = locale === 'ko'
@@ -97,7 +127,7 @@ export default function DateTimePicker({
       )}
       <div className={styles.selectGrid}>
         <select
-          value={year || ''}
+          value={selectedYear || ''}
           onChange={handleYearChange}
           className={styles.select}
           required={required}
@@ -111,7 +141,7 @@ export default function DateTimePicker({
           ))}
         </select>
         <select
-          value={month || ''}
+          value={selectedMonth || ''}
           onChange={handleMonthChange}
           className={styles.select}
           required={required}
@@ -125,7 +155,7 @@ export default function DateTimePicker({
           ))}
         </select>
         <select
-          value={day || ''}
+          value={selectedDay || ''}
           onChange={handleDayChange}
           className={styles.select}
           required={required}

@@ -10,7 +10,7 @@ import {
   clearChartCache,
   hasCachedData,
   cleanupExpiredCache,
-} from '@/lib/chartDataCache';
+} from '@/lib/cache/chartDataCache';
 
 // Mock logger
 vi.mock('@/lib/logger', () => ({

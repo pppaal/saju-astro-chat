@@ -28,6 +28,8 @@ const VALID_SECTIONS = [
   'moderation',
   'audit',
   'system',
+  'performance',
+  'behavior',
 ] as const
 
 type Section = (typeof VALID_SECTIONS)[number]

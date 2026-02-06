@@ -26,8 +26,10 @@ import {
   parseHM,
 } from '@/lib/astrology/localization'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { astrologyDetailsSchema } from '@/lib/api/zodValidation'
+import { astrologyDetailsSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { extractLocale } from '@/lib/api/middleware'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -37,17 +39,21 @@ export async function POST(request: Request) {
     const ip = getClientIp(request.headers)
     const limit = await rateLimit(`astro-details:${ip}`, { limit: 30, windowSeconds: 60 })
     if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Try again soon.' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.RATE_LIMITED,
+        locale: extractLocale(request),
+        route: 'astrology/details',
+        headers: limit.headers,
+      })
     }
     const tokenCheck = requirePublicToken(request)
     if (!tokenCheck.valid) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.UNAUTHORIZED,
+        locale: extractLocale(request),
+        route: 'astrology/details',
+        headers: limit.headers,
+      })
     }
 
     const body = await request.json()
@@ -65,16 +71,10 @@ export async function POST(request: Request) {
       logger.warn('[Astrology details] validation failed', {
         errors: validationResult.error.issues,
       })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
+      return createValidationErrorResponse(validationResult.error, {
+        locale: extractLocale(request),
+        route: 'astrology/details',
+      })
     }
 
     const { date, time, latitude, longitude, timeZone, locale, options } = body ?? {}
@@ -83,10 +83,12 @@ export async function POST(request: Request) {
 
     const [year, month, day] = String(date).split('-').map(Number)
     if (!year || !month || !day) {
-      return NextResponse.json(
-        { error: 'date must be YYYY-MM-DD.' },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_DATE,
+        message: 'date must be YYYY-MM-DD.',
+        locale: extractLocale(request),
+        route: 'astrology/details',
+      })
     }
 
     const { h, m } = parseHM(String(time))
@@ -97,10 +99,12 @@ export async function POST(request: Request) {
       String(timeZone)
     )
     if (!local.isValid()) {
-      return NextResponse.json(
-        { error: 'Invalid date/time/timeZone combination.' },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_DATE,
+        message: 'Invalid date/time/timeZone combination.',
+        locale: extractLocale(request),
+        route: 'astrology/details',
+      })
     }
 
     const opts = resolveOptions(options)
@@ -191,7 +195,10 @@ export async function POST(request: Request) {
     return res
   } catch (error) {
     captureServerError(error, { route: '/api/astrology/details' })
-    const message = 'Internal Server Error'
-    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'astrology/details',
+      originalError: error instanceof Error ? error : new Error(String(error)),
+    })
   }
 }

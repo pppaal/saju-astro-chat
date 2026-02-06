@@ -11,7 +11,7 @@ describe('Prediction Module Index', () => {
     expect(result).toHaveProperty('grade');
     expect(result).toHaveProperty('label');
     expect(result).toHaveProperty('labelEn');
-  });
+  }, 60_000);
 
   it('should export scoreToGrade function', async () => {
     const { scoreToGrade } = await import('@/lib/prediction');

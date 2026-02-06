@@ -47,8 +47,9 @@ def analyze_samjae_compatibility(person1: dict, person2: dict) -> dict:
     year1 = pillars1.get("year", "")
     year2 = pillars2.get("year", "")
 
-    branch1 = year1[1] if len(year1) >= 2 else ""
-    branch2 = year2[1] if len(year2) >= 2 else ""
+    # Null safety: ensure year is a string before accessing index
+    branch1 = year1[1] if year1 and isinstance(year1, str) and len(year1) >= 2 else ""
+    branch2 = year2[1] if year2 and isinstance(year2, str) and len(year2) >= 2 else ""
 
     if not branch1 or not branch2:
         result["summary"] = "년지 정보가 없어 삼재 분석을 할 수 없습니다."
@@ -158,13 +159,14 @@ def analyze_yongsin_interaction(person1: dict, person2: dict) -> dict:
 
     # 1. 같은 용신 체크
     interaction = YONGSIN_INTERACTION.get("same_yongsin", {})
+    same_yongsin_score = interaction.get("score", 8)
     if yongsin1 == yongsin2:
-        score += interaction.get("score", 8)
+        score += same_yongsin_score
         result["interaction_type"] = "same_yongsin"
         result["compatibility_details"].append({
             "type": "same_yongsin",
             "element": yongsin1,
-            "score": interaction["score"],
+            "score": same_yongsin_score,
             "meaning": interaction.get("meaning", "같은 에너지를 필요로 함")
         })
         result["recommendations"].append(interaction.get("recommendation", ""))
@@ -173,26 +175,27 @@ def analyze_yongsin_interaction(person1: dict, person2: dict) -> dict:
     generating_pairs = [("木", "火"), ("火", "土"), ("土", "金"), ("金", "水"), ("水", "木")]
 
     interaction = YONGSIN_INTERACTION.get("yongsin_generates_partner", {})
+    generates_score = interaction.get("score", 10)
     for pair in generating_pairs:
         if yongsin1 == pair[0] and yongsin2 == pair[1]:
-            score += interaction.get("score", 10)
+            score += generates_score
             result["mutual_support"] = True
             result["compatibility_details"].append({
                 "type": "yongsin_generates",
                 "from": yongsin1,
                 "to": yongsin2,
-                "score": interaction["score"],
+                "score": generates_score,
                 "meaning": f"{yongsin1}이(가) {yongsin2}을(를) 생(生)함"
             })
             result["recommendations"].append(interaction.get("recommendation", ""))
         elif yongsin2 == pair[0] and yongsin1 == pair[1]:
-            score += interaction.get("score", 10)
+            score += generates_score
             result["mutual_support"] = True
             result["compatibility_details"].append({
                 "type": "yongsin_generates",
                 "from": yongsin2,
                 "to": yongsin1,
-                "score": interaction["score"],
+                "score": generates_score,
                 "meaning": f"{yongsin2}이(가) {yongsin1}을(를) 생(生)함"
             })
 
@@ -200,41 +203,42 @@ def analyze_yongsin_interaction(person1: dict, person2: dict) -> dict:
     controlling_pairs = [("木", "土"), ("土", "水"), ("水", "火"), ("火", "金"), ("金", "木")]
 
     interaction = YONGSIN_INTERACTION.get("yongsin_controls_partner", {})
+    controls_score = interaction.get("score", -3)
     for pair in controlling_pairs:
         if (yongsin1 == pair[0] and yongsin2 == pair[1]) or \
            (yongsin2 == pair[0] and yongsin1 == pair[1]):
-            score += interaction.get("score", -3)
+            score += controls_score
             result["potential_conflict"] = True
             result["compatibility_details"].append({
                 "type": "yongsin_controls",
                 "controlling": pair[0],
                 "controlled": pair[1],
-                "score": interaction["score"],
+                "score": controls_score,
                 "meaning": "용신이 상극 관계"
             })
             result["recommendations"].append(interaction.get("recommendation", ""))
 
     # 4. 용신-기신 관계 체크
+    gisin_interaction = YONGSIN_INTERACTION.get("yongsin_is_partner_gisin", {})
+    gisin_score = gisin_interaction.get("score", -5)
     if yongsin1 and gisin2 and yongsin1 == gisin2:
-        interaction = YONGSIN_INTERACTION.get("yongsin_is_partner_gisin", {})
-        score += interaction.get("score", -5)
+        score += gisin_score
         result["potential_conflict"] = True
         result["compatibility_details"].append({
             "type": "my_yongsin_partner_gisin",
             "element": yongsin1,
-            "score": interaction["score"],
+            "score": gisin_score,
             "meaning": "내 용신이 상대의 기신"
         })
-        result["recommendations"].append(interaction.get("recommendation", ""))
+        result["recommendations"].append(gisin_interaction.get("recommendation", ""))
 
     if yongsin2 and gisin1 and yongsin2 == gisin1:
-        interaction = YONGSIN_INTERACTION.get("yongsin_is_partner_gisin", {})
-        score += interaction.get("score", -5)
+        score += gisin_score
         result["potential_conflict"] = True
         result["compatibility_details"].append({
             "type": "partner_yongsin_my_gisin",
             "element": yongsin2,
-            "score": interaction["score"],
+            "score": gisin_score,
             "meaning": "상대의 용신이 내 기신"
         })
 

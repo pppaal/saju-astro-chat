@@ -8,6 +8,12 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import * as dotenv from "dotenv";
+import * as path from "path";
+
+// Load environment variables from .env files
+dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 process.env.NODE_ENV = process.env.NODE_ENV || "test";
 if (!process.env.TEST_DATABASE_URL && !process.env.DATABASE_URL) {

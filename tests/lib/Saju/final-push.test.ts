@@ -3,7 +3,7 @@
  * Comprehensive edge case tests
  */
 import { describe, it, expect } from 'vitest';
-import { getElementOfChar, getGanjiName } from '@/lib/Saju/element-utils';
+import { getElementOfChar, getGanjiName } from '@/lib/Saju/stemBranchUtils';
 
 describe('Final push - comprehensive edge cases', () => {
   describe('getElementOfChar with all characters', () => {

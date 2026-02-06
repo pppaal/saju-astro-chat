@@ -2,23 +2,30 @@
 // Prefetch RAG context while user is selecting cards
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api/middleware'
+import { withApiMiddleware, createSimpleGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
 import { apiClient } from '@/lib/api/ApiClient'
 import { TarotPrefetchSchema } from '@/lib/api/validator'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
     const body = await req.json().catch(() => null)
     if (!body) {
-      return NextResponse.json({ error: 'invalid_body' }, { status: 400 })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Invalid request body',
+        locale: extractLocale(req),
+        route: 'tarot/prefetch',
+      })
     }
 
     const parsed = TarotPrefetchSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ') },
-        { status: 400 }
-      )
+      return createValidationErrorResponse(parsed.error, {
+        locale: extractLocale(req),
+        route: 'tarot/prefetch',
+      })
     }
 
     const { categoryId, spreadId } = parsed.data

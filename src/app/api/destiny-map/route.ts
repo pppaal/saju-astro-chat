@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api/middleware'
+import { withApiMiddleware, createSimpleGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { generateReport } from '@/lib/destiny-map/reportService'
 import type { SajuResult, AstrologyResult } from '@/lib/destiny-map/types'
 import { recordCounter, recordTiming } from '@/lib/metrics'
@@ -16,7 +17,9 @@ import {
 } from '@/lib/validation'
 import fs from 'fs'
 import path from 'path'
+import crypto from 'crypto'
 import { logger } from '@/lib/logger'
+import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 180
@@ -102,23 +105,22 @@ export const POST = withApiMiddleware(
     }
 
     if (!body) {
-      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Invalid request body',
+        locale: extractLocale(request),
+        route: 'destiny-map',
+      })
     }
 
     // Validate core fields with Zod
     const validationResult = destinyMapRequestSchema.safeParse(body)
     if (!validationResult.success) {
       logger.warn('[DestinyMap] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validationResult.error, {
+        locale: extractLocale(request),
+        route: 'destiny-map',
+      })
     }
 
     const name = typeof body.name === 'string' ? body.name.trim().slice(0, LIMITS.NAME) : undefined
@@ -138,30 +140,53 @@ export const POST = withApiMiddleware(
         : undefined
 
     // Validate required fields using shared utilities
+    const locale = extractLocale(request)
     if (!birthDate || !birthTime || latitude === undefined || longitude === undefined) {
       logger.error('[API] Missing required fields')
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.MISSING_FIELD,
+        message: 'Missing required fields: birthDate, birthTime, latitude, longitude',
+        locale,
+        route: 'destiny-map',
+      })
     }
     if (!isValidDate(birthDate)) {
-      return NextResponse.json({ error: 'Invalid birthDate' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_DATE,
+        locale,
+        route: 'destiny-map',
+      })
     }
     if (!isValidTime(birthTime)) {
-      return NextResponse.json({ error: 'Invalid birthTime' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_TIME,
+        locale,
+        route: 'destiny-map',
+      })
     }
     if (!isValidLatitude(latitude)) {
-      return NextResponse.json({ error: 'Invalid latitude' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_COORDINATES,
+        message: 'Invalid latitude',
+        locale,
+        route: 'destiny-map',
+      })
     }
     if (!isValidLongitude(longitude)) {
-      return NextResponse.json({ error: 'Invalid longitude' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_COORDINATES,
+        message: 'Invalid longitude',
+        locale,
+        route: 'destiny-map',
+      })
     }
     if (userTimezone && (!userTimezone.includes('/') || userTimezone.length < 3)) {
-      return NextResponse.json(
-        { error: 'Invalid userTimezone' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_FORMAT,
+        message: 'Invalid timezone format',
+        locale,
+        route: 'destiny-map',
+      })
     }
 
     if (enableDebugLogs) {
@@ -378,18 +403,31 @@ export const POST = withApiMiddleware(
 
     const astrology: AstrologyResult = report.raw?.astrology ?? { facts: {} }
 
-    // Persist logs for debugging (consider disabling or masking in production)
-    if (enableDebugLogs) {
+    // Persist logs for debugging - SECURITY: Only in development, never in production
+    if (enableDebugLogs && process.env.NODE_ENV !== 'production') {
       try {
         const dir = path.join(process.cwd(), 'logs')
         if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir)
+          fs.mkdirSync(dir, { mode: 0o700 }) // Restrictive permissions - owner only
         }
-        const file = path.join(dir, `destinymap-${Date.now()}.json`)
-        fs.writeFileSync(file, JSON.stringify({ body: maskPayload(body), report }, null, 2), 'utf8')
-        logger.warn('[API] Log saved:', file)
+        // Use crypto for unpredictable filename
+        const randomSuffix = crypto.randomBytes(8).toString('hex')
+        const file = path.join(dir, `destinymap-${Date.now()}-${randomSuffix}.json`)
+        // Only write masked payload, never raw sensitive data
+        const safePayload = {
+          timestamp: new Date().toISOString(),
+          maskedBody: maskPayload(body),
+          // Exclude raw report data in logs
+          reportSummary: {
+            hasReport: Boolean(report?.report),
+            hasSaju: Boolean(report?.raw?.saju),
+            hasAstrology: Boolean(report?.raw?.astrology),
+          },
+        }
+        fs.writeFileSync(file, JSON.stringify(safePayload, null, 2), { encoding: 'utf8', mode: 0o600 })
+        logger.warn('[API] Debug log saved (dev only)')
       } catch (err) {
-        logger.warn('[API] Log save failed:', err)
+        logger.warn('[API] Log save failed:', err instanceof Error ? err.message : 'Unknown error')
       }
     }
 

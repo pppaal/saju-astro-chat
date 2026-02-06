@@ -75,14 +75,8 @@ export const GET = withApiMiddleware(
       const timeRange = validationResult.data
       const { start, end } = getDateRange(timeRange)
 
-      const [
-        totalUsers,
-        newUsers,
-        activeSubscriptions,
-        newSubscriptions,
-        cancelledSubscriptions,
-        recentReadings,
-      ] = await Promise.all([
+      // Use Promise.allSettled for resilient error handling
+      const results = await Promise.allSettled([
         prisma.user.count(),
         prisma.user.count({
           where: {
@@ -111,6 +105,20 @@ export const GET = withApiMiddleware(
           },
         }),
       ])
+
+      // Extract values with fallbacks for failed queries
+      const totalUsers = results[0].status === 'fulfilled' ? results[0].value : 0
+      const newUsers = results[1].status === 'fulfilled' ? results[1].value : 0
+      const activeSubscriptions = results[2].status === 'fulfilled' ? results[2].value : 0
+      const newSubscriptions = results[3].status === 'fulfilled' ? results[3].value : 0
+      const cancelledSubscriptions = results[4].status === 'fulfilled' ? results[4].value : 0
+      const recentReadings = results[5].status === 'fulfilled' ? results[5].value : 0
+
+      // Log failures without exposing sensitive details
+      const failedCount = results.filter(r => r.status === 'rejected').length
+      if (failedCount > 0) {
+        logger.warn(`[Admin Funnel] ${failedCount} queries failed, using fallback values`)
+      }
 
       const dailyVisitors = Math.round(newUsers * 30)
       const weeklyVisitors = Math.round(dailyVisitors * 5)

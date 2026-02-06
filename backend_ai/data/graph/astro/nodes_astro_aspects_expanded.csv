@@ -1,0 +1,72 @@
+id,label,type,aspect_name,degree,orb,nature,korean_name,energy,effect,saju_correlation,description
+AA_conjunction,합,astro_aspect,Conjunction,0,8,neutral,합(0도),융합/강화/집중,두에너지가하나로융합/강렬한표현,천간합-융합,합(Conjunction)은 두 행성이 같은 위치에서 에너지를 융합. 행성의 성격에 따라 조화롭거나 긴장될 수 있음.
+AA_sextile,육분,astro_aspect,Sextile,60,4,harmonious,육분(60도),기회/재능/협력,자연스러운재능과기회/노력하면열리는문,지지삼합-조화,육분(Sextile)은 조화로운 기회의 각도. 자연스러운 재능이나 기회가 있으나 활용하려면 노력 필요.
+AA_square,사각,astro_aspect,Square,90,7,challenging,사각(90도),긴장/도전/성장동력,갈등과긴장/행동을촉발하는압력,충-대립,사각(Square)은 긴장과 도전의 각도. 갈등을 일으키나 그 압력이 성장과 행동의 동력이 됨.
+AA_trine,삼합,astro_aspect,Trine,120,8,harmonious,삼합(120도),조화/재능/흐름,자연스러운재능과행운/노력없이흐르는에너지,삼합-대조화,삼합(Trine)은 가장 조화로운 각도. 타고난 재능과 행운이 자연스럽게 흐르나 게을러질 수 있음.
+AA_opposition,충,astro_aspect,Opposition,180,8,challenging,충(180도),대립/인식/통합과제,반대극의긴장/타인을통한자기인식,충-정면대립,충(Opposition)은 정반대의 긴장. 대립하는 에너지 사이에서 균형을 찾아야 하며 타인을 통해 배움.
+AA_quincunx,불합,astro_aspect,Quincunx,150,3,adjusting,불합(150도),조정/불편함/적응필요,서로맞지않는에너지/지속적조정필요,반합-불완전,불합(Quincunx)은 조정이 필요한 각도. 서로 다른 에너지가 불편하게 연결되어 지속적 적응 필요.
+AA_semisextile,반육분,astro_aspect,Semi-sextile,30,2,minor,반육분(30도),미세한연결/잠재력,인접한에너지의미묘한연결/발전가능성,방합-인접,반육분(Semi-sextile)은 미세한 연결의 각도. 인접한 별자리 에너지가 미묘하게 연결됨.
+AA_semisquare,반사각,astro_aspect,Semi-square,45,2,minor_challenging,반사각(45도),마찰/자극/성장통,작은긴장과마찰/성장을위한자극,형-마찰,반사각(Semi-square)은 작은 긴장의 각도. 성장을 위한 미세한 자극과 마찰을 제공.
+AA_sesquiquadrate,세스퀴사각,astro_aspect,Sesquiquadrate,135,2,minor_challenging,세스퀴사각(135도),조정필요/긴장/해결과제,지속적인긴장/해결해야할과제,파-분열,세스퀴사각(Sesquiquadrate)은 지속적 긴장의 각도. 해결해야 할 과제가 계속 나타남.
+AA_quintile,오분,astro_aspect,Quintile,72,2,creative,오분(72도),창의성/재능/특별한능력,창의적재능/독특한능력발현,특수신살-특별재능,오분(Quintile)은 창의성의 각도. 독특하고 특별한 재능이 발현되는 연결.
+AA_biquintile,쌍오분,astro_aspect,Biquintile,144,2,creative,쌍오분(144도),창의적표현/재능발휘,창의적재능의성숙한표현,특수신살-재능발휘,쌍오분(Biquintile)은 창의적 재능이 성숙하게 표현되는 각도.
+AA_novile,구분,astro_aspect,Novile,40,1.5,spiritual,구분(40도),영적연결/카르마/운명,영적사명과운명적연결/카르마적의미,천을귀인-영적연결,구분(Novile)은 영적 연결의 각도. 9분할의 신비로운 에너지로 운명적 사명과 관련.
+AA_binovile,쌍구분,astro_aspect,Binovile,80,1.5,spiritual,쌍구분(80도),영적성숙/카르마해소,영적성숙과카르마적해소/전생연결,월덕귀인-자비,쌍구분(Binovile)은 영적 성숙의 각도. 전생의 연결과 카르마 해소의 기회.
+AA_quadranovile,사구분,astro_aspect,Quadranovile,160,1.5,spiritual,사구분(160도),영적완성/운명발현,영적여정의완성/운명적발현,화개살-영적각성,사구분(Quadranovile)은 영적 완성의 각도. 영적 여정의 완성과 운명적 발현.
+AA_septile,칠분,astro_aspect,Septile,51.43,1.5,fated,칠분(51.43도),운명/신비/불가해,운명적연결/신비롭고설명불가한끌림,천을귀인-운명,칠분(Septile)은 운명의 각도. 7분할의 신비로운 에너지로 운명적이고 불가해한 연결.
+AA_biseptile,쌍칠분,astro_aspect,Biseptile,102.86,1.5,fated,쌍칠분(102.86도),운명적행동/신비적추진,운명에이끌리는행동/신비로운추진력,역마살-운명이동,쌍칠분(Biseptile)은 운명적 행동의 각도. 신비로운 힘에 이끌려 행동하게 됨.
+AA_triseptile,삼칠분,astro_aspect,Triseptile,154.29,1.5,fated,삼칠분(154.29도),운명완성/신비체험,운명적여정의완성/신비체험,천의성-하늘뜻,삼칠분(Triseptile)은 운명 완성의 각도. 운명적 여정이 완성되는 신비로운 체험.
+AA_decile,십분,astro_aspect,Decile,36,1.5,manifestation,십분(36도),물질화/현실화/구체화,아이디어의물질화/꿈을현실로,정재-현실화,십분(Decile)은 물질화의 각도. 아이디어를 현실로 만드는 구체화 능력.
+AA_tridecile,삼십분,astro_aspect,Tridecile,108,1.5,manifestation,삼십분(108도),성숙한현실화/완성된구현,성숙한방식의현실화/완성된구현,정재-완성,삼십분(Tridecile)은 성숙한 현실화의 각도. 경험을 통해 완성된 구현 능력.
+AA_undecile,십일분,astro_aspect,Undecile,32.73,1,transcendent,십일분(32.73도),초월/직관/영감,일반적틀을초월하는영감/직관적통찰,편인-직관,십일분(Undecile)은 초월의 각도. 일반적인 틀을 넘어서는 영감과 직관.
+AA_vigintile,이십분,astro_aspect,Vigintile,18,1,subtle,이십분(18도),미세한연결/잠재적영향,매우미세한에너지연결/잠재적영향,묘한인연-미세,이십분(Vigintile)은 매우 미세한 연결의 각도. 잠재적이고 미묘한 영향.
+AA_parallel,평행,astro_aspect,Parallel,0,1,conjunction_like,평행(적위일치),강화/융합/숨은합,적위가같아숨겨진합의효과/강화작용,암합-숨은합,평행(Parallel)은 적위가 같은 각도. 숨겨진 합의 효과로 에너지가 강화됨.
+AA_contraparallel,역평행,astro_aspect,Contraparallel,0,1,opposition_like,역평행(적위대칭),대립/인식/숨은충,적위가대칭으로숨겨진충의효과,암충-숨은충,역평행(Contraparallel)은 적위가 대칭인 각도. 숨겨진 충의 효과로 인식과 대립.
+AA_sun_moon_conj,일월합,astro_aspect_pair,Sun_Moon_Conjunction,0,10,identity,해달합,자아와감정의융합/신월,의지와감정이하나/본능적인사람,일간일지합-내면통합,태양과 달의 합은 의지와 감정이 하나로 통합. 본능적이고 직관적이나 객관성이 부족할 수 있음.
+AA_sun_moon_opp,일월충,astro_aspect_pair,Sun_Moon_Opposition,180,10,awareness,해달충,자아와감정의대립/보름,내면갈등/의식과무의식의긴장,일간일지충-내면갈등,태양과 달의 충은 의지와 감정 사이의 긴장. 내면 갈등이 있으나 자기 인식이 깊어질 수 있음.
+AA_sun_moon_square,일월사각,astro_aspect_pair,Sun_Moon_Square,90,8,tension,해달사각,자아와감정의긴장/반달,내면의갈등이행동의동력/복잡한감정,일간일지형-내면마찰,태양과 달의 사각은 의지와 감정 사이의 긴장. 내면 갈등이 행동의 동력이 되나 스트레스 유발.
+AA_sun_moon_trine,일월삼합,astro_aspect_pair,Sun_Moon_Trine,120,8,harmony,해달삼합,자아와감정의조화/심리안정,의지와감정이자연스럽게흐름/심리적안정,일간일지합-내면조화,태양과 달의 삼합은 의지와 감정의 자연스러운 조화. 심리적으로 안정되고 자기 확신이 있음.
+AA_sun_moon_sextile,일월육분,astro_aspect_pair,Sun_Moon_Sextile,60,6,opportunity,해달육분,자아와감정의기회/성장가능,의지와감정을통합할기회/노력시조화,일간일지-성장기회,태양과 달의 육분은 의지와 감정 통합의 기회. 노력하면 내면 조화를 이룰 수 있음.
+AA_venus_mars_conj,금화합,astro_aspect_pair,Venus_Mars_Conjunction,0,8,passion,금성화성합,사랑과욕망의융합/열정,강렬한매력/연애와섹슈얼리티융합,도화함지-강한매력,금성과 화성의 합은 사랑과 욕망이 하나로. 강렬한 매력과 열정적인 관계를 나타냄.
+AA_venus_mars_opp,금화충,astro_aspect_pair,Venus_Mars_Opposition,180,8,tension,금성화성충,사랑과욕망의대립/끌림과밀침,연애에서끌리면서도갈등/매력과분쟁,도화충-연애갈등,금성과 화성의 충은 끌림과 밀침이 공존. 강한 매력이 있으나 관계에서 갈등 발생.
+AA_venus_mars_square,금화사각,astro_aspect_pair,Venus_Mars_Square,90,7,friction,금성화성사각,사랑과욕망의마찰/열정적갈등,연애에서강한끌림과마찰/열정적이나힘듦,도화형-연애마찰,금성과 화성의 사각은 사랑과 욕망 사이의 마찰. 열정적이나 관계 유지가 어려울 수 있음.
+AA_venus_mars_trine,금화삼합,astro_aspect_pair,Venus_Mars_Trine,120,8,flow,금성화성삼합,사랑과욕망의조화/자연스러운관계,연애에서자연스러운흐름/건강한관계,도화합-연애순조,금성과 화성의 삼합은 사랑과 욕망의 자연스러운 조화. 건강하고 만족스러운 관계.
+AA_sun_saturn_conj,일토합,astro_aspect_pair,Sun_Saturn_Conjunction,0,8,discipline,해토합,자아와구조의융합/엄격,진지하고책임감있음/권위/늦은성공,정관합-권위의식,태양과 토성의 합은 자아와 규율의 융합. 진지하고 책임감 있으나 초년에 어려움.
+AA_sun_saturn_opp,일토충,astro_aspect_pair,Sun_Saturn_Opposition,180,8,challenge,해토충,자아와제약의대립/장애,권위와의갈등/아버지문제/외부장애,정관충-권위갈등,태양과 토성의 충은 자아와 제약 사이의 갈등. 권위자와의 갈등이나 외부 장애.
+AA_sun_saturn_square,일토사각,astro_aspect_pair,Sun_Saturn_Square,90,7,struggle,해토사각,자아와구조의긴장/노력,성공을위한투쟁/자기의심/노력형,정관형-노력투쟁,태양과 토성의 사각은 성공을 위한 투쟁. 자기 의심이 있으나 노력으로 극복.
+AA_moon_saturn_conj,월토합,astro_aspect_pair,Moon_Saturn_Conjunction,0,8,emotional_control,달토합,감정과구조의융합/억제,감정억제/우울경향/어머니문제/책임감,정인합-감정절제,달과 토성의 합은 감정과 규율의 융합. 감정 표현이 억제되고 책임감이 강함.
+AA_moon_saturn_opp,월토충,astro_aspect_pair,Moon_Saturn_Opposition,180,8,emotional_block,달토충,감정과제약의대립/냉담,감정적냉담/어머니와의갈등/외로움,정인충-감정갈등,달과 토성의 충은 감정과 제약의 대립. 정서적 냉담함이나 외로움.
+AA_mars_saturn_conj,화토합,astro_aspect_pair,Mars_Saturn_Conjunction,0,8,controlled_action,화토합,행동과구조의융합/절제된힘,절제된행동력/인내력/느리지만강한추진,편관합-통제된힘,화성과 토성의 합은 행동과 규율의 융합. 절제된 힘으로 느리지만 강력하게 추진.
+AA_mars_saturn_opp,화토충,astro_aspect_pair,Mars_Saturn_Opposition,180,8,blocked_action,화토충,행동과제약의대립/좌절,행동이막힘/좌절감/외부의방해,편관충-행동좌절,화성과 토성의 충은 행동과 제약의 대립. 추진력이 외부에 의해 막히는 좌절.
+AA_mars_saturn_square,화토사각,astro_aspect_pair,Mars_Saturn_Square,90,7,frustrated_action,화토사각,행동과구조의긴장/억압된분노,억압된분노/행동의제약/인내필요,편관형-억압분노,화성과 토성의 사각은 행동과 규율의 긴장. 억압된 분노가 있으나 인내로 극복.
+AA_jupiter_saturn_conj,목토합,astro_aspect_pair,Jupiter_Saturn_Conjunction,0,10,balance,목토합,확장과수축의융합/균형,성장과제약의균형/현실적낙관,재관합-균형발전,목성과 토성의 합은 확장과 수축의 균형. 현실적인 낙관주의로 균형 잡힌 성장.
+AA_jupiter_saturn_opp,목토충,astro_aspect_pair,Jupiter_Saturn_Opposition,180,10,tension,목토충,확장과수축의대립/갈등,성장과제약사이의갈등/과욕과자기제한,재관충-성장갈등,목성과 토성의 충은 성장과 제약 사이의 긴장. 확장하려는 욕구와 현실의 제약 사이 갈등.
+AA_saturn_pluto,토명합,astro_aspect_pair,Saturn_Pluto_Conjunction,0,8,transformation,토성명왕합,구조의변환/권력,기존구조의붕괴와재건/강력한변환,대운교체-근본변화,토성과 명왕성의 합은 근본적인 구조 변화. 권력 구조의 붕괴와 재건.
+AA_saturn_uranus_conj,토천합,astro_aspect_pair,Saturn_Uranus_Conjunction,0,8,reform,토천합,구조와혁신의융합/개혁,구조적개혁/전통과혁신의융합/체계적변화,정관합-체계적혁신,토성과 천왕성의 합은 구조와 혁신의 융합. 체계적이고 지속적인 개혁.
+AA_saturn_neptune_conj,토해합,astro_aspect_pair,Saturn_Neptune_Conjunction,0,8,dream_manifest,토해합,구조와몽상의융합/꿈현실화,꿈을현실로만드는힘/이상과현실의융합,정관합-이상현실화,토성과 해왕성의 합은 구조와 꿈의 융합. 이상을 현실로 구현하는 능력.
+AA_uranus_pluto_conj,천명합,astro_aspect_pair,Uranus_Pluto_Conjunction,0,10,revolution,천명합,혁명과변환의융합/대변혁,사회적대변혁/세대적변화/혁명적전환,대운대변혁,천왕성과 명왕성의 합은 혁명과 변환의 융합. 세대적 대변혁과 사회적 전환.
+AA_neptune_pluto_conj,해명합,astro_aspect_pair,Neptune_Pluto_Conjunction,0,10,spiritual_transform,해명합,영적변환/집단무의식변화,집단무의식의변화/영적대변환/시대정신,영적대전환,해왕성과 명왕성의 합은 영적 대변환. 집단 무의식의 변화와 시대 정신의 전환.
+AA_sun_jupiter_conj,일목합,astro_aspect_pair,Sun_Jupiter_Conjunction,0,8,expansion,해목합,자아와확장의융합/낙관,자신감과낙관주의/기회많음/과잉주의,식신합-재능확장,태양과 목성의 합은 자아와 확장의 융합. 자신감과 낙관주의가 넘치나 과잉 주의.
+AA_sun_uranus_conj,일천합,astro_aspect_pair,Sun_Uranus_Conjunction,0,8,unique,해천합,자아와독창의융합/독특,독특하고혁신적/반항적/천재성,편인합-독창성,태양과 천왕성의 합은 자아와 독창성의 융합. 독특하고 혁신적이나 반항적일 수 있음.
+AA_sun_neptune_conj,일해합,astro_aspect_pair,Sun_Neptune_Conjunction,0,8,intuition,해해합,자아와영감의융합/직관,직관적이고영적/예술적/현실감약함,편인합-영적직관,태양과 해왕성의 합은 자아와 영감의 융합. 직관적이고 예술적이나 현실감이 약할 수 있음.
+AA_sun_pluto_conj,일명합,astro_aspect_pair,Sun_Pluto_Conjunction,0,8,power,해명합,자아와권력의융합/강렬,강렬한의지력/권력지향/변환능력,편관합-강렬한힘,태양과 명왕성의 합은 자아와 권력의 융합. 강렬한 의지력과 변환 능력.
+AA_moon_jupiter_conj,월목합,astro_aspect_pair,Moon_Jupiter_Conjunction,0,8,emotional_growth,달목합,감정과확장의융합/관대,관대하고낙관적감정/어머니복/풍요,정인합-정서풍요,달과 목성의 합은 감정과 확장의 융합. 관대하고 낙관적인 감정 표현.
+AA_moon_uranus_conj,월천합,astro_aspect_pair,Moon_Uranus_Conjunction,0,8,emotional_freedom,달천합,감정과자유의융합/독립,감정적독립/불규칙한감정/독특한가정,편인합-감정독립,달과 천왕성의 합은 감정과 자유의 융합. 감정적 독립성이 강하나 불안정할 수 있음.
+AA_moon_neptune_conj,월해합,astro_aspect_pair,Moon_Neptune_Conjunction,0,8,emotional_sensitivity,달해합,감정과영감의융합/예민,극도로예민한감정/직관적/공감능력,정인합-감정예민,달과 해왕성의 합은 감정과 영감의 융합. 극도로 예민하고 공감 능력이 뛰어남.
+AA_moon_pluto_conj,월명합,astro_aspect_pair,Moon_Pluto_Conjunction,0,8,emotional_intensity,달명합,감정과권력의융합/강렬,강렬한감정/집착경향/깊은변환,편인합-감정강렬,달과 명왕성의 합은 감정과 권력의 융합. 강렬한 감정과 깊은 변환 능력.
+AA_mercury_venus_conj,수금합,astro_aspect_pair,Mercury_Venus_Conjunction,0,8,charm,수금합,소통과아름다움의융합/매력,매력적인말솜씨/예술적표현/사교성,식신합-매력표현,수성과 금성의 합은 소통과 아름다움의 융합. 매력적인 표현력과 사교성.
+AA_mercury_mars_conj,수화합,astro_aspect_pair,Mercury_Mars_Conjunction,0,8,sharp_mind,수화합,소통과행동의융합/날카로움,날카로운지성/논쟁적/빠른사고,상관합-날카로운표현,수성과 화성의 합은 소통과 행동의 융합. 날카로운 지성과 빠른 사고.
+AA_mercury_jupiter_conj,수목합,astro_aspect_pair,Mercury_Jupiter_Conjunction,0,8,big_thinking,수목합,소통과확장의융합/큰생각,큰그림사고/철학적/과장경향,식신합-지적확장,수성과 목성의 합은 소통과 확장의 융합. 큰 그림을 보는 사고와 철학적 관심.
+AA_mercury_saturn_conj,수토합,astro_aspect_pair,Mercury_Saturn_Conjunction,0,8,serious_mind,수토합,소통과구조의융합/신중,신중한사고/논리적/느린말/깊은이해,정인합-신중한사고,수성과 토성의 합은 소통과 구조의 융합. 신중하고 논리적인 사고.
+AA_mercury_uranus_conj,수천합,astro_aspect_pair,Mercury_Uranus_Conjunction,0,8,genius_mind,수천합,소통과혁신의융합/천재,천재적사고/독창적아이디어/불규칙,편인합-천재성,수성과 천왕성의 합은 소통과 혁신의 융합. 천재적이고 독창적인 사고.
+AA_mercury_neptune_conj,수해합,astro_aspect_pair,Mercury_Neptune_Conjunction,0,8,intuitive_mind,수해합,소통과영감의융합/직관,직관적사고/시적표현/혼란경향,편인합-직관사고,수성과 해왕성의 합은 소통과 영감의 융합. 직관적이고 시적인 표현.
+AA_mercury_pluto_conj,수명합,astro_aspect_pair,Mercury_Pluto_Conjunction,0,8,penetrating_mind,수명합,소통과권력의융합/통찰,관통하는통찰력/비밀파악/심리분석,편인합-깊은통찰,수성과 명왕성의 합은 소통과 권력의 융합. 깊이 파고드는 통찰력.
+AA_venus_jupiter_conj,금목합,astro_aspect_pair,Venus_Jupiter_Conjunction,0,8,abundance,금목합,사랑과확장의융합/풍요,풍요와행운/관대한사랑/낭비주의,정재합-재물풍요,금성과 목성의 합은 사랑과 확장의 융합. 풍요롭고 관대한 에너지.
+AA_venus_saturn_conj,금토합,astro_aspect_pair,Venus_Saturn_Conjunction,0,8,loyal_love,금토합,사랑과구조의융합/충실,충실하고진지한사랑/늦은연애/지속적관계,정재합-안정적사랑,금성과 토성의 합은 사랑과 구조의 융합. 충실하고 지속적인 관계.
+AA_venus_uranus_conj,금천합,astro_aspect_pair,Venus_Uranus_Conjunction,0,8,exciting_love,금천합,사랑과혁신의융합/흥미,흥미진진한사랑/불규칙한관계/자유로운연애,편재합-자유로운사랑,금성과 천왕성의 합은 사랑과 혁신의 융합. 흥미진진하나 불안정한 관계.
+AA_venus_neptune_conj,금해합,astro_aspect_pair,Venus_Neptune_Conjunction,0,8,romantic_love,금해합,사랑과영감의융합/낭만,이상적사랑/낭만적/환상에빠짐,정재합-이상적사랑,금성과 해왕성의 합은 사랑과 영감의 융합. 이상적이고 낭만적인 사랑.
+AA_venus_pluto_conj,금명합,astro_aspect_pair,Venus_Pluto_Conjunction,0,8,intense_love,금명합,사랑과권력의융합/강렬,강렬하고집착적인사랑/변환적관계,편재합-강렬한사랑,금성과 명왕성의 합은 사랑과 권력의 융합. 강렬하고 변환적인 관계.
+AA_mars_jupiter_conj,화목합,astro_aspect_pair,Mars_Jupiter_Conjunction,0,8,ambitious_action,화목합,행동과확장의융합/야망,야심찬행동력/모험/과잉행동주의,편관합-야심찬추진,화성과 목성의 합은 행동과 확장의 융합. 야심차고 모험적인 행동력.
+AA_mars_uranus_conj,화천합,astro_aspect_pair,Mars_Uranus_Conjunction,0,8,sudden_action,화천합,행동과혁신의융합/돌발,돌발적행동/혁신적추진/사고주의,편관합-돌발행동,화성과 천왕성의 합은 행동과 혁신의 융합. 돌발적이고 혁신적인 행동.
+AA_mars_neptune_conj,화해합,astro_aspect_pair,Mars_Neptune_Conjunction,0,8,inspired_action,화해합,행동과영감의융합/영감,영감에의한행동/이상추구/방향상실주의,편관합-영감행동,화성과 해왕성의 합은 행동과 영감의 융합. 이상을 향한 행동이나 방향 상실 주의.
+AA_mars_pluto_conj,화명합,astro_aspect_pair,Mars_Pluto_Conjunction,0,8,powerful_action,화명합,행동과권력의융합/강력,극도로강력한행동력/지배력/파괴력,편관합-강력한힘,화성과 명왕성의 합은 행동과 권력의 융합. 극도로 강력한 추진력.

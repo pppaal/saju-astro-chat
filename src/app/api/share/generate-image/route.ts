@@ -21,7 +21,10 @@ export const POST = withApiMiddleware(
       const session = await getServerSession(authOptions)
       const userId = session?.user?.id || null
 
-      const rawBody = await req.json()
+      const rawBody = await req.json().catch(() => null)
+      if (!rawBody || typeof rawBody !== 'object') {
+        return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid JSON body')
+      }
 
       const validationResult = shareResultRequestSchema.safeParse(rawBody)
       if (!validationResult.success) {

@@ -100,3 +100,31 @@ export {
 
 // Validator exports (preferred for new code)
 export { ChatMessageSchema, ChatMessagesSchema, type ChatMessage } from './validator'
+
+// Validation Wrapper (for API routes)
+export {
+  validateAndParse,
+  validateQueryParams as validateQueryParamsWrapper,
+  formatValidationErrors,
+  createValidationErrorResponse as createZodValidationErrorResponse,
+  successResponse,
+  errorResponse,
+  notFoundResponse,
+  unauthorizedResponse,
+  HTTP_STATUS,
+  type HttpStatus,
+  type ValidationError as ZodValidationError,
+  type ValidationResult as ZodValidationResult,
+  type ValidationFailure,
+} from './validation-wrapper'
+
+// Backend API Wrapper
+export {
+  callBackendWithFallback,
+  callBackendGet,
+  transformBackendResponse,
+  type BackendCallOptions,
+  type BackendResponse,
+  type BackendCallResult,
+  type BackendCallFailure,
+} from './backend-wrapper'

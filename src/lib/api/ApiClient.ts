@@ -13,25 +13,21 @@ export interface ApiFetchOptions extends Omit<RequestInit, 'headers'> {
 }
 
 /**
- * Wrapper around fetch that automatically includes the X-API-Token header
- * for authenticated API requests to Next.js internal routes
+ * Wrapper around fetch for API requests to Next.js internal routes.
+ * Authentication is handled server-side via session cookies - no client tokens needed.
  */
 export async function apiFetch(url: string, options?: ApiFetchOptions): Promise<Response> {
   const headers: Record<string, string> = {
     ...options?.headers,
   }
 
-  // Add X-API-Token header for internal API calls
-  if (url.startsWith('/api/')) {
-    const token = process.env.NEXT_PUBLIC_API_TOKEN
-    if (token) {
-      headers['X-API-Token'] = token
-    }
-  }
+  // Note: Authentication is handled via httpOnly session cookies
+  // No need to send tokens from client-side - this prevents token exposure
 
   return fetch(url, {
     ...options,
     headers,
+    credentials: 'include', // Ensure cookies are sent with requests
   })
 }
 

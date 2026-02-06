@@ -50,7 +50,7 @@ export function useDreamChat(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: newMessages,
+          messages: newMessages.slice(-50),
           dreamContext,
           locale,
         }),

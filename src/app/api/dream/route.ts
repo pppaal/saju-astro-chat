@@ -10,13 +10,14 @@ import { saveConsultation, extractSummary } from '@/lib/consultation/saveConsult
 import { withCircuitBreaker } from '@/lib/circuitBreaker';
 import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits';
 import { logger } from '@/lib/logger';
-import { sanitizeError } from '@/lib/security/errorSanitizer';
 import { DreamRequestSchema, type DreamRequest } from '@/lib/validation';
-import type { ZodIssue } from 'zod';
 import { recordApiRequest } from '@/lib/metrics/index';
 
 import { parseRequestBody } from '@/lib/api/requestParser';
-import { HTTP_STATUS } from '@/lib/constants/http';
+
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler';
+import { createValidationErrorResponse } from '@/lib/api/zodValidation';
+import { extractLocale } from '@/lib/api/middleware';
 type SymbolCombination = {
   combination: string;
   meaning: string;
@@ -154,13 +155,23 @@ export async function POST(req: NextRequest) {
 
   if (!limit.allowed) {
     recordApiRequest('dream', 'analyze', 'rate_limited');
-    return NextResponse.json({ error: 'Too many requests' }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
+    return createErrorResponse({
+      code: ErrorCodes.RATE_LIMITED,
+      locale: extractLocale(req),
+      route: 'dream',
+      headers: Object.fromEntries(limit.headers.entries()),
+    });
   }
 
   const tokenCheck = requirePublicToken(req);
   if (!tokenCheck.valid) {
     recordApiRequest('dream', 'analyze', 'error');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
+    return createErrorResponse({
+      code: ErrorCodes.UNAUTHORIZED,
+      locale: extractLocale(req),
+      route: 'dream',
+      headers: Object.fromEntries(limit.headers.entries()),
+    });
   }
 
   try {
@@ -168,10 +179,13 @@ export async function POST(req: NextRequest) {
     const rawBody = await parseRequestBody<Record<string, unknown>>(req, { context: 'Dream' });
     if (!rawBody) {
       recordApiRequest('dream', 'analyze', 'validation_error');
-      return NextResponse.json(
-        { error: 'Invalid JSON body' },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      );
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Invalid JSON body',
+        locale: extractLocale(req),
+        route: 'dream',
+        headers: Object.fromEntries(limit.headers.entries()),
+      });
     }
 
     // Support legacy field name
@@ -190,12 +204,11 @@ export async function POST(req: NextRequest) {
     // Validate with Zod schema
     const validation = DreamRequestSchema.safeParse(rawBody);
     if (!validation.success) {
-      const errors = validation.error.issues.map((e: ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ');
       recordApiRequest('dream', 'analyze', 'validation_error');
-      return NextResponse.json(
-        { error: `Validation failed: ${errors}` },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      );
+      return createValidationErrorResponse(validation.error, {
+        locale: extractLocale(req),
+        route: 'dream',
+      });
     }
 
     const validatedBody: DreamRequest = validation.data;
@@ -367,10 +380,11 @@ export async function POST(req: NextRequest) {
     const error = e instanceof Error ? e : new Error(String(e));
     captureServerError(error, { route: "/api/dream", method: "POST" });
     recordApiRequest('dream', 'analyze', 'error', Date.now() - startTime);
-    return NextResponse.json(
-      { error: error.message || "server error" },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    );
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'dream',
+      originalError: error,
+    });
   }
 }
 
@@ -378,10 +392,21 @@ export async function GET(req: NextRequest) {
   const ip = getClientIp(req.headers);
   const limit = await rateLimit(`dream:get:${ip}`, { limit: 30, windowSeconds: 60 });
   if (!limit.allowed) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers });
+    return createErrorResponse({
+      code: ErrorCodes.RATE_LIMITED,
+      locale: extractLocale(req),
+      route: 'dream',
+      headers: Object.fromEntries(limit.headers.entries()),
+    });
   }
-  const tokenCheck = requirePublicToken(req); if (!tokenCheck.valid) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers });
+  const tokenCheck = requirePublicToken(req);
+  if (!tokenCheck.valid) {
+    return createErrorResponse({
+      code: ErrorCodes.UNAUTHORIZED,
+      locale: extractLocale(req),
+      route: 'dream',
+      headers: Object.fromEntries(limit.headers.entries()),
+    });
   }
   try {
     const res = NextResponse.json({ message: 'Dream API alive!' });
@@ -390,7 +415,10 @@ export async function GET(req: NextRequest) {
   } catch (e: unknown) {
     const error = e instanceof Error ? e : new Error(String(e));
     captureServerError(error, { route: "/api/dream", method: "GET" });
-    const sanitized = sanitizeError(e, 'internal');
-    return NextResponse.json(sanitized, { status: HTTP_STATUS.SERVER_ERROR });
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'dream',
+      originalError: error,
+    });
   }
 }

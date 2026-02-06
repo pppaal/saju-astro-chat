@@ -3,7 +3,7 @@
  * 일진/트랜짓 기반 실시간 푸시 알림 콘텐츠 생성
  */
 
-import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '@/lib/Saju/stemElementMapping';
+import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '@/lib/Saju/constants';
 import { ELEMENT_RELATIONS } from '@/lib/destiny-map/config/elements.config';
 
 // 별자리-오행 매핑

@@ -30,6 +30,15 @@ from .error_handler import (
     ErrorContext,
 )
 
+from .json_safe import (
+    safe_json_loads,
+    safe_json_dumps,
+    safe_json_load_file,
+    validate_json_structure,
+    JSONParseError,
+    JSONSizeError,
+)
+
 __all__ = [
     # Data loading functions
     "load_integration_data",
@@ -52,4 +61,12 @@ __all__ = [
     "safe_get",
     "log_error",
     "ErrorContext",
+
+    # Safe JSON
+    "safe_json_loads",
+    "safe_json_dumps",
+    "safe_json_load_file",
+    "validate_json_structure",
+    "JSONParseError",
+    "JSONSizeError",
 ]

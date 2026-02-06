@@ -13,7 +13,7 @@ import {
   disconnectTestDb,
 } from "./setup";
 import { calculateSajuData } from "@/lib/Saju/saju";
-import { analyzeComprehensiveCompatibility } from "@/lib/Saju/compatibilityEngine";
+import { analyzeComprehensiveCompatibility } from "@/lib/Saju/compatibility";
 import { calculateCosmicCompatibility } from "@/lib/compatibility/cosmicCompatibility";
 
 const toCompatibilitySubject = (id: string, saju: ReturnType<typeof calculateSajuData>) => ({

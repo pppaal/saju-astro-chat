@@ -1,24 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { idParamSchema } from '@/lib/api/zodValidation'
+import { idParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { extractLocale } from '@/lib/api/middleware'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const rawParams = await params
     const paramValidation = idParamSchema.safeParse(rawParams)
     if (!paramValidation.success) {
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: paramValidation.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(paramValidation.error, {
+        locale: extractLocale(req),
+        route: 'share/[id]',
+      })
     }
     const { id } = paramValidation.data
 
@@ -27,15 +22,22 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     })
 
     if (!sharedResult) {
-      return NextResponse.json(
-        { error: 'Shared result not found' },
-        { status: HTTP_STATUS.NOT_FOUND }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.NOT_FOUND,
+        message: 'Shared result not found',
+        locale: extractLocale(req),
+        route: 'share/[id]',
+      })
     }
 
     // Check if expired
     if (sharedResult.expiresAt && sharedResult.expiresAt < new Date()) {
-      return NextResponse.json({ error: 'Shared result has expired' }, { status: 410 })
+      return createErrorResponse({
+        code: ErrorCodes.NOT_FOUND,
+        message: 'Shared result has expired',
+        locale: extractLocale(req),
+        route: 'share/[id]',
+      })
     }
 
     // Increment view count
@@ -53,9 +55,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     })
   } catch (error) {
     logger.error('Error fetching shared result:', { error })
-    return NextResponse.json(
-      { error: 'Failed to fetch shared result' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'share/[id]',
+      originalError: error instanceof Error ? error : new Error(String(error)),
+    })
   }
 }

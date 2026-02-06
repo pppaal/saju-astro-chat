@@ -1562,13 +1562,13 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
         {
           metadata: { type: 'other' },
         },
-        { created: nowEpoch(-300) }
+        { created: nowEpoch(-299) }
       )
       mockConstructEvent.mockReturnValue(event)
 
       const response = await POST(makeWebhookRequest())
-      // 300 seconds is exactly the boundary; eventAgeSeconds > 300 is the check.
-      // 300 is NOT > 300, so it should be accepted.
+      // 299 seconds old is within the 300s window (eventAgeSeconds > 300 check).
+      // Use -299 instead of -300 to avoid timing drift between event creation and assertion.
       expect(response.status).toBe(200)
     })
 

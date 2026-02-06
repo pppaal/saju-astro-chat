@@ -13,6 +13,23 @@ import {
   localeSchema,
   chatMessageSchema,
 } from './common'
+import {
+  sajuChatContextSchema,
+  sajuResultSchema,
+  fiveElementSchema,
+  sibsinDistributionSchema,
+  twelveStagesRecordSchema,
+  ganjiSchema,
+  advancedSajuAnalysisSchema,
+} from './domains/saju-domain'
+import {
+  astroChatContextSchema,
+  planetHousesSchema,
+  planetSignsSchema,
+  aspectHitSchema,
+  transitAspectSchema,
+  extraPointSchema,
+} from './domains/astro-domain'
 
 // ============ Saju API Schema ============
 
@@ -43,14 +60,23 @@ export type SajuCalculationRequestValidated = z.infer<typeof sajuCalculationRequ
 
 export const sajuChatStreamSchema = z.object({
   messages: z.array(chatMessageSchema).min(1).max(100),
-  saju: z.record(z.string(), z.unknown()).optional(),
+  saju: sajuChatContextSchema.optional(),
   locale: z.enum(['ko', 'en']).optional(),
-  context: z.record(z.string(), z.unknown()).optional(),
+  context: sajuChatContextSchema.optional(),
 })
 
 export type SajuChatStreamValidated = z.infer<typeof sajuChatStreamSchema>
 
 // ============ Astrology Schemas ============
+
+export const astrologyOptionsSchema = z.object({
+  houseSystem: z.enum(['Placidus', 'WholeSign', 'Koch', 'Equal', 'Campanus']).optional(),
+  includeAsteroids: z.boolean().optional(),
+  includeFixedStars: z.boolean().optional(),
+  includeChiron: z.boolean().optional(),
+  includeLilith: z.boolean().optional(),
+  aspectOrb: z.number().min(0).max(15).optional(),
+})
 
 export const astrologyRequestSchema = z.object({
   date: dateSchema,
@@ -59,10 +85,18 @@ export const astrologyRequestSchema = z.object({
   longitude: z.union([longitudeSchema, z.string().transform((val) => parseFloat(val))]),
   timeZone: timezoneSchema,
   locale: localeSchema.optional(),
-  options: z.record(z.string(), z.unknown()).optional(),
+  options: astrologyOptionsSchema.optional(),
 })
 
 export type AstrologyRequest = z.infer<typeof astrologyRequestSchema>
+
+export const advancedAstrologyOptionsSchema = z.object({
+  harmonicNumber: z.number().int().min(1).max(360).optional(),
+  progressionType: z.enum(['secondary', 'solarArc']).optional(),
+  eclipseType: z.enum(['solar', 'lunar', 'both']).optional(),
+  midpointStyle: z.enum(['direct', 'modulus90']).optional(),
+  aspectsToInclude: z.array(z.string().max(20)).optional(),
+})
 
 export const advancedAstrologyRequestSchema = z.object({
   birthDate: dateSchema,
@@ -83,16 +117,33 @@ export const advancedAstrologyRequestSchema = z.object({
     'rectification',
   ]),
   targetDate: dateSchema.optional(),
-  options: z.record(z.string(), z.unknown()).optional(),
+  options: advancedAstrologyOptionsSchema.optional(),
   locale: localeSchema.optional(),
 })
 
 export type AdvancedAstrologyRequestValidated = z.infer<typeof advancedAstrologyRequestSchema>
 
+export const astroBirthDataSchema = z.object({
+  birthDate: dateSchema.optional(),
+  birthTime: timeSchema.optional(),
+  latitude: latitudeSchema.optional(),
+  longitude: longitudeSchema.optional(),
+  timezone: timezoneSchema.optional(),
+})
+
+export const astroChartDataSchema = z.object({
+  sunSign: z.string().max(30).optional(),
+  moonSign: z.string().max(30).optional(),
+  ascendant: z.string().max(30).optional(),
+  planetHouses: planetHousesSchema.optional(),
+  planetSigns: planetSignsSchema.optional(),
+  aspects: z.array(aspectHitSchema).optional(),
+})
+
 export const astrologyChatStreamSchema = z.object({
   messages: z.array(chatMessageSchema).min(1).max(100),
-  birthData: z.record(z.string(), z.unknown()).optional(),
-  chartData: z.record(z.string(), z.unknown()).optional(),
+  birthData: astroBirthDataSchema.optional(),
+  chartData: astroChartDataSchema.optional(),
   locale: z.enum(['ko', 'en']).optional(),
 })
 
@@ -135,12 +186,22 @@ export const destinyMapRequestSchema = z.object({
 
 export type DestinyMapRequestValidated = z.infer<typeof destinyMapRequestSchema>
 
+export const destinyMapContextSchema = z.object({
+  theme: z.string().max(50).optional(),
+  sessionId: z.string().max(100).optional(),
+  previousTopics: z.array(z.string().max(100)).optional(),
+  userPreferences: z.object({
+    detailLevel: z.enum(['brief', 'moderate', 'detailed']).optional(),
+    focusArea: z.enum(['career', 'love', 'health', 'wealth', 'general']).optional(),
+  }).optional(),
+})
+
 export const destinyMapChatSchema = z.object({
   messages: z.array(chatMessageSchema).min(1).max(100),
-  saju: z.record(z.string(), z.unknown()).optional(),
-  astro: z.record(z.string(), z.unknown()).optional(),
+  saju: sajuChatContextSchema.optional(),
+  astro: astroChatContextSchema.optional(),
   locale: z.enum(['ko', 'en']).optional(),
-  context: z.record(z.string(), z.unknown()).optional(),
+  context: destinyMapContextSchema.optional(),
 })
 
 export type DestinyMapChatValidated = z.infer<typeof destinyMapChatSchema>
@@ -156,12 +217,28 @@ export const destinyMatrixRequestSchema = z.object({
 
 export type DestinyMatrixRequestValidated = z.infer<typeof destinyMatrixRequestSchema>
 
+export const destinyMatrixReportDataSchema = z.object({
+  categories: z.array(z.object({
+    name: z.string().max(50),
+    score: z.number().min(0).max(100),
+    description: z.string().max(1000).optional(),
+  })).optional(),
+  highlights: z.array(z.string().max(500)).optional(),
+  warnings: z.array(z.string().max(500)).optional(),
+  recommendations: z.array(z.string().max(500)).optional(),
+  luckyFactors: z.object({
+    colors: z.array(z.string().max(30)).optional(),
+    numbers: z.array(z.number().int().min(0).max(99)).optional(),
+    directions: z.array(z.string().max(30)).optional(),
+  }).optional(),
+})
+
 export const destinyMatrixSaveRequestSchema = z
   .object({
     reportType: z.enum(['timing', 'themed']),
     period: z.enum(['daily', 'monthly', 'yearly', 'comprehensive']).optional(),
     theme: z.enum(['love', 'career', 'wealth', 'health', 'family']).optional(),
-    reportData: z.record(z.string(), z.unknown()),
+    reportData: destinyMatrixReportDataSchema,
     title: z.string().min(1).max(300).trim(),
     summary: z.string().max(2000).optional(),
     overallScore: z.number().min(0).max(100).optional(),
@@ -195,7 +272,9 @@ export const destinyMatrixSaveRequestSchema = z
 
 export type DestinyMatrixSaveRequestValidated = z.infer<typeof destinyMatrixSaveRequestSchema>
 
-export const fiveElementSchema = z.enum(['목', '화', '토', '금', '수'])
+// fiveElementSchema is imported from './domains/saju-domain'
+// Re-export for backwards compatibility
+export { fiveElementSchema } from './domains/saju-domain'
 
 export const destinyMatrixCalculationSchema = z
   .object({
@@ -205,21 +284,21 @@ export const destinyMatrixCalculationSchema = z
     timezone: timezoneSchema.optional(),
     dayMasterElement: fiveElementSchema.optional(),
     pillarElements: z.array(fiveElementSchema).optional(),
-    sibsinDistribution: z.record(z.string(), z.number()).optional(),
-    twelveStages: z.record(z.string(), z.unknown()).optional(),
-    relations: z.array(z.string()).optional(),
+    sibsinDistribution: sibsinDistributionSchema.optional(),
+    twelveStages: twelveStagesRecordSchema.optional(),
+    relations: z.array(z.string().max(50)).optional(),
     geokguk: z.string().max(100).optional(),
-    yongsin: z.array(z.string()).optional(),
+    yongsin: z.array(fiveElementSchema).optional(),
     currentDaeunElement: fiveElementSchema.optional(),
     currentSaeunElement: fiveElementSchema.optional(),
     shinsalList: z.array(z.string().max(50)).optional(),
-    dominantWesternElement: z.string().max(50).optional(),
-    planetHouses: z.record(z.string(), z.unknown()).optional(),
-    planetSigns: z.record(z.string(), z.unknown()).optional(),
-    aspects: z.array(z.unknown()).optional(),
-    activeTransits: z.array(z.unknown()).optional(),
-    asteroidHouses: z.record(z.string(), z.unknown()).optional(),
-    extraPointSigns: z.record(z.string(), z.unknown()).optional(),
+    dominantWesternElement: z.enum(['fire', 'earth', 'air', 'water']).optional(),
+    planetHouses: planetHousesSchema.optional(),
+    planetSigns: planetSignsSchema.optional(),
+    aspects: z.array(aspectHitSchema).optional(),
+    activeTransits: z.array(transitAspectSchema).optional(),
+    asteroidHouses: planetHousesSchema.optional(),
+    extraPointSigns: planetSignsSchema.optional(),
     lang: z.enum(['ko', 'en']).optional(),
   })
   .refine((data) => data.birthDate || data.dayMasterElement, {
@@ -234,11 +313,22 @@ export const destinyMatrixQuerySchema = z.object({
 
 export type DestinyMatrixQueryValidated = z.infer<typeof destinyMatrixQuerySchema>
 
+export const matrixDataSchema = z.object({
+  lifePathNumber: z.number().int().min(1).max(33).optional(),
+  destinyNumber: z.number().int().min(1).max(33).optional(),
+  soulUrge: z.number().int().min(1).max(33).optional(),
+  personality: z.number().int().min(1).max(33).optional(),
+  birthday: z.number().int().min(1).max(31).optional(),
+  matrixGrid: z.array(z.array(z.number().int())).optional(),
+  challenges: z.array(z.number().int()).optional(),
+  pinnacles: z.array(z.number().int()).optional(),
+})
+
 export const destinyMatrixAiReportSchema = z.object({
   birthDate: dateSchema,
-  matrixData: z.record(z.string(), z.unknown()),
+  matrixData: matrixDataSchema,
   locale: localeSchema.optional(),
-  reportType: z.string().max(50).optional(),
+  reportType: z.enum(['personality', 'career', 'relationship', 'yearly', 'comprehensive']).optional(),
 })
 
 export type DestinyMatrixAiReportValidated = z.infer<typeof destinyMatrixAiReportSchema>
@@ -256,6 +346,26 @@ export const destinyMatrixSaveGetQuerySchema = z.object({
 
 // ============ Calendar Schemas ============
 
+export const sajuFactorsSchema = z.object({
+  dayMaster: z.string().max(10).optional(),
+  currentDaeun: z.string().max(20).optional(),
+  currentSaeun: z.string().max(20).optional(),
+  dailyGanji: z.string().max(10).optional(),
+  favorableElements: z.array(fiveElementSchema).optional(),
+  unfavorableElements: z.array(fiveElementSchema).optional(),
+  activeRelations: z.array(z.string().max(30)).optional(),
+  activeShinsal: z.array(z.string().max(30)).optional(),
+})
+
+export const astroFactorsSchema = z.object({
+  sunSign: z.string().max(30).optional(),
+  moonPhase: z.string().max(30).optional(),
+  mercuryRetrograde: z.boolean().optional(),
+  activeTransits: z.array(z.string().max(100)).optional(),
+  majorAspects: z.array(z.string().max(100)).optional(),
+  voidOfCourseMoon: z.boolean().optional(),
+})
+
 export const calendarSaveRequestSchema = z.object({
   date: dateSchema,
   year: z.number().int().min(1900).max(2100).optional(),
@@ -266,8 +376,8 @@ export const calendarSaveRequestSchema = z.object({
   summary: z.string().max(1000).trim().optional(),
   categories: z.array(z.string().max(50)).optional(),
   bestTimes: z.array(z.string().max(100)).optional(),
-  sajuFactors: z.record(z.string(), z.unknown()).optional(),
-  astroFactors: z.record(z.string(), z.unknown()).optional(),
+  sajuFactors: sajuFactorsSchema.optional(),
+  astroFactors: astroFactorsSchema.optional(),
   recommendations: z.array(z.string().max(500)).optional(),
   warnings: z.array(z.string().max(500)).optional(),
   birthDate: dateSchema.optional(),
@@ -285,7 +395,7 @@ export const calendarQuerySchema = z.object({
     .regex(/^\d{4}$/)
     .transform(Number)
     .optional(),
-  limit: z.string().regex(/^\d+$/).transform(Number).optional().default(50),
+  limit: z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1).max(365)).optional().default(50),
 })
 
 export type CalendarQueryValidated = z.infer<typeof calendarQuerySchema>
@@ -323,9 +433,22 @@ export const cacheChartSchema = z.object({
 
 export type CacheChartValidated = z.infer<typeof cacheChartSchema>
 
+export const cachedChartDataSchema = z.object({
+  saju: sajuResultSchema.optional(),
+  astro: z.object({
+    sunSign: z.string().max(30).optional(),
+    moonSign: z.string().max(30).optional(),
+    ascendant: z.string().max(30).optional(),
+    houses: z.array(z.number().int().min(1).max(12)).optional(),
+    aspects: z.array(aspectHitSchema).optional(),
+  }).optional(),
+  calculatedAt: z.string().max(50),
+  version: z.string().max(20).optional(),
+})
+
 export const cacheChartSaveSchema = cacheChartSchema.extend({
   birthTime: timeSchema,
-  data: z.record(z.string(), z.unknown()),
+  data: cachedChartDataSchema,
 })
 
 export type CacheChartSaveValidated = z.infer<typeof cacheChartSaveSchema>
@@ -471,12 +594,20 @@ export const compatibilityAnalysisSchema = z.object({
 
 export type CompatibilityAnalysis = z.infer<typeof compatibilityAnalysisSchema>
 
+export const counselorPersonSchema = z.object({
+  name: z.string().max(120).optional(),
+  birthDate: dateSchema.optional(),
+  birthTime: timeSchema.optional(),
+  gender: genderSchema.optional(),
+  relation: z.string().max(50).optional(),
+})
+
 export const compatibilityCounselorRequestSchema = z.object({
-  persons: z.array(z.record(z.string(), z.unknown())).min(2).max(4),
-  person1Saju: z.record(z.string(), z.unknown()).nullable().optional(),
-  person2Saju: z.record(z.string(), z.unknown()).nullable().optional(),
-  person1Astro: z.record(z.string(), z.unknown()).nullable().optional(),
-  person2Astro: z.record(z.string(), z.unknown()).nullable().optional(),
+  persons: z.array(counselorPersonSchema).min(2).max(4),
+  person1Saju: sajuChatContextSchema.nullable().optional(),
+  person2Saju: sajuChatContextSchema.nullable().optional(),
+  person1Astro: astroChatContextSchema.nullable().optional(),
+  person2Astro: astroChatContextSchema.nullable().optional(),
   lang: z.enum(['ko', 'en']).optional(),
   messages: z.array(chatMessageSchema).max(50).optional(),
   theme: z.enum(['general', 'love', 'business', 'family']).optional(),

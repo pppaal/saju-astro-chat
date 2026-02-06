@@ -1,0 +1,364 @@
+{
+  "meta": {
+    "type": "dream_cultural_korean",
+    "version": "1.0",
+    "count": 40,
+    "description": "한국 전통 해몽(解夢) 문화. 태몽, 길몽, 흉몽 등 민속 해석 포함."
+  },
+  "categories": {
+    "taemong": {
+      "description": "태몽(胎夢) - 아이의 잉태와 관련된 꿈. 아이의 성별, 성격, 운명을 예시한다고 믿음.",
+      "symbols": [
+        {
+          "id": "TM_용",
+          "symbol": "용",
+          "gender_prediction": "아들",
+          "child_destiny": "큰 인물. 리더. 권력자. 사업가. 정치가.",
+          "description": "용이 집안으로 들어오거나, 용을 품에 안는 꿈. 가장 귀한 태몽 중 하나.",
+          "variations": "황금용-최고의 길몽, 청룡-학자/관료, 흑룡-무관/사업가"
+        },
+        {
+          "id": "TM_호랑이",
+          "symbol": "호랑이",
+          "gender_prediction": "아들",
+          "child_destiny": "용맹한 인물. 무관. 운동선수. 기업가.",
+          "description": "호랑이가 다가오거나 품에 안기는 꿈. 용기와 힘을 상징.",
+          "variations": "백호-귀한 인물, 호랑이새끼-총명한 아이"
+        },
+        {
+          "id": "TM_돼지",
+          "symbol": "돼지",
+          "gender_prediction": "성별 무관",
+          "child_destiny": "재물복 있는 아이. 부자가 될 운명.",
+          "description": "돼지가 집에 들어오거나 돼지를 안는 꿈. 재물과 풍요의 상징.",
+          "variations": "황금돼지-대부호, 새끼돼지-재물복 자녀"
+        },
+        {
+          "id": "TM_과일",
+          "symbol": "과일(사과/배/복숭아)",
+          "gender_prediction": "딸(사과/복숭아), 아들(배)",
+          "child_destiny": "과일의 상태에 따라 다름. 크고 탐스러울수록 귀한 아이.",
+          "description": "과일을 받거나 따는 꿈. 생명의 탄생을 상징.",
+          "variations": "석류-다산/아들, 감-귀한 아이, 포도-다복"
+        },
+        {
+          "id": "TM_꽃",
+          "symbol": "꽃",
+          "gender_prediction": "딸",
+          "child_destiny": "아름답고 재능 있는 딸. 예술가.",
+          "description": "꽃을 받거나 꽃밭에 있는 꿈. 여성적 아름다움 상징.",
+          "variations": "모란-부귀, 장미-재능, 연꽃-영적/고귀"
+        },
+        {
+          "id": "TM_보석",
+          "symbol": "보석/금",
+          "gender_prediction": "딸(보석), 아들(금)",
+          "child_destiny": "귀하고 빛나는 인물. 성공할 운명.",
+          "description": "보석이나 금을 받는 꿈. 귀한 존재의 탄생.",
+          "variations": "진주-아름다운 딸, 금덩이-부자 아들"
+        },
+        {
+          "id": "TM_잉어",
+          "symbol": "잉어/물고기",
+          "gender_prediction": "아들(잉어), 딸(금붕어)",
+          "child_destiny": "등용문을 넘는 인물. 과거급제. 출세.",
+          "description": "물고기를 잡거나 품에 안는 꿈.",
+          "variations": "잉어-입신양명, 금붕어-재물복, 큰물고기-큰 인물"
+        },
+        {
+          "id": "TM_해달별",
+          "symbol": "해/달/별",
+          "gender_prediction": "아들(해), 딸(달/별)",
+          "child_destiny": "빛나는 인물. 지도자. 유명인.",
+          "description": "천체를 품에 안거나 삼키는 꿈. 최고의 태몽 중 하나.",
+          "variations": "해-제왕급, 달-미인/학자, 별-재능인"
+        }
+      ]
+    },
+    "gilmong": {
+      "description": "길몽(吉夢) - 좋은 일을 예시하는 꿈.",
+      "symbols": [
+        {
+          "id": "GM_승천",
+          "symbol": "하늘로 오름",
+          "meaning": "승진, 합격, 성공, 명예 상승",
+          "description": "하늘로 올라가는 꿈. 사회적 지위 상승의 예조.",
+          "saju_correlation": "정관/편관 대운, 관성 활성화"
+        },
+        {
+          "id": "GM_돈받음",
+          "symbol": "돈/재물 받음",
+          "meaning": "재물 들어옴, 사업 성공, 횡재",
+          "description": "돈을 받거나 줍는 꿈. 재물운 상승의 예조.",
+          "saju_correlation": "정재/편재 대운, 재성 활성화"
+        },
+        {
+          "id": "GM_결혼",
+          "symbol": "결혼하는 꿈",
+          "meaning": "새로운 결합, 계약, 사업 시작",
+          "description": "결혼식을 올리는 꿈. 새로운 시작과 결합의 예조.",
+          "saju_correlation": "정관/정재 활성화, 합(合)이 있는 시기"
+        },
+        {
+          "id": "GM_임신출산",
+          "symbol": "임신/출산",
+          "meaning": "새로운 프로젝트, 창조, 아이디어 탄생",
+          "description": "임신하거나 출산하는 꿈. 새로운 것의 탄생.",
+          "saju_correlation": "식신/상관 활성화, 생(生)의 시기"
+        },
+        {
+          "id": "GM_시험합격",
+          "symbol": "시험 합격",
+          "meaning": "실제 합격, 인정, 성취",
+          "description": "시험에 합격하는 꿈. 노력의 결실.",
+          "saju_correlation": "인성 활성화, 정관 운"
+        },
+        {
+          "id": "GM_용봉황",
+          "symbol": "용/봉황 보기",
+          "meaning": "최고의 행운, 귀인 만남, 큰 성공",
+          "description": "용이나 봉황을 보는 꿈. 최고의 길몽.",
+          "saju_correlation": "천을귀인 활성화, 용신 대운"
+        },
+        {
+          "id": "GM_물이참",
+          "symbol": "맑은 물이 가득",
+          "meaning": "재물 증가, 감정 정화, 풍요",
+          "description": "맑은 물이 가득한 꿈. 풍요와 정화.",
+          "saju_correlation": "수(水) 기운 활성화, 재성 생함"
+        },
+        {
+          "id": "GM_꽃핌",
+          "symbol": "꽃이 활짝 핌",
+          "meaning": "노력의 결실, 사랑, 아름다움 증가",
+          "description": "꽃이 만개하는 꿈. 성취와 개화.",
+          "saju_correlation": "목(木) 기운 활성화, 도화살 좋은 작용"
+        }
+      ]
+    },
+    "hyungmong": {
+      "description": "흉몽(凶夢) - 좋지 않은 일을 예시하는 꿈. 단, 반대 해석도 많음.",
+      "symbols": [
+        {
+          "id": "HM_이빨빠짐",
+          "symbol": "이빨이 빠지는 꿈",
+          "traditional_meaning": "가족의 우환, 건강 문제",
+          "reverse_meaning": "변화의 시작, 성장통, 새로운 단계",
+          "description": "이빨이 빠지거나 흔들리는 꿈. 상실과 변화.",
+          "saju_correlation": "형충파해, 건강운 저하 시기"
+        },
+        {
+          "id": "HM_쫓김",
+          "symbol": "쫓기는 꿈",
+          "traditional_meaning": "적의 공격, 압박, 스트레스",
+          "reverse_meaning": "직면해야 할 과제, 성장의 기회",
+          "description": "누군가에게 쫓기는 꿈. 회피와 두려움.",
+          "saju_correlation": "편관/칠살 활성화, 형(刑) 시기"
+        },
+        {
+          "id": "HM_뱀",
+          "symbol": "뱀에게 물리는 꿈",
+          "traditional_meaning": "배신, 질병, 음해",
+          "reverse_meaning": "치유의 시작, 변환, 지혜 획득",
+          "description": "뱀에게 물리는 꿈. 양면적 해석.",
+          "saju_correlation": "충(沖) 시기, 특히 사해충/인사충"
+        },
+        {
+          "id": "HM_추락",
+          "symbol": "떨어지는/추락 꿈",
+          "traditional_meaning": "지위 하락, 실패, 불안정",
+          "reverse_meaning": "통제 내려놓기, 새로운 시작 전 단계",
+          "description": "높은 곳에서 떨어지는 꿈. 추락과 불안.",
+          "saju_correlation": "공망 시기, 관성 약화"
+        },
+        {
+          "id": "HM_물빠짐",
+          "symbol": "물이 빠지는 꿈",
+          "traditional_meaning": "재물 손실, 기회 상실",
+          "reverse_meaning": "정화 후 새로운 시작, 감정 해소",
+          "description": "물이 빠지거나 마르는 꿈. 상실.",
+          "saju_correlation": "재성 약화 시기"
+        },
+        {
+          "id": "HM_죽음",
+          "symbol": "죽는 꿈",
+          "traditional_meaning": "흉몽(단, 해석 주의 필요)",
+          "reverse_meaning": "재탄생, 완전한 변화, 새로운 시작",
+          "description": "자신이나 타인이 죽는 꿈. 역설적 길몽일 수 있음.",
+          "saju_correlation": "대운 교체기, 큰 변환의 시기"
+        },
+        {
+          "id": "HM_화재",
+          "symbol": "불이 나는 꿈",
+          "traditional_meaning": "재앙, 분노, 갈등",
+          "reverse_meaning": "정화, 열정, 변환의 시작",
+          "description": "화재가 나는 꿈. 양면적 해석 필요.",
+          "saju_correlation": "화(火) 기운 과다, 상관/양인 활성화"
+        },
+        {
+          "id": "HM_길잃음",
+          "symbol": "길을 잃는 꿈",
+          "traditional_meaning": "방향 상실, 결정 어려움",
+          "reverse_meaning": "새로운 길 발견 전 단계",
+          "description": "길을 잃고 헤매는 꿈. 혼란과 탐색.",
+          "saju_correlation": "공망 시기, 용신 불명확"
+        }
+      ]
+    },
+    "number_dreams": {
+      "description": "숫자가 나오는 꿈과 복권/로또 관련 전통 해석",
+      "interpretations": [
+        {
+          "id": "ND_직접숫자",
+          "type": "직접 숫자 출현",
+          "meaning": "그 숫자를 직접 사용",
+          "example": "7이 선명하게 보임 → 7을 사용",
+          "caution": "단, 꿈에서 너무 강조되면 피하라는 의미일 수도"
+        },
+        {
+          "id": "ND_동물",
+          "type": "동물 등장",
+          "animals": {
+            "쥐": 1,
+            "소": 2,
+            "호랑이": 3,
+            "토끼": 4,
+            "용": 5,
+            "뱀": 6,
+            "말": 7,
+            "양": 8,
+            "원숭이": 9,
+            "닭": 10,
+            "개": 11,
+            "돼지": 12
+          },
+          "note": "12지지 기반 해석"
+        },
+        {
+          "id": "ND_과일",
+          "type": "과일 개수",
+          "meaning": "과일의 개수가 숫자를 의미",
+          "example": "사과 3개 → 3 사용"
+        },
+        {
+          "id": "ND_사람",
+          "type": "사람 수",
+          "meaning": "꿈에 등장한 사람의 수",
+          "example": "5명이 모여있음 → 5 사용"
+        }
+      ],
+      "warning": "복권 꿈 해석은 오락적 참고일 뿐, 재정적 결정의 근거로 삼지 마세요."
+    },
+    "seasonal_dreams": {
+      "description": "계절에 따른 꿈 해석의 차이",
+      "seasons": [
+        {
+          "season": "봄",
+          "element": "목(木)",
+          "favorable_symbols": ["새싹", "꽃", "새", "동쪽", "청색"],
+          "meaning": "봄에 이런 꿈을 꾸면 시기적절한 길몽",
+          "unfavorable_if": "가을의 상징(금속, 수확, 서쪽)이 강조되면 흉"
+        },
+        {
+          "season": "여름",
+          "element": "화(火)",
+          "favorable_symbols": ["태양", "불", "남쪽", "적색", "열정"],
+          "meaning": "여름에 이런 꿈을 꾸면 시기적절",
+          "unfavorable_if": "겨울의 상징(물, 추위, 북쪽)이 강조되면 흉"
+        },
+        {
+          "season": "가을",
+          "element": "금(金)",
+          "favorable_symbols": ["금속", "수확", "서쪽", "백색", "결실"],
+          "meaning": "가을에 이런 꿈을 꾸면 결실의 예조",
+          "unfavorable_if": "봄의 상징(새싹, 시작)이 강조되면 시기 맞지 않음"
+        },
+        {
+          "season": "겨울",
+          "element": "수(水)",
+          "favorable_symbols": ["물", "눈", "북쪽", "흑색", "저장"],
+          "meaning": "겨울에 이런 꿈을 꾸면 내면 성찰의 시기",
+          "unfavorable_if": "여름의 상징(불, 열기)이 강조되면 시기 맞지 않음"
+        }
+      ]
+    },
+    "ancestor_dreams": {
+      "description": "조상/돌아가신 분의 꿈 해석",
+      "types": [
+        {
+          "id": "AD_말씀",
+          "type": "말씀하시는 꿈",
+          "meaning": "중요한 메시지. 반드시 기억하고 따를 것.",
+          "action": "말씀 내용을 메모하고 실행"
+        },
+        {
+          "id": "AD_밥",
+          "type": "함께 밥 먹는 꿈",
+          "meaning": "조상의 보호와 축복. 제사를 잘 지낼 것.",
+          "action": "제사나 차례 정성껏 준비"
+        },
+        {
+          "id": "AD_아픔",
+          "type": "아프시거나 힘들어 하시는 꿈",
+          "meaning": "묘지 문제, 제사 소홀, 또는 실제 가족 건강 문제",
+          "action": "묘지 확인, 제사 점검, 가족 건강 체크"
+        },
+        {
+          "id": "AD_무언",
+          "type": "말없이 지켜보시는 꿈",
+          "meaning": "조상의 보호와 관심. 또는 경고.",
+          "action": "현재 삶의 방향 점검"
+        },
+        {
+          "id": "AD_선물",
+          "type": "뭔가 주시는 꿈",
+          "meaning": "복의 전달, 유산, 조상의 축복",
+          "action": "감사하며 받은 것의 의미 생각"
+        },
+        {
+          "id": "AD_화남",
+          "type": "화내시는 꿈",
+          "meaning": "잘못된 결정, 도의에 어긋난 행동에 대한 경고",
+          "action": "최근 행동/결정 점검, 반성"
+        }
+      ],
+      "general_advice": "조상 꿈은 대부분 의미 있음. 가볍게 넘기지 말고 제사/차례 정성껏, 묘지 관리, 가족 화목에 신경 쓸 것."
+    },
+    "contradiction_rules": {
+      "description": "반대로 해석하는 경우",
+      "rules": [
+        {
+          "dream": "울면서 슬퍼하는 꿈",
+          "traditional": "흉몽",
+          "actual": "기쁜 일이 생김 (반대)",
+          "reason": "꿈에서 감정이 방출되면 현실에서는 반대"
+        },
+        {
+          "dream": "돈을 잃어버리는 꿈",
+          "traditional": "재물 손실",
+          "actual": "재물이 들어옴 (반대)",
+          "reason": "꿈에서 잃으면 현실에서 얻음"
+        },
+        {
+          "dream": "죽는 꿈",
+          "traditional": "흉몽",
+          "actual": "새로운 시작, 장수 (반대)",
+          "reason": "꿈에서 죽으면 현실에서 재탄생"
+        },
+        {
+          "dream": "싸우는 꿈",
+          "traditional": "갈등, 분쟁",
+          "actual": "화해, 좋은 관계 (반대)",
+          "reason": "꿈에서 갈등 해소되면 현실 관계 개선"
+        },
+        {
+          "dream": "대변/똥 꿈",
+          "traditional": "더러움, 불쾌",
+          "actual": "재물운, 횡재 (반대)",
+          "reason": "전통적으로 대변은 재물의 상징"
+        }
+      ],
+      "caution": "모든 꿈이 반대로 해석되는 것은 아님. 전체 맥락과 감정을 고려할 것."
+    }
+  }
+}

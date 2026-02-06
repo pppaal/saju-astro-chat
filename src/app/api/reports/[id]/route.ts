@@ -1,7 +1,7 @@
 // src/app/api/reports/[id]/route.ts
 // 저장된 AI 프리미엄 리포트 조회 API
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
   createAuthenticatedGuard,
@@ -12,7 +12,7 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { idParamSchema } from '@/lib/api/zodValidation'
+import { idParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -23,7 +23,9 @@ export async function GET(request: Request, routeContext: RouteContext) {
   const rawParams = await routeContext.params
   const paramValidation = idParamSchema.safeParse(rawParams)
   if (!paramValidation.success) {
-    return NextResponse.json({ error: 'invalid_params' }, { status: 400 })
+    return createValidationErrorResponse(paramValidation.error, {
+      route: 'reports/[id]',
+    })
   }
   const reportId = paramValidation.data.id
 
@@ -97,7 +99,9 @@ export async function DELETE(request: NextRequest, routeContext: RouteContext) {
   const rawParams = await routeContext.params
   const paramValidation = idParamSchema.safeParse(rawParams)
   if (!paramValidation.success) {
-    return NextResponse.json({ error: 'invalid_params' }, { status: 400 })
+    return createValidationErrorResponse(paramValidation.error, {
+      route: 'reports/[id]',
+    })
   }
   const reportId = paramValidation.data.id
 

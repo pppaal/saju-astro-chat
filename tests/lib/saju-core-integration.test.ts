@@ -54,10 +54,13 @@ describe('Saju Core Integration', () => {
     assertNamedExports('lib/Saju/unse', ['getDaeunCycles', 'getAnnualCycles', 'getMonthlyCycles']);
   });
 
-  it('should expose supporting modules', () => {
+  it('should expose supporting modules', async () => {
     assertNamedExports('lib/Saju/textGenerator', ['generateFortuneText']);
-    assertNamedExports('lib/Saju/compatibilityEngine', ['analyzeComprehensiveCompatibility']);
-    assertNamedExports('lib/Saju/sajuCache', ['getSajuFromCache', 'setSajuToCache']);
+    assertNamedExports('lib/Saju/compatibility', ['analyzeComprehensiveCompatibility']);
+    // sajuCache was consolidated into cache/ directory
+    const sajuCache = await import('@/lib/Saju/cache');
+    expect(sajuCache.getSajuFromCache).toBeDefined();
+    expect(sajuCache.setSajuToCache).toBeDefined();
     assertNamedExports('lib/Saju/visualizationData', ['generateElementDistribution']);
   });
 
@@ -94,8 +97,8 @@ describe('Saju Core Integration', () => {
       'lib/Saju/unse',
       'lib/Saju/unseAnalysis',
       'lib/Saju/textGenerator',
-      'lib/Saju/compatibilityEngine',
-      'lib/Saju/sajuCache',
+      'lib/Saju/compatibility', // was compatibilityEngine
+      'lib/Saju/cache', // was sajuCache
       'lib/Saju/visualizationData',
       'lib/Saju/geokguk',
       'lib/Saju/tonggeun',

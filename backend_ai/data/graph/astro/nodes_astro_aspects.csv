@@ -1,0 +1,16 @@
+id,label,type,aspect_name,degree,orb,nature,korean_name,energy,effect,saju_correlation,description
+AA_conjunction,합,astro_aspect,Conjunction,0,8,neutral,합(0도),융합/강화/집중,두에너지가하나로융합/강렬한표현,천간합-융합,합(Conjunction)은 두 행성이 같은 위치에서 에너지를 융합. 행성의 성격에 따라 조화롭거나 긴장될 수 있음.
+AA_sextile,육분,astro_aspect,Sextile,60,4,harmonious,육분(60도),기회/재능/협력,자연스러운재능과기회/노력하면열리는문,지지삼합-조화,육분(Sextile)은 조화로운 기회의 각도. 자연스러운 재능이나 기회가 있으나 활용하려면 노력 필요.
+AA_square,사각,astro_aspect,Square,90,7,challenging,사각(90도),긴장/도전/성장동력,갈등과긴장/행동을촉발하는압력,충-대립,사각(Square)은 긴장과 도전의 각도. 갈등을 일으키나 그 압력이 성장과 행동의 동력이 됨.
+AA_trine,삼합,astro_aspect,Trine,120,8,harmonious,삼합(120도),조화/재능/흐름,자연스러운재능과행운/노력없이흐르는에너지,삼합-대조화,삼합(Trine)은 가장 조화로운 각도. 타고난 재능과 행운이 자연스럽게 흐르나 게을러질 수 있음.
+AA_opposition,충,astro_aspect,Opposition,180,8,challenging,충(180도),대립/인식/통합과제,반대극의긴장/타인을통한자기인식,충-정면대립,충(Opposition)은 정반대의 긴장. 대립하는 에너지 사이에서 균형을 찾아야 하며 타인을 통해 배움.
+AA_quincunx,불합,astro_aspect,Quincunx,150,3,adjusting,불합(150도),조정/불편함/적응필요,서로맞지않는에너지/지속적조정필요,반합-불완전,불합(Quincunx)은 조정이 필요한 각도. 서로 다른 에너지가 불편하게 연결되어 지속적 적응 필요.
+AA_semisextile,반육분,astro_aspect,Semi-sextile,30,2,minor,반육분(30도),미세한연결/잠재력,인접한에너지의미묘한연결/발전가능성,방합-인접,반육분(Semi-sextile)은 미세한 연결의 각도. 인접한 별자리 에너지가 미묘하게 연결됨.
+AA_semisquare,반사각,astro_aspect,Semi-square,45,2,minor_challenging,반사각(45도),마찰/자극/성장통,작은긴장과마찰/성장을위한자극,형-마찰,반사각(Semi-square)은 작은 긴장의 각도. 성장을 위한 미세한 자극과 마찰을 제공.
+AA_sesquiquadrate,세스퀴사각,astro_aspect,Sesquiquadrate,135,2,minor_challenging,세스퀴사각(135도),조정필요/긴장/해결과제,지속적인긴장/해결해야할과제,파-분열,세스퀴사각(Sesquiquadrate)은 지속적 긴장의 각도. 해결해야 할 과제가 계속 나타남.
+AA_quintile,오분,astro_aspect,Quintile,72,2,creative,오분(72도),창의성/재능/특별한능력,창의적재능/독특한능력발현,특수신살-특별재능,오분(Quintile)은 창의성의 각도. 독특하고 특별한 재능이 발현되는 연결.
+AA_biquintile,쌍오분,astro_aspect,Biquintile,144,2,creative,쌍오분(144도),창의적표현/재능발휘,창의적재능의성숙한표현,특수신살-재능발휘,쌍오분(Biquintile)은 창의적 재능이 성숙하게 표현되는 각도.
+AA_sun_moon_conj,일월합,astro_aspect_pair,Sun_Moon_Conjunction,0,10,identity,해달합,자아와감정의융합/신월,의지와감정이하나/본능적인사람,일간일지합-내면통합,태양과 달의 합은 의지와 감정이 하나로 통합. 본능적이고 직관적이나 객관성이 부족할 수 있음.
+AA_sun_moon_opp,일월충,astro_aspect_pair,Sun_Moon_Opposition,180,10,awareness,해달충,자아와감정의대립/보름,내면갈등/의식과무의식의긴장,일간일지충-내면갈등,태양과 달의 충은 의지와 감정 사이의 긴장. 내면 갈등이 있으나 자기 인식이 깊어질 수 있음.
+AA_venus_mars_conj,금화합,astro_aspect_pair,Venus_Mars_Conjunction,0,8,passion,금성화성합,사랑과욕망의융합/열정,강렬한매력/연애와섹슈얼리티융합,도화함지-강한매력,금성과 화성의 합은 사랑과 욕망이 하나로. 강렬한 매력과 열정적인 관계를 나타냄.
+AA_saturn_pluto,토명합,astro_aspect_pair,Saturn_Pluto_Conjunction,0,8,transformation,토성명왕합,구조의변환/권력,기존구조의붕괴와재건/강력한변환,대운교체-근본변화,토성과 명왕성의 합은 근본적인 구조 변화. 권력 구조의 붕괴와 재건, 강력한 변환을 나타냄.

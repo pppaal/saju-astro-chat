@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
   createAuthenticatedGuard,
@@ -9,7 +9,7 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { idParamSchema } from '@/lib/api/zodValidation'
+import { idParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +22,9 @@ export async function GET(request: Request, routeContext: RouteContext) {
   const rawParams = await routeContext.params
   const paramValidation = idParamSchema.safeParse(rawParams)
   if (!paramValidation.success) {
-    return NextResponse.json({ error: 'invalid_params' }, { status: 400 })
+    return createValidationErrorResponse(paramValidation.error, {
+      route: 'calendar/save/[id]',
+    })
   }
   const { id } = paramValidation.data
 
@@ -61,7 +63,9 @@ export async function DELETE(request: NextRequest, routeContext: RouteContext) {
   const rawParams = await routeContext.params
   const paramValidation = idParamSchema.safeParse(rawParams)
   if (!paramValidation.success) {
-    return NextResponse.json({ error: 'invalid_params' }, { status: 400 })
+    return createValidationErrorResponse(paramValidation.error, {
+      route: 'calendar/save/[id]',
+    })
   }
   const { id } = paramValidation.data
 

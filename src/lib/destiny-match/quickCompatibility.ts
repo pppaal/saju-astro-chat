@@ -8,7 +8,8 @@ import { logger } from '@/lib/logger';
 import {
   analyzeComprehensiveCompatibility,
   CompatibilitySubject,
-} from '@/lib/Saju/compatibilityEngine';
+} from '@/lib/Saju/compatibility';
+import { COMPATIBILITY_CACHE, CACHE_KEY } from '@/lib/constants/cache';
 
 interface BirthInfo {
   birthDate: string;
@@ -17,21 +18,27 @@ interface BirthInfo {
   timezone?: string;
 }
 
-// 간단한 메모리 캐시 (15분 TTL)
+// 간단한 메모리 캐시
 const compatibilityCache = new Map<string, { score: number; timestamp: number }>();
-const CACHE_TTL = 15 * 60 * 1000; // 15분
 
+/**
+ * 안전한 캐시 키 생성
+ * - 파이프 구분자 대신 null byte 구분자 + JSON 직렬화로 키 충돌 방지
+ */
 function getCacheKey(person1: BirthInfo, person2: BirthInfo): string {
-  // 순서에 관계없이 동일한 키 생성
-  const key1 = `${person1.birthDate}|${person1.birthTime || ''}|${person1.gender || ''}`;
-  const key2 = `${person2.birthDate}|${person2.birthTime || ''}|${person2.gender || ''}`;
-  return key1 < key2 ? `${key1}::${key2}` : `${key2}::${key1}`;
+  const sep = CACHE_KEY.SEPARATOR;
+  // 각 사람의 정보를 JSON으로 직렬화
+  const key1 = JSON.stringify([person1.birthDate, person1.birthTime || '', person1.gender || '']);
+  const key2 = JSON.stringify([person2.birthDate, person2.birthTime || '', person2.gender || '']);
+  // 정렬하여 순서 무관하게 동일한 키 생성
+  const sorted = [key1, key2].sort();
+  return `${CACHE_KEY.PREFIX.COMPATIBILITY}${sep}${sorted.join(sep)}`;
 }
 
 function cleanExpiredCache() {
   const now = Date.now();
   for (const [key, value] of compatibilityCache.entries()) {
-    if (now - value.timestamp > CACHE_TTL) {
+    if (now - value.timestamp > COMPATIBILITY_CACHE.QUICK_TTL_MS) {
       compatibilityCache.delete(key);
     }
   }
@@ -54,7 +61,7 @@ export async function calculateQuickCompatibility(
     // 캐시 확인
     const cacheKey = getCacheKey(person1, person2);
     const cached = compatibilityCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    if (cached && Date.now() - cached.timestamp < COMPATIBILITY_CACHE.QUICK_TTL_MS) {
       return cached.score;
     }
 

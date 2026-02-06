@@ -3,7 +3,7 @@ import {
   getGanjiName,
   ELEMENT_COLORS,
   type ElementEN,
-} from '@/lib/Saju/element-utils';
+} from '@/lib/Saju/stemBranchUtils';
 
 describe('Saju Element Utils', () => {
   describe('ELEMENT_COLORS', () => {

@@ -141,6 +141,12 @@ try:
 except ImportError as e:
     logger.warning(f"Could not import story_routes: {e}")
 
+try:
+    from .analytics_routes import analytics_bp
+    _blueprints.append((analytics_bp, "Analytics (performance, behavior)"))
+except ImportError as e:
+    logger.warning(f"Could not import analytics_routes: {e}")
+
 
 # Export all blueprints
 __all__ = [

@@ -25,7 +25,7 @@ export function useCompatibilityAnalysis() {
   const [isGroupResult, setIsGroupResult] = useState(false);
 
   const validate = useCallback((persons: PersonForm[], count: number, t: (key: string, fallback: string) => string) => {
-    if (count < 2 || count > 5) {return t('compatibilityPage.errorAddPeople', 'Add between 2 and 5 people.');}
+    if (count < 2 || count > 4) {return t('compatibilityPage.errorAddPeople', 'Add between 2 and 4 people.');}
     for (let i = 0; i < persons.length; i++) {
       const p = persons[i];
       if (!p.date || !p.time) {return `${i + 1}: ${t('compatibilityPage.errorDateTimeRequired', 'date and time are required.')}`;}

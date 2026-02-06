@@ -14,7 +14,8 @@ import {
   sendPaymentFailedEmail,
 } from '@/lib/email'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { HTTP_STATUS as _HTTP_STATUS } from '@/lib/constants/http'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,10 +53,11 @@ export async function POST(request: Request) {
       stage: 'config',
     })
     recordCounter('stripe_webhook_config_error', 1, { reason: 'missing_secret' })
-    return NextResponse.json(
-      { error: 'Webhook secret not configured' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      message: 'Webhook secret not configured',
+      route: 'webhook/stripe',
+    })
   }
   const stripe = getStripe()
 
@@ -71,10 +73,11 @@ export async function POST(request: Request) {
       route: '/api/webhook/stripe',
       ip,
     })
-    return NextResponse.json(
-      { error: 'Missing stripe-signature header' },
-      { status: HTTP_STATUS.BAD_REQUEST }
-    )
+    return createErrorResponse({
+      code: ErrorCodes.BAD_REQUEST,
+      message: 'Missing stripe-signature header',
+      route: 'webhook/stripe',
+    })
   }
 
   let event: Stripe.Event
@@ -86,10 +89,11 @@ export async function POST(request: Request) {
     logger.error('[Stripe Webhook] Signature verification failed:', { message: internalMessage })
     recordCounter('stripe_webhook_auth_error', 1, { reason: 'verify_failed' })
     captureServerError(err, { route: '/api/webhook/stripe', stage: 'verify', ip })
-    return NextResponse.json(
-      { error: 'Webhook signature verification failed' },
-      { status: HTTP_STATUS.BAD_REQUEST }
-    )
+    return createErrorResponse({
+      code: ErrorCodes.BAD_REQUEST,
+      message: 'Webhook signature verification failed',
+      route: 'webhook/stripe',
+    })
   }
 
   logger.info(`[Stripe Webhook] Event: ${event.type}`, { eventId: event.id, ip })
@@ -102,7 +106,11 @@ export async function POST(request: Request) {
       type: event.type,
     })
     recordCounter('stripe_webhook_stale_event', 1, { event: event.type })
-    return NextResponse.json({ error: 'Event too old' }, { status: HTTP_STATUS.BAD_REQUEST })
+    return createErrorResponse({
+      code: ErrorCodes.BAD_REQUEST,
+      message: 'Event too old',
+      route: 'webhook/stripe',
+    })
   }
 
   // 🔒 멱등성 체크: 원자적으로 처리 시도 (Race Condition 방지)
@@ -237,10 +245,12 @@ export async function POST(request: Request) {
       logger.error('[Stripe Webhook] Failed to log error event:', logErr)
     }
 
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      message: 'Internal Server Error',
+      route: 'webhook/stripe',
+      originalError: err instanceof Error ? err : new Error(String(err)),
+    })
   }
 }
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { DaeunData, YeonunData, WolunData } from '@/lib/Saju';
-import { getElementOfChar, getGanjiName, ELEMENT_COLORS } from '@/lib/Saju/element-utils';
+import { getElementOfChar, getGanjiName, ELEMENT_COLORS } from '@/lib/Saju/stemBranchUtils';
 import type { GanjiValue } from '@/lib/Saju/saju-result.types';
 
 interface UnseFlowContainerProps {

@@ -164,28 +164,31 @@ describe('ApiClient MEGA - apiFetch', () => {
     ApiClientTestBuilder.expectFetchCalledWith('/test', { method: 'GET' });
   });
 
-  it('should add X-API-Token for /api/ routes', async () => {
-    process.env.NEXT_PUBLIC_API_TOKEN = TEST_CONSTANTS.TOKENS.API;
+  it('should use credentials include for /api/ routes', async () => {
     ApiClientTestBuilder.mockFetchWith(new Response());
 
     await apiFetch(TEST_CONSTANTS.URLS.API_PATH);
 
-    ApiClientTestBuilder.expectHeadersContain(
+    // apiFetch uses cookies for auth via credentials: 'include', not tokens
+    expect(global.fetch).toHaveBeenCalledWith(
       TEST_CONSTANTS.URLS.API_PATH,
-      'X-API-Token',
-      TEST_CONSTANTS.TOKENS.API
+      expect.objectContaining({
+        credentials: 'include',
+      })
     );
   });
 
-  it('should not add token for non-API routes', async () => {
-    process.env.NEXT_PUBLIC_API_TOKEN = TEST_CONSTANTS.TOKENS.API;
+  it('should use credentials include for all routes', async () => {
     ApiClientTestBuilder.mockFetchWith(new Response());
 
     await apiFetch(TEST_CONSTANTS.URLS.OTHER_PATH);
 
-    ApiClientTestBuilder.expectHeadersNotContain(
+    // All routes use credentials: 'include'
+    expect(global.fetch).toHaveBeenCalledWith(
       TEST_CONSTANTS.URLS.OTHER_PATH,
-      'X-API-Token'
+      expect.objectContaining({
+        credentials: 'include',
+      })
     );
   });
 

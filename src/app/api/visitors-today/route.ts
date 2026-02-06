@@ -7,8 +7,9 @@ import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
 import { metricsTokenSchema as MetricsTokenSchema } from '@/lib/api/zodValidation'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { extractLocale } from '@/lib/api/middleware'
 
 declare const __firebase_config: string | undefined
 declare const __app_id: string | undefined
@@ -148,13 +149,19 @@ export async function GET(request: Request) {
     const ip = getClientIp(request.headers)
     const limit = await rateLimit(`visitors:get:${ip}`, { limit: 30, windowSeconds: 60 })
     if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.RATE_LIMITED,
+        locale: extractLocale(request),
+        route: 'visitors-today',
+        headers: limit.headers,
+      })
     }
     if (!requireToken(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+      return createErrorResponse({
+        code: ErrorCodes.UNAUTHORIZED,
+        locale: extractLocale(request),
+        route: 'visitors-today',
+      })
     }
     if (!db) {
       // graceful fallback when Firebase is not configured
@@ -186,9 +193,12 @@ export async function GET(request: Request) {
     const res = NextResponse.json(data)
     return withHeaders(res, limit.headers)
   } catch (error: unknown) {
-    const message = 'Internal Server Error'
     captureServerError(error, { route: '/api/visitors-today', method: 'GET' })
-    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'visitors-today',
+      originalError: error instanceof Error ? error : new Error(String(error)),
+    })
   }
 }
 
@@ -197,13 +207,19 @@ export async function POST(request: Request) {
     const ip = getClientIp(request.headers)
     const limit = await rateLimit(`visitors:post:${ip}`, { limit: 20, windowSeconds: 60 })
     if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.RATE_LIMITED,
+        locale: extractLocale(request),
+        route: 'visitors-today',
+        headers: limit.headers,
+      })
     }
     if (!requireToken(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+      return createErrorResponse({
+        code: ErrorCodes.UNAUTHORIZED,
+        locale: extractLocale(request),
+        route: 'visitors-today',
+      })
     }
     if (!db) {
       // graceful fallback when Firebase is not configured
@@ -221,8 +237,11 @@ export async function POST(request: Request) {
     const res = NextResponse.json({ success: true })
     return withHeaders(res, limit.headers)
   } catch (error: unknown) {
-    const message = 'Internal Server Error'
     captureServerError(error, { route: '/api/visitors-today', method: 'POST' })
-    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'visitors-today',
+      originalError: error instanceof Error ? error : new Error(String(error)),
+    })
   }
 }

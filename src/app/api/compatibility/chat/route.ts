@@ -1,12 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
+import { NextRequest } from 'next/server'
+import { withApiMiddleware, createAuthenticatedGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
 import { createFallbackSSEStream } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { logger } from '@/lib/logger'
 import { type ChatMessage } from '@/lib/api'
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { compatibilityChatRequestSchema } from '@/lib/api/zodValidation'
+import { compatibilityChatRequestSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -26,16 +25,10 @@ export const POST = withApiMiddleware(
       logger.warn('[Compatibility chat] validation failed', {
         errors: validationResult.error.issues,
       })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validationResult.error, {
+        locale: extractLocale(req),
+        route: 'compatibility/chat',
+      })
     }
 
     const body = validationResult.data

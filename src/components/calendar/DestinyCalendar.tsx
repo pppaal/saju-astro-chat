@@ -35,7 +35,7 @@ import type { EventCategory, ImportantDate, CalendarData, BirthInfo, CityHit } f
 import { useParticleAnimation } from "@/hooks/calendar/useParticleAnimation";
 
 // Sub-components
-import BirthInfoFormInline from './BirthInfoFormInline';
+import BirthInfoForm from './BirthInfoForm';
 import CalendarMainView from './CalendarMainView';
 
 // Utils
@@ -349,7 +349,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   // Birth info form (before calendar data is loaded)
   if (!hasBirthInfo) {
     return (
-      <BirthInfoFormInline
+      <BirthInfoForm
         canvasRef={canvasRef}
         birthInfo={birthInfo}
         setBirthInfo={setBirthInfo}

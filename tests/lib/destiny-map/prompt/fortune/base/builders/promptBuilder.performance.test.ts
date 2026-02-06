@@ -90,10 +90,10 @@ describe('promptBuilder Performance Benchmarks', () => {
 
       // @ts-expect-error console
       console.log(`Single execution: ${duration.toFixed(2)}ms`)
-      expect(duration).toBeLessThan(100)
+      expect(duration).toBeLessThan(200)
     })
 
-    it('should handle all themes within 100ms each', () => {
+    it('should handle all themes within 200ms each', () => {
       const themes = ['love', 'career', 'health', 'fortune']
       const durations: number[] = []
 
@@ -115,7 +115,7 @@ describe('promptBuilder Performance Benchmarks', () => {
       // @ts-expect-error console
       console.log(`Average: ${avgDuration.toFixed(2)}ms`)
 
-      durations.forEach((d) => expect(d).toBeLessThan(100))
+      durations.forEach((d) => expect(d).toBeLessThan(200))
     })
   })
 

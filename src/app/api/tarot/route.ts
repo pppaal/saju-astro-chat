@@ -1,15 +1,15 @@
 // src/app/api/tarot/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createPublicStreamGuard, type ApiContext } from '@/lib/api/middleware'
+import { withApiMiddleware, createPublicStreamGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
 import { Card, DrawnCard } from '@/lib/Tarot/tarot.types'
 import { tarotDeck } from '@/lib/Tarot/tarot-data'
 import { checkCreditsOnly, creditErrorResponse } from '@/lib/credits/withCredits'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
-import { HTTP_STATUS } from '@/lib/constants/http'
 import { recordApiRequest } from '@/lib/metrics/index'
-import { tarotDrawSchema } from '@/lib/api/zodValidation'
+import { tarotDrawSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
 type TarotBody = {
   categoryId?: string
@@ -37,7 +37,12 @@ export const POST = withApiMiddleware(
       const rawBody = await parseRequestBody<TarotBody>(req, { context: 'Tarot' })
       if (!rawBody || typeof rawBody !== 'object') {
         recordApiRequest('tarot', 'generate', 'validation_error')
-        return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+        return createErrorResponse({
+          code: ErrorCodes.BAD_REQUEST,
+          message: 'Invalid request body',
+          locale: extractLocale(req),
+          route: 'tarot',
+        })
       }
 
       // Validate with Zod
@@ -45,16 +50,10 @@ export const POST = withApiMiddleware(
       if (!validationResult.success) {
         logger.warn('[Tarot] validation failed', { errors: validationResult.error.issues })
         recordApiRequest('tarot', 'generate', 'validation_error')
-        return NextResponse.json(
-          {
-            error: 'validation_failed',
-            details: validationResult.error.issues.map((e) => ({
-              path: e.path.join('.'),
-              message: e.message,
-            })),
-          },
-          { status: HTTP_STATUS.BAD_REQUEST }
-        )
+        return createValidationErrorResponse(validationResult.error, {
+          locale: extractLocale(req),
+          route: 'tarot',
+        })
       }
 
       const { categoryId, spreadId } = validationResult.data
@@ -68,13 +67,23 @@ export const POST = withApiMiddleware(
       const theme = tarotThemes.find((t) => t.id === categoryId)
       if (!theme) {
         recordApiRequest('tarot', 'generate', 'error')
-        return NextResponse.json({ error: 'Invalid category' }, { status: HTTP_STATUS.NOT_FOUND })
+        return createErrorResponse({
+          code: ErrorCodes.NOT_FOUND,
+          message: 'Invalid category',
+          locale: extractLocale(req),
+          route: 'tarot',
+        })
       }
 
       const spread = theme.spreads.find((s) => s.id === spreadId)
       if (!spread) {
         recordApiRequest('tarot', 'generate', 'error')
-        return NextResponse.json({ error: 'Invalid spread' }, { status: HTTP_STATUS.NOT_FOUND })
+        return createErrorResponse({
+          code: ErrorCodes.NOT_FOUND,
+          message: 'Invalid spread',
+          locale: extractLocale(req),
+          route: 'tarot',
+        })
       }
 
       const drawnCards = drawCards(spread.cardCount)

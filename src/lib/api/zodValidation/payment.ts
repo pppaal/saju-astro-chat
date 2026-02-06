@@ -44,11 +44,23 @@ export type CheckoutRequestValidated = z.infer<typeof checkoutRequestSchema>
 
 // ============ Stripe Webhook Schemas ============
 
+// Stripe webhook data.object has varying structure based on event type
+// We define common fields and allow additional properties with passthrough()
+export const stripeWebhookObjectSchema = z.object({
+  id: z.string().optional(),
+  object: z.string().optional(),
+  customer: z.string().optional(),
+  status: z.string().optional(),
+  amount: z.number().optional(),
+  currency: z.string().max(3).optional(),
+  metadata: z.record(z.string(), z.string()).optional(),
+}).passthrough()
+
 export const stripeWebhookEventSchema = z.object({
   id: z.string().min(1),
   type: z.string().min(1),
   data: z.object({
-    object: z.record(z.string(), z.unknown()),
+    object: stripeWebhookObjectSchema,
   }),
   created: z.number().positive(),
   livemode: z.boolean(),

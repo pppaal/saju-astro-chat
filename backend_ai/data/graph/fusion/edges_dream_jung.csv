@@ -1,0 +1,26 @@
+source_id,target_id,relation_type,weight,description
+DAN_snake,JDS_serpent,symbol_link,0.95,꿈 속 뱀과 융의 뱀 상징이 직접 연결. 변환과 치유, 쿤달리니 에너지의 원형적 의미.
+DAN_wolf,JDS_shadow_figure,archetype_link,0.82,늑대 꿈과 그림자 원형이 연결. 야생의 본능과 억압된 공격성.
+DC_mother,JDS_great_mother,archetype_link,0.93,꿈 속 어머니와 대모 원형이 연결. 개인적 모성 경험과 집단적 모성 원형의 중첩.
+DC_father,JDS_wise_old,archetype_link,0.85,꿈 속 아버지와 현자 원형이 연결. 권위와 지혜의 원형.
+DC_child,JDS_child,archetype_link,0.92,꿈 속 아이와 신성한 아이 원형이 직접 연결. 새로운 가능성과 내면 아이.
+DC_stranger,JDS_shadow_figure,archetype_link,0.88,낯선 사람과 그림자가 연결. 알지 못하는 자신의 면.
+DC_enemy,JDS_enemy,archetype_link,0.90,꿈 속 적과 융의 적 해석이 연결. 투사된 그림자.
+DC_guide,JDS_wise_old,archetype_link,0.87,안내자와 현자 원형이 연결. 무의식의 지혜가 인격화된 형태.
+DC_shadow_self,JDS_shadow_figure,archetype_link,0.96,어두운 자아와 그림자 원형이 직접 연결. 억압된 자아의 직접적 출현.
+DS_home,JDS_house,symbol_link,0.94,꿈 속 집과 융의 집 상징이 직접 연결. 자아의 구조.
+DS_underwater,JDS_water,symbol_link,0.89,물속과 물 상징이 연결. 무의식에 잠긴 상태.
+DS_cave,JDS_descent,journey_link,0.86,동굴과 하강 여정이 연결. 무의식 깊은 곳으로의 탐험.
+DS_sky,JDS_ascent,journey_link,0.85,하늘과 상승 여정이 연결. 의식의 확장.
+DA_dying,JDS_death,theme_link,0.93,죽는 꿈과 죽음 주제가 직접 연결. 변환과 재탄생.
+DA_birth,JDS_birth,theme_link,0.94,출산 꿈과 탄생 주제가 직접 연결. 새로운 시작.
+DA_falling,JDS_descent,journey_link,0.83,추락과 하강 여정이 연결. 무의식으로의 급격한 하강.
+DA_flying,JDS_ascent,journey_link,0.84,날기와 상승 여정이 연결. 의식의 초월.
+DA_wedding,JDS_marriage,union_link,0.91,결혼 꿈과 신성한 결합이 연결. 대극의 통합.
+DA_searching,JDS_treasure,quest_link,0.82,찾기와 보물 상징이 연결. 자기(Self)를 향한 탐색.
+DN_water,JDS_water,element_link,0.95,자연 속 물과 융의 물 상징이 직접 연결. 무의식과 감정.
+DN_fire,JF_inferior,function_link,0.78,불과 열등 기능이 연결. 억압된 에너지의 폭발.
+DN_mountain,JDS_ascent,journey_link,0.81,산과 상승 여정이 연결. 목표를 향한 등반.
+DN_ocean,JDS_water,element_link,0.88,바다와 물 상징이 연결. 집단무의식의 심연.
+DAN_dragon,JDS_serpent,archetype_link,0.84,용과 뱀 원형이 연결. 변환의 더 강력한 형태.
+DAN_owl,JDS_wise_old,wisdom_link,0.79,올빼미와 현자가 연결. 밤의 지혜와 통찰.

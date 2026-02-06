@@ -1,8 +1,51 @@
 // src/lib/Saju/stemBranchUtils.ts
 // 중복된 천간/지지 헬퍼 함수들을 통합한 유틸리티 모듈
 
-import { STEMS, BRANCHES } from './constants';
+import { STEMS, BRANCHES, STEM_TO_ELEMENT_EN, BRANCH_TO_ELEMENT_EN } from './constants';
 import type { FiveElement, YinYang, StemBranchInfo } from './types';
+
+// ============================================================
+// English Element Types and Colors (from element-utils.ts)
+// ============================================================
+
+export type ElementEN = 'Wood' | 'Fire' | 'Earth' | 'Metal' | 'Water';
+
+export const ELEMENT_COLORS: Record<ElementEN, string> = {
+  Wood: '#2dbd7f',
+  Fire: '#ff6b6b',
+  Earth: '#f3a73f',
+  Metal: '#4a90e2',
+  Water: '#5b6bfa',
+};
+
+// Convert lowercase element to PascalCase ElementEN
+function toPascalCase(element: string): ElementEN {
+  return (element.charAt(0).toUpperCase() + element.slice(1)) as ElementEN;
+}
+
+/**
+ * 천간/지지 문자의 영어 오행 조회
+ * @param ch - 천간 또는 지지 문자
+ * @returns ElementEN 또는 null
+ */
+export function getElementOfChar(ch: string): ElementEN | null {
+  const stemEl = STEM_TO_ELEMENT_EN[ch];
+  if (stemEl) return toPascalCase(stemEl);
+  const branchEl = BRANCH_TO_ELEMENT_EN[ch];
+  if (branchEl) return toPascalCase(branchEl);
+  return null;
+}
+
+/**
+ * 간지 이름 추출 헬퍼
+ * @param val - 문자열 또는 { name: string } 객체
+ * @returns 간지 이름 문자열
+ */
+export function getGanjiName(val: string | { name: string } | null | undefined): string {
+  if (typeof val === 'string') {return val;}
+  if (val && typeof val === 'object' && 'name' in val) {return val.name;}
+  return '';
+}
 
 // Map으로 O(1) 조회 - 배열 순회 대신 효율적인 검색
 const STEM_MAP = new Map<string, StemBranchInfo>(STEMS.map(s => [s.name, s]));

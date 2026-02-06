@@ -1,0 +1,17 @@
+id,label,type,function_type,attitude,korean_name,characteristics,strengths,weaknesses,saju_correlation,description
+JF_Te,외향사고,jung_function,Thinking,Extraverted,외향적사고,논리적조직화/체계구축/효율추구,체계적/효율적/객관적판단,감정무시/냉정함/융통성부족,정관-체계권위,외향적 사고(Te)는 외부 세계를 논리적으로 조직화. 효율성과 체계를 중시하며 객관적 기준을 적용.
+JF_Ti,내향사고,jung_function,Thinking,Introverted,내향적사고,내적논리체계/원리분석/정밀한이해,깊은분석력/원리파악/정확성,현실과괴리/소통어려움/과분석,편인-분석탐구,내향적 사고(Ti)는 내면의 논리 체계를 구축. 원리와 본질을 파악하며 정밀한 분석을 추구.
+JF_Fe,외향감정,jung_function,Feeling,Extraverted,외향적감정,사회적조화/타인감정배려/관계형성,공감력/사교성/조화추구,자기감정무시/타인의존/갈등회피,정재-관계조화,외향적 감정(Fe)은 사회적 조화와 타인의 감정을 중시. 관계를 형성하고 유지하는 데 뛰어남.
+JF_Fi,내향감정,jung_function,Feeling,Introverted,내향적감정,내면가치/진정성/깊은감정,진정성/깊은공감/가치충실,표현어려움/오해받음/고립,상관-내면감정,내향적 감정(Fi)은 내면의 가치와 진정성을 중시. 깊은 감정을 느끼나 외부로 표현하기 어려움.
+JF_Se,외향감각,jung_function,Sensing,Extraverted,외향적감각,현실인식/감각적경험/즉각반응,현실적/적응력/실행력,미래무시/충동적/깊이부족,편재-현실감각,외향적 감각(Se)은 현재 순간과 감각적 경험에 집중. 현실에 빠르게 적응하고 즉각적으로 행동.
+JF_Si,내향감각,jung_function,Sensing,Introverted,내향적감각,과거경험/전통/세부기억,신뢰성/꼼꼼함/경험활용,변화저항/과거집착/융통성부족,정인-전통경험,내향적 감각(Si)은 과거 경험과 전통을 중시. 세부사항을 기억하고 검증된 방법을 선호.
+JF_Ne,외향직관,jung_function,Intuition,Extraverted,외향적직관,가능성탐색/패턴인식/아이디어생성,창의성/가능성발견/연결력,산만함/미완성/현실무시,식신-창의확장,외향적 직관(Ne)은 외부 세계에서 가능성과 패턴을 탐색. 아이디어가 풍부하고 연결 짓기를 잘함.
+JF_Ni,내향직관,jung_function,Intuition,Introverted,내향적직관,통찰/비전/미래예측/상징이해,깊은통찰력/비전/예측력,설명어려움/현실괴리/고집,편인-통찰비전,내향적 직관(Ni)은 내면에서 통찰과 비전을 얻음. 미래를 예측하고 상징을 이해하는 데 뛰어남.
+JF_dominant,주기능,jung_function_role,Dominant,varies,주기능,가장발달된기능/의식의중심,강점/자연스러운능력,과용시불균형/그림자무시,일간-핵심자아,주기능은 가장 발달되고 자연스럽게 사용하는 기능. 의식의 중심이며 정체성의 핵심.
+JF_auxiliary,보조기능,jung_function_role,Auxiliary,varies,보조기능,주기능을보완/균형역할,균형/다양성/지원,주기능에가려짐/덜발달,월주-보조역할,보조기능은 주기능을 보완하고 균형을 제공. 다른 태도(내향/외향)로 작동.
+JF_tertiary,3차기능,jung_function_role,Tertiary,varies,3차기능,덜발달/잠재력/놀이영역,성장가능성/유연성,미숙함/불안정/신뢰어려움,시주-발전영역,3차 기능은 덜 발달되어 있지만 성장 잠재력이 있음. 놀이나 취미로 즐기는 영역.
+JF_inferior,열등기능,jung_function_role,Inferior,varies,열등기능,가장미발달/그림자영역/취약점,성장기회/그림자통합,스트레스시표출/미숙함,공망-그림자영역,열등 기능은 가장 미발달된 기능. 스트레스 시 부정적으로 표출되나 통합하면 큰 성장.
+JF_Te_shadow,외향사고그림자,jung_function_shadow,Thinking_Shadow,Extraverted,Te그림자,과도한통제/냉혹한효율/독재적,위기시결단력,타인무시/관계파괴/경직,편관-억압된통제,외향적 사고의 그림자는 과도한 통제와 냉혹함. 스트레스 시 독재적이고 감정을 완전히 무시.
+JF_Fi_shadow,내향감정그림자,jung_function_shadow,Feeling_Shadow,Introverted,Fi그림자,과도한자기중심/피해의식/고립,자기보호,소통단절/관계고립/자기연민,상관억압-내면폭발,내향적 감정의 그림자는 과도한 자기 중심과 피해의식. 세상이 자신을 이해하지 못한다고 느낌.
+JF_Se_shadow,외향감각그림자,jung_function_shadow,Sensing_Shadow,Extraverted,Se그림자,과도한탐닉/충동/자기파괴적쾌락,현실도피,중독/무절제/결과무시,도화억압-충동발산,외향적 감각의 그림자는 과도한 탐닉과 충동. 스트레스 시 자기 파괴적인 쾌락 추구.
+JF_Ni_shadow,내향직관그림자,jung_function_shadow,Intuition_Shadow,Introverted,Ni그림자,파국적예측/편집증/암울한비전,위험감지,과도한불안/최악가정/신뢰상실,편인억압-부정적통찰,내향적 직관의 그림자는 파국적인 예측과 편집증. 모든 것이 나쁘게 될 것이라는 암울한 비전.

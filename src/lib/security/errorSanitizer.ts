@@ -13,12 +13,22 @@ const SENSITIVE_PATTERNS = [
   /sk-[a-zA-Z0-9-_]{32,}/gi, // OpenAI API keys
   /sk_live_[a-zA-Z0-9]{24,}/gi, // Stripe live keys
   /sk_test_[a-zA-Z0-9]{24,}/gi, // Stripe test keys
-  /Bearer\s+[a-zA-Z0-9-_=]+/gi, // Bearer tokens
+  /pk_live_[a-zA-Z0-9]{24,}/gi, // Stripe publishable live keys
+  /pk_test_[a-zA-Z0-9]{24,}/gi, // Stripe publishable test keys
+  /Bearer\s+[a-zA-Z0-9-_=.]+/gi, // Bearer tokens (JWT included)
+  /Basic\s+[a-zA-Z0-9+/=]+/gi, // Basic auth tokens
+  /[a-zA-Z0-9_-]*(?:api[_-]?key|apikey|secret|token|password|passwd|pwd)[a-zA-Z0-9_-]*\s*[:=]\s*['"]?[a-zA-Z0-9-_]{8,}['"]?/gi, // Generic secrets
 
   // Database connection strings
-  /postgres:\/\/[^@]+@[^/]+/gi,
-  /mysql:\/\/[^@]+@[^/]+/gi,
-  /mongodb:\/\/[^@]+@[^/]+/gi,
+  /postgres(?:ql)?:\/\/[^\s@]*@[^\s]+/gi,
+  /mysql:\/\/[^\s@]*@[^\s]+/gi,
+  /mongodb(?:\+srv)?:\/\/[^\s@]*@[^\s]+/gi,
+  /redis:\/\/[^\s@]*@[^\s]+/gi,
+
+  // AWS and cloud credentials
+  /AKIA[0-9A-Z]{16}/gi, // AWS Access Key ID
+  /[a-zA-Z0-9+/]{40}/g, // Potential AWS Secret Access Key (generic base64)
+  /(?:ghp|gho|ghu|ghs|ghr)_[a-zA-Z0-9]{36,}/gi, // GitHub tokens
 
   // Email addresses (in some contexts)
   /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi,
@@ -28,10 +38,16 @@ const SENSITIVE_PATTERNS = [
 
   // File paths (system internals)
   /[A-Za-z]:\\[\w\\.-]+/g, // Windows paths
-  /\/(?:home|root|usr|var)\/[\w\/.-]+/g, // Unix paths
+  /\/(?:home|root|usr|var|etc|opt)\/[\w\/.-]+/g, // Unix paths
 
   // Stack trace internal paths
   /at\s+[\w.]+\s+\([^)]+node_modules[^)]+\)/g,
+
+  // Session/cookie values
+  /(?:session|cookie|csrf)[_-]?(?:id|token|key)\s*[:=]\s*['"]?[a-zA-Z0-9-_]{16,}['"]?/gi,
+
+  // JWT tokens (three base64 segments separated by dots)
+  /eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*/g,
 ];
 
 /**
@@ -115,15 +131,34 @@ export function createSafeErrorResponse(
     error: message,
   };
 
-  // In development, include a sanitized hint
+  // In development, include a sanitized hint (but still be cautious)
   if (isDev && includeHint && originalError) {
     const originalMessage = originalError instanceof Error
       ? originalError.message
       : String(originalError);
-    response.hint = sanitizeErrorMessage(originalMessage);
+    // Double-check that sanitization worked - if still contains sensitive patterns, don't include
+    const sanitized = sanitizeErrorMessage(originalMessage);
+    if (!containsSensitivePatterns(sanitized)) {
+      response.hint = sanitized;
+    }
   }
 
   return response;
+}
+
+/**
+ * Check if a string still contains potential sensitive patterns after sanitization
+ * Used as a secondary safety check
+ */
+function containsSensitivePatterns(text: string): boolean {
+  const dangerousIndicators = [
+    /secret/i,
+    /password/i,
+    /token.*[a-zA-Z0-9]{16,}/i,
+    /key.*[a-zA-Z0-9]{16,}/i,
+    /@.*:.*@/i, // connection strings with credentials
+  ];
+  return dangerousIndicators.some(pattern => pattern.test(text));
 }
 
 /**

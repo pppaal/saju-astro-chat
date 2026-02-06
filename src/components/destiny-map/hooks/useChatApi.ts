@@ -281,7 +281,7 @@ export function useChatApi({
         city: profile.city,
         theme,
         lang,
-        messages: nextMessages,
+        messages: nextMessages.slice(-50),
         cvText,
         saju,
         astro,

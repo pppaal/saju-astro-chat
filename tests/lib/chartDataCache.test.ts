@@ -50,7 +50,7 @@ import {
   loadCurrentChartData,
   clearChartCache,
   hasCachedData,
-} from "@/lib/chartDataCache";
+} from "@/lib/cache/chartDataCache";
 
 describe("chartDataCache", () => {
   beforeEach(() => {

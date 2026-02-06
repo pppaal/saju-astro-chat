@@ -5,6 +5,12 @@ Numerology Analysis Routes
 import logging
 from flask import Blueprint, request, jsonify
 
+from backend_ai.app.exceptions import (
+    BackendAIError,
+    ServiceUnavailableError,
+    ValidationError,
+)
+
 logger = logging.getLogger(__name__)
 
 numerology_bp = Blueprint('numerology', __name__, url_prefix='/api/numerology')
@@ -29,13 +35,13 @@ def _get_numerology():
 def numerology_analyze():
     m = _get_numerology()
     if not m:
-        return jsonify({"error": "Numerology module not available"}), 503
+        raise ServiceUnavailableError("Numerology module not available")
 
     try:
         data = request.get_json() or {}
         birth_date = data.get("birthDate")
         if not birth_date:
-            return jsonify({"error": "birthDate is required"}), 400
+            raise ValidationError("birthDate is required", field="birthDate")
 
         result = m.analyze_numerology(
             birth_date=birth_date,
@@ -45,16 +51,18 @@ def numerology_analyze():
         )
         return jsonify(result)
 
+    except BackendAIError:
+        raise
     except Exception as e:
         logger.exception("[numerology_analyze] Error")
-        return jsonify({"error": str(e)}), 500
+        raise BackendAIError(str(e), "INTERNAL_ERROR")
 
 
 @numerology_bp.route("/compatibility", methods=["POST"])
 def numerology_compatibility():
     m = _get_numerology()
     if not m:
-        return jsonify({"error": "Numerology module not available"}), 503
+        raise ServiceUnavailableError("Numerology module not available")
 
     try:
         data = request.get_json() or {}
@@ -62,7 +70,7 @@ def numerology_compatibility():
         p2 = data.get("person2", {})
 
         if not p1.get("birthDate") or not p2.get("birthDate"):
-            return jsonify({"error": "Both birthDates are required"}), 400
+            raise ValidationError("Both birthDates are required", field="birthDate")
 
         result = m.analyze_numerology_compatibility(
             person1_birth=p1["birthDate"],
@@ -73,6 +81,8 @@ def numerology_compatibility():
         )
         return jsonify(result)
 
+    except BackendAIError:
+        raise
     except Exception as e:
         logger.exception("[numerology_compatibility] Error")
-        return jsonify({"error": str(e)}), 500
+        raise BackendAIError(str(e), "INTERNAL_ERROR")

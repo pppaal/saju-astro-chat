@@ -1,5 +1,5 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
-import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware'
+import { initializeApiContext, createAuthenticatedGuard, extractLocale } from '@/lib/api/middleware'
 import { apiClient } from '@/lib/api/ApiClient'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
@@ -16,11 +16,12 @@ import {
 import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize'
 import { logger } from '@/lib/logger'
 import { type ChatMessage } from '@/lib/api'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 
 import { ALLOWED_LOCALES, ALLOWED_GENDERS, MESSAGE_LIMITS } from '@/lib/constants/api-limits'
-import { DATE_RE, TIME_RE, LIMITS } from '@/lib/validation/patterns'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { destinyMapChatSchema } from '@/lib/api/zodValidation'
+import { DATE_RE, TIME_RE, LIMITS } from '@/lib/validation/patterns'
+import { destinyMapChatSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 120
@@ -132,41 +133,42 @@ export async function POST(request: NextRequest) {
     if (!isDev) {
       const session = await getServerSession(authOptions)
       if (!session?.user?.email) {
-        return NextResponse.json(
-          { error: 'not_authenticated' },
-          { status: HTTP_STATUS.UNAUTHORIZED }
-        )
+        return createErrorResponse({
+          code: ErrorCodes.UNAUTHORIZED,
+          locale: extractLocale(request),
+          route: 'destiny-map/chat',
+        })
       }
       userEmail = session.user.email
 
       const paid = await checkStripeActive(userEmail)
       if (!paid) {
-        return NextResponse.json(
-          { error: 'payment_required' },
-          { status: HTTP_STATUS.PAYMENT_REQUIRED }
-        )
+        return createErrorResponse({
+          code: ErrorCodes.PAYMENT_REQUIRED,
+          locale: extractLocale(request),
+          route: 'destiny-map/chat',
+        })
       }
     }
 
     const body = await request.json().catch(() => null)
     if (!body) {
-      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Invalid request body',
+        locale: extractLocale(request),
+        route: 'destiny-map/chat',
+      })
     }
 
     // Validate core structure with Zod
     const validationResult = destinyMapChatSchema.safeParse(body)
     if (!validationResult.success) {
       logger.warn('[DestinyMap chat] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validationResult.error, {
+        locale: extractLocale(request),
+        route: 'destiny-map/chat',
+      })
     }
 
     const name = typeof body.name === 'string' ? body.name.trim().slice(0, MAX_NAME) : undefined
@@ -182,22 +184,42 @@ export async function POST(request: NextRequest) {
     const cvText = typeof body.cvText === 'string' ? body.cvText : ''
 
     if (!birthDate || !birthTime || latitude === undefined || longitude === undefined) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.MISSING_FIELD,
+        message: 'Missing required fields',
+        locale: extractLocale(request),
+        route: 'destiny-map/chat',
+      })
     }
     if (!DATE_RE.test(birthDate) || Number.isNaN(Date.parse(birthDate))) {
-      return NextResponse.json({ error: 'Invalid birthDate' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_DATE,
+        locale: extractLocale(request),
+        route: 'destiny-map/chat',
+      })
     }
     if (!TIME_RE.test(birthTime)) {
-      return NextResponse.json({ error: 'Invalid birthTime' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_TIME,
+        locale: extractLocale(request),
+        route: 'destiny-map/chat',
+      })
     }
     if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
-      return NextResponse.json({ error: 'Invalid latitude' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.VALIDATION_ERROR,
+        message: 'Invalid latitude',
+        locale: extractLocale(request),
+        route: 'destiny-map/chat',
+      })
     }
     if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
-      return NextResponse.json({ error: 'Invalid longitude' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.VALIDATION_ERROR,
+        message: 'Invalid longitude',
+        locale: extractLocale(request),
+        route: 'destiny-map/chat',
+      })
     }
 
     // Normalize messages
@@ -285,8 +307,11 @@ export async function POST(request: NextRequest) {
     res.headers.set('X-Fallback', success ? '0' : '1')
     return res
   } catch (err: unknown) {
-    const message = 'Internal Server Error'
     logger.error('[DestinyMap chat API error]', err)
-    return NextResponse.json({ error: message }, { status: HTTP_STATUS.SERVER_ERROR })
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'destiny-map/chat',
+      originalError: err instanceof Error ? err : new Error(String(err)),
+    })
   }
 }

@@ -14,6 +14,95 @@ const CSRF_SKIP_ROUTES = new Set([
   '/api/cron', // Cron jobs authenticated via API key
 ])
 
+const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+
+// ── Module-level caches (computed once at cold start, reused across requests) ──
+
+// Cached allowed origins (env vars don't change at runtime)
+let _cachedAllowedOrigins: Set<string> | null = null
+function getAllowedOrigins(): Set<string> {
+  if (_cachedAllowedOrigins) return _cachedAllowedOrigins
+  const origins = new Set<string>()
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+  if (baseUrl) {
+    try {
+      origins.add(new URL(baseUrl).origin)
+    } catch { /* invalid base URL */ }
+  }
+  const additional = process.env.ALLOWED_ORIGINS?.split(',') || []
+  for (const o of additional) {
+    const trimmed = o.trim()
+    if (trimmed) origins.add(trimmed)
+  }
+  _cachedAllowedOrigins = origins
+  return origins
+}
+
+// Cached CSP static parts (only nonce changes per request)
+const _isProd = process.env.NODE_ENV === 'production'
+
+const _cspConnectSrc: string = (() => {
+  const src = [
+    "'self'",
+    'https://api.destinypal.com',
+    'https://*.sentry.io',
+    'https://www.google-analytics.com',
+    'https://www.googletagmanager.com',
+    'https://www.clarity.ms',
+    'https://vitals.vercel-insights.com',
+    'wss:',
+  ]
+  const aiBackend = process.env.AI_BACKEND_URL
+  if (aiBackend) {
+    try {
+      const parsed = new URL(aiBackend)
+      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+        src.push(aiBackend)
+      } else {
+        console.warn(`[Middleware] AI_BACKEND_URL has invalid protocol: ${parsed.protocol}`)
+      }
+    } catch {
+      console.warn(`[Middleware] AI_BACKEND_URL is malformed: ${aiBackend}`)
+    }
+  }
+  if (!_isProd) {
+    src.push('http://localhost:5000', 'http://127.0.0.1:5000')
+  }
+  return src.join(' ')
+})()
+
+const _cspScriptSrcBase: string[] = (() => {
+  const src = [
+    "'self'",
+    'https://www.googletagmanager.com',
+    'https://www.google-analytics.com',
+    'https://www.clarity.ms',
+    'https://t1.kakaocdn.net',
+  ]
+  if (!_isProd) src.push("'unsafe-eval'")
+  return src
+})()
+
+// Pre-built static directives (everything except script-src which needs nonce)
+const _cspStaticPrefix = [
+  `default-src 'self'`,
+  `base-uri 'self'`,
+  `object-src 'none'`,
+  `frame-ancestors 'none'`,
+  `form-action 'self'`,
+  `img-src 'self' data: blob: https:`,
+  `font-src 'self' data:`,
+  `style-src 'self' 'unsafe-inline'`,
+].join('; ')
+
+const _cspStaticSuffix = [
+  `connect-src ${_cspConnectSrc}`,
+  `worker-src 'self' blob:`,
+  `manifest-src 'self'`,
+  `report-uri /api/csp-report`,
+  ...(_isProd ? ['upgrade-insecure-requests'] : []),
+].join('; ')
+
 /**
  * Check if the route should skip CSRF validation
  */
@@ -39,39 +128,22 @@ function shouldSkipCsrf(pathname: string): boolean {
 function validateOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin')
   const referer = request.headers.get('referer')
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
 
-  // In development, allow requests without origin from localhost
+  // SECURITY: Require origin/referer even in development for better security hygiene
+  // Only allow localhost bypass for specific safe ports to prevent DNS rebinding attacks
   if (!origin && !referer) {
     if (process.env.NODE_ENV === 'development') {
       const host = request.headers.get('host')
-      if (host && (host.startsWith('localhost') || host.startsWith('127.0.0.1'))) {
+      // Strict localhost check with specific port patterns
+      const safeLocalPattern = /^(localhost|127\.0\.0\.1):(3000|3001|4000)$/
+      if (host && safeLocalPattern.test(host)) {
         return true
       }
     }
     return false
   }
 
-  // Build allowed origins set
-  const allowedOrigins = new Set<string>()
-
-  if (baseUrl) {
-    try {
-      const url = new URL(baseUrl)
-      allowedOrigins.add(url.origin)
-    } catch {
-      // Invalid base URL, skip
-    }
-  }
-
-  // Additional allowed origins from env (comma-separated)
-  const additionalOrigins = process.env.ALLOWED_ORIGINS?.split(',') || []
-  for (const o of additionalOrigins) {
-    const trimmed = o.trim()
-    if (trimmed) {
-      allowedOrigins.add(trimmed)
-    }
-  }
+  const allowedOrigins = getAllowedOrigins()
 
   // Check origin header
   if (origin && allowedOrigins.has(origin)) {
@@ -93,68 +165,12 @@ function validateOrigin(request: NextRequest): boolean {
   return false
 }
 
-function buildCsp(nonce: string) {
-  const isProd = process.env.NODE_ENV === 'production'
-  const connectSrc = [
-    "'self'",
-    'https://api.destinypal.com',
-    'https://*.sentry.io',
-    'https://www.google-analytics.com',
-    'https://www.googletagmanager.com',
-    'https://www.clarity.ms',
-    'https://vitals.vercel-insights.com',
-    'wss:',
-  ]
-
-  const aiBackend = process.env.AI_BACKEND_URL
-  if (aiBackend) {
-    try {
-      const parsed = new URL(aiBackend)
-      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
-        connectSrc.push(aiBackend)
-      } else {
-        console.warn(`[Middleware] AI_BACKEND_URL has invalid protocol: ${parsed.protocol}`)
-      }
-    } catch {
-      console.warn(`[Middleware] AI_BACKEND_URL is malformed: ${aiBackend}`)
-    }
-  }
-
-  if (!isProd) {
-    connectSrc.push('http://localhost:5000', 'http://127.0.0.1:5000')
-  }
-
-  const scriptSrc = [
-    "'self'",
-    `'nonce-${nonce}'`,
-    'https://www.googletagmanager.com',
-    'https://www.google-analytics.com',
-    'https://www.clarity.ms',
-    'https://t1.kakaocdn.net',
-  ]
-
-  if (!isProd) {
-    scriptSrc.push("'unsafe-eval'")
-  }
-
-  const directives = [
-    `default-src 'self'`,
-    `base-uri 'self'`,
-    `object-src 'none'`,
-    `frame-ancestors 'none'`,
-    `form-action 'self'`,
-    `img-src 'self' data: blob: https:`,
-    `font-src 'self' data:`,
-    `style-src 'self' 'unsafe-inline'`,
-    `script-src ${scriptSrc.join(' ')}`,
-    `connect-src ${connectSrc.join(' ')}`,
-    `worker-src 'self' blob:`,
-    `manifest-src 'self'`,
-    `report-uri /api/csp-report`,
-    ...(isProd ? ['upgrade-insecure-requests'] : []),
-  ]
-
-  return directives.join('; ')
+/**
+ * Build CSP header (only nonce is dynamic, rest is cached at module level)
+ */
+function buildCsp(nonce: string): string {
+  const scriptSrc = `script-src ${_cspScriptSrcBase.join(' ')} 'nonce-${nonce}'`
+  return `${_cspStaticPrefix}; ${scriptSrc}; ${_cspStaticSuffix}`
 }
 
 export function middleware(request: NextRequest) {
@@ -163,8 +179,7 @@ export function middleware(request: NextRequest) {
   // Only apply to API routes
   if (pathname.startsWith('/api/')) {
     // Only check mutating methods
-    const mutatingMethods = ['POST', 'PUT', 'PATCH', 'DELETE']
-    if (!mutatingMethods.includes(request.method)) {
+    if (!MUTATING_METHODS.has(request.method)) {
       return NextResponse.next()
     }
 

@@ -50,11 +50,11 @@ export function CitySearchField({
   }
 
   const handleSelect = (city: CityHit) => {
-    handleCitySelect(city)
-    setSelectedCity(city)
+    const enrichedCity = handleCitySelect(city)
+    setSelectedCity(enrichedCity)
     const cityDisplay = `${city.name}, ${city.country}`
     onChange(cityDisplay)
-    onCitySelect(city)
+    onCitySelect(enrichedCity)
   }
 
   return (

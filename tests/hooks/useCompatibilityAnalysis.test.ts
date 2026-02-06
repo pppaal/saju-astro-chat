@@ -57,15 +57,15 @@ describe('useCompatibilityAnalysis', () => {
       const { result } = renderHook(() => useCompatibilityAnalysis());
 
       const error = result.current.validate([mockPersons[0]], 1, mockT);
-      expect(error).toBe('Add between 2 and 5 people.');
+      expect(error).toBe('Add between 2 and 4 people.');
     });
 
     it('should return error for more than 5 people', () => {
       const { result } = renderHook(() => useCompatibilityAnalysis());
 
-      const manyPersons = Array(6).fill(mockPersons[0]);
-      const error = result.current.validate(manyPersons, 6, mockT);
-      expect(error).toBe('Add between 2 and 5 people.');
+      const manyPersons = Array(5).fill(mockPersons[0]);
+      const error = result.current.validate(manyPersons, 5, mockT);
+      expect(error).toBe('Add between 2 and 4 people.');
     });
 
     it('should return error for missing date', () => {

@@ -6,9 +6,9 @@
  * - in-memory: saju/daeun/compatibility LRU caches
  */
 
-import { clearChartCache } from '@/lib/chartDataCache';
+import { clearChartCache } from '@/lib/cache/chartDataCache';
 import { clearChartCache as clearChartCacheClient } from '@/lib/cache/chart-cache-client';
-import { clearAllCaches as clearSajuCaches } from '@/lib/Saju/sajuCache';
+import { clearAllCaches as clearSajuCaches } from '@/lib/Saju/cache';
 import { clearAllCalendarCache } from '@/components/calendar/cache-utils';
 import { logger } from '@/lib/logger';
 

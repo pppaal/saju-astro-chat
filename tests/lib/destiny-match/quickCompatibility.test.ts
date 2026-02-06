@@ -11,7 +11,7 @@ vi.mock('@/lib/Saju/saju', () => ({
   }),
 }));
 
-vi.mock('@/lib/Saju/compatibilityEngine', () => ({
+vi.mock('@/lib/Saju/compatibility', () => ({
   analyzeComprehensiveCompatibility: vi.fn().mockReturnValue({
     overallScore: 78,
     grade: 'B',
@@ -37,7 +37,7 @@ import {
   getCompatibilitySummary,
 } from '@/lib/destiny-match/quickCompatibility';
 import { calculateSajuData } from '@/lib/Saju/saju';
-import { analyzeComprehensiveCompatibility } from '@/lib/Saju/compatibilityEngine';
+import { analyzeComprehensiveCompatibility } from '@/lib/Saju/compatibility';
 
 describe('quickCompatibility', () => {
   const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(1);

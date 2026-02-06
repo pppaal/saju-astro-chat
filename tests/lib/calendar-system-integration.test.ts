@@ -105,7 +105,8 @@ describe('Calendar System Integration', () => {
       const BirthInfoForm = (await import('@/components/calendar/BirthInfoForm')).default
 
       expect(BirthInfoForm).toBeDefined()
-      expect(typeof BirthInfoForm).toBe('function')
+      // React.memo() returns an object, not a function
+      expect(['function', 'object'].includes(typeof BirthInfoForm)).toBe(true)
     }, 30000) // Increased timeout for complex component
 
     it('should export ParticleBackground', async () => {

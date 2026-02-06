@@ -105,10 +105,10 @@ export function initWebVitals() {
   }
 
   // Dynamically import web-vitals to avoid SSR issues
+  // Note: onFID removed in web-vitals v5 (replaced by onINP)
   import('web-vitals')
-    .then(({ onCLS, onFID, onFCP, onLCP, onTTFB, onINP }) => {
+    .then(({ onCLS, onFCP, onLCP, onTTFB, onINP }) => {
       onCLS(reportWebVitals)
-      onFID(reportWebVitals)
       onFCP(reportWebVitals)
       onLCP(reportWebVitals)
       onTTFB(reportWebVitals)

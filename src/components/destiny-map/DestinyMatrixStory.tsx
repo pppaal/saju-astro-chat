@@ -3,7 +3,7 @@
 import { memo, useState, useEffect, useMemo, useCallback } from "react";
 
 import type { FiveElement } from "@/lib/Saju/types";
-import { STEM_TO_ELEMENT, ELEMENT_KO_TO_EN as ELEMENT_EN } from "@/lib/Saju/stemElementMapping";
+import { STEM_TO_ELEMENT, ELEMENT_KO_TO_EN as ELEMENT_EN } from "@/lib/Saju/constants";
 import { getBackendUrl } from "@/lib/backend-url";
 import type { SajuData, AstroData, ShinsalItem, PlanetData } from "./fun-insights/types";
 import { logger } from "@/lib/logger";

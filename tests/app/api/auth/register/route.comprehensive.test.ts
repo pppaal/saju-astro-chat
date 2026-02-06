@@ -93,7 +93,7 @@ describe('/api/auth/register', () => {
 
       expect(response.status).toBe(200)
       expect(data.ok).toBe(true)
-      expect(bcrypt.hash).toHaveBeenCalledWith('password123', 10)
+      expect(bcrypt.hash).toHaveBeenCalledWith('password123', 12)
       expect(prisma.user.upsert).toHaveBeenCalled()
     })
 
@@ -221,7 +221,7 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(data.error.code).toBe('MISSING_FIELD')
     })
 
     it('should return error when password is missing', async () => {
@@ -237,7 +237,7 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(data.error.code).toBe('MISSING_FIELD')
     })
 
     it('should return error for invalid email format', async () => {
@@ -254,7 +254,7 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(data.error.code).toBe('INVALID_FORMAT')
     })
 
     it('should return error for email too long', async () => {
@@ -272,8 +272,8 @@ describe('/api/auth/register', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should return error for password too short', async () => {
@@ -289,8 +289,8 @@ describe('/api/auth/register', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should return error for password too long', async () => {
@@ -308,8 +308,8 @@ describe('/api/auth/register', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should reject email with leading/trailing whitespace (Zod validates before trim)', async () => {
@@ -326,7 +326,7 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(data.error.code).toBe('INVALID_FORMAT')
     })
 
     it('should trim name whitespace', async () => {
@@ -371,8 +371,8 @@ describe('/api/auth/register', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should trim referral code whitespace', async () => {
@@ -421,8 +421,8 @@ describe('/api/auth/register', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(409)
-      expect(data.error).toBe('user_exists')
+      expect(response.status).toBe(400)
+      expect(data.error.code).toBe('BAD_REQUEST')
     })
 
     it('should allow registration if user exists without password (OAuth user)', async () => {
@@ -483,7 +483,7 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('rate_limited')
+      expect(data.error.code).toBe('RATE_LIMITED')
       expect(response.headers.get('Retry-After')).toBe('60')
     })
 
@@ -562,7 +562,7 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('internal_error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should handle bcrypt errors', async () => {

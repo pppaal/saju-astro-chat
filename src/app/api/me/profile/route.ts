@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
+import { withApiMiddleware, createAuthenticatedGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { clearCacheByPattern } from '@/lib/cache/redis-cache'
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { userProfileUpdateSchema } from '@/lib/api/zodValidation'
+import { userProfileUpdateSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
@@ -27,7 +27,12 @@ export const GET = withApiMiddleware(
     })
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: HTTP_STATUS.NOT_FOUND })
+      return createErrorResponse({
+        code: ErrorCodes.NOT_FOUND,
+        message: 'User not found',
+        locale: extractLocale(req),
+        route: 'me/profile',
+      })
     }
 
     return NextResponse.json({ user })
@@ -49,16 +54,10 @@ export const PATCH = withApiMiddleware(
       logger.warn('[User profile update] validation failed', {
         errors: validationResult.error.issues,
       })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validationResult.error, {
+        locale: extractLocale(request),
+        route: 'me/profile',
+      })
     }
 
     const body = validationResult.data

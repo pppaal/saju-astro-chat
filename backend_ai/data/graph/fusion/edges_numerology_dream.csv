@@ -1,0 +1,41 @@
+id,source,target,relation,weight,description
+ND_001,NUM_LIFEPATH_1,DREAM_LEADERSHIP,생명수-꿈연결,0.8,생명수 1은 리더십 관련 꿈(지도자가 됨/앞서감)과 연결
+ND_002,NUM_LIFEPATH_2,DREAM_PARTNERSHIP,생명수-꿈연결,0.8,생명수 2는 관계/협력 꿈(파트너/결혼/협동)과 연결
+ND_003,NUM_LIFEPATH_3,DREAM_CREATIVITY,생명수-꿈연결,0.8,생명수 3은 창조적 꿈(예술/표현/공연)과 연결
+ND_004,NUM_LIFEPATH_4,DREAM_STRUCTURE,생명수-꿈연결,0.8,생명수 4는 구조/안정 꿈(집짓기/기초/질서)과 연결
+ND_005,NUM_LIFEPATH_5,DREAM_FREEDOM,생명수-꿈연결,0.8,생명수 5는 자유/모험 꿈(여행/탈출/변화)과 연결
+ND_006,NUM_LIFEPATH_6,DREAM_NURTURING,생명수-꿈연결,0.8,생명수 6은 돌봄/가정 꿈(가족/아이/집)과 연결
+ND_007,NUM_LIFEPATH_7,DREAM_SPIRITUAL,생명수-꿈연결,0.8,생명수 7은 영적/탐구 꿈(명상/신비/깊은물)과 연결
+ND_008,NUM_LIFEPATH_8,DREAM_POWER,생명수-꿈연결,0.8,생명수 8은 권력/성취 꿈(돈/성공/사업)과 연결
+ND_009,NUM_LIFEPATH_9,DREAM_HUMANITARIAN,생명수-꿈연결,0.8,생명수 9는 인도주의 꿈(봉사/치유/세계)과 연결
+ND_010,NUM_LIFEPATH_11,DREAM_ILLUMINATION,생명수-꿈연결,0.9,마스터 수 11은 영감/계시 꿈(빛/메시지/예언)과 연결
+ND_011,NUM_LIFEPATH_22,DREAM_BUILDING,생명수-꿈연결,0.9,마스터 수 22는 대규모 건설 꿈(건물/도시/시스템)과 연결
+ND_012,NUM_LIFEPATH_33,DREAM_TEACHING,생명수-꿈연결,0.9,마스터 수 33은 가르침/치유 꿈(스승/제자/치유)과 연결
+ND_013,NUM_EXPRESSION_1,DREAM_VOICE,표현수-꿈연결,0.7,표현수 1은 자기 목소리 꿈(연설/노래/외침)과 연결
+ND_014,NUM_EXPRESSION_3,DREAM_PERFORMANCE,표현수-꿈연결,0.7,표현수 3은 무대/공연 꿈(배우/관객/박수)과 연결
+ND_015,NUM_EXPRESSION_5,DREAM_COMMUNICATION,표현수-꿈연결,0.7,표현수 5는 소통 꿈(대화/글쓰기/메시지)과 연결
+ND_016,NUM_SOULURGE_2,DREAM_INTIMACY,영혼충동-꿈연결,0.75,영혼충동 2는 친밀감 꿈(포옹/연결/융합)과 연결
+ND_017,NUM_SOULURGE_6,DREAM_HOME,영혼충동-꿈연결,0.75,영혼충동 6은 집/가정 꿈(안식처/가족모임)과 연결
+ND_018,NUM_SOULURGE_7,DREAM_SOLITUDE,영혼충동-꿈연결,0.75,영혼충동 7은 고독/내면 꿈(동굴/명상/은둔)과 연결
+ND_019,NUM_SOULURGE_9,DREAM_UNIVERSAL,영혼충동-꿈연결,0.75,영혼충동 9는 보편적 사랑 꿈(인류/지구/우주)과 연결
+ND_020,NUM_PERSONALYEAR_1,DREAM_BEGINNING,개인년-꿈연결,0.85,개인년 1에는 새로운 시작 꿈이 증가
+ND_021,NUM_PERSONALYEAR_5,DREAM_CHANGE,개인년-꿈연결,0.85,개인년 5에는 변화/여행 꿈이 증가
+ND_022,NUM_PERSONALYEAR_7,DREAM_INTROSPECTION,개인년-꿈연결,0.85,개인년 7에는 내면탐색/영적 꿈이 증가
+ND_023,NUM_PERSONALYEAR_9,DREAM_ENDING,개인년-꿈연결,0.85,개인년 9에는 완성/끝/놓아줌 꿈이 증가
+ND_024,NUM_KARMIC_13,DREAM_LAZINESS,카르마-꿈연결,0.8,카르마 빚 13은 게으름/정체 관련 꿈과 연결
+ND_025,NUM_KARMIC_14,DREAM_ADDICTION,카르마-꿈연결,0.8,카르마 빚 14는 중독/과잉 관련 꿈과 연결
+ND_026,NUM_KARMIC_16,DREAM_EGO,카르마-꿈연결,0.8,카르마 빚 16은 에고/추락 관련 꿈(탑/붕괴)과 연결
+ND_027,NUM_KARMIC_19,DREAM_ABUSE,카르마-꿈연결,0.8,카르마 빚 19는 권력 남용 관련 꿈과 연결
+ND_028,NUM_CHALLENGE_0,DREAM_CHOICE,도전수-꿈연결,0.7,도전수 0은 선택 관련 꿈(갈림길/결정)과 연결
+ND_029,NUM_PINNACLE_1,DREAM_INDEPENDENCE,정점수-꿈연결,0.7,정점수 1 시기에는 독립/자립 꿈 증가
+ND_030,NUM_PINNACLE_9,DREAM_RELEASE,정점수-꿈연결,0.7,정점수 9 시기에는 놓아줌/해방 꿈 증가
+ND_031,DREAM_NUMBER_DIRECT,NUM_INTERPRETATION,숫자꿈-해석,0.9,꿈에 나타난 숫자는 수비학적 의미 해석 필요
+ND_032,DREAM_RECURRING_COUNT,NUM_FREQUENCY,반복꿈-빈도,0.75,꿈이 반복되는 횟수도 수비학적 의미 있음
+ND_033,DREAM_OBJECTS_COUNT,NUM_QUANTITY,사물개수-의미,0.7,꿈에 나타난 사물의 개수는 수비학적 메시지
+ND_034,DREAM_PEOPLE_COUNT,NUM_CROWD,사람수-의미,0.7,꿈에 등장하는 사람 수는 관계 수비학과 연결
+ND_035,NUM_BIRTHDAY_1,DREAM_SELF,생일수-꿈연결,0.65,생일수 1은 자아 정체성 꿈과 연결
+ND_036,NUM_BIRTHDAY_7,DREAM_MYSTERY,생일수-꿈연결,0.65,생일수 7은 신비/탐구 꿈과 연결
+ND_037,NUM_BIRTHDAY_9,DREAM_WISDOM,생일수-꿈연결,0.65,생일수 9는 지혜/완성 꿈과 연결
+ND_038,NUM_MATURITY,DREAM_INTEGRATION,성숙수-꿈연결,0.7,성숙수는 인생 후반 통합 꿈과 연결
+ND_039,NUM_HIDDEN_PASSION,DREAM_DESIRE,숨겨진열정-꿈연결,0.7,숨겨진 열정 수는 무의식적 욕망 꿈과 연결
+ND_040,NUM_PERSONALITY,DREAM_MASK,성격수-꿈연결,0.65,성격수는 페르소나/가면 꿈과 연결

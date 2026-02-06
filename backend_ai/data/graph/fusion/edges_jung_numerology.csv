@@ -1,0 +1,51 @@
+id,source,target,relation_type,description,interpretation_note,strength
+JN_E1,JA_self,NM_life_path_9,jung_numer_parallel,"자기(Self) 원형과 생명수 9. 둘 다 완성과 지혜.","생명수 9는 개성화의 마지막 단계와 연결. 보편적 사랑.",strong
+JN_E2,JA_self,NM_master_22,jung_numer_parallel,"자기 원형과 마스터 넘버 22. 둘 다 비전의 현실화.","마스터 22는 자기 원형의 건설적 표현.",strong
+JN_E3,JA_shadow,NM_karmic_13,jung_numer_parallel,"그림자와 카르마 부채 13. 둘 다 변환의 필요성.","카르마 13은 그림자 통합을 통한 재탄생.",strong
+JN_E4,JA_shadow,NM_karmic_16,jung_numer_parallel,"그림자와 카르마 부채 16. 둘 다 자아의 파괴와 재건.","카르마 16은 그림자가 터져나오는 경험.",strong
+JN_E5,JA_anima,NM_life_path_2,jung_numer_parallel,"아니마와 생명수 2. 둘 다 관계와 감수성.","생명수 2는 아니마 에너지가 강한 사람.",strong
+JN_E6,JA_anima,NM_life_path_6,jung_numer_parallel,"아니마와 생명수 6. 둘 다 사랑과 돌봄.","생명수 6은 아니마의 양육적 측면.",moderate
+JN_E7,JA_animus,NM_life_path_1,jung_numer_parallel,"아니무스와 생명수 1. 둘 다 독립과 리더십.","생명수 1은 아니무스 에너지가 강한 사람.",strong
+JN_E8,JA_animus,NM_life_path_8,jung_numer_parallel,"아니무스와 생명수 8. 둘 다 권력과 성취.","생명수 8은 아니무스의 성취 지향적 측면.",moderate
+JN_E9,JA_great_mother,NM_life_path_6,jung_numer_parallel,"위대한 어머니와 생명수 6. 둘 다 가정과 돌봄.","생명수 6은 어머니 원형이 강하게 나타남.",strong
+JN_E10,JA_wise_old_man,NM_life_path_7,jung_numer_parallel,"현자와 생명수 7. 둘 다 내면 탐구와 지혜.","생명수 7은 현자 원형과 직접 연결.",strong
+JN_E11,JA_wise_old_man,NM_master_11,jung_numer_parallel,"현자와 마스터 넘버 11. 둘 다 영적 통찰.","마스터 11은 현자의 직관적 측면.",strong
+JN_E12,JA_trickster,NM_life_path_3,jung_numer_parallel,"트릭스터와 생명수 3. 둘 다 창조성과 표현.","생명수 3은 트릭스터의 유희적 측면.",strong
+JN_E13,JA_trickster,NM_life_path_5,jung_numer_parallel,"트릭스터와 생명수 5. 둘 다 변화와 자유.","생명수 5는 트릭스터의 변화무쌍함.",strong
+JN_E14,JA_hero,NM_life_path_1,jung_numer_parallel,"영웅과 생명수 1. 둘 다 개척과 용기.","생명수 1은 영웅 원형의 선구자적 측면.",strong
+JN_E15,JA_hero,NM_life_path_8,jung_numer_parallel,"영웅과 생명수 8. 둘 다 성취와 권력.","생명수 8은 영웅의 세속적 승리.",moderate
+JN_E16,JA_child,NM_life_path_3,jung_numer_parallel,"신성한 아이와 생명수 3. 둘 다 기쁨과 창조성.","생명수 3은 아이 원형의 창조적 놀이.",strong
+JN_E17,JA_father,NM_life_path_4,jung_numer_parallel,"아버지 원형과 생명수 4. 둘 다 구조와 안정.","생명수 4는 아버지 원형의 건설적 측면.",strong
+JN_E18,JA_father,NM_life_path_8,jung_numer_parallel,"아버지 원형과 생명수 8. 둘 다 권위와 성공.","생명수 8은 아버지 원형의 성취 측면.",moderate
+JN_E19,JA_puer,NM_life_path_3,jung_numer_parallel,"영원한 소년과 생명수 3. 둘 다 유희와 가능성.","생명수 3의 미성숙한 측면은 푸에르.",moderate
+JN_E20,JA_puer,NM_life_path_5,jung_numer_parallel,"영원한 소년과 생명수 5. 둘 다 자유와 변화.","생명수 5의 헌신 회피는 푸에르 경향.",strong
+JN_E21,JA_senex,NM_life_path_4,jung_numer_parallel,"세넥스와 생명수 4. 둘 다 구조와 제한.","생명수 4의 경직된 측면은 세넥스.",moderate
+JN_E22,JA_senex,NM_karmic_14,jung_numer_parallel,"세넥스와 카르마 부채 14. 둘 다 과도한 통제.","카르마 14의 교훈은 유연성.",moderate
+JN_E23,JA_lover,NM_life_path_2,jung_numer_parallel,"연인 원형과 생명수 2. 둘 다 파트너십.","생명수 2는 연인 원형이 강하게 나타남.",strong
+JN_E24,JA_lover,NM_life_path_6,jung_numer_parallel,"연인 원형과 생명수 6. 둘 다 사랑과 조화.","생명수 6은 연인 원형의 헌신적 측면.",strong
+JN_E25,JA_magician,NM_life_path_1,jung_numer_parallel,"마법사 원형과 생명수 1. 둘 다 창조적 의지.","생명수 1은 마법사의 개척 정신.",moderate
+JN_E26,JA_explorer,NM_life_path_5,jung_numer_parallel,"탐험가 원형과 생명수 5. 둘 다 자유와 모험.","생명수 5는 탐험가 원형의 직접적 표현.",strong
+JN_E27,JA_rebel,NM_life_path_5,jung_numer_parallel,"반항자 원형과 생명수 5. 둘 다 변화와 혁신.","생명수 5는 반항자의 자유 추구.",strong
+JN_E28,JA_caregiver,NM_life_path_6,jung_numer_parallel,"돌봄이 원형과 생명수 6. 둘 다 봉사와 돌봄.","생명수 6은 돌봄이 원형의 핵심.",strong
+JN_E29,JA_caregiver,NM_life_path_9,jung_numer_parallel,"돌봄이 원형과 생명수 9. 둘 다 인류애.","생명수 9는 돌봄이의 보편적 측면.",moderate
+JN_E30,JA_creator,NM_life_path_3,jung_numer_parallel,"창조자 원형과 생명수 3. 둘 다 창조적 표현.","생명수 3은 창조자 원형의 직접적 표현.",strong
+JN_E31,JC_mother_pos_m,NM_life_path_2,jung_numer_parallel,"어머니 콤플렉스(긍정)와 생명수 2. 관계 의존.","생명수 2 남성은 어머니 콤플렉스 작업 필요.",moderate
+JN_E32,JC_mother_pos_m,NM_life_path_6,jung_numer_parallel,"어머니 콤플렉스(긍정)와 생명수 6. 모성 추구.","생명수 6 남성은 이상적 여성상 찾음.",moderate
+JN_E33,JC_father_neg_m,NM_karmic_16,jung_numer_parallel,"아버지 콤플렉스(부정)와 카르마 16. 권위 문제.","카르마 16은 아버지 상처의 지표.",strong
+JN_E34,JC_father_neg_m,NM_life_path_8,jung_numer_parallel,"아버지 콤플렉스(부정)와 생명수 8. 권력 갈등.","생명수 8의 갈등은 아버지 콤플렉스 표현.",moderate
+JN_E35,JC_power,NM_life_path_8,jung_numer_parallel,"권력 콤플렉스와 생명수 8. 권력에 대한 집착.","생명수 8의 그림자는 권력 콤플렉스.",strong
+JN_E36,JC_inferiority,NM_karmic_19,jung_numer_parallel,"열등감 콤플렉스와 카르마 19. 자존감 과제.","카르마 19는 열등감 극복이 과제.",strong
+JN_E37,JC_inferiority,NM_challenge,jung_numer_parallel,"열등감 콤플렉스와 도전수. 극복해야 할 약점.","도전수는 열등감의 구체적 영역 표시.",moderate
+JN_E38,JC_savior,NM_life_path_9,jung_numer_parallel,"구원자 콤플렉스와 생명수 9. 인류 구원 욕구.","생명수 9의 그림자는 구원자 콤플렉스.",strong
+JN_E39,JC_savior,NM_master_33,jung_numer_parallel,"구원자 콤플렉스와 마스터 33. 치유자 역할.","마스터 33의 그림자는 과도한 희생.",strong
+JN_E40,JC_victim,NM_karmic_13,jung_numer_parallel,"희생자 콤플렉스와 카르마 13. 변환의 저항.","카르마 13을 거부하면 희생자 역할.",moderate
+JN_E41,JC_abandonment,NM_life_path_2,jung_numer_parallel,"버림받음 콤플렉스와 생명수 2. 관계 의존.","생명수 2의 그림자는 버림받음 공포.",strong
+JN_E42,JC_money,NM_life_path_8,jung_numer_parallel,"돈 콤플렉스와 생명수 8. 물질에 대한 집착.","생명수 8의 불균형은 돈 콤플렉스.",strong
+JN_E43,JC_money,NM_life_path_4,jung_numer_parallel,"돈 콤플렉스와 생명수 4. 안정에 대한 집착.","생명수 4의 그림자는 물질 집착.",moderate
+JN_E44,JC_inflation,NM_life_path_1,jung_numer_parallel,"인플레이션과 생명수 1. 과대한 자아.","생명수 1의 그림자는 자기중심성.",moderate
+JN_E45,JC_puer,NM_life_path_5,jung_numer_parallel,"푸에르 콤플렉스와 생명수 5. 헌신 회피.","생명수 5의 그림자는 책임 회피.",strong
+JN_E46,JC_senex,NM_life_path_4,jung_numer_parallel,"세넥스 콤플렉스와 생명수 4. 경직성.","생명수 4의 그림자는 과도한 구조화.",moderate
+JN_E47,PY_1,JA_hero,jung_numer_parallel,"개인년 1과 영웅 원형. 둘 다 새로운 시작.","개인년 1은 영웅의 여정 시작.",strong
+JN_E48,PY_7,JA_wise_old_man,jung_numer_parallel,"개인년 7과 현자 원형. 둘 다 내면 탐구.","개인년 7은 현자와의 대화 시기.",strong
+JN_E49,PY_9,JA_self,jung_numer_parallel,"개인년 9와 자기 원형. 둘 다 완성과 통합.","개인년 9는 한 주기의 개성화 완성.",strong
+JN_E50,PY_11,JA_wise_old_man,jung_numer_parallel,"개인년 11과 현자 원형. 둘 다 영적 각성.","개인년 11은 영적 현자의 해.",strong

@@ -296,12 +296,23 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
         { timeout: 90000 }
       )
 
-      if (response.ok) {
-        const data = (response.data as Record<string, unknown>)?.data as
-          | Record<string, unknown>
-          | undefined
-        aiInterpretation = (data?.fusion_layer || data?.report || '') as string
-        aiModelUsed = (data?.model || 'gpt-4o') as string
+      if (response.ok && response.data) {
+        // Type-safe extraction with runtime validation
+        const responseData = response.data as Record<string, unknown>
+        const data = responseData?.data as Record<string, unknown> | undefined
+
+        // Validate string types at runtime before assignment
+        const fusionLayer = data?.fusion_layer
+        const report = data?.report
+        const model = data?.model
+
+        aiInterpretation =
+          typeof fusionLayer === 'string'
+            ? fusionLayer
+            : typeof report === 'string'
+              ? report
+              : ''
+        aiModelUsed = typeof model === 'string' ? model : 'gpt-4o'
 
         // Cache the AI interpretation for 7 days
         await cacheSet(

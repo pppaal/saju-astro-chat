@@ -14,7 +14,7 @@ import {
   getElementEnglish,
   getElementKorean,
   getElementEnFromStem,
-} from "@/lib/Saju/stemElementMapping";
+} from "@/lib/Saju/constants";
 
 describe("STEM_TO_ELEMENT", () => {
   it("maps Chinese stems to Korean elements", () => {

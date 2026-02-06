@@ -160,7 +160,7 @@ export const PATCH = withApiMiddleware<{
         }
         case 'add_growth_area': {
           const currentGrowth = (existing.growthAreas as string[]) || []
-          const area = data.area as string | undefined
+          const area = data.growthArea as string | undefined
           if (area && !currentGrowth.includes(area)) {
             updateData.growthAreas = [...currentGrowth, area]
           }
@@ -168,15 +168,15 @@ export const PATCH = withApiMiddleware<{
         }
         case 'add_recurring_issue': {
           const currentIssues = (existing.recurringIssues as string[]) || []
-          const issue = data.issue as string | undefined
+          const issue = data.recurringIssue as string | undefined
           if (issue && !currentIssues.includes(issue)) {
             updateData.recurringIssues = [...currentIssues, issue]
           }
           break
         }
         case 'update_emotional_tone':
-          if (data.tone) {
-            updateData.emotionalTone = data.tone
+          if (data.emotionalTone) {
+            updateData.emotionalTone = data.emotionalTone
           }
           break
 

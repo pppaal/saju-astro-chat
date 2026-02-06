@@ -558,9 +558,13 @@ describe('Timing Safe Comparison - Security Properties', () => {
 
   it('should use constant-time comparison for API keys', () => {
     const validKey = crypto.randomBytes(32).toString('hex')
+    // Flip the last character: use '0' if last char is 'f', otherwise use 'f'
+    // This ensures the tampered key is always different from the original
+    const lastChar = validKey.slice(-1)
+    const flippedChar = lastChar === 'f' ? '0' : 'f'
     const invalidKeys = [
       crypto.randomBytes(32).toString('hex'),
-      validKey.slice(0, -1) + 'f',
+      validKey.slice(0, -1) + flippedChar,
       'a'.repeat(64),
       validKey.toUpperCase(),
     ]
@@ -613,7 +617,10 @@ describe('Timing Safe Comparison - Real-world Scenarios', () => {
   it('should validate CSRF tokens safely', () => {
     const csrfToken = crypto.randomBytes(16).toString('hex')
     const storedToken = csrfToken
-    const tamperedToken = csrfToken.slice(0, -1) + 'f'
+    // Ensure tampered token differs: flip last hex char to one that's guaranteed different
+    const lastChar = csrfToken.slice(-1)
+    const flippedChar = lastChar === '0' ? '1' : '0'
+    const tamperedToken = csrfToken.slice(0, -1) + flippedChar
 
     expect(timingSafeCompare(csrfToken, storedToken)).toBe(true)
     expect(timingSafeCompare(csrfToken, tamperedToken)).toBe(false)

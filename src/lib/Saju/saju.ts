@@ -26,6 +26,7 @@ import {
   getSolarTermKST,
   assertKasiYearInRange,
 } from './constants'
+import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
 
 // 내부 타입(간단화)
 type DayMaster = { name: string; element: FiveElement; yin_yang: YinYang }
@@ -137,9 +138,12 @@ function daysToDaeunAge(days: number): number {
 
 /* ========== 메모이제이션 캐시 ========== */
 const sajuCache = new Map<string, { result: CalculateSajuDataResult; timestamp: number }>()
-const SAJU_CACHE_MAX = 500
-const SAJU_CACHE_TTL = 10 * 60 * 1000 // 10 minutes
 
+/**
+ * 안전한 캐시 키 생성
+ * - 파이프 구분자 대신 null byte 구분자 사용으로 키 충돌 방지
+ * - 예: birthDate가 "1990-01-01|admin" 이어도 안전
+ */
 function getSajuCacheKey(
   birthDate: string,
   birthTime: string,
@@ -148,7 +152,9 @@ function getSajuCacheKey(
   timezone: string,
   lunarLeap?: boolean
 ): string {
-  return `${birthDate}|${birthTime}|${gender}|${calendarType}|${timezone}|${lunarLeap ?? ''}`
+  const sep = CACHE_KEY.SEPARATOR
+  const params = [birthDate, birthTime, gender, calendarType, timezone, lunarLeap ?? '']
+  return `${CACHE_KEY.PREFIX.SAJU}${sep}${params.map(p => JSON.stringify(p)).join(sep)}`
 }
 
 /* ========== 메인 계산 ========== */
@@ -163,7 +169,7 @@ export function calculateSajuData(
   // Check cache first
   const cacheKey = getSajuCacheKey(birthDate, birthTime, gender, calendarType, timezone, lunarLeap)
   const cached = sajuCache.get(cacheKey)
-  if (cached && Date.now() - cached.timestamp < SAJU_CACHE_TTL) {
+  if (cached && Date.now() - cached.timestamp < SAJU_CACHE.TTL_MS) {
     return cached.result
   }
 
@@ -527,7 +533,7 @@ export function calculateSajuData(
     }
 
     // Cache the result (evict oldest if full)
-    if (sajuCache.size >= SAJU_CACHE_MAX) {
+    if (sajuCache.size >= SAJU_CACHE.MAX_SIZE) {
       const firstKey = sajuCache.keys().next().value
       if (firstKey) sajuCache.delete(firstKey)
     }

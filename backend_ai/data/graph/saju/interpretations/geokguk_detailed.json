@@ -1,7 +1,9 @@
 {
   "meta": {
     "type": "geokguk",
-    "count": 10
+    "version": "2.0",
+    "count": 10,
+    "description": "격국 상세 해석. 성격/직업/재물/관계/건강/용신/조합별 심화 분석 포함."
   },
   "interpretations": [
     {

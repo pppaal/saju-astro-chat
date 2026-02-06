@@ -47,7 +47,13 @@ export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const userId = context.userId!
 
-    const rawBody = await req.json()
+    const rawBody = await req.json().catch(() => null)
+    if (!rawBody || typeof rawBody !== 'object') {
+      return NextResponse.json(
+        { error: 'Invalid JSON body' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      )
+    }
 
     // Validate with Zod
     const validationResult = destinyMatchProfileSchema.safeParse(rawBody)

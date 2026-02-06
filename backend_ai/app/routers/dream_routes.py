@@ -12,6 +12,8 @@ Routes:
 from flask import Blueprint, request, jsonify, Response, g
 import logging
 
+from backend_ai.app.exceptions import BackendAIError
+
 logger = logging.getLogger(__name__)
 
 # Create Blueprint
@@ -197,9 +199,11 @@ def dream_interpret_stream():
             }
         )
 
+    except BackendAIError:
+        raise
     except Exception as e:
         logger.exception(f"[ERROR] /api/dream/interpret-stream failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        raise BackendAIError(str(e), "INTERNAL_ERROR")
 
 
 @dream_bp.route("/api/dream/chat-stream", methods=["POST"])
@@ -241,9 +245,11 @@ def dream_chat_stream():
             request_id=request_id
         )
 
+    except BackendAIError:
+        raise
     except Exception as e:
         logger.exception(f"[dream/chat-stream] Failed: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        raise BackendAIError(str(e), "INTERNAL_ERROR")
 
 
 # ============================================================================

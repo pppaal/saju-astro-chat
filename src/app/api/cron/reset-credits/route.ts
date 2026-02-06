@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { resetAllExpiredCredits, expireBonusCredits } from '@/lib/credits/creditService'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { extractLocale } from '@/lib/api/middleware'
 
 // Vercel Cron 또는 외부 cron 서비스용 엔드포인트
 // 매일 자정에 실행 권장
@@ -24,7 +25,11 @@ function validateCronSecret(request: Request): boolean {
 export async function GET(request: Request) {
   try {
     if (!validateCronSecret(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+      return createErrorResponse({
+        code: ErrorCodes.UNAUTHORIZED,
+        locale: extractLocale(request),
+        route: 'cron/reset-credits',
+      })
     }
 
     // 1. 만료된 보너스 크레딧 정리 (구매일로부터 3개월)
@@ -45,10 +50,11 @@ export async function GET(request: Request) {
     })
   } catch (err: unknown) {
     logger.error('[Cron Reset error]', err)
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'cron/reset-credits',
+      originalError: err instanceof Error ? err : new Error(String(err)),
+    })
   }
 }
 

@@ -21,6 +21,7 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
+from backend_ai.app.utils.json_safe import safe_json_loads
 from .entity_extractor import Entity, EntityExtractor, EntityType
 
 logger = logging.getLogger(__name__)
@@ -306,8 +307,8 @@ class LLMEntityExtractor:
             else:
                 return []
 
-            # JSON 파싱
-            result = json.loads(result_text)
+            # JSON 파싱 (안전한 파싱 - LLM 출력은 예측 불가)
+            result = safe_json_loads(result_text, default={}, context="llm_entity_extractor")
             entities = []
 
             for e in result.get("entities", []):

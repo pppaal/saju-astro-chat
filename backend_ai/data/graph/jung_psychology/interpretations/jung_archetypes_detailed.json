@@ -1,0 +1,431 @@
+{
+  "meta": {
+    "type": "jung_archetypes",
+    "version": "1.0",
+    "description": "융 심리학 원형(Archetype) 상세 해석. 사주/점성술/타로와의 연결 포함."
+  },
+  "archetypes": [
+    {
+      "id": "JA_자기",
+      "name": "자기(Self)",
+      "korean_name": "자기 원형",
+      "description": "전체 정신의 중심. 의식과 무의식의 통합점. 개성화의 궁극적 목표.",
+      "characteristics": {
+        "positive": ["전체성", "조화", "균형", "지혜", "초월", "통합"],
+        "negative": ["과대망상", "메시아 콤플렉스", "현실 도피"]
+      },
+      "manifestations": {
+        "dreams": ["만다라", "황금", "보석", "아이(신성한 아이)", "빛", "원", "사원", "성배"],
+        "behaviors": ["명상 추구", "전체성 갈망", "균형 추구", "의미 탐색"],
+        "projections": ["구루/스승에게 투사", "종교적 인물", "이상화된 지도자"]
+      },
+      "saju_correlation": {
+        "element": "오행의 조화로운 균형",
+        "structure": "일간과 용신의 완벽한 조화",
+        "timing": "삼합이 완성되거나 사주 전체가 조화로운 시기"
+      },
+      "astro_correlation": {
+        "planets": ["태양(핵심 자아)", "북노드(영혼의 방향)"],
+        "houses": ["1하우스(자아)", "9하우스(의미)", "12하우스(초월)"],
+        "aspects": ["그랜드 트라인", "요드(신의 손가락)"]
+      },
+      "tarot_correlation": {
+        "cards": ["세계(21)", "태양(19)", "심판(20)"],
+        "meaning": "완성과 통합, 새로운 시작"
+      },
+      "development_path": {
+        "stages": ["에고 발달", "그림자 통합", "아니마/아니무스 통합", "자기 접촉"],
+        "challenges": ["인플레이션 위험", "현실 생활과의 균형"],
+        "practices": ["명상", "꿈 작업", "창조적 표현", "봉사"]
+      },
+      "advice": "자기는 도달점이 아니라 방향입니다. 완성되었다고 느낄 때 가장 경계해야 합니다."
+    },
+    {
+      "id": "JA_페르소나",
+      "name": "페르소나(Persona)",
+      "korean_name": "가면/사회적 자아",
+      "description": "사회에 보여주는 얼굴. 사회적 적응을 위한 가면. 필요하지만 동일시하면 위험.",
+      "characteristics": {
+        "positive": ["사회 적응", "역할 수행", "보호 기능", "의사소통"],
+        "negative": ["진짜 자기 상실", "표면적 삶", "관계 불능", "공허함"]
+      },
+      "manifestations": {
+        "dreams": ["가면", "옷/유니폼", "거울", "배우", "공식 행사", "직함"],
+        "behaviors": ["역할에 몰입", "이미지 관리", "사회적 성공 추구"],
+        "projections": ["사회적으로 성공한 사람에게 투사"]
+      },
+      "saju_correlation": {
+        "element": "정관(사회적 규범/지위)",
+        "structure": "월주(사회적 자아를 나타냄)",
+        "timing": "정관 대운, 사회적 역할이 강조되는 시기"
+      },
+      "astro_correlation": {
+        "planets": ["토성(사회적 책임)", "수성(소통)"],
+        "houses": ["10하우스(커리어/공적 이미지)", "1하우스 상승점"],
+        "aspects": ["토성과 태양의 애스펙트"]
+      },
+      "tarot_correlation": {
+        "cards": ["마법사(1)", "황제(4)", "교황(5)"],
+        "meaning": "사회적 역할과 권위"
+      },
+      "development_path": {
+        "healthy": "적절한 페르소나 사용하면서 진짜 자기도 인식",
+        "unhealthy": "페르소나와 완전히 동일시, 가면 벗으면 공허",
+        "integration": "페르소나가 나의 일부지만 전부가 아님을 인식"
+      },
+      "advice": "가면은 필요하지만, 가면을 벗을 때 '내'가 사라지면 안 됩니다."
+    },
+    {
+      "id": "JA_그림자",
+      "name": "그림자(Shadow)",
+      "korean_name": "그림자 원형",
+      "description": "의식이 받아들이지 않은 자기의 어두운 면. 억압되었지만 강력한 에너지를 품고 있음.",
+      "characteristics": {
+        "positive": ["억압된 창조성", "생명력", "본능", "진정성의 원천"],
+        "negative": ["파괴성", "폭력성", "중독", "악의"]
+      },
+      "manifestations": {
+        "dreams": ["쫓는 자/쫓기는 자", "괴물", "악당", "어두운 인물", "지하실", "적"],
+        "behaviors": ["투사(타인 비난)", "억압", "분열", "갑작스러운 폭발"],
+        "projections": ["미워하는 사람", "적", "범죄자", "이방인"]
+      },
+      "saju_correlation": {
+        "element": "편관/칠살(통제되지 않은 힘)",
+        "structure": "상관(반항/파괴)", "양인(극단적 에너지)",
+        "timing": "편관 운, 상관이 정관을 만나는 시기, 형충파해 시기"
+      },
+      "astro_correlation": {
+        "planets": ["명왕성(어둠/변환)", "화성(공격성)", "토성(억압)"],
+        "houses": ["8하우스(숨겨진 것)", "12하우스(무의식)"],
+        "aspects": ["하드 애스펙트(스퀘어, 오포지션)"]
+      },
+      "tarot_correlation": {
+        "cards": ["악마(15)", "달(18)", "탑(16)"],
+        "meaning": "숨겨진 것의 노출, 붕괴와 재건"
+      },
+      "integration_process": {
+        "steps": [
+          "투사 인식: 강하게 싫어하는 타인의 특성 발견",
+          "자기 인정: 그 특성이 나 안에도 있음 인정",
+          "수용: 판단 없이 그 면을 받아들임",
+          "통합: 그림자 에너지를 건설적으로 사용"
+        ],
+        "dangers": ["그림자에 휩쓸림", "도덕적 정당화", "계속된 부정"],
+        "benefits": ["에너지 증가", "진정성", "타인 이해", "창조성"]
+      },
+      "advice": "가장 싫어하는 타인의 특성을 잘 보세요. 그것이 당신의 그림자입니다."
+    },
+    {
+      "id": "JA_아니마",
+      "name": "아니마(Anima)",
+      "korean_name": "내면의 여성성(남성의 경우)",
+      "description": "남성 무의식 속의 여성적 원형. 감정, 관계, 영혼, 창조성과 연결.",
+      "characteristics": {
+        "positive": ["감정 연결", "관계 능력", "창조성", "영혼과 연결", "직관"],
+        "negative": ["변덕", "유혹", "환상", "감정 조종"]
+      },
+      "development_levels": {
+        "level1_eve": {
+          "name": "이브",
+          "description": "육체적/성적 수준의 여성성",
+          "projection": "성적 대상으로서의 여성"
+        },
+        "level2_helen": {
+          "name": "헬렌",
+          "description": "낭만적/미적 수준의 여성성",
+          "projection": "이상화된 연인, 뮤즈"
+        },
+        "level3_mary": {
+          "name": "마리아",
+          "description": "영적/헌신적 수준의 여성성",
+          "projection": "성모, 헌신적 어머니"
+        },
+        "level4_sophia": {
+          "name": "소피아",
+          "description": "지혜/초월적 수준의 여성성",
+          "projection": "지혜의 여신, 영혼의 안내자"
+        }
+      },
+      "manifestations": {
+        "dreams": ["여인", "여신", "바다", "달", "꽃", "춤", "노래"],
+        "behaviors": ["연애 중독", "이상화", "감정 회피(미통합 시)"],
+        "projections": ["연인", "여배우", "여신", "어머니"]
+      },
+      "saju_correlation": {
+        "element": "정재/편재(여성, 아내)",
+        "structure": "수(水) 기운",
+        "timing": "정재/편재 대운, 도화살 활성화"
+      },
+      "astro_correlation": {
+        "planets": ["달(감정)", "금성(사랑/아름다움)", "해왕성(영혼)"],
+        "houses": ["7하우스(파트너)", "4하우스(내면)"],
+        "aspects": ["달-금성 애스펙트"]
+      },
+      "tarot_correlation": {
+        "cards": ["여사제(2)", "여황제(3)", "별(17)"],
+        "meaning": "직관, 창조성, 영혼의 인도"
+      },
+      "integration_advice": "여성에게서 찾던 것을 자기 안에서 발견하세요. 감정과 친해지세요."
+    },
+    {
+      "id": "JA_아니무스",
+      "name": "아니무스(Animus)",
+      "korean_name": "내면의 남성성(여성의 경우)",
+      "description": "여성 무의식 속의 남성적 원형. 이성, 판단, 행동력, 정신적 확신과 연결.",
+      "characteristics": {
+        "positive": ["독립적 사고", "결단력", "행동력", "정신적 명확성"],
+        "negative": ["독단", "비판", "무자비함", "감정 무시"]
+      },
+      "development_levels": {
+        "level1_power": {
+          "name": "힘의 남성",
+          "description": "물리적 힘의 수준",
+          "projection": "운동선수, 액션 영웅"
+        },
+        "level2_action": {
+          "name": "행동의 남성",
+          "description": "계획과 실행 수준",
+          "projection": "사업가, 모험가"
+        },
+        "level3_word": {
+          "name": "말의 남성",
+          "description": "지적/언어적 수준",
+          "projection": "교수, 작가, 연설가"
+        },
+        "level4_meaning": {
+          "name": "의미의 남성",
+          "description": "영적/철학적 수준",
+          "projection": "현자, 영적 스승"
+        }
+      },
+      "manifestations": {
+        "dreams": ["남자", "영웅", "아버지", "왕", "태양", "칼", "다리"],
+        "behaviors": ["남성 의존", "독단적 의견(미통합 시)", "결단 회피"],
+        "projections": ["연인", "아버지", "권위자", "영웅"]
+      },
+      "saju_correlation": {
+        "element": "정관/편관(남성, 남편)",
+        "structure": "목(木)/화(火) 기운",
+        "timing": "정관/편관 대운"
+      },
+      "astro_correlation": {
+        "planets": ["태양(의지)", "화성(행동)", "목성(확장)"],
+        "houses": ["7하우스(파트너)", "10하우스(권위)"],
+        "aspects": ["태양-화성 애스펙트"]
+      },
+      "tarot_correlation": {
+        "cards": ["황제(4)", "전차(7)", "힘(8)"],
+        "meaning": "의지력, 행동, 통제된 힘"
+      },
+      "integration_advice": "남성에게서 찾던 힘과 확신을 자기 안에서 키우세요."
+    },
+    {
+      "id": "JA_위대한어머니",
+      "name": "위대한 어머니(Great Mother)",
+      "korean_name": "위대한 어머니 원형",
+      "description": "돌봄, 양육, 보호의 원형. 동시에 삼키고 파괴하는 어둠 면도 가짐.",
+      "characteristics": {
+        "positive": ["양육", "보호", "풍요", "무조건적 사랑", "생명력"],
+        "negative": ["삼킴", "질식", "과보호", "의존성 조장"]
+      },
+      "aspects": {
+        "good_mother": {
+          "symbols": ["대지", "곡식", "집", "우유", "따뜻함"],
+          "feeling": "안전, 보호, 양육"
+        },
+        "terrible_mother": {
+          "symbols": ["깊은 물", "늪", "동굴", "거미", "마녀"],
+          "feeling": "삼켜짐, 질식, 탈출 불가"
+        }
+      },
+      "manifestations": {
+        "dreams": ["어머니", "대지", "바다", "집", "동굴", "마녀", "여신"],
+        "behaviors": ["과도한 돌봄 추구", "의존", "또는 완전한 거부"],
+        "projections": ["어머니", "조직", "국가", "자연"]
+      },
+      "saju_correlation": {
+        "element": "정인/편인(어머니, 보호)",
+        "structure": "인성이 강한 사주",
+        "timing": "인성 대운"
+      },
+      "astro_correlation": {
+        "planets": ["달(어머니)", "세레스(양육)", "명왕성(삼키는 면)"],
+        "houses": ["4하우스(가정/어머니)", "10하우스(양육받음의 결과)"],
+        "aspects": ["달-명왕성 애스펙트(삼키는 어머니)"]
+      },
+      "tarot_correlation": {
+        "cards": ["여황제(3)", "달(18-어두운 면)"],
+        "meaning": "풍요와 양육, 또는 환상과 공포"
+      },
+      "integration_advice": "어머니에게 받은 것과 받지 못한 것을 모두 인정하고, 자기 안의 양육자를 키우세요."
+    },
+    {
+      "id": "JA_위대한아버지",
+      "name": "위대한 아버지(Great Father)",
+      "korean_name": "위대한 아버지 원형",
+      "description": "질서, 규칙, 보호, 권위의 원형. 동시에 억압하고 심판하는 어둠 면도 가짐.",
+      "characteristics": {
+        "positive": ["보호", "질서", "지도", "지혜", "힘"],
+        "negative": ["억압", "심판", "폭군", "통제"]
+      },
+      "aspects": {
+        "good_father": {
+          "symbols": ["하늘", "산", "왕", "법", "방패"],
+          "feeling": "보호, 인도, 지혜"
+        },
+        "terrible_father": {
+          "symbols": ["심판관", "감옥", "칼", "번개", "괴물"],
+          "feeling": "억압, 심판, 공포"
+        }
+      },
+      "manifestations": {
+        "dreams": ["아버지", "왕", "판사", "신", "폭군", "하늘"],
+        "behaviors": ["권위에 대한 반응(순종 또는 반항)"],
+        "projections": ["아버지", "상사", "신", "국가", "법"]
+      },
+      "saju_correlation": {
+        "element": "편재(아버지)", "정관(권위/질서)",
+        "structure": "관성이 강한 사주",
+        "timing": "편재 대운, 정관/편관 대운"
+      },
+      "astro_correlation": {
+        "planets": ["토성(권위/규칙)", "목성(지혜/확장)", "태양(아버지)"],
+        "houses": ["10하우스(아버지/권위)", "9하우스(지혜/신)"],
+        "aspects": ["토성-태양 애스펙트"]
+      },
+      "tarot_correlation": {
+        "cards": ["황제(4)", "심판(20)", "교황(5)"],
+        "meaning": "권위, 심판, 영적 지도"
+      },
+      "integration_advice": "아버지로부터의 독립과 내면의 권위 확립. 자기 삶의 왕이 되기."
+    },
+    {
+      "id": "JA_영웅",
+      "name": "영웅(Hero)",
+      "korean_name": "영웅 원형",
+      "description": "시련을 극복하고 보물을 가져오는 여정의 원형. 에고 발달의 신화적 표현.",
+      "characteristics": {
+        "positive": ["용기", "결단", "극복", "변환", "승리"],
+        "negative": ["오만", "무모함", "파괴", "구원자 콤플렉스"]
+      },
+      "journey_stages": {
+        "call": "모험에의 부름",
+        "threshold": "문턱 넘기",
+        "trials": "시련과 동맹",
+        "abyss": "심연(죽음과 재생)",
+        "transformation": "변환",
+        "return": "보물과 함께 귀환"
+      },
+      "manifestations": {
+        "dreams": ["전쟁", "괴물 싸움", "모험", "시련 극복", "보물 발견"],
+        "behaviors": ["도전 추구", "위험 감수", "보호자 역할"],
+        "projections": ["영웅적 인물", "운동선수", "혁명가"]
+      },
+      "saju_correlation": {
+        "element": "양인(극복력)", "편관(싸움)",
+        "structure": "비겁/관살이 강한 사주",
+        "timing": "양인 운, 편관 운"
+      },
+      "astro_correlation": {
+        "planets": ["화성(전사)", "태양(영웅)", "명왕성(변환)"],
+        "houses": ["1하우스(자아)", "8하우스(죽음/재생)"],
+        "aspects": ["화성-명왕성 애스펙트"]
+      },
+      "tarot_correlation": {
+        "cards": ["바보(0-여정시작)", "전차(7-극복)", "힘(8-내면의 힘)"],
+        "meaning": "여정, 시련 극복, 내면의 힘 발견"
+      },
+      "integration_advice": "영웅의 여정은 외부의 적이 아닌 내면의 용을 물리치는 것입니다."
+    },
+    {
+      "id": "JA_트릭스터",
+      "name": "트릭스터(Trickster)",
+      "korean_name": "트릭스터/장난꾸러기 원형",
+      "description": "규칙을 어기고 경계를 넘는 원형. 혼란을 통해 변화를 가져옴.",
+      "characteristics": {
+        "positive": ["창의성", "유연성", "변화 촉매", "유머", "새로운 관점"],
+        "negative": ["속임", "혼란", "책임 회피", "파괴"]
+      },
+      "manifestations": {
+        "dreams": ["광대", "동물(여우, 까마귀)", "속이는 인물", "규칙 어김"],
+        "behaviors": ["규칙 어김", "장난", "예상 밖의 행동", "유머"],
+        "projections": ["광대", "예술가", "혁신가", "아웃사이더"]
+      },
+      "saju_correlation": {
+        "element": "상관(반항/비판)",
+        "structure": "상관이 강한 사주",
+        "timing": "상관 대운"
+      },
+      "astro_correlation": {
+        "planets": ["수성(속임/소통)", "천왕성(예상 밖의 변화)"],
+        "houses": ["3하우스(소통)", "11하우스(예상 밖)"],
+        "aspects": ["수성-천왕성 애스펙트"]
+      },
+      "tarot_correlation": {
+        "cards": ["바보(0)", "마법사(1)"],
+        "meaning": "무한한 가능성, 변화, 새로운 시작"
+      },
+      "integration_advice": "트릭스터 에너지는 경직된 구조를 깨뜨립니다. 적절히 활용하면 창조적입니다."
+    },
+    {
+      "id": "JA_현자",
+      "name": "현자(Wise Old Man/Woman)",
+      "korean_name": "현자/노현인 원형",
+      "description": "지혜와 통찰의 원형. 인도자, 스승, 내면의 지혜를 나타냄.",
+      "characteristics": {
+        "positive": ["지혜", "통찰", "인도", "평화", "초월"],
+        "negative": ["냉소", "무력감", "세상과 단절", "현실 무시"]
+      },
+      "manifestations": {
+        "dreams": ["노인", "스승", "은둔자", "마법사", "신", "책/지혜의 상징"],
+        "behaviors": ["지혜 추구", "명상", "가르침", "조언"],
+        "projections": ["스승", "노인", "구루", "철학자"]
+      },
+      "saju_correlation": {
+        "element": "정인(학문/지혜)", "편인(직관/통찰)",
+        "structure": "인성이 좋은 사주",
+        "timing": "인성 대운, 특히 말년"
+      },
+      "astro_correlation": {
+        "planets": ["토성(시간의 지혜)", "목성(지혜/확장)", "해왕성(영적 통찰)"],
+        "houses": ["9하우스(철학/지혜)", "12하우스(영성)"],
+        "aspects": ["목성-토성 애스펙트"]
+      },
+      "tarot_correlation": {
+        "cards": ["은둔자(9)", "교황(5)"],
+        "meaning": "내면의 빛을 따르는 지혜, 영적 인도"
+      },
+      "integration_advice": "현자는 밖에서가 아닌 안에서 만나야 합니다. 당신 안의 지혜에 귀 기울이세요."
+    },
+    {
+      "id": "JA_신성한아이",
+      "name": "신성한 아이(Divine Child)",
+      "korean_name": "신성한 아이/푸에르 원형",
+      "description": "새로운 시작, 순수함, 잠재력의 원형. 또한 영원한 젊음(푸에르/푸엘라)의 그림자.",
+      "characteristics": {
+        "positive": ["순수", "새로움", "가능성", "창조성", "희망"],
+        "negative": ["미성숙", "책임 회피", "영원한 청소년", "현실 도피"]
+      },
+      "manifestations": {
+        "dreams": ["아기", "아이", "탄생", "새벽", "씨앗", "알"],
+        "behaviors": ["새로운 시작", "순수함", "또는 성장 거부"],
+        "projections": ["아이", "젊은이", "새로운 프로젝트"]
+      },
+      "saju_correlation": {
+        "element": "식신(순수한 창조)",
+        "structure": "식신이 좋은 사주",
+        "timing": "식신 대운, 새로운 시작의 시기"
+      },
+      "astro_correlation": {
+        "planets": ["달(내면 아이)", "금성(순수함)", "목성(성장)"],
+        "houses": ["5하우스(창조/자녀)", "1하우스(새로운 시작)"],
+        "aspects": ["달-목성 트라인"]
+      },
+      "tarot_correlation": {
+        "cards": ["바보(0)", "태양(19)", "에이스 카드들"],
+        "meaning": "순수한 시작, 무한한 가능성"
+      },
+      "integration_advice": "내면 아이의 순수함을 지키면서도, 어른으로서의 책임을 받아들이세요."
+    }
+  ]
+}

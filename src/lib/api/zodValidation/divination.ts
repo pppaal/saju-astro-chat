@@ -14,6 +14,14 @@ import {
   birthInfoSchema,
   chatMessageSchema,
 } from './common'
+import {
+  sajuChatContextSchema,
+  fiveElementSchema,
+} from './domains/saju-domain'
+import {
+  astroChatContextSchema,
+  zodiacSignSchema,
+} from './domains/astro-domain'
 
 // ============ I Ching Schemas ============
 
@@ -101,6 +109,28 @@ export const dreamChatSaveRequestSchema = z.object({
 
 export type DreamChatSaveRequestValidated = z.infer<typeof dreamChatSaveRequestSchema>
 
+export const celestialContextSchema = z.object({
+  moonPhase: z.enum(['new', 'waxing_crescent', 'first_quarter', 'waxing_gibbous', 'full', 'waning_gibbous', 'last_quarter', 'waning_crescent']).optional(),
+  moonSign: zodiacSignSchema.optional(),
+  sunSign: zodiacSignSchema.optional(),
+  mercuryRetrograde: z.boolean().optional(),
+  dominantElement: z.enum(['fire', 'earth', 'air', 'water']).optional(),
+})
+
+export const previousConsultationSchema = z.object({
+  date: z.string().max(30),
+  dreamSummary: z.string().max(500).optional(),
+  mainTheme: z.string().max(100).optional(),
+  keyInsight: z.string().max(500).optional(),
+})
+
+export const personaMemoryContextSchema = z.object({
+  dominantThemes: z.array(z.string().max(100)).optional(),
+  recurringSymbols: z.array(z.string().max(100)).optional(),
+  emotionalPatterns: z.array(z.string().max(100)).optional(),
+  growthAreas: z.array(z.string().max(100)).optional(),
+})
+
 export const dreamChatRequestSchema = z.object({
   messages: z.array(chatMessageSchema).min(1).max(50),
   dreamContext: z.object({
@@ -110,16 +140,25 @@ export const dreamChatRequestSchema = z.object({
     emotions: z.array(z.string().max(200)).max(30).optional(),
     themes: z.array(z.string().max(200)).max(30).optional(),
     recommendations: z.array(z.string().max(500)).max(20).optional(),
-    cultural_notes: z.record(z.string(), z.string().max(500)).optional(),
-    celestial: z.record(z.string(), z.unknown()).optional(),
-    saju: z.record(z.string(), z.unknown()).optional(),
-    previous_consultations: z.array(z.record(z.string(), z.unknown())).max(5).optional(),
-    persona_memory: z.record(z.string(), z.unknown()).optional(),
+    cultural_notes: z.record(z.enum(['korean', 'chinese', 'western', 'islamic', 'hindu', 'japanese']), z.string().max(500)).optional(),
+    celestial: celestialContextSchema.optional(),
+    saju: sajuChatContextSchema.optional(),
+    previous_consultations: z.array(previousConsultationSchema).max(5).optional(),
+    persona_memory: personaMemoryContextSchema.optional(),
   }),
   locale: z.enum(['ko', 'en']).optional(),
 })
 
 export type DreamChatRequestValidated = z.infer<typeof dreamChatRequestSchema>
+
+export const sajuInfluenceSchema = z.object({
+  dayMaster: z.string().max(10).optional(),
+  dayMasterElement: fiveElementSchema.optional(),
+  currentDaeun: z.string().max(20).optional(),
+  currentSaeun: z.string().max(20).optional(),
+  favorableElements: z.array(fiveElementSchema).optional(),
+  relevantShinsal: z.array(z.string().max(30)).optional(),
+})
 
 export const dreamStreamSchema = z.object({
   dreamText: z.string().min(5).max(5000).trim(),
@@ -142,10 +181,10 @@ export const dreamStreamSchema = z.object({
       timezone: timezoneSchema.optional(),
       latitude: latitudeSchema.optional(),
       longitude: longitudeSchema.optional(),
-      gender: z.string().max(20).optional(),
+      gender: genderSchema.optional(),
     })
     .optional(),
-  sajuInfluence: z.record(z.string(), z.unknown()).optional(),
+  sajuInfluence: sajuInfluenceSchema.optional(),
 })
 
 export type DreamStreamValidated = z.infer<typeof dreamStreamSchema>
@@ -208,6 +247,53 @@ export const pastLifeRequestSchema = z.object({
 
 export type PastLifeRequestValidated = z.infer<typeof pastLifeRequestSchema>
 
+export const soulPatternSchema = z.object({
+  archetype: z.string().max(100),
+  primaryElement: z.enum(['fire', 'earth', 'air', 'water']).optional(),
+  soulAge: z.enum(['infant', 'baby', 'young', 'mature', 'old']).optional(),
+  description: z.string().max(2000),
+})
+
+export const pastLifeInfoSchema = z.object({
+  era: z.string().max(100),
+  role: z.string().max(200),
+  location: z.string().max(200).optional(),
+  keyEvents: z.array(z.string().max(500)).optional(),
+  lessonsLearned: z.array(z.string().max(500)).optional(),
+  description: z.string().max(2000),
+})
+
+export const soulJourneySchema = z.object({
+  stage: z.string().max(100),
+  theme: z.string().max(200),
+  challenges: z.array(z.string().max(500)).optional(),
+  opportunities: z.array(z.string().max(500)).optional(),
+  description: z.string().max(2000),
+})
+
+export const karmicDebtSchema = z.object({
+  type: z.string().max(100),
+  origin: z.string().max(200).optional(),
+  currentManifestation: z.string().max(500),
+  resolutionPath: z.string().max(500),
+  progress: z.number().min(0).max(100).optional(),
+})
+
+export const lifeMissionSchema = z.object({
+  primary: z.string().max(200),
+  secondary: z.array(z.string().max(200)).optional(),
+  challenges: z.array(z.string().max(300)).optional(),
+  description: z.string().max(2000),
+})
+
+export const saturnLessonSchema = z.object({
+  house: z.number().int().min(1).max(12).optional(),
+  sign: zodiacSignSchema.optional(),
+  theme: z.string().max(200),
+  lesson: z.string().max(1000),
+  maturityAge: z.number().int().min(0).max(100).optional(),
+})
+
 export const pastLifeSaveRequestSchema = z.object({
   birthDate: dateSchema,
   birthTime: timeSchema.optional(),
@@ -216,13 +302,13 @@ export const pastLifeSaveRequestSchema = z.object({
   timezone: timezoneSchema.optional(),
   karmaScore: z.number().min(0).max(100),
   analysisData: z.object({
-    soulPattern: z.record(z.string(), z.unknown()),
-    pastLife: z.record(z.string(), z.unknown()),
-    soulJourney: z.record(z.string(), z.unknown()),
-    karmicDebts: z.array(z.record(z.string(), z.unknown())),
-    thisLifeMission: z.record(z.string(), z.unknown()),
+    soulPattern: soulPatternSchema,
+    pastLife: pastLifeInfoSchema,
+    soulJourney: soulJourneySchema,
+    karmicDebts: z.array(karmicDebtSchema),
+    thisLifeMission: lifeMissionSchema,
     talentsCarried: z.array(z.string().max(200)),
-    saturnLesson: z.record(z.string(), z.unknown()),
+    saturnLesson: saturnLessonSchema,
   }),
   locale: localeSchema.optional(),
 })
@@ -386,19 +472,37 @@ export const lifePredictionMultiYearSaveSchema = z.object({
       )
       .optional(),
   }),
-  saju: z.record(z.string(), z.unknown()).optional(),
-  astro: z.record(z.string(), z.unknown()).optional(),
+  saju: sajuChatContextSchema.optional(),
+  astro: astroChatContextSchema.optional(),
   locale: z.enum(['ko', 'en']).optional(),
 })
 
 export type LifePredictionMultiYearSaveValidated = z.infer<typeof lifePredictionMultiYearSaveSchema>
 
+export const lifePredictionBirthInfoSchema = z.object({
+  birthDate: dateSchema,
+  birthTime: timeSchema.optional(),
+  gender: genderSchema.optional(),
+  latitude: latitudeSchema.optional(),
+  longitude: longitudeSchema.optional(),
+  timezone: timezoneSchema.optional(),
+})
+
+export const lifePredictionMetadataSchema = z.object({
+  eventType: z.string().max(50).optional(),
+  analysisDepth: z.enum(['basic', 'detailed', 'comprehensive']).optional(),
+  daeunPeriod: z.string().max(50).optional(),
+  saeunYear: z.number().int().optional(),
+  confidence: z.number().min(0).max(100).optional(),
+  sources: z.array(z.enum(['saju', 'astro', 'numerology'])).optional(),
+})
+
 export const lifePredictionSaveRequestSchema = z.object({
   question: z.string().min(1).max(1000).trim(),
   prediction: z.string().max(10000),
-  category: z.string().max(100).optional(),
-  birthInfo: z.record(z.string(), z.unknown()).optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  category: z.enum(['career', 'love', 'health', 'wealth', 'family', 'general']).optional(),
+  birthInfo: lifePredictionBirthInfoSchema.optional(),
+  metadata: lifePredictionMetadataSchema.optional(),
   locale: localeSchema.optional(),
 })
 

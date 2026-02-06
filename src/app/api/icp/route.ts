@@ -15,10 +15,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
+import { withApiMiddleware, createAuthenticatedGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
 import { prisma, Prisma } from '@/lib/db/prisma'
-import { HTTP_STATUS } from '@/lib/constants/http'
-import { icpSaveSchema } from '@/lib/api/zodValidation'
+import { icpSaveSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -62,16 +61,10 @@ export const POST = withApiMiddleware(
     const validationResult = icpSaveSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[ICP] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validationResult.error, {
+        locale: extractLocale(request),
+        route: 'icp',
+      })
     }
 
     const icpData = validationResult.data

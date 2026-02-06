@@ -1,0 +1,27 @@
+source_id,target_id,relation_type,weight,description
+JC_mother,인성과다,complex_saju_link,0.88,모성 콤플렉스와 인성 과다가 연결. 과도한 인성은 모성 에너지의 불균형을 나타낼 수 있음.
+JC_father,정관편관,complex_saju_link,0.87,부성 콤플렉스와 관성이 연결. 관의 상태가 아버지와의 관계 및 권위에 대한 태도를 반영.
+JC_inferiority,비겁약,complex_saju_link,0.91,열등 콤플렉스와 비겁 약함이 연결. 자아의 힘이 약하면 열등감이 형성되기 쉬움.
+JC_savior,식신인성,complex_saju_link,0.85,구원자 콤플렉스와 식신/인성 과다가 연결. 과도한 돌봄과 헌신의 패턴.
+JC_abandonment,공망인성,complex_saju_link,0.89,유기 콤플렉스와 공망/인성 문제가 연결. 인성의 공망은 어린 시절 돌봄 부재와 관련.
+JC_power,편관과다,complex_saju_link,0.86,권력 콤플렉스와 편관 과다가 연결. 통제와 권력에 대한 집착.
+JF_Te,정관,function_saju_link,0.84,외향적 사고(Te)와 정관이 연결. 체계와 질서를 추구하는 에너지.
+JF_Ti,편인,function_saju_link,0.88,내향적 사고(Ti)와 편인이 연결. 내면의 논리 체계와 분석적 탐구.
+JF_Fe,정재,function_saju_link,0.83,외향적 감정(Fe)과 정재가 연결. 관계의 조화와 사회적 유대.
+JF_Fi,상관,function_saju_link,0.86,내향적 감정(Fi)과 상관이 연결. 내면의 가치와 진정성 표현.
+JF_Se,편재,function_saju_link,0.82,외향적 감각(Se)과 편재가 연결. 현실적 감각과 즉각적 경험.
+JF_Si,정인,function_saju_link,0.85,내향적 감각(Si)과 정인이 연결. 전통과 과거 경험의 축적.
+JF_Ne,식신,function_saju_link,0.87,외향적 직관(Ne)과 식신이 연결. 창의적 확장과 가능성 탐색.
+JF_Ni,편인,function_saju_link,0.90,내향적 직관(Ni)과 편인이 연결. 깊은 통찰과 비전.
+JI_페르소나형성,년주월주,individuation_saju_link,0.84,페르소나 형성기와 년주/월주가 연결. 초년의 사회화와 가면 형성.
+JI_그림자직면,대운교체,individuation_saju_link,0.88,그림자 직면기와 대운 교체기가 연결. 억압된 면을 만나는 전환점.
+JI_아니마아니무스,일주,individuation_saju_link,0.91,내면 이성 통합기와 일주가 연결. 배우자궁을 통한 내면 이성 만남.
+JI_자기만남,대운중반,individuation_saju_link,0.89,자기(Self) 접촉기와 대운 중반이 연결. 중년의 자기 발견.
+JI_지혜자단계,시주,individuation_saju_link,0.86,지혜자 단계와 시주가 연결. 말년의 지혜와 전수.
+JS_억압된분노,상관견관,shadow_saju_link,0.92,억압된 분노와 상관견관이 연결. 관을 극하는 구조에서 분노가 억압됨.
+JS_열등감,비겁약관다,shadow_saju_link,0.90,열등감 그림자와 비겁 약함/관 과다가 연결. 자아가 눌리면 열등감 형성.
+JS_억압된욕망,도화공망,shadow_saju_link,0.87,억압된 욕망과 도화살 공망이 연결. 욕망이 억압되어 왜곡됨.
+JS_의존성,인성약비겁강,shadow_saju_link,0.85,숨겨진 의존성과 인성 약함/비겁 과다가 연결. 외로움 속 의존 욕구.
+JS_우월감,비겁상관강,shadow_saju_link,0.84,숨겨진 우월감과 비겁/상관 강함이 연결. 타인을 가르치려는 경향.
+JS_희생자의식,관살과다,shadow_saju_link,0.88,희생자 의식과 관살 과다가 연결. 외부 압력에 의한 피해 의식.
+JS_구원자콤플렉스,식신인성강,shadow_saju_link,0.86,구원자 그림자와 식신/인성 강함이 연결. 과도한 돌봄 패턴.

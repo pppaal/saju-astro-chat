@@ -1,16 +1,16 @@
 // src/app/api/dream/chat/route.ts
 // Dream Follow-up Chat API - Enhanced with RAG, Celestial, and Saju context
 
-import { NextRequest, NextResponse } from 'next/server'
-import { initializeApiContext, createPublicStreamGuard } from '@/lib/api/middleware'
+import { NextRequest } from 'next/server'
+import { initializeApiContext, createPublicStreamGuard, extractLocale } from '@/lib/api/middleware'
 import { createSSEStreamProxy } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'
 import { enforceBodySize } from '@/lib/http'
 import { logger } from '@/lib/logger'
-import { dreamChatRequestSchema } from '@/lib/api/zodValidation'
+import { dreamChatRequestSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 
 import { BODY_LIMITS } from '@/lib/constants/api-limits'
-import { HTTP_STATUS } from '@/lib/constants/http'
 const MAX_CHAT_BODY = BODY_LIMITS.LARGE
 
 export async function POST(req: NextRequest) {
@@ -39,16 +39,10 @@ export async function POST(req: NextRequest) {
     const validationResult = dreamChatRequestSchema.safeParse(rawBody)
     if (!validationResult.success) {
       logger.warn('[dream/chat] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validationResult.error, {
+        locale: extractLocale(req),
+        route: 'dream/chat',
+      })
     }
 
     const { messages, dreamContext, locale: bodyLocale } = validationResult.data
@@ -97,10 +91,12 @@ export async function POST(req: NextRequest) {
         status: streamResult.status,
         error: streamResult.error,
       })
-      return NextResponse.json(
-        { error: 'Backend error', detail: streamResult.error },
-        { status: streamResult.status || 500 }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.BACKEND_ERROR,
+        message: streamResult.error || 'Backend service error',
+        locale: extractLocale(req),
+        route: 'dream/chat',
+      })
     }
 
     // Proxy the SSE stream from backend to client
@@ -110,6 +106,10 @@ export async function POST(req: NextRequest) {
     })
   } catch (err: unknown) {
     logger.error('Dream chat error:', err)
-    return NextResponse.json({ error: 'Server error' }, { status: HTTP_STATUS.SERVER_ERROR })
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'dream/chat',
+      originalError: err instanceof Error ? err : new Error(String(err)),
+    })
   }
 }

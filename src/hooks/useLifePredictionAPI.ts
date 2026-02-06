@@ -1,34 +1,12 @@
-/**
- * useLifePredictionAPI Hook
- *
- * Handles API calls for life prediction analysis.
- * Includes backend RAG prediction with fallback to frontend calculation.
- */
-
 'use client'
 
 import { useCallback } from 'react'
 import { logger } from '@/lib/logger'
-import { EventType } from '@/components/life-prediction/PredictionChat/hooks/useEventTypeDetector'
-import { TimingPeriod } from '@/components/life-prediction/ResultCards/TimingCard'
-import { UserProfile, GuestBirthInfo } from './useLifePredictionProfile'
-
-/**
- * Birth info for prediction API
- */
-interface BirthInfo {
-  birthDate: string
-  birthTime: string
-  gender: 'M' | 'F'
-}
-
-/**
- * Prediction result from API
- */
-interface PredictionResult {
-  periods: TimingPeriod[]
-  generalAdvice: string
-}
+import type { UserProfile, GuestBirthInfo } from './useLifePredictionProfile'
+import { resolveBirthInfo, transformPeriods } from './lifePredictionUtils'
+import type { PredictionResult } from './lifePredictionUtils'
+import type { EventType } from '@/components/life-prediction/PredictionChat/hooks/useEventTypeDetector'
+import { useLifePredictionFallback } from './useLifePredictionFallback'
 
 /**
  * Return type for useLifePredictionAPI hook
@@ -46,16 +24,6 @@ export interface UseLifePredictionAPIReturn {
  * @param locale - Current locale
  * @param onError - Error callback
  * @returns API handler
- *
- * @example
- * ```tsx
- * const { handleSubmit } = useLifePredictionAPI(
- *   userProfile,
- *   guestBirthInfo,
- *   locale,
- *   setError
- * );
- * ```
  */
 export function useLifePredictionAPI(
   userProfile: UserProfile | null,
@@ -63,256 +31,7 @@ export function useLifePredictionAPI(
   locale: string,
   onError: (error: string) => void
 ): UseLifePredictionAPIReturn {
-  /**
-   * Fallback prediction using frontend API
-   */
-  const handleFallbackPrediction = useCallback(
-    async (
-      question: string,
-      eventType: EventType | null,
-      birthInfo: BirthInfo
-    ): Promise<PredictionResult | null> => {
-      try {
-        // AI question analysis
-        let analyzedEventType = eventType
-        let eventLabel = ''
-        try {
-          const analyzeRes = await fetch('/api/life-prediction/analyze-question', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question, locale }),
-          })
-          const analyzeData = await analyzeRes.json()
-          if (analyzeData.success && analyzeData.data) {
-            analyzedEventType = analyzeData.data.eventType as EventType
-            eventLabel = analyzeData.data.eventLabel
-          }
-        } catch (e) {
-          logger.warn('AI question analysis failed:', e)
-          analyzedEventType = eventType || 'career'
-        }
-
-        // Parse birth date
-        const [birthYear, birthMonth, birthDay] = birthInfo.birthDate.split('-').map(Number)
-        const gender = birthInfo.gender === 'M' ? 'male' : 'female'
-        const now = new Date()
-        const currentYear = now.getFullYear()
-        const currentMonth = now.getMonth() + 1
-
-        // Calculate saju + astro chart (no credit cost)
-        let chartData: {
-          saju?: Record<string, unknown>
-          astro?: Record<string, unknown>
-          advancedAstro?: Record<string, unknown>
-        } | null = null
-
-        try {
-          const defaultLat = 37.5665
-          const defaultLon = 126.978
-
-          const chartRes = await fetch('/api/precompute-chart', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              birthDate: birthInfo.birthDate,
-              birthTime: birthInfo.birthTime || '12:00',
-              gender: birthInfo.gender,
-              latitude: defaultLat,
-              longitude: defaultLon,
-              timezone: 'Asia/Seoul',
-            }),
-          })
-          const chartResult = await chartRes.json()
-          if (chartResult.saju) {
-            chartData = {
-              saju: chartResult.saju,
-              astro: chartResult.astro,
-              advancedAstro: chartResult.advancedAstro,
-            }
-          }
-        } catch (e) {
-          logger.warn('Chart calculation failed:', e)
-        }
-
-        // Extract saju data
-        const sajuData = chartData?.saju as Record<string, unknown> | null
-
-        if (!sajuData) {
-          // Fallback: simple default result
-          const periods: TimingPeriod[] = [
-            {
-              startDate: `${currentYear + 1}-03-01`,
-              endDate: `${currentYear + 1}-05-31`,
-              score: 75,
-              grade: 'B' as const,
-              reasons: ['✨ 전반적으로 좋은 시기입니다', '🌱 새로운 시작에 적합한 에너지'],
-            },
-          ]
-          return { periods, generalAdvice: '' }
-        }
-
-        const pillars = (sajuData as Record<string, unknown>).pillars as
-          | Record<string, unknown>
-          | undefined
-        if (!pillars) {
-          const periods: TimingPeriod[] = [
-            {
-              startDate: `${currentYear + 1}-03-01`,
-              endDate: `${currentYear + 1}-05-31`,
-              score: 75,
-              grade: 'B' as const,
-              reasons: ['✨ 전반적으로 좋은 시기입니다', '🌱 새로운 시작에 적합한 에너지'],
-            },
-          ]
-          return { periods, generalAdvice: '' }
-        }
-
-        const yearPillar = pillars.year as Record<string, unknown>
-        const monthPillar = pillars.month as Record<string, unknown>
-        const dayPillar = pillars.day as Record<string, unknown>
-        const timePillar = pillars.time as Record<string, unknown>
-
-        // Helper to safely get name property
-        const getName = (obj: unknown): string => {
-          if (obj && typeof obj === 'object' && 'name' in obj) {
-            return String(obj.name)
-          }
-          return ''
-        }
-
-        // Extract stem/branch names
-        const dayStem = getName(dayPillar.heavenlyStem) || getName(dayPillar.stem) || ''
-        const dayBranch = getName(dayPillar.earthlyBranch) || getName(dayPillar.branch) || ''
-        const monthBranch = getName(monthPillar.earthlyBranch) || getName(monthPillar.branch) || ''
-        const yearBranch = getName(yearPillar.earthlyBranch) || getName(yearPillar.branch) || ''
-
-        // Collect all stems/branches
-        const allStems = [
-          getName(yearPillar.heavenlyStem) || getName(yearPillar.stem),
-          getName(monthPillar.heavenlyStem) || getName(monthPillar.stem),
-          getName(dayPillar.heavenlyStem) || getName(dayPillar.stem),
-          getName(timePillar.heavenlyStem) || getName(timePillar.stem),
-        ].filter(Boolean)
-
-        const allBranches = [
-          getName(yearPillar.earthlyBranch) || getName(yearPillar.branch),
-          getName(monthPillar.earthlyBranch) || getName(monthPillar.branch),
-          getName(dayPillar.earthlyBranch) || getName(dayPillar.branch),
-          getName(timePillar.earthlyBranch) || getName(timePillar.branch),
-        ].filter(Boolean)
-
-        if (!dayStem || !dayBranch) {
-          logger.warn('Missing required saju data:', { dayStem, dayBranch })
-          const periods: TimingPeriod[] = [
-            {
-              startDate: `${currentYear + 1}-03-01`,
-              endDate: `${currentYear + 1}-05-31`,
-              score: 75,
-              grade: 'B' as const,
-              reasons: ['✨ 전반적으로 좋은 시기입니다', '🌱 새로운 시작에 적합한 에너지'],
-            },
-          ]
-          return { periods, generalAdvice: '' }
-        }
-
-        // Extract astro data
-        const astroData = chartData?.astro as Record<string, unknown> | null
-        const advancedAstroData = chartData?.advancedAstro as Record<string, unknown> | null
-
-        // Determine optimal prediction range based on current month
-        // Start from current year if in first half, next year if in second half
-        const predictionStartYear = currentMonth <= 6 ? currentYear : currentYear + 1
-        // Look ahead 2 years for better near-term accuracy
-        const predictionEndYear = predictionStartYear + 2
-
-        // Call frontend prediction API
-        const response = await fetch('/api/life-prediction', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'event-timing',
-            birthYear,
-            birthMonth,
-            birthDay,
-            gender,
-            dayStem,
-            dayBranch,
-            monthBranch,
-            yearBranch,
-            allStems,
-            allBranches,
-            eventType: analyzedEventType || 'career',
-            startYear: predictionStartYear,
-            endYear: predictionEndYear,
-            locale,
-            astroChart: astroData,
-            advancedAstro: advancedAstroData,
-          }),
-        })
-
-        const data = await response.json()
-
-        if (data.success && data.data?.optimalPeriods) {
-          // Try AI explanation
-          let aiExplainedPeriods = null
-          try {
-            const explainRes = await fetch('/api/life-prediction/explain-results', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                question,
-                eventType: analyzedEventType || 'career',
-                eventLabel: eventLabel || analyzedEventType || 'career',
-                optimalPeriods: data.data.optimalPeriods,
-                locale,
-              }),
-            })
-            const explainData = await explainRes.json()
-            if (explainData.success && explainData.data?.periods) {
-              aiExplainedPeriods = explainData.data.periods
-            }
-          } catch {
-            logger.warn('AI explanation failed, using raw results')
-          }
-
-          const periods: TimingPeriod[] = data.data.optimalPeriods.map(
-            (
-              p: {
-                startDate: string
-                endDate: string
-                score: number
-                grade: string
-                reasons: string[]
-                specificDays?: string[]
-              },
-              index: number
-            ) => ({
-              startDate: p.startDate,
-              endDate: p.endDate,
-              score: p.score,
-              grade: p.grade as 'S' | 'A+' | 'A' | 'B' | 'C' | 'D',
-              reasons: aiExplainedPeriods?.[index]?.reasons || p.reasons || ['✨ 좋은 시기입니다'],
-              specificDays: p.specificDays?.map((dateStr: string) => ({
-                date: dateStr,
-                quality: (p.score >= 85 ? 'excellent' : p.score >= 70 ? 'good' : 'neutral') as
-                  | 'excellent'
-                  | 'good'
-                  | 'neutral',
-              })),
-            })
-          )
-
-          return { periods, generalAdvice: '' }
-        } else {
-          throw new Error(data.error || 'Fallback API failed')
-        }
-      } catch (err) {
-        logger.error('Fallback prediction failed:', err)
-        throw err
-      }
-    },
-    [locale]
-  )
+  const { handleFallback } = useLifePredictionFallback(locale, onError)
 
   /**
    * Main submit handler - tries backend first, then fallback
@@ -320,15 +39,9 @@ export function useLifePredictionAPI(
   const handleSubmit = useCallback(
     async (question: string, eventType: EventType | null): Promise<PredictionResult | null> => {
       // Get birth info
-      const birthInfo = userProfile?.birthDate
-        ? {
-            birthDate: userProfile.birthDate,
-            birthTime: userProfile.birthTime || '12:00',
-            gender: (userProfile.gender || 'M') as 'M' | 'F',
-          }
-        : guestBirthInfo
+      const birthInfo = resolveBirthInfo(userProfile, guestBirthInfo)
 
-      if (!birthInfo?.birthDate) {
+      if (!birthInfo) {
         onError(
           locale === 'ko'
             ? '먼저 생년월일 정보가 필요합니다.'
@@ -370,43 +83,17 @@ export function useLifePredictionAPI(
             hasFallback: data.fallback,
           })
 
-          // If backend explicitly returned fallback flag, show user-friendly message
           if (data.fallback) {
             logger.info('[Life Prediction] Backend marked as fallback, trying frontend prediction')
           }
 
-          return await handleFallbackPrediction(question, eventType, birthInfo)
+          return await handleFallback(question, eventType, birthInfo)
         }
 
         // Backend response successful
         if (data.data?.optimalPeriods) {
-          const periods: TimingPeriod[] = data.data.optimalPeriods.map(
-            (p: {
-              startDate: string
-              endDate: string
-              score: number
-              grade: string
-              reasons: string[]
-              specificDays?: string[]
-              rank?: number
-            }) => ({
-              startDate: p.startDate,
-              endDate: p.endDate,
-              score: p.score,
-              grade: p.grade as 'S' | 'A+' | 'A' | 'B' | 'C' | 'D',
-              reasons: p.reasons || ['✨ 좋은 시기입니다'],
-              specificDays: p.specificDays?.map((dateStr: string) => ({
-                date: dateStr,
-                quality: (p.score >= 85 ? 'excellent' : p.score >= 70 ? 'good' : 'neutral') as
-                  | 'excellent'
-                  | 'good'
-                  | 'neutral',
-              })),
-            })
-          )
-
+          const periods = transformPeriods(data.data.optimalPeriods)
           const generalAdvice = data.data.generalAdvice || data.data.naturalAnswer || ''
-
           return { periods, generalAdvice }
         }
 
@@ -421,7 +108,7 @@ export function useLifePredictionAPI(
         return null
       }
     },
-    [userProfile, guestBirthInfo, locale, onError, handleFallbackPrediction]
+    [userProfile, guestBirthInfo, locale, onError, handleFallback]
   )
 
   return {

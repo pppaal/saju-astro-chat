@@ -28,7 +28,7 @@ import {
   compatibilityCache,
   SajuResult,
   CacheStats,
-} from '@/lib/Saju/sajuCache';
+} from '@/lib/Saju/cache';
 
 describe('sajuCache', () => {
   describe('LRUCache', () => {

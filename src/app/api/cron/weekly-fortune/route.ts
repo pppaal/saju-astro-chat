@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { generateWeeklyFortuneImage } from '@/lib/replicate'
 import { saveWeeklyFortuneImage, getWeekNumber } from '@/lib/weeklyFortune'
 import { logger } from '@/lib/logger'
-import { HTTP_STATUS } from '@/lib/constants/http'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { extractLocale } from '@/lib/api/middleware'
 
 // Vercel Cron이 호출할 엔드포인트
 // 매주 월요일 오전 9시 (KST) = 월요일 0시 (UTC) 실행
@@ -31,7 +32,11 @@ export async function GET(request: Request) {
   // 프로덕션에서는 CRON_SECRET 검증
   if (process.env.NODE_ENV === 'production' && cronSecret) {
     if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED })
+      return createErrorResponse({
+        code: ErrorCodes.UNAUTHORIZED,
+        locale: extractLocale(request),
+        route: 'cron/weekly-fortune',
+      })
     }
   }
 
@@ -72,13 +77,12 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     logger.error('[WeeklyFortune] Error:', error)
-    return NextResponse.json(
-      {
-        error: 'Failed to generate weekly fortune image',
-        details: 'Internal server error',
-      },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      message: 'Failed to generate weekly fortune image',
+      route: 'cron/weekly-fortune',
+      originalError: error instanceof Error ? error : new Error(String(error)),
+    })
   }
 }
 

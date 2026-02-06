@@ -1,9 +1,10 @@
 'use client'
 
+import { memo } from 'react'
 import type { TabProps } from '../types'
 import { InsightCard, InsightContent, ScoreBar, Badge } from '../InsightCard'
 
-export default function DeepAstroTab({ data, isKo }: TabProps) {
+const DeepAstroTab = memo(function DeepAstroTab({ data, isKo }: TabProps) {
   const {
     persons,
     houseOverlays,
@@ -527,4 +528,6 @@ export default function DeepAstroTab({ data, isKo }: TabProps) {
       </InsightCard>
     </div>
   )
-}
+})
+
+export default DeepAstroTab

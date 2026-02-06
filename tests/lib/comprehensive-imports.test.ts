@@ -38,7 +38,7 @@ const assertModules = (modulePaths: string[]) => {
 
 const serviceModules = [
   'lib/db/prisma',
-  'lib/chartDataCache',
+  'lib/cache/chartDataCache',
   'lib/stripe/premiumCache',
   'lib/circuitBreaker',
   'lib/rateLimit',
@@ -66,7 +66,6 @@ const serviceModules = [
   'lib/marketing/socialMediaPoster',
   'lib/metrics',
   'lib/telemetry',
-  'lib/validateEnv',
   'lib/env',
   'lib/api/ApiClient',
   'lib/api/errorHandler',
@@ -121,15 +120,15 @@ const hookModules = [
   'hooks/calendar/useProfileLoader',
   'hooks/calendar/useMonthNavigation',
   'hooks/calendar/useParticleAnimation',
-  'hooks/useChatSession',
+  'hooks/useChatSession.unified', // useChatSession.ts was renamed to useChatSession.unified.ts
 ]
 
 const reducerModules = ['reducers/calendarReducer']
 
 describe('Comprehensive Module Imports - Phase 3', () => {
-  describe('Service Layer (36 modules)', () => {
+  describe('Service Layer (35 modules)', () => {
     it('should have service modules', () => {
-      expect(serviceModules.length).toBe(36)
+      expect(serviceModules.length).toBe(35)
       assertModules(serviceModules)
     })
   })
@@ -161,7 +160,7 @@ describe('Comprehensive Module Imports - Phase 3', () => {
   })
 
   describe('Phase 3 Summary', () => {
-    it('should have all Phase 3 modules (77 total)', () => {
+    it('should have all Phase 3 modules (76 total)', () => {
       const total =
         serviceModules.length +
         componentModules.length +
@@ -169,7 +168,7 @@ describe('Comprehensive Module Imports - Phase 3', () => {
         hookModules.length +
         reducerModules.length
 
-      expect(total).toBe(77)
+      expect(total).toBe(76)
     })
   })
 })

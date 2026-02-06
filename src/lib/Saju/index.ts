@@ -62,8 +62,7 @@ export type {
 // 타임존
 export * from './timezone';
 
-// Human-readable labels (Hangul/romanization) for stems & branches
-export * from './labels';
+// Note: STEM_LABELS, BRANCH_LABELS are exported from './constants'
 
 // 격국 판정 모듈
 export {
@@ -300,7 +299,7 @@ export {
   type TemporalCompatibility,
   type ComprehensiveCompatibility,
   type MultiPersonCompatibility,
-} from './compatibilityEngine';
+} from './compatibility';
 
 // 복합 운세 시뮬레이션
 export {
@@ -488,7 +487,7 @@ export {
   type LazyLoader,
   type ComputationResult,
   type PerformanceMetrics,
-} from './sajuCache';
+} from './cache';
 
 // 사주 통계 분석 엔진
 export {

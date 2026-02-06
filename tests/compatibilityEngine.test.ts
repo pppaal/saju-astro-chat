@@ -11,7 +11,7 @@ import {
   analyzeComprehensiveCompatibility,
   analyzeMultiPersonCompatibility,
   type CompatibilitySubject,
-} from '@/lib/Saju/compatibilityEngine';
+} from '@/lib/Saju/compatibility';
 import type { SajuPillars, PillarData } from '@/lib/Saju/types';
 
 // 헬퍼: 테스트용 기둥 데이터 생성

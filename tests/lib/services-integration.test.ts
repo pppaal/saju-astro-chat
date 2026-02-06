@@ -21,7 +21,7 @@ describe.skip('Services Integration', () => {
     })
 
     it('should export chart data cache helpers', async () => {
-      const module = await import('@/lib/chartDataCache')
+      const module = await import('@/lib/cache/chartDataCache')
 
       expect(module.saveChartData).toBeDefined()
       expect(module.loadChartData).toBeDefined()
@@ -333,7 +333,7 @@ describe.skip('Services Integration', () => {
       const modules = await Promise.all([
         import('@/lib/db/prisma'),
         import('@/lib/cache/redis-cache'),
-        import('@/lib/chartDataCache'),
+        import('@/lib/cache/chartDataCache'),
         import('@/lib/circuitBreaker'),
         import('@/lib/rateLimit'),
         import('@/lib/backend-health'),
@@ -360,7 +360,7 @@ describe.skip('Services Integration', () => {
         import('@/lib/metrics'),
         import('@/lib/telemetry'),
         import('@/lib/env'),
-        import('@/lib/validateEnv'),
+        import('@/lib/env'),
         import('@/lib/api/ApiClient'),
         import('@/lib/api/errorHandler'),
         import('@/lib/api/middleware'),

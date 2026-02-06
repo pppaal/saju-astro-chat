@@ -1,0 +1,28 @@
+source_id,target_id,relation_type,weight,description
+HEX_01,갑목병화,hexagram_ohaeng_link,0.92,건괘(乾)와 갑목/병화의 강건한 양 에너지가 공명. 창조적 시작과 리더십.
+HEX_02,기토계수,hexagram_ohaeng_link,0.91,곤괘(坤)와 기토/계수의 수용적 음 에너지가 공명. 포용과 기다림.
+HEX_11,삼합대길,hexagram_saju_link,0.95,태괘(泰)와 삼합의 대조화가 직접 연결. 최고의 조화와 형통.
+HEX_12,충형파,hexagram_saju_link,0.93,비괘(否)와 충/형/파의 막힘이 연결. 소통이 단절된 시기.
+HEX_24,복괘양기,hexagram_timing_link,0.90,복괘(復)와 동지/양기 회복이 연결. 새로운 시작의 에너지가 돌아옴.
+HEX_29,편관중첩,hexagram_saju_link,0.88,감괘(坎)와 편관 중첩이 연결. 거듭되는 시련과 험난.
+HEX_30,병화정화,hexagram_ohaeng_link,0.89,이괘(離)와 병화/정화의 밝은 에너지가 공명. 문명과 아름다움.
+HEX_31,도화함지,hexagram_saju_link,0.91,함괘(咸)와 도화살/함지가 연결. 연애와 교감의 에너지.
+HEX_33,공망퇴기,hexagram_saju_link,0.87,둔괘(遯)와 공망/퇴기가 연결. 물러남과 은둔의 때.
+HEX_35,정관승진,hexagram_saju_link,0.90,진괘(晉)와 정관 승진운이 연결. 밝게 나아가는 승진의 때.
+HEX_36,공망암운,hexagram_saju_link,0.88,명이괘(明夷)와 공망/암운이 연결. 빛을 숨기고 기다리는 때.
+HEX_42,삼합이익,hexagram_saju_link,0.92,익괘(益)와 삼합의 이익이 연결. 더해지고 확장하는 길운.
+HEX_47,공망곤경,hexagram_saju_link,0.89,곤괘(困)와 공망/곤경이 연결. 궁지에 빠진 시기.
+HEX_49,대운교체,hexagram_timing_link,0.94,혁괘(革)와 대운 교체기가 직접 연결. 근본적 변혁의 시기.
+HEX_51,편관충격,hexagram_saju_link,0.87,진괘(震)와 편관의 충격이 연결. 진동과 각성의 시기.
+HEX_52,토고요,hexagram_ohaeng_link,0.86,간괘(艮)와 토의 고요함이 연결. 멈추고 머무는 때.
+HEX_55,대길절정,hexagram_saju_link,0.91,풍괘(豐)와 대길/절정이 연결. 풍성함의 최고점.
+HEX_63,삼합완성,hexagram_saju_link,0.93,기제괘(旣濟)와 삼합 완성이 연결. 이미 이루어진 상태.
+HEX_64,미완잠재,hexagram_timing_link,0.88,미제괘(未濟)와 미완/잠재력이 연결. 아직 이루어지지 않은 가능성.
+건괘,정관양인,trigram_saju_link,0.85,건(乾) 삼효와 정관/양인의 강건한 에너지가 연결.
+곤괘,정인정재,trigram_saju_link,0.84,곤(坤) 삼효와 정인/정재의 수용적 에너지가 연결.
+감괘,편관수기,trigram_saju_link,0.86,감(坎) 삼효와 편관/수 기운이 연결. 험난과 지혜.
+이괘,병화상관,trigram_saju_link,0.85,이(離) 삼효와 병화/상관이 연결. 밝음과 표현.
+진괘,편관목기,trigram_saju_link,0.83,진(震) 삼효와 편관/목 기운이 연결. 움직임과 시작.
+손괘,을목식신,trigram_saju_link,0.84,손(巽) 삼효와 을목/식신이 연결. 유연함과 침투.
+간괘,토정인,trigram_saju_link,0.82,간(艮) 삼효와 토/정인이 연결. 멈춤과 축적.
+태괘,금식신,trigram_saju_link,0.83,태(兌) 삼효와 금/식신이 연결. 기쁨과 소통.

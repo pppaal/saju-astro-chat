@@ -1,8 +1,8 @@
 // src/app/api/tarot/chat/stream/route.ts
 // Streaming Tarot Chat API - Real-time SSE proxy to backend
 
-import { NextRequest, NextResponse } from 'next/server'
-import { initializeApiContext, createPublicStreamGuard } from '@/lib/api/middleware'
+import { NextRequest } from 'next/server'
+import { initializeApiContext, createPublicStreamGuard, extractLocale } from '@/lib/api/middleware'
 import { createSSEStreamProxy, createFallbackSSEStream } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'
 import { enforceBodySize } from '@/lib/http'
@@ -15,9 +15,10 @@ import {
   type ChatMessage,
 } from '@/lib/api'
 import { logger } from '@/lib/logger'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
-import { tarotChatStreamRequestSchema } from '@/lib/api/zodValidation'
+import { tarotChatStreamRequestSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 interface CardContext {
   position: string
   name: string
@@ -35,7 +36,7 @@ interface TarotContext {
 }
 
 import { MESSAGE_LIMITS, TEXT_LIMITS, LIST_LIMITS } from '@/lib/constants/api-limits'
-import { HTTP_STATUS } from '@/lib/constants/http'
+import { HTTP_STATUS as _HTTP_STATUS } from '@/lib/constants/http'
 const MAX_MESSAGES = MESSAGE_LIMITS.MAX_MESSAGES
 const MAX_MESSAGE_LENGTH = MESSAGE_LIMITS.MAX_MESSAGE_LENGTH
 const MAX_CARD_COUNT = LIST_LIMITS.MAX_CARDS
@@ -412,7 +413,12 @@ export async function POST(req: NextRequest) {
       context: 'Tarot Chat Stream',
     })
     if (!rawBody || typeof rawBody !== 'object') {
-      return NextResponse.json({ error: 'invalid_body' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Invalid request body',
+        locale: extractLocale(req),
+        route: 'tarot/chat/stream',
+      })
     }
 
     // Validate with Zod
@@ -421,16 +427,10 @@ export async function POST(req: NextRequest) {
       logger.warn('[Tarot chat-stream] validation failed', {
         errors: validationResult.error.issues,
       })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createValidationErrorResponse(validationResult.error, {
+        locale: extractLocale(req),
+        route: 'tarot/chat/stream',
+      })
     }
 
     const validatedData = validationResult.data
@@ -441,13 +441,20 @@ export async function POST(req: NextRequest) {
     const counselorStyle = validatedData.counselor_style
 
     if (!messages || messages.length === 0) {
-      return NextResponse.json({ error: 'Missing messages' }, { status: HTTP_STATUS.BAD_REQUEST })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Missing messages',
+        locale: extractLocale(req),
+        route: 'tarot/chat/stream',
+      })
     }
     if (!tarotContext) {
-      return NextResponse.json(
-        { error: 'Invalid tarot context' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Invalid tarot context',
+        locale: extractLocale(req),
+        route: 'tarot/chat/stream',
+      })
     }
 
     // Credits already consumed by middleware
@@ -502,6 +509,10 @@ export async function POST(req: NextRequest) {
     })
   } catch (err: unknown) {
     logger.error('Tarot chat stream error:', err)
-    return NextResponse.json({ error: 'Server error' }, { status: HTTP_STATUS.SERVER_ERROR })
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'tarot/chat/stream',
+      originalError: err instanceof Error ? err : new Error(String(err)),
+    })
   }
 }

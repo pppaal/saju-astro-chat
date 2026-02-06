@@ -58,7 +58,9 @@ def analyze_banhap_banghap_detailed(person1: dict, person2: dict) -> dict:
                 "element": data.get("element", ""),
                 "meaning": data.get("meaning", "")
             })
-            result["banhap_analysis"]["score"] += data.get("score", 0) - 70
+            # Note: data["score"] is already a relative adjustment value (e.g., 5-15 points)
+            # No base subtraction needed - the score represents direct bonus points
+            result["banhap_analysis"]["score"] += data.get("score", 5)
 
     # 방합 체크 (같은 방위)
     for banghap_set, data in BRANCH_BANGHAP.items():
