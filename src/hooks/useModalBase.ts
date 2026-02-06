@@ -33,7 +33,7 @@ export interface UseModalBaseOptions {
 
 export interface UseModalBaseReturn {
   /** Ref to attach to modal container for focus trap */
-  modalRef: React.RefObject<HTMLDivElement>
+  modalRef: React.RefObject<HTMLDivElement | null>
   /** Whether animation is active (for CSS transitions) */
   isAnimating: boolean
   /** Whether modal should be in DOM */
