@@ -232,7 +232,8 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('Too many requests. Try again soon.')
+      expect(data.error.code).toBe('RATE_LIMITED')
+      expect(data.error.message).toBe('Too many requests. Please wait a moment.')
     })
 
     it('should include rate limit headers in rate-limited response', async () => {
@@ -283,7 +284,7 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should proceed when public token is valid', async () => {
@@ -329,8 +330,7 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Validation failed')
-      expect(data.details).toContain('date')
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 with multiple validation errors', async () => {
@@ -349,7 +349,7 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.issues).toHaveLength(3)
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 for invalid latitude out of range', async () => {
@@ -364,7 +364,7 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('latitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for invalid longitude out of range', async () => {
@@ -379,7 +379,7 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('longitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for missing timezone', async () => {
@@ -394,10 +394,10 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('timeZone')
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
-    it('should return 400 for invalid harmonic number (too low)', async () => {
+    it('should return 422 for invalid harmonic number (too low)', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -408,11 +408,11 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const response = await POST(makeRequest({ ...validBody, harmonic: 0 }))
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.details).toContain('harmonic')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 for invalid harmonic number (too high)', async () => {
+    it('should return 422 for invalid harmonic number (too high)', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -423,11 +423,11 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const response = await POST(makeRequest({ ...validBody, harmonic: 200 }))
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.details).toContain('harmonic')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 for invalid currentAge (negative)', async () => {
+    it('should return 422 for invalid currentAge (negative)', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -438,11 +438,11 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const response = await POST(makeRequest({ ...validBody, currentAge: -5 }))
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.details).toContain('currentAge')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 for invalid currentAge (too high)', async () => {
+    it('should return 422 for invalid currentAge (too high)', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -453,8 +453,8 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const response = await POST(makeRequest({ ...validBody, currentAge: 200 }))
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.details).toContain('currentAge')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should return 400 for invalid time format', async () => {
@@ -469,7 +469,7 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('time')
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
     it('should log validation warnings', async () => {
@@ -712,7 +712,7 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
       expect(captureServerError).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({ route: '/api/astrology/advanced/harmonics' })
@@ -729,7 +729,7 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when calculateHarmonicChart throws', async () => {
@@ -743,7 +743,7 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when analyzeHarmonic throws', async () => {
@@ -758,7 +758,7 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when generateHarmonicProfile throws', async () => {
@@ -776,7 +776,7 @@ describe('Harmonics API - POST /api/astrology/advanced/harmonics', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 400 when request.json() throws (malformed body)', async () => {

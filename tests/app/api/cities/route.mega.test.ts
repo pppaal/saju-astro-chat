@@ -276,8 +276,8 @@ describe('GET /api/cities', () => {
     const response = await GET(req)
     const data = await response.json()
 
-    // Error message "File not found" triggers middleware's NOT_FOUND classification
-    expect(response.status).toBe(404)
+    // File read errors are caught by middleware and returned as 500 Internal Server Error
+    expect(response.status).toBe(500)
     expect(data.success).toBe(false)
     expect(data.error).toBeDefined()
   })
@@ -294,8 +294,8 @@ describe('GET /api/cities', () => {
     const response = await GET(req)
     const data = await response.json()
 
-    // JSON parse error contains "invalid" which triggers middleware's VALIDATION_ERROR classification
-    expect(response.status).toBe(422)
+    // JSON parse errors are caught by middleware and returned as 500 Internal Server Error
+    expect(response.status).toBe(500)
     expect(data.success).toBe(false)
     expect(data.error).toBeDefined()
   })

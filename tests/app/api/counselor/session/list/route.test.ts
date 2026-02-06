@@ -29,6 +29,7 @@ vi.mock('@/lib/api/middleware', () => ({
     }
   }),
   createAuthenticatedGuard: vi.fn(() => ({})),
+  extractLocale: vi.fn(() => 'en'),
 }))
 
 // Mock Prisma
@@ -43,14 +44,18 @@ vi.mock('@/lib/db/prisma', () => ({
 }))
 
 // Mock Zod validation schemas
-vi.mock('@/lib/api/zodValidation', () => ({
-  counselorSessionListQuerySchema: {
-    safeParse: (data: any) => mockListSafeParse(data),
-  },
-  counselorSessionDeleteQuerySchema: {
-    safeParse: (data: any) => mockDeleteSafeParse(data),
-  },
-}))
+vi.mock('@/lib/api/zodValidation', async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>
+  return {
+    ...actual,
+    counselorSessionListQuerySchema: {
+      safeParse: (data: any) => mockListSafeParse(data),
+    },
+    counselorSessionDeleteQuerySchema: {
+      safeParse: (data: any) => mockDeleteSafeParse(data),
+    },
+  }
+})
 
 // Mock logger
 vi.mock('@/lib/logger', () => ({
@@ -229,7 +234,7 @@ describe('/api/counselor/session/list', () => {
   })
 
   describe('GET - Query Parameter Validation', () => {
-    it('should return 400 when theme exceeds 50 characters', async () => {
+    it('should return 422 when theme exceeds 50 characters', async () => {
       const longTheme = 'a'.repeat(51)
       const req = new NextRequest(
         `http://localhost:3000/api/counselor/session/list?theme=${longTheme}`,
@@ -240,12 +245,11 @@ describe('/api/counselor/session/list', () => {
       const response = await GET(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('validation_failed')
-      expect(result.details).toBeDefined()
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when limit is not a valid number', async () => {
+    it('should return 422 when limit is not a valid number', async () => {
       mockListSafeParse.mockReturnValue({
         success: false,
         error: { issues: [{ path: ['limit'], message: 'limit must be a number' }] },
@@ -260,11 +264,11 @@ describe('/api/counselor/session/list', () => {
       const response = await GET(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when limit is less than 1', async () => {
+    it('should return 422 when limit is less than 1', async () => {
       mockListSafeParse.mockReturnValue({
         success: false,
         error: { issues: [{ path: ['limit'], message: 'limit must be between 1 and 50' }] },
@@ -278,11 +282,11 @@ describe('/api/counselor/session/list', () => {
       const response = await GET(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when limit exceeds 50', async () => {
+    it('should return 422 when limit exceeds 50', async () => {
       mockListSafeParse.mockReturnValue({
         success: false,
         error: { issues: [{ path: ['limit'], message: 'limit must be between 1 and 50' }] },
@@ -296,8 +300,8 @@ describe('/api/counselor/session/list', () => {
       const response = await GET(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should accept valid theme parameter', async () => {
@@ -607,7 +611,7 @@ describe('/api/counselor/session/list', () => {
   })
 
   describe('DELETE - Query Parameter Validation', () => {
-    it('should return 400 when sessionId is missing', async () => {
+    it('should return 422 when sessionId is missing', async () => {
       mockDeleteSafeParse.mockReturnValue({
         success: false,
         error: { issues: [{ path: ['sessionId'], message: 'sessionId is required' }] },
@@ -621,11 +625,11 @@ describe('/api/counselor/session/list', () => {
       const response = await DELETE(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when sessionId is empty string', async () => {
+    it('should return 422 when sessionId is empty string', async () => {
       mockDeleteSafeParse.mockReturnValue({
         success: false,
         error: { issues: [{ path: ['sessionId'], message: 'sessionId is required' }] },
@@ -640,11 +644,11 @@ describe('/api/counselor/session/list', () => {
       const response = await DELETE(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when sessionId exceeds 100 characters', async () => {
+    it('should return 422 when sessionId exceeds 100 characters', async () => {
       mockDeleteSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -662,8 +666,8 @@ describe('/api/counselor/session/list', () => {
       const response = await DELETE(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
   })
 
@@ -681,7 +685,7 @@ describe('/api/counselor/session/list', () => {
       const result = await response.json()
 
       expect(response.status).toBe(404)
-      expect(result.error).toBe('session_not_found')
+      expect(result.error.code).toBe('NOT_FOUND')
     })
 
     it('should return 404 when session belongs to another user', async () => {
@@ -698,7 +702,7 @@ describe('/api/counselor/session/list', () => {
       const result = await response.json()
 
       expect(response.status).toBe(404)
-      expect(result.error).toBe('session_not_found')
+      expect(result.error.code).toBe('NOT_FOUND')
     })
 
     it('should verify ownership with correct query parameters', async () => {

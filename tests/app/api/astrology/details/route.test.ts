@@ -54,10 +54,12 @@ vi.mock('@/lib/constants/http', () => ({
 
 // Mock Zod validation schema
 const mockSafeParse = vi.fn()
+const mockCreateValidationErrorResponse = vi.fn()
 vi.mock('@/lib/api/zodValidation', () => ({
   astrologyDetailsSchema: {
-    safeParse: (...args: any[]) => mockSafeParse(...args),
+    safeParse: (...args: unknown[]) => mockSafeParse(...args),
   },
+  createValidationErrorResponse: (...args: unknown[]) => mockCreateValidationErrorResponse(...args),
 }))
 
 // Mock astrology calculation
@@ -138,6 +140,7 @@ vi.mock('@/lib/astrology/localization', () => ({
 
 // ============ Imports (after all mocks) ============
 
+import { NextResponse } from 'next/server'
 import { POST } from '@/app/api/astrology/details/route'
 import { rateLimit } from '@/lib/rateLimit'
 import { requirePublicToken } from '@/lib/auth/publicToken'
@@ -150,6 +153,7 @@ import {
   buildEngineMeta,
 } from '@/lib/astrology'
 import { logger } from '@/lib/logger'
+import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 
 // ============ Helpers ============
 
@@ -228,7 +232,8 @@ describe('Astrology Details API - POST /api/astrology/details', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('Too many requests. Try again soon.')
+      expect(data.error.code).toBe('RATE_LIMITED')
+      expect(data.error.message).toBe('Too many requests. Please wait a moment.')
     })
 
     it('should include rate limit headers in rate-limited response', async () => {
@@ -271,7 +276,7 @@ describe('Astrology Details API - POST /api/astrology/details', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should proceed when public token is valid', async () => {
@@ -291,6 +296,20 @@ describe('Astrology Details API - POST /api/astrology/details', () => {
         headers: defaultRateLimitHeaders,
       } as any)
       vi.mocked(requirePublicToken).mockReturnValue({ valid: true })
+      // Mock createValidationErrorResponse to return proper error response
+      mockCreateValidationErrorResponse.mockReturnValue(
+        NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: 'Input validation failed. Please check your data.',
+              status: 400,
+            },
+          },
+          { status: 400 }
+        )
+      )
     })
 
     it('should return 400 when Zod validation fails', async () => {
@@ -305,8 +324,7 @@ describe('Astrology Details API - POST /api/astrology/details', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
-      expect(data.details).toEqual([{ path: 'birthDate', message: 'Required' }])
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should return 400 with multiple validation errors', async () => {
@@ -325,7 +343,7 @@ describe('Astrology Details API - POST /api/astrology/details', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toHaveLength(3)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should pass body fields to Zod schema in expected shape', async () => {
@@ -350,7 +368,8 @@ describe('Astrology Details API - POST /api/astrology/details', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('date must be YYYY-MM-DD.')
+      expect(data.error.code).toBe('INVALID_DATE')
+      expect(data.error.message).toBe('date must be YYYY-MM-DD.')
     })
 
     it('should return 400 for empty date string', async () => {
@@ -360,7 +379,8 @@ describe('Astrology Details API - POST /api/astrology/details', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('date must be YYYY-MM-DD.')
+      expect(data.error.code).toBe('INVALID_DATE')
+      expect(data.error.message).toBe('date must be YYYY-MM-DD.')
     })
 
     it('should return error for invalid date/time/timezone combination', async () => {
@@ -667,7 +687,7 @@ describe('Astrology Details API - POST /api/astrology/details', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
       expect(captureServerError).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({ route: '/api/astrology/details' })
@@ -685,7 +705,7 @@ describe('Astrology Details API - POST /api/astrology/details', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when findNatalAspectsPlus throws', async () => {
@@ -700,7 +720,7 @@ describe('Astrology Details API - POST /api/astrology/details', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when request.json() throws (malformed body)', async () => {
@@ -714,7 +734,7 @@ describe('Astrology Details API - POST /api/astrology/details', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should capture server errors via telemetry', async () => {

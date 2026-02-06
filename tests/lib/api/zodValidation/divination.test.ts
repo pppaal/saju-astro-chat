@@ -279,14 +279,26 @@ describe('Dream Schema Tests', () => {
       }).success).toBe(true)
     })
 
-    it('should accept with cultural notes', () => {
+    it('should accept without cultural notes', () => {
+      // cultural_notes is optional, so request without it should pass
+      expect(dreamChatRequestSchema.safeParse({
+        ...validRequest,
+      }).success).toBe(true)
+    })
+
+    it('should accept cultural notes with all valid cultures', () => {
+      // z.record(z.enum([...]), ...) requires all enum keys
       expect(dreamChatRequestSchema.safeParse({
         ...validRequest,
         dreamContext: {
           ...validRequest.dreamContext,
           cultural_notes: {
-            korean: 'Water represents wealth',
-            chinese: 'Flying indicates success',
+            korean: 'Korean interpretation',
+            chinese: 'Chinese interpretation',
+            western: 'Western interpretation',
+            islamic: 'Islamic interpretation',
+            hindu: 'Hindu interpretation',
+            japanese: 'Japanese interpretation',
           },
         },
       }).success).toBe(true)

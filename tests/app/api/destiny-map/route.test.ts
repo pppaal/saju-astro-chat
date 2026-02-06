@@ -477,7 +477,9 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Invalid userTimezone')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INVALID_FORMAT')
+      expect(data.error.message).toBe('Invalid timezone format')
     })
 
     it('should return 400 for userTimezone that is too short', async () => {
@@ -486,7 +488,9 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Invalid userTimezone')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INVALID_FORMAT')
+      expect(data.error.message).toBe('Invalid timezone format')
     })
 
     it('should accept a valid userTimezone', async () => {

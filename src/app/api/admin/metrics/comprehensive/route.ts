@@ -525,6 +525,250 @@ async function fetchSystemData(start: Date, end: Date) {
   }
 }
 
+async function fetchPerformanceData(start: Date, end: Date) {
+  const backendUrl = process.env.BACKEND_AI_URL || 'http://localhost:5000'
+  try {
+    const response = await fetch(
+      `${backendUrl}/api/analytics/performance?start=${start.toISOString()}&end=${end.toISOString()}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': process.env.ADMIN_API_TOKEN || '',
+        },
+      }
+    )
+
+    if (!response.ok) {
+      logger.warn('[Comprehensive] Performance backend error', { status: response.status })
+      return getDefaultPerformanceData()
+    }
+
+    const result = await response.json()
+    return result.data || getDefaultPerformanceData()
+  } catch (error) {
+    logger.warn('[Comprehensive] Performance fetch failed, using defaults')
+    return getDefaultPerformanceData()
+  }
+}
+
+function getDefaultPerformanceData() {
+  return {
+    apiMetrics: [],
+    bottlenecks: [],
+    ragMetrics: {
+      totalTraces: 0,
+      avgDurationMs: 0,
+      p50DurationMs: 0,
+      p95DurationMs: 0,
+      maxDurationMs: 0,
+      errorRate: 0,
+      sourceMetrics: {},
+    },
+    cacheMetrics: {
+      hitRate: 0,
+      hits: 0,
+      misses: 0,
+      errors: 0,
+      backend: 'memory' as const,
+      memoryEntries: 0,
+    },
+    distributedTraces: [],
+    systemHealth: {
+      status: 'healthy' as const,
+      memoryMb: 0,
+      totalRequests: 0,
+      errorRatePercent: 0,
+    },
+  }
+}
+
+async function fetchBehaviorData(start: Date, end: Date) {
+  const [cohortData, funnelData, engagementData, activityData] = await Promise.allSettled([
+    fetchCohortAnalysis(),
+    fetchRetentionFunnel(start, end),
+    fetchEngagementByService(start, end),
+    fetchUserActivitySummary(),
+  ])
+
+  // Get churn prediction from backend
+  let churnData = { atRiskUsers: [], totalAtRisk: 0, predictedChurnNext30Days: 0 }
+  try {
+    const backendUrl = process.env.BACKEND_AI_URL || 'http://localhost:5000'
+    const response = await fetch(`${backendUrl}/api/analytics/behavior`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': process.env.ADMIN_API_TOKEN || '',
+      },
+    })
+    if (response.ok) {
+      const result = await response.json()
+      churnData = result.data?.churnPrediction || churnData
+    }
+  } catch {
+    // Use fallback
+  }
+
+  return {
+    cohortAnalysis: cohortData.status === 'fulfilled' ? cohortData.value : { cohorts: [], avgRetentionRate: 0 },
+    retentionFunnel: funnelData.status === 'fulfilled' ? funnelData.value : { stages: [], overallConversion: 0 },
+    churnPrediction: churnData,
+    engagementByService: engagementData.status === 'fulfilled' ? engagementData.value : [],
+    userActivitySummary: activityData.status === 'fulfilled' ? activityData.value : {
+      totalActiveToday: 0, totalActiveThisWeek: 0, totalActiveThisMonth: 0, newUsersToday: 0,
+    },
+  }
+}
+
+async function fetchCohortAnalysis() {
+  const cohorts = []
+  const now = new Date()
+
+  for (let i = 0; i < 6; i++) {
+    const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
+    const period = `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}`
+
+    const totalUsers = await prisma.user.count({
+      where: { createdAt: { gte: monthStart, lte: monthEnd } },
+    })
+
+    const retentionByWeek = [100]
+    for (let week = 1; week <= 4; week++) {
+      const weekStart = new Date(monthStart)
+      weekStart.setDate(weekStart.getDate() + week * 7)
+      if (weekStart > now) {
+        retentionByWeek.push(0)
+        continue
+      }
+      const activeInWeek = await prisma.reading.groupBy({
+        by: ['userId'],
+        where: {
+          createdAt: { gte: weekStart },
+          user: { createdAt: { gte: monthStart, lte: monthEnd } },
+        },
+      })
+      const retention = totalUsers > 0 ? (activeInWeek.length / totalUsers) * 100 : 0
+      retentionByWeek.push(Math.round(retention * 10) / 10)
+    }
+
+    cohorts.push({ period, totalUsers, retentionByWeek })
+  }
+
+  const week4Rates = cohorts.map((c) => c.retentionByWeek[4] || 0).filter((r) => r > 0)
+  const avgRetentionRate = week4Rates.length > 0 ? week4Rates.reduce((a, b) => a + b, 0) / week4Rates.length : 0
+
+  return { cohorts, avgRetentionRate: Math.round(avgRetentionRate * 10) / 10 }
+}
+
+async function fetchRetentionFunnel(start: Date, end: Date) {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+
+  const [signups, firstReadingUsers, paidUsers, retained7dUsers, retained30dUsers] = await Promise.all([
+    prisma.user.count({ where: { createdAt: { gte: start, lte: end } } }),
+    prisma.reading.groupBy({ by: ['userId'], where: { createdAt: { gte: start, lte: end } } }),
+    prisma.subscription.count({ where: { createdAt: { gte: start, lte: end }, status: { in: ['active', 'trialing'] } } }),
+    // Users who signed up in range and had activity (reading) in last 7 days
+    prisma.reading.groupBy({
+      by: ['userId'],
+      where: {
+        createdAt: { gte: sevenDaysAgo },
+        user: { createdAt: { gte: start, lte: end } },
+      },
+    }),
+    // Users who signed up in range and had activity (reading) in last 30 days
+    prisma.reading.groupBy({
+      by: ['userId'],
+      where: {
+        createdAt: { gte: thirtyDaysAgo },
+        user: { createdAt: { gte: start, lte: end } },
+      },
+    }),
+  ])
+
+  const retained7d = retained7dUsers.length
+  const retained30d = retained30dUsers.length
+
+  const stages = [
+    { name: 'signup', label: '가입', count: signups, conversionRate: 100, dropoffRate: 0 },
+    {
+      name: 'first_reading', label: '첫 리딩', count: firstReadingUsers.length,
+      conversionRate: signups > 0 ? Math.round((firstReadingUsers.length / signups) * 1000) / 10 : 0,
+      dropoffRate: signups > 0 ? Math.round(((signups - firstReadingUsers.length) / signups) * 1000) / 10 : 0,
+    },
+    {
+      name: 'paid', label: '첫 결제', count: paidUsers,
+      conversionRate: signups > 0 ? Math.round((paidUsers / signups) * 1000) / 10 : 0,
+      dropoffRate: firstReadingUsers.length > 0 ? Math.round(((firstReadingUsers.length - paidUsers) / firstReadingUsers.length) * 1000) / 10 : 0,
+    },
+    {
+      name: 'retained_7d', label: '7일 유지', count: retained7d,
+      conversionRate: signups > 0 ? Math.round((retained7d / signups) * 1000) / 10 : 0,
+      dropoffRate: paidUsers > 0 ? Math.round(((paidUsers - retained7d) / paidUsers) * 1000) / 10 : 0,
+    },
+    {
+      name: 'retained_30d', label: '30일 유지', count: retained30d,
+      conversionRate: signups > 0 ? Math.round((retained30d / signups) * 1000) / 10 : 0,
+      dropoffRate: retained7d > 0 ? Math.round(((retained7d - retained30d) / retained7d) * 1000) / 10 : 0,
+    },
+  ]
+
+  return { stages, overallConversion: signups > 0 ? Math.round((retained30d / signups) * 1000) / 10 : 0 }
+}
+
+async function fetchEngagementByService(start: Date, end: Date) {
+  const readingsByType = await prisma.reading.groupBy({
+    by: ['type'],
+    where: { createdAt: { gte: start, lte: end } },
+    _count: { id: true },
+  })
+
+  const now = new Date()
+  const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+
+  const services = []
+  for (const reading of readingsByType) {
+    const [dau, wau, mau] = await Promise.all([
+      prisma.reading.groupBy({ by: ['userId'], where: { type: reading.type, createdAt: { gte: dayAgo } } }),
+      prisma.reading.groupBy({ by: ['userId'], where: { type: reading.type, createdAt: { gte: weekAgo } } }),
+      prisma.reading.groupBy({ by: ['userId'], where: { type: reading.type, createdAt: { gte: monthAgo } } }),
+    ])
+    services.push({
+      service: reading.type,
+      dailyActiveUsers: dau.length,
+      weeklyActiveUsers: wau.length,
+      monthlyActiveUsers: mau.length,
+      totalReadings: reading._count.id,
+    })
+  }
+
+  return services
+}
+
+async function fetchUserActivitySummary() {
+  const now = new Date()
+  const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+
+  // Get active users based on reading activity instead of lastActiveAt
+  const [activeTodayUsers, activeWeekUsers, activeMonthUsers, newToday] = await Promise.all([
+    prisma.reading.groupBy({ by: ['userId'], where: { createdAt: { gte: dayAgo } } }),
+    prisma.reading.groupBy({ by: ['userId'], where: { createdAt: { gte: weekAgo } } }),
+    prisma.reading.groupBy({ by: ['userId'], where: { createdAt: { gte: monthAgo } } }),
+    prisma.user.count({ where: { createdAt: { gte: dayAgo } } }),
+  ])
+
+  return {
+    totalActiveToday: activeTodayUsers.length,
+    totalActiveThisWeek: activeWeekUsers.length,
+    totalActiveThisMonth: activeMonthUsers.length,
+    newUsersToday: newToday,
+  }
+}
+
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     try {
@@ -586,6 +830,12 @@ export const GET = withApiMiddleware(
           break
         case 'system':
           data = await fetchSystemData(start, end)
+          break
+        case 'performance':
+          data = await fetchPerformanceData(start, end)
+          break
+        case 'behavior':
+          data = await fetchBehaviorData(start, end)
           break
       }
 

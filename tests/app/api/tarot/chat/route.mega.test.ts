@@ -817,8 +817,10 @@ describe('POST /api/tarot/chat', () => {
       const response = await POST(req)
       const data = await response.json()
 
+      // The route uses createErrorResponse which returns a structured error
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
       expect(captureServerError).toHaveBeenCalled()
       expect(logger.error).toHaveBeenCalledWith(
         'Tarot chat error:',
@@ -838,8 +840,10 @@ describe('POST /api/tarot/chat', () => {
       const response = await POST(req)
       const data = await response.json()
 
+      // The route uses createErrorResponse which returns a structured error
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
       expect(mockRefundCredits).toHaveBeenCalledWith(
         'String error',
         expect.objectContaining({ errorType: 'UnknownError' })
@@ -857,8 +861,10 @@ describe('POST /api/tarot/chat', () => {
       const response = await POST(req)
       const data = await response.json()
 
+      // The route uses createErrorResponse which returns a structured error
       // The route no longer exposes detail field
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
       expect(data.detail).toBeUndefined()
 
       process.env.NODE_ENV = originalEnv

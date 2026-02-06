@@ -18,6 +18,7 @@ const mockCreatePublicStreamGuard = vi.fn(() => ({
 vi.mock('@/lib/api/middleware', () => ({
   initializeApiContext: (...args: unknown[]) => mockInitializeApiContext(...args),
   createPublicStreamGuard: (...args: unknown[]) => mockCreatePublicStreamGuard(...args),
+  extractLocale: vi.fn(() => 'ko'),
 }))
 
 // Mock streaming utilities
@@ -82,6 +83,48 @@ vi.mock('@/lib/api/zodValidation', () => ({
   tarotInterpretStreamSchema: {
     safeParse: (...args: unknown[]) => mockTarotInterpretStreamSafeParse(...args),
   },
+  createValidationErrorResponse: vi.fn((error: any, options?: any) => {
+    return new Response(
+      JSON.stringify({ error: 'validation_failed', details: error.issues.map((i: any) => ({ path: i.path.join('.'), message: i.message })) }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    )
+  }),
+}))
+
+// Mock errorHandler
+vi.mock('@/lib/api/errorHandler', () => ({
+  ErrorCodes: {
+    BAD_REQUEST: 'BAD_REQUEST',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    FORBIDDEN: 'FORBIDDEN',
+    NOT_FOUND: 'NOT_FOUND',
+    RATE_LIMITED: 'RATE_LIMITED',
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    BACKEND_ERROR: 'BACKEND_ERROR',
+    SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+  },
+  createErrorResponse: vi.fn(({ code, message }) => {
+    const statusMap: Record<string, number> = {
+      BAD_REQUEST: 400,
+      UNAUTHORIZED: 401,
+      FORBIDDEN: 403,
+      NOT_FOUND: 404,
+      RATE_LIMITED: 429,
+      VALIDATION_ERROR: 422,
+      INTERNAL_ERROR: 500,
+      BACKEND_ERROR: 502,
+      SERVICE_UNAVAILABLE: 503,
+    }
+    const status = statusMap[code] || 500
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: { code, message: message || 'Error', status },
+      }),
+      { status, headers: { 'Content-Type': 'application/json' } }
+    )
+  }),
 }))
 
 // ---------------------------------------------------------------------------
@@ -754,7 +797,7 @@ describe('POST /api/tarot/interpret-stream', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Server error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should log errors on server error', async () => {

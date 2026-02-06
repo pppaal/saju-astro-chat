@@ -68,6 +68,7 @@ vi.mock('@/lib/api/middleware', () => {
     apiError: vi.fn((code: string, message: string) => ({
       error: { code, message },
     })),
+    extractLocale: vi.fn(() => 'ko'),
     ErrorCodes: {
       VALIDATION_ERROR: 'VALIDATION_ERROR',
       INTERNAL_ERROR: 'INTERNAL_ERROR',
@@ -101,6 +102,29 @@ vi.mock('@/lib/logger', () => ({
     error: mockLoggerError,
     debug: vi.fn(),
   },
+}))
+
+// Mock errorHandler
+vi.mock('@/lib/api/errorHandler', () => ({
+  createErrorResponse: vi.fn(({ code, message }: { code: string; message: string }) => {
+    const { NextResponse } = require('next/server')
+    return NextResponse.json({ error: 'invalid_body', code, message }, { status: 400 })
+  }),
+  ErrorCodes: {
+    BAD_REQUEST: 'BAD_REQUEST',
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+  },
+}))
+
+// Mock zodValidation
+vi.mock('@/lib/api/zodValidation', () => ({
+  createValidationErrorResponse: vi.fn((error: any, _options?: any) => {
+    const { NextResponse } = require('next/server')
+    const errorMessage = error.issues?.map((i: any) => i.path.join('.')).join(', ') || 'validation_error'
+    return NextResponse.json({ error: errorMessage }, { status: 400 })
+  }),
 }))
 
 // Mock the TarotPrefetchSchema validation

@@ -24,6 +24,7 @@ vi.mock('@/lib/api/middleware', () => ({
     }
   }),
   createAuthenticatedGuard: vi.fn(() => ({})),
+  extractLocale: vi.fn(() => 'en'),
 }))
 
 // Mock Prisma
@@ -48,11 +49,15 @@ vi.mock('@/lib/constants/api-limits', () => ({
 }))
 
 // Mock Zod validation schema
-vi.mock('@/lib/api/zodValidation', () => ({
-  counselorSessionSaveRequestSchema: {
-    safeParse: (data: any) => mockSafeParse(data),
-  },
-}))
+vi.mock('@/lib/api/zodValidation', async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>
+  return {
+    ...actual,
+    counselorSessionSaveRequestSchema: {
+      safeParse: (data: any) => mockSafeParse(data),
+    },
+  }
+})
 
 // Mock logger
 vi.mock('@/lib/logger', () => ({
@@ -212,7 +217,7 @@ describe('/api/counselor/session/save', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('empty_body')
+      expect(result.error.code).toBe('BAD_REQUEST')
     })
 
     it('should return 400 when body is whitespace only', async () => {
@@ -226,7 +231,7 @@ describe('/api/counselor/session/save', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('empty_body')
+      expect(result.error.code).toBe('BAD_REQUEST')
     })
   })
 
@@ -242,7 +247,7 @@ describe('/api/counselor/session/save', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('invalid_json')
+      expect(result.error.code).toBe('BAD_REQUEST')
     })
 
     it('should return 400 when body contains syntax error', async () => {
@@ -256,12 +261,12 @@ describe('/api/counselor/session/save', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('invalid_json')
+      expect(result.error.code).toBe('BAD_REQUEST')
     })
   })
 
   describe('POST - Zod Validation', () => {
-    it('should return 400 when sessionId is missing', async () => {
+    it('should return 422 when sessionId is missing', async () => {
       const data = { ...validSessionData, sessionId: undefined }
       const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
         method: 'POST',
@@ -272,13 +277,11 @@ describe('/api/counselor/session/save', () => {
       const response = await POST(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('validation_failed')
-      expect(result.details).toBeDefined()
-      expect(result.details.some((d: any) => d.path === 'sessionId')).toBe(true)
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when sessionId is empty string', async () => {
+    it('should return 422 when sessionId is empty string', async () => {
       const data = { ...validSessionData, sessionId: '' }
       const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
         method: 'POST',
@@ -289,11 +292,11 @@ describe('/api/counselor/session/save', () => {
       const response = await POST(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when messages is missing', async () => {
+    it('should return 422 when messages is missing', async () => {
       const data = { sessionId: 'session-123', theme: 'career' }
       const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
         method: 'POST',
@@ -304,12 +307,11 @@ describe('/api/counselor/session/save', () => {
       const response = await POST(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('validation_failed')
-      expect(result.details.some((d: any) => d.path === 'messages')).toBe(true)
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when messages array is empty', async () => {
+    it('should return 422 when messages array is empty', async () => {
       const data = { ...validSessionData, messages: [] }
       const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
         method: 'POST',
@@ -320,11 +322,11 @@ describe('/api/counselor/session/save', () => {
       const response = await POST(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when message has invalid role', async () => {
+    it('should return 422 when message has invalid role', async () => {
       const data = {
         ...validSessionData,
         messages: [{ role: 'invalid_role', content: 'Hello' }],
@@ -338,11 +340,11 @@ describe('/api/counselor/session/save', () => {
       const response = await POST(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when message content is empty', async () => {
+    it('should return 422 when message content is empty', async () => {
       const data = {
         ...validSessionData,
         messages: [{ role: 'user', content: '' }],
@@ -356,8 +358,8 @@ describe('/api/counselor/session/save', () => {
       const response = await POST(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
   })
 
@@ -384,7 +386,7 @@ describe('/api/counselor/session/save', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('invalid_request')
+      expect(result.error.code).toBe('BAD_REQUEST')
     })
   })
 
@@ -406,7 +408,7 @@ describe('/api/counselor/session/save', () => {
       const result = await response.json()
 
       expect(response.status).toBe(403)
-      expect(result.error).toBe('forbidden')
+      expect(result.error.code).toBe('FORBIDDEN')
       expect(mockFindUnique).toHaveBeenCalledWith({
         where: { id: 'session-123' },
         select: { userId: true },
@@ -722,7 +724,7 @@ describe('/api/counselor/session/save', () => {
       const { POST } = await import('@/app/api/counselor/session/save/route')
       const response = await POST(req)
 
-      expect(response.status).toBe(400)
+      expect(response.status).toBe(422)
     })
 
     it('should handle system role messages', async () => {
@@ -793,7 +795,7 @@ describe('/api/counselor/session/save', () => {
       const { POST } = await import('@/app/api/counselor/session/save/route')
       const response = await POST(req)
 
-      expect(response.status).toBe(400)
+      expect(response.status).toBe(422)
     })
 
     it('should handle message content at maximum length (10000 chars)', async () => {
@@ -830,7 +832,7 @@ describe('/api/counselor/session/save', () => {
       const { POST } = await import('@/app/api/counselor/session/save/route')
       const response = await POST(req)
 
-      expect(response.status).toBe(400)
+      expect(response.status).toBe(422)
     })
   })
 
@@ -897,7 +899,7 @@ describe('/api/counselor/session/save', () => {
       const { POST } = await import('@/app/api/counselor/session/save/route')
       const response = await POST(req)
 
-      expect(response.status).toBe(400)
+      expect(response.status).toBe(422)
     })
   })
 
@@ -943,7 +945,7 @@ describe('/api/counselor/session/save', () => {
       const { POST } = await import('@/app/api/counselor/session/save/route')
       const response = await POST(req)
 
-      expect(response.status).toBe(400)
+      expect(response.status).toBe(422)
     })
   })
 })

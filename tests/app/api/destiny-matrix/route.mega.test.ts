@@ -214,11 +214,17 @@ describe('POST /api/destiny-matrix', () => {
     })
 
     it('should include all 10 layers in calculation', async () => {
+      // Use valid schema-compliant data:
+      // - twelveStages keys must be 'year'|'month'|'day'|'time', values are twelve stage names
+      // - planetSigns values must match zodiacSignSchema (capitalized: 'Aries', not 'aries')
+      // - aspects must match aspectHitSchema (from/to/type/orb)
+      // - activeTransits must match transitAspectSchema (transitPlanet/natalPlanet/aspectType/orb)
+      // - extraPointSigns values must match zodiacSignSchema
       const body = {
         dayMasterElement: '목',
         pillarElements: ['목', '화', '토', '금'],
         sibsinDistribution: { 비겁: 2 },
-        twelveStages: { 장생: 1 },
+        twelveStages: { year: '장생', month: '관대', day: '왕지', time: '쇠' },
         relations: ['형'],
         geokguk: '신왕격',
         yongsin: ['화', '토'],
@@ -227,11 +233,21 @@ describe('POST /api/destiny-matrix', () => {
         shinsalList: ['천을귀인'],
         dominantWesternElement: 'fire',
         planetHouses: { sun: 1 },
-        planetSigns: { sun: 'aries' },
-        aspects: [{ type: 'conjunction', angle: 0 }],
-        activeTransits: [{ planet: 'jupiter', house: 5 }],
+        planetSigns: { sun: 'Aries' },
+        aspects: [{
+          from: { name: 'Sun', kind: 'natal', longitude: 0 },
+          to: { name: 'Moon', kind: 'natal', longitude: 90 },
+          type: 'conjunction',
+          orb: 0,
+        }],
+        activeTransits: [{
+          transitPlanet: 'jupiter',
+          natalPlanet: 'sun',
+          aspectType: 'trine',
+          orb: 2,
+        }],
         asteroidHouses: { chiron: 12 },
-        extraPointSigns: { north_node: 'leo' },
+        extraPointSigns: { north_node: 'Leo' },
         lang: 'ko',
       }
 
@@ -251,7 +267,7 @@ describe('POST /api/destiny-matrix', () => {
           dayMasterElement: '목',
           pillarElements: ['목', '화', '토', '금'],
           sibsinDistribution: { 비겁: 2 },
-          twelveStages: { 장생: 1 },
+          twelveStages: { year: '장생', month: '관대', day: '왕지', time: '쇠' },
           relations: ['형'],
           geokguk: '신왕격',
           yongsin: '화',
@@ -260,11 +276,21 @@ describe('POST /api/destiny-matrix', () => {
           shinsalList: ['천을귀인'],
           dominantWesternElement: 'fire',
           planetHouses: { sun: 1 },
-          planetSigns: { sun: 'aries' },
-          aspects: [{ type: 'conjunction', angle: 0 }],
-          activeTransits: [{ planet: 'jupiter', house: 5 }],
+          planetSigns: { sun: 'Aries' },
+          aspects: [{
+            from: { name: 'Sun', kind: 'natal', longitude: 0 },
+            to: { name: 'Moon', kind: 'natal', longitude: 90 },
+            type: 'conjunction',
+            orb: 0,
+          }],
+          activeTransits: [{
+            transitPlanet: 'jupiter',
+            natalPlanet: 'sun',
+            aspectType: 'trine',
+            orb: 2,
+          }],
           asteroidHouses: { chiron: 12 },
-          extraPointSigns: { north_node: 'leo' },
+          extraPointSigns: { north_node: 'Leo' },
           lang: 'ko',
         })
       )

@@ -204,7 +204,8 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('Too many requests. Try again soon.')
+      expect(data.error.code).toBe('RATE_LIMITED')
+      expect(data.error.message).toBe('Too many requests. Please wait a moment.')
     })
 
     it('should include rate limit headers in rate-limited response', async () => {
@@ -258,7 +259,7 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should proceed when public token is valid', async () => {
@@ -304,8 +305,7 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Validation failed')
-      expect(data.details).toContain('date')
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 with multiple validation errors', async () => {
@@ -324,7 +324,7 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.issues).toHaveLength(3)
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 for invalid latitude out of range', async () => {
@@ -339,7 +339,7 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('latitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for invalid longitude out of range', async () => {
@@ -354,7 +354,7 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('longitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for missing timezone', async () => {
@@ -369,7 +369,7 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('timeZone')
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
     it('should return 400 for invalid time format', async () => {
@@ -384,7 +384,7 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('time')
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
     it('should log validation warnings', async () => {
@@ -424,7 +424,7 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('eventType is required')
+      expect(data.error.message).toContain('eventType is required')
     })
 
     it('should return 400 when eventType is missing and basicOnly is not provided', async () => {
@@ -437,10 +437,10 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('eventType is required')
+      expect(data.error.message).toContain('eventType is required')
     })
 
-    it('should return 400 for invalid eventType', async () => {
+    it('should return 422 for invalid eventType', async () => {
       mockSafeParse.mockReturnValue({
         success: true,
         data: { ...validBody, eventType: 'invalid_event_type' },
@@ -449,8 +449,8 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const response = await POST(makeRequest({ ...validBody, eventType: 'invalid_event_type' }))
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid eventType')
+      expect(response.status).toBe(422)
+      expect(data.error.message).toContain('Invalid eventType')
     })
 
     it('should list valid event types in error message for invalid eventType', async () => {
@@ -462,8 +462,8 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const response = await POST(makeRequest({ ...validBody, eventType: 'invalid_type' }))
       const data = await response.json()
 
-      expect(data.error).toContain('business_start')
-      expect(data.error).toContain('marriage')
+      expect(data.error.message).toContain('business_start')
+      expect(data.error.message).toContain('marriage')
     })
 
     it.each([
@@ -652,7 +652,7 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
       expect(captureServerError).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({ route: '/api/astrology/advanced/electional' })
@@ -669,7 +669,7 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when analyzeElection throws', async () => {
@@ -683,7 +683,7 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when getElectionalGuidelines throws', async () => {
@@ -699,7 +699,7 @@ describe('Electional API - POST /api/astrology/advanced/electional', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should handle malformed JSON body gracefully', async () => {

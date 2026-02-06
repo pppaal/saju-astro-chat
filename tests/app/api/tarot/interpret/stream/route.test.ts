@@ -52,6 +52,7 @@ vi.mock('@/lib/api/middleware', () => ({
       credits: { type: 'reading', amount: 1 },
     }
   },
+  extractLocale: vi.fn(() => 'ko'),
 }))
 
 // Mock logger
@@ -71,6 +72,55 @@ vi.mock('@/lib/api/validator', () => ({
   TarotInterpretSchema: {
     safeParse: (...args: unknown[]) => mockSafeParse(...args),
   },
+}))
+
+// Mock errorHandler
+vi.mock('@/lib/api/errorHandler', () => ({
+  ErrorCodes: {
+    BAD_REQUEST: 'BAD_REQUEST',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    FORBIDDEN: 'FORBIDDEN',
+    NOT_FOUND: 'NOT_FOUND',
+    RATE_LIMITED: 'RATE_LIMITED',
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    BACKEND_ERROR: 'BACKEND_ERROR',
+    SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+  },
+  createErrorResponse: vi.fn(({ code, message }) => {
+    const statusMap: Record<string, number> = {
+      BAD_REQUEST: 400,
+      UNAUTHORIZED: 401,
+      FORBIDDEN: 403,
+      NOT_FOUND: 404,
+      RATE_LIMITED: 429,
+      VALIDATION_ERROR: 422,
+      INTERNAL_ERROR: 500,
+      BACKEND_ERROR: 502,
+      SERVICE_UNAVAILABLE: 503,
+    }
+    const status = statusMap[code] || 500
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: { code, message: message || 'Error', status },
+      }),
+      { status, headers: { 'Content-Type': 'application/json' } }
+    )
+  }),
+}))
+
+// Mock zodValidation
+vi.mock('@/lib/api/zodValidation', () => ({
+  createValidationErrorResponse: vi.fn((error: any, options?: any) => {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Validation failed', status: 422, details: error.issues },
+      }),
+      { status: 422, headers: { 'Content-Type': 'application/json' } }
+    )
+  }),
 }))
 
 // ---------------------------------------------------------------------------
@@ -212,10 +262,10 @@ describe('POST /api/tarot/interpret/stream', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('invalid_body')
+      expect(data.error.code).toBe('BAD_REQUEST')
     })
 
-    it('should return 400 when Zod validation fails', async () => {
+    it('should return 422 when Zod validation fails', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -230,12 +280,11 @@ describe('POST /api/tarot/interpret/stream', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('cards')
-      expect(data.error).toContain('category')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when cards array is empty', async () => {
+    it('should return 422 when cards array is empty', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -249,11 +298,11 @@ describe('POST /api/tarot/interpret/stream', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('cards')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when cards array exceeds limit (15)', async () => {
+    it('should return 422 when cards array exceeds limit (15)', async () => {
       const tooManyCards = Array.from({ length: 20 }, (_, i) => ({
         name: `Card ${i}`,
         isReversed: false,
@@ -273,11 +322,11 @@ describe('POST /api/tarot/interpret/stream', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('cards')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when card name is missing', async () => {
+    it('should return 422 when card name is missing', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -292,11 +341,11 @@ describe('POST /api/tarot/interpret/stream', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('name')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when card name exceeds max length (400)', async () => {
+    it('should return 422 when card name exceeds max length (400)', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -312,11 +361,11 @@ describe('POST /api/tarot/interpret/stream', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('name')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when category exceeds max length (64)', async () => {
+    it('should return 422 when category exceeds max length (64)', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -331,11 +380,11 @@ describe('POST /api/tarot/interpret/stream', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('category')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when userQuestion exceeds max length (600)', async () => {
+    it('should return 422 when userQuestion exceeds max length (600)', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -350,11 +399,11 @@ describe('POST /api/tarot/interpret/stream', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('userQuestion')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when spreadTitle exceeds max length (200)', async () => {
+    it('should return 422 when spreadTitle exceeds max length (200)', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -369,11 +418,11 @@ describe('POST /api/tarot/interpret/stream', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('spreadTitle')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when position exceeds max length (80)', async () => {
+    it('should return 422 when position exceeds max length (80)', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -390,8 +439,8 @@ describe('POST /api/tarot/interpret/stream', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('position')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should accept valid request with all required fields', async () => {
@@ -709,7 +758,7 @@ describe('POST /api/tarot/interpret/stream', () => {
   // Error Handling Tests
   // =========================================================================
   describe('Error Handling', () => {
-    it('should return error response when backend returns error', async () => {
+    it('should return 502 error response when backend returns error', async () => {
       mockPostSSEStream.mockResolvedValue({
         ok: false,
         status: 500,
@@ -720,9 +769,8 @@ describe('POST /api/tarot/interpret/stream', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(500)
-      expect(data.error).toBe('Backend error')
-      expect(data.detail).toBe('Internal server error')
+      expect(response.status).toBe(502)
+      expect(data.error.code).toBe('BACKEND_ERROR')
     })
 
     it('should return 502 when backend returns no status', async () => {
@@ -735,10 +783,10 @@ describe('POST /api/tarot/interpret/stream', () => {
       const req = createPostRequest(VALID_REQUEST_BODY)
       const response = await POST(req)
 
-      expect(response.status).toBe(500)
+      expect(response.status).toBe(502)
     })
 
-    it('should return 503 when backend returns 503', async () => {
+    it('should return 502 when backend returns 503', async () => {
       mockPostSSEStream.mockResolvedValue({
         ok: false,
         status: 503,
@@ -749,11 +797,11 @@ describe('POST /api/tarot/interpret/stream', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(503)
-      expect(data.error).toBe('Backend error')
+      expect(response.status).toBe(502)
+      expect(data.error.code).toBe('BACKEND_ERROR')
     })
 
-    it('should return 429 when backend returns rate limit error', async () => {
+    it('should return 502 when backend returns rate limit error', async () => {
       mockPostSSEStream.mockResolvedValue({
         ok: false,
         status: 429,
@@ -764,8 +812,8 @@ describe('POST /api/tarot/interpret/stream', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(429)
-      expect(data.error).toBe('Backend error')
+      expect(response.status).toBe(502)
+      expect(data.error.code).toBe('BACKEND_ERROR')
     })
 
     it('should log error when backend fails', async () => {

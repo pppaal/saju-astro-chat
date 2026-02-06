@@ -324,7 +324,7 @@ describe('POST /api/content-access', () => {
       body: JSON.stringify({
         service: 'astrology',
         contentType: 'reading',
-        metadata: { key: 'value' },
+        metadata: { source: 'web', deviceType: 'desktop' },
       }),
     })
 
@@ -332,7 +332,7 @@ describe('POST /api/content-access', () => {
 
     expect(mockPrisma.premiumContentAccess.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        metadata: { key: 'value' },
+        metadata: { source: 'web', deviceType: 'desktop' },
       }),
     })
   })

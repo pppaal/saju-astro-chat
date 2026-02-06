@@ -98,7 +98,7 @@ describe('/api/auth/register - Security Tests', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(data.error.code).toBe('MISSING_FIELD')
     })
 
     it('should reject missing password', async () => {
@@ -114,7 +114,7 @@ describe('/api/auth/register - Security Tests', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(data.error.code).toBe('MISSING_FIELD')
     })
 
     it('should reject invalid email format', async () => {
@@ -133,7 +133,7 @@ describe('/api/auth/register - Security Tests', () => {
         const data = await response.json()
 
         expect(response.status).toBe(400)
-        expect(data.error).toBe('validation_failed')
+        expect(data.error.code).toBe('INVALID_FORMAT')
       }
     })
 
@@ -190,8 +190,8 @@ describe('/api/auth/register - Security Tests', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should reject email with whitespace (Zod validates before trim)', async () => {
@@ -207,7 +207,7 @@ describe('/api/auth/register - Security Tests', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(data.error.code).toBe('INVALID_FORMAT')
     })
   })
 
@@ -224,8 +224,8 @@ describe('/api/auth/register - Security Tests', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should accept password at exactly 8 characters', async () => {
@@ -264,8 +264,8 @@ describe('/api/auth/register - Security Tests', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should hash password before storing', async () => {
@@ -286,7 +286,7 @@ describe('/api/auth/register - Security Tests', () => {
 
       await POST(req)
 
-      expect(bcrypt.hash).toHaveBeenCalledWith(password, 10)
+      expect(bcrypt.hash).toHaveBeenCalledWith(password, 12)
       expect(prisma.user.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           create: expect.objectContaining({
@@ -339,8 +339,8 @@ describe('/api/auth/register - Security Tests', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(409)
-      expect(data.error).toBe('user_exists')
+      expect(response.status).toBe(400)
+      expect(data.error.code).toBe('BAD_REQUEST')
       expect(prisma.user.upsert).not.toHaveBeenCalled()
     })
 
@@ -389,7 +389,7 @@ describe('/api/auth/register - Security Tests', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('rate_limited')
+      expect(data.error.code).toBe('RATE_LIMITED')
     })
 
     it('should use IP-based rate limiting', async () => {
@@ -481,8 +481,8 @@ describe('/api/auth/register - Security Tests', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should handle referral link failure gracefully', async () => {
@@ -604,8 +604,8 @@ describe('/api/auth/register - Security Tests', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should trim whitespace from name', async () => {
@@ -668,7 +668,8 @@ describe('/api/auth/register - Security Tests', () => {
       const data = await response.json()
 
       // Should not expose sensitive error details
-      expect(data.error).toBe('Internal error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).not.toContain('Sensitive database info')
     })
 
     it('should handle bcrypt hashing errors', async () => {

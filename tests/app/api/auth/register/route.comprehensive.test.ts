@@ -582,7 +582,7 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('internal_error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should sanitize error messages', async () => {
@@ -603,8 +603,8 @@ describe('/api/auth/register', () => {
       const data = await response.json()
 
       // Error should be sanitized
-      expect(data.error).toBe('internal_error')
-      expect(data.error).not.toContain('connection string')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).not.toContain('connection string')
     })
   })
 
@@ -629,7 +629,7 @@ describe('/api/auth/register', () => {
 
       await POST(req)
 
-      expect(bcrypt.hash).toHaveBeenCalledWith('mySecretPassword', 10)
+      expect(bcrypt.hash).toHaveBeenCalledWith('mySecretPassword', 12)
     })
 
     it('should generate unique referral code', async () => {

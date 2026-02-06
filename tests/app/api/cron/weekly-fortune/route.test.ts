@@ -59,7 +59,7 @@ describe('/api/cron/weekly-fortune', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should return 401 in production when authorization header is missing', async () => {
@@ -74,7 +74,7 @@ describe('/api/cron/weekly-fortune', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should accept valid Bearer token in production', async () => {
@@ -286,8 +286,8 @@ describe('/api/cron/weekly-fortune', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Failed to generate weekly fortune image')
-      expect(data.details).toBe('Internal server error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).toBe('Failed to generate weekly fortune image')
     })
 
     it('should return 500 when generateWeeklyFortuneImage throws', async () => {
@@ -304,7 +304,8 @@ describe('/api/cron/weekly-fortune', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Failed to generate weekly fortune image')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).toBe('Failed to generate weekly fortune image')
     })
 
     it('should handle API rate limit errors', async () => {
@@ -320,7 +321,8 @@ describe('/api/cron/weekly-fortune', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Failed to generate weekly fortune image')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).toBe('Failed to generate weekly fortune image')
     })
 
     it('should not expose internal error details in response', async () => {
@@ -339,7 +341,7 @@ describe('/api/cron/weekly-fortune', () => {
       expect(response.status).toBe(500)
       // Should not expose sensitive error details
       expect(JSON.stringify(data)).not.toContain('sk-secret123')
-      expect(data.details).toBe('Internal server error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should handle non-Error exceptions', async () => {
@@ -354,7 +356,8 @@ describe('/api/cron/weekly-fortune', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Failed to generate weekly fortune image')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).toBe('Failed to generate weekly fortune image')
     })
 
     it('should handle getWeekNumber errors', async () => {
@@ -518,8 +521,11 @@ describe('/api/cron/weekly-fortune', () => {
       const response = await GET(req)
       const data = await response.json()
 
+      expect(data).toHaveProperty('success', false)
       expect(data).toHaveProperty('error')
-      expect(data).toHaveProperty('details')
+      expect(data.error).toHaveProperty('code')
+      expect(data.error).toHaveProperty('message')
+      expect(data.error).toHaveProperty('status')
     })
 
     it('should return valid image URL format', async () => {

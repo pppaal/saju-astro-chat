@@ -204,7 +204,8 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('Too many requests. Try again soon.')
+      expect(data.error.code).toBe('RATE_LIMITED')
+      expect(data.error.message).toBe('Too many requests. Please wait a moment.')
     })
 
     it('should include rate limit headers in rate-limited response', async () => {
@@ -258,7 +259,8 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
+      expect(data.error.message).toBe('Please log in to continue.')
     })
 
     it('should proceed when public token is valid', async () => {
@@ -292,8 +294,7 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Validation failed')
-      expect(data.details).toContain('date')
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 when date format is invalid', async () => {
@@ -308,7 +309,7 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('Date must be in YYYY-MM-DD format')
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 when time format is invalid', async () => {
@@ -323,7 +324,7 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('time')
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
     it('should return 400 with multiple validation errors', async () => {
@@ -342,7 +343,8 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.issues).toHaveLength(3)
+      // The first error determines the code - date comes first so INVALID_DATE
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 for invalid latitude out of range', async () => {
@@ -357,7 +359,7 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('latitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for latitude below minimum', async () => {
@@ -372,7 +374,7 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('latitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for invalid longitude out of range', async () => {
@@ -387,7 +389,7 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('longitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for longitude below minimum', async () => {
@@ -402,7 +404,7 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('longitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for missing timezone', async () => {
@@ -417,7 +419,8 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('timeZone')
+      // timeZone path contains 'time' so it maps to INVALID_TIME
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
     it('should log validation warnings', async () => {
@@ -454,7 +457,7 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Validation failed')
+      expect(data.error.code).toBe('INVALID_DATE')
     })
   })
 
@@ -667,7 +670,7 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
       expect(captureServerError).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({ route: '/api/astrology/advanced/asteroids' })
@@ -684,7 +687,7 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when calculateAllAsteroids throws', async () => {
@@ -699,7 +702,7 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when interpretAsteroid throws', async () => {
@@ -712,7 +715,7 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when findAllAsteroidAspects throws', async () => {
@@ -725,7 +728,7 @@ describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should handle malformed JSON body gracefully', async () => {

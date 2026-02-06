@@ -51,7 +51,7 @@ describe('/api/cron/reset-credits', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should accept valid CRON_SECRET', async () => {
@@ -292,7 +292,7 @@ describe('/api/cron/reset-credits', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should handle resetAllExpiredCredits errors', async () => {
@@ -312,7 +312,7 @@ describe('/api/cron/reset-credits', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should handle non-Error exceptions', async () => {
@@ -329,7 +329,7 @@ describe('/api/cron/reset-credits', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should not fail if bonus expiration partially succeeds', async () => {

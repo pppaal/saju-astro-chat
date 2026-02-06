@@ -652,6 +652,9 @@ describe('cache-manager Module', () => {
   })
 
   describe('generateDestinyMapCacheKey Function', () => {
+    // The implementation uses null byte separator and JSON serialization with dmap prefix
+    const SEP = '\x00'
+
     describe('Happy Path - Standard Inputs', () => {
       it('should generate key with all required fields', () => {
         const input = {
@@ -663,7 +666,8 @@ describe('cache-manager Module', () => {
 
         const key = generateDestinyMapCacheKey(input)
 
-        expect(key).toBe('1990-01-01|12:00|37.5665|126.9780|male|auto')
+        // Format: dmap\x00"birthDate"\x00"birthTime"\x00lat\x00lon\x00"gender"\x00"tz"
+        expect(key).toBe(`dmap${SEP}"1990-01-01"${SEP}"12:00"${SEP}37.5665${SEP}126.978${SEP}"male"${SEP}"auto"`)
       })
 
       it('should include gender when provided', () => {
@@ -706,7 +710,7 @@ describe('cache-manager Module', () => {
 
         const key = generateDestinyMapCacheKey(input)
 
-        expect(key).toBe('1990-01-01|12:00|37.5665|126.9780|female|America/New_York')
+        expect(key).toBe(`dmap${SEP}"1990-01-01"${SEP}"12:00"${SEP}37.5665${SEP}126.978${SEP}"female"${SEP}"America/New_York"`)
       })
     })
 
@@ -721,7 +725,7 @@ describe('cache-manager Module', () => {
 
         const key = generateDestinyMapCacheKey(input)
 
-        expect(key).toContain('|male|')
+        expect(key).toContain(`${SEP}"male"${SEP}`)
       })
 
       it('should use "auto" as default timezone', () => {
@@ -734,7 +738,7 @@ describe('cache-manager Module', () => {
 
         const key = generateDestinyMapCacheKey(input)
 
-        expect(key.endsWith('|auto')).toBe(true)
+        expect(key.endsWith(`${SEP}"auto"`)).toBe(true)
       })
     })
 
@@ -749,7 +753,8 @@ describe('cache-manager Module', () => {
 
         const key = generateDestinyMapCacheKey(input)
 
-        expect(key).toContain('|37.1235|')
+        // Number(37.123456789.toFixed(4)) = 37.1235
+        expect(key).toContain(`${SEP}37.1235${SEP}`)
       })
 
       it('should round longitude to 4 decimal places', () => {
@@ -762,10 +767,11 @@ describe('cache-manager Module', () => {
 
         const key = generateDestinyMapCacheKey(input)
 
-        expect(key).toContain('|126.9877|')
+        // Number(126.987654321.toFixed(4)) = 126.9877
+        expect(key).toContain(`${SEP}126.9877${SEP}`)
       })
 
-      it('should pad coordinates with trailing zeros', () => {
+      it('should not pad coordinates with trailing zeros (Number removes them)', () => {
         const input = {
           birthDate: '1990-01-01',
           birthTime: '12:00',
@@ -775,7 +781,8 @@ describe('cache-manager Module', () => {
 
         const key = generateDestinyMapCacheKey(input)
 
-        expect(key).toContain('|37.5000|126.9000|')
+        // Number(37.5.toFixed(4)) = 37.5 (not 37.5000), Number(126.9.toFixed(4)) = 126.9
+        expect(key).toContain(`${SEP}37.5${SEP}126.9${SEP}`)
       })
 
       it('should handle negative coordinates', () => {
@@ -788,7 +795,7 @@ describe('cache-manager Module', () => {
 
         const key = generateDestinyMapCacheKey(input)
 
-        expect(key).toContain('|-33.8688|151.2093|')
+        expect(key).toContain(`${SEP}-33.8688${SEP}151.2093${SEP}`)
       })
     })
 
@@ -930,7 +937,8 @@ describe('cache-manager Module', () => {
 
         const key = generateDestinyMapCacheKey(input)
 
-        expect(key).toContain('|0.0000|0.0000|')
+        // Number(0.toFixed(4)) = 0 (not 0.0000)
+        expect(key).toContain(`${SEP}0${SEP}0${SEP}`)
       })
 
       it('should handle boundary coordinates', () => {
@@ -943,7 +951,8 @@ describe('cache-manager Module', () => {
 
         const key = generateDestinyMapCacheKey(input)
 
-        expect(key).toContain('|90.0000|180.0000|')
+        // Number(90.toFixed(4)) = 90 (not 90.0000)
+        expect(key).toContain(`${SEP}90${SEP}180${SEP}`)
       })
 
       it('should handle negative boundary coordinates', () => {
@@ -956,7 +965,7 @@ describe('cache-manager Module', () => {
 
         const key = generateDestinyMapCacheKey(input)
 
-        expect(key).toContain('|-90.0000|-180.0000|')
+        expect(key).toContain(`${SEP}-90${SEP}-180${SEP}`)
       })
 
       it('should handle empty string gender (defaults to male)', () => {
@@ -970,7 +979,7 @@ describe('cache-manager Module', () => {
 
         const key = generateDestinyMapCacheKey(input)
 
-        expect(key).toContain('|male|')
+        expect(key).toContain(`${SEP}"male"${SEP}`)
       })
 
       it('should handle empty string timezone (defaults to auto)', () => {
@@ -984,7 +993,7 @@ describe('cache-manager Module', () => {
 
         const key = generateDestinyMapCacheKey(input)
 
-        expect(key.endsWith('|auto')).toBe(true)
+        expect(key.endsWith(`${SEP}"auto"`)).toBe(true)
       })
 
       it('should handle various date formats', () => {

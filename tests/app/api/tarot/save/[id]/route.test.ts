@@ -77,6 +77,14 @@ vi.mock('@/lib/api/zodValidation', () => ({
       }
     }),
   },
+  createValidationErrorResponse: vi.fn((error: { issues?: { path: string[]; message: string }[] }, _options?: Record<string, unknown>) => {
+    const { NextResponse } = require('next/server')
+    const errorMessage = error.issues?.map((i: { path: string[]; message: string }) => i.path.join('.')).join(', ') || 'validation_error'
+    return NextResponse.json(
+      { success: false, error: { code: 'VALIDATION_ERROR', message: errorMessage } },
+      { status: 400 }
+    )
+  }),
 }))
 
 // Mock middleware with passthrough pattern

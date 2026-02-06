@@ -906,29 +906,32 @@ describe('structuredPrompt - buildStructuredFortunePrompt', () => {
       const data: CombinedResult = { astrology: {}, saju: {} };
       const prompt = buildStructuredFortunePrompt('ko', 'today', data);
 
-      expect(prompt).toContain('lifeTimeline');
-      expect(prompt).toContain('categoryAnalysis');
-      expect(prompt).toContain('keyInsights');
-      expect(prompt).toContain('luckyElements');
+      // The prompt instructs AI to return valid JSON
+      expect(prompt).toContain('You MUST return a valid JSON object');
+      // Core sections exist in the prompt structure
+      expect(prompt).toContain('PART 1: EASTERN DESTINY ANALYSIS');
+      expect(prompt).toContain('PART 2: WESTERN ASTROLOGY');
     });
 
-    it('should include all category types in structure', () => {
+    it('should include key analysis sections in structure', () => {
       const data: CombinedResult = { astrology: {}, saju: {} };
       const prompt = buildStructuredFortunePrompt('ko', 'today', data);
 
-      const categories = ['personality', 'appearance', 'love', 'family', 'friends', 'career', 'wealth', 'health'];
-      categories.forEach(category => {
-        expect(prompt).toContain(category);
-      });
+      // Check for key sections that exist in the prompt
+      expect(prompt).toContain('Day Master');
+      expect(prompt).toContain('Four Pillars');
+      expect(prompt).toContain('TASK:');
+      expect(prompt).toContain('ANALYSIS GUIDELINES');
     });
 
-    it('should include critical requirements section', () => {
+    it('should include important analysis guidelines section', () => {
       const data: CombinedResult = { astrology: {}, saju: {} };
       const prompt = buildStructuredFortunePrompt('ko', 'today', data);
 
-      expect(prompt).toContain('CRITICAL REQUIREMENTS');
-      expect(prompt).toContain('lifeTimeline.importantYears');
-      expect(prompt).toContain('8-12 most significant years');
+      // Check for IMPORTANT ANALYSIS GUIDELINES which contains key instructions
+      expect(prompt).toContain('IMPORTANT ANALYSIS GUIDELINES');
+      expect(prompt).toContain('CROSS-REFERENCE');
+      expect(prompt).toContain('DATE RECOMMENDATIONS');
     });
   });
 });

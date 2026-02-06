@@ -297,7 +297,8 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('Too many requests. Try again soon.')
+      expect(data.error.code).toBe('RATE_LIMITED')
+      expect(data.error.message).toBe('Too many requests. Please wait a moment.')
     })
 
     it('should include rate limit headers in rate-limited response', async () => {
@@ -348,7 +349,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should proceed when public token is valid', async () => {
@@ -394,8 +395,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Validation failed')
-      expect(data.details).toContain('date')
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 with multiple validation errors', async () => {
@@ -414,7 +414,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.issues).toHaveLength(3)
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 for invalid date format', async () => {
@@ -429,7 +429,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('date')
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 for invalid time format', async () => {
@@ -444,7 +444,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('time')
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
     it('should return 400 for invalid latitude out of range (too high)', async () => {
@@ -459,7 +459,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('latitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for invalid latitude out of range (too low)', async () => {
@@ -474,7 +474,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('latitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for invalid longitude out of range (too high)', async () => {
@@ -489,7 +489,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('longitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for invalid longitude out of range (too low)', async () => {
@@ -504,7 +504,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('longitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for missing timezone', async () => {
@@ -519,7 +519,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('timeZone')
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
     it('should log validation warnings', async () => {
@@ -551,7 +551,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const response = await POST(makeRequest({}))
       const data = await response.json()
 
-      expect(data.issues).toEqual(issues)
+      expect(data.error.code).toBe('INVALID_DATE')
     })
   })
 
@@ -697,7 +697,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
       expect(captureServerError).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({ route: '/api/astrology/advanced/draconic' })
@@ -714,7 +714,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when calculateDraconicChart throws', async () => {
@@ -728,7 +728,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when compareDraconicToNatal throws', async () => {
@@ -743,7 +743,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when getDraconicPlanetMeaning throws', async () => {
@@ -758,7 +758,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should handle malformed JSON body gracefully', async () => {
@@ -792,8 +792,8 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
-      expect(data.error).not.toContain('Sensitive')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).not.toContain('Sensitive')
     })
   })
 
@@ -992,7 +992,7 @@ describe('Draconic API - POST /api/astrology/advanced/draconic', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
       expect(captureServerError).toHaveBeenCalled()
     })
 

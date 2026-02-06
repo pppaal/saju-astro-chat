@@ -201,7 +201,8 @@ describe('Rectification API - POST /api/astrology/advanced/rectification', () =>
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('Too many requests. Try again soon.')
+      expect(data.error.code).toBe('RATE_LIMITED')
+      expect(data.error.message).toBe('Too many requests. Please wait a moment.')
     })
 
     it('should include rate limit headers in rate-limited response', async () => {
@@ -252,7 +253,7 @@ describe('Rectification API - POST /api/astrology/advanced/rectification', () =>
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should proceed when public token is valid', async () => {
@@ -286,8 +287,7 @@ describe('Rectification API - POST /api/astrology/advanced/rectification', () =>
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Validation failed')
-      expect(data.details).toContain('birthDate')
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 with multiple validation errors', async () => {
@@ -306,7 +306,7 @@ describe('Rectification API - POST /api/astrology/advanced/rectification', () =>
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.issues).toHaveLength(3)
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 for invalid latitude out of range', async () => {
@@ -321,7 +321,7 @@ describe('Rectification API - POST /api/astrology/advanced/rectification', () =>
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('latitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for invalid longitude out of range', async () => {
@@ -336,7 +336,7 @@ describe('Rectification API - POST /api/astrology/advanced/rectification', () =>
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('longitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for missing timezone', async () => {
@@ -351,10 +351,10 @@ describe('Rectification API - POST /api/astrology/advanced/rectification', () =>
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('timeZone')
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
-    it('should return 400 for empty events array', async () => {
+    it('should return 422 for empty events array', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -365,8 +365,8 @@ describe('Rectification API - POST /api/astrology/advanced/rectification', () =>
       const response = await POST(makePostRequest({ ...validBody, events: [] }))
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.details).toContain('events')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should log validation warnings', async () => {
@@ -396,7 +396,7 @@ describe('Rectification API - POST /api/astrology/advanced/rectification', () =>
       vi.mocked(requirePublicToken).mockReturnValue({ valid: true })
     })
 
-    it('should return 400 for invalid event type', async () => {
+    it('should return 422 for invalid event type', async () => {
       const invalidEventBody = {
         ...validBody,
         events: [{ date: '2015-06-20', type: 'invalid_event_type', description: 'Test' }],
@@ -406,9 +406,9 @@ describe('Rectification API - POST /api/astrology/advanced/rectification', () =>
       const response = await POST(makePostRequest(invalidEventBody))
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('Invalid event type: invalid_event_type')
-      expect(data.error).toContain('Valid types:')
+      expect(response.status).toBe(422)
+      expect(data.error.message).toContain('Invalid event type: invalid_event_type')
+      expect(data.error.message).toContain('Valid types:')
     })
 
     it('should accept all valid event types', async () => {
@@ -709,7 +709,7 @@ describe('Rectification API - POST /api/astrology/advanced/rectification', () =>
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
       expect(captureServerError).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({ route: '/api/astrology/advanced/rectification' })
@@ -726,7 +726,7 @@ describe('Rectification API - POST /api/astrology/advanced/rectification', () =>
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when request.json() throws (malformed body)', async () => {
@@ -896,7 +896,7 @@ describe('Rectification API - GET /api/astrology/advanced/rectification', () => 
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('Too many requests.')
+      expect(data.error.code).toBe('RATE_LIMITED')
     })
 
     it('should use correct rate limit key for GET requests', async () => {
@@ -1040,7 +1040,7 @@ describe('Rectification API - GET /api/astrology/advanced/rectification', () => 
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
       expect(captureServerError).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({ route: '/api/astrology/advanced/rectification GET' })

@@ -151,6 +151,12 @@ vi.mock('@/lib/api/zodValidation', () => ({
       return { success: true, data: { readingId: data.readingId } }
     }),
   },
+  createValidationErrorResponse: vi.fn((error: any, options?: any) => {
+    return NextResponse.json(
+      { success: false, error: 'invalid_params', details: error.issues },
+      { status: 400 }
+    )
+  }),
 }))
 
 // ---------- Imports (after mocks) ----------

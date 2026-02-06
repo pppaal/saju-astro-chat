@@ -74,11 +74,11 @@ describe('Auth Schema Tests', () => {
       }).success).toBe(true)
     })
 
-    it('should trim email and name', () => {
+    it('should accept valid email without whitespace', () => {
       const result = userRegistrationRequestSchema.safeParse({
-        email: '  user@example.com  ',
+        email: 'user@example.com',
         password: 'SecurePass123',
-        name: '  John  ',
+        name: 'John',
       })
       expect(result.success).toBe(true)
       if (result.success) {

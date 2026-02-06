@@ -60,6 +60,10 @@ describe('errorHandler MEGA - ErrorCodes', () => {
     expect(ErrorCodes.PAYLOAD_TOO_LARGE).toBe('PAYLOAD_TOO_LARGE')
   })
 
+  it('should have PAYMENT_REQUIRED code', () => {
+    expect(ErrorCodes.PAYMENT_REQUIRED).toBe('PAYMENT_REQUIRED')
+  })
+
   it('should have INTERNAL_ERROR code', () => {
     expect(ErrorCodes.INTERNAL_ERROR).toBe('INTERNAL_ERROR')
   })
@@ -116,8 +120,8 @@ describe('errorHandler MEGA - ErrorCodes', () => {
     expect(ErrorCodes.MISSING_FIELD).toBe('MISSING_FIELD')
   })
 
-  it('should have exactly 21 error codes', () => {
-    expect(Object.keys(ErrorCodes)).toHaveLength(21)
+  it('should have exactly 22 error codes', () => {
+    expect(Object.keys(ErrorCodes)).toHaveLength(22)
   })
 })
 
@@ -170,6 +174,13 @@ describe('errorHandler MEGA - createErrorResponse', () => {
         code: ErrorCodes.PAYLOAD_TOO_LARGE,
       })
       expect(response.status).toBe(413)
+    })
+
+    it('should return 402 for PAYMENT_REQUIRED', async () => {
+      const response = createErrorResponse({
+        code: ErrorCodes.PAYMENT_REQUIRED,
+      })
+      expect(response.status).toBe(402)
     })
 
     it('should return 500 for INTERNAL_ERROR', async () => {
@@ -440,6 +451,7 @@ describe('errorHandler MEGA - createErrorResponse', () => {
       ErrorCodes.RATE_LIMITED,
       ErrorCodes.VALIDATION_ERROR,
       ErrorCodes.PAYLOAD_TOO_LARGE,
+      ErrorCodes.PAYMENT_REQUIRED,
       // 5xx Server Errors
       ErrorCodes.INTERNAL_ERROR,
       ErrorCodes.SERVICE_UNAVAILABLE,

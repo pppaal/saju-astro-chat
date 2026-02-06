@@ -23,6 +23,7 @@ import { NextRequest, NextResponse } from 'next/server'
 vi.mock('@/lib/api/middleware', () => ({
   initializeApiContext: vi.fn(),
   createPublicStreamGuard: vi.fn(),
+  extractLocale: vi.fn(() => 'ko'),
 }))
 
 vi.mock('@/lib/streaming', () => ({
@@ -47,6 +48,40 @@ vi.mock('@/lib/logger', () => ({
     warn: vi.fn(),
     error: vi.fn(),
   },
+}))
+
+// Mock errorHandler
+vi.mock('@/lib/api/errorHandler', () => ({
+  ErrorCodes: {
+    BAD_REQUEST: 'BAD_REQUEST',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    FORBIDDEN: 'FORBIDDEN',
+    NOT_FOUND: 'NOT_FOUND',
+    RATE_LIMITED: 'RATE_LIMITED',
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+  },
+  createErrorResponse: vi.fn(({ code, message }) => {
+    const statusMap: Record<string, number> = {
+      BAD_REQUEST: 400,
+      UNAUTHORIZED: 401,
+      FORBIDDEN: 403,
+      NOT_FOUND: 404,
+      RATE_LIMITED: 429,
+      VALIDATION_ERROR: 422,
+      INTERNAL_ERROR: 500,
+      SERVICE_UNAVAILABLE: 503,
+    }
+    const status = statusMap[code] || 500
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: { code, message: message || 'Error', status },
+      }),
+      { status, headers: { 'Content-Type': 'application/json' } }
+    )
+  }),
 }))
 
 vi.mock('@/lib/constants/http', () => ({
@@ -84,6 +119,9 @@ vi.mock('@/lib/api/zodValidation', () => ({
   tarotChatStreamRequestSchema: {
     safeParse: vi.fn(),
   },
+  createValidationErrorResponse: vi.fn((error, options) => {
+    return new Response(JSON.stringify({ error: 'validation_failed', details: error.issues }), { status: 400 })
+  }),
 }))
 
 vi.mock('next-auth', () => ({
@@ -399,7 +437,7 @@ describe('/api/tarot/chat/stream POST - Input Validation', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.error).toBe('invalid_body')
+    expect(data.error.code).toBe('BAD_REQUEST')
   })
 
   it('should reject requests with non-object body', async () => {
@@ -410,7 +448,7 @@ describe('/api/tarot/chat/stream POST - Input Validation', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.error).toBe('invalid_body')
+    expect(data.error.code).toBe('BAD_REQUEST')
   })
 
   it('should reject requests with empty messages array', async () => {
@@ -425,6 +463,8 @@ describe('/api/tarot/chat/stream POST - Input Validation', () => {
     expect(response.status).toBe(400)
     expect(data.error).toBe('validation_failed')
   })
+
+  // Note: Tests that mock validation failures must update the mock in setupDefaultMocks
 
   it('should reject requests with missing messages', async () => {
     mockZodSafeParse.mockReturnValue({
@@ -547,7 +587,7 @@ describe('/api/tarot/chat/stream POST - Message Validation', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.error).toBe('Missing messages')
+    expect(data.error.code).toBe('BAD_REQUEST')
   })
 
   it('should accept multiple valid messages', async () => {
@@ -612,7 +652,7 @@ describe('/api/tarot/chat/stream POST - Context Sanitization', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.error).toBe('Invalid tarot context')
+    expect(data.error.code).toBe('BAD_REQUEST')
   })
 
   it('should reject context with empty cards array', async () => {
@@ -632,7 +672,7 @@ describe('/api/tarot/chat/stream POST - Context Sanitization', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.error).toBe('Invalid tarot context')
+    expect(data.error.code).toBe('BAD_REQUEST')
   })
 
   it('should accept context with valid cards using is_reversed', async () => {
@@ -1303,7 +1343,7 @@ describe('/api/tarot/chat/stream POST - Error Handling', () => {
     const data = await response.json()
 
     expect(response.status).toBe(500)
-    expect(data.error).toBe('Server error')
+    expect(data.error.code).toBe('INTERNAL_ERROR')
   })
 
   it('should handle non-Error exceptions', async () => {
@@ -1314,7 +1354,7 @@ describe('/api/tarot/chat/stream POST - Error Handling', () => {
     const data = await response.json()
 
     expect(response.status).toBe(500)
-    expect(data.error).toBe('Server error')
+    expect(data.error.code).toBe('INTERNAL_ERROR')
   })
 
   it('should log errors properly', async () => {

@@ -560,9 +560,13 @@ describe('Chat Context Schema Tests', () => {
       }).success).toBe(true)
     })
 
-    it('should accept custom stage strings', () => {
+    it('should accept all valid twelve stage values', () => {
+      // z.record(pillarKindSchema, ...) requires all pillar keys
       expect(twelveStagesRecordSchema.safeParse({
-        day: 'custom-stage',
+        year: '왕지',
+        month: '쇠',
+        day: '병',
+        time: '사',
       }).success).toBe(true)
     })
   })

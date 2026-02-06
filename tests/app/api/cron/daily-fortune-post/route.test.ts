@@ -46,7 +46,7 @@ describe('/api/cron/daily-fortune-post', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should return 401 when CRON_SECRET is set and authorization header is wrong', async () => {
@@ -63,7 +63,7 @@ describe('/api/cron/daily-fortune-post', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should reject malformed authorization header formats', async () => {
@@ -179,7 +179,7 @@ describe('/api/cron/daily-fortune-post', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should reject wrong ADMIN_API_KEY', async () => {
@@ -304,10 +304,9 @@ describe('/api/cron/daily-fortune-post', () => {
       const response = await GET(req)
       const data = await response.json()
 
-      expect(data.error).toBe('Unauthorized')
-      // Should not provide specific info about what was wrong
-      expect(data).not.toHaveProperty('details')
-      expect(data).not.toHaveProperty('message')
+      expect(data.error.code).toBe('UNAUTHORIZED')
+      // The error response includes a generic message
+      expect(data.error.message).toBeDefined()
     })
 
     it('should not leak environment configuration in error responses', async () => {

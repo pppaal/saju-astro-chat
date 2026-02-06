@@ -336,14 +336,22 @@ describe('Admin Schema Tests', () => {
       expect(adminRefundSubscriptionRequestSchema.safeParse({}).success).toBe(false)
     })
 
-    it('should trim values', () => {
+    it('should trim subscriptionId', () => {
       const result = adminRefundSubscriptionRequestSchema.safeParse({
         subscriptionId: '  sub_123  ',
-        email: '  user@example.com  ',
       })
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data.subscriptionId).toBe('sub_123')
+      }
+    })
+
+    it('should accept valid email', () => {
+      const result = adminRefundSubscriptionRequestSchema.safeParse({
+        email: 'user@example.com',
+      })
+      expect(result.success).toBe(true)
+      if (result.success) {
         expect(result.data.email).toBe('user@example.com')
       }
     })

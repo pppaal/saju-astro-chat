@@ -22,6 +22,7 @@ describe('API Error Handler', () => {
       expect(ErrorCodes.RATE_LIMITED).toBe('RATE_LIMITED')
       expect(ErrorCodes.PAYLOAD_TOO_LARGE).toBe('PAYLOAD_TOO_LARGE')
       expect(ErrorCodes.VALIDATION_ERROR).toBe('VALIDATION_ERROR')
+      expect(ErrorCodes.PAYMENT_REQUIRED).toBe('PAYMENT_REQUIRED')
     })
 
     it('should have all server error codes', () => {
@@ -44,8 +45,8 @@ describe('API Error Handler', () => {
       expect(ErrorCodes.MISSING_FIELD).toBe('MISSING_FIELD')
     })
 
-    it('should have exactly 21 error codes', () => {
-      expect(Object.keys(ErrorCodes)).toHaveLength(21)
+    it('should have exactly 22 error codes', () => {
+      expect(Object.keys(ErrorCodes)).toHaveLength(22)
     })
   })
 

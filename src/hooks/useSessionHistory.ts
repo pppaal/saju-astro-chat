@@ -11,11 +11,11 @@ import type { SessionItem } from '@/hooks/useChatSession.unified'
 interface UseSessionHistoryOptions {
   theme?: string
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>
-  sessionIdRef: React.MutableRefObject<string>
+  onSessionIdChange?: (newSessionId: string) => void
 }
 
 export function useSessionHistory(options: UseSessionHistoryOptions) {
-  const { theme = 'chat', setMessages, sessionIdRef } = options
+  const { theme = 'chat', setMessages, onSessionIdChange } = options
 
   const [sessionHistory, setSessionHistory] = useState<SessionItem[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
@@ -46,14 +46,14 @@ export function useSessionHistory(options: UseSessionHistoryOptions) {
           const data = await res.json()
           if (data.messages && Array.isArray(data.messages)) {
             setMessages(data.messages)
-            sessionIdRef.current = data.sessionId || sid
+            onSessionIdChange?.(data.sessionId || sid)
           }
         }
       } catch (e) {
         logger.warn('[useChatSession] Failed to load session:', e)
       }
     },
-    [theme, setMessages, sessionIdRef]
+    [theme, setMessages, onSessionIdChange]
   )
 
   // Delete a session

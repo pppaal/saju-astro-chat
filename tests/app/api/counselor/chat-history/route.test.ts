@@ -25,6 +25,7 @@ vi.mock('@/lib/api/middleware', () => ({
     }
   }),
   createAuthenticatedGuard: vi.fn(() => ({})),
+  extractLocale: vi.fn(() => 'en'),
 }))
 
 // Mock Prisma
@@ -268,7 +269,7 @@ describe('/api/counselor/chat-history', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('Validation failed')
+      expect(result.error.code).toBe('MISSING_FIELD')
     })
 
     it('should return 400 when limit is above maximum (101)', async () => {
@@ -278,7 +279,7 @@ describe('/api/counselor/chat-history', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('Validation failed')
+      expect(result.error.code).toBe('MISSING_FIELD')
     })
 
     it('should return 400 when limit is not a valid number', async () => {
@@ -288,7 +289,7 @@ describe('/api/counselor/chat-history', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('Validation failed')
+      expect(result.error.code).toBe('MISSING_FIELD')
     })
 
     it('should return 400 when limit is negative', async () => {
@@ -298,7 +299,7 @@ describe('/api/counselor/chat-history', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('Validation failed')
+      expect(result.error.code).toBe('MISSING_FIELD')
     })
 
     it('should accept valid limit at boundary (1)', async () => {
@@ -334,7 +335,8 @@ describe('/api/counselor/chat-history', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.details).toBeDefined()
+      expect(result.error).toBeDefined()
+      expect(result.error.code).toBeDefined()
     })
   })
 
@@ -570,7 +572,7 @@ describe('/api/counselor/chat-history', () => {
       const result = await response.json()
 
       expect(response.status).toBe(404)
-      expect(result.error).toBe('session_not_found')
+      expect(result.error.code).toBe('NOT_FOUND')
     })
 
     it('should append messages to existing session', async () => {
@@ -648,7 +650,7 @@ describe('/api/counselor/chat-history', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('invalid_body')
+      expect(result.error.code).toBe('BAD_REQUEST')
     })
 
     it('should return 400 when body is null', async () => {
@@ -661,10 +663,10 @@ describe('/api/counselor/chat-history', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('invalid_body')
+      expect(result.error.code).toBe('BAD_REQUEST')
     })
 
-    it('should return 400 when neither userMessage nor assistantMessage is provided', async () => {
+    it('should return 422 when neither userMessage nor assistantMessage is provided', async () => {
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
         method: 'POST',
         body: JSON.stringify({
@@ -675,11 +677,11 @@ describe('/api/counselor/chat-history', () => {
       const response = await POST(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('Validation failed')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 when locale is invalid', async () => {
+    it('should return 422 when locale is invalid', async () => {
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
         method: 'POST',
         body: JSON.stringify({
@@ -692,8 +694,8 @@ describe('/api/counselor/chat-history', () => {
       const response = await POST(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('Validation failed')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should accept valid locale "en"', async () => {
@@ -906,7 +908,7 @@ describe('/api/counselor/chat-history', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('invalid_body')
+      expect(result.error.code).toBe('BAD_REQUEST')
     })
 
     it('should return 400 when sessionId is missing', async () => {
@@ -921,10 +923,10 @@ describe('/api/counselor/chat-history', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('Validation failed')
+      expect(result.error.code).toBe('MISSING_FIELD')
     })
 
-    it('should return 400 when sessionId is empty string', async () => {
+    it('should return 422 when sessionId is empty string', async () => {
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
         method: 'PATCH',
         body: JSON.stringify({
@@ -936,8 +938,8 @@ describe('/api/counselor/chat-history', () => {
       const response = await PATCH(req)
       const result = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('Validation failed')
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should return 400 when body is null', async () => {
@@ -950,7 +952,7 @@ describe('/api/counselor/chat-history', () => {
       const result = await response.json()
 
       expect(response.status).toBe(400)
-      expect(result.error).toBe('invalid_body')
+      expect(result.error.code).toBe('BAD_REQUEST')
     })
   })
 
