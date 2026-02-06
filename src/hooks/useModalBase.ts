@@ -268,8 +268,8 @@ export function useConfirmDialog() {
     cancelText: 'Cancel',
   })
 
-  const confirmCallbackRef = useRef<(() => void | Promise<void>) | undefined>()
-  const cancelCallbackRef = useRef<(() => void) | undefined>()
+  const confirmCallbackRef = useRef<(() => void | Promise<void>) | undefined>(undefined)
+  const cancelCallbackRef = useRef<(() => void) | undefined>(undefined)
 
   const showConfirm = useCallback(
     (options: {
