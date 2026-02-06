@@ -307,17 +307,17 @@ export interface StreamingState {
  */
 export function useStreamingChat(
   config: StreamingConfig,
-  state: Pick<
-    ChatCoreState,
-    | 'messages'
-    | 'setMessages'
-    | 'setLoading'
-    | 'setNotice'
-    | 'setUsedFallback'
-    | 'setShowSuggestions'
-    | 'setFollowUpQuestions'
-    | 'autoScroll' | 'loading'
-  > & { autoScroll?: boolean; loading: boolean },
+  state: {
+    messages: Message[]
+    setMessages: React.Dispatch<React.SetStateAction<Message[]>>
+    setLoading: React.Dispatch<React.SetStateAction<boolean>>
+    setNotice: React.Dispatch<React.SetStateAction<string | null>>
+    setUsedFallback: React.Dispatch<React.SetStateAction<boolean>>
+    setShowSuggestions: React.Dispatch<React.SetStateAction<boolean>>
+    setFollowUpQuestions: React.Dispatch<React.SetStateAction<string[]>>
+    autoScroll?: boolean
+    loading: boolean
+  },
   translations: { noResponse: string; error: string },
   callbacks?: {
     onSaveMessage?: (userMsg: string, assistantMsg: string) => void
