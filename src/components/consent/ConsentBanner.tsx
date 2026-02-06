@@ -26,8 +26,8 @@ export function ConsentBanner() {
       aria-labelledby="consent-banner-title"
     >
       <div className={styles.text}>
-        <strong id="consent-banner-title">{t('consent.title')}</strong>
-        <p>{t('consent.description')}</p>
+        <strong id="consent-banner-title">{t('consent.title', 'Privacy choices')}</strong>
+        <p>{t('consent.description', 'We use cookies and similar tech for analytics and ads.')}</p>
       </div>
       <div className={styles.actions}>
         <button
@@ -37,7 +37,7 @@ export function ConsentBanner() {
             setVisible(false)
           }}
         >
-          {t('consent.reject')}
+          {t('consent.reject', 'Reject')}
         </button>
         <button
           className={styles.primary}
@@ -46,7 +46,7 @@ export function ConsentBanner() {
             setVisible(false)
           }}
         >
-          {t('consent.accept')}
+          {t('consent.accept', 'Accept')}
         </button>
       </div>
     </div>

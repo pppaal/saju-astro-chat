@@ -30,10 +30,10 @@ export default function ServiceSearchBox({ translate, t, styles }: ServiceSearch
   // Memoized placeholders for typing animation
   const placeholders = React.useMemo(
     () => [
-      translate('landing.hint1', '오늘의 운세가 궁금해요'),
-      translate('landing.hint2', '연애운이 어떨까요?'),
-      translate('landing.hint3', '이직해도 될까요?'),
-      translate('landing.searchPlaceholder', '오늘 무엇이 궁금하세요?'),
+      translate('landing.hint1', 'How is my fortune today?'),
+      translate('landing.hint2', 'How is my love luck?'),
+      translate('landing.hint3', 'Should I change jobs?'),
+      translate('landing.searchPlaceholder', 'What would you like to know today?'),
     ],
     [translate]
   )
