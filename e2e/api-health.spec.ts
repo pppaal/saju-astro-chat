@@ -1,87 +1,105 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test'
 
-test.describe("API Health Checks", () => {
-  test("should respond to auth endpoints", async ({ page }) => {
-    try {
-      const csrfResponse = await page.request.get("/api/auth/csrf", { timeout: 30000 });
-      expect(csrfResponse.status()).toBeLessThan(500);
+/**
+ * API Health Check Tests
+ *
+ * These tests verify that critical API endpoints are responsive and return expected status codes.
+ * Tests are designed to fail fast and provide actionable feedback.
+ */
 
-      const providersResponse = await page.request.get("/api/auth/providers", { timeout: 30000 });
-      expect(providersResponse.status()).toBeLessThan(500);
+test.describe('API Health Checks', () => {
+  test.describe('Auth Endpoints', () => {
+    test('GET /api/auth/csrf - should return CSRF token', async ({ request }) => {
+      const response = await request.get('/api/auth/csrf')
 
-      const sessionResponse = await page.request.get("/api/auth/session", { timeout: 30000 });
-      expect(sessionResponse.status()).toBeLessThan(500);
-    } catch {
-      // Timeout is acceptable in dev mode
-      expect(true).toBe(true);
-    }
-  });
+      expect(response.status()).toBeLessThan(500)
 
-  test("should return proper content types", async ({ page }) => {
-    try {
-      const response = await page.request.get("/api/auth/csrf", { timeout: 30000 });
       if (response.ok()) {
-        const contentType = response.headers()["content-type"];
-        expect(contentType).toContain("application/json");
-      } else {
-        expect(response.status()).toBeLessThan(500);
+        const data = await response.json()
+        expect(data).toHaveProperty('csrfToken')
+        expect(typeof data.csrfToken).toBe('string')
+        expect(data.csrfToken.length).toBeGreaterThan(0)
       }
-    } catch {
-      // Timeout is acceptable in dev mode
-      expect(true).toBe(true);
-    }
-  });
+    })
 
-  test("should handle 404 for non-existent API routes", async ({ page }) => {
-    try {
-      const response = await page.request.get("/api/non-existent-route-xyz", { timeout: 30000 });
-      expect([404, 405]).toContain(response.status());
-    } catch {
-      // Timeout is acceptable in dev mode
-      expect(true).toBe(true);
-    }
-  });
-});
+    test('GET /api/auth/providers - should return auth providers', async ({ request }) => {
+      const response = await request.get('/api/auth/providers')
 
-test.describe("Page Load Performance", () => {
-  test("homepage should load within reasonable time", async ({ page }) => {
-    try {
-      const startTime = Date.now();
-      await page.goto("/", { waitUntil: "domcontentloaded", timeout: 45000 });
-      const loadTime = Date.now() - startTime;
+      expect(response.status()).toBeLessThan(500)
 
-      expect(loadTime).toBeLessThan(45000);
-    } catch {
-      // Timeout is acceptable in dev mode
-      expect(true).toBe(true);
-    }
-  });
+      if (response.ok()) {
+        const data = await response.json()
+        expect(typeof data).toBe('object')
+      }
+    })
 
-  test("saju page should load within reasonable time", async ({ page }) => {
-    try {
-      const startTime = Date.now();
-      await page.goto("/saju", { waitUntil: "domcontentloaded", timeout: 45000 });
-      const loadTime = Date.now() - startTime;
+    test('GET /api/auth/session - should return session info', async ({ request }) => {
+      const response = await request.get('/api/auth/session')
 
-      expect(loadTime).toBeLessThan(45000);
-    } catch {
-      // Timeout is acceptable in dev mode
-      expect(true).toBe(true);
-    }
-  });
-});
+      expect(response.status()).toBeLessThan(500)
 
-test.describe("Error Handling", () => {
-  test("should handle missing pages gracefully", async ({ page }) => {
-    try {
-      await page.goto("/this-page-does-not-exist-xyz", {
-        waitUntil: "domcontentloaded",
-        timeout: 45000,
-      });
-      await expect(page.locator("body")).toBeVisible();
-    } catch {
-      // Timeout is acceptable in dev mode
-      expect(true).toBe(true);
-    }
-  });
-});
+      if (response.ok()) {
+        const data = await response.json()
+        expect(data).toBeDefined()
+      }
+    })
+  })
+
+  test.describe('Error Handling', () => {
+    test('should return 404 for non-existent API routes', async ({ request }) => {
+      const response = await request.get('/api/non-existent-route-xyz-12345')
+
+      expect(response.status()).toBe(404)
+    })
+
+    test('should return 405 for invalid HTTP method', async ({ request }) => {
+      const response = await request.delete('/api/auth/csrf')
+
+      expect([404, 405]).toContain(response.status())
+    })
+  })
+})
+
+test.describe('Page Load Performance', () => {
+  const MAX_LOAD_TIME_MS = 10000 // 10 seconds max
+
+  test('homepage should load within reasonable time', async ({ page }) => {
+    const startTime = Date.now()
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    const loadTime = Date.now() - startTime
+
+    expect(loadTime).toBeLessThan(MAX_LOAD_TIME_MS)
+    await expect(page.locator('body')).toBeVisible()
+  })
+
+  test('saju page should load within reasonable time', async ({ page }) => {
+    const startTime = Date.now()
+    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+    const loadTime = Date.now() - startTime
+
+    expect(loadTime).toBeLessThan(MAX_LOAD_TIME_MS)
+    await expect(page.locator('body')).toBeVisible()
+  })
+
+  test('tarot page should load within reasonable time', async ({ page }) => {
+    const startTime = Date.now()
+    await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
+    const loadTime = Date.now() - startTime
+
+    expect(loadTime).toBeLessThan(MAX_LOAD_TIME_MS)
+    await expect(page.locator('body')).toBeVisible()
+  })
+})
+
+test.describe('Critical Page Availability', () => {
+  const criticalPages = ['/', '/saju', '/tarot', '/dream', '/compatibility', '/auth/signin']
+
+  for (const pagePath of criticalPages) {
+    test(`${pagePath} should be accessible`, async ({ page }) => {
+      const response = await page.goto(pagePath, { waitUntil: 'domcontentloaded' })
+
+      expect(response?.status()).toBeLessThan(500)
+      await expect(page.locator('body')).toBeVisible()
+    })
+  }
+})

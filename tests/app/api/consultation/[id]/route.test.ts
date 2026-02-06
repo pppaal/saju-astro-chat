@@ -131,34 +131,37 @@ vi.mock('@/lib/api/zodValidation', () => ({
       if (data === null || typeof data !== 'object') {
         return {
           success: false,
-          error: { issues: [{ message: 'Expected object' }] },
+          error: { issues: [{ message: 'Expected object', path: [] }] },
         }
       }
 
       if (!data.id || typeof data.id !== 'string') {
         return {
           success: false,
-          error: { issues: [{ message: 'Expected string for id' }] },
+          error: { issues: [{ message: 'Expected string for id', path: ['id'] }] },
         }
       }
 
       if (data.id.length < 1) {
         return {
           success: false,
-          error: { issues: [{ message: 'ID must be at least 1 character' }] },
+          error: { issues: [{ message: 'ID must be at least 1 character', path: ['id'] }] },
         }
       }
 
       if (data.id.length > 100) {
         return {
           success: false,
-          error: { issues: [{ message: 'ID must be at most 100 characters' }] },
+          error: { issues: [{ message: 'ID must be at most 100 characters', path: ['id'] }] },
         }
       }
 
       return { success: true, data: { id: data.id } }
     }),
   },
+  createValidationErrorResponse: vi.fn((_zodError: any, _options?: any) => {
+    return NextResponse.json({ error: 'invalid_params' }, { status: 400 })
+  }),
 }))
 
 // ---------- Imports (after mocks) ----------
@@ -624,10 +627,7 @@ describe('Consultation [id] API - GET', () => {
       expect(response.status).toBe(500)
       expect(data.error.code).toBe('DATABASE_ERROR')
       expect(data.error.message).toBe('Internal Server Error')
-      expect(logger.error).toHaveBeenCalledWith(
-        '[Consultation GET by ID error]',
-        expect.any(Error)
-      )
+      expect(logger.error).toHaveBeenCalledWith('[Consultation GET by ID error]', expect.any(Error))
     })
 
     it('should handle Prisma-specific errors appropriately', async () => {
@@ -866,10 +866,7 @@ describe('Consultation [id] API - DELETE', () => {
       expect(response.status).toBe(500)
       expect(data.error.code).toBe('DATABASE_ERROR')
       expect(data.error.message).toBe('Internal Server Error')
-      expect(logger.error).toHaveBeenCalledWith(
-        '[Consultation DELETE error]',
-        expect.any(Error)
-      )
+      expect(logger.error).toHaveBeenCalledWith('[Consultation DELETE error]', expect.any(Error))
     })
 
     it('should handle Prisma constraint violations appropriately', async () => {

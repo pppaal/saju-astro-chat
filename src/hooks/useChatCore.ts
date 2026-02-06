@@ -100,11 +100,7 @@ function generateSessionId(): string {
  * })
  */
 export function useChatCore(config: ChatCoreConfig = {}): ChatCoreState {
-  const {
-    initialContext = '',
-    autoScroll = true,
-    feedbackSource = 'chat',
-  } = config
+  const { initialContext = '', autoScroll = true, feedbackSource = 'chat' } = config
 
   // Session ID (stable across renders)
   const sessionIdRef = useRef<string>(generateSessionId())
@@ -132,10 +128,7 @@ export function useChatCore(config: ChatCoreConfig = {}): ChatCoreState {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Visible messages (filter out system messages)
-  const visibleMessages = useMemo(
-    () => messages.filter((m) => m.role !== 'system'),
-    [messages]
-  )
+  const visibleMessages = useMemo(() => messages.filter((m) => m.role !== 'system'), [messages])
 
   // Scroll to bottom utility
   const scrollToBottom = useCallback(() => {
@@ -153,10 +146,7 @@ export function useChatCore(config: ChatCoreConfig = {}): ChatCoreState {
   const closeCrisisModal = useCallback(() => setShowCrisisModal(false), [])
 
   // Generate message ID
-  const generateMessageId = useCallback(
-    (role: 'user' | 'assistant') => `${role}-${Date.now()}`,
-    []
-  )
+  const generateMessageId = useCallback((role: 'user' | 'assistant') => `${role}-${Date.now()}`, [])
 
   // Handle feedback submission
   const handleFeedback = useCallback(
@@ -292,7 +282,7 @@ export interface StreamingConfig {
   /** RAG session ID header */
   ragSessionId?: string
   /** Default follow-up questions */
-  defaultFollowUps: string[]
+  defaultFollowUps: readonly string[]
   /** Generate follow-up questions */
   generateFollowUps?: () => string[]
 }
@@ -496,7 +486,7 @@ export function useStreamingChat(
  * Generates shuffled follow-up questions
  * Previously duplicated in SajuChat, AstrologyChat
  */
-export function useFollowUpGenerator(questions: string[]): () => string[] {
+export function useFollowUpGenerator(questions: readonly string[]): () => string[] {
   return useCallback(() => {
     const shuffled = [...questions].sort(() => Math.random() - 0.5)
     return shuffled.slice(0, 3)

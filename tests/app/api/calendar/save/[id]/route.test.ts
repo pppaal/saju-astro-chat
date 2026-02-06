@@ -77,85 +77,114 @@ vi.mock('@/lib/api/zodValidation', () => ({
       }
     }),
   },
+  createValidationErrorResponse: vi.fn(() => {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Input validation failed. Please check your data.',
+          status: 422,
+        },
+      },
+      { status: 422 }
+    )
+  }),
 }))
 
 // Mock middleware with passthrough pattern
 vi.mock('@/lib/api/middleware', () => ({
-  withApiMiddleware: vi.fn((handler: (req: NextRequest, context: Record<string, unknown>) => Promise<unknown>, _options: unknown) => {
-    return async (req: NextRequest, ...args: unknown[]) => {
-      const { getServerSession } = await import('next-auth')
-      const { authOptions } = await import('@/lib/auth/authOptions')
+  withApiMiddleware: vi.fn(
+    (
+      handler: (req: NextRequest, context: Record<string, unknown>) => Promise<unknown>,
+      _options: unknown
+    ) => {
+      return async (req: NextRequest, ...args: unknown[]) => {
+        const { getServerSession } = await import('next-auth')
+        const { authOptions } = await import('@/lib/auth/authOptions')
 
-      let session: { user?: { id: string; name?: string; email?: string } } | null = null
-      try {
-        session = await (getServerSession as (opts: unknown) => Promise<{ user?: { id: string; name?: string; email?: string } } | null>)(authOptions)
-      } catch {
-        return NextResponse.json(
-          {
-            success: false,
-            error: { code: 'INTERNAL_ERROR', message: 'Internal Server Error', status: 500 },
-          },
-          { status: 500 }
-        )
-      }
-
-      if (!session?.user?.id) {
-        return NextResponse.json(
-          { success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized', status: 401 } },
-          { status: 401 }
-        )
-      }
-
-      const context = {
-        userId: session.user.id,
-        session,
-        ip: '127.0.0.1',
-        locale: 'ko',
-        isAuthenticated: true,
-        isPremium: false,
-      }
-
-      try {
-        const result = await handler(req, context, ...args) as { data?: unknown; error?: { code: string; message?: string }; status?: number } | Response
-        if (result instanceof Response) return result
-        if (result?.error) {
-          const statusMap: Record<string, number> = {
-            BAD_REQUEST: 400,
-            VALIDATION_ERROR: 422,
-            INTERNAL_ERROR: 500,
-            NOT_FOUND: 404,
-            DATABASE_ERROR: 500,
-          }
+        let session: { user?: { id: string; name?: string; email?: string } } | null = null
+        try {
+          session = await (
+            getServerSession as (
+              opts: unknown
+            ) => Promise<{ user?: { id: string; name?: string; email?: string } } | null>
+          )(authOptions)
+        } catch {
           return NextResponse.json(
-            { success: false, error: { code: result.error.code, message: result.error.message } },
-            { status: statusMap[result.error.code] || 500 }
+            {
+              success: false,
+              error: { code: 'INTERNAL_ERROR', message: 'Internal Server Error', status: 500 },
+            },
+            { status: 500 }
           )
         }
-        return NextResponse.json(
-          { success: true, data: result?.data },
-          { status: result?.status || 200 }
-        )
-      } catch (err: unknown) {
-        const error = err as Error
-        return NextResponse.json(
-          {
-            success: false,
-            error: { code: 'INTERNAL_ERROR', message: error.message || 'Internal Server Error' },
-          },
-          { status: 500 }
-        )
+
+        if (!session?.user?.id) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: { code: 'UNAUTHORIZED', message: 'Unauthorized', status: 401 },
+            },
+            { status: 401 }
+          )
+        }
+
+        const context = {
+          userId: session.user.id,
+          session,
+          ip: '127.0.0.1',
+          locale: 'ko',
+          isAuthenticated: true,
+          isPremium: false,
+        }
+
+        try {
+          const result = (await handler(req, context, ...args)) as
+            | { data?: unknown; error?: { code: string; message?: string }; status?: number }
+            | Response
+          if (result instanceof Response) return result
+          if (result?.error) {
+            const statusMap: Record<string, number> = {
+              BAD_REQUEST: 400,
+              VALIDATION_ERROR: 422,
+              INTERNAL_ERROR: 500,
+              NOT_FOUND: 404,
+              DATABASE_ERROR: 500,
+            }
+            return NextResponse.json(
+              { success: false, error: { code: result.error.code, message: result.error.message } },
+              { status: statusMap[result.error.code] || 500 }
+            )
+          }
+          return NextResponse.json(
+            { success: true, data: result?.data },
+            { status: result?.status || 200 }
+          )
+        } catch (err: unknown) {
+          const error = err as Error
+          return NextResponse.json(
+            {
+              success: false,
+              error: { code: 'INTERNAL_ERROR', message: error.message || 'Internal Server Error' },
+            },
+            { status: 500 }
+          )
+        }
       }
     }
-  }),
+  ),
   createAuthenticatedGuard: vi.fn((opts: Record<string, unknown>) => ({
     ...opts,
     requireAuth: true,
   })),
-  apiSuccess: vi.fn((data: unknown, options?: { status?: number; meta?: Record<string, unknown> }) => ({
-    data,
-    status: options?.status,
-    meta: options?.meta,
-  })),
+  apiSuccess: vi.fn(
+    (data: unknown, options?: { status?: number; meta?: Record<string, unknown> }) => ({
+      data,
+      status: options?.status,
+      meta: options?.meta,
+    })
+  ),
   apiError: vi.fn((code: string, message?: string, details?: unknown) => ({
     error: { code, message, details },
   })),
@@ -252,7 +281,7 @@ describe('/api/calendar/save/[id]', () => {
         const { GET } = await import('@/app/api/calendar/save/[id]/route')
         const response = await GET(req, routeContext)
 
-        expect(response.status).toBe(400)
+        expect(response.status).toBe(422)
       })
 
       it('should reject ID longer than 100 characters', async () => {
@@ -263,7 +292,7 @@ describe('/api/calendar/save/[id]', () => {
         const { GET } = await import('@/app/api/calendar/save/[id]/route')
         const response = await GET(req, routeContext)
 
-        expect(response.status).toBe(400)
+        expect(response.status).toBe(422)
       })
 
       it('should accept valid ID at exactly 100 characters', async () => {
@@ -317,7 +346,9 @@ describe('/api/calendar/save/[id]', () => {
       })
 
       it('should only query for calendar dates belonging to authenticated user', async () => {
-        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockSavedDate)
+        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockSavedDate
+        )
 
         const req = new Request(`http://localhost:3000/api/calendar/save/${mockSavedDateId}`)
         const routeContext = createRouteContext(mockSavedDateId)
@@ -336,7 +367,9 @@ describe('/api/calendar/save/[id]', () => {
 
     describe('Successful Retrieval', () => {
       it('should return full calendar date details', async () => {
-        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockSavedDate)
+        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockSavedDate
+        )
 
         const req = new Request(`http://localhost:3000/api/calendar/save/${mockSavedDateId}`)
         const routeContext = createRouteContext(mockSavedDateId)
@@ -355,7 +388,9 @@ describe('/api/calendar/save/[id]', () => {
       })
 
       it('should return all fields including optional ones', async () => {
-        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockSavedDate)
+        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockSavedDate
+        )
 
         const req = new Request(`http://localhost:3000/api/calendar/save/${mockSavedDateId}`)
         const routeContext = createRouteContext(mockSavedDateId)
@@ -364,7 +399,9 @@ describe('/api/calendar/save/[id]', () => {
         const response = await GET(req, routeContext)
         const result = await response.json()
 
-        expect(result.data.savedDate.description).toBe('Today is favorable for career-related activities')
+        expect(result.data.savedDate.description).toBe(
+          'Today is favorable for career-related activities'
+        )
         expect(result.data.savedDate.summary).toBe('Excellent energy for professional growth')
         expect(result.data.savedDate.categories).toEqual(['career', 'finance'])
         expect(result.data.savedDate.bestTimes).toEqual(['09:00-11:00', '14:00-16:00'])
@@ -400,7 +437,9 @@ describe('/api/calendar/save/[id]', () => {
           updatedAt: new Date('2024-06-01'),
         }
 
-        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(minimalSavedDate)
+        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          minimalSavedDate
+        )
 
         const req = new Request('http://localhost:3000/api/calendar/save/minimal-id')
         const routeContext = createRouteContext('minimal-id')
@@ -491,7 +530,7 @@ describe('/api/calendar/save/[id]', () => {
         const { DELETE } = await import('@/app/api/calendar/save/[id]/route')
         const response = await DELETE(req, routeContext)
 
-        expect(response.status).toBe(400)
+        expect(response.status).toBe(422)
       })
 
       it('should reject ID longer than 100 characters for delete', async () => {
@@ -504,7 +543,7 @@ describe('/api/calendar/save/[id]', () => {
         const { DELETE } = await import('@/app/api/calendar/save/[id]/route')
         const response = await DELETE(req, routeContext)
 
-        expect(response.status).toBe(400)
+        expect(response.status).toBe(422)
       })
     })
 
@@ -528,9 +567,12 @@ describe('/api/calendar/save/[id]', () => {
       it('should return 404 when trying to delete another users calendar date', async () => {
         ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
 
-        const req = new NextRequest('http://localhost:3000/api/calendar/save/other-user-saved-date', {
-          method: 'DELETE',
-        })
+        const req = new NextRequest(
+          'http://localhost:3000/api/calendar/save/other-user-saved-date',
+          {
+            method: 'DELETE',
+          }
+        )
         const routeContext = createRouteContext('other-user-saved-date')
 
         const { DELETE } = await import('@/app/api/calendar/save/[id]/route')
@@ -546,7 +588,9 @@ describe('/api/calendar/save/[id]', () => {
       })
 
       it('should verify ownership before deletion', async () => {
-        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockSavedDate)
+        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockSavedDate
+        )
         ;(prisma.savedCalendarDate.delete as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
         const req = new NextRequest(`http://localhost:3000/api/calendar/save/${mockSavedDateId}`, {
@@ -587,7 +631,9 @@ describe('/api/calendar/save/[id]', () => {
 
     describe('Successful Deletion', () => {
       it('should delete calendar date successfully', async () => {
-        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockSavedDate)
+        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockSavedDate
+        )
         ;(prisma.savedCalendarDate.delete as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
         const req = new NextRequest(`http://localhost:3000/api/calendar/save/${mockSavedDateId}`, {
@@ -604,7 +650,9 @@ describe('/api/calendar/save/[id]', () => {
       })
 
       it('should delete by ID after ownership verification', async () => {
-        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockSavedDate)
+        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockSavedDate
+        )
         ;(prisma.savedCalendarDate.delete as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
         const req = new NextRequest(`http://localhost:3000/api/calendar/save/${mockSavedDateId}`, {
@@ -639,7 +687,9 @@ describe('/api/calendar/save/[id]', () => {
       })
 
       it('should handle database errors during delete', async () => {
-        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockSavedDate)
+        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockSavedDate
+        )
         ;(prisma.savedCalendarDate.delete as ReturnType<typeof vi.fn>).mockRejectedValue(
           new Error('Delete operation failed')
         )
@@ -672,10 +722,14 @@ describe('/api/calendar/save/[id]', () => {
       })
 
       it('should handle Prisma record not found error during delete', async () => {
-        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockSavedDate)
+        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockSavedDate
+        )
         const prismaError = new Error('Record not found') as Error & { code?: string }
         prismaError.code = 'P2025'
-        ;(prisma.savedCalendarDate.delete as ReturnType<typeof vi.fn>).mockRejectedValue(prismaError)
+        ;(prisma.savedCalendarDate.delete as ReturnType<typeof vi.fn>).mockRejectedValue(
+          prismaError
+        )
 
         const req = new NextRequest(`http://localhost:3000/api/calendar/save/${mockSavedDateId}`, {
           method: 'DELETE',
@@ -692,7 +746,9 @@ describe('/api/calendar/save/[id]', () => {
     describe('Idempotency', () => {
       it('should return 404 on second delete of same resource', async () => {
         // First delete succeeds
-        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockSavedDate)
+        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+          mockSavedDate
+        )
         ;(prisma.savedCalendarDate.delete as ReturnType<typeof vi.fn>).mockResolvedValueOnce({})
 
         const req1 = new NextRequest(`http://localhost:3000/api/calendar/save/${mockSavedDateId}`, {
@@ -705,7 +761,9 @@ describe('/api/calendar/save/[id]', () => {
         expect(response1.status).toBe(200)
 
         // Second delete returns 404 since record no longer exists
-        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null)
+        ;(prisma.savedCalendarDate.findFirst as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+          null
+        )
 
         const req2 = new NextRequest(`http://localhost:3000/api/calendar/save/${mockSavedDateId}`, {
           method: 'DELETE',

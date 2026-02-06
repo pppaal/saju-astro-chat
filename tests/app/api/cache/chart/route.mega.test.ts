@@ -14,13 +14,96 @@ vi.mock('@/lib/cache/chart-cache-server', () => ({
 vi.mock('@/lib/api/middleware', () => ({
   withApiMiddleware: (handler: Function) => async (req: NextRequest) => {
     const result = await handler(req)
-    return NextResponse.json(result)
+    // Handler returns { success, data } or { error: {...} }
+    if (result.error) {
+      const statusMap: Record<string, number> = {
+        VALIDATION_ERROR: 422,
+        INTERNAL_ERROR: 500,
+      }
+      return NextResponse.json(
+        { success: false, error: result.error },
+        { status: statusMap[result.error.code] || 500 }
+      )
+    }
+    return NextResponse.json({ success: true, data: result.data })
   },
-  apiSuccess: (data: unknown) => ({ success: true, data }),
+  apiSuccess: (data: unknown) => ({ data }),
   apiError: (code: string, message: string) => ({ error: { code, message } }),
   ErrorCodes: {
     VALIDATION_ERROR: 'VALIDATION_ERROR',
     INTERNAL_ERROR: 'INTERNAL_ERROR',
+  },
+}))
+
+// Mock Zod validation schemas to allow simpler test data
+vi.mock('@/lib/api/zodValidation', () => ({
+  cacheChartGetQuerySchema: {
+    safeParse: vi.fn((data: any) => {
+      if (!data.birthDate || !data.birthTime) {
+        return {
+          success: false,
+          error: { issues: [{ message: 'Validation failed: Missing required fields' }] },
+        }
+      }
+      if (data.latitude === 'invalid' || data.longitude === 'invalid') {
+        return {
+          success: false,
+          error: { issues: [{ message: 'Validation failed: Invalid coordinate' }] },
+        }
+      }
+      return {
+        success: true,
+        data: {
+          birthDate: data.birthDate,
+          birthTime: data.birthTime,
+          latitude:
+            data.latitude !== null && data.latitude !== undefined
+              ? parseFloat(data.latitude) || 0
+              : 0,
+          longitude:
+            data.longitude !== null && data.longitude !== undefined
+              ? parseFloat(data.longitude) || 0
+              : 0,
+        },
+      }
+    }),
+  },
+  cacheChartSaveSchema: {
+    safeParse: vi.fn((data: any) => {
+      if (!data.birthDate) {
+        return { success: false, error: { issues: [{ message: 'birthDate is required' }] } }
+      }
+      if (!data.birthTime) {
+        return { success: false, error: { issues: [{ message: 'birthTime is required' }] } }
+      }
+      if (data.latitude === undefined) {
+        return { success: false, error: { issues: [{ message: 'latitude is required' }] } }
+      }
+      if (data.longitude === undefined) {
+        return { success: false, error: { issues: [{ message: 'longitude is required' }] } }
+      }
+      if (typeof data.latitude === 'string' || typeof data.longitude === 'string') {
+        return {
+          success: false,
+          error: { issues: [{ message: 'latitude/longitude must be number' }] },
+        }
+      }
+      if (data.data === undefined) {
+        return { success: false, error: { issues: [{ message: 'data is required' }] } }
+      }
+      return { success: true, data }
+    }),
+  },
+  cacheChartDeleteSchema: {
+    safeParse: vi.fn((data: any) => {
+      if (!data.birthDate) {
+        return { success: false, error: { issues: [{ message: 'birthDate is required' }] } }
+      }
+      if (!data.birthTime) {
+        return { success: false, error: { issues: [{ message: 'birthTime is required' }] } }
+      }
+      return { success: true, data }
+    }),
   },
 }))
 

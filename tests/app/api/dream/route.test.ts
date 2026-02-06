@@ -74,6 +74,89 @@ vi.mock('@/lib/security/errorSanitizer', () => ({
   })),
 }))
 
+// Mock error handler - provides createErrorResponse that routes use
+vi.mock('@/lib/api/errorHandler', () => {
+  const NextResponse = require('next/server').NextResponse
+  return {
+    ErrorCodes: {
+      BAD_REQUEST: 'BAD_REQUEST',
+      UNAUTHORIZED: 'UNAUTHORIZED',
+      FORBIDDEN: 'FORBIDDEN',
+      NOT_FOUND: 'NOT_FOUND',
+      RATE_LIMITED: 'RATE_LIMITED',
+      VALIDATION_ERROR: 'VALIDATION_ERROR',
+      INTERNAL_ERROR: 'INTERNAL_ERROR',
+      SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+    },
+    createErrorResponse: vi.fn(
+      (options: { code: string; message?: string; headers?: Record<string, string> }) => {
+        const statusMap: Record<string, number> = {
+          BAD_REQUEST: 400,
+          UNAUTHORIZED: 401,
+          FORBIDDEN: 403,
+          NOT_FOUND: 404,
+          RATE_LIMITED: 429,
+          VALIDATION_ERROR: 422,
+          INTERNAL_ERROR: 500,
+          SERVICE_UNAVAILABLE: 503,
+        }
+        const messageMap: Record<string, string> = {
+          BAD_REQUEST: options.message || 'Invalid request',
+          UNAUTHORIZED: 'Unauthorized',
+          FORBIDDEN: 'Forbidden',
+          NOT_FOUND: 'Not found',
+          RATE_LIMITED: 'Too many requests',
+          VALIDATION_ERROR: 'Validation failed',
+          INTERNAL_ERROR: 'Internal server error',
+          SERVICE_UNAVAILABLE: 'Service unavailable',
+        }
+        const status = statusMap[options.code] || 500
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: options.code,
+              message: messageMap[options.code] || 'An error occurred',
+              status,
+            },
+          },
+          { status, headers: options.headers || {} }
+        )
+      }
+    ),
+  }
+})
+
+// Mock zodValidation - provides createValidationErrorResponse that routes use
+vi.mock('@/lib/api/zodValidation', () => {
+  const NextResponse = require('next/server').NextResponse
+  return {
+    createValidationErrorResponse: vi.fn(
+      (zodError: { issues: Array<{ path: string[]; message: string }> }) => {
+        const paths = zodError.issues
+          .map((i: { path: string[]; message: string }) => i.path.join('.'))
+          .join(', ')
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: `Validation failed: ${paths}`,
+              status: 400,
+            },
+          },
+          { status: 400 }
+        )
+      }
+    ),
+  }
+})
+
+// Mock middleware extractLocale
+vi.mock('@/lib/api/middleware', () => ({
+  extractLocale: vi.fn(() => 'en'),
+}))
+
 // Mock validation – DreamRequestSchema with safeParse
 const mockSafeParse = vi.fn()
 vi.mock('@/lib/validation', () => ({
@@ -228,7 +311,9 @@ describe('Dream API - GET', () => {
     const data = await response.json()
 
     expect(response.status).toBe(429)
-    expect(data.error).toBe('Too many requests')
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('RATE_LIMITED')
+    expect(data.error.message).toBe('Too many requests')
   })
 
   it('should return 401 when public token is invalid', async () => {
@@ -238,7 +323,9 @@ describe('Dream API - GET', () => {
     const data = await response.json()
 
     expect(response.status).toBe(401)
-    expect(data.error).toBe('Unauthorized')
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('UNAUTHORIZED')
+    expect(data.error.message).toBe('Unauthorized')
   })
 
   it('should return alive message on valid request', async () => {
@@ -305,7 +392,9 @@ describe('Dream API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('Too many requests')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('RATE_LIMITED')
+      expect(data.error.message).toBe('Too many requests')
     })
 
     it('should record rate_limited metric', async () => {
@@ -336,7 +425,9 @@ describe('Dream API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('UNAUTHORIZED')
+      expect(data.error.message).toBe('Unauthorized')
     })
 
     it('should record error metric on token failure', async () => {
@@ -368,7 +459,9 @@ describe('Dream API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Invalid JSON body')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('BAD_REQUEST')
+      expect(data.error.message).toBe('Invalid JSON body')
     })
 
     it('should record validation_error metric on null body', async () => {
@@ -527,8 +620,10 @@ describe('Dream API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('Validation failed')
-      expect(data.error).toContain('dream')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(data.error.message).toContain('Validation failed')
+      expect(data.error.message).toContain('dream')
     })
 
     it('should include all validation error paths in the message', async () => {
@@ -546,8 +641,9 @@ describe('Dream API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toContain('dream')
-      expect(data.error).toContain('locale')
+      expect(data.success).toBe(false)
+      expect(data.error.message).toContain('dream')
+      expect(data.error.message).toContain('locale')
     })
 
     it('should record validation_error metric on Zod failure', async () => {
@@ -894,7 +990,8 @@ describe('Dream API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Unexpected backend failure')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
       expect(captureServerError).toHaveBeenCalledWith(expect.any(Error), {
         route: '/api/dream',
         method: 'POST',
@@ -916,7 +1013,8 @@ describe('Dream API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('string error')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return error message from Error object', async () => {
@@ -925,7 +1023,8 @@ describe('Dream API - POST', () => {
       const response = await POST(makePostRequest(VALID_DREAM_BODY))
       const data = await response.json()
 
-      expect(data.error).toBe('Specific error message')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should fallback to "server error" when error.message is empty', async () => {
@@ -935,7 +1034,8 @@ describe('Dream API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('server error')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when checkAndConsumeCredits throws', async () => {

@@ -20,6 +20,7 @@ import { POST } from '@/app/api/destiny-map/chat-stream/route'
 vi.mock('@/lib/api/middleware', () => ({
   initializeApiContext: vi.fn(),
   createAuthenticatedGuard: vi.fn(),
+  extractLocale: vi.fn(() => 'ko'),
 }))
 
 vi.mock('@/lib/streaming', () => ({
@@ -51,20 +52,77 @@ vi.mock('@/lib/http', () => ({
   enforceBodySize: vi.fn(() => null),
 }))
 
-vi.mock('@/lib/api/errorHandler', () => ({
-  jsonErrorResponse: vi.fn((msg) => ({
-    json: () => Promise.resolve({ error: msg }),
-    status: 400,
-  })),
-  createErrorResponse: vi.fn(),
-  createSuccessResponse: vi.fn(),
-  ErrorCodes: {
-    BAD_REQUEST: 'BAD_REQUEST',
-    UNAUTHORIZED: 'UNAUTHORIZED',
-    RATE_LIMITED: 'RATE_LIMITED',
-    INTERNAL_ERROR: 'INTERNAL_ERROR',
-  },
-}))
+vi.mock('@/lib/api/errorHandler', () => {
+  const { NextResponse } = require('next/server')
+  const STATUS_CODES: Record<string, number> = {
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    RATE_LIMITED: 429,
+    VALIDATION_ERROR: 422,
+    PAYLOAD_TOO_LARGE: 413,
+    PAYMENT_REQUIRED: 402,
+    INTERNAL_ERROR: 500,
+    SERVICE_UNAVAILABLE: 503,
+    BACKEND_ERROR: 502,
+    TIMEOUT: 504,
+    DATABASE_ERROR: 500,
+    EXTERNAL_API_ERROR: 502,
+    INVALID_TOKEN: 401,
+    TOKEN_EXPIRED: 401,
+    INSUFFICIENT_CREDITS: 402,
+    INVALID_DATE: 400,
+    INVALID_TIME: 400,
+    INVALID_COORDINATES: 400,
+    INVALID_FORMAT: 400,
+    MISSING_FIELD: 400,
+  }
+  return {
+    jsonErrorResponse: vi.fn((msg: string, status: number = 400) =>
+      NextResponse.json({ error: msg }, { status })
+    ),
+    createErrorResponse: vi.fn((options: { code: string; message?: string }) => {
+      const status = STATUS_CODES[options.code] || 500
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: options.code,
+            message: options.message || options.code,
+            status,
+          },
+        },
+        { status }
+      )
+    }),
+    createSuccessResponse: vi.fn((data: unknown) => NextResponse.json({ success: true, data })),
+    ErrorCodes: {
+      BAD_REQUEST: 'BAD_REQUEST',
+      UNAUTHORIZED: 'UNAUTHORIZED',
+      FORBIDDEN: 'FORBIDDEN',
+      NOT_FOUND: 'NOT_FOUND',
+      RATE_LIMITED: 'RATE_LIMITED',
+      VALIDATION_ERROR: 'VALIDATION_ERROR',
+      PAYLOAD_TOO_LARGE: 'PAYLOAD_TOO_LARGE',
+      PAYMENT_REQUIRED: 'PAYMENT_REQUIRED',
+      INTERNAL_ERROR: 'INTERNAL_ERROR',
+      SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+      BACKEND_ERROR: 'BACKEND_ERROR',
+      TIMEOUT: 'TIMEOUT',
+      DATABASE_ERROR: 'DATABASE_ERROR',
+      EXTERNAL_API_ERROR: 'EXTERNAL_API_ERROR',
+      INVALID_TOKEN: 'INVALID_TOKEN',
+      TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+      INSUFFICIENT_CREDITS: 'INSUFFICIENT_CREDITS',
+      INVALID_DATE: 'INVALID_DATE',
+      INVALID_TIME: 'INVALID_TIME',
+      INVALID_COORDINATES: 'INVALID_COORDINATES',
+      INVALID_FORMAT: 'INVALID_FORMAT',
+      MISSING_FIELD: 'MISSING_FIELD',
+    },
+  }
+})
 
 vi.mock('@/lib/constants/http', () => ({
   HTTP_STATUS: {
@@ -77,6 +135,30 @@ vi.mock('@/lib/constants/http', () => ({
     SERVER_ERROR: 500,
   },
 }))
+
+vi.mock('@/lib/api/zodValidation', () => {
+  const { NextResponse } = require('next/server')
+  return {
+    createValidationErrorResponse: vi.fn(
+      (zodError: { issues: Array<{ path: (string | number)[]; message: string }> }) => {
+        const details = zodError.issues.map(
+          (issue: { path: (string | number)[]; message: string }) => ({
+            path: issue.path.join('.') || 'root',
+            message: issue.message,
+          })
+        )
+        return NextResponse.json(
+          {
+            success: false,
+            error: { code: 'VALIDATION_ERROR', message: 'validation_failed', status: 400 },
+            details,
+          },
+          { status: 400 }
+        )
+      }
+    ),
+  }
+})
 
 vi.mock('@/lib/validation', () => ({
   isValidDate: vi.fn((date: string) => /^\d{4}-\d{2}-\d{2}$/.test(date)),
@@ -369,20 +451,24 @@ describe('/api/destiny-map/chat-stream POST - Input Validation', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.error).toBe('invalid_body')
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('BAD_REQUEST')
   })
 
   it('should reject requests with missing birthDate', async () => {
-    // When birthDate is empty, the route calls jsonErrorResponse('Invalid or missing birthDate')
+    // When birthDate is empty, the route calls createErrorResponse with INVALID_DATE code
     // after Zod validation passes (birthDate is optional in Zod schema)
     const req = createNextRequest({
       ...createBasicRequest(),
       birthDate: undefined,
     })
 
-    await POST(req)
+    const response = await POST(req)
+    const data = await response.json()
 
-    expect(jsonErrorResponse).toHaveBeenCalledWith('Invalid or missing birthDate')
+    expect(response.status).toBe(400)
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('INVALID_DATE')
   })
 
   it('should reject requests with invalid birthDate format', async () => {
@@ -391,10 +477,13 @@ describe('/api/destiny-map/chat-stream POST - Input Validation', () => {
       birthDate: 'invalid-date',
     })
 
-    await POST(req)
+    const response = await POST(req)
+    const data = await response.json()
 
     // isValidDate returns false for 'invalid-date', so route returns this error
-    expect(jsonErrorResponse).toHaveBeenCalledWith('Invalid or missing birthDate')
+    expect(response.status).toBe(400)
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('INVALID_DATE')
   })
 
   it('should reject requests with invalid birthTime format', async () => {
@@ -403,10 +492,13 @@ describe('/api/destiny-map/chat-stream POST - Input Validation', () => {
       birthTime: 'invalid',
     })
 
-    await POST(req)
+    const response = await POST(req)
+    const data = await response.json()
 
     // isValidTime returns false for 'invalid', so route returns this error
-    expect(jsonErrorResponse).toHaveBeenCalledWith('Invalid or missing birthTime')
+    expect(response.status).toBe(400)
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('INVALID_TIME')
   })
 
   it('should reject requests with invalid latitude', async () => {
@@ -656,9 +748,12 @@ describe('/api/destiny-map/chat-stream POST - Saju/Astro Computation', () => {
     })
 
     const response = await POST(req)
+    const data = await response.json()
 
     // Error is caught by outer try/catch, returns 500
     expect(response.status).toBe(500)
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('INTERNAL_ERROR')
   })
 })
 
@@ -795,9 +890,12 @@ describe('/api/destiny-map/chat-stream POST - Context Building', () => {
 
     const req = createNextRequest(createBasicRequest())
     const response = await POST(req)
+    const data = await response.json()
 
     // Error caught by outer try/catch
     expect(response.status).toBe(500)
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('INTERNAL_ERROR')
   })
 
   it('should skip advanced analysis if no saju data from calculateChartData', async () => {
@@ -1159,8 +1257,9 @@ describe('/api/destiny-map/chat-stream POST - Error Handling', () => {
 
     expect(response.status).toBe(500)
     const data = await response.json()
-    // The route always returns 'Internal Server Error' in the catch block
-    expect(data.error).toBe('Internal Server Error')
+    // The route uses createErrorResponse with INTERNAL_ERROR code
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('INTERNAL_ERROR')
   })
 
   it('should handle non-Error exceptions', async () => {
@@ -1171,7 +1270,8 @@ describe('/api/destiny-map/chat-stream POST - Error Handling', () => {
 
     expect(response.status).toBe(500)
     const data = await response.json()
-    expect(data.error).toBe('Internal Server Error')
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('INTERNAL_ERROR')
   })
 })
 

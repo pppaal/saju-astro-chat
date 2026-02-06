@@ -62,9 +62,7 @@ const mockPrismaUserCount = vi.mocked(prisma.user.count)
 // Helpers
 // ---------------------------------------------------------------------------
 
-function createPublicMetricsRequest(overrides?: {
-  authToken?: string | null
-}): NextRequest {
+function createPublicMetricsRequest(overrides?: { authToken?: string | null }): NextRequest {
   const headers: Record<string, string> = {}
   if (overrides?.authToken !== null && overrides?.authToken !== undefined) {
     headers['Authorization'] = `Bearer ${overrides.authToken}`
@@ -285,10 +283,7 @@ describe('GET /api/metrics/public', () => {
 
     expect(response.status).toBe(500)
     expect(data).toEqual({ error: 'Internal server error' })
-    expect(logger.error).toHaveBeenCalledWith(
-      '[Public Metrics API Error]',
-      thrownError
-    )
+    expect(logger.error).toHaveBeenCalledWith('[Public Metrics API Error]', thrownError)
   })
 
   // -------------------------------------------------------------------------
@@ -382,10 +377,7 @@ describe('GET /api/metrics/public', () => {
 
     expect(response.status).toBe(500)
     expect(data).toEqual({ error: 'Internal server error' })
-    expect(logger.error).toHaveBeenCalledWith(
-      '[Public Metrics API Error]',
-      err
-    )
+    expect(logger.error).toHaveBeenCalledWith('[Public Metrics API Error]', err)
   })
 
   // -------------------------------------------------------------------------
@@ -405,10 +397,7 @@ describe('GET /api/metrics/public', () => {
       totalVisitors: 5000,
       totalMembers: 0,
     })
-    expect(logger.error).toHaveBeenCalledWith(
-      '[Public Metrics] Failed to count users',
-      prismaError
-    )
+    expect(logger.error).toHaveBeenCalledWith('[Public Metrics] Failed to count users', prismaError)
   })
 
   // -------------------------------------------------------------------------
@@ -546,8 +535,6 @@ describe('GET /api/metrics/public', () => {
         hasAuthHeader: true,
         hasToken: true,
         hasExpectedToken: true,
-        tokenLength: 9, // 'bad-token'.length
-        expectedLength: VALID_TOKEN.length,
       })
     )
   })

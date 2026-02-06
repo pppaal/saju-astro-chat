@@ -67,11 +67,17 @@ vi.mock('@/lib/api/middleware', () => ({
   apiError: vi.fn((code: string, message?: string, details?: any) => ({
     error: { code, message, details },
   })),
+  extractLocale: vi.fn((req: any) => {
+    const acceptLang = req?.headers?.get?.('accept-language') || ''
+    if (acceptLang.includes('ko')) return 'ko'
+    return 'en'
+  }),
   ErrorCodes: {
     BAD_REQUEST: 'BAD_REQUEST',
     VALIDATION_ERROR: 'VALIDATION_ERROR',
     INTERNAL_ERROR: 'INTERNAL_ERROR',
     UNAUTHORIZED: 'UNAUTHORIZED',
+    BACKEND_ERROR: 'BACKEND_ERROR',
   },
 }))
 
@@ -925,9 +931,11 @@ describe('Numerology API - POST', () => {
       const response = await POST(request)
       const data = await response.json()
 
-      expect(response.status).toBe(503)
+      // Backend error results in 502 (BACKEND_ERROR status code)
+      expect(response.status).toBe(502)
+      expect(data.success).toBe(false)
       expect(data.error).toBeDefined()
-      expect(data.status).toBe(503)
+      expect(data.error.code).toBe('BACKEND_ERROR')
     })
 
     it('should return Korean error message when locale is ko for compatibility backend failure', async () => {
@@ -951,9 +959,11 @@ describe('Numerology API - POST', () => {
       const response = await POST(request)
       const data = await response.json()
 
-      expect(response.status).toBe(500)
-      // Korean error message
-      expect(data.error).toContain('서버 오류')
+      // Backend error returns 502 status code
+      expect(response.status).toBe(502)
+      expect(data.success).toBe(false)
+      // Error message is in the error.message field and should contain Korean text
+      expect(data.error.message).toContain('서버 오류')
     })
 
     it('should return English error message when locale is en for compatibility backend failure', async () => {
@@ -977,8 +987,10 @@ describe('Numerology API - POST', () => {
       const response = await POST(request)
       const data = await response.json()
 
-      expect(response.status).toBe(500)
-      expect(data.error).toBe('Backend service error')
+      // Backend error returns 502 status code
+      expect(response.status).toBe(502)
+      expect(data.success).toBe(false)
+      expect(data.error.message).toBe('Backend service error')
     })
   })
 
@@ -1483,11 +1495,14 @@ describe('Numerology API - GET', () => {
       const response = await GET(request)
       const data = await response.json()
 
-      expect(response.status).toBe(503)
-      expect(data.error).toBe('Backend service error')
+      // Backend error returns 502 status code (BACKEND_ERROR)
+      expect(response.status).toBe(502)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('BACKEND_ERROR')
+      expect(data.error.message).toBe('Backend service error')
     })
 
-    it('should return 500 when backend returns 500', async () => {
+    it('should return 502 when backend returns 500', async () => {
       vi.mocked(apiClient.post).mockResolvedValue({
         ok: false,
         status: 500,
@@ -1501,8 +1516,11 @@ describe('Numerology API - GET', () => {
       const response = await GET(request)
       const data = await response.json()
 
-      expect(response.status).toBe(500)
-      expect(data.error).toBe('Backend service error')
+      // Backend error returns 502 status code (BACKEND_ERROR)
+      expect(response.status).toBe(502)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('BACKEND_ERROR')
+      expect(data.error.message).toBe('Backend service error')
     })
   })
 
