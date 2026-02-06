@@ -10,7 +10,7 @@
  * 환경변수 필요: TEST_DATABASE_URL 또는 DATABASE_URL
  */
 
-import { beforeAll, afterAll, afterEach, describe, it, expect } from "vitest";
+import { beforeAll, afterAll, afterEach, describe, it, expect } from 'vitest'
 import {
   testPrisma,
   createTestUserInDb,
@@ -18,98 +18,88 @@ import {
   checkTestDbConnection,
   connectTestDb,
   disconnectTestDb,
-} from "./setup";
+} from './setup'
 
-const hasTestDb = await checkTestDbConnection();
+const hasTestDb = await checkTestDbConnection()
 
-describe("Integration: App Version", () => {
+describe('Integration: App Version', () => {
   if (!hasTestDb) {
-    it("skips when test database is unavailable", () => {
-      expect(true).toBe(true);
-    });
-    return;
+    it.skip('skips when test database is unavailable', () => {})
+    return
   }
 
   beforeAll(async () => {
-    await connectTestDb();
-  });
+    await connectTestDb()
+  })
 
   afterAll(async () => {
-    await cleanupAllTestUsers();
-    await disconnectTestDb();
-  });
+    await cleanupAllTestUsers()
+    await disconnectTestDb()
+  })
 
   afterEach(async () => {
-    await cleanupAllTestUsers();
-  });
+    await cleanupAllTestUsers()
+  })
 
-  describe("Version Management", () => {
-    it("creates app version", async () => {
+  describe('Version Management', () => {
+    it('creates app version', async () => {
       const version = await testPrisma.appVersion.create({
         data: {
-          version: "2.5.0",
-          platform: "ios",
-          minOsVersion: "14.0",
+          version: '2.5.0',
+          platform: 'ios',
+          minOsVersion: '14.0',
           releaseDate: new Date(),
           isActive: true,
           isMandatory: false,
         },
-      });
+      })
 
-      expect(version.version).toBe("2.5.0");
-      expect(version.platform).toBe("ios");
-    });
+      expect(version.version).toBe('2.5.0')
+      expect(version.platform).toBe('ios')
+    })
 
-    it("creates mandatory update version", async () => {
+    it('creates mandatory update version', async () => {
       const version = await testPrisma.appVersion.create({
         data: {
-          version: "3.0.0",
-          platform: "android",
-          minOsVersion: "10.0",
+          version: '3.0.0',
+          platform: 'android',
+          minOsVersion: '10.0',
           releaseDate: new Date(),
           isActive: true,
           isMandatory: true,
-          mandatoryMessage: "중요 보안 업데이트가 포함되어 있습니다.",
+          mandatoryMessage: '중요 보안 업데이트가 포함되어 있습니다.',
         },
-      });
+      })
 
-      expect(version.isMandatory).toBe(true);
-    });
+      expect(version.isMandatory).toBe(true)
+    })
 
-    it("creates version with release notes", async () => {
+    it('creates version with release notes', async () => {
       const version = await testPrisma.appVersion.create({
         data: {
-          version: "2.6.0",
-          platform: "ios",
-          minOsVersion: "14.0",
+          version: '2.6.0',
+          platform: 'ios',
+          minOsVersion: '14.0',
           releaseDate: new Date(),
           isActive: true,
           isMandatory: false,
           releaseNotes: {
-            ko: [
-              "새로운 타로 카드 디자인",
-              "성능 개선",
-              "버그 수정",
-            ],
-            en: [
-              "New tarot card design",
-              "Performance improvements",
-              "Bug fixes",
-            ],
+            ko: ['새로운 타로 카드 디자인', '성능 개선', '버그 수정'],
+            en: ['New tarot card design', 'Performance improvements', 'Bug fixes'],
           },
         },
-      });
+      })
 
-      const notes = version.releaseNotes as { ko: string[] };
-      expect(notes.ko).toHaveLength(3);
-    });
+      const notes = version.releaseNotes as { ko: string[] }
+      expect(notes.ko).toHaveLength(3)
+    })
 
-    it("creates version with feature flags", async () => {
+    it('creates version with feature flags', async () => {
       const version = await testPrisma.appVersion.create({
         data: {
-          version: "2.7.0",
-          platform: "ios",
-          minOsVersion: "15.0",
+          version: '2.7.0',
+          platform: 'ios',
+          minOsVersion: '15.0',
           releaseDate: new Date(),
           isActive: true,
           isMandatory: false,
@@ -119,315 +109,315 @@ describe("Integration: App Version", () => {
             betaChat: false,
           },
         },
-      });
+      })
 
-      const features = version.features as { darkMode: boolean };
-      expect(features.darkMode).toBe(true);
-    });
+      const features = version.features as { darkMode: boolean }
+      expect(features.darkMode).toBe(true)
+    })
 
-    it("creates deprecated version", async () => {
+    it('creates deprecated version', async () => {
       const version = await testPrisma.appVersion.create({
         data: {
-          version: "1.0.0",
-          platform: "ios",
-          minOsVersion: "12.0",
+          version: '1.0.0',
+          platform: 'ios',
+          minOsVersion: '12.0',
           releaseDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
           isActive: false,
           isDeprecated: true,
           deprecatedAt: new Date(),
-          deprecationMessage: "이 버전은 더 이상 지원되지 않습니다.",
+          deprecationMessage: '이 버전은 더 이상 지원되지 않습니다.',
         },
-      });
+      })
 
-      expect(version.isDeprecated).toBe(true);
-    });
-  });
+      expect(version.isDeprecated).toBe(true)
+    })
+  })
 
-  describe("Version Retrieval", () => {
-    it("retrieves latest version by platform", async () => {
-      const versions = ["2.4.0", "2.5.0", "2.6.0"];
+  describe('Version Retrieval', () => {
+    it('retrieves latest version by platform', async () => {
+      const versions = ['2.4.0', '2.5.0', '2.6.0']
 
       for (let i = 0; i < versions.length; i++) {
         await testPrisma.appVersion.create({
           data: {
             version: versions[i],
-            platform: "ios",
-            minOsVersion: "14.0",
+            platform: 'ios',
+            minOsVersion: '14.0',
             releaseDate: new Date(Date.now() - (versions.length - i) * 24 * 60 * 60 * 1000),
             isActive: true,
             isMandatory: false,
           },
-        });
+        })
       }
 
       const latest = await testPrisma.appVersion.findFirst({
-        where: { platform: "ios", isActive: true },
-        orderBy: { releaseDate: "desc" },
-      });
+        where: { platform: 'ios', isActive: true },
+        orderBy: { releaseDate: 'desc' },
+      })
 
-      expect(latest?.version).toBe("2.6.0");
-    });
+      expect(latest?.version).toBe('2.6.0')
+    })
 
-    it("retrieves active versions", async () => {
-      const statuses = [true, false, true, false, true];
+    it('retrieves active versions', async () => {
+      const statuses = [true, false, true, false, true]
 
       for (let i = 0; i < statuses.length; i++) {
         await testPrisma.appVersion.create({
           data: {
             version: `1.${i}.0`,
-            platform: "android",
-            minOsVersion: "10.0",
+            platform: 'android',
+            minOsVersion: '10.0',
             releaseDate: new Date(),
             isActive: statuses[i],
             isMandatory: false,
           },
-        });
+        })
       }
 
       const active = await testPrisma.appVersion.findMany({
-        where: { platform: "android", isActive: true },
-      });
+        where: { platform: 'android', isActive: true },
+      })
 
-      expect(active).toHaveLength(3);
-    });
+      expect(active).toHaveLength(3)
+    })
 
-    it("retrieves mandatory versions", async () => {
-      const mandatory = [false, true, false, true, false];
+    it('retrieves mandatory versions', async () => {
+      const mandatory = [false, true, false, true, false]
 
       for (let i = 0; i < mandatory.length; i++) {
         await testPrisma.appVersion.create({
           data: {
             version: `2.${i}.0`,
-            platform: "ios",
-            minOsVersion: "14.0",
+            platform: 'ios',
+            minOsVersion: '14.0',
             releaseDate: new Date(),
             isActive: true,
             isMandatory: mandatory[i],
           },
-        });
+        })
       }
 
       const mandatoryVersions = await testPrisma.appVersion.findMany({
-        where: { platform: "ios", isMandatory: true },
-      });
+        where: { platform: 'ios', isMandatory: true },
+      })
 
-      expect(mandatoryVersions).toHaveLength(2);
-    });
+      expect(mandatoryVersions).toHaveLength(2)
+    })
 
-    it("retrieves versions by release date range", async () => {
-      const now = new Date();
+    it('retrieves versions by release date range', async () => {
+      const now = new Date()
 
       for (let i = 0; i < 10; i++) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i * 7);
+        const date = new Date(now)
+        date.setDate(date.getDate() - i * 7)
 
         await testPrisma.appVersion.create({
           data: {
             version: `3.${i}.0`,
-            platform: "ios",
-            minOsVersion: "14.0",
+            platform: 'ios',
+            minOsVersion: '14.0',
             releaseDate: date,
             isActive: true,
             isMandatory: false,
           },
-        });
+        })
       }
 
-      const thirtyDaysAgo = new Date(now);
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const thirtyDaysAgo = new Date(now)
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
       const recent = await testPrisma.appVersion.findMany({
         where: {
-          platform: "ios",
+          platform: 'ios',
           releaseDate: { gte: thirtyDaysAgo },
         },
-      });
+      })
 
-      expect(recent).toHaveLength(5);
-    });
-  });
+      expect(recent).toHaveLength(5)
+    })
+  })
 
-  describe("Version Comparison", () => {
-    it("checks if update is available", async () => {
+  describe('Version Comparison', () => {
+    it('checks if update is available', async () => {
       await testPrisma.appVersion.create({
         data: {
-          version: "2.5.0",
-          platform: "ios",
-          minOsVersion: "14.0",
+          version: '2.5.0',
+          platform: 'ios',
+          minOsVersion: '14.0',
           releaseDate: new Date(),
           isActive: true,
           isMandatory: false,
         },
-      });
+      })
 
-      const currentVersion = "2.4.0";
+      const currentVersion = '2.4.0'
       const latest = await testPrisma.appVersion.findFirst({
-        where: { platform: "ios", isActive: true },
-        orderBy: { releaseDate: "desc" },
-      });
+        where: { platform: 'ios', isActive: true },
+        orderBy: { releaseDate: 'desc' },
+      })
 
-      const isUpdateAvailable = latest?.version !== currentVersion;
-      expect(isUpdateAvailable).toBe(true);
-    });
+      const isUpdateAvailable = latest?.version !== currentVersion
+      expect(isUpdateAvailable).toBe(true)
+    })
 
-    it("checks if mandatory update is needed", async () => {
+    it('checks if mandatory update is needed', async () => {
       await testPrisma.appVersion.create({
         data: {
-          version: "3.0.0",
-          platform: "ios",
-          minOsVersion: "14.0",
+          version: '3.0.0',
+          platform: 'ios',
+          minOsVersion: '14.0',
           releaseDate: new Date(),
           isActive: true,
           isMandatory: true,
-          minRequiredVersion: "2.5.0",
+          minRequiredVersion: '2.5.0',
         },
-      });
+      })
 
-      const currentVersion = "2.4.0";
+      const currentVersion = '2.4.0'
       const latest = await testPrisma.appVersion.findFirst({
-        where: { platform: "ios", isActive: true, isMandatory: true },
-        orderBy: { releaseDate: "desc" },
-      });
+        where: { platform: 'ios', isActive: true, isMandatory: true },
+        orderBy: { releaseDate: 'desc' },
+      })
 
       // Simple version comparison (in real app, use semver)
-      const needsMandatoryUpdate = latest && latest.minRequiredVersion &&
-        currentVersion < latest.minRequiredVersion;
+      const needsMandatoryUpdate =
+        latest && latest.minRequiredVersion && currentVersion < latest.minRequiredVersion
 
-      expect(needsMandatoryUpdate).toBe(true);
-    });
-  });
+      expect(needsMandatoryUpdate).toBe(true)
+    })
+  })
 
-  describe("Version Statistics", () => {
-    it("counts users by version", async () => {
-      const versions = ["2.4.0", "2.5.0", "2.4.0", "2.6.0", "2.4.0"];
+  describe('Version Statistics', () => {
+    it('counts users by version', async () => {
+      const versions = ['2.4.0', '2.5.0', '2.4.0', '2.6.0', '2.4.0']
 
       for (let i = 0; i < versions.length; i++) {
-        const user = await createTestUserInDb();
+        const user = await createTestUserInDb()
         await testPrisma.userAppVersion.create({
           data: {
             userId: user.id,
             version: versions[i],
-            platform: "ios",
+            platform: 'ios',
             lastUsedAt: new Date(),
           },
-        });
+        })
       }
 
       const counts = await testPrisma.userAppVersion.groupBy({
-        by: ["version"],
+        by: ['version'],
         _count: { id: true },
-      });
+      })
 
-      const v240Count = counts.find((c) => c.version === "2.4.0")?._count.id;
-      expect(v240Count).toBe(3);
-    });
+      const v240Count = counts.find((c) => c.version === '2.4.0')?._count.id
+      expect(v240Count).toBe(3)
+    })
 
-    it("counts users by platform", async () => {
-      const platforms = ["ios", "android", "ios", "android", "ios", "ios"];
+    it('counts users by platform', async () => {
+      const platforms = ['ios', 'android', 'ios', 'android', 'ios', 'ios']
 
       for (let i = 0; i < platforms.length; i++) {
-        const user = await createTestUserInDb();
+        const user = await createTestUserInDb()
         await testPrisma.userAppVersion.create({
           data: {
             userId: user.id,
-            version: "2.5.0",
+            version: '2.5.0',
             platform: platforms[i],
             lastUsedAt: new Date(),
           },
-        });
+        })
       }
 
       const counts = await testPrisma.userAppVersion.groupBy({
-        by: ["platform"],
+        by: ['platform'],
         _count: { id: true },
-      });
+      })
 
-      const iosCount = counts.find((c) => c.platform === "ios")?._count.id;
-      expect(iosCount).toBe(4);
-    });
+      const iosCount = counts.find((c) => c.platform === 'ios')?._count.id
+      expect(iosCount).toBe(4)
+    })
 
-    it("finds users on deprecated versions", async () => {
+    it('finds users on deprecated versions', async () => {
       // Create deprecated version
       await testPrisma.appVersion.create({
         data: {
-          version: "1.0.0",
-          platform: "ios",
-          minOsVersion: "12.0",
+          version: '1.0.0',
+          platform: 'ios',
+          minOsVersion: '12.0',
           releaseDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
           isActive: false,
           isDeprecated: true,
         },
-      });
+      })
 
       // Users on deprecated version
       for (let i = 0; i < 3; i++) {
-        const user = await createTestUserInDb();
+        const user = await createTestUserInDb()
         await testPrisma.userAppVersion.create({
           data: {
             userId: user.id,
-            version: "1.0.0",
-            platform: "ios",
+            version: '1.0.0',
+            platform: 'ios',
             lastUsedAt: new Date(),
           },
-        });
+        })
       }
 
       // Users on current version
       for (let i = 0; i < 2; i++) {
-        const user = await createTestUserInDb();
+        const user = await createTestUserInDb()
         await testPrisma.userAppVersion.create({
           data: {
             userId: user.id,
-            version: "2.5.0",
-            platform: "ios",
+            version: '2.5.0',
+            platform: 'ios',
             lastUsedAt: new Date(),
           },
-        });
+        })
       }
 
       const deprecatedUsers = await testPrisma.userAppVersion.findMany({
-        where: { version: "1.0.0" },
-      });
+        where: { version: '1.0.0' },
+      })
 
-      expect(deprecatedUsers).toHaveLength(3);
-    });
-  });
+      expect(deprecatedUsers).toHaveLength(3)
+    })
+  })
 
-  describe("Version Updates", () => {
-    it("marks version as mandatory", async () => {
+  describe('Version Updates', () => {
+    it('marks version as mandatory', async () => {
       const version = await testPrisma.appVersion.create({
         data: {
-          version: "2.8.0",
-          platform: "ios",
-          minOsVersion: "14.0",
+          version: '2.8.0',
+          platform: 'ios',
+          minOsVersion: '14.0',
           releaseDate: new Date(),
           isActive: true,
           isMandatory: false,
         },
-      });
+      })
 
       const updated = await testPrisma.appVersion.update({
         where: { id: version.id },
         data: {
           isMandatory: true,
-          mandatoryMessage: "보안 취약점 수정",
+          mandatoryMessage: '보안 취약점 수정',
         },
-      });
+      })
 
-      expect(updated.isMandatory).toBe(true);
-    });
+      expect(updated.isMandatory).toBe(true)
+    })
 
-    it("deprecates old version", async () => {
+    it('deprecates old version', async () => {
       const version = await testPrisma.appVersion.create({
         data: {
-          version: "1.5.0",
-          platform: "ios",
-          minOsVersion: "13.0",
+          version: '1.5.0',
+          platform: 'ios',
+          minOsVersion: '13.0',
           releaseDate: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
           isActive: true,
           isMandatory: false,
         },
-      });
+      })
 
       const updated = await testPrisma.appVersion.update({
         where: { id: version.id },
@@ -436,60 +426,60 @@ describe("Integration: App Version", () => {
           isDeprecated: true,
           deprecatedAt: new Date(),
         },
-      });
+      })
 
-      expect(updated.isDeprecated).toBe(true);
-    });
+      expect(updated.isDeprecated).toBe(true)
+    })
 
-    it("updates release notes", async () => {
+    it('updates release notes', async () => {
       const version = await testPrisma.appVersion.create({
         data: {
-          version: "2.9.0",
-          platform: "ios",
-          minOsVersion: "14.0",
+          version: '2.9.0',
+          platform: 'ios',
+          minOsVersion: '14.0',
           releaseDate: new Date(),
           isActive: true,
           isMandatory: false,
-          releaseNotes: { ko: ["초기 릴리스"] },
+          releaseNotes: { ko: ['초기 릴리스'] },
         },
-      });
+      })
 
       const updated = await testPrisma.appVersion.update({
         where: { id: version.id },
         data: {
           releaseNotes: {
-            ko: ["초기 릴리스", "핫픽스: 로그인 오류 수정"],
+            ko: ['초기 릴리스', '핫픽스: 로그인 오류 수정'],
           },
         },
-      });
+      })
 
-      const notes = updated.releaseNotes as { ko: string[] };
-      expect(notes.ko).toHaveLength(2);
-    });
-  });
+      const notes = updated.releaseNotes as { ko: string[] }
+      expect(notes.ko).toHaveLength(2)
+    })
+  })
 
-  describe("Version Deletion", () => {
-    it("deletes version", async () => {
+  describe('Version Deletion', () => {
+    it('deletes version', async () => {
       const version = await testPrisma.appVersion.create({
         data: {
-          version: "0.0.1-test",
-          platform: "ios",
-          minOsVersion: "14.0",
+          version: '0.0.1-test',
+          platform: 'ios',
+          minOsVersion: '14.0',
           releaseDate: new Date(),
           isActive: false,
           isMandatory: false,
         },
-      });
+      })
 
       await testPrisma.appVersion.delete({
         where: { id: version.id },
-      });
+      })
 
       const found = await testPrisma.appVersion.findUnique({
         where: { id: version.id },
-      });
+      })
 
-      expect(found).toBeNull();
-    });
-  });
-});
+      expect(found).toBeNull()
+    })
+  })
+})
