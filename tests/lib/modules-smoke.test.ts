@@ -7,9 +7,8 @@
  */
 import { describe, it, expect } from 'vitest'
 
-describe('Modules Smoke Tests (placeholder)', () => {
+describe.skip('Modules Smoke Tests (placeholder)', () => {
   it('placeholder test - see individual module test files for actual coverage', () => {
     // Individual modules are tested in their respective test files
-    expect(true).toBe(true)
   })
 })

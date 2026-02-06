@@ -95,7 +95,6 @@ describe('useDreamPhase', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => ({ user: { birthDate: '1990-01-01' } }),
@@ -119,7 +118,6 @@ describe('useDreamPhase', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => ({ user: { name: 'John', birthDate: null } }),
@@ -141,7 +139,6 @@ describe('useDreamPhase', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: false,
         status: 500,
@@ -163,7 +160,6 @@ describe('useDreamPhase', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network error'))
 
       const { result } = renderHook(() => useDreamPhase())
@@ -299,7 +295,6 @@ describe('useDreamPhase', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => ({ user: { birthDate: '1990-01-01' } }),
@@ -318,7 +313,6 @@ describe('useDreamPhase', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => ({ user: { birthDate: '1990-01-01' } }),
@@ -352,7 +346,6 @@ describe('useDreamPhase', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -376,7 +369,6 @@ describe('useDreamPhase', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -406,7 +398,6 @@ describe('useDreamPhase', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => ({}),
@@ -429,7 +420,6 @@ describe('useDreamPhase', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => {
@@ -454,7 +444,6 @@ describe('useDreamPhase', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => ({ user: { birthDate: '1990-01-01' } }),
@@ -499,8 +488,8 @@ describe('useDreamPhase', () => {
       rerender()
 
       await waitFor(() => {
-        // Should eventually settle
-        expect(true).toBe(true)
+        // Should eventually settle - verify phase is valid
+        expect(['dream-input', 'analyzing', 'result']).toContain(result.current.phase)
       })
     })
   })
@@ -533,8 +522,8 @@ describe('useDreamPhase', () => {
         await promise
       })
 
-      // Should not crash
-      expect(true).toBe(true)
+      // Should not crash - verify fetch was called before unmount
+      expect(global.fetch).toHaveBeenCalled()
     })
   })
 })

@@ -301,7 +301,7 @@ describe('Dream Stream API - buildPayload Function', () => {
           time: '10:30',
           timezone: 'Asia/Seoul',
           latitude: 37.5665,
-          longitude: 126.9780,
+          longitude: 126.978,
           gender: 'male',
         },
       }
@@ -313,7 +313,7 @@ describe('Dream Stream API - buildPayload Function', () => {
         time: '10:30',
         timezone: 'Asia/Seoul',
         latitude: 37.5665,
-        longitude: 126.9780,
+        longitude: 126.978,
         gender: 'male',
       })
     })
@@ -546,15 +546,17 @@ describe('Dream Stream API - afterStream Function', () => {
       const callArgs = (prisma.reading.create as any).mock.calls[0][0]
       const content = JSON.parse(callArgs.data.content)
 
-      expect(content).toEqual(expect.objectContaining({
-        dreamText: expect.any(String),
-        symbols: expect.any(Array),
-        emotions: expect.any(Array),
-        themes: expect.any(Array),
-        context: expect.any(Array),
-        koreanTypes: expect.any(Array),
-        koreanLucky: expect.any(Array),
-      }))
+      expect(content).toEqual(
+        expect.objectContaining({
+          dreamText: expect.any(String),
+          symbols: expect.any(Array),
+          emotions: expect.any(Array),
+          themes: expect.any(Array),
+          context: expect.any(Array),
+          koreanTypes: expect.any(Array),
+          koreanLucky: expect.any(Array),
+        })
+      )
     })
 
     it('should handle save errors gracefully', async () => {
@@ -580,48 +582,40 @@ describe('Dream Stream API - Validation', () => {
     vi.clearAllMocks()
   })
 
-  describe('dreamStreamSchema', () => {
-    // Note: The actual schema is mocked, so these tests document expected behavior
-    // rather than testing the real schema implementation
+  // Note: The actual schema is mocked, so these tests document expected behavior
+  // rather than testing the real schema implementation. Skipped as they require
+  // real schema validation which is tested elsewhere.
+  describe.skip('dreamStreamSchema - schema validation tests require unmocked schema', () => {
     it('should accept valid dream text', () => {
       // The schema requires min 5 characters, max 5000
-      // This test documents the expected validation behavior
-      expect(true).toBe(true)
     })
 
     it('should reject dream text shorter than minimum length', () => {
       // The schema requires min 5 characters
-      expect(true).toBe(true)
     })
 
     it('should reject dream text longer than maximum length', () => {
       // The schema allows max 5000 characters
-      expect(true).toBe(true)
     })
 
     it('should accept valid locale values', () => {
       // ko and en are valid
-      expect(true).toBe(true)
     })
 
     it('should reject invalid locale values', () => {
       // Other locales should fail
-      expect(true).toBe(true)
     })
 
     it('should validate array fields with max length constraints', () => {
       // symbols, emotions, themes, context have max 50 items
-      expect(true).toBe(true)
     })
 
     it('should validate string items in arrays with max length', () => {
       // Each string should be max 120 characters
-      expect(true).toBe(true)
     })
 
     it('should validate birth object structure', () => {
       // date, time, timezone, latitude, longitude, gender
-      expect(true).toBe(true)
     })
   })
 })
@@ -652,19 +646,25 @@ describe('Dream Stream API - sanitizeBirth Function', () => {
 
   describe('Date Validation', () => {
     it('should accept valid date format YYYY-MM-DD', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: { date: '2000-12-31' },
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: { date: '2000-12-31' },
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth?.date).toBe('2000-12-31')
     })
 
     it('should reject invalid date format', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: { date: '31-12-2000' },
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: { date: '31-12-2000' },
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth?.date).toBeUndefined()
     })
@@ -672,19 +672,25 @@ describe('Dream Stream API - sanitizeBirth Function', () => {
 
   describe('Time Validation', () => {
     it('should accept valid time format HH:MM', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: { time: '23:59' },
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: { time: '23:59' },
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth?.time).toBe('23:59')
     })
 
     it('should reject invalid time format', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: { time: '11:30:45' },
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: { time: '11:30:45' },
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth?.time).toBeUndefined()
     })
@@ -692,20 +698,26 @@ describe('Dream Stream API - sanitizeBirth Function', () => {
 
   describe('Timezone Validation', () => {
     it('should accept valid timezone string', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: { timezone: 'Asia/Seoul' },
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: { timezone: 'Asia/Seoul' },
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth?.timezone).toBe('Asia/Seoul')
     })
 
     it('should trim and truncate long timezone', async () => {
       const longTimezone = 'A'.repeat(100)
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: { timezone: longTimezone },
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: { timezone: longTimezone },
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth?.timezone.length).toBeLessThanOrEqual(50)
     })
@@ -713,46 +725,61 @@ describe('Dream Stream API - sanitizeBirth Function', () => {
 
   describe('Coordinate Validation', () => {
     it('should accept latitude in valid range [-90, 90]', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: { latitude: 45.5 },
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: { latitude: 45.5 },
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth?.latitude).toBe(45.5)
     })
 
     it('should reject latitude outside valid range', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: { latitude: 95 },
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: { latitude: 95 },
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth?.latitude).toBeUndefined()
     })
 
     it('should accept longitude in valid range [-180, 180]', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: { longitude: -120.5 },
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: { longitude: -120.5 },
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth?.longitude).toBe(-120.5)
     })
 
     it('should reject longitude outside valid range', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: { longitude: 200 },
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: { longitude: 200 },
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth?.longitude).toBeUndefined()
     })
 
     it('should handle NaN coordinates', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: { latitude: NaN, longitude: NaN },
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: { latitude: NaN, longitude: NaN },
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth?.latitude).toBeUndefined()
       expect(result.body.birth?.longitude).toBeUndefined()
@@ -761,19 +788,25 @@ describe('Dream Stream API - sanitizeBirth Function', () => {
 
   describe('Gender Validation', () => {
     it('should accept valid gender string', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: { gender: 'male' },
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: { gender: 'male' },
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth?.gender).toBe('male')
     })
 
     it('should truncate long gender string', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: { gender: 'A'.repeat(50) },
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: { gender: 'A'.repeat(50) },
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth?.gender.length).toBeLessThanOrEqual(20)
     })
@@ -781,28 +814,37 @@ describe('Dream Stream API - sanitizeBirth Function', () => {
 
   describe('Non-Record Input', () => {
     it('should return undefined for null birth', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: null,
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: null,
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth).toBeUndefined()
     })
 
     it('should return undefined for non-object birth', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: 'string',
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: 'string',
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth).toBeUndefined()
     })
 
     it('should return undefined for array birth', async () => {
-      const result = await buildPayload({
-        ...VALID_DREAM_STREAM_BODY,
-        birth: ['array'],
-      }, MOCK_CONTEXT)
+      const result = await buildPayload(
+        {
+          ...VALID_DREAM_STREAM_BODY,
+          birth: ['array'],
+        },
+        MOCK_CONTEXT
+      )
 
       expect(result.body.birth).toBeUndefined()
     })

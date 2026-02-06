@@ -23,14 +23,14 @@ HAS_REALTIME = True
 
 
 def _get_fortune_module():
-    """Lazy load fortune_score module."""
+    """Lazy load fortune_score_engine module."""
     global _fortune_module, HAS_FORTUNE_SCORE
     if _fortune_module is None:
         try:
-            from backend_ai.app import fortune_score as _fs
+            from backend_ai.app import fortune_score_engine as _fs
             _fortune_module = _fs
         except ImportError as e:
-            logger.warning(f"[Fortune] Could not import fortune_score: {e}")
+            logger.warning(f"[Fortune] Could not import fortune_score_engine: {e}")
             HAS_FORTUNE_SCORE = False
             return None
     return _fortune_module

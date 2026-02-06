@@ -185,9 +185,7 @@ describe('Saju Profile API - GET /api/me/saju', () => {
   // -------------------------------------------------------------------------
   describe('No Birth Date', () => {
     it('should return hasSaju: false when user has no birthDate', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(
-        makeUser({ birthDate: null }) as any
-      )
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(makeUser({ birthDate: null }) as any)
 
       const response = await GET(makeRequest())
       const data = await response.json()
@@ -199,9 +197,7 @@ describe('Saju Profile API - GET /api/me/saju', () => {
     })
 
     it('should return hasSaju: false when birthDate is undefined', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(
-        makeUser({ birthDate: undefined }) as any
-      )
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(makeUser({ birthDate: undefined }) as any)
 
       const response = await GET(makeRequest())
       const data = await response.json()
@@ -211,9 +207,7 @@ describe('Saju Profile API - GET /api/me/saju', () => {
     })
 
     it('should not attempt saju calculation when birthDate is missing', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(
-        makeUser({ birthDate: null }) as any
-      )
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(makeUser({ birthDate: null }) as any)
 
       await GET(makeRequest())
 
@@ -308,9 +302,7 @@ describe('Saju Profile API - GET /api/me/saju', () => {
     it('should fall through to calculation if personaMemory is null', async () => {
       const sajuResult = makeSajuResult()
       vi.mocked(calculateSajuData).mockReturnValue(sajuResult as any)
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(
-        makeUser({ personaMemory: null }) as any
-      )
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(makeUser({ personaMemory: null }) as any)
 
       await GET(makeRequest())
 
@@ -583,9 +575,7 @@ describe('Saju Profile API - GET /api/me/saju', () => {
       const sajuResult = makeSajuResult()
       vi.mocked(prisma.user.findUnique).mockResolvedValue(makeUser() as any)
       vi.mocked(calculateSajuData).mockReturnValue(sajuResult as any)
-      vi.mocked(prisma.personaMemory.upsert).mockRejectedValue(
-        new Error('Upsert failed')
-      )
+      vi.mocked(prisma.personaMemory.upsert).mockRejectedValue(new Error('Upsert failed'))
 
       const response = await GET(makeRequest())
       const data = await response.json()
@@ -601,9 +591,7 @@ describe('Saju Profile API - GET /api/me/saju', () => {
   describe('Gender Mapping', () => {
     it('should map gender "M" to "male"', async () => {
       const sajuResult = makeSajuResult()
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(
-        makeUser({ gender: 'M' }) as any
-      )
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(makeUser({ gender: 'M' }) as any)
       vi.mocked(calculateSajuData).mockReturnValue(sajuResult as any)
 
       await GET(makeRequest())
@@ -619,9 +607,7 @@ describe('Saju Profile API - GET /api/me/saju', () => {
 
     it('should map gender "F" to "female"', async () => {
       const sajuResult = makeSajuResult()
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(
-        makeUser({ gender: 'F' }) as any
-      )
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(makeUser({ gender: 'F' }) as any)
       vi.mocked(calculateSajuData).mockReturnValue(sajuResult as any)
 
       await GET(makeRequest())
@@ -637,9 +623,7 @@ describe('Saju Profile API - GET /api/me/saju', () => {
 
     it('should default gender null to "male"', async () => {
       const sajuResult = makeSajuResult()
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(
-        makeUser({ gender: null }) as any
-      )
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(makeUser({ gender: null }) as any)
       vi.mocked(calculateSajuData).mockReturnValue(sajuResult as any)
 
       await GET(makeRequest())
@@ -655,9 +639,7 @@ describe('Saju Profile API - GET /api/me/saju', () => {
 
     it('should default gender undefined to "male"', async () => {
       const sajuResult = makeSajuResult()
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(
-        makeUser({ gender: undefined }) as any
-      )
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(makeUser({ gender: undefined }) as any)
       vi.mocked(calculateSajuData).mockReturnValue(sajuResult as any)
 
       await GET(makeRequest())
@@ -673,9 +655,7 @@ describe('Saju Profile API - GET /api/me/saju', () => {
 
     it('should default any unrecognized gender value to "male"', async () => {
       const sajuResult = makeSajuResult()
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(
-        makeUser({ gender: 'X' }) as any
-      )
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(makeUser({ gender: 'X' }) as any)
       vi.mocked(calculateSajuData).mockReturnValue(sajuResult as any)
 
       await GET(makeRequest())
@@ -696,9 +676,7 @@ describe('Saju Profile API - GET /api/me/saju', () => {
   describe('Default Timezone and BirthTime Fallback', () => {
     it('should use "Asia/Seoul" when user has no tzId', async () => {
       const sajuResult = makeSajuResult()
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(
-        makeUser({ tzId: null }) as any
-      )
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(makeUser({ tzId: null }) as any)
       vi.mocked(calculateSajuData).mockReturnValue(sajuResult as any)
 
       await GET(makeRequest())
@@ -732,9 +710,7 @@ describe('Saju Profile API - GET /api/me/saju', () => {
 
     it('should use "12:00" when user has no birthTime', async () => {
       const sajuResult = makeSajuResult()
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(
-        makeUser({ birthTime: null }) as any
-      )
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(makeUser({ birthTime: null }) as any)
       vi.mocked(calculateSajuData).mockReturnValue(sajuResult as any)
 
       await GET(makeRequest())
@@ -750,9 +726,7 @@ describe('Saju Profile API - GET /api/me/saju', () => {
 
     it('should use user-provided birthTime when available', async () => {
       const sajuResult = makeSajuResult()
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(
-        makeUser({ birthTime: '03:45' }) as any
-      )
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(makeUser({ birthTime: '03:45' }) as any)
       vi.mocked(calculateSajuData).mockReturnValue(sajuResult as any)
 
       await GET(makeRequest())
@@ -976,11 +950,10 @@ describe('Saju Profile API - GET /api/me/saju', () => {
     // Module-level initialization happens before mocks are set up, so we can't
     // reliably test createAuthenticatedGuard being called. Instead, verify the
     // route configuration by checking the exported GET function.
-    it('should have createAuthenticatedGuard config in the route file', async () => {
+    it.skip('should have createAuthenticatedGuard config in the route file - verified by code inspection', async () => {
       // The route file calls createAuthenticatedGuard at module-level (line 149)
       // This is verified by code inspection rather than runtime mock checking
       // since mocks are set up after module initialization
-      expect(true).toBe(true) // Placeholder - actual verification is structural
     })
 
     it('should export GET as a function', () => {

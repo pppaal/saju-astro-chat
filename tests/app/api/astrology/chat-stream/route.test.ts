@@ -93,9 +93,7 @@ vi.mock('@/lib/textGuards', () => ({
   guardText: vi.fn((text, max) => (text || '').slice(0, max || 1800)),
   containsForbidden: vi.fn(() => false),
   safetyMessage: vi.fn((lang) =>
-    lang === 'ko'
-      ? '규제/민감 주제로 답변이 제한됩니다.'
-      : "That topic can't be handled."
+    lang === 'ko' ? '규제/민감 주제로 답변이 제한됩니다.' : "That topic can't be handled."
   ),
 }))
 
@@ -137,9 +135,7 @@ let routeModule: any
 // ---------------------------------------------------------------------------
 
 const VALID_ASTROLOGY_CHAT_BODY = {
-  messages: [
-    { role: 'user', content: 'What does my Sun sign mean for my career?' },
-  ],
+  messages: [{ role: 'user', content: 'What does my Sun sign mean for my career?' }],
   birthData: {
     date: '1990-05-15',
     time: '14:30',
@@ -270,12 +266,7 @@ describe('Astrology Chat Stream API - Route Configuration', () => {
 // Tests for buildPayload Function
 // ===================================================================
 describe('Astrology Chat Stream API - buildPayload Function', () => {
-  let buildPayload: (
-    validated: any,
-    context: any,
-    req?: NextRequest,
-    rawBody?: any
-  ) => Promise<any>
+  let buildPayload: (validated: any, context: any, req?: NextRequest, rawBody?: any) => Promise<any>
 
   beforeEach(async () => {
     vi.clearAllMocks()
@@ -337,12 +328,7 @@ describe('Astrology Chat Stream API - buildPayload Function', () => {
       delete (bodyWithoutLocale as any).locale
 
       const req = makePostRequest(VALID_RAW_BODY)
-      const result = await buildPayload(
-        bodyWithoutLocale,
-        MOCK_CONTEXT,
-        req,
-        VALID_RAW_BODY
-      )
+      const result = await buildPayload(bodyWithoutLocale, MOCK_CONTEXT, req, VALID_RAW_BODY)
 
       expect(result.body.locale).toBe('ko')
     })
@@ -533,12 +519,7 @@ describe('Astrology Chat Stream API - buildPayload Function', () => {
       const rawBodyNaNLat = { ...VALID_RAW_BODY, latitude: NaN }
 
       const req = makePostRequest(rawBodyNaNLat)
-      const result = await buildPayload(
-        VALID_ASTROLOGY_CHAT_BODY,
-        MOCK_CONTEXT,
-        req,
-        rawBodyNaNLat
-      )
+      const result = await buildPayload(VALID_ASTROLOGY_CHAT_BODY, MOCK_CONTEXT, req, rawBodyNaNLat)
 
       expect(result.status).toBe(400)
     })
@@ -547,12 +528,7 @@ describe('Astrology Chat Stream API - buildPayload Function', () => {
       const rawBodyNaNLon = { ...VALID_RAW_BODY, longitude: NaN }
 
       const req = makePostRequest(rawBodyNaNLon)
-      const result = await buildPayload(
-        VALID_ASTROLOGY_CHAT_BODY,
-        MOCK_CONTEXT,
-        req,
-        rawBodyNaNLon
-      )
+      const result = await buildPayload(VALID_ASTROLOGY_CHAT_BODY, MOCK_CONTEXT, req, rawBodyNaNLon)
 
       expect(result.status).toBe(400)
     })
@@ -614,16 +590,9 @@ describe('Astrology Chat Stream API - buildPayload Function', () => {
       }
 
       const req = makePostRequest(VALID_RAW_BODY)
-      const result = await buildPayload(
-        validatedWithSystem,
-        MOCK_CONTEXT,
-        req,
-        VALID_RAW_BODY
-      )
+      const result = await buildPayload(validatedWithSystem, MOCK_CONTEXT, req, VALID_RAW_BODY)
 
-      const hasSystemMessage = result.body.history.some(
-        (m: any) => m.role === 'system'
-      )
+      const hasSystemMessage = result.body.history.some((m: any) => m.role === 'system')
       expect(hasSystemMessage).toBe(false)
     })
 
@@ -678,12 +647,7 @@ describe('Astrology Chat Stream API - buildPayload Function', () => {
       }
 
       const req = makePostRequest(VALID_RAW_BODY)
-      const result = await buildPayload(
-        validatedWithForbidden,
-        MOCK_CONTEXT,
-        req,
-        VALID_RAW_BODY
-      )
+      const result = await buildPayload(validatedWithForbidden, MOCK_CONTEXT, req, VALID_RAW_BODY)
 
       // Should return a Response (fallback stream)
       expect(result instanceof Response).toBe(true)
@@ -908,12 +872,7 @@ describe('Astrology Chat Stream API - Transform Function', () => {
 // Tests for System Prompt Generation
 // ===================================================================
 describe('Astrology Chat Stream API - System Prompt', () => {
-  let buildPayload: (
-    validated: any,
-    context: any,
-    req?: NextRequest,
-    rawBody?: any
-  ) => Promise<any>
+  let buildPayload: (validated: any, context: any, req?: NextRequest, rawBody?: any) => Promise<any>
 
   beforeEach(async () => {
     vi.clearAllMocks()
@@ -1021,12 +980,7 @@ describe('Astrology Chat Stream API - System Prompt', () => {
 // Tests for Edge Cases
 // ===================================================================
 describe('Astrology Chat Stream API - Edge Cases', () => {
-  let buildPayload: (
-    validated: any,
-    context: any,
-    req?: NextRequest,
-    rawBody?: any
-  ) => Promise<any>
+  let buildPayload: (validated: any, context: any, req?: NextRequest, rawBody?: any) => Promise<any>
 
   beforeEach(async () => {
     vi.clearAllMocks()
@@ -1054,12 +1008,7 @@ describe('Astrology Chat Stream API - Edge Cases', () => {
       }
 
       const req = makePostRequest(VALID_RAW_BODY)
-      const result = await buildPayload(
-        koreanMessages,
-        MOCK_CONTEXT,
-        req,
-        VALID_RAW_BODY
-      )
+      const result = await buildPayload(koreanMessages, MOCK_CONTEXT, req, VALID_RAW_BODY)
 
       expect(result.body.prompt).toContain('제 태양 별자리가 뭔가요?')
     })
@@ -1067,7 +1016,7 @@ describe('Astrology Chat Stream API - Edge Cases', () => {
     it('should handle special characters in user name', async () => {
       const rawBodySpecialName = {
         ...VALID_RAW_BODY,
-        name: 'John O\'Brien & Co.',
+        name: "John O'Brien & Co.",
       }
 
       const req = makePostRequest(rawBodySpecialName)
@@ -1087,12 +1036,7 @@ describe('Astrology Chat Stream API - Edge Cases', () => {
       const rawBodyMinLat = { ...VALID_RAW_BODY, latitude: -90 }
 
       const req = makePostRequest(rawBodyMinLat)
-      const result = await buildPayload(
-        VALID_ASTROLOGY_CHAT_BODY,
-        MOCK_CONTEXT,
-        req,
-        rawBodyMinLat
-      )
+      const result = await buildPayload(VALID_ASTROLOGY_CHAT_BODY, MOCK_CONTEXT, req, rawBodyMinLat)
 
       expect(result.body.birth.lat).toBe(-90)
     })
@@ -1101,12 +1045,7 @@ describe('Astrology Chat Stream API - Edge Cases', () => {
       const rawBodyMaxLat = { ...VALID_RAW_BODY, latitude: 90 }
 
       const req = makePostRequest(rawBodyMaxLat)
-      const result = await buildPayload(
-        VALID_ASTROLOGY_CHAT_BODY,
-        MOCK_CONTEXT,
-        req,
-        rawBodyMaxLat
-      )
+      const result = await buildPayload(VALID_ASTROLOGY_CHAT_BODY, MOCK_CONTEXT, req, rawBodyMaxLat)
 
       expect(result.body.birth.lat).toBe(90)
     })
@@ -1115,12 +1054,7 @@ describe('Astrology Chat Stream API - Edge Cases', () => {
       const rawBodyMinLon = { ...VALID_RAW_BODY, longitude: -180 }
 
       const req = makePostRequest(rawBodyMinLon)
-      const result = await buildPayload(
-        VALID_ASTROLOGY_CHAT_BODY,
-        MOCK_CONTEXT,
-        req,
-        rawBodyMinLon
-      )
+      const result = await buildPayload(VALID_ASTROLOGY_CHAT_BODY, MOCK_CONTEXT, req, rawBodyMinLon)
 
       expect(result.body.birth.lon).toBe(-180)
     })
@@ -1129,12 +1063,7 @@ describe('Astrology Chat Stream API - Edge Cases', () => {
       const rawBodyMaxLon = { ...VALID_RAW_BODY, longitude: 180 }
 
       const req = makePostRequest(rawBodyMaxLon)
-      const result = await buildPayload(
-        VALID_ASTROLOGY_CHAT_BODY,
-        MOCK_CONTEXT,
-        req,
-        rawBodyMaxLon
-      )
+      const result = await buildPayload(VALID_ASTROLOGY_CHAT_BODY, MOCK_CONTEXT, req, rawBodyMaxLon)
 
       expect(result.body.birth.lon).toBe(180)
     })
@@ -1149,12 +1078,7 @@ describe('Astrology Chat Stream API - Edge Cases', () => {
       }
 
       const req = makePostRequest(VALID_RAW_BODY)
-      const result = await buildPayload(
-        emptyMessages,
-        MOCK_CONTEXT,
-        req,
-        VALID_RAW_BODY
-      )
+      const result = await buildPayload(emptyMessages, MOCK_CONTEXT, req, VALID_RAW_BODY)
 
       // Should still produce a valid payload (validation is done before buildPayload)
       expect(result.endpoint).toBe('/astrology/ask-stream')
@@ -1254,12 +1178,7 @@ describe('Astrology Chat Stream API - Edge Cases', () => {
 // Tests for clampMessages Helper
 // ===================================================================
 describe('Astrology Chat Stream API - clampMessages Helper', () => {
-  let buildPayload: (
-    validated: any,
-    context: any,
-    req?: NextRequest,
-    rawBody?: any
-  ) => Promise<any>
+  let buildPayload: (validated: any, context: any, req?: NextRequest, rawBody?: any) => Promise<any>
 
   beforeEach(async () => {
     vi.clearAllMocks()
@@ -1288,12 +1207,7 @@ describe('Astrology Chat Stream API - clampMessages Helper', () => {
     const validated = { ...VALID_ASTROLOGY_CHAT_BODY, messages: fiveMessages }
 
     const req = makePostRequest(VALID_RAW_BODY)
-    const result = await buildPayload(
-      validated,
-      MOCK_CONTEXT,
-      req,
-      VALID_RAW_BODY
-    )
+    const result = await buildPayload(validated, MOCK_CONTEXT, req, VALID_RAW_BODY)
 
     expect(result.body.history.length).toBe(5)
   })
@@ -1307,12 +1221,7 @@ describe('Astrology Chat Stream API - clampMessages Helper', () => {
     const validated = { ...VALID_ASTROLOGY_CHAT_BODY, messages: sixMessages }
 
     const req = makePostRequest(VALID_RAW_BODY)
-    const result = await buildPayload(
-      validated,
-      MOCK_CONTEXT,
-      req,
-      VALID_RAW_BODY
-    )
+    const result = await buildPayload(validated, MOCK_CONTEXT, req, VALID_RAW_BODY)
 
     expect(result.body.history.length).toBe(6)
   })
@@ -1326,12 +1235,7 @@ describe('Astrology Chat Stream API - clampMessages Helper', () => {
     const validated = { ...VALID_ASTROLOGY_CHAT_BODY, messages: tenMessages }
 
     const req = makePostRequest(VALID_RAW_BODY)
-    const result = await buildPayload(
-      validated,
-      MOCK_CONTEXT,
-      req,
-      VALID_RAW_BODY
-    )
+    const result = await buildPayload(validated, MOCK_CONTEXT, req, VALID_RAW_BODY)
 
     // History excludes system messages and takes last 6
     expect(result.body.history.length).toBeLessThanOrEqual(6)
@@ -1353,12 +1257,7 @@ describe('Astrology Chat Stream API - clampMessages Helper', () => {
     const validated = { ...VALID_ASTROLOGY_CHAT_BODY, messages }
 
     const req = makePostRequest(VALID_RAW_BODY)
-    const result = await buildPayload(
-      validated,
-      MOCK_CONTEXT,
-      req,
-      VALID_RAW_BODY
-    )
+    const result = await buildPayload(validated, MOCK_CONTEXT, req, VALID_RAW_BODY)
 
     expect(result.body.prompt).toContain('Most recent question')
   })
@@ -1421,36 +1320,31 @@ describe('Astrology Chat Stream API - Schema Validation', () => {
     vi.clearAllMocks()
   })
 
-  describe('astrologyChatStreamSchema', () => {
+  // Note: The actual schema is mocked, so these tests document expected behavior.
+  // Skipped as they require real schema validation which is tested elsewhere.
+  describe.skip('astrologyChatStreamSchema - schema validation tests require unmocked schema', () => {
     it('should require messages array with at least 1 message', () => {
       // Schema requires min 1 message
-      // This documents the expected validation behavior
-      expect(true).toBe(true)
     })
 
     it('should limit messages array to 100 max', () => {
       // Schema allows max 100 messages
-      expect(true).toBe(true)
     })
 
     it('should accept valid locale values (ko, en)', () => {
       // ko and en are valid
-      expect(true).toBe(true)
     })
 
     it('should accept optional birthData as record', () => {
       // birthData is optional record
-      expect(true).toBe(true)
     })
 
     it('should accept optional chartData as record', () => {
       // chartData is optional record
-      expect(true).toBe(true)
     })
 
     it('should validate message structure (role, content)', () => {
       // Each message should have role and content
-      expect(true).toBe(true)
     })
   })
 })

@@ -26,9 +26,8 @@ describe('useConsultationHistory (not implemented)', () => {
     expect(true).toBe(true)
   })
 
-  it('placeholder - source file does not exist', () => {
+  it.skip('placeholder - source file does not exist', () => {
     // This test passes to indicate the test file is valid
     // but the actual source module is not yet implemented
-    expect(true).toBe(true)
   })
 })
