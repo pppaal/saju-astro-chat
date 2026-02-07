@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createAuthenticatedGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  extractLocale,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { clearCacheByPattern } from '@/lib/cache/redis-cache'
@@ -63,14 +68,12 @@ export const PATCH = withApiMiddleware(
     const body = validationResult.data
     const data: Record<string, unknown> = {}
 
-    // Map validated data
+    // Map validated data (only User model fields)
     if (body.name) data.name = body.name
     if (body.emailNotifications !== undefined) data.emailNotifications = body.emailNotifications
     if (body.image !== undefined) data.image = body.image
-    if (body.preferredLanguage) data.preferredLanguage = body.preferredLanguage
-    if (body.notificationSettings) data.notificationSettings = body.notificationSettings
-    if (body.tonePreference) data.tonePreference = body.tonePreference
-    if (body.readingLength) data.readingLength = body.readingLength
+    // Note: preferredLanguage, notificationSettings, tonePreference, readingLength
+    // belong to UserPreferences model, not User model - handled separately if needed
 
     // Birth info fields
     const birthDate = body.birthDate
