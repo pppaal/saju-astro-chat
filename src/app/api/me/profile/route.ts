@@ -20,7 +20,7 @@ export const GET = withApiMiddleware(
         name: true,
         email: true,
         image: true,
-        profilePhoto: true,
+        // profilePhoto: true, // TODO: Enable after DB migration is deployed
         birthDate: true,
         birthTime: true,
         gender: true,
@@ -97,7 +97,7 @@ export const PATCH = withApiMiddleware(
         name: true,
         email: true,
         image: true,
-        profilePhoto: true,
+        // profilePhoto: true, // TODO: Enable after DB migration is deployed
         birthDate: true,
         birthTime: true,
         gender: true,
