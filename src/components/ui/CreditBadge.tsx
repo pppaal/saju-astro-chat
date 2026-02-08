@@ -125,7 +125,7 @@ export default function CreditBadge({
 
   const { credits, plan } = creditData
   // API에서 total을 반환하면 사용, 아니면 fallback으로 monthly + bonus
-  const totalCredits = credits.total ?? credits.monthly + credits.bonus ?? 0
+  const totalCredits = credits.total ?? credits.monthly + credits.bonus
   const remaining = credits.remaining ?? 0
   const percentage = totalCredits > 0 ? (remaining / totalCredits) * 100 : 0
 
