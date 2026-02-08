@@ -11,12 +11,17 @@ Features:
 """
 
 import csv
+import hashlib
 import json
 import logging
 import os
+import random
+import time
+from collections import OrderedDict
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Optional
+from threading import RLock
+from typing import Dict, List, Optional, Tuple
 
 import networkx as nx
 import torch
@@ -26,6 +31,100 @@ from sentence_transformers import SentenceTransformer, util
 _USE_CHROMADB = os.environ.get("USE_CHROMADB", "0") == "1"
 
 logger = logging.getLogger(__name__)
+
+# ===============================================================
+# QUERY CACHE (TTL + LRU with Thundering Herd Protection)
+# ===============================================================
+_QUERY_CACHE_SIZE = int(os.environ.get("RAG_QUERY_CACHE_SIZE", "256"))
+_QUERY_CACHE_TTL = int(os.environ.get("RAG_CACHE_TTL", "300"))  # 5 minutes
+
+
+class QueryCache:
+    """Thread-safe LRU cache with TTL and thundering herd protection."""
+
+    def __init__(self, maxsize: int = 256, ttl_seconds: int = 300):
+        self.maxsize = maxsize
+        self.ttl = ttl_seconds
+        self._cache: OrderedDict = OrderedDict()
+        self._timestamps: Dict[str, float] = {}
+        self._lock = RLock()
+        self._hits = 0
+        self._misses = 0
+
+    def _make_key(self, facts: dict, top_k: int, domain_priority: str) -> str:
+        """Generate cache key from query parameters."""
+        key_data = json.dumps({
+            "facts": facts,
+            "top_k": top_k,
+            "domain": domain_priority
+        }, sort_keys=True, ensure_ascii=False)
+        return hashlib.md5(key_data.encode()).hexdigest()
+
+    def get(self, facts: dict, top_k: int, domain_priority: str) -> Optional[dict]:
+        """Get cached result if not expired, with thundering herd protection."""
+        key = self._make_key(facts, top_k, domain_priority)
+
+        with self._lock:
+            if key not in self._cache:
+                self._misses += 1
+                return None
+
+            age = time.time() - self._timestamps[key]
+
+            # Probabilistic early expiration to prevent thundering herd
+            # As we approach TTL (last 20%), probability of refresh increases
+            if age > self.ttl * 0.8:
+                remaining_ratio = max(0, (self.ttl - age) / (self.ttl * 0.2))
+                if random.random() > remaining_ratio:
+                    self._misses += 1
+                    return None
+
+            if age > self.ttl:
+                del self._cache[key]
+                del self._timestamps[key]
+                self._misses += 1
+                return None
+
+            # Move to end (most recently used)
+            self._cache.move_to_end(key)
+            self._hits += 1
+            return self._cache[key]
+
+    def set(self, facts: dict, top_k: int, domain_priority: str, result: dict):
+        """Cache a query result."""
+        key = self._make_key(facts, top_k, domain_priority)
+
+        with self._lock:
+            # Evict oldest if at capacity
+            while len(self._cache) >= self.maxsize:
+                oldest_key, _ = self._cache.popitem(last=False)
+                self._timestamps.pop(oldest_key, None)
+
+            self._cache[key] = result
+            self._timestamps[key] = time.time()
+
+    def stats(self) -> Dict:
+        """Return cache statistics."""
+        with self._lock:
+            total = self._hits + self._misses
+            hit_rate = (self._hits / total * 100) if total > 0 else 0
+            return {
+                "hits": self._hits,
+                "misses": self._misses,
+                "size": len(self._cache),
+                "maxsize": self.maxsize,
+                "hit_rate_percent": round(hit_rate, 2),
+            }
+
+    def clear(self):
+        """Clear the cache."""
+        with self._lock:
+            self._cache.clear()
+            self._timestamps.clear()
+
+
+# Global query cache instance
+_query_cache = QueryCache(maxsize=_QUERY_CACHE_SIZE, ttl_seconds=_QUERY_CACHE_TTL)
 
 # ===============================================================
 # CONSTANTS
@@ -375,13 +474,42 @@ class GraphRAG:
 
         USE_CHROMADB=1일 때 ChromaDB HNSW 검색 사용 (O(log n)).
         그 외에는 기존 PyTorch cosine sim 전체 스캔 (O(n)).
+
+        Results are cached with TTL for performance.
         """
+        # Check cache first
+        cached = _query_cache.get(facts, top_k, domain_priority)
+        if cached is not None:
+            logger.debug("[GraphRAG] Cache HIT")
+            return cached
+
+        # Execute query
+        start_time = time.time()
         facts_str = json.dumps(facts, ensure_ascii=False)
 
         if _USE_CHROMADB:
-            return self._query_chromadb(facts_str, top_k, domain_priority)
+            result = self._query_chromadb(facts_str, top_k, domain_priority)
+        else:
+            result = self._query_legacy(facts_str, top_k, domain_priority)
 
-        return self._query_legacy(facts_str, top_k, domain_priority)
+        # Add timing info
+        result["query_time_ms"] = round((time.time() - start_time) * 1000, 2)
+        result["cache_hit"] = False
+
+        # Cache result
+        _query_cache.set(facts, top_k, domain_priority, result)
+        logger.debug("[GraphRAG] Cache MISS, query took %.2fms", result["query_time_ms"])
+
+        return result
+
+    def get_cache_stats(self) -> Dict:
+        """Return query cache statistics."""
+        return _query_cache.stats()
+
+    def clear_cache(self):
+        """Clear the query cache."""
+        _query_cache.clear()
+        logger.info("[GraphRAG] Query cache cleared")
 
     def _query_chromadb(self, facts_str: str, top_k: int, domain_priority: str) -> Dict:
         """ChromaDB HNSW 인덱스 기반 검색 (O(log n)) + PageRank + CrossEncoder 재순위화."""
@@ -957,26 +1085,45 @@ def _load_json_nodes(path: Path, all_nodes: List[Dict], source: str) -> None:
                         all_nodes.append(node)
                 return
 
-            # Handle quotes format (Jung, Stoic philosophy)
+            # Handle quotes format (Jung psychology, Stoic philosophy)
             if "quotes" in data and isinstance(data["quotes"], list):
-                concept = data.get("concept", "")
-                concept_kr = data.get("concept_kr", "")
+                # Support both Jung (concept) and Stoic (philosopher) formats
+                concept = data.get("concept", "") or data.get("philosopher", "")
+                concept_kr = data.get("concept_kr", "") or data.get("philosopher_kr", "")
+                main_work = data.get("main_work", "")
+                description = data.get("description", "")
+
                 for quote in data["quotes"]:
                     if isinstance(quote, dict):
                         en_text = quote.get("en", "")
                         kr_text = quote.get("kr", "")
-                        quote_source = quote.get("source", "")
+                        quote_source = quote.get("source", main_work or "")
                         tags = quote.get("tags", [])
+                        context = quote.get("context", "")
+
+                        # Prefer Korean, fallback to English
                         desc = kr_text or en_text
                         if desc:
+                            # Build rich description
+                            desc_parts = [f"{concept_kr or concept}: {desc}"]
+                            if context:
+                                desc_parts.append(f"맥락: {context}")
+                            if quote_source:
+                                desc_parts.append(f"출처: {quote_source}")
+                            if tags:
+                                desc_parts.append(f"태그: {', '.join(tags[:5])}")
+
                             nodes.append({
                                 "label": f"{concept}_{quote.get('id', '')}",
-                                "description": f"{concept_kr or concept}: {desc} (출처: {quote_source})",
+                                "description": " | ".join(desc_parts),
                                 "type": "quote",
                                 "source": source,
                                 "tags": tags,
+                                "philosopher": concept,
+                                "philosopher_kr": concept_kr,
                                 "raw": quote,
                             })
+
                 # Add to all_nodes and return
                 for node in nodes:
                     if isinstance(node, dict) and node.get("description"):
