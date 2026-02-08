@@ -1,5 +1,6 @@
 /* ===== Loading & Error States ===== */
-.loading, .error {
+.loading,
+.error {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -17,8 +18,9 @@
   height: 80px;
   background: radial-gradient(circle at 35% 35%, #ffffff, #e0f7ff, #b8e8ff, #63d2ff, #4aa8d4 70%);
   border-radius: 50%;
-  box-shadow: 0 0 40px rgba(99, 210, 255, 0.6),
-              0 0 80px rgba(99, 210, 255, 0.3);
+  box-shadow:
+    0 0 40px rgba(99, 210, 255, 0.6),
+    0 0 80px rgba(99, 210, 255, 0.3);
   animation: orbPulse 2s ease-in-out infinite;
 }
 
@@ -178,7 +180,9 @@
   padding: 2.5rem 2rem 2rem;
   max-width: 500px;
   width: 100%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 210, 255, 0.3);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(99, 210, 255, 0.3);
   animation: slideUp 0.4s ease;
 }
 
@@ -364,8 +368,9 @@
   background-position: center;
   border: 2px solid var(--card-border, rgba(212, 175, 55, 0.6));
   border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6),
-              0 0 20px rgba(212, 175, 55, 0.2);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(212, 175, 55, 0.2);
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -389,8 +394,9 @@
 .cardWrapper:hover .cardBack,
 .cardWrapper:focus-visible .cardBack {
   border-color: rgba(212, 175, 55, 1);
-  box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5),
-              0 0 40px rgba(212, 175, 55, 0.3);
+  box-shadow:
+    0 8px 30px rgba(212, 175, 55, 0.5),
+    0 0 40px rgba(212, 175, 55, 0.3);
 }
 
 .cardWrapper:focus-visible .cardBack {
@@ -414,8 +420,9 @@
 
 .cardWrapper.selected .cardBack {
   border-color: rgba(212, 175, 55, 1);
-  box-shadow: 0 10px 40px rgba(212, 175, 55, 0.6),
-              0 0 60px rgba(212, 175, 55, 0.4);
+  box-shadow:
+    0 10px 40px rgba(212, 175, 55, 0.6),
+    0 0 60px rgba(212, 175, 55, 0.4);
 }
 
 .selectionNumber {
@@ -435,8 +442,9 @@
   font-weight: bold;
   color: #0a1428;
   font-size: 1.1rem;
-  box-shadow: 0 4px 15px rgba(124, 242, 156, 0.8),
-              0 0 20px rgba(99, 210, 255, 0.5);
+  box-shadow:
+    0 4px 15px rgba(124, 242, 156, 0.8),
+    0 0 20px rgba(99, 210, 255, 0.5);
   animation: numberAppear 0.5s cubic-bezier(0.34, 1.2, 0.64, 1);
   z-index: 10;
 }
@@ -503,6 +511,38 @@
   box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
 }
 
+/* ===== Redraw Button - Bottom Right ===== */
+.redrawButtonBottomRight {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 200;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(180, 160, 220, 0.9);
+  background: rgba(20, 10, 40, 0.95);
+  border: 1px solid rgba(180, 160, 220, 0.3);
+  border-radius: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.03em;
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.redrawButtonBottomRight:hover {
+  color: rgba(212, 175, 55, 1);
+  border-color: rgba(212, 175, 55, 0.5);
+  box-shadow: 0 4px 25px rgba(212, 175, 55, 0.3);
+  transform: translateY(-2px);
+}
+
+.redrawButtonBottomRight:active {
+  transform: translateY(0);
+}
+
 /* ===== Results Screen ===== */
 .resultsContainer {
   width: 100%;
@@ -524,8 +564,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 30% 20%, rgba(99, 210, 255, 0.06) 0%, transparent 50%),
-              radial-gradient(circle at 70% 80%, rgba(124, 242, 156, 0.06) 0%, transparent 50%);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(99, 210, 255, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(124, 242, 156, 0.06) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -556,12 +597,19 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .resultsHeader {
@@ -664,8 +712,9 @@
 .resultCardSlot:hover {
   transform: translateY(-8px);
   border-color: rgba(99, 210, 255, 0.3);
-  box-shadow: 0 20px 50px rgba(99, 210, 255, 0.15),
-              0 0 60px rgba(99, 210, 255, 0.1);
+  box-shadow:
+    0 20px 50px rgba(99, 210, 255, 0.15),
+    0 0 60px rgba(99, 210, 255, 0.1);
 }
 
 .positionBadge {
@@ -735,7 +784,8 @@
   animation-fill-mode: both;
 }
 
-.cardFront, .cardBackResult {
+.cardFront,
+.cardBackResult {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -892,8 +942,9 @@
 .resetButton:hover {
   background: #7cf29c;
   color: #0a0a1a;
-  box-shadow: 0 0 30px rgba(124, 242, 156, 0.6),
-              0 0 60px rgba(124, 242, 156, 0.3);
+  box-shadow:
+    0 0 30px rgba(124, 242, 156, 0.6),
+    0 0 60px rgba(124, 242, 156, 0.3);
   transform: translateY(-4px);
 }
 
@@ -959,13 +1010,25 @@
   animation: streamDotBounce 1.4s ease-in-out infinite;
 }
 
-.streamingDot:nth-child(1) { animation-delay: 0s; }
-.streamingDot:nth-child(2) { animation-delay: 0.2s; }
-.streamingDot:nth-child(3) { animation-delay: 0.4s; }
+.streamingDot:nth-child(1) {
+  animation-delay: 0s;
+}
+.streamingDot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.streamingDot:nth-child(3) {
+  animation-delay: 0.4s;
+}
 
 @keyframes streamDotBounce {
-  0%, 60%, 100% { transform: translateY(0); }
-  30% { transform: translateY(-4px); }
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-4px);
+  }
 }
 
 /* Streaming Content Box */
@@ -1027,8 +1090,14 @@
 }
 
 @keyframes cursorBlink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
 }
 
 /* Card Insight Streaming */
@@ -1287,7 +1356,9 @@
 }
 
 @keyframes typingDot {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     transform: translateY(0);
     opacity: 0.4;
   }
@@ -1498,7 +1569,12 @@
   flex: 1;
   width: 100%;
   min-width: 280px;
-  background: linear-gradient(145deg, rgba(99, 210, 255, 0.12) 0%, rgba(30, 30, 45, 0.7) 50%, rgba(124, 242, 156, 0.08) 100%);
+  background: linear-gradient(
+    145deg,
+    rgba(99, 210, 255, 0.12) 0%,
+    rgba(30, 30, 45, 0.7) 50%,
+    rgba(124, 242, 156, 0.08) 100%
+  );
   backdrop-filter: blur(25px);
   border: 2px solid rgba(99, 210, 255, 0.3);
   border-radius: 28px;
@@ -1507,9 +1583,10 @@
   position: relative;
   overflow: hidden;
   transition: all 0.4s ease;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-              0 0 60px rgba(99, 210, 255, 0.1),
-              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 60px rgba(99, 210, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .guidanceBox::before {
@@ -1519,18 +1596,25 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     transparent 0%,
     rgba(99, 210, 255, 0.6) 20%,
     rgba(124, 242, 156, 0.8) 50%,
     rgba(99, 210, 255, 0.6) 80%,
-    transparent 100%);
+    transparent 100%
+  );
   animation: shimmer 3s ease-in-out infinite;
 }
 
 @keyframes shimmer {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .guidanceBox:hover {
@@ -1542,7 +1626,12 @@
 .affirmationBox {
   flex: 1;
   min-width: 280px;
-  background: linear-gradient(145deg, rgba(124, 242, 156, 0.08) 0%, rgba(30, 30, 45, 0.6) 50%, rgba(212, 175, 55, 0.05) 100%);
+  background: linear-gradient(
+    145deg,
+    rgba(124, 242, 156, 0.08) 0%,
+    rgba(30, 30, 45, 0.6) 50%,
+    rgba(212, 175, 55, 0.05) 100%
+  );
   backdrop-filter: blur(20px);
   border: 1px solid rgba(124, 242, 156, 0.25);
   border-radius: 24px;
@@ -1560,7 +1649,13 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, transparent, rgba(124, 242, 156, 0.8), rgba(212, 175, 55, 0.8), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(124, 242, 156, 0.8),
+    rgba(212, 175, 55, 0.8),
+    transparent
+  );
 }
 
 .affirmationBox:hover {
@@ -1569,7 +1664,8 @@
   transform: translateY(-4px);
 }
 
-.guidanceIcon, .affirmationIcon {
+.guidanceIcon,
+.affirmationIcon {
   margin-bottom: 1.5rem;
   text-align: center;
 }
@@ -1589,13 +1685,25 @@
 }
 
 @keyframes iconFloat {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-8px) rotate(5deg); }
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(5deg);
+  }
 }
 
 @keyframes iconPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.15); opacity: 0.9; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.9;
+  }
 }
 
 .guidanceTitle {
@@ -1652,8 +1760,15 @@
 }
 
 @keyframes starTwinkle {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.2); }
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 .footerText {
@@ -1670,12 +1785,14 @@
 .affirmationDivider {
   width: 120px;
   height: 3px;
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     transparent 0%,
     rgba(124, 242, 156, 0.3) 20%,
     rgba(124, 242, 156, 0.8) 50%,
     rgba(124, 242, 156, 0.3) 80%,
-    transparent 100%);
+    transparent 100%
+  );
   margin: 0 auto 2rem auto;
   box-shadow: 0 0 10px rgba(124, 242, 156, 0.3);
 }
@@ -1702,8 +1819,15 @@
 }
 
 @keyframes moonGlow {
-  0%, 100% { opacity: 0.5; filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.3)); }
-  50% { opacity: 0.9; filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.6)); }
+  0%,
+  100% {
+    opacity: 0.5;
+    filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.3));
+  }
+  50% {
+    opacity: 0.9;
+    filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.6));
+  }
 }
 
 /* ===== Compact Guidance Box (New) ===== */
@@ -1741,11 +1865,13 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     transparent 0%,
     rgba(99, 210, 255, 0.3) 20%,
     rgba(124, 242, 156, 0.3) 80%,
-    transparent 100%);
+    transparent 100%
+  );
 }
 
 .guidanceBoxCompact:hover {
@@ -1817,27 +1943,49 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ===== Animations ===== */
 @keyframes orbPulse {
-  0%, 100% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.1); opacity: 1; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
 }
 
 @keyframes textGlow {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; text-shadow: 0 0 20px rgba(99, 210, 255, 0.6); }
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 20px rgba(99, 210, 255, 0.6);
+  }
 }
 
 @keyframes selectedPulse {
-  0%, 100% {
-    box-shadow: 0 10px 40px rgba(124, 242, 156, 0.5), 0 0 60px rgba(99, 210, 255, 0.6);
+  0%,
+  100% {
+    box-shadow:
+      0 10px 40px rgba(124, 242, 156, 0.5),
+      0 0 60px rgba(99, 210, 255, 0.6);
   }
   50% {
-    box-shadow: 0 12px 50px rgba(124, 242, 156, 0.7), 0 0 80px rgba(99, 210, 255, 0.8);
+    box-shadow:
+      0 12px 50px rgba(124, 242, 156, 0.7),
+      0 0 80px rgba(99, 210, 255, 0.8);
   }
 }
 
@@ -1857,19 +2005,38 @@
 }
 
 @keyframes cardReveal {
-  0% { transform: translateY(-150px) scale(1.15) rotate(0deg); }
-  50% { transform: translateY(-200px) scale(1.2) rotateY(180deg); }
-  100% { transform: translateY(-250px) scale(0) rotateY(360deg); opacity: 0; }
+  0% {
+    transform: translateY(-150px) scale(1.15) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-200px) scale(1.2) rotateY(180deg);
+  }
+  100% {
+    transform: translateY(-250px) scale(0) rotateY(360deg);
+    opacity: 0;
+  }
 }
 
 @keyframes titleAppear {
-  from { opacity: 0; transform: translateY(-30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes subtitleAppear {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes cardSlotAppear {
@@ -2042,8 +2209,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 20% 30%, rgba(99, 210, 255, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 70%, rgba(124, 242, 156, 0.08) 0%, transparent 50%);
+  background:
+    radial-gradient(circle at 20% 30%, rgba(99, 210, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(124, 242, 156, 0.08) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -2095,8 +2263,14 @@
 }
 
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .questionQuote {
@@ -2448,7 +2622,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.15) 1px, transparent 0);
+  background-image: radial-gradient(
+    circle at 2px 2px,
+    rgba(255, 255, 255, 0.15) 1px,
+    transparent 0
+  );
   background-size: 12px 12px;
 }
 
@@ -2481,8 +2659,12 @@
 }
 
 @keyframes checkAppear {
-  from { transform: scale(0); }
-  to { transform: scale(1); }
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
 }
 
 .colorPreview {
@@ -2904,10 +3086,18 @@
 }
 
 @keyframes fadeInOut {
-  0% { opacity: 0; }
-  10% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 /* ===== Color Selection Responsive ===== */
@@ -3036,7 +3226,9 @@
 .resultCardHorizontal.canReveal {
   cursor: pointer;
   border-color: rgba(124, 242, 156, 0.5);
-  animation: slideInFromLeft 0.6s ease-out forwards, pulseGlow 2s ease-in-out 0.6s infinite;
+  animation:
+    slideInFromLeft 0.6s ease-out forwards,
+    pulseGlow 2s ease-in-out 0.6s infinite;
 }
 
 .resultCardHorizontal.canReveal:hover {
@@ -3061,7 +3253,8 @@
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(124, 242, 156, 0.2);
   }
   50% {
@@ -3162,7 +3355,8 @@
 }
 
 @keyframes bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(-50%) translateY(0);
   }
   50% {
@@ -3311,7 +3505,9 @@
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10;
-  animation: fadeInUp 0.5s ease-out 2.5s forwards, pulseGlow 2s ease-in-out 3s infinite;
+  animation:
+    fadeInUp 0.5s ease-out 2.5s forwards,
+    pulseGlow 2s ease-in-out 3s infinite;
   opacity: 0;
 }
 
@@ -3746,8 +3942,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .loginTitle {
@@ -3813,7 +4014,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: #000;
-  background: #FEE500;
+  background: #fee500;
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -3824,7 +4025,7 @@
 .kakaoButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(254, 229, 0, 0.4);
-  background: #FFD900;
+  background: #ffd900;
 }
 
 .kakaoIcon {
