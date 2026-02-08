@@ -662,6 +662,14 @@ def _load_graph_nodes(graph_root: Path) -> List[Dict]:
         if folder.is_dir():
             _load_from_folder(folder, all_nodes, sub)
 
+    # Load corpus folder (Jung quotes, Stoic philosophy, etc.)
+    corpus_root = graph_root.parent / "corpus"
+    if corpus_root.is_dir():
+        for corpus_sub in corpus_root.iterdir():
+            if corpus_sub.is_dir():
+                _load_from_folder(corpus_sub, all_nodes, f"corpus_{corpus_sub.name}")
+                logger.info(f"Loaded corpus: {corpus_sub.name}")
+
     logger.info("Loaded %d nodes", len(all_nodes))
     return all_nodes
 
@@ -943,6 +951,33 @@ def _load_json_nodes(path: Path, all_nodes: List[Dict], source: str) -> None:
             # Try to process as tarot data first
             if _process_tarot_data(data, source, nodes):
                 # Tarot data processed, add to all_nodes and return
+                for node in nodes:
+                    if isinstance(node, dict) and node.get("description"):
+                        node.setdefault("source", source)
+                        all_nodes.append(node)
+                return
+
+            # Handle quotes format (Jung, Stoic philosophy)
+            if "quotes" in data and isinstance(data["quotes"], list):
+                concept = data.get("concept", "")
+                concept_kr = data.get("concept_kr", "")
+                for quote in data["quotes"]:
+                    if isinstance(quote, dict):
+                        en_text = quote.get("en", "")
+                        kr_text = quote.get("kr", "")
+                        quote_source = quote.get("source", "")
+                        tags = quote.get("tags", [])
+                        desc = kr_text or en_text
+                        if desc:
+                            nodes.append({
+                                "label": f"{concept}_{quote.get('id', '')}",
+                                "description": f"{concept_kr or concept}: {desc} (출처: {quote_source})",
+                                "type": "quote",
+                                "source": source,
+                                "tags": tags,
+                                "raw": quote,
+                            })
+                # Add to all_nodes and return
                 for node in nodes:
                     if isinstance(node, dict) and node.get("description"):
                         node.setdefault("source", source)
