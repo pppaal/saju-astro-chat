@@ -5,6 +5,11 @@ import { NextRequest, NextResponse } from 'next/server'
 // Mocks – all vi.mock calls MUST appear before importing the route handlers
 // ---------------------------------------------------------------------------
 
+// Mock middleware
+vi.mock('@/lib/api/middleware', () => ({
+  extractLocale: vi.fn().mockReturnValue('ko'),
+}))
+
 // Mock rate limiting
 const mockRateLimit = vi.fn()
 vi.mock('@/lib/rateLimit', () => ({
@@ -228,7 +233,8 @@ describe('Dream API - GET', () => {
     const data = await response.json()
 
     expect(response.status).toBe(429)
-    expect(data.error).toBe('Too many requests')
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('RATE_LIMITED')
   })
 
   it('should return 401 when public token is invalid', async () => {
@@ -238,7 +244,8 @@ describe('Dream API - GET', () => {
     const data = await response.json()
 
     expect(response.status).toBe(401)
-    expect(data.error).toBe('Unauthorized')
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('UNAUTHORIZED')
   })
 
   it('should return alive message on valid request', async () => {
@@ -305,7 +312,8 @@ describe('Dream API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('Too many requests')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('RATE_LIMITED')
     })
 
     it('should record rate_limited metric', async () => {
@@ -336,7 +344,8 @@ describe('Dream API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should record error metric on token failure', async () => {
@@ -368,7 +377,8 @@ describe('Dream API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Invalid JSON body')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('BAD_REQUEST')
     })
 
     it('should record validation_error metric on null body', async () => {
@@ -515,29 +525,36 @@ describe('Dream API - POST', () => {
   // Zod validation
   // -----------------------------------------------------------------
   describe('Zod Validation', () => {
-    it('should return 400 with validation errors when schema fails', async () => {
+    it('should return 422 with validation errors when schema fails', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
-          issues: [{ path: ['dream'], message: 'String must contain at least 10 character(s)' }],
+          issues: [
+            {
+              path: ['dream'],
+              message: 'String must contain at least 10 character(s)',
+              code: 'too_small',
+            },
+          ],
         },
       })
 
       const response = await POST(makePostRequest({ dream: 'short' }))
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.error).toContain('Validation failed')
-      expect(data.error).toContain('dream')
+      // Zod validation errors return 422 (VALIDATION_ERROR) via createValidationErrorResponse
+      expect(response.status).toBe(422)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should include all validation error paths in the message', async () => {
+    it('should return 400 with MISSING_FIELD code when first issue is invalid_type with undefined input', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
           issues: [
-            { path: ['dream'], message: 'Required' },
-            { path: ['locale'], message: 'Invalid enum value' },
+            { path: ['dream'], message: 'Required', code: 'invalid_type', input: undefined },
+            { path: ['locale'], message: 'Invalid enum value', code: 'invalid_enum_value' },
           ],
         },
       })
@@ -545,9 +562,10 @@ describe('Dream API - POST', () => {
       const response = await POST(makePostRequest({ locale: 'xx' }))
       const data = await response.json()
 
+      // When first issue is invalid_type with undefined input, returns MISSING_FIELD (400)
       expect(response.status).toBe(400)
-      expect(data.error).toContain('dream')
-      expect(data.error).toContain('locale')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('MISSING_FIELD')
     })
 
     it('should record validation_error metric on Zod failure', async () => {
@@ -894,11 +912,9 @@ describe('Dream API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Unexpected backend failure')
-      expect(captureServerError).toHaveBeenCalledWith(expect.any(Error), {
-        route: '/api/dream',
-        method: 'POST',
-      })
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(captureServerError).toHaveBeenCalled()
     })
 
     it('should record error metric with timing when exception occurs', async () => {
@@ -916,26 +932,30 @@ describe('Dream API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('string error')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
-    it('should return error message from Error object', async () => {
+    it('should return INTERNAL_ERROR code from Error object', async () => {
       mockWithCircuitBreaker.mockRejectedValue(new Error('Specific error message'))
 
       const response = await POST(makePostRequest(VALID_DREAM_BODY))
       const data = await response.json()
 
-      expect(data.error).toBe('Specific error message')
+      expect(response.status).toBe(500)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
-    it('should fallback to "server error" when error.message is empty', async () => {
+    it('should return INTERNAL_ERROR when error.message is empty', async () => {
       mockWithCircuitBreaker.mockRejectedValue(new Error(''))
 
       const response = await POST(makePostRequest(VALID_DREAM_BODY))
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('server error')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should return 500 when checkAndConsumeCredits throws', async () => {

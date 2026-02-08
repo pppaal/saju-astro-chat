@@ -65,6 +65,29 @@ vi.mock('@/lib/api/zodValidation', () => ({
       }
     }),
   },
+  createValidationErrorResponse: vi.fn(
+    (
+      error: { issues: Array<{ path: string[]; message: string }> },
+      options?: { route?: string }
+    ) => {
+      const { NextResponse } = require('next/server')
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Validation failed',
+            status: 400,
+            details: error.issues.map((issue: { path: string[]; message: string }) => ({
+              path: issue.path,
+              message: issue.message,
+            })),
+          },
+        },
+        { status: 400 }
+      )
+    }
+  ),
 }))
 
 // Mock middleware with passthrough pattern
@@ -279,7 +302,7 @@ describe('/api/reports/[id]', () => {
         const result = await response.json()
 
         expect(response.status).toBe(400)
-        expect(result.error).toBe('invalid_params')
+        expect(result.error.code).toBe('VALIDATION_ERROR')
       })
 
       it('should reject ID longer than 100 characters', async () => {
@@ -292,7 +315,7 @@ describe('/api/reports/[id]', () => {
         const result = await response.json()
 
         expect(response.status).toBe(400)
-        expect(result.error).toBe('invalid_params')
+        expect(result.error.code).toBe('VALIDATION_ERROR')
       })
 
       it('should accept valid ID at exactly 100 characters', async () => {
@@ -680,7 +703,7 @@ describe('/api/reports/[id]', () => {
         const result = await response.json()
 
         expect(response.status).toBe(400)
-        expect(result.error).toBe('invalid_params')
+        expect(result.error.code).toBe('VALIDATION_ERROR')
       })
 
       it('should reject ID longer than 100 characters for delete', async () => {
@@ -695,7 +718,7 @@ describe('/api/reports/[id]', () => {
         const result = await response.json()
 
         expect(response.status).toBe(400)
-        expect(result.error).toBe('invalid_params')
+        expect(result.error.code).toBe('VALIDATION_ERROR')
       })
     })
 

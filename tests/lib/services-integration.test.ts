@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-describe.skip('Services Integration', () => {
+describe('Services Integration', () => {
   describe('Database Services', () => {
     it('should export prisma client helpers', async () => {
       const module = await import('@/lib/db/prisma')

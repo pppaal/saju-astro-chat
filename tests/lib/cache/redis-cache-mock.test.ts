@@ -54,6 +54,9 @@ describe('Redis Cache Utilities (Mocked)', () => {
       expect(CACHE_TTL.GRADING_RESULT).toBe(60 * 60 * 24) // 1 day
       expect(CACHE_TTL.CALENDAR_DATA).toBe(60 * 60 * 24) // 1 day
       expect(CACHE_TTL.COMPATIBILITY).toBe(60 * 60 * 24 * 7) // 7 days
+      expect(CACHE_TTL.TRANSIT_CHART).toBe(60 * 60) // 1 hour
+      expect(CACHE_TTL.NATAL_CHART).toBe(60 * 60 * 24 * 30) // 30 days
+      expect(CACHE_TTL.SAJU).toBe(60 * 60 * 24 * 7) // 7 days
     })
   })
 

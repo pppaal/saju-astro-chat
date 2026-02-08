@@ -1,100 +1,108 @@
-"use client";
+'use client'
 
-import { useEffect, useState, useCallback } from "react";
-import { useSession } from "next-auth/react";
-import { useI18n } from "@/i18n/I18nProvider";
-import Link from "next/link";
-import styles from "./CreditBadge.module.css";
-import { buildSignInUrl } from "@/lib/auth/signInUrl";
+import { useEffect, useState, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
+import { useI18n } from '@/i18n/I18nProvider'
+import Link from 'next/link'
+import styles from './CreditBadge.module.css'
+import { buildSignInUrl } from '@/lib/auth/signInUrl'
 
 interface CreditData {
-  isLoggedIn: boolean;
-  plan: string;
+  isLoggedIn: boolean
+  plan: string
   credits: {
-    monthly: number;
-    used: number;
-    bonus: number;
-    remaining: number;
-    total?: number;
-  };
+    monthly: number
+    used: number
+    bonus: number
+    remaining: number
+    total?: number
+  }
 }
 
 interface CreditBadgeProps {
-  variant?: "default" | "compact" | "minimal";
-  showPlan?: boolean;
-  className?: string;
+  variant?: 'default' | 'compact' | 'minimal'
+  showPlan?: boolean
+  className?: string
 }
 
 export default function CreditBadge({
-  variant = "default",
+  variant = 'default',
   showPlan = false,
-  className = "",
+  className = '',
 }: CreditBadgeProps) {
-  const { data: session, status } = useSession();
-  const { t } = useI18n();
-  const signInUrl = buildSignInUrl();
-  const [creditData, setCreditData] = useState<CreditData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const sessionLoading = status === "loading";
+  const { data: session, status } = useSession()
+  const { t } = useI18n()
+  const signInUrl = buildSignInUrl()
+  const [creditData, setCreditData] = useState<CreditData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const sessionLoading = status === 'loading'
 
   const fetchCredits = useCallback(async () => {
-    if (status === "loading") {return;}
+    if (status === 'loading') {
+      return
+    }
 
     if (!session?.user) {
-      setCreditData(null);
-      setError(false);
-      setLoading(false);
-      return;
+      setCreditData(null)
+      setError(false)
+      setLoading(false)
+      return
     }
 
     try {
-      setLoading(true);
-      const res = await fetch("/api/me/credits");
-      if (!res.ok) {throw new Error("Failed to fetch");}
-      const data = await res.json();
-      setCreditData(data);
-      setError(false);
+      setLoading(true)
+      const res = await fetch('/api/me/credits')
+      if (!res.ok) {
+        throw new Error('Failed to fetch')
+      }
+      const data = await res.json()
+      setCreditData(data)
+      setError(false)
     } catch {
-      setError(true);
+      setError(true)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [session, status]);
+  }, [session, status])
 
   useEffect(() => {
-    fetchCredits();
-  }, [fetchCredits]);
+    fetchCredits()
+  }, [fetchCredits])
 
   // Listen for credit updates (custom event)
   useEffect(() => {
     const handleCreditUpdate = () => {
-      fetchCredits();
-    };
+      fetchCredits()
+    }
 
-    window.addEventListener("credit-update", handleCreditUpdate);
-    return () => window.removeEventListener("credit-update", handleCreditUpdate);
-  }, [fetchCredits]);
+    window.addEventListener('credit-update', handleCreditUpdate)
+    return () => window.removeEventListener('credit-update', handleCreditUpdate)
+  }, [fetchCredits])
 
   // Not logged in - show login prompt
   if (sessionLoading) {
-    if (variant === "minimal") {return null;}
+    if (variant === 'minimal') {
+      return null
+    }
     return (
       <div className={`${styles.badge} ${styles.loading} ${className}`}>
         <span className={styles.spinner} />
       </div>
-    );
+    )
   }
 
   // Not logged in - show login prompt
   if (!session?.user) {
-    if (variant === "minimal") {return null;}
+    if (variant === 'minimal') {
+      return null
+    }
     return (
       <Link href={signInUrl} className={`${styles.badge} ${styles.login} ${className}`}>
         <span className={styles.icon}>🔑</span>
-        <span className={styles.loginText}>{t("common.login") || "Login"}</span>
+        <span className={styles.loginText}>{t('common.login') || 'Login'}</span>
       </Link>
-    );
+    )
   }
 
   // Loading state
@@ -103,68 +111,82 @@ export default function CreditBadge({
       <div className={`${styles.badge} ${styles.loading} ${className}`}>
         <span className={styles.spinner} />
       </div>
-    );
+    )
   }
 
   // Error state
-  if (error || !creditData) {
+  if (error || !creditData || !creditData.credits) {
     return (
       <div className={`${styles.badge} ${styles.error} ${className}`}>
         <span className={styles.icon}>⚠️</span>
       </div>
-    );
+    )
   }
 
-  const { credits, plan } = creditData;
+  const { credits, plan } = creditData
   // API에서 total을 반환하면 사용, 아니면 fallback으로 monthly + bonus
-  const totalCredits = credits.total ?? (credits.monthly + credits.bonus);
-  const remaining = credits.remaining;
-  const percentage = totalCredits > 0 ? (remaining / totalCredits) * 100 : 0;
+  const totalCredits = credits.total ?? credits.monthly + credits.bonus ?? 0
+  const remaining = credits.remaining ?? 0
+  const percentage = totalCredits > 0 ? (remaining / totalCredits) * 100 : 0
 
   // Determine color based on remaining percentage
   const getColorClass = () => {
-    if (percentage > 50) {return styles.good;}
-    if (percentage > 20) {return styles.warning;}
-    return styles.low;
-  };
+    if (percentage > 50) {
+      return styles.good
+    }
+    if (percentage > 20) {
+      return styles.warning
+    }
+    return styles.low
+  }
 
   // 결제 후 돌아올 URL을 저장하면서 pricing 페이지로 이동
   const handleClick = () => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       // 현재 페이지 경로 저장 (pricing 페이지 제외)
-      const currentPath = window.location.pathname;
-      if (currentPath !== "/pricing" && currentPath !== "/success") {
-        localStorage.setItem("checkout_return_url", currentPath);
+      const currentPath = window.location.pathname
+      if (currentPath !== '/pricing' && currentPath !== '/success') {
+        localStorage.setItem('checkout_return_url', currentPath)
       }
     }
-  };
+  }
 
-  if (variant === "minimal") {
+  if (variant === 'minimal') {
     return (
-      <Link href="/pricing" onClick={handleClick} className={`${styles.badgeMinimal} ${getColorClass()} ${className}`}>
+      <Link
+        href="/pricing"
+        onClick={handleClick}
+        className={`${styles.badgeMinimal} ${getColorClass()} ${className}`}
+      >
         <span className={styles.creditIcon}>✦</span>
         <span className={styles.creditCount}>{remaining}</span>
       </Link>
-    );
+    )
   }
 
-  if (variant === "compact") {
+  if (variant === 'compact') {
     return (
-      <Link href="/pricing" onClick={handleClick} className={`${styles.badge} ${styles.compact} ${getColorClass()} ${className}`}>
+      <Link
+        href="/pricing"
+        onClick={handleClick}
+        className={`${styles.badge} ${styles.compact} ${getColorClass()} ${className}`}
+      >
         <span className={styles.creditIcon}>✦</span>
         <span className={styles.creditText}>
           {remaining}/{totalCredits}
         </span>
       </Link>
-    );
+    )
   }
 
   return (
-    <Link href="/pricing" onClick={handleClick} className={`${styles.badge} ${getColorClass()} ${className}`}>
+    <Link
+      href="/pricing"
+      onClick={handleClick}
+      className={`${styles.badge} ${getColorClass()} ${className}`}
+    >
       <div className={styles.content}>
-        {showPlan && (
-          <span className={styles.planBadge}>{plan.toUpperCase()}</span>
-        )}
+        {showPlan && <span className={styles.planBadge}>{plan.toUpperCase()}</span>}
         <div className={styles.creditInfo}>
           <span className={styles.creditIcon}>✦</span>
           <span className={styles.creditText}>
@@ -174,19 +196,16 @@ export default function CreditBadge({
           </span>
         </div>
         <div className={styles.progressBar}>
-          <div
-            className={styles.progressFill}
-            style={{ width: `${percentage}%` }}
-          />
+          <div className={styles.progressFill} style={{ width: `${percentage}%` }} />
         </div>
       </div>
     </Link>
-  );
+  )
 }
 
 // Helper function to trigger credit update across components
 export function triggerCreditUpdate() {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("credit-update"));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('credit-update'))
   }
 }

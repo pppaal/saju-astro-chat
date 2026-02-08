@@ -578,52 +578,100 @@ describe('Dream Stream API - afterStream Function', () => {
 // Tests for Validation Schema
 // ===================================================================
 describe('Dream Stream API - Validation', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
+  // Import the real schema using vi.importActual to bypass mocks
+  let dreamStreamSchema: any
+
+  beforeAll(async () => {
+    const realModule =
+      await vi.importActual<typeof import('@/lib/api/zodValidation')>('@/lib/api/zodValidation')
+    dreamStreamSchema = realModule.dreamStreamSchema
   })
 
   describe('dreamStreamSchema', () => {
-    // Note: The actual schema is mocked, so these tests document expected behavior
-    // rather than testing the real schema implementation
     it('should accept valid dream text', () => {
-      // The schema requires min 5 characters, max 5000
-      // This test documents the expected validation behavior
-      expect(true).toBe(true)
+      const result = dreamStreamSchema.safeParse({
+        dreamText: 'I dreamed of flying over the ocean.',
+        locale: 'ko',
+      })
+      expect(result.success).toBe(true)
     })
 
     it('should reject dream text shorter than minimum length', () => {
-      // The schema requires min 5 characters
-      expect(true).toBe(true)
+      const result = dreamStreamSchema.safeParse({
+        dreamText: 'Hi', // Too short (< 5 chars)
+        locale: 'ko',
+      })
+      expect(result.success).toBe(false)
     })
 
     it('should reject dream text longer than maximum length', () => {
-      // The schema allows max 5000 characters
-      expect(true).toBe(true)
+      const result = dreamStreamSchema.safeParse({
+        dreamText: 'A'.repeat(5001), // Too long (> 5000 chars)
+        locale: 'ko',
+      })
+      expect(result.success).toBe(false)
     })
 
     it('should accept valid locale values', () => {
-      // ko and en are valid
-      expect(true).toBe(true)
+      const resultKo = dreamStreamSchema.safeParse({
+        dreamText: 'I dreamed of flying.',
+        locale: 'ko',
+      })
+      expect(resultKo.success).toBe(true)
+
+      const resultEn = dreamStreamSchema.safeParse({
+        dreamText: 'I dreamed of flying.',
+        locale: 'en',
+      })
+      expect(resultEn.success).toBe(true)
     })
 
     it('should reject invalid locale values', () => {
-      // Other locales should fail
-      expect(true).toBe(true)
+      const result = dreamStreamSchema.safeParse({
+        dreamText: 'I dreamed of flying.',
+        locale: 'fr', // Invalid locale
+      })
+      expect(result.success).toBe(false)
     })
 
     it('should validate array fields with max length constraints', () => {
-      // symbols, emotions, themes, context have max 50 items
-      expect(true).toBe(true)
+      // 51 items should fail (max is 50)
+      const manySymbols = Array.from({ length: 51 }, (_, i) => `symbol${i}`)
+      const result = dreamStreamSchema.safeParse({
+        dreamText: 'I dreamed of flying.',
+        symbols: manySymbols,
+      })
+      expect(result.success).toBe(false)
     })
 
     it('should validate string items in arrays with max length', () => {
-      // Each string should be max 120 characters
-      expect(true).toBe(true)
+      const result = dreamStreamSchema.safeParse({
+        dreamText: 'I dreamed of flying.',
+        symbols: ['A'.repeat(121)], // String too long (> 120 chars)
+      })
+      expect(result.success).toBe(false)
     })
 
     it('should validate birth object structure', () => {
-      // date, time, timezone, latitude, longitude, gender
-      expect(true).toBe(true)
+      const result = dreamStreamSchema.safeParse({
+        dreamText: 'I dreamed of flying.',
+        birth: {
+          date: '1990-05-15',
+          time: '10:30',
+          timezone: 'Asia/Seoul',
+          latitude: 37.5665,
+          longitude: 126.978,
+          gender: 'male',
+        },
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it('should allow optional birth field', () => {
+      const result = dreamStreamSchema.safeParse({
+        dreamText: 'I dreamed of flying.',
+      })
+      expect(result.success).toBe(true)
     })
   })
 })

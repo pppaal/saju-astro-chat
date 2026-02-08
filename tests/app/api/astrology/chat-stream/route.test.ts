@@ -1315,41 +1315,93 @@ describe('Astrology Chat Stream API - Authentication', () => {
 // Tests for Zod Schema Validation
 // ===================================================================
 describe('Astrology Chat Stream API - Schema Validation', () => {
-  // Note: The actual schema is mocked, so these tests document expected behavior
-  beforeEach(() => {
-    vi.clearAllMocks()
+  // Import the real schema using vi.importActual to bypass mocks
+  let astrologyChatStreamSchema: any
+
+  beforeAll(async () => {
+    const realModule =
+      await vi.importActual<typeof import('@/lib/api/zodValidation')>('@/lib/api/zodValidation')
+    astrologyChatStreamSchema = realModule.astrologyChatStreamSchema
   })
 
   describe('astrologyChatStreamSchema', () => {
     it('should require messages array with at least 1 message', () => {
-      // Schema requires min 1 message
-      // This documents the expected validation behavior
-      expect(true).toBe(true)
+      const result = astrologyChatStreamSchema.safeParse({
+        messages: [],
+        locale: 'ko',
+      })
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(
+          result.error.issues.some((i: { path: (string | number)[] }) =>
+            i.path.includes('messages')
+          )
+        ).toBe(true)
+      }
     })
 
     it('should limit messages array to 100 max', () => {
-      // Schema allows max 100 messages
-      expect(true).toBe(true)
+      const manyMessages = Array.from({ length: 101 }, (_, i) => ({
+        role: 'user',
+        content: `Message ${i}`,
+      }))
+      const result = astrologyChatStreamSchema.safeParse({
+        messages: manyMessages,
+        locale: 'ko',
+      })
+      expect(result.success).toBe(false)
     })
 
     it('should accept valid locale values (ko, en)', () => {
-      // ko and en are valid
-      expect(true).toBe(true)
+      const resultKo = astrologyChatStreamSchema.safeParse({
+        messages: [{ role: 'user', content: 'Hello' }],
+        locale: 'ko',
+      })
+      expect(resultKo.success).toBe(true)
+
+      const resultEn = astrologyChatStreamSchema.safeParse({
+        messages: [{ role: 'user', content: 'Hello' }],
+        locale: 'en',
+      })
+      expect(resultEn.success).toBe(true)
     })
 
     it('should accept optional birthData as record', () => {
-      // birthData is optional record
-      expect(true).toBe(true)
+      const result = astrologyChatStreamSchema.safeParse({
+        messages: [{ role: 'user', content: 'Hello' }],
+        birthData: {
+          birthDate: '1990-05-15',
+          birthTime: '14:30',
+          latitude: 37.5,
+          longitude: 126.9,
+        },
+      })
+      expect(result.success).toBe(true)
     })
 
     it('should accept optional chartData as record', () => {
-      // chartData is optional record
-      expect(true).toBe(true)
+      const result = astrologyChatStreamSchema.safeParse({
+        messages: [{ role: 'user', content: 'Hello' }],
+        chartData: {
+          sunSign: 'Taurus',
+          moonSign: 'Cancer',
+          ascendant: 'Leo',
+        },
+      })
+      expect(result.success).toBe(true)
     })
 
     it('should validate message structure (role, content)', () => {
-      // Each message should have role and content
-      expect(true).toBe(true)
+      const result = astrologyChatStreamSchema.safeParse({
+        messages: [{ role: 'user', content: 'Hello' }],
+      })
+      expect(result.success).toBe(true)
+
+      // Missing content should fail
+      const resultMissingContent = astrologyChatStreamSchema.safeParse({
+        messages: [{ role: 'user' }],
+      })
+      expect(resultMissingContent.success).toBe(false)
     })
   })
 })

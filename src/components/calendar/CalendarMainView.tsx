@@ -27,8 +27,6 @@ interface CalendarMainViewProps {
   onPrevMonth: () => void
   onNextMonth: () => void
   onGoToToday: () => void
-  onToggleTheme: () => void
-  onEditBirthInfo: () => void
   onSaveDate: () => void
   onUnsaveDate: () => void
 }
@@ -79,7 +77,6 @@ const CalendarMainView = memo(function CalendarMainView({
   onPrevMonth,
   onNextMonth,
   onGoToToday,
-  onEditBirthInfo,
   onSaveDate,
   onUnsaveDate,
 }: CalendarMainViewProps) {
@@ -98,7 +95,7 @@ const CalendarMainView = memo(function CalendarMainView({
       return null
     }
 
-    const result = { total: 0, grade0: 0, grade1: 0, grade2: 0, grade3: 0, grade4: 0, grade5: 0 }
+    const result = { total: 0, grade0: 0, grade1: 0, grade2: 0, grade3: 0, grade4: 0 }
     for (const d of data.allDates) {
       const dateYear = new Date(d.date).getFullYear()
       if (dateYear === year) {
@@ -113,8 +110,6 @@ const CalendarMainView = memo(function CalendarMainView({
           result.grade3++
         } else if (d.grade === 4) {
           result.grade4++
-        } else if (d.grade === 5) {
-          result.grade5++
         }
       }
     }
@@ -254,6 +249,11 @@ const CalendarMainView = memo(function CalendarMainView({
       {/* Header */}
       <div className={styles.calendarHeader}>
         <div className={styles.headerTop}>
+          <div className={styles.headerLeft}>
+            <button className={styles.backBtn} onClick={() => window.history.back()}>
+              <span>←</span>
+            </button>
+          </div>
           <div className={styles.headerTitleSection}>
             <div className={styles.calendarIconWrapper}>
               <span className={styles.calendarIcon}>📅</span>
@@ -269,12 +269,7 @@ const CalendarMainView = memo(function CalendarMainView({
               </p>
             </div>
           </div>
-          <div className={styles.headerActions}>
-            <button className={styles.editBirthBtn} onClick={onEditBirthInfo}>
-              <span>✏️</span>
-              <span>{locale === 'ko' ? '수정' : 'Edit'}</span>
-            </button>
-          </div>
+          <div className={styles.headerRight}>{/* Placeholder for symmetry */}</div>
         </div>
 
         {/* Year Summary Badges */}
@@ -282,54 +277,52 @@ const CalendarMainView = memo(function CalendarMainView({
           <div className={styles.summaryBadges}>
             <span
               className={styles.summaryBadge}
-              title={locale === 'ko' ? '최고의 날 (0등급)' : 'Best Days (grade 0)'}
+              title={locale === 'ko' ? '최고의 날 (68점 이상)' : 'Best Days (68+ points)'}
             >
               <span className={styles.badgeEmoji}>🌟</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '최고' : 'Best'}</span>
               <span className={styles.badgeCount}>
-                {locale === 'ko' ? `${yearSummary.grade0}일` : `${yearSummary.grade0} days`}
+                {locale === 'ko' ? `${yearSummary.grade0}일` : `${yearSummary.grade0}d`}
               </span>
             </span>
             <span
               className={styles.summaryBadge}
-              title={locale === 'ko' ? '좋은 날 (1~2등급)' : 'Good Days (grade 1-2)'}
+              title={locale === 'ko' ? '좋은 날 (62-67점)' : 'Good Days (62-67 points)'}
             >
               <span className={styles.badgeEmoji}>✨</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '좋음' : 'Good'}</span>
               <span className={styles.badgeCount}>
-                {locale === 'ko'
-                  ? `${yearSummary.grade1 + yearSummary.grade2}일`
-                  : `${yearSummary.grade1 + yearSummary.grade2} days`}
+                {locale === 'ko' ? `${yearSummary.grade1}일` : `${yearSummary.grade1}d`}
               </span>
             </span>
             <span
               className={styles.summaryBadge}
-              title={locale === 'ko' ? '보통 날 (3등급)' : 'Normal Days (grade 3)'}
+              title={locale === 'ko' ? '보통 날 (42-61점)' : 'Normal Days (42-61 points)'}
             >
               <span className={styles.badgeEmoji}>◆</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '보통' : 'Normal'}</span>
               <span className={styles.badgeCount}>
-                {locale === 'ko' ? `${yearSummary.grade3}일` : `${yearSummary.grade3} days`}
+                {locale === 'ko' ? `${yearSummary.grade2}일` : `${yearSummary.grade2}d`}
               </span>
             </span>
             <span
               className={`${styles.summaryBadge} ${styles.cautionBadge}`}
-              title={locale === 'ko' ? '안좋은 날 (4등급)' : 'Bad Days (grade 4)'}
+              title={locale === 'ko' ? '안좋은 날 (28-41점)' : 'Bad Days (28-41 points)'}
             >
               <span className={styles.badgeEmoji}>⚠️</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '안좋음' : 'Bad'}</span>
               <span className={styles.badgeCount}>
-                {locale === 'ko' ? `${yearSummary.grade4}일` : `${yearSummary.grade4} days`}
+                {locale === 'ko' ? `${yearSummary.grade3}일` : `${yearSummary.grade3}d`}
               </span>
             </span>
             <span
               className={`${styles.summaryBadge} ${styles.worstBadge}`}
-              title={locale === 'ko' ? '최악의 날 (5등급)' : 'Worst Days (grade 5)'}
+              title={locale === 'ko' ? '최악의 날 (28점 미만)' : 'Worst Days (under 28 points)'}
             >
               <span className={styles.badgeEmoji}>☠️</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '최악' : 'Worst'}</span>
               <span className={styles.badgeCount}>
-                {locale === 'ko' ? `${yearSummary.grade5}일` : `${yearSummary.grade5} days`}
+                {locale === 'ko' ? `${yearSummary.grade4}일` : `${yearSummary.grade4}d`}
               </span>
             </span>
           </div>
@@ -362,22 +355,25 @@ const CalendarMainView = memo(function CalendarMainView({
       </div>
 
       {/* Category Filter */}
-      <div className={styles.filters}>
-        <button
-          className={`${styles.filterBtn} ${activeCategory === 'all' ? styles.active : ''}`}
-          onClick={() => onCategoryChange('all')}
-        >
-          {locale === 'ko' ? '전체' : 'All'}
-        </button>
-        {CATEGORIES.map((cat) => (
+      <div className={styles.filtersSection}>
+        <span className={styles.filtersLabel}>{locale === 'ko' ? '테마별' : 'By Theme'}</span>
+        <div className={styles.filters}>
           <button
-            key={cat}
-            className={`${styles.filterBtn} ${activeCategory === cat ? styles.active : ''}`}
-            onClick={() => onCategoryChange(cat)}
+            className={`${styles.filterBtn} ${activeCategory === 'all' ? styles.active : ''}`}
+            onClick={() => onCategoryChange('all')}
           >
-            {CATEGORY_EMOJI[cat]} {getCategoryLabel(cat, locale)}
+            {locale === 'ko' ? '전체' : 'All'}
           </button>
-        ))}
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              className={`${styles.filterBtn} ${activeCategory === cat ? styles.active : ''}`}
+              onClick={() => onCategoryChange(cat)}
+            >
+              {CATEGORY_EMOJI[cat]} {getCategoryLabel(cat, locale)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Calendar Grid */}

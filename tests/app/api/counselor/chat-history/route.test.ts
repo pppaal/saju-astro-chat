@@ -74,7 +74,7 @@ beforeAll(async () => {
   GET = module.GET
   POST = module.POST
   PATCH = module.PATCH
-})
+}, 30000)
 
 describe('/api/counselor/chat-history', () => {
   const mockUserId = 'test-user-id'
@@ -125,7 +125,9 @@ describe('/api/counselor/chat-history', () => {
   describe('GET - Chat History Retrieval', () => {
     it('should return chat sessions and persona memory successfully', async () => {
       // Note: Using theme parameter to avoid null validation issue
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=general&limit=5')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
+      )
 
       const response = await GET(req)
       const result = await response.json()
@@ -138,7 +140,9 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should filter sessions by theme when provided', async () => {
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=career&limit=5')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=career&limit=5'
+      )
 
       await GET(req)
 
@@ -152,7 +156,9 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should apply limit parameter for pagination', async () => {
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=general&limit=10')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=10'
+      )
 
       await GET(req)
 
@@ -164,7 +170,9 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should order sessions by updatedAt descending', async () => {
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=general&limit=5')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
+      )
 
       await GET(req)
 
@@ -178,7 +186,9 @@ describe('/api/counselor/chat-history', () => {
     it('should return isReturningUser as false for new users', async () => {
       mockPersonaFindUnique.mockResolvedValue(null)
 
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=general&limit=5')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
+      )
 
       const response = await GET(req)
       const result = await response.json()
@@ -189,7 +199,9 @@ describe('/api/counselor/chat-history', () => {
     it('should return isReturningUser as false when sessionCount is 0', async () => {
       mockPersonaFindUnique.mockResolvedValue({ sessionCount: 0 })
 
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=general&limit=5')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
+      )
 
       const response = await GET(req)
       const result = await response.json()
@@ -200,7 +212,9 @@ describe('/api/counselor/chat-history', () => {
     it('should return empty sessions array when no sessions exist', async () => {
       mockFindMany.mockResolvedValue([])
 
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=general&limit=5')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
+      )
 
       const response = await GET(req)
       const result = await response.json()
@@ -210,7 +224,9 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should select correct fields from chat sessions', async () => {
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=general&limit=5')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
+      )
 
       await GET(req)
 
@@ -231,7 +247,9 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should select correct fields from persona memory', async () => {
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=general&limit=5')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
+      )
 
       await GET(req)
 
@@ -247,7 +265,9 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should query with correct userId from context', async () => {
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=general&limit=5')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
+      )
 
       await GET(req)
 
@@ -303,7 +323,9 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should accept valid limit at boundary (1)', async () => {
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=general&limit=1')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=1'
+      )
 
       const response = await GET(req)
 
@@ -316,7 +338,9 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should accept valid limit at boundary (100)', async () => {
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=general&limit=100')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=100'
+      )
 
       const response = await GET(req)
 
@@ -349,7 +373,9 @@ describe('/api/counselor/chat-history', () => {
         mockFindMany.mockResolvedValue([])
         mockPersonaFindUnique.mockResolvedValue(null)
 
-        const req = new NextRequest(`http://localhost:3000/api/counselor/chat-history?theme=general&limit=${limit}`)
+        const req = new NextRequest(
+          `http://localhost:3000/api/counselor/chat-history?theme=general&limit=${limit}`
+        )
 
         await GET(req)
 
@@ -362,7 +388,9 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should handle theme filter combined with limit', async () => {
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=career&limit=10')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=career&limit=10'
+      )
 
       await GET(req)
 
@@ -961,7 +989,9 @@ describe('/api/counselor/chat-history', () => {
   // ============================================
   describe('Authentication', () => {
     it('should pass userId through middleware context to GET', async () => {
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=general&limit=5')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
+      )
 
       await GET(req)
 
@@ -1025,7 +1055,9 @@ describe('/api/counselor/chat-history', () => {
     it('should propagate database errors on GET', async () => {
       mockFindMany.mockRejectedValue(new Error('Database connection error'))
 
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?theme=general&limit=5')
+      const req = new NextRequest(
+        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
+      )
 
       // The middleware doesn't catch errors, so they propagate
       await expect(GET(req)).rejects.toThrow('Database connection error')

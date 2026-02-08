@@ -28,6 +28,13 @@ except ImportError:
     REDIS_AVAILABLE = False
     logger.warning("Redis not installed. Caching disabled.")
 
+# Upstash Redis support
+try:
+    from upstash_redis import Redis as UpstashRedis
+    UPSTASH_AVAILABLE = True
+except ImportError:
+    UPSTASH_AVAILABLE = False
+
 
 class CircuitBreaker:
     """Simple circuit breaker for Redis resilience."""
@@ -125,31 +132,52 @@ class RedisCache:
 
     def _init_redis(self):
         """Initialize Redis connection with connection pooling."""
-        try:
-            redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        # Try Upstash Redis first (for serverless/production)
+        upstash_url = os.getenv("UPSTASH_REDIS_REST_URL")
+        upstash_token = os.getenv("UPSTASH_REDIS_REST_TOKEN")
 
-            # Create connection pool for better performance
-            self._pool = ConnectionPool.from_url(
-                redis_url,
-                max_connections=self.POOL_MAX_CONNECTIONS,
-                decode_responses=True,
-                socket_timeout=2,
-                socket_connect_timeout=2,
-                retry_on_timeout=True,
-                health_check_interval=30,  # Periodic health checks
-            )
+        if upstash_url and upstash_token and UPSTASH_AVAILABLE:
+            try:
+                self.client = UpstashRedis(url=upstash_url, token=upstash_token)
+                # Test connection
+                self.client.ping()
+                self.enabled = True
+                logger.info(f"✅ Upstash Redis connected: {upstash_url[:50]}...")
+                return
+            except Exception as e:
+                logger.warning(f"⚠️ Upstash Redis connection failed: {e}")
 
-            self.client = redis.Redis(connection_pool=self._pool)
+        # Fallback to standard Redis
+        if REDIS_AVAILABLE:
+            try:
+                redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
-            # Test connection
-            self.client.ping()
-            self.enabled = True
-            logger.info(f"✅ Redis connected with pool: {redis_url} (max={self.POOL_MAX_CONNECTIONS})")
-        except Exception as e:
-            logger.warning(f"⚠️ Redis connection failed: {e}. Using memory cache.")
-            self.client = None
-            self._pool = None
-            self.enabled = False
+                # Create connection pool for better performance
+                self._pool = ConnectionPool.from_url(
+                    redis_url,
+                    max_connections=self.POOL_MAX_CONNECTIONS,
+                    decode_responses=True,
+                    socket_timeout=2,
+                    socket_connect_timeout=2,
+                    retry_on_timeout=True,
+                    health_check_interval=30,  # Periodic health checks
+                )
+
+                self.client = redis.Redis(connection_pool=self._pool)
+
+                # Test connection
+                self.client.ping()
+                self.enabled = True
+                logger.info(f"✅ Redis connected with pool: {redis_url} (max={self.POOL_MAX_CONNECTIONS})")
+                return
+            except Exception as e:
+                logger.warning(f"⚠️ Redis connection failed: {e}")
+
+        # No Redis available
+        logger.warning("⚠️ No Redis available. Using memory cache.")
+        self.client = None
+        self._pool = None
+        self.enabled = False
 
     def _make_key(self, prefix: str, data: dict) -> str:
         """Generate cache key from data hash."""

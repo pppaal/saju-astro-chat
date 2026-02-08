@@ -598,31 +598,38 @@ describe('GET /api/admin/metrics/funnel', () => {
       })
     })
 
-    it('should handle prisma.user.count throwing', async () => {
+    // NOTE: The route uses Promise.allSettled for resilient error handling.
+    // Individual query failures use fallback values (0) instead of throwing.
+    // This is intentional behavior to ensure partial data is still returned.
+    it('should use fallback values when prisma.user.count throws', async () => {
       vi.mocked(prisma.user.count).mockRejectedValue(new Error('Database connection error'))
+      vi.mocked(prisma.subscription.count).mockResolvedValue(10)
+      vi.mocked(prisma.reading.count).mockResolvedValue(5)
 
       const req = createRequest()
       const response = await GET(req)
       const data = await response.json()
 
-      expect(response.status).toBe(500)
-      expect(data.error.code).toBe('INTERNAL_ERROR')
-      expect(logger.error).toHaveBeenCalledWith('[Funnel API Error]', expect.any(Error))
+      // Route uses Promise.allSettled - returns 200 with fallback values
+      expect(response.status).toBe(200)
+      expect(data.data.data.registrations.total).toBe(0) // Fallback value
     })
 
-    it('should handle prisma.subscription.count throwing', async () => {
+    it('should use fallback values when prisma.subscription.count throws', async () => {
       vi.mocked(prisma.user.count).mockResolvedValue(100)
       vi.mocked(prisma.subscription.count).mockRejectedValue(new Error('Subscription query failed'))
+      vi.mocked(prisma.reading.count).mockResolvedValue(5)
 
       const req = createRequest()
       const response = await GET(req)
       const data = await response.json()
 
-      expect(response.status).toBe(500)
-      expect(data.error.code).toBe('INTERNAL_ERROR')
+      // Route uses Promise.allSettled - returns 200 with fallback values
+      expect(response.status).toBe(200)
+      expect(data.data.data.subscriptions.active).toBe(0) // Fallback value
     })
 
-    it('should handle prisma.reading.count throwing', async () => {
+    it('should use fallback values when prisma.reading.count throws', async () => {
       vi.mocked(prisma.user.count).mockResolvedValue(100)
       vi.mocked(prisma.subscription.count).mockResolvedValue(50)
       vi.mocked(prisma.reading.count).mockRejectedValue(new Error('Reading query failed'))
@@ -631,8 +638,9 @@ describe('GET /api/admin/metrics/funnel', () => {
       const response = await GET(req)
       const data = await response.json()
 
-      expect(response.status).toBe(500)
-      expect(data.error.code).toBe('INTERNAL_ERROR')
+      // Route uses Promise.allSettled - returns 200 with fallback values
+      expect(response.status).toBe(200)
+      expect(data.data.data.engagement.readingsPerUser).toBe(0) // Fallback value
     })
 
     it('should handle isAdminUser throwing', async () => {
@@ -646,15 +654,18 @@ describe('GET /api/admin/metrics/funnel', () => {
       expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
-    it('should return consistent error message for internal errors', async () => {
+    it('should use fallback values for all failed queries', async () => {
       vi.mocked(prisma.user.count).mockRejectedValue(new Error('Unexpected error'))
+      vi.mocked(prisma.subscription.count).mockResolvedValue(0)
+      vi.mocked(prisma.reading.count).mockResolvedValue(0)
 
       const req = createRequest()
       const response = await GET(req)
       const data = await response.json()
 
-      expect(response.status).toBe(500)
-      expect(data.error.message).toBe('Internal server error')
+      // Route uses Promise.allSettled - returns 200 with fallback values
+      expect(response.status).toBe(200)
+      expect(data.data.data.registrations.total).toBe(0)
     })
   })
 

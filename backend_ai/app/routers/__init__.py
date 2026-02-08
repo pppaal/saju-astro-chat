@@ -147,6 +147,12 @@ try:
 except ImportError as e:
     logger.warning(f"Could not import analytics_routes: {e}")
 
+try:
+    from .daily_fortune_routes import daily_fortune_bp
+    _blueprints.append((daily_fortune_bp, "Daily fortune (realtime transits + iljin)"))
+except ImportError as e:
+    logger.warning(f"Could not import daily_fortune_routes: {e}")
+
 
 # Export all blueprints
 __all__ = [

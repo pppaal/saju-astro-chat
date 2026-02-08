@@ -19,6 +19,7 @@ vi.mock('@/lib/api/middleware', () => ({
     }
   }),
   createAuthenticatedGuard: vi.fn(() => ({})),
+  extractLocale: vi.fn(() => 'ko'),
 }))
 
 vi.mock('@/lib/db/prisma', () => ({
@@ -53,6 +54,14 @@ vi.mock('@/lib/api/zodValidation', () => ({
       return { success: true, data }
     }),
   },
+  createValidationErrorResponse: vi.fn((zodError: any) => {
+    const { NextResponse } = require('next/server')
+    const details = (zodError.issues || []).map((e: any) => ({
+      path: Array.isArray(e.path) ? e.path.join('.') : String(e.path),
+      message: e.message,
+    }))
+    return NextResponse.json({ error: 'validation_failed', details }, { status: 400 })
+  }),
 }))
 
 // ---------------------------------------------------------------------------

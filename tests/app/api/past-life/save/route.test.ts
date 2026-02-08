@@ -10,13 +10,18 @@ import { NextRequest, NextResponse } from 'next/server'
 vi.mock('@/lib/api/middleware', () => ({
   withApiMiddleware: vi.fn((handler: any, _options: any) => {
     return async (req: any) => {
-      const context = { userId: 'test-user-id', session: { user: { id: 'test-user-id' } } }
+      const context = {
+        userId: 'test-user-id',
+        session: { user: { id: 'test-user-id' } },
+        locale: 'ko',
+      }
       const result = await handler(req, context)
       if (result instanceof Response) return result
       return result
     }
   }),
   createAuthenticatedGuard: vi.fn(() => ({})),
+  extractLocale: vi.fn((req: any) => 'ko'),
 }))
 
 vi.mock('@/lib/db/prisma', () => ({
@@ -41,6 +46,20 @@ vi.mock('@/lib/api/zodValidation', () => ({
   pastLifeSaveRequestSchema: {
     safeParse: vi.fn(),
   },
+  createValidationErrorResponse: vi.fn((errors: any) => {
+    const { NextResponse } = require('next/server')
+    return NextResponse.json(
+      {
+        error: 'validation_failed',
+        details:
+          errors.issues?.map((e: any) => ({
+            path: Array.isArray(e.path) ? e.path.join('.') : String(e.path),
+            message: e.message,
+          })) || [],
+      },
+      { status: 400 }
+    )
+  }),
 }))
 
 vi.mock('@/lib/constants/http', () => ({
@@ -48,6 +67,35 @@ vi.mock('@/lib/constants/http', () => ({
     OK: 200,
     BAD_REQUEST: 400,
     SERVER_ERROR: 500,
+  },
+}))
+
+vi.mock('@/lib/api/errorHandler', () => ({
+  createErrorResponse: vi.fn((options: any) => {
+    const { NextResponse } = require('next/server')
+    const statusMap: Record<string, number> = {
+      BAD_REQUEST: 400,
+      DATABASE_ERROR: 500,
+      INTERNAL_ERROR: 500,
+    }
+    const status = statusMap[options.code] || 500
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: options.code,
+          message: options.message || 'An error occurred',
+          status,
+        },
+      },
+      { status }
+    )
+  }),
+  ErrorCodes: {
+    BAD_REQUEST: 'BAD_REQUEST',
+    DATABASE_ERROR: 'DATABASE_ERROR',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
   },
 }))
 
@@ -106,7 +154,8 @@ describe('/api/past-life/save', () => {
         const data = await response.json()
 
         expect(response.status).toBe(400)
-        expect(data.error).toBe('Invalid request body')
+        expect(data.error.code).toBe('BAD_REQUEST')
+        expect(data.error.message).toBe('Invalid request body')
       })
 
       it('should return 400 when request body is empty', async () => {
@@ -120,7 +169,8 @@ describe('/api/past-life/save', () => {
         const data = await response.json()
 
         expect(response.status).toBe(400)
-        expect(data.error).toBe('Invalid request body')
+        expect(data.error.code).toBe('BAD_REQUEST')
+        expect(data.error.message).toBe('Invalid request body')
       })
 
       it('should return 400 when body parsing throws error', async () => {
@@ -135,7 +185,8 @@ describe('/api/past-life/save', () => {
         const data = await response.json()
 
         expect(response.status).toBe(400)
-        expect(data.error).toBe('Invalid request body')
+        expect(data.error.code).toBe('BAD_REQUEST')
+        expect(data.error.message).toBe('Invalid request body')
       })
     })
 
@@ -448,7 +499,8 @@ describe('/api/past-life/save', () => {
         const data = await response.json()
 
         expect(response.status).toBe(500)
-        expect(data.error).toBe('Failed to save past life result')
+        expect(data.error.code).toBe('DATABASE_ERROR')
+        expect(data.error.message).toBe('Failed to save past life result')
         expect(logger.error).toHaveBeenCalledWith(
           '[PastLife Save] Failed to save:',
           expect.any(Error)
@@ -666,8 +718,8 @@ describe('/api/past-life/save', () => {
         const data = await response.json()
 
         expect(response.status).toBe(500)
-        expect(data.saved).toBe(false)
-        expect(data.error).toBe('Failed to fetch result')
+        expect(data.error.code).toBe('DATABASE_ERROR')
+        expect(data.error.message).toBe('Failed to fetch result')
         expect(logger.error).toHaveBeenCalledWith(
           '[PastLife Save] Failed to fetch:',
           expect.any(Error)
@@ -688,8 +740,8 @@ describe('/api/past-life/save', () => {
         const data = await response.json()
 
         expect(response.status).toBe(500)
-        expect(data.saved).toBe(false)
-        expect(data.error).toBe('Failed to fetch result')
+        expect(data.error.code).toBe('DATABASE_ERROR')
+        expect(data.error.message).toBe('Failed to fetch result')
       })
 
       it('should log error with proper message when query fails', async () => {

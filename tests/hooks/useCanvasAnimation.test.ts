@@ -223,7 +223,6 @@ describe('useCanvasAnimation', () => {
     it('should resume animation when document becomes visible', () => {
       Object.defineProperty(document, 'hidden', { configurable: true, value: true })
       renderHook(() => useCanvasAnimation(canvasRef))
-
       ;(window.requestAnimationFrame as ReturnType<typeof vi.fn>).mockClear()
 
       // Document becomes visible
@@ -383,7 +382,6 @@ describe('useCanvasAnimation', () => {
   describe('Performance optimizations', () => {
     it('should not animate when page is not visible', () => {
       Object.defineProperty(document, 'hidden', { value: true })
-
       ;(window.requestAnimationFrame as ReturnType<typeof vi.fn>).mockClear()
 
       renderHook(() => useCanvasAnimation(canvasRef))
@@ -449,8 +447,8 @@ describe('useCanvasAnimation', () => {
 
       rerender({ ref: newRef })
 
-      // Should handle the change without crashing
-      expect(true).toBe(true)
+      // Should handle the change without crashing - verify new canvas was used
+      expect(newCanvas.getContext).toHaveBeenCalled()
     })
   })
 })

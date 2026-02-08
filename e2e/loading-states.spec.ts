@@ -1,271 +1,246 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test'
 
-test.describe("Loading States & Transitions", () => {
-  test.describe("Page Loading States", () => {
-    test("should show loading indicator on slow pages", async ({ page }) => {
-      try {
-        await page.goto("/saju", { waitUntil: "domcontentloaded", timeout: 45000 });
+test.describe('Loading States & Transitions', () => {
+  test.describe('Page Loading States', () => {
+    test('should load saju page without hanging', async ({ page }) => {
+      const startTime = Date.now()
+      await page.goto('/saju', { waitUntil: 'domcontentloaded' })
 
-        const loadingIndicator = page.locator('[class*="loading"], [class*="spinner"], [class*="skeleton"]');
-        const count = await loadingIndicator.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
+      // Page should load within reasonable time
+      const loadTime = Date.now() - startTime
+      expect(loadTime).toBeLessThan(10000) // 10 seconds max
+
+      await expect(page.locator('body')).toBeVisible()
+    })
+
+    test('should load destiny-map page without hanging', async ({ page }) => {
+      const startTime = Date.now()
+      await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
+
+      const loadTime = Date.now() - startTime
+      expect(loadTime).toBeLessThan(10000)
+
+      await expect(page.locator('body')).toBeVisible()
+    })
+
+    test('should load homepage without hanging', async ({ page }) => {
+      const startTime = Date.now()
+      await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+      const loadTime = Date.now() - startTime
+      expect(loadTime).toBeLessThan(10000)
+
+      await expect(page.locator('body')).toBeVisible()
+    })
+  })
+
+  test.describe('Form Submission Loading', () => {
+    test('should show loading or handle form submit on saju page', async ({ page }) => {
+      await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+
+      const submitButton = page.locator('button[type="submit"]').first()
+      if ((await submitButton.count()) > 0) {
+        const buttonText = await submitButton.textContent()
+        await submitButton.click()
+
+        // Should either show loading, validation error, or stay on page
+        await expect(page.locator('body')).toBeVisible()
+
+        // Button text may change during loading
+        await page.waitForTimeout(300)
+        await expect(page.locator('body')).toBeVisible()
       }
-    });
+    })
 
-    test("should show skeleton loading on content pages", async ({ page }) => {
-      try {
-        await page.goto("/destiny-map", { waitUntil: "domcontentloaded", timeout: 45000 });
+    test('should handle form submit on contact page', async ({ page }) => {
+      await page.goto('/contact', { waitUntil: 'domcontentloaded' })
 
-        const skeleton = page.locator('[class*="skeleton"], [class*="placeholder"]');
-        const count = await skeleton.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
+      const submitButton = page.locator('button[type="submit"]').first()
+      if ((await submitButton.count()) > 0) {
+        await submitButton.click()
+
+        // Should handle gracefully (show validation or loading)
+        await expect(page.locator('body')).toBeVisible()
       }
-    });
+    })
+  })
 
-    test("should show progress bar on navigation", async ({ page }) => {
-      try {
-        await page.goto("/", { waitUntil: "domcontentloaded", timeout: 45000 });
+  test.describe('Chat Loading States', () => {
+    test('should load counselor page with chat interface', async ({ page }) => {
+      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
 
-        const progressBar = page.locator('[class*="progress"], [class*="nprogress"], [class*="loading-bar"]');
-        const count = await progressBar.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
+      // Page should have chat elements
+      await expect(page.locator('body')).toBeVisible()
+
+      // Look for chat input
+      const chatInput = page.locator('textarea, input[type="text"]')
+      if ((await chatInput.count()) > 0) {
+        await expect(chatInput.first()).toBeVisible()
       }
-    });
-  });
+    })
 
-  test.describe("Form Submission Loading", () => {
-    test("should show loading state on form submit", async ({ page }) => {
-      try {
-        await page.goto("/saju", { waitUntil: "domcontentloaded", timeout: 45000 });
+    test('should load saju counselor page with chat interface', async ({ page }) => {
+      await page.goto('/saju/counselor', { waitUntil: 'domcontentloaded' })
 
-        const submitButton = page.locator('button[type="submit"]').first();
-        if ((await submitButton.count()) > 0) {
-          await submitButton.click();
-          await page.waitForTimeout(300);
+      await expect(page.locator('body')).toBeVisible()
 
-          const loadingState = page.locator('[class*="loading"], [disabled], [class*="submitting"]');
-          const count = await loadingState.count();
-          expect(count >= 0).toBe(true);
-        }
-      } catch {
-        expect(true).toBe(true);
+      // Should have message area or chat elements
+      const chatElements = page.locator('[class*="chat"], [class*="message"], textarea')
+      const count = await chatElements.count()
+      expect(count).toBeGreaterThan(0)
+    })
+  })
+
+  test.describe('Image Loading', () => {
+    test('should load tarot page with images', async ({ page }) => {
+      await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
+
+      // Check if images exist on the page
+      const images = page.locator('img')
+      const imageCount = await images.count()
+
+      // Tarot page should have images
+      if (imageCount > 0) {
+        // First image should be visible
+        await expect(images.first()).toBeVisible()
       }
-    });
+    })
 
-    test("should disable button during submission", async ({ page }) => {
-      try {
-        await page.goto("/contact", { waitUntil: "domcontentloaded", timeout: 45000 });
+    test('should load homepage with images', async ({ page }) => {
+      await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-        const submitButton = page.locator('button[type="submit"]').first();
-        if ((await submitButton.count()) > 0) {
-          await submitButton.click();
+      const images = page.locator('img')
+      const imageCount = await images.count()
 
-          const isDisabled = await submitButton.isDisabled();
-          expect(typeof isDisabled).toBe("boolean");
-        }
-      } catch {
-        expect(true).toBe(true);
+      if (imageCount > 0) {
+        // Images should not have broken src
+        const firstImage = images.first()
+        const src = await firstImage.getAttribute('src')
+        expect(src).toBeTruthy()
       }
-    });
-  });
+    })
+  })
 
-  test.describe("Chat Loading States", () => {
-    test("should show typing indicator in chat", async ({ page }) => {
-      try {
-        await page.goto("/destiny-map/counselor", { waitUntil: "domcontentloaded", timeout: 45000 });
+  test.describe('Data Fetching States', () => {
+    test('should load myjourney history page', async ({ page }) => {
+      await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
 
-        const typingIndicator = page.locator('[class*="typing"], [class*="dot"], [class*="thinking"]');
-        const count = await typingIndicator.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
+      // Should show content (list or empty state)
+      await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
+    })
+
+    test('should load tarot history page', async ({ page }) => {
+      await page.goto('/tarot/history', { waitUntil: 'domcontentloaded' })
+
+      await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
+    })
+  })
+
+  test.describe('Transition Animations', () => {
+    test('should navigate between pages smoothly', async ({ page }) => {
+      await page.goto('/', { waitUntil: 'domcontentloaded' })
+      await expect(page.locator('body')).toBeVisible()
+
+      await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+      await expect(page.locator('body')).toBeVisible()
+
+      await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
+      await expect(page.locator('body')).toBeVisible()
+
+      // All pages should load without errors
+      expect(page.url()).toContain('tarot')
+    })
+
+    test('should handle back navigation gracefully', async ({ page }) => {
+      await page.goto('/', { waitUntil: 'domcontentloaded' })
+      await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+
+      await page.goBack()
+      await expect(page.locator('body')).toBeVisible()
+    })
+  })
+
+  test.describe('Error States', () => {
+    test('should handle 404 page gracefully', async ({ page }) => {
+      await page.goto('/nonexistent-page-xyz', { waitUntil: 'domcontentloaded' })
+
+      // Should show error page or redirect
+      await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(10)
+    })
+
+    test('should show meaningful content on 404', async ({ page }) => {
+      await page.goto('/this-page-does-not-exist', { waitUntil: 'domcontentloaded' })
+
+      const bodyText = await page.locator('body').textContent()
+
+      // Should have error message or navigation options
+      const hasErrorContent =
+        bodyText!.includes('404') ||
+        bodyText!.includes('찾을 수 없') ||
+        bodyText!.includes('Not Found') ||
+        bodyText!.includes('홈') ||
+        bodyText!.includes('Home') ||
+        bodyText!.length > 100
+      expect(hasErrorContent).toBe(true)
+    })
+  })
+
+  test.describe('Loading Mobile Experience', () => {
+    test('should load saju page on mobile viewport', async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 667 })
+      await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+
+      await expect(page.locator('body')).toBeVisible()
+
+      // Content should be visible
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
+    })
+
+    test('should be interactive on mobile', async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 667 })
+      await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
+
+      // Should be able to interact with page
+      const interactable = page.locator('button, a, input').first()
+      if ((await interactable.count()) > 0) {
+        await expect(interactable).toBeVisible()
       }
-    });
+    })
+  })
 
-    test("should show message sending state", async ({ page }) => {
-      try {
-        await page.goto("/destiny-map/counselor", { waitUntil: "domcontentloaded", timeout: 45000 });
+  test.describe('Scroll Behavior', () => {
+    test('should be scrollable on long pages', async ({ page }) => {
+      await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
 
-        const sendingState = page.locator('[class*="sending"], [class*="pending"]');
-        const count = await sendingState.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-  });
+      // Get initial scroll position
+      const initialScroll = await page.evaluate(() => window.scrollY)
 
-  test.describe("Image Loading", () => {
-    test("should show placeholder while images load", async ({ page }) => {
-      try {
-        await page.goto("/tarot", { waitUntil: "domcontentloaded", timeout: 45000 });
+      // Scroll down
+      await page.evaluate(() => window.scrollTo(0, 500))
 
-        const imagePlaceholder = page.locator('[class*="placeholder"], [class*="blur"], [class*="lazy"]');
-        const count = await imagePlaceholder.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
+      // Should have scrolled
+      const newScroll = await page.evaluate(() => window.scrollY)
 
-    test("should handle image load errors gracefully", async ({ page }) => {
-      try {
-        await page.goto("/tarot", { waitUntil: "domcontentloaded", timeout: 45000 });
+      // Content should still be visible after scroll
+      await expect(page.locator('body')).toBeVisible()
+    })
 
-        const errorHandler = page.locator('[class*="error"], [class*="fallback"]');
-        const count = await errorHandler.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-  });
+    test('should scroll to bottom on long page', async ({ page }) => {
+      await page.goto('/policy/privacy', { waitUntil: 'domcontentloaded' })
 
-  test.describe("Data Fetching States", () => {
-    test("should show loading on data fetch", async ({ page }) => {
-      try {
-        await page.goto("/myjourney/history", { waitUntil: "domcontentloaded", timeout: 45000 });
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
 
-        const dataLoading = page.locator('[class*="loading"], [class*="fetching"]');
-        const count = await dataLoading.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-
-    test("should show empty state when no data", async ({ page }) => {
-      try {
-        await page.goto("/myjourney/history", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const emptyState = page.locator('[class*="empty"], [class*="no-data"], [class*="placeholder"]');
-        const count = await emptyState.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-  });
-
-  test.describe("Transition Animations", () => {
-    test("should have smooth page transitions", async ({ page }) => {
-      try {
-        await page.goto("/", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const hasTransitions = await page.evaluate(() => {
-          const elements = document.querySelectorAll("*");
-          for (const el of elements) {
-            const style = window.getComputedStyle(el);
-            if (style.transition && style.transition !== "none" && style.transition !== "all 0s ease 0s") {
-              return true;
-            }
-          }
-          return false;
-        });
-
-        expect(typeof hasTransitions).toBe("boolean");
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-
-    test("should animate modal open/close", async ({ page }) => {
-      try {
-        await page.goto("/", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const modal = page.locator('[class*="modal"], [role="dialog"]');
-        const count = await modal.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-  });
-
-  test.describe("Error States", () => {
-    test("should show error state on failure", async ({ page }) => {
-      try {
-        await page.goto("/nonexistent-page", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const errorState = page.locator('[class*="error"], [class*="404"], main');
-        const count = await errorState.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-
-    test("should have retry option on error", async ({ page }) => {
-      try {
-        await page.goto("/nonexistent-page", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const retryButton = page.locator('button:has-text("다시"), button:has-text("Retry"), a[href="/"]');
-        const count = await retryButton.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-  });
-
-  test.describe("Loading Mobile Experience", () => {
-    test("should show mobile-optimized loading on mobile", async ({ page }) => {
-      try {
-        await page.setViewportSize({ width: 375, height: 667 });
-        await page.goto("/saju", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        await expect(page.locator("body")).toBeVisible();
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-
-    test("should not block UI during loading on mobile", async ({ page }) => {
-      try {
-        await page.setViewportSize({ width: 375, height: 667 });
-        await page.goto("/destiny-map", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        // Should be able to interact with page even during loading
-        const interactable = page.locator("button, a, input").first();
-        if ((await interactable.count()) > 0) {
-          await expect(interactable).toBeEnabled();
-        }
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-  });
-
-  test.describe("Infinite Scroll Loading", () => {
-    test("should show load more indicator", async ({ page }) => {
-      try {
-        await page.goto("/myjourney/history", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const loadMore = page.locator('[class*="load-more"], [class*="infinite"], button:has-text("더 보기")');
-        const count = await loadMore.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-
-    test("should trigger load on scroll", async ({ page }) => {
-      try {
-        await page.goto("/myjourney/history", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-        await page.waitForTimeout(500);
-
-        await expect(page.locator("body")).toBeVisible();
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-  });
-});
+      await expect(page.locator('body')).toBeVisible()
+    })
+  })
+})

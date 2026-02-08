@@ -24,7 +24,7 @@ describe.skip('Security: Environment Variable Validation (skipped - validateEnv 
   })
 
   it('placeholder - validateEnv module does not exist', () => {
-    expect(true).toBe(true)
+    // This entire describe block is skipped
   })
 })
 

@@ -22,6 +22,7 @@ vi.mock('@/lib/api/middleware', () => ({
   initializeApiContext: vi.fn(async () => ({ context: {}, error: null })),
   createAuthenticatedGuard: vi.fn(() => ({})),
   createSimpleGuard: vi.fn(() => ({})),
+  extractLocale: vi.fn((req: Request) => 'en'),
 }))
 
 vi.mock('next-auth/next', () => ({

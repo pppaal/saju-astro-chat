@@ -12,12 +12,13 @@ vi.mock('@/lib/cache/chart-cache-server', () => ({
 }))
 
 vi.mock('@/lib/api/middleware', () => ({
-  withApiMiddleware: (handler: Function) => async (req: NextRequest) => {
+  withApiMiddleware: (handler: Function, _options?: unknown) => async (req: NextRequest) => {
     const result = await handler(req)
+    // The handler returns apiSuccess or apiError responses directly
     return NextResponse.json(result)
   },
   apiSuccess: (data: unknown) => ({ success: true, data }),
-  apiError: (code: string, message: string) => ({ error: { code, message } }),
+  apiError: (code: string, message: string) => ({ success: false, error: { code, message } }),
   ErrorCodes: {
     VALIDATION_ERROR: 'VALIDATION_ERROR',
     INTERNAL_ERROR: 'INTERNAL_ERROR',
@@ -185,8 +186,7 @@ describe('POST /api/cache/chart', () => {
     mockSaveChartData.mockResolvedValue(true)
 
     const chartData = {
-      saju: { pillars: {} },
-      astro: { sun: {} },
+      calculatedAt: '2024-01-15T10:30:00Z',
     }
 
     const req = new NextRequest('http://localhost:3000/api/cache/chart', {
@@ -211,6 +211,10 @@ describe('POST /api/cache/chart', () => {
   it('should return error when save fails', async () => {
     mockSaveChartData.mockResolvedValue(false)
 
+    const chartData = {
+      calculatedAt: '2024-01-15T10:30:00Z',
+    }
+
     const req = new NextRequest('http://localhost:3000/api/cache/chart', {
       method: 'POST',
       body: JSON.stringify({
@@ -218,7 +222,7 @@ describe('POST /api/cache/chart', () => {
         birthTime: '10:00',
         latitude: 37.5,
         longitude: 127.0,
-        data: { saju: {} },
+        data: chartData,
       }),
     })
 
@@ -361,6 +365,10 @@ describe('POST /api/cache/chart', () => {
   it('should accept zero as valid latitude', async () => {
     mockSaveChartData.mockResolvedValue(true)
 
+    const chartData = {
+      calculatedAt: '2024-01-15T10:30:00Z',
+    }
+
     const req = new NextRequest('http://localhost:3000/api/cache/chart', {
       method: 'POST',
       body: JSON.stringify({
@@ -368,7 +376,7 @@ describe('POST /api/cache/chart', () => {
         birthTime: '10:00',
         latitude: 0,
         longitude: 0,
-        data: {},
+        data: chartData,
       }),
     })
 
@@ -376,7 +384,7 @@ describe('POST /api/cache/chart', () => {
     const data = await response.json()
 
     expect(data.success).toBe(true)
-    expect(mockSaveChartData).toHaveBeenCalledWith('1990-01-01', '10:00', 0, 0, {})
+    expect(mockSaveChartData).toHaveBeenCalledWith('1990-01-01', '10:00', 0, 0, chartData)
   })
 })
 

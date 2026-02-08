@@ -53,6 +53,57 @@ vi.mock('@/lib/api/zodValidation', () => ({
       return { success: true, data: { id: data.id } }
     }),
   },
+  createValidationErrorResponse: vi.fn(
+    (error: { issues: Array<{ path: string[]; message: string }> }, options?: any) => {
+      const { NextResponse } = require('next/server')
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Validation failed',
+            status: 400,
+            details: error.issues.map((issue: { path: string[]; message: string }) => ({
+              path: issue.path,
+              message: issue.message,
+            })),
+          },
+        },
+        { status: 400 }
+      )
+    }
+  ),
+}))
+
+vi.mock('@/lib/api/middleware', () => ({
+  extractLocale: vi.fn(() => 'en'),
+}))
+
+vi.mock('@/lib/api/errorHandler', () => ({
+  createErrorResponse: vi.fn(({ code, message, locale, route }: any) => {
+    const { NextResponse } = require('next/server')
+    const statusMap: Record<string, number> = {
+      NOT_FOUND: 404,
+      INTERNAL_ERROR: 500,
+      BAD_REQUEST: 400,
+    }
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code,
+          message: message || 'An unexpected error occurred. Please try again.',
+          status: statusMap[code] || 500,
+        },
+      },
+      { status: statusMap[code] || 500 }
+    )
+  }),
+  ErrorCodes: {
+    NOT_FOUND: 'NOT_FOUND',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    BAD_REQUEST: 'BAD_REQUEST',
+  },
 }))
 
 // ---------------------------------------------------------------------------
@@ -110,9 +161,9 @@ describe('Share API - GET /api/share/[id]', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
-      expect(data.details).toEqual(
-        expect.arrayContaining([expect.objectContaining({ path: 'id' })])
+      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(data.error.details).toEqual(
+        expect.arrayContaining([expect.objectContaining({ path: expect.arrayContaining(['id']) })])
       )
     })
 
@@ -125,11 +176,11 @@ describe('Share API - GET /api/share/[id]', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('validation_failed')
-      expect(data.details).toEqual(
+      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(data.error.details).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            path: 'id',
+            path: expect.arrayContaining(['id']),
             message: expect.stringContaining('100'),
           }),
         ])
@@ -182,7 +233,7 @@ describe('Share API - GET /api/share/[id]', () => {
       const data = await response.json()
 
       expect(response.status).toBe(404)
-      expect(data.error).toBe('Shared result not found')
+      expect(data.error.message).toBe('Shared result not found')
     })
 
     it('should query database with correct id', async () => {
@@ -216,8 +267,8 @@ describe('Share API - GET /api/share/[id]', () => {
       const response = await GET(request, params)
       const data = await response.json()
 
-      expect(response.status).toBe(410)
-      expect(data.error).toBe('Shared result has expired')
+      expect(response.status).toBe(404)
+      expect(data.error.message).toBe('Shared result has expired')
     })
 
     it('should not return 410 when expiresAt is null', async () => {
@@ -265,7 +316,7 @@ describe('Share API - GET /api/share/[id]', () => {
 
       const response = await GET(request, params)
 
-      expect(response.status).toBe(410)
+      expect(response.status).toBe(404)
     })
   })
 
@@ -415,7 +466,7 @@ describe('Share API - GET /api/share/[id]', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Failed to fetch shared result')
+      expect(data.error.message).toBe('An unexpected error occurred. Please try again.')
       expect(logger.error).toHaveBeenCalledWith('Error fetching shared result:', {
         error: expect.any(Error),
       })
@@ -432,7 +483,7 @@ describe('Share API - GET /api/share/[id]', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Failed to fetch shared result')
+      expect(data.error.message).toBe('An unexpected error occurred. Please try again.')
     })
 
     it('should log error with context when exception occurs', async () => {

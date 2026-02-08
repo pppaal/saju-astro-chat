@@ -10,7 +10,7 @@
  * 환경변수 필요: TEST_DATABASE_URL 또는 DATABASE_URL
  */
 
-import { beforeAll, afterAll, afterEach, describe, it, expect } from "vitest";
+import { beforeAll, afterAll, afterEach, describe, it, expect } from 'vitest'
 import {
   testPrisma,
   createTestUserInDb,
@@ -18,51 +18,31 @@ import {
   checkTestDbConnection,
   connectTestDb,
   disconnectTestDb,
-} from "./setup";
+} from './setup'
 
-const hasTestDb = await checkTestDbConnection();
+const hasTestDb = await checkTestDbConnection()
 
-describe("Integration: User Onboarding", () => {
+describe('Integration: User Onboarding', () => {
   if (!hasTestDb) {
-    it("skips when test database is unavailable", () => {
-      expect(true).toBe(true);
-    });
-    return;
+    return
   }
 
   beforeAll(async () => {
-    await connectTestDb();
-  });
+    await connectTestDb()
+  })
 
   afterAll(async () => {
-    await cleanupAllTestUsers();
-    await disconnectTestDb();
-  });
+    await cleanupAllTestUsers()
+    await disconnectTestDb()
+  })
 
   afterEach(async () => {
-    await cleanupAllTestUsers();
-  });
+    await cleanupAllTestUsers()
+  })
 
-  describe("Onboarding Progress", () => {
-    it("creates onboarding record", async () => {
-      const user = await createTestUserInDb();
-
-      const onboarding = await testPrisma.userOnboarding.create({
-        data: {
-          userId: user.id,
-          currentStep: 1,
-          totalSteps: 5,
-          isCompleted: false,
-          startedAt: new Date(),
-        },
-      });
-
-      expect(onboarding.currentStep).toBe(1);
-      expect(onboarding.isCompleted).toBe(false);
-    });
-
-    it("advances to next step", async () => {
-      const user = await createTestUserInDb();
+  describe('Onboarding Progress', () => {
+    it('creates onboarding record', async () => {
+      const user = await createTestUserInDb()
 
       const onboarding = await testPrisma.userOnboarding.create({
         data: {
@@ -72,21 +52,38 @@ describe("Integration: User Onboarding", () => {
           isCompleted: false,
           startedAt: new Date(),
         },
-      });
+      })
+
+      expect(onboarding.currentStep).toBe(1)
+      expect(onboarding.isCompleted).toBe(false)
+    })
+
+    it('advances to next step', async () => {
+      const user = await createTestUserInDb()
+
+      const onboarding = await testPrisma.userOnboarding.create({
+        data: {
+          userId: user.id,
+          currentStep: 1,
+          totalSteps: 5,
+          isCompleted: false,
+          startedAt: new Date(),
+        },
+      })
 
       const updated = await testPrisma.userOnboarding.update({
         where: { id: onboarding.id },
         data: {
           currentStep: 2,
-          completedSteps: ["profile_setup"],
+          completedSteps: ['profile_setup'],
         },
-      });
+      })
 
-      expect(updated.currentStep).toBe(2);
-    });
+      expect(updated.currentStep).toBe(2)
+    })
 
-    it("completes onboarding", async () => {
-      const user = await createTestUserInDb();
+    it('completes onboarding', async () => {
+      const user = await createTestUserInDb()
 
       const onboarding = await testPrisma.userOnboarding.create({
         data: {
@@ -96,23 +93,23 @@ describe("Integration: User Onboarding", () => {
           isCompleted: false,
           startedAt: new Date(),
         },
-      });
+      })
 
       const updated = await testPrisma.userOnboarding.update({
         where: { id: onboarding.id },
         data: {
           isCompleted: true,
           completedAt: new Date(),
-          completedSteps: ["profile", "birth_info", "preferences", "tutorial", "first_reading"],
+          completedSteps: ['profile', 'birth_info', 'preferences', 'tutorial', 'first_reading'],
         },
-      });
+      })
 
-      expect(updated.isCompleted).toBe(true);
-      expect(updated.completedAt).not.toBeNull();
-    });
+      expect(updated.isCompleted).toBe(true)
+      expect(updated.completedAt).not.toBeNull()
+    })
 
-    it("skips step", async () => {
-      const user = await createTestUserInDb();
+    it('skips step', async () => {
+      const user = await createTestUserInDb()
 
       const onboarding = await testPrisma.userOnboarding.create({
         data: {
@@ -123,88 +120,88 @@ describe("Integration: User Onboarding", () => {
           startedAt: new Date(),
           skippedSteps: [],
         },
-      });
+      })
 
       const updated = await testPrisma.userOnboarding.update({
         where: { id: onboarding.id },
         data: {
           currentStep: 3,
-          skippedSteps: ["tutorial"],
+          skippedSteps: ['tutorial'],
         },
-      });
+      })
 
-      const skipped = updated.skippedSteps as string[];
-      expect(skipped).toContain("tutorial");
-    });
-  });
+      const skipped = updated.skippedSteps as string[]
+      expect(skipped).toContain('tutorial')
+    })
+  })
 
-  describe("Onboarding Steps", () => {
-    it("records profile setup completion", async () => {
-      const user = await createTestUserInDb();
+  describe('Onboarding Steps', () => {
+    it('records profile setup completion', async () => {
+      const user = await createTestUserInDb()
 
       const step = await testPrisma.onboardingStepCompletion.create({
         data: {
           userId: user.id,
-          stepName: "profile_setup",
+          stepName: 'profile_setup',
           completedAt: new Date(),
           data: {
-            name: "홍길동",
-            nickname: "길동이",
+            name: '홍길동',
+            nickname: '길동이',
           },
         },
-      });
+      })
 
-      expect(step.stepName).toBe("profile_setup");
-    });
+      expect(step.stepName).toBe('profile_setup')
+    })
 
-    it("records birth info step", async () => {
-      const user = await createTestUserInDb();
+    it('records birth info step', async () => {
+      const user = await createTestUserInDb()
 
       const step = await testPrisma.onboardingStepCompletion.create({
         data: {
           userId: user.id,
-          stepName: "birth_info",
+          stepName: 'birth_info',
           completedAt: new Date(),
           data: {
-            birthDate: "1990-05-15",
-            birthTime: "14:30",
-            birthPlace: "서울",
-            gender: "male",
+            birthDate: '1990-05-15',
+            birthTime: '14:30',
+            birthPlace: '서울',
+            gender: 'male',
           },
         },
-      });
+      })
 
-      const data = step.data as { birthDate: string };
-      expect(data.birthDate).toBe("1990-05-15");
-    });
+      const data = step.data as { birthDate: string }
+      expect(data.birthDate).toBe('1990-05-15')
+    })
 
-    it("records preference setup", async () => {
-      const user = await createTestUserInDb();
+    it('records preference setup', async () => {
+      const user = await createTestUserInDb()
 
       const step = await testPrisma.onboardingStepCompletion.create({
         data: {
           userId: user.id,
-          stepName: "preferences",
+          stepName: 'preferences',
           completedAt: new Date(),
           data: {
-            theme: "dark",
-            language: "ko",
+            theme: 'dark',
+            language: 'ko',
             notifications: true,
             dailyFortune: true,
           },
         },
-      });
+      })
 
-      expect(step.stepName).toBe("preferences");
-    });
+      expect(step.stepName).toBe('preferences')
+    })
 
-    it("records tutorial completion", async () => {
-      const user = await createTestUserInDb();
+    it('records tutorial completion', async () => {
+      const user = await createTestUserInDb()
 
       const step = await testPrisma.onboardingStepCompletion.create({
         data: {
           userId: user.id,
-          stepName: "tutorial",
+          stepName: 'tutorial',
           completedAt: new Date(),
           data: {
             watchedVideo: true,
@@ -212,34 +209,34 @@ describe("Integration: User Onboarding", () => {
             quizScore: 80,
           },
         },
-      });
+      })
 
-      const data = step.data as { quizScore: number };
-      expect(data.quizScore).toBe(80);
-    });
+      const data = step.data as { quizScore: number }
+      expect(data.quizScore).toBe(80)
+    })
 
-    it("records first reading completion", async () => {
-      const user = await createTestUserInDb();
+    it('records first reading completion', async () => {
+      const user = await createTestUserInDb()
 
       const step = await testPrisma.onboardingStepCompletion.create({
         data: {
           userId: user.id,
-          stepName: "first_reading",
+          stepName: 'first_reading',
           completedAt: new Date(),
           data: {
-            readingType: "basic_saju",
-            readingId: "reading_123",
+            readingType: 'basic_saju',
+            readingId: 'reading_123',
           },
         },
-      });
+      })
 
-      expect(step.stepName).toBe("first_reading");
-    });
-  });
+      expect(step.stepName).toBe('first_reading')
+    })
+  })
 
-  describe("Onboarding Retrieval", () => {
-    it("retrieves user onboarding status", async () => {
-      const user = await createTestUserInDb();
+  describe('Onboarding Retrieval', () => {
+    it('retrieves user onboarding status', async () => {
+      const user = await createTestUserInDb()
 
       await testPrisma.userOnboarding.create({
         data: {
@@ -249,19 +246,19 @@ describe("Integration: User Onboarding", () => {
           isCompleted: false,
           startedAt: new Date(),
         },
-      });
+      })
 
       const onboarding = await testPrisma.userOnboarding.findUnique({
         where: { userId: user.id },
-      });
+      })
 
-      expect(onboarding?.currentStep).toBe(3);
-    });
+      expect(onboarding?.currentStep).toBe(3)
+    })
 
-    it("retrieves completed steps", async () => {
-      const user = await createTestUserInDb();
+    it('retrieves completed steps', async () => {
+      const user = await createTestUserInDb()
 
-      const stepNames = ["profile_setup", "birth_info", "preferences"];
+      const stepNames = ['profile_setup', 'birth_info', 'preferences']
 
       for (const stepName of stepNames) {
         await testPrisma.onboardingStepCompletion.create({
@@ -270,21 +267,21 @@ describe("Integration: User Onboarding", () => {
             stepName,
             completedAt: new Date(),
           },
-        });
+        })
       }
 
       const steps = await testPrisma.onboardingStepCompletion.findMany({
         where: { userId: user.id },
-      });
+      })
 
-      expect(steps).toHaveLength(3);
-    });
+      expect(steps).toHaveLength(3)
+    })
 
-    it("retrieves users at specific step", async () => {
-      const steps = [1, 2, 1, 3, 1];
+    it('retrieves users at specific step', async () => {
+      const steps = [1, 2, 1, 3, 1]
 
       for (let i = 0; i < steps.length; i++) {
-        const user = await createTestUserInDb();
+        const user = await createTestUserInDb()
         await testPrisma.userOnboarding.create({
           data: {
             userId: user.id,
@@ -293,21 +290,21 @@ describe("Integration: User Onboarding", () => {
             isCompleted: false,
             startedAt: new Date(),
           },
-        });
+        })
       }
 
       const atStep1 = await testPrisma.userOnboarding.findMany({
         where: { currentStep: 1 },
-      });
+      })
 
-      expect(atStep1).toHaveLength(3);
-    });
+      expect(atStep1).toHaveLength(3)
+    })
 
-    it("retrieves incomplete onboardings", async () => {
-      const completedStatuses = [false, true, false, false, true];
+    it('retrieves incomplete onboardings', async () => {
+      const completedStatuses = [false, true, false, false, true]
 
       for (let i = 0; i < completedStatuses.length; i++) {
-        const user = await createTestUserInDb();
+        const user = await createTestUserInDb()
         await testPrisma.userOnboarding.create({
           data: {
             userId: user.id,
@@ -316,23 +313,23 @@ describe("Integration: User Onboarding", () => {
             isCompleted: completedStatuses[i],
             startedAt: new Date(),
           },
-        });
+        })
       }
 
       const incomplete = await testPrisma.userOnboarding.findMany({
         where: { isCompleted: false },
-      });
+      })
 
-      expect(incomplete).toHaveLength(3);
-    });
-  });
+      expect(incomplete).toHaveLength(3)
+    })
+  })
 
-  describe("Onboarding Statistics", () => {
-    it("calculates completion rate", async () => {
-      const completedStatuses = [true, true, true, false, false, true, false, true, true, false];
+  describe('Onboarding Statistics', () => {
+    it('calculates completion rate', async () => {
+      const completedStatuses = [true, true, true, false, false, true, false, true, true, false]
 
       for (let i = 0; i < completedStatuses.length; i++) {
-        const user = await createTestUserInDb();
+        const user = await createTestUserInDb()
         await testPrisma.userOnboarding.create({
           data: {
             userId: user.id,
@@ -341,23 +338,23 @@ describe("Integration: User Onboarding", () => {
             isCompleted: completedStatuses[i],
             startedAt: new Date(),
           },
-        });
+        })
       }
 
-      const total = await testPrisma.userOnboarding.count();
+      const total = await testPrisma.userOnboarding.count()
       const completed = await testPrisma.userOnboarding.count({
         where: { isCompleted: true },
-      });
+      })
 
-      const completionRate = (completed / total) * 100;
-      expect(completionRate).toBe(60);
-    });
+      const completionRate = (completed / total) * 100
+      expect(completionRate).toBe(60)
+    })
 
-    it("counts users by step", async () => {
-      const steps = [1, 2, 1, 3, 2, 1, 4, 2, 1, 5];
+    it('counts users by step', async () => {
+      const steps = [1, 2, 1, 3, 2, 1, 4, 2, 1, 5]
 
       for (let i = 0; i < steps.length; i++) {
-        const user = await createTestUserInDb();
+        const user = await createTestUserInDb()
         await testPrisma.userOnboarding.create({
           data: {
             userId: user.id,
@@ -366,20 +363,20 @@ describe("Integration: User Onboarding", () => {
             isCompleted: steps[i] === 5,
             startedAt: new Date(),
           },
-        });
+        })
       }
 
       const counts = await testPrisma.userOnboarding.groupBy({
-        by: ["currentStep"],
+        by: ['currentStep'],
         _count: { id: true },
-      });
+      })
 
-      const step1Count = counts.find((c) => c.currentStep === 1)?._count.id;
-      expect(step1Count).toBe(4);
-    });
+      const step1Count = counts.find((c) => c.currentStep === 1)?._count.id
+      expect(step1Count).toBe(4)
+    })
 
-    it("identifies dropout steps", async () => {
-      const user = await createTestUserInDb();
+    it('identifies dropout steps', async () => {
+      const user = await createTestUserInDb()
 
       await testPrisma.userOnboarding.create({
         data: {
@@ -390,27 +387,27 @@ describe("Integration: User Onboarding", () => {
           startedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
           lastActivityAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
-      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
 
       const dropouts = await testPrisma.userOnboarding.findMany({
         where: {
           isCompleted: false,
           lastActivityAt: { lt: threeDaysAgo },
         },
-      });
+      })
 
-      expect(dropouts.length).toBeGreaterThanOrEqual(1);
-    });
+      expect(dropouts.length).toBeGreaterThanOrEqual(1)
+    })
 
-    it("calculates average completion time", async () => {
-      const completionTimes = [1, 2, 3, 2, 2]; // days
+    it('calculates average completion time', async () => {
+      const completionTimes = [1, 2, 3, 2, 2] // days
 
       for (let i = 0; i < completionTimes.length; i++) {
-        const user = await createTestUserInDb();
-        const startedAt = new Date();
-        const completedAt = new Date(startedAt.getTime() + completionTimes[i] * 24 * 60 * 60 * 1000);
+        const user = await createTestUserInDb()
+        const startedAt = new Date()
+        const completedAt = new Date(startedAt.getTime() + completionTimes[i] * 24 * 60 * 60 * 1000)
 
         await testPrisma.userOnboarding.create({
           data: {
@@ -421,31 +418,31 @@ describe("Integration: User Onboarding", () => {
             startedAt,
             completedAt,
           },
-        });
+        })
       }
 
       const onboardings = await testPrisma.userOnboarding.findMany({
         where: { isCompleted: true },
-      });
+      })
 
       const totalDays = onboardings.reduce((sum, o) => {
         if (o.completedAt && o.startedAt) {
-          return sum + (o.completedAt.getTime() - o.startedAt.getTime()) / (24 * 60 * 60 * 1000);
+          return sum + (o.completedAt.getTime() - o.startedAt.getTime()) / (24 * 60 * 60 * 1000)
         }
-        return sum;
-      }, 0);
+        return sum
+      }, 0)
 
-      const avgDays = totalDays / onboardings.length;
-      expect(avgDays).toBe(2);
-    });
-  });
+      const avgDays = totalDays / onboardings.length
+      expect(avgDays).toBe(2)
+    })
+  })
 
-  describe("Onboarding Reminders", () => {
-    it("finds users needing reminders", async () => {
-      const now = new Date();
+  describe('Onboarding Reminders', () => {
+    it('finds users needing reminders', async () => {
+      const now = new Date()
 
       // User who hasn't completed and inactive for 2 days
-      const user1 = await createTestUserInDb();
+      const user1 = await createTestUserInDb()
       await testPrisma.userOnboarding.create({
         data: {
           userId: user1.id,
@@ -455,10 +452,10 @@ describe("Integration: User Onboarding", () => {
           startedAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
           lastActivityAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
       // User who completed
-      const user2 = await createTestUserInDb();
+      const user2 = await createTestUserInDb()
       await testPrisma.userOnboarding.create({
         data: {
           userId: user2.id,
@@ -468,22 +465,22 @@ describe("Integration: User Onboarding", () => {
           startedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
           completedAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
-      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
 
       const needsReminder = await testPrisma.userOnboarding.findMany({
         where: {
           isCompleted: false,
           lastActivityAt: { lt: oneDayAgo },
         },
-      });
+      })
 
-      expect(needsReminder).toHaveLength(1);
-    });
+      expect(needsReminder).toHaveLength(1)
+    })
 
-    it("records reminder sent", async () => {
-      const user = await createTestUserInDb();
+    it('records reminder sent', async () => {
+      const user = await createTestUserInDb()
 
       const onboarding = await testPrisma.userOnboarding.create({
         data: {
@@ -494,7 +491,7 @@ describe("Integration: User Onboarding", () => {
           startedAt: new Date(),
           reminderCount: 0,
         },
-      });
+      })
 
       const updated = await testPrisma.userOnboarding.update({
         where: { id: onboarding.id },
@@ -502,15 +499,15 @@ describe("Integration: User Onboarding", () => {
           reminderCount: { increment: 1 },
           lastReminderAt: new Date(),
         },
-      });
+      })
 
-      expect(updated.reminderCount).toBe(1);
-    });
-  });
+      expect(updated.reminderCount).toBe(1)
+    })
+  })
 
-  describe("Onboarding Updates", () => {
-    it("resets onboarding", async () => {
-      const user = await createTestUserInDb();
+  describe('Onboarding Updates', () => {
+    it('resets onboarding', async () => {
+      const user = await createTestUserInDb()
 
       const onboarding = await testPrisma.userOnboarding.create({
         data: {
@@ -519,9 +516,9 @@ describe("Integration: User Onboarding", () => {
           totalSteps: 5,
           isCompleted: false,
           startedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          completedSteps: ["profile", "birth_info"],
+          completedSteps: ['profile', 'birth_info'],
         },
-      });
+      })
 
       const updated = await testPrisma.userOnboarding.update({
         where: { id: onboarding.id },
@@ -531,15 +528,15 @@ describe("Integration: User Onboarding", () => {
           skippedSteps: [],
           startedAt: new Date(),
         },
-      });
+      })
 
-      expect(updated.currentStep).toBe(1);
-    });
-  });
+      expect(updated.currentStep).toBe(1)
+    })
+  })
 
-  describe("Onboarding Deletion", () => {
-    it("deletes onboarding record", async () => {
-      const user = await createTestUserInDb();
+  describe('Onboarding Deletion', () => {
+    it('deletes onboarding record', async () => {
+      const user = await createTestUserInDb()
 
       const onboarding = await testPrisma.userOnboarding.create({
         data: {
@@ -549,17 +546,17 @@ describe("Integration: User Onboarding", () => {
           isCompleted: false,
           startedAt: new Date(),
         },
-      });
+      })
 
       await testPrisma.userOnboarding.delete({
         where: { id: onboarding.id },
-      });
+      })
 
       const found = await testPrisma.userOnboarding.findUnique({
         where: { id: onboarding.id },
-      });
+      })
 
-      expect(found).toBeNull();
-    });
-  });
-});
+      expect(found).toBeNull()
+    })
+  })
+})

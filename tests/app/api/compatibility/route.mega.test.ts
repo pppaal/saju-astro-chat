@@ -356,7 +356,7 @@ describe('POST /api/compatibility', () => {
       expect(data.overall_score).toBe(70)
     })
 
-    it.skip('should use fallback score when AI backend fails', async () => {
+    it('should use fallback score when AI backend fails', async () => {
       const persons = [
         createBasicPerson({ name: 'Alice', latitude: 37.5, longitude: 126.9 }),
         createBasicPerson({ name: 'Bob', latitude: 37.5, longitude: 126.9, relationToP1: 'lover' }),
@@ -372,7 +372,8 @@ describe('POST /api/compatibility', () => {
       expect(response.status).toBe(200)
       expect(data.fusion_enabled).toBe(false)
       expect(data.overall_score).toBeGreaterThanOrEqual(0)
-      expect(data.interpretation).toContain('playful heuristic')
+      // Fallback uses Saju-based calculation with Korean text
+      expect(data.interpretation).toContain('사주')
       expect(logger.warn).toHaveBeenCalledWith(
         '[Compatibility API] AI backend call failed:',
         expect.any(Error)

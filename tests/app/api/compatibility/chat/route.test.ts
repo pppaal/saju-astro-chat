@@ -23,6 +23,7 @@ vi.mock('@/lib/api/middleware', () => ({
     rateLimit: { limit: 60, windowSeconds: 60 },
     credits: { type: 'compatibility', amount: 1 },
   })),
+  extractLocale: vi.fn(() => 'ko'),
   apiSuccess: vi.fn((data: unknown) => ({ data })),
   apiError: vi.fn((code: string, message?: string) => ({
     error: { code, message },
@@ -152,6 +153,14 @@ vi.mock('@/lib/api/zodValidation', () => ({
       }
     }),
   },
+  createValidationErrorResponse: vi.fn((zodError: any) => {
+    const { NextResponse } = require('next/server')
+    const details = (zodError.issues || []).map((e: any) => ({
+      path: Array.isArray(e.path) ? e.path.join('.') : String(e.path),
+      message: e.message,
+    }))
+    return NextResponse.json({ error: 'validation_failed', details }, { status: 400 })
+  }),
 }))
 
 // Mock HTTP constants

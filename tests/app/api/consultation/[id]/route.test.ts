@@ -159,6 +159,29 @@ vi.mock('@/lib/api/zodValidation', () => ({
       return { success: true, data: { id: data.id } }
     }),
   },
+  createValidationErrorResponse: vi.fn(
+    (
+      error: { issues: Array<{ path?: string[]; message: string }> },
+      options?: { route?: string }
+    ) => {
+      const { NextResponse } = require('next/server')
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Validation failed',
+            status: 400,
+            details: error.issues.map((issue: { path?: string[]; message: string }) => ({
+              path: issue.path || [],
+              message: issue.message,
+            })),
+          },
+        },
+        { status: 400 }
+      )
+    }
+  ),
 }))
 
 // ---------- Imports (after mocks) ----------
@@ -318,7 +341,7 @@ describe('Consultation [id] API - GET', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('invalid_params')
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should return 400 for id exceeding max length (100 chars)', async () => {
@@ -333,7 +356,7 @@ describe('Consultation [id] API - GET', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('invalid_params')
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
   })
 
@@ -718,7 +741,7 @@ describe('Consultation [id] API - DELETE', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('invalid_params')
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should return 400 for id exceeding max length', async () => {
@@ -733,7 +756,7 @@ describe('Consultation [id] API - DELETE', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('invalid_params')
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
   })
 

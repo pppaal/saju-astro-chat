@@ -10,7 +10,7 @@
  * 환경변수 필요: TEST_DATABASE_URL 또는 DATABASE_URL
  */
 
-import { beforeAll, afterAll, afterEach, describe, it, expect } from "vitest";
+import { beforeAll, afterAll, afterEach, describe, it, expect } from 'vitest'
 import {
   testPrisma,
   createTestUserInDb,
@@ -18,491 +18,500 @@ import {
   checkTestDbConnection,
   connectTestDb,
   disconnectTestDb,
-} from "./setup";
+} from './setup'
 
-const hasTestDb = await checkTestDbConnection();
+const hasTestDb = await checkTestDbConnection()
 
-describe("Integration: User Preference", () => {
+describe('Integration: User Preference', () => {
   if (!hasTestDb) {
-    it("skips when test database is unavailable", () => {
-      expect(true).toBe(true);
-    });
-    return;
+    return
   }
 
   beforeAll(async () => {
-    await connectTestDb();
-  });
+    await connectTestDb()
+  })
 
   afterAll(async () => {
-    await cleanupAllTestUsers();
-    await disconnectTestDb();
-  });
+    await cleanupAllTestUsers()
+    await disconnectTestDb()
+  })
 
   afterEach(async () => {
-    await cleanupAllTestUsers();
-  });
+    await cleanupAllTestUsers()
+  })
 
-  describe("Preference Creation", () => {
-    it("creates default preferences", async () => {
-      const user = await createTestUserInDb();
+  describe('Preference Creation', () => {
+    it('creates default preferences', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
         },
-      });
+      })
 
-      expect(pref.theme).toBe("light");
-      expect(pref.language).toBe("ko");
-    });
+      expect(pref.theme).toBe('light')
+      expect(pref.language).toBe('ko')
+    })
 
-    it("creates preferences with dark theme", async () => {
-      const user = await createTestUserInDb();
+    it('creates preferences with dark theme', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "dark",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'dark',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
         },
-      });
+      })
 
-      expect(pref.theme).toBe("dark");
-    });
+      expect(pref.theme).toBe('dark')
+    })
 
-    it("creates preferences with English language", async () => {
-      const user = await createTestUserInDb();
+    it('creates preferences with English language', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "en",
-          timezone: "America/New_York",
+          theme: 'light',
+          language: 'en',
+          timezone: 'America/New_York',
         },
-      });
+      })
 
-      expect(pref.language).toBe("en");
-      expect(pref.timezone).toBe("America/New_York");
-    });
+      expect(pref.language).toBe('en')
+      expect(pref.timezone).toBe('America/New_York')
+    })
 
-    it("creates preferences with fortune settings", async () => {
-      const user = await createTestUserInDb();
+    it('creates preferences with fortune settings', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
           fortuneSettings: {
             showDailyFortune: true,
-            fortuneTime: "08:00",
+            fortuneTime: '08:00',
             includeCareer: true,
             includeLove: true,
             includeHealth: true,
             includeMoney: false,
           },
         },
-      });
+      })
 
-      const settings = pref.fortuneSettings as { showDailyFortune: boolean };
-      expect(settings.showDailyFortune).toBe(true);
-    });
+      const settings = pref.fortuneSettings as { showDailyFortune: boolean }
+      expect(settings.showDailyFortune).toBe(true)
+    })
 
-    it("creates preferences with display options", async () => {
-      const user = await createTestUserInDb();
+    it('creates preferences with display options', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
           displayOptions: {
-            fontSize: "large",
+            fontSize: 'large',
             showAnimations: true,
             compactMode: false,
             showTooltips: true,
           },
         },
-      });
+      })
 
-      const options = pref.displayOptions as { fontSize: string };
-      expect(options.fontSize).toBe("large");
-    });
-  });
+      const options = pref.displayOptions as { fontSize: string }
+      expect(options.fontSize).toBe('large')
+    })
+  })
 
-  describe("Preference Retrieval", () => {
-    it("retrieves preferences by user", async () => {
-      const user = await createTestUserInDb();
+  describe('Preference Retrieval', () => {
+    it('retrieves preferences by user', async () => {
+      const user = await createTestUserInDb()
 
       await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "dark",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'dark',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
         },
-      });
+      })
 
       const pref = await testPrisma.userPreference.findUnique({
         where: { userId: user.id },
-      });
+      })
 
-      expect(pref?.theme).toBe("dark");
-    });
+      expect(pref?.theme).toBe('dark')
+    })
 
-    it("retrieves users by theme", async () => {
-      const users: string[] = [];
-      const themes = ["light", "dark", "dark", "light", "dark"];
+    it('retrieves users by theme', async () => {
+      const users: string[] = []
+      const themes = ['light', 'dark', 'dark', 'light', 'dark']
 
       for (let i = 0; i < themes.length; i++) {
-        const user = await createTestUserInDb();
-        users.push(user.id);
+        const user = await createTestUserInDb()
+        users.push(user.id)
 
         await testPrisma.userPreference.create({
           data: {
             userId: user.id,
             theme: themes[i],
-            language: "ko",
-            timezone: "Asia/Seoul",
+            language: 'ko',
+            timezone: 'Asia/Seoul',
           },
-        });
+        })
       }
 
       const darkUsers = await testPrisma.userPreference.findMany({
-        where: { userId: { in: users }, theme: "dark" },
-      });
+        where: { userId: { in: users }, theme: 'dark' },
+      })
 
-      expect(darkUsers).toHaveLength(3);
-    });
+      expect(darkUsers).toHaveLength(3)
+    })
 
-    it("retrieves users by language", async () => {
-      const users: string[] = [];
-      const languages = ["ko", "en", "ko", "ja", "ko"];
+    it('retrieves users by language', async () => {
+      const users: string[] = []
+      const languages = ['ko', 'en', 'ko', 'ja', 'ko']
 
       for (let i = 0; i < languages.length; i++) {
-        const user = await createTestUserInDb();
-        users.push(user.id);
+        const user = await createTestUserInDb()
+        users.push(user.id)
 
         await testPrisma.userPreference.create({
           data: {
             userId: user.id,
-            theme: "light",
+            theme: 'light',
             language: languages[i],
-            timezone: "Asia/Seoul",
+            timezone: 'Asia/Seoul',
           },
-        });
+        })
       }
 
       const koreanUsers = await testPrisma.userPreference.findMany({
-        where: { userId: { in: users }, language: "ko" },
-      });
+        where: { userId: { in: users }, language: 'ko' },
+      })
 
-      expect(koreanUsers).toHaveLength(3);
-    });
+      expect(koreanUsers).toHaveLength(3)
+    })
 
-    it("retrieves users by timezone", async () => {
-      const users: string[] = [];
-      const timezones = ["Asia/Seoul", "America/New_York", "Asia/Seoul", "Europe/London", "Asia/Seoul"];
+    it('retrieves users by timezone', async () => {
+      const users: string[] = []
+      const timezones = [
+        'Asia/Seoul',
+        'America/New_York',
+        'Asia/Seoul',
+        'Europe/London',
+        'Asia/Seoul',
+      ]
 
       for (let i = 0; i < timezones.length; i++) {
-        const user = await createTestUserInDb();
-        users.push(user.id);
+        const user = await createTestUserInDb()
+        users.push(user.id)
 
         await testPrisma.userPreference.create({
           data: {
             userId: user.id,
-            theme: "light",
-            language: "ko",
+            theme: 'light',
+            language: 'ko',
             timezone: timezones[i],
           },
-        });
+        })
       }
 
       const seoulUsers = await testPrisma.userPreference.findMany({
-        where: { userId: { in: users }, timezone: "Asia/Seoul" },
-      });
+        where: { userId: { in: users }, timezone: 'Asia/Seoul' },
+      })
 
-      expect(seoulUsers).toHaveLength(3);
-    });
-  });
+      expect(seoulUsers).toHaveLength(3)
+    })
+  })
 
-  describe("Preference Statistics", () => {
-    it("counts users by theme", async () => {
-      const users: string[] = [];
-      const themes = ["light", "dark", "dark", "dark", "light", "system"];
+  describe('Preference Statistics', () => {
+    it('counts users by theme', async () => {
+      const users: string[] = []
+      const themes = ['light', 'dark', 'dark', 'dark', 'light', 'system']
 
       for (let i = 0; i < themes.length; i++) {
-        const user = await createTestUserInDb();
-        users.push(user.id);
+        const user = await createTestUserInDb()
+        users.push(user.id)
 
         await testPrisma.userPreference.create({
           data: {
             userId: user.id,
             theme: themes[i],
-            language: "ko",
-            timezone: "Asia/Seoul",
+            language: 'ko',
+            timezone: 'Asia/Seoul',
           },
-        });
+        })
       }
 
       const counts = await testPrisma.userPreference.groupBy({
-        by: ["theme"],
+        by: ['theme'],
         where: { userId: { in: users } },
         _count: { id: true },
-      });
+      })
 
-      const darkCount = counts.find((c) => c.theme === "dark")?._count.id;
-      expect(darkCount).toBe(3);
-    });
+      const darkCount = counts.find((c) => c.theme === 'dark')?._count.id
+      expect(darkCount).toBe(3)
+    })
 
-    it("counts users by language", async () => {
-      const users: string[] = [];
-      const languages = ["ko", "ko", "en", "ko", "ja", "en"];
+    it('counts users by language', async () => {
+      const users: string[] = []
+      const languages = ['ko', 'ko', 'en', 'ko', 'ja', 'en']
 
       for (let i = 0; i < languages.length; i++) {
-        const user = await createTestUserInDb();
-        users.push(user.id);
+        const user = await createTestUserInDb()
+        users.push(user.id)
 
         await testPrisma.userPreference.create({
           data: {
             userId: user.id,
-            theme: "light",
+            theme: 'light',
             language: languages[i],
-            timezone: "Asia/Seoul",
+            timezone: 'Asia/Seoul',
           },
-        });
+        })
       }
 
       const counts = await testPrisma.userPreference.groupBy({
-        by: ["language"],
+        by: ['language'],
         where: { userId: { in: users } },
         _count: { id: true },
-      });
+      })
 
-      const koCount = counts.find((c) => c.language === "ko")?._count.id;
-      expect(koCount).toBe(3);
-    });
+      const koCount = counts.find((c) => c.language === 'ko')?._count.id
+      expect(koCount).toBe(3)
+    })
 
-    it("finds most popular timezone", async () => {
-      const users: string[] = [];
-      const timezones = ["Asia/Seoul", "Asia/Seoul", "America/New_York", "Asia/Seoul", "Europe/London"];
+    it('finds most popular timezone', async () => {
+      const users: string[] = []
+      const timezones = [
+        'Asia/Seoul',
+        'Asia/Seoul',
+        'America/New_York',
+        'Asia/Seoul',
+        'Europe/London',
+      ]
 
       for (let i = 0; i < timezones.length; i++) {
-        const user = await createTestUserInDb();
-        users.push(user.id);
+        const user = await createTestUserInDb()
+        users.push(user.id)
 
         await testPrisma.userPreference.create({
           data: {
             userId: user.id,
-            theme: "light",
-            language: "ko",
+            theme: 'light',
+            language: 'ko',
             timezone: timezones[i],
           },
-        });
+        })
       }
 
       const counts = await testPrisma.userPreference.groupBy({
-        by: ["timezone"],
+        by: ['timezone'],
         where: { userId: { in: users } },
         _count: { id: true },
-        orderBy: { _count: { id: "desc" } },
+        orderBy: { _count: { id: 'desc' } },
         take: 1,
-      });
+      })
 
-      expect(counts[0].timezone).toBe("Asia/Seoul");
-    });
-  });
+      expect(counts[0].timezone).toBe('Asia/Seoul')
+    })
+  })
 
-  describe("Preference Updates", () => {
-    it("updates theme", async () => {
-      const user = await createTestUserInDb();
+  describe('Preference Updates', () => {
+    it('updates theme', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
         },
-      });
+      })
 
       const updated = await testPrisma.userPreference.update({
         where: { id: pref.id },
-        data: { theme: "dark" },
-      });
+        data: { theme: 'dark' },
+      })
 
-      expect(updated.theme).toBe("dark");
-    });
+      expect(updated.theme).toBe('dark')
+    })
 
-    it("updates language", async () => {
-      const user = await createTestUserInDb();
+    it('updates language', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
         },
-      });
+      })
 
       const updated = await testPrisma.userPreference.update({
         where: { id: pref.id },
-        data: { language: "en" },
-      });
+        data: { language: 'en' },
+      })
 
-      expect(updated.language).toBe("en");
-    });
+      expect(updated.language).toBe('en')
+    })
 
-    it("updates timezone", async () => {
-      const user = await createTestUserInDb();
+    it('updates timezone', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
         },
-      });
+      })
 
       const updated = await testPrisma.userPreference.update({
         where: { id: pref.id },
-        data: { timezone: "America/Los_Angeles" },
-      });
+        data: { timezone: 'America/Los_Angeles' },
+      })
 
-      expect(updated.timezone).toBe("America/Los_Angeles");
-    });
+      expect(updated.timezone).toBe('America/Los_Angeles')
+    })
 
-    it("updates fortune settings", async () => {
-      const user = await createTestUserInDb();
+    it('updates fortune settings', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
           fortuneSettings: { showDailyFortune: true },
         },
-      });
+      })
 
       const updated = await testPrisma.userPreference.update({
         where: { id: pref.id },
         data: {
           fortuneSettings: {
             showDailyFortune: false,
-            fortuneTime: "09:00",
+            fortuneTime: '09:00',
           },
         },
-      });
+      })
 
-      const settings = updated.fortuneSettings as { showDailyFortune: boolean };
-      expect(settings.showDailyFortune).toBe(false);
-    });
+      const settings = updated.fortuneSettings as { showDailyFortune: boolean }
+      expect(settings.showDailyFortune).toBe(false)
+    })
 
-    it("updates display options", async () => {
-      const user = await createTestUserInDb();
+    it('updates display options', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
-          displayOptions: { fontSize: "medium" },
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
+          displayOptions: { fontSize: 'medium' },
         },
-      });
+      })
 
       const updated = await testPrisma.userPreference.update({
         where: { id: pref.id },
         data: {
           displayOptions: {
-            fontSize: "large",
+            fontSize: 'large',
             showAnimations: false,
           },
         },
-      });
+      })
 
-      const options = updated.displayOptions as { fontSize: string };
-      expect(options.fontSize).toBe("large");
-    });
-  });
+      const options = updated.displayOptions as { fontSize: string }
+      expect(options.fontSize).toBe('large')
+    })
+  })
 
-  describe("Preference Reset", () => {
-    it("resets to defaults", async () => {
-      const user = await createTestUserInDb();
+  describe('Preference Reset', () => {
+    it('resets to defaults', async () => {
+      const user = await createTestUserInDb()
 
       await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "dark",
-          language: "en",
-          timezone: "America/New_York",
+          theme: 'dark',
+          language: 'en',
+          timezone: 'America/New_York',
           fortuneSettings: { customSetting: true },
           displayOptions: { customOption: true },
         },
-      });
+      })
 
       const reset = await testPrisma.userPreference.update({
         where: { userId: user.id },
         data: {
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
           fortuneSettings: null,
           displayOptions: null,
         },
-      });
+      })
 
-      expect(reset.theme).toBe("light");
-      expect(reset.fortuneSettings).toBeNull();
-    });
-  });
+      expect(reset.theme).toBe('light')
+      expect(reset.fortuneSettings).toBeNull()
+    })
+  })
 
-  describe("Preference Deletion", () => {
-    it("deletes preferences", async () => {
-      const user = await createTestUserInDb();
+  describe('Preference Deletion', () => {
+    it('deletes preferences', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
         },
-      });
+      })
 
       await testPrisma.userPreference.delete({
         where: { id: pref.id },
-      });
+      })
 
       const found = await testPrisma.userPreference.findUnique({
         where: { id: pref.id },
-      });
+      })
 
-      expect(found).toBeNull();
-    });
-  });
+      expect(found).toBeNull()
+    })
+  })
 
-  describe("Accessibility Settings", () => {
-    it("stores accessibility preferences", async () => {
-      const user = await createTestUserInDb();
+  describe('Accessibility Settings', () => {
+    it('stores accessibility preferences', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
           accessibilitySettings: {
             screenReaderOptimized: true,
             highContrast: false,
@@ -510,47 +519,47 @@ describe("Integration: User Preference", () => {
             largeText: true,
           },
         },
-      });
+      })
 
-      const settings = pref.accessibilitySettings as { screenReaderOptimized: boolean };
-      expect(settings.screenReaderOptimized).toBe(true);
-    });
+      const settings = pref.accessibilitySettings as { screenReaderOptimized: boolean }
+      expect(settings.screenReaderOptimized).toBe(true)
+    })
 
-    it("updates accessibility settings", async () => {
-      const user = await createTestUserInDb();
+    it('updates accessibility settings', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
           accessibilitySettings: { highContrast: false },
         },
-      });
+      })
 
       const updated = await testPrisma.userPreference.update({
         where: { id: pref.id },
         data: {
           accessibilitySettings: { highContrast: true },
         },
-      });
+      })
 
-      const settings = updated.accessibilitySettings as { highContrast: boolean };
-      expect(settings.highContrast).toBe(true);
-    });
-  });
+      const settings = updated.accessibilitySettings as { highContrast: boolean }
+      expect(settings.highContrast).toBe(true)
+    })
+  })
 
-  describe("Privacy Settings", () => {
-    it("stores privacy preferences", async () => {
-      const user = await createTestUserInDb();
+  describe('Privacy Settings', () => {
+    it('stores privacy preferences', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
           privacySettings: {
             shareReadingHistory: false,
             allowAnalytics: true,
@@ -558,34 +567,34 @@ describe("Integration: User Preference", () => {
             allowDataExport: true,
           },
         },
-      });
+      })
 
-      const settings = pref.privacySettings as { shareReadingHistory: boolean };
-      expect(settings.shareReadingHistory).toBe(false);
-    });
+      const settings = pref.privacySettings as { shareReadingHistory: boolean }
+      expect(settings.shareReadingHistory).toBe(false)
+    })
 
-    it("updates privacy settings", async () => {
-      const user = await createTestUserInDb();
+    it('updates privacy settings', async () => {
+      const user = await createTestUserInDb()
 
       const pref = await testPrisma.userPreference.create({
         data: {
           userId: user.id,
-          theme: "light",
-          language: "ko",
-          timezone: "Asia/Seoul",
+          theme: 'light',
+          language: 'ko',
+          timezone: 'Asia/Seoul',
           privacySettings: { allowAnalytics: true },
         },
-      });
+      })
 
       const updated = await testPrisma.userPreference.update({
         where: { id: pref.id },
         data: {
           privacySettings: { allowAnalytics: false },
         },
-      });
+      })
 
-      const settings = updated.privacySettings as { allowAnalytics: boolean };
-      expect(settings.allowAnalytics).toBe(false);
-    });
-  });
-});
+      const settings = updated.privacySettings as { allowAnalytics: boolean }
+      expect(settings.allowAnalytics).toBe(false)
+    })
+  })
+})

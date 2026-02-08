@@ -950,11 +950,9 @@ describe('Saju Profile API - GET /api/me/saju', () => {
     // Module-level initialization happens before mocks are set up, so we can't
     // reliably test createAuthenticatedGuard being called. Instead, verify the
     // route configuration by checking the exported GET function.
-    it('should have createAuthenticatedGuard config in the route file', async () => {
+    it.skip('should have createAuthenticatedGuard config in the route file - verified by code inspection', () => {
       // The route file calls createAuthenticatedGuard at module-level (line 149)
-      // This is verified by code inspection rather than runtime mock checking
-      // since mocks are set up after module initialization
-      expect(true).toBe(true) // Placeholder - actual verification is structural
+      // This cannot be tested at runtime because mocks are set up after module initialization
     })
 
     it('should export GET as a function', () => {

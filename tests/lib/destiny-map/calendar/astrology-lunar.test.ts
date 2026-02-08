@@ -189,45 +189,38 @@ describe('getMoonPhaseDetailed', () => {
 
   it('new_moon phase has factorKey moonPhaseNew', () => {
     // Find a date with new_moon phase
-    let found = false
     for (let d = 0; d < 30; d++) {
       const result = getMoonPhaseDetailed(new Date(2024, 0, d + 1))
       if (result.phase === 'new_moon') {
         expect(result.factorKey).toBe('moonPhaseNew')
         expect(result.score).toBe(8)
-        found = true
-        break
+        return // Test passed
       }
     }
-    // If not found this month, that's OK -- the phase detection depends on approximations
-    expect(true).toBe(true)
+    // If not found this month, skip - phase detection depends on approximations
   })
 
   it('full_moon phase has factorKey moonPhaseFull', () => {
-    let found = false
     for (let d = 0; d < 30; d++) {
       const result = getMoonPhaseDetailed(new Date(2024, 0, d + 1))
       if (result.phase === 'full_moon') {
         expect(result.factorKey).toBe('moonPhaseFull')
         expect(result.score).toBe(12)
-        found = true
-        break
+        return // Test passed
       }
     }
-    expect(true).toBe(true)
+    // If not found this month, skip - phase detection depends on approximations
   })
 
   it('waning_crescent has negative score', () => {
-    let found = false
     for (let d = 0; d < 30; d++) {
       const result = getMoonPhaseDetailed(new Date(2024, 0, d + 1))
       if (result.phase === 'waning_crescent') {
         expect(result.score).toBe(-3)
-        found = true
-        break
+        return // Test passed
       }
     }
-    expect(true).toBe(true)
+    // If not found this month, skip - phase detection depends on approximations
   })
 
   it('illumination is low near new moon and high near full moon', () => {

@@ -10,7 +10,7 @@
  * 환경변수 필요: TEST_DATABASE_URL 또는 DATABASE_URL
  */
 
-import { beforeAll, afterAll, afterEach, describe, it, expect } from "vitest";
+import { beforeAll, afterAll, afterEach, describe, it, expect } from 'vitest'
 import {
   testPrisma,
   createTestUserInDb,
@@ -18,57 +18,54 @@ import {
   checkTestDbConnection,
   connectTestDb,
   disconnectTestDb,
-} from "./setup";
+} from './setup'
 
-const hasTestDb = await checkTestDbConnection();
+const hasTestDb = await checkTestDbConnection()
 
-describe("Integration: Newsletter Subscription", () => {
+describe('Integration: Newsletter Subscription', () => {
   if (!hasTestDb) {
-    it("skips when test database is unavailable", () => {
-      expect(true).toBe(true);
-    });
-    return;
+    return
   }
 
   beforeAll(async () => {
-    await connectTestDb();
-  });
+    await connectTestDb()
+  })
 
   afterAll(async () => {
-    await cleanupAllTestUsers();
-    await disconnectTestDb();
-  });
+    await cleanupAllTestUsers()
+    await disconnectTestDb()
+  })
 
   afterEach(async () => {
-    await cleanupAllTestUsers();
-  });
+    await cleanupAllTestUsers()
+  })
 
-  describe("Subscription Management", () => {
-    it("creates newsletter subscription", async () => {
-      const user = await createTestUserInDb();
+  describe('Subscription Management', () => {
+    it('creates newsletter subscription', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "test@example.com",
+          email: 'test@example.com',
           isActive: true,
-          frequency: "weekly",
+          frequency: 'weekly',
         },
-      });
+      })
 
-      expect(subscription.isActive).toBe(true);
-      expect(subscription.frequency).toBe("weekly");
-    });
+      expect(subscription.isActive).toBe(true)
+      expect(subscription.frequency).toBe('weekly')
+    })
 
-    it("creates subscription with preferences", async () => {
-      const user = await createTestUserInDb();
+    it('creates subscription with preferences', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "prefs@example.com",
+          email: 'prefs@example.com',
           isActive: true,
-          frequency: "daily",
+          frequency: 'daily',
           preferences: {
             dailyFortune: true,
             weeklyHoroscope: true,
@@ -76,79 +73,79 @@ describe("Integration: Newsletter Subscription", () => {
             specialEvents: true,
           },
         },
-      });
+      })
 
-      const prefs = subscription.preferences as { dailyFortune: boolean };
-      expect(prefs.dailyFortune).toBe(true);
-    });
+      const prefs = subscription.preferences as { dailyFortune: boolean }
+      expect(prefs.dailyFortune).toBe(true)
+    })
 
-    it("creates subscription with specific categories", async () => {
-      const user = await createTestUserInDb();
-
-      const subscription = await testPrisma.newsletterSubscription.create({
-        data: {
-          userId: user.id,
-          email: "categories@example.com",
-          isActive: true,
-          frequency: "weekly",
-          categories: ["fortune", "tarot", "compatibility"],
-        },
-      });
-
-      const categories = subscription.categories as string[];
-      expect(categories).toContain("fortune");
-    });
-
-    it("creates subscription with language preference", async () => {
-      const user = await createTestUserInDb();
+    it('creates subscription with specific categories', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "lang@example.com",
+          email: 'categories@example.com',
           isActive: true,
-          frequency: "weekly",
-          language: "en",
+          frequency: 'weekly',
+          categories: ['fortune', 'tarot', 'compatibility'],
         },
-      });
+      })
 
-      expect(subscription.language).toBe("en");
-    });
-  });
+      const categories = subscription.categories as string[]
+      expect(categories).toContain('fortune')
+    })
 
-  describe("Subscription Updates", () => {
-    it("updates frequency", async () => {
-      const user = await createTestUserInDb();
+    it('creates subscription with language preference', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "freq@example.com",
+          email: 'lang@example.com',
           isActive: true,
-          frequency: "daily",
+          frequency: 'weekly',
+          language: 'en',
         },
-      });
+      })
+
+      expect(subscription.language).toBe('en')
+    })
+  })
+
+  describe('Subscription Updates', () => {
+    it('updates frequency', async () => {
+      const user = await createTestUserInDb()
+
+      const subscription = await testPrisma.newsletterSubscription.create({
+        data: {
+          userId: user.id,
+          email: 'freq@example.com',
+          isActive: true,
+          frequency: 'daily',
+        },
+      })
 
       const updated = await testPrisma.newsletterSubscription.update({
         where: { id: subscription.id },
-        data: { frequency: "weekly" },
-      });
+        data: { frequency: 'weekly' },
+      })
 
-      expect(updated.frequency).toBe("weekly");
-    });
+      expect(updated.frequency).toBe('weekly')
+    })
 
-    it("updates preferences", async () => {
-      const user = await createTestUserInDb();
+    it('updates preferences', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "update_prefs@example.com",
+          email: 'update_prefs@example.com',
           isActive: true,
-          frequency: "weekly",
+          frequency: 'weekly',
           preferences: { dailyFortune: true },
         },
-      });
+      })
 
       const updated = await testPrisma.newsletterSubscription.update({
         where: { id: subscription.id },
@@ -158,48 +155,48 @@ describe("Integration: Newsletter Subscription", () => {
             weeklyHoroscope: true,
           },
         },
-      });
+      })
 
-      const prefs = updated.preferences as { dailyFortune: boolean };
-      expect(prefs.dailyFortune).toBe(false);
-    });
+      const prefs = updated.preferences as { dailyFortune: boolean }
+      expect(prefs.dailyFortune).toBe(false)
+    })
 
-    it("unsubscribes", async () => {
-      const user = await createTestUserInDb();
+    it('unsubscribes', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "unsub@example.com",
+          email: 'unsub@example.com',
           isActive: true,
-          frequency: "weekly",
+          frequency: 'weekly',
         },
-      });
+      })
 
       const updated = await testPrisma.newsletterSubscription.update({
         where: { id: subscription.id },
         data: {
           isActive: false,
           unsubscribedAt: new Date(),
-          unsubscribeReason: "Too many emails",
+          unsubscribeReason: 'Too many emails',
         },
-      });
+      })
 
-      expect(updated.isActive).toBe(false);
-    });
+      expect(updated.isActive).toBe(false)
+    })
 
-    it("resubscribes", async () => {
-      const user = await createTestUserInDb();
+    it('resubscribes', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "resub@example.com",
+          email: 'resub@example.com',
           isActive: false,
-          frequency: "weekly",
+          frequency: 'weekly',
           unsubscribedAt: new Date(),
         },
-      });
+      })
 
       const updated = await testPrisma.newsletterSubscription.update({
         where: { id: subscription.id },
@@ -208,40 +205,40 @@ describe("Integration: Newsletter Subscription", () => {
           unsubscribedAt: null,
           resubscribedAt: new Date(),
         },
-      });
+      })
 
-      expect(updated.isActive).toBe(true);
-    });
-  });
+      expect(updated.isActive).toBe(true)
+    })
+  })
 
-  describe("Subscription Retrieval", () => {
-    it("retrieves active subscriptions", async () => {
-      const statuses = [true, false, true, false, true];
+  describe('Subscription Retrieval', () => {
+    it('retrieves active subscriptions', async () => {
+      const statuses = [true, false, true, false, true]
 
       for (let i = 0; i < statuses.length; i++) {
-        const user = await createTestUserInDb();
+        const user = await createTestUserInDb()
         await testPrisma.newsletterSubscription.create({
           data: {
             userId: user.id,
             email: `active_${i}@example.com`,
             isActive: statuses[i],
-            frequency: "weekly",
+            frequency: 'weekly',
           },
-        });
+        })
       }
 
       const active = await testPrisma.newsletterSubscription.findMany({
         where: { isActive: true },
-      });
+      })
 
-      expect(active).toHaveLength(3);
-    });
+      expect(active).toHaveLength(3)
+    })
 
-    it("retrieves subscriptions by frequency", async () => {
-      const frequencies = ["daily", "weekly", "daily", "monthly", "daily"];
+    it('retrieves subscriptions by frequency', async () => {
+      const frequencies = ['daily', 'weekly', 'daily', 'monthly', 'daily']
 
       for (let i = 0; i < frequencies.length; i++) {
-        const user = await createTestUserInDb();
+        const user = await createTestUserInDb()
         await testPrisma.newsletterSubscription.create({
           data: {
             userId: user.id,
@@ -249,110 +246,110 @@ describe("Integration: Newsletter Subscription", () => {
             isActive: true,
             frequency: frequencies[i],
           },
-        });
+        })
       }
 
       const daily = await testPrisma.newsletterSubscription.findMany({
-        where: { frequency: "daily", isActive: true },
-      });
+        where: { frequency: 'daily', isActive: true },
+      })
 
-      expect(daily).toHaveLength(3);
-    });
+      expect(daily).toHaveLength(3)
+    })
 
-    it("retrieves subscriptions by language", async () => {
-      const languages = ["ko", "en", "ko", "ja", "ko"];
+    it('retrieves subscriptions by language', async () => {
+      const languages = ['ko', 'en', 'ko', 'ja', 'ko']
 
       for (let i = 0; i < languages.length; i++) {
-        const user = await createTestUserInDb();
+        const user = await createTestUserInDb()
         await testPrisma.newsletterSubscription.create({
           data: {
             userId: user.id,
             email: `lang_${i}@example.com`,
             isActive: true,
-            frequency: "weekly",
+            frequency: 'weekly',
             language: languages[i],
           },
-        });
+        })
       }
 
       const korean = await testPrisma.newsletterSubscription.findMany({
-        where: { language: "ko", isActive: true },
-      });
+        where: { language: 'ko', isActive: true },
+      })
 
-      expect(korean).toHaveLength(3);
-    });
-  });
+      expect(korean).toHaveLength(3)
+    })
+  })
 
-  describe("Newsletter Delivery", () => {
-    it("records newsletter sent", async () => {
-      const user = await createTestUserInDb();
+  describe('Newsletter Delivery', () => {
+    it('records newsletter sent', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "delivery@example.com",
+          email: 'delivery@example.com',
           isActive: true,
-          frequency: "weekly",
+          frequency: 'weekly',
         },
-      });
+      })
 
       const delivery = await testPrisma.newsletterDelivery.create({
         data: {
           subscriptionId: subscription.id,
-          newsletterId: "newsletter_2024_01",
-          status: "sent",
+          newsletterId: 'newsletter_2024_01',
+          status: 'sent',
           sentAt: new Date(),
         },
-      });
+      })
 
-      expect(delivery.status).toBe("sent");
-    });
+      expect(delivery.status).toBe('sent')
+    })
 
-    it("records delivery failure", async () => {
-      const user = await createTestUserInDb();
+    it('records delivery failure', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "failed@example.com",
+          email: 'failed@example.com',
           isActive: true,
-          frequency: "weekly",
+          frequency: 'weekly',
         },
-      });
+      })
 
       const delivery = await testPrisma.newsletterDelivery.create({
         data: {
           subscriptionId: subscription.id,
-          newsletterId: "newsletter_2024_02",
-          status: "failed",
-          errorMessage: "Invalid email address",
+          newsletterId: 'newsletter_2024_02',
+          status: 'failed',
+          errorMessage: 'Invalid email address',
           failedAt: new Date(),
         },
-      });
+      })
 
-      expect(delivery.status).toBe("failed");
-    });
+      expect(delivery.status).toBe('failed')
+    })
 
-    it("records email opened", async () => {
-      const user = await createTestUserInDb();
+    it('records email opened', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "opened@example.com",
+          email: 'opened@example.com',
           isActive: true,
-          frequency: "weekly",
+          frequency: 'weekly',
         },
-      });
+      })
 
       const delivery = await testPrisma.newsletterDelivery.create({
         data: {
           subscriptionId: subscription.id,
-          newsletterId: "newsletter_2024_03",
-          status: "sent",
+          newsletterId: 'newsletter_2024_03',
+          status: 'sent',
           sentAt: new Date(),
         },
-      });
+      })
 
       const updated = await testPrisma.newsletterDelivery.update({
         where: { id: delivery.id },
@@ -360,32 +357,32 @@ describe("Integration: Newsletter Subscription", () => {
           openedAt: new Date(),
           openCount: 1,
         },
-      });
+      })
 
-      expect(updated.openCount).toBe(1);
-    });
+      expect(updated.openCount).toBe(1)
+    })
 
-    it("records link clicked", async () => {
-      const user = await createTestUserInDb();
+    it('records link clicked', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "clicked@example.com",
+          email: 'clicked@example.com',
           isActive: true,
-          frequency: "weekly",
+          frequency: 'weekly',
         },
-      });
+      })
 
       const delivery = await testPrisma.newsletterDelivery.create({
         data: {
           subscriptionId: subscription.id,
-          newsletterId: "newsletter_2024_04",
-          status: "sent",
+          newsletterId: 'newsletter_2024_04',
+          status: 'sent',
           sentAt: new Date(),
           openedAt: new Date(),
         },
-      });
+      })
 
       const updated = await testPrisma.newsletterDelivery.update({
         where: { id: delivery.id },
@@ -393,18 +390,18 @@ describe("Integration: Newsletter Subscription", () => {
           clickedAt: new Date(),
           clickCount: 3,
         },
-      });
+      })
 
-      expect(updated.clickCount).toBe(3);
-    });
-  });
+      expect(updated.clickCount).toBe(3)
+    })
+  })
 
-  describe("Subscription Statistics", () => {
-    it("counts subscriptions by frequency", async () => {
-      const frequencies = ["daily", "weekly", "daily", "monthly", "weekly", "daily"];
+  describe('Subscription Statistics', () => {
+    it('counts subscriptions by frequency', async () => {
+      const frequencies = ['daily', 'weekly', 'daily', 'monthly', 'weekly', 'daily']
 
       for (let i = 0; i < frequencies.length; i++) {
-        const user = await createTestUserInDb();
+        const user = await createTestUserInDb()
         await testPrisma.newsletterSubscription.create({
           data: {
             userId: user.id,
@@ -412,30 +409,30 @@ describe("Integration: Newsletter Subscription", () => {
             isActive: true,
             frequency: frequencies[i],
           },
-        });
+        })
       }
 
       const counts = await testPrisma.newsletterSubscription.groupBy({
-        by: ["frequency"],
+        by: ['frequency'],
         where: { isActive: true },
         _count: { id: true },
-      });
+      })
 
-      const dailyCount = counts.find((c) => c.frequency === "daily")?._count.id;
-      expect(dailyCount).toBe(3);
-    });
+      const dailyCount = counts.find((c) => c.frequency === 'daily')?._count.id
+      expect(dailyCount).toBe(3)
+    })
 
-    it("calculates open rate", async () => {
-      const user = await createTestUserInDb();
+    it('calculates open rate', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "openrate@example.com",
+          email: 'openrate@example.com',
           isActive: true,
-          frequency: "weekly",
+          frequency: 'weekly',
         },
-      });
+      })
 
       // Sent newsletters
       for (let i = 0; i < 10; i++) {
@@ -443,36 +440,36 @@ describe("Integration: Newsletter Subscription", () => {
           data: {
             subscriptionId: subscription.id,
             newsletterId: `newsletter_open_${i}`,
-            status: "sent",
+            status: 'sent',
             sentAt: new Date(),
             openedAt: i < 6 ? new Date() : null,
           },
-        });
+        })
       }
 
       const total = await testPrisma.newsletterDelivery.count({
-        where: { subscriptionId: subscription.id, status: "sent" },
-      });
+        where: { subscriptionId: subscription.id, status: 'sent' },
+      })
 
       const opened = await testPrisma.newsletterDelivery.count({
         where: { subscriptionId: subscription.id, openedAt: { not: null } },
-      });
+      })
 
-      const openRate = (opened / total) * 100;
-      expect(openRate).toBe(60);
-    });
+      const openRate = (opened / total) * 100
+      expect(openRate).toBe(60)
+    })
 
-    it("calculates click rate", async () => {
-      const user = await createTestUserInDb();
+    it('calculates click rate', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "clickrate@example.com",
+          email: 'clickrate@example.com',
           isActive: true,
-          frequency: "weekly",
+          frequency: 'weekly',
         },
-      });
+      })
 
       // Opened newsletters
       for (let i = 0; i < 10; i++) {
@@ -480,65 +477,65 @@ describe("Integration: Newsletter Subscription", () => {
           data: {
             subscriptionId: subscription.id,
             newsletterId: `newsletter_click_${i}`,
-            status: "sent",
+            status: 'sent',
             sentAt: new Date(),
             openedAt: new Date(),
             clickedAt: i < 4 ? new Date() : null,
           },
-        });
+        })
       }
 
       const opened = await testPrisma.newsletterDelivery.count({
         where: { subscriptionId: subscription.id, openedAt: { not: null } },
-      });
+      })
 
       const clicked = await testPrisma.newsletterDelivery.count({
         where: { subscriptionId: subscription.id, clickedAt: { not: null } },
-      });
+      })
 
-      const clickRate = (clicked / opened) * 100;
-      expect(clickRate).toBe(40);
-    });
-  });
+      const clickRate = (clicked / opened) * 100
+      expect(clickRate).toBe(40)
+    })
+  })
 
-  describe("Bounce Handling", () => {
-    it("records soft bounce", async () => {
-      const user = await createTestUserInDb();
+  describe('Bounce Handling', () => {
+    it('records soft bounce', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "softbounce@example.com",
+          email: 'softbounce@example.com',
           isActive: true,
-          frequency: "weekly",
+          frequency: 'weekly',
           bounceCount: 0,
         },
-      });
+      })
 
       const updated = await testPrisma.newsletterSubscription.update({
         where: { id: subscription.id },
         data: {
           bounceCount: { increment: 1 },
           lastBounceAt: new Date(),
-          lastBounceType: "soft",
+          lastBounceType: 'soft',
         },
-      });
+      })
 
-      expect(updated.bounceCount).toBe(1);
-    });
+      expect(updated.bounceCount).toBe(1)
+    })
 
-    it("deactivates after multiple bounces", async () => {
-      const user = await createTestUserInDb();
+    it('deactivates after multiple bounces', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "hardbounce@example.com",
+          email: 'hardbounce@example.com',
           isActive: true,
-          frequency: "weekly",
+          frequency: 'weekly',
           bounceCount: 2,
         },
-      });
+      })
 
       // Third bounce - deactivate
       const updated = await testPrisma.newsletterSubscription.update({
@@ -547,36 +544,36 @@ describe("Integration: Newsletter Subscription", () => {
           bounceCount: 3,
           isActive: false,
           deactivatedAt: new Date(),
-          deactivationReason: "Too many bounces",
+          deactivationReason: 'Too many bounces',
         },
-      });
+      })
 
-      expect(updated.isActive).toBe(false);
-    });
-  });
+      expect(updated.isActive).toBe(false)
+    })
+  })
 
-  describe("Subscription Deletion", () => {
-    it("deletes subscription", async () => {
-      const user = await createTestUserInDb();
+  describe('Subscription Deletion', () => {
+    it('deletes subscription', async () => {
+      const user = await createTestUserInDb()
 
       const subscription = await testPrisma.newsletterSubscription.create({
         data: {
           userId: user.id,
-          email: "delete@example.com",
+          email: 'delete@example.com',
           isActive: true,
-          frequency: "weekly",
+          frequency: 'weekly',
         },
-      });
+      })
 
       await testPrisma.newsletterSubscription.delete({
         where: { id: subscription.id },
-      });
+      })
 
       const found = await testPrisma.newsletterSubscription.findUnique({
         where: { id: subscription.id },
-      });
+      })
 
-      expect(found).toBeNull();
-    });
-  });
-});
+      expect(found).toBeNull()
+    })
+  })
+})

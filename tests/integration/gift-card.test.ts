@@ -10,7 +10,7 @@
  * 환경변수 필요: TEST_DATABASE_URL 또는 DATABASE_URL
  */
 
-import { beforeAll, afterAll, afterEach, describe, it, expect } from "vitest";
+import { beforeAll, afterAll, afterEach, describe, it, expect } from 'vitest'
 import {
   testPrisma,
   createTestUserInDb,
@@ -18,96 +18,93 @@ import {
   checkTestDbConnection,
   connectTestDb,
   disconnectTestDb,
-} from "./setup";
+} from './setup'
 
-const hasTestDb = await checkTestDbConnection();
+const hasTestDb = await checkTestDbConnection()
 
-describe("Integration: Gift Card", () => {
+describe('Integration: Gift Card', () => {
   if (!hasTestDb) {
-    it("skips when test database is unavailable", () => {
-      expect(true).toBe(true);
-    });
-    return;
+    return
   }
 
   beforeAll(async () => {
-    await connectTestDb();
-  });
+    await connectTestDb()
+  })
 
   afterAll(async () => {
-    await cleanupAllTestUsers();
-    await disconnectTestDb();
-  });
+    await cleanupAllTestUsers()
+    await disconnectTestDb()
+  })
 
   afterEach(async () => {
-    await cleanupAllTestUsers();
-  });
+    await cleanupAllTestUsers()
+  })
 
-  describe("Card Creation", () => {
-    it("creates gift card", async () => {
-      const user = await createTestUserInDb();
+  describe('Card Creation', () => {
+    it('creates gift card', async () => {
+      const user = await createTestUserInDb()
 
       const card = await testPrisma.giftCard.create({
         data: {
           code: `GIFT_${Date.now()}`,
           amount: 10000,
           balance: 10000,
-          currency: "KRW",
+          currency: 'KRW',
           purchasedBy: user.id,
-          status: "active",
+          status: 'active',
           expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
-      expect(card.amount).toBe(10000);
-      expect(card.balance).toBe(10000);
-    });
+      expect(card.amount).toBe(10000)
+      expect(card.balance).toBe(10000)
+    })
 
-    it("creates card with message", async () => {
-      const user = await createTestUserInDb();
+    it('creates card with message', async () => {
+      const user = await createTestUserInDb()
 
       const card = await testPrisma.giftCard.create({
         data: {
           code: `GIFT_${Date.now()}`,
           amount: 50000,
           balance: 50000,
-          currency: "KRW",
+          currency: 'KRW',
           purchasedBy: user.id,
-          status: "active",
-          recipientEmail: "friend@example.com",
-          message: "생일 축하해요! 행복한 하루 되세요.",
-          senderName: "김철수",
+          status: 'active',
+          recipientEmail: 'friend@example.com',
+          message: '생일 축하해요! 행복한 하루 되세요.',
+          senderName: '김철수',
           expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
-      expect(card.message).toContain("생일");
-      expect(card.senderName).toBe("김철수");
-    });
+      expect(card.message).toContain('생일')
+      expect(card.senderName).toBe('김철수')
+    })
 
-    it("creates themed gift card", async () => {
-      const user = await createTestUserInDb();
+    it('creates themed gift card', async () => {
+      const user = await createTestUserInDb()
 
       const card = await testPrisma.giftCard.create({
         data: {
           code: `GIFT_${Date.now()}`,
           amount: 30000,
           balance: 30000,
-          currency: "KRW",
+          currency: 'KRW',
           purchasedBy: user.id,
-          status: "active",
-          theme: "birthday",
-          designTemplate: "birthday_balloons",
+          status: 'active',
+          theme: 'birthday',
+          designTemplate: 'birthday_balloons',
           expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
-      expect(card.theme).toBe("birthday");
-    });
+      expect(card.theme).toBe('birthday')
+    })
 
-    it("creates bulk gift cards", async () => {
-      const user = await createTestUserInDb();
-      const batchId = `BATCH_${Date.now()}`;
+    it('creates bulk gift cards', async () => {
+      const user = await createTestUserInDb()
+      const batchId = `BATCH_${Date.now()}`
 
       for (let i = 0; i < 10; i++) {
         await testPrisma.giftCard.create({
@@ -115,134 +112,134 @@ describe("Integration: Gift Card", () => {
             code: `GIFT_${Date.now()}_${i}`,
             amount: 5000,
             balance: 5000,
-            currency: "KRW",
+            currency: 'KRW',
             purchasedBy: user.id,
-            status: "active",
+            status: 'active',
             batchId,
             expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000),
           },
-        });
+        })
       }
 
       const batchCards = await testPrisma.giftCard.findMany({
         where: { batchId },
-      });
+      })
 
-      expect(batchCards).toHaveLength(10);
-    });
-  });
+      expect(batchCards).toHaveLength(10)
+    })
+  })
 
-  describe("Card Redemption", () => {
-    it("redeems gift card", async () => {
-      const purchaser = await createTestUserInDb();
-      const recipient = await createTestUserInDb();
+  describe('Card Redemption', () => {
+    it('redeems gift card', async () => {
+      const purchaser = await createTestUserInDb()
+      const recipient = await createTestUserInDb()
 
       const card = await testPrisma.giftCard.create({
         data: {
           code: `GIFT_${Date.now()}`,
           amount: 10000,
           balance: 10000,
-          currency: "KRW",
+          currency: 'KRW',
           purchasedBy: purchaser.id,
-          status: "active",
+          status: 'active',
           expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
       const redeemed = await testPrisma.giftCard.update({
         where: { id: card.id },
         data: {
           redeemedBy: recipient.id,
           redeemedAt: new Date(),
-          status: "redeemed",
+          status: 'redeemed',
         },
-      });
+      })
 
-      expect(redeemed.redeemedBy).toBe(recipient.id);
-      expect(redeemed.status).toBe("redeemed");
-    });
+      expect(redeemed.redeemedBy).toBe(recipient.id)
+      expect(redeemed.status).toBe('redeemed')
+    })
 
-    it("partially uses gift card", async () => {
-      const user = await createTestUserInDb();
+    it('partially uses gift card', async () => {
+      const user = await createTestUserInDb()
 
       const card = await testPrisma.giftCard.create({
         data: {
           code: `GIFT_${Date.now()}`,
           amount: 10000,
           balance: 10000,
-          currency: "KRW",
+          currency: 'KRW',
           purchasedBy: user.id,
           redeemedBy: user.id,
-          status: "redeemed",
+          status: 'redeemed',
           expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
       // Use 3000 KRW
       const updated = await testPrisma.giftCard.update({
         where: { id: card.id },
         data: { balance: card.balance - 3000 },
-      });
+      })
 
-      expect(updated.balance).toBe(7000);
-    });
+      expect(updated.balance).toBe(7000)
+    })
 
-    it("fully depletes gift card", async () => {
-      const user = await createTestUserInDb();
+    it('fully depletes gift card', async () => {
+      const user = await createTestUserInDb()
 
       const card = await testPrisma.giftCard.create({
         data: {
           code: `GIFT_${Date.now()}`,
           amount: 5000,
           balance: 5000,
-          currency: "KRW",
+          currency: 'KRW',
           purchasedBy: user.id,
           redeemedBy: user.id,
-          status: "redeemed",
+          status: 'redeemed',
           expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
       const updated = await testPrisma.giftCard.update({
         where: { id: card.id },
         data: {
           balance: 0,
-          status: "depleted",
+          status: 'depleted',
           depletedAt: new Date(),
         },
-      });
+      })
 
-      expect(updated.balance).toBe(0);
-      expect(updated.status).toBe("depleted");
-    });
-  });
+      expect(updated.balance).toBe(0)
+      expect(updated.status).toBe('depleted')
+    })
+  })
 
-  describe("Card Retrieval", () => {
-    it("retrieves card by code", async () => {
-      const user = await createTestUserInDb();
-      const code = `GIFT_${Date.now()}`;
+  describe('Card Retrieval', () => {
+    it('retrieves card by code', async () => {
+      const user = await createTestUserInDb()
+      const code = `GIFT_${Date.now()}`
 
       await testPrisma.giftCard.create({
         data: {
           code,
           amount: 10000,
           balance: 10000,
-          currency: "KRW",
+          currency: 'KRW',
           purchasedBy: user.id,
-          status: "active",
+          status: 'active',
           expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
       const found = await testPrisma.giftCard.findUnique({
         where: { code },
-      });
+      })
 
-      expect(found).not.toBeNull();
-    });
+      expect(found).not.toBeNull()
+    })
 
-    it("retrieves cards purchased by user", async () => {
-      const user = await createTestUserInDb();
+    it('retrieves cards purchased by user', async () => {
+      const user = await createTestUserInDb()
 
       for (let i = 0; i < 5; i++) {
         await testPrisma.giftCard.create({
@@ -250,24 +247,24 @@ describe("Integration: Gift Card", () => {
             code: `GIFT_${Date.now()}_${i}`,
             amount: 10000,
             balance: 10000,
-            currency: "KRW",
+            currency: 'KRW',
             purchasedBy: user.id,
-            status: "active",
+            status: 'active',
             expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
           },
-        });
+        })
       }
 
       const cards = await testPrisma.giftCard.findMany({
         where: { purchasedBy: user.id },
-      });
+      })
 
-      expect(cards).toHaveLength(5);
-    });
+      expect(cards).toHaveLength(5)
+    })
 
-    it("retrieves cards redeemed by user", async () => {
-      const purchaser = await createTestUserInDb();
-      const recipient = await createTestUserInDb();
+    it('retrieves cards redeemed by user', async () => {
+      const purchaser = await createTestUserInDb()
+      const recipient = await createTestUserInDb()
 
       for (let i = 0; i < 3; i++) {
         await testPrisma.giftCard.create({
@@ -275,26 +272,26 @@ describe("Integration: Gift Card", () => {
             code: `GIFT_${Date.now()}_${i}`,
             amount: 10000,
             balance: 10000,
-            currency: "KRW",
+            currency: 'KRW',
             purchasedBy: purchaser.id,
             redeemedBy: recipient.id,
-            status: "redeemed",
+            status: 'redeemed',
             expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
           },
-        });
+        })
       }
 
       const cards = await testPrisma.giftCard.findMany({
         where: { redeemedBy: recipient.id },
-      });
+      })
 
-      expect(cards).toHaveLength(3);
-    });
+      expect(cards).toHaveLength(3)
+    })
 
-    it("retrieves active cards with balance", async () => {
-      const user = await createTestUserInDb();
+    it('retrieves active cards with balance', async () => {
+      const user = await createTestUserInDb()
 
-      const balances = [5000, 0, 3000, 0, 7000];
+      const balances = [5000, 0, 3000, 0, 7000]
 
       for (let i = 0; i < balances.length; i++) {
         await testPrisma.giftCard.create({
@@ -302,86 +299,86 @@ describe("Integration: Gift Card", () => {
             code: `GIFT_${Date.now()}_${i}`,
             amount: 10000,
             balance: balances[i],
-            currency: "KRW",
+            currency: 'KRW',
             purchasedBy: user.id,
             redeemedBy: user.id,
-            status: balances[i] > 0 ? "redeemed" : "depleted",
+            status: balances[i] > 0 ? 'redeemed' : 'depleted',
             expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
           },
-        });
+        })
       }
 
       const cardsWithBalance = await testPrisma.giftCard.findMany({
         where: { redeemedBy: user.id, balance: { gt: 0 } },
-      });
+      })
 
-      expect(cardsWithBalance).toHaveLength(3);
-    });
-  });
+      expect(cardsWithBalance).toHaveLength(3)
+    })
+  })
 
-  describe("Card Statistics", () => {
-    it("calculates total gift card sales", async () => {
-      const users: string[] = [];
-      const amounts = [10000, 20000, 30000, 50000, 100000];
+  describe('Card Statistics', () => {
+    it('calculates total gift card sales', async () => {
+      const users: string[] = []
+      const amounts = [10000, 20000, 30000, 50000, 100000]
 
       for (let i = 0; i < amounts.length; i++) {
-        const user = await createTestUserInDb();
-        users.push(user.id);
+        const user = await createTestUserInDb()
+        users.push(user.id)
 
         await testPrisma.giftCard.create({
           data: {
             code: `GIFT_${Date.now()}_${i}`,
             amount: amounts[i],
             balance: amounts[i],
-            currency: "KRW",
+            currency: 'KRW',
             purchasedBy: user.id,
-            status: "active",
+            status: 'active',
             expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
           },
-        });
+        })
       }
 
       const cards = await testPrisma.giftCard.findMany({
         where: { purchasedBy: { in: users } },
-      });
+      })
 
-      const totalSales = cards.reduce((sum, c) => sum + c.amount, 0);
-      expect(totalSales).toBe(210000);
-    });
+      const totalSales = cards.reduce((sum, c) => sum + c.amount, 0)
+      expect(totalSales).toBe(210000)
+    })
 
-    it("counts cards by status", async () => {
-      const user = await createTestUserInDb();
+    it('counts cards by status', async () => {
+      const user = await createTestUserInDb()
 
-      const statuses = ["active", "active", "redeemed", "redeemed", "redeemed", "expired"];
+      const statuses = ['active', 'active', 'redeemed', 'redeemed', 'redeemed', 'expired']
 
       for (let i = 0; i < statuses.length; i++) {
         await testPrisma.giftCard.create({
           data: {
             code: `GIFT_${Date.now()}_${i}`,
             amount: 10000,
-            balance: statuses[i] === "active" ? 10000 : 5000,
-            currency: "KRW",
+            balance: statuses[i] === 'active' ? 10000 : 5000,
+            currency: 'KRW',
             purchasedBy: user.id,
             status: statuses[i],
             expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
           },
-        });
+        })
       }
 
       const counts = await testPrisma.giftCard.groupBy({
-        by: ["status"],
+        by: ['status'],
         where: { purchasedBy: user.id },
         _count: { id: true },
-      });
+      })
 
-      const redeemedCount = counts.find((c) => c.status === "redeemed")?._count.id;
-      expect(redeemedCount).toBe(3);
-    });
+      const redeemedCount = counts.find((c) => c.status === 'redeemed')?._count.id
+      expect(redeemedCount).toBe(3)
+    })
 
-    it("calculates unused balance", async () => {
-      const user = await createTestUserInDb();
+    it('calculates unused balance', async () => {
+      const user = await createTestUserInDb()
 
-      const balances = [5000, 3000, 7000, 0, 2000];
+      const balances = [5000, 3000, 7000, 0, 2000]
 
       for (let i = 0; i < balances.length; i++) {
         await testPrisma.giftCard.create({
@@ -389,28 +386,28 @@ describe("Integration: Gift Card", () => {
             code: `GIFT_${Date.now()}_${i}`,
             amount: 10000,
             balance: balances[i],
-            currency: "KRW",
+            currency: 'KRW',
             purchasedBy: user.id,
             redeemedBy: user.id,
-            status: balances[i] > 0 ? "redeemed" : "depleted",
+            status: balances[i] > 0 ? 'redeemed' : 'depleted',
             expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
           },
-        });
+        })
       }
 
       const cards = await testPrisma.giftCard.findMany({
         where: { redeemedBy: user.id },
-      });
+      })
 
-      const totalBalance = cards.reduce((sum, c) => sum + c.balance, 0);
-      expect(totalBalance).toBe(17000);
-    });
-  });
+      const totalBalance = cards.reduce((sum, c) => sum + c.balance, 0)
+      expect(totalBalance).toBe(17000)
+    })
+  })
 
-  describe("Card Expiration", () => {
-    it("identifies expired cards", async () => {
-      const user = await createTestUserInDb();
-      const now = new Date();
+  describe('Card Expiration', () => {
+    it('identifies expired cards', async () => {
+      const user = await createTestUserInDb()
+      const now = new Date()
 
       // Expired card
       await testPrisma.giftCard.create({
@@ -418,12 +415,12 @@ describe("Integration: Gift Card", () => {
           code: `EXPIRED_${Date.now()}`,
           amount: 10000,
           balance: 10000,
-          currency: "KRW",
+          currency: 'KRW',
           purchasedBy: user.id,
-          status: "active",
+          status: 'active',
           expiresAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
       // Valid card
       await testPrisma.giftCard.create({
@@ -431,106 +428,106 @@ describe("Integration: Gift Card", () => {
           code: `VALID_${Date.now()}`,
           amount: 10000,
           balance: 10000,
-          currency: "KRW",
+          currency: 'KRW',
           purchasedBy: user.id,
-          status: "active",
+          status: 'active',
           expiresAt: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
       const expiredCards = await testPrisma.giftCard.findMany({
         where: {
           purchasedBy: user.id,
-          status: "active",
+          status: 'active',
           expiresAt: { lt: now },
         },
-      });
+      })
 
-      expect(expiredCards).toHaveLength(1);
-    });
+      expect(expiredCards).toHaveLength(1)
+    })
 
-    it("marks cards as expired", async () => {
-      const user = await createTestUserInDb();
+    it('marks cards as expired', async () => {
+      const user = await createTestUserInDb()
 
       const card = await testPrisma.giftCard.create({
         data: {
           code: `GIFT_${Date.now()}`,
           amount: 10000,
           balance: 10000,
-          currency: "KRW",
+          currency: 'KRW',
           purchasedBy: user.id,
-          status: "active",
+          status: 'active',
           expiresAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
       const updated = await testPrisma.giftCard.update({
         where: { id: card.id },
-        data: { status: "expired" },
-      });
+        data: { status: 'expired' },
+      })
 
-      expect(updated.status).toBe("expired");
-    });
-  });
+      expect(updated.status).toBe('expired')
+    })
+  })
 
-  describe("Card Updates", () => {
-    it("extends expiration", async () => {
-      const user = await createTestUserInDb();
-      const originalExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      const newExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+  describe('Card Updates', () => {
+    it('extends expiration', async () => {
+      const user = await createTestUserInDb()
+      const originalExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      const newExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
 
       const card = await testPrisma.giftCard.create({
         data: {
           code: `GIFT_${Date.now()}`,
           amount: 10000,
           balance: 10000,
-          currency: "KRW",
+          currency: 'KRW',
           purchasedBy: user.id,
-          status: "active",
+          status: 'active',
           expiresAt: originalExpiry,
         },
-      });
+      })
 
       const updated = await testPrisma.giftCard.update({
         where: { id: card.id },
         data: { expiresAt: newExpiry },
-      });
+      })
 
-      expect(updated.expiresAt?.getTime()).toBeGreaterThan(originalExpiry.getTime());
-    });
+      expect(updated.expiresAt?.getTime()).toBeGreaterThan(originalExpiry.getTime())
+    })
 
-    it("deactivates card", async () => {
-      const user = await createTestUserInDb();
+    it('deactivates card', async () => {
+      const user = await createTestUserInDb()
 
       const card = await testPrisma.giftCard.create({
         data: {
           code: `GIFT_${Date.now()}`,
           amount: 10000,
           balance: 10000,
-          currency: "KRW",
+          currency: 'KRW',
           purchasedBy: user.id,
-          status: "active",
+          status: 'active',
           expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
         },
-      });
+      })
 
       const updated = await testPrisma.giftCard.update({
         where: { id: card.id },
         data: {
-          status: "cancelled",
+          status: 'cancelled',
           cancelledAt: new Date(),
-          cancelReason: "Fraud prevention",
+          cancelReason: 'Fraud prevention',
         },
-      });
+      })
 
-      expect(updated.status).toBe("cancelled");
-    });
-  });
+      expect(updated.status).toBe('cancelled')
+    })
+  })
 
-  describe("Card Deletion", () => {
-    it("deletes old expired cards", async () => {
-      const user = await createTestUserInDb();
-      const now = new Date();
+  describe('Card Deletion', () => {
+    it('deletes old expired cards', async () => {
+      const user = await createTestUserInDb()
+      const now = new Date()
 
       // Old expired cards
       for (let i = 0; i < 3; i++) {
@@ -539,12 +536,12 @@ describe("Integration: Gift Card", () => {
             code: `OLD_${Date.now()}_${i}`,
             amount: 10000,
             balance: 0,
-            currency: "KRW",
+            currency: 'KRW',
             purchasedBy: user.id,
-            status: "expired",
+            status: 'expired',
             expiresAt: new Date(now.getTime() - 400 * 24 * 60 * 60 * 1000),
           },
-        });
+        })
       }
 
       // Active cards
@@ -554,29 +551,29 @@ describe("Integration: Gift Card", () => {
             code: `ACTIVE_${Date.now()}_${i}`,
             amount: 10000,
             balance: 10000,
-            currency: "KRW",
+            currency: 'KRW',
             purchasedBy: user.id,
-            status: "active",
+            status: 'active',
             expiresAt: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
           },
-        });
+        })
       }
 
-      const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+      const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
 
       await testPrisma.giftCard.deleteMany({
         where: {
           purchasedBy: user.id,
-          status: "expired",
+          status: 'expired',
           expiresAt: { lt: oneYearAgo },
         },
-      });
+      })
 
       const remaining = await testPrisma.giftCard.findMany({
         where: { purchasedBy: user.id },
-      });
+      })
 
-      expect(remaining).toHaveLength(2);
-    });
-  });
-});
+      expect(remaining).toHaveLength(2)
+    })
+  })
+})

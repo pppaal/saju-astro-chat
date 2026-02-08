@@ -10,7 +10,7 @@
  * 환경변수 필요: TEST_DATABASE_URL 또는 DATABASE_URL
  */
 
-import { beforeAll, afterAll, afterEach, describe, it, expect } from "vitest";
+import { beforeAll, afterAll, afterEach, describe, it, expect } from 'vitest'
 import {
   testPrisma,
   createTestUserInDb,
@@ -18,34 +18,31 @@ import {
   checkTestDbConnection,
   connectTestDb,
   disconnectTestDb,
-} from "./setup";
+} from './setup'
 
-const hasTestDb = await checkTestDbConnection();
+const hasTestDb = await checkTestDbConnection()
 
-describe("Integration: Notification Settings", () => {
+describe('Integration: Notification Settings', () => {
   if (!hasTestDb) {
-    it("skips when test database is unavailable", () => {
-      expect(true).toBe(true);
-    });
-    return;
+    return
   }
 
   beforeAll(async () => {
-    await connectTestDb();
-  });
+    await connectTestDb()
+  })
 
   afterAll(async () => {
-    await cleanupAllTestUsers();
-    await disconnectTestDb();
-  });
+    await cleanupAllTestUsers()
+    await disconnectTestDb()
+  })
 
   afterEach(async () => {
-    await cleanupAllTestUsers();
-  });
+    await cleanupAllTestUsers()
+  })
 
-  describe("Settings Creation", () => {
-    it("creates default notification settings", async () => {
-      const user = await createTestUserInDb();
+  describe('Settings Creation', () => {
+    it('creates default notification settings', async () => {
+      const user = await createTestUserInDb()
 
       const settings = await testPrisma.notificationSettings.create({
         data: {
@@ -54,14 +51,14 @@ describe("Integration: Notification Settings", () => {
           pushEnabled: true,
           smsEnabled: false,
         },
-      });
+      })
 
-      expect(settings.emailEnabled).toBe(true);
-      expect(settings.smsEnabled).toBe(false);
-    });
+      expect(settings.emailEnabled).toBe(true)
+      expect(settings.smsEnabled).toBe(false)
+    })
 
-    it("creates settings with custom preferences", async () => {
-      const user = await createTestUserInDb();
+    it('creates settings with custom preferences', async () => {
+      const user = await createTestUserInDb()
 
       const settings = await testPrisma.notificationSettings.create({
         data: {
@@ -76,14 +73,14 @@ describe("Integration: Notification Settings", () => {
             systemAlerts: true,
           },
         },
-      });
+      })
 
-      const prefs = settings.preferences as { dailyFortune: boolean };
-      expect(prefs.dailyFortune).toBe(true);
-    });
+      const prefs = settings.preferences as { dailyFortune: boolean }
+      expect(prefs.dailyFortune).toBe(true)
+    })
 
-    it("creates settings with quiet hours", async () => {
-      const user = await createTestUserInDb();
+    it('creates settings with quiet hours', async () => {
+      const user = await createTestUserInDb()
 
       const settings = await testPrisma.notificationSettings.create({
         data: {
@@ -93,20 +90,20 @@ describe("Integration: Notification Settings", () => {
           smsEnabled: false,
           quietHours: {
             enabled: true,
-            start: "22:00",
-            end: "07:00",
-            timezone: "Asia/Seoul",
+            start: '22:00',
+            end: '07:00',
+            timezone: 'Asia/Seoul',
           },
         },
-      });
+      })
 
-      const quiet = settings.quietHours as { enabled: boolean; start: string };
-      expect(quiet.enabled).toBe(true);
-      expect(quiet.start).toBe("22:00");
-    });
+      const quiet = settings.quietHours as { enabled: boolean; start: string }
+      expect(quiet.enabled).toBe(true)
+      expect(quiet.start).toBe('22:00')
+    })
 
-    it("creates settings with frequency limits", async () => {
-      const user = await createTestUserInDb();
+    it('creates settings with frequency limits', async () => {
+      const user = await createTestUserInDb()
 
       const settings = await testPrisma.notificationSettings.create({
         data: {
@@ -120,16 +117,16 @@ describe("Integration: Notification Settings", () => {
             cooldownMinutes: 60,
           },
         },
-      });
+      })
 
-      const freq = settings.frequency as { maxPerDay: number };
-      expect(freq.maxPerDay).toBe(5);
-    });
-  });
+      const freq = settings.frequency as { maxPerDay: number }
+      expect(freq.maxPerDay).toBe(5)
+    })
+  })
 
-  describe("Settings Retrieval", () => {
-    it("retrieves settings by userId", async () => {
-      const user = await createTestUserInDb();
+  describe('Settings Retrieval', () => {
+    it('retrieves settings by userId', async () => {
+      const user = await createTestUserInDb()
 
       await testPrisma.notificationSettings.create({
         data: {
@@ -138,22 +135,22 @@ describe("Integration: Notification Settings", () => {
           pushEnabled: false,
           smsEnabled: false,
         },
-      });
+      })
 
       const settings = await testPrisma.notificationSettings.findUnique({
         where: { userId: user.id },
-      });
+      })
 
-      expect(settings?.pushEnabled).toBe(false);
-    });
+      expect(settings?.pushEnabled).toBe(false)
+    })
 
-    it("retrieves users with push enabled", async () => {
-      const users: string[] = [];
-      const pushStates = [true, true, false, true, false];
+    it('retrieves users with push enabled', async () => {
+      const users: string[] = []
+      const pushStates = [true, true, false, true, false]
 
       for (let i = 0; i < pushStates.length; i++) {
-        const user = await createTestUserInDb();
-        users.push(user.id);
+        const user = await createTestUserInDb()
+        users.push(user.id)
 
         await testPrisma.notificationSettings.create({
           data: {
@@ -162,23 +159,23 @@ describe("Integration: Notification Settings", () => {
             pushEnabled: pushStates[i],
             smsEnabled: false,
           },
-        });
+        })
       }
 
       const pushEnabled = await testPrisma.notificationSettings.findMany({
         where: { userId: { in: users }, pushEnabled: true },
-      });
+      })
 
-      expect(pushEnabled).toHaveLength(3);
-    });
+      expect(pushEnabled).toHaveLength(3)
+    })
 
-    it("retrieves users with email enabled", async () => {
-      const users: string[] = [];
-      const emailStates = [true, false, true, true, false];
+    it('retrieves users with email enabled', async () => {
+      const users: string[] = []
+      const emailStates = [true, false, true, true, false]
 
       for (let i = 0; i < emailStates.length; i++) {
-        const user = await createTestUserInDb();
-        users.push(user.id);
+        const user = await createTestUserInDb()
+        users.push(user.id)
 
         await testPrisma.notificationSettings.create({
           data: {
@@ -187,20 +184,20 @@ describe("Integration: Notification Settings", () => {
             pushEnabled: true,
             smsEnabled: false,
           },
-        });
+        })
       }
 
       const emailEnabled = await testPrisma.notificationSettings.findMany({
         where: { userId: { in: users }, emailEnabled: true },
-      });
+      })
 
-      expect(emailEnabled).toHaveLength(3);
-    });
-  });
+      expect(emailEnabled).toHaveLength(3)
+    })
+  })
 
-  describe("Settings Updates", () => {
-    it("toggles email notifications", async () => {
-      const user = await createTestUserInDb();
+  describe('Settings Updates', () => {
+    it('toggles email notifications', async () => {
+      const user = await createTestUserInDb()
 
       const settings = await testPrisma.notificationSettings.create({
         data: {
@@ -209,18 +206,18 @@ describe("Integration: Notification Settings", () => {
           pushEnabled: true,
           smsEnabled: false,
         },
-      });
+      })
 
       const updated = await testPrisma.notificationSettings.update({
         where: { id: settings.id },
         data: { emailEnabled: false },
-      });
+      })
 
-      expect(updated.emailEnabled).toBe(false);
-    });
+      expect(updated.emailEnabled).toBe(false)
+    })
 
-    it("toggles push notifications", async () => {
-      const user = await createTestUserInDb();
+    it('toggles push notifications', async () => {
+      const user = await createTestUserInDb()
 
       const settings = await testPrisma.notificationSettings.create({
         data: {
@@ -229,18 +226,18 @@ describe("Integration: Notification Settings", () => {
           pushEnabled: false,
           smsEnabled: false,
         },
-      });
+      })
 
       const updated = await testPrisma.notificationSettings.update({
         where: { id: settings.id },
         data: { pushEnabled: true },
-      });
+      })
 
-      expect(updated.pushEnabled).toBe(true);
-    });
+      expect(updated.pushEnabled).toBe(true)
+    })
 
-    it("updates preferences", async () => {
-      const user = await createTestUserInDb();
+    it('updates preferences', async () => {
+      const user = await createTestUserInDb()
 
       const settings = await testPrisma.notificationSettings.create({
         data: {
@@ -250,21 +247,21 @@ describe("Integration: Notification Settings", () => {
           smsEnabled: false,
           preferences: { dailyFortune: true, marketing: true },
         },
-      });
+      })
 
       const updated = await testPrisma.notificationSettings.update({
         where: { id: settings.id },
         data: {
           preferences: { dailyFortune: true, marketing: false, newFeatures: true },
         },
-      });
+      })
 
-      const prefs = updated.preferences as { marketing: boolean };
-      expect(prefs.marketing).toBe(false);
-    });
+      const prefs = updated.preferences as { marketing: boolean }
+      expect(prefs.marketing).toBe(false)
+    })
 
-    it("updates quiet hours", async () => {
-      const user = await createTestUserInDb();
+    it('updates quiet hours', async () => {
+      const user = await createTestUserInDb()
 
       const settings = await testPrisma.notificationSettings.create({
         data: {
@@ -274,25 +271,25 @@ describe("Integration: Notification Settings", () => {
           smsEnabled: false,
           quietHours: { enabled: false },
         },
-      });
+      })
 
       const updated = await testPrisma.notificationSettings.update({
         where: { id: settings.id },
         data: {
           quietHours: {
             enabled: true,
-            start: "23:00",
-            end: "06:00",
+            start: '23:00',
+            end: '06:00',
           },
         },
-      });
+      })
 
-      const quiet = updated.quietHours as { enabled: boolean };
-      expect(quiet.enabled).toBe(true);
-    });
+      const quiet = updated.quietHours as { enabled: boolean }
+      expect(quiet.enabled).toBe(true)
+    })
 
-    it("disables all notifications", async () => {
-      const user = await createTestUserInDb();
+    it('disables all notifications', async () => {
+      const user = await createTestUserInDb()
 
       const settings = await testPrisma.notificationSettings.create({
         data: {
@@ -301,7 +298,7 @@ describe("Integration: Notification Settings", () => {
           pushEnabled: true,
           smsEnabled: true,
         },
-      });
+      })
 
       const updated = await testPrisma.notificationSettings.update({
         where: { id: settings.id },
@@ -310,17 +307,17 @@ describe("Integration: Notification Settings", () => {
           pushEnabled: false,
           smsEnabled: false,
         },
-      });
+      })
 
-      expect(updated.emailEnabled).toBe(false);
-      expect(updated.pushEnabled).toBe(false);
-      expect(updated.smsEnabled).toBe(false);
-    });
-  });
+      expect(updated.emailEnabled).toBe(false)
+      expect(updated.pushEnabled).toBe(false)
+      expect(updated.smsEnabled).toBe(false)
+    })
+  })
 
-  describe("Settings Statistics", () => {
-    it("counts users by notification channel", async () => {
-      const users: string[] = [];
+  describe('Settings Statistics', () => {
+    it('counts users by notification channel', async () => {
+      const users: string[] = []
 
       const configs = [
         { email: true, push: true, sms: false },
@@ -328,11 +325,11 @@ describe("Integration: Notification Settings", () => {
         { email: true, push: true, sms: true },
         { email: false, push: true, sms: false },
         { email: true, push: true, sms: false },
-      ];
+      ]
 
       for (const config of configs) {
-        const user = await createTestUserInDb();
-        users.push(user.id);
+        const user = await createTestUserInDb()
+        users.push(user.id)
 
         await testPrisma.notificationSettings.create({
           data: {
@@ -341,32 +338,32 @@ describe("Integration: Notification Settings", () => {
             pushEnabled: config.push,
             smsEnabled: config.sms,
           },
-        });
+        })
       }
 
       const emailCount = await testPrisma.notificationSettings.count({
         where: { userId: { in: users }, emailEnabled: true },
-      });
+      })
 
       const pushCount = await testPrisma.notificationSettings.count({
         where: { userId: { in: users }, pushEnabled: true },
-      });
+      })
 
       const smsCount = await testPrisma.notificationSettings.count({
         where: { userId: { in: users }, smsEnabled: true },
-      });
+      })
 
-      expect(emailCount).toBe(4);
-      expect(pushCount).toBe(4);
-      expect(smsCount).toBe(1);
-    });
+      expect(emailCount).toBe(4)
+      expect(pushCount).toBe(4)
+      expect(smsCount).toBe(1)
+    })
 
-    it("groups settings by enabled channels", async () => {
-      const users: string[] = [];
+    it('groups settings by enabled channels', async () => {
+      const users: string[] = []
 
       for (let i = 0; i < 6; i++) {
-        const user = await createTestUserInDb();
-        users.push(user.id);
+        const user = await createTestUserInDb()
+        users.push(user.id)
 
         await testPrisma.notificationSettings.create({
           data: {
@@ -375,23 +372,23 @@ describe("Integration: Notification Settings", () => {
             pushEnabled: i < 4,
             smsEnabled: false,
           },
-        });
+        })
       }
 
       const counts = await testPrisma.notificationSettings.groupBy({
-        by: ["pushEnabled"],
+        by: ['pushEnabled'],
         where: { userId: { in: users } },
         _count: { id: true },
-      });
+      })
 
-      const pushEnabledCount = counts.find((c) => c.pushEnabled === true)?._count.id;
-      expect(pushEnabledCount).toBe(4);
-    });
-  });
+      const pushEnabledCount = counts.find((c) => c.pushEnabled === true)?._count.id
+      expect(pushEnabledCount).toBe(4)
+    })
+  })
 
-  describe("Settings Deletion", () => {
-    it("deletes settings", async () => {
-      const user = await createTestUserInDb();
+  describe('Settings Deletion', () => {
+    it('deletes settings', async () => {
+      const user = await createTestUserInDb()
 
       const settings = await testPrisma.notificationSettings.create({
         data: {
@@ -400,21 +397,21 @@ describe("Integration: Notification Settings", () => {
           pushEnabled: true,
           smsEnabled: false,
         },
-      });
+      })
 
       await testPrisma.notificationSettings.delete({
         where: { id: settings.id },
-      });
+      })
 
       const found = await testPrisma.notificationSettings.findUnique({
         where: { id: settings.id },
-      });
+      })
 
-      expect(found).toBeNull();
-    });
+      expect(found).toBeNull()
+    })
 
-    it("resets settings to default", async () => {
-      const user = await createTestUserInDb();
+    it('resets settings to default', async () => {
+      const user = await createTestUserInDb()
 
       await testPrisma.notificationSettings.create({
         data: {
@@ -425,12 +422,12 @@ describe("Integration: Notification Settings", () => {
           preferences: { marketing: true },
           quietHours: { enabled: true },
         },
-      });
+      })
 
       // Delete and recreate with defaults
       await testPrisma.notificationSettings.deleteMany({
         where: { userId: user.id },
-      });
+      })
 
       const newSettings = await testPrisma.notificationSettings.create({
         data: {
@@ -439,16 +436,16 @@ describe("Integration: Notification Settings", () => {
           pushEnabled: true,
           smsEnabled: false,
         },
-      });
+      })
 
-      expect(newSettings.emailEnabled).toBe(true);
-      expect(newSettings.smsEnabled).toBe(false);
-    });
-  });
+      expect(newSettings.emailEnabled).toBe(true)
+      expect(newSettings.smsEnabled).toBe(false)
+    })
+  })
 
-  describe("Notification Type Settings", () => {
-    it("manages daily fortune notification", async () => {
-      const user = await createTestUserInDb();
+  describe('Notification Type Settings', () => {
+    it('manages daily fortune notification', async () => {
+      const user = await createTestUserInDb()
 
       const settings = await testPrisma.notificationSettings.create({
         data: {
@@ -459,21 +456,21 @@ describe("Integration: Notification Settings", () => {
           preferences: {
             dailyFortune: {
               enabled: true,
-              time: "08:00",
-              channels: ["push", "email"],
+              time: '08:00',
+              channels: ['push', 'email'],
             },
           },
         },
-      });
+      })
 
       const prefs = settings.preferences as {
-        dailyFortune: { enabled: boolean; time: string };
-      };
-      expect(prefs.dailyFortune.time).toBe("08:00");
-    });
+        dailyFortune: { enabled: boolean; time: string }
+      }
+      expect(prefs.dailyFortune.time).toBe('08:00')
+    })
 
-    it("manages match notification", async () => {
-      const user = await createTestUserInDb();
+    it('manages match notification', async () => {
+      const user = await createTestUserInDb()
 
       const settings = await testPrisma.notificationSettings.create({
         data: {
@@ -489,16 +486,16 @@ describe("Integration: Notification Settings", () => {
             },
           },
         },
-      });
+      })
 
       const prefs = settings.preferences as {
-        matchNotifications: { newMatch: boolean };
-      };
-      expect(prefs.matchNotifications.newMatch).toBe(true);
-    });
+        matchNotifications: { newMatch: boolean }
+      }
+      expect(prefs.matchNotifications.newMatch).toBe(true)
+    })
 
-    it("manages promotional notifications", async () => {
-      const user = await createTestUserInDb();
+    it('manages promotional notifications', async () => {
+      const user = await createTestUserInDb()
 
       const settings = await testPrisma.notificationSettings.create({
         data: {
@@ -513,12 +510,12 @@ describe("Integration: Notification Settings", () => {
             },
           },
         },
-      });
+      })
 
       const prefs = settings.preferences as {
-        promotional: { enabled: boolean };
-      };
-      expect(prefs.promotional.enabled).toBe(false);
-    });
-  });
-});
+        promotional: { enabled: boolean }
+      }
+      expect(prefs.promotional.enabled).toBe(false)
+    })
+  })
+})

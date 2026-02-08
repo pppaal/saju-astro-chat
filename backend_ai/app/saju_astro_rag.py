@@ -374,12 +374,28 @@ class GraphRAG:
         return self._query_legacy(facts_str, top_k, domain_priority)
 
     def _query_chromadb(self, facts_str: str, top_k: int, domain_priority: str) -> Dict:
-        """ChromaDB HNSW 인덱스 기반 검색 (O(log n))."""
+        """ChromaDB HNSW 인덱스 기반 검색 (O(log n)) + PageRank + CrossEncoder 재순위화."""
         try:
             from app.rag.vector_store import get_vector_store
+            from app.rag.graph_algorithms import GraphAlgorithms
+            from app.rag.reranker import CrossEncoderReranker, USE_RERANKER
+            from app.rag.hyde import HyDEGenerator, USE_HYDE
+
+            # Phase 7b: HyDE - 쿼리를 가상 답변으로 확장
+            if USE_HYDE:
+                try:
+                    hyde = HyDEGenerator(use_llm=False)  # LLM 없이 키워드 확장
+                    expanded_query = hyde.generate_hypothesis(facts_str, domain=domain_priority)
+                    query_for_embedding = expanded_query
+                    logger.info("[GraphRAG] HyDE 활성화: %s...", expanded_query[:100])
+                except Exception as e:
+                    logger.warning("[GraphRAG] HyDE 실패, 원본 쿼리 사용: %s", e)
+                    query_for_embedding = facts_str
+            else:
+                query_for_embedding = facts_str
 
             query_emb = self.embed_model.encode(
-                facts_str,
+                query_for_embedding,
                 convert_to_tensor=False,
                 normalize_embeddings=True,
             ).tolist()
@@ -389,15 +405,72 @@ class GraphRAG:
                 logger.warning("[GraphRAG] ChromaDB에 데이터 없음, legacy fallback")
                 return self._query_legacy(facts_str, top_k, domain_priority)
 
+            # 더 많이 검색 (재순위화를 위해)
+            initial_k = top_k * 3 if USE_RERANKER else top_k * 2
             results = vs.search(
                 query_embedding=query_emb,
-                top_k=top_k,
+                top_k=initial_k,
                 min_score=0.1,
             )
 
             matched_nodes = [r["text"] for r in results]
             matched_ids = [r["metadata"].get("original_id", r["id"]) for r in results]
             matched_score = [r["score"] for r in results]
+
+            # Phase 2: PageRank 기반 재순위화
+            graph_algo = GraphAlgorithms(self.graph)
+            pagerank_scores = graph_algo.pagerank
+
+            # Personalized PageRank 계산 (검색된 노드 기반)
+            valid_seed_nodes = [nid for nid in matched_ids if self.graph.has_node(nid)]
+            if valid_seed_nodes:
+                ppr_scores = graph_algo.personalized_pagerank(valid_seed_nodes[:5])
+            else:
+                ppr_scores = pagerank_scores
+
+            # 벡터 유사도 + PageRank 결합 스코어
+            combined_results = []
+            for i, node_id in enumerate(matched_ids):
+                vector_score = matched_score[i]
+                pr_score = ppr_scores.get(node_id, 0.0)
+
+                # 결합 점수: 벡터 유사도(70%) + PPR(30%)
+                combined_score = vector_score * 0.7 + pr_score * 100 * 0.3
+
+                combined_results.append({
+                    "id": node_id,
+                    "text": matched_nodes[i],
+                    "vector_score": vector_score,
+                    "pagerank": pr_score,
+                    "combined_score": combined_score,
+                })
+
+            # 결합 스코어로 재정렬
+            combined_results.sort(key=lambda x: x["combined_score"], reverse=True)
+
+            # Phase 7a: CrossEncoder Re-ranking (최종 정밀 선택)
+            if USE_RERANKER:
+                try:
+                    reranker = CrossEncoderReranker(model_key="multilingual", max_candidates=top_k * 2)
+                    # 원본 쿼리로 재순위화 (HyDE 확장 쿼리가 아닌)
+                    reranked_results = reranker.rerank_results(
+                        query=facts_str,
+                        results=combined_results[:top_k * 2],  # 상위 2배 후보만
+                        text_key="text",
+                        top_k=top_k,
+                    )
+                    top_results = reranked_results
+                    logger.info("[GraphRAG] CrossEncoder 재순위화 완료: %d → %d", len(combined_results), len(top_results))
+                except Exception as e:
+                    logger.warning("[GraphRAG] CrossEncoder 재순위화 실패, PageRank 결과 사용: %s", e)
+                    top_results = combined_results[:top_k]
+            else:
+                top_results = combined_results[:top_k]
+
+            # 최종 결과 추출
+            matched_nodes = [r["text"] for r in top_results]
+            matched_ids = [r["id"] for r in top_results]
+            matched_score = [r.get("score", r.get("combined_score", 0)) for r in top_results]
 
             # 그래프 관계 탐색 (기존 NetworkX 활용)
             edges = [
@@ -415,13 +488,25 @@ class GraphRAG:
             edge_lines = [f"{e['src']}->{e['dst']}({e['rel']})" for e in edges[:30]]
             context_text = "\n".join(context_lines + edge_lines)
 
+            # Phase 7 정보 추가
+            backend_info = "chromadb"
+            if USE_RERANKER:
+                backend_info += "+reranker"
+            if USE_HYDE:
+                backend_info += "+hyde"
+
             return {
                 "matched_nodes": matched_nodes,
                 "matched_ids": matched_ids,
                 "related_edges": edges,
                 "rule_summary": rule_summary,
                 "context_text": context_text,
-                "stats": {"nodes": len(matched_nodes), "edges": len(edges), "backend": "chromadb"},
+                "stats": {
+                    "nodes": len(matched_nodes),
+                    "edges": len(edges),
+                    "backend": backend_info,
+                    "phases": "1,2,7" if (USE_RERANKER or USE_HYDE) else "1,2",
+                },
             }
 
         except ImportError:

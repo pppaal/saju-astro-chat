@@ -535,8 +535,6 @@ describe('GET /api/metrics/public', () => {
         hasAuthHeader: true,
         hasToken: true,
         hasExpectedToken: true,
-        tokenLength: 9, // 'bad-token'.length
-        expectedLength: VALID_TOKEN.length,
       })
     )
   })

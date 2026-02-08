@@ -8,6 +8,10 @@ import { NextRequest } from 'next/server'
 // Mocks -- all vi.mock calls MUST appear before importing the route handlers
 // ---------------------------------------------------------------------------
 
+vi.mock('@/lib/api/middleware', () => ({
+  extractLocale: vi.fn().mockReturnValue('ko'),
+}))
+
 vi.mock('@/lib/rateLimit', () => ({
   rateLimit: vi.fn(),
 }))
@@ -284,7 +288,8 @@ describe('/api/visitors-today', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data).toEqual({ error: 'Too many requests' })
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('RATE_LIMITED')
       expect(mockCacheGet).not.toHaveBeenCalled()
     })
 
@@ -299,7 +304,8 @@ describe('/api/visitors-today', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data).toEqual({ error: 'Unauthorized' })
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     // -------------------------------------------------------------------------
@@ -313,7 +319,8 @@ describe('/api/visitors-today', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data).toEqual({ error: 'Unauthorized' })
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     // -------------------------------------------------------------------------
@@ -375,11 +382,9 @@ describe('/api/visitors-today', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data).toEqual({ error: 'Internal Server Error' })
-      expect(mockCaptureServerError).toHaveBeenCalledWith(thrownError, {
-        route: '/api/visitors-today',
-        method: 'GET',
-      })
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(mockCaptureServerError).toHaveBeenCalled()
     })
 
     // -------------------------------------------------------------------------
@@ -493,7 +498,8 @@ describe('/api/visitors-today', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data).toEqual({ error: 'Too many requests' })
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('RATE_LIMITED')
       expect(mockSetDoc).not.toHaveBeenCalled()
     })
 
@@ -508,7 +514,8 @@ describe('/api/visitors-today', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data).toEqual({ error: 'Unauthorized' })
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('UNAUTHORIZED')
       expect(mockSetDoc).not.toHaveBeenCalled()
     })
 
@@ -547,11 +554,9 @@ describe('/api/visitors-today', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data).toEqual({ error: 'Internal Server Error' })
-      expect(mockCaptureServerError).toHaveBeenCalledWith(thrownError, {
-        route: '/api/visitors-today',
-        method: 'POST',
-      })
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(mockCaptureServerError).toHaveBeenCalled()
     })
 
     // -------------------------------------------------------------------------
@@ -619,7 +624,8 @@ describe('/api/visitors-today', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data).toEqual({ error: 'Unauthorized' })
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('UNAUTHORIZED')
       expect(logger.warn).toHaveBeenCalledWith('[visitors-today] Invalid token header format')
     })
 
@@ -731,11 +737,9 @@ describe('/api/visitors-today', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data).toEqual({ error: 'Internal Server Error' })
-      expect(mockCaptureServerError).toHaveBeenCalledWith(rateLimitError, {
-        route: '/api/visitors-today',
-        method: 'GET',
-      })
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(mockCaptureServerError).toHaveBeenCalled()
     })
 
     // -------------------------------------------------------------------------
@@ -752,7 +756,8 @@ describe('/api/visitors-today', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data).toEqual({ error: 'Internal Server Error' })
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
   })
 

@@ -29,6 +29,7 @@ transformers>=4.44.0
 # Redis is optional - system falls back to in-memory cache if unavailable
 redis>=5.0.0
 hiredis>=2.2.0
+upstash-redis>=1.6.0  # Serverless Redis for production
 
 # --- Real-time astronomy (optional; required if enabling Swiss ephemeris path) ---
 pyswisseph>=2.10.3
@@ -46,6 +47,9 @@ psutil>=5.9.0  # System monitoring (CPU, memory, etc.)
 
 # --- Testing/QA ---
 pytest>=7.4.0
+
+# --- Evaluation Framework (Phase 5) ---
+ragas>=0.1.0  # RAG system evaluation metrics
 
 # --- Notes ---
 # LangGraph is NOT required - custom orchestration is used instead

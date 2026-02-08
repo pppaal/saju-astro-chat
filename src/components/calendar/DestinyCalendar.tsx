@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 /**
  * DestinyCalendar - Main Calendar Component (Refactored)
@@ -21,257 +21,280 @@
  * - useMonthNavigation: Month navigation logic
  */
 
-import React, { useState, useEffect, useCallback, useMemo, memo, useRef } from "react";
-import { useSession } from "next-auth/react";
-import { useI18n } from "@/i18n/I18nProvider";
-import styles from "./DestinyCalendar.module.css";
-import { logger } from "@/lib/logger";
-import { getUserProfile } from "@/lib/userProfile";
+import React, { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
+import { useSession } from 'next-auth/react'
+import { useI18n } from '@/i18n/I18nProvider'
+import styles from './DestinyCalendar.module.css'
+import { logger } from '@/lib/logger'
+import { getUserProfile } from '@/lib/userProfile'
 
 // Types
-import type { EventCategory, ImportantDate, CalendarData, BirthInfo, CityHit } from './types';
+import type { EventCategory, ImportantDate, CalendarData, BirthInfo, CityHit } from './types'
 
 // Hooks
-import { useParticleAnimation } from "@/hooks/calendar/useParticleAnimation";
+import { useParticleAnimation } from '@/hooks/calendar/useParticleAnimation'
 
 // Sub-components
-import BirthInfoForm from './BirthInfoForm';
-import CalendarMainView from './CalendarMainView';
+import BirthInfoForm from './BirthInfoForm'
+import CalendarMainView from './CalendarMainView'
 
 // Utils
-import { getCacheKey, getCachedData, setCachedData } from './cache-utils';
+import { getCacheKey, getCachedData, setCachedData } from './cache-utils'
 
 export default function DestinyCalendar() {
-  return <DestinyCalendarContent />;
+  return <DestinyCalendarContent />
 }
 
 const DestinyCalendarContent = memo(function DestinyCalendarContent() {
-  const { locale } = useI18n();
-  const { status } = useSession();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { locale } = useI18n()
+  const { status } = useSession()
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
   // Core state
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [data, setData] = useState<CalendarData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [activeCategory, setActiveCategory] = useState<EventCategory | "all">("all");
-  const [selectedDate, setSelectedDate] = useState<ImportantDate | null>(null);
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [data, setData] = useState<CalendarData | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [activeCategory, setActiveCategory] = useState<EventCategory | 'all'>('all')
+  const [selectedDate, setSelectedDate] = useState<ImportantDate | null>(null)
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null)
 
   // UI state
-  const [isDarkTheme, setIsDarkTheme] = useState(true);
-  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
+  const [isDarkTheme] = useState(true)
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null)
 
   // Birth info state
   const [birthInfo, setBirthInfo] = useState<BirthInfo>({
-    birthDate: "",
-    birthTime: "",
-    birthPlace: "",
-    gender: "Male",
-  });
-  const [hasBirthInfo, setHasBirthInfo] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [timeUnknown, setTimeUnknown] = useState(false);
+    birthDate: '',
+    birthTime: '',
+    birthPlace: '',
+    gender: 'Male',
+  })
+  const [hasBirthInfo, setHasBirthInfo] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [timeUnknown, setTimeUnknown] = useState(false)
 
   // Save state
-  const [savedDates, setSavedDates] = useState<Set<string>>(new Set());
-  const [saving, setSaving] = useState(false);
-  const [saveMsg, setSaveMsg] = useState<string | null>(null);
+  const [savedDates, setSavedDates] = useState<Set<string>>(new Set())
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState<string | null>(null)
 
   // City search state
-  const [cityErr, setCityErr] = useState<string | null>(null);
-  const [selectedCity, setSelectedCity] = useState<CityHit | null>(null);
+  const [cityErr, setCityErr] = useState<string | null>(null)
+  const [selectedCity, setSelectedCity] = useState<CityHit | null>(null)
 
   // Profile loader state
-  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false)
 
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
+  const year = currentDate.getFullYear()
+  const month = currentDate.getMonth()
 
   // Today memoization
-  const today = useMemo(() => new Date(), []);
+  const today = useMemo(() => new Date(), [])
   const todayStr = useMemo(() => {
-    const y = today.getFullYear();
-    const m = String(today.getMonth() + 1).padStart(2, '0');
-    const d = String(today.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  }, [today]);
+    const y = today.getFullYear()
+    const m = String(today.getMonth() + 1).padStart(2, '0')
+    const d = String(today.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }, [today])
 
   // Particle animation (only when showing birth form)
-  useParticleAnimation(canvasRef, { enabled: !hasBirthInfo });
+  useParticleAnimation(canvasRef, { enabled: !hasBirthInfo })
 
   // Load saved profile on mount
   useEffect(() => {
-    const profile = getUserProfile();
-    if (profile.birthDate) {setBirthInfo(prev => ({ ...prev, birthDate: profile.birthDate || '' }));}
-    if (profile.birthTime) {setBirthInfo(prev => ({ ...prev, birthTime: profile.birthTime || '' }));}
-    if (profile.gender) {setBirthInfo(prev => ({ ...prev, gender: profile.gender as 'Male' | 'Female' }));}
-  }, []);
+    const profile = getUserProfile()
+    if (profile.birthDate) {
+      setBirthInfo((prev) => ({ ...prev, birthDate: profile.birthDate || '' }))
+    }
+    if (profile.birthTime) {
+      setBirthInfo((prev) => ({ ...prev, birthTime: profile.birthTime || '' }))
+    }
+    if (profile.gender) {
+      setBirthInfo((prev) => ({ ...prev, gender: profile.gender as 'Male' | 'Female' }))
+    }
+  }, [])
 
   // Load saved dates for authenticated users
   useEffect(() => {
     const loadSavedDates = async () => {
-      if (status !== 'authenticated') {return;}
+      if (status !== 'authenticated') {
+        return
+      }
       try {
-        const res = await fetch(`/api/calendar/save?year=${year}`);
+        const res = await fetch(`/api/calendar/save?year=${year}`)
         if (res.ok) {
-          const { savedDates: dates } = await res.json();
-          setSavedDates(new Set(dates.map((d: { date: string }) => d.date)));
+          const { savedDates: dates } = await res.json()
+          setSavedDates(new Set(dates.map((d: { date: string }) => d.date)))
         }
       } catch (err) {
-        logger.error('[DestinyCalendar] Failed to load saved dates:', err);
+        logger.error('[DestinyCalendar] Failed to load saved dates:', err)
       }
-    };
-    loadSavedDates();
-  }, [status, year]);
+    }
+    loadSavedDates()
+  }, [status, year])
 
   // Calendar data fetching
-  const fetchCalendar = useCallback(async (birthData: BirthInfo) => {
-    setLoading(true);
-    setError(null);
+  const fetchCalendar = useCallback(
+    async (birthData: BirthInfo) => {
+      setLoading(true)
+      setError(null)
 
-    try {
-      // Check cache first
-      const cacheKey = getCacheKey(birthData, year, activeCategory);
-      const cachedData = getCachedData(cacheKey);
+      try {
+        // Check cache first
+        const cacheKey = getCacheKey(birthData, year, activeCategory)
+        const cachedData = getCachedData(cacheKey)
 
-      if (cachedData) {
-        logger.debug('[Calendar] Cache HIT!', { year, category: activeCategory });
-        setData(cachedData);
-        setHasBirthInfo(true);
-        setLoading(false);
-        setSubmitting(false);
-        return;
+        if (cachedData) {
+          logger.debug('[Calendar] Cache HIT!', { year, category: activeCategory })
+          setData(cachedData)
+          setHasBirthInfo(true)
+          setLoading(false)
+          setSubmitting(false)
+          return
+        }
+
+        // Cache miss - fetch from API
+        logger.debug('[Calendar] Cache MISS. Fetching from API...', {
+          year,
+          category: activeCategory,
+        })
+
+        const params = new URLSearchParams({ year: String(year), locale })
+        if (activeCategory !== 'all') {
+          params.set('category', activeCategory)
+        }
+        params.set('birthDate', birthData.birthDate)
+        params.set('birthTime', birthData.birthTime)
+        params.set('birthPlace', birthData.birthPlace)
+
+        const res = await fetch(`/api/calendar?${params}`, {
+          headers: {
+            'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+          },
+        })
+        const json = await res.json()
+
+        if (!res.ok) {
+          setError(json.error || json.message || 'Failed to load calendar')
+        } else {
+          setData(json)
+          setHasBirthInfo(true)
+          setCachedData(cacheKey, birthData, year, activeCategory, json)
+          logger.debug('[Calendar] Data cached successfully', { year, category: activeCategory })
+        }
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error loading calendar')
+      } finally {
+        setLoading(false)
+        setSubmitting(false)
       }
-
-      // Cache miss - fetch from API
-      logger.debug('[Calendar] Cache MISS. Fetching from API...', { year, category: activeCategory });
-
-      const params = new URLSearchParams({ year: String(year), locale });
-      if (activeCategory !== "all") {
-        params.set("category", activeCategory);
-      }
-      params.set("birthDate", birthData.birthDate);
-      params.set("birthTime", birthData.birthTime);
-      params.set("birthPlace", birthData.birthPlace);
-
-      const res = await fetch(`/api/calendar?${params}`, {
-        headers: {
-          'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '',
-        },
-      });
-      const json = await res.json();
-
-      if (!res.ok) {
-        setError(json.error || json.message || "Failed to load calendar");
-      } else {
-        setData(json);
-        setHasBirthInfo(true);
-        setCachedData(cacheKey, birthData, year, activeCategory, json);
-        logger.debug('[Calendar] Data cached successfully', { year, category: activeCategory });
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error loading calendar");
-    } finally {
-      setLoading(false);
-      setSubmitting(false);
-    }
-  }, [year, activeCategory, locale]);
+    },
+    [year, activeCategory, locale]
+  )
 
   // Refetch when year/category changes
   useEffect(() => {
     if (hasBirthInfo && birthInfo.birthDate) {
-      fetchCalendar(birthInfo);
+      fetchCalendar(birthInfo)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [year, activeCategory]);
+  }, [year, activeCategory])
 
   // Auto-select today after data loads
   useEffect(() => {
     if (data?.allDates && !selectedDay) {
-      const todayInfo = data.allDates.find(d => d.date === todayStr);
-      setSelectedDay(today);
+      const todayInfo = data.allDates.find((d) => d.date === todayStr)
+      setSelectedDay(today)
       if (todayInfo) {
-        setSelectedDate(todayInfo);
+        setSelectedDate(todayInfo)
       }
     }
-  }, [data, selectedDay, today, todayStr]);
+  }, [data, selectedDay, today, todayStr])
 
   // Form submit handler
   const handleBirthInfoSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCityErr(null);
+    e.preventDefault()
+    setCityErr(null)
 
     if (!birthInfo.birthDate) {
-      setCityErr(locale === "ko" ? "생년월일을 입력해주세요" : "Please enter birth date");
-      return;
+      setCityErr(locale === 'ko' ? '생년월일을 입력해주세요' : 'Please enter birth date')
+      return
     }
     if (!birthInfo.birthTime && !timeUnknown) {
-      setCityErr(locale === "ko" ? "출생 시간을 입력해주세요" : "Please enter birth time");
-      return;
+      setCityErr(locale === 'ko' ? '출생 시간을 입력해주세요' : 'Please enter birth time')
+      return
     }
     if (!birthInfo.birthPlace) {
-      setCityErr(locale === "ko" ? "출생 도시를 입력해주세요" : "Please enter birth city");
-      return;
+      setCityErr(locale === 'ko' ? '출생 도시를 입력해주세요' : 'Please enter birth city')
+      return
     }
     if (!selectedCity && !birthInfo.latitude) {
-      setCityErr(locale === "ko" ? "목록에서 도시를 선택해주세요" : "Please select a city from the list");
-      return;
+      setCityErr(
+        locale === 'ko' ? '목록에서 도시를 선택해주세요' : 'Please select a city from the list'
+      )
+      return
     }
 
-    const finalBirthInfo = timeUnknown ? { ...birthInfo, birthTime: "12:00" } : birthInfo;
-    setSubmitting(true);
-    fetchCalendar(finalBirthInfo);
-  };
+    const finalBirthInfo = timeUnknown ? { ...birthInfo, birthTime: '12:00' } : birthInfo
+    setSubmitting(true)
+    fetchCalendar(finalBirthInfo)
+  }
 
   // Date selection handler
-  const handleDayClick = useCallback((date: Date | null) => {
-    if (!date) {return;}
-    setSelectedDay(date);
+  const handleDayClick = useCallback(
+    (date: Date | null) => {
+      if (!date) {
+        return
+      }
+      setSelectedDay(date)
 
-    if (!data?.allDates) {
-      setSelectedDate(null);
-      return;
-    }
+      if (!data?.allDates) {
+        setSelectedDate(null)
+        return
+      }
 
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    const dateStr = `${y}-${m}-${d}`;
-    const info = data.allDates.find(item => item.date === dateStr);
-    setSelectedDate(info || null);
-  }, [data?.allDates]);
+      const y = date.getFullYear()
+      const m = String(date.getMonth() + 1).padStart(2, '0')
+      const d = String(date.getDate()).padStart(2, '0')
+      const dateStr = `${y}-${m}-${d}`
+      const info = data.allDates.find((item) => item.date === dateStr)
+      setSelectedDate(info || null)
+    },
+    [data?.allDates]
+  )
 
   // Month navigation handlers
   const prevMonth = useCallback(() => {
-    setSlideDirection('right');
-    setCurrentDate(new Date(year, month - 1, 1));
-    setTimeout(() => setSlideDirection(null), 300);
-  }, [year, month]);
+    setSlideDirection('right')
+    setCurrentDate(new Date(year, month - 1, 1))
+    setTimeout(() => setSlideDirection(null), 300)
+  }, [year, month])
 
   const nextMonth = useCallback(() => {
-    setSlideDirection('left');
-    setCurrentDate(new Date(year, month + 1, 1));
-    setTimeout(() => setSlideDirection(null), 300);
-  }, [year, month]);
+    setSlideDirection('left')
+    setCurrentDate(new Date(year, month + 1, 1))
+    setTimeout(() => setSlideDirection(null), 300)
+  }, [year, month])
 
   const goToToday = useCallback(() => {
     if (today.getMonth() > month || today.getFullYear() > year) {
-      setSlideDirection('left');
+      setSlideDirection('left')
     } else if (today.getMonth() < month || today.getFullYear() < year) {
-      setSlideDirection('right');
+      setSlideDirection('right')
     }
-    setCurrentDate(new Date(today));
-    setTimeout(() => setSlideDirection(null), 300);
-  }, [today, month, year]);
+    setCurrentDate(new Date(today))
+    setTimeout(() => setSlideDirection(null), 300)
+  }, [today, month, year])
 
   // Save/unsave handlers
   const handleSaveDate = async () => {
-    if (!selectedDate || status !== 'authenticated') {return;}
+    if (!selectedDate || status !== 'authenticated') {
+      return
+    }
 
-    setSaving(true);
-    setSaveMsg(null);
+    setSaving(true)
+    setSaveMsg(null)
 
     try {
       const res = await fetch('/api/calendar/save', {
@@ -296,53 +319,55 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
           birthPlace: birthInfo.birthPlace,
           locale,
         }),
-      });
+      })
 
       if (res.ok) {
-        setSavedDates(prev => new Set([...prev, selectedDate.date]));
-        setSaveMsg(locale === 'ko' ? '저장되었습니다!' : 'Saved!');
+        setSavedDates((prev) => new Set([...prev, selectedDate.date]))
+        setSaveMsg(locale === 'ko' ? '저장되었습니다!' : 'Saved!')
       } else {
-        const data = await res.json();
-        setSaveMsg(data.error || (locale === 'ko' ? '저장 실패' : 'Save failed'));
+        const data = await res.json()
+        setSaveMsg(data.error || (locale === 'ko' ? '저장 실패' : 'Save failed'))
       }
     } catch (err) {
-      logger.error('[DestinyCalendar] Failed to save date:', err);
-      setSaveMsg(locale === 'ko' ? '저장 실패' : 'Save failed');
+      logger.error('[DestinyCalendar] Failed to save date:', err)
+      setSaveMsg(locale === 'ko' ? '저장 실패' : 'Save failed')
     } finally {
-      setSaving(false);
-      setTimeout(() => setSaveMsg(null), 2000);
+      setSaving(false)
+      setTimeout(() => setSaveMsg(null), 2000)
     }
-  };
+  }
 
   const handleUnsaveDate = async () => {
-    if (!selectedDate || status !== 'authenticated') {return;}
+    if (!selectedDate || status !== 'authenticated') {
+      return
+    }
 
-    setSaving(true);
-    setSaveMsg(null);
+    setSaving(true)
+    setSaveMsg(null)
 
     try {
       const res = await fetch(`/api/calendar/save?date=${selectedDate.date}`, {
         method: 'DELETE',
-      });
+      })
 
       if (res.ok) {
-        setSavedDates(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(selectedDate.date);
-          return newSet;
-        });
-        setSaveMsg(locale === 'ko' ? '삭제되었습니다!' : 'Removed!');
+        setSavedDates((prev) => {
+          const newSet = new Set(prev)
+          newSet.delete(selectedDate.date)
+          return newSet
+        })
+        setSaveMsg(locale === 'ko' ? '삭제되었습니다!' : 'Removed!')
       } else {
-        setSaveMsg(locale === 'ko' ? '삭제 실패' : 'Remove failed');
+        setSaveMsg(locale === 'ko' ? '삭제 실패' : 'Remove failed')
       }
     } catch (err) {
-      logger.error('[DestinyCalendar] Failed to unsave date:', err);
-      setSaveMsg(locale === 'ko' ? '삭제 실패' : 'Remove failed');
+      logger.error('[DestinyCalendar] Failed to unsave date:', err)
+      setSaveMsg(locale === 'ko' ? '삭제 실패' : 'Remove failed')
     } finally {
-      setSaving(false);
-      setTimeout(() => setSaveMsg(null), 2000);
+      setSaving(false)
+      setTimeout(() => setSaveMsg(null), 2000)
     }
-  };
+  }
 
   // ===== RENDER =====
 
@@ -364,7 +389,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
         profileLoaded={profileLoaded}
         setProfileLoaded={setProfileLoaded}
       />
-    );
+    )
   }
 
   // Loading state
@@ -373,10 +398,10 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
       <div className={styles.container}>
         <div className={styles.loading}>
           <div className={styles.spinner} />
-          <p>{locale === "ko" ? "운명 분석 중..." : "Analyzing destiny..."}</p>
+          <p>{locale === 'ko' ? '운명 분석 중...' : 'Analyzing destiny...'}</p>
         </div>
       </div>
-    );
+    )
   }
 
   // Error state
@@ -386,19 +411,18 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
         <div className={styles.errorState}>
           <div className={styles.errorIcon}>😢</div>
           <p>{error}</p>
-          <button
-            className={styles.retryBtn}
-            onClick={() => setHasBirthInfo(false)}
-          >
-            {locale === "ko" ? "다시 시도" : "Retry"}
+          <button className={styles.retryBtn} onClick={() => setHasBirthInfo(false)}>
+            {locale === 'ko' ? '다시 시도' : 'Retry'}
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   // Main calendar view
-  if (!data) {return null;}
+  if (!data) {
+    return null
+  }
 
   return (
     <CalendarMainView
@@ -418,10 +442,8 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
       onPrevMonth={prevMonth}
       onNextMonth={nextMonth}
       onGoToToday={goToToday}
-      onToggleTheme={() => setIsDarkTheme(prev => !prev)}
-      onEditBirthInfo={() => setHasBirthInfo(false)}
       onSaveDate={handleSaveDate}
       onUnsaveDate={handleUnsaveDate}
     />
-  );
-});
+  )
+})

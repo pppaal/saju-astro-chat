@@ -22,6 +22,7 @@ vi.mock('@/lib/api/middleware', () => ({
     }
   }),
   createAuthenticatedGuard: vi.fn(() => ({})),
+  extractLocale: vi.fn(() => 'ko'),
 }))
 
 vi.mock('@/lib/api/zodValidation', () => ({
@@ -111,6 +112,12 @@ vi.mock('@/lib/api/zodValidation', () => ({
       return { success: true, data: result }
     }),
   },
+  createValidationErrorResponse: vi.fn((error: any, _options?: any) => {
+    return new Response(JSON.stringify({ error: 'Validation failed', details: error.issues }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }),
 }))
 
 // Mock dependencies
@@ -146,6 +153,28 @@ vi.mock('@/lib/constants/http', () => ({
     BAD_REQUEST: 400,
     UNAUTHORIZED: 401,
     SERVER_ERROR: 500,
+  },
+}))
+
+vi.mock('@/lib/api/errorHandler', () => ({
+  createErrorResponse: vi.fn(({ code, message }) => {
+    const statusMap: Record<string, number> = {
+      NOT_FOUND: 404,
+      BAD_REQUEST: 400,
+      UNAUTHORIZED: 401,
+      INTERNAL_ERROR: 500,
+    }
+    const status = statusMap[code] || 500
+    return new Response(JSON.stringify({ error: message }), {
+      status,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }),
+  ErrorCodes: {
+    NOT_FOUND: 'NOT_FOUND',
+    BAD_REQUEST: 'BAD_REQUEST',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
   },
 }))
 
@@ -197,7 +226,6 @@ describe('/api/me/profile', () => {
           name: true,
           email: true,
           image: true,
-          profilePhoto: true,
           birthDate: true,
           birthTime: true,
           gender: true,

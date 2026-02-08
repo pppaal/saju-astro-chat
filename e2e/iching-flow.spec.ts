@@ -1,296 +1,162 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test'
 
-test.describe("I-Ching Flow", () => {
-  test.describe("I-Ching Main Page", () => {
-    test("should load I-Ching page successfully", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
-        await expect(page.locator("body")).toBeVisible();
-      } catch {
-        expect(true).toBe(true);
+test.describe('I-Ching Flow', () => {
+  test.describe('I-Ching Main Page', () => {
+    test('should load I-Ching page with Korean content', async ({ page }) => {
+      await page.goto('/iching', { waitUntil: 'domcontentloaded' })
+      await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
+
+      // 주역 관련 한국어 콘텐츠 확인
+      const hasIChingContent =
+        bodyText!.includes('주역') ||
+        bodyText!.includes('점괘') ||
+        bodyText!.includes('I-Ching') ||
+        bodyText!.includes('64괘') ||
+        bodyText!.includes('역경')
+      expect(hasIChingContent).toBe(true)
+    })
+
+    test('should have question input area', async ({ page }) => {
+      await page.goto('/iching', { waitUntil: 'domcontentloaded' })
+
+      const questionInput = page.locator("textarea, input[type='text']")
+      const count = await questionInput.count()
+
+      if (count > 0) {
+        await expect(questionInput.first()).toBeVisible()
       }
-    });
+    })
 
-    test("should display I-Ching introduction", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
+    test('should have cast or start button', async ({ page }) => {
+      await page.goto('/iching', { waitUntil: 'domcontentloaded' })
 
-        const intro = page.locator("main, [class*='intro'], [class*='content']");
-        const count = await intro.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
+      const buttons = page.locator('button')
+      const count = await buttons.count()
+      expect(count).toBeGreaterThan(0)
 
-    test("should have question input field", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const questionInput = page.locator("textarea, input[type='text']");
-        const count = await questionInput.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-
-    test("should have cast coins button", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const castButton = page.locator(
-          'button:has-text("던지기"), button:has-text("Cast"), button:has-text("시작"), button:has-text("점괘")'
-        );
-        const count = await castButton.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-
-    test("should display hexagram symbols", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const hexagrams = page.locator('[class*="hexagram"], [class*="trigram"], svg');
-        const count = await hexagrams.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-  });
-
-  test.describe("I-Ching Question Input", () => {
-    test("should accept question text", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const input = page.locator("textarea, input[type='text']").first();
-        if ((await input.count()) > 0) {
-          await input.fill("올해 사업 운은 어떻게 될까요?");
-          const value = await input.inputValue();
-          expect(value.length).toBeGreaterThan(0);
+      // 버튼 중 하나는 보여야 함
+      let visibleButtonFound = false
+      for (let i = 0; i < count; i++) {
+        if (await buttons.nth(i).isVisible()) {
+          visibleButtonFound = true
+          break
         }
-      } catch {
-        expect(true).toBe(true);
       }
-    });
+      expect(visibleButtonFound).toBe(true)
+    })
+  })
 
-    test("should validate empty question", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
+  test.describe('I-Ching Question Input', () => {
+    test('should accept and retain question text', async ({ page }) => {
+      await page.goto('/iching', { waitUntil: 'domcontentloaded' })
 
-        const submitButton = page.locator('button[type="submit"], button:has-text("던지기")');
-        if ((await submitButton.count()) > 0) {
-          await submitButton.first().click();
-          await page.waitForTimeout(500);
-          await expect(page.locator("body")).toBeVisible();
-        }
-      } catch {
-        expect(true).toBe(true);
+      const input = page.locator("textarea, input[type='text']").first()
+      if ((await input.count()) > 0 && (await input.isVisible())) {
+        const question = '올해 사업 운은 어떻게 될까요?'
+        await input.fill(question)
+        const value = await input.inputValue()
+        expect(value).toContain('사업')
+        expect(value.length).toBeGreaterThan(10)
       }
-    });
+    })
 
-    test("should show sample questions if available", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
+    test('should handle form submission', async ({ page }) => {
+      await page.goto('/iching', { waitUntil: 'domcontentloaded' })
 
-        const samples = page.locator('[class*="sample"], [class*="example"], [class*="suggestion"]');
-        const count = await samples.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
+      const submitButton = page.locator(
+        'button[type="submit"], button:has-text("던지기"), button:has-text("시작")'
+      )
+      if ((await submitButton.count()) > 0) {
+        await submitButton.first().click()
+        await page.waitForTimeout(500)
+
+        // 페이지가 여전히 작동해야 함
+        await expect(page.locator('body')).toBeVisible()
+        const bodyText = await page.locator('body').textContent()
+        expect(bodyText!.length).toBeGreaterThan(50)
       }
-    });
-  });
+    })
+  })
 
-  test.describe("I-Ching Coin Casting", () => {
-    test("should animate coin casting", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
+  test.describe('I-Ching Coin Casting', () => {
+    test('should interact with casting after question input', async ({ page }) => {
+      await page.goto('/iching', { waitUntil: 'domcontentloaded' })
 
-        const input = page.locator("textarea, input[type='text']").first();
-        const submitButton = page.locator('button:has-text("던지기"), button[type="submit"]').first();
+      const input = page.locator("textarea, input[type='text']").first()
+      const submitButton = page
+        .locator('button:has-text("던지기"), button[type="submit"], button:has-text("시작")')
+        .first()
 
-        if ((await input.count()) > 0 && (await submitButton.count()) > 0) {
-          await input.fill("내 미래는?");
-          await submitButton.click();
-          await page.waitForTimeout(500);
+      if ((await input.count()) > 0 && (await submitButton.count()) > 0) {
+        await input.fill('내 미래는 어떻게 될까요?')
+        const filledValue = await input.inputValue()
+        expect(filledValue).toContain('미래')
 
-          const animation = page.locator('[class*="animate"], [class*="coin"], [class*="casting"]');
-          const count = await animation.count();
-          expect(count >= 0).toBe(true);
-        }
-      } catch {
-        expect(true).toBe(true);
+        await submitButton.click()
+        await page.waitForTimeout(1000)
+
+        // 페이지 콘텐츠 확인
+        await expect(page.locator('body')).toBeVisible()
       }
-    });
+    })
+  })
 
-    test("should display result after casting", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
+  test.describe('I-Ching Mobile Experience', () => {
+    test('should render without horizontal scroll on mobile', async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 667 })
+      await page.goto('/iching', { waitUntil: 'domcontentloaded' })
 
-        const result = page.locator('[class*="result"], [class*="hexagram"], [class*="reading"]');
-        const count = await result.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-  });
+      await expect(page.locator('body')).toBeVisible()
 
-  test.describe("I-Ching Hexagram Display", () => {
-    test("should display hexagram image", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
+      const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
+      const viewportWidth = await page.evaluate(() => window.innerWidth)
+      expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 20)
+    })
 
-        const hexagramImage = page.locator('[class*="hexagram"] svg, [class*="hexagram"] img, canvas');
-        const count = await hexagramImage.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
+    test('should have touch-friendly buttons on mobile', async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 667 })
+      await page.goto('/iching', { waitUntil: 'domcontentloaded' })
 
-    test("should display hexagram name", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
+      const buttons = page.locator('button')
+      const count = await buttons.count()
 
-        const hexagramName = page.locator('[class*="hexagram-name"], h2, h3');
-        const count = await hexagramName.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-
-    test("should display hexagram interpretation", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const interpretation = page.locator('[class*="interpretation"], [class*="meaning"], p');
-        const count = await interpretation.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-  });
-
-  test.describe("I-Ching Changing Lines", () => {
-    test("should display changing lines if applicable", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const changingLines = page.locator('[class*="changing"], [class*="line"], [class*="yao"]');
-        const count = await changingLines.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-
-    test("should show transformed hexagram", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const transformed = page.locator('[class*="transformed"], [class*="future"], [class*="result"]');
-        const count = await transformed.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-  });
-
-  test.describe("I-Ching Actions", () => {
-    test("should have save reading option", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const saveButton = page.locator('button:has-text("저장"), [class*="save"]');
-        const count = await saveButton.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-
-    test("should have share option", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const shareButton = page.locator('button:has-text("공유"), [class*="share"]');
-        const count = await shareButton.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-
-    test("should have new reading option", async ({ page }) => {
-      try {
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const newButton = page.locator('button:has-text("다시"), button:has-text("새로운")');
-        const count = await newButton.count();
-        expect(count >= 0).toBe(true);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-  });
-
-  test.describe("I-Ching Mobile Experience", () => {
-    test("should be responsive on mobile", async ({ page }) => {
-      try {
-        await page.setViewportSize({ width: 375, height: 667 });
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        await expect(page.locator("body")).toBeVisible();
-
-        const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
-        const viewportWidth = await page.evaluate(() => window.innerWidth);
-        expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 20);
-      } catch {
-        expect(true).toBe(true);
-      }
-    });
-
-    test("should display hexagram correctly on mobile", async ({ page }) => {
-      try {
-        await page.setViewportSize({ width: 375, height: 667 });
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
-
-        const hexagram = page.locator('[class*="hexagram"]').first();
-        if ((await hexagram.count()) > 0) {
-          const box = await hexagram.boundingBox();
+      for (let i = 0; i < Math.min(count, 3); i++) {
+        const button = buttons.nth(i)
+        if (await button.isVisible()) {
+          const box = await button.boundingBox()
           if (box) {
-            expect(box.width).toBeLessThanOrEqual(375);
+            expect(box.height).toBeGreaterThanOrEqual(30)
+            expect(box.width).toBeGreaterThanOrEqual(30)
           }
         }
-      } catch {
-        expect(true).toBe(true);
       }
-    });
+    })
 
-    test("should have touch-friendly buttons", async ({ page }) => {
-      try {
-        await page.setViewportSize({ width: 375, height: 667 });
-        await page.goto("/iching", { waitUntil: "domcontentloaded", timeout: 45000 });
+    test('should allow text input on mobile', async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 667 })
+      await page.goto('/iching', { waitUntil: 'domcontentloaded' })
 
-        const button = page.locator("button").first();
-        if ((await button.count()) > 0) {
-          const box = await button.boundingBox();
-          if (box) {
-            expect(box.height >= 40 || box.width >= 40).toBe(true);
-          }
-        }
-      } catch {
-        expect(true).toBe(true);
+      const input = page.locator("textarea, input[type='text']").first()
+      if ((await input.count()) > 0 && (await input.isVisible())) {
+        await input.tap()
+        await input.fill('모바일에서 주역 점괘 테스트')
+        const value = await input.inputValue()
+        expect(value).toContain('모바일')
       }
-    });
-  });
-});
+    })
+  })
+
+  test.describe('I-Ching Page Load Performance', () => {
+    test('should load within acceptable time', async ({ page }) => {
+      const startTime = Date.now()
+      await page.goto('/iching', { waitUntil: 'domcontentloaded' })
+      const loadTime = Date.now() - startTime
+
+      expect(loadTime).toBeLessThan(10000)
+      await expect(page.locator('body')).toBeVisible()
+    })
+  })
+})

@@ -3,7 +3,24 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
-import { POST, GET } from '@/app/api/numerology/route'
+
+// Mock middleware - must be before route import
+vi.mock('@/lib/api/middleware', () => ({
+  withApiMiddleware: vi.fn((handler: any) => handler),
+  createSimpleGuard: vi.fn(() => ({})),
+  apiError: vi.fn((code: string, status: number, message: string) => {
+    const error = new Error(message) as any
+    error.code = code
+    error.status = status
+    return error
+  }),
+  extractLocale: vi.fn(() => 'ko'),
+  ErrorCodes: {
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    RATE_LIMITED: 'RATE_LIMITED',
+  },
+}))
 
 // Mock dependencies
 vi.mock('@/lib/api', () => ({
@@ -33,11 +50,14 @@ vi.mock('@/lib/api/csrf', () => ({
   csrfGuard: vi.fn(() => null),
 }))
 
+import { POST, GET } from '@/app/api/numerology/route'
+
 import { apiClient } from '@/lib/api'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { logger } from '@/lib/logger'
 
+// Skip: Tests require middleware to be properly configured, not mocked
 describe.skip('POST /api/numerology', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -598,6 +618,7 @@ describe.skip('POST /api/numerology', () => {
   })
 })
 
+// Skip: Tests require middleware to be properly configured, not mocked
 describe.skip('GET /api/numerology', () => {
   beforeEach(() => {
     vi.clearAllMocks()

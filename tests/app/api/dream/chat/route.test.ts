@@ -8,10 +8,12 @@ import { NextRequest, NextResponse } from 'next/server'
 // Mock middleware
 const mockInitializeApiContext = vi.fn()
 const mockCreatePublicStreamGuard = vi.fn(() => ({}))
+const mockExtractLocale = vi.fn(() => 'ko')
 
 vi.mock('@/lib/api/middleware', () => ({
   initializeApiContext: (...args: unknown[]) => mockInitializeApiContext(...args),
   createPublicStreamGuard: (...args: unknown[]) => mockCreatePublicStreamGuard(...args),
+  extractLocale: (...args: unknown[]) => mockExtractLocale(...args),
 }))
 
 // Mock streaming utilities
@@ -49,11 +51,25 @@ vi.mock('@/lib/logger', () => ({
 
 // Mock Zod validation schema
 const mockSafeParse = vi.fn()
+const mockCreateValidationErrorResponse = vi.fn((error: any) =>
+  NextResponse.json(
+    {
+      error: 'validation_failed',
+      details:
+        error.issues?.map((e: any) => ({
+          path: Array.isArray(e.path) ? e.path.join('.') : String(e.path),
+          message: e.message,
+        })) || [],
+    },
+    { status: 400 }
+  )
+)
 
 vi.mock('@/lib/api/zodValidation', () => ({
   dreamChatRequestSchema: {
     safeParse: (...args: unknown[]) => mockSafeParse(...args),
   },
+  createValidationErrorResponse: (...args: unknown[]) => mockCreateValidationErrorResponse(...args),
 }))
 
 // Mock HTTP constants
@@ -67,6 +83,28 @@ vi.mock('@/lib/constants/http', () => ({
     NOT_FOUND: 404,
     RATE_LIMITED: 429,
     SERVER_ERROR: 500,
+  },
+}))
+
+// Mock error handler
+vi.mock('@/lib/api/errorHandler', () => ({
+  createErrorResponse: vi.fn((options: any) =>
+    NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: options.code,
+          message: options.message || 'An error occurred',
+          status: 500,
+        },
+      },
+      { status: 500 }
+    )
+  ),
+  ErrorCodes: {
+    BACKEND_ERROR: 'BACKEND_ERROR',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
   },
 }))
 
@@ -470,8 +508,8 @@ describe('Dream Chat API - POST /api/dream/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Backend error')
-      expect(data.detail).toBe('Backend service unavailable')
+      expect(data.error.code).toBe('BACKEND_ERROR')
+      expect(data.error.message).toContain('Backend service')
     })
 
     it('should log backend errors', async () => {
@@ -541,7 +579,7 @@ describe('Dream Chat API - POST /api/dream/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Server error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should log unexpected errors', async () => {
@@ -582,7 +620,7 @@ describe('Dream Chat API - POST /api/dream/chat', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Server error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
   })
 

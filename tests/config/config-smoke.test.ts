@@ -70,17 +70,12 @@ describe('Config Files Smoke Tests', () => {
     })
   })
 
-  describe('Environment & Validation (1)', () => {
+  describe('Environment Config (1)', () => {
     it('should import env config', async () => {
       const env = await import('@/lib/env')
 
       expect(env).toBeDefined()
       expect(Object.keys(env).length).toBeGreaterThan(0)
-    })
-
-    // Skipped: validateEnv module does not exist (only env.ts exists)
-    it.skip('should import validateEnv (skipped - module does not exist)', async () => {
-      expect(true).toBe(true)
     })
   })
 
