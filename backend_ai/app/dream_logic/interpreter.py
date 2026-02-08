@@ -30,6 +30,19 @@ from .utils import (
 # Lazy imports to avoid loading SentenceTransformer on module load
 _dream_embed_rag = None
 _fusion_generate_module = None
+_search_graphs_func = None
+
+
+def _get_search_graphs():
+    """Lazy wrapper for GraphRAG search_graphs."""
+    global _search_graphs_func
+    if _search_graphs_func is None:
+        try:
+            from backend_ai.app.saju_astro_rag import search_graphs
+            _search_graphs_func = search_graphs
+        except ImportError:
+            _search_graphs_func = lambda *args, **kwargs: []
+    return _search_graphs_func
 
 
 def _get_dream_embed_rag():
@@ -90,18 +103,39 @@ def _run_parallel_tasks(facts: dict, dream_text: str, locale: str) -> Dict[str, 
             'lucky_numbers': rule_engine.generate_lucky_numbers(dream_text, symbols)
         }
 
+    def task_graph_rag():
+        """GraphRAG search for deep dream knowledge."""
+        try:
+            search_graphs = _get_search_graphs()
+            symbols = facts.get("symbols", [])
+            symbols_str = " ".join(symbols[:5]) if symbols else ""
+            query = f"꿈 해몽 {symbols_str} {dream_text[:100]}"
+            results = search_graphs(query, top_k=6)
+            graph_texts = []
+            for r in results:
+                if isinstance(r, dict):
+                    text = r.get("description", r.get("text", ""))
+                    if text:
+                        graph_texts.append(text[:300])
+            return graph_texts
+        except Exception as e:
+            print(f"[interpret_dream] GraphRAG search failed: {e}")
+            return []
+
     # Initialize results
     keyword_matches = {}
     celestial_context = None
     embed_matches = {'texts': [], 'korean_notes': [], 'categories': [], 'specifics': [], 'advice': []}
     premium_results = {}
+    graph_rag_results = []
 
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    with ThreadPoolExecutor(max_workers=5) as executor:
         futures = {
             executor.submit(task_keyword_matches): 'keyword',
             executor.submit(task_celestial_context): 'celestial',
             executor.submit(task_embed_search): 'embed',
-            executor.submit(task_premium_features): 'premium'
+            executor.submit(task_premium_features): 'premium',
+            executor.submit(task_graph_rag): 'graph_rag'
         }
 
         for future in as_completed(futures):
@@ -116,6 +150,8 @@ def _run_parallel_tasks(facts: dict, dream_text: str, locale: str) -> Dict[str, 
                     embed_matches = result
                 elif task_name == 'premium':
                     premium_results = result
+                elif task_name == 'graph_rag':
+                    graph_rag_results = result
             except Exception as e:
                 print(f"[interpret_dream] Task {task_name} failed: {e}")
 
@@ -124,10 +160,11 @@ def _run_parallel_tasks(facts: dict, dream_text: str, locale: str) -> Dict[str, 
         'celestial_context': celestial_context,
         'embed_matches': embed_matches,
         'premium_results': premium_results,
+        'graph_rag_results': graph_rag_results,
     }
 
 
-def _merge_results(keyword_matches: dict, embed_matches: dict, premium_results: dict, facts: dict) -> dict:
+def _merge_results(keyword_matches: dict, embed_matches: dict, premium_results: dict, graph_rag_results: list, facts: dict) -> dict:
     """Merge results from keyword and embedding searches."""
     merged_texts = merge_unique(
         keyword_matches.get('texts', []),
@@ -168,6 +205,11 @@ def _merge_results(keyword_matches: dict, embed_matches: dict, premium_results: 
         'advice': merged_advice,
         'match_quality': embed_matches.get('match_quality', 'keyword_only')
     }
+
+    # Add GraphRAG deep knowledge
+    if graph_rag_results:
+        matched_rules['graph_rag_context'] = graph_rag_results[:6]
+        print(f"[interpret_dream] GraphRAG added {len(graph_rag_results)} deep knowledge entries")
 
     # Add premium feature context
     detected_combinations = premium_results.get('combinations', [])
@@ -290,6 +332,7 @@ def interpret_dream(facts: dict) -> dict:
         celestial_context = parallel_results['celestial_context']
         embed_matches = parallel_results['embed_matches']
         premium_results = parallel_results['premium_results']
+        graph_rag_results = parallel_results.get('graph_rag_results', [])
 
         # Log results
         if celestial_context:
@@ -307,13 +350,15 @@ def interpret_dream(facts: dict) -> dict:
             print("[interpret_dream] Taemong detected: primary_symbol found")
         if lucky_numbers_result:
             print(f"[interpret_dream] Generated lucky numbers: {lucky_numbers_result.get('numbers', [])}")
+        if graph_rag_results:
+            print(f"[interpret_dream] GraphRAG found {len(graph_rag_results)} deep knowledge entries")
 
         print(f"[interpret_dream] Embedding search found {len(embed_matches.get('texts', []))} matches "
               f"(quality: {embed_matches.get('match_quality', 'unknown')})")
 
         # Merge results
         matched_rules, detected_combinations, taemong_result, lucky_numbers_result = _merge_results(
-            keyword_matches, embed_matches, premium_results, facts
+            keyword_matches, embed_matches, premium_results, graph_rag_results, facts
         )
 
         saju_influence = facts.get('sajuInfluence')
@@ -337,7 +382,7 @@ def interpret_dream(facts: dict) -> dict:
         # Call LLM
         system_instruction = build_system_instruction()
         full_prompt = f"[SYSTEM]\n{system_instruction}\n\n[USER]\n{prompt}"
-        response_text = _generate_with_gpt4(full_prompt, max_tokens=4000, temperature=0.6, use_mini=True)
+        response_text = _generate_with_gpt4(full_prompt, max_tokens=4000, temperature=0.6, use_mini=False)
 
         # Parse response
         result = parse_json_response(response_text)

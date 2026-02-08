@@ -297,6 +297,15 @@ Note: This dream may be a 태몽 (conception dream). Consider discussing:
 Note: Include specific lucky numbers in your luckyElements response based on the symbols.
 """
 
+    # Add GraphRAG deep knowledge
+    graph_rag_context = matched_rules.get('graph_rag_context', [])
+    if graph_rag_context:
+        section += f"""
+## Deep Dream Knowledge (GraphRAG)
+{chr(10).join(['- ' + ctx for ctx in graph_rag_context[:6]])}
+Use this deep knowledge to enrich your interpretation with traditional wisdom and symbolic connections.
+"""
+
     return section
 
 
