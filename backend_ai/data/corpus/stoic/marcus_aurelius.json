@@ -2,6 +2,7 @@
   "philosopher": "marcus_aurelius",
   "philosopher_kr": "마르쿠스 아우렐리우스",
   "title": "Roman Emperor & Philosopher (121-180 AD)",
+  "description": "Marcus Aurelius was the last of the Five Good Emperors of Rome and a practitioner of Stoic philosophy. His personal writings, known as Meditations, offer profound insights on self-discipline, duty, and finding peace amidst chaos.",
   "main_work": "Meditations",
   "quotes": [
     {
@@ -9,100 +10,200 @@
       "en": "You have power over your mind - not outside events. Realize this, and you will find strength.",
       "kr": "당신은 외부 사건이 아닌 마음에 대한 권한이 있다. 이것을 깨달으면 힘을 찾을 것이다.",
       "source": "Meditations",
-      "tags": [
-        "control",
-        "mind"
-      ]
+      "context": "On the fundamental Stoic principle of the dichotomy of control",
+      "tags": ["control", "mind", "strength", "inner-power"]
     },
     {
       "id": "ma_002",
       "en": "The happiness of your life depends upon the quality of your thoughts.",
       "kr": "삶의 행복은 생각의 질에 달려 있다.",
       "source": "Meditations",
-      "tags": [
-        "happiness",
-        "thoughts"
-      ]
+      "context": "On the relationship between mental habits and well-being",
+      "tags": ["happiness", "thoughts", "mindset", "quality"]
     },
     {
       "id": "ma_003",
       "en": "Waste no more time arguing about what a good man should be. Be one.",
       "kr": "좋은 사람이 어떠해야 하는지 논쟁하는 데 더 이상 시간을 낭비하지 마라. 그냥 되어라.",
       "source": "Meditations",
-      "tags": [
-        "action",
-        "virtue"
-      ]
+      "context": "On the importance of action over philosophical debate",
+      "tags": ["action", "virtue", "practice", "character"]
     },
     {
       "id": "ma_004",
       "en": "The obstacle is the way.",
       "kr": "장애물이 곧 길이다.",
       "source": "Meditations",
-      "tags": [
-        "obstacle",
-        "growth"
-      ]
+      "context": "On how challenges become opportunities for growth",
+      "tags": ["obstacle", "growth", "adversity", "opportunity"]
     },
     {
       "id": "ma_005",
       "en": "Very little is needed to make a happy life; it is all within yourself.",
       "kr": "행복한 삶을 위해 필요한 것은 매우 적다. 그것은 모두 당신 안에 있다.",
       "source": "Meditations",
-      "tags": [
-        "happiness",
-        "inner"
-      ]
+      "context": "On the internal source of contentment",
+      "tags": ["happiness", "inner-peace", "simplicity", "contentment"]
     },
     {
       "id": "ma_006",
-      "en": "When you arise in the morning, think of what a privilege it is to be alive.",
-      "kr": "아침에 일어날 때, 살아있다는 것이 얼마나 특권인지 생각하라.",
+      "en": "When you arise in the morning, think of what a privilege it is to be alive, to think, to enjoy, to love.",
+      "kr": "아침에 일어날 때, 살아있다는 것, 생각할 수 있다는 것, 즐길 수 있다는 것, 사랑할 수 있다는 것이 얼마나 특권인지 생각하라.",
       "source": "Meditations",
-      "tags": [
-        "gratitude",
-        "morning"
-      ]
+      "context": "On cultivating morning gratitude",
+      "tags": ["gratitude", "morning", "life", "privilege"]
     },
     {
       "id": "ma_007",
-      "en": "Never value anything as profitable that compels you to break your promise, lose your self-respect.",
-      "kr": "약속을 어기게 하거나 자존심을 잃게 하는 것은 결코 이익이라 여기지 마라.",
+      "en": "Never value anything as profitable that compels you to break your promise, lose your self-respect, hate any man, suspect, curse, act the hypocrite.",
+      "kr": "약속을 어기게 하거나, 자존심을 잃게 하거나, 누군가를 미워하게 하거나, 의심하게 하거나, 저주하게 하거나, 위선자처럼 행동하게 하는 것은 결코 이익이라 여기지 마라.",
       "source": "Meditations",
-      "tags": [
-        "integrity",
-        "values"
-      ]
+      "context": "On the true cost of compromising one's integrity",
+      "tags": ["integrity", "values", "self-respect", "honesty"]
     },
     {
       "id": "ma_008",
-      "en": "Accept the things to which fate binds you, and love the people with whom fate brings you together.",
-      "kr": "운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 사랑하라.",
+      "en": "Accept the things to which fate binds you, and love the people with whom fate brings you together, and do so with all your heart.",
+      "kr": "운명이 묶어주는 것들을 받아들이고, 운명이 데려온 사람들을 온 마음으로 사랑하라.",
       "source": "Meditations",
-      "tags": [
-        "fate",
-        "amor fati"
-      ]
+      "context": "On embracing one's circumstances and relationships wholeheartedly",
+      "tags": ["fate", "amor-fati", "acceptance", "love"]
     },
     {
       "id": "ma_009",
       "en": "It is not death that a man should fear, but he should fear never beginning to live.",
       "kr": "사람이 두려워해야 할 것은 죽음이 아니라, 진정으로 살기 시작하지 않는 것이다.",
       "source": "Meditations",
-      "tags": [
-        "death",
-        "life"
-      ]
+      "context": "On the tragedy of an unlived life",
+      "tags": ["death", "life", "fear", "living-fully"]
     },
     {
       "id": "ma_010",
       "en": "Dwell on the beauty of life. Watch the stars, and see yourself running with them.",
       "kr": "삶의 아름다움에 머물러라. 별들을 바라보고, 그들과 함께 달리는 자신을 보라.",
       "source": "Meditations",
-      "tags": [
-        "beauty",
-        "cosmos"
-      ]
+      "context": "On finding wonder and connection with the cosmos",
+      "tags": ["beauty", "cosmos", "wonder", "perspective"]
+    },
+    {
+      "id": "ma_011",
+      "en": "Look back over the past, with its changing empires that rose and fell, and you can foresee the future too.",
+      "kr": "과거를 돌아보라, 일어났다 무너진 제국들의 변화를. 그러면 미래도 예견할 수 있다.",
+      "source": "Meditations",
+      "context": "On the cyclical nature of history and impermanence",
+      "tags": ["history", "impermanence", "change", "perspective"]
+    },
+    {
+      "id": "ma_012",
+      "en": "How much more grievous are the consequences of anger than the causes of it.",
+      "kr": "분노의 결과는 그 원인보다 얼마나 더 심각한가.",
+      "source": "Meditations",
+      "context": "On the self-destructive nature of anger",
+      "tags": ["anger", "consequences", "self-control", "emotions"]
+    },
+    {
+      "id": "ma_013",
+      "en": "The soul becomes dyed with the color of its thoughts.",
+      "kr": "영혼은 그 생각의 색으로 물든다.",
+      "source": "Meditations",
+      "context": "On how our thoughts shape our character",
+      "tags": ["soul", "thoughts", "character", "mindset"]
+    },
+    {
+      "id": "ma_014",
+      "en": "Never let the future disturb you. You will meet it, if you have to, with the same weapons of reason which today arm you against the present.",
+      "kr": "미래가 당신을 불안하게 하지 마라. 필요하다면, 오늘 현재에 맞서 무장한 것과 같은 이성의 무기로 미래를 맞이할 것이다.",
+      "source": "Meditations",
+      "context": "On trusting your ability to handle future challenges",
+      "tags": ["future", "anxiety", "reason", "confidence"]
+    },
+    {
+      "id": "ma_015",
+      "en": "Everything we hear is an opinion, not a fact. Everything we see is a perspective, not the truth.",
+      "kr": "우리가 듣는 모든 것은 의견이지 사실이 아니다. 우리가 보는 모든 것은 관점이지 진실이 아니다.",
+      "source": "Meditations",
+      "context": "On the subjective nature of perception",
+      "tags": ["perception", "truth", "opinion", "perspective"]
+    },
+    {
+      "id": "ma_016",
+      "en": "If it is not right, do not do it; if it is not true, do not say it.",
+      "kr": "옳지 않다면, 하지 마라. 진실이 아니라면, 말하지 마라.",
+      "source": "Meditations",
+      "context": "On the simplicity of ethical living",
+      "tags": ["ethics", "truth", "action", "integrity"]
+    },
+    {
+      "id": "ma_017",
+      "en": "Begin - to begin is half the work, let half still remain; again begin this, and thou wilt have finished.",
+      "kr": "시작하라 - 시작하는 것이 일의 절반이다. 절반이 남아있더라도, 다시 시작하면 완성할 것이다.",
+      "source": "Meditations",
+      "context": "On overcoming procrastination through action",
+      "tags": ["beginning", "action", "procrastination", "progress"]
+    },
+    {
+      "id": "ma_018",
+      "en": "The best revenge is to be unlike him who performed the injury.",
+      "kr": "최고의 복수는 상처를 준 자와 다른 사람이 되는 것이다.",
+      "source": "Meditations",
+      "context": "On rising above those who wrong us",
+      "tags": ["revenge", "character", "forgiveness", "rising-above"]
+    },
+    {
+      "id": "ma_019",
+      "en": "Loss is nothing else but change, and change is Nature's delight.",
+      "kr": "상실은 변화에 불과하고, 변화는 자연의 기쁨이다.",
+      "source": "Meditations",
+      "context": "On reframing loss as natural transformation",
+      "tags": ["loss", "change", "nature", "acceptance"]
+    },
+    {
+      "id": "ma_020",
+      "en": "Do every act of your life as though it were the very last act of your life.",
+      "kr": "삶의 모든 행동을 마치 그것이 삶의 마지막 행동인 것처럼 하라.",
+      "source": "Meditations",
+      "context": "On living with urgency and intentionality",
+      "tags": ["urgency", "mindfulness", "mortality", "intention"]
+    },
+    {
+      "id": "ma_021",
+      "en": "The object of life is not to be on the side of the majority, but to escape finding oneself in the ranks of the insane.",
+      "kr": "삶의 목적은 다수의 편에 서는 것이 아니라, 광인들의 대열에서 벗어나는 것이다.",
+      "source": "Meditations",
+      "context": "On independent thinking over conformity",
+      "tags": ["independence", "conformity", "wisdom", "thinking"]
+    },
+    {
+      "id": "ma_022",
+      "en": "Be tolerant with others and strict with yourself.",
+      "kr": "다른 사람들에게는 관대하고, 자신에게는 엄격하라.",
+      "source": "Meditations",
+      "context": "On the balance of compassion and self-discipline",
+      "tags": ["tolerance", "discipline", "compassion", "self-improvement"]
+    },
+    {
+      "id": "ma_023",
+      "en": "Think of yourself as dead. You have lived your life. Now take what's left and live it properly.",
+      "kr": "자신이 죽었다고 생각하라. 당신은 삶을 살았다. 이제 남은 것을 가지고 제대로 살아라.",
+      "source": "Meditations",
+      "context": "On using mortality as motivation for purposeful living",
+      "tags": ["mortality", "purpose", "living-fully", "perspective"]
+    },
+    {
+      "id": "ma_024",
+      "en": "When you wake up in the morning, tell yourself: The people I deal with today will be meddling, ungrateful, arrogant, dishonest, jealous, and surly.",
+      "kr": "아침에 일어나면 자신에게 말하라: 오늘 내가 만날 사람들은 간섭하고, 감사할 줄 모르고, 오만하고, 정직하지 못하고, 질투하고, 무뚝뚝할 것이다.",
+      "source": "Meditations",
+      "context": "On preparing mentally for difficult people",
+      "tags": ["preparation", "people", "expectations", "morning-routine"]
+    },
+    {
+      "id": "ma_025",
+      "en": "That which is not good for the swarm, neither is it good for the bee.",
+      "kr": "군집에 좋지 않은 것은, 벌에게도 좋지 않다.",
+      "source": "Meditations",
+      "context": "On our interconnection with society",
+      "tags": ["community", "interconnection", "society", "common-good"]
     }
   ]
 }

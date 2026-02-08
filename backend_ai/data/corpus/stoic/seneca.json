@@ -2,87 +2,168 @@
   "philosopher": "seneca",
   "philosopher_kr": "세네카",
   "title": "Roman Stoic Philosopher (4 BC - 65 AD)",
+  "description": "Seneca was a Roman Stoic philosopher, statesman, and dramatist. His works on ethics and the nature of the good life remain influential.",
   "main_work": "Letters from a Stoic",
   "quotes": [
     {
       "id": "se_001",
       "en": "We suffer more often in imagination than in reality.",
       "kr": "우리는 현실보다 상상 속에서 더 자주 고통받는다.",
-      "source": "Letters",
-      "tags": [
-        "suffering",
-        "imagination"
-      ]
+      "source": "Letters from a Stoic",
+      "context": "On the nature of anticipatory anxiety and how our fears often exceed actual outcomes",
+      "tags": ["suffering", "imagination", "anxiety", "fear"]
     },
     {
       "id": "se_002",
       "en": "Luck is what happens when preparation meets opportunity.",
       "kr": "행운은 준비가 기회를 만났을 때 일어나는 것이다.",
-      "source": "Letters",
-      "tags": [
-        "luck",
-        "preparation"
-      ]
+      "source": "Letters from a Stoic",
+      "context": "On the relationship between effort and fortune",
+      "tags": ["luck", "preparation", "opportunity", "effort"]
     },
     {
       "id": "se_003",
       "en": "It is not that we have a short time to live, but that we waste a lot of it.",
       "kr": "우리에게 살 시간이 짧은 것이 아니라, 우리가 많은 시간을 낭비하는 것이다.",
       "source": "On the Shortness of Life",
-      "tags": [
-        "time",
-        "waste"
-      ]
+      "context": "On the proper use of time and the illusion of scarcity",
+      "tags": ["time", "waste", "life", "mortality"]
     },
     {
       "id": "se_004",
       "en": "Difficulties strengthen the mind, as labor does the body.",
       "kr": "어려움은 마음을 강하게 한다, 노동이 몸을 강하게 하듯이.",
-      "source": "Letters",
-      "tags": [
-        "difficulty",
-        "strength"
-      ]
+      "source": "Letters from a Stoic",
+      "context": "On the value of adversity for character development",
+      "tags": ["difficulty", "strength", "growth", "adversity"]
     },
     {
       "id": "se_005",
       "en": "True happiness is to enjoy the present, without anxious dependence upon the future.",
       "kr": "진정한 행복은 미래에 대한 불안한 의존 없이 현재를 즐기는 것이다.",
-      "source": "Letters",
-      "tags": [
-        "happiness",
-        "present"
-      ]
+      "source": "Letters from a Stoic",
+      "context": "On finding contentment in the present moment",
+      "tags": ["happiness", "present", "contentment", "mindfulness"]
     },
     {
       "id": "se_006",
       "en": "As is a tale, so is life: not how long it is, but how good it is, is what matters.",
       "kr": "이야기처럼 삶도 그러하다: 중요한 것은 얼마나 긴가가 아니라 얼마나 좋은가이다.",
-      "source": "Letters",
-      "tags": [
-        "life",
-        "quality"
-      ]
+      "source": "Letters from a Stoic",
+      "context": "On the quality of life over its duration",
+      "tags": ["life", "quality", "meaning", "purpose"]
     },
     {
       "id": "se_007",
       "en": "Begin at once to live, and count each separate day as a separate life.",
       "kr": "지금 당장 살기 시작하라, 그리고 각각의 날을 별개의 삶으로 여겨라.",
-      "source": "Letters",
-      "tags": [
-        "living",
-        "present"
-      ]
+      "source": "Letters from a Stoic",
+      "context": "On living fully in each moment",
+      "tags": ["living", "present", "urgency", "awareness"]
     },
     {
       "id": "se_008",
       "en": "The mind that is anxious about future events is miserable.",
       "kr": "미래 사건에 대해 불안한 마음은 비참하다.",
-      "source": "Letters",
-      "tags": [
-        "anxiety",
-        "future"
-      ]
+      "source": "Letters from a Stoic",
+      "context": "On the futility of worry about what may never happen",
+      "tags": ["anxiety", "future", "peace", "worry"]
+    },
+    {
+      "id": "se_009",
+      "en": "No man is free who is not master of himself.",
+      "kr": "자신의 주인이 아닌 사람은 자유롭지 않다.",
+      "source": "Letters from a Stoic",
+      "context": "On self-mastery as the foundation of true freedom",
+      "tags": ["freedom", "self-mastery", "discipline", "autonomy"]
+    },
+    {
+      "id": "se_010",
+      "en": "He who is brave is free.",
+      "kr": "용감한 자는 자유롭다.",
+      "source": "Letters from a Stoic",
+      "context": "On courage as the path to liberation from fear",
+      "tags": ["courage", "freedom", "bravery", "fear"]
+    },
+    {
+      "id": "se_011",
+      "en": "Every new beginning comes from some other beginning's end.",
+      "kr": "모든 새로운 시작은 다른 시작의 끝에서 온다.",
+      "source": "Letters from a Stoic",
+      "context": "On the cyclical nature of life and change",
+      "tags": ["change", "beginning", "ending", "cycles"]
+    },
+    {
+      "id": "se_012",
+      "en": "While we wait for life, life passes.",
+      "kr": "우리가 삶을 기다리는 동안, 삶은 지나간다.",
+      "source": "On the Shortness of Life",
+      "context": "On the danger of postponing living",
+      "tags": ["waiting", "life", "procrastination", "urgency"]
+    },
+    {
+      "id": "se_013",
+      "en": "Religion is regarded by the common people as true, by the wise as false, and by rulers as useful.",
+      "kr": "종교는 일반 대중에게는 진실로, 현자에게는 거짓으로, 통치자에게는 유용한 것으로 여겨진다.",
+      "source": "Letters from a Stoic",
+      "context": "On the different perspectives on religion and belief",
+      "tags": ["religion", "wisdom", "society", "truth"]
+    },
+    {
+      "id": "se_014",
+      "en": "It is not the man who has too little, but the man who craves more, that is poor.",
+      "kr": "가난한 자는 가진 것이 너무 적은 사람이 아니라, 더 많은 것을 갈망하는 사람이다.",
+      "source": "Letters from a Stoic",
+      "context": "On the nature of true wealth and contentment",
+      "tags": ["wealth", "contentment", "desire", "poverty"]
+    },
+    {
+      "id": "se_015",
+      "en": "Anger, if not restrained, is frequently more hurtful to us than the injury that provokes it.",
+      "kr": "분노는 억제되지 않으면, 그것을 유발한 상처보다 우리에게 더 해롭다.",
+      "source": "On Anger",
+      "context": "On the self-destructive nature of uncontrolled anger",
+      "tags": ["anger", "self-control", "harm", "emotions"]
+    },
+    {
+      "id": "se_016",
+      "en": "If you really want to escape the things that harass you, what you're needing is not to be in a different place but to be a different person.",
+      "kr": "정말로 당신을 괴롭히는 것들에서 벗어나고 싶다면, 필요한 것은 다른 장소가 아니라 다른 사람이 되는 것이다.",
+      "source": "Letters from a Stoic",
+      "context": "On inner transformation rather than external change",
+      "tags": ["change", "transformation", "inner-work", "escape"]
+    },
+    {
+      "id": "se_017",
+      "en": "Sometimes even to live is an act of courage.",
+      "kr": "때때로 살아있는 것 자체가 용기의 행위이다.",
+      "source": "Letters from a Stoic",
+      "context": "On finding courage in the face of life's challenges",
+      "tags": ["courage", "life", "perseverance", "strength"]
+    },
+    {
+      "id": "se_018",
+      "en": "A gem cannot be polished without friction, nor a man perfected without trials.",
+      "kr": "보석은 마찰 없이 연마될 수 없고, 인간도 시련 없이 완성될 수 없다.",
+      "source": "Letters from a Stoic",
+      "context": "On the necessity of hardship for personal growth",
+      "tags": ["trials", "growth", "perfection", "adversity"]
+    },
+    {
+      "id": "se_019",
+      "en": "What need is there to weep over parts of life? The whole of it calls for tears.",
+      "kr": "삶의 일부에 대해 울 필요가 있는가? 삶 전체가 눈물을 부른다.",
+      "source": "Letters from a Stoic",
+      "context": "On accepting the inherent suffering in life",
+      "tags": ["suffering", "acceptance", "life", "tears"]
+    },
+    {
+      "id": "se_020",
+      "en": "The greatest obstacle to living is expectancy, which hangs upon tomorrow and loses today.",
+      "kr": "살아가는 데 가장 큰 장애물은 내일에 매달려 오늘을 잃는 기대이다.",
+      "source": "On the Shortness of Life",
+      "context": "On the danger of living for the future",
+      "tags": ["expectation", "present", "today", "mindfulness"]
     }
   ]
 }

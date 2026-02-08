@@ -2,6 +2,7 @@
   "philosopher": "epictetus",
   "philosopher_kr": "에픽테토스",
   "title": "Greek Stoic Philosopher (50-135 AD)",
+  "description": "Epictetus was born a slave and became one of the most influential Stoic philosophers. His teachings, recorded by his student Arrian, focus on what is within our control and how to live with virtue regardless of external circumstances.",
   "main_work": "Enchiridion (Handbook)",
   "quotes": [
     {
@@ -9,80 +10,200 @@
       "en": "It is not what happens to you, but how you react to it that matters.",
       "kr": "중요한 것은 당신에게 일어나는 일이 아니라, 그것에 어떻게 반응하느냐이다.",
       "source": "Enchiridion",
-      "tags": [
-        "reaction",
-        "control"
-      ]
+      "context": "The core principle of Stoic philosophy on response over reaction",
+      "tags": ["reaction", "control", "response", "choice"]
     },
     {
       "id": "ep_002",
       "en": "We cannot choose our external circumstances, but we can always choose how we respond to them.",
       "kr": "외부 환경은 선택할 수 없지만, 그것에 어떻게 반응할지는 항상 선택할 수 있다.",
       "source": "Enchiridion",
-      "tags": [
-        "choice",
-        "response"
-      ]
+      "context": "On the freedom of choice in our responses",
+      "tags": ["choice", "response", "freedom", "circumstances"]
     },
     {
       "id": "ep_003",
       "en": "Make the best use of what is in your power, and take the rest as it happens.",
       "kr": "당신의 권한에 있는 것을 최대한 활용하고, 나머지는 일어나는 대로 받아들여라.",
       "source": "Discourses",
-      "tags": [
-        "control",
-        "acceptance"
-      ]
+      "context": "On focusing energy on what we can control",
+      "tags": ["control", "acceptance", "focus", "effort"]
     },
     {
       "id": "ep_004",
       "en": "First say to yourself what you would be; and then do what you have to do.",
       "kr": "먼저 자신이 어떤 사람이 될지 스스로에게 말하라. 그런 다음 해야 할 일을 하라.",
       "source": "Discourses",
-      "tags": [
-        "identity",
-        "action"
-      ]
+      "context": "On identity-based change and goal setting",
+      "tags": ["identity", "action", "goals", "self-definition"]
     },
     {
       "id": "ep_005",
       "en": "No man is free who is not master of himself.",
       "kr": "자기 자신의 주인이 아닌 사람은 자유롭지 않다.",
       "source": "Discourses",
-      "tags": [
-        "freedom",
-        "mastery"
-      ]
+      "context": "On self-mastery as the foundation of true freedom",
+      "tags": ["freedom", "mastery", "self-control", "autonomy"]
     },
     {
       "id": "ep_006",
       "en": "Wealth consists not in having great possessions, but in having few wants.",
       "kr": "부는 많은 소유물을 가진 것이 아니라, 적은 욕구를 가진 것에 있다.",
       "source": "Discourses",
-      "tags": [
-        "wealth",
-        "desire"
-      ]
+      "context": "On redefining wealth through contentment",
+      "tags": ["wealth", "desire", "contentment", "simplicity"]
     },
     {
       "id": "ep_007",
       "en": "If you want to improve, be content to be thought foolish and stupid.",
       "kr": "발전하고 싶다면, 어리석고 멍청하게 보이는 것에 만족하라.",
       "source": "Enchiridion",
-      "tags": [
-        "growth",
-        "humility"
-      ]
+      "context": "On the humility required for growth",
+      "tags": ["growth", "humility", "learning", "ego"]
     },
     {
       "id": "ep_008",
       "en": "Circumstances do not make the man, they reveal him.",
       "kr": "환경이 사람을 만드는 것이 아니라, 그를 드러낸다.",
       "source": "Discourses",
-      "tags": [
-        "character",
-        "circumstances"
-      ]
+      "context": "On how adversity shows true character",
+      "tags": ["character", "circumstances", "adversity", "truth"]
+    },
+    {
+      "id": "ep_009",
+      "en": "Don't explain your philosophy. Embody it.",
+      "kr": "철학을 설명하지 마라. 그것을 구현하라.",
+      "source": "Discourses",
+      "context": "On living philosophy rather than merely discussing it",
+      "tags": ["philosophy", "action", "embodiment", "practice"]
+    },
+    {
+      "id": "ep_010",
+      "en": "He is a wise man who does not grieve for the things which he has not, but rejoices for those which he has.",
+      "kr": "현명한 사람은 가지지 않은 것을 슬퍼하지 않고, 가진 것을 기뻐한다.",
+      "source": "Enchiridion",
+      "context": "On cultivating gratitude over longing",
+      "tags": ["wisdom", "gratitude", "contentment", "joy"]
+    },
+    {
+      "id": "ep_011",
+      "en": "Suffering arises from trying to control what is uncontrollable, or from neglecting what is within our power.",
+      "kr": "고통은 통제할 수 없는 것을 통제하려 하거나, 우리 권한 안에 있는 것을 소홀히 할 때 발생한다.",
+      "source": "Discourses",
+      "context": "On the two sources of suffering",
+      "tags": ["suffering", "control", "power", "neglect"]
+    },
+    {
+      "id": "ep_012",
+      "en": "Only the educated are free.",
+      "kr": "오직 교육받은 자만이 자유롭다.",
+      "source": "Discourses",
+      "context": "On the liberating power of knowledge and wisdom",
+      "tags": ["education", "freedom", "wisdom", "knowledge"]
+    },
+    {
+      "id": "ep_013",
+      "en": "Any person capable of angering you becomes your master.",
+      "kr": "당신을 화나게 할 수 있는 사람은 누구든 당신의 주인이 된다.",
+      "source": "Enchiridion",
+      "context": "On how anger surrenders control to others",
+      "tags": ["anger", "control", "power", "emotions"]
+    },
+    {
+      "id": "ep_014",
+      "en": "If anyone tells you that a certain person speaks ill of you, do not make excuses about what is said of you but answer, 'He was ignorant of my other faults, else he would not have mentioned these alone.'",
+      "kr": "누군가 어떤 사람이 당신에 대해 나쁘게 말한다고 하면, 변명하지 말고 대답하라: '그는 내 다른 결점들을 몰랐던 것이다. 그렇지 않았다면 이것만 언급하지 않았을 것이다.'",
+      "source": "Enchiridion",
+      "context": "On responding to criticism with humility and humor",
+      "tags": ["criticism", "humility", "humor", "self-awareness"]
+    },
+    {
+      "id": "ep_015",
+      "en": "It's not things that upset us, but our judgments about things.",
+      "kr": "우리를 화나게 하는 것은 사물이 아니라, 사물에 대한 우리의 판단이다.",
+      "source": "Enchiridion",
+      "context": "On the role of interpretation in our emotional responses",
+      "tags": ["judgment", "emotions", "perception", "interpretation"]
+    },
+    {
+      "id": "ep_016",
+      "en": "Seek not the good in external things; seek it in yourselves.",
+      "kr": "외부의 것에서 좋은 것을 찾지 마라. 자신 안에서 찾아라.",
+      "source": "Discourses",
+      "context": "On the internal source of the good life",
+      "tags": ["inner-life", "good", "self", "externals"]
+    },
+    {
+      "id": "ep_017",
+      "en": "The key is to keep company only with people who uplift you, whose presence calls forth your best.",
+      "kr": "핵심은 당신을 고양시키고, 그 존재가 당신의 최선을 끌어내는 사람들만 사귀는 것이다.",
+      "source": "Discourses",
+      "context": "On choosing relationships that elevate character",
+      "tags": ["relationships", "influence", "growth", "company"]
+    },
+    {
+      "id": "ep_018",
+      "en": "Caretake this moment. Immerse yourself in its particulars. Respond to this person, this challenge, this deed.",
+      "kr": "이 순간을 돌보라. 그 세부 사항에 몰입하라. 이 사람, 이 도전, 이 행동에 반응하라.",
+      "source": "Discourses",
+      "context": "On being fully present in each moment",
+      "tags": ["presence", "mindfulness", "attention", "now"]
+    },
+    {
+      "id": "ep_019",
+      "en": "Freedom is the only worthy goal in life. It is won by disregarding things that lie beyond our control.",
+      "kr": "자유는 삶에서 유일하게 가치 있는 목표이다. 그것은 우리의 통제를 넘어서는 것들을 무시함으로써 얻어진다.",
+      "source": "Discourses",
+      "context": "On achieving freedom through the dichotomy of control",
+      "tags": ["freedom", "control", "goal", "disregard"]
+    },
+    {
+      "id": "ep_020",
+      "en": "You are a little soul carrying about a corpse.",
+      "kr": "당신은 시체를 지고 다니는 작은 영혼이다.",
+      "source": "Discourses",
+      "context": "On the primacy of soul over body",
+      "tags": ["soul", "body", "mortality", "perspective"]
+    },
+    {
+      "id": "ep_021",
+      "en": "Man is not worried by real problems so much as by his imagined anxieties about real problems.",
+      "kr": "사람은 실제 문제보다 실제 문제에 대해 상상하는 불안에 더 걱정한다.",
+      "source": "Enchiridion",
+      "context": "On how anticipation often exceeds reality",
+      "tags": ["anxiety", "imagination", "worry", "problems"]
+    },
+    {
+      "id": "ep_022",
+      "en": "Progress is not achieved by luck or accident, but by working on yourself daily.",
+      "kr": "발전은 운이나 우연으로 이루어지는 것이 아니라, 매일 자신을 다듬음으로써 이루어진다.",
+      "source": "Discourses",
+      "context": "On the daily practice of self-improvement",
+      "tags": ["progress", "daily-practice", "self-improvement", "effort"]
+    },
+    {
+      "id": "ep_023",
+      "en": "Other people's views and troubles can be contagious. Don't sabotage yourself by unwittingly adopting negative, unproductive attitudes.",
+      "kr": "다른 사람들의 관점과 문제는 전염될 수 있다. 부정적이고 비생산적인 태도를 무심코 채택함으로써 스스로를 방해하지 마라.",
+      "source": "Enchiridion",
+      "context": "On protecting oneself from negative influences",
+      "tags": ["influence", "negativity", "protection", "attitudes"]
+    },
+    {
+      "id": "ep_024",
+      "en": "In life our first job is this: to divide and distinguish things into two categories: externals I cannot control, but the choices I make with regard to them I do control.",
+      "kr": "삶에서 우리의 첫 번째 일은 이것이다: 사물을 두 가지 범주로 나누고 구분하는 것: 통제할 수 없는 외부적인 것들, 그러나 그것들에 대해 내가 하는 선택은 내가 통제한다.",
+      "source": "Discourses",
+      "context": "On the fundamental practice of the dichotomy of control",
+      "tags": ["dichotomy-of-control", "choice", "externals", "practice"]
+    },
+    {
+      "id": "ep_025",
+      "en": "Keep silence for the most part, and speak only when you must, and then briefly.",
+      "kr": "대부분 침묵을 지키고, 꼭 말해야 할 때만 말하라, 그리고 간결하게.",
+      "source": "Enchiridion",
+      "context": "On the wisdom of restraint in speech",
+      "tags": ["silence", "speech", "restraint", "wisdom"]
     }
   ]
 }
