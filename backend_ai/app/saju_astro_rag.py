@@ -51,7 +51,7 @@ _EDGE_DESC_FIELDS = ("description", "desc")
 # Graph folders to load
 _GRAPH_TARGET_FOLDERS = frozenset([
     "astro_database", "cross_analysis", "saju", "rules", "fusion",
-    "astro", "saju_literary", "numerology", "dream"
+    "astro", "saju_literary", "numerology", "dream", "tarot"
 ])
 
 # Saju interpretation fields
@@ -112,6 +112,15 @@ _SAJU_LITERARY_FIELDS = (
     "core", "meaning", "light", "shadow", "psychology",
     "life_area", "relation", "expression", "advice",
     "career", "love", "health", "wealth", "timing"
+)
+
+# Tarot interpretation fields
+_TAROT_FIELDS = (
+    "upright", "reversed", "keywords", "meaning", "advice",
+    "symbolism", "archetype", "element", "astrology",
+    "love", "career", "finance", "health", "spiritual",
+    "shadow_work", "meditation", "affirmation", "timing",
+    "general", "description", "interpretation", "guidance"
 )
 
 # ===============================================================
@@ -929,6 +938,16 @@ def _load_json_nodes(path: Path, all_nodes: List[Dict], source: str) -> None:
             nodes = data["nodes"]
         elif isinstance(data, dict):
             nodes = []
+
+            # Try to process as tarot data first
+            if _process_tarot_data(data, source, nodes):
+                # Tarot data processed, add to all_nodes and return
+                for node in nodes:
+                    if isinstance(node, dict) and node.get("description"):
+                        node.setdefault("source", source)
+                        all_nodes.append(node)
+                return
+
             for k, v in data.items():
                 if k.startswith("$") or k == "meta":
                     continue
@@ -987,6 +1006,112 @@ def _load_json_nodes(path: Path, all_nodes: List[Dict], source: str) -> None:
                 all_nodes.append(node)
     except Exception as e:
         logger.warning("JSON error: %s | %s", path, e)
+
+
+def _process_tarot_card(item: Dict, source: str, nodes: List[Dict]) -> None:
+    """Process a single tarot card entry."""
+    card_name = item.get("name", "")
+    if isinstance(card_name, dict):
+        card_name = card_name.get("ko", "") or card_name.get("en", "")
+
+    # Process upright interpretation
+    upright = item.get("upright", {})
+    if isinstance(upright, dict):
+        desc_parts = [f"타로 {card_name} 정방향"]
+        for field in ("general", "love", "career", "finance", "health", "meaning", "advice"):
+            val = upright.get(field, "")
+            if val and isinstance(val, str):
+                desc_parts.append(f"{field}: {val[:200]}")
+        keywords = item.get("keywords", [])
+        if keywords:
+            desc_parts.append(f"키워드: {', '.join(keywords[:5])}")
+        if len(desc_parts) > 1:
+            nodes.append({
+                "label": f"tarot_{card_name}_upright",
+                "description": " | ".join(desc_parts[:6]),
+                "type": "tarot_card",
+                "source": source,
+                "orientation": "upright",
+                "raw": item,
+            })
+
+    # Process reversed interpretation
+    reversed_data = item.get("reversed", {})
+    if isinstance(reversed_data, dict):
+        desc_parts = [f"타로 {card_name} 역방향"]
+        for field in ("general", "love", "career", "finance", "health", "meaning", "advice"):
+            val = reversed_data.get(field, "")
+            if val and isinstance(val, str):
+                desc_parts.append(f"{field}: {val[:200]}")
+        if len(desc_parts) > 1:
+            nodes.append({
+                "label": f"tarot_{card_name}_reversed",
+                "description": " | ".join(desc_parts[:6]),
+                "type": "tarot_card",
+                "source": source,
+                "orientation": "reversed",
+                "raw": item,
+            })
+
+
+def _process_tarot_data(data: Dict, source: str, nodes: List[Dict]) -> bool:
+    """Process tarot-specific data structures. Returns True if processed."""
+    processed = False
+
+    # Handle major_arcana / minor_arcana arrays
+    for arcana_key in ("major_arcana", "minor_arcana"):
+        arcana_list = data.get(arcana_key, [])
+        if isinstance(arcana_list, list):
+            for card in arcana_list:
+                if isinstance(card, dict):
+                    _process_tarot_card(card, source, nodes)
+                    processed = True
+
+    # Handle cards array (generic)
+    cards_list = data.get("cards", [])
+    if isinstance(cards_list, list):
+        for card in cards_list:
+            if isinstance(card, dict) and ("upright" in card or "reversed" in card):
+                _process_tarot_card(card, source, nodes)
+                processed = True
+
+    # Handle card combinations
+    combinations = data.get("combinations", [])
+    if isinstance(combinations, list):
+        for combo in combinations:
+            if isinstance(combo, dict):
+                card1 = combo.get("card1", "")
+                card2 = combo.get("card2", "")
+                meaning = combo.get("meaning", "") or combo.get("love", "") or combo.get("career", "")
+                if meaning:
+                    nodes.append({
+                        "label": f"tarot_combo_{card1}_{card2}",
+                        "description": f"타로 조합 {card1} + {card2}: {meaning[:300]}",
+                        "type": "tarot_combination",
+                        "source": source,
+                        "raw": combo,
+                    })
+                    processed = True
+
+    # Handle spreads
+    for spread_key in ("spreads", "positions"):
+        spreads = data.get(spread_key, [])
+        if isinstance(spreads, list):
+            for spread in spreads:
+                if isinstance(spread, dict):
+                    name = spread.get("name", "") or spread.get("spread_name", "")
+                    desc = spread.get("description", "") or spread.get("meaning", "")
+                    if name and desc:
+                        nodes.append({
+                            "label": f"tarot_spread_{name}",
+                            "description": f"타로 스프레드 {name}: {desc[:300]}",
+                            "type": "tarot_spread",
+                            "source": source,
+                            "raw": spread,
+                        })
+                        processed = True
+
+    return processed
 
 
 def _load_from_folder(folder: Path, all_nodes: List[Dict], source: str):

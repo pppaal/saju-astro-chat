@@ -32,6 +32,14 @@ from .prompt_builder import (
     build_unified_prompt,
 )
 
+# GraphRAG import for enhanced context
+try:
+    from backend_ai.app.saju_astro_rag import search_graphs
+    HAS_GRAPH_RAG = True
+except ImportError:
+    HAS_GRAPH_RAG = False
+    search_graphs = None
+
 logger = logging.getLogger(__name__)
 
 
@@ -129,6 +137,30 @@ def register_interpret_routes(bp: Blueprint):
 
             logger.info(f"[TAROT] RAG context length: {len(rag_context) if rag_context else 0}")
 
+            # GraphRAG enhancement - search for card-specific knowledge
+            graph_rag_context = ""
+            if HAS_GRAPH_RAG and search_graphs:
+                try:
+                    # Build search query from cards and question
+                    card_names_str = " ".join([c.get("name", "") for c in cards])
+                    graph_query = f"타로 {card_names_str} {enhanced_question or category}"
+                    graph_results = search_graphs(graph_query, top_k=8)
+                    if graph_results:
+                        graph_parts = []
+                        for gr in graph_results[:8]:
+                            if isinstance(gr, dict):
+                                text = gr.get("text", gr.get("content", ""))
+                                if text:
+                                    graph_parts.append(text[:300])
+                        graph_rag_context = "\n".join(graph_parts)
+                        logger.info(f"[TAROT] GraphRAG context added: {len(graph_rag_context)} chars")
+                except Exception as graph_err:
+                    logger.warning(f"[TAROT] GraphRAG search failed: {graph_err}")
+
+            # Combine RAG contexts
+            if graph_rag_context:
+                rag_context = f"{rag_context}\n\n## GraphRAG 심층 지식\n{graph_rag_context}"
+
             is_korean = language == "ko"
 
             # Detect question context
@@ -173,7 +205,7 @@ def register_interpret_routes(bp: Blueprint):
             advice_text = ""
 
             try:
-                unified_result = generate_with_gpt4(unified_prompt, max_tokens=6000, temperature=0.75, use_mini=True)
+                unified_result = generate_with_gpt4(unified_prompt, max_tokens=6000, temperature=0.75, use_mini=False)
                 unified_result = clean_ai_phrases(unified_result)
 
                 # Parse JSON response

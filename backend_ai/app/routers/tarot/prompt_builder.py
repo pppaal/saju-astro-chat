@@ -221,7 +221,7 @@ def build_unified_prompt(
 {question_context}
 
 ## 참고 지식
-{rag_context[:800] if rag_context else ''}
+{rag_context[:1500] if rag_context else ''}
 
 ## 카드 조합 시너지
 {combinations_text if combinations_text else '(조합 정보 없음)'}
