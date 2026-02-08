@@ -3,9 +3,8 @@ name: OWASP ZAP Baseline
 on:
   workflow_dispatch:
   schedule:
+    # Run weekly on Sundays at midnight
     - cron: "0 0 * * 0"
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
