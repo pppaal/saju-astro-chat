@@ -8,20 +8,21 @@
  * 3. Calculate if both miss
  */
 
-'use client';
+'use client'
 
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/logger'
+import { safeJsonParse } from '@/utils/safeJsonParse'
 
-const CACHE_KEY_PREFIX = 'destinyChartData_';
-const CACHE_DURATION = 3600000; // 1 hour in milliseconds
-const MAX_CACHE_ENTRIES = 10;
+const CACHE_KEY_PREFIX = 'destinyChartData_'
+const CACHE_DURATION = 3600000 // 1 hour in milliseconds
+const MAX_CACHE_ENTRIES = 10
 
 export interface ChartCacheData {
-  saju?: Record<string, unknown>;
-  astro?: Record<string, unknown>;
-  advancedAstro?: Record<string, unknown>;
-  timestamp: number;
-  birthKey: string;
+  saju?: Record<string, unknown>
+  astro?: Record<string, unknown>
+  advancedAstro?: Record<string, unknown>
+  timestamp: number
+  birthKey: string
 }
 
 /**
@@ -33,14 +34,14 @@ function generateBirthKey(
   latitude: number,
   longitude: number
 ): string {
-  return `${birthDate}_${birthTime}_${latitude.toFixed(4)}_${longitude.toFixed(4)}`;
+  return `${birthDate}_${birthTime}_${latitude.toFixed(4)}_${longitude.toFixed(4)}`
 }
 
 /**
  * Get cache key for birth data
  */
 function getCacheKey(birthDate: string, birthTime: string): string {
-  return `${CACHE_KEY_PREFIX}${birthDate}_${birthTime}`;
+  return `${CACHE_KEY_PREFIX}${birthDate}_${birthTime}`
 }
 
 /**
@@ -48,30 +49,28 @@ function getCacheKey(birthDate: string, birthTime: string): string {
  */
 function cleanupSessionStorage(): void {
   try {
-    const now = Date.now();
-    const keysToDelete: string[] = [];
+    const now = Date.now()
+    const keysToDelete: string[] = []
 
     for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      if (!key || !key.startsWith(CACHE_KEY_PREFIX)) {continue;}
+      const key = sessionStorage.key(i)
+      if (!key || !key.startsWith(CACHE_KEY_PREFIX)) {
+        continue
+      }
 
-      try {
-        const data = JSON.parse(sessionStorage.getItem(key) || '{}');
-        if (now - data.timestamp > CACHE_DURATION) {
-          keysToDelete.push(key);
-        }
-      } catch {
-        keysToDelete.push(key);
+      const data = safeJsonParse<ChartCacheData>(sessionStorage.getItem(key) || '')
+      if (!data || now - data.timestamp > CACHE_DURATION) {
+        keysToDelete.push(key)
       }
     }
 
-    keysToDelete.forEach((key) => sessionStorage.removeItem(key));
+    keysToDelete.forEach((key) => sessionStorage.removeItem(key))
 
     if (keysToDelete.length > 0) {
-      logger.debug(`[ChartCache] Cleaned ${keysToDelete.length} expired entries`);
+      logger.debug(`[ChartCache] Cleaned ${keysToDelete.length} expired entries`)
     }
   } catch (error) {
-    logger.warn('[ChartCache] Cleanup failed:', error);
+    logger.warn('[ChartCache] Cleanup failed:', error)
   }
 }
 
@@ -80,32 +79,32 @@ function cleanupSessionStorage(): void {
  */
 function manageCacheSize(newKey: string): void {
   try {
-    const keys: { key: string; timestamp: number }[] = [];
+    const keys: { key: string; timestamp: number }[] = []
 
     for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      if (!key || !key.startsWith(CACHE_KEY_PREFIX)) {continue;}
+      const key = sessionStorage.key(i)
+      if (!key || !key.startsWith(CACHE_KEY_PREFIX)) {
+        continue
+      }
 
-      try {
-        const data = JSON.parse(sessionStorage.getItem(key) || '{}');
-        keys.push({ key, timestamp: data.timestamp || 0 });
-      } catch {
-        // Ignore invalid entries
+      const data = safeJsonParse<ChartCacheData>(sessionStorage.getItem(key) || '')
+      if (data) {
+        keys.push({ key, timestamp: data.timestamp || 0 })
       }
     }
 
     // Sort by timestamp (oldest first)
-    keys.sort((a, b) => a.timestamp - b.timestamp);
+    keys.sort((a, b) => a.timestamp - b.timestamp)
 
     // Remove oldest entries if exceeding limit
     while (keys.length >= MAX_CACHE_ENTRIES) {
-      const oldest = keys.shift();
+      const oldest = keys.shift()
       if (oldest && oldest.key !== newKey) {
-        sessionStorage.removeItem(oldest.key);
+        sessionStorage.removeItem(oldest.key)
       }
     }
   } catch (error) {
-    logger.warn('[ChartCache] Size management failed:', error);
+    logger.warn('[ChartCache] Size management failed:', error)
   }
 }
 
@@ -119,31 +118,34 @@ function loadFromSessionStorage(
   longitude: number
 ): ChartCacheData | null {
   try {
-    const key = getCacheKey(birthDate, birthTime);
-    const stored = sessionStorage.getItem(key);
+    const key = getCacheKey(birthDate, birthTime)
+    const stored = sessionStorage.getItem(key)
 
     if (!stored) {
-      return null;
+      return null
     }
 
-    const cached: ChartCacheData = JSON.parse(stored);
+    const cached = safeJsonParse<ChartCacheData>(stored)
+    if (!cached) {
+      return null
+    }
 
     // Check expiration
     if (Date.now() - cached.timestamp > CACHE_DURATION) {
-      sessionStorage.removeItem(key);
-      return null;
+      sessionStorage.removeItem(key)
+      return null
     }
 
     // Verify birth data matches
-    const birthKey = generateBirthKey(birthDate, birthTime, latitude, longitude);
+    const birthKey = generateBirthKey(birthDate, birthTime, latitude, longitude)
     if (cached.birthKey !== birthKey) {
-      return null;
+      return null
     }
 
-    return cached;
+    return cached
   } catch (error) {
-    logger.warn('[ChartCache] SessionStorage load failed:', error);
-    return null;
+    logger.warn('[ChartCache] SessionStorage load failed:', error)
+    return null
   }
 }
 
@@ -158,19 +160,19 @@ function saveToSessionStorage(
   data: Omit<ChartCacheData, 'timestamp' | 'birthKey'>
 ): void {
   try {
-    const key = getCacheKey(birthDate, birthTime);
-    const birthKey = generateBirthKey(birthDate, birthTime, latitude, longitude);
+    const key = getCacheKey(birthDate, birthTime)
+    const birthKey = generateBirthKey(birthDate, birthTime, latitude, longitude)
 
     const cacheData: ChartCacheData = {
       ...data,
       timestamp: Date.now(),
       birthKey,
-    };
+    }
 
-    manageCacheSize(key);
-    sessionStorage.setItem(key, JSON.stringify(cacheData));
+    manageCacheSize(key)
+    sessionStorage.setItem(key, JSON.stringify(cacheData))
   } catch (error) {
-    logger.warn('[ChartCache] SessionStorage save failed:', error);
+    logger.warn('[ChartCache] SessionStorage save failed:', error)
   }
 }
 
@@ -189,7 +191,7 @@ async function loadFromRedis(
       birthTime,
       latitude: latitude.toString(),
       longitude: longitude.toString(),
-    });
+    })
 
     const response = await fetch(`/api/cache/chart?${params}`, {
       method: 'GET',
@@ -197,22 +199,22 @@ async function loadFromRedis(
         'Content-Type': 'application/json',
       },
       cache: 'no-store',
-    });
+    })
 
     if (!response.ok) {
-      return null;
+      return null
     }
 
-    const result = await response.json();
+    const result = await response.json()
 
     if (result.success && result.data) {
-      return result.data as ChartCacheData;
+      return result.data as ChartCacheData
     }
 
-    return null;
+    return null
   } catch (error) {
-    logger.warn('[ChartCache] Redis load via API failed:', error);
-    return null;
+    logger.warn('[ChartCache] Redis load via API failed:', error)
+    return null
   }
 }
 
@@ -239,13 +241,13 @@ async function saveToRedis(
         longitude,
         data,
       }),
-    });
+    })
 
-    const result = await response.json();
-    return result.success === true;
+    const result = await response.json()
+    return result.success === true
   } catch (error) {
-    logger.warn('[ChartCache] Redis save via API failed:', error);
-    return false;
+    logger.warn('[ChartCache] Redis save via API failed:', error)
+    return false
   }
 }
 
@@ -258,18 +260,18 @@ export async function saveChartData(
   latitude: number,
   longitude: number,
   data: {
-    saju?: Record<string, unknown>;
-    astro?: Record<string, unknown>;
-    advancedAstro?: Record<string, unknown>;
+    saju?: Record<string, unknown>
+    astro?: Record<string, unknown>
+    advancedAstro?: Record<string, unknown>
   }
 ): Promise<void> {
   // Always save to sessionStorage first (instant)
-  saveToSessionStorage(birthDate, birthTime, latitude, longitude, data);
+  saveToSessionStorage(birthDate, birthTime, latitude, longitude, data)
 
   // Save to Redis asynchronously (fire and forget)
   saveToRedis(birthDate, birthTime, latitude, longitude, data).catch((err) => {
-    logger.warn('[ChartCache] Background Redis save failed:', err);
-  });
+    logger.warn('[ChartCache] Background Redis save failed:', err)
+  })
 }
 
 /**
@@ -281,49 +283,49 @@ export async function loadChartData(
   latitude: number,
   longitude: number
 ): Promise<{
-  saju?: Record<string, unknown>;
-  astro?: Record<string, unknown>;
-  advancedAstro?: Record<string, unknown>;
+  saju?: Record<string, unknown>
+  astro?: Record<string, unknown>
+  advancedAstro?: Record<string, unknown>
 } | null> {
   // Cleanup old entries
-  cleanupSessionStorage();
+  cleanupSessionStorage()
 
   // 1. Try sessionStorage first (instant)
-  const sessionData = loadFromSessionStorage(birthDate, birthTime, latitude, longitude);
+  const sessionData = loadFromSessionStorage(birthDate, birthTime, latitude, longitude)
   if (sessionData) {
-    logger.debug('[ChartCache] SessionStorage hit');
+    logger.debug('[ChartCache] SessionStorage hit')
     return {
       saju: sessionData.saju,
       astro: sessionData.astro,
       advancedAstro: sessionData.advancedAstro,
-    };
+    }
   }
 
   // 2. Try Redis via API
   try {
-    const redisData = await loadFromRedis(birthDate, birthTime, latitude, longitude);
+    const redisData = await loadFromRedis(birthDate, birthTime, latitude, longitude)
     if (redisData) {
-      logger.debug('[ChartCache] Redis hit');
+      logger.debug('[ChartCache] Redis hit')
 
       // Populate sessionStorage for next time
       saveToSessionStorage(birthDate, birthTime, latitude, longitude, {
         saju: redisData.saju,
         astro: redisData.astro,
         advancedAstro: redisData.advancedAstro,
-      });
+      })
 
       return {
         saju: redisData.saju,
         astro: redisData.astro,
         advancedAstro: redisData.advancedAstro,
-      };
+      }
     }
   } catch (error) {
-    logger.warn('[ChartCache] Redis fetch failed, will calculate:', error);
+    logger.warn('[ChartCache] Redis fetch failed, will calculate:', error)
   }
 
   // 3. Cache miss
-  return null;
+  return null
 }
 
 /**
@@ -335,21 +337,18 @@ export async function hasCachedData(
   latitude: number,
   longitude: number
 ): Promise<boolean> {
-  const cached = await loadChartData(birthDate, birthTime, latitude, longitude);
-  return cached !== null && (!!cached.saju || !!cached.astro);
+  const cached = await loadChartData(birthDate, birthTime, latitude, longitude)
+  return cached !== null && (!!cached.saju || !!cached.astro)
 }
 
 /**
  * Clear chart cache (both sessionStorage and Redis)
  */
-export async function clearChartCache(
-  birthDate?: string,
-  birthTime?: string
-): Promise<void> {
+export async function clearChartCache(birthDate?: string, birthTime?: string): Promise<void> {
   if (birthDate && birthTime) {
     // Clear specific entry
-    const key = getCacheKey(birthDate, birthTime);
-    sessionStorage.removeItem(key);
+    const key = getCacheKey(birthDate, birthTime)
+    sessionStorage.removeItem(key)
 
     // Clear from Redis via API
     try {
@@ -357,22 +356,22 @@ export async function clearChartCache(
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ birthDate, birthTime }),
-      });
+      })
     } catch (error) {
-      logger.warn('[ChartCache] Redis clear via API failed:', error);
+      logger.warn('[ChartCache] Redis clear via API failed:', error)
     }
   } else {
     // Clear all
-    const keysToDelete: string[] = [];
+    const keysToDelete: string[] = []
 
     for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
+      const key = sessionStorage.key(i)
       if (key?.startsWith(CACHE_KEY_PREFIX)) {
-        keysToDelete.push(key);
+        keysToDelete.push(key)
       }
     }
 
-    keysToDelete.forEach((key) => sessionStorage.removeItem(key));
+    keysToDelete.forEach((key) => sessionStorage.removeItem(key))
   }
 }
 
@@ -380,35 +379,33 @@ export async function clearChartCache(
  * Get current cache statistics
  */
 export function getCacheStats(): {
-  sessionEntries: number;
-  oldestTimestamp: number | null;
-  newestTimestamp: number | null;
+  sessionEntries: number
+  oldestTimestamp: number | null
+  newestTimestamp: number | null
 } {
-  let sessionEntries = 0;
-  let oldestTimestamp: number | null = null;
-  let newestTimestamp: number | null = null;
+  let sessionEntries = 0
+  let oldestTimestamp: number | null = null
+  let newestTimestamp: number | null = null
 
   for (let i = 0; i < sessionStorage.length; i++) {
-    const key = sessionStorage.key(i);
-    if (!key?.startsWith(CACHE_KEY_PREFIX)) {continue;}
+    const key = sessionStorage.key(i)
+    if (!key?.startsWith(CACHE_KEY_PREFIX)) {
+      continue
+    }
 
-    try {
-      const data = JSON.parse(sessionStorage.getItem(key) || '{}');
-      const timestamp = data.timestamp;
+    const data = safeJsonParse<ChartCacheData>(sessionStorage.getItem(key) || '')
+    const timestamp = data?.timestamp
 
-      if (timestamp) {
-        sessionEntries++;
-        if (!oldestTimestamp || timestamp < oldestTimestamp) {
-          oldestTimestamp = timestamp;
-        }
-        if (!newestTimestamp || timestamp > newestTimestamp) {
-          newestTimestamp = timestamp;
-        }
+    if (timestamp) {
+      sessionEntries++
+      if (!oldestTimestamp || timestamp < oldestTimestamp) {
+        oldestTimestamp = timestamp
       }
-    } catch {
-      // Ignore invalid entries
+      if (!newestTimestamp || timestamp > newestTimestamp) {
+        newestTimestamp = timestamp
+      }
     }
   }
 
-  return { sessionEntries, oldestTimestamp, newestTimestamp };
+  return { sessionEntries, oldestTimestamp, newestTimestamp }
 }

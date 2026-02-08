@@ -11,7 +11,7 @@ export const MESSAGE_LIMITS = {
   MAX_MESSAGE_LENGTH: 2000,
   /** Maximum messages for streaming endpoints (smaller for performance) */
   MAX_STREAM_MESSAGES: 10,
-} as const;
+} as const
 
 /**
  * Body size limits
@@ -27,7 +27,7 @@ export const BODY_LIMITS = {
   MINIMAL: 8 * 1024,
   /** Stream request body limit */
   STREAM: 64 * 1024,
-} as const;
+} as const
 
 /**
  * Text field length limits
@@ -51,7 +51,7 @@ export const TEXT_LIMITS = {
   MAX_DREAM_TEXT: 4000,
   /** Maximum timezone string */
   MAX_TIMEZONE: 64,
-} as const;
+} as const
 
 /**
  * Array/list limits
@@ -65,7 +65,7 @@ export const LIST_LIMITS = {
   MAX_LIST_ITEMS: 20,
   /** Maximum context items */
   MAX_CONTEXT_ITEMS: 20,
-} as const;
+} as const
 
 /**
  * Timeout limits (milliseconds)
@@ -81,7 +81,7 @@ export const TIMEOUT_LIMITS = {
   LONG: 120000,
   /** Extra long for complex operations */
   EXTRA_LONG: 180000,
-} as const;
+} as const
 
 /**
  * Rate limiting defaults
@@ -95,17 +95,111 @@ export const RATE_LIMITS = {
   CHAT_RPM: 20,
   /** Premium user multiplier */
   PREMIUM_MULTIPLIER: 2,
-} as const;
+} as const
+
+/**
+ * Rate limiting presets by API category
+ * Based on computational cost and resource usage
+ *
+ * Tier 1 (Expensive): AI generation, complex calculations - 5-10 req/min
+ * Tier 2 (Moderate): Data processing, chart calculations - 15-20 req/min
+ * Tier 3 (Light): Simple lookups, reads - 30-60 req/min
+ * Tier 4 (Utility): Health checks, static data - 60-100 req/min
+ */
+export const RATE_LIMIT_PRESETS = {
+  /**
+   * Tier 1: AI/LLM-heavy operations
+   * High computational cost, external API calls
+   */
+  AI_GENERATION: { limit: 5, windowSeconds: 60 },
+
+  /**
+   * Tier 1: Complex divination calculations
+   * Saju (사주), Life prediction, Dream interpretation
+   */
+  SAJU_CALCULATION: { limit: 8, windowSeconds: 60 },
+
+  /**
+   * Tier 2: Tarot operations
+   * Moderate complexity, some AI involved
+   */
+  TAROT_READING: { limit: 10, windowSeconds: 60 },
+
+  /**
+   * Tier 2: Astrology calculations
+   * CPU-intensive ephemeris calculations
+   */
+  ASTROLOGY_CALCULATION: { limit: 15, windowSeconds: 60 },
+
+  /**
+   * Tier 2: Advanced astrology (progressions, returns, etc.)
+   * More complex than basic astrology
+   */
+  ASTROLOGY_ADVANCED: { limit: 12, windowSeconds: 60 },
+
+  /**
+   * Tier 2: Destiny Matrix calculations
+   */
+  DESTINY_MATRIX: { limit: 15, windowSeconds: 60 },
+
+  /**
+   * Tier 3: Chat/Streaming endpoints
+   */
+  CHAT_STREAMING: { limit: 20, windowSeconds: 60 },
+
+  /**
+   * Tier 3: Data reads and lookups
+   * Session history, user data, etc.
+   */
+  DATA_READ: { limit: 30, windowSeconds: 60 },
+
+  /**
+   * Tier 3: Data writes
+   * Save operations, updates
+   */
+  DATA_WRITE: { limit: 20, windowSeconds: 60 },
+
+  /**
+   * Tier 4: Utility endpoints
+   * Timezone lookup, geocoding, etc.
+   */
+  UTILITY: { limit: 60, windowSeconds: 60 },
+
+  /**
+   * Tier 4: Health checks, status endpoints
+   */
+  HEALTH_CHECK: { limit: 100, windowSeconds: 60 },
+
+  /**
+   * Authentication operations
+   * Login, register, token refresh
+   */
+  AUTH: { limit: 10, windowSeconds: 300 },
+
+  /**
+   * Payment/Subscription operations
+   * Extra strict to prevent abuse
+   */
+  PAYMENT: { limit: 5, windowSeconds: 60 },
+
+  /**
+   * Admin operations
+   * Limited but necessary for management
+   */
+  ADMIN: { limit: 30, windowSeconds: 60 },
+} as const
+
+export type RateLimitPreset = keyof typeof RATE_LIMIT_PRESETS
 
 /**
  * Allowed locales
  */
-export const ALLOWED_LOCALES = new Set(["ko", "en"]);
+export const ALLOWED_LOCALES = new Set(['ko', 'en'])
 
 /**
  * Allowed genders
  */
-export const ALLOWED_GENDERS = new Set(["male", "female", "other"]);
+export const ALLOWED_GENDERS = new Set(['male', 'female', 'other'])
 
 /**
  * Validation patterns
@@ -114,4 +208,4 @@ export const PATTERNS = {
   DATE: /^\d{4}-\d{2}-\d{2}$/,
   TIME: /^\d{2}:\d{2}$/,
   EMAIL: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-} as const;
+} as const
