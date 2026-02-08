@@ -21,6 +21,13 @@ export async function apiFetch(url: string, options?: ApiFetchOptions): Promise<
     ...options?.headers,
   }
 
+  // Add public API token for internal API routes that require it
+  // This token is public (exposed to client) and used for basic API access control
+  const publicToken = process.env.NEXT_PUBLIC_API_TOKEN
+  if (publicToken) {
+    headers['x-api-token'] = publicToken
+  }
+
   // Note: Authentication is handled via httpOnly session cookies
   // No need to send tokens from client-side - this prevents token exposure
 
