@@ -51,7 +51,8 @@ _EDGE_DESC_FIELDS = ("description", "desc")
 # Graph folders to load
 _GRAPH_TARGET_FOLDERS = frozenset([
     "astro_database", "cross_analysis", "saju", "rules", "fusion",
-    "astro", "saju_literary", "numerology", "dream", "tarot"
+    "astro", "saju_literary", "numerology", "dream", "tarot",
+    "jung_psychology", "persona"
 ])
 
 # Saju interpretation fields
