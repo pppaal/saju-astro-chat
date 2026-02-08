@@ -5,7 +5,7 @@ export function BehaviorTab({
   data,
   styles,
   formatNumber,
-  pct,
+  pct: _pct,
   SectionSkeleton,
 }: { data: BehaviorData | undefined } & TabRenderProps) {
   if (!data) return <SectionSkeleton />

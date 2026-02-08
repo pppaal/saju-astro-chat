@@ -328,7 +328,8 @@ export async function POST(req: NextRequest) {
     const categoryId = body.categoryId
     const spreadId = body.spreadId || ''
     const spreadTitle = body.spreadTitle || ''
-    const language = body.language === 'en' ? 'en' : (context.locale as 'ko' | 'en')
+    // Prefer body.language, fallback to context.locale, default to 'ko'
+    const language: 'ko' | 'en' = body.language === 'en' ? 'en' : (body.language === 'ko' ? 'ko' : (context.locale === 'en' ? 'en' : 'ko'))
     const rawCards = body.cards
     const userQuestion = body.userQuestion || ''
     const birthdate = body.birthdate || ''

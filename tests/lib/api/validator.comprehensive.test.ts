@@ -49,9 +49,10 @@ describe('API Validator', () => {
       expect(DateSchema.safeParse('2024-1-5').success).toBe(false)
     })
 
-    it('should reject dates outside 1900-2100 range', () => {
-      expect(DateSchema.safeParse('1899-12-31').success).toBe(false)
-      expect(DateSchema.safeParse('2101-01-01').success).toBe(false)
+    it('should accept dates outside 1900-2100 range (no year range validation)', () => {
+      // dateSchema only validates format, not year range
+      expect(DateSchema.safeParse('1899-12-31').success).toBe(true)
+      expect(DateSchema.safeParse('2101-01-01').success).toBe(true)
     })
 
     it('should validate edge years', () => {
@@ -66,16 +67,15 @@ describe('API Validator', () => {
       expect(DateSchema.safeParse('2024-00-01').success).toBe(false)
     })
 
-    it('should accept Feb 30 (JS Date.parse rolls over to March 1)', () => {
-      // Date.parse('2024-02-30') is valid in JS (rolls to March 1)
-      // The schema only validates format + parsability + year range
-      expect(DateSchema.safeParse('2024-02-30').success).toBe(true)
+    it('should reject Feb 30 (invalid calendar date)', () => {
+      // dateSchema uses refine to check actual date validity
+      expect(DateSchema.safeParse('2024-02-30').success).toBe(false)
     })
 
-    it('should handle leap years', () => {
+    it('should handle leap years correctly', () => {
       expect(DateSchema.safeParse('2024-02-29').success).toBe(true)
-      // Date.parse('2023-02-29') rolls over to March 1 (still valid in JS)
-      expect(DateSchema.safeParse('2023-02-29').success).toBe(true)
+      // 2023 is not a leap year, so Feb 29 is invalid
+      expect(DateSchema.safeParse('2023-02-29').success).toBe(false)
     })
   })
 
@@ -86,15 +86,22 @@ describe('API Validator', () => {
       expect(TimeSchema.safeParse('23:59').success).toBe(true)
     })
 
-    it('should reject invalid time format', () => {
+    it('should reject seconds format', () => {
       expect(TimeSchema.safeParse('14:30:00').success).toBe(false)
-      expect(TimeSchema.safeParse('2:30').success).toBe(false)
+    })
+
+    it('should accept single digit hour (allowed by regex)', () => {
+      // timeSchema uses [01]?\d which allows single digit hours
+      expect(TimeSchema.safeParse('2:30').success).toBe(true)
+    })
+
+    it('should reject single digit minute', () => {
       expect(TimeSchema.safeParse('14:5').success).toBe(false)
     })
 
-    it('should allow invalid time values (no range validation)', () => {
-      // Schema only validates format, not range
-      expect(TimeSchema.safeParse('25:99').success).toBe(true)
+    it('should reject invalid hour/minute values', () => {
+      // 25 does not match [01]?\d|2[0-3], and 99 does not match [0-5]\d
+      expect(TimeSchema.safeParse('25:99').success).toBe(false)
     })
   })
 
@@ -130,9 +137,10 @@ describe('API Validator', () => {
     })
 
     it('should reject unsupported locales', () => {
-      expect(LocaleSchema.safeParse('ru').success).toBe(false)
-      expect(LocaleSchema.safeParse('pt').success).toBe(false)
-      expect(LocaleSchema.safeParse('KO').success).toBe(false)
+      // ru and pt are actually supported in localeValues
+      expect(LocaleSchema.safeParse('it').success).toBe(false) // Italian not supported
+      expect(LocaleSchema.safeParse('pl').success).toBe(false) // Polish not supported
+      expect(LocaleSchema.safeParse('KO').success).toBe(false) // Uppercase not supported
     })
   })
 

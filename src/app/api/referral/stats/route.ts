@@ -15,19 +15,20 @@ export const GET = withApiMiddleware(
     try {
       const userId = context.userId!
 
-      // Get or create referral code
-      let user = await prisma.user.findUnique({
-        where: { id: userId },
+      // Get or create referral code from UserSettings
+      let userSettings = await prisma.userSettings.findUnique({
+        where: { userId },
         select: { referralCode: true },
       })
 
-      if (!user?.referralCode) {
+      if (!userSettings?.referralCode) {
         const code = Math.random().toString(36).substring(2, 10).toUpperCase()
-        await prisma.user.update({
-          where: { id: userId },
-          data: { referralCode: code },
+        userSettings = await prisma.userSettings.upsert({
+          where: { userId },
+          create: { userId, referralCode: code },
+          update: { referralCode: code },
+          select: { referralCode: true },
         })
-        user = { referralCode: code }
       }
 
       const [totalReferrals, pendingCount, completedStats] = await Promise.all([
@@ -45,7 +46,7 @@ export const GET = withApiMiddleware(
       ])
 
       return apiSuccess({
-        referralCode: user.referralCode,
+        referralCode: userSettings.referralCode,
         totalReferrals,
         pendingRewards: pendingCount,
         completedRewards: completedStats._count,

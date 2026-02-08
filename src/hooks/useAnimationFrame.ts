@@ -10,7 +10,7 @@
  * - Resource cleanup
  */
 
-import { useEffect, useRef, useCallback, RefObject } from 'react'
+import { useEffect, useRef, useCallback, useState, RefObject } from 'react'
 
 // ============ Types ============
 
@@ -242,10 +242,23 @@ export function useAnimationFrame(
     }
   }, [enabled, canvasRef, start, stop, resizeCanvas, drawOnce, respectReducedMotion, getReducedMotion])
 
+  // Use state for isRunning to avoid accessing ref during render
+  const [isRunning, setIsRunning] = useState(false)
+
+  // Sync ref to state when it changes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isRunningRef.current !== isRunning) {
+        setIsRunning(isRunningRef.current)
+      }
+    }, 100)
+    return () => clearInterval(interval)
+  }, [isRunning])
+
   return {
     start,
     stop,
-    isRunning: isRunningRef.current,
+    isRunning,
     drawOnce,
   }
 }

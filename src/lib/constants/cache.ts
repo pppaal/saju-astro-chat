@@ -70,6 +70,34 @@ export const DEFAULT_CACHE = {
 } as const;
 
 /**
+ * 계산 메모이제이션 캐시 설정
+ * - 비싼 계산 결과를 캐싱 (사주, 그레이딩 등)
+ */
+export const CALCULATION_CACHE = {
+  /** 최대 캐시 항목 수 */
+  MAX_SIZE: 500,
+  /** 캐시 유효 시간 (1시간) */
+  TTL_MS: HOUR_MS,
+} as const;
+
+/**
+ * Destiny Matrix 캐시 설정
+ * - 매트릭스 계산 결과 캐싱
+ */
+export const MATRIX_CACHE = {
+  /** 매트릭스 캐시 최대 항목 수 */
+  MAX_SIZE: 50,
+  /** 캐시 유효 시간 (5분) */
+  TTL_MS: 5 * MINUTE_MS,
+  /** 메모이제이션 기본 최대 크기 */
+  MEMOIZE_MAX_SIZE: 100,
+  /** Pending 요청 최대 크기 */
+  PENDING_MAX_SIZE: 100,
+  /** Pending 요청 타임아웃 (30초) */
+  PENDING_TIMEOUT_MS: 30 * 1000,
+} as const;
+
+/**
  * 캐시 키 구분자
  * - 단순 파이프 대신 충돌 방지용 구분자 사용
  */
@@ -90,3 +118,5 @@ export type SajuCacheConfig = typeof SAJU_CACHE;
 export type DaeunCacheConfig = typeof DAEUN_CACHE;
 export type CompatibilityCacheConfig = typeof COMPATIBILITY_CACHE;
 export type DestinyMapCacheConfig = typeof DESTINY_MAP_CACHE;
+export type CalculationCacheConfig = typeof CALCULATION_CACHE;
+export type MatrixCacheConfig = typeof MATRIX_CACHE;

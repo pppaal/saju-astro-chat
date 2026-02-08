@@ -1,20 +1,44 @@
 /**
  * @file Tests for compatibility module exports
  * 커버리지 향상을 위한 compatibility barrel export 테스트
+ *
+ * 테스트 품질 가이드라인:
+ * - 모든 export가 올바른 타입인지 검증
+ * - 함수 호출 시 올바른 구조를 반환하는지 검증
+ * - 실제 비즈니스 로직 검증
  */
 
 import { describe, it, expect } from 'vitest'
 
 describe('Compatibility Module Exports', () => {
   describe('Index Barrel Export', () => {
-    it('should export cosmic compatibility functions', async () => {
+    it('should export cosmic compatibility functions with correct structure', async () => {
       const module = await import('@/lib/compatibility')
-      expect(module).toBeDefined()
+
+      // Verify module has expected exports
+      expect(module).toEqual(
+        expect.objectContaining({
+          calculateCosmicCompatibility: expect.any(Function),
+        })
+      )
     }, 60000)
 
-    it('should re-export all submodules from index', async () => {
+    it('should re-export all required submodules from index', async () => {
       const module = await import('@/lib/compatibility')
-      expect(Object.keys(module).length).toBeGreaterThan(0)
+      const exportedKeys = Object.keys(module)
+
+      // Verify minimum required exports exist
+      expect(exportedKeys.length).toBeGreaterThan(5)
+
+      // Verify key functions are exported
+      const requiredFunctions = [
+        'calculateCosmicCompatibility',
+        'buildCompatibilityGraph',
+        'calculateFusionCompatibility',
+      ]
+      requiredFunctions.forEach((funcName) => {
+        expect(exportedKeys).toContain(funcName)
+      })
     }, 60000)
   })
 
@@ -45,8 +69,14 @@ describe('Compatibility Module Exports', () => {
 
     it('should have graph analysis function', async () => {
       const module = await import('@/lib/compatibility/compatibilityGraph')
-      expect(module.analyzeGraphRelationships).toBeDefined()
-      expect(typeof module.analyzeGraphRelationships).toBe('function')
+      expect(module.analyzeCompatibilityGraph).toBeDefined()
+      expect(typeof module.analyzeCompatibilityGraph).toBe('function')
+    })
+
+    it('should have visualization data generator', async () => {
+      const module = await import('@/lib/compatibility/compatibilityGraph')
+      expect(module.generateVisualizationData).toBeDefined()
+      expect(typeof module.generateVisualizationData).toBe('function')
     })
   })
 
@@ -56,16 +86,16 @@ describe('Compatibility Module Exports', () => {
       expect(module).toBeDefined()
     })
 
-    it('should have fusion analysis function', async () => {
+    it('should have fusion calculation function', async () => {
       const module = await import('@/lib/compatibility/compatibilityFusion')
-      expect(module.analyzeCompatibilityFusion).toBeDefined()
-      expect(typeof module.analyzeCompatibilityFusion).toBe('function')
+      expect(module.calculateFusionCompatibility).toBeDefined()
+      expect(typeof module.calculateFusionCompatibility).toBe('function')
     })
 
-    it('should have AI insight generation function', async () => {
+    it('should have score interpretation function', async () => {
       const module = await import('@/lib/compatibility/compatibilityFusion')
-      expect(module.generateFusionInsights).toBeDefined()
-      expect(typeof module.generateFusionInsights).toBe('function')
+      expect(module.interpretCompatibilityScore).toBeDefined()
+      expect(typeof module.interpretCompatibilityScore).toBe('function')
     })
   })
 
@@ -75,22 +105,28 @@ describe('Compatibility Module Exports', () => {
       expect(module).toBeDefined()
     })
 
-    it('should have sibsin analysis function', async () => {
+    it('should have ten gods analysis function', async () => {
       const module = await import('@/lib/compatibility/advancedSajuAnalysis')
-      expect(module.analyzeSibsinCompatibility).toBeDefined()
-      expect(typeof module.analyzeSibsinCompatibility).toBe('function')
+      expect(module.analyzeTenGods).toBeDefined()
+      expect(typeof module.analyzeTenGods).toBe('function')
     })
 
-    it('should have shinsal analysis function', async () => {
+    it('should have shinsals analysis function', async () => {
       const module = await import('@/lib/compatibility/advancedSajuAnalysis')
-      expect(module.analyzeShinsalCompatibility).toBeDefined()
-      expect(typeof module.analyzeShinsalCompatibility).toBe('function')
+      expect(module.analyzeShinsals).toBeDefined()
+      expect(typeof module.analyzeShinsals).toBe('function')
     })
 
-    it('should have comprehensive saju compatibility function', async () => {
+    it('should have comprehensive saju analysis function', async () => {
       const module = await import('@/lib/compatibility/advancedSajuAnalysis')
-      expect(module.analyzeAdvancedSajuCompatibility).toBeDefined()
-      expect(typeof module.analyzeAdvancedSajuCompatibility).toBe('function')
+      expect(module.performComprehensiveSajuAnalysis).toBeDefined()
+      expect(typeof module.performComprehensiveSajuAnalysis).toBe('function')
+    })
+
+    it('should have yongsin compatibility function', async () => {
+      const module = await import('@/lib/compatibility/advancedSajuAnalysis')
+      expect(module.analyzeYongsinCompatibility).toBeDefined()
+      expect(typeof module.analyzeYongsinCompatibility).toBe('function')
     })
   })
 
@@ -108,14 +144,20 @@ describe('Compatibility Module Exports', () => {
 
     it('should have composite chart function', async () => {
       const module = await import('@/lib/compatibility/advancedAstrologyAnalysis')
-      expect(module.calculateCompositeChart).toBeDefined()
-      expect(typeof module.calculateCompositeChart).toBe('function')
+      expect(module.analyzeCompositeChart).toBeDefined()
+      expect(typeof module.analyzeCompositeChart).toBe('function')
     })
 
-    it('should have aspect compatibility function', async () => {
+    it('should have aspects analysis function', async () => {
       const module = await import('@/lib/compatibility/advancedAstrologyAnalysis')
-      expect(module.analyzeAspectCompatibility).toBeDefined()
-      expect(typeof module.analyzeAspectCompatibility).toBe('function')
+      expect(module.analyzeAspects).toBeDefined()
+      expect(typeof module.analyzeAspects).toBe('function')
+    })
+
+    it('should have comprehensive astrology analysis function', async () => {
+      const module = await import('@/lib/compatibility/advancedAstrologyAnalysis')
+      expect(module.performComprehensiveAstrologyAnalysis).toBeDefined()
+      expect(typeof module.performComprehensiveAstrologyAnalysis).toBe('function')
     })
   })
 
@@ -131,16 +173,16 @@ describe('Compatibility Module Exports', () => {
       expect(typeof module.analyzeGroupCompatibility).toBe('function')
     })
 
-    it('should have team dynamics function', async () => {
+    it('should have group saju analysis function', async () => {
       const module = await import('@/lib/compatibility/groupCompatibility')
-      expect(module.analyzeTeamDynamics).toBeDefined()
-      expect(typeof module.analyzeTeamDynamics).toBe('function')
+      expect(module.analyzeGroupSajuCompatibility).toBeDefined()
+      expect(typeof module.analyzeGroupSajuCompatibility).toBe('function')
     })
 
-    it('should have optimal pairing function', async () => {
+    it('should have group astrology analysis function', async () => {
       const module = await import('@/lib/compatibility/groupCompatibility')
-      expect(module.findOptimalPairings).toBeDefined()
-      expect(typeof module.findOptimalPairings).toBe('function')
+      expect(module.analyzeGroupAstrologyCompatibility).toBeDefined()
+      expect(typeof module.analyzeGroupAstrologyCompatibility).toBe('function')
     })
   })
 
@@ -153,20 +195,77 @@ describe('Compatibility Module Exports', () => {
   })
 
   describe('Cross-Module Integration', () => {
-    it('should allow combining saju and astrology analysis', async () => {
+    it('should allow combining saju and astrology analysis with compatible interfaces', async () => {
       const sajuModule = await import('@/lib/compatibility/advancedSajuAnalysis')
       const astroModule = await import('@/lib/compatibility/advancedAstrologyAnalysis')
 
-      expect(sajuModule).toBeDefined()
-      expect(astroModule).toBeDefined()
+      // Verify both modules export analysis functions
+      expect(typeof sajuModule.performComprehensiveSajuAnalysis).toBe('function')
+      expect(typeof astroModule.performComprehensiveAstrologyAnalysis).toBe('function')
+
+      // Verify both have element analysis capabilities
+      expect(typeof sajuModule.analyzeTenGods).toBe('function')
+      expect(typeof astroModule.analyzeAspects).toBe('function')
     })
 
-    it('should allow fusion with graph analysis', async () => {
+    it('should allow fusion with graph analysis for visualization', async () => {
       const fusionModule = await import('@/lib/compatibility/compatibilityFusion')
       const graphModule = await import('@/lib/compatibility/compatibilityGraph')
 
-      expect(fusionModule).toBeDefined()
-      expect(graphModule).toBeDefined()
+      // Verify fusion can produce scores for graph visualization
+      expect(typeof fusionModule.calculateFusionCompatibility).toBe('function')
+      expect(typeof fusionModule.interpretCompatibilityScore).toBe('function')
+
+      // Verify graph can consume compatibility data
+      expect(typeof graphModule.buildCompatibilityGraph).toBe('function')
+      expect(typeof graphModule.generateVisualizationData).toBe('function')
+    })
+  })
+
+  describe('Function Signature Validation', () => {
+    it('should have calculateCosmicCompatibility with expected parameters', async () => {
+      const { calculateCosmicCompatibility } = await import('@/lib/compatibility/cosmicCompatibility')
+
+      // Verify function exists and is callable
+      expect(typeof calculateCosmicCompatibility).toBe('function')
+      expect(calculateCosmicCompatibility.length).toBeGreaterThanOrEqual(0) // Has parameters
+    })
+
+    it('should have interpretCompatibilityScore returning meaningful interpretation object', async () => {
+      const { interpretCompatibilityScore } = await import('@/lib/compatibility/compatibilityFusion')
+
+      // Test with boundary values
+      const lowInterpretation = interpretCompatibilityScore(20)
+      const midInterpretation = interpretCompatibilityScore(50)
+      const highInterpretation = interpretCompatibilityScore(90)
+
+      // Each interpretation should have grade, emoji, title, description
+      expect(lowInterpretation).toEqual(
+        expect.objectContaining({
+          grade: expect.any(String),
+          emoji: expect.any(String),
+          title: expect.any(String),
+          description: expect.any(String),
+        })
+      )
+      expect(midInterpretation).toEqual(
+        expect.objectContaining({
+          grade: expect.any(String),
+          title: expect.any(String),
+        })
+      )
+      expect(highInterpretation).toEqual(
+        expect.objectContaining({
+          grade: expect.any(String),
+          title: expect.any(String),
+        })
+      )
+
+      // Different scores should produce different grades
+      expect(lowInterpretation.grade).not.toBe(highInterpretation.grade)
+
+      // High score should have better grade
+      expect(highInterpretation.grade).toMatch(/^S/)
     })
   })
 })

@@ -44,8 +44,9 @@ describe('GitHub Workflows Smoke Tests', () => {
     });
   });
 
-  describe('Quality & Security Workflows (3)', () => {
-    it('should have quality workflow', () => {
+  describe('Quality & Security Workflows (2)', () => {
+    // quality.yml removed - now integrated into ci.yml
+    it.skip('should have quality workflow', () => {
       const filePath = resolve(workflowsDir, 'quality.yml');
       expect(existsSync(filePath)).toBe(true);
     });
@@ -70,7 +71,7 @@ describe('GitHub Workflows Smoke Tests', () => {
         'e2e-browser.yml',
         'performance-tests.yml',
         'pr-checks.yml',
-        'quality.yml',
+        // 'quality.yml' removed - integrated into ci.yml
         'security.yml',
         'owasp-zap.yml',
       ];
@@ -80,7 +81,7 @@ describe('GitHub Workflows Smoke Tests', () => {
         expect(existsSync(filePath)).toBe(true);
       });
 
-      expect(workflows.length).toBe(9);
+      expect(workflows.length).toBe(8);
     });
   });
 });

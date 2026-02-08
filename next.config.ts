@@ -17,10 +17,10 @@ const withPWA = withPWAInit({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
   register: true,
-  skipWaiting: true,
-  reloadOnOnline: true,
+  skipWaiting: false, // Prevent automatic page refresh on SW update
+  reloadOnOnline: false, // Disable auto-reload which can cause refresh loops
   cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
+  aggressiveFrontEndNavCaching: false, // Reduce aggressive caching that may conflict with new deployments
   fallbacks: {
     document: '/offline',
   },
@@ -121,16 +121,27 @@ const nextConfig = {
     const isProd = process.env.NODE_ENV === 'production'
 
     const securityHeaders = [
+      // Prevent MIME type sniffing
       { key: 'X-Content-Type-Options', value: 'nosniff' },
+      // Prevent clickjacking attacks
       { key: 'X-Frame-Options', value: 'DENY' },
+      // Legacy XSS protection (modern browsers use CSP)
       { key: 'X-XSS-Protection', value: '1; mode=block' },
+      // Control referrer information
       { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+      // Restrict browser features
       {
         key: 'Permissions-Policy',
         value:
           'camera=(), microphone=(), geolocation=(), interest-cohort=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=(), autoplay=(self)',
       },
-      // HSTS - enforce HTTPS (enable after confirming HTTPS works in production)
+      // Prevent DNS prefetch attacks
+      { key: 'X-DNS-Prefetch-Control', value: 'on' },
+      // Disable content type guessing
+      { key: 'X-Download-Options', value: 'noopen' },
+      // Prevent Adobe Flash and PDF from accessing content
+      { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
+      // HSTS - enforce HTTPS (production only)
       ...(isProd
         ? [
             {

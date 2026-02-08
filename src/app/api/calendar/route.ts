@@ -31,7 +31,7 @@ import {
 export const dynamic = 'force-dynamic'
 
 import { LIMITS } from '@/lib/validation/patterns'
-import { HTTP_STATUS } from '@/lib/constants/http'
+// HTTP_STATUS not used directly, status codes used via createErrorResponse
 const _VALID_CALENDAR_PLACES = new Set(Object.keys(LOCATION_COORDS))
 const MAX_PLACE_LEN = LIMITS.PLACE
 

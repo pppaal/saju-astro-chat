@@ -61,11 +61,18 @@ describe("TimeStringSchema", () => {
     expect(TimeStringSchema.safeParse("23:59").success).toBe(true);
   });
 
+  it("accepts single digit hours and AM/PM format", () => {
+    // Schema uses [01]?\d which allows single digit hours
+    expect(TimeStringSchema.safeParse("2:30").success).toBe(true);
+    expect(TimeStringSchema.safeParse("2:30 PM").success).toBe(true);
+    expect(TimeStringSchema.safeParse("9:00 AM").success).toBe(true);
+  });
+
   it("rejects invalid time format", () => {
-    expect(TimeStringSchema.safeParse("2:30").success).toBe(false);
     expect(TimeStringSchema.safeParse("14:3").success).toBe(false);
     expect(TimeStringSchema.safeParse("14:30:00").success).toBe(false);
-    expect(TimeStringSchema.safeParse("2:30 PM").success).toBe(false);
+    expect(TimeStringSchema.safeParse("25:00").success).toBe(false);
+    expect(TimeStringSchema.safeParse("not-a-time").success).toBe(false);
   });
 });
 

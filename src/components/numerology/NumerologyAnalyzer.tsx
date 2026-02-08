@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import DateTimePicker from '@/components/ui/DateTimePicker';
 import { useI18n } from '@/i18n/I18nProvider';
+import { ProfileLoader } from '@/components/common/BirthForm';
 import styles from './NumerologyAnalyzer.module.css';
 import { logger } from '@/lib/logger';
 
@@ -32,6 +33,8 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
   const [koreanName, setKoreanName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const [result, setResult] = useState<NumerologyResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const apiLocale = locale === 'ko' ? 'ko' : 'en';
@@ -41,15 +44,17 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
   const handleLoadProfile = async () => {
     if (status !== 'authenticated') return;
     setLoadingProfile(true);
+    setProfileError(null);
     try {
       const res = await fetch('/api/me/profile', { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to load profile');
       const { user } = await res.json();
       if (user?.birthDate) setBirthDate(user.birthDate);
       if (user?.name) setEnglishName(user.name);
+      setProfileLoaded(true);
     } catch (err) {
       logger.error('[NumerologyAnalyzer] Failed to load profile:', err);
-      setError(t('numerology.errors.profileLoad', 'Failed to load profile.'));
+      setProfileError(t('numerology.errors.profileLoad', 'Failed to load profile.'));
     } finally {
       setLoadingProfile(false);
     }
@@ -129,20 +134,15 @@ export default function NumerologyAnalyzer({ onAnalysisComplete }: NumerologyAna
   return (
     <div className={styles.container}>
       <form onSubmit={handleSubmit} className={styles.form}>
-        {status === 'authenticated' && (
-          <motion.button
-            type="button"
-            className={styles.loadProfileBtn}
-            onClick={handleLoadProfile}
-            disabled={loadingProfile}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {loadingProfile
-              ? (isKo ? '불러오는 중...' : 'Loading...')
-              : (isKo ? '👤 내 프로필 불러오기' : '👤 Load My Profile')}
-          </motion.button>
-        )}
+        <ProfileLoader
+          status={status}
+          onLoadClick={handleLoadProfile}
+          onReloadClick={handleLoadProfile}
+          isLoading={loadingProfile}
+          isLoaded={profileLoaded}
+          error={profileError}
+          locale={isKo ? 'ko' : 'en'}
+        />
 
         <div className={styles.inputGroup}>
           <DateTimePicker

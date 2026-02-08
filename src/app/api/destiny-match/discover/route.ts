@@ -73,10 +73,14 @@ export const GET = withApiMiddleware(
       include: {
         user: {
           select: {
-            birthDate: true,
-            birthTime: true,
-            birthCity: true,
-            gender: true,
+            profile: {
+              select: {
+                birthDate: true,
+                birthTime: true,
+                birthCity: true,
+                gender: true,
+              },
+            },
           },
         },
       },
@@ -126,7 +130,9 @@ export const GET = withApiMiddleware(
     const effectiveGenderPref = gender ?? myProfile.genderPreference
     if (effectiveGenderPref !== 'all') {
       whereCondition.user = {
-        gender: effectiveGenderPref,
+        profile: {
+          gender: effectiveGenderPref,
+        },
       }
     }
 
@@ -145,13 +151,17 @@ export const GET = withApiMiddleware(
       now.getDate()
     )
 
-    // Merge user filter with age range
+    // Merge user filter with age range (via profile relation)
     const existingUserFilter = (whereCondition.user as Record<string, unknown>) || {}
+    const existingProfileFilter = (existingUserFilter.profile as Record<string, unknown>) || {}
     whereCondition.user = {
       ...existingUserFilter,
-      birthDate: {
-        gte: minBirthDate.toISOString().split('T')[0],
-        lte: maxBirthDate.toISOString().split('T')[0],
+      profile: {
+        ...existingProfileFilter,
+        birthDate: {
+          gte: minBirthDate.toISOString().split('T')[0],
+          lte: maxBirthDate.toISOString().split('T')[0],
+        },
       },
     }
 
@@ -188,11 +198,15 @@ export const GET = withApiMiddleware(
         lastActiveAt: true,
         user: {
           select: {
-            birthDate: true,
-            birthTime: true,
-            birthCity: true,
-            gender: true,
             image: true,
+            profile: {
+              select: {
+                birthDate: true,
+                birthTime: true,
+                birthCity: true,
+                gender: true,
+              },
+            },
           },
         },
       },
@@ -202,7 +216,7 @@ export const GET = withApiMiddleware(
     })
 
     // 내 나이 계산
-    const myAge = calculateAge(myProfile.user.birthDate)
+    const myAge = calculateAge(myProfile.user.profile?.birthDate ?? null)
 
     // 1단계: 추가 필터링 (양방향 체크 - DB 레벨에서 처리 불가능한 부분)
     const filteredProfiles = profiles.filter((profile) => {
@@ -214,14 +228,14 @@ export const GET = withApiMiddleware(
       }
 
       // 명시적 나이 필터가 있는데 상대의 생년월일이 없으면 제외
-      const profileAge = calculateAge(profile.user.birthDate)
+      const profileAge = calculateAge(profile.user.profile?.birthDate ?? null)
       if (profileAge === null && (ageMin !== undefined || ageMax !== undefined)) {
         return false
       }
 
       // 양방향 성별 필터: 상대가 내 성별을 수용하는지 확인
       if (profile.genderPreference !== 'all') {
-        if (profile.genderPreference !== myProfile.user.gender) {
+        if (profile.genderPreference !== myProfile.user.profile?.gender) {
           return false
         }
       }
@@ -251,11 +265,13 @@ export const GET = withApiMiddleware(
       let sajuScore = 75
 
       // 사주/별자리 기반 궁합 (Redis 캐싱)
-      if (myProfile.user.birthDate && profile.user.birthDate) {
+      const myBirthDate = myProfile.user.profile?.birthDate
+      const profileBirthDate = profile.user.profile?.birthDate
+      if (myBirthDate && profileBirthDate) {
         try {
           // 캐시 키: 두 사람의 생년월일+시간 조합 (순서 정규화)
-          const person1Key = `${myProfile.user.birthDate}:${myProfile.user.birthTime || 'unknown'}:${myProfile.user.gender || 'unknown'}`
-          const person2Key = `${profile.user.birthDate}:${profile.user.birthTime || 'unknown'}:${profile.user.gender || 'unknown'}`
+          const person1Key = `${myBirthDate}:${myProfile.user.profile?.birthTime || 'unknown'}:${myProfile.user.profile?.gender || 'unknown'}`
+          const person2Key = `${profileBirthDate}:${profile.user.profile?.birthTime || 'unknown'}:${profile.user.profile?.gender || 'unknown'}`
           const sortedKeys = [person1Key, person2Key].sort()
           const compatCacheKey = `compatibility:v1:${sortedKeys[0]}:${sortedKeys[1]}`
 
@@ -272,14 +288,14 @@ export const GET = withApiMiddleware(
           } else {
             summary = await getCompatibilitySummary(
               {
-                birthDate: myProfile.user.birthDate,
-                birthTime: myProfile.user.birthTime || undefined,
-                gender: myProfile.user.gender || undefined,
+                birthDate: myBirthDate,
+                birthTime: myProfile.user.profile?.birthTime || undefined,
+                gender: myProfile.user.profile?.gender || undefined,
               },
               {
-                birthDate: profile.user.birthDate,
-                birthTime: profile.user.birthTime || undefined,
-                gender: profile.user.gender || undefined,
+                birthDate: profileBirthDate,
+                birthTime: profile.user.profile?.birthTime || undefined,
+                gender: profile.user.profile?.gender || undefined,
               }
             )
             // 7일간 캐싱 (사주는 불변)
@@ -346,7 +362,7 @@ export const GET = withApiMiddleware(
       compatibilityEmoji,
       compatibilityTagline,
     } of compatibilityResults) {
-      const age = calculateAge(profile.user.birthDate)
+      const age = calculateAge(profile.user.profile?.birthDate ?? null)
 
       // 거리 계산
       let distance: number | null = null
@@ -362,8 +378,8 @@ export const GET = withApiMiddleware(
       }
 
       // 별자리 계산 (간단)
-      const zodiacSign = getZodiacSign(profile.user.birthDate)
-      const sajuElement = getSajuElement(profile.user.birthDate)
+      const zodiacSign = getZodiacSign(profile.user.profile?.birthDate ?? null)
+      const sajuElement = getSajuElement(profile.user.profile?.birthDate ?? null)
 
       // 필터 적용
       if (zodiacFilter && zodiacSign !== zodiacFilter) {

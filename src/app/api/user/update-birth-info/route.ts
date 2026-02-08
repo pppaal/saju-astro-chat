@@ -77,15 +77,23 @@ export const POST = withApiMiddleware(
     const { birthDate, birthTime, gender, birthCity, tzId } = validationResult.data
 
     // Get existing profile for cache invalidation
-    const oldUser = await prisma.user.findUnique({
-      where: { id: context.userId! },
+    const oldProfile = await prisma.userProfile.findUnique({
+      where: { userId: context.userId! },
       select: { birthDate: true, birthTime: true, gender: true },
     })
 
-    // Update user profile
-    const user = await prisma.user.update({
-      where: { id: context.userId! },
-      data: {
+    // Update or create user profile
+    const profile = await prisma.userProfile.upsert({
+      where: { userId: context.userId! },
+      create: {
+        userId: context.userId!,
+        birthDate: birthDate ?? null,
+        birthTime: birthTime ?? null,
+        gender: gender ?? null,
+        birthCity: birthCity ?? null,
+        tzId: tzId ?? null,
+      },
+      update: {
         birthDate: birthDate ?? null,
         birthTime: birthTime ?? null,
         gender: gender ?? null,
@@ -93,7 +101,7 @@ export const POST = withApiMiddleware(
         tzId: tzId ?? null,
       },
       select: {
-        id: true,
+        userId: true,
         birthDate: true,
         birthTime: true,
         gender: true,
@@ -104,14 +112,24 @@ export const POST = withApiMiddleware(
 
     // Invalidate cache if birth info changed
     const birthChanged =
-      oldUser?.birthDate !== birthDate ||
-      oldUser?.birthTime !== (birthTime ?? null) ||
-      oldUser?.gender !== (gender ?? null)
+      oldProfile?.birthDate !== birthDate ||
+      oldProfile?.birthTime !== (birthTime ?? null) ||
+      oldProfile?.gender !== (gender ?? null)
 
     let cacheCleared = false
-    if (birthChanged && oldUser) {
-      await invalidateBirthCaches(context.userId!, oldUser.birthDate)
+    if (birthChanged && oldProfile) {
+      await invalidateBirthCaches(context.userId!, oldProfile.birthDate)
       cacheCleared = true
+    }
+
+    // Return flattened response for backward compatibility
+    const user = {
+      id: context.userId!,
+      birthDate: profile.birthDate,
+      birthTime: profile.birthTime,
+      gender: profile.gender,
+      birthCity: profile.birthCity,
+      tzId: profile.tzId,
     }
 
     return apiSuccess({ ok: true, user, cacheCleared })

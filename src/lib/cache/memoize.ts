@@ -4,14 +4,15 @@
  */
 
 import { LRUCache } from 'lru-cache';
+import { CALCULATION_CACHE } from '@/lib/constants/cache';
 
 // Wrapper type to satisfy LRUCache constraints (value must extend {})
 type CacheValue<T = unknown> = { value: T };
 
 // In-memory LRU cache for frequently accessed calculations
 const calculationCache = new LRUCache<string, CacheValue>({
-  max: 500, // Maximum 500 entries
-  ttl: 1000 * 60 * 60, // 1 hour TTL
+  max: CALCULATION_CACHE.MAX_SIZE,
+  ttl: CALCULATION_CACHE.TTL_MS,
   updateAgeOnGet: true,
 });
 

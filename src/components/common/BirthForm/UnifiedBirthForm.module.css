@@ -22,10 +22,44 @@
   margin-bottom: 0.5rem;
 }
 
+/* Dark mode support for title */
+@media (prefers-color-scheme: dark) {
+  .title {
+    color: #ffffff;
+    background: linear-gradient(135deg, #ffffff, #c4b5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* Dark theme class override */
+:global(.dark) .title,
+:global([data-theme="dark"]) .title {
+  color: #ffffff;
+  background: linear-gradient(135deg, #ffffff, #c4b5fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .subtitle {
   font-size: 0.95rem;
   color: #6b7280;
   line-height: 1.5;
+}
+
+/* Dark mode support for subtitle */
+@media (prefers-color-scheme: dark) {
+  .subtitle {
+    color: rgba(196, 181, 253, 0.85);
+  }
+}
+
+/* Dark theme class override */
+:global(.dark) .subtitle,
+:global([data-theme="dark"]) .subtitle {
+  color: rgba(196, 181, 253, 0.85);
 }
 
 .form {

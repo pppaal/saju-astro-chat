@@ -83,7 +83,7 @@ describe('Saju Core Integration', () => {
     })
 
     it('should expose tonggeun module', () => {
-      assertNamedExports('lib/Saju/tonggeun', ['Tonggeun'])
+      assertNamedExports('lib/Saju/tonggeun', ['calculateTonggeun', 'analyzeStrength'])
     })
 
     it('should expose health and career analysis', () => {
@@ -95,7 +95,7 @@ describe('Saju Core Integration', () => {
     })
 
     it('should expose pattern matcher', () => {
-      assertNamedExports('lib/Saju/patternMatcher', ['PatternMatcher'])
+      assertNamedExports('lib/Saju/patternMatcher', ['matchAllPatterns', 'analyzePatterns'])
     })
 
     it('should expose AI prompt generator', () => {
@@ -104,51 +104,74 @@ describe('Saju Core Integration', () => {
   })
 
   describe('Saju Calculation', () => {
-    it('should calculate saju data with basic inputs', async () => {
+    it('should calculate saju data with basic inputs and verify pillar structure', async () => {
       const { calculateSajuData } = await import('@/lib/Saju/saju')
 
       const result = calculateSajuData('1990-01-15', '14:30', 'male', 'solar', 'Asia/Seoul')
 
-      expect(result).toBeDefined()
-      expect(result.pillars).toHaveProperty('year')
-      expect(result.pillars).toHaveProperty('month')
-      expect(result.pillars).toHaveProperty('day')
-      expect(result.pillars).toHaveProperty('time')
-      expect(result.fiveElements).toHaveProperty('wood')
-      expect(result.fiveElements).toHaveProperty('fire')
-      expect(result.fiveElements).toHaveProperty('earth')
-      expect(result.fiveElements).toHaveProperty('metal')
-      expect(result.fiveElements).toHaveProperty('water')
+      // Verify pillars exist with stem and branch objects
+      expect(result.pillars).toBeDefined()
+      expect(result.pillars.year).toBeDefined()
+      expect(result.pillars.month).toBeDefined()
+      expect(result.pillars.day).toBeDefined()
+      expect(result.pillars.time).toBeDefined()
+
+      // Verify five elements have numeric values
+      expect(result.fiveElements).toEqual(
+        expect.objectContaining({
+          wood: expect.any(Number),
+          fire: expect.any(Number),
+          earth: expect.any(Number),
+          metal: expect.any(Number),
+          water: expect.any(Number),
+        })
+      )
+
+      // Verify element values are non-negative
+      Object.values(result.fiveElements).forEach((value) => {
+        expect(value).toBeGreaterThanOrEqual(0)
+      })
     })
 
-    it('should calculate saju data for female', async () => {
+    it('should calculate saju data for female with complete structure', async () => {
       const { calculateSajuData } = await import('@/lib/Saju/saju')
 
       const result = calculateSajuData('1985-06-20', '09:15', 'female', 'solar', 'Asia/Seoul')
 
-      expect(result).toBeDefined()
-      expect(result.pillars).toBeDefined()
-      expect(result.fiveElements).toBeDefined()
+      // Verify pillars have valid heavenlyStem and earthlyBranch with name property
+      const validStems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
+      const validBranches = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+
+      // Pillar structure: { heavenlyStem: { name, element, yin_yang }, earthlyBranch: { name, element, yin_yang } }
+      expect(result.pillars.day.heavenlyStem).toBeDefined()
+      expect(result.pillars.day.earthlyBranch).toBeDefined()
+      expect(validStems).toContain(result.pillars.day.heavenlyStem.name)
+      expect(validBranches).toContain(result.pillars.day.earthlyBranch.name)
     })
 
-    it('should calculate saju data with lunar calendar', async () => {
+    it('should calculate saju data with lunar calendar correctly', async () => {
       const { calculateSajuData } = await import('@/lib/Saju/saju')
 
       const result = calculateSajuData('1988-03-10', '22:00', 'male', 'lunar', 'Asia/Seoul')
 
-      expect(result).toBeDefined()
-      expect(result.pillars).toBeDefined()
+      // Lunar calendar should produce valid pillars
+      expect(result.pillars.year).toBeDefined()
+      expect(result.pillars.month).toBeDefined()
+      expect(result.pillars.day).toBeDefined()
+      expect(result.pillars.time).toBeDefined()
     })
 
     it('should calculate saju data for different timezones', async () => {
       const { calculateSajuData } = await import('@/lib/Saju/saju')
 
       const seoulResult = calculateSajuData('1990-01-15', '14:30', 'male', 'solar', 'Asia/Seoul')
-
       const tokyoResult = calculateSajuData('1990-01-15', '14:30', 'male', 'solar', 'Asia/Tokyo')
 
-      expect(seoulResult).toBeDefined()
-      expect(tokyoResult).toBeDefined()
+      // Both should have valid pillars
+      expect(seoulResult.pillars).toBeDefined()
+      expect(tokyoResult.pillars).toBeDefined()
+      expect(seoulResult.pillars.day).toBeDefined()
+      expect(tokyoResult.pillars.day).toBeDefined()
     })
 
     it('should calculate saju data for edge case - midnight', async () => {
@@ -156,8 +179,11 @@ describe('Saju Core Integration', () => {
 
       const result = calculateSajuData('1995-12-31', '00:00', 'male', 'solar', 'Asia/Seoul')
 
-      expect(result).toBeDefined()
-      expect(result.pillars).toBeDefined()
+      // Should have valid time pillar with heavenlyStem and earthlyBranch objects
+      expect(result.pillars.time).toBeDefined()
+      expect(result.pillars.time.heavenlyStem).toBeDefined()
+      expect(result.pillars.time.earthlyBranch).toBeDefined()
+      expect(result.pillars.time.earthlyBranch.name).toBeTruthy()
     })
 
     it('should calculate saju data for edge case - late night', async () => {
@@ -165,8 +191,22 @@ describe('Saju Core Integration', () => {
 
       const result = calculateSajuData('2000-01-01', '23:59', 'female', 'solar', 'Asia/Seoul')
 
-      expect(result).toBeDefined()
-      expect(result.pillars).toBeDefined()
+      // Should have valid time pillar with heavenlyStem and earthlyBranch objects
+      expect(result.pillars.time).toBeDefined()
+      expect(result.pillars.time.heavenlyStem).toBeDefined()
+      expect(result.pillars.time.earthlyBranch).toBeDefined()
+      expect(result.pillars.time.earthlyBranch.name).toBeTruthy()
+    })
+
+    it('should produce consistent results for same input', async () => {
+      const { calculateSajuData } = await import('@/lib/Saju/saju')
+
+      const result1 = calculateSajuData('1990-05-15', '10:00', 'male', 'solar', 'Asia/Seoul')
+      const result2 = calculateSajuData('1990-05-15', '10:00', 'male', 'solar', 'Asia/Seoul')
+
+      // Results should be identical
+      expect(result1.pillars).toEqual(result2.pillars)
+      expect(result1.fiveElements).toEqual(result2.fiveElements)
     })
   })
 

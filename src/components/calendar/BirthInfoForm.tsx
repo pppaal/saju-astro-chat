@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
-import { UnifiedBirthForm } from '@/components/common/BirthForm'
+import { UnifiedBirthForm, BirthInfo as UnifiedBirthInfo } from '@/components/common/BirthForm'
 import styles from './DestinyCalendar.module.css'
 import { ICONS } from './constants'
 import type { BirthInfo, CityHit } from './types'
@@ -40,22 +40,15 @@ const BirthInfoForm = memo(function BirthInfoForm({
   const { status } = useSession()
   const signInUrl = buildSignInUrl()
 
-  const handleFormSubmit = async (formData: {
-    birthDate: string
-    birthTime: string
-    gender: 'M' | 'F' | 'Male' | 'Female'
-    birthCity?: string
-    latitude?: number
-    longitude?: number
-    timezone?: string
-  }) => {
+  const handleFormSubmit = async (formData: UnifiedBirthInfo) => {
     // Convert form data to parent's expected format
+    const genderValue = formData.gender || 'M'
     setBirthInfo({
       birthDate: formData.birthDate,
       birthTime: formData.birthTime,
       birthPlace: formData.birthCity || '',
       gender:
-        formData.gender === 'M' ? 'Male' : formData.gender === 'F' ? 'Female' : formData.gender,
+        genderValue === 'M' ? 'Male' : genderValue === 'F' ? 'Female' : genderValue,
       latitude: formData.latitude,
       longitude: formData.longitude,
       timezone: formData.timezone,

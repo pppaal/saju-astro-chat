@@ -13,20 +13,21 @@ export function generateReferralCode(): string {
 
 // 유저의 추천 코드 조회 (없으면 생성)
 export async function getUserReferralCode(userId: string): Promise<string> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
+  const userSettings = await prisma.userSettings.findUnique({
+    where: { userId },
     select: { referralCode: true },
   });
 
-  if (user?.referralCode) {
-    return user.referralCode;
+  if (userSettings?.referralCode) {
+    return userSettings.referralCode;
   }
 
   // 새 코드 생성
   const newCode = generateReferralCode();
-  await prisma.user.update({
-    where: { id: userId },
-    data: { referralCode: newCode },
+  await prisma.userSettings.upsert({
+    where: { userId },
+    create: { userId, referralCode: newCode },
+    update: { referralCode: newCode },
   });
 
   return newCode;
@@ -34,10 +35,20 @@ export async function getUserReferralCode(userId: string): Promise<string> {
 
 // 추천 코드로 추천인 찾기
 export async function findUserByReferralCode(code: string) {
-  return prisma.user.findFirst({
+  const settings = await prisma.userSettings.findFirst({
     where: { referralCode: code.toUpperCase() },
-    select: { id: true, name: true, referralCode: true },
+    select: { userId: true, referralCode: true, user: { select: { id: true, name: true } } },
   });
+
+  if (!settings) {
+    return null;
+  }
+
+  return {
+    id: settings.userId,
+    name: settings.user.name,
+    referralCode: settings.referralCode,
+  };
 }
 
 // 회원가입 시 추천인 연결
@@ -137,9 +148,9 @@ export async function claimReferralReward(
 
 // 내 추천 현황 조회
 export async function getReferralStats(userId: string) {
-  const [user, referrals, rewards] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: userId },
+  const [userSettings, referrals, rewards] = await Promise.all([
+    prisma.userSettings.findUnique({
+      where: { userId },
       select: { referralCode: true },
     }),
     prisma.user.findMany({
@@ -159,7 +170,7 @@ export async function getReferralStats(userId: string) {
   ]);
 
   // 코드가 없으면 생성
-  const referralCode = user?.referralCode || (await getUserReferralCode(userId));
+  const referralCode = userSettings?.referralCode || (await getUserReferralCode(userId));
 
   const totalReferrals = referrals.length;
   const completedReferrals = referrals.filter((r) => r.readings.length > 0).length;

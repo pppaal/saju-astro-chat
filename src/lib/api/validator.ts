@@ -10,6 +10,19 @@ import { NextRequest } from 'next/server'
 import { LIMITS } from '@/lib/validation/patterns'
 import { ErrorCodes, type ErrorCode } from './errorHandler'
 import type { ApiHandlerResult } from './middleware'
+import {
+  dateSchema,
+  timeSchema,
+  timezoneSchema,
+  latitudeSchema,
+  longitudeSchema,
+  genderSchema,
+  localeSchema,
+  localeValues,
+  genderValues,
+  type Locale,
+  type Gender,
+} from './zodValidation/common'
 
 // ============================================================
 // Core Validation Types
@@ -31,37 +44,32 @@ export interface ValidationResult<T> {
 // Common Zod Schemas
 // ============================================================
 
+// ============================================================
+// Re-exported Core Schemas from common.ts (single source of truth)
+// ============================================================
+
 /** ISO date format: YYYY-MM-DD */
-export const DateSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
-  .refine(
-    (date) => {
-      const parsed = Date.parse(date)
-      if (Number.isNaN(parsed)) {
-        return false
-      }
-      const year = new Date(parsed).getFullYear()
-      return year >= 1900 && year <= 2100
-    },
-    { message: 'Invalid date or year out of range (1900-2100)' }
-  )
+export const DateSchema = dateSchema
 
-/** Time format: HH:MM */
-export const TimeSchema = z.string().regex(/^\d{2}:\d{2}$/, 'Time must be in HH:MM format')
+/** Time format: HH:MM or HH:MM AM/PM */
+export const TimeSchema = timeSchema
 
-/** IANA timezone - re-exported from zodValidation */
+/** IANA timezone */
 export const TimezoneSchema = timezoneSchema
 
 /** Supported locales */
-export const LocaleSchema = z.enum(['ko', 'en', 'ja', 'zh', 'vi', 'th', 'id', 'de', 'fr', 'es'])
-export type Locale = z.infer<typeof LocaleSchema>
+export const LocaleSchema = localeSchema
+export { localeValues, type Locale }
+
+/** Supported genders */
+export const GenderSchema = genderSchema
+export { genderValues, type Gender }
 
 /** Latitude coordinate */
-export const LatitudeSchema = z.number().min(-90).max(90)
+export const LatitudeSchema = latitudeSchema
 
 /** Longitude coordinate */
-export const LongitudeSchema = z.number().min(-180).max(180)
+export const LongitudeSchema = longitudeSchema
 
 /** Safe text (no HTML/script injection) */
 export const SafeTextSchema = z
@@ -89,12 +97,12 @@ export const BirthDataSchema = z.object({
   timezone: TimezoneSchema.optional(),
   city: z.string().max(LIMITS.CITY).optional(),
   name: z.string().max(LIMITS.NAME).optional(),
-  gender: z.enum(['male', 'female', 'other', 'prefer_not']).optional(),
+  gender: GenderSchema.optional(),
 })
 export type BirthData = z.infer<typeof BirthDataSchema>
 
 /** Standard API pagination - re-exported from zodValidation */
-import { paginationQuerySchema, timezoneSchema } from './zodValidation/common'
+import { paginationQuerySchema } from './zodValidation/common'
 export const PaginationSchema = paginationQuerySchema
 export type Pagination = z.infer<typeof PaginationSchema>
 

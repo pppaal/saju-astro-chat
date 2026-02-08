@@ -111,12 +111,14 @@ test.describe('CSS Variables', () => {
   test('should have CSS custom properties', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-    const hasCustomProps = await page.evaluate(() => {
+    // CSS 커스텀 속성이 정의되어 있는지 확인
+    const fontValue = await page.evaluate(() => {
       const styles = window.getComputedStyle(document.documentElement)
-      return styles.getPropertyValue('--font-montserrat') !== ''
+      return styles.getPropertyValue('--font-montserrat')
     })
 
-    expect(typeof hasCustomProps).toBe('boolean')
+    // 폰트 CSS 변수가 정의되어 있어야 함
+    expect(fontValue.length).toBeGreaterThan(0)
   })
 })
 

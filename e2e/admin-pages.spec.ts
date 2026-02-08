@@ -5,30 +5,22 @@ test.describe('Admin Pages', () => {
     test('should load admin dashboard page', async ({ page }) => {
       await page.goto('/admin/dashboard', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
     })
 
-    test('should display dashboard widgets', async ({ page }) => {
+    test('should display dashboard content or login redirect', async ({ page }) => {
       await page.goto('/admin/dashboard', { waitUntil: 'domcontentloaded' })
 
-      const widgets = page.locator('[class*="widget"], [class*="card"], [class*="stat"]')
-      const count = await widgets.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
-
-    test('should have navigation menu', async ({ page }) => {
-      await page.goto('/admin/dashboard', { waitUntil: 'domcontentloaded' })
-
-      const navMenu = page.locator('nav, [class*="sidebar"], [class*="menu"]')
-      const count = await navMenu.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
-
-    test('should display metrics or charts', async ({ page }) => {
-      await page.goto('/admin/dashboard', { waitUntil: 'domcontentloaded' })
-
-      const charts = page.locator('canvas, svg, [class*="chart"], [class*="graph"]')
-      const count = await charts.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      const bodyText = await page.locator('body').textContent()
+      // Should show dashboard content or login prompt
+      const hasContent =
+        bodyText!.includes('대시보드') ||
+        bodyText!.includes('Dashboard') ||
+        bodyText!.includes('로그인') ||
+        bodyText!.includes('관리자')
+      expect(hasContent).toBe(true)
     })
   })
 
@@ -36,30 +28,21 @@ test.describe('Admin Pages', () => {
     test('should load feedback page', async ({ page }) => {
       await page.goto('/admin/feedback', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
     })
 
-    test('should display feedback list', async ({ page }) => {
+    test('should display feedback content or login redirect', async ({ page }) => {
       await page.goto('/admin/feedback', { waitUntil: 'domcontentloaded' })
 
-      const feedbackItems = page.locator('[class*="feedback"], [class*="item"], table tr')
-      const count = await feedbackItems.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
-
-    test('should have filter options', async ({ page }) => {
-      await page.goto('/admin/feedback', { waitUntil: 'domcontentloaded' })
-
-      const filters = page.locator('[class*="filter"], select, input[type="search"]')
-      const count = await filters.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
-
-    test('should have status indicators', async ({ page }) => {
-      await page.goto('/admin/feedback', { waitUntil: 'domcontentloaded' })
-
-      const status = page.locator('[class*="status"], [class*="badge"]')
-      const count = await status.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      const bodyText = await page.locator('body').textContent()
+      const hasContent =
+        bodyText!.includes('피드백') ||
+        bodyText!.includes('Feedback') ||
+        bodyText!.includes('로그인') ||
+        bodyText!.includes('관리')
+      expect(hasContent).toBe(true)
     })
   })
 
@@ -67,24 +50,21 @@ test.describe('Admin Pages', () => {
     test('should load refunds page', async ({ page }) => {
       await page.goto('/admin/refunds', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
     })
 
-    test('should display refund requests', async ({ page }) => {
+    test('should display refunds content or login redirect', async ({ page }) => {
       await page.goto('/admin/refunds', { waitUntil: 'domcontentloaded' })
 
-      const refunds = page.locator('[class*="refund"], table, [class*="list"]')
-      const count = await refunds.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
-
-    test('should have action buttons', async ({ page }) => {
-      await page.goto('/admin/refunds', { waitUntil: 'domcontentloaded' })
-
-      const actionButtons = page.locator(
-        'button:has-text("승인"), button:has-text("거부"), button:has-text("처리")'
-      )
-      const count = await actionButtons.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      const bodyText = await page.locator('body').textContent()
+      const hasContent =
+        bodyText!.includes('환불') ||
+        bodyText!.includes('Refund') ||
+        bodyText!.includes('로그인') ||
+        bodyText!.includes('관리')
+      expect(hasContent).toBe(true)
     })
   })
 
@@ -92,41 +72,48 @@ test.describe('Admin Pages', () => {
     test('should load api-docs page', async ({ page }) => {
       await page.goto('/api-docs', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
     })
 
-    test('should display API endpoints', async ({ page }) => {
+    test('should display API documentation content', async ({ page }) => {
       await page.goto('/api-docs', { waitUntil: 'domcontentloaded' })
 
-      const endpoints = page.locator('[class*="endpoint"], [class*="operation"], [class*="path"]')
-      const count = await endpoints.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
-
-    test('should have interactive try-it sections', async ({ page }) => {
-      await page.goto('/api-docs', { waitUntil: 'domcontentloaded' })
-
-      const tryIt = page.locator(
-        'button:has-text("Try"), button:has-text("Execute"), [class*="try"]'
-      )
-      const count = await tryIt.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      const bodyText = await page.locator('body').textContent()
+      const hasContent =
+        bodyText!.includes('API') ||
+        bodyText!.includes('엔드포인트') ||
+        bodyText!.includes('Endpoint') ||
+        bodyText!.includes('문서')
+      expect(hasContent).toBe(true)
     })
   })
 
   test.describe('Admin Access Control', () => {
-    test('should redirect unauthorized users', async ({ page }) => {
+    test('should handle unauthorized access to dashboard', async ({ page }) => {
       await page.goto('/admin/dashboard', { waitUntil: 'domcontentloaded' })
 
       // Should either show login form or redirect
       await expect(page.locator('body')).toBeVisible()
+      const url = page.url()
+      const bodyText = await page.locator('body').textContent()
+
+      const isProtected =
+        url.includes('signin') ||
+        url.includes('login') ||
+        url.includes('admin') ||
+        bodyText!.includes('로그인') ||
+        bodyText!.includes('관리자')
+      expect(isProtected).toBe(true)
     })
 
-    test('should show login prompt for protected pages', async ({ page }) => {
+    test('should handle unauthorized access to feedback page', async ({ page }) => {
       await page.goto('/admin/feedback', { waitUntil: 'domcontentloaded' })
 
-      const loginPrompt = page.locator('[class*="login"], form, [class*="auth"]')
-      const count = await loginPrompt.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      await expect(page.locator('body')).toBeVisible()
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
     })
   })
 
@@ -142,15 +129,43 @@ test.describe('Admin Pages', () => {
       expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 20)
     })
 
-    test('should have collapsible sidebar on mobile', async ({ page }) => {
+    test('should have touch-friendly elements on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 })
       await page.goto('/admin/dashboard', { waitUntil: 'domcontentloaded' })
 
-      const menuToggle = page.locator(
-        '[class*="hamburger"], [class*="menu-toggle"], button[aria-label*="menu"]'
-      )
-      const count = await menuToggle.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      const buttons = page.locator('button')
+      const count = await buttons.count()
+
+      for (let i = 0; i < Math.min(count, 3); i++) {
+        const button = buttons.nth(i)
+        if (await button.isVisible()) {
+          const box = await button.boundingBox()
+          if (box) {
+            expect(box.height).toBeGreaterThanOrEqual(30)
+            expect(box.width).toBeGreaterThanOrEqual(30)
+          }
+        }
+      }
+    })
+  })
+
+  test.describe('Admin Page Load Performance', () => {
+    test('should load dashboard within acceptable time', async ({ page }) => {
+      const startTime = Date.now()
+      await page.goto('/admin/dashboard', { waitUntil: 'domcontentloaded' })
+      const loadTime = Date.now() - startTime
+
+      expect(loadTime).toBeLessThan(10000)
+      await expect(page.locator('body')).toBeVisible()
+    })
+
+    test('should load api-docs within acceptable time', async ({ page }) => {
+      const startTime = Date.now()
+      await page.goto('/api-docs', { waitUntil: 'domcontentloaded' })
+      const loadTime = Date.now() - startTime
+
+      expect(loadTime).toBeLessThan(10000)
+      await expect(page.locator('body')).toBeVisible()
     })
   })
 })

@@ -28,26 +28,49 @@ test.describe('User Registration and Authentication Flow', () => {
     // OAuth-based auth - verify signin page handles auth properly
     await page.goto('/auth/signin', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
-    expect(true).toBe(true) // OAuth doesn't have email validation
+
+    // OAuth 기반이므로 이메일 입력 필드가 없거나 OAuth 버튼이 있어야 함
+    const emailInput = page.locator('input[type="email"]')
+    const oauthButtons = page.locator('button:has-text("Google"), button:has-text("Kakao")')
+
+    const hasEmailInput = (await emailInput.count()) > 0
+    const hasOAuthButtons = (await oauthButtons.count()) > 0
+
+    // OAuth 기반 인증이므로 직접 이메일 입력이 없거나 OAuth 버튼이 있어야 함
+    expect(hasOAuthButtons || !hasEmailInput).toBe(true)
   })
 
   test('should prevent registration with weak password', async ({ page }) => {
     // OAuth-based auth - no password validation needed
     await page.goto('/auth/signin', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
-    expect(true).toBe(true)
+
+    // OAuth 기반이므로 비밀번호 입력 필드가 없어야 함
+    const passwordInput = page.locator('input[type="password"]')
+    const passwordCount = await passwordInput.count()
+
+    // OAuth 인증이므로 비밀번호 필드가 없어야 함
+    expect(passwordCount).toBe(0)
   })
 
   test('should login with valid credentials', async ({ page }) => {
     await page.goto('/auth/signin', { waitUntil: 'domcontentloaded' })
 
-    // OAuth login - check for OAuth buttons
-    const hasOAuthButton =
-      (await page.locator('button:has-text("Google")').count()) > 0 ||
-      (await page.locator('button:has-text("Kakao")').count()) > 0 ||
-      (await page.locator('[data-provider]').count()) > 0
+    // OAuth login - check for OAuth buttons or login form
+    const oauthButtonCount =
+      (await page.locator('button:has-text("Google")').count()) +
+      (await page.locator('button:has-text("Kakao")').count()) +
+      (await page.locator('[data-provider]').count())
 
-    expect(hasOAuthButton || true).toBe(true) // OAuth or fallback
+    const bodyText = await page.textContent('body')
+    const hasLoginContent =
+      bodyText?.includes('로그인') ||
+      bodyText?.includes('Sign in') ||
+      bodyText?.includes('Google') ||
+      bodyText?.includes('Kakao')
+
+    // OAuth 버튼이 있거나 로그인 관련 콘텐츠가 있어야 함
+    expect(oauthButtonCount > 0 || hasLoginContent).toBe(true)
   })
 
   test('should show error for invalid login credentials', async ({ page }) => {
@@ -122,21 +145,44 @@ test.describe('User Registration and Authentication Flow', () => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
 
-    // Verify page loads (logout flow depends on auth state)
-    expect(true).toBe(true)
+    // 로그아웃 버튼이 있는지 또는 로그인 링크가 있는지 확인
+    const logoutButton = page.locator('button:has-text("로그아웃"), button:has-text("Logout"), a:has-text("로그아웃")')
+    const loginLink = page.locator('a:has-text("로그인"), a:has-text("Sign in"), button:has-text("로그인")')
+
+    const hasLogout = (await logoutButton.count()) > 0
+    const hasLogin = (await loginLink.count()) > 0
+
+    // 로그인 또는 로그아웃 UI가 있어야 함
+    expect(hasLogout || hasLogin).toBe(true)
   })
 
   test('should validate email format in registration', async ({ page }) => {
     // OAuth-based - no email form validation
     await page.goto('/auth/signin', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
-    expect(true).toBe(true)
+
+    // OAuth 기반 인증 페이지임을 확인
+    const bodyText = await page.textContent('body')
+    const hasOAuthContent =
+      bodyText?.includes('Google') ||
+      bodyText?.includes('Kakao') ||
+      bodyText?.includes('로그인') ||
+      bodyText?.includes('Sign in')
+
+    expect(hasOAuthContent).toBe(true)
   })
 
   test('should have secure password requirements', async ({ page }) => {
     // OAuth-based - no password requirements
     await page.goto('/auth/signin', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
-    expect(true).toBe(true)
+
+    // OAuth 기반이므로 비밀번호 관련 UI가 없어야 함
+    const bodyText = await page.textContent('body')
+    const hasPasswordUI =
+      bodyText?.includes('비밀번호') || bodyText?.includes('Password')
+
+    // OAuth 인증에서는 비밀번호 UI가 없어야 함
+    expect(hasPasswordUI).toBeFalsy()
   })
 })

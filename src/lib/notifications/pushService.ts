@@ -197,14 +197,18 @@ export async function sendScheduledNotifications(hour: number): Promise<{
   // 활성 푸시 구독이 있는 사용자 조회
   const users = await prisma.user.findMany({
     where: {
-      birthDate: { not: null },
+      profile: { birthDate: { not: null } },
       pushSubscriptions: { some: { isActive: true } },
     },
     select: {
       id: true,
       name: true,
-      birthDate: true,
-      birthTime: true,
+      profile: {
+        select: {
+          birthDate: true,
+          birthTime: true,
+        },
+      },
       personaMemory: {
         select: {
           sajuProfile: true,
@@ -252,8 +256,8 @@ export async function sendScheduledNotifications(hour: number): Promise<{
           planets: birthChart.planets,
         },
         {
-          birthDate: user.birthDate!,
-          birthTime: user.birthTime || undefined,
+          birthDate: user.profile!.birthDate!,
+          birthTime: user.profile?.birthTime || undefined,
           name: user.name || undefined,
         }
       );

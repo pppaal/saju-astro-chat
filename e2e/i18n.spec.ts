@@ -149,8 +149,13 @@ test.describe('Form Labels', () => {
     const ariaCount = await ariaLabels.count()
     const placeholderCount = await placeholders.count()
 
-    // Should have some form accessibility
-    expect(labelCount + ariaCount + placeholderCount).toBeGreaterThanOrEqual(0)
+    // Should have at least one form of accessibility labeling
+    expect(labelCount + ariaCount + placeholderCount).toBeGreaterThan(0)
+
+    // Verify form inputs exist
+    const inputs = page.locator('input, select')
+    const inputCount = await inputs.count()
+    expect(inputCount).toBeGreaterThan(0)
   })
 
   test('destiny-map form should have labels or aria-labels', async ({ page }) => {
@@ -164,7 +169,13 @@ test.describe('Form Labels', () => {
     const ariaCount = await ariaLabels.count()
     const placeholderCount = await placeholders.count()
 
-    expect(labelCount + ariaCount + placeholderCount).toBeGreaterThanOrEqual(0)
+    // Should have at least one form of accessibility labeling
+    expect(labelCount + ariaCount + placeholderCount).toBeGreaterThan(0)
+
+    // Verify form inputs exist
+    const inputs = page.locator('input, select')
+    const inputCount = await inputs.count()
+    expect(inputCount).toBeGreaterThan(0)
   })
 })
 

@@ -35,10 +35,14 @@ export const GET = withApiMiddleware<Record<string, unknown>>(
       const user = await prisma.user.findUnique({
         where: { id: context.userId! },
         select: {
-          birthDate: true,
-          birthTime: true,
-          gender: true,
-          tzId: true,
+          profile: {
+            select: {
+              birthDate: true,
+              birthTime: true,
+              gender: true,
+              tzId: true,
+            },
+          },
           personaMemory: {
             select: {
               sajuProfile: true,
@@ -51,8 +55,10 @@ export const GET = withApiMiddleware<Record<string, unknown>>(
         return apiError(ErrorCodes.NOT_FOUND, '사용자를 찾을 수 없습니다.')
       }
 
+      const profile = user.profile
+
       // 생년월일이 없으면 사주 계산 불가
-      if (!user.birthDate) {
+      if (!profile?.birthDate) {
         return apiSuccess({
           hasSaju: false,
           message: '생년월일 정보가 없습니다.',
@@ -69,19 +75,19 @@ export const GET = withApiMiddleware<Record<string, unknown>>(
               dayMasterElement:
                 ELEMENT_KOREAN[cached.dayMasterElement as string] || cached.dayMasterElement,
               dayMaster: cached.dayMaster,
-              birthDate: user.birthDate,
-              birthTime: user.birthTime,
+              birthDate: profile.birthDate,
+              birthTime: profile.birthTime,
             },
           } as Record<string, unknown>)
         }
       }
 
       // 사주 계산
-      const gender = user.gender === 'M' ? 'male' : user.gender === 'F' ? 'female' : 'male'
-      const timezone = user.tzId || 'Asia/Seoul'
-      const birthTime = user.birthTime || '12:00'
+      const gender = profile.gender === 'M' ? 'male' : profile.gender === 'F' ? 'female' : 'male'
+      const timezone = profile.tzId || 'Asia/Seoul'
+      const birthTime = profile.birthTime || '12:00'
 
-      const sajuResult = calculateSajuData(user.birthDate, birthTime, gender, 'solar', timezone)
+      const sajuResult = calculateSajuData(profile.birthDate, birthTime, gender, 'solar', timezone)
 
       if (!sajuResult || !sajuResult.dayMaster) {
         return apiSuccess({
@@ -119,8 +125,8 @@ export const GET = withApiMiddleware<Record<string, unknown>>(
           dayMasterElement,
           dayMaster: sajuResult.dayMaster.name,
           dayMasterYinYang: sajuResult.dayMaster.yin_yang,
-          birthDate: user.birthDate,
-          birthTime: user.birthTime,
+          birthDate: profile.birthDate,
+          birthTime: profile.birthTime,
           pillars: {
             year: {
               stem: sajuResult.yearPillar?.heavenlyStem?.name,

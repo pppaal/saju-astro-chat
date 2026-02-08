@@ -1,107 +1,413 @@
 {
   "_meta": {
     "title": "Tarot Card Combinations",
-    "description": "특별한 의미를 가진 카드 조합들 - 두 장 이상의 카드가 함께 나왔을 때의 해석"
+    "description": "특별한 의미를 가진 카드 조합들 - 두 장 이상의 카드가 함께 나왔을 때의 해석",
+    "version": "2.0",
+    "last_updated": "2025-02",
+    "total_combinations": 150
   },
   "powerful_pairs": {
     "love_indicators": [
       {
         "cards": ["The Lovers", "Two of Cups"],
         "meaning": "소울메이트 연결. 운명적인 만남. 깊은 영적 유대.",
-        "korean": "소울메이트를 만날 강력한 신호입니다. 두 영혼이 하나가 되는 인연이에요."
+        "korean": "소울메이트를 만날 강력한 신호입니다. 두 영혼이 하나가 되는 인연이에요.",
+        "intensity": 10,
+        "timing": "3-6개월 내"
       },
       {
         "cards": ["The Empress", "Ace of Cups"],
         "meaning": "사랑의 시작과 풍요. 새로운 로맨스가 꽃피움.",
-        "korean": "사랑이 풍성하게 시작됩니다. 감정적으로 충만한 새 관계예요."
+        "korean": "사랑이 풍성하게 시작됩니다. 감정적으로 충만한 새 관계예요.",
+        "intensity": 9,
+        "timing": "1-3개월 내"
       },
       {
         "cards": ["Ten of Cups", "The Sun"],
         "meaning": "완벽한 행복. 가정의 기쁨. 이상적인 관계.",
-        "korean": "동화 같은 해피엔딩이에요. 가장 행복한 결말을 암시합니다."
+        "korean": "동화 같은 해피엔딩이에요. 가장 행복한 결말을 암시합니다.",
+        "intensity": 10,
+        "timing": "현재 진행 중"
       },
       {
         "cards": ["Knight of Cups", "Page of Cups"],
         "meaning": "로맨틱한 제안이 온다. 사랑 고백. 달콤한 시작.",
-        "korean": "누군가 마음을 고백할 거예요. 로맨틱한 제안이 다가옵니다."
+        "korean": "누군가 마음을 고백할 거예요. 로맨틱한 제안이 다가옵니다.",
+        "intensity": 7,
+        "timing": "2-4주 내"
       },
       {
         "cards": ["The Star", "The Lovers"],
         "meaning": "희망찬 사랑. 치유되는 관계. 믿음이 이루어짐.",
-        "korean": "진정한 사랑을 찾게 됩니다. 상처가 치유되는 관계예요."
+        "korean": "진정한 사랑을 찾게 됩니다. 상처가 치유되는 관계예요.",
+        "intensity": 9,
+        "timing": "6개월 내"
+      },
+      {
+        "cards": ["Ace of Cups", "Two of Cups"],
+        "meaning": "새로운 감정의 시작이 깊은 연결로. 첫눈에 반함.",
+        "korean": "처음 느끼는 감정이 진정한 사랑으로 발전해요. 운명적 만남!",
+        "intensity": 9,
+        "timing": "즉시-1개월"
+      },
+      {
+        "cards": ["The Empress", "The Emperor"],
+        "meaning": "완벽한 균형의 파트너십. 결혼 가능성 높음.",
+        "korean": "서로를 완벽하게 보완하는 관계예요. 결혼까지 갈 수 있어요.",
+        "intensity": 10,
+        "timing": "1년 내"
+      },
+      {
+        "cards": ["Six of Cups", "Ten of Cups"],
+        "meaning": "어린 시절 인연의 재회. 첫사랑과의 해피엔딩.",
+        "korean": "과거의 인연이 다시 찾아와요. 옛 사랑이 행복으로 이어질 수 있어요.",
+        "intensity": 8,
+        "timing": "3-6개월"
+      },
+      {
+        "cards": ["Knight of Cups", "Ace of Wands"],
+        "meaning": "열정적인 구애. 적극적인 사랑 고백이 온다.",
+        "korean": "누군가 아주 적극적으로 다가올 거예요. 뜨거운 구애가 시작됩니다.",
+        "intensity": 8,
+        "timing": "1-2주 내"
+      },
+      {
+        "cards": ["The Moon", "Two of Cups"],
+        "meaning": "숨겨진 감정이 드러남. 비밀 연애의 공개.",
+        "korean": "숨겨왔던 마음이 드러나요. 서로의 진심을 확인하게 됩니다.",
+        "intensity": 7,
+        "timing": "1-3개월"
+      }
+    ],
+    "marriage_indicators": [
+      {
+        "cards": ["Four of Wands", "Ten of Cups"],
+        "meaning": "결혼과 가정의 축복. 행복한 가정 생활.",
+        "korean": "결혼식의 종소리가 들려요. 행복한 가정을 이룰 수 있어요.",
+        "intensity": 10,
+        "timing": "1년 내"
+      },
+      {
+        "cards": ["The Hierophant", "Two of Cups"],
+        "meaning": "전통적 결합. 공식적인 약속. 약혼이나 결혼.",
+        "korean": "공식적인 관계로 발전해요. 약혼이나 결혼이 가까워요.",
+        "intensity": 9,
+        "timing": "6개월-1년"
+      },
+      {
+        "cards": ["Three of Cups", "Four of Wands"],
+        "meaning": "축하와 기쁨. 약혼 파티나 결혼식.",
+        "korean": "축하받을 일이 생겨요. 결혼이나 약혼 소식이 있을 수 있어요.",
+        "intensity": 8,
+        "timing": "3-6개월"
+      },
+      {
+        "cards": ["The Empress", "Ten of Pentacles"],
+        "meaning": "풍요로운 가정. 다산과 번영. 대가족의 축복.",
+        "korean": "풍요롭고 행복한 가정을 이뤄요. 아이도 생길 수 있어요.",
+        "intensity": 9,
+        "timing": "1-2년"
       }
     ],
     "breakup_warning": [
       {
         "cards": ["Three of Swords", "Ten of Swords"],
         "meaning": "관계의 고통스러운 종말. 배신이나 상실.",
-        "korean": "아픈 이별을 암시해요. 하지만 끝은 새로운 시작이기도 합니다."
+        "korean": "아픈 이별을 암시해요. 하지만 끝은 새로운 시작이기도 합니다.",
+        "intensity": 9,
+        "advice": "감정을 충분히 표현하고 치유할 시간을 가지세요."
       },
       {
         "cards": ["The Tower", "Three of Swords"],
         "meaning": "갑작스러운 관계 파탄. 충격적인 진실 발견.",
-        "korean": "갑작스러운 변화나 충격적인 진실이 드러날 수 있어요."
+        "korean": "갑작스러운 변화나 충격적인 진실이 드러날 수 있어요.",
+        "intensity": 10,
+        "advice": "충격적이지만 진실은 결국 자유를 가져다줍니다."
       },
       {
         "cards": ["Five of Cups", "Eight of Cups"],
         "meaning": "관계를 떠나야 할 때. 슬픔 속 전진.",
-        "korean": "아쉽지만 떠나야 할 때입니다. 더 나은 것을 향해 가세요."
+        "korean": "아쉽지만 떠나야 할 때입니다. 더 나은 것을 향해 가세요.",
+        "intensity": 7,
+        "advice": "뒤돌아보지 말고 앞으로 나아가세요."
+      },
+      {
+        "cards": ["The Devil", "Three of Swords"],
+        "meaning": "독성 관계의 고통. 집착에서 오는 상처.",
+        "korean": "건강하지 못한 관계가 상처를 줘요. 벗어나야 해요.",
+        "intensity": 8,
+        "advice": "이 관계가 당신에게 주는 것보다 뺏는 것이 많아요."
+      },
+      {
+        "cards": ["Seven of Swords", "Three of Swords"],
+        "meaning": "속임수로 인한 이별. 배신의 발각.",
+        "korean": "거짓이나 배신이 드러나요. 진실 앞에서 관계가 흔들려요.",
+        "intensity": 8,
+        "advice": "진실을 마주할 용기를 가지세요."
+      }
+    ],
+    "reconciliation": [
+      {
+        "cards": ["The Star", "Six of Cups"],
+        "meaning": "과거 관계의 치유와 화해. 재회의 가능성.",
+        "korean": "지난 관계가 치유되고 화해할 수 있어요. 재회도 가능해요.",
+        "intensity": 7,
+        "timing": "3-6개월"
+      },
+      {
+        "cards": ["Temperance", "Two of Cups"],
+        "meaning": "균형 잡힌 재결합. 성숙한 화해.",
+        "korean": "서로 성장한 후 다시 만나요. 더 성숙한 관계가 가능해요.",
+        "intensity": 8,
+        "timing": "6개월-1년"
+      },
+      {
+        "cards": ["Judgement", "The Lovers"],
+        "meaning": "관계의 재평가와 새 시작. 카르마적 재회.",
+        "korean": "운명적으로 다시 연결돼요. 과거의 실수를 바로잡을 기회예요.",
+        "intensity": 9,
+        "timing": "타이밍은 운명에 달림"
       }
     ],
     "career_success": [
       {
         "cards": ["The Chariot", "Ace of Wands"],
         "meaning": "새 사업의 승리. 강력한 시작과 성공.",
-        "korean": "새로운 시작이 큰 성공으로 이어집니다. 자신감 있게 밀어붙이세요."
+        "korean": "새로운 시작이 큰 성공으로 이어집니다. 자신감 있게 밀어붙이세요.",
+        "intensity": 9,
+        "timing": "3-6개월"
       },
       {
         "cards": ["The Emperor", "King of Pentacles"],
         "meaning": "사업적 성공. 리더십과 재정적 안정.",
-        "korean": "리더로서의 성공과 재정적 풍요가 함께 옵니다."
+        "korean": "리더로서의 성공과 재정적 풍요가 함께 옵니다.",
+        "intensity": 10,
+        "timing": "6개월-1년"
       },
       {
         "cards": ["The World", "Ten of Pentacles"],
         "meaning": "커리어의 정점. 완전한 성취와 유산.",
-        "korean": "커리어의 완성입니다. 모든 것이 이루어지는 순간이에요."
+        "korean": "커리어의 완성입니다. 모든 것이 이루어지는 순간이에요.",
+        "intensity": 10,
+        "timing": "1-2년"
       },
       {
         "cards": ["Three of Wands", "Eight of Pentacles"],
         "meaning": "노력이 확장으로. 기술이 인정받음.",
-        "korean": "열심히 갈고닦은 실력이 드디어 빛을 발합니다."
+        "korean": "열심히 갈고닦은 실력이 드디어 빛을 발합니다.",
+        "intensity": 8,
+        "timing": "3-6개월"
+      },
+      {
+        "cards": ["Ace of Pentacles", "The Sun"],
+        "meaning": "황금 기회. 성공이 보장된 새 시작.",
+        "korean": "놓치면 안 되는 기회가 와요. 성공이 보장된 시작이에요!",
+        "intensity": 10,
+        "timing": "1-3개월"
+      },
+      {
+        "cards": ["The Magician", "Ace of Wands"],
+        "meaning": "창업의 최적 타이밍. 아이디어가 현실로.",
+        "korean": "지금 시작하세요! 당신의 아이디어가 성공할 수 있어요.",
+        "intensity": 9,
+        "timing": "지금 당장"
+      },
+      {
+        "cards": ["Six of Wands", "The World"],
+        "meaning": "대중적 성공과 인정. 목표 완전 달성.",
+        "korean": "모든 사람이 당신의 성공을 인정해요. 완전한 승리!",
+        "intensity": 10,
+        "timing": "6개월 내"
+      },
+      {
+        "cards": ["Page of Pentacles", "Three of Pentacles"],
+        "meaning": "학습이 전문성으로. 기술 습득의 성공.",
+        "korean": "배우고 있는 것이 전문 기술로 발전해요. 계속 정진하세요.",
+        "intensity": 7,
+        "timing": "6개월-1년"
+      }
+    ],
+    "job_change": [
+      {
+        "cards": ["Eight of Cups", "Ace of Wands"],
+        "meaning": "현 직장을 떠나 새 기회로. 전직 성공.",
+        "korean": "지금 직장을 떠나면 더 좋은 기회가 기다려요.",
+        "intensity": 8,
+        "timing": "1-3개월"
+      },
+      {
+        "cards": ["Death", "Ace of Pentacles"],
+        "meaning": "커리어의 완전한 변화. 새 분야에서 성공.",
+        "korean": "완전히 새로운 분야로 가세요. 거기서 성공해요.",
+        "intensity": 9,
+        "timing": "3-6개월"
+      },
+      {
+        "cards": ["The Fool", "Three of Wands"],
+        "meaning": "대담한 커리어 전환. 해외나 확장된 기회.",
+        "korean": "과감하게 새로운 도전을 하세요. 더 넓은 세상이 열려요.",
+        "intensity": 8,
+        "timing": "지금-3개월"
+      }
+    ],
+    "promotion": [
+      {
+        "cards": ["Six of Wands", "The Emperor"],
+        "meaning": "승진과 리더십 포지션. 권위를 얻음.",
+        "korean": "승진이에요! 리더 자리로 올라가게 됩니다.",
+        "intensity": 9,
+        "timing": "3-6개월"
+      },
+      {
+        "cards": ["Three of Pentacles", "King of Pentacles"],
+        "meaning": "전문성 인정으로 고위직 진출.",
+        "korean": "당신의 실력이 인정받아 높은 자리로 올라가요.",
+        "intensity": 9,
+        "timing": "6개월-1년"
       }
     ],
     "money_luck": [
       {
         "cards": ["Ace of Pentacles", "Nine of Pentacles"],
         "meaning": "재정적 기회가 풍요로. 투자 성공.",
-        "korean": "새로운 재정 기회가 큰 풍요로 이어집니다."
+        "korean": "새로운 재정 기회가 큰 풍요로 이어집니다.",
+        "intensity": 9,
+        "timing": "3-6개월"
       },
       {
         "cards": ["The Wheel of Fortune", "Ace of Pentacles"],
         "meaning": "운이 좋은 재정 기회. 횡재 가능성.",
-        "korean": "행운의 바람이 재물을 가져옵니다. 예상치 못한 돈이 올 수 있어요."
+        "korean": "행운의 바람이 재물을 가져옵니다. 예상치 못한 돈이 올 수 있어요.",
+        "intensity": 9,
+        "timing": "1-3개월"
       },
       {
         "cards": ["Six of Pentacles", "Ten of Pentacles"],
         "meaning": "나눔이 더 큰 풍요로. 세대를 넘는 부.",
-        "korean": "베푸는 만큼 더 큰 복으로 돌아옵니다."
+        "korean": "베푸는 만큼 더 큰 복으로 돌아옵니다.",
+        "intensity": 8,
+        "timing": "6개월-1년"
+      },
+      {
+        "cards": ["The Sun", "Ten of Pentacles"],
+        "meaning": "재정적 성공의 정점. 부와 행복의 완성.",
+        "korean": "모든 면에서 풍요로워요. 돈과 행복이 함께해요.",
+        "intensity": 10,
+        "timing": "1년 내"
+      },
+      {
+        "cards": ["Four of Pentacles", "Ten of Pentacles"],
+        "meaning": "저축이 큰 재산으로. 장기 투자 성공.",
+        "korean": "꾸준히 모은 돈이 큰 재산이 돼요. 장기 투자가 성공해요.",
+        "intensity": 8,
+        "timing": "1-3년"
+      },
+      {
+        "cards": ["The Empress", "Nine of Pentacles"],
+        "meaning": "풍요로운 라이프스타일. 럭셔리한 삶.",
+        "korean": "원하는 것을 누리며 살게 돼요. 풍요로운 삶이 펼쳐져요.",
+        "intensity": 8,
+        "timing": "6개월-1년"
+      }
+    ],
+    "financial_warning": [
+      {
+        "cards": ["Five of Pentacles", "The Tower"],
+        "meaning": "갑작스러운 재정 위기. 손실 주의.",
+        "korean": "예상치 못한 재정 위기가 올 수 있어요. 대비하세요.",
+        "intensity": 9,
+        "advice": "비상금을 마련하고 위험한 투자는 피하세요."
+      },
+      {
+        "cards": ["Seven of Swords", "Five of Pentacles"],
+        "meaning": "사기나 도난으로 인한 손실. 주의 필요.",
+        "korean": "재정적 사기나 손실을 조심하세요. 의심스러운 것은 피하세요.",
+        "intensity": 8,
+        "advice": "모르는 투자 제안은 거절하세요."
+      },
+      {
+        "cards": ["The Moon", "Seven of Pentacles"],
+        "meaning": "투자의 불확실성. 결과가 불투명함.",
+        "korean": "지금은 투자에 신중해야 해요. 상황이 명확하지 않아요.",
+        "intensity": 6,
+        "advice": "더 많은 정보를 수집한 후 결정하세요."
       }
     ],
     "spiritual_awakening": [
       {
         "cards": ["The High Priestess", "The Moon"],
         "meaning": "강력한 직관 각성. 숨겨진 진실 발견.",
-        "korean": "직관이 극대화되는 시기예요. 내면의 목소리를 따르세요."
+        "korean": "직관이 극대화되는 시기예요. 내면의 목소리를 따르세요.",
+        "intensity": 9
       },
       {
         "cards": ["The Hermit", "The Star"],
         "meaning": "고독 속 깨달음. 영적 치유와 희망.",
-        "korean": "혼자만의 시간이 큰 깨달음을 가져옵니다."
+        "korean": "혼자만의 시간이 큰 깨달음을 가져옵니다.",
+        "intensity": 8
       },
       {
         "cards": ["Judgement", "The World"],
         "meaning": "영적 완성. 카르마 해소. 새 차원으로.",
-        "korean": "한 사이클이 완성되고 새로운 차원으로 올라갑니다."
+        "korean": "한 사이클이 완성되고 새로운 차원으로 올라갑니다.",
+        "intensity": 10
+      },
+      {
+        "cards": ["The High Priestess", "The Hermit"],
+        "meaning": "깊은 내면 탐구. 영적 스승과의 만남.",
+        "korean": "자신을 깊이 알아가는 시기예요. 영적 인도자가 나타날 수 있어요.",
+        "intensity": 8
+      },
+      {
+        "cards": ["Temperance", "The Star"],
+        "meaning": "영혼의 균형과 치유. 평화로운 각성.",
+        "korean": "내면의 평화를 찾아요. 조화로운 영적 성장이에요.",
+        "intensity": 8
+      },
+      {
+        "cards": ["The Fool", "The World"],
+        "meaning": "영적 여정의 완성과 새 시작. 순환의 완료.",
+        "korean": "한 영적 사이클이 끝나고 새로운 여정이 시작돼요.",
+        "intensity": 9
+      }
+    ],
+    "health_positive": [
+      {
+        "cards": ["The Sun", "Ace of Wands"],
+        "meaning": "활력 회복. 건강의 새 시작.",
+        "korean": "에너지가 솟아나요! 건강이 크게 좋아질 거예요.",
+        "intensity": 9,
+        "timing": "1-3개월"
+      },
+      {
+        "cards": ["The Star", "Nine of Pentacles"],
+        "meaning": "치유와 회복. 건강한 라이프스타일.",
+        "korean": "몸과 마음이 치유돼요. 건강하고 풍요로운 삶이에요.",
+        "intensity": 8,
+        "timing": "3-6개월"
+      },
+      {
+        "cards": ["Temperance", "The Sun"],
+        "meaning": "균형 잡힌 건강. 활력과 조화.",
+        "korean": "몸의 균형이 잡히고 활력이 넘쳐요.",
+        "intensity": 9,
+        "timing": "현재 진행 중"
+      }
+    ],
+    "health_warning": [
+      {
+        "cards": ["Four of Swords", "Ten of Swords"],
+        "meaning": "과로로 인한 건강 악화. 휴식 필수.",
+        "korean": "몸이 경고를 보내고 있어요. 지금 쉬지 않으면 쓰러질 수 있어요.",
+        "intensity": 8,
+        "advice": "즉시 휴식을 취하세요. 건강이 최우선입니다."
+      },
+      {
+        "cards": ["The Moon", "Nine of Swords"],
+        "meaning": "정신 건강 주의. 불안과 수면 문제.",
+        "korean": "정신적으로 힘든 시기예요. 전문가의 도움을 구하세요.",
+        "intensity": 7,
+        "advice": "혼자 해결하려 하지 말고 도움을 받으세요."
       }
     ],
     "warning_combinations": [
@@ -109,36 +415,108 @@
         "cards": ["The Tower", "Ten of Swords"],
         "meaning": "큰 붕괴와 종말. 모든 것이 무너질 수 있음.",
         "korean": "큰 변화가 옵니다. 무너지는 것은 재건을 위한 과정이에요.",
+        "intensity": 10,
         "advice": "저항하지 말고 흐름에 맡기세요. 새로운 시작을 준비하세요."
       },
       {
         "cards": ["The Devil", "Seven of Swords"],
         "meaning": "속임수와 중독. 불건전한 관계나 상황.",
         "korean": "무언가에 묶여 있거나 속고 있을 수 있어요. 진실을 직면하세요.",
+        "intensity": 8,
         "advice": "스스로 만든 감옥에서 벗어나세요."
       },
       {
         "cards": ["Five of Pentacles", "Ten of Swords"],
         "meaning": "경제적 어려움의 극한. 힘든 시기.",
         "korean": "힘든 시기지만, 바닥을 찍으면 올라갈 일만 남습니다.",
+        "intensity": 9,
         "advice": "도움을 구하세요. 혼자 감당하지 마세요."
+      },
+      {
+        "cards": ["The Moon", "Seven of Swords"],
+        "meaning": "속임수가 숨겨져 있음. 믿지 말 것.",
+        "korean": "누군가 또는 무언가가 진실을 숨기고 있어요. 조심하세요.",
+        "intensity": 7,
+        "advice": "직감을 믿고, 의심스러우면 확인하세요."
+      },
+      {
+        "cards": ["Nine of Swords", "Ten of Swords"],
+        "meaning": "극심한 불안이 현실로. 두려움의 실현.",
+        "korean": "걱정하던 일이 실제로 일어날 수 있어요. 미리 대비하세요.",
+        "intensity": 8,
+        "advice": "최악의 상황에 대비하되, 두려움에 지배당하지 마세요."
       }
     ],
     "timing_indicators": [
       {
         "cards": ["The Chariot", "Eight of Wands"],
         "meaning": "빠른 진전. 일이 급속도로 진행됨.",
-        "korean": "일이 아주 빠르게 진행됩니다. 몇 주 내로 결과가 나올 거예요."
+        "korean": "일이 아주 빠르게 진행됩니다. 몇 주 내로 결과가 나올 거예요.",
+        "timing": "1-3주"
       },
       {
         "cards": ["The Hanged Man", "Four of Swords"],
         "meaning": "지연과 휴식 필요. 기다려야 할 때.",
-        "korean": "지금은 기다려야 해요. 3개월 정도 여유를 가지세요."
+        "korean": "지금은 기다려야 해요. 3개월 정도 여유를 가지세요.",
+        "timing": "3개월 이상"
       },
       {
         "cards": ["The Fool", "The Magician"],
         "meaning": "새 시작의 완벽한 타이밍. 지금 행동하라.",
-        "korean": "지금이 바로 그때예요! 망설이지 말고 시작하세요."
+        "korean": "지금이 바로 그때예요! 망설이지 말고 시작하세요.",
+        "timing": "즉시"
+      },
+      {
+        "cards": ["Knight of Wands", "Eight of Wands"],
+        "meaning": "아주 빠른 전개. 급속한 발전.",
+        "korean": "번개처럼 빨라요! 며칠 내로 상황이 바뀔 거예요.",
+        "timing": "1-2주"
+      },
+      {
+        "cards": ["Two of Swords", "The Hanged Man"],
+        "meaning": "결정 보류. 시간이 더 필요함.",
+        "korean": "지금 결정하지 마세요. 더 많은 정보가 필요해요.",
+        "timing": "1-3개월 대기"
+      },
+      {
+        "cards": ["Wheel of Fortune", "The Chariot"],
+        "meaning": "운이 움직이고 있음. 곧 큰 변화.",
+        "korean": "운이 당신 편으로 돌아오고 있어요. 곧 좋은 일이!",
+        "timing": "1-2개월"
+      }
+    ],
+    "yes_no_strong_yes": [
+      {
+        "cards": ["The Sun", "The Star"],
+        "meaning": "절대적 YES. 희망과 성공이 함께함.",
+        "korean": "무조건 YES예요! 모든 것이 잘 풀릴 거예요.",
+        "intensity": 10
+      },
+      {
+        "cards": ["The World", "The Sun"],
+        "meaning": "완벽한 YES. 완성과 기쁨.",
+        "korean": "최고의 YES! 이보다 좋을 수 없어요.",
+        "intensity": 10
+      },
+      {
+        "cards": ["Ace of Wands", "Six of Wands"],
+        "meaning": "강한 YES. 성공적인 시작.",
+        "korean": "확실히 YES! 시작하면 성공해요.",
+        "intensity": 9
+      }
+    ],
+    "yes_no_strong_no": [
+      {
+        "cards": ["The Tower", "The Devil"],
+        "meaning": "절대적 NO. 피해야 할 상황.",
+        "korean": "절대 NO예요. 이건 피해야 해요.",
+        "intensity": 10
+      },
+      {
+        "cards": ["Ten of Swords", "Five of Cups"],
+        "meaning": "분명한 NO. 이 길은 아픔만 있음.",
+        "korean": "NO입니다. 이 방향으로 가면 후회할 거예요.",
+        "intensity": 9
       }
     ]
   },
@@ -146,27 +524,81 @@
     "ultimate_love": {
       "cards": ["The Lovers", "Two of Cups", "Ten of Cups"],
       "meaning": "완벽한 사랑의 여정. 만남에서 행복한 가정까지.",
-      "korean": "사랑의 완전한 성취예요. 만남, 결합, 행복한 가정 모두를 암시합니다."
+      "korean": "사랑의 완전한 성취예요. 만남, 결합, 행복한 가정 모두를 암시합니다.",
+      "intensity": 10
     },
     "career_triumph": {
       "cards": ["The Chariot", "The World", "Ten of Pentacles"],
       "meaning": "커리어의 완전한 성공. 모든 목표 달성.",
-      "korean": "커리어에서 완전한 승리를 거둡니다. 성공과 풍요가 함께해요."
+      "korean": "커리어에서 완전한 승리를 거둡니다. 성공과 풍요가 함께해요.",
+      "intensity": 10
     },
     "spiritual_mastery": {
       "cards": ["The High Priestess", "The Hermit", "The World"],
       "meaning": "영적 마스터리. 깨달음의 완성.",
-      "korean": "영적 여정의 정점에 도달합니다. 완전한 깨달음이에요."
+      "korean": "영적 여정의 정점에 도달합니다. 완전한 깨달음이에요.",
+      "intensity": 10
     },
     "new_chapter": {
       "cards": ["Death", "The Star", "The Sun"],
       "meaning": "어둠 후 빛. 고통 후 희망과 기쁨.",
-      "korean": "힘든 시간이 지나면 빛나는 미래가 기다리고 있어요."
+      "korean": "힘든 시간이 지나면 빛나는 미래가 기다리고 있어요.",
+      "intensity": 9
     },
     "major_transformation": {
       "cards": ["The Tower", "Death", "The Star"],
       "meaning": "파괴적 변화 후 완전한 재탄생.",
-      "korean": "완전히 무너지고 다시 태어납니다. 피닉스처럼 부활해요."
+      "korean": "완전히 무너지고 다시 태어납니다. 피닉스처럼 부활해요.",
+      "intensity": 10
+    },
+    "divine_timing": {
+      "cards": ["The Fool", "Wheel of Fortune", "The World"],
+      "meaning": "운명의 완전한 순환. 모든 것이 제자리를 찾음.",
+      "korean": "운명이 당신을 인도하고 있어요. 완벽한 타이밍에 모든 것이 이루어져요.",
+      "intensity": 10
+    },
+    "financial_abundance": {
+      "cards": ["Ace of Pentacles", "Nine of Pentacles", "Ten of Pentacles"],
+      "meaning": "재정적 풍요의 완전한 실현.",
+      "korean": "새로운 기회가 풍요로 이어지고, 궁극적으로 완전한 재정적 자유를 얻어요.",
+      "intensity": 10
+    },
+    "creative_success": {
+      "cards": ["The Magician", "Three of Pentacles", "Six of Wands"],
+      "meaning": "창의적 재능이 인정받고 성공함.",
+      "korean": "당신의 재능이 빛을 발해요. 창조한 것이 세상의 인정을 받아요.",
+      "intensity": 9
+    },
+    "healing_journey": {
+      "cards": ["The Star", "Temperance", "The Sun"],
+      "meaning": "완전한 치유의 여정. 희망에서 균형으로, 그리고 기쁨으로.",
+      "korean": "치유가 완성되고 있어요. 희망이 균형을 만들고, 진정한 기쁨이 찾아와요.",
+      "intensity": 9
+    },
+    "karmic_completion": {
+      "cards": ["Judgement", "Death", "The World"],
+      "meaning": "카르마의 청산과 완전한 해방.",
+      "korean": "과거의 카르마가 청산되고 완전히 자유로워져요. 새 인생이 시작돼요.",
+      "intensity": 10
+    },
+    "marriage_blessing": {
+      "cards": ["The Hierophant", "Four of Wands", "Ten of Cups"],
+      "meaning": "축복받은 결혼과 행복한 가정.",
+      "korean": "공식적인 결합이 축복받고 행복한 가정으로 이어져요. 최고의 결혼 신호!",
+      "intensity": 10
+    },
+    "entrepreneurial_success": {
+      "cards": ["The Magician", "The Emperor", "Ten of Pentacles"],
+      "meaning": "창업의 완전한 성공. 사업 왕국 건설.",
+      "korean": "당신의 사업이 크게 성공해요. 제국을 건설할 수 있어요!",
+      "intensity": 10
+    },
+    "dark_night_of_soul": {
+      "cards": ["The Tower", "Ten of Swords", "The Moon"],
+      "meaning": "영혼의 어두운 밤. 극심한 시련기.",
+      "korean": "매우 힘든 시기지만, 이것도 지나가요. 곧 새벽이 밝아요.",
+      "intensity": 9,
+      "advice": "이 시간은 당신을 더 강하게 만들 거예요. 포기하지 마세요."
     }
   },
   "court_card_pairs": {
@@ -185,6 +617,21 @@
         "cards": ["King of Pentacles", "Queen of Pentacles"],
         "meaning": "안정적이고 풍요로운 파트너십.",
         "korean": "실용적이고 안정적인 관계. 함께 풍요를 만들어요."
+      },
+      {
+        "cards": ["King of Wands", "Queen of Wands"],
+        "meaning": "파워 커플. 함께 세상을 정복할 수 있는 조합.",
+        "korean": "둘이 만나면 무적이에요. 함께 무엇이든 이룰 수 있어요!"
+      },
+      {
+        "cards": ["Knight of Pentacles", "Queen of Cups"],
+        "meaning": "안정과 감성의 조화. 느리지만 깊은 사랑.",
+        "korean": "천천히 깊어지는 사랑이에요. 안정적이고 따뜻해요."
+      },
+      {
+        "cards": ["King of Swords", "Queen of Swords"],
+        "meaning": "지적인 파트너십. 대화로 이어지는 관계.",
+        "korean": "서로의 지성을 존중하는 관계. 대화가 끝이 없어요."
       }
     ],
     "conflict_pairs": [
@@ -197,7 +644,151 @@
         "cards": ["Knight of Swords", "Knight of Wands"],
         "meaning": "두 강한 에고의 충돌. 경쟁이나 갈등.",
         "korean": "둘 다 강해서 부딪힐 수 있어요. 양보가 필요해요."
+      },
+      {
+        "cards": ["King of Pentacles", "Knight of Wands"],
+        "meaning": "안정과 모험의 충돌. 가치관 차이.",
+        "korean": "한 명은 안정을, 한 명은 자유를 원해요. 절충이 필요해요."
+      },
+      {
+        "cards": ["Queen of Cups", "Knight of Swords"],
+        "meaning": "감정과 논리의 충돌. 소통 어려움.",
+        "korean": "감정으로 말하는 사람과 논리로 말하는 사람. 오해가 생기기 쉬워요."
+      }
+    ],
+    "business_partnerships": [
+      {
+        "cards": ["King of Pentacles", "King of Wands"],
+        "meaning": "비즈니스의 완벽한 파트너십. 실행력과 비전.",
+        "korean": "최고의 비즈니스 파트너예요. 하나는 비전을, 하나는 실행력을!"
+      },
+      {
+        "cards": ["Queen of Swords", "King of Pentacles"],
+        "meaning": "전략과 재무의 결합. 성공적인 사업 파트너.",
+        "korean": "전략적 사고와 재정 관리가 만나요. 사업에서 성공해요."
+      },
+      {
+        "cards": ["Page of Pentacles", "King of Swords"],
+        "meaning": "멘토와 제자. 배움을 통한 성장.",
+        "korean": "좋은 멘토를 만났어요. 많이 배우고 성장할 수 있어요."
       }
     ]
+  },
+  "element_combinations": {
+    "fire_fire": {
+      "cards_example": ["Ace of Wands", "Knight of Wands"],
+      "meaning": "폭발적인 에너지. 빠른 진전. 열정 과잉 주의.",
+      "korean": "에너지가 폭발해요! 빠르게 진행되지만 번아웃 조심하세요."
+    },
+    "water_water": {
+      "cards_example": ["Ace of Cups", "Queen of Cups"],
+      "meaning": "깊은 감정. 직관 강화. 감정에 휩쓸릴 수 있음.",
+      "korean": "감정이 깊어요. 직관이 강해지지만 객관성을 잃지 마세요."
+    },
+    "air_air": {
+      "cards_example": ["Ace of Swords", "King of Swords"],
+      "meaning": "명확한 사고. 소통 원활. 머리로만 판단할 위험.",
+      "korean": "생각이 명확해요. 소통이 잘 되지만 감정도 고려하세요."
+    },
+    "earth_earth": {
+      "cards_example": ["Ace of Pentacles", "Queen of Pentacles"],
+      "meaning": "안정적 기반. 물질적 성공. 너무 보수적일 수 있음.",
+      "korean": "안정적이고 실용적이에요. 하지만 가끔은 모험도 필요해요."
+    },
+    "fire_water": {
+      "cards_example": ["Knight of Wands", "Queen of Cups"],
+      "meaning": "열정과 감정의 만남. 창의적이지만 변덕스러움.",
+      "korean": "뜨거운 열정과 깊은 감정이 만나요. 창의적이지만 감정 기복 조심!"
+    },
+    "fire_air": {
+      "cards_example": ["Ace of Wands", "Knight of Swords"],
+      "meaning": "아이디어의 빠른 실행. 혁신적. 너무 급할 수 있음.",
+      "korean": "생각하자마자 행동! 혁신적이지만 조금 천천히 해도 돼요."
+    },
+    "water_earth": {
+      "cards_example": ["Ace of Cups", "Queen of Pentacles"],
+      "meaning": "감정적 안정. 따뜻한 현실성. 성장이 느림.",
+      "korean": "따뜻하고 안정적이에요. 느리지만 확실하게 성장해요."
+    },
+    "air_earth": {
+      "cards_example": ["King of Swords", "King of Pentacles"],
+      "meaning": "전략적 현실주의. 계획이 현실로. 융통성 부족.",
+      "korean": "계획을 현실로 만들어요. 성공하지만 유연해질 필요도 있어요."
+    }
+  },
+  "major_arcana_sequences": {
+    "fools_journey_beginning": {
+      "cards": ["The Fool", "The Magician", "The High Priestess"],
+      "meaning": "새로운 여정의 시작. 잠재력 발현. 직관 각성.",
+      "korean": "인생의 새 장이 열려요. 당신의 잠재력이 깨어나고 있어요."
+    },
+    "transformation_arc": {
+      "cards": ["Death", "Temperance", "The Devil"],
+      "meaning": "변화 후 균형 찾기. 그림자 직면.",
+      "korean": "변화를 거쳐 균형을 찾고, 자신의 그림자를 마주해요."
+    },
+    "liberation_sequence": {
+      "cards": ["The Tower", "The Star", "The Moon"],
+      "meaning": "파괴 후 희망. 무의식 탐구.",
+      "korean": "무너진 뒤 희망이 오고, 깊은 내면 여행이 시작돼요."
+    },
+    "completion_arc": {
+      "cards": ["The Sun", "Judgement", "The World"],
+      "meaning": "기쁨, 각성, 완성. 인생 사이클 완료.",
+      "korean": "기쁨을 느끼고, 새롭게 깨어나서, 완전한 성취에 도달해요."
+    }
+  },
+  "suit_dominant_readings": {
+    "cups_dominant": {
+      "description": "리딩에 컵이 많을 때",
+      "meaning": "감정과 관계가 중심. 사랑과 직관의 시기.",
+      "korean": "지금은 마음을 따라야 할 때예요. 감정에 집중하세요.",
+      "advice": "관계에 투자하고 감정을 표현하세요."
+    },
+    "wands_dominant": {
+      "description": "리딩에 완드가 많을 때",
+      "meaning": "행동과 열정의 시기. 새로운 시작과 창의성.",
+      "korean": "지금은 행동할 때예요. 열정을 따라 움직이세요.",
+      "advice": "아이디어를 실행에 옮기세요. 과감하게!"
+    },
+    "swords_dominant": {
+      "description": "리딩에 소드가 많을 때",
+      "meaning": "사고와 결정의 시기. 진실과 소통.",
+      "korean": "지금은 생각하고 결정해야 할 때예요. 명확하게 소통하세요.",
+      "advice": "감정보다 논리로 상황을 분석하세요."
+    },
+    "pentacles_dominant": {
+      "description": "리딩에 펜타클이 많을 때",
+      "meaning": "물질과 현실의 시기. 재정과 건강.",
+      "korean": "지금은 실용적으로 접근할 때예요. 현실에 집중하세요.",
+      "advice": "재정과 건강을 점검하고 꾸준히 노력하세요."
+    },
+    "major_dominant": {
+      "description": "메이저 아르카나가 많을 때",
+      "meaning": "운명적 시기. 큰 변화와 중요한 교훈.",
+      "korean": "인생의 중요한 전환점이에요. 운명이 움직이고 있어요.",
+      "advice": "작은 것보다 큰 그림에 집중하세요."
+    }
+  },
+  "number_patterns": {
+    "multiple_aces": {
+      "count": 2,
+      "meaning": "여러 영역에서 새로운 시작. 기회의 시기.",
+      "korean": "동시에 여러 새로운 시작이 와요. 놓치지 마세요!"
+    },
+    "multiple_tens": {
+      "count": 2,
+      "meaning": "여러 사이클의 완성. 성취와 변화.",
+      "korean": "여러 가지가 동시에 완성돼요. 새 시작을 준비하세요."
+    },
+    "sequential_numbers": {
+      "example": ["Two of Cups", "Three of Cups", "Four of Cups"],
+      "meaning": "진행 중인 과정. 단계적 발전.",
+      "korean": "단계적으로 발전하고 있어요. 순서대로 진행되고 있어요."
+    },
+    "all_fives": {
+      "meaning": "도전과 갈등의 시기. 변화 필요.",
+      "korean": "시련의 시기지만, 이것이 성장의 기회예요."
+    }
   }
 }

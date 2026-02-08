@@ -76,6 +76,14 @@
   transform: translateX(4px);
 }
 
+.profileLoadedContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
 .profileLoadedMsg {
   display: flex;
   align-items: center;
@@ -84,15 +92,88 @@
   background: #d1fae5;
   border: 1px solid #34d399;
   border-radius: 0.75rem;
-  margin-bottom: 1.25rem;
   font-size: 0.95rem;
   font-weight: 600;
   color: #065f46;
+  flex: 1;
+}
+
+/* Dark mode support for loaded message */
+@media (prefers-color-scheme: dark) {
+  .profileLoadedMsg {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #86efac;
+  }
+}
+
+:global(.dark) .profileLoadedMsg,
+:global([data-theme="dark"]) .profileLoadedMsg {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #86efac;
 }
 
 .profileLoadedIcon {
   font-size: 1.25rem;
   color: #10b981;
+}
+
+.reloadBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #6366f1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.reloadBtn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.reloadBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Dark mode support for reload button */
+@media (prefers-color-scheme: dark) {
+  .reloadBtn {
+    background: rgba(139, 92, 246, 0.15);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: #c4b5fd;
+  }
+
+  .reloadBtn:hover:not(:disabled) {
+    background: rgba(139, 92, 246, 0.25);
+    border-color: rgba(139, 92, 246, 0.5);
+  }
+}
+
+:global(.dark) .reloadBtn,
+:global([data-theme="dark"]) .reloadBtn {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+  color: #c4b5fd;
+}
+
+:global(.dark) .reloadBtn:hover:not(:disabled),
+:global([data-theme="dark"]) .reloadBtn:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.reloadIcon {
+  font-size: 1rem;
 }
 
 .loadErrorMsg {
@@ -151,5 +232,15 @@
   .profileLoadedIcon,
   .loadErrorIcon {
     font-size: 1.1rem;
+  }
+
+  .profileLoadedContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .reloadBtn {
+    justify-content: center;
+    padding: 0.75rem;
   }
 }

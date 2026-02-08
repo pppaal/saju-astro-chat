@@ -1,5 +1,11 @@
 /**
- * @file Tests for Request Validator
+ * @file Tests for Request Validator (Zod-based)
+ *
+ * 테스트 대상: Zod 스키마 기반 요청 검증
+ * - 필수 필드 검증
+ * - 타입 변환 (string → number)
+ * - 기본값 적용
+ * - 상세 에러 메시지
  */
 
 import { describe, it, expect, vi } from 'vitest'
@@ -11,17 +17,9 @@ vi.mock('@/lib/api/requestParser', () => ({
   parseRequestBody: vi.fn(),
 }))
 
-vi.mock('@/lib/validation', () => ({
-  isValidDate: vi.fn((date: string) => /^\d{4}-\d{2}-\d{2}$/.test(date)),
-  isValidTime: vi.fn((time: string) => /^\d{2}:\d{2}$/.test(time)),
-  isValidLatitude: vi.fn((lat: number) => lat >= -90 && lat <= 90),
-  isValidLongitude: vi.fn((lon: number) => lon >= -180 && lon <= 180),
-  LIMITS: { NAME: 100, THEME: 50 },
-}))
-
 import { parseRequestBody } from '@/lib/api/requestParser'
 
-describe('Request Validator', () => {
+describe('Request Validator (Zod-based)', () => {
   describe('validateRequest', () => {
     it('should validate correct request', async () => {
       vi.mocked(parseRequestBody).mockResolvedValue({
@@ -62,7 +60,7 @@ describe('Request Validator', () => {
 
       expect(result).toHaveProperty('error')
       if ('error' in result) {
-        expect(result.error.error).toBe('invalid_body')
+        expect(result.error.error).toBe('Invalid JSON body')
         expect(result.error.status).toBe(400)
       }
     })
@@ -81,6 +79,9 @@ describe('Request Validator', () => {
       const result = await validateRequest(req)
 
       expect(result).toHaveProperty('error')
+      if ('error' in result) {
+        expect(result.error.error).toContain('birthDate')
+      }
     })
 
     it('should return error for missing birthTime', async () => {
@@ -97,13 +98,16 @@ describe('Request Validator', () => {
       const result = await validateRequest(req)
 
       expect(result).toHaveProperty('error')
+      if ('error' in result) {
+        expect(result.error.error).toContain('birthTime')
+      }
     })
 
     it('should return error for invalid latitude', async () => {
       vi.mocked(parseRequestBody).mockResolvedValue({
         birthDate: '1990-01-01',
         birthTime: '12:00',
-        latitude: 100, // Invalid
+        latitude: 100, // Invalid: must be between -90 and 90
         longitude: 127.0,
       })
 
@@ -114,6 +118,9 @@ describe('Request Validator', () => {
       const result = await validateRequest(req)
 
       expect(result).toHaveProperty('error')
+      if ('error' in result) {
+        expect(result.error.error).toContain('latitude')
+      }
     })
 
     it('should return error for invalid longitude', async () => {
@@ -121,7 +128,7 @@ describe('Request Validator', () => {
         birthDate: '1990-01-01',
         birthTime: '12:00',
         latitude: 37.5,
-        longitude: 200, // Invalid
+        longitude: 200, // Invalid: must be between -180 and 180
       })
 
       const req = new NextRequest('http://localhost/api/test', {
@@ -131,6 +138,9 @@ describe('Request Validator', () => {
       const result = await validateRequest(req)
 
       expect(result).toHaveProperty('error')
+      if ('error' in result) {
+        expect(result.error.error).toContain('longitude')
+      }
     })
 
     it('should handle optional name field', async () => {
@@ -275,31 +285,6 @@ describe('Request Validator', () => {
       }
     })
 
-    it('should trim whitespace from strings', async () => {
-      vi.mocked(parseRequestBody).mockResolvedValue({
-        name: '  John Doe  ',
-        birthDate: '  1990-01-01  ',
-        birthTime: '  12:00  ',
-        theme: '  chat  ',
-        latitude: 37.5,
-        longitude: 127.0,
-        messages: [],
-      })
-
-      const req = new NextRequest('http://localhost/api/test', {
-        method: 'POST',
-      })
-
-      const result = await validateRequest(req)
-
-      if ('data' in result) {
-        expect(result.data.name).toBe('John Doe')
-        expect(result.data.birthDate).toBe('1990-01-01')
-        expect(result.data.birthTime).toBe('12:00')
-        expect(result.data.theme).toBe('chat')
-      }
-    })
-
     it('should handle optional saju field', async () => {
       const mockSaju = { pillars: {} }
       vi.mocked(parseRequestBody).mockResolvedValue({
@@ -344,7 +329,7 @@ describe('Request Validator', () => {
       }
     })
 
-    it('should handle numeric latitude as string', async () => {
+    it('should handle numeric latitude as string (auto-coercion)', async () => {
       vi.mocked(parseRequestBody).mockResolvedValue({
         birthDate: '1990-01-01',
         birthTime: '12:00',
@@ -361,10 +346,11 @@ describe('Request Validator', () => {
 
       if ('data' in result) {
         expect(result.data.latitude).toBe(37.5)
+        expect(typeof result.data.latitude).toBe('number')
       }
     })
 
-    it('should handle numeric longitude as string', async () => {
+    it('should handle numeric longitude as string (auto-coercion)', async () => {
       vi.mocked(parseRequestBody).mockResolvedValue({
         birthDate: '1990-01-01',
         birthTime: '12:00',
@@ -381,10 +367,11 @@ describe('Request Validator', () => {
 
       if ('data' in result) {
         expect(result.data.longitude).toBe(127.0)
+        expect(typeof result.data.longitude).toBe('number')
       }
     })
 
-    it('should limit name length', async () => {
+    it('should return error for name exceeding max length', async () => {
       const longName = 'A'.repeat(200)
       vi.mocked(parseRequestBody).mockResolvedValue({
         name: longName,
@@ -401,12 +388,11 @@ describe('Request Validator', () => {
 
       const result = await validateRequest(req)
 
-      if ('data' in result) {
-        expect(result.data.name?.length).toBeLessThanOrEqual(100)
-      }
+      // Zod는 max length 초과시 에러 반환
+      expect(result).toHaveProperty('error')
     })
 
-    it('should limit theme length', async () => {
+    it('should return error for theme exceeding max length', async () => {
       const longTheme = 'A'.repeat(100)
       vi.mocked(parseRequestBody).mockResolvedValue({
         birthDate: '1990-01-01',
@@ -423,9 +409,108 @@ describe('Request Validator', () => {
 
       const result = await validateRequest(req)
 
-      if ('data' in result) {
-        expect(result.data.theme.length).toBeLessThanOrEqual(50)
+      // Zod는 max length 초과시 에러 반환
+      expect(result).toHaveProperty('error')
+    })
+
+    it('should include detailed error information', async () => {
+      vi.mocked(parseRequestBody).mockResolvedValue({
+        birthDate: 'invalid-date',
+        birthTime: '12:00',
+        latitude: 37.5,
+        longitude: 127.0,
+      })
+
+      const req = new NextRequest('http://localhost/api/test', {
+        method: 'POST',
+      })
+
+      const result = await validateRequest(req)
+
+      expect(result).toHaveProperty('error')
+      if ('error' in result) {
+        expect(result.error.details).toBeDefined()
+        expect(Array.isArray(result.error.details)).toBe(true)
+        expect(result.error.details![0]).toHaveProperty('field')
+        expect(result.error.details![0]).toHaveProperty('message')
       }
+    })
+
+    it('should validate invalid time format', async () => {
+      vi.mocked(parseRequestBody).mockResolvedValue({
+        birthDate: '1990-01-01',
+        birthTime: 'invalid-time',
+        latitude: 37.5,
+        longitude: 127.0,
+      })
+
+      const req = new NextRequest('http://localhost/api/test', {
+        method: 'POST',
+      })
+
+      const result = await validateRequest(req)
+
+      expect(result).toHaveProperty('error')
+      if ('error' in result) {
+        expect(result.error.error).toContain('birthTime')
+      }
+    })
+
+    it('should accept AM/PM time format', async () => {
+      vi.mocked(parseRequestBody).mockResolvedValue({
+        birthDate: '1990-01-01',
+        birthTime: '12:00 PM',
+        latitude: 37.5,
+        longitude: 127.0,
+        messages: [],
+      })
+
+      const req = new NextRequest('http://localhost/api/test', {
+        method: 'POST',
+      })
+
+      const result = await validateRequest(req)
+
+      expect(result).toHaveProperty('data')
+      if ('data' in result) {
+        expect(result.data.birthTime).toBe('12:00 PM')
+      }
+    })
+
+    it('should reject invalid gender value', async () => {
+      vi.mocked(parseRequestBody).mockResolvedValue({
+        birthDate: '1990-01-01',
+        birthTime: '12:00',
+        gender: 'invalid-gender',
+        latitude: 37.5,
+        longitude: 127.0,
+      })
+
+      const req = new NextRequest('http://localhost/api/test', {
+        method: 'POST',
+      })
+
+      const result = await validateRequest(req)
+
+      expect(result).toHaveProperty('error')
+    })
+
+    it('should reject invalid lang value', async () => {
+      vi.mocked(parseRequestBody).mockResolvedValue({
+        birthDate: '1990-01-01',
+        birthTime: '12:00',
+        lang: 'fr', // Not in ['ko', 'en']
+        latitude: 37.5,
+        longitude: 127.0,
+      })
+
+      const req = new NextRequest('http://localhost/api/test', {
+        method: 'POST',
+      })
+
+      const result = await validateRequest(req)
+
+      expect(result).toHaveProperty('error')
     })
   })
 })

@@ -86,8 +86,15 @@ test.describe('Complete Tarot Reading Flow', () => {
 
       expect(hasSpreadTerms).toBe(true)
     } else {
-      // Page loaded correctly
-      expect(true).toBe(true)
+      // 입력 필드가 없어도 타로 페이지가 올바르게 로드되었는지 확인
+      const bodyText = await page.textContent('body')
+      const hasTarotContent =
+        bodyText?.includes('타로') ||
+        bodyText?.includes('Tarot') ||
+        bodyText?.includes('카드') ||
+        bodyText!.length > 100
+
+      expect(hasTarotContent).toBe(true)
     }
   })
 
@@ -199,8 +206,15 @@ test.describe('Complete Tarot Reading Flow', () => {
 
       expect(hasInterpretation).toBe(true)
     } else {
-      // Page loaded correctly
-      expect(true).toBe(true)
+      // 입력 필드가 없어도 타로 페이지 콘텐츠가 있는지 확인
+      const bodyText = await page.textContent('body')
+      const hasTarotContent =
+        bodyText?.includes('타로') ||
+        bodyText?.includes('Tarot') ||
+        bodyText?.includes('카드') ||
+        bodyText!.length > 100
+
+      expect(hasTarotContent).toBe(true)
     }
   })
 
@@ -222,8 +236,15 @@ test.describe('Complete Tarot Reading Flow', () => {
 
       expect(hasError || buttonDisabled || stillOnPage).toBe(true)
     } else {
-      // Page loaded correctly
-      expect(true).toBe(true)
+      // 입력 필드가 없어도 타로 페이지가 정상적으로 로드되었는지 확인
+      const bodyText = await page.textContent('body')
+      const hasTarotContent =
+        bodyText?.includes('타로') ||
+        bodyText?.includes('Tarot') ||
+        bodyText?.includes('카드') ||
+        bodyText!.length > 100
+
+      expect(hasTarotContent).toBe(true)
     }
   })
 

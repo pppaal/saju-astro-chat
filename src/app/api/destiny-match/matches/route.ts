@@ -84,9 +84,13 @@ export const GET = withApiMiddleware(
               personalityName: true,
               user: {
                 select: {
-                  birthDate: true,
-                  gender: true,
                   image: true,
+                  profile: {
+                    select: {
+                      birthDate: true,
+                      gender: true,
+                    },
+                  },
                 },
               },
             },
@@ -107,9 +111,13 @@ export const GET = withApiMiddleware(
               personalityName: true,
               user: {
                 select: {
-                  birthDate: true,
-                  gender: true,
                   image: true,
+                  profile: {
+                    select: {
+                      birthDate: true,
+                      gender: true,
+                    },
+                  },
                 },
               },
             },
@@ -125,8 +133,9 @@ export const GET = withApiMiddleware(
 
         // 나이 계산
         let age: number | null = null
-        if (partnerProfile.user.birthDate) {
-          const birth = new Date(partnerProfile.user.birthDate)
+        const birthDate = partnerProfile.user.profile?.birthDate
+        if (birthDate) {
+          const birth = new Date(birthDate)
           const today = new Date()
           age = today.getFullYear() - birth.getFullYear()
           const monthDiff = today.getMonth() - birth.getMonth()

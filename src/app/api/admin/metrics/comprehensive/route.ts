@@ -545,7 +545,7 @@ async function fetchPerformanceData(start: Date, end: Date) {
 
     const result = await response.json()
     return result.data || getDefaultPerformanceData()
-  } catch (error) {
+  } catch (_error) {
     logger.warn('[Comprehensive] Performance fetch failed, using defaults')
     return getDefaultPerformanceData()
   }

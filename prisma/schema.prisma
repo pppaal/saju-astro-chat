@@ -36,28 +36,30 @@ model Session {
 }
 
 model User {
-  id                    String                 @id @default(cuid())
-  name                  String?
-  email                 String?                @unique
-  emailVerified         DateTime?
-  image                 String? // OAuth provider image
-  profilePhoto          String? // User uploaded custom profile photo
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
-  birthDate             String?
-  birthTime             String?
-  gender                String?
-  birthCity             String?
-  tzId                  String?
-  passwordHash          String?
-  emailNotifications    Boolean                @default(false)
-  role                  String                 @default("user") // user, admin, superadmin
-  referralCode          String?                @unique // 내 고유 추천 코드
-  referrerId            String? // 나를 추천한 유저 ID
-  referrer              User?                  @relation("Referrals", fields: [referrerId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  referrals             User[]                 @relation("Referrals") // 내가 추천한 유저들
-  accounts              Account[]
-  sessions              Session[]
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  name          String?
+  image         String? // OAuth provider image
+  role          String    @default("user") // user, admin, superadmin
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // 분리된 테이블 관계
+  profile  UserProfile?  // 프로필 정보 (생년월일, 프로필사진 등)
+  settings UserSettings? // 설정 정보 (알림, 추천코드 등)
+
+  // 추천인 관계
+  referrerId String? // 나를 추천한 유저 ID
+  referrer   User?   @relation("Referrals", fields: [referrerId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  referrals  User[]  @relation("Referrals") // 내가 추천한 유저들
+
+  // 인증 관계
+  accounts Account[]
+  sessions Session[]
+
+  // 서비스 데이터 관계
   readings              Reading[]
   fortunes              Fortune[]
   snapshots             DestinySnapshot[]
@@ -70,24 +72,64 @@ model User {
   premiumContentAccess  PremiumContentAccess[]
   credits               UserCredits?
   counselorChatSessions CounselorChatSession[]
-  referralRewards       ReferralReward[] // 내가 받은 추천 보상들
-  savedCalendarDates    SavedCalendarDate[] // 저장된 운명 캘린더 날짜들
-  personalityResult     PersonalityResult? // 성격 테스트 결과
-  icpResults            ICPResult[] // ICP 대인관계 스타일 결과
-  pastLifeResults       PastLifeResult[] // 전생 리딩 결과
-  compatibilityResults  CompatibilityResult[] // 궁합 분석 결과
-  destinyMatrixReports  DestinyMatrixReport[] // Destiny Matrix AI 리포트
-  tarotReadings         TarotReading[] // 타로 리딩 기록
-  pushSubscriptions     PushSubscription[] // 푸시 알림 구독
-  matchProfile          MatchProfile? // 매칭 프로필
-  matchMessages         MatchMessage[] // 매칭 채팅 메시지
-  blocksMade            UserBlock[]            @relation("BlocksMade")
-  blocksReceived        UserBlock[]            @relation("BlocksReceived")
-  reportsMade           UserReport[]           @relation("ReportsMade")
-  reportsReceived       UserReport[]           @relation("ReportsReceived")
+  referralRewards       ReferralReward[]
+  savedCalendarDates    SavedCalendarDate[]
+  personalityResult     PersonalityResult?
+  icpResults            ICPResult[]
+  pastLifeResults       PastLifeResult[]
+  compatibilityResults  CompatibilityResult[]
+  destinyMatrixReports  DestinyMatrixReport[]
+  tarotReadings         TarotReading[]
+  pushSubscriptions     PushSubscription[]
+  matchProfile          MatchProfile?
+  matchMessages         MatchMessage[]
+  blocksMade            UserBlock[]    @relation("BlocksMade")
+  blocksReceived        UserBlock[]    @relation("BlocksReceived")
+  reportsMade           UserReport[]   @relation("ReportsMade")
+  reportsReceived       UserReport[]   @relation("ReportsReceived")
   savedPersons          SavedPerson[]
 
   @@index([referrerId])
+}
+
+// 사용자 프로필 정보 - 생년월일, 사진 등 개인 정보
+model UserProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 프로필 사진
+  profilePhoto String? // User uploaded custom profile photo
+
+  // 생년월일 정보 (사주/점성술 분석용)
+  birthDate String? // YYYY-MM-DD
+  birthTime String? // HH:mm
+  gender    String? // M, F, U
+  birthCity String?
+  tzId      String? // Timezone ID
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([birthDate])
+}
+
+// 사용자 설정 - 알림, 추천코드 등
+model UserSettings {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 알림 설정
+  emailNotifications Boolean @default(false)
+
+  // 추천 시스템
+  referralCode String? @unique // 내 고유 추천 코드
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([referralCode])
 }
 
 model VerificationToken {
@@ -1047,4 +1089,40 @@ model UserReport {
   @@index([reporterId])
   @@index([reportedId])
   @@index([status])
+}
+
+// 🔒 Security Audit Log - 보안 이벤트 로그
+model SecurityAuditLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // 이벤트 분류
+  category String // auth, admin, token, data, security, api
+  action   String // login, logout, rate_limit_exceeded, suspicious_injection_attempt, etc.
+  severity String // info, warn, error, critical
+
+  // 결과
+  success Boolean @default(true)
+
+  // 사용자/세션 정보
+  userId    String?
+  userEmail String?
+
+  // 요청 정보
+  ipAddress String?
+  userAgent String? @db.Text
+  path      String?
+  method    String?
+
+  // 추가 정보 (JSON)
+  details Json?
+
+  // 에러 메시지
+  errorMessage String? @db.Text
+
+  @@index([category, createdAt])
+  @@index([severity, createdAt])
+  @@index([userId, createdAt])
+  @@index([ipAddress, createdAt])
+  @@index([action, createdAt])
 }

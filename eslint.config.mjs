@@ -48,11 +48,10 @@ const config = [
       'playwright-report/**',
       'test-results/**',
       'coverage/**',
+      'htmlcov/**',
       '.nyc_output/**',
-      // Test and script directories (keep excluded for flexibility)
+      // E2E tests (Playwright - different syntax)
       'e2e/**',
-      'scripts/**',
-      'tests/**',
       // IDE and system files
       '.vscode/**',
       '.idea/**',
@@ -130,6 +129,38 @@ const config = [
           ignoreRestSiblings: true,
         },
       ],
+    },
+  },
+  {
+    // Test files - relaxed rules for test utilities and mocking
+    files: ['tests/**/*.{ts,tsx,js}'],
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'warn', // Tests often need any for mocking
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
+      'no-console': 'off', // Allow console in tests for debugging
+    },
+  },
+  {
+    // Scripts - utility scripts with more flexibility
+    files: ['scripts/**/*.{ts,tsx,js,mjs}'],
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': 'warn',
+      'no-console': 'off', // Scripts often use console output
     },
   },
   prettier,

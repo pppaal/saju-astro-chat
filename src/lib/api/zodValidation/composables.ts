@@ -170,10 +170,11 @@ export type RequiredBirthDataValidated = z.infer<typeof requiredBirthDataSchema>
 
 /**
  * Base schema for chat-based API requests
+ * Note: Uses restricted locale ['ko', 'en'] as chat AI only supports these
  */
 export const chatRequestBaseSchema = z.object({
   messages: z.array(chatMessageSchema).min(1).max(50),
-  locale: z.enum(['ko', 'en']).optional(),
+  locale: z.enum(['ko', 'en']).optional(), // Chat AI supports only ko/en
 })
 
 export type ChatRequestBaseValidated = z.infer<typeof chatRequestBaseSchema>

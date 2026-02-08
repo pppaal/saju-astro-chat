@@ -146,16 +146,17 @@ test.describe('Static Pages', () => {
     await page.goto('/faq', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
 
-    // FAQ page should have expandable items or questions
-    const faqItems = page.locator(
-      '[class*="faq"], [class*="accordion"], details, [class*="question"]'
-    )
-    const itemCount = await faqItems.count()
-    expect(itemCount).toBeGreaterThanOrEqual(0)
-
     // Should have question/answer content
     const bodyText = await page.locator('body').textContent()
     expect(bodyText!.length).toBeGreaterThan(100)
+
+    // FAQ page should have question-related content
+    const hasFAQContent =
+      bodyText!.includes('질문') ||
+      bodyText!.includes('자주') ||
+      bodyText!.includes('FAQ') ||
+      bodyText!.includes('문의')
+    expect(hasFAQContent).toBe(true)
   })
 
   test('should load privacy policy with legal text', async ({ page }) => {

@@ -13,7 +13,7 @@ import styles from './UnifiedBirthForm.module.css'
 export interface BirthInfo {
   birthDate: string
   birthTime: string
-  gender: 'M' | 'F' | 'Male' | 'Female'
+  gender?: 'M' | 'F' | 'Male' | 'Female'
   birthCity?: string
   latitude?: number
   longitude?: number
@@ -30,6 +30,7 @@ interface UnifiedBirthFormProps {
   includeCity?: boolean
   includeCityToggle?: boolean
   allowTimeUnknown?: boolean
+  includeGender?: boolean
   genderFormat?: 'short' | 'long' // 'M'/'F' or 'Male'/'Female'
 
   // Custom labels and texts
@@ -52,6 +53,7 @@ export function UnifiedBirthForm({
   includeCity = true,
   includeCityToggle = false,
   allowTimeUnknown = true,
+  includeGender = true,
   genderFormat = 'short',
   submitButtonText,
   submitButtonIcon = '✨',
@@ -147,8 +149,8 @@ export function UnifiedBirthForm({
           setTimeUnknown(true)
         }
 
-        // Set gender with proper format
-        if (user.gender) {
+        // Set gender with proper format (only if gender is included)
+        if (includeGender && user.gender) {
           if (genderFormat === 'long') {
             setGender(user.gender === 'M' ? 'Male' : user.gender === 'F' ? 'Female' : 'Male')
           } else {
@@ -183,7 +185,7 @@ export function UnifiedBirthForm({
         setLoadingProfile(false)
       }
     },
-    [status, locale, allowTimeUnknown, genderFormat, includeCity, includeCityToggle]
+    [status, locale, allowTimeUnknown, includeGender, genderFormat, includeCity, includeCityToggle]
   )
 
   // Auto-load profile when user is authenticated
@@ -234,7 +236,7 @@ export function UnifiedBirthForm({
     const birthInfo: BirthInfo = {
       birthDate,
       birthTime: timeUnknown ? '12:00' : birthTime || '12:00',
-      gender,
+      ...(includeGender ? { gender } : {}),
       ...(includeCity || includeCityToggle
         ? {
             birthCity: showCityInput ? birthCity : undefined,
@@ -275,6 +277,7 @@ export function UnifiedBirthForm({
         <ProfileLoader
           status={status}
           onLoadClick={() => handleLoadProfile(false)}
+          onReloadClick={() => handleLoadProfile(false)}
           isLoading={loadingProfile}
           isLoaded={profileLoaded}
           error={loadError}
@@ -296,14 +299,16 @@ export function UnifiedBirthForm({
         </div>
 
         {/* Gender */}
-        <div className={styles.fieldGroup}>
-          <GenderSelector
-            value={gender}
-            onChange={setGender}
-            locale={locale}
-            outputFormat={genderFormat}
-          />
-        </div>
+        {includeGender && (
+          <div className={styles.fieldGroup}>
+            <GenderSelector
+              value={gender}
+              onChange={setGender}
+              locale={locale}
+              outputFormat={genderFormat}
+            />
+          </div>
+        )}
 
         {/* Birth Time */}
         <div className={styles.fieldGroup}>

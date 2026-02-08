@@ -74,8 +74,17 @@ test.describe('Premium Subscription Flow', () => {
 
       expect(isCheckout).toBe(true)
     } else {
-      // No subscribe button visible - page still loaded correctly
-      expect(true).toBe(true)
+      // 구독 버튼이 없어도 가격 페이지가 정상적으로 로드되었는지 확인
+      const bodyText = await page.textContent('body')
+      const hasPricingContent =
+        bodyText?.includes('무료') ||
+        bodyText?.includes('Free') ||
+        bodyText?.includes('프리미엄') ||
+        bodyText?.includes('Premium') ||
+        bodyText?.includes('가격') ||
+        bodyText?.includes('₩')
+
+      expect(hasPricingContent).toBe(true)
     }
   })
 

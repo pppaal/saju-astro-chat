@@ -64,12 +64,13 @@ function DreamContent() {
   const handleBirthInfoSubmit = async (birthData: {
     birthDate: string
     birthTime: string
-    gender: 'M' | 'F' | 'Male' | 'Female'
+    gender?: 'M' | 'F' | 'Male' | 'Female'
     birthCity?: string
   }) => {
     // Normalize gender to 'M' | 'F' format
+    const genderValue = birthData.gender || 'M'
     const normalizedGender =
-      birthData.gender === 'Male' ? 'M' : birthData.gender === 'Female' ? 'F' : birthData.gender
+      genderValue === 'Male' ? 'M' : genderValue === 'Female' ? 'F' : genderValue
 
     // Update birthInfo hook state
     birthInfo.setBirthDate(birthData.birthDate)

@@ -19,7 +19,7 @@ import { type ChatMessage } from '@/lib/api'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 
 import { ALLOWED_LOCALES, ALLOWED_GENDERS, MESSAGE_LIMITS } from '@/lib/constants/api-limits'
-import { HTTP_STATUS } from '@/lib/constants/http'
+// HTTP_STATUS not used directly, status codes handled via createErrorResponse
 import { DATE_RE, TIME_RE, LIMITS } from '@/lib/validation/patterns'
 import { destinyMapChatSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 export const dynamic = 'force-dynamic'

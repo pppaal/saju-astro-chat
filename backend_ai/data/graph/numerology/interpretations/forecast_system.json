@@ -1,0 +1,504 @@
+{
+  "meta": {
+    "type": "numerology_forecast_system",
+    "description": "수비학 월운/년운 예측 시스템",
+    "version": "1.0.0"
+  },
+
+  "personal_month_forecast": {
+    "meta": {
+      "description": "개인 월 주기 예측 - 생일+생월+현재연도로 개인년 산출 후 현재 월 더함",
+      "calculation": "Personal Year + Current Month = Personal Month (한 자리로 환원)"
+    },
+    "months": {
+      "1": {
+        "theme_ko": "새로운 시작",
+        "theme_en": "New Beginnings",
+        "energy": "개척, 주도권, 독립",
+        "opportunities": [
+          "새로운 프로젝트 시작",
+          "자기주장 연습",
+          "독립적 결정"
+        ],
+        "challenges": [
+          "조급함 주의",
+          "타인 의견 무시 경향",
+          "외로움 가능성"
+        ],
+        "love": {
+          "single": "새로운 만남 가능성. 적극적으로 다가가세요.",
+          "relationship": "관계에서 주도권 잡기. 단, 독단 주의."
+        },
+        "career": "새 아이디어 제안 좋음. 리더십 발휘.",
+        "finance": "새로운 수입원 탐색. 충동 지출 주의.",
+        "health": "새 운동 시작 좋음. 두통 주의.",
+        "action_items": [
+          "이번 달 목표 3가지 설정하기",
+          "미뤄왔던 시작 하나 실행하기",
+          "자기 PR 기회 만들기"
+        ],
+        "lucky_days": [1, 10, 19, 28],
+        "power_color": "빨강"
+      },
+      "2": {
+        "theme_ko": "협력과 인내",
+        "theme_en": "Cooperation & Patience",
+        "energy": "파트너십, 균형, 세부사항",
+        "opportunities": [
+          "관계 깊어짐",
+          "협업 성과",
+          "세밀한 작업"
+        ],
+        "challenges": [
+          "우유부단함",
+          "타인 의존",
+          "감정 기복"
+        ],
+        "love": {
+          "single": "친구를 통한 인연. 천천히 발전.",
+          "relationship": "소통과 이해 중요. 사소한 것에 감사."
+        },
+        "career": "팀워크 중요. 뒤에서 지원하는 역할.",
+        "finance": "파트너십 투자. 큰 결정은 미루기.",
+        "health": "신경계 관리. 충분한 수면.",
+        "action_items": [
+          "중요한 관계에 시간 투자하기",
+          "협업 제안 받아들이기",
+          "인내심 연습하기"
+        ],
+        "lucky_days": [2, 11, 20, 29],
+        "power_color": "주황"
+      },
+      "3": {
+        "theme_ko": "창조와 표현",
+        "theme_en": "Creativity & Expression",
+        "energy": "소통, 예술, 기쁨",
+        "opportunities": [
+          "창작 활동",
+          "사교 모임",
+          "자기표현"
+        ],
+        "challenges": [
+          "산만함",
+          "가벼운 약속",
+          "감정 과잉"
+        ],
+        "love": {
+          "single": "파티, 모임에서 인연. 재미있게!",
+          "relationship": "함께 즐거운 활동. 대화 많이."
+        },
+        "career": "프레젠테이션, 창작 프로젝트 좋음.",
+        "finance": "엔터테인먼트 지출 증가. 예산 관리.",
+        "health": "목, 목소리 관리. 스트레스 해소.",
+        "action_items": [
+          "창작 활동 하나 시작하기",
+          "친구들과 즐거운 시간",
+          "글쓰기, 말하기 연습"
+        ],
+        "lucky_days": [3, 12, 21, 30],
+        "power_color": "노랑"
+      },
+      "4": {
+        "theme_ko": "기반 구축",
+        "theme_en": "Building Foundations",
+        "energy": "노력, 조직, 안정",
+        "opportunities": [
+          "체계 정립",
+          "건강 습관",
+          "재정 정리"
+        ],
+        "challenges": [
+          "과로",
+          "융통성 부족",
+          "지루함"
+        ],
+        "love": {
+          "single": "진지한 만남 찾기. 외모보다 내면.",
+          "relationship": "안정감 구축. 일상의 소중함."
+        },
+        "career": "열심히 일하면 성과. 디테일 집중.",
+        "finance": "예산 세우기, 저축 시작. 견실한 투자.",
+        "health": "규칙적 운동 시작. 관절 주의.",
+        "action_items": [
+          "재정 상태 점검하기",
+          "업무 시스템 개선하기",
+          "건강 루틴 만들기"
+        ],
+        "lucky_days": [4, 13, 22, 31],
+        "power_color": "녹색"
+      },
+      "5": {
+        "theme_ko": "변화와 자유",
+        "theme_en": "Change & Freedom",
+        "energy": "모험, 변화, 유연성",
+        "opportunities": [
+          "여행",
+          "새로운 경험",
+          "변화 수용"
+        ],
+        "challenges": [
+          "불안정",
+          "산만함",
+          "과도한 변화"
+        ],
+        "love": {
+          "single": "여행 중 인연. 다양한 만남.",
+          "relationship": "함께 새로운 경험. 루틴 탈피."
+        },
+        "career": "이직, 새 프로젝트 기회. 유연하게.",
+        "finance": "예상치 못한 수입/지출. 유동성 확보.",
+        "health": "활동적인 운동. 신경계 관리.",
+        "action_items": [
+          "버킷리스트 하나 실행",
+          "새로운 것 배우기",
+          "comfort zone 벗어나기"
+        ],
+        "lucky_days": [5, 14, 23],
+        "power_color": "터키옥색"
+      },
+      "6": {
+        "theme_ko": "책임과 가정",
+        "theme_en": "Responsibility & Home",
+        "energy": "돌봄, 사랑, 조화",
+        "opportunities": [
+          "가정 일에 집중",
+          "관계 치유",
+          "봉사 활동"
+        ],
+        "challenges": [
+          "과잉 책임",
+          "간섭",
+          "자기 희생"
+        ],
+        "love": {
+          "single": "결혼 생각하는 인연. 가정적인 사람.",
+          "relationship": "가정 꾸미기. 결혼 고려."
+        },
+        "career": "팀 화합. 서비스 업무 좋음.",
+        "finance": "가정 관련 지출. 안정적 투자.",
+        "health": "가족 건강 챙기기. 스트레스 관리.",
+        "action_items": [
+          "가족과 quality time",
+          "집 꾸미기/정리",
+          "누군가를 돕기"
+        ],
+        "lucky_days": [6, 15, 24],
+        "power_color": "분홍"
+      },
+      "7": {
+        "theme_ko": "내면 탐구",
+        "theme_en": "Inner Reflection",
+        "energy": "성찰, 영성, 분석",
+        "opportunities": [
+          "명상, 공부",
+          "전문성 심화",
+          "휴식"
+        ],
+        "challenges": [
+          "고립",
+          "과도한 분석",
+          "불신"
+        ],
+        "love": {
+          "single": "혼자 시간 필요. 깊은 인연 가능성.",
+          "relationship": "서로 공간 주기. 깊은 대화."
+        },
+        "career": "연구, 분석 업무 좋음. 조용히 성과.",
+        "finance": "분석 후 투자. 신중한 결정.",
+        "health": "명상, 수면 중요. 정신 건강 케어.",
+        "action_items": [
+          "명상이나 요가 시작",
+          "혼자만의 시간 갖기",
+          "깊이 있는 책 읽기"
+        ],
+        "lucky_days": [7, 16, 25],
+        "power_color": "보라"
+      },
+      "8": {
+        "theme_ko": "성취와 수확",
+        "theme_en": "Achievement & Harvest",
+        "energy": "권력, 재물, 성공",
+        "opportunities": [
+          "비즈니스 성공",
+          "재정적 이득",
+          "인정받기"
+        ],
+        "challenges": [
+          "물질주의",
+          "과로",
+          "권력 오용"
+        ],
+        "love": {
+          "single": "성공한 사람과 인연. 현실적 접근.",
+          "relationship": "공동 재정 관리. 팀으로서 성공."
+        },
+        "career": "승진, 성과급 가능성. 큰 결정.",
+        "finance": "투자 수익. 사업 확장.",
+        "health": "스트레스 관리. 심장 주의.",
+        "action_items": [
+          "재정 목표 점검",
+          "비즈니스 기회 잡기",
+          "성과에 대한 보상 받기"
+        ],
+        "lucky_days": [8, 17, 26],
+        "power_color": "금색"
+      },
+      "9": {
+        "theme_ko": "완성과 해방",
+        "theme_en": "Completion & Release",
+        "energy": "마무리, 용서, 인류애",
+        "opportunities": [
+          "프로젝트 완료",
+          "과거 청산",
+          "봉사"
+        ],
+        "challenges": [
+          "상실감",
+          "미련",
+          "감정 과잉"
+        ],
+        "love": {
+          "single": "과거 정리 후 새 시작 준비.",
+          "relationship": "묵은 문제 해결. 용서."
+        },
+        "career": "프로젝트 마무리. 이직 준비.",
+        "finance": "빚 청산. 기부 좋음.",
+        "health": "디톡스. 정서적 정화.",
+        "action_items": [
+          "오래된 짐 정리(물건/관계)",
+          "용서 연습",
+          "기부나 봉사"
+        ],
+        "lucky_days": [9, 18, 27],
+        "power_color": "금동색"
+      }
+    }
+  },
+
+  "yearly_forecast_detailed": {
+    "meta": {
+      "description": "개인 연도별 상세 예측"
+    },
+    "years": {
+      "1": {
+        "theme": "파종의 해",
+        "overview": "새로운 9년 주기의 시작. 이 해에 심은 씨앗이 향후 9년의 방향을 결정합니다. 새로운 시작을 두려워하지 마세요.",
+        "quarterly": {
+          "Q1": "새해 결심을 행동으로. 과감한 첫 걸음.",
+          "Q2": "초기 장애물 극복. 독립적 결정.",
+          "Q3": "궤도에 오름. 자신감 상승.",
+          "Q4": "내년 위한 기반. 성과 점검."
+        },
+        "major_life_areas": {
+          "career": "이직, 창업, 새 프로젝트 시작에 최적. 리더십 발휘.",
+          "love": "새 인연 시작. 기존 관계도 새 단계로.",
+          "finance": "새로운 수입원. 투자 시작.",
+          "health": "새 운동 습관. 건강 목표 설정."
+        },
+        "key_months": {
+          "peak": [1, 5, 10],
+          "challenging": [4, 7],
+          "romantic": [2, 6, 11]
+        }
+      },
+      "2": {
+        "theme": "성장의 해",
+        "overview": "지난해 시작한 것들이 천천히 자라는 해. 인내와 협력이 필요합니다. 서두르지 마세요.",
+        "quarterly": {
+          "Q1": "파트너십 형성. 협력 관계 구축.",
+          "Q2": "세부 조정. 디테일에 집중.",
+          "Q3": "관계 심화. 신뢰 구축.",
+          "Q4": "조화로운 마무리. 균형 유지."
+        },
+        "major_life_areas": {
+          "career": "팀워크 중요. 보조 역할에서 빛남. 승진보다 성장.",
+          "love": "깊어지는 관계. 결혼 고려. 인내 필요.",
+          "finance": "안정적 관리. 큰 투자보다 저축.",
+          "health": "휴식 중요. 스트레스 관리."
+        },
+        "key_months": {
+          "peak": [2, 6, 11],
+          "challenging": [1, 5],
+          "romantic": [4, 7, 12]
+        }
+      },
+      "3": {
+        "theme": "표현의 해",
+        "overview": "창의성과 자기표현이 빛나는 해. 사교적 기회가 많고 즐거움이 가득합니다.",
+        "quarterly": {
+          "Q1": "창작 에너지 폭발. 아이디어 풍성.",
+          "Q2": "사회적 활동 활발. 네트워킹.",
+          "Q3": "자기표현 기회. 재능 발휘.",
+          "Q4": "즐거운 마무리. 축하 무드."
+        },
+        "major_life_areas": {
+          "career": "창작, 마케팅, 발표 성공. 인지도 상승.",
+          "love": "즐거운 연애. 새 인연 많음. 가벼운 관계 주의.",
+          "finance": "수입 증가 가능. 지출도 증가. 균형 필요.",
+          "health": "활력. 목, 성대 관리."
+        },
+        "key_months": {
+          "peak": [3, 5, 12],
+          "challenging": [8, 11],
+          "romantic": [3, 6, 9]
+        }
+      },
+      "4": {
+        "theme": "건설의 해",
+        "overview": "기반을 다지고 열심히 일하는 해. 노력이 미래의 토대가 됩니다. 지루해도 견디세요.",
+        "quarterly": {
+          "Q1": "계획 수립. 체계 구축.",
+          "Q2": "열심히 일함. 노력 축적.",
+          "Q3": "인내의 시험. 꾸준함 유지.",
+          "Q4": "기반 완성. 성과 가시화."
+        },
+        "major_life_areas": {
+          "career": "안정적 성장. 전문성 구축. 승진보다 실력.",
+          "love": "안정적 관계. 결혼 결정. 현실적 접근.",
+          "finance": "저축, 부동산. 견실한 투자.",
+          "health": "규칙적 생활. 관절, 뼈 관리."
+        },
+        "key_months": {
+          "peak": [4, 10, 1],
+          "challenging": [3, 7],
+          "romantic": [6, 8, 11]
+        }
+      },
+      "5": {
+        "theme": "변화의 해",
+        "overview": "변화와 자유의 해. 여행, 이동, 새로운 경험이 많습니다. 유연하게 적응하세요.",
+        "quarterly": {
+          "Q1": "변화 시작. 새로운 바람.",
+          "Q2": "활동 활발. 여행 좋음.",
+          "Q3": "예상치 못한 전환. 적응.",
+          "Q4": "자유 만끽. 내년 준비."
+        },
+        "major_life_areas": {
+          "career": "이직, 출장 많음. 프리랜서 고려. 다양한 경험.",
+          "love": "자유로운 연애. 장거리. 변화 많음.",
+          "finance": "수입 불규칙. 유동성 확보.",
+          "health": "활동적. 사고 주의. 신경계 관리."
+        },
+        "key_months": {
+          "peak": [5, 9, 2],
+          "challenging": [1, 4],
+          "romantic": [5, 7, 11]
+        }
+      },
+      "6": {
+        "theme": "책임의 해",
+        "overview": "가정과 관계에 집중하는 해. 사랑과 책임이 중심 테마입니다.",
+        "quarterly": {
+          "Q1": "가정 일 집중. 관계 회복.",
+          "Q2": "사랑의 절정. 결혼 가능.",
+          "Q3": "책임 증가. 균형 찾기.",
+          "Q4": "조화로운 마무리."
+        },
+        "major_life_areas": {
+          "career": "서비스업 좋음. 팀 화합. 워라밸.",
+          "love": "결혼, 가정 형성. 관계 치유.",
+          "finance": "가정 지출 증가. 안정 투자.",
+          "health": "스트레스 관리. 면역 관리."
+        },
+        "key_months": {
+          "peak": [6, 9, 3],
+          "challenging": [5, 8],
+          "romantic": [2, 6, 10]
+        }
+      },
+      "7": {
+        "theme": "성찰의 해",
+        "overview": "내면을 돌아보고 지혜를 얻는 해. 조용한 성장의 시간입니다.",
+        "quarterly": {
+          "Q1": "내면 탐구 시작. 공부.",
+          "Q2": "영적 성장. 명상.",
+          "Q3": "통찰 획득. 깨달음.",
+          "Q4": "지혜로운 마무리."
+        },
+        "major_life_areas": {
+          "career": "연구, 전문화. 조용한 성과.",
+          "love": "깊은 관계. 혼자 시간 필요. 영혼의 동반자.",
+          "finance": "분석 후 투자. 직관 따르기.",
+          "health": "정신 건강 중요. 명상, 요가."
+        },
+        "key_months": {
+          "peak": [7, 11, 4],
+          "challenging": [6, 9],
+          "romantic": [3, 7, 12]
+        }
+      },
+      "8": {
+        "theme": "수확의 해",
+        "overview": "그동안의 노력이 결실을 맺는 해. 성공과 인정의 시간입니다.",
+        "quarterly": {
+          "Q1": "성과 가시화. 인정.",
+          "Q2": "재정적 성공. 확장.",
+          "Q3": "권력 상승. 영향력.",
+          "Q4": "수확 완료. 나눔."
+        },
+        "major_life_areas": {
+          "career": "승진, 사업 성공. 리더십.",
+          "love": "안정되고 성숙한 관계. 물질적 풍요.",
+          "finance": "최고의 재정 운. 투자 수익.",
+          "health": "성공의 대가로 건강 관리 필요."
+        },
+        "key_months": {
+          "peak": [8, 1, 10],
+          "challenging": [3, 6],
+          "romantic": [2, 8, 11]
+        }
+      },
+      "9": {
+        "theme": "완성의 해",
+        "overview": "9년 주기의 마무리. 정리하고 놓아주며 새 시작을 준비합니다.",
+        "quarterly": {
+          "Q1": "정리 시작. 마무리 의식.",
+          "Q2": "과거 청산. 용서.",
+          "Q3": "비움의 지혜. 해방.",
+          "Q4": "완성. 새 주기 대기."
+        },
+        "major_life_areas": {
+          "career": "프로젝트 완료. 이직/퇴직 고려.",
+          "love": "관계 정리 또는 완성. 용서와 치유.",
+          "finance": "빚 청산. 기부. 정리.",
+          "health": "디톡스. 치유. 휴식."
+        },
+        "key_months": {
+          "peak": [9, 3, 12],
+          "challenging": [1, 5],
+          "romantic": [4, 9, 11]
+        }
+      }
+    }
+  },
+
+  "universal_cycles": {
+    "meta": {
+      "description": "우주 연도/월 주기 (현재 연도를 한 자리로 환원)"
+    },
+    "2026": {
+      "universal_year": 1,
+      "theme": "전 세계적 새 시작",
+      "global_energy": "새로운 시대의 시작. 개인주의, 혁신, 리더십이 강조됩니다.",
+      "opportunities": "새로운 기술, 사회 운동, 개인 브랜딩",
+      "challenges": "갈등, 경쟁, 극단주의"
+    }
+  },
+
+  "compatibility_forecast": {
+    "meta": {
+      "description": "두 사람의 개인 연도 조합 해석"
+    },
+    "harmonious_combinations": [
+      {"combo": "1+5", "meaning": "함께 새로운 모험. 흥미진진."},
+      {"combo": "2+6", "meaning": "사랑과 조화. 가정 형성."},
+      {"combo": "3+9", "meaning": "창조적 완성. 예술적 협업."},
+      {"combo": "4+8", "meaning": "실질적 성공. 사업 파트너."}
+    ],
+    "challenging_combinations": [
+      {"combo": "1+2", "meaning": "속도 차이. 인내 필요."},
+      {"combo": "4+5", "meaning": "안정 vs 변화. 갈등."},
+      {"combo": "7+3", "meaning": "깊이 vs 가벼움. 오해."}
+    ]
+  }
+}

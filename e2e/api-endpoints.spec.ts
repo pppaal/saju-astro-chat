@@ -40,9 +40,8 @@ test.describe('Content API Endpoints', () => {
 
   test('GET /api/daily-fortune - should respond', async ({ page }) => {
     const response = await page.request.get('/api/daily-fortune')
-    // API should respond - may return various status codes
-    expect(response.status()).toBeGreaterThanOrEqual(200)
-    expect(response.status()).toBeLessThan(600)
+    // API should respond with valid status codes
+    expect([200, 400, 401, 403, 404, 500]).toContain(response.status())
   })
 
   test('GET /api/weekly-fortune - should respond', async ({ page }) => {

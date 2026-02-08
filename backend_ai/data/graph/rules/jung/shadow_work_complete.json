@@ -1,0 +1,452 @@
+{
+  "meta": {
+    "type": "jungian_shadow_work",
+    "description": "융 심리학 그림자 작업 완전 가이드",
+    "version": "1.0.0",
+    "theory": "Carl Gustav Jung - Shadow Psychology"
+  },
+
+  "shadow_concept": {
+    "definition": {
+      "ko": "그림자(Shadow)는 우리가 의식적으로 거부하거나 억압한 성격의 어두운 면입니다. 인정하고 싶지 않은 욕망, 감정, 충동을 포함합니다.",
+      "en": "The Shadow is the dark side of personality that we consciously reject or repress. It includes desires, emotions, and impulses we don't want to acknowledge."
+    },
+    "importance": "그림자를 인식하지 못하면 투사(projection)를 통해 다른 사람에게 나타납니다. 통합하면 온전한 자아(Self)에 가까워집니다.",
+    "integration_goal": "그림자를 억압하지 않고 인식하고 수용하여 의식에 통합하는 것"
+  },
+
+  "shadow_archetypes": {
+    "meta": {
+      "description": "12가지 원형의 그림자 면"
+    },
+    "archetypes": {
+      "innocent": {
+        "name_ko": "순수한 자",
+        "name_en": "Innocent",
+        "light": "낙관, 믿음, 순수함",
+        "shadow": "순진함, 현실 부정, 피해자 역할",
+        "shadow_behaviors": [
+          "문제가 없는 척함",
+          "책임 회피",
+          "타인에게 구원을 기대",
+          "불편한 진실 외면"
+        ],
+        "integration_work": "현실을 직시하면서도 희망을 유지하기. 자신의 어두운 면도 수용하기.",
+        "reflection_questions": [
+          "무엇을 보고 싶지 않아서 외면하고 있나요?",
+          "누군가에게 너무 많은 것을 기대하고 있지 않나요?",
+          "스스로 해결할 수 있는데 도움을 기다리고 있나요?"
+        ]
+      },
+      "orphan": {
+        "name_ko": "고아/일반인",
+        "name_en": "Orphan/Everyman",
+        "light": "공감, 현실감각, 연대",
+        "shadow": "피해의식, 냉소, 무력감",
+        "shadow_behaviors": [
+          "항상 피해자 역할",
+          "모든 것에 냉소적",
+          "변화 시도 포기",
+          "다른 사람도 끌어내림"
+        ],
+        "integration_work": "상처받았음을 인정하되 그것이 정체성이 되지 않게 하기. 자기 연민에서 자기 돌봄으로.",
+        "reflection_questions": [
+          "상처가 나를 정의하게 두고 있나요?",
+          "냉소로 무엇을 보호하려 하나요?",
+          "변화를 시도할 힘이 정말 없나요?"
+        ]
+      },
+      "hero": {
+        "name_ko": "영웅",
+        "name_en": "Hero",
+        "light": "용기, 결단력, 성취",
+        "shadow": "오만, 무모함, 타인 무시",
+        "shadow_behaviors": [
+          "모든 것을 혼자 해결하려 함",
+          "도움 거부",
+          "승리에 집착",
+          "약자 무시 또는 멸시"
+        ],
+        "integration_work": "취약함도 강점임을 인정하기. 협력의 가치 배우기. 패배에서 배우기.",
+        "reflection_questions": [
+          "왜 도움을 받으면 안 된다고 생각하나요?",
+          "이기지 못하면 어떤 일이 일어나나요?",
+          "강해 보이려고 무엇을 숨기고 있나요?"
+        ]
+      },
+      "caregiver": {
+        "name_ko": "돌봄자",
+        "name_en": "Caregiver",
+        "light": "이타심, 돌봄, 관대함",
+        "shadow": "순교자, 조종, 질식시키는 사랑",
+        "shadow_behaviors": [
+          "자기 희생으로 죄책감 유발",
+          "도움이라는 이름의 통제",
+          "자기 돌봄 무시",
+          "필요받고 싶어 문제 만듦"
+        ],
+        "integration_work": "자기 돌봄 우선하기. 도움에 숨은 동기 살피기. 건강한 경계 설정.",
+        "reflection_questions": [
+          "남을 돌보면서 무엇을 회피하고 있나요?",
+          "필요받지 않으면 어떤 기분인가요?",
+          "도움에 조건이 붙어 있지 않나요?"
+        ]
+      },
+      "explorer": {
+        "name_ko": "탐험가",
+        "name_en": "Explorer",
+        "light": "자유, 독립, 발견",
+        "shadow": "방황, 헌신 회피, 도피",
+        "shadow_behaviors": [
+          "책임에서 도망",
+          "관계 지속 불가",
+          "항상 다음 것을 찾음",
+          "불만족의 영속화"
+        ],
+        "integration_work": "뿌리 내리는 것도 모험임을 인정하기. 내면 탐험하기. 도망과 탐험 구분하기.",
+        "reflection_questions": [
+          "무엇으로부터 도망치고 있나요?",
+          "한 곳에 머무르면 무슨 일이 생길까 두렵나요?",
+          "내면의 미지는 탐험했나요?"
+        ]
+      },
+      "rebel": {
+        "name_ko": "반역자",
+        "name_en": "Rebel",
+        "light": "혁신, 변화, 자유",
+        "shadow": "파괴, 자기 파괴, 무정부",
+        "shadow_behaviors": [
+          "반항을 위한 반항",
+          "모든 권위 거부",
+          "건설 없는 파괴",
+          "자기 파괴적 행동"
+        ],
+        "integration_work": "분노 아래의 상처 보기. 건설적 반항하기. 내면의 권위 세우기.",
+        "reflection_questions": [
+          "무엇에 대한 분노인가요?",
+          "파괴 후 무엇을 세우고 싶나요?",
+          "스스로에게도 반항하고 있지 않나요?"
+        ]
+      },
+      "lover": {
+        "name_ko": "연인",
+        "name_en": "Lover",
+        "light": "열정, 헌신, 감사",
+        "shadow": "집착, 질투, 자기 상실",
+        "shadow_behaviors": [
+          "관계에 자아 투영",
+          "극단적 질투",
+          "사랑이라는 이름의 집착",
+          "자기 가치를 관계에 의존"
+        ],
+        "integration_work": "자기 사랑 먼저 배우기. 건강한 경계 유지하며 사랑하기. 홀로서도 완전함 느끼기.",
+        "reflection_questions": [
+          "사랑받지 않으면 가치가 없나요?",
+          "관계에서 무엇을 잃었나요?",
+          "질투 아래에 어떤 두려움이 있나요?"
+        ]
+      },
+      "creator": {
+        "name_ko": "창조자",
+        "name_en": "Creator",
+        "light": "창의성, 비전, 혁신",
+        "shadow": "완벽주의, 창작 막힘, 자기 비판",
+        "shadow_behaviors": [
+          "완벽하지 않으면 시작 안 함",
+          "극심한 자기 비판",
+          "다른 창작자 폄하",
+          "아이디어만 있고 실행 없음"
+        ],
+        "integration_work": "불완전해도 시작하기. 과정 즐기기. 비평가 내면 목소리 인식하기.",
+        "reflection_questions": [
+          "완벽해야 한다고 누가 말했나요?",
+          "실패하면 어떤 일이 생기나요?",
+          "비판하는 내면의 목소리는 누구인가요?"
+        ]
+      },
+      "sage": {
+        "name_ko": "현자",
+        "name_en": "Sage",
+        "light": "지혜, 통찰, 이해",
+        "shadow": "독단, 냉담, 현실 유리",
+        "shadow_behaviors": [
+          "감정 무시",
+          "지적 우월감",
+          "분석 마비",
+          "삶과 동떨어진 이론"
+        ],
+        "integration_work": "감정도 지혜임을 인정하기. 알지 못함 수용하기. 지식을 삶에 적용하기.",
+        "reflection_questions": [
+          "지식으로 무엇을 피하고 있나요?",
+          "감정을 무시하면서 무엇을 놓치고 있나요?",
+          "모른다고 말하기 왜 어려운가요?"
+        ]
+      },
+      "magician": {
+        "name_ko": "마법사",
+        "name_en": "Magician",
+        "light": "변환, 비전, 힘",
+        "shadow": "조종, 속임, 권력 남용",
+        "shadow_behaviors": [
+          "타인 조종",
+          "자기 이익을 위한 속임",
+          "힘의 과시",
+          "다른 사람 이용"
+        ],
+        "integration_work": "윤리적 힘 사용하기. 투명하게 영향력 행사하기. 타인 성장 돕기.",
+        "reflection_questions": [
+          "힘을 어떻게 사용하고 있나요?",
+          "조종과 영향력의 차이는 무엇인가요?",
+          "투명하지 않은 이유는 무엇인가요?"
+        ]
+      },
+      "ruler": {
+        "name_ko": "통치자",
+        "name_en": "Ruler",
+        "light": "리더십, 질서, 책임",
+        "shadow": "독재, 통제, 권력 집착",
+        "shadow_behaviors": [
+          "모든 것을 통제하려 함",
+          "비판 불허",
+          "권력을 위한 권력",
+          "두려움으로 지배"
+        ],
+        "integration_work": "봉사하는 리더십 배우기. 통제 내려놓기. 취약함도 보이기.",
+        "reflection_questions": [
+          "통제하지 않으면 무슨 일이 생길까 두렵나요?",
+          "권력으로 무엇을 보상받으려 하나요?",
+          "당신의 리더십은 누구를 위한 것인가요?"
+        ]
+      },
+      "jester": {
+        "name_ko": "광대",
+        "name_en": "Jester",
+        "light": "기쁨, 유머, 현재",
+        "shadow": "회피, 잔인한 유머, 무책임",
+        "shadow_behaviors": [
+          "웃음으로 고통 숨김",
+          "진지함 회피",
+          "타인 비하 유머",
+          "책임 회피를 위한 농담"
+        ],
+        "integration_work": "고통도 직면하기. 진지함과 유머 균형 잡기. 유머의 동기 살피기.",
+        "reflection_questions": [
+          "웃음 뒤에 무엇을 숨기고 있나요?",
+          "진지해지면 왜 불편한가요?",
+          "농담이 누군가를 다치게 하지 않나요?"
+        ]
+      }
+    }
+  },
+
+  "shadow_work_exercises": {
+    "meta": {
+      "description": "그림자 통합 실습"
+    },
+    "exercises": [
+      {
+        "name": "거울 명상",
+        "name_en": "Mirror Meditation",
+        "description": "거울을 보며 자신의 눈을 10분간 응시합니다. 떠오르는 불편한 감정이나 생각을 관찰합니다.",
+        "purpose": "자기 직면, 그림자 인식",
+        "duration": "10-15분",
+        "frequency": "주 2-3회",
+        "steps": [
+          "조용한 공간에서 거울 앞에 앉습니다",
+          "자신의 눈을 부드럽게 바라봅니다",
+          "떠오르는 감정, 생각, 판단을 관찰합니다",
+          "불편함이 오면 도망가지 않고 머무릅니다",
+          "끝나면 경험을 일기에 기록합니다"
+        ]
+      },
+      {
+        "name": "투사 되돌리기",
+        "name_en": "Projection Reversal",
+        "description": "타인에게서 싫어하는 특성을 찾고, 그것이 자신에게도 있는지 탐구합니다.",
+        "purpose": "투사 인식, 그림자 발견",
+        "duration": "20-30분",
+        "frequency": "상황 발생 시",
+        "steps": [
+          "최근 강하게 불쾌했던 사람을 떠올립니다",
+          "그 사람의 어떤 점이 싫었는지 구체적으로 씁니다",
+          "그 특성이 내게도 있는지 정직하게 살펴봅니다",
+          "어떤 상황에서 내가 그렇게 행동했는지 찾습니다",
+          "왜 그 특성을 거부하게 되었는지 탐구합니다"
+        ]
+      },
+      {
+        "name": "그림자 대화",
+        "name_en": "Shadow Dialogue",
+        "description": "그림자와 대화하듯 글을 쓰거나 빈 의자 기법을 사용합니다.",
+        "purpose": "그림자 이해, 통합",
+        "duration": "30분",
+        "frequency": "주 1회",
+        "steps": [
+          "그림자에게 편지를 쓰듯 시작합니다",
+          "그림자가 답장하듯 써봅니다",
+          "억압된 욕망, 분노, 두려움에 목소리를 줍니다",
+          "그림자가 원하는 것이 무엇인지 물어봅니다",
+          "대화 후 인사이트를 정리합니다"
+        ]
+      },
+      {
+        "name": "꿈 작업",
+        "name_en": "Dream Work",
+        "description": "꿈에 나타나는 어두운 인물이나 상황을 그림자로 탐구합니다.",
+        "purpose": "무의식 접근, 그림자 인식",
+        "duration": "지속적",
+        "frequency": "매일 아침",
+        "steps": [
+          "기상 직후 꿈을 기록합니다",
+          "꿈에 나온 불쾌하거나 무서운 요소를 찾습니다",
+          "그 요소가 나의 어떤 면을 나타내는지 생각합니다",
+          "꿈 속 인물이 나라면 무엇을 말하고 싶은지 상상합니다"
+        ]
+      },
+      {
+        "name": "3-2-1 그림자 프로세스",
+        "name_en": "3-2-1 Shadow Process",
+        "description": "Ken Wilber의 통합적 그림자 작업 방법",
+        "purpose": "체계적 그림자 통합",
+        "duration": "20분",
+        "frequency": "필요시",
+        "steps": [
+          "3인칭: 불쾌한 사람/상황을 '그것/그 사람'으로 묘사",
+          "2인칭: 그것에게 직접 말하듯 '너'로 대화",
+          "1인칭: 그것이 되어 '나'로서 말하기",
+          "통합: 이것이 나의 일부임을 인정하기"
+        ]
+      },
+      {
+        "name": "신체 그림자 작업",
+        "name_en": "Somatic Shadow Work",
+        "description": "몸에 저장된 그림자를 인식하고 풀어줍니다.",
+        "purpose": "신체화된 그림자 해소",
+        "duration": "30분",
+        "frequency": "주 1-2회",
+        "steps": [
+          "편안하게 눕거나 앉습니다",
+          "몸을 스캔하며 긴장, 불편함을 찾습니다",
+          "그 부위에 집중하며 어떤 감정이 있는지 느낍니다",
+          "그 감정에 머무르며 표현을 허용합니다",
+          "호흡으로 그 부위를 이완시킵니다"
+        ]
+      }
+    ]
+  },
+
+  "shadow_triggers": {
+    "meta": {
+      "description": "그림자가 활성화되는 상황들"
+    },
+    "common_triggers": [
+      {
+        "trigger": "강한 감정적 반응",
+        "description": "타인에게 비합리적으로 강한 분노, 혐오, 질투를 느낄 때",
+        "shadow_hint": "투사 - 그 특성이 내 안에도 있을 수 있음"
+      },
+      {
+        "trigger": "반복되는 패턴",
+        "description": "같은 유형의 문제가 관계나 상황에서 반복될 때",
+        "shadow_hint": "통합되지 않은 그림자가 같은 상황을 끌어당김"
+      },
+      {
+        "trigger": "과잉 방어",
+        "description": "특정 비판에 과도하게 방어적일 때",
+        "shadow_hint": "그 비판이 숨겨진 진실을 건드림"
+      },
+      {
+        "trigger": "중독적 행동",
+        "description": "특정 행동을 조절할 수 없을 때",
+        "shadow_hint": "억압된 욕구가 무의식적으로 표출됨"
+      },
+      {
+        "trigger": "자기 혐오",
+        "description": "자신의 특정 면을 극도로 싫어할 때",
+        "shadow_hint": "통합되지 않은 그림자 요소"
+      },
+      {
+        "trigger": "꿈의 어두운 상징",
+        "description": "꿈에서 괴물, 쫓기는 상황, 어두운 인물이 나올 때",
+        "shadow_hint": "무의식이 그림자를 보여주는 중"
+      }
+    ]
+  },
+
+  "golden_shadow": {
+    "meta": {
+      "description": "긍정적 그림자 - 억압된 밝은 면"
+    },
+    "concept": "그림자는 어두운 면만이 아닙니다. 우리가 표현하기 두려워하는 긍정적 잠재력도 그림자에 숨어 있습니다.",
+    "examples": [
+      {
+        "quality": "창의성",
+        "suppression_reason": "비판받을까 봐, 실패할까 봐",
+        "projection": "창의적인 사람을 동경하면서도 시기"
+      },
+      {
+        "quality": "리더십",
+        "suppression_reason": "눈에 띄면 공격받을까 봐",
+        "projection": "리더를 비판하면서도 부러워함"
+      },
+      {
+        "quality": "감수성",
+        "suppression_reason": "약해 보일까 봐",
+        "projection": "감성적인 사람을 폄하하면서도 끌림"
+      },
+      {
+        "quality": "지성",
+        "suppression_reason": "잘난 척으로 보일까 봐",
+        "projection": "지적인 사람에게 반감과 동경"
+      },
+      {
+        "quality": "섹슈얼리티",
+        "suppression_reason": "문란해 보일까 봐",
+        "projection": "성적 자유로운 사람 비난과 부러움"
+      }
+    ],
+    "integration": "동경하는 사람에게서 보는 자질은 당신 안에도 있습니다. 그것을 허용하세요."
+  },
+
+  "cross_system_mapping": {
+    "meta": {
+      "description": "다른 시스템과의 연결"
+    },
+    "tarot_shadow": {
+      "description": "타로 카드의 역방향은 종종 그 카드의 그림자 면을 나타냅니다",
+      "examples": [
+        {"card": "The Magician reversed", "shadow": "창조자 그림자 - 조종, 속임"},
+        {"card": "The Emperor reversed", "shadow": "통치자 그림자 - 독재, 통제"},
+        {"card": "The Lovers reversed", "shadow": "연인 그림자 - 선택 회피, 가치 분열"}
+      ]
+    },
+    "saju_shadow": {
+      "description": "사주 십성의 과잉이나 결핍은 그림자로 나타날 수 있습니다",
+      "examples": [
+        {"element": "비견 과다", "shadow": "영웅 그림자 - 경쟁 집착, 협력 불가"},
+        {"element": "식신 결핍", "shadow": "창조자 그림자 - 표현 억압"},
+        {"element": "편관 과다", "shadow": "반역자 그림자 - 파괴적 충동"}
+      ]
+    },
+    "dream_shadow": {
+      "description": "꿈에서 쫓아오는 것, 두려운 것은 대개 그림자입니다",
+      "interpretation": "꿈의 어두운 인물에게 '당신은 나의 어떤 면인가요?'라고 물어보세요"
+    }
+  },
+
+  "integration_signs": {
+    "meta": {
+      "description": "그림자 통합의 징후"
+    },
+    "positive_signs": [
+      "타인에 대한 강한 판단이 줄어듦",
+      "자신의 모든 면을 수용함",
+      "반복되던 패턴이 변화함",
+      "감정의 폭이 넓어지되 휘둘리지 않음",
+      "타인의 그림자에도 연민을 느낌",
+      "유머와 가벼움이 증가함",
+      "에너지가 증가함 (억압에 쓰던 에너지 해방)",
+      "창의성이 증가함"
+    ]
+  }
+}

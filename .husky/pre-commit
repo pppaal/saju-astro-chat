@@ -22,6 +22,28 @@ else
   echo "   Install: brew install gitleaks (Mac) or download from github.com/gitleaks/gitleaks"
 fi
 
+# Korean comment check (warn only for new code)
+echo "🔍 Checking for Korean comments in new code..."
+STAGED_TS_FILES=$(git diff --cached --name-only --diff-filter=A | grep -E '\.(ts|tsx)$' || true)
+
+if [ -n "$STAGED_TS_FILES" ]; then
+  KOREAN_FOUND=0
+  for FILE in $STAGED_TS_FILES; do
+    # Check for Korean characters in comments
+    if grep -n "//.*[가-힣]\|/\*.*[가-힣]" "$FILE" > /dev/null 2>&1; then
+      echo "⚠️  Korean comments found in new file: $FILE"
+      KOREAN_FOUND=1
+    fi
+  done
+
+  if [ $KOREAN_FOUND -eq 1 ]; then
+    echo "   Consider using English comments for consistency."
+    echo "   (This is a warning only, commit will proceed)"
+  else
+    echo "✅ No Korean comments in new files"
+  fi
+fi
+
 # Console.log check (new)
 echo "🔍 Checking for console statements..."
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx|js|jsx)$' || true)

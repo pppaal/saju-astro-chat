@@ -2,149 +2,127 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Destiny Matrix Flow', () => {
   test.describe('Destiny Matrix Main Page', () => {
-    test('should load destiny-map matrix page', async ({ page }) => {
+    test('should load destiny-map matrix page with content', async ({ page }) => {
       await page.goto('/destiny-map/matrix', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
     })
 
-    test('should display matrix visualization', async ({ page }) => {
+    test('should have visual matrix elements or content', async ({ page }) => {
       await page.goto('/destiny-map/matrix', { waitUntil: 'domcontentloaded' })
 
-      const matrix = page.locator('[class*="matrix"], canvas, svg, [class*="grid"]')
-      const count = await matrix.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      const hasVisualElements = await page.evaluate(() => {
+        const canvas = document.querySelectorAll('canvas')
+        const svg = document.querySelectorAll('svg')
+        const matrix = document.querySelectorAll('[class*="matrix"], [class*="grid"]')
+        return canvas.length > 0 || svg.length > 0 || matrix.length > 0
+      })
+
+      const bodyText = await page.locator('body').textContent()
+      expect(hasVisualElements || bodyText!.length > 100).toBe(true)
     })
 
-    test('should have interactive elements', async ({ page }) => {
+    test('should have interactive buttons', async ({ page }) => {
       await page.goto('/destiny-map/matrix', { waitUntil: 'domcontentloaded' })
 
-      const interactive = page.locator('button, [role="button"], [class*="clickable"]')
-      const count = await interactive.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
+      const buttons = page.locator('button')
+      const count = await buttons.count()
 
-    test('should display matrix numbers or symbols', async ({ page }) => {
-      await page.goto('/destiny-map/matrix', { waitUntil: 'domcontentloaded' })
-
-      const numbers = page.locator('[class*="number"], [class*="symbol"], [class*="cell"]')
-      const count = await numbers.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      if (count > 0) {
+        for (let i = 0; i < count; i++) {
+          const button = buttons.nth(i)
+          if (await button.isVisible()) {
+            await button.click()
+            await page.waitForTimeout(300)
+            await expect(page.locator('body')).toBeVisible()
+            break
+          }
+        }
+      }
     })
   })
 
   test.describe('Destiny Matrix Themed Reports', () => {
-    test('should load themed reports page', async ({ page }) => {
+    test('should load themed reports page with content', async ({ page }) => {
       await page.goto('/destiny-matrix/themed-reports', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
     })
 
-    test('should display report themes', async ({ page }) => {
+    test('should display report options or cards', async ({ page }) => {
       await page.goto('/destiny-matrix/themed-reports', { waitUntil: 'domcontentloaded' })
 
-      const themes = page.locator('[class*="theme"], [class*="report"], [class*="card"]')
-      const count = await themes.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
+      const cards = page.locator('[class*="card"], [class*="report"], [class*="theme"], a')
+      const count = await cards.count()
 
-    test('should have selection options', async ({ page }) => {
-      await page.goto('/destiny-matrix/themed-reports', { waitUntil: 'domcontentloaded' })
-
-      const options = page.locator('button, [role="option"], [class*="select"]')
-      const count = await options.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      if (count > 0) {
+        const firstVisibleCard = cards.first()
+        if (await firstVisibleCard.isVisible()) {
+          await expect(firstVisibleCard).toBeVisible()
+        }
+      }
     })
   })
 
   test.describe('Destiny Matrix Viewer', () => {
-    test('should load viewer page', async ({ page }) => {
+    test('should load viewer page with content', async ({ page }) => {
       await page.goto('/destiny-matrix/viewer', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
-    })
 
-    test('should display viewer content', async ({ page }) => {
-      await page.goto('/destiny-matrix/viewer', { waitUntil: 'domcontentloaded' })
-
-      const viewer = page.locator('[class*="viewer"], main, [class*="content"]')
-      const count = await viewer.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
-
-    test('should have zoom controls if available', async ({ page }) => {
-      await page.goto('/destiny-matrix/viewer', { waitUntil: 'domcontentloaded' })
-
-      const zoomControls = page.locator(
-        '[class*="zoom"], button:has-text("+"), button:has-text("-")'
-      )
-      const count = await zoomControls.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(10)
     })
   })
 
   test.describe('Destiny Map Theme Page', () => {
-    test('should load theme page', async ({ page }) => {
+    test('should load theme page with content', async ({ page }) => {
       await page.goto('/destiny-map/theme', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
-    })
 
-    test('should display theme options', async ({ page }) => {
-      await page.goto('/destiny-map/theme', { waitUntil: 'domcontentloaded' })
-
-      const themes = page.locator('[class*="theme"], [class*="option"], [class*="style"]')
-      const count = await themes.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
     })
   })
 
   test.describe('Destiny Map Result Page', () => {
-    test('should load result page', async ({ page }) => {
+    test('should load result page and display content', async ({ page }) => {
       await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(10)
     })
 
-    test('should display result content', async ({ page }) => {
+    test('should check for share functionality', async ({ page }) => {
       await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
 
-      const result = page.locator('[class*="result"], main, [class*="analysis"]')
-      const count = await result.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
-
-    test('should have share button', async ({ page }) => {
-      await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
-
-      const shareButton = page.locator('button:has-text("공유"), [class*="share"]')
-      const count = await shareButton.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
-
-    test('should have download or save option', async ({ page }) => {
-      await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
-
-      const saveButton = page.locator(
-        'button:has-text("저장"), button:has-text("다운로드"), [class*="download"]'
+      const shareButton = page.locator(
+        'button:has-text("공유"), button:has-text("Share"), [class*="share"]'
       )
-      const count = await saveButton.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      const count = await shareButton.count()
+
+      if (count > 0) {
+        await expect(shareButton.first()).toBeVisible()
+      }
     })
   })
 
   test.describe('Destiny Pal Page', () => {
-    test('should load destiny-pal page', async ({ page }) => {
+    test('should load destiny-pal page with content', async ({ page }) => {
       await page.goto('/destiny-pal', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
-    })
 
-    test('should display pal content', async ({ page }) => {
-      await page.goto('/destiny-pal', { waitUntil: 'domcontentloaded' })
-
-      const content = page.locator('[class*="pal"], main, [class*="content"]')
-      const count = await content.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
     })
   })
 
   test.describe('Matrix Mobile Experience', () => {
-    test('should be responsive on mobile - matrix page', async ({ page }) => {
+    test('should render matrix page without horizontal scroll on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 })
       await page.goto('/destiny-map/matrix', { waitUntil: 'domcontentloaded' })
 
@@ -155,29 +133,55 @@ test.describe('Destiny Matrix Flow', () => {
       expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 20)
     })
 
-    test('should scale matrix visualization on mobile', async ({ page }) => {
+    test('should have touch-friendly buttons on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 })
       await page.goto('/destiny-map/matrix', { waitUntil: 'domcontentloaded' })
 
-      const matrix = page.locator('[class*="matrix"], canvas, svg').first()
-      if ((await matrix.count()) > 0) {
-        const box = await matrix.boundingBox()
-        if (box) {
-          expect(box.width).toBeLessThanOrEqual(375)
+      const buttons = page.locator('button')
+      const count = await buttons.count()
+
+      for (let i = 0; i < Math.min(count, 3); i++) {
+        const button = buttons.nth(i)
+        if (await button.isVisible()) {
+          const box = await button.boundingBox()
+          if (box) {
+            expect(box.height).toBeGreaterThanOrEqual(30)
+            expect(box.width).toBeGreaterThanOrEqual(30)
+          }
         }
       }
     })
 
-    test('should support touch interactions', async ({ page }) => {
+    test('should support tap interactions on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 })
       await page.goto('/destiny-map/matrix', { waitUntil: 'domcontentloaded' })
 
-      const touchTarget = page.locator('[class*="cell"], button').first()
-      if ((await touchTarget.count()) > 0) {
+      const touchTarget = page.locator('button').first()
+      if ((await touchTarget.count()) > 0 && (await touchTarget.isVisible())) {
         await touchTarget.tap()
         await page.waitForTimeout(300)
         await expect(page.locator('body')).toBeVisible()
       }
+    })
+  })
+
+  test.describe('Destiny Matrix Page Load Performance', () => {
+    test('should load matrix page within acceptable time', async ({ page }) => {
+      const startTime = Date.now()
+      await page.goto('/destiny-map/matrix', { waitUntil: 'domcontentloaded' })
+      const loadTime = Date.now() - startTime
+
+      expect(loadTime).toBeLessThan(10000)
+      await expect(page.locator('body')).toBeVisible()
+    })
+
+    test('should load themed-reports page within acceptable time', async ({ page }) => {
+      const startTime = Date.now()
+      await page.goto('/destiny-matrix/themed-reports', { waitUntil: 'domcontentloaded' })
+      const loadTime = Date.now() - startTime
+
+      expect(loadTime).toBeLessThan(10000)
+      await expect(page.locator('body')).toBeVisible()
     })
   })
 })

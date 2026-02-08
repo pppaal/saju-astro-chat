@@ -20,14 +20,22 @@ export const GET = withApiMiddleware(
         name: true,
         email: true,
         image: true,
-        // profilePhoto: true, // TODO: Enable after DB migration is deployed
-        birthDate: true,
-        birthTime: true,
-        gender: true,
-        birthCity: true,
-        tzId: true,
         createdAt: true,
-        emailNotifications: true,
+        profile: {
+          select: {
+            profilePhoto: true,
+            birthDate: true,
+            birthTime: true,
+            gender: true,
+            birthCity: true,
+            tzId: true,
+          },
+        },
+        settings: {
+          select: {
+            emailNotifications: true,
+          },
+        },
       },
     })
 
@@ -40,7 +48,23 @@ export const GET = withApiMiddleware(
       })
     }
 
-    return NextResponse.json({ user })
+    // Flatten profile and settings for backward compatibility
+    const flattenedUser = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      image: user.image,
+      createdAt: user.createdAt,
+      profilePhoto: user.profile?.profilePhoto ?? null,
+      birthDate: user.profile?.birthDate ?? null,
+      birthTime: user.profile?.birthTime ?? null,
+      gender: user.profile?.gender ?? null,
+      birthCity: user.profile?.birthCity ?? null,
+      tzId: user.profile?.tzId ?? null,
+      emailNotifications: user.settings?.emailNotifications ?? false,
+    }
+
+    return NextResponse.json({ user: flattenedUser })
   },
   createAuthenticatedGuard({
     route: '/api/me/profile',
@@ -66,45 +90,80 @@ export const PATCH = withApiMiddleware(
     }
 
     const body = validationResult.data
-    const data: Record<string, unknown> = {}
+    const userData: Record<string, unknown> = {}
+    const profileData: Record<string, unknown> = {}
+    const settingsData: Record<string, unknown> = {}
 
-    // Map validated data (only User model fields)
-    if (body.name) data.name = body.name
-    if (body.emailNotifications !== undefined) data.emailNotifications = body.emailNotifications
-    if (body.image !== undefined) data.image = body.image
-    // Note: preferredLanguage, notificationSettings, tonePreference, readingLength
-    // belong to UserPreferences model, not User model - handled separately if needed
+    // Map validated data to respective models
+    if (body.name) userData.name = body.name
+    if (body.image !== undefined) userData.image = body.image
 
-    // Birth info fields
+    // Settings fields
+    if (body.emailNotifications !== undefined) settingsData.emailNotifications = body.emailNotifications
+
+    // Birth info fields (Profile model)
     const birthDate = body.birthDate
     const birthTime = body.birthTime
     const gender = body.gender
     const hasBirthFields =
       birthDate !== undefined || birthTime !== undefined || gender !== undefined
 
-    if (birthDate !== undefined) data.birthDate = birthDate
-    if (birthTime !== undefined) data.birthTime = birthTime
-    if (gender !== undefined) data.gender = gender
-    if (body.birthCity !== undefined) data.birthCity = body.birthCity
-    if (body.tzId !== undefined) data.tzId = body.tzId
+    if (birthDate !== undefined) profileData.birthDate = birthDate
+    if (birthTime !== undefined) profileData.birthTime = birthTime
+    if (gender !== undefined) profileData.gender = gender
+    if (body.birthCity !== undefined) profileData.birthCity = body.birthCity
+    if (body.tzId !== undefined) profileData.tzId = body.tzId
 
-    // Update user and fetch old + new data in single query
-    const updatedUser = await prisma.user.update({
+    // Update user
+    if (Object.keys(userData).length > 0) {
+      await prisma.user.update({
+        where: { id: context.userId! },
+        data: userData,
+      })
+    }
+
+    // Update or create profile if needed
+    if (Object.keys(profileData).length > 0) {
+      await prisma.userProfile.upsert({
+        where: { userId: context.userId! },
+        create: { userId: context.userId!, ...profileData },
+        update: profileData,
+      })
+    }
+
+    // Update or create settings if needed
+    if (Object.keys(settingsData).length > 0) {
+      await prisma.userSettings.upsert({
+        where: { userId: context.userId! },
+        create: { userId: context.userId!, ...settingsData },
+        update: settingsData,
+      })
+    }
+
+    // Fetch updated user with relations
+    const updatedUser = await prisma.user.findUnique({
       where: { id: context.userId! },
-      data,
       select: {
         id: true,
         name: true,
         email: true,
         image: true,
-        // profilePhoto: true, // TODO: Enable after DB migration is deployed
-        birthDate: true,
-        birthTime: true,
-        gender: true,
-        birthCity: true,
-        tzId: true,
         createdAt: true,
-        emailNotifications: true,
+        profile: {
+          select: {
+            profilePhoto: true,
+            birthDate: true,
+            birthTime: true,
+            gender: true,
+            birthCity: true,
+            tzId: true,
+          },
+        },
+        settings: {
+          select: {
+            emailNotifications: true,
+          },
+        },
       },
     })
 
@@ -118,13 +177,14 @@ export const PATCH = withApiMiddleware(
     // Invalidate birth-related caches if birth info changed
     if (hasBirthFields) {
       // Compare old vs new values from the update body
-      const oldBirthDate = body.birthDate !== undefined ? null : updatedUser.birthDate
+      const currentBirthDate = updatedUser?.profile?.birthDate
+      const oldBirthDate = body.birthDate !== undefined ? null : currentBirthDate
       const birthChanged =
         hasBirthFields &&
         (birthDate !== undefined || birthTime !== undefined || gender !== undefined)
 
       if (birthChanged) {
-        const dateToInvalidate = oldBirthDate || updatedUser.birthDate
+        const dateToInvalidate = oldBirthDate || currentBirthDate
         if (dateToInvalidate) {
           const patterns: string[] = [
             `saju:${dateToInvalidate}:*`,
@@ -186,7 +246,23 @@ export const PATCH = withApiMiddleware(
     //   updatedUser.preferences = freshPrefs
     // }
 
-    return NextResponse.json({ user: updatedUser })
+    // Flatten for backward compatibility
+    const flattenedUser = updatedUser ? {
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      image: updatedUser.image,
+      createdAt: updatedUser.createdAt,
+      profilePhoto: updatedUser.profile?.profilePhoto ?? null,
+      birthDate: updatedUser.profile?.birthDate ?? null,
+      birthTime: updatedUser.profile?.birthTime ?? null,
+      gender: updatedUser.profile?.gender ?? null,
+      birthCity: updatedUser.profile?.birthCity ?? null,
+      tzId: updatedUser.profile?.tzId ?? null,
+      emailNotifications: updatedUser.settings?.emailNotifications ?? false,
+    } : null
+
+    return NextResponse.json({ user: flattenedUser })
   },
   createAuthenticatedGuard({
     route: '/api/me/profile',

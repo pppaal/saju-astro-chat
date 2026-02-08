@@ -1,0 +1,1279 @@
+{
+  "meta": {
+    "type": "iching_64_gua_complete",
+    "description": "주역 64괘 완전 해석 - 모든 괘 상세 정보",
+    "version": "1.0.0",
+    "tradition": "주역 (周易) - The Book of Changes"
+  },
+
+  "basic_trigrams": {
+    "meta": {
+      "description": "8괘 기본 해석"
+    },
+    "trigrams": {
+      "건": {"name": "건(乾)", "symbol": "☰", "meaning": "하늘", "element": "금", "direction": "서북", "family": "부", "attribute": "강건"},
+      "곤": {"name": "곤(坤)", "symbol": "☷", "meaning": "땅", "element": "토", "direction": "서남", "family": "모", "attribute": "순종"},
+      "진": {"name": "진(震)", "symbol": "☳", "meaning": "우레", "element": "목", "direction": "동", "family": "장남", "attribute": "동함"},
+      "손": {"name": "손(巽)", "symbol": "☴", "meaning": "바람", "element": "목", "direction": "동남", "family": "장녀", "attribute": "입함"},
+      "감": {"name": "감(坎)", "symbol": "☵", "meaning": "물", "element": "수", "direction": "북", "family": "중남", "attribute": "함락"},
+      "리": {"name": "리(離)", "symbol": "☲", "meaning": "불", "element": "화", "direction": "남", "family": "중녀", "attribute": "부착"},
+      "간": {"name": "간(艮)", "symbol": "☶", "meaning": "산", "element": "토", "direction": "동북", "family": "소남", "attribute": "그침"},
+      "태": {"name": "태(兌)", "symbol": "☱", "meaning": "못", "element": "금", "direction": "서", "family": "소녀", "attribute": "기쁨"}
+    }
+  },
+
+  "hexagrams": [
+    {
+      "number": 1,
+      "name": "건(乾)",
+      "chinese": "乾",
+      "meaning": "하늘",
+      "upper": "건(天)",
+      "lower": "건(天)",
+      "element": "금",
+      "image": "하늘이 건실하게 움직이니, 군자는 이를 보고 스스로 강해지기를 쉬지 않는다",
+      "judgment": "크게 형통하니 바르게 함이 이롭다",
+      "interpretation": {
+        "general": "강건한 양의 기운이 충만. 적극적인 진취와 창조의 시기.",
+        "love": "당당하고 주도적인 연애. 리드하는 위치에서 관계 발전.",
+        "career": "리더십 발휘의 시기. 큰 목표를 향해 추진력 있게 나아감.",
+        "finance": "재물운 상승. 투자와 확장에 좋은 시기.",
+        "health": "양 기운 과잉 주의. 고혈압, 심장 관련 건강 체크.",
+        "advice": "강건함을 유지하되 겸손을 잃지 마세요."
+      },
+      "lines": {
+        "1": {"text": "잠룡이니 쓰지 말라", "meaning": "때를 기다리세요. 아직 나설 때가 아닙니다."},
+        "2": {"text": "나타난 용이 밭에 있으니 대인을 만남이 이롭다", "meaning": "현인을 만나 배움을 구하세요."},
+        "3": {"text": "군자가 종일 건건하니 저녁에 두려워하면 허물없다", "meaning": "낮에 열심히 하고 저녁에 반성하면 됩니다."},
+        "4": {"text": "뛰어오르나 연못에서 나오지 못하니 허물없다", "meaning": "도약을 시도하되 신중하게."},
+        "5": {"text": "나는 용이 하늘에 있으니 대인을 만남이 이롭다", "meaning": "최고의 위치에 올랐으니 현인과 교류하세요."},
+        "6": {"text": "높이 오른 용이니 뉘우침이 있으리라", "meaning": "정점에서는 내려올 일만 남습니다. 겸손하세요."}
+      },
+      "fortune_score": 9,
+      "timing": "봄, 아침"
+    },
+    {
+      "number": 2,
+      "name": "곤(坤)",
+      "chinese": "坤",
+      "meaning": "땅",
+      "upper": "곤(地)",
+      "lower": "곤(地)",
+      "element": "토",
+      "image": "땅의 형세가 곤이니, 군자는 두터운 덕으로 만물을 싣는다",
+      "judgment": "크게 형통하니 암말의 바름이 이롭다",
+      "interpretation": {
+        "general": "포용과 수용의 시기. 적극적 추진보다 받아들이고 기르는 것이 이로움.",
+        "love": "수용적이고 포용적인 관계. 상대를 있는 그대로 받아들임.",
+        "career": "팀워크와 협력 중시. 보조적 역할에서 빛을 발함.",
+        "finance": "안정적 관리 중시. 공격적 투자보다 보수적 관리.",
+        "health": "기력 보충 필요. 소화기 건강 주의.",
+        "advice": "겸손히 따르되 자신의 중심을 잃지 마세요."
+      },
+      "lines": {
+        "1": {"text": "서리를 밟으면 단단한 얼음이 이르리라", "meaning": "작은 징조를 보고 미래를 대비하세요."},
+        "2": {"text": "곧고 방정하며 크니 익히지 않아도 이롭다", "meaning": "본성 그대로도 충분합니다."},
+        "3": {"text": "아름다움을 품고 바름을 지킬 수 있다", "meaning": "내면의 아름다움을 간직하세요."},
+        "4": {"text": "주머니를 묶으니 허물도 없고 명예도 없다", "meaning": "조용히 지내는 것이 좋습니다."},
+        "5": {"text": "누런 치마니 크게 길하다", "meaning": "중용의 도를 지키면 크게 길합니다."},
+        "6": {"text": "용이 들에서 싸우니 그 피가 검푸르다", "meaning": "극단까지 가면 파국입니다."}
+      },
+      "fortune_score": 8,
+      "timing": "늦여름, 저녁"
+    },
+    {
+      "number": 3,
+      "name": "둔(屯)",
+      "chinese": "屯",
+      "meaning": "어려움, 시작의 고난",
+      "upper": "감(水)",
+      "lower": "진(雷)",
+      "element": "수",
+      "interpretation": {
+        "general": "새로운 시작의 산고. 어려움이 있지만 희망도 있음.",
+        "love": "새로운 인연 시작. 초기 어려움이 있으나 꾸준히 하면 발전.",
+        "career": "신규 프로젝트 시작. 초기 고생은 필수.",
+        "finance": "초기 투자 시기. 당장 수익보다 기반 구축.",
+        "health": "체력 저하 주의. 스트레스 관리 필요.",
+        "advice": "어려움 속에서도 포기하지 마세요. 새벽이 오기 전이 가장 어둡습니다."
+      },
+      "fortune_score": 5,
+      "timing": "새벽, 초봄"
+    },
+    {
+      "number": 4,
+      "name": "몽(蒙)",
+      "chinese": "蒙",
+      "meaning": "어리석음, 배움",
+      "upper": "간(山)",
+      "lower": "감(水)",
+      "element": "토",
+      "interpretation": {
+        "general": "배움이 필요한 시기. 겸손히 가르침을 구해야 함.",
+        "love": "서로를 알아가는 시기. 오해가 있을 수 있으니 소통 중요.",
+        "career": "새로운 기술/지식 습득 필요. 멘토를 찾으세요.",
+        "finance": "전문가 조언 필요. 독단적 결정 자제.",
+        "health": "건강 검진 필요. 모르는 것을 알아야 함.",
+        "advice": "모른다고 인정하는 것이 지혜의 시작입니다."
+      },
+      "fortune_score": 5,
+      "timing": "아침, 학습 시기"
+    },
+    {
+      "number": 5,
+      "name": "수(需)",
+      "chinese": "需",
+      "meaning": "기다림",
+      "upper": "감(水)",
+      "lower": "건(天)",
+      "element": "수",
+      "interpretation": {
+        "general": "때를 기다리는 시기. 준비하며 인내해야 함.",
+        "love": "서두르지 마세요. 인연은 때가 되면 옵니다.",
+        "career": "준비 기간. 실력을 갈고닦으며 기회를 기다리세요.",
+        "finance": "투자 타이밍 대기. 조급함은 손실을 부릅니다.",
+        "health": "휴식과 충전의 시간. 몸을 아끼세요.",
+        "advice": "성급함은 실패를 부릅니다. 물이 차면 배가 뜹니다."
+      },
+      "fortune_score": 6,
+      "timing": "오후, 대기 시간"
+    },
+    {
+      "number": 6,
+      "name": "송(訟)",
+      "chinese": "訟",
+      "meaning": "다툼, 소송",
+      "upper": "건(天)",
+      "lower": "감(水)",
+      "element": "금",
+      "interpretation": {
+        "general": "갈등과 다툼의 시기. 중재자를 찾거나 한발 물러서야 함.",
+        "love": "의견 충돌 주의. 양보가 관계를 살립니다.",
+        "career": "직장 내 갈등. 정면 대결보다 우회.",
+        "finance": "법적 분쟁 주의. 계약서 꼼꼼히 확인.",
+        "health": "스트레스성 질환 주의. 마음의 평화 찾기.",
+        "advice": "싸워서 이겨도 얻는 것이 없습니다. 화해를 모색하세요."
+      },
+      "fortune_score": 3,
+      "timing": "갈등 시기"
+    },
+    {
+      "number": 7,
+      "name": "사(師)",
+      "chinese": "師",
+      "meaning": "군대, 조직",
+      "upper": "곤(地)",
+      "lower": "감(水)",
+      "element": "토",
+      "interpretation": {
+        "general": "조직과 규율의 시기. 리더십과 팀워크가 중요.",
+        "love": "신뢰와 충성이 중요한 시기.",
+        "career": "팀 리더십 발휘. 조직을 이끌어야 할 때.",
+        "finance": "조직적 투자. 펀드나 그룹 투자 고려.",
+        "health": "규칙적인 생활 필요.",
+        "advice": "혼자가 아닌 함께 가야 합니다. 현명한 리더십을 발휘하세요."
+      },
+      "fortune_score": 6,
+      "timing": "조직 활동 시기"
+    },
+    {
+      "number": 8,
+      "name": "비(比)",
+      "chinese": "比",
+      "meaning": "친함, 화합",
+      "upper": "감(水)",
+      "lower": "곤(地)",
+      "element": "수",
+      "interpretation": {
+        "general": "화합과 단결의 시기. 좋은 관계를 맺기 좋은 때.",
+        "love": "좋은 인연을 만날 수 있는 시기. 인맥 활용.",
+        "career": "협력 관계 형성. 네트워킹 활발히.",
+        "finance": "동업, 투자 파트너십 좋음.",
+        "health": "정서적 안정. 관계가 건강에 좋은 영향.",
+        "advice": "좋은 사람들과 함께하세요. 물은 땅에 스며들 듯 조화롭게."
+      },
+      "fortune_score": 8,
+      "timing": "화합의 시기"
+    },
+    {
+      "number": 9,
+      "name": "소축(小畜)",
+      "chinese": "小畜",
+      "meaning": "작은 축적",
+      "upper": "손(風)",
+      "lower": "건(天)",
+      "element": "목",
+      "interpretation": {
+        "general": "작은 것부터 모으는 시기. 큰 성과보다 꾸준한 축적.",
+        "love": "작은 정성이 쌓여 큰 사랑이 됩니다.",
+        "career": "작은 성과 축적. 한 번에 큰 것을 바라지 말 것.",
+        "finance": "저축과 소액 투자. 티끌 모아 태산.",
+        "health": "작은 습관 개선. 매일 조금씩.",
+        "advice": "작은 것이 쌓여 큰 것이 됩니다. 조급해하지 마세요."
+      },
+      "fortune_score": 6,
+      "timing": "축적의 시기"
+    },
+    {
+      "number": 10,
+      "name": "이(履)",
+      "chinese": "履",
+      "meaning": "밟음, 예의",
+      "upper": "건(天)",
+      "lower": "태(澤)",
+      "element": "금",
+      "interpretation": {
+        "general": "예의와 신중함이 필요한 시기. 조심히 나아가야 함.",
+        "love": "매너와 예의가 관계를 살립니다.",
+        "career": "신중한 처신. 호랑이 꼬리를 밟아도 조심하면 됨.",
+        "finance": "위험 관리. 고위험 투자 주의.",
+        "health": "발, 다리 건강 주의.",
+        "advice": "호랑이 꼬리를 밟아도 물리지 않습니다. 신중하면 안전합니다."
+      },
+      "fortune_score": 7,
+      "timing": "신중함이 필요한 시기"
+    },
+    {
+      "number": 11,
+      "name": "태(泰)",
+      "chinese": "泰",
+      "meaning": "통함, 평화",
+      "upper": "곤(地)",
+      "lower": "건(天)",
+      "element": "목",
+      "interpretation": {
+        "general": "천지가 소통하는 태평성대의 상. 모든 일이 순조롭게 진행됨.",
+        "love": "조화로운 관계. 서로 통하고 이해하는 좋은 시기.",
+        "career": "승진, 성공, 발전의 시기. 추진하는 일이 잘 풀림.",
+        "finance": "재물운 왕성. 사업 확장과 투자에 좋음.",
+        "health": "심신 조화. 건강 양호.",
+        "advice": "좋은 때일수록 겸손하고 준비하세요. 태(泰)가 비(否)로 변할 수 있습니다."
+      },
+      "fortune_score": 10,
+      "timing": "절정기"
+    },
+    {
+      "number": 12,
+      "name": "비(否)",
+      "chinese": "否",
+      "meaning": "막힘, 부정",
+      "upper": "건(天)",
+      "lower": "곤(地)",
+      "element": "금",
+      "interpretation": {
+        "general": "막힘과 불통의 시기. 무리한 추진보다 때를 기다림이 현명함.",
+        "love": "소통 부재, 오해. 관계의 어려운 시기.",
+        "career": "막힘과 정체. 새로운 시작보다 현상 유지.",
+        "finance": "재물 손실 주의. 투자와 확장 자제.",
+        "health": "면역력 저하 주의. 휴식 필요.",
+        "advice": "인내하며 내실을 다지세요. 때가 되면 풀립니다. 비(否)가 태(泰)로 변합니다."
+      },
+      "fortune_score": 2,
+      "timing": "저점기"
+    },
+    {
+      "number": 13,
+      "name": "동인(同人)",
+      "chinese": "同人",
+      "meaning": "사람들과 함께함",
+      "upper": "건(天)",
+      "lower": "리(火)",
+      "element": "화",
+      "interpretation": {
+        "general": "뜻을 같이하는 사람들과 함께하는 시기. 협력이 성공의 열쇠.",
+        "love": "같은 가치관을 가진 사람을 만남.",
+        "career": "팀 프로젝트 성공. 동업 좋음.",
+        "finance": "공동 투자 유리.",
+        "health": "사회 활동이 건강에 도움.",
+        "advice": "혼자보다 함께가 강합니다. 뜻이 맞는 사람을 찾으세요."
+      },
+      "fortune_score": 8,
+      "timing": "협력의 시기"
+    },
+    {
+      "number": 14,
+      "name": "대유(大有)",
+      "chinese": "大有",
+      "meaning": "크게 가짐",
+      "upper": "리(火)",
+      "lower": "건(天)",
+      "element": "화",
+      "interpretation": {
+        "general": "풍요와 번영의 시기. 재물과 명예가 따르는 때.",
+        "love": "풍요로운 관계. 사랑받는 시기.",
+        "career": "성공과 인정. 높은 성과.",
+        "finance": "재물운 최고. 투자 수익 좋음.",
+        "health": "활력 넘침. 과식 주의.",
+        "advice": "겸손하게 나누세요. 하늘 아래 불이 밝게 비추듯 덕을 베푸세요."
+      },
+      "fortune_score": 9,
+      "timing": "번영기"
+    },
+    {
+      "number": 15,
+      "name": "겸(謙)",
+      "chinese": "謙",
+      "meaning": "겸손",
+      "upper": "곤(地)",
+      "lower": "간(山)",
+      "element": "토",
+      "interpretation": {
+        "general": "겸손함이 빛을 발하는 시기. 낮은 자세가 높임을 받음.",
+        "love": "겸손한 태도가 호감을 얻음.",
+        "career": "실력으로 인정받음. 과시하지 않아도 빛남.",
+        "finance": "검소함이 재물을 모음.",
+        "health": "절제가 건강을 지킴.",
+        "advice": "산이 땅 아래 있으니 겸손입니다. 겸손한 자만이 오래 갑니다."
+      },
+      "fortune_score": 8,
+      "timing": "겸손의 시기"
+    },
+    {
+      "number": 16,
+      "name": "예(豫)",
+      "chinese": "豫",
+      "meaning": "기쁨, 준비",
+      "upper": "진(雷)",
+      "lower": "곤(地)",
+      "element": "목",
+      "interpretation": {
+        "general": "기쁨과 축제의 시기. 미리 준비해온 것이 빛을 발함.",
+        "love": "즐거운 만남. 축하할 일이 생김.",
+        "career": "행사, 이벤트 성공. 사전 준비가 핵심.",
+        "finance": "경사스러운 지출. 투자보다 소비 시기.",
+        "health": "활력. 과음 주의.",
+        "advice": "기쁨을 나누되 과하지 마세요. 우레가 땅에서 나오니 흥분을 조절하세요."
+      },
+      "fortune_score": 7,
+      "timing": "축제 시기"
+    },
+    {
+      "number": 17,
+      "name": "수(隨)",
+      "chinese": "隨",
+      "meaning": "따름",
+      "upper": "태(澤)",
+      "lower": "진(雷)",
+      "element": "금",
+      "interpretation": {
+        "general": "순응하고 따르는 시기. 흐름에 맡기면 길이 열림.",
+        "love": "상대에게 맞추는 것이 좋음.",
+        "career": "윗사람을 따르면 성공.",
+        "finance": "시장 흐름을 따라가면 이익.",
+        "health": "자연치유. 몸의 신호를 따르세요.",
+        "advice": "때로는 따르는 것이 지혜입니다. 물이 흘러가듯 자연스럽게."
+      },
+      "fortune_score": 7,
+      "timing": "순응의 시기"
+    },
+    {
+      "number": 18,
+      "name": "고(蠱)",
+      "chinese": "蠱",
+      "meaning": "썩은 것을 고침",
+      "upper": "간(山)",
+      "lower": "손(風)",
+      "element": "토",
+      "interpretation": {
+        "general": "부패를 바로잡는 시기. 오래된 문제를 해결해야 함.",
+        "love": "관계의 문제점을 직시하고 고쳐야 함.",
+        "career": "조직 개혁. 낡은 관행 개선.",
+        "finance": "부실 정리. 빚 청산.",
+        "health": "축적된 피로 해소. 해독 필요.",
+        "advice": "썩은 것은 과감히 도려내세요. 고통스럽지만 필요한 수술입니다."
+      },
+      "fortune_score": 4,
+      "timing": "개혁의 시기"
+    },
+    {
+      "number": 19,
+      "name": "임(臨)",
+      "chinese": "臨",
+      "meaning": "다가감, 감독",
+      "upper": "곤(地)",
+      "lower": "태(澤)",
+      "element": "토",
+      "interpretation": {
+        "general": "다가가고 지켜보는 시기. 가까이서 관리하면 성과.",
+        "love": "다가가면 관계가 깊어짐.",
+        "career": "현장 관리 중요. 직접 챙기면 성과.",
+        "finance": "직접 관리하는 투자가 유리.",
+        "health": "정기 검진 필요.",
+        "advice": "멀리서 보지 말고 가까이 가세요. 임(臨)하면 통합니다."
+      },
+      "fortune_score": 8,
+      "timing": "접근의 시기"
+    },
+    {
+      "number": 20,
+      "name": "관(觀)",
+      "chinese": "觀",
+      "meaning": "바라봄, 관찰",
+      "upper": "손(風)",
+      "lower": "곤(地)",
+      "element": "목",
+      "interpretation": {
+        "general": "관찰하고 성찰하는 시기. 행동보다 관조가 필요.",
+        "love": "상대를 잘 관찰하세요. 본질을 파악해야.",
+        "career": "시장 관찰. 동향 파악 후 행동.",
+        "finance": "투자 전 충분한 분석.",
+        "health": "몸 상태 관찰. 증상 주시.",
+        "advice": "높은 곳에서 바라보면 전체가 보입니다. 서두르지 마세요."
+      },
+      "fortune_score": 6,
+      "timing": "관찰의 시기"
+    },
+    {
+      "number": 21,
+      "name": "서합(噬嗑)",
+      "chinese": "噬嗑",
+      "meaning": "씹어 합침",
+      "upper": "리(火)",
+      "lower": "진(雷)",
+      "element": "화",
+      "interpretation": {
+        "general": "장애물을 씹어 부수는 시기. 결단력 있게 문제 해결.",
+        "love": "오해를 풀고 화해하세요.",
+        "career": "장애물 제거. 과감한 결정.",
+        "finance": "법적 문제 해결. 소송 유리.",
+        "health": "치아 건강 주의.",
+        "advice": "가로막는 것을 씹어 부수세요. 단호함이 필요합니다."
+      },
+      "fortune_score": 6,
+      "timing": "결단의 시기"
+    },
+    {
+      "number": 22,
+      "name": "비(賁)",
+      "chinese": "賁",
+      "meaning": "꾸밈",
+      "upper": "간(山)",
+      "lower": "리(火)",
+      "element": "토",
+      "interpretation": {
+        "general": "아름다움과 문화의 시기. 형식과 예술이 빛남.",
+        "love": "로맨틱한 시기. 분위기 연출 좋음.",
+        "career": "디자인, 마케팅 성공. 포장이 중요.",
+        "finance": "외관에 투자. 브랜딩.",
+        "health": "외모 관리.",
+        "advice": "내면도 중요하지만 외면도 가꾸세요. 다만 과하지 않게."
+      },
+      "fortune_score": 7,
+      "timing": "아름다움의 시기"
+    },
+    {
+      "number": 23,
+      "name": "박(剝)",
+      "chinese": "剝",
+      "meaning": "깎임, 벗겨짐",
+      "upper": "간(山)",
+      "lower": "곤(地)",
+      "element": "토",
+      "interpretation": {
+        "general": "쇠락과 손실의 시기. 지키는 것이 중요.",
+        "love": "관계가 약해지는 시기. 위기 관리.",
+        "career": "하락세. 현상 유지.",
+        "finance": "손실 주의. 투자 자제.",
+        "health": "체력 저하. 무리 금물.",
+        "advice": "때가 좋지 않습니다. 움직이지 말고 지키세요."
+      },
+      "fortune_score": 2,
+      "timing": "쇠퇴기"
+    },
+    {
+      "number": 24,
+      "name": "복(復)",
+      "chinese": "復",
+      "meaning": "돌아옴, 회복",
+      "upper": "곤(地)",
+      "lower": "진(雷)",
+      "element": "토",
+      "interpretation": {
+        "general": "돌아오고 회복되는 시기. 새 시작의 기운.",
+        "love": "재회 가능. 관계 회복.",
+        "career": "재도약. 새 기회.",
+        "finance": "회복세. 손실 만회.",
+        "health": "회복기. 좋아지는 중.",
+        "advice": "밝은 기운이 돌아옵니다. 희망을 가지세요."
+      },
+      "fortune_score": 7,
+      "timing": "회복기"
+    },
+    {
+      "number": 25,
+      "name": "무망(無妄)",
+      "chinese": "無妄",
+      "meaning": "망령됨 없음",
+      "upper": "건(天)",
+      "lower": "진(雷)",
+      "element": "금",
+      "interpretation": {
+        "general": "진실과 정직의 시기. 꾸밈없이 행해야 함.",
+        "love": "진심을 전하세요. 가식은 금물.",
+        "career": "정도를 걷는 것이 성공.",
+        "finance": "정직한 투자. 투기 금지.",
+        "health": "자연 그대로. 과도한 시술 자제.",
+        "advice": "진실만이 통합니다. 거짓은 하늘이 용납하지 않습니다."
+      },
+      "fortune_score": 7,
+      "timing": "진실의 시기"
+    },
+    {
+      "number": 26,
+      "name": "대축(大畜)",
+      "chinese": "大畜",
+      "meaning": "크게 쌓음",
+      "upper": "간(山)",
+      "lower": "건(天)",
+      "element": "토",
+      "interpretation": {
+        "general": "크게 축적하는 시기. 재물과 역량이 쌓임.",
+        "love": "깊은 신뢰 축적.",
+        "career": "역량 강화. 실력 쌓기.",
+        "finance": "대규모 저축/투자 좋음.",
+        "health": "영양 축적. 보양.",
+        "advice": "하늘의 기운을 산이 품듯, 크게 축적하세요."
+      },
+      "fortune_score": 8,
+      "timing": "축적기"
+    },
+    {
+      "number": 27,
+      "name": "이(頤)",
+      "chinese": "頤",
+      "meaning": "기름, 양육",
+      "upper": "간(山)",
+      "lower": "진(雷)",
+      "element": "토",
+      "interpretation": {
+        "general": "양육과 자기관리의 시기. 입에 들어가는 것이 중요.",
+        "love": "서로 돌보는 관계.",
+        "career": "자기계발. 내실 다지기.",
+        "finance": "생필품 관련 투자.",
+        "health": "식이요법 중요. 절제.",
+        "advice": "무엇을 먹고 무엇을 말하는지 조심하세요."
+      },
+      "fortune_score": 6,
+      "timing": "양육의 시기"
+    },
+    {
+      "number": 28,
+      "name": "대과(大過)",
+      "chinese": "大過",
+      "meaning": "크게 지나침",
+      "upper": "태(澤)",
+      "lower": "손(風)",
+      "element": "금",
+      "interpretation": {
+        "general": "지나친 상황의 시기. 균형을 잡아야 함.",
+        "love": "과도한 감정 주의. 집착 금물.",
+        "career": "과부하 주의. 쉬어가기.",
+        "finance": "과도한 투자/지출 주의.",
+        "health": "과로 주의. 휴식 필수.",
+        "advice": "들보가 휘어질 만큼 무거운 짐입니다. 덜어내세요."
+      },
+      "fortune_score": 3,
+      "timing": "과부하 시기"
+    },
+    {
+      "number": 29,
+      "name": "습감(習坎)",
+      "chinese": "習坎",
+      "meaning": "거듭되는 험난함",
+      "upper": "감(水)",
+      "lower": "감(水)",
+      "element": "수",
+      "interpretation": {
+        "general": "위험과 어려움의 시기. 빠져나가기 어려운 상황.",
+        "love": "관계의 위기. 신중해야.",
+        "career": "험난한 시기. 위험 관리 중요.",
+        "finance": "손실 위험 높음. 보수적 운용.",
+        "health": "신장, 귀 건강 주의.",
+        "advice": "구덩이 속에서도 물은 흐릅니다. 성실하면 빠져나갑니다."
+      },
+      "fortune_score": 2,
+      "timing": "위기"
+    },
+    {
+      "number": 30,
+      "name": "리(離)",
+      "chinese": "離",
+      "meaning": "걸림, 밝음",
+      "upper": "리(火)",
+      "lower": "리(火)",
+      "element": "화",
+      "interpretation": {
+        "general": "밝음과 명예의 시기. 빛나고 드러나는 때.",
+        "love": "열정적인 사랑. 눈에 띄는 만남.",
+        "career": "명예와 인정. 주목받음.",
+        "finance": "투명한 거래. 드러나는 것.",
+        "health": "눈, 심장 건강.",
+        "advice": "불은 무엇에 붙어야 밝게 탑니다. 올바른 것에 붙으세요."
+      },
+      "fortune_score": 8,
+      "timing": "명예의 시기"
+    },
+    {
+      "number": 31,
+      "name": "함(咸)",
+      "chinese": "咸",
+      "meaning": "감응",
+      "upper": "태(澤)",
+      "lower": "간(山)",
+      "element": "금",
+      "interpretation": {
+        "general": "서로 감응하는 시기. 마음이 통하는 인연.",
+        "love": "로맨스의 절정. 서로 끌림.",
+        "career": "좋은 협력 관계.",
+        "finance": "윈윈 거래.",
+        "health": "정서적 안정.",
+        "advice": "산과 못이 서로 감응합니다. 마음을 열면 통합니다."
+      },
+      "fortune_score": 9,
+      "timing": "감응의 시기"
+    },
+    {
+      "number": 32,
+      "name": "항(恆)",
+      "chinese": "恆",
+      "meaning": "항상함",
+      "upper": "진(雷)",
+      "lower": "손(風)",
+      "element": "목",
+      "interpretation": {
+        "general": "지속성과 일관성의 시기. 변하지 않는 것이 중요.",
+        "love": "장기적 관계. 결혼 좋음.",
+        "career": "꾸준함이 성공.",
+        "finance": "장기 투자 유리.",
+        "health": "규칙적 생활.",
+        "advice": "우레와 바람이 함께 하듯, 오래 지속하세요."
+      },
+      "fortune_score": 7,
+      "timing": "지속의 시기"
+    },
+    {
+      "number": 33,
+      "name": "둔(遯)",
+      "chinese": "遯",
+      "meaning": "물러남",
+      "upper": "건(天)",
+      "lower": "간(山)",
+      "element": "금",
+      "interpretation": {
+        "general": "물러나고 피하는 시기. 때를 기다리며 은거.",
+        "love": "거리두기 필요.",
+        "career": "퇴직/휴직 고려. 물러날 때.",
+        "finance": "투자 철수. 현금화.",
+        "health": "휴양 필요.",
+        "advice": "물러남도 지혜입니다. 하늘 아래 산처럼 물러서세요."
+      },
+      "fortune_score": 4,
+      "timing": "은퇴/휴식 시기"
+    },
+    {
+      "number": 34,
+      "name": "대장(大壯)",
+      "chinese": "大壯",
+      "meaning": "크게 강함",
+      "upper": "진(雷)",
+      "lower": "건(天)",
+      "element": "목",
+      "interpretation": {
+        "general": "강대한 힘의 시기. 에너지가 넘치지만 조절 필요.",
+        "love": "열정적이나 강압 주의.",
+        "career": "추진력 좋으나 과격함 주의.",
+        "finance": "공격적 투자 가능하나 리스크 관리.",
+        "health": "에너지 과잉. 분출구 필요.",
+        "advice": "강함은 좋으나 바른 길에 써야 합니다. 폭주하지 마세요."
+      },
+      "fortune_score": 7,
+      "timing": "왕성기"
+    },
+    {
+      "number": 35,
+      "name": "진(晉)",
+      "chinese": "晉",
+      "meaning": "나아감",
+      "upper": "리(火)",
+      "lower": "곤(地)",
+      "element": "화",
+      "interpretation": {
+        "general": "전진하고 승진하는 시기. 밝게 빛나며 나아감.",
+        "love": "관계 발전. 다음 단계로.",
+        "career": "승진, 발전. 밝은 미래.",
+        "finance": "수익 증가.",
+        "health": "활력 상승.",
+        "advice": "태양이 땅 위에 떠오르듯 나아가세요."
+      },
+      "fortune_score": 9,
+      "timing": "승진기"
+    },
+    {
+      "number": 36,
+      "name": "명이(明夷)",
+      "chinese": "明夷",
+      "meaning": "빛이 상함",
+      "upper": "곤(地)",
+      "lower": "리(火)",
+      "element": "토",
+      "interpretation": {
+        "general": "빛이 가려지는 시기. 숨어서 때를 기다려야 함.",
+        "love": "관계가 어두워짐. 인내 필요.",
+        "career": "능력 발휘 어려움. 참고 기다리기.",
+        "finance": "손실기. 지키기.",
+        "health": "눈 건강 주의. 우울 주의.",
+        "advice": "태양이 땅 아래 있습니다. 빛을 숨기고 때를 기다리세요."
+      },
+      "fortune_score": 2,
+      "timing": "은인자중 시기"
+    },
+    {
+      "number": 37,
+      "name": "가인(家人)",
+      "chinese": "家人",
+      "meaning": "집안사람",
+      "upper": "손(風)",
+      "lower": "리(火)",
+      "element": "목",
+      "interpretation": {
+        "general": "가정과 내부의 시기. 집안을 다스리면 천하가 다스려짐.",
+        "love": "가정 형성. 결혼 좋음.",
+        "career": "내부 정리. 조직 관리.",
+        "finance": "가계 관리. 저축.",
+        "health": "가족 건강 챙기기.",
+        "advice": "바람이 불에서 나오듯, 집안이 바르면 밖도 바릅니다."
+      },
+      "fortune_score": 8,
+      "timing": "가정 중심 시기"
+    },
+    {
+      "number": 38,
+      "name": "규(睽)",
+      "chinese": "睽",
+      "meaning": "어긋남",
+      "upper": "리(火)",
+      "lower": "태(澤)",
+      "element": "화",
+      "interpretation": {
+        "general": "어긋나고 다른 시기. 차이를 인정하고 조화 찾기.",
+        "love": "이견 충돌. 다름 인정.",
+        "career": "의견 충돌. 타협점 찾기.",
+        "finance": "예상과 다른 결과.",
+        "health": "불균형 주의.",
+        "advice": "불과 물은 다르지만 각자 역할이 있습니다. 다름을 인정하세요."
+      },
+      "fortune_score": 4,
+      "timing": "갈등 시기"
+    },
+    {
+      "number": 39,
+      "name": "건(蹇)",
+      "chinese": "蹇",
+      "meaning": "다리를 절음, 어려움",
+      "upper": "감(水)",
+      "lower": "간(山)",
+      "element": "수",
+      "interpretation": {
+        "general": "장애와 어려움의 시기. 험난한 길.",
+        "love": "관계의 장애. 인내 필요.",
+        "career": "진행이 더딤. 장애물.",
+        "finance": "손실 주의. 신중.",
+        "health": "다리, 관절 주의.",
+        "advice": "산 앞에 물이 막혔습니다. 돌아가거나 기다리세요."
+      },
+      "fortune_score": 2,
+      "timing": "장애 시기"
+    },
+    {
+      "number": 40,
+      "name": "해(解)",
+      "chinese": "解",
+      "meaning": "풀림",
+      "upper": "진(雷)",
+      "lower": "감(水)",
+      "element": "목",
+      "interpretation": {
+        "general": "풀리고 해소되는 시기. 어려움이 지나감.",
+        "love": "오해 해소. 화해.",
+        "career": "문제 해결. 장애 제거.",
+        "finance": "빚 청산. 손실 회복.",
+        "health": "병 호전. 회복.",
+        "advice": "우레가 물을 풀어주듯, 묶인 것이 풀립니다. 용서하세요."
+      },
+      "fortune_score": 7,
+      "timing": "해결 시기"
+    },
+    {
+      "number": 41,
+      "name": "손(損)",
+      "chinese": "損",
+      "meaning": "덜어냄",
+      "upper": "간(山)",
+      "lower": "태(澤)",
+      "element": "토",
+      "interpretation": {
+        "general": "덜어내고 줄이는 시기. 비움이 필요.",
+        "love": "희생과 양보.",
+        "career": "축소, 정리.",
+        "finance": "지출 절제. 기부.",
+        "health": "다이어트. 절제.",
+        "advice": "아래를 덜어 위를 더합니다. 비움이 채움입니다."
+      },
+      "fortune_score": 5,
+      "timing": "절제 시기"
+    },
+    {
+      "number": 42,
+      "name": "익(益)",
+      "chinese": "益",
+      "meaning": "더함",
+      "upper": "손(風)",
+      "lower": "진(雷)",
+      "element": "목",
+      "interpretation": {
+        "general": "더해지고 이로운 시기. 성장과 발전.",
+        "love": "관계 발전. 서로에게 이로움.",
+        "career": "성장, 확장.",
+        "finance": "이익 증가. 투자 좋음.",
+        "health": "건강 증진.",
+        "advice": "위를 덜어 아래에 더합니다. 나누면 더 커집니다."
+      },
+      "fortune_score": 9,
+      "timing": "성장 시기"
+    },
+    {
+      "number": 43,
+      "name": "쾌(夬)",
+      "chinese": "夬",
+      "meaning": "터뜨림, 결단",
+      "upper": "태(澤)",
+      "lower": "건(天)",
+      "element": "금",
+      "interpretation": {
+        "general": "결단하고 결정하는 시기. 과감히 끊어야.",
+        "love": "결정의 시간. 명확히.",
+        "career": "결단 필요. 과감한 조치.",
+        "finance": "매도 타이밍.",
+        "health": "나쁜 습관 끊기.",
+        "advice": "물이 하늘에서 터지듯, 과감히 결단하세요."
+      },
+      "fortune_score": 6,
+      "timing": "결단 시기"
+    },
+    {
+      "number": 44,
+      "name": "구(姤)",
+      "chinese": "姤",
+      "meaning": "만남",
+      "upper": "건(天)",
+      "lower": "손(風)",
+      "element": "금",
+      "interpretation": {
+        "general": "우연한 만남의 시기. 인연이 생기지만 신중해야.",
+        "love": "새 인연. 단 가볍게 시작.",
+        "career": "새로운 기회. 신중히 판단.",
+        "finance": "뜻밖의 제안. 검토 필요.",
+        "health": "외부 요인 주의.",
+        "advice": "바람이 하늘 아래 불듯 만남이 옵니다. 신중하세요."
+      },
+      "fortune_score": 6,
+      "timing": "만남 시기"
+    },
+    {
+      "number": 45,
+      "name": "췌(萃)",
+      "chinese": "萃",
+      "meaning": "모임",
+      "upper": "태(澤)",
+      "lower": "곤(地)",
+      "element": "금",
+      "interpretation": {
+        "general": "모이고 집결하는 시기. 사람과 자원이 모임.",
+        "love": "사람들 사이에서 인연.",
+        "career": "팀 구성. 인재 모집.",
+        "finance": "자금 조달. 투자 유치.",
+        "health": "사회 활동.",
+        "advice": "못이 땅 위에 있으니 모입니다. 뜻을 모으세요."
+      },
+      "fortune_score": 8,
+      "timing": "집결 시기"
+    },
+    {
+      "number": 46,
+      "name": "승(升)",
+      "chinese": "升",
+      "meaning": "올라감",
+      "upper": "곤(地)",
+      "lower": "손(風)",
+      "element": "토",
+      "interpretation": {
+        "general": "상승하고 발전하는 시기. 꾸준히 올라감.",
+        "love": "관계 상승. 격상.",
+        "career": "승진, 발전.",
+        "finance": "수익 상승.",
+        "health": "컨디션 상승.",
+        "advice": "나무가 땅속에서 자라 오르듯, 꾸준히 올라가세요."
+      },
+      "fortune_score": 9,
+      "timing": "상승기"
+    },
+    {
+      "number": 47,
+      "name": "곤(困)",
+      "chinese": "困",
+      "meaning": "곤궁함",
+      "upper": "태(澤)",
+      "lower": "감(水)",
+      "element": "금",
+      "interpretation": {
+        "general": "곤경에 처한 시기. 어렵지만 지조를 지켜야.",
+        "love": "힘든 시기. 서로 버텨야.",
+        "career": "막힘. 인내.",
+        "finance": "재정난.",
+        "health": "체력 저하.",
+        "advice": "못에 물이 새어 마릅니다. 곤경이지만 말조심하고 버티세요."
+      },
+      "fortune_score": 2,
+      "timing": "곤경기"
+    },
+    {
+      "number": 48,
+      "name": "정(井)",
+      "chinese": "井",
+      "meaning": "우물",
+      "upper": "감(水)",
+      "lower": "손(風)",
+      "element": "수",
+      "interpretation": {
+        "general": "변하지 않는 근원의 시기. 근본에 충실.",
+        "love": "변치 않는 마음.",
+        "career": "기본에 충실.",
+        "finance": "안정적 수입원.",
+        "health": "기초 건강.",
+        "advice": "우물은 마을이 바뀌어도 변하지 않습니다. 근본을 지키세요."
+      },
+      "fortune_score": 7,
+      "timing": "근본 시기"
+    },
+    {
+      "number": 49,
+      "name": "혁(革)",
+      "chinese": "革",
+      "meaning": "바꿈, 혁명",
+      "upper": "태(澤)",
+      "lower": "리(火)",
+      "element": "금",
+      "interpretation": {
+        "general": "변혁의 시기. 낡은 것을 버리고 새것으로.",
+        "love": "관계 재정립.",
+        "career": "조직 개편. 변화.",
+        "finance": "포트폴리오 재조정.",
+        "health": "생활습관 바꾸기.",
+        "advice": "불이 물을 바꾸듯, 과감히 혁신하세요."
+      },
+      "fortune_score": 6,
+      "timing": "변혁 시기"
+    },
+    {
+      "number": 50,
+      "name": "정(鼎)",
+      "chinese": "鼎",
+      "meaning": "솥",
+      "upper": "리(火)",
+      "lower": "손(風)",
+      "element": "화",
+      "interpretation": {
+        "general": "변환과 정화의 시기. 원재료를 가치 있는 것으로.",
+        "love": "관계 성숙.",
+        "career": "새로운 시작. 창업.",
+        "finance": "가치 창출.",
+        "health": "체질 개선.",
+        "advice": "솥이 음식을 익히듯, 원료를 가치로 바꾸세요."
+      },
+      "fortune_score": 8,
+      "timing": "변환 시기"
+    },
+    {
+      "number": 51,
+      "name": "진(震)",
+      "chinese": "震",
+      "meaning": "우레",
+      "upper": "진(雷)",
+      "lower": "진(雷)",
+      "element": "목",
+      "interpretation": {
+        "general": "충격과 각성의 시기. 두려움 후 기쁨.",
+        "love": "전격적 만남. 충격적 소식.",
+        "career": "갑작스런 변화.",
+        "finance": "급변동.",
+        "health": "심장, 신경 주의.",
+        "advice": "우레가 거듭 쳐도 웃음이 옵니다. 충격을 각성으로 바꾸세요."
+      },
+      "fortune_score": 5,
+      "timing": "충격 시기"
+    },
+    {
+      "number": 52,
+      "name": "간(艮)",
+      "chinese": "艮",
+      "meaning": "그침, 산",
+      "upper": "간(山)",
+      "lower": "간(山)",
+      "element": "토",
+      "interpretation": {
+        "general": "멈추고 안정되는 시기. 움직이지 말아야.",
+        "love": "현 상태 유지.",
+        "career": "정지. 숙고.",
+        "finance": "투자 보류.",
+        "health": "휴식. 안정.",
+        "advice": "산이 겹쳐 있으니 멈추세요. 고요함이 필요합니다."
+      },
+      "fortune_score": 5,
+      "timing": "멈춤 시기"
+    },
+    {
+      "number": 53,
+      "name": "점(漸)",
+      "chinese": "漸",
+      "meaning": "점진적",
+      "upper": "손(風)",
+      "lower": "간(山)",
+      "element": "목",
+      "interpretation": {
+        "general": "점진적 발전의 시기. 서두르지 않고 차근차근.",
+        "love": "천천히 발전. 정식 교제.",
+        "career": "단계적 성장.",
+        "finance": "장기 투자.",
+        "health": "점진적 회복.",
+        "advice": "기러기가 나무로 서서히 나아가듯, 천천히 하세요."
+      },
+      "fortune_score": 7,
+      "timing": "점진 시기"
+    },
+    {
+      "number": 54,
+      "name": "귀매(歸妹)",
+      "chinese": "歸妹",
+      "meaning": "시집가는 누이",
+      "upper": "진(雷)",
+      "lower": "태(澤)",
+      "element": "목",
+      "interpretation": {
+        "general": "불완전한 결합의 시기. 조건이 완벽하지 않음.",
+        "love": "성급한 결합 주의. 조건 불리.",
+        "career": "불리한 계약 주의.",
+        "finance": "손해 보는 거래.",
+        "health": "부조화.",
+        "advice": "조건이 좋지 않습니다. 무리하지 마세요."
+      },
+      "fortune_score": 3,
+      "timing": "불완전 시기"
+    },
+    {
+      "number": 55,
+      "name": "풍(豐)",
+      "chinese": "豐",
+      "meaning": "풍성함",
+      "upper": "진(雷)",
+      "lower": "리(火)",
+      "element": "목",
+      "interpretation": {
+        "general": "풍요와 절정의 시기. 태양이 중천에.",
+        "love": "절정의 사랑.",
+        "career": "최고의 성과.",
+        "finance": "수익 극대화.",
+        "health": "최상의 컨디션.",
+        "advice": "태양이 중천이면 기울기 시작합니다. 슬기롭게 누리세요."
+      },
+      "fortune_score": 9,
+      "timing": "절정기"
+    },
+    {
+      "number": 56,
+      "name": "여(旅)",
+      "chinese": "旅",
+      "meaning": "나그네",
+      "upper": "리(火)",
+      "lower": "간(山)",
+      "element": "화",
+      "interpretation": {
+        "general": "이동과 여행의 시기. 안주하지 않고 떠남.",
+        "love": "인연 지나감. 만남과 이별.",
+        "career": "출장, 이동.",
+        "finance": "단기 거래.",
+        "health": "이동 중 건강 주의.",
+        "advice": "나그네는 겸손해야 합니다. 낯선 곳에서 조심하세요."
+      },
+      "fortune_score": 5,
+      "timing": "이동 시기"
+    },
+    {
+      "number": 57,
+      "name": "손(巽)",
+      "chinese": "巽",
+      "meaning": "바람, 스며듦",
+      "upper": "손(風)",
+      "lower": "손(風)",
+      "element": "목",
+      "interpretation": {
+        "general": "스며들고 따르는 시기. 부드럽게 침투.",
+        "love": "은근한 접근.",
+        "career": "점진적 영향력.",
+        "finance": "서서히 증가.",
+        "health": "호흡기 관리.",
+        "advice": "바람이 거듭 부니 부드럽게 스며듭니다. 강압 대신 설득."
+      },
+      "fortune_score": 7,
+      "timing": "침투 시기"
+    },
+    {
+      "number": 58,
+      "name": "태(兌)",
+      "chinese": "兌",
+      "meaning": "기쁨",
+      "upper": "태(澤)",
+      "lower": "태(澤)",
+      "element": "금",
+      "interpretation": {
+        "general": "기쁨과 화합의 시기. 말과 소통이 즐거움.",
+        "love": "즐거운 연애.",
+        "career": "협상, 세일즈 성공.",
+        "finance": "거래 성사.",
+        "health": "정서적 안정. 입, 호흡기.",
+        "advice": "못이 서로 통하니 기쁩니다. 진심으로 소통하세요."
+      },
+      "fortune_score": 8,
+      "timing": "기쁨 시기"
+    },
+    {
+      "number": 59,
+      "name": "환(渙)",
+      "chinese": "渙",
+      "meaning": "흩어짐",
+      "upper": "손(風)",
+      "lower": "감(水)",
+      "element": "목",
+      "interpretation": {
+        "general": "흩어지고 분산되는 시기. 막힌 것이 풀림.",
+        "love": "거리 생김. 분산.",
+        "career": "분산, 분업.",
+        "finance": "분산 투자.",
+        "health": "순환 촉진.",
+        "advice": "바람이 물 위를 불어 흩어집니다. 막힌 것을 풀어주세요."
+      },
+      "fortune_score": 6,
+      "timing": "분산 시기"
+    },
+    {
+      "number": 60,
+      "name": "절(節)",
+      "chinese": "節",
+      "meaning": "마디, 절제",
+      "upper": "감(水)",
+      "lower": "태(澤)",
+      "element": "수",
+      "interpretation": {
+        "general": "절제와 한계의 시기. 적당함이 중요.",
+        "love": "적당한 거리 유지.",
+        "career": "한도 내에서.",
+        "finance": "예산 관리.",
+        "health": "절제가 건강.",
+        "advice": "물이 못을 채우되 넘치지 않습니다. 절제하세요."
+      },
+      "fortune_score": 6,
+      "timing": "절제 시기"
+    },
+    {
+      "number": 61,
+      "name": "중부(中孚)",
+      "chinese": "中孚",
+      "meaning": "마음 속의 믿음",
+      "upper": "손(風)",
+      "lower": "태(澤)",
+      "element": "목",
+      "interpretation": {
+        "general": "진실과 신뢰의 시기. 마음이 통함.",
+        "love": "진심 전달.",
+        "career": "신뢰 구축.",
+        "finance": "신용 거래.",
+        "health": "마음의 평화.",
+        "advice": "빈 배도 진심으로 청하면 구해집니다. 진심을 전하세요."
+      },
+      "fortune_score": 8,
+      "timing": "신뢰 시기"
+    },
+    {
+      "number": 62,
+      "name": "소과(小過)",
+      "chinese": "小過",
+      "meaning": "작게 지나침",
+      "upper": "진(雷)",
+      "lower": "간(山)",
+      "element": "목",
+      "interpretation": {
+        "general": "작은 일에 지나친 시기. 큰 것보다 작은 것에 집중.",
+        "love": "작은 것에 신경 쓰기.",
+        "career": "세부 사항 주의.",
+        "finance": "소액 관리.",
+        "health": "사소한 증상 주의.",
+        "advice": "작은 일에는 지나쳐도 되지만 큰 일은 안됩니다. 분별하세요."
+      },
+      "fortune_score": 5,
+      "timing": "세부 시기"
+    },
+    {
+      "number": 63,
+      "name": "기제(既濟)",
+      "chinese": "既濟",
+      "meaning": "이미 건넘",
+      "upper": "감(水)",
+      "lower": "리(火)",
+      "element": "수",
+      "interpretation": {
+        "general": "완성의 시기. 이미 이루어졌으나 조심해야.",
+        "love": "완성된 관계. 유지가 중요.",
+        "career": "목표 달성. 관리 필요.",
+        "finance": "수익 실현. 보존.",
+        "health": "건강 유지.",
+        "advice": "강을 건넜습니다. 이제 지키는 것이 중요합니다."
+      },
+      "fortune_score": 8,
+      "timing": "완성 시기"
+    },
+    {
+      "number": 64,
+      "name": "미제(未濟)",
+      "chinese": "未濟",
+      "meaning": "아직 건너지 못함",
+      "upper": "리(火)",
+      "lower": "감(水)",
+      "element": "화",
+      "interpretation": {
+        "general": "미완성의 시기. 아직 끝나지 않음.",
+        "love": "아직 미완. 희망 있음.",
+        "career": "진행 중. 완료 안됨.",
+        "finance": "미실현 이익.",
+        "health": "회복 중.",
+        "advice": "아직 강을 건너지 못했습니다. 희망을 가지고 나아가세요."
+      },
+      "fortune_score": 5,
+      "timing": "미완성 시기"
+    }
+  ],
+
+  "meihua_yishu": {
+    "meta": {
+      "description": "매화역수 - 일상에서 점치는 법"
+    },
+    "time_calculation": {
+      "description": "시간으로 괘 얻기",
+      "upper_trigram": "년지 + 월수 + 일수를 8로 나눈 나머지",
+      "lower_trigram": "년지 + 월수 + 일수 + 시수를 8로 나눈 나머지",
+      "moving_line": "총합을 6으로 나눈 나머지"
+    },
+    "number_calculation": {
+      "description": "숫자로 괘 얻기",
+      "method": "떠오른 숫자 둘을 각각 8로 나눈 나머지로 상하괘 결정"
+    }
+  }
+}

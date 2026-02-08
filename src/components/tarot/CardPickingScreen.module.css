@@ -87,6 +87,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  pointer-events: none;
 }
 
 .instructionTitle {
@@ -332,11 +333,14 @@
   bottom: -80px;
   margin-left: -100px;
   transform-origin: center bottom;
-  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), z-index 0s;
   will-change: transform;
   border: none;
   background: none;
   padding: 0;
+  z-index: calc(var(--i) + 1);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 
   /* Fan spread: semi-circle arc - 78 cards spread across 160 degrees (-80 to +80) */
   --angle: calc((var(--i) - 38.5) * 2.05deg);
@@ -386,8 +390,8 @@
 
 .cardWrapper:hover,
 .cardWrapper:focus-visible {
-  transform: rotate(var(--angle)) translateY(-510px) scale(1.05);
-  z-index: 100;
+  transform: rotate(var(--angle)) translateY(-520px) scale(1.15);
+  z-index: 200;
   outline: none;
 }
 
@@ -402,6 +406,19 @@
 .cardWrapper:focus-visible .cardBack {
   outline: 3px solid rgba(212, 175, 55, 0.8);
   outline-offset: 4px;
+}
+
+/* Active state for better touch/click feedback */
+.cardWrapper:active:not(.selected) {
+  transform: rotate(var(--angle)) translateY(-530px) scale(1.2);
+  z-index: 250;
+}
+
+.cardWrapper:active:not(.selected) .cardBack {
+  border-color: rgba(124, 242, 156, 1);
+  box-shadow:
+    0 10px 40px rgba(124, 242, 156, 0.6),
+    0 0 50px rgba(124, 242, 156, 0.4);
 }
 
 .cardWrapper.selected {
@@ -457,9 +474,9 @@
 /* ===== Top Right Controls (Progress + Redraw) ===== */
 .topRightControls {
   position: fixed;
-  top: 0.75rem;
-  right: 0.75rem;
-  z-index: 200;
+  top: 4rem;
+  right: 1rem;
+  z-index: 150;
   display: flex;
   align-items: center;
   gap: 0.75rem;

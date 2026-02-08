@@ -60,12 +60,34 @@ export const longitudeSchema = z
   .min(-180, 'Longitude must be >= -180')
   .max(180, 'Longitude must be <= 180')
 
+// Supported genders - 'prefer_not' for users who prefer not to disclose
+export const genderValues = ['male', 'female', 'other', 'prefer_not'] as const
+export type Gender = (typeof genderValues)[number]
+
 export const genderSchema = z
   .string()
   .transform((v) => v.toLowerCase())
-  .pipe(z.enum(['male', 'female', 'other']))
+  .pipe(z.enum(genderValues))
 
-export const localeSchema = z.enum(['ko', 'en', 'ja', 'zh', 'es', 'fr', 'de', 'pt', 'ru', 'ar'])
+// Supported locales - union of all locales used across the app
+export const localeValues = [
+  'ko',
+  'en',
+  'ja',
+  'zh',
+  'es',
+  'fr',
+  'de',
+  'pt',
+  'ru',
+  'ar',
+  'vi',
+  'th',
+  'id',
+] as const
+export type Locale = (typeof localeValues)[number]
+
+export const localeSchema = z.enum(localeValues)
 
 export const calendarTypeSchema = z.enum(['solar', 'lunar'])
 

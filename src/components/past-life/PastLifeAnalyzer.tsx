@@ -3,9 +3,9 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import DateTimePicker from '@/components/ui/DateTimePicker';
-import TimePicker from '@/components/ui/TimePicker';
-import CityAutocomplete from '@/components/ui/CityAutocomplete';
+import { useSession } from 'next-auth/react';
+import { UnifiedBirthForm, BirthInfo } from '@/components/common/BirthForm';
+import { buildSignInUrl } from '@/lib/auth/signInUrl';
 import { useI18n } from '@/i18n/I18nProvider';
 import styles from './PastLifeAnalyzer.module.css';
 import { logger } from '@/lib/logger';
@@ -16,43 +16,38 @@ export type { PastLifeResult } from '@/lib/past-life/types';
 
 export default function PastLifeAnalyzer() {
   const { t, locale } = useI18n();
-  const [birthDate, setBirthDate] = useState('');
-  const [birthTime, setBirthTime] = useState('12:00');
-  const [timeUnknown, setTimeUnknown] = useState(false);
-  const [birthCity, setBirthCity] = useState('');
-  const [latitude, setLatitude] = useState<number | null>(null);
-  const [longitude, setLongitude] = useState<number | null>(null);
-  const [timezone, setTimezone] = useState('');
+  const { status } = useSession();
+  const signInUrl = buildSignInUrl();
+  const isKo = locale === 'ko';
+
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<PastLifeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const isKo = locale === 'ko';
 
-  const handleCitySelect = (city: {
-    name: string;
-    lat: number;
-    lon: number;
-    timezone: string;
-  }) => {
-    setBirthCity(city.name);
-    setLatitude(city.lat);
-    setLongitude(city.lon);
-    setTimezone(city.timezone);
-  };
+  // Store form data for results
+  const [formData, setFormData] = useState<{
+    birthDate: string;
+    birthTime: string;
+    latitude?: number;
+    longitude?: number;
+    timezone?: string;
+  } | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (birthInfo: BirthInfo) => {
+    const { birthDate, birthTime, latitude, longitude, timezone } = birthInfo;
+
     if (!birthDate) {
       setError(t('pastLife.errors.birthdate', 'Please enter your birth date.'));
       return;
     }
-    if (!birthCity || latitude === null || longitude === null) {
+    if (latitude === undefined || longitude === undefined) {
       setError(t('pastLife.errors.city', 'Please select your birth city.'));
       return;
     }
 
     setIsLoading(true);
     setError(null);
+    setFormData({ birthDate, birthTime, latitude, longitude, timezone });
 
     try {
       const response = await fetch('/api/past-life', {
@@ -94,7 +89,7 @@ export default function PastLifeAnalyzer() {
             content: JSON.stringify({
               birthDate,
               birthTime,
-              birthCity,
+              birthCity: birthInfo.birthCity,
               soulPattern: data.soulPattern?.type,
               karmaScore: data.karmaScore,
               date: new Date().toISOString(),
@@ -113,125 +108,75 @@ export default function PastLifeAnalyzer() {
 
   const handleReset = () => {
     setResult(null);
-    setBirthDate('');
-    setBirthTime('12:00');
-    setTimeUnknown(false);
-    setBirthCity('');
-    setLatitude(null);
-    setLongitude(null);
-    setTimezone('');
+    setFormData(null);
   };
 
-  if (result) {
+  if (result && formData) {
     return (
       <PastLifeResults
         result={result}
         onReset={handleReset}
-        birthDate={birthDate}
-        birthTime={birthTime}
-        latitude={latitude ?? undefined}
-        longitude={longitude ?? undefined}
-        timezone={timezone}
+        birthDate={formData.birthDate}
+        birthTime={formData.birthTime}
+        latitude={formData.latitude}
+        longitude={formData.longitude}
+        timezone={formData.timezone}
       />
     );
   }
 
   return (
     <div className={styles.container}>
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.inputGroup}>
-          <DateTimePicker
-            value={birthDate}
-            onChange={setBirthDate}
-            label={t('pastLife.birthdateLabel', 'Birth Date')}
-            required
-            locale={isKo ? 'ko' : 'en'}
-          />
+      <UnifiedBirthForm
+        onSubmit={handleSubmit}
+        locale={isKo ? 'ko' : 'en'}
+        includeProfileLoader={true}
+        includeCity={true}
+        includeGender={false}
+        allowTimeUnknown={true}
+        submitButtonText={t('pastLife.buttonStart', 'Discover My Past Lives')}
+        submitButtonIcon="🔮"
+        loadingButtonText={t('pastLife.analyzing', 'Exploring past lives...')}
+        showHeader={true}
+        headerIcon="🎂"
+        headerTitle={t('pastLife.formTitle', 'Enter Your Birth Info')}
+        headerSubtitle={t('pastLife.formSubtitle', 'Required for accurate past life analysis')}
+      />
+
+      {status === 'unauthenticated' && (
+        <div className={styles.loginHint}>
+          <p>
+            {isKo
+              ? '로그인하면 정보가 저장되어 더 편리하게 이용할 수 있어요'
+              : 'Log in to save your info for a better experience'}
+          </p>
+          <a href={signInUrl} className={styles.loginLink}>
+            {isKo ? '로그인하기' : 'Log in'}
+          </a>
         </div>
+      )}
 
-        <div className={styles.inputGroup}>
-          <TimePicker
-            value={birthTime}
-            onChange={setBirthTime}
-            label={t('pastLife.birthtimeLabel', 'Birth Time')}
-            locale={isKo ? 'ko' : 'en'}
-            disabled={timeUnknown}
-          />
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={timeUnknown}
-              onChange={(e) => {
-                setTimeUnknown(e.target.checked);
-                if (e.target.checked) {
-                  setBirthTime('12:00');
-                }
-              }}
-              className={styles.checkbox}
-            />
-            <span>{t('pastLife.timeUnknown', 'I don\'t know my birth time')}</span>
-          </label>
-          {!timeUnknown && (
-            <span className={styles.hint}>
-              {t('pastLife.birthtimeHint', 'If unknown, 12:00 will be used')}
-            </span>
-          )}
-          {timeUnknown && (
-            <span className={styles.hint}>
-              {t('pastLife.timeUnknownHint', 'Noon (12:00) will be used for calculations')}
-            </span>
-          )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            className={styles.error}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {isLoading && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingContent}>
+            <div className={styles.spinner} />
+            <p>{t('pastLife.analyzing', 'Exploring past lives...')}</p>
+          </div>
         </div>
-
-        <div className={styles.inputGroup}>
-          <label className={styles.label}>
-            {t('pastLife.birthcityLabel', 'Birth City')}
-            <span className={styles.required}>*</span>
-          </label>
-          <CityAutocomplete
-            value={birthCity}
-            onChange={setBirthCity}
-            onSelect={handleCitySelect}
-            placeholder={t('pastLife.birthcityPlaceholder', 'Search for your birth city...')}
-          />
-          <span className={styles.hint}>
-            {t('pastLife.birthcityHint', 'Birth city is needed for accurate astrology calculations')}
-          </span>
-        </div>
-
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              className={styles.error}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-            >
-              {error}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <motion.button
-          type="submit"
-          className={styles.submitBtn}
-          disabled={isLoading}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          {isLoading ? (
-            <span className={styles.loading}>
-              <span className={styles.spinner} />
-              {t('pastLife.analyzing', 'Exploring past lives...')}
-            </span>
-          ) : (
-            <>
-              <span className={styles.btnIcon}>🔮</span>
-              {t('pastLife.buttonStart', 'Discover My Past Lives')}
-            </>
-          )}
-        </motion.button>
-      </form>
+      )}
 
       {/* Info Box */}
       <div className={styles.infoBox}>

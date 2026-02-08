@@ -1,19 +1,30 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
+import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
 import ServicePageLayout from '@/components/ui/ServicePageLayout'
 import { useI18n } from '@/i18n/I18nProvider'
-import { ShareButton } from '@/components/share/ShareButton'
-import {
-  generateCompatibilityCard,
-  CompatibilityData,
-} from '@/components/share/cards/CompatibilityCard'
 import { useRouter } from 'next/navigation'
-import ScrollToTop from '@/components/ui/ScrollToTop'
-import CompatibilityTabs from '@/components/compatibility/CompatibilityTabs'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import styles from './Compatibility.module.css'
+
+// Lazy load heavy components
+const ShareButton = dynamic(
+  () => import('@/components/share/ShareButton').then(mod => ({ default: mod.ShareButton })),
+  { ssr: false }
+)
+const ScrollToTop = dynamic(() => import('@/components/ui/ScrollToTop'), { ssr: false })
+const CompatibilityTabs = dynamic(
+  () => import('@/components/compatibility/CompatibilityTabs'),
+  { ssr: false, loading: () => <div style={{ minHeight: '300px' }} /> }
+)
+
+// Dynamic import for share card generation (only needed when sharing)
+const loadShareCardModule = () => import('@/components/share/cards/CompatibilityCard')
+
+// Type import for share data
+import type { CompatibilityData } from '@/components/share/cards/CompatibilityCard'
 
 import { useCompatibilityForm } from '@/hooks/useCompatibilityForm'
 import { useCityAutocomplete } from '@/hooks/useCityAutocomplete'
@@ -337,7 +348,8 @@ export default function CompatPage() {
             {/* Share Button */}
             <div className={styles.shareSection}>
               <ShareButton
-                generateCard={() => {
+                generateCard={async () => {
+                  const { generateCompatibilityCard } = await loadShareCardModule()
                   const shareData: CompatibilityData = {
                     person1Name: persons[0]?.name || 'Person 1',
                     person2Name: persons[1]?.name || 'Person 2',
@@ -347,7 +359,7 @@ export default function CompatPage() {
                       .slice(0, 2)
                       .map((s) => s.content.split('\n')[0]?.slice(0, 80)),
                   }
-                  return generateCompatibilityCard(shareData, 'og')
+                  return generateCompatibilityCard(shareData as any, 'og')
                 }}
                 filename="compatibility-result.png"
                 shareTitle={t('compatibilityPage.shareTitle', 'Our Compatibility Result')}

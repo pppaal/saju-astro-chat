@@ -144,6 +144,59 @@
   to { transform: rotate(360deg); }
 }
 
+/* Login Hint */
+.loginHint {
+  text-align: center;
+  padding: 1rem;
+  margin-top: 1rem;
+  background: rgba(167, 139, 250, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(167, 139, 250, 0.15);
+}
+
+.loginHint p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.loginLink {
+  color: #a78bfa;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.loginLink:hover {
+  color: #c4b5fd;
+  text-decoration: underline;
+}
+
+/* Loading Overlay */
+.loadingOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loadingContent {
+  text-align: center;
+  color: white;
+}
+
+.loadingContent p {
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
 /* Info Box */
 .infoBox {
   display: flex;

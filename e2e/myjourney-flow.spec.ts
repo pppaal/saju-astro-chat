@@ -2,63 +2,71 @@ import { test, expect } from '@playwright/test'
 
 test.describe('My Journey Flow', () => {
   test.describe('My Journey Main Page', () => {
-    test('should load myjourney page successfully', async ({ page }) => {
+    test('should load myjourney page with content', async ({ page }) => {
       await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
     })
 
-    test('should display journey overview', async ({ page }) => {
+    test('should display journey overview content', async ({ page }) => {
       await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
 
-      const overview = page.locator('[class*="journey"], [class*="overview"], main')
-      const count = await overview.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      const bodyText = await page.locator('body').textContent()
+      // 여정 관련 콘텐츠 확인
+      const hasContent =
+        bodyText!.includes('여정') ||
+        bodyText!.includes('기록') ||
+        bodyText!.includes('히스토리') ||
+        bodyText!.includes('Journey') ||
+        bodyText!.length > 100
+      expect(hasContent).toBe(true)
     })
 
-    test('should have navigation tabs or menu', async ({ page }) => {
+    test('should have navigation elements', async ({ page }) => {
       await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
 
-      const navItems = page.locator('[role="tab"], [class*="tab"], nav a')
+      const navItems = page.locator('[role="tab"], [class*="tab"], nav a, button')
       const count = await navItems.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      expect(count).toBeGreaterThan(0)
+
+      let visibleItem = false
+      for (let i = 0; i < Math.min(count, 10); i++) {
+        if (await navItems.nth(i).isVisible()) {
+          visibleItem = true
+          break
+        }
+      }
+      expect(visibleItem).toBe(true)
     })
   })
 
   test.describe('My Journey History Page', () => {
-    test('should load history page successfully', async ({ page }) => {
+    test('should load history page with content', async ({ page }) => {
       await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(10)
     })
 
-    test('should display history list', async ({ page }) => {
+    test('should display history items or empty state', async ({ page }) => {
       await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
 
-      const historyItems = page.locator('[class*="history"], [class*="item"], [class*="reading"]')
+      const historyItems = page.locator('[class*="history"], [class*="item"], [class*="card"]')
       const count = await historyItems.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+
+      // 아이템이 있거나 빈 상태 메시지가 있어야 함
+      const bodyText = await page.locator('body').textContent()
+      expect(count > 0 || bodyText!.length > 50).toBe(true)
     })
 
-    test('should have filter options', async ({ page }) => {
-      await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
-
-      const filters = page.locator('[class*="filter"], select, [role="combobox"]')
-      const count = await filters.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
-
-    test('should have date range selector', async ({ page }) => {
-      await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
-
-      const dateSelectors = page.locator('input[type="date"], [class*="date"], [class*="calendar"]')
-      const count = await dateSelectors.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
-
-    test('should allow clicking history item', async ({ page }) => {
+    test('should allow clicking history item if exists', async ({ page }) => {
       await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
 
       const historyItem = page.locator('[class*="item"], [class*="card"]').first()
-      if ((await historyItem.count()) > 0) {
+      if ((await historyItem.count()) > 0 && (await historyItem.isVisible())) {
         await historyItem.click()
         await page.waitForTimeout(500)
         await expect(page.locator('body')).toBeVisible()
@@ -67,81 +75,89 @@ test.describe('My Journey Flow', () => {
   })
 
   test.describe('My Journey Circle Page', () => {
-    test('should load circle page successfully', async ({ page }) => {
+    test('should load circle page with content', async ({ page }) => {
       await page.goto('/myjourney/circle', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(10)
     })
 
-    test('should display circle members', async ({ page }) => {
+    test('should display circle members or empty state', async ({ page }) => {
       await page.goto('/myjourney/circle', { waitUntil: 'domcontentloaded' })
 
-      const members = page.locator('[class*="member"], [class*="person"], [class*="profile"]')
+      const members = page.locator('[class*="member"], [class*="person"], [class*="profile"], [class*="card"]')
       const count = await members.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
 
-    test('should have add member button', async ({ page }) => {
-      await page.goto('/myjourney/circle', { waitUntil: 'domcontentloaded' })
-
-      const addButton = page.locator(
-        'button:has-text("추가"), button:has-text("Add"), [class*="add"]'
-      )
-      const count = await addButton.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
-
-    test('should allow viewing member details', async ({ page }) => {
-      await page.goto('/myjourney/circle', { waitUntil: 'domcontentloaded' })
-
-      const memberCard = page.locator('[class*="member"], [class*="card"]').first()
-      if ((await memberCard.count()) > 0) {
-        await memberCard.click()
-        await page.waitForTimeout(500)
-        await expect(page.locator('body')).toBeVisible()
-      }
+      const bodyText = await page.locator('body').textContent()
+      expect(count > 0 || bodyText!.length > 50).toBe(true)
     })
   })
 
   test.describe('Community Pages', () => {
-    test('should load community page', async ({ page }) => {
+    test('should load community page with content', async ({ page }) => {
       await page.goto('/community', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
     })
 
-    test('should display community content', async ({ page }) => {
+    test('should display community posts or content', async ({ page }) => {
       await page.goto('/community', { waitUntil: 'domcontentloaded' })
 
-      const content = page.locator('[class*="community"], [class*="post"], main')
+      const content = page.locator('[class*="community"], [class*="post"], main, article')
       const count = await content.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+
+      const bodyText = await page.locator('body').textContent()
+      expect(count > 0 || bodyText!.length > 100).toBe(true)
     })
 
     test('should load recommendations page', async ({ page }) => {
       await page.goto('/community/recommendations', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(10)
     })
   })
 
   test.describe('Blog Pages', () => {
-    test('should load blog page', async ({ page }) => {
+    test('should load blog page with content', async ({ page }) => {
       await page.goto('/blog', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
     })
 
-    test('should display blog posts', async ({ page }) => {
+    test('should display blog posts or articles', async ({ page }) => {
       await page.goto('/blog', { waitUntil: 'domcontentloaded' })
 
-      const posts = page.locator('[class*="post"], [class*="article"], article')
+      const posts = page.locator('[class*="post"], [class*="article"], article, [class*="card"]')
       const count = await posts.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+
+      const bodyText = await page.locator('body').textContent()
+      expect(count > 0 || bodyText!.length > 100).toBe(true)
     })
 
     test('should have post titles', async ({ page }) => {
       await page.goto('/blog', { waitUntil: 'domcontentloaded' })
 
-      const titles = page.locator("h2, h3, [class*='title']")
+      const titles = page.locator("h1, h2, h3, [class*='title']")
       const count = await titles.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+
+      if (count > 0) {
+        let hasTitle = false
+        for (let i = 0; i < Math.min(count, 5); i++) {
+          const text = await titles.nth(i).textContent()
+          if (text && text.length > 3) {
+            hasTitle = true
+            break
+          }
+        }
+        expect(hasTitle).toBe(true)
+      }
     })
   })
 
@@ -149,11 +165,14 @@ test.describe('My Journey Flow', () => {
     test('should handle shared content URL', async ({ page }) => {
       await page.goto('/shared/test-id', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(10)
     })
   })
 
   test.describe('My Journey Mobile Experience', () => {
-    test('should be responsive on mobile - main page', async ({ page }) => {
+    test('should render main page without horizontal scroll on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 })
       await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
 
@@ -164,17 +183,73 @@ test.describe('My Journey Flow', () => {
       expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 20)
     })
 
-    test('should be responsive on mobile - history page', async ({ page }) => {
+    test('should render history page without horizontal scroll on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 })
       await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
 
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
+      const viewportWidth = await page.evaluate(() => window.innerWidth)
+      expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 20)
     })
 
-    test('should be responsive on mobile - circle page', async ({ page }) => {
+    test('should render circle page without horizontal scroll on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 })
       await page.goto('/myjourney/circle', { waitUntil: 'domcontentloaded' })
 
+      await expect(page.locator('body')).toBeVisible()
+
+      const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
+      const viewportWidth = await page.evaluate(() => window.innerWidth)
+      expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 20)
+    })
+
+    test('should have touch-friendly elements on mobile', async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 667 })
+      await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
+
+      const buttons = page.locator('button, a')
+      const count = await buttons.count()
+
+      for (let i = 0; i < Math.min(count, 3); i++) {
+        const button = buttons.nth(i)
+        if (await button.isVisible()) {
+          const box = await button.boundingBox()
+          if (box) {
+            expect(box.height).toBeGreaterThanOrEqual(20)
+            expect(box.width).toBeGreaterThanOrEqual(20)
+          }
+        }
+      }
+    })
+  })
+
+  test.describe('My Journey Page Load Performance', () => {
+    test('should load main page within acceptable time', async ({ page }) => {
+      const startTime = Date.now()
+      await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
+      const loadTime = Date.now() - startTime
+
+      expect(loadTime).toBeLessThan(10000)
+      await expect(page.locator('body')).toBeVisible()
+    })
+
+    test('should load history page within acceptable time', async ({ page }) => {
+      const startTime = Date.now()
+      await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
+      const loadTime = Date.now() - startTime
+
+      expect(loadTime).toBeLessThan(10000)
+      await expect(page.locator('body')).toBeVisible()
+    })
+
+    test('should load blog page within acceptable time', async ({ page }) => {
+      const startTime = Date.now()
+      await page.goto('/blog', { waitUntil: 'domcontentloaded' })
+      const loadTime = Date.now() - startTime
+
+      expect(loadTime).toBeLessThan(10000)
       await expect(page.locator('body')).toBeVisible()
     })
   })

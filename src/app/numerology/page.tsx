@@ -2,8 +2,17 @@
 
 'use client';
 
-import NumerologyTabs from "@/components/numerology/NumerologyTabs";
+import dynamic from 'next/dynamic';
 import ServicePageLayout from "@/components/ui/ServicePageLayout";
+
+// Lazy load heavy tab component with framer-motion animations
+const NumerologyTabs = dynamic(
+  () => import("@/components/numerology/NumerologyTabs"),
+  {
+    ssr: false,
+    loading: () => <div style={{ minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>
+  }
+);
 import styles from "./Numerology.module.css";
 import { useI18n } from "@/i18n/I18nProvider";
 

@@ -59,22 +59,15 @@ export const POST = withApiMiddleware(
       const photoUrl = blob.url
 
       // Update user profile (rollback blob on failure)
-      let user
+      let userProfile
       try {
-        user = await prisma.user.update({
-          where: { id: context.userId! },
-          data: { profilePhoto: photoUrl },
+        userProfile = await prisma.userProfile.upsert({
+          where: { userId: context.userId! },
+          create: { userId: context.userId!, profilePhoto: photoUrl },
+          update: { profilePhoto: photoUrl },
           select: {
-            id: true,
-            name: true,
-            image: true,
+            userId: true,
             profilePhoto: true,
-            matchProfile: {
-              select: {
-                id: true,
-                photos: true,
-              },
-            },
           },
         })
       } catch (dbError) {
@@ -91,9 +84,14 @@ export const POST = withApiMiddleware(
       }
 
       // Sync with MatchProfile if exists
-      if (user.matchProfile) {
-        const currentPhotos = Array.isArray(user.matchProfile.photos)
-          ? user.matchProfile.photos
+      const matchProfile = await prisma.matchProfile.findUnique({
+        where: { userId: context.userId! },
+        select: { id: true, photos: true },
+      })
+
+      if (matchProfile) {
+        const currentPhotos = Array.isArray(matchProfile.photos)
+          ? matchProfile.photos
           : []
 
         // Add the new photo to MatchProfile photos if not already present
@@ -110,10 +108,19 @@ export const POST = withApiMiddleware(
 
       logger.info(`[upload-photo] User ${context.userId} uploaded profile photo: ${photoUrl}`)
 
+      // Fetch user for response
+      const user = await prisma.user.findUnique({
+        where: { id: context.userId! },
+        select: { id: true, name: true, image: true },
+      })
+
       return apiSuccess({
         ok: true,
-        photoUrl: user.profilePhoto,
-        user,
+        photoUrl: userProfile.profilePhoto,
+        user: {
+          ...user,
+          profilePhoto: userProfile.profilePhoto,
+        },
       })
     } catch (error) {
       logger.error('[upload-photo] Error uploading photo:', error)

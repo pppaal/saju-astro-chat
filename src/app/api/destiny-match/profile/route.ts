@@ -19,11 +19,15 @@ export const GET = withApiMiddleware(
       include: {
         user: {
           select: {
-            birthDate: true,
-            birthTime: true,
-            birthCity: true,
-            gender: true,
             image: true,
+            profile: {
+              select: {
+                birthDate: true,
+                birthTime: true,
+                birthCity: true,
+                gender: true,
+              },
+            },
           },
         },
       },

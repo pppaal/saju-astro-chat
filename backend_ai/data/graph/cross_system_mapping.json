@@ -1,0 +1,557 @@
+{
+  "_meta": {
+    "title": "Cross-System Divination Mapping",
+    "description": "사주(四柱), 점성학, 타로 간의 상호 연결 매핑 - 통합 해석을 위한 상응 체계",
+    "version": "1.0",
+    "created": "2025-02",
+    "systems": ["saju", "astrology", "tarot"]
+  },
+  "element_correspondence": {
+    "description": "오행(五行)과 서양 4원소, 타로 슈트의 상응 관계",
+    "mappings": {
+      "wood": {
+        "saju": {
+          "name_ko": "목(木)",
+          "name_hanja": "木",
+          "keywords": ["성장", "창의성", "시작", "확장", "인내"],
+          "organs": "간, 담낭",
+          "season": "봄",
+          "direction": "동",
+          "emotion": "분노"
+        },
+        "astrology": {
+          "element": "Air",
+          "reason": "지적 성장, 아이디어의 확산, 바람처럼 퍼지는 에너지",
+          "signs": ["Gemini", "Libra", "Aquarius"],
+          "planets": ["Mercury", "Uranus"],
+          "keywords": ["소통", "지성", "연결", "변화"]
+        },
+        "tarot": {
+          "suit": "Wands",
+          "reason": "성장하는 나무, 창의적 에너지, 새로운 시작",
+          "keywords": ["열정", "창의성", "영감", "성장"],
+          "cards": ["Ace of Wands", "Three of Wands", "Page of Wands"]
+        },
+        "combined_interpretation": "목(木)의 에너지는 새로운 아이디어와 창의적 성장을 나타냅니다. 점성학의 공기 원소처럼 확산되고 연결되며, 타로의 완드처럼 열정적인 새 시작을 상징합니다."
+      },
+      "fire": {
+        "saju": {
+          "name_ko": "화(火)",
+          "name_hanja": "火",
+          "keywords": ["열정", "빛", "명예", "활력", "예술"],
+          "organs": "심장, 소장",
+          "season": "여름",
+          "direction": "남",
+          "emotion": "기쁨"
+        },
+        "astrology": {
+          "element": "Fire",
+          "reason": "열정, 창조성, 행동력의 직접적 대응",
+          "signs": ["Aries", "Leo", "Sagittarius"],
+          "planets": ["Sun", "Mars", "Jupiter"],
+          "keywords": ["열정", "용기", "리더십", "영감"]
+        },
+        "tarot": {
+          "suit": "Wands",
+          "reason": "불의 에너지, 열정, 창조적 힘",
+          "keywords": ["에너지", "행동", "의지", "영감"],
+          "cards": ["The Sun", "Strength", "The Emperor", "Knight of Wands"]
+        },
+        "combined_interpretation": "화(火)의 에너지는 밝게 빛나는 열정과 활력입니다. 점성학의 화 원소와 직접 대응하며, 타로에서는 태양과 완드의 불타는 에너지로 나타납니다."
+      },
+      "earth": {
+        "saju": {
+          "name_ko": "토(土)",
+          "name_hanja": "土",
+          "keywords": ["안정", "중심", "포용", "조화", "신뢰"],
+          "organs": "비장, 위장",
+          "season": "환절기(사계 말)",
+          "direction": "중앙",
+          "emotion": "사려"
+        },
+        "astrology": {
+          "element": "Earth",
+          "reason": "안정성, 물질성, 실용성의 직접적 대응",
+          "signs": ["Taurus", "Virgo", "Capricorn"],
+          "planets": ["Venus", "Saturn"],
+          "keywords": ["안정", "현실", "물질", "인내"]
+        },
+        "tarot": {
+          "suit": "Pentacles",
+          "reason": "땅의 에너지, 물질적 풍요, 안정",
+          "keywords": ["재물", "안정", "건강", "실용"],
+          "cards": ["The Empress", "The Hierophant", "Nine of Pentacles", "Ten of Pentacles"]
+        },
+        "combined_interpretation": "토(土)의 에너지는 중심에서 모든 것을 조화롭게 포용합니다. 점성학의 흙 원소처럼 안정적이고 실용적이며, 타로의 펜타클처럼 물질적 풍요와 연결됩니다."
+      },
+      "metal": {
+        "saju": {
+          "name_ko": "금(金)",
+          "name_hanja": "金",
+          "keywords": ["결단", "정의", "수확", "정제", "날카로움"],
+          "organs": "폐, 대장",
+          "season": "가을",
+          "direction": "서",
+          "emotion": "슬픔"
+        },
+        "astrology": {
+          "element": "Air",
+          "reason": "날카로운 지성, 판단력, 정의로움",
+          "signs": ["Gemini", "Libra", "Aquarius"],
+          "planets": ["Saturn", "Mercury"],
+          "keywords": ["정의", "판단", "분석", "결단"]
+        },
+        "tarot": {
+          "suit": "Swords",
+          "reason": "금속 칼날, 정신의 날카로움, 진실과 정의",
+          "keywords": ["지성", "판단", "진실", "갈등"],
+          "cards": ["Justice", "The Hermit", "King of Swords", "Ace of Swords"]
+        },
+        "combined_interpretation": "금(金)의 에너지는 날카로운 결단과 정의입니다. 점성학에서 공기 원소의 지적 명료함과 연결되며, 타로의 소드처럼 진실을 향한 예리한 통찰력을 나타냅니다."
+      },
+      "water": {
+        "saju": {
+          "name_ko": "수(水)",
+          "name_hanja": "水",
+          "keywords": ["지혜", "유연함", "직관", "깊이", "잠재력"],
+          "organs": "신장, 방광",
+          "season": "겨울",
+          "direction": "북",
+          "emotion": "두려움"
+        },
+        "astrology": {
+          "element": "Water",
+          "reason": "감정, 직관, 무의식의 직접적 대응",
+          "signs": ["Cancer", "Scorpio", "Pisces"],
+          "planets": ["Moon", "Neptune", "Pluto"],
+          "keywords": ["감정", "직관", "무의식", "치유"]
+        },
+        "tarot": {
+          "suit": "Cups",
+          "reason": "물의 에너지, 감정, 관계",
+          "keywords": ["사랑", "감정", "직관", "관계"],
+          "cards": ["The High Priestess", "The Moon", "Ace of Cups", "Queen of Cups"]
+        },
+        "combined_interpretation": "수(水)의 에너지는 깊은 지혜와 직관입니다. 점성학의 물 원소처럼 감정과 무의식의 영역을 다스리며, 타로의 컵처럼 사랑과 관계의 흐름을 나타냅니다."
+      }
+    }
+  },
+  "sipsung_astrology_mapping": {
+    "description": "십성(十星)과 점성학 행성의 상응 관계",
+    "mappings": {
+      "bigyeon": {
+        "saju": {
+          "name_ko": "비견(比肩)",
+          "meaning": "나와 같은 것, 동료, 경쟁자",
+          "relationship": "같은 오행, 같은 음양"
+        },
+        "astrology": {
+          "planet": "Mars",
+          "sign": "Aries",
+          "reason": "자기 주장, 독립성, 경쟁심"
+        },
+        "tarot": {
+          "cards": ["The Chariot", "Knight of Wands", "Two of Wands"],
+          "reason": "자기 의지로 나아감, 경쟁과 승리"
+        }
+      },
+      "geopjae": {
+        "saju": {
+          "name_ko": "겁재(劫財)",
+          "meaning": "재물을 뺏는 것, 강한 경쟁자",
+          "relationship": "같은 오행, 다른 음양"
+        },
+        "astrology": {
+          "planet": "Mars",
+          "sign": "Scorpio",
+          "reason": "강렬한 욕망, 경쟁, 변혁적 에너지"
+        },
+        "tarot": {
+          "cards": ["The Tower", "Seven of Wands", "Five of Swords"],
+          "reason": "갈등, 도전, 혼란 속 생존"
+        }
+      },
+      "siksin": {
+        "saju": {
+          "name_ko": "식신(食神)",
+          "meaning": "먹여살리는 것, 표현, 예술성",
+          "relationship": "내가 생하는 오행, 같은 음양"
+        },
+        "astrology": {
+          "planet": "Venus",
+          "sign": "Taurus",
+          "reason": "감각적 즐거움, 예술, 풍요"
+        },
+        "tarot": {
+          "cards": ["The Empress", "Nine of Pentacles", "Three of Cups"],
+          "reason": "풍요, 창작, 즐거움"
+        }
+      },
+      "sanggwan": {
+        "saju": {
+          "name_ko": "상관(傷官)",
+          "meaning": "관을 다치게 함, 반항, 창의성",
+          "relationship": "내가 생하는 오행, 다른 음양"
+        },
+        "astrology": {
+          "planet": "Uranus",
+          "sign": "Aquarius",
+          "reason": "혁신, 반항, 비전통적 표현"
+        },
+        "tarot": {
+          "cards": ["The Fool", "The Tower", "Seven of Cups"],
+          "reason": "혁신적 사고, 기존 체계 파괴"
+        }
+      },
+      "pyeonjae": {
+        "saju": {
+          "name_ko": "편재(偏財)",
+          "meaning": "치우친 재물, 투기, 사업"
+        },
+        "astrology": {
+          "planet": "Jupiter",
+          "sign": "Sagittarius",
+          "reason": "확장, 기회, 모험적 투자"
+        },
+        "tarot": {
+          "cards": ["Wheel of Fortune", "Ace of Pentacles", "Six of Pentacles"],
+          "reason": "기회, 변동적 재물, 투자"
+        }
+      },
+      "jeongjae": {
+        "saju": {
+          "name_ko": "정재(正財)",
+          "meaning": "바른 재물, 안정적 수입"
+        },
+        "astrology": {
+          "planet": "Venus",
+          "sign": "Taurus",
+          "reason": "안정적 가치, 착실한 축적"
+        },
+        "tarot": {
+          "cards": ["Four of Pentacles", "Ten of Pentacles", "Queen of Pentacles"],
+          "reason": "안정적 재물, 보존, 풍요"
+        }
+      },
+      "pyeongwan": {
+        "saju": {
+          "name_ko": "편관(偏官)",
+          "meaning": "치우친 권력, 권위, 압박"
+        },
+        "astrology": {
+          "planet": "Pluto",
+          "sign": "Scorpio",
+          "reason": "권력, 변혁, 강렬한 통제"
+        },
+        "tarot": {
+          "cards": ["The Emperor", "The Devil", "Eight of Swords"],
+          "reason": "권위, 통제, 압박"
+        }
+      },
+      "jeonggwan": {
+        "saju": {
+          "name_ko": "정관(正官)",
+          "meaning": "바른 권력, 명예, 규율"
+        },
+        "astrology": {
+          "planet": "Saturn",
+          "sign": "Capricorn",
+          "reason": "규율, 책임, 사회적 위치"
+        },
+        "tarot": {
+          "cards": ["The Emperor", "Justice", "King of Pentacles"],
+          "reason": "질서, 권위, 책임감"
+        }
+      },
+      "pyeonin": {
+        "saju": {
+          "name_ko": "편인(偏印)",
+          "meaning": "치우친 학문, 특수 지식"
+        },
+        "astrology": {
+          "planet": "Neptune",
+          "sign": "Pisces",
+          "reason": "영적 지식, 직관, 예술적 영감"
+        },
+        "tarot": {
+          "cards": ["The High Priestess", "The Moon", "Page of Cups"],
+          "reason": "직관, 숨겨진 지식, 영적 통찰"
+        }
+      },
+      "jeongin": {
+        "saju": {
+          "name_ko": "정인(正印)",
+          "meaning": "바른 학문, 전통 지식, 어머니"
+        },
+        "astrology": {
+          "planet": "Moon",
+          "sign": "Cancer",
+          "reason": "양육, 보호, 전통적 지혜"
+        },
+        "tarot": {
+          "cards": ["The Empress", "The High Priestess", "Queen of Cups"],
+          "reason": "양육, 지혜, 보호"
+        }
+      }
+    }
+  },
+  "zodiac_earthly_branch_mapping": {
+    "description": "지지(地支)와 황도12궁의 상응 관계",
+    "mappings": {
+      "ja": {
+        "saju": {"name_ko": "자(子)", "animal": "쥐", "element": "수(水)", "time": "23:00-01:00"},
+        "astrology": {"sign": "Sagittarius", "reason": "겨울의 시작, 지혜와 탐구"},
+        "tarot": {"card": "The Hermit", "reason": "내면 탐구, 지혜 추구"}
+      },
+      "chuk": {
+        "saju": {"name_ko": "축(丑)", "animal": "소", "element": "토(土)", "time": "01:00-03:00"},
+        "astrology": {"sign": "Capricorn", "reason": "인내, 책임감, 실용적 성취"},
+        "tarot": {"card": "The Devil", "reason": "물질적 집착, 인내의 시험"}
+      },
+      "in": {
+        "saju": {"name_ko": "인(寅)", "animal": "호랑이", "element": "목(木)", "time": "03:00-05:00"},
+        "astrology": {"sign": "Aquarius", "reason": "독립성, 혁신, 자유 추구"},
+        "tarot": {"card": "The Emperor", "reason": "권위, 리더십, 용맹"}
+      },
+      "myo": {
+        "saju": {"name_ko": "묘(卯)", "animal": "토끼", "element": "목(木)", "time": "05:00-07:00"},
+        "astrology": {"sign": "Pisces", "reason": "부드러움, 감수성, 예술적 감각"},
+        "tarot": {"card": "The High Priestess", "reason": "직관, 섬세함, 신비"}
+      },
+      "jin": {
+        "saju": {"name_ko": "진(辰)", "animal": "용", "element": "토(土)", "time": "07:00-09:00"},
+        "astrology": {"sign": "Aries", "reason": "시작의 에너지, 권위, 창조력"},
+        "tarot": {"card": "The Magician", "reason": "창조, 권능, 무한한 잠재력"}
+      },
+      "sa": {
+        "saju": {"name_ko": "사(巳)", "animal": "뱀", "element": "화(火)", "time": "09:00-11:00"},
+        "astrology": {"sign": "Taurus", "reason": "지혜, 집요함, 변화하는 에너지"},
+        "tarot": {"card": "The Hierophant", "reason": "지혜, 전통, 영적 인도"}
+      },
+      "o": {
+        "saju": {"name_ko": "오(午)", "animal": "말", "element": "화(火)", "time": "11:00-13:00"},
+        "astrology": {"sign": "Gemini", "reason": "활동성, 빠른 움직임, 소통"},
+        "tarot": {"card": "The Chariot", "reason": "전진, 승리, 자유로운 에너지"}
+      },
+      "mi": {
+        "saju": {"name_ko": "미(未)", "animal": "양", "element": "토(土)", "time": "13:00-15:00"},
+        "astrology": {"sign": "Cancer", "reason": "온순함, 가정성, 양육"},
+        "tarot": {"card": "The Empress", "reason": "풍요, 양육, 부드러운 보호"}
+      },
+      "sin": {
+        "saju": {"name_ko": "신(申)", "animal": "원숭이", "element": "금(金)", "time": "15:00-17:00"},
+        "astrology": {"sign": "Leo", "reason": "재치, 지성, 표현력"},
+        "tarot": {"card": "The Sun", "reason": "활력, 지성, 밝은 에너지"}
+      },
+      "yu": {
+        "saju": {"name_ko": "유(酉)", "animal": "닭", "element": "금(金)", "time": "17:00-19:00"},
+        "astrology": {"sign": "Virgo", "reason": "정확함, 분석력, 근면"},
+        "tarot": {"card": "Justice", "reason": "공정함, 정확한 판단"}
+      },
+      "sul": {
+        "saju": {"name_ko": "술(戌)", "animal": "개", "element": "토(土)", "time": "19:00-21:00"},
+        "astrology": {"sign": "Libra", "reason": "충성, 정의감, 균형"},
+        "tarot": {"card": "Strength", "reason": "충성, 보호, 내면의 힘"}
+      },
+      "hae": {
+        "saju": {"name_ko": "해(亥)", "animal": "돼지", "element": "수(水)", "time": "21:00-23:00"},
+        "astrology": {"sign": "Scorpio", "reason": "풍요, 깊은 감정, 잠재력"},
+        "tarot": {"card": "The Moon", "reason": "무의식, 풍요, 직관"}
+      }
+    }
+  },
+  "life_theme_mapping": {
+    "description": "인생 주제별 세 시스템의 통합 해석",
+    "themes": {
+      "love_marriage": {
+        "name_ko": "연애와 결혼",
+        "saju": {
+          "indicators": ["정재", "정관", "도화살", "홍염살"],
+          "houses": ["배우자궁(일지)"],
+          "positive_signs": ["일주와 배우자궁 상합", "용신이 정재/정관"],
+          "challenges": ["도화살 과다", "형충 관계"]
+        },
+        "astrology": {
+          "houses": [5, 7],
+          "planets": ["Venus", "Mars", "Moon"],
+          "signs": ["Libra", "Taurus"],
+          "aspects": ["Venus-Mars", "Sun-Moon"]
+        },
+        "tarot": {
+          "major": ["The Lovers", "The Empress", "Two of Cups"],
+          "minor": ["Cups 전체", "Ace/Two/Ten of Cups"],
+          "spreads": ["Celtic Cross Love", "Relationship Spread"]
+        },
+        "integrated_reading": "연애운을 볼 때 사주에서는 정재/정관과 도화살의 위치를, 점성학에서는 금성과 7하우스를, 타로에서는 컵 슈트와 연인 카드를 함께 확인합니다."
+      },
+      "career_wealth": {
+        "name_ko": "직업과 재물",
+        "saju": {
+          "indicators": ["정재", "편재", "정관", "편관", "식신"],
+          "houses": ["월주(사회궁)", "시주(성취궁)"],
+          "positive_signs": ["재성이 왕성", "관성과 재성 상생"],
+          "challenges": ["비견겁재 과다", "재성 충극"]
+        },
+        "astrology": {
+          "houses": [2, 6, 10],
+          "planets": ["Saturn", "Jupiter", "Sun", "MC"],
+          "signs": ["Capricorn", "Taurus", "Virgo"],
+          "aspects": ["Saturn-MC", "Jupiter aspects"]
+        },
+        "tarot": {
+          "major": ["The Emperor", "The Chariot", "The World", "Wheel of Fortune"],
+          "minor": ["Pentacles 전체", "Ace/Eight/Ten of Pentacles"],
+          "spreads": ["Career Path Spread", "Financial Outlook"]
+        },
+        "integrated_reading": "재물운을 볼 때 사주에서는 재성과 관성의 강약을, 점성학에서는 2, 10하우스와 목성을, 타로에서는 펜타클 슈트와 황제/전차 카드를 함께 분석합니다."
+      },
+      "health": {
+        "name_ko": "건강",
+        "saju": {
+          "indicators": ["오행 불균형", "인성 과다/부족"],
+          "organs_by_element": {
+            "wood": "간, 담낭, 눈",
+            "fire": "심장, 소장, 혀",
+            "earth": "비장, 위장, 입",
+            "metal": "폐, 대장, 코",
+            "water": "신장, 방광, 귀"
+          }
+        },
+        "astrology": {
+          "houses": [6, 12],
+          "planets": ["Mars", "Saturn", "Neptune"],
+          "body_parts_by_sign": "각 별자리별 신체 부위",
+          "chiron": "치유해야 할 상처"
+        },
+        "tarot": {
+          "major": ["The Star", "Temperance", "The Sun"],
+          "minor": ["Four of Swords", "Nine of Pentacles"],
+          "warning_cards": ["Ten of Swords", "Five of Pentacles", "The Tower"]
+        },
+        "integrated_reading": "건강운을 볼 때 사주에서는 오행 균형과 약한 장부를, 점성학에서는 6하우스와 키론을, 타로에서는 별/절제 카드와 경고 카드들을 함께 확인합니다."
+      },
+      "spirituality": {
+        "name_ko": "영성과 성장",
+        "saju": {
+          "indicators": ["편인", "화개살", "역마살"],
+          "positive_signs": ["인성 발달", "화개살 존재"],
+          "growth_direction": "용신 방향으로 성장"
+        },
+        "astrology": {
+          "houses": [9, 12],
+          "planets": ["Neptune", "Jupiter", "Chiron", "North Node"],
+          "signs": ["Pisces", "Sagittarius"],
+          "aspects": ["Neptune-Moon", "Jupiter-Neptune"]
+        },
+        "tarot": {
+          "major": ["The High Priestess", "The Hermit", "The Star", "Judgement", "The World"],
+          "minor": ["Cups court cards", "mystical combinations"],
+          "themes": ["spiritual awakening", "inner journey"]
+        },
+        "integrated_reading": "영적 성장을 볼 때 사주에서는 편인과 화개살을, 점성학에서는 해왕성과 북쪽 노드를, 타로에서는 여사제/은둔자 카드를 함께 분석합니다."
+      }
+    }
+  },
+  "timing_correlation": {
+    "description": "시간 예측을 위한 세 시스템의 통합",
+    "saju_periods": {
+      "daeun": {
+        "description": "대운 (10년 주기)",
+        "astrology_equivalent": "Saturn cycle (29.5년), Progressed Sun",
+        "tarot_equivalent": "Major Arcana life phases"
+      },
+      "seun": {
+        "description": "세운 (연간)",
+        "astrology_equivalent": "Solar Return, Jupiter transit",
+        "tarot_equivalent": "Yearly spread"
+      },
+      "wolun": {
+        "description": "월운 (월간)",
+        "astrology_equivalent": "Lunar phases, monthly transits",
+        "tarot_equivalent": "Monthly spread"
+      },
+      "ilun": {
+        "description": "일운 (일일)",
+        "astrology_equivalent": "Daily transits, Moon sign",
+        "tarot_equivalent": "Daily card draw"
+      }
+    },
+    "peak_timing": {
+      "description": "중요 시점 판단",
+      "indicators": {
+        "saju": "대운/세운이 용신을 만날 때, 합/충 시기",
+        "astrology": "Jupiter return, Saturn return, eclipses, major transits",
+        "tarot": "Wheel of Fortune, The World, Ace cards, timing cards"
+      }
+    }
+  },
+  "personality_archetypes": {
+    "description": "성격 원형의 통합 매핑",
+    "archetypes": {
+      "leader": {
+        "name_ko": "리더형",
+        "saju": "비견/겁재 강함, 양일간, 관성 적절",
+        "astrology": "Sun/Mars strong, Aries/Leo/Capricorn emphasis, 10th house planets",
+        "tarot": "The Emperor, The Chariot, King cards"
+      },
+      "creator": {
+        "name_ko": "창조자형",
+        "saju": "식신/상관 강함, 목/화 발달",
+        "astrology": "Venus/Neptune strong, Leo/Pisces emphasis, 5th house planets",
+        "tarot": "The Magician, The Empress, Ace of Wands, Page cards"
+      },
+      "healer": {
+        "name_ko": "치유자형",
+        "saju": "인성 강함, 수 발달, 화개살",
+        "astrology": "Chiron/Neptune strong, Pisces/Virgo emphasis, 12th house planets",
+        "tarot": "The Star, Temperance, Queen of Cups"
+      },
+      "strategist": {
+        "name_ko": "전략가형",
+        "saju": "정관/정인 강함, 금/수 발달",
+        "astrology": "Saturn/Mercury strong, Virgo/Capricorn emphasis, 3rd/6th house",
+        "tarot": "The Hermit, Justice, King of Swords"
+      },
+      "adventurer": {
+        "name_ko": "모험가형",
+        "saju": "편재/역마살 강함, 화/목 발달",
+        "astrology": "Jupiter/Uranus strong, Sagittarius/Aries emphasis, 9th house",
+        "tarot": "The Fool, Knight of Wands, Three of Wands"
+      }
+    }
+  },
+  "reading_integration_guide": {
+    "description": "통합 리딩 가이드",
+    "approach": {
+      "step1": "사주로 선천적 기질과 생애 흐름 파악",
+      "step2": "점성학으로 현재 운세와 에너지 패턴 분석",
+      "step3": "타로로 구체적 질문에 대한 답과 조언 제공",
+      "step4": "세 시스템의 공통점과 차이점을 통합하여 해석"
+    },
+    "synergy_examples": [
+      {
+        "scenario": "연애 상담",
+        "saju": "일지 도화살, 대운 정재운",
+        "astrology": "금성 5하우스, 목성 트랜짓 7하우스",
+        "tarot": "연인 카드, 컵 에이스",
+        "integration": "세 시스템 모두 연애에 좋은 시기를 나타냄 → 적극적 만남 권장"
+      },
+      {
+        "scenario": "이직 상담",
+        "saju": "세운 편관운, 역마살 동",
+        "astrology": "천왕성 MC 스퀘어, 10하우스 변화",
+        "tarot": "탑 카드, 완드 8번",
+        "integration": "변화는 있으나 신중함 필요 → 준비 후 행동 권장"
+      }
+    ]
+  },
+  "usage_notes": {
+    "disclaimer": "이 매핑은 각 시스템의 본질적 의미를 존중하면서 통합적 이해를 돕기 위한 것입니다. 각 시스템은 독자적 가치가 있으며, 상응 관계는 절대적이 아닌 참고용입니다.",
+    "best_practices": [
+      "각 시스템의 고유한 해석 방법을 먼저 숙지할 것",
+      "강제로 맞추려 하지 말고 자연스러운 연결을 찾을 것",
+      "내담자의 문화적 배경과 선호를 고려할 것",
+      "통합 해석 시 모순되는 정보는 다각도로 설명할 것"
+    ]
+  }
+}

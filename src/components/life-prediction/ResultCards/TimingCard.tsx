@@ -113,7 +113,7 @@ function formatSpecificDay(dateStr: string): string {
 // rank 클래스 배열 (타입 안전)
 const RANK_CLASSES = ['rank1', 'rank2', 'rank3'] as const
 
-export function TimingCard({ period, rank, onClick }: TimingCardProps) {
+export const TimingCard = React.memo(function TimingCard({ period, rank, onClick }: TimingCardProps) {
   const rankClass = rank < 3 ? styles[RANK_CLASSES[rank]] : ''
 
   return (
@@ -209,6 +209,6 @@ export function TimingCard({ period, rank, onClick }: TimingCardProps) {
       )}
     </motion.div>
   )
-}
+})
 
 export default TimingCard

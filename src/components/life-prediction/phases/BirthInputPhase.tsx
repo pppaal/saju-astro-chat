@@ -47,12 +47,13 @@ export const BirthInputPhase = React.memo<BirthInputPhaseProps>(
     const handleSubmit = async (birthInfo: {
       birthDate: string
       birthTime: string
-      gender: 'M' | 'F' | 'Male' | 'Female'
+      gender?: 'M' | 'F' | 'Male' | 'Female'
       birthCity?: string
     }): Promise<void> => {
-      // Normalize gender to short format
+      // Normalize gender to short format (default to 'M' if not provided)
+      const genderValue = birthInfo.gender || 'M'
       const normalizedGender =
-        birthInfo.gender === 'Male' ? 'M' : birthInfo.gender === 'Female' ? 'F' : birthInfo.gender
+        genderValue === 'Male' ? 'M' : genderValue === 'Female' ? 'F' : genderValue
       await onSubmit({
         ...birthInfo,
         gender: normalizedGender,

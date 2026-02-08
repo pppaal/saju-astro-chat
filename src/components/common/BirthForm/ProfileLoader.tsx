@@ -6,6 +6,7 @@ import styles from './ProfileLoader.module.css'
 interface ProfileLoaderProps {
   status: 'authenticated' | 'loading' | 'unauthenticated'
   onLoadClick: () => void
+  onReloadClick?: () => void
   isLoading: boolean
   isLoaded: boolean
   error?: string | null
@@ -16,6 +17,7 @@ interface ProfileLoaderProps {
 export function ProfileLoader({
   status,
   onLoadClick,
+  onReloadClick,
   isLoading,
   isLoaded,
   error,
@@ -108,14 +110,35 @@ export function ProfileLoader({
     )
   }
 
-  // Show success message when profile loaded
+  // Show success message when profile loaded with reload button
   if (isLoaded) {
     return (
-      <div className={styles.profileLoadedMsg}>
-        <span className={styles.profileLoadedIcon}>✓</span>
-        <span className={styles.profileLoadedText}>
-          {locale === 'ko' ? '프로필 불러오기 완료!' : 'Profile loaded!'}
-        </span>
+      <div className={styles.profileLoadedContainer}>
+        <div className={styles.profileLoadedMsg}>
+          <span className={styles.profileLoadedIcon}>✓</span>
+          <span className={styles.profileLoadedText}>
+            {locale === 'ko' ? '프로필 불러오기 완료!' : 'Profile loaded!'}
+          </span>
+        </div>
+        {onReloadClick && (
+          <button
+            type="button"
+            className={styles.reloadBtn}
+            onClick={onReloadClick}
+            disabled={isLoading}
+          >
+            <span className={styles.reloadIcon}>{isLoading ? '⏳' : '🔄'}</span>
+            <span>
+              {isLoading
+                ? locale === 'ko'
+                  ? '불러오는 중...'
+                  : 'Loading...'
+                : locale === 'ko'
+                  ? '다시 불러오기'
+                  : 'Reload'}
+            </span>
+          </button>
+        )}
       </div>
     )
   }

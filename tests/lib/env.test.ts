@@ -198,12 +198,13 @@ describe('Environment Module', () => {
       process.env.DATABASE_URL = 'postgresql://localhost/test';
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      // parseEnv detects missing secret, logs error, then uses fallback with
-      // default secret 'development-secret-min-32-chars-long!'
+      // parseEnv detects missing secret, logs warning, then generates a dynamic fallback
+      // that starts with 'dev-' and contains 'local-only-not-for-production'
       const { env } = await import('@/lib/env');
 
       expect(env).toBeDefined();
-      expect(env.NEXTAUTH_SECRET).toBe('development-secret-min-32-chars-long!');
+      // Fallback secret is dynamically generated with pattern: dev-{hash}-{timestamp}-local-only-not-for-production
+      expect(env.NEXTAUTH_SECRET).toMatch(/^dev-.*-local-only-not-for-production$/);
       consoleSpy.mockRestore();
     });
   });

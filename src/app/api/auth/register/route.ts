@@ -72,7 +72,11 @@ export async function POST(req: Request) {
         email,
         name,
         passwordHash: hash,
-        referralCode: newUserReferralCode,
+        settings: {
+          create: {
+            referralCode: newUserReferralCode,
+          },
+        },
       },
       update: { name: name ?? existing?.name, passwordHash: hash },
     })

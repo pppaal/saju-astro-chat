@@ -259,7 +259,24 @@ function PastLifeTab({ result }: { result: PastLifeResult }) {
 
   return (
     <div className={styles.pastLifeContent}>
-      {/* Past Life Story */}
+      {/* Combined Narrative - 개인화된 전생 스토리 */}
+      {result.combinedNarrative && (
+        <div className={styles.storyCard}>
+          <div className={styles.storyHeader}>
+            <span className={styles.storyIcon}>📜</span>
+            <h3>{t('pastLife.pastLife.yourStory', 'Your Soul\'s Journey')}</h3>
+          </div>
+          <div className={styles.narrativeText}>
+            {result.combinedNarrative.split('\n\n').map((paragraph, idx) => (
+              <p key={idx} className={styles.narrativeParagraph}>
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Past Life Story - 기존 격국 기반 내용 */}
       <div className={styles.storyCard}>
         <div className={styles.storyHeader}>
           <span className={styles.storyIcon}>🔮</span>

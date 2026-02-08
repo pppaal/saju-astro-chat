@@ -36,8 +36,8 @@ test.describe('Credit Management Flow', () => {
         expect(typeof credits).toBe('number')
         expect(credits).toBeGreaterThanOrEqual(0)
       } else {
-        // Response is OK but no credits field - still pass
-        expect(true).toBe(true)
+        // Response is OK - API가 응답함을 확인
+        expect(data).toBeDefined()
       }
     } else {
       // User might not be authenticated, which is ok for this test
@@ -195,8 +195,17 @@ test.describe('Credit Management Flow', () => {
 
       expect(isCheckoutFlow).toBe(true)
     } else {
-      // No purchase button visible - page still loaded correctly
-      expect(true).toBe(true)
+      // 구매 버튼이 없어도 가격 페이지가 정상적으로 로드되었는지 확인
+      const bodyText = await page.textContent('body')
+      const hasPricingContent =
+        bodyText?.includes('무료') ||
+        bodyText?.includes('Free') ||
+        bodyText?.includes('프리미엄') ||
+        bodyText?.includes('Premium') ||
+        bodyText?.includes('가격') ||
+        bodyText?.includes('₩')
+
+      expect(hasPricingContent).toBe(true)
     }
   })
 
@@ -299,11 +308,15 @@ test.describe('Credit Management Flow', () => {
 
     await page.waitForTimeout(2000)
 
-    // Check that prices are visible and clear
-    const priceElements = page.locator('[class*="price"], [data-testid*="price"], .pricing')
-    const count = await priceElements.count()
-
-    expect(count).toBeGreaterThanOrEqual(0)
+    // Check that pricing page has pricing-related content
+    const bodyText = await page.locator('body').textContent()
+    const hasPricingContent =
+      bodyText!.includes('₩') ||
+      bodyText!.includes('가격') ||
+      bodyText!.includes('크레딧') ||
+      bodyText!.includes('Credit') ||
+      bodyText!.includes('프리미엄')
+    expect(hasPricingContent).toBe(true)
   })
 
   test('should handle subscription cancellation', async ({ page }) => {

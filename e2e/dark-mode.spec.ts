@@ -2,14 +2,15 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Dark Mode & Theming', () => {
   test.describe('Theme Toggle', () => {
-    test('should have theme toggle button', async ({ page }) => {
+    test('should have theme attribute on html element', async ({ page }) => {
       await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-      const themeToggle = page.locator(
-        'button[aria-label*="theme"], button[aria-label*="dark"], button[aria-label*="light"], [class*="theme-toggle"]'
-      )
-      const count = await themeToggle.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      // Check if theme attribute is set
+      const dataTheme = await page.locator('html').getAttribute('data-theme')
+      const classAttr = await page.locator('html').getAttribute('class')
+
+      // Should have some form of theme indicator
+      expect(dataTheme || classAttr).toBeTruthy()
     })
 
     test('should toggle theme on click', async ({ page }) => {
@@ -210,13 +211,14 @@ test.describe('Dark Mode & Theming', () => {
     test('should have smooth theme transition', async ({ page }) => {
       await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-      const hasTransition = await page.evaluate(() => {
+      // CSS transition 속성이 있는지 확인
+      const transitionValue = await page.evaluate(() => {
         const body = document.body
-        const transition = window.getComputedStyle(body).transition
-        return transition !== 'none' && transition !== ''
+        return window.getComputedStyle(body).transition
       })
 
-      expect(typeof hasTransition).toBe('boolean')
+      // transition 값이 존재해야 함 (none이 아닌 값)
+      expect(transitionValue).toBeTruthy()
     })
   })
 })

@@ -1366,6 +1366,186 @@ describe('Past Life Analyzer', () => {
       });
     });
 
+    describe('Combined Narrative', () => {
+      it('should generate combinedNarrative when full data is provided', () => {
+        const saju = createFullSaju({
+          geokgukName: '식신',
+          dayMasterName: '갑',
+        });
+        const astro = createAstroWithPlanets([
+          { name: 'North Node', house: 5 },
+          { name: 'Saturn', house: 7 },
+        ]);
+
+        const result = analyzeKorean(saju, astro);
+
+        expect(result.combinedNarrative).toBeDefined();
+        expect(result.combinedNarrative).toBeTruthy();
+        expect(typeof result.combinedNarrative).toBe('string');
+      });
+
+      it('should return Korean narrative when isKo is true', () => {
+        const saju = createFullSaju({
+          geokgukName: '정관',
+          dayMasterName: '을',
+        });
+        const astro = createAstroWithPlanets([
+          { name: 'North Node', house: 10 },
+          { name: 'Saturn', house: 4 },
+        ]);
+
+        const result = analyzeKorean(saju, astro);
+
+        expect(result.combinedNarrative).toBeDefined();
+        expectLanguageMatch(result.combinedNarrative!, true);
+      });
+
+      it('should return English narrative when isKo is false', () => {
+        const saju = createFullSaju({
+          geokgukName: '상관',
+          dayMasterName: '병',
+        });
+        const astro = createAstroWithPlanets([
+          { name: 'North Node', house: 3 },
+          { name: 'Saturn', house: 9 },
+        ]);
+
+        const result = analyzeEnglish(saju, astro);
+
+        expect(result.combinedNarrative).toBeDefined();
+        expectLanguageMatch(result.combinedNarrative!, false);
+      });
+
+      it('should generate different narratives for different geokguk types', () => {
+        const astro = createAstroWithPlanets([
+          { name: 'North Node', house: 1 },
+          { name: 'Saturn', house: 7 },
+        ]);
+
+        const result1 = analyzeKorean(createSajuWithGeokguk('식신'), astro);
+        const result2 = analyzeKorean(createSajuWithGeokguk('정관'), astro);
+
+        expect(result1.combinedNarrative).not.toBe(result2.combinedNarrative);
+      });
+
+      it('should generate different narratives for different North Node houses', () => {
+        const saju = createSajuWithGeokguk('정재');
+
+        const result1 = analyzeKorean(saju, createAstroWithPlanet('North Node', 1));
+        const result2 = analyzeKorean(saju, createAstroWithPlanet('North Node', 7));
+
+        expect(result1.combinedNarrative).not.toBe(result2.combinedNarrative);
+      });
+
+      it('should generate different narratives for different Saturn houses', () => {
+        const saju = createSajuWithGeokguk('편인');
+
+        const result1 = analyzeKorean(saju, createAstroWithPlanet('Saturn', 4));
+        const result2 = analyzeKorean(saju, createAstroWithPlanet('Saturn', 10));
+
+        expect(result1.combinedNarrative).not.toBe(result2.combinedNarrative);
+      });
+
+      it('should generate different narratives for different day masters', () => {
+        const astro = createAstroWithPlanets([
+          { name: 'North Node', house: 5 },
+          { name: 'Saturn', house: 8 },
+        ]);
+
+        const saju1 = createFullSaju({ geokgukName: '편재', dayMasterName: '갑' });
+        const saju2 = createFullSaju({ geokgukName: '편재', dayMasterName: '임' });
+
+        const result1 = analyzeKorean(saju1, astro);
+        const result2 = analyzeKorean(saju2, astro);
+
+        expect(result1.combinedNarrative).not.toBe(result2.combinedNarrative);
+      });
+
+      it('should generate narrative with minimum length', () => {
+        const saju = createFullSaju({
+          geokgukName: '식신',
+          dayMasterName: '갑',
+        });
+        const astro = createAstroWithPlanets([
+          { name: 'North Node', house: 1 },
+          { name: 'Saturn', house: 7 },
+        ]);
+
+        const result = analyzeKorean(saju, astro);
+
+        // Narrative should have significant content (minimum 500 characters for 20+ lines)
+        expect(result.combinedNarrative!.length).toBeGreaterThan(500);
+      });
+
+      it('should handle partial data gracefully', () => {
+        // Only geokguk
+        const result1 = analyzeKorean(createSajuWithGeokguk('식신'));
+        expect(result1.combinedNarrative).toBeDefined();
+
+        // Only astro
+        const result2 = analyzeKorean(null, createAstroWithPlanet('North Node', 5));
+        expect(result2.combinedNarrative).toBeDefined();
+
+        // No data at all
+        const result3 = analyzeKorean();
+        expect(result3.combinedNarrative).toBeDefined();
+      });
+
+      it('should generate consistent narratives for same input', () => {
+        const saju = createFullSaju({
+          geokgukName: '정관',
+          dayMasterName: '병',
+        });
+        const astro = createAstroWithPlanets([
+          { name: 'North Node', house: 10 },
+          { name: 'Saturn', house: 4 },
+        ]);
+
+        const result1 = analyzeKorean(saju, astro);
+        const result2 = analyzeKorean(saju, astro);
+
+        expect(result1.combinedNarrative).toBe(result2.combinedNarrative);
+      });
+
+      it('should generate narrative for all geokguk types', () => {
+        GEOKGUK_TYPES.forEach((geokguk) => {
+          const result = analyzeKorean(createSajuWithGeokguk(geokguk));
+          expect(result.combinedNarrative).toBeDefined();
+          expect(result.combinedNarrative!.length).toBeGreaterThan(100);
+        });
+      });
+
+      it('should generate narrative for all 12 North Node houses', () => {
+        HOUSE_NUMBERS.forEach((house) => {
+          const result = analyzeKorean(
+            createSajuWithGeokguk('식신'),
+            createAstroWithPlanet('North Node', house)
+          );
+          expect(result.combinedNarrative).toBeDefined();
+          expect(result.combinedNarrative!.length).toBeGreaterThan(100);
+        });
+      });
+
+      it('should generate narrative for all 12 Saturn houses', () => {
+        HOUSE_NUMBERS.forEach((house) => {
+          const result = analyzeKorean(
+            createSajuWithGeokguk('정관'),
+            createAstroWithPlanet('Saturn', house)
+          );
+          expect(result.combinedNarrative).toBeDefined();
+          expect(result.combinedNarrative!.length).toBeGreaterThan(100);
+        });
+      });
+
+      it('should generate narrative for all day master stems', () => {
+        DAY_MASTER_STEMS.forEach((stem) => {
+          const result = analyzeKorean(createSajuWithDayMaster(stem));
+          expect(result.combinedNarrative).toBeDefined();
+          expect(result.combinedNarrative!.length).toBeGreaterThan(100);
+        });
+      });
+    });
+
     describe('Performance and Consistency', () => {
       it('should complete analysis in reasonable time', () => {
         const start = Date.now();

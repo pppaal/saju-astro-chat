@@ -1,17 +1,7 @@
 'use client'
 
 import React from 'react'
-import { UnifiedBirthForm } from '@/components/common/BirthForm'
-
-interface BirthInfo {
-  birthDate: string
-  birthTime: string
-  gender: 'M' | 'F' | 'Male' | 'Female'
-  birthCity?: string
-  latitude?: number
-  longitude?: number
-  timezone?: string
-}
+import { UnifiedBirthForm, BirthInfo } from '@/components/common/BirthForm'
 
 interface BirthInfoFormProps {
   onSubmit: (birthInfo: BirthInfo) => void | Promise<void>

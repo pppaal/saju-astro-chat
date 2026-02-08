@@ -1,6 +1,6 @@
 // Reusable card component for compatibility insights
 
-import { ReactNode } from "react";
+import { ReactNode, memo } from "react";
 
 interface InsightCardProps {
   emoji?: string;
@@ -85,7 +85,7 @@ const colorMap: Record<string, { from: string; border: string; title: string; bg
   },
 };
 
-export function InsightCard({
+export const InsightCard = memo(function InsightCard({
   emoji,
   title,
   colorTheme = "purple",
@@ -105,9 +105,9 @@ export function InsightCard({
       {children}
     </div>
   );
-}
+})
 
-export function InsightContent({
+export const InsightContent = memo(function InsightContent({
   children,
   colorTheme = "purple",
   className = "",
@@ -124,9 +124,9 @@ export function InsightContent({
       {children}
     </div>
   );
-}
+})
 
-export function ScoreBar({
+export const ScoreBar = memo(function ScoreBar({
   label,
   score,
   colorTheme = "purple",
@@ -154,9 +154,9 @@ export function ScoreBar({
       </div>
     </div>
   );
-}
+})
 
-export function Badge({
+export const Badge = memo(function Badge({
   text,
   colorTheme = "purple",
   size = "md",
@@ -174,6 +174,6 @@ export function Badge({
       {text}
     </span>
   );
-}
+})
 
 export default InsightCard;

@@ -376,6 +376,25 @@
   font-size: 1rem;
 }
 
+/* Combined Narrative */
+.narrativeText {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.narrativeParagraph {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  line-height: 1.8;
+  margin: 0;
+  text-align: justify;
+}
+
+.narrativeParagraph:first-child {
+  font-size: 1.05rem;
+}
+
 .tlGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

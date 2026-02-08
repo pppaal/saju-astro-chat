@@ -7,9 +7,11 @@
  * - User-scoped findFirst for ownership check
  * - User-scoped delete with ownership verification
  * - Safe query wrapper for optional tables
+ *
+ * Note: For new code, prefer using the type-safe model accessor from './model-accessor.ts'
  */
 
-import { prisma } from './prisma'
+import { getModel, type PrismaModelName } from './model-accessor'
 import { logger } from '@/lib/logger'
 
 // ============ Types ============
@@ -82,7 +84,7 @@ export interface UpsertOptions<TData> {
  *   pagination: { limit: 10, offset: 0 },
  * })
  */
-export function createUserFindMany<T>(modelName: keyof typeof prisma) {
+export function createUserFindMany<T>(modelName: PrismaModelName) {
   return async (options: FindManyOptions): Promise<T[]> => {
     const {
       userId,
@@ -98,8 +100,7 @@ export function createUserFindMany<T>(modelName: keyof typeof prisma) {
     // Calculate skip from offset or page
     const skip = offset ?? (page ? (page - 1) * limit : 0)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const model = prisma[modelName] as any
+    const model = getModel(modelName)
 
     return model.findMany({
       where: { userId, ...where },
@@ -108,7 +109,7 @@ export function createUserFindMany<T>(modelName: keyof typeof prisma) {
       orderBy,
       take: limit,
       ...(skip > 0 && { skip }),
-    })
+    }) as Promise<T[]>
   }
 }
 
@@ -122,18 +123,17 @@ export function createUserFindMany<T>(modelName: keyof typeof prisma) {
  *   select: { id: true, content: true },
  * })
  */
-export function createUserFindFirst<T>(modelName: keyof typeof prisma) {
+export function createUserFindFirst<T>(modelName: PrismaModelName) {
   return async (options: FindFirstOptions): Promise<T | null> => {
     const { userId, id, select, include } = options
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const model = prisma[modelName] as any
+    const model = getModel(modelName)
 
     return model.findFirst({
       where: { id, userId },
       ...(select && { select }),
       ...(include && { include }),
-    })
+    }) as Promise<T | null>
   }
 }
 
@@ -147,14 +147,13 @@ export function createUserFindFirst<T>(modelName: keyof typeof prisma) {
  * })
  * // Returns: { deleted: true } or { deleted: false, reason: 'not_found' }
  */
-export function createUserDelete(modelName: keyof typeof prisma) {
+export function createUserDelete(modelName: PrismaModelName) {
   return async (
     options: DeleteOptions
   ): Promise<{ deleted: true } | { deleted: false; reason: 'not_found' | 'not_owner' }> => {
     const { userId, id } = options
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const model = prisma[modelName] as any
+    const model = getModel(modelName)
 
     // Verify ownership
     const existing = await model.findFirst({
@@ -166,7 +165,7 @@ export function createUserDelete(modelName: keyof typeof prisma) {
       return { deleted: false, reason: 'not_found' }
     }
 
-    if (existing.userId !== userId) {
+    if ((existing as { userId?: string }).userId !== userId) {
       return { deleted: false, reason: 'not_owner' }
     }
 
@@ -184,16 +183,15 @@ export function createUserDelete(modelName: keyof typeof prisma) {
  *   data: { type: 'tarot', content: '...' },
  * })
  */
-export function createUserCreate<TData, TResult>(modelName: keyof typeof prisma) {
+export function createUserCreate<TData, TResult>(modelName: PrismaModelName) {
   return async (options: CreateOptions<TData>): Promise<TResult> => {
     const { userId, data } = options
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const model = prisma[modelName] as any
+    const model = getModel(modelName)
 
     return model.create({
-      data: { userId, ...data },
-    })
+      data: { userId, ...(data as Record<string, unknown>) },
+    }) as Promise<TResult>
   }
 }
 
@@ -206,18 +204,17 @@ export function createUserCreate<TData, TResult>(modelName: keyof typeof prisma)
  *   data: { themes: [...], patterns: [...] },
  * })
  */
-export function createUserUpsert<TData, TResult>(modelName: keyof typeof prisma) {
+export function createUserUpsert<TData, TResult>(modelName: PrismaModelName) {
   return async (options: UpsertOptions<TData>): Promise<TResult> => {
     const { userId, data, uniqueField = 'userId' } = options
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const model = prisma[modelName] as any
+    const model = getModel(modelName)
 
     return model.upsert({
       where: { [uniqueField]: userId },
       update: data as Record<string, unknown>,
       create: { [uniqueField]: userId, ...(data as Record<string, unknown>) },
-    })
+    }) as Promise<TResult>
   }
 }
 

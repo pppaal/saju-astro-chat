@@ -87,8 +87,13 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
   } = options
 
   // Session ID (stable across renders, but can be updated when loading a session)
-  const sessionIdRef = useRef<string>(generateSessionId())
-  const sessionId = sessionIdRef.current
+  const [sessionId, _setSessionId] = useState<string>(() => generateSessionId())
+  const sessionIdRef = useRef<string>(sessionId)
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    sessionIdRef.current = sessionId
+  }, [sessionId])
 
   // Core state
   const [messages, setMessages] = useState<ChatMessage[]>(() => {

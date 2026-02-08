@@ -2,6 +2,8 @@
 // Destiny Fusion Matrix™ - Performance Optimization
 // 메모이제이션, 캐싱, 성능 최적화
 
+import { MATRIX_CACHE } from '@/lib/constants/cache';
+
 // ===========================
 // LRU 캐시 구현
 // ===========================
@@ -10,7 +12,7 @@ export class LRUCache<K, V> {
   private cache: Map<K, V>;
   private readonly maxSize: number;
 
-  constructor(maxSize: number = 100) {
+  constructor(maxSize: number = MATRIX_CACHE.MEMOIZE_MAX_SIZE) {
     this.cache = new Map();
     this.maxSize = maxSize;
   }
@@ -85,7 +87,7 @@ export function memoize<TArgs extends unknown[], TReturn>(
   }
 ): (...args: TArgs) => TReturn {
   const cache = new LRUCache<string, { value: TReturn; timestamp: number }>(
-    options?.maxSize || 100
+    options?.maxSize || MATRIX_CACHE.MEMOIZE_MAX_SIZE
   );
 
   const keyGen = options?.keyGenerator || ((...args: TArgs) => JSON.stringify(args));
@@ -121,11 +123,11 @@ export function memoizeAsync<TArgs extends unknown[], TReturn>(
   }
 ): (...args: TArgs) => Promise<TReturn> {
   const cache = new LRUCache<string, { value: TReturn; timestamp: number }>(
-    options?.maxSize || 100
+    options?.maxSize || MATRIX_CACHE.MEMOIZE_MAX_SIZE
   );
   const pending = new Map<string, { promise: Promise<TReturn>; timestamp: number }>();
-  const pendingMaxSize = options?.pendingMaxSize || 100;
-  const pendingTimeoutMs = options?.pendingTimeoutMs || 30000; // 30초 기본 타임아웃
+  const pendingMaxSize = options?.pendingMaxSize || MATRIX_CACHE.PENDING_MAX_SIZE;
+  const pendingTimeoutMs = options?.pendingTimeoutMs || MATRIX_CACHE.PENDING_TIMEOUT_MS;
 
   const keyGen = options?.keyGenerator || ((...args: TArgs) => JSON.stringify(args));
   const ttl = options?.ttl || Infinity;
@@ -226,7 +228,7 @@ class MatrixCache {
   private cache: LRUCache<string, CachedMatrixResult>;
   private readonly defaultTTL: number;
 
-  constructor(maxSize: number = 50, defaultTTL: number = 5 * 60 * 1000) { // 5분
+  constructor(maxSize: number = MATRIX_CACHE.MAX_SIZE, defaultTTL: number = MATRIX_CACHE.TTL_MS) {
     this.cache = new LRUCache(maxSize);
     this.defaultTTL = defaultTTL;
   }

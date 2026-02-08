@@ -4,6 +4,7 @@
  */
 
 import type { PastLifeResult } from './types';
+import type { GeokgukType, HouseNumber, HeavenlyStem } from './data/types';
 import { getGeokgukType } from './utils/helpers';
 import { extractDayMasterChar, findPlanetByAliases } from './utils/extractors';
 import {
@@ -16,6 +17,7 @@ import {
 } from './utils/builders';
 import { analyzeKarmicDebts, calculateKarmaScore } from './utils/analyzers';
 import { PLANET_ALIASES } from './data/constants';
+import { generateCombinedPastLifeNarrative } from './data/combined-narratives';
 
 // Type definitions for external data structures
 interface SajuData {
@@ -90,6 +92,15 @@ export function analyzePastLife(
     karmicDebts.length
   );
 
+  // 조합 기반 개인화된 전생 스토리 생성 (무료 버전)
+  const combinedNarrative = generateCombinedPastLifeNarrative(
+    geokgukType,
+    northNodeHouse as HouseNumber | null,
+    saturnHouse as HouseNumber | null,
+    dayMasterChar as HeavenlyStem | null,
+    isKo
+  );
+
   return {
     soulPattern,
     pastLife,
@@ -99,6 +110,7 @@ export function analyzePastLife(
     talentsCarried,
     thisLifeMission,
     karmaScore,
+    combinedNarrative,
     geokguk: geokName,
     northNodeHouse: northNodeHouse ?? undefined,
     saturnHouse: saturnHouse ?? undefined,

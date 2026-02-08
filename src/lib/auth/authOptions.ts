@@ -105,7 +105,14 @@ function createFilteredPrismaAdapter(): Adapter {
       try {
         const referralCode = generateReferralCode()
         const createdUser = await prisma.user.create({
-          data: { ...user, referralCode },
+          data: {
+            ...user,
+            settings: {
+              create: {
+                referralCode,
+              },
+            },
+          },
         })
         return createdUser as AdapterUser
       } catch (error) {
@@ -304,14 +311,14 @@ export const authOptions: NextAuthOptions = {
         // Get user's referral code from DB
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id as string },
-          select: { referralCode: true },
+          select: { settings: { select: { referralCode: true } } },
         })
         sendWelcomeEmail(
           user.id as string,
           user.email,
           user.name || '',
           'ko',
-          dbUser?.referralCode || undefined
+          dbUser?.settings?.referralCode || undefined
         ).catch((err) => {
           logger.error('[auth] Failed to send welcome email:', err)
         })

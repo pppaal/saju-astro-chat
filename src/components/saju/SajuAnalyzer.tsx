@@ -6,6 +6,7 @@ import { useState, useEffect, FormEvent, useMemo, useCallback } from 'react'
 import SajuResultDisplay from './SajuResultDisplay'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { saveUserProfile } from '@/lib/userProfile'
+import { ProfileLoader } from '@/components/common/BirthForm'
 import { searchCities } from '@/lib/cities'
 import tzLookup from 'tz-lookup'
 import DateTimePicker from '@/components/ui/DateTimePicker'
@@ -224,41 +225,16 @@ export default function SajuAnalyzer() {
         className="bg-slate-800 p-8 rounded-xl border border-slate-600 mb-8"
         aria-label="사주 분석 입력 폼"
       >
-        {/* Load Profile Button */}
-        {!profileLoaded && !profileLoadedMsg && (
-          <button
-            type="button"
-            onClick={handleLoadProfile}
-            disabled={loadingProfileBtn}
-            className="w-full mb-5 p-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700
-              text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            <span>{loadingProfileBtn ? '⏳' : '👤'}</span>
-            <span>
-              {loadingProfileBtn
-                ? locale === 'ko'
-                  ? '불러오는 중...'
-                  : 'Loading...'
-                : locale === 'ko'
-                  ? '내 프로필 불러오기'
-                  : 'Load My Profile'}
-            </span>
-          </button>
-        )}
-
-        {/* Profile loaded success message */}
-        {profileLoadedMsg && (
-          <div className="mb-5 p-3 bg-green-600/20 border border-green-600 rounded-lg text-green-400 text-center">
-            ✓ {locale === 'ko' ? '프로필 불러오기 완료!' : 'Profile loaded!'}
-          </div>
-        )}
-
-        {/* Profile load error */}
-        {profileLoadError && (
-          <div className="mb-5 p-3 bg-red-600/20 border border-red-600 rounded-lg text-red-400 text-sm">
-            ⚠️ {profileLoadError}
-          </div>
-        )}
+        {/* Profile Loader */}
+        <ProfileLoader
+          status={profileLoading ? 'loading' : 'authenticated'}
+          onLoadClick={handleLoadProfile}
+          onReloadClick={handleLoadProfile}
+          isLoading={loadingProfileBtn}
+          isLoaded={profileLoadedMsg}
+          error={profileLoadError}
+          locale={locale as 'ko' | 'en'}
+        />
 
         {/* 양력/음력 */}
         <div className="mb-5">

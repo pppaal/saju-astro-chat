@@ -12,6 +12,8 @@
     "birthcityHint": "Birth city is needed for accurate astrology calculations",
     "analyzing": "Exploring past lives...",
     "buttonStart": "Discover My Past Lives",
+    "formTitle": "Enter Your Birth Info",
+    "formSubtitle": "Required for accurate past life analysis",
     "infoText": "Your past life reading combines Eastern Saju (Four Pillars) analysis with Western Astrology to reveal soul patterns, karmic lessons, and talents carried from previous incarnations.",
     "errors": {
       "birthdate": "Please enter your birth date.",

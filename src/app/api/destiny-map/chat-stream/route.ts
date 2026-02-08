@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { initializeApiContext, createAuthenticatedGuard, extractLocale } from '@/lib/api/middleware'
 import { createTransformedSSEStream, createFallbackSSEStream } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'

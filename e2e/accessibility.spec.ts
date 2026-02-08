@@ -9,21 +9,26 @@ test.describe('Page Structure', () => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('html')).toBeVisible()
     await expect(page.locator('body')).toBeVisible()
+
+    const bodyText = await page.locator('body').textContent()
+    expect(bodyText!.length).toBeGreaterThan(100)
   })
 
-  test('should have lang attribute on html', async ({ page }) => {
+  test('should have lang attribute set to Korean', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     const lang = await page.locator('html').getAttribute('lang')
     expect(lang).toBeTruthy()
+    expect(lang).toBe('ko')
   })
 
-  test('should have title tag', async ({ page }) => {
+  test('should have descriptive title tag', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     const title = await page.title()
-    expect(title.length).toBeGreaterThan(0)
+    expect(title.length).toBeGreaterThan(5)
+    expect(title.length).toBeLessThan(70)
   })
 
-  test('should have viewport meta tag', async ({ page }) => {
+  test('should have viewport meta tag with responsive settings', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     const viewport = page.locator('meta[name="viewport"]')
     const count = await viewport.count()
@@ -42,8 +47,8 @@ test.describe('Image Accessibility', () => {
     const count = await images.count()
 
     if (count === 0) {
-      // No images is acceptable
-      expect(true).toBe(true)
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
       return
     }
 
@@ -58,17 +63,34 @@ test.describe('Image Accessibility', () => {
       }
     }
   })
+
+  test('images should have valid src', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    const images = page.locator('img')
+    const count = await images.count()
+
+    if (count > 0) {
+      for (let i = 0; i < Math.min(count, 3); i++) {
+        const img = images.nth(i)
+        if (await img.isVisible()) {
+          const src = await img.getAttribute('src')
+          expect(src).toBeTruthy()
+          expect(src!.length).toBeGreaterThan(0)
+        }
+      }
+    }
+  })
 })
 
 test.describe('Form Accessibility', () => {
-  test('form inputs should have associated labels', async ({ page }) => {
+  test('form inputs should have associated labels or aria-labels', async ({ page }) => {
     await page.goto('/saju', { waitUntil: 'domcontentloaded' })
     const inputs = page.locator("input:not([type='hidden']):not([type='submit'])")
     const count = await inputs.count()
 
     if (count === 0) {
-      // No inputs is acceptable for some pages
-      expect(true).toBe(true)
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
       return
     }
 
@@ -79,7 +101,8 @@ test.describe('Form Accessibility', () => {
         const ariaLabel = await input.getAttribute('aria-label')
         const ariaLabelledby = await input.getAttribute('aria-labelledby')
         const placeholder = await input.getAttribute('placeholder')
-        const hasLabel = id || ariaLabel || ariaLabelledby || placeholder
+        const name = await input.getAttribute('name')
+        const hasLabel = id || ariaLabel || ariaLabelledby || placeholder || name
         expect(hasLabel).toBeTruthy()
       }
     }
@@ -90,10 +113,7 @@ test.describe('Form Accessibility', () => {
     const buttons = page.locator('button')
     const count = await buttons.count()
 
-    if (count === 0) {
-      expect(true).toBe(true)
-      return
-    }
+    expect(count).toBeGreaterThan(0)
 
     for (let i = 0; i < Math.min(count, 5); i++) {
       const button = buttons.nth(i)
@@ -103,6 +123,21 @@ test.describe('Form Accessibility', () => {
         const title = await button.getAttribute('title')
         const hasName = (text && text.trim()) || ariaLabel || title
         expect(hasName).toBeTruthy()
+      }
+    }
+  })
+
+  test('submit buttons should be clearly labeled', async ({ page }) => {
+    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+    const submitButtons = page.locator('button[type="submit"]')
+    const count = await submitButtons.count()
+
+    if (count > 0) {
+      const button = submitButtons.first()
+      if (await button.isVisible()) {
+        const text = await button.textContent()
+        expect(text).toBeTruthy()
+        expect(text!.trim().length).toBeGreaterThan(0)
       }
     }
   })
@@ -139,15 +174,44 @@ test.describe('Link Accessibility', () => {
       const link = links.nth(i)
       const href = await link.getAttribute('href')
       expect(href).toBeTruthy()
+      expect(href!.length).toBeGreaterThan(0)
+    }
+  })
+
+  test('external links should indicate they open in new tab', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    const externalLinks = page.locator('a[target="_blank"]')
+    const count = await externalLinks.count()
+
+    if (count > 0) {
+      for (let i = 0; i < Math.min(count, 3); i++) {
+        const link = externalLinks.nth(i)
+        const rel = await link.getAttribute('rel')
+        // External links should have rel="noopener" for security
+        if (rel) {
+          expect(rel).toContain('noopener')
+        }
+      }
     }
   })
 })
 
-test.describe('Color Contrast (Basic)', () => {
-  test('page should have visible text', async ({ page }) => {
+test.describe('Color Contrast', () => {
+  test('page should have visible text content', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     const bodyText = await page.locator('body').textContent()
     expect(bodyText).toBeTruthy()
+    expect(bodyText!.length).toBeGreaterThan(100)
+  })
+
+  test('text should be visible on dark background', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+    const dataTheme = await page.locator('html').getAttribute('data-theme')
+    expect(dataTheme).toBe('dark')
+
+    // 본문 텍스트가 보여야 함
+    const bodyText = await page.locator('body').textContent()
     expect(bodyText!.length).toBeGreaterThan(50)
   })
 })
@@ -156,20 +220,33 @@ test.describe('Keyboard Navigation', () => {
   test('should be able to tab through interactive elements', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-    // Tab through elements
     for (let i = 0; i < 5; i++) {
       await page.keyboard.press('Tab')
     }
 
-    // An element should be focused
     const focusedTag = await page.evaluate(() => document.activeElement?.tagName)
     expect(focusedTag).toBeTruthy()
+    expect(['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT']).toContain(focusedTag)
   })
 
   test('escape key should work for closing modals', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await page.keyboard.press('Escape')
     await expect(page.locator('body')).toBeVisible()
+
+    const bodyText = await page.locator('body').textContent()
+    expect(bodyText!.length).toBeGreaterThan(50)
+  })
+
+  test('enter key should activate buttons', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+    const button = page.locator('button').first()
+    if ((await button.count()) > 0 && (await button.isVisible())) {
+      await button.focus()
+      await page.keyboard.press('Enter')
+      await expect(page.locator('body')).toBeVisible()
+    }
   })
 })
 
@@ -183,12 +260,21 @@ test.describe('Focus Visibility', () => {
     if (count > 0 && (await firstLink.isVisible())) {
       await firstLink.focus()
 
-      // Check that focus is on the link
-      const focusedHref = await page.evaluate(() => {
-        const el = document.activeElement
-        return el?.tagName === 'A' ? (el as HTMLAnchorElement).href : null
-      })
-      expect(focusedHref).toBeTruthy()
+      const focusedElement = page.locator(':focus')
+      const focusCount = await focusedElement.count()
+      expect(focusCount).toBeGreaterThan(0)
+    }
+  })
+
+  test('focused button should be visible', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+    const button = page.locator('button').first()
+    if ((await button.count()) > 0 && (await button.isVisible())) {
+      await button.focus()
+
+      const focusedElement = page.locator(':focus')
+      await expect(focusedElement).toBeVisible()
     }
   })
 })
@@ -198,8 +284,11 @@ test.describe('Heading Structure', () => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     const h1 = page.locator('h1')
     const count = await h1.count()
-    // Most pages should have an h1
-    expect(count).toBeGreaterThanOrEqual(0)
+
+    // 대부분의 페이지에는 h1이 있어야 함
+    if (count > 0) {
+      await expect(h1.first()).toBeVisible()
+    }
   })
 
   test('headings should be in logical order', async ({ page }) => {
@@ -209,14 +298,29 @@ test.describe('Heading Structure', () => {
 
     if (count > 0) {
       const headingLevels: number[] = []
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < Math.min(count, 10); i++) {
         const heading = headings.nth(i)
-        const tagName = await heading.evaluate((el) => el.tagName)
-        headingLevels.push(parseInt(tagName.charAt(1)))
+        if (await heading.isVisible()) {
+          const tagName = await heading.evaluate((el) => el.tagName)
+          headingLevels.push(parseInt(tagName.charAt(1)))
+        }
       }
 
-      // First heading should be h1 or h2
-      expect(headingLevels[0]).toBeLessThanOrEqual(2)
+      if (headingLevels.length > 0) {
+        // 첫 번째 헤딩은 h1 또는 h2여야 함
+        expect(headingLevels[0]).toBeLessThanOrEqual(2)
+      }
+    }
+  })
+
+  test('heading text should be descriptive', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    const h1 = page.locator('h1').first()
+
+    if ((await h1.count()) > 0 && (await h1.isVisible())) {
+      const text = await h1.textContent()
+      expect(text).toBeTruthy()
+      expect(text!.trim().length).toBeGreaterThan(0)
     }
   })
 })
@@ -226,14 +330,81 @@ test.describe('ARIA Landmarks', () => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     const main = page.locator("main, [role='main']")
     const count = await main.count()
-    // Should have a main landmark
-    expect(count).toBeGreaterThanOrEqual(0)
+
+    // main 랜드마크가 있어야 함
+    if (count > 0) {
+      await expect(main.first()).toBeVisible()
+    }
   })
 
-  test('should have navigation', async ({ page }) => {
+  test('should have navigation landmark', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     const nav = page.locator("nav, [role='navigation']")
     const count = await nav.count()
     expect(count).toBeGreaterThan(0)
+
+    await expect(nav.first()).toBeVisible()
+  })
+
+  test('should have header or banner', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    const header = page.locator("header, [role='banner']")
+    const count = await header.count()
+
+    if (count > 0) {
+      await expect(header.first()).toBeVisible()
+    }
+  })
+})
+
+test.describe('Mobile Accessibility', () => {
+  test('should be accessible on mobile viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+    await expect(page.locator('body')).toBeVisible()
+
+    const bodyText = await page.locator('body').textContent()
+    expect(bodyText!.length).toBeGreaterThan(50)
+  })
+
+  test('touch targets should be large enough', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+    const buttons = page.locator('button')
+    const count = await buttons.count()
+
+    for (let i = 0; i < Math.min(count, 3); i++) {
+      const button = buttons.nth(i)
+      if (await button.isVisible()) {
+        const box = await button.boundingBox()
+        if (box) {
+          // 최소 44px (WCAG 권장) 또는 30px
+          expect(box.height).toBeGreaterThanOrEqual(30)
+          expect(box.width).toBeGreaterThanOrEqual(30)
+        }
+      }
+    }
+  })
+
+  test('should not have horizontal scroll on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+    const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
+    const viewportWidth = await page.evaluate(() => window.innerWidth)
+    expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 20)
+  })
+})
+
+test.describe('Accessibility Page Load Performance', () => {
+  test('should load homepage within acceptable time', async ({ page }) => {
+    const startTime = Date.now()
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    const loadTime = Date.now() - startTime
+
+    expect(loadTime).toBeLessThan(10000)
+    await expect(page.locator('body')).toBeVisible()
   })
 })

@@ -44,9 +44,13 @@ export const POST = withApiMiddleware(
         include: {
           user: {
             select: {
-              birthDate: true,
-              birthTime: true,
-              gender: true,
+              profile: {
+                select: {
+                  birthDate: true,
+                  birthTime: true,
+                  gender: true,
+                },
+              },
             },
           },
         },
@@ -56,9 +60,13 @@ export const POST = withApiMiddleware(
         include: {
           user: {
             select: {
-              birthDate: true,
-              birthTime: true,
-              gender: true,
+              profile: {
+                select: {
+                  birthDate: true,
+                  birthTime: true,
+                  gender: true,
+                },
+              },
             },
           },
         },
@@ -105,9 +113,13 @@ export const POST = withApiMiddleware(
             include: {
               user: {
                 select: {
-                  birthDate: true,
-                  birthTime: true,
-                  gender: true,
+                  profile: {
+                    select: {
+                      birthDate: true,
+                      birthTime: true,
+                      gender: true,
+                    },
+                  },
                 },
               },
             },
@@ -230,18 +242,20 @@ export const POST = withApiMiddleware(
 
         // 상세 궁합 분석 (매치 성사 시)
         let detailedCompatibility = null
-        if (updatedMyProfile.user.birthDate && targetProfile.user.birthDate) {
+        const myBirthDate = updatedMyProfile.user.profile?.birthDate
+        const targetBirthDate = targetProfile.user.profile?.birthDate
+        if (myBirthDate && targetBirthDate) {
           try {
             detailedCompatibility = await calculateDetailedCompatibility(
               {
-                birthDate: updatedMyProfile.user.birthDate,
-                birthTime: updatedMyProfile.user.birthTime || undefined,
-                gender: updatedMyProfile.user.gender || undefined,
+                birthDate: myBirthDate,
+                birthTime: updatedMyProfile.user.profile?.birthTime || undefined,
+                gender: updatedMyProfile.user.profile?.gender || undefined,
               },
               {
-                birthDate: targetProfile.user.birthDate,
-                birthTime: targetProfile.user.birthTime || undefined,
-                gender: targetProfile.user.gender || undefined,
+                birthDate: targetBirthDate,
+                birthTime: targetProfile.user.profile?.birthTime || undefined,
+                gender: targetProfile.user.profile?.gender || undefined,
               }
             )
           } catch (e) {

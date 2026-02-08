@@ -53,3 +53,80 @@ test.describe('Session Management', () => {
     expect(session.user).toBeUndefined()
   })
 })
+
+test.describe('Auth Page Content', () => {
+  test('should display login page with Korean content', async ({ page }) => {
+    await page.goto('/auth/signin', { waitUntil: 'domcontentloaded' })
+    await expect(page.locator('body')).toBeVisible()
+
+    const bodyText = await page.locator('body').textContent()
+    expect(bodyText!.length).toBeGreaterThan(50)
+
+    // Auth page should have login-related content
+    const hasAuthContent =
+      bodyText!.includes('로그인') ||
+      bodyText!.includes('Sign in') ||
+      bodyText!.includes('Google') ||
+      bodyText!.includes('Kakao')
+    expect(hasAuthContent).toBe(true)
+  })
+
+  test('should have OAuth provider buttons visible', async ({ page }) => {
+    await page.goto('/auth/signin', { waitUntil: 'domcontentloaded' })
+
+    const oauthButtons = page.locator('button')
+    const count = await oauthButtons.count()
+    expect(count).toBeGreaterThan(0)
+
+    // At least one button should be visible
+    let visibleButton = false
+    for (let i = 0; i < count; i++) {
+      if (await oauthButtons.nth(i).isVisible()) {
+        visibleButton = true
+        break
+      }
+    }
+    expect(visibleButton).toBe(true)
+  })
+
+  test('should handle error query params', async ({ page }) => {
+    await page.goto('/auth/signin?error=OAuthSignin', { waitUntil: 'domcontentloaded' })
+    await expect(page.locator('body')).toBeVisible()
+
+    // Page should still load with error param
+    const bodyText = await page.locator('body').textContent()
+    expect(bodyText!.length).toBeGreaterThan(50)
+  })
+})
+
+test.describe('Auth Mobile Experience', () => {
+  test('should render sign-in page without horizontal scroll on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 })
+    await page.goto('/auth/signin', { waitUntil: 'domcontentloaded' })
+
+    await expect(page.locator('body')).toBeVisible()
+
+    const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
+    const viewportWidth = await page.evaluate(() => window.innerWidth)
+    expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 20)
+  })
+
+  test('should have touch-friendly buttons on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 })
+    await page.goto('/auth/signin', { waitUntil: 'domcontentloaded' })
+
+    const buttons = page.locator('button')
+    const count = await buttons.count()
+
+    for (let i = 0; i < Math.min(count, 3); i++) {
+      const button = buttons.nth(i)
+      if (await button.isVisible()) {
+        const box = await button.boundingBox()
+        if (box) {
+          expect(box.height).toBeGreaterThanOrEqual(30)
+          expect(box.width).toBeGreaterThanOrEqual(30)
+        }
+      }
+    }
+  })
+})

@@ -14,6 +14,10 @@ import {
   auditRateLimit,
   auditSuspicious,
   getAuditSummary,
+  // Privacy masking utilities
+  maskIp,
+  hashUserId,
+  maskEmail,
 } from "@/lib/security/auditLog";
 
 // Mock dependencies
@@ -50,7 +54,7 @@ describe("Audit Logging", () => {
       expect(new Date(event.timestamp).getTime()).not.toBeNaN();
     });
 
-    it("should include all provided fields", () => {
+    it("should include all provided fields (with masking applied)", () => {
       const event = audit({
         category: "admin",
         action: "delete_user",
@@ -69,9 +73,13 @@ describe("Audit Logging", () => {
       expect(event.action).toBe("delete_user");
       expect(event.severity).toBe("warn");
       expect(event.success).toBe(true);
-      expect(event.userId).toBe("admin1");
-      expect(event.userEmail).toBe("admin@test.com");
-      expect(event.ip).toBe("192.168.1.1");
+      // userId is now hashed for privacy
+      expect(event.userId).toMatch(/^usr_[a-f0-9]{12}$/);
+      // userEmail is now masked
+      expect(event.userEmail).not.toBe("admin@test.com");
+      expect(event.userEmail).toContain("@");
+      // IP is now masked
+      expect(event.ip).toBe("192.168.1.xxx");
       expect(event.details).toEqual({ targetUserId: "user456" });
     });
 
@@ -428,6 +436,139 @@ describe("Audit Logging", () => {
       const futureDate = new Date(Date.now() + 86400000); // Tomorrow
       const summary = getAuditSummary(futureDate);
       expect(summary.total).toBe(0);
+    });
+  });
+
+  // ============================================================
+  // Privacy Masking Utilities Tests
+  // ============================================================
+
+  describe("maskIp", () => {
+    it("should mask IPv4 addresses", () => {
+      expect(maskIp("192.168.1.100")).toBe("192.168.1.xxx");
+      expect(maskIp("10.0.0.1")).toBe("10.0.0.xxx");
+      expect(maskIp("172.16.254.1")).toBe("172.16.254.xxx");
+    });
+
+    it("should mask IPv6 addresses", () => {
+      const result = maskIp("2001:0db8:85a3:0000:0000:8a2e:0370:7334");
+      expect(result).toContain("2001:0db8:85a3:0000");
+      expect(result).toContain("xxxx");
+    });
+
+    it("should handle null/undefined", () => {
+      expect(maskIp(null)).toBeUndefined();
+      expect(maskIp(undefined)).toBeUndefined();
+    });
+
+    it("should handle empty string", () => {
+      expect(maskIp("")).toBeUndefined();
+    });
+
+    it("should handle unknown formats", () => {
+      // "localhost" has 9 chars, so last 4 are replaced: "local" + "xxxx"
+      expect(maskIp("localhost")).toBe("localxxxx");
+      expect(maskIp("abc")).toBe("masked");
+    });
+  });
+
+  describe("hashUserId", () => {
+    it("should hash userId consistently", () => {
+      const hash1 = hashUserId("user123");
+      const hash2 = hashUserId("user123");
+      expect(hash1).toBe(hash2);
+    });
+
+    it("should produce different hashes for different userIds", () => {
+      const hash1 = hashUserId("user123");
+      const hash2 = hashUserId("user456");
+      expect(hash1).not.toBe(hash2);
+    });
+
+    it("should prefix with usr_", () => {
+      const hash = hashUserId("user123");
+      expect(hash).toMatch(/^usr_[a-f0-9]{12}$/);
+    });
+
+    it("should handle null/undefined", () => {
+      expect(hashUserId(null)).toBeUndefined();
+      expect(hashUserId(undefined)).toBeUndefined();
+    });
+
+    it("should handle empty string", () => {
+      expect(hashUserId("")).toBeUndefined();
+    });
+  });
+
+  describe("maskEmail", () => {
+    it("should mask email addresses", () => {
+      const masked = maskEmail("john.doe@example.com");
+      expect(masked).not.toBe("john.doe@example.com");
+      expect(masked).toContain("@");
+      expect(masked).toContain(".com");
+    });
+
+    it("should keep first and last character of local part", () => {
+      const masked = maskEmail("john@example.com");
+      expect(masked).toMatch(/^j\*+n@/);
+    });
+
+    it("should handle short email parts", () => {
+      const masked = maskEmail("ab@cd.com");
+      expect(masked).toContain("@");
+      expect(masked).toContain(".com");
+    });
+
+    it("should handle null/undefined", () => {
+      expect(maskEmail(null)).toBeUndefined();
+      expect(maskEmail(undefined)).toBeUndefined();
+    });
+
+    it("should handle invalid email format", () => {
+      expect(maskEmail("notanemail")).toBe("***@***");
+    });
+  });
+
+  describe("audit with masking", () => {
+    it("should mask IP address in audit events", () => {
+      const event = audit({
+        category: "auth",
+        action: "login",
+        severity: "info",
+        success: true,
+        ip: "192.168.1.100",
+      });
+
+      // IP should be masked
+      expect(event.ip).toBe("192.168.1.xxx");
+    });
+
+    it("should hash userId in audit events", () => {
+      const event = audit({
+        category: "auth",
+        action: "login",
+        severity: "info",
+        success: true,
+        userId: "user123",
+      });
+
+      // userId should be hashed
+      expect(event.userId).toMatch(/^usr_[a-f0-9]{12}$/);
+      expect(event.userId).not.toBe("user123");
+    });
+
+    it("should mask email in audit events", () => {
+      const event = audit({
+        category: "auth",
+        action: "login",
+        severity: "info",
+        success: true,
+        userEmail: "john.doe@example.com",
+      });
+
+      // Email should be masked
+      expect(event.userEmail).not.toBe("john.doe@example.com");
+      expect(event.userEmail).toContain("@");
     });
   });
 });

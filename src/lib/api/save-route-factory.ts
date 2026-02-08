@@ -7,11 +7,16 @@
  * - Zod validation
  * - Prisma create/upsert
  * - Success/error responses
+ *
+ * 개선사항:
+ * - 구체적인 에러 분류 및 메시지
+ * - 스택 트레이스 로깅 (프로덕션에서는 숨김)
+ * - 에러 유형별 적절한 ErrorCode 매핑
  */
 
 import type { ZodSchema } from 'zod'
 import { NextRequest } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
+import { getModel, type PrismaModelName } from '@/lib/db/model-accessor'
 import { logger } from '@/lib/logger'
 import {
   withApiMiddleware,
@@ -20,8 +25,114 @@ import {
   apiError,
   ErrorCodes,
   type ApiContext,
+  type ErrorCode,
 } from '@/lib/api/middleware'
 import { parseAndValidate } from './request-parser'
+
+// ============ Error Classification ============
+
+/**
+ * 에러 유형별 분류 및 적절한 ErrorCode 반환
+ */
+function classifyError(error: unknown): {
+  code: ErrorCode
+  message: string
+  isRetryable: boolean
+} {
+  // Prisma 에러 분류
+  if (error && typeof error === 'object' && 'code' in error) {
+    const prismaError = error as { code: string; meta?: { target?: string[] } }
+
+    switch (prismaError.code) {
+      case 'P2002': // Unique constraint violation
+        return {
+          code: ErrorCodes.BAD_REQUEST,
+          message: `Duplicate entry: ${prismaError.meta?.target?.join(', ') || 'unique field'}`,
+          isRetryable: false,
+        }
+      case 'P2003': // Foreign key constraint
+        return {
+          code: ErrorCodes.BAD_REQUEST,
+          message: 'Referenced record does not exist',
+          isRetryable: false,
+        }
+      case 'P2025': // Record not found
+        return {
+          code: ErrorCodes.NOT_FOUND,
+          message: 'Record not found',
+          isRetryable: false,
+        }
+      case 'P2024': // Connection pool timeout
+        return {
+          code: ErrorCodes.SERVICE_UNAVAILABLE,
+          message: 'Database temporarily unavailable',
+          isRetryable: true,
+        }
+      default:
+        if (prismaError.code.startsWith('P2')) {
+          return {
+            code: ErrorCodes.DATABASE_ERROR,
+            message: 'Database operation failed',
+            isRetryable: false,
+          }
+        }
+    }
+  }
+
+  // 네트워크/타임아웃 에러
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase()
+    if (msg.includes('timeout') || msg.includes('timed out')) {
+      return {
+        code: ErrorCodes.TIMEOUT,
+        message: 'Operation timed out',
+        isRetryable: true,
+      }
+    }
+    if (msg.includes('econnrefused') || msg.includes('network')) {
+      return {
+        code: ErrorCodes.SERVICE_UNAVAILABLE,
+        message: 'Service temporarily unavailable',
+        isRetryable: true,
+      }
+    }
+  }
+
+  // 기본 내부 에러
+  return {
+    code: ErrorCodes.INTERNAL_ERROR,
+    message: 'An unexpected error occurred',
+    isRetryable: false,
+  }
+}
+
+/**
+ * 에러 로깅 (개발 환경에서는 스택 트레이스 포함)
+ */
+function logError(
+  route: string,
+  operation: string,
+  error: unknown,
+  context: { userId?: string | null }
+): void {
+  const errorInfo: Record<string, unknown> = {
+    userId: context.userId,
+    operation,
+  }
+
+  if (error instanceof Error) {
+    errorInfo.message = error.message
+    errorInfo.name = error.name
+    // 개발 환경에서만 스택 트레이스 포함
+    if (process.env.NODE_ENV === 'development') {
+      errorInfo.stack = error.stack
+    }
+  } else {
+    errorInfo.error = String(error)
+  }
+
+  logger.error(`[${route}] ${operation} failed`, errorInfo)
+}
 
 // ============ Types ============
 
@@ -45,7 +156,7 @@ export interface UpsertRouteConfig<TInput, TOutput> extends SaveRouteConfig<TInp
   /** Field to use for upsert where clause (default: 'userId') */
   uniqueField?: string
   /** Model name for prisma (e.g., 'tarotReading') */
-  modelName: keyof typeof prisma
+  modelName: PrismaModelName
 }
 
 // ============ Factory Functions ============
@@ -90,8 +201,9 @@ export function createSaveRoute<TInput, TOutput>(
 
         return apiSuccess({ success: true, data: result })
       } catch (error) {
-        logger.error(`[${route}] Save failed`, { error, userId: context.userId })
-        return apiError(ErrorCodes.INTERNAL_ERROR, 'Failed to save data')
+        logError(route, 'Save', error, context)
+        const { code, message } = classifyError(error)
+        return apiError(code, message)
       }
     },
     createAuthenticatedGuard({ route, ...rateLimit })
@@ -138,15 +250,14 @@ export function createUpsertRoute<TInput, TOutput>(
           ? await transform(parseResult.data, context)
           : parseResult.data
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const model = prisma[modelName] as any
+        const model = getModel(modelName)
 
         const result = await model.upsert({
           where: { [uniqueField]: context.userId! },
-          update: transformedData,
+          update: transformedData as Record<string, unknown>,
           create: {
             [uniqueField]: context.userId!,
-            ...transformedData,
+            ...(transformedData as Record<string, unknown>),
           },
         })
 
@@ -157,8 +268,9 @@ export function createUpsertRoute<TInput, TOutput>(
 
         return apiSuccess({ success: true, id: result.id, data: result })
       } catch (error) {
-        logger.error(`[${route}] Upsert failed`, { error, userId: context.userId })
-        return apiError(ErrorCodes.INTERNAL_ERROR, 'Failed to save data')
+        logError(route, 'Upsert', error, context)
+        const { code, message } = classifyError(error)
+        return apiError(code, message)
       }
     },
     createAuthenticatedGuard({ route, ...rateLimit })
@@ -178,7 +290,7 @@ export function createUpsertRoute<TInput, TOutput>(
  */
 export function createGetRoute<TOutput>(config: {
   route: string
-  modelName: keyof typeof prisma
+  modelName: PrismaModelName
   orderBy?: Record<string, 'asc' | 'desc'>
   take?: number
   select?: Record<string, boolean>
@@ -196,8 +308,7 @@ export function createGetRoute<TOutput>(config: {
   return withApiMiddleware(
     async (_req: NextRequest, context: ApiContext) => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const model = prisma[modelName] as any
+        const model = getModel(modelName)
 
         const result = await model.findMany({
           where: { userId: context.userId! },
@@ -208,8 +319,9 @@ export function createGetRoute<TOutput>(config: {
 
         return apiSuccess(result)
       } catch (error) {
-        logger.error(`[${route}] Get failed`, { error, userId: context.userId })
-        return apiError(ErrorCodes.INTERNAL_ERROR, 'Failed to fetch data')
+        logError(route, 'Get', error, context)
+        const { code, message } = classifyError(error)
+        return apiError(code, message)
       }
     },
     createAuthenticatedGuard({ route, ...rateLimit })
@@ -228,7 +340,7 @@ export function createGetRoute<TOutput>(config: {
  */
 export function createDeleteRoute(config: {
   route: string
-  modelName: keyof typeof prisma
+  modelName: PrismaModelName
   idParam?: string
   rateLimit?: { limit: number; windowSeconds: number }
 }) {
@@ -249,8 +361,7 @@ export function createDeleteRoute(config: {
       }
 
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const model = prisma[modelName] as any
+        const model = getModel(modelName)
 
         // Verify ownership before deleting
         const existing = await model.findFirst({
@@ -270,8 +381,9 @@ export function createDeleteRoute(config: {
 
         return apiSuccess({ success: true, deleted: id })
       } catch (error) {
-        logger.error(`[${route}] Delete failed`, { error, userId: context.userId })
-        return apiError(ErrorCodes.INTERNAL_ERROR, 'Failed to delete data')
+        logError(route, 'Delete', error, context)
+        const { code, message } = classifyError(error)
+        return apiError(code, message)
       }
     },
     createAuthenticatedGuard({ route, ...rateLimit })

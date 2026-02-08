@@ -510,6 +510,309 @@ describe('Redis Cache Utilities (Mocked)', () => {
     })
   })
 
+  describe('cacheGetResult structured error handling', () => {
+    it('should return cache miss with error when Redis throws', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      mockRedisInstance.get.mockRejectedValueOnce(new Error('Connection refused'))
+
+      const { cacheGetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetResult('test-key')
+
+      expect(result.hit).toBe(false)
+      expect(result.data).toBeNull()
+      expect(result.error).toBeInstanceOf(Error)
+      expect(result.error?.message).toBe('Connection refused')
+    })
+
+    it('should return cache miss without error when data is null', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      mockRedisInstance.get.mockResolvedValueOnce(null)
+
+      const { cacheGetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetResult('test-key')
+
+      expect(result.hit).toBe(false)
+      expect(result.data).toBeNull()
+      expect(result.error).toBeUndefined()
+    })
+
+    it('should return cache hit with data when successful', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      const testData = { foo: 'bar', count: 42 }
+      mockRedisInstance.get.mockResolvedValueOnce(testData)
+
+      const { cacheGetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetResult<typeof testData>('test-key')
+
+      expect(result.hit).toBe(true)
+      expect(result.data).toEqual(testData)
+      expect(result.error).toBeUndefined()
+    })
+  })
+
+  describe('cacheSetResult structured error handling', () => {
+    it('should return error result when Redis set fails', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      mockRedisInstance.set.mockRejectedValueOnce(new Error('Write timeout'))
+
+      const { cacheSetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheSetResult('test-key', { data: 'value' }, 3600)
+
+      expect(result.ok).toBe(false)
+      expect(result.error).toBeInstanceOf(Error)
+      expect(result.error?.message).toBe('Write timeout')
+    })
+
+    it('should return success when Redis set succeeds', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      mockRedisInstance.set.mockResolvedValueOnce('OK')
+
+      const { cacheSetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheSetResult('test-key', { data: 'value' }, 3600)
+
+      expect(result.ok).toBe(true)
+      expect(result.error).toBeUndefined()
+    })
+
+    it('should return error when Redis client unavailable', async () => {
+      delete process.env.UPSTASH_REDIS_REST_URL
+      delete process.env.UPSTASH_REDIS_REST_TOKEN
+
+      const { cacheSetResult, disconnectRedis } = await import('@/lib/cache/redis-cache')
+      await disconnectRedis()
+
+      const result = await cacheSetResult('test-key', { data: 'value' })
+
+      expect(result.ok).toBe(false)
+      expect(result.error?.message).toBe('Redis client unavailable')
+    })
+  })
+
+  describe('cacheDelResult structured error handling', () => {
+    it('should return error result when Redis delete fails', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      mockRedisInstance.del.mockRejectedValueOnce(new Error('Delete failed'))
+
+      const { cacheDelResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheDelResult('test-key')
+
+      expect(result.ok).toBe(false)
+      expect(result.error).toBeInstanceOf(Error)
+      expect(result.error?.message).toBe('Delete failed')
+    })
+
+    it('should return success when Redis delete succeeds', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      mockRedisInstance.del.mockResolvedValueOnce(1)
+
+      const { cacheDelResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheDelResult('test-key')
+
+      expect(result.ok).toBe(true)
+      expect(result.error).toBeUndefined()
+    })
+  })
+
+  describe('Key validation errors', () => {
+    it('should reject empty cache key', async () => {
+      const { cacheGetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetResult('')
+
+      expect(result.hit).toBe(false)
+      expect(result.error?.message).toBe('Cache key must be a non-empty string')
+    })
+
+    it('should reject cache key with newlines', async () => {
+      const { cacheGetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetResult('key\nwith\nnewlines')
+
+      expect(result.hit).toBe(false)
+      expect(result.error?.message).toBe('Cache key contains invalid characters')
+    })
+
+    it('should reject cache key with carriage returns', async () => {
+      const { cacheGetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetResult('key\rwith\rreturns')
+
+      expect(result.hit).toBe(false)
+      expect(result.error?.message).toBe('Cache key contains invalid characters')
+    })
+
+    it('should reject cache key that is too long', async () => {
+      const longKey = 'a'.repeat(600)
+      const { cacheGetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetResult(longKey)
+
+      expect(result.hit).toBe(false)
+      expect(result.error?.message).toBe('Cache key too long (max 512 characters)')
+    })
+
+    it('should accept valid cache key at max length', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      const maxLengthKey = 'a'.repeat(512)
+      mockRedisInstance.get.mockResolvedValueOnce(null)
+
+      const { cacheGetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetResult(maxLengthKey)
+
+      expect(result.error?.message).not.toBe('Cache key too long (max 512 characters)')
+    })
+  })
+
+  describe('TTL validation errors', () => {
+    it('should reject TTL of 0', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      const { cacheSetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheSetResult('test-key', { data: 'value' }, 0)
+
+      expect(result.ok).toBe(false)
+      expect(result.error?.message).toBe('TTL must be between 1 second and 1 year')
+    })
+
+    it('should reject negative TTL', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      const { cacheSetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheSetResult('test-key', { data: 'value' }, -100)
+
+      expect(result.ok).toBe(false)
+      expect(result.error?.message).toBe('TTL must be between 1 second and 1 year')
+    })
+
+    it('should reject TTL exceeding 1 year', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      const { cacheSetResult } = await import('@/lib/cache/redis-cache')
+      const oneYearPlusOne = 31536001
+      const result = await cacheSetResult('test-key', { data: 'value' }, oneYearPlusOne)
+
+      expect(result.ok).toBe(false)
+      expect(result.error?.message).toBe('TTL must be between 1 second and 1 year')
+    })
+
+    it('should accept TTL at exactly 1 year', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      mockRedisInstance.set.mockResolvedValueOnce('OK')
+
+      const { cacheSetResult } = await import('@/lib/cache/redis-cache')
+      const oneYear = 31536000
+      const result = await cacheSetResult('test-key', { data: 'value' }, oneYear)
+
+      expect(result.ok).toBe(true)
+    })
+  })
+
+  describe('cacheGetManyResult structured error handling', () => {
+    it('should return error result when mget fails', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      mockRedisInstance.mget.mockRejectedValueOnce(new Error('Batch get failed'))
+
+      const { cacheGetManyResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetManyResult(['key1', 'key2', 'key3'])
+
+      expect(result.hit).toBe(false)
+      expect(result.error).toBeInstanceOf(Error)
+      expect(result.error?.message).toBe('Batch get failed')
+    })
+
+    it('should reject empty keys array', async () => {
+      const { cacheGetManyResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetManyResult([])
+
+      expect(result.hit).toBe(false)
+      expect(result.error?.message).toBe('Keys must be a non-empty array')
+    })
+
+    it('should validate each key in the array', async () => {
+      const { cacheGetManyResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetManyResult(['valid-key', 'key\nwith\nnewline'])
+
+      expect(result.hit).toBe(false)
+      expect(result.error?.message).toBe('Cache key contains invalid characters')
+    })
+
+    it('should return successful result with data', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      mockRedisInstance.mget.mockResolvedValueOnce([{ id: 1 }, null, { id: 3 }])
+
+      const { cacheGetManyResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetManyResult(['key1', 'key2', 'key3'])
+
+      expect(result.hit).toBe(true)
+      expect(result.data).toEqual([{ id: 1 }, null, { id: 3 }])
+    })
+  })
+
+  describe('Network error simulation', () => {
+    it('should handle ECONNREFUSED error', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      const networkError = new Error('connect ECONNREFUSED')
+      mockRedisInstance.get.mockRejectedValueOnce(networkError)
+
+      const { cacheGetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetResult('test-key')
+
+      expect(result.hit).toBe(false)
+      expect(result.error?.message).toContain('ECONNREFUSED')
+    })
+
+    it('should handle timeout error', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      const timeoutError = new Error('Request timeout')
+      mockRedisInstance.set.mockRejectedValueOnce(timeoutError)
+
+      const { cacheSetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheSetResult('test-key', { data: 'value' }, 3600)
+
+      expect(result.ok).toBe(false)
+      expect(result.error?.message).toContain('timeout')
+    })
+
+    it('should handle DNS resolution error', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+      const dnsError = new Error('getaddrinfo ENOTFOUND')
+      mockRedisInstance.get.mockRejectedValueOnce(dnsError)
+
+      const { cacheGetResult } = await import('@/lib/cache/redis-cache')
+      const result = await cacheGetResult('test-key')
+
+      expect(result.hit).toBe(false)
+      expect(result.error?.message).toContain('ENOTFOUND')
+    })
+  })
+
   describe('Edge cases and error handling', () => {
     it('should handle null values correctly', async () => {
       process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'

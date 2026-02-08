@@ -1,0 +1,399 @@
+{
+  "meta": {
+    "type": "dream_analyzer_rules",
+    "description": "꿈 분석 엔진 규칙 - 심볼 조합, 감정 해석, 종합 분석",
+    "version": "1.0.0"
+  },
+
+  "symbol_combinations": {
+    "meta": {
+      "description": "복합 심볼 조합 해석 - 두 개 이상 심볼이 함께 나타날 때"
+    },
+    "combinations": [
+      {
+        "id": "dragon_water",
+        "symbols": ["용", "물", "바다", "강"],
+        "interpretation": "용이 물과 함께 나타나면 최상의 길몽입니다. 용이 물에서 승천하면 현재 상황에서 큰 도약이 있습니다.",
+        "fortune_score": 10,
+        "category": "길몽",
+        "timing": "1-3개월 내 실현"
+      },
+      {
+        "id": "pig_gold",
+        "symbols": ["돼지", "금", "황금", "보석"],
+        "interpretation": "돼지와 금이 함께 나타나면 뜻밖의 횡재가 있습니다. 로또, 상속, 투자 수익 등 예상치 못한 재물이 들어옵니다.",
+        "fortune_score": 10,
+        "category": "재물",
+        "timing": "2주-1개월 내"
+      },
+      {
+        "id": "snake_house",
+        "symbols": ["뱀", "집", "방", "문"],
+        "interpretation": "뱀이 집에 들어오면 재물이 들어옵니다. 특히 큰 구렁이면 큰 재물, 작은 뱀이면 작지만 확실한 수입입니다.",
+        "fortune_score": 9,
+        "category": "재물",
+        "timing": "1개월 내"
+      },
+      {
+        "id": "tiger_mountain",
+        "symbols": ["호랑이", "산", "숲"],
+        "interpretation": "호랑이가 산에 있으면 권력과 명예의 상징입니다. 승진, 합격, 사회적 인정을 받게 됩니다.",
+        "fortune_score": 9,
+        "category": "승진",
+        "timing": "1-6개월 내"
+      },
+      {
+        "id": "fire_house",
+        "symbols": ["불", "집", "화재"],
+        "interpretation": "집에 불이 나지만 타지 않으면 사업번창, 가정 발전입니다. 불꽃만 보이고 피해가 없으면 열정과 성공을 의미합니다.",
+        "fortune_score": 8,
+        "category": "사업",
+        "timing": "3-6개월 내"
+      },
+      {
+        "id": "water_feces",
+        "symbols": ["물", "똥", "대변", "화장실"],
+        "interpretation": "물과 똥이 함께 나타나면 재물이 흘러들어옵니다. 지속적인 수입원이 생기거나 사업이 잘 됩니다.",
+        "fortune_score": 9,
+        "category": "재물",
+        "timing": "1-2개월 내"
+      },
+      {
+        "id": "sun_moon",
+        "symbols": ["해", "달", "태양"],
+        "interpretation": "해와 달이 함께 나타나면 음양의 조화로 최고의 길몽입니다. 결혼, 합격, 사업 성공 등 경사가 겹칩니다.",
+        "fortune_score": 10,
+        "category": "길몽",
+        "timing": "3개월 내"
+      },
+      {
+        "id": "falling_flying",
+        "symbols": ["추락", "떨어지다", "날다", "비행"],
+        "interpretation": "떨어지다가 날게 되면 위기를 극복하고 성공합니다. 계속 추락하면 현재 불안정한 상태를 나타냅니다.",
+        "fortune_score": 5,
+        "category": "경고",
+        "timing": "현재 상황"
+      },
+      {
+        "id": "death_rebirth",
+        "symbols": ["죽음", "장례", "새 생명", "아기"],
+        "interpretation": "죽음과 새 생명이 함께 나타나면 변화와 재탄생입니다. 낡은 것을 버리고 새로운 시작을 의미합니다.",
+        "fortune_score": 7,
+        "category": "변화",
+        "timing": "1-3개월 내"
+      },
+      {
+        "id": "fruit_tree",
+        "symbols": ["과일", "나무", "열매"],
+        "interpretation": "나무에 과일이 열리면 노력의 결실을 맺습니다. 과일이 크고 탐스러울수록 큰 성과입니다.",
+        "fortune_score": 8,
+        "category": "성취",
+        "timing": "3-6개월 내"
+      },
+      {
+        "id": "ocean_fish",
+        "symbols": ["바다", "물고기", "잡다"],
+        "interpretation": "바다에서 물고기를 잡으면 기회를 포착합니다. 큰 물고기면 큰 기회, 많은 물고기면 여러 기회입니다.",
+        "fortune_score": 8,
+        "category": "기회",
+        "timing": "1-2개월 내"
+      },
+      {
+        "id": "ancestor_blessing",
+        "symbols": ["조상", "돌아가신 분", "음식", "제사"],
+        "interpretation": "조상님이 음식을 주시거나 미소 지으시면 조상의 가호가 있습니다. 어려운 일이 풀리고 도움을 받습니다.",
+        "fortune_score": 9,
+        "category": "수호",
+        "timing": "현재-1개월"
+      },
+      {
+        "id": "teeth_new",
+        "symbols": ["이빨", "치아", "새 이", "나다"],
+        "interpretation": "이빨이 빠지고 새 이가 나면 변화 후 새로운 시작입니다. 새 이가 없으면 손실에 주의하세요.",
+        "fortune_score": 6,
+        "category": "변화",
+        "timing": "1-3개월 내"
+      },
+      {
+        "id": "wedding_dress",
+        "symbols": ["결혼", "웨딩드레스", "신랑", "신부"],
+        "interpretation": "결혼 관련 꿈은 새로운 결합과 시작을 의미합니다. 미혼이면 인연, 기혼이면 새로운 파트너십(사업 등)입니다.",
+        "fortune_score": 8,
+        "category": "인연",
+        "timing": "3-6개월 내"
+      },
+      {
+        "id": "money_loss",
+        "symbols": ["돈", "잃어버리다", "도둑", "훔치다"],
+        "interpretation": "돈을 잃어버리거나 도둑 맞으면 실제로 재물이 들어옵니다. 꿈에서 잃으면 현실에서 얻는 반대의 법칙입니다.",
+        "fortune_score": 7,
+        "category": "재물",
+        "timing": "2주-1개월"
+      }
+    ]
+  },
+
+  "emotion_analysis": {
+    "meta": {
+      "description": "꿈에서 느낀 감정별 해석 수정자"
+    },
+    "emotions": {
+      "fear": {
+        "name_ko": "공포",
+        "modifier": -1,
+        "interpretation": "두려움을 느꼈다면 현실의 불안이 반영된 것입니다. 상징 자체보다 마음의 준비가 필요합니다.",
+        "advice": "현재 걱정되는 일을 직면하고 해결하세요."
+      },
+      "joy": {
+        "name_ko": "기쁨",
+        "modifier": 2,
+        "interpretation": "기쁨을 느꼈다면 상징의 좋은 의미가 강화됩니다. 좋은 에너지가 현실에도 영향을 줍니다.",
+        "advice": "긍정적인 마음을 유지하세요."
+      },
+      "sadness": {
+        "name_ko": "슬픔",
+        "modifier": -1,
+        "interpretation": "슬픔을 느꼈다면 해소되지 않은 감정이 있습니다. 꿈이 감정 정화의 역할을 합니다.",
+        "advice": "마음의 짐을 내려놓을 시간입니다."
+      },
+      "anger": {
+        "name_ko": "분노",
+        "modifier": 0,
+        "interpretation": "분노를 느꼈다면 억눌린 감정이 표출된 것입니다. 현실에서 표현하지 못한 것을 꿈에서 해소합니다.",
+        "advice": "분노의 원인을 찾아 건강하게 해소하세요."
+      },
+      "peace": {
+        "name_ko": "평화",
+        "modifier": 2,
+        "interpretation": "평화롭게 느꼈다면 현재 올바른 길을 가고 있습니다. 상징의 긍정적 의미가 증폭됩니다.",
+        "advice": "현재의 방향을 믿고 나아가세요."
+      },
+      "confusion": {
+        "name_ko": "혼란",
+        "modifier": 0,
+        "interpretation": "혼란스러웠다면 결정이 필요한 시점입니다. 꿈이 선택의 갈림길을 보여줍니다.",
+        "advice": "중요한 결정 전에 충분히 생각하세요."
+      },
+      "surprise": {
+        "name_ko": "놀라움",
+        "modifier": 1,
+        "interpretation": "놀랐다면 예상치 못한 일이 생깁니다. 좋은 상징이면 좋은 놀라움, 나쁜 상징이면 주의가 필요합니다.",
+        "advice": "변화에 대비하고 유연하게 대처하세요."
+      },
+      "excitement": {
+        "name_ko": "흥분",
+        "modifier": 1,
+        "interpretation": "흥분되었다면 새로운 기회나 변화가 다가옵니다. 에너지가 상승하는 시기입니다.",
+        "advice": "기회를 적극적으로 잡으세요."
+      }
+    }
+  },
+
+  "time_analysis": {
+    "meta": {
+      "description": "꿈을 꾼 시간대별 해석"
+    },
+    "periods": {
+      "dawn": {
+        "name_ko": "새벽 (4-6시)",
+        "weight": 1.5,
+        "interpretation": "새벽 꿈은 가장 예지력이 강합니다. 잠재의식이 가장 활성화된 시간입니다.",
+        "reliability": "매우 높음"
+      },
+      "early_morning": {
+        "name_ko": "이른 아침 (6-8시)",
+        "weight": 1.2,
+        "interpretation": "이른 아침 꿈도 의미가 있습니다. 그날의 에너지를 예고합니다.",
+        "reliability": "높음"
+      },
+      "night": {
+        "name_ko": "밤 (22-24시)",
+        "weight": 0.8,
+        "interpretation": "잠들기 직전 꿈은 그날의 스트레스가 반영되기 쉽습니다. 상징보다 감정에 집중하세요.",
+        "reliability": "보통"
+      },
+      "nap": {
+        "name_ko": "낮잠",
+        "weight": 0.6,
+        "interpretation": "낮잠 꿈은 피로와 스트레스의 반영이 큽니다. 가벼운 메시지로 해석하세요.",
+        "reliability": "낮음"
+      },
+      "first_dream": {
+        "name_ko": "설날 첫꿈",
+        "weight": 2.0,
+        "interpretation": "설날 첫꿈은 한 해 운세를 나타냅니다. 가장 중요하게 해석하세요.",
+        "reliability": "매우 높음"
+      },
+      "birthday_dream": {
+        "name_ko": "생일 꿈",
+        "weight": 1.5,
+        "interpretation": "생일에 꾼 꿈은 그 해 개인 운세를 나타냅니다.",
+        "reliability": "높음"
+      },
+      "recurring": {
+        "name_ko": "반복되는 꿈",
+        "weight": 1.8,
+        "interpretation": "반복되는 꿈은 해결되지 않은 중요한 메시지입니다. 반드시 의미를 찾으세요.",
+        "reliability": "매우 높음"
+      }
+    }
+  },
+
+  "cross_system_integration": {
+    "meta": {
+      "description": "사주/점성학과의 교차 해석"
+    },
+    "saju_mapping": {
+      "wood_dominant": {
+        "favorable_symbols": ["나무", "숲", "초록", "봄", "새싹"],
+        "unfavorable_symbols": ["도끼", "벌목", "가을", "금속"],
+        "interpretation": "목 기운이 강한 분에게 나무/숲 꿈은 더욱 길합니다."
+      },
+      "fire_dominant": {
+        "favorable_symbols": ["불", "태양", "빨강", "여름", "빛"],
+        "unfavorable_symbols": ["물", "비", "홍수", "바다"],
+        "interpretation": "화 기운이 강한 분에게 불/태양 꿈은 더욱 길합니다."
+      },
+      "earth_dominant": {
+        "favorable_symbols": ["땅", "산", "노랑", "흙", "집"],
+        "unfavorable_symbols": ["나무뿌리", "지진", "균열"],
+        "interpretation": "토 기운이 강한 분에게 안정적인 땅/집 꿈은 더욱 길합니다."
+      },
+      "metal_dominant": {
+        "favorable_symbols": ["금", "은", "하양", "가을", "칼"],
+        "unfavorable_symbols": ["불", "용광로", "녹는 금속"],
+        "interpretation": "금 기운이 강한 분에게 금/보석 꿈은 더욱 길합니다."
+      },
+      "water_dominant": {
+        "favorable_symbols": ["물", "바다", "겨울", "검정", "비"],
+        "unfavorable_symbols": ["가뭄", "마른 강", "불"],
+        "interpretation": "수 기운이 강한 분에게 물/바다 꿈은 더욱 길합니다."
+      }
+    },
+    "astrology_mapping": {
+      "fire_signs": {
+        "signs": ["양자리", "사자자리", "사수자리"],
+        "enhanced_symbols": ["불", "태양", "사자", "말", "활"],
+        "interpretation": "화 성좌분에게 열정/모험 관련 꿈이 더 강하게 작용합니다."
+      },
+      "earth_signs": {
+        "signs": ["황소자리", "처녀자리", "염소자리"],
+        "enhanced_symbols": ["땅", "산", "황소", "농작물", "보석"],
+        "interpretation": "지 성좌분에게 안정/재물 관련 꿈이 더 강하게 작용합니다."
+      },
+      "air_signs": {
+        "signs": ["쌍둥이자리", "천칭자리", "물병자리"],
+        "enhanced_symbols": ["바람", "새", "비행", "책", "소통"],
+        "interpretation": "풍 성좌분에게 이동/커뮤니케이션 관련 꿈이 더 강하게 작용합니다."
+      },
+      "water_signs": {
+        "signs": ["게자리", "전갈자리", "물고기자리"],
+        "enhanced_symbols": ["물", "바다", "물고기", "달", "눈물"],
+        "interpretation": "수 성좌분에게 감정/직관 관련 꿈이 더 강하게 작용합니다."
+      }
+    }
+  },
+
+  "fortune_categories": {
+    "meta": {
+      "description": "운세 카테고리별 종합 점수 체계"
+    },
+    "categories": {
+      "love": {
+        "name_ko": "연애운",
+        "positive_symbols": ["결혼", "꽃", "나비", "하트", "빨간색", "연인"],
+        "negative_symbols": ["이별", "눈물", "검은색", "시든 꽃"],
+        "neutral_symbols": ["만남", "대화", "산책"]
+      },
+      "career": {
+        "name_ko": "직장운",
+        "positive_symbols": ["승진", "상", "인정", "큰 건물", "사다리 오름"],
+        "negative_symbols": ["해고", "추락", "막힌 길", "어두운 사무실"],
+        "neutral_symbols": ["회의", "서류", "출근"]
+      },
+      "wealth": {
+        "name_ko": "재물운",
+        "positive_symbols": ["금", "돈", "돼지", "물고기", "뱀", "똥"],
+        "negative_symbols": ["도둑", "빚", "텅 빈 지갑"],
+        "neutral_symbols": ["시장", "가게", "거래"]
+      },
+      "health": {
+        "name_ko": "건강운",
+        "positive_symbols": ["맑은 하늘", "운동", "의사 치료", "회복"],
+        "negative_symbols": ["병원", "주사", "약", "피", "부상"],
+        "neutral_symbols": ["잠", "휴식", "음식"]
+      },
+      "family": {
+        "name_ko": "가정운",
+        "positive_symbols": ["가족 모임", "명절", "웃음", "집 확장"],
+        "negative_symbols": ["다툼", "이별", "무너지는 집"],
+        "neutral_symbols": ["식사", "대화", "집"]
+      },
+      "study": {
+        "name_ko": "학업운",
+        "positive_symbols": ["합격", "상장", "책", "시험 통과"],
+        "negative_symbols": ["불합격", "빈 시험지", "잊어버림"],
+        "neutral_symbols": ["공부", "학교", "선생님"]
+      },
+      "travel": {
+        "name_ko": "여행운",
+        "positive_symbols": ["비행기", "기차", "새로운 장소", "아름다운 풍경"],
+        "negative_symbols": ["지각", "분실", "길 잃음"],
+        "neutral_symbols": ["짐 싸기", "출발", "이동"]
+      }
+    }
+  },
+
+  "interpretation_template": {
+    "meta": {
+      "description": "종합 해석 템플릿"
+    },
+    "structure": {
+      "1_main_symbol": "핵심 상징 해석",
+      "2_combinations": "심볼 조합 해석",
+      "3_emotion_modifier": "감정 요소 반영",
+      "4_time_factor": "시간대 가중치 적용",
+      "5_cross_system": "사주/점성학 교차 분석 (선택)",
+      "6_fortune_score": "종합 운세 점수",
+      "7_advice": "행동 지침",
+      "8_timing": "실현 예상 시기"
+    },
+    "scoring": {
+      "base_score": 5,
+      "symbol_modifier": "-3 ~ +5",
+      "combination_bonus": "0 ~ +2",
+      "emotion_modifier": "-1 ~ +2",
+      "time_multiplier": "0.6 ~ 2.0",
+      "max_score": 10,
+      "min_score": 1
+    }
+  },
+
+  "taemong_special": {
+    "meta": {
+      "description": "태몽 전문 해석"
+    },
+    "gender_hints": {
+      "son_indicators": ["용", "호랑이", "해", "큰 동물", "칼", "산"],
+      "daughter_indicators": ["뱀", "닭", "달", "꽃", "복숭아", "물고기"]
+    },
+    "personality_predictions": {
+      "dragon": "리더십, 성공, 권력",
+      "tiger": "용맹, 정의감, 리더십",
+      "pig": "복, 재물, 건강",
+      "snake": "지혜, 영민함, 재능",
+      "fish": "영특함, 학문",
+      "peach": "미모, 예술",
+      "sun": "빛나는 존재, 사회적 성공",
+      "moon": "아름다움, 예술성",
+      "gold": "부유함, 귀함"
+    },
+    "auspiciousness_order": [
+      {"symbol": "용 승천", "rank": 1, "meaning": "최고의 성공"},
+      {"symbol": "황금돼지", "rank": 2, "meaning": "큰 재물과 복"},
+      {"symbol": "백호", "rank": 3, "meaning": "수호와 권력"},
+      {"symbol": "봉황", "rank": 4, "meaning": "화려한 성공"},
+      {"symbol": "해를 삼킴", "rank": 5, "meaning": "큰 인물"}
+    ]
+  }
+}

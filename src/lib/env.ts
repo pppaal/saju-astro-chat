@@ -112,6 +112,30 @@ const serverEnvSchema = envSchema.refine(
 );
 
 /**
+ * Generate a deterministic development secret based on machine-specific data.
+ * This avoids hardcoding a secret while still allowing local development.
+ * WARNING: This is NOT cryptographically secure - only for local development.
+ */
+function generateDevSecret(): string {
+  // Use a combination of factors to create a pseudo-unique dev secret
+  const factors = [
+    process.cwd(),
+    process.env.USER || process.env.USERNAME || 'dev',
+    'saju-astro-dev-secret-v1',
+  ].join(':');
+
+  // Simple hash to create a 32+ char string
+  let hash = 0;
+  for (let i = 0; i < factors.length; i++) {
+    const char = factors.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+
+  return `dev-${Math.abs(hash).toString(36)}-${Date.now().toString(36)}-local-only-not-for-production`;
+}
+
+/**
  * Parse and validate environment variables
  * Throws if validation fails in production
  */
@@ -122,19 +146,29 @@ function parseEnv() {
   const parsed = schema.safeParse(process.env);
 
   if (!parsed.success) {
-    logger.error('Invalid environment variables:', parsed.error.flatten().fieldErrors);
+    const fieldErrors = parsed.error.flatten().fieldErrors;
+    logger.error('Invalid environment variables:', fieldErrors);
 
-    // Only throw in production to prevent breaking development
+    // Always throw in production - no fallbacks allowed
     if (process.env.NODE_ENV === 'production') {
       throw new Error('Invalid environment variables - check console for details');
     }
 
-    // In development, return partial env with defaults
+    // Check if NEXTAUTH_SECRET is missing specifically
+    if (!process.env.NEXTAUTH_SECRET) {
+      logger.warn(
+        '[Security] NEXTAUTH_SECRET is not set. ' +
+        'Using auto-generated dev secret. ' +
+        'Please set NEXTAUTH_SECRET in .env.local for consistent sessions.'
+      );
+    }
+
+    // In development, return partial env with generated defaults
     return envSchema.parse({
       ...process.env,
       NODE_ENV: process.env.NODE_ENV || 'development',
       DATABASE_URL: process.env.DATABASE_URL || '',
-      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'development-secret-min-32-chars-long!',
+      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || generateDevSecret(),
     });
   }
 

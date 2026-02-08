@@ -173,8 +173,16 @@ test.describe('Destiny Features Flow', () => {
 
       expect(hasResults).toBe(true)
     } else {
-      // Page loaded correctly even without visible input
-      expect(true).toBe(true)
+      // 입력 필드가 없어도 I-Ching 페이지가 정상적으로 로드되었는지 확인
+      const bodyText = await page.textContent('body')
+      const hasIChingContent =
+        bodyText?.includes('주역') ||
+        bodyText?.includes('I-Ching') ||
+        bodyText?.includes('역') ||
+        bodyText?.includes('점') ||
+        bodyText!.length > 100
+
+      expect(hasIChingContent).toBe(true)
     }
   })
 
@@ -204,8 +212,16 @@ test.describe('Destiny Features Flow', () => {
 
       expect(hasSVG || hasCanvas || hasHexagramText).toBe(true)
     } else {
-      // Page loaded correctly even without visible input
-      expect(true).toBe(true)
+      // 입력 필드가 없어도 I-Ching 페이지가 정상적으로 로드되었는지 확인
+      const bodyText = await page.textContent('body')
+      const hasIChingContent =
+        bodyText?.includes('주역') ||
+        bodyText?.includes('I-Ching') ||
+        bodyText?.includes('역') ||
+        bodyText?.includes('점') ||
+        bodyText!.length > 100
+
+      expect(hasIChingContent).toBe(true)
     }
   })
 
@@ -311,7 +327,16 @@ test.describe('Destiny Features Flow', () => {
 
       expect(hasResults).toBe(true)
     } else {
-      expect(true).toBe(true)
+      // 제출 버튼이 없어도 수비학 페이지가 정상적으로 로드되었는지 확인
+      const bodyText = await page.textContent('body')
+      const hasNumerologyContent =
+        bodyText?.includes('수비학') ||
+        bodyText?.includes('numerology') ||
+        bodyText?.includes('숫자') ||
+        bodyText?.includes('생년월일') ||
+        bodyText!.length > 100
+
+      expect(hasNumerologyContent).toBe(true)
     }
   })
 

@@ -48,6 +48,8 @@ export interface PastLifeResult {
   };
   // Karma Score
   karmaScore: number;
+  // Combined Narrative - 개인화된 전생 스토리 (무료 버전)
+  combinedNarrative?: string;
   // Raw data for display
   geokguk?: string;
   northNodeHouse?: number;

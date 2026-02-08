@@ -2,8 +2,17 @@
 
 'use client';
 
-import PastLifeTabs from "../../components/past-life/PastLifeTabs";
+import dynamic from 'next/dynamic';
 import ServicePageLayout from "@/components/ui/ServicePageLayout";
+
+// Lazy load heavy tab component with framer-motion animations
+const PastLifeTabs = dynamic(
+  () => import("../../components/past-life/PastLifeTabs"),
+  {
+    ssr: false,
+    loading: () => <div style={{ minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>
+  }
+);
 import styles from "./PastLife.module.css";
 import { useI18n } from "@/i18n/I18nProvider";
 

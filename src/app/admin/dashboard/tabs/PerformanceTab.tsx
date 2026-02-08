@@ -8,7 +8,7 @@ export function PerformanceTab({
   data,
   styles,
   formatNumber,
-  pct,
+  pct: _pct,
   SectionSkeleton,
 }: { data: PerformanceData | undefined } & TabRenderProps) {
   const [sortKey, setSortKey] = useState<SortKey>('totalRequests')

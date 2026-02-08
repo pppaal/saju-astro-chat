@@ -2,38 +2,46 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Share Functionality', () => {
   test.describe('Share Buttons', () => {
-    test('should have share button on tarot result', async ({ page }) => {
+    test('should have share button on tarot page', async ({ page }) => {
       await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
 
       const shareButton = page.locator(
         'button:has-text("공유"), [class*="share"], button[aria-label*="share"]'
       )
       const count = await shareButton.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+
+      if (count > 0) {
+        await expect(shareButton.first()).toBeVisible()
+      }
     })
 
-    test('should have share button on saju result', async ({ page }) => {
+    test('should have share button on saju page', async ({ page }) => {
       await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(50)
 
       const shareButton = page.locator('button:has-text("공유"), [class*="share"]')
       const count = await shareButton.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+
+      if (count > 0) {
+        await expect(shareButton.first()).toBeVisible()
+      }
     })
 
     test('should have share button on destiny-map result', async ({ page }) => {
       await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
+      await expect(page.locator('body')).toBeVisible()
 
       const shareButton = page.locator('button:has-text("공유"), [class*="share"]')
       const count = await shareButton.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
 
-    test('should have share button on compatibility result', async ({ page }) => {
-      await page.goto('/compatibility/insights', { waitUntil: 'domcontentloaded' })
-
-      const shareButton = page.locator('button:has-text("공유"), [class*="share"]')
-      const count = await shareButton.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      if (count > 0) {
+        await expect(shareButton.first()).toBeVisible()
+      }
     })
   })
 
@@ -42,21 +50,22 @@ test.describe('Share Functionality', () => {
       await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
 
       const shareButton = page.locator('button:has-text("공유"), [class*="share"]').first()
-      if ((await shareButton.count()) > 0) {
+      if ((await shareButton.count()) > 0 && (await shareButton.isVisible())) {
         await shareButton.click()
         await page.waitForTimeout(500)
 
-        const modal = page.locator('[class*="modal"], [role="dialog"], [class*="share-options"]')
-        const count = await modal.count()
-        expect(count).toBeGreaterThanOrEqual(0)
+        // 모달이 열리거나 페이지가 정상 작동해야 함
+        await expect(page.locator('body')).toBeVisible()
+        const bodyText = await page.locator('body').textContent()
+        expect(bodyText!.length).toBeGreaterThan(50)
       }
     })
 
-    test('should display social share options', async ({ page }) => {
+    test('should display social share options when modal opens', async ({ page }) => {
       await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
 
       const shareButton = page.locator('button:has-text("공유")').first()
-      if ((await shareButton.count()) > 0) {
+      if ((await shareButton.count()) > 0 && (await shareButton.isVisible())) {
         await shareButton.click()
         await page.waitForTimeout(500)
 
@@ -64,15 +73,18 @@ test.describe('Share Functionality', () => {
           'button:has-text("카카오"), button:has-text("Twitter"), button:has-text("Facebook"), [class*="kakao"], [class*="twitter"]'
         )
         const count = await socialOptions.count()
-        expect(count).toBeGreaterThanOrEqual(0)
+
+        // 소셜 옵션이 있거나 페이지가 정상 작동
+        const bodyText = await page.locator('body').textContent()
+        expect(count > 0 || bodyText!.length > 50).toBe(true)
       }
     })
 
-    test('should have copy link option', async ({ page }) => {
+    test('should have copy link option when modal opens', async ({ page }) => {
       await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
 
       const shareButton = page.locator('button:has-text("공유")').first()
-      if ((await shareButton.count()) > 0) {
+      if ((await shareButton.count()) > 0 && (await shareButton.isVisible())) {
         await shareButton.click()
         await page.waitForTimeout(500)
 
@@ -80,75 +92,65 @@ test.describe('Share Functionality', () => {
           'button:has-text("복사"), button:has-text("Copy"), [class*="copy"]'
         )
         const count = await copyLink.count()
-        expect(count).toBeGreaterThanOrEqual(0)
-      }
-    })
 
-    test('should close modal on backdrop click', async ({ page }) => {
-      await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
-
-      const shareButton = page.locator('button:has-text("공유")').first()
-      if ((await shareButton.count()) > 0) {
-        await shareButton.click()
-        await page.waitForTimeout(500)
-
-        const backdrop = page.locator('[class*="backdrop"], [class*="overlay"]').first()
-        if ((await backdrop.count()) > 0) {
-          await backdrop.click({ position: { x: 10, y: 10 } })
-          await page.waitForTimeout(300)
-          await expect(page.locator('body')).toBeVisible()
+        if (count > 0) {
+          await expect(copyLink.first()).toBeVisible()
         }
       }
     })
   })
 
   test.describe('Shared Content Page', () => {
-    test('should load shared content page', async ({ page }) => {
+    test('should load shared content page with content', async ({ page }) => {
       await page.goto('/shared/test-share-id', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
+
+      const bodyText = await page.locator('body').textContent()
+      expect(bodyText!.length).toBeGreaterThan(10)
     })
 
-    test('should display shared content', async ({ page }) => {
+    test('should display shared content or error state', async ({ page }) => {
       await page.goto('/shared/test-share-id', { waitUntil: 'domcontentloaded' })
 
       const content = page.locator("main, [class*='shared'], [class*='content']")
       const count = await content.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+
+      const bodyText = await page.locator('body').textContent()
+      expect(count > 0 || bodyText!.length > 50).toBe(true)
     })
 
-    test('should have CTA for non-shared users', async ({ page }) => {
+    test('should have CTA buttons for visitors', async ({ page }) => {
       await page.goto('/shared/test-share-id', { waitUntil: 'domcontentloaded' })
 
-      const cta = page.locator('button:has-text("시작"), a[href*="saju"], a[href*="tarot"]')
-      const count = await cta.count()
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
-  })
+      const buttons = page.locator('button, a')
+      const count = await buttons.count()
+      expect(count).toBeGreaterThan(0)
 
-  test.describe('Image Generation for Share', () => {
-    test('should have image generation capability', async ({ page }) => {
-      await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
-
-      const imageShareButton = page.locator(
-        'button:has-text("이미지"), button:has-text("Image"), [class*="image-share"]'
-      )
-      const count = await imageShareButton.count()
-      expect(count).toBeGreaterThanOrEqual(0)
+      let visibleButton = false
+      for (let i = 0; i < Math.min(count, 10); i++) {
+        if (await buttons.nth(i).isVisible()) {
+          visibleButton = true
+          break
+        }
+      }
+      expect(visibleButton).toBe(true)
     })
   })
 
   test.describe('Share Mobile Experience', () => {
-    test('should trigger native share on mobile', async ({ page }) => {
+    test('should render share button on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 })
       await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
 
+      await expect(page.locator('body')).toBeVisible()
+
       const shareButton = page.locator('button:has-text("공유"), [class*="share"]').first()
-      if ((await shareButton.count()) > 0) {
+      if ((await shareButton.count()) > 0 && (await shareButton.isVisible())) {
         await expect(shareButton).toBeVisible()
       }
     })
 
-    test('should be responsive on mobile', async ({ page }) => {
+    test('should render shared page without horizontal scroll on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 })
       await page.goto('/shared/test-id', { waitUntil: 'domcontentloaded' })
 
@@ -157,6 +159,36 @@ test.describe('Share Functionality', () => {
       const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
       const viewportWidth = await page.evaluate(() => window.innerWidth)
       expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 20)
+    })
+
+    test('should have touch-friendly share buttons on mobile', async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 667 })
+      await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
+
+      const buttons = page.locator('button')
+      const count = await buttons.count()
+
+      for (let i = 0; i < Math.min(count, 3); i++) {
+        const button = buttons.nth(i)
+        if (await button.isVisible()) {
+          const box = await button.boundingBox()
+          if (box) {
+            expect(box.height).toBeGreaterThanOrEqual(30)
+            expect(box.width).toBeGreaterThanOrEqual(30)
+          }
+        }
+      }
+    })
+  })
+
+  test.describe('Share Page Load Performance', () => {
+    test('should load shared page within acceptable time', async ({ page }) => {
+      const startTime = Date.now()
+      await page.goto('/shared/test-id', { waitUntil: 'domcontentloaded' })
+      const loadTime = Date.now() - startTime
+
+      expect(loadTime).toBeLessThan(10000)
+      await expect(page.locator('body')).toBeVisible()
     })
   })
 })

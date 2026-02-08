@@ -1,0 +1,463 @@
+{
+  "_meta": {
+    "title": "Comprehensive Daeun (大運) Interpretation",
+    "description": "10년 대운 상세 해석 - 십성별 대운의 흐름과 의미",
+    "version": "1.0",
+    "created": "2025-02"
+  },
+  "overview": {
+    "description": "대운(大運)은 10년 단위로 변화하는 큰 운의 흐름입니다. 세운보다 더 근본적인 인생의 방향과 테마를 결정합니다.",
+    "calculation_note": "대운은 월주를 기준으로 순행(남명 양년, 여명 음년) 또는 역행(남명 음년, 여명 양년)으로 진행됩니다."
+  },
+  "daeun_sipsung": {
+    "bigyeon": {
+      "sipsung": "비견",
+      "sipsung_hanja": "比肩",
+      "theme": "자립과 경쟁의 10년",
+      "age_influence": {
+        "youth": "친구, 형제와의 경쟁을 통한 성장. 또래 관계에서 자아 형성.",
+        "middle": "동료와의 경쟁, 독립 사업 욕구, 파트너십의 도전.",
+        "senior": "자립심 강화, 건강 관리의 중요성, 형제자매와의 관계 재정립."
+      },
+      "overall_energy": {
+        "positive": "독립심, 자신감, 추진력, 개인 역량 강화",
+        "negative": "고집, 경쟁심 과잉, 협력 어려움, 재물 분산",
+        "neutral": "나와 비슷한 에너지가 강해지는 시기로, 자아를 확립하거나 경쟁에 직면합니다."
+      },
+      "life_areas": {
+        "career": {
+          "positive": "개인 사업, 프리랜서, 독립 부서 성공 가능",
+          "negative": "조직 내 갈등, 동료와 경쟁, 팀워크 어려움",
+          "advice": "협력보다 개인 역량을 키우는 데 집중하세요. 독립적 역할을 맡으세요."
+        },
+        "relationships": {
+          "positive": "대등한 파트너십, 친구 같은 연인",
+          "negative": "주도권 다툼, 서로 양보 어려움",
+          "advice": "상대를 경쟁자가 아닌 동반자로 보세요."
+        },
+        "wealth": {
+          "positive": "자수성가, 능력으로 버는 돈",
+          "negative": "분산, 공동 투자 실패, 형제 재물 문제",
+          "advice": "혼자 벌고 혼자 관리하세요. 보증 서지 마세요."
+        },
+        "health": {
+          "focus": "근골격계, 머리, 활동량",
+          "advice": "무리한 활동으로 인한 부상 주의. 적당한 운동 필요."
+        }
+      },
+      "transition": {
+        "entering": "독립심이 강해지고 자기 길을 가려는 욕구가 생깁니다.",
+        "peak": "경쟁에서 승리하거나, 고립될 수 있습니다. 협력과 독립 사이 균형을 찾으세요.",
+        "exiting": "다음 대운을 준비하며 쌓은 역량을 활용할 때입니다."
+      },
+      "famous_examples": "자수성가 사업가, 1인 기업가, 개인 브랜드 성공 사례"
+    },
+    "geopjae": {
+      "sipsung": "겁재",
+      "sipsung_hanja": "劫財",
+      "theme": "변혁과 도전의 10년",
+      "age_influence": {
+        "youth": "반항기, 또래 문제, 형제 갈등, 돈 문제 시작",
+        "middle": "재물 변동, 사업 위기, 이혼/재혼, 큰 변화",
+        "senior": "건강 주의, 재산 관리, 자녀/형제와 재물 분쟁"
+      },
+      "overall_energy": {
+        "positive": "과감한 결단, 변화 적응력, 위기 극복 능력",
+        "negative": "재물 손실, 배신, 갈등, 불안정",
+        "neutral": "모든 것이 흔들리는 시기이나, 이를 통해 성장할 수 있습니다."
+      },
+      "life_areas": {
+        "career": {
+          "positive": "과감한 전직/창업으로 성공 가능",
+          "negative": "직장 내 배신, 해고, 동업 실패",
+          "advice": "보수적으로 접근하세요. 새로운 시작보다 현재 지키기에 집중."
+        },
+        "relationships": {
+          "positive": "강렬한 인연, 운명적 만남",
+          "negative": "이별, 배신, 삼각관계, 재혼",
+          "advice": "감정적 결정 자제. 오래된 관계일수록 소중히."
+        },
+        "wealth": {
+          "positive": "고위험 고수익 투자 성공 (드묾)",
+          "negative": "사기, 보증 피해, 투자 손실, 도박",
+          "advice": "절대 보증 서지 마세요. 현금 보유. 투기 금지."
+        },
+        "health": {
+          "focus": "사고, 수술, 급성 질환",
+          "advice": "위험한 활동 자제. 보험 점검. 정기 검진 필수."
+        }
+      },
+      "transition": {
+        "entering": "기존 질서가 흔들리기 시작합니다. 변화에 대비하세요.",
+        "peak": "가장 격렬한 시기. 잃을 것도 많지만 얻을 것도 있습니다.",
+        "exiting": "폭풍이 지나고 새로운 안정을 찾기 시작합니다."
+      },
+      "survival_tips": [
+        "현금 유동성 확보",
+        "법적 계약 철저히",
+        "인간관계 정리 (독이 되는 관계 끊기)",
+        "건강 최우선"
+      ]
+    },
+    "siksin": {
+      "sipsung": "식신",
+      "sipsung_hanja": "食神",
+      "theme": "풍요와 창조의 10년",
+      "age_influence": {
+        "youth": "재능 발견, 예술적 감각 발달, 건강한 성장",
+        "middle": "창작 활동 성공, 자녀 복, 풍요로운 생활",
+        "senior": "노후 안정, 취미 생활, 손자 복, 건강한 노년"
+      },
+      "overall_energy": {
+        "positive": "창의성, 풍요, 여유, 건강, 재능 개화",
+        "negative": "나태, 과식, 안일함, 발전 정체",
+        "neutral": "인생에서 가장 편안하고 풍요로운 시기 중 하나입니다."
+      },
+      "life_areas": {
+        "career": {
+          "positive": "창작 분야 성공, 프리랜서, 요식업, 예술",
+          "negative": "승진욕 부족, 현상 유지에 안주",
+          "advice": "재능을 발휘하세요. 단, 게으름 주의."
+        },
+        "relationships": {
+          "positive": "행복한 연애, 결혼, 출산",
+          "negative": "너무 편해서 긴장감 부족",
+          "advice": "감사하며 관계를 유지하세요."
+        },
+        "wealth": {
+          "positive": "안정적 수입, 부수입, 재능으로 버는 돈",
+          "negative": "씀씀이 증가, 저축 부족",
+          "advice": "버는 것만큼 모으세요."
+        },
+        "health": {
+          "focus": "소화기, 체중 관리",
+          "advice": "과식, 음주 주의. 규칙적인 생활."
+        }
+      },
+      "best_activities": [
+        "창작 활동 (글쓰기, 음악, 미술)",
+        "요리, 음식 관련 사업",
+        "교육, 강연",
+        "자녀 양육"
+      ]
+    },
+    "sanggwan": {
+      "sipsung": "상관",
+      "sipsung_hanja": "傷官",
+      "theme": "표현과 혁신의 10년",
+      "age_influence": {
+        "youth": "반항, 독창성, 예술적 재능, 기존 질서 거부",
+        "middle": "전문직 성공, 프리랜서, 창업, 이혼 가능성",
+        "senior": "자유로운 노년, 취미 활동, 자녀와 갈등 가능"
+      },
+      "overall_energy": {
+        "positive": "창의성, 독창성, 자유로운 표현, 전문성",
+        "negative": "권위와 충돌, 직장 갈등, 관계 파탄",
+        "neutral": "기존 질서를 깨고 새로운 것을 창조하는 시기입니다."
+      },
+      "life_areas": {
+        "career": {
+          "positive": "예술가, 프리랜서, 컨설턴트, 전문직 성공",
+          "negative": "상사와 충돌, 해고, 조직 부적응",
+          "advice": "조직보다 독립적 역할이 좋습니다. 말조심!"
+        },
+        "relationships": {
+          "positive": "자유롭고 창의적인 파트너십",
+          "negative": "권위적 상대와 충돌, 이혼",
+          "advice": "통제하려는 관계는 피하세요."
+        },
+        "wealth": {
+          "positive": "전문 기술로 고수익",
+          "negative": "정규직 불안정, 수입 변동",
+          "advice": "재능을 수익화하세요."
+        },
+        "health": {
+          "focus": "신경계, 정신 건강",
+          "advice": "스트레스 관리, 표현 활동으로 해소."
+        }
+      },
+      "caution": {
+        "for_employees": "상사와 갈등 주의. 말과 행동 신중히.",
+        "for_couples": "상대를 비판하지 말고 이해하려 노력하세요.",
+        "general": "정관(권위)과 충돌하므로 조직 생활, 법적 문제 주의."
+      }
+    },
+    "pyeonjae": {
+      "sipsung": "편재",
+      "sipsung_hanja": "偏財",
+      "theme": "투자와 확장의 10년",
+      "age_influence": {
+        "youth": "용돈 관리 배움, 사업 감각 발달",
+        "middle": "사업 확장, 투자 기회, 부업 성공, 연애 활발",
+        "senior": "재산 관리, 자녀에게 분배, 취미 투자"
+      },
+      "overall_energy": {
+        "positive": "재물 기회, 사업 확장, 인맥 확대, 연애운",
+        "negative": "투기 손실, 바람, 과소비, 재물 변동",
+        "neutral": "돈이 들어오고 나가는 역동적인 시기입니다."
+      },
+      "life_areas": {
+        "career": {
+          "positive": "영업, 사업, 투자, 유통업 성공",
+          "negative": "안정적 직장보다 변동이 많음",
+          "advice": "기회를 잡되 위험 관리도 철저히."
+        },
+        "relationships": {
+          "positive": "활발한 연애, 사교성",
+          "negative": "바람, 다중 관계, 가정 불안정",
+          "advice": "한 사람에게 집중하세요."
+        },
+        "wealth": {
+          "positive": "투자 수익, 부동산, 주식",
+          "negative": "투기 손실, 과소비, 사기",
+          "advice": "고위험 투자 30% 미만으로. 현금 유동성 확보."
+        },
+        "health": {
+          "focus": "과로, 스트레스, 유흥으로 인한 건강 악화",
+          "advice": "절제하세요. 건강이 재산입니다."
+        }
+      }
+    },
+    "jeongjae": {
+      "sipsung": "정재",
+      "sipsung_hanja": "正財",
+      "theme": "안정과 축적의 10년",
+      "age_influence": {
+        "youth": "저축 습관, 경제 관념 형성",
+        "middle": "안정적 수입, 부동산, 결혼, 가정 형성",
+        "senior": "노후 자금, 재산 관리, 안정된 노년"
+      },
+      "overall_energy": {
+        "positive": "안정적 재물, 저축 증가, 부동산 취득, 결혼",
+        "negative": "재미없음, 변화 부족, 보수적 사고",
+        "neutral": "천천히 확실하게 쌓아가는 시기입니다."
+      },
+      "life_areas": {
+        "career": {
+          "positive": "공무원, 대기업, 안정적 직장에서 성공",
+          "negative": "모험적 사업은 부적합",
+          "advice": "안정적 직장에서 꾸준히 성과를 쌓으세요."
+        },
+        "relationships": {
+          "positive": "안정적 연애, 결혼, 가정",
+          "negative": "로맨스 부족, 현실적",
+          "advice": "안정감이 사랑입니다."
+        },
+        "wealth": {
+          "positive": "저축, 부동산, 연금, 보험",
+          "negative": "투기 손실 (하지 않는 게 좋음)",
+          "advice": "저축과 부동산에 집중하세요."
+        },
+        "health": {
+          "focus": "만성질환 관리, 정기검진",
+          "advice": "꾸준한 건강 관리가 중요합니다."
+        }
+      },
+      "best_for": [
+        "결혼, 출산",
+        "내 집 마련",
+        "저축, 연금 가입",
+        "안정적 직장 취업"
+      ]
+    },
+    "pyeongwan": {
+      "sipsung": "편관",
+      "sipsung_hanja": "偏官",
+      "theme": "시련과 극복의 10년",
+      "age_influence": {
+        "youth": "엄격한 교육, 규율, 군대 같은 환경",
+        "middle": "직장 압박, 법적 문제, 건강 시련, 이혼 가능",
+        "senior": "건강 관리 필수, 사고 주의, 자녀 문제"
+      },
+      "overall_energy": {
+        "positive": "인내력, 위기 극복 능력, 리더십, 성장",
+        "negative": "스트레스, 압박, 사고, 법적 문제",
+        "neutral": "가장 힘들지만 가장 많이 성장하는 시기입니다."
+      },
+      "life_areas": {
+        "career": {
+          "positive": "군인, 경찰, 운동선수, 외과의 등 성공",
+          "negative": "직장 내 압박, 해고, 경쟁에서 패배",
+          "advice": "버티면 이깁니다. 건강 관리 필수."
+        },
+        "relationships": {
+          "positive": "강한 유대, 위기 극복 커플",
+          "negative": "갈등, 폭력, 이혼",
+          "advice": "분노 조절이 핵심입니다."
+        },
+        "wealth": {
+          "positive": "고위험 성공 (드묾)",
+          "negative": "손실, 법적 비용, 의료비",
+          "advice": "지키는 데 집중. 비상금 필수."
+        },
+        "health": {
+          "focus": "사고, 수술, 급성 질환, 스트레스",
+          "advice": "정기검진 필수. 위험 활동 자제. 보험 점검."
+        }
+      },
+      "survival_guide": [
+        "건강이 최우선",
+        "법적 문제 예방",
+        "분노 조절 훈련",
+        "인내심 배양",
+        "식신 활동으로 균형 (취미, 창작)"
+      ]
+    },
+    "jeonggwan": {
+      "sipsung": "정관",
+      "sipsung_hanja": "正官",
+      "theme": "성취와 명예의 10년",
+      "age_influence": {
+        "youth": "모범생, 리더, 학업 성취",
+        "middle": "승진, 사회적 성공, 명예, 인정",
+        "senior": "존경받는 노년, 후배 양성, 사회 공헌"
+      },
+      "overall_energy": {
+        "positive": "승진, 합격, 명예, 사회적 인정, 리더십",
+        "negative": "책임 과중, 스트레스, 융통성 부족",
+        "neutral": "사회적으로 인정받고 성취하는 시기입니다."
+      },
+      "life_areas": {
+        "career": {
+          "positive": "승진, 고위직, 공직 진출, 전문직 성공",
+          "negative": "책임 과중, 번아웃",
+          "advice": "기회를 잡으세요. 단, 건강도 챙기세요."
+        },
+        "relationships": {
+          "positive": "안정적 결혼, 존경받는 파트너",
+          "negative": "일 때문에 가정 소홀",
+          "advice": "가정과 일의 균형을 찾으세요."
+        },
+        "wealth": {
+          "positive": "안정적 고소득, 보너스, 연금",
+          "negative": "직접 사업보다 직장이 좋음",
+          "advice": "급여와 승진에 집중하세요."
+        },
+        "health": {
+          "focus": "과로, 스트레스, 심혈관",
+          "advice": "휴식도 성과입니다."
+        }
+      },
+      "best_for": [
+        "승진 도전",
+        "시험 합격",
+        "공직 진출",
+        "사회적 명예 추구"
+      ]
+    },
+    "pyeonin": {
+      "sipsung": "편인",
+      "sipsung_hanja": "偏印",
+      "theme": "배움과 변화의 10년",
+      "age_influence": {
+        "youth": "특수 재능, 예술, 비주류 학문",
+        "middle": "전문 분야 전환, 자격증, 새로운 배움",
+        "senior": "정신적 성장, 철학, 종교, 명상"
+      },
+      "overall_energy": {
+        "positive": "학습, 직관, 영적 성장, 전문성 전환",
+        "negative": "현실 도피, 우울, 자녀 문제",
+        "neutral": "새로운 것을 배우고 변화하는 시기입니다."
+      },
+      "life_areas": {
+        "career": {
+          "positive": "연구, 교육, 예술, 치유 분야",
+          "negative": "현실적 성과보다 배움에 치중",
+          "advice": "배움을 현실에 적용하세요."
+        },
+        "relationships": {
+          "positive": "영적 교감, 깊은 이해",
+          "negative": "현실적 문제에서 도피",
+          "advice": "현실도 함께 챙기세요."
+        },
+        "wealth": {
+          "positive": "지적 재산, 교육 관련 수입",
+          "negative": "물질적 부보다 정신적 만족 추구",
+          "advice": "배움을 수익화하세요."
+        },
+        "health": {
+          "focus": "정신 건강, 우울, 소화기",
+          "advice": "명상, 상담, 규칙적 생활."
+        }
+      },
+      "caution": {
+        "child_issues": "자녀 관련 고민이 생길 수 있음 (식신 극파)",
+        "reality_escape": "현실 도피 경향 주의"
+      }
+    },
+    "jeongin": {
+      "sipsung": "정인",
+      "sipsung_hanja": "正印",
+      "theme": "지혜와 보호의 10년",
+      "age_influence": {
+        "youth": "학업 성취, 좋은 선생님, 부모 보호",
+        "middle": "자격증, 학위, 교육자로서 성공",
+        "senior": "지혜로운 노년, 후학 양성, 정신적 풍요"
+      },
+      "overall_energy": {
+        "positive": "학업 성취, 귀인 도움, 정신적 성장, 보호",
+        "negative": "의존성, 자립심 부족, 어머니 과보호",
+        "neutral": "배우고 성장하며 보호받는 시기입니다."
+      },
+      "life_areas": {
+        "career": {
+          "positive": "교육, 연구, 종교, 의료, 상담",
+          "negative": "현실적 성취보다 학문적 성취",
+          "advice": "배움을 활용하세요."
+        },
+        "relationships": {
+          "positive": "안정적, 보호적, 지지적 관계",
+          "negative": "독립성 부족, 의존",
+          "advice": "서로 성장을 돕는 관계로."
+        },
+        "wealth": {
+          "positive": "지적 자산, 교육 관련",
+          "negative": "물질적 욕심 적음",
+          "advice": "지식을 재산으로 전환하세요."
+        },
+        "health": {
+          "focus": "정신 건강, 소화기, 어머니 건강",
+          "advice": "정신적 안정이 신체 건강으로."
+        }
+      },
+      "best_for": [
+        "학위, 자격증 취득",
+        "교육자, 상담사 활동",
+        "정신적 수련",
+        "귀인 만남"
+      ]
+    }
+  },
+  "daeun_transition_guide": {
+    "description": "대운 전환기 가이드",
+    "before_transition": {
+      "timing": "대운 전환 1-2년 전",
+      "symptoms": "기존 패턴에 대한 불만족, 변화 욕구 증가, 막연한 불안",
+      "advice": "다음 대운 에너지를 미리 이해하고 준비하세요."
+    },
+    "during_transition": {
+      "timing": "대운 전환 시점 ±1년",
+      "symptoms": "삶의 큰 변화, 이사, 이직, 이별 또는 만남, 건강 변화",
+      "advice": "변화에 저항하지 말고 흐름을 따르세요. 새로운 시작의 기회입니다."
+    },
+    "after_transition": {
+      "timing": "새 대운 시작 1-3년",
+      "symptoms": "새 에너지에 적응, 새로운 패턴 형성",
+      "advice": "새 대운의 에너지를 최대한 활용하세요."
+    }
+  },
+  "daeun_combinations": {
+    "description": "대운과 원국/세운의 조합",
+    "with_natal": {
+      "합(合)": "원국과 대운이 합하면 그 영역에서 좋은 기회와 조화가 생깁니다.",
+      "충(沖)": "원국과 대운이 충하면 그 영역에서 변화와 도전이 생깁니다.",
+      "형(刑)": "심리적 압박과 갈등, 건강 주의",
+      "파(破)": "기존 것이 깨지는 변화, 재구성"
+    },
+    "with_seun": {
+      "대운_세운_합": "해당 연도에 큰 기회와 성취 가능",
+      "대운_세운_충": "해당 연도에 큰 변화나 도전 발생",
+      "example": "정재 대운 + 식신 세운 = 재물과 창의성의 조화로 풍요로운 해"
+    }
+  }
+}

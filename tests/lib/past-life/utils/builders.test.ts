@@ -13,36 +13,47 @@ describe('Past Life Builders', () => {
     it('should build soul pattern for valid geokguk type in Korean', () => {
       const result = buildSoulPattern('종왕격', true)
 
-      expect(result).toBeDefined()
-      expect(result.type).toBeDefined()
-      expect(result.emoji).toBeDefined()
-      expect(result.title).toBeDefined()
-      expect(result.description).toBeDefined()
-      expect(result.traits).toBeInstanceOf(Array)
+      expect(result).toEqual(
+        expect.objectContaining({
+          type: expect.any(String),
+          emoji: expect.any(String),
+          title: expect.any(String),
+          description: expect.any(String),
+          traits: expect.any(Array),
+        })
+      )
+      expect(result.type.length).toBeGreaterThan(0)
       expect(result.traits.length).toBeGreaterThan(0)
     })
 
     it('should build soul pattern for valid geokguk type in English', () => {
       const result = buildSoulPattern('종왕격', false)
 
-      expect(result).toBeDefined()
-      expect(result.type).toBeDefined()
-      expect(result.emoji).toBeDefined()
-      expect(result.title).toBeDefined()
-      expect(result.description).toBeDefined()
-      expect(result.traits).toBeInstanceOf(Array)
+      expect(result).toEqual(
+        expect.objectContaining({
+          type: expect.any(String),
+          emoji: expect.any(String),
+          title: expect.any(String),
+          description: expect.any(String),
+          traits: expect.any(Array),
+        })
+      )
+      expect(result.type.length).toBeGreaterThan(0)
       expect(result.traits.length).toBeGreaterThan(0)
     })
 
     it('should return default values for null geokguk type', () => {
       const result = buildSoulPattern(null, true)
 
-      expect(result).toBeDefined()
-      expect(result.type).toBeDefined()
-      expect(result.emoji).toBeDefined()
-      expect(result.title).toBeDefined()
-      expect(result.description).toBeDefined()
-      expect(result.traits).toBeInstanceOf(Array)
+      expect(result).toEqual(
+        expect.objectContaining({
+          type: expect.any(String),
+          emoji: expect.any(String),
+          title: expect.any(String),
+          description: expect.any(String),
+          traits: expect.any(Array),
+        })
+      )
     })
 
     it('should return different languages for Korean vs English', () => {
@@ -53,13 +64,21 @@ describe('Past Life Builders', () => {
       expect(koResult.type).not.toBe(enResult.type)
     })
 
-    it('should handle all standard geokguk types', () => {
+    it('should handle all standard geokguk types with correct structure', () => {
       const geokgukTypes = ['종왕격', '종강격', '종아격', '종재격', '종살격'] as const
 
       geokgukTypes.forEach((type) => {
         const result = buildSoulPattern(type, true)
-        expect(result).toBeDefined()
-        expect(result.emoji).toBeDefined()
+        expect(result).toEqual(
+          expect.objectContaining({
+            type: expect.any(String),
+            emoji: expect.any(String),
+            title: expect.any(String),
+            description: expect.any(String),
+            traits: expect.any(Array),
+          })
+        )
+        expect(result.emoji.length).toBeGreaterThan(0)
       })
     })
 
@@ -84,31 +103,41 @@ describe('Past Life Builders', () => {
     it('should build past life for valid geokguk type in Korean', () => {
       const result = buildPastLife('종왕격', true)
 
-      expect(result).toBeDefined()
-      expect(result.likely).toBeDefined()
-      expect(result.talents).toBeDefined()
-      expect(result.lessons).toBeDefined()
-      expect(typeof result.likely).toBe('string')
-      expect(typeof result.talents).toBe('string')
-      expect(typeof result.lessons).toBe('string')
+      expect(result).toEqual(
+        expect.objectContaining({
+          likely: expect.any(String),
+          talents: expect.any(String),
+          lessons: expect.any(String),
+        })
+      )
+      expect(result.likely.length).toBeGreaterThan(0)
+      expect(result.talents.length).toBeGreaterThan(0)
+      expect(result.lessons.length).toBeGreaterThan(0)
     })
 
     it('should build past life for valid geokguk type in English', () => {
       const result = buildPastLife('종왕격', false)
 
-      expect(result).toBeDefined()
-      expect(result.likely).toBeDefined()
-      expect(result.talents).toBeDefined()
-      expect(result.lessons).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          likely: expect.any(String),
+          talents: expect.any(String),
+          lessons: expect.any(String),
+        })
+      )
+      expect(result.likely.length).toBeGreaterThan(0)
     })
 
     it('should return fallback for null geokguk type', () => {
       const result = buildPastLife(null, true)
 
-      expect(result).toBeDefined()
-      expect(result.likely).toBeDefined()
-      expect(result.talents).toBeDefined()
-      expect(result.lessons).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          likely: expect.any(String),
+          talents: expect.any(String),
+          lessons: expect.any(String),
+        })
+      )
     })
 
     it('should include era when available', () => {
@@ -127,13 +156,19 @@ describe('Past Life Builders', () => {
       expect(koResult.likely).not.toBe(enResult.likely)
     })
 
-    it('should handle all geokguk types', () => {
+    it('should handle all geokguk types with correct structure', () => {
       const geokgukTypes = ['종왕격', '종강격', '종아격', '종재격', '종살격'] as const
 
       geokgukTypes.forEach((type) => {
         const result = buildPastLife(type, true)
-        expect(result).toBeDefined()
-        expect(result.likely).toBeDefined()
+        expect(result).toEqual(
+          expect.objectContaining({
+            likely: expect.any(String),
+            talents: expect.any(String),
+            lessons: expect.any(String),
+          })
+        )
+        expect(result.likely.length).toBeGreaterThan(0)
       })
     })
   })
@@ -142,39 +177,57 @@ describe('Past Life Builders', () => {
     it('should build soul journey for valid north node house in Korean', () => {
       const result = buildSoulJourney(1, true)
 
-      expect(result).toBeDefined()
-      expect(result.pastPattern).toBeDefined()
-      expect(result.releasePattern).toBeDefined()
-      expect(result.currentDirection).toBeDefined()
-      expect(result.lessonToLearn).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          pastPattern: expect.any(String),
+          releasePattern: expect.any(String),
+          currentDirection: expect.any(String),
+          lessonToLearn: expect.any(String),
+        })
+      )
+      expect(result.pastPattern.length).toBeGreaterThan(0)
     })
 
     it('should build soul journey for valid north node house in English', () => {
       const result = buildSoulJourney(1, false)
 
-      expect(result).toBeDefined()
-      expect(result.pastPattern).toBeDefined()
-      expect(result.releasePattern).toBeDefined()
-      expect(result.currentDirection).toBeDefined()
-      expect(result.lessonToLearn).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          pastPattern: expect.any(String),
+          releasePattern: expect.any(String),
+          currentDirection: expect.any(String),
+          lessonToLearn: expect.any(String),
+        })
+      )
+      expect(result.pastPattern.length).toBeGreaterThan(0)
     })
 
     it('should return fallback for null house', () => {
       const result = buildSoulJourney(null, true)
 
-      expect(result).toBeDefined()
-      expect(result.pastPattern).toBeDefined()
-      expect(result.releasePattern).toBeDefined()
-      expect(result.currentDirection).toBeDefined()
-      expect(result.lessonToLearn).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          pastPattern: expect.any(String),
+          releasePattern: expect.any(String),
+          currentDirection: expect.any(String),
+          lessonToLearn: expect.any(String),
+        })
+      )
     })
 
-    it('should handle all 12 houses', () => {
+    it('should handle all 12 houses with correct structure', () => {
       for (let house = 1; house <= 12; house++) {
         const result = buildSoulJourney(house as any, true)
-        expect(result).toBeDefined()
-        expect(result.pastPattern).toBeDefined()
-        expect(result.lessonToLearn).toBeDefined()
+        expect(result).toEqual(
+          expect.objectContaining({
+            pastPattern: expect.any(String),
+            releasePattern: expect.any(String),
+            currentDirection: expect.any(String),
+            lessonToLearn: expect.any(String),
+          })
+        )
+        expect(result.pastPattern.length).toBeGreaterThan(0)
+        expect(result.lessonToLearn.length).toBeGreaterThan(0)
       }
     })
 
@@ -199,28 +252,39 @@ describe('Past Life Builders', () => {
     it('should build Saturn lesson for valid house in Korean', () => {
       const result = buildSaturnLesson(1, true)
 
-      expect(result).toBeDefined()
-      expect(result.lesson).toBeDefined()
-      expect(result.challenge).toBeDefined()
-      expect(result.mastery).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          lesson: expect.any(String),
+          challenge: expect.any(String),
+          mastery: expect.any(String),
+        })
+      )
+      expect(result.lesson.length).toBeGreaterThan(0)
     })
 
     it('should build Saturn lesson for valid house in English', () => {
       const result = buildSaturnLesson(1, false)
 
-      expect(result).toBeDefined()
-      expect(result.lesson).toBeDefined()
-      expect(result.challenge).toBeDefined()
-      expect(result.mastery).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          lesson: expect.any(String),
+          challenge: expect.any(String),
+          mastery: expect.any(String),
+        })
+      )
+      expect(result.lesson.length).toBeGreaterThan(0)
     })
 
     it('should return fallback for null house', () => {
       const result = buildSaturnLesson(null, true)
 
-      expect(result).toBeDefined()
-      expect(result.lesson).toBeDefined()
-      expect(result.challenge).toBeDefined()
-      expect(result.mastery).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          lesson: expect.any(String),
+          challenge: expect.any(String),
+          mastery: expect.any(String),
+        })
+      )
     })
 
     it('should mention Saturn return ages in fallback challenge (Korean)', () => {
@@ -235,11 +299,17 @@ describe('Past Life Builders', () => {
       expect(result.challenge.toLowerCase()).toContain('age')
     })
 
-    it('should handle all 12 houses', () => {
+    it('should handle all 12 houses with correct structure', () => {
       for (let house = 1; house <= 12; house++) {
         const result = buildSaturnLesson(house as any, true)
-        expect(result).toBeDefined()
-        expect(result.lesson).toBeDefined()
+        expect(result).toEqual(
+          expect.objectContaining({
+            lesson: expect.any(String),
+            challenge: expect.any(String),
+            mastery: expect.any(String),
+          })
+        )
+        expect(result.lesson.length).toBeGreaterThan(0)
       }
     })
 
@@ -318,37 +388,54 @@ describe('Past Life Builders', () => {
     it('should build mission for valid day master in Korean', () => {
       const result = buildThisLifeMission('甲', true)
 
-      expect(result).toBeDefined()
-      expect(result.core).toBeDefined()
-      expect(result.expression).toBeDefined()
-      expect(result.fulfillment).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          core: expect.any(String),
+          expression: expect.any(String),
+          fulfillment: expect.any(String),
+        })
+      )
+      expect(result.core.length).toBeGreaterThan(0)
     })
 
     it('should build mission for valid day master in English', () => {
       const result = buildThisLifeMission('甲', false)
 
-      expect(result).toBeDefined()
-      expect(result.core).toBeDefined()
-      expect(result.expression).toBeDefined()
-      expect(result.fulfillment).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          core: expect.any(String),
+          expression: expect.any(String),
+          fulfillment: expect.any(String),
+        })
+      )
+      expect(result.core.length).toBeGreaterThan(0)
     })
 
     it('should return fallback for null day master', () => {
       const result = buildThisLifeMission(null, true)
 
-      expect(result).toBeDefined()
-      expect(result.core).toBeDefined()
-      expect(result.expression).toBeDefined()
-      expect(result.fulfillment).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          core: expect.any(String),
+          expression: expect.any(String),
+          fulfillment: expect.any(String),
+        })
+      )
     })
 
-    it('should handle all 10 heavenly stems', () => {
+    it('should handle all 10 heavenly stems with correct structure', () => {
       const stems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'] as const
 
       stems.forEach((stem) => {
         const result = buildThisLifeMission(stem, true)
-        expect(result).toBeDefined()
-        expect(result.core).toBeDefined()
+        expect(result).toEqual(
+          expect.objectContaining({
+            core: expect.any(String),
+            expression: expect.any(String),
+            fulfillment: expect.any(String),
+          })
+        )
+        expect(result.core.length).toBeGreaterThan(0)
       })
     })
 
@@ -387,16 +474,16 @@ describe('Past Life Builders', () => {
       const talents = extractTalentsCarried('종왕격', isKo)
       const mission = buildThisLifeMission('甲', isKo)
 
-      // All should return defined values
-      expect(soulPattern).toBeDefined()
-      expect(pastLife).toBeDefined()
-      expect(soulJourney).toBeDefined()
-      expect(saturnLesson).toBeDefined()
-      expect(talents).toBeDefined()
-      expect(mission).toBeDefined()
+      // All should return proper structure
+      expect(soulPattern).toEqual(expect.objectContaining({ type: expect.any(String) }))
+      expect(pastLife).toEqual(expect.objectContaining({ likely: expect.any(String) }))
+      expect(soulJourney).toEqual(expect.objectContaining({ pastPattern: expect.any(String) }))
+      expect(saturnLesson).toEqual(expect.objectContaining({ lesson: expect.any(String) }))
+      expect(Array.isArray(talents)).toBe(true)
+      expect(mission).toEqual(expect.objectContaining({ core: expect.any(String) }))
     })
 
-    it('should handle all null inputs gracefully', () => {
+    it('should handle all null inputs gracefully with fallback values', () => {
       const soulPattern = buildSoulPattern(null, true)
       const pastLife = buildPastLife(null, true)
       const soulJourney = buildSoulJourney(null, true)
@@ -404,13 +491,13 @@ describe('Past Life Builders', () => {
       const talents = extractTalentsCarried(null, true)
       const mission = buildThisLifeMission(null, true)
 
-      // All should have fallback values
-      expect(soulPattern.type).toBeDefined()
-      expect(pastLife.likely).toBeDefined()
-      expect(soulJourney.pastPattern).toBeDefined()
-      expect(saturnLesson.lesson).toBeDefined()
+      // All should have non-empty fallback values
+      expect(soulPattern.type.length).toBeGreaterThan(0)
+      expect(pastLife.likely.length).toBeGreaterThan(0)
+      expect(soulJourney.pastPattern.length).toBeGreaterThan(0)
+      expect(saturnLesson.lesson.length).toBeGreaterThan(0)
       expect(talents.length).toBeGreaterThan(0)
-      expect(mission.core).toBeDefined()
+      expect(mission.core.length).toBeGreaterThan(0)
     })
 
     it('should return consistent structure regardless of input', () => {
@@ -423,27 +510,46 @@ describe('Past Life Builders', () => {
   })
 
   describe('Edge cases', () => {
-    it('should handle invalid house numbers gracefully', () => {
+    it('should handle invalid house numbers gracefully with fallback structure', () => {
       const result1 = buildSoulJourney(0 as any, true)
       const result2 = buildSoulJourney(13 as any, true)
       const result3 = buildSoulJourney(-1 as any, true)
 
-      // Should return fallback
-      expect(result1).toBeDefined()
-      expect(result2).toBeDefined()
-      expect(result3).toBeDefined()
+      // All should return proper fallback structure
+      ;[result1, result2, result3].forEach((result) => {
+        expect(result).toEqual(
+          expect.objectContaining({
+            pastPattern: expect.any(String),
+            releasePattern: expect.any(String),
+            currentDirection: expect.any(String),
+            lessonToLearn: expect.any(String),
+          })
+        )
+      })
     })
 
-    it('should handle invalid geokguk types gracefully', () => {
+    it('should handle invalid geokguk types gracefully with fallback structure', () => {
       const result = buildSoulPattern('invalid' as any, true)
-      expect(result).toBeDefined()
-      expect(result.type).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          type: expect.any(String),
+          emoji: expect.any(String),
+          title: expect.any(String),
+          description: expect.any(String),
+          traits: expect.any(Array),
+        })
+      )
     })
 
-    it('should handle invalid heavenly stems gracefully', () => {
+    it('should handle invalid heavenly stems gracefully with fallback structure', () => {
       const result = buildThisLifeMission('invalid' as any, true)
-      expect(result).toBeDefined()
-      expect(result.core).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          core: expect.any(String),
+          expression: expect.any(String),
+          fulfillment: expect.any(String),
+        })
+      )
     })
   })
 })

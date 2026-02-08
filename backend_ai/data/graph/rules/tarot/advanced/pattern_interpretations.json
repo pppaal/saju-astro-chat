@@ -1,0 +1,377 @@
+{
+  "_meta": {
+    "title": "Tarot Pattern Interpretations",
+    "description": "카드 패턴에 따른 상세 해석 가이드 - 숫자, 슈트, 위치별 심층 분석",
+    "version": "1.0",
+    "created": "2025-02"
+  },
+  "number_interpretations": {
+    "description": "마이너 아르카나 숫자별 의미",
+    "aces": {
+      "number": 1,
+      "name_ko": "에이스",
+      "core_meaning": "새로운 시작, 순수한 에너지, 잠재력, 씨앗",
+      "korean": "모든 것의 시작점이에요. 순수하고 강력한 에너지가 당신 앞에 놓여 있어요.",
+      "by_suit": {
+        "wands": "창의적 영감의 불꽃, 새로운 열정, 프로젝트 시작",
+        "cups": "새로운 감정, 사랑의 시작, 직관의 각성",
+        "swords": "새로운 아이디어, 진실의 발견, 명료한 사고",
+        "pentacles": "새로운 재정 기회, 물질적 시작, 건강한 출발"
+      },
+      "timing": "즉시 ~ 1개월",
+      "advice": "기회를 잡으세요. 지금이 시작할 때예요."
+    },
+    "twos": {
+      "number": 2,
+      "name_ko": "2",
+      "core_meaning": "균형, 선택, 파트너십, 이중성",
+      "korean": "두 가지 사이에서 균형을 찾거나 선택해야 할 때예요.",
+      "by_suit": {
+        "wands": "계획 단계, 결정 대기, 잠재력 평가",
+        "cups": "상호 연결, 파트너십, 사랑의 균형",
+        "swords": "막힌 상황, 결정 회피, 균형 유지",
+        "pentacles": "균형 잡기, 멀티태스킹, 유연한 대응"
+      },
+      "timing": "2주 ~ 2개월",
+      "advice": "서두르지 말고 상황을 잘 살펴보세요."
+    },
+    "threes": {
+      "number": 3,
+      "name_ko": "3",
+      "core_meaning": "성장, 창조, 협력, 첫 번째 결과",
+      "korean": "노력의 첫 열매가 맺히기 시작해요. 함께할 때 더 커져요.",
+      "by_suit": {
+        "wands": "확장, 기회 탐색, 비전 실현 시작",
+        "cups": "축하, 우정, 감정적 풍요",
+        "swords": "슬픔, 상처, 필요한 고통",
+        "pentacles": "기술 습득, 팀워크, 전문성 구축"
+      },
+      "timing": "3주 ~ 3개월",
+      "advice": "다른 사람들과 협력하세요. 함께하면 더 좋은 결과가 나와요."
+    },
+    "fours": {
+      "number": 4,
+      "name_ko": "4",
+      "core_meaning": "안정, 기반, 구조, 휴식 또는 정체",
+      "korean": "안정을 찾거나 잠시 멈춰야 할 때예요.",
+      "by_suit": {
+        "wands": "축하, 안정적 기반, 마일스톤 달성",
+        "cups": "불만족, 기회 놓침, 재평가 필요",
+        "swords": "휴식, 회복, 에너지 충전",
+        "pentacles": "안정 추구, 저축, 보수적 접근"
+      },
+      "timing": "4주 ~ 4개월",
+      "advice": "기반을 다지세요. 급하게 움직이지 마세요."
+    },
+    "fives": {
+      "number": 5,
+      "name_ko": "5",
+      "core_meaning": "갈등, 도전, 변화, 불안정",
+      "korean": "시련의 시기지만, 이것이 성장의 기회예요.",
+      "by_suit": {
+        "wands": "경쟁, 갈등, 내부 분쟁",
+        "cups": "상실, 슬픔, 후회",
+        "swords": "패배감, 갈등, 불명예",
+        "pentacles": "재정 어려움, 고립, 불안정"
+      },
+      "timing": "변동적, 상황에 따라 다름",
+      "advice": "이 시간은 지나가요. 교훈을 찾고 다음 단계를 준비하세요."
+    },
+    "sixes": {
+      "number": 6,
+      "name_ko": "6",
+      "core_meaning": "조화, 회복, 관대함, 균형 회복",
+      "korean": "어려움 뒤에 균형이 돌아와요. 나눔과 치유의 시간이에요.",
+      "by_suit": {
+        "wands": "승리, 인정, 성공적 진전",
+        "cups": "향수, 과거, 순수한 기쁨",
+        "swords": "전환, 이동, 더 나은 곳으로",
+        "pentacles": "관대함, 나눔, 균형 잡힌 거래"
+      },
+      "timing": "6주 ~ 6개월",
+      "advice": "받은 것을 나누세요. 균형이 복을 가져와요."
+    },
+    "sevens": {
+      "number": 7,
+      "name_ko": "7",
+      "core_meaning": "평가, 반성, 도전, 내면 작업",
+      "korean": "잠시 멈추고 돌아볼 때예요. 선택의 갈림길이에요.",
+      "by_suit": {
+        "wands": "방어, 인내, 끈기 있는 대응",
+        "cups": "환상, 선택, 현실과 꿈 사이",
+        "swords": "전략, 속임수, 신중한 행동",
+        "pentacles": "장기 투자, 인내, 결과 대기"
+      },
+      "timing": "불확실, 상황 관망 필요",
+      "advice": "신중하게 생각하세요. 모든 옵션을 검토하세요."
+    },
+    "eights": {
+      "number": 8,
+      "name_ko": "8",
+      "core_meaning": "움직임, 변화, 힘, 숙달",
+      "korean": "에너지가 움직이고 있어요. 행동할 시간이에요.",
+      "by_suit": {
+        "wands": "빠른 진전, 뉴스, 활동적 시기",
+        "cups": "떠남, 더 깊은 것 추구, 포기",
+        "swords": "제한, 갇힌 느낌, 정신적 속박",
+        "pentacles": "장인정신, 기술 연마, 꾸준한 노력"
+      },
+      "timing": "빠름, 8주 내외",
+      "advice": "움직이세요. 멈춰있으면 기회가 지나가요."
+    },
+    "nines": {
+      "number": 9,
+      "name_ko": "9",
+      "core_meaning": "완성 직전, 성취, 독립, 거의 다 옴",
+      "korean": "거의 다 왔어요. 마지막 단계를 잘 마무리하세요.",
+      "by_suit": {
+        "wands": "회복력, 마지막 도전, 끈기",
+        "cups": "소원 성취, 만족, 감정적 충만",
+        "swords": "걱정, 불안, 정신적 고통",
+        "pentacles": "풍요, 자급자족, 물질적 성공"
+      },
+      "timing": "9주 ~ 9개월",
+      "advice": "포기하지 마세요. 거의 다 왔어요!"
+    },
+    "tens": {
+      "number": 10,
+      "name_ko": "10",
+      "core_meaning": "완성, 사이클 종료, 새 시작 준비",
+      "korean": "한 사이클이 완성됐어요. 끝은 새로운 시작이에요.",
+      "by_suit": {
+        "wands": "과부하, 책임감, 짐 내려놓기",
+        "cups": "완전한 행복, 가정의 기쁨, 감정적 완성",
+        "swords": "최악의 끝, 새벽 전 어둠, 재탄생",
+        "pentacles": "세대를 넘는 풍요, 유산, 완전한 안정"
+      },
+      "timing": "완료, 새 사이클 시작",
+      "advice": "마무리하고 새로운 시작을 준비하세요."
+    }
+  },
+  "court_card_interpretations": {
+    "description": "궁정 카드별 인물 유형과 에너지",
+    "pages": {
+      "name_ko": "페이지",
+      "archetype": "학생, 메신저, 초심자",
+      "age_energy": "어린, 새로운, 시작하는",
+      "core_meaning": "새로운 시작, 학습, 메시지, 호기심",
+      "korean": "새로운 것을 배우거나 소식이 올 때예요.",
+      "by_suit": {
+        "wands": "열정적인 학생, 창의적 아이디어, 새로운 프로젝트 소식",
+        "cups": "감성적인 메시지, 새로운 감정, 예술적 재능 발견",
+        "swords": "지적 호기심, 새로운 관점, 진실 추구",
+        "pentacles": "재정 관련 소식, 새로운 기회, 실용적 학습"
+      },
+      "as_person": "젊은 사람, 학생, 메신저, 새로운 시작을 하는 사람",
+      "as_situation": "학습 기회, 소식, 새로운 탐구"
+    },
+    "knights": {
+      "name_ko": "나이트",
+      "archetype": "행동가, 추구자, 모험가",
+      "age_energy": "청년, 활동적, 변화하는",
+      "core_meaning": "행동, 추구, 이동, 에너지",
+      "korean": "움직여야 할 때예요. 행동이 결과를 가져와요.",
+      "by_suit": {
+        "wands": "모험, 열정적 추구, 빠른 변화, 여행",
+        "cups": "로맨틱한 구애, 감정적 추구, 제안",
+        "swords": "지적 추구, 빠른 행동, 때로 성급함",
+        "pentacles": "꾸준한 진전, 신뢰할 수 있는 행동, 느리지만 확실함"
+      },
+      "as_person": "청년, 행동하는 사람, 추구하는 사람",
+      "as_situation": "빠른 변화, 추구, 이동"
+    },
+    "queens": {
+      "name_ko": "퀸",
+      "archetype": "양육자, 지혜로운 여성, 내면의 힘",
+      "age_energy": "성숙한 여성성, 수용적, 내향적",
+      "core_meaning": "직관, 양육, 감정적 지혜, 창조",
+      "korean": "내면의 지혜를 활용할 때예요. 수용하고 창조하세요.",
+      "by_suit": {
+        "wands": "자신감, 카리스마, 창조적 리더십",
+        "cups": "감정적 지혜, 직관, 무조건적 사랑",
+        "swords": "명확한 소통, 지적 정직, 독립적 사고",
+        "pentacles": "실용적 돌봄, 재정 관리, 풍요로운 양육"
+      },
+      "as_person": "성숙한 여성, 어머니, 양육자, 창조적인 사람",
+      "as_situation": "돌봄이 필요한 때, 직관을 활용할 때"
+    },
+    "kings": {
+      "name_ko": "킹",
+      "archetype": "권위자, 숙달자, 외향적 리더",
+      "age_energy": "성숙한 남성성, 행동적, 외향적",
+      "core_meaning": "권위, 숙달, 리더십, 통제",
+      "korean": "책임지고 이끌어야 할 때예요. 결정하고 행동하세요.",
+      "by_suit": {
+        "wands": "비전 있는 리더, 기업가, 영감을 주는 사람",
+        "cups": "감정적으로 성숙한 남성, 상담자, 치유자",
+        "swords": "지적 권위, 판사, 전략가",
+        "pentacles": "재정적 안정, 사업 성공, 실용적 리더"
+      },
+      "as_person": "성숙한 남성, 권위자, 리더, 전문가",
+      "as_situation": "리더십이 필요한 때, 숙달을 보여줄 때"
+    }
+  },
+  "spread_position_meanings": {
+    "description": "스프레드 위치별 해석 가이드",
+    "three_card": {
+      "name_ko": "쓰리 카드",
+      "positions": {
+        "1": {"name": "과거", "meaning": "상황의 배경, 이전 영향", "focus": "어떻게 여기까지 왔는지"},
+        "2": {"name": "현재", "meaning": "현재 상황, 핵심 에너지", "focus": "지금 무엇이 중요한지"},
+        "3": {"name": "미래", "meaning": "가능한 결과, 방향", "focus": "어디로 향하고 있는지"}
+      },
+      "alternative_meanings": [
+        {"1": "상황", "2": "행동", "3": "결과"},
+        {"1": "마음", "2": "몸", "3": "영혼"},
+        {"1": "나", "2": "상대방", "3": "관계"}
+      ]
+    },
+    "celtic_cross": {
+      "name_ko": "켈틱 크로스",
+      "positions": {
+        "1": {"name": "현재 상황", "meaning": "핵심 이슈", "focus": "질문의 중심"},
+        "2": {"name": "즉각적 도전", "meaning": "장애물 또는 보완 에너지", "focus": "가로막는 것"},
+        "3": {"name": "의식적 목표", "meaning": "원하는 것, 알고 있는 것", "focus": "표면적 목표"},
+        "4": {"name": "무의식적 기반", "meaning": "숨겨진 영향, 과거", "focus": "깊은 동기"},
+        "5": {"name": "최근 과거", "meaning": "최근 영향", "focus": "직전 상황"},
+        "6": {"name": "가까운 미래", "meaning": "다가올 것", "focus": "곧 일어날 일"},
+        "7": {"name": "자신", "meaning": "당신의 태도", "focus": "자기 인식"},
+        "8": {"name": "환경", "meaning": "외부 영향", "focus": "주변 상황"},
+        "9": {"name": "희망과 두려움", "meaning": "기대하거나 두려워하는 것", "focus": "내면의 갈등"},
+        "10": {"name": "최종 결과", "meaning": "전체 상황의 결론", "focus": "가능한 결말"}
+      }
+    },
+    "relationship_spread": {
+      "name_ko": "관계 스프레드",
+      "positions": {
+        "1": {"name": "당신", "meaning": "관계에서 당신의 에너지"},
+        "2": {"name": "상대방", "meaning": "상대방의 에너지"},
+        "3": {"name": "관계의 기반", "meaning": "두 사람을 연결하는 것"},
+        "4": {"name": "도전", "meaning": "관계의 장애물"},
+        "5": {"name": "조언", "meaning": "관계 개선을 위한 행동"},
+        "6": {"name": "결과", "meaning": "관계의 방향"}
+      }
+    }
+  },
+  "reversed_interpretation_guide": {
+    "description": "역방향 카드 해석 가이드",
+    "approaches": {
+      "blocked_energy": {
+        "name_ko": "막힌 에너지",
+        "description": "카드의 에너지가 막혀있거나 억압됨",
+        "korean": "이 에너지가 표현되지 못하고 막혀있어요."
+      },
+      "internal_expression": {
+        "name_ko": "내면적 표현",
+        "description": "에너지가 외부가 아닌 내면으로 향함",
+        "korean": "이 에너지가 내면에서 작용하고 있어요."
+      },
+      "delayed_timing": {
+        "name_ko": "지연된 시기",
+        "description": "아직 때가 아님, 더 기다려야 함",
+        "korean": "아직 때가 아니에요. 조금 더 기다려야 해요."
+      },
+      "excess_or_lack": {
+        "name_ko": "과잉 또는 부족",
+        "description": "에너지가 너무 많거나 적음",
+        "korean": "균형이 필요해요. 너무 많거나 적은 것은 좋지 않아요."
+      },
+      "shadow_side": {
+        "name_ko": "그림자 면",
+        "description": "카드의 부정적 측면이 드러남",
+        "korean": "이 카드의 어두운 면을 주의하세요."
+      },
+      "resistance": {
+        "name_ko": "저항",
+        "description": "이 에너지를 받아들이기 어려워함",
+        "korean": "이것을 받아들이기 힘들어하고 있어요."
+      }
+    },
+    "reading_tips": [
+      "역방향은 반드시 나쁜 것이 아니에요. 다른 관점을 제시할 뿐이에요.",
+      "질문의 맥락에 따라 역방향의 의미가 달라질 수 있어요.",
+      "직관을 믿으세요. 카드가 무엇을 말하는지 느껴보세요."
+    ]
+  },
+  "elemental_dignities": {
+    "description": "원소 상호작용에 따른 카드 강화/약화",
+    "compatibility": {
+      "supportive": {
+        "pairs": [
+          {"elements": ["Fire", "Air"], "effect": "강화", "korean": "불과 공기가 만나 더 강해져요."},
+          {"elements": ["Water", "Earth"], "effect": "강화", "korean": "물과 땅이 만나 더 안정돼요."}
+        ]
+      },
+      "neutral": {
+        "pairs": [
+          {"elements": ["Fire", "Earth"], "effect": "중립", "korean": "서로 다르지만 충돌하지 않아요."},
+          {"elements": ["Water", "Air"], "effect": "중립", "korean": "서로 다르지만 충돌하지 않아요."}
+        ]
+      },
+      "weakening": {
+        "pairs": [
+          {"elements": ["Fire", "Water"], "effect": "약화", "korean": "불과 물이 만나 서로 약해져요."},
+          {"elements": ["Air", "Earth"], "effect": "약화", "korean": "공기와 땅이 만나 긴장이 생겨요."}
+        ]
+      }
+    },
+    "suit_elements": {
+      "Wands": "Fire",
+      "Cups": "Water",
+      "Swords": "Air",
+      "Pentacles": "Earth"
+    }
+  },
+  "card_relationship_patterns": {
+    "description": "카드 간 관계 패턴",
+    "sequential": {
+      "ascending": {
+        "meaning": "성장, 발전, 상승하는 에너지",
+        "korean": "점점 좋아지고 있어요. 상승하는 흐름이에요.",
+        "example": "2→3→4: 단계적 성장"
+      },
+      "descending": {
+        "meaning": "하락, 완화, 끝을 향함",
+        "korean": "마무리 단계예요. 정리할 때예요.",
+        "example": "8→7→6: 에너지 감소"
+      }
+    },
+    "mirroring": {
+      "same_number": {
+        "meaning": "그 숫자 에너지의 강조",
+        "korean": "이 숫자의 의미가 특히 중요해요.",
+        "example": "Threes: 성장과 확장이 핵심"
+      },
+      "same_suit": {
+        "meaning": "그 원소 영역의 집중",
+        "korean": "이 영역에 에너지가 집중돼 있어요.",
+        "example": "Cups 많음: 감정이 핵심"
+      }
+    },
+    "opposition": {
+      "extremes": {
+        "meaning": "양극단 사이의 긴장",
+        "korean": "극과 극 사이에서 균형을 찾아야 해요.",
+        "example": "Ace와 Ten: 시작과 끝의 공존"
+      }
+    }
+  },
+  "reading_enhancement_tips": {
+    "description": "리딩 품질 향상 팁",
+    "for_querent": {
+      "korean": [
+        "구체적인 질문이 더 명확한 답을 가져와요.",
+        "예/아니오 질문보다 '어떻게', '왜'로 시작하는 질문이 좋아요.",
+        "열린 마음으로 카드의 메시지를 받아들이세요.",
+        "카드는 가능성을 보여줘요. 미래는 당신의 선택에 달려있어요."
+      ]
+    },
+    "interpretation_principles": [
+      "항상 전체 스프레드를 함께 보세요. 개별 카드만으로 판단하지 마세요.",
+      "질문의 맥락이 해석에 영향을 줘요.",
+      "직관을 믿되, 카드의 전통적 의미도 고려하세요.",
+      "긍정/부정이 아닌 에너지의 흐름으로 해석하세요.",
+      "조언에 초점을 맞추세요. 단순 예측보다 행동 지침이 더 가치 있어요."
+    ]
+  }
+}

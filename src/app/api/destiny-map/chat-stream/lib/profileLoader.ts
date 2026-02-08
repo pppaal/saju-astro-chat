@@ -39,10 +39,14 @@ export async function loadUserProfile(
     const userProfile = await prisma.user.findUnique({
       where: { id: userId },
       select: {
-        birthDate: true,
-        birthTime: true,
-        gender: true,
-        birthCity: true,
+        profile: {
+          select: {
+            birthDate: true,
+            birthTime: true,
+            gender: true,
+            birthCity: true,
+          },
+        },
         personaMemory: {
           select: {
             sajuProfile: true,
@@ -66,18 +70,20 @@ export async function loadUserProfile(
         logger.debug('[profileLoader] Using cached astro from PersonaMemory')
       }
 
+      const profile = userProfile.profile
+
       // Fill in missing birth info from user profile
-      if (!currentBirthDate && userProfile.birthDate) {
-        result.birthDate = userProfile.birthDate
+      if (!currentBirthDate && profile?.birthDate) {
+        result.birthDate = profile.birthDate
         logger.debug('[profileLoader] Auto-loaded birthDate from profile')
       }
-      if (!currentBirthTime && userProfile.birthTime) {
-        result.birthTime = userProfile.birthTime
+      if (!currentBirthTime && profile?.birthTime) {
+        result.birthTime = profile.birthTime
         logger.debug('[profileLoader] Auto-loaded birthTime from profile')
       }
-      if (userProfile.gender) {
+      if (profile?.gender) {
         result.gender =
-          userProfile.gender === 'M' ? 'male' : userProfile.gender === 'F' ? 'female' : undefined
+          profile.gender === 'M' ? 'male' : profile.gender === 'F' ? 'female' : undefined
       }
     }
   } catch (e) {

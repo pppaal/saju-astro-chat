@@ -104,6 +104,7 @@ describe('Past Life Analyzer - Snapshot & Advanced Tests', () => {
       // Verify complete structure
       const keys = Object.keys(result).sort();
       expect(keys).toEqual([
+        'combinedNarrative',
         'dayMaster',
         'geokguk',
         'karmaScore',

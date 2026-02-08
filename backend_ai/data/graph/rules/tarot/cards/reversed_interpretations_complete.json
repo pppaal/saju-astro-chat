@@ -1,0 +1,790 @@
+{
+  "meta": {
+    "type": "tarot_reversed_complete",
+    "description": "타로 78장 역방향 완전 해석",
+    "version": "1.0.0"
+  },
+
+  "major_arcana": {
+    "0_fool": {
+      "name": "The Fool (역방향)",
+      "name_ko": "바보 (역방향)",
+      "core_meaning": "무모함, 경솔함, 위험 무시",
+      "detailed": "무계획적인 행동으로 인한 실패. 충동적 결정을 피해야 할 때.",
+      "love": "성급한 관계 시작, 책임 회피, 바람기 주의",
+      "career": "준비 없는 이직, 무모한 사업 시작 경고",
+      "finance": "충동 구매, 무계획 지출, 사기 주의",
+      "health": "부주의로 인한 사고, 건강 경시",
+      "advice": "멈추고 계획을 세우세요. 지금은 뛰어들 때가 아닙니다.",
+      "shadow": "내면의 두려움을 무모함으로 가리고 있음"
+    },
+    "1_magician": {
+      "name": "The Magician (역방향)",
+      "name_ko": "마법사 (역방향)",
+      "core_meaning": "속임수, 재능 낭비, 조작",
+      "detailed": "능력을 잘못된 방향으로 사용. 사기꾼이나 허풍쟁이 주의.",
+      "love": "거짓말, 조작적 관계, 진심 없는 접근",
+      "career": "사기, 능력 과시, 실속 없는 프로젝트",
+      "finance": "사기 피해, 과장된 투자 제안 주의",
+      "health": "가짜 치료법 주의, 증상 숨김",
+      "advice": "정직하게 능력을 사용하세요. 속임수는 반드시 드러납니다.",
+      "shadow": "자신감 부족을 허세로 감추고 있음"
+    },
+    "2_high_priestess": {
+      "name": "The High Priestess (역방향)",
+      "name_ko": "여교황 (역방향)",
+      "core_meaning": "직관 무시, 비밀 폭로, 표면적 판단",
+      "detailed": "내면의 목소리를 무시하고 외부 정보에만 의존. 숨겨진 진실 드러남.",
+      "love": "비밀 발각, 직감 무시로 인한 실수, 감정 억압",
+      "career": "중요한 정보 누락, 직관적 판단 실패",
+      "finance": "숨겨진 비용 발생, 불투명한 거래",
+      "health": "증상 무시, 내면 문제 방치",
+      "advice": "조용히 내면의 소리에 귀 기울이세요.",
+      "shadow": "알면서도 모른 척하는 자기기만"
+    },
+    "3_empress": {
+      "name": "The Empress (역방향)",
+      "name_ko": "여황제 (역방향)",
+      "core_meaning": "창조적 막힘, 의존, 과잉보호",
+      "detailed": "풍요의 흐름이 막힘. 질식시키는 사랑이나 창작 슬럼프.",
+      "love": "질투, 집착, 과잉 의존, 불임 걱정",
+      "career": "창작 막힘, 프로젝트 정체",
+      "finance": "낭비, 사치, 재정 관리 실패",
+      "health": "호르몬 불균형, 여성 건강 문제",
+      "advice": "통제를 내려놓고 자연스러운 흐름을 믿으세요.",
+      "shadow": "사랑이라는 이름의 통제"
+    },
+    "4_emperor": {
+      "name": "The Emperor (역방향)",
+      "name_ko": "황제 (역방향)",
+      "core_meaning": "독재, 경직, 권위 남용",
+      "detailed": "지나친 통제나 반대로 권위 상실. 아버지 문제.",
+      "love": "지배적 관계, 권력 다툼, 유연성 부족",
+      "career": "독재적 상사, 조직 경직, 권력 남용",
+      "finance": "과도한 통제 또는 무책임한 관리",
+      "health": "스트레스로 인한 심장/혈압 문제",
+      "advice": "권위는 책임과 함께 옵니다. 유연함을 배우세요.",
+      "shadow": "두려움에서 나오는 통제욕"
+    },
+    "5_hierophant": {
+      "name": "The Hierophant (역방향)",
+      "name_ko": "교황 (역방향)",
+      "core_meaning": "전통 거부, 독단, 맹목적 추종",
+      "detailed": "기존 체계에 대한 반발이나 맹목적 순종. 개인적 진실 찾기.",
+      "love": "비전통적 관계, 가치관 충돌, 결혼 거부",
+      "career": "조직 문화 불만, 독자 노선, 멘토 부재",
+      "finance": "비정통적 방법, 제도권 불신",
+      "health": "대체의학 탐구, 기존 치료 거부",
+      "advice": "전통을 무조건 거부하지 말고 자신만의 길을 찾으세요.",
+      "shadow": "반항을 위한 반항"
+    },
+    "6_lovers": {
+      "name": "The Lovers (역방향)",
+      "name_ko": "연인 (역방향)",
+      "core_meaning": "선택 불가, 불화, 가치관 충돌",
+      "detailed": "중요한 선택 앞에서 갈등. 관계의 불협화음.",
+      "love": "이별, 불륜, 선택 장애, 가치관 차이",
+      "career": "잘못된 선택, 파트너십 문제",
+      "finance": "투자 결정 실패, 가치 판단 오류",
+      "health": "심장 관련, 정서적 스트레스",
+      "advice": "마음과 머리가 일치하는 선택을 하세요.",
+      "shadow": "선택을 미루며 모든 것을 원하는 탐욕"
+    },
+    "7_chariot": {
+      "name": "The Chariot (역방향)",
+      "name_ko": "전차 (역방향)",
+      "core_meaning": "통제 상실, 방향 상실, 공격성",
+      "detailed": "추진력이 잘못된 방향으로 향함. 분노 조절 실패.",
+      "love": "관계에서 방향 상실, 강압적 태도",
+      "career": "프로젝트 탈선, 팀 통제 실패",
+      "finance": "충동적 결정으로 손실",
+      "health": "에너지 소진, 번아웃",
+      "advice": "잠시 멈추고 방향을 재설정하세요.",
+      "shadow": "승리에 대한 집착"
+    },
+    "8_strength": {
+      "name": "Strength (역방향)",
+      "name_ko": "힘 (역방향)",
+      "core_meaning": "나약함, 자기 의심, 폭력성",
+      "detailed": "내면의 힘을 잃음. 자신감 결여나 분노 폭발.",
+      "love": "불안정한 관계, 자존감 문제, 의존",
+      "career": "자신감 상실, 도전 회피",
+      "finance": "결단력 부족, 기회 놓침",
+      "health": "면역력 저하, 만성 피로",
+      "advice": "외부가 아닌 내면에서 힘을 찾으세요.",
+      "shadow": "강해 보이려는 허세 또는 무기력"
+    },
+    "9_hermit": {
+      "name": "The Hermit (역방향)",
+      "name_ko": "은둔자 (역방향)",
+      "core_meaning": "고립, 외로움, 은둔 거부",
+      "detailed": "지나친 고립이나 필요한 성찰 거부. 지혜 없는 조언.",
+      "love": "고립, 친밀감 두려움, 혼자됨",
+      "career": "팀워크 거부, 고립된 작업",
+      "finance": "조언 무시, 독단적 결정",
+      "health": "우울, 사회적 고립",
+      "advice": "혼자 있되 고립되지는 마세요.",
+      "shadow": "연결을 두려워하는 마음"
+    },
+    "10_wheel": {
+      "name": "Wheel of Fortune (역방향)",
+      "name_ko": "운명의 수레바퀴 (역방향)",
+      "core_meaning": "불운, 통제 밖, 저항",
+      "detailed": "하강 국면. 변화에 대한 저항. 나쁜 타이밍.",
+      "love": "관계 하강기, 외부 요인으로 인한 문제",
+      "career": "불운한 시기, 기회 놓침",
+      "finance": "투자 손실, 불운",
+      "health": "건강 악화 주기",
+      "advice": "이 또한 지나갑니다. 흐름에 맡기세요.",
+      "shadow": "변화를 통제하려는 집착"
+    },
+    "11_justice": {
+      "name": "Justice (역방향)",
+      "name_ko": "정의 (역방향)",
+      "core_meaning": "불공정, 무책임, 거짓",
+      "detailed": "정의롭지 못한 결과. 책임 회피. 법적 문제.",
+      "love": "불공평한 관계, 속임, 이혼 분쟁",
+      "career": "불공정한 대우, 법적 문제",
+      "finance": "세금 문제, 불공정 계약",
+      "health": "균형 상실",
+      "advice": "진실을 마주하고 책임을 지세요.",
+      "shadow": "자기합리화와 남 탓"
+    },
+    "12_hanged_man": {
+      "name": "The Hanged Man (역방향)",
+      "name_ko": "매달린 사람 (역방향)",
+      "core_meaning": "정체, 희생 거부, 고집",
+      "detailed": "필요한 희생이나 관점 변화 거부. 무의미한 기다림.",
+      "love": "변화 거부, 패턴 반복, 정체된 관계",
+      "career": "불필요한 희생, 성장 없는 기다림",
+      "finance": "손실 회피 실패, 잘못된 투자 고수",
+      "health": "치료 거부, 현상 유지",
+      "advice": "때로는 놓아주는 것이 전진입니다.",
+      "shadow": "변화에 대한 두려움"
+    },
+    "13_death": {
+      "name": "Death (역방향)",
+      "name_ko": "죽음 (역방향)",
+      "core_meaning": "변화 저항, 정체, 집착",
+      "detailed": "필요한 끝맺음 거부. 과거에 대한 집착. 변화 두려움.",
+      "love": "끝난 관계 집착, 전진 불가",
+      "career": "필요한 변화 거부, 정체",
+      "finance": "손절 실패, 죽은 투자 고수",
+      "health": "나쁜 습관 유지",
+      "advice": "끝내야 할 것을 끝내세요. 그래야 새것이 옵니다.",
+      "shadow": "상실에 대한 공포"
+    },
+    "14_temperance": {
+      "name": "Temperance (역방향)",
+      "name_ko": "절제 (역방향)",
+      "core_meaning": "불균형, 과잉, 조급함",
+      "detailed": "균형 상실. 극단으로 치우침. 인내 부족.",
+      "love": "불균형한 관계, 극단적 감정",
+      "career": "워라밸 붕괴, 조급한 진행",
+      "finance": "과소비 또는 극단적 절약",
+      "health": "불균형한 생활, 중독",
+      "advice": "중용의 길을 찾으세요.",
+      "shadow": "즉각적 만족에 대한 욕구"
+    },
+    "15_devil": {
+      "name": "The Devil (역방향)",
+      "name_ko": "악마 (역방향)",
+      "core_meaning": "해방, 속박 인식, 중독 극복",
+      "detailed": "부정적이지만 희망적. 속박에서 벗어나는 중.",
+      "love": "독성 관계 인식/탈출, 의존 극복",
+      "career": "나쁜 환경 탈출, 속박 인식",
+      "finance": "빚 청산 시작, 중독 극복",
+      "health": "중독 치료, 나쁜 습관 인식",
+      "advice": "사슬이 느슨해졌습니다. 이제 벗어나세요.",
+      "shadow": "자유를 두려워하는 마음"
+    },
+    "16_tower": {
+      "name": "The Tower (역방향)",
+      "name_ko": "탑 (역방향)",
+      "core_meaning": "붕괴 회피, 변화 저항, 내면 격변",
+      "detailed": "외부 붕괴는 피했으나 내면 혼란. 필요한 파괴 지연.",
+      "love": "관계 위기 모면, 근본 문제 미해결",
+      "career": "위기 회피, 그러나 불안정 지속",
+      "finance": "파산 모면, 그러나 위험 지속",
+      "health": "큰 병 피함, 경고 신호",
+      "advice": "피할 수 없는 변화를 받아들이세요.",
+      "shadow": "안전에 대한 집착"
+    },
+    "17_star": {
+      "name": "The Star (역방향)",
+      "name_ko": "별 (역방향)",
+      "core_meaning": "절망, 희망 상실, 영감 부재",
+      "detailed": "희망의 빛이 꺼짐. 믿음 상실. 우울.",
+      "love": "관계에 대한 희망 상실, 냉소",
+      "career": "비전 상실, 동기 부여 실패",
+      "finance": "미래에 대한 불안",
+      "health": "우울증, 무기력",
+      "advice": "어둠 속에서도 별은 있습니다. 다시 올려다보세요.",
+      "shadow": "상처받을까 봐 희망을 포기함"
+    },
+    "18_moon": {
+      "name": "The Moon (역방향)",
+      "name_ko": "달 (역방향)",
+      "core_meaning": "혼란 해소, 진실 드러남, 두려움 극복",
+      "detailed": "긍정적 변화. 어둠이 걷히고 진실이 보임.",
+      "love": "오해 해소, 숨겨진 감정 인식",
+      "career": "불확실성 해소, 명확해짐",
+      "finance": "숨겨진 정보 발견",
+      "health": "원인 불명 증상 진단",
+      "advice": "안개가 걷히고 있습니다. 진실을 마주하세요.",
+      "shadow": "무의식적 두려움 직면"
+    },
+    "19_sun": {
+      "name": "The Sun (역방향)",
+      "name_ko": "태양 (역방향)",
+      "core_meaning": "낙관 과잉, 성공 지연, 자만",
+      "detailed": "밝음이 가려짐. 성공이 지연되거나 과도한 낙관.",
+      "love": "행복 지연, 과도한 기대",
+      "career": "성공 지연, 인정받지 못함",
+      "finance": "기대보다 적은 수익",
+      "health": "활력 저하, 비타민D 부족",
+      "advice": "구름이 잠시 해를 가려도 해는 있습니다.",
+      "shadow": "실패에 대한 두려움을 낙관으로 가림"
+    },
+    "20_judgement": {
+      "name": "Judgement (역방향)",
+      "name_ko": "심판 (역방향)",
+      "core_meaning": "자기 비판, 소명 거부, 후회",
+      "detailed": "부름에 응하지 않음. 과거에 갇힘. 자기 심판.",
+      "love": "과거 관계에 갇힘, 용서 불가",
+      "career": "천직 무시, 현상 유지",
+      "finance": "과거 실수에 발목 잡힘",
+      "health": "자책으로 인한 스트레스",
+      "advice": "스스로를 용서하고 새로운 부름에 응하세요.",
+      "shadow": "과거에 대한 죄책감"
+    },
+    "21_world": {
+      "name": "The World (역방향)",
+      "name_ko": "세계 (역방향)",
+      "core_meaning": "미완성, 지연, 폐쇄적",
+      "detailed": "완성 직전에서 멈춤. 마무리 짓지 못함.",
+      "love": "관계의 완성 지연, 결혼 미룸",
+      "career": "프로젝트 미완성, 성취 지연",
+      "finance": "투자 회수 지연",
+      "health": "회복 지연",
+      "advice": "마지막 한 걸음을 내딛으세요.",
+      "shadow": "완성에 대한 두려움"
+    }
+  },
+
+  "minor_arcana_wands": {
+    "ace": {
+      "name": "Ace of Wands (역방향)",
+      "name_ko": "완드 에이스 (역방향)",
+      "core_meaning": "창조적 막힘, 지연된 시작, 좌절",
+      "love": "열정 부족, 시작 지연",
+      "career": "새 프로젝트 지연, 아이디어 막힘",
+      "finance": "투자 기회 놓침",
+      "advice": "때가 아닙니다. 내면의 불씨를 키우세요."
+    },
+    "two": {
+      "name": "Two of Wands (역방향)",
+      "name_ko": "완드 2 (역방향)",
+      "core_meaning": "계획 실패, 두려움, 결정 장애",
+      "love": "미래 계획 불일치",
+      "career": "확장 실패, 비전 부재",
+      "finance": "투자 계획 좌절",
+      "advice": "안전지대를 벗어나야 합니다."
+    },
+    "three": {
+      "name": "Three of Wands (역방향)",
+      "name_ko": "완드 3 (역방향)",
+      "core_meaning": "지연, 장애물, 기대 불충족",
+      "love": "관계 발전 지연",
+      "career": "해외 진출 실패, 확장 지연",
+      "finance": "투자 수익 지연",
+      "advice": "인내심을 가지되 계획을 재검토하세요."
+    },
+    "four": {
+      "name": "Four of Wands (역방향)",
+      "name_ko": "완드 4 (역방향)",
+      "core_meaning": "불안정, 축하 지연, 가정 문제",
+      "love": "결혼 연기, 가정 불화",
+      "career": "팀 불화, 축하받지 못함",
+      "finance": "부동산 문제",
+      "advice": "기반을 다시 다지세요."
+    },
+    "five": {
+      "name": "Five of Wands (역방향)",
+      "name_ko": "완드 5 (역방향)",
+      "core_meaning": "갈등 해소, 경쟁 회피, 타협",
+      "love": "다툼 종료, 화해",
+      "career": "경쟁 종료, 협력",
+      "finance": "분쟁 해결",
+      "advice": "갈등을 피하기보다 건강하게 해결하세요."
+    },
+    "six": {
+      "name": "Six of Wands (역방향)",
+      "name_ko": "완드 6 (역방향)",
+      "core_meaning": "인정받지 못함, 실패, 자만",
+      "love": "인정받지 못하는 느낌",
+      "career": "승진 탈락, 실패",
+      "finance": "투자 실패",
+      "advice": "외부 인정보다 내면의 가치를 찾으세요."
+    },
+    "seven": {
+      "name": "Seven of Wands (역방향)",
+      "name_ko": "완드 7 (역방향)",
+      "core_meaning": "포기, 압도당함, 자신감 상실",
+      "love": "관계 포기, 지침",
+      "career": "경쟁에서 밀림, 포기",
+      "finance": "시장 경쟁에서 탈락",
+      "advice": "싸울 가치가 있는지 판단하세요."
+    },
+    "eight": {
+      "name": "Eight of Wands (역방향)",
+      "name_ko": "완드 8 (역방향)",
+      "core_meaning": "지연, 좌절, 잘못된 방향",
+      "love": "관계 진전 없음",
+      "career": "프로젝트 지연, 방향 오류",
+      "finance": "거래 지연",
+      "advice": "방향을 재점검하세요."
+    },
+    "nine": {
+      "name": "Nine of Wands (역방향)",
+      "name_ko": "완드 9 (역방향)",
+      "core_meaning": "피해의식, 포기, 지침",
+      "love": "방어적 태도, 불신",
+      "career": "번아웃, 포기",
+      "finance": "지나친 경계",
+      "advice": "도움을 요청하세요. 혼자 버틸 필요 없습니다."
+    },
+    "ten": {
+      "name": "Ten of Wands (역방향)",
+      "name_ko": "완드 10 (역방향)",
+      "core_meaning": "짐 내려놓기, 위임, 해방",
+      "love": "관계 부담 해소",
+      "career": "업무 위임, 부담 감소",
+      "finance": "빚 청산",
+      "advice": "모든 것을 혼자 지려 하지 마세요."
+    },
+    "page": {
+      "name": "Page of Wands (역방향)",
+      "name_ko": "완드 시종 (역방향)",
+      "core_meaning": "미성숙, 지연된 소식, 열정 부족",
+      "love": "미성숙한 연애",
+      "career": "좋은 소식 지연",
+      "finance": "성급한 투자",
+      "advice": "더 배우고 준비하세요."
+    },
+    "knight": {
+      "name": "Knight of Wands (역방향)",
+      "name_ko": "완드 기사 (역방향)",
+      "core_meaning": "무모함, 지연, 분노",
+      "love": "성급함, 바람기",
+      "career": "계획 없는 행동, 지연",
+      "finance": "충동적 손실",
+      "advice": "열정을 조절하세요."
+    },
+    "queen": {
+      "name": "Queen of Wands (역방향)",
+      "name_ko": "완드 여왕 (역방향)",
+      "core_meaning": "질투, 자신감 상실, 지배적",
+      "love": "질투, 통제",
+      "career": "자신감 부족, 갈등",
+      "finance": "과시적 지출",
+      "advice": "다른 사람과 비교하지 마세요."
+    },
+    "king": {
+      "name": "King of Wands (역방향)",
+      "name_ko": "완드 왕 (역방향)",
+      "core_meaning": "독재, 무책임, 충동",
+      "love": "지배적, 이기적",
+      "career": "독재적 리더십, 실패",
+      "finance": "무모한 투자",
+      "advice": "권력에는 책임이 따릅니다."
+    }
+  },
+
+  "minor_arcana_cups": {
+    "ace": {
+      "name": "Ace of Cups (역방향)",
+      "name_ko": "컵 에이스 (역방향)",
+      "core_meaning": "감정 막힘, 사랑 거부, 공허함",
+      "love": "감정 닫힘, 사랑 거부",
+      "career": "창작 막힘, 열정 부족",
+      "finance": "감정적 지출",
+      "advice": "마음을 열 준비가 되었는지 확인하세요."
+    },
+    "two": {
+      "name": "Two of Cups (역방향)",
+      "name_ko": "컵 2 (역방향)",
+      "core_meaning": "불균형, 이별, 불화",
+      "love": "관계 불균형, 이별",
+      "career": "파트너십 문제",
+      "finance": "불공평한 거래",
+      "advice": "관계의 균형을 점검하세요."
+    },
+    "three": {
+      "name": "Three of Cups (역방향)",
+      "name_ko": "컵 3 (역방향)",
+      "core_meaning": "과잉, 소외, 삼각관계",
+      "love": "삼각관계, 불륜",
+      "career": "팀 갈등, 소외",
+      "finance": "과소비",
+      "advice": "진정한 우정과 일시적 즐거움을 구분하세요."
+    },
+    "four": {
+      "name": "Four of Cups (역방향)",
+      "name_ko": "컵 4 (역방향)",
+      "core_meaning": "각성, 동기부여, 새 시각",
+      "love": "새로운 관계에 열림",
+      "career": "동기부여 회복",
+      "finance": "새 기회 인식",
+      "advice": "눈앞의 기회를 보세요."
+    },
+    "five": {
+      "name": "Five of Cups (역방향)",
+      "name_ko": "컵 5 (역방향)",
+      "core_meaning": "회복, 용서, 전진",
+      "love": "과거 극복, 새 시작",
+      "career": "실패에서 회복",
+      "finance": "손실 만회",
+      "advice": "아직 남은 것에 집중하세요."
+    },
+    "six": {
+      "name": "Six of Cups (역방향)",
+      "name_ko": "컵 6 (역방향)",
+      "core_meaning": "과거 집착, 미성숙, 향수",
+      "love": "과거 연인 집착",
+      "career": "성장 거부",
+      "finance": "구시대적 방식",
+      "advice": "과거는 보물이지만 거기 살면 안됩니다."
+    },
+    "seven": {
+      "name": "Seven of Cups (역방향)",
+      "name_ko": "컵 7 (역방향)",
+      "core_meaning": "명확함, 결정, 현실 직시",
+      "love": "환상에서 깨어남",
+      "career": "현실적 목표 설정",
+      "finance": "현실적 계획",
+      "advice": "이제 선택할 때입니다."
+    },
+    "eight": {
+      "name": "Eight of Cups (역방향)",
+      "name_ko": "컵 8 (역방향)",
+      "core_meaning": "머무름, 떠나지 못함, 두려움",
+      "love": "끝난 관계에 머무름",
+      "career": "변화 두려움",
+      "finance": "나쁜 투자 고수",
+      "advice": "떠나야 할 때를 알아야 합니다."
+    },
+    "nine": {
+      "name": "Nine of Cups (역방향)",
+      "name_ko": "컵 9 (역방향)",
+      "core_meaning": "불만족, 과욕, 공허",
+      "love": "관계 불만족",
+      "career": "성공해도 공허",
+      "finance": "물질적 풍요, 정서적 공허",
+      "advice": "진정 원하는 것이 무엇인지 물어보세요."
+    },
+    "ten": {
+      "name": "Ten of Cups (역방향)",
+      "name_ko": "컵 10 (역방향)",
+      "core_meaning": "가정 불화, 깨진 꿈, 불행",
+      "love": "가정 문제, 이혼",
+      "career": "직장 가정 충돌",
+      "finance": "가족 재정 문제",
+      "advice": "완벽한 가정이란 없습니다. 현실을 받아들이세요."
+    },
+    "page": {
+      "name": "Page of Cups (역방향)",
+      "name_ko": "컵 시종 (역방향)",
+      "core_meaning": "감정 미성숙, 환상, 나쁜 소식",
+      "love": "어린 사랑, 미성숙",
+      "career": "창작 막힘",
+      "finance": "감정적 결정",
+      "advice": "감정을 성숙하게 다루세요."
+    },
+    "knight": {
+      "name": "Knight of Cups (역방향)",
+      "name_ko": "컵 기사 (역방향)",
+      "core_meaning": "환상, 기만, 변덕",
+      "love": "바람둥이, 거짓 로맨스",
+      "career": "비현실적 제안",
+      "finance": "사기 주의",
+      "advice": "달콤한 말 뒤의 진실을 보세요."
+    },
+    "queen": {
+      "name": "Queen of Cups (역방향)",
+      "name_ko": "컵 여왕 (역방향)",
+      "core_meaning": "감정 불안정, 의존, 현실도피",
+      "love": "감정 의존, 집착",
+      "career": "감정에 휘둘림",
+      "finance": "감정적 지출",
+      "advice": "감정과 현실의 균형을 찾으세요."
+    },
+    "king": {
+      "name": "King of Cups (역방향)",
+      "name_ko": "컵 왕 (역방향)",
+      "core_meaning": "감정 억압, 조종, 냉담",
+      "love": "감정 조종, 냉담함",
+      "career": "감정적 리더십 실패",
+      "finance": "감정에 휘둘린 결정",
+      "advice": "감정을 억누르지 말고 건강하게 표현하세요."
+    }
+  },
+
+  "minor_arcana_swords": {
+    "ace": {
+      "name": "Ace of Swords (역방향)",
+      "name_ko": "검 에이스 (역방향)",
+      "core_meaning": "혼란, 잘못된 판단, 막힌 생각",
+      "love": "오해, 날카로운 말",
+      "career": "잘못된 결정",
+      "finance": "판단 오류",
+      "advice": "명확해질 때까지 결정을 미루세요."
+    },
+    "two": {
+      "name": "Two of Swords (역방향)",
+      "name_ko": "검 2 (역방향)",
+      "core_meaning": "결정, 정보 공개, 교착 해소",
+      "love": "숨겨진 감정 표현",
+      "career": "결정 내림",
+      "finance": "선택 완료",
+      "advice": "이제 눈을 뜨고 결정하세요."
+    },
+    "three": {
+      "name": "Three of Swords (역방향)",
+      "name_ko": "검 3 (역방향)",
+      "core_meaning": "치유, 용서, 회복",
+      "love": "상처 치유, 용서",
+      "career": "갈등 해소",
+      "finance": "손실 회복",
+      "advice": "상처가 아물고 있습니다. 시간을 주세요."
+    },
+    "four": {
+      "name": "Four of Swords (역방향)",
+      "name_ko": "검 4 (역방향)",
+      "core_meaning": "불안, 휴식 거부, 번아웃",
+      "love": "휴식 없는 관계",
+      "career": "휴식 거부, 번아웃",
+      "finance": "쉬지 않고 일함",
+      "advice": "쉬어야 할 때 쉬세요."
+    },
+    "five": {
+      "name": "Five of Swords (역방향)",
+      "name_ko": "검 5 (역방향)",
+      "core_meaning": "화해, 후회, 손실 인정",
+      "love": "화해 시도",
+      "career": "갈등 해결",
+      "finance": "손실 인정",
+      "advice": "이기는 것보다 평화가 중요합니다."
+    },
+    "six": {
+      "name": "Six of Swords (역방향)",
+      "name_ko": "검 6 (역방향)",
+      "core_meaning": "정체, 이동 불가, 과거에 묶임",
+      "love": "관계에서 벗어나지 못함",
+      "career": "변화 거부",
+      "finance": "정체된 상황",
+      "advice": "떠나기 위한 준비를 하세요."
+    },
+    "seven": {
+      "name": "Seven of Swords (역방향)",
+      "name_ko": "검 7 (역방향)",
+      "core_meaning": "발각, 양심, 정직",
+      "love": "비밀 발각, 정직해짐",
+      "career": "부정 발각",
+      "finance": "사기 발각",
+      "advice": "정직이 최선입니다. 거짓은 드러납니다."
+    },
+    "eight": {
+      "name": "Eight of Swords (역방향)",
+      "name_ko": "검 8 (역방향)",
+      "core_meaning": "해방, 새 시각, 탈출",
+      "love": "속박에서 해방",
+      "career": "제한에서 벗어남",
+      "finance": "재정적 자유",
+      "advice": "눈가리개를 벗으면 길이 보입니다."
+    },
+    "nine": {
+      "name": "Nine of Swords (역방향)",
+      "name_ko": "검 9 (역방향)",
+      "core_meaning": "희망, 불안 해소, 도움",
+      "love": "걱정 해소",
+      "career": "불안 감소",
+      "finance": "재정 걱정 해소",
+      "advice": "도움을 받아들이세요. 혼자 고민하지 마세요."
+    },
+    "ten": {
+      "name": "Ten of Swords (역방향)",
+      "name_ko": "검 10 (역방향)",
+      "core_meaning": "회복, 생존, 최악 통과",
+      "love": "관계 회복",
+      "career": "바닥에서 회복",
+      "finance": "파산에서 회복",
+      "advice": "최악은 지났습니다. 이제 올라갈 일만 남았습니다."
+    },
+    "page": {
+      "name": "Page of Swords (역방향)",
+      "name_ko": "검 시종 (역방향)",
+      "core_meaning": "험담, 미성숙, 거짓 정보",
+      "love": "험담, 오해",
+      "career": "정보 오류",
+      "finance": "잘못된 정보",
+      "advice": "말조심하세요. 모든 정보를 믿지 마세요."
+    },
+    "knight": {
+      "name": "Knight of Swords (역방향)",
+      "name_ko": "검 기사 (역방향)",
+      "core_meaning": "성급함, 무모함, 공격성",
+      "love": "성급한 관계, 다툼",
+      "career": "무모한 결정",
+      "finance": "충동적 손실",
+      "advice": "생각하고 행동하세요."
+    },
+    "queen": {
+      "name": "Queen of Swords (역방향)",
+      "name_ko": "검 여왕 (역방향)",
+      "core_meaning": "냉혹함, 편견, 잔인함",
+      "love": "냉담함, 비판",
+      "career": "지나친 비판",
+      "finance": "냉정한 결정",
+      "advice": "날카로움은 도구이지 무기가 아닙니다."
+    },
+    "king": {
+      "name": "King of Swords (역방향)",
+      "name_ko": "검 왕 (역방향)",
+      "core_meaning": "폭군, 권력 남용, 잔인함",
+      "love": "지배적, 정서적 학대",
+      "career": "권력 남용",
+      "finance": "비윤리적 거래",
+      "advice": "지성에는 자비가 함께해야 합니다."
+    }
+  },
+
+  "minor_arcana_pentacles": {
+    "ace": {
+      "name": "Ace of Pentacles (역방향)",
+      "name_ko": "펜타클 에이스 (역방향)",
+      "core_meaning": "기회 놓침, 재정 문제, 불안정",
+      "love": "물질적 문제로 관계 어려움",
+      "career": "기회 놓침, 시작 실패",
+      "finance": "투자 실패, 손실",
+      "advice": "기회는 다시 옵니다. 준비하세요."
+    },
+    "two": {
+      "name": "Two of Pentacles (역방향)",
+      "name_ko": "펜타클 2 (역방향)",
+      "core_meaning": "불균형, 과부하, 재정 혼란",
+      "love": "관계-일 균형 실패",
+      "career": "멀티태스킹 실패",
+      "finance": "재정 관리 실패",
+      "advice": "우선순위를 정하세요. 모든 것을 할 수 없습니다."
+    },
+    "three": {
+      "name": "Three of Pentacles (역방향)",
+      "name_ko": "펜타클 3 (역방향)",
+      "core_meaning": "협력 실패, 품질 저하, 인정 부재",
+      "love": "함께 쌓아가지 못함",
+      "career": "팀워크 실패, 품질 문제",
+      "finance": "투자 실패",
+      "advice": "협력의 가치를 다시 생각하세요."
+    },
+    "four": {
+      "name": "Four of Pentacles (역방향)",
+      "name_ko": "펜타클 4 (역방향)",
+      "core_meaning": "집착 해소, 관대함, 또는 낭비",
+      "love": "집착 해소, 또는 방임",
+      "career": "통제 내려놓음",
+      "finance": "낭비 또는 관대함",
+      "advice": "잡는 것과 흘려보내는 것의 균형을 찾으세요."
+    },
+    "five": {
+      "name": "Five of Pentacles (역방향)",
+      "name_ko": "펜타클 5 (역방향)",
+      "core_meaning": "회복, 도움 받음, 희망",
+      "love": "어려운 시기 극복",
+      "career": "실직에서 회복",
+      "finance": "재정 회복",
+      "advice": "도움의 손길이 있습니다. 받아들이세요."
+    },
+    "six": {
+      "name": "Six of Pentacles (역방향)",
+      "name_ko": "펜타클 6 (역방향)",
+      "core_meaning": "불공평, 빚, 조건부 도움",
+      "love": "불균등한 관계",
+      "career": "불공정한 대우",
+      "finance": "빚, 착취",
+      "advice": "진정한 관대함에는 조건이 없습니다."
+    },
+    "seven": {
+      "name": "Seven of Pentacles (역방향)",
+      "name_ko": "펜타클 7 (역방향)",
+      "core_meaning": "조급함, 실패한 투자, 좌절",
+      "love": "관계에 대한 조급함",
+      "career": "성과 부족, 좌절",
+      "finance": "투자 실패",
+      "advice": "씨앗에는 시간이 필요합니다. 조급해하지 마세요."
+    },
+    "eight": {
+      "name": "Eight of Pentacles (역방향)",
+      "name_ko": "펜타클 8 (역방향)",
+      "core_meaning": "완벽주의, 지루함, 기술 부족",
+      "love": "관계에 노력 부족",
+      "career": "품질 저하, 동기 부족",
+      "finance": "성의 없는 작업",
+      "advice": "장인 정신을 회복하세요."
+    },
+    "nine": {
+      "name": "Nine of Pentacles (역방향)",
+      "name_ko": "펜타클 9 (역방향)",
+      "core_meaning": "과시, 재정 문제, 독립 상실",
+      "love": "재정으로 인한 의존",
+      "career": "성공했으나 불만족",
+      "finance": "재정 위기",
+      "advice": "겉치레보다 실속을 챙기세요."
+    },
+    "ten": {
+      "name": "Ten of Pentacles (역방향)",
+      "name_ko": "펜타클 10 (역방향)",
+      "core_meaning": "가족 분쟁, 상속 문제, 재정 손실",
+      "love": "가족 문제",
+      "career": "가업 갈등",
+      "finance": "상속 분쟁, 재정 손실",
+      "advice": "돈보다 가족이 중요합니다."
+    },
+    "page": {
+      "name": "Page of Pentacles (역방향)",
+      "name_ko": "펜타클 시종 (역방향)",
+      "core_meaning": "비현실적, 게으름, 기회 낭비",
+      "love": "미성숙한 계획",
+      "career": "학습 거부",
+      "finance": "나쁜 재정 습관",
+      "advice": "꿈만 꾸지 말고 행동하세요."
+    },
+    "knight": {
+      "name": "Knight of Pentacles (역방향)",
+      "name_ko": "펜타클 기사 (역방향)",
+      "core_meaning": "정체, 게으름, 지루함",
+      "love": "지루한 관계",
+      "career": "정체, 무기력",
+      "finance": "재정 정체",
+      "advice": "안정도 좋지만 움직여야 합니다."
+    },
+    "queen": {
+      "name": "Queen of Pentacles (역방향)",
+      "name_ko": "펜타클 여왕 (역방향)",
+      "core_meaning": "불안정, 일-가정 불균형, 질투",
+      "love": "돌봄 부족",
+      "career": "일-가정 불균형",
+      "finance": "재정 불안정",
+      "advice": "자신을 돌보는 것도 중요합니다."
+    },
+    "king": {
+      "name": "King of Pentacles (역방향)",
+      "name_ko": "펜타클 왕 (역방향)",
+      "core_meaning": "물질주의, 탐욕, 부패",
+      "love": "물질로 사랑 대체",
+      "career": "비윤리적 사업",
+      "finance": "탐욕, 부패",
+      "advice": "부는 수단이지 목적이 아닙니다."
+    }
+  }
+}
