@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 
-const ACTIVE_SUB_STATUSES = ['active', 'trialing', 'past_due'] as const
+const ACTIVE_SUB_STATUSES: string[] = ['active', 'trialing', 'past_due']
 
 export async function isDbPremiumUser(userId?: string | null): Promise<boolean> {
   if (!userId) return false
