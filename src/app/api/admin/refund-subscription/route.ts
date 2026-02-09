@@ -119,7 +119,7 @@ export const POST = withApiMiddleware(
   async (req: NextRequest, context) => {
     const session = context.session
     const adminEmail = session?.user?.email || 'unknown'
-    const adminUserId = context.userId
+    const adminUserId = context.userId ?? undefined
 
     // 🔒 IP와 User-Agent 수집 (감사 로그용)
     const ipAddress =
