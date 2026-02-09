@@ -466,9 +466,9 @@ describe('/api/me/profile', () => {
       // The route uses updatedUser.birthDate for old value when body.birthDate is undefined
       // When birthDate IS in body, oldBirthDate is null (route logic: body.birthDate !== undefined ? null : updatedUser.birthDate)
       // So if both old and new birthDate exist, the cache invalidation only fires for calendar
-      vi.mocked(prisma.user.update).mockResolvedValue({
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
         ...mockUserData,
-        birthDate: '1990-01-15',
+        profile: { ...mockUserData.profile, birthDate: '1990-01-15' },
       } as any)
 
       const req = new NextRequest('http://localhost:3000/api/me/profile', {
@@ -484,7 +484,7 @@ describe('/api/me/profile', () => {
     })
 
     it('should not invalidate birth caches when birth info unchanged', async () => {
-      vi.mocked(prisma.user.update).mockResolvedValue(mockUserData as any)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUserData as any)
 
       const req = new NextRequest('http://localhost:3000/api/me/profile', {
         method: 'PATCH',
@@ -501,9 +501,9 @@ describe('/api/me/profile', () => {
     })
 
     it('should invalidate cache when gender changes', async () => {
-      vi.mocked(prisma.user.update).mockResolvedValue({
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
         ...mockUserData,
-        birthDate: '1990-01-15',
+        profile: { ...mockUserData.profile, birthDate: '1990-01-15' },
       } as any)
 
       const req = new NextRequest('http://localhost:3000/api/me/profile', {
@@ -518,9 +518,9 @@ describe('/api/me/profile', () => {
     })
 
     it('should handle null birthDate in cache invalidation', async () => {
-      vi.mocked(prisma.user.update).mockResolvedValue({
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
         ...mockUserData,
-        birthDate: null,
+        profile: { ...mockUserData.profile, birthDate: null },
       } as any)
 
       const req = new NextRequest('http://localhost:3000/api/me/profile', {
@@ -537,9 +537,9 @@ describe('/api/me/profile', () => {
     })
 
     it('should handle cache invalidation when birthTime changes', async () => {
-      vi.mocked(prisma.user.update).mockResolvedValue({
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
         ...mockUserData,
-        birthDate: '1990-01-15',
+        profile: { ...mockUserData.profile, birthDate: '1990-01-15' },
       } as any)
 
       const req = new NextRequest('http://localhost:3000/api/me/profile', {
@@ -660,7 +660,12 @@ describe('/api/me/profile', () => {
     })
 
     it('should update multiple fields at once', async () => {
-      vi.mocked(prisma.user.update).mockResolvedValue(mockUserData as any)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        ...mockUserData,
+        name: 'New Name',
+        profile: { ...mockUserData.profile, birthDate: '1995-05-20' },
+        settings: { emailNotifications: false },
+      } as any)
 
       const req = new NextRequest('http://localhost:3000/api/me/profile', {
         method: 'PATCH',
@@ -675,18 +680,25 @@ describe('/api/me/profile', () => {
 
       expect(prisma.user.update).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({
-            name: 'New Name',
-            emailNotifications: false,
-            birthDate: '1995-05-20',
-          }),
+          where: { id: mockUserId },
+          data: expect.objectContaining({ name: 'New Name' }),
         })
       )
+      expect(prisma.userSettings.upsert).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+        create: { userId: mockUserId, emailNotifications: false },
+        update: { emailNotifications: false },
+      })
+      expect(prisma.userProfile.upsert).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+        create: { userId: mockUserId, birthDate: '1995-05-20' },
+        update: { birthDate: '1995-05-20' },
+      })
     })
 
     it('should return updated user profile in response', async () => {
       const updatedUser = { ...mockUserData, name: 'Updated' }
-      vi.mocked(prisma.user.update).mockResolvedValue(updatedUser as any)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(updatedUser as any)
 
       const req = new NextRequest('http://localhost:3000/api/me/profile', {
         method: 'PATCH',
