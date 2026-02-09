@@ -129,7 +129,8 @@ describe('POST /api/metrics/track', () => {
     const data = await response.json()
 
     expect(response.status).toBe(429)
-    expect(data).toEqual({ error: 'Too many requests' })
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('RATE_LIMITED')
     expect(mockTrackVisitor).not.toHaveBeenCalled()
   })
 
@@ -158,7 +159,9 @@ describe('POST /api/metrics/track', () => {
   // -------------------------------------------------------------------------
   it('should return 500 when an unexpected error occurs', async () => {
     const thrownError = new Error('Redis connection failed')
-    mockRateLimit.mockRejectedValue(thrownError)
+    mockTrackVisitor.mockImplementation(() => {
+      throw thrownError
+    })
 
     const req = createTrackRequest()
     const response = await POST(req)
@@ -166,11 +169,8 @@ describe('POST /api/metrics/track', () => {
 
     expect(response.status).toBe(500)
     expect(data).toEqual({ error: 'Internal server error' })
-    expect(logger.error).toHaveBeenCalledWith(
-      '[Track Visitor API Error]',
-      thrownError
-    )
-    expect(mockTrackVisitor).not.toHaveBeenCalled()
+    expect(logger.error).toHaveBeenCalledWith('[Track Visitor API Error]', thrownError)
+    expect(mockTrackVisitor).toHaveBeenCalledTimes(1)
   })
 
   // -------------------------------------------------------------------------
@@ -217,7 +217,7 @@ describe('POST /api/metrics/track', () => {
     await POST(req)
 
     expect(mockGetClientIp).toHaveBeenCalledWith(req.headers)
-    expect(mockRateLimit).toHaveBeenCalledWith(`track-visitor:${ip}`, {
+    expect(mockRateLimit).toHaveBeenCalledWith(`api:metrics/track:${ip}`, {
       limit: 10,
       windowSeconds: 60,
     })

@@ -29,34 +29,55 @@ import type { ApiContext, ApiHandler, ApiHandlerResult, MiddlewareOptions } from
 
 function mergeHeaderRecords(
   base?: Record<string, string>,
-  extra?: Headers
+  extra?: Headers | Record<string, string>
 ): Record<string, string> | undefined {
   if (!extra && !base) return undefined
   const merged: Record<string, string> = { ...(base ?? {}) }
   if (extra) {
-    extra.forEach((value, key) => {
-      merged[key] = value
-    })
+    if (extra instanceof Headers) {
+      extra.forEach((value, key) => {
+        merged[key] = value
+      })
+    } else {
+      Object.entries(extra).forEach(([key, value]) => {
+        merged[key] = value
+      })
+    }
   }
   return merged
 }
 
-function applyHeadersToResponse(response: Response, extra?: Headers): NextResponse {
+function applyHeadersToResponse(
+  response: Response,
+  extra?: Headers | Record<string, string>
+): NextResponse {
   if (!extra) {
     return response as NextResponse
   }
 
   if (response instanceof NextResponse) {
-    extra.forEach((value, key) => {
-      response.headers.set(key, value)
-    })
+    if (extra instanceof Headers) {
+      extra.forEach((value, key) => {
+        response.headers.set(key, value)
+      })
+    } else {
+      Object.entries(extra).forEach(([key, value]) => {
+        response.headers.set(key, value)
+      })
+    }
     return response
   }
 
   const merged = new Headers(response.headers)
-  extra.forEach((value, key) => {
-    merged.set(key, value)
-  })
+  if (extra instanceof Headers) {
+    extra.forEach((value, key) => {
+      merged.set(key, value)
+    })
+  } else {
+    Object.entries(extra).forEach(([key, value]) => {
+      merged.set(key, value)
+    })
+  }
   return new NextResponse(response.body, {
     status: response.status,
     statusText: response.statusText,

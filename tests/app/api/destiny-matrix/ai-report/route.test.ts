@@ -320,7 +320,7 @@ describe('POST /api/destiny-matrix/ai-report', () => {
 
       expect(response.status).toBe(401)
       expect(data.success).toBe(false)
-      expect(data.error.code).toBe('AUTH_REQUIRED')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should return 401 when session has no user', async () => {
@@ -332,7 +332,7 @@ describe('POST /api/destiny-matrix/ai-report', () => {
 
       expect(response.status).toBe(401)
       expect(data.success).toBe(false)
-      expect(data.error.code).toBe('AUTH_REQUIRED')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should return 401 when session user has no id', async () => {

@@ -29,7 +29,7 @@ import { logger } from '@/lib/logger'
 import { getUserProfile } from '@/lib/userProfile'
 
 // Types
-import type { EventCategory, ImportantDate, CalendarData, BirthInfo, CityHit } from './types'
+import type { EventCategory, ImportantDate, CalendarData, BirthInfo } from './types'
 
 // Hooks
 import { useParticleAnimation } from '@/hooks/calendar/useParticleAnimation'
@@ -71,20 +71,13 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
     gender: 'Male',
   })
   const [hasBirthInfo, setHasBirthInfo] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [timeUnknown, setTimeUnknown] = useState(false)
 
   // Save state
   const [savedDates, setSavedDates] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState<string | null>(null)
 
-  // City search state
-  const [cityErr, setCityErr] = useState<string | null>(null)
-  const [selectedCity, setSelectedCity] = useState<CityHit | null>(null)
-
-  // Profile loader state
-  const [profileLoaded, setProfileLoaded] = useState(false)
+  
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -111,7 +104,12 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
       setBirthInfo((prev) => ({ ...prev, birthTime: profile.birthTime || '' }))
     }
     if (profile.gender) {
-      setBirthInfo((prev) => ({ ...prev, gender: profile.gender as 'Male' | 'Female' }))
+      const rawGender = String(profile.gender)
+      const normalizedGender =
+        rawGender === 'M' ? 'Male' : rawGender === 'F' ? 'Female' : rawGender
+      if (normalizedGender === 'Male' || normalizedGender === 'Female') {
+        setBirthInfo((prev) => ({ ...prev, gender: normalizedGender }))
+      }
     }
   }, [])
 
@@ -150,7 +148,6 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
           setData(cachedData)
           setHasBirthInfo(true)
           setLoading(false)
-          setSubmitting(false)
           return
         }
 
@@ -167,6 +164,9 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
         params.set('birthDate', birthData.birthDate)
         params.set('birthTime', birthData.birthTime)
         params.set('birthPlace', birthData.birthPlace)
+        if (birthData.gender) {
+          params.set('gender', birthData.gender)
+        }
 
         const res = await fetch(`/api/calendar?${params}`, {
           headers: {
@@ -187,7 +187,6 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
         setError(err instanceof Error ? err.message : 'Error loading calendar')
       } finally {
         setLoading(false)
-        setSubmitting(false)
       }
     },
     [year, activeCategory, locale]
@@ -213,32 +212,23 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   }, [data, selectedDay, today, todayStr])
 
   // Form submit handler
-  const handleBirthInfoSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setCityErr(null)
-
-    if (!birthInfo.birthDate) {
-      setCityErr(locale === 'ko' ? '생년월일을 입력해주세요' : 'Please enter birth date')
-      return
-    }
-    if (!birthInfo.birthTime && !timeUnknown) {
-      setCityErr(locale === 'ko' ? '출생 시간을 입력해주세요' : 'Please enter birth time')
-      return
-    }
-    if (!birthInfo.birthPlace) {
-      setCityErr(locale === 'ko' ? '출생 도시를 입력해주세요' : 'Please enter birth city')
-      return
-    }
-    if (!selectedCity && !birthInfo.latitude) {
-      setCityErr(
-        locale === 'ko' ? '목록에서 도시를 선택해주세요' : 'Please select a city from the list'
+  const handleBirthInfoSubmit = (submittedInfo: BirthInfo) => {
+    if (!submittedInfo.birthDate || !submittedInfo.birthPlace) {
+      setError(
+        locale === 'ko'
+          ? '생년월일과 출생지를 입력해주세요'
+          : 'Please enter birth date and city'
       )
       return
     }
 
-    const finalBirthInfo = timeUnknown ? { ...birthInfo, birthTime: '12:00' } : birthInfo
-    setSubmitting(true)
-    fetchCalendar(finalBirthInfo)
+    const normalizedBirthInfo: BirthInfo = {
+      ...submittedInfo,
+      birthTime: submittedInfo.birthTime || '12:00',
+    }
+
+    setBirthInfo(normalizedBirthInfo)
+    fetchCalendar(normalizedBirthInfo)
   }
 
   // Date selection handler
@@ -377,17 +367,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
       <BirthInfoForm
         canvasRef={canvasRef}
         birthInfo={birthInfo}
-        setBirthInfo={setBirthInfo}
-        selectedCity={selectedCity}
-        setSelectedCity={setSelectedCity}
         onSubmit={handleBirthInfoSubmit}
-        submitting={submitting}
-        timeUnknown={timeUnknown}
-        setTimeUnknown={setTimeUnknown}
-        cityErr={cityErr}
-        setCityErr={setCityErr}
-        profileLoaded={profileLoaded}
-        setProfileLoaded={setProfileLoaded}
       />
     )
   }

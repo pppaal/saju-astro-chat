@@ -22,14 +22,27 @@ export const POST = withApiMiddleware(
   async (req: NextRequest, context) => {
     try {
       const formData = await req.formData()
-      const file = formData.get('photo') as File | null
+      const file = formData.get('photo')
 
-      if (!file) {
+      if (!file || typeof file !== 'object') {
         return apiError(ErrorCodes.VALIDATION_ERROR, 'No photo file provided')
       }
 
+      const fileName =
+        'name' in file && typeof file.name === 'string' && file.name.trim()
+          ? file.name
+          : 'upload.jpg'
+      const extensionFromName = fileName.includes('.')
+        ? fileName.split('.').pop()?.toLowerCase()
+        : undefined
+      const normalizedType = typeof file.type === 'string' ? file.type.toLowerCase() : ''
+      const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp']
+      const isAllowedType = normalizedType ? ALLOWED_TYPES.includes(normalizedType) : false
+      const isAllowedExtension =
+        extensionFromName ? allowedExtensions.includes(extensionFromName) : false
+
       // Validate file type
-      if (!ALLOWED_TYPES.includes(file.type)) {
+      if (!isAllowedType && !isAllowedExtension) {
         return apiError(
           ErrorCodes.VALIDATION_ERROR,
           `Invalid file type. Allowed types: ${ALLOWED_TYPES.join(', ')}`
@@ -37,7 +50,8 @@ export const POST = withApiMiddleware(
       }
 
       // Validate file size
-      if (file.size > MAX_FILE_SIZE) {
+      const fileSize = typeof file.size === 'number' ? file.size : 0
+      if (fileSize > MAX_FILE_SIZE) {
         return apiError(
           ErrorCodes.VALIDATION_ERROR,
           `File too large. Maximum size: ${MAX_FILE_SIZE / 1024 / 1024}MB`
@@ -46,7 +60,8 @@ export const POST = withApiMiddleware(
 
       // Generate unique filename
       const timestamp = Date.now()
-      const extension = file.name.split('.').pop() || 'jpg'
+      const extension =
+        (isAllowedExtension ? extensionFromName : normalizedType.split('/').pop()) || 'jpg'
       const filename = `profiles/${context.userId}_${timestamp}.${extension}`
 
       // Upload to Vercel Blob Storage

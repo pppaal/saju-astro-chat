@@ -10,7 +10,7 @@ const mockDrainQueuedNotifications = vi.fn()
 const mockRateLimit = vi.fn()
 const mockGetClientIp = vi.fn()
 
-vi.mock('next-auth/next', () => ({
+vi.mock('next-auth', () => ({
   getServerSession: mockGetServerSession,
 }))
 
@@ -168,7 +168,9 @@ describe('/api/notifications/stream', () => {
       const res = await GET(req)
 
       expect(res.status).toBe(401)
-      expect(await res.text()).toBe('Unauthorized')
+      const data = await res.json()
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('returns 401 Unauthorized when session is undefined', async () => {
@@ -178,7 +180,9 @@ describe('/api/notifications/stream', () => {
       const res = await GET(req)
 
       expect(res.status).toBe(401)
-      expect(await res.text()).toBe('Unauthorized')
+      const data = await res.json()
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('returns 401 Unauthorized when session user is missing', async () => {
@@ -190,7 +194,9 @@ describe('/api/notifications/stream', () => {
       const res = await GET(req)
 
       expect(res.status).toBe(401)
-      expect(await res.text()).toBe('Unauthorized')
+      const data = await res.json()
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('returns 401 Unauthorized when session user email is missing', async () => {
@@ -237,7 +243,9 @@ describe('/api/notifications/stream', () => {
       const res = await GET(req)
 
       expect(res.status).toBe(429)
-      expect(await res.text()).toBe('Too many requests')
+      const data = await res.json()
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('RATE_LIMITED')
     })
 
     it('includes rate limit headers when rate limited', async () => {
@@ -261,7 +269,7 @@ describe('/api/notifications/stream', () => {
       const req = createGetRequest()
       await GET(req)
 
-      expect(mockRateLimit).toHaveBeenCalledWith('notif-stream:192.168.1.100', {
+      expect(mockRateLimit).toHaveBeenCalledWith('api:notifications/stream:192.168.1.100', {
         limit: 30,
         windowSeconds: 60,
       })

@@ -16,9 +16,13 @@ import {
 // Mock dependencies
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
-    user: {
+    userSettings: {
       findUnique: vi.fn(),
       findFirst: vi.fn(),
+      upsert: vi.fn(),
+    },
+    user: {
+      findUnique: vi.fn(),
       findMany: vi.fn(),
       update: vi.fn(),
     },
@@ -92,33 +96,34 @@ describe('Referral Service', () => {
 
   describe('getUserReferralCode', () => {
     it('should return existing referral code if user has one', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue({
+      mockedPrisma.userSettings.findUnique.mockResolvedValue({
         referralCode: 'EXISTING1',
       } as never)
 
       const code = await getUserReferralCode('user-123')
       expect(code).toBe('EXISTING1')
-      expect(mockedPrisma.user.update).not.toHaveBeenCalled()
+      expect(mockedPrisma.userSettings.upsert).not.toHaveBeenCalled()
     })
 
     it('should generate and save new code if user has none', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue({
+      mockedPrisma.userSettings.findUnique.mockResolvedValue({
         referralCode: null,
       } as never)
-      mockedPrisma.user.update.mockResolvedValue({} as never)
+      mockedPrisma.userSettings.upsert.mockResolvedValue({} as never)
 
       const code = await getUserReferralCode('user-123')
 
       expect(code).toHaveLength(8)
-      expect(mockedPrisma.user.update).toHaveBeenCalledWith({
-        where: { id: 'user-123' },
-        data: { referralCode: expect.any(String) },
+      expect(mockedPrisma.userSettings.upsert).toHaveBeenCalledWith({
+        where: { userId: 'user-123' },
+        create: { userId: 'user-123', referralCode: expect.any(String) },
+        update: { referralCode: expect.any(String) },
       })
     })
 
     it('should handle user not found', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue(null)
-      mockedPrisma.user.update.mockResolvedValue({} as never)
+      mockedPrisma.userSettings.findUnique.mockResolvedValue(null)
+      mockedPrisma.userSettings.upsert.mockResolvedValue({} as never)
 
       const code = await getUserReferralCode('nonexistent')
       expect(code).toHaveLength(8)
@@ -127,31 +132,35 @@ describe('Referral Service', () => {
 
   describe('findUserByReferralCode', () => {
     it('should find user by referral code', async () => {
-      const mockUser = { id: 'user-1', name: 'Test User', referralCode: 'ABC12345' }
-      mockedPrisma.user.findFirst.mockResolvedValue(mockUser as never)
+      const mockSettings = {
+        userId: 'user-1',
+        referralCode: 'ABC12345',
+        user: { id: 'user-1', name: 'Test User' },
+      }
+      mockedPrisma.userSettings.findFirst.mockResolvedValue(mockSettings as never)
 
       const result = await findUserByReferralCode('abc12345')
 
-      expect(mockedPrisma.user.findFirst).toHaveBeenCalledWith({
+      expect(mockedPrisma.userSettings.findFirst).toHaveBeenCalledWith({
         where: { referralCode: 'ABC12345' },
-        select: { id: true, name: true, referralCode: true },
+        select: { userId: true, referralCode: true, user: { select: { id: true, name: true } } },
       })
-      expect(result).toEqual(mockUser)
+      expect(result).toEqual({ id: 'user-1', name: 'Test User', referralCode: 'ABC12345' })
     })
 
     it('should return null for non-existent code', async () => {
-      mockedPrisma.user.findFirst.mockResolvedValue(null)
+      mockedPrisma.userSettings.findFirst.mockResolvedValue(null)
 
       const result = await findUserByReferralCode('INVALID')
       expect(result).toBeNull()
     })
 
     it('should normalize code to uppercase', async () => {
-      mockedPrisma.user.findFirst.mockResolvedValue(null)
+      mockedPrisma.userSettings.findFirst.mockResolvedValue(null)
 
       await findUserByReferralCode('lowercase')
 
-      expect(mockedPrisma.user.findFirst).toHaveBeenCalledWith(
+      expect(mockedPrisma.userSettings.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { referralCode: 'LOWERCASE' },
         })
@@ -161,8 +170,12 @@ describe('Referral Service', () => {
 
   describe('linkReferrer', () => {
     it('should successfully link referrer and award credits', async () => {
-      const referrer = { id: 'referrer-1', name: 'Referrer', referralCode: 'REF12345' }
-      mockedPrisma.user.findFirst.mockResolvedValue(referrer as never)
+      const referrerSettings = {
+        userId: 'referrer-1',
+        referralCode: 'REF12345',
+        user: { id: 'referrer-1', name: 'Referrer' },
+      }
+      mockedPrisma.userSettings.findFirst.mockResolvedValue(referrerSettings as never)
       mockedPrisma.user.update.mockResolvedValue({} as never)
       mockedPrisma.referralReward.create.mockResolvedValue({} as never)
       mockedPrisma.user.findUnique.mockResolvedValue({
@@ -178,7 +191,7 @@ describe('Referral Service', () => {
     })
 
     it('should reject invalid referral code', async () => {
-      mockedPrisma.user.findFirst.mockResolvedValue(null)
+      mockedPrisma.userSettings.findFirst.mockResolvedValue(null)
 
       const result = await linkReferrer('new-user', 'INVALID')
 
@@ -187,10 +200,10 @@ describe('Referral Service', () => {
     })
 
     it('should prevent self-referral', async () => {
-      mockedPrisma.user.findFirst.mockResolvedValue({
-        id: 'user-1',
-        name: 'Self',
+      mockedPrisma.userSettings.findFirst.mockResolvedValue({
+        userId: 'user-1',
         referralCode: 'SELF1234',
+        user: { id: 'user-1', name: 'Self' },
       } as never)
 
       const result = await linkReferrer('user-1', 'SELF1234')
@@ -200,7 +213,7 @@ describe('Referral Service', () => {
     })
 
     it('should handle database errors gracefully', async () => {
-      mockedPrisma.user.findFirst.mockRejectedValue(new Error('DB error'))
+      mockedPrisma.userSettings.findFirst.mockRejectedValue(new Error('DB error'))
 
       const result = await linkReferrer('new-user', 'CODE1234')
 
@@ -250,7 +263,7 @@ describe('Referral Service', () => {
 
   describe('getReferralStats', () => {
     it('should return complete referral statistics', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue({
+      mockedPrisma.userSettings.findUnique.mockResolvedValue({
         referralCode: 'CODE1234',
       } as never)
       mockedPrisma.user.findMany.mockResolvedValue([
@@ -274,10 +287,10 @@ describe('Referral Service', () => {
     })
 
     it('should generate code if user has none', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValueOnce({ referralCode: null } as never)
+      mockedPrisma.userSettings.findUnique.mockResolvedValueOnce({ referralCode: null } as never)
       mockedPrisma.user.findMany.mockResolvedValue([])
       mockedPrisma.referralReward.findMany.mockResolvedValue([])
-      mockedPrisma.user.update.mockResolvedValue({} as never)
+      mockedPrisma.userSettings.upsert.mockResolvedValue({} as never)
 
       const stats = await getReferralStats('user-1')
 
@@ -285,7 +298,7 @@ describe('Referral Service', () => {
     })
 
     it('should handle empty referrals', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue({ referralCode: 'CODE1234' } as never)
+      mockedPrisma.userSettings.findUnique.mockResolvedValue({ referralCode: 'CODE1234' } as never)
       mockedPrisma.user.findMany.mockResolvedValue([])
       mockedPrisma.referralReward.findMany.mockResolvedValue([])
 

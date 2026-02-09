@@ -117,7 +117,7 @@ function makeMyProfile(overrides: Record<string, any> = {}) {
 }
 
 function makePartnerSubProfile(overrides: Record<string, any> = {}) {
-  return {
+  const baseProfile = {
     id: PARTNER_PROFILE_ID,
     userId: PARTNER_USER_ID,
     displayName: 'Partner',
@@ -131,11 +131,32 @@ function makePartnerSubProfile(overrides: Record<string, any> = {}) {
     personalityType: 'INTJ',
     personalityName: 'Architect',
     user: {
-      birthDate: new Date('1995-06-15'),
-      gender: 'FEMALE',
       image: 'avatar.jpg',
+      profile: {
+        birthDate: new Date('1995-06-15'),
+        gender: 'FEMALE',
+      },
     },
+  }
+  const userOverrides = overrides.user ?? {}
+  const profileOverrides = userOverrides.profile ?? {}
+  const normalizedProfileOverrides = {
+    ...profileOverrides,
+    ...(userOverrides.birthDate !== undefined ? { birthDate: userOverrides.birthDate } : {}),
+    ...(userOverrides.gender !== undefined ? { gender: userOverrides.gender } : {}),
+  }
+
+  return {
+    ...baseProfile,
     ...overrides,
+    user: {
+      ...baseProfile.user,
+      ...userOverrides,
+      profile: {
+        ...baseProfile.user.profile,
+        ...normalizedProfileOverrides,
+      },
+    },
   }
 }
 

@@ -192,9 +192,14 @@ import { rateLimit } from '@/lib/rateLimit'
 // Helpers
 // ============================================================
 function createRequest(body: Record<string, unknown>): NextRequest {
+  const token = process.env.PUBLIC_API_TOKEN || process.env.NEXT_PUBLIC_API_TOKEN
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) {
+    headers['x-api-token'] = token
+  }
   return new NextRequest('http://localhost/api/tarot/analyze-question', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(body),
   })
 }
@@ -557,9 +562,14 @@ describe('Tarot Analyze Question API - POST', () => {
   // ----------------------------------------------------------
   describe('Error Handling', () => {
     it('should return 500 when request.json() throws', async () => {
+      const token = process.env.PUBLIC_API_TOKEN || process.env.NEXT_PUBLIC_API_TOKEN
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) {
+        headers['x-api-token'] = token
+      }
       const req = new NextRequest('http://localhost/api/tarot/analyze-question', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: 'not valid json{{',
       })
 
@@ -579,7 +589,8 @@ describe('Tarot Analyze Question API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Failed to analyze question')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
   })
 

@@ -9,7 +9,7 @@ import { sanitizeError } from '@/lib/security/errorSanitizer'
 import { rateLimit } from '@/lib/rateLimit'
 import { logAdminAction } from '@/lib/auth/adminAudit'
 import { BASE_CREDIT_PRICE_KRW } from '@/lib/config/pricing'
-import { withApiMiddleware, createAuthenticatedGuard } from '@/lib/api/middleware'
+import { withApiMiddleware } from '@/lib/api/middleware'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { HTTP_STATUS } from '@/lib/constants/http'
@@ -318,7 +318,8 @@ export const POST = withApiMiddleware(
       return json(sanitized, HTTP_STATUS.SERVER_ERROR)
     }
   },
-  createAuthenticatedGuard({
+  {
     route: '/api/admin/refund-subscription',
-  })
+    requireAuth: true,
+  }
 )

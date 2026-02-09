@@ -36,15 +36,6 @@ const mockPrisma = {
   },
 }
 
-vi.mock('next/headers', () => ({
-  headers: vi.fn(() => ({
-    get: vi.fn((key: string) => {
-      if (key === 'stripe-signature') return 'test-signature'
-      return null
-    }),
-  })),
-}))
-
 vi.mock('@/lib/db/prisma', () => ({
   prisma: mockPrisma,
 }))
@@ -105,6 +96,21 @@ vi.mock('stripe', () => {
   }
 })
 
+function createWebhookRequest(body: unknown, signature?: string) {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+  if (signature) {
+    headers['stripe-signature'] = signature
+  }
+  const payload = typeof body === 'string' ? body : JSON.stringify(body)
+  return new Request('http://localhost/api/webhook/stripe', {
+    method: 'POST',
+    headers,
+    body: payload,
+  })
+}
+
 describe('Stripe Webhook Edge Cases (P1)', () => {
   const originalEnv = process.env
 
@@ -125,71 +131,41 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
   describe('Signature Verification', () => {
     it('should reject missing signature header', async () => {
-      const { headers } = await import('next/headers')
-      vi.mocked(headers).mockReturnValue({
-        get: vi.fn(() => null),
-      } as any)
-
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify({ type: 'test' }),
-      })
+      const request = createWebhookRequest({ type: 'test' })
 
       const response = await POST(request)
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error?.message || data.message).toContain('Missing stripe-signature')
+      expect(data.error.message).toContain('Missing stripe-signature')
     })
 
     it('should reject invalid signature', async () => {
-      const { headers } = await import('next/headers')
-      vi.mocked(headers).mockReturnValue({
-        get: vi.fn((key: string) => {
-          if (key === 'stripe-signature') return 'invalid-signature'
-          return null
-        }),
-      } as any)
-
       mockStripeWebhooksConstructEvent.mockImplementation(() => {
         throw new Error('Signature verification failed')
       })
 
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify({ type: 'test' }),
-      })
+      const request = createWebhookRequest({ type: 'test' }, 'invalid-signature')
 
       const response = await POST(request)
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error?.message || data.message).toContain('verification failed')
+      expect(data.error.message).toContain('verification')
     })
 
     it('should reject tampered payload', async () => {
-      const { headers } = await import('next/headers')
-      vi.mocked(headers).mockReturnValue({
-        get: vi.fn((key: string) => {
-          if (key === 'stripe-signature') return 't=123,v1=abc'
-          return null
-        }),
-      } as any)
-
       mockStripeWebhooksConstructEvent.mockImplementation(() => {
         throw new Error('No signatures found matching the expected signature')
       })
 
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify({ type: 'test' }),
-      })
+      const request = createWebhookRequest({ type: 'test' }, 't=123,v1=abc')
 
       const response = await POST(request)
 
@@ -199,14 +175,6 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
   describe('Replay Attack Prevention', () => {
     it('should reject events older than 5 minutes', async () => {
-      const { headers } = await import('next/headers')
-      vi.mocked(headers).mockReturnValue({
-        get: vi.fn((key: string) => {
-          if (key === 'stripe-signature') return 'valid-sig'
-          return null
-        }),
-      } as any)
-
       // Event created 10 minutes ago
       const staleEvent = {
         id: 'evt_stale_123',
@@ -221,27 +189,16 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify(staleEvent),
-      })
+      const request = createWebhookRequest(staleEvent, 'valid-sig')
 
       const response = await POST(request)
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error?.message || data.message).toContain('too old')
+      expect(data.error.message).toContain('too old')
     })
 
     it('should accept events within 5 minute window', async () => {
-      const { headers } = await import('next/headers')
-      vi.mocked(headers).mockReturnValue({
-        get: vi.fn((key: string) => {
-          if (key === 'stripe-signature') return 'valid-sig'
-          return null
-        }),
-      } as any)
-
       // Event created 2 minutes ago
       const recentEvent = {
         id: 'evt_recent_123',
@@ -262,10 +219,7 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify(recentEvent),
-      })
+      const request = createWebhookRequest(recentEvent, 'valid-sig')
 
       const response = await POST(request)
 
@@ -275,14 +229,6 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
   describe('Idempotency', () => {
     it('should skip already processed events', async () => {
-      const { headers } = await import('next/headers')
-      vi.mocked(headers).mockReturnValue({
-        get: vi.fn((key: string) => {
-          if (key === 'stripe-signature') return 'valid-sig'
-          return null
-        }),
-      } as any)
-
       const event = {
         id: 'evt_already_processed',
         type: 'checkout.session.completed',
@@ -307,10 +253,7 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify(event),
-      })
+      const request = createWebhookRequest(event, 'valid-sig')
 
       const response = await POST(request)
       const data = await response.json()
@@ -320,14 +263,6 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
     })
 
     it('should handle concurrent duplicate events', async () => {
-      const { headers } = await import('next/headers')
-      vi.mocked(headers).mockReturnValue({
-        get: vi.fn((key: string) => {
-          if (key === 'stripe-signature') return 'valid-sig'
-          return null
-        }),
-      } as any)
-
       const event = {
         id: 'evt_concurrent_123',
         type: 'checkout.session.completed',
@@ -362,14 +297,8 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
       // Simulate concurrent requests
-      const request1 = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify(event),
-      })
-      const request2 = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify(event),
-      })
+      const request1 = createWebhookRequest(event, 'valid-sig')
+      const request2 = createWebhookRequest(event, 'valid-sig')
 
       const [response1, response2] = await Promise.all([POST(request1), POST(request2)])
 
@@ -390,14 +319,6 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
     })
 
     beforeEach(() => {
-      const { headers } = require('next/headers')
-      vi.mocked(headers).mockReturnValue({
-        get: vi.fn((key: string) => {
-          if (key === 'stripe-signature') return 'valid-sig'
-          return null
-        }),
-      } as any)
-
       mockPrisma.stripeEventLog.create.mockResolvedValue({})
       mockPrisma.stripeEventLog.update.mockResolvedValue({})
     })
@@ -425,10 +346,7 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
       const { POST } = await import('@/app/api/webhook/stripe/route')
       const { addBonusCredits } = await import('@/lib/credits/creditService')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify(event),
-      })
+      const request = createWebhookRequest(event, 'valid-sig')
 
       const response = await POST(request)
 
@@ -458,10 +376,7 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify(event),
-      })
+      const request = createWebhookRequest(event, 'valid-sig')
 
       const response = await POST(request)
 
@@ -495,10 +410,7 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
       const { POST } = await import('@/app/api/webhook/stripe/route')
       const { upgradePlan } = await import('@/lib/credits/creditService')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify(event),
-      })
+      const request = createWebhookRequest(event, 'valid-sig')
 
       const response = await POST(request)
 
@@ -513,10 +425,7 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify(event),
-      })
+      const request = createWebhookRequest(event, 'valid-sig')
 
       const response = await POST(request)
 
@@ -526,14 +435,6 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
   describe('Error Recovery', () => {
     it('should log failed event processing', async () => {
-      const { headers } = await import('next/headers')
-      vi.mocked(headers).mockReturnValue({
-        get: vi.fn((key: string) => {
-          if (key === 'stripe-signature') return 'valid-sig'
-          return null
-        }),
-      } as any)
-
       const event = {
         id: 'evt_error_123',
         type: 'checkout.session.completed',
@@ -555,10 +456,7 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify(event),
-      })
+      const request = createWebhookRequest(event, 'valid-sig')
 
       const response = await POST(request)
 
@@ -574,14 +472,6 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
     })
 
     it('should handle missing user gracefully for credit pack', async () => {
-      const { headers } = await import('next/headers')
-      vi.mocked(headers).mockReturnValue({
-        get: vi.fn((key: string) => {
-          if (key === 'stripe-signature') return 'valid-sig'
-          return null
-        }),
-      } as any)
-
       const event = {
         id: 'evt_no_user_123',
         type: 'checkout.session.completed',
@@ -602,10 +492,7 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify(event),
-      })
+      const request = createWebhookRequest(event, 'valid-sig')
 
       const response = await POST(request)
 
@@ -616,14 +503,6 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
   describe('Livemode Handling', () => {
     it('should process test mode events', async () => {
-      const { headers } = await import('next/headers')
-      vi.mocked(headers).mockReturnValue({
-        get: vi.fn((key: string) => {
-          if (key === 'stripe-signature') return 'valid-sig'
-          return null
-        }),
-      } as any)
-
       const event = {
         id: 'evt_test_mode',
         type: 'checkout.session.completed',
@@ -639,10 +518,7 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify(event),
-      })
+      const request = createWebhookRequest(event, 'valid-sig')
 
       const response = await POST(request)
 
@@ -650,14 +526,6 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
     })
 
     it('should process live mode events', async () => {
-      const { headers } = await import('next/headers')
-      vi.mocked(headers).mockReturnValue({
-        get: vi.fn((key: string) => {
-          if (key === 'stripe-signature') return 'valid-sig'
-          return null
-        }),
-      } as any)
-
       const event = {
         id: 'evt_live_mode',
         type: 'checkout.session.completed',
@@ -673,10 +541,7 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
-      const request = new Request('http://localhost/api/webhook/stripe', {
-        method: 'POST',
-        body: JSON.stringify(event),
-      })
+      const request = createWebhookRequest(event, 'valid-sig')
 
       const response = await POST(request)
 

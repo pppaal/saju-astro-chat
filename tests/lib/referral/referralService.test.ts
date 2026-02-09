@@ -471,6 +471,11 @@ describe("Referral Service with mocked Prisma", () => {
   // Mock dependencies
   vi.mock("@/lib/db/prisma", () => ({
     prisma: {
+      userSettings: {
+        findUnique: vi.fn(),
+        findFirst: vi.fn(),
+        upsert: vi.fn(),
+      },
       user: {
         findUnique: vi.fn(),
         findFirst: vi.fn(),
@@ -508,7 +513,7 @@ describe("Referral Service with mocked Prisma", () => {
       const { prisma } = await import("@/lib/db/prisma");
       const { getUserReferralCode } = await import("@/lib/referral/referralService");
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({
         referralCode: "EXISTING1",
       } as never);
 
@@ -520,14 +525,14 @@ describe("Referral Service with mocked Prisma", () => {
       const { prisma } = await import("@/lib/db/prisma");
       const { getUserReferralCode } = await import("@/lib/referral/referralService");
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({
         referralCode: null,
       } as never);
-      vi.mocked(prisma.user.update).mockResolvedValue({} as never);
+      vi.mocked(prisma.userSettings.upsert).mockResolvedValue({} as never);
 
       const code = await getUserReferralCode("user-456");
       expect(code).toHaveLength(8);
-      expect(prisma.user.update).toHaveBeenCalled();
+      expect(prisma.userSettings.upsert).toHaveBeenCalled();
     });
   });
 
@@ -536,14 +541,18 @@ describe("Referral Service with mocked Prisma", () => {
       const { prisma } = await import("@/lib/db/prisma");
       const { findUserByReferralCode } = await import("@/lib/referral/referralService");
 
-      const mockUser = { id: "user-123", name: "Test", referralCode: "ABC12345" };
-      vi.mocked(prisma.user.findFirst).mockResolvedValue(mockUser as never);
+      const mockSettings = {
+        userId: "user-123",
+        referralCode: "ABC12345",
+        user: { id: "user-123", name: "Test" },
+      };
+      vi.mocked(prisma.userSettings.findFirst).mockResolvedValue(mockSettings as never);
 
       const result = await findUserByReferralCode("abc12345");
-      expect(result).toEqual(mockUser);
-      expect(prisma.user.findFirst).toHaveBeenCalledWith({
+      expect(result).toEqual({ id: "user-123", name: "Test", referralCode: "ABC12345" });
+      expect(prisma.userSettings.findFirst).toHaveBeenCalledWith({
         where: { referralCode: "ABC12345" },
-        select: { id: true, name: true, referralCode: true },
+        select: { userId: true, referralCode: true, user: { select: { id: true, name: true } } },
       });
     });
 
@@ -551,7 +560,7 @@ describe("Referral Service with mocked Prisma", () => {
       const { prisma } = await import("@/lib/db/prisma");
       const { findUserByReferralCode } = await import("@/lib/referral/referralService");
 
-      vi.mocked(prisma.user.findFirst).mockResolvedValue(null);
+      vi.mocked(prisma.userSettings.findFirst).mockResolvedValue(null);
 
       const result = await findUserByReferralCode("INVALID");
       expect(result).toBeNull();
@@ -563,7 +572,7 @@ describe("Referral Service with mocked Prisma", () => {
       const { prisma } = await import("@/lib/db/prisma");
       const { linkReferrer } = await import("@/lib/referral/referralService");
 
-      vi.mocked(prisma.user.findFirst).mockResolvedValue(null);
+      vi.mocked(prisma.userSettings.findFirst).mockResolvedValue(null);
 
       const result = await linkReferrer("new-user", "INVALID");
       expect(result).toEqual({ success: false, error: "invalid_code" });
@@ -573,10 +582,10 @@ describe("Referral Service with mocked Prisma", () => {
       const { prisma } = await import("@/lib/db/prisma");
       const { linkReferrer } = await import("@/lib/referral/referralService");
 
-      vi.mocked(prisma.user.findFirst).mockResolvedValue({
-        id: "user-123",
-        name: "Test",
+      vi.mocked(prisma.userSettings.findFirst).mockResolvedValue({
+        userId: "user-123",
         referralCode: "ABC12345",
+        user: { id: "user-123", name: "Test" },
       } as never);
 
       const result = await linkReferrer("user-123", "ABC12345");
@@ -588,10 +597,10 @@ describe("Referral Service with mocked Prisma", () => {
       const { linkReferrer } = await import("@/lib/referral/referralService");
       const { addBonusCredits } = await import("@/lib/credits/creditService");
 
-      vi.mocked(prisma.user.findFirst).mockResolvedValue({
-        id: "referrer-1",
-        name: "Referrer",
+      vi.mocked(prisma.userSettings.findFirst).mockResolvedValue({
+        userId: "referrer-1",
         referralCode: "ABC12345",
+        user: { id: "referrer-1", name: "Referrer" },
       } as never);
       vi.mocked(prisma.user.update).mockResolvedValue({} as never);
       vi.mocked(prisma.referralReward.create).mockResolvedValue({} as never);
@@ -611,7 +620,7 @@ describe("Referral Service with mocked Prisma", () => {
       const { prisma } = await import("@/lib/db/prisma");
       const { linkReferrer } = await import("@/lib/referral/referralService");
 
-      vi.mocked(prisma.user.findFirst).mockRejectedValue(new Error("DB error"));
+      vi.mocked(prisma.userSettings.findFirst).mockRejectedValue(new Error("DB error"));
 
       const result = await linkReferrer("new-user", "ABC12345");
       expect(result).toEqual({ success: false, error: "DB error" });
@@ -665,7 +674,7 @@ describe("Referral Service with mocked Prisma", () => {
       const { prisma } = await import("@/lib/db/prisma");
       const { getReferralStats } = await import("@/lib/referral/referralService");
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({
         referralCode: "ABC12345",
       } as never);
       vi.mocked(prisma.user.findMany).mockResolvedValue([
@@ -689,12 +698,12 @@ describe("Referral Service with mocked Prisma", () => {
       const { prisma } = await import("@/lib/db/prisma");
       const { getReferralStats } = await import("@/lib/referral/referralService");
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({
         referralCode: null,
       } as never);
       vi.mocked(prisma.user.findMany).mockResolvedValue([] as never);
       vi.mocked(prisma.referralReward.findMany).mockResolvedValue([] as never);
-      vi.mocked(prisma.user.update).mockResolvedValue({} as never);
+      vi.mocked(prisma.userSettings.upsert).mockResolvedValue({} as never);
 
       const result = await getReferralStats("user-456");
 

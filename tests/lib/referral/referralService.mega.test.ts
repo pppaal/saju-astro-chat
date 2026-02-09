@@ -21,6 +21,11 @@ import {
 // Mock dependencies
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
+    userSettings: {
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      upsert: vi.fn(),
+    },
     user: {
       findUnique: vi.fn(),
       findFirst: vi.fn(),
@@ -83,40 +88,35 @@ describe('Referral Service', () => {
   describe('getUserReferralCode', () => {
     it('should return existing code if available', async () => {
       const mockUser = { referralCode: 'ABC12345' }
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
 
       const code = await getUserReferralCode('user_123')
 
       expect(code).toBe('ABC12345')
-      expect(prisma.user.update).not.toHaveBeenCalled()
+      expect(prisma.userSettings.upsert).not.toHaveBeenCalled()
     })
 
     it('should generate and save new code if none exists', async () => {
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         referralCode: null,
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
-        referralCode: 'NEW12345',
-      })
+      ;(prisma.userSettings.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       const code = await getUserReferralCode('user_123')
 
       expect(code).toHaveLength(8)
-      expect(prisma.user.update).toHaveBeenCalledWith(
+      expect(prisma.userSettings.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { id: 'user_123' },
-          data: expect.objectContaining({
-            referralCode: expect.any(String),
-          }),
+          where: { userId: 'user_123' },
+          create: { userId: 'user_123', referralCode: expect.any(String) },
+          update: { referralCode: expect.any(String) },
         })
       )
     })
 
     it('should handle missing user', async () => {
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null)
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
-        referralCode: 'GEN12345',
-      })
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+      ;(prisma.userSettings.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       const code = await getUserReferralCode('nonexistent')
 
@@ -126,18 +126,18 @@ describe('Referral Service', () => {
 
   describe('findUserByReferralCode', () => {
     it('should find user by referral code', async () => {
-      const mockUser = {
-        id: 'user_123',
-        name: 'Test User',
+      const mockSettings = {
+        userId: 'user_123',
         referralCode: 'ABC12345',
+        user: { id: 'user_123', name: 'Test User' },
       }
 
-      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      ;(prisma.userSettings.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockSettings)
 
       const result = await findUserByReferralCode('ABC12345')
 
-      expect(result).toEqual(mockUser)
-      expect(prisma.user.findFirst).toHaveBeenCalledWith(
+      expect(result).toEqual({ id: 'user_123', name: 'Test User', referralCode: 'ABC12345' })
+      expect(prisma.userSettings.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { referralCode: 'ABC12345' },
         })
@@ -145,11 +145,11 @@ describe('Referral Service', () => {
     })
 
     it('should convert code to uppercase', async () => {
-      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+      ;(prisma.userSettings.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
 
       await findUserByReferralCode('abc12345')
 
-      expect(prisma.user.findFirst).toHaveBeenCalledWith(
+      expect(prisma.userSettings.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { referralCode: 'ABC12345' },
         })
@@ -157,7 +157,7 @@ describe('Referral Service', () => {
     })
 
     it('should return null for invalid code', async () => {
-      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+      ;(prisma.userSettings.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
 
       const result = await findUserByReferralCode('INVALID')
 
@@ -173,7 +173,11 @@ describe('Referral Service', () => {
     }
 
     beforeEach(() => {
-      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockReferrer)
+      ;(prisma.userSettings.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: mockReferrer.id,
+        referralCode: mockReferrer.referralCode,
+        user: { id: mockReferrer.id, name: mockReferrer.name },
+      })
       ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
       ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: 'referrer_123',
@@ -245,7 +249,7 @@ describe('Referral Service', () => {
     })
 
     it('should reject invalid referral code', async () => {
-      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+      ;(prisma.userSettings.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
 
       const result = await linkReferrer('new_user_123', 'INVALID')
 
@@ -390,7 +394,7 @@ describe('Referral Service', () => {
         },
       ]
 
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
       ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockReferrals)
       ;(prisma.referralReward.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockRewards)
 
@@ -406,12 +410,10 @@ describe('Referral Service', () => {
     })
 
     it('should generate code if missing', async () => {
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         referralCode: null,
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
-        referralCode: 'GEN12345',
-      })
+      ;(prisma.userSettings.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({})
       ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
       ;(prisma.referralReward.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
 
@@ -430,7 +432,7 @@ describe('Referral Service', () => {
         },
       ]
 
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         referralCode: 'TEST1234',
       })
       ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockReferrals)
@@ -448,7 +450,7 @@ describe('Referral Service', () => {
         { id: 'ref3', name: 'User 3', createdAt: new Date(), readings: [] },
       ]
 
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         referralCode: 'TEST1234',
       })
       ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockReferrals)
@@ -467,7 +469,7 @@ describe('Referral Service', () => {
         { id: '3', creditsAwarded: 10, status: 'completed', createdAt: new Date() },
       ]
 
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         referralCode: 'TEST1234',
       })
       ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
@@ -479,7 +481,7 @@ describe('Referral Service', () => {
     })
 
     it('should return empty stats for new user', async () => {
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         referralCode: 'NEW12345',
       })
       ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
@@ -572,7 +574,7 @@ describe('Referral Service', () => {
           readings: i % 2 === 0 ? [{ id: `r${i}` }] : [],
         }))
 
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         referralCode: 'LONG1234',
       })
       ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockReferrals)
@@ -591,7 +593,11 @@ describe('Referral Service', () => {
         referralCode: 'REF12345',
       }
 
-      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockReferrer)
+      ;(prisma.userSettings.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: mockReferrer.id,
+        referralCode: mockReferrer.referralCode,
+        user: { id: mockReferrer.id, name: mockReferrer.name },
+      })
       ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: 'referrer_123',
         email: 'not-an-email',
@@ -622,17 +628,17 @@ describe('Referral Service', () => {
   describe('Integration Scenarios', () => {
     it('should handle complete referral flow', async () => {
       // 1. Get referrer code
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         referralCode: 'REF12345',
       })
       const code = await getUserReferralCode('referrer_123')
       expect(code).toBe('REF12345')
 
       // 2. Validate code
-      ;(prisma.user.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
-        id: 'referrer_123',
-        name: 'Referrer',
+      ;(prisma.userSettings.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: 'referrer_123',
         referralCode: 'REF12345',
+        user: { id: 'referrer_123', name: 'Referrer' },
       })
       const referrer = await findUserByReferralCode('REF12345')
       expect(referrer).toBeDefined()

@@ -22,19 +22,41 @@ vi.mock('@vercel/blob', () => ({
 let capturedHandler: ((req: NextRequest, context: { userId: string }) => Promise<Response>) | null =
   null
 
+const errorStatusByCode: Record<string, number> = {
+  VALIDATION_ERROR: 422,
+  INTERNAL_ERROR: 500,
+}
+
 vi.mock('@/lib/api/middleware', () => ({
   withApiMiddleware: vi.fn((handler: any) => {
     capturedHandler = handler
     return async (req: NextRequest) => {
       // Simulate authenticated middleware by calling handler with userId context
-      return handler(req, { userId: 'test-user-123' })
+      const result = await handler(req, { userId: 'test-user-123' })
+      if (result instanceof Response) {
+        return result
+      }
+      if (result?.error) {
+        const status = errorStatusByCode[result.error.code] ?? 400
+        return Response.json(
+          {
+            success: false,
+            error: {
+              code: result.error.code,
+              message: result.error.message,
+              status,
+            },
+          },
+          { status }
+        )
+      }
+      const status = result?.status ?? 200
+      return Response.json({ success: true, data: result?.data ?? result }, { status })
     }
   }),
   createAuthenticatedGuard: vi.fn(() => ({})),
-  apiSuccess: vi.fn((data: any) => Response.json(data, { status: 200 })),
-  apiError: vi.fn((code: string, message: string) =>
-    Response.json({ error: message, code }, { status: code === 'INTERNAL_ERROR' ? 500 : 400 })
-  ),
+  apiSuccess: vi.fn((data: any) => ({ data })),
+  apiError: vi.fn((code: string, message: string) => ({ error: { code, message } })),
   ErrorCodes: {
     VALIDATION_ERROR: 'VALIDATION_ERROR',
     INTERNAL_ERROR: 'INTERNAL_ERROR',
@@ -43,11 +65,15 @@ vi.mock('@/lib/api/middleware', () => ({
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
-    user: {
-      update: vi.fn(),
+    userProfile: {
+      upsert: vi.fn(),
     },
     matchProfile: {
+      findUnique: vi.fn(),
       update: vi.fn(),
+    },
+    user: {
+      findUnique: vi.fn(),
     },
   },
 }))
@@ -89,6 +115,16 @@ describe('/api/user/upload-photo', () => {
       url: 'https://blob.vercel-storage.com/profiles/test-user-123_1234.jpg',
     })
     mockDel.mockResolvedValue(undefined)
+    ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
+      userId: mockUserId,
+      profilePhoto: 'https://blob.vercel-storage.com/profiles/test-user-123_1234.jpg',
+    })
+    ;(prisma.matchProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+    ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: mockUserId,
+      name: 'Test User',
+      image: null,
+    })
   })
 
   // Import to trigger module evaluation and capture the handler
@@ -105,7 +141,7 @@ describe('/api/user/upload-photo', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(data.error).toContain('No photo file provided')
+      expect(data.error.message).toContain('No photo file provided')
     })
 
     it('should reject invalid file types', async () => {
@@ -124,7 +160,7 @@ describe('/api/user/upload-photo', () => {
         const response = await POST(req)
         const data = await response.json()
 
-        expect(data.error).toContain('Invalid file type')
+        expect(data.error.message).toContain('Invalid file type')
       }
     })
 
@@ -137,7 +173,7 @@ describe('/api/user/upload-photo', () => {
         mockPut.mockResolvedValue({
           url: 'https://blob.vercel-storage.com/profiles/test.jpg',
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           name: 'Test User',
           image: null,
@@ -150,7 +186,7 @@ describe('/api/user/upload-photo', () => {
         const response = await POST(req)
         const data = await response.json()
 
-        expect(data.ok).toBe(true)
+        expect(data.data.ok).toBe(true)
       }
     })
 
@@ -161,7 +197,7 @@ describe('/api/user/upload-photo', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(data.error).toContain('File too large')
+      expect(data.error.message).toContain('File too large')
     })
 
     it('should accept files at exactly 5MB', async () => {
@@ -169,7 +205,7 @@ describe('/api/user/upload-photo', () => {
       mockPut.mockResolvedValue({
         url: 'https://blob.vercel-storage.com/profiles/max.jpg',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         name: 'Test User',
         profilePhoto: 'https://blob.vercel-storage.com/profiles/max.jpg',
@@ -181,7 +217,7 @@ describe('/api/user/upload-photo', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(data.ok).toBe(true)
+      expect(data.data.ok).toBe(true)
     })
   })
 
@@ -191,7 +227,7 @@ describe('/api/user/upload-photo', () => {
       mockPut.mockResolvedValue({
         url: 'https://blob.vercel-storage.com/profiles/test.jpg',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         profilePhoto: 'https://blob.vercel-storage.com/profiles/test.jpg',
         matchProfile: null,
@@ -213,7 +249,7 @@ describe('/api/user/upload-photo', () => {
       mockPut.mockResolvedValue({
         url: 'https://blob.vercel-storage.com/profiles/test.jpg',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         profilePhoto: 'https://blob.vercel-storage.com/profiles/test.jpg',
         matchProfile: null,
@@ -239,7 +275,7 @@ describe('/api/user/upload-photo', () => {
         mockPut.mockResolvedValue({
           url: `https://blob.vercel-storage.com/profiles/test.${ext}`,
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           profilePhoto: `https://blob.vercel-storage.com/profiles/test.${ext}`,
           matchProfile: null,
@@ -262,27 +298,30 @@ describe('/api/user/upload-photo', () => {
       const blobUrl = 'https://blob.vercel-storage.com/profiles/test.jpg'
       mockPut.mockResolvedValue({ url: blobUrl })
 
-      const mockUser = {
+      const mockUserProfile = {
+        userId: mockUserId,
+        profilePhoto: blobUrl,
+      }
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue(mockUserProfile)
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         name: 'Test User',
         image: null,
-        profilePhoto: blobUrl,
-        matchProfile: null,
-      }
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      })
 
       const file = createMockFile('test.jpg', 'image/jpeg', 1024)
       const req = await createRequestWithFile(file)
       const response = await POST(req)
       const data = await response.json()
 
-      expect(prisma.user.update).toHaveBeenCalledWith(
+      expect(prisma.userProfile.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { id: mockUserId },
-          data: { profilePhoto: blobUrl },
+          where: { userId: mockUserId },
+          create: { userId: mockUserId, profilePhoto: blobUrl },
+          update: { profilePhoto: blobUrl },
         })
       )
-      expect(data.ok).toBe(true)
+      expect(data.data.ok).toBe(true)
     })
 
     it('should sync with MatchProfile if exists', async () => {
@@ -291,15 +330,14 @@ describe('/api/user/upload-photo', () => {
       mockPut.mockResolvedValue({ url: blobUrl })
 
       const mockUser = {
-        id: mockUserId,
-        name: 'Test User',
+        userId: mockUserId,
         profilePhoto: blobUrl,
-        matchProfile: {
-          id: 'match-123',
-          photos: ['/old1.jpg', '/old2.jpg'],
-        },
       }
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      ;(prisma.matchProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 'match-123',
+        photos: ['/old1.jpg', '/old2.jpg'],
+      })
       ;(prisma.matchProfile.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       const file = createMockFile('test.jpg', 'image/jpeg', 1024)
@@ -322,14 +360,14 @@ describe('/api/user/upload-photo', () => {
       mockPut.mockResolvedValue({ url: blobUrl })
 
       const mockUser = {
-        id: mockUserId,
+        userId: mockUserId,
         profilePhoto: blobUrl,
-        matchProfile: {
-          id: 'match-123',
-          photos: ['/1.jpg', '/2.jpg', '/3.jpg', '/4.jpg', '/5.jpg', '/6.jpg'],
-        },
       }
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      ;(prisma.matchProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 'match-123',
+        photos: ['/1.jpg', '/2.jpg', '/3.jpg', '/4.jpg', '/5.jpg', '/6.jpg'],
+      })
       ;(prisma.matchProfile.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       const file = createMockFile('test.jpg', 'image/jpeg', 1024)
@@ -347,14 +385,14 @@ describe('/api/user/upload-photo', () => {
       mockPut.mockResolvedValue({ url: blobUrl })
 
       const mockUser = {
-        id: mockUserId,
+        userId: mockUserId,
         profilePhoto: blobUrl,
-        matchProfile: {
-          id: 'match-123',
-          photos: [blobUrl, '/other.jpg'],
-        },
       }
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      ;(prisma.matchProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 'match-123',
+        photos: [blobUrl, '/other.jpg'],
+      })
 
       const file = createMockFile('test.jpg', 'image/jpeg', 1024)
       const req = await createRequestWithFile(file)
@@ -370,14 +408,14 @@ describe('/api/user/upload-photo', () => {
       mockPut.mockResolvedValue({ url: blobUrl })
 
       const mockUser = {
-        id: mockUserId,
+        userId: mockUserId,
         profilePhoto: blobUrl,
-        matchProfile: {
-          id: 'match-123',
-          photos: null, // Non-array case
-        },
       }
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      ;(prisma.matchProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 'match-123',
+        photos: null, // Non-array case
+      })
       ;(prisma.matchProfile.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       const file = createMockFile('test.jpg', 'image/jpeg', 1024)
@@ -396,7 +434,7 @@ describe('/api/user/upload-photo', () => {
       const { POST } = await import('@/app/api/user/upload-photo/route')
       const blobUrl = 'https://blob.vercel-storage.com/profiles/test.jpg'
       mockPut.mockResolvedValue({ url: blobUrl })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockRejectedValue(
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error('Database connection failed')
       )
 
@@ -405,14 +443,14 @@ describe('/api/user/upload-photo', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(data.error).toContain('Failed to upload photo')
+      expect(data.error.message).toContain('Failed to upload photo')
     })
 
     it('should clean up blob on database error', async () => {
       const { POST } = await import('@/app/api/user/upload-photo/route')
       const blobUrl = 'https://blob.vercel-storage.com/profiles/test.jpg'
       mockPut.mockResolvedValue({ url: blobUrl })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockRejectedValue(
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error('Database error')
       )
 
@@ -432,7 +470,7 @@ describe('/api/user/upload-photo', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(data.error).toContain('Failed to upload photo')
+      expect(data.error.message).toContain('Failed to upload photo')
     })
   })
 
@@ -442,7 +480,7 @@ describe('/api/user/upload-photo', () => {
       mockPut.mockResolvedValue({
         url: 'https://blob.vercel-storage.com/profiles/test.jpg',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         profilePhoto: 'https://blob.vercel-storage.com/profiles/test.jpg',
         matchProfile: null,
@@ -482,18 +520,20 @@ describe('/api/user/upload-photo', () => {
         profilePhoto: blobUrl,
         matchProfile: null,
       }
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser)
 
       const file = createMockFile('test.jpg', 'image/jpeg', 1024)
       const req = await createRequestWithFile(file)
       const response = await POST(req)
       const data = await response.json()
 
-      expect(data).toHaveProperty('ok', true)
-      expect(data).toHaveProperty('photoUrl')
-      expect(data).toHaveProperty('user')
-      expect(data.user).toHaveProperty('id', mockUserId)
-      expect(data.user).toHaveProperty('profilePhoto')
+      expect(data).toHaveProperty('success', true)
+      expect(data).toHaveProperty('data')
+      expect(data.data).toHaveProperty('ok', true)
+      expect(data.data).toHaveProperty('photoUrl')
+      expect(data.data).toHaveProperty('user')
+      expect(data.data.user).toHaveProperty('id', mockUserId)
+      expect(data.data.user).toHaveProperty('profilePhoto')
     })
 
     it('should return proper error response structure', async () => {
@@ -503,8 +543,10 @@ describe('/api/user/upload-photo', () => {
       const response = await POST(req)
       const data = await response.json()
 
+      expect(data).toHaveProperty('success', false)
       expect(data).toHaveProperty('error')
-      expect(data).toHaveProperty('code')
+      expect(data.error).toHaveProperty('code')
+      expect(data.error).toHaveProperty('message')
     })
   })
 })

@@ -364,6 +364,7 @@ vi.mock('@/lib/db/prisma', () => {
     session: createModelMock(),
     verificationToken: createModelMock(),
     userCredits: createModelMock(),
+    userSettings: createModelMock(),
     userPreferences: createModelMock(),
     subscription: createModelMock(),
 

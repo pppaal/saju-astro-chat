@@ -10,31 +10,19 @@ import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { UnifiedBirthForm, BirthInfo as UnifiedBirthInfo } from '@/components/common/BirthForm'
 import styles from './DestinyCalendar.module.css'
 import { ICONS } from './constants'
-import type { BirthInfo, CityHit } from './types'
+import type { BirthInfo } from './types'
 
 interface BirthInfoFormProps {
   /** Optional canvas ref for particle animation */
   canvasRef?: RefObject<HTMLCanvasElement | null>
   birthInfo: BirthInfo
-  setBirthInfo: (info: BirthInfo | ((prev: BirthInfo) => BirthInfo)) => void
-  selectedCity?: CityHit | null
-  setSelectedCity?: (city: CityHit | null) => void
-  onSubmit: (e: React.FormEvent) => void
-  submitting?: boolean
-  timeUnknown?: boolean
-  setTimeUnknown?: (value: boolean) => void
-  cityErr?: string | null
-  setCityErr?: (err: string | null) => void
-  profileLoaded?: boolean
-  setProfileLoaded?: (loaded: boolean) => void
+  onSubmit: (birthInfo: BirthInfo) => void | Promise<void>
 }
 
 const BirthInfoForm = memo(function BirthInfoForm({
   canvasRef,
   birthInfo,
-  setBirthInfo,
   onSubmit,
-  submitting: _submitting,
 }: BirthInfoFormProps) {
   const { locale } = useI18n()
   const { status } = useSession()
@@ -43,7 +31,7 @@ const BirthInfoForm = memo(function BirthInfoForm({
   const handleFormSubmit = async (formData: UnifiedBirthInfo) => {
     // Convert form data to parent's expected format
     const genderValue = formData.gender || 'M'
-    setBirthInfo({
+    const normalizedBirthInfo: BirthInfo = {
       birthDate: formData.birthDate,
       birthTime: formData.birthTime,
       birthPlace: formData.birthCity || '',
@@ -52,13 +40,9 @@ const BirthInfoForm = memo(function BirthInfoForm({
       latitude: formData.latitude,
       longitude: formData.longitude,
       timezone: formData.timezone,
-    })
+    }
 
-    // Trigger parent's submit handler after a brief delay to ensure state is updated
-    setTimeout(() => {
-      const fakeEvent = new Event('submit') as unknown as React.FormEvent
-      onSubmit(fakeEvent)
-    }, 0)
+    await onSubmit(normalizedBirthInfo)
   }
 
   return (
