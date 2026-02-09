@@ -138,7 +138,7 @@ describe('Life Prediction Explain Results API - POST', () => {
     // Default: rate limit allows requests
     mockRateLimit.mockResolvedValue({
       allowed: true,
-      headers: new Map<string, string>([
+      headers: new Headers([
         ['X-RateLimit-Limit', '10'],
         ['X-RateLimit-Remaining', '9'],
       ]),
@@ -203,7 +203,7 @@ describe('Life Prediction Explain Results API - POST', () => {
     it('should return 429 when rate limit exceeded', async () => {
       mockRateLimit.mockResolvedValue({
         allowed: false,
-        headers: new Map<string, string>([
+        headers: new Headers([
           ['Retry-After', '60'],
           ['X-RateLimit-Remaining', '0'],
         ]),
@@ -215,7 +215,7 @@ describe('Life Prediction Explain Results API - POST', () => {
 
       expect(response.status).toBe(429)
       expect(data.success).toBe(false)
-      expect(data.error).toContain('Too many requests')
+      expect(data.error.code).toBe('RATE_LIMITED')
     })
 
     it('should allow requests within rate limit', async () => {
@@ -223,10 +223,10 @@ describe('Life Prediction Explain Results API - POST', () => {
       const response = await POST(request)
 
       expect(response.status).toBe(200)
-      expect(mockRateLimit).toHaveBeenCalledWith(expect.stringContaining('life-explain:'), {
-        limit: 10,
-        windowSeconds: 60,
-      })
+      expect(mockRateLimit).toHaveBeenCalledWith(
+        'api:/api/life-prediction/explain-results:127.0.0.1',
+        { limit: 10, windowSeconds: 60 }
+      )
     })
 
     it('should include rate limit headers on successful response', async () => {
@@ -1034,19 +1034,19 @@ describe('Life Prediction Explain Results API - POST', () => {
       expect(response.status).toBe(200)
     })
 
-    it('should throw error when request body is invalid JSON', async () => {
-      // Note: The source code's error handler also tries to parse JSON from request.clone(),
-      // which will fail if the original body was invalid JSON. This is a limitation in the
-      // current implementation that causes an unhandled error.
+    it('should return error response when request body is invalid JSON', async () => {
       const request = new NextRequest('http://localhost/api/life-prediction/explain-results', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: 'not-valid-json',
       })
 
-      // The route will throw because both the main try block and catch block
-      // attempt to parse JSON from the request body
-      await expect(POST(request)).rejects.toThrow()
+      const response = await POST(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(500)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
     it('should handle minimum valid score (0)', async () => {

@@ -440,7 +440,9 @@ describe('/api/auth/register - Security Tests', () => {
       expect(prisma.user.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           create: expect.objectContaining({
-            referralCode: 'REF123ABC',
+            settings: {
+              create: { referralCode: 'REF123ABC' },
+            },
           }),
         })
       )

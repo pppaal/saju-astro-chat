@@ -155,7 +155,8 @@ describe('Lunar Return API - POST /api/astrology/advanced/lunar-return', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('Too many requests. Try again soon.')
+      expect(data.error.code).toBe('RATE_LIMITED')
+      expect(data.error.message).toContain('Too many requests')
     })
 
     it('should include rate limit headers in rate-limited response', async () => {
@@ -198,7 +199,7 @@ describe('Lunar Return API - POST /api/astrology/advanced/lunar-return', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
     it('should proceed when public token is valid', async () => {
