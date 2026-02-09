@@ -10,7 +10,7 @@ import { logger } from '@/lib/logger'
 
 // Import from centralized modules
 import { hashName, maskDisplayName, maskTextWithName } from '@/lib/security'
-import { generateLocalReport } from './local-report-generator'
+import { generateLocalReport, generateLocalStructuredReport } from './local-report-generator'
 import {
   cleanseText,
   getDateInTimezone,
@@ -148,7 +148,9 @@ export async function generateReport({
   })
   if (!backendUrl) {
     logger.debug('[DestinyMap] No backend URL - using local template generation')
-    aiText = generateLocalReport(result, theme, lang, name)
+    aiText = useAI
+      ? generateLocalReport(result, theme, lang, name)
+      : generateLocalStructuredReport(result, theme, lang, name)
     modelUsed = 'local-template'
   } else {
     try {
@@ -219,7 +221,9 @@ export async function generateReport({
             : `Saju and Astrology Analysis:\n\n${contextText.substring(0, 2000)}`
       } else {
         // 백엔드 응답이 없으면 로컬 생성
-        aiText = generateLocalReport(result, theme, lang, name)
+        aiText = useAI
+          ? generateLocalReport(result, theme, lang, name)
+          : generateLocalStructuredReport(result, theme, lang, name)
       }
 
       modelUsed = data?.data?.model || 'fusion-backend'
@@ -227,7 +231,9 @@ export async function generateReport({
       logger.error('[DestinyMap] Fusion backend call failed:', err)
       backendAvailable = false
       // 백엔드 실패 시 로컬 생성으로 fallback
-      aiText = generateLocalReport(result, theme, lang, name)
+      aiText = useAI
+        ? generateLocalReport(result, theme, lang, name)
+        : generateLocalStructuredReport(result, theme, lang, name)
       modelUsed = 'local-template'
     }
   }

@@ -1,8 +1,8 @@
-// src/app/api/tarot/analyze-question/route.ts
+﻿// src/app/api/tarot/analyze-question/route.ts
 // GPT-4o-mini를 사용해서 사용자 질문을 분석하고 적절한 스프레드 추천 (비용 효율적)
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard } from '@/lib/api/middleware'
+import { withApiMiddleware, createTarotGuard } from '@/lib/api/middleware'
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
 import { logger } from '@/lib/logger'
 import { PATTERN_MAPPINGS, getExamInterviewMapping } from './pattern-mappings'
@@ -393,7 +393,7 @@ export const POST = withApiMiddleware(
       )
     }
   },
-  createSimpleGuard({
+  createTarotGuard({
     route: '/api/tarot/analyze-question',
     limit: 10,
     windowSeconds: 60,

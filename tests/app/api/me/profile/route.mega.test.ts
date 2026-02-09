@@ -127,6 +127,12 @@ vi.mock('@/lib/db/prisma', () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    userProfile: {
+      upsert: vi.fn(),
+    },
+    userSettings: {
+      upsert: vi.fn(),
+    },
     userPreferences: {
       upsert: vi.fn(),
     },
@@ -191,14 +197,18 @@ describe('/api/me/profile', () => {
     name: 'Test User',
     email: 'test@example.com',
     image: 'https://example.com/avatar.jpg',
-    profilePhoto: null,
-    birthDate: '1990-01-15',
-    birthTime: '14:30',
-    gender: 'male',
-    birthCity: 'Seoul',
-    tzId: 'Asia/Seoul',
     createdAt: new Date('2023-01-01'),
-    emailNotifications: true,
+    profile: {
+      profilePhoto: null,
+      birthDate: '1990-01-15',
+      birthTime: '14:30',
+      gender: 'male',
+      birthCity: 'Seoul',
+      tzId: 'Asia/Seoul',
+    },
+    settings: {
+      emailNotifications: true,
+    },
   }
 
   beforeEach(() => {
@@ -226,13 +236,22 @@ describe('/api/me/profile', () => {
           name: true,
           email: true,
           image: true,
-          birthDate: true,
-          birthTime: true,
-          gender: true,
-          birthCity: true,
-          tzId: true,
           createdAt: true,
-          emailNotifications: true,
+          profile: {
+            select: {
+              profilePhoto: true,
+              birthDate: true,
+              birthTime: true,
+              gender: true,
+              birthCity: true,
+              tzId: true,
+            },
+          },
+          settings: {
+            select: {
+              emailNotifications: true,
+            },
+          },
         }),
       })
     })
@@ -313,7 +332,7 @@ describe('/api/me/profile', () => {
     })
 
     it('should update emailNotifications boolean', async () => {
-      vi.mocked(prisma.user.update).mockResolvedValue(mockUserData as any)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUserData as any)
 
       const req = new NextRequest('http://localhost:3000/api/me/profile', {
         method: 'PATCH',
@@ -322,11 +341,11 @@ describe('/api/me/profile', () => {
 
       await PATCH(req, mockContext)
 
-      expect(prisma.user.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ emailNotifications: false }),
-        })
-      )
+      expect(prisma.userSettings.upsert).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+        create: { userId: mockUserId, emailNotifications: false },
+        update: { emailNotifications: false },
+      })
     })
 
     it('should update image URL', async () => {
@@ -385,7 +404,7 @@ describe('/api/me/profile', () => {
 
   describe('PATCH /api/me/profile - Birth Information', () => {
     it('should update all birth fields', async () => {
-      vi.mocked(prisma.user.update).mockResolvedValue(mockUserData as any)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUserData as any)
 
       const req = new NextRequest('http://localhost:3000/api/me/profile', {
         method: 'PATCH',
@@ -400,21 +419,28 @@ describe('/api/me/profile', () => {
 
       await PATCH(req, mockContext)
 
-      expect(prisma.user.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            birthDate: '1995-05-20',
-            birthTime: '09:15',
-            gender: 'female',
-            birthCity: 'Busan',
-            tzId: 'Asia/Seoul',
-          }),
-        })
-      )
+      expect(prisma.userProfile.upsert).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+        create: {
+          userId: mockUserId,
+          birthDate: '1995-05-20',
+          birthTime: '09:15',
+          gender: 'female',
+          birthCity: 'Busan',
+          tzId: 'Asia/Seoul',
+        },
+        update: {
+          birthDate: '1995-05-20',
+          birthTime: '09:15',
+          gender: 'female',
+          birthCity: 'Busan',
+          tzId: 'Asia/Seoul',
+        },
+      })
     })
 
     it('should allow null values for birth fields', async () => {
-      vi.mocked(prisma.user.update).mockResolvedValue(mockUserData as any)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUserData as any)
 
       const req = new NextRequest('http://localhost:3000/api/me/profile', {
         method: 'PATCH',
@@ -427,15 +453,11 @@ describe('/api/me/profile', () => {
 
       await PATCH(req, mockContext)
 
-      expect(prisma.user.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            birthDate: null,
-            birthTime: null,
-            gender: null,
-          }),
-        })
-      )
+      expect(prisma.userProfile.upsert).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+        create: { userId: mockUserId, birthDate: null, birthTime: null, gender: null },
+        update: { birthDate: null, birthTime: null, gender: null },
+      })
     })
   })
 

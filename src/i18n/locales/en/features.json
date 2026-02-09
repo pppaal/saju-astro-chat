@@ -232,7 +232,7 @@
   },
   "auth": {
     "signIn": "Sign In",
-    "welcomeBack": "Welcome Back",
+    "welcomeBack": "Welcome! Let's get started.",
     "signInToContinue": "Sign in to continue your cosmic journey",
     "signInWithGoogle": "Sign in with Google",
     "secureAuthentication": "Secure Authentication",

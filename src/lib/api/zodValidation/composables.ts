@@ -254,5 +254,4 @@ export type MinimalPersonValidated = z.infer<typeof minimalPersonSchema>
 /**
  * Extracts the validated type from a composable result
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type InferComposed<T extends z.ZodType<any>> = z.infer<T>
+export type InferComposed<T extends z.ZodTypeAny> = z.infer<T>

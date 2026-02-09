@@ -108,9 +108,11 @@ describe('Swipe API - POST', () => {
     likesGiven: 10,
     matchCount: 5,
     user: {
-      birthDate: new Date('1990-01-01'),
-      birthTime: '12:00',
-      gender: 'MALE',
+      profile: {
+        birthDate: new Date('1990-01-01'),
+        birthTime: '12:00',
+        gender: 'MALE',
+      },
     },
   }
 
@@ -119,9 +121,11 @@ describe('Swipe API - POST', () => {
     userId: 'user-456',
     likesReceived: 20,
     user: {
-      birthDate: new Date('1992-05-15'),
-      birthTime: '14:30',
-      gender: 'FEMALE',
+      profile: {
+        birthDate: new Date('1992-05-15'),
+        birthTime: '14:30',
+        gender: 'FEMALE',
+      },
     },
   }
 
@@ -1139,14 +1143,14 @@ describe('Swipe API - POST', () => {
 
       expect(calculateDetailedCompatibility).toHaveBeenCalledWith(
         expect.objectContaining({
-          birthDate: mockMyProfile.user.birthDate,
-          birthTime: mockMyProfile.user.birthTime,
-          gender: mockMyProfile.user.gender,
+          birthDate: mockMyProfile.user.profile.birthDate,
+          birthTime: mockMyProfile.user.profile.birthTime,
+          gender: mockMyProfile.user.profile.gender,
         }),
         expect.objectContaining({
-          birthDate: mockTargetProfile.user.birthDate,
-          birthTime: mockTargetProfile.user.birthTime,
-          gender: mockTargetProfile.user.gender,
+          birthDate: mockTargetProfile.user.profile.birthDate,
+          birthTime: mockTargetProfile.user.profile.birthTime,
+          gender: mockTargetProfile.user.profile.gender,
         })
       )
     })
@@ -1201,7 +1205,13 @@ describe('Swipe API - POST', () => {
     it('should skip compatibility if birthDate missing', async () => {
       const profileNoBirthDate = {
         ...mockMyProfile,
-        user: { ...mockMyProfile.user, birthDate: null },
+        user: {
+          ...mockMyProfile.user,
+          profile: {
+            ...mockMyProfile.user.profile,
+            birthDate: null,
+          },
+        },
       }
 
       vi.mocked(prisma.matchProfile.findUnique)

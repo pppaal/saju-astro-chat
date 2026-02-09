@@ -78,6 +78,7 @@ from .insights import (
     get_lucky_elements,
     get_saju_highlight,
     get_astro_highlight,
+    get_character_builder,
 )
 
 # Theme sections
@@ -131,6 +132,7 @@ __all__ = [
     "get_lucky_elements",
     "get_saju_highlight",
     "get_astro_highlight",
+    "get_character_builder",
     # Theme sections
     "get_theme_sections",
     "get_theme_summary",

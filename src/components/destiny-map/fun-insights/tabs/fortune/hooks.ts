@@ -1,9 +1,81 @@
 // src/components/destiny-map/fun-insights/tabs/fortune/hooks.ts
 
 import { elementTraits } from '../../data';
-import type { SajuDataExtended, YearFortune, MonthFortune, TodayFortune } from './types';
+import type {
+  SajuDataExtended,
+  YearFortune,
+  MonthFortune,
+  TodayFortune,
+  FortuneActionPlan,
+  ElementKey
+} from './types';
 import { getStemElement } from './utils';
 import { DM_ELEMENTS } from './constants';
+
+const ELEMENT_FOCUS: Record<ElementKey, { ko: string; en: string }> = {
+  wood: { ko: '시작과 성장', en: 'Beginnings & Growth' },
+  fire: { ko: '표현과 열정', en: 'Expression & Passion' },
+  earth: { ko: '안정과 정리', en: 'Stability & Organization' },
+  metal: { ko: '결단과 정돈', en: 'Decision & Refinement' },
+  water: { ko: '직관과 회복', en: 'Intuition & Recovery' }
+};
+
+const TODAY_ACTIONS: Record<ElementKey, { ko: string[]; en: string[] }> = {
+  wood: {
+    ko: ['새로운 시도 1가지 바로 시작하기', '새로운 사람/정보 접촉 1회', '몸을 움직이는 활동 20-30분'],
+    en: ['Start one new attempt today', 'Reach out to new people/info once', 'Move your body 20-30 minutes']
+  },
+  fire: {
+    ko: ['내가 드러나는 행동 1회(공유/발표)', '에너지 높은 활동 20-30분', '감정 표현 또는 감사 메시지 1회'],
+    en: ['Do one visible action (share/present)', 'High-energy activity 20-30 minutes', 'Express feelings or send gratitude once']
+  },
+  earth: {
+    ko: ['미완료 작업 1개 마무리', '정리/정돈 15분', '식사/수면 루틴 지키기'],
+    en: ['Finish one unfinished task', 'Organize/clean for 15 minutes', 'Keep meals/sleep routine']
+  },
+  metal: {
+    ko: ['미뤄온 결정 1개 내리기', '불필요한 것 1개 줄이기', '파일/책상 정리 15분'],
+    en: ['Make one delayed decision', 'Cut one unnecessary thing', 'Organize files/desk for 15 minutes']
+  },
+  water: {
+    ko: ['10분 계획/리플렉션', '집중 작업/학습 45-60분', '수분 섭취 + 충분한 휴식'],
+    en: ['Plan/reflect for 10 minutes', 'Deep work/learning 45-60 minutes', 'Hydrate and rest well']
+  }
+};
+
+const WEEK_ACTIONS: Record<ElementKey, { ko: string[]; en: string[] }> = {
+  wood: {
+    ko: ['이번 주 목표 1개 설정하고 체크', '성장 활동 2회(학습/도전)', '새로운 만남/네트워킹 1회', '야외/이동 활동 1회'],
+    en: ['Set one weekly goal and track it', 'Two growth activities (learn/challenge)', 'One new meeting/networking', 'One outdoor/movement activity']
+  },
+  fire: {
+    ko: ['표현/홍보/발표 1회', '창작/취미 시간 1-2시간', '네트워킹 1회', '과열 방지 휴식 1회'],
+    en: ['One expression/promo/presentation', '1-2 hours of creative/hobby time', 'One networking moment', 'One rest to prevent burnout']
+  },
+  earth: {
+    ko: ['루틴 1가지 강화(수면/식사/운동)', '공간 정리 1회', '지출/예산 점검 1회', '지속 프로젝트 1개 꾸준히'],
+    en: ['Strengthen one routine (sleep/meal/exercise)', 'One space organization', 'One expense/budget check', 'Keep one ongoing project steady']
+  },
+  metal: {
+    ko: ['일/관계 정리 1건 마감', '우선순위 재정렬 1회', '규칙/습관 다듬기 1회', '불필요한 소비/약속 1건 줄이기'],
+    en: ['Close one work/relationship loop', 'Reorder priorities once', 'Refine one rule/habit', 'Reduce one unnecessary spend/commitment']
+  },
+  water: {
+    ko: ['계획/학습 세션 2회', '깊은 대화 또는 기록 1회', '회복 루틴 1회(휴식/목욕/명상)', '직감 아이디어 노트 작성'],
+    en: ['Two planning/learning sessions', 'One deep conversation or journaling', 'One recovery routine (rest/bath/meditation)', 'Capture intuitive ideas in a note']
+  }
+};
+
+function normalizeElement(value: string | undefined): ElementKey | null {
+  if (!value) {return null;}
+  const v = value.toLowerCase();
+  if (v.includes('wood') || v.includes('목') || v.includes('木')) {return 'wood';}
+  if (v.includes('fire') || v.includes('화') || v.includes('火')) {return 'fire';}
+  if (v.includes('earth') || v.includes('토') || v.includes('土')) {return 'earth';}
+  if (v.includes('metal') || v.includes('금') || v.includes('金')) {return 'metal';}
+  if (v.includes('water') || v.includes('수') || v.includes('水')) {return 'water';}
+  return null;
+}
 
 interface UseYearFortuneParams {
   sajuExt: SajuDataExtended | undefined;
@@ -127,6 +199,7 @@ export function calculateYearFortune({ sajuExt, dayMasterName, dayElement, isKo 
   return {
     year: currentYear,
     ganji,
+    element,
     fortune: getYearFortune(element),
     relation: getYearRelation(dayMasterName, element)
   };
@@ -230,6 +303,7 @@ export function calculateMonthFortune({ sajuExt, isKo }: UseMonthFortuneParams):
     month: currentMonth,
     monthName: monthNames[currentMonth - 1],
     ganji,
+    element,
     fortune: getMonthFortune(element),
     detail: getMonthDetail(element)
   };
@@ -289,6 +363,66 @@ export function calculateTodayFortune({ sajuExt, isKo }: UseTodayFortuneParams):
 
   return {
     ganji,
+    element,
     fortune: getDayFortune(element)
+  };
+}
+
+interface UseActionPlanParams {
+  todayFortune: TodayFortune | null;
+  monthFortune: MonthFortune | null;
+  yearFortune: YearFortune | null;
+  dayElement?: string;
+  isKo: boolean;
+}
+
+export function calculateActionPlan({
+  todayFortune,
+  monthFortune,
+  yearFortune,
+  dayElement,
+  isKo
+}: UseActionPlanParams): FortuneActionPlan | null {
+  const todayElement = normalizeElement(
+    todayFortune?.element ||
+    dayElement ||
+    monthFortune?.element ||
+    yearFortune?.element
+  );
+
+  const weekElement = normalizeElement(
+    monthFortune?.element ||
+    dayElement ||
+    todayFortune?.element ||
+    yearFortune?.element
+  );
+
+  if (!todayElement && !weekElement) {return null;}
+
+  const resolvedToday = todayElement ?? weekElement ?? 'earth';
+  const resolvedWeek = weekElement ?? todayElement ?? 'earth';
+
+  const todayFocus = todayFortune?.fortune?.mood ||
+    (isKo ? ELEMENT_FOCUS[resolvedToday].ko : ELEMENT_FOCUS[resolvedToday].en);
+  const weekFocus = yearFortune?.relation?.focus ||
+    monthFortune?.fortune?.theme ||
+    (isKo ? ELEMENT_FOCUS[resolvedWeek].ko : ELEMENT_FOCUS[resolvedWeek].en);
+
+  const todayItems = (isKo ? TODAY_ACTIONS[resolvedToday].ko : TODAY_ACTIONS[resolvedToday].en).slice(0, 3);
+  const weekItems = (isKo ? WEEK_ACTIONS[resolvedWeek].ko : WEEK_ACTIONS[resolvedWeek].en).slice(0, 4);
+
+  return {
+    today: {
+      element: resolvedToday,
+      focus: todayFocus,
+      items: todayItems,
+      timing: todayFortune?.fortune?.luckyTime
+    },
+    week: {
+      element: resolvedWeek,
+      focus: weekFocus,
+      items: weekItems,
+      caution: yearFortune?.relation?.caution
+    }
   };
 }

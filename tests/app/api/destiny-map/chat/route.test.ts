@@ -26,6 +26,11 @@ vi.mock('@/lib/auth/authOptions', () => ({
   authOptions: {},
 }))
 
+// Mock premium check
+vi.mock('@/lib/auth/premium', () => ({
+  isDbPremiumUser: vi.fn(),
+}))
+
 // Mock logger
 vi.mock('@/lib/logger', () => ({
   logger: {
@@ -189,6 +194,7 @@ import { getServerSession } from 'next-auth'
 import { initializeApiContext } from '@/lib/api/middleware'
 import { containsForbidden } from '@/lib/textGuards'
 import { destinyMapChatSchema } from '@/lib/api/zodValidation'
+import { isDbPremiumUser } from '@/lib/auth/premium'
 
 // ============================================================
 // Helpers
@@ -262,6 +268,9 @@ describe('Destiny Map Chat API - POST /api/destiny-map/chat', () => {
 
     // Default: session returns authenticated user
     vi.mocked(getServerSession).mockResolvedValue(mockSession as never)
+
+    // Default: no DB premium subscription
+    vi.mocked(isDbPremiumUser).mockResolvedValue(false as never)
 
     // Default: compute destiny map succeeds
     mockComputeDestinyMap.mockResolvedValue(mockCombinedResult)

@@ -5,6 +5,7 @@ export { default as CurrentFlowSection } from './CurrentFlowSection';
 export { default as YearFortuneSection } from './YearFortuneSection';
 export { default as MonthFortuneSection } from './MonthFortuneSection';
 export { default as TodayFortuneSection } from './TodayFortuneSection';
+export { default as ActionPlanSection } from './ActionPlanSection';
 export { default as LifeCycleSection } from './LifeCycleSection';
 export {
   TimingOverlaySection,

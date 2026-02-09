@@ -231,7 +231,9 @@ describe('Eclipses API - POST /api/astrology/advanced/eclipses', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('Too many requests. Try again soon.')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('RATE_LIMITED')
+      expect(data.error.message).toBe('Too many requests. Please wait a moment.')
     })
 
     it('should include rate limit headers in rate-limited response', async () => {
@@ -274,7 +276,9 @@ describe('Eclipses API - POST /api/astrology/advanced/eclipses', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('UNAUTHORIZED')
+      expect(data.error.message).toBe('Invalid or missing token')
     })
 
     it('should proceed when public token is valid', async () => {

@@ -82,8 +82,16 @@ export async function loadUserProfile(
         logger.debug('[profileLoader] Auto-loaded birthTime from profile')
       }
       if (profile?.gender) {
-        result.gender =
-          profile.gender === 'M' ? 'male' : profile.gender === 'F' ? 'female' : undefined
+        const normalized = String(profile.gender).toLowerCase()
+        if (normalized === 'm' || normalized === 'male') {
+          result.gender = 'male'
+        } else if (normalized === 'f' || normalized === 'female') {
+          result.gender = 'female'
+        } else if (normalized === 'other' || normalized === 'prefer_not') {
+          result.gender = normalized
+        } else {
+          result.gender = undefined
+        }
       }
     }
   } catch (e) {

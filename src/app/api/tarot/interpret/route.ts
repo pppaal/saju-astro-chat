@@ -1,15 +1,11 @@
 // src/app/api/tarot/interpret/route.ts
 // Premium Tarot Interpretation API using Hybrid RAG
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware'
 import { apiClient } from '@/lib/api/ApiClient'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
 import { prisma } from '@/lib/db/prisma'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
-import { requirePublicToken } from '@/lib/auth/publicToken'
 import { enforceBodySize } from '@/lib/http'
 import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits'
 import { logger } from '@/lib/logger'
@@ -28,147 +24,139 @@ interface CardInput {
   keywordsKo?: string[]
 }
 
-export async function POST(req: Request) {
-  try {
-    const ip = getClientIp(req.headers)
-    const limit = await rateLimit(`tarot-interpret:${ip}`, { limit: 10, windowSeconds: 60 })
-
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Please wait.' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
-
-    const tokenCheck = requirePublicToken(req)
-    if (!tokenCheck.valid) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: HTTP_STATUS.UNAUTHORIZED, headers: limit.headers }
-      )
-    }
-
-    const oversized = enforceBodySize(req, 256 * 1024, limit.headers)
-    if (oversized) {
-      return oversized
-    }
-
-    const rawBody = await req.json()
-
-    // Validate with Zod
-    const validationResult = tarotInterpretRequestSchema.safeParse(rawBody)
-    if (!validationResult.success) {
-      logger.warn('[Tarot interpret] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST, headers: limit.headers }
-      )
-    }
-
-    const {
-      categoryId,
-      spreadId,
-      spreadTitle,
-      cards: validatedCards,
-      userQuestion,
-      language = 'ko',
-      birthdate,
-      moonPhase,
-    } = validationResult.data
-
-    const creditResult = await checkAndConsumeCredits('reading', 1)
-    if (!creditResult.allowed) {
-      const res = creditErrorResponse(creditResult)
-      limit.headers.forEach((value, key) => res.headers.set(key, value))
-      return res
-    }
-
-    // Call Python backend for Hybrid RAG interpretation (with fallback on connection failure)
-    let interpretation = null
+export const POST = withApiMiddleware(
+  async (req: NextRequest, context) => {
     try {
-      const response = await apiClient.post(
-        '/api/tarot/interpret',
-        {
-          category: categoryId,
-          spread_id: spreadId,
-          spread_title: spreadTitle,
-          cards: validatedCards.map((c) => ({
-            name: c.name,
-            is_reversed: c.isReversed,
-            position: c.position,
-          })),
-          user_question: userQuestion,
-          language,
-          birthdate,
-          moon_phase: moonPhase,
-        },
-        { timeout: 20000 }
-      )
-
-      if (response.ok) {
-        interpretation = response.data
+      const oversized = enforceBodySize(req, 256 * 1024)
+      if (oversized) {
+        return oversized
       }
-    } catch (fetchError) {
-      logger.warn('Backend connection failed, using fallback:', fetchError)
-    }
 
-    // Use backend response or GPT fallback
-    let result
-    if (interpretation && !(interpretation as Record<string, unknown>).error) {
-      result = interpretation
-    } else {
-      logger.warn('Backend unavailable, using GPT interpretation')
-      result = await generateGPTInterpretation(validatedCards, spreadTitle, language, userQuestion)
-    }
+      const rawBody = await req.json()
 
-    // ======== 기록 저장 (로그인 사용자만) ========
-    const session = await getServerSession(authOptions)
-    if (session?.user?.id) {
-      try {
-        await prisma.reading.create({
-          data: {
-            userId: session.user.id,
-            type: 'tarot',
-            title: `${spreadTitle} - ${validatedCards.map((c: CardInput) => c.nameKo || c.name).join(', ')}`,
-            content: JSON.stringify({
-              categoryId,
-              spreadId,
-              spreadTitle,
-              cards: validatedCards.map((c: CardInput) => ({
-                name: c.name,
-                nameKo: c.nameKo,
-                isReversed: c.isReversed,
-                position: c.position,
-              })),
-              userQuestion,
-            }),
-          },
+      // Validate with Zod
+      const validationResult = tarotInterpretRequestSchema.safeParse(rawBody)
+      if (!validationResult.success) {
+        logger.warn('[Tarot interpret] validation failed', {
+          errors: validationResult.error.issues,
         })
-      } catch (saveErr) {
-        logger.warn('[Tarot API] Failed to save reading:', saveErr)
+        return NextResponse.json(
+          {
+            error: 'validation_failed',
+            details: validationResult.error.issues.map((e) => ({
+              path: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
       }
+
+      const {
+        categoryId,
+        spreadId,
+        spreadTitle,
+        cards: validatedCards,
+        userQuestion,
+        language = 'ko',
+        birthdate,
+        moonPhase,
+      } = validationResult.data
+
+      const creditResult = await checkAndConsumeCredits('reading', 1)
+      if (!creditResult.allowed) {
+        return creditErrorResponse(creditResult)
+      }
+
+      // Call Python backend for Hybrid RAG interpretation (with fallback on connection failure)
+      let interpretation = null
+      try {
+        const response = await apiClient.post(
+          '/api/tarot/interpret',
+          {
+            category: categoryId,
+            spread_id: spreadId,
+            spread_title: spreadTitle,
+            cards: validatedCards.map((c) => ({
+              name: c.name,
+              is_reversed: c.isReversed,
+              position: c.position,
+            })),
+            user_question: userQuestion,
+            language,
+            birthdate,
+            moon_phase: moonPhase,
+          },
+          { timeout: 20000 }
+        )
+
+        if (response.ok) {
+          interpretation = response.data
+        }
+      } catch (fetchError) {
+        logger.warn('Backend connection failed, using fallback:', fetchError)
+      }
+
+      // Use backend response or GPT fallback
+      let result
+      if (interpretation && !(interpretation as Record<string, unknown>).error) {
+        result = interpretation
+      } else {
+        logger.warn('Backend unavailable, using GPT interpretation')
+        result = await generateGPTInterpretation(
+          validatedCards,
+          spreadTitle,
+          language,
+          userQuestion
+        )
+      }
+
+      // ======== 기록 저장 (로그인 사용자만) ========
+      const session = context.session
+      if (session?.user?.id) {
+        try {
+          await prisma.reading.create({
+            data: {
+              userId: session.user.id,
+              type: 'tarot',
+              title: `${spreadTitle} - ${validatedCards.map((c: CardInput) => c.nameKo || c.name).join(', ')}`,
+              content: JSON.stringify({
+                categoryId,
+                spreadId,
+                spreadTitle,
+                cards: validatedCards.map((c: CardInput) => ({
+                  name: c.name,
+                  nameKo: c.nameKo,
+                  isReversed: c.isReversed,
+                  position: c.position,
+                })),
+                userQuestion,
+              }),
+            },
+          })
+        } catch (saveErr) {
+          logger.warn('[Tarot API] Failed to save reading:', saveErr)
+        }
+      }
+
+      return NextResponse.json(result)
+    } catch (err: unknown) {
+      captureServerError(err as Error, { route: '/api/tarot/interpret' })
+
+      // Return fallback even on error
+      logger.error('Tarot interpretation error:', err)
+      return NextResponse.json(
+        { error: 'Server error', fallback: true },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      )
     }
-
-    const res = NextResponse.json(result)
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
-    return res
-  } catch (err: unknown) {
-    captureServerError(err as Error, { route: '/api/tarot/interpret' })
-
-    // Return fallback even on error
-    logger.error('Tarot interpretation error:', err)
-    return NextResponse.json(
-      { error: 'Server error', fallback: true },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
+  },
+  createPublicStreamGuard({
+    route: 'tarot/interpret',
+    limit: 10,
+    windowSeconds: 60,
+  })
+)
 
 // GPT-4o-mini API 호출 헬퍼 (속도 최적화)
 async function callGPT(prompt: string, maxTokens = 400): Promise<string> {

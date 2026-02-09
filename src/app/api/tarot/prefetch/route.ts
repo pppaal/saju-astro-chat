@@ -1,8 +1,8 @@
-// src/app/api/tarot/prefetch/route.ts
+﻿// src/app/api/tarot/prefetch/route.ts
 // Prefetch RAG context while user is selecting cards
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+import { withApiMiddleware, createTarotGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
 import { apiClient } from '@/lib/api/ApiClient'
 import { TarotPrefetchSchema } from '@/lib/api/validator'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
@@ -44,7 +44,7 @@ export const POST = withApiMiddleware(
 
     return NextResponse.json({ status: 'prefetching' })
   },
-  createSimpleGuard({
+  createTarotGuard({
     route: 'tarot-prefetch',
     limit: 30,
     windowSeconds: 60,

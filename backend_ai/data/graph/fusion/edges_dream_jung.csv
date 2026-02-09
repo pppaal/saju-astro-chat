@@ -1,5 +1,5 @@
 source_id,target_id,relation_type,weight,description
-DAN_snake,JDS_serpent,symbol_link,0.95,꿈 속 뱀과 융의 뱀 상징이 직접 연결. 변환과 치유, 쿤달리니 에너지의 원형적 의미.
+DAN_snake,JDS_serpent,symbol_link,0.95,"꿈 속 뱀과 융의 뱀 상징이 직접 연결. 변환과 치유, 쿤달리니 에너지의 원형적 의미."
 DAN_wolf,JDS_shadow_figure,archetype_link,0.82,늑대 꿈과 그림자 원형이 연결. 야생의 본능과 억압된 공격성.
 DC_mother,JDS_great_mother,archetype_link,0.93,꿈 속 어머니와 대모 원형이 연결. 개인적 모성 경험과 집단적 모성 원형의 중첩.
 DC_father,JDS_wise_old,archetype_link,0.85,꿈 속 아버지와 현자 원형이 연결. 권위와 지혜의 원형.

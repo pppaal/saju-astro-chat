@@ -2,10 +2,10 @@
 
 > 📘 **[→ 전체 프로젝트 개요 보기 (OVERVIEW.md)](OVERVIEW.md)** - 모든 정보를 한 곳에서!
 
-[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-19-61dafb)](https://react.dev/)
-[![Prisma](https://img.shields.io/badge/Prisma-7-2D3748)](https://www.prisma.io/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.1-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.2-61dafb)](https://react.dev/)
+[![Prisma](https://img.shields.io/badge/Prisma-7.3-2D3748)](https://www.prisma.io/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 [![Security](https://img.shields.io/badge/security-hardened-green)](#security)
@@ -18,18 +18,18 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
 
 ## Project Scale
 
-| Category              | Count                         |
-| --------------------- | ----------------------------- |
-| Pages & Routes        | 35+ (72 page files)           |
-| API Endpoints         | 128                           |
-| React Components      | 317                           |
-| Library Modules       | 45                            |
-| Database Models       | 35 (Prisma)                   |
-| Test Files            | 657 unit/integration + 25 E2E |
-| Dependencies          | 156                           |
-| Languages (i18n)      | 10+                           |
-| CI/CD Workflows       | 13                            |
-| Environment Variables | 66                            |
+| Category              | Count                              |
+| --------------------- | ---------------------------------- |
+| App Router Pages      | 75 (`page.*`)                      |
+| API Route Handlers    | 135 (`src/app/api/**/route.*`)     |
+| React Components      | 306 (`src/components/**/*.tsx`)    |
+| Library Modules       | 44 top-level (`src/lib/*`)         |
+| Database Models       | 42 (Prisma)                        |
+| Test Files            | 1005 unit/integration + 54 E2E     |
+| Dependencies          | 81 (prod + dev)                    |
+| Languages (i18n)      | 2 (ko, en)                         |
+| CI/CD Workflows       | 12                                 |
+| Environment Variables | 65 (.env.example)                  |
 
 ---
 
@@ -43,9 +43,10 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
    |          |
    |          └── [Redis (Upstash, optional)]
    |
-   ├── [128 API Routes] ──── [Flask AI Backend] ──── [LLM Providers]
+   ├── [135 API Routes] ──── [Flask AI Backend] ──── [LLM Providers]
    |                                                   ├─ OpenAI
-   |                                                   └─ Replicate
+   |                                                   ├─ Replicate
+   |                                                   └─ Together
    |
    └── [Third-party Services]
         ├─ NextAuth (OAuth)
@@ -98,7 +99,7 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
 
 - PWA (오프라인 지원)
 - 모바일 앱 (Capacitor - iOS/Android)
-- 다국어 지원 (10개 이상 언어)
+- 다국어 지원 (현재 ko/en, 추가 예정)
 - 관리자 대시보드 (메트릭스, 퍼널 분석, 환불 관리)
 
 ---
@@ -107,19 +108,19 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
 
 ### Frontend
 
-- **Framework:** Next.js 16 (App Router), React 19, TypeScript 5
-- **Styling:** Tailwind CSS 3, CSS Modules, Framer Motion
+- **Framework:** Next.js 16.1 (App Router), React 19.2, TypeScript 5.9
+- **Styling:** Tailwind CSS 3.4, CSS Modules, Framer Motion 12
 - **State:** React Context, Server Components
 - **Mobile:** Capacitor 8 (Android/iOS)
 - **PWA:** @ducanh2912/next-pwa
 
 ### Backend
 
-- **API:** Next.js API Routes (128 endpoints)
+- **API:** Next.js API Routes (135 endpoints)
 - **AI Server:** Python Flask (RAG pipeline, LLM orchestration)
-- **Database:** PostgreSQL (Supabase) + Prisma 7 ORM (35 models)
+- **Database:** PostgreSQL (Supabase) + Prisma 7.3 ORM (42 models)
 - **Cache:** Redis (Upstash) - optional
-- **Auth:** NextAuth 4 + Firebase
+- **Auth:** NextAuth 4.24 + Firebase
 
 ### Infrastructure
 
@@ -128,12 +129,12 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
 - **Email:** Resend
 - **Monitoring:** Sentry, Vercel Speed Insights
 - **Analytics:** Google Analytics, Kakao Analytics, Microsoft Clarity
-- **CI/CD:** GitHub Actions (13 workflows)
+- **CI/CD:** GitHub Actions (12 workflows)
 
 ### Testing
 
-- **Unit/Integration:** Vitest (657+ test files)
-- **E2E:** Playwright (25 specs)
+- **Unit/Integration:** Vitest (1005 test files)
+- **E2E:** Playwright (54 specs)
 - **Load:** k6 (basic, stress, spike, endurance)
 - **Accessibility:** vitest-axe, axe-core
 - **Security:** OWASP ZAP scanning
@@ -162,7 +163,7 @@ AI 기반 운세/점술 종합 상담 플랫폼. 사주, 타로, 주역, 수비�
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - Python 3.10+
 - PostgreSQL (or Supabase account)
 
@@ -256,7 +257,7 @@ saju-astro-chat/
 ├── src/
 │   ├── app/                    # Next.js App Router
 │   │   ├── (main)/             # Main layout group
-│   │   ├── api/                # 128 API endpoints
+│   │   ├── api/                # 135 API endpoints
 │   │   ├── admin/              # Admin dashboard
 │   │   ├── tarot/              # Tarot readings
 │   │   ├── saju/               # Four Pillars analysis
@@ -270,8 +271,8 @@ saju-astro-chat/
 │   │   ├── destiny-matrix/     # Matrix analysis
 │   │   ├── pricing/            # Pricing page
 │   │   └── ...                 # 35+ route groups
-│   ├── components/             # 317 React components (34 categories)
-│   ├── lib/                    # 45 library modules
+│   ├── components/             # 306 React components
+│   ├── lib/                    # 44 library modules
 │   │   ├── Saju/               # Four Pillars engine
 │   │   ├── Tarot/              # Tarot deck & logic
 │   │   ├── iChing/             # I Ching hexagram data
@@ -289,15 +290,15 @@ saju-astro-chat/
 │   └── data/                   # Corpus & rules data
 ├── prisma/
 │   └── schema.prisma           # 35 database models
-├── tests/                      # 657+ test files
+├── tests/                      # 1005 test files
 │   ├── lib/                    # Unit tests
 │   ├── e2e/                    # API E2E tests
 │   ├── performance/            # Performance & load tests
 │   └── a11y/                   # Accessibility tests
-├── e2e/                        # Playwright browser tests (25 specs)
+├── e2e/                        # Playwright browser tests (54 specs)
 ├── public/                     # Static assets, blog content
-├── docs/                       # 17 documentation guides
-└── .github/workflows/          # 13 CI/CD workflows
+├── docs/                       # Documentation guides (active + archive)
+└── .github/workflows/          # 12 CI/CD workflows
 ```
 
 ---
@@ -327,13 +328,7 @@ saju-astro-chat/
 
 ---
 
-## License
-
-MIT
-
----
-
-## Recent Improvements (2026-01)
+## Recent Improvements (as of 2026-02-02)
 
 ### Week 1: Security & Foundation ✅
 
@@ -351,7 +346,7 @@ MIT
   - 5/5 integration tests passing
 - **Rate Limiting**: Unified system (deprecated old in-memory)
   - Redis-based distributed rate limiting
-  - Consistent across all 128 endpoints
+  - Consistent across all 135 endpoints
 - **Bundle Size CI**: Automatic enforcement
   - Main bundle: <500KB
   - Total JS: <3MB
@@ -367,88 +362,6 @@ MIT
   - Saju: 3 tests
   - Total: 8/8 passing
 - **Architecture Documentation**: Updated [ARCHITECTURE.md](docs/ARCHITECTURE.md)
-
----
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js 20+
-- PostgreSQL (or Supabase account)
-- Redis (or Upstash account) - optional
-- Python 3.10+ (for backend AI)
-
-### Installation
-
-```bash
-# Clone repository
-git clone https://github.com/yourusername/saju-astro-chat.git
-cd saju-astro-chat
-
-# Install dependencies
-npm install
-
-# Setup environment
-cp .env.example .env
-# Edit .env with your credentials
-
-# Database setup
-npx prisma migrate deploy
-npx prisma generate
-
-# Run development server
-npm run dev
-
-# Backend AI (separate terminal)
-cd backend_ai
-pip install -r requirements.txt
-python main.py
-```
-
-### Environment Variables
-
-See [ENVIRONMENT_CHECKLIST.md](docs/ENVIRONMENT_CHECKLIST.md) for complete list.
-
-**Required:**
-
-- `DATABASE_URL`: PostgreSQL connection string
-- `NEXTAUTH_SECRET`: Random 32+ character string
-- `NEXTAUTH_URL`: Your app URL
-- `STRIPE_SECRET_KEY`: Stripe API key
-- `STRIPE_PUBLISHABLE_KEY`: Stripe public key
-
-**Optional:**
-
-- `REDIS_URL`: Redis connection (for caching)
-- `UPSTASH_REDIS_REST_URL`: Upstash Redis
-- `OPENAI_API_KEY`: OpenAI API key
-
----
-
-## Testing
-
-```bash
-# Unit & Integration Tests
-npm test                      # All tests
-npm run test:coverage         # With coverage report
-npm run test:watch            # Watch mode
-
-# E2E Tests
-npm run test:e2e:browser      # Playwright UI mode
-npm run test:e2e:critical     # Critical flows only
-
-# Backend Tests
-npm run test:backend          # Python pytest
-
-# Performance Tests
-npm run test:load:basic       # k6 load test
-npm run test:load:stress      # Stress test
-
-# Security Tests
-npm run security:audit        # npm audit
-npm run security:owasp        # OWASP ZAP
-```
 
 ---
 

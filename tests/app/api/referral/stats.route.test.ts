@@ -121,9 +121,11 @@ vi.mock('@/lib/auth/authOptions', () => ({
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     user: {
-      findUnique: vi.fn(),
-      update: vi.fn(),
       count: vi.fn(),
+    },
+    userSettings: {
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
     },
     referralReward: {
       count: vi.fn(),
@@ -204,7 +206,7 @@ describe('/api/referral/stats', () => {
 
   describe('Success Cases', () => {
     it('should return referral statistics', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: 'STATS123' } as any)
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: 'STATS123' } as any)
       vi.mocked(prisma.user.count).mockResolvedValue(5)
       vi.mocked(prisma.referralReward.count).mockResolvedValue(2)
       vi.mocked(prisma.referralReward.aggregate).mockResolvedValue({
@@ -226,8 +228,8 @@ describe('/api/referral/stats', () => {
     })
 
     it('should generate new code if user has no referral code', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: null } as any)
-      vi.mocked(prisma.user.update).mockResolvedValue({ referralCode: 'NEWCODE1' } as any)
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: null } as any)
+      vi.mocked(prisma.userSettings.upsert).mockResolvedValue({ referralCode: 'NEWCODE1' } as any)
       vi.mocked(prisma.user.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.aggregate).mockResolvedValue({
@@ -242,11 +244,11 @@ describe('/api/referral/stats', () => {
       expect(response.status).toBe(200)
       expect(data.data.referralCode).toBeDefined()
       expect(data.data.referralCode.length).toBeGreaterThan(0)
-      expect(prisma.user.update).toHaveBeenCalled()
+      expect(prisma.userSettings.upsert).toHaveBeenCalled()
     })
 
     it('should return existing code without creating new one', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: 'EXISTING' } as any)
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: 'EXISTING' } as any)
       vi.mocked(prisma.user.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.aggregate).mockResolvedValue({
@@ -257,13 +259,13 @@ describe('/api/referral/stats', () => {
       const req = new NextRequest('http://localhost:3000/api/referral/stats')
       await GET(req)
 
-      expect(prisma.user.update).not.toHaveBeenCalled()
+      expect(prisma.userSettings.upsert).not.toHaveBeenCalled()
     })
   })
 
   describe('Zero Stats', () => {
     it('should handle zero referrals correctly', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: 'ZERO1234' } as any)
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: 'ZERO1234' } as any)
       vi.mocked(prisma.user.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.aggregate).mockResolvedValue({
@@ -283,7 +285,7 @@ describe('/api/referral/stats', () => {
     })
 
     it('should handle null creditsAwarded sum as 0', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: 'NULLSUM1' } as any)
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: 'NULLSUM1' } as any)
       vi.mocked(prisma.user.count).mockResolvedValue(5)
       vi.mocked(prisma.referralReward.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.aggregate).mockResolvedValue({
@@ -301,7 +303,7 @@ describe('/api/referral/stats', () => {
 
   describe('Database Operations', () => {
     it('should query user with correct userId', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
       vi.mocked(prisma.user.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.aggregate).mockResolvedValue({
@@ -312,14 +314,14 @@ describe('/api/referral/stats', () => {
       const req = new NextRequest('http://localhost:3000/api/referral/stats')
       await GET(req)
 
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 'user_123' },
+      expect(prisma.userSettings.findUnique).toHaveBeenCalledWith({
+        where: { userId: 'user_123' },
         select: { referralCode: true },
       })
     })
 
     it('should count referrals with correct filter', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
       vi.mocked(prisma.user.count).mockResolvedValue(3)
       vi.mocked(prisma.referralReward.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.aggregate).mockResolvedValue({
@@ -336,7 +338,7 @@ describe('/api/referral/stats', () => {
     })
 
     it('should count pending rewards correctly', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
       vi.mocked(prisma.user.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.count).mockResolvedValue(2)
       vi.mocked(prisma.referralReward.aggregate).mockResolvedValue({
@@ -353,7 +355,7 @@ describe('/api/referral/stats', () => {
     })
 
     it('should aggregate completed rewards correctly', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
       vi.mocked(prisma.user.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.aggregate).mockResolvedValue({
@@ -373,8 +375,8 @@ describe('/api/referral/stats', () => {
   })
 
   describe('Error Handling', () => {
-    it('should return DATABASE_ERROR when prisma.user.findUnique fails', async () => {
-      vi.mocked(prisma.user.findUnique).mockRejectedValue(new Error('DB error'))
+    it('should return DATABASE_ERROR when prisma.userSettings.findUnique fails', async () => {
+      vi.mocked(prisma.userSettings.findUnique).mockRejectedValue(new Error('DB error'))
 
       const req = new NextRequest('http://localhost:3000/api/referral/stats')
       const response = await GET(req)
@@ -385,7 +387,7 @@ describe('/api/referral/stats', () => {
     })
 
     it('should handle prisma.user.count failure', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
       vi.mocked(prisma.user.count).mockRejectedValue(new Error('Count failed'))
 
       const req = new NextRequest('http://localhost:3000/api/referral/stats')
@@ -395,7 +397,7 @@ describe('/api/referral/stats', () => {
     })
 
     it('should handle prisma.referralReward.count failure', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
       vi.mocked(prisma.user.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.count).mockRejectedValue(new Error('Reward count failed'))
 
@@ -406,7 +408,7 @@ describe('/api/referral/stats', () => {
     })
 
     it('should handle prisma.referralReward.aggregate failure', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
       vi.mocked(prisma.user.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.count).mockResolvedValue(0)
       vi.mocked(prisma.referralReward.aggregate).mockRejectedValue(new Error('Aggregate failed'))
@@ -429,7 +431,7 @@ describe('/api/referral/stats', () => {
 
   describe('Edge Cases', () => {
     it('should handle large credit amounts', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: 'LARGE' } as any)
+      vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: 'LARGE' } as any)
       vi.mocked(prisma.user.count).mockResolvedValue(1000)
       vi.mocked(prisma.referralReward.count).mockResolvedValue(100)
       vi.mocked(prisma.referralReward.aggregate).mockResolvedValue({
@@ -446,7 +448,7 @@ describe('/api/referral/stats', () => {
     })
 
     it('should run database queries in parallel', async () => {
-      const findUniqueSpy = vi.mocked(prisma.user.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
+      const findUniqueSpy = vi.mocked(prisma.userSettings.findUnique).mockResolvedValue({ referralCode: 'CODE' } as any)
       const countSpy = vi.mocked(prisma.user.count).mockResolvedValue(0)
       const rewardCountSpy = vi.mocked(prisma.referralReward.count).mockResolvedValue(0)
       const aggregateSpy = vi.mocked(prisma.referralReward.aggregate).mockResolvedValue({

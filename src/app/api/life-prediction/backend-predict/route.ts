@@ -1,8 +1,8 @@
-// src/app/api/life-prediction/backend-predict/route.ts
+﻿// src/app/api/life-prediction/backend-predict/route.ts
 // 백엔드 Flask prediction API 프록시 - RAG 기반 예측 시스템 사용
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard } from '@/lib/api/middleware'
+import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware'
 import { scoreToGrade as standardScoreToGrade, type PredictionGrade } from '@/lib/prediction'
 import { logger } from '@/lib/logger'
 import { getBackendUrl } from '@/lib/backend-url'
@@ -288,7 +288,7 @@ export const POST = withApiMiddleware(
       )
     }
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: '/api/life-prediction/backend-predict',
     limit: 10,
     windowSeconds: 60,

@@ -32,6 +32,8 @@ final_data.db
 .VSCodeCounter/
 .vs/
 *.db
+*.sqlite
+*.sqlite3
 *.pt
 *.pyo
 *.log

@@ -1,11 +1,11 @@
-// src/app/api/past-life/route.ts
+﻿// src/app/api/past-life/route.ts
 /**
  * Past Life Reading API
  * 전생 리딩 API - 사주 + 점성술 기반 전생 분석
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api/middleware'
+import { withApiMiddleware, createPublicStreamGuard, type ApiContext } from '@/lib/api/middleware'
 import { logger } from '@/lib/logger'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { calculateNatalChart } from '@/lib/astrology'
@@ -90,7 +90,7 @@ export const POST = withApiMiddleware(
 
     return NextResponse.json(result)
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: '/api/past-life',
     limit: 20,
     windowSeconds: 60,

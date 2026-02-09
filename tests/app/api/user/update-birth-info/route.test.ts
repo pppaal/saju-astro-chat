@@ -51,9 +51,9 @@ vi.mock('@/lib/api/middleware', () => ({
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
-    user: {
+    userProfile: {
       findUnique: vi.fn(),
-      update: vi.fn(),
+      upsert: vi.fn(),
     },
   },
 }))
@@ -137,12 +137,12 @@ describe('/api/user/update-birth-info', () => {
 
       it('should accept valid birthDate format', async () => {
         const { POST } = await import('@/app/api/user/update-birth-info/route')
-        ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
           birthDate: null,
           birthTime: null,
           gender: null,
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           birthDate: '1990-05-15',
           birthTime: null,
@@ -174,12 +174,12 @@ describe('/api/user/update-birth-info', () => {
 
       it('should accept leap year date Feb 29', async () => {
         const { POST } = await import('@/app/api/user/update-birth-info/route')
-        ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
           birthDate: null,
           birthTime: null,
           gender: null,
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           birthDate: '2000-02-29',
           birthTime: null,
@@ -199,12 +199,12 @@ describe('/api/user/update-birth-info', () => {
     describe('birthTime validation', () => {
       it('should accept birthTime as optional', async () => {
         const { POST } = await import('@/app/api/user/update-birth-info/route')
-        ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
           birthDate: null,
           birthTime: null,
           gender: null,
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           birthDate: '1990-05-15',
           birthTime: null,
@@ -240,12 +240,12 @@ describe('/api/user/update-birth-info', () => {
 
         for (const time of validTimes) {
           vi.clearAllMocks()
-          ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+          ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
             birthDate: null,
             birthTime: null,
             gender: null,
           })
-          ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+          ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
             id: mockUserId,
             birthDate: '1990-05-15',
             birthTime: time,
@@ -264,12 +264,12 @@ describe('/api/user/update-birth-info', () => {
 
       it('should accept AM/PM time format', async () => {
         const { POST } = await import('@/app/api/user/update-birth-info/route')
-        ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
           birthDate: null,
           birthTime: null,
           gender: null,
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           birthDate: '1990-05-15',
           birthTime: '10:30 AM',
@@ -287,12 +287,12 @@ describe('/api/user/update-birth-info', () => {
 
       it('should accept null birthTime', async () => {
         const { POST } = await import('@/app/api/user/update-birth-info/route')
-        ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
           birthDate: null,
           birthTime: '12:00',
           gender: null,
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           birthDate: '1990-05-15',
           birthTime: null,
@@ -316,12 +316,12 @@ describe('/api/user/update-birth-info', () => {
 
         for (const gender of validGenders) {
           vi.clearAllMocks()
-          ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+          ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
             birthDate: null,
             birthTime: null,
             gender: null,
           })
-          ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+          ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
             id: mockUserId,
             birthDate: '1990-05-15',
             birthTime: null,
@@ -354,12 +354,12 @@ describe('/api/user/update-birth-info', () => {
 
       it('should accept null gender', async () => {
         const { POST } = await import('@/app/api/user/update-birth-info/route')
-        ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
           birthDate: null,
           birthTime: null,
           gender: 'male',
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           birthDate: '1990-05-15',
           birthTime: null,
@@ -379,12 +379,12 @@ describe('/api/user/update-birth-info', () => {
     describe('birthCity validation', () => {
       it('should accept valid birthCity', async () => {
         const { POST } = await import('@/app/api/user/update-birth-info/route')
-        ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
           birthDate: null,
           birthTime: null,
           gender: null,
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           birthDate: '1990-05-15',
           birthTime: null,
@@ -402,12 +402,12 @@ describe('/api/user/update-birth-info', () => {
 
       it('should accept null birthCity', async () => {
         const { POST } = await import('@/app/api/user/update-birth-info/route')
-        ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
           birthDate: null,
           birthTime: null,
           gender: null,
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           birthDate: '1990-05-15',
           birthTime: null,
@@ -425,12 +425,12 @@ describe('/api/user/update-birth-info', () => {
 
       it('should trim birthCity whitespace', async () => {
         const { POST } = await import('@/app/api/user/update-birth-info/route')
-        ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
           birthDate: null,
           birthTime: null,
           gender: null,
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           birthDate: '1990-05-15',
           birthTime: null,
@@ -450,12 +450,12 @@ describe('/api/user/update-birth-info', () => {
     describe('tzId validation', () => {
       it('should accept valid timezone', async () => {
         const { POST } = await import('@/app/api/user/update-birth-info/route')
-        ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
           birthDate: null,
           birthTime: null,
           gender: null,
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           birthDate: '1990-05-15',
           birthTime: null,
@@ -482,12 +482,12 @@ describe('/api/user/update-birth-info', () => {
 
       it('should accept null tzId', async () => {
         const { POST } = await import('@/app/api/user/update-birth-info/route')
-        ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
           birthDate: null,
           birthTime: null,
           gender: null,
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           birthDate: '1990-05-15',
           birthTime: null,
@@ -507,12 +507,12 @@ describe('/api/user/update-birth-info', () => {
     describe('complete birth info', () => {
       it('should accept all fields together', async () => {
         const { POST } = await import('@/app/api/user/update-birth-info/route')
-        ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
           birthDate: null,
           birthTime: null,
           gender: null,
         })
-        ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: mockUserId,
           birthDate: '1990-05-15',
           birthTime: '14:30',
@@ -545,12 +545,12 @@ describe('/api/user/update-birth-info', () => {
   describe('Database Operations', () => {
     it('should fetch existing user profile before update', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: '1990-01-01',
         birthTime: '12:00',
         gender: 'female',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1990-05-15',
         birthTime: null,
@@ -562,20 +562,20 @@ describe('/api/user/update-birth-info', () => {
       const req = createRequest({ birthDate: '1990-05-15' })
       await POST(req)
 
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: mockUserId },
+      expect(prisma.userProfile.findUnique).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
         select: { birthDate: true, birthTime: true, gender: true },
       })
     })
 
     it('should update user with new birth info', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: null,
         birthTime: null,
         gender: null,
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1990-05-15',
         birthTime: '14:30',
@@ -593,9 +593,17 @@ describe('/api/user/update-birth-info', () => {
       })
       await POST(req)
 
-      expect(prisma.user.update).toHaveBeenCalledWith({
-        where: { id: mockUserId },
-        data: {
+      expect(prisma.userProfile.upsert).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+        create: {
+          userId: mockUserId,
+          birthDate: '1990-05-15',
+          birthTime: '14:30',
+          gender: 'male',
+          birthCity: 'Tokyo',
+          tzId: 'Asia/Tokyo',
+        },
+        update: {
           birthDate: '1990-05-15',
           birthTime: '14:30',
           gender: 'male',
@@ -603,7 +611,7 @@ describe('/api/user/update-birth-info', () => {
           tzId: 'Asia/Tokyo',
         },
         select: {
-          id: true,
+          userId: true,
           birthDate: true,
           birthTime: true,
           gender: true,
@@ -615,12 +623,12 @@ describe('/api/user/update-birth-info', () => {
 
     it('should set undefined optional fields to null', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: '1990-01-01',
         birthTime: '12:00',
         gender: 'male',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1990-05-15',
         birthTime: null,
@@ -632,9 +640,15 @@ describe('/api/user/update-birth-info', () => {
       const req = createRequest({ birthDate: '1990-05-15' })
       await POST(req)
 
-      expect(prisma.user.update).toHaveBeenCalledWith(
+      expect(prisma.userProfile.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({
+          create: expect.objectContaining({
+            birthTime: null,
+            gender: null,
+            birthCity: null,
+            tzId: null,
+          }),
+          update: expect.objectContaining({
             birthTime: null,
             gender: null,
             birthCity: null,
@@ -654,12 +668,12 @@ describe('/api/user/update-birth-info', () => {
         birthCity: 'New York',
         tzId: 'America/New_York',
       }
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: null,
         birthTime: null,
         gender: null,
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue(updatedUser)
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue(updatedUser)
 
       const req = createRequest({
         birthDate: '1990-05-15',
@@ -679,12 +693,12 @@ describe('/api/user/update-birth-info', () => {
   describe('Cache Invalidation', () => {
     it('should invalidate cache when birth info changes', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: '1990-01-01',
         birthTime: '12:00',
         gender: 'male',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1995-06-20',
         birthTime: '08:00',
@@ -708,12 +722,12 @@ describe('/api/user/update-birth-info', () => {
 
     it('should invalidate saju cache patterns', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: '1990-01-01',
         birthTime: '12:00',
         gender: 'male',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1995-06-20',
         birthTime: null,
@@ -730,12 +744,12 @@ describe('/api/user/update-birth-info', () => {
 
     it('should invalidate destiny cache patterns', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: '1990-01-01',
         birthTime: '12:00',
         gender: 'male',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1995-06-20',
         birthTime: null,
@@ -752,12 +766,12 @@ describe('/api/user/update-birth-info', () => {
 
     it('should invalidate yearly cache patterns', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: '1990-01-01',
         birthTime: '12:00',
         gender: 'male',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1995-06-20',
         birthTime: null,
@@ -774,12 +788,12 @@ describe('/api/user/update-birth-info', () => {
 
     it('should always invalidate calendar cache patterns for user', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: '1990-01-01',
         birthTime: '12:00',
         gender: 'male',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1995-06-20',
         birthTime: null,
@@ -796,12 +810,12 @@ describe('/api/user/update-birth-info', () => {
 
     it('should not invalidate cache when birth info unchanged', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: '1990-05-15',
         birthTime: '14:30',
         gender: 'male',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1990-05-15',
         birthTime: '14:30',
@@ -825,12 +839,12 @@ describe('/api/user/update-birth-info', () => {
 
     it('should detect change when birthTime changes', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: '1990-05-15',
         birthTime: '12:00',
         gender: 'male',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1990-05-15',
         birthTime: '14:30',
@@ -853,12 +867,12 @@ describe('/api/user/update-birth-info', () => {
 
     it('should detect change when gender changes', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: '1990-05-15',
         birthTime: '12:00',
         gender: 'male',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1990-05-15',
         birthTime: '12:00',
@@ -881,12 +895,12 @@ describe('/api/user/update-birth-info', () => {
 
     it('should not invalidate old date patterns when oldUser has no birthDate', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: null,
         birthTime: null,
         gender: null,
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1990-05-15',
         birthTime: null,
@@ -908,7 +922,7 @@ describe('/api/user/update-birth-info', () => {
   describe('Error Handling', () => {
     it('should handle database findUnique errors', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockRejectedValue(
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error('Database connection failed')
       )
 
@@ -919,12 +933,12 @@ describe('/api/user/update-birth-info', () => {
 
     it('should handle database update errors', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: null,
         birthTime: null,
         gender: null,
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockRejectedValue(
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error('Update failed')
       )
 
@@ -935,12 +949,12 @@ describe('/api/user/update-birth-info', () => {
 
     it('should handle cache invalidation errors gracefully', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: '1990-01-01',
         birthTime: '12:00',
         gender: 'male',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1995-06-20',
         birthTime: null,
@@ -975,12 +989,12 @@ describe('/api/user/update-birth-info', () => {
   describe('Response Format', () => {
     it('should return correct success response structure', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: null,
         birthTime: null,
         gender: null,
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1990-05-15',
         birthTime: '14:30',
@@ -1035,12 +1049,12 @@ describe('/api/user/update-birth-info', () => {
 
     it('should handle extra unknown fields in request', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: null,
         birthTime: null,
         gender: null,
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1990-05-15',
         birthTime: null,
@@ -1077,12 +1091,12 @@ describe('/api/user/update-birth-info', () => {
 
     it('should handle concurrent cache invalidation', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         birthDate: '1990-01-01',
         birthTime: '12:00',
         gender: 'male',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: mockUserId,
         birthDate: '1995-06-20',
         birthTime: null,
@@ -1109,8 +1123,8 @@ describe('/api/user/update-birth-info', () => {
 
     it('should handle user not found scenario', async () => {
       const { POST } = await import('@/app/api/user/update-birth-info/route')
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null)
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockRejectedValue(
+      ;(prisma.userProfile.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+      ;(prisma.userProfile.upsert as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error('Record to update not found')
       )
 

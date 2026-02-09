@@ -2,6 +2,8 @@
 
 > **기술 개발 로드맵** | 2026-2030
 
+**Last Updated**: 2026-02-09
+
 _비즈니스 전략은 [UNICORN_STRATEGY.md](UNICORN_STRATEGY.md) 참고_
 
 ---
@@ -55,13 +57,12 @@ _비즈니스 전략은 [UNICORN_STRATEGY.md](UNICORN_STRATEGY.md) 참고_
 
 ### 1.2 AI 품질 향상
 
-#### OpenAI 모델 최적화
+#### 모델 라우팅 최적화
 
 - [x] **스마트 모델 라우팅 (현재 구현됨)**
-  - gpt-4o-mini: 타로 해석, 간단한 질문 분석 (96% 저렴)
-  - gpt-4o: 사주 종합 분석, 프리미엄 리포트, 어드바이저 채팅
+  - `FUSION_MINI_MODEL`: 타로 해석, 간단한 질문 분석
+  - `FUSION_MODEL`: 사주 종합 분석, 프리미엄 리포트, 어드바이저 채팅
   - 파일: [tarot/interpret-stream/route.ts](src/app/api/tarot/interpret-stream/route.ts:422), [life-prediction/advisor-chat/route.ts](src/app/api/life-prediction/advisor-chat/route.ts:322)
-  - 비용 최적화: 이미 적용 중
   - 우선순위: ✅ 완료
 
 - [x] **Fallback 체인 구현됨**
@@ -79,9 +80,10 @@ _비즈니스 전략은 [UNICORN_STRATEGY.md](UNICORN_STRATEGY.md) 참고_
   - 우선순위: P1
 
 - [ ] **임베딩 정확도 개선**
-  - 현재: `text-embedding-ada-002`
-  - 목표: `text-embedding-3-large` 테스트
-  - 벡터 DB 최적화 (Pinecone/Weaviate)
+  - 현재: `RAG_EMBEDDING_MODEL=minilm` (기본)
+  - 목표: `e5-large` / `bge-m3` 정밀도 비교 테스트
+  - 벡터 스토어 최적화 (ChromaDB 마이그레이션 옵션)
+  - 파일: [backend_ai/app/rag/model_manager.py](backend_ai/app/rag/model_manager.py)
   - 우선순위: P2
 
 #### 피드백 루프 구축
@@ -148,7 +150,7 @@ _비즈니스 전략은 [UNICORN_STRATEGY.md](UNICORN_STRATEGY.md) 참고_
 
 - [ ] **블로그 컨텐츠 활성화**
   - 목표: 월 10개 포스팅
-  - 파일: `public/blog/`, `next-sitemap.config.js`
+  - 파일: `public/blog/`
   - 우선순위: P0
 
 - [ ] **구조화된 데이터**
@@ -264,7 +266,7 @@ _비즈니스 전략은 [UNICORN_STRATEGY.md](UNICORN_STRATEGY.md) 참고_
   - OpenAPI 3.0 스펙
   - Swagger UI
   - 코드 예제 (Python, JS)
-  - 파일: [docs/API.md](docs/API.md) 확장
+  - 파일: [scripts/generate-openapi.ts](scripts/generate-openapi.ts), [docs/README.md](docs/README.md)
   - 우선순위: P2
 
 - [ ] **API 키 관리**
@@ -421,13 +423,13 @@ _비즈니스 전략은 [UNICORN_STRATEGY.md](UNICORN_STRATEGY.md) 참고_
 
 - [ ] **도메인 특화 모델**
   - 사주/타로 전용 모델
-  - GPT-4 파인튜닝
+  - 상용 LLM 파인튜닝/지식 증류 가능성 검토
 
 #### 멀티모달 해석
 
 - [ ] **텍스트 + 이미지 + 음성**
   - 통합 해석
-  - 기술 스택: GPT-4V, Gemini
+  - 기술 스택: 멀티모달 LLM API (OpenAI/Gemini 등)
 
 - [ ] **컨텍스트 인지 AI**
   - 날씨, 시간, 위치 반영
@@ -473,7 +475,7 @@ _비즈니스 전략은 [UNICORN_STRATEGY.md](UNICORN_STRATEGY.md) 참고_
 
 ### Critical Path (P0)
 
-- [x] OpenAI 모델 최적화 (gpt-4o-mini 적용 완료)
+- [x] 모델 라우팅 최적화 (`FUSION_MINI_MODEL` 적용)
 - [x] Redis 캐싱 구현 (calendar, daily-fortune, destiny-map 등)
 - [x] 크레딧 에러 메시지 개선 ✅ (2026-02-02)
 - [ ] 온보딩 간소화 (전환율 개선)
@@ -513,7 +515,7 @@ _비즈니스 전략은 [UNICORN_STRATEGY.md](UNICORN_STRATEGY.md) 참고_
 
 - [ ] MAU 50K
 - [ ] 일본어 출시
-- [x] AI 비용 최적화 완료 (gpt-4o-mini + Redis 캐싱)
+- [x] AI 비용 최적화 완료 (`FUSION_MINI_MODEL` + Redis 캐싱)
 - [x] 크레딧 UX 개선 완료 (고객 지원 문의 감소 목표)
 
 ### 2026 Q4
@@ -540,22 +542,22 @@ _비즈니스 전략은 [UNICORN_STRATEGY.md](UNICORN_STRATEGY.md) 참고_
 
 ### Frontend
 
-- Next.js 16, React 19, TypeScript 5
-- Tailwind CSS, Framer Motion
+- Next.js 16.1, React 19.2, TypeScript 5.9
+- Tailwind CSS 3.4, Framer Motion 12
 - Capacitor 8 (iOS/Android)
 
 ### Backend
 
-- Next.js API Routes (128 endpoints)
+- Next.js API Routes (135 endpoints)
 - Python Flask (AI Engine)
-- PostgreSQL + Prisma 7 (35 models)
+- PostgreSQL + Prisma 7.3 (42 models)
 - Redis (Upstash)
 
 ### AI/ML
 
-- OpenAI GPT-4o, Claude Opus 4.5
+- OpenAI (`FUSION_MODEL`/`FUSION_MINI_MODEL`), Replicate, Together
 - RAG (Retrieval-Augmented Generation)
-- Sentence Transformers
+- SentenceTransformers (minilm/e5-large/bge-m3)
 
 ### Infrastructure
 
@@ -586,6 +588,6 @@ _비즈니스 전략은 [UNICORN_STRATEGY.md](UNICORN_STRATEGY.md) 참고_
 
 ---
 
-**마지막 업데이트**: 2026-02-02
-**작성자**: Claude Sonnet 4.5
-**버전**: v2.0 (중복 제거, 기술 집중)
+**마지막 업데이트**: 2026-02-09
+**작성자**: Codex
+**버전**: v2.1 (지표/현황 업데이트)

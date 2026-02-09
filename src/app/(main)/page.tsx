@@ -15,6 +15,7 @@ import {
   StatsSection,
   AstrologyFeature,
   SajuFeature,
+  TarotSection,
   SEOContent,
   CTASection,
 } from "./components";
@@ -23,11 +24,6 @@ import {
 const ParticleCanvas = dynamic(() => import("./components").then(mod => ({ default: mod.ParticleCanvas })), {
   ssr: false,
   loading: () => null,
-});
-
-const TarotSection = dynamic(() => import("./components").then(mod => ({ default: mod.TarotSection })), {
-  ssr: false,
-  loading: () => <div className={styles.featureSectionSkeleton} />,
 });
 
 const ChatDemoSection = dynamic(() => import("@/components/home/ChatDemoSection").then(mod => ({ default: mod.ChatDemoSection })), {

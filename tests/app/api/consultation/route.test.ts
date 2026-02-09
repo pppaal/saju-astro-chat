@@ -99,6 +99,10 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
+vi.mock('@/lib/auth/premium', () => ({
+  isDbPremiumUser: vi.fn().mockResolvedValue(false),
+}))
+
 // Mock Prisma
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {

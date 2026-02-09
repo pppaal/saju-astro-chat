@@ -78,32 +78,41 @@ function validateCsrf(
 
 // ============ Rate Limiting ============
 
+type RateLimitCheckResult = {
+  error?: NextResponse
+  headers?: Headers
+}
+
 async function checkRateLimit(
   options: MiddlewareOptions,
   route: string,
   ip: string,
   locale: string,
-  userId?: string | null
-): Promise<NextResponse | null> {
-  if (!options.rateLimit) return null
+  userId?: string | null,
+  skipIpCheck: boolean = false
+): Promise<RateLimitCheckResult> {
+  if (!options.rateLimit) return {}
 
   const { limit, windowSeconds, keyPrefix = 'api' } = options.rateLimit
+  let headers: Headers | undefined
 
-  // IP-based rate limiting
-  const rateLimitKey = `${keyPrefix}:${route}:${ip}`
-  const result = await rateLimit(rateLimitKey, { limit, windowSeconds })
+  if (!skipIpCheck) {
+    // IP-based rate limiting
+    const rateLimitKey = `${keyPrefix}:${route}:${ip}`
+    const result = await rateLimit(rateLimitKey, { limit, windowSeconds })
+    headers = result.headers
 
-  if (!result.allowed) {
-    return createErrorResponse({
-      code: ErrorCodes.RATE_LIMITED,
-      locale,
-      route,
-      headers: {
-        'Retry-After': String(result.retryAfter || windowSeconds),
-        'X-RateLimit-Limit': String(limit),
-        'X-RateLimit-Remaining': '0',
-      },
-    })
+    if (!result.allowed) {
+      return {
+        error: createErrorResponse({
+          code: ErrorCodes.RATE_LIMITED,
+          locale,
+          route,
+          headers: result.headers,
+        }),
+        headers: result.headers,
+      }
+    }
   }
 
   // User-based rate limiting (if authenticated)
@@ -113,22 +122,22 @@ async function checkRateLimit(
       limit,
       windowSeconds,
     })
+    headers = userResult.headers
 
     if (!userResult.allowed) {
-      return createErrorResponse({
-        code: ErrorCodes.RATE_LIMITED,
-        locale,
-        route,
-        headers: {
-          'Retry-After': String(userResult.retryAfter || windowSeconds),
-          'X-RateLimit-Limit': String(limit),
-          'X-RateLimit-Remaining': '0',
-        },
-      })
+      return {
+        error: createErrorResponse({
+          code: ErrorCodes.RATE_LIMITED,
+          locale,
+          route,
+          headers: userResult.headers,
+        }),
+        headers: userResult.headers,
+      }
     }
   }
 
-  return null
+  return { headers }
 }
 
 // ============ Token Validation ============
@@ -137,7 +146,8 @@ function validateToken(
   req: NextRequest,
   options: MiddlewareOptions,
   locale: string,
-  route: string
+  route: string,
+  rateLimitHeaders?: Headers
 ): NextResponse | null {
   if (!options.requireToken) return null
 
@@ -148,6 +158,7 @@ function validateToken(
       message: tokenResult.reason || 'Invalid or missing token',
       locale,
       route,
+      headers: rateLimitHeaders,
     })
   }
   return null
@@ -159,7 +170,8 @@ async function handleCredits(
   options: MiddlewareOptions,
   userId: string | null,
   locale: string,
-  route: string
+  route: string,
+  rateLimitHeaders?: Headers
 ): Promise<{
   error?: NextResponse
   creditInfo?: { remaining: number }
@@ -177,6 +189,7 @@ async function handleCredits(
         message: 'Authentication required for credit-based operations',
         locale,
         route,
+        headers: rateLimitHeaders,
       }),
     }
   }
@@ -187,6 +200,9 @@ async function handleCredits(
   )
 
   if (!creditResult.allowed) {
+    const headerRecord = rateLimitHeaders
+      ? Object.fromEntries(rateLimitHeaders.entries())
+      : undefined
     return {
       error: NextResponse.json(
         {
@@ -195,7 +211,10 @@ async function handleCredits(
           remaining: creditResult.remaining,
           upgradeUrl: '/pricing',
         },
-        { status: creditResult.errorCode === 'not_authenticated' ? 401 : 402 }
+        {
+          status: creditResult.errorCode === 'not_authenticated' ? 401 : 402,
+          headers: headerRecord,
+        }
       ),
     }
   }
@@ -250,13 +269,14 @@ export async function initializeApiContext(
   }
 
   // 2. IP-based rate limiting (before auth)
-  const ipRateLimitError = await checkRateLimit(options, route, ip, locale)
-  if (ipRateLimitError) {
-    return { context: createEmptyContext(ip, locale), error: ipRateLimitError }
+  const ipRateLimit = await checkRateLimit(options, route, ip, locale)
+  let rateLimitHeaders = ipRateLimit.headers
+  if (ipRateLimit.error) {
+    return { context: createEmptyContext(ip, locale), error: ipRateLimit.error }
   }
 
   // 3. Token validation
-  const tokenError = validateToken(req, options, locale, route)
+  const tokenError = validateToken(req, options, locale, route, rateLimitHeaders)
   if (tokenError) {
     return { context: createEmptyContext(ip, locale), error: tokenError }
   }
@@ -282,14 +302,18 @@ export async function initializeApiContext(
         code: ErrorCodes.UNAUTHORIZED,
         locale,
         route,
+        headers: rateLimitHeaders,
       }),
     }
   }
 
   // 6. User-based rate limiting (after auth)
   if (userId) {
-    const userRateLimitError = await checkRateLimit(options, route, ip, locale, userId)
-    if (userRateLimitError) {
+    const userRateLimit = await checkRateLimit(options, route, ip, locale, userId, true)
+    if (userRateLimit.headers) {
+      rateLimitHeaders = userRateLimit.headers
+    }
+    if (userRateLimit.error) {
       return {
         context: {
           ip,
@@ -298,8 +322,9 @@ export async function initializeApiContext(
           userId,
           isAuthenticated: true,
           isPremium,
+          rateLimitHeaders,
         },
-        error: userRateLimitError,
+        error: userRateLimit.error,
       }
     }
   }
@@ -309,7 +334,7 @@ export async function initializeApiContext(
     error: creditError,
     creditInfo,
     refundCreditsOnError,
-  } = await handleCredits(options, userId, locale, route)
+  } = await handleCredits(options, userId, locale, route, rateLimitHeaders)
 
   if (creditError) {
     return {
@@ -320,6 +345,7 @@ export async function initializeApiContext(
         userId,
         isAuthenticated: !!session?.user,
         isPremium,
+        rateLimitHeaders,
       },
       error: creditError,
     }
@@ -336,6 +362,7 @@ export async function initializeApiContext(
       isPremium,
       creditInfo,
       refundCreditsOnError,
+      rateLimitHeaders,
     },
   }
 }

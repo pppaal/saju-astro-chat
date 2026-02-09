@@ -203,13 +203,13 @@ OptimizedRAGManager (ThreadPool 4 workers)
 **Saju Astro Chat**은 한국 사주(四柱)와 서양 점성술을 융합한 AI 챗봇입니다.
 
 ```
-Frontend (Next.js 16)          Backend AI (Python/Flask)
+Frontend (Next.js 16.1)        Backend AI (Python/Flask)
 ┌─────────────────────┐        ┌──────────────────────────┐
-│ React 19 + TS 5.0   │  API   │ GraphRAG Engine           │
-│ 333 컴포넌트         │◄──────►│ 5000+ 노드 지식 그래프    │
-│ 72+ 페이지           │        │ Multi-RAG Fusion          │
-│ Prisma 7 (35 모델)   │        │ 8개 운세 시스템           │
-│ 10개 언어 i18n       │        │ 276+ 테스트               │
+│ React 19.2 + TS 5.9 │  API   │ GraphRAG Engine           │
+│ 306 컴포넌트         │◄──────►│ 5000+ 노드 지식 그래프    │
+│ 75 페이지            │        │ Multi-RAG Fusion          │
+│ Prisma 7.3 (42 모델) │        │ 8개 운세 시스템           │
+│ 2개 언어 i18n        │        │ 276+ 테스트               │
 └─────────────────────┘        └──────────────────────────┘
 ```
 
@@ -1179,18 +1179,18 @@ Python 3.10
 ├── SentenceTransformers # 임베딩 모델 (Bi-Encoder, CrossEncoder)
 ├── ChromaDB 0.4.22      # HNSW 벡터 검색
 ├── LangGraph 0.2.36     # (선택) 에이전트 오케스트레이션
-├── OpenAI API           # GPT-4o-mini (HyDE, 평가, NER fallback)
-├── Anthropic API        # Claude 3.5 Haiku (NER fallback)
+├── OpenAI API           # FUSION_MINI_MODEL (HyDE, 평가, NER fallback)
+├── Anthropic API        # (옵션) NER fallback
 └── pytest 9.0           # 테스트
 ```
 
 ### Frontend
 
 ```
-Next.js 16 + React 19
-├── TypeScript 5.0       # 타입 안전성
-├── Prisma 7             # ORM (35 모델)
-├── Zod 4.x              # 128 API 검증 스키마
+Next.js 16.1 + React 19.2
+├── TypeScript 5.9       # 타입 안전성
+├── Prisma 7.3           # ORM (42 모델)
+├── Zod 4.x              # API 입력 검증
 ├── TailwindCSS          # UI
 ├── Swiss Ephemeris      # 천문 계산
 └── Vitest + Playwright  # 테스트
@@ -1344,12 +1344,12 @@ Backend AI:
   그래프 노드:     5000+
 
 Frontend:
-  컴포넌트:        333 .tsx 파일
-  페이지:          72+
-  API 라우트:      134
-  Prisma 모델:     35
-  Zod 스키마:      128
-  i18n 언어:       10+
+  컴포넌트:        306 .tsx 파일
+  페이지:          75
+  API 라우트:      135
+  Prisma 모델:     42
+  Zod 스키마:      다수 (집계 필요)
+  i18n 언어:       2 (ko, en)
 
 Feature Flags:     9개 (Phase별 독립 제어)
 ```

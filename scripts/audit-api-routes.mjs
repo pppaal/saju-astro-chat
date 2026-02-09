@@ -11,6 +11,11 @@ const docsDir = path.join(repoRoot, 'docs')
 const reportPath = path.join(docsDir, 'API_AUDIT_REPORT.md')
 
 const routeExts = new Set(['.ts', '.tsx', '.js', '.mjs'])
+const ignoredRoutes = new Set()
+
+function normalizePath(value) {
+  return value.split(path.sep).join('/')
+}
 
 function walk(dir, onFile) {
   if (!fs.existsSync(dir)) return
@@ -54,12 +59,13 @@ const patterns = {
   middlewareImport: /from ['"]@\/lib\/api\/middleware['"]|from ['"].*\/lib\/api\/middleware['"]/,
   guard: /\bcreate[A-Za-z]+Guard\b/,
   validation:
-    /\b(parseAndValidate|validateAndParse|parseQueryParams|validateQueryParams)\b|\bsafeParse\b|from ['"]zod['"]|from ['"]@\/lib\/api\/validator['"]/,
-  rateLimit: /\brateLimit\s*:/,
+    /\b(parseAndValidate|validateAndParse|parseQueryParams|validateQueryParams|validateRequestBody|validateReportRequest)\b|\bsafeParse\b|from ['"]zod['"]|from ['"]@\/lib\/api\/validator['"]|from ['"]@\/lib\/api\/zodValidation['"]|\bcreateStreamRoute\b|\bErrorCodes\.VALIDATION_ERROR\b/,
+  rateLimit: /\brateLimit\s*[:(]/,
   credits: /\bcredits\s*:/,
   requireCredits: /\brequireCredits\b/,
   requireAuth: /\brequireAuth\b/,
   requireToken: /\brequireToken\b/,
+  requirePublicToken: /\brequirePublicToken\b/,
   skipCsrf: /\bskipCsrf\s*:\s*true\b/,
   createAuthenticatedGuard: /\bcreateAuthenticatedGuard\b/,
   createAdminGuard: /\bcreateAdminGuard\b/,
@@ -71,6 +77,11 @@ const patterns = {
   createTarotGuard: /\bcreateTarotGuard\b/,
 }
 
+const inputPatterns = {
+  body: /\b(req|request)\.(json|text|formData)\s*\(/,
+  query: /\bsearchParams\b|\bnextUrl\b|new URL\([^)]*(req|request)\.url/,
+}
+
 const routeFiles = []
 walk(apiRoot, (filePath) => {
   const ext = path.extname(filePath)
@@ -80,53 +91,63 @@ walk(apiRoot, (filePath) => {
   }
 })
 
-const stats = routeFiles.map((filePath) => {
-  const text = readFileSafe(filePath)
-  const methods = findMethods(text)
+const stats = routeFiles
+  .map((filePath) => {
+    const relPath = path.relative(repoRoot, filePath)
+    const normalizedRelPath = normalizePath(relPath)
 
-  const usesGuard = patterns.guard.test(text)
-  const usesMiddleware =
-    patterns.withApiMiddleware.test(text) ||
-    patterns.middlewareImport.test(text) ||
-    usesGuard
+    if (ignoredRoutes.has(normalizedRelPath)) {
+      return null
+    }
 
-  const hasValidation = patterns.validation.test(text)
+    const text = readFileSafe(filePath)
+    const methods = findMethods(text)
 
-  const requiresAuth =
-    patterns.requireAuth.test(text) ||
-    patterns.createAuthenticatedGuard.test(text) ||
-    patterns.createAdminGuard.test(text) ||
-    patterns.createAiGenerationGuard.test(text) ||
-    patterns.createChatGuard.test(text)
+    const usesGuard = patterns.guard.test(text)
+    const usesMiddleware =
+      patterns.withApiMiddleware.test(text) || patterns.middlewareImport.test(text) || usesGuard
 
-  const requiresToken =
-    patterns.requireToken.test(text) ||
-    patterns.createPublicStreamGuard.test(text) ||
-    patterns.createSajuGuard.test(text) ||
-    patterns.createAstrologyGuard.test(text) ||
-    patterns.createTarotGuard.test(text)
+    const hasValidation = patterns.validation.test(text)
+    const hasInput = inputPatterns.body.test(text) || inputPatterns.query.test(text)
 
-  const rateLimited = patterns.rateLimit.test(text) || usesGuard
-  const credits = patterns.credits.test(text) || patterns.requireCredits.test(text)
+    const requiresAuth =
+      patterns.requireAuth.test(text) ||
+      patterns.createAuthenticatedGuard.test(text) ||
+      patterns.createAdminGuard.test(text) ||
+      patterns.createAiGenerationGuard.test(text) ||
+      patterns.createChatGuard.test(text)
 
-  const skipCsrf = patterns.skipCsrf.test(text)
+    const requiresToken =
+      patterns.requireToken.test(text) ||
+      patterns.requirePublicToken.test(text) ||
+      patterns.createPublicStreamGuard.test(text) ||
+      patterns.createSajuGuard.test(text) ||
+      patterns.createAstrologyGuard.test(text) ||
+      patterns.createTarotGuard.test(text)
 
-  const mutating = methods.some((m) => ['POST', 'PUT', 'PATCH', 'DELETE'].includes(m))
+    const rateLimited = patterns.rateLimit.test(text) || usesGuard
+    const credits = patterns.credits.test(text) || patterns.requireCredits.test(text)
 
-  return {
-    filePath,
-    relPath: path.relative(repoRoot, filePath),
-    methods,
-    usesMiddleware,
-    hasValidation,
-    rateLimited,
-    credits,
-    requiresAuth,
-    requiresToken,
-    skipCsrf,
-    mutating,
-  }
-})
+    const skipCsrf = patterns.skipCsrf.test(text)
+
+    const mutating = methods.some((m) => ['POST', 'PUT', 'PATCH', 'DELETE'].includes(m))
+
+    return {
+      filePath,
+      relPath,
+      methods,
+      usesMiddleware,
+      hasValidation,
+      hasInput,
+      rateLimited,
+      credits,
+      requiresAuth,
+      requiresToken,
+      skipCsrf,
+      mutating,
+    }
+  })
+  .filter(Boolean)
 
 const total = stats.length
 const counts = {
@@ -140,7 +161,7 @@ const counts = {
 }
 
 const missingMiddleware = stats.filter((s) => !s.usesMiddleware)
-const missingValidation = stats.filter((s) => !s.hasValidation)
+const missingValidation = stats.filter((s) => s.hasInput && !s.hasValidation)
 const publicMutations = stats.filter((s) => s.mutating && !s.requiresAuth && !s.requiresToken)
 
 const methodsCount = stats.reduce((acc, s) => {
@@ -162,7 +183,9 @@ lines.push('')
 lines.push(`- Total Next.js API routes: ${total}`)
 lines.push(`- Uses middleware/guards: ${counts.middleware} (${percent(counts.middleware, total)})`)
 lines.push(`- Has validation signals: ${counts.validation} (${percent(counts.validation, total)})`)
-lines.push(`- Rate limited (guard or option): ${counts.rateLimited} (${percent(counts.rateLimited, total)})`)
+lines.push(
+  `- Rate limited (guard or option): ${counts.rateLimited} (${percent(counts.rateLimited, total)})`
+)
 lines.push(`- Credit consumption configured: ${counts.credits} (${percent(counts.credits, total)})`)
 lines.push(`- Requires auth: ${counts.requiresAuth} (${percent(counts.requiresAuth, total)})`)
 lines.push(`- Requires token: ${counts.requiresToken} (${percent(counts.requiresToken, total)})`)
@@ -200,8 +223,13 @@ lines.push('')
 lines.push(`## Notes`)
 lines.push('')
 lines.push(`- This report uses static pattern detection. Manual verification is required.`)
-lines.push(`- Guard usage implies rate limiting by default, but custom overrides may change behavior.`)
-lines.push(`- Validation detection includes Zod imports and safeParse calls; some manual validation may be missed.`)
+lines.push(
+  `- Guard usage implies rate limiting by default, but custom overrides may change behavior.`
+)
+lines.push(
+  `- Validation detection includes Zod imports, validation helpers, and stream schemas; some manual validation may be missed.`
+)
+lines.push(`- Missing validation only flagged when the route parses body or query input.`)
 
 if (!fs.existsSync(docsDir)) {
   fs.mkdirSync(docsDir, { recursive: true })

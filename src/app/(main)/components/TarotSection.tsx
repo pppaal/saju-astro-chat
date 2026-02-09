@@ -160,7 +160,7 @@ function TarotSection({ translate, locale }: TarotSectionProps) {
                       className={styles.cardImage}
                       width={200}
                       height={350}
-                      loading="lazy"
+                      loading="eager"
                       quality={75}
                       placeholder="blur"
                       blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjM1MCIgZmlsbD0iIzFhMWExYSIvPjwvc3ZnPg=="

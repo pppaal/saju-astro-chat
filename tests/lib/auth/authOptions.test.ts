@@ -253,7 +253,9 @@ describe('authOptions', () => {
       const { sendWelcomeEmail } = await import('@/lib/email')
       const { prisma } = await import('@/lib/db/prisma')
 
-      ;(prisma.user.findUnique as any).mockResolvedValue({ referralCode: 'REF123' })
+      ;(prisma.user.findUnique as any).mockResolvedValue({
+        settings: { referralCode: 'REF123' },
+      })
 
       vi.resetModules()
       const { authOptions } = await import('@/lib/auth/authOptions')
@@ -301,7 +303,9 @@ describe('authOptions', () => {
       const { prisma } = await import('@/lib/db/prisma')
       const { logger } = await import('@/lib/logger')
 
-      ;(prisma.user.findUnique as any).mockResolvedValue({ referralCode: 'REF123' })
+      ;(prisma.user.findUnique as any).mockResolvedValue({
+        settings: { referralCode: 'REF123' },
+      })
       ;(sendWelcomeEmail as any).mockRejectedValue(new Error('Email failed'))
 
       vi.resetModules()
@@ -514,7 +518,7 @@ describe('authOptions', () => {
       ;(prisma.user.create as any).mockResolvedValue({
         id: 'user-123',
         email: 'new@example.com',
-        referralCode: 'REF123ABC',
+        settings: { referralCode: 'REF123ABC' },
       })
 
       vi.resetModules()
@@ -531,7 +535,11 @@ describe('authOptions', () => {
         expect(prisma.user.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
             email: 'new@example.com',
-            referralCode: 'REF123ABC',
+            settings: {
+              create: {
+                referralCode: 'REF123ABC',
+              },
+            },
           }),
         })
       }

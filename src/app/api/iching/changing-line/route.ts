@@ -1,8 +1,8 @@
-// src/app/api/iching/changing-line/route.ts
+﻿// src/app/api/iching/changing-line/route.ts
 // 변효 해석 API - 백엔드에서 변효 데이터를 가져옴
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+import { withApiMiddleware, createPublicStreamGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
 import { apiClient } from '@/lib/api/ApiClient'
 import { logger } from '@/lib/logger'
 import { IChingChangingLineSchema } from '@/lib/api/validator'
@@ -57,7 +57,7 @@ export const POST = withApiMiddleware(
 
     return NextResponse.json(response.data)
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: 'iching-changing-line',
     limit: 60,
     windowSeconds: 60,

@@ -18,6 +18,9 @@ const isPerformance =
 // Coverage thresholds only enforced on full suite (test:coverage) to avoid
 // failures when running subset commands (test:a11y, test:tarot, etc.)
 const isCoverageRun = process.env.npm_lifecycle_event === 'test:coverage'
+const coverageReporters = isCoverageRun
+  ? ['text', 'html', 'lcov', 'json-summary', 'cobertura']
+  : ['text', 'json-summary']
 
 export default defineConfig({
   resolve: {
@@ -60,7 +63,7 @@ export default defineConfig({
     coverage: {
       enabled: true, // Coverage always collected; use --coverage=false to skip locally
       provider: 'v8',
-      reporter: ['text', 'html', 'lcov', 'json-summary', 'cobertura'],
+      reporter: coverageReporters,
       reportsDirectory: './coverage',
       include: ['src/**/*.{ts,tsx}'],
       exclude: [

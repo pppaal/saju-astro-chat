@@ -92,7 +92,12 @@ function main() {
   const isProduction = process.env.NODE_ENV === "production";
 
   const missing = REQUIRED_ALWAYS.filter(isMissing);
-  const missingPush = REQUIRED_PUSH.filter(isMissing);
+  const pushMissing = REQUIRED_PUSH.filter(isMissing);
+  const requirePush =
+    isProduction ||
+    process.env.ENABLE_WEB_PUSH === "true" ||
+    process.env.PUSH_NOTIFICATIONS_ENABLED === "true";
+  const missingPush = requirePush ? pushMissing : [];
   const emailError = checkEmailProvider();
   const missingProduction = isProduction ? REQUIRED_PRODUCTION.filter(isMissing) : [];
 
@@ -123,6 +128,9 @@ function main() {
   }
   if (!metricsPrimaryMissing && isMissing("NEXT_PUBLIC_PUBLIC_METRICS_TOKEN")) {
     warnings.push("NEXT_PUBLIC_PUBLIC_METRICS_TOKEN is missing; browser metrics requests may fail");
+  }
+  if (!requirePush && pushMissing.length) {
+    warnings.push(`Push keys missing: ${pushMissing.join(", ")}`);
   }
 
   if (missing.length) problems.push(`Missing required: ${missing.join(", ")}`);

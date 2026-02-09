@@ -1,9 +1,8 @@
-import { NextResponse } from 'next/server'
-import { headers } from 'next/headers'
+import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware } from '@/lib/api/middleware'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/db/prisma'
 import { getPlanFromPriceId } from '@/lib/payments/prices'
-import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
 import { upgradePlan, addBonusCredits, type PlanType } from '@/lib/credits/creditService'
@@ -44,215 +43,216 @@ async function findUserByEmail(email: string) {
   })
 }
 
-export async function POST(request: Request) {
-  const webhookSecret = getWebhookSecret()
-  if (!webhookSecret) {
-    logger.error('[Stripe Webhook] STRIPE_WEBHOOK_SECRET not configured')
-    captureServerError(new Error('STRIPE_WEBHOOK_SECRET missing'), {
-      route: '/api/webhook/stripe',
-      stage: 'config',
-    })
-    recordCounter('stripe_webhook_config_error', 1, { reason: 'missing_secret' })
-    return createErrorResponse({
-      code: ErrorCodes.INTERNAL_ERROR,
-      message: 'Webhook secret not configured',
-      route: 'webhook/stripe',
-    })
-  }
-  const stripe = getStripe()
+export const POST = withApiMiddleware(
+  async (request: NextRequest, context) => {
+    const webhookSecret = getWebhookSecret()
+    if (!webhookSecret) {
+      logger.error('[Stripe Webhook] STRIPE_WEBHOOK_SECRET not configured')
+      captureServerError(new Error('STRIPE_WEBHOOK_SECRET missing'), {
+        route: '/api/webhook/stripe',
+        stage: 'config',
+      })
+      recordCounter('stripe_webhook_config_error', 1, { reason: 'missing_secret' })
+      return createErrorResponse({
+        code: ErrorCodes.INTERNAL_ERROR,
+        message: 'Webhook secret not configured',
+        route: 'webhook/stripe',
+      })
+    }
+    const stripe = getStripe()
 
-  const body = await request.text()
-  const headersList = await headers()
-  const signature = headersList.get('stripe-signature')
-  // ReadonlyHeaders는 Headers 인터페이스와 호환되는 get/has 메서드를 가짐
-  const ip = getClientIp(headersList as Headers)
+    const body = await request.text()
+    const signature = request.headers.get('stripe-signature')
+    const ip = context.ip || 'unknown'
 
-  if (!signature) {
-    recordCounter('stripe_webhook_auth_error', 1, { reason: 'missing_signature' })
-    captureServerError(new Error('stripe-signature header missing'), {
-      route: '/api/webhook/stripe',
-      ip,
-    })
-    return createErrorResponse({
-      code: ErrorCodes.BAD_REQUEST,
-      message: 'Missing stripe-signature header',
-      route: 'webhook/stripe',
-    })
-  }
+    if (!signature) {
+      recordCounter('stripe_webhook_auth_error', 1, { reason: 'missing_signature' })
+      captureServerError(new Error('stripe-signature header missing'), {
+        route: '/api/webhook/stripe',
+        ip,
+      })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Missing stripe-signature header',
+        route: 'webhook/stripe',
+      })
+    }
 
-  let event: Stripe.Event
+    let event: Stripe.Event
 
-  try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-  } catch (err: unknown) {
-    const internalMessage = err instanceof Error ? err.message : 'Unknown error'
-    logger.error('[Stripe Webhook] Signature verification failed:', { message: internalMessage })
-    recordCounter('stripe_webhook_auth_error', 1, { reason: 'verify_failed' })
-    captureServerError(err, { route: '/api/webhook/stripe', stage: 'verify', ip })
-    return createErrorResponse({
-      code: ErrorCodes.BAD_REQUEST,
-      message: 'Webhook signature verification failed',
-      route: 'webhook/stripe',
-    })
-  }
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+    } catch (err: unknown) {
+      const internalMessage = err instanceof Error ? err.message : 'Unknown error'
+      logger.error('[Stripe Webhook] Signature verification failed:', { message: internalMessage })
+      recordCounter('stripe_webhook_auth_error', 1, { reason: 'verify_failed' })
+      captureServerError(err, { route: '/api/webhook/stripe', stage: 'verify', ip })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Webhook signature verification failed',
+        route: 'webhook/stripe',
+      })
+    }
 
-  logger.info(`[Stripe Webhook] Event: ${event.type}`, { eventId: event.id, ip })
+    logger.info(`[Stripe Webhook] Event: ${event.type}`, { eventId: event.id, ip })
 
-  // 🔒 타임스탬프 검증: 5분 이상 오래된 이벤트는 거부 (Replay Attack 방지)
-  const eventAgeSeconds = Math.floor(Date.now() / 1000) - event.created
-  if (eventAgeSeconds > 300) {
-    logger.warn(`[Stripe Webhook] Stale event rejected (age: ${eventAgeSeconds}s)`, {
-      eventId: event.id,
-      type: event.type,
-    })
-    recordCounter('stripe_webhook_stale_event', 1, { event: event.type })
-    return createErrorResponse({
-      code: ErrorCodes.BAD_REQUEST,
-      message: 'Event too old',
-      route: 'webhook/stripe',
-    })
-  }
-
-  // 🔒 멱등성 체크: 원자적으로 처리 시도 (Race Condition 방지)
-  try {
-    // 먼저 이벤트 레코드를 생성하여 락을 획득 (unique constraint)
-    await prisma.stripeEventLog.create({
-      data: {
+    // 🔒 타임스탬프 검증: 5분 이상 오래된 이벤트는 거부 (Replay Attack 방지)
+    const eventAgeSeconds = Math.floor(Date.now() / 1000) - event.created
+    if (eventAgeSeconds > 300) {
+      logger.warn(`[Stripe Webhook] Stale event rejected (age: ${eventAgeSeconds}s)`, {
         eventId: event.id,
         type: event.type,
-        success: false, // 처리 시작 전 상태
-        metadata: {
-          livemode: event.livemode,
-          apiVersion: event.api_version,
-        },
-      },
-    })
-  } catch (err: unknown) {
-    // P2002: Unique constraint violation (이미 처리 중이거나 완료)
-    if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
-      const existingEvent = await prisma.stripeEventLog.findUnique({
-        where: { eventId: event.id },
       })
-
-      if (existingEvent?.success) {
-        logger.info(`[Stripe Webhook] Event already processed: ${event.id}`, {
-          type: event.type,
-          processedAt: existingEvent.processedAt,
-        })
-        recordCounter('stripe_webhook_duplicate', 1, { event: event.type })
-        return NextResponse.json({ received: true, duplicate: true })
-      }
-
-      // 실패한 이벤트는 재처리 허용하지 않음 (별도 retry 로직 필요)
-      logger.warn(`[Stripe Webhook] Event processing in progress or failed: ${event.id}`)
-      return NextResponse.json({ received: true, duplicate: true })
-    }
-    throw err
-  }
-
-  try {
-    // 이벤트 처리
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session
-        await handleCheckoutCompleted(session)
-        break
-      }
-      case 'customer.subscription.created': {
-        const subscription = event.data.object as Stripe.Subscription
-        await handleSubscriptionCreated(subscription)
-        break
-      }
-      case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription
-        await handleSubscriptionUpdated(subscription)
-        break
-      }
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription
-        await handleSubscriptionDeleted(subscription)
-        break
-      }
-      case 'invoice.payment_succeeded': {
-        const invoice = event.data.object as Stripe.Invoice
-        await handlePaymentSucceeded(invoice)
-        break
-      }
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice
-        await handlePaymentFailed(invoice)
-        break
-      }
-      default:
-        logger.warn(`[Stripe Webhook] Unhandled event type: ${event.type}`)
+      recordCounter('stripe_webhook_stale_event', 1, { event: event.type })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Event too old',
+        route: 'webhook/stripe',
+      })
     }
 
-    // ✅ 성공: 이벤트 처리 완료 기록
-    await prisma.stripeEventLog.update({
-      where: { eventId: event.id },
-      data: {
-        success: true,
-        errorMsg: null,
-        processedAt: new Date(),
-      },
-    })
-
-    return NextResponse.json({ received: true })
-  } catch (err: unknown) {
-    const internalMessage = err instanceof Error ? err.message : 'Unknown error'
-    logger.error(`[Stripe Webhook] Error handling ${event.type}:`, err)
-    recordCounter('stripe_webhook_handler_error', 1, { event: event.type })
-    captureServerError(err, { route: '/api/webhook/stripe', event: event.type })
-
-    // ❌ 실패: 이벤트 처리 실패 기록 (재처리 가능하도록)
+    // 🔒 멱등성 체크: 원자적으로 처리 시도 (Race Condition 방지)
     try {
-      const existingAfter = await prisma.stripeEventLog.findUnique({
-        where: { eventId: event.id },
-      })
-      if (existingAfter?.success) {
-        logger.info(`[Stripe Webhook] Event succeeded elsewhere: ${event.id}`, {
-          type: event.type,
-          processedAt: existingAfter.processedAt,
-        })
-        return NextResponse.json({ received: true, duplicate: true })
-      }
-
-      await prisma.stripeEventLog.upsert({
-        where: { eventId: event.id },
-        update: {
-          success: false,
-          errorMsg: internalMessage,
-          processedAt: new Date(),
-          metadata: {
-            livemode: event.livemode,
-            apiVersion: event.api_version,
-            error: internalMessage,
-          },
-        },
-        create: {
+      // 먼저 이벤트 레코드를 생성하여 락을 획득 (unique constraint)
+      await prisma.stripeEventLog.create({
+        data: {
           eventId: event.id,
           type: event.type,
-          success: false,
-          errorMsg: internalMessage,
+          success: false, // 처리 시작 전 상태
           metadata: {
             livemode: event.livemode,
             apiVersion: event.api_version,
-            error: internalMessage,
           },
         },
       })
-    } catch (logErr) {
-      logger.error('[Stripe Webhook] Failed to log error event:', logErr)
+    } catch (err: unknown) {
+      // P2002: Unique constraint violation (이미 처리 중이거나 완료)
+      if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
+        const existingEvent = await prisma.stripeEventLog.findUnique({
+          where: { eventId: event.id },
+        })
+
+        if (existingEvent?.success) {
+          logger.info(`[Stripe Webhook] Event already processed: ${event.id}`, {
+            type: event.type,
+            processedAt: existingEvent.processedAt,
+          })
+          recordCounter('stripe_webhook_duplicate', 1, { event: event.type })
+          return NextResponse.json({ received: true, duplicate: true })
+        }
+
+        // 실패한 이벤트는 재처리 허용하지 않음 (별도 retry 로직 필요)
+        logger.warn(`[Stripe Webhook] Event processing in progress or failed: ${event.id}`)
+        return NextResponse.json({ received: true, duplicate: true })
+      }
+      throw err
     }
 
-    return createErrorResponse({
-      code: ErrorCodes.INTERNAL_ERROR,
-      message: 'Internal Server Error',
-      route: 'webhook/stripe',
-      originalError: err instanceof Error ? err : new Error(String(err)),
-    })
-  }
-}
+    try {
+      // 이벤트 처리
+      switch (event.type) {
+        case 'checkout.session.completed': {
+          const session = event.data.object as Stripe.Checkout.Session
+          await handleCheckoutCompleted(session)
+          break
+        }
+        case 'customer.subscription.created': {
+          const subscription = event.data.object as Stripe.Subscription
+          await handleSubscriptionCreated(subscription)
+          break
+        }
+        case 'customer.subscription.updated': {
+          const subscription = event.data.object as Stripe.Subscription
+          await handleSubscriptionUpdated(subscription)
+          break
+        }
+        case 'customer.subscription.deleted': {
+          const subscription = event.data.object as Stripe.Subscription
+          await handleSubscriptionDeleted(subscription)
+          break
+        }
+        case 'invoice.payment_succeeded': {
+          const invoice = event.data.object as Stripe.Invoice
+          await handlePaymentSucceeded(invoice)
+          break
+        }
+        case 'invoice.payment_failed': {
+          const invoice = event.data.object as Stripe.Invoice
+          await handlePaymentFailed(invoice)
+          break
+        }
+        default:
+          logger.warn(`[Stripe Webhook] Unhandled event type: ${event.type}`)
+      }
+
+      // ✅ 성공: 이벤트 처리 완료 기록
+      await prisma.stripeEventLog.update({
+        where: { eventId: event.id },
+        data: {
+          success: true,
+          errorMsg: null,
+          processedAt: new Date(),
+        },
+      })
+
+      return NextResponse.json({ received: true })
+    } catch (err: unknown) {
+      const internalMessage = err instanceof Error ? err.message : 'Unknown error'
+      logger.error(`[Stripe Webhook] Error handling ${event.type}:`, err)
+      recordCounter('stripe_webhook_handler_error', 1, { event: event.type })
+      captureServerError(err, { route: '/api/webhook/stripe', event: event.type })
+
+      // ❌ 실패: 이벤트 처리 실패 기록 (재처리 가능하도록)
+      try {
+        const existingAfter = await prisma.stripeEventLog.findUnique({
+          where: { eventId: event.id },
+        })
+        if (existingAfter?.success) {
+          logger.info(`[Stripe Webhook] Event succeeded elsewhere: ${event.id}`, {
+            type: event.type,
+            processedAt: existingAfter.processedAt,
+          })
+          return NextResponse.json({ received: true, duplicate: true })
+        }
+
+        await prisma.stripeEventLog.upsert({
+          where: { eventId: event.id },
+          update: {
+            success: false,
+            errorMsg: internalMessage,
+            processedAt: new Date(),
+            metadata: {
+              livemode: event.livemode,
+              apiVersion: event.api_version,
+              error: internalMessage,
+            },
+          },
+          create: {
+            eventId: event.id,
+            type: event.type,
+            success: false,
+            errorMsg: internalMessage,
+            metadata: {
+              livemode: event.livemode,
+              apiVersion: event.api_version,
+              error: internalMessage,
+            },
+          },
+        })
+      } catch (logErr) {
+        logger.error('[Stripe Webhook] Failed to log error event:', logErr)
+      }
+
+      return createErrorResponse({
+        code: ErrorCodes.INTERNAL_ERROR,
+        message: 'Internal Server Error',
+        route: 'webhook/stripe',
+        originalError: err instanceof Error ? err : new Error(String(err)),
+      })
+    }
+  },
+  { route: 'webhook/stripe', skipCsrf: true }
+)
 
 // 크레딧팩 구매 완료 처리 (일회성 결제)
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {

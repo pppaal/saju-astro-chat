@@ -49,7 +49,7 @@ export interface UseAsyncStateReturn<T> extends AsyncState<T> {
   /** Reset to initial state */
   reset: () => void
   /** Execute async function with automatic state management */
-  execute: <R = T>(asyncFn: () => Promise<R>) => Promise<R | null>
+  execute: (asyncFn: () => Promise<T>) => Promise<T | null>
   /** Current retry count */
   retryCount: number
   /** Whether operation can be retried */
@@ -158,8 +158,8 @@ export function useAsyncState<T>(options: UseAsyncStateOptions<T> = {}): UseAsyn
 
   // Execute async function
   const execute = useCallback(
-    async <R = T>(asyncFn: () => Promise<R>): Promise<R | null> => {
-      lastAsyncFnRef.current = asyncFn as unknown as () => Promise<T>
+    async (asyncFn: () => Promise<T>): Promise<T | null> => {
+      lastAsyncFnRef.current = asyncFn
       setHasLastAsyncFn(true)
 
       setState((prev) => ({
@@ -173,7 +173,7 @@ export function useAsyncState<T>(options: UseAsyncStateOptions<T> = {}): UseAsyn
         const result = await asyncFn()
 
         setState({
-          data: result as unknown as T,
+          data: result,
           loading: false,
           error: null,
           status: 'success',

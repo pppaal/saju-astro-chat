@@ -7,13 +7,14 @@ import { PremiumReportCTA } from '../components';
 
 import type { SajuDataExtended, PlanetData, CurrentFlow } from './fortune/types';
 import { findPlanetSign, findPlanetHouse } from './fortune/utils';
-import { calculateYearFortune, calculateMonthFortune, calculateTodayFortune } from './fortune/hooks';
+import { calculateYearFortune, calculateMonthFortune, calculateTodayFortune, calculateActionPlan } from './fortune/hooks';
 import {
   EnergyStatusSection,
   CurrentFlowSection,
   YearFortuneSection,
   MonthFortuneSection,
   TodayFortuneSection,
+  ActionPlanSection,
   LifeCycleSection,
   TimingOverlaySection,
   RelationAspectSection,
@@ -75,6 +76,7 @@ function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
   const yearFortune = calculateYearFortune({ sajuExt, dayMasterName, dayElement, isKo });
   const monthFortune = calculateMonthFortune({ sajuExt, isKo });
   const todayFortune = calculateTodayFortune({ sajuExt, isKo });
+  const actionPlan = calculateActionPlan({ todayFortune, monthFortune, yearFortune, dayElement, isKo });
 
   return (
     <div className="space-y-6">
@@ -110,6 +112,11 @@ function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
       {/* Today Fortune */}
       {todayFortune && (
         <TodayFortuneSection todayFortune={todayFortune} isKo={isKo} />
+      )}
+
+      {/* Action Plan */}
+      {actionPlan && (
+        <ActionPlanSection actionPlan={actionPlan} isKo={isKo} />
       )}
 
       {/* Life Cycle Section */}

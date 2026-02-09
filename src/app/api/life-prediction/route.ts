@@ -1,9 +1,9 @@
-// src/app/api/life-prediction/route.ts
+﻿// src/app/api/life-prediction/route.ts
 // 종합 인생 예측 API - 다년간 트렌드 + 과거 회고 + 이벤트 타이밍
 // TIER 1~3 고급 분석 엔진 통합
 
 import { NextRequest } from 'next/server'
-import { withApiMiddleware, createSimpleGuard } from '@/lib/api/middleware'
+import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware'
 import {
   analyzeMultiYearTrend,
   analyzePastDate,
@@ -409,7 +409,7 @@ export const POST = withApiMiddleware(
       })
     }
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: '/api/life-prediction',
     limit: 10,
     windowSeconds: 60,

@@ -1146,7 +1146,7 @@ class LLMEntityExtractor:
         self,
         use_llm: bool = True,
         llm_provider: str = "openai",
-        llm_model: str = "gpt-4o-mini",
+        llm_model: str = "FUSION_MINI_MODEL",
     ):
         self.use_llm = use_llm
         self.llm_provider = llm_provider
@@ -1275,7 +1275,7 @@ class LLMEntityExtractor:
     def _extract_with_llm(self, text: str) -> List[Entity]:
         """LLM 기반 엔티티 추출.
 
-        gpt-4o-mini 사용으로 비용 효율적 (입력 1K 토큰 ~$0.00015).
+        mini 모델 사용으로 비용 효율적 (요금표 기준).
         """
         try:
             prompt = ENTITY_EXTRACTION_PROMPT.format(text=text[:2000])
@@ -1487,7 +1487,7 @@ JSON 형식으로 응답:
     def __init__(
         self,
         llm_provider: str = "openai",
-        llm_model: str = "gpt-4o-mini",
+        llm_model: str = "FUSION_MINI_MODEL",
         max_workers: int = 4,
     ):
         self.llm_provider = llm_provider
@@ -1921,7 +1921,7 @@ class RAGEvaluator:
     def __init__(
         self,
         llm_provider: str = "openai",
-        llm_model: str = "gpt-4o-mini",
+        llm_model: str = "FUSION_MINI_MODEL",
     ):
         self.llm_provider = llm_provider
         self.llm_model = llm_model

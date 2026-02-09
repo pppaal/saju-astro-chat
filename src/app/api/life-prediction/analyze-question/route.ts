@@ -1,8 +1,8 @@
-// src/app/api/life-prediction/analyze-question/route.ts
+﻿// src/app/api/life-prediction/analyze-question/route.ts
 // AI 기반 질문 분석 API - GPT-4o-mini를 사용하여 사용자 질문을 해석
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard } from '@/lib/api/middleware'
+import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { lifePredictionAnalyzeQuestionSchema } from '@/lib/api/zodValidation'
@@ -166,7 +166,7 @@ export const POST = withApiMiddleware(
       })
     }
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: '/api/life-prediction/analyze-question',
     limit: 10,
     windowSeconds: 60,

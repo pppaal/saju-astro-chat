@@ -43,10 +43,12 @@ describe('ProfileLoader', () => {
     it('should return gender even if all current data provided', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user123',
-        birthDate: '1990-01-01',
-        birthTime: '12:00',
-        gender: 'M',
-        birthCity: null,
+        profile: {
+          birthDate: '1990-01-01',
+          birthTime: '12:00',
+          gender: 'M',
+          birthCity: null,
+        },
         personaMemory: null,
       } as any)
 
@@ -69,10 +71,12 @@ describe('ProfileLoader', () => {
     it('should load profile from database if data missing', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
         id: 'user123',
-        birthDate: '1990-01-01',
-        birthTime: '12:00',
-        gender: 'M',
-        birthCity: null,
+        profile: {
+          birthDate: '1990-01-01',
+          birthTime: '12:00',
+          gender: 'M',
+          birthCity: null,
+        },
         personaMemory: null,
       } as any)
 
@@ -81,10 +85,20 @@ describe('ProfileLoader', () => {
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: 'user123' },
         select: expect.objectContaining({
-          birthDate: true,
-          birthTime: true,
-          gender: true,
-          birthCity: true,
+          profile: {
+            select: expect.objectContaining({
+              birthDate: true,
+              birthTime: true,
+              gender: true,
+              birthCity: true,
+            }),
+          },
+          personaMemory: {
+            select: expect.objectContaining({
+              sajuProfile: true,
+              birthChart: true,
+            }),
+          },
         }),
       })
 
@@ -113,10 +127,12 @@ describe('ProfileLoader', () => {
       // Function does not parse birthCity - coordinates must be provided separately
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user123',
-        birthDate: '1990-01-01',
-        birthTime: '12:00',
-        gender: 'M',
-        birthCity: 'Seoul|37.5|127.0',
+        profile: {
+          birthDate: '1990-01-01',
+          birthTime: '12:00',
+          gender: 'M',
+          birthCity: 'Seoul|37.5|127.0',
+        },
         personaMemory: null,
       } as any)
 
@@ -136,10 +152,12 @@ describe('ProfileLoader', () => {
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user123',
-        birthDate: '1990-01-01',
-        birthTime: '12:00',
-        gender: 'male',
-        birthCity: null,
+        profile: {
+          birthDate: '1990-01-01',
+          birthTime: '12:00',
+          gender: 'male',
+          birthCity: null,
+        },
         personaMemory: {
           sajuProfile: mockSaju,
           birthChart: null,
@@ -160,10 +178,12 @@ describe('ProfileLoader', () => {
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user123',
-        birthDate: '1990-01-01',
-        birthTime: '12:00',
-        gender: 'male',
-        birthCity: null,
+        profile: {
+          birthDate: '1990-01-01',
+          birthTime: '12:00',
+          gender: 'male',
+          birthCity: null,
+        },
         personaMemory: {
           sajuProfile: null,
           birthChart: mockAstro,
@@ -179,10 +199,12 @@ describe('ProfileLoader', () => {
     it('should prioritize current data over database data', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user123',
-        birthDate: '1990-01-01',
-        birthTime: '12:00',
-        gender: 'M',
-        birthCity: null,
+        profile: {
+          birthDate: '1990-01-01',
+          birthTime: '12:00',
+          gender: 'M',
+          birthCity: null,
+        },
         personaMemory: null,
       } as any)
 
@@ -238,10 +260,12 @@ describe('ProfileLoader', () => {
     it('should handle null birthCity', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user123',
-        birthDate: '1990-01-01',
-        birthTime: '12:00',
-        gender: 'male',
-        birthCity: null,
+        profile: {
+          birthDate: '1990-01-01',
+          birthTime: '12:00',
+          gender: 'male',
+          birthCity: null,
+        },
         personaMemory: null,
       } as any)
 
@@ -254,10 +278,12 @@ describe('ProfileLoader', () => {
     it('should handle invalid birthCity format', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user123',
-        birthDate: '1990-01-01',
-        birthTime: '12:00',
-        gender: 'male',
-        birthCity: 'Invalid Format',
+        profile: {
+          birthDate: '1990-01-01',
+          birthTime: '12:00',
+          gender: 'male',
+          birthCity: 'Invalid Format',
+        },
         personaMemory: null,
       } as any)
 
@@ -270,10 +296,12 @@ describe('ProfileLoader', () => {
     it('should handle null personaMemory', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user123',
-        birthDate: '1990-01-01',
-        birthTime: '12:00',
-        gender: 'male',
-        birthCity: null,
+        profile: {
+          birthDate: '1990-01-01',
+          birthTime: '12:00',
+          gender: 'male',
+          birthCity: null,
+        },
         personaMemory: null,
       } as any)
 
@@ -286,10 +314,12 @@ describe('ProfileLoader', () => {
     it('should handle empty string userId', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: '',
-        birthDate: '1990-01-01',
-        birthTime: '12:00',
-        gender: 'M',
-        birthCity: null,
+        profile: {
+          birthDate: '1990-01-01',
+          birthTime: '12:00',
+          gender: 'M',
+          birthCity: null,
+        },
         personaMemory: null,
       } as any)
 

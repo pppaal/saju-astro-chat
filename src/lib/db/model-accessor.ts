@@ -142,7 +142,6 @@ export function getModel(modelName: PrismaModelName): GenericModelDelegate {
   // This type assertion is intentional and necessary for dynamic model access.
   // Prisma doesn't provide a built-in way to access models dynamically with full type safety.
   // By centralizing this here, we avoid scattered `as any` casts throughout the codebase.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const model = (prisma as unknown as Record<string, GenericModelDelegate>)[modelName]
 
   if (!model) {
@@ -156,7 +155,6 @@ export function getModel(modelName: PrismaModelName): GenericModelDelegate {
  * Check if a model name is valid
  */
 export function isValidModelName(name: string): name is PrismaModelName {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return name in prisma && typeof (prisma as unknown as Record<string, unknown>)[name] === 'object'
 }
 

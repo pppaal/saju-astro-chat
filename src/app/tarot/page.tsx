@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import { motion, AnimatePresence } from 'framer-motion'
 import BackButton from '@/components/ui/BackButton'
-import CreditBadge from '@/components/ui/CreditBadge'
-import { quickQuestions } from '@/lib/Tarot/tarot-recommend'
+import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
+import { tarotThemeExamples } from '@/lib/Tarot/tarot-question-examples'
 import styles from './tarot-home.module.css'
 import { useCanvasAnimation, useRecentQuestions, useQuestionAnalysis } from './hooks'
 import { getQuickRecommendation } from './utils/recommendations'
@@ -22,6 +22,8 @@ export default function TarotHomePage() {
   const { language } = useI18n()
   const router = useRouter()
   const isKo = language === 'ko'
+  const inputRef = useRef<HTMLInputElement>(null)
+  const themeLookup = useMemo(() => new Map(tarotThemes.map((theme) => [theme.id, theme])), [])
 
   // State
   const [question, setQuestion] = useState('')
@@ -51,16 +53,14 @@ export default function TarotHomePage() {
     startReading()
   }, [question, addRecentQuestion, startReading])
 
-  const handleQuickQuestion = useCallback(
-    (q: (typeof quickQuestions)[0]) => {
+  const handleThemeQuestion = useCallback(
+    (questionText: string) => {
       triggerHaptic('light')
-      const questionText = isKo ? q.question || '' : q.questionEn || ''
       setQuestion(questionText)
-      addRecentQuestion(questionText)
-      const result = getQuickRecommendation(questionText, isKo)
-      router.push(result.path)
+      setIsFocused(true)
+      inputRef.current?.focus()
     },
-    [isKo, router, addRecentQuestion, triggerHaptic]
+    [triggerHaptic]
   )
 
   const handleRecentQuestion = useCallback(
@@ -90,13 +90,7 @@ export default function TarotHomePage() {
     <div className={styles.container}>
       <canvas ref={canvasRef} className={styles.backgroundCanvas} />
 
-      <div className={styles.backButtonContainer}>
-        <BackButton />
-      </div>
-
-      <div className={styles.creditBadgeWrapper}>
-        <CreditBadge variant="compact" />
-      </div>
+      <BackButton />
 
       <main className={styles.main}>
         <AnimatePresence mode="wait">
@@ -106,10 +100,10 @@ export default function TarotHomePage() {
             initial="initial"
             animate="animate"
             exit="exit"
-            className={styles.contentWrapper}
+            className={styles.card}
           >
             {/* Logo/Title */}
-            <div className={styles.logoSection}>
+            <header className={styles.header}>
               <div className={styles.iconWrapper}>
                 <span className={styles.tarotIcon}>🔮</span>
               </div>
@@ -119,7 +113,7 @@ export default function TarotHomePage() {
                   ? '무엇이든 물어보세요, 카드가 답합니다'
                   : 'Ask anything, the cards will answer'}
               </p>
-            </div>
+            </header>
 
             {/* Search Input */}
             <div className={`${styles.searchContainer} ${isFocused ? styles.focused : ''}`}>
@@ -128,6 +122,7 @@ export default function TarotHomePage() {
                   ✨
                 </span>
                 <input
+                  ref={inputRef}
                   type="text"
                   className={styles.searchInput}
                   placeholder={isKo ? '무엇이 궁금하세요?' : "What's on your mind?"}
@@ -153,6 +148,23 @@ export default function TarotHomePage() {
                     ✕
                   </button>
                 )}
+                <button
+                  className={styles.submitButton}
+                  onClick={() => {
+                    triggerHaptic('medium')
+                    handleStartReading()
+                  }}
+                  onTouchStart={handleTouchStart}
+                  disabled={!question.trim() || isAnalyzing || !!dangerWarning || isLoadingPreview}
+                  type="button"
+                  aria-label={isKo ? 'íƒ€ë¡œ ë³´ê¸°' : 'Read tarot'}
+                >
+                  {isAnalyzing ? (
+                    <span className={styles.loadingSpinner}>â³</span>
+                  ) : (
+                    <span aria-hidden="true">âž¤</span>
+                  )}
+                </button>
               </div>
 
               {/* Preview Info */}
@@ -183,48 +195,58 @@ export default function TarotHomePage() {
                   <p>{dangerWarning}</p>
                 </div>
               )}
-
-              <button
-                className={`${styles.submitButton} ${
-                  question.trim() && !dangerWarning && !isLoadingPreview ? styles.active : ''
-                }`}
-                onClick={() => {
-                  triggerHaptic('medium')
-                  handleStartReading()
-                }}
-                onTouchStart={handleTouchStart}
-                disabled={!question.trim() || isAnalyzing || !!dangerWarning || isLoadingPreview}
-              >
-                {isAnalyzing ? (
-                  <span className={styles.loadingSpinner}>⏳</span>
-                ) : (
-                  <span>{isKo ? '타로 보기' : 'Read Tarot'} →</span>
-                )}
-              </button>
             </div>
 
-            {/* Quick Questions */}
-            <div className={styles.quickSection}>
-              <p className={styles.quickLabel}>{isKo ? '빠른 질문' : 'Quick'}</p>
-              <div className={styles.quickGrid}>
-                {quickQuestions.map((q, idx) => (
-                  <button
-                    key={idx}
-                    className={styles.quickButton}
-                    onClick={() => handleQuickQuestion(q)}
-                    onTouchStart={handleTouchStart}
-                    disabled={isAnalyzing}
-                    type="button"
-                  >
-                    <span className={styles.quickEmoji}>{q.emoji}</span>
-                    <span className={styles.quickText}>
-                      {isKo ? q.question || '' : q.questionEn || ''}
-                    </span>
-                  </button>
-                ))}
+            {/* Theme Examples */}
+            <section className={styles.themeSection}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>
+                  {isKo ? '테마별 질문 예' : 'Examples by Theme'}
+                </h2>
+                <p className={styles.sectionSubtitle}>
+                  {isKo
+                    ? '원하는 테마를 고르고 질문 예를 탭해보세요'
+                    : 'Pick a theme and tap an example question'}
+                </p>
               </div>
-            </div>
-
+              <div className={styles.themeGrid}>
+                {tarotThemeExamples.map((group) => {
+                  const theme = themeLookup.get(group.themeId)
+                  if (!theme) return null
+                  return (
+                    <div key={group.themeId} className={styles.themeCard}>
+                      <div className={styles.themeTitleRow}>
+                        <span className={styles.themeIcon} aria-hidden="true">
+                          {group.icon}
+                        </span>
+                        <div>
+                          <p className={styles.themeTitle}>
+                            {isKo ? theme.categoryKo : theme.category}
+                          </p>
+                          <p className={styles.themeDesc}>
+                            {isKo ? theme.descriptionKo : theme.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={styles.themeQuestions}>
+                        {group.questions.map((q, idx) => (
+                          <button
+                            key={`${group.themeId}-${idx}`}
+                            className={styles.themeQuestion}
+                            onClick={() => handleThemeQuestion(isKo ? q.ko : q.en)}
+                            onTouchStart={handleTouchStart}
+                            disabled={isAnalyzing}
+                            type="button"
+                          >
+                            {isKo ? q.ko : q.en}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
             {/* Recent Questions */}
             {recentQuestions.length > 0 && (
               <div className={styles.recentSection}>
@@ -260,3 +282,6 @@ export default function TarotHomePage() {
     </div>
   )
 }
+
+
+

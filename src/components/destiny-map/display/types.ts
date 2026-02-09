@@ -38,6 +38,15 @@ export interface LuckyElements {
   items?: string[];
 }
 
+export interface CharacterBuilder {
+  archetype?: string;
+  tagline?: string;
+  personality: string;
+  conflict: string;
+  growthArc: string;
+  keywords?: string[];
+}
+
 export interface ThemeSection {
   id: string;
   icon: string;
@@ -59,6 +68,7 @@ export interface StructuredFortune {
   sajuHighlight?: { pillar: string; element: string; meaning: string };
   astroHighlight?: { planet: string; sign: string; meaning: string };
   crossHighlights?: { summary: string; points?: string[] };
+  characterBuilder?: CharacterBuilder;
 }
 
 export type LangKey = "en" | "ko" | "ja" | "zh" | "es";

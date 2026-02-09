@@ -139,13 +139,13 @@ _CORPUS_CACHE_FILE = "corpus_embeds.pt"
 # Node ID fields to check in order
 _NODE_ID_FIELDS = ("id", "label", "name")
 # Edge source fields to check in order
-_EDGE_SRC_FIELDS = ("src", "source", "from")
+_EDGE_SRC_FIELDS = ("src", "source", "source_id", "source_iching", "from")
 # Edge destination fields to check in order
-_EDGE_DST_FIELDS = ("dst", "target", "to")
+_EDGE_DST_FIELDS = ("dst", "target", "target_id", "target_tarot", "to")
 # Edge relation fields to check in order
-_EDGE_REL_FIELDS = ("relation", "type")
+_EDGE_REL_FIELDS = ("relation", "relation_type", "type")
 # Edge description fields to check in order
-_EDGE_DESC_FIELDS = ("description", "desc")
+_EDGE_DESC_FIELDS = ("description", "desc", "meaning_ko")
 
 # Graph folders to load
 _GRAPH_TARGET_FOLDERS = frozenset([
@@ -324,13 +324,85 @@ def embed_batch(texts: List[str], batch_size: int = 16):
 # ===============================================================
 # HELPER FUNCTIONS
 # ===============================================================
+def _normalize_value(val: Optional[str]) -> Optional[str]:
+    if val is None:
+        return None
+    if isinstance(val, str):
+        stripped = val.strip()
+        return stripped if stripped else None
+    return val
+
+
 def _get_first_field(row: Dict, fields: tuple) -> Optional[str]:
     """Get the first non-empty value from a list of field names."""
     for field in fields:
-        val = row.get(field)
-        if val:
+        val = _normalize_value(row.get(field))
+        if val is not None:
             return val
+    # Case-insensitive fallback
+    lower_map = {k.lower(): k for k in row.keys()}
+    for field in fields:
+        key = lower_map.get(field.lower())
+        if key:
+            val = _normalize_value(row.get(key))
+            if val is not None:
+                return val
     return None
+
+
+def _has_edge_columns(headers: List[str]) -> bool:
+    header_set = {h.lower() for h in headers}
+    has_src = any(h in header_set for h in _EDGE_SRC_FIELDS) or any(
+        h.startswith("source_") or h.startswith("src_") for h in header_set
+    )
+    has_dst = any(h in header_set for h in _EDGE_DST_FIELDS) or any(
+        h.startswith("target_") or h.startswith("dst_") for h in header_set
+    )
+    return has_src and has_dst
+
+
+def _has_node_columns(headers: List[str]) -> bool:
+    header_set = {h.lower() for h in headers}
+    return any(h in header_set for h in _NODE_ID_FIELDS)
+
+
+_SPECIAL_NODE_MAP = {
+    "Ascendant": "Asc",
+    "Midheaven": "MC",
+}
+
+
+def _normalize_edge_node_id(node_id: Optional[str]) -> Optional[str]:
+    if not node_id:
+        return node_id
+    mapped = _SPECIAL_NODE_MAP.get(node_id)
+    if mapped:
+        return mapped
+    if node_id.startswith("ASTRO_PLANET_"):
+        name = node_id.split("_", 2)[-1]
+        return f"AP_{name.lower()}"
+    if node_id.startswith("ASTRO_SIGN_"):
+        name = node_id.split("_", 2)[-1]
+        return f"AS_{name.lower()}"
+    if node_id.startswith("H") and node_id[1:].isdigit():
+        return f"AH_{node_id[1:]}"
+    return node_id
+
+
+def _merge_node_attrs(existing: Dict, incoming: Dict) -> Dict:
+    merged = dict(existing)
+    for k, v in incoming.items():
+        v = _normalize_value(v)
+        if v is None:
+            continue
+        current = _normalize_value(merged.get(k))
+        if current is None:
+            merged[k] = v
+            continue
+        if k in ("description", "desc", "content"):
+            if isinstance(v, str) and isinstance(current, str) and len(v) > len(current):
+                merged[k] = v
+    return merged
 
 
 # ===============================================================
@@ -374,12 +446,21 @@ class GraphRAG:
     def _load_all(self):
         """Load all CSV nodes/edges and JSON rules."""
         # Load graph CSVs
-        for csv_path in self.graph_dir.rglob("*.csv"):
+        for csv_path in sorted(self.graph_dir.rglob("*.csv")):
+            if csv_path.name.endswith(".fixed.csv"):
+                continue
             fixed_path = csv_path.with_suffix(".csv.fixed.csv")
             path = fixed_path if fixed_path.exists() else csv_path
             name = csv_path.name.lower()
             try:
-                if "node" in name:
+                with open(path, encoding="utf-8-sig", newline="") as f:
+                    reader = csv.reader(f)
+                    headers = next(reader, [])
+                if headers and _has_edge_columns(headers):
+                    self._load_edges(path)
+                elif headers and _has_node_columns(headers):
+                    self._load_nodes(path)
+                elif "node" in name:
                     self._load_nodes(path)
                 elif any(x in name for x in ("edge", "relation", "link")):
                     self._load_edges(path)
@@ -399,6 +480,8 @@ class GraphRAG:
                 except Exception as e:
                     logger.warning("Rule load failed (%s): %s", json_path.name, e)
 
+        self._backfill_node_attributes()
+
         logger.info("Loaded %d nodes, %d edges", len(self.graph.nodes), len(self.graph.edges))
         if self.rules:
             logger.info("Rules: %s", ", ".join(sorted(self.rules.keys())))
@@ -409,7 +492,12 @@ class GraphRAG:
             for row in csv.DictReader(f):
                 node_id = _get_first_field(row, _NODE_ID_FIELDS)
                 if node_id:
-                    self.graph.add_node(node_id, **row)
+                    existing = self.graph.nodes.get(node_id)
+                    if existing:
+                        merged = _merge_node_attrs(existing, row)
+                        self.graph.add_node(node_id, **merged)
+                    else:
+                        self.graph.add_node(node_id, **row)
 
     def _load_edges(self, path: Path):
         """Load edges from CSV."""
@@ -417,12 +505,28 @@ class GraphRAG:
             for row in csv.DictReader(f):
                 src = _get_first_field(row, _EDGE_SRC_FIELDS)
                 dst = _get_first_field(row, _EDGE_DST_FIELDS)
+                src = _normalize_edge_node_id(src)
+                dst = _normalize_edge_node_id(dst)
                 if not src or not dst:
                     continue
                 rel = _get_first_field(row, _EDGE_REL_FIELDS) or "link"
                 desc = _get_first_field(row, _EDGE_DESC_FIELDS) or ""
-                weight = row.get("weight") or "1"
+                weight = _normalize_value(row.get("weight")) or "1"
                 self.graph.add_edge(src, dst, relation=rel, desc=desc, weight=weight)
+
+    def _backfill_node_attributes(self):
+        """Ensure nodes created via edges have minimal label text for embeddings."""
+        for node_id, attrs in list(self.graph.nodes(data=True)):
+            if attrs is None:
+                attrs = {}
+            label = _normalize_value(attrs.get("label")) or _normalize_value(attrs.get("name"))
+            if label is None:
+                self.graph.nodes[node_id]["label"] = str(node_id)
+            desc = _normalize_value(attrs.get("desc")) or _normalize_value(attrs.get("description")) or _normalize_value(attrs.get("content"))
+            if desc is None:
+                # Keep short, use label or id as fallback to avoid empty embeddings
+                fallback = label if label is not None else str(node_id)
+                self.graph.nodes[node_id]["desc"] = fallback
 
     def _prepare_embeddings(self, use_cache: bool = True):
         """Prepare node embeddings with optional caching."""

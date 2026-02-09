@@ -3,10 +3,10 @@
 "use client";
 
 import { useState, useMemo, useCallback, memo } from "react";
-import type { DestinyResult } from "./Analyzer";
+import type { DestinyResult, ThemedBlock } from "./Analyzer";
 import styles from "@/app/destiny-map/result/result.module.css";
 
-import type { LangKey, ReportType } from "./display/types";
+import type { LangKey, ReportType, StructuredFortune } from "./display/types";
 import { I18N, getThemeLabel } from "./display/i18n";
 import { tryParseStructured, findThemeData } from "./display/utils";
 import {
@@ -15,6 +15,7 @@ import {
   LuckyElementsSection,
   LifeTimelineSection,
   CategoryAnalysisSection,
+  CharacterBuilderSection,
 } from "./display/sections";
 
 // 테마 버튼 컴포넌트 메모이제이션
@@ -43,7 +44,7 @@ const ThemeButton = memo(({
 ));
 ThemeButton.displayName = 'ThemeButton';
 
-const EMPTY_THEMES: Record<string, unknown> = {};
+const EMPTY_THEMES: Record<string, ThemedBlock> = {};
 
 function Display({
   result,
@@ -68,17 +69,22 @@ function Display({
     setActiveTheme(key);
   }, []);
 
-  const themeMatch = findThemeData(result?.themes, activeTheme);
-  const themed = themeMatch?.data;
+  const themeMatch = findThemeData(themes as Record<string, unknown>, activeTheme);
+  const themed = themeMatch?.data as ThemedBlock | undefined;
   const name = result?.profile?.name?.trim() || tr.userFallback;
-  const interpretationText =
-    typeof ((themed as Record<string, unknown>))?.interpretation === "string" ? ((themed as Record<string, unknown>)).interpretation : "";
+  const interpretationText: string =
+    typeof themed?.interpretation === "string" ? themed.interpretation : "";
 
-  const structuredData = useMemo(() => {
+  const structuredData = useMemo<StructuredFortune | null>(() => {
     const text = String(interpretationText);
     if (!text.trim()) {return null;}
     return tryParseStructured(text);
   }, [interpretationText]);
+
+  const themeTitle =
+    typeof structuredData?.themeSummary === "string" && structuredData.themeSummary.trim()
+      ? structuredData.themeSummary
+      : getThemeLabel(activeTheme, lang);
 
   const errorMessage = result.errorMessage || result.error;
   if (errorMessage) {
@@ -116,7 +122,7 @@ function Display({
           rounded-full border border-violet-400/30 backdrop-blur-sm">
           <span className="text-3xl drop-shadow-[0_0_10px_rgba(167,139,250,0.6)]" aria-hidden="true">✨</span>
           <h2 className={styles.title} style={{ margin: 0, fontSize: '2rem', textShadow: 'none' }}>
-            {structuredData?.themeSummary || getThemeLabel(activeTheme, lang)}
+            {themeTitle}
           </h2>
           <span className="text-3xl drop-shadow-[0_0_10px_rgba(167,139,250,0.6)]" aria-hidden="true">✨</span>
         </div>
@@ -151,6 +157,13 @@ function Display({
         <ThemeSectionsDisplay sections={structuredData.sections} lang={lang} />
       )}
 
+      {/* Character Builder */}
+      {structuredData?.characterBuilder && (
+        <div className={styles.section}>
+          <CharacterBuilderSection data={structuredData.characterBuilder} lang={lang} />
+        </div>
+      )}
+
       {/* Key Insights */}
       {structuredData?.keyInsights && (
         <div className={styles.section}>
@@ -159,9 +172,9 @@ function Display({
       )}
 
       {/* Lucky Elements */}
-      {structuredData?.luckyElements && (
+      {structuredData?.luckyElements ? (
         <LuckyElementsSection data={structuredData.luckyElements} lang={lang} />
-      )}
+      ) : null}
 
       {/* Life Timeline */}
       {structuredData?.lifeTimeline && (
@@ -196,6 +209,21 @@ function Display({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Fallback: render raw interpretation if structured data missing */}
+      {!structuredData && interpretationText && (
+        <div className={styles.summary}>
+          <div className={styles.summaryBox}>
+            {interpretationText
+              .split(/\n{2,}/)
+              .map((chunk) => chunk.trim())
+              .filter((chunk) => chunk.length > 0)
+              .map((chunk, i) => (
+                <p key={`raw-${i}`}>{chunk}</p>
+              ))}
+          </div>
         </div>
       )}
     </div>

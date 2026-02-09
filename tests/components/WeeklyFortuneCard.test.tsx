@@ -10,7 +10,6 @@ import WeeklyFortuneCard from '@/components/WeeklyFortuneCard';
 // Mock next/image
 vi.mock('next/image', () => ({
   default: function MockImage({ src, alt, ...props }: { src: string; alt: string }) {
-    // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={alt} {...props} />;
   },
 }));

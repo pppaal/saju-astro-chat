@@ -349,7 +349,10 @@ describe("Push Service", () => {
 
   describe("previewUserNotifications", () => {
     it("returns empty array when user has no birth date", async () => {
-      mockUser.findUnique.mockResolvedValueOnce({ birthDate: null });
+      mockUser.findUnique.mockResolvedValueOnce({
+        profile: { birthDate: null, birthTime: null },
+        name: null,
+      });
 
       const { previewUserNotifications } = await import(
         "@/lib/notifications/pushService"
@@ -506,8 +509,10 @@ describe("sendScheduledNotifications", () => {
       {
         id: "user-1",
         name: "Test User",
-        birthDate: new Date("1990-05-15"),
-        birthTime: "10:30",
+        profile: {
+          birthDate: new Date("1990-05-15"),
+          birthTime: "10:30",
+        },
         personaMemory: {
           sajuProfile: { dayMaster: "甲" },
           birthChart: { transits: [] },
@@ -536,8 +541,10 @@ describe("sendScheduledNotifications", () => {
       {
         id: "user-error",
         name: null,
-        birthDate: new Date("1990-05-15"),
-        birthTime: null,
+        profile: {
+          birthDate: new Date("1990-05-15"),
+          birthTime: null,
+        },
         personaMemory: null,
         credits: null,
         subscriptions: [],
@@ -565,8 +572,10 @@ describe("sendScheduledNotifications", () => {
       {
         id: "user-1",
         name: "Test",
-        birthDate: new Date("1990-05-15"),
-        birthTime: null,
+        profile: {
+          birthDate: new Date("1990-05-15"),
+          birthTime: null,
+        },
         personaMemory: null,
         credits: null,
         subscriptions: [],
@@ -599,8 +608,10 @@ describe("sendScheduledNotifications", () => {
       {
         id: "user-1",
         name: "Test User",
-        birthDate: new Date("1990-05-15"),
-        birthTime: "10:30",
+        profile: {
+          birthDate: new Date("1990-05-15"),
+          birthTime: "10:30",
+        },
         personaMemory: null,
         credits: {
           plan: "free",
@@ -954,9 +965,11 @@ describe("previewUserNotifications with persona memory", () => {
 
     vi.mocked(mockUser.findUnique).mockResolvedValueOnce({
       id: "user-123",
-      birthDate: new Date("1990-05-15"),
-      birthTime: "10:30",
       name: "Test User",
+      profile: {
+        birthDate: new Date("1990-05-15"),
+        birthTime: "10:30",
+      },
     } as never);
 
     vi.mocked(mockPersonaMemory.findUnique).mockResolvedValueOnce({
@@ -1006,9 +1019,11 @@ describe("previewUserNotifications with persona memory", () => {
 
     vi.mocked(mockUser.findUnique).mockResolvedValueOnce({
       id: "user-123",
-      birthDate: new Date("1990-05-15"),
-      birthTime: null,
       name: null,
+      profile: {
+        birthDate: new Date("1990-05-15"),
+        birthTime: null,
+      },
     } as never);
 
     vi.mocked(mockPersonaMemory.findUnique).mockResolvedValueOnce(null);

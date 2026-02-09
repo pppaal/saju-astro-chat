@@ -1,4 +1,4 @@
-// src/app/api/numerology/route.ts
+﻿// src/app/api/numerology/route.ts
 /**
  * Numerology Analysis API
  * 수비학 분석 API - 생년월일/이름 기반 수비학 프로필 및 궁합 분석
@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
   withApiMiddleware,
-  createSimpleGuard,
+  createPublicStreamGuard,
   apiError,
   extractLocale,
   ErrorCodes,
@@ -366,7 +366,7 @@ export const POST = withApiMiddleware(
 
     return NextResponse.json(result.data)
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: '/api/numerology',
     limit: 30,
     windowSeconds: 60,
@@ -489,7 +489,7 @@ export const GET = withApiMiddleware(
 
     return NextResponse.json(result.data)
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: '/api/numerology',
     limit: 60,
     windowSeconds: 60,

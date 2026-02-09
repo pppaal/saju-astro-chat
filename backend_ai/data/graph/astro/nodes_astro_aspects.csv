@@ -13,4 +13,4 @@ AA_biquintile,쌍오분,astro_aspect,Biquintile,144,2,creative,쌍오분(144도)
 AA_sun_moon_conj,일월합,astro_aspect_pair,Sun_Moon_Conjunction,0,10,identity,해달합,자아와감정의융합/신월,의지와감정이하나/본능적인사람,일간일지합-내면통합,태양과 달의 합은 의지와 감정이 하나로 통합. 본능적이고 직관적이나 객관성이 부족할 수 있음.
 AA_sun_moon_opp,일월충,astro_aspect_pair,Sun_Moon_Opposition,180,10,awareness,해달충,자아와감정의대립/보름,내면갈등/의식과무의식의긴장,일간일지충-내면갈등,태양과 달의 충은 의지와 감정 사이의 긴장. 내면 갈등이 있으나 자기 인식이 깊어질 수 있음.
 AA_venus_mars_conj,금화합,astro_aspect_pair,Venus_Mars_Conjunction,0,8,passion,금성화성합,사랑과욕망의융합/열정,강렬한매력/연애와섹슈얼리티융합,도화함지-강한매력,금성과 화성의 합은 사랑과 욕망이 하나로. 강렬한 매력과 열정적인 관계를 나타냄.
-AA_saturn_pluto,토명합,astro_aspect_pair,Saturn_Pluto_Conjunction,0,8,transformation,토성명왕합,구조의변환/권력,기존구조의붕괴와재건/강력한변환,대운교체-근본변화,토성과 명왕성의 합은 근본적인 구조 변화. 권력 구조의 붕괴와 재건, 강력한 변환을 나타냄.
+AA_saturn_pluto,토명합,astro_aspect_pair,Saturn_Pluto_Conjunction,0,8,transformation,토성명왕합,구조의변환/권력,기존구조의붕괴와재건/강력한변환,대운교체-근본변화,"토성과 명왕성의 합은 근본적인 구조 변화. 권력 구조의 붕괴와 재건, 강력한 변환을 나타냄."

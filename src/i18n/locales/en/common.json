@@ -103,7 +103,7 @@
   },
   "auth": {
     "signIn": "Sign In",
-    "welcomeBack": "Welcome Back!",
+    "welcomeBack": "Welcome! Let's get started.",
     "signInToContinue": "Sign in to continue",
     "signInWithGoogle": "Sign In with Google",
     "termsConsentPrefix": "By continuing, you agree to the",

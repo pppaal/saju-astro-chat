@@ -1,9 +1,9 @@
-// src/app/api/life-prediction/explain-results/route.ts
+﻿// src/app/api/life-prediction/explain-results/route.ts
 // AI 기반 결과 설명 생성 API - 사주 분석 결과를 사용자 친화적으로 변환
 // RAG 컨텍스트를 활용하여 더 풍부한 해석 제공
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard } from '@/lib/api/middleware'
+import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware'
 import { logger } from '@/lib/logger'
 import { getBackendUrl } from '@/lib/backend-url'
 import { HTTP_STATUS } from '@/lib/constants/http'
@@ -254,7 +254,7 @@ ${ragContext ? '참고 지식의 내용을 자연스럽게 녹여서 설명해�
       })
     }
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: '/api/life-prediction/explain-results',
     limit: 10,
     windowSeconds: 60,

@@ -8,7 +8,7 @@ Rendering Insights Extractors
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
-from .profiles import DAY_MASTER_PROFILES
+from .profiles import DAY_MASTER_PROFILES, ZODIAC_PROFILES
 from .constants import SIBSIN_MEANINGS, SIBSIN_EN
 from .extractors import (
     get_sibsin_value,
@@ -593,3 +593,213 @@ def get_astro_highlight(
             "meaning": f"태양 {sun.get('sign', '')} - 핵심 정체성과 삶의 목적"
         }
     return None
+
+
+def get_character_builder(
+    saju: Dict[str, Any],
+    astro: Dict[str, Any],
+    locale: str = "ko"
+) -> Dict[str, Any]:
+    """Build storytelling character profile from saju + astro data."""
+
+    def normalize_element(el: str) -> str:
+        if not el:
+            return "wood"
+        mapping = {
+            "?": "wood", "?": "fire", "?": "earth", "?": "metal", "?": "water",
+            "?": "wood", "?": "fire", "?": "earth", "?": "metal", "?": "water",
+        }
+        el_key = mapping.get(el, str(el).lower())
+        return "metal" if el_key == "air" else el_key
+
+    def element_label(el_key: str, is_en: bool) -> str:
+        labels = {
+            "wood": "?" if not is_en else "Wood",
+            "fire": "?" if not is_en else "Fire",
+            "earth": "?" if not is_en else "Earth",
+            "metal": "?" if not is_en else "Metal",
+            "water": "?" if not is_en else "Water",
+        }
+        return labels.get(el_key, el_key)
+
+    element_keywords = {
+        "wood": {
+            "ko": ["??", "??", "???"],
+            "en": ["growth", "initiative", "leadership"],
+        },
+        "fire": {
+            "ko": ["??", "??", "????"],
+            "en": ["passion", "expression", "charisma"],
+        },
+        "earth": {
+            "ko": ["??", "??", "??"],
+            "en": ["stability", "balance", "practicality"],
+        },
+        "metal": {
+            "ko": ["??", "??", "??"],
+            "en": ["principle", "analysis", "decisiveness"],
+        },
+        "water": {
+            "ko": ["??", "??", "??"],
+            "en": ["intuition", "adaptability", "depth"],
+        },
+    }
+
+    archetypes = {
+        "wood": {
+            "ko": "?? ???",
+            "en": "Verdant Pioneer",
+            "tagline_ko": "??? ??? ??? ??? ??",
+            "tagline_en": "A protagonist of growth and exploration",
+        },
+        "fire": {
+            "ko": "?? ???",
+            "en": "Flame Vanguard",
+            "tagline_ko": "??? ???? ?? ?? ??",
+            "tagline_en": "A catalyst who ignites bold expression",
+        },
+        "earth": {
+            "ko": "?? ???",
+            "en": "Earth Architect",
+            "tagline_ko": "??? ??? ??? ??? ??",
+            "tagline_en": "A builder who stabilizes the world around them",
+        },
+        "metal": {
+            "ko": "?? ???",
+            "en": "Steel Strategist",
+            "tagline_ko": "??? ???? ?? ?? ??",
+            "tagline_en": "A strategist who cuts a clear path",
+        },
+        "water": {
+            "ko": "?? ??",
+            "en": "Deepwater Sage",
+            "tagline_ko": "??? ??? ??? ?? ??",
+            "tagline_en": "A sage who navigates with deep insight",
+        },
+    }
+
+    zodiac_element = {
+        "Aries": "fire", "Leo": "fire", "Sagittarius": "fire",
+        "Taurus": "earth", "Virgo": "earth", "Capricorn": "earth",
+        "Gemini": "air", "Libra": "air", "Aquarius": "air",
+        "Cancer": "water", "Scorpio": "water", "Pisces": "water",
+    }
+
+    dm_name, dm_el = normalize_day_master(saju)
+    dm_el_key = normalize_element(dm_el)
+
+    # Five elements balance for dominant/weakest
+    five_elements = (saju or {}).get("fiveElements") or (saju or {}).get("facts", {}).get("fiveElements") or {}
+    dominant_key = dm_el_key
+    weakest_key = dm_el_key
+    if isinstance(five_elements, dict) and five_elements:
+        items = [(normalize_element(k), v) for k, v in five_elements.items() if isinstance(v, (int, float))]
+        if items:
+            items.sort(key=lambda x: x[1], reverse=True)
+            dominant_key = items[0][0]
+            weakest_key = items[-1][0]
+
+    # Astro signs
+    planets = (astro or {}).get("planets", [])
+    sun = next((p for p in planets if p.get("name") == "Sun"), {})
+    moon = next((p for p in planets if p.get("name") == "Moon"), {})
+    sun_sign = sun.get("sign", "")
+    moon_sign = moon.get("sign", "")
+
+    sun_key = normalize_element(zodiac_element.get(sun_sign, ""))
+    moon_key = normalize_element(zodiac_element.get(moon_sign, ""))
+
+    is_en = locale == "en"
+    day_kw = element_keywords.get(dm_el_key, element_keywords["wood"])["en" if is_en else "ko"]
+    sun_kw = element_keywords.get(sun_key or dm_el_key, element_keywords["wood"])["en" if is_en else "ko"]
+
+    # Personality
+    sun_trait = ZODIAC_PROFILES.get(sun_sign, {}).get("trait", "")
+    moon_trait = ZODIAC_PROFILES.get(moon_sign, {}).get("trait", "")
+
+    if is_en:
+        personality = (
+            f"Your core is driven by {', '.join(day_kw[:2])}. "
+            f"Sun in {sun_sign or 'your sign'} amplifies {sun_kw[0]} on the surface. "
+            f"Moon in {moon_sign or 'your moon sign'} adds emotional depth."
+        )
+    else:
+        personality = (
+            f"??? {day_kw[0]}�{day_kw[1]} ??? ?? ????. "
+            f"?? {sun_sign}? {sun_trait or sun_kw[0]} ??? ??? ????, "
+            f"? {moon_sign}? {moon_trait or sun_kw[1]} ??? ??? ????."
+        )
+
+    # Conflict
+    conflict_parts = []
+    relations = {
+        "wood": {"controls": "earth", "controlledBy": "metal"},
+        "fire": {"controls": "metal", "controlledBy": "water"},
+        "earth": {"controls": "water", "controlledBy": "wood"},
+        "metal": {"controls": "wood", "controlledBy": "fire"},
+        "water": {"controls": "fire", "controlledBy": "earth"},
+    }
+
+    if sun_key == dm_el_key:
+        conflict_parts.append(
+            "??? ??? ?? ??? ???? ????." if not is_en
+            else "Inner and outer energies align strongly, risking overdrive."
+        )
+    elif relations.get(dm_el_key, {}).get("controls") == sun_key:
+        conflict_parts.append(
+            f"??? {element_label(dm_el_key, False)}? ??? {element_label(sun_key, False)} ??? ????? ??? ????." if not is_en
+            else f"Your inner {element_label(dm_el_key, True)} tries to control outward {element_label(sun_key, True)} flow."
+        )
+    elif relations.get(dm_el_key, {}).get("controlledBy") == sun_key:
+        conflict_parts.append(
+            f"?? {element_label(sun_key, False)} ??? ??? ?????." if not is_en
+            else f"External {element_label(sun_key, True)} energy can pressure your inner pace."
+        )
+    else:
+        conflict_parts.append(
+            "?? ?? ??? ?? ??? ??? ? ????." if not is_en
+            else "Mixed elements can create mismatched rhythms."
+        )
+
+    if sun_sign and moon_sign and sun_sign != moon_sign:
+        conflict_parts.append(
+            f"?? {sun_sign}? ? {moon_sign}? ?? ?? ??-?? ? ??? ?? ? ???." if not is_en
+            else f"Sun in {sun_sign} and Moon in {moon_sign} may pull in different directions."
+        )
+
+    conflict = " ".join(conflict_parts).strip()
+
+    # Growth arc
+    support_key = {
+        "wood": "water",
+        "fire": "wood",
+        "earth": "fire",
+        "metal": "earth",
+        "water": "metal",
+    }.get(dm_el_key, dm_el_key)
+
+    if is_en:
+        growth = (
+            f"Early on, you lean into {element_label(dm_el_key, True)}-driven {day_kw[0]}. "
+            f"Midway, strengthening {element_label(weakest_key, True)} restores balance. "
+            f"Later, {element_label(support_key, True)} energy expands your impact."
+        )
+    else:
+        growth = (
+            f"???? {element_label(dm_el_key, False)}? {day_kw[0]}? ??? ??? ????. "
+            f"???? ?? {element_label(weakest_key, False)} ??? ???? ??? ????. "
+            f"???? {element_label(support_key, False)} ???? ???? ?????."
+        )
+
+    archetype = archetypes.get(dm_el_key, archetypes["wood"])
+
+    keywords = list(dict.fromkeys(day_kw + sun_kw))[:6]
+
+    return {
+        "archetype": archetype["en" if is_en else "ko"],
+        "tagline": archetype["tagline_en" if is_en else "tagline_ko"],
+        "personality": personality,
+        "conflict": conflict,
+        "growthArc": growth,
+        "keywords": keywords,
+    }

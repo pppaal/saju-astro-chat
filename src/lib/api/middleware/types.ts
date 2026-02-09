@@ -17,6 +17,11 @@ export interface ApiContext {
   userId: string | null
   isAuthenticated: boolean
   isPremium: boolean
+  /**
+   * Rate limit headers computed by middleware (if enabled).
+   * These should be merged into responses to keep headers consistent.
+   */
+  rateLimitHeaders?: Headers
   creditInfo?: {
     remaining: number
     type?: CreditType

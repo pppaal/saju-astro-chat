@@ -14,10 +14,18 @@ import {
   auditRateLimit,
   auditSuspicious,
   getAuditSummary,
+  hashUserId,
+  maskEmail,
+  maskIp,
   type AuditEvent,
   type AuditCategory,
   type AuditSeverity,
 } from '@/lib/security/auditLog';
+
+const MASKING_ENABLED = process.env.AUDIT_LOG_MASKING !== 'false'
+const expectedUserId = (userId: string) => (MASKING_ENABLED ? hashUserId(userId) : userId)
+const expectedEmail = (email: string) => (MASKING_ENABLED ? maskEmail(email) : email)
+const expectedIp = (ip: string) => (MASKING_ENABLED ? maskIp(ip) : ip)
 
 // ============================================================
 // Basic Audit Function Tests
@@ -65,9 +73,9 @@ describe('auditLog MEGA - audit()', () => {
         error: undefined,
       });
 
-      expect(event.userId).toBe('user123');
-      expect(event.userEmail).toBe('test@example.com');
-      expect(event.ip).toBe('192.168.1.1');
+      expect(event.userId).toBe(expectedUserId('user123'));
+      expect(event.userEmail).toBe(expectedEmail('test@example.com'));
+      expect(event.ip).toBe(expectedIp('192.168.1.1'));
       expect(event.userAgent).toBe('Mozilla/5.0');
       expect(event.path).toBe('/admin/users/123');
       expect(event.method).toBe('DELETE');
@@ -175,11 +183,11 @@ describe('auditLog MEGA - getAuditEvents()', () => {
       audit({ category: 'auth', action: 'login', severity: 'info', success: true, userId: 'user2' });
       audit({ category: 'auth', action: 'logout', severity: 'info', success: true, userId: 'user1' });
 
-      const events = getAuditEvents({ userId: 'user1' });
+      const events = getAuditEvents({ userId: expectedUserId('user1') });
 
       expect(events.length).toBeGreaterThanOrEqual(2);
       events.forEach(event => {
-        expect(event.userId).toBe('user1');
+        expect(event.userId).toBe(expectedUserId('user1'));
       });
     });
 
@@ -190,13 +198,13 @@ describe('auditLog MEGA - getAuditEvents()', () => {
 
       const events = getAuditEvents({
         category: 'admin',
-        userId: 'admin1',
+        userId: expectedUserId('admin1'),
       });
 
       expect(events.length).toBeGreaterThanOrEqual(2);
       events.forEach(event => {
         expect(event.category).toBe('admin');
-        expect(event.userId).toBe('admin1');
+        expect(event.userId).toBe(expectedUserId('admin1'));
       });
     });
   });
@@ -259,7 +267,7 @@ describe('auditLog MEGA - auditAuth()', () => {
     expect(event.action).toBe('login');
     expect(event.success).toBe(true);
     expect(event.severity).toBe('info');
-    expect(event.userId).toBe('user123');
+    expect(event.userId).toBe(expectedUserId('user123'));
   });
 
   it('should log failed authentication', () => {
@@ -321,7 +329,7 @@ describe('auditLog MEGA - auditDataAccess()', () => {
 
     expect(event.category).toBe('data');
     expect(event.action).toBe('user_profile_read');
-    expect(event.userId).toBe('user123');
+    expect(event.userId).toBe(expectedUserId('user123'));
   });
 });
 

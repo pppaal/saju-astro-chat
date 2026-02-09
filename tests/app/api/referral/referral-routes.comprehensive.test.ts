@@ -36,6 +36,10 @@ vi.mock('@/lib/db/prisma', () => ({
       update: vi.fn(),
       count: vi.fn(),
     },
+    userSettings: {
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
+    },
     referralReward: {
       findMany: vi.fn(),
       count: vi.fn(),
@@ -548,7 +552,7 @@ describe('Referral API Routes', () => {
   describe('GET /api/referral/stats', () => {
     it('should return referral statistics', async () => {
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession)
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         referralCode: 'STATS123',
       })
       ;(prisma.user.count as ReturnType<typeof vi.fn>).mockResolvedValue(5)
@@ -584,10 +588,10 @@ describe('Referral API Routes', () => {
 
     it('should generate code if missing', async () => {
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession)
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         referralCode: null,
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userSettings.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
         referralCode: 'GEN12345',
       })
       ;(prisma.user.count as ReturnType<typeof vi.fn>).mockResolvedValue(0)
@@ -608,7 +612,7 @@ describe('Referral API Routes', () => {
 
     it('should handle zero referrals', async () => {
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession)
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         referralCode: 'ZERO1234',
       })
       ;(prisma.user.count as ReturnType<typeof vi.fn>).mockResolvedValue(0)
@@ -631,7 +635,9 @@ describe('Referral API Routes', () => {
 
     it('should handle database errors', async () => {
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession)
-      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('DB error'))
+      ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockRejectedValue(
+        new Error('DB error')
+      )
 
       const { GET } = await import('@/app/api/referral/stats/route')
       const req = new NextRequest('http://localhost:3000/api/referral/stats')

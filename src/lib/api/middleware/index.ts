@@ -27,6 +27,43 @@ import {
 import { initializeApiContext, extractLocale } from './context'
 import type { ApiContext, ApiHandler, ApiHandlerResult, MiddlewareOptions } from './types'
 
+function mergeHeaderRecords(
+  base?: Record<string, string>,
+  extra?: Headers
+): Record<string, string> | undefined {
+  if (!extra && !base) return undefined
+  const merged: Record<string, string> = { ...(base ?? {}) }
+  if (extra) {
+    extra.forEach((value, key) => {
+      merged[key] = value
+    })
+  }
+  return merged
+}
+
+function applyHeadersToResponse(response: Response, extra?: Headers): NextResponse {
+  if (!extra) {
+    return response as NextResponse
+  }
+
+  if (response instanceof NextResponse) {
+    extra.forEach((value, key) => {
+      response.headers.set(key, value)
+    })
+    return response
+  }
+
+  const merged = new Headers(response.headers)
+  extra.forEach((value, key) => {
+    merged.set(key, value)
+  })
+  return new NextResponse(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: merged,
+  })
+}
+
 // ============ Main Wrapper ============
 
 /**
@@ -40,6 +77,7 @@ export function withApiMiddleware<T>(handler: ApiHandler<T>, options: Middleware
     try {
       // Initialize context
       const { context, error } = await initializeApiContext(req, options)
+      const rateLimitHeaders: Headers | undefined = context.rateLimitHeaders
 
       if (error) {
         return error
@@ -50,7 +88,7 @@ export function withApiMiddleware<T>(handler: ApiHandler<T>, options: Middleware
 
       // If handler returned a Response/NextResponse directly (e.g. SSE streams), use it
       if (result instanceof Response) {
-        return result as NextResponse
+        return applyHeadersToResponse(result, rateLimitHeaders)
       }
 
       // Handle error result
@@ -61,13 +99,14 @@ export function withApiMiddleware<T>(handler: ApiHandler<T>, options: Middleware
           details: result.error.details,
           locale: context.locale,
           route,
+          headers: mergeHeaderRecords(result.headers, rateLimitHeaders),
         })
       }
 
       // Success response
       return createSuccessResponse(result.data, {
         status: result.status,
-        headers: result.headers,
+        headers: mergeHeaderRecords(result.headers, rateLimitHeaders),
         meta: result.meta,
       })
     } catch (error) {
@@ -96,6 +135,7 @@ export function withApiMiddleware<T>(handler: ApiHandler<T>, options: Middleware
         originalError: e,
         route,
         locale: extractLocale(req),
+        headers: undefined,
       })
     }
   }

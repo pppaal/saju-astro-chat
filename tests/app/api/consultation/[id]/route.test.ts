@@ -101,6 +101,10 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
+vi.mock('@/lib/auth/premium', () => ({
+  isDbPremiumUser: vi.fn(),
+}))
+
 // Mock Prisma
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
@@ -191,6 +195,7 @@ import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import Stripe from 'stripe'
+import { isDbPremiumUser } from '@/lib/auth/premium'
 
 // ---------- Helpers ----------
 
@@ -198,6 +203,10 @@ const mockSession = {
   user: { id: 'user-123', email: 'test@example.com' },
   expires: '2025-12-31',
 }
+
+beforeEach(() => {
+  vi.mocked(isDbPremiumUser).mockResolvedValue(false)
+})
 
 // Route context with params promise
 function createRouteContext(id: string) {

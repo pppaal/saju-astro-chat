@@ -1,20 +1,20 @@
 id,label,type,animal,category,korean_name,general_meaning,positive_aspect,negative_aspect,saju_correlation,jung_archetype,description
-DAN_snake,뱀,dream_animal,Snake,reptile,뱀,변환/치유/지혜/성욕/위험,변환의힘/치유능력/지혜,배신/유혹/위험/독,사화-변환에너지,Kundalini,뱀은 변환과 치유의 강력한 상징. 허물을 벗듯 변화하며, 의료의 상징이기도 하나 유혹과 위험도 암시.
-DAN_dog,개,dream_animal,Dog,mammal,개,충성/보호/우정/본능,충성스러운친구/보호자/안내자,공격성/배신두려움/억압된분노,술토-충성우정,Faithful_Companion,개는 충성과 우정의 상징. 꿈에서 개가 친근하면 충실한 친구, 공격적이면 배신에 대한 두려움.
+DAN_snake,뱀,dream_animal,Snake,reptile,뱀,변환/치유/지혜/성욕/위험,변환의힘/치유능력/지혜,배신/유혹/위험/독,사화-변환에너지,Kundalini,"뱀은 변환과 치유의 강력한 상징. 허물을 벗듯 변화하며, 의료의 상징이기도 하나 유혹과 위험도 암시."
+DAN_dog,개,dream_animal,Dog,mammal,개,충성/보호/우정/본능,충성스러운친구/보호자/안내자,공격성/배신두려움/억압된분노,술토-충성우정,Faithful_Companion,"개는 충성과 우정의 상징. 꿈에서 개가 친근하면 충실한 친구, 공격적이면 배신에 대한 두려움."
 DAN_cat,고양이,dream_animal,Cat,mammal,고양이,독립/직관/여성성/신비,독립심/직관/감각적매력,배신/속임/냉정함,묘목-독립직관,Feminine_Mystery,고양이는 독립과 신비의 상징. 자유로운 여성 에너지와 직관을 나타내며 영적 안내자이기도.
 DAN_bird,새,dream_animal,Bird,bird,새,자유/영혼/메시지/초월,자유/영적메시지/상승,속박에서벗어나려는욕구/불안,유금-자유초월,Soul_Messenger,새는 자유와 영혼의 상징. 하늘을 나는 새는 영적 메시지를 가져오며 자유에 대한 갈망.
 DAN_fish,물고기,dream_animal,Fish,fish,물고기,무의식/감정/풍요/영성,무의식의지혜/감정통찰/풍요,감정에압도됨/무의식두려움,해자수-무의식,Unconscious_Wisdom,물고기는 무의식과 감정의 상징. 물속의 물고기는 깊은 무의식에서 오는 통찰을 나타냄.
-DAN_horse,말,dream_animal,Horse,mammal,말,자유/힘/열정/본능,자유로운에너지/열정/이동,통제되지않는본능/억압된욕구,오화역마-자유열정,Wild_Energy,말은 자유와 힘의 상징. 달리는 말은 억누를 수 없는 열정과 에너지, 길들여진 말은 통제된 힘.
-DAN_tiger,호랑이,dream_animal,Tiger,mammal,호랑이,힘/용기/본능/위험,내면의힘/용기/보호,위협/공포/억압된분노,인목-강한힘,Primal_Power,호랑이는 원초적 힘과 용기의 상징. 무서우면 두려움, 친근하면 내면의 힘을 받아들임.
+DAN_horse,말,dream_animal,Horse,mammal,말,자유/힘/열정/본능,자유로운에너지/열정/이동,통제되지않는본능/억압된욕구,오화역마-자유열정,Wild_Energy,"말은 자유와 힘의 상징. 달리는 말은 억누를 수 없는 열정과 에너지, 길들여진 말은 통제된 힘."
+DAN_tiger,호랑이,dream_animal,Tiger,mammal,호랑이,힘/용기/본능/위험,내면의힘/용기/보호,위협/공포/억압된분노,인목-강한힘,Primal_Power,"호랑이는 원초적 힘과 용기의 상징. 무서우면 두려움, 친근하면 내면의 힘을 받아들임."
 DAN_lion,사자,dream_animal,Lion,mammal,사자,왕권/권위/자존심/용기,리더십/자존감/용맹,오만/지배욕/공격성,인목정관-권위,King_Authority,사자는 왕의 위엄과 권위의 상징. 리더십과 자존감을 나타내며 내면의 왕을 발견.
-DAN_bear,곰,dream_animal,Bear,mammal,곰,힘/모성/동면/내면탐구,강한보호/모성본능/내면의힘,위험/공격성/고립,토모성-보호내면,Mother_Bear,곰은 힘과 모성의 상징. 동면하는 곰은 내면 탐구, 어미 곰은 강력한 모성 보호 본능.
+DAN_bear,곰,dream_animal,Bear,mammal,곰,힘/모성/동면/내면탐구,강한보호/모성본능/내면의힘,위험/공격성/고립,토모성-보호내면,Mother_Bear,"곰은 힘과 모성의 상징. 동면하는 곰은 내면 탐구, 어미 곰은 강력한 모성 보호 본능."
 DAN_wolf,늑대,dream_animal,Wolf,mammal,늑대,본능/무리/야생/충성,본능의지혜/소속감/충성,고립/위협/억압된야성,술토인목-야생본능,Pack_Instinct,늑대는 야생의 본능과 무리의 상징. 무리의 일원이 되고 싶거나 야생의 자유를 갈망.
 DAN_spider,거미,dream_animal,Spider,insect,거미,창조/운명/두려움/여성성,창조적직조/운명을짜는힘,함정/속박/두려움,사화음-창조함정,Weaver_Fate,거미는 운명을 짜는 창조자의 상징. 거미줄은 복잡한 상황이나 창조적 연결을 나타냄.
 DAN_butterfly,나비,dream_animal,Butterfly,insect,나비,변환/영혼/아름다움/덧없음,완전한변환/영적재탄생,덧없음/불안정,사화-완전한변환,Transformation,나비는 완전한 변환의 상징. 애벌레에서 나비로의 변화처럼 근본적인 변환을 경험.
 DAN_eagle,독수리,dream_animal,Eagle,bird,독수리,시야/영성/권력/자유,높은시야/영적통찰/자유,오만/고립/과도한야망,신금-높은시야,Eagle_Vision,독수리는 높은 시야와 영적 통찰의 상징. 하늘 높이서 전체를 보는 넓은 관점.
 DAN_owl,올빼미,dream_animal,Owl,bird,올빼미,지혜/밤/죽음/신비,숨겨진지혜/직관/밤의통찰,죽음/불길함/숨겨진두려움,해자수-밤의지혜,Night_Wisdom,올빼미는 밤의 지혜와 신비의 상징. 어둠 속에서 보는 능력과 숨겨진 진실을 꿰뚫는 직관.
 DAN_crow,까마귀,dream_animal,Crow,bird,까마귀,변환/마법/죽음/메신저,변환의메시지/마법의힘,불길/죽음/나쁜소식,해자수-변환메시지,Dark_Messenger,까마귀는 변환과 마법의 메신저. 저승과 이승을 오가며 중요한 메시지를 전달.
-DAN_dragon,용,dream_animal,Dragon,mythical,용,힘/지혜/보물/변환,거대한힘/지혜/보물수호,위협/탐욕/극복해야할장애,진토용신-최고의힘,Ultimate_Power,용은 동양에서 최고의 길상. 거대한 힘과 지혜, 보물을 상징하며 큰 행운을 암시.
+DAN_dragon,용,dream_animal,Dragon,mythical,용,힘/지혜/보물/변환,거대한힘/지혜/보물수호,위협/탐욕/극복해야할장애,진토용신-최고의힘,Ultimate_Power,"용은 동양에서 최고의 길상. 거대한 힘과 지혜, 보물을 상징하며 큰 행운을 암시."
 DAN_rat,쥐,dream_animal,Rat,mammal,쥐,생존/적응/번식/질병,생존본능/적응력/풍요,더러움/질병/숨겨진문제,자수-생존적응,Survivor,쥐는 생존과 적응의 상징. 어디서든 살아남는 능력이나 숨겨진 문제를 나타내기도.
 DAN_pig,돼지,dream_animal,Pig,mammal,돼지,풍요/행운/탐욕/본능,재물운/풍요/행운,탐욕/게으름/과식,해수재물-풍요,Abundance,돼지는 풍요와 재물의 상징. 꿈에 돼지가 나오면 재물운이 좋아지거나 풍요가 다가옴.
 DAN_rabbit,토끼,dream_animal,Rabbit,mammal,토끼,번식/행운/두려움/순수,행운/순수함/풍요,두려움/도망/취약함,묘목-순수행운,Lucky_Innocence,토끼는 행운과 순수함의 상징. 다산과 번식력을 나타내며 두려움 속의 민첩함도 의미.

@@ -35,7 +35,7 @@ async function checkServer(attempt = 1) {
       }
     });
 
-    req.on('error', (err) => {
+    req.on('error', (_err) => {
       if (attempt < MAX_ATTEMPTS) {
         process.stdout.write(`   Attempt ${attempt}/${MAX_ATTEMPTS} - Waiting...\r`);
         setTimeout(() => {

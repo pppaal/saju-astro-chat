@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+﻿import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware, createPublicStreamGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { generateReport } from '@/lib/destiny-map/reportService'
 import type { SajuResult, AstrologyResult } from '@/lib/destiny-map/types'
@@ -511,7 +511,7 @@ export const POST = withApiMiddleware(
 
     return NextResponse.json(responsePayload)
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: 'destiny-map',
     limit: 60,
     windowSeconds: 60,

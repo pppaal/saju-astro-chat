@@ -21,6 +21,7 @@ from .insights import (
     get_lucky_elements,
     get_saju_highlight,
     get_astro_highlight,
+    get_character_builder,
 )
 from .theme_sections import get_theme_sections, get_theme_summary
 
@@ -89,6 +90,7 @@ def render_template_report(
         "luckyElements": get_lucky_elements(signals, saju, locale),
         "sajuHighlight": get_saju_highlight(saju, locale),
         "astroHighlight": get_astro_highlight(astro, signals, locale),
+        "characterBuilder": get_character_builder(saju, astro, locale),
         "crossHighlights": {
             "summary": cross_summary or cross_default,
             "points": (theme_cross or {}).get("intersections", [])[:3]

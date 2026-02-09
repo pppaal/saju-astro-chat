@@ -94,6 +94,7 @@ export interface SaturnHouseDetail {
 export interface YearFortune {
   year: number;
   ganji: string;
+  element?: string;
   fortune: {
     theme: string;
     desc: string;
@@ -112,6 +113,7 @@ export interface MonthFortune {
   month: number;
   monthName: string;
   ganji: string;
+  element?: string;
   fortune: {
     theme: string;
     advice: string;
@@ -127,12 +129,28 @@ export interface MonthFortune {
 
 export interface TodayFortune {
   ganji: string;
+  element?: string;
   fortune: {
     mood: string;
     tip: string;
     emoji: string;
     luckyTime: string;
   };
+}
+
+export type ElementKey = 'wood' | 'fire' | 'earth' | 'metal' | 'water';
+
+export interface ActionPlanChecklist {
+  element: ElementKey;
+  focus: string;
+  items: string[];
+  timing?: string;
+  caution?: string;
+}
+
+export interface FortuneActionPlan {
+  today: ActionPlanChecklist;
+  week: ActionPlanChecklist;
 }
 
 export interface DaeunRelation {

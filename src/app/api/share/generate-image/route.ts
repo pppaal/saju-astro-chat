@@ -1,7 +1,7 @@
-import { NextRequest } from 'next/server'
+﻿import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
-  createSimpleGuard,
+  createPublicStreamGuard,
   apiSuccess,
   apiError,
   ErrorCodes,
@@ -65,7 +65,7 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.DATABASE_ERROR, 'Failed to generate share image')
     }
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: 'share-generate-image',
     limit: 10,
     windowSeconds: 60,

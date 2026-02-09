@@ -6,6 +6,12 @@
 - **목표**: 2MB (코드 스플리팅, 라이브러리 경량화)
 - **예상 효과**: 로딩 속도 30% 개선
 
+## Update (2026-02-09)
+
+- `pdfjs-dist` is already dynamically imported in `src/components/destiny-map/pdf-parser.ts`.
+- `chart.js` is already dynamically imported in `src/components/numerology/NumerologyRadarChart.tsx`.
+- Treat the two items below as completed in this report.
+
 ## 완료된 작업
 
 ### 1. Framer-motion Dynamic Import 적용
@@ -91,11 +97,14 @@ Framer-motion은 애니메이션 라이브러리로 약 **200KB**의 크기를 �
 
 #### B. 최적화 검토 대상
 
-1. **pdfjs-dist (5.4.530)** - ~400KB
+Status (2026-02-09): items 1-2 are already completed via dynamic import in the listed files.
+
+
+1. **pdfjs-dist (5.4.530)** - ~400KB (Done 2026-02-09)
    - 현재 사용: `src/components/destiny-map/pdf-parser.ts`
    - 제안: 동적 임포트 적용 가능
 
-2. **chart.js (4.5.1)** - ~150KB
+2. **chart.js (4.5.1)** - ~150KB (Done 2026-02-09)
    - 현재 사용: `src/components/numerology/NumerologyRadarChart.tsx`
    - 제안: 동적 임포트 또는 더 가벼운 차트 라이브러리 검토
 
@@ -117,8 +126,8 @@ Framer-motion은 애니메이션 라이브러리로 약 **200KB**의 크기를 �
 
 ### 추가 최적화 시 (추천)
 
-1. **pdfjs-dist 동적 로딩**: ~400KB 추가 감소
-2. **chart.js 동적 로딩**: ~150KB 추가 감소
+1. **pdfjs-dist 동적 로딩**: ~400KB 추가 감소 (Done 2026-02-09)
+2. **chart.js 동적 로딩**: ~150KB 추가 감소 (Done 2026-02-09)
 3. **미사용 의존성 제거**: ~50-100KB 감소
 4. **총 예상 감소**: ~750-850KB
 

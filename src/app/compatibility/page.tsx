@@ -359,7 +359,7 @@ export default function CompatPage() {
                       .slice(0, 2)
                       .map((s) => s.content.split('\n')[0]?.slice(0, 80)),
                   }
-                  return generateCompatibilityCard(shareData as any, 'og')
+                  return generateCompatibilityCard(shareData, 'og')
                 }}
                 filename="compatibility-result.png"
                 shareTitle={t('compatibilityPage.shareTitle', 'Our Compatibility Result')}

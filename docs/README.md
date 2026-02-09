@@ -13,6 +13,8 @@ Welcome to the DestinyPal documentation center. This is your central hub for all
 | [../OVERVIEW.md](../OVERVIEW.md)                     | **Complete project overview** (Start here!) | 🌟 Essential |
 | [CREDIT_ERROR_MESSAGES.md](CREDIT_ERROR_MESSAGES.md) | Credit system error message improvements    | ✅ Complete  |
 | [AI_COST_MONITORING.md](AI_COST_MONITORING.md)       | AI cost monitoring guide                    | ✅ Complete  |
+| [API_AUDIT_REPORT.md](API_AUDIT_REPORT.md)           | API endpoint audit and status               | ✅ Complete  |
+| [CEO_TECH_GLOSSARY.md](CEO_TECH_GLOSSARY.md)         | Exec-friendly tech glossary                 | ✅ Complete  |
 
 ### 📁 Documentation by Category
 
@@ -180,9 +182,9 @@ When adding documentation:
 
 ---
 
-**Last Updated**: 2026-02-02
+**Last Updated**: 2026-02-09
 **Maintainer**: Development Team
 **Document Count**:
 
-- **Active**: 3 essential docs ([OVERVIEW](../OVERVIEW.md), [CREDIT_ERROR_MESSAGES](CREDIT_ERROR_MESSAGES.md), [AI_COST_MONITORING](AI_COST_MONITORING.md))
+- **Active**: 5 docs ([OVERVIEW](../OVERVIEW.md), [CREDIT_ERROR_MESSAGES](CREDIT_ERROR_MESSAGES.md), [AI_COST_MONITORING](AI_COST_MONITORING.md), [API_AUDIT_REPORT](API_AUDIT_REPORT.md), [CEO_TECH_GLOSSARY](CEO_TECH_GLOSSARY.md))
 - **Archived**: 36 docs (18 legacy + 17 unicorn + 1 deployment)

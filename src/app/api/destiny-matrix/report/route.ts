@@ -1,9 +1,9 @@
-// src/app/api/destiny-matrix/report/route.ts
+﻿// src/app/api/destiny-matrix/report/route.ts
 // Destiny Fusion Matrix™ - User-Friendly Report API v2.0
 // 완전한 검증, 에러 처리, 캐싱 적용
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard } from '@/lib/api/middleware'
+import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware'
 import {
   calculateDestinyMatrix,
   FusionReportGenerator,
@@ -146,7 +146,7 @@ export const POST = withApiMiddleware(
       })
     }
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: '/api/destiny-matrix/report',
     limit: 20,
     windowSeconds: 60,
@@ -359,7 +359,7 @@ export const GET = withApiMiddleware(
       },
     })
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: '/api/destiny-matrix/report',
     limit: 60,
     windowSeconds: 60,

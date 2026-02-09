@@ -43,8 +43,10 @@ vi.mock('@/lib/security', () => ({
 
 // Mock local report generator
 const mockGenerateLocalReport = vi.fn()
+const mockGenerateLocalStructuredReport = vi.fn()
 vi.mock('@/lib/destiny-map/local-report-generator', () => ({
   generateLocalReport: mockGenerateLocalReport,
+  generateLocalStructuredReport: mockGenerateLocalStructuredReport,
 }))
 
 // Mock report helpers
@@ -91,6 +93,7 @@ describe('Report Service', () => {
       meta: {},
     })
     mockGenerateLocalReport.mockReturnValue('로컬 생성 리포트')
+    mockGenerateLocalStructuredReport.mockReturnValue('{"themeSummary":"local structured report"}')
   })
 
   afterEach(() => {
@@ -153,7 +156,7 @@ describe('Report Service', () => {
       const { generateReport } = await import('@/lib/destiny-map/reportService')
       const result = await generateReport(defaultParams)
 
-      expect(mockGenerateLocalReport).toHaveBeenCalled()
+      expect(mockGenerateLocalStructuredReport).toHaveBeenCalled()
       expect(result.meta.modelUsed).toBe('local-template')
     })
 
@@ -166,7 +169,7 @@ describe('Report Service', () => {
       const { generateReport } = await import('@/lib/destiny-map/reportService')
       const result = await generateReport(defaultParams)
 
-      expect(mockGenerateLocalReport).toHaveBeenCalled()
+      expect(mockGenerateLocalStructuredReport).toHaveBeenCalled()
       expect(result.meta.modelUsed).toBe('local-template')
       expect(result.meta.backendAvailable).toBe(false)
     })

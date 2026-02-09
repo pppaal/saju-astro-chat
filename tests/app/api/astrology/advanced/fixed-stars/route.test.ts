@@ -191,7 +191,8 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('Too many requests. Try again soon.')
+      expect(data.error.code).toBe('RATE_LIMITED')
+      expect(data.error.message).toBe('Too many requests. Please wait a moment.')
     })
 
     it('should include rate limit headers in rate-limited response', async () => {
@@ -204,6 +205,7 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const response = await POST(makeRequest(validBody))
 
       expect(response.status).toBe(429)
+      expect(response.headers.get('Retry-After')).toBe('30')
     })
 
     it('should allow request when rate limit is not exceeded', async () => {
@@ -220,7 +222,7 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       await POST(makeRequest(validBody))
 
       expect(rateLimit).toHaveBeenCalledWith(
-        expect.stringContaining('astro-fixed-stars:'),
+        expect.stringContaining('api:astrology/advanced/fixed-stars:'),
         expect.objectContaining({ limit: 20, windowSeconds: 60 })
       )
     })
@@ -245,7 +247,8 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
+      expect(data.error.message).toBe('Invalid or missing token')
     })
 
     it('should proceed when public token is valid', async () => {
@@ -291,8 +294,7 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Validation failed')
-      expect(data.details).toContain('date')
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 with multiple validation errors', async () => {
@@ -311,7 +313,7 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.issues).toHaveLength(3)
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 for invalid date format', async () => {
@@ -326,7 +328,7 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('date')
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 for invalid time format', async () => {
@@ -341,7 +343,7 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('time')
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
     it('should return 400 for invalid latitude out of range', async () => {
@@ -356,7 +358,7 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('latitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for invalid longitude out of range', async () => {
@@ -371,7 +373,7 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('longitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for missing timezone', async () => {
@@ -386,10 +388,10 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('timeZone')
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
-    it('should return 400 for invalid orb value (negative)', async () => {
+    it('should return 422 for invalid orb value (negative)', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -400,11 +402,11 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const response = await POST(makeRequest({ ...validBody, orb: -1 }))
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.details).toContain('orb')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should return 400 for invalid orb value (too large)', async () => {
+    it('should return 422 for invalid orb value (too large)', async () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
@@ -415,8 +417,8 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const response = await POST(makeRequest({ ...validBody, orb: 10 }))
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.details).toContain('orb')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should log validation warnings', async () => {
@@ -461,16 +463,16 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.conjunctions).toBeDefined()
-      expect(data.conjunctions).toHaveLength(1)
-      expect(data.conjunctions[0].starName).toBe('Regulus')
+      expect(data.data.conjunctions).toBeDefined()
+      expect(data.data.conjunctions).toHaveLength(1)
+      expect(data.data.conjunctions[0].starName).toBe('Regulus')
     })
 
     it('should return conjunction details with all required fields', async () => {
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
 
-      const conjunction = data.conjunctions[0]
+      const conjunction = data.data.conjunctions[0]
       expect(conjunction.starName).toBe('Regulus')
       expect(conjunction.starNameKo).toBeDefined()
       expect(conjunction.planet).toBe('Sun')
@@ -486,16 +488,16 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
 
-      expect(data.brightStarsCount).toBeDefined()
-      expect(typeof data.brightStarsCount).toBe('number')
+      expect(data.data.brightStarsCount).toBeDefined()
+      expect(typeof data.data.brightStarsCount).toBe('number')
     })
 
     it('should return total conjunctions count', async () => {
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
 
-      expect(data.totalConjunctions).toBeDefined()
-      expect(data.totalConjunctions).toBe(1)
+      expect(data.data.totalConjunctions).toBeDefined()
+      expect(data.data.totalConjunctions).toBe(1)
     })
 
     it('should call calculateNatalChart with correct parameters', async () => {
@@ -544,7 +546,7 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(getAllFixedStars).toHaveBeenCalled()
-      expect(data.brightStarsCount).toBeDefined()
+      expect(data.data.brightStarsCount).toBeDefined()
     })
 
     it('should include rate limit headers in successful response', async () => {
@@ -580,7 +582,8 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).toBe('Internal server error')
       expect(captureServerError).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({ route: '/api/astrology/advanced/fixed-stars' })
@@ -597,7 +600,8 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).toBe('Internal server error')
     })
 
     it('should return 500 when findFixedStarConjunctions throws', async () => {
@@ -611,7 +615,8 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).toBe('Internal server error')
     })
 
     it('should return 500 when getAllFixedStars throws', async () => {
@@ -626,7 +631,8 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).toBe('Internal server error')
     })
 
     it('should handle malformed JSON body gracefully', async () => {
@@ -743,8 +749,8 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.conjunctions).toEqual([])
-      expect(data.totalConjunctions).toBe(0)
+      expect(data.data.conjunctions).toEqual([])
+      expect(data.data.totalConjunctions).toBe(0)
     })
 
     it('should handle multiple conjunctions', async () => {
@@ -772,8 +778,8 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.conjunctions).toHaveLength(2)
-      expect(data.totalConjunctions).toBe(2)
+      expect(data.data.conjunctions).toHaveLength(2)
+      expect(data.data.totalConjunctions).toBe(2)
     })
 
     it('should handle historical birth dates', async () => {
@@ -892,12 +898,12 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
 
-      expect(data).toHaveProperty('conjunctions')
-      expect(data).toHaveProperty('brightStarsCount')
-      expect(data).toHaveProperty('totalConjunctions')
+      expect(data.data).toHaveProperty('conjunctions')
+      expect(data.data).toHaveProperty('brightStarsCount')
+      expect(data.data).toHaveProperty('totalConjunctions')
 
-      if (data.conjunctions.length > 0) {
-        const conjunction = data.conjunctions[0]
+      if (data.data.conjunctions.length > 0) {
+        const conjunction = data.data.conjunctions[0]
         expect(conjunction).toHaveProperty('starName')
         expect(conjunction).toHaveProperty('starNameKo')
         expect(conjunction).toHaveProperty('planet')
@@ -914,7 +920,7 @@ describe('Fixed Stars API - POST /api/astrology/advanced/fixed-stars', () => {
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
 
-      const conjunction = data.conjunctions[0]
+      const conjunction = data.data.conjunctions[0]
       expect(conjunction.starName).toBe(mockConjunctions[0].star.name)
       expect(conjunction.starNameKo).toBe(mockConjunctions[0].star.name_ko)
       expect(conjunction.magnitude).toBe(mockConjunctions[0].star.magnitude)

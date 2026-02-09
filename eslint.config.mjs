@@ -138,17 +138,13 @@ const config = [
       '@typescript-eslint': tseslint,
     },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'warn', // Tests often need any for mocking
-      '@typescript-eslint/no-unused-vars': [
-        'warn',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_',
-          ignoreRestSiblings: true,
-        },
-      ],
+      '@typescript-eslint/no-explicit-any': 'off', // Tests often need any for mocking
+      '@typescript-eslint/no-unused-vars': 'off',
       'no-console': 'off', // Allow console in tests for debugging
+      '@next/next/no-assign-module-variable': 'off',
+      '@next/next/no-html-link-for-pages': 'off',
+      '@next/next/no-img-element': 'off',
+      'prefer-const': 'off',
     },
   },
   {

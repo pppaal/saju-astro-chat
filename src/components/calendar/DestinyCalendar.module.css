@@ -3791,7 +3791,13 @@
 .calendarSyncBtn:focus-visible,
 .retryBtn:focus-visible,
 .submitButton:focus-visible,
-.loadProfileButton:focus-visible {
+.loadProfileButton:focus-visible,
+.actionPlanNavBtn:focus-visible,
+.actionPlanTodayBtn:focus-visible,
+.actionPlanShareBtn:focus-visible,
+.actionPlanPrintBtn:focus-visible,
+.actionPlanRangeBtn:focus-visible,
+.actionPlanTimelineAiBtn:focus-visible {
   outline: 2px solid var(--cal-accent-primary);
   outline-offset: 2px;
 }
@@ -3831,5 +3837,543 @@
   .daysGrid.slideLeft,
   .daysGrid.slideRight {
     animation: none !important;
+  }
+}
+
+/* ========== View Tabs ========== */
+.viewTabs {
+  max-width: 520px;
+  margin: 12px auto 20px;
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  background: var(--cal-bg-secondary);
+  border: 1px solid var(--cal-border);
+  border-radius: 999px;
+  box-shadow: var(--cal-shadow-sm);
+}
+
+.viewTab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--cal-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--cal-transition-fast);
+}
+
+.viewTab:hover {
+  color: var(--cal-text-primary);
+  background: var(--cal-bg-hover);
+}
+
+.viewTabActive {
+  background: var(--cal-gradient-primary);
+  color: #fff;
+  box-shadow: var(--cal-shadow-glow);
+}
+
+/* ========== Action Plan View ========== */
+.actionPlanContainer {
+  max-width: 960px;
+  margin: 0 auto 32px;
+  padding: 0 16px 16px;
+}
+
+.actionPlanHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  background: var(--cal-gradient-card);
+  border: 1px solid var(--cal-border);
+  border-radius: var(--cal-radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--cal-shadow-card);
+  margin-bottom: 16px;
+}
+
+.actionPlanTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cal-text-primary);
+  margin: 0 0 4px;
+}
+
+.actionPlanSubtitle {
+  font-size: 12px;
+  color: var(--cal-text-secondary);
+  margin: 0;
+}
+
+.actionPlanMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actionPlanMetaItem {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--cal-bg-tertiary);
+  color: var(--cal-text-secondary);
+  border: 1px solid var(--cal-border-light);
+}
+
+.actionPlanControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.actionPlanDateControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.actionPlanActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.actionPlanRange {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: var(--cal-bg-tertiary);
+  border-radius: 999px;
+  border: 1px solid var(--cal-border-light);
+}
+
+.actionPlanRangeBtn {
+  border: none;
+  background: transparent;
+  color: var(--cal-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--cal-transition-fast);
+}
+
+.actionPlanRangeBtn:hover {
+  color: var(--cal-text-primary);
+  background: var(--cal-bg-hover);
+}
+
+.actionPlanRangeBtnActive {
+  background: var(--cal-gradient-primary);
+  color: #fff;
+  box-shadow: var(--cal-shadow-sm);
+}
+}
+
+.actionPlanNavBtn {
+  border: none;
+  background: var(--cal-bg-tertiary);
+  color: var(--cal-text-primary);
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all var(--cal-transition-fast);
+}
+
+.actionPlanNavBtn:hover {
+  background: var(--cal-bg-hover);
+}
+
+.actionPlanDateInput {
+  background: var(--cal-bg-tertiary);
+  border: 1px solid var(--cal-border);
+  color: var(--cal-text-primary);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.actionPlanTodayBtn {
+  border: none;
+  background: var(--cal-gradient-primary);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--cal-transition-fast);
+}
+
+.actionPlanTodayBtn:hover {
+  transform: translateY(-1px);
+}
+
+.actionPlanShareBtn,
+.actionPlanPrintBtn {
+  border: 1px solid var(--cal-border);
+  background: var(--cal-bg-tertiary);
+  color: var(--cal-text-primary);
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--cal-transition-fast);
+}
+
+.actionPlanShareBtn:hover,
+.actionPlanPrintBtn:hover {
+  background: var(--cal-bg-hover);
+  transform: translateY(-1px);
+}
+
+.actionPlanPrintBtn {
+  border-color: rgba(6, 182, 212, 0.4);
+  color: var(--cal-accent-secondary);
+}
+
+.actionPlanStatus {
+  font-size: 11px;
+  color: var(--cal-text-secondary);
+  background: var(--cal-bg-tertiary);
+  border: 1px dashed var(--cal-border);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+
+.actionPlanChips {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.actionPlanChipGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.actionPlanChipLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--cal-text-tertiary);
+}
+
+.actionPlanChip {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--cal-bg-tertiary);
+  color: var(--cal-text-primary);
+  border: 1px solid var(--cal-border-light);
+}
+
+.actionPlanChipGood {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.actionPlanChipBad {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fda4af;
+  border-color: rgba(244, 63, 94, 0.35);
+}
+
+.actionPlanGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.actionPlanCard {
+  background: var(--cal-bg-card);
+  border: 1px solid var(--cal-border);
+  border-radius: var(--cal-radius-lg);
+  padding: 16px;
+  box-shadow: var(--cal-shadow-card);
+}
+
+.actionPlanTimeline {
+  grid-column: 1 / -1;
+}
+
+.actionPlanTimelineHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.actionPlanTimelineMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.actionPlanTimelineActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.actionPlanTimelineAiBtn {
+  border: 1px solid rgba(139, 92, 246, 0.45);
+  background: rgba(139, 92, 246, 0.12);
+  color: var(--cal-accent-primary);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--cal-transition-fast);
+}
+
+.actionPlanTimelineAiBtn:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.2);
+  transform: translateY(-1px);
+}
+
+.actionPlanTimelineAiBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.actionPlanTimelineSpinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(148, 163, 184, 0.4);
+  border-top-color: var(--cal-accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.actionPlanTimelineStatus {
+  font-size: 11px;
+  color: var(--cal-text-secondary);
+  background: var(--cal-bg-tertiary);
+  border: 1px dashed var(--cal-border);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+
+.actionPlanTimelineStatusError {
+  color: #fda4af;
+  border-color: rgba(244, 63, 94, 0.35);
+  background: rgba(244, 63, 94, 0.12);
+}
+
+.actionPlanTimelineLegend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.actionPlanTimelineLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--cal-text-secondary);
+}
+
+.actionPlanTimelineDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cal-bg-tertiary);
+}
+
+.actionPlanTimelineDotBest {
+  background: #22c55e;
+}
+
+.actionPlanTimelineDotCaution {
+  background: #f43f5e;
+}
+
+.actionPlanTimelineGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.actionPlanTimelineSlot {
+  background: var(--cal-bg-tertiary);
+  border: 1px solid var(--cal-border-light);
+  border-radius: 12px;
+  padding: 10px;
+  min-height: 76px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform var(--cal-transition-fast);
+}
+
+.actionPlanTimelineSlotBest {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.actionPlanTimelineSlotCaution {
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(244, 63, 94, 0.4);
+}
+
+.actionPlanTimelineTime {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cal-text-tertiary);
+}
+
+.actionPlanTimelineBadge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--cal-bg-card);
+  border: 1px solid var(--cal-border);
+  color: var(--cal-text-secondary);
+}
+
+.actionPlanTimelineNote {
+  font-size: 12px;
+  color: var(--cal-text-primary);
+  line-height: 1.4;
+}
+
+.actionPlanCardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.actionPlanCardTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cal-text-primary);
+}
+
+.actionPlanCardFocus {
+  font-size: 12px;
+  color: var(--cal-text-secondary);
+}
+
+.actionPlanList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.actionPlanItem {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--cal-text-primary);
+  line-height: 1.5;
+}
+
+.actionPlanItemCheck {
+  color: var(--cal-accent-teal);
+  font-weight: 700;
+}
+
+.actionPlanTiming {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--cal-accent-secondary);
+  background: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.actionPlanCaution {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #fecaca;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+@media (max-width: 900px) {
+  .actionPlanTimelineGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .actionPlanTimelineGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .actionPlanTimelineHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .actionPlanTimelineMeta {
+    align-items: flex-start;
+    width: 100%;
+  }
+}
+
+@media print {
+  .calendarHeader,
+  .viewTabs,
+  .monthNav,
+  .filtersSection,
+  .calendarWrapper,
+  .legend,
+  .fortuneGraph,
+  .selectedDayInfo,
+  .monthHighlights {
+    display: none !important;
+  }
+
+  .actionPlanControls,
+  .actionPlanChips {
+    display: none !important;
+  }
+
+  .actionPlanContainer {
+    max-width: none;
+    padding: 0;
+  }
+
+  .actionPlanHeader,
+  .actionPlanCard {
+    box-shadow: none;
+    border-color: #ccc;
   }
 }

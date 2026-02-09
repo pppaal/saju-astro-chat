@@ -6,6 +6,15 @@
 
 ---
 
+## Update (2026-02-09)
+
+- P0 security items from the audit summary are already implemented in code (`/api/admin/refund-subscription`, `/api/content-access`, `/api/calendar/save`).
+- Bundle optimizations for `pdfjs-dist` and `chart.js` are already done via dynamic import.
+- Documentation updated to reflect current status.
+
+---
+
+
 ## 📊 Executive Summary
 
 ### ✅ 지난 한 달간 완료된 개선 작업 (229 commits)
@@ -75,9 +84,9 @@
 #### 커버리지
 
 ```
-Before: 12% (16/134 routes)
-After:  16% (22/134 routes)
-스키마 준비: 80%+ (100+ schemas for 134 routes)
+Before: 12% (16/135 routes)
+After:  16% (22/135 routes)
+스키마 준비: 80%+ (100+ schemas for 135 routes)
 ```
 
 ### 3. 대규모 리팩토링 (Code Refactoring)
@@ -520,7 +529,7 @@ $ npx tsc --noEmit
 
 ```
 TypeScript 에러:    111개
-Zod 검증 커버리지:  16% (22/134)
+Zod 검증 커버리지:  16% (22/135)
 타입 캐스팅 (as):   190개 파일
 ESLint 억제:        24개 파일
 npm vulnerabilities: 0
@@ -531,7 +540,7 @@ npm vulnerabilities: 0
 
 ```
 TypeScript 에러:    0개 ✅ (111개 → 0개, 100% 해결)
-Zod 검증 커버리지:  16% (22/134) → 향후 80% 목표
+Zod 검증 커버리지:  16% (22/135) → 향후 80% 목표
 타입 캐스팅 (as):   190개 파일 (점진적 개선 예정)
 ESLint 억제:        24개 파일 (점진적 개선 예정)
 npm vulnerabilities: 0 (유지)

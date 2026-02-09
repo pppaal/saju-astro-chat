@@ -2,21 +2,21 @@
 
 > **AI 기반 운세/점술 종합 상담 플랫폼**
 >
-> 2026년 2월 2일 기준 - 전체 프로젝트 현황
+> 2026년 2월 9일 기준 - 전체 프로젝트 현황
 
 ---
 
 ## 📊 프로젝트 규모 (Project Scale)
 
-| 항목                 | 수량                          |
-| -------------------- | ----------------------------- |
-| **Pages & Routes**   | 35+ (72 page files)           |
-| **API Endpoints**    | 128                           |
-| **React Components** | 317                           |
-| **Database Models**  | 35 (Prisma)                   |
-| **Test Files**       | 657 unit/integration + 25 E2E |
-| **Languages (i18n)** | 10+                           |
-| **CI/CD Workflows**  | 13                            |
+| 항목                    | 수량                           |
+| ----------------------- | ------------------------------ |
+| **App Router Pages**    | 75 (`page.*`)                  |
+| **API Route Handlers**  | 135                            |
+| **React Components**    | 306                            |
+| **Database Models**     | 42 (Prisma)                    |
+| **Test Files**          | 1005 unit/integration + 54 E2E |
+| **Languages (i18n)**    | 2 (ko, en)                     |
+| **CI/CD Workflows**     | 12                             |
 
 ---
 
@@ -24,7 +24,7 @@
 
 ### 단기 목표 (2026 Q1-Q2)
 
-- ✅ **AI 비용 최적화** (gpt-4o-mini + Redis) - 완료
+- ✅ **AI 비용 최적화** (mini 모델 + Redis) - 완료
 - ✅ **크레딧 UX 개선** - 완료 (2026-02-02)
 - 🔄 **MAU 50K 달성**
 - 🔄 **일본어 시장 진출**
@@ -52,9 +52,10 @@
    |          |
    |          └── [Redis (Upstash) - Caching]
    |
-   ├── [128 API Routes] ──── [Flask AI Backend] ──── [LLM Providers]
-   |                                                   ├─ OpenAI (gpt-4o/gpt-4o-mini)
-   |                                                   └─ Replicate (Fallback)
+   ├── [135 API Routes] ──── [Flask AI Backend] ──── [LLM Providers]
+   |                                                   ├─ OpenAI (FUSION_MODEL / FUSION_MINI_MODEL)
+   |                                                   ├─ Replicate (Fallback)
+   |                                                   └─ Together (Fallback)
    |
    └── [Third-party Services]
         ├─ NextAuth (OAuth: Google, Kakao, Naver)
@@ -69,33 +70,33 @@
 
 ### Frontend
 
-- **Framework**: Next.js 16 (App Router)
-- **Language**: TypeScript 5.0
-- **UI**: React 19, Tailwind CSS, Framer Motion
+- **Framework**: Next.js 16.1 (App Router)
+- **Language**: TypeScript 5.9
+- **UI**: React 19.2, Tailwind CSS 3.4, Framer Motion 12
 - **Mobile**: Capacitor 8 (iOS/Android)
-- **State**: React Context, SWR
+- **State**: React Context, Server Components
 
 ### Backend
 
-- **API**: Next.js API Routes (128 endpoints)
+- **API**: Next.js API Routes (135 endpoints)
 - **AI Engine**: Python Flask
-- **Database**: PostgreSQL (Supabase) + Prisma 7 ORM
+- **Database**: PostgreSQL (Supabase) + Prisma 7.3 ORM
 - **Cache**: Redis (Upstash)
 - **Auth**: NextAuth.js
 
 ### AI/ML
 
-- **Primary LLM**: OpenAI GPT-4o (프리미엄), GPT-4o-mini (일반)
+- **Primary LLM**: OpenAI (FUSION_MODEL / FUSION_MINI_MODEL)
 - **Fallback**: Replicate, Together AI
 - **Technique**: RAG (Retrieval-Augmented Generation)
-- **Embeddings**: text-embedding-ada-002
+- **Embeddings**: SentenceTransformers (minilm/e5-large/bge-m3 via `RAG_EMBEDDING_MODEL`)
 
 ### DevOps
 
 - **Hosting**: Vercel (Frontend), Docker (AI Backend)
-- **CI/CD**: GitHub Actions (13 workflows)
+- **CI/CD**: GitHub Actions (12 workflows)
 - **Monitoring**: Sentry
-- **Testing**: Vitest (657 tests) + Playwright (25 E2E)
+- **Testing**: Vitest (1005 tests) + Playwright (54 E2E)
 
 ---
 
@@ -197,8 +198,8 @@
 
 **스마트 모델 라우팅**:
 
-- **gpt-4o-mini**: 타로 해석, 간단한 질문 (96% 저렴)
-- **gpt-4o**: 사주 종합 분석, 프리미엄 리포트
+- **FUSION_MINI_MODEL** (예: gpt-4.1-mini): 타로 해석, 간단한 질문
+- **FUSION_MODEL** (예: gpt-4.1): 사주 종합 분석, 프리미엄 리포트
 
 **Redis 캐싱**:
 
@@ -235,19 +236,19 @@ saju-astro-chat-backup-latest/
 ├── src/
 │   ├── app/              # Next.js 16 App Router
 │   │   ├── (main)/       # 메인 페이지
-│   │   ├── api/          # 128 API 엔드포인트
+│   │   ├── api/          # 135 API 엔드포인트
 │   │   ├── saju/         # 사주 서비스
 │   │   ├── tarot/        # 타로 서비스
 │   │   ├── compatibility/ # 궁합 서비스
 │   │   └── ...
-│   ├── components/       # 317 React 컴포넌트
-│   ├── lib/              # 45 라이브러리 모듈
+│   ├── components/       # 306 React 컴포넌트
+│   ├── lib/              # 44 라이브러리 모듈
 │   │   ├── api/          # API 유틸
 │   │   ├── credits/      # 크레딧 시스템
 │   │   ├── cache/        # Redis 캐싱
 │   │   └── ...
 │   ├── contexts/         # React Context
-│   └── i18n/             # 10+ 언어 번역
+│   └── i18n/             # 2개 언어 번역 (ko, en)
 ├── backend_ai/           # Flask AI 백엔드
 │   ├── app.py            # 메인 엔트리
 │   ├── corpus/           # RAG 데이터
@@ -255,8 +256,8 @@ saju-astro-chat-backup-latest/
 ├── prisma/               # Prisma ORM
 │   ├── schema.prisma     # 35개 모델
 │   └── migrations/       # DB 마이그레이션
-├── tests/                # 657 테스트
-├── e2e/                  # 25 E2E 테스트
+├── tests/                # 1005 테스트
+├── e2e/                  # 54 E2E 테스트
 ├── docs/                 # 문서
 │   ├── README.md         # 문서 허브
 │   └── CREDIT_ERROR_MESSAGES.md
@@ -411,9 +412,9 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 참조
 
 ---
 
-**마지막 업데이트**: 2026-02-02
-**작성자**: Claude Sonnet 4.5
-**버전**: v1.0
+**마지막 업데이트**: 2026-02-09
+**작성자**: Codex
+**버전**: v1.1
 
 ---
 

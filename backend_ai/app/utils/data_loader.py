@@ -51,12 +51,22 @@ def get_graph_rules_dir() -> Path:
 
 def get_fusion_dir() -> Path:
     """Get the fusion directory path."""
-    return get_data_dir() / "graph" / "fusion"
+    data_dir = get_data_dir()
+    # Prefer rules-based fusion directory if present
+    rules_dir = data_dir / "graph" / "rules" / "fusion"
+    if rules_dir.exists():
+        return rules_dir
+    return data_dir / "graph" / "fusion"
 
 
 def get_spreads_dir() -> Path:
     """Get the spreads directory path."""
-    return get_data_dir() / "tarot" / "spreads"
+    data_dir = get_data_dir()
+    primary = data_dir / "tarot" / "spreads"
+    if primary.exists():
+        return primary
+    # Fallback to graph rules tarot spreads
+    return data_dir / "graph" / "rules" / "tarot" / "spreads"
 
 
 # ============================================================================

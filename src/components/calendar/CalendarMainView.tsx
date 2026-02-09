@@ -1,13 +1,14 @@
 'use client'
 
 // src/components/calendar/CalendarMainView.tsx
-import React, { memo, useCallback, useMemo } from 'react'
+import React, { memo, useCallback, useMemo, useState } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
 import { CATEGORY_EMOJI, WEEKDAYS_KO, WEEKDAYS_EN } from './constants'
 import { getGradeEmoji, getCategoryLabel, getScoreClass } from './utils'
 import SelectedDatePanel from './SelectedDatePanel'
 import MonthHighlights from './MonthHighlights'
+import CalendarActionPlanView from './CalendarActionPlanView'
 import type { CalendarData, ImportantDate, EventCategory, BirthInfo } from './types'
 
 interface CalendarMainViewProps {
@@ -81,6 +82,7 @@ const CalendarMainView = memo(function CalendarMainView({
   onUnsaveDate,
 }: CalendarMainViewProps) {
   const { locale } = useI18n()
+  const [activeView, setActiveView] = useState<'calendar' | 'action'>('calendar')
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -329,8 +331,36 @@ const CalendarMainView = memo(function CalendarMainView({
         )}
       </div>
 
-      {/* Month Navigation */}
-      <div className={styles.monthNav}>
+      {/* View Tabs */}
+      <div
+        className={styles.viewTabs}
+        role="tablist"
+        aria-label={locale === 'ko' ? '진행 모드' : 'View tabs'}
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeView === 'calendar'}
+          className={`${styles.viewTab} ${activeView === 'calendar' ? styles.viewTabActive : ''}`}
+          onClick={() => setActiveView('calendar')}
+        >
+          📅 {locale === 'ko' ? '캘린더' : 'Calendar'}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeView === 'action'}
+          className={`${styles.viewTab} ${activeView === 'action' ? styles.viewTabActive : ''}`}
+          onClick={() => setActiveView('action')}
+        >
+          ✅ {locale === 'ko' ? '행동 플랜' : 'Action Plan'}
+        </button>
+      </div>
+
+      {activeView === 'calendar' ? (
+      <>
+        {/* Month Navigation */}
+        <div className={styles.monthNav}>
         <button
           className={styles.navBtn}
           onClick={onPrevMonth}
@@ -550,13 +580,22 @@ const CalendarMainView = memo(function CalendarMainView({
         getScoreClass={getScoreClass}
       />
 
-      {/* Month Highlights */}
-      {data?.allDates && data.allDates.length > 0 && (
-        <MonthHighlights
-          allDates={data.allDates}
-          year={year}
-          month={month}
-          onDateSelect={handleDateSelect}
+        {/* Month Highlights */}
+        {data?.allDates && data.allDates.length > 0 && (
+          <MonthHighlights
+            allDates={data.allDates}
+            year={year}
+            month={month}
+            onDateSelect={handleDateSelect}
+          />
+        )}
+      </>
+      ) : (
+        <CalendarActionPlanView
+          data={data}
+          selectedDay={selectedDay}
+          selectedDate={selectedDate}
+          onSelectDate={onDayClick}
         />
       )}
     </div>

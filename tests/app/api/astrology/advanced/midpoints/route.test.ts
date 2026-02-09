@@ -208,7 +208,8 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(429)
-      expect(data.error).toBe('Too many requests. Try again soon.')
+      expect(data.error.code).toBe('RATE_LIMITED')
+      expect(data.error.message).toBe('Too many requests. Please wait a moment.')
     })
 
     it('should include rate limit headers in rate-limited response', async () => {
@@ -238,7 +239,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       await POST(makeRequest(validBody))
 
       expect(rateLimit).toHaveBeenCalledWith(
-        'astro-midpoints:192.168.1.1',
+        'api:astrology/advanced/midpoints:192.168.1.1',
         { limit: 20, windowSeconds: 60 }
       )
     })
@@ -263,7 +264,8 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
+      expect(data.error.message).toBe('Invalid or missing token')
     })
 
     it('should return 401 when public token is missing', async () => {
@@ -276,7 +278,8 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error.code).toBe('UNAUTHORIZED')
+      expect(data.error.message).toBe('Token missing')
     })
 
     it('should proceed when public token is valid', async () => {
@@ -322,8 +325,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Validation failed')
-      expect(data.details).toContain('date')
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 with multiple validation errors', async () => {
@@ -342,7 +344,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.issues).toHaveLength(3)
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 for missing time', async () => {
@@ -357,7 +359,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('time')
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
     it('should return 400 for invalid date format', async () => {
@@ -372,7 +374,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('date')
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should return 400 for invalid time format', async () => {
@@ -387,7 +389,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('time')
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
     it('should return 400 for invalid latitude out of range (too high)', async () => {
@@ -402,7 +404,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('latitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for invalid latitude out of range (too low)', async () => {
@@ -417,7 +419,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('latitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for invalid longitude out of range (too high)', async () => {
@@ -432,7 +434,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('longitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for invalid longitude out of range (too low)', async () => {
@@ -447,7 +449,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('longitude')
+      expect(data.error.code).toBe('INVALID_COORDINATES')
     })
 
     it('should return 400 for missing timezone', async () => {
@@ -462,7 +464,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.details).toContain('timeZone')
+      expect(data.error.code).toBe('INVALID_TIME')
     })
 
     it('should return 400 for invalid orb (too high)', async () => {
@@ -476,8 +478,8 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const response = await POST(makeRequest({ ...validBody, orb: 10 }))
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.details).toContain('orb')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should return 400 for invalid orb (negative)', async () => {
@@ -491,8 +493,8 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const response = await POST(makeRequest({ ...validBody, orb: -1 }))
       const data = await response.json()
 
-      expect(response.status).toBe(400)
-      expect(data.details).toContain('orb')
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should log validation warnings', async () => {
@@ -524,7 +526,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const response = await POST(makeRequest({}))
       const data = await response.json()
 
-      expect(data.issues).toEqual(issues)
+      expect(data.error.code).toBe('INVALID_DATE')
     })
   })
 
@@ -539,18 +541,18 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.midpoints).toBeDefined()
-      expect(data.activations).toBeDefined()
-      expect(data.totalMidpoints).toBe(mockMidpoints.length)
-      expect(data.totalActivations).toBe(mockActivations.length)
+      expect(data.data.midpoints).toBeDefined()
+      expect(data.data.activations).toBeDefined()
+      expect(data.data.totalMidpoints).toBe(mockMidpoints.length)
+      expect(data.data.totalActivations).toBe(mockActivations.length)
     })
 
     it('should return correctly formatted midpoints', async () => {
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
 
-      expect(data.midpoints).toHaveLength(mockMidpoints.length)
-      expect(data.midpoints[0]).toEqual({
+      expect(data.data.midpoints).toHaveLength(mockMidpoints.length)
+      expect(data.data.midpoints[0]).toEqual({
         id: 'Sun/Moon',
         planet1: 'Sun',
         planet2: 'Moon',
@@ -568,8 +570,8 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
 
-      expect(data.activations).toHaveLength(mockActivations.length)
-      expect(data.activations[0]).toEqual({
+      expect(data.data.activations).toHaveLength(mockActivations.length)
+      expect(data.data.activations[0]).toEqual({
         midpointId: 'Sun/Moon',
         midpointNameKo: '영혼의 점',
         activator: 'Mercury',
@@ -718,7 +720,8 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).toBe('Internal server error')
       expect(captureServerError).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({ route: '/api/astrology/advanced/midpoints' })
@@ -735,7 +738,8 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).toBe('Internal server error')
     })
 
     it('should return 500 when calculateMidpoints throws', async () => {
@@ -749,7 +753,8 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).toBe('Internal server error')
     })
 
     it('should return 500 when findMidpointActivations throws', async () => {
@@ -764,7 +769,8 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).toBe('Internal server error')
     })
 
     it('should handle malformed JSON body gracefully', async () => {
@@ -798,7 +804,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Validation failed')
+      expect(data.error.code).toBe('INVALID_DATE')
     })
 
     it('should capture server errors via telemetry', async () => {
@@ -819,7 +825,8 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal Server Error')
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(data.error.message).toBe('Internal server error')
       expect(JSON.stringify(data)).not.toContain('database')
     })
   })
@@ -958,10 +965,10 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.midpoints).toEqual([])
-      expect(data.activations).toEqual([])
-      expect(data.totalMidpoints).toBe(0)
-      expect(data.totalActivations).toBe(0)
+      expect(data.data.midpoints).toEqual([])
+      expect(data.data.activations).toEqual([])
+      expect(data.data.totalMidpoints).toBe(0)
+      expect(data.data.totalActivations).toBe(0)
     })
 
     it('should handle no activations found', async () => {
@@ -971,9 +978,9 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.midpoints).toHaveLength(mockMidpoints.length)
-      expect(data.activations).toEqual([])
-      expect(data.totalActivations).toBe(0)
+      expect(data.data.midpoints).toHaveLength(mockMidpoints.length)
+      expect(data.data.activations).toEqual([])
+      expect(data.data.totalActivations).toBe(0)
     })
 
     it('should handle concurrent requests without state leaking', async () => {
@@ -1014,7 +1021,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.totalMidpoints).toBe(0)
+      expect(data.data.totalMidpoints).toBe(0)
     })
 
     it('should handle different timezones correctly', async () => {
@@ -1081,17 +1088,17 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
 
-      expect(data).toHaveProperty('midpoints')
-      expect(data).toHaveProperty('activations')
-      expect(data).toHaveProperty('totalMidpoints')
-      expect(data).toHaveProperty('totalActivations')
+      expect(data.data).toHaveProperty('midpoints')
+      expect(data.data).toHaveProperty('activations')
+      expect(data.data).toHaveProperty('totalMidpoints')
+      expect(data.data).toHaveProperty('totalActivations')
     })
 
     it('should include all required fields in midpoint objects', async () => {
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
 
-      const midpoint = data.midpoints[0]
+      const midpoint = data.data.midpoints[0]
       expect(midpoint).toHaveProperty('id')
       expect(midpoint).toHaveProperty('planet1')
       expect(midpoint).toHaveProperty('planet2')
@@ -1108,7 +1115,7 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
 
-      const activation = data.activations[0]
+      const activation = data.data.activations[0]
       expect(activation).toHaveProperty('midpointId')
       expect(activation).toHaveProperty('midpointNameKo')
       expect(activation).toHaveProperty('activator')
@@ -1122,23 +1129,23 @@ describe('Midpoints API - POST /api/astrology/advanced/midpoints', () => {
       const data = await response.json()
 
       // Verify camelCase transformation
-      expect(data.midpoints[0].nameKo).toBe('영혼의 점')
-      expect(data.midpoints[0]).not.toHaveProperty('name_ko')
+      expect(data.data.midpoints[0].nameKo).toBe('영혼의 점')
+      expect(data.data.midpoints[0]).not.toHaveProperty('name_ko')
     })
 
     it('should use midpoint name_ko for midpointNameKo in activations', async () => {
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
 
-      expect(data.activations[0].midpointNameKo).toBe('영혼의 점')
+      expect(data.data.activations[0].midpointNameKo).toBe('영혼의 점')
     })
 
     it('should accurately count midpoints and activations', async () => {
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
 
-      expect(data.totalMidpoints).toBe(data.midpoints.length)
-      expect(data.totalActivations).toBe(data.activations.length)
+      expect(data.data.totalMidpoints).toBe(data.data.midpoints.length)
+      expect(data.data.totalActivations).toBe(data.data.activations.length)
     })
   })
 })

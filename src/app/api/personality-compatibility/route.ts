@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api/middleware'
+﻿import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware, createPublicStreamGuard, type ApiContext } from '@/lib/api/middleware'
 import { analyzeICP, getICPCompatibility, getCrossSystemCompatibility } from '@/lib/icp/analysis'
 import { analyzePersona, getPersonaCompatibility } from '@/lib/persona/analysis'
 import type { ICPQuizAnswers } from '@/lib/icp/types'
@@ -124,7 +124,7 @@ export const POST = withApiMiddleware(
       },
     })
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: '/api/personality-compatibility',
     limit: 30,
     windowSeconds: 60,

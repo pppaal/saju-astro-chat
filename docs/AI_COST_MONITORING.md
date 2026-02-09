@@ -1,6 +1,6 @@
 # AI 비용 모니터링 가이드
 
-**작성일:** 2026-02-02
+**작성일:** 2026-02-09
 **목적:** OpenAI API 사용량 및 비용을 실시간으로 모니터링하는 방법
 
 ---
@@ -54,7 +54,7 @@
 ```typescript
 recordExternalCall(
   provider: "openai",     // AI 프로바이더
-  model: "gpt-4o-mini",   // 사용한 모델
+  model: process.env.FUSION_MINI_MODEL ?? "gpt-4.1-mini", // 사용한 모델
   status: "success",      // 성공/실패
   durationMs: 1500,       // 소요 시간 (ms)
   tokens: {               // 토큰 사용량
@@ -68,9 +68,9 @@ recordExternalCall(
 
 | 엔드포인트     | 파일                                                                                  | 모델        | 토큰 기록  |
 | -------------- | ------------------------------------------------------------------------------------- | ----------- | ---------- |
-| 타로 스트리밍  | [tarot/interpret-stream/route.ts](../src/app/api/tarot/interpret-stream/route.ts:474) | gpt-4o-mini | ❌ 미기록  |
-| 타로 질문 분석 | [tarot/analyze-question/route.ts](../src/app/api/tarot/analyze-question/route.ts:40)  | gpt-4o-mini | ❌ 미기록  |
-| Destiny Matrix | [aiBackend.ts](../src/lib/destiny-matrix/ai-report/aiBackend.ts:129)                  | gpt-4o-mini | ✅ 기록 중 |
+| 타로 스트리밍  | [tarot/interpret-stream/route.ts](../src/app/api/tarot/interpret-stream/route.ts:474) | FUSION_MINI_MODEL | ❌ 미기록  |
+| 타로 질문 분석 | [tarot/analyze-question/route.ts](../src/app/api/tarot/analyze-question/route.ts:40)  | FUSION_MINI_MODEL | ❌ 미기록  |
+| Destiny Matrix | [aiBackend.ts](../src/lib/destiny-matrix/ai-report/aiBackend.ts:129)                  | FUSION_MINI_MODEL | ✅ 기록 중 |
 
 ---
 
@@ -121,33 +121,30 @@ GET /api/admin/metrics?format=otlp
 
 ## 💡 AI 비용 계산 방법
 
-### OpenAI 가격표 (2026년 2월 기준)
+### OpenAI 가격표 (수시 변경)
 
-| 모델        | 입력 토큰  | 출력 토큰   |
-| ----------- | ---------- | ----------- |
-| gpt-4o      | $5.00 / 1M | $15.00 / 1M |
-| gpt-4o-mini | $0.15 / 1M | $0.60 / 1M  |
+가격은 자주 변경되므로 OpenAI 공식 요금표를 기준으로 아래 변수 값을 설정하세요.
 
 ### 비용 계산 공식
 
 ```javascript
-// 예시: gpt-4o-mini 1회 호출
+// 예시: FUSION_MINI_MODEL 1회 호출
 const inputTokens = 1500
 const outputTokens = 300
 
-const cost =
-  (inputTokens / 1_000_000) * 0.15 + // 입력 비용
-  (outputTokens / 1_000_000) * 0.6 // 출력 비용
+const INPUT_COST_PER_M_TOKEN = 0 // OpenAI 공식 요금표 기준으로 설정
+const OUTPUT_COST_PER_M_TOKEN = 0 // OpenAI 공식 요금표 기준으로 설정
 
-// = $0.00023 + $0.00018 = $0.00041 per request
+const cost =
+  (inputTokens / 1_000_000) * INPUT_COST_PER_M_TOKEN +
+  (outputTokens / 1_000_000) * OUTPUT_COST_PER_M_TOKEN
 ```
 
 ### 월간 비용 추정
 
 ```javascript
 // 월 10,000회 요청 가정
-const monthlyCost = 0.00041 * 10000
-// = $4.10 / month
+const monthlyCost = cost * 10000
 ```
 
 ---
@@ -193,9 +190,9 @@ setInterval(checkDailyCost, 60 * 60 * 1000)
 ### ✅ 완료된 최적화
 
 1. **타로 질문 분석 다운그레이드**
-   - ❌ Before: `gpt-4o` ($5 input / $15 output)
-   - ✅ After: `gpt-4o-mini` ($0.15 input / $0.60 output)
-   - 💰 **절감: 96%**
+   - ❌ Before: `FUSION_MODEL`
+   - ✅ After: `FUSION_MINI_MODEL`
+   - 💰 **절감: 모델 비용 차이에 따른 절감**
 
 2. **Redis 캐싱 활성화**
    - ✅ 운명 캘린더 (1일 TTL)
@@ -205,19 +202,19 @@ setInterval(checkDailyCost, 60 * 60 * 1000)
 
 ### 📊 예상 비용 변화
 
+비용은 모델 요금과 캐시 히트율에 따라 달라집니다. 아래는 계산 방식의 예시입니다.
+
 **Before (월 10,000회 기준):**
 
-- 타로 질문 분석 (gpt-4o): $105/월
-- 기타 엔드포인트: ~$50/월
-- **총: ~$155/월**
+- 타로 질문 분석: `FUSION_MODEL` 기준
+- 기타 엔드포인트: 캐시 미적용 기준
 
 **After:**
 
-- 타로 질문 분석 (gpt-4o-mini): $3.45/월 ✅
-- 기타 엔드포인트 (캐싱 적용): ~$25/월 ✅
-- **총: ~$28.45/월**
+- 타로 질문 분석: `FUSION_MINI_MODEL` 기준 ✅
+- 기타 엔드포인트: 캐싱 적용 기준 ✅
 
-**절감액: $126.55/월 (81.6% ↓)** 🎉
+**절감액:** 모델 요금 차이 + 캐시 히트율에 따라 변동
 
 ---
 

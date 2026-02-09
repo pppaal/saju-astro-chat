@@ -1,14 +1,19 @@
 # API Security Audit Report
 
 **Date**: 2026-02-03
-**Total Routes Audited**: 134 API routes in `src/app/api/`
+**Total Routes Audited**: 134 API routes in `src/app/api/` (Total: 135, NextAuth 제외 1)
 **Auditor**: Comprehensive automated security analysis
+
+## Update (2026-02-09)
+
+- 현재 전체 API 라우트: 135 (NextAuth 제외 시 134)
+- 본 보고서는 134개 라우트 기준 감사 결과
 
 ---
 
 ## Executive Summary
 
-This comprehensive security audit of 134 API routes reveals a **well-architected security foundation** with centralized middleware providing CSRF protection, rate limiting, authentication, and credit management. However, **significant security gaps exist** due to inconsistent middleware adoption (only 45% of routes use it) and missing input validation in many endpoints.
+This comprehensive security audit of 134 API routes (out of 135 total) reveals a **well-architected security foundation** with centralized middleware providing CSRF protection, rate limiting, authentication, and credit management. However, **significant security gaps exist** due to inconsistent middleware adoption (about 44% of routes use it) and missing input validation in many endpoints.
 
 ### Overall Security Score: **6.5/10**
 
@@ -22,7 +27,7 @@ This comprehensive security audit of 134 API routes reveals a **well-architected
 **Critical Weaknesses:**
 
 - 55% of routes bypass centralized security middleware
-- Minimal Zod validation adoption (only 4 routes out of 134)
+- Minimal Zod validation adoption (only 4 routes out of 135 total)
 - Inconsistent input sanitization across routes
 - Missing rate limiting on 74 routes
 - CSRF protection gaps on manual implementations
@@ -564,7 +569,7 @@ const { date, time, latitude, longitude, timeZone } = body ?? {}
 ### Current State
 
 ```
-Total Routes: 134
+Total Routes: 135 (Audited: 134)
 ├─ Using Middleware: 60 (45%) ✅
 │  ├─ Full security stack: 47 (35%) ✅
 │  └─ Partial (missing features): 13 (10%) ⚠️

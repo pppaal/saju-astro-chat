@@ -1,9 +1,9 @@
-// src/app/api/destiny-matrix/route.ts
+﻿// src/app/api/destiny-matrix/route.ts
 // Destiny Fusion Matrix™ API Endpoint
 // © 2024 All Rights Reserved. Proprietary Technology.
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createSimpleGuard } from '@/lib/api/middleware'
+import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware'
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
 import { calculateSajuData } from '@/lib/Saju/saju'
@@ -141,7 +141,7 @@ export const GET = withApiMiddleware(
       )
     }
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: '/api/destiny-matrix',
     limit: 60,
     windowSeconds: 60,
@@ -347,7 +347,7 @@ export const POST = withApiMiddleware(
       )
     }
   },
-  createSimpleGuard({
+  createPublicStreamGuard({
     route: '/api/destiny-matrix',
     limit: 20,
     windowSeconds: 60,

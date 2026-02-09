@@ -5,10 +5,19 @@ import { NextRequest, NextResponse } from 'next/server'
 // Mocks  (must be declared before importing the route handler)
 // ---------------------------------------------------------------------------
 
-// The webhook route does NOT use withApiMiddleware, but we mock it for safety
-// in case a transitive import pulls it in.
+// The webhook route uses withApiMiddleware; provide a minimal context.
 vi.mock('@/lib/api/middleware', () => ({
-  withApiMiddleware: vi.fn((handler: any) => handler),
+  withApiMiddleware: vi.fn((handler: any) => {
+    return (req: any) =>
+      handler(req, {
+        userId: null,
+        session: null,
+        ip: '127.0.0.1',
+        locale: 'ko',
+        isAuthenticated: false,
+        isPremium: false,
+      })
+  }),
   createAuthenticatedGuard: vi.fn(() => ({})),
   apiSuccess: vi.fn((data: any) => ({ data })),
   apiError: vi.fn((code: string, message?: string) => ({ error: { code, message } })),
@@ -151,10 +160,15 @@ function makeEvent(
 }
 
 /** Build a NextRequest with a body string and optional stripe-signature header. */
-function makeWebhookRequest(body = '{}') {
+function makeWebhookRequest(body = '{}', signature: string | null = 'sig_test') {
+  const headers: Record<string, string> = {}
+  if (signature) {
+    headers['stripe-signature'] = signature
+  }
   return new NextRequest('http://localhost/api/webhook/stripe', {
     method: 'POST',
     body,
+    headers,
   })
 }
 
@@ -217,9 +231,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
   // =========================================================================
   describe('Missing stripe-signature header', () => {
     it('should return 400 when stripe-signature header is absent', async () => {
-      mockHeadersGet.mockReturnValue(null) // no signature
-
-      const response = await POST(makeWebhookRequest())
+      const response = await POST(makeWebhookRequest('{}', null))
       const data = await response.json()
 
       expect(response.status).toBe(400)
