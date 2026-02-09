@@ -156,7 +156,8 @@ describe('GET /api/metrics/public', () => {
     const data = await response.json()
 
     expect(response.status).toBe(429)
-    expect(data).toEqual({ error: 'Too many requests' })
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('RATE_LIMITED')
     expect(mockGetVisitorStats).not.toHaveBeenCalled()
     expect(mockPrismaUserCount).not.toHaveBeenCalled()
   })
