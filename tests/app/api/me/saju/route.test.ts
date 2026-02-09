@@ -123,13 +123,36 @@ function buildDefaultSajuResult() {
 
 /** Build a user object returned by prisma.user.findUnique. */
 function makeUser(overrides?: Record<string, unknown>) {
-  return {
+  const {
+    birthDate,
+    birthTime,
+    gender,
+    tzId,
+    profile,
+    personaMemory,
+    ...rest
+  } = overrides || {}
+
+  const baseProfile = {
     birthDate: '1990-01-15',
     birthTime: '14:30',
     gender: 'M',
     tzId: 'Asia/Seoul',
-    personaMemory: null,
-    ...overrides,
+  }
+
+  const mergedProfile = {
+    ...baseProfile,
+    ...(profile as Record<string, unknown>),
+    ...(birthDate !== undefined ? { birthDate } : {}),
+    ...(birthTime !== undefined ? { birthTime } : {}),
+    ...(gender !== undefined ? { gender } : {}),
+    ...(tzId !== undefined ? { tzId } : {}),
+  }
+
+  return {
+    profile: mergedProfile,
+    personaMemory: personaMemory ?? null,
+    ...rest,
   }
 }
 
@@ -166,10 +189,14 @@ describe('Saju Profile API - GET /api/me/saju', () => {
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: 'test-user-id' },
         select: {
-          birthDate: true,
-          birthTime: true,
-          gender: true,
-          tzId: true,
+          profile: {
+            select: {
+              birthDate: true,
+              birthTime: true,
+              gender: true,
+              tzId: true,
+            },
+          },
           personaMemory: {
             select: {
               sajuProfile: true,
