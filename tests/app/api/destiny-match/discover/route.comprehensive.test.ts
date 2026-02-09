@@ -86,10 +86,12 @@ describe('/api/destiny-match/discover', () => {
       rhythm: 50,
     },
     user: {
-      birthDate: '1990-05-15',
-      birthTime: '14:30',
-      birthCity: 'Seoul',
-      gender: 'male',
+      profile: {
+        birthDate: '1990-05-15',
+        birthTime: '14:30',
+        birthCity: 'Seoul',
+        gender: 'male',
+      },
     },
   }
 
@@ -118,11 +120,13 @@ describe('/api/destiny-match/discover', () => {
     genderPreference: 'male',
     lastActiveAt: new Date('2024-01-15'),
     user: {
-      birthDate: '1992-08-20',
-      birthTime: '10:00',
-      birthCity: 'Seoul',
-      gender: 'female',
       image: 'avatar.jpg',
+      profile: {
+        birthDate: '1992-08-20',
+        birthTime: '10:00',
+        birthCity: 'Seoul',
+        gender: 'female',
+      },
     },
     ...overrides,
   })
@@ -240,7 +244,9 @@ describe('/api/destiny-match/discover', () => {
       expect(prisma.matchProfile.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            user: expect.objectContaining({ gender: 'female' }),
+            user: expect.objectContaining({
+              profile: expect.objectContaining({ gender: 'female' }),
+            }),
           }),
         })
       )
@@ -260,7 +266,7 @@ describe('/api/destiny-match/discover', () => {
       // Check that the where condition doesn't include gender filter (user still has birthDate)
       const findManyCalls = vi.mocked(prisma.matchProfile.findMany).mock.calls
       const mainSearchCall = findManyCalls[findManyCalls.length - 1]
-      expect(mainSearchCall[0].where.user?.gender).toBeUndefined()
+      expect(mainSearchCall[0].where.user?.profile?.gender).toBeUndefined()
     })
 
     it('should only show active and visible profiles', async () => {
@@ -300,9 +306,11 @@ describe('/api/destiny-match/discover', () => {
         expect.objectContaining({
           where: expect.objectContaining({
             user: expect.objectContaining({
-              birthDate: expect.objectContaining({
-                gte: expect.any(String),
-                lte: expect.any(String),
+              profile: expect.objectContaining({
+                birthDate: expect.objectContaining({
+                  gte: expect.any(String),
+                  lte: expect.any(String),
+                }),
               }),
             }),
           }),
@@ -336,8 +344,9 @@ describe('/api/destiny-match/discover', () => {
       vi.mocked(prisma.matchSwipe.findMany).mockResolvedValue([])
       vi.mocked(prisma.userBlock.findMany).mockResolvedValue([])
 
+      const baseUser = createMockProfile().user
       const profile = createMockProfile({
-        user: { ...createMockProfile().user, birthDate: null },
+        user: { ...baseUser, profile: { ...baseUser.profile, birthDate: null } },
       })
 
       vi.mocked(prisma.matchProfile.findMany).mockResolvedValue([profile] as any)
@@ -759,8 +768,9 @@ describe('/api/destiny-match/discover', () => {
       vi.mocked(prisma.matchSwipe.findMany).mockResolvedValue([])
       vi.mocked(prisma.userBlock.findMany).mockResolvedValue([])
 
+      const baseUser = createMockProfile().user
       const profile = createMockProfile({
-        user: { ...createMockProfile().user, birthDate: '1992-08-20' }, // Leo
+        user: { ...baseUser, profile: { ...baseUser.profile, birthDate: '1992-08-20' } }, // Leo
       })
       vi.mocked(prisma.matchProfile.findMany).mockResolvedValue([profile] as any)
       vi.mocked(getCompatibilitySummary).mockResolvedValue({
@@ -783,8 +793,9 @@ describe('/api/destiny-match/discover', () => {
       vi.mocked(prisma.matchSwipe.findMany).mockResolvedValue([])
       vi.mocked(prisma.userBlock.findMany).mockResolvedValue([])
 
+      const baseUser = createMockProfile().user
       const profile = createMockProfile({
-        user: { ...createMockProfile().user, birthDate: '1992-08-20' },
+        user: { ...baseUser, profile: { ...baseUser.profile, birthDate: '1992-08-20' } },
       })
       vi.mocked(prisma.matchProfile.findMany).mockResolvedValue([profile] as any)
       vi.mocked(getCompatibilitySummary).mockResolvedValue({
@@ -810,13 +821,14 @@ describe('/api/destiny-match/discover', () => {
       vi.mocked(prisma.matchSwipe.findMany).mockResolvedValue([])
       vi.mocked(prisma.userBlock.findMany).mockResolvedValue([])
 
+      const baseUser = createMockProfile().user
       const leo = createMockProfile({
         id: 'profile-leo',
-        user: { ...createMockProfile().user, birthDate: '1992-08-20' }, // Leo
+        user: { ...baseUser, profile: { ...baseUser.profile, birthDate: '1992-08-20' } }, // Leo
       })
       const aries = createMockProfile({
         id: 'profile-aries',
-        user: { ...createMockProfile().user, birthDate: '1992-04-10' }, // Aries
+        user: { ...baseUser, profile: { ...baseUser.profile, birthDate: '1992-04-10' } }, // Aries
       })
 
       vi.mocked(prisma.matchProfile.findMany).mockResolvedValue([leo, aries] as any)
@@ -841,13 +853,14 @@ describe('/api/destiny-match/discover', () => {
       vi.mocked(prisma.matchSwipe.findMany).mockResolvedValue([])
       vi.mocked(prisma.userBlock.findMany).mockResolvedValue([])
 
+      const baseUser = createMockProfile().user
       const wood = createMockProfile({
         id: 'profile-wood',
-        user: { ...createMockProfile().user, birthDate: '1984-01-01' }, // Wood
+        user: { ...baseUser, profile: { ...baseUser.profile, birthDate: '1984-01-01' } }, // Wood
       })
       const fire = createMockProfile({
         id: 'profile-fire',
-        user: { ...createMockProfile().user, birthDate: '1986-01-01' }, // Fire
+        user: { ...baseUser, profile: { ...baseUser.profile, birthDate: '1986-01-01' } }, // Fire
       })
 
       vi.mocked(prisma.matchProfile.findMany).mockResolvedValue([wood, fire] as any)
