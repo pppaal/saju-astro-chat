@@ -11,88 +11,90 @@ import {
 } from '@/lib/iChing/enhancedDataLoader';
 
 // Mock the enhancedData module that is dynamically imported
-const mockEnhancedHexagramData: Record<number, any> = vi.hoisted(() => ({
-  1: {
-    visualImagery: {
-      scene: 'Test scene',
-      symbolism: 'Test symbolism',
-      colors: ['red', 'blue'],
-      emoji: '☰',
+vi.mock('@/lib/iChing/enhancedData', () => {
+  const enhancedHexagramData: Record<number, any> = {
+    1: {
+      visualImagery: {
+        scene: 'Test scene',
+        symbolism: 'Test symbolism',
+        colors: ['red', 'blue'],
+        emoji: '???',
+      },
+      quickSummary: {
+        oneLiner: 'Test summary',
+        keywords: ['test', 'mock'],
+        essence: 'Test essence',
+      },
+      actionableAdvice: {
+        dos: ['Do this'],
+        donts: ['Dont do that'],
+        timing: 'Now',
+        nextSteps: ['Step 1'],
+      },
+      situationTemplates: {
+        career: { question: 'Q', advice: 'A', actionItems: ['Item'] },
+        love: { question: 'Q', advice: 'A', actionItems: ['Item'] },
+        health: { question: 'Q', advice: 'A', actionItems: ['Item'] },
+        wealth: { question: 'Q', advice: 'A', actionItems: ['Item'] },
+        decision: { question: 'Q', advice: 'A', actionItems: ['Item'] },
+        timing: { question: 'Q', advice: 'A', actionItems: ['Item'] },
+      },
+      plainLanguage: {
+        traditionalText: 'Traditional',
+        modernExplanation: 'Modern',
+        realLifeExample: 'Example',
+        metaphor: 'Metaphor',
+      },
+      relatedConcepts: ['concept1'],
+      difficulty: 'easy' as const,
+      favorability: 5,
     },
-    quickSummary: {
-      oneLiner: 'Test summary',
-      keywords: ['test', 'mock'],
-      essence: 'Test essence',
+    2: {
+      visualImagery: { scene: 'Scene 2', symbolism: 'Sym 2', colors: [], emoji: '???' },
+      quickSummary: { oneLiner: 'Summary 2', keywords: [], essence: 'Essence 2' },
+      actionableAdvice: { dos: [], donts: [], timing: 'Later', nextSteps: [] },
+      situationTemplates: {
+        career: { question: 'Q', advice: 'A', actionItems: [] },
+        love: { question: 'Q', advice: 'A', actionItems: [] },
+        health: { question: 'Q', advice: 'A', actionItems: [] },
+        wealth: { question: 'Q', advice: 'A', actionItems: [] },
+        decision: { question: 'Q', advice: 'A', actionItems: [] },
+        timing: { question: 'Q', advice: 'A', actionItems: [] },
+      },
+      plainLanguage: { traditionalText: 'T', modernExplanation: 'M', realLifeExample: 'E', metaphor: 'M' },
+      relatedConcepts: [],
+      difficulty: 'easy' as const,
+      favorability: 4,
     },
-    actionableAdvice: {
-      dos: ['Do this'],
-      donts: ['Dont do that'],
-      timing: 'Now',
-      nextSteps: ['Step 1'],
-    },
-    situationTemplates: {
-      career: { question: 'Q', advice: 'A', actionItems: ['Item'] },
-      love: { question: 'Q', advice: 'A', actionItems: ['Item'] },
-      health: { question: 'Q', advice: 'A', actionItems: ['Item'] },
-      wealth: { question: 'Q', advice: 'A', actionItems: ['Item'] },
-      decision: { question: 'Q', advice: 'A', actionItems: ['Item'] },
-      timing: { question: 'Q', advice: 'A', actionItems: ['Item'] },
-    },
-    plainLanguage: {
-      traditionalText: 'Traditional',
-      modernExplanation: 'Modern',
-      realLifeExample: 'Example',
-      metaphor: 'Metaphor',
-    },
-    relatedConcepts: ['concept1'],
-    difficulty: 'easy' as const,
-    favorability: 5,
-  },
-  2: {
-    visualImagery: { scene: 'Scene 2', symbolism: 'Sym 2', colors: [], emoji: '☷' },
-    quickSummary: { oneLiner: 'Summary 2', keywords: [], essence: 'Essence 2' },
-    actionableAdvice: { dos: [], donts: [], timing: 'Later', nextSteps: [] },
-    situationTemplates: {
-      career: { question: 'Q', advice: 'A', actionItems: [] },
-      love: { question: 'Q', advice: 'A', actionItems: [] },
-      health: { question: 'Q', advice: 'A', actionItems: [] },
-      wealth: { question: 'Q', advice: 'A', actionItems: [] },
-      decision: { question: 'Q', advice: 'A', actionItems: [] },
-      timing: { question: 'Q', advice: 'A', actionItems: [] },
-    },
-    plainLanguage: { traditionalText: 'T', modernExplanation: 'M', realLifeExample: 'E', metaphor: 'M' },
-    relatedConcepts: [],
-    difficulty: 'easy' as const,
-    favorability: 4,
-  },
-}));
+  };
 
-const mockEnhancedHexagramDataKo: Record<number, any> = vi.hoisted(() => ({
-  1: {
-    hanja: { name: '乾', meaning: 'Heaven' },
-    traditional: { judgment: 'Test judgment', image: 'Test image', lines: ['Line 1'] },
-    visualImagery: { scene: 'Test', symbolism: 'Test', colors: [], emoji: '☰' },
-    quickSummary: { oneLiner: 'Test', keywords: [], essence: 'Test' },
-    actionableAdvice: { dos: [], donts: [], timing: 'Now', nextSteps: [] },
-    situationTemplates: {
-      career: { question: 'Q', advice: 'A', actionItems: [] },
-      love: { question: 'Q', advice: 'A', actionItems: [] },
-      health: { question: 'Q', advice: 'A', actionItems: [] },
-      wealth: { question: 'Q', advice: 'A', actionItems: [] },
-      decision: { question: 'Q', advice: 'A', actionItems: [] },
-      timing: { question: 'Q', advice: 'A', actionItems: [] },
+  const enhancedHexagramDataKo: Record<number, any> = {
+    1: {
+      hanja: { name: '???', meaning: 'Heaven' },
+      traditional: { judgment: 'Test judgment', image: 'Test image', lines: ['Line 1'] },
+      visualImagery: { scene: 'Test', symbolism: 'Test', colors: [], emoji: '???' },
+      quickSummary: { oneLiner: 'Test', keywords: [], essence: 'Test' },
+      actionableAdvice: { dos: [], donts: [], timing: 'Now', nextSteps: [] },
+      situationTemplates: {
+        career: { question: 'Q', advice: 'A', actionItems: [] },
+        love: { question: 'Q', advice: 'A', actionItems: [] },
+        health: { question: 'Q', advice: 'A', actionItems: [] },
+        wealth: { question: 'Q', advice: 'A', actionItems: [] },
+        decision: { question: 'Q', advice: 'A', actionItems: [] },
+        timing: { question: 'Q', advice: 'A', actionItems: [] },
+      },
+      plainLanguage: { traditionalText: 'T', modernExplanation: 'M', realLifeExample: 'E', metaphor: 'M' },
+      relatedConcepts: [],
+      difficulty: 'easy' as const,
+      favorability: 5,
     },
-    plainLanguage: { traditionalText: 'T', modernExplanation: 'M', realLifeExample: 'E', metaphor: 'M' },
-    relatedConcepts: [],
-    difficulty: 'easy' as const,
-    favorability: 5,
-  },
-}));
+  };
 
-vi.mock('@/lib/iChing/enhancedData', () => ({
-  enhancedHexagramData: mockEnhancedHexagramData,
-  enhancedHexagramDataKo: mockEnhancedHexagramDataKo,
-}));
+  return {
+    enhancedHexagramData,
+    enhancedHexagramDataKo,
+  };
+});
 
 describe('enhancedDataLoader', () => {
   beforeEach(() => {
@@ -223,6 +225,102 @@ describe('enhancedDataLoader', () => {
   });
 
   describe('error handling', () => {
+    const restoreEnhancedDataMock = () => {
+      vi.doMock('@/lib/iChing/enhancedData', () => ({
+        enhancedHexagramData: {
+          1: {
+            visualImagery: {
+              scene: 'Test scene',
+              symbolism: 'Test symbolism',
+              colors: ['red', 'blue'],
+              emoji: 'â˜°',
+            },
+            quickSummary: {
+              oneLiner: 'Test summary',
+              keywords: ['test', 'mock'],
+              essence: 'Test essence',
+            },
+            actionableAdvice: {
+              dos: ['Do this'],
+              donts: ['Dont do that'],
+              timing: 'Now',
+              nextSteps: ['Step 1'],
+            },
+            situationTemplates: {
+              career: { question: 'Q', advice: 'A', actionItems: ['Item'] },
+              love: { question: 'Q', advice: 'A', actionItems: ['Item'] },
+              health: { question: 'Q', advice: 'A', actionItems: ['Item'] },
+              wealth: { question: 'Q', advice: 'A', actionItems: ['Item'] },
+              decision: { question: 'Q', advice: 'A', actionItems: ['Item'] },
+              timing: { question: 'Q', advice: 'A', actionItems: ['Item'] },
+            },
+            plainLanguage: {
+              traditionalText: 'Traditional',
+              modernExplanation: 'Modern',
+              realLifeExample: 'Example',
+              metaphor: 'Metaphor',
+            },
+            relatedConcepts: ['concept1'],
+            difficulty: 'easy' as const,
+            favorability: 5,
+          },
+          2: {
+            visualImagery: { scene: 'Scene 2', symbolism: 'Sym 2', colors: [], emoji: 'â˜·' },
+            quickSummary: { oneLiner: 'Summary 2', keywords: [], essence: 'Essence 2' },
+            actionableAdvice: { dos: [], donts: [], timing: 'Later', nextSteps: [] },
+            situationTemplates: {
+              career: { question: 'Q', advice: 'A', actionItems: [] },
+              love: { question: 'Q', advice: 'A', actionItems: [] },
+              health: { question: 'Q', advice: 'A', actionItems: [] },
+              wealth: { question: 'Q', advice: 'A', actionItems: [] },
+              decision: { question: 'Q', advice: 'A', actionItems: [] },
+              timing: { question: 'Q', advice: 'A', actionItems: [] },
+            },
+            plainLanguage: {
+              traditionalText: 'T',
+              modernExplanation: 'M',
+              realLifeExample: 'E',
+              metaphor: 'M',
+            },
+            relatedConcepts: [],
+            difficulty: 'easy' as const,
+            favorability: 4,
+          },
+        },
+        enhancedHexagramDataKo: {
+          1: {
+            hanja: { name: 'ä¹¾', meaning: 'Heaven' },
+            traditional: { judgment: 'Test judgment', image: 'Test image', lines: ['Line 1'] },
+            visualImagery: { scene: 'Test', symbolism: 'Test', colors: [], emoji: 'â˜°' },
+            quickSummary: { oneLiner: 'Test', keywords: [], essence: 'Test' },
+            actionableAdvice: { dos: [], donts: [], timing: 'Now', nextSteps: [] },
+            situationTemplates: {
+              career: { question: 'Q', advice: 'A', actionItems: [] },
+              love: { question: 'Q', advice: 'A', actionItems: [] },
+              health: { question: 'Q', advice: 'A', actionItems: [] },
+              wealth: { question: 'Q', advice: 'A', actionItems: [] },
+              decision: { question: 'Q', advice: 'A', actionItems: [] },
+              timing: { question: 'Q', advice: 'A', actionItems: [] },
+            },
+            plainLanguage: {
+              traditionalText: 'T',
+              modernExplanation: 'M',
+              realLifeExample: 'E',
+              metaphor: 'M',
+            },
+            relatedConcepts: [],
+            difficulty: 'easy' as const,
+            favorability: 5,
+          },
+        },
+      }));
+    };
+
+    afterEach(() => {
+      restoreEnhancedDataMock();
+      vi.resetModules();
+    });
+
     it('should return null and log error when dynamic import fails (EN)', async () => {
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
