@@ -108,6 +108,7 @@ export async function calculateSolarReturn(
   const PLANET_LIST = getPlanetList();
   const SW_FLAGS = getSwissEphFlags();
   const { natal, year } = input;
+  const pad = (value: number) => String(value).padStart(2, "0");
 
   // 1. 출생 시 태양 위치 구하기
   const natalJD = natalToJD(natal);
@@ -117,11 +118,33 @@ export async function calculateSolarReturn(
 
   // 2. 해당 연도의 생일 근처에서 태양이 동일 위치에 오는 시간 찾기
   // 생일 5일 전부터 5일 후까지 검색
+  const returnDate = (() => {
+    if (natal.month !== 2 || natal.date !== 29) {
+      return natal.date;
+    }
+
+    const candidate = dayjs.tz(
+      `${year}-${pad(natal.month)}-${pad(natal.date)}T12:00:00`,
+      natal.timeZone
+    );
+
+    if (
+      candidate.isValid() &&
+      candidate.year() === year &&
+      candidate.month() + 1 === natal.month &&
+      candidate.date() === natal.date
+    ) {
+      return natal.date;
+    }
+
+    return 28;
+  })();
+
   const approxBirthday = dayjs.tz(
-    `${year}-${String(natal.month).padStart(2, "0")}-${String(natal.date).padStart(2, "0")}T12:00:00`,
+    `${year}-${pad(natal.month)}-${pad(returnDate)}T12:00:00`,
     natal.timeZone
   );
-  const startJD = natalToJD({ ...natal, year, hour: 0, minute: 0 }) - 5;
+  const startJD = natalToJD({ ...natal, year, date: returnDate, hour: 0, minute: 0 }) - 5;
   const endJD = startJD + 10;
 
   // 3. 정확한 Solar Return 시간 찾기
