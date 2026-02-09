@@ -344,7 +344,7 @@ describe('GET /api/metrics/public', () => {
     await GET(req)
 
     expect(mockGetClientIp).toHaveBeenCalledWith(req.headers)
-    expect(mockRateLimit).toHaveBeenCalledWith(`public-metrics:${ip}`, {
+    expect(mockRateLimit).toHaveBeenCalledWith(`api:metrics/public:${ip}`, {
       limit: 60,
       windowSeconds: 60,
     })
@@ -512,11 +512,11 @@ describe('GET /api/metrics/public', () => {
     await GET(req1)
     await GET(req2)
 
-    expect(mockRateLimit).toHaveBeenNthCalledWith(1, `public-metrics:${ip1}`, {
+    expect(mockRateLimit).toHaveBeenNthCalledWith(1, `api:metrics/public:${ip1}`, {
       limit: 60,
       windowSeconds: 60,
     })
-    expect(mockRateLimit).toHaveBeenNthCalledWith(2, `public-metrics:${ip2}`, {
+    expect(mockRateLimit).toHaveBeenNthCalledWith(2, `api:metrics/public:${ip2}`, {
       limit: 60,
       windowSeconds: 60,
     })

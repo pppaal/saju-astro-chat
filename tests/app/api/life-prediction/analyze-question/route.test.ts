@@ -114,7 +114,7 @@ describe('Life Prediction Analyze Question API - POST', () => {
     // Default: rate limit passes
     mockRateLimit.mockResolvedValue({
       allowed: true,
-      headers: new Map([
+      headers: new Headers([
         ['X-RateLimit-Limit', '10'],
         ['X-RateLimit-Remaining', '9'],
       ]),
@@ -153,7 +153,7 @@ describe('Life Prediction Analyze Question API - POST', () => {
     it('should return 429 when rate limited', async () => {
       mockRateLimit.mockResolvedValue({
         allowed: false,
-        headers: new Map([
+        headers: new Headers([
           ['X-RateLimit-Limit', '10'],
           ['X-RateLimit-Remaining', '0'],
           ['Retry-After', '60'],
@@ -166,7 +166,7 @@ describe('Life Prediction Analyze Question API - POST', () => {
 
       expect(response.status).toBe(429)
       expect(data.success).toBe(false)
-      expect(data.error).toBe('Too many requests. Try again soon.')
+      expect(data.error.code).toBe('RATE_LIMITED')
     })
 
     it('should call rateLimit with correct key pattern', async () => {
@@ -174,7 +174,7 @@ describe('Life Prediction Analyze Question API - POST', () => {
       await POST(request)
 
       expect(mockRateLimit).toHaveBeenCalledWith(
-        'life-analyze:127.0.0.1',
+        'api:/api/life-prediction/analyze-question:127.0.0.1',
         { limit: 10, windowSeconds: 60 }
       )
     })
@@ -190,7 +190,7 @@ describe('Life Prediction Analyze Question API - POST', () => {
     it('should include rate limit headers in rate limited response', async () => {
       // The route passes limit.headers directly to NextResponse.json
       // When rate limit is exceeded, headers are passed through
-      const rateLimitHeaders = new Map([
+      const rateLimitHeaders = new Headers([
         ['X-RateLimit-Limit', '10'],
         ['X-RateLimit-Remaining', '0'],
         ['Retry-After', '30'],
@@ -218,7 +218,7 @@ describe('Life Prediction Analyze Question API - POST', () => {
       await POST(request)
 
       expect(mockRateLimit).toHaveBeenCalledWith(
-        'life-analyze:192.168.1.100',
+        'api:/api/life-prediction/analyze-question:192.168.1.100',
         expect.any(Object)
       )
     })
@@ -913,8 +913,14 @@ describe('Life Prediction Analyze Question API - POST', () => {
       await POST(request1)
       await POST(request2)
 
-      expect(mockRateLimit).toHaveBeenCalledWith('life-analyze:192.168.1.1', expect.any(Object))
-      expect(mockRateLimit).toHaveBeenCalledWith('life-analyze:192.168.1.2', expect.any(Object))
+      expect(mockRateLimit).toHaveBeenCalledWith(
+        'api:/api/life-prediction/analyze-question:192.168.1.1',
+        expect.any(Object)
+      )
+      expect(mockRateLimit).toHaveBeenCalledWith(
+        'api:/api/life-prediction/analyze-question:192.168.1.2',
+        expect.any(Object)
+      )
     })
   })
 

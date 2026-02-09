@@ -122,7 +122,7 @@ describe('Life Prediction Backend Predict API - POST', () => {
     // Default: rate limit allows requests
     mockRateLimit.mockResolvedValue({
       allowed: true,
-      headers: new Map<string, string>([
+      headers: new Headers([
         ['X-RateLimit-Limit', '10'],
         ['X-RateLimit-Remaining', '9'],
       ]),
@@ -189,7 +189,7 @@ describe('Life Prediction Backend Predict API - POST', () => {
     it('should return 429 when rate limit exceeded', async () => {
       mockRateLimit.mockResolvedValue({
         allowed: false,
-        headers: new Map<string, string>([
+        headers: new Headers([
           ['Retry-After', '60'],
           ['X-RateLimit-Remaining', '0'],
         ]),
@@ -201,7 +201,7 @@ describe('Life Prediction Backend Predict API - POST', () => {
 
       expect(response.status).toBe(429)
       expect(data.success).toBe(false)
-      expect(data.error).toContain('Too many requests')
+      expect(data.error.code).toBe('RATE_LIMITED')
     })
 
     it('should allow requests within rate limit', async () => {
@@ -209,10 +209,11 @@ describe('Life Prediction Backend Predict API - POST', () => {
       const response = await POST(request)
 
       expect(response.status).toBe(200)
-      expect(mockRateLimit).toHaveBeenCalledWith(expect.stringContaining('life-backend:'), {
+      expect(mockRateLimit).toHaveBeenCalledWith(
+        'api:/api/life-prediction/backend-predict:127.0.0.1',
         limit: 10,
         windowSeconds: 60,
-      })
+      )
     })
 
     it('should include rate limit headers on successful response', async () => {
