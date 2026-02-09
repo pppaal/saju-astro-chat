@@ -5,6 +5,8 @@
  */
 
 import React from 'react'
+import fs from 'fs'
+import path from 'path'
 import { vi } from 'vitest'
 import '@testing-library/jest-dom'
 
@@ -44,6 +46,11 @@ const shouldUseRealFetch =
 
 // Mock environment variables for unit/integration tests only.
 process.env.NODE_ENV = process.env.NODE_ENV || 'test'
+try {
+  fs.mkdirSync(path.resolve(process.cwd(), 'coverage', '.tmp'), { recursive: true })
+} catch {
+  // Ignore coverage directory creation failures in constrained environments
+}
 if (!shouldUseRealFetch) {
   process.env.NEXTAUTH_SECRET = 'test-secret-at-least-32-characters-long'
   process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000'
