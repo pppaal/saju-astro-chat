@@ -11,7 +11,7 @@ import {
 } from '@/lib/iChing/enhancedDataLoader';
 
 // Mock the enhancedData module that is dynamically imported
-const mockEnhancedHexagramData: Record<number, any> = {
+const mockEnhancedHexagramData: Record<number, any> = vi.hoisted(() => ({
   1: {
     visualImagery: {
       scene: 'Test scene',
@@ -65,9 +65,9 @@ const mockEnhancedHexagramData: Record<number, any> = {
     difficulty: 'easy' as const,
     favorability: 4,
   },
-};
+}));
 
-const mockEnhancedHexagramDataKo: Record<number, any> = {
+const mockEnhancedHexagramDataKo: Record<number, any> = vi.hoisted(() => ({
   1: {
     hanja: { name: '乾', meaning: 'Heaven' },
     traditional: { judgment: 'Test judgment', image: 'Test image', lines: ['Line 1'] },
@@ -87,7 +87,7 @@ const mockEnhancedHexagramDataKo: Record<number, any> = {
     difficulty: 'easy' as const,
     favorability: 5,
   },
-};
+}));
 
 vi.mock('@/lib/iChing/enhancedData', () => ({
   enhancedHexagramData: mockEnhancedHexagramData,
