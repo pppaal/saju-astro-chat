@@ -70,7 +70,7 @@ vi.mock('@/lib/iChing/enhancedData', () => {
 
   const enhancedHexagramDataKo: Record<number, any> = {
     1: {
-      hanja: { name: '???', meaning: 'Heaven' },
+      hanja: { name: '\u4E7E', meaning: 'Heaven' },
       traditional: { judgment: 'Test judgment', image: 'Test image', lines: ['Line 1'] },
       visualImagery: { scene: 'Test', symbolism: 'Test', colors: [], emoji: '???' },
       quickSummary: { oneLiner: 'Test', keywords: [], essence: 'Test' },
@@ -289,7 +289,7 @@ describe('enhancedDataLoader', () => {
         },
         enhancedHexagramDataKo: {
           1: {
-            hanja: { name: 'ä¹¾', meaning: 'Heaven' },
+            hanja: { name: '\u4E7E', meaning: 'Heaven' },
             traditional: { judgment: 'Test judgment', image: 'Test image', lines: ['Line 1'] },
             visualImagery: { scene: 'Test', symbolism: 'Test', colors: [], emoji: 'â˜°' },
             quickSummary: { oneLiner: 'Test', keywords: [], essence: 'Test' },
