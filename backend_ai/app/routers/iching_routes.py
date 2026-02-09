@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 
 from flask import Blueprint, request, jsonify, Response, g
+from ..utils.request_utils import get_json_or_400
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +136,9 @@ def iching_interpret():
         return jsonify({"status": "error", "message": "I Ching module not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         hexagram_num = data.get("hexagram", 1)
         theme = data.get("theme", "general")
         locale = data.get("locale", "ko")
@@ -166,7 +169,9 @@ def iching_reading():
         return jsonify({"status": "error", "message": "I Ching module not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         question = data.get("question", "")
         theme = data.get("theme", "general")
         locale = data.get("locale", "ko")
@@ -226,7 +231,9 @@ def iching_reading_stream():
         return jsonify({"status": "error", "message": "I Ching module not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         logger.info(f"[ICHING_STREAM] id={getattr(g, 'request_id', 'N/A')} Starting enhanced streaming interpretation")
 
         # Get hexagram data from request

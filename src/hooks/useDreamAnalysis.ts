@@ -19,7 +19,7 @@ export function useDreamAnalysis(
         locale === 'ko'
           ? '꿈 내용을 최소 10자 이상 입력해주세요.'
           : 'Please describe your dream in at least 10 characters.'
-      );
+      )
       return false
     }
 
@@ -53,11 +53,11 @@ export function useDreamAnalysis(
           locale,
           birth: birthInfo?.birthDate
             ? {
-                date: birthInfo.birthDate,
-                time: birthInfo.birthTime || '12:00',
+                birthDate: birthInfo.birthDate,
+                birthTime: birthInfo.birthTime || '12:00',
                 latitude: birthInfo.latitude || 37.5665,
                 longitude: birthInfo.longitude || 126.978,
-                timeZone: birthInfo.timezone || 'Asia/Seoul',
+                timezone: birthInfo.timezone || 'Asia/Seoul',
               }
             : undefined,
         }),
@@ -69,7 +69,7 @@ export function useDreamAnalysis(
       }
 
       const data = await res.json()
-      setResult(data);
+      setResult(data)
       return true
     } catch (err) {
       logger.error('Dream analysis failed:', err)
@@ -118,7 +118,7 @@ export function useDreamAnalysis(
     setDreamText('')
     setResult(null)
     setError(null)
-  }, []);
+  }, [])
 
   return {
     dreamText,

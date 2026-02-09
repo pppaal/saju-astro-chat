@@ -7,6 +7,7 @@ Phase 3.1: Created with DestinyStoryService
 """
 import logging
 from flask import Blueprint, request, jsonify
+from ..utils.request_utils import get_json_or_400
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,9 @@ def generate_destiny_story_stream():
     Phase 3.1 Refactored: Now uses DestinyStoryService directly.
     """
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         saju_data = data.get("saju") or {}
         astro_data = data.get("astro") or {}
         locale = data.get("locale", "ko")

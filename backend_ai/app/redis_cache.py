@@ -114,6 +114,7 @@ class RedisCache:
         self._pool: Optional[ConnectionPool] = None
         self.memory_cache: Dict[str, Any] = {}  # Fallback
         self._memory_timestamps: Dict[str, float] = {}  # For TTL tracking
+        self._memory_ttls: Dict[str, int] = {}  # Per-key TTLs for memory cache
         self.default_ttl = int(os.getenv("CACHE_TTL", "86400"))  # 24 hours default
         self._circuit_breaker = CircuitBreaker()
         self._lock = Lock()
@@ -214,10 +215,13 @@ class RedisCache:
             # Check if entry has expired
             if key in self._memory_timestamps:
                 age = time.time() - self._memory_timestamps[key]
-                if age > self.default_ttl:
+                ttl = self._memory_ttls.get(key, self.default_ttl)
+                if age > ttl:
                     # Expired, remove and return None
                     del self.memory_cache[key]
                     del self._memory_timestamps[key]
+                    if key in self._memory_ttls:
+                        del self._memory_ttls[key]
                     return None
 
             self._hits += 1
@@ -273,10 +277,13 @@ class RedisCache:
                         del self.memory_cache[k]
                     if k in self._memory_timestamps:
                         del self._memory_timestamps[k]
+                    if k in self._memory_ttls:
+                        del self._memory_ttls[k]
                 logger.debug(f"Memory cache: evicted {len(oldest_keys)} entries")
 
             self.memory_cache[key] = result_data
             self._memory_timestamps[key] = time.time()
+            self._memory_ttls[key] = cache_ttl
             logger.debug(f"✅ Memory cache SET: {key[:50]}...")
             return True
 
@@ -295,6 +302,8 @@ class RedisCache:
         # Clear memory cache
         cleared = len(self.memory_cache)
         self.memory_cache.clear()
+        self._memory_timestamps.clear()
+        self._memory_ttls.clear()
         logger.info(f"🗑️ Cleared {cleared} memory cache entries")
         return cleared
 

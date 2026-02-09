@@ -10,6 +10,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from flask import Blueprint, request, jsonify, g
+from ..utils.request_utils import get_json_or_400
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +167,9 @@ def counseling_session():
         return jsonify({"status": "error", "message": "Counseling module not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         message = data.get("message", "")
         session_id = data.get("session_id")
         divination_context = data.get("divination_context")
@@ -213,7 +216,9 @@ def counseling_crisis_check():
         return jsonify({"status": "error", "message": "Counseling module not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         text = data.get("text", "")
 
         if not text:
@@ -290,7 +295,9 @@ def counseling_emotional_response():
         return jsonify({"status": "error", "message": "Counseling module not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         emotion = data.get("emotion", "")
         situation = data.get("situation", "")
 
@@ -320,7 +327,9 @@ def counseling_integrated():
         return jsonify({"status": "error", "message": "Counseling module not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         message = data.get("message", "")
         session_id = data.get("session_id")
 
@@ -379,7 +388,9 @@ def counseling_session_summary():
     상담 세션 요약 자동 생성.
     """
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         messages = data.get("messages", [])
         locale = data.get("locale", "ko")
 
@@ -495,7 +506,9 @@ def counseling_active_imagination():
     적극적 상상 기법 안내.
     """
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         context = data.get("context", "")
         archetype = data.get("archetype", "")
 

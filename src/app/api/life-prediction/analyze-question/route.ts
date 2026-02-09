@@ -2,10 +2,9 @@
 // AI 기반 질문 분석 API - GPT-4o-mini를 사용하여 사용자 질문을 해석
 
 import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware, createSimpleGuard } from '@/lib/api/middleware'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 import { lifePredictionAnalyzeQuestionSchema } from '@/lib/api/zodValidation'
 
 // ============================================================
@@ -87,93 +86,92 @@ const ANALYSIS_SYSTEM_PROMPT = `당신은 사주/점성술 기반 인생 예측 
 // ============================================================
 // POST 핸들러
 // ============================================================
-export async function POST(request: NextRequest): Promise<NextResponse<AnalyzeQuestionResponse>> {
-  try {
-    const ip = getClientIp(request.headers)
-    const limit = await rateLimit(`life-analyze:${ip}`, { limit: 10, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { success: false, error: 'Too many requests. Try again soon.' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
+export const POST = withApiMiddleware(
+  async (request: NextRequest): Promise<NextResponse<AnalyzeQuestionResponse>> => {
+    try {
+      const rawBody = await request.json()
 
-    const rawBody = await request.json()
+      // Validate with Zod
+      const validationResult = lifePredictionAnalyzeQuestionSchema.safeParse(rawBody)
+      if (!validationResult.success) {
+        logger.warn('[analyze-question] validation failed', {
+          errors: validationResult.error.issues,
+        })
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'validation_failed',
+            details: validationResult.error.issues.map((e) => ({
+              path: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
+      }
 
-    // Validate with Zod
-    const validationResult = lifePredictionAnalyzeQuestionSchema.safeParse(rawBody)
-    if (!validationResult.success) {
-      logger.warn('[analyze-question] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
+      const { question, locale = 'ko' } = validationResult.data
+
+      // OpenAI API 호출
+      const responseText = await callOpenAI([
+        { role: 'system', content: ANALYSIS_SYSTEM_PROMPT },
+        { role: 'user', content: `질문: "${question}"` },
+      ])
+      if (!responseText) {
+        throw new Error('AI 응답이 비어있습니다.')
+      }
+
+      // JSON 파싱
+      const analysisResult = JSON.parse(responseText)
+
+      // 유효성 검사
+      const validEventTypes: EventType[] = [
+        'marriage',
+        'career',
+        'investment',
+        'move',
+        'study',
+        'health',
+        'relationship',
+        'general',
+      ]
+
+      const eventType = validEventTypes.includes(analysisResult.eventType)
+        ? analysisResult.eventType
+        : 'general'
+
+      const res = NextResponse.json({
+        success: true,
+        data: {
+          eventType,
+          eventLabel: analysisResult.eventLabel || getDefaultLabel(eventType, locale),
+          questionSummary: analysisResult.questionSummary || question.slice(0, 30),
+          analysisContext:
+            analysisResult.analysisContext || `${getDefaultLabel(eventType, locale)} 분석`,
         },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
+      })
+      return res
+    } catch (error) {
+      logger.error('Question analysis failed:', error)
+
+      // 에러 시 기본값 반환 (서비스 계속 작동)
+      return NextResponse.json({
+        success: true,
+        data: {
+          eventType: 'general',
+          eventLabel: '종합 운세',
+          questionSummary: '운세 분석',
+          analysisContext: '최적 시기 분석',
+        },
+      })
     }
-
-    const { question, locale = 'ko' } = validationResult.data
-
-    // OpenAI API 호출
-    const responseText = await callOpenAI([
-      { role: 'system', content: ANALYSIS_SYSTEM_PROMPT },
-      { role: 'user', content: `질문: "${question}"` },
-    ])
-    if (!responseText) {
-      throw new Error('AI 응답이 비어있습니다.')
-    }
-
-    // JSON 파싱
-    const analysisResult = JSON.parse(responseText)
-
-    // 유효성 검사
-    const validEventTypes: EventType[] = [
-      'marriage',
-      'career',
-      'investment',
-      'move',
-      'study',
-      'health',
-      'relationship',
-      'general',
-    ]
-
-    const eventType = validEventTypes.includes(analysisResult.eventType)
-      ? analysisResult.eventType
-      : 'general'
-
-    const res = NextResponse.json({
-      success: true,
-      data: {
-        eventType,
-        eventLabel: analysisResult.eventLabel || getDefaultLabel(eventType, locale),
-        questionSummary: analysisResult.questionSummary || question.slice(0, 30),
-        analysisContext:
-          analysisResult.analysisContext || `${getDefaultLabel(eventType, locale)} 분석`,
-      },
-    })
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
-    return res
-  } catch (error) {
-    logger.error('Question analysis failed:', error)
-
-    // 에러 시 기본값 반환 (서비스 계속 작동)
-    return NextResponse.json({
-      success: true,
-      data: {
-        eventType: 'general',
-        eventLabel: '종합 운세',
-        questionSummary: '운세 분석',
-        analysisContext: '최적 시기 분석',
-      },
-    })
-  }
-}
+  },
+  createSimpleGuard({
+    route: '/api/life-prediction/analyze-question',
+    limit: 10,
+    windowSeconds: 60,
+  })
+)
 
 // ============================================================
 // 헬퍼 함수

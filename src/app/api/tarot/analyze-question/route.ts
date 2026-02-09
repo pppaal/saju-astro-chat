@@ -2,12 +2,11 @@
 // GPT-4o-mini를 사용해서 사용자 질문을 분석하고 적절한 스프레드 추천 (비용 효율적)
 
 import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware, createSimpleGuard } from '@/lib/api/middleware'
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
 import { logger } from '@/lib/logger'
 import { PATTERN_MAPPINGS, getExamInterviewMapping } from './pattern-mappings'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 import { tarotAnalyzeQuestionSchema as AnalyzeQuestionSchema } from '@/lib/api/zodValidation'
 
 // ============================================================
@@ -281,123 +280,122 @@ function applyPatternCorrections(
 // ============================================================
 // Main POST Handler
 // ============================================================
-export async function POST(request: NextRequest) {
-  try {
-    const ip = getClientIp(request.headers)
-    const limit = await rateLimit(`tarot-analyze:${ip}`, { limit: 10, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Try again soon.' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
-
-    // Validate request body with Zod
-    const body = await request.json()
-    const validation = AnalyzeQuestionSchema.safeParse(body)
-
-    if (!validation.success) {
-      const errors = validation.error.issues
-        .map((e) => `${e.path.join('.')}: ${e.message}`)
-        .join(', ')
-      logger.warn('[tarot/analyze-question] Validation failed', { errors: validation.error.issues })
-      return NextResponse.json(
-        { error: 'Validation failed', details: errors },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    const { question, language } = validation.data
-    const trimmedQuestion = question.trim()
-
-    // 위험한 질문 체크
-    if (checkDangerous(trimmedQuestion)) {
-      return NextResponse.json({
-        isDangerous: true,
-        message:
-          language === 'ko'
-            ? '힘든 시간을 보내고 계신 것 같아요. 전문가의 도움을 받으시길 권해드려요. 자살예방상담전화: 1393 (24시간)'
-            : 'I sense you might be going through a difficult time. Please reach out to a professional who can help. Crisis helpline: 1393 (Korea) or your local emergency services.',
-      })
-    }
-
-    // 스프레드 옵션 목록
-    const spreadOptions = getSpreadOptions()
-    const spreadListForPrompt = spreadOptions
-      .map((s) => `- ${s.themeId}/${s.id}: ${s.titleKo} (${s.cardCount}장) - ${s.description}`)
-      .join('\n')
-
-    // GPT-4o-mini로 분석
-    const systemPrompt = buildSystemPrompt(spreadListForPrompt)
-
-    let responseText = ''
+export const POST = withApiMiddleware(
+  async (request: NextRequest) => {
     try {
-      responseText = await callOpenAI([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `사용자 질문: "${trimmedQuestion}"` },
-      ])
-    } catch (error) {
-      logger.warn('[analyze-question] OpenAI unavailable, using fallback routing', error)
-    }
+      // Validate request body with Zod
+      const body = await request.json()
+      const validation = AnalyzeQuestionSchema.safeParse(body)
 
-    const fallbackParsed: ParsedResult = {
-      themeId: 'general-insight',
-      spreadId: 'past-present-future',
-      reason: '일반적인 운세 확인',
-      userFriendlyExplanation:
-        language === 'ko'
-          ? '전반적인 흐름을 볼 수 있는 스프레드를 준비했어요'
-          : "I've prepared a spread to see the overall flow",
-    }
+      if (!validation.success) {
+        const errors = validation.error.issues
+          .map((e) => `${e.path.join('.')}: ${e.message}`)
+          .join(', ')
+        logger.warn('[tarot/analyze-question] Validation failed', {
+          errors: validation.error.issues,
+        })
+        return NextResponse.json(
+          { error: 'Validation failed', details: errors },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
+      }
 
-    let parsed: ParsedResult
-    try {
-      parsed = responseText ? JSON.parse(responseText) : fallbackParsed
-    } catch {
-      parsed = fallbackParsed
-    }
+      const { question, language } = validation.data
+      const trimmedQuestion = question.trim()
 
-    // GPT 결과를 패턴 매칭으로 보정
-    parsed = applyPatternCorrections(trimmedQuestion, parsed, language)
+      // 위험한 질문 체크
+      if (checkDangerous(trimmedQuestion)) {
+        return NextResponse.json({
+          isDangerous: true,
+          message:
+            language === 'ko'
+              ? '힘든 시간을 보내고 계신 것 같아요. 전문가의 도움을 받으시길 권해드려요. 자살예방상담전화: 1393 (24시간)'
+              : 'I sense you might be going through a difficult time. Please reach out to a professional who can help. Crisis helpline: 1393 (Korea) or your local emergency services.',
+        })
+      }
 
-    // 선택된 스프레드 정보 찾기
-    const selectedSpread = spreadOptions.find(
-      (s) => s.themeId === parsed.themeId && s.id === parsed.spreadId
-    )
+      // 스프레드 옵션 목록
+      const spreadOptions = getSpreadOptions()
+      const spreadListForPrompt = spreadOptions
+        .map((s) => `- ${s.themeId}/${s.id}: ${s.titleKo} (${s.cardCount}장) - ${s.description}`)
+        .join('\n')
 
-    if (!selectedSpread) {
-      return NextResponse.json({
-        isDangerous: false,
+      // GPT-4o-mini로 분석
+      const systemPrompt = buildSystemPrompt(spreadListForPrompt)
+
+      let responseText = ''
+      try {
+        responseText = await callOpenAI([
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `사용자 질문: "${trimmedQuestion}"` },
+        ])
+      } catch (error) {
+        logger.warn('[analyze-question] OpenAI unavailable, using fallback routing', error)
+      }
+
+      const fallbackParsed: ParsedResult = {
         themeId: 'general-insight',
         spreadId: 'past-present-future',
-        spreadTitle: '과거, 현재, 미래',
-        cardCount: 3,
         reason: '일반적인 운세 확인',
         userFriendlyExplanation:
           language === 'ko'
             ? '전반적인 흐름을 볼 수 있는 스프레드를 준비했어요'
             : "I've prepared a spread to see the overall flow",
-        path: `/tarot/general-insight/past-present-future?question=${encodeURIComponent(trimmedQuestion)}`,
-      })
-    }
+      }
 
-    const res = NextResponse.json({
-      isDangerous: false,
-      themeId: parsed.themeId,
-      spreadId: parsed.spreadId,
-      spreadTitle: selectedSpread.titleKo,
-      cardCount: selectedSpread.cardCount,
-      reason: parsed.reason,
-      userFriendlyExplanation: parsed.userFriendlyExplanation,
-      path: `/tarot/${parsed.themeId}/${parsed.spreadId}?question=${encodeURIComponent(trimmedQuestion)}`,
-    })
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
-    return res
-  } catch (error) {
-    logger.error('Error analyzing question:', error)
-    return NextResponse.json(
-      { error: 'Failed to analyze question' },
-      { status: HTTP_STATUS.SERVER_ERROR }
-    )
-  }
-}
+      let parsed: ParsedResult
+      try {
+        parsed = responseText ? JSON.parse(responseText) : fallbackParsed
+      } catch {
+        parsed = fallbackParsed
+      }
+
+      // GPT 결과를 패턴 매칭으로 보정
+      parsed = applyPatternCorrections(trimmedQuestion, parsed, language)
+
+      // 선택된 스프레드 정보 찾기
+      const selectedSpread = spreadOptions.find(
+        (s) => s.themeId === parsed.themeId && s.id === parsed.spreadId
+      )
+
+      if (!selectedSpread) {
+        return NextResponse.json({
+          isDangerous: false,
+          themeId: 'general-insight',
+          spreadId: 'past-present-future',
+          spreadTitle: '과거, 현재, 미래',
+          cardCount: 3,
+          reason: '일반적인 운세 확인',
+          userFriendlyExplanation:
+            language === 'ko'
+              ? '전반적인 흐름을 볼 수 있는 스프레드를 준비했어요'
+              : "I've prepared a spread to see the overall flow",
+          path: `/tarot/general-insight/past-present-future?question=${encodeURIComponent(trimmedQuestion)}`,
+        })
+      }
+
+      const res = NextResponse.json({
+        isDangerous: false,
+        themeId: parsed.themeId,
+        spreadId: parsed.spreadId,
+        spreadTitle: selectedSpread.titleKo,
+        cardCount: selectedSpread.cardCount,
+        reason: parsed.reason,
+        userFriendlyExplanation: parsed.userFriendlyExplanation,
+        path: `/tarot/${parsed.themeId}/${parsed.spreadId}?question=${encodeURIComponent(trimmedQuestion)}`,
+      })
+      return res
+    } catch (error) {
+      logger.error('Error analyzing question:', error)
+      return NextResponse.json(
+        { error: 'Failed to analyze question' },
+        { status: HTTP_STATUS.SERVER_ERROR }
+      )
+    }
+  },
+  createSimpleGuard({
+    route: '/api/tarot/analyze-question',
+    limit: 10,
+    windowSeconds: 60,
+  })
+)

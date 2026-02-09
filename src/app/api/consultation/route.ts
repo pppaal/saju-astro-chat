@@ -10,6 +10,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import Stripe from 'stripe'
 import { logger } from '@/lib/logger'
+import { isDbPremiumUser } from '@/lib/auth/premium'
 
 import { consultationSaveSchema, consultationGetQuerySchema } from '@/lib/api/zodValidation'
 export const dynamic = 'force-dynamic'
@@ -58,7 +59,8 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.UNAUTHORIZED, 'not_authenticated')
     }
 
-    const isPremium = await checkStripeActive(userEmail)
+    const dbPremium = await isDbPremiumUser(context.userId)
+    const isPremium = dbPremium || (await checkStripeActive(userEmail))
     if (!isPremium) {
       return apiError(ErrorCodes.FORBIDDEN, '상담 기록 저장은 프리미엄 구독자 전용입니다.')
     }
@@ -136,7 +138,8 @@ export const GET = withApiMiddleware(
       return apiError(ErrorCodes.UNAUTHORIZED, 'not_authenticated')
     }
 
-    const isPremium = await checkStripeActive(userEmail)
+    const dbPremium = await isDbPremiumUser(context.userId)
+    const isPremium = dbPremium || (await checkStripeActive(userEmail))
     if (!isPremium) {
       return apiError(ErrorCodes.FORBIDDEN, '상담 기록 열람은 프리미엄 구독자 전용입니다.')
     }

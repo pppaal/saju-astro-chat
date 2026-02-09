@@ -1,7 +1,5 @@
-﻿import { NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
 import { isAdminUser } from '@/lib/auth/admin'
 import { prisma } from '@/lib/db/prisma'
 import { getUserCredits } from '@/lib/credits/creditService'
@@ -10,8 +8,8 @@ import { captureServerError } from '@/lib/telemetry'
 import { sanitizeError } from '@/lib/security/errorSanitizer'
 import { rateLimit } from '@/lib/rateLimit'
 import { logAdminAction } from '@/lib/auth/adminAudit'
-import { csrfGuard } from '@/lib/security/csrf'
 import { BASE_CREDIT_PRICE_KRW } from '@/lib/config/pricing'
+import { withApiMiddleware, createAuthenticatedGuard } from '@/lib/api/middleware'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { HTTP_STATUS } from '@/lib/constants/http'
@@ -117,211 +115,210 @@ async function resolveStripeFee(stripe: Stripe, charge: Stripe.Charge | null) {
   return (balance as Stripe.BalanceTransaction).fee || 0
 }
 
-export async function POST(req: Request) {
-  // 🔒 CSRF Protection (before any logic)
-  const csrfError = csrfGuard(req.headers)
-  if (csrfError) {
-    logger.warn('[AdminRefund] CSRF validation failed')
-    return csrfError
-  }
+export const POST = withApiMiddleware(
+  async (req: NextRequest, context) => {
+    const session = context.session
+    const adminEmail = session?.user?.email || 'unknown'
+    const adminUserId = context.userId
 
-  const session = await getServerSession(authOptions)
-  const adminEmail = session?.user?.email || 'unknown'
-  const adminUserId = session?.user?.id
+    // 🔒 IP와 User-Agent 수집 (감사 로그용)
+    const ipAddress =
+      req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+    const userAgent = req.headers.get('user-agent') || undefined
 
-  // 🔒 IP와 User-Agent 수집 (감사 로그용)
-  const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
-  const userAgent = req.headers.get('user-agent') || undefined
+    try {
+      // ✨ NEW: DB 기반 Admin 권한 체크
+      if (!adminUserId || !(await isAdminUser(adminUserId))) {
+        await logAdminAction({
+          adminEmail,
+          adminUserId,
+          action: 'refund_attempt_unauthorized',
+          success: false,
+          errorMessage: 'User is not an admin',
+          ipAddress,
+          userAgent,
+        })
+        return json({ error: 'Unauthorized' }, HTTP_STATUS.UNAUTHORIZED)
+      }
 
-  try {
-    // ✨ NEW: DB 기반 Admin 권한 체크
-    if (!adminUserId || !(await isAdminUser(adminUserId))) {
-      await logAdminAction({
-        adminEmail,
-        adminUserId,
-        action: 'refund_attempt_unauthorized',
-        success: false,
-        errorMessage: 'User is not an admin',
-        ipAddress,
-        userAgent,
+      // Rate limiting for admin actions: max 10 refunds per hour per admin
+      const rlKey = `admin-refund:${adminEmail}`
+      const limit = await rateLimit(rlKey, { limit: 10, windowSeconds: 3600 })
+      if (!limit.allowed) {
+        await logAdminAction({
+          adminEmail,
+          adminUserId,
+          action: 'refund_rate_limited',
+          metadata: {
+            remaining: limit.remaining,
+            reset: limit.reset,
+          },
+          success: false,
+          errorMessage: 'Rate limit exceeded',
+          ipAddress,
+          userAgent,
+        })
+        return json(
+          { error: 'Too many refund requests. Please try again later.' },
+          HTTP_STATUS.RATE_LIMITED
+        )
+      }
+
+      const rawBody = await parseRequestBody<{ subscriptionId?: string; email?: string }>(req, {
+        context: 'Admin Refund-subscription',
       })
-      return json({ error: 'Unauthorized' }, HTTP_STATUS.UNAUTHORIZED)
-    }
 
-    // Rate limiting for admin actions: max 10 refunds per hour per admin
-    const rlKey = `admin-refund:${adminEmail}`
-    const limit = await rateLimit(rlKey, { limit: 10, windowSeconds: 3600 })
-    if (!limit.allowed) {
+      // Validate with Zod
+      const validationResult = adminRefundSubscriptionRequestSchema.safeParse(rawBody)
+      if (!validationResult.success) {
+        logger.warn('[Admin refund] validation failed', { errors: validationResult.error.issues })
+        await logAdminAction({
+          adminEmail,
+          adminUserId,
+          action: 'refund_validation_failed',
+          metadata: { errors: validationResult.error.issues },
+          success: false,
+          errorMessage: 'Validation failed',
+          ipAddress,
+          userAgent,
+        })
+        return json(
+          {
+            error: 'validation_failed',
+            details: validationResult.error.issues.map((e) => ({
+              path: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          HTTP_STATUS.BAD_REQUEST
+        )
+      }
+
+      const { subscriptionId, email } = validationResult.data
+
+      const stripe = getStripe()
+      const subscription = await resolveSubscription(
+        stripe,
+        subscriptionId || undefined,
+        email || undefined
+      )
+
+      const invoice = await resolveInvoice(stripe, subscription)
+      if (!invoice) {
+        return json({ error: 'No invoice found for subscription' }, HTTP_STATUS.BAD_REQUEST)
+      }
+
+      const paymentIntent = await resolvePaymentIntent(stripe, invoice)
+      if (!paymentIntent) {
+        return json({ error: 'No payment intent found for invoice' }, HTTP_STATUS.BAD_REQUEST)
+      }
+
+      const charge = await resolveCharge(stripe, paymentIntent)
+      const stripeFee = await resolveStripeFee(stripe, charge)
+
+      const amountPaid = invoice.amount_paid ?? paymentIntent.amount_received ?? 0
+      if (amountPaid <= 0) {
+        return json({ error: 'No paid amount found for subscription' }, HTTP_STATUS.BAD_REQUEST)
+      }
+
+      const currency = (invoice.currency || paymentIntent.currency || 'krw').toLowerCase()
+      if (currency !== 'krw') {
+        return json({ error: 'Only KRW refunds are supported' }, HTTP_STATUS.BAD_REQUEST)
+      }
+
+      const dbSubscription = await prisma.subscription.findUnique({
+        where: { stripeSubscriptionId: subscription.id },
+        select: { userId: true },
+      })
+      if (!dbSubscription) {
+        return json({ error: 'Subscription not found in database' }, HTTP_STATUS.NOT_FOUND)
+      }
+
+      const credits = await getUserCredits(dbSubscription.userId)
+      const usedCredits = Math.max(0, credits.usedCredits || 0)
+      const creditDeduction = usedCredits * MINI_CREDIT_PRICE_KRW
+      const refundAmount = Math.max(0, amountPaid - creditDeduction - stripeFee)
+
+      let refund: Stripe.Refund | null = null
+      if (refundAmount > 0) {
+        refund = await stripe.refunds.create({
+          payment_intent: paymentIntent.id,
+          amount: refundAmount,
+          reason: 'requested_by_customer',
+        })
+      }
+
+      const canceled = await stripe.subscriptions.cancel(subscription.id)
+
+      const customerEmail =
+        typeof subscription.customer === 'object'
+          ? (subscription.customer as Stripe.Customer).email
+          : null
+
+      // ✨ Audit log for successful refund (DB 기반)
       await logAdminAction({
         adminEmail,
         adminUserId,
-        action: 'refund_rate_limited',
+        action: 'refund_completed',
+        targetType: 'subscription',
+        targetId: subscription.id,
         metadata: {
-          remaining: limit.remaining,
-          reset: limit.reset,
+          subscriptionId: subscription.id,
+          customerEmail,
+          amountPaid,
+          refundAmount,
+          usedCredits,
+          creditDeduction,
+          stripeFee,
+          refundId: refund?.id ?? null,
+          currency,
         },
-        success: false,
-        errorMessage: 'Rate limit exceeded',
+        success: true,
         ipAddress,
         userAgent,
       })
-      return json(
-        { error: 'Too many refund requests. Please try again later.' },
-        HTTP_STATUS.RATE_LIMITED
-      )
-    }
 
-    const rawBody = await parseRequestBody<{ subscriptionId?: string; email?: string }>(req, {
-      context: 'Admin Refund-subscription',
-    })
-
-    // Validate with Zod
-    const validationResult = adminRefundSubscriptionRequestSchema.safeParse(rawBody)
-    if (!validationResult.success) {
-      logger.warn('[Admin refund] validation failed', { errors: validationResult.error.issues })
-      await logAdminAction({
-        adminEmail,
-        adminUserId,
-        action: 'refund_validation_failed',
-        metadata: { errors: validationResult.error.issues },
-        success: false,
-        errorMessage: 'Validation failed',
-        ipAddress,
-        userAgent,
-      })
-      return json(
-        {
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        HTTP_STATUS.BAD_REQUEST
-      )
-    }
-
-    const { subscriptionId, email } = validationResult.data
-
-    const stripe = getStripe()
-    const subscription = await resolveSubscription(
-      stripe,
-      subscriptionId || undefined,
-      email || undefined
-    )
-
-    const invoice = await resolveInvoice(stripe, subscription)
-    if (!invoice) {
-      return json({ error: 'No invoice found for subscription' }, HTTP_STATUS.BAD_REQUEST)
-    }
-
-    const paymentIntent = await resolvePaymentIntent(stripe, invoice)
-    if (!paymentIntent) {
-      return json({ error: 'No payment intent found for invoice' }, HTTP_STATUS.BAD_REQUEST)
-    }
-
-    const charge = await resolveCharge(stripe, paymentIntent)
-    const stripeFee = await resolveStripeFee(stripe, charge)
-
-    const amountPaid = invoice.amount_paid ?? paymentIntent.amount_received ?? 0
-    if (amountPaid <= 0) {
-      return json({ error: 'No paid amount found for subscription' }, HTTP_STATUS.BAD_REQUEST)
-    }
-
-    const currency = (invoice.currency || paymentIntent.currency || 'krw').toLowerCase()
-    if (currency !== 'krw') {
-      return json({ error: 'Only KRW refunds are supported' }, HTTP_STATUS.BAD_REQUEST)
-    }
-
-    const dbSubscription = await prisma.subscription.findUnique({
-      where: { stripeSubscriptionId: subscription.id },
-      select: { userId: true },
-    })
-    if (!dbSubscription) {
-      return json({ error: 'Subscription not found in database' }, HTTP_STATUS.NOT_FOUND)
-    }
-
-    const credits = await getUserCredits(dbSubscription.userId)
-    const usedCredits = Math.max(0, credits.usedCredits || 0)
-    const creditDeduction = usedCredits * MINI_CREDIT_PRICE_KRW
-    const refundAmount = Math.max(0, amountPaid - creditDeduction - stripeFee)
-
-    let refund: Stripe.Refund | null = null
-    if (refundAmount > 0) {
-      refund = await stripe.refunds.create({
-        payment_intent: paymentIntent.id,
-        amount: refundAmount,
-        reason: 'requested_by_customer',
-      })
-    }
-
-    const canceled = await stripe.subscriptions.cancel(subscription.id)
-
-    const customerEmail =
-      typeof subscription.customer === 'object'
-        ? (subscription.customer as Stripe.Customer).email
-        : null
-
-    // ✨ Audit log for successful refund (DB 기반)
-    await logAdminAction({
-      adminEmail,
-      adminUserId,
-      action: 'refund_completed',
-      targetType: 'subscription',
-      targetId: subscription.id,
-      metadata: {
+      return json({
         subscriptionId: subscription.id,
+        customerId: subscription.customer ? String(subscription.customer) : null,
         customerEmail,
         amountPaid,
-        refundAmount,
+        currency,
         usedCredits,
         creditDeduction,
         stripeFee,
+        refundAmount,
+        refunded: Boolean(refund),
         refundId: refund?.id ?? null,
-        currency,
-      },
-      success: true,
-      ipAddress,
-      userAgent,
-    })
+        canceled: canceled.status === 'canceled',
+      })
+    } catch (err: unknown) {
+      logger.error('[AdminRefund] Failed:', { error: err })
+      captureServerError(err as Error, { route: '/api/admin/refund-subscription' })
+      const sanitized = sanitizeError(err, 'internal')
 
-    return json({
-      subscriptionId: subscription.id,
-      customerId: subscription.customer ? String(subscription.customer) : null,
-      customerEmail,
-      amountPaid,
-      currency,
-      usedCredits,
-      creditDeduction,
-      stripeFee,
-      refundAmount,
-      refunded: Boolean(refund),
-      refundId: refund?.id ?? null,
-      canceled: canceled.status === 'canceled',
-    })
-  } catch (err: unknown) {
-    logger.error('[AdminRefund] Failed:', { error: err })
-    captureServerError(err as Error, { route: '/api/admin/refund-subscription' })
-    const sanitized = sanitizeError(err, 'internal')
+      // ✨ Audit log for failed refund (DB 기반)
+      await logAdminAction({
+        adminEmail,
+        adminUserId,
+        action: 'refund_failed',
+        metadata: {
+          error: 'Internal server error',
+          body: await req
+            .clone()
+            .json()
+            .catch(() => null),
+        },
+        success: false,
+        errorMessage: 'Internal server error',
+        ipAddress,
+        userAgent,
+      })
 
-    // ✨ Audit log for failed refund (DB 기반)
-    await logAdminAction({
-      adminEmail,
-      adminUserId,
-      action: 'refund_failed',
-      metadata: {
-        error: 'Internal server error',
-        body: await req
-          .clone()
-          .json()
-          .catch(() => null),
-      },
-      success: false,
-      errorMessage: 'Internal server error',
-      ipAddress,
-      userAgent,
-    })
-
-    return json(sanitized, HTTP_STATUS.SERVER_ERROR)
-  }
-}
+      return json(sanitized, HTTP_STATUS.SERVER_ERROR)
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/admin/refund-subscription',
+  })
+)

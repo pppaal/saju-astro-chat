@@ -7,6 +7,7 @@ import logging
 import time
 from datetime import datetime
 from flask import Blueprint, request, jsonify, g
+from ..utils.request_utils import get_json_or_400
 
 logger = logging.getLogger(__name__)
 
@@ -232,7 +233,9 @@ def fortune_score():
         return jsonify({"status": "error", "message": "Fortune score engine not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         saju_data = data.get("saju", {})
         astro_data = data.get("astro", {})
 
@@ -271,7 +274,9 @@ def fortune_score_breakdown():
         return jsonify({"status": "error", "message": "Fortune score engine not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         saju_data = data.get("saju", {})
         astro_data = data.get("astro", {})
 
@@ -326,7 +331,9 @@ def fortune_daily():
         return jsonify({"status": "error", "message": "Fortune score engine not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         birth_date = data.get("birthDate")  # YYYY-MM-DD
         birth_time = data.get("birthTime")  # HH:MM (optional)
 

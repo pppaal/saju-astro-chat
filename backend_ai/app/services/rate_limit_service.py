@@ -12,7 +12,10 @@ Features:
 - Automatic cleanup of stale entries
 
 Configuration (environment variables):
-- API_RATE_PER_MIN: Rate limit per minute (default: 60)
+- RATE_LIMIT_REQUESTS: Rate limit per window (preferred)
+- RATE_LIMIT_WINDOW: Window in seconds (preferred)
+- API_RATE_PER_MIN: Legacy rate limit per minute (fallback)
+- API_RATE_WINDOW: Legacy window in seconds (fallback)
 - REDIS_URL: Redis connection URL (optional)
 """
 import os
@@ -20,6 +23,7 @@ import time
 import logging
 from typing import Tuple, Optional, Dict, List, Any
 from collections import defaultdict
+from threading import Lock
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +45,25 @@ def _get_env_int(key: str, default: int) -> int:
         return default
 
 
-RATE_LIMIT = _get_env_int("API_RATE_PER_MIN", _DEFAULT_RATE_LIMIT)
-RATE_WINDOW_SECONDS = _DEFAULT_WINDOW_SECONDS
+def _get_env_int_multi(keys: List[str], default: int) -> int:
+    """Get integer from the first valid env var in keys."""
+    for key in keys:
+        if key in os.environ:
+            try:
+                return int(os.getenv(key, str(default)))
+            except ValueError:
+                continue
+    return default
+
+
+RATE_LIMIT = _get_env_int_multi(
+    ["RATE_LIMIT_REQUESTS", "API_RATE_PER_MIN"],
+    _DEFAULT_RATE_LIMIT
+)
+RATE_WINDOW_SECONDS = _get_env_int_multi(
+    ["RATE_LIMIT_WINDOW", "RATE_LIMIT_WINDOW_SECONDS", "API_RATE_WINDOW"],
+    _DEFAULT_WINDOW_SECONDS
+)
 
 # ============================================================================
 # Redis Client
@@ -96,6 +117,7 @@ _init_redis_client()
 # ============================================================================
 _rate_state: Dict[str, List[float]] = defaultdict(list)
 _cleanup_counter = 0
+_rate_lock = Lock()
 
 
 def _memory_check_rate(
@@ -122,29 +144,31 @@ def _memory_check_rate(
         window = RATE_WINDOW_SECONDS
 
     now = time.time()
-    timestamps = [t for t in _rate_state[client_id] if now - t < window]
-    _rate_state[client_id] = timestamps
 
-    # Periodic cleanup of stale clients
-    _cleanup_counter += 1
-    if _cleanup_counter >= _CLEANUP_INTERVAL:
-        _cleanup_counter = 0
-        stale_clients = [
-            c for c, ts in _rate_state.items()
-            if not ts or (now - max(ts)) > window * 2
-        ]
-        for c in stale_clients:
-            del _rate_state[c]
-        if stale_clients:
-            logger.debug(f"[RATE-LIMIT] Cleaned up {len(stale_clients)} stale clients")
+    with _rate_lock:
+        timestamps = [t for t in _rate_state[client_id] if now - t < window]
+        _rate_state[client_id] = timestamps
 
-    if len(timestamps) >= limit:
-        retry_after = max(0, window - (now - timestamps[0]))
-        return False, retry_after
+        # Periodic cleanup of stale clients
+        _cleanup_counter += 1
+        if _cleanup_counter >= _CLEANUP_INTERVAL:
+            _cleanup_counter = 0
+            stale_clients = [
+                c for c, ts in _rate_state.items()
+                if not ts or (now - max(ts)) > window * 2
+            ]
+            for c in stale_clients:
+                del _rate_state[c]
+            if stale_clients:
+                logger.debug(f"[RATE-LIMIT] Cleaned up {len(stale_clients)} stale clients")
 
-    timestamps.append(now)
-    _rate_state[client_id] = timestamps
-    return True, None
+        if len(timestamps) >= limit:
+            retry_after = max(0, window - (now - timestamps[0]))
+            return False, retry_after
+
+        timestamps.append(now)
+        _rate_state[client_id] = timestamps
+        return True, None
 
 
 def _redis_check_rate(
@@ -262,10 +286,11 @@ def get_rate_limit_status(client_id: str) -> Dict[str, Any]:
 
     # Memory fallback
     now = time.time()
-    timestamps = [t for t in _rate_state.get(client_id, []) if now - t < RATE_WINDOW_SECONDS]
-    status["count"] = len(timestamps)
-    status["remaining"] = max(0, RATE_LIMIT - status["count"])
-    status["reset_in"] = RATE_WINDOW_SECONDS - (now - min(timestamps)) if timestamps else 0
+    with _rate_lock:
+        timestamps = [t for t in _rate_state.get(client_id, []) if now - t < RATE_WINDOW_SECONDS]
+        status["count"] = len(timestamps)
+        status["remaining"] = max(0, RATE_LIMIT - status["count"])
+        status["reset_in"] = RATE_WINDOW_SECONDS - (now - min(timestamps)) if timestamps else 0
 
     return status
 
@@ -290,9 +315,10 @@ def reset_rate_limit(client_id: str) -> bool:
             logger.warning(f"[RATE-LIMIT] Redis reset error: {e}")
 
     # Reset memory
-    if client_id in _rate_state:
-        del _rate_state[client_id]
-        logger.info(f"[RATE-LIMIT] Reset memory rate limit for {client_id}")
+    with _rate_lock:
+        if client_id in _rate_state:
+            del _rate_state[client_id]
+            logger.info(f"[RATE-LIMIT] Reset memory rate limit for {client_id}")
 
     return True
 

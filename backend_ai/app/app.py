@@ -35,6 +35,10 @@ from flask import Flask, jsonify, g, request, Response, stream_with_context
 from flask_cors import CORS
 from flask_compress import Compress
 
+from backend_ai.app.config import validate_startup_config
+
+validate_startup_config()
+
 from backend_ai.app.astro_parser import calculate_astrology_data
 from backend_ai.app.fusion_logic import interpret_with_ai
 from backend_ai.app.saju_parser import calculate_saju_data
@@ -596,6 +600,10 @@ def _require_auth() -> Optional[Tuple[dict, int]]:
     # Read token at request time to handle dotenv race conditions
     admin_token = os.getenv("ADMIN_API_TOKEN") or ADMIN_TOKEN
     if not admin_token:
+        if os.getenv("ENVIRONMENT", "development").lower() == "production":
+            if request.path in UNPROTECTED_PATHS or request.method == "OPTIONS":
+                return None
+            return {"status": "error", "message": "server_misconfigured"}, 503
         return None
     # Allow unauthenticated access to health endpoints for load balancers
     if request.path in UNPROTECTED_PATHS or request.method == "OPTIONS":

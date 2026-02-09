@@ -174,7 +174,7 @@ class Config:
             if not self.OPENAI_API_KEY:
                 self._validation_errors.append("OPENAI_API_KEY is required in production")
             if not self.ADMIN_API_TOKEN:
-                self._validation_warnings.append("ADMIN_API_TOKEN not set - API is unprotected")
+                self._validation_errors.append("ADMIN_API_TOKEN is required in production")
             if not self.SENTRY_DSN:
                 self._validation_warnings.append("SENTRY_DSN not set - error tracking disabled")
 

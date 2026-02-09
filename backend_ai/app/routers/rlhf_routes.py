@@ -7,6 +7,7 @@ import logging
 from datetime import datetime, timedelta
 
 from flask import Blueprint, request, jsonify
+from ..utils.request_utils import get_json_or_400
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +164,9 @@ def rlhf_record_feedback():
         return jsonify({"status": "error", "message": "RLHF module not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
 
         record_id = data.get("record_id", "")
         user_id = data.get("user_id", "anonymous")

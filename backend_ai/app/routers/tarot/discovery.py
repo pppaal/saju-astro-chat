@@ -7,6 +7,7 @@ Theme listing, semantic search, and topic detection endpoints.
 import logging
 
 from flask import Blueprint, request, jsonify, g
+from ...utils.request_utils import get_json_or_400
 
 from .dependencies import (
     get_tarot_hybrid_rag,
@@ -74,7 +75,9 @@ def register_discovery_routes(bp: Blueprint):
     def tarot_detect_topic():
         """Detect tarot theme and sub-topic from chat conversation."""
         try:
-            data = request.get_json(force=True)
+            data, json_error = get_json_or_400(request, force=True)
+            if json_error:
+                return json_error
 
             if "messages" in data:
                 user_messages = [

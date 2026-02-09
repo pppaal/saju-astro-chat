@@ -3,8 +3,7 @@
 // 크레딧 차감 후 AI 리포트 생성 + PDF 다운로드
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { withApiMiddleware, createAuthenticatedGuard } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import {
   calculateDestinyMatrix,
@@ -31,8 +30,6 @@ import {
 import { canUseFeature, consumeCredits, getCreditBalance } from '@/lib/credits/creditService'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 
 // ===========================
 // 크레딧 비용 계산
@@ -109,308 +106,300 @@ function buildTimingData(targetDate?: string): TimingData {
 // POST - AI 리포트 생성 (JSON 응답)
 // ===========================
 
-export async function POST(req: NextRequest) {
-  try {
-    // 1. 인증 확인
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: { code: 'AUTH_REQUIRED', message: '로그인이 필요합니다.' } },
-        { status: HTTP_STATUS.UNAUTHORIZED }
-      )
-    }
-
-    const userId = session.user.id
-
-    const ip = getClientIp(req.headers)
-    const limit = await rateLimit(`matrix-ai:${ip}`, { limit: 10, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'RATE_LIMITED', message: 'Too many requests. Try again soon.' },
-        },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
-
-    // 2. 요청 파싱 (크레딧 계산을 위해 먼저)
-    let body: unknown
+export const POST = withApiMiddleware(
+  async (req: NextRequest, context) => {
     try {
-      body = await req.json()
-    } catch {
-      throw new DestinyMatrixError(ErrorCodes.VALIDATION_ERROR, {
-        message: 'Invalid JSON in request body',
-      })
-    }
+      // 1. 인증 확인
+      const userId = context.userId
+      if (!userId) {
+        return NextResponse.json(
+          { success: false, error: { code: 'AUTH_REQUIRED', message: '로그인이 필요합니다.' } },
+          { status: HTTP_STATUS.UNAUTHORIZED }
+        )
+      }
 
-    const requestBody = body as Record<string, unknown>
-    const period = requestBody.period as ReportPeriod | undefined
-    const theme = requestBody.theme as ReportTheme | undefined
+      // 2. 요청 파싱 (크레딧 계산을 위해 먼저)
+      let body: unknown
+      try {
+        body = await req.json()
+      } catch {
+        throw new DestinyMatrixError(ErrorCodes.VALIDATION_ERROR, {
+          message: 'Invalid JSON in request body',
+        })
+      }
 
-    // 4. 크레딧 비용 계산 및 잔액 확인
-    const creditCost = calculateCreditCost(period, theme)
-    const balance = await getCreditBalance(userId)
+      const requestBody = body as Record<string, unknown>
+      const period = requestBody.period as ReportPeriod | undefined
+      const theme = requestBody.theme as ReportTheme | undefined
 
-    if (balance.remainingCredits < creditCost) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'INSUFFICIENT_CREDITS',
-            message: `AI 리포트 생성에 ${creditCost} 크레딧이 필요합니다. (현재: ${balance.remainingCredits})`,
-            required: creditCost,
-            current: balance.remainingCredits,
-          },
-        },
-        { status: HTTP_STATUS.PAYMENT_REQUIRED }
-      )
-    }
+      // 4. 크레딧 비용 계산 및 잔액 확인
+      const creditCost = calculateCreditCost(period, theme)
+      const balance = await getCreditBalance(userId)
 
-    // 5. 요청 검증
-    const validation = validateReportRequest(body)
-    if (!validation.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: ErrorCodes.VALIDATION_ERROR,
-            message: '입력 데이터 검증에 실패했습니다.',
-            details: validation.errors,
-          },
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
-
-    const validatedInput = validation.data!
-    const { queryDomain, maxInsights, ...rest } = validatedInput
-    const matrixInput = rest as unknown as MatrixCalculationInput
-
-    // 6. 추가 옵션 추출
-    const name = requestBody.name as string | undefined
-    const birthDate = requestBody.birthDate as string | undefined
-    const format = requestBody.format as 'json' | 'pdf' | undefined
-    const detailLevel = requestBody.detailLevel as
-      | 'standard'
-      | 'detailed'
-      | 'comprehensive'
-      | undefined
-    const targetDate = requestBody.targetDate as string | undefined
-
-    // 7. 기본 매트릭스 계산
-    const matrix = calculateDestinyMatrix(matrixInput)
-    const layerResults = extractAllLayerCells(matrix as MatrixLayers)
-
-    // 8. 기본 리포트 생성
-    const generator = new FusionReportGenerator({
-      lang: matrixInput.lang || 'ko',
-      maxTopInsights: maxInsights ?? 5,
-      includeVisualizations: true,
-      includeDetailedData: false,
-      weightConfig: {
-        baseWeights: {
-          layer1_elementCore: 1.0,
-          layer2_sibsinPlanet: 0.9,
-          layer3_sibsinHouse: 0.85,
-          layer4_timing: 0.95,
-          layer5_relationAspect: 0.8,
-          layer6_stageHouse: 0.75,
-          layer7_advanced: 0.7,
-          layer8_shinsal: 0.65,
-          layer9_asteroid: 0.5,
-          layer10_extraPoint: 0.55,
-        },
-        contextModifiers: [],
-        temporalModifiers: [],
-      },
-      narrativeStyle: 'friendly',
-    })
-
-    const baseReport = generator.generateReport(
-      matrixInput,
-      layerResults,
-      queryDomain as InsightDomain | undefined
-    )
-
-    // 9. 타이밍 데이터 생성 (period 또는 theme이 있는 경우)
-    const timingData: TimingData = buildTimingData(targetDate)
-
-    // 10. 리포트 타입별 분기 처리
-    let aiReport: AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
-    let premiumReport: AIPremiumReport | null = null
-
-    if (theme) {
-      // 테마별 리포트
-      aiReport = await generateThemedReport(matrixInput, baseReport, theme, timingData, {
-        name,
-        birthDate,
-        lang: matrixInput.lang || 'ko',
-      })
-    } else if (period && period !== 'comprehensive') {
-      // 타이밍 리포트 (daily/monthly/yearly)
-      aiReport = await generateTimingReport(matrixInput, baseReport, period, timingData, {
-        name,
-        birthDate,
-        targetDate,
-        lang: matrixInput.lang || 'ko',
-      })
-    } else {
-      // 기존 종합 리포트
-      premiumReport = await generateAIPremiumReport(matrixInput, baseReport, {
-        name,
-        birthDate,
-        lang: matrixInput.lang || 'ko',
-        focusDomain: queryDomain as InsightDomain | undefined,
-        detailLevel: detailLevel || 'detailed',
-      })
-      aiReport = premiumReport
-    }
-
-    // 11. 크레딧 차감 (성공한 경우에만)
-    const consumeResult = await consumeCredits(userId, 'reading', creditCost)
-    if (!consumeResult.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'CREDIT_DEDUCTION_FAILED',
-            message: '크레딧 차감에 실패했습니다.',
-          },
-        },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
-
-    // 12. DB에 리포트 저장
-    const reportType = theme ? 'themed' : period ? 'timing' : 'comprehensive'
-    const reportTitle = generateReportTitle(reportType, period, theme, targetDate)
-    const reportSummary = extractReportSummary(aiReport)
-    const overallScore = extractOverallScore(aiReport)
-
-    const savedReport = await prisma.destinyMatrixReport.create({
-      data: {
-        userId,
-        reportType,
-        period: period || null,
-        theme: theme || null,
-        reportData: aiReport as object,
-        title: reportTitle,
-        summary: reportSummary,
-        overallScore,
-        grade: scoreToGrade(overallScore),
-        locale: matrixInput.lang || 'ko',
-      },
-    })
-
-    // 13. PDF 형식 요청인 경우 (종합 리포트만 지원, Pro 이상)
-    if (format === 'pdf' && premiumReport) {
-      const canUsePdf = await canUseFeature(userId, 'pdfReport')
-      if (!canUsePdf) {
+      if (balance.remainingCredits < creditCost) {
         return NextResponse.json(
           {
             success: false,
             error: {
-              code: 'FEATURE_LOCKED',
-              message: 'PDF 리포트는 Pro 이상 플랜에서 사용 가능합니다.',
-              upgrade: true,
+              code: 'INSUFFICIENT_CREDITS',
+              message: `AI 리포트 생성에 ${creditCost} 크레딧이 필요합니다. (현재: ${balance.remainingCredits})`,
+              required: creditCost,
+              current: balance.remainingCredits,
             },
           },
-          { status: HTTP_STATUS.FORBIDDEN }
+          { status: HTTP_STATUS.PAYMENT_REQUIRED }
         )
       }
-      const pdfBytes = await generatePremiumPDF(premiumReport)
 
-      // PDF 생성 상태 업데이트
-      await prisma.destinyMatrixReport.update({
-        where: { id: savedReport.id },
-        data: { pdfGenerated: true },
+      // 5. 요청 검증
+      const validation = validateReportRequest(body)
+      if (!validation.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: ErrorCodes.VALIDATION_ERROR,
+              message: '입력 데이터 검증에 실패했습니다.',
+              details: validation.errors,
+            },
+          },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
+      }
+
+      const validatedInput = validation.data!
+      const { queryDomain, maxInsights, ...rest } = validatedInput
+      const matrixInput = rest as unknown as MatrixCalculationInput
+
+      // 6. 추가 옵션 추출
+      const name = requestBody.name as string | undefined
+      const birthDate = requestBody.birthDate as string | undefined
+      const format = requestBody.format as 'json' | 'pdf' | undefined
+      const detailLevel = requestBody.detailLevel as
+        | 'standard'
+        | 'detailed'
+        | 'comprehensive'
+        | undefined
+      const targetDate = requestBody.targetDate as string | undefined
+
+      // 7. 기본 매트릭스 계산
+      const matrix = calculateDestinyMatrix(matrixInput)
+      const layerResults = extractAllLayerCells(matrix as MatrixLayers)
+
+      // 8. 기본 리포트 생성
+      const generator = new FusionReportGenerator({
+        lang: matrixInput.lang || 'ko',
+        maxTopInsights: maxInsights ?? 5,
+        includeVisualizations: true,
+        includeDetailedData: false,
+        weightConfig: {
+          baseWeights: {
+            layer1_elementCore: 1.0,
+            layer2_sibsinPlanet: 0.9,
+            layer3_sibsinHouse: 0.85,
+            layer4_timing: 0.95,
+            layer5_relationAspect: 0.8,
+            layer6_stageHouse: 0.75,
+            layer7_advanced: 0.7,
+            layer8_shinsal: 0.65,
+            layer9_asteroid: 0.5,
+            layer10_extraPoint: 0.55,
+          },
+          contextModifiers: [],
+          temporalModifiers: [],
+        },
+        narrativeStyle: 'friendly',
       })
 
-      return new NextResponse(Buffer.from(pdfBytes), {
-        status: HTTP_STATUS.OK,
-        headers: {
-          'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="destiny-matrix-report-${savedReport.id}.pdf"`,
-          'Content-Length': pdfBytes.length.toString(),
+      const baseReport = generator.generateReport(
+        matrixInput,
+        layerResults,
+        queryDomain as InsightDomain | undefined
+      )
+
+      // 9. 타이밍 데이터 생성 (period 또는 theme이 있는 경우)
+      const timingData: TimingData = buildTimingData(targetDate)
+
+      // 10. 리포트 타입별 분기 처리
+      let aiReport: AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
+      let premiumReport: AIPremiumReport | null = null
+
+      if (theme) {
+        // 테마별 리포트
+        aiReport = await generateThemedReport(matrixInput, baseReport, theme, timingData, {
+          name,
+          birthDate,
+          lang: matrixInput.lang || 'ko',
+        })
+      } else if (period && period !== 'comprehensive') {
+        // 타이밍 리포트 (daily/monthly/yearly)
+        aiReport = await generateTimingReport(matrixInput, baseReport, period, timingData, {
+          name,
+          birthDate,
+          targetDate,
+          lang: matrixInput.lang || 'ko',
+        })
+      } else {
+        // 기존 종합 리포트
+        premiumReport = await generateAIPremiumReport(matrixInput, baseReport, {
+          name,
+          birthDate,
+          lang: matrixInput.lang || 'ko',
+          focusDomain: queryDomain as InsightDomain | undefined,
+          detailLevel: detailLevel || 'detailed',
+        })
+        aiReport = premiumReport
+      }
+
+      // 11. 크레딧 차감 (성공한 경우에만)
+      const consumeResult = await consumeCredits(userId, 'reading', creditCost)
+      if (!consumeResult.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'CREDIT_DEDUCTION_FAILED',
+              message: '크레딧 차감에 실패했습니다.',
+            },
+          },
+          { status: HTTP_STATUS.SERVER_ERROR }
+        )
+      }
+
+      // 12. DB에 리포트 저장
+      const reportType = theme ? 'themed' : period ? 'timing' : 'comprehensive'
+      const reportTitle = generateReportTitle(reportType, period, theme, targetDate)
+      const reportSummary = extractReportSummary(aiReport)
+      const overallScore = extractOverallScore(aiReport)
+
+      const savedReport = await prisma.destinyMatrixReport.create({
+        data: {
+          userId,
+          reportType,
+          period: period || null,
+          theme: theme || null,
+          reportData: aiReport as object,
+          title: reportTitle,
+          summary: reportSummary,
+          overallScore,
+          grade: scoreToGrade(overallScore),
+          locale: matrixInput.lang || 'ko',
         },
       })
-    }
 
-    // 14. JSON 응답 (저장된 리포트 ID 포함)
-    const res = NextResponse.json({
-      success: true,
-      creditsUsed: creditCost,
-      remainingCredits: balance.remainingCredits - creditCost,
-      reportType,
-      report: {
-        ...aiReport,
-        id: savedReport.id, // DB에 저장된 ID로 덮어쓰기
-      },
-    })
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
-    return res
-  } catch (error) {
-    const rawErrorMessage = error instanceof Error ? error.message : String(error)
+      // 13. PDF 형식 요청인 경우 (종합 리포트만 지원, Pro 이상)
+      if (format === 'pdf' && premiumReport) {
+        const canUsePdf = await canUseFeature(userId, 'pdfReport')
+        if (!canUsePdf) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                code: 'FEATURE_LOCKED',
+                message: 'PDF 리포트는 Pro 이상 플랜에서 사용 가능합니다.',
+                upgrade: true,
+              },
+            },
+            { status: HTTP_STATUS.FORBIDDEN }
+          )
+        }
+        const pdfBytes = await generatePremiumPDF(premiumReport)
 
-    logger.error('AI Report Generation Error:', {
-      message: rawErrorMessage,
-      name: error instanceof Error ? error.name : 'Unknown',
-    })
+        // PDF 생성 상태 업데이트
+        await prisma.destinyMatrixReport.update({
+          where: { id: savedReport.id },
+          data: { pdfGenerated: true },
+        })
 
-    // AI 프로바이더 관련 에러는 사용자에게 친절한 메시지로 변환
-    if (rawErrorMessage.includes('No AI providers available')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'AI_NOT_CONFIGURED',
-            message: 'AI 서비스가 설정되지 않았습니다. 관리자에게 문의하세요.',
+        return new NextResponse(Buffer.from(pdfBytes), {
+          status: HTTP_STATUS.OK,
+          headers: {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="destiny-matrix-report-${savedReport.id}.pdf"`,
+            'Content-Length': pdfBytes.length.toString(),
           },
-        },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+        })
+      }
 
-    if (
-      rawErrorMessage.includes('All AI providers failed') ||
-      rawErrorMessage.includes('API error')
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'AI_SERVICE_ERROR',
-            message: 'AI 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      // 14. JSON 응답 (저장된 리포트 ID 포함)
+      const res = NextResponse.json({
+        success: true,
+        creditsUsed: creditCost,
+        remainingCredits: balance.remainingCredits - creditCost,
+        reportType,
+        report: {
+          ...aiReport,
+          id: savedReport.id, // DB에 저장된 ID로 덮어쓰기
+        },
+      })
+      return res
+    } catch (error) {
+      const rawErrorMessage = error instanceof Error ? error.message : String(error)
+
+      logger.error('AI Report Generation Error:', {
+        message: rawErrorMessage,
+        name: error instanceof Error ? error.name : 'Unknown',
+      })
+
+      // AI 프로바이더 관련 에러는 사용자에게 친절한 메시지로 변환
+      if (rawErrorMessage.includes('No AI providers available')) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'AI_NOT_CONFIGURED',
+              message: 'AI 서비스가 설정되지 않았습니다. 관리자에게 문의하세요.',
+            },
           },
-        },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+          { status: HTTP_STATUS.SERVER_ERROR }
+        )
+      }
 
-    if (
-      rawErrorMessage.includes('aborted') ||
-      rawErrorMessage.includes('timeout') ||
-      rawErrorMessage.includes('AbortError')
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'AI_TIMEOUT',
-            message: 'AI 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.',
+      if (
+        rawErrorMessage.includes('All AI providers failed') ||
+        rawErrorMessage.includes('API error')
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'AI_SERVICE_ERROR',
+              message: 'AI 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
+            },
           },
-        },
-        { status: HTTP_STATUS.SERVER_ERROR }
-      )
-    }
+          { status: HTTP_STATUS.SERVER_ERROR }
+        )
+      }
 
-    const wrappedError = wrapError(error)
-    return NextResponse.json(wrappedError.toJSON(), {
-      status: wrappedError.getHttpStatus(),
-    })
-  }
-}
+      if (
+        rawErrorMessage.includes('aborted') ||
+        rawErrorMessage.includes('timeout') ||
+        rawErrorMessage.includes('AbortError')
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'AI_TIMEOUT',
+              message: 'AI 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.',
+            },
+          },
+          { status: HTTP_STATUS.SERVER_ERROR }
+        )
+      }
+
+      const wrappedError = wrapError(error)
+      return NextResponse.json(wrappedError.toJSON(), {
+        status: wrappedError.getHttpStatus(),
+      })
+    }
+  },
+  createAuthenticatedGuard({
+    route: '/api/destiny-matrix/ai-report',
+    limit: 10,
+    windowSeconds: 60,
+  })
+)
 
 // ===========================
 // GET - PDF 다운로드 (리포트 ID로)

@@ -3,11 +3,10 @@
 // RAG 컨텍스트를 활용하여 더 풍부한 해석 제공
 
 import { NextRequest, NextResponse } from 'next/server'
+import { withApiMiddleware, createSimpleGuard } from '@/lib/api/middleware'
 import { logger } from '@/lib/logger'
 import { getBackendUrl } from '@/lib/backend-url'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
 import { lifePredictionExplainResultsSchema } from '@/lib/api/zodValidation'
 
 // ============================================================
@@ -144,53 +143,47 @@ JSON 형식으로 각 기간에 대해:
 // ============================================================
 // POST 핸들러
 // ============================================================
-export async function POST(request: NextRequest): Promise<NextResponse<ExplainResponse>> {
-  try {
-    const ip = getClientIp(request.headers)
-    const limit = await rateLimit(`life-explain:${ip}`, { limit: 10, windowSeconds: 60 })
-    if (!limit.allowed) {
-      return NextResponse.json(
-        { success: false, error: 'Too many requests. Try again soon.' },
-        { status: HTTP_STATUS.RATE_LIMITED, headers: limit.headers }
-      )
-    }
+export const POST = withApiMiddleware(
+  async (request: NextRequest): Promise<NextResponse<ExplainResponse>> => {
+    try {
+      const rawBody = await request.json()
 
-    const rawBody = await request.json()
+      // Validate with Zod
+      const validationResult = lifePredictionExplainResultsSchema.safeParse(rawBody)
+      if (!validationResult.success) {
+        logger.warn('[explain-results] validation failed', {
+          errors: validationResult.error.issues,
+        })
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'validation_failed',
+            details: validationResult.error.issues.map((e) => ({
+              path: e.path.join('.'),
+              message: e.message,
+            })),
+          },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
+      }
 
-    // Validate with Zod
-    const validationResult = lifePredictionExplainResultsSchema.safeParse(rawBody)
-    if (!validationResult.success) {
-      logger.warn('[explain-results] validation failed', { errors: validationResult.error.issues })
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'validation_failed',
-          details: validationResult.error.issues.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-          })),
-        },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      )
-    }
+      const {
+        question,
+        eventType,
+        eventLabel,
+        optimalPeriods,
+        sipsin,
+        useRag = true,
+      } = validationResult.data
 
-    const {
-      question,
-      eventType,
-      eventLabel,
-      optimalPeriods,
-      sipsin,
-      useRag = true,
-    } = validationResult.data
+      // RAG 컨텍스트 가져오기 (백엔드에서)
+      let ragContext = ''
+      if (useRag) {
+        ragContext = await fetchRagContext(sipsin, eventType)
+      }
 
-    // RAG 컨텍스트 가져오기 (백엔드에서)
-    let ragContext = ''
-    if (useRag) {
-      ragContext = await fetchRagContext(sipsin, eventType)
-    }
-
-    // 프롬프트 구성 (RAG 컨텍스트 포함)
-    const userPrompt = `
+      // 프롬프트 구성 (RAG 컨텍스트 포함)
+      const userPrompt = `
 **사용자 질문:** "${question}"
 **분석 주제:** ${eventLabel} (${eventType})
 
@@ -216,49 +209,54 @@ ${ragContext.slice(0, 1000)}
 ${ragContext ? '참고 지식의 내용을 자연스럽게 녹여서 설명해주세요.' : ''}
 각 이유에 적절한 이모지를 붙여주세요.`
 
-    // OpenAI API 호출
-    const responseText = await callOpenAI([
-      { role: 'system', content: EXPLAIN_SYSTEM_PROMPT },
-      { role: 'user', content: userPrompt },
-    ])
-    if (!responseText) {
-      throw new Error('AI 응답이 비어있습니다.')
+      // OpenAI API 호출
+      const responseText = await callOpenAI([
+        { role: 'system', content: EXPLAIN_SYSTEM_PROMPT },
+        { role: 'user', content: userPrompt },
+      ])
+      if (!responseText) {
+        throw new Error('AI 응답이 비어있습니다.')
+      }
+
+      // JSON 파싱
+      const aiResult = JSON.parse(responseText)
+
+      // 결과 병합
+      const explainedPeriods: ExplainedPeriod[] = optimalPeriods.map((period, index) => ({
+        ...period,
+        reasons: aiResult.periods?.[index]?.reasons || period.reasons,
+        summary: aiResult.periods?.[index]?.summary || `${period.grade}등급 추천 시기`,
+      }))
+
+      const res = NextResponse.json({
+        success: true,
+        data: {
+          periods: explainedPeriods,
+          overallAdvice: aiResult.overallAdvice || `${eventLabel}에 좋은 시기를 찾았습니다.`,
+        },
+      })
+      return res
+    } catch (error) {
+      logger.error('Result explanation failed:', error)
+
+      // 에러 시 원본 반환
+      const body = await request.clone().json()
+      return NextResponse.json({
+        success: true,
+        data: {
+          periods:
+            body.optimalPeriods?.map((p: OptimalPeriod) => ({
+              ...p,
+              summary: `${p.grade}등급 추천 시기`,
+            })) || [],
+          overallAdvice: '분석 결과를 확인해보세요.',
+        },
+      })
     }
-
-    // JSON 파싱
-    const aiResult = JSON.parse(responseText)
-
-    // 결과 병합
-    const explainedPeriods: ExplainedPeriod[] = optimalPeriods.map((period, index) => ({
-      ...period,
-      reasons: aiResult.periods?.[index]?.reasons || period.reasons,
-      summary: aiResult.periods?.[index]?.summary || `${period.grade}등급 추천 시기`,
-    }))
-
-    const res = NextResponse.json({
-      success: true,
-      data: {
-        periods: explainedPeriods,
-        overallAdvice: aiResult.overallAdvice || `${eventLabel}에 좋은 시기를 찾았습니다.`,
-      },
-    })
-    limit.headers.forEach((value, key) => res.headers.set(key, value))
-    return res
-  } catch (error) {
-    logger.error('Result explanation failed:', error)
-
-    // 에러 시 원본 반환
-    const body = await request.clone().json()
-    return NextResponse.json({
-      success: true,
-      data: {
-        periods:
-          body.optimalPeriods?.map((p: OptimalPeriod) => ({
-            ...p,
-            summary: `${p.grade}등급 추천 시기`,
-          })) || [],
-        overallAdvice: '분석 결과를 확인해보세요.',
-      },
-    })
-  }
-}
+  },
+  createSimpleGuard({
+    route: '/api/life-prediction/explain-results',
+    limit: 10,
+    windowSeconds: 60,
+  })
+)

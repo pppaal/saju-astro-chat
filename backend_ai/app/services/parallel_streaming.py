@@ -6,7 +6,7 @@ Enables parallel execution of multiple OpenAI streaming requests
 for 3x performance improvement.
 
 Key Features:
-- Parallel stream execution with asyncio
+- Parallel stream execution with threads
 - Thread-safe response collection
 - SSE (Server-Sent Events) formatting
 - Graceful error handling
@@ -18,9 +18,9 @@ Performance:
 - Speedup: 3x faster
 """
 
-import asyncio
 import json
 import logging
+import queue
 import time
 import threading
 from typing import Dict, List, Iterator, Any
@@ -134,17 +134,55 @@ class ParallelStreamManager:
             SSE formatted chunks or raw dicts
         """
         start_time = time.time()
+        total_streams = len(stream_configs)
+        done_streams = 0
+        output_queue: "queue.Queue[object]" = queue.Queue()
+
+        def _emit(payload: Dict[str, Any]) -> object:
+            return self._format_sse(payload) if format_sse else payload
+
+        def _worker(config: StreamConfig) -> None:
+            section = config.section_name
+            full_text = ""
+            started = time.time()
+
+            try:
+                output_queue.put(_emit({"section": section, "status": "start"}))
+                stream = self._create_stream_sync(config)
+
+                for chunk in stream:
+                    delta = getattr(chunk.choices[0].delta, "content", None)
+                    if not delta:
+                        continue
+                    full_text += delta
+                    output_queue.put(_emit({"section": section, "content": delta}))
+
+                output_queue.put(
+                    _emit({"section": section, "status": "done", "full_text": full_text})
+                )
+                logger.info(f"[ParallelStreaming] {section}: {len(full_text)} chars")
+            except Exception as e:
+                logger.error(f"[ParallelStreaming] {section} failed: {e}", exc_info=True)
+                output_queue.put(
+                    _emit({"section": section, "type": "error", "error": str(e)})
+                )
+            finally:
+                elapsed_ms = (time.time() - started) * 1000
+                try:
+                    _performance_monitor.record_stream(section, elapsed_ms, len(full_text))
+                except Exception:
+                    pass
+                output_queue.put(("__done__", section))
+
+        futures = [self.executor.submit(_worker, config) for config in stream_configs]
 
         try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
-            results = loop.run_until_complete(
-                self._fetch_all_streams_async(stream_configs, format_sse)
-            )
-
-            yield from results
-
+            while done_streams < total_streams:
+                item = output_queue.get()
+                if isinstance(item, tuple) and item[0] == "__done__":
+                    done_streams += 1
+                    continue
+                yield item
         except Exception as e:
             logger.error(f"[ParallelStreaming] Error: {e}", exc_info=True)
             error_chunk = {
@@ -154,86 +192,14 @@ class ParallelStreamManager:
             }
             yield self._format_sse(error_chunk) if format_sse else error_chunk
         finally:
-            loop.close()
+            for future in futures:
+                if not future.done():
+                    future.cancel()
 
-        elapsed = time.time() - start_time
-        logger.info(f"[ParallelStreaming] Completed {len(stream_configs)} streams in {elapsed:.2f}s")
-
-    async def _fetch_all_streams_async(
-        self,
-        stream_configs: List[StreamConfig],
-        format_sse: bool
-    ) -> List[str]:
-        """Fetch all streams in parallel using asyncio."""
-        tasks = [
-            self._fetch_single_stream_async(config, format_sse)
-            for config in stream_configs
-        ]
-
-        stream_results = await asyncio.gather(*tasks, return_exceptions=True)
-
-        all_chunks = []
-        for i, result in enumerate(stream_results):
-            if isinstance(result, Exception):
-                logger.error(f"[ParallelStreaming] Stream {i} failed: {result}")
-                error_chunk = {
-                    "section": stream_configs[i].section_name,
-                    "type": "error",
-                    "error": str(result)
-                }
-                all_chunks.append(self._format_sse(error_chunk) if format_sse else error_chunk)
-            else:
-                all_chunks.extend(result)
-
-        return all_chunks
-
-    async def _fetch_single_stream_async(
-        self,
-        config: StreamConfig,
-        format_sse: bool
-    ) -> List[str]:
-        """Fetch a single OpenAI stream."""
-        chunks = []
-        section = config.section_name
-
-        try:
-            # Start event
-            start_chunk = {"section": section, "status": "start"}
-            chunks.append(self._format_sse(start_chunk) if format_sse else start_chunk)
-
-            # Create OpenAI stream (runs in executor to avoid blocking)
-            loop = asyncio.get_event_loop()
-            stream = await loop.run_in_executor(
-                self.executor,
-                self._create_stream_sync,
-                config
+            elapsed = time.time() - start_time
+            logger.info(
+                f"[ParallelStreaming] Completed {total_streams} streams in {elapsed:.2f}s"
             )
-
-            # Collect content
-            full_text = ""
-            for chunk in stream:
-                if chunk.choices[0].delta.content:
-                    content = chunk.choices[0].delta.content
-                    full_text += content
-
-                    content_chunk = {"section": section, "content": content}
-                    chunks.append(self._format_sse(content_chunk) if format_sse else content_chunk)
-
-            # Done event
-            done_chunk = {
-                "section": section,
-                "status": "done",
-                "full_text": full_text
-            }
-            chunks.append(self._format_sse(done_chunk) if format_sse else done_chunk)
-
-            logger.info(f"[ParallelStreaming] {section}: {len(full_text)} chars")
-
-        except Exception as e:
-            logger.error(f"[ParallelStreaming] {section} failed: {e}", exc_info=True)
-            raise
-
-        return chunks
 
     def _create_stream_sync(self, config: StreamConfig):
         """Create OpenAI stream (synchronous, runs in executor)."""

@@ -10,6 +10,7 @@ Routes:
 ✅ Phase 2.4 Refactored: Now uses DreamService directly instead of app.py proxy.
 """
 from flask import Blueprint, request, jsonify, Response, g
+from ..utils.request_utils import get_json_or_400
 import logging
 
 from backend_ai.app.exceptions import BackendAIError
@@ -54,7 +55,9 @@ def dream_interpret_stream():
             sanitize_dream_text
         )
 
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         logger.info(f"[DREAM_STREAM] id={g.request_id} Starting streaming interpretation")
 
         raw_dream_text = data.get("dream", "")

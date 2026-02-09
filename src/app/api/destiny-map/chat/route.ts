@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth/authOptions'
 import { buildAllDataPrompt } from '@/lib/destiny-map/prompt/fortune/base'
 import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
 import Stripe from 'stripe'
+import { isDbPremiumUser } from '@/lib/auth/premium'
 import {
   guardText,
   cleanText as _cleanText,
@@ -141,7 +142,8 @@ export async function POST(request: NextRequest) {
       }
       userEmail = session.user.email
 
-      const paid = await checkStripeActive(userEmail)
+      const dbPremium = await isDbPremiumUser(session.user.id)
+      const paid = dbPremium || (await checkStripeActive(userEmail))
       if (!paid) {
         return createErrorResponse({
           code: ErrorCodes.PAYMENT_REQUIRED,

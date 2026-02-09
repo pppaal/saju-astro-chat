@@ -5,6 +5,7 @@ Extracted from app.py for better maintainability.
 """
 import logging
 from flask import Blueprint, request, jsonify
+from ..utils.request_utils import get_json_or_400
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,9 @@ def prediction_luck():
         return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         birth_info = {
             "year": data.get("year"),
             "month": data.get("month"),
@@ -115,7 +118,9 @@ def prediction_timing():
         return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         question = data.get("question", "")
 
         if not question:
@@ -154,7 +159,9 @@ def prediction_forecast():
         return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         birth_info = {
             "year": data.get("year"),
             "month": data.get("month"),
@@ -197,7 +204,9 @@ def prediction_rag_context():
         return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         sipsin = data.get("sipsin")  # 십신 이름 (정관, 편재 등)
         event_type = data.get("event_type")  # career, relationship 등
         query = data.get("query")  # 자유 검색 쿼리
@@ -239,7 +248,9 @@ def prediction_daeun():
         return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         birth_info = {
             "year": data.get("year"),
             "month": data.get("month"),
@@ -292,7 +303,9 @@ def prediction_seun():
         return jsonify({"status": "error", "message": "Prediction engine not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         birth_year = data.get("year")
         birth_month = data.get("month")
         target_year = data.get("target_year")

@@ -5,6 +5,7 @@ Extracted from app.py as part of Phase 1.1 refactoring.
 Helper functions moved to services/rag_context_service.py in Phase 1.3.
 """
 from flask import Blueprint, request, jsonify, g
+from ..utils.request_utils import get_json_or_400
 import logging
 
 # Import helper functions from service layer
@@ -51,7 +52,9 @@ def domain_rag_search():
         return jsonify({"status": "error", "message": "DomainRAG not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         domain = (data.get("domain") or "").strip()
         query = (data.get("query") or "").strip()
         top_k = int(data.get("top_k", 5))
@@ -123,7 +126,9 @@ def hybrid_rag_search():
         return jsonify({"status": "error", "message": "Hybrid RAG not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         query = (data.get("query") or "").strip()
         top_k = int(data.get("top_k", 8))
         top_k = max(1, min(top_k, 30))

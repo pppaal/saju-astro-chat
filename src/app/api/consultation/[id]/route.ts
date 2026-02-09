@@ -11,6 +11,7 @@ import { prisma } from '@/lib/db/prisma'
 import Stripe from 'stripe'
 import { logger } from '@/lib/logger'
 import { idParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { isDbPremiumUser } from '@/lib/auth/premium'
 
 export const dynamic = 'force-dynamic'
 
@@ -73,7 +74,8 @@ export async function GET(request: Request, routeContext: RouteContext) {
         return apiError(ErrorCodes.UNAUTHORIZED, 'not_authenticated')
       }
 
-      const isPremium = await checkStripeActive(userEmail)
+      const dbPremium = await isDbPremiumUser(context.userId)
+      const isPremium = dbPremium || (await checkStripeActive(userEmail))
       if (!isPremium) {
         return apiError(ErrorCodes.FORBIDDEN, '상담 기록 열람은 프리미엄 구독자 전용입니다.')
       }

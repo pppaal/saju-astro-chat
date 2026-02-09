@@ -9,6 +9,7 @@ import logging
 from typing import Dict, List
 
 from flask import Blueprint, request, jsonify, Response, stream_with_context, g
+from ...utils.request_utils import get_json_or_400
 
 from ..tarot_utils import map_tarot_theme, clean_ai_phrases
 from .dependencies import (
@@ -33,7 +34,9 @@ def register_chat_routes(bp: Blueprint):
         Returns Server-Sent Events (SSE) for real-time text streaming.
         """
         try:
-            data = request.get_json(force=True)
+            data, json_error = get_json_or_400(request, force=True)
+            if json_error:
+                return json_error
             logger.info(f"[TAROT-CHAT] id={getattr(g, 'request_id', 'N/A')} Starting chat stream")
 
             messages = data.get("messages", [])
@@ -134,7 +137,9 @@ def register_chat_routes(bp: Blueprint):
     def tarot_chat():
         """Non-streaming tarot chat (fallback)."""
         try:
-            data = request.get_json(force=True)
+            data, json_error = get_json_or_400(request, force=True)
+            if json_error:
+                return json_error
             logger.info(f"[TAROT-CHAT] id={getattr(g, 'request_id', 'N/A')} Non-streaming chat")
 
             messages = data.get("messages", [])

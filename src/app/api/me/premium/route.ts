@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api/middleware'
 import Stripe from 'stripe'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
+import { isDbPremiumUser } from '@/lib/auth/premium'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,7 +71,17 @@ export const GET = withApiMiddleware(async (_req: NextRequest, context: ApiConte
 
   const userEmail = context.session.user.email
 
-  // 프리미엄 체크
+  // DB 기준 프리미엄 우선 체크 (수동 플랜/크레딧 반영)
+  const dbPremium = await isDbPremiumUser(context.userId)
+  if (dbPremium) {
+    await cacheSet(`premium:${userEmail.toLowerCase()}`, { isPremium: true }, PREMIUM_CACHE_TTL)
+    return NextResponse.json({
+      isLoggedIn: true,
+      isPremium: true,
+    })
+  }
+
+  // Stripe 기반 체크
   const isPremium = await checkStripeActive(userEmail)
 
   return NextResponse.json({

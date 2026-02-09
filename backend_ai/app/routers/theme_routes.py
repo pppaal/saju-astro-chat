@@ -4,6 +4,7 @@ Theme Cross-Reference Filter Routes
 """
 import logging
 from flask import Blueprint, request, jsonify
+from ..utils.request_utils import get_json_or_400
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,9 @@ def theme_filter():
         return jsonify({"status": "error", "message": "Theme filter not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         theme = data.get("theme", "overall")
         saju_data = data.get("saju", {})
         astro_data = data.get("astro", {})
@@ -56,7 +59,9 @@ def theme_cross_points():
         return jsonify({"status": "error", "message": "Theme filter not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         theme = data.get("theme", "overall")
         saju_data = data.get("saju", {})
         astro_data = data.get("astro", {})
@@ -88,7 +93,9 @@ def theme_prompt_context():
         return jsonify({"status": "error", "message": "Theme filter not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         theme = data.get("theme", "overall")
         saju_data = data.get("saju", {})
         astro_data = data.get("astro", {})
@@ -114,7 +121,9 @@ def theme_important_dates():
         return jsonify({"status": "error", "message": "Theme filter not available"}), 501
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         theme = data.get("theme", "overall")
         saju_data = data.get("saju", {})
         astro_data = data.get("astro", {})

@@ -11,6 +11,7 @@ import time
 from typing import Dict, List
 
 from flask import Blueprint, request, jsonify, g
+from ...utils.request_utils import get_json_or_400
 
 from ..tarot_utils import map_tarot_theme, clean_ai_phrases
 from .dependencies import (
@@ -57,7 +58,9 @@ def register_interpret_routes(bp: Blueprint):
             return jsonify({"status": "error", "message": "Tarot module not available"}), 501
 
         try:
-            data = request.get_json(force=True)
+            data, json_error = get_json_or_400(request, force=True)
+            if json_error:
+                return json_error
             logger.info(f"[TAROT] id={getattr(g, 'request_id', 'N/A')} Interpreting tarot reading")
 
             category = data.get("category", "general")
@@ -292,7 +295,9 @@ def register_interpret_routes(bp: Blueprint):
             return jsonify({"status": "error", "message": "Tarot module not available"}), 501
 
         try:
-            data = request.get_json(force=True)
+            data, json_error = get_json_or_400(request, force=True)
+            if json_error:
+                return json_error
             category = data.get("category", "general")
             spread_id = data.get("spread_id", "three_card")
 

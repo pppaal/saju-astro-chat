@@ -3,8 +3,10 @@ Core routes - health checks, capabilities, and index.
 
 Extracted from app.py as part of Phase 1.1 refactoring.
 """
-from flask import Blueprint, jsonify, g
 import logging
+import os
+from flask import Blueprint, jsonify
+from backend_ai.app.redis_cache import get_cache
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +29,71 @@ def health():
 @core_bp.route("/ready", methods=["GET"])
 def ready():
     """Readiness check for k8s/Fly.io."""
-    # TODO: Check Redis, DB connections
-    return jsonify({"status": "ready"})
+    env = os.getenv("ENVIRONMENT", "development").lower()
+    is_production = env == "production"
+
+    # Redis check (optional - memory fallback is allowed)
+    cache = get_cache()
+    redis_enabled = bool(getattr(cache, "enabled", False))
+    redis_ok = True
+    redis_error = None
+    if redis_enabled and getattr(cache, "client", None):
+        try:
+            cache.client.ping()
+        except Exception as exc:  # pragma: no cover - depends on runtime
+            redis_ok = False
+            redis_error = type(exc).__name__
+
+    # Optional DB check if DATABASE_URL is configured
+    db_url = os.getenv("DATABASE_URL")
+    db_ok = True
+    db_error = None
+    if db_url:
+        try:
+            try:
+                import psycopg2  # type: ignore
+                conn = psycopg2.connect(db_url, connect_timeout=2)
+                conn.close()
+            except ImportError:
+                import psycopg  # type: ignore
+                conn = psycopg.connect(db_url, connect_timeout=2)
+                conn.close()
+        except Exception as exc:  # pragma: no cover - depends on runtime
+            db_ok = False
+            db_error = type(exc).__name__
+
+    # Critical config checks
+    admin_token_ok = bool(os.getenv("ADMIN_API_TOKEN")) if is_production else True
+    openai_ok = bool(os.getenv("OPENAI_API_KEY")) if is_production else True
+
+    ready_ok = all([
+        redis_ok,
+        db_ok,
+        admin_token_ok,
+        openai_ok,
+    ])
+
+    return jsonify({
+        "status": "ready" if ready_ok else "not_ready",
+        "checks": {
+            "redis": {
+                "enabled": redis_enabled,
+                "ok": redis_ok,
+                "error": redis_error,
+            },
+            "database": {
+                "configured": bool(db_url),
+                "ok": db_ok,
+                "error": db_error,
+            },
+            "admin_token": {
+                "ok": admin_token_ok,
+            },
+            "openai": {
+                "ok": openai_ok,
+            },
+        },
+    })
 
 
 @core_bp.route("/capabilities", methods=["GET"])

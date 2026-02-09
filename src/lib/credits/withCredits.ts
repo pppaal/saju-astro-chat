@@ -135,13 +135,23 @@ export async function checkCreditsOnly(
     }
   }
 
+  const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
+  const bypassEnabled = process.env.BYPASS_CREDITS === 'true' && isDevelopment
+
   // 개발/테스트 환경에서 크레딧 우회
-  if (process.env.BYPASS_CREDITS === 'true') {
+  if (bypassEnabled) {
     return {
       allowed: true,
       userId: session.user.id,
       remaining: 9999,
     }
+  }
+
+  // 프로덕션에서 BYPASS_CREDITS가 설정된 경우 경고
+  if (process.env.BYPASS_CREDITS === 'true' && !isDevelopment) {
+    logger.error(
+      'SECURITY WARNING: BYPASS_CREDITS is enabled in production! This is a critical security issue.'
+    )
   }
 
   const canUse = await canUseCredits(session.user.id, type, amount)

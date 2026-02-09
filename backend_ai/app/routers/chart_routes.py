@@ -4,6 +4,7 @@ Chart calculation routes - Saju and Astrology calculations.
 Extracted from app.py as part of Phase 1.1 refactoring.
 """
 from flask import Blueprint, request, jsonify, g
+from ..utils.request_utils import get_json_or_400
 import logging
 
 from backend_ai.app.saju_parser import calculate_saju_data
@@ -19,7 +20,9 @@ chart_bp = Blueprint('chart', __name__)
 def calc_saju():
     """Calculate Saju (사주) from birth data."""
     try:
-        body = request.get_json(force=True)
+        body, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         payload = body.get("payload") or body.get("saju") or body.get("computeDestinyMap")
         birth_date = body.get("birth_date")
         birth_time = body.get("birth_time")
@@ -39,7 +42,9 @@ def calc_saju():
 def calc_astro():
     """Calculate Astrology chart from birth data."""
     try:
-        body = request.get_json(force=True)
+        body, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         result = calculate_astrology_data(
             {
                 "year": body.get("year"),
@@ -88,7 +93,9 @@ def generate_saju_chart():
         return jsonify({"status": "error", "message": "Chart generation not available"}), 503
 
     try:
-        body = request.get_json(force=True)
+        body, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         saju_data = body.get("saju", {})
 
         svg_content = generate_saju_table_svg(saju_data)
@@ -113,7 +120,9 @@ def generate_natal_chart():
         return jsonify({"status": "error", "message": "Chart generation not available"}), 503
 
     try:
-        body = request.get_json(force=True)
+        body, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         astro_data = body.get("astro", {})
 
         svg_content = generate_natal_chart_svg(astro_data)
@@ -138,7 +147,9 @@ def generate_full_chart():
         return jsonify({"status": "error", "message": "Chart generation not available"}), 503
 
     try:
-        body = request.get_json(force=True)
+        body, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         saju_data = body.get("saju", {})
         astro_data = body.get("astro", {})
 

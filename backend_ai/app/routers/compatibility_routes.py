@@ -6,6 +6,7 @@ import logging
 import time
 from datetime import datetime
 from flask import Blueprint, request, jsonify, g
+from ..utils.request_utils import get_json_or_400
 
 from backend_ai.app.exceptions import (
     BackendAIError,
@@ -64,7 +65,9 @@ def compatibility_analysis():
         raise ServiceUnavailableError("Compatibility engine not available")
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         people = data.get("people") or []
 
         # Backward compatibility: allow person1/person2 fields
@@ -107,7 +110,9 @@ def compatibility_chat():
         raise ServiceUnavailableError("Compatibility engine not available")
 
     try:
-        data = request.get_json(force=True)
+        data, json_error = get_json_or_400(request, force=True)
+        if json_error:
+            return json_error
         request_id = getattr(g, 'request_id', 'unknown')
         logger.info(f"[COMPAT_CHAT] id={request_id} Processing chat message")
 

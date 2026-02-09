@@ -1,15 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-const sanitize = (
-  dirty: string,
-  config?: { ALLOWED_TAGS?: string[]; ALLOWED_ATTR?: string[] }
-): string => {
-  if (typeof window === 'undefined') return dirty
-
-  const DOMPurify = require('dompurify');
-  return String(DOMPurify.sanitize(dirty, config))
-}
 import CompatibilityFunInsights from '@/components/compatibility/fun-insights/CompatibilityFunInsights'
 import { getScoreColor, getScoreEmoji, getGrade } from '../scoreHelpers'
 import type { CompatibilityResult, Person, RelationshipType } from '../types'
@@ -37,6 +28,23 @@ export default function ResultsDisplay({
   t,
 }: ResultsDisplayProps) {
   const apiLocale = locale === 'ko' ? 'ko' : 'en'
+  const interpretationText = result.aiInterpretation || result.interpretation || ''
+
+  const renderInterpretation = (text: string) => {
+    if (!text) return null
+    const lines = text.split(/\r?\n/)
+    return lines.map((line, index) => {
+      const trimmed = line.trim()
+      const isHeading = trimmed.startsWith('##')
+      const headingText = trimmed.replace(/^##\s*/, '')
+      return (
+        <span key={index}>
+          {isHeading ? <strong>{headingText}</strong> : line}
+          {index < lines.length - 1 && <br />}
+        </span>
+      )
+    })
+  }
 
   return (
     <motion.div
@@ -87,25 +95,14 @@ export default function ResultsDisplay({
       </div>
 
       {/* AI Interpretation */}
-      {(result.interpretation || result.aiInterpretation) && (
+      {interpretationText && (
         <div className={styles.interpretationCard}>
           <h4 className={styles.cardTitle}>
             📜 {t('numerology.compatibility.detailedAnalysis', 'Detailed Analysis')}
           </h4>
-          <div
-            className={styles.interpretationText}
-            dangerouslySetInnerHTML={{
-              __html: sanitize(
-                (result.aiInterpretation || result.interpretation || ''),
-                {
-                  ALLOWED_TAGS: [],
-                  ALLOWED_ATTR: [],
-                }
-              )
-                .replace(/\n/g, '<br/>')
-                .replace(/##\s*(.+)/g, '<strong>$1</strong>'),
-            }}
-          />
+          <div className={styles.interpretationText}>
+            {renderInterpretation(interpretationText)}
+          </div>
         </div>
       )}
 
