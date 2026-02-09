@@ -119,7 +119,7 @@ export const POST = withApiMiddleware(
   async (req: NextRequest, context) => {
     const session = context.session
     const adminEmail = session?.user?.email || 'unknown'
-    const adminUserId = context.userId ?? undefined
+    const adminUserId = context.userId
 
     // 🔒 IP와 User-Agent 수집 (감사 로그용)
     const ipAddress =
@@ -131,7 +131,7 @@ export const POST = withApiMiddleware(
       if (!adminUserId || !(await isAdminUser(adminUserId))) {
         await logAdminAction({
           adminEmail,
-          adminUserId,
+          adminUserId: adminUserId ?? undefined,
           action: 'refund_attempt_unauthorized',
           success: false,
           errorMessage: 'User is not an admin',
@@ -147,7 +147,7 @@ export const POST = withApiMiddleware(
       if (!limit.allowed) {
         await logAdminAction({
           adminEmail,
-          adminUserId,
+          adminUserId: adminUserId ?? undefined,
           action: 'refund_rate_limited',
           metadata: {
             remaining: limit.remaining,
@@ -174,7 +174,7 @@ export const POST = withApiMiddleware(
         logger.warn('[Admin refund] validation failed', { errors: validationResult.error.issues })
         await logAdminAction({
           adminEmail,
-          adminUserId,
+          adminUserId: adminUserId ?? undefined,
           action: 'refund_validation_failed',
           metadata: { errors: validationResult.error.issues },
           success: false,
@@ -258,7 +258,7 @@ export const POST = withApiMiddleware(
       // ✨ Audit log for successful refund (DB 기반)
       await logAdminAction({
         adminEmail,
-        adminUserId,
+        adminUserId: adminUserId ?? undefined,
         action: 'refund_completed',
         targetType: 'subscription',
         targetId: subscription.id,
@@ -300,7 +300,7 @@ export const POST = withApiMiddleware(
       // ✨ Audit log for failed refund (DB 기반)
       await logAdminAction({
         adminEmail,
-        adminUserId,
+        adminUserId: adminUserId ?? undefined,
         action: 'refund_failed',
         metadata: {
           error: 'Internal server error',
