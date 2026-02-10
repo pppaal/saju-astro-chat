@@ -64,10 +64,19 @@ export const longitudeSchema = z
 export const genderValues = ['male', 'female', 'other', 'prefer_not'] as const
 export type Gender = (typeof genderValues)[number]
 
-export const genderSchema = z
-  .string()
-  .transform((v) => v.toLowerCase())
-  .pipe(z.enum(genderValues))
+const normalizeGender = (value: unknown) => {
+  if (typeof value !== 'string') return value
+  const normalized = value.trim().toLowerCase()
+  if (normalized === 'm' || normalized === 'male') return 'male'
+  if (normalized === 'f' || normalized === 'female') return 'female'
+  if (normalized === 'prefer not' || normalized === 'prefer-not' || normalized === 'prefer_not') {
+    return 'prefer_not'
+  }
+  if (normalized === 'other') return 'other'
+  return normalized
+}
+
+export const genderSchema = z.preprocess(normalizeGender, z.enum(genderValues))
 
 // Supported locales - union of all locales used across the app
 export const localeValues = [
@@ -340,7 +349,9 @@ export function handleZodValidation<T>(
     locale?: string
     route?: string
   } = {}
-): { success: true; data: T } | { success: false; response: ReturnType<typeof createErrorResponse> } {
+):
+  | { success: true; data: T }
+  | { success: false; response: ReturnType<typeof createErrorResponse> } {
   if (result.success) {
     return { success: true, data: result.data }
   }
