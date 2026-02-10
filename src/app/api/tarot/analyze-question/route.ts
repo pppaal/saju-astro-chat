@@ -8,6 +8,8 @@ import { logger } from '@/lib/logger'
 import { PATTERN_MAPPINGS, getExamInterviewMapping } from './pattern-mappings'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { tarotAnalyzeQuestionSchema as AnalyzeQuestionSchema } from '@/lib/api/zodValidation'
+import { prepareForMatching } from '@/lib/Tarot/utils/koreanTextNormalizer'
+import { recommendSpreads } from '@/lib/Tarot/tarot-recommend'
 
 // ============================================================
 // Types
@@ -26,6 +28,12 @@ interface SpreadOption {
   titleKo: string
   description: string
   cardCount: number
+}
+
+interface PatternMatch {
+  parsed: ParsedResult
+  priority: number
+  matchedQuestion: string
 }
 
 // ============================================================
@@ -245,36 +253,68 @@ ${spreadListForPrompt}
 // ============================================================
 // Pattern Matching Corrections (Data-Driven)
 // ============================================================
-function applyPatternCorrections(
-  question: string,
-  parsed: ParsedResult,
-  language: string
-): ParsedResult {
-  // 1. 면접/시험 질문 특수 처리 (분기 로직 필요)
-  const examMapping = getExamInterviewMapping(question, language)
-  if (examMapping && parsed.spreadId !== examMapping.spreadId) {
-    logger.info(
-      `[analyze-question] Correcting: "${question}" → ${examMapping.spreadId} (was: ${parsed.spreadId})`
-    )
-    return examMapping
-  }
-
-  // 2. PATTERN_MAPPINGS 테이블 순회 (priority 순으로 정렬됨)
-  for (const mapping of PATTERN_MAPPINGS) {
-    if (mapping.check(question) && parsed.spreadId !== mapping.targetSpread) {
-      logger.info(
-        `[analyze-question] Correcting: "${question}" → ${mapping.targetSpread} (was: ${parsed.spreadId})`
-      )
+function findPatternMatch(questionVariants: string[], language: string): PatternMatch | null {
+  for (const variant of questionVariants) {
+    const examMapping = getExamInterviewMapping(variant, language)
+    if (examMapping) {
       return {
-        themeId: mapping.themeId,
-        spreadId: mapping.targetSpread,
-        reason: mapping.reason,
-        userFriendlyExplanation: language === 'ko' ? mapping.koExplanation : mapping.enExplanation,
+        parsed: examMapping,
+        priority: 0,
+        matchedQuestion: variant,
+      }
+    }
+
+    for (const mapping of PATTERN_MAPPINGS) {
+      if (mapping.check(variant)) {
+        return {
+          parsed: {
+            themeId: mapping.themeId,
+            spreadId: mapping.targetSpread,
+            reason: mapping.reason,
+            userFriendlyExplanation:
+              language === 'ko' ? mapping.koExplanation : mapping.enExplanation,
+          },
+          priority: mapping.priority,
+          matchedQuestion: variant,
+        }
       }
     }
   }
 
-  return parsed
+  return null
+}
+
+function applyPatternCorrections(
+  questionVariants: string[],
+  parsed: ParsedResult,
+  language: string
+): ParsedResult {
+  const match = findPatternMatch(questionVariants, language)
+  if (!match) {
+    return parsed
+  }
+  if (parsed.spreadId === match.parsed.spreadId && parsed.themeId === match.parsed.themeId) {
+    return parsed
+  }
+  logger.info(
+    `[analyze-question] Correcting: "${questionVariants[0]}" → ${match.parsed.spreadId} (was: ${parsed.spreadId})`
+  )
+  return match.parsed
+}
+
+function buildQuestionVariants(question: string): string[] {
+  const variants = prepareForMatching(question)
+  const trimmed = variants.map((entry) => entry.trim()).filter(Boolean)
+  const unique = Array.from(new Set(trimmed))
+  return unique.slice(0, 6)
+}
+
+function formatQuestionForPrompt(questionVariants: string[]): string {
+  const [raw, ...rest] = questionVariants
+  if (rest.length === 0) {
+    return `사용자 질문: "${raw}"`
+  }
+  return `사용자 질문(원문): "${raw}"\n정규화/보정 버전: ${rest.map((q) => `"${q}"`).join(', ')}`
 }
 
 // ============================================================
@@ -302,6 +342,7 @@ export const POST = withApiMiddleware(
 
       const { question, language } = validation.data
       const trimmedQuestion = question.trim()
+      const questionVariants = buildQuestionVariants(trimmedQuestion)
 
       // 위험한 질문 체크
       if (checkDangerous(trimmedQuestion)) {
@@ -320,18 +361,7 @@ export const POST = withApiMiddleware(
         .map((s) => `- ${s.themeId}/${s.id}: ${s.titleKo} (${s.cardCount}장) - ${s.description}`)
         .join('\n')
 
-      // GPT-4o-mini로 분석
-      const systemPrompt = buildSystemPrompt(spreadListForPrompt)
-
-      let responseText = ''
-      try {
-        responseText = await callOpenAI([
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `사용자 질문: "${trimmedQuestion}"` },
-        ])
-      } catch (error) {
-        logger.warn('[analyze-question] OpenAI unavailable, using fallback routing', error)
-      }
+      const patternMatch = findPatternMatch(questionVariants, language)
 
       const fallbackParsed: ParsedResult = {
         themeId: 'general-insight',
@@ -343,15 +373,32 @@ export const POST = withApiMiddleware(
             : "I've prepared a spread to see the overall flow",
       }
 
-      let parsed: ParsedResult
-      try {
-        parsed = responseText ? JSON.parse(responseText) : fallbackParsed
-      } catch {
-        parsed = fallbackParsed
+      let parsed: ParsedResult = fallbackParsed
+      if (patternMatch) {
+        parsed = patternMatch.parsed
+      } else {
+        // GPT-4o-mini로 분석
+        const systemPrompt = buildSystemPrompt(spreadListForPrompt)
+
+        let responseText = ''
+        try {
+          responseText = await callOpenAI([
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: formatQuestionForPrompt(questionVariants) },
+          ])
+        } catch (error) {
+          logger.warn('[analyze-question] OpenAI unavailable, using fallback routing', error)
+        }
+
+        try {
+          parsed = responseText ? JSON.parse(responseText) : fallbackParsed
+        } catch {
+          parsed = fallbackParsed
+        }
       }
 
       // GPT 결과를 패턴 매칭으로 보정
-      parsed = applyPatternCorrections(trimmedQuestion, parsed, language)
+      parsed = applyPatternCorrections(questionVariants, parsed, language)
 
       // 선택된 스프레드 정보 찾기
       const selectedSpread = spreadOptions.find(
@@ -359,6 +406,23 @@ export const POST = withApiMiddleware(
       )
 
       if (!selectedSpread) {
+        const recommended = recommendSpreads(trimmedQuestion, 1)
+        if (recommended.length > 0) {
+          const first = recommended[0]
+          return NextResponse.json({
+            isDangerous: false,
+            themeId: first.themeId,
+            spreadId: first.spreadId,
+            spreadTitle: first.spread.titleKo || first.spread.title,
+            cardCount: first.spread.cardCount,
+            reason: first.reasonKo || first.reason,
+            userFriendlyExplanation:
+              language === 'ko'
+                ? '질문과 가장 가까운 스프레드를 추천했어요'
+                : 'I picked the closest match for your question.',
+            path: `/tarot/${first.themeId}/${first.spreadId}?question=${encodeURIComponent(trimmedQuestion)}`,
+          })
+        }
         return NextResponse.json({
           isDangerous: false,
           themeId: 'general-insight',

@@ -232,7 +232,7 @@
   },
   "auth": {
     "signIn": "로그인",
-    "welcomeBack": "?????! ???????",
+    "welcomeBack": "환영합니다! 시작해볼까요?",
     "signInToContinue": "서비스를 이용하시려면 클릭하세요",
     "signInWithGoogle": "Google로 로그인",
     "secureAuthentication": "보안 인증",

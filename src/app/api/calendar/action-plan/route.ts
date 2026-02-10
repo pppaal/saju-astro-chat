@@ -34,12 +34,30 @@ const actionPlanTimelineRequestSchema = z.object({
     .object({
       grade: z.number().min(0).max(5).optional(),
       score: z.number().min(0).max(100).optional(),
-      categories: z.array(z.string().max(TEXT_LIMITS.MAX_TITLE)).max(LIST_LIMITS.MAX_LIST_ITEMS).optional(),
-      bestTimes: z.array(z.string().max(TEXT_LIMITS.MAX_TITLE)).max(LIST_LIMITS.MAX_LIST_ITEMS).optional(),
-      warnings: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(LIST_LIMITS.MAX_LIST_ITEMS).optional(),
-      recommendations: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(LIST_LIMITS.MAX_LIST_ITEMS).optional(),
-      sajuFactors: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(LIST_LIMITS.MAX_LIST_ITEMS).optional(),
-      astroFactors: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(LIST_LIMITS.MAX_LIST_ITEMS).optional(),
+      categories: z
+        .array(z.string().max(TEXT_LIMITS.MAX_TITLE))
+        .max(LIST_LIMITS.MAX_LIST_ITEMS)
+        .optional(),
+      bestTimes: z
+        .array(z.string().max(TEXT_LIMITS.MAX_TITLE))
+        .max(LIST_LIMITS.MAX_LIST_ITEMS)
+        .optional(),
+      warnings: z
+        .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+        .max(LIST_LIMITS.MAX_LIST_ITEMS)
+        .optional(),
+      recommendations: z
+        .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+        .max(LIST_LIMITS.MAX_LIST_ITEMS)
+        .optional(),
+      sajuFactors: z
+        .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+        .max(LIST_LIMITS.MAX_LIST_ITEMS)
+        .optional(),
+      astroFactors: z
+        .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+        .max(LIST_LIMITS.MAX_LIST_ITEMS)
+        .optional(),
       title: z.string().max(TEXT_LIMITS.MAX_TITLE).optional(),
       summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
       ganzhi: z.string().max(TEXT_LIMITS.MAX_TITLE).optional(),
@@ -54,7 +72,10 @@ const actionPlanTimelineRequestSchema = z.object({
       dominanceScore: z.number().min(0).max(100).optional(),
       affiliationScore: z.number().min(0).max(100).optional(),
       summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
-      traits: z.array(z.string().max(TEXT_LIMITS.MAX_KEYWORD)).max(LIST_LIMITS.MAX_LIST_ITEMS).optional(),
+      traits: z
+        .array(z.string().max(TEXT_LIMITS.MAX_KEYWORD))
+        .max(LIST_LIMITS.MAX_LIST_ITEMS)
+        .optional(),
     })
     .nullable()
     .optional(),
@@ -63,10 +84,19 @@ const actionPlanTimelineRequestSchema = z.object({
       typeCode: z.string().max(20).optional(),
       personaName: z.string().max(TEXT_LIMITS.MAX_NAME).optional(),
       summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
-      strengths: z.array(z.string().max(TEXT_LIMITS.MAX_KEYWORD)).max(LIST_LIMITS.MAX_LIST_ITEMS).optional(),
-      challenges: z.array(z.string().max(TEXT_LIMITS.MAX_KEYWORD)).max(LIST_LIMITS.MAX_LIST_ITEMS).optional(),
+      strengths: z
+        .array(z.string().max(TEXT_LIMITS.MAX_KEYWORD))
+        .max(LIST_LIMITS.MAX_LIST_ITEMS)
+        .optional(),
+      challenges: z
+        .array(z.string().max(TEXT_LIMITS.MAX_KEYWORD))
+        .max(LIST_LIMITS.MAX_LIST_ITEMS)
+        .optional(),
       guidance: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
-      motivations: z.array(z.string().max(TEXT_LIMITS.MAX_KEYWORD)).max(LIST_LIMITS.MAX_LIST_ITEMS).optional(),
+      motivations: z
+        .array(z.string().max(TEXT_LIMITS.MAX_KEYWORD))
+        .max(LIST_LIMITS.MAX_LIST_ITEMS)
+        .optional(),
       axes: z
         .record(
           z.string().max(20),
@@ -99,16 +129,19 @@ const buildActionPlanPrompt = (
   const languageLabel = lang === 'ko' ? 'Korean' : 'English'
 
   return [
-    `Create a 24-hour action plan for ${date}.`,
+    `Create a 24-hour action plan for ${date} with 1-hour slots.`,
     'Return JSON only with this schema:',
     '{"timeline":[{"hour":0,"label":"00:00","note":"...", "tone":"neutral"}],"summary":"..."}',
     'Rules:',
     '- Provide exactly 24 items, hours 0-23 in order.',
     '- label must be in HH:00 format.',
+    '- Each entry represents a distinct 1-hour block.',
     '- note is a short, actionable line (max 18 words).',
+    '- Avoid repeating the same note more than twice.',
     '- tone is one of: "best", "caution", "neutral".',
     '- Use bestTimes as best hours and warnings as caution hours.',
     '- Align tasks with categories, recommendations, and personality/ICP traits.',
+    '- Include realistic anchors: sleep/wind-down late night, a morning start, and a midday reset.',
     '- Avoid medical, legal, or financial directives.',
     `Language: ${languageLabel}.`,
     'Context JSON:',
