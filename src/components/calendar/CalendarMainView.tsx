@@ -358,238 +358,240 @@ const CalendarMainView = memo(function CalendarMainView({
       </div>
 
       {activeView === 'calendar' ? (
-      <>
-        {/* Month Navigation */}
-        <div className={styles.monthNav}>
-        <button
-          className={styles.navBtn}
-          onClick={onPrevMonth}
-          aria-label={locale === 'ko' ? '이전 달' : 'Previous month'}
-        >
-          ◀
-        </button>
-        <div className={styles.monthDisplay}>
-          <span className={styles.monthYear}>{year}</span>
-          <span className={styles.monthName}>{MONTHS[month]}</span>
-        </div>
-        <button
-          className={styles.navBtn}
-          onClick={onNextMonth}
-          aria-label={locale === 'ko' ? '다음 달' : 'Next month'}
-        >
-          ▶
-        </button>
-        <button className={styles.todayBtn} onClick={onGoToToday}>
-          {locale === 'ko' ? '오늘' : 'Today'}
-        </button>
-      </div>
-
-      {/* Category Filter */}
-      <div className={styles.filtersSection}>
-        <span className={styles.filtersLabel}>{locale === 'ko' ? '테마별' : 'By Theme'}</span>
-        <div className={styles.filters}>
-          <button
-            className={`${styles.filterBtn} ${activeCategory === 'all' ? styles.active : ''}`}
-            onClick={() => onCategoryChange('all')}
-          >
-            {locale === 'ko' ? '전체' : 'All'}
-          </button>
-          {CATEGORIES.map((cat) => (
+        <>
+          {/* Month Navigation */}
+          <div className={styles.monthNav}>
             <button
-              key={cat}
-              className={`${styles.filterBtn} ${activeCategory === cat ? styles.active : ''}`}
-              onClick={() => onCategoryChange(cat)}
+              className={styles.navBtn}
+              onClick={onPrevMonth}
+              aria-label={locale === 'ko' ? '이전 달' : 'Previous month'}
             >
-              {CATEGORY_EMOJI[cat]} {getCategoryLabel(cat, locale)}
+              ◀
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Calendar Grid */}
-      <div className={styles.calendarWrapper}>
-        {/* Weekday Header */}
-        <div className={styles.weekdaysHeader}>
-          {WEEKDAYS.map((day, idx) => (
-            <div
-              key={day}
-              className={`${styles.weekdayCell} ${idx === 0 ? styles.sunday : ''} ${idx === 6 ? styles.saturday : ''}`}
-            >
-              {day}
+            <div className={styles.monthDisplay}>
+              <span className={styles.monthYear}>{year}</span>
+              <span className={styles.monthName}>{MONTHS[month]}</span>
             </div>
-          ))}
-        </div>
+            <button
+              className={styles.navBtn}
+              onClick={onNextMonth}
+              aria-label={locale === 'ko' ? '다음 달' : 'Next month'}
+            >
+              ▶
+            </button>
+            <button className={styles.todayBtn} onClick={onGoToToday}>
+              {locale === 'ko' ? '오늘' : 'Today'}
+            </button>
+          </div>
 
-        {/* Days Grid */}
-        <div
-          className={`${styles.daysGrid} ${slideDirection === 'left' ? styles.slideLeft : ''} ${slideDirection === 'right' ? styles.slideRight : ''}`}
-          role="grid"
-          aria-label={
-            locale === 'ko'
-              ? `${year}년 ${month + 1}월 캘린더`
-              : `Calendar for ${MONTHS[month]} ${year}`
-          }
-        >
-          {days.map((date, idx) => {
-            const dateInfo = date ? getDateInfo(date) : undefined
-            const isToday =
-              date &&
-              date.getDate() === today.getDate() &&
-              date.getMonth() === today.getMonth() &&
-              date.getFullYear() === today.getFullYear()
-
-            return (
-              <div
-                key={idx}
-                className={getDayClassName(date)}
-                onClick={() => handleDayClick(date)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    handleDayClick(date)
-                  }
-                }}
-                role="gridcell"
-                tabIndex={date ? 0 : -1}
-                aria-label={
-                  date
-                    ? `${date.getDate()}${locale === 'ko' ? '일' : ''}, ${dateInfo ? getGradeLabel(dateInfo.grade) : locale === 'ko' ? '정보 없음' : 'No info'}${isToday ? (locale === 'ko' ? ', 오늘' : ', Today') : ''}`
-                    : undefined
-                }
-                aria-selected={
-                  !!(
-                    selectedDay &&
-                    date &&
-                    date.getDate() === selectedDay.getDate() &&
-                    date.getMonth() === selectedDay.getMonth() &&
-                    date.getFullYear() === selectedDay.getFullYear()
-                  )
-                }
-                aria-current={isToday ? 'date' : undefined}
+          {/* Category Filter */}
+          <div className={styles.filtersSection}>
+            <span className={styles.filtersLabel}>{locale === 'ko' ? '테마별' : 'By Theme'}</span>
+            <div className={styles.filters}>
+              <button
+                className={`${styles.filterBtn} ${activeCategory === 'all' ? styles.active : ''}`}
+                onClick={() => onCategoryChange('all')}
               >
-                {date && (
-                  <>
-                    <span className={styles.dayNumber}>{date.getDate()}</span>
-                    {dateInfo && (
-                      <div className={styles.dayIndicators} aria-hidden="true">
-                        {dateInfo.categories.slice(0, 2).map((cat, i) => (
-                          <span key={i} className={styles.dayEmoji}>
-                            {CATEGORY_EMOJI[cat]}
-                          </span>
-                        ))}
-                        <span className={styles.gradeIndicator}>
-                          {getGradeEmoji(dateInfo.grade)}
-                        </span>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div
-        className={styles.legend}
-        role="list"
-        aria-label={locale === 'ko' ? '등급 범례' : 'Grade Legend'}
-      >
-        <div className={styles.legendItem} role="listitem">
-          <span className={`${styles.legendDot} ${styles.grade0Dot}`} aria-hidden="true">
-            <span className={styles.legendPattern}>★</span>
-          </span>
-          <span>{locale === 'ko' ? '최고 (72+)' : 'Best (72+)'}</span>
-        </div>
-        <div className={styles.legendItem} role="listitem">
-          <span className={`${styles.legendDot} ${styles.grade1Dot}`} aria-hidden="true">
-            <span className={styles.legendPattern}>●</span>
-          </span>
-          <span>{locale === 'ko' ? '좋음 (65-71)' : 'Good (65-71)'}</span>
-        </div>
-        <div className={styles.legendItem} role="listitem">
-          <span className={`${styles.legendDot} ${styles.grade2Dot}`} aria-hidden="true">
-            <span className={styles.legendPattern}>◆</span>
-          </span>
-          <span>{locale === 'ko' ? '보통 (45-64)' : 'Normal (45-64)'}</span>
-        </div>
-        <div className={styles.legendItem} role="listitem">
-          <span className={`${styles.legendDot} ${styles.grade3Dot}`} aria-hidden="true">
-            <span className={styles.legendPattern}>▲</span>
-          </span>
-          <span>{locale === 'ko' ? '안좋음 (30-44)' : 'Bad (30-44)'}</span>
-        </div>
-        <div className={styles.legendItem} role="listitem">
-          <span className={`${styles.legendDot} ${styles.grade4Dot}`} aria-hidden="true">
-            <span className={styles.legendPattern}>✕</span>
-          </span>
-          <span>{locale === 'ko' ? '최악 (<30)' : 'Worst (<30)'}</span>
-        </div>
-      </div>
-
-      {/* Monthly Fortune Graph */}
-      {fortuneData.length > 0 && (
-        <div className={styles.fortuneGraph}>
-          <div className={styles.graphHeader}>
-            <span className={styles.graphTitle}>
-              📊 {locale === 'ko' ? '월간 운세 흐름' : 'Monthly Fortune Flow'}
-            </span>
+                {locale === 'ko' ? '전체' : 'All'}
+              </button>
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  className={`${styles.filterBtn} ${activeCategory === cat ? styles.active : ''}`}
+                  onClick={() => onCategoryChange(cat)}
+                >
+                  {CATEGORY_EMOJI[cat]} {getCategoryLabel(cat, locale)}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className={styles.sparkline}>
-            {fortuneData.map((d, idx) => {
-              const isSelected =
-                selectedDay && selectedDay.getDate() === d.day && selectedDay.getMonth() === month
-              const height = Math.max(10, 100 - d.grade * 20) + '%'
-              return (
+
+          {/* Calendar Grid */}
+          <div className={styles.calendarWrapper}>
+            {/* Weekday Header */}
+            <div className={styles.weekdaysHeader}>
+              {WEEKDAYS.map((day, idx) => (
                 <div
-                  key={idx}
-                  className={`${styles.sparkBar} ${styles[`grade${d.grade}`]} ${isSelected ? styles.active : ''}`}
-                  style={{ height }}
-                  onClick={() => {
-                    const clickedDate = new Date(year, month, d.day)
-                    handleDayClick(clickedDate)
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      handleDayClick(new Date(year, month, d.day))
+                  key={day}
+                  className={`${styles.weekdayCell} ${idx === 0 ? styles.sunday : ''} ${idx === 6 ? styles.saturday : ''}`}
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Days Grid */}
+            <div
+              className={`${styles.daysGrid} ${slideDirection === 'left' ? styles.slideLeft : ''} ${slideDirection === 'right' ? styles.slideRight : ''}`}
+              role="grid"
+              aria-label={
+                locale === 'ko'
+                  ? `${year}년 ${month + 1}월 캘린더`
+                  : `Calendar for ${MONTHS[month]} ${year}`
+              }
+            >
+              {days.map((date, idx) => {
+                const dateInfo = date ? getDateInfo(date) : undefined
+                const isToday =
+                  date &&
+                  date.getDate() === today.getDate() &&
+                  date.getMonth() === today.getMonth() &&
+                  date.getFullYear() === today.getFullYear()
+
+                return (
+                  <div
+                    key={idx}
+                    className={getDayClassName(date)}
+                    onClick={() => handleDayClick(date)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleDayClick(date)
+                      }
+                    }}
+                    role="gridcell"
+                    tabIndex={date ? 0 : -1}
+                    aria-label={
+                      date
+                        ? `${date.getDate()}${locale === 'ko' ? '일' : ''}, ${dateInfo ? getGradeLabel(dateInfo.grade) : locale === 'ko' ? '정보 없음' : 'No info'}${isToday ? (locale === 'ko' ? ', 오늘' : ', Today') : ''}`
+                        : undefined
                     }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`${d.day}${locale === 'ko' ? '일' : ''}: ${locale === 'ko' ? '점수' : 'score'} ${d.score}`}
-                  title={`${d.day}${locale === 'ko' ? '일' : ''}: ${d.score}${locale === 'ko' ? '점' : ''}`}
-                />
-              )
-            })}
+                    aria-selected={
+                      !!(
+                        selectedDay &&
+                        date &&
+                        date.getDate() === selectedDay.getDate() &&
+                        date.getMonth() === selectedDay.getMonth() &&
+                        date.getFullYear() === selectedDay.getFullYear()
+                      )
+                    }
+                    aria-current={isToday ? 'date' : undefined}
+                  >
+                    {date && (
+                      <>
+                        <span className={styles.dayNumber}>{date.getDate()}</span>
+                        {dateInfo && (
+                          <div className={styles.dayIndicators} aria-hidden="true">
+                            {dateInfo.categories.slice(0, 2).map((cat, i) => (
+                              <span key={i} className={styles.dayEmoji}>
+                                {CATEGORY_EMOJI[cat]}
+                              </span>
+                            ))}
+                            <span className={styles.gradeIndicator}>
+                              {getGradeEmoji(dateInfo.grade)}
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* Selected Date Panel */}
-      <SelectedDatePanel
-        selectedDay={selectedDay}
-        selectedDate={selectedDate}
-        savedDates={savedDates}
-        saving={saving}
-        saveMsg={saveMsg}
-        onSave={onSaveDate}
-        onUnsave={onUnsaveDate}
-        getGradeEmoji={getGradeEmoji}
-        getScoreClass={getScoreClass}
-      />
+          {/* Legend */}
+          <div
+            className={styles.legend}
+            role="list"
+            aria-label={locale === 'ko' ? '등급 범례' : 'Grade Legend'}
+          >
+            <div className={styles.legendItem} role="listitem">
+              <span className={`${styles.legendDot} ${styles.grade0Dot}`} aria-hidden="true">
+                <span className={styles.legendPattern}>★</span>
+              </span>
+              <span>{locale === 'ko' ? '최고 (68+)' : 'Best (68+)'}</span>
+            </div>
+            <div className={styles.legendItem} role="listitem">
+              <span className={`${styles.legendDot} ${styles.grade1Dot}`} aria-hidden="true">
+                <span className={styles.legendPattern}>●</span>
+              </span>
+              <span>{locale === 'ko' ? '좋음 (62-67)' : 'Good (62-67)'}</span>
+            </div>
+            <div className={styles.legendItem} role="listitem">
+              <span className={`${styles.legendDot} ${styles.grade2Dot}`} aria-hidden="true">
+                <span className={styles.legendPattern}>◆</span>
+              </span>
+              <span>{locale === 'ko' ? '보통 (42-61)' : 'Normal (42-61)'}</span>
+            </div>
+            <div className={styles.legendItem} role="listitem">
+              <span className={`${styles.legendDot} ${styles.grade3Dot}`} aria-hidden="true">
+                <span className={styles.legendPattern}>▲</span>
+              </span>
+              <span>{locale === 'ko' ? '안좋음 (28-41)' : 'Bad (28-41)'}</span>
+            </div>
+            <div className={styles.legendItem} role="listitem">
+              <span className={`${styles.legendDot} ${styles.grade4Dot}`} aria-hidden="true">
+                <span className={styles.legendPattern}>✕</span>
+              </span>
+              <span>{locale === 'ko' ? '최악 (<28)' : 'Worst (<28)'}</span>
+            </div>
+          </div>
 
-        {/* Month Highlights */}
-        {data?.allDates && data.allDates.length > 0 && (
-          <MonthHighlights
-            allDates={data.allDates}
-            year={year}
-            month={month}
-            onDateSelect={handleDateSelect}
+          {/* Monthly Fortune Graph */}
+          {fortuneData.length > 0 && (
+            <div className={styles.fortuneGraph}>
+              <div className={styles.graphHeader}>
+                <span className={styles.graphTitle}>
+                  📊 {locale === 'ko' ? '월간 운세 흐름' : 'Monthly Fortune Flow'}
+                </span>
+              </div>
+              <div className={styles.sparkline}>
+                {fortuneData.map((d, idx) => {
+                  const isSelected =
+                    selectedDay &&
+                    selectedDay.getDate() === d.day &&
+                    selectedDay.getMonth() === month
+                  const height = Math.max(10, 100 - d.grade * 20) + '%'
+                  return (
+                    <div
+                      key={idx}
+                      className={`${styles.sparkBar} ${styles[`grade${d.grade}`]} ${isSelected ? styles.active : ''}`}
+                      style={{ height }}
+                      onClick={() => {
+                        const clickedDate = new Date(year, month, d.day)
+                        handleDayClick(clickedDate)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleDayClick(new Date(year, month, d.day))
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${d.day}${locale === 'ko' ? '일' : ''}: ${locale === 'ko' ? '점수' : 'score'} ${d.score}`}
+                      title={`${d.day}${locale === 'ko' ? '일' : ''}: ${d.score}${locale === 'ko' ? '점' : ''}`}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Selected Date Panel */}
+          <SelectedDatePanel
+            selectedDay={selectedDay}
+            selectedDate={selectedDate}
+            savedDates={savedDates}
+            saving={saving}
+            saveMsg={saveMsg}
+            onSave={onSaveDate}
+            onUnsave={onUnsaveDate}
+            getGradeEmoji={getGradeEmoji}
+            getScoreClass={getScoreClass}
           />
-        )}
-      </>
+
+          {/* Month Highlights */}
+          {data?.allDates && data.allDates.length > 0 && (
+            <MonthHighlights
+              allDates={data.allDates}
+              year={year}
+              month={month}
+              onDateSelect={handleDateSelect}
+            />
+          )}
+        </>
       ) : (
         <CalendarActionPlanView
           data={data}
