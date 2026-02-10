@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import type { UserProfile, GuestBirthInfo } from '@/lib/dream/types'
 import { logger } from '@/lib/logger'
+import { normalizeGender, toShortGender } from '@/lib/utils/gender'
 
 export function useBirthInfo(locale: string) {
   const { status } = useSession()
@@ -75,7 +76,10 @@ export function useBirthInfo(locale: string) {
           setShowTimeInput(true)
         }
         if (user.gender) {
-          setGender(user.gender)
+          const shortGender = toShortGender(user.gender)
+          if (shortGender) {
+            setGender(shortGender)
+          }
         }
         if (user.birthCity) {
           setBirthCity(user.birthCity)
@@ -128,10 +132,14 @@ export function useBirthInfo(locale: string) {
 
     if (status === 'authenticated') {
       try {
+        const apiGender = normalizeGender(gender)
         const res = await fetch('/api/user/update-birth-info', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(birthInfo),
+          body: JSON.stringify({
+            ...birthInfo,
+            gender: apiGender,
+          }),
         })
 
         if (res.ok) {

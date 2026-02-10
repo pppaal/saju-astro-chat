@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { logger } from '@/lib/logger'
+import { normalizeGender, toShortGender } from '@/lib/utils/gender'
 
 /**
  * User profile structure from API
@@ -100,7 +101,7 @@ export function useLifePredictionProfile(
               birthDate: user.birthDate,
               birthTime: user.birthTime,
               birthCity: user.birthCity,
-              gender: user.gender,
+              gender: toShortGender(user.gender),
               latitude: user.latitude,
               longitude: user.longitude,
               timezone: user.tzId,
@@ -131,13 +132,14 @@ export function useLifePredictionProfile(
       if (status === 'authenticated') {
         setProfileError(null)
         try {
+          const apiGender = normalizeGender(birthInfo.gender)
           const res = await fetch('/api/user/update-birth-info', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               birthDate: birthInfo.birthDate,
               birthTime: birthInfo.birthTime,
-              gender: birthInfo.gender,
+              gender: apiGender,
               birthCity: birthInfo.birthCity,
             }),
           })

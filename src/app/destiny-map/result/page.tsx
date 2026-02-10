@@ -12,6 +12,7 @@ import AnalyzingLoader, { LifePredictionSkeleton } from './AnalyzingLoader'
 import { useLifePrediction } from './useLifePrediction'
 const FortuneDashboard = lazy(() => import('@/components/life-prediction/FortuneDashboard'))
 import { useI18n } from '@/i18n/I18nProvider'
+import { normalizeGender } from '@/lib/utils/gender'
 import BackButton from '@/components/ui/BackButton'
 import CreditBadge from '@/components/ui/CreditBadge'
 import ShareButton from '@/components/ui/ShareButton'
@@ -107,12 +108,13 @@ export default function DestinyResultPage({
       try {
         setLoading(true)
         const themesReq = [themeParam]
+        const apiGender = normalizeGender(gender) || 'male'
         const res = await analyzeDestiny({
           name,
           birthDate,
           birthTime,
           city,
-          gender,
+          gender: apiGender,
           latitude,
           longitude,
           lang: reqLang,

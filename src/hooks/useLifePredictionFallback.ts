@@ -6,15 +6,13 @@ import type { EventType } from '@/components/life-prediction/PredictionChat/hook
 import type { TimingPeriod } from '@/components/life-prediction/ResultCards/TimingCard'
 import type { BirthInfo, PredictionResult } from './lifePredictionUtils'
 import { extractSajuPillars, transformPeriod } from './lifePredictionUtils'
+import { normalizeGender } from '@/lib/utils/gender'
 
 /**
  * Hook for fallback prediction using frontend API
  * Extracted from useLifePredictionAPI to reduce file size
  */
-export function useLifePredictionFallback(
-  locale: string,
-  _onError: (error: string) => void
-) {
+export function useLifePredictionFallback(locale: string, _onError: (error: string) => void) {
   const handleFallback = useCallback(
     async (
       question: string,
@@ -43,7 +41,8 @@ export function useLifePredictionFallback(
 
         // Parse birth date
         const [birthYear, birthMonth, birthDay] = birthInfo.birthDate.split('-').map(Number)
-        const gender = birthInfo.gender === 'M' ? 'male' : 'female'
+        const normalizedGender = normalizeGender(birthInfo.gender)
+        const gender = normalizedGender === 'female' ? 'female' : 'male'
         const now = new Date()
         const currentYear = now.getFullYear()
         const currentMonth = now.getMonth() + 1
@@ -65,7 +64,7 @@ export function useLifePredictionFallback(
             body: JSON.stringify({
               birthDate: birthInfo.birthDate,
               birthTime: birthInfo.birthTime || '12:00',
-              gender: birthInfo.gender,
+              gender: normalizeGender(birthInfo.gender) ?? birthInfo.gender,
               latitude: defaultLat,
               longitude: defaultLon,
               timezone: 'Asia/Seoul',

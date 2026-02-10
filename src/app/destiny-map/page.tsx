@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
+import { normalizeGender } from '@/lib/utils/gender'
 import styles from './destiny-map.module.css'
 import { logger } from '@/lib/logger'
 import DateTimePicker from '@/components/ui/DateTimePicker'
@@ -172,7 +173,8 @@ function DestinyMapContent() {
       params.set('birthDate', form.birthDate || '')
       params.set('birthTime', form.birthTime || '')
       params.set('city', form.city || '')
-      params.set('gender', form.gender || '')
+      const apiGender = normalizeGender(form.gender)
+      params.set('gender', apiGender || '')
       params.set('lang', locale || 'ko')
       params.set('latitude', lat)
       params.set('longitude', lon)

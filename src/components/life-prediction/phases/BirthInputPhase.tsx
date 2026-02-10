@@ -11,6 +11,7 @@ import { motion } from 'framer-motion'
 import { BirthInfoForm } from '@/components/life-prediction/BirthInfoForm'
 import { LoginHint } from '../components/LoginHint'
 import { pageTransitionVariants } from '@/components/life-prediction/animations/cardAnimations'
+import { toShortGender } from '@/lib/utils/gender'
 import styles from '../life-prediction.module.css'
 
 interface BirthInputPhaseProps {
@@ -52,8 +53,7 @@ export const BirthInputPhase = React.memo<BirthInputPhaseProps>(
     }): Promise<void> => {
       // Normalize gender to short format (default to 'M' if not provided)
       const genderValue = birthInfo.gender || 'M'
-      const normalizedGender =
-        genderValue === 'Male' ? 'M' : genderValue === 'Female' ? 'F' : genderValue
+      const normalizedGender = toShortGender(genderValue) || (genderValue as 'M' | 'F')
       await onSubmit({
         ...birthInfo,
         gender: normalizedGender,

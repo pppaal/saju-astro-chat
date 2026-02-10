@@ -15,6 +15,7 @@ import { useDreamPhase } from '@/hooks/useDreamPhase'
 import { useBirthInfo } from '@/hooks/useBirthInfo'
 import { useDreamAnalysis } from '@/hooks/useDreamAnalysis'
 import { useDreamChat } from '@/hooks/useDreamChat'
+import { toShortGender } from '@/lib/utils/gender'
 import { DreamBackground } from '@/components/dream/DreamBackground'
 import { BirthInputPhase } from '@/components/dream/phases/BirthInputPhase'
 import { DreamInputPhase } from '@/components/dream/phases/DreamInputPhase'
@@ -69,8 +70,7 @@ function DreamContent() {
   }) => {
     // Normalize gender to 'M' | 'F' format
     const genderValue = birthData.gender || 'M'
-    const normalizedGender =
-      genderValue === 'Male' ? 'M' : genderValue === 'Female' ? 'F' : genderValue
+    const normalizedGender = toShortGender(genderValue) || (genderValue as 'M' | 'F')
 
     // Update birthInfo hook state
     birthInfo.setBirthDate(birthData.birthDate)

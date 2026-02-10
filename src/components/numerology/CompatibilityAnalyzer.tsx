@@ -1,66 +1,84 @@
 // components/numerology/CompatibilityAnalyzer.tsx
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { motion } from 'framer-motion';
-import { useI18n } from '@/i18n/I18nProvider';
-import styles from './CompatibilityAnalyzer.module.css';
-import { logger } from '@/lib/logger';
+import { useState } from 'react'
+import { useSession } from 'next-auth/react'
+import { motion } from 'framer-motion'
+import { useI18n } from '@/i18n/I18nProvider'
+import styles from './CompatibilityAnalyzer.module.css'
+import { logger } from '@/lib/logger'
+import { normalizeGender } from '@/lib/utils/gender'
 
-import type { Person, RelationshipType } from './compatibility/types';
-import { useCompatibilityAnalysis } from './compatibility/useCompatibilityAnalysis';
+import type { Person, RelationshipType } from './compatibility/types'
+import { useCompatibilityAnalysis } from './compatibility/useCompatibilityAnalysis'
 import {
   PersonInputSection,
   RelationshipSelector,
   LoadingSkeleton,
   ResultsDisplay,
-} from './compatibility/components';
+} from './compatibility/components'
 
 export default function CompatibilityAnalyzer() {
-  const { t, locale } = useI18n();
-  const { status } = useSession();
-  const [person1, setPerson1] = useState<Person>({ birthDate: '', birthTime: '12:00', name: '', gender: undefined });
-  const [person2, setPerson2] = useState<Person>({ birthDate: '', birthTime: '12:00', name: '', gender: undefined });
-  const [loadingProfile, setLoadingProfile] = useState(false);
+  const { t, locale } = useI18n()
+  const { status } = useSession()
+  const [person1, setPerson1] = useState<Person>({
+    birthDate: '',
+    birthTime: '12:00',
+    name: '',
+    gender: undefined,
+  })
+  const [person2, setPerson2] = useState<Person>({
+    birthDate: '',
+    birthTime: '12:00',
+    name: '',
+    gender: undefined,
+  })
+  const [loadingProfile, setLoadingProfile] = useState(false)
 
   const handleLoadMyProfile = async () => {
-    if (status !== 'authenticated') return;
-    setLoadingProfile(true);
+    if (status !== 'authenticated') return
+    setLoadingProfile(true)
     try {
-      const res = await fetch('/api/me/profile', { cache: 'no-store' });
-      if (!res.ok) throw new Error('Failed to load profile');
-      const { user } = await res.json();
+      const res = await fetch('/api/me/profile', { cache: 'no-store' })
+      if (!res.ok) throw new Error('Failed to load profile')
+      const { user } = await res.json()
+      const normalizedGender = normalizeGender(user?.gender)
+      const gender =
+        normalizedGender === 'female' ? 'female' : normalizedGender === 'male' ? 'male' : undefined
       setPerson1({
         ...person1,
         birthDate: user?.birthDate || '',
         birthTime: user?.birthTime || '12:00',
         name: user?.name || '',
-        gender: user?.gender === 'M' ? 'male' : user?.gender === 'F' ? 'female' : undefined,
-      });
+        gender,
+      })
     } catch (err) {
-      logger.error('[CompatibilityAnalyzer] Failed to load profile:', err);
+      logger.error('[CompatibilityAnalyzer] Failed to load profile:', err)
     } finally {
-      setLoadingProfile(false);
+      setLoadingProfile(false)
     }
-  };
-  const [relationshipType, setRelationshipType] = useState<RelationshipType>('lover');
+  }
+  const [relationshipType, setRelationshipType] = useState<RelationshipType>('lover')
 
   const relationshipOptions: { value: RelationshipType; label: string }[] = [
     { value: 'lover', label: t('numerology.compatibility.relationLover', 'Romantic Partner') },
     { value: 'spouse', label: t('numerology.compatibility.relationSpouse', 'Spouse') },
     { value: 'friend', label: t('numerology.compatibility.relationFriend', 'Friend') },
-    { value: 'business', label: t('numerology.compatibility.relationBusiness', 'Business Partner') },
+    {
+      value: 'business',
+      label: t('numerology.compatibility.relationBusiness', 'Business Partner'),
+    },
     { value: 'family', label: t('numerology.compatibility.relationFamily', 'Family') },
-  ];
+  ]
 
-  const { result, isLoading, error, showAdvanced, setShowAdvanced, handleSubmit } = useCompatibilityAnalysis({
-    person1,
-    person2,
-    relationshipType,
-    locale,
-    t,
-  });
+  const { result, isLoading, error, showAdvanced, setShowAdvanced, handleSubmit } =
+    useCompatibilityAnalysis({
+      person1,
+      person2,
+      relationshipType,
+      locale,
+      t,
+    })
 
   return (
     <div className={styles.container}>
@@ -73,20 +91,26 @@ export default function CompatibilityAnalyzer() {
           locale={locale}
           t={t}
           namePlaceholder={locale === 'ko' ? '홍길동' : 'John Smith'}
-          headerExtra={status === 'authenticated' ? (
-            <motion.button
-              type="button"
-              className={styles.loadProfileBtn}
-              onClick={handleLoadMyProfile}
-              disabled={loadingProfile}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {loadingProfile
-                ? (locale === 'ko' ? '불러오는 중...' : 'Loading...')
-                : (locale === 'ko' ? '👤 내 프로필 불러오기' : '👤 Load My Profile')}
-            </motion.button>
-          ) : undefined}
+          headerExtra={
+            status === 'authenticated' ? (
+              <motion.button
+                type="button"
+                className={styles.loadProfileBtn}
+                onClick={handleLoadMyProfile}
+                disabled={loadingProfile}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {loadingProfile
+                  ? locale === 'ko'
+                    ? '불러오는 중...'
+                    : 'Loading...'
+                  : locale === 'ko'
+                    ? '👤 내 프로필 불러오기'
+                    : '👤 Load My Profile'}
+              </motion.button>
+            ) : undefined
+          }
         />
 
         {/* Heart Divider */}
@@ -112,11 +136,7 @@ export default function CompatibilityAnalyzer() {
           label={t('numerology.compatibility.relationshipType', 'Relationship Type')}
         />
 
-        {error && (
-          <div className={styles.error}>
-            {error}
-          </div>
-        )}
+        {error && <div className={styles.error}>{error}</div>}
 
         <motion.button
           type="submit"
@@ -150,5 +170,5 @@ export default function CompatibilityAnalyzer() {
         />
       )}
     </div>
-  );
+  )
 }

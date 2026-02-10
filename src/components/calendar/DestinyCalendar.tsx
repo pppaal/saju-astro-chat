@@ -26,6 +26,7 @@ import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
 import { logger } from '@/lib/logger'
+import { normalizeGender, toLongGender } from '@/lib/utils/gender'
 import { getUserProfile } from '@/lib/userProfile'
 
 // Types
@@ -77,8 +78,6 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState<string | null>(null)
 
-  
-
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
 
@@ -104,11 +103,9 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
       setBirthInfo((prev) => ({ ...prev, birthTime: profile.birthTime || '' }))
     }
     if (profile.gender) {
-      const rawGender = String(profile.gender)
-      const normalizedGender =
-        rawGender === 'M' ? 'Male' : rawGender === 'F' ? 'Female' : rawGender
-      if (normalizedGender === 'Male' || normalizedGender === 'Female') {
-        setBirthInfo((prev) => ({ ...prev, gender: normalizedGender }))
+      const longGender = toLongGender(profile.gender)
+      if (longGender) {
+        setBirthInfo((prev) => ({ ...prev, gender: longGender }))
       }
     }
   }, [])
@@ -165,7 +162,10 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
         params.set('birthTime', birthData.birthTime)
         params.set('birthPlace', birthData.birthPlace)
         if (birthData.gender) {
-          params.set('gender', birthData.gender)
+          const apiGender = normalizeGender(birthData.gender)
+          if (apiGender) {
+            params.set('gender', apiGender)
+          }
         }
 
         const res = await fetch(`/api/calendar?${params}`, {
@@ -215,9 +215,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   const handleBirthInfoSubmit = (submittedInfo: BirthInfo) => {
     if (!submittedInfo.birthDate || !submittedInfo.birthPlace) {
       setError(
-        locale === 'ko'
-          ? '생년월일과 출생지를 입력해주세요'
-          : 'Please enter birth date and city'
+        locale === 'ko' ? '생년월일과 출생지를 입력해주세요' : 'Please enter birth date and city'
       )
       return
     }
@@ -364,11 +362,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   // Birth info form (before calendar data is loaded)
   if (!hasBirthInfo) {
     return (
-      <BirthInfoForm
-        canvasRef={canvasRef}
-        birthInfo={birthInfo}
-        onSubmit={handleBirthInfoSubmit}
-      />
+      <BirthInfoForm canvasRef={canvasRef} birthInfo={birthInfo} onSubmit={handleBirthInfoSubmit} />
     )
   }
 

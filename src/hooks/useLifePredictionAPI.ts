@@ -7,6 +7,7 @@ import { resolveBirthInfo, transformPeriods } from './lifePredictionUtils'
 import type { PredictionResult } from './lifePredictionUtils'
 import type { EventType } from '@/components/life-prediction/PredictionChat/hooks/useEventTypeDetector'
 import { useLifePredictionFallback } from './useLifePredictionFallback'
+import { normalizeGender } from '@/lib/utils/gender'
 
 /**
  * Return type for useLifePredictionAPI hook
@@ -54,7 +55,8 @@ export function useLifePredictionAPI(
         // Parse birth date
         const [birthYear, birthMonth, birthDay] = birthInfo.birthDate.split('-').map(Number)
         const [birthHour] = (birthInfo.birthTime || '12:00').split(':').map(Number)
-        const gender = birthInfo.gender === 'M' ? 'male' : 'female'
+        const normalizedGender = normalizeGender(birthInfo.gender)
+        const gender = normalizedGender === 'female' ? 'female' : 'male'
 
         // Try backend RAG prediction first
         const response = await fetch('/api/life-prediction/backend-predict', {
