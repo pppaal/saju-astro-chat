@@ -1,27 +1,19 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import BackButton from '@/components/ui/BackButton';
+import Link from 'next/link'
+import BackButton from '@/components/ui/BackButton'
 import {
   TestStatusCard,
   SummaryGrid,
   AxisComparison,
   InsightGrid,
   useCombinedResult,
-} from './components';
-import styles from './combined.module.css';
+} from './components'
+import styles from './combined.module.css'
 
 export default function CombinedResultPage() {
-  const {
-    icpResult,
-    personaResult,
-    hasIcp,
-    hasPersona,
-    loading,
-    isKo,
-    insights,
-    starPositions,
-  } = useCombinedResult();
+  const { icpResult, personaResult, hasIcp, hasPersona, loading, isKo, insights, starPositions } =
+    useCombinedResult()
 
   if (loading) {
     return (
@@ -31,18 +23,11 @@ export default function CombinedResultPage() {
           <p>{isKo ? '분석 중...' : 'Analyzing...'}</p>
         </div>
       </main>
-    );
+    )
   }
 
   if (!hasIcp || !hasPersona) {
-    return (
-      <TestStatusCard
-        styles={styles}
-        isKo={isKo}
-        hasIcp={hasIcp}
-        hasPersona={hasPersona}
-      />
-    );
+    return <TestStatusCard styles={styles} isKo={isKo} hasIcp={hasIcp} hasPersona={hasPersona} />
   }
 
   return (
@@ -72,16 +57,26 @@ export default function CombinedResultPage() {
           </p>
         </div>
 
-        <SummaryGrid styles={styles} isKo={isKo} icpResult={icpResult!} personaResult={personaResult!} />
-        <AxisComparison styles={styles} isKo={isKo} icpResult={icpResult!} personaResult={personaResult!} />
+        <SummaryGrid
+          styles={styles}
+          isKo={isKo}
+          icpResult={icpResult!}
+          personaResult={personaResult!}
+        />
+        <AxisComparison
+          styles={styles}
+          isKo={isKo}
+          icpResult={icpResult!}
+          personaResult={personaResult!}
+        />
         <InsightGrid styles={styles} isKo={isKo} insights={insights} />
 
         {/* Action Buttons */}
         <div className={styles.actions}>
-          <Link href="/icp/result" className={styles.secondaryButton}>
+          <Link href="/icp/result?view=single" className={styles.secondaryButton}>
             {isKo ? 'ICP 상세 결과' : 'ICP Details'}
           </Link>
-          <Link href="/personality/result" className={styles.secondaryButton}>
+          <Link href="/personality/result?view=single" className={styles.secondaryButton}>
             {isKo ? '성격 분석 상세' : 'Persona Details'}
           </Link>
           <Link href="/compatibility" className={styles.primaryButton}>
@@ -90,5 +85,5 @@ export default function CombinedResultPage() {
         </div>
       </div>
     </main>
-  );
+  )
 }

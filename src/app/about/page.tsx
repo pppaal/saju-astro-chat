@@ -43,7 +43,7 @@ const SERVICE_DETAILS: Record<ServiceKey, Omit<Service, 'id' | 'icon'>> = {
     descriptionEn: 'Find your best match with Saju and Astrology insights',
   },
   icpPersonality: {
-    href: '/personality',
+    href: '/personality/select',
     gradient: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
     descriptionKo: 'ICP와 성격 분석으로 관계와 성향을 통합 해석합니다',
     descriptionEn: 'Integrated ICP and personality analysis for deeper insights',

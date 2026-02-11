@@ -4,7 +4,12 @@ export const SERVICE_OPTIONS = [
   { key: 'calendar', labelKey: 'menu.calendar', icon: '🗓️', path: '/calendar' },
   { key: 'compatibility', labelKey: 'menu.compatibility', icon: '💕', path: '/compatibility' },
   { key: 'destinyMatch', labelKey: 'menu.destinyMatch', icon: '💘', path: '/destiny-match' },
-  { key: 'icpPersonality', labelKey: 'menu.icpPersonality', icon: '🎭', path: '/personality' },
+  {
+    key: 'icpPersonality',
+    labelKey: 'menu.icpPersonality',
+    icon: '🎭',
+    path: '/personality/select',
+  },
   { key: 'tarot', labelKey: 'menu.tarot', icon: '🔮', path: '/tarot' },
 ] as const
 
