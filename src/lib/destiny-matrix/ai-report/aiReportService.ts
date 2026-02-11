@@ -31,6 +31,63 @@ import {
   extractKeywords,
 } from './scoreCalculators'
 
+const SAJU_REGEX = /사주|오행|십신|대운|일간|격국|용신|신살/i
+const ASTRO_REGEX = /점성|행성|하우스|트랜싯|별자리|상승궁|천궁도|astrology|planet|house|transit|zodiac/i
+
+function hasCrossInText(text: string): boolean {
+  if (!text || typeof text !== 'string') return false
+  return SAJU_REGEX.test(text) && ASTRO_REGEX.test(text)
+}
+
+function countSectionChars(sections: Record<string, unknown>): number {
+  return Object.values(sections || {}).reduce((acc, value) => {
+    if (typeof value === 'string') {
+      return acc + value.length
+    }
+    if (Array.isArray(value)) {
+      return acc + value.join(' ').length
+    }
+    if (value && typeof value === 'object') {
+      return acc + countSectionChars(value as Record<string, unknown>)
+    }
+    return acc
+  }, 0)
+}
+
+function getMissingCrossKeys(
+  sections: Record<string, unknown>,
+  keys: string[]
+): string[] {
+  const missing: string[] = []
+  for (const key of keys) {
+    const value = sections[key]
+    if (typeof value === 'string') {
+      if (!hasCrossInText(value)) missing.push(key)
+    }
+  }
+  return missing
+}
+
+function buildCrossRepairInstruction(lang: 'ko' | 'en', missing: string[]): string {
+  const list = missing.join(', ')
+  if (lang === 'ko') {
+    return [
+      '',
+      '중요: 아래 섹션에서 사주/점성 교차 근거가 누락되었습니다.',
+      `누락 섹션: ${list}`,
+      '각 누락 섹션에 반드시 포함: 사주 근거 1문장 + 점성 근거 1문장 + 교차 결론 1문장 + 실용 행동 2문장.',
+      '문장형 존댓말만 사용하고 리스트/이모지/제목 표기는 금지합니다.',
+    ].join('\n')
+  }
+  return [
+    '',
+    'IMPORTANT: Cross-basis is missing in the following sections.',
+    `Missing sections: ${list}`,
+    'Each missing section must include: 1 Saju basis sentence + 1 Astrology basis sentence + 1 cross conclusion sentence + 2 practical action sentences.',
+    'Use sentence-form only. No lists, emojis, or headings.',
+  ].join('\n')
+}
+
 // ===========================
 // 메인 생성 함수
 // ===========================
