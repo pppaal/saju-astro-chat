@@ -32,7 +32,8 @@ import {
 } from './scoreCalculators'
 
 const SAJU_REGEX = /사주|오행|십신|대운|일간|격국|용신|신살/i
-const ASTRO_REGEX = /점성|행성|하우스|트랜싯|별자리|상승궁|천궁도|astrology|planet|house|transit|zodiac/i
+const ASTRO_REGEX =
+  /점성|행성|하우스|트랜싯|별자리|상승궁|천궁도|astrology|planet|house|transit|zodiac/i
 
 function hasCrossInText(text: string): boolean {
   if (!text || typeof text !== 'string') return false
@@ -40,7 +41,8 @@ function hasCrossInText(text: string): boolean {
 }
 
 function countSectionChars(sections: Record<string, unknown>): number {
-  return Object.values(sections || {}).reduce((acc, value) => {
+  const values = Object.values(sections || {}) as unknown[]
+  return values.reduce<number>((acc, value) => {
     if (typeof value === 'string') {
       return acc + value.length
     }
@@ -54,10 +56,7 @@ function countSectionChars(sections: Record<string, unknown>): number {
   }, 0)
 }
 
-function getMissingCrossKeys(
-  sections: Record<string, unknown>,
-  keys: string[]
-): string[] {
+function getMissingCrossKeys(sections: Record<string, unknown>, keys: string[]): string[] {
   const missing: string[] = []
   for (const key of keys) {
     const value = sections[key]
