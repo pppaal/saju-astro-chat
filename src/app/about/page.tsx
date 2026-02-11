@@ -1,14 +1,15 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { useRef, useEffect } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
 import ScrollToTop from '@/components/ui/ScrollToTop'
+import { SERVICE_OPTIONS, type ServiceKey } from '@/app/(main)/serviceConfig'
 import styles from './about.module.css'
 
 type Service = {
-  id: string
+  id: ServiceKey
   icon: string
   href: string
   gradient: string
@@ -16,63 +17,59 @@ type Service = {
   descriptionEn: string
 }
 
-const SERVICES: Service[] = [
-  {
-    id: 'destinyMap',
-    icon: '🗺️',
+const SERVICE_DETAILS: Record<ServiceKey, Omit<Service, 'id' | 'icon'>> = {
+  destinyMap: {
     href: '/destiny-map',
     gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     descriptionKo: 'AI가 사주와 점성술을 융합하여 당신만의 운명 지도를 그립니다',
     descriptionEn: 'AI-powered fusion of Saju and Astrology to map your destiny',
   },
-  {
-    id: 'calendar',
-    icon: '🗓️',
+  calendar: {
     href: '/calendar',
     gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
     descriptionKo: '매일의 운세와 중요한 날짜를 한눈에 확인하세요',
     descriptionEn: 'View daily fortunes and important dates at a glance',
   },
-  {
-    id: 'compatibility',
-    icon: '💕',
+  compatibility: {
     href: '/compatibility',
     gradient: 'linear-gradient(135deg, #f7b733 0%, #fc4a1a 100%)',
     descriptionKo: '사랑과 우정, 비즈니스 관계의 궁합을 분석합니다',
     descriptionEn: 'Analyze compatibility in love, friendship, and business',
   },
-  {
-    id: 'destinyMatch',
-    icon: '💘',
+  destinyMatch: {
     href: '/destiny-match',
     gradient: 'linear-gradient(135deg, #f9a8d4 0%, #c084fc 100%)',
     descriptionKo: '사주와 점성 기반으로 완벽한 인연을 찾아드립니다',
     descriptionEn: 'Find your best match with Saju and Astrology insights',
   },
-  {
-    id: 'icpPersonality',
-    icon: '🎭',
+  icpPersonality: {
     href: '/personality',
     gradient: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
     descriptionKo: 'ICP와 성격 분석으로 관계와 성향을 통합 해석합니다',
     descriptionEn: 'Integrated ICP and personality analysis for deeper insights',
   },
-  {
-    id: 'tarot',
-    icon: '🔮',
+  tarot: {
     href: '/tarot',
     gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
     descriptionKo: '타로 카드가 현재 상황과 미래를 통찰합니다',
     descriptionEn: 'Tarot cards provide insight into your present and future',
   },
-]
+}
 
+const SERVICES: Service[] = SERVICE_OPTIONS.map((service) => ({
+  id: service.key,
+  icon: service.icon,
+  ...SERVICE_DETAILS[service.key],
+}))
 export default function AboutPage() {
   const { translate, locale } = useI18n()
   const serviceGridRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
   const startX = useRef(0)
   const scrollLeft = useRef(0)
+  const serviceCount = SERVICES.length
+  const servicesTitle =
+    locale === 'ko' ? `${serviceCount}가지 운명 리딩` : `${serviceCount} Destiny Readings`
 
   useEffect(() => {
     const grid = serviceGridRef.current
@@ -128,10 +125,7 @@ export default function AboutPage() {
             </span>
           </h1>
           <p className={styles.heroSub}>
-            {translate('about.heroSubtitle', 'Fate speaks. AI listens. You decide.')}
-          </p>
-          <p className={styles.tagline}>
-            {translate('about.tagline', 'Understand your patterns. Change your outcomes.')}
+            {translate('about.heroSubtitle', '각 서비스로 다양한 관점에서 당신을 발견하세요')}
           </p>
         </section>
 
@@ -141,13 +135,10 @@ export default function AboutPage() {
               {translate('about.servicesEyebrow', 'DestinyPal Services')}
             </p>
             <h2 className={styles.sectionTitle}>
-              {translate('about.servicesTitle', '6 Core Services')}
+              {translate('about.servicesTitle', servicesTitle)}
             </h2>
             <p className={styles.sectionDesc}>
-              {translate(
-                'about.servicesDesc',
-                'Focus on the essentials: destiny map, calendar, compatibility, matching, ICP+personality, and tarot'
-              )}
+              {translate('about.servicesDesc', '각 서비스로 다양한 관점에서 당신을 발견하세요')}
             </p>
           </div>
 
