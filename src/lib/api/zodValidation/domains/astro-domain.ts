@@ -8,14 +8,34 @@ import { z } from 'zod'
 // ============ Core Enums ============
 
 export const zodiacSignSchema = z.enum([
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
 ])
 export type ZodiacSignValidated = z.infer<typeof zodiacSignSchema>
 
 export const zodiacSignKoreanSchema = z.enum([
-  '양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리',
-  '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리',
+  '양자리',
+  '황소자리',
+  '쌍둥이자리',
+  '게자리',
+  '사자자리',
+  '처녀자리',
+  '천칭자리',
+  '전갈자리',
+  '사수자리',
+  '염소자리',
+  '물병자리',
+  '물고기자리',
 ])
 export type ZodiacSignKoreanValidated = z.infer<typeof zodiacSignKoreanSchema>
 
@@ -23,16 +43,37 @@ export const houseSystemSchema = z.enum(['Placidus', 'WholeSign', 'Koch', 'Equal
 export type HouseSystemValidated = z.infer<typeof houseSystemSchema>
 
 export const aspectTypeSchema = z.enum([
-  'conjunction', 'sextile', 'square', 'trine', 'opposition',
-  'semisextile', 'quincunx', 'quintile', 'biquintile',
+  'conjunction',
+  'sextile',
+  'square',
+  'trine',
+  'opposition',
+  'semisextile',
+  'quincunx',
+  'quintile',
+  'biquintile',
 ])
 export type AspectTypeValidated = z.infer<typeof aspectTypeSchema>
 
 export const planetNameSchema = z.enum([
-  'Sun', 'Moon', 'Mercury', 'Venus', 'Mars',
-  'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto',
-  'Chiron', 'Lilith', 'NorthNode', 'SouthNode',
-  'Ascendant', 'Midheaven', 'IC', 'Descendant',
+  'Sun',
+  'Moon',
+  'Mercury',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturn',
+  'Uranus',
+  'Neptune',
+  'Pluto',
+  'Chiron',
+  'Lilith',
+  'NorthNode',
+  'SouthNode',
+  'Ascendant',
+  'Midheaven',
+  'IC',
+  'Descendant',
 ])
 export type PlanetNameValidated = z.infer<typeof planetNameSchema>
 
@@ -54,6 +95,7 @@ export const planetBaseSchema = z.object({
   house: z.number().int().min(1).max(12),
   speed: z.number().optional(),
   retrograde: z.boolean().optional(),
+  graphId: z.string().max(40).optional(),
 })
 export type PlanetBaseValidated = z.infer<typeof planetBaseSchema>
 
@@ -62,6 +104,7 @@ export const houseSchema = z.object({
   cusp: z.number().min(0).max(360),
   sign: zodiacSignSchema,
   formatted: z.string().max(50),
+  graphId: z.string().max(40).optional(),
 })
 export type HouseValidated = z.infer<typeof houseSchema>
 
@@ -107,6 +150,7 @@ export const extraPointSchema = z.object({
   formatted: z.string().max(50),
   house: z.number().int().min(1).max(12),
   description: z.string().max(500).optional(),
+  graphId: z.string().max(40).optional(),
 })
 export type ExtraPointValidated = z.infer<typeof extraPointSchema>
 
@@ -161,22 +205,13 @@ export type NatalInputValidated = z.infer<typeof natalInputSchema>
 
 // ============ Planet Position Records ============
 
-export const planetHousesSchema = z.record(
-  z.string().max(30),
-  z.number().int().min(1).max(12)
-)
+export const planetHousesSchema = z.record(z.string().max(30), z.number().int().min(1).max(12))
 export type PlanetHousesValidated = z.infer<typeof planetHousesSchema>
 
-export const planetSignsSchema = z.record(
-  z.string().max(30),
-  zodiacSignSchema
-)
+export const planetSignsSchema = z.record(z.string().max(30), zodiacSignSchema)
 export type PlanetSignsValidated = z.infer<typeof planetSignsSchema>
 
-export const planetLongitudesSchema = z.record(
-  z.string().max(30),
-  z.number().min(0).max(360)
-)
+export const planetLongitudesSchema = z.record(z.string().max(30), z.number().min(0).max(360))
 export type PlanetLongitudesValidated = z.infer<typeof planetLongitudesSchema>
 
 // ============ Element Ratios ============
@@ -248,17 +283,19 @@ export type AstrologyDataValidated = z.infer<typeof astrologyDataSchema>
 
 // ============ Chat Context Schema ============
 
-export const astroChatContextSchema = z.object({
-  sunSign: zodiacSignSchema.optional(),
-  moonSign: zodiacSignSchema.optional(),
-  ascendant: zodiacSignSchema.optional(),
-  sunLongitude: z.number().min(0).max(360).optional(),
-  moonLongitude: z.number().min(0).max(360).optional(),
-  dominantElement: astroElementSchema.optional(),
-  planetHouses: planetHousesSchema.optional(),
-  planetSigns: planetSignsSchema.optional(),
-  activeTransits: z.array(transitAspectSchema).optional(),
-})
+export const astroChatContextSchema = z
+  .object({
+    sunSign: zodiacSignSchema.optional(),
+    moonSign: zodiacSignSchema.optional(),
+    ascendant: zodiacSignSchema.optional(),
+    sunLongitude: z.number().min(0).max(360).optional(),
+    moonLongitude: z.number().min(0).max(360).optional(),
+    dominantElement: astroElementSchema.optional(),
+    planetHouses: planetHousesSchema.optional(),
+    planetSigns: planetSignsSchema.optional(),
+    activeTransits: z.array(transitAspectSchema).optional(),
+  })
+  .passthrough()
 export type AstroChatContextValidated = z.infer<typeof astroChatContextSchema>
 
 // ============ Synastry (Compatibility) Schemas ============

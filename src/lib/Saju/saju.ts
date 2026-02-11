@@ -26,6 +26,7 @@ import {
   getSolarTermKST,
   assertKasiYearInRange,
 } from './constants'
+import { toBranchId, toGanjiId, toSajuElementId, toStemId } from './graphIds'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
 
 // 내부 타입(간단화)
@@ -154,7 +155,7 @@ function getSajuCacheKey(
 ): string {
   const sep = CACHE_KEY.SEPARATOR
   const params = [birthDate, birthTime, gender, calendarType, timezone, lunarLeap ?? '']
-  return `${CACHE_KEY.PREFIX.SAJU}${sep}${params.map(p => JSON.stringify(p)).join(sep)}`
+  return `${CACHE_KEY.PREFIX.SAJU}${sep}${params.map((p) => JSON.stringify(p)).join(sep)}`
 }
 
 /* ========== 메인 계산 ========== */
@@ -282,7 +283,11 @@ export function calculateSajuData(
     const dayStemIndex = (jdn + 49) % 10
     const dayBranchIndex = (jdn + 49) % 12
     const dayPillar = { stem: STEMS[dayStemIndex], branch: BRANCHES[dayBranchIndex] }
-    const dayMaster = dayPillar.stem
+    const dayMaster: StemBranchInfo = {
+      ...dayPillar.stem,
+      graphId: toStemId(dayPillar.stem.name) ?? undefined,
+      elementGraphId: toSajuElementId(dayPillar.stem.element) ?? undefined,
+    }
 
     /* ---------------- 시기둥 ---------------- */
     const { h: hour, m: minute } = parseHourMinute(birthTime)
@@ -386,7 +391,11 @@ export function calculateSajuData(
       if (!stem) {
         return undefined
       }
-      return { name: stemName, sibsin: getSibseong(dayMaster, stem) }
+      return {
+        name: stemName,
+        sibsin: getSibseong(dayMaster, stem),
+        graphId: toStemId(stemName) ?? undefined,
+      }
     }
 
     ;(['yearPillar', 'monthPillar', 'dayPillar', 'timePillar'] as const).forEach((name) => {
@@ -403,13 +412,18 @@ export function calculateSajuData(
           element: p.stem.element,
           yin_yang: p.stem.yin_yang,
           sibsin: getSibseong(dayMaster, p.stem),
+          graphId: toStemId(p.stem.name) ?? undefined,
+          elementGraphId: toSajuElementId(p.stem.element) ?? undefined,
         },
         earthlyBranch: {
           name: p.branch.name,
           element: p.branch.element,
           yin_yang: p.branch.yin_yang,
           sibsin: getSibseong(dayMaster, mainStem ?? p.branch),
+          graphId: toBranchId(p.branch.name) ?? undefined,
+          elementGraphId: toSajuElementId(p.branch.element) ?? undefined,
         },
+        ganjiGraphId: toGanjiId(`${p.stem.name}${p.branch.name}`) ?? undefined,
         jijanggan: {
           chogi: makeJijangganEntry(chogiName),
           junggi: makeJijangganEntry(junggiName),

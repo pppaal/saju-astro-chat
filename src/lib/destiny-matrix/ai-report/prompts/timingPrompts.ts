@@ -1,7 +1,7 @@
 // src/lib/destiny-matrix/ai-report/prompts/timingPrompts.ts
 // 타이밍 리포트용 프롬프트 생성
 
-import type { ReportPeriod, TimingData } from '../types';
+import type { ReportPeriod, TimingData } from '../types'
 
 // ===========================
 // 기간별 프롬프트 섹션
@@ -91,7 +91,7 @@ Career/Love/Wealth/Health를 각각 500-600자씩 깊이있게. **각 영역마�
 - 2 things to avoid
 - 1 core message for today
 `,
-};
+}
 
 const MONTHLY_SECTIONS = {
   ko: `
@@ -164,7 +164,7 @@ const MONTHLY_SECTIONS = {
 - Weekly action items
 - Month-end check points
 `,
-};
+}
 
 const YEARLY_SECTIONS = {
   ko: `
@@ -243,88 +243,88 @@ const YEARLY_SECTIONS = {
 - Year-end reflection points
 - Preparation for next year
 `,
-};
+}
 
 // ===========================
 // 타이밍 데이터 포맷터
 // ===========================
 
 function formatTimingData(timing: TimingData, lang: 'ko' | 'en'): string {
-  const lines: string[] = [];
+  const lines: string[] = []
 
   if (lang === 'ko') {
-    lines.push('## 현재 운세 주기 데이터\n');
+    lines.push('## 현재 운세 주기 데이터\n')
 
     if (timing.daeun) {
-      lines.push(`### 대운 (10년 주기)`);
-      lines.push(`- 천간: ${timing.daeun.heavenlyStem}`);
-      lines.push(`- 지지: ${timing.daeun.earthlyBranch}`);
-      lines.push(`- 오행: ${timing.daeun.element}`);
-      lines.push(`- 기간: ${timing.daeun.startAge}세 ~ ${timing.daeun.endAge}세`);
-      lines.push(`- 현재: ${timing.daeun.isCurrent ? '진행 중' : '아님'}\n`);
+      lines.push(`### 대운 (10년 주기)`)
+      lines.push(`- 천간: ${timing.daeun.heavenlyStem}`)
+      lines.push(`- 지지: ${timing.daeun.earthlyBranch}`)
+      lines.push(`- 오행: ${timing.daeun.element}`)
+      lines.push(`- 기간: ${timing.daeun.startAge}세 ~ ${timing.daeun.endAge}세`)
+      lines.push(`- 현재: ${timing.daeun.isCurrent ? '진행 중' : '아님'}\n`)
     }
 
     if (timing.seun) {
-      lines.push(`### 세운 (올해 연운)`);
-      lines.push(`- 연도: ${timing.seun.year}년`);
-      lines.push(`- 천간: ${timing.seun.heavenlyStem}`);
-      lines.push(`- 지지: ${timing.seun.earthlyBranch}`);
-      lines.push(`- 오행: ${timing.seun.element}\n`);
+      lines.push(`### 세운 (올해 연운)`)
+      lines.push(`- 연도: ${timing.seun.year}년`)
+      lines.push(`- 천간: ${timing.seun.heavenlyStem}`)
+      lines.push(`- 지지: ${timing.seun.earthlyBranch}`)
+      lines.push(`- 오행: ${timing.seun.element}\n`)
     }
 
     if (timing.wolun) {
-      lines.push(`### 월운 (이번달)`);
-      lines.push(`- 월: ${timing.wolun.month}월`);
-      lines.push(`- 천간: ${timing.wolun.heavenlyStem}`);
-      lines.push(`- 지지: ${timing.wolun.earthlyBranch}`);
-      lines.push(`- 오행: ${timing.wolun.element}\n`);
+      lines.push(`### 월운 (이번달)`)
+      lines.push(`- 월: ${timing.wolun.month}월`)
+      lines.push(`- 천간: ${timing.wolun.heavenlyStem}`)
+      lines.push(`- 지지: ${timing.wolun.earthlyBranch}`)
+      lines.push(`- 오행: ${timing.wolun.element}\n`)
     }
 
     if (timing.iljin) {
-      lines.push(`### 일진 (오늘)`);
-      lines.push(`- 날짜: ${timing.iljin.date}`);
-      lines.push(`- 천간: ${timing.iljin.heavenlyStem}`);
-      lines.push(`- 지지: ${timing.iljin.earthlyBranch}`);
-      lines.push(`- 오행: ${timing.iljin.element}\n`);
+      lines.push(`### 일진 (오늘)`)
+      lines.push(`- 날짜: ${timing.iljin.date}`)
+      lines.push(`- 천간: ${timing.iljin.heavenlyStem}`)
+      lines.push(`- 지지: ${timing.iljin.earthlyBranch}`)
+      lines.push(`- 오행: ${timing.iljin.element}\n`)
     }
   } else {
-    lines.push('## Current Fortune Cycle Data\n');
+    lines.push('## Current Fortune Cycle Data\n')
 
     if (timing.daeun) {
-      lines.push(`### Daeun (10-Year Cycle)`);
-      lines.push(`- Heavenly Stem: ${timing.daeun.heavenlyStem}`);
-      lines.push(`- Earthly Branch: ${timing.daeun.earthlyBranch}`);
-      lines.push(`- Element: ${timing.daeun.element}`);
-      lines.push(`- Period: Age ${timing.daeun.startAge} ~ ${timing.daeun.endAge}`);
-      lines.push(`- Current: ${timing.daeun.isCurrent ? 'Active' : 'No'}\n`);
+      lines.push(`### Daeun (10-Year Cycle)`)
+      lines.push(`- Heavenly Stem: ${timing.daeun.heavenlyStem}`)
+      lines.push(`- Earthly Branch: ${timing.daeun.earthlyBranch}`)
+      lines.push(`- Element: ${timing.daeun.element}`)
+      lines.push(`- Period: Age ${timing.daeun.startAge} ~ ${timing.daeun.endAge}`)
+      lines.push(`- Current: ${timing.daeun.isCurrent ? 'Active' : 'No'}\n`)
     }
 
     if (timing.seun) {
-      lines.push(`### Seun (Annual Fortune)`);
-      lines.push(`- Year: ${timing.seun.year}`);
-      lines.push(`- Heavenly Stem: ${timing.seun.heavenlyStem}`);
-      lines.push(`- Earthly Branch: ${timing.seun.earthlyBranch}`);
-      lines.push(`- Element: ${timing.seun.element}\n`);
+      lines.push(`### Seun (Annual Fortune)`)
+      lines.push(`- Year: ${timing.seun.year}`)
+      lines.push(`- Heavenly Stem: ${timing.seun.heavenlyStem}`)
+      lines.push(`- Earthly Branch: ${timing.seun.earthlyBranch}`)
+      lines.push(`- Element: ${timing.seun.element}\n`)
     }
 
     if (timing.wolun) {
-      lines.push(`### Wolun (Monthly Fortune)`);
-      lines.push(`- Month: ${timing.wolun.month}`);
-      lines.push(`- Heavenly Stem: ${timing.wolun.heavenlyStem}`);
-      lines.push(`- Earthly Branch: ${timing.wolun.earthlyBranch}`);
-      lines.push(`- Element: ${timing.wolun.element}\n`);
+      lines.push(`### Wolun (Monthly Fortune)`)
+      lines.push(`- Month: ${timing.wolun.month}`)
+      lines.push(`- Heavenly Stem: ${timing.wolun.heavenlyStem}`)
+      lines.push(`- Earthly Branch: ${timing.wolun.earthlyBranch}`)
+      lines.push(`- Element: ${timing.wolun.element}\n`)
     }
 
     if (timing.iljin) {
-      lines.push(`### Iljin (Daily Fortune)`);
-      lines.push(`- Date: ${timing.iljin.date}`);
-      lines.push(`- Heavenly Stem: ${timing.iljin.heavenlyStem}`);
-      lines.push(`- Earthly Branch: ${timing.iljin.earthlyBranch}`);
-      lines.push(`- Element: ${timing.iljin.element}\n`);
+      lines.push(`### Iljin (Daily Fortune)`)
+      lines.push(`- Date: ${timing.iljin.date}`)
+      lines.push(`- Heavenly Stem: ${timing.iljin.heavenlyStem}`)
+      lines.push(`- Earthly Branch: ${timing.iljin.earthlyBranch}`)
+      lines.push(`- Element: ${timing.iljin.element}\n`)
     }
   }
 
-  return lines.join('\n');
+  return lines.join('\n')
 }
 
 // ===========================
@@ -335,23 +335,24 @@ export function buildTimingPrompt(
   period: ReportPeriod,
   lang: 'ko' | 'en',
   profileData: {
-    name?: string;
-    birthDate?: string;
-    dayMaster: string;
-    dayMasterElement: string;
+    name?: string
+    birthDate?: string
+    dayMaster: string
+    dayMasterElement: string
   },
   timingData: TimingData,
   targetDate: string,
   matrixSummary: string
 ): string {
-  const isKo = lang === 'ko';
+  const isKo = lang === 'ko'
 
   // 기간별 섹션 선택
-  const sections = period === 'daily'
-    ? DAILY_SECTIONS[lang]
-    : period === 'monthly'
-      ? MONTHLY_SECTIONS[lang]
-      : YEARLY_SECTIONS[lang];
+  const sections =
+    period === 'daily'
+      ? DAILY_SECTIONS[lang]
+      : period === 'monthly'
+        ? MONTHLY_SECTIONS[lang]
+        : YEARLY_SECTIONS[lang]
 
   // 기간 라벨
   const periodLabel = {
@@ -359,7 +360,7 @@ export function buildTimingPrompt(
     monthly: isKo ? '이번달 운세' : 'Monthly Fortune',
     yearly: isKo ? '올해 운세' : 'Yearly Fortune',
     comprehensive: isKo ? '종합 리포트' : 'Comprehensive Report',
-  }[period];
+  }[period]
 
   const prompt = isKo
     ? `당신은 동양 사주명리학과 서양 점성술을 융합한 전문 운세 상담사입니다.
@@ -390,6 +391,10 @@ ${sections}
 3. 따뜻하고 격려하는 톤, 실용적인 조언 포함
 4. 추상적 표현 대신 구체적인 행동 가이드 제시
 5. 의료/법률/금융 전문 조언은 피하고 일반적 가이드만 제공
+6. 따뜻하고 격려하는 존댓말로 작성하며 모든 섹션은 문장형으로만 구성
+7. 목록, 번호, 이모지, 제목 표기는 금지하고 문단만 사용
+8. 섹션마다 사주 근거 문장과 점성 근거 문장을 포함한 뒤 교차 결론을 반드시 제시
+9. 전체 분량은 예시보다 최소 3배 이상으로 충분히 길게 작성
 
 ## 응답 형식
 반드시 아래 JSON 형식으로만 응답하세요:
@@ -451,9 +456,9 @@ Respond ONLY in this JSON format:
   },
   "actionPlan": "...",
   "luckyElements": "Lucky colors, directions, numbers, etc. (optional)"
-}`;
+}`
 
-  return prompt;
+  return prompt
 }
 
 // ===========================
@@ -466,7 +471,7 @@ export function buildTimingScorePrompt(
   timingData: TimingData,
   dayMasterElement: string
 ): string {
-  const isKo = lang === 'ko';
+  const isKo = lang === 'ko'
 
   return isKo
     ? `다음 데이터를 기반으로 ${period === 'daily' ? '오늘' : period === 'monthly' ? '이번달' : '올해'}의 운세 점수를 계산하세요.
@@ -496,5 +501,5 @@ Calculate scores between 0-100 for each domain:
 - health: Health/vitality score
 
 Respond in JSON format:
-{ "overall": 75, "career": 80, "love": 70, "wealth": 65, "health": 85 }`;
+{ "overall": 75, "career": 80, "love": 70, "wealth": 65, "health": 85 }`
 }

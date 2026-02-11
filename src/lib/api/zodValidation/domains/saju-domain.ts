@@ -17,11 +17,16 @@ export const yinYangSchema = z.enum(['양', '음'])
 export type YinYangValidated = z.infer<typeof yinYangSchema>
 
 export const sibsinKindSchema = z.enum([
-  '비견', '겁재',
-  '식신', '상관',
-  '편재', '정재',
-  '편관', '정관',
-  '편인', '정인',
+  '비견',
+  '겁재',
+  '식신',
+  '상관',
+  '편재',
+  '정재',
+  '편관',
+  '정관',
+  '편인',
+  '정인',
 ])
 export type SibsinKindValidated = z.infer<typeof sibsinKindSchema>
 
@@ -29,9 +34,20 @@ export const pillarKindSchema = z.enum(['year', 'month', 'day', 'time'])
 export type PillarKindValidated = z.infer<typeof pillarKindSchema>
 
 export const twelveStageSchema = z.enum([
-  '장생', '목욕', '관대', '임관', '왕지',
-  '쇠', '병', '사', '묘', '절', '태', '양',
-  '건록', '제왕',
+  '장생',
+  '목욕',
+  '관대',
+  '임관',
+  '왕지',
+  '쇠',
+  '병',
+  '사',
+  '묘',
+  '절',
+  '태',
+  '양',
+  '건록',
+  '제왕',
 ])
 export type TwelveStageValidated = z.infer<typeof twelveStageSchema>
 
@@ -42,6 +58,8 @@ export const stemBranchInfoSchema = z.object({
   element: fiveElementSchema,
   yin_yang: yinYangSchema,
   yinYang: yinYangSchema.optional(),
+  graphId: z.string().max(40).optional(),
+  elementGraphId: z.string().max(40).optional(),
 })
 export type StemBranchInfoValidated = z.infer<typeof stemBranchInfoSchema>
 
@@ -51,6 +69,7 @@ export type DayMasterValidated = z.infer<typeof dayMasterSchema>
 export const ganjiSchema = z.object({
   stem: z.string().min(1).max(4),
   branch: z.string().min(1).max(4),
+  ganjiGraphId: z.string().max(40).optional(),
 })
 export type GanjiValidated = z.infer<typeof ganjiSchema>
 
@@ -61,12 +80,15 @@ export const pillarGanjiDataSchema = z.object({
   element: fiveElementSchema,
   yin_yang: yinYangSchema,
   sibsin: z.union([sibsinKindSchema, z.string().max(20)]),
+  graphId: z.string().max(40).optional(),
+  elementGraphId: z.string().max(40).optional(),
 })
 export type PillarGanjiDataValidated = z.infer<typeof pillarGanjiDataSchema>
 
 export const jijangganSlotSchema = z.object({
   name: z.string().max(10).optional(),
   sibsin: z.union([sibsinKindSchema, z.string().max(20)]).optional(),
+  graphId: z.string().max(40).optional(),
 })
 export type JijangganSlotValidated = z.infer<typeof jijangganSlotSchema>
 
@@ -81,6 +103,7 @@ export const pillarDataSchema = z.object({
   heavenlyStem: pillarGanjiDataSchema,
   earthlyBranch: pillarGanjiDataSchema,
   jijanggan: jijangganDataSchema,
+  ganjiGraphId: z.string().max(40).optional(),
 })
 export type PillarDataValidated = z.infer<typeof pillarDataSchema>
 
@@ -146,9 +169,16 @@ export type IljinDataValidated = z.infer<typeof iljinDataSchema>
 // ============ Relations & Shinsal ============
 
 export const relationKindSchema = z.enum([
-  '천간합', '천간충',
-  '지지육합', '지지삼합', '지지방합',
-  '지지충', '지지형', '지지파', '지지해', '원진',
+  '천간합',
+  '천간충',
+  '지지육합',
+  '지지삼합',
+  '지지방합',
+  '지지충',
+  '지지형',
+  '지지파',
+  '지지해',
+  '원진',
   '공망',
 ])
 export type RelationKindValidated = z.infer<typeof relationKindSchema>
@@ -162,9 +192,20 @@ export const relationHitSchema = z.object({
 export type RelationHitValidated = z.infer<typeof relationHitSchema>
 
 export const shinsalKindSchema = z.enum([
-  '장성', '반안', '재살', '천살', '월살', '망신',
-  '역마', '화개', '겁살', '육해', '화해', '괘살',
-  '길성', '흉성',
+  '장성',
+  '반안',
+  '재살',
+  '천살',
+  '월살',
+  '망신',
+  '역마',
+  '화개',
+  '겁살',
+  '육해',
+  '화해',
+  '괘살',
+  '길성',
+  '흉성',
 ])
 export type ShinsalKindValidated = z.infer<typeof shinsalKindSchema>
 
@@ -194,7 +235,9 @@ export const fiveElementsKoreanDistributionSchema = z.object({
   금: z.number().min(0).max(100),
   수: z.number().min(0).max(100),
 })
-export type FiveElementsKoreanDistributionValidated = z.infer<typeof fiveElementsKoreanDistributionSchema>
+export type FiveElementsKoreanDistributionValidated = z.infer<
+  typeof fiveElementsKoreanDistributionSchema
+>
 
 // ============ Saju Facts (Summary) ============
 
@@ -203,21 +246,27 @@ export const sajuFactsSchema = z.object({
   sibsin: z.array(z.union([sibsinKindSchema, z.string().max(20)])),
   shinsal: z.array(z.string().max(50)),
   elementStats: z.record(fiveElementSchema, z.number()).optional(),
-  yinYangRatio: z.object({
-    yin: z.number().min(0).max(100),
-    yang: z.number().min(0).max(100),
-  }).optional(),
-  unse: z.object({
-    대운: z.string().max(20).optional(),
-    세운: z.string().max(20).optional(),
-    월운: z.string().max(20).optional(),
-    일운: z.string().max(20).optional(),
-  }).optional(),
-  relations: z.object({
-    합충형: z.string().max(200).optional(),
-    관성관계: z.string().max(200).optional(),
-    기타: z.string().max(200).optional(),
-  }).optional(),
+  yinYangRatio: z
+    .object({
+      yin: z.number().min(0).max(100),
+      yang: z.number().min(0).max(100),
+    })
+    .optional(),
+  unse: z
+    .object({
+      대운: z.string().max(20).optional(),
+      세운: z.string().max(20).optional(),
+      월운: z.string().max(20).optional(),
+      일운: z.string().max(20).optional(),
+    })
+    .optional(),
+  relations: z
+    .object({
+      합충형: z.string().max(200).optional(),
+      관성관계: z.string().max(200).optional(),
+      기타: z.string().max(200).optional(),
+    })
+    .optional(),
   fateIndex: z.number().min(0).max(100).optional(),
 })
 export type SajuFactsValidated = z.infer<typeof sajuFactsSchema>
@@ -225,10 +274,20 @@ export type SajuFactsValidated = z.infer<typeof sajuFactsSchema>
 // ============ Advanced Analysis Schemas ============
 
 export const geokgukTypeSchema = z.enum([
-  '건록격', '양인격', '식신격', '상관격',
-  '편재격', '정재격', '편관격', '정관격',
-  '편인격', '정인격', '종격', '화기격',
-  '외격', '잡격',
+  '건록격',
+  '양인격',
+  '식신격',
+  '상관격',
+  '편재격',
+  '정재격',
+  '편관격',
+  '정관격',
+  '편인격',
+  '정인격',
+  '종격',
+  '화기격',
+  '외격',
+  '잡격',
 ])
 export type GeokgukTypeValidated = z.infer<typeof geokgukTypeSchema>
 
@@ -253,12 +312,14 @@ export type YongsinAnalysisValidated = z.infer<typeof yongsinAnalysisSchema>
 
 export const tonggeunAnalysisSchema = z.object({
   score: z.number().min(0).max(100),
-  details: z.array(z.object({
-    pillar: z.string().max(20),
-    branch: z.string().max(10),
-    stems: z.array(z.string().max(10)),
-    score: z.number().min(0).max(100),
-  })),
+  details: z.array(
+    z.object({
+      pillar: z.string().max(20),
+      branch: z.string().max(10),
+      stems: z.array(z.string().max(10)),
+      score: z.number().min(0).max(100),
+    })
+  ),
 })
 export type TonggeunAnalysisValidated = z.infer<typeof tonggeunAnalysisSchema>
 
@@ -318,37 +379,52 @@ export const advancedSajuAnalysisSchema = z.object({
   hyeongchung: hyeongchungAnalysisSchema.nullable().optional(),
   tonggeun: tonggeunAnalysisSchema.nullable().optional(),
   deukryeong: deukryeongAnalysisSchema.nullable().optional(),
-  johuYongsin: z.object({
-    primary: z.string().max(50),
-    secondary: z.string().max(50).optional(),
-    description: z.string().max(2000),
-  }).nullable().optional(),
+  johuYongsin: z
+    .object({
+      primary: z.string().max(50),
+      secondary: z.string().max(50).optional(),
+      description: z.string().max(2000),
+    })
+    .nullable()
+    .optional(),
   sibsin: sibsinAnalysisSchema.nullable().optional(),
-  health: z.object({
-    vulnerableOrgans: z.array(z.string().max(50)),
-    strengths: z.array(z.string().max(200)),
-    recommendations: z.array(z.string().max(500)),
-    overallScore: z.number().min(0).max(100),
-  }).nullable().optional(),
-  career: z.object({
-    suitableFields: z.array(z.string().max(100)),
-    strengths: z.array(z.string().max(200)),
-    challenges: z.array(z.string().max(200)),
-    recommendations: z.array(z.string().max(500)),
-  }).nullable().optional(),
+  health: z
+    .object({
+      vulnerableOrgans: z.array(z.string().max(50)),
+      strengths: z.array(z.string().max(200)),
+      recommendations: z.array(z.string().max(500)),
+      overallScore: z.number().min(0).max(100),
+    })
+    .nullable()
+    .optional(),
+  career: z
+    .object({
+      suitableFields: z.array(z.string().max(100)),
+      strengths: z.array(z.string().max(200)),
+      challenges: z.array(z.string().max(200)),
+      recommendations: z.array(z.string().max(500)),
+    })
+    .nullable()
+    .optional(),
   score: comprehensiveScoreSchema.nullable().optional(),
-  report: z.object({
-    summary: z.string().max(5000),
-    personality: z.string().max(5000),
-    career: z.string().max(5000),
-    relationships: z.string().max(5000),
-    health: z.string().max(5000),
-    fortune: z.string().max(5000),
-  }).nullable().optional(),
-  interpretations: z.object({
-    twelveStages: z.record(z.string(), z.string().max(1000)),
-    elements: z.record(z.string(), z.string().max(1000)),
-  }).nullable().optional(),
+  report: z
+    .object({
+      summary: z.string().max(5000),
+      personality: z.string().max(5000),
+      career: z.string().max(5000),
+      relationships: z.string().max(5000),
+      health: z.string().max(5000),
+      fortune: z.string().max(5000),
+    })
+    .nullable()
+    .optional(),
+  interpretations: z
+    .object({
+      twelveStages: z.record(z.string(), z.string().max(1000)),
+      elements: z.record(z.string(), z.string().max(1000)),
+    })
+    .nullable()
+    .optional(),
 })
 export type AdvancedSajuAnalysisValidated = z.infer<typeof advancedSajuAnalysisSchema>
 
@@ -383,11 +459,13 @@ export const sajuResultSchema = z.object({
   yeonun: z.array(annualCycleDataSchema).optional(),
   wolun: z.array(monthlyCycleDataSchema).optional(),
   iljin: z.array(iljinDataSchema).optional(),
-  unse: z.object({
-    daeun: z.array(daeunDataSchema),
-    annual: z.array(annualCycleDataSchema),
-    monthly: z.array(monthlyCycleDataSchema),
-  }).optional(),
+  unse: z
+    .object({
+      daeun: z.array(daeunDataSchema),
+      annual: z.array(annualCycleDataSchema),
+      monthly: z.array(monthlyCycleDataSchema),
+    })
+    .optional(),
 
   // Relations and shinsal
   relations: z.array(relationHitSchema).optional(),
@@ -409,24 +487,32 @@ export type SajuResultValidated = z.infer<typeof sajuResultSchema>
 
 // ============ Simplified Chat Context Schema ============
 
-export const sajuChatContextSchema = z.object({
-  dayMaster: z.string().max(10).optional(),
-  dayMasterElement: fiveElementSchema.optional(),
-  pillars: z.object({
-    year: ganjiSchema.optional(),
-    month: ganjiSchema.optional(),
-    day: ganjiSchema.optional(),
-    time: ganjiSchema.optional(),
-  }).optional(),
-  fiveElements: fiveElementsDistributionSchema.optional(),
-  yongsin: z.object({
-    primary: fiveElementSchema.optional(),
-    secondary: fiveElementSchema.optional(),
-  }).optional(),
-  geokguk: z.string().max(50).optional(),
-  currentDaeun: z.string().max(20).optional(),
-  currentSaeun: z.string().max(20).optional(),
-})
+export const sajuChatContextSchema = z
+  .object({
+    dayMaster: z.union([z.string().max(10), stemBranchInfoSchema]).optional(),
+    dayMasterElement: fiveElementSchema.optional(),
+    dayMasterGraphId: z.string().max(40).optional(),
+    dayMasterElementGraphId: z.string().max(40).optional(),
+    pillars: z
+      .object({
+        year: z.union([ganjiSchema, pillarDataSchema]).optional(),
+        month: z.union([ganjiSchema, pillarDataSchema]).optional(),
+        day: z.union([ganjiSchema, pillarDataSchema]).optional(),
+        time: z.union([ganjiSchema, pillarDataSchema]).optional(),
+      })
+      .optional(),
+    fiveElements: fiveElementsDistributionSchema.optional(),
+    yongsin: z
+      .object({
+        primary: fiveElementSchema.optional(),
+        secondary: fiveElementSchema.optional(),
+      })
+      .optional(),
+    geokguk: z.string().max(50).optional(),
+    currentDaeun: z.string().max(20).optional(),
+    currentSaeun: z.string().max(20).optional(),
+  })
+  .passthrough()
 export type SajuChatContextValidated = z.infer<typeof sajuChatContextSchema>
 
 // ============ Twelve Stages Interaction Schema ============

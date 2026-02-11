@@ -1,7 +1,7 @@
 // src/lib/destiny-matrix/ai-report/prompts/themedPrompts.ts
 // 테마별 심화 리포트용 프롬프트 생성
 
-import type { ReportTheme, TimingData } from '../types';
+import type { ReportTheme, TimingData } from '../types'
 
 // ===========================
 // 테마별 프롬프트 섹션
@@ -91,7 +91,7 @@ const LOVE_SECTIONS = {
 - Long-term relationship goals
 - Core message
 `,
-};
+}
 
 const CAREER_SECTIONS = {
   ko: `
@@ -183,7 +183,7 @@ const CAREER_SECTIONS = {
 - 1/3/5 year roadmap
 - Core message
 `,
-};
+}
 
 const WEALTH_SECTIONS = {
   ko: `
@@ -270,7 +270,7 @@ const WEALTH_SECTIONS = {
 - This year's financial goals
 - Core message
 `,
-};
+}
 
 const HEALTH_SECTIONS = {
   ko: `
@@ -363,7 +363,7 @@ const HEALTH_SECTIONS = {
 
 ⚠️ Consult healthcare professionals for medical diagnosis or prescriptions.
 `,
-};
+}
 
 const FAMILY_SECTIONS = {
   ko: `
@@ -450,7 +450,7 @@ const FAMILY_SECTIONS = {
 - Long-term family relationship goals
 - Core message
 `,
-};
+}
 
 // ===========================
 // 테마 섹션 매퍼
@@ -462,7 +462,7 @@ const THEME_SECTIONS: Record<ReportTheme, { ko: string; en: string }> = {
   wealth: WEALTH_SECTIONS,
   health: HEALTH_SECTIONS,
   family: FAMILY_SECTIONS,
-};
+}
 
 // ===========================
 // 테마 라벨
@@ -474,7 +474,7 @@ const THEME_LABELS: Record<ReportTheme, { ko: string; en: string }> = {
   wealth: { ko: '재물 & 금전 심층 분석', en: 'Wealth & Money Deep Analysis' },
   health: { ko: '건강 & 웰빙 심층 분석', en: 'Health & Wellness Deep Analysis' },
   family: { ko: '가족 & 관계 심층 분석', en: 'Family & Relationships Deep Analysis' },
-};
+}
 
 // ===========================
 // 메인 프롬프트 빌더
@@ -484,26 +484,28 @@ export function buildThemedPrompt(
   theme: ReportTheme,
   lang: 'ko' | 'en',
   profileData: {
-    name?: string;
-    birthDate?: string;
-    dayMaster: string;
-    dayMasterElement: string;
-    sibsinDistribution?: Record<string, number>;
+    name?: string
+    birthDate?: string
+    dayMaster: string
+    dayMasterElement: string
+    sibsinDistribution?: Record<string, number>
   },
   timingData: TimingData,
   matrixSummary: string,
   astroSummary?: string
 ): string {
-  const isKo = lang === 'ko';
-  const sections = THEME_SECTIONS[theme][lang];
-  const themeLabel = THEME_LABELS[theme][lang];
+  const isKo = lang === 'ko'
+  const sections = THEME_SECTIONS[theme][lang]
+  const themeLabel = THEME_LABELS[theme][lang]
 
   // 십신 분포 포맷
   const sibsinText = profileData.sibsinDistribution
     ? Object.entries(profileData.sibsinDistribution)
         .map(([k, v]) => `${k}(${v})`)
         .join(', ')
-    : isKo ? '없음' : 'None';
+    : isKo
+      ? '없음'
+      : 'None'
 
   const prompt = isKo
     ? `당신은 동양 사주명리학과 서양 점성술을 융합한 전문 운세 상담사입니다.
@@ -538,6 +540,10 @@ ${sections}
 3. 따뜻하고 격려하는 톤 유지
 4. 동양과 서양 데이터를 "교차 융합"하여 분석
 5. 운명론적 단정 피하고 "경향", "가능성" 표현 사용
+6. 따뜻하고 격려하는 존댓말로 작성하며 모든 섹션은 문장형으로만 구성
+7. 목록, 번호, 이모지, 제목 표기는 금지하고 문단만 사용
+8. 섹션마다 사주 근거 문장과 점성 근거 문장을 포함한 뒤 교차 결론을 반드시 제시
+9. 전체 분량은 예시보다 최소 3배 이상으로 충분히 길게 작성
 
 ## 응답 형식
 반드시 아래 JSON 형식으로만 응답하세요:
@@ -597,9 +603,9 @@ Respond ONLY in this JSON format:
   ${theme === 'family' ? '"dynamics": "...",' : ''}
   "recommendations": ["...", "...", "...", "...", "..."],
   "actionPlan": "..."
-}`;
+}`
 
-  return prompt;
+  return prompt
 }
 
 // ===========================
@@ -612,8 +618,8 @@ export function buildThemedScorePrompt(
   dayMasterElement: string,
   sibsinDistribution?: Record<string, number>
 ): string {
-  const isKo = lang === 'ko';
-  const themeLabel = THEME_LABELS[theme][lang];
+  const isKo = lang === 'ko'
+  const themeLabel = THEME_LABELS[theme][lang]
 
   return isKo
     ? `다음 데이터를 기반으로 ${themeLabel} 점수를 계산하세요.
@@ -641,5 +647,5 @@ Calculate scores between 0-100:
 - compatibility: Harmony score
 
 Respond in JSON format:
-{ "overall": 75, "potential": 80, "timing": 70, "compatibility": 65 }`;
+{ "overall": 75, "potential": 80, "timing": 70, "compatibility": 65 }`
 }

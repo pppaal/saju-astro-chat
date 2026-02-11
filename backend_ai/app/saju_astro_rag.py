@@ -16,6 +16,7 @@ import json
 import logging
 import os
 import random
+import re
 import time
 from collections import OrderedDict
 from functools import lru_cache
@@ -139,9 +140,9 @@ _CORPUS_CACHE_FILE = "corpus_embeds.pt"
 # Node ID fields to check in order
 _NODE_ID_FIELDS = ("id", "label", "name")
 # Edge source fields to check in order
-_EDGE_SRC_FIELDS = ("src", "source", "source_id", "source_iching", "from")
+_EDGE_SRC_FIELDS = ("src", "source", "source_id", "source_iching", "from", "base_ganji")
 # Edge destination fields to check in order
-_EDGE_DST_FIELDS = ("dst", "target", "target_id", "target_tarot", "to")
+_EDGE_DST_FIELDS = ("dst", "target", "target_id", "target_tarot", "to", "flow_ganji")
 # Edge relation fields to check in order
 _EDGE_REL_FIELDS = ("relation", "relation_type", "type")
 # Edge description fields to check in order
@@ -371,6 +372,93 @@ _SPECIAL_NODE_MAP = {
     "Midheaven": "MC",
 }
 
+_ASTRO_PLANET_CANON = {
+    "sun": "Sun",
+    "moon": "Moon",
+    "mercury": "Mercury",
+    "venus": "Venus",
+    "mars": "Mars",
+    "jupiter": "Jupiter",
+    "saturn": "Saturn",
+    "uranus": "Uranus",
+    "neptune": "Neptune",
+    "pluto": "Pluto",
+}
+
+_ASTRO_SIGN_CANON = {
+    "aries": "Aries",
+    "taurus": "Taurus",
+    "gemini": "Gemini",
+    "cancer": "Cancer",
+    "leo": "Leo",
+    "virgo": "Virgo",
+    "libra": "Libra",
+    "scorpio": "Scorpio",
+    "sagittarius": "Sagittarius",
+    "capricorn": "Capricorn",
+    "aquarius": "Aquarius",
+    "pisces": "Pisces",
+}
+
+_ASTRO_POINT_CANON = {
+    "asc": "Asc",
+    "ascendant": "Asc",
+    "mc": "MC",
+    "midheaven": "MC",
+    "ic": "IC",
+    "desc": "Desc",
+    "descendant": "Desc",
+    "node": "Node",
+    "northnode": "NorthNode",
+    "southnode": "SouthNode",
+    "chiron": "Chiron",
+    "vertex": "Vertex",
+    "partoffortune": "PartOfFortune",
+    "fortune": "PartOfFortune",
+}
+
+_SAJU_ELEMENT_ALIASES = {
+    "목": "목",
+    "木": "목",
+    "WOOD": "목",
+    "화": "화",
+    "火": "화",
+    "FIRE": "화",
+    "토": "토",
+    "土": "토",
+    "EARTH": "토",
+    "금": "금",
+    "金": "금",
+    "METAL": "금",
+    "수": "수",
+    "水": "수",
+    "WATER": "수",
+}
+
+_ASTRO_ELEMENT_ALIASES = {
+    "FIRE": "Fire",
+    "불": "Fire",
+    "火": "Fire",
+    "EARTH": "Earth",
+    "흙": "Earth",
+    "土": "Earth",
+    "AIR": "Air",
+    "공기": "Air",
+    "風": "Air",
+    "WATER": "Water",
+    "물": "Water",
+    "水": "Water",
+}
+
+_PREFIX_NODE_LABELS = {
+    "TR": "트랜짓",
+    "SP": "진행",
+    "SR": "솔라리턴",
+    "COMP": "합성차트",
+    "A": "A",
+    "B": "B",
+}
+
 
 def _normalize_edge_node_id(node_id: Optional[str]) -> Optional[str]:
     if not node_id:
@@ -378,15 +466,84 @@ def _normalize_edge_node_id(node_id: Optional[str]) -> Optional[str]:
     mapped = _SPECIAL_NODE_MAP.get(node_id)
     if mapped:
         return mapped
+
+    if node_id.startswith("SAJU_ELEMENT_"):
+        raw_elem = node_id.split("_", 2)[-1]
+        canonical = _canonical_saju_element(raw_elem)
+        if canonical:
+            return f"EL_{canonical}"
+
+    if node_id.startswith("AP_"):
+        name = node_id.split("_", 1)[-1]
+        canon = _ASTRO_PLANET_CANON.get(name.lower())
+        if canon:
+            return canon
+    if node_id.startswith("AS_"):
+        name = node_id.split("_", 1)[-1]
+        canon = _ASTRO_SIGN_CANON.get(name.lower())
+        if canon:
+            return canon
+        planet = _ASTRO_PLANET_CANON.get(name.lower())
+        if planet:
+            return planet
+        house_match = re.match(r"^(\d{1,2})(?:st|nd|rd|th)?_house$", name, flags=re.IGNORECASE)
+        if house_match:
+            return f"H{int(house_match.group(1))}"
+        point = _ASTRO_POINT_CANON.get(name.replace("_", "").lower())
+        if point:
+            return point
+    if node_id.startswith("AH_"):
+        number = node_id.split("_", 1)[-1]
+        if number.isdigit():
+            return f"H{number}"
+
     if node_id.startswith("ASTRO_PLANET_"):
         name = node_id.split("_", 2)[-1]
-        return f"AP_{name.lower()}"
+        canon = _ASTRO_PLANET_CANON.get(name.lower())
+        if canon:
+            return canon
     if node_id.startswith("ASTRO_SIGN_"):
         name = node_id.split("_", 2)[-1]
-        return f"AS_{name.lower()}"
-    if node_id.startswith("H") and node_id[1:].isdigit():
-        return f"AH_{node_id[1:]}"
+        canon = _ASTRO_SIGN_CANON.get(name.lower())
+        if canon:
+            return canon
+    if node_id.startswith("ASTRO_HOUSE_"):
+        number = node_id.split("_", 2)[-1]
+        if number.isdigit():
+            return f"H{number}"
+    if node_id.startswith("ASTRO_POINT_"):
+        name = node_id.split("_", 2)[-1]
+        key = name.replace("_", "").lower()
+        canon = _ASTRO_POINT_CANON.get(key)
+        if canon:
+            return canon
+    if node_id.startswith("ASTRO_NODE_"):
+        name = node_id.split("_", 2)[-1]
+        key = f"{name}node".replace("_", "").lower()
+        canon = _ASTRO_POINT_CANON.get(key) or _ASTRO_POINT_CANON.get(name.replace("_", "").lower())
+        if canon:
+            return canon
     return node_id
+
+
+def _canonical_saju_element(value: Optional[str]) -> Optional[str]:
+    if not value:
+        return None
+    raw = value.split("(", 1)[0].strip()
+    direct = _SAJU_ELEMENT_ALIASES.get(raw)
+    if direct:
+        return direct
+    return _SAJU_ELEMENT_ALIASES.get(raw.upper())
+
+
+def _canonical_astro_element(value: Optional[str]) -> Optional[str]:
+    if not value:
+        return None
+    raw = value.split("(", 1)[0].strip()
+    direct = _ASTRO_ELEMENT_ALIASES.get(raw)
+    if direct:
+        return direct
+    return _ASTRO_ELEMENT_ALIASES.get(raw.upper())
 
 
 def _merge_node_attrs(existing: Dict, incoming: Dict) -> Dict:
@@ -429,6 +586,9 @@ class GraphRAG:
         fallback_rules = base_path / "rules"
         self.rules_dir = preferred_rules if preferred_rules.is_dir() else fallback_rules
 
+        self.alias_map: Dict[str, str] = {}
+        self._alias_priority: Dict[str, int] = {}
+
         # Initialize
         self.graph = nx.MultiDiGraph()
         self.rules: Dict[str, Dict] = {}
@@ -445,7 +605,10 @@ class GraphRAG:
 
     def _load_all(self):
         """Load all CSV nodes/edges and JSON rules."""
-        # Load graph CSVs
+        # Load graph CSVs (two-pass: nodes -> aliases/synthetic -> edges)
+        node_paths: List[Path] = []
+        edge_paths: List[Path] = []
+
         for csv_path in sorted(self.graph_dir.rglob("*.csv")):
             if csv_path.name.endswith(".fixed.csv"):
                 continue
@@ -457,15 +620,30 @@ class GraphRAG:
                     reader = csv.reader(f)
                     headers = next(reader, [])
                 if headers and _has_edge_columns(headers):
-                    self._load_edges(path)
+                    edge_paths.append(path)
                 elif headers and _has_node_columns(headers):
-                    self._load_nodes(path)
+                    node_paths.append(path)
                 elif "node" in name:
-                    self._load_nodes(path)
+                    node_paths.append(path)
                 elif any(x in name for x in ("edge", "relation", "link")):
-                    self._load_edges(path)
+                    edge_paths.append(path)
             except Exception as e:
-                logger.warning("CSV load failed (%s): %s", path, e)
+                logger.warning("CSV header scan failed (%s): %s", path, e)
+
+        for path in node_paths:
+            try:
+                self._load_nodes(path)
+            except Exception as e:
+                logger.warning("CSV node load failed (%s): %s", path, e)
+
+        self._load_cross_system_nodes()
+        self._build_alias_map()
+
+        for path in edge_paths:
+            try:
+                self._load_edges(path)
+            except Exception as e:
+                logger.warning("CSV edge load failed (%s): %s", path, e)
 
         # Load rules JSONs
         if self.rules_dir.exists():
@@ -486,6 +664,225 @@ class GraphRAG:
         if self.rules:
             logger.info("Rules: %s", ", ".join(sorted(self.rules.keys())))
 
+    def _ensure_node(self, node_id: str, **attrs):
+        existing = self.graph.nodes.get(node_id)
+        if existing:
+            merged = _merge_node_attrs(existing, attrs)
+            self.graph.add_node(node_id, **merged)
+        else:
+            self.graph.add_node(node_id, **attrs)
+
+    def _add_alias(self, key: Optional[str], node_id: str, priority: int):
+        key = _normalize_value(key)
+        if not key:
+            return
+        current = self._alias_priority.get(key)
+        if current is None or priority < current:
+            self.alias_map[key] = node_id
+            self._alias_priority[key] = priority
+        upper = key.upper()
+        if upper != key:
+            current_upper = self._alias_priority.get(upper)
+            if current_upper is None or priority < current_upper:
+                self.alias_map[upper] = node_id
+                self._alias_priority[upper] = priority
+
+    def _build_alias_map(self):
+        self.alias_map.clear()
+        self._alias_priority.clear()
+
+        for node_id, attrs in self.graph.nodes(data=True):
+            node_type = (attrs.get("type") or "").lower()
+            priority = 1 if "detailed" in node_type else 2
+
+            # Always add node_id alias (priority-based)
+            self._add_alias(node_id, node_id, priority)
+
+            # Common label/name aliases
+            for field in ("label", "name", "korean_name"):
+                self._add_alias(attrs.get(field), node_id, priority)
+
+            # Planet aliases (prefer detailed nodes)
+            if "planet" in node_type:
+                planet = _normalize_value(attrs.get("planet")) or _normalize_value(attrs.get("name"))
+                if planet:
+                    self._add_alias(planet, node_id, priority)
+                    self._add_alias(f"ASTRO_PLANET_{planet}", node_id, priority)
+                    self._add_alias(f"AP_{planet.lower()}", node_id, priority)
+
+            # Sign aliases
+            if "sign" in node_type:
+                sign = _normalize_value(attrs.get("sign")) or _normalize_value(attrs.get("name"))
+                if sign:
+                    self._add_alias(sign, node_id, priority)
+                    self._add_alias(f"ASTRO_SIGN_{sign}", node_id, priority)
+                    self._add_alias(f"AS_{sign.lower()}", node_id, priority)
+
+            # House aliases
+            if "house" in node_type:
+                house_number = _normalize_value(attrs.get("house_number")) or _normalize_value(attrs.get("house"))
+                if house_number:
+                    self._add_alias(f"H{house_number}", node_id, priority)
+                    self._add_alias(f"ASTRO_HOUSE_{house_number}", node_id, priority)
+                    self._add_alias(f"AH_{house_number}", node_id, priority)
+
+            # Element nodes
+            if node_id.startswith("EL_"):
+                element = node_id.split("_", 1)[-1]
+                self._add_alias(f"SAJU_ELEMENT_{element}", node_id, priority)
+                hanja = _normalize_value(attrs.get("hanja"))
+                if hanja:
+                    self._add_alias(f"SAJU_ELEMENT_{hanja}", node_id, priority)
+            if node_id.startswith("ASTRO_ELEMENT_"):
+                element = _normalize_value(attrs.get("element"))
+                if element:
+                    self._add_alias(f"ASTRO_ELEMENT_{element}", node_id, priority)
+
+    def _load_cross_system_nodes(self):
+        mapping_path = self.graph_dir / "cross_system_mapping.json"
+        if not mapping_path.exists():
+            return
+        try:
+            mapping = json.loads(mapping_path.read_text(encoding="utf-8"))
+        except Exception as e:
+            logger.warning("Cross-system mapping load failed: %s", e)
+            return
+
+        element_map = (mapping.get("element_correspondence") or {}).get("mappings") or {}
+        key_to_ko = {"wood": "목", "fire": "화", "earth": "토", "metal": "금", "water": "수"}
+        key_to_hanja = {"wood": "木", "fire": "火", "earth": "土", "metal": "金", "water": "水"}
+
+        for key, payload in element_map.items():
+            ko = key_to_ko.get(key)
+            if not ko:
+                continue
+            hanja = key_to_hanja.get(key)
+            saju = payload.get("saju") or {}
+            astro = payload.get("astrology") or {}
+            combined = payload.get("combined_interpretation") or ""
+
+            saju_desc_parts = []
+            keywords = saju.get("keywords") or []
+            if keywords:
+                saju_desc_parts.append("키워드: " + ", ".join(keywords))
+            for label, field in (("계절", "season"), ("방향", "direction"), ("감정", "emotion"), ("장기", "organs")):
+                val = saju.get(field)
+                if val:
+                    saju_desc_parts.append(f"{label}: {val}")
+            if combined:
+                saju_desc_parts.append(combined)
+
+            saju_id = f"EL_{ko}"
+            self._ensure_node(
+                saju_id,
+                label=f"{ko}(오행)",
+                description=" | ".join(saju_desc_parts),
+                type="saju_element",
+                element=ko,
+                hanja=hanja,
+                system="saju",
+            )
+
+            astro_element = _normalize_value(astro.get("element"))
+            if astro_element:
+                astro_desc_parts = []
+                if astro.get("reason"):
+                    astro_desc_parts.append(astro.get("reason"))
+                astro_keywords = astro.get("keywords") or []
+                if astro_keywords:
+                    astro_desc_parts.append("키워드: " + ", ".join(astro_keywords))
+
+                astro_id = f"ASTRO_ELEMENT_{astro_element}"
+                self._ensure_node(
+                    astro_id,
+                    label=f"{astro_element} Element",
+                    description=" | ".join(astro_desc_parts),
+                    type="astro_element",
+                    element=astro_element,
+                    system="astrology",
+                )
+
+                if not self.graph.has_edge(saju_id, astro_id):
+                    edge_desc = combined or astro.get("reason") or ""
+                    self.graph.add_edge(saju_id, astro_id, relation="element_correspondence", desc=edge_desc, weight="1")
+
+    def _ensure_prefixed_node(self, node_id: str) -> Optional[str]:
+        if "_" not in node_id:
+            return None
+        prefix, base = node_id.split("_", 1)
+        if prefix not in _PREFIX_NODE_LABELS:
+            return None
+        if self.graph.has_node(node_id):
+            return node_id
+
+        base_norm = _normalize_edge_node_id(base)
+        base_resolved = self.alias_map.get(base_norm) or self.alias_map.get(base_norm.upper())
+        if not base_resolved:
+            base_resolved = self.alias_map.get(base) or self.alias_map.get(base.upper())
+        base_id = base_resolved if base_resolved else (base_norm if base_norm in self.graph else base)
+        base_attrs = self.graph.nodes.get(base_id, {})
+        base_label = _normalize_value(base_attrs.get("label")) or _normalize_value(base_attrs.get("name")) or base
+        base_desc = _normalize_value(base_attrs.get("description")) or _normalize_value(base_attrs.get("desc"))
+
+        prefix_label = _PREFIX_NODE_LABELS[prefix]
+        if prefix in ("A", "B"):
+            label = f"{prefix_label} {base_label}"
+            desc = f"{prefix_label}의 {base_label}"
+        else:
+            label = f"{prefix_label} {base_label}"
+            desc = base_desc or f"{prefix_label} {base_label}"
+
+        self._ensure_node(
+            node_id,
+            label=label,
+            description=desc,
+            type="synthetic",
+            system="astrology",
+            base=base_label,
+        )
+        return node_id
+
+    def _resolve_node_id(self, raw: Optional[str]) -> Optional[str]:
+        value = _normalize_value(raw)
+        if value is None:
+            return None
+
+        value = _normalize_edge_node_id(value)
+
+        if value.startswith("SAJU_ELEMENT_"):
+            raw_elem = value.split("_", 2)[-1]
+            canonical = _canonical_saju_element(raw_elem)
+            if canonical:
+                node_id = f"EL_{canonical}"
+                if not self.graph.has_node(node_id):
+                    self._ensure_node(node_id, label=f"{canonical}(오행)", description=f"{canonical} 오행", type="saju_element")
+                return node_id
+
+        if value.startswith("EL_"):
+            elem = value.split("_", 1)[-1]
+            if not self.graph.has_node(value):
+                self._ensure_node(value, label=f"{elem}(ì˜¤í–‰)", description=f"{elem} ì˜¤í–‰", type="saju_element")
+            return value
+
+        if value.startswith("ASTRO_ELEMENT_"):
+            raw_elem = value.split("_", 2)[-1]
+            canonical = _canonical_astro_element(raw_elem)
+            if canonical:
+                node_id = f"ASTRO_ELEMENT_{canonical}"
+                if not self.graph.has_node(node_id):
+                    self._ensure_node(node_id, label=f"{canonical} Element", description=f"{canonical} 원소", type="astro_element")
+                return node_id
+
+        resolved = self.alias_map.get(value) or self.alias_map.get(value.upper())
+        if resolved:
+            return resolved
+
+        prefixed = self._ensure_prefixed_node(value)
+        if prefixed:
+            return prefixed
+
+        return value
+
     def _load_nodes(self, path: Path):
         """Load nodes from CSV."""
         with open(path, encoding="utf-8-sig") as f:
@@ -505,8 +902,8 @@ class GraphRAG:
             for row in csv.DictReader(f):
                 src = _get_first_field(row, _EDGE_SRC_FIELDS)
                 dst = _get_first_field(row, _EDGE_DST_FIELDS)
-                src = _normalize_edge_node_id(src)
-                dst = _normalize_edge_node_id(dst)
+                src = self._resolve_node_id(src)
+                dst = self._resolve_node_id(dst)
                 if not src or not dst:
                     continue
                 rel = _get_first_field(row, _EDGE_REL_FIELDS) or "link"

@@ -4,6 +4,7 @@ import { formatLongitude } from './utils'
 import { calcHouses, inferHouseOf } from './houses'
 import { getSwisseph } from './ephe'
 import { getPlanetList, natalToJD } from './shared'
+import { toAstroHouseId, toAstroPlanetId, toAstroPointId } from '../graphIds'
 
 // --- 출생 차트 public API ---
 export interface NatalChartInput {
@@ -27,6 +28,7 @@ export interface PlanetData {
   house: number
   speed?: number
   retrograde?: boolean
+  graphId?: string
   [key: string]: unknown // Allow flexible properties for prompt builder compatibility
 }
 
@@ -34,7 +36,7 @@ export interface NatalChartData {
   planets: PlanetData[]
   ascendant: PlanetData
   mc: PlanetData
-  houses: { cusp: number; formatted: string }[]
+  houses: { cusp: number; formatted: string; graphId?: string }[]
   meta?: {
     jdUT: number
     isoUTC?: string
@@ -63,12 +65,14 @@ export async function calculateNatalChart(input: NatalChartInput): Promise<Natal
     longitude: housesRes.ascendant,
     ...ascendantInfo,
     house: 1,
+    graphId: toAstroPointId('Ascendant') ?? undefined,
   }
   const mc: PlanetData = {
     name: 'MC',
     longitude: housesRes.mc,
     ...mcInfo,
     house: 10,
+    graphId: toAstroPointId('MC') ?? undefined,
   }
 
   // Planets
@@ -87,16 +91,30 @@ export async function calculateNatalChart(input: NatalChartInput): Promise<Natal
     const speed = res.speed
     const retrograde = typeof speed === 'number' ? speed < 0 : undefined
 
-    return { name, longitude, ...info, house: houseNum, speed, retrograde }
+    const graphId =
+      name === 'True Node'
+        ? (toAstroPointId('NorthNode') ?? undefined)
+        : (toAstroPlanetId(name) ?? undefined)
+
+    return {
+      name,
+      longitude,
+      ...info,
+      house: houseNum,
+      speed,
+      retrograde,
+      graphId,
+    }
   })
 
   return {
     planets,
     ascendant,
     mc,
-    houses: housesRes.house.map((cusp: number) => ({
+    houses: housesRes.house.map((cusp: number, index: number) => ({
       cusp,
       formatted: formatLongitude(cusp).formatted,
+      graphId: toAstroHouseId(index + 1) ?? undefined,
     })),
     meta: {
       jdUT: ut_jd,
@@ -121,6 +139,7 @@ export function toChart(n: NatalChartData): Chart {
       house: p.house,
       speed: p.speed,
       retrograde: p.retrograde,
+      graphId: p.graphId,
     })),
     ascendant: {
       ...n.ascendant,
@@ -132,7 +151,13 @@ export function toChart(n: NatalChartData): Chart {
     },
     houses: n.houses.map((h, i) => {
       const f = formatLongitude(h.cusp)
-      return { index: i + 1, cusp: h.cusp, sign: f.sign, formatted: f.formatted }
+      return {
+        index: i + 1,
+        cusp: h.cusp,
+        sign: f.sign,
+        formatted: f.formatted,
+        graphId: h.graphId ?? toAstroHouseId(i + 1) ?? undefined,
+      }
     }),
   }
 }

@@ -1,51 +1,51 @@
 id,source,target,relation_type,description,interpretation_note,strength
-JA_E1,JA_self,PS_sun_leo,jung_astro_parallel,"자기(Self) 원형과 사자자리 태양. 둘 다 자아실현과 중심성의 상징.","사자자리 태양을 가진 사람은 자기 원형 통합이 인생 과제. 창조적 자기표현이 개성화의 길.",strong
-JA_E2,JA_shadow,AS_pluto,jung_astro_parallel,"그림자 원형과 명왕성. 둘 다 억압된 것의 귀환과 변환.","명왕성 트랜짓 시 그림자 직면 필수. 억압한 것이 표면으로 올라옴.",strong
-JA_E3,JA_shadow,AS_8th_house,jung_astro_parallel,"그림자와 8하우스. 둘 다 숨겨진 것, 죽음과 재탄생.","8하우스 활성화 시기는 그림자 통합의 기회.",strong
-JA_E4,JA_anima,PS_moon_can,jung_astro_parallel,"아니마와 게자리 달. 둘 다 내면의 여성성과 감정.","남성의 게자리 달은 아니마가 강하게 활성화됨. 감정 통합이 과제.",strong
-JA_E5,JA_anima,PS_venus_pis,jung_astro_parallel,"아니마와 물고기자리 금성. 둘 다 이상적 여성성과 영혼.","남성의 물고기자리 금성은 아니마 투사가 강함. 이상화 경향.",moderate
-JA_E6,JA_animus,PS_mars_ari,jung_astro_parallel,"아니무스와 양자리 화성. 둘 다 행동하는 남성적 원리.","여성의 양자리 화성은 아니무스가 직접적으로 표현됨.",strong
-JA_E7,JA_animus,AS_10th_house,jung_astro_parallel,"아니무스와 10하우스. 둘 다 사회적 성취와 권위.","여성의 10하우스 강조는 아니무스 발달과 사회적 자아 확립.",moderate
-JA_E8,JA_great_mother,PS_moon_can,jung_astro_parallel,"위대한 어머니와 게자리 달. 둘 다 모성과 돌봄.","게자리 달은 위대한 어머니 원형과 직접 연결. 양육과 보호.",strong
-JA_E9,JA_great_mother,AS_4th_house,jung_astro_parallel,"위대한 어머니와 4하우스. 둘 다 가정과 뿌리.","4하우스 행성들은 어머니 원형의 표현 방식을 보여줌.",strong
-JA_E10,JA_wise_old_man,PS_saturn_cap,jung_astro_parallel,"현자와 염소자리 토성. 둘 다 시간의 지혜와 경험.","토성 귀환(새턴리턴)은 내면 현자와의 대화 시기.",strong
-JA_E11,JA_wise_old_man,AS_9th_house,jung_astro_parallel,"현자와 9하우스. 둘 다 고등 지식과 철학적 지혜.","9하우스 활성화는 내면 현자의 목소리를 듣는 시기.",moderate
-JA_E12,JA_trickster,AS_uranus,jung_astro_parallel,"트릭스터와 천왕성. 둘 다 규칙 파괴와 예상치 못한 변화.","천왕성 트랜짓 시 트릭스터 에너지 활성화. 예측불가.",strong
-JA_E13,JA_trickster,AS_mercury_gem,jung_astro_parallel,"트릭스터와 쌍둥이자리 수성. 둘 다 재치와 이중성.","쌍둥이자리 수성은 트릭스터적 소통 방식.",moderate
-JA_E14,JA_hero,PS_mars_ari,jung_astro_parallel,"영웅과 양자리 화성. 둘 다 용기와 도전.","양자리 화성은 영웅 원형의 직접적 표현. 전사적 에너지.",strong
-JA_E15,JA_hero,PS_sun_ari,jung_astro_parallel,"영웅과 양자리 태양. 둘 다 개척자와 선구자.","양자리 태양은 영웅의 여정을 살아가는 사람.",strong
-JA_E16,JA_child,AS_5th_house,jung_astro_parallel,"신성한 아이와 5하우스. 둘 다 창조성과 기쁨.","5하우스 활성화는 내면 아이 치유와 창조성 회복의 시기.",strong
-JA_E17,JA_child,PS_moon_can,jung_astro_parallel,"신성한 아이와 게자리 달. 둘 다 순수함과 돌봄 필요.","게자리 달을 가진 사람은 내면 아이와 깊이 연결됨.",moderate
-JA_E18,JA_father,PS_saturn_cap,jung_astro_parallel,"아버지 원형과 염소자리 토성. 둘 다 권위와 책임.","염소자리 토성은 아버지 원형이 강하게 나타남.",strong
-JA_E19,JA_father,AS_10th_house,jung_astro_parallel,"아버지 원형과 10하우스. 둘 다 사회적 권위와 성취.","10하우스 행성은 아버지 원형의 투사와 내면화를 보여줌.",strong
-JA_E20,JA_puer,AS_uranus,jung_astro_parallel,"영원한 소년과 천왕성. 둘 다 자유와 독립에 대한 욕구.","천왕성 강조는 푸에르 원형 활성화. 책임 회피 경향.",moderate
-JA_E21,JA_senex,PS_saturn_cap,jung_astro_parallel,"세넥스와 염소자리 토성. 둘 다 경직과 전통.","토성 과다는 세넥스 원형 우세. 유연성 필요.",strong
-JA_E22,JA_lover,PS_venus_tau,jung_astro_parallel,"연인 원형과 황소자리 금성. 둘 다 관능적 사랑과 연결.","황소자리 금성은 연인 원형의 감각적 표현.",strong
-JA_E23,JA_lover,AS_7th_house,jung_astro_parallel,"연인 원형과 7하우스. 둘 다 파트너십과 사랑.","7하우스 활성화는 연인 원형을 통한 성장.",moderate
-JA_E24,JA_magician,AS_mercury,jung_astro_parallel,"마법사 원형과 수성. 둘 다 변환과 소통의 기술.","수성이 강한 사람은 마법사 원형이 활성화됨.",strong
-JA_E25,JA_magician,AS_8th_house,jung_astro_parallel,"마법사 원형과 8하우스. 둘 다 연금술적 변환.","8하우스 활성화는 변환의 마법을 경험하는 시기.",moderate
-JA_E26,JA_explorer,PS_jupiter_sag,jung_astro_parallel,"탐험가 원형과 사수자리 목성. 둘 다 확장과 모험.","사수자리 목성은 탐험가 원형의 직접적 표현.",strong
-JA_E27,JA_explorer,AS_9th_house,jung_astro_parallel,"탐험가 원형과 9하우스. 둘 다 여행과 철학적 탐구.","9하우스 활성화는 외적/내적 여행의 시기.",strong
-JA_E28,JA_rebel,AS_uranus,jung_astro_parallel,"반항자 원형과 천왕성. 둘 다 혁명과 변화.","천왕성 트랜짓 시 반항자 에너지 활성화.",strong
-JA_E29,JA_rebel,AS_11th_house,jung_astro_parallel,"반항자 원형과 11하우스. 둘 다 사회 변혁과 이상.","11하우스 활성화는 집단을 위한 변혁 욕구.",moderate
-JA_E30,JA_caregiver,PS_moon_can,jung_astro_parallel,"돌봄이 원형과 게자리 달. 둘 다 양육과 보호.","게자리 달은 돌봄이 원형이 강하게 나타남.",strong
-JA_E31,JA_caregiver,AS_6th_house,jung_astro_parallel,"돌봄이 원형과 6하우스. 둘 다 봉사와 돌봄.","6하우스 활성화는 타인 돌봄을 통한 성장.",moderate
-JA_E32,JA_creator,AS_5th_house,jung_astro_parallel,"창조자 원형과 5하우스. 둘 다 창조성과 자기표현.","5하우스 활성화는 창조적 에너지 분출 시기.",strong
-JA_E33,JA_creator,PS_sun_leo,jung_astro_parallel,"창조자 원형과 사자자리 태양. 둘 다 창조적 빛.","사자자리 태양은 창조자 원형의 직접적 표현.",strong
-JA_E34,JC_mother_pos_m,PS_moon_can,jung_astro_parallel,"어머니 콤플렉스(긍정)와 게자리 달. 모성과의 깊은 연결.","게자리 달 남성은 어머니 콤플렉스 작업이 필수.",strong
-JA_E35,JC_mother_neg_m,AS_moon_pluto,jung_astro_parallel,"어머니 콤플렉스(부정)와 달-명왕성. 모성의 어두운 면.","달-명왕성 긴장은 삼키는 어머니 경험의 지표.",strong
-JA_E36,JC_father_neg_m,AS_saturn_sun,jung_astro_parallel,"아버지 콤플렉스(부정)와 토성-태양 긴장. 권위와의 갈등.","태양-토성 스퀘어는 아버지 상처의 대표적 지표.",strong
-JA_E37,JC_father_f,AS_7th_house_saturn,jung_astro_parallel,"여성 아버지 콤플렉스와 7하우스 토성. 파트너에게 아버지 투사.","7하우스 토성 여성은 연상 남성에게 끌림.",moderate
-JA_E38,JC_power,AS_pluto_10th,jung_astro_parallel,"권력 콤플렉스와 10하우스 명왕성. 권력에 대한 집착.","10하우스 명왕성은 권력 콤플렉스 작업이 필요.",strong
-JA_E39,JC_inferiority,AS_saturn_1st,jung_astro_parallel,"열등감 콤플렉스와 1하우스 토성. 자아에 대한 제한.","1하우스 토성은 열등감과 자기 비하 경향.",strong
-JA_E40,JC_inferiority,AS_chiron,jung_astro_parallel,"열등감 콤플렉스와 키론. 상처받은 치유자.","키론 위치는 열등감의 근원과 치유 경로를 보여줌.",strong
-JA_E41,JC_savior,AS_neptune_12th,jung_astro_parallel,"구원자 콤플렉스와 12하우스 해왕성. 희생과 구원 환상.","12하우스 해왕성은 순교자/구원자 경향.",strong
-JA_E42,JC_victim,AS_neptune_12th,jung_astro_parallel,"희생자 콤플렉스와 12하우스 해왕성. 무력감과 경계 부재.","12하우스 해왕성은 피해자 역할에 빠지기 쉬움.",moderate
-JA_E43,JC_persona,AS_1st_house,jung_astro_parallel,"페르소나 콤플렉스와 1하우스. 사회적 가면과 자아.","1하우스 과도 강조는 페르소나와 동일시 위험.",moderate
-JA_E44,JC_money,AS_2nd_8th_axis,jung_astro_parallel,"돈 콤플렉스와 2-8하우스 축. 물질과 가치.","2-8하우스 긴장은 돈에 대한 복잡한 심리.",strong
-JA_E45,JC_abandonment,AS_moon_pluto,jung_astro_parallel,"버림받음 콤플렉스와 달-명왕성. 유기 공포.","달-명왕성 긴장은 버림받음에 대한 깊은 공포.",strong
-JA_E46,JC_abandonment,AS_4th_house_chiron,jung_astro_parallel,"버림받음 콤플렉스와 4하우스 키론. 가정에서의 상처.","4하우스 키론은 어린 시절 유기/거부 경험.",strong
-JA_E47,JC_inflation,AS_jupiter_sun,jung_astro_parallel,"인플레이션과 목성-태양 합. 과대 자아.","태양-목성 합/트라인은 과대망상 경향 체크 필요.",moderate
-JA_E48,JC_puer,AS_uranus_strong,jung_astro_parallel,"푸에르와 강한 천왕성. 성장 거부와 자유 추구.","천왕성 과다는 피터팬 증후군 경향.",strong
-JA_E49,JC_senex,AS_saturn_strong,jung_astro_parallel,"세넥스와 강한 토성. 경직과 과도한 책임.","토성 과다는 내면 아이 억압. 놀이 필요.",strong
-JA_E50,JA_orphan,AS_chiron_4th,jung_astro_parallel,"고아 원형과 4하우스 키론. 소속에 대한 갈망.","4하우스 키론은 고아 원형 활성화. 가정 상처.",strong
+JA_E1,JA_self,PS_sun_leo,jung_astro_parallel,자기(Self) 원형과 사자자리 태양. 둘 다 자아실현과 중심성의 상징.,사자자리 태양을 가진 사람은 자기 원형 통합이 인생 과제. 창조적 자기표현이 개성화의 길.,strong
+JA_E2,JA_shadow,Pluto,jung_astro_parallel,그림자 원형과 명왕성. 둘 다 억압된 것의 귀환과 변환.,명왕성 트랜짓 시 그림자 직면 필수. 억압한 것이 표면으로 올라옴.,strong
+JA_E3,JA_shadow,H8,jung_astro_parallel,"그림자와 8하우스. 둘 다 숨겨진 것, 죽음과 재탄생.",8하우스 활성화 시기는 그림자 통합의 기회.,strong
+JA_E4,JA_anima,PS_moon_can,jung_astro_parallel,아니마와 게자리 달. 둘 다 내면의 여성성과 감정.,남성의 게자리 달은 아니마가 강하게 활성화됨. 감정 통합이 과제.,strong
+JA_E5,JA_anima,PS_venus_pis,jung_astro_parallel,아니마와 물고기자리 금성. 둘 다 이상적 여성성과 영혼.,남성의 물고기자리 금성은 아니마 투사가 강함. 이상화 경향.,moderate
+JA_E6,JA_animus,PS_mars_ari,jung_astro_parallel,아니무스와 양자리 화성. 둘 다 행동하는 남성적 원리.,여성의 양자리 화성은 아니무스가 직접적으로 표현됨.,strong
+JA_E7,JA_animus,H10,jung_astro_parallel,아니무스와 10하우스. 둘 다 사회적 성취와 권위.,여성의 10하우스 강조는 아니무스 발달과 사회적 자아 확립.,moderate
+JA_E8,JA_great_mother,PS_moon_can,jung_astro_parallel,위대한 어머니와 게자리 달. 둘 다 모성과 돌봄.,게자리 달은 위대한 어머니 원형과 직접 연결. 양육과 보호.,strong
+JA_E9,JA_great_mother,H4,jung_astro_parallel,위대한 어머니와 4하우스. 둘 다 가정과 뿌리.,4하우스 행성들은 어머니 원형의 표현 방식을 보여줌.,strong
+JA_E10,JA_wise_old_man,PS_saturn_cap,jung_astro_parallel,현자와 염소자리 토성. 둘 다 시간의 지혜와 경험.,토성 귀환(새턴리턴)은 내면 현자와의 대화 시기.,strong
+JA_E11,JA_wise_old_man,H9,jung_astro_parallel,현자와 9하우스. 둘 다 고등 지식과 철학적 지혜.,9하우스 활성화는 내면 현자의 목소리를 듣는 시기.,moderate
+JA_E12,JA_trickster,Uranus,jung_astro_parallel,트릭스터와 천왕성. 둘 다 규칙 파괴와 예상치 못한 변화.,천왕성 트랜짓 시 트릭스터 에너지 활성화. 예측불가.,strong
+JA_E13,JA_trickster,AS_mercury_gem,jung_astro_parallel,트릭스터와 쌍둥이자리 수성. 둘 다 재치와 이중성.,쌍둥이자리 수성은 트릭스터적 소통 방식.,moderate
+JA_E14,JA_hero,PS_mars_ari,jung_astro_parallel,영웅과 양자리 화성. 둘 다 용기와 도전.,양자리 화성은 영웅 원형의 직접적 표현. 전사적 에너지.,strong
+JA_E15,JA_hero,PS_sun_ari,jung_astro_parallel,영웅과 양자리 태양. 둘 다 개척자와 선구자.,양자리 태양은 영웅의 여정을 살아가는 사람.,strong
+JA_E16,JA_child,H5,jung_astro_parallel,신성한 아이와 5하우스. 둘 다 창조성과 기쁨.,5하우스 활성화는 내면 아이 치유와 창조성 회복의 시기.,strong
+JA_E17,JA_child,PS_moon_can,jung_astro_parallel,신성한 아이와 게자리 달. 둘 다 순수함과 돌봄 필요.,게자리 달을 가진 사람은 내면 아이와 깊이 연결됨.,moderate
+JA_E18,JA_father,PS_saturn_cap,jung_astro_parallel,아버지 원형과 염소자리 토성. 둘 다 권위와 책임.,염소자리 토성은 아버지 원형이 강하게 나타남.,strong
+JA_E19,JA_father,H10,jung_astro_parallel,아버지 원형과 10하우스. 둘 다 사회적 권위와 성취.,10하우스 행성은 아버지 원형의 투사와 내면화를 보여줌.,strong
+JA_E20,JA_puer,Uranus,jung_astro_parallel,영원한 소년과 천왕성. 둘 다 자유와 독립에 대한 욕구.,천왕성 강조는 푸에르 원형 활성화. 책임 회피 경향.,moderate
+JA_E21,JA_senex,PS_saturn_cap,jung_astro_parallel,세넥스와 염소자리 토성. 둘 다 경직과 전통.,토성 과다는 세넥스 원형 우세. 유연성 필요.,strong
+JA_E22,JA_lover,PS_venus_tau,jung_astro_parallel,연인 원형과 황소자리 금성. 둘 다 관능적 사랑과 연결.,황소자리 금성은 연인 원형의 감각적 표현.,strong
+JA_E23,JA_lover,H7,jung_astro_parallel,연인 원형과 7하우스. 둘 다 파트너십과 사랑.,7하우스 활성화는 연인 원형을 통한 성장.,moderate
+JA_E24,JA_magician,Mercury,jung_astro_parallel,마법사 원형과 수성. 둘 다 변환과 소통의 기술.,수성이 강한 사람은 마법사 원형이 활성화됨.,strong
+JA_E25,JA_magician,H8,jung_astro_parallel,마법사 원형과 8하우스. 둘 다 연금술적 변환.,8하우스 활성화는 변환의 마법을 경험하는 시기.,moderate
+JA_E26,JA_explorer,PS_jupiter_sag,jung_astro_parallel,탐험가 원형과 사수자리 목성. 둘 다 확장과 모험.,사수자리 목성은 탐험가 원형의 직접적 표현.,strong
+JA_E27,JA_explorer,H9,jung_astro_parallel,탐험가 원형과 9하우스. 둘 다 여행과 철학적 탐구.,9하우스 활성화는 외적/내적 여행의 시기.,strong
+JA_E28,JA_rebel,Uranus,jung_astro_parallel,반항자 원형과 천왕성. 둘 다 혁명과 변화.,천왕성 트랜짓 시 반항자 에너지 활성화.,strong
+JA_E29,JA_rebel,H11,jung_astro_parallel,반항자 원형과 11하우스. 둘 다 사회 변혁과 이상.,11하우스 활성화는 집단을 위한 변혁 욕구.,moderate
+JA_E30,JA_caregiver,PS_moon_can,jung_astro_parallel,돌봄이 원형과 게자리 달. 둘 다 양육과 보호.,게자리 달은 돌봄이 원형이 강하게 나타남.,strong
+JA_E31,JA_caregiver,H6,jung_astro_parallel,돌봄이 원형과 6하우스. 둘 다 봉사와 돌봄.,6하우스 활성화는 타인 돌봄을 통한 성장.,moderate
+JA_E32,JA_creator,H5,jung_astro_parallel,창조자 원형과 5하우스. 둘 다 창조성과 자기표현.,5하우스 활성화는 창조적 에너지 분출 시기.,strong
+JA_E33,JA_creator,PS_sun_leo,jung_astro_parallel,창조자 원형과 사자자리 태양. 둘 다 창조적 빛.,사자자리 태양은 창조자 원형의 직접적 표현.,strong
+JA_E34,JC_mother_pos_m,PS_moon_can,jung_astro_parallel,어머니 콤플렉스(긍정)와 게자리 달. 모성과의 깊은 연결.,게자리 달 남성은 어머니 콤플렉스 작업이 필수.,strong
+JA_E35,JC_mother_neg_m,AS_moon_pluto,jung_astro_parallel,어머니 콤플렉스(부정)와 달-명왕성. 모성의 어두운 면.,달-명왕성 긴장은 삼키는 어머니 경험의 지표.,strong
+JA_E36,JC_father_neg_m,AS_saturn_sun,jung_astro_parallel,아버지 콤플렉스(부정)와 토성-태양 긴장. 권위와의 갈등.,태양-토성 스퀘어는 아버지 상처의 대표적 지표.,strong
+JA_E37,JC_father_f,AS_7th_house_saturn,jung_astro_parallel,여성 아버지 콤플렉스와 7하우스 토성. 파트너에게 아버지 투사.,7하우스 토성 여성은 연상 남성에게 끌림.,moderate
+JA_E38,JC_power,AS_pluto_10th,jung_astro_parallel,권력 콤플렉스와 10하우스 명왕성. 권력에 대한 집착.,10하우스 명왕성은 권력 콤플렉스 작업이 필요.,strong
+JA_E39,JC_inferiority,AS_saturn_1st,jung_astro_parallel,열등감 콤플렉스와 1하우스 토성. 자아에 대한 제한.,1하우스 토성은 열등감과 자기 비하 경향.,strong
+JA_E40,JC_inferiority,Chiron,jung_astro_parallel,열등감 콤플렉스와 키론. 상처받은 치유자.,키론 위치는 열등감의 근원과 치유 경로를 보여줌.,strong
+JA_E41,JC_savior,AS_neptune_12th,jung_astro_parallel,구원자 콤플렉스와 12하우스 해왕성. 희생과 구원 환상.,12하우스 해왕성은 순교자/구원자 경향.,strong
+JA_E42,JC_victim,AS_neptune_12th,jung_astro_parallel,희생자 콤플렉스와 12하우스 해왕성. 무력감과 경계 부재.,12하우스 해왕성은 피해자 역할에 빠지기 쉬움.,moderate
+JA_E43,JC_persona,H1,jung_astro_parallel,페르소나 콤플렉스와 1하우스. 사회적 가면과 자아.,1하우스 과도 강조는 페르소나와 동일시 위험.,moderate
+JA_E44,JC_money,AS_2nd_8th_axis,jung_astro_parallel,돈 콤플렉스와 2-8하우스 축. 물질과 가치.,2-8하우스 긴장은 돈에 대한 복잡한 심리.,strong
+JA_E45,JC_abandonment,AS_moon_pluto,jung_astro_parallel,버림받음 콤플렉스와 달-명왕성. 유기 공포.,달-명왕성 긴장은 버림받음에 대한 깊은 공포.,strong
+JA_E46,JC_abandonment,AS_4th_house_chiron,jung_astro_parallel,버림받음 콤플렉스와 4하우스 키론. 가정에서의 상처.,4하우스 키론은 어린 시절 유기/거부 경험.,strong
+JA_E47,JC_inflation,AS_jupiter_sun,jung_astro_parallel,인플레이션과 목성-태양 합. 과대 자아.,태양-목성 합/트라인은 과대망상 경향 체크 필요.,moderate
+JA_E48,JC_puer,AS_uranus_strong,jung_astro_parallel,푸에르와 강한 천왕성. 성장 거부와 자유 추구.,천왕성 과다는 피터팬 증후군 경향.,strong
+JA_E49,JC_senex,AS_saturn_strong,jung_astro_parallel,세넥스와 강한 토성. 경직과 과도한 책임.,토성 과다는 내면 아이 억압. 놀이 필요.,strong
+JA_E50,JA_orphan,AS_chiron_4th,jung_astro_parallel,고아 원형과 4하우스 키론. 소속에 대한 갈망.,4하우스 키론은 고아 원형 활성화. 가정 상처.,strong

@@ -286,6 +286,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
             dayMaster: sajuResult.dayMaster,
             fiveElements: sajuResult.fiveElements,
             pillars: simplePillars,
+            pillarsDetailed: sajuResult.pillars,
             daeun: daeunInfo,
             yeonun,
             wolun,
@@ -307,11 +308,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
         const model = data?.model
 
         aiInterpretation =
-          typeof fusionLayer === 'string'
-            ? fusionLayer
-            : typeof report === 'string'
-              ? report
-              : ''
+          typeof fusionLayer === 'string' ? fusionLayer : typeof report === 'string' ? report : ''
         aiModelUsed = typeof model === 'string' ? model : 'gpt-4o'
 
         // Cache the AI interpretation for 7 days

@@ -56,6 +56,7 @@ export type PlanetBase = {
   house: number // 1-12
   speed?: number // deg/day
   retrograde?: boolean
+  graphId?: string
 }
 
 export type House = {
@@ -63,6 +64,7 @@ export type House = {
   cusp: number // 0-360
   sign: ZodiacKo
   formatted: string
+  graphId?: string
 }
 
 export type ChartMeta = {

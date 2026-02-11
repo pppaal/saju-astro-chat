@@ -1,56 +1,56 @@
-id,source,target,relation_type,description,interpretation_note,strength
-JT_E1,JA_self,TM_world,jung_tarot_parallel,"자기(Self) 원형과 세계 카드. 둘 다 통합과 완성.","세계 카드는 개성화 완성의 상징. 자기 원형 실현.",strong
-JT_E2,JA_self,TM_sun,jung_tarot_parallel,"자기 원형과 태양 카드. 둘 다 의식의 빛과 생명력.","태양 카드는 자기 원형의 밝은 측면. 자아실현의 기쁨.",strong
-JT_E3,JA_shadow,TM_devil,jung_tarot_parallel,"그림자와 악마 카드. 둘 다 억압된 욕망과 집착.","악마 카드는 그림자 직면의 필요성. 속박에서 해방.",strong
-JT_E4,JA_shadow,TM_moon,jung_tarot_parallel,"그림자와 달 카드. 둘 다 무의식과 두려움.","달 카드는 그림자 영역 탐험. 환상과 직관 사이.",strong
-JT_E5,JA_shadow,TM_tower,jung_tarot_parallel,"그림자와 탑 카드. 둘 다 억압된 것의 폭발.","탑 카드는 그림자가 터져나오는 순간. 파괴와 해방.",strong
-JT_E6,JA_anima,TM_empress,jung_tarot_parallel,"아니마와 여황제 카드. 둘 다 풍요로운 여성성.","여황제는 아니마의 긍정적 측면. 창조적 여성 에너지.",strong
-JT_E7,JA_anima,TM_high_priestess,jung_tarot_parallel,"아니마와 여교황 카드. 둘 다 신비로운 직관.","여교황은 아니마의 영적 측면. 내면의 지혜.",strong
-JT_E8,JA_anima,TM_cups_queen,jung_tarot_parallel,"아니마와 컵의 여왕. 둘 다 감정적 지혜.","컵 퀸은 아니마의 공감적 측면.",moderate
-JT_E9,JA_animus,TM_emperor,jung_tarot_parallel,"아니무스와 황제 카드. 둘 다 구조와 권위.","황제는 아니무스의 통제적 측면. 내면의 왕.",strong
-JT_E10,JA_animus,TM_chariot,jung_tarot_parallel,"아니무스와 전차 카드. 둘 다 의지와 승리.","전차는 아니무스의 행동적 측면. 목표 향한 추진력.",strong
-JT_E11,JA_animus,TM_swords_king,jung_tarot_parallel,"아니무스와 소드의 왕. 둘 다 지적 권위.","소드 킹은 아니무스의 지적 측면.",moderate
-JT_E12,JA_great_mother,TM_empress,jung_tarot_parallel,"위대한 어머니와 여황제. 둘 다 모성과 풍요.","여황제는 위대한 어머니 원형의 핵심 표현.",strong
-JT_E13,JA_great_mother,TM_cups_queen,jung_tarot_parallel,"위대한 어머니와 컵 여왕. 둘 다 감정적 돌봄.","컵 퀸은 어머니 원형의 양육적 측면.",strong
-JT_E14,JA_wise_old_man,TM_hermit,jung_tarot_parallel,"현자와 은둔자 카드. 둘 다 내면의 지혜와 고독.","은둔자는 현자 원형의 직접적 표현. 내면 인도자.",strong
-JT_E15,JA_wise_old_man,TM_hierophant,jung_tarot_parallel,"현자와 교황 카드. 둘 다 영적 가르침.","교황은 현자 원형의 전통적 측면. 제도화된 지혜.",moderate
-JT_E16,JA_trickster,TM_fool,jung_tarot_parallel,"트릭스터와 바보 카드. 둘 다 규칙 초월과 순수.","바보는 트릭스터의 순수한 측면. 새로운 시작.",strong
-JT_E17,JA_trickster,TM_magician,jung_tarot_parallel,"트릭스터와 마법사 카드. 둘 다 속임과 변환 기술.","마법사는 트릭스터의 숙련된 측면.",moderate
-JT_E18,JA_hero,TM_chariot,jung_tarot_parallel,"영웅과 전차 카드. 둘 다 승리와 정복.","전차는 영웅 원형의 승리 단계.",strong
-JT_E19,JA_hero,TM_strength,jung_tarot_parallel,"영웅과 힘 카드. 둘 다 용기와 내면의 힘.","힘 카드는 영웅의 내면적 용기. 부드러운 힘.",strong
-JT_E20,JA_hero,TM_wands_knight,jung_tarot_parallel,"영웅과 완드 기사. 둘 다 모험과 열정.","완드 나이트는 영웅의 행동적 측면.",moderate
-JT_E21,JA_child,TM_sun,jung_tarot_parallel,"신성한 아이와 태양 카드. 둘 다 순수한 기쁨.","태양 카드의 아이는 신성한 아이 원형.",strong
-JT_E22,JA_child,TM_fool,jung_tarot_parallel,"신성한 아이와 바보 카드. 둘 다 새로운 시작.","바보는 신성한 아이의 무한한 가능성.",strong
-JT_E23,JA_father,TM_emperor,jung_tarot_parallel,"아버지 원형과 황제 카드. 둘 다 권위와 구조.","황제는 아버지 원형의 핵심 표현.",strong
-JT_E24,JA_puer,TM_fool,jung_tarot_parallel,"영원한 소년과 바보 카드. 둘 다 시작과 가능성.","바보의 무책임한 측면은 푸에르 원형.",moderate
-JT_E25,JA_puer,TM_wands_knight,jung_tarot_parallel,"영원한 소년과 완드 기사. 둘 다 모험과 불안정.","완드 나이트의 변덕은 푸에르 특성.",moderate
-JT_E26,JA_senex,TM_hermit,jung_tarot_parallel,"세넥스와 은둔자 카드. 둘 다 고독과 경험.","은둔자의 경직된 측면은 세넥스 원형.",moderate
-JT_E27,JA_senex,TM_emperor_rev,jung_tarot_parallel,"세넥스와 황제 역방향. 둘 다 과도한 통제.","황제 역방향은 세넥스의 부정적 측면.",moderate
-JT_E28,JA_lover,TM_lovers,jung_tarot_parallel,"연인 원형과 연인 카드. 둘 다 선택과 결합.","연인 카드는 연인 원형의 핵심. 관계와 선택.",strong
-JT_E29,JA_lover,TM_cups_2,jung_tarot_parallel,"연인 원형과 컵 2. 둘 다 파트너십과 유대.","컵 2는 연인 원형의 조화로운 측면.",strong
-JT_E30,JA_magician,TM_magician,jung_tarot_parallel,"마법사 원형과 마법사 카드. 둘 다 변환의 기술.","마법사 카드는 마법사 원형의 직접적 표현.",strong
-JT_E31,JA_explorer,TM_fool,jung_tarot_parallel,"탐험가 원형과 바보 카드. 둘 다 여정의 시작.","바보의 여정은 탐험가 원형의 표현.",strong
-JT_E32,JA_explorer,TM_wands_8,jung_tarot_parallel,"탐험가 원형과 완드 8. 둘 다 빠른 이동과 진전.","완드 8은 탐험가의 속도와 진보.",moderate
-JT_E33,JA_rebel,TM_tower,jung_tarot_parallel,"반항자 원형과 탑 카드. 둘 다 기존 구조 파괴.","탑은 반항자 원형의 극적 표현. 혁명.",strong
-JT_E34,JA_caregiver,TM_empress,jung_tarot_parallel,"돌봄이 원형과 여황제. 둘 다 양육과 보호.","여황제는 돌봄이 원형의 풍요로운 측면.",strong
-JT_E35,JA_caregiver,TM_pent_6,jung_tarot_parallel,"돌봄이 원형과 펜타클 6. 둘 다 나눔과 관용.","펜타클 6은 돌봄이의 물질적 나눔.",moderate
-JT_E36,JA_creator,TM_magician,jung_tarot_parallel,"창조자 원형과 마법사 카드. 둘 다 현실 창조.","마법사는 창조자 원형의 기술적 측면.",strong
-JT_E37,JA_creator,TM_empress,jung_tarot_parallel,"창조자 원형과 여황제. 둘 다 창조적 풍요.","여황제는 창조자 원형의 자연스러운 측면.",moderate
-JT_E38,JC_mother_pos_m,TM_empress,jung_tarot_parallel,"어머니 콤플렉스(긍정)와 여황제. 이상화된 모성.","여황제 과잉 동일시는 어머니 콤플렉스 지표.",strong
-JT_E39,JC_mother_neg_m,TM_empress_rev,jung_tarot_parallel,"어머니 콤플렉스(부정)와 여황제 역방향. 모성 결핍.","여황제 역방향은 삼키는 어머니 또는 부재.",strong
-JT_E40,JC_father_neg_m,TM_emperor_rev,jung_tarot_parallel,"아버지 콤플렉스(부정)와 황제 역방향. 권위 문제.","황제 역방향은 폭군 또는 부재 아버지.",strong
-JT_E41,JC_power,TM_emperor,jung_tarot_parallel,"권력 콤플렉스와 황제 카드. 권력에 대한 집착.","황제 과잉 동일시는 권력 콤플렉스.",moderate
-JT_E42,JC_power,TM_chariot,jung_tarot_parallel,"권력 콤플렉스와 전차. 통제에 대한 욕구.","전차의 과도한 통제는 권력 콤플렉스.",moderate
-JT_E43,JC_inferiority,TM_pent_5,jung_tarot_parallel,"열등감 콤플렉스와 펜타클 5. 결핍과 배제.","펜타클 5는 열등감의 물질적 표현.",strong
-JT_E44,JC_inferiority,TM_moon,jung_tarot_parallel,"열등감 콤플렉스와 달 카드. 불안과 두려움.","달 카드의 불안은 열등감의 심리적 측면.",moderate
-JT_E45,JC_savior,TM_hierophant,jung_tarot_parallel,"구원자 콤플렉스와 교황. 영적 구원자 역할.","교황의 과잉 동일시는 구원자 콤플렉스.",moderate
-JT_E46,JC_savior,TM_star,jung_tarot_parallel,"구원자 콤플렉스와 별 카드. 희망을 주는 자.","별 카드는 구원자 역할의 긍정적 측면.",moderate
-JT_E47,JC_victim,TM_swords_10,jung_tarot_parallel,"희생자 콤플렉스와 소드 10. 완전한 패배감.","소드 10은 희생자 의식의 극단적 표현.",strong
-JT_E48,JC_victim,TM_hanged_man,jung_tarot_parallel,"희생자 콤플렉스와 매달린 사람. 희생과 정지.","매달린 사람의 부정적 측면은 희생자 역할.",moderate
-JT_E49,JC_abandonment,TM_cups_5,jung_tarot_parallel,"버림받음 콤플렉스와 컵 5. 상실과 슬픔.","컵 5는 버림받음의 감정적 상처.",strong
-JT_E50,JC_abandonment,TM_swords_3,jung_tarot_parallel,"버림받음 콤플렉스와 소드 3. 가슴 아픈 이별.","소드 3은 버림받음의 날카로운 고통.",strong
-JT_E51,JC_money,TM_pent_4,jung_tarot_parallel,"돈 콤플렉스와 펜타클 4. 물질에 대한 집착.","펜타클 4는 돈 콤플렉스의 움켜쥠.",strong
-JT_E52,JC_money,TM_devil,jung_tarot_parallel,"돈 콤플렉스와 악마 카드. 물질적 속박.","악마는 돈에 대한 중독적 집착.",strong
-JT_E53,JC_inflation,TM_sun,jung_tarot_parallel,"인플레이션과 태양 카드. 과대한 자아.","태양의 과잉 동일시는 인플레이션.",moderate
-JT_E54,JC_puer,TM_fool,jung_tarot_parallel,"푸에르 콤플렉스와 바보 카드. 성장 거부.","바보의 무책임한 측면은 푸에르 콤플렉스.",strong
-JT_E55,JC_senex,TM_hermit_rev,jung_tarot_parallel,"세넥스 콤플렉스와 은둔자 역방향. 경직과 고립.","은둔자 역방향은 세넥스의 부정적 측면.",moderate
+﻿id,source,target,relation_type,description,interpretation_note,strength
+JT_E1,JA_self,TM_21,jung_tarot_parallel,자기(Self) 원형과 세계 카드. 둘 다 통합과 완성.,세계 카드는 개성화 완성의 상징. 자기 원형 실현.,strong
+JT_E2,JA_self,TM_19,jung_tarot_parallel,자기 원형과 태양 카드. 둘 다 의식의 빛과 생명력.,태양 카드는 자기 원형의 밝은 측면. 자아실현의 기쁨.,strong
+JT_E3,JA_shadow,TM_15,jung_tarot_parallel,그림자와 악마 카드. 둘 다 억압된 욕망과 집착.,악마 카드는 그림자 직면의 필요성. 속박에서 해방.,strong
+JT_E4,JA_shadow,TM_18,jung_tarot_parallel,그림자와 달 카드. 둘 다 무의식과 두려움.,달 카드는 그림자 영역 탐험. 환상과 직관 사이.,strong
+JT_E5,JA_shadow,TM_16,jung_tarot_parallel,그림자와 탑 카드. 둘 다 억압된 것의 폭발.,탑 카드는 그림자가 터져나오는 순간. 파괴와 해방.,strong
+JT_E6,JA_anima,TM_03,jung_tarot_parallel,아니마와 여황제 카드. 둘 다 풍요로운 여성성.,여황제는 아니마의 긍정적 측면. 창조적 여성 에너지.,strong
+JT_E7,JA_anima,TM_02,jung_tarot_parallel,아니마와 여교황 카드. 둘 다 신비로운 직관.,여교황은 아니마의 영적 측면. 내면의 지혜.,strong
+JT_E8,JA_anima,TM_cups_queen,jung_tarot_parallel,아니마와 컵의 여왕. 둘 다 감정적 지혜.,컵 퀸은 아니마의 공감적 측면.,moderate
+JT_E9,JA_animus,TM_04,jung_tarot_parallel,아니무스와 황제 카드. 둘 다 구조와 권위.,황제는 아니무스의 통제적 측면. 내면의 왕.,strong
+JT_E10,JA_animus,TM_07,jung_tarot_parallel,아니무스와 전차 카드. 둘 다 의지와 승리.,전차는 아니무스의 행동적 측면. 목표 향한 추진력.,strong
+JT_E11,JA_animus,TM_swords_king,jung_tarot_parallel,아니무스와 소드의 왕. 둘 다 지적 권위.,소드 킹은 아니무스의 지적 측면.,moderate
+JT_E12,JA_great_mother,TM_03,jung_tarot_parallel,위대한 어머니와 여황제. 둘 다 모성과 풍요.,여황제는 위대한 어머니 원형의 핵심 표현.,strong
+JT_E13,JA_great_mother,TM_cups_queen,jung_tarot_parallel,위대한 어머니와 컵 여왕. 둘 다 감정적 돌봄.,컵 퀸은 어머니 원형의 양육적 측면.,strong
+JT_E14,JA_wise_old_man,TM_09,jung_tarot_parallel,현자와 은둔자 카드. 둘 다 내면의 지혜와 고독.,은둔자는 현자 원형의 직접적 표현. 내면 인도자.,strong
+JT_E15,JA_wise_old_man,TM_05,jung_tarot_parallel,현자와 교황 카드. 둘 다 영적 가르침.,교황은 현자 원형의 전통적 측면. 제도화된 지혜.,moderate
+JT_E16,JA_trickster,TM_00,jung_tarot_parallel,트릭스터와 바보 카드. 둘 다 규칙 초월과 순수.,바보는 트릭스터의 순수한 측면. 새로운 시작.,strong
+JT_E17,JA_trickster,TM_01,jung_tarot_parallel,트릭스터와 마법사 카드. 둘 다 속임과 변환 기술.,마법사는 트릭스터의 숙련된 측면.,moderate
+JT_E18,JA_hero,TM_07,jung_tarot_parallel,영웅과 전차 카드. 둘 다 승리와 정복.,전차는 영웅 원형의 승리 단계.,strong
+JT_E19,JA_hero,TM_08,jung_tarot_parallel,영웅과 힘 카드. 둘 다 용기와 내면의 힘.,힘 카드는 영웅의 내면적 용기. 부드러운 힘.,strong
+JT_E20,JA_hero,TM_wands_knight,jung_tarot_parallel,영웅과 완드 기사. 둘 다 모험과 열정.,완드 나이트는 영웅의 행동적 측면.,moderate
+JT_E21,JA_child,TM_19,jung_tarot_parallel,신성한 아이와 태양 카드. 둘 다 순수한 기쁨.,태양 카드의 아이는 신성한 아이 원형.,strong
+JT_E22,JA_child,TM_00,jung_tarot_parallel,신성한 아이와 바보 카드. 둘 다 새로운 시작.,바보는 신성한 아이의 무한한 가능성.,strong
+JT_E23,JA_father,TM_04,jung_tarot_parallel,아버지 원형과 황제 카드. 둘 다 권위와 구조.,황제는 아버지 원형의 핵심 표현.,strong
+JT_E24,JA_puer,TM_00,jung_tarot_parallel,영원한 소년과 바보 카드. 둘 다 시작과 가능성.,바보의 무책임한 측면은 푸에르 원형.,moderate
+JT_E25,JA_puer,TM_wands_knight,jung_tarot_parallel,영원한 소년과 완드 기사. 둘 다 모험과 불안정.,완드 나이트의 변덕은 푸에르 특성.,moderate
+JT_E26,JA_senex,TM_09,jung_tarot_parallel,세넥스와 은둔자 카드. 둘 다 고독과 경험.,은둔자의 경직된 측면은 세넥스 원형.,moderate
+JT_E27,JA_senex,TM_04,jung_tarot_parallel,세넥스와 황제 역방향. 둘 다 과도한 통제.,황제 역방향은 세넥스의 부정적 측면.,moderate
+JT_E28,JA_lover,TM_06,jung_tarot_parallel,연인 원형과 연인 카드. 둘 다 선택과 결합.,연인 카드는 연인 원형의 핵심. 관계와 선택.,strong
+JT_E29,JA_lover,TM_cups_2,jung_tarot_parallel,연인 원형과 컵 2. 둘 다 파트너십과 유대.,컵 2는 연인 원형의 조화로운 측면.,strong
+JT_E30,JA_magician,TM_01,jung_tarot_parallel,마법사 원형과 마법사 카드. 둘 다 변환의 기술.,마법사 카드는 마법사 원형의 직접적 표현.,strong
+JT_E31,JA_explorer,TM_00,jung_tarot_parallel,탐험가 원형과 바보 카드. 둘 다 여정의 시작.,바보의 여정은 탐험가 원형의 표현.,strong
+JT_E32,JA_explorer,TM_wands_8,jung_tarot_parallel,탐험가 원형과 완드 8. 둘 다 빠른 이동과 진전.,완드 8은 탐험가의 속도와 진보.,moderate
+JT_E33,JA_rebel,TM_16,jung_tarot_parallel,반항자 원형과 탑 카드. 둘 다 기존 구조 파괴.,탑은 반항자 원형의 극적 표현. 혁명.,strong
+JT_E34,JA_caregiver,TM_03,jung_tarot_parallel,돌봄이 원형과 여황제. 둘 다 양육과 보호.,여황제는 돌봄이 원형의 풍요로운 측면.,strong
+JT_E35,JA_caregiver,TM_pent_6,jung_tarot_parallel,돌봄이 원형과 펜타클 6. 둘 다 나눔과 관용.,펜타클 6은 돌봄이의 물질적 나눔.,moderate
+JT_E36,JA_creator,TM_01,jung_tarot_parallel,창조자 원형과 마법사 카드. 둘 다 현실 창조.,마법사는 창조자 원형의 기술적 측면.,strong
+JT_E37,JA_creator,TM_03,jung_tarot_parallel,창조자 원형과 여황제. 둘 다 창조적 풍요.,여황제는 창조자 원형의 자연스러운 측면.,moderate
+JT_E38,JC_mother_pos_m,TM_03,jung_tarot_parallel,어머니 콤플렉스(긍정)와 여황제. 이상화된 모성.,여황제 과잉 동일시는 어머니 콤플렉스 지표.,strong
+JT_E39,JC_mother_neg_m,TM_03,jung_tarot_parallel,어머니 콤플렉스(부정)와 여황제 역방향. 모성 결핍.,여황제 역방향은 삼키는 어머니 또는 부재.,strong
+JT_E40,JC_father_neg_m,TM_04,jung_tarot_parallel,아버지 콤플렉스(부정)와 황제 역방향. 권위 문제.,황제 역방향은 폭군 또는 부재 아버지.,strong
+JT_E41,JC_power,TM_04,jung_tarot_parallel,권력 콤플렉스와 황제 카드. 권력에 대한 집착.,황제 과잉 동일시는 권력 콤플렉스.,moderate
+JT_E42,JC_power,TM_07,jung_tarot_parallel,권력 콤플렉스와 전차. 통제에 대한 욕구.,전차의 과도한 통제는 권력 콤플렉스.,moderate
+JT_E43,JC_inferiority,TM_pent_5,jung_tarot_parallel,열등감 콤플렉스와 펜타클 5. 결핍과 배제.,펜타클 5는 열등감의 물질적 표현.,strong
+JT_E44,JC_inferiority,TM_18,jung_tarot_parallel,열등감 콤플렉스와 달 카드. 불안과 두려움.,달 카드의 불안은 열등감의 심리적 측면.,moderate
+JT_E45,JC_savior,TM_05,jung_tarot_parallel,구원자 콤플렉스와 교황. 영적 구원자 역할.,교황의 과잉 동일시는 구원자 콤플렉스.,moderate
+JT_E46,JC_savior,TM_17,jung_tarot_parallel,구원자 콤플렉스와 별 카드. 희망을 주는 자.,별 카드는 구원자 역할의 긍정적 측면.,moderate
+JT_E47,JC_victim,TM_swords_10,jung_tarot_parallel,희생자 콤플렉스와 소드 10. 완전한 패배감.,소드 10은 희생자 의식의 극단적 표현.,strong
+JT_E48,JC_victim,TM_12,jung_tarot_parallel,희생자 콤플렉스와 매달린 사람. 희생과 정지.,매달린 사람의 부정적 측면은 희생자 역할.,moderate
+JT_E49,JC_abandonment,TM_cups_5,jung_tarot_parallel,버림받음 콤플렉스와 컵 5. 상실과 슬픔.,컵 5는 버림받음의 감정적 상처.,strong
+JT_E50,JC_abandonment,TM_swords_3,jung_tarot_parallel,버림받음 콤플렉스와 소드 3. 가슴 아픈 이별.,소드 3은 버림받음의 날카로운 고통.,strong
+JT_E51,JC_money,TM_pent_4,jung_tarot_parallel,돈 콤플렉스와 펜타클 4. 물질에 대한 집착.,펜타클 4는 돈 콤플렉스의 움켜쥠.,strong
+JT_E52,JC_money,TM_15,jung_tarot_parallel,돈 콤플렉스와 악마 카드. 물질적 속박.,악마는 돈에 대한 중독적 집착.,strong
+JT_E53,JC_inflation,TM_19,jung_tarot_parallel,인플레이션과 태양 카드. 과대한 자아.,태양의 과잉 동일시는 인플레이션.,moderate
+JT_E54,JC_puer,TM_00,jung_tarot_parallel,푸에르 콤플렉스와 바보 카드. 성장 거부.,바보의 무책임한 측면은 푸에르 콤플렉스.,strong
+JT_E55,JC_senex,TM_09,jung_tarot_parallel,세넥스 콤플렉스와 은둔자 역방향. 경직과 고립.,은둔자 역방향은 세넥스의 부정적 측면.,moderate

@@ -91,6 +91,11 @@ class ReadingContextBuilder:
             self._build_pattern_context(drawn_cards)
         )
 
+        # Multi-card rule hints (3+ cards)
+        context_parts.extend(
+            self._build_multi_card_rule_context(drawn_cards, theme, spread)
+        )
+
         # Card pair interpretations
         context_parts.extend(
             self._build_card_pair_context(drawn_cards, theme)
@@ -293,6 +298,28 @@ class ReadingContextBuilder:
         synthesis = pattern.get('synthesis', {})
         if synthesis.get('summary'):
             parts.append(f"\n## 종합: {synthesis['summary']}")
+
+        return parts
+
+    def _build_multi_card_rule_context(
+        self,
+        drawn_cards: List[Dict],
+        theme: str,
+        spread: Optional[Dict]
+    ) -> List[str]:
+        """Build rule-based hints for 3+ card readings"""
+        parts = []
+        if len(drawn_cards) < 3:
+            return parts
+
+        pattern = self.pattern_engine.analyze(drawn_cards)
+        hints = self.advanced_rules.get_multi_card_rule_hints(pattern, theme, spread)
+        if not hints:
+            return parts
+
+        parts.append("\n## 규칙 기반 해석:")
+        for msg in hints[:6]:
+            parts.append(f"- {msg}")
 
         return parts
 

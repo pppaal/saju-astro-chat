@@ -45,6 +45,10 @@ class AdvancedRulesLoader:
         self.decision_framework: Dict = {}
         self.reverse_interpretations: Dict = {}
         self.jungian_archetypes: Dict = {}
+        self.multi_card_rules: Dict = {}
+        self.pattern_interpretations: Dict = {}
+        self.pair_overrides: Dict = {}
+        self._pair_override_index: Dict[str, Dict] = {}
         self._load_all_rules()
 
     def _load_all_rules(self):
@@ -76,7 +80,10 @@ class AdvancedRulesLoader:
             'crisis.json': 'crisis_support',
             'decisions.json': 'decision_framework',
             'tarot_reverse_interpretations.json': 'reverse_interpretations',
-            'jungian_archetypes.json': 'jungian_archetypes'
+            'jungian_archetypes.json': 'jungian_archetypes',
+            'multi_card_rules.json': 'multi_card_rules',
+            'pattern_interpretations.json': 'pattern_interpretations',
+            'card_pair_overrides.json': 'pair_overrides'
         }
 
         for filename, attr in rule_files.items():
@@ -89,6 +96,23 @@ class AdvancedRulesLoader:
                     pass
 
         self._load_card_pair_combinations()
+        self._build_pair_override_index()
+
+    def _build_pair_override_index(self):
+        """Build quick lookup index for pair overrides."""
+        self._pair_override_index = {}
+        overrides = self.pair_overrides or {}
+        for item in overrides.get("pairs", []) or []:
+            id1 = item.get("card1_id")
+            id2 = item.get("card2_id")
+            if not id1 or not id2:
+                continue
+            key = self._pair_key(id1, id2)
+            self._pair_override_index[key] = item
+
+    def _pair_key(self, id1: str, id2: str) -> str:
+        """Stable key for unordered card pairs."""
+        return "||".join(sorted([id1, id2]))
 
     def _load_card_pair_combinations(self):
         """Load tarot_combinations.csv for card pair interpretations"""
@@ -130,30 +154,307 @@ class AdvancedRulesLoader:
                         return f"{suit_id}_{rank_num}"
         return None
 
+    def get_multi_card_rule_hints(
+        self,
+        pattern: Dict,
+        theme: Optional[str] = None,
+        spread: Optional[Dict] = None
+    ) -> List[str]:
+        """Apply stored multi-card rules to a pattern analysis result."""
+        priority_hints: List[str] = []
+        general_hints: List[str] = []
+        rules = self.multi_card_rules or {}
+        pattern_rules = self.pattern_interpretations or {}
+        if not rules or not pattern:
+            return []
+
+        # Suit dominance + missing
+        suit_rules = rules.get("suit_dominance", {})
+        suit_analysis = pattern.get("suit_analysis", {})
+        dominant = suit_analysis.get("dominant")
+        if dominant and isinstance(dominant, dict):
+            suit = dominant.get("suit")
+            if suit:
+                msg = suit_rules.get("messages", {}).get(suit)
+                if msg:
+                    general_hints.append(msg)
+
+        if suit_analysis.get("balance") == "balanced":
+            balanced_msg = suit_rules.get("balanced_message")
+            if balanced_msg:
+                general_hints.append(balanced_msg)
+
+        for miss in suit_analysis.get("missing", []) or []:
+            suit = miss.get("suit")
+            if suit:
+                msg = suit_rules.get("missing_messages", {}).get(suit)
+                if msg:
+                    general_hints.append(msg)
+
+        # Major ratio rules
+        arcana = pattern.get("arcana_analysis", {})
+        major_ratio_percent = arcana.get("major_ratio")
+        if isinstance(major_ratio_percent, (int, float)):
+            major_ratio = major_ratio_percent / 100.0
+            for rule in rules.get("major_ratio_rules", []):
+                if major_ratio >= rule.get("min", 1.1):
+                    msg = rule.get("message")
+                    if msg:
+                        general_hints.append(msg)
+                    break
+
+        # Reversal ratio rules
+        reversal = pattern.get("reversal_analysis", {})
+        reversal_ratio_percent = reversal.get("ratio")
+        if isinstance(reversal_ratio_percent, (int, float)):
+            reversal_ratio = reversal_ratio_percent / 100.0
+            applied = False
+            for rule in rules.get("reversal_ratio_rules", []):
+                if "exact" in rule and reversal_ratio == rule.get("exact"):
+                    msg = rule.get("message")
+                    if msg:
+                        general_hints.append(msg)
+                    applied = True
+                    break
+                if reversal_ratio >= rule.get("min", 1.1):
+                    msg = rule.get("message")
+                    if msg:
+                        general_hints.append(msg)
+                    applied = True
+                    break
+            if not applied and reversal_ratio == 0:
+                msg = next((r.get("message") for r in rules.get("reversal_ratio_rules", [])
+                            if r.get("exact") == 0), None)
+                if msg:
+                    general_hints.append(msg)
+
+        # Court focus
+        court = pattern.get("court_analysis", {})
+        court_rules = rules.get("court_focus", {})
+        if court_rules:
+            min_count = court_rules.get("min_count", 3)
+            min_ratio = court_rules.get("min_ratio", 0.4)
+            if court.get("count", 0) >= min_count or (court.get("ratio", 0) / 100.0) >= min_ratio:
+                msg = court_rules.get("message")
+                if msg:
+                    general_hints.append(msg)
+
+        # Element energy
+        element = pattern.get("element_interaction", {})
+        element_energy = element.get("overall_energy")
+        if element_energy:
+            msg = rules.get("element_energy", {}).get(element_energy)
+            if msg:
+                general_hints.append(msg)
+
+        # Energy flow
+        energy_flow = pattern.get("energy_flow", {})
+        trend = energy_flow.get("trend")
+        pattern_state = energy_flow.get("pattern")
+        flow_rules = rules.get("energy_flow", {})
+        if trend and flow_rules.get(trend):
+            general_hints.append(flow_rules.get(trend))
+        elif pattern_state and flow_rules.get(pattern_state):
+            general_hints.append(flow_rules.get(pattern_state))
+
+        # Number repeats
+        num_rules = rules.get("number_repeats", {})
+        number_analysis = pattern.get("number_analysis", {})
+        for rep in number_analysis.get("repeated", []) or []:
+            num = rep.get("number")
+            if num is None:
+                continue
+            msg = num_rules.get(str(num))
+            if msg:
+                general_hints.append(msg)
+
+        # Sequences
+        seq_rule = rules.get("sequence_rule", {})
+        min_len = seq_rule.get("min_len", 3)
+        for seq in number_analysis.get("sequences", []) or []:
+            nums = seq.get("numbers", [])
+            if isinstance(nums, list) and len(nums) >= min_len:
+                msg = seq_rule.get("message")
+                if msg:
+                    general_hints.append(msg)
+                    break
+
+        # === Enrich with pattern_interpretations.json ===
+        # Reversed reading tips
+        reversed_guide = pattern_rules.get("reversed_interpretation_guide", {})
+        if reversed_guide:
+            tips = reversed_guide.get("reading_tips", [])
+            if isinstance(tips, list) and tips:
+                if reversal_ratio_percent and reversal_ratio_percent >= 50:
+                    general_hints.append(tips[0])
+                elif reversal_ratio_percent and reversal_ratio_percent >= 30 and len(tips) > 1:
+                    general_hints.append(tips[1])
+
+        # Number interpretations (richer wording)
+        num_interp = pattern_rules.get("number_interpretations", {})
+        num_key_map = {
+            1: "aces", 2: "twos", 3: "threes", 4: "fours", 5: "fives",
+            6: "sixes", 7: "sevens", 8: "eights", 9: "nines", 10: "tens"
+        }
+        for rep in number_analysis.get("repeated", []) or []:
+            num = rep.get("number")
+            key = num_key_map.get(num)
+            if key and key in num_interp:
+                rich = num_interp[key]
+                extra = rich.get("korean") or rich.get("core_meaning")
+                if extra:
+                    general_hints.append(extra)
+                    break
+
+        # Court card interpretation (if court focus)
+        court_interp = pattern_rules.get("court_card_interpretations", {})
+        if court_interp and court:
+            rank_key_map = {
+                "Page": "pages",
+                "Knight": "knights",
+                "Queen": "queens",
+                "King": "kings",
+            }
+            ranks = court.get("ranks", {}) or {}
+            for rank, data in ranks.items():
+                if data.get("count", 0) >= 2:
+                    key = rank_key_map.get(rank)
+                    if key and key in court_interp:
+                        extra = court_interp[key].get("korean") or court_interp[key].get("core_meaning")
+                        if extra:
+                            general_hints.append(extra)
+                            break
+
+        # General interpretation principle tip
+        tips = pattern_rules.get("reading_enhancement_tips", {}).get("interpretation_principles", [])
+        if isinstance(tips, list) and tips:
+            if len(general_hints) < 6:
+                general_hints.append(tips[0])
+
+        # === Theme + spread focused hints ===
+        theme_key = (theme or "").strip().lower()
+        theme_alias = {
+            "money": "wealth",
+            "finance": "wealth",
+            "family": "love",
+            "life_path": "spiritual",
+            "daily": "general",
+            "monthly": "general",
+        }
+        theme_key = theme_alias.get(theme_key, theme_key)
+        theme_rules = rules.get("theme_focus", {})
+        theme_data = theme_rules.get(theme_key) or theme_rules.get("general") or {}
+
+        focus_msg = theme_data.get("focus")
+        if focus_msg:
+            priority_hints.append(focus_msg)
+
+        dominant_suit = None
+        if isinstance(dominant, dict):
+            dominant_suit = dominant.get("suit")
+        if dominant_suit:
+            dom_note = (theme_data.get("dominant_suit_notes") or {}).get(dominant_suit)
+            if dom_note:
+                priority_hints.append(dom_note)
+
+        missing_list = suit_analysis.get("missing", []) or []
+        if missing_list:
+            miss_note_map = theme_data.get("missing_suit_notes") or {}
+            for miss in missing_list:
+                miss_suit = miss.get("suit")
+                if miss_suit and miss_note_map.get(miss_suit):
+                    priority_hints.append(miss_note_map.get(miss_suit))
+                    break
+
+        if isinstance(major_ratio_percent, (int, float)) and major_ratio_percent >= 50:
+            major_note = theme_data.get("major_ratio_note")
+            if major_note:
+                priority_hints.append(major_note)
+
+        if isinstance(reversal_ratio_percent, (int, float)) and reversal_ratio_percent >= 50:
+            reversal_note = theme_data.get("reversal_note")
+            if reversal_note:
+                priority_hints.append(reversal_note)
+
+        spread_key = None
+        if isinstance(spread, dict):
+            spread_name = (spread.get("spread_name") or "").lower()
+            card_count = spread.get("card_count")
+            if "celtic" in spread_name or "cross" in spread_name:
+                spread_key = "celtic_cross"
+            elif any(word in spread_name for word in ["relationship", "partner", "heart", "crush"]):
+                spread_key = "relationship_spread"
+            elif card_count == 3:
+                spread_key = "three_card"
+
+        if spread_key:
+            guides = rules.get("spread_guides", {})
+            guide = guides.get(spread_key)
+            if guide:
+                guide_msg = guide.get("message")
+                if guide_msg:
+                    priority_hints.append(guide_msg)
+                trend = energy_flow.get("trend")
+                flow_msg = (guide.get("energy_flow") or {}).get(trend)
+                if flow_msg:
+                    priority_hints.append(flow_msg)
+
+        # Merge (priority first), remove duplicates while preserving order
+        merged: List[str] = []
+        for msg in priority_hints + general_hints:
+            if msg and msg not in merged:
+                merged.append(msg)
+
+        return merged
+
     def find_card_pair_interpretation(self, card1_name: str, card2_name: str) -> Optional[Dict]:
         """Find interpretation for a specific card pair from CSV data"""
-        if not self.card_pair_combinations:
+        if not self.card_pair_combinations and not self._pair_override_index:
             return None
 
         card1_id = self._card_name_to_id(card1_name)
         card2_id = self._card_name_to_id(card2_name)
 
-        for combo in self.card_pair_combinations:
-            combo_card1_id = combo.get('card1_id', '')
-            combo_card2_id = combo.get('card2_id', '')
+        if not card1_id or not card2_id:
+            return None
 
-            if (combo_card1_id == card1_id and combo_card2_id == card2_id) or \
-               (combo_card1_id == card2_id and combo_card2_id == card1_id):
-                return {
-                    'card1': card1_name,
-                    'card2': card2_name,
-                    'element_relation': combo.get('element_relation'),
-                    'love': combo.get('love_interpretation'),
-                    'career': combo.get('career_interpretation'),
-                    'finance': combo.get('finance_interpretation'),
-                    'advice': combo.get('advice')
-                }
-        return None
+        override = self._pair_override_index.get(self._pair_key(card1_id, card2_id))
+        base = None
+        if self.card_pair_combinations:
+            for combo in self.card_pair_combinations:
+                combo_card1_id = combo.get('card1_id', '')
+                combo_card2_id = combo.get('card2_id', '')
+
+                if (combo_card1_id == card1_id and combo_card2_id == card2_id) or \
+                   (combo_card1_id == card2_id and combo_card2_id == card1_id):
+                    base = combo
+                    break
+
+        if not override and not base:
+            return None
+
+        def _pick(field: str, alt: str = None):
+            if override:
+                value = override.get(field)
+                if value:
+                    return value
+                if alt:
+                    value = override.get(alt)
+                    if value:
+                        return value
+            if base:
+                return base.get(alt or field)
+            return None
+
+        return {
+            'card1': card1_name,
+            'card2': card2_name,
+            'element_relation': _pick('element_relation'),
+            'love': _pick('love', 'love_interpretation'),
+            'career': _pick('career', 'career_interpretation'),
+            'finance': _pick('finance', 'finance_interpretation'),
+            'advice': _pick('advice')
+        }
 
     def find_card_combination(self, card_names: List[str]) -> Optional[Dict]:
         """Find special meaning if cards form a known combination"""

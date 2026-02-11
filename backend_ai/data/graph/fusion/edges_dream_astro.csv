@@ -1,56 +1,56 @@
 id,source,target,relation_type,description,interpretation_note,strength
-DA_E1,DS_용,PS_sun_leo,dream_astro_parallel,"용꿈과 사자자리 태양의 연결. 둘 다 왕의 에너지와 자기실현을 상징.","용꿈을 꾸고 사자자리 태양을 가진 경우 자아실현과 리더십의 강한 징조.",strong
-DA_E2,DS_용,AS_jupiter_sun,dream_astro_parallel,"용꿈과 목성-태양 합의 연결. 둘 다 확장과 성공의 극대화.","용꿈과 목성-태양 합이 겹치면 큰 성공과 행운의 시기.",strong
-DA_E3,DS_뱀,PS_venus_sco,dream_astro_parallel,"뱀꿈과 전갈자리 금성의 연결. 둘 다 변환과 깊은 욕망을 상징.","뱀꿈과 전갈자리 금성은 재물과 관계에서의 변환적 경험을 암시.",moderate
-DA_E4,DS_뱀,AS_pluto_venus,dream_astro_parallel,"뱀꿈과 명왕성-금성 관계. 둘 다 소유욕과 변환적 사랑.","뱀꿈과 명왕성-금성 트랜짓이 겹치면 관계나 재물의 큰 변화.",strong
-DA_E5,DS_호랑이,PS_mars_ari,dream_astro_parallel,"호랑이꿈과 양자리 화성. 둘 다 용기와 전투적 에너지.","호랑이꿈과 양자리 화성은 리더십과 권위 획득의 시기.",strong
-DA_E6,DS_호랑이,PS_sun_ari,dream_astro_parallel,"호랑이꿈과 양자리 태양. 둘 다 개척자와 선두주자의 에너지.","호랑이꿈과 양자리 태양은 새로운 도전에서 승리할 징조.",strong
-DA_E7,DS_돼지,PS_venus_tau,dream_astro_parallel,"돼지꿈과 황소자리 금성. 둘 다 물질적 풍요와 감각적 즐거움.","돼지꿈과 황소자리 금성은 재물운과 안정의 좋은 시기.",strong
-DA_E8,DS_돼지,AS_jupiter_venus,dream_astro_parallel,"돼지꿈과 목성-금성 합. 둘 다 풍요와 행운의 극대화.","돼지꿈과 목성-금성 합이 겹치면 로또/복권 등 횡재운 가능.",strong
-DA_E9,DS_물고기,PS_venus_pis,dream_astro_parallel,"물고기꿈과 물고기자리 금성. 둘 다 무의식의 풍요와 영적 사랑.","물고기꿈과 물고기자리 금성은 직관적 행운과 영적 인연.",strong
-DA_E10,DS_물고기,PS_moon_can,dream_astro_parallel,"물고기꿈과 게자리 달. 둘 다 감정의 풍요와 임신/자녀운.","물고기꿈과 게자리 달은 가족과 자녀에 관한 좋은 소식.",moderate
-DA_E11,DS_새,AS_mercury_uranus,dream_astro_parallel,"새꿈과 수성-천왕성 관계. 둘 다 소식과 갑작스런 변화.","새꿈과 수성-천왕성 트랜짓은 예상치 못한 좋은 소식.",moderate
-DA_E12,DS_새,PS_jupiter_sag,dream_astro_parallel,"새꿈과 사수자리 목성. 둘 다 자유와 확장, 해외 인연.","새꿈과 사수자리 목성은 여행이나 해외 관련 기회.",moderate
-DA_E13,DS_산,PS_saturn_cap,dream_astro_parallel,"산꿈과 염소자리 토성. 둘 다 장기적 목표와 인내를 통한 성취.","산꿈과 염소자리 토성은 꾸준한 노력이 성과로 이어지는 시기.",strong
-DA_E14,DS_산,PS_mars_cap,dream_astro_parallel,"산꿈과 염소자리 화성. 둘 다 전략적 상승과 목표 달성.","산꿈과 염소자리 화성은 야심찬 목표 달성의 좋은 시기.",strong
-DA_E15,DS_물,PS_moon_can,dream_astro_parallel,"물꿈과 게자리 달. 둘 다 깊은 감정과 무의식.","물꿈과 게자리 달은 감정 상태를 점검하라는 신호.",strong
-DA_E16,DS_물,AS_moon_neptune,dream_astro_parallel,"물꿈과 달-해왕성 관계. 둘 다 감정의 무한함과 직관.","물꿈과 달-해왕성 트랜짓은 직관력 극대화 시기.",moderate
-DA_E17,DS_불,PS_mars_ari,dream_astro_parallel,"불꿈과 양자리 화성. 둘 다 열정과 추진력.","불꿈과 양자리 화성은 에너지를 행동으로 표출할 때.",strong
-DA_E18,DS_불,PS_sun_leo,dream_astro_parallel,"불꿈과 사자자리 태양. 둘 다 창조적 열정과 빛.","불꿈과 사자자리 태양은 창조적 표현의 최적기.",moderate
-DA_E19,DS_꽃,PS_venus_tau,dream_astro_parallel,"꽃꿈과 황소자리 금성. 둘 다 아름다움과 관능적 사랑.","꽃꿈과 황소자리 금성은 연애운과 미적 감각의 좋은 시기.",strong
-DA_E20,DS_꽃,PS_venus_pis,dream_astro_parallel,"꽃꿈과 물고기자리 금성. 둘 다 이상적 사랑과 낭만.","꽃꿈과 물고기자리 금성은 영혼의 사랑을 만날 수 있는 시기.",strong
-DA_E21,DS_나무,PS_saturn_cap,dream_astro_parallel,"나무꿈과 염소자리 토성. 둘 다 뿌리와 구조, 장기적 성장.","나무꿈과 염소자리 토성은 인생의 기반을 다지는 시기.",moderate
-DA_E22,DS_나무,AS_saturn_sun,dream_astro_parallel,"나무꿈과 토성-태양 관계. 둘 다 자아의 구조화와 성숙.","나무꿈과 토성-태양 트랜짓은 인생의 구조를 재정립하는 시기.",moderate
-DA_E23,DS_집,PS_moon_can,dream_astro_parallel,"집꿈과 게자리 달. 둘 다 가정과 내면의 안전.","집꿈과 게자리 달은 가정과 내면 돌봄이 필요한 시기.",strong
-DA_E24,DS_집,AS_4th_house,dream_astro_parallel,"집꿈과 4하우스 트랜짓. 둘 다 가정과 뿌리.","집꿈과 4하우스 행성 트랜짓은 가정 관련 변화 암시.",strong
-DA_E25,DS_차,AS_3rd_house,dream_astro_parallel,"차꿈과 3하우스. 둘 다 이동과 일상적 움직임.","차꿈과 3하우스 활성화는 이동이나 커뮤니케이션 변화.",moderate
-DA_E26,DS_차,PS_mars_cap,dream_astro_parallel,"차꿈과 염소자리 화성. 둘 다 인생 방향의 체계적 추진.","차꿈과 염소자리 화성은 인생 방향을 전략적으로 잡을 때.",moderate
-DA_E27,DS_시험,PS_saturn_cap,dream_astro_parallel,"시험꿈과 염소자리 토성. 둘 다 평가와 도전.","시험꿈과 염소자리 토성은 현실적 도전에 대한 준비 필요.",strong
-DA_E28,DS_시험,AS_saturn_mercury,dream_astro_parallel,"시험꿈과 토성-수성 관계. 둘 다 지적 시험과 집중.","시험꿈과 토성-수성 트랜짓은 중요한 결정이나 시험 앞에 있음.",strong
-DA_E29,DS_죽음,AS_pluto_sun,dream_astro_parallel,"죽음꿈과 명왕성-태양 관계. 둘 다 자아의 죽음과 재탄생.","죽음꿈과 명왕성-태양 트랜짓은 인생의 큰 변환기.",strong
-DA_E30,DS_죽음,AS_8th_house,dream_astro_parallel,"죽음꿈과 8하우스. 둘 다 변환과 재탄생.","죽음꿈과 8하우스 행성 트랜짓은 삶의 한 장이 끝나고 새 장이 시작됨.",strong
-DA_E31,DS_돈,PS_venus_tau,dream_astro_parallel,"돈꿈과 황소자리 금성. 둘 다 물질적 가치와 풍요.","돈꿈과 황소자리 금성은 재물 관련 좋은 시기.",strong
-DA_E32,DS_돈,AS_2nd_house,dream_astro_parallel,"돈꿈과 2하우스. 둘 다 재물과 가치.","돈꿈과 2하우스 목성 트랜짓은 재물 증가 시기.",strong
-DA_E33,DS_결혼,PS_venus_pis,dream_astro_parallel,"결혼꿈과 물고기자리 금성. 둘 다 이상적 결합.","결혼꿈과 물고기자리 금성은 영혼의 파트너 인연.",moderate
-DA_E34,DS_결혼,AS_7th_house,dream_astro_parallel,"결혼꿈과 7하우스. 둘 다 파트너십과 결합.","결혼꿈과 7하우스 행성 트랜짓은 관계의 중요한 전환점.",strong
-DA_E35,DS_아기,PS_moon_can,dream_astro_parallel,"아기꿈과 게자리 달. 둘 다 새 생명과 돌봄.","아기꿈과 게자리 달은 임신/출산이나 새 프로젝트 시작.",strong
-DA_E36,DS_아기,AS_5th_house,dream_astro_parallel,"아기꿈과 5하우스. 둘 다 창조와 자녀.","아기꿈과 5하우스 활성화는 창조적 탄생의 시기.",strong
-DA_E37,DS_비행,AS_jupiter_uranus,dream_astro_parallel,"비행꿈과 목성-천왕성 관계. 둘 다 자유와 초월.","비행꿈과 목성-천왕성 트랜짓은 제한을 뛰어넘을 기회.",strong
-DA_E38,DS_비행,PS_jupiter_sag,dream_astro_parallel,"비행꿈과 사수자리 목성. 둘 다 확장과 자유.","비행꿈과 사수자리 목성은 시야가 넓어지는 시기.",moderate
-DA_E39,DS_이빨,PS_saturn_can,dream_astro_parallel,"이빨꿈과 게자리 토성. 둘 다 안전감 상실과 불안.","이빨꿈과 게자리 토성은 기반에 대한 불안을 다뤄야 할 시기.",moderate
-DA_E40,DS_이빨,AS_saturn_moon,dream_astro_parallel,"이빨꿈과 토성-달 관계. 둘 다 감정적 안전의 시험.","이빨꿈과 토성-달 트랜짓은 정서적 안정감을 재구축할 필요.",moderate
-DA_E41,DS_바다,PS_moon_can,dream_astro_parallel,"바다꿈과 게자리 달. 둘 다 깊은 감정과 무의식.","바다꿈과 게자리 달은 감정의 깊이를 탐험할 때.",strong
-DA_E42,DS_바다,AS_neptune_moon,dream_astro_parallel,"바다꿈과 해왕성-달 관계. 둘 다 무한한 감정과 직관.","바다꿈과 해왕성-달 트랜짓은 영적 직관이 열리는 시기.",strong
-DA_E43,DS_길,AS_9th_house,dream_astro_parallel,"길꿈과 9하우스. 둘 다 인생 여정과 철학적 방향.","길꿈과 9하우스 활성화는 인생 방향의 중요한 전환점.",moderate
-DA_E44,DS_길,PS_jupiter_sag,dream_astro_parallel,"길꿈과 사수자리 목성. 둘 다 여정과 확장.","길꿈과 사수자리 목성은 새로운 길이 열리는 시기.",moderate
-DA_E45,DS_거울,AS_1st_house,dream_astro_parallel,"거울꿈과 1하우스. 둘 다 자아 인식과 정체성.","거울꿈과 1하우스 행성 트랜짓은 자아를 재정의할 시기.",moderate
-DA_E46,DS_거울,AS_pluto_asc,dream_astro_parallel,"거울꿈과 명왕성-상승점 관계. 둘 다 자아의 변환.","거울꿈과 명왕성-상승점 트랜짓은 정체성의 근본적 변화.",strong
-DA_E47,DS_눈_날씨,PS_moon_cap,dream_astro_parallel,"눈꿈과 염소자리 달. 둘 다 감정의 정화와 자제.","눈꿈과 염소자리 달은 감정을 정리하고 정화할 시기.",moderate
-DA_E48,DS_비,PS_moon_can,dream_astro_parallel,"비꿈과 게자리 달. 둘 다 감정 방출과 정화.","비꿈과 게자리 달은 눌린 감정을 해소할 시기.",moderate
-DA_E49,DS_비,AS_neptune_moon,dream_astro_parallel,"비꿈과 해왕성-달 관계. 둘 다 감정의 흐름과 정화.","비꿈과 해왕성-달 트랜짓은 깊은 감정적 정화의 시기.",moderate
-DA_E50,DS_천사,AS_neptune_sun,dream_astro_parallel,"천사꿈과 해왕성-태양 관계. 둘 다 영적 각성.","천사꿈과 해왕성-태양 트랜짓은 영적 인도를 받는 시기.",strong
-DA_E51,DS_천사,AS_12th_house,dream_astro_parallel,"천사꿈과 12하우스. 둘 다 영적 세계와 초월.","천사꿈과 12하우스 활성화는 영적 보호와 인도의 시기.",strong
-DA_E52,DS_조상,AS_4th_house,dream_astro_parallel,"조상꿈과 4하우스. 둘 다 뿌리와 가족 유산.","조상꿈과 4하우스 트랜짓은 가족 역사와 연결될 시기.",strong
-DA_E53,DS_조상,PS_moon_can,dream_astro_parallel,"조상꿈과 게자리 달. 둘 다 가족과 뿌리.","조상꿈과 게자리 달은 조상의 메시지에 귀 기울일 때.",moderate
-DA_E54,DS_전화,AS_mercury_uranus,dream_astro_parallel,"전화꿈과 수성-천왕성 관계. 둘 다 갑작스런 소식.","전화꿈과 수성-천왕성 트랜짓은 예상치 못한 연락이나 소식.",moderate
-DA_E55,DS_전화,AS_3rd_house,dream_astro_parallel,"전화꿈과 3하우스. 둘 다 소통과 연결.","전화꿈과 3하우스 활성화는 커뮤니케이션의 중요한 시기.",moderate
+DA_E1,DS_용,PS_sun_leo,dream_astro_parallel,용꿈과 사자자리 태양의 연결. 둘 다 왕의 에너지와 자기실현을 상징.,용꿈을 꾸고 사자자리 태양을 가진 경우 자아실현과 리더십의 강한 징조.,strong
+DA_E2,DS_용,AS_jupiter_sun,dream_astro_parallel,용꿈과 목성-태양 합의 연결. 둘 다 확장과 성공의 극대화.,용꿈과 목성-태양 합이 겹치면 큰 성공과 행운의 시기.,strong
+DA_E3,DS_뱀,PS_venus_sco,dream_astro_parallel,뱀꿈과 전갈자리 금성의 연결. 둘 다 변환과 깊은 욕망을 상징.,뱀꿈과 전갈자리 금성은 재물과 관계에서의 변환적 경험을 암시.,moderate
+DA_E4,DS_뱀,AS_pluto_venus,dream_astro_parallel,뱀꿈과 명왕성-금성 관계. 둘 다 소유욕과 변환적 사랑.,뱀꿈과 명왕성-금성 트랜짓이 겹치면 관계나 재물의 큰 변화.,strong
+DA_E5,DS_호랑이,PS_mars_ari,dream_astro_parallel,호랑이꿈과 양자리 화성. 둘 다 용기와 전투적 에너지.,호랑이꿈과 양자리 화성은 리더십과 권위 획득의 시기.,strong
+DA_E6,DS_호랑이,PS_sun_ari,dream_astro_parallel,호랑이꿈과 양자리 태양. 둘 다 개척자와 선두주자의 에너지.,호랑이꿈과 양자리 태양은 새로운 도전에서 승리할 징조.,strong
+DA_E7,DS_돼지,PS_venus_tau,dream_astro_parallel,돼지꿈과 황소자리 금성. 둘 다 물질적 풍요와 감각적 즐거움.,돼지꿈과 황소자리 금성은 재물운과 안정의 좋은 시기.,strong
+DA_E8,DS_돼지,AS_jupiter_venus,dream_astro_parallel,돼지꿈과 목성-금성 합. 둘 다 풍요와 행운의 극대화.,돼지꿈과 목성-금성 합이 겹치면 로또/복권 등 횡재운 가능.,strong
+DA_E9,DS_물고기,PS_venus_pis,dream_astro_parallel,물고기꿈과 물고기자리 금성. 둘 다 무의식의 풍요와 영적 사랑.,물고기꿈과 물고기자리 금성은 직관적 행운과 영적 인연.,strong
+DA_E10,DS_물고기,PS_moon_can,dream_astro_parallel,물고기꿈과 게자리 달. 둘 다 감정의 풍요와 임신/자녀운.,물고기꿈과 게자리 달은 가족과 자녀에 관한 좋은 소식.,moderate
+DA_E11,DS_새,AS_mercury_uranus,dream_astro_parallel,새꿈과 수성-천왕성 관계. 둘 다 소식과 갑작스런 변화.,새꿈과 수성-천왕성 트랜짓은 예상치 못한 좋은 소식.,moderate
+DA_E12,DS_새,PS_jupiter_sag,dream_astro_parallel,"새꿈과 사수자리 목성. 둘 다 자유와 확장, 해외 인연.",새꿈과 사수자리 목성은 여행이나 해외 관련 기회.,moderate
+DA_E13,DS_산,PS_saturn_cap,dream_astro_parallel,산꿈과 염소자리 토성. 둘 다 장기적 목표와 인내를 통한 성취.,산꿈과 염소자리 토성은 꾸준한 노력이 성과로 이어지는 시기.,strong
+DA_E14,DS_산,PS_mars_cap,dream_astro_parallel,산꿈과 염소자리 화성. 둘 다 전략적 상승과 목표 달성.,산꿈과 염소자리 화성은 야심찬 목표 달성의 좋은 시기.,strong
+DA_E15,DS_물,PS_moon_can,dream_astro_parallel,물꿈과 게자리 달. 둘 다 깊은 감정과 무의식.,물꿈과 게자리 달은 감정 상태를 점검하라는 신호.,strong
+DA_E16,DS_물,AS_moon_neptune,dream_astro_parallel,물꿈과 달-해왕성 관계. 둘 다 감정의 무한함과 직관.,물꿈과 달-해왕성 트랜짓은 직관력 극대화 시기.,moderate
+DA_E17,DS_불,PS_mars_ari,dream_astro_parallel,불꿈과 양자리 화성. 둘 다 열정과 추진력.,불꿈과 양자리 화성은 에너지를 행동으로 표출할 때.,strong
+DA_E18,DS_불,PS_sun_leo,dream_astro_parallel,불꿈과 사자자리 태양. 둘 다 창조적 열정과 빛.,불꿈과 사자자리 태양은 창조적 표현의 최적기.,moderate
+DA_E19,DS_꽃,PS_venus_tau,dream_astro_parallel,꽃꿈과 황소자리 금성. 둘 다 아름다움과 관능적 사랑.,꽃꿈과 황소자리 금성은 연애운과 미적 감각의 좋은 시기.,strong
+DA_E20,DS_꽃,PS_venus_pis,dream_astro_parallel,꽃꿈과 물고기자리 금성. 둘 다 이상적 사랑과 낭만.,꽃꿈과 물고기자리 금성은 영혼의 사랑을 만날 수 있는 시기.,strong
+DA_E21,DS_나무,PS_saturn_cap,dream_astro_parallel,"나무꿈과 염소자리 토성. 둘 다 뿌리와 구조, 장기적 성장.",나무꿈과 염소자리 토성은 인생의 기반을 다지는 시기.,moderate
+DA_E22,DS_나무,AS_saturn_sun,dream_astro_parallel,나무꿈과 토성-태양 관계. 둘 다 자아의 구조화와 성숙.,나무꿈과 토성-태양 트랜짓은 인생의 구조를 재정립하는 시기.,moderate
+DA_E23,DS_집,PS_moon_can,dream_astro_parallel,집꿈과 게자리 달. 둘 다 가정과 내면의 안전.,집꿈과 게자리 달은 가정과 내면 돌봄이 필요한 시기.,strong
+DA_E24,DS_집,H4,dream_astro_parallel,집꿈과 4하우스 트랜짓. 둘 다 가정과 뿌리.,집꿈과 4하우스 행성 트랜짓은 가정 관련 변화 암시.,strong
+DA_E25,DS_차,H3,dream_astro_parallel,차꿈과 3하우스. 둘 다 이동과 일상적 움직임.,차꿈과 3하우스 활성화는 이동이나 커뮤니케이션 변화.,moderate
+DA_E26,DS_차,PS_mars_cap,dream_astro_parallel,차꿈과 염소자리 화성. 둘 다 인생 방향의 체계적 추진.,차꿈과 염소자리 화성은 인생 방향을 전략적으로 잡을 때.,moderate
+DA_E27,DS_시험,PS_saturn_cap,dream_astro_parallel,시험꿈과 염소자리 토성. 둘 다 평가와 도전.,시험꿈과 염소자리 토성은 현실적 도전에 대한 준비 필요.,strong
+DA_E28,DS_시험,AS_saturn_mercury,dream_astro_parallel,시험꿈과 토성-수성 관계. 둘 다 지적 시험과 집중.,시험꿈과 토성-수성 트랜짓은 중요한 결정이나 시험 앞에 있음.,strong
+DA_E29,DS_죽음,AS_pluto_sun,dream_astro_parallel,죽음꿈과 명왕성-태양 관계. 둘 다 자아의 죽음과 재탄생.,죽음꿈과 명왕성-태양 트랜짓은 인생의 큰 변환기.,strong
+DA_E30,DS_죽음,H8,dream_astro_parallel,죽음꿈과 8하우스. 둘 다 변환과 재탄생.,죽음꿈과 8하우스 행성 트랜짓은 삶의 한 장이 끝나고 새 장이 시작됨.,strong
+DA_E31,DS_돈,PS_venus_tau,dream_astro_parallel,돈꿈과 황소자리 금성. 둘 다 물질적 가치와 풍요.,돈꿈과 황소자리 금성은 재물 관련 좋은 시기.,strong
+DA_E32,DS_돈,H2,dream_astro_parallel,돈꿈과 2하우스. 둘 다 재물과 가치.,돈꿈과 2하우스 목성 트랜짓은 재물 증가 시기.,strong
+DA_E33,DS_결혼,PS_venus_pis,dream_astro_parallel,결혼꿈과 물고기자리 금성. 둘 다 이상적 결합.,결혼꿈과 물고기자리 금성은 영혼의 파트너 인연.,moderate
+DA_E34,DS_결혼,H7,dream_astro_parallel,결혼꿈과 7하우스. 둘 다 파트너십과 결합.,결혼꿈과 7하우스 행성 트랜짓은 관계의 중요한 전환점.,strong
+DA_E35,DS_아기,PS_moon_can,dream_astro_parallel,아기꿈과 게자리 달. 둘 다 새 생명과 돌봄.,아기꿈과 게자리 달은 임신/출산이나 새 프로젝트 시작.,strong
+DA_E36,DS_아기,H5,dream_astro_parallel,아기꿈과 5하우스. 둘 다 창조와 자녀.,아기꿈과 5하우스 활성화는 창조적 탄생의 시기.,strong
+DA_E37,DS_비행,AS_jupiter_uranus,dream_astro_parallel,비행꿈과 목성-천왕성 관계. 둘 다 자유와 초월.,비행꿈과 목성-천왕성 트랜짓은 제한을 뛰어넘을 기회.,strong
+DA_E38,DS_비행,PS_jupiter_sag,dream_astro_parallel,비행꿈과 사수자리 목성. 둘 다 확장과 자유.,비행꿈과 사수자리 목성은 시야가 넓어지는 시기.,moderate
+DA_E39,DS_이빨,PS_saturn_can,dream_astro_parallel,이빨꿈과 게자리 토성. 둘 다 안전감 상실과 불안.,이빨꿈과 게자리 토성은 기반에 대한 불안을 다뤄야 할 시기.,moderate
+DA_E40,DS_이빨,AS_saturn_moon,dream_astro_parallel,이빨꿈과 토성-달 관계. 둘 다 감정적 안전의 시험.,이빨꿈과 토성-달 트랜짓은 정서적 안정감을 재구축할 필요.,moderate
+DA_E41,DS_바다,PS_moon_can,dream_astro_parallel,바다꿈과 게자리 달. 둘 다 깊은 감정과 무의식.,바다꿈과 게자리 달은 감정의 깊이를 탐험할 때.,strong
+DA_E42,DS_바다,AS_neptune_moon,dream_astro_parallel,바다꿈과 해왕성-달 관계. 둘 다 무한한 감정과 직관.,바다꿈과 해왕성-달 트랜짓은 영적 직관이 열리는 시기.,strong
+DA_E43,DS_길,H9,dream_astro_parallel,길꿈과 9하우스. 둘 다 인생 여정과 철학적 방향.,길꿈과 9하우스 활성화는 인생 방향의 중요한 전환점.,moderate
+DA_E44,DS_길,PS_jupiter_sag,dream_astro_parallel,길꿈과 사수자리 목성. 둘 다 여정과 확장.,길꿈과 사수자리 목성은 새로운 길이 열리는 시기.,moderate
+DA_E45,DS_거울,H1,dream_astro_parallel,거울꿈과 1하우스. 둘 다 자아 인식과 정체성.,거울꿈과 1하우스 행성 트랜짓은 자아를 재정의할 시기.,moderate
+DA_E46,DS_거울,AS_pluto_asc,dream_astro_parallel,거울꿈과 명왕성-상승점 관계. 둘 다 자아의 변환.,거울꿈과 명왕성-상승점 트랜짓은 정체성의 근본적 변화.,strong
+DA_E47,DS_눈_날씨,PS_moon_cap,dream_astro_parallel,눈꿈과 염소자리 달. 둘 다 감정의 정화와 자제.,눈꿈과 염소자리 달은 감정을 정리하고 정화할 시기.,moderate
+DA_E48,DS_비,PS_moon_can,dream_astro_parallel,비꿈과 게자리 달. 둘 다 감정 방출과 정화.,비꿈과 게자리 달은 눌린 감정을 해소할 시기.,moderate
+DA_E49,DS_비,AS_neptune_moon,dream_astro_parallel,비꿈과 해왕성-달 관계. 둘 다 감정의 흐름과 정화.,비꿈과 해왕성-달 트랜짓은 깊은 감정적 정화의 시기.,moderate
+DA_E50,DS_천사,AS_neptune_sun,dream_astro_parallel,천사꿈과 해왕성-태양 관계. 둘 다 영적 각성.,천사꿈과 해왕성-태양 트랜짓은 영적 인도를 받는 시기.,strong
+DA_E51,DS_천사,H12,dream_astro_parallel,천사꿈과 12하우스. 둘 다 영적 세계와 초월.,천사꿈과 12하우스 활성화는 영적 보호와 인도의 시기.,strong
+DA_E52,DS_조상,H4,dream_astro_parallel,조상꿈과 4하우스. 둘 다 뿌리와 가족 유산.,조상꿈과 4하우스 트랜짓은 가족 역사와 연결될 시기.,strong
+DA_E53,DS_조상,PS_moon_can,dream_astro_parallel,조상꿈과 게자리 달. 둘 다 가족과 뿌리.,조상꿈과 게자리 달은 조상의 메시지에 귀 기울일 때.,moderate
+DA_E54,DS_전화,AS_mercury_uranus,dream_astro_parallel,전화꿈과 수성-천왕성 관계. 둘 다 갑작스런 소식.,전화꿈과 수성-천왕성 트랜짓은 예상치 못한 연락이나 소식.,moderate
+DA_E55,DS_전화,H3,dream_astro_parallel,전화꿈과 3하우스. 둘 다 소통과 연결.,전화꿈과 3하우스 활성화는 커뮤니케이션의 중요한 시기.,moderate

@@ -1,0 +1,485 @@
+id,label,type,canonical_id,description
+ASTRO_ARTIST_금성해왕,ARTIST 금성해왕,astro_concept,,ASTRO_ARTIST_금성해왕 점성학 개념/조합 노드.
+ASTRO_ASPECT_Opposition,ASPECT Opposition,astro_alias,AA_opposition,ASTRO_ASPECT_Opposition is an alias for AA_opposition.
+ASTRO_ASPECT_Square,ASPECT Square,astro_alias,AA_square,ASTRO_ASPECT_Square is an alias for AA_square.
+ASTRO_ASPECT_Trine,ASPECT Trine,astro_alias,AA_trine,ASTRO_ASPECT_Trine is an alias for AA_trine.
+ASTRO_Aries,Aries,astro_alias,Aries,ASTRO_Aries is an alias for Aries.
+ASTRO_BLOCK_Saturn12th,BLOCK Saturn12th,astro_concept,,ASTRO_BLOCK_Saturn12th 점성학 개념/조합 노드.
+ASTRO_CAREER_MCsign,CAREER MCsign,astro_concept,,ASTRO_CAREER_MCsign 점성학 개념/조합 노드.
+ASTRO_CHIRON_Chiron,CHIRON Chiron,astro_alias,Chiron,ASTRO_CHIRON_Chiron is an alias for Chiron.
+ASTRO_COMMUNICATION_Mercury3rd,COMMUNICATION Mercury3rd,astro_alias,HP_mercury_3,ASTRO_COMMUNICATION_Mercury3rd is an alias for HP_mercury_3.
+ASTRO_CONCEPT_Benefic,CONCEPT Benefic,astro_concept,,ASTRO_CONCEPT_Benefic 점성학 개념/조합 노드.
+ASTRO_CONCEPT_Malefic,CONCEPT Malefic,astro_concept,,ASTRO_CONCEPT_Malefic 점성학 개념/조합 노드.
+ASTRO_CREATIVITY_Mercury5th,CREATIVITY Mercury5th,astro_concept,,ASTRO_CREATIVITY_Mercury5th 점성학 개념/조합 노드.
+ASTRO_CRISIS_SaturnPluto,CRISIS SaturnPluto,astro_concept,,ASTRO_CRISIS_SaturnPluto 점성학 개념/조합 노드.
+ASTRO_CYCLE_Houses,CYCLE Houses,astro_concept,,ASTRO_CYCLE_Houses 점성학 개념/조합 노드.
+ASTRO_Cancer,Cancer,astro_alias,Cancer,ASTRO_Cancer is an alias for Cancer.
+ASTRO_Capricorn,Capricorn,astro_alias,Capricorn,ASTRO_Capricorn is an alias for Capricorn.
+ASTRO_DEPTH_Pluto8th,DEPTH Pluto8th,astro_alias,HP_pluto_8,ASTRO_DEPTH_Pluto8th is an alias for HP_pluto_8.
+ASTRO_DESTINY_Jupiter11th,DESTINY Jupiter11th,astro_concept,,ASTRO_DESTINY_Jupiter11th 점성학 개념/조합 노드.
+ASTRO_ELEMENT_Air,ELEMENT Air,astro_element,,ASTRO_ELEMENT_Air 점성학 개념/조합 노드.
+ASTRO_ELEMENT_Earth,ELEMENT Earth,astro_element,,ASTRO_ELEMENT_Earth 점성학 개념/조합 노드.
+ASTRO_ELEMENT_Fire,ELEMENT Fire,astro_element,,ASTRO_ELEMENT_Fire 점성학 개념/조합 노드.
+ASTRO_ELEMENT_Water,ELEMENT Water,astro_element,,ASTRO_ELEMENT_Water 점성학 개념/조합 노드.
+ASTRO_FORTUNE_Fortune,FORTUNE Fortune,astro_alias,PartOfFortune,ASTRO_FORTUNE_Fortune is an alias for PartOfFortune.
+ASTRO_GIFT_JupiterVenus,GIFT JupiterVenus,astro_concept,,ASTRO_GIFT_JupiterVenus 점성학 개념/조합 노드.
+ASTRO_Gemini,Gemini,astro_alias,Gemini,ASTRO_Gemini is an alias for Gemini.
+ASTRO_HEALING_ChironAsc,HEALING ChironAsc,astro_alias,Chiron,ASTRO_HEALING_ChironAsc is an alias for Chiron.
+ASTRO_HEALING_MoonNeptune,HEALING MoonNeptune,astro_concept,,ASTRO_HEALING_MoonNeptune 점성학 개념/조합 노드.
+ASTRO_HEALTH_6thHouse,HEALTH 6thHouse,astro_alias,H6,ASTRO_HEALTH_6thHouse is an alias for H6.
+ASTRO_HOUSE_H1,HOUSE H1,astro_alias,H1,ASTRO_HOUSE_H1 is an alias for H1.
+ASTRO_HOUSE_H10,HOUSE H10,astro_alias,H10,ASTRO_HOUSE_H10 is an alias for H10.
+ASTRO_HOUSE_H11,HOUSE H11,astro_alias,H11,ASTRO_HOUSE_H11 is an alias for H11.
+ASTRO_HOUSE_H12,HOUSE H12,astro_alias,H12,ASTRO_HOUSE_H12 is an alias for H12.
+ASTRO_HOUSE_H2,HOUSE H2,astro_alias,H2,ASTRO_HOUSE_H2 is an alias for H2.
+ASTRO_HOUSE_H3,HOUSE H3,astro_alias,H3,ASTRO_HOUSE_H3 is an alias for H3.
+ASTRO_HOUSE_H4,HOUSE H4,astro_alias,H4,ASTRO_HOUSE_H4 is an alias for H4.
+ASTRO_HOUSE_H5,HOUSE H5,astro_alias,H5,ASTRO_HOUSE_H5 is an alias for H5.
+ASTRO_HOUSE_H6,HOUSE H6,astro_alias,H6,ASTRO_HOUSE_H6 is an alias for H6.
+ASTRO_HOUSE_H7,HOUSE H7,astro_alias,H7,ASTRO_HOUSE_H7 is an alias for H7.
+ASTRO_HOUSE_H8,HOUSE H8,astro_alias,H8,ASTRO_HOUSE_H8 is an alias for H8.
+ASTRO_HOUSE_H9,HOUSE H9,astro_alias,H9,ASTRO_HOUSE_H9 is an alias for H9.
+ASTRO_INDEPENDENCE_UranusAsc,INDEPENDENCE UranusAsc,astro_concept,,ASTRO_INDEPENDENCE_UranusAsc 점성학 개념/조합 노드.
+ASTRO_INTUITION_Neptune12th,INTUITION Neptune12th,astro_alias,HP_neptune_12,ASTRO_INTUITION_Neptune12th is an alias for HP_neptune_12.
+ASTRO_Jupiter,Jupiter,astro_alias,Jupiter,ASTRO_Jupiter is an alias for Jupiter.
+ASTRO_Jupiter_Aquarius,Jupiter Aquarius,astro_concept,,ASTRO_Jupiter_Aquarius 점성학 개념/조합 노드.
+ASTRO_Jupiter_Aries,Jupiter Aries,astro_concept,,ASTRO_Jupiter_Aries 점성학 개념/조합 노드.
+ASTRO_Jupiter_Cancer,Jupiter Cancer,astro_concept,,ASTRO_Jupiter_Cancer 점성학 개념/조합 노드.
+ASTRO_Jupiter_Capricorn,Jupiter Capricorn,astro_concept,,ASTRO_Jupiter_Capricorn 점성학 개념/조합 노드.
+ASTRO_Jupiter_Gemini,Jupiter Gemini,astro_concept,,ASTRO_Jupiter_Gemini 점성학 개념/조합 노드.
+ASTRO_Jupiter_H1,Jupiter H1,astro_concept,,ASTRO_Jupiter_H1 점성학 개념/조합 노드.
+ASTRO_Jupiter_H10,Jupiter H10,astro_alias,HP_jupiter_10,ASTRO_Jupiter_H10 is an alias for HP_jupiter_10.
+ASTRO_Jupiter_H11,Jupiter H11,astro_concept,,ASTRO_Jupiter_H11 점성학 개념/조합 노드.
+ASTRO_Jupiter_H12,Jupiter H12,astro_concept,,ASTRO_Jupiter_H12 점성학 개념/조합 노드.
+ASTRO_Jupiter_H2,Jupiter H2,astro_alias,HP_jupiter_2,ASTRO_Jupiter_H2 is an alias for HP_jupiter_2.
+ASTRO_Jupiter_H3,Jupiter H3,astro_concept,,ASTRO_Jupiter_H3 점성학 개념/조합 노드.
+ASTRO_Jupiter_H4,Jupiter H4,astro_concept,,ASTRO_Jupiter_H4 점성학 개념/조합 노드.
+ASTRO_Jupiter_H5,Jupiter H5,astro_concept,,ASTRO_Jupiter_H5 점성학 개념/조합 노드.
+ASTRO_Jupiter_H6,Jupiter H6,astro_concept,,ASTRO_Jupiter_H6 점성학 개념/조합 노드.
+ASTRO_Jupiter_H7,Jupiter H7,astro_concept,,ASTRO_Jupiter_H7 점성학 개념/조합 노드.
+ASTRO_Jupiter_H8,Jupiter H8,astro_concept,,ASTRO_Jupiter_H8 점성학 개념/조합 노드.
+ASTRO_Jupiter_H9,Jupiter H9,astro_alias,HP_jupiter_9,ASTRO_Jupiter_H9 is an alias for HP_jupiter_9.
+ASTRO_Jupiter_Leo,Jupiter Leo,astro_concept,,ASTRO_Jupiter_Leo 점성학 개념/조합 노드.
+ASTRO_Jupiter_Libra,Jupiter Libra,astro_concept,,ASTRO_Jupiter_Libra 점성학 개념/조합 노드.
+ASTRO_Jupiter_Pisces,Jupiter Pisces,astro_concept,,ASTRO_Jupiter_Pisces 점성학 개념/조합 노드.
+ASTRO_Jupiter_Sagittarius,Jupiter Sagittarius,astro_alias,PS_jupiter_sag,ASTRO_Jupiter_Sagittarius is an alias for PS_jupiter_sag.
+ASTRO_Jupiter_Scorpio,Jupiter Scorpio,astro_concept,,ASTRO_Jupiter_Scorpio 점성학 개념/조합 노드.
+ASTRO_Jupiter_Taurus,Jupiter Taurus,astro_concept,,ASTRO_Jupiter_Taurus 점성학 개념/조합 노드.
+ASTRO_Jupiter_Virgo,Jupiter Virgo,astro_concept,,ASTRO_Jupiter_Virgo 점성학 개념/조합 노드.
+ASTRO_LEADERSHIP_Sun10th,LEADERSHIP Sun10th,astro_alias,HP_sun_10,ASTRO_LEADERSHIP_Sun10th is an alias for HP_sun_10.
+ASTRO_LILITH_Lilith,LILITH Lilith,astro_alias,Black_Moon_Lilith,ASTRO_LILITH_Lilith is an alias for Black_Moon_Lilith.
+ASTRO_LOVE_7thHouse,LOVE 7thHouse,astro_alias,H7,ASTRO_LOVE_7thHouse is an alias for H7.
+ASTRO_Leo,Leo,astro_alias,Leo,ASTRO_Leo is an alias for Leo.
+ASTRO_Libra,Libra,astro_alias,Libra,ASTRO_Libra is an alias for Libra.
+ASTRO_MASTERY_SunConjMC,MASTERY SunConjMC,astro_concept,,ASTRO_MASTERY_SunConjMC 점성학 개념/조합 노드.
+ASTRO_MYTH_Hercules,MYTH Hercules,astro_concept,,ASTRO_MYTH_Hercules 점성학 개념/조합 노드.
+ASTRO_MYTH_Oracle,MYTH Oracle,astro_concept,,ASTRO_MYTH_Oracle 점성학 개념/조합 노드.
+ASTRO_Mars,Mars,astro_alias,Mars,ASTRO_Mars is an alias for Mars.
+ASTRO_Mars_Aquarius,Mars Aquarius,astro_concept,,ASTRO_Mars_Aquarius 점성학 개념/조합 노드.
+ASTRO_Mars_Aries,Mars Aries,astro_alias,PS_mars_ari,ASTRO_Mars_Aries is an alias for PS_mars_ari.
+ASTRO_Mars_Cancer,Mars Cancer,astro_concept,,ASTRO_Mars_Cancer 점성학 개념/조합 노드.
+ASTRO_Mars_Capricorn,Mars Capricorn,astro_alias,PS_mars_cap,ASTRO_Mars_Capricorn is an alias for PS_mars_cap.
+ASTRO_Mars_Gemini,Mars Gemini,astro_concept,,ASTRO_Mars_Gemini 점성학 개념/조합 노드.
+ASTRO_Mars_H1,Mars H1,astro_alias,HP_mars_1,ASTRO_Mars_H1 is an alias for HP_mars_1.
+ASTRO_Mars_H10,Mars H10,astro_alias,HP_mars_10,ASTRO_Mars_H10 is an alias for HP_mars_10.
+ASTRO_Mars_H11,Mars H11,astro_concept,,ASTRO_Mars_H11 점성학 개념/조합 노드.
+ASTRO_Mars_H12,Mars H12,astro_concept,,ASTRO_Mars_H12 점성학 개념/조합 노드.
+ASTRO_Mars_H2,Mars H2,astro_concept,,ASTRO_Mars_H2 점성학 개념/조합 노드.
+ASTRO_Mars_H3,Mars H3,astro_concept,,ASTRO_Mars_H3 점성학 개념/조합 노드.
+ASTRO_Mars_H4,Mars H4,astro_concept,,ASTRO_Mars_H4 점성학 개념/조합 노드.
+ASTRO_Mars_H5,Mars H5,astro_concept,,ASTRO_Mars_H5 점성학 개념/조합 노드.
+ASTRO_Mars_H6,Mars H6,astro_alias,HP_mars_6,ASTRO_Mars_H6 is an alias for HP_mars_6.
+ASTRO_Mars_H7,Mars H7,astro_alias,HP_mars_7,ASTRO_Mars_H7 is an alias for HP_mars_7.
+ASTRO_Mars_H8,Mars H8,astro_concept,,ASTRO_Mars_H8 점성학 개념/조합 노드.
+ASTRO_Mars_H9,Mars H9,astro_concept,,ASTRO_Mars_H9 점성학 개념/조합 노드.
+ASTRO_Mars_Leo,Mars Leo,astro_concept,,ASTRO_Mars_Leo 점성학 개념/조합 노드.
+ASTRO_Mars_Libra,Mars Libra,astro_concept,,ASTRO_Mars_Libra 점성학 개념/조합 노드.
+ASTRO_Mars_Pisces,Mars Pisces,astro_concept,,ASTRO_Mars_Pisces 점성학 개념/조합 노드.
+ASTRO_Mars_Sagittarius,Mars Sagittarius,astro_concept,,ASTRO_Mars_Sagittarius 점성학 개념/조합 노드.
+ASTRO_Mars_Scorpio,Mars Scorpio,astro_concept,,ASTRO_Mars_Scorpio 점성학 개념/조합 노드.
+ASTRO_Mars_Taurus,Mars Taurus,astro_concept,,ASTRO_Mars_Taurus 점성학 개념/조합 노드.
+ASTRO_Mars_Virgo,Mars Virgo,astro_concept,,ASTRO_Mars_Virgo 점성학 개념/조합 노드.
+ASTRO_Mercury,Mercury,astro_alias,Mercury,ASTRO_Mercury is an alias for Mercury.
+ASTRO_Mercury_Aquarius,Mercury Aquarius,astro_concept,,ASTRO_Mercury_Aquarius 점성학 개념/조합 노드.
+ASTRO_Mercury_Aries,Mercury Aries,astro_concept,,ASTRO_Mercury_Aries 점성학 개념/조합 노드.
+ASTRO_Mercury_Cancer,Mercury Cancer,astro_concept,,ASTRO_Mercury_Cancer 점성학 개념/조합 노드.
+ASTRO_Mercury_Capricorn,Mercury Capricorn,astro_concept,,ASTRO_Mercury_Capricorn 점성학 개념/조합 노드.
+ASTRO_Mercury_Gemini,Mercury Gemini,astro_concept,,ASTRO_Mercury_Gemini 점성학 개념/조합 노드.
+ASTRO_Mercury_H1,Mercury H1,astro_concept,,ASTRO_Mercury_H1 점성학 개념/조합 노드.
+ASTRO_Mercury_H10,Mercury H10,astro_alias,HP_mercury_10,ASTRO_Mercury_H10 is an alias for HP_mercury_10.
+ASTRO_Mercury_H11,Mercury H11,astro_concept,,ASTRO_Mercury_H11 점성학 개념/조합 노드.
+ASTRO_Mercury_H12,Mercury H12,astro_concept,,ASTRO_Mercury_H12 점성학 개념/조합 노드.
+ASTRO_Mercury_H2,Mercury H2,astro_concept,,ASTRO_Mercury_H2 점성학 개념/조합 노드.
+ASTRO_Mercury_H3,Mercury H3,astro_alias,HP_mercury_3,ASTRO_Mercury_H3 is an alias for HP_mercury_3.
+ASTRO_Mercury_H4,Mercury H4,astro_concept,,ASTRO_Mercury_H4 점성학 개념/조합 노드.
+ASTRO_Mercury_H5,Mercury H5,astro_concept,,ASTRO_Mercury_H5 점성학 개념/조합 노드.
+ASTRO_Mercury_H6,Mercury H6,astro_alias,HP_mercury_6,ASTRO_Mercury_H6 is an alias for HP_mercury_6.
+ASTRO_Mercury_H7,Mercury H7,astro_concept,,ASTRO_Mercury_H7 점성학 개념/조합 노드.
+ASTRO_Mercury_H8,Mercury H8,astro_concept,,ASTRO_Mercury_H8 점성학 개념/조합 노드.
+ASTRO_Mercury_H9,Mercury H9,astro_concept,,ASTRO_Mercury_H9 점성학 개념/조합 노드.
+ASTRO_Mercury_Leo,Mercury Leo,astro_concept,,ASTRO_Mercury_Leo 점성학 개념/조합 노드.
+ASTRO_Mercury_Libra,Mercury Libra,astro_concept,,ASTRO_Mercury_Libra 점성학 개념/조합 노드.
+ASTRO_Mercury_Pisces,Mercury Pisces,astro_concept,,ASTRO_Mercury_Pisces 점성학 개념/조합 노드.
+ASTRO_Mercury_Sagittarius,Mercury Sagittarius,astro_concept,,ASTRO_Mercury_Sagittarius 점성학 개념/조합 노드.
+ASTRO_Mercury_Scorpio,Mercury Scorpio,astro_concept,,ASTRO_Mercury_Scorpio 점성학 개념/조합 노드.
+ASTRO_Mercury_Taurus,Mercury Taurus,astro_concept,,ASTRO_Mercury_Taurus 점성학 개념/조합 노드.
+ASTRO_Mercury_Virgo,Mercury Virgo,astro_alias,PS_mercury_vir,ASTRO_Mercury_Virgo is an alias for PS_mercury_vir.
+ASTRO_Moon,Moon,astro_alias,Moon,ASTRO_Moon is an alias for Moon.
+ASTRO_Moon_Aquarius,Moon Aquarius,astro_concept,,ASTRO_Moon_Aquarius 점성학 개념/조합 노드.
+ASTRO_Moon_Aries,Moon Aries,astro_concept,,ASTRO_Moon_Aries 점성학 개념/조합 노드.
+ASTRO_Moon_Cancer,Moon Cancer,astro_alias,PS_moon_can,ASTRO_Moon_Cancer is an alias for PS_moon_can.
+ASTRO_Moon_Capricorn,Moon Capricorn,astro_alias,PS_moon_cap,ASTRO_Moon_Capricorn is an alias for PS_moon_cap.
+ASTRO_Moon_Gemini,Moon Gemini,astro_concept,,ASTRO_Moon_Gemini 점성학 개념/조합 노드.
+ASTRO_Moon_H1,Moon H1,astro_alias,HP_moon_1,ASTRO_Moon_H1 is an alias for HP_moon_1.
+ASTRO_Moon_H10,Moon H10,astro_alias,HP_moon_10,ASTRO_Moon_H10 is an alias for HP_moon_10.
+ASTRO_Moon_H11,Moon H11,astro_concept,,ASTRO_Moon_H11 점성학 개념/조합 노드.
+ASTRO_Moon_H12,Moon H12,astro_concept,,ASTRO_Moon_H12 점성학 개념/조합 노드.
+ASTRO_Moon_H2,Moon H2,astro_concept,,ASTRO_Moon_H2 점성학 개념/조합 노드.
+ASTRO_Moon_H3,Moon H3,astro_concept,,ASTRO_Moon_H3 점성학 개념/조합 노드.
+ASTRO_Moon_H4,Moon H4,astro_alias,HP_moon_4,ASTRO_Moon_H4 is an alias for HP_moon_4.
+ASTRO_Moon_H5,Moon H5,astro_concept,,ASTRO_Moon_H5 점성학 개념/조합 노드.
+ASTRO_Moon_H6,Moon H6,astro_concept,,ASTRO_Moon_H6 점성학 개념/조합 노드.
+ASTRO_Moon_H7,Moon H7,astro_alias,HP_moon_7,ASTRO_Moon_H7 is an alias for HP_moon_7.
+ASTRO_Moon_H8,Moon H8,astro_concept,,ASTRO_Moon_H8 점성학 개념/조합 노드.
+ASTRO_Moon_H9,Moon H9,astro_concept,,ASTRO_Moon_H9 점성학 개념/조합 노드.
+ASTRO_Moon_Leo,Moon Leo,astro_concept,,ASTRO_Moon_Leo 점성학 개념/조합 노드.
+ASTRO_Moon_Libra,Moon Libra,astro_concept,,ASTRO_Moon_Libra 점성학 개념/조합 노드.
+ASTRO_Moon_Pisces,Moon Pisces,astro_concept,,ASTRO_Moon_Pisces 점성학 개념/조합 노드.
+ASTRO_Moon_Sagittarius,Moon Sagittarius,astro_concept,,ASTRO_Moon_Sagittarius 점성학 개념/조합 노드.
+ASTRO_Moon_Scorpio,Moon Scorpio,astro_concept,,ASTRO_Moon_Scorpio 점성학 개념/조합 노드.
+ASTRO_Moon_Taurus,Moon Taurus,astro_alias,PS_moon_tau,ASTRO_Moon_Taurus is an alias for PS_moon_tau.
+ASTRO_Moon_Virgo,Moon Virgo,astro_concept,,ASTRO_Moon_Virgo 점성학 개념/조합 노드.
+ASTRO_NODE_Venus,NODE Venus,astro_concept,,ASTRO_NODE_Venus 점성학 개념/조합 노드.
+ASTRO_Neptune,Neptune,astro_alias,Neptune,ASTRO_Neptune is an alias for Neptune.
+ASTRO_Neptune_Aquarius,Neptune Aquarius,astro_concept,,ASTRO_Neptune_Aquarius 점성학 개념/조합 노드.
+ASTRO_Neptune_Aries,Neptune Aries,astro_concept,,ASTRO_Neptune_Aries 점성학 개념/조합 노드.
+ASTRO_Neptune_Cancer,Neptune Cancer,astro_concept,,ASTRO_Neptune_Cancer 점성학 개념/조합 노드.
+ASTRO_Neptune_Capricorn,Neptune Capricorn,astro_concept,,ASTRO_Neptune_Capricorn 점성학 개념/조합 노드.
+ASTRO_Neptune_Gemini,Neptune Gemini,astro_concept,,ASTRO_Neptune_Gemini 점성학 개념/조합 노드.
+ASTRO_Neptune_H1,Neptune H1,astro_alias,HP_neptune_1,ASTRO_Neptune_H1 is an alias for HP_neptune_1.
+ASTRO_Neptune_H10,Neptune H10,astro_concept,,ASTRO_Neptune_H10 점성학 개념/조합 노드.
+ASTRO_Neptune_H11,Neptune H11,astro_concept,,ASTRO_Neptune_H11 점성학 개념/조합 노드.
+ASTRO_Neptune_H12,Neptune H12,astro_alias,HP_neptune_12,ASTRO_Neptune_H12 is an alias for HP_neptune_12.
+ASTRO_Neptune_H2,Neptune H2,astro_concept,,ASTRO_Neptune_H2 점성학 개념/조합 노드.
+ASTRO_Neptune_H3,Neptune H3,astro_concept,,ASTRO_Neptune_H3 점성학 개념/조합 노드.
+ASTRO_Neptune_H4,Neptune H4,astro_concept,,ASTRO_Neptune_H4 점성학 개념/조합 노드.
+ASTRO_Neptune_H5,Neptune H5,astro_concept,,ASTRO_Neptune_H5 점성학 개념/조합 노드.
+ASTRO_Neptune_H6,Neptune H6,astro_concept,,ASTRO_Neptune_H6 점성학 개념/조합 노드.
+ASTRO_Neptune_H7,Neptune H7,astro_alias,HP_neptune_7,ASTRO_Neptune_H7 is an alias for HP_neptune_7.
+ASTRO_Neptune_H8,Neptune H8,astro_concept,,ASTRO_Neptune_H8 점성학 개념/조합 노드.
+ASTRO_Neptune_H9,Neptune H9,astro_concept,,ASTRO_Neptune_H9 점성학 개념/조합 노드.
+ASTRO_Neptune_Leo,Neptune Leo,astro_concept,,ASTRO_Neptune_Leo 점성학 개념/조합 노드.
+ASTRO_Neptune_Libra,Neptune Libra,astro_concept,,ASTRO_Neptune_Libra 점성학 개념/조합 노드.
+ASTRO_Neptune_Pisces,Neptune Pisces,astro_concept,,ASTRO_Neptune_Pisces 점성학 개념/조합 노드.
+ASTRO_Neptune_Sagittarius,Neptune Sagittarius,astro_concept,,ASTRO_Neptune_Sagittarius 점성학 개념/조합 노드.
+ASTRO_Neptune_Scorpio,Neptune Scorpio,astro_concept,,ASTRO_Neptune_Scorpio 점성학 개념/조합 노드.
+ASTRO_Neptune_Taurus,Neptune Taurus,astro_concept,,ASTRO_Neptune_Taurus 점성학 개념/조합 노드.
+ASTRO_Neptune_Virgo,Neptune Virgo,astro_concept,,ASTRO_Neptune_Virgo 점성학 개념/조합 노드.
+ASTRO_PATTERN_GrandTrine,PATTERN GrandTrine,astro_concept,,ASTRO_PATTERN_GrandTrine 점성학 개념/조합 노드.
+ASTRO_PATTERN_Stellium,PATTERN Stellium,astro_concept,,ASTRO_PATTERN_Stellium 점성학 개념/조합 노드.
+ASTRO_PATTERN_Yod,PATTERN Yod,astro_concept,,ASTRO_PATTERN_Yod 점성학 개념/조합 노드.
+ASTRO_POWER_MarsPluto,POWER MarsPluto,astro_concept,,ASTRO_POWER_MarsPluto 점성학 개념/조합 노드.
+ASTRO_Pisces,Pisces,astro_alias,Pisces,ASTRO_Pisces is an alias for Pisces.
+ASTRO_Pluto,Pluto,astro_alias,Pluto,ASTRO_Pluto is an alias for Pluto.
+ASTRO_Pluto_Aquarius,Pluto Aquarius,astro_concept,,ASTRO_Pluto_Aquarius 점성학 개념/조합 노드.
+ASTRO_Pluto_Aries,Pluto Aries,astro_concept,,ASTRO_Pluto_Aries 점성학 개념/조합 노드.
+ASTRO_Pluto_Cancer,Pluto Cancer,astro_concept,,ASTRO_Pluto_Cancer 점성학 개념/조합 노드.
+ASTRO_Pluto_Capricorn,Pluto Capricorn,astro_concept,,ASTRO_Pluto_Capricorn 점성학 개념/조합 노드.
+ASTRO_Pluto_Gemini,Pluto Gemini,astro_concept,,ASTRO_Pluto_Gemini 점성학 개념/조합 노드.
+ASTRO_Pluto_H1,Pluto H1,astro_alias,HP_pluto_1,ASTRO_Pluto_H1 is an alias for HP_pluto_1.
+ASTRO_Pluto_H10,Pluto H10,astro_concept,,ASTRO_Pluto_H10 점성학 개념/조합 노드.
+ASTRO_Pluto_H11,Pluto H11,astro_concept,,ASTRO_Pluto_H11 점성학 개념/조합 노드.
+ASTRO_Pluto_H12,Pluto H12,astro_concept,,ASTRO_Pluto_H12 점성학 개념/조합 노드.
+ASTRO_Pluto_H2,Pluto H2,astro_concept,,ASTRO_Pluto_H2 점성학 개념/조합 노드.
+ASTRO_Pluto_H3,Pluto H3,astro_concept,,ASTRO_Pluto_H3 점성학 개념/조합 노드.
+ASTRO_Pluto_H4,Pluto H4,astro_concept,,ASTRO_Pluto_H4 점성학 개념/조합 노드.
+ASTRO_Pluto_H5,Pluto H5,astro_concept,,ASTRO_Pluto_H5 점성학 개념/조합 노드.
+ASTRO_Pluto_H6,Pluto H6,astro_concept,,ASTRO_Pluto_H6 점성학 개념/조합 노드.
+ASTRO_Pluto_H7,Pluto H7,astro_alias,HP_pluto_7,ASTRO_Pluto_H7 is an alias for HP_pluto_7.
+ASTRO_Pluto_H8,Pluto H8,astro_alias,HP_pluto_8,ASTRO_Pluto_H8 is an alias for HP_pluto_8.
+ASTRO_Pluto_H9,Pluto H9,astro_concept,,ASTRO_Pluto_H9 점성학 개념/조합 노드.
+ASTRO_Pluto_Leo,Pluto Leo,astro_concept,,ASTRO_Pluto_Leo 점성학 개념/조합 노드.
+ASTRO_Pluto_Libra,Pluto Libra,astro_concept,,ASTRO_Pluto_Libra 점성학 개념/조합 노드.
+ASTRO_Pluto_Pisces,Pluto Pisces,astro_concept,,ASTRO_Pluto_Pisces 점성학 개념/조합 노드.
+ASTRO_Pluto_Sagittarius,Pluto Sagittarius,astro_concept,,ASTRO_Pluto_Sagittarius 점성학 개념/조합 노드.
+ASTRO_Pluto_Scorpio,Pluto Scorpio,astro_concept,,ASTRO_Pluto_Scorpio 점성학 개념/조합 노드.
+ASTRO_Pluto_Taurus,Pluto Taurus,astro_concept,,ASTRO_Pluto_Taurus 점성학 개념/조합 노드.
+ASTRO_Pluto_Virgo,Pluto Virgo,astro_concept,,ASTRO_Pluto_Virgo 점성학 개념/조합 노드.
+ASTRO_REBIRTH_PlutoTransit,REBIRTH PlutoTransit,astro_alias,AT_pluto,ASTRO_REBIRTH_PlutoTransit is an alias for AT_pluto.
+ASTRO_RELATIONSHIP_Venus7th,RELATIONSHIP Venus7th,astro_alias,HP_venus_7,ASTRO_RELATIONSHIP_Venus7th is an alias for HP_venus_7.
+ASTRO_SERVICE_6thHouseFull,SERVICE 6thHouseFull,astro_alias,H6,ASTRO_SERVICE_6thHouseFull is an alias for H6.
+ASTRO_SHADOW_12thHouse,SHADOW 12thHouse,astro_alias,H12,ASTRO_SHADOW_12thHouse is an alias for H12.
+ASTRO_SIGN_Aquarius_HOUSE_H1,SIGN Aquarius HOUSE H1,astro_concept,,ASTRO_SIGN_Aquarius_HOUSE_H1 점성학 개념/조합 노드.
+ASTRO_SIGN_Aquarius_HOUSE_H10,SIGN Aquarius HOUSE H10,astro_concept,,ASTRO_SIGN_Aquarius_HOUSE_H10 점성학 개념/조합 노드.
+ASTRO_SIGN_Aquarius_HOUSE_H11,SIGN Aquarius HOUSE H11,astro_concept,,ASTRO_SIGN_Aquarius_HOUSE_H11 점성학 개념/조합 노드.
+ASTRO_SIGN_Aquarius_HOUSE_H12,SIGN Aquarius HOUSE H12,astro_concept,,ASTRO_SIGN_Aquarius_HOUSE_H12 점성학 개념/조합 노드.
+ASTRO_SIGN_Aquarius_HOUSE_H2,SIGN Aquarius HOUSE H2,astro_concept,,ASTRO_SIGN_Aquarius_HOUSE_H2 점성학 개념/조합 노드.
+ASTRO_SIGN_Aquarius_HOUSE_H3,SIGN Aquarius HOUSE H3,astro_concept,,ASTRO_SIGN_Aquarius_HOUSE_H3 점성학 개념/조합 노드.
+ASTRO_SIGN_Aquarius_HOUSE_H4,SIGN Aquarius HOUSE H4,astro_concept,,ASTRO_SIGN_Aquarius_HOUSE_H4 점성학 개념/조합 노드.
+ASTRO_SIGN_Aquarius_HOUSE_H5,SIGN Aquarius HOUSE H5,astro_concept,,ASTRO_SIGN_Aquarius_HOUSE_H5 점성학 개념/조합 노드.
+ASTRO_SIGN_Aquarius_HOUSE_H6,SIGN Aquarius HOUSE H6,astro_concept,,ASTRO_SIGN_Aquarius_HOUSE_H6 점성학 개념/조합 노드.
+ASTRO_SIGN_Aquarius_HOUSE_H7,SIGN Aquarius HOUSE H7,astro_concept,,ASTRO_SIGN_Aquarius_HOUSE_H7 점성학 개념/조합 노드.
+ASTRO_SIGN_Aquarius_HOUSE_H8,SIGN Aquarius HOUSE H8,astro_concept,,ASTRO_SIGN_Aquarius_HOUSE_H8 점성학 개념/조합 노드.
+ASTRO_SIGN_Aquarius_HOUSE_H9,SIGN Aquarius HOUSE H9,astro_concept,,ASTRO_SIGN_Aquarius_HOUSE_H9 점성학 개념/조합 노드.
+ASTRO_SIGN_Aries_HOUSE_H1,SIGN Aries HOUSE H1,astro_concept,,ASTRO_SIGN_Aries_HOUSE_H1 점성학 개념/조합 노드.
+ASTRO_SIGN_Aries_HOUSE_H10,SIGN Aries HOUSE H10,astro_concept,,ASTRO_SIGN_Aries_HOUSE_H10 점성학 개념/조합 노드.
+ASTRO_SIGN_Aries_HOUSE_H11,SIGN Aries HOUSE H11,astro_concept,,ASTRO_SIGN_Aries_HOUSE_H11 점성학 개념/조합 노드.
+ASTRO_SIGN_Aries_HOUSE_H12,SIGN Aries HOUSE H12,astro_concept,,ASTRO_SIGN_Aries_HOUSE_H12 점성학 개념/조합 노드.
+ASTRO_SIGN_Aries_HOUSE_H2,SIGN Aries HOUSE H2,astro_concept,,ASTRO_SIGN_Aries_HOUSE_H2 점성학 개념/조합 노드.
+ASTRO_SIGN_Aries_HOUSE_H3,SIGN Aries HOUSE H3,astro_concept,,ASTRO_SIGN_Aries_HOUSE_H3 점성학 개념/조합 노드.
+ASTRO_SIGN_Aries_HOUSE_H4,SIGN Aries HOUSE H4,astro_concept,,ASTRO_SIGN_Aries_HOUSE_H4 점성학 개념/조합 노드.
+ASTRO_SIGN_Aries_HOUSE_H5,SIGN Aries HOUSE H5,astro_concept,,ASTRO_SIGN_Aries_HOUSE_H5 점성학 개념/조합 노드.
+ASTRO_SIGN_Aries_HOUSE_H6,SIGN Aries HOUSE H6,astro_concept,,ASTRO_SIGN_Aries_HOUSE_H6 점성학 개념/조합 노드.
+ASTRO_SIGN_Aries_HOUSE_H7,SIGN Aries HOUSE H7,astro_concept,,ASTRO_SIGN_Aries_HOUSE_H7 점성학 개념/조합 노드.
+ASTRO_SIGN_Aries_HOUSE_H8,SIGN Aries HOUSE H8,astro_concept,,ASTRO_SIGN_Aries_HOUSE_H8 점성학 개념/조합 노드.
+ASTRO_SIGN_Aries_HOUSE_H9,SIGN Aries HOUSE H9,astro_concept,,ASTRO_SIGN_Aries_HOUSE_H9 점성학 개념/조합 노드.
+ASTRO_SIGN_Cancer_HOUSE_H1,SIGN Cancer HOUSE H1,astro_concept,,ASTRO_SIGN_Cancer_HOUSE_H1 점성학 개념/조합 노드.
+ASTRO_SIGN_Cancer_HOUSE_H10,SIGN Cancer HOUSE H10,astro_concept,,ASTRO_SIGN_Cancer_HOUSE_H10 점성학 개념/조합 노드.
+ASTRO_SIGN_Cancer_HOUSE_H11,SIGN Cancer HOUSE H11,astro_concept,,ASTRO_SIGN_Cancer_HOUSE_H11 점성학 개념/조합 노드.
+ASTRO_SIGN_Cancer_HOUSE_H12,SIGN Cancer HOUSE H12,astro_concept,,ASTRO_SIGN_Cancer_HOUSE_H12 점성학 개념/조합 노드.
+ASTRO_SIGN_Cancer_HOUSE_H2,SIGN Cancer HOUSE H2,astro_concept,,ASTRO_SIGN_Cancer_HOUSE_H2 점성학 개념/조합 노드.
+ASTRO_SIGN_Cancer_HOUSE_H3,SIGN Cancer HOUSE H3,astro_concept,,ASTRO_SIGN_Cancer_HOUSE_H3 점성학 개념/조합 노드.
+ASTRO_SIGN_Cancer_HOUSE_H4,SIGN Cancer HOUSE H4,astro_concept,,ASTRO_SIGN_Cancer_HOUSE_H4 점성학 개념/조합 노드.
+ASTRO_SIGN_Cancer_HOUSE_H5,SIGN Cancer HOUSE H5,astro_concept,,ASTRO_SIGN_Cancer_HOUSE_H5 점성학 개념/조합 노드.
+ASTRO_SIGN_Cancer_HOUSE_H6,SIGN Cancer HOUSE H6,astro_concept,,ASTRO_SIGN_Cancer_HOUSE_H6 점성학 개념/조합 노드.
+ASTRO_SIGN_Cancer_HOUSE_H7,SIGN Cancer HOUSE H7,astro_concept,,ASTRO_SIGN_Cancer_HOUSE_H7 점성학 개념/조합 노드.
+ASTRO_SIGN_Cancer_HOUSE_H8,SIGN Cancer HOUSE H8,astro_concept,,ASTRO_SIGN_Cancer_HOUSE_H8 점성학 개념/조합 노드.
+ASTRO_SIGN_Cancer_HOUSE_H9,SIGN Cancer HOUSE H9,astro_concept,,ASTRO_SIGN_Cancer_HOUSE_H9 점성학 개념/조합 노드.
+ASTRO_SIGN_Capricorn_HOUSE_H1,SIGN Capricorn HOUSE H1,astro_concept,,ASTRO_SIGN_Capricorn_HOUSE_H1 점성학 개념/조합 노드.
+ASTRO_SIGN_Capricorn_HOUSE_H10,SIGN Capricorn HOUSE H10,astro_concept,,ASTRO_SIGN_Capricorn_HOUSE_H10 점성학 개념/조합 노드.
+ASTRO_SIGN_Capricorn_HOUSE_H11,SIGN Capricorn HOUSE H11,astro_concept,,ASTRO_SIGN_Capricorn_HOUSE_H11 점성학 개념/조합 노드.
+ASTRO_SIGN_Capricorn_HOUSE_H12,SIGN Capricorn HOUSE H12,astro_concept,,ASTRO_SIGN_Capricorn_HOUSE_H12 점성학 개념/조합 노드.
+ASTRO_SIGN_Capricorn_HOUSE_H2,SIGN Capricorn HOUSE H2,astro_concept,,ASTRO_SIGN_Capricorn_HOUSE_H2 점성학 개념/조합 노드.
+ASTRO_SIGN_Capricorn_HOUSE_H3,SIGN Capricorn HOUSE H3,astro_concept,,ASTRO_SIGN_Capricorn_HOUSE_H3 점성학 개념/조합 노드.
+ASTRO_SIGN_Capricorn_HOUSE_H4,SIGN Capricorn HOUSE H4,astro_concept,,ASTRO_SIGN_Capricorn_HOUSE_H4 점성학 개념/조합 노드.
+ASTRO_SIGN_Capricorn_HOUSE_H5,SIGN Capricorn HOUSE H5,astro_concept,,ASTRO_SIGN_Capricorn_HOUSE_H5 점성학 개념/조합 노드.
+ASTRO_SIGN_Capricorn_HOUSE_H6,SIGN Capricorn HOUSE H6,astro_concept,,ASTRO_SIGN_Capricorn_HOUSE_H6 점성학 개념/조합 노드.
+ASTRO_SIGN_Capricorn_HOUSE_H7,SIGN Capricorn HOUSE H7,astro_concept,,ASTRO_SIGN_Capricorn_HOUSE_H7 점성학 개념/조합 노드.
+ASTRO_SIGN_Capricorn_HOUSE_H8,SIGN Capricorn HOUSE H8,astro_concept,,ASTRO_SIGN_Capricorn_HOUSE_H8 점성학 개념/조합 노드.
+ASTRO_SIGN_Capricorn_HOUSE_H9,SIGN Capricorn HOUSE H9,astro_concept,,ASTRO_SIGN_Capricorn_HOUSE_H9 점성학 개념/조합 노드.
+ASTRO_SIGN_Gemini_HOUSE_H1,SIGN Gemini HOUSE H1,astro_concept,,ASTRO_SIGN_Gemini_HOUSE_H1 점성학 개념/조합 노드.
+ASTRO_SIGN_Gemini_HOUSE_H10,SIGN Gemini HOUSE H10,astro_concept,,ASTRO_SIGN_Gemini_HOUSE_H10 점성학 개념/조합 노드.
+ASTRO_SIGN_Gemini_HOUSE_H11,SIGN Gemini HOUSE H11,astro_concept,,ASTRO_SIGN_Gemini_HOUSE_H11 점성학 개념/조합 노드.
+ASTRO_SIGN_Gemini_HOUSE_H12,SIGN Gemini HOUSE H12,astro_concept,,ASTRO_SIGN_Gemini_HOUSE_H12 점성학 개념/조합 노드.
+ASTRO_SIGN_Gemini_HOUSE_H2,SIGN Gemini HOUSE H2,astro_concept,,ASTRO_SIGN_Gemini_HOUSE_H2 점성학 개념/조합 노드.
+ASTRO_SIGN_Gemini_HOUSE_H3,SIGN Gemini HOUSE H3,astro_concept,,ASTRO_SIGN_Gemini_HOUSE_H3 점성학 개념/조합 노드.
+ASTRO_SIGN_Gemini_HOUSE_H4,SIGN Gemini HOUSE H4,astro_concept,,ASTRO_SIGN_Gemini_HOUSE_H4 점성학 개념/조합 노드.
+ASTRO_SIGN_Gemini_HOUSE_H5,SIGN Gemini HOUSE H5,astro_concept,,ASTRO_SIGN_Gemini_HOUSE_H5 점성학 개념/조합 노드.
+ASTRO_SIGN_Gemini_HOUSE_H6,SIGN Gemini HOUSE H6,astro_concept,,ASTRO_SIGN_Gemini_HOUSE_H6 점성학 개념/조합 노드.
+ASTRO_SIGN_Gemini_HOUSE_H7,SIGN Gemini HOUSE H7,astro_concept,,ASTRO_SIGN_Gemini_HOUSE_H7 점성학 개념/조합 노드.
+ASTRO_SIGN_Gemini_HOUSE_H8,SIGN Gemini HOUSE H8,astro_concept,,ASTRO_SIGN_Gemini_HOUSE_H8 점성학 개념/조합 노드.
+ASTRO_SIGN_Gemini_HOUSE_H9,SIGN Gemini HOUSE H9,astro_concept,,ASTRO_SIGN_Gemini_HOUSE_H9 점성학 개념/조합 노드.
+ASTRO_SIGN_Leo_HOUSE_H1,SIGN Leo HOUSE H1,astro_concept,,ASTRO_SIGN_Leo_HOUSE_H1 점성학 개념/조합 노드.
+ASTRO_SIGN_Leo_HOUSE_H10,SIGN Leo HOUSE H10,astro_concept,,ASTRO_SIGN_Leo_HOUSE_H10 점성학 개념/조합 노드.
+ASTRO_SIGN_Leo_HOUSE_H11,SIGN Leo HOUSE H11,astro_concept,,ASTRO_SIGN_Leo_HOUSE_H11 점성학 개념/조합 노드.
+ASTRO_SIGN_Leo_HOUSE_H12,SIGN Leo HOUSE H12,astro_concept,,ASTRO_SIGN_Leo_HOUSE_H12 점성학 개념/조합 노드.
+ASTRO_SIGN_Leo_HOUSE_H2,SIGN Leo HOUSE H2,astro_concept,,ASTRO_SIGN_Leo_HOUSE_H2 점성학 개념/조합 노드.
+ASTRO_SIGN_Leo_HOUSE_H3,SIGN Leo HOUSE H3,astro_concept,,ASTRO_SIGN_Leo_HOUSE_H3 점성학 개념/조합 노드.
+ASTRO_SIGN_Leo_HOUSE_H4,SIGN Leo HOUSE H4,astro_concept,,ASTRO_SIGN_Leo_HOUSE_H4 점성학 개념/조합 노드.
+ASTRO_SIGN_Leo_HOUSE_H5,SIGN Leo HOUSE H5,astro_concept,,ASTRO_SIGN_Leo_HOUSE_H5 점성학 개념/조합 노드.
+ASTRO_SIGN_Leo_HOUSE_H6,SIGN Leo HOUSE H6,astro_concept,,ASTRO_SIGN_Leo_HOUSE_H6 점성학 개념/조합 노드.
+ASTRO_SIGN_Leo_HOUSE_H7,SIGN Leo HOUSE H7,astro_concept,,ASTRO_SIGN_Leo_HOUSE_H7 점성학 개념/조합 노드.
+ASTRO_SIGN_Leo_HOUSE_H8,SIGN Leo HOUSE H8,astro_concept,,ASTRO_SIGN_Leo_HOUSE_H8 점성학 개념/조합 노드.
+ASTRO_SIGN_Leo_HOUSE_H9,SIGN Leo HOUSE H9,astro_concept,,ASTRO_SIGN_Leo_HOUSE_H9 점성학 개념/조합 노드.
+ASTRO_SIGN_Libra_HOUSE_H1,SIGN Libra HOUSE H1,astro_concept,,ASTRO_SIGN_Libra_HOUSE_H1 점성학 개념/조합 노드.
+ASTRO_SIGN_Libra_HOUSE_H10,SIGN Libra HOUSE H10,astro_concept,,ASTRO_SIGN_Libra_HOUSE_H10 점성학 개념/조합 노드.
+ASTRO_SIGN_Libra_HOUSE_H11,SIGN Libra HOUSE H11,astro_concept,,ASTRO_SIGN_Libra_HOUSE_H11 점성학 개념/조합 노드.
+ASTRO_SIGN_Libra_HOUSE_H12,SIGN Libra HOUSE H12,astro_concept,,ASTRO_SIGN_Libra_HOUSE_H12 점성학 개념/조합 노드.
+ASTRO_SIGN_Libra_HOUSE_H2,SIGN Libra HOUSE H2,astro_concept,,ASTRO_SIGN_Libra_HOUSE_H2 점성학 개념/조합 노드.
+ASTRO_SIGN_Libra_HOUSE_H3,SIGN Libra HOUSE H3,astro_concept,,ASTRO_SIGN_Libra_HOUSE_H3 점성학 개념/조합 노드.
+ASTRO_SIGN_Libra_HOUSE_H4,SIGN Libra HOUSE H4,astro_concept,,ASTRO_SIGN_Libra_HOUSE_H4 점성학 개념/조합 노드.
+ASTRO_SIGN_Libra_HOUSE_H5,SIGN Libra HOUSE H5,astro_concept,,ASTRO_SIGN_Libra_HOUSE_H5 점성학 개념/조합 노드.
+ASTRO_SIGN_Libra_HOUSE_H6,SIGN Libra HOUSE H6,astro_concept,,ASTRO_SIGN_Libra_HOUSE_H6 점성학 개념/조합 노드.
+ASTRO_SIGN_Libra_HOUSE_H7,SIGN Libra HOUSE H7,astro_concept,,ASTRO_SIGN_Libra_HOUSE_H7 점성학 개념/조합 노드.
+ASTRO_SIGN_Libra_HOUSE_H8,SIGN Libra HOUSE H8,astro_concept,,ASTRO_SIGN_Libra_HOUSE_H8 점성학 개념/조합 노드.
+ASTRO_SIGN_Libra_HOUSE_H9,SIGN Libra HOUSE H9,astro_concept,,ASTRO_SIGN_Libra_HOUSE_H9 점성학 개념/조합 노드.
+ASTRO_SIGN_Pisces_HOUSE_H1,SIGN Pisces HOUSE H1,astro_concept,,ASTRO_SIGN_Pisces_HOUSE_H1 점성학 개념/조합 노드.
+ASTRO_SIGN_Pisces_HOUSE_H10,SIGN Pisces HOUSE H10,astro_concept,,ASTRO_SIGN_Pisces_HOUSE_H10 점성학 개념/조합 노드.
+ASTRO_SIGN_Pisces_HOUSE_H11,SIGN Pisces HOUSE H11,astro_concept,,ASTRO_SIGN_Pisces_HOUSE_H11 점성학 개념/조합 노드.
+ASTRO_SIGN_Pisces_HOUSE_H12,SIGN Pisces HOUSE H12,astro_concept,,ASTRO_SIGN_Pisces_HOUSE_H12 점성학 개념/조합 노드.
+ASTRO_SIGN_Pisces_HOUSE_H2,SIGN Pisces HOUSE H2,astro_concept,,ASTRO_SIGN_Pisces_HOUSE_H2 점성학 개념/조합 노드.
+ASTRO_SIGN_Pisces_HOUSE_H3,SIGN Pisces HOUSE H3,astro_concept,,ASTRO_SIGN_Pisces_HOUSE_H3 점성학 개념/조합 노드.
+ASTRO_SIGN_Pisces_HOUSE_H4,SIGN Pisces HOUSE H4,astro_concept,,ASTRO_SIGN_Pisces_HOUSE_H4 점성학 개념/조합 노드.
+ASTRO_SIGN_Pisces_HOUSE_H5,SIGN Pisces HOUSE H5,astro_concept,,ASTRO_SIGN_Pisces_HOUSE_H5 점성학 개념/조합 노드.
+ASTRO_SIGN_Pisces_HOUSE_H6,SIGN Pisces HOUSE H6,astro_concept,,ASTRO_SIGN_Pisces_HOUSE_H6 점성학 개념/조합 노드.
+ASTRO_SIGN_Pisces_HOUSE_H7,SIGN Pisces HOUSE H7,astro_concept,,ASTRO_SIGN_Pisces_HOUSE_H7 점성학 개념/조합 노드.
+ASTRO_SIGN_Pisces_HOUSE_H8,SIGN Pisces HOUSE H8,astro_concept,,ASTRO_SIGN_Pisces_HOUSE_H8 점성학 개념/조합 노드.
+ASTRO_SIGN_Pisces_HOUSE_H9,SIGN Pisces HOUSE H9,astro_concept,,ASTRO_SIGN_Pisces_HOUSE_H9 점성학 개념/조합 노드.
+ASTRO_SIGN_Sagittarius_HOUSE_H1,SIGN Sagittarius HOUSE H1,astro_concept,,ASTRO_SIGN_Sagittarius_HOUSE_H1 점성학 개념/조합 노드.
+ASTRO_SIGN_Sagittarius_HOUSE_H10,SIGN Sagittarius HOUSE H10,astro_concept,,ASTRO_SIGN_Sagittarius_HOUSE_H10 점성학 개념/조합 노드.
+ASTRO_SIGN_Sagittarius_HOUSE_H11,SIGN Sagittarius HOUSE H11,astro_concept,,ASTRO_SIGN_Sagittarius_HOUSE_H11 점성학 개념/조합 노드.
+ASTRO_SIGN_Sagittarius_HOUSE_H12,SIGN Sagittarius HOUSE H12,astro_concept,,ASTRO_SIGN_Sagittarius_HOUSE_H12 점성학 개념/조합 노드.
+ASTRO_SIGN_Sagittarius_HOUSE_H2,SIGN Sagittarius HOUSE H2,astro_concept,,ASTRO_SIGN_Sagittarius_HOUSE_H2 점성학 개념/조합 노드.
+ASTRO_SIGN_Sagittarius_HOUSE_H3,SIGN Sagittarius HOUSE H3,astro_concept,,ASTRO_SIGN_Sagittarius_HOUSE_H3 점성학 개념/조합 노드.
+ASTRO_SIGN_Sagittarius_HOUSE_H4,SIGN Sagittarius HOUSE H4,astro_concept,,ASTRO_SIGN_Sagittarius_HOUSE_H4 점성학 개념/조합 노드.
+ASTRO_SIGN_Sagittarius_HOUSE_H5,SIGN Sagittarius HOUSE H5,astro_concept,,ASTRO_SIGN_Sagittarius_HOUSE_H5 점성학 개념/조합 노드.
+ASTRO_SIGN_Sagittarius_HOUSE_H6,SIGN Sagittarius HOUSE H6,astro_concept,,ASTRO_SIGN_Sagittarius_HOUSE_H6 점성학 개념/조합 노드.
+ASTRO_SIGN_Sagittarius_HOUSE_H7,SIGN Sagittarius HOUSE H7,astro_concept,,ASTRO_SIGN_Sagittarius_HOUSE_H7 점성학 개념/조합 노드.
+ASTRO_SIGN_Sagittarius_HOUSE_H8,SIGN Sagittarius HOUSE H8,astro_concept,,ASTRO_SIGN_Sagittarius_HOUSE_H8 점성학 개념/조합 노드.
+ASTRO_SIGN_Sagittarius_HOUSE_H9,SIGN Sagittarius HOUSE H9,astro_concept,,ASTRO_SIGN_Sagittarius_HOUSE_H9 점성학 개념/조합 노드.
+ASTRO_SIGN_Scorpio_HOUSE_H1,SIGN Scorpio HOUSE H1,astro_concept,,ASTRO_SIGN_Scorpio_HOUSE_H1 점성학 개념/조합 노드.
+ASTRO_SIGN_Scorpio_HOUSE_H10,SIGN Scorpio HOUSE H10,astro_concept,,ASTRO_SIGN_Scorpio_HOUSE_H10 점성학 개념/조합 노드.
+ASTRO_SIGN_Scorpio_HOUSE_H11,SIGN Scorpio HOUSE H11,astro_concept,,ASTRO_SIGN_Scorpio_HOUSE_H11 점성학 개념/조합 노드.
+ASTRO_SIGN_Scorpio_HOUSE_H12,SIGN Scorpio HOUSE H12,astro_concept,,ASTRO_SIGN_Scorpio_HOUSE_H12 점성학 개념/조합 노드.
+ASTRO_SIGN_Scorpio_HOUSE_H2,SIGN Scorpio HOUSE H2,astro_concept,,ASTRO_SIGN_Scorpio_HOUSE_H2 점성학 개념/조합 노드.
+ASTRO_SIGN_Scorpio_HOUSE_H3,SIGN Scorpio HOUSE H3,astro_concept,,ASTRO_SIGN_Scorpio_HOUSE_H3 점성학 개념/조합 노드.
+ASTRO_SIGN_Scorpio_HOUSE_H4,SIGN Scorpio HOUSE H4,astro_concept,,ASTRO_SIGN_Scorpio_HOUSE_H4 점성학 개념/조합 노드.
+ASTRO_SIGN_Scorpio_HOUSE_H5,SIGN Scorpio HOUSE H5,astro_concept,,ASTRO_SIGN_Scorpio_HOUSE_H5 점성학 개념/조합 노드.
+ASTRO_SIGN_Scorpio_HOUSE_H6,SIGN Scorpio HOUSE H6,astro_concept,,ASTRO_SIGN_Scorpio_HOUSE_H6 점성학 개념/조합 노드.
+ASTRO_SIGN_Scorpio_HOUSE_H7,SIGN Scorpio HOUSE H7,astro_concept,,ASTRO_SIGN_Scorpio_HOUSE_H7 점성학 개념/조합 노드.
+ASTRO_SIGN_Scorpio_HOUSE_H8,SIGN Scorpio HOUSE H8,astro_concept,,ASTRO_SIGN_Scorpio_HOUSE_H8 점성학 개념/조합 노드.
+ASTRO_SIGN_Scorpio_HOUSE_H9,SIGN Scorpio HOUSE H9,astro_concept,,ASTRO_SIGN_Scorpio_HOUSE_H9 점성학 개념/조합 노드.
+ASTRO_SIGN_Taurus_HOUSE_H1,SIGN Taurus HOUSE H1,astro_concept,,ASTRO_SIGN_Taurus_HOUSE_H1 점성학 개념/조합 노드.
+ASTRO_SIGN_Taurus_HOUSE_H10,SIGN Taurus HOUSE H10,astro_concept,,ASTRO_SIGN_Taurus_HOUSE_H10 점성학 개념/조합 노드.
+ASTRO_SIGN_Taurus_HOUSE_H11,SIGN Taurus HOUSE H11,astro_concept,,ASTRO_SIGN_Taurus_HOUSE_H11 점성학 개념/조합 노드.
+ASTRO_SIGN_Taurus_HOUSE_H12,SIGN Taurus HOUSE H12,astro_concept,,ASTRO_SIGN_Taurus_HOUSE_H12 점성학 개념/조합 노드.
+ASTRO_SIGN_Taurus_HOUSE_H2,SIGN Taurus HOUSE H2,astro_concept,,ASTRO_SIGN_Taurus_HOUSE_H2 점성학 개념/조합 노드.
+ASTRO_SIGN_Taurus_HOUSE_H3,SIGN Taurus HOUSE H3,astro_concept,,ASTRO_SIGN_Taurus_HOUSE_H3 점성학 개념/조합 노드.
+ASTRO_SIGN_Taurus_HOUSE_H4,SIGN Taurus HOUSE H4,astro_concept,,ASTRO_SIGN_Taurus_HOUSE_H4 점성학 개념/조합 노드.
+ASTRO_SIGN_Taurus_HOUSE_H5,SIGN Taurus HOUSE H5,astro_concept,,ASTRO_SIGN_Taurus_HOUSE_H5 점성학 개념/조합 노드.
+ASTRO_SIGN_Taurus_HOUSE_H6,SIGN Taurus HOUSE H6,astro_concept,,ASTRO_SIGN_Taurus_HOUSE_H6 점성학 개념/조합 노드.
+ASTRO_SIGN_Taurus_HOUSE_H7,SIGN Taurus HOUSE H7,astro_concept,,ASTRO_SIGN_Taurus_HOUSE_H7 점성학 개념/조합 노드.
+ASTRO_SIGN_Taurus_HOUSE_H8,SIGN Taurus HOUSE H8,astro_concept,,ASTRO_SIGN_Taurus_HOUSE_H8 점성학 개념/조합 노드.
+ASTRO_SIGN_Taurus_HOUSE_H9,SIGN Taurus HOUSE H9,astro_concept,,ASTRO_SIGN_Taurus_HOUSE_H9 점성학 개념/조합 노드.
+ASTRO_SIGN_Virgo_HOUSE_H1,SIGN Virgo HOUSE H1,astro_concept,,ASTRO_SIGN_Virgo_HOUSE_H1 점성학 개념/조합 노드.
+ASTRO_SIGN_Virgo_HOUSE_H10,SIGN Virgo HOUSE H10,astro_concept,,ASTRO_SIGN_Virgo_HOUSE_H10 점성학 개념/조합 노드.
+ASTRO_SIGN_Virgo_HOUSE_H11,SIGN Virgo HOUSE H11,astro_concept,,ASTRO_SIGN_Virgo_HOUSE_H11 점성학 개념/조합 노드.
+ASTRO_SIGN_Virgo_HOUSE_H12,SIGN Virgo HOUSE H12,astro_concept,,ASTRO_SIGN_Virgo_HOUSE_H12 점성학 개념/조합 노드.
+ASTRO_SIGN_Virgo_HOUSE_H2,SIGN Virgo HOUSE H2,astro_concept,,ASTRO_SIGN_Virgo_HOUSE_H2 점성학 개념/조합 노드.
+ASTRO_SIGN_Virgo_HOUSE_H3,SIGN Virgo HOUSE H3,astro_concept,,ASTRO_SIGN_Virgo_HOUSE_H3 점성학 개념/조합 노드.
+ASTRO_SIGN_Virgo_HOUSE_H4,SIGN Virgo HOUSE H4,astro_concept,,ASTRO_SIGN_Virgo_HOUSE_H4 점성학 개념/조합 노드.
+ASTRO_SIGN_Virgo_HOUSE_H5,SIGN Virgo HOUSE H5,astro_concept,,ASTRO_SIGN_Virgo_HOUSE_H5 점성학 개념/조합 노드.
+ASTRO_SIGN_Virgo_HOUSE_H6,SIGN Virgo HOUSE H6,astro_concept,,ASTRO_SIGN_Virgo_HOUSE_H6 점성학 개념/조합 노드.
+ASTRO_SIGN_Virgo_HOUSE_H7,SIGN Virgo HOUSE H7,astro_concept,,ASTRO_SIGN_Virgo_HOUSE_H7 점성학 개념/조합 노드.
+ASTRO_SIGN_Virgo_HOUSE_H8,SIGN Virgo HOUSE H8,astro_concept,,ASTRO_SIGN_Virgo_HOUSE_H8 점성학 개념/조합 노드.
+ASTRO_SIGN_Virgo_HOUSE_H9,SIGN Virgo HOUSE H9,astro_concept,,ASTRO_SIGN_Virgo_HOUSE_H9 점성학 개념/조합 노드.
+ASTRO_SPIRIT_NeptuneNodes,SPIRIT NeptuneNodes,astro_concept,,ASTRO_SPIRIT_NeptuneNodes 점성학 개념/조합 노드.
+ASTRO_Sagittarius,Sagittarius,astro_alias,Sagittarius,ASTRO_Sagittarius is an alias for Sagittarius.
+ASTRO_Saturn,Saturn,astro_alias,Saturn,ASTRO_Saturn is an alias for Saturn.
+ASTRO_Saturn_Aquarius,Saturn Aquarius,astro_concept,,ASTRO_Saturn_Aquarius 점성학 개념/조합 노드.
+ASTRO_Saturn_Aries,Saturn Aries,astro_concept,,ASTRO_Saturn_Aries 점성학 개념/조합 노드.
+ASTRO_Saturn_Cancer,Saturn Cancer,astro_alias,PS_saturn_can,ASTRO_Saturn_Cancer is an alias for PS_saturn_can.
+ASTRO_Saturn_Capricorn,Saturn Capricorn,astro_alias,PS_saturn_cap,ASTRO_Saturn_Capricorn is an alias for PS_saturn_cap.
+ASTRO_Saturn_Gemini,Saturn Gemini,astro_concept,,ASTRO_Saturn_Gemini 점성학 개념/조합 노드.
+ASTRO_Saturn_H1,Saturn H1,astro_concept,,ASTRO_Saturn_H1 점성학 개념/조합 노드.
+ASTRO_Saturn_H10,Saturn H10,astro_alias,HP_saturn_10,ASTRO_Saturn_H10 is an alias for HP_saturn_10.
+ASTRO_Saturn_H11,Saturn H11,astro_concept,,ASTRO_Saturn_H11 점성학 개념/조합 노드.
+ASTRO_Saturn_H12,Saturn H12,astro_concept,,ASTRO_Saturn_H12 점성학 개념/조합 노드.
+ASTRO_Saturn_H2,Saturn H2,astro_concept,,ASTRO_Saturn_H2 점성학 개념/조합 노드.
+ASTRO_Saturn_H3,Saturn H3,astro_concept,,ASTRO_Saturn_H3 점성학 개념/조합 노드.
+ASTRO_Saturn_H4,Saturn H4,astro_alias,HP_saturn_4,ASTRO_Saturn_H4 is an alias for HP_saturn_4.
+ASTRO_Saturn_H5,Saturn H5,astro_concept,,ASTRO_Saturn_H5 점성학 개념/조합 노드.
+ASTRO_Saturn_H6,Saturn H6,astro_concept,,ASTRO_Saturn_H6 점성학 개념/조합 노드.
+ASTRO_Saturn_H7,Saturn H7,astro_alias,HP_saturn_7,ASTRO_Saturn_H7 is an alias for HP_saturn_7.
+ASTRO_Saturn_H8,Saturn H8,astro_concept,,ASTRO_Saturn_H8 점성학 개념/조합 노드.
+ASTRO_Saturn_H9,Saturn H9,astro_concept,,ASTRO_Saturn_H9 점성학 개념/조합 노드.
+ASTRO_Saturn_Leo,Saturn Leo,astro_concept,,ASTRO_Saturn_Leo 점성학 개념/조합 노드.
+ASTRO_Saturn_Libra,Saturn Libra,astro_concept,,ASTRO_Saturn_Libra 점성학 개념/조합 노드.
+ASTRO_Saturn_Pisces,Saturn Pisces,astro_concept,,ASTRO_Saturn_Pisces 점성학 개념/조합 노드.
+ASTRO_Saturn_Sagittarius,Saturn Sagittarius,astro_concept,,ASTRO_Saturn_Sagittarius 점성학 개념/조합 노드.
+ASTRO_Saturn_Scorpio,Saturn Scorpio,astro_concept,,ASTRO_Saturn_Scorpio 점성학 개념/조합 노드.
+ASTRO_Saturn_Taurus,Saturn Taurus,astro_concept,,ASTRO_Saturn_Taurus 점성학 개념/조합 노드.
+ASTRO_Saturn_Virgo,Saturn Virgo,astro_concept,,ASTRO_Saturn_Virgo 점성학 개념/조합 노드.
+ASTRO_Scorpio,Scorpio,astro_alias,Scorpio,ASTRO_Scorpio is an alias for Scorpio.
+ASTRO_Sun,Sun,astro_alias,Sun,ASTRO_Sun is an alias for Sun.
+ASTRO_Sun_Aquarius,Sun Aquarius,astro_concept,,ASTRO_Sun_Aquarius 점성학 개념/조합 노드.
+ASTRO_Sun_Aries,Sun Aries,astro_alias,PS_sun_ari,ASTRO_Sun_Aries is an alias for PS_sun_ari.
+ASTRO_Sun_Cancer,Sun Cancer,astro_concept,,ASTRO_Sun_Cancer 점성학 개념/조합 노드.
+ASTRO_Sun_Capricorn,Sun Capricorn,astro_concept,,ASTRO_Sun_Capricorn 점성학 개념/조합 노드.
+ASTRO_Sun_Gemini,Sun Gemini,astro_concept,,ASTRO_Sun_Gemini 점성학 개념/조합 노드.
+ASTRO_Sun_H1,Sun H1,astro_alias,HP_sun_1,ASTRO_Sun_H1 is an alias for HP_sun_1.
+ASTRO_Sun_H10,Sun H10,astro_alias,HP_sun_10,ASTRO_Sun_H10 is an alias for HP_sun_10.
+ASTRO_Sun_H11,Sun H11,astro_alias,HP_sun_11,ASTRO_Sun_H11 is an alias for HP_sun_11.
+ASTRO_Sun_H12,Sun H12,astro_alias,HP_sun_12,ASTRO_Sun_H12 is an alias for HP_sun_12.
+ASTRO_Sun_H2,Sun H2,astro_alias,HP_sun_2,ASTRO_Sun_H2 is an alias for HP_sun_2.
+ASTRO_Sun_H3,Sun H3,astro_alias,HP_sun_3,ASTRO_Sun_H3 is an alias for HP_sun_3.
+ASTRO_Sun_H4,Sun H4,astro_alias,HP_sun_4,ASTRO_Sun_H4 is an alias for HP_sun_4.
+ASTRO_Sun_H5,Sun H5,astro_alias,HP_sun_5,ASTRO_Sun_H5 is an alias for HP_sun_5.
+ASTRO_Sun_H6,Sun H6,astro_alias,HP_sun_6,ASTRO_Sun_H6 is an alias for HP_sun_6.
+ASTRO_Sun_H7,Sun H7,astro_alias,HP_sun_7,ASTRO_Sun_H7 is an alias for HP_sun_7.
+ASTRO_Sun_H8,Sun H8,astro_alias,HP_sun_8,ASTRO_Sun_H8 is an alias for HP_sun_8.
+ASTRO_Sun_H9,Sun H9,astro_alias,HP_sun_9,ASTRO_Sun_H9 is an alias for HP_sun_9.
+ASTRO_Sun_Leo,Sun Leo,astro_alias,PS_sun_leo,ASTRO_Sun_Leo is an alias for PS_sun_leo.
+ASTRO_Sun_Libra,Sun Libra,astro_alias,PS_sun_lib,ASTRO_Sun_Libra is an alias for PS_sun_lib.
+ASTRO_Sun_Pisces,Sun Pisces,astro_concept,,ASTRO_Sun_Pisces 점성학 개념/조합 노드.
+ASTRO_Sun_Sagittarius,Sun Sagittarius,astro_concept,,ASTRO_Sun_Sagittarius 점성학 개념/조합 노드.
+ASTRO_Sun_Scorpio,Sun Scorpio,astro_concept,,ASTRO_Sun_Scorpio 점성학 개념/조합 노드.
+ASTRO_Sun_Taurus,Sun Taurus,astro_concept,,ASTRO_Sun_Taurus 점성학 개념/조합 노드.
+ASTRO_Sun_Virgo,Sun Virgo,astro_concept,,ASTRO_Sun_Virgo 점성학 개념/조합 노드.
+ASTRO_TIMING_JupiterReturn,TIMING JupiterReturn,astro_alias,AT_jupiter_return,ASTRO_TIMING_JupiterReturn is an alias for AT_jupiter_return.
+ASTRO_TIMING_SaturnReturn,TIMING SaturnReturn,astro_alias,AT_saturn_return,ASTRO_TIMING_SaturnReturn is an alias for AT_saturn_return.
+ASTRO_TRANSFORMATION_Pluto1st,TRANSFORMATION Pluto1st,astro_alias,HP_pluto_1,ASTRO_TRANSFORMATION_Pluto1st is an alias for HP_pluto_1.
+ASTRO_TRANSIT_JUPITER,TRANSIT JUPITER,astro_alias,AT_jupiter,ASTRO_TRANSIT_JUPITER is an alias for AT_jupiter.
+ASTRO_TRANSIT_MARS,TRANSIT MARS,astro_concept,,ASTRO_TRANSIT_MARS 점성학 개념/조합 노드.
+ASTRO_TRANSIT_MERCURY,TRANSIT MERCURY,astro_concept,,ASTRO_TRANSIT_MERCURY 점성학 개념/조합 노드.
+ASTRO_TRANSIT_SATURN,TRANSIT SATURN,astro_alias,AT_saturn,ASTRO_TRANSIT_SATURN is an alias for AT_saturn.
+ASTRO_TRANSIT_VENUS,TRANSIT VENUS,astro_concept,,ASTRO_TRANSIT_VENUS 점성학 개념/조합 노드.
+ASTRO_TRAVEL_9thHouse,TRAVEL 9thHouse,astro_alias,H9,ASTRO_TRAVEL_9thHouse is an alias for H9.
+ASTRO_Uranus,Uranus,astro_alias,Uranus,ASTRO_Uranus is an alias for Uranus.
+ASTRO_Uranus_Aquarius,Uranus Aquarius,astro_concept,,ASTRO_Uranus_Aquarius 점성학 개념/조합 노드.
+ASTRO_Uranus_Aries,Uranus Aries,astro_concept,,ASTRO_Uranus_Aries 점성학 개념/조합 노드.
+ASTRO_Uranus_Cancer,Uranus Cancer,astro_concept,,ASTRO_Uranus_Cancer 점성학 개념/조합 노드.
+ASTRO_Uranus_Capricorn,Uranus Capricorn,astro_concept,,ASTRO_Uranus_Capricorn 점성학 개념/조합 노드.
+ASTRO_Uranus_Gemini,Uranus Gemini,astro_concept,,ASTRO_Uranus_Gemini 점성학 개념/조합 노드.
+ASTRO_Uranus_H1,Uranus H1,astro_alias,HP_uranus_1,ASTRO_Uranus_H1 is an alias for HP_uranus_1.
+ASTRO_Uranus_H10,Uranus H10,astro_concept,,ASTRO_Uranus_H10 점성학 개념/조합 노드.
+ASTRO_Uranus_H11,Uranus H11,astro_alias,HP_uranus_11,ASTRO_Uranus_H11 is an alias for HP_uranus_11.
+ASTRO_Uranus_H12,Uranus H12,astro_concept,,ASTRO_Uranus_H12 점성학 개념/조합 노드.
+ASTRO_Uranus_H2,Uranus H2,astro_concept,,ASTRO_Uranus_H2 점성학 개념/조합 노드.
+ASTRO_Uranus_H3,Uranus H3,astro_concept,,ASTRO_Uranus_H3 점성학 개념/조합 노드.
+ASTRO_Uranus_H4,Uranus H4,astro_concept,,ASTRO_Uranus_H4 점성학 개념/조합 노드.
+ASTRO_Uranus_H5,Uranus H5,astro_concept,,ASTRO_Uranus_H5 점성학 개념/조합 노드.
+ASTRO_Uranus_H6,Uranus H6,astro_concept,,ASTRO_Uranus_H6 점성학 개념/조합 노드.
+ASTRO_Uranus_H7,Uranus H7,astro_concept,,ASTRO_Uranus_H7 점성학 개념/조합 노드.
+ASTRO_Uranus_H8,Uranus H8,astro_concept,,ASTRO_Uranus_H8 점성학 개념/조합 노드.
+ASTRO_Uranus_H9,Uranus H9,astro_concept,,ASTRO_Uranus_H9 점성학 개념/조합 노드.
+ASTRO_Uranus_Leo,Uranus Leo,astro_concept,,ASTRO_Uranus_Leo 점성학 개념/조합 노드.
+ASTRO_Uranus_Libra,Uranus Libra,astro_concept,,ASTRO_Uranus_Libra 점성학 개념/조합 노드.
+ASTRO_Uranus_Pisces,Uranus Pisces,astro_concept,,ASTRO_Uranus_Pisces 점성학 개념/조합 노드.
+ASTRO_Uranus_Sagittarius,Uranus Sagittarius,astro_concept,,ASTRO_Uranus_Sagittarius 점성학 개념/조합 노드.
+ASTRO_Uranus_Scorpio,Uranus Scorpio,astro_concept,,ASTRO_Uranus_Scorpio 점성학 개념/조합 노드.
+ASTRO_Uranus_Taurus,Uranus Taurus,astro_concept,,ASTRO_Uranus_Taurus 점성학 개념/조합 노드.
+ASTRO_Uranus_Virgo,Uranus Virgo,astro_concept,,ASTRO_Uranus_Virgo 점성학 개념/조합 노드.
+ASTRO_Venus,Venus,astro_alias,Venus,ASTRO_Venus is an alias for Venus.
+ASTRO_Venus_Aquarius,Venus Aquarius,astro_concept,,ASTRO_Venus_Aquarius 점성학 개념/조합 노드.
+ASTRO_Venus_Aries,Venus Aries,astro_concept,,ASTRO_Venus_Aries 점성학 개념/조합 노드.
+ASTRO_Venus_Cancer,Venus Cancer,astro_concept,,ASTRO_Venus_Cancer 점성학 개념/조합 노드.
+ASTRO_Venus_Capricorn,Venus Capricorn,astro_concept,,ASTRO_Venus_Capricorn 점성학 개념/조합 노드.
+ASTRO_Venus_Gemini,Venus Gemini,astro_concept,,ASTRO_Venus_Gemini 점성학 개념/조합 노드.
+ASTRO_Venus_H1,Venus H1,astro_alias,HP_venus_1,ASTRO_Venus_H1 is an alias for HP_venus_1.
+ASTRO_Venus_H10,Venus H10,astro_concept,,ASTRO_Venus_H10 점성학 개념/조합 노드.
+ASTRO_Venus_H11,Venus H11,astro_concept,,ASTRO_Venus_H11 점성학 개념/조합 노드.
+ASTRO_Venus_H12,Venus H12,astro_concept,,ASTRO_Venus_H12 점성학 개념/조합 노드.
+ASTRO_Venus_H2,Venus H2,astro_alias,HP_venus_2,ASTRO_Venus_H2 is an alias for HP_venus_2.
+ASTRO_Venus_H3,Venus H3,astro_concept,,ASTRO_Venus_H3 점성학 개념/조합 노드.
+ASTRO_Venus_H4,Venus H4,astro_concept,,ASTRO_Venus_H4 점성학 개념/조합 노드.
+ASTRO_Venus_H5,Venus H5,astro_alias,HP_venus_5,ASTRO_Venus_H5 is an alias for HP_venus_5.
+ASTRO_Venus_H6,Venus H6,astro_concept,,ASTRO_Venus_H6 점성학 개념/조합 노드.
+ASTRO_Venus_H7,Venus H7,astro_alias,HP_venus_7,ASTRO_Venus_H7 is an alias for HP_venus_7.
+ASTRO_Venus_H8,Venus H8,astro_concept,,ASTRO_Venus_H8 점성학 개념/조합 노드.
+ASTRO_Venus_H9,Venus H9,astro_concept,,ASTRO_Venus_H9 점성학 개념/조합 노드.
+ASTRO_Venus_Leo,Venus Leo,astro_concept,,ASTRO_Venus_Leo 점성학 개념/조합 노드.
+ASTRO_Venus_Libra,Venus Libra,astro_concept,,ASTRO_Venus_Libra 점성학 개념/조합 노드.
+ASTRO_Venus_Pisces,Venus Pisces,astro_alias,PS_venus_pis,ASTRO_Venus_Pisces is an alias for PS_venus_pis.
+ASTRO_Venus_Sagittarius,Venus Sagittarius,astro_concept,,ASTRO_Venus_Sagittarius 점성학 개념/조합 노드.
+ASTRO_Venus_Scorpio,Venus Scorpio,astro_alias,PS_venus_sco,ASTRO_Venus_Scorpio is an alias for PS_venus_sco.
+ASTRO_Venus_Taurus,Venus Taurus,astro_alias,PS_venus_tau,ASTRO_Venus_Taurus is an alias for PS_venus_tau.
+ASTRO_Venus_Virgo,Venus Virgo,astro_concept,,ASTRO_Venus_Virgo 점성학 개념/조합 노드.
+ASTRO_WEALTH_2ndHouse,WEALTH 2ndHouse,astro_alias,H2,ASTRO_WEALTH_2ndHouse is an alias for H2.
+ASTRO_WEALTH_Jupiter2nd,WEALTH Jupiter2nd,astro_alias,HP_jupiter_2,ASTRO_WEALTH_Jupiter2nd is an alias for HP_jupiter_2.
+ASTRO_WISDOM_Jupiter9th,WISDOM Jupiter9th,astro_alias,HP_jupiter_9,ASTRO_WISDOM_Jupiter9th is an alias for HP_jupiter_9.
+ASTRO_jupiter,jupiter,astro_alias,Jupiter,ASTRO_jupiter is an alias for Jupiter.
+ASTRO_mars,mars,astro_alias,Mars,ASTRO_mars is an alias for Mars.
+ASTRO_mercury,mercury,astro_alias,Mercury,ASTRO_mercury is an alias for Mercury.
+ASTRO_moon,moon,astro_alias,Moon,ASTRO_moon is an alias for Moon.
+ASTRO_neptune,neptune,astro_alias,Neptune,ASTRO_neptune is an alias for Neptune.
+ASTRO_pluto,pluto,astro_alias,Pluto,ASTRO_pluto is an alias for Pluto.
+ASTRO_saturn,saturn,astro_alias,Saturn,ASTRO_saturn is an alias for Saturn.
+ASTRO_sun,sun,astro_alias,Sun,ASTRO_sun is an alias for Sun.
+ASTRO_uranus,uranus,astro_alias,Uranus,ASTRO_uranus is an alias for Uranus.
+ASTRO_venus,venus,astro_alias,Venus,ASTRO_venus is an alias for Venus.
+astro_lunar_eclipse,astro lunar eclipse,astro_concept,,astro_lunar_eclipse 점성학 개념/조합 노드.
+astro_lunar_fullmoon,astro lunar fullmoon,astro_concept,,astro_lunar_fullmoon 점성학 개념/조합 노드.
+astro_lunar_newmoon,astro lunar newmoon,astro_concept,,astro_lunar_newmoon 점성학 개념/조합 노드.
+astro_lunar_waning,astro lunar waning,astro_concept,,astro_lunar_waning 점성학 개념/조합 노드.
+astro_lunar_waxing,astro lunar waxing,astro_concept,,astro_lunar_waxing 점성학 개념/조합 노드.

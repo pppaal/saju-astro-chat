@@ -1,0 +1,73 @@
+{
+  "_meta": {
+    "title": "Tarot Pair Combination Templates",
+    "description": "2장 조합 해석 템플릿",
+    "version": "1.1",
+    "language": "ko",
+    "updated": "2026-02"
+  },
+  "templates": {
+    "love": "{card1}의 {kw1} 그리고 {card2}의 {kw2}가 {phrase} 연애의 흐름을 만듭니다. {tail}",
+    "career": "{card1}의 {kw1} 그리고 {card2}의 {kw2}가 {phrase} 일/커리어에 반영됩니다. {tail}",
+    "finance": "{card1}의 {kw1} 그리고 {card2}의 {kw2}가 {phrase} 재정 흐름을 만듭니다. {tail}",
+    "description": "{card1}+{card2} 조합 ({relation})",
+    "summary": "relation: {relation} | love: {love} | career: {career} | finance: {finance} | advice: {advice} | summary: {description}"
+  },
+  "relation_text": {
+    "조화": {
+      "love_phrase": "자연스럽게 어우러져",
+      "love_tail": "신뢰와 안정이 쌓이기 쉽습니다.",
+      "career_phrase": "같은 방향으로 힘을 모아",
+      "career_tail": "프로젝트가 정돈되고 추진력이 붙습니다.",
+      "finance_phrase": "안정적으로 맞물려",
+      "finance_tail": "지출과 수입의 균형이 잡힙니다.",
+      "advice": "같은 방향으로 집중하되 과도한 집착은 경계하세요."
+    },
+    "강화": {
+      "love_phrase": "서로를 자극하며",
+      "love_tail": "관계의 진전이 빠를 수 있습니다.",
+      "career_phrase": "아이디어와 실행이 결합되어",
+      "career_tail": "성과가 빠르게 나타납니다.",
+      "finance_phrase": "성장 신호가 커지며",
+      "finance_tail": "확장 기회가 보입니다.",
+      "advice": "속도는 좋지만 기준을 세우고 과열을 피하세요."
+    },
+    "중립": {
+      "love_phrase": "각자의 흐름이 병행되어",
+      "love_tail": "거리 조절이 중요합니다.",
+      "career_phrase": "역할이 분리되어",
+      "career_tail": "두 축을 따로 관리해야 합니다.",
+      "finance_phrase": "두 흐름이 공존하여",
+      "finance_tail": "포트폴리오를 분리하는 편이 낫습니다.",
+      "advice": "두 카드의 메시지를 분리해 읽고 균형을 잡으세요."
+    },
+    "긴장": {
+      "love_phrase": "욕구가 충돌할 수 있어",
+      "love_tail": "오해를 줄이는 대화가 필요합니다.",
+      "career_phrase": "방법론이 부딪혀",
+      "career_tail": "우선순위를 재정렬해야 합니다.",
+      "finance_phrase": "현금 흐름이 흔들릴 수 있어",
+      "finance_tail": "리스크 관리가 중요합니다.",
+      "advice": "우선순위를 정하고 조율점을 찾으세요."
+    }
+  },
+  "advice_addons": {
+    "major_major": "메이저 아르카나 조합이라 큰 전환/핵심 과제가 강조됩니다.",
+    "major_minor": "메이저(큰 흐름)와 마이너(현실 디테일)가 함께 작용합니다.",
+    "minor_minor": "일상적인 선택과 현실적인 움직임이 핵심입니다.",
+    "same_suit": "같은 수트({suit}) 조합이라 {focus}에 집중하세요.",
+    "same_element": "같은 원소({element})라 에너지가 한 방향으로 모입니다."
+  },
+  "suit_focus": {
+    "Wands": "행동과 추진력",
+    "Cups": "감정과 관계",
+    "Swords": "판단과 소통",
+    "Pentacles": "현실과 안정"
+  },
+  "suit_korean": {
+    "Wands": "완드",
+    "Cups": "컵",
+    "Swords": "소드",
+    "Pentacles": "펜타클"
+  }
+}
