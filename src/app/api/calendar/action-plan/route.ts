@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { callAIBackendGeneric } from '@/lib/destiny-matrix/ai-report/aiBackend'
 import {
   apiError,
   apiSuccess,
@@ -11,25 +10,26 @@ import {
 import { createValidationErrorResponse, dateSchema } from '@/lib/api/zodValidation'
 import { LIST_LIMITS, TEXT_LIMITS } from '@/lib/constants/api-limits'
 import { logger } from '@/lib/logger'
+import { calculateDailyPillar, generateHourlyAdvice } from '@/lib/prediction/ultra-precision-daily'
+import { STEM_ELEMENTS } from '@/lib/destiny-map/config/specialDays.data'
+import { getHourlyRecommendation } from '@/lib/destiny-map/calendar/specialDays-analysis'
+import { getFactorTranslation } from '../lib'
 
 type TimelineTone = 'best' | 'caution' | 'neutral'
 
 type TimelineSlot = {
   hour: number
+  minute?: number
   label?: string
   note: string
   tone?: TimelineTone
-}
-
-type ActionPlanTimelineResponse = {
-  timeline: TimelineSlot[]
-  summary?: string
 }
 
 const actionPlanTimelineRequestSchema = z.object({
   date: dateSchema,
   locale: z.enum(['ko', 'en']).optional(),
   timezone: z.string().max(TEXT_LIMITS.MAX_TIMEZONE).optional(),
+  intervalMinutes: z.union([z.literal(30), z.literal(60)]).optional(),
   calendar: z
     .object({
       grade: z.number().min(0).max(5).optional(),
@@ -116,37 +116,113 @@ const trimList = <T>(items: T[] | undefined, max: number): T[] | undefined => {
   return items.slice(0, max)
 }
 
-const trimText = (value: string | undefined, max: number): string | undefined => {
-  if (!value) return undefined
-  return value.slice(0, max)
+const HOUR_BRANCH_KEYS = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해']
+
+const getHourBranchKey = (hour: number) => {
+  const index = Math.floor(((hour + 1) % 24) / 2)
+  return HOUR_BRANCH_KEYS[index] ?? '자'
 }
 
-const buildActionPlanPrompt = (
-  lang: 'ko' | 'en',
-  date: string,
-  context: Record<string, unknown>
-) => {
-  const languageLabel = lang === 'ko' ? 'Korean' : 'English'
+const extractHoursFromText = (value: string) => {
+  if (!value || /년|월/.test(value)) return [] as number[]
+  const normalized = value.replace(/\s+/g, '')
+  const rangeMatch = normalized.match(/(\d{1,2})(?::\d{2})?[-~](\d{1,2})/)
+  if (rangeMatch) {
+    const start = Number(rangeMatch[1])
+    const end = Number(rangeMatch[2])
+    if (Number.isNaN(start) || Number.isNaN(end) || start < 0 || start > 23) return []
+    const safeEnd = Math.min(24, Math.max(0, end))
+    if (safeEnd <= start) return [start]
+    return Array.from({ length: safeEnd - start }, (_, idx) => start + idx)
+  }
+  const singleMatch = normalized.match(/(\d{1,2})(?::\d{2})?/)
+  if (!singleMatch) return []
+  const hour = Number(singleMatch[1])
+  if (Number.isNaN(hour) || hour < 0 || hour > 23) return []
+  return [hour]
+}
 
-  return [
-    `Create a 24-hour action plan for ${date} with 1-hour slots.`,
-    'Return JSON only with this schema:',
-    '{"timeline":[{"hour":0,"label":"00:00","note":"...", "tone":"neutral"}],"summary":"..."}',
-    'Rules:',
-    '- Provide exactly 24 items, hours 0-23 in order.',
-    '- label must be in HH:00 format.',
-    '- Each entry represents a distinct 1-hour block.',
-    '- note is a short, actionable line (max 18 words).',
-    '- Avoid repeating the same note more than twice.',
-    '- tone is one of: "best", "caution", "neutral".',
-    '- Use bestTimes as best hours and warnings as caution hours.',
-    '- Align tasks with categories, recommendations, and personality/ICP traits.',
-    '- Include realistic anchors: sleep/wind-down late night, a morning start, and a midday reset.',
-    '- Avoid medical, legal, or financial directives.',
-    `Language: ${languageLabel}.`,
-    'Context JSON:',
-    JSON.stringify(context),
-  ].join('\n')
+const buildRuleBasedTimeline = (input: {
+  date: string
+  locale: 'ko' | 'en'
+  intervalMinutes: 30 | 60
+  calendar?: {
+    grade?: number
+    bestTimes?: string[]
+    warnings?: string[]
+  } | null
+}): TimelineSlot[] => {
+  const { date, locale, intervalMinutes, calendar } = input
+  const [year, month, day] = date.split('-').map(Number)
+  const dateValue = new Date(Date.UTC(year, month - 1, day))
+  const weekdayIndex = Number.isNaN(dateValue.getTime()) ? 1 : dateValue.getUTCDay()
+
+  const daily = calculateDailyPillar(dateValue)
+  const dayMasterElement = STEM_ELEMENTS[daily.stem] || 'wood'
+
+  const bestHours = new Set<number>()
+  calendar?.bestTimes?.forEach((time) => {
+    extractHoursFromText(time).forEach((hour) => bestHours.add(hour))
+  })
+
+  const cautionHours = new Set<number>()
+  calendar?.warnings?.forEach((warning) => {
+    extractHoursFromText(warning).forEach((hour) => cautionHours.add(hour))
+  })
+  if ((calendar?.grade ?? 2) >= 3) {
+    cautionHours.add(13)
+    cautionHours.add(21)
+  }
+
+  const hourlyAdvice = generateHourlyAdvice(daily.stem, daily.branch)
+  const slots: TimelineSlot[] = []
+  const slotsPerHour = intervalMinutes === 30 ? 2 : 1
+
+  for (let hour = 0; hour < 24; hour++) {
+    for (let slotIdx = 0; slotIdx < slotsPerHour; slotIdx++) {
+      const minute = slotIdx === 0 ? 0 : 30
+      const label = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+
+      const branchKey = getHourBranchKey(hour)
+      const energyText =
+        getFactorTranslation(`hourlyEnergy_${branchKey}`, locale) ??
+        (locale === 'ko' ? '시간대 운세' : 'Hourly guidance')
+
+      const hourlyRec = getHourlyRecommendation(hour, weekdayIndex, dayMasterElement)
+      const advice = hourlyAdvice[hour]
+      let tone: TimelineTone =
+        advice?.quality === 'excellent'
+          ? 'best'
+          : advice?.quality === 'caution'
+            ? 'caution'
+            : 'neutral'
+
+      if (bestHours.has(hour)) {
+        tone = 'best'
+      }
+      if (cautionHours.has(hour)) {
+        tone = 'caution'
+      }
+
+      let detailLine = ''
+      if (locale === 'ko') {
+        const best = hourlyRec.bestActivities.slice(0, 2).join(', ')
+        const avoid = hourlyRec.avoidActivities.slice(0, 2).join(', ')
+        detailLine =
+          tone === 'caution' ? `주의: ${avoid || '무리한 결정'}` : `추천: ${best || '핵심 업무'}`
+      } else {
+        detailLine =
+          tone === 'caution'
+            ? 'Go light and avoid big decisions.'
+            : 'Good for focused work or planning.'
+      }
+
+      const note = `${energyText} ${detailLine}`.trim()
+      slots.push({ hour, minute, label, note, tone })
+    }
+  }
+
+  return slots
 }
 
 export const POST = withApiMiddleware(
@@ -164,83 +240,52 @@ export const POST = withApiMiddleware(
       })
     }
 
-    const { date, locale, timezone, calendar, icp, persona } = validation.data
+    const { date, locale, timezone, calendar, icp, persona, intervalMinutes } = validation.data
     const lang = locale || (context.locale === 'ko' ? 'ko' : 'en')
+    const safeInterval = intervalMinutes ?? 60
 
-    const [year, month, day] = date.split('-').map(Number)
-    const dateValue = new Date(Date.UTC(year, month - 1, day))
-    const weekdayIndex = Number.isNaN(dateValue.getTime()) ? null : dateValue.getUTCDay()
-    const isWeekend = weekdayIndex === 0 || weekdayIndex === 6
-
-    const contextPayload = {
+    const timeline = buildRuleBasedTimeline({
       date,
-      weekdayIndex,
-      isWeekend,
-      timezone,
+      locale: lang,
+      intervalMinutes: safeInterval,
       calendar: calendar
         ? {
             grade: calendar.grade,
-            score: calendar.score,
-            categories: trimList(calendar.categories, 4),
             bestTimes: trimList(calendar.bestTimes, 4),
             warnings: trimList(calendar.warnings, 3),
-            recommendations: trimList(calendar.recommendations, 3),
-            sajuFactors: trimList(calendar.sajuFactors, 3),
-            astroFactors: trimList(calendar.astroFactors, 3),
-            title: trimText(calendar.title, TEXT_LIMITS.MAX_TITLE),
-            summary: trimText(calendar.summary, TEXT_LIMITS.MAX_GUIDANCE),
-            ganzhi: trimText(calendar.ganzhi, TEXT_LIMITS.MAX_TITLE),
-            transitSunSign: trimText(calendar.transitSunSign, TEXT_LIMITS.MAX_TITLE),
           }
         : null,
-      icp: icp
-        ? {
-            primaryStyle: icp.primaryStyle,
-            secondaryStyle: icp.secondaryStyle ?? undefined,
-            dominanceScore: icp.dominanceScore,
-            affiliationScore: icp.affiliationScore,
-            summary: trimText(icp.summary, TEXT_LIMITS.MAX_GUIDANCE),
-            traits: trimList(icp.traits, 4),
-          }
-        : null,
-      persona: persona
-        ? {
-            typeCode: persona.typeCode,
-            personaName: trimText(persona.personaName, TEXT_LIMITS.MAX_NAME),
-            summary: trimText(persona.summary, TEXT_LIMITS.MAX_GUIDANCE),
-            strengths: trimList(persona.strengths, 4),
-            challenges: trimList(persona.challenges, 4),
-            guidance: trimText(persona.guidance, TEXT_LIMITS.MAX_GUIDANCE),
-            motivations: trimList(persona.motivations, 4),
-            axes: persona.axes,
-          }
-        : null,
+    })
+
+    const summaryParts: string[] = []
+    if (calendar?.bestTimes?.length) {
+      summaryParts.push(
+        lang === 'ko'
+          ? `좋은 시간: ${calendar.bestTimes.slice(0, 2).join(', ')}`
+          : `Best times: ${calendar.bestTimes.slice(0, 2).join(', ')}`
+      )
+    }
+    if (calendar?.warnings?.length) {
+      summaryParts.push(
+        lang === 'ko'
+          ? `주의: ${calendar.warnings.slice(0, 1).join(', ')}`
+          : `Caution: ${calendar.warnings.slice(0, 1).join(', ')}`
+      )
     }
 
-    const prompt = buildActionPlanPrompt(lang, date, contextPayload)
+    logger.info('[ActionPlanTimeline] Rule-based timeline generated', {
+      date,
+      intervalMinutes: safeInterval,
+      timezone,
+      hasIcp: Boolean(icp),
+      hasPersona: Boolean(persona),
+    })
 
-    try {
-      const { sections, model, tokensUsed } =
-        await callAIBackendGeneric<ActionPlanTimelineResponse>(prompt, lang)
-
-      if (!sections?.timeline || !Array.isArray(sections.timeline)) {
-        logger.warn('[ActionPlanTimeline] AI response missing timeline', { date, model })
-        return apiError(ErrorCodes.BACKEND_ERROR, 'AI response missing timeline')
-      }
-
-      return apiSuccess({
-        timeline: sections.timeline,
-        summary: sections.summary,
-        model,
-        tokensUsed,
-      })
-    } catch (error) {
-      logger.error('[ActionPlanTimeline] AI generation failed', {
-        date,
-        error: error instanceof Error ? error.message : String(error),
-      })
-      return apiError(ErrorCodes.BACKEND_ERROR, 'AI generation failed')
-    }
+    return apiSuccess({
+      timeline,
+      summary: summaryParts.join(' · ') || undefined,
+      intervalMinutes: safeInterval,
+    })
   },
   createPublicStreamGuard({
     route: 'calendar-action-plan',

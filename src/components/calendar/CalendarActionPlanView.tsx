@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 // src/components/calendar/CalendarActionPlanView.tsx
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -29,6 +29,7 @@ interface CalendarActionPlanViewProps {
 
 type AiTimelineSlot = {
   hour: number
+  minute?: number
   note: string
   tone?: 'neutral' | 'best' | 'caution'
 }
@@ -64,7 +65,11 @@ const CATEGORY_ACTIONS: Record<
   wealth: {
     day: {
       ko: ['지출 한도 확인 및 기록', '수익/거래 관련 연락 1건', '예산 항목 1개 정리'],
-      en: ['Check spending limits and log', 'Make one income/transaction follow-up', 'Tidy one budget item'],
+      en: [
+        'Check spending limits and log',
+        'Make one income/transaction follow-up',
+        'Tidy one budget item',
+      ],
     },
     week: {
       ko: ['수입/지출 점검 1회', '저축/투자 목표 1개 설정', '현금흐름 정리'],
@@ -78,7 +83,11 @@ const CATEGORY_ACTIONS: Record<
     },
     week: {
       ko: ['성과 공유/리포트 1회', '중요 미팅/제안 1건 추진', '업무 개선 1건 적용'],
-      en: ['Share results/report once', 'Advance one key meeting/proposal', 'Apply one workflow improvement'],
+      en: [
+        'Share results/report once',
+        'Advance one key meeting/proposal',
+        'Apply one workflow improvement',
+      ],
     },
   },
   love: {
@@ -88,7 +97,11 @@ const CATEGORY_ACTIONS: Record<
     },
     week: {
       ko: ['만남/데이트 일정 확정', '관계 회복 대화 1회', '감사/칭찬 표현 1회'],
-      en: ['Confirm a date/meetup', 'Have one repair conversation', 'Express gratitude/compliment once'],
+      en: [
+        'Confirm a date/meetup',
+        'Have one repair conversation',
+        'Express gratitude/compliment once',
+      ],
     },
   },
   health: {
@@ -151,6 +164,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const WEEKDAYS = isKo ? WEEKDAYS_KO : WEEKDAYS_EN
   const [localDate, setLocalDate] = useState<Date | null>(null)
   const [rangeDays, setRangeDays] = useState<7 | 14>(7)
+  const [intervalMinutes, setIntervalMinutes] = useState<30 | 60>(30)
   const [shareMessage, setShareMessage] = useState<string | null>(null)
   const shareTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [icpResult, setIcpResult] = useState<ICPAnalysis | null>(null)
@@ -219,16 +233,19 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     }, 2000)
   }, [])
 
-  const getDateInfo = useCallback((date: Date): ImportantDate | null => {
-    if (!data?.allDates) {
-      return null
-    }
-    const y = date.getFullYear()
-    const m = String(date.getMonth() + 1).padStart(2, '0')
-    const d = String(date.getDate()).padStart(2, '0')
-    const dateStr = `${y}-${m}-${d}`
-    return data.allDates.find((item) => item.date === dateStr) || null
-  }, [data?.allDates])
+  const getDateInfo = useCallback(
+    (date: Date): ImportantDate | null => {
+      if (!data?.allDates) {
+        return null
+      }
+      const y = date.getFullYear()
+      const m = String(date.getMonth() + 1).padStart(2, '0')
+      const d = String(date.getDate()).padStart(2, '0')
+      const dateStr = `${y}-${m}-${d}`
+      return data.allDates.find((item) => item.date === dateStr) || null
+    },
+    [data?.allDates]
+  )
 
   const baseDate = useMemo(() => selectedDay ?? localDate ?? new Date(), [selectedDay, localDate])
   const baseInfo = useMemo(
@@ -236,20 +253,26 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     [selectedDate, baseDate, getDateInfo]
   )
 
-  const formatDateLabel = useCallback((date: Date) => {
-    const month = date.getMonth() + 1
-    const day = date.getDate()
-    const weekday = WEEKDAYS[date.getDay()]
-    return isKo ? `${month}/${day} (${weekday})` : `${month}/${day} ${weekday}`
-  }, [WEEKDAYS, isKo])
+  const formatDateLabel = useCallback(
+    (date: Date) => {
+      const month = date.getMonth() + 1
+      const day = date.getDate()
+      const weekday = WEEKDAYS[date.getDay()]
+      return isKo ? `${month}/${day} (${weekday})` : `${month}/${day} ${weekday}`
+    },
+    [WEEKDAYS, isKo]
+  )
 
-  const commitDate = useCallback((nextDate: Date) => {
-    if (onSelectDate) {
-      onSelectDate(nextDate)
-      return
-    }
-    setLocalDate(nextDate)
-  }, [onSelectDate])
+  const commitDate = useCallback(
+    (nextDate: Date) => {
+      if (onSelectDate) {
+        onSelectDate(nextDate)
+        return
+      }
+      setLocalDate(nextDate)
+    },
+    [onSelectDate]
+  )
   const inputDateValue = useMemo(() => {
     const y = baseDate.getFullYear()
     const m = String(baseDate.getMonth() + 1).padStart(2, '0')
@@ -262,8 +285,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const aiCacheKey = useMemo(() => {
     const icpKey = icpResult?.primaryStyle ?? 'none'
     const personaKey = personaResult?.typeCode ?? 'none'
-    return `${dateKey}:${analysisLocale}:${icpKey}:${personaKey}`
-  }, [analysisLocale, dateKey, icpResult?.primaryStyle, personaResult?.typeCode])
+    return `${dateKey}:${analysisLocale}:${intervalMinutes}:${icpKey}:${personaKey}`
+  }, [analysisLocale, dateKey, icpResult?.primaryStyle, intervalMinutes, personaResult?.typeCode])
 
   const weekEntries = useMemo(() => {
     const entries: Array<{ date: Date; info: ImportantDate }> = []
@@ -340,7 +363,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         : '2-Week Checklist'
 
   const formatHourLabel = useCallback(
-    (hour: number) => `${String(hour).padStart(2, '0')}:00`,
+    (hour: number, minute = 0) =>
+      `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
     []
   )
 
@@ -426,15 +450,18 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     raw.forEach((item) => {
       if (!item || typeof item !== 'object') return
       const hour = Number((item as { hour?: unknown }).hour)
+      const minuteRaw = (item as { minute?: unknown }).minute
+      const minute = minuteRaw === undefined ? 0 : Number(minuteRaw)
       const noteRaw = (item as { note?: unknown }).note
       const note = typeof noteRaw === 'string' ? noteRaw.trim() : ''
       if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !note) return
+      if (!Number.isInteger(minute) || (minute !== 0 && minute !== 30)) return
       const toneValue = (item as { tone?: unknown }).tone
       const tone =
         toneValue === 'best' || toneValue === 'caution' || toneValue === 'neutral'
           ? toneValue
           : undefined
-      cleaned.push({ hour, note, tone })
+      cleaned.push({ hour, minute, note, tone })
     })
     return cleaned
   }, [])
@@ -496,11 +523,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     return {
       date: dateKey,
       locale: analysisLocale,
+      intervalMinutes,
       calendar: calendarPayload,
       icp: icpPayload,
       persona: personaPayload,
     }
-  }, [analysisLocale, baseInfo, dateKey, icpResult, isKo, personaResult])
+  }, [analysisLocale, baseInfo, dateKey, icpResult, intervalMinutes, isKo, personaResult])
 
   const fetchAiTimeline = useCallback(
     async (options?: { force?: boolean }) => {
@@ -556,13 +584,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         setAiStatus('error')
       }
     },
-    [
-      aiCacheKey,
-      baseInfo,
-      buildAiPayload,
-      profileReady,
-      sanitizeAiTimeline,
-    ]
+    [aiCacheKey, baseInfo, buildAiPayload, profileReady, sanitizeAiTimeline]
   )
 
   useEffect(() => {
@@ -598,22 +620,28 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       return isKo ? '날짜 정보 없음' : 'No date data'
     }
     if (aiStatus === 'loading') {
-      return isKo ? 'AI 일정 생성 중' : 'Generating AI schedule'
+      return isKo ? '정밀 타임라인 생성 중' : 'Generating precision timeline'
     }
     if (aiStatus === 'error') {
-      return isKo ? 'AI 생성 실패 · 기본 플랜 표시' : 'AI failed · showing base plan'
+      return isKo ? '정밀 생성 실패 · 기본 플랜 표시' : 'Precision failed · showing base plan'
     }
     if (aiStatus === 'ready') {
-      return isKo ? `AI 적용됨 · ${aiContextLabel}` : `AI applied · ${aiContextLabel}`
+      return isKo ? `정밀 적용됨 · ${aiContextLabel}` : `Precision applied · ${aiContextLabel}`
     }
-    return isKo ? 'AI 준비됨' : 'AI ready'
+    return isKo ? '정밀 준비됨' : 'Precision ready'
   }, [aiContextLabel, aiStatus, baseInfo, isKo])
 
   const aiButtonLabel = useMemo(() => {
     if (aiStatus === 'loading') {
-      return isKo ? 'AI 생성 중' : 'Generating'
+      return isKo ? '정밀 생성 중' : 'Generating'
     }
-    return aiTimeline ? (isKo ? 'AI 새로고침' : 'Refresh AI') : isKo ? 'AI 생성' : 'Generate AI'
+    return aiTimeline
+      ? isKo
+        ? '정밀 새로고침'
+        : 'Refresh precision'
+      : isKo
+        ? '정밀 생성'
+        : 'Generate precision'
   }, [aiStatus, aiTimeline, isKo])
 
   const handleAiRefresh = useCallback(() => {
@@ -658,16 +686,34 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   }, [baseInfo])
 
   const baseTimelineSlots = useMemo(() => {
-    const slots = Array.from({ length: 24 }, (_, hour) => ({
-      hour,
-      label: formatHourLabel(hour),
-      note: baseTexts(hour),
-      tone: 'neutral' as 'neutral' | 'best' | 'caution',
-      badge: null as string | null,
-    }))
+    const slotsPerHour = intervalMinutes === 30 ? 2 : 1
+    const totalSlots = 24 * slotsPerHour
+    const slots = Array.from({ length: totalSlots }, (_, index) => {
+      const minute = intervalMinutes === 30 && index % 2 === 1 ? 30 : 0
+      const hour = Math.floor(index / slotsPerHour)
+      return {
+        hour,
+        minute,
+        label: formatHourLabel(hour, minute),
+        note: baseTexts(hour),
+        tone: 'neutral' as 'neutral' | 'best' | 'caution',
+        badge: null as string | null,
+      }
+    })
 
-    const applySlot = (hour: number, note: string, tone?: 'neutral' | 'best' | 'caution') => {
-      const slot = slots[hour]
+    const getSlotIndex = (hour: number, minute = 0) => {
+      if (intervalMinutes === 60 && minute !== 0) return -1
+      return Math.floor((hour * 60 + minute) / intervalMinutes)
+    }
+
+    const applySlot = (
+      hour: number,
+      note: string,
+      tone?: 'neutral' | 'best' | 'caution',
+      minute = 0
+    ) => {
+      const index = getSlotIndex(hour, minute)
+      const slot = slots[index]
       if (!slot) return
       slot.note = note
       if (tone) {
@@ -676,12 +722,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     }
 
     const mainSlots = [
-      { hour: 9, note: todayItems[0] },
-      { hour: 14, note: todayItems[1] },
-      { hour: 20, note: todayItems[2] },
+      { hour: 9, minute: 0, note: todayItems[0] },
+      { hour: 14, minute: 0, note: todayItems[1] },
+      { hour: 20, minute: 0, note: todayItems[2] },
     ]
     mainSlots.forEach((slot) => {
-      if (slot.note) applySlot(slot.hour, slot.note)
+      if (slot.note) applySlot(slot.hour, slot.note, undefined, slot.minute)
     })
 
     if (baseInfo?.recommendations?.[0]) {
@@ -698,14 +744,19 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     }
 
     return slots
-  }, [baseInfo, baseTexts, formatHourLabel, todayItems])
+  }, [baseInfo, baseTexts, formatHourLabel, intervalMinutes, todayItems])
 
   const timelineSlots = useMemo(() => {
     const slots = baseTimelineSlots.map((slot) => ({ ...slot }))
 
     if (aiTimeline?.length) {
       aiTimeline.forEach((item) => {
-        const slot = slots[item.hour]
+        const minute = item.minute ?? 0
+        const index =
+          intervalMinutes === 60 && minute !== 0
+            ? -1
+            : Math.floor((item.hour * 60 + minute) / intervalMinutes)
+        const slot = slots[index]
         if (!slot) return
         slot.note = item.note
         if (item.tone) {
@@ -715,22 +766,24 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     }
 
     bestHours.forEach((hour) => {
-      const slot = slots[hour]
-      if (!slot) return
-      if (slot.tone !== 'caution') {
-        slot.tone = 'best'
-      }
-      if (!slot.note || slot.note === baseTexts(hour)) {
-        slot.note = isKo ? '핵심 일정 배치' : 'Place key task'
-      }
+      slots.forEach((slot) => {
+        if (slot.hour !== hour) return
+        if (slot.tone !== 'caution') {
+          slot.tone = 'best'
+        }
+        if (!slot.note || slot.note === baseTexts(hour)) {
+          slot.note = isKo ? '핵심 일정 배치' : 'Place key task'
+        }
+      })
     })
 
     cautionHours.forEach((hour) => {
-      const slot = slots[hour]
-      if (!slot) return
-      if (slot.tone !== 'best') {
-        slot.tone = 'caution'
-      }
+      slots.forEach((slot) => {
+        if (slot.hour !== hour) return
+        if (slot.tone !== 'best') {
+          slot.tone = 'caution'
+        }
+      })
     })
 
     slots.forEach((slot) => {
@@ -744,7 +797,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     })
 
     return slots
-  }, [aiTimeline, baseTexts, baseTimelineSlots, bestHours, cautionHours, isKo])
+  }, [aiTimeline, baseTexts, baseTimelineSlots, bestHours, cautionHours, intervalMinutes, isKo])
 
   const weekItems = useMemo(() => {
     const items: string[] = []
@@ -757,14 +810,15 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
     if (bestDays.length > 0) {
       const labels = bestDays.map((entry) => formatDateLabel(entry.date)).join(', ')
-      pushItem(
-        isKo ? `중요 일정은 ${labels}에 배치` : `Schedule key tasks on ${labels}`
-      )
+      pushItem(isKo ? `중요 일정은 ${labels}에 배치` : `Schedule key tasks on ${labels}`)
     }
 
     const weekCategory: EventCategory = topCategory ?? baseInfo?.categories?.[0] ?? 'general'
-    const weekActions = isKo ? CATEGORY_ACTIONS[weekCategory].week.ko : CATEGORY_ACTIONS[weekCategory].week.en
-    const weekRangeLabel = rangeDays === 7 ? (isKo ? '이번 주' : 'this week') : (isKo ? '이번 2주' : 'the next 2 weeks')
+    const weekActions = isKo
+      ? CATEGORY_ACTIONS[weekCategory].week.ko
+      : CATEGORY_ACTIONS[weekCategory].week.en
+    const weekRangeLabel =
+      rangeDays === 7 ? (isKo ? '이번 주' : 'this week') : isKo ? '이번 2주' : 'the next 2 weeks'
     pushItem(
       isKo
         ? `${weekRangeLabel} ${categoryLabel(weekCategory)} 중심 목표 1개 설정`
@@ -772,18 +826,13 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     )
     pushItem(weekActions[0])
 
-    const bestRec = bestDays.find((d) => d.info.recommendations?.length)?.info
-      .recommendations?.[0]
+    const bestRec = bestDays.find((d) => d.info.recommendations?.length)?.info.recommendations?.[0]
     pushItem(bestRec)
 
     if (cautionDays.length > 0) {
       const labels = cautionDays.map((entry) => formatDateLabel(entry.date)).join(', ')
-      pushItem(
-        isKo ? `주의할 날: ${labels}` : `Caution days: ${labels}`
-      )
-      pushItem(
-        isKo ? '위험한 일은 좋은 날로 이동' : 'Move risky tasks to better days'
-      )
+      pushItem(isKo ? `주의할 날: ${labels}` : `Caution days: ${labels}`)
+      pushItem(isKo ? '위험한 일은 좋은 날로 이동' : 'Move risky tasks to better days')
     }
 
     while (items.length < 4) {
@@ -792,7 +841,16 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     }
 
     return items.slice(0, 4)
-  }, [bestDays, cautionDays, topCategory, isKo, formatDateLabel, categoryLabel, baseInfo, rangeDays])
+  }, [
+    bestDays,
+    cautionDays,
+    topCategory,
+    isKo,
+    formatDateLabel,
+    categoryLabel,
+    baseInfo,
+    rangeDays,
+  ])
 
   const todayTiming = baseInfo?.bestTimes?.[0]
   const todayCaution = baseInfo?.warnings?.[0]
@@ -1010,11 +1068,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       <div className={styles.actionPlanChips}>
         {bestDayChips.length > 0 && (
           <div className={styles.actionPlanChipGroup}>
-            <span className={styles.actionPlanChipLabel}>
-              {isKo ? '좋은 날' : 'Good days'}
-            </span>
+            <span className={styles.actionPlanChipLabel}>{isKo ? '좋은 날' : 'Good days'}</span>
             {bestDayChips.map((chip) => (
-              <span key={chip.label} className={`${styles.actionPlanChip} ${styles.actionPlanChipGood}`}>
+              <span
+                key={chip.label}
+                className={`${styles.actionPlanChip} ${styles.actionPlanChipGood}`}
+              >
                 {chip.emoji} {chip.label}
               </span>
             ))}
@@ -1022,11 +1081,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         )}
         {cautionDayChips.length > 0 && (
           <div className={styles.actionPlanChipGroup}>
-            <span className={styles.actionPlanChipLabel}>
-              {isKo ? '주의 날' : 'Caution days'}
-            </span>
+            <span className={styles.actionPlanChipLabel}>{isKo ? '주의 날' : 'Caution days'}</span>
             {cautionDayChips.map((chip) => (
-              <span key={chip.label} className={`${styles.actionPlanChip} ${styles.actionPlanChipBad}`}>
+              <span
+                key={chip.label}
+                className={`${styles.actionPlanChip} ${styles.actionPlanChipBad}`}
+              >
                 {chip.emoji} {chip.label}
               </span>
             ))}
@@ -1042,17 +1102,41 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                 {isKo ? '24시간 타임라인' : '24-Hour Timeline'}
               </span>
               <span className={styles.actionPlanCardFocus}>
-                {isKo ? '오늘의 리듬을 시간대별로 정리' : 'Hourly rhythm for today'}
+                {intervalMinutes === 30
+                  ? isKo
+                    ? '30분 단위로 오늘의 리듬 정리'
+                    : '30-minute rhythm for today'
+                  : isKo
+                    ? '1시간 단위로 오늘의 리듬 정리'
+                    : 'Hourly rhythm for today'}
               </span>
             </div>
             <div className={styles.actionPlanTimelineMeta}>
               <div className={styles.actionPlanTimelineActions}>
+                <div className={styles.actionPlanRange}>
+                  <button
+                    type="button"
+                    className={`${styles.actionPlanRangeBtn} ${intervalMinutes === 30 ? styles.actionPlanRangeBtnActive : ''}`}
+                    aria-pressed={intervalMinutes === 30}
+                    onClick={() => setIntervalMinutes(30)}
+                  >
+                    {isKo ? '30분' : '30m'}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.actionPlanRangeBtn} ${intervalMinutes === 60 ? styles.actionPlanRangeBtnActive : ''}`}
+                    aria-pressed={intervalMinutes === 60}
+                    onClick={() => setIntervalMinutes(60)}
+                  >
+                    {isKo ? '1시간' : '1h'}
+                  </button>
+                </div>
                 <button
                   type="button"
                   className={styles.actionPlanTimelineAiBtn}
                   onClick={handleAiRefresh}
                   disabled={!baseInfo || aiStatus === 'loading'}
-                  aria-label={isKo ? 'AI 타임라인 생성' : 'Generate AI timeline'}
+                  aria-label={isKo ? '정밀 타임라인 생성' : 'Generate precision timeline'}
                 >
                   {aiButtonLabel}
                 </button>
@@ -1069,11 +1153,15 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
               </div>
               <div className={styles.actionPlanTimelineLegend}>
                 <span className={styles.actionPlanTimelineLegendItem}>
-                  <span className={`${styles.actionPlanTimelineDot} ${styles.actionPlanTimelineDotBest}`} />
+                  <span
+                    className={`${styles.actionPlanTimelineDot} ${styles.actionPlanTimelineDotBest}`}
+                  />
                   {isKo ? '좋은 시간' : 'Best'}
                 </span>
                 <span className={styles.actionPlanTimelineLegendItem}>
-                  <span className={`${styles.actionPlanTimelineDot} ${styles.actionPlanTimelineDotCaution}`} />
+                  <span
+                    className={`${styles.actionPlanTimelineDot} ${styles.actionPlanTimelineDotCaution}`}
+                  />
                   {isKo ? '주의 시간' : 'Caution'}
                 </span>
               </div>
@@ -1082,7 +1170,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           <div className={styles.actionPlanTimelineGrid} role="list">
             {timelineSlots.map((slot) => (
               <div
-                key={slot.hour}
+                key={`${slot.hour}-${slot.minute ?? 0}`}
                 role="listitem"
                 className={`${styles.actionPlanTimelineSlot} ${
                   slot.tone === 'best'
@@ -1105,7 +1193,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         </div>
         <div className={styles.actionPlanCard}>
           <div className={styles.actionPlanCardHeader}>
-            <span className={styles.actionPlanCardTitle}>{isKo ? '오늘 체크리스트' : 'Today Checklist'}</span>
+            <span className={styles.actionPlanCardTitle}>
+              {isKo ? '오늘 체크리스트' : 'Today Checklist'}
+            </span>
             <span className={styles.actionPlanCardFocus}>{todayFocus}</span>
           </div>
           <ul className={styles.actionPlanList}>
@@ -1143,7 +1233,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           </ul>
           {topCategory && (
             <div className={styles.actionPlanTiming}>
-              🎯 {isKo ? '주간 포커스' : 'Weekly focus'}: {CATEGORY_EMOJI[topCategory]} {categoryLabel(topCategory)}
+              🎯 {isKo ? '주간 포커스' : 'Weekly focus'}: {CATEGORY_EMOJI[topCategory]}{' '}
+              {categoryLabel(topCategory)}
             </div>
           )}
         </div>
