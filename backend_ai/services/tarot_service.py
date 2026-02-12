@@ -450,6 +450,58 @@ How can I overcome the hidden obstacles this reading warns about?"""
                 "matched_keywords": []
             }
 
+        # Guardrails: reduce obvious routing mismatch for searchbox-style questions.
+        q = text_lower
+        money_markers = ["돈", "재정", "지출", "수입", "빚", "대출", "투자", "주식", "코인", "money", "investment", "stock", "crypto"]
+        career_markers = ["이직", "퇴사", "면접", "승진", "회사", "직장", "job", "career", "interview", "promotion"]
+        reconcile_markers = ["재회", "연락", "전남친", "전여친", "다시 만나", "reconcile", "ex", "text back"]
+
+        has_money = any(m in q for m in money_markers)
+        has_career = any(m in q for m in career_markers)
+        has_reconcile = any(m in q for m in reconcile_markers)
+
+        def _choose_by_theme(theme_name: str, fallback_sub: str) -> Dict:
+            for row in all_matches:
+                if row.get("theme") == theme_name:
+                    picked = dict(row)
+                    picked.pop("_raw_score", None)
+                    picked.pop("_priority", None)
+                    return picked
+            return {
+                "theme": theme_name,
+                "sub_topic": fallback_sub,
+                "korean": fallback_sub,
+                "confidence": 0.65,
+                "matched_keywords": [],
+            }
+
+        if has_money and not has_career and best_match.get("theme") != "wealth":
+            if any(k in q for k in ["빚", "대출", "loan", "debt"]):
+                best_match = {"theme": "wealth", "sub_topic": "debt", "korean": "빚/대출", "confidence": 0.82, "matched_keywords": ["debt_guardrail"]}
+            elif any(k in q for k in ["투자", "주식", "코인", "investment", "stock", "crypto"]):
+                best_match = {"theme": "wealth", "sub_topic": "investment", "korean": "투자 결정", "confidence": 0.82, "matched_keywords": ["investment_guardrail"]}
+            else:
+                best_match = _choose_by_theme("wealth", "money_luck")
+                best_match["confidence"] = max(float(best_match.get("confidence") or 0.0), 0.75)
+                best_match["matched_keywords"] = list(best_match.get("matched_keywords") or []) + ["money_guardrail"]
+
+        if has_reconcile and best_match.get("theme") not in {"love", "life_path"}:
+            best_match = _choose_by_theme("love", "reconciliation")
+            best_match["confidence"] = max(float(best_match.get("confidence") or 0.0), 0.75)
+            best_match["matched_keywords"] = list(best_match.get("matched_keywords") or []) + ["reconcile_guardrail"]
+
+        low_conf_threshold = 0.35
+        if float(best_match.get("confidence") or 0.0) < low_conf_threshold:
+            best_match = {
+                "theme": "life_path",
+                "sub_topic": "general",
+                "korean": "인생 전반",
+                "confidence": 0.35,
+                "matched_keywords": list(best_match.get("matched_keywords") or []),
+                "low_confidence": True,
+                "clarify_prompt": "연애/일/돈 중 어디가 가장 궁금한지 먼저 알려주세요.",
+            }
+
         # Load spread configuration to get card count (cached)
         spread_data = self._load_spread_config(best_match["theme"])
         sub_topic_config = spread_data.get("sub_topics", {}).get(best_match["sub_topic"], {})
