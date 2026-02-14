@@ -132,6 +132,11 @@ const toSafeFallbackText = (path: string) => {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1)
 }
 
+const isRawKeyLeak = (value: string, path: string) => {
+  const leaf = path.split('.').pop() || path
+  return value === path || value === leaf
+}
+
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<Locale>('en')
   const [hydrated, setHydrated] = useState(false)
@@ -217,6 +222,16 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
       const got = getter(currentDict, path)
       if (typeof got === 'string') {
+        if (isRawKeyLeak(got, path)) {
+          const fb = getter(dictsCache.en, path)
+          if (typeof fb === 'string' && !isRawKeyLeak(fb, path)) {
+            return fb
+          }
+          if (fallback) {
+            return fallback
+          }
+          return toSafeFallbackText(path)
+        }
         // Some locale files were corrupted (Cyrillic/�). If detected, fall back to English.
         if (locale === 'ko' && isLikelyCorrupted(got)) {
           const fb = getter(dictsCache.en, path)

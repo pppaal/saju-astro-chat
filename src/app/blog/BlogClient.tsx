@@ -17,7 +17,7 @@ export default function BlogClient() {
   const { locale } = useI18n()
   const isKo = locale === 'ko'
   const [activeCategory, setActiveCategory] = useState('all')
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(fallbackBlogPosts)
 
   useEffect(() => {
     getBlogPostsIndex()
@@ -39,8 +39,18 @@ export default function BlogClient() {
     return [...posts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }, [activeCategory, blogPosts])
 
-  const featuredPost = filteredPosts.find((post) => post.featured)
-  const regularPosts = filteredPosts.filter((post) => !post.featured)
+  const postsForRender = useMemo(() => {
+    if (filteredPosts.length > 0) {
+      return filteredPosts
+    }
+    if (blogPosts.length === 0) {
+      return []
+    }
+    return [...blogPosts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }, [blogPosts, filteredPosts])
+
+  const featuredPost = postsForRender.find((post) => post.featured)
+  const regularPosts = postsForRender.filter((post) => !post.featured)
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
@@ -184,7 +194,7 @@ export default function BlogClient() {
           ))}
         </div>
 
-        {filteredPosts.length === 0 && (
+        {postsForRender.length === 0 && (
           <EmptyState
             icon="📝"
             title={isKo ? '이 카테고리에 아직 글이 없습니다' : 'No posts in this category yet'}

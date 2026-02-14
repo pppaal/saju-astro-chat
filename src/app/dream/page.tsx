@@ -1,11 +1,10 @@
-'use client'
+﻿'use client'
 
 import React from 'react'
 import { useSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
 import { useI18n } from '@/i18n/I18nProvider'
 
-// Dynamic import for framer-motion to reduce bundle size
 const AnimatePresence = dynamic(() => import('framer-motion').then((mod) => mod.AnimatePresence), {
   ssr: false,
 })
@@ -31,21 +30,27 @@ function DreamContent() {
   const { locale } = useI18n()
   const { status } = useSession()
 
-  // Phase management - starts directly at dream-input
   const { phase, setPhase, profileLoading, profileError, userProfile, setUserProfile } =
     useDreamPhase()
+  const [loadingTimedOut, setLoadingTimedOut] = React.useState(false)
 
-  // Birth info management
+  React.useEffect(() => {
+    if (!profileLoading) {
+      setLoadingTimedOut(false)
+      return
+    }
+    const timer = window.setTimeout(() => setLoadingTimedOut(true), 10000)
+    return () => window.clearTimeout(timer)
+  }, [profileLoading])
+
   const birthInfo = useBirthInfo(locale)
 
-  // Dream analysis
   const analysis = useDreamAnalysis(
     locale,
     userProfile || birthInfo.userProfile,
     birthInfo.guestBirthInfo
   )
 
-  // Chat functionality
   const chat = useDreamChat(
     locale,
     analysis.dreamText,
@@ -54,25 +59,21 @@ function DreamContent() {
     birthInfo.guestBirthInfo
   )
 
-  // Sync userProfile from birthInfo to phase
   React.useEffect(() => {
     if (birthInfo.userProfile && !userProfile) {
       setUserProfile(birthInfo.userProfile)
     }
   }, [birthInfo.userProfile, userProfile, setUserProfile])
 
-  // Handlers
   const handleBirthInfoSubmit = async (birthData: {
     birthDate: string
     birthTime: string
     gender?: 'M' | 'F' | 'Male' | 'Female'
     birthCity?: string
   }) => {
-    // Normalize gender to 'M' | 'F' format
     const genderValue = birthData.gender || 'M'
     const normalizedGender = toShortGender(genderValue) || (genderValue as 'M' | 'F')
 
-    // Update birthInfo hook state
     birthInfo.setBirthDate(birthData.birthDate)
     birthInfo.setBirthTime(birthData.birthTime)
     birthInfo.setGender(normalizedGender)
@@ -114,21 +115,34 @@ function DreamContent() {
     setPhase('birth-input')
   }
 
-  // Get current birth date for moon phase
   const currentBirthDate =
     userProfile?.birthDate ||
     birthInfo.userProfile?.birthDate ||
     birthInfo.guestBirthInfo?.birthDate ||
     birthInfo.birthDate
 
-  // Loading state
   if (profileLoading) {
     return (
       <div className={styles.container}>
         <DreamBackground birthDate={currentBirthDate} />
         <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner} />
-          <p>{locale === 'ko' ? '로딩 중...' : 'Loading...'}</p>
+          {loadingTimedOut ? (
+            <>
+              <p>
+                {locale === 'ko'
+                  ? '불러오기가 지연되고 있어요.'
+                  : 'Loading is taking longer than expected.'}
+              </p>
+              <button type="button" onClick={() => window.location.reload()}>
+                {locale === 'ko' ? '다시 시도' : 'Retry'}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className={styles.loadingSpinner} />
+              <p>{locale === 'ko' ? '프로필을 준비하고 있어요...' : 'Preparing your profile...'}</p>
+            </>
+          )}
         </div>
       </div>
     )
