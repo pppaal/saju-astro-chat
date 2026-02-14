@@ -16,13 +16,13 @@ const PUBLIC_ROUTES = [
 ]
 
 const KEY_LEAK_PATTERNS = [
-  'heroTitle',
-  'heroSub',
-  'subscribe',
-  'destinyMap',
-  'titleAstrology',
-  'subtitleAstrology',
-  'creditPacksDesc',
+  /\bheroTitle\b/,
+  /\bheroSub\b/,
+  /\bsubscribe\b/,
+  /\bdestinyMap\b/,
+  /\btitleAstrology\b/,
+  /\bsubtitleAstrology\b/,
+  /\bcreditPacksDesc\b/,
 ]
 
 test.describe('Public pages smoke', () => {
@@ -45,8 +45,8 @@ test.describe('Public pages smoke', () => {
           .catch(() => {})
 
         const text = await page.locator('body').innerText()
-        for (const key of KEY_LEAK_PATTERNS) {
-          expect(text).not.toContain(key)
+        for (const keyPattern of KEY_LEAK_PATTERNS) {
+          expect(text).not.toMatch(keyPattern)
         }
 
         expect(text).not.toContain('â')
