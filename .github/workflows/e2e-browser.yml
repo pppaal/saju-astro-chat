@@ -63,6 +63,8 @@ jobs:
         run: npx playwright test --config=playwright.ci.config.ts --project=${{ matrix.browser }}
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3000
+          DEMO_TOKEN: ${{ secrets.DEMO_TOKEN || 'demo-test-token' }}
+          SUPPORT_EMAIL: ${{ secrets.SUPPORT_EMAIL || 'support@destinypal.com' }}
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci-test-secret-32-characters-long-test-secret' }}
           NEXTAUTH_URL: http://localhost:3000
           NEXT_PUBLIC_BASE_URL: http://localhost:3000
@@ -71,6 +73,21 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET || 'ci-placeholder' }}
           PUBLIC_METRICS_TOKEN: ${{ secrets.PUBLIC_METRICS_TOKEN || 'ci-metrics-token' }}
           NEXT_PUBLIC_PUBLIC_METRICS_TOKEN: ${{ secrets.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN || 'ci-metrics-token' }}
+
+      - name: Run public smoke suite
+        run: npx playwright test --config=playwright.ci.config.ts e2e/public-pages-smoke.spec.ts --project=${{ matrix.browser }}
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci-test-secret-32-characters-long-test-secret' }}
+          NEXTAUTH_URL: http://localhost:3000
+          NEXT_PUBLIC_BASE_URL: http://localhost:3000
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgres://user:pass@host/db' }}
+          ADMIN_API_TOKEN: ${{ secrets.ADMIN_API_TOKEN || 'ci-placeholder' }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET || 'ci-placeholder' }}
+          PUBLIC_METRICS_TOKEN: ${{ secrets.PUBLIC_METRICS_TOKEN || 'ci-metrics-token' }}
+          NEXT_PUBLIC_PUBLIC_METRICS_TOKEN: ${{ secrets.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN || 'ci-metrics-token' }}
+          DEMO_TOKEN: ${{ secrets.DEMO_TOKEN || 'demo-test-token' }}
+          SUPPORT_EMAIL: ${{ secrets.SUPPORT_EMAIL || 'support@destinypal.com' }}
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4

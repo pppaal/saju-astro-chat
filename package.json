@@ -44,6 +44,7 @@
     "test:load:realistic": "k6 run tests/performance/k6/realistic-scenario.js",
     "security:owasp": "node scripts/owasp-zap-baseline.mjs",
     "test:e2e:browser": "playwright test",
+    "test:e2e:smoke:public": "playwright test e2e/public-pages-smoke.spec.ts",
     "test:e2e:browser:ui": "playwright test --ui",
     "test:e2e:browser:headed": "playwright test --headed",
     "test:e2e:browser:debug": "playwright test --debug",

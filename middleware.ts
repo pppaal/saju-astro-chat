@@ -27,7 +27,9 @@ function getAllowedOrigins(): Set<string> {
   if (baseUrl) {
     try {
       origins.add(new URL(baseUrl).origin)
-    } catch { /* invalid base URL */ }
+    } catch {
+      /* invalid base URL */
+    }
   }
   const additional = process.env.ALLOWED_ORIGINS?.split(',') || []
   for (const o of additional) {
@@ -175,6 +177,15 @@ function buildCsp(nonce: string): string {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  if (pathname.startsWith('/api/demo/')) {
+    const expected = process.env.DEMO_TOKEN
+    const provided =
+      request.nextUrl.searchParams.get('token') || request.headers.get('x-demo-token')
+    if (expected && provided === expected) {
+      return NextResponse.next()
+    }
+  }
 
   // Only apply to API routes
   if (pathname.startsWith('/api/')) {
