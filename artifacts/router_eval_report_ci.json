@@ -1,0 +1,85 @@
+{
+  "total": 30,
+  "domain_distribution": {
+    "life_path": 11,
+    "love": 4,
+    "career": 8,
+    "wealth": 5,
+    "health": 2
+  },
+  "spread_distribution": {
+    "life_path/general": 11,
+    "love/current_partner": 2,
+    "love/reconciliation": 2,
+    "career/interview": 2,
+    "career/job_change": 4,
+    "career/workplace": 2,
+    "wealth/money_luck": 2,
+    "wealth/investment": 2,
+    "wealth/debt": 1,
+    "health/general_health": 1,
+    "health/mental_health": 1
+  },
+  "anomaly_count": 0,
+  "anomaly_rate": 0.0,
+  "label_mismatch_count": 28,
+  "label_mismatch_rate": 0.9333333333333333,
+  "low_confidence_top30": [
+    {
+      "query": "걔 나 좋아함?",
+      "theme": "life_path",
+      "spread": "destiny_fate",
+      "confidence": 0.35
+    },
+    {
+      "query": "소개팅 계속 만나도 될까?",
+      "theme": "life_path",
+      "spread": "destiny_fate",
+      "confidence": 0.35
+    },
+    {
+      "query": "소송 걸어도 될까",
+      "theme": "life_path",
+      "spread": "destiny_fate",
+      "confidence": 0.35
+    },
+    {
+      "query": "계약서 사인해도돼?",
+      "theme": "life_path",
+      "spread": "destiny_fate",
+      "confidence": 0.35
+    },
+    {
+      "query": "친구랑 계속 같이 갈까",
+      "theme": "life_path",
+      "spread": "destiny_fate",
+      "confidence": 0.35
+    },
+    {
+      "query": "번아웃왔어.. 일 그만둘까",
+      "theme": "life_path",
+      "spread": "destiny_fate",
+      "confidence": 0.35
+    },
+    {
+      "query": "이번주 흐름",
+      "theme": "life_path",
+      "spread": "destiny_fate",
+      "confidence": 0.35
+    },
+    {
+      "query": "진짜 걔 나 좋아함? asap",
+      "theme": "life_path",
+      "spread": "destiny_fate",
+      "confidence": 0.35
+    },
+    {
+      "query": "ㅈㅂ 소개팅 계속 만나도 될까?ㅠ",
+      "theme": "life_path",
+      "spread": "destiny_fate",
+      "confidence": 0.35
+    }
+  ],
+  "anomalies_top50": [],
+  "anomaly_patterns_top5": []
+}

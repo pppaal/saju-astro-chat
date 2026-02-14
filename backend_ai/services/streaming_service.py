@@ -256,21 +256,51 @@ class StreamingService:
             if advanced_astro_detail:
                 logger.info(f"[StreamingService] advanced_astro_detail length: {len(advanced_astro_detail)}")
 
+            exclude_non_saju = os.getenv("EXCLUDE_NON_SAJU_ASTRO", "0") == "1"
+            trace_enabled = os.getenv("RAG_TRACE", "0") == "1"
+
             # Get cross-analysis (from session or instant lookup)
             cross_rules = ""
             if session_cache and session_cache.get("rag_data", {}).get("cross_analysis"):
                 cross_rules = session_cache["rag_data"]["cross_analysis"]
             else:
                 try:
-                    cross_rules = get_cross_analysis_for_chart(saju_data, astro_data, theme, locale)
-                    if cross_rules:
-                        logger.info(f"[StreamingService] Instant cross-analysis: {len(cross_rules)} chars, theme={theme}")
+                    if exclude_non_saju and os.getenv("USE_CHROMADB", "0") == "1":
+                        from backend_ai.app.rag.cross_store import (  # pylint: disable=import-outside-toplevel
+                            build_cross_summary,
+                        )
+                        dm = saju_data.get("dayMaster", {}).get("heavenlyStem", "")
+                        dm_element = saju_data.get("dayMaster", {}).get("element", "")
+                        dominant_element = saju_data.get("dominantElement", "")
+                        ten_gods = saju_data.get("tenGods", {}) or {}
+                        dominant_god = ten_gods.get("dominant", "")
+                        if isinstance(dominant_god, dict):
+                            dominant_god = dominant_god.get("name", "") or dominant_god.get("ko", "") or ""
+
+                        sun_sign = astro_data.get("sun", {}).get("sign", "")
+                        moon_sign = astro_data.get("moon", {}).get("sign", "")
+                        rising = astro_data.get("rising", {}).get("sign", "")
+                        query_parts = [theme, dm, sun_sign, moon_sign, current_user_question[:120]]
+                        cross_query = " ".join([p for p in query_parts if p])
+
+                        cross_rules = build_cross_summary(
+                            cross_query,
+                            saju_seed=[dm, dm_element, dominant_element, dominant_god],
+                            astro_seed=[sun_sign, moon_sign, rising],
+                            top_k=12,
+                        )
+                        if cross_rules:
+                            logger.info(f"[StreamingService] Cross-analysis from saju_astro_cross_v1 ({len(cross_rules)} chars)")
+                    else:
+                        cross_rules = get_cross_analysis_for_chart(saju_data, astro_data, theme, locale)
+                        if cross_rules:
+                            logger.info(f"[StreamingService] Instant cross-analysis: {len(cross_rules)} chars, theme={theme}")
                 except Exception as e:
                     logger.warning(f"[StreamingService] Cross-analysis lookup failed: {e}")
 
             # Get Jung/Stoic insights if not from session (instant lookup)
             instant_quotes = []
-            if not rag_context and HAS_CORPUS_RAG and get_corpus_rag:
+            if not exclude_non_saju and not rag_context and HAS_CORPUS_RAG and get_corpus_rag:
                 try:
                     _corpus_rag_inst = get_corpus_rag()
                     if _corpus_rag_inst:
@@ -294,6 +324,11 @@ class StreamingService:
                             logger.info(f"[StreamingService] Instant Jung quotes: {len(quotes)} found")
                 except Exception as e:
                     logger.debug(f"[StreamingService] Instant Jung quotes failed: {e}")
+
+            if exclude_non_saju and trace_enabled:
+                logger.info("[RAG_TRACE] corpus_rag skipped count=0 reason=EXCLUDE_NON_SAJU_ASTRO")
+                logger.info("[RAG_TRACE] persona_rag skipped count=0 reason=EXCLUDE_NON_SAJU_ASTRO")
+                logger.info("[RAG_TRACE] domain_rag skipped count=0 reason=EXCLUDE_NON_SAJU_ASTRO")
 
             # Build cross-analysis section
             cross_section = ""

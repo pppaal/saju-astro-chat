@@ -14,15 +14,13 @@ from backend_ai.app.services.rag_context_service import (
     get_fallback_tarot_queries,
     build_tarot_search_context
 )
+from backend_ai.app.domain_settings import DOMAIN_RAG_DOMAINS
+from backend_ai.app.routers.tarot.draws_validation import validate_draws
 
 logger = logging.getLogger(__name__)
 
 # Create Blueprint
 search_bp = Blueprint('search', __name__)
-
-# Domain RAG domains (should be moved to config later)
-DOMAIN_RAG_DOMAINS = ["destiny_map", "tarot", "dream", "iching"]
-
 
 # Legacy function names for backward compatibility (deprecated)
 # These now just call the service layer functions
@@ -40,7 +38,7 @@ def _fallback_tarot_queries(query: str) -> list:
 def domain_rag_search():
     """
     Lightweight domain search over precomputed embeddings.
-    body: { "domain": "destiny_map|tarot|dream|iching", "query": "...", "top_k": 5 }
+    body: { "domain": "<DOMAIN_RAG_DOMAINS>", "query": "...", "top_k": 5 }
     """
     # Import lazy-loaded modules
     try:
@@ -57,6 +55,7 @@ def domain_rag_search():
             return json_error
         domain = (data.get("domain") or "").strip()
         query = (data.get("query") or "").strip()
+        draws = data.get("draws") if isinstance(data.get("draws"), list) else []
         top_k = int(data.get("top_k", 5))
         top_k = max(1, min(top_k, 20))
 
@@ -75,8 +74,20 @@ def domain_rag_search():
 
         rag.load_domain(domain)
 
-        results = rag.search(domain, query, top_k=top_k)
-        context = rag.get_context(domain, query, top_k=min(top_k, 3), max_chars=1500)
+        if domain == "tarot" and draws:
+            draws, draw_errors = validate_draws(draws, default_domain="general")
+            if draw_errors:
+                return jsonify(
+                    {
+                        "status": "error",
+                        "message": "Invalid draws payload",
+                        "errors": [e.to_dict() for e in draw_errors],
+                    }
+                ), 400
+            top_k = min(top_k, 3)
+
+        results = rag.search(domain, query, top_k=top_k, draws=draws)
+        context = rag.get_context(domain, query, top_k=min(top_k, 3), max_chars=1500, draws=draws)
         expanded_query = ""
         fallback_query = ""
 
@@ -84,13 +95,13 @@ def domain_rag_search():
         if domain == "tarot" and not results:
             expanded_query = _expand_tarot_query(query)
             if expanded_query != query:
-                results = rag.search(domain, expanded_query, top_k=top_k)
-                context = rag.get_context(domain, expanded_query, top_k=min(top_k, 3), max_chars=1500)
+                results = rag.search(domain, expanded_query, top_k=top_k, draws=draws)
+                context = rag.get_context(domain, expanded_query, top_k=min(top_k, 3), max_chars=1500, draws=draws)
 
         if domain == "tarot" and not results:
             for candidate in _fallback_tarot_queries(query):
-                results = rag.search(domain, candidate, top_k=top_k)
-                context = rag.get_context(domain, candidate, top_k=min(top_k, 3), max_chars=1500)
+                results = rag.search(domain, candidate, top_k=top_k, draws=draws)
+                context = rag.get_context(domain, candidate, top_k=min(top_k, 3), max_chars=1500, draws=draws)
                 if results:
                     fallback_query = candidate
                     break

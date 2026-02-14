@@ -11,6 +11,10 @@ import { isValidDate, isValidTime, isValidLatitude, isValidLongitude } from '@/l
 import { logger } from '@/lib/logger'
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
+import {
+  buildFortuneWithIcpOutputGuide,
+  buildFortuneWithIcpSection,
+} from '@/lib/prompts/fortuneWithIcp'
 
 // Local modules
 import { clampMessages, counselorSystemPrompt, loadPersonaMemory } from './lib'
@@ -28,6 +32,229 @@ import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 120
+
+type MatrixHighlight = { layer?: number; keyword?: string; score?: number }
+type MatrixSynergy = { description?: string; score?: number; layers?: number[] }
+
+interface MatrixSnapshot {
+  totalScore: number
+  topLayers: Array<{ layer: number; score: number }>
+  highlights: string[]
+  synergies: string[]
+}
+
+function mapElementToWestern(
+  element: string | undefined
+): 'fire' | 'earth' | 'air' | 'water' | undefined {
+  if (!element) {
+    return undefined
+  }
+  const e = element.toLowerCase()
+  if (e.includes('fire') || e.includes('화')) {
+    return 'fire'
+  }
+  if (e.includes('earth') || e.includes('토')) {
+    return 'earth'
+  }
+  if (e.includes('air') || e.includes('금')) {
+    return 'air'
+  }
+  if (e.includes('water') || e.includes('수')) {
+    return 'water'
+  }
+  return undefined
+}
+
+function normalizePlanetName(name: string): string {
+  const key = name.toLowerCase()
+  const mapping: Record<string, string> = {
+    sun: 'Sun',
+    moon: 'Moon',
+    mercury: 'Mercury',
+    venus: 'Venus',
+    mars: 'Mars',
+    jupiter: 'Jupiter',
+    saturn: 'Saturn',
+    uranus: 'Uranus',
+    neptune: 'Neptune',
+    pluto: 'Pluto',
+  }
+  return mapping[key] || name
+}
+
+function collectPlanetData(astro: AstroDataStructure | undefined): {
+  planetSigns: Record<string, string>
+  planetHouses: Record<string, number>
+} {
+  const planetSigns: Record<string, string> = {}
+  const planetHouses: Record<string, number> = {}
+  if (!astro || typeof astro !== 'object') {
+    return { planetSigns, planetHouses }
+  }
+
+  const directPlanets = [
+    'sun',
+    'moon',
+    'mercury',
+    'venus',
+    'mars',
+    'jupiter',
+    'saturn',
+    'uranus',
+    'neptune',
+    'pluto',
+  ]
+  for (const key of directPlanets) {
+    const item = (astro as Record<string, unknown>)[key] as Record<string, unknown> | undefined
+    if (!item || typeof item !== 'object') {
+      continue
+    }
+    const pName = normalizePlanetName(key)
+    const sign = typeof item.sign === 'string' ? item.sign : undefined
+    const house = typeof item.house === 'number' ? item.house : Number(item.house)
+    if (sign) {
+      planetSigns[pName] = sign
+    }
+    if (Number.isFinite(house) && house >= 1 && house <= 12) {
+      planetHouses[pName] = house
+    }
+  }
+
+  return { planetSigns, planetHouses }
+}
+
+function buildTopLayers(highlights: MatrixHighlight[]): Array<{ layer: number; score: number }> {
+  const grouped = new Map<number, number[]>()
+  for (const item of highlights) {
+    const layer = Number(item.layer || 0)
+    const score = Number(item.score || 0)
+    if (!layer || !score) {
+      continue
+    }
+    if (!grouped.has(layer)) {
+      grouped.set(layer, [])
+    }
+    grouped.get(layer)!.push(score)
+  }
+
+  return Array.from(grouped.entries())
+    .map(([layer, scores]) => ({
+      layer,
+      score: Number((scores.reduce((a, b) => a + b, 0) / Math.max(1, scores.length)).toFixed(2)),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+}
+
+function buildMatrixProfileSection(snapshot: MatrixSnapshot | null, lang: string): string {
+  if (!snapshot) {
+    return ''
+  }
+
+  const layerText = snapshot.topLayers.map((l) => `L${l.layer}:${l.score}`).join(', ') || 'none'
+  const highlightText = snapshot.highlights.slice(0, 5).join(' | ') || 'none'
+  const synergyText = snapshot.synergies.slice(0, 3).join(' | ') || 'none'
+
+  if (lang === 'ko') {
+    return [
+      '[Destiny Matrix Profile Context]',
+      `total_score=${snapshot.totalScore}`,
+      `top_layers=${layerText}`,
+      `highlights=${highlightText}`,
+      `synergies=${synergyText}`,
+      '응답 초반에 "Matrix snapshot:" 소제목으로 2-3문장으로 요약하고, 이후 기존 사주/점성/교차 해석을 이어가세요.',
+    ].join('\n')
+  }
+
+  return [
+    '[Destiny Matrix Profile Context]',
+    `total_score=${snapshot.totalScore}`,
+    `top_layers=${layerText}`,
+    `highlights=${highlightText}`,
+    `synergies=${synergyText}`,
+    'Start with a short "Matrix snapshot:" section (2-3 sentences), then continue with the existing saju/astro/cross narrative.',
+  ].join('\n')
+}
+
+async function fetchMatrixSnapshot(
+  req: NextRequest,
+  input: {
+    birthDate: string
+    birthTime: string
+    gender: 'male' | 'female'
+    lang: string
+    astro: AstroDataStructure | undefined
+  }
+): Promise<MatrixSnapshot | null> {
+  try {
+    const { planetSigns, planetHouses } = collectPlanetData(input.astro)
+    const dominantWesternElement = mapElementToWestern(
+      ((input.astro as Record<string, unknown> | undefined)?.dominantElement as
+        | string
+        | undefined) ||
+        ((input.astro as Record<string, unknown> | undefined)?.dominantWesternElement as
+          | string
+          | undefined)
+    )
+
+    const response = await fetch(new URL('/api/destiny-matrix', req.nextUrl.origin), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      body: JSON.stringify({
+        birthDate: input.birthDate,
+        birthTime: input.birthTime,
+        gender: input.gender,
+        lang: input.lang === 'ko' ? 'ko' : 'en',
+        dominantWesternElement,
+        planetSigns,
+        planetHouses,
+      }),
+    })
+
+    if (!response.ok) {
+      return null
+    }
+    const data = (await response.json()) as {
+      success?: boolean
+      summary?: { totalScore?: number }
+      highlights?: { strengths?: MatrixHighlight[]; cautions?: MatrixHighlight[] }
+      synergies?: MatrixSynergy[]
+    }
+    if (!data?.success) {
+      return null
+    }
+
+    const strengths = Array.isArray(data.highlights?.strengths)
+      ? (data.highlights?.strengths ?? [])
+      : []
+    const cautions = Array.isArray(data.highlights?.cautions)
+      ? (data.highlights?.cautions ?? [])
+      : []
+    const merged = [...strengths, ...cautions]
+    const topLayers = buildTopLayers(merged)
+    const highlights = merged
+      .map((h) => `${h.keyword || 'n/a'}(${Number(h.score || 0).toFixed(1)})`)
+      .slice(0, 5)
+    const synergies = (Array.isArray(data.synergies) ? data.synergies : [])
+      .map(
+        (s) => `${s.description || 'synergy'}${s.score ? `(${Number(s.score).toFixed(1)})` : ''}`
+      )
+      .slice(0, 3)
+
+    return {
+      totalScore: Number(data.summary?.totalScore || 0),
+      topLayers,
+      highlights,
+      synergies,
+    }
+  } catch (error) {
+    logger.warn('[chat-stream] Matrix snapshot fetch failed', {
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return null
+  }
+}
 
 export async function POST(req: NextRequest) {
   // Declare context at function scope so it's accessible in catch block for credit refund
@@ -96,6 +323,7 @@ export async function POST(req: NextRequest) {
       predictionContext,
       userContext,
       cvText,
+      counselingBrief,
     } = validated
 
     // ========================================
@@ -264,6 +492,14 @@ export async function POST(req: NextRequest) {
       recentSessionSummaries,
       lang
     )
+    const matrixSnapshot = await fetchMatrixSnapshot(req, {
+      birthDate: effectiveBirthDate,
+      birthTime: effectiveBirthTime,
+      gender: effectiveGender,
+      lang,
+      astro: finalAstro,
+    })
+    const matrixProfileSection = buildMatrixProfileSection(matrixSnapshot, lang)
 
     // Theme descriptions for context
     const themeDescriptions: Record<string, { ko: string; en: string }> = {
@@ -284,16 +520,22 @@ export async function POST(req: NextRequest) {
         ? `현재 상담 테마: ${theme} (${themeDesc.ko})\n이 테마에 맞춰 답변해주세요.`
         : `Current theme: ${theme} (${themeDesc.en})\nFocus your answer on this theme.`
 
+    const fortuneIcpSection = buildFortuneWithIcpSection(counselingBrief, lang)
+    const fortuneGuide = buildFortuneWithIcpOutputGuide(lang)
+
     // Build prompt - FULL analysis with all advanced engines
     const chatPrompt = [
       counselorSystemPrompt(lang),
+      fortuneGuide,
       `Name: ${name || 'User'}`,
       themeContext,
+      fortuneIcpSection,
       '',
       // 기본 사주/점성 데이터
       contextSections.v3Snapshot
         ? `[사주/점성 기본 데이터]\n${contextSections.v3Snapshot.slice(0, 5000)}`
         : '',
+      matrixProfileSection ? `\n${matrixProfileSection}` : '',
       // 🔮 고급 분석 섹션들 (모듈화된 빌더 사용)
       contextSections.timingScoreSection ? `\n${contextSections.timingScoreSection}` : '',
       contextSections.enhancedAnalysisSection ? `\n${contextSections.enhancedAnalysisSection}` : '',

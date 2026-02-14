@@ -42,7 +42,10 @@ export const notificationSettingsSchema = z.object({
   monthlyFortune: z.boolean().optional(),
   specialEvents: z.boolean().optional(),
   promotions: z.boolean().optional(),
-  preferredTime: z.string().regex(/^([01]?\d|2[0-3]):([0-5]\d)$/).optional(),
+  preferredTime: z
+    .string()
+    .regex(/^([01]?\d|2[0-3]):([0-5]\d)$/)
+    .optional(),
   timezone: timezoneSchema.optional(),
 })
 
@@ -90,18 +93,22 @@ export const sajuProfileMemorySchema = z.object({
   dominantElement: z.enum(['목', '화', '토', '금', '수']).optional(),
   yongsin: z.string().max(10).optional(),
   geokguk: z.string().max(50).optional(),
-  pillars: z.object({
-    year: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
-    month: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
-    day: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
-    time: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
-  }).optional(),
+  pillars: z
+    .object({
+      year: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
+      month: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
+      day: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
+      time: z.object({ stem: z.string().max(4), branch: z.string().max(4) }).optional(),
+    })
+    .optional(),
 })
 
 export const personaMemoryPostSchema = z.object({
   dominantThemes: z.array(z.string().max(200)).max(50).optional(),
   keyInsights: z.array(z.string().max(1000)).max(50).optional(),
-  emotionalTone: z.enum(['positive', 'negative', 'neutral', 'mixed', 'anxious', 'hopeful']).optional(),
+  emotionalTone: z
+    .enum(['positive', 'negative', 'neutral', 'mixed', 'anxious', 'hopeful'])
+    .optional(),
   growthAreas: z.array(z.string().max(200)).max(50).optional(),
   lastTopics: z.array(z.string().max(200)).max(50).optional(),
   recurringIssues: z.array(z.string().max(500)).max(50).optional(),
@@ -113,7 +120,9 @@ export const personaMemoryPatchDataSchema = z.object({
   insight: z.string().max(1000).optional(),
   growthArea: z.string().max(200).optional(),
   recurringIssue: z.string().max(500).optional(),
-  emotionalTone: z.enum(['positive', 'negative', 'neutral', 'mixed', 'anxious', 'hopeful']).optional(),
+  emotionalTone: z
+    .enum(['positive', 'negative', 'neutral', 'mixed', 'anxious', 'hopeful'])
+    .optional(),
   birthChart: birthChartMemorySchema.optional(),
   sajuProfile: sajuProfileMemorySchema.optional(),
 })
@@ -137,12 +146,14 @@ export const personaMemoryUpdateSchema = z.object({
   locale: localeSchema,
   messages: z.array(chatMessageSchema).min(1).max(200),
   saju: sajuChatContextSchema.optional(),
-  astro: z.object({
-    sunSign: z.string().max(30).optional(),
-    moonSign: z.string().max(30).optional(),
-    ascendant: z.string().max(30).optional(),
-    dominantElement: z.enum(['fire', 'earth', 'air', 'water']).optional(),
-  }).optional(),
+  astro: z
+    .object({
+      sunSign: z.string().max(30).optional(),
+      moonSign: z.string().max(30).optional(),
+      ascendant: z.string().max(30).optional(),
+      dominantElement: z.enum(['fire', 'earth', 'air', 'water']).optional(),
+    })
+    .optional(),
 })
 
 export type PersonaMemoryUpdateValidated = z.infer<typeof personaMemoryUpdateSchema>
@@ -298,20 +309,55 @@ export const personaTypeSchema = z.object({
   rhythmScore: z.number().min(0).max(100),
 })
 
-export const icpOctantScoresSchema = z.record(
-  icpOctantSchema,
-  z.number().min(0).max(100)
-)
+export const icpOctantScoresSchema = z.record(icpOctantSchema, z.number().min(0).max(100))
 
 export const icpAnalysisDataSchema = z.object({
-  description: z.string().max(5000),
+  description: z.string().max(5000).optional(),
   descriptionKo: z.string().max(5000).optional(),
-  strengths: z.array(z.string().max(500)),
+  summary: z.string().max(5000).optional(),
+  summaryKo: z.string().max(5000).optional(),
+  strengths: z.array(z.string().max(500)).optional(),
   strengthsKo: z.array(z.string().max(500)).optional(),
-  challenges: z.array(z.string().max(500)),
+  challenges: z.array(z.string().max(500)).optional(),
   challengesKo: z.array(z.string().max(500)).optional(),
   tips: z.array(z.string().max(500)).optional(),
   tipsKo: z.array(z.string().max(500)).optional(),
+  relationshipStyle: z.string().max(2000).optional(),
+  workStyle: z.string().max(2000).optional(),
+  explainability: z
+    .object({
+      topAxes: z
+        .array(
+          z.object({
+            axis: z.string().max(50),
+            score: z.number(),
+            interpretation: z.string().max(500),
+          })
+        )
+        .optional(),
+      lowAxes: z
+        .array(
+          z.object({
+            axis: z.string().max(50),
+            score: z.number(),
+            interpretation: z.string().max(500),
+          })
+        )
+        .optional(),
+      evidence: z
+        .array(
+          z.object({
+            questionId: z.string().max(100),
+            axis: z.string().max(50),
+            answer: z.number(),
+            reverse: z.boolean(),
+            reason: z.string().max(500),
+          })
+        )
+        .optional(),
+      note: z.string().max(1000).optional(),
+    })
+    .optional(),
   compatibleStyles: z.array(icpOctantSchema).optional(),
 })
 
@@ -328,6 +374,12 @@ export const icpSaveRequestSchema = z.object({
   octantScores: icpOctantScoresSchema,
   analysisData: icpAnalysisDataSchema,
   answers: icpAnswersSchema.optional(),
+  testVersion: z.string().max(50).optional(),
+  resultId: z.string().max(100).optional(),
+  confidence: z.number().min(0).max(100).optional(),
+  axes: z.record(z.string().max(30), z.number().min(0).max(100)).optional(),
+  completionSeconds: z.number().int().min(0).max(36000).optional(),
+  missingAnswerCount: z.number().int().min(0).max(200).optional(),
   locale: localeSchema.optional(),
 })
 
@@ -341,6 +393,12 @@ export const icpSaveSchema = z.object({
   octantScores: icpOctantScoresSchema.optional(),
   analysisData: icpAnalysisDataSchema.optional(),
   answers: icpAnswersSchema.optional(),
+  testVersion: z.string().max(50).optional(),
+  resultId: z.string().max(100).optional(),
+  confidence: z.number().min(0).max(100).optional(),
+  axes: z.record(z.string().max(30), z.number().min(0).max(100)).optional(),
+  completionSeconds: z.number().int().min(0).max(36000).optional(),
+  missingAnswerCount: z.number().int().min(0).max(200).optional(),
   locale: localeSchema.optional(),
 })
 
@@ -544,7 +602,15 @@ export const shareResultDataSchema = z.object({
 export const shareResultRequestSchema = z.object({
   title: z.string().min(1).max(200).trim(),
   description: z.string().max(2000).trim().optional(),
-  resultType: z.enum(['tarot', 'astrology', 'saju', 'compatibility', 'dream', 'numerology', 'iching']),
+  resultType: z.enum([
+    'tarot',
+    'astrology',
+    'saju',
+    'compatibility',
+    'dream',
+    'numerology',
+    'iching',
+  ]),
   resultData: shareResultDataSchema.optional(),
 })
 

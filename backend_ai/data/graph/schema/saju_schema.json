@@ -1,0 +1,23 @@
+{
+  "$schema": "saju-domain-contract-v1",
+  "domain": "saju",
+  "required_node_columns": ["id", "label", "type", "description"],
+  "required_edge_columns": ["source", "target", "relation"],
+  "id_prefixes": {
+    "stems": "ST_",
+    "branches": "BR_",
+    "ten_gods": "SS_",
+    "twelve_stages": "TS_",
+    "useful_god": "YS_",
+    "elements": "EL_",
+    "geokguk": "GK_",
+    "concept_bridge": "SB_"
+  },
+  "quality_gates": {
+    "duplicate_ids": 0,
+    "empty_descriptions": 0,
+    "dangling_edge_refs": 0
+  },
+  "version": "1.0.0",
+  "owner": "backend_ai"
+}

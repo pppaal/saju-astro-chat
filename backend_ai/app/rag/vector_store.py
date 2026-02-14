@@ -20,12 +20,17 @@ Usage:
 import logging
 import os
 from threading import Lock
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
 # Feature flag
 USE_CHROMADB = os.environ.get("USE_CHROMADB", "0") == "1"
+_TRACE_ENV_KEY = "RAG_TRACE"
+
+
+def _trace_enabled() -> bool:
+    return os.getenv(_TRACE_ENV_KEY, "0") == "1"
 
 # Default paths
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -73,8 +78,9 @@ class VectorStoreManager:
                         ),
                     )
                     logger.info(
-                        "[VectorStore] ChromaDB client initialized: %s",
+                        "[VectorStore] ChromaDB client initialized (persist_dir=%s, collection=%s)",
                         self._persist_dir,
+                        self._collection_name,
                     )
         return self._client
 
@@ -88,10 +94,20 @@ class VectorStoreManager:
                         name=self._collection_name,
                         metadata={"hnsw:space": "cosine"},
                     )
+                    try:
+                        count = self._collection.count()
+                    except Exception as exc:
+                        count = -1
+                        logger.warning(
+                            "[VectorStore] Collection count failed (collection=%s): %s",
+                            self._collection_name,
+                            exc,
+                        )
                     logger.info(
-                        "[VectorStore] Collection '%s' ready (%d items)",
+                        "[VectorStore] Collection ready (persist_dir=%s, collection=%s, items=%d)",
+                        self._persist_dir,
                         self._collection_name,
-                        self._collection.count(),
+                        count,
                     )
         return self._collection
 
@@ -216,6 +232,14 @@ class VectorStoreManager:
                         "metadata": results["metadatas"][0][i] if results.get("metadatas") else {},
                     })
 
+        if _trace_enabled():
+            logger.info(
+                "[RAG_TRACE] collection=%s results=%d top_k=%d where=%s",
+                self._collection_name,
+                len(output),
+                top_k,
+                where or {},
+            )
         return output
 
     def search_by_domain(
@@ -259,39 +283,45 @@ class VectorStoreManager:
 
 
 # =============================================================================
-# Singleton
+# Manager cache
 # =============================================================================
-_vector_store: Optional[VectorStoreManager] = None
+_vector_store_cache: Dict[Tuple[str, str, Optional[str]], VectorStoreManager] = {}
 _vector_store_lock = Lock()
+
+
+def _normalize_persist_dir(persist_dir: Optional[str]) -> str:
+    return os.path.abspath(persist_dir or _DEFAULT_PERSIST_DIR)
 
 
 def get_vector_store(
     collection_name: str = "graph_nodes",
     persist_dir: str = None,
+    embedding_model_id: Optional[str] = None,
 ) -> VectorStoreManager:
-    """싱글톤 VectorStoreManager 반환."""
-    global _vector_store
-    if _vector_store is None:
-        with _vector_store_lock:
-            if _vector_store is None:
-                _vector_store = VectorStoreManager(
-                    persist_dir=persist_dir,
-                    collection_name=collection_name,
-                )
-    return _vector_store
+    """Return cached VectorStoreManager keyed by persist_dir/collection/model."""
+    normalized_persist_dir = _normalize_persist_dir(persist_dir)
+    normalized_collection = (collection_name or "graph_nodes").strip()
+    normalized_model_id = embedding_model_id.strip() if embedding_model_id else None
+    cache_key = (normalized_persist_dir, normalized_collection, normalized_model_id)
 
-
-# Domain별 별도 컬렉션 관리
-_domain_stores: Dict[str, VectorStoreManager] = {}
-_domain_stores_lock = Lock()
+    with _vector_store_lock:
+        store = _vector_store_cache.get(cache_key)
+        if store is None:
+            store = VectorStoreManager(
+                persist_dir=normalized_persist_dir,
+                collection_name=normalized_collection,
+            )
+            _vector_store_cache[cache_key] = store
+            logger.info(
+                "[VectorStore] Created manager (persist_dir=%s, collection=%s, embedding_model_id=%s)",
+                normalized_persist_dir,
+                normalized_collection,
+                normalized_model_id or "-",
+            )
+        return store
 
 
 def get_domain_vector_store(domain: str) -> VectorStoreManager:
-    """도메인별 ChromaDB 컬렉션 반환."""
-    if domain not in _domain_stores:
-        with _domain_stores_lock:
-            if domain not in _domain_stores:
-                _domain_stores[domain] = VectorStoreManager(
-                    collection_name=f"domain_{domain}",
-                )
-    return _domain_stores[domain]
+    """Return domain-specific ChromaDB collection manager."""
+    return get_vector_store(collection_name=f"domain_{domain}")
+

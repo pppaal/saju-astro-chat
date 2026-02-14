@@ -1,0 +1,210 @@
+{
+  "total": 220,
+  "domain_distribution": {
+    "life_path": 100,
+    "love": 21,
+    "career": 44,
+    "wealth": 33,
+    "health": 22
+  },
+  "spread_distribution": {
+    "life_path/general": 100,
+    "love/current_partner": 11,
+    "love/reconciliation": 10,
+    "career/interview": 11,
+    "career/job_change": 22,
+    "career/workplace": 11,
+    "wealth/money_luck": 11,
+    "wealth/investment": 11,
+    "wealth/debt": 11,
+    "health/general_health": 11,
+    "health/mental_health": 11
+  },
+  "anomaly_count": 0,
+  "anomaly_rate": 0.0,
+  "label_mismatch_count": 210,
+  "label_mismatch_rate": 0.9545454545454546,
+  "low_confidence_top30": [
+    {
+      "query": "걔 나 좋아함?",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "소개팅 계속 만나도 될까?",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "소송 걸어도 될까",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "계약서 사인해도돼?",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "친구랑 계속 같이 갈까",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "번아웃왔어.. 일 그만둘까",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "이번주 흐름",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "진짜 걔 나 좋아함? asap",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "ㅈㅂ 소개팅 계속 만나도 될까?ㅠ",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "소송 걸어도 되나 ㄹㅇㅠ",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "계약서 사인해도돼?ㅠㅠ 🙏",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "pls 친구랑 계속 같이 갈까 제발ㅠ",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "헬프 번아웃왔어..일그만둘까 omgㅠ",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "헬프 이번주흐름 fr…",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "ㅠㅠ 걔 나 좋아함?^^ plz",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "헬프 소개팅 계속 만나도 되나? 제발 ㅋㅋ",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "진짜 소송걸어도되나 ㅅㅂ asap",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "급질문 계약서 사인해도돼? ㅅㅂ ㅜㅜ",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "아 친구랑 계속 같이 갈까ㅠㅠ…",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "아 번아웃왔어.. 일 그만둘까?",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "이번주 흐름 asap",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "ㅈㅂ 걔 나 좋아함?^^ㅠ",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "헬프 소개팅 계속 만나도 될까? lol ㅜㅜ",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "ㅠㅠ 소송 걸어도 될까 ㅅㅂ ㅜㅜ",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "pls 계약서 사인해도돼? 제발 plz",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "친구랑 계속 같이 갈까 ㅅㅂ asap",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "아 번아웃왔어.. 일 그만둘까 ㅋㅋ",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "ㅠㅠ 이번주 흐름 omg ㅋㅋ",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "헬프 걔 나 좋아함???",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    },
+    {
+      "query": "다시 만남 가능성 있나 ㄹㅇ??",
+      "theme": "life_path",
+      "spread": "purpose_meaning",
+      "confidence": 0.35
+    }
+  ],
+  "anomalies_top50": []
+}

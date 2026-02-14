@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 
 interface ReportSection {
   title: string
@@ -111,7 +112,7 @@ export default function ReportResultPage() {
         insights: apiReport.insights,
         actionItems: apiReport.actionItems,
         fullData,
-      });
+      })
     } catch {
       setError('리포트를 불러오는데 실패했습니다.')
     } finally {
@@ -152,6 +153,7 @@ export default function ReportResultPage() {
         a.download = `destiny-report-${reportId}.pdf`
         document.body.appendChild(a)
         a.click()
+        analytics.matrixPdfDownload()
         window.URL.revokeObjectURL(url)
         document.body.removeChild(a)
       } else {
@@ -169,7 +171,7 @@ export default function ReportResultPage() {
           title: report?.title,
           text: report?.summary,
           url: window.location.href,
-        });
+        })
       } catch {
         // 사용자가 공유를 취소한 경우
       }

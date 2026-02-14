@@ -78,7 +78,7 @@ export default function ICPResultPage() {
           <div className={styles.badges}>
             <div className={styles.consistencyBadge}>
               <span className={styles.consistencyValue}>{analysis.consistencyScore}%</span>
-              <span className={styles.consistencyLabel}>{t('일관성', 'Consistency')}</span>
+              <span className={styles.consistencyLabel}>{t('신뢰도', 'Confidence')}</span>
             </div>
           </div>
         </section>
@@ -86,21 +86,21 @@ export default function ICPResultPage() {
         <section className={styles.axesSection}>
           <h2 className={styles.sectionTitle}>
             <span className={styles.sectionIcon}>📊</span>
-            {t('대인관계 축', 'Interpersonal Axes')}
+            {t('대인관계 핵심 축', 'Interpersonal Axes')}
           </h2>
           <div className={styles.axesCard}>
             <AxisBar
-              label={t('지배성', 'Dominance')}
+              label={t('주도성', 'Agency')}
               score={analysis.dominanceScore}
-              left={t('복종적', 'Submissive')}
-              right={t('지배적', 'Dominant')}
+              left={t('신중함', 'Reserved')}
+              right={t('주도적', 'Initiating')}
               delay={0}
               styles={styles}
             />
             <AxisBar
-              label={t('친화성', 'Affiliation')}
+              label={t('관계 온도', 'Warmth')}
               score={analysis.affiliationScore}
-              left={t('적대적', 'Hostile')}
+              left={t('거리 둠', 'Distant')}
               right={t('친화적', 'Friendly')}
               delay={100}
               styles={styles}
@@ -111,7 +111,7 @@ export default function ICPResultPage() {
         <section className={styles.circumplexSection}>
           <h2 className={styles.sectionTitle}>
             <span className={styles.sectionIcon}>🔮</span>
-            {t('대인관계 원형 분석', 'Interpersonal Circumplex')}
+            {t('원형 분석', 'Circumplex Analysis')}
           </h2>
           <div className={styles.circumplexWrapper}>
             <ICPCircumplex
@@ -137,12 +137,12 @@ export default function ICPResultPage() {
         <section className={styles.growthSection}>
           <h2 className={styles.sectionTitle}>
             <span className={styles.sectionIcon}>🌱</span>
-            {t('성장 팁', 'Growth Tips')}
+            {t('성장 제안', 'Growth Suggestions')}
           </h2>
           <p className={styles.growthIntro}>
             {t(
-              `${primaryOctant.korean}의 핵심 성장 포인트:`,
-              `Key growth points for ${primaryOctant.name}:`
+              `${primaryOctant.korean} 유형의 실전 개선 포인트`,
+              `Practical growth points for ${primaryOctant.name}`
             )}
           </p>
           <div className={styles.growthCards}>
@@ -157,6 +157,37 @@ export default function ICPResultPage() {
             ))}
           </div>
         </section>
+
+        {analysis.explainability && (
+          <section className={styles.explainSection}>
+            <h2 className={styles.sectionTitle}>
+              <span className={styles.sectionIcon}>🧭</span>
+              {t('이 결과가 나온 이유', 'Why You Got This Result')}
+            </h2>
+            <div className={styles.explainCard}>
+              <p className={styles.disclaimerText}>
+                {t(
+                  '이 검사는 비임상 자기이해 도구입니다. 의료/진단 목적이 아니며, 현재 컨디션에 따라 결과가 달라질 수 있습니다.',
+                  'This test is a non-clinical self-reflection tool, not a medical or diagnostic assessment.'
+                )}
+              </p>
+              <div className={styles.questionsList}>
+                {analysis.explainability.topAxes.map((axis) => (
+                  <div key={axis.axis} className={styles.questionItem}>
+                    <span className={styles.questionBullet}>•</span>
+                    <p>{`${axis.axis} ${axis.score}% - ${axis.interpretation}`}</p>
+                  </div>
+                ))}
+                {analysis.explainability.evidence.slice(0, 2).map((item, idx) => (
+                  <div key={`${item.questionId}-${idx}`} className={styles.questionItem}>
+                    <span className={styles.questionBullet}>•</span>
+                    <p>{item.reason}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         <DestinyAdviceSection
           styles={styles}

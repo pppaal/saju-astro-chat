@@ -16,10 +16,30 @@ def summarize_csv(path: Path):
     with path.open(encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
-    ids = [r.get("id") or r.get("label") for r in rows]
-    descs = [r.get("description") or r.get("desc") or r.get("content") for r in rows]
+
+    # Description quality
+    descs = [(r.get("description") or r.get("desc") or r.get("content") or "").strip() for r in rows]
     empty_desc = sum(1 for d in descs if not d)
-    dup_count = sum(c > 1 for c in Counter(ids).values())
+
+    # Duplicate detection
+    # 1) Prefer explicit row id/label.
+    id_keys = [(r.get("id") or r.get("label") or "").strip() for r in rows]
+    valid_id_keys = [k for k in id_keys if k]
+
+    if valid_id_keys:
+        dup_count = sum(c > 1 for c in Counter(valid_id_keys).values())
+    else:
+        # 2) Fallback for edge-like CSVs without id/label.
+        #    Use (source, target, relation) tuple as a logical key.
+        edge_keys = []
+        for r in rows:
+            src = (r.get("source") or r.get("src") or "").strip()
+            dst = (r.get("target") or r.get("dst") or "").strip()
+            rel = (r.get("relation") or "").strip()
+            if src and dst:
+                edge_keys.append((src, dst, rel))
+        dup_count = sum(c > 1 for c in Counter(edge_keys).values()) if edge_keys else 0
+
     return {"rows": len(rows), "empty_desc": empty_desc, "dup_ids": dup_count}
 
 

@@ -13,6 +13,9 @@ import {
 } from '../chat-utils'
 import { generateFollowUpQuestions } from '../chat-followups'
 import type { ChatProps, ChatPayload } from '../chat-types'
+import { scoreIcpTest } from '@/lib/icpTest/scoring'
+import { analyzePersona } from '@/lib/persona/analysis'
+import { buildCounselingBrief } from '@/lib/prompts/fortuneWithIcp'
 
 interface UseChatApiOptions {
   sessionIdRef: React.MutableRefObject<string>
@@ -44,6 +47,32 @@ interface UseChatApiReturn {
   handleSend: (directText?: string) => Promise<void>
   showCrisisModal: boolean
   setShowCrisisModal: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+function buildLocalCounselingBrief(whatUserWants: string, lang: LangKey) {
+  try {
+    const icpRaw = localStorage.getItem('icpQuizAnswers')
+    if (!icpRaw) {
+      return null
+    }
+    const icpAnswers = JSON.parse(icpRaw) as Record<string, string>
+    const icpResult = scoreIcpTest(icpAnswers)
+
+    let personaResult = null
+    const personaRaw = localStorage.getItem('personaQuizAnswers')
+    if (personaRaw) {
+      const personaAnswers = JSON.parse(personaRaw) as Record<string, string>
+      personaResult = analyzePersona(personaAnswers, lang)
+    }
+
+    return buildCounselingBrief({
+      icpResult,
+      personaResult,
+      whatUserWants,
+    })
+  } catch {
+    return null
+  }
 }
 
 export function useChatApi({
@@ -288,6 +317,7 @@ export function useChatApi({
         advancedAstro,
         predictionContext,
         userContext,
+        counselingBrief: buildLocalCounselingBrief(text, lang) ?? undefined,
       }
 
       try {

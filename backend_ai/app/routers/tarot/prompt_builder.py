@@ -83,7 +83,8 @@ def build_enhanced_question(
 def build_card_details(
     drawn_cards: List[Dict],
     cards: List[Dict],
-    hybrid_rag
+    hybrid_rag,
+    default_domain: str = "general",
 ) -> List[Dict]:
     """Build detailed card information with RAG context."""
     card_details = []
@@ -93,6 +94,9 @@ def build_card_details(
         is_reversed = card.get("isReversed", False)
         position = cards[i].get("position", f"Card {i+1}") if i < len(cards) else f"Card {i+1}"
         reversed_text = "(역방향)" if is_reversed else ""
+        card_id = str(cards[i].get("card_id", "") if i < len(cards) else "").strip()
+        orientation = "reversed" if is_reversed else "upright"
+        domain = str(cards[i].get("domain", default_domain) if i < len(cards) else default_domain).strip().lower()
 
         # Get RAG context for card
         card_rag = hybrid_rag.get_card_insights(card_name)
@@ -118,6 +122,9 @@ def build_card_details(
 
         card_details.append({
             "index": i,
+            "card_id": card_id,
+            "orientation": orientation,
+            "domain": domain,
             "name": card_name,
             "reversed_text": reversed_text,
             "position": position,
@@ -190,7 +197,8 @@ def build_unified_prompt(
     question: str,
     card_details: List[Dict],
     question_context: str,
-    rag_context: str,
+    forced_facet_context: str,
+    retrieved_support_context: str,
     combinations_text: str,
     elemental_text: str,
     timing_text: str,
@@ -202,6 +210,9 @@ def build_unified_prompt(
 
     card_list_text = "\n\n".join([
         f"""### {cd['index']+1}. [{cd['position']}] {cd['name']}{cd['reversed_text']}
+card_id: {cd['card_id'] or '(unknown)'}
+orientation: {cd['orientation']}
+domain: {cd['domain']}
 키워드: {cd['keywords']}
 의미: {cd['meaning']}
 상징: {cd['symbolism']}
@@ -220,8 +231,11 @@ def build_unified_prompt(
 
 {question_context}
 
-## 참고 지식
-{rag_context[:1500] if rag_context else ''}
+## Forced Facet (뽑힌 카드 근거)
+{forced_facet_context[:1400] if forced_facet_context else '(forced facet 없음)'}
+
+## Retrieved Support (보강 근거)
+{retrieved_support_context[:900] if retrieved_support_context else '(retrieved support 없음)'}
 
 ## 카드 조합 시너지
 {combinations_text if combinations_text else '(조합 정보 없음)'}
@@ -242,6 +256,15 @@ def build_unified_prompt(
   "cards": [
     {{"position": "위치명", "interpretation": "이 카드의 매우 깊이 있는 해석 (500-700자, 최소 8-10줄). 1) 카드 이미지와 상징을 생생하게 묘사 (색깔, 인물, 배경 등) 2) 이 위치에서 이 카드가 나온 의미 3) 질문자의 현재 상황과 어떻게 연결되는지 구체적으로 4) 이 카드가 전하는 감정적/실용적 메시지 5) 구체적인 행동 조언까지. 매우 풍성하고 깊이 있게 작성해."}}
   ],
+  "card_evidence": [
+    {{
+      "card_id": "MAJOR_0",
+      "orientation": "upright",
+      "domain": "love",
+      "position": "현재",
+      "evidence": "2~3문장 근거 요약. 카드 상징 + 현재 질문 연결 + 실천 포인트를 포함."
+    }}
+  ],
   "advice": [
     {{"title": "조언 제목 (구체적으로)", "detail": "매우 구체적이고 실천 가능한 조언 (300-400자, 최소 7-10줄). 1) 왜 이 조언이 지금 중요한지 배경 설명 2) 구체적으로 무엇을 어떻게 해야 하는지 단계별 안내 3) 언제, 어디서, 어떤 방식으로 실천할지 구체적 예시 4) 예상되는 효과나 변화까지 포함. 추상적인 조언이 아닌 오늘 당장 실천할 수 있는 구체적인 행동 지침을 매우 상세하게 제시해."}}
   ]
@@ -252,6 +275,8 @@ def build_unified_prompt(
 2. 각 카드의 이미지를 생생하게 묘사하며 질문과 연결해
 3. 상담사처럼 따뜻하지만 솔직하게, 희망을 주되 현실적으로 말해
 4. advice는 3-5개의 매우 구체적인 조언을 배열로 제공해 (각 300-400자씩)
+5. card_evidence는 카드 수와 동일한 개수로 반드시 작성해
+6. 각 evidence 블록에 card_id/orientation/domain/position을 정확히 명시해
 
 ## 말투 (매우 중요!)
 - 친구에게 카페에서 이야기하듯 편하고 자연스럽게

@@ -12,6 +12,7 @@ Tests:
 import pytest
 from unittest.mock import patch, MagicMock
 import torch
+import importlib
 
 
 class TestDomainRAGInit:
@@ -45,10 +46,12 @@ class TestDomainRAGInit:
         mock_load.return_value = True
 
         from backend_ai.app.domain_rag import DomainRAG
+        from backend_ai.app.domain_rag import DOMAINS
 
         rag = DomainRAG(preload_domains=["tarot", "dream"])
 
-        assert mock_load.call_count == 2
+        expected = len([d for d in ["tarot", "dream"] if d in DOMAINS])
+        assert mock_load.call_count == expected
 
 
 class TestDomainRAGModel:
@@ -232,6 +235,58 @@ class TestDomainRAGSearch:
 
         assert isinstance(results, list)
 
+    @patch("app.rag.vector_store.get_domain_vector_store")
+    def test_search_chromadb_forced_facet_always_included(self, mock_get_vs):
+        """draws가 있으면 forced facet이 similarity 결과보다 우선 포함되어야 한다."""
+        from backend_ai.app.domain_rag import DomainRAG
+
+        mock_vs = MagicMock()
+        mock_vs.has_data.return_value = True
+
+        def _search_side_effect(*args, **kwargs):
+            where = kwargs.get("where")
+            if where:
+                return [
+                    {
+                        "id": "forced_1",
+                        "text": "Card: The Fool | Orientation: upright | Domain: love | Meaning: forced facet",
+                        "score": 0.01,
+                        "metadata": where,
+                    }
+                ]
+            return [
+                {
+                    "id": "sim_1",
+                    "text": "General tarot context",
+                    "score": 0.91,
+                    "metadata": {"domain": "tarot"},
+                }
+            ]
+
+        mock_vs.search.side_effect = _search_side_effect
+        mock_get_vs.return_value = mock_vs
+
+        rag = DomainRAG()
+        with patch.object(rag, "_embed_query", return_value=torch.randn(384)):
+            results = rag._search_chromadb(
+                domain="tarot",
+                query="relationship advice",
+                top_k=3,
+                min_score=0.2,
+                draws=[
+                    {
+                        "card_id": "MAJOR_0",
+                        "orientation": "upright",
+                        "domain": "love",
+                        "position": "single",
+                    }
+                ],
+            )
+
+        assert len(results) >= 1
+        assert "forced facet" in results[0]["text"]
+        assert any("General tarot context" in r["text"] for r in results)
+
 
 class TestDomainRAGSearchMultiple:
     """Tests for search_multiple method."""
@@ -307,6 +362,23 @@ class TestDomainRAGGetContext:
         # Should only include first result due to char limit
         assert len(context) <= 1100  # Some buffer for formatting
 
+    def test_get_context_passes_draws(self):
+        """get_context는 draws를 search로 전달해야 한다."""
+        from backend_ai.app.domain_rag import DomainRAG
+
+        rag = DomainRAG()
+        draws = [{"card_id": "MAJOR_0", "orientation": "upright", "domain": "love"}]
+
+        with patch.object(
+            rag,
+            "search",
+            return_value=[{"text": "forced facet context", "score": 0.1, "domain": "tarot"}],
+        ) as mock_search:
+            context = rag.get_context("tarot", "query", draws=draws)
+
+        assert "forced facet context" in context
+        assert mock_search.call_args.kwargs["draws"] == draws
+
 
 class TestDomainRAGProperties:
     """Tests for item_count and is_ready properties."""
@@ -379,7 +451,7 @@ class TestUtilityFunctions:
         search_tarot("love", top_k=3)
 
         mock_rag.load_domain.assert_called_with("tarot")
-        mock_rag.search.assert_called_with("tarot", "love", top_k=3)
+        mock_rag.search.assert_called_with("tarot", "love", top_k=3, draws=None)
 
     @patch("backend_ai.app.domain_rag.get_domain_rag")
     def test_search_dream(self, mock_get_rag):
@@ -400,11 +472,34 @@ class TestConstants:
     """Tests for module constants."""
 
     def test_domains_list(self):
-        """Test DOMAINS constant."""
+        """Default domain policy should be tarot-first."""
         from backend_ai.app.domain_rag import DOMAINS
 
         assert "tarot" in DOMAINS
-        assert "dream" in DOMAINS
+        assert len(DOMAINS) >= 1
+
+    def test_domains_env_override(self, monkeypatch):
+        """DOMAIN_RAG_DOMAINS env should override default domains."""
+        monkeypatch.setenv("DOMAIN_RAG_DOMAINS", "tarot,dream")
+
+        import app.domain_settings as ds
+        import app.domain_rag as dr
+
+        importlib.reload(ds)
+        importlib.reload(dr)
+
+        assert dr.DOMAINS == ["tarot", "dream"]
+
+        monkeypatch.delenv("DOMAIN_RAG_DOMAINS", raising=False)
+        importlib.reload(ds)
+        importlib.reload(dr)
+
+    def test_default_min_score_from_settings(self):
+        """DomainRAG should expose tarot-oriented default threshold."""
+        import backend_ai.app.domain_rag as dr
+        import backend_ai.app.domain_settings as ds
+
+        assert dr.DEFAULT_TAROT_MIN_SCORE == ds.DEFAULT_TAROT_MIN_SCORE
 
 
 class TestModuleExports:

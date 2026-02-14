@@ -36,6 +36,12 @@ export const POST = withApiMiddleware(
       octantScores,
       analysisData,
       answers,
+      testVersion,
+      resultId,
+      confidence,
+      axes,
+      completionSeconds,
+      missingAnswerCount,
       locale = 'en',
     } = validationResult.data
 
@@ -43,10 +49,16 @@ export const POST = withApiMiddleware(
       const icpResult = await prisma.iCPResult.create({
         data: {
           userId: context.userId!,
+          testVersion: testVersion || 'icp_v2',
+          resultId: resultId || null,
           primaryStyle,
           secondaryStyle,
           dominanceScore,
           affiliationScore,
+          confidence: confidence ?? null,
+          axes: axes ? (axes as Prisma.InputJsonValue) : Prisma.JsonNull,
+          completionSeconds: completionSeconds ?? null,
+          missingAnswerCount: missingAnswerCount ?? 0,
           octantScores: octantScores as Prisma.InputJsonValue,
           analysisData,
           answers: answers ? (answers as Prisma.InputJsonValue) : Prisma.JsonNull,

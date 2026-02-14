@@ -180,3 +180,40 @@ class TestModuleExports:
         """GraphRAG class should be importable."""
         from app.saju_astro_rag import GraphRAG
         assert GraphRAG is not None
+
+
+class TestEdgeIdHelpers:
+    """Tests for deterministic edge_id generation/compat behavior."""
+
+    def test_build_edge_id_is_deterministic(self):
+        from app.saju_astro_rag import _build_edge_id
+
+        edge_id_1 = _build_edge_id("TM_00", "TCOMB_TM_00_TM_01", "combo_member")
+        edge_id_2 = _build_edge_id("TM_00", "TCOMB_TM_00_TM_01", "combo_member")
+
+        assert edge_id_1 == edge_id_2
+        assert isinstance(edge_id_1, str)
+        assert len(edge_id_1) == 16
+
+    def test_resolve_edge_id_uses_existing_value(self):
+        from app.saju_astro_rag import _resolve_edge_id
+
+        resolved = _resolve_edge_id(
+            {"edge_id": "fixed_edge_id_1234"},
+            "TM_00",
+            "TCOMB_TM_00_TM_01",
+            "combo_member",
+        )
+        assert resolved == "fixed_edge_id_1234"
+
+    def test_resolve_edge_id_backfills_when_missing(self):
+        from app.saju_astro_rag import _resolve_edge_id
+
+        resolved = _resolve_edge_id(
+            {"source": "TM_00", "target": "TCOMB_TM_00_TM_01", "relation": "combo_member"},
+            "TM_00",
+            "TCOMB_TM_00_TM_01",
+            "combo_member",
+        )
+        assert isinstance(resolved, str)
+        assert len(resolved) == 16

@@ -1,0 +1,137 @@
+{
+  "timestamp": "2026-02-11T08:58:17.690359Z",
+  "total_samples": 168,
+  "top_k": 5,
+  "context_top_n": 3,
+  "min_score": null,
+  "zero_hit_rate": 0.0,
+  "tag_hit_rate": 1.0,
+  "card_facet_coverage": 0.9404761904761905,
+  "counts": {
+    "zero_hits": 0,
+    "tag_hits": 168,
+    "card_hits": 158
+  },
+  "samples_preview": [
+    {
+      "query": "컵 Ace / Ace of Cups reversed career meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 Ace / Ace of Cups reversed general meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 Ace / Ace of Cups reversed love meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 Ace / Ace of Cups upright career meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 Ace / Ace of Cups upright general meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 Ace / Ace of Cups upright love meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 10 / 10 of Cups reversed career meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 10 / 10 of Cups reversed general meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 10 / 10 of Cups reversed love meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 10 / 10 of Cups upright career meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 10 / 10 of Cups upright general meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 10 / 10 of Cups upright love meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 2 / 2 of Cups reversed career meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 2 / 2 of Cups reversed general meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 2 / 2 of Cups reversed love meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 2 / 2 of Cups upright career meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 2 / 2 of Cups upright general meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 2 / 2 of Cups upright love meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 3 / 3 of Cups reversed career meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 3 / 3 of Cups reversed general meaning",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    }
+  ]
+}

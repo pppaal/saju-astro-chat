@@ -1,38 +1,44 @@
-'use client';
+'use client'
 
-import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { logger } from "@/lib/logger";
-import { LAYERS, getScoreLevel } from './matrixData';
-import type { MatrixResult, PersonalInsight } from './matrixData';
-import { MatrixIntroScreen } from './MatrixIntroScreen';
-import { MatrixLoadingScreen } from './MatrixLoadingScreen';
-import { MatrixResultView } from './MatrixResultView';
+import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
+import { logger } from '@/lib/logger'
+import { LAYERS, getScoreLevel } from './matrixData'
+import type { MatrixResult, PersonalInsight } from './matrixData'
+import { MatrixIntroScreen } from './MatrixIntroScreen'
+import { MatrixLoadingScreen } from './MatrixLoadingScreen'
+import { MatrixResultView } from './MatrixResultView'
 
 export default function MatrixJourneyPage() {
-  const router = useRouter();
-  const { profile, isLoading: profileLoading } = useUserProfile();
-  const [step, setStep] = useState<'intro' | 'loading' | 'result'>('intro');
-  const [result, setResult] = useState<MatrixResult | null>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [revealedLayers, setRevealedLayers] = useState<Set<number>>(new Set());
-  const _containerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter()
+  const { profile, isLoading: profileLoading } = useUserProfile()
+  const [step, setStep] = useState<'intro' | 'loading' | 'result'>('intro')
+  const [result, setResult] = useState<MatrixResult | null>(null)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [isFlipped, setIsFlipped] = useState(false)
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [revealedLayers, setRevealedLayers] = useState<Set<number>>(new Set())
+  const _containerRef = useRef<HTMLDivElement>(null)
 
-  const hasProfile = !!(profile.birthDate);
-  const profileName = profile.name || '사용자';
-  const activeLayer = LAYERS[activeIndex];
+  useEffect(() => {
+    analytics.matrixView('destiny-map/matrix')
+  }, [])
+
+  const hasProfile = !!profile.birthDate
+  const profileName = profile.name || '사용자'
+  const activeLayer = LAYERS[activeIndex]
 
   const getLayerInsight = (layerNum: number): PersonalInsight | null => {
-    if (!result || !result.highlights) return null;
+    if (!result || !result.highlights) return null
 
-    const strengthsInLayer = result.highlights.strengths?.filter(s => s.layer === layerNum) || [];
-    const cautionsInLayer = result.highlights.cautions?.filter(c => c.layer === layerNum) || [];
+    const strengthsInLayer = result.highlights.strengths?.filter((s) => s.layer === layerNum) || []
+    const cautionsInLayer = result.highlights.cautions?.filter((c) => c.layer === layerNum) || []
 
-    const avgScore = [...strengthsInLayer, ...cautionsInLayer].reduce((sum, h) => sum + h.score, 0) /
-      Math.max([...strengthsInLayer, ...cautionsInLayer].length, 1) || 5;
+    const avgScore =
+      [...strengthsInLayer, ...cautionsInLayer].reduce((sum, h) => sum + h.score, 0) /
+        Math.max([...strengthsInLayer, ...cautionsInLayer].length, 1) || 5
 
     return {
       layer: layerNum,
@@ -40,19 +46,19 @@ export default function MatrixJourneyPage() {
       score: Math.round(avgScore * 10) / 10,
       level: getScoreLevel(avgScore),
       highlights: [
-        ...strengthsInLayer.map(s => `✦ ${s.keyword}`),
-        ...cautionsInLayer.map(c => `⚠ ${c.keyword}`),
+        ...strengthsInLayer.map((s) => `✦ ${s.keyword}`),
+        ...cautionsInLayer.map((c) => `⚠ ${c.keyword}`),
       ],
-    };
-  };
+    }
+  }
 
   const handleStartAnalysis = async () => {
     if (!hasProfile) {
-      router.push('/destiny-map');
-      return;
+      router.push('/destiny-map')
+      return
     }
 
-    setStep('loading');
+    setStep('loading')
 
     try {
       const res = await fetch('/api/destiny-matrix', {
@@ -63,54 +69,55 @@ export default function MatrixJourneyPage() {
           birthTime: profile.birthTime || '12:00',
           birthCity: profile.birthCity,
           timezone: profile.timezone || 'Asia/Seoul',
-          gender: profile.gender === 'Male' ? 'male' : profile.gender === 'Female' ? 'female' : 'male',
+          gender:
+            profile.gender === 'Male' ? 'male' : profile.gender === 'Female' ? 'female' : 'male',
           lang: 'ko',
         }),
-      });
+      })
 
-      const data = await res.json();
-      setResult(data);
+      const data = await res.json()
+      setResult(data)
+      analytics.matrixGenerate('destiny-map/matrix')
 
       setTimeout(() => {
-        setStep('result');
+        setStep('result')
         LAYERS.forEach((_, i) => {
           setTimeout(() => {
-            setRevealedLayers(prev => new Set([...prev, i]));
-          }, i * 200);
-        });
-      }, 1500);
-
+            setRevealedLayers((prev) => new Set([...prev, i]))
+          }, i * 200)
+        })
+      }, 1500)
     } catch (error) {
-      logger.error('Matrix calculation failed:', error);
-      setStep('intro');
+      logger.error('Matrix calculation failed:', error)
+      setStep('intro')
     }
-  };
+  }
 
   const goToLayer = (index: number) => {
     if (index >= 0 && index < LAYERS.length) {
-      setIsFlipped(false);
-      setTimeout(() => setActiveIndex(index), 150);
+      setIsFlipped(false)
+      setTimeout(() => setActiveIndex(index), 150)
     }
-  };
+  }
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.touches[0].clientX);
-  };
+    setTouchStart(e.touches[0].clientX)
+  }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStart === null) return;
-    const diff = touchStart - e.changedTouches[0].clientX;
+    if (touchStart === null) return
+    const diff = touchStart - e.changedTouches[0].clientX
     if (Math.abs(diff) > 50) {
       if (diff > 0 && activeIndex < LAYERS.length - 1) {
-        goToLayer(activeIndex + 1);
+        goToLayer(activeIndex + 1)
       } else if (diff < 0 && activeIndex > 0) {
-        goToLayer(activeIndex - 1);
+        goToLayer(activeIndex - 1)
       }
     }
-    setTouchStart(null);
-  };
+    setTouchStart(null)
+  }
 
-  const insight = getLayerInsight(activeLayer.layer);
+  const insight = getLayerInsight(activeLayer.layer)
 
   if (step === 'intro') {
     return (
@@ -121,11 +128,11 @@ export default function MatrixJourneyPage() {
         profileLoading={profileLoading}
         onStart={handleStartAnalysis}
       />
-    );
+    )
   }
 
   if (step === 'loading') {
-    return <MatrixLoadingScreen />;
+    return <MatrixLoadingScreen />
   }
 
   return (
@@ -142,5 +149,5 @@ export default function MatrixJourneyPage() {
       onTouchEnd={handleTouchEnd}
       onBack={() => setStep('intro')}
     />
-  );
+  )
 }

@@ -16,6 +16,7 @@ Key features:
 
 import asyncio
 import logging
+import os
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -30,6 +31,18 @@ logger = logging.getLogger(__name__)
 _EXECUTOR = None
 _EXECUTOR_MAX_WORKERS = 4  # Balance between parallelism and memory usage
 _EXECUTOR_LOCK = threading.Lock()
+
+def _exclude_non_saju_astro() -> bool:
+    return os.getenv("EXCLUDE_NON_SAJU_ASTRO", "0") == "1"
+
+
+def _trace_enabled() -> bool:
+    return os.getenv("RAG_TRACE", "0") == "1"
+
+
+def _trace(msg: str, *args) -> None:
+    if _trace_enabled():
+        logger.info("[RAG_TRACE] " + msg, *args)
 
 
 def get_executor() -> ThreadPoolExecutor:
@@ -93,17 +106,30 @@ class ThreadSafeRAGManager:
         logger.info(f"[RAGManager] Starting parallel RAG fetch for theme='{theme}'")
 
         # Execute all RAG queries in parallel
-        results = await asyncio.gather(
-            self._fetch_graph_rag(facts, theme),
-            self._fetch_corpus_rag(query, theme, theme_concepts),
-            self._fetch_persona_rag(query),
-            self._fetch_domain_rag(query, theme),
-            self._fetch_cross_analysis(saju_data, astro_data, theme, locale),
-            return_exceptions=True  # Don't fail on single RAG error
-        )
+        exclude_non_saju = _exclude_non_saju_astro()
 
-        # Unpack results
-        graph_result, corpus_result, persona_result, domain_result, cross_result = results
+        tasks = []
+        task_names = []
+
+        tasks.append(self._fetch_graph_rag(facts, theme))
+        task_names.append("graph")
+
+        if not exclude_non_saju:
+            tasks.append(self._fetch_corpus_rag(query, theme, theme_concepts))
+            task_names.append("corpus")
+            tasks.append(self._fetch_persona_rag(query))
+            task_names.append("persona")
+            tasks.append(self._fetch_domain_rag(query, theme))
+            task_names.append("domain")
+        else:
+            _trace("corpus_rag skipped count=0 reason=EXCLUDE_NON_SAJU_ASTRO")
+            _trace("persona_rag skipped count=0 reason=EXCLUDE_NON_SAJU_ASTRO")
+            _trace("domain_rag skipped count=0 reason=EXCLUDE_NON_SAJU_ASTRO")
+
+        tasks.append(self._fetch_cross_analysis(saju_data, astro_data, theme, locale))
+        task_names.append("cross")
+
+        raw_results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Build final result dict
         final_result = {
@@ -116,43 +142,34 @@ class ThreadSafeRAGManager:
             "cross_analysis": "",
         }
 
-        # Process graph results
-        if isinstance(graph_result, dict):
-            final_result["graph_nodes"] = graph_result.get("matched_nodes", [])[:15]
-            final_result["graph_context"] = graph_result.get("context_text", "")[:2000]
-            if graph_result.get("rule_summary"):
-                final_result["graph_rules"] = graph_result.get("rule_summary", [])[:5]
-            logger.info(f"[RAGManager] GraphRAG: {len(final_result['graph_nodes'])} nodes")
-        elif isinstance(graph_result, Exception):
-            logger.warning(f"[RAGManager] GraphRAG failed: {graph_result}")
+        for name, raw in zip(task_names, raw_results):
+            if isinstance(raw, Exception):
+                logger.warning(f"[RAGManager] {name} failed: {raw}")
+                continue
 
-        # Process corpus results
-        if isinstance(corpus_result, list):
-            final_result["corpus_quotes"] = corpus_result
-            logger.info(f"[RAGManager] CorpusRAG: {len(corpus_result)} quotes")
-        elif isinstance(corpus_result, Exception):
-            logger.warning(f"[RAGManager] CorpusRAG failed: {corpus_result}")
-
-        # Process persona results
-        if isinstance(persona_result, dict):
-            final_result["persona_context"] = persona_result
-            total = len(persona_result.get("jung", [])) + len(persona_result.get("stoic", []))
-            logger.info(f"[RAGManager] PersonaRAG: {total} insights")
-        elif isinstance(persona_result, Exception):
-            logger.warning(f"[RAGManager] PersonaRAG failed: {persona_result}")
-
-        # Process domain results
-        if isinstance(domain_result, list):
-            final_result["domain_knowledge"] = domain_result
-            logger.info(f"[RAGManager] DomainRAG: {len(domain_result)} results")
-        elif isinstance(domain_result, Exception):
-            logger.warning(f"[RAGManager] DomainRAG failed: {domain_result}")
-
-        # Process cross-analysis
-        if isinstance(cross_result, str):
-            final_result["cross_analysis"] = cross_result
-        elif isinstance(cross_result, Exception):
-            logger.warning(f"[RAGManager] Cross-analysis failed: {cross_result}")
+            if name == "graph" and isinstance(raw, dict):
+                final_result["graph_nodes"] = raw.get("matched_nodes", [])[:15]
+                final_result["graph_context"] = raw.get("context_text", "")[:2000]
+                if raw.get("rule_summary"):
+                    final_result["graph_rules"] = raw.get("rule_summary", [])[:5]
+                logger.info(f"[RAGManager] GraphRAG: {len(final_result['graph_nodes'])} nodes")
+                _trace("graph_rag nodes=%d", len(final_result["graph_nodes"]))
+            elif name == "corpus" and isinstance(raw, list):
+                final_result["corpus_quotes"] = raw
+                logger.info(f"[RAGManager] CorpusRAG: {len(raw)} quotes")
+                _trace("corpus_rag results=%d", len(raw))
+            elif name == "persona" and isinstance(raw, dict):
+                final_result["persona_context"] = raw
+                total = len(raw.get("jung", [])) + len(raw.get("stoic", []))
+                logger.info(f"[RAGManager] PersonaRAG: {total} insights")
+                _trace("persona_rag results=%d", total)
+            elif name == "domain" and isinstance(raw, list):
+                final_result["domain_knowledge"] = raw
+                logger.info(f"[RAGManager] DomainRAG: {len(raw)} results")
+                _trace("domain_rag results=%d", len(raw))
+            elif name == "cross" and isinstance(raw, str):
+                final_result["cross_analysis"] = raw
+                _trace("cross_analysis chars=%d", len(raw))
 
         # Add performance metrics
         elapsed = time.time() - start_time
@@ -233,7 +250,7 @@ class ThreadSafeRAGManager:
         """Synchronous GraphRAG fetch (runs in executor thread)."""
         try:
             # Lazy import to avoid circular dependencies
-            from backend_ai.app.app import get_graph_rag, HAS_GRAPH_RAG
+            from backend_ai.app.loaders import get_graph_rag, HAS_GRAPH_RAG
 
             if not HAS_GRAPH_RAG:
                 return {}
@@ -279,7 +296,7 @@ class ThreadSafeRAGManager:
     ) -> List[dict]:
         """Synchronous CorpusRAG fetch (runs in executor thread)."""
         try:
-            from backend_ai.app.app import get_corpus_rag, HAS_CORPUS_RAG
+            from backend_ai.app.loaders import get_corpus_rag, HAS_CORPUS_RAG
 
             if not HAS_CORPUS_RAG:
                 return []
@@ -345,7 +362,7 @@ class ThreadSafeRAGManager:
     def _fetch_persona_rag_sync(self, query: str) -> dict:
         """Synchronous PersonaRAG fetch (runs in executor thread)."""
         try:
-            from backend_ai.app.app import get_persona_embed_rag, HAS_PERSONA_EMBED
+            from backend_ai.app.loaders import get_persona_embed_rag, HAS_PERSONA_EMBED
 
             if not HAS_PERSONA_EMBED:
                 return {}
@@ -379,7 +396,7 @@ class ThreadSafeRAGManager:
     def _fetch_domain_rag_sync(self, query: str, theme: str) -> List[dict]:
         """Synchronous DomainRAG fetch (runs in executor thread)."""
         try:
-            from backend_ai.app.app import get_domain_rag, HAS_DOMAIN_RAG
+            from backend_ai.app.loaders import get_domain_rag, HAS_DOMAIN_RAG
 
             if not HAS_DOMAIN_RAG:
                 return []
@@ -420,6 +437,39 @@ class ThreadSafeRAGManager:
     def _fetch_cross_analysis_sync(self, saju_data, astro_data, theme, locale) -> str:
         """Synchronous cross-analysis fetch (runs in executor thread)."""
         try:
+            exclude_non_saju = _exclude_non_saju_astro()
+            if exclude_non_saju and os.getenv("USE_CHROMADB", "0") == "1":
+                from backend_ai.app.rag.cross_store import (  # pylint: disable=import-outside-toplevel
+                    build_cross_summary,
+                )
+
+                query, _, _ = self._prepare_query_data(saju_data, astro_data, theme)
+                dm_data = saju_data.get("dayMaster", {}) if isinstance(saju_data, dict) else {}
+                daymaster = dm_data.get("heavenlyStem") or dm_data.get("name", "")
+                dm_element = dm_data.get("element", "")
+                dominant_element = saju_data.get("dominantElement", "") if isinstance(saju_data, dict) else ""
+                ten_gods = saju_data.get("tenGods", {}) if isinstance(saju_data, dict) else {}
+                dominant_god = ten_gods.get("dominant", "") if isinstance(ten_gods, dict) else ""
+                if isinstance(dominant_god, dict):
+                    dominant_god = dominant_god.get("name", "") or dominant_god.get("ko", "") or ""
+
+                sun_sign = astro_data.get("sun", {}).get("sign", "") if isinstance(astro_data, dict) else ""
+                moon_sign = astro_data.get("moon", {}).get("sign", "") if isinstance(astro_data, dict) else ""
+                rising = astro_data.get("rising", {}).get("sign", "") if isinstance(astro_data, dict) else ""
+
+                saju_seed = [daymaster, dm_element, dominant_element, dominant_god]
+                astro_seed = [sun_sign, moon_sign, rising]
+
+                formatted = build_cross_summary(
+                    query,
+                    saju_seed=saju_seed,
+                    astro_seed=astro_seed,
+                    top_k=12,
+                )
+                if formatted:
+                    logger.info("[RAGManager] Cross-analysis from saju_astro_cross_v1")
+                return formatted
+
             from backend_ai.services.chart_service import ChartService
             chart_service = ChartService()
             return chart_service.get_cross_analysis_for_chart(

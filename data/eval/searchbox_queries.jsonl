@@ -1,0 +1,220 @@
+{"query": "걔 나 좋아함?", "expected_intent_class": "crush", "expected_spread_class": "crush-feelings", "label_source": "manual"}
+{"query": "전남친한테 연락할까", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "manual"}
+{"query": "재회 가능성 있나", "expected_intent_class": "reconciliation", "expected_spread_class": "reconciliation", "label_source": "manual"}
+{"query": "소개팅 계속 만나도 될까?", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "manual"}
+{"query": "면접 붙을까", "expected_intent_class": "interview", "expected_spread_class": "interview-result", "label_source": "manual"}
+{"query": "이직 지금 타이밍 맞아?", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "manual"}
+{"query": "퇴사할까 말까", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "manual"}
+{"query": "상사가 나 싫어하는듯", "expected_intent_class": "work_relation", "expected_spread_class": "relationship-cross", "label_source": "manual"}
+{"query": "돈관리 언제부터 정리될까", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "manual"}
+{"query": "코인 계속 들고가?", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "manual"}
+{"query": "빚 정리 가능할까", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "manual"}
+{"query": "부모님 건강 너무 걱정돼", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "manual"}
+{"query": "요즘 불안이 심한데 어떡하지", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "manual"}
+{"query": "소송 걸어도 될까", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "manual"}
+{"query": "계약서 사인해도돼?", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "manual"}
+{"query": "친구랑 계속 같이 갈까", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "manual"}
+{"query": "번아웃왔어.. 일 그만둘까", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "manual"}
+{"query": "오늘운세", "expected_intent_class": "today", "expected_spread_class": "day-card", "label_source": "manual"}
+{"query": "이번주 흐름", "expected_intent_class": "weekly_monthly", "expected_spread_class": "weekly-forecast", "label_source": "manual"}
+{"query": "내 미래 전반적으로 어때", "expected_intent_class": "general", "expected_spread_class": "past-present-future", "label_source": "manual"}
+{"query": "진짜 걔 나 좋아함? asap", "expected_intent_class": "crush", "expected_spread_class": "crush-feelings", "label_source": "heuristic"}
+{"query": "하.. 전남친한테연락할까 omg 🙏", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "진짜 재회가능성있나 🙏", "expected_intent_class": "reconciliation", "expected_spread_class": "reconciliation", "label_source": "heuristic"}
+{"query": "ㅈㅂ 소개팅 계속 만나도 될까?ㅠ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "하.. 면접 붙을까 fr asap", "expected_intent_class": "interview", "expected_spread_class": "interview-result", "label_source": "heuristic"}
+{"query": "ㅈㅂ 이직 지금 타이밍 맞아?^^?", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "헬프 퇴사할까여 말까 ㄹㅇ??", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅠㅠ 상사가 나 싫어하는듯 ㅅㅂ asap", "expected_intent_class": "work_relation", "expected_spread_class": "relationship-cross", "label_source": "heuristic"}
+{"query": "급질문 돈관리언제부터정리되나^^ ㅋㅋ", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "급질문 코인 계속 들고가?ㅠㅠ ㅋㅋ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 빚 정리 가능할까 asap", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "하.. 부모님 건강 너무 걱정돼 fr plz", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "pls 요즘불안이심한데어떡하지 ㄹㅇ 🙏", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "소송 걸어도 되나 ㄹㅇㅠ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "계약서 사인해도돼?ㅠㅠ 🙏", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "pls 친구랑 계속 같이 갈까 제발ㅠ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "헬프 번아웃왔어..일그만둘까 omgㅠ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅠㅠ 오늘운세ㅠㅠㅠ", "expected_intent_class": "today", "expected_spread_class": "day-card", "label_source": "heuristic"}
+{"query": "헬프 이번주흐름 fr…", "expected_intent_class": "weekly_monthly", "expected_spread_class": "weekly-forecast", "label_source": "heuristic"}
+{"query": "pls 내 미래 전반적으로 어때ㅠ", "expected_intent_class": "general", "expected_spread_class": "past-present-future", "label_source": "heuristic"}
+{"query": "ㅠㅠ 걔 나 좋아함?^^ plz", "expected_intent_class": "crush", "expected_spread_class": "crush-feelings", "label_source": "heuristic"}
+{"query": "아 전남친한테연락할까 fr plz", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "진짜 재회 가능성 있나 fr plz", "expected_intent_class": "reconciliation", "expected_spread_class": "reconciliation", "label_source": "heuristic"}
+{"query": "헬프 소개팅 계속 만나도 되나? 제발 ㅋㅋ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 면접붙을까 lolㅠ", "expected_intent_class": "interview", "expected_spread_class": "interview-result", "label_source": "heuristic"}
+{"query": "pls 이직 지금 타이밍 맞아?…", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "ㅠㅠ 퇴사할까 말까ㅠㅠ??", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "진짜 상사가 나 싫어하는듯 ㅅㅂ", "expected_intent_class": "work_relation", "expected_spread_class": "relationship-cross", "label_source": "heuristic"}
+{"query": "헬프 돈관리 언제부터 정리될까^^…", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "급질문 코인계속들고가? omg ㅜㅜ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "헬프 빚정리가능할까여ㅠㅠ ㅋㅋ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "급질문 부모님 건강 너무 걱정돼 ㄹㅇ plz", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "급질문 요즘 불안이 심한데 어떡하지^^ 🙏", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "진짜 소송걸어도되나 ㅅㅂ asap", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "급질문 계약서 사인해도돼? ㅅㅂ ㅜㅜ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 친구랑 계속 같이 갈까ㅠㅠ…", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 번아웃왔어.. 일 그만둘까?", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 오늘운세 omg 🙏", "expected_intent_class": "today", "expected_spread_class": "day-card", "label_source": "heuristic"}
+{"query": "이번주 흐름 asap", "expected_intent_class": "weekly_monthly", "expected_spread_class": "weekly-forecast", "label_source": "heuristic"}
+{"query": "ㅈㅂ 내 미래 전반적으로 어떰??", "expected_intent_class": "general", "expected_spread_class": "past-present-future", "label_source": "heuristic"}
+{"query": "ㅈㅂ 걔 나 좋아함?^^ㅠ", "expected_intent_class": "crush", "expected_spread_class": "crush-feelings", "label_source": "heuristic"}
+{"query": "ㅈㅂ 전남친한테 연락할까ㅠㅠㅠ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 재회 가능성 있나 fr…", "expected_intent_class": "reconciliation", "expected_spread_class": "reconciliation", "label_source": "heuristic"}
+{"query": "헬프 소개팅 계속 만나도 될까? lol ㅜㅜ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "하.. 면접 붙을까 fr…", "expected_intent_class": "interview", "expected_spread_class": "interview-result", "label_source": "heuristic"}
+{"query": "헬프 이직 지금 타이밍 맞아? ㄹㅇ asap", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "퇴사할까 말까 omg 🙏", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "헬프 상사가 나 싫어하는듯 plz", "expected_intent_class": "work_relation", "expected_spread_class": "relationship-cross", "label_source": "heuristic"}
+{"query": "아 돈관리 언제부터 정리될까 제발ㅠ", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "코인 계속 들고가? lol…", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅈㅂ 빚정리가능할까 omg??", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅠㅠ 부모님건강너무걱정돼 제발 plz", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "아 요즘 불안이 심한데 어떡하지 omg?", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "ㅠㅠ 소송 걸어도 될까 ㅅㅂ ㅜㅜ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "pls 계약서 사인해도돼? 제발 plz", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "친구랑 계속 같이 갈까 ㅅㅂ asap", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 번아웃왔어.. 일 그만둘까 ㅋㅋ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "진짜 오늘운세", "expected_intent_class": "today", "expected_spread_class": "day-card", "label_source": "heuristic"}
+{"query": "ㅠㅠ 이번주 흐름 omg ㅋㅋ", "expected_intent_class": "weekly_monthly", "expected_spread_class": "weekly-forecast", "label_source": "heuristic"}
+{"query": "내 미래 전반적으로 어때 ㅅㅂ?", "expected_intent_class": "general", "expected_spread_class": "past-present-future", "label_source": "heuristic"}
+{"query": "헬프 걔 나 좋아함???", "expected_intent_class": "crush", "expected_spread_class": "crush-feelings", "label_source": "heuristic"}
+{"query": "pls 전남친한테연락할까 asap", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "다시 만남 가능성 있나 ㄹㅇ??", "expected_intent_class": "reconciliation", "expected_spread_class": "reconciliation", "label_source": "heuristic"}
+{"query": "ㅠㅠ 소개팅 계속 만나도 될까?ㅠㅠ…", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "급질문 면접붙을까^^", "expected_intent_class": "interview", "expected_spread_class": "interview-result", "label_source": "heuristic"}
+{"query": "진짜 이직 지금 타이밍 맞아? ㄹㅇ??", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "pls 퇴사할까말까ㅠㅠㅠ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "하.. 상사가 나 싫어하는듯 ㅋㅋ", "expected_intent_class": "work_relation", "expected_spread_class": "relationship-cross", "label_source": "heuristic"}
+{"query": "아 돈관리 언제부터 정리되나 plz", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "pls 코인 계속 들고가? fr?", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "pls 빚 정리 가능할까여 제발ㅠ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "부모님건강너무걱정돼^^ asap", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "아 요즘 불안이 심한데 어떡하지 plz", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "소송 걸어도 되나 ㄹㅇ ㅋㅋ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅈㅂ 계약서사인해도돼? omg?", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "진짜 친구랑 계속 같이 갈까 lol plz", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 번아웃왔어.. 일 그만둘까^^?", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 오늘운세 ㅜㅜ", "expected_intent_class": "today", "expected_spread_class": "day-card", "label_source": "heuristic"}
+{"query": "아 이번주 흐름 lol ㅋㅋ", "expected_intent_class": "weekly_monthly", "expected_spread_class": "weekly-forecast", "label_source": "heuristic"}
+{"query": "ㅠㅠ 내미래전반적으로어때 lol??", "expected_intent_class": "general", "expected_spread_class": "past-present-future", "label_source": "heuristic"}
+{"query": "아 걔 나 좋아함? ㅜㅜ", "expected_intent_class": "crush", "expected_spread_class": "crush-feelings", "label_source": "heuristic"}
+{"query": "헬프 전남친한테 연락할까 fr", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "급질문 재회 가능성 있나 ㄹㅇ?", "expected_intent_class": "reconciliation", "expected_spread_class": "reconciliation", "label_source": "heuristic"}
+{"query": "ㅈㅂ 소개팅계속만나도될까? lolㅠ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "급질문 면접 붙을까 omgㅠ", "expected_intent_class": "interview", "expected_spread_class": "interview-result", "label_source": "heuristic"}
+{"query": "아 이직 지금 타이밍 맞아? 제발 ㅜㅜ", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "ㅠㅠ 퇴사할까 말까 ㅅㅂ asap", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅈㅂ 상사가 나 싫어하는듯^^?", "expected_intent_class": "work_relation", "expected_spread_class": "relationship-cross", "label_source": "heuristic"}
+{"query": "pls 돈관리언제부터정리되나 omg??", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "ㅈㅂ 코인 계속 들고가? omg asap", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "하.. 빚 정리 가능할까^^…", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅠㅠ 부모님 건강 너무 걱정돼??", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "ㅠㅠ 요즘 불안이 심한데 어떡하지 lol", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "헬프 소송걸어도되나 ㅅㅂ plz", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "계약서 사인해도돼? omg asap", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "친구랑계속같이갈까 omg ㅋㅋ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "pls 번아웃왔어.. 일 그만둘까 lolㅠ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "오늘운세 lol?", "expected_intent_class": "today", "expected_spread_class": "day-card", "label_source": "heuristic"}
+{"query": "하.. 이번주 흐름 ㅅㅂㅠ", "expected_intent_class": "weekly_monthly", "expected_spread_class": "weekly-forecast", "label_source": "heuristic"}
+{"query": "pls 내미래전반적으로어때??", "expected_intent_class": "general", "expected_spread_class": "past-present-future", "label_source": "heuristic"}
+{"query": "ㅠㅠ 걔 나 좋아함? ㅅㅂ?", "expected_intent_class": "crush", "expected_spread_class": "crush-feelings", "label_source": "heuristic"}
+{"query": "전남친한테 연락할까여ㅠㅠ…", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "진짜 재회 가능성 있나 ㅅㅂ ㅋㅋ", "expected_intent_class": "reconciliation", "expected_spread_class": "reconciliation", "label_source": "heuristic"}
+{"query": "소개팅계속만나도될까? ㅅㅂ?", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "진짜 인터뷰붙을까 제발 plz", "expected_intent_class": "interview", "expected_spread_class": "interview-result", "label_source": "heuristic"}
+{"query": "이직지금타이밍맞아? plz", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "헬프 퇴사할까여 말까 asap", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "상사가 나 싫어하는듯 fr plz", "expected_intent_class": "work_relation", "expected_spread_class": "relationship-cross", "label_source": "heuristic"}
+{"query": "아 돈관리 언제부터 정리될까 제발 ㅜㅜ", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "ㅈㅂ 코인계속들고가?^^ ㅋㅋ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "빚정리가능할까?", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "pls 부모님 건강 너무 걱정돼 ㅅㅂ asap", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "pls 요즘불안이심한데어떡하지 plz", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "급질문 소송걸어도될까…", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "하.. 계약서 사인해도돼? ㅜㅜ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "친구랑 계속 같이 갈까ㅠㅠ ㅋㅋ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 번아웃왔어.. 일 그만둘까ㅠㅠ??", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "헬프 오늘운세 ㄹㅇ…", "expected_intent_class": "today", "expected_spread_class": "day-card", "label_source": "heuristic"}
+{"query": "하.. 이번주흐름^^ㅠ", "expected_intent_class": "weekly_monthly", "expected_spread_class": "weekly-forecast", "label_source": "heuristic"}
+{"query": "내 미래 전반적으로 어떰^^ plz", "expected_intent_class": "general", "expected_spread_class": "past-present-future", "label_source": "heuristic"}
+{"query": "ㅠㅠ 걔 나 좋아함? 제발 plz", "expected_intent_class": "crush", "expected_spread_class": "crush-feelings", "label_source": "heuristic"}
+{"query": "ㅠㅠ 전남친한테 연락할까여 lol ㅜㅜ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 재회가능성있나 omg ㅜㅜ", "expected_intent_class": "reconciliation", "expected_spread_class": "reconciliation", "label_source": "heuristic"}
+{"query": "헬프 소개팅 계속 만나도 되나? omg asap", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "면접붙을까 fr?", "expected_intent_class": "interview", "expected_spread_class": "interview-result", "label_source": "heuristic"}
+{"query": "ㅠㅠ 이직지금타이밍맞아? ㅜㅜ", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "ㅈㅂ 퇴사할까말까 fr??", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "급질문 상사가 나 싫어하는듯 omg?", "expected_intent_class": "work_relation", "expected_spread_class": "relationship-cross", "label_source": "heuristic"}
+{"query": "아 돈관리언제부터정리될까^^…", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "아 코인 계속 들고가?^^…", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "급질문 빚 정리 가능할까 ㄹㅇ…", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "진짜 부모님건강너무걱정돼^^?", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "pls 요즘불안이심한데어떡하지 ㄹㅇ 🙏", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "ㅈㅂ 소송 걸어도 될까 lol ㅋㅋ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 계약서 사인해도돼? lol ㅜㅜ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "pls 친구랑 계속 같이 갈까 ㄹㅇ ㅜㅜ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅠㅠ 번아웃왔어.. 일 그만둘까??", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "하.. 오늘운세^^", "expected_intent_class": "today", "expected_spread_class": "day-card", "label_source": "heuristic"}
+{"query": "진짜 이번주흐름^^ㅠ", "expected_intent_class": "weekly_monthly", "expected_spread_class": "weekly-forecast", "label_source": "heuristic"}
+{"query": "pls 내 미래 전반적으로 어때 제발 🙏", "expected_intent_class": "general", "expected_spread_class": "past-present-future", "label_source": "heuristic"}
+{"query": "ㅈㅂ 걔 나 좋아함? 제발?", "expected_intent_class": "crush", "expected_spread_class": "crush-feelings", "label_source": "heuristic"}
+{"query": "진짜 전남친한테연락할까 fr plz", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "급질문 재회 가능성 있나 plz", "expected_intent_class": "reconciliation", "expected_spread_class": "reconciliation", "label_source": "heuristic"}
+{"query": "ㅈㅂ 소개팅계속만나도될까? ㅅㅂ 🙏", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅈㅂ 면접 붙을까 ㄹㅇㅠ", "expected_intent_class": "interview", "expected_spread_class": "interview-result", "label_source": "heuristic"}
+{"query": "하.. 이직 지금 타이밍 맞아? omg…", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "하.. 퇴사할까말까 ㄹㅇ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "헬프 상사가 나 싫어하는듯ㅠㅠ??", "expected_intent_class": "work_relation", "expected_spread_class": "relationship-cross", "label_source": "heuristic"}
+{"query": "헬프 돈관리 언제부터 정리될까 ㅜㅜ", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "ㅈㅂ 코인계속들고가?…", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 빚 정리 가능할까 제발?", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "부모님건강너무걱정돼", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "ㅈㅂ 요즘 불안이 심한데 어떡하지 fr asap", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "소송 걸어도 될까 ㅅㅂ plz", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "pls 계약서 사인해도돼? lol", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 친구랑 계속 같이 갈까^^??", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅈㅂ 번아웃왔어.. 일 그만둘까 omg", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "헬프 오늘운세 ㅋㅋ", "expected_intent_class": "today", "expected_spread_class": "day-card", "label_source": "heuristic"}
+{"query": "진짜 이번주 흐름?", "expected_intent_class": "weekly_monthly", "expected_spread_class": "weekly-forecast", "label_source": "heuristic"}
+{"query": "하.. 내 미래 전반적으로 어때ㅠㅠ ㅋㅋ", "expected_intent_class": "general", "expected_spread_class": "past-present-future", "label_source": "heuristic"}
+{"query": "걔 나 좋아함? ㅅㅂ?", "expected_intent_class": "crush", "expected_spread_class": "crush-feelings", "label_source": "heuristic"}
+{"query": "ㅈㅂ 전남친한테 연락할까 ㅅㅂ?", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 재회가능성있나 lol asap", "expected_intent_class": "reconciliation", "expected_spread_class": "reconciliation", "label_source": "heuristic"}
+{"query": "아 소개팅계속만나도될까? lol ㅋㅋ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "진짜 인터뷰붙을까 omgㅠ", "expected_intent_class": "interview", "expected_spread_class": "interview-result", "label_source": "heuristic"}
+{"query": "이직 지금 타이밍 맞아? fr ㅜㅜ", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "하.. 퇴사할까 말까 omg", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 상사가 나 싫어하는듯 plz", "expected_intent_class": "work_relation", "expected_spread_class": "relationship-cross", "label_source": "heuristic"}
+{"query": "아 돈관리 언제부터 정리될까ㅠ", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "헬프 코인 계속 들고가? fr plz", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "pls 빚 정리 가능할까 제발 ㅜㅜ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "부모님건강너무걱정돼 omg?", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "ㅈㅂ 요즘 불안이 심한데 어떡하지 ㄹㅇ plz", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "ㅈㅂ 소송 걸어도 될까 omg plz", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "진짜 계약서 사인해도돼? lol??", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 친구랑계속같이갈까 fr asap", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅠㅠ 번아웃왔어.. 일 그만둘까 lol…", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅠㅠ 오늘운세ㅠㅠ??", "expected_intent_class": "today", "expected_spread_class": "day-card", "label_source": "heuristic"}
+{"query": "급질문 이번주흐름 제발ㅠ", "expected_intent_class": "weekly_monthly", "expected_spread_class": "weekly-forecast", "label_source": "heuristic"}
+{"query": "pls 내미래전반적으로어때 ㄹㅇ plz", "expected_intent_class": "general", "expected_spread_class": "past-present-future", "label_source": "heuristic"}
+{"query": "ㅈㅂ 걔나좋아함? 🙏", "expected_intent_class": "crush", "expected_spread_class": "crush-feelings", "label_source": "heuristic"}
+{"query": "ㅠㅠ 전남친한테연락할까 ㄹㅇ asap", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "급질문 재회 가능성 있나 ㅋㅋ", "expected_intent_class": "reconciliation", "expected_spread_class": "reconciliation", "label_source": "heuristic"}
+{"query": "진짜 소개팅 계속 만나도 될까? ㄹㅇ?", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅠㅠ 면접 붙을까 fr plz", "expected_intent_class": "interview", "expected_spread_class": "interview-result", "label_source": "heuristic"}
+{"query": "진짜 이직 지금 타이밍 맞아? fr", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "헬프 퇴사할까말까 🙏", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅈㅂ 상사가나싫어하는듯 제발…", "expected_intent_class": "work_relation", "expected_spread_class": "relationship-cross", "label_source": "heuristic"}
+{"query": "ㅈㅂ 돈관리 언제부터 정리될까 fr ㅜㅜ", "expected_intent_class": "timing", "expected_spread_class": "timing-window", "label_source": "heuristic"}
+{"query": "ㅠㅠ 코인계속들고가? ㅅㅂ ㅜㅜ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "아 빚정리가능할까여 제발 asap", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "pls 부모님 건강 너무 걱정돼 fr?", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "ㅈㅂ 요즘불안이심한데어떡하지 omg?", "expected_intent_class": "health", "expected_spread_class": "mind-body-scan", "label_source": "heuristic"}
+{"query": "pls 소송 걸어도 되나ㅠㅠ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "ㅠㅠ 계약서 사인해도돼? ㄹㅇ??", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "하.. 친구랑 계속 같이 갈까 제발", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "pls 번아웃왔어..일그만둘까 제발ㅠ", "expected_intent_class": "yes_no", "expected_spread_class": "yes-no-why", "label_source": "heuristic"}
+{"query": "진짜 오늘운세", "expected_intent_class": "today", "expected_spread_class": "day-card", "label_source": "heuristic"}
+{"query": "아 이번주 흐름ㅠㅠ asap", "expected_intent_class": "weekly_monthly", "expected_spread_class": "weekly-forecast", "label_source": "heuristic"}
+{"query": "급질문 내 미래 전반적으로 어때 fr asap", "expected_intent_class": "general", "expected_spread_class": "past-present-future", "label_source": "heuristic"}

@@ -1,193 +1,195 @@
 // src/components/destiny-map/chat-types.ts
 // Type definitions for Chat component - replacing 'any' types
 
-import type { LangKey } from "./chat-i18n";
-import type { Message, UserContext } from "./chat-constants";
+import type { LangKey } from './chat-i18n'
+import type { Message, UserContext } from './chat-constants'
+import type { CounselingBrief } from '@/lib/icpTest/types'
 
 // Profile type for chat component
 export interface ChatProfile {
-  name?: string;
-  birthDate?: string;
-  birthTime?: string;
-  city?: string;
-  gender?: string;
-  latitude?: number;
-  longitude?: number;
+  name?: string
+  birthDate?: string
+  birthTime?: string
+  city?: string
+  gender?: string
+  latitude?: number
+  longitude?: number
 }
 
 // Saju (Four Pillars) data structure
 export interface SajuPillar {
-  stem: string;
-  branch: string;
-  stemKo?: string;
-  branchKo?: string;
-  element?: string;
-  animal?: string;
+  stem: string
+  branch: string
+  stemKo?: string
+  branchKo?: string
+  element?: string
+  animal?: string
 }
 
 export interface SajuData {
-  yearPillar?: SajuPillar;
-  monthPillar?: SajuPillar;
-  dayPillar?: SajuPillar;
-  hourPillar?: SajuPillar;
-  dayMaster?: string;
-  dayMasterElement?: string;
-  fiveElements?: Record<string, number>;
-  dominantElement?: string;
-  weakElement?: string;
-  tenGods?: Record<string, string>;
+  yearPillar?: SajuPillar
+  monthPillar?: SajuPillar
+  dayPillar?: SajuPillar
+  hourPillar?: SajuPillar
+  dayMaster?: string
+  dayMasterElement?: string
+  fiveElements?: Record<string, number>
+  dominantElement?: string
+  weakElement?: string
+  tenGods?: Record<string, string>
   compatibility?: {
-    harmonies?: string[];
-    clashes?: string[];
-  };
+    harmonies?: string[]
+    clashes?: string[]
+  }
 }
 
 // Planet data for astrology
 export interface Planet {
-  name: string;
-  sign: string;
-  signKo?: string;
-  degree?: number;
-  house?: number;
-  retrograde?: boolean;
+  name: string
+  sign: string
+  signKo?: string
+  degree?: number
+  house?: number
+  retrograde?: boolean
 }
 
 // House data for astrology
 export interface House {
-  number: number;
-  sign: string;
-  degree?: number;
-  planets?: string[];
+  number: number
+  sign: string
+  degree?: number
+  planets?: string[]
 }
 
 // Aspect data for astrology
 export interface Aspect {
-  planet1: string;
-  planet2: string;
-  type: string;
-  degree?: number;
-  orb?: number;
+  planet1: string
+  planet2: string
+  type: string
+  degree?: number
+  orb?: number
 }
 
 // Main astrology data structure
 export interface AstroData {
-  planets?: Planet[];
-  houses?: House[];
-  aspects?: Aspect[];
+  planets?: Planet[]
+  houses?: House[]
+  aspects?: Aspect[]
   ascendant?: {
-    sign: string;
-    degree?: number;
-  };
+    sign: string
+    degree?: number
+  }
   midheaven?: {
-    sign: string;
-    degree?: number;
-  };
-  sunSign?: string;
-  moonSign?: string;
-  risingSign?: string;
+    sign: string
+    degree?: number
+  }
+  sunSign?: string
+  moonSign?: string
+  risingSign?: string
 }
 
 // Advanced astrology features
 export interface AdvancedAstroData {
   draconic?: {
-    planets?: Planet[];
-    ascendant?: { sign: string; degree?: number };
-  };
+    planets?: Planet[]
+    ascendant?: { sign: string; degree?: number }
+  }
   harmonics?: {
-    harmonic: number;
-    planets?: Planet[];
-  }[];
+    harmonic: number
+    planets?: Planet[]
+  }[]
   progressions?: {
-    type: string;
-    date: string;
-    planets?: Planet[];
-  };
+    type: string
+    date: string
+    planets?: Planet[]
+  }
   solarReturn?: {
-    year: number;
-    planets?: Planet[];
-    houses?: House[];
-  };
+    year: number
+    planets?: Planet[]
+    houses?: House[]
+  }
   lunarReturn?: {
-    month: string;
-    planets?: Planet[];
-  };
-  compositeChart?: AstroData;
+    month: string
+    planets?: Planet[]
+  }
+  compositeChart?: AstroData
 }
 
 // Life prediction context for AI counselor
 export interface PredictionContext {
-  eventType?: string;
-  eventLabel?: string;
+  eventType?: string
+  eventLabel?: string
   optimalPeriods?: Array<{
-    startDate: string;
-    endDate: string;
-    score: number;
-    grade: string;
-    reasons: string[];
-  }>;
+    startDate: string
+    endDate: string
+    score: number
+    grade: string
+    reasons: string[]
+  }>
   avoidPeriods?: Array<{
-    startDate: string;
-    endDate: string;
-    score: number;
-    reasons: string[];
-  }>;
-  advice?: string;
+    startDate: string
+    endDate: string
+    score: number
+    reasons: string[]
+  }>
+  advice?: string
   tierAnalysis?: {
-    tier6?: { reasons: string[]; penalties: string[] };
-    tier7to10?: { reasons: string[]; penalties: string[]; confidence: number };
-  };
+    tier6?: { reasons: string[]; penalties: string[] }
+    tier7to10?: { reasons: string[]; penalties: string[]; confidence: number }
+  }
 }
 
 // Chat component props
 export interface ChatProps {
-  profile: ChatProfile;
-  initialContext?: string;
-  lang?: LangKey;
-  theme?: string;
-  seedEvent?: string;
-  saju?: SajuData;
-  astro?: AstroData;
-  advancedAstro?: AdvancedAstroData;
+  profile: ChatProfile
+  initialContext?: string
+  lang?: LangKey
+  theme?: string
+  seedEvent?: string
+  saju?: SajuData
+  astro?: AstroData
+  advancedAstro?: AdvancedAstroData
   // Life prediction context (TIER 1-10 분석 결과)
-  predictionContext?: PredictionContext;
+  predictionContext?: PredictionContext
   // Premium features
-  userContext?: UserContext;
-  chatSessionId?: string;
-  onSaveMessage?: (userMsg: string, assistantMsg: string) => void;
-  autoScroll?: boolean;
+  userContext?: UserContext
+  chatSessionId?: string
+  onSaveMessage?: (userMsg: string, assistantMsg: string) => void
+  autoScroll?: boolean
   // RAG session ID from /counselor/init prefetch
-  ragSessionId?: string;
+  ragSessionId?: string
   // Auto-send initial seeded question
-  autoSendSeed?: boolean;
+  autoSendSeed?: boolean
 }
 
 // Chat API request payload
 export interface ChatPayload {
-  name?: string;
-  birthDate?: string;
-  birthTime?: string;
-  latitude?: number;
-  longitude?: number;
-  gender?: string;
-  city?: string;
-  theme: string;
-  lang: LangKey;
-  messages: Message[];
-  cvText?: string;
-  saju?: SajuData;
-  astro?: AstroData;
-  advancedAstro?: AdvancedAstroData;
-  userContext?: UserContext;
+  name?: string
+  birthDate?: string
+  birthTime?: string
+  latitude?: number
+  longitude?: number
+  gender?: string
+  city?: string
+  theme: string
+  lang: LangKey
+  messages: Message[]
+  cvText?: string
+  saju?: SajuData
+  astro?: AstroData
+  advancedAstro?: AdvancedAstroData
+  userContext?: UserContext
   // Life prediction context
-  predictionContext?: PredictionContext;
+  predictionContext?: PredictionContext
+  counselingBrief?: CounselingBrief
 }
 
 // PDF text content item (from pdfjs-dist)
 export interface PDFTextItem {
-  str: string;
-  dir?: string;
-  transform?: number[];
-  width?: number;
-  height?: number;
-  fontName?: string;
+  str: string
+  dir?: string
+  transform?: number[]
+  width?: number
+  height?: number
+  fontName?: string
 }

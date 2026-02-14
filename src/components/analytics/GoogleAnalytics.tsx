@@ -1,58 +1,68 @@
-"use client";
+'use client'
 
-import Script from "next/script";
-import { useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useConsent } from "@/contexts/ConsentContext";
+import Script from 'next/script'
+import { useEffect } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { useConsent } from '@/contexts/ConsentContext'
 
 type WindowWithGtag = Window & {
-  gtag?: (...args: unknown[]) => void;
-};
+  gtag?: (...args: unknown[]) => void
+}
 
 const getGtag = () => {
-  if (typeof window === "undefined") {return undefined;}
-  return (window as WindowWithGtag).gtag;
-};
+  if (typeof window === 'undefined') {
+    return undefined
+  }
+  return (window as WindowWithGtag).gtag
+}
 
-const GA_ID_RE = /^[A-Z0-9-]+$/i;
+const GA_ID_RE = /^[A-Z0-9-]+$/i
 
 export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string }) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const { status } = useConsent();
-  const consentGranted = status === "granted";
-  const isGaIdValid = !gaId || GA_ID_RE.test(gaId);
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const { status } = useConsent()
+  const consentGranted = status === 'granted'
+  const isGaIdValid = !gaId || GA_ID_RE.test(gaId)
 
   useEffect(() => {
-    if (!gaId || !consentGranted || !isGaIdValid) {return;}
+    if (!gaId || !consentGranted || !isGaIdValid) {
+      return
+    }
 
-    const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
+    const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '')
 
     // Send pageview with custom URL
-    const gtag = getGtag();
+    const gtag = getGtag()
     if (gtag) {
-      gtag("config", gaId, {
+      gtag('config', gaId, {
         page_path: url,
-      });
+      })
     }
-  }, [pathname, searchParams, gaId, consentGranted, isGaIdValid]);
+  }, [pathname, searchParams, gaId, consentGranted, isGaIdValid])
 
   // Keep Google Consent Mode in sync with banner choice
   useEffect(() => {
-    if (!isGaIdValid) {return;}
-    const gtag = getGtag();
-    if (!gtag) {return;}
+    if (!isGaIdValid) {
+      return
+    }
+    const gtag = getGtag()
+    if (!gtag) {
+      return
+    }
 
-    const consentState = consentGranted ? "granted" : "denied";
-    gtag("consent", "update", {
+    const consentState = consentGranted ? 'granted' : 'denied'
+    gtag('consent', 'update', {
       ad_storage: consentState,
       analytics_storage: consentState,
       ad_user_data: consentState,
       ad_personalization: consentState,
-    });
-  }, [consentGranted, status, isGaIdValid]);
+    })
+  }, [consentGranted, status, isGaIdValid])
 
-  if (!gaId || !consentGranted || !isGaIdValid) {return null;}
+  if (!gaId || !consentGranted || !isGaIdValid) {
+    return null
+  }
 
   return (
     <>
@@ -84,85 +94,64 @@ export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string 
         }}
       />
     </>
-  );
+  )
 }
 
 // Helper function to track custom events
-export const trackEvent = (
-  eventName: string,
-  params?: Record<string, unknown>
-) => {
-  const gtag = getGtag();
+export const trackEvent = (eventName: string, params?: Record<string, unknown>) => {
+  const gtag = getGtag()
   if (gtag) {
-    gtag("event", eventName, params);
+    gtag('event', eventName, params)
   }
-};
+}
 
 // Pre-defined event trackers
 export const analytics = {
   // User interactions
-  login: () => trackEvent("login"),
-  signup: () => trackEvent("sign_up"),
-  logout: () => trackEvent("logout"),
+  login: () => trackEvent('login'),
+  signup: () => trackEvent('sign_up'),
+  logout: () => trackEvent('logout'),
 
   // Content engagement
-  likePost: (postId: string) =>
-    trackEvent("like_post", { post_id: postId }),
-  unlikePost: (postId: string) =>
-    trackEvent("unlike_post", { post_id: postId }),
-  commentPost: (postId: string) =>
-    trackEvent("comment", { post_id: postId }),
-  sharePost: (postId: string) =>
-    trackEvent("share", { post_id: postId }),
-  bookmarkPost: (postId: string) =>
-    trackEvent("bookmark", { post_id: postId }),
+  likePost: (postId: string) => trackEvent('like_post', { post_id: postId }),
+  unlikePost: (postId: string) => trackEvent('unlike_post', { post_id: postId }),
+  commentPost: (postId: string) => trackEvent('comment', { post_id: postId }),
+  sharePost: (postId: string) => trackEvent('share', { post_id: postId }),
+  bookmarkPost: (postId: string) => trackEvent('bookmark', { post_id: postId }),
 
   // Reading/Fortune features
-  generateDestinyMap: () =>
-    trackEvent("generate_destiny_map"),
-  viewAstrology: () =>
-    trackEvent("view_astrology"),
-  drawTarot: (category: string) =>
-    trackEvent("draw_tarot", { category }),
-  checkSaju: () =>
-    trackEvent("check_saju"),
+  generateDestinyMap: () => trackEvent('generate_destiny_map'),
+  matrixView: (source: string = 'unknown') => trackEvent('matrix_view', { source }),
+  matrixGenerate: (source: string = 'unknown') => trackEvent('matrix_generate', { source }),
+  matrixPdfDownload: () => trackEvent('matrix_pdf_download'),
+  viewAstrology: () => trackEvent('view_astrology'),
+  drawTarot: (category: string) => trackEvent('draw_tarot', { category }),
+  checkSaju: () => trackEvent('check_saju'),
 
   // Search and discovery
-  search: (query: string) =>
-    trackEvent("search", { search_term: query }),
-  filterCategory: (category: string) =>
-    trackEvent("filter_category", { category }),
+  search: (query: string) => trackEvent('search', { search_term: query }),
+  filterCategory: (category: string) => trackEvent('filter_category', { category }),
 
   // Conversion funnel
-  viewPricing: () =>
-    trackEvent("view_pricing"),
-  startTrial: () =>
-    trackEvent("begin_checkout"),
+  viewPricing: () => trackEvent('view_pricing'),
+  startTrial: () => trackEvent('begin_checkout'),
 
   // Purchase events (for GA4 conversion tracking)
-  purchase: (params: {
-    transaction_id: string;
-    value: number;
-    currency: string;
-    plan: string;
-  }) =>
-    trackEvent("purchase", {
+  purchase: (params: { transaction_id: string; value: number; currency: string; plan: string }) =>
+    trackEvent('purchase', {
       transaction_id: params.transaction_id,
       value: params.value,
       currency: params.currency,
       items: [{ item_name: params.plan, price: params.value }],
     }),
 
-  subscribe: (plan: string, value: number, currency: string = "KRW") =>
-    trackEvent("subscribe", { plan, value, currency }),
+  subscribe: (plan: string, value: number, currency: string = 'KRW') =>
+    trackEvent('subscribe', { plan, value, currency }),
 
-  cancelSubscription: (plan: string) =>
-    trackEvent("cancel_subscription", { plan }),
+  cancelSubscription: (plan: string) => trackEvent('cancel_subscription', { plan }),
 
   // Key conversion points
-  completeReading: (service: string) =>
-    trackEvent("complete_reading", { service }),
+  completeReading: (service: string) => trackEvent('complete_reading', { service }),
 
-  signupComplete: () =>
-    trackEvent("sign_up_complete"),
-};
+  signupComplete: () => trackEvent('sign_up_complete'),
+}

@@ -20,9 +20,9 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# Import utilities from tarot package
+# Import utilities from tarot.utils directly to avoid heavy package import side effects.
 try:
-    from backend_ai.app.tarot import (
+    from backend_ai.app.tarot.utils import (
         SearchMetrics,
         LRUCache,
         detect_best_device,
@@ -31,14 +31,14 @@ try:
     )
     from backend_ai.app.tarot_extractors import FILE_HANDLERS
 except ImportError:
-    from backend_ai.app.tarot import (
+    from app.tarot.utils import (
         SearchMetrics,
         LRUCache,
         detect_best_device,
         MODEL_OPTIONS,
         DEFAULT_MODEL,
     )
-    from backend_ai.app.tarot_extractors import FILE_HANDLERS
+    from app.tarot_extractors import FILE_HANDLERS
 
 try:
     from sentence_transformers import SentenceTransformer

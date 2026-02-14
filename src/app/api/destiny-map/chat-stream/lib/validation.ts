@@ -36,6 +36,35 @@ export const AstroDataStructureSchema = z
   })
   .passthrough()
 
+const CounselingBriefSchema = z.object({
+  user_archetype: z.object({
+    id: z.string().min(1).max(32),
+    name_ko: z.string().min(1).max(120),
+  }),
+  axes: z
+    .array(
+      z.object({
+        name: z.enum(['agency', 'warmth', 'boundary', 'resilience']),
+        score: z.number().min(0).max(100),
+        interpretation: z.string().max(400),
+      })
+    )
+    .max(4),
+  hybrid_archetype: z.object({
+    id: z.string().min(1).max(32),
+    name_ko: z.string().min(1).max(120),
+    fallback: z.boolean().optional(),
+  }),
+  confidence: z.object({
+    score: z.number().min(0).max(100),
+    level: z.enum(['high', 'medium', 'low']),
+  }),
+  key_strengths: z.array(z.string().max(200)).max(5),
+  key_blindspots: z.array(z.string().max(200)).max(5),
+  what_user_wants: z.string().max(500).optional(),
+  disclaimer: z.string().max(300),
+})
+
 /**
  * Main request body schema for destiny-map chat-stream
  */
@@ -64,6 +93,7 @@ export const DestinyMapChatStreamSchema = z.object({
   predictionContext: z.record(z.string(), z.unknown()).optional(),
   userContext: z.record(z.string(), z.unknown()).optional(),
   cvText: z.string().optional(),
+  counselingBrief: CounselingBriefSchema.optional(),
 })
 
 export type DestinyMapChatStreamInput = z.infer<typeof DestinyMapChatStreamSchema>

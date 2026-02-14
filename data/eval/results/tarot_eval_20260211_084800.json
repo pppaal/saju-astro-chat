@@ -1,0 +1,137 @@
+{
+  "timestamp": "2026-02-11T08:48:00.642224Z",
+  "total_samples": 168,
+  "top_k": 5,
+  "context_top_n": 3,
+  "min_score": null,
+  "zero_hit_rate": 0.0,
+  "tag_hit_rate": 0.9880952380952381,
+  "card_facet_coverage": 0.7023809523809523,
+  "counts": {
+    "zero_hits": 0,
+    "tag_hits": 166,
+    "card_hits": 118
+  },
+  "samples_preview": [
+    {
+      "query": "컵 Ace ??? career ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 Ace ??? general ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 Ace ??? love ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 Ace ??? career ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 Ace ??? general ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 Ace ??? love ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 10 ??? career ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 10 ??? general ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 10 ??? love ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 10 ??? career ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 10 ??? general ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 10 ??? love ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 2 ??? career ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 2 ??? general ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 2 ??? love ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 2 ??? career ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 2 ??? general ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 2 ??? love ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 3 ??? career ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    },
+    {
+      "query": "컵 3 ??? general ?? ???",
+      "result_count": 5,
+      "tag_hit": true,
+      "card_hit": true
+    }
+  ]
+}

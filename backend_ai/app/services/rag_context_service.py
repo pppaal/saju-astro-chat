@@ -213,7 +213,8 @@ def build_tarot_search_context(
     query: str,
     rag_instance: Any,
     domain: str = "tarot",
-    top_k: int = _DEFAULT_TOP_K
+    top_k: int = _DEFAULT_TOP_K,
+    draws: Optional[List[dict]] = None,
 ) -> Tuple[List, str, Optional[str], Optional[str]]:
     """
     Build full tarot search context with expansion and fallback.
@@ -238,22 +239,40 @@ def build_tarot_search_context(
     context_top_k = min(top_k, _CONTEXT_TOP_K)
 
     # Try original query
-    results = rag_instance.search(domain, query, top_k=top_k)
-    context = rag_instance.get_context(domain, query, top_k=context_top_k, max_chars=_CONTEXT_MAX_CHARS)
+    results = rag_instance.search(domain, query, top_k=top_k, draws=draws)
+    context = rag_instance.get_context(
+        domain,
+        query,
+        top_k=context_top_k,
+        max_chars=_CONTEXT_MAX_CHARS,
+        draws=draws,
+    )
 
     # Try expanded query if no results
     if not results:
         expanded = expand_tarot_query(query)
         if expanded != query:
             expanded_query = expanded
-            results = rag_instance.search(domain, expanded, top_k=top_k)
-            context = rag_instance.get_context(domain, expanded, top_k=context_top_k, max_chars=_CONTEXT_MAX_CHARS)
+            results = rag_instance.search(domain, expanded, top_k=top_k, draws=draws)
+            context = rag_instance.get_context(
+                domain,
+                expanded,
+                top_k=context_top_k,
+                max_chars=_CONTEXT_MAX_CHARS,
+                draws=draws,
+            )
 
     # Try fallback queries if still no results
     if not results:
         for candidate in get_fallback_tarot_queries(query):
-            results = rag_instance.search(domain, candidate, top_k=top_k)
-            context = rag_instance.get_context(domain, candidate, top_k=context_top_k, max_chars=_CONTEXT_MAX_CHARS)
+            results = rag_instance.search(domain, candidate, top_k=top_k, draws=draws)
+            context = rag_instance.get_context(
+                domain,
+                candidate,
+                top_k=context_top_k,
+                max_chars=_CONTEXT_MAX_CHARS,
+                draws=draws,
+            )
             if results:
                 fallback_query = candidate
                 break

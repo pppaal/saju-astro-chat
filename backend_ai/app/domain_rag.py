@@ -1,4 +1,4 @@
-# backend_ai/app/domain_rag.py
+﻿# backend_ai/app/domain_rag.py
 """
 Domain-Specific RAG Loader
 ==========================
@@ -7,10 +7,8 @@ Loads pre-computed embeddings by domain for faster startup.
 Refactored to use BaseEmbeddingRAG for shared embedding infrastructure.
 
 Domains:
-- destiny_map: astro + saju (loaded on startup for destiny-map)
 - tarot: loaded on-demand for tarot feature
-- dream: loaded on-demand for dream interpretation
-- iching: loaded on-demand for I Ching
+- extra domains via DOMAIN_RAG_DOMAINS env override (comma-separated)
 
 Usage:
     from domain_rag import DomainRAG
@@ -21,14 +19,20 @@ Usage:
 
 import os
 import logging
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any, Tuple
 from functools import lru_cache
+from statistics import mean
 
 import torch
 from sentence_transformers import util
 
-from app.rag import BaseEmbeddingRAG, RAGResult
 from app.rag.model_manager import get_shared_model
+from app.domain_settings import (
+    DOMAIN_RAG_DOMAINS,
+    DEFAULT_TAROT_MIN_SCORE,
+    TAROT_MIN_SCORE_LOW,
+    TAROT_MIN_SCORE_HIGH,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +43,11 @@ _USE_CHROMADB = os.environ.get("USE_CHROMADB", "0") == "1"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EMBEDDINGS_DIR = os.path.join(BASE_DIR, "data", "embeddings")
 
-# Domain configuration - only domains with actual embedding files
-DOMAINS = ["tarot", "dream"]
+# Shared domain configuration (single source of truth).
+DOMAINS = DOMAIN_RAG_DOMAINS
+
+# Tarot min-score presets (switchable via env: TAROT_MIN_SCORE).
+MIN_SCORE_PRESETS = (TAROT_MIN_SCORE_LOW, DEFAULT_TAROT_MIN_SCORE, TAROT_MIN_SCORE_HIGH)
 
 
 class DomainRAG:
@@ -126,6 +133,31 @@ class DomainRAG:
             del self._domain_cache[domain]
             logger.info(f"[DomainRAG] Unloaded {domain}")
 
+    @staticmethod
+    def _resolve_min_score(min_score: Optional[float]) -> float:
+        if min_score is None:
+            return DEFAULT_TAROT_MIN_SCORE
+        return float(min_score)
+
+    @staticmethod
+    def _log_score_distribution(domain: str, top_scores: List[float], min_score: float):
+        if not top_scores:
+            logger.info(
+                "[DomainRAG] score-stats domain=%s top_k=0 threshold=%.2f",
+                domain,
+                min_score,
+            )
+            return
+        logger.info(
+            "[DomainRAG] score-stats domain=%s top_k=%d min=%.4f max=%.4f mean=%.4f threshold=%.2f",
+            domain,
+            len(top_scores),
+            min(top_scores),
+            max(top_scores),
+            mean(top_scores),
+            min_score,
+        )
+
     @lru_cache(maxsize=256)
     def _embed_query(self, query: str) -> torch.Tensor:
         """Embed a query string (with caching)."""
@@ -143,7 +175,8 @@ class DomainRAG:
         domain: str,
         query: str,
         top_k: int = 5,
-        min_score: float = 0.3,
+        min_score: Optional[float] = None,
+        draws: Optional[List[Dict[str, Any]]] = None,
     ) -> List[Dict]:
         """
         Search within a specific domain.
@@ -156,21 +189,30 @@ class DomainRAG:
             query: Search query
             top_k: Number of results
             min_score: Minimum similarity score
+            draws: Optional card facets to force include for tarot
 
         Returns:
             List of results with text and score
         """
+        resolved_min_score = self._resolve_min_score(min_score)
         if _USE_CHROMADB:
-            return self._search_chromadb(domain, query, top_k, min_score)
+            return self._search_chromadb(
+                domain=domain,
+                query=query,
+                top_k=top_k,
+                min_score=resolved_min_score,
+                draws=draws,
+            )
 
-        return self._search_legacy(domain, query, top_k, min_score)
+        return self._search_legacy(domain, query, top_k, resolved_min_score)
 
     def _search_chromadb(
         self,
         domain: str,
         query: str,
         top_k: int = 5,
-        min_score: float = 0.3,
+        min_score: float = DEFAULT_TAROT_MIN_SCORE,
+        draws: Optional[List[Dict[str, Any]]] = None,
     ) -> List[Dict]:
         """ChromaDB 기반 도메인 검색."""
         try:
@@ -185,16 +227,39 @@ class DomainRAG:
             if query_emb is None:
                 return []
 
+            retrieval_top_k = top_k
+            if domain == "tarot":
+                retrieval_top_k = min(max(1, top_k), 3)
+
             q_list = query_emb.cpu().numpy().tolist()
-            results = vs.search(
+            raw_results = vs.search(
                 query_embedding=q_list,
-                top_k=top_k,
-                min_score=min_score,
+                top_k=retrieval_top_k,
+                min_score=0.0,
             )
+            top_scores = [float(r.get("score", 0.0)) for r in raw_results]
+            self._log_score_distribution(domain, top_scores, min_score)
+
+            forced_results = []
+            if domain == "tarot" and draws:
+                forced_results = self._fetch_forced_facet_results(
+                    vs=vs,
+                    query_embedding=q_list,
+                    draws=draws,
+                    fallback_domain=domain,
+                )
+
+            similarity_results = [r for r in raw_results if float(r.get("score", 0.0)) >= min_score]
+            merged = self._merge_results_with_priority(forced_results, similarity_results, top_k)
 
             return [
-                {"text": r["text"], "score": r["score"], "domain": domain}
-                for r in results
+                {
+                    "text": r["text"],
+                    "score": r["score"],
+                    "domain": domain,
+                    "context_bucket": r.get("context_bucket", "retrieved_support"),
+                }
+                for r in merged
             ]
 
         except ImportError:
@@ -203,12 +268,125 @@ class DomainRAG:
             logger.warning("[DomainRAG] ChromaDB 검색 실패: %s, legacy fallback", e)
             return self._search_legacy(domain, query, top_k, min_score)
 
+    @staticmethod
+    def _normalize_draw(draw: Dict[str, Any], fallback_domain: str) -> Optional[Tuple[str, str, str, str]]:
+        if not isinstance(draw, dict):
+            return None
+
+        card_id = str(draw.get("card_id") or "").strip()
+        orientation = str(draw.get("orientation") or "upright").strip().lower()
+        domain = str(draw.get("domain") or fallback_domain).strip().lower()
+        position = str(draw.get("position") or "").strip()
+
+        if not card_id:
+            return None
+        return (card_id, orientation or "upright", domain or fallback_domain, position)
+
+    def _fetch_forced_facet_results(
+        self,
+        vs,
+        query_embedding: List[float],
+        draws: List[Dict[str, Any]],
+        fallback_domain: str,
+    ) -> List[Dict]:
+        forced_results: List[Dict] = []
+        seen_facets = set()
+
+        for raw_draw in draws:
+            normalized = self._normalize_draw(raw_draw, fallback_domain=fallback_domain)
+            if not normalized:
+                continue
+            card_id, orientation, domain, position = normalized
+
+            dedupe_key = (card_id, orientation, domain, position)
+            if dedupe_key in seen_facets:
+                continue
+            seen_facets.add(dedupe_key)
+
+            where = {
+                "$and": [
+                    {"card_id": {"$eq": card_id}},
+                    {"orientation": {"$eq": orientation}},
+                    {"domain": {"$eq": domain}},
+                ]
+            }
+            if position:
+                where["$and"].append({"position": {"$eq": position}})
+
+            facet_matches = vs.search(
+                query_embedding=query_embedding,
+                top_k=1,
+                min_score=-1.0,
+                where=where,
+            )
+
+            if not facet_matches and position:
+                # Position can be absent/empty in corpus. Retry without position filter.
+                where_no_position = {
+                    "$and": [
+                        {"card_id": {"$eq": card_id}},
+                        {"orientation": {"$eq": orientation}},
+                        {"domain": {"$eq": domain}},
+                    ]
+                }
+                facet_matches = vs.search(
+                    query_embedding=query_embedding,
+                    top_k=1,
+                    min_score=-1.0,
+                    where=where_no_position,
+                )
+
+            if facet_matches:
+                row = dict(facet_matches[0])
+                row["context_bucket"] = "forced_facet"
+                forced_results.append(row)
+                logger.info(
+                    "[DomainRAG] forced-facet included card_id=%s orientation=%s domain=%s position=%s",
+                    card_id,
+                    orientation,
+                    domain,
+                    position or "-",
+                )
+            else:
+                logger.info(
+                    "[DomainRAG] forced-facet missing card_id=%s orientation=%s domain=%s position=%s",
+                    card_id,
+                    orientation,
+                    domain,
+                    position or "-",
+                )
+
+        return forced_results
+
+    @staticmethod
+    def _merge_results_with_priority(forced_results: List[Dict], similarity_results: List[Dict], top_k: int) -> List[Dict]:
+        merged: List[Dict] = []
+        seen = set()
+
+        def _push(item: Dict):
+            item_id = str(item.get("id") or "")
+            key = item_id or f"text::{item.get('text', '')}"
+            if key in seen:
+                return
+            seen.add(key)
+            merged.append(item)
+
+        for row in forced_results:
+            _push(row)
+        for row in similarity_results:
+            if "context_bucket" not in row:
+                row = dict(row)
+                row["context_bucket"] = "retrieved_support"
+            _push(row)
+
+        return merged[: max(1, top_k)]
+
     def _search_legacy(
         self,
         domain: str,
         query: str,
         top_k: int = 5,
-        min_score: float = 0.3,
+        min_score: float = DEFAULT_TAROT_MIN_SCORE,
     ) -> List[Dict]:
         """기존 PyTorch cosine sim 도메인 검색."""
         # Load domain if not already loaded
@@ -227,6 +405,8 @@ class DomainRAG:
         # Compute similarities
         scores = util.cos_sim(query_emb, embeddings)[0]
         top_results = torch.topk(scores, k=min(top_k, len(texts)))
+        top_scores = [float(score) for score in top_results.values]
+        self._log_score_distribution(domain, top_scores, min_score)
 
         results = []
         for idx, score in zip(top_results.indices, top_results.values):
@@ -245,7 +425,7 @@ class DomainRAG:
         domains: List[str],
         query: str,
         top_k: int = 5,
-        min_score: float = 0.3,
+        min_score: Optional[float] = None,
     ) -> List[Dict]:
         """
         Search across multiple domains and merge results.
@@ -261,8 +441,9 @@ class DomainRAG:
         """
         all_results = []
 
+        resolved_min_score = self._resolve_min_score(min_score)
         for domain in domains:
-            results = self.search(domain, query, top_k=top_k, min_score=min_score)
+            results = self.search(domain, query, top_k=top_k, min_score=resolved_min_score)
             all_results.extend(results)
 
         # Sort by score and return top_k
@@ -275,6 +456,7 @@ class DomainRAG:
         query: str,
         top_k: int = 3,
         max_chars: int = 1500,
+        draws: Optional[List[Dict[str, Any]]] = None,
     ) -> str:
         """
         Get context string for LLM prompt.
@@ -284,24 +466,38 @@ class DomainRAG:
             query: Search query
             top_k: Number of results
             max_chars: Maximum characters in context
+            draws: Optional card facets to force include for tarot
 
         Returns:
             Formatted context string
         """
-        results = self.search(domain, query, top_k=top_k)
+        results = self.search(domain, query, top_k=top_k, draws=draws)
 
         if not results:
             return ""
 
         context_parts = []
         total_chars = 0
+        forced = [r for r in results if r.get("context_bucket") == "forced_facet"]
+        support = [r for r in results if r.get("context_bucket") != "forced_facet"]
 
-        for r in results:
-            text = r["text"]
-            if total_chars + len(text) > max_chars:
-                break
-            context_parts.append(f"- {text}")
-            total_chars += len(text)
+        if forced:
+            context_parts.append("### forced_facet")
+            for r in forced:
+                text = r["text"]
+                if total_chars + len(text) > max_chars:
+                    break
+                context_parts.append(f"- {text}")
+                total_chars += len(text)
+
+        if support and total_chars < max_chars:
+            context_parts.append("### retrieved_support")
+            for r in support:
+                text = r["text"]
+                if total_chars + len(text) > max_chars:
+                    break
+                context_parts.append(f"- {text}")
+                total_chars += len(text)
 
         return "\n".join(context_parts)
 
@@ -337,11 +533,11 @@ def get_domain_rag(preload: List[str] = None) -> DomainRAG:
 # UTILITY FUNCTIONS
 # =============================================================================
 
-def search_tarot(query: str, top_k: int = 5) -> List[Dict]:
+def search_tarot(query: str, top_k: int = 5, draws: Optional[List[Dict[str, Any]]] = None) -> List[Dict]:
     """Convenience function for tarot searches."""
     rag = get_domain_rag()
     rag.load_domain("tarot")
-    return rag.search("tarot", query, top_k=top_k)
+    return rag.search("tarot", query, top_k=top_k, draws=draws)
 
 
 def search_dream(query: str, top_k: int = 5) -> List[Dict]:

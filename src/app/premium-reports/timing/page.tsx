@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import Link from 'next/link'
 import DateTimePicker from '@/components/ui/DateTimePicker'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 
 interface SajuData {
   dayMasterElement: string
@@ -130,6 +131,7 @@ function TimingReportContent() {
       }
 
       // 성공 - 결과 페이지로 이동
+      analytics.matrixGenerate('premium-reports/timing')
       router.push(`/premium-reports/result/${data.report.id}?type=timing`)
     } catch (err) {
       setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')

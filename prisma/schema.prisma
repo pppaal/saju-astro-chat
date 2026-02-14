@@ -658,6 +658,12 @@ model ICPResult {
   userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  testVersion String @default("icp_v2")
+  resultId    String?
+  confidence  Int?
+  axes        Json?
+  completionSeconds Int?
+  missingAnswerCount Int @default(0)
 
   // 주 스타일과 부 스타일
   primaryStyle   String // BC, PA, NO, LM, JK, HI, FG, DE

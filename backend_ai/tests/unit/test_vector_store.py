@@ -8,6 +8,7 @@ chromadb가 설치되지 않은 환경에서도 graceful하게 스킵.
 import os
 import shutil
 import tempfile
+import importlib
 
 import pytest
 
@@ -35,6 +36,53 @@ def vector_store(temp_persist_dir):
         persist_dir=temp_persist_dir,
         collection_name="test_collection",
     )
+
+
+class TestVectorStoreFactoryCache:
+    """Factory cache behavior tests (no chromadb runtime required)."""
+
+    def test_same_key_reuses_instance(self, tmp_path):
+        import backend_ai.app.rag.vector_store as vs_mod
+
+        importlib.reload(vs_mod)
+        persist_dir = str(tmp_path / "chromadb")
+
+        vs1 = vs_mod.get_vector_store(collection_name="domain_tarot", persist_dir=persist_dir)
+        vs2 = vs_mod.get_vector_store(collection_name="domain_tarot", persist_dir=persist_dir)
+
+        assert vs1 is vs2
+
+    def test_different_collection_creates_separate_instance(self, tmp_path):
+        import backend_ai.app.rag.vector_store as vs_mod
+
+        importlib.reload(vs_mod)
+        persist_dir = str(tmp_path / "chromadb")
+
+        vs_tarot = vs_mod.get_vector_store(collection_name="domain_tarot", persist_dir=persist_dir)
+        vs_corpus = vs_mod.get_vector_store(collection_name="corpus_nodes", persist_dir=persist_dir)
+
+        assert vs_tarot is not vs_corpus
+        assert vs_tarot._collection_name == "domain_tarot"
+        assert vs_corpus._collection_name == "corpus_nodes"
+
+    def test_embedding_model_id_splits_cache(self, tmp_path):
+        import backend_ai.app.rag.vector_store as vs_mod
+
+        importlib.reload(vs_mod)
+        persist_dir = str(tmp_path / "chromadb")
+
+        vs_a = vs_mod.get_vector_store(
+            collection_name="domain_tarot",
+            persist_dir=persist_dir,
+            embedding_model_id="model_a",
+        )
+        vs_b = vs_mod.get_vector_store(
+            collection_name="domain_tarot",
+            persist_dir=persist_dir,
+            embedding_model_id="model_b",
+        )
+
+        assert vs_a is not vs_b
 
 
 @pytest.mark.skipif(not HAS_CHROMADB, reason="chromadb not installed")

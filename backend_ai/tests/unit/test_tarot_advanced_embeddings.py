@@ -99,3 +99,16 @@ class TestMixinsExport:
         """StatusMethodsMixin should be importable."""
         from app.tarot_advanced_embeddings import StatusMethodsMixin
         assert StatusMethodsMixin is not None
+
+
+class TestImportStability:
+    """Import-order stability tests (cycle regression guard)."""
+
+    def test_shim_import_then_hybrid_rag_import(self):
+        import importlib
+
+        shim = importlib.import_module("app.tarot_advanced_embeddings")
+        assert shim is not None
+
+        hybrid = importlib.import_module("app.tarot_hybrid_rag")
+        assert hybrid is not None

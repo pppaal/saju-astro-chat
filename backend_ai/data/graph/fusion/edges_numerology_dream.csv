@@ -1,16 +1,16 @@
 id,source,target,relation,weight,description
-ND_001,NUM_LIFEPATH_1,DREAM_LEADERSHIP,생명수-꿈연결,0.8,생명수 1은 리더십 관련 꿈(지도자가 됨/앞서감)과 연결
-ND_002,NUM_LIFEPATH_2,DREAM_PARTNERSHIP,생명수-꿈연결,0.8,생명수 2는 관계/협력 꿈(파트너/결혼/협동)과 연결
-ND_003,NUM_LIFEPATH_3,DREAM_CREATIVITY,생명수-꿈연결,0.8,생명수 3은 창조적 꿈(예술/표현/공연)과 연결
-ND_004,NUM_LIFEPATH_4,DREAM_STRUCTURE,생명수-꿈연결,0.8,생명수 4는 구조/안정 꿈(집짓기/기초/질서)과 연결
-ND_005,NUM_LIFEPATH_5,DREAM_FREEDOM,생명수-꿈연결,0.8,생명수 5는 자유/모험 꿈(여행/탈출/변화)과 연결
-ND_006,NUM_LIFEPATH_6,DREAM_NURTURING,생명수-꿈연결,0.8,생명수 6은 돌봄/가정 꿈(가족/아이/집)과 연결
-ND_007,NUM_LIFEPATH_7,DREAM_SPIRITUAL,생명수-꿈연결,0.8,생명수 7은 영적/탐구 꿈(명상/신비/깊은물)과 연결
-ND_008,NUM_LIFEPATH_8,DREAM_POWER,생명수-꿈연결,0.8,생명수 8은 권력/성취 꿈(돈/성공/사업)과 연결
-ND_009,NUM_LIFEPATH_9,DREAM_HUMANITARIAN,생명수-꿈연결,0.8,생명수 9는 인도주의 꿈(봉사/치유/세계)과 연결
-ND_010,NUM_LIFEPATH_11,DREAM_ILLUMINATION,생명수-꿈연결,0.9,마스터 수 11은 영감/계시 꿈(빛/메시지/예언)과 연결
-ND_011,NUM_LIFEPATH_22,DREAM_BUILDING,생명수-꿈연결,0.9,마스터 수 22는 대규모 건설 꿈(건물/도시/시스템)과 연결
-ND_012,NUM_LIFEPATH_33,DREAM_TEACHING,생명수-꿈연결,0.9,마스터 수 33은 가르침/치유 꿈(스승/제자/치유)과 연결
+ND_001,NUM_1,DREAM_LEADERSHIP,생명수-꿈연결,0.8,생명수 1은 리더십 관련 꿈(지도자가 됨/앞서감)과 연결
+ND_002,NUM_2,DREAM_PARTNERSHIP,생명수-꿈연결,0.8,생명수 2는 관계/협력 꿈(파트너/결혼/협동)과 연결
+ND_003,NUM_3,DREAM_CREATIVITY,생명수-꿈연결,0.8,생명수 3은 창조적 꿈(예술/표현/공연)과 연결
+ND_004,NUM_4,DREAM_STRUCTURE,생명수-꿈연결,0.8,생명수 4는 구조/안정 꿈(집짓기/기초/질서)과 연결
+ND_005,NUM_5,DREAM_FREEDOM,생명수-꿈연결,0.8,생명수 5는 자유/모험 꿈(여행/탈출/변화)과 연결
+ND_006,NUM_6,DREAM_NURTURING,생명수-꿈연결,0.8,생명수 6은 돌봄/가정 꿈(가족/아이/집)과 연결
+ND_007,NUM_7,DREAM_SPIRITUAL,생명수-꿈연결,0.8,생명수 7은 영적/탐구 꿈(명상/신비/깊은물)과 연결
+ND_008,NUM_8,DREAM_POWER,생명수-꿈연결,0.8,생명수 8은 권력/성취 꿈(돈/성공/사업)과 연결
+ND_009,NUM_9,DREAM_HUMANITARIAN,생명수-꿈연결,0.8,생명수 9는 인도주의 꿈(봉사/치유/세계)과 연결
+ND_010,NUM_11,DREAM_ILLUMINATION,생명수-꿈연결,0.9,마스터 수 11은 영감/계시 꿈(빛/메시지/예언)과 연결
+ND_011,NUM_22,DREAM_BUILDING,생명수-꿈연결,0.9,마스터 수 22는 대규모 건설 꿈(건물/도시/시스템)과 연결
+ND_012,NUM_33,DREAM_TEACHING,생명수-꿈연결,0.9,마스터 수 33은 가르침/치유 꿈(스승/제자/치유)과 연결
 ND_013,NUM_EXPRESSION_1,DREAM_VOICE,표현수-꿈연결,0.7,표현수 1은 자기 목소리 꿈(연설/노래/외침)과 연결
 ND_014,NUM_EXPRESSION_3,DREAM_PERFORMANCE,표현수-꿈연결,0.7,표현수 3은 무대/공연 꿈(배우/관객/박수)과 연결
 ND_015,NUM_EXPRESSION_5,DREAM_COMMUNICATION,표현수-꿈연결,0.7,표현수 5는 소통 꿈(대화/글쓰기/메시지)과 연결

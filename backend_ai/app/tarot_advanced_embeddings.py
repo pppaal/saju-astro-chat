@@ -11,14 +11,36 @@ All functionality is now in:
 This file provides backward compatibility for existing imports.
 """
 
-# Import everything from the new package for backward compatibility
-from .tarot_embeddings import (
-    TarotAdvancedEmbeddings,
-    get_tarot_advanced_embeddings,
-    SearchMethodsMixin,
-    CacheMethodsMixin,
-    StatusMethodsMixin,
-)
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .tarot_embeddings import (
+        TarotAdvancedEmbeddings,
+        get_tarot_advanced_embeddings,
+        SearchMethodsMixin,
+        CacheMethodsMixin,
+        StatusMethodsMixin,
+    )
+
+
+def get_tarot_advanced_embeddings(*args: Any, **kwargs: Any):
+    """Lazy import wrapper to avoid module import cycles at startup."""
+    from .tarot_embeddings import get_tarot_advanced_embeddings as _impl
+
+    return _impl(*args, **kwargs)
+
+
+def __getattr__(name: str):
+    if name in {
+        "TarotAdvancedEmbeddings",
+        "SearchMethodsMixin",
+        "CacheMethodsMixin",
+        "StatusMethodsMixin",
+    }:
+        from . import tarot_embeddings as _pkg
+
+        return getattr(_pkg, name)
+    raise AttributeError(name)
 
 # Re-export for backward compatibility
 __all__ = [

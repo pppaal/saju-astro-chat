@@ -1,105 +1,102 @@
-// src/lib/icp/types.ts
-/**
- * ICP (Interpersonal Circumplex) 타입 정의
- */
+﻿export type ICPQuizAnswers = Record<string, string>
 
-export type ICPQuizAnswers = Record<string, string>;
-
-export type ICPOctantCode = 'PA' | 'BC' | 'DE' | 'FG' | 'HI' | 'JK' | 'LM' | 'NO';
+export type ICPOctantCode = 'PA' | 'BC' | 'DE' | 'FG' | 'HI' | 'JK' | 'LM' | 'NO'
 
 export interface ICPOctant {
-  code: ICPOctantCode;
-  emoji: string;
-  name: string;
-  korean: string;
-  traits: string[];
-  traitsKo: string[];
-  shadow: string;
-  shadowKo: string;
-  dominance: number; // -1 to 1
-  affiliation: number; // -1 to 1
-  description: string;
-  descriptionKo: string;
-  therapeuticQuestions: string[];
-  therapeuticQuestionsKo: string[];
-  growthRecommendations: string[];
-  growthRecommendationsKo: string[];
+  code: ICPOctantCode
+  emoji: string
+  name: string
+  korean: string
+  traits: string[]
+  traitsKo: string[]
+  shadow: string
+  shadowKo: string
+  dominance: number
+  affiliation: number
+  description: string
+  descriptionKo: string
+  therapeuticQuestions: string[]
+  therapeuticQuestionsKo: string[]
+  growthRecommendations: string[]
+  growthRecommendationsKo: string[]
 }
 
 export interface ICPAnalysis {
-  // Axis scores (0-100)
-  dominanceScore: number; // 0 = submissive, 100 = dominant
-  affiliationScore: number; // 0 = hostile, 100 = friendly
-
-  // Normalized to -1 to 1
-  dominanceNormalized: number;
-  affiliationNormalized: number;
-
-  // Octant scores (each 0-1)
-  octantScores: Record<ICPOctantCode, number>;
-
-  // Primary and secondary styles
-  primaryStyle: ICPOctantCode;
-  secondaryStyle: ICPOctantCode | null;
-
-  // Style details
-  primaryOctant: ICPOctant;
-  secondaryOctant: ICPOctant | null;
-
-  // Summary
-  summary: string;
-  summaryKo: string;
-
-  // Consistency score (how consistent the answers were)
-  consistencyScore: number;
+  dominanceScore: number
+  affiliationScore: number
+  dominanceNormalized: number
+  affiliationNormalized: number
+  boundaryScore?: number
+  resilienceScore?: number
+  octantScores: Record<ICPOctantCode, number>
+  primaryStyle: ICPOctantCode
+  secondaryStyle: ICPOctantCode | null
+  primaryOctant: ICPOctant
+  secondaryOctant: ICPOctant | null
+  summary: string
+  summaryKo: string
+  consistencyScore: number
+  confidence?: number
+  confidenceLevel?: 'high' | 'medium' | 'low'
+  testVersion?: string
+  resultId?: string
+  explainability?: {
+    topAxes: Array<{ axis: string; score: number; interpretation: string }>
+    lowAxes: Array<{ axis: string; score: number; interpretation: string }>
+    evidence: Array<{
+      questionId: string
+      axis: string
+      answer: number
+      reverse: boolean
+      reason: string
+    }>
+    note: string
+  }
 }
 
 export interface ICPCompatibility {
-  person1Style: ICPOctantCode;
-  person2Style: ICPOctantCode;
-  score: number; // 0-100
-  level: string;
-  levelKo: string;
-  description: string;
-  descriptionKo: string;
+  person1Style: ICPOctantCode
+  person2Style: ICPOctantCode
+  score: number
+  level: string
+  levelKo: string
+  description: string
+  descriptionKo: string
   dynamics: {
-    strengths: string[];
-    strengthsKo: string[];
-    challenges: string[];
-    challengesKo: string[];
-    tips: string[];
-    tipsKo: string[];
-  };
+    strengths: string[]
+    strengthsKo: string[]
+    challenges: string[]
+    challengesKo: string[]
+    tips: string[]
+    tipsKo: string[]
+  }
 }
 
-// Simplified axis data for cross-system compatibility
 export interface PersonaAxisData {
-  energy: { score: number; pole: string };
-  cognition: { score: number; pole: string };
-  decision: { score: number; pole: string };
-  rhythm: { score: number; pole: string };
+  energy: { score: number; pole: string }
+  cognition: { score: number; pole: string }
+  decision: { score: number; pole: string }
+  rhythm: { score: number; pole: string }
 }
 
-// Cross-system compatibility result
 export interface CrossSystemCompatibility {
-  score: number;
-  level: string;
-  levelKo: string;
-  description: string;
-  descriptionKo: string;
-  insights: string[];
-  insightsKo: string[];
+  score: number
+  level: string
+  levelKo: string
+  description: string
+  descriptionKo: string
+  insights: string[]
+  insightsKo: string[]
 }
 
-// Persona compatibility result
 export interface PersonaCompatibilityResult {
-  score: number;
-  level: string;
-  levelKo: string;
-  description: string;
-  descriptionKo: string;
-  synergies: string[];
-  synergiesKo: string[];
-  tensions: string[];
-  tensionsKo: string[];
+  score: number
+  level: string
+  levelKo: string
+  description: string
+  descriptionKo: string
+  synergies: string[]
+  synergiesKo: string[]
+  tensions: string[]
+  tensionsKo: string[]
 }

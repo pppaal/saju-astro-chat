@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { logger } from '@/lib/logger'
 import type { ICPQuizAnswers, ICPAnalysis } from '@/lib/icp/types'
 import { analyzeICP } from '@/lib/icp/analysis'
+import { TOTAL_ICP_QUESTIONS } from '@/lib/icp/questions'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { fetchWithRetry, FetchWithRetryError } from '@/lib/http'
 import { useConfetti } from '@/hooks/useConfetti'
@@ -28,6 +29,7 @@ export default function useICPResult(locale: string) {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [isSavedToDb, setIsSavedToDb] = useState(false)
   const [hasPersonaResult, setHasPersonaResult] = useState(false)
+  const [completionSeconds, setCompletionSeconds] = useState<number | undefined>(undefined)
 
   const { showConfetti, confettiParticles, createConfetti } = useConfetti(ICP_CONFETTI_COLORS)
 
@@ -39,6 +41,11 @@ export default function useICPResult(locale: string) {
       if (raw) {
         const parsed = JSON.parse(raw)
         setAnswers(parsed)
+      }
+      const startedAt = Number(localStorage.getItem('icpQuizStartedAt') || '')
+      const completedAt = Number(localStorage.getItem('icpQuizCompletedAt') || '')
+      if (Number.isFinite(startedAt) && Number.isFinite(completedAt) && completedAt > startedAt) {
+        setCompletionSeconds(Math.round((completedAt - startedAt) / 1000))
       }
       const personaRaw =
         localStorage.getItem('personaQuizAnswers') ??
@@ -114,16 +121,35 @@ export default function useICPResult(locale: string) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            testVersion: analysis.testVersion || 'icp_v2',
+            resultId: analysis.resultId || null,
             primaryStyle: analysis.primaryStyle,
             secondaryStyle: analysis.secondaryStyle,
             dominanceScore: analysis.dominanceScore,
             affiliationScore: analysis.affiliationScore,
-            consistencyScore: analysis.consistencyScore,
+            confidence: analysis.confidence ?? analysis.consistencyScore,
+            axes: {
+              agency: analysis.dominanceScore,
+              warmth: analysis.affiliationScore,
+              boundary: analysis.boundaryScore ?? 50,
+              resilience: analysis.resilienceScore ?? 50,
+            },
+            completionSeconds: completionSeconds,
+            missingAnswerCount: Math.max(0, TOTAL_ICP_QUESTIONS - Object.keys(answers).length),
+            octantScores: analysis.octantScores,
+            answers,
             analysisData: {
               summary: isKo ? analysis.summaryKo : analysis.summary,
-              octantScores: analysis.octantScores,
-              primaryOctant: analysis.primaryOctant,
-              secondaryOctant: analysis.secondaryOctant,
+              summaryKo: analysis.summaryKo,
+              strengths: isKo ? analysis.primaryOctant.traitsKo : analysis.primaryOctant.traits,
+              challenges: [isKo ? analysis.primaryOctant.shadowKo : analysis.primaryOctant.shadow],
+              tips: isKo
+                ? analysis.primaryOctant.growthRecommendationsKo
+                : analysis.primaryOctant.growthRecommendations,
+              relationshipStyle: isKo
+                ? analysis.primaryOctant.descriptionKo
+                : analysis.primaryOctant.description,
+              explainability: analysis.explainability,
             },
           }),
         },
@@ -148,7 +174,7 @@ export default function useICPResult(locale: string) {
       }
       setSaveStatus('error')
     }
-  }, [analysis, authStatus, router, isKo])
+  }, [analysis, authStatus, router, isKo, completionSeconds, answers])
 
   const handleDownload = useCallback(() => {
     if (!analysis) {

@@ -30,6 +30,8 @@ from sentence_transformers import SentenceTransformer, util
 
 # ChromaDB Feature Flag: USE_CHROMADB=1 환경변수로 활성화
 _USE_CHROMADB = os.environ.get("USE_CHROMADB", "0") == "1"
+# When enabled, block non Saju+Astro fallbacks to avoid mixed-domain leakage.
+_EXCLUDE_NON_SAJU_ASTRO = os.environ.get("EXCLUDE_NON_SAJU_ASTRO", "0") == "1"
 
 logger = logging.getLogger(__name__)
 
@@ -136,6 +138,8 @@ _DEFAULT_CPU_THREADS = 4
 _DEFAULT_BATCH_SIZE = 64
 _GRAPH_CACHE_FILE = "graph_rag_embeds.pt"
 _CORPUS_CACHE_FILE = "corpus_embeds.pt"
+_SAJU_ASTRO_GRAPH_COLLECTION = "saju_astro_graph_nodes_v1"
+_SAJU_ASTRO_DOMAIN = "saju_astro"
 
 # Node ID fields to check in order
 _NODE_ID_FIELDS = ("id", "label", "name")
@@ -154,6 +158,54 @@ _GRAPH_TARGET_FOLDERS = frozenset([
     "astro", "saju_literary", "numerology", "dream", "tarot",
     "jung_psychology", "persona"
 ])
+
+# Exclude low-priority domains from graph loading by default.
+# Override with GRAPH_EXCLUDE_KEYWORDS="" to load all domains.
+_GRAPH_EXCLUDE_KEYWORDS = tuple(
+    k.strip().lower()
+    for k in os.getenv("GRAPH_EXCLUDE_KEYWORDS", "numerology,iching,dream,jung,persona").split(",")
+    if k.strip()
+)
+
+_EXCLUDED_NODE_PATTERNS = {
+    "iching": (
+        "HEX_",
+        "ICHING",
+        "HEXAGRAM_",
+    ),
+    "numerology": (
+        "NUM_",
+        "NM_",
+        "NB_",
+        "NC_",
+        "NE_",
+        "NMF_",
+        "NP_",
+        "NSU_",
+        "NKD_",
+        "NEXPR_",
+    ),
+    "dream": (
+        "DREAM_",
+        "DS_",
+        "DAN_",
+        "DLOC_",
+        "DSET_",
+        "DACT_",
+    ),
+    "jung": (
+        "JDS_",
+        "JC_",
+        "JS_",
+        "JA_",
+        "JUNG_",
+    ),
+    "persona": (
+        "PERSONA_",
+        "STOIC_",
+        "NOVA_",
+    ),
+}
 
 # Saju interpretation fields
 _SAJU_INTERP_FIELDS = (
@@ -367,6 +419,35 @@ def _has_node_columns(headers: List[str]) -> bool:
     return any(h in header_set for h in _NODE_ID_FIELDS)
 
 
+def _is_excluded_graph_path(path: Path) -> bool:
+    """Return True when path matches excluded graph domain keywords."""
+    if not _GRAPH_EXCLUDE_KEYWORDS:
+        return False
+
+    parts = [p.lower() for p in path.parts]
+    name = path.name.lower()
+
+    for keyword in _GRAPH_EXCLUDE_KEYWORDS:
+        if keyword in name:
+            return True
+        if any(keyword == part or keyword in part for part in parts):
+            return True
+    return False
+
+
+def _is_excluded_node_id(node_id: Optional[str]) -> bool:
+    """Return True when node id matches excluded domain patterns."""
+    if not node_id or not _GRAPH_EXCLUDE_KEYWORDS:
+        return False
+
+    upper = node_id.upper()
+    for keyword in _GRAPH_EXCLUDE_KEYWORDS:
+        patterns = _EXCLUDED_NODE_PATTERNS.get(keyword, (keyword.upper(),))
+        if any(token in upper for token in patterns):
+            return True
+    return False
+
+
 _SPECIAL_NODE_MAP = {
     "Ascendant": "Asc",
     "Midheaven": "MC",
@@ -526,6 +607,18 @@ def _normalize_edge_node_id(node_id: Optional[str]) -> Optional[str]:
     return node_id
 
 
+def _build_edge_id(source: str, target: str, relation: str) -> str:
+    base = f"{source}|{target}|{relation}"
+    return hashlib.sha1(base.encode("utf-8")).hexdigest()[:16]
+
+
+def _resolve_edge_id(row: Dict, source: str, target: str, relation: str) -> str:
+    row_edge_id = _normalize_value(row.get("edge_id")) or _normalize_value(row.get("id"))
+    if row_edge_id:
+        return row_edge_id
+    return _build_edge_id(source, target, relation)
+
+
 def _canonical_saju_element(value: Optional[str]) -> Optional[str]:
     if not value:
         return None
@@ -612,6 +705,8 @@ class GraphRAG:
         for csv_path in sorted(self.graph_dir.rglob("*.csv")):
             if csv_path.name.endswith(".fixed.csv"):
                 continue
+            if _is_excluded_graph_path(csv_path):
+                continue
             fixed_path = csv_path.with_suffix(".csv.fixed.csv")
             path = fixed_path if fixed_path.exists() else csv_path
             name = csv_path.name.lower()
@@ -648,6 +743,8 @@ class GraphRAG:
         # Load rules JSONs
         if self.rules_dir.exists():
             for json_path in self.rules_dir.rglob("*.json"):
+                if _is_excluded_graph_path(json_path):
+                    continue
                 key = json_path.stem
                 try:
                     loaded = json.loads(json_path.read_text(encoding="utf-8"))
@@ -804,7 +901,14 @@ class GraphRAG:
 
                 if not self.graph.has_edge(saju_id, astro_id):
                     edge_desc = combined or astro.get("reason") or ""
-                    self.graph.add_edge(saju_id, astro_id, relation="element_correspondence", desc=edge_desc, weight="1")
+                    self.graph.add_edge(
+                        saju_id,
+                        astro_id,
+                        edge_id=_build_edge_id(saju_id, astro_id, "element_correspondence"),
+                        relation="element_correspondence",
+                        desc=edge_desc,
+                        weight="1",
+                    )
 
     def _ensure_prefixed_node(self, node_id: str) -> Optional[str]:
         if "_" not in node_id:
@@ -888,13 +992,14 @@ class GraphRAG:
         with open(path, encoding="utf-8-sig") as f:
             for row in csv.DictReader(f):
                 node_id = _get_first_field(row, _NODE_ID_FIELDS)
-                if node_id:
-                    existing = self.graph.nodes.get(node_id)
-                    if existing:
-                        merged = _merge_node_attrs(existing, row)
-                        self.graph.add_node(node_id, **merged)
-                    else:
-                        self.graph.add_node(node_id, **row)
+                if not node_id or _is_excluded_node_id(node_id):
+                    continue
+                existing = self.graph.nodes.get(node_id)
+                if existing:
+                    merged = _merge_node_attrs(existing, row)
+                    self.graph.add_node(node_id, **merged)
+                else:
+                    self.graph.add_node(node_id, **row)
 
     def _load_edges(self, path: Path):
         """Load edges from CSV."""
@@ -906,10 +1011,13 @@ class GraphRAG:
                 dst = self._resolve_node_id(dst)
                 if not src or not dst:
                     continue
+                if _is_excluded_node_id(src) or _is_excluded_node_id(dst):
+                    continue
                 rel = _get_first_field(row, _EDGE_REL_FIELDS) or "link"
+                edge_id = _resolve_edge_id(row, src, dst, rel)
                 desc = _get_first_field(row, _EDGE_DESC_FIELDS) or ""
                 weight = _normalize_value(row.get("weight")) or "1"
-                self.graph.add_edge(src, dst, relation=rel, desc=desc, weight=weight)
+                self.graph.add_edge(src, dst, edge_id=edge_id, relation=rel, desc=desc, weight=weight)
 
     def _backfill_node_attributes(self):
         """Ensure nodes created via edges have minimal label text for embeddings."""
@@ -1015,7 +1123,7 @@ class GraphRAG:
     def _query_chromadb(self, facts_str: str, top_k: int, domain_priority: str) -> Dict:
         """ChromaDB HNSW 인덱스 기반 검색 (O(log n)) + PageRank + CrossEncoder 재순위화."""
         try:
-            from app.rag.vector_store import get_vector_store
+            from app.rag.vector_store import VectorStoreManager
             from app.rag.graph_algorithms import GraphAlgorithms
             from app.rag.reranker import CrossEncoderReranker, USE_RERANKER
             from app.rag.hyde import HyDEGenerator, USE_HYDE
@@ -1039,9 +1147,23 @@ class GraphRAG:
                 normalize_embeddings=True,
             ).tolist()
 
-            vs = get_vector_store()
+            # Dedicated collection for Saju+Astro GraphRAG to avoid mixed-domain leakage.
+            vs = VectorStoreManager(collection_name=_SAJU_ASTRO_GRAPH_COLLECTION)
             if not vs.has_data():
-                logger.warning("[GraphRAG] ChromaDB에 데이터 없음, legacy fallback")
+                logger.warning(
+                    "[GraphRAG] ChromaDB collection '%s' is empty",
+                    _SAJU_ASTRO_GRAPH_COLLECTION,
+                )
+                if _EXCLUDE_NON_SAJU_ASTRO:
+                    return {
+                        "matched_nodes": [],
+                        "matched_ids": [],
+                        "related_edges": [],
+                        "rule_summary": None,
+                        "context_text": "",
+                        "stats": {"nodes": 0, "edges": 0, "backend": "chromadb", "empty": True},
+                    }
+                logger.warning("[GraphRAG] legacy fallback due to empty collection")
                 return self._query_legacy(facts_str, top_k, domain_priority)
 
             # 더 많이 검색 (재순위화를 위해)
@@ -1050,6 +1172,7 @@ class GraphRAG:
                 query_embedding=query_emb,
                 top_k=initial_k,
                 min_score=0.1,
+                where={"domain": _SAJU_ASTRO_DOMAIN},
             )
 
             matched_nodes = [r["text"] for r in results]
@@ -1113,7 +1236,13 @@ class GraphRAG:
 
             # 그래프 관계 탐색 (기존 NetworkX 활용)
             edges = [
-                {"src": u, "dst": v, "rel": d.get("relation"), "desc": d.get("desc", "")}
+                {
+                    "edge_id": d.get("edge_id") or _build_edge_id(str(u), str(v), str(d.get("relation") or "link")),
+                    "src": u,
+                    "dst": v,
+                    "rel": d.get("relation"),
+                    "desc": d.get("desc", ""),
+                }
                 for u, v, d in self.graph.edges(data=True)
                 if u in matched_ids or v in matched_ids
             ]
@@ -1149,10 +1278,30 @@ class GraphRAG:
             }
 
         except ImportError:
-            logger.warning("[GraphRAG] chromadb 미설치, legacy fallback")
+            logger.warning("[GraphRAG] chromadb 미설치")
+            if _EXCLUDE_NON_SAJU_ASTRO:
+                return {
+                    "matched_nodes": [],
+                    "matched_ids": [],
+                    "related_edges": [],
+                    "rule_summary": None,
+                    "context_text": "",
+                    "stats": {"nodes": 0, "edges": 0, "backend": "chromadb", "empty": True},
+                }
+            logger.warning("[GraphRAG] legacy fallback")
             return self._query_legacy(facts_str, top_k, domain_priority)
         except Exception as e:
-            logger.warning("[GraphRAG] ChromaDB 검색 실패: %s, legacy fallback", e)
+            logger.warning("[GraphRAG] ChromaDB 검색 실패: %s", e)
+            if _EXCLUDE_NON_SAJU_ASTRO:
+                return {
+                    "matched_nodes": [],
+                    "matched_ids": [],
+                    "related_edges": [],
+                    "rule_summary": None,
+                    "context_text": "",
+                    "stats": {"nodes": 0, "edges": 0, "backend": "chromadb", "empty": True},
+                }
+            logger.warning("[GraphRAG] legacy fallback")
             return self._query_legacy(facts_str, top_k, domain_priority)
 
     def _query_legacy(self, facts_str: str, top_k: int, domain_priority: str) -> Dict:
@@ -1181,7 +1330,13 @@ class GraphRAG:
 
         # Related edges
         edges = [
-            {"src": u, "dst": v, "rel": d.get("relation"), "desc": d.get("desc", "")}
+            {
+                "edge_id": d.get("edge_id") or _build_edge_id(str(u), str(v), str(d.get("relation") or "link")),
+                "src": u,
+                "dst": v,
+                "rel": d.get("relation"),
+                "desc": d.get("desc", ""),
+            }
             for u, v, d in self.graph.edges(data=True)
             if u in matched_ids or v in matched_ids
         ]
@@ -1275,7 +1430,7 @@ def _load_graph_nodes(graph_root: Path) -> List[Dict]:
         graph_root / "saju" / "interpretations",
     ]
     for interp_folder in interpretation_folders:
-        if interp_folder.is_dir():
+        if interp_folder.is_dir() and not _is_excluded_graph_path(interp_folder):
             _load_from_folder(interp_folder, all_nodes, "interpretation")
 
     for sub in _GRAPH_TARGET_FOLDERS:
@@ -1283,12 +1438,12 @@ def _load_graph_nodes(graph_root: Path) -> List[Dict]:
             rules_path = graph_root / sub
             if rules_path.is_dir():
                 for subdir in rules_path.iterdir():
-                    if subdir.is_dir():
+                    if subdir.is_dir() and not _is_excluded_graph_path(subdir):
                         _load_from_folder(subdir, all_nodes, subdir.name)
             continue
 
         folder = graph_root / sub
-        if folder.is_dir():
+        if folder.is_dir() and not _is_excluded_graph_path(folder):
             _load_from_folder(folder, all_nodes, sub)
 
     # Load corpus folder (Jung quotes, Stoic philosophy, etc.)
@@ -1366,6 +1521,13 @@ def _load_csv_nodes(path: Path, all_nodes: List[Dict], source: str) -> None:
     try:
         with open(path, newline="", encoding="utf-8-sig") as fr:
             for row in csv.DictReader(fr):
+                row_node_id = _get_first_field(row, _NODE_ID_FIELDS)
+                if _is_excluded_node_id(row_node_id):
+                    continue
+                row_src = _get_first_field(row, _EDGE_SRC_FIELDS)
+                row_dst = _get_first_field(row, _EDGE_DST_FIELDS)
+                if _is_excluded_node_id(row_src) or _is_excluded_node_id(row_dst):
+                    continue
                 desc = row.get("description") or row.get("content") or ""
                 label = row.get("label") or row.get("name") or ""
                 if desc.strip():
@@ -1803,6 +1965,8 @@ def _load_from_folder(folder: Path, all_nodes: List[Dict], source: str):
     for path in folder.rglob("*"):
         if not path.is_file():
             continue
+        if _is_excluded_graph_path(path):
+            continue
         if path.suffix == ".csv":
             _load_csv_nodes(path, all_nodes, source)
         elif path.suffix == ".json":
@@ -1842,6 +2006,9 @@ def search_graphs(query: str, top_k: int = 6, graph_root: Optional[str] = None) 
     if _USE_CHROMADB:
         return _search_graphs_chromadb(query, top_k)
 
+    if _EXCLUDE_NON_SAJU_ASTRO:
+        return []
+
     return _search_graphs_legacy(query, top_k, graph_root)
 
 
@@ -1852,7 +2019,10 @@ def _search_graphs_chromadb(query: str, top_k: int = 6) -> List[Dict]:
 
         vs = VectorStoreManager(collection_name="corpus_nodes")
         if not vs.has_data():
-            logger.warning("[search_graphs] ChromaDB corpus_nodes 비어있음, legacy fallback")
+            logger.warning("[search_graphs] ChromaDB corpus_nodes 비어있음")
+            if _EXCLUDE_NON_SAJU_ASTRO:
+                return []
+            logger.warning("[search_graphs] legacy fallback")
             return _search_graphs_legacy(query, top_k)
 
         q_emb = embed_text(query)
@@ -1878,10 +2048,16 @@ def _search_graphs_chromadb(query: str, top_k: int = 6) -> List[Dict]:
         return output
 
     except ImportError:
-        logger.warning("[search_graphs] chromadb 미설치, legacy fallback")
+        logger.warning("[search_graphs] chromadb 미설치")
+        if _EXCLUDE_NON_SAJU_ASTRO:
+            return []
+        logger.warning("[search_graphs] legacy fallback")
         return _search_graphs_legacy(query, top_k)
     except Exception as e:
-        logger.warning("[search_graphs] ChromaDB 검색 실패: %s, legacy fallback", e)
+        logger.warning("[search_graphs] ChromaDB 검색 실패: %s", e)
+        if _EXCLUDE_NON_SAJU_ASTRO:
+            return []
+        logger.warning("[search_graphs] legacy fallback")
         return _search_graphs_legacy(query, top_k)
 
 

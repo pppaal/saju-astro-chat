@@ -1,0 +1,1495 @@
+{
+  "summary": {
+    "card_set_size": 78,
+    "domain_enum": ["career", "general", "love", "money"],
+    "orientation_enum": ["reversed", "upright"],
+    "card_records": 624,
+    "missing_combo_count": 0,
+    "missing_orientation_card_count": 0,
+    "short_facet_count": 624,
+    "near_duplicate_count": 0,
+    "upright_reversed_too_similar_count": 0,
+    "mapping_outside_catalog_count": 0,
+    "isolated_theme_count": 1,
+    "sparse_theme_count": 1,
+    "avg_text_len": 214.43,
+    "domain_distribution": {
+      "career": 156,
+      "general": 156,
+      "love": 156,
+      "money": 156
+    }
+  },
+  "missing_combos": [],
+  "missing_orientation_cards": [],
+  "short_facets": [
+    {
+      "card_id": "cups_5",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "075e7f6d140bdb0f"
+    },
+    {
+      "card_id": "cups_9",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "2d25864be6bfd665"
+    },
+    {
+      "card_id": "cups_3",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "2db5e4ace3fd7541"
+    },
+    {
+      "card_id": "cups_8",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "6d5ab713d9d0781d"
+    },
+    {
+      "card_id": "cups_7",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "7d744a85914dc5c6"
+    },
+    {
+      "card_id": "cups_5",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "8764a0137dbf494a"
+    },
+    {
+      "card_id": "cups_4",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "87c52abd8e116c86"
+    },
+    {
+      "card_id": "cups_3",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "98333ba219919de0"
+    },
+    {
+      "card_id": "cups_9",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "9ca62bcb22cc0155"
+    },
+    {
+      "card_id": "cups_4",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "ad4ea63e0a10d69f"
+    },
+    {
+      "card_id": "cups_6",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "ae23ed8c9e8cde8a"
+    },
+    {
+      "card_id": "cups_6",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "bbf0f9ecb1888ba5"
+    },
+    {
+      "card_id": "cups_8",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "c805b5711491d513"
+    },
+    {
+      "card_id": "cups_7",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 151,
+      "doc_id": "d77b57738f216f11"
+    },
+    {
+      "card_id": "swords_6",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "030171cfc8be698c"
+    },
+    {
+      "card_id": "swords_4",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "10cc16c777392317"
+    },
+    {
+      "card_id": "swords_5",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "182e1901e393546f"
+    },
+    {
+      "card_id": "cups_2",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "1fd1e5caa0806b2b"
+    },
+    {
+      "card_id": "swords_7",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "27a2fadbbd88cd7f"
+    },
+    {
+      "card_id": "swords_3",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "44fa1bf6d580623b"
+    },
+    {
+      "card_id": "swords_6",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "5972a7891dc771a2"
+    },
+    {
+      "card_id": "swords_4",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "5df1c26ca2ece5c8"
+    },
+    {
+      "card_id": "swords_7",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "a4091ce52168c530"
+    },
+    {
+      "card_id": "swords_3",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "b8e315bec4bea3ac"
+    },
+    {
+      "card_id": "swords_9",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "bbd30dd95399dbdd"
+    },
+    {
+      "card_id": "swords_8",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "c1c8c7bd92ea8395"
+    },
+    {
+      "card_id": "cups_2",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "c213f80beb02a0a4"
+    },
+    {
+      "card_id": "swords_5",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "d741e70b33244062"
+    },
+    {
+      "card_id": "swords_8",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "e5a9c41a32bf8bee"
+    },
+    {
+      "card_id": "swords_9",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 153,
+      "doc_id": "f6da956cffd44dee"
+    },
+    {
+      "card_id": "wands_5",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "114366e07b5b08f0"
+    },
+    {
+      "card_id": "wands_4",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "27f78c11266e5724"
+    },
+    {
+      "card_id": "wands_5",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "2b741977e0c76460"
+    },
+    {
+      "card_id": "wands_9",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "2d3b7aac2dca7bc8"
+    },
+    {
+      "card_id": "wands_8",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "3345dd4bf4874493"
+    },
+    {
+      "card_id": "wands_9",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "54156fe803f38f4f"
+    },
+    {
+      "card_id": "wands_3",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "54ef72186899ff02"
+    },
+    {
+      "card_id": "wands_6",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "5a31e928396c07f5"
+    },
+    {
+      "card_id": "wands_3",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "5e1874ca363021b4"
+    },
+    {
+      "card_id": "wands_4",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "67ac1d66992a96a0"
+    },
+    {
+      "card_id": "wands_6",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "8da1ddc0926b2e47"
+    },
+    {
+      "card_id": "wands_7",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "94102d93fdf198a9"
+    },
+    {
+      "card_id": "wands_7",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "c8b13e50bd890644"
+    },
+    {
+      "card_id": "wands_8",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 154,
+      "doc_id": "c9d46e2b639a110f"
+    },
+    {
+      "card_id": "swords_2",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 155,
+      "doc_id": "59fdce5b8d4d8777"
+    },
+    {
+      "card_id": "swords_2",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 155,
+      "doc_id": "dfa1f0761ecb3790"
+    },
+    {
+      "card_id": "wands_2",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 156,
+      "doc_id": "2795350b2370de5e"
+    },
+    {
+      "card_id": "wands_2",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 156,
+      "doc_id": "6517404f339f38de"
+    },
+    {
+      "card_id": "cups_10",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 157,
+      "doc_id": "bccc064f0fba5f86"
+    },
+    {
+      "card_id": "cups_10",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 158,
+      "doc_id": "52c8cca00f0c6c64"
+    },
+    {
+      "card_id": "swords_10",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 159,
+      "doc_id": "08b1ac550f90ec4a"
+    },
+    {
+      "card_id": "cups_4",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 159,
+      "doc_id": "1310c5468b5be93a"
+    },
+    {
+      "card_id": "cups_6",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 159,
+      "doc_id": "ce19d372953a7772"
+    },
+    {
+      "card_id": "cups_7",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 159,
+      "doc_id": "d1630b16c52f8f58"
+    },
+    {
+      "card_id": "cups_9",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 159,
+      "doc_id": "e8ab7c3cc3b61f5e"
+    },
+    {
+      "card_id": "cups_8",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 160,
+      "doc_id": "1dd4ed22064c8d56"
+    },
+    {
+      "card_id": "swords_10",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "3a03e045cfbeeee4"
+    },
+    {
+      "card_id": "cups_8",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 160,
+      "doc_id": "6bf3d43b09246f3d"
+    },
+    {
+      "card_id": "pentacles_9",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "7322fddcec1c162d"
+    },
+    {
+      "card_id": "cups_1",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "73569fa0bc986baa"
+    },
+    {
+      "card_id": "cups_5",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 160,
+      "doc_id": "782cc740c08c98b1"
+    },
+    {
+      "card_id": "pentacles_9",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "8c33024eff7975b0"
+    },
+    {
+      "card_id": "pentacles_5",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "8cac499b21b401c7"
+    },
+    {
+      "card_id": "wands_10",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "8f9c55a9f8010e1a"
+    },
+    {
+      "card_id": "cups_7",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 160,
+      "doc_id": "91d4a595419f6fb7"
+    },
+    {
+      "card_id": "cups_3",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 160,
+      "doc_id": "9b9c7d4bf3151f8c"
+    },
+    {
+      "card_id": "pentacles_4",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "9dbb4e5703afaf48"
+    },
+    {
+      "card_id": "pentacles_7",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "a3456cd9af4236dc"
+    },
+    {
+      "card_id": "cups_9",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 160,
+      "doc_id": "a4ef8605328e26fc"
+    },
+    {
+      "card_id": "cups_4",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 160,
+      "doc_id": "a615da8615ee6eea"
+    },
+    {
+      "card_id": "pentacles_6",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "a9c6346d302c54da"
+    },
+    {
+      "card_id": "pentacles_5",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "adef61414bd65d2a"
+    },
+    {
+      "card_id": "pentacles_3",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "b79106bc8e8319b4"
+    },
+    {
+      "card_id": "cups_3",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 160,
+      "doc_id": "b9e1fe4a7c41caa3"
+    },
+    {
+      "card_id": "pentacles_8",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "bd84d2381b7d8b1a"
+    },
+    {
+      "card_id": "pentacles_6",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "c3843aa61f3c104f"
+    },
+    {
+      "card_id": "cups_1",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "c733e8418d2be763"
+    },
+    {
+      "card_id": "pentacles_8",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "d444d2143c1a0029"
+    },
+    {
+      "card_id": "pentacles_7",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "d5ac452e5c0b3a83"
+    },
+    {
+      "card_id": "cups_6",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 160,
+      "doc_id": "f4f84e07e3705267"
+    },
+    {
+      "card_id": "pentacles_4",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "fb6c07b1c0720939"
+    },
+    {
+      "card_id": "pentacles_3",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 160,
+      "doc_id": "fbaac902bec432da"
+    },
+    {
+      "card_id": "swords_7",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 161,
+      "doc_id": "3701ab92443a1c8e"
+    },
+    {
+      "card_id": "swords_4",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 161,
+      "doc_id": "4f2e57d98894fc7f"
+    },
+    {
+      "card_id": "swords_9",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 161,
+      "doc_id": "a388922ed1c6a40d"
+    },
+    {
+      "card_id": "swords_6",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 161,
+      "doc_id": "d241a76aaab4c73b"
+    },
+    {
+      "card_id": "wands_10",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 161,
+      "doc_id": "f8bd9ea16967c6ee"
+    },
+    {
+      "card_id": "swords_9",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "0e82b1901a79c349"
+    },
+    {
+      "card_id": "swords_9",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "12114a8b9c4cd3ca"
+    },
+    {
+      "card_id": "pentacles_2",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 162,
+      "doc_id": "194fb48a4faf87ef"
+    },
+    {
+      "card_id": "cups_5",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "2f19e03385d01a10"
+    },
+    {
+      "card_id": "swords_6",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "43ec03888e37912b"
+    },
+    {
+      "card_id": "swords_8",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "446c0366048b07fe"
+    },
+    {
+      "card_id": "swords_3",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 162,
+      "doc_id": "4bfb55c377fb5b4c"
+    },
+    {
+      "card_id": "swords_5",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "525af882b2ebe549"
+    },
+    {
+      "card_id": "swords_8",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 162,
+      "doc_id": "5ccaeaf894abe205"
+    },
+    {
+      "card_id": "cups_4",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "6ad5641b01c99c8b"
+    },
+    {
+      "card_id": "swords_8",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "6ec5b29f288c609c"
+    },
+    {
+      "card_id": "swords_4",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "840bc4665cc78ea3"
+    },
+    {
+      "card_id": "swords_7",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "8e1219bd1acacf53"
+    },
+    {
+      "card_id": "cups_2",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 162,
+      "doc_id": "9b3d071f1509f3de"
+    },
+    {
+      "card_id": "swords_7",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "9e4bfc120bb938ec"
+    },
+    {
+      "card_id": "cups_3",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "adbf0eeed52f7591"
+    },
+    {
+      "card_id": "swords_4",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "b345cd494f20516e"
+    },
+    {
+      "card_id": "swords_3",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "b95618e06e87daf5"
+    },
+    {
+      "card_id": "swords_5",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "c2c9a7dfc9d0e016"
+    },
+    {
+      "card_id": "pentacles_2",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 162,
+      "doc_id": "c7612b117afea7d0"
+    },
+    {
+      "card_id": "cups_7",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "cee4619ab31568a3"
+    },
+    {
+      "card_id": "cups_6",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "cfce0849e174cce5"
+    },
+    {
+      "card_id": "swords_3",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "d41b5d677ded294a"
+    },
+    {
+      "card_id": "cups_9",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "d70797afdab62cd0"
+    },
+    {
+      "card_id": "swords_1",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 162,
+      "doc_id": "dd8ce6b1524e2079"
+    },
+    {
+      "card_id": "cups_2",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "e3433572e8ffbe29"
+    },
+    {
+      "card_id": "swords_6",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "ee00ebf70faa4163"
+    },
+    {
+      "card_id": "cups_8",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 162,
+      "doc_id": "ee161b58f4213dac"
+    },
+    {
+      "card_id": "swords_1",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 162,
+      "doc_id": "f5b49d147ecf8cec"
+    },
+    {
+      "card_id": "wands_1",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 163,
+      "doc_id": "056c903cde836b8c"
+    },
+    {
+      "card_id": "wands_7",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 163,
+      "doc_id": "4ad24e9ef5038ff5"
+    },
+    {
+      "card_id": "wands_9",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 163,
+      "doc_id": "79660e5a7e46354f"
+    },
+    {
+      "card_id": "cups_5",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 163,
+      "doc_id": "a97f34dfb7444a27"
+    },
+    {
+      "card_id": "wands_4",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 163,
+      "doc_id": "d29a5b3a55376172"
+    },
+    {
+      "card_id": "wands_1",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 163,
+      "doc_id": "d39a823e27ba1b98"
+    },
+    {
+      "card_id": "wands_6",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 163,
+      "doc_id": "ee1af33911e42593"
+    },
+    {
+      "card_id": "swords_2",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 164,
+      "doc_id": "01700b1fd5ae3629"
+    },
+    {
+      "card_id": "wands_8",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 164,
+      "doc_id": "1e888ed69fec4cfb"
+    },
+    {
+      "card_id": "wands_5",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 164,
+      "doc_id": "28010dc4b184108e"
+    },
+    {
+      "card_id": "wands_7",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 164,
+      "doc_id": "28d4e49ac2b5bb58"
+    },
+    {
+      "card_id": "wands_9",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 164,
+      "doc_id": "3efbab9d2c3fb419"
+    },
+    {
+      "card_id": "wands_3",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 164,
+      "doc_id": "63d2a1040792c862"
+    },
+    {
+      "card_id": "wands_4",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 164,
+      "doc_id": "ab32ab0e5773ebfe"
+    },
+    {
+      "card_id": "wands_8",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 164,
+      "doc_id": "af8ffa3d18d2a768"
+    },
+    {
+      "card_id": "swords_2",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 164,
+      "doc_id": "bfb5cb158e5e31b9"
+    },
+    {
+      "card_id": "wands_6",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 164,
+      "doc_id": "dec9ce3213c9bc64"
+    },
+    {
+      "card_id": "swords_2",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 164,
+      "doc_id": "ea52f90547864a6b"
+    },
+    {
+      "card_id": "cups_2",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 164,
+      "doc_id": "f562783d0634bc5a"
+    },
+    {
+      "card_id": "wands_3",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 164,
+      "doc_id": "f8747b81b55d482a"
+    },
+    {
+      "card_id": "wands_5",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 165,
+      "doc_id": "1e1c263f9e933082"
+    },
+    {
+      "card_id": "wands_4",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 165,
+      "doc_id": "796d52c2a37e8a36"
+    },
+    {
+      "card_id": "wands_3",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 165,
+      "doc_id": "8b74bc0795f12eb1"
+    },
+    {
+      "card_id": "wands_8",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 165,
+      "doc_id": "8d11417e7ed846fa"
+    },
+    {
+      "card_id": "swords_5",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 165,
+      "doc_id": "a038cf15b705ede0"
+    },
+    {
+      "card_id": "wands_9",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 165,
+      "doc_id": "ca5b44a6e540a0ed"
+    },
+    {
+      "card_id": "wands_7",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 165,
+      "doc_id": "d9f61eeca5227922"
+    },
+    {
+      "card_id": "wands_6",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 165,
+      "doc_id": "fcb1f2a2edb56527"
+    },
+    {
+      "card_id": "wands_2",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 166,
+      "doc_id": "02c9604401337303"
+    },
+    {
+      "card_id": "wands_2",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 166,
+      "doc_id": "80820953e0d3651f"
+    },
+    {
+      "card_id": "pentacles_10",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 166,
+      "doc_id": "abd19e26549b146c"
+    },
+    {
+      "card_id": "wands_2",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 167,
+      "doc_id": "b1bce80d05109c72"
+    },
+    {
+      "card_id": "wands_5",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 167,
+      "doc_id": "bffe031ba39e6390"
+    },
+    {
+      "card_id": "cups_10",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 167,
+      "doc_id": "cc58f08c27df29c8"
+    },
+    {
+      "card_id": "pentacles_10",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 167,
+      "doc_id": "d756f8029a970748"
+    },
+    {
+      "card_id": "cups_1",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 169,
+      "doc_id": "2db124fb72765d41"
+    },
+    {
+      "card_id": "cups_7",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 169,
+      "doc_id": "49a2cf1a99a5cab6"
+    },
+    {
+      "card_id": "cups_6",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 169,
+      "doc_id": "5553fcb5eca53a28"
+    },
+    {
+      "card_id": "swords_10",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 169,
+      "doc_id": "a627d535817a6bfc"
+    },
+    {
+      "card_id": "pentacles_1",
+      "orientation": "reversed",
+      "domain": "career",
+      "text_len": 169,
+      "doc_id": "c19f5a6319db66c1"
+    },
+    {
+      "card_id": "cups_4",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 169,
+      "doc_id": "c6d25fadf4188cb2"
+    },
+    {
+      "card_id": "cups_9",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 169,
+      "doc_id": "d51db5fad8feaf31"
+    },
+    {
+      "card_id": "pentacles_1",
+      "orientation": "upright",
+      "domain": "career",
+      "text_len": 169,
+      "doc_id": "e457366370e5ea60"
+    },
+    {
+      "card_id": "pentacles_9",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 170,
+      "doc_id": "07896d28e26a68c9"
+    },
+    {
+      "card_id": "cups_10",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 170,
+      "doc_id": "38f94a7d2202c10a"
+    },
+    {
+      "card_id": "pentacles_6",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 170,
+      "doc_id": "3c86e47da4285844"
+    },
+    {
+      "card_id": "cups_3",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 170,
+      "doc_id": "72bb56d04c28a255"
+    },
+    {
+      "card_id": "pentacles_7",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 170,
+      "doc_id": "79f9eb4644f86276"
+    },
+    {
+      "card_id": "pentacles_4",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 170,
+      "doc_id": "95bd052f2f964af4"
+    },
+    {
+      "card_id": "cups_8",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 170,
+      "doc_id": "e512bff73a92b453"
+    },
+    {
+      "card_id": "swords_10",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 170,
+      "doc_id": "f74db8738037b617"
+    },
+    {
+      "card_id": "pentacles_5",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 171,
+      "doc_id": "0fa4fbde4e8c7cff"
+    },
+    {
+      "card_id": "pentacles_3",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 171,
+      "doc_id": "13409ce1b7b08189"
+    },
+    {
+      "card_id": "swords_7",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 171,
+      "doc_id": "19943cc21e8444d2"
+    },
+    {
+      "card_id": "swords_1",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 171,
+      "doc_id": "2344b0832cef8415"
+    },
+    {
+      "card_id": "swords_6",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 171,
+      "doc_id": "247eb18013989f93"
+    },
+    {
+      "card_id": "pentacles_8",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 171,
+      "doc_id": "301d182bc2788a2c"
+    },
+    {
+      "card_id": "pentacles_4",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 171,
+      "doc_id": "3075b029a5e15244"
+    },
+    {
+      "card_id": "pentacles_6",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 171,
+      "doc_id": "3624bbcee8ce6aef"
+    },
+    {
+      "card_id": "pentacles_8",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 171,
+      "doc_id": "3644a9376b84f9d8"
+    },
+    {
+      "card_id": "wands_10",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 171,
+      "doc_id": "4f4fee7ac174f211"
+    },
+    {
+      "card_id": "cups_1",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 171,
+      "doc_id": "99baee07e956a34e"
+    },
+    {
+      "card_id": "pentacles_7",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 171,
+      "doc_id": "9ebd2f1ff72acdf2"
+    },
+    {
+      "card_id": "swords_4",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 171,
+      "doc_id": "cac0e0b0cc74a07e"
+    },
+    {
+      "card_id": "pentacles_3",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 171,
+      "doc_id": "d1cbbc268991c786"
+    },
+    {
+      "card_id": "swords_9",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 171,
+      "doc_id": "e1b6ad1087c7a165"
+    },
+    {
+      "card_id": "pentacles_9",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 171,
+      "doc_id": "fb55716663d28159"
+    },
+    {
+      "card_id": "swords_1",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 171,
+      "doc_id": "fba199e8e1fd04ed"
+    },
+    {
+      "card_id": "major_1",
+      "orientation": "upright",
+      "domain": "money",
+      "text_len": 172,
+      "doc_id": "c13f789f8408db7a"
+    },
+    {
+      "card_id": "swords_3",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 172,
+      "doc_id": "da0a2cbce4a30869"
+    },
+    {
+      "card_id": "cups_2",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 172,
+      "doc_id": "f9e2b7b644386504"
+    },
+    {
+      "card_id": "major_1",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 172,
+      "doc_id": "f9ef26c860c6deeb"
+    },
+    {
+      "card_id": "swords_8",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 172,
+      "doc_id": "fd5983ff32599c22"
+    },
+    {
+      "card_id": "pentacles_9",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 173,
+      "doc_id": "1aa2d5fc2332b78a"
+    },
+    {
+      "card_id": "pentacles_5",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 173,
+      "doc_id": "214a000c12146865"
+    },
+    {
+      "card_id": "pentacles_8",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 173,
+      "doc_id": "4827722ce3863ff3"
+    },
+    {
+      "card_id": "pentacles_2",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 173,
+      "doc_id": "561a2afe8901445a"
+    },
+    {
+      "card_id": "wands_6",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 173,
+      "doc_id": "578a6c6dc75a76a3"
+    },
+    {
+      "card_id": "pentacles_6",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 173,
+      "doc_id": "5f5aed7726d962da"
+    },
+    {
+      "card_id": "wands_9",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 173,
+      "doc_id": "7492be82b94872f6"
+    },
+    {
+      "card_id": "cups_10",
+      "orientation": "upright",
+      "domain": "general",
+      "text_len": 173,
+      "doc_id": "7f9fdeef5ad820a7"
+    },
+    {
+      "card_id": "pentacles_2",
+      "orientation": "reversed",
+      "domain": "love",
+      "text_len": 173,
+      "doc_id": "86997934f233db21"
+    },
+    {
+      "card_id": "wands_10",
+      "orientation": "upright",
+      "domain": "love",
+      "text_len": 173,
+      "doc_id": "aa547a71c3619190"
+    },
+    {
+      "card_id": "cups_5",
+      "orientation": "reversed",
+      "domain": "general",
+      "text_len": 173,
+      "doc_id": "b4020b272668e2b7"
+    }
+  ],
+  "near_duplicates_top": [],
+  "upright_reversed_too_similar_top": [],
+  "spread": {
+    "theme_density": [
+      {
+        "theme": "career",
+        "spread_count": 10
+      },
+      {
+        "theme": "daily",
+        "spread_count": 12
+      },
+      {
+        "theme": "family",
+        "spread_count": 10
+      },
+      {
+        "theme": "health",
+        "spread_count": 10
+      },
+      {
+        "theme": "life_path",
+        "spread_count": 10
+      },
+      {
+        "theme": "love",
+        "spread_count": 10
+      },
+      {
+        "theme": "monthly",
+        "spread_count": 10
+      },
+      {
+        "theme": "spiritual",
+        "spread_count": 10
+      },
+      {
+        "theme": "spread_position_meanings.json",
+        "spread_count": 0
+      },
+      {
+        "theme": "wealth",
+        "spread_count": 10
+      }
+    ],
+    "isolated_themes": ["spread_position_meanings.json"],
+    "sparse_themes": ["spread_position_meanings.json"],
+    "mapping_outside_catalog": [],
+    "tarot_theme_mapping_keys": [
+      "career",
+      "career-work",
+      "daily",
+      "daily-reading",
+      "decisions-crossroads",
+      "family",
+      "general-insight",
+      "health",
+      "life_path",
+      "love",
+      "love-relationships",
+      "money-finance",
+      "monthly",
+      "self-discovery",
+      "spiritual",
+      "spiritual-growth",
+      "well-being-health"
+    ]
+  }
+}

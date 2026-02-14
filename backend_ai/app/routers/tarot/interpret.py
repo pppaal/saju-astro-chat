@@ -1,4 +1,4 @@
-# backend_ai/app/routers/tarot/interpret.py
+﻿# backend_ai/app/routers/tarot/interpret.py
 """
 Tarot interpretation route handler.
 Premium tarot interpretation using Hybrid RAG + GPT.
@@ -8,7 +8,7 @@ import json
 import logging
 import re
 import time
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 
 from flask import Blueprint, request, jsonify, g
 from ...utils.request_utils import get_json_or_400
@@ -31,6 +31,11 @@ from .prompt_builder import (
     build_elemental_text,
     build_archetype_text,
     build_unified_prompt,
+)
+from .draws_validation import (
+    default_domain_from_category,
+    derive_draws_from_cards,
+    validate_draws,
 )
 
 # GraphRAG import for enhanced context
@@ -84,6 +89,38 @@ def register_interpret_routes(bp: Blueprint):
             if not cards:
                 return jsonify({"status": "error", "message": "No cards provided"}), 400
 
+            tarot_domain = default_domain_from_category(category)
+            raw_draws = data.get("draws")
+            allowed_positions = [str(c.get("position") or "").strip() for c in cards if str(c.get("position") or "").strip()]
+
+            draws: List[Dict[str, Any]] = []
+            if isinstance(raw_draws, list) and raw_draws:
+                draws, draw_errors = validate_draws(
+                    raw_draws,
+                    default_domain=tarot_domain,
+                    allowed_positions=allowed_positions or None,
+                )
+                if draw_errors:
+                    return jsonify(
+                        {
+                            "status": "error",
+                            "message": "Invalid draws payload",
+                            "errors": [e.to_dict() for e in draw_errors],
+                        }
+                    ), 400
+            else:
+                draws = derive_draws_from_cards(cards, default_domain=tarot_domain)
+
+            if draws:
+                # Keep cards aligned with normalized draw metadata for prompt/evidence.
+                for idx, draw in enumerate(draws):
+                    if idx >= len(cards):
+                        break
+                    cards[idx]["card_id"] = draw.get("card_id", "")
+                    cards[idx]["domain"] = draw.get("domain", tarot_domain)
+                    if draw.get("position") and not cards[idx].get("position"):
+                        cards[idx]["position"] = draw.get("position")
+
             start_time = time.time()
 
             # === CACHING ===
@@ -118,7 +155,7 @@ def register_interpret_routes(bp: Blueprint):
 
             # Map theme/spread
             mapped_theme, mapped_spread = map_tarot_theme(category, spread_id, user_question)
-            logger.info(f"[TAROT] Mapped {category}/{spread_id} → {mapped_theme}/{mapped_spread}")
+            logger.info(f"[TAROT] Mapped {category}/{spread_id} â†’ {mapped_theme}/{mapped_spread}")
 
             # Build RAG context
             if birthdate:
@@ -146,32 +183,41 @@ def register_interpret_routes(bp: Blueprint):
                 try:
                     # Build search query from cards and question
                     card_names_str = " ".join([c.get("name", "") for c in cards])
-                    graph_query = f"타로 {card_names_str} {enhanced_question or category}"
-                    graph_results = search_graphs(graph_query, top_k=8)
+                    graph_query = f"íƒ€ë¡œ {card_names_str} {enhanced_question or category}"
+                    graph_results = search_graphs(graph_query, top_k=3)
                     if graph_results:
                         graph_parts = []
-                        for gr in graph_results[:8]:
+                        seen_graph_texts = set()
+                        for gr in graph_results[:3]:
                             if isinstance(gr, dict):
                                 text = gr.get("text", gr.get("content", ""))
                                 if text:
-                                    graph_parts.append(text[:300])
+                                    snippet = text[:280]
+                                    if snippet not in seen_graph_texts:
+                                        seen_graph_texts.add(snippet)
+                                        graph_parts.append(snippet)
                         graph_rag_context = "\n".join(graph_parts)
                         logger.info(f"[TAROT] GraphRAG context added: {len(graph_rag_context)} chars")
                 except Exception as graph_err:
                     logger.warning(f"[TAROT] GraphRAG search failed: {graph_err}")
 
-            # Combine RAG contexts
+            forced_facet_context = _build_forced_facet_context(cards, card_limit=5)
+            retrieved_support_context = (rag_context or "")[:900]
             if graph_rag_context:
-                rag_context = f"{rag_context}\n\n## GraphRAG 심층 지식\n{graph_rag_context}"
-
+                retrieved_support_context = f"{retrieved_support_context}\n\n{graph_rag_context}"[:900]
             is_korean = language == "ko"
 
             # Detect question context
-            q = enhanced_question or '일반 운세'
+            q = enhanced_question or 'ì¼ë°˜ ìš´ì„¸'
             question_context, _ = detect_question_context(q, mapped_spread)
 
             # Build card details
-            card_details = build_card_details(drawn_cards, cards, hybrid_rag)
+            card_details = build_card_details(
+                drawn_cards,
+                cards,
+                hybrid_rag,
+                default_domain=tarot_domain,
+            )
             card_names = [cd['name'] for cd in card_details]
 
             # Build additional context
@@ -194,7 +240,8 @@ def register_interpret_routes(bp: Blueprint):
                 question=q,
                 card_details=card_details,
                 question_context=question_context,
-                rag_context=rag_context,
+                forced_facet_context=forced_facet_context,
+                retrieved_support_context=retrieved_support_context,
                 combinations_text=combinations_text,
                 elemental_text=elemental_text,
                 timing_text=timing_text,
@@ -206,39 +253,41 @@ def register_interpret_routes(bp: Blueprint):
             reading_text = ""
             card_interpretations = [""] * len(drawn_cards)
             advice_text = ""
+            card_evidence: List[Dict[str, str]] = []
 
             try:
                 unified_result = generate_with_gpt4(unified_prompt, max_tokens=6000, temperature=0.75, use_mini=False)
                 unified_result = clean_ai_phrases(unified_result)
+                parsed_payload = _parse_unified_output(unified_result, len(drawn_cards))
+                reading_text = parsed_payload["overall"]
+                advice_text = parsed_payload["advice"]
+                card_interpretations = parsed_payload["card_interpretations"]
+                card_evidence = parsed_payload["card_evidence"]
 
-                # Parse JSON response
-                try:
-                    json_match = re.search(r'\{[\s\S]*\}', unified_result)
-                    if json_match:
-                        parsed = json.loads(json_match.group())
-                        reading_text = parsed.get("overall", "")
-                        raw_advice = parsed.get("advice", "")
-
-                        if isinstance(raw_advice, list):
-                            advice_text = raw_advice
-                        else:
-                            advice_text = raw_advice
-
-                        parsed_cards = parsed.get("cards", [])
-                        for i, card_data in enumerate(parsed_cards):
-                            if i < len(card_interpretations):
-                                interp = card_data.get("interpretation", "")
-                                if interp:
-                                    card_interpretations[i] = interp
+                evidence_ok = _has_required_evidence(card_evidence, len(drawn_cards))
+                if not evidence_ok:
+                    repair_prompt = _build_evidence_repair_prompt(
+                        original_prompt=unified_prompt,
+                        raw_response=unified_result,
+                        expected_draws=draws,
+                    )
+                    repair_result = generate_with_gpt4(
+                        repair_prompt,
+                        max_tokens=2200,
+                        temperature=0.3,
+                        use_mini=False,
+                    )
+                    repair_payload = _parse_unified_output(repair_result, len(drawn_cards))
+                    if _has_required_evidence(repair_payload["card_evidence"], len(drawn_cards)):
+                        card_evidence = repair_payload["card_evidence"]
                     else:
-                        reading_text = unified_result
-                except json.JSONDecodeError:
-                    reading_text = unified_result
+                        card_evidence = _fallback_card_evidence(card_details, draws, max_items=len(drawn_cards))
 
             except Exception as llm_e:
                 logger.warning(f"[TAROT] Unified GPT call failed: {llm_e}, using fallback")
                 cards_str = ", ".join([c.get("name", "") for c in drawn_cards])
-                reading_text = f"카드 해석: {cards_str}. {rag_context[:500] if rag_context else ''}"
+                reading_text = f"카드 해석: {cards_str}. {(retrieved_support_context or '')[:500]}"
+                card_evidence = _fallback_card_evidence(card_details, draws, max_items=len(drawn_cards))
 
             # Get card insights
             card_insights = _build_card_insights(drawn_cards, cards, card_interpretations, hybrid_rag)
@@ -257,11 +306,16 @@ def register_interpret_routes(bp: Blueprint):
                 static_questions=static_followup
             )
 
+            if not _has_required_evidence(card_evidence, len(drawn_cards)):
+                card_evidence = _fallback_card_evidence(card_details, draws, max_items=len(drawn_cards))
+            evidence_section = _render_card_evidence_section(card_evidence)
+
             result = {
-                "overall_message": reading_text,
+                "overall_message": f"{reading_text}\n\n{evidence_section}" if evidence_section else reading_text,
                 "card_insights": card_insights,
-                "guidance": advice_text if advice_text else "카드의 지혜에 귀 기울이세요.",
-                "affirmation": "나는 우주의 지혜를 신뢰합니다.",
+                "card_evidence": card_evidence,
+                "guidance": advice_text if advice_text else "ì¹´ë“œì˜ ì§€í˜œì— ê·€ ê¸°ìš¸ì´ì„¸ìš”.",
+                "affirmation": "ë‚˜ëŠ” ìš°ì£¼ì˜ ì§€í˜œë¥¼ ì‹ ë¢°í•©ë‹ˆë‹¤.",
                 "combinations": [],
                 "followup_questions": dynamic_followup
             }
@@ -336,6 +390,173 @@ def register_interpret_routes(bp: Blueprint):
         except Exception as e:
             logger.exception(f"[ERROR] /api/tarot/prefetch failed: {e}")
             return jsonify({"status": "error", "message": str(e)}), 500
+
+
+def _parse_unified_output(raw_text: str, card_count: int) -> Dict[str, Any]:
+    parsed: Dict[str, Any] = {}
+    try:
+        json_match = re.search(r'\{[\s\S]*\}', raw_text)
+        if json_match:
+            parsed = json.loads(json_match.group())
+    except Exception:
+        parsed = {}
+
+    overall = parsed.get("overall", "") if isinstance(parsed, dict) else ""
+    if not overall:
+        overall = raw_text
+
+    raw_advice = parsed.get("advice", "") if isinstance(parsed, dict) else ""
+    advice = raw_advice if isinstance(raw_advice, (list, str)) else ""
+
+    card_interpretations = [""] * card_count
+    parsed_cards = parsed.get("cards", []) if isinstance(parsed, dict) else []
+    if isinstance(parsed_cards, list):
+        for i, card_data in enumerate(parsed_cards):
+            if i >= card_count or not isinstance(card_data, dict):
+                continue
+            interp = str(card_data.get("interpretation") or "").strip()
+            if interp:
+                card_interpretations[i] = interp
+
+    raw_evidence = parsed.get("card_evidence", []) if isinstance(parsed, dict) else []
+    normalized_evidence: List[Dict[str, str]] = []
+    if isinstance(raw_evidence, list):
+        for row in raw_evidence:
+            if not isinstance(row, dict):
+                continue
+            normalized_evidence.append(
+                {
+                    "card_id": str(row.get("card_id") or "").strip(),
+                    "orientation": str(row.get("orientation") or "").strip().lower(),
+                    "domain": str(row.get("domain") or "").strip().lower(),
+                    "position": str(row.get("position") or "").strip(),
+                    "evidence": str(row.get("evidence") or "").strip(),
+                }
+            )
+
+    return {
+        "overall": overall,
+        "advice": advice,
+        "card_interpretations": card_interpretations,
+        "card_evidence": normalized_evidence,
+    }
+
+
+def _has_required_evidence(card_evidence: List[Dict[str, str]], card_count: int) -> bool:
+    if len(card_evidence) != card_count:
+        return False
+    for row in card_evidence:
+        if not row.get("card_id"):
+            return False
+        if row.get("orientation") not in {"upright", "reversed"}:
+            return False
+        if row.get("domain") not in {"love", "career", "money", "general"}:
+            return False
+        evidence = str(row.get("evidence") or "").strip()
+        if not evidence:
+            return False
+        sentence_count = _count_sentences(evidence)
+        if sentence_count < 2 or sentence_count > 3:
+            return False
+    return True
+
+
+def _count_sentences(text: str) -> int:
+    normalized = re.sub(r"\s+", " ", text.strip())
+    if not normalized:
+        return 0
+    chunks = [c.strip() for c in re.split(r"(?<=[.!?。！？])\s+", normalized) if c.strip()]
+    if not chunks:
+        return 0
+    return len(chunks)
+
+
+def _build_evidence_repair_prompt(original_prompt: str, raw_response: str, expected_draws: List[Dict[str, Any]]) -> str:
+    expected = [
+        {
+            "card_id": d.get("card_id", ""),
+            "orientation": d.get("orientation", ""),
+            "domain": d.get("domain", ""),
+            "position": d.get("position", ""),
+        }
+        for d in expected_draws
+    ]
+    return f"""Return ONLY valid JSON.
+
+Task:
+1. Keep the original response meaning.
+2. Ensure `card_evidence` exists and has one block per drawn card.
+3. Each block must include card_id/orientation/domain/position/evidence.
+4. `evidence` must be 2~3 sentences.
+
+Expected draws:
+{json.dumps(expected, ensure_ascii=False)}
+
+Original prompt:
+{original_prompt[:2200]}
+
+Original response:
+{raw_response[:2200]}
+"""
+
+
+def _build_forced_facet_context(cards: List[Dict], card_limit: int = 5) -> str:
+    parts: List[str] = []
+    for idx, card in enumerate(cards[:card_limit]):
+        name = str(card.get("name") or "").strip()
+        card_id = str(card.get("card_id") or "").strip() or "(unknown)"
+        orientation = "reversed" if bool(card.get("is_reversed")) else "upright"
+        domain = str(card.get("domain") or "general").strip().lower()
+        position = str(card.get("position") or f"card_{idx+1}").strip()
+        meaning = str(card.get("meaning") or "").strip()
+        if len(meaning) > 220:
+            meaning = meaning[:220]
+        parts.append(
+            f"- card_id={card_id} | orientation={orientation} | domain={domain} | position={position} | name={name} | meaning={meaning}"
+        )
+    return "\n".join(parts)
+
+
+def _fallback_card_evidence(card_details: List[Dict], draws: List[Dict[str, Any]], max_items: int) -> List[Dict[str, str]]:
+    evidence_rows: List[Dict[str, str]] = []
+    for idx in range(min(max_items, len(card_details))):
+        cd = card_details[idx]
+        draw = draws[idx] if idx < len(draws) else {}
+        card_id = str(draw.get("card_id") or cd.get("card_id") or "").strip()
+        orientation = str(draw.get("orientation") or cd.get("orientation") or "upright").strip().lower()
+        domain = str(draw.get("domain") or cd.get("domain") or "general").strip().lower()
+        position = str(draw.get("position") or cd.get("position") or "").strip()
+        meaning = str(cd.get("meaning") or "").strip()
+        symbolism = str(cd.get("symbolism") or "").strip()
+        advice = str(cd.get("advice") or "").strip()
+        evidence = (
+            f"{cd.get('name', '해당 카드')}는 {position} 위치에서 {meaning[:120]}의 흐름을 강조합니다. "
+            f"{symbolism[:110]} 상징은 질문과 직접 연결되는 단서를 제공합니다. "
+            f"실천 포인트는 {advice[:90]} 입니다."
+        )
+        evidence_rows.append(
+            {
+                "card_id": card_id,
+                "orientation": orientation,
+                "domain": domain,
+                "position": position,
+                "evidence": evidence,
+            }
+        )
+    return evidence_rows
+
+
+def _render_card_evidence_section(card_evidence: List[Dict[str, str]]) -> str:
+    if not card_evidence:
+        return ""
+    lines = ["## Card Evidence"]
+    for row in card_evidence:
+        lines.append(
+            "- "
+            f"{row.get('card_id', '')} | {row.get('orientation', '')} | {row.get('domain', '')} | {row.get('position', '')}: "
+            f"{row.get('evidence', '')}"
+        )
+    return "\n".join(lines)
 
 
 def _build_card_insights(
@@ -422,3 +643,4 @@ def _add_personalization(
         logger.warning(f"[TAROT] Personalization failed: {pers_e}")
 
     return result
+

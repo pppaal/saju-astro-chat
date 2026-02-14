@@ -15,6 +15,7 @@ Performance: ~300-500ms (vs 1500ms before)
 
 import asyncio
 import logging
+import os
 import time
 import hashlib
 import json
@@ -26,6 +27,15 @@ from typing import Dict, List, Optional, Any, Tuple
 from collections import OrderedDict, deque
 
 logger = logging.getLogger(__name__)
+
+
+def _trace_enabled() -> bool:
+    return os.getenv("RAG_TRACE", "0") == "1"
+
+
+def _trace(msg: str, *args) -> None:
+    if _trace_enabled():
+        logger.info("[RAG_TRACE] " + msg, *args)
 
 
 # =============================================================================
@@ -514,6 +524,7 @@ class OptimizedRAGManager:
     ) -> dict:
         """Execute all RAG fetches in parallel."""
         loop = asyncio.get_running_loop()
+        exclude_non_saju = os.getenv("EXCLUDE_NON_SAJU_ASTRO", "0") == "1"
 
         # Create tasks for enabled RAG systems
         tasks = []
@@ -529,7 +540,7 @@ class OptimizedRAGManager:
             )
             task_names.append("graph")
 
-        if self.config.enable_corpus_rag and self._loader.has_corpus_rag:
+        if not exclude_non_saju and self.config.enable_corpus_rag and self._loader.has_corpus_rag:
             tasks.append(
                 loop.run_in_executor(
                     self.executor,
@@ -538,8 +549,10 @@ class OptimizedRAGManager:
                 )
             )
             task_names.append("corpus")
+        elif exclude_non_saju:
+            _trace("corpus_rag skipped count=0 reason=EXCLUDE_NON_SAJU_ASTRO")
 
-        if self.config.enable_persona_rag and self._loader.has_persona_rag:
+        if not exclude_non_saju and self.config.enable_persona_rag and self._loader.has_persona_rag:
             tasks.append(
                 loop.run_in_executor(
                     self.executor,
@@ -548,8 +561,10 @@ class OptimizedRAGManager:
                 )
             )
             task_names.append("persona")
+        elif exclude_non_saju:
+            _trace("persona_rag skipped count=0 reason=EXCLUDE_NON_SAJU_ASTRO")
 
-        if self.config.enable_domain_rag and self._loader.has_domain_rag:
+        if not exclude_non_saju and self.config.enable_domain_rag and self._loader.has_domain_rag:
             tasks.append(
                 loop.run_in_executor(
                     self.executor,
@@ -558,6 +573,8 @@ class OptimizedRAGManager:
                 )
             )
             task_names.append("domain")
+        elif exclude_non_saju:
+            _trace("domain_rag skipped count=0 reason=EXCLUDE_NON_SAJU_ASTRO")
 
         # Cross-analysis via executor to avoid blocking the event loop
         if self.config.enable_cross_analysis:
@@ -587,18 +604,24 @@ class OptimizedRAGManager:
                 result["graph_context"] = (raw.get("context_text") or "")[:2000]
                 rules = raw.get("rule_summary")
                 result["graph_rules"] = (rules or [])[:5]
+                _trace("graph_rag nodes=%d", len(result["graph_nodes"]))
 
             elif name == "corpus" and isinstance(raw, list):
                 result["corpus_quotes"] = raw
+                _trace("corpus_rag results=%d", len(raw))
 
             elif name == "persona" and isinstance(raw, dict):
                 result["persona_context"] = raw
+                total = len(raw.get("jung", [])) + len(raw.get("stoic", []))
+                _trace("persona_rag results=%d", total)
 
             elif name == "domain" and isinstance(raw, list):
                 result["domain_knowledge"] = raw
+                _trace("domain_rag results=%d", len(raw))
 
             elif name == "cross" and isinstance(raw, str):
                 result["cross_analysis"] = raw
+                _trace("cross_analysis chars=%d", len(raw))
 
         return result
 
@@ -753,6 +776,37 @@ class OptimizedRAGManager:
     ) -> str:
         """Fetch cross-analysis (CPU-only, fast)."""
         try:
+            exclude_non_saju = os.getenv("EXCLUDE_NON_SAJU_ASTRO", "0") == "1"
+            if exclude_non_saju and os.getenv("USE_CHROMADB", "0") == "1":
+                from backend_ai.app.rag.cross_store import (  # pylint: disable=import-outside-toplevel
+                    build_cross_summary,
+                )
+
+                # Rebuild lightweight query (same logic as _prepare_query)
+                query, _, _ = self._prepare_query(saju_data, astro_data, theme)
+                dm_data = saju_data.get("dayMaster", {}) if isinstance(saju_data, dict) else {}
+                daymaster = dm_data.get("heavenlyStem") or dm_data.get("name", "")
+                dm_element = dm_data.get("element", "")
+                dominant_element = saju_data.get("dominantElement", "") if isinstance(saju_data, dict) else ""
+                ten_gods = saju_data.get("tenGods", {}) if isinstance(saju_data, dict) else {}
+                dominant_god = ten_gods.get("dominant", "") if isinstance(ten_gods, dict) else ""
+                if isinstance(dominant_god, dict):
+                    dominant_god = dominant_god.get("name", "") or dominant_god.get("ko", "") or ""
+
+                sun_sign = astro_data.get("sun", {}).get("sign", "") if isinstance(astro_data, dict) else ""
+                moon_sign = astro_data.get("moon", {}).get("sign", "") if isinstance(astro_data, dict) else ""
+                rising = astro_data.get("rising", {}).get("sign", "") if isinstance(astro_data, dict) else ""
+
+                saju_seed = [daymaster, dm_element, dominant_element, dominant_god]
+                astro_seed = [sun_sign, moon_sign, rising]
+
+                return build_cross_summary(
+                    query,
+                    saju_seed=saju_seed,
+                    astro_seed=astro_seed,
+                    top_k=12,
+                )
+
             chart_service = self._loader.get_chart_service()
             if not chart_service:
                 return ""

@@ -12,8 +12,17 @@ import {
 import styles from './combined.module.css'
 
 export default function CombinedResultPage() {
-  const { icpResult, personaResult, hasIcp, hasPersona, loading, isKo, insights, starPositions } =
-    useCombinedResult()
+  const {
+    icpResult,
+    personaResult,
+    hasIcp,
+    hasPersona,
+    loading,
+    isKo,
+    insights,
+    starPositions,
+    hybridResult,
+  } = useCombinedResult()
 
   if (loading) {
     return (
@@ -62,6 +71,7 @@ export default function CombinedResultPage() {
           isKo={isKo}
           icpResult={icpResult!}
           personaResult={personaResult!}
+          hybridResult={hybridResult}
         />
         <AxisComparison
           styles={styles}
