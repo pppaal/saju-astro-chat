@@ -68,11 +68,11 @@
       "q1": "How is 1 credit used?",
       "a1": "1 credit is deducted each time you use AI services like counseling, Tarot reading, or Dream interpretation. Personality test and current month calendar are free.",
       "q2": "Do unused credits roll over?",
-      "a2": "Monthly plan credits reset each billing cycle. Credit packs are valid for 1 year from purchase.",
+      "a2": "Monthly plan credits reset each billing cycle. Credit packs are valid for 3 months from purchase.",
       "q3": "Can I cancel anytime?",
       "a3": "Yes, cancel anytime. You'll retain access until the end of your billing period.",
       "q4": "Do credit packs expire?",
-      "a4": "Credit packs are valid for 1 year from purchase date.",
+      "a4": "Credit packs are valid for 3 months from purchase date.",
       "q5": "Can I get a refund?",
       "a5": "Full refund available within 7 days of subscription. Unused credit packs are also refundable."
     }

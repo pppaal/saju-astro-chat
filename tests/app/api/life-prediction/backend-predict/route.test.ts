@@ -211,8 +211,10 @@ describe('Life Prediction Backend Predict API - POST', () => {
       expect(response.status).toBe(200)
       expect(mockRateLimit).toHaveBeenCalledWith(
         'api:/api/life-prediction/backend-predict:127.0.0.1',
-        limit: 10,
-        windowSeconds: 60,
+        {
+          limit: 10,
+          windowSeconds: 60,
+        }
       )
     })
 

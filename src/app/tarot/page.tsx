@@ -157,12 +157,12 @@ export default function TarotHomePage() {
                   onTouchStart={handleTouchStart}
                   disabled={!question.trim() || isAnalyzing || !!dangerWarning || isLoadingPreview}
                   type="button"
-                  aria-label={isKo ? 'íƒ€ë¡œ ë³´ê¸°' : 'Read tarot'}
+                  aria-label={isKo ? '타로 보기' : 'Read tarot'}
                 >
                   {isAnalyzing ? (
-                    <span className={styles.loadingSpinner}>â³</span>
+                    <span className={styles.loadingSpinner}>⏳</span>
                   ) : (
-                    <span aria-hidden="true">âž¤</span>
+                    <span aria-hidden="true">➤</span>
                   )}
                 </button>
               </div>
@@ -282,6 +282,3 @@ export default function TarotHomePage() {
     </div>
   )
 }
-
-
-

@@ -63,6 +63,7 @@ const SERVICES: Service[] = SERVICE_OPTIONS.map((service) => ({
 }))
 export default function AboutPage() {
   const { translate, locale } = useI18n()
+  const isKo = locale === 'ko'
   const serviceGridRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
   const startX = useRef(0)
@@ -125,7 +126,12 @@ export default function AboutPage() {
             </span>
           </h1>
           <p className={styles.heroSub}>
-            {translate('about.heroSubtitle', '각 서비스로 다양한 관점에서 당신을 발견하세요')}
+            {translate(
+              'about.heroSubtitle',
+              isKo
+                ? '각 서비스로 다양한 관점에서 당신을 발견하세요'
+                : 'Discover yourself through each service from different perspectives.'
+            )}
           </p>
         </section>
 
@@ -138,7 +144,12 @@ export default function AboutPage() {
               {translate('about.servicesTitle', servicesTitle)}
             </h2>
             <p className={styles.sectionDesc}>
-              {translate('about.servicesDesc', '각 서비스로 다양한 관점에서 당신을 발견하세요')}
+              {translate(
+                'about.servicesDesc',
+                isKo
+                  ? '각 서비스로 다양한 관점에서 당신을 발견하세요'
+                  : 'Each service helps you understand your life from a unique angle.'
+              )}
             </p>
           </div>
 

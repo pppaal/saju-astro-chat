@@ -18,12 +18,12 @@ const faqs = [
   {
     question: 'Is my data secure?',
     answer:
-      "Absolutely. We store only what's needed, encrypt all sensitive data with industry-standard protocols (AES-256), and never share your information without explicit consent.",
+      'We apply industry-standard safeguards to protect account and payment data where supported and as applicable.',
   },
   {
     question: 'What payment methods are accepted?',
     answer:
-      'We accept all major credit/debit cards (Visa, Mastercard, AMEX) through Stripe. All transactions are secure and encrypted.',
+      'We accept major credit/debit cards through Stripe. Local payment methods may be available by region.',
   },
 ]
 

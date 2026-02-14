@@ -1,26 +1,26 @@
-"use client";
+'use client'
 
-import { useI18n } from "@/i18n/I18nProvider";
-import BackButton from "@/components/ui/BackButton";
-import ScrollToTop from "@/components/ui/ScrollToTop";
-import styles from "../policy.module.css";
+import { useI18n } from '@/i18n/I18nProvider'
+import BackButton from '@/components/ui/BackButton'
+import ScrollToTop from '@/components/ui/ScrollToTop'
+import { SUPPORT_EMAIL } from '@/lib/config/contact'
+import styles from '../policy.module.css'
 
-type Section = { title: string; titleKo: string; body: string; bodyKo: string };
+type Section = { title: string; titleKo: string; body: string; bodyKo: string }
 
-const PSP_NAME = "Stripe";
-const CONTACT_EMAIL = "rheeco88@gmail.com";
-const EFFECTIVE_DATE = "2026-01-25";
+const PSP_NAME = 'Stripe'
+const EFFECTIVE_DATE = '2026-01-25'
 
 const sections: Section[] = [
   {
-    title: "1. Overview",
-    titleKo: "1. 개요",
+    title: '1. Overview',
+    titleKo: '1. 개요',
     body: `This Refund and Payment Policy governs all purchases made through DestinyPal, including subscriptions and credit packs. By making a purchase, you agree to these terms. All payments are processed securely through ${PSP_NAME}, a PCI-DSS Level 1 certified payment processor.`,
-    bodyKo: `본 환불 및 결제 정책은 구독 및 크레딧 팩을 포함하여 DestinyPal을 통해 이루어지는 모든 구매에 적용됩니다. 구매를 완료함으로써 귀하는 본 약관에 동의하게 됩니다. 모든 결제는 PCI-DSS Level 1 인증 결제 처리업체인 ${PSP_NAME}을 통해 안전하게 처리됩니다.`
+    bodyKo: `본 환불 및 결제 정책은 구독 및 크레딧 팩을 포함하여 DestinyPal을 통해 이루어지는 모든 구매에 적용됩니다. 구매를 완료함으로써 귀하는 본 약관에 동의하게 됩니다. 모든 결제는 PCI-DSS Level 1 인증 결제 처리업체인 ${PSP_NAME}을 통해 안전하게 처리됩니다.`,
   },
   {
-    title: "2. Credit Pack Purchases",
-    titleKo: "2. 크레딧 팩 구매",
+    title: '2. Credit Pack Purchases',
+    titleKo: '2. 크레딧 팩 구매',
     body: `Credit Pack Types: We offer various credit packs (Mini, Standard, Plus, Mega, Ultimate) with different quantities and pricing.
 
 IMPORTANT - Credit Pack Refund Policy:
@@ -66,11 +66,11 @@ C) 크레딧 유효기간 및 만료:
 D) 크레딧 사용 추적:
 - 크레딧은 서비스 완료 시점이 아닌 요청 시점에 차감됨
 - 당사의 기술적 문제로 리딩이 실패한 경우 크레딧이 자동 복구됨
-- 사용자 오류(입력 미완료, 페이지 새로고침 등)로 소진된 크레딧은 복구되지 않음`
+- 사용자 오류(입력 미완료, 페이지 새로고침 등)로 소진된 크레딧은 복구되지 않음`,
   },
   {
-    title: "3. Subscription Refund Policy",
-    titleKo: "3. 구독 환불 정책",
+    title: '3. Subscription Refund Policy',
+    titleKo: '3. 구독 환불 정책',
     body: `Subscription Plans: We offer Starter, Pro, and Premium subscription plans with monthly and annual billing options.
 
 A) New Subscription - 7 Day Guarantee:
@@ -116,11 +116,11 @@ C) 구독 취소:
 D) 연간 구독 조기 해지:
 - 연간 구독에 대한 부분 환불 없음
 - 연간 결제를 선택하면 1년 전체에 대한 약정임
-- 취소는 향후 갱신을 중지하지만 남은 개월에 대한 환불은 없음`
+- 취소는 향후 갱신을 중지하지만 남은 개월에 대한 환불은 없음`,
   },
   {
-    title: "4. AI Reading Services - No Refunds",
-    titleKo: "4. AI 리딩 서비스 - 환불 불가",
+    title: '4. AI Reading Services - No Refunds',
+    titleKo: '4. AI 리딩 서비스 - 환불 불가',
     body: `IMPORTANT: All AI reading services are FINAL and NON-REFUNDABLE once generated.
 
 This includes:
@@ -170,11 +170,11 @@ By using our reading services, you acknowledge:
 리딩 서비스 이용 시 귀하는 다음을 인정합니다:
 1. AI 리딩은 오락 및 자기 성찰 목적임
 2. 결과는 다를 수 있으며 해석의 여지가 있음
-3. 생성 시 리딩을 있는 그대로 수락함`
+3. 생성 시 리딩을 있는 그대로 수락함`,
   },
   {
-    title: "5. Limited Refund Exceptions",
-    titleKo: "5. 제한적 환불 예외 사항",
+    title: '5. Limited Refund Exceptions',
+    titleKo: '5. 제한적 환불 예외 사항',
     body: `Refunds will ONLY be considered in these exceptional cases:
 
 A) Duplicate Charges:
@@ -199,7 +199,7 @@ D) Processing Time:
 - Currency: Original currency (exchange rate differences not compensated)
 - Payment processor fees (e.g., Stripe) are non-refundable and may be deducted from the refund amount
 
-To Request Exception Refund - Email ${CONTACT_EMAIL} with:
+To Request Exception Refund - Email ${SUPPORT_EMAIL} with:
 - Account email
 - Transaction ID/receipt
 - Bank statement (for duplicate charges)
@@ -231,18 +231,18 @@ D) 처리 시간:
 - 통화: 원래 통화 (환율 차이 보상 없음)
 - 결제 처리 수수료(예: Stripe)는 환불 불가이며 환불 금액에서 차감될 수 있습니다
 
-예외 환불 요청 - ${CONTACT_EMAIL}로 이메일:
+예외 환불 요청 - ${SUPPORT_EMAIL}로 이메일:
 - 계정 이메일
 - 거래 ID/영수증
 - 은행 명세서 (중복 청구의 경우)
 - 상세 설명
 - 해당되는 경우 스크린샷
 
-위 기준을 충족하지 않는 요청은 거부될 수 있습니다.`
+위 기준을 충족하지 않는 요청은 거부될 수 있습니다.`,
   },
   {
-    title: "6. Chargebacks and Fraud Prevention",
-    titleKo: "6. 지불거절(차지백) 및 사기 방지",
+    title: '6. Chargebacks and Fraud Prevention',
+    titleKo: '6. 지불거절(차지백) 및 사기 방지',
     body: `IMPORTANT: Contact us before disputing charges with your bank.
 
 Chargeback Consequences:
@@ -262,7 +262,7 @@ Filing a chargeback for a legitimate purchase you made is considered fraud. We m
 These records will be provided to your bank and, if necessary, law enforcement.
 
 Proper Dispute Process:
-1. Contact ${CONTACT_EMAIL} first
+1. Contact ${SUPPORT_EMAIL} first
 2. Provide transaction details
 3. Allow 48 hours for response
 4. Work with us to resolve the issue
@@ -289,18 +289,18 @@ We are committed to fair resolution. Most issues can be resolved through direct 
 이러한 기록은 귀하의 은행에 제공되며, 필요시 법 집행 기관에도 제공됩니다.
 
 올바른 이의 제기 절차:
-1. 먼저 ${CONTACT_EMAIL}로 연락
+1. 먼저 ${SUPPORT_EMAIL}로 연락
 2. 거래 세부 정보 제공
 3. 답변까지 48시간 대기
 4. 문제 해결을 위해 저희와 협력
 5. 저희가 응답하지 않는 경우에만 은행에 이의 제기
 
 선의의 해결:
-당사는 공정한 해결을 위해 노력합니다. 대부분의 문제는 은행이나 법적 조치 없이 직접 소통을 통해 해결할 수 있습니다.`
+당사는 공정한 해결을 위해 노력합니다. 대부분의 문제는 은행이나 법적 조치 없이 직접 소통을 통해 해결할 수 있습니다.`,
   },
   {
-    title: "7. Account Termination and Forfeiture",
-    titleKo: "7. 계정 해지 및 권리 상실",
+    title: '7. Account Termination and Forfeiture',
+    titleKo: '7. 계정 해지 및 권리 상실',
     body: `Voluntary Account Deletion:
 - Unused credits are forfeited upon account deletion
 - Active subscriptions must be canceled before deletion
@@ -332,11 +332,11 @@ DestinyPal에 의한 해지:
 비활성:
 - 2년 이상 비활성 계정은 삭제될 수 있음
 - 삭제 후 크레딧과 데이터는 복구 불가
-- 장기 부재 전 모든 크레딧 사용 권장`
+- 장기 부재 전 모든 크레딧 사용 권장`,
   },
   {
-    title: "8. Price Changes and Grandfathering",
-    titleKo: "8. 가격 변경 및 기존 가격 유지",
+    title: '8. Price Changes and Grandfathering',
+    titleKo: '8. 가격 변경 및 기존 가격 유지',
     body: `Price Modifications:
 - We may change prices at any time
 - New prices apply immediately to new purchases
@@ -362,11 +362,11 @@ Annual Subscription Lock:
 
 연간 구독 가격 고정:
 - 연간 구독자는 갱신 시까지 현재 가격 유지
-- 가격 변경은 다음 갱신일에 적용됨`
+- 가격 변경은 다음 갱신일에 적용됨`,
   },
   {
-    title: "9. Consumer Rights by Region",
-    titleKo: "9. 지역별 소비자 권리",
+    title: '9. Consumer Rights by Region',
+    titleKo: '9. 지역별 소비자 권리',
     body: `Korean Consumers (대한민국):
 - 전자상거래법에 따라 디지털 콘텐츠는 제공 시작 후 청약철회가 제한됩니다
 - 콘텐츠 제공 시작 전: 7일 이내 청약철회 가능
@@ -402,14 +402,14 @@ EU 소비자:
 
 기타 관할권:
 - 현지 강행 소비자 보호법 적용
-- 본 정책은 귀하의 법적 권리를 제한하지 않음`
+- 본 정책은 귀하의 법적 권리를 제한하지 않음`,
   },
   {
-    title: "10. Contact Information",
-    titleKo: "10. 연락처",
+    title: '10. Contact Information',
+    titleKo: '10. 연락처',
     body: `For refund requests and billing inquiries:
 
-Email: ${CONTACT_EMAIL}
+Email: ${SUPPORT_EMAIL}
 Response Time: Within 48 business hours
 
 Required Information for Refund Requests:
@@ -424,7 +424,7 @@ Please allow full processing time before following up.
 Keep all receipts and confirmation emails for your records.`,
     bodyKo: `환불 요청 및 결제 문의:
 
-이메일: ${CONTACT_EMAIL}
+이메일: ${SUPPORT_EMAIL}
 응답 시간: 영업일 기준 48시간 이내
 
 환불 요청 시 필요 정보:
@@ -436,9 +436,9 @@ Keep all receipts and confirmation emails for your records.`,
 - 중복 청구 주장의 경우 은행 명세서
 
 후속 문의 전 전체 처리 시간을 기다려 주세요.
-모든 영수증과 확인 이메일을 기록으로 보관하세요.`
+모든 영수증과 확인 이메일을 기록으로 보관하세요.`,
   },
-];
+]
 
 function SectionView({ s, isKo }: { s: Section; isKo: boolean }) {
   return (
@@ -446,12 +446,12 @@ function SectionView({ s, isKo }: { s: Section; isKo: boolean }) {
       <h2 className={styles.sectionTitle}>{isKo ? s.titleKo : s.title}</h2>
       <pre className={styles.sectionBody}>{isKo ? s.bodyKo : s.body}</pre>
     </section>
-  );
+  )
 }
 
 export default function RefundPage() {
-  const { t, locale } = useI18n();
-  const isKo = locale === "ko";
+  const { t, locale } = useI18n()
+  const isKo = locale === 'ko'
 
   return (
     <div className={styles.container}>
@@ -462,10 +462,10 @@ export default function RefundPage() {
         <div className={styles.card}>
           <div className={styles.header}>
             <h1 className={styles.title}>
-              {t("policy.refund.title", "Refund and Payment Policy")}
+              {t('policy.refund.title', 'Refund and Payment Policy')}
             </h1>
             <p className={styles.effectiveDate}>
-              {t("policy.refund.effective", "Effective date")}: {EFFECTIVE_DATE}
+              {t('policy.refund.effective', 'Effective date')}: {EFFECTIVE_DATE}
             </p>
           </div>
           <div className={styles.content}>
@@ -475,12 +475,12 @@ export default function RefundPage() {
           </div>
           <div className={styles.footer}>
             <p className={styles.footerText}>
-              {t("policy.refund.footer", "Addendum")}: {EFFECTIVE_DATE}
+              {t('policy.refund.footer', 'Addendum')}: {EFFECTIVE_DATE}
             </p>
           </div>
         </div>
       </div>
-      <ScrollToTop label={isKo ? "맨 위로" : "Top"} />
+      <ScrollToTop label={isKo ? '맨 위로' : 'Top'} />
     </div>
-  );
+  )
 }

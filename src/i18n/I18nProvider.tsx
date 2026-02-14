@@ -120,6 +120,18 @@ const I18nContext = createContext<I18nContextType | null>(null)
 export const SUPPORTED_LOCALES: Locale[] = ['en', 'ko']
 const isRtl = (_l: Locale) => false // No RTL languages supported
 
+const toSafeFallbackText = (path: string) => {
+  const candidate = path.split('.').pop() || path
+  const normalized = candidate
+    .replace(/[_-]+/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .trim()
+  if (!normalized) {
+    return 'Content unavailable'
+  }
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1)
+}
+
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<Locale>('en')
   const [hydrated, setHydrated] = useState(false)
@@ -200,8 +212,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     return (path: string, fallback?: string) => {
       const currentDict = dictsCache[locale]
       if (!currentDict) {
-        // Return fallback or key if dict not loaded yet
-        return fallback || path.split('.').pop() || path
+        return fallback || toSafeFallbackText(path)
       }
 
       const got = getter(currentDict, path)
@@ -215,7 +226,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
           if (fallback) {
             return fallback
           }
-          return path.split('.').pop() || path
+          return toSafeFallbackText(path)
         }
         return got
       }
@@ -229,7 +240,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
         return fallback
       }
 
-      return path.split('.').pop() || path
+      return toSafeFallbackText(path)
     }
   }, [locale])
 
