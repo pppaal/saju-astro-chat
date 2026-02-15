@@ -1,35 +1,36 @@
 # Documentation Hub
 
+Last audited: 2026-02-15 (Asia/Seoul)
+
 This is the canonical documentation index for the active codebase.
 
 ## Start Here
 
-- `../README.md`: onboarding + golden path + validation baseline
+- `../README.md`: onboarding, required checks, and repo snapshot
+- `../BUILD_INSTRUCTIONS.md`: setup, env, migrations, deployment, troubleshooting
 - `../OVERVIEW.md`: architecture and runtime topology
 
 ## Operations And AI
 
-- `RUNBOOK.md`: operational runbook (Chroma safety, reindex, diagnostics, PDF troubleshooting)
-- `RAG_AND_GRAPHRAG.md`: GraphRAG/cross_store design and trace interpretation
-- `DESTINY_MATRIX.md`: deterministic destiny-matrix system and integrations
-- `PDF_REPORTING.md`: 10-page report pipeline and customization guardrails
+- `RUNBOOK.md`: operational runbook (Chroma safety, reindex, diagnostics)
+- `RAG_AND_GRAPHRAG.md`: GraphRAG/cross-store design
+- `DESTINY_MATRIX.md`: deterministic destiny-matrix system
+- `PDF_REPORTING.md`: report pipeline details
 
 ## Product Exposure And QA
 
-- `DEMO_AND_SEO.md`: demo token model, middleware behavior, SEO protections
-- `TESTING_AND_GUARDRAILS.md`: required checks vs full suite
+- `DEMO_AND_SEO.md`: demo token model and crawler guardrails
+- `TESTING_AND_GUARDRAILS.md`: required checks vs full suites
 
-## Feature-Specific Docs (existing)
+## Audit Outputs
 
-- `icp_test_audit.md`
-- `icp_test_spec.md`
-- `icp_test_copy_v2.md`
-- `CREDIT_ERROR_MESSAGES.md`
-- `AI_COST_MONITORING.md`
+- `DOCS_INDEX.md`: high-level documentation map by audience
+- `DOCS_AUDIT_REPORT_2026-02-15.md`: doc re-audit report and command outcomes
+- `API_AUDIT_REPORT.md`: generated API route audit (`npm run audit:api`)
 
 ## Canonical vs Historical
 
-- Canonical docs: `README.md`, `OVERVIEW.md`, `docs/*.md` (this folder)
-- Historical reports: root-level `FINAL_*`, `*_REPORT.md`, and `docs/archive/*`
+- Canonical docs: root operational docs and `docs/*.md` (excluding `docs/archive/*`)
+- Historical references: root `*_REPORT.md`, `FINAL_*`, and `docs/archive/*`
 
 Historical reports are retained for traceability but are not normative for current implementation.

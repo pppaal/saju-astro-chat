@@ -79,6 +79,7 @@
     "mobile:build": "npm run build && npx cap sync && npx cap open android",
     "security:audit": "npm audit --audit-level=high",
     "audit:api": "node scripts/audit-api-routes.mjs",
+    "docs:stats": "node scripts/repo-stats.mjs",
     "docs:generate": "npx tsx scripts/generate-openapi.ts",
     "docs:check-links": "node scripts/check_docs_links.js",
     "prepare": "husky"

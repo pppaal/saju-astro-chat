@@ -1,13 +1,15 @@
 # DestinyPal
 
-DestinyPal is a Next.js App Router application for saju/astrology/tarot counseling with a Python AI backend for GraphRAG and cross-domain reasoning.
+Last audited: 2026-02-15 (Asia/Seoul)
 
-## Golden Path (10 minutes)
+DestinyPal is a Next.js App Router application for saju, astrology, tarot, and counseling flows, with a Python backend for GraphRAG and cross-domain reasoning.
+
+## Quick Start
 
 1. Install dependencies.
 
 ```bash
-npm install
+npm ci
 ```
 
 2. Create local env file.
@@ -16,10 +18,7 @@ npm install
 cp .env.example .env.local
 ```
 
-Set required values only (no secrets in docs): `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `AI_BACKEND_URL`.  
-Optional but recommended for current features: `DEMO_TOKEN`, `SUPPORT_EMAIL` or `NEXT_PUBLIC_SUPPORT_EMAIL`.
-
-3. Run Prisma migrations.
+3. Run database migrations.
 
 ```bash
 npm run db:migrate
@@ -31,7 +30,7 @@ npm run db:migrate
 npm run dev
 ```
 
-5. Start Python backend (`backend_ai`).
+5. Start Python backend.
 
 ```bash
 cd backend_ai
@@ -44,47 +43,54 @@ pip install -r requirements.txt -r requirements-dev.txt
 python main.py
 ```
 
-6. Run canonical diagnostics (`PASS` expected).
+## Required Environment Variables
 
-```bash
-cd ..
-python scripts/self_check.py
-```
+Minimum local setup:
 
-7. Generate the fixed 10-page life report PDF.
+- `DATABASE_URL`
+- `NEXTAUTH_SECRET`
+- `NEXTAUTH_URL`
+- `NEXT_PUBLIC_BASE_URL`
+- `TOKEN_ENCRYPTION_KEY`
+- `PUBLIC_API_TOKEN`
+- `ADMIN_API_TOKEN`
+- `CRON_SECRET`
+- `AI_BACKEND_URL`
 
-```bash
-python scripts/generate_life_report_pdf.py --out out/life_report.pdf
-```
+Production also needs Stripe, Redis, and webhook configuration. See `BUILD_INSTRUCTIONS.md` and `.env.example`.
 
-Notes:
+## Repository Snapshot
 
-- `scripts/generate_life_report_pdf.py` calls `/api/destiny-matrix`; keep the Next.js server running.
-- If PDF dependencies are missing, install `reportlab`, `matplotlib`, and `pypdf` in the backend virtualenv.
+Measured with `npm run docs:stats` on 2026-02-15 (Asia/Seoul):
 
-## What's Unique
+- API routes: `145`
+- App pages: `83`
+- Component files: `594`
+- Prisma models: `42`
+- Test files (`*.test|*.spec`): `1073`
+- Markdown docs: `154`
+- `.env.example` variables: `79`
 
-- Deterministic **Destiny Matrix** (`src/lib/destiny-matrix`): 10-layer, structured scoring/profile system used in UI, counselor context, and reporting.
-- Evidence-first **GraphRAG + cross_store** (`backend_ai/app/rag`):
-  - Chroma collections: `saju_astro_graph_nodes_v1`, `saju_astro_cross_v1`
-  - Domain filtering for saju/astro-only retrieval
-  - Cross summaries grouped by theme/axis with evidence refs and backfill fallback
+API route audit baseline from `npm run audit:api`:
+
+- Total routes: `145`
+- Uses middleware/guards: `136` (93.8%)
+- Validation signals: `113` (77.9%)
+- Rate limited: `129` (89.0%)
 
 ## Architecture
 
-- Next.js App Router (`src/app`) serves UI + API routes.
-- Prisma + PostgreSQL for persistence (`prisma/schema.prisma`).
-- Python backend (`backend_ai/main.py`) provides RAG, cross reasoning, and streaming analysis.
-- Chroma persistence path: `backend_ai/data/chromadb`.
-- Reporting pipeline:
-  - Collector: `scripts/generate_life_report_pdf.py`
-  - Renderer: `backend_ai/reporting/saju_astro_life_report.py`
+- Web/API: `src/app`, `src/lib`
+- Database: `prisma/schema.prisma`
+- AI backend: `backend_ai/main.py`
+- Graph retrieval: `backend_ai/app/rag`
+- Destiny Matrix engine: `src/lib/destiny-matrix`
 
-See `OVERVIEW.md` for system-level details.
+See `OVERVIEW.md` for runtime flow details.
 
-## How To Validate
+## Verification Commands
 
-### Required checks (pre-merge baseline)
+Primary checks:
 
 ```bash
 npm run lint
@@ -95,9 +101,7 @@ npx vitest run tests/i18n/pricing-keys-required.test.ts
 python scripts/self_check.py
 ```
 
-Expected diagnostic outcome: `self_check.py` should end with overall `PASS`.
-
-### Optional checks (broader regression)
+Extended checks:
 
 ```bash
 npm test
@@ -105,13 +109,13 @@ npm run test:e2e:browser
 npm run test:backend
 ```
 
-Note: the full suites are larger and may include pre-existing failures unrelated to your current change. Treat required checks above as the release gate unless you are actively fixing legacy test debt.
+## Documentation
 
-## Canonical Docs
+- `BUILD_INSTRUCTIONS.md`: setup, env, migrations, deployment, troubleshooting
+- `SECURITY_AUDIT_REPORT.md`: current security posture and open items
+- `OVERVIEW.md`: system architecture
+- `docs/README.md`: docs hub
+- `docs/DOCS_INDEX.md`: documentation index and audiences
+- `docs/DOCS_AUDIT_REPORT_2026-02-15.md`: this audit summary
 
-- `README.md` (this file)
-- `OVERVIEW.md`
-- `docs/README.md`
-- `docs/*.md` (runbooks, AI, matrix, reporting, QA guardrails)
-
-Historical reports (`FINAL_*`, `*_REPORT.md`, etc.) are intentionally retained as archival context and are not the source of truth for current operations.
+Historical reports (`FINAL_*`, `*_REPORT.md`, `docs/archive/*`) are retained for traceability and are not normative for current operations.

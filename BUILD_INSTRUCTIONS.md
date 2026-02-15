@@ -1,137 +1,185 @@
-# 빌드 및 번들 분석 지침
+# Build Instructions
 
-## 수정된 파일들
+Last audited: 2026-02-15 (Asia/Seoul)
 
-제가 다음 파일들을 수정했습니다:
+This document is the canonical setup and build guide for the current repository state.
 
-### 1. TypeScript 에러 수정
+## Prerequisites
 
-- `src/app/tarot/[categoryName]/[spreadId]/components/stages/DeckSelectStage.tsx` - 타입 수정
-- `src/components/life-prediction/phases/BirthInputPhase.tsx` - gender 타입 문제 해결
+- Node.js 20+
+- npm 10+
+- Python 3.10+
+- PostgreSQL (or Supabase Postgres)
+- Optional: Redis/Upstash, Stripe CLI, Playwright browsers, k6
 
-### 2. Framer-motion 임포트 변경
-
-**주의**: `motion.div` 동적 임포트가 TypeScript 에러를 발생시켜서 **static import로 되돌렸습니다**.
-
-최종 상태:
-
-- ✅ `src/app/dream/page.tsx` - `AnimatePresence`만 동적 임포트 (그대로 유지)
-- ✅ `src/app/life-prediction/page.tsx` - `AnimatePresence`만 동적 임포트 (그대로 유지)
-- ❌ `src/app/tarot/page.tsx` - **static import로 복원** (motion.div 문제)
-- ❌ `src/app/tarot/history/page.tsx` - **static import로 복원** (motion.div 문제)
-
-## 빌드 방법
-
-lock 파일 문제로 자동 빌드가 어렵습니다. 다음 단계를 따라주세요:
-
-### 1. 새 터미널 열기
-
-### 2. .next 디렉토리 삭제
-
-**Windows PowerShell:**
-
-```powershell
-cd c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest
-Remove-Item -Recurse -Force .next
-```
-
-**Windows CMD:**
-
-```cmd
-cd c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest
-rmdir /s /q .next
-```
-
-### 3. 빌드 실행
+## Install
 
 ```bash
+npm ci
+```
+
+## Environment Setup
+
+1. Copy `.env.example` to `.env.local`.
+2. Set required values first:
+
+- `DATABASE_URL`
+- `NEXTAUTH_SECRET`
+- `NEXTAUTH_URL`
+- `NEXT_PUBLIC_BASE_URL`
+- `TOKEN_ENCRYPTION_KEY`
+- `ADMIN_API_TOKEN`
+- `PUBLIC_API_TOKEN`
+- `CRON_SECRET`
+- `AI_BACKEND_URL`
+
+3. Validate configuration:
+
+```bash
+npm run check:env
+```
+
+### Required in production
+
+- Redis/Upstash: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
+- Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+- Cookie domain: `NEXTAUTH_COOKIE_DOMAIN`
+
+## Database Setup
+
+Generate Prisma client:
+
+```bash
+npm run postinstall
+```
+
+Run migrations:
+
+```bash
+npm run db:migrate
+```
+
+Migration status:
+
+```bash
+npm run db:status
+```
+
+## Local Development
+
+Start Next.js app:
+
+```bash
+npm run dev
+```
+
+Start backend AI service:
+
+```bash
+cd backend_ai
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# macOS/Linux
+source .venv/bin/activate
+pip install -r requirements.txt -r requirements-dev.txt
+python main.py
+```
+
+## Build And Quality Checks
+
+```bash
+npm run lint
+npm run typecheck
 npm run build
 ```
 
-## 예상 빌드 결과
-
-빌드가 성공하면 다음과 같은 출력이 나타납니다:
-
-```
-Route (app)                                Size     First Load JS
-┌ ○ /                                      XXX kB         XXX kB
-├ ○ /dream                                 XXX kB         XXX kB
-├ ○ /life-prediction                       XXX kB         XXX kB
-├ ○ /tarot                                 XXX kB         XXX kB
-├ ○ /tarot/history                         XXX kB         XXX kB
-...
-```
-
-## 번들 분석 방법
-
-### 옵션 1: 빌드 결과에서 확인
-
-위의 빌드 출력에서 "First Load JS" 열을 확인하세요.
-
-### 옵션 2: 번들 분석기 사용
+Tests:
 
 ```bash
-npm run build:analyze
+npm test
+npm run test:e2e:smoke:public
+npm run test:backend
 ```
 
-브라우저에서 번들 트리맵이 자동으로 열립니다.
+## Deployment Notes (Vercel + Backend)
 
-## 확인할 지표
+- Vercel deploys Next.js app (`npm run vercel-build`).
+- Python backend (`backend_ai`) is deployed separately (Docker/Fly/VPS).
+- Set `AI_BACKEND_URL` to backend service URL.
+- Ensure Stripe webhook endpoint points to `/api/webhook/stripe` with `STRIPE_WEBHOOK_SECRET` configured.
+- Demo routes require `DEMO_TOKEN`.
 
-1. **First Load JS 총량** - 초기 로딩 크기
-2. **개별 페이지 크기** - /dream, /life-prediction 등
-3. **Shared chunks** - 공유 번들 크기
+## Troubleshooting
 
-## 최적화 효과
+### Missing env variables
 
-### 현재 적용된 최적화:
+Symptoms:
 
-- ✅ `AnimatePresence` 동적 임포트 (2개 페이지)
-  - /dream
-  - /life-prediction
+- startup failure
+- auth/session errors
+- webhook failures
 
-### 예상 효과:
-
-- 초기 번들: ~80-100KB 감소 (AnimatePresence만)
-- framer-motion 전체를 동적 로딩할 수 없어서 예상보다 효과가 적습니다
-
-## 추가 최적화 옵션
-
-framer-motion의 `motion` 컴포넌트를 동적 로딩하기 어려우므로, 다른 최적화 방법을 권장합니다:
-
-1. **pdfjs-dist 동적 임포트** (~400KB 절약)
-2. **chart.js 동적 임포트** (~150KB 절약)
-3. **사용하지 않는 의존성 제거**
-4. **이미지 최적화**
-
-## 문제 발생 시
-
-### "Unable to acquire lock" 에러
+Fix:
 
 ```bash
-# lock 파일 삭제
-del .next\lock
-# 또는
-rm .next/lock
-
-# 다시 빌드
-npm run build
+npm run check:env
 ```
 
-### TypeScript 에러
+Then fill missing keys in `.env.local`.
 
-제가 수정한 파일들을 확인하고, 에러 메시지를 알려주세요.
+### Database connection or migration failures
 
-## 다음 단계
+Symptoms:
 
-빌드가 성공하면:
+- Prisma connect timeout
+- migration errors
 
-1. 번들 사이즈 숫자를 확인해주세요
-2. 기대했던 3MB → 2MB 목표를 달성했는지 확인
-3. 추가 최적화가 필요한지 판단
+Fix:
 
----
+- Verify `DATABASE_URL` and `DIRECT_DATABASE_URL`
+- Confirm DB is reachable
+- Re-run `npm run db:status` and `npm run db:migrate`
 
-**수정 완료일**: 2026-02-02
-**수정된 파일**: 4개
-**최적화 상태**: 부분 적용 (AnimatePresence만)
+### Stripe webhook issues
+
+Symptoms:
+
+- `/api/webhook/stripe` returns 400/500
+
+Fix:
+
+- Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`
+- Forward events with Stripe CLI in local testing
+- Confirm webhook signing secret matches endpoint
+
+### SSE/streaming issues
+
+Symptoms:
+
+- stream endpoints return fallback/errors
+- no `text/event-stream` data
+
+Fix:
+
+- confirm `AI_BACKEND_URL` is reachable
+- check backend logs in `backend_ai`
+- verify auth/token headers for protected routes
+
+### Demo routes return 404
+
+Expected behavior when token is missing or invalid.
+
+Fix:
+
+- set `DEMO_TOKEN`
+- pass `?token=...` or header `x-demo-token`
+
+## Command Baseline (2026-02-15)
+
+Commands executed during doc audit:
+
+- `npm ci` -> pass
+- `npm run -s typecheck` -> pass
+- `npm run -s lint` -> pass
+- `npm test` -> fail (existing suites, documented in `docs/DOCS_AUDIT_REPORT_2026-02-15.md`)

@@ -15,6 +15,7 @@ npm run test:performance:check
 ## Error: "Hook timed out in 30000ms"
 
 ### Symptom
+
 ```
 Error: Hook timed out in 30000ms.
 If this is a long-running hook, pass a timeout value as the last argument
@@ -22,6 +23,7 @@ If this is a long-running hook, pass a timeout value as the last argument
 ```
 
 ### Cause
+
 The server is not running or not accessible.
 
 ### Solution
@@ -57,6 +59,7 @@ npm run test:performance:check
 ## Error: "Server not ready at http://localhost:3000"
 
 ### Symptom
+
 ```
 Server not ready at http://localhost:3000 after 30000ms
 ```
@@ -64,10 +67,12 @@ Server not ready at http://localhost:3000 after 30000ms
 ### Causes & Solutions
 
 #### 1. Server Not Started
+
 **Check:** Is `npm run dev` running?
 **Solution:** Start it in another terminal
 
 #### 2. Wrong Port
+
 **Check:** Is your server running on a different port?
 **Solution:** Set the API_BASE_URL environment variable
 
@@ -85,10 +90,12 @@ API_BASE_URL=http://localhost:4000 npm run test:performance
 ```
 
 #### 3. Server Still Starting
+
 **Check:** Did you wait for "Ready" message?
 **Solution:** Wait a bit longer, or increase timeout in test
 
 #### 4. Firewall/Network Issues
+
 **Check:** Can you access http://localhost:3000 in browser?
 **Solution:** Check firewall, antivirus, or network settings
 
@@ -97,6 +104,7 @@ API_BASE_URL=http://localhost:4000 npm run test:performance
 ## Error: High Error Rates (>5%)
 
 ### Symptom
+
 ```
 Error Rate: 10.00% ⚠️ (target: <1%)
 HTTP Status:
@@ -106,25 +114,29 @@ HTTP Status:
 ### Causes & Solutions
 
 #### 1. Server Overload
+
 **Check:** Server logs for errors
 **Solution:** Reduce test load
 
 ```typescript
 // Edit tests/performance/api-endpoints.test.ts
-const LIGHT_LOAD = 5;   // Reduce from 10
-const MEDIUM_LOAD = 15; // Reduce from 25
-const HEAVY_LOAD = 30;  // Reduce from 50
+const LIGHT_LOAD = 5 // Reduce from 10
+const MEDIUM_LOAD = 15 // Reduce from 25
+const HEAVY_LOAD = 30 // Reduce from 50
 ```
 
 #### 2. Database Connection Issues
+
 **Check:** Database connection pool exhausted
 **Solution:** Increase connection pool or reduce load
 
 #### 3. Rate Limiting
+
 **Check:** Are requests being rate limited?
 **Solution:** This might be expected behavior. Verify rate limit settings.
 
 #### 4. Application Errors
+
 **Check:** Server logs for stack traces
 **Solution:** Fix application bugs before performance testing
 
@@ -133,11 +145,13 @@ const HEAVY_LOAD = 30;  // Reduce from 50
 ## Error: "Cannot find module 'autocannon'"
 
 ### Symptom
+
 ```
 Error: Cannot find module 'autocannon'
 ```
 
 ### Solution
+
 ```bash
 npm install
 # or
@@ -149,11 +163,13 @@ npm install autocannon @types/autocannon
 ## Error: "'k6' is not recognized"
 
 ### Symptom
+
 ```
 'k6' is not recognized as an internal or external command
 ```
 
 ### Cause
+
 K6 is not installed.
 
 ### Solution
@@ -167,7 +183,7 @@ choco install k6
 # macOS
 brew install k6
 
-# Linux - see docs/GETTING_STARTED_PERFORMANCE.md
+# Linux - see docs/archive/GETTING_STARTED_PERFORMANCE.md
 ```
 
 **Option 2: Use Node.js tests instead**
@@ -182,6 +198,7 @@ npm run test:performance
 ## Error: Port Already in Use
 
 ### Symptom
+
 ```
 Error: listen EADDRINUSE: address already in use :::3000
 ```
@@ -189,6 +206,7 @@ Error: listen EADDRINUSE: address already in use :::3000
 ### Solution
 
 **Windows:**
+
 ```bash
 # Find process using port 3000
 netstat -ano | findstr :3000
@@ -198,6 +216,7 @@ taskkill /PID <PID> /F
 ```
 
 **macOS/Linux:**
+
 ```bash
 # Find and kill process
 lsof -ti:3000 | xargs kill -9
@@ -208,31 +227,37 @@ lsof -ti:3000 | xargs kill -9
 ## Tests Time Out After Starting
 
 ### Symptom
+
 Tests start but individual tests timeout.
 
 ### Causes & Solutions
 
 #### 1. Server Too Slow
+
 **Check:** Server logs for slow operations
 **Solution:**
+
 - Optimize code
 - Add caching
 - Scale resources
 
 #### 2. Database Slow
+
 **Check:** Database query performance
 **Solution:**
+
 - Add indexes
 - Optimize queries
 - Check N+1 query problems
 
 #### 3. Network Latency
+
 **Check:** Are you testing remote server?
 **Solution:** Increase timeouts or test local server
 
 ```typescript
 // In tests/performance/api-endpoints.test.ts
-const TEST_DURATION = 20; // Increase from 10 seconds
+const TEST_DURATION = 20 // Increase from 10 seconds
 ```
 
 ---
@@ -240,6 +265,7 @@ const TEST_DURATION = 20; // Increase from 10 seconds
 ## Memory Issues
 
 ### Symptom
+
 ```
 JavaScript heap out of memory
 ```
@@ -262,6 +288,7 @@ NODE_OPTIONS=--max-old-space-size=4096 npm run dev
 ```
 
 **Check for memory leaks:**
+
 ```bash
 # Run endurance test to detect leaks
 npm run test:load:endurance
@@ -272,38 +299,46 @@ npm run test:load:endurance
 ## Inconsistent Results
 
 ### Symptom
+
 Performance varies significantly between runs.
 
 ### Causes & Solutions
 
 #### 1. Background Processes
+
 **Solution:** Close other applications during tests
 
 #### 2. System Resources
+
 **Solution:** Monitor CPU/memory during tests
 
 **Windows:**
+
 ```bash
 # Task Manager (Ctrl+Shift+Esc)
 # Watch CPU and Memory while tests run
 ```
 
 **macOS:**
+
 ```bash
 # Activity Monitor
 # Or: top -o cpu
 ```
 
 **Linux:**
+
 ```bash
 htop
 # or: top
 ```
 
 #### 3. Database State
+
 **Solution:** Reset database to known state before tests
 
 #### 4. Network Conditions
+
 **Solution:** Use local server for consistent results
 
 ---
@@ -332,6 +367,7 @@ npm run test:load:basic
 ## Database Connection Errors
 
 ### Symptom
+
 ```
 Error: Too many connections
 Error: Connection pool exhausted
@@ -342,6 +378,7 @@ Error: Connection pool exhausted
 **1. Check connection pool settings:**
 
 Look for database configuration in your code:
+
 ```javascript
 // Example - adjust pool size
 {
@@ -367,6 +404,7 @@ Ensure application closes DB connections after use.
 **⚠️ Warning:** Only test non-production environments or with explicit permission!
 
 **Solution:**
+
 ```bash
 # Point to staging environment
 API_BASE_URL=https://staging.your-app.com npm run test:performance
@@ -382,12 +420,14 @@ API_BASE_URL=https://staging.your-app.com npm run test:performance
 ### 1. Check Logs
 
 **Server logs:**
+
 ```bash
 # Console where `npm run dev` is running
 # Look for errors, warnings, slow queries
 ```
 
 **Test output:**
+
 ```bash
 # Performance test provides detailed metrics
 # Look for patterns in failures
@@ -413,8 +453,8 @@ Add `console.log` to understand what's happening:
 
 ```typescript
 // In tests/performance/api-endpoints.test.ts
-console.log('Starting test...');
-console.log('API_BASE:', API_BASE);
+console.log('Starting test...')
+console.log('API_BASE:', API_BASE)
 // ... your debugging
 ```
 
@@ -475,6 +515,7 @@ npm run test:performance
 ```
 
 Or use the check command:
+
 ```bash
 npm run dev                     # Terminal 1
 npm run test:performance:check  # Terminal 2 - verify first
@@ -486,8 +527,8 @@ npm run test:performance        # Terminal 2 - then run tests
 ## Still Having Issues?
 
 1. **Read full documentation:**
-   - [docs/PERFORMANCE_TESTING.md](../../docs/PERFORMANCE_TESTING.md)
-   - [docs/GETTING_STARTED_PERFORMANCE.md](../../docs/GETTING_STARTED_PERFORMANCE.md)
+   - [docs/PERFORMANCE_TESTING.md](../../docs/archive/PERFORMANCE_TESTING.md)
+   - [docs/GETTING_STARTED_PERFORMANCE.md](../../docs/archive/GETTING_STARTED_PERFORMANCE.md)
 
 2. **Check example output:**
    - Look at expected results in documentation
