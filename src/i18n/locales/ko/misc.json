@@ -212,5 +212,13 @@
       "friend": "친구",
       "colleague": "동료"
     }
+  },
+  "authRequired": {
+    "title": "로그인이 필요합니다",
+    "myjourneyBody": "저장한 리딩과 개인 히스토리를 보려면 로그인해 주세요.",
+    "destinyMatchBody": "궁합 매칭을 확인하고 대화를 시작하려면 로그인해 주세요.",
+    "primaryCta": "로그인",
+    "secondaryCta": "Destiny Map 보기",
+    "secondaryPricingCta": "요금제 보기"
   }
 }
