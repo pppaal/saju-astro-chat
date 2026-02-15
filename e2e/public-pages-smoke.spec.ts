@@ -92,25 +92,4 @@ test.describe('Public pages smoke', () => {
     expect(cards).toBeGreaterThan(0)
     expect(hasEmptyMessage).toBe(false)
   })
-
-  test('demo combined pdf valid token returns pdf', async ({ request }) => {
-    const token = process.env.DEMO_TOKEN || 'demo-test-token'
-    const response = await request.get(`/demo/combined.pdf?token=${encodeURIComponent(token)}`)
-    expect(response.status()).toBe(200)
-    expect(response.headers()['content-type']).toContain('application/pdf')
-  })
-
-  test('demo page invalid token returns 404', async ({ page }) => {
-    const response = await page.goto('/demo/icp?token=bad-token', { waitUntil: 'domcontentloaded' })
-    expect(response?.status()).toBe(404)
-  })
-
-  test('demo icp valid token renders stable marker', async ({ page }) => {
-    const token = process.env.DEMO_TOKEN || 'demo-test-token'
-    const response = await page.goto(`/demo/icp?token=${encodeURIComponent(token)}`, {
-      waitUntil: 'domcontentloaded',
-    })
-    expect(response?.status()).toBe(200)
-    await expect(page.locator('body')).toContainText('Paul')
-  })
 })

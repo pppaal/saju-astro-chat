@@ -1,17 +1,21 @@
-// Service options constant (outside component to prevent recreation)
-export const SERVICE_OPTIONS = [
-  { key: 'destinyMap', labelKey: 'menu.destinyMap', icon: '🗺️', path: '/destiny-map' },
-  { key: 'calendar', labelKey: 'menu.calendar', icon: '🗓️', path: '/calendar' },
-  { key: 'compatibility', labelKey: 'menu.compatibility', icon: '💕', path: '/compatibility' },
-  { key: 'destinyMatch', labelKey: 'menu.destinyMatch', icon: '💘', path: '/destiny-match' },
-  {
-    key: 'icpPersonality',
-    labelKey: 'menu.icpPersonality',
-    icon: '🎭',
-    path: '/personality/select',
-  },
-  { key: 'tarot', labelKey: 'menu.tarot', icon: '🔮', path: '/tarot' },
-] as const
+import { ENABLED_SERVICES } from '@/config/enabledServices'
+
+export type ServiceKey = (typeof ENABLED_SERVICES)[number]['id']
+
+export type ServiceOption = {
+  key: ServiceKey
+  labelKey: string
+  icon: string
+  path: string
+}
+
+// Service options used by home search and about page
+export const SERVICE_OPTIONS: readonly ServiceOption[] = ENABLED_SERVICES.map((service) => ({
+  key: service.id,
+  labelKey: service.menuKey,
+  icon: service.icon,
+  path: service.href,
+}))
 
 // Zodiac signs constant
 export const ZODIAC_SIGNS = [
@@ -28,7 +32,3 @@ export const ZODIAC_SIGNS = [
   '♒',
   '♓',
 ] as const
-
-// Derived types
-export type ServiceOption = (typeof SERVICE_OPTIONS)[number]
-export type ServiceKey = ServiceOption['key']

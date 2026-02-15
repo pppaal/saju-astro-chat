@@ -10,6 +10,10 @@
       "label": "AI 리포트",
       "desc": "프리미엄 상세 분석"
     },
+    "report": {
+      "label": "리포트",
+      "desc": "프리미엄 AI 리포트"
+    },
     "lifePrediction": {
       "label": "인생 예측",
       "desc": "10년 운세 흐름"

@@ -149,7 +149,7 @@ export default function ServiceSearchBox({ translate, t, styles }: ServiceSearch
                     onClick={() => handleServiceSelect(service.key)}
                   >
                     <span className={styles.serviceDropdownIcon}>{service.icon}</span>
-                    <span className={styles.serviceDropdownLabel}>{t(`menu.${service.key}`)}</span>
+                    <span className={styles.serviceDropdownLabel}>{t(service.labelKey)}</span>
                   </button>
                 ))}
               </div>
@@ -244,7 +244,7 @@ export default function ServiceSearchBox({ translate, t, styles }: ServiceSearch
               key={service.key}
               type="button"
               className={`${styles.serviceIcon} ${selectedService === service.key ? styles.serviceIconActive : ''}`}
-              title={t(`menu.${service.key}`)}
+              title={t(service.labelKey)}
               onClick={() => handleServiceSelect(service.key)}
             >
               {service.icon}

@@ -8,7 +8,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher'
 import Card from '@/components/ui/Card'
 import Grid from '@/components/ui/Grid'
-import { SERVICE_LINKS } from '@/data/home'
+import { ENABLED_SERVICES } from '@/config/enabledServices'
 
 const NotificationBell = dynamic(() => import('@/components/notifications/NotificationBell'), {
   ssr: false,
@@ -16,12 +16,12 @@ const NotificationBell = dynamic(() => import('@/components/notifications/Notifi
 const HeaderUser = dynamic(() => import('../HeaderUser'), { ssr: false })
 
 function MainHeader() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
   const [servicePage, setServicePage] = useState(0)
   const navItemRef = useRef<HTMLDivElement>(null)
   const pageSize = 7
-  const pageCount = Math.max(1, Math.ceil(SERVICE_LINKS.length / pageSize))
+  const pageCount = Math.max(1, Math.ceil(ENABLED_SERVICES.length / pageSize))
   const maxPage = pageCount - 1
 
   const closeMenu = useCallback(() => {
@@ -112,33 +112,26 @@ function MainHeader() {
                 </span>
               </div>
               <Grid className={styles.dropdownGrid} columns={3}>
-                {SERVICE_LINKS.slice(servicePage * pageSize, (servicePage + 1) * pageSize).map(
+                {ENABLED_SERVICES.slice(servicePage * pageSize, (servicePage + 1) * pageSize).map(
                   (s) => {
                     const content = (
                       <div className={styles.dropItemLeft}>
                         <span className={styles.dropItemIcon}>{s.icon}</span>
                         <div className={styles.dropItemText}>
                           <span className={styles.dropItemLabel}>
-                            {t(`menu.${s.key}`)}
-                            {s.comingSoon && (
-                              <span className={styles.comingSoonBadge}>
-                                {t('common.comingSoon')}
-                              </span>
+                            {translate(s.menuKey, locale === 'ko' ? s.label.ko : s.label.en)}
+                          </span>
+                          <span className={styles.dropItemDesc}>
+                            {translate(
+                              s.descriptionKey,
+                              locale === 'ko' ? s.description.ko : s.description.en
                             )}
                           </span>
-                          <span className={styles.dropItemDesc}>{t(`services.${s.key}.desc`)}</span>
                         </div>
                       </div>
                     )
 
-                    return s.comingSoon ? (
-                      <Card
-                        key={s.href}
-                        className={`${styles.dropItem} ${styles.dropItemDisabled}`}
-                      >
-                        {content}
-                      </Card>
-                    ) : (
+                    return (
                       <Card as={Link} key={s.href} href={s.href} className={styles.dropItem}>
                         {content}
                       </Card>
@@ -189,9 +182,6 @@ function MainHeader() {
         </Link>
         <Link href="/myjourney" className={styles.navLink}>
           {translate('app.myJourney', 'My Journey')}
-        </Link>
-        <Link href="/destiny-match" className={styles.navLink}>
-          {translate('app.destinyMatch', 'Destiny Match')}
         </Link>
         <span className={`${styles.navLink} ${styles.navLinkDisabled}`}>
           {translate('app.community', 'Community')}

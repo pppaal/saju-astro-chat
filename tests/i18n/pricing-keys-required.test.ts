@@ -13,8 +13,12 @@ const REQUIRED_PUBLIC_KEYS = [
   'pricing.perYear',
   'pricing.faqs.a4',
   'menu.destinyMap',
+  'menu.report',
   'ui.titleAstrology',
   'ui.subtitleAstrology',
+  'services.destinyMap.desc',
+  'services.tarot.desc',
+  'services.report.desc',
 ]
 
 function loadLocale(locale: 'en' | 'ko'): JsonObject {
@@ -24,7 +28,8 @@ function loadLocale(locale: 'en' | 'ko'): JsonObject {
   const destinymap = JSON.parse(
     readFileSync(path.join(base, 'destinymap.json'), 'utf8')
   ) as JsonObject
-  return { ...common, ...misc, ...destinymap }
+  const services = JSON.parse(readFileSync(path.join(base, 'services.json'), 'utf8')) as JsonObject
+  return { ...common, ...misc, ...destinymap, ...services }
 }
 
 function getPathValue(obj: JsonObject, keyPath: string): unknown {

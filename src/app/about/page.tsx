@@ -36,23 +36,17 @@ const SERVICE_DETAILS: Record<ServiceKey, Omit<Service, 'id' | 'icon'>> = {
     descriptionKo: '사랑과 우정, 비즈니스 관계의 궁합을 분석합니다',
     descriptionEn: 'Analyze compatibility in love, friendship, and business',
   },
-  destinyMatch: {
-    href: '/destiny-match',
-    gradient: 'linear-gradient(135deg, #f9a8d4 0%, #c084fc 100%)',
-    descriptionKo: '사주와 점성 기반으로 완벽한 인연을 찾아드립니다',
-    descriptionEn: 'Find your best match with Saju and Astrology insights',
-  },
-  icpPersonality: {
-    href: '/personality/select',
-    gradient: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
-    descriptionKo: 'ICP와 성격 분석으로 관계와 성향을 통합 해석합니다',
-    descriptionEn: 'Integrated ICP and personality analysis for deeper insights',
-  },
   tarot: {
     href: '/tarot',
     gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
     descriptionKo: '타로 카드가 현재 상황과 미래를 통찰합니다',
     descriptionEn: 'Tarot cards provide insight into your present and future',
+  },
+  report: {
+    href: '/report',
+    gradient: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+    descriptionKo: '맞춤형 AI 리포트로 핵심 인사이트를 확인하세요',
+    descriptionEn: 'Get focused insights with premium AI reports',
   },
 }
 

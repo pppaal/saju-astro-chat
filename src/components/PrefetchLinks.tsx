@@ -1,7 +1,7 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 /**
  * PrefetchLinks Component
@@ -15,32 +15,31 @@ import { useRouter } from 'next/navigation';
 const CRITICAL_ROUTES = [
   '/destiny-map',
   '/tarot',
-  '/saju',
-  '/astrology',
+  '/report',
   '/compatibility',
   '/calendar',
   '/myjourney',
   '/pricing',
-];
+]
 
 export default function PrefetchLinks() {
-  const router = useRouter();
+  const router = useRouter()
 
   useEffect(() => {
     // Prefetch critical routes after initial page load
     // Use requestIdleCallback if available, otherwise setTimeout
     const prefetchRoutes = () => {
       CRITICAL_ROUTES.forEach((route) => {
-        router.prefetch(route);
-      });
-    };
+        router.prefetch(route)
+      })
+    }
 
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(prefetchRoutes);
+      requestIdleCallback(prefetchRoutes)
     } else {
-      setTimeout(prefetchRoutes, 1000);
+      setTimeout(prefetchRoutes, 1000)
     }
-  }, [router]);
+  }, [router])
 
-  return null; // This component doesn't render anything
+  return null // This component doesn't render anything
 }
