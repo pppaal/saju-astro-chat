@@ -80,6 +80,7 @@
     "security:audit": "npm audit --audit-level=high",
     "audit:api": "node scripts/audit-api-routes.mjs",
     "docs:generate": "npx tsx scripts/generate-openapi.ts",
+    "docs:check-links": "node scripts/check_docs_links.js",
     "prepare": "husky"
   },
   "overrides": {
@@ -128,6 +129,7 @@
     "remark-gfm": "^4.0.1",
     "replicate": "^1.4.0",
     "resend": "^6.9.1",
+    "server-only": "^0.0.1",
     "stripe": "^19.3.1",
     "swagger-ui-react": "^5.31.0",
     "swisseph": "^0.5.17",

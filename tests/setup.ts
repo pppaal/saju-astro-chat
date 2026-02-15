@@ -27,6 +27,8 @@ vi.mock('next-auth/react', () => ({
   SessionProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 
+vi.mock('server-only', () => ({}))
+
 // Export mock session utilities for tests to configure
 export const mockUseSession = vi.fn(() => mockSession)
 export const setMockSession = (session: {

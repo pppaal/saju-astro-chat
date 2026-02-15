@@ -6,6 +6,7 @@ import { GET as getDemoCombined } from '@/app/api/demo/combined/route'
 import { GET as getDemoTarot } from '@/app/api/demo/tarot/route'
 import { GET as getDemoDestinyMap } from '@/app/api/demo/destiny-map/route'
 import { GET as getDemoCalendar } from '@/app/api/demo/calendar/route'
+import { GET as getDemoHealth } from '@/app/api/demo/_health/route'
 import { GET as getDemoCombinedPdf } from '@/app/demo/combined.pdf/route'
 
 describe('/api/demo and /demo/combined.pdf routes', () => {
@@ -84,6 +85,28 @@ describe('/api/demo and /demo/combined.pdf routes', () => {
     expect(typeof json?.month).toBe('string')
     expect(Array.isArray(json?.highlights)).toBe(true)
     expect(Array.isArray(json?.timeline)).toBe(true)
+  })
+
+  it('accepts x-demo-token header for API auth', async () => {
+    const req = new NextRequest('http://localhost:3000/api/demo/icp', {
+      headers: { 'x-demo-token': 'demo-test-token' },
+    })
+    const res = await getDemoIcp(req)
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json?.narrative?.main_text?.length).toBeGreaterThan(0)
+  })
+
+  it('returns demo health payload for valid token', async () => {
+    const req = new NextRequest('http://localhost:3000/api/demo/_health?token=demo-test-token')
+    const res = await getDemoHealth(req)
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json?.demoTokenPresent).toBe(true)
+    expect(json?.runtime).toBe('nodejs')
+    expect(typeof json?.now).toBe('string')
   })
 
   it('returns PDF for valid token', async () => {

@@ -1,22 +1,27 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { fetchDemoJson } from '@/lib/demo/pageFetch'
-import { requireDemoTokenForPage } from '@/lib/demo/requireDemoToken'
+import { requireDemoTokenOr404 } from '@/lib/demo/requireDemoToken'
 import type { DemoIcpPayload } from '@/lib/demo/demoPipelines'
 
 export const dynamic = 'force-dynamic'
 
 interface DemoPageProps {
-  searchParams?: Promise<{ token?: string | string[] }>
+  searchParams?: { token?: string | string[] } | Promise<{ token?: string | string[] }>
 }
 
 export default async function DemoIcpPage({ searchParams }: DemoPageProps) {
-  const resolvedSearchParams = await searchParams
-  const token = requireDemoTokenForPage(resolvedSearchParams)
+  const resolvedSearchParams = await Promise.resolve(searchParams)
+  const rawToken = resolvedSearchParams?.token
+  const token = Array.isArray(rawToken) ? rawToken[0] : rawToken
+  requireDemoTokenOr404(token)
 
   let data: DemoIcpPayload
   try {
-    data = await fetchDemoJson<DemoIcpPayload>(`/api/demo/icp?token=${encodeURIComponent(token)}`)
+    data = await fetchDemoJson<DemoIcpPayload>(
+      `/api/demo/icp?token=${encodeURIComponent(token || '')}`,
+      token
+    )
   } catch {
     notFound()
   }
@@ -72,7 +77,7 @@ export default async function DemoIcpPage({ searchParams }: DemoPageProps) {
       </section>
 
       <div style={{ marginTop: 24 }}>
-        <Link href={`/demo/combined.pdf?token=${encodeURIComponent(token)}`}>Download PDF</Link>
+        <Link href={`/demo/combined.pdf?token=${encodeURIComponent(token || '')}`}>Download PDF</Link>
       </div>
     </main>
   )

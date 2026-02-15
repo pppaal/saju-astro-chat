@@ -5,6 +5,7 @@
 
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { REMOVED_PUBLIC_SERVICE_PREFIXES } from '@/config/enabledServices'
 
 // Routes that should skip CSRF validation
 const CSRF_SKIP_ROUTES = new Set([
@@ -175,16 +176,28 @@ function buildCsp(nonce: string): string {
   return `${_cspStaticPrefix}; ${scriptSrc}; ${_cspStaticSuffix}`
 }
 
+function isBlockedServicePath(pathname: string): boolean {
+  if (pathname.startsWith('/api/')) {
+    return false
+  }
+  return REMOVED_PUBLIC_SERVICE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  )
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  if (pathname.startsWith('/api/demo/')) {
-    const expected = process.env.DEMO_TOKEN
-    const provided =
-      request.nextUrl.searchParams.get('token') || request.headers.get('x-demo-token')
-    if (expected && provided === expected) {
-      return NextResponse.next()
-    }
+  if (isBlockedServicePath(pathname)) {
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = '/'
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  // Demo pages and APIs are token-gated inside route handlers.
+  // Always bypass middleware checks to avoid edge/runtime token mismatches.
+  if (pathname.startsWith('/demo') || pathname.startsWith('/api/demo')) {
+    return NextResponse.next()
   }
 
   // Only apply to API routes
