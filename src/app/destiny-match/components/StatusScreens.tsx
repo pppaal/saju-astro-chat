@@ -40,6 +40,34 @@ export function StatusScreens({
     return () => window.clearTimeout(timer)
   }, [isSessionLoading, isLoading])
 
+  if (!isLoggedIn && !isSessionLoading) {
+    return (
+      <div className={styles.statusScreen}>
+        <div className={styles.statusIconContainer}>
+          <div className={styles.statusIcon}>✨</div>
+          <div className={styles.statusIcon} style={{ animationDelay: '0.3s' }}>
+            💫
+          </div>
+          <div className={styles.statusIcon} style={{ animationDelay: '0.6s' }}>
+            🌟
+          </div>
+        </div>
+        <h2 className={styles.statusTitle}>
+          {t('destinyMatch.status.startTitle', 'Start your destiny match')}
+        </h2>
+        <p className={styles.statusText}>
+          {t(
+            'destinyMatch.status.startDesc',
+            'Find meaningful matches based on your Saju and astrology profile.'
+          )}
+        </p>
+        <button onClick={onSignIn} className={styles.statusButton}>
+          {t('destinyMatch.status.signIn', 'Sign in to continue')}
+        </button>
+      </div>
+    )
+  }
+
   if (isSessionLoading || isLoading) {
     return (
       <div className={styles.statusScreen}>
@@ -68,34 +96,6 @@ export function StatusScreens({
             </p>
           </>
         )}
-      </div>
-    )
-  }
-
-  if (!isLoggedIn) {
-    return (
-      <div className={styles.statusScreen}>
-        <div className={styles.statusIconContainer}>
-          <div className={styles.statusIcon}>✨</div>
-          <div className={styles.statusIcon} style={{ animationDelay: '0.3s' }}>
-            💫
-          </div>
-          <div className={styles.statusIcon} style={{ animationDelay: '0.6s' }}>
-            🌟
-          </div>
-        </div>
-        <h2 className={styles.statusTitle}>
-          {t('destinyMatch.status.startTitle', 'Start your destiny match')}
-        </h2>
-        <p className={styles.statusText}>
-          {t(
-            'destinyMatch.status.startDesc',
-            'Find meaningful matches based on your Saju and astrology profile.'
-          )}
-        </p>
-        <button onClick={onSignIn} className={styles.statusButton}>
-          {t('destinyMatch.status.signIn', 'Sign in to continue')}
-        </button>
       </div>
     )
   }

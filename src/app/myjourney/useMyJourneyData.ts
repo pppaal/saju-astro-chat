@@ -21,7 +21,7 @@ export function useMyJourneyData({
   status,
   router,
   searchParams,
-  signInUrl,
+  signInUrl: _signInUrl,
 }: UseMyJourneyDataParams) {
   const [profile, setProfile] = useState<Profile>({})
   const [fortune, setFortune] = useState<Fortune | null>(null)
@@ -278,13 +278,6 @@ export function useMyJourneyData({
     }
     prevStatus.current = status
   }, [status])
-
-  // Redirect unauthenticated users
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.replace(signInUrl)
-    }
-  }, [status, router, signInUrl])
 
   return {
     // State

@@ -10,12 +10,18 @@ export function hasDemoTokenConfigured(): boolean {
   return typeof token === 'string' && token.trim().length > 0
 }
 
-function getExpectedToken(): string | null {
-  const token = process.env.DEMO_TOKEN
-  if (!token || token.trim().length === 0) {
-    return null
+function getExpectedToken(...envKeys: string[]): string | null {
+  for (const envKey of envKeys) {
+    const token = process.env[envKey]
+    if (typeof token === 'string' && token.trim().length > 0) {
+      return token
+    }
   }
-  return token
+  return null
+}
+
+export function hasDemoReviewTokenConfigured(): boolean {
+  return getExpectedToken('DEMO_REVIEW_TOKEN', 'DEMO_TOKEN') !== null
 }
 
 export function normalizeDemoToken(token: TokenLike): string | null {
@@ -29,7 +35,7 @@ export function normalizeDemoToken(token: TokenLike): string | null {
 }
 
 export function isValidDemoToken(rawToken: TokenLike): boolean {
-  const expected = getExpectedToken()
+  const expected = getExpectedToken('DEMO_TOKEN')
   const normalized = normalizeDemoToken(rawToken)
   if (!expected) {
     return false
@@ -42,6 +48,26 @@ export function isValidDemoToken(rawToken: TokenLike): boolean {
   }
 
   // Keep comparison deterministic without relying on Node-only crypto APIs.
+  let mismatch = 0
+  for (let i = 0; i < expected.length; i += 1) {
+    mismatch |= expected.charCodeAt(i) ^ normalized.charCodeAt(i)
+  }
+  return mismatch === 0
+}
+
+export function isValidDemoReviewToken(rawToken: TokenLike): boolean {
+  const expected = getExpectedToken('DEMO_REVIEW_TOKEN', 'DEMO_TOKEN')
+  const normalized = normalizeDemoToken(rawToken)
+  if (!expected) {
+    return false
+  }
+  if (!normalized) {
+    return false
+  }
+  if (expected.length !== normalized.length) {
+    return false
+  }
+
   let mismatch = 0
   for (let i = 0; i < expected.length; i += 1) {
     mismatch |= expected.charCodeAt(i) ^ normalized.charCodeAt(i)
@@ -71,6 +97,10 @@ export function demoNotFoundJson(): NextResponse {
   return NextResponse.json({ error: 'Not Found' }, { status: 404 })
 }
 
+export function demoUnauthorizedJson(): NextResponse {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+}
+
 export function apiRequireDemoTokenOr404(request: NextRequest): NextResponse | null {
   const token = readDemoTokenFromRequest(request)
   if (!isValidDemoToken(token)) {
@@ -85,4 +115,24 @@ export function requireDemoTokenForApi(request: NextRequest): string | NextRespo
     return blocked
   }
   return readDemoTokenFromRequest(request) || ''
+}
+
+export function requireDemoReviewTokenOr404(token?: TokenLike): void {
+  if (!isValidDemoReviewToken(token)) {
+    notFound()
+  }
+}
+
+export function requireDemoReviewTokenForPage(searchParams?: { token?: TokenLike }): string {
+  const token = normalizeDemoToken(searchParams?.token)
+  requireDemoReviewTokenOr404(token)
+  return token || ''
+}
+
+export function requireDemoReviewTokenForApi(request: NextRequest): string | NextResponse {
+  const token = readDemoTokenFromRequest(request)
+  if (!isValidDemoReviewToken(token)) {
+    return demoUnauthorizedJson()
+  }
+  return token || ''
 }

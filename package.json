@@ -51,6 +51,7 @@
     "test:e2e:critical": "playwright test --config=playwright.ci.config.ts e2e/critical-flows",
     "test:e2e:critical:auto": "playwright test --config=playwright.critical.config.ts",
     "test:e2e:critical:ui": "playwright test --config=playwright.critical.config.ts --ui",
+    "test:ssr-placeholders": "node scripts/check-ssr-placeholders.mjs",
     "test:e2e:wait": "node scripts/wait-for-server.mjs",
     "test:e2e:auth": "playwright test e2e/critical-flows/01-registration-auth.spec.ts",
     "test:e2e:tarot": "playwright test e2e/critical-flows/02-tarot-reading.spec.ts",

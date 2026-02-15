@@ -75,7 +75,7 @@ function MainHeader() {
     (key: string, fallback: string) => {
       const res = t(key)
       const last = key.split('.').pop() || key
-      return res === last ? fallback : res
+      return res === key || res === last ? fallback : res
     },
     [t]
   )

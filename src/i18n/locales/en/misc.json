@@ -23,10 +23,10 @@
     "freeFeature": "Free Features",
     "freeFeatureDesc": "Personality test and current month calendar are free",
     "monthlyReset": "Monthly Reset",
-    "monthlyResetDesc": "Credits reset on the 1st of each month",
+    "monthlyResetDesc": "Monthly plan credits reset each billing cycle",
     "faq": "FAQ",
     "guarantee": "7-Day Money Back Guarantee",
-    "guaranteeDesc": "If you're not satisfied, get a full refund within 7 days.",
+    "guaranteeDesc": "First-time subscriptions are covered by a 7-day guarantee. Unused credit packs are refundable within 7 days from purchase.",
     "ctaTitle": "Start Today",
     "ctaSub": "Start free, upgrade when you're ready",
     "startFree": "Start Free",
@@ -74,7 +74,7 @@
       "q4": "Do credit packs expire?",
       "a4": "Credit packs are valid for 3 months from purchase date.",
       "q5": "Can I get a refund?",
-      "a5": "Full refund available within 7 days of subscription. Unused credit packs are also refundable."
+      "a5": "Full refund available within 7 days of subscription. Unused credit packs are refundable within 7 days from purchase."
     }
   },
   "policy": {

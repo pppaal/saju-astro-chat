@@ -96,6 +96,10 @@ coverage-report.json
 test-*.txt
 test-output.txt
 test-results.txt
+audit_report.json
+final-analysis.txt
+routes_compare.txt
+tsc_result.txt
 calendar-test-results*.json
 tmp_calendar.json
 
@@ -114,6 +118,8 @@ c*temptested_files.txt
 c*tmptest_yongsin.json
 C*UserspjyrhAppDataLocalTempclaudefailed_tests.txt
 C*UserspjyrhAppDataLocalTempclaudetest-output.txt
+C*Users*scratchpad*
+*scratchpad*
 
 # Claude Code temp files
 **/AppData/Local/Temp/claude/**

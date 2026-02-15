@@ -68,12 +68,41 @@ function MyJourneyPage() {
     signInUrl,
   })
 
-  if (
-    status === 'loading' ||
-    status === 'unauthenticated' ||
-    (status === 'authenticated' && initialLoading)
-  ) {
+  if (status === 'loading' || (status === 'authenticated' && initialLoading)) {
     return <LoadingScreen />
+  }
+
+  if (status === 'unauthenticated') {
+    return (
+      <main className={styles.container}>
+        <header className={styles.header}>
+          <button className={styles.backBtn} onClick={goBack}>
+            {'\u2190'}
+          </button>
+          <h1 className={styles.logo}>{t('myjourney.title', 'My Journey')}</h1>
+        </header>
+        <section className={styles.loginContainer}>
+          <div className={styles.loginCard}>
+            <div className={styles.loginIcon}>🔐</div>
+            <h2>{t('auth.signInRequired', '로그인이 필요합니다')}</h2>
+            <p>
+              {t('auth.signInDescription', 'My Journey를 보려면 로그인 후 다시 시도해 주세요.')}
+            </p>
+            <div className={styles.loginButtons}>
+              <Link href={signInUrl} className={styles.googleBtn}>
+                {t('auth.signIn', '로그인/시작하기')}
+              </Link>
+              <Link href="/destiny-map" className={styles.kakaoBtn}>
+                {t('menu.destinyMap', 'Destiny Map')}
+              </Link>
+              <Link href="/pricing" className={styles.kakaoBtn}>
+                {t('common.pricing', 'Pricing')}
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+    )
   }
 
   return (
