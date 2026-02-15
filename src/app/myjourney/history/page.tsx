@@ -1,34 +1,35 @@
-"use client";
+'use client'
 
-import { useSession } from "next-auth/react";
-import { Suspense, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import BackButton from "@/components/ui/BackButton";
-import { useI18n } from "@/i18n/I18nProvider";
-import ParticleCanvas from "@/components/animations/ParticleCanvas";
-import styles from "./history.module.css";
+import { useSession } from 'next-auth/react'
+import { Suspense, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import BackButton from '@/components/ui/BackButton'
+import { useI18n } from '@/i18n/I18nProvider'
+import ParticleCanvas from '@/components/animations/ParticleCanvas'
+import styles from './history.module.css'
 
 // Hooks
-import { useHistoryData, useDetailModal } from './hooks';
+import { useHistoryData, useDetailModal } from './hooks'
 
 // Components
-import { ServiceGrid, RecordsList, DetailModalWrapper } from './components';
+import { ServiceGrid, RecordsList, DetailModalWrapper } from './components'
 
 // Constants
-import { SERVICE_CONFIG, ALL_SERVICES_ORDER } from './lib';
+import { SERVICE_CONFIG, ALL_SERVICES_ORDER } from './lib'
+import { filterMyJourneyCoreServices } from '@/lib/coreServices'
 
 export default function HistoryPage() {
   return (
     <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
       <HistoryContent />
     </Suspense>
-  );
+  )
 }
 
 function HistoryContent() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const { t } = useI18n();
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const { t } = useI18n()
 
   // Custom hooks for state management
   const {
@@ -38,7 +39,7 @@ function HistoryContent() {
     setSelectedService,
     showAllRecords,
     setShowAllRecords,
-  } = useHistoryData(status === "authenticated");
+  } = useHistoryData(status === 'authenticated')
 
   const {
     selectedRecord,
@@ -53,17 +54,17 @@ function HistoryContent() {
     matrixDetail,
     loadReadingDetail,
     closeDetail,
-  } = useDetailModal();
+  } = useDetailModal()
 
   // Redirect if unauthenticated
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.replace("/myjourney");
+    if (status === 'unauthenticated') {
+      router.replace('/myjourney')
     }
-  }, [status, router]);
+  }, [status, router])
 
   // Loading state
-  if (status === "loading" || loading) {
+  if (status === 'loading' || loading) {
     return (
       <main className={styles.container}>
         <ParticleCanvas />
@@ -72,24 +73,24 @@ function HistoryContent() {
           <p>Loading your destiny...</p>
         </div>
       </main>
-    );
+    )
   }
 
   // Not authenticated
   if (!session) {
-    return null;
+    return null
   }
 
   // Calculate service counts
-  const serviceCounts: Record<string, number> = {};
+  const serviceCounts: Record<string, number> = {}
   history.forEach((day) => {
     day.records.forEach((r) => {
-      serviceCounts[r.service] = (serviceCounts[r.service] || 0) + 1;
-    });
-  });
+      serviceCounts[r.service] = (serviceCounts[r.service] || 0) + 1
+    })
+  })
 
-  // Use all services from constants
-  const displayServices = ALL_SERVICES_ORDER;
+  // Show only core services in the history service list/filter UI
+  const displayServices = filterMyJourneyCoreServices(ALL_SERVICES_ORDER)
 
   // Filter history by selected service
   const filteredHistory = selectedService
@@ -99,13 +100,13 @@ function HistoryContent() {
           records: day.records.filter((r) => r.service === selectedService),
         }))
         .filter((day) => day.records.length > 0)
-    : [];
+    : []
 
   // Count total filtered records
-  const filteredRecordsCount = filteredHistory.reduce((sum, day) => sum + day.records.length, 0);
+  const filteredRecordsCount = filteredHistory.reduce((sum, day) => sum + day.records.length, 0)
 
   // Total records across all services
-  const totalRecords = history.reduce((sum, day) => sum + day.records.length, 0);
+  const totalRecords = history.reduce((sum, day) => sum + day.records.length, 0)
 
   return (
     <main className={styles.container}>
@@ -117,10 +118,10 @@ function HistoryContent() {
           <BackButton
             onClick={() => {
               if (selectedService) {
-                setSelectedService(null);
-                setShowAllRecords(false);
+                setSelectedService(null)
+                setShowAllRecords(false)
               } else {
-                router.push("/myjourney");
+                router.push('/myjourney')
               }
             }}
           />
@@ -130,12 +131,12 @@ function HistoryContent() {
                 ? SERVICE_CONFIG[selectedService]
                   ? t(SERVICE_CONFIG[selectedService].titleKey)
                   : selectedService
-                : "My Destiny"}
+                : 'My Destiny'}
             </h1>
             <p className={styles.subtitle}>
               {selectedService
-                ? `${serviceCounts[selectedService] || 0}${t("history.recordUnit")}`
-                : `${totalRecords}${t("history.savedUnit")}`}
+                ? `${serviceCounts[selectedService] || 0}${t('history.recordUnit')}`
+                : `${totalRecords}${t('history.savedUnit')}`}
             </p>
           </div>
         </header>
@@ -185,5 +186,5 @@ function HistoryContent() {
         closeDetail={closeDetail}
       />
     </main>
-  );
+  )
 }

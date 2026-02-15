@@ -314,6 +314,19 @@ export const POST = withApiMiddleware(
         success: true,
         summary: {
           totalScore: matrix.summary.totalScore,
+          sajuComponentScore: matrix.summary.sajuComponentScore,
+          astroComponentScore: matrix.summary.astroComponentScore,
+          alignmentScore: matrix.summary.alignmentScore,
+          overlapStrength: matrix.summary.overlapStrength,
+          timeOverlapWeight: matrix.summary.timeOverlapWeight,
+          finalScoreAdjusted: matrix.summary.finalScoreAdjusted,
+          confidenceScore: matrix.summary.confidenceScore,
+          drivers: matrix.summary.drivers || [],
+          cautions: matrix.summary.cautions || [],
+          calendarSignals: matrix.summary.calendarSignals || [],
+          domainScores: matrix.summary.domainScores,
+          overlapTimeline: matrix.summary.overlapTimeline,
+          overlapTimelineByDomain: matrix.summary.overlapTimelineByDomain,
           layersProcessed: Object.keys(cellCounts).filter(
             (k) => cellCounts[k as keyof typeof cellCounts] > 0
           ).length,

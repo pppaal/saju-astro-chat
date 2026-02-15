@@ -4376,3 +4376,139 @@
     border-color: #ccc;
   }
 }
+
+/* ========== Matrix Peaks View ========== */
+.matrixPeaksWrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px 16px 32px;
+}
+
+.matrixPeaksHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.matrixPeaksTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--cal-text-primary);
+}
+
+.matrixPeaksSubtitle {
+  margin: 4px 0 0;
+  color: var(--cal-text-secondary);
+  font-size: 13px;
+}
+
+.matrixPeaksMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.matrixPeaksMeta span {
+  font-size: 12px;
+  color: var(--cal-text-secondary);
+  background: var(--cal-bg-tertiary);
+  border: 1px solid var(--cal-border-light);
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
+.emptyState {
+  border: 1px solid var(--cal-border);
+  border-radius: 14px;
+  padding: 18px;
+  background: var(--cal-bg-card);
+  color: var(--cal-text-secondary);
+}
+
+.matrixMonthList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.matrixMonthSection {
+  border: 1px solid var(--cal-border);
+  border-radius: 16px;
+  background: var(--cal-bg-card);
+  padding: 14px;
+}
+
+.matrixMonthTitle {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cal-text-primary);
+}
+
+.matrixEventList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.matrixEventCard {
+  border: 1px solid var(--cal-border-light);
+  border-radius: 12px;
+  background: var(--cal-bg-secondary);
+  padding: 12px;
+}
+
+.matrixEventTitleRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.matrixEventTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cal-text-primary);
+}
+
+.matrixEventBadge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: var(--cal-gradient-primary);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+
+.matrixEventSubtitle {
+  margin: 6px 0 8px;
+  font-size: 12px;
+  color: var(--cal-text-secondary);
+}
+
+.matrixEventNotes {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--cal-text-secondary);
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .matrixPeaksHeaderRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .matrixEventList {
+    grid-template-columns: 1fr;
+  }
+}

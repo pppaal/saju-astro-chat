@@ -326,10 +326,50 @@ export interface DestinyFusionMatrixComputed {
 
 export interface MatrixSummary {
   totalScore: number
+  sajuComponentScore?: number
+  astroComponentScore?: number
+  alignmentScore?: number
+  overlapStrength?: number
+  timeOverlapWeight?: number
+  finalScoreAdjusted?: number
+  confidenceScore?: number
+  drivers?: string[]
+  cautions?: string[]
+  calendarSignals?: Array<{
+    level: 'high' | 'medium' | 'caution'
+    trigger: string
+    score: number
+  }>
   strengthPoints: MatrixHighlight[]
   balancePoints: MatrixHighlight[]
   cautionPoints: MatrixHighlight[]
   topSynergies: MatrixSynergy[]
+  domainScores?: Record<DomainKey, DomainScore>
+  overlapTimeline?: MonthlyOverlapPoint[]
+  overlapTimelineByDomain?: Record<DomainKey, MonthlyOverlapPoint[]>
+}
+
+export type DomainKey = 'career' | 'love' | 'money' | 'health' | 'move'
+
+export type DomainScore = {
+  domain: DomainKey
+  baseFinalScore: number // 0..10
+  finalScoreAdjusted: number // 0..10
+  sajuComponentScore: number // 0..1
+  astroComponentScore: number // 0..1
+  alignmentScore: number // 0..1
+  overlapStrength: number // 0..1
+  timeOverlapWeight: number // 1.0..1.3
+  confidenceScore: number // 0..1
+  drivers: string[]
+  cautions: string[]
+}
+
+export type MonthlyOverlapPoint = {
+  month: string // YYYY-MM
+  overlapStrength: number // 0..1
+  timeOverlapWeight: number // 1.0..1.3
+  peakLevel: 'peak' | 'high' | 'normal'
 }
 
 export interface MatrixHighlight {

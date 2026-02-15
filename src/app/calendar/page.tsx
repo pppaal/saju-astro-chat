@@ -1,5 +1,5 @@
-﻿import { Metadata } from 'next'
-import DestinyCalendar from '@/components/calendar/DestinyCalendar'
+import { Metadata } from 'next'
+import CalendarTabs from '@/components/calendar/CalendarTabs'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -37,5 +37,5 @@ export const metadata: Metadata = {
 }
 
 export default function CalendarPage() {
-  return <DestinyCalendar />
+  return <CalendarTabs />
 }

@@ -87,7 +87,7 @@ export default function MainPage() {
           </p>
 
           {/* Google-style Question Search Box */}
-          <ServiceSearchBox translate={translate} t={t} styles={styles} />
+          <ServiceSearchBox translate={translate} styles={styles} />
         </div>
 
         {/* Scroll Indicator */}

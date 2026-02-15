@@ -26,11 +26,20 @@
  * ============================================================================
  */
 
-export * from './types';
-export * from './engine';
-export * from './data';
-export * from './interpreter';
-export * from './validation';
-export * from './errors';
-export * from './performance';
-export * from './ai-report';
+export * from './types'
+export * from './engine'
+export * from './data'
+export * from './interpreter'
+export * from './validation'
+export * from './errors'
+export * from './performance'
+export * from './ai-report'
+export * from './alignment'
+export * from './timeOverlap'
+export * from './componentScores'
+export * from './contributionMap'
+export * from './drivers'
+export * from './calendarSignals'
+export * from './domainMap'
+export * from './domainScoring'
+export * from './monthlyTimeline'
