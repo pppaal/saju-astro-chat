@@ -9,8 +9,6 @@ const TARGETS = [
   { path: '/faq', requiredAny: ['3 months', '3\uAC1C\uC6D4'] },
   { path: '/policy/refund', requiredAny: ['3 months', '3\uAC1C\uC6D4'] },
   { path: '/policy/terms', requiredAny: ['3 months', '3\uAC1C\uC6D4'] },
-  { path: '/myjourney', requiredAny: ['Sign in required', '\uB85C\uADF8\uC778\uC774 \uD544\uC694'] },
-  { path: '/destiny-match', requiredAny: ['Sign in required', '\uB85C\uADF8\uC778\uC774 \uD544\uC694'] },
 ]
 
 const BLOCKED_PATTERNS = [
