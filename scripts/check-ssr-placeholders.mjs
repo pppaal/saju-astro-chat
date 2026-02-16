@@ -6,6 +6,7 @@ const TARGETS = [
   { path: '/', required: ['Know yourself', 'Shape tomorrow'] },
   { path: '/pricing', required: ['Pricing', 'Credit'] },
   { path: '/destiny-map', required: ['Destiny Map', 'Birth Date'] },
+  { path: '/destiny-match', requiredAny: ['Sign in required', '로그인이 필요합니다'] },
   { path: '/blog' },
   { path: '/blog/numerology-life-path-numbers-explained', allowedStatus: [200, 404, 410] },
   { path: '/faq', requiredAny: ['3 months', '3\uAC1C\uC6D4'] },
@@ -44,6 +45,9 @@ const HOME_BLOCKED_REGEXES = [
   /\uD68C\uC6D0\s+\.\.\./,
 ]
 
+const HOME_FORBIDDEN_STRINGS = ['#### 주요 키워드', '주요 키워드']
+const DESTINY_MAP_MOJIBAKE_TOKENS = ['ðŸ', 'âœ¨', 'ï¸\u008f']
+
 const SCOPE_FORBIDDEN_BY_PATH = {
   '/faq': ['and numerology into one comprehensive view'],
   '/policy/terms': ['- Dream interpretation', '- Numerology', '- I Ching'],
@@ -67,12 +71,24 @@ async function fetchHtml(url) {
   return { status: response.status, html }
 }
 
+async function fetchNoRedirect(url) {
+  const response = await fetch(url, { redirect: 'manual' })
+  const html = await response.text()
+  return {
+    status: response.status,
+    html,
+    location: response.headers.get('location') || '',
+  }
+}
+
 async function main() {
   let failed = false
 
   for (const target of TARGETS) {
     const url = `${BASE_URL}${target.path}`
-    const { status, html } = await fetchHtml(url)
+    const payload =
+      target.path === '/destiny-match' ? await fetchNoRedirect(url) : await fetchHtml(url)
+    const { status, html } = payload
     const visibleText = extractVisibleText(html)
 
     const allowedStatus = Array.isArray(target.allowedStatus) ? target.allowedStatus : [200]
@@ -145,6 +161,16 @@ async function main() {
     }
 
     if (target.path === '/') {
+      const foundForbiddenStrings = HOME_FORBIDDEN_STRINGS.filter((s) => html.includes(s))
+      if (foundForbiddenStrings.length > 0) {
+        failed = true
+        console.error(
+          `[FAIL] / contains forbidden SEO keyword block(s): ${foundForbiddenStrings.join(', ')}`
+        )
+      } else {
+        console.log('[PASS] / contains no forbidden SEO keyword block')
+      }
+
       const matchedHomeRegexes = HOME_BLOCKED_REGEXES.filter((re) => re.test(visibleText)).map((re) =>
         re.toString()
       )
@@ -155,6 +181,27 @@ async function main() {
         )
       } else {
         console.log('[PASS] / contains no unfinished stats placeholders')
+      }
+    }
+
+    if (target.path === '/destiny-map') {
+      const mojibakeFound = DESTINY_MAP_MOJIBAKE_TOKENS.filter((token) => html.includes(token))
+      if (mojibakeFound.length > 0) {
+        failed = true
+        console.error(`[FAIL] /destiny-map contains mojibake token(s): ${mojibakeFound.join(', ')}`)
+      } else {
+        console.log('[PASS] /destiny-map contains no mojibake tokens')
+      }
+    }
+
+    if (target.path === '/destiny-match') {
+      if ([301, 302, 307, 308].includes(status) && payload.location?.startsWith('/')) {
+        failed = true
+        console.error(
+          `[FAIL] /destiny-match unexpectedly redirects (${status}) to ${payload.location}`
+        )
+      } else {
+        console.log('[PASS] /destiny-match does not silently redirect to home')
       }
     }
   }
