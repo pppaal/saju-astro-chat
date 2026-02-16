@@ -41,11 +41,10 @@ interface DemoIndexPageProps {
 }
 
 export default async function DemoIndexPage({ searchParams }: DemoIndexPageProps) {
-  const gate = validateDemoTokenForPage(searchParams)
-  if (!gate.ok || !gate.token) {
+  const gate = await validateDemoTokenForPage(searchParams)
+  if (!gate.ok) {
     return <DemoGateMessage reason={gate.reason} />
   }
-  const token = encodeURIComponent(gate.token)
 
   return (
     <main style={{ maxWidth: 1024, margin: '24px auto', padding: 16 }}>
@@ -62,7 +61,7 @@ export default async function DemoIndexPage({ searchParams }: DemoIndexPageProps
           >
             <h2 style={{ marginTop: 0 }}>{service.title}</h2>
             <p>{service.desc}</p>
-            <Link href={`${service.path}?demo_token=${token}`}>Open</Link>
+            <Link href={service.path}>Open</Link>
           </article>
         ))}
       </div>

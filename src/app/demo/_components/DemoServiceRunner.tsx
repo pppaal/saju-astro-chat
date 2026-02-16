@@ -11,7 +11,7 @@ import { DEFAULT_DEMO_PROFILE, type DemoProfile } from './types'
 interface DemoServiceRunnerProps {
   title: string
   description: string
-  token: string
+  token?: string
   endpoint: string
   buildPayload: (profile: DemoProfile) => unknown
 }
@@ -28,7 +28,7 @@ export function DemoServiceRunner({
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const requestUrl = useMemo(
-    () => `${endpoint}?demo_token=${encodeURIComponent(token)}`,
+    () => (token ? `${endpoint}?demo_token=${encodeURIComponent(token)}` : endpoint),
     [endpoint, token]
   )
 
@@ -36,12 +36,16 @@ export function DemoServiceRunner({
     setLoading(true)
     setError(null)
     try {
+      const headers: HeadersInit = {
+        'content-type': 'application/json',
+      }
+      if (token) {
+        headers['x-demo-token'] = token
+      }
+
       const res = await fetch(requestUrl, {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-demo-token': token,
-        },
+        headers,
         body: JSON.stringify(buildPayload(profile)),
       })
       const json = await res.json().catch(() => ({}))

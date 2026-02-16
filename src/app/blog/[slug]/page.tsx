@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { blogPosts } from '@/data/blog-posts'
 import { isBlockedBlogPost } from '@/data/blog/publicFilters'
 import { JsonLd } from '@/components/seo/JsonLd'
@@ -12,6 +12,16 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
+  if (isBlockedBlogPost({ slug })) {
+    return {
+      title: 'Blog | DestinyPal',
+      description: 'Explore DestinyPal blog posts and guides.',
+      keywords: ['blog', 'destiny', 'saju', 'astrology', 'tarot', 'i ching', 'dream'],
+      alternates: {
+        canonical: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'}/blog`,
+      },
+    }
+  }
   const post = blogPosts.find((p) => p.slug === slug)
 
   if (!post || isBlockedBlogPost(post)) {
@@ -77,6 +87,9 @@ export async function generateStaticParams() {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params
+  if (isBlockedBlogPost({ slug })) {
+    redirect('/blog')
+  }
   const post = blogPosts.find((p) => p.slug === slug)
 
   if (!post || isBlockedBlogPost(post)) {

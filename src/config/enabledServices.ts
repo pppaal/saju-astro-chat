@@ -96,6 +96,5 @@ export const REMOVED_PUBLIC_SERVICE_PREFIXES: readonly string[] = [
   '/dream',
   '/iching',
   '/past-life',
-  '/destiny-match',
   '/life-prediction',
 ] as const

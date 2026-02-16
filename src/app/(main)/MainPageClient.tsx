@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import dynamic from 'next/dynamic'
@@ -21,7 +21,6 @@ import {
   StatsSection,
   DestinyMapFeature,
   TarotSection,
-  SEOContent,
   CTASection,
 } from './components'
 
@@ -120,10 +119,10 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
         {/* Scroll Indicator */}
         <div className={styles.scrollIndicator}>
           <span className={styles.scrollText}>
-            {translate('landing.scrollDown', '스크롤하여 더보기')}
+            {translate('landing.scrollDown', 'Scroll to see more')}
           </span>
           <div className={styles.scrollArrow}>
-            <span>↓</span>
+            <span>v</span>
           </div>
         </div>
       </section>
@@ -155,16 +154,13 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
       {/* CTA Section */}
       <CTASection translate={translate} styles={styles} />
 
-      {/* SEO Content Section - Rich Information for Search Engines */}
-      <SEOContent translate={translate} styles={styles} />
-
       {/* Scroll to Top Button */}
       <button
         className={`${styles.scrollToTop} ${showScrollTop ? styles.visible : ''}`}
         onClick={scrollToTop}
         aria-label={translate('landing.scrollToTop', 'Back to Top')}
       >
-        <span className={styles.scrollToTopIcon}>↑</span>
+        <span className={styles.scrollToTopIcon}>^</span>
         <span className={styles.scrollToTopText}>
           {translate('landing.scrollToTop', 'Back to Top')}
         </span>

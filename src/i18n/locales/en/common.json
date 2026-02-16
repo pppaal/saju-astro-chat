@@ -44,7 +44,8 @@
     "analyze": "Analyze",
     "loadMyProfile": "Load My Profile",
     "loadingProfile": "Loading...",
-    "profileLoaded": "Profile Loaded!"
+    "profileLoaded": "Profile Loaded!",
+    "profileLoadedSuccess": "Profile loaded successfully."
   },
   "ui": {
     "tipChooseCity": "Selecting a city automatically sets the time zone.",

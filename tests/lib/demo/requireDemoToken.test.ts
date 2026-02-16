@@ -60,4 +60,13 @@ describe('requireDemoToken', () => {
     const res = apiRequireDemoTokenOr404(req)
     expect(res).toBeNull()
   })
+
+  it('apiRequireDemoTokenOr404 accepts dp_demo cookie without token', () => {
+    process.env.DEMO_TOKEN = 'demo-test-token'
+    const req = new NextRequest('http://localhost:3000/api/demo/icp')
+    req.cookies.set('dp_demo', '1')
+
+    const res = apiRequireDemoTokenOr404(req)
+    expect(res).toBeNull()
+  })
 })

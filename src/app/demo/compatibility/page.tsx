@@ -6,10 +6,10 @@ interface DemoPageProps {
   searchParams?: { demo_token?: string | string[]; token?: string | string[] }
 }
 
-export default function DemoCompatibilityPage({ searchParams }: DemoPageProps) {
-  const gate = validateDemoTokenForPage(searchParams)
-  if (!gate.ok || !gate.token) {
+export default async function DemoCompatibilityPage({ searchParams }: DemoPageProps) {
+  const gate = await validateDemoTokenForPage(searchParams)
+  if (!gate.ok) {
     return <DemoGateMessage reason={gate.reason} />
   }
-  return <CompatibilityClient token={gate.token} />
+  return <CompatibilityClient token={gate.token || undefined} />
 }

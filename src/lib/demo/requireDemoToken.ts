@@ -2,6 +2,7 @@ import 'server-only'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { notFound } from 'next/navigation'
+import { cookies } from 'next/headers'
 import {
   getExpectedDemoToken,
   isDemoEnabled,
@@ -14,6 +15,7 @@ import {
 export { isValidDemoToken } from '@/lib/demo/token'
 
 type TokenLike = string | string[] | null | undefined
+const DEMO_COOKIE_NAME = 'dp_demo'
 
 export function hasDemoTokenConfigured(): boolean {
   return getExpectedDemoToken() !== null
@@ -72,14 +74,26 @@ export function requireDemoTokenForPage(searchParams?: {
   return token ?? ''
 }
 
-export function validateDemoTokenForPage(searchParams?: {
+async function hasDemoAccessCookie(): Promise<boolean> {
+  try {
+    const cookieStore = await cookies()
+    return cookieStore.get(DEMO_COOKIE_NAME)?.value === '1'
+  } catch {
+    return false
+  }
+}
+
+export async function validateDemoTokenForPage(searchParams?: {
   demo_token?: TokenLike
   token?: TokenLike
-}): {
+}): Promise<{
   ok: boolean
   token: string | null
   reason?: 'disabled' | 'misconfigured' | 'missing_or_invalid'
-} {
+}> {
+  if (await hasDemoAccessCookie()) {
+    return { ok: true, token: null }
+  }
   if (!isDemoEnabled()) {
     return { ok: false, token: null, reason: 'disabled' }
   }
@@ -102,6 +116,9 @@ export function demoUnauthorizedJson(): NextResponse {
 }
 
 export function apiRequireDemoTokenOr404(request: NextRequest): NextResponse | null {
+  if (request.cookies.get(DEMO_COOKIE_NAME)?.value === '1') {
+    return null
+  }
   if (!isDemoEnabled()) {
     return NextResponse.json({ error: 'Demo mode disabled' }, { status: 403 })
   }

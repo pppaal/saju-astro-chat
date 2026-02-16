@@ -181,6 +181,16 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: '/blog/numerology-life-path-numbers-explained',
+        destination: '/blog',
+        permanent: true,
+      },
+      {
+        source: '/blog/numerology-:slug',
+        destination: '/blog',
+        permanent: true,
+      },
+      {
         source: '/:path*',
         has: [{ type: 'host', value: 'www.destinypal.com' }],
         destination: 'https://destinypal.com/:path*',

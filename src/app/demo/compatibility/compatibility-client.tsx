@@ -9,7 +9,7 @@ import { DemoResultCard } from '../_components/DemoResultCard'
 import { DEFAULT_DEMO_PROFILE, type DemoProfile } from '../_components/types'
 
 interface CompatibilityClientProps {
-  token: string
+  token?: string
 }
 
 const PARTNER_PROFILE: DemoProfile = {
@@ -30,7 +30,10 @@ export default function CompatibilityClient({ token }: CompatibilityClientProps)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<unknown>(null)
   const requestUrl = useMemo(
-    () => `/api/demo/compatibility?demo_token=${encodeURIComponent(token)}`,
+    () =>
+      token
+        ? `/api/demo/compatibility?demo_token=${encodeURIComponent(token)}`
+        : '/api/demo/compatibility',
     [token]
   )
 
@@ -38,12 +41,16 @@ export default function CompatibilityClient({ token }: CompatibilityClientProps)
     setLoading(true)
     setError(null)
     try {
+      const headers: HeadersInit = {
+        'content-type': 'application/json',
+      }
+      if (token) {
+        headers['x-demo-token'] = token
+      }
+
       const res = await fetch(requestUrl, {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-demo-token': token,
-        },
+        headers,
         body: JSON.stringify({
           persons: [
             {

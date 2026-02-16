@@ -44,7 +44,8 @@
     "analyze": "분석",
     "loadMyProfile": "내 프로필",
     "loadingProfile": "로드 중...",
-    "profileLoaded": "프로필 로드 완료!"
+    "profileLoaded": "프로필 로드 완료!",
+    "profileLoadedSuccess": "프로필을 성공적으로 불러왔습니다."
   },
   "ui": {
     "tipChooseCity": "도시를 선택하면 시간대가 자동으로 설정됩니다.",

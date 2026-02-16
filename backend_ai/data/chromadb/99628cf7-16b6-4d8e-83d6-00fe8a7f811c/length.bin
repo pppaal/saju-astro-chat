@@ -1,1 +1,1 @@
-invalid type: string "Card: 악마 / The Devil | Orientation: reversed | Domain: money | Meaning: 악마 역방향은 속박의 그림자 측면을 나타냅니다. 재정 영역에서 이 에너지의 부재나 과잉에 주의하세요. | Advice: 악마의 그림자를 인식하고, 균형을 찾기 위해 노력하세요. | Keywords: 속박, 물질주의, 그림자, 유혹", expected f64 expect
+invalid type: string "Card: 탑 / The Tower | Orientation: reversed | Domain: love | Meaning: 탑 역방향은 갑작스러운 변화의 그림자 측면을 나타냅니다. 사랑 영역에서 이 에너지의 부재나 과잉에 주의하세요. | Advice: 탑의 그림자를 인식하고, 균형을 찾기 위해 노력하세요. | Keywords: 갑작스러운 변화, 붕괴, 계시, 해방", expect

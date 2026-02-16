@@ -56,6 +56,7 @@ function DestinyMapContent({
   const router = useRouter()
   const { t, locale: activeLocale } = useI18n()
   const locale = activeLocale || initialLocale
+  const isKo = locale === 'ko'
   const { status } = useSession()
   const safeT = useCallback(
     (path: string, fallback?: string) => {
@@ -286,7 +287,7 @@ function DestinyMapContent({
           </div>
           <div className={styles.header}>
             <div className={styles.iconWrapper}>
-              <span className={styles.icon}>ðŸ—ºï¸</span>
+              <span className={styles.icon}>MAP</span>
             </div>
             <h1 className={styles.title}>{safeT('menu.destinyMap', 'Destiny Map')}</h1>
             <p className={styles.subtitle}>
@@ -308,7 +309,7 @@ function DestinyMapContent({
                   disabled={form.loadingProfile}
                 >
                   <span className={styles.loadProfileIcon}>
-                    {form.loadingProfile ? '...' : form.profileLoaded ? 'âœ“' : 'ðŸ‘¤'}
+                    {form.loadingProfile ? '...' : form.profileLoaded ? 'OK' : 'ME'}
                   </span>
                   <span className={styles.loadProfileText}>
                     {form.loadingProfile
@@ -320,11 +321,11 @@ function DestinyMapContent({
                 </button>
                 {form.profileLoaded && (
                   <div className={styles.successBanner}>
-                    <span className={styles.successIcon}>âœ“</span>
+                    <span className={styles.successIcon}>OK</span>
                     <span className={styles.successText}>
                       {safeT(
                         'app.profileLoadedSuccess',
-                        'í”„ë¡œí•„ì„ ì„±ê³µì ìœ¼ë¡œ ë¶ˆëŸ¬ì™”ìŠµë‹ˆë‹¤!'
+                        isKo ? '프로필을 성공적으로 불러왔습니다.' : 'Profile loaded successfully.'
                       )}
                     </span>
                   </div>
@@ -333,10 +334,7 @@ function DestinyMapContent({
             )}
 
             <div className={styles.field}>
-              <label className={styles.label}>
-                <span className={styles.labelIcon}>âœ¨</span>
-                {safeT('app.name') || 'Name'}
-              </label>
+              <label className={styles.label}>{safeT('app.name') || 'Name'}</label>
               <input
                 className={styles.input}
                 placeholder={safeT('app.namePh') || 'Your name (optional)'}
@@ -352,14 +350,13 @@ function DestinyMapContent({
                 <DateTimePicker
                   value={form.birthDate}
                   onChange={(value) => dispatch({ type: 'SET_FIELD', field: 'birthDate', value })}
-                  label={`ðŸ“… ${safeT('app.birthDate') || 'Birth Date'}`}
+                  label={safeT('app.birthDate') || 'Birth Date'}
                   required
                   locale={locale as 'ko' | 'en'}
                 />
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>
-                  <span className={styles.labelIcon}>ðŸ•</span>
                   {safeT('app.birthTime') || 'Birth Time'}
                   <span className={styles.requiredMark}>*</span>
                 </label>
@@ -378,7 +375,6 @@ function DestinyMapContent({
             <div className={styles.grid2}>
               <div className={styles.field} style={{ position: 'relative' }}>
                 <label className={styles.label}>
-                  <span className={styles.labelIcon}>ðŸŒ</span>
                   {safeT('app.birthCity') || 'Birth City'}
                   <span className={styles.requiredMark}>*</span>
                 </label>
@@ -413,10 +409,7 @@ function DestinyMapContent({
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>
-                  <span className={styles.labelIcon}>âš§</span>
-                  {safeT('app.gender') || 'Gender'}
-                </label>
+                <label className={styles.label}>{safeT('app.gender') || 'Gender'}</label>
                 <div className={styles.genderSelectWrapper}>
                   <button
                     type="button"
@@ -424,18 +417,15 @@ function DestinyMapContent({
                     onClick={handleGenderToggle}
                     onBlur={handleGenderBlur}
                   >
-                    <span className={styles.genderIcon}>
-                      {form.gender === 'Male' ? 'â™‚' : 'â™€'}
-                    </span>
                     <span className={styles.genderText}>
                       {form.gender === 'Male'
-                        ? safeT('app.male') || 'ë‚¨ì„±'
-                        : safeT('app.female') || 'ì—¬ì„±'}
+                        ? safeT('app.male') || (isKo ? '남성' : 'Male')
+                        : safeT('app.female') || (isKo ? '여성' : 'Female')}
                     </span>
                     <span
                       className={`${styles.genderArrow} ${form.genderOpen ? styles.genderArrowOpen : ''}`}
                     >
-                      â–¾
+                      v
                     </span>
                   </button>
                   {form.genderOpen && (
@@ -445,24 +435,20 @@ function DestinyMapContent({
                         className={`${styles.genderOption} ${form.gender === 'Male' ? styles.genderOptionActive : ''}`}
                         onMouseDown={handleSelectMale}
                       >
-                        <span className={styles.genderOptionIcon}>â™‚</span>
                         <span className={styles.genderOptionText}>
-                          {safeT('app.male') || 'ë‚¨ì„±'}
+                          {safeT('app.male') || (isKo ? '남성' : 'Male')}
                         </span>
-                        {form.gender === 'Male' && <span className={styles.genderCheck}>âœ“</span>}
+                        {form.gender === 'Male' && <span className={styles.genderCheck}>OK</span>}
                       </button>
                       <button
                         type="button"
                         className={`${styles.genderOption} ${form.gender === 'Female' ? styles.genderOptionActive : ''}`}
                         onMouseDown={handleSelectFemale}
                       >
-                        <span className={styles.genderOptionIcon}>â™€</span>
                         <span className={styles.genderOptionText}>
-                          {safeT('app.female') || 'ì—¬ì„±'}
+                          {safeT('app.female') || (isKo ? '여성' : 'Female')}
                         </span>
-                        {form.gender === 'Female' && (
-                          <span className={styles.genderCheck}>âœ“</span>
-                        )}
+                        {form.gender === 'Female' && <span className={styles.genderCheck}>OK</span>}
                       </button>
                     </div>
                   )}
@@ -474,22 +460,22 @@ function DestinyMapContent({
               <span className={styles.buttonText}>
                 {safeT('app.analyze') || 'Begin Your Journey'}
               </span>
-              <span className={styles.buttonIcon}>â†’</span>
+              <span className={styles.buttonIcon}>{'->'}</span>
             </button>
           </form>
 
           <div className={styles.features}>
             <div className={styles.feature}>
-              <span className={styles.featureIcon}>ðŸ”®</span>
-              <span className={styles.featureText}>ë™ì–‘ìš´ì„¸</span>
+              <span className={styles.featureIcon}>E</span>
+              <span className={styles.featureText}>{isKo ? '동양 운세' : 'Eastern Fortune'}</span>
             </div>
             <div className={styles.feature}>
-              <span className={styles.featureIcon}>âœ¦</span>
-              <span className={styles.featureText}>ì„œì–‘ìš´ì„¸</span>
+              <span className={styles.featureIcon}>W</span>
+              <span className={styles.featureText}>{isKo ? '서양 운세' : 'Western Fortune'}</span>
             </div>
             <div className={styles.feature}>
-              <span className={styles.featureIcon}>ðŸƒ</span>
-              <span className={styles.featureText}>Tarot Insight</span>
+              <span className={styles.featureIcon}>T</span>
+              <span className={styles.featureText}>{isKo ? '타로 인사이트' : 'Tarot Insight'}</span>
             </div>
           </div>
         </div>

@@ -6,9 +6,9 @@ interface DemoPageProps {
   searchParams?: { demo_token?: string | string[]; token?: string | string[] }
 }
 
-export default function DemoDestinyMatrixPage({ searchParams }: DemoPageProps) {
-  const gate = validateDemoTokenForPage(searchParams)
-  if (!gate.ok || !gate.token) {
+export default async function DemoDestinyMatrixPage({ searchParams }: DemoPageProps) {
+  const gate = await validateDemoTokenForPage(searchParams)
+  if (!gate.ok) {
     return <DemoGateMessage reason={gate.reason} />
   }
 
@@ -16,7 +16,7 @@ export default function DemoDestinyMatrixPage({ searchParams }: DemoPageProps) {
     <DemoServiceRunner
       title="Destiny Matrix Demo"
       description="Calls matrix scoring endpoint and returns summary fields including domainScores and overlapTimeline."
-      token={gate.token}
+      token={gate.token || undefined}
       endpoint="/api/demo/destiny-matrix"
       buildPayload={(profile) => ({
         birthDate: profile.birthDate,

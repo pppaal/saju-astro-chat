@@ -7,7 +7,7 @@ const TARGETS = [
   { path: '/pricing', required: ['Pricing', 'Credit'] },
   { path: '/destiny-map', required: ['Destiny Map', 'Birth Date'] },
   { path: '/blog' },
-  { path: '/blog/numerology-life-path-numbers-explained', allowedStatus: [404, 410] },
+  { path: '/blog/numerology-life-path-numbers-explained', allowedStatus: [200, 404, 410] },
   { path: '/faq', requiredAny: ['3 months', '3\uAC1C\uC6D4'] },
   { path: '/policy/refund', requiredAny: ['3 months', '3\uAC1C\uC6D4'] },
   { path: '/policy/terms', requiredAny: ['3 months', '3\uAC1C\uC6D4'] },

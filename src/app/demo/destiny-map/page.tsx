@@ -6,9 +6,9 @@ interface DemoPageProps {
   searchParams?: { demo_token?: string | string[]; token?: string | string[] }
 }
 
-export default function DemoDestinyMapPage({ searchParams }: DemoPageProps) {
-  const gate = validateDemoTokenForPage(searchParams)
-  if (!gate.ok || !gate.token) {
+export default async function DemoDestinyMapPage({ searchParams }: DemoPageProps) {
+  const gate = await validateDemoTokenForPage(searchParams)
+  if (!gate.ok) {
     return <DemoGateMessage reason={gate.reason} />
   }
 
@@ -16,7 +16,7 @@ export default function DemoDestinyMapPage({ searchParams }: DemoPageProps) {
     <DemoServiceRunner
       title="Destiny Map Demo"
       description="Generates a destiny-map result using the same production API endpoint."
-      token={gate.token}
+      token={gate.token || undefined}
       endpoint="/api/demo/destiny-map"
       buildPayload={(profile) => ({
         name: profile.name,
