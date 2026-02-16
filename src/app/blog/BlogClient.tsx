@@ -9,9 +9,10 @@ import { categories } from '@/data/blog-categories'
 import { getBlogPostsIndex } from '@/data/blogPostLoader'
 import type { BlogPost } from '@/data/blog-posts'
 import blogMetadata from '@/data/blog/metadata/blog-metadata.json'
+import { isBlockedBlogPost } from '@/data/blog/publicFilters'
 import styles from './blog.module.css'
 
-const fallbackBlogPosts = blogMetadata as BlogPost[]
+const fallbackBlogPosts = (blogMetadata as BlogPost[]).filter((post) => !isBlockedBlogPost(post))
 
 export default function BlogClient() {
   const { locale } = useI18n()

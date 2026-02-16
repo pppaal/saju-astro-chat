@@ -8,6 +8,7 @@ import { readFileSync } from 'fs'
 import path from 'path'
 import blogMetadata from './blog/metadata/blog-metadata.json'
 import { generateCurrentYearFortuneBlogPost } from './yearly-fortune-generator'
+import { isBlockedBlogPost } from './blog/publicFilters'
 
 export interface BlogPost {
   slug: string
@@ -31,31 +32,33 @@ const POSTS_DIR = path.join(process.cwd(), 'src/data/blog/posts')
  * Load all blog posts synchronously
  */
 function loadBlogPostsSync(): BlogPost[] {
-  return blogMetadata.map((metadata) => {
-    const enPath = path.join(POSTS_DIR, `${metadata.slug}.en.md`)
-    const koPath = path.join(POSTS_DIR, `${metadata.slug}.ko.md`)
+  return blogMetadata
+    .filter((metadata) => !isBlockedBlogPost(metadata))
+    .map((metadata) => {
+      const enPath = path.join(POSTS_DIR, `${metadata.slug}.en.md`)
+      const koPath = path.join(POSTS_DIR, `${metadata.slug}.ko.md`)
 
-    let content = ''
-    let contentKo = ''
+      let content = ''
+      let contentKo = ''
 
-    try {
-      content = readFileSync(enPath, 'utf-8')
-    } catch (_error) {
-      console.warn(`Missing English content for ${metadata.slug}`)
-    }
+      try {
+        content = readFileSync(enPath, 'utf-8')
+      } catch (_error) {
+        console.warn(`Missing English content for ${metadata.slug}`)
+      }
 
-    try {
-      contentKo = readFileSync(koPath, 'utf-8')
-    } catch (_error) {
-      // Korean content is optional
-    }
+      try {
+        contentKo = readFileSync(koPath, 'utf-8')
+      } catch (_error) {
+        // Korean content is optional
+      }
 
-    return {
-      ...metadata,
-      content,
-      contentKo,
-    }
-  })
+      return {
+        ...metadata,
+        content,
+        contentKo,
+      }
+    })
 }
 
 // Load posts once at module initialization

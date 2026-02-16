@@ -6,14 +6,15 @@
  * Full posts (110KB) are loaded only when needed
  */
 
-import type { BlogPost } from './blog-posts';
-import { logger } from '@/lib/logger';
+import type { BlogPost } from './blog-posts'
+import { logger } from '@/lib/logger'
+import { isBlockedBlogPost } from './blog/publicFilters'
 
 // Cache loaded posts
-const postCache = new Map<string, BlogPost>();
+const postCache = new Map<string, BlogPost>()
 
 // Cache for the index
-let indexCache: BlogPost[] | null = null;
+let indexCache: BlogPost[] | null = null
 
 /**
  * Load the blog posts index (metadata only, no content)
@@ -21,21 +22,22 @@ let indexCache: BlogPost[] | null = null;
  */
 export async function getBlogPostsIndex(): Promise<BlogPost[]> {
   if (indexCache) {
-    return indexCache;
+    return indexCache
   }
 
   try {
-    const response = await fetch('/data/blog/index.json');
+    const response = await fetch('/data/blog/index.json')
     if (!response.ok) {
-      throw new Error(`Failed to load blog index: ${response.statusText}`);
+      throw new Error(`Failed to load blog index: ${response.statusText}`)
     }
 
-    const data = await response.json();
-    indexCache = data;
-    return data;
+    const data = await response.json()
+    const filteredPosts = data.filter((post: BlogPost) => !isBlockedBlogPost(post))
+    indexCache = filteredPosts
+    return filteredPosts
   } catch (error) {
-    logger.error('Failed to load blog posts index:', error);
-    throw error;
+    logger.error('Failed to load blog posts index:', error)
+    throw error
   }
 }
 
@@ -44,27 +46,33 @@ export async function getBlogPostsIndex(): Promise<BlogPost[]> {
  * Returns the full post with content
  */
 export async function getBlogPost(slug: string): Promise<BlogPost | null> {
+  if (isBlockedBlogPost({ slug })) {
+    return null
+  }
   // Check cache first
   if (postCache.has(slug)) {
-    return postCache.get(slug)!;
+    return postCache.get(slug)!
   }
 
   try {
-    const response = await fetch(`/data/blog/${slug}.json`);
+    const response = await fetch(`/data/blog/${slug}.json`)
     if (!response.ok) {
       if (response.status === 404) {
-        logger.warn(`Blog post not found: ${slug}`);
-        return null;
+        logger.warn(`Blog post not found: ${slug}`)
+        return null
       }
-      throw new Error(`Failed to load blog post ${slug}: ${response.statusText}`);
+      throw new Error(`Failed to load blog post ${slug}: ${response.statusText}`)
     }
 
-    const post: BlogPost = await response.json();
-    postCache.set(slug, post);
-    return post;
+    const post: BlogPost = await response.json()
+    if (isBlockedBlogPost(post)) {
+      return null
+    }
+    postCache.set(slug, post)
+    return post
   } catch (error) {
-    logger.error(`Failed to load blog post ${slug}:`, error);
-    return null;
+    logger.error(`Failed to load blog post ${slug}:`, error)
+    return null
   }
 }
 
@@ -72,45 +80,43 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
  * Preload multiple blog posts (for performance optimization)
  */
 export async function preloadBlogPosts(slugs: string[]): Promise<void> {
-  const promises = slugs
-    .filter(slug => !postCache.has(slug))
-    .map(slug => getBlogPost(slug));
+  const promises = slugs.filter((slug) => !postCache.has(slug)).map((slug) => getBlogPost(slug))
 
-  await Promise.allSettled(promises);
+  await Promise.allSettled(promises)
 }
 
 /**
  * Get featured blog posts from index
  */
 export async function getFeaturedPosts(): Promise<BlogPost[]> {
-  const index = await getBlogPostsIndex();
-  return index.filter(post => post.featured);
+  const index = await getBlogPostsIndex()
+  return index.filter((post) => post.featured)
 }
 
 /**
  * Get blog posts by category from index
  */
 export async function getPostsByCategory(category: string): Promise<BlogPost[]> {
-  const index = await getBlogPostsIndex();
-  return index.filter(post => post.category === category || post.categoryKo === category);
+  const index = await getBlogPostsIndex()
+  return index.filter((post) => post.category === category || post.categoryKo === category)
 }
 
 /**
  * Get recent blog posts from index
  */
 export async function getRecentPosts(limit: number = 5): Promise<BlogPost[]> {
-  const index = await getBlogPostsIndex();
+  const index = await getBlogPostsIndex()
   return index
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, limit);
+    .slice(0, limit)
 }
 
 /**
  * Clear the post cache (useful for memory management)
  */
 export function clearBlogPostCache(): void {
-  postCache.clear();
-  indexCache = null;
+  postCache.clear()
+  indexCache = null
 }
 
 /**
@@ -119,6 +125,6 @@ export function clearBlogPostCache(): void {
 export function getBlogCacheStats() {
   return {
     postsLoaded: postCache.size,
-    indexLoaded: indexCache !== null
-  };
+    indexLoaded: indexCache !== null,
+  }
 }

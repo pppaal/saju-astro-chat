@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { blogPosts } from '@/data/blog-posts'
+import { isBlockedBlogPost } from '@/data/blog/publicFilters'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -69,12 +70,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }))
 
   // Blog posts
-  const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
-    url: `${BASE_URL}/blog/${post.slug}`,
-    lastModified: post.date || currentDate,
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
-  }))
+  const blogPages: MetadataRoute.Sitemap = blogPosts
+    .filter((post) => !isBlockedBlogPost(post))
+    .map((post) => ({
+      url: `${BASE_URL}/blog/${post.slug}`,
+      lastModified: post.date || currentDate,
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }))
 
   return [...mainPages, ...servicePages, ...policyPages, ...blogPages]
 }

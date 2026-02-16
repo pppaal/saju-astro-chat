@@ -2,6 +2,7 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import { logger } from '@/lib/logger'
 import blogMetadata from './metadata/blog-metadata.json'
+import { isBlockedBlogPost } from './publicFilters'
 
 export interface BlogPost {
   slug: string
@@ -42,6 +43,7 @@ export async function loadBlogPost(slug: string): Promise<BlogPost | null> {
   try {
     const metadata = (blogMetadata as BlogMetadata[]).find((m) => m.slug === slug)
     if (!metadata) return null
+    if (isBlockedBlogPost(metadata)) return null
 
     const enPath = path.join(POSTS_DIR, `${slug}.en.md`)
     const koPath = path.join(POSTS_DIR, `${slug}.ko.md`)
@@ -69,7 +71,11 @@ export async function loadBlogPost(slug: string): Promise<BlogPost | null> {
  * Load all blog posts
  */
 export async function loadAllBlogPosts(): Promise<BlogPost[]> {
-  const posts = await Promise.all((blogMetadata as BlogMetadata[]).map((m) => loadBlogPost(m.slug)))
+  const posts = await Promise.all(
+    (blogMetadata as BlogMetadata[])
+      .filter((metadata) => !isBlockedBlogPost(metadata))
+      .map((metadata) => loadBlogPost(metadata.slug))
+  )
 
   return posts.filter((p): p is BlogPost => p !== null)
 }
@@ -78,5 +84,5 @@ export async function loadAllBlogPosts(): Promise<BlogPost[]> {
  * Get blog metadata without loading content (faster)
  */
 export function getBlogMetadata(): BlogMetadata[] {
-  return blogMetadata as BlogMetadata[]
+  return (blogMetadata as BlogMetadata[]).filter((metadata) => !isBlockedBlogPost(metadata))
 }

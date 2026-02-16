@@ -1,40 +1,49 @@
-import { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { blogPosts } from "@/data/blog-posts";
-import { JsonLd } from "@/components/seo/JsonLd";
-import { generateJsonLd } from "@/components/seo/SEO";
-import BlogPostClient from "./BlogPostClient";
+import { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { blogPosts } from '@/data/blog-posts'
+import { isBlockedBlogPost } from '@/data/blog/publicFilters'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { generateJsonLd } from '@/components/seo/SEO'
+import BlogPostClient from './BlogPostClient'
 
 type Props = {
-  params: Promise<{ slug: string }>;
-};
+  params: Promise<{ slug: string }>
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  const post = blogPosts.find((p) => p.slug === slug);
+  const { slug } = await params
+  const post = blogPosts.find((p) => p.slug === slug)
 
-  if (!post) {
+  if (!post || isBlockedBlogPost(post)) {
     return {
-      title: "Post Not Found | DestinyPal Blog",
-      description: "The requested blog post could not be found.",
-    };
+      title: 'Post Not Found | DestinyPal Blog',
+      description: 'The requested blog post could not be found.',
+    }
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
   return {
     title: `${post.title} | DestinyPal Blog`,
     description: post.excerpt,
-    keywords: [post.category, "fortune telling", "divination", "destiny", "saju", "astrology", "tarot"],
+    keywords: [
+      post.category,
+      'fortune telling',
+      'divination',
+      'destiny',
+      'saju',
+      'astrology',
+      'tarot',
+    ],
     openGraph: {
       title: post.title,
       description: post.excerpt,
-      type: "article",
+      type: 'article',
       publishedTime: post.date,
-      authors: ["DestinyPal"],
+      authors: ['DestinyPal'],
       tags: [post.category],
       url: `${baseUrl}/blog/${post.slug}`,
-      siteName: "DestinyPal",
+      siteName: 'DestinyPal',
       images: [
         {
           url: `${baseUrl}/og-image.png`,
@@ -45,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ],
     },
     twitter: {
-      card: "summary_large_image",
+      card: 'summary_large_image',
       title: post.title,
       description: post.excerpt,
       images: [`${baseUrl}/og-image.png`],
@@ -53,52 +62,52 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: {
       canonical: `${baseUrl}/blog/${post.slug}`,
       languages: {
-        "en": `${baseUrl}/blog/${post.slug}`,
-        "ko": `${baseUrl}/blog/${post.slug}`,
+        en: `${baseUrl}/blog/${post.slug}`,
+        ko: `${baseUrl}/blog/${post.slug}`,
       },
     },
-  };
+  }
 }
 
 export async function generateStaticParams() {
   return blogPosts.map((post) => ({
     slug: post.slug,
-  }));
+  }))
 }
 
 export default async function BlogPostPage({ params }: Props) {
-  const { slug } = await params;
-  const post = blogPosts.find((p) => p.slug === slug);
+  const { slug } = await params
+  const post = blogPosts.find((p) => p.slug === slug)
 
-  if (!post) {
-    notFound();
+  if (!post || isBlockedBlogPost(post)) {
+    notFound()
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
   const articleJsonLd = generateJsonLd({
-    type: "Article",
+    type: 'Article',
     name: post.title,
     description: post.excerpt,
     datePublished: post.date,
     dateModified: post.date,
     image: `${baseUrl}/og-image.png`,
     url: `${baseUrl}/blog/${post.slug}`,
-    author: { name: "DestinyPal", url: baseUrl },
-  });
+    author: { name: 'DestinyPal', url: baseUrl },
+  })
 
   const breadcrumbJsonLd = generateJsonLd({
-    type: "BreadcrumbList",
+    type: 'BreadcrumbList',
     breadcrumbs: [
-      { name: "Home", url: baseUrl },
-      { name: "Blog", url: `${baseUrl}/blog` },
+      { name: 'Home', url: baseUrl },
+      { name: 'Blog', url: `${baseUrl}/blog` },
       { name: post.title, url: `${baseUrl}/blog/${post.slug}` },
     ],
-  });
+  })
 
   const relatedPosts = blogPosts
     .filter((p) => p.category === post.category && p.slug !== post.slug)
-    .slice(0, 3);
+    .slice(0, 3)
 
   return (
     <>
@@ -106,5 +115,5 @@ export default async function BlogPostPage({ params }: Props) {
       <JsonLd data={breadcrumbJsonLd} />
       <BlogPostClient post={post} relatedPosts={relatedPosts} />
     </>
-  );
+  )
 }

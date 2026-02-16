@@ -1,8 +1,8 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
-import { GET as getDemoDebug } from '@/app/api/demo/_debug/route'
+import { GET as getDemoDebug } from '@/app/api/demo/debug/route'
 
-describe('/api/demo/_debug route', () => {
+describe('/api/demo/debug route', () => {
   const originalToken = process.env.DEMO_TOKEN
   const originalEnabled = process.env.DEMO_ENABLED
 
@@ -17,7 +17,7 @@ describe('/api/demo/_debug route', () => {
   })
 
   it('returns masked token diagnostics and match true for valid query token', async () => {
-    const req = new NextRequest('http://localhost:3000/api/demo/_debug?demo_token=YOUR_TOKEN')
+    const req = new NextRequest('http://localhost:3000/api/demo/debug?demo_token=YOUR_TOKEN')
     const res = await getDemoDebug(req)
     const json = await res.json()
 

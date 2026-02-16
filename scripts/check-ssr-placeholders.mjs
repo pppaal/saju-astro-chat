@@ -6,6 +6,8 @@ const TARGETS = [
   { path: '/', required: ['Know yourself', 'Shape tomorrow'] },
   { path: '/pricing', required: ['Pricing', 'Credit'] },
   { path: '/destiny-map', required: ['Destiny Map', 'Birth Date'] },
+  { path: '/blog' },
+  { path: '/blog/numerology-life-path-numbers-explained', allowedStatus: [404, 410] },
   { path: '/faq', requiredAny: ['3 months', '3\uAC1C\uC6D4'] },
   { path: '/policy/refund', requiredAny: ['3 months', '3\uAC1C\uC6D4'] },
   { path: '/policy/terms', requiredAny: ['3 months', '3\uAC1C\uC6D4'] },
@@ -61,10 +63,8 @@ function extractVisibleText(html) {
 
 async function fetchHtml(url) {
   const response = await fetch(url, { redirect: 'follow' })
-  if (!response.ok) {
-    throw new Error(`${url} returned ${response.status}`)
-  }
-  return response.text()
+  const html = await response.text()
+  return { status: response.status, html }
 }
 
 async function main() {
@@ -72,8 +72,24 @@ async function main() {
 
   for (const target of TARGETS) {
     const url = `${BASE_URL}${target.path}`
-    const html = await fetchHtml(url)
+    const { status, html } = await fetchHtml(url)
     const visibleText = extractVisibleText(html)
+
+    const allowedStatus = Array.isArray(target.allowedStatus) ? target.allowedStatus : [200]
+    if (!allowedStatus.includes(status)) {
+      failed = true
+      console.error(`[FAIL] ${target.path} returned unexpected status: ${status}`)
+      continue
+    }
+
+    if (target.path === '/blog' || target.path === '/blog/numerology-life-path-numbers-explained') {
+      if (html.includes('Numerology') || html.includes('numerology')) {
+        failed = true
+        console.error(`[FAIL] ${target.path} contains forbidden numerology content`)
+      } else {
+        console.log(`[PASS] ${target.path} contains no numerology content`)
+      }
+    }
 
     const foundBlocked = BLOCKED_PATTERNS.filter((pattern) => visibleText.includes(pattern))
     if (foundBlocked.length > 0) {
