@@ -18,14 +18,7 @@ export default async function DemoCalendarPage({ searchParams }: DemoPageProps) 
       description="Generates calendar output from production calendar endpoint with demo profile data."
       token={gate.token || undefined}
       endpoint="/api/demo/calendar"
-      buildPayload={(profile) => ({
-        birthDate: profile.birthDate,
-        birthTime: profile.birthTime,
-        birthPlace: profile.city,
-        locale: 'en',
-        category: 'overall',
-        year: new Date().getFullYear(),
-      })}
+      payloadPreset="calendar"
     />
   )
 }

@@ -8,12 +8,66 @@ import { DemoLoading } from './DemoLoading'
 import { DemoBadge } from './DemoBadge'
 import { DEFAULT_DEMO_PROFILE, type DemoProfile } from './types'
 
+type DemoPayloadPreset = 'calendar' | 'destiny-map' | 'destiny-matrix' | 'report' | 'tarot'
+
 interface DemoServiceRunnerProps {
   title: string
   description: string
   token?: string
   endpoint: string
-  buildPayload: (profile: DemoProfile) => unknown
+  payloadPreset: DemoPayloadPreset
+}
+
+function buildPayload(preset: DemoPayloadPreset, profile: DemoProfile): unknown {
+  switch (preset) {
+    case 'calendar':
+      return {
+        birthDate: profile.birthDate,
+        birthTime: profile.birthTime,
+        birthPlace: profile.city,
+        locale: 'en',
+        category: 'overall',
+        year: new Date().getFullYear(),
+      }
+    case 'destiny-map':
+      return {
+        name: profile.name,
+        birthDate: profile.birthDate,
+        birthTime: profile.birthTime,
+        city: profile.city,
+        latitude: profile.latitude,
+        longitude: profile.longitude,
+        timezone: profile.timezone,
+        userTimezone: profile.timezone,
+        gender: profile.gender,
+        theme: 'focus_overall',
+        lang: 'en',
+      }
+    case 'destiny-matrix':
+      return {
+        birthDate: profile.birthDate,
+        birthTime: profile.birthTime,
+        timezone: profile.timezone,
+        gender: profile.gender,
+        lang: 'en',
+      }
+    case 'report':
+      return {
+        birthDate: profile.birthDate,
+        birthTime: profile.birthTime,
+        timezone: profile.timezone,
+        lang: 'en',
+        queryDomain: 'career',
+        maxInsights: 5,
+      }
+    case 'tarot':
+      return {
+        categoryId: 'love',
+        spreadId: 'three-card',
+      }
+    default:
+      return {}
+  }
 }
 
 export function DemoServiceRunner({
@@ -21,7 +75,7 @@ export function DemoServiceRunner({
   description,
   token,
   endpoint,
-  buildPayload,
+  payloadPreset,
 }: DemoServiceRunnerProps) {
   const [profile, setProfile] = useState<DemoProfile>(DEFAULT_DEMO_PROFILE)
   const [result, setResult] = useState<unknown>(null)
@@ -46,7 +100,7 @@ export function DemoServiceRunner({
       const res = await fetch(requestUrl, {
         method: 'POST',
         headers,
-        body: JSON.stringify(buildPayload(profile)),
+        body: JSON.stringify(buildPayload(payloadPreset, profile)),
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {

@@ -18,19 +18,7 @@ export default async function DemoDestinyMapPage({ searchParams }: DemoPageProps
       description="Generates a destiny-map result using the same production API endpoint."
       token={gate.token || undefined}
       endpoint="/api/demo/destiny-map"
-      buildPayload={(profile) => ({
-        name: profile.name,
-        birthDate: profile.birthDate,
-        birthTime: profile.birthTime,
-        city: profile.city,
-        latitude: profile.latitude,
-        longitude: profile.longitude,
-        timezone: profile.timezone,
-        userTimezone: profile.timezone,
-        gender: profile.gender,
-        theme: 'focus_overall',
-        lang: 'en',
-      })}
+      payloadPreset="destiny-map"
     />
   )
 }

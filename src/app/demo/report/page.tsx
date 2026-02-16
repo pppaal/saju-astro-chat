@@ -18,14 +18,7 @@ export default async function DemoReportPage({ searchParams }: DemoPageProps) {
       description="Generates a shortened report summary from the matrix report API."
       token={gate.token || undefined}
       endpoint="/api/demo/report"
-      buildPayload={(profile) => ({
-        birthDate: profile.birthDate,
-        birthTime: profile.birthTime,
-        timezone: profile.timezone,
-        lang: 'en',
-        queryDomain: 'career',
-        maxInsights: 5,
-      })}
+      payloadPreset="report"
     />
   )
 }

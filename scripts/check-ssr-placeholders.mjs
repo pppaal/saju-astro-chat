@@ -6,12 +6,14 @@ const TARGETS = [
   { path: '/', required: ['Know yourself', 'Shape tomorrow'] },
   { path: '/pricing', required: ['Pricing', 'Credit'] },
   { path: '/destiny-map', required: ['Destiny Map', 'Birth Date'] },
-  { path: '/destiny-match', requiredAny: ['Sign in required', '로그인이 필요합니다'] },
+  { path: '/about/features', requiredAny: ['Start Destiny Map', 'Destiny Map 체험'] },
+  { path: '/destiny-match', requiredAny: ['Sign in required', 'ë¡œê·¸ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤'] },
   { path: '/blog' },
   { path: '/blog/numerology-life-path-numbers-explained', allowedStatus: [200, 404, 410] },
   { path: '/faq', requiredAny: ['3 months', '3\uAC1C\uC6D4'] },
   { path: '/policy/refund', requiredAny: ['3 months', '3\uAC1C\uC6D4'] },
   { path: '/policy/terms', requiredAny: ['3 months', '3\uAC1C\uC6D4'] },
+  { path: '/demo', requireNoindex: true },
 ]
 
 const BLOCKED_PATTERNS = [
@@ -45,8 +47,8 @@ const HOME_BLOCKED_REGEXES = [
   /\uD68C\uC6D0\s+\.\.\./,
 ]
 
-const HOME_FORBIDDEN_STRINGS = ['#### 주요 키워드', '주요 키워드']
-const DESTINY_MAP_MOJIBAKE_TOKENS = ['ðŸ', 'âœ¨', 'ï¸\u008f']
+const HOME_FORBIDDEN_STRINGS = ['#### ì£¼ìš” í‚¤ì›Œë“œ', 'ì£¼ìš” í‚¤ì›Œë“œ']
+const DESTINY_MAP_MOJIBAKE_TOKENS = ['Ã°Å¸', 'Ã¢Å“Â¨', 'Ã¯Â¸\u008f']
 
 const SCOPE_FORBIDDEN_BY_PATH = {
   '/faq': ['and numerology into one comprehensive view'],
@@ -193,7 +195,6 @@ async function main() {
         console.log('[PASS] /destiny-map contains no mojibake tokens')
       }
     }
-
     if (target.path === '/destiny-match') {
       if ([301, 302, 307, 308].includes(status) && payload.location?.startsWith('/')) {
         failed = true
@@ -202,6 +203,15 @@ async function main() {
         )
       } else {
         console.log('[PASS] /destiny-match does not silently redirect to home')
+      }
+    }
+
+    if (target.requireNoindex) {
+      if (!/noindex/i.test(html)) {
+        failed = true
+        console.error(`[FAIL] ${target.path} missing noindex metadata`)
+      } else {
+        console.log(`[PASS] ${target.path} includes noindex metadata`)
       }
     }
   }
@@ -217,3 +227,4 @@ main().catch((error) => {
   console.error(`SSR placeholder check failed: ${error.message}`)
   process.exit(1)
 })
+

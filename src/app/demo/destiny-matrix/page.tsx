@@ -18,13 +18,7 @@ export default async function DemoDestinyMatrixPage({ searchParams }: DemoPagePr
       description="Calls matrix scoring endpoint and returns summary fields including domainScores and overlapTimeline."
       token={gate.token || undefined}
       endpoint="/api/demo/destiny-matrix"
-      buildPayload={(profile) => ({
-        birthDate: profile.birthDate,
-        birthTime: profile.birthTime,
-        timezone: profile.timezone,
-        gender: profile.gender,
-        lang: 'en',
-      })}
+      payloadPreset="destiny-matrix"
     />
   )
 }

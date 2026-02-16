@@ -18,10 +18,7 @@ export default async function DemoTarotPage({ searchParams }: DemoPageProps) {
       description="Runs tarot draw with demo credit bypass via server-side demo token check."
       token={gate.token || undefined}
       endpoint="/api/demo/tarot"
-      buildPayload={() => ({
-        categoryId: 'love',
-        spreadId: 'three-card',
-      })}
+      payloadPreset="tarot"
     />
   )
 }

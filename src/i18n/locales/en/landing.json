@@ -304,7 +304,42 @@
     "ctaTitle": "Start Now",
     "ctaSub": "Explore your destiny map with AI",
     "ctaPrimary": "Start Destiny Map",
-    "ctaSecondary": "Go Home"
+    "ctaSecondary": "Go Home",
+    "features": {
+      "title": "Four Ways to Read the Moment",
+      "subtitle": "Use four complementary frameworks together to cross-check timing, patterns, and next steps.",
+      "visualTitle": "Clean interface, trustworthy calculations",
+      "visualDesc": "Timezone, seasonal shifts, and DST are reflected so timing logic stays reliable and readable.",
+      "visualBullet1": "Birth-time uncertainty handling with candidate-time comparison",
+      "visualBullet2": "Ethical guidance focused on choices and risk context, not absolute predictions",
+      "visualBullet3": "Accessible summaries designed for quick decisions",
+      "gridTitle": "Feature Guide",
+      "gridSub": "Start with your question, then connect timing and action ideas across tools.",
+      "numerology": {
+        "desc": "Summarizes temperament, motivation, and expression patterns from your name and birth data.",
+        "cityTz": "Timezone-aware date handling to reduce boundary errors",
+        "copy": "Clear plain-language summary with action points",
+        "note": "Best for naming themes. Pair with Astrology/Saju for concrete timing."
+      },
+      "tarot": {
+        "desc": "Uses symbolic cards to quickly surface your current tone and likely outcomes by choice.",
+        "reroll": "Reroll strategy and spread presets help you refocus",
+        "tips": "Context checklists and action tips for relationship and career scenarios",
+        "note": "Card meaning depends on position and question context. Compare multiple scenarios."
+      },
+      "iching": {
+        "desc": "Reads directional flow and turning points through the 64-hexagram symbolic system.",
+        "labels": "Clear changing-line labels and current vs. progression framing",
+        "hints": "Open questions usually produce better guidance than yes/no prompts",
+        "note": "Great at crossroads. Pair with Astrology/Saju to confirm timing."
+      },
+      "compat": {
+        "desc": "Visualizes relationship patterns and overlapping cycles for better communication.",
+        "graph": "View overlapping cycles from transits and long-term flow",
+        "talk": "Conversation prompts and conflict de-escalation guidance",
+        "note": "Use multi-dimensional comparison instead of one final score."
+      }
+    }
   },
   "contact": {
     "title": "Contact Us",
