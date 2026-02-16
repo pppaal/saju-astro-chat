@@ -1,0 +1,1096 @@
+{
+  "generatedAt": "2026-02-16T09:03:02.184Z",
+  "source": {
+    "appDir": "src/app",
+    "apiDir": "src/app/api"
+  },
+  "counts": {
+    "pages": 89,
+    "appRouteHandlers": 3,
+    "apiRouteHandlers": 150,
+    "privateExcluded": 2
+  },
+  "pages": [
+    {
+      "route": "/",
+      "file": "src/app/(main)/page.tsx"
+    },
+    {
+      "route": "/about",
+      "file": "src/app/about/page.tsx"
+    },
+    {
+      "route": "/about/features",
+      "file": "src/app/about/features/page.tsx"
+    },
+    {
+      "route": "/about/matrix",
+      "file": "src/app/about/matrix/page.tsx"
+    },
+    {
+      "route": "/admin/dashboard",
+      "file": "src/app/admin/dashboard/page.tsx"
+    },
+    {
+      "route": "/admin/feedback",
+      "file": "src/app/admin/feedback/page.tsx"
+    },
+    {
+      "route": "/admin/refunds",
+      "file": "src/app/admin/refunds/page.tsx"
+    },
+    {
+      "route": "/api-docs",
+      "file": "src/app/api-docs/page.tsx"
+    },
+    {
+      "route": "/astrology",
+      "file": "src/app/astrology/page.tsx"
+    },
+    {
+      "route": "/astrology/counselor",
+      "file": "src/app/astrology/counselor/page.tsx"
+    },
+    {
+      "route": "/auth/signin",
+      "file": "src/app/auth/signin/page.tsx"
+    },
+    {
+      "route": "/blog",
+      "file": "src/app/blog/page.tsx"
+    },
+    {
+      "route": "/blog/[slug]",
+      "file": "src/app/blog/[slug]/page.tsx"
+    },
+    {
+      "route": "/calendar",
+      "file": "src/app/calendar/page.tsx"
+    },
+    {
+      "route": "/community",
+      "file": "src/app/community/page.tsx"
+    },
+    {
+      "route": "/community/matching",
+      "file": "src/app/community/matching/page.tsx"
+    },
+    {
+      "route": "/community/recommendations",
+      "file": "src/app/community/recommendations/page.tsx"
+    },
+    {
+      "route": "/compatibility",
+      "file": "src/app/compatibility/page.tsx"
+    },
+    {
+      "route": "/compatibility/chat",
+      "file": "src/app/compatibility/chat/page.tsx"
+    },
+    {
+      "route": "/compatibility/counselor",
+      "file": "src/app/compatibility/counselor/page.tsx"
+    },
+    {
+      "route": "/compatibility/insights",
+      "file": "src/app/compatibility/insights/page.tsx"
+    },
+    {
+      "route": "/contact",
+      "file": "src/app/contact/page.tsx"
+    },
+    {
+      "route": "/demo",
+      "file": "src/app/demo/page.tsx"
+    },
+    {
+      "route": "/demo/calendar",
+      "file": "src/app/demo/calendar/page.tsx"
+    },
+    {
+      "route": "/demo/combined",
+      "file": "src/app/demo/combined/page.tsx"
+    },
+    {
+      "route": "/demo/compatibility",
+      "file": "src/app/demo/compatibility/page.tsx"
+    },
+    {
+      "route": "/demo/destiny-map",
+      "file": "src/app/demo/destiny-map/page.tsx"
+    },
+    {
+      "route": "/demo/destiny-matrix",
+      "file": "src/app/demo/destiny-matrix/page.tsx"
+    },
+    {
+      "route": "/demo/icp",
+      "file": "src/app/demo/icp/page.tsx"
+    },
+    {
+      "route": "/demo/personality",
+      "file": "src/app/demo/personality/page.tsx"
+    },
+    {
+      "route": "/demo/report",
+      "file": "src/app/demo/report/page.tsx"
+    },
+    {
+      "route": "/demo/review",
+      "file": "src/app/demo/review/page.tsx"
+    },
+    {
+      "route": "/demo/tarot",
+      "file": "src/app/demo/tarot/page.tsx"
+    },
+    {
+      "route": "/destiny-map",
+      "file": "src/app/destiny-map/page.tsx"
+    },
+    {
+      "route": "/destiny-map/counselor",
+      "file": "src/app/destiny-map/counselor/page.tsx"
+    },
+    {
+      "route": "/destiny-map/matrix",
+      "file": "src/app/destiny-map/matrix/page.tsx"
+    },
+    {
+      "route": "/destiny-map/result",
+      "file": "src/app/destiny-map/result/page.tsx"
+    },
+    {
+      "route": "/destiny-map/theme",
+      "file": "src/app/destiny-map/theme/page.tsx"
+    },
+    {
+      "route": "/destiny-match",
+      "file": "src/app/destiny-match/page.tsx"
+    },
+    {
+      "route": "/destiny-match/chat/[connectionId]",
+      "file": "src/app/destiny-match/chat/[connectionId]/page.tsx"
+    },
+    {
+      "route": "/destiny-match/matches",
+      "file": "src/app/destiny-match/matches/page.tsx"
+    },
+    {
+      "route": "/destiny-match/setup",
+      "file": "src/app/destiny-match/setup/page.tsx"
+    },
+    {
+      "route": "/destiny-matrix",
+      "file": "src/app/destiny-matrix/page.tsx"
+    },
+    {
+      "route": "/destiny-matrix/themed-reports",
+      "file": "src/app/destiny-matrix/themed-reports/page.tsx"
+    },
+    {
+      "route": "/destiny-matrix/viewer",
+      "file": "src/app/destiny-matrix/viewer/page.tsx"
+    },
+    {
+      "route": "/destiny-pal",
+      "file": "src/app/destiny-pal/page.tsx"
+    },
+    {
+      "route": "/dream",
+      "file": "src/app/dream/page.tsx"
+    },
+    {
+      "route": "/faq",
+      "file": "src/app/faq/page.tsx"
+    },
+    {
+      "route": "/iching",
+      "file": "src/app/iching/page.tsx"
+    },
+    {
+      "route": "/icp",
+      "file": "src/app/icp/page.tsx"
+    },
+    {
+      "route": "/icp/quiz",
+      "file": "src/app/icp/quiz/page.tsx"
+    },
+    {
+      "route": "/icp/result",
+      "file": "src/app/icp/result/page.tsx"
+    },
+    {
+      "route": "/life-prediction",
+      "file": "src/app/life-prediction/page.tsx"
+    },
+    {
+      "route": "/life-prediction/result",
+      "file": "src/app/life-prediction/result/page.tsx"
+    },
+    {
+      "route": "/myjourney",
+      "file": "src/app/myjourney/page.tsx"
+    },
+    {
+      "route": "/myjourney/circle",
+      "file": "src/app/myjourney/circle/page.tsx"
+    },
+    {
+      "route": "/myjourney/history",
+      "file": "src/app/myjourney/history/page.tsx"
+    },
+    {
+      "route": "/notifications",
+      "file": "src/app/notifications/page.tsx"
+    },
+    {
+      "route": "/numerology",
+      "file": "src/app/numerology/page.tsx"
+    },
+    {
+      "route": "/offline",
+      "file": "src/app/offline/page.tsx"
+    },
+    {
+      "route": "/past-life",
+      "file": "src/app/past-life/page.tsx"
+    },
+    {
+      "route": "/personality",
+      "file": "src/app/personality/page.tsx"
+    },
+    {
+      "route": "/personality/combined",
+      "file": "src/app/personality/combined/page.tsx"
+    },
+    {
+      "route": "/personality/compatibility",
+      "file": "src/app/personality/compatibility/page.tsx"
+    },
+    {
+      "route": "/personality/quiz",
+      "file": "src/app/personality/quiz/page.tsx"
+    },
+    {
+      "route": "/personality/result",
+      "file": "src/app/personality/result/page.tsx"
+    },
+    {
+      "route": "/personality/select",
+      "file": "src/app/personality/select/page.tsx"
+    },
+    {
+      "route": "/policy/privacy",
+      "file": "src/app/policy/privacy/page.tsx"
+    },
+    {
+      "route": "/policy/refund",
+      "file": "src/app/policy/refund/page.tsx"
+    },
+    {
+      "route": "/policy/terms",
+      "file": "src/app/policy/terms/page.tsx"
+    },
+    {
+      "route": "/premium-reports",
+      "file": "src/app/premium-reports/page.tsx"
+    },
+    {
+      "route": "/premium-reports/comprehensive",
+      "file": "src/app/premium-reports/comprehensive/page.tsx"
+    },
+    {
+      "route": "/premium-reports/result/[id]",
+      "file": "src/app/premium-reports/result/[id]/page.tsx"
+    },
+    {
+      "route": "/premium-reports/themed",
+      "file": "src/app/premium-reports/themed/page.tsx"
+    },
+    {
+      "route": "/premium-reports/timing",
+      "file": "src/app/premium-reports/timing/page.tsx"
+    },
+    {
+      "route": "/pricing",
+      "file": "src/app/pricing/page.tsx"
+    },
+    {
+      "route": "/profile",
+      "file": "src/app/profile/page.tsx"
+    },
+    {
+      "route": "/report",
+      "file": "src/app/report/page.tsx"
+    },
+    {
+      "route": "/saju",
+      "file": "src/app/saju/page.tsx"
+    },
+    {
+      "route": "/saju/counselor",
+      "file": "src/app/saju/counselor/page.tsx"
+    },
+    {
+      "route": "/shared/[id]",
+      "file": "src/app/shared/[id]/page.tsx"
+    },
+    {
+      "route": "/success",
+      "file": "src/app/success/page.tsx"
+    },
+    {
+      "route": "/tarot",
+      "file": "src/app/tarot/page.tsx"
+    },
+    {
+      "route": "/tarot/[categoryName]",
+      "file": "src/app/tarot/[categoryName]/page.tsx"
+    },
+    {
+      "route": "/tarot/[categoryName]/[spreadId]",
+      "file": "src/app/tarot/[categoryName]/[spreadId]/page.tsx"
+    },
+    {
+      "route": "/tarot/couple",
+      "file": "src/app/tarot/couple/page.tsx"
+    },
+    {
+      "route": "/tarot/couple/[readingId]",
+      "file": "src/app/tarot/couple/[readingId]/page.tsx"
+    },
+    {
+      "route": "/tarot/history",
+      "file": "src/app/tarot/history/page.tsx"
+    },
+    {
+      "route": "/test-credit-modal",
+      "file": "src/app/test-credit-modal/page.tsx"
+    }
+  ],
+  "appRouteHandlers": [
+    {
+      "route": "/demo/combined.pdf",
+      "file": "src/app/demo/combined.pdf/route.ts"
+    },
+    {
+      "route": "/robots",
+      "file": "src/app/robots.ts",
+      "kind": "metadata"
+    },
+    {
+      "route": "/sitemap",
+      "file": "src/app/sitemap.ts",
+      "kind": "metadata"
+    }
+  ],
+  "apiRouteHandlers": [
+    {
+      "route": "/api/admin/metrics",
+      "file": "src/app/api/admin/metrics/route.ts"
+    },
+    {
+      "route": "/api/admin/metrics/comprehensive",
+      "file": "src/app/api/admin/metrics/comprehensive/route.ts"
+    },
+    {
+      "route": "/api/admin/metrics/funnel",
+      "file": "src/app/api/admin/metrics/funnel/route.ts"
+    },
+    {
+      "route": "/api/admin/metrics/sla",
+      "file": "src/app/api/admin/metrics/sla/route.ts"
+    },
+    {
+      "route": "/api/admin/refund-subscription",
+      "file": "src/app/api/admin/refund-subscription/route.ts"
+    },
+    {
+      "route": "/api/astrology",
+      "file": "src/app/api/astrology/route.ts"
+    },
+    {
+      "route": "/api/astrology/advanced/asteroids",
+      "file": "src/app/api/astrology/advanced/asteroids/route.ts"
+    },
+    {
+      "route": "/api/astrology/advanced/draconic",
+      "file": "src/app/api/astrology/advanced/draconic/route.ts"
+    },
+    {
+      "route": "/api/astrology/advanced/eclipses",
+      "file": "src/app/api/astrology/advanced/eclipses/route.ts"
+    },
+    {
+      "route": "/api/astrology/advanced/electional",
+      "file": "src/app/api/astrology/advanced/electional/route.ts"
+    },
+    {
+      "route": "/api/astrology/advanced/fixed-stars",
+      "file": "src/app/api/astrology/advanced/fixed-stars/route.ts"
+    },
+    {
+      "route": "/api/astrology/advanced/harmonics",
+      "file": "src/app/api/astrology/advanced/harmonics/route.ts"
+    },
+    {
+      "route": "/api/astrology/advanced/lunar-return",
+      "file": "src/app/api/astrology/advanced/lunar-return/route.ts"
+    },
+    {
+      "route": "/api/astrology/advanced/midpoints",
+      "file": "src/app/api/astrology/advanced/midpoints/route.ts"
+    },
+    {
+      "route": "/api/astrology/advanced/progressions",
+      "file": "src/app/api/astrology/advanced/progressions/route.ts"
+    },
+    {
+      "route": "/api/astrology/advanced/rectification",
+      "file": "src/app/api/astrology/advanced/rectification/route.ts"
+    },
+    {
+      "route": "/api/astrology/advanced/solar-return",
+      "file": "src/app/api/astrology/advanced/solar-return/route.ts"
+    },
+    {
+      "route": "/api/astrology/chat-stream",
+      "file": "src/app/api/astrology/chat-stream/route.ts"
+    },
+    {
+      "route": "/api/astrology/details",
+      "file": "src/app/api/astrology/details/route.ts"
+    },
+    {
+      "route": "/api/auth/[...nextauth]",
+      "file": "src/app/api/auth/[...nextauth]/route.ts"
+    },
+    {
+      "route": "/api/auth/register",
+      "file": "src/app/api/auth/register/route.ts"
+    },
+    {
+      "route": "/api/auth/revoke",
+      "file": "src/app/api/auth/revoke/route.ts"
+    },
+    {
+      "route": "/api/cache/chart",
+      "file": "src/app/api/cache/chart/route.ts"
+    },
+    {
+      "route": "/api/calendar",
+      "file": "src/app/api/calendar/route.ts"
+    },
+    {
+      "route": "/api/calendar/action-plan",
+      "file": "src/app/api/calendar/action-plan/route.ts"
+    },
+    {
+      "route": "/api/calendar/save",
+      "file": "src/app/api/calendar/save/route.ts"
+    },
+    {
+      "route": "/api/calendar/save/[id]",
+      "file": "src/app/api/calendar/save/[id]/route.ts"
+    },
+    {
+      "route": "/api/checkout",
+      "file": "src/app/api/checkout/route.ts"
+    },
+    {
+      "route": "/api/cities",
+      "file": "src/app/api/cities/route.ts"
+    },
+    {
+      "route": "/api/compatibility",
+      "file": "src/app/api/compatibility/route.ts"
+    },
+    {
+      "route": "/api/compatibility/chat",
+      "file": "src/app/api/compatibility/chat/route.ts"
+    },
+    {
+      "route": "/api/compatibility/counselor",
+      "file": "src/app/api/compatibility/counselor/route.ts"
+    },
+    {
+      "route": "/api/consultation",
+      "file": "src/app/api/consultation/route.ts"
+    },
+    {
+      "route": "/api/consultation/[id]",
+      "file": "src/app/api/consultation/[id]/route.ts"
+    },
+    {
+      "route": "/api/content-access",
+      "file": "src/app/api/content-access/route.ts"
+    },
+    {
+      "route": "/api/counselor/chat-history",
+      "file": "src/app/api/counselor/chat-history/route.ts"
+    },
+    {
+      "route": "/api/counselor/session/list",
+      "file": "src/app/api/counselor/session/list/route.ts"
+    },
+    {
+      "route": "/api/counselor/session/load",
+      "file": "src/app/api/counselor/session/load/route.ts"
+    },
+    {
+      "route": "/api/counselor/session/save",
+      "file": "src/app/api/counselor/session/save/route.ts"
+    },
+    {
+      "route": "/api/cron/daily-fortune-post",
+      "file": "src/app/api/cron/daily-fortune-post/route.ts"
+    },
+    {
+      "route": "/api/cron/notifications",
+      "file": "src/app/api/cron/notifications/route.ts"
+    },
+    {
+      "route": "/api/cron/reset-credits",
+      "file": "src/app/api/cron/reset-credits/route.ts"
+    },
+    {
+      "route": "/api/cron/weekly-fortune",
+      "file": "src/app/api/cron/weekly-fortune/route.ts"
+    },
+    {
+      "route": "/api/csp-report",
+      "file": "src/app/api/csp-report/route.ts"
+    },
+    {
+      "route": "/api/daily-fortune",
+      "file": "src/app/api/daily-fortune/route.ts"
+    },
+    {
+      "route": "/api/dates",
+      "file": "src/app/api/dates/route.ts"
+    },
+    {
+      "route": "/api/db-ping",
+      "file": "src/app/api/db-ping/route.ts"
+    },
+    {
+      "route": "/api/demo/ai-review",
+      "file": "src/app/api/demo/ai-review/route.ts"
+    },
+    {
+      "route": "/api/demo/calendar",
+      "file": "src/app/api/demo/calendar/route.ts"
+    },
+    {
+      "route": "/api/demo/combined",
+      "file": "src/app/api/demo/combined/route.ts"
+    },
+    {
+      "route": "/api/demo/combined-pdf",
+      "file": "src/app/api/demo/combined-pdf/route.ts"
+    },
+    {
+      "route": "/api/demo/compatibility",
+      "file": "src/app/api/demo/compatibility/route.ts"
+    },
+    {
+      "route": "/api/demo/debug",
+      "file": "src/app/api/demo/debug/route.ts"
+    },
+    {
+      "route": "/api/demo/destiny-map",
+      "file": "src/app/api/demo/destiny-map/route.ts"
+    },
+    {
+      "route": "/api/demo/destiny-matrix",
+      "file": "src/app/api/demo/destiny-matrix/route.ts"
+    },
+    {
+      "route": "/api/demo/feedback",
+      "file": "src/app/api/demo/feedback/route.ts"
+    },
+    {
+      "route": "/api/demo/icp",
+      "file": "src/app/api/demo/icp/route.ts"
+    },
+    {
+      "route": "/api/demo/personality",
+      "file": "src/app/api/demo/personality/route.ts"
+    },
+    {
+      "route": "/api/demo/report",
+      "file": "src/app/api/demo/report/route.ts"
+    },
+    {
+      "route": "/api/demo/tarot",
+      "file": "src/app/api/demo/tarot/route.ts"
+    },
+    {
+      "route": "/api/destiny-map",
+      "file": "src/app/api/destiny-map/route.ts"
+    },
+    {
+      "route": "/api/destiny-map/chat",
+      "file": "src/app/api/destiny-map/chat/route.ts"
+    },
+    {
+      "route": "/api/destiny-map/chat-stream",
+      "file": "src/app/api/destiny-map/chat-stream/route.ts"
+    },
+    {
+      "route": "/api/destiny-match/block",
+      "file": "src/app/api/destiny-match/block/route.ts"
+    },
+    {
+      "route": "/api/destiny-match/chat",
+      "file": "src/app/api/destiny-match/chat/route.ts"
+    },
+    {
+      "route": "/api/destiny-match/discover",
+      "file": "src/app/api/destiny-match/discover/route.ts"
+    },
+    {
+      "route": "/api/destiny-match/matches",
+      "file": "src/app/api/destiny-match/matches/route.ts"
+    },
+    {
+      "route": "/api/destiny-match/profile",
+      "file": "src/app/api/destiny-match/profile/route.ts"
+    },
+    {
+      "route": "/api/destiny-match/report",
+      "file": "src/app/api/destiny-match/report/route.ts"
+    },
+    {
+      "route": "/api/destiny-match/swipe",
+      "file": "src/app/api/destiny-match/swipe/route.ts"
+    },
+    {
+      "route": "/api/destiny-matrix",
+      "file": "src/app/api/destiny-matrix/route.ts"
+    },
+    {
+      "route": "/api/destiny-matrix/ai-report",
+      "file": "src/app/api/destiny-matrix/ai-report/route.ts"
+    },
+    {
+      "route": "/api/destiny-matrix/report",
+      "file": "src/app/api/destiny-matrix/report/route.ts"
+    },
+    {
+      "route": "/api/destiny-matrix/save",
+      "file": "src/app/api/destiny-matrix/save/route.ts"
+    },
+    {
+      "route": "/api/dream",
+      "file": "src/app/api/dream/route.ts"
+    },
+    {
+      "route": "/api/dream/chat",
+      "file": "src/app/api/dream/chat/route.ts"
+    },
+    {
+      "route": "/api/dream/chat/save",
+      "file": "src/app/api/dream/chat/save/route.ts"
+    },
+    {
+      "route": "/api/dream/history",
+      "file": "src/app/api/dream/history/route.ts"
+    },
+    {
+      "route": "/api/dream/stream",
+      "file": "src/app/api/dream/stream/route.ts"
+    },
+    {
+      "route": "/api/feedback",
+      "file": "src/app/api/feedback/route.ts"
+    },
+    {
+      "route": "/api/feedback/records",
+      "file": "src/app/api/feedback/records/route.ts"
+    },
+    {
+      "route": "/api/fortune",
+      "file": "src/app/api/fortune/route.ts"
+    },
+    {
+      "route": "/api/health/redis",
+      "file": "src/app/api/health/redis/route.ts"
+    },
+    {
+      "route": "/api/iching/changing-line",
+      "file": "src/app/api/iching/changing-line/route.ts"
+    },
+    {
+      "route": "/api/iching/stream",
+      "file": "src/app/api/iching/stream/route.ts"
+    },
+    {
+      "route": "/api/icp",
+      "file": "src/app/api/icp/route.ts"
+    },
+    {
+      "route": "/api/icp/analytics",
+      "file": "src/app/api/icp/analytics/route.ts"
+    },
+    {
+      "route": "/api/latlon-to-timezone",
+      "file": "src/app/api/latlon-to-timezone/route.ts"
+    },
+    {
+      "route": "/api/lib-health",
+      "file": "src/app/api/lib-health/route.ts"
+    },
+    {
+      "route": "/api/life-prediction",
+      "file": "src/app/api/life-prediction/route.ts"
+    },
+    {
+      "route": "/api/life-prediction/advisor-chat",
+      "file": "src/app/api/life-prediction/advisor-chat/route.ts"
+    },
+    {
+      "route": "/api/life-prediction/analyze-question",
+      "file": "src/app/api/life-prediction/analyze-question/route.ts"
+    },
+    {
+      "route": "/api/life-prediction/backend-predict",
+      "file": "src/app/api/life-prediction/backend-predict/route.ts"
+    },
+    {
+      "route": "/api/life-prediction/explain-results",
+      "file": "src/app/api/life-prediction/explain-results/route.ts"
+    },
+    {
+      "route": "/api/life-prediction/save",
+      "file": "src/app/api/life-prediction/save/route.ts"
+    },
+    {
+      "route": "/api/life-prediction/save-timing",
+      "file": "src/app/api/life-prediction/save-timing/route.ts"
+    },
+    {
+      "route": "/api/me",
+      "file": "src/app/api/me/route.ts"
+    },
+    {
+      "route": "/api/me/circle",
+      "file": "src/app/api/me/circle/route.ts"
+    },
+    {
+      "route": "/api/me/credits",
+      "file": "src/app/api/me/credits/route.ts"
+    },
+    {
+      "route": "/api/me/history",
+      "file": "src/app/api/me/history/route.ts"
+    },
+    {
+      "route": "/api/me/premium",
+      "file": "src/app/api/me/premium/route.ts"
+    },
+    {
+      "route": "/api/me/profile",
+      "file": "src/app/api/me/profile/route.ts"
+    },
+    {
+      "route": "/api/me/saju",
+      "file": "src/app/api/me/saju/route.ts"
+    },
+    {
+      "route": "/api/metrics/public",
+      "file": "src/app/api/metrics/public/route.ts"
+    },
+    {
+      "route": "/api/metrics/track",
+      "file": "src/app/api/metrics/track/route.ts"
+    },
+    {
+      "route": "/api/notifications/send",
+      "file": "src/app/api/notifications/send/route.ts"
+    },
+    {
+      "route": "/api/notifications/stream",
+      "file": "src/app/api/notifications/stream/route.ts"
+    },
+    {
+      "route": "/api/numerology",
+      "file": "src/app/api/numerology/route.ts"
+    },
+    {
+      "route": "/api/past-life",
+      "file": "src/app/api/past-life/route.ts"
+    },
+    {
+      "route": "/api/past-life/save",
+      "file": "src/app/api/past-life/save/route.ts"
+    },
+    {
+      "route": "/api/persona-memory",
+      "file": "src/app/api/persona-memory/route.ts"
+    },
+    {
+      "route": "/api/persona-memory/update-from-chat",
+      "file": "src/app/api/persona-memory/update-from-chat/route.ts"
+    },
+    {
+      "route": "/api/personality",
+      "file": "src/app/api/personality/route.ts"
+    },
+    {
+      "route": "/api/personality-compatibility",
+      "file": "src/app/api/personality-compatibility/route.ts"
+    },
+    {
+      "route": "/api/personality/compatibility/save",
+      "file": "src/app/api/personality/compatibility/save/route.ts"
+    },
+    {
+      "route": "/api/personality/icp/save",
+      "file": "src/app/api/personality/icp/save/route.ts"
+    },
+    {
+      "route": "/api/precompute-chart",
+      "file": "src/app/api/precompute-chart/route.ts"
+    },
+    {
+      "route": "/api/push/send",
+      "file": "src/app/api/push/send/route.ts"
+    },
+    {
+      "route": "/api/push/subscribe",
+      "file": "src/app/api/push/subscribe/route.ts"
+    },
+    {
+      "route": "/api/readings",
+      "file": "src/app/api/readings/route.ts"
+    },
+    {
+      "route": "/api/readings/[id]",
+      "file": "src/app/api/readings/[id]/route.ts"
+    },
+    {
+      "route": "/api/referral/claim",
+      "file": "src/app/api/referral/claim/route.ts"
+    },
+    {
+      "route": "/api/referral/create-code",
+      "file": "src/app/api/referral/create-code/route.ts"
+    },
+    {
+      "route": "/api/referral/link",
+      "file": "src/app/api/referral/link/route.ts"
+    },
+    {
+      "route": "/api/referral/me",
+      "file": "src/app/api/referral/me/route.ts"
+    },
+    {
+      "route": "/api/referral/stats",
+      "file": "src/app/api/referral/stats/route.ts"
+    },
+    {
+      "route": "/api/referral/validate",
+      "file": "src/app/api/referral/validate/route.ts"
+    },
+    {
+      "route": "/api/reports/[id]",
+      "file": "src/app/api/reports/[id]/route.ts"
+    },
+    {
+      "route": "/api/saju",
+      "file": "src/app/api/saju/route.ts"
+    },
+    {
+      "route": "/api/saju/chat-stream",
+      "file": "src/app/api/saju/chat-stream/route.ts"
+    },
+    {
+      "route": "/api/share/[id]",
+      "file": "src/app/api/share/[id]/route.ts"
+    },
+    {
+      "route": "/api/share/generate-image",
+      "file": "src/app/api/share/generate-image/route.ts"
+    },
+    {
+      "route": "/api/stats",
+      "file": "src/app/api/stats/route.ts"
+    },
+    {
+      "route": "/api/tarot",
+      "file": "src/app/api/tarot/route.ts"
+    },
+    {
+      "route": "/api/tarot/analyze-question",
+      "file": "src/app/api/tarot/analyze-question/route.ts"
+    },
+    {
+      "route": "/api/tarot/chat",
+      "file": "src/app/api/tarot/chat/route.ts"
+    },
+    {
+      "route": "/api/tarot/chat/stream",
+      "file": "src/app/api/tarot/chat/stream/route.ts"
+    },
+    {
+      "route": "/api/tarot/couple-reading",
+      "file": "src/app/api/tarot/couple-reading/route.ts"
+    },
+    {
+      "route": "/api/tarot/couple-reading/[readingId]",
+      "file": "src/app/api/tarot/couple-reading/[readingId]/route.ts"
+    },
+    {
+      "route": "/api/tarot/interpret",
+      "file": "src/app/api/tarot/interpret/route.ts"
+    },
+    {
+      "route": "/api/tarot/interpret-stream",
+      "file": "src/app/api/tarot/interpret-stream/route.ts"
+    },
+    {
+      "route": "/api/tarot/interpret/stream",
+      "file": "src/app/api/tarot/interpret/stream/route.ts"
+    },
+    {
+      "route": "/api/tarot/prefetch",
+      "file": "src/app/api/tarot/prefetch/route.ts"
+    },
+    {
+      "route": "/api/tarot/save",
+      "file": "src/app/api/tarot/save/route.ts"
+    },
+    {
+      "route": "/api/tarot/save/[id]",
+      "file": "src/app/api/tarot/save/[id]/route.ts"
+    },
+    {
+      "route": "/api/user/update-birth-info",
+      "file": "src/app/api/user/update-birth-info/route.ts"
+    },
+    {
+      "route": "/api/user/upload-photo",
+      "file": "src/app/api/user/upload-photo/route.ts"
+    },
+    {
+      "route": "/api/visitors-today",
+      "file": "src/app/api/visitors-today/route.ts"
+    },
+    {
+      "route": "/api/webhook/stripe",
+      "file": "src/app/api/webhook/stripe/route.ts"
+    },
+    {
+      "route": "/api/weekly-fortune",
+      "file": "src/app/api/weekly-fortune/route.ts"
+    }
+  ],
+  "privateExcluded": [
+    {
+      "type": "route_handler_private",
+      "file": "src/app/api/demo/_debug/route.ts"
+    },
+    {
+      "type": "route_handler_private",
+      "file": "src/app/api/demo/_health/route.ts"
+    }
+  ],
+  "serviceChecks": {
+    "enabledServices": [
+      {
+        "id": "destinyMap",
+        "href": "/destiny-map",
+        "labelEn": "Destiny Map",
+        "labelKo": "운명 지도"
+      },
+      {
+        "id": "tarot",
+        "href": "/tarot",
+        "labelEn": "Tarot",
+        "labelKo": "타로"
+      },
+      {
+        "id": "report",
+        "href": "/report",
+        "labelEn": "Report",
+        "labelKo": "리포트"
+      },
+      {
+        "id": "calendar",
+        "href": "/calendar",
+        "labelEn": "Calendar",
+        "labelKo": "캘린더"
+      },
+      {
+        "id": "compatibility",
+        "href": "/compatibility",
+        "labelEn": "Compatibility",
+        "labelKo": "궁합"
+      },
+      {
+        "id": "personality",
+        "href": "/personality",
+        "labelEn": "Personality",
+        "labelKo": "성격분석"
+      },
+      {
+        "id": "icp",
+        "href": "/icp",
+        "labelEn": "ICP",
+        "labelKo": "대인관계 스타일"
+      }
+    ],
+    "removedPrefixes": [],
+    "coreServiceKeys": [
+      "destiny-map",
+      "calendar",
+      "tarot",
+      "destiny-matrix",
+      "compatibility",
+      "report"
+    ],
+    "coreServiceOptions": [
+      {
+        "key": "destinyMap",
+        "labelFallback": "Destiny Map",
+        "path": "/destiny-map",
+        "coreKey": "destiny-map"
+      },
+      {
+        "key": "calendar",
+        "labelFallback": "Destiny Calendar",
+        "path": "/calendar",
+        "coreKey": "calendar"
+      },
+      {
+        "key": "tarot",
+        "labelFallback": "Tarot",
+        "path": "/tarot",
+        "coreKey": "tarot"
+      },
+      {
+        "key": "destinyMatrix",
+        "labelFallback": "Destiny Matrix",
+        "path": "/destiny-map/matrix",
+        "coreKey": "destiny-matrix"
+      },
+      {
+        "key": "compatibility",
+        "labelFallback": "Compatibility",
+        "path": "/compatibility",
+        "coreKey": "compatibility"
+      },
+      {
+        "key": "report",
+        "labelFallback": "Report",
+        "path": "/report",
+        "coreKey": "report"
+      }
+    ],
+    "coverageDiff": {
+      "onlyEnabled": ["/personality", "/icp"],
+      "onlyCore": ["/destiny-map/matrix"]
+    }
+  }
+}
