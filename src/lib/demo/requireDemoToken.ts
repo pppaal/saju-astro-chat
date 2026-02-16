@@ -2,12 +2,21 @@ import 'server-only'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { notFound } from 'next/navigation'
+import {
+  getExpectedDemoToken,
+  isDemoEnabled,
+  isValidDemoToken,
+  normalizeToken,
+  readDemoTokenFromRequest,
+  readDemoTokenFromSearchParams,
+} from '@/lib/demo/token'
+
+export { isValidDemoToken } from '@/lib/demo/token'
 
 type TokenLike = string | string[] | null | undefined
 
 export function hasDemoTokenConfigured(): boolean {
-  const token = process.env.DEMO_TOKEN
-  return typeof token === 'string' && token.trim().length > 0
+  return getExpectedDemoToken() !== null
 }
 
 function getExpectedToken(...envKeys: string[]): string | null {
@@ -25,34 +34,7 @@ export function hasDemoReviewTokenConfigured(): boolean {
 }
 
 export function normalizeDemoToken(token: TokenLike): string | null {
-  if (Array.isArray(token)) {
-    return token[0] ?? null
-  }
-  if (typeof token !== 'string') {
-    return null
-  }
-  return token
-}
-
-export function isValidDemoToken(rawToken: TokenLike): boolean {
-  const expected = getExpectedToken('DEMO_TOKEN')
-  const normalized = normalizeDemoToken(rawToken)
-  if (!expected) {
-    return false
-  }
-  if (!normalized) {
-    return false
-  }
-  if (expected.length !== normalized.length) {
-    return false
-  }
-
-  // Keep comparison deterministic without relying on Node-only crypto APIs.
-  let mismatch = 0
-  for (let i = 0; i < expected.length; i += 1) {
-    mismatch |= expected.charCodeAt(i) ^ normalized.charCodeAt(i)
-  }
-  return mismatch === 0
+  return normalizeToken(token)
 }
 
 export function isValidDemoReviewToken(rawToken: TokenLike): boolean {
@@ -75,26 +57,44 @@ export function isValidDemoReviewToken(rawToken: TokenLike): boolean {
   return mismatch === 0
 }
 
-export function readDemoTokenFromRequest(request: NextRequest): string | null {
-  const fromQuery = request.nextUrl.searchParams.get('token')
-  const fromHeader = request.headers.get('x-demo-token')
-  return fromQuery ?? fromHeader
-}
-
 export function requireDemoTokenOr404(token?: TokenLike): void {
   if (!isValidDemoToken(token)) {
     notFound()
   }
 }
 
-export function requireDemoTokenForPage(searchParams?: { token?: TokenLike }): string {
-  const token = normalizeDemoToken(searchParams?.token)
+export function requireDemoTokenForPage(searchParams?: {
+  demo_token?: TokenLike
+  token?: TokenLike
+}): string {
+  const token = readDemoTokenFromSearchParams(searchParams)
   requireDemoTokenOr404(token)
-  return token || ''
+  return token ?? ''
+}
+
+export function validateDemoTokenForPage(searchParams?: {
+  demo_token?: TokenLike
+  token?: TokenLike
+}): {
+  ok: boolean
+  token: string | null
+  reason?: 'disabled' | 'misconfigured' | 'missing_or_invalid'
+} {
+  if (!isDemoEnabled()) {
+    return { ok: false, token: null, reason: 'disabled' }
+  }
+  if (!hasDemoTokenConfigured()) {
+    return { ok: false, token: null, reason: 'misconfigured' }
+  }
+  const token = readDemoTokenFromSearchParams(searchParams)
+  if (!isValidDemoToken(token)) {
+    return { ok: false, token: null, reason: 'missing_or_invalid' }
+  }
+  return { ok: true, token }
 }
 
 export function demoNotFoundJson(): NextResponse {
-  return NextResponse.json({ error: 'Not Found' }, { status: 404 })
+  return NextResponse.json({ error: 'Demo access required' }, { status: 401 })
 }
 
 export function demoUnauthorizedJson(): NextResponse {
@@ -102,9 +102,15 @@ export function demoUnauthorizedJson(): NextResponse {
 }
 
 export function apiRequireDemoTokenOr404(request: NextRequest): NextResponse | null {
+  if (!isDemoEnabled()) {
+    return NextResponse.json({ error: 'Demo mode disabled' }, { status: 403 })
+  }
+  if (!hasDemoTokenConfigured()) {
+    return NextResponse.json({ error: 'Demo token not configured' }, { status: 503 })
+  }
   const token = readDemoTokenFromRequest(request)
   if (!isValidDemoToken(token)) {
-    return demoNotFoundJson()
+    return demoUnauthorizedJson()
   }
   return null
 }

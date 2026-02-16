@@ -1,17 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getDemoDestinyMapPayload } from '@/lib/demo/demoPipelines'
 import { requireDemoTokenForApi } from '@/lib/demo/requireDemoToken'
 import { proxyToInternalApi } from '@/lib/demo/proxy'
 
 export const dynamic = 'force-dynamic'
-
-export async function GET(request: NextRequest) {
-  const tokenValidation = requireDemoTokenForApi(request)
-  if (tokenValidation instanceof NextResponse) {
-    return tokenValidation
-  }
-  return NextResponse.json(getDemoDestinyMapPayload(), { status: 200 })
-}
 
 export async function POST(request: NextRequest) {
   const tokenValidation = requireDemoTokenForApi(request)
@@ -20,7 +11,7 @@ export async function POST(request: NextRequest) {
   }
 
   const payload = await request.json().catch(() => ({}))
-  const response = await proxyToInternalApi(request, '/api/destiny-map', {
+  const response = await proxyToInternalApi(request, '/api/compatibility', {
     method: 'POST',
     body: payload,
     demoToken: tokenValidation,

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { headers } from 'next/headers'
 import { authOptions } from '@/lib/auth/authOptions'
 import {
   consumeCredits,
@@ -8,6 +9,7 @@ import {
   initializeUserCredits,
 } from './creditService'
 import { logger } from '@/lib/logger'
+import { isValidDemoToken } from '@/lib/demo/token'
 
 export type CreditType = 'reading' | 'compatibility' | 'followUp'
 
@@ -32,6 +34,20 @@ export async function checkAndConsumeCredits(
   type: CreditType = 'reading',
   amount: number = 1
 ): Promise<CreditCheckResult> {
+  try {
+    const requestHeaders = await headers()
+    const demoToken = requestHeaders.get('x-demo-token')
+    if (isValidDemoToken(demoToken)) {
+      return {
+        allowed: true,
+        userId: 'demo-user',
+        remaining: 9999,
+      }
+    }
+  } catch {
+    // headers() is unavailable outside request scope; continue normal auth path.
+  }
+
   const session = await getServerSession(authOptions)
 
   // 비로그인 시 free 1회 허용 (별도 로직 필요)
@@ -125,6 +141,20 @@ export async function checkCreditsOnly(
   type: CreditType = 'reading',
   amount: number = 1
 ): Promise<CreditCheckResult> {
+  try {
+    const requestHeaders = await headers()
+    const demoToken = requestHeaders.get('x-demo-token')
+    if (isValidDemoToken(demoToken)) {
+      return {
+        allowed: true,
+        userId: 'demo-user',
+        remaining: 9999,
+      }
+    }
+  } catch {
+    // headers() is unavailable outside request scope; continue normal auth path.
+  }
+
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {

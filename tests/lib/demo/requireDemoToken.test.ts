@@ -34,7 +34,7 @@ describe('requireDemoToken', () => {
 
     const req = new NextRequest('http://localhost:3000/api/demo/icp?token=anything')
     const res = apiRequireDemoTokenOr404(req)
-    expect(res?.status).toBe(404)
+    expect(res?.status).toBe(503)
   })
 
   it('accepts exact token match and rejects mismatches', () => {
@@ -61,4 +61,3 @@ describe('requireDemoToken', () => {
     expect(res).toBeNull()
   })
 })
-

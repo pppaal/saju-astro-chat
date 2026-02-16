@@ -1,4 +1,11 @@
-export type EnabledServiceId = 'destinyMap' | 'tarot' | 'report' | 'calendar' | 'compatibility'
+﻿export type EnabledServiceId =
+  | 'destinyMap'
+  | 'tarot'
+  | 'report'
+  | 'calendar'
+  | 'compatibility'
+  | 'personality'
+  | 'icp'
 
 export type EnabledService = {
   id: EnabledServiceId
@@ -62,6 +69,24 @@ export const ENABLED_SERVICES: readonly EnabledService[] = [
     label: { en: 'Compatibility', ko: '궁합' },
     description: { en: 'Relationship Analysis', ko: '관계 궁합 분석' },
   },
+  {
+    id: 'personality',
+    href: '/personality',
+    icon: '🧠',
+    menuKey: 'menu.personality',
+    descriptionKey: 'services.personalityDesc',
+    label: { en: 'Personality', ko: '성격분석' },
+    description: { en: 'Personality Insights', ko: '성격 인사이트' },
+  },
+  {
+    id: 'icp',
+    href: '/icp',
+    icon: '🎭',
+    menuKey: 'menu.icp',
+    descriptionKey: 'services.icpDesc',
+    label: { en: 'ICP', ko: '대인관계 스타일' },
+    description: { en: 'Interpersonal Circumplex Profile', ko: '대인관계 스타일 테스트' },
+  },
 ] as const
 
 export const REMOVED_PUBLIC_SERVICE_PREFIXES: readonly string[] = [
@@ -73,6 +98,4 @@ export const REMOVED_PUBLIC_SERVICE_PREFIXES: readonly string[] = [
   '/past-life',
   '/destiny-match',
   '/life-prediction',
-  '/personality',
-  '/icp',
 ] as const

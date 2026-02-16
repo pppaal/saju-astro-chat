@@ -1,9 +1,10 @@
-export const coreServiceKeys = [
+﻿export const coreServiceKeys = [
   'destiny-map',
   'calendar',
   'tarot',
   'destiny-matrix',
-  'icp-personality',
+  'personality',
+  'icp',
   'compatibility',
 ] as const
 
@@ -52,12 +53,20 @@ export const HOME_CORE_SERVICE_OPTIONS: readonly HomeCoreServiceOption[] = [
     coreKey: 'destiny-matrix',
   },
   {
-    key: 'icpPersonality',
-    labelKey: 'menu.icpPersonality',
-    labelFallback: 'ICP + Personality',
+    key: 'personality',
+    labelKey: 'menu.personality',
+    labelFallback: 'Personality',
+    icon: '🧠',
+    path: '/personality',
+    coreKey: 'personality',
+  },
+  {
+    key: 'icp',
+    labelKey: 'menu.icp',
+    labelFallback: 'ICP',
     icon: '🎭',
-    path: '/personality/select',
-    coreKey: 'icp-personality',
+    path: '/icp',
+    coreKey: 'icp',
   },
   {
     key: 'compatibility',
@@ -74,7 +83,9 @@ const MYJOURNEY_CORE_SERVICE_IDS = new Set([
   'destiny-calendar',
   'tarot',
   'destiny-matrix',
+  'personality',
   'personality-icp',
+  'personality-compatibility',
   'compatibility',
   // Legacy aliases seen in history payloads
   'destinyMap',

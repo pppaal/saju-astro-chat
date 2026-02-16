@@ -48,6 +48,18 @@ const SERVICE_DETAILS: Record<ServiceKey, Omit<Service, 'id' | 'icon'>> = {
     descriptionKo: '맞춤형 AI 리포트로 핵심 인사이트를 확인하세요',
     descriptionEn: 'Get focused insights with premium AI reports',
   },
+  personality: {
+    href: '/personality',
+    gradient: 'linear-gradient(135deg, #0ea5e9 0%, #22d3ee 100%)',
+    descriptionKo: '성격 유형과 강점, 성장 포인트를 확인하세요',
+    descriptionEn: 'Discover your personality traits, strengths, and growth areas',
+  },
+  icp: {
+    href: '/icp',
+    gradient: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)',
+    descriptionKo: '대인관계 스타일을 분석해 관계 전략을 세워보세요',
+    descriptionEn: 'Analyze your interpersonal style and improve relationship strategy',
+  },
 }
 
 const SERVICES: Service[] = SERVICE_OPTIONS.map((service) => ({

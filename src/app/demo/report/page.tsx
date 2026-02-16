@@ -6,7 +6,7 @@ interface DemoPageProps {
   searchParams?: { demo_token?: string | string[]; token?: string | string[] }
 }
 
-export default function DemoTarotPage({ searchParams }: DemoPageProps) {
+export default function DemoReportPage({ searchParams }: DemoPageProps) {
   const gate = validateDemoTokenForPage(searchParams)
   if (!gate.ok || !gate.token) {
     return <DemoGateMessage reason={gate.reason} />
@@ -14,13 +14,17 @@ export default function DemoTarotPage({ searchParams }: DemoPageProps) {
 
   return (
     <DemoServiceRunner
-      title="Tarot Demo"
-      description="Runs tarot draw with demo credit bypass via server-side demo token check."
+      title="Report Demo"
+      description="Generates a shortened report summary from the matrix report API."
       token={gate.token}
-      endpoint="/api/demo/tarot"
-      buildPayload={() => ({
-        categoryId: 'love',
-        spreadId: 'three-card',
+      endpoint="/api/demo/report"
+      buildPayload={(profile) => ({
+        birthDate: profile.birthDate,
+        birthTime: profile.birthTime,
+        timezone: profile.timezone,
+        lang: 'en',
+        queryDomain: 'career',
+        maxInsights: 5,
       })}
     />
   )

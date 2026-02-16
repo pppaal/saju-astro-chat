@@ -1,77 +1,36 @@
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { fetchDemoJson } from '@/lib/demo/pageFetch'
-import { requireDemoTokenOr404 } from '@/lib/demo/requireDemoToken'
-import type { DemoDestinyMapPayload } from '@/lib/demo/demoPipelines'
-
-export const dynamic = 'force-dynamic'
+import { DemoGateMessage } from '../_components/DemoGateMessage'
+import { DemoServiceRunner } from '../_components/DemoServiceRunner'
+import { validateDemoTokenForPage } from '@/lib/demo/requireDemoToken'
 
 interface DemoPageProps {
-  searchParams?: { token?: string | string[] } | Promise<{ token?: string | string[] }>
+  searchParams?: { demo_token?: string | string[]; token?: string | string[] }
 }
 
-export default async function DemoDestinyMapPage({ searchParams }: DemoPageProps) {
-  const resolvedSearchParams = await Promise.resolve(searchParams)
-  const rawToken = resolvedSearchParams?.token
-  const token = Array.isArray(rawToken) ? rawToken[0] : rawToken
-  requireDemoTokenOr404(token)
-
-  let data: DemoDestinyMapPayload
-  try {
-    data = await fetchDemoJson<DemoDestinyMapPayload>(
-      `/api/demo/destiny-map?token=${encodeURIComponent(token || '')}`,
-      token
-    )
-  } catch {
-    notFound()
+export default function DemoDestinyMapPage({ searchParams }: DemoPageProps) {
+  const gate = validateDemoTokenForPage(searchParams)
+  if (!gate.ok || !gate.token) {
+    return <DemoGateMessage reason={gate.reason} />
   }
 
   return (
-    <main style={{ padding: 24, maxWidth: 1080, margin: '0 auto' }}>
-      <h1>Destiny Map Demo Review</h1>
-      <p>
-        Input: {data.input.user_name}, {data.input.birth.date} {data.input.birth.time} (
-        {data.input.birth.city})
-      </p>
-
-      <section>
-        <h2>Main Text</h2>
-        <p>{data.main_text}</p>
-      </section>
-
-      <section>
-        <h2>Top Themes</h2>
-        {data.top_themes.map((item) => (
-          <p key={item}>- {item}</p>
-        ))}
-      </section>
-
-      <section>
-        <h2>Cross Insights</h2>
-        {data.cross_insights.map((item, idx) => (
-          <p key={`${idx}-${item}`}>- {item}</p>
-        ))}
-      </section>
-
-      <section>
-        <h2>Evidence</h2>
-        {data.evidence.map((item) => (
-          <p key={item.id}>
-            {item.id} | {item.title} | {item.reason}
-          </p>
-        ))}
-      </section>
-
-      <section>
-        <h2>Action Plan</h2>
-        {data.action_plan.map((item) => (
-          <p key={item}>- {item}</p>
-        ))}
-      </section>
-
-      <div style={{ marginTop: 20 }}>
-        <Link href={`/demo/combined.pdf?token=${encodeURIComponent(token || '')}`}>Download PDF</Link>
-      </div>
-    </main>
+    <DemoServiceRunner
+      title="Destiny Map Demo"
+      description="Generates a destiny-map result using the same production API endpoint."
+      token={gate.token}
+      endpoint="/api/demo/destiny-map"
+      buildPayload={(profile) => ({
+        name: profile.name,
+        birthDate: profile.birthDate,
+        birthTime: profile.birthTime,
+        city: profile.city,
+        latitude: profile.latitude,
+        longitude: profile.longitude,
+        timezone: profile.timezone,
+        userTimezone: profile.timezone,
+        gender: profile.gender,
+        theme: 'focus_overall',
+        lang: 'en',
+      })}
+    />
   )
 }

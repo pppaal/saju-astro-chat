@@ -119,7 +119,7 @@ describe('/api/demo and /demo/combined.pdf routes', () => {
     expect(bytes.byteLength).toBeGreaterThan(1000)
   })
 
-  it('returns 404 for invalid or missing token', async () => {
+  it('returns auth error for invalid or missing token', async () => {
     const invalidReq = new NextRequest('http://localhost:3000/api/demo/icp?token=wrong')
     const missingReq = new NextRequest('http://localhost:3000/api/demo/personality')
     const pdfReq = new NextRequest('http://localhost:3000/demo/combined.pdf')
@@ -128,8 +128,8 @@ describe('/api/demo and /demo/combined.pdf routes', () => {
     const missingRes = await getDemoPersona(missingReq)
     const pdfRes = await getDemoCombinedPdf(pdfReq)
 
-    expect(invalidRes.status).toBe(404)
-    expect(missingRes.status).toBe(404)
-    expect(pdfRes.status).toBe(404)
+    expect(invalidRes.status).toBe(401)
+    expect(missingRes.status).toBe(401)
+    expect(pdfRes.status).toBe(401)
   })
 })
