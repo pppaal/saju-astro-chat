@@ -13,7 +13,7 @@ const faqs = [
   {
     question: 'What is the Destiny Map?',
     answer:
-      'The Destiny Map is our signature visualization tool that combines your Saju chart, astrological birth chart, and numerology into one comprehensive view.',
+      'The Destiny Map is our signature visualization and counseling feature that combines your Saju chart and astrological birth chart into one guided view.',
   },
   {
     question: 'Is my data secure?',

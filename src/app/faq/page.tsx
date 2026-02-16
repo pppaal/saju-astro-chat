@@ -55,8 +55,8 @@ const faqs: FaqItem[] = [
     icon: '🗺️',
     q: 'What is the Destiny Map?',
     qKo: 'Destiny Map이 무엇인가요?',
-    a: 'The Destiny Map is our signature visualization tool that combines your Saju chart, astrological birth chart, and numerology into one comprehensive view. It shows your life path, major cycles, strengths, challenges, and optimal timing for important decisions.',
-    aKo: 'Destiny Map은 사주 차트, 점성술 출생 차트, 수비학을 하나의 종합적인 뷰로 결합한 고유한 시각화 도구입니다. 인생 경로, 주요 주기, 강점, 도전 과제, 중요한 결정을 위한 최적의 타이밍을 보여줍니다.',
+    a: 'The Destiny Map is our signature visualization and counseling feature. It combines your Saju chart and astrological birth chart into one guided view, then delivers practical AI guidance for timing, strengths, and key decisions.',
+    aKo: 'Destiny Map은 당사의 핵심 시각화/상담 기능입니다. 사주 차트와 점성술 출생 차트를 하나의 가이드 뷰로 통합하고, 타이밍·강점·중요한 결정에 대한 실용적 AI 가이던스를 제공합니다.',
   },
   {
     category: 'services',

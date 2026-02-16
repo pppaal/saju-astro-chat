@@ -29,7 +29,6 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
   )
   const maxServicePage = servicePageCount - 1
 
-  // Memoized placeholders for typing animation
   const placeholders = React.useMemo(
     () => [
       translate('landing.hint1', 'How is my fortune today?'),
@@ -46,6 +45,7 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
     setShowServiceSelector(false)
     setServicePage(0)
   }, [])
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
@@ -56,7 +56,6 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [closeServiceSelector])
 
-  // Close dropdown when scrolling
   useEffect(() => {
     if (!showServiceSelector) {
       return
@@ -72,7 +71,6 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
     }
   }, [showServiceSelector, closeServiceSelector])
 
-  // Prevent body scroll when dropdown is open on mobile
   useEffect(() => {
     if (showServiceSelector) {
       const originalStyle = window.getComputedStyle(document.body).overflow
@@ -89,7 +87,6 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
     }
   }, [servicePage, maxServicePage])
 
-  // Handle question submission - navigate to selected service with the question
   const handleQuestionSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault()
@@ -106,7 +103,6 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
     [lifeQuestion, router, selectedService]
   )
 
-  // Handle service selection
   const handleServiceSelect = useCallback((serviceKey: string) => {
     setSelectedService(serviceKey)
     setShowServiceSelector(false)
@@ -127,20 +123,18 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
     <div className={styles.questionSearchContainer} ref={searchContainerRef}>
       <form onSubmit={handleQuestionSubmit} className={styles.questionSearchForm}>
         <div className={styles.questionSearchWrapper}>
-          {/* Service Selector Button */}
           <button
             type="button"
             className={styles.serviceSelectBtn}
             onClick={() => setShowServiceSelector(!showServiceSelector)}
-            title={translate('landing.selectService', '서비스 선택')}
+            title={translate('landing.selectService', 'Select service')}
           >
             <span className={styles.serviceSelectIcon}>
-              {HOME_CORE_SERVICE_OPTIONS.find((s) => s.key === selectedService)?.icon || '🌟'}
+              {HOME_CORE_SERVICE_OPTIONS.find((s) => s.key === selectedService)?.icon || '*'}
             </span>
-            <span className={styles.serviceSelectArrow}>▼</span>
+            <span className={styles.serviceSelectArrow}>v</span>
           </button>
 
-          {/* Service Dropdown - Paginated (7 per page) */}
           {showServiceSelector && (
             <div className={styles.serviceDropdown}>
               <div className={styles.serviceDropdownGrid}>
@@ -162,7 +156,6 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
                 ))}
               </div>
 
-              {/* Page navigation */}
               {servicePageCount > 1 && (
                 <div className={styles.serviceDropdownNav}>
                   <button
@@ -197,14 +190,15 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
           )}
 
           <label htmlFor="destiny-question" className={styles.srOnly}>
-            {translate('landing.searchPlaceholder', '오늘 무엇이 궁금하세요?')}
+            {translate('landing.searchPlaceholder', 'What would you like to know today?')}
           </label>
           <input
             id="destiny-question"
             type="text"
             className={styles.questionSearchInput}
             placeholder={
-              typingPlaceholder || translate('landing.searchPlaceholder', '오늘 무엇이 궁금하세요?')
+              typingPlaceholder ||
+              translate('landing.searchPlaceholder', 'What would you like to know today?')
             }
             value={lifeQuestion}
             onChange={(e) => setLifeQuestion(e.target.value)}
@@ -219,32 +213,31 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
           <button
             type="button"
             className={styles.questionHint}
-            onClick={() => handleHintClick(translate('landing.hint1', '오늘의 운세가 궁금해요'))}
+            onClick={() => handleHintClick(translate('landing.hint1', 'How is my fortune today?'))}
           >
-            {translate('landing.hint1', '오늘의 운세가 궁금해요')}
+            {translate('landing.hint1', 'How is my fortune today?')}
           </button>
           <button
             type="button"
             className={styles.questionHint}
-            onClick={() => handleHintClick(translate('landing.hint2', '연애운이 어떨까요?'))}
+            onClick={() => handleHintClick(translate('landing.hint2', 'How is my love luck?'))}
           >
-            {translate('landing.hint2', '연애운이 어떨까요?')}
+            {translate('landing.hint2', 'How is my love luck?')}
           </button>
           <button
             type="button"
             className={styles.questionHint}
-            onClick={() => handleHintClick(translate('landing.hint3', '이직해도 될까요?'))}
+            onClick={() => handleHintClick(translate('landing.hint3', 'Should I change jobs?'))}
           >
-            {translate('landing.hint3', '이직해도 될까요?')}
+            {translate('landing.hint3', 'Should I change jobs?')}
           </button>
         </div>
       </form>
 
-      {/* AI Routing Guide */}
       <div className={styles.aiRoutingGuide}>
         <p className={styles.aiRoutingText}>
-          <span className={styles.aiRoutingIcon}>💡</span>
-          {translate('landing.aiRoutingText', '서비스를 선택하거나 바로 질문하세요')}
+          <span className={styles.aiRoutingIcon}>i</span>
+          {translate('landing.aiRoutingText', 'Select a service and ask your question')}
         </p>
         <div className={styles.serviceIconsRow}>
           {HOME_CORE_SERVICE_OPTIONS.map((service) => (

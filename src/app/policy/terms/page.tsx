@@ -33,9 +33,9 @@ const sections: Section[] = [
   {
     title: '4. Description of Service',
     titleKo: '4. 서비스 설명',
-    body: 'DestinyPal offers AI-powered divination/self-reflection services:\n- Astrology: birth charts, transits, compatibility\n- Saju (Four Pillars)\n- Tarot\n- Destiny Map (multi-system fusion)\n- Dream interpretation\n- Numerology\n- Compatibility analysis\n- I Ching\n- Life Prediction\n- Personality analysis\n- ICP (Personality Type)\n- Past Life analysis\n- AI Premium Reports\n- Destiny Calendar\n\nNature of Service: Readings are AI-assisted, for entertainment/self-reflection/personal growth; not professional advice. Accuracy depends on the info you provide.',
+    body: 'DestinyPal offers AI-assisted destiny and self-reflection services, including but not limited to: Destiny Map, Tarot, Premium Reports, Destiny Calendar, and Compatibility analysis. Feature availability may vary by plan, region, and product updates.\n\nNature of Service: Readings are AI-assisted, intended for entertainment, self-reflection, and personal growth. They are not medical, legal, financial, psychological, or therapeutic advice. Accuracy depends on the information you provide.',
     bodyKo:
-      'DestinyPal은 AI 기반 운세/자기 성찰 서비스를 제공합니다:\n- 서양 점성술: 출생 차트, 행성 이동, 궁합 등\n- 사주(명리)\n- 타로\n- Destiny Map(다중 시스템 통합)\n- 꿈 해몽\n- 수비학\n- 궁합/호환성 분석\n- 주역 해석\n- 운세 예측\n- 성격 분석\n- ICP (성격 유형)\n- 전생 분석\n- AI 프리미엄 리포트\n- 운세 달력\n\n서비스 성격: AI가 보조하며 오락·자기 성찰·개인 성장 목적입니다. 의료·법률·재무·심리 상담이 아니며, 정확도는 입력 정보에 좌우됩니다.',
+      'DestinyPal은 AI 보조 기반의 운명/자기성찰 서비스를 제공합니다. 주요 서비스에는 Destiny Map, Tarot, Premium Reports, Destiny Calendar, Compatibility 분석이 포함되며 이에 한정되지 않습니다. 제공 기능은 플랜, 지역, 제품 업데이트에 따라 달라질 수 있습니다.\n\n서비스 성격: 리딩은 AI 보조 기반이며 오락·자기성찰·개인 성장 목적입니다. 의료·법률·재무·심리·치료 자문이 아니며, 정확도는 사용자가 제공한 정보에 따라 달라질 수 있습니다.',
   },
   {
     title: '5. Acceptable Use Policy',

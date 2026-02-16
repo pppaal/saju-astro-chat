@@ -19,7 +19,7 @@
     "buyNow": "Buy Now",
     "howItWorks": "How Credits Work",
     "oneReading": "1 Credit",
-    "oneReadingDesc": "AI chat, Tarot reading, Dream interpretation = 1 credit each",
+    "oneReadingDesc": "Most readings cost 1 credit. Premium reports and Destiny Map may cost more. Exact cost is shown before you confirm.",
     "freeFeature": "Free Features",
     "freeFeatureDesc": "Personality test and current month calendar are free",
     "monthlyReset": "Monthly Reset",
@@ -52,7 +52,7 @@
       "calendar3months": "Calendar (3 months)",
       "calendar1year": "Calendar (1 year)",
       "calendar2years": "Calendar (2 years)",
-      "personalityFree": "Personality test free",
+      "personalityFree": "Core onboarding is free",
       "adFree": "Ad-free experience",
       "prioritySupport": "Priority support"
     },

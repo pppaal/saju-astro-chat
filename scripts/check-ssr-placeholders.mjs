@@ -21,6 +21,9 @@ const BLOCKED_PATTERNS = [
   'Q2',
   'Keywords List',
   'Destiny Map Section Title',
+  'landing.heroTitle',
+  'landing.searchPlaceholder',
+  'landing.statsToday',
 ]
 
 const POLICY_FORBIDDEN_PATTERNS = [
@@ -29,6 +32,21 @@ const POLICY_FORBIDDEN_PATTERNS = [
   '\uB9CC\uB8CC\uB418\uC9C0 \uC54A\uB294\uB2E4',
   '\uB9CC\uB8CC\uB418\uC9C0 \uC54A',
 ]
+
+const HOME_BLOCKED_REGEXES = [
+  /Today\s+\.\.\./i,
+  /Total Visitors\s+\.\.\./i,
+  /Members\s+\.\.\./i,
+  /\uC624\uB298\s+\.\.\./,
+  /\uB204\uC801 \uBC29\uBB38\uC790\s+\.\.\./,
+  /\uD68C\uC6D0\s+\.\.\./,
+]
+
+const SCOPE_FORBIDDEN_BY_PATH = {
+  '/faq': ['and numerology into one comprehensive view'],
+  '/policy/terms': ['- Dream interpretation', '- Numerology', '- I Ching'],
+  '/policy/refund': ['- Dream analysis', '- Numerology reports', '- I Ching readings'],
+}
 
 function extractVisibleText(html) {
   return html
@@ -96,6 +114,31 @@ async function main() {
         )
       } else {
         console.log(`[PASS] ${target.path} contains no no-expiry contradiction`)
+      }
+
+      const scopeForbidden = SCOPE_FORBIDDEN_BY_PATH[target.path] || []
+      const foundScopeForbidden = scopeForbidden.filter((pattern) => visibleText.includes(pattern))
+      if (foundScopeForbidden.length > 0) {
+        failed = true
+        console.error(
+          `[FAIL] ${target.path} contains removed scope strings: ${foundScopeForbidden.join(', ')}`
+        )
+      } else {
+        console.log(`[PASS] ${target.path} contains no removed scope strings`)
+      }
+    }
+
+    if (target.path === '/') {
+      const matchedHomeRegexes = HOME_BLOCKED_REGEXES.filter((re) => re.test(visibleText)).map((re) =>
+        re.toString()
+      )
+      if (matchedHomeRegexes.length > 0) {
+        failed = true
+        console.error(
+          `[FAIL] / contains unfinished stats placeholders: ${matchedHomeRegexes.join(', ')}`
+        )
+      } else {
+        console.log('[PASS] / contains no unfinished stats placeholders')
       }
     }
   }

@@ -121,19 +121,11 @@ D) 연간 구독 조기 해지:
   {
     title: '4. AI Reading Services - No Refunds',
     titleKo: '4. AI 리딩 서비스 - 환불 불가',
-    body: `IMPORTANT: All AI reading services are FINAL and NON-REFUNDABLE once generated.
+    body: `IMPORTANT: AI reading outputs are FINAL and NON-REFUNDABLE once generated.
 
-This includes:
-- Destiny Map analysis
-- Saju (Four Pillars) readings
-- Tarot card readings
-- Astrology chart interpretations
-- Dream analysis
-- I Ching readings
-- Numerology reports
-- Compatibility analyses
+This applies to AI-generated outcomes across our main products, including Destiny Map, Tarot, Premium Reports, Destiny Calendar insights, and Compatibility analysis.
 
-Reason: Our services involve immediate AI computation and delivery of personalized digital content. Once generated, the service has been fully rendered.
+Reason: These services involve immediate AI computation and delivery of personalized digital content. Once generated, the service has been fully rendered.
 
 No Refunds For:
 - Readings you disagree with or find inaccurate
@@ -146,19 +138,11 @@ By using our reading services, you acknowledge:
 1. AI readings are for entertainment and self-reflection purposes
 2. Results may vary and are subject to interpretation
 3. You accept the reading as-is upon generation`,
-    bodyKo: `중요: 모든 AI 리딩 서비스는 생성된 후 최종이며 환불이 불가합니다.
+    bodyKo: `중요: AI 리딩 결과물은 생성 즉시 최종 제공되며 환불이 불가합니다.
 
-해당 서비스:
-- 운명 지도 분석
-- 사주(명리) 리딩
-- 타로 카드 리딩
-- 점성술 차트 해석
-- 해몽 분석
-- 주역 리딩
-- 수비학 리포트
-- 궁합 분석
+이 원칙은 Destiny Map, Tarot, Premium Reports, Destiny Calendar 인사이트, Compatibility 분석을 포함한 당사의 주요 AI 결과물 전반에 적용됩니다.
 
-이유: 당사 서비스는 즉각적인 AI 연산과 맞춤형 디지털 콘텐츠 제공을 포함합니다. 생성된 후에는 서비스가 완전히 제공된 것으로 간주됩니다.
+이유: 본 서비스는 즉각적인 AI 연산과 맞춤형 디지털 콘텐츠 제공을 포함합니다. 생성 완료 시점에 서비스 제공이 완료된 것으로 간주됩니다.
 
 다음의 경우 환불 불가:
 - 동의하지 않거나 부정확하다고 생각되는 리딩
