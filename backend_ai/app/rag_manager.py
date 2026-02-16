@@ -464,6 +464,8 @@ class ThreadSafeRAGManager:
                     query,
                     saju_seed=saju_seed,
                     astro_seed=astro_seed,
+                    saju_json=saju_data if isinstance(saju_data, dict) else {},
+                    astro_json=astro_data if isinstance(astro_data, dict) else {},
                     top_k=12,
                 )
                 if formatted:

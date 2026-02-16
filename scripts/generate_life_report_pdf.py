@@ -148,6 +148,37 @@ def _parse_cross_lines(summary: str) -> List[str]:
     return lines[:15]
 
 
+def _extract_advanced_highlights(grouped: List[Tuple[str, List[Dict]]], limit: int = 6) -> List[str]:
+    bullets: List[str] = []
+    seen = set()
+    for axis, items in grouped:
+        if not items:
+            continue
+        meta = items[0].get("metadata") or {}
+        advanced_links = meta.get("advanced_links")
+        if not isinstance(advanced_links, list) and isinstance(meta.get("advanced_links_json"), str):
+            try:
+                loaded = json.loads(meta.get("advanced_links_json", "[]"))
+                advanced_links = loaded if isinstance(loaded, list) else []
+            except Exception:
+                advanced_links = []
+
+        for link in advanced_links or []:
+            if not isinstance(link, dict):
+                continue
+            text = _safe(link.get("text"))
+            if not text:
+                continue
+            key = text.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            bullets.append(f"[{axis}] {text}")
+            if len(bullets) >= limit:
+                return bullets
+    return bullets
+
+
 def _nodes_to_section(nodes: List[Dict], heading: str, limit: int = 6) -> str:
     lines = [heading]
     for item in nodes[:limit]:
@@ -298,11 +329,14 @@ async def _collect_payload(saju_data: Dict, astro_data: Dict, user_name: str, lo
         base_query,
         saju_seed=saju_seed,
         astro_seed=astro_seed,
+        saju_json=saju_data if isinstance(saju_data, dict) else {},
+        astro_json=astro_data if isinstance(astro_data, dict) else {},
         top_k=12,
         max_groups=3,
         return_meta=True,
     )
     cross_cards = _build_cross_cards(grouped)
+    advanced_highlights = _extract_advanced_highlights(grouped, limit=6)
 
     graph_hits_by_theme: Dict[str, List[Dict]] = {}
     for theme in themes:
@@ -340,6 +374,7 @@ async def _collect_payload(saju_data: Dict, astro_data: Dict, user_name: str, lo
         "tagline": "사주와 점성의 공통 방향을 한 권으로 정리한 10페이지 상담서",
         "theme_scores": theme_scores,
         "cross_cards": cross_cards,
+        "advanced_fusion_highlights": advanced_highlights,
         "cross_summary": cross_text,
         "executive_summary": "\n".join(executive),
         "identity_section": _nodes_to_section(graph_hits_by_theme["life_path"], "사주+점성 공통 성향"),

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 """
 backend_ai self-check script.
 
@@ -48,18 +48,18 @@ TAROT_COLLECTION_CANDIDATES = ["domain_tarot", "tarot"]
 OPTIONAL_COLLECTIONS = ["domain_dream", "domain_persona", "domain_destiny_map", "graph_nodes", "corpus_nodes"]
 
 QUALITY_QUERIES = [
-    "수(水) 기운이 강하고 달이 물자리일 때 연애 성향 교차 해석",
-    "목(木) 기운이 약한데 태양이 사자자리면 커리어 방향은?",
-    "금(金) 기운과 토(土) 기운이 충돌할 때 인간관계에서 주의점",
-    "일간이 갑목인데 달이 전갈자리면 감정 조절 포인트",
-    "화(火) 기운 과다와 금성 양자리의 연애 패턴",
-    "사주 신살과 점성 소행성 Chiron 연결 해석",
-    "직업운에서 지지 합과 하우스 조합 해석",
-    "재물운에서 십신과 목성의 시너지",
-    "건강에서 오행 밸런스와 토성 영향",
-    "인생 타이밍에서 대운과 progression 교차",
-    "궁합에서 사주 관계와 시나스트리 해석",
-    "배우자운에서 지지 합충과 금성달 조합",
+    "ìˆ˜(æ°´) ê¸°ìš´ì´ ê°•í•˜ê³  ë‹¬ì´ ë¬¼ìžë¦¬ì¼ ë•Œ ì—°ì•  ì„±í–¥ êµì°¨ í•´ì„",
+    "ëª©(æœ¨) ê¸°ìš´ì´ ì•½í•œë° íƒœì–‘ì´ ì‚¬ìžìžë¦¬ë©´ ì»¤ë¦¬ì–´ ë°©í–¥ì€?",
+    "ê¸ˆ(é‡‘) ê¸°ìš´ê³¼ í† (åœŸ) ê¸°ìš´ì´ ì¶©ëŒí•  ë•Œ ì¸ê°„ê´€ê³„ì—ì„œ ì£¼ì˜ì ",
+    "ì¼ê°„ì´ ê°‘ëª©ì¸ë° ë‹¬ì´ ì „ê°ˆìžë¦¬ë©´ ê°ì • ì¡°ì ˆ í¬ì¸íŠ¸",
+    "í™”(ç«) ê¸°ìš´ ê³¼ë‹¤ì™€ ê¸ˆì„± ì–‘ìžë¦¬ì˜ ì—°ì•  íŒ¨í„´",
+    "ì‚¬ì£¼ ì‹ ì‚´ê³¼ ì ì„± ì†Œí–‰ì„± Chiron ì—°ê²° í•´ì„",
+    "ì§ì—…ìš´ì—ì„œ ì§€ì§€ í•©ê³¼ í•˜ìš°ìŠ¤ ì¡°í•© í•´ì„",
+    "ìž¬ë¬¼ìš´ì—ì„œ ì‹­ì‹ ê³¼ ëª©ì„±ì˜ ì‹œë„ˆì§€",
+    "ê±´ê°•ì—ì„œ ì˜¤í–‰ ë°¸ëŸ°ìŠ¤ì™€ í† ì„± ì˜í–¥",
+    "ì¸ìƒ íƒ€ì´ë°ì—ì„œ ëŒ€ìš´ê³¼ progression êµì°¨",
+    "ê¶í•©ì—ì„œ ì‚¬ì£¼ ê´€ê³„ì™€ ì‹œë‚˜ìŠ¤íŠ¸ë¦¬ í•´ì„",
+    "ë°°ìš°ìžìš´ì—ì„œ ì§€ì§€ í•©ì¶©ê³¼ ê¸ˆì„±ë‹¬ ì¡°í•©",
 ]
 
 
@@ -263,18 +263,62 @@ def _mock_saju() -> Dict:
         "dayMaster": {"heavenlyStem": "갑", "element": "목"},
         "dominantElement": "수",
         "tenGods": {"dominant": "비견"},
+        "tenGodsCount": {"비견": 3, "정관": 2, "정재": 1},
         "elementCounts": {"목": 2, "화": 1, "토": 1, "금": 1, "수": 3},
+        "relations": [
+            {"kind": "지지육합", "detail": "협력 강화"},
+            {"kind": "지지충", "detail": "변화 유발"},
+        ],
+        "advancedAnalysis": {
+            "extended": {"strength": {"level": "신강"}},
+            "yongsin": {"primaryYongsin": "목", "kibsin": "금"},
+            "sibsin": {"distribution": {"비견": 3, "정관": 2}},
+            "hyeongchung": {"hap": [{"type": "지지합"}], "chung": [{"type": "지지충"}]},
+            "monthlyLuck": [{"month": "2026-02", "sipsin": "비견"}],
+        },
+        "daeun": {
+            "current": {"heavenlyStem": "갑", "earthlyBranch": "자", "sipsin": {"cheon": "비견", "ji": "정관"}},
+            "list": [{"age": 24, "heavenlyStem": "갑", "earthlyBranch": "자"}],
+        },
+        "unse": {
+            "daeun": [{"age": 24, "heavenlyStem": "갑", "earthlyBranch": "자"}],
+            "annual": [{"year": 2026, "ganji": "병오"}],
+            "monthly": [{"year": 2026, "month": 2, "ganji": "경인"}],
+        },
+        "shinsal": [{"kind": "역마"}, {"kind": "도화"}],
     }
 
 
 def _mock_astro() -> Dict:
     return {
-        "sun": {"sign": "Cancer"},
-        "moon": {"sign": "Pisces"},
+        "sun": {"name": "Sun", "sign": "Cancer", "house": 10},
+        "moon": {"name": "Moon", "sign": "Pisces", "house": 4},
         "rising": {"sign": "Scorpio"},
-        "mercury": {"sign": "Gemini"},
-        "venus": {"sign": "Aries"},
-        "mars": {"sign": "Capricorn"},
+        "ascendant": {"sign": "Scorpio"},
+        "mercury": {"name": "Mercury", "sign": "Gemini", "house": 9},
+        "venus": {"name": "Venus", "sign": "Aries", "house": 7},
+        "mars": {"name": "Mars", "sign": "Capricorn", "house": 6},
+        "jupiter": {"name": "Jupiter", "sign": "Taurus", "house": 2},
+        "saturn": {"name": "Saturn", "sign": "Pisces", "house": 5},
+        "planets": [
+            {"name": "Sun", "sign": "Cancer", "house": 10},
+            {"name": "Moon", "sign": "Pisces", "house": 4},
+            {"name": "Mercury", "sign": "Gemini", "house": 9},
+            {"name": "Venus", "sign": "Aries", "house": 7},
+            {"name": "Mars", "sign": "Capricorn", "house": 6},
+        ],
+        "aspects": [
+            {"planet1": "Sun", "planet2": "Moon", "aspectType": "trine", "orb": 2.2},
+            {"planet1": "Mars", "planet2": "Saturn", "aspectType": "square", "orb": 1.3},
+            {"planet1": "Venus", "planet2": "Jupiter", "aspectType": "opposition", "orb": 2.8},
+        ],
+        "elementRatios": {"fire": 30, "earth": 25, "air": 20, "water": 25},
+        "modalityRatios": {"cardinal": 35, "fixed": 30, "mutable": 35},
+        "transits": [
+            {"transitPlanet": "Saturn", "natalPlanet": "Sun", "aspectType": "square", "exactDate": "2026-03-14"},
+            {"transitPlanet": "Jupiter", "natalPlanet": "Moon", "aspectType": "trine", "exactDate": "2026-07-22"},
+        ],
+        "progressions": {"summary": "present"},
     }
 
 
@@ -389,8 +433,8 @@ def _meta_has_ref_pair(meta: Dict) -> bool:
 def _runtime_summary_has_ref_pair(summary: str) -> bool:
     if not summary:
         return False
-    saju_line = "사주 근거:"
-    astro_line = "점성 근거:"
+    saju_line = "ì‚¬ì£¼ ê·¼ê±°:"
+    astro_line = "ì ì„± ê·¼ê±°:"
     lines = [line.strip() for line in summary.splitlines() if line.strip()]
     for idx, line in enumerate(lines):
         if not line.startswith(saju_line):
@@ -402,7 +446,7 @@ def _runtime_summary_has_ref_pair(summary: str) -> bool:
             continue
         saju_val = line[len(saju_line):].strip()
         astro_val = next_line[len(astro_line):].strip()
-        if saju_val and astro_val and saju_val != "없음" and astro_val != "없음":
+        if saju_val and astro_val and saju_val != "ì—†ìŒ" and astro_val != "ì—†ìŒ":
             return True
     return False
 
@@ -421,7 +465,7 @@ out = []
 for q in queries:
     s = build_cross_summary(
         q,
-        saju_seed=["갑", "목", "수", "비견"],
+        saju_seed=["ê°‘", "ëª©", "ìˆ˜", "ë¹„ê²¬"],
         astro_seed=["Sun", "Moon", "Pisces"],
         top_k=12,
     )
@@ -434,7 +478,7 @@ for q in queries:
             continue
         left = line.split(":", 1)[1].strip()
         right = lines[i + 1].split(":", 1)[1].strip()
-        if left and right and left not in {"없음", "ì—†ìŒ"} and right not in {"없음", "ì—†ìŒ"}:
+        if left and right and left not in {"ì—†ìŒ", "Ã¬â€”â€ Ã¬ÂÅ’"} and right not in {"ì—†ìŒ", "Ã¬â€”â€ Ã¬ÂÅ’"}:
             hit = True
             break
     out.append(hit)
@@ -458,6 +502,164 @@ print(json.dumps(out, ensure_ascii=False))
         return [bool(v) for v in data]
     except Exception:
         return [False for _ in queries]
+
+
+def _runtime_advanced_guardrails_subprocess(queries: List[str]) -> Dict[str, float]:
+    payload = json.dumps(queries, ensure_ascii=False)
+    probe = r"""
+import json
+import os
+import sys
+os.environ["USE_CHROMADB"] = "1"
+os.environ["EXCLUDE_NON_SAJU_ASTRO"] = "1"
+os.environ["CROSS_ADVANCED"] = "1"
+from backend_ai.app.rag.cross_store import build_cross_summary
+
+saju = {
+    "dayMaster": {"heavenlyStem": "갑", "element": "목"},
+    "dominantElement": "수",
+    "tenGods": {"dominant": "비견"},
+    "tenGodsCount": {"비견": 3, "정관": 2, "정재": 1},
+    "elementCounts": {"목": 2, "화": 1, "토": 1, "금": 1, "수": 3},
+    "advancedAnalysis": {
+        "extended": {"strength": {"level": "신강"}},
+        "yongsin": {"primaryYongsin": "목", "kibsin": "금"},
+        "sibsin": {"distribution": {"비견": 3, "정관": 2}},
+        "hyeongchung": {"hap": [{"type": "지지합"}], "chung": [{"type": "지지충"}]},
+    },
+    "daeun": {"current": {"heavenlyStem": "갑", "earthlyBranch": "자", "sipsin": {"cheon": "비견", "ji": "정관"}}},
+    "unse": {"annual": [{"year": 2026, "ganji": "병오"}], "monthly": [{"year": 2026, "month": 2, "ganji": "경인"}]},
+}
+astro = {
+    "sun": {"name": "Sun", "sign": "Cancer", "house": 10},
+    "moon": {"name": "Moon", "sign": "Pisces", "house": 4},
+    "ascendant": {"sign": "Scorpio"},
+    "mercury": {"name": "Mercury", "sign": "Gemini", "house": 9},
+    "venus": {"name": "Venus", "sign": "Aries", "house": 7},
+    "mars": {"name": "Mars", "sign": "Capricorn", "house": 6},
+    "aspects": [
+        {"planet1": "Sun", "planet2": "Moon", "aspectType": "trine", "orb": 2.2},
+        {"planet1": "Mars", "planet2": "Saturn", "aspectType": "square", "orb": 1.3},
+        {"planet1": "Venus", "planet2": "Jupiter", "aspectType": "opposition", "orb": 2.8},
+    ],
+    "elementRatios": {"fire": 30, "earth": 25, "air": 20, "water": 25},
+    "modalityRatios": {"cardinal": 35, "fixed": 30, "mutable": 35},
+    "transits": [{"transitPlanet": "Saturn", "natalPlanet": "Sun", "aspectType": "square"}],
+}
+
+def _refs(meta, key):
+    raw = meta.get(key)
+    if isinstance(raw, str):
+        vals = [p.strip() for p in raw.split(",") if p.strip()]
+        if vals:
+            return vals
+    raw_json = meta.get(f"{key}_json")
+    if isinstance(raw_json, str):
+        try:
+            parsed = json.loads(raw_json)
+            if isinstance(parsed, list):
+                vals = [str(v).strip() for v in parsed if str(v).strip()]
+                if vals:
+                    return vals
+        except Exception:
+            pass
+    if isinstance(raw, list):
+        vals = [str(v).strip() for v in raw if str(v).strip()]
+        if vals:
+            return vals
+    return []
+
+queries = json.loads(sys.stdin.read())
+total_groups = 0
+groups_with_advanced_links = 0
+groups_complete = 0
+empty_advanced_link_count = 0
+for q in queries:
+    _summary, grouped = build_cross_summary(
+        q,
+        saju_seed=["갑", "목", "수", "비견"],
+        astro_seed=["Cancer", "Pisces", "Scorpio"],
+        saju_json=saju,
+        astro_json=astro,
+        top_k=12,
+        max_groups=3,
+        return_meta=True,
+    )
+    for axis, items in grouped:
+        if not items:
+            continue
+        total_groups += 1
+        top = items[0]
+        meta = top.get("metadata") or {}
+        saju_refs = _refs(meta, "saju_refs")
+        astro_refs = _refs(meta, "astro_refs")
+        if len(saju_refs) >= 2 and len(astro_refs) >= 2:
+            groups_complete += 1
+        links = meta.get("advanced_links")
+        if not isinstance(links, list):
+            links = []
+        has_link = False
+        for link in links:
+            if not isinstance(link, dict):
+                continue
+            text = str(link.get("text") or "").strip()
+            if text:
+                has_link = True
+            else:
+                empty_advanced_link_count += 1
+        if has_link:
+            groups_with_advanced_links += 1
+
+advanced_link_rate = (groups_with_advanced_links / total_groups * 100.0) if total_groups else 0.0
+evidence_complete_rate = (groups_complete / total_groups * 100.0) if total_groups else 0.0
+print(json.dumps({
+    "total_groups": total_groups,
+    "groups_with_advanced_links": groups_with_advanced_links,
+    "advanced_link_rate": advanced_link_rate,
+    "groups_evidence_complete": groups_complete,
+    "evidence_complete_rate": evidence_complete_rate,
+    "empty_advanced_link_count": empty_advanced_link_count,
+}, ensure_ascii=False))
+"""
+    env = dict(os.environ)
+    env["PYTHONIOENCODING"] = "utf-8"
+    proc = subprocess.run(
+        [sys.executable, "-c", probe],
+        input=payload,
+        text=True,
+        encoding="utf-8",
+        capture_output=True,
+        env=env,
+        check=False,
+    )
+    if proc.returncode != 0:
+        return {
+            "total_groups": 0,
+            "groups_with_advanced_links": 0,
+            "advanced_link_rate": 0.0,
+            "groups_evidence_complete": 0,
+            "evidence_complete_rate": 0.0,
+            "empty_advanced_link_count": len(queries),
+        }
+    try:
+        data = json.loads(proc.stdout.strip() or "{}")
+        return {
+            "total_groups": int(data.get("total_groups", 0) or 0),
+            "groups_with_advanced_links": int(data.get("groups_with_advanced_links", 0) or 0),
+            "advanced_link_rate": float(data.get("advanced_link_rate", 0.0) or 0.0),
+            "groups_evidence_complete": int(data.get("groups_evidence_complete", 0) or 0),
+            "evidence_complete_rate": float(data.get("evidence_complete_rate", 0.0) or 0.0),
+            "empty_advanced_link_count": int(data.get("empty_advanced_link_count", 0) or 0),
+        }
+    except Exception:
+        return {
+            "total_groups": 0,
+            "groups_with_advanced_links": 0,
+            "advanced_link_rate": 0.0,
+            "groups_evidence_complete": 0,
+            "evidence_complete_rate": 0.0,
+            "empty_advanced_link_count": len(queries),
+        }
 
 
 def quality_check(runtime_evidence: bool = False) -> CheckResult:
@@ -532,6 +734,8 @@ def quality_check(runtime_evidence: bool = False) -> CheckResult:
     avg_unique = statistics.mean(unique_theme_vals) if unique_theme_vals else 0.0
     cross_present_rate = _pct(cross_present, len(QUALITY_QUERIES))
     evidence_rate = _pct(evidence_present, len(QUALITY_QUERIES))
+    advanced_mode = os.getenv("CROSS_ADVANCED", "0") == "1"
+    advanced_metrics = {}
 
     if cross_present_rate <= 0:
         errors.append("Cross summary present rate is 0%")
@@ -539,6 +743,18 @@ def quality_check(runtime_evidence: bool = False) -> CheckResult:
         warnings.append(f"Evidence rate is {evidence_rate:.1f}% (<100%)")
     if avg_unique < 2.0:
         warnings.append(f"avg_unique_theme@12 is {avg_unique:.2f} (<2)")
+
+    if advanced_mode:
+        advanced_metrics = _runtime_advanced_guardrails_subprocess(QUALITY_QUERIES)
+        adv_rate = float(advanced_metrics.get("advanced_link_rate", 0.0))
+        adv_evidence = float(advanced_metrics.get("evidence_complete_rate", 0.0))
+        empty_adv_links = int(advanced_metrics.get("empty_advanced_link_count", 0))
+        if adv_rate < 70.0:
+            errors.append(f"Advanced link rate is {adv_rate:.1f}% (<70%) with CROSS_ADVANCED=1")
+        if adv_evidence < 100.0:
+            errors.append(f"Advanced evidence completeness is {adv_evidence:.1f}% (<100%)")
+        if empty_adv_links > 0:
+            errors.append(f"Empty advanced links found: {empty_adv_links}")
 
     rows = [[
         f"{avg_unique:.2f}",
@@ -550,11 +766,26 @@ def quality_check(runtime_evidence: bool = False) -> CheckResult:
         ["avg_unique_theme@12", "cross_present_rate", "evidence_rate"],
         rows,
     )
+    if advanced_mode:
+        adv_rows = [[
+            f"{advanced_metrics.get('advanced_link_rate', 0.0):.1f}%",
+            f"{advanced_metrics.get('evidence_complete_rate', 0.0):.1f}%",
+            str(int(advanced_metrics.get("empty_advanced_link_count", 0))),
+        ]]
+        table_lines += [""]
+        table_lines += _print_table(
+            "AdvancedQuality",
+            ["advanced_link_rate", "advanced_evidence_rate", "empty_advanced_links"],
+            adv_rows,
+        )
 
     metrics["avg_unique_theme@12"] = avg_unique
     metrics["cross_present_rate"] = cross_present_rate
     metrics["evidence_rate"] = evidence_rate
     metrics["runtime_evidence"] = runtime_evidence
+    metrics["advanced_mode"] = advanced_mode
+    if advanced_mode:
+        metrics["advanced"] = advanced_metrics
 
     status = "PASS"
     if errors:
@@ -622,13 +853,13 @@ def main() -> int:
     _print_section(quality)
 
     overall = _merge_status(health.status, leak.status, quality.status)
-    icon = "✅" if overall == "PASS" else ("⚠️" if overall == "WARN" else "❌")
+    icon = "âœ…" if overall == "PASS" else ("âš ï¸" if overall == "WARN" else "âŒ")
     print()
-    print(f"총평: {icon} {overall}")
+    print(f"ì´í‰: {icon} {overall}")
 
     actions = _next_actions(overall, health, leak, quality)
     if actions:
-        print("다음 액션:")
+        print("ë‹¤ìŒ ì•¡ì…˜:")
         for action in actions:
             print(f"- {action}")
 
@@ -637,3 +868,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

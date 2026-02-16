@@ -188,6 +188,16 @@ def render_life_report_pdf(payload: Dict, out_pdf: Path, assets: RenderAssets) -
     c.setFont("Helvetica", 11)
     summary = _safe_text(payload.get("executive_summary"))
     y = _draw_wrapped(c, summary, 40, height - 110, width_chars=92, leading=15)
+    highlights = payload.get("advanced_fusion_highlights", []) if isinstance(payload.get("advanced_fusion_highlights"), list) else []
+    if highlights:
+        block_top = min(y - 8, 360)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(40, block_top, "Advanced Fusion Highlights")
+        c.setFont("Helvetica", 9.5)
+        y_adv = block_top - 16
+        for item in highlights[:6]:
+            c.drawString(44, y_adv, f"- {_safe_text(item)[:110]}")
+            y_adv -= 13
     c.drawImage(ImageReader(str(assets.themes)), 40, 110, width=width - 80, height=220, preserveAspectRatio=True, mask="auto")
     c.showPage()
 

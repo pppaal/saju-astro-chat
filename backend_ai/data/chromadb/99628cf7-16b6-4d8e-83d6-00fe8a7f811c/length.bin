@@ -1,1 +1,1 @@
-invalid type: string "Card: 은둔자 / The Hermit | Orientation: upright | Domain: general | Meaning: 은둔자 카드는 내면 탐구을 상징합니다. 일반 영역에서 내면 탐구, 지혜, 고독, 안내의 에너지가 긍정적으로 작용합니다. | Advice: 은둔자의 내면 탐구 에너지를 신뢰하고 따르세요. | Keywords: 내면 탐구, 지혜, 고독, 안내", expecte
+invalid type: string "Card: 악마 / The Devil | Orientation: reversed | Domain: money | Meaning: 악마 역방향은 속박의 그림자 측면을 나타냅니다. 재정 영역에서 이 에너지의 부재나 과잉에 주의하세요. | Advice: 악마의 그림자를 인식하고, 균형을 찾기 위해 노력하세요. | Keywords: 속박, 물질주의, 그림자, 유혹", expected f64 expect

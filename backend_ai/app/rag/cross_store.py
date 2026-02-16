@@ -8,9 +8,15 @@ import logging
 import os
 import re
 import json
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from backend_ai.app.rag.vector_store import VectorStoreManager
+from backend_ai.app.rag.advanced_signals import (
+    build_advanced_link_text,
+    extract_astro_advanced_signals,
+    extract_saju_advanced_signals,
+    select_signals_for_axis,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +26,7 @@ CROSS_DOMAIN = os.getenv("SAJU_ASTRO_CROSS_DOMAIN", "saju_astro_cross")
 GRAPH_COLLECTION_NAME = os.getenv("SAJU_ASTRO_GRAPH_COLLECTION", "saju_astro_graph_nodes_v1")
 GRAPH_DOMAIN = os.getenv("SAJU_ASTRO_GRAPH_DOMAIN", "saju_astro")
 _TRACE_ENV_KEY = "RAG_TRACE"
+_ADVANCED_ENV_KEY = "CROSS_ADVANCED"
 
 
 AXIS_LABELS = {
@@ -84,6 +91,10 @@ def _trace_enabled() -> bool:
 def _trace(msg: str, *args) -> None:
     if _trace_enabled():
         logger.info("[RAG_TRACE] " + msg, *args)
+
+
+def _advanced_enabled() -> bool:
+    return os.getenv(_ADVANCED_ENV_KEY, "0") == "1"
 
 
 def _get_embedding_model():
@@ -348,9 +359,163 @@ def _refs_to_evidence_items(refs: List[str], limit: int = 2) -> List[str]:
     return items
 
 
-def _collect_evidence(meta: Dict, query_text: str) -> Tuple[List[str], List[str], List[str], List[str], bool]:
+def _hit_title_id(hit: Dict) -> Tuple[str, str]:
+    hit_meta = hit.get("metadata") or {}
+    title = (hit_meta.get("label") or "").strip()
+    node_id = (hit_meta.get("original_id") or hit.get("id") or "").strip()
+    if not title:
+        title = node_id or "unknown"
+    if not node_id:
+        node_id = title
+    return title, node_id
+
+
+def _source_hint_kind(hit: Dict) -> str:
+    hit_meta = hit.get("metadata") or {}
+    source = str(hit_meta.get("source") or "").lower()
+    node_type = str(hit_meta.get("type") or "").lower()
+    label = str(hit_meta.get("label") or "").lower()
+    text = str(hit.get("text") or "").lower()
+    merged = " ".join([source, node_type, label, text])
+    has_saju = any(tok in merged for tok in ("saju", "gan", "sipsin", "sibsin", "shinsal", "지지", "지장간"))
+    has_astro = any(tok in merged for tok in ("astro", "planet", "house", "sign", "aspect", "transit"))
+    if has_saju and not has_astro:
+        return "saju"
+    if has_astro and not has_saju:
+        return "astro"
+    return "both" if has_saju and has_astro else "unknown"
+
+
+def _collect_signal_evidence(
+    axis: str,
+    signal: Dict[str, Any],
+    kind: str,
+    query_text: str,
+    top_k: int = 8,
+) -> Tuple[List[str], List[Dict[str, Any]], str]:
+    refs: List[str] = []
+    evidence_items: List[Dict[str, Any]] = []
+    sources = set()
+    used_backfill = False
+
+    label = str(signal.get("label") or "").strip()
+    value = str(signal.get("value") or "").strip()
+    search_query = " ".join([p for p in [axis, label, value, query_text[:120]] if p]).strip()
+    hits = _search_graph_hits(search_query, top_k=top_k)
+
+    def _append_from_hit(hit: Dict, mark_backfill: bool = False) -> bool:
+        nonlocal used_backfill
+        hs, ha = _extract_refs_from_graph_hit(hit)
+        kind_hint = _source_hint_kind(hit)
+        if kind == "saju":
+            ref_pool = hs
+            kind_ok = bool(hs) or kind_hint in ("saju", "both")
+        else:
+            ref_pool = ha
+            kind_ok = bool(ha) or kind_hint in ("astro", "both")
+        if not kind_ok:
+            return False
+
+        title, node_id = _hit_title_id(hit)
+        score = float(hit.get("score") or 0.0)
+        evidence_items.append(
+            {
+                "title": title,
+                "id": node_id,
+                "score": round(score, 4),
+                "signal_key": signal.get("key", ""),
+                "backfill": bool(mark_backfill),
+            }
+        )
+        if mark_backfill:
+            used_backfill = True
+
+        if ref_pool:
+            refs.extend(ref_pool)
+        else:
+            refs.append(node_id)
+        sources.add("similarity")
+        return True
+
+    for hit in hits:
+        _append_from_hit(hit, mark_backfill=False)
+        if len(evidence_items) >= 2 and len(refs) >= 2:
+            break
+
+    if len(evidence_items) < 2 or len(refs) < 2:
+        fallback_hits = _search_graph_hits(" ".join([axis, query_text[:120], kind]), top_k=10)
+        for hit in fallback_hits:
+            if _append_from_hit(hit, mark_backfill=True):
+                sources.add("backfill")
+            if len(evidence_items) >= 2 and len(refs) >= 2:
+                break
+
+    refs = _unique_keep_order(refs, limit=12)
+    if not evidence_items and refs:
+        evidence_items = [{"title": refs[0], "id": refs[0], "score": 0.0, "signal_key": signal.get("key", ""), "backfill": True}]
+
+    source_text = ",".join(sorted(sources)) if sources else ("backfill" if used_backfill else "none")
+    return refs[:12], evidence_items[:2], source_text
+
+
+def _build_group_advanced_link(
+    axis: str,
+    query_text: str,
+    saju_signals: List[Dict[str, Any]],
+    astro_signals: List[Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
+    selected_saju = select_signals_for_axis(saju_signals, axis, limit=2)
+    selected_astro = select_signals_for_axis(astro_signals, axis, limit=2)
+    if not selected_saju or not selected_astro:
+        return None
+
+    link_text = build_advanced_link_text(axis, selected_saju, selected_astro).strip()
+    if not link_text:
+        return None
+
+    saju_refs: List[str] = []
+    astro_refs: List[str] = []
+    saju_evidence: List[Dict[str, Any]] = []
+    astro_evidence: List[Dict[str, Any]] = []
+    sources = set()
+
+    for sig in selected_saju:
+        refs, evidence, source = _collect_signal_evidence(axis, sig, "saju", query_text, top_k=8)
+        saju_refs.extend(refs)
+        saju_evidence.extend(evidence)
+        if source and source != "none":
+            sources.update(source.split(","))
+
+    for sig in selected_astro:
+        refs, evidence, source = _collect_signal_evidence(axis, sig, "astro", query_text, top_k=8)
+        astro_refs.extend(refs)
+        astro_evidence.extend(evidence)
+        if source and source != "none":
+            sources.update(source.split(","))
+
+    return {
+        "axis": axis,
+        "text": link_text,
+        "saju_signals": [{"key": s.get("key"), "label": s.get("label"), "value": s.get("value"), "tags": s.get("tags", [])} for s in selected_saju],
+        "astro_signals": [{"key": s.get("key"), "label": s.get("label"), "value": s.get("value"), "tags": s.get("tags", [])} for s in selected_astro],
+        "saju_refs": _unique_keep_order(saju_refs, limit=12),
+        "astro_refs": _unique_keep_order(astro_refs, limit=12),
+        "saju_evidence": saju_evidence[:4],
+        "astro_evidence": astro_evidence[:4],
+        "advanced_evidence_source": ",".join(sorted(sources)) if sources else "none",
+    }
+
+
+def _collect_evidence(
+    meta: Dict,
+    query_text: str,
+    extra_saju_refs: Optional[List[str]] = None,
+    extra_astro_refs: Optional[List[str]] = None,
+) -> Tuple[List[str], List[str], List[str], List[str], bool]:
     saju_refs = _get_refs_from_meta(meta, "saju_refs")
     astro_refs = _get_refs_from_meta(meta, "astro_refs")
+    saju_refs = _unique_keep_order(saju_refs + list(extra_saju_refs or []), limit=12)
+    astro_refs = _unique_keep_order(astro_refs + list(extra_astro_refs or []), limit=12)
 
     if not saju_refs or not astro_refs:
         infer_saju, infer_astro = _infer_refs_from_meta(meta)
@@ -363,34 +528,39 @@ def _collect_evidence(meta: Dict, query_text: str) -> Tuple[List[str], List[str]
 
     need_backfill = len(saju_items) < 2 or len(astro_items) < 2
     if need_backfill:
-        graph_hits = _search_graph_hits(query_text, top_k=5)
+        graph_hits = _search_graph_hits(query_text, top_k=12)
         for hit in graph_hits:
-            hit_meta = hit.get("metadata") or {}
-            label = (hit_meta.get("label") or "").strip()
-            original_id = (hit_meta.get("original_id") or hit.get("id") or "").strip()
-            if not label:
-                label = original_id or "unknown"
-            if not original_id:
-                original_id = label
+            label, original_id = _hit_title_id(hit)
+            kind_hint = _source_hint_kind(hit)
 
             hit_saju, hit_astro = _extract_refs_from_graph_hit(hit)
-            if hit_saju and len(saju_items) < 2:
+            hit_saju_ok = bool(hit_saju) or kind_hint in ("saju", "both")
+            hit_astro_ok = bool(hit_astro) or kind_hint in ("astro", "both")
+
+            if hit_saju_ok and len(saju_items) < 2:
                 saju_items.append(f"title={label} id={original_id}")
-                saju_refs = _unique_keep_order(saju_refs + hit_saju, limit=12)
+                saju_refs = _unique_keep_order(saju_refs + (hit_saju or [original_id]), limit=12)
                 backfill_applied = True
-            if hit_astro and len(astro_items) < 2:
+            if hit_astro_ok and len(astro_items) < 2:
                 astro_items.append(f"title={label} id={original_id}")
-                astro_refs = _unique_keep_order(astro_refs + hit_astro, limit=12)
+                astro_refs = _unique_keep_order(astro_refs + (hit_astro or [original_id]), limit=12)
                 backfill_applied = True
             if len(saju_items) >= 2 and len(astro_items) >= 2:
                 break
 
+    # Hard guardrail: always emit >=2 evidence slots per side.
     if len(saju_items) < 2:
-        saju_items.extend(["id=none"] * (2 - len(saju_items)))
+        for idx in range(len(saju_items), 2):
+            fallback_id = f"missing_saju_{idx + 1}"
+            saju_items.append(f"id={fallback_id}")
+            saju_refs.append(fallback_id)
     if len(astro_items) < 2:
-        astro_items.extend(["id=none"] * (2 - len(astro_items)))
+        for idx in range(len(astro_items), 2):
+            fallback_id = f"missing_astro_{idx + 1}"
+            astro_items.append(f"id={fallback_id}")
+            astro_refs.append(fallback_id)
 
-    return saju_refs, astro_refs, saju_items[:2], astro_items[:2], backfill_applied
+    return _unique_keep_order(saju_refs, 12), _unique_keep_order(astro_refs, 12), saju_items[:2], astro_items[:2], backfill_applied
 
 
 def _rule_match_bonus(meta: Dict, query_tokens: List[str]) -> float:
@@ -478,6 +648,8 @@ def build_cross_summary(
     query: str,
     saju_seed: Optional[List[str]] = None,
     astro_seed: Optional[List[str]] = None,
+    saju_json: Optional[Dict[str, Any]] = None,
+    astro_json: Optional[Dict[str, Any]] = None,
     top_k: int = 12,
     max_groups: int = 3,
     max_len: int = 320,
@@ -492,6 +664,18 @@ def build_cross_summary(
     grouped = group_cross_results(ranked, max_groups=max_groups)
     _trace("cross_summary groups=%d total=%d", len(grouped), len(ranked))
 
+    advanced_mode = _advanced_enabled()
+    advanced_saju_signals: List[Dict[str, Any]] = []
+    advanced_astro_signals: List[Dict[str, Any]] = []
+    if advanced_mode:
+        advanced_saju_signals = extract_saju_advanced_signals(saju_json or {})
+        advanced_astro_signals = extract_astro_advanced_signals(astro_json or {})
+        _trace(
+            "advanced signals enabled saju=%d astro=%d",
+            len(advanced_saju_signals),
+            len(advanced_astro_signals),
+        )
+
     lines: List[str] = []
     for idx, (axis, items) in enumerate(grouped, start=1):
         top = items[0]
@@ -505,7 +689,26 @@ def build_cross_summary(
         fusion_key = (meta.get("fusion_key") or meta.get("source") or "cross").strip()
         source_name = (meta.get("source") or "cross").strip()
 
-        saju_refs, astro_refs, saju_items, astro_items, applied = _collect_evidence(meta, doc_text or query)
+        advanced_links: List[Dict[str, Any]] = []
+        advanced_sources = set()
+        extra_saju_refs: List[str] = []
+        extra_astro_refs: List[str] = []
+        if advanced_mode and (advanced_saju_signals or advanced_astro_signals):
+            link = _build_group_advanced_link(axis, doc_text or query, advanced_saju_signals, advanced_astro_signals)
+            if link:
+                advanced_links.append(link)
+                extra_saju_refs.extend(link.get("saju_refs", []))
+                extra_astro_refs.extend(link.get("astro_refs", []))
+                source_text = str(link.get("advanced_evidence_source") or "").strip()
+                if source_text and source_text != "none":
+                    advanced_sources.update([p.strip() for p in source_text.split(",") if p.strip()])
+
+        saju_refs, astro_refs, saju_items, astro_items, applied = _collect_evidence(
+            meta,
+            doc_text or query,
+            extra_saju_refs=extra_saju_refs,
+            extra_astro_refs=extra_astro_refs,
+        )
         if applied:
             _trace("evidence backfill applied axis=%s source=%s", axis, source_name)
 
@@ -518,6 +721,15 @@ def build_cross_summary(
 
         meta["saju_refs"] = ", ".join(saju_refs)
         meta["astro_refs"] = ", ".join(astro_refs)
+        meta["saju_refs_json"] = json.dumps(saju_refs, ensure_ascii=False)
+        meta["astro_refs_json"] = json.dumps(astro_refs, ensure_ascii=False)
+
+        if advanced_mode:
+            meta["advanced_signals_saju_json"] = json.dumps(advanced_saju_signals, ensure_ascii=False)
+            meta["advanced_signals_astro_json"] = json.dumps(advanced_astro_signals, ensure_ascii=False)
+            meta["advanced_links"] = advanced_links
+            meta["advanced_links_json"] = json.dumps(advanced_links, ensure_ascii=False)
+            meta["advanced_evidence_source"] = ",".join(sorted(advanced_sources)) if advanced_sources else "none"
 
     summary = "\n".join(lines)
     if return_meta:

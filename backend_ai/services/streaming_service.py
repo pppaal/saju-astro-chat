@@ -287,6 +287,8 @@ class StreamingService:
                             cross_query,
                             saju_seed=[dm, dm_element, dominant_element, dominant_god],
                             astro_seed=[sun_sign, moon_sign, rising],
+                            saju_json=saju_data if isinstance(saju_data, dict) else {},
+                            astro_json=astro_data if isinstance(astro_data, dict) else {},
                             top_k=12,
                         )
                         if cross_rules:
