@@ -206,8 +206,10 @@ export async function rateLimit(
     return { allowed, limit, remaining, reset, retryAfter, headers, backend }
   }
 
+  const isDev = process.env.NODE_ENV === 'development'
+
   // Development mode without Redis: allow all
-  if (process.env.NODE_ENV !== 'production' && !UPSTASH_URL) {
+  if (isDev && !UPSTASH_URL) {
     headers.set('X-RateLimit-Remaining', 'unlimited')
     headers.set('X-RateLimit-Backend', 'disabled')
     return { allowed: true, limit, remaining: limit, reset: 0, headers, backend: 'disabled' }

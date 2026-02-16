@@ -202,9 +202,15 @@ describe('API Middleware', () => {
     })
 
     it('should reject when rate limit exceeded', async () => {
+      const rateLimitHeaders = new Headers({
+        'Retry-After': '30',
+        'X-RateLimit-Limit': '10',
+        'X-RateLimit-Remaining': '0',
+      })
       ;(rateLimit as any).mockResolvedValue({
         allowed: false,
         retryAfter: 30,
+        headers: rateLimitHeaders,
       })
 
       const req = new NextRequest('http://localhost:3000/api/test')

@@ -3,15 +3,21 @@
 import { HOME_CORE_SERVICE_OPTIONS, filterMyJourneyCoreServices } from '@/lib/coreServices'
 
 describe('coreServices', () => {
-  it('includes personality and icp in home service options', () => {
+  it('includes only the 6 core services in home options', () => {
     const paths = HOME_CORE_SERVICE_OPTIONS.map((option) => option.path)
-    expect(paths).toContain('/personality')
-    expect(paths).toContain('/icp')
+    expect(paths).toEqual([
+      '/destiny-map',
+      '/calendar',
+      '/tarot',
+      '/destiny-map/matrix',
+      '/compatibility',
+      '/report',
+    ])
   })
 
-  it('keeps personality and icp service ids in myjourney core filter', () => {
-    const services = ['personality', 'personality-icp', 'icp', 'tarot', 'unknown'] as const
+  it('filters myjourney services to the 6 core service ids', () => {
+    const services = ['premium-reports', 'destiny-matrix', 'tarot', 'unknown'] as const
     const filtered = filterMyJourneyCoreServices(services)
-    expect(filtered).toEqual(['personality', 'personality-icp', 'icp', 'tarot'])
+    expect(filtered).toEqual(['premium-reports', 'destiny-matrix', 'tarot'])
   })
 })

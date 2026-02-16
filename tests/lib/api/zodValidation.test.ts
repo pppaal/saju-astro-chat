@@ -140,11 +140,23 @@ describe('ZodValidation', () => {
       expect(genderSchema.safeParse('Other').success).toBe(true)
       expect(genderSchema.safeParse('male').success).toBe(true)
       expect(genderSchema.safeParse('female').success).toBe(true)
+      const mResult = genderSchema.safeParse('M')
+      const fResult = genderSchema.safeParse('F')
+      expect(mResult.success).toBe(true)
+      expect(fResult.success).toBe(true)
+      if (mResult.success) {
+        expect(mResult.data).toBe('male')
+      }
+      if (fResult.success) {
+        expect(fResult.data).toBe('female')
+      }
     })
 
     it('should reject invalid gender values', () => {
-      expect(genderSchema.safeParse('M').success).toBe(false)
+      expect(genderSchema.safeParse('x').success).toBe(false)
       expect(genderSchema.safeParse('unknown').success).toBe(false)
+      expect(genderSchema.safeParse('').success).toBe(false)
+      expect(genderSchema.safeParse('0').success).toBe(false)
     })
   })
 

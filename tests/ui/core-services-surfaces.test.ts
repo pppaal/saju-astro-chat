@@ -21,8 +21,8 @@ describe('core service visibility surfaces', () => {
       'compatibility',
       'destiny-map',
       'destiny-calendar',
-      'personality-icp',
       'destiny-matrix',
+      'premium-reports',
     ])
   })
 })

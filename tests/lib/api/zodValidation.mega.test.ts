@@ -141,7 +141,20 @@ describe('zodValidation MEGA - genderSchema', () => {
     }
   )
 
-  it.each(['M', 'F', 'unknown', ''])('should reject invalid gender: %s', (gender) => {
+  it('should normalize short gender values', () => {
+    const mResult = genderSchema.safeParse('M')
+    const fResult = genderSchema.safeParse('F')
+    expect(mResult.success).toBe(true)
+    expect(fResult.success).toBe(true)
+    if (mResult.success) {
+      expect(mResult.data).toBe('male')
+    }
+    if (fResult.success) {
+      expect(fResult.data).toBe('female')
+    }
+  })
+
+  it.each(['unknown', '', 'x', '0'])('should reject invalid gender: %s', (gender) => {
     expect(genderSchema.safeParse(gender).success).toBe(false)
   })
 
