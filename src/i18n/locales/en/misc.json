@@ -2,7 +2,7 @@
   "pricing": {
     "eyebrow": "Pricing",
     "heroTitle": "Pricing for Your Destiny",
-    "heroSub": "AI counseling, Tarot, and Dream interpretation at reasonable prices",
+    "heroSub": "AI counseling, Tarot, and destiny insights at transparent prices",
     "monthly": "Monthly",
     "yearly": "Yearly",
     "mostPopular": "Most Popular",
@@ -21,7 +21,7 @@
     "oneReading": "1 Credit",
     "oneReadingDesc": "Most readings cost 1 credit. Premium reports and Destiny Map may cost more. Exact cost is shown before you confirm.",
     "freeFeature": "Free Features",
-    "freeFeatureDesc": "Personality test and current month calendar are free",
+    "freeFeatureDesc": "Selected onboarding tools and current month calendar are free",
     "monthlyReset": "Monthly Reset",
     "monthlyResetDesc": "Monthly plan credits reset each billing cycle",
     "faq": "FAQ",
@@ -66,7 +66,7 @@
     "bestValue": "Best Value",
     "faqs": {
       "q1": "How is 1 credit used?",
-      "a1": "1 credit is deducted each time you use AI services like counseling, Tarot reading, or Dream interpretation. Personality test and current month calendar are free.",
+      "a1": "1 credit is deducted each time you use AI services like counseling, Tarot reading, or Dream interpretation. Selected onboarding tools and current month calendar are free.",
       "q2": "Do unused credits roll over?",
       "a2": "Monthly plan credits reset each billing cycle. Credit packs are valid for 3 months from purchase.",
       "q3": "Can I cancel anytime?",

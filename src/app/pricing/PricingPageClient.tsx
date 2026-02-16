@@ -120,7 +120,7 @@ const creditPacks: CreditPackDisplay[] = (
   price: CREDIT_PACKS[packId].pricing.krw,
   priceEn: CREDIT_PACKS[packId].pricing.usd,
   readings: CREDIT_PACKS[packId].credits,
-  perReading: `₩${CREDIT_PACKS[packId].perCreditKrw}`,
+  perReading: `KRW ${CREDIT_PACKS[packId].perCreditKrw}`,
   perReadingEn: `$${CREDIT_PACKS[packId].perCreditUsd.toFixed(2)}`,
   gradient: CREDIT_PACK_GRADIENTS[packId],
   popular: CREDIT_PACKS[packId].popular,
@@ -215,9 +215,9 @@ export default function PricingPageClient({
     if (isKo) {
       if (billingCycle === 'yearly') {
         const yearly = Math.floor(price * YEARLY_DISCOUNT_MULTIPLIER)
-        return `₩${yearly.toLocaleString()}`
+        return `KRW ${yearly.toLocaleString()}`
       }
-      return `₩${price.toLocaleString()}`
+      return `KRW ${price.toLocaleString()}`
     }
     if (billingCycle === 'yearly') {
       const yearly = Math.floor(priceEn * YEARLY_DISCOUNT_MULTIPLIER * 100) / 100
@@ -260,7 +260,7 @@ export default function PricingPageClient({
       if (data.url) {
         window.location.href = data.url
       } else {
-        alert(data.error || 'An error occurred')
+        alert(data.error || pt('paymentError'))
       }
     } catch {
       alert(pt('paymentError'))
@@ -288,7 +288,7 @@ export default function PricingPageClient({
       if (data.url) {
         window.location.href = data.url
       } else {
-        alert(data.error || 'An error occurred')
+        alert(data.error || pt('paymentError'))
       }
     } catch {
       alert(pt('paymentError'))
@@ -350,7 +350,7 @@ export default function PricingPageClient({
                     {plan.price > 0 && <span className={styles.period}>{getPeriod()}</span>}
                   </div>
                   <div className={styles.readingsBadge}>
-                    <span className={styles.readingsIcon}>✦</span>
+                    <span className={styles.readingsIcon}>*</span>
                     {plan.readings} {pt('readingsPerMonth')}
                   </div>
                 </div>
@@ -365,7 +365,7 @@ export default function PricingPageClient({
                         }
                       >
                         <span className={feature.included ? styles.checkIcon : styles.xIcon}>
-                          {feature.included ? '✓' : '✕'}
+                          {feature.included ? 'OK' : 'X'}
                         </span>
                         {getFeatureText(feature.textKey)}
                       </li>
@@ -378,8 +378,7 @@ export default function PricingPageClient({
                     onClick={() => handleSelectPlan(plan.id)}
                     disabled={loadingPlan !== null}
                   >
-                    {loadingPlan === plan.id
-                      ? '⏳'
+                    {loadingPlan === plan.id ? '...'
                       : plan.id === 'free'
                         ? pt('getStarted')
                         : pt('subscribe')}
@@ -418,7 +417,7 @@ export default function PricingPageClient({
                   <div className={styles.creditHeader} style={{ background: pack.gradient }}>
                     <h3 className={styles.creditName}>{pt(`creditPackNames.${pack.nameKey}`)}</h3>
                     <div className={styles.creditPrice}>
-                      {isKo ? `₩${pack.price.toLocaleString()}` : `$${pack.priceEn.toFixed(2)}`}
+                      {isKo ? `KRW ${pack.price.toLocaleString()}` : `$${pack.priceEn.toFixed(2)}`}
                     </div>
                   </div>
                   <div className={styles.creditBody}>
@@ -434,7 +433,7 @@ export default function PricingPageClient({
                       onClick={() => handleBuyCredit(pack.id)}
                       disabled={loadingCredit !== null}
                     >
-                      {loadingCredit === pack.id ? '⏳' : pt('buyNow')}
+                      {loadingCredit === pack.id ? '...' : pt('buyNow')}
                     </button>
                   </div>
                 </div>
@@ -450,17 +449,17 @@ export default function PricingPageClient({
           </div>
           <div className={styles.howItWorksGrid}>
             <div className={styles.howItWorksCard}>
-              <div className={styles.howIcon}>🔮</div>
+              <div className={styles.howIcon}>1</div>
               <h4>{pt('oneReading')}</h4>
               <p>{pt('oneReadingDesc')}</p>
             </div>
             <div className={styles.howItWorksCard}>
-              <div className={styles.howIcon}>☀️</div>
+              <div className={styles.howIcon}>FREE</div>
               <h4>{pt('freeFeature')}</h4>
               <p>{pt('freeFeatureDesc')}</p>
             </div>
             <div className={styles.howItWorksCard}>
-              <div className={styles.howIcon}>🔄</div>
+              <div className={styles.howIcon}>CYCLE</div>
               <h4>{pt('monthlyReset')}</h4>
               <p>{pt('monthlyResetDesc')}</p>
             </div>
@@ -501,7 +500,7 @@ export default function PricingPageClient({
                   >
                     <span>{pt(`faqs.${key}`)}</span>
                     <span className={styles.faqArrow} aria-hidden="true">
-                      {isOpen ? '−' : '+'}
+                      {isOpen ? '-' : '+'}
                     </span>
                   </button>
                   {isOpen && (
@@ -522,7 +521,7 @@ export default function PricingPageClient({
 
         {/* Guarantee */}
         <section className={styles.guarantee}>
-          <div className={styles.guaranteeIcon}>🛡️</div>
+          <div className={styles.guaranteeIcon}>SAFE</div>
           <h3 className={styles.guaranteeTitle}>{pt('guarantee')}</h3>
           <p className={styles.guaranteeText}>{pt('guaranteeDesc')}</p>
         </section>

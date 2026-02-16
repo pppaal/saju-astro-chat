@@ -63,6 +63,7 @@
     "test:e2e:destiny": "playwright test e2e/critical-flows/08-destiny-features.spec.ts",
     "test:unit": "cross-env TS_NODE_COMPILER_OPTIONS={\"module\":\"commonjs\",\"jsx\":\"react-jsx\"} node -r ts-node/register --test tests/*.test.ts",
     "test:backend": "python -m pytest backend_ai/tests",
+    "test:lang-purity": "node scripts/check-language-purity.mjs",
     "dev:astro": "ts-node -P tsconfig.scripts.json -r tsconfig-paths/register scripts/dev-astro.ts",
     "check:env": "node scripts/validate-env.js",
     "validate:graph": "python backend_ai/tools/validate_graph_data.py",
