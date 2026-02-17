@@ -3631,6 +3631,11 @@
   gap: 10px;
 }
 
+.yearPickerLabel {
+  font-size: 12px;
+  color: var(--cal-text-tertiary);
+}
+
 .yearBtn {
   padding: 8px 14px;
   background: var(--cal-bg-tertiary);
@@ -3655,7 +3660,7 @@
   background: var(--cal-bg-tertiary);
   border: 1px solid var(--cal-border);
   border-radius: 8px;
-  padding: 6px 10px;
+  padding: 6px 24px 6px 10px;
   appearance: none;
   cursor: pointer;
 }
@@ -3663,6 +3668,20 @@
 .yearDisplay:focus-visible {
   outline: 2px solid rgba(59, 130, 246, 0.45);
   outline-offset: 2px;
+}
+
+.yearSelectWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.yearSelectChevron {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+  color: var(--cal-text-secondary);
+  font-size: 12px;
 }
 
 /* Responsive Legacy */

@@ -378,6 +378,7 @@ const CalendarMainView = memo(function CalendarMainView({
             </button>
             <div className={styles.monthDisplay}>
               <div className={styles.yearNav}>
+                <span className={styles.yearPickerLabel}>{locale === 'ko' ? '연도' : 'Year'}</span>
                 <button
                   className={styles.yearBtn}
                   onClick={() => onYearChange(year - 1)}
@@ -385,18 +386,23 @@ const CalendarMainView = memo(function CalendarMainView({
                 >
                   -
                 </button>
-                <select
-                  className={styles.yearDisplay}
-                  value={year}
-                  onChange={(event) => onYearChange(Number(event.target.value))}
-                  aria-label={locale === 'ko' ? '연도 선택' : 'Select year'}
-                >
-                  {yearOptions.map((yearOption) => (
-                    <option key={yearOption} value={yearOption}>
-                      {yearOption}
-                    </option>
-                  ))}
-                </select>
+                <div className={styles.yearSelectWrap}>
+                  <select
+                    className={styles.yearDisplay}
+                    value={year}
+                    onChange={(event) => onYearChange(Number(event.target.value))}
+                    aria-label={locale === 'ko' ? '연도 선택' : 'Select year'}
+                  >
+                    {yearOptions.map((yearOption) => (
+                      <option key={yearOption} value={yearOption}>
+                        {yearOption}
+                      </option>
+                    ))}
+                  </select>
+                  <span className={styles.yearSelectChevron} aria-hidden="true">
+                    ▾
+                  </span>
+                </div>
                 <button
                   className={styles.yearBtn}
                   onClick={() => onYearChange(year + 1)}
