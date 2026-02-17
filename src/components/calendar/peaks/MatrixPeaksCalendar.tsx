@@ -1,10 +1,11 @@
 ﻿'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import BirthInfoForm from '../BirthInfoForm'
 import type { BirthInfo } from '../types'
 import styles from '../DestinyCalendar.module.css'
+import { loadSharedBirthInfo, saveSharedBirthInfo } from '../sharedBirthInfo'
 import { matrixSummaryToCalendarEvents, type CalendarEvent } from './matrixToCalendarEvents'
 import type { DomainKey, DomainScore, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 
@@ -41,18 +42,25 @@ function monthLabel(month: string): string {
 
 export default function MatrixPeaksCalendar() {
   const { locale } = useI18n()
-  const [birthInfo, setBirthInfo] = useState<BirthInfo>({
-    birthDate: '',
-    birthTime: '',
-    birthPlace: '',
-    gender: 'Male',
-    timezone: undefined,
+  const [birthInfo, setBirthInfo] = useState<BirthInfo>(() => {
+    const shared = loadSharedBirthInfo()
+    if (shared) {
+      return shared
+    }
+    return {
+      birthDate: '',
+      birthTime: '',
+      birthPlace: '',
+      gender: 'Male',
+      timezone: undefined,
+    }
   })
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [summary, setSummary] = useState<MatrixSummaryResponse | null>(null)
   const [events, setEvents] = useState<CalendarEvent[]>([])
+  const hasAutoSubmitted = useRef(false)
 
   const groupedByMonth = useMemo(() => {
     const grouped = new Map<string, CalendarEvent[]>()
@@ -64,48 +72,61 @@ export default function MatrixPeaksCalendar() {
     return Array.from(grouped.entries()).sort((a, b) => a[0].localeCompare(b[0]))
   }, [events])
 
-  const handleSubmit = async (info: BirthInfo) => {
-    setBirthInfo(info)
-    setLoading(true)
-    setError(null)
+  const handleSubmit = useCallback(
+    async (info: BirthInfo) => {
+      setBirthInfo(info)
+      saveSharedBirthInfo(info)
+      setSubmitted(true)
+      setLoading(true)
+      setError(null)
 
-    try {
-      const res = await fetch('/api/destiny-matrix', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          birthDate: info.birthDate,
-          birthTime: info.birthTime || '12:00',
-          gender: toApiGender(info.gender),
-          timezone: info.timezone || 'Asia/Seoul',
-          lang: locale === 'ko' ? 'ko' : 'en',
-        }),
-      })
+      try {
+        const res = await fetch('/api/destiny-matrix', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            birthDate: info.birthDate,
+            birthTime: info.birthTime || '12:00',
+            gender: toApiGender(info.gender),
+            timezone: info.timezone || 'Asia/Seoul',
+            lang: locale === 'ko' ? 'ko' : 'en',
+          }),
+        })
 
-      const payload = (await res.json()) as MatrixApiResponse
-      if (!res.ok || !payload.summary) {
-        setError(payload.error || 'Failed to load matrix peaks.')
+        const payload = (await res.json()) as MatrixApiResponse
+        if (!res.ok || !payload.summary) {
+          setError(payload.error || 'Failed to load matrix peaks.')
+          setSummary(null)
+          setEvents([])
+          return
+        }
+
+        const nextEvents = matrixSummaryToCalendarEvents(payload.summary)
+        setSummary(payload.summary)
+        setEvents(nextEvents)
+      } catch (err) {
         setSummary(null)
         setEvents([])
-        setSubmitted(true)
-        return
+        setError(err instanceof Error ? err.message : 'Request failed.')
+      } finally {
+        setLoading(false)
       }
+    },
+    [locale]
+  )
 
-      const nextEvents = matrixSummaryToCalendarEvents(payload.summary)
-      setSummary(payload.summary)
-      setEvents(nextEvents)
-      setSubmitted(true)
-    } catch (err) {
-      setSummary(null)
-      setEvents([])
-      setSubmitted(true)
-      setError(err instanceof Error ? err.message : 'Request failed.')
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    if (submitted || hasAutoSubmitted.current) {
+      return
     }
-  }
+    if (!birthInfo.birthDate || !birthInfo.birthPlace) {
+      return
+    }
+    hasAutoSubmitted.current = true
+    void handleSubmit(birthInfo)
+  }, [birthInfo, handleSubmit, submitted])
 
   if (!submitted) {
     return <BirthInfoForm birthInfo={birthInfo} onSubmit={handleSubmit} />
@@ -142,7 +163,9 @@ export default function MatrixPeaksCalendar() {
           <div>
             <h2 className={styles.matrixPeaksTitle}>Matrix Peaks</h2>
             <p className={styles.matrixPeaksSubtitle}>
-              Shows 7-day windows for the next 12 months.
+              {locale === 'ko'
+                ? '앞으로 12개월의 7일 피크 구간을 보여줍니다. (데일리 입력 정보와 연동)'
+                : 'Shows 7-day windows for the next 12 months. (Reuses your daily input)'}
             </p>
           </div>
           <button className={styles.retryBtn} onClick={() => setSubmitted(false)}>

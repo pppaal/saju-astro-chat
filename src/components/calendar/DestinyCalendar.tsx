@@ -38,6 +38,7 @@ import { useParticleAnimation } from '@/hooks/calendar/useParticleAnimation'
 // Sub-components
 import BirthInfoForm from './BirthInfoForm'
 import CalendarMainView from './CalendarMainView'
+import { loadSharedBirthInfo, saveSharedBirthInfo } from './sharedBirthInfo'
 
 // Utils
 import { getCacheKey, getCachedData, setCachedData } from './cache-utils'
@@ -95,6 +96,14 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
 
   // Load saved profile on mount
   useEffect(() => {
+    const sharedBirthInfo = loadSharedBirthInfo()
+    if (sharedBirthInfo) {
+      setBirthInfo((prev) => ({
+        ...prev,
+        ...sharedBirthInfo,
+      }))
+    }
+
     const profile = getUserProfile()
     if (profile.birthDate) {
       setBirthInfo((prev) => ({ ...prev, birthDate: profile.birthDate || '' }))
@@ -226,6 +235,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
     }
 
     setBirthInfo(normalizedBirthInfo)
+    saveSharedBirthInfo(normalizedBirthInfo)
     fetchCalendar(normalizedBirthInfo)
   }
 
@@ -274,6 +284,24 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
     setCurrentDate(new Date(today))
     setTimeout(() => setSlideDirection(null), 300)
   }, [today, month, year])
+
+  const changeYear = useCallback(
+    (nextYear: number) => {
+      if (!Number.isFinite(nextYear)) {
+        return
+      }
+
+      const clampedYear = Math.min(2100, Math.max(1900, Math.trunc(nextYear)))
+      const direction = clampedYear > year ? 'left' : clampedYear < year ? 'right' : null
+
+      if (direction) {
+        setSlideDirection(direction)
+      }
+      setCurrentDate(new Date(clampedYear, month, 1))
+      setTimeout(() => setSlideDirection(null), 300)
+    },
+    [month, year]
+  )
 
   // Save/unsave handlers
   const handleSaveDate = async () => {
@@ -415,6 +443,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
       onDayClick={handleDayClick}
       onPrevMonth={prevMonth}
       onNextMonth={nextMonth}
+      onYearChange={changeYear}
       onGoToToday={goToToday}
       onSaveDate={handleSaveDate}
       onUnsaveDate={handleUnsaveDate}

@@ -3647,11 +3647,22 @@
 }
 
 .yearDisplay {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--cal-text-primary);
-  min-width: 60px;
+  min-width: 88px;
   text-align: center;
+  background: var(--cal-bg-tertiary);
+  border: 1px solid var(--cal-border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.yearDisplay:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.45);
+  outline-offset: 2px;
 }
 
 /* Responsive Legacy */
@@ -3875,6 +3886,19 @@
   background: var(--cal-gradient-primary);
   color: #fff;
   box-shadow: var(--cal-shadow-glow);
+}
+
+.tabHelperText {
+  max-width: 720px;
+  margin: 8px auto 14px;
+  padding: 0 16px;
+  font-size: 13px;
+  color: var(--cal-text-secondary);
+  text-align: center;
+}
+
+.tabPanel[hidden] {
+  display: none;
 }
 
 /* ========== Action Plan View ========== */

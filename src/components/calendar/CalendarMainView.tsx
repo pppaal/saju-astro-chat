@@ -27,6 +27,7 @@ interface CalendarMainViewProps {
   onDayClick: (date: Date | null) => void
   onPrevMonth: () => void
   onNextMonth: () => void
+  onYearChange: (year: number) => void
   onGoToToday: () => void
   onSaveDate: () => void
   onUnsaveDate: () => void
@@ -77,6 +78,7 @@ const CalendarMainView = memo(function CalendarMainView({
   onDayClick,
   onPrevMonth,
   onNextMonth,
+  onYearChange,
   onGoToToday,
   onSaveDate,
   onUnsaveDate,
@@ -90,6 +92,12 @@ const CalendarMainView = memo(function CalendarMainView({
 
   const WEEKDAYS = locale === 'ko' ? WEEKDAYS_KO : WEEKDAYS_EN
   const MONTHS = locale === 'ko' ? MONTHS_KO : MONTHS_EN
+  const currentSystemYear = useMemo(() => new Date().getFullYear(), [])
+  const yearOptions = useMemo(() => {
+    const start = currentSystemYear - 20
+    const end = currentSystemYear + 20
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index)
+  }, [currentSystemYear])
 
   // Year summary calculation
   const yearSummary = useMemo(() => {
@@ -369,7 +377,34 @@ const CalendarMainView = memo(function CalendarMainView({
               ◀
             </button>
             <div className={styles.monthDisplay}>
-              <span className={styles.monthYear}>{year}</span>
+              <div className={styles.yearNav}>
+                <button
+                  className={styles.yearBtn}
+                  onClick={() => onYearChange(year - 1)}
+                  aria-label={locale === 'ko' ? '이전 연도' : 'Previous year'}
+                >
+                  -
+                </button>
+                <select
+                  className={styles.yearDisplay}
+                  value={year}
+                  onChange={(event) => onYearChange(Number(event.target.value))}
+                  aria-label={locale === 'ko' ? '연도 선택' : 'Select year'}
+                >
+                  {yearOptions.map((yearOption) => (
+                    <option key={yearOption} value={yearOption}>
+                      {yearOption}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className={styles.yearBtn}
+                  onClick={() => onYearChange(year + 1)}
+                  aria-label={locale === 'ko' ? '다음 연도' : 'Next year'}
+                >
+                  +
+                </button>
+              </div>
               <span className={styles.monthName}>{MONTHS[month]}</span>
             </div>
             <button
