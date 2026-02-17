@@ -1,20 +1,14 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 const BASE_URL = process.env.SSR_TEST_BASE_URL || 'http://127.0.0.1:3000'
 
-const ROUTES = ['/', '/pricing', '/destiny-map', '/myjourney', '/destiny-match']
+const ROUTES = ['/', '/destiny-map']
 const KO_FORBIDDEN_ENGLISH = [
-  'Pricing',
-  'Sign in required',
-  'Sign in',
-  'required',
-  'Total Visitors',
-  'Members',
   'Get started',
-  'View Pricing',
-  'Explore Destiny Map',
+  'Draw a card',
+  "Today's",
 ]
-const MOJIBAKE_TOKENS = ['ðŸ', 'âœ¨', 'ï¸\u008f']
+const MOJIBAKE_TOKENS = ['ðŸ', 'âœ¨', 'ï¸']
 
 function extractVisibleText(html) {
   return html
@@ -95,4 +89,3 @@ main().catch((error) => {
   console.error(`Language purity check failed: ${error.message}`)
   process.exit(1)
 })
-

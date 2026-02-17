@@ -58,7 +58,7 @@ interface MainPageClientProps {
 }
 
 export default function MainPageClient({ initialLocale, initialMessages }: MainPageClientProps) {
-  const { t, locale: activeLocale } = useI18n()
+  const { locale: activeLocale } = useI18n()
   const locale = activeLocale || initialLocale
   const serverTranslate = useCallback(
     (key: string, fallback?: string) => {
@@ -73,13 +73,9 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
 
   const translate = useCallback(
     (key: string, fallback: string) => {
-      const res = t(key, fallback)
-      if (isPlaceholderTranslation(res, key)) {
-        return serverTranslate(key, fallback)
-      }
-      return res
+      return serverTranslate(key, fallback)
     },
-    [t, serverTranslate]
+    [serverTranslate]
   )
 
   const metricsToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN
@@ -100,7 +96,7 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
   return (
     <main className={styles.container}>
       <ParticleCanvas />
-      <MainHeader />
+      <MainHeader translate={translate} locale={locale as Locale} />
 
       {/* Fullscreen Hero Section */}
       <section className={styles.fullscreenHero}>

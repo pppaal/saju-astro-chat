@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback, memo } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import styles from '../main-page.module.css'
-import { useI18n } from '@/i18n/I18nProvider'
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher'
 import Card from '@/components/ui/Card'
 import Grid from '@/components/ui/Grid'
@@ -15,8 +14,12 @@ const NotificationBell = dynamic(() => import('@/components/notifications/Notifi
 })
 const HeaderUser = dynamic(() => import('../HeaderUser'), { ssr: false })
 
-function MainHeader() {
-  const { t, locale } = useI18n()
+interface MainHeaderProps {
+  translate: (key: string, fallback: string) => string
+  locale: 'en' | 'ko'
+}
+
+function MainHeader({ translate, locale }: MainHeaderProps) {
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
   const [servicePage, setServicePage] = useState(0)
   const navItemRef = useRef<HTMLDivElement>(null)
@@ -70,15 +73,6 @@ function MainHeader() {
       window.removeEventListener('scroll', handleScroll)
     }
   }, [activeMenu, closeMenu])
-
-  const translate = useCallback(
-    (key: string, fallback: string) => {
-      const res = t(key)
-      const last = key.split('.').pop() || key
-      return res === key || res === last ? fallback : res
-    },
-    [t]
-  )
 
   return (
     <header className={styles.topBar}>

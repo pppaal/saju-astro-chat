@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { ZODIAC_SIGNS } from '../serviceConfig'
 
 type CSSModule = Record<string, string>
@@ -11,56 +11,43 @@ interface DestinyMapFeatureProps {
 const FIVE_ELEMENTS = [
   {
     key: 'wood',
-    icon: '🌳',
-    labelKo: '목',
-    labelEn: 'Wood',
     width: '78%',
     className: 'elementWood',
   },
   {
     key: 'fire',
-    icon: '🔥',
-    labelKo: '화',
-    labelEn: 'Fire',
     width: '62%',
     className: 'elementFire',
   },
   {
     key: 'earth',
-    icon: '🏔️',
-    labelKo: '토',
-    labelEn: 'Earth',
     width: '48%',
     className: 'elementEarth',
   },
   {
     key: 'metal',
-    icon: '⚪',
-    labelKo: '금',
-    labelEn: 'Metal',
     width: '72%',
     className: 'elementMetal',
   },
   {
     key: 'water',
-    icon: '💧',
-    labelKo: '수',
-    labelEn: 'Water',
     width: '84%',
     className: 'elementWater',
   },
 ] as const
 
+const toElementKey = (key: string) => `landing.element${key.charAt(0).toUpperCase()}${key.slice(1)}`
+
 export default function DestinyMapFeature({ translate, styles }: DestinyMapFeatureProps) {
   return (
     <section className={styles.featureSection}>
       <h2 className={styles.featureSectionTitle}>
-        {translate('landing.destinyMapSectionTitle', 'Destiny Map: Eastern + Western')}
+        {translate('landing.destinyMapSectionTitle', 'Destiny Map')}
       </h2>
       <p className={styles.featureSectionSubtitle}>
         {translate(
           'landing.destinyMapSectionSubtitle',
-          '사주의 오행 밸런스와 점성의 행성 흐름을 하나로 합쳐 현재의 방향성을 읽어드립니다.'
+          "We combine Saju's Five Elements balance with astrology's planetary flow to clarify your direction."
         )}
       </p>
 
@@ -123,7 +110,10 @@ export default function DestinyMapFeature({ translate, styles }: DestinyMapFeatu
             {FIVE_ELEMENTS.map((element) => (
               <div key={element.key} className={styles.elementBar}>
                 <div className={styles.elementName}>
-                  {element.icon} {translate(`landing.element${element.labelEn}`, element.labelKo)}
+                  {translate(
+                    toElementKey(element.key),
+                    element.key.charAt(0).toUpperCase() + element.key.slice(1)
+                  )}
                 </div>
                 <div className={styles.elementProgress}>
                   <div
@@ -138,7 +128,7 @@ export default function DestinyMapFeature({ translate, styles }: DestinyMapFeatu
           <p className={styles.destinyMapSummary}>
             {translate(
               'landing.destinyMapSummary',
-              'Destiny Map은 동양의 구조(사주)와 서양의 흐름(점성)을 함께 읽어 지금 필요한 선택을 더 분명하게 보여줍니다.'
+              'See structure (Saju) and flow (astrology) together and choose your next step with confidence.'
             )}
           </p>
         </article>
@@ -146,7 +136,7 @@ export default function DestinyMapFeature({ translate, styles }: DestinyMapFeatu
 
       <div className={styles.destinyMapCtaWrap}>
         <Link href="/destiny-map" className={styles.destinyMapCta}>
-          {translate('landing.destinyMapCta', 'Destiny Map 시작하기')}
+          {translate('landing.destinyMapCta', 'Start Destiny Map')}
         </Link>
       </div>
     </section>
