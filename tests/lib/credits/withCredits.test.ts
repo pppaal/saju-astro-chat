@@ -3,24 +3,28 @@
  * Tests for credit check utilities in API routes
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { NextResponse } from 'next/server';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { NextResponse } from 'next/server'
 
 // Mock dependencies
 vi.mock('next-auth', () => ({
   getServerSession: vi.fn(),
-}));
+}))
+
+vi.mock('next/headers', () => ({
+  headers: vi.fn(),
+}))
 
 vi.mock('@/lib/auth/authOptions', () => ({
   authOptions: {},
-}));
+}))
 
 vi.mock('@/lib/credits/creditService', () => ({
   canUseCredits: vi.fn(),
   consumeCredits: vi.fn(),
   getUserCredits: vi.fn(),
   initializeUserCredits: vi.fn(),
-}));
+}))
 
 vi.mock('@/lib/logger', () => ({
   logger: {
@@ -28,213 +32,258 @@ vi.mock('@/lib/logger', () => ({
     warn: vi.fn(),
     info: vi.fn(),
   },
-}));
+}))
 
-import { getServerSession } from 'next-auth';
-import { canUseCredits, consumeCredits, getUserCredits, initializeUserCredits } from '@/lib/credits/creditService';
+import { getServerSession } from 'next-auth'
+import { headers } from 'next/headers'
+import {
+  canUseCredits,
+  consumeCredits,
+  getUserCredits,
+  initializeUserCredits,
+} from '@/lib/credits/creditService'
 import {
   checkAndConsumeCredits,
   checkCreditsOnly,
   creditErrorResponse,
   ensureUserCredits,
-} from '@/lib/credits/withCredits';
+} from '@/lib/credits/withCredits'
 
 describe('withCredits helpers', () => {
-  const originalEnv = process.env;
+  const originalEnv = process.env
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    process.env = { ...originalEnv };
-  });
+    vi.clearAllMocks()
+    process.env = { ...originalEnv }
+    vi.mocked(headers).mockRejectedValue(new Error('outside request'))
+  })
 
   afterEach(() => {
-    process.env = originalEnv;
-  });
+    process.env = originalEnv
+  })
 
   describe('checkAndConsumeCredits', () => {
     it('should return not_authenticated when no session', async () => {
-      vi.mocked(getServerSession).mockResolvedValue(null);
+      vi.mocked(getServerSession).mockResolvedValue(null)
 
-      const result = await checkAndConsumeCredits('reading', 1);
+      const result = await checkAndConsumeCredits('reading', 1)
 
-      expect(result.allowed).toBe(false);
-      expect(result.errorCode).toBe('not_authenticated');
-      expect(result.error).toContain('로그인');
-    });
+      expect(result.allowed).toBe(false)
+      expect(result.errorCode).toBe('not_authenticated')
+      expect(result.error).toContain('로그인')
+    })
 
     it('should return not_authenticated when no user id in session', async () => {
       vi.mocked(getServerSession).mockResolvedValue({
         user: { email: 'test@example.com' },
-      } as never);
+      } as never)
 
-      const result = await checkAndConsumeCredits('reading', 1);
+      const result = await checkAndConsumeCredits('reading', 1)
 
-      expect(result.allowed).toBe(false);
-      expect(result.errorCode).toBe('not_authenticated');
-    });
+      expect(result.allowed).toBe(false)
+      expect(result.errorCode).toBe('not_authenticated')
+    })
 
     it('should bypass credits when BYPASS_CREDITS is true', async () => {
-      process.env.BYPASS_CREDITS = 'true';
+      process.env.BYPASS_CREDITS = 'true'
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123', email: 'test@example.com' },
-      } as never);
+      } as never)
 
-      const result = await checkAndConsumeCredits('reading', 1);
+      const result = await checkAndConsumeCredits('reading', 1)
 
-      expect(result.allowed).toBe(true);
-      expect(result.remaining).toBe(9999);
-      expect(canUseCredits).not.toHaveBeenCalled();
-    });
+      expect(result.allowed).toBe(true)
+      expect(result.remaining).toBe(9999)
+      expect(canUseCredits).not.toHaveBeenCalled()
+    })
+
+    it('should not bypass with demo token header alone (cookie required)', async () => {
+      process.env.DEMO_TOKEN = 'demo-test-token'
+      vi.mocked(headers).mockResolvedValue(new Headers({ 'x-demo-token': 'demo-test-token' }))
+      vi.mocked(getServerSession).mockResolvedValue(null)
+
+      const result = await checkAndConsumeCredits('reading', 1)
+
+      expect(result.allowed).toBe(false)
+      expect(result.errorCode).toBe('not_authenticated')
+    })
+
+    it('should bypass when demo token and demo cookie are both present', async () => {
+      process.env.DEMO_TOKEN = 'demo-test-token'
+      vi.mocked(headers).mockResolvedValue(
+        new Headers({ 'x-demo-token': 'demo-test-token', cookie: 'dp_demo=1' })
+      )
+
+      const result = await checkAndConsumeCredits('reading', 1)
+
+      expect(result.allowed).toBe(true)
+      expect(result.userId).toBe('demo-user')
+      expect(canUseCredits).not.toHaveBeenCalled()
+      expect(consumeCredits).not.toHaveBeenCalled()
+    })
 
     it('should check and consume credits successfully', async () => {
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123', email: 'test@example.com' },
-      } as never);
+      } as never)
       vi.mocked(canUseCredits).mockResolvedValue({
         allowed: true,
         remaining: 5,
-      });
+      })
       vi.mocked(consumeCredits).mockResolvedValue({
         success: true,
-      });
+      })
 
-      const result = await checkAndConsumeCredits('reading', 1);
+      const result = await checkAndConsumeCredits('reading', 1)
 
-      expect(result.allowed).toBe(true);
-      expect(result.userId).toBe('user-123');
-      expect(result.remaining).toBe(5);
-      expect(canUseCredits).toHaveBeenCalledWith('user-123', 'reading', 1);
-      expect(consumeCredits).toHaveBeenCalledWith('user-123', 'reading', 1);
-    });
+      expect(result.allowed).toBe(true)
+      expect(result.userId).toBe('user-123')
+      expect(result.remaining).toBe(5)
+      expect(canUseCredits).toHaveBeenCalledWith('user-123', 'reading', 1)
+      expect(consumeCredits).toHaveBeenCalledWith('user-123', 'reading', 1)
+    })
 
     it('should return error when no credits available', async () => {
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123', email: 'test@example.com' },
-      } as never);
+      } as never)
       vi.mocked(canUseCredits).mockResolvedValue({
         allowed: false,
         reason: 'no_credits',
         remaining: 0,
-      });
+      })
 
-      const result = await checkAndConsumeCredits('reading', 1);
+      const result = await checkAndConsumeCredits('reading', 1)
 
-      expect(result.allowed).toBe(false);
-      expect(result.errorCode).toBe('no_credits');
-      expect(result.error).toContain('리딩');
-      expect(consumeCredits).not.toHaveBeenCalled();
-    });
+      expect(result.allowed).toBe(false)
+      expect(result.errorCode).toBe('no_credits')
+      expect(result.error).toContain('리딩')
+      expect(consumeCredits).not.toHaveBeenCalled()
+    })
 
     it('should return error for compatibility limit', async () => {
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123', email: 'test@example.com' },
-      } as never);
+      } as never)
       vi.mocked(canUseCredits).mockResolvedValue({
         allowed: false,
         reason: 'compatibility_limit',
         remaining: 0,
-      });
+      })
 
-      const result = await checkAndConsumeCredits('compatibility', 1);
+      const result = await checkAndConsumeCredits('compatibility', 1)
 
-      expect(result.allowed).toBe(false);
-      expect(result.errorCode).toBe('compatibility_limit');
-      expect(result.error).toContain('궁합');
-    });
+      expect(result.allowed).toBe(false)
+      expect(result.errorCode).toBe('compatibility_limit')
+      expect(result.error).toContain('궁합')
+    })
 
     it('should return error for followup limit', async () => {
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123', email: 'test@example.com' },
-      } as never);
+      } as never)
       vi.mocked(canUseCredits).mockResolvedValue({
         allowed: false,
         reason: 'followup_limit',
         remaining: 0,
-      });
+      })
 
-      const result = await checkAndConsumeCredits('followUp', 1);
+      const result = await checkAndConsumeCredits('followUp', 1)
 
-      expect(result.allowed).toBe(false);
-      expect(result.errorCode).toBe('followup_limit');
-      expect(result.error).toContain('후속질문');
-    });
+      expect(result.allowed).toBe(false)
+      expect(result.errorCode).toBe('followup_limit')
+      expect(result.error).toContain('후속질문')
+    })
 
     it('should handle consume failure', async () => {
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123', email: 'test@example.com' },
-      } as never);
+      } as never)
       vi.mocked(canUseCredits).mockResolvedValue({
         allowed: true,
         remaining: 5,
-      });
+      })
       vi.mocked(consumeCredits).mockResolvedValue({
         success: false,
         error: 'db_error',
-      });
+      })
 
-      const result = await checkAndConsumeCredits('reading', 1);
+      const result = await checkAndConsumeCredits('reading', 1)
 
-      expect(result.allowed).toBe(false);
-      expect(result.errorCode).toBe('db_error');
-      expect(result.error).toContain('오류');
-    });
-  });
+      expect(result.allowed).toBe(false)
+      expect(result.errorCode).toBe('db_error')
+      expect(result.error).toContain('오류')
+    })
+  })
 
   describe('checkCreditsOnly', () => {
     it('should return not_authenticated when no session', async () => {
-      vi.mocked(getServerSession).mockResolvedValue(null);
+      vi.mocked(getServerSession).mockResolvedValue(null)
 
-      const result = await checkCreditsOnly('reading', 1);
+      const result = await checkCreditsOnly('reading', 1)
 
-      expect(result.allowed).toBe(false);
-      expect(result.errorCode).toBe('not_authenticated');
-    });
+      expect(result.allowed).toBe(false)
+      expect(result.errorCode).toBe('not_authenticated')
+    })
 
     it('should bypass credits when BYPASS_CREDITS is true', async () => {
-      process.env.BYPASS_CREDITS = 'true';
+      process.env.BYPASS_CREDITS = 'true'
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123', email: 'test@example.com' },
-      } as never);
+      } as never)
 
-      const result = await checkCreditsOnly('reading', 1);
+      const result = await checkCreditsOnly('reading', 1)
 
-      expect(result.allowed).toBe(true);
-      expect(result.remaining).toBe(9999);
-    });
+      expect(result.allowed).toBe(true)
+      expect(result.remaining).toBe(9999)
+    })
+
+    it('should bypass check-only flow when demo token and cookie are present', async () => {
+      process.env.DEMO_TOKEN = 'demo-test-token'
+      vi.mocked(headers).mockResolvedValue(
+        new Headers({ 'x-demo-token': 'demo-test-token', cookie: 'dp_demo=1' })
+      )
+
+      const result = await checkCreditsOnly('reading', 1)
+
+      expect(result.allowed).toBe(true)
+      expect(result.userId).toBe('demo-user')
+      expect(canUseCredits).not.toHaveBeenCalled()
+    })
 
     it('should check credits without consuming', async () => {
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123', email: 'test@example.com' },
-      } as never);
+      } as never)
       vi.mocked(canUseCredits).mockResolvedValue({
         allowed: true,
         remaining: 5,
-      });
+      })
 
-      const result = await checkCreditsOnly('reading', 1);
+      const result = await checkCreditsOnly('reading', 1)
 
-      expect(result.allowed).toBe(true);
-      expect(result.remaining).toBe(5);
-      expect(canUseCredits).toHaveBeenCalledWith('user-123', 'reading', 1);
-      expect(consumeCredits).not.toHaveBeenCalled();
-    });
+      expect(result.allowed).toBe(true)
+      expect(result.remaining).toBe(5)
+      expect(canUseCredits).toHaveBeenCalledWith('user-123', 'reading', 1)
+      expect(consumeCredits).not.toHaveBeenCalled()
+    })
 
     it('should return error when not allowed', async () => {
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123', email: 'test@example.com' },
-      } as never);
+      } as never)
       vi.mocked(canUseCredits).mockResolvedValue({
         allowed: false,
         reason: 'no_credits',
         remaining: 0,
-      });
+      })
 
-      const result = await checkCreditsOnly('reading', 1);
+      const result = await checkCreditsOnly('reading', 1)
 
-      expect(result.allowed).toBe(false);
-      expect(result.error).toContain('크레딧');
-    });
-  });
+      expect(result.allowed).toBe(false)
+      expect(result.error).toContain('크레딧')
+    })
+  })
 
   describe('creditErrorResponse', () => {
     it('should return 401 for not_authenticated', () => {
@@ -242,11 +291,11 @@ describe('withCredits helpers', () => {
         allowed: false,
         error: '로그인이 필요합니다',
         errorCode: 'not_authenticated',
-      });
+      })
 
       // NextResponse.json returns an object with status
-      expect(result).toBeInstanceOf(NextResponse);
-    });
+      expect(result).toBeInstanceOf(NextResponse)
+    })
 
     it('should return 402 for credit errors', () => {
       const result = creditErrorResponse({
@@ -254,11 +303,11 @@ describe('withCredits helpers', () => {
         error: '크레딧이 부족합니다',
         errorCode: 'no_credits',
         remaining: 0,
-      });
+      })
 
-      expect(result).toBeInstanceOf(NextResponse);
-    });
-  });
+      expect(result).toBeInstanceOf(NextResponse)
+    })
+  })
 
   describe('ensureUserCredits', () => {
     it('should not initialize if user already has credits', async () => {
@@ -266,28 +315,28 @@ describe('withCredits helpers', () => {
         userId: 'user-123',
         plan: 'free',
         monthlyCredits: 7,
-      } as never);
+      } as never)
 
-      await ensureUserCredits('user-123');
+      await ensureUserCredits('user-123')
 
-      expect(getUserCredits).toHaveBeenCalledWith('user-123');
-      expect(initializeUserCredits).not.toHaveBeenCalled();
-    });
+      expect(getUserCredits).toHaveBeenCalledWith('user-123')
+      expect(initializeUserCredits).not.toHaveBeenCalled()
+    })
 
     it('should initialize if user has no credits', async () => {
-      vi.mocked(getUserCredits).mockResolvedValue(null);
-      vi.mocked(initializeUserCredits).mockResolvedValue({} as never);
+      vi.mocked(getUserCredits).mockResolvedValue(null)
+      vi.mocked(initializeUserCredits).mockResolvedValue({} as never)
 
-      await ensureUserCredits('user-123');
+      await ensureUserCredits('user-123')
 
-      expect(initializeUserCredits).toHaveBeenCalledWith('user-123', 'free');
-    });
+      expect(initializeUserCredits).toHaveBeenCalledWith('user-123', 'free')
+    })
 
     it('should handle errors gracefully', async () => {
-      vi.mocked(getUserCredits).mockRejectedValue(new Error('DB error'));
+      vi.mocked(getUserCredits).mockRejectedValue(new Error('DB error'))
 
       // Should not throw
-      await expect(ensureUserCredits('user-123')).resolves.toBeUndefined();
-    });
-  });
-});
+      await expect(ensureUserCredits('user-123')).resolves.toBeUndefined()
+    })
+  })
+})

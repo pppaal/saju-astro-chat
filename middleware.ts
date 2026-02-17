@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { REMOVED_PUBLIC_SERVICE_PREFIXES } from '@/config/enabledServices'
-import { isValidDemoToken, normalizeToken } from '@/lib/demo/token'
+import { isDemoEnabled, isValidDemoToken, normalizeToken } from '@/lib/demo/token'
 
 // Routes that should skip CSRF validation
 const CSRF_SKIP_ROUTES = new Set([
@@ -208,7 +208,7 @@ export function middleware(request: NextRequest) {
     const headerToken = normalizeToken(request.headers.get('x-demo-token'))
     const providedToken = queryToken ?? headerToken
 
-    const tokenAccepted = process.env.DEMO_ENABLED === '1' && isValidDemoToken(providedToken)
+    const tokenAccepted = isDemoEnabled() && isValidDemoToken(providedToken)
     if (!tokenAccepted) {
       // Let demo pages render their own gate UI and let API handlers return auth errors.
       return NextResponse.next()
@@ -229,6 +229,7 @@ export function middleware(request: NextRequest) {
     response.cookies.set(DEMO_COOKIE_NAME, '1', {
       httpOnly: true,
       sameSite: 'lax',
+      secure: _isProd,
       path: '/',
       maxAge: 60 * 60,
     })

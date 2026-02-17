@@ -26,6 +26,18 @@ interface CreditCheckResult {
   }
 }
 
+const DEMO_COOKIE_NAME = 'dp_demo'
+
+function hasDemoAccessCookie(cookieHeader: string | null): boolean {
+  if (!cookieHeader) {
+    return false
+  }
+  return cookieHeader
+    .split(';')
+    .map((entry) => entry.trim())
+    .some((entry) => entry === `${DEMO_COOKIE_NAME}=1`)
+}
+
 /**
  * 크레딧 체크 및 소비 헬퍼
  * API route에서 사용
@@ -37,7 +49,8 @@ export async function checkAndConsumeCredits(
   try {
     const requestHeaders = await headers()
     const demoToken = requestHeaders.get('x-demo-token')
-    if (isValidDemoToken(demoToken)) {
+    const hasDemoCookie = hasDemoAccessCookie(requestHeaders.get('cookie'))
+    if (isValidDemoToken(demoToken) && hasDemoCookie) {
       return {
         allowed: true,
         userId: 'demo-user',
@@ -144,7 +157,8 @@ export async function checkCreditsOnly(
   try {
     const requestHeaders = await headers()
     const demoToken = requestHeaders.get('x-demo-token')
-    if (isValidDemoToken(demoToken)) {
+    const hasDemoCookie = hasDemoAccessCookie(requestHeaders.get('cookie'))
+    if (isValidDemoToken(demoToken) && hasDemoCookie) {
       return {
         allowed: true,
         userId: 'demo-user',
