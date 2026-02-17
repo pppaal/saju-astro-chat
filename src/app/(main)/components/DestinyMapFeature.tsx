@@ -11,26 +11,31 @@ interface DestinyMapFeatureProps {
 const FIVE_ELEMENTS = [
   {
     key: 'wood',
+    icon: '\u{1F333}',
     width: '78%',
     className: 'elementWood',
   },
   {
     key: 'fire',
+    icon: '\u{1F525}',
     width: '62%',
     className: 'elementFire',
   },
   {
     key: 'earth',
+    icon: '\u{1F3D4}\uFE0F',
     width: '48%',
     className: 'elementEarth',
   },
   {
     key: 'metal',
+    icon: '\u26AA',
     width: '72%',
     className: 'elementMetal',
   },
   {
     key: 'water',
+    icon: '\u{1F4A7}',
     width: '84%',
     className: 'elementWater',
   },
@@ -110,6 +115,7 @@ export default function DestinyMapFeature({ translate, styles }: DestinyMapFeatu
             {FIVE_ELEMENTS.map((element) => (
               <div key={element.key} className={styles.elementBar}>
                 <div className={styles.elementName}>
+                  <span aria-hidden="true">{element.icon}</span>{' '}
                   {translate(
                     toElementKey(element.key),
                     element.key.charAt(0).toUpperCase() + element.key.slice(1)

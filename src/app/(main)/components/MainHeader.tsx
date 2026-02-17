@@ -144,7 +144,7 @@ function MainHeader({ translate, locale }: MainHeaderProps) {
                     disabled={servicePage === 0}
                     aria-label="Previous page"
                   >
-                    ‹
+                    &#8249;
                   </button>
                   <div className={styles.dropdownPageDots}>
                     {Array.from({ length: pageCount }).map((_, idx) => (
@@ -161,7 +161,7 @@ function MainHeader({ translate, locale }: MainHeaderProps) {
                     disabled={servicePage === maxPage}
                     aria-label="Next page"
                   >
-                    ›
+                    &#8250;
                   </button>
                 </div>
               )}

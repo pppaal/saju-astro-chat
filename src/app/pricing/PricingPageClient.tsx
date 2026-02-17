@@ -144,7 +144,7 @@ export default function PricingPageClient({
   initialLocale,
   initialMessages,
 }: PricingPageClientProps) {
-  const { locale: activeLocale, t } = useI18n()
+  const { locale: activeLocale, hydrated, t } = useI18n()
   const locale = activeLocale || initialLocale
   const isKo = locale === 'ko'
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
@@ -188,17 +188,29 @@ export default function PricingPageClient({
   const pt = useCallback(
     (key: string) => {
       const path = `pricing.${key}`
-      const translated = t(path, PRICING_FALLBACKS[key])
-      if (isPlaceholderTranslation(translated, path)) {
+      if (!hydrated) {
         const serverValue = getPathValue(initialMessages, path)
         if (typeof serverValue === 'string' && !isPlaceholderTranslation(serverValue, path)) {
           return serverValue
         }
         return PRICING_FALLBACKS[key] || toSafeFallbackText(path)
       }
-      return translated
+
+      const translated = t(path, PRICING_FALLBACKS[key])
+      if (!isPlaceholderTranslation(translated, path)) {
+        return translated
+      }
+
+      if (activeLocale === initialLocale) {
+        const serverValue = getPathValue(initialMessages, path)
+        if (typeof serverValue === 'string' && !isPlaceholderTranslation(serverValue, path)) {
+          return serverValue
+        }
+      }
+
+      return PRICING_FALLBACKS[key] || toSafeFallbackText(path)
     },
-    [t, initialMessages]
+    [activeLocale, hydrated, initialLocale, initialMessages, t]
   )
 
   const getFeatureText = useCallback(
@@ -378,7 +390,8 @@ export default function PricingPageClient({
                     onClick={() => handleSelectPlan(plan.id)}
                     disabled={loadingPlan !== null}
                   >
-                    {loadingPlan === plan.id ? '...'
+                    {loadingPlan === plan.id
+                      ? '...'
                       : plan.id === 'free'
                         ? pt('getStarted')
                         : pt('subscribe')}

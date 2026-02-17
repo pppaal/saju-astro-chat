@@ -58,7 +58,7 @@ interface MainPageClientProps {
 }
 
 export default function MainPageClient({ initialLocale, initialMessages }: MainPageClientProps) {
-  const { locale: activeLocale } = useI18n()
+  const { locale: activeLocale, hydrated, t } = useI18n()
   const locale = activeLocale || initialLocale
   const serverTranslate = useCallback(
     (key: string, fallback?: string) => {
@@ -73,9 +73,17 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
 
   const translate = useCallback(
     (key: string, fallback: string) => {
-      return serverTranslate(key, fallback)
+      if (!hydrated) {
+        return serverTranslate(key, fallback)
+      }
+
+      const translated = t(key, fallback)
+      if (isPlaceholderTranslation(translated, key)) {
+        return serverTranslate(key, fallback)
+      }
+      return translated
     },
-    [serverTranslate]
+    [hydrated, serverTranslate, t]
   )
 
   const metricsToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN

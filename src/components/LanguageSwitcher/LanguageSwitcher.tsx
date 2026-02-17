@@ -1,18 +1,11 @@
 'use client'
+
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { SUPPORTED_LOCALES, useI18n } from '@/i18n/I18nProvider'
 
 const LANGUAGE_LABELS: Record<string, { label: string; flag: string }> = {
-  en: { label: 'English', flag: '🇺🇸' },
-  ko: { label: '한국어', flag: '🇰🇷' },
-  es: { label: 'Español', flag: '🇪🇸' },
-  fr: { label: 'Français', flag: '🇫🇷' },
-  de: { label: 'Deutsch', flag: '🇩🇪' },
-  pt: { label: 'Português', flag: '🇵🇹' },
-  ru: { label: 'Русский', flag: '🇷🇺' },
-  ja: { label: '日本語', flag: '🇯🇵' },
-  zh: { label: '中文', flag: '🇨🇳' },
-  ar: { label: 'العربية', flag: '🇸🇦' },
+  en: { label: 'English', flag: '\u{1F1FA}\u{1F1F8}' },
+  ko: { label: '한국어', flag: '\u{1F1F0}\u{1F1F7}' },
 }
 
 export default function LanguageSwitcher() {
@@ -38,7 +31,6 @@ export default function LanguageSwitcher() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isOpen])
 
-  // Focus the selected option when dropdown opens
   useEffect(() => {
     if (isOpen) {
       const currentIndex = SUPPORTED_LOCALES.indexOf(locale)
@@ -46,18 +38,15 @@ export default function LanguageSwitcher() {
     }
   }, [isOpen, locale])
 
-  // Focus the option when focusedIndex changes
   useEffect(() => {
     if (isOpen && focusedIndex >= 0 && optionRefs.current[focusedIndex]) {
       optionRefs.current[focusedIndex]?.focus()
     }
   }, [isOpen, focusedIndex])
 
-  // Keyboard navigation with arrow keys
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!isOpen) {
-        // Open dropdown on arrow down/up when trigger is focused
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
           e.preventDefault()
           setIsOpen(true)
@@ -99,7 +88,6 @@ export default function LanguageSwitcher() {
           }
           break
         case 'Tab':
-          // Allow normal tab behavior but close dropdown
           setIsOpen(false)
           setFocusedIndex(-1)
           break
@@ -108,7 +96,7 @@ export default function LanguageSwitcher() {
     [isOpen, focusedIndex, localeCount, setLocale]
   )
 
-  const currentLang = LANGUAGE_LABELS[locale] || { label: locale.toUpperCase(), flag: '🌐' }
+  const currentLang = LANGUAGE_LABELS[locale] || { label: locale.toUpperCase(), flag: '\u{1F310}' }
 
   return (
     <div ref={dropdownRef} className="relative" dir={dir} onKeyDown={handleKeyDown}>
@@ -168,7 +156,7 @@ export default function LanguageSwitcher() {
             }
           `}</style>
           {SUPPORTED_LOCALES.map((loc, index) => {
-            const lang = LANGUAGE_LABELS[loc] || { label: loc.toUpperCase(), flag: '🌐' }
+            const lang = LANGUAGE_LABELS[loc] || { label: loc.toUpperCase(), flag: '\u{1F310}' }
             const isSelected = loc === locale
             const isFocused = index === focusedIndex
             return (
