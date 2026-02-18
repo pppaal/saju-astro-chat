@@ -20,13 +20,11 @@ vi.mock('@/lib/api/middleware', () => ({
         return await handler(req, context)
       } catch (error) {
         // Simulate middleware error handling
-        return NextResponse.json(
-          { error: 'Internal server error' },
-          { status: 500 }
-        )
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
       }
     }
   }),
+  createPublicStreamGuard: vi.fn((options: any) => options),
   createSimpleGuard: vi.fn(() => ({
     route: '/api/personality-compatibility',
     limit: 30,
@@ -97,7 +95,14 @@ vi.mock('@/lib/api/zodValidation', () => ({
         if (typeof data.person1.typeCode !== 'string' || data.person1.typeCode.length < 1) {
           return {
             success: false,
-            error: { issues: [{ path: ['person1', 'typeCode'], message: 'String must contain at least 1 character(s)' }] },
+            error: {
+              issues: [
+                {
+                  path: ['person1', 'typeCode'],
+                  message: 'String must contain at least 1 character(s)',
+                },
+              ],
+            },
           }
         }
         const scoreFields = ['energyScore', 'cognitionScore', 'decisionScore', 'rhythmScore']
@@ -112,7 +117,11 @@ vi.mock('@/lib/api/zodValidation', () => ({
             if (data.person1[field] < 0 || data.person1[field] > 100) {
               return {
                 success: false,
-                error: { issues: [{ path: ['person1', field], message: 'Number must be between 0 and 100' }] },
+                error: {
+                  issues: [
+                    { path: ['person1', field], message: 'Number must be between 0 and 100' },
+                  ],
+                },
               }
             }
           }
@@ -123,7 +132,14 @@ vi.mock('@/lib/api/zodValidation', () => ({
         if (typeof data.person2.typeCode !== 'string' || data.person2.typeCode.length < 1) {
           return {
             success: false,
-            error: { issues: [{ path: ['person2', 'typeCode'], message: 'String must contain at least 1 character(s)' }] },
+            error: {
+              issues: [
+                {
+                  path: ['person2', 'typeCode'],
+                  message: 'String must contain at least 1 character(s)',
+                },
+              ],
+            },
           }
         }
         const scoreFields = ['energyScore', 'cognitionScore', 'decisionScore', 'rhythmScore']
@@ -138,7 +154,11 @@ vi.mock('@/lib/api/zodValidation', () => ({
             if (data.person2[field] < 0 || data.person2[field] > 100) {
               return {
                 success: false,
-                error: { issues: [{ path: ['person2', field], message: 'Number must be between 0 and 100' }] },
+                error: {
+                  issues: [
+                    { path: ['person2', field], message: 'Number must be between 0 and 100' },
+                  ],
+                },
               }
             }
           }
@@ -372,7 +392,9 @@ describe('Personality Compatibility API - POST /api/personality-compatibility', 
     vi.mocked(analyzePersona).mockReturnValue(buildMockPersonaAnalysis() as any)
     vi.mocked(getICPCompatibility).mockReturnValue(buildMockICPCompatibility() as any)
     vi.mocked(getPersonaCompatibility).mockReturnValue(buildMockPersonaCompatibility() as any)
-    vi.mocked(getCrossSystemCompatibility).mockReturnValue(buildMockCrossSystemCompatibility() as any)
+    vi.mocked(getCrossSystemCompatibility).mockReturnValue(
+      buildMockCrossSystemCompatibility() as any
+    )
   })
 
   // -------------------------------------------------------------------------
@@ -428,7 +450,10 @@ describe('Personality Compatibility API - POST /api/personality-compatibility', 
     })
 
     it('should return person2 Persona analysis data in response', async () => {
-      const person2Persona = buildMockPersonaAnalysis({ typeCode: 'GSAF', personaName: 'Ground Architect' })
+      const person2Persona = buildMockPersonaAnalysis({
+        typeCode: 'GSAF',
+        personaName: 'Ground Architect',
+      })
       vi.mocked(analyzePersona)
         .mockReturnValueOnce(buildMockPersonaAnalysis() as any)
         .mockReturnValueOnce(person2Persona as any)
@@ -459,8 +484,14 @@ describe('Personality Compatibility API - POST /api/personality-compatibility', 
       expect(data.compatibility.persona).toBeDefined()
       expect(data.compatibility.persona.score).toBe(78)
       expect(data.compatibility.persona.level).toBe('Strong')
-      expect(data.compatibility.persona.synergies).toEqual(['Shared vision', 'Complementary problem-solving'])
-      expect(data.compatibility.persona.tensions).toEqual(['Different energy levels', 'Pace misalignment'])
+      expect(data.compatibility.persona.synergies).toEqual([
+        'Shared vision',
+        'Complementary problem-solving',
+      ])
+      expect(data.compatibility.persona.tensions).toEqual([
+        'Different energy levels',
+        'Pace misalignment',
+      ])
     })
 
     it('should return cross-system compatibility result', async () => {
@@ -882,7 +913,13 @@ describe('Personality Compatibility API - POST /api/personality-compatibility', 
       const response = await POST(makePostRequest(buildValidRequestBody()))
       const data = await response.json()
 
-      const icpFields = ['primaryStyle', 'secondaryStyle', 'dominanceScore', 'affiliationScore', 'octantScores']
+      const icpFields = [
+        'primaryStyle',
+        'secondaryStyle',
+        'dominanceScore',
+        'affiliationScore',
+        'octantScores',
+      ]
       for (const field of icpFields) {
         expect(data.person1.icp).toHaveProperty(field)
         expect(data.person2.icp).toHaveProperty(field)

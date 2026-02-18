@@ -58,6 +58,7 @@ vi.mock('@/lib/api/middleware', () => ({
       )
     }
   }),
+  createPublicStreamGuard: vi.fn((options: any) => options),
   createSimpleGuard: vi.fn(() => ({})),
   extractLocale: vi.fn().mockReturnValue('ko'),
   apiSuccess: vi.fn((data: any, options?: any) => ({

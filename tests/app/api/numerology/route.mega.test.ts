@@ -7,6 +7,7 @@ import { NextRequest } from 'next/server'
 // Mock middleware - must be before route import
 vi.mock('@/lib/api/middleware', () => ({
   withApiMiddleware: vi.fn((handler: any) => handler),
+  createPublicStreamGuard: vi.fn((options: any) => options),
   createSimpleGuard: vi.fn(() => ({})),
   apiError: vi.fn((code: string, status: number, message: string) => {
     const error = new Error(message) as any
