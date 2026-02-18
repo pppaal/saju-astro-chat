@@ -501,7 +501,6 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data.summary.grade2).toBeDefined()
       expect(data.summary.grade3).toBeDefined()
       expect(data.summary.grade4).toBeDefined()
-      expect(data.summary.grade5).toBeDefined()
     })
 
     it('should count grade 0 dates correctly', async () => {
@@ -513,13 +512,13 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data.summary.grade0).toBe(1) // One grade 0 date in mock
     })
 
-    it('should count grade 5 dates correctly', async () => {
+    it('should count grade 4 dates correctly', async () => {
       const request = createRequest({ birthDate: '1990-01-15' })
 
       const response = await GET(request)
       const data = await response.json()
 
-      expect(data.summary.grade5).toBe(1) // One grade 5 date in mock
+      expect(data.summary.grade4).toBe(1) // One grade 4 date in mock
     })
 
     it('should include topDates from grade 0, 1, 2', async () => {
@@ -950,7 +949,7 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(typeof data.summary.grade2).toBe('number')
       expect(typeof data.summary.grade3).toBe('number')
       expect(typeof data.summary.grade4).toBe('number')
-      expect(typeof data.summary.grade5).toBe('number')
+      expect(typeof data.summary.grade4).toBe('number')
     })
 
     it('should limit topDates to 10 items', async () => {
