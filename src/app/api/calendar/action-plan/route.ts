@@ -156,14 +156,135 @@ const extractHoursFromText = (value: string) => {
   return [hour]
 }
 
+const CATEGORY_FOCUS_HINTS: Record<
+  string,
+  {
+    ko: { morning: string; day: string; evening: string }
+    en: { morning: string; day: string; evening: string }
+  }
+> = {
+  career: {
+    ko: {
+      morning: '중요 업무 1건을 먼저 밀어붙이세요',
+      day: '협업/보고는 핵심만 짧게 정리하세요',
+      evening: '내일 우선순위를 3개로 압축하세요',
+    },
+    en: {
+      morning: 'Push one high-impact work item first',
+      day: 'Keep collaboration and updates concise',
+      evening: 'Compress tomorrow into 3 priorities',
+    },
+  },
+  wealth: {
+    ko: {
+      morning: '지출/투자 기준선을 먼저 확정하세요',
+      day: '금전 의사결정은 수치 재확인 후 진행하세요',
+      evening: '현금흐름 메모를 5분만 정리하세요',
+    },
+    en: {
+      morning: 'Lock spending and investment guardrails first',
+      day: 'Confirm numbers before money decisions',
+      evening: 'Do a quick 5-minute cash-flow review',
+    },
+  },
+  love: {
+    ko: {
+      morning: '감정 표현보다 의도를 먼저 명확히 하세요',
+      day: '민감한 대화는 사실 확인부터 시작하세요',
+      evening: '관계 대화 20분을 확보하세요',
+    },
+    en: {
+      morning: 'Clarify intent before emotional messaging',
+      day: 'Start sensitive talks with facts first',
+      evening: 'Reserve 20 minutes for relationship conversation',
+    },
+  },
+  health: {
+    ko: {
+      morning: '가벼운 운동으로 몸을 먼저 깨우세요',
+      day: '과부하를 줄이고 수분/호흡을 챙기세요',
+      evening: '수면 준비 루틴을 앞당기세요',
+    },
+    en: {
+      morning: 'Wake your body with light movement',
+      day: 'Reduce overload and protect hydration/breathing',
+      evening: 'Start your sleep routine earlier',
+    },
+  },
+  travel: {
+    ko: {
+      morning: '동선과 출발시간을 먼저 재점검하세요',
+      day: '이동 중 변수 대비책을 준비하세요',
+      evening: '내일 일정 버퍼를 확보하세요',
+    },
+    en: {
+      morning: 'Re-check route and departure timing',
+      day: 'Prepare a contingency for travel variables',
+      evening: 'Add time buffer for tomorrow',
+    },
+  },
+  study: {
+    ko: {
+      morning: '집중 학습 블록을 먼저 실행하세요',
+      day: '핵심 개념 3개만 고정해서 복습하세요',
+      evening: '요약 노트를 짧게 마무리하세요',
+    },
+    en: {
+      morning: 'Run a focused study block first',
+      day: 'Review only 3 core concepts',
+      evening: 'Close with a short summary note',
+    },
+  },
+}
+
+function getTimeBucket(hour: number): 'morning' | 'day' | 'evening' {
+  if (hour < 12) return 'morning'
+  if (hour < 18) return 'day'
+  return 'evening'
+}
+
+function getCategoryFocusHint(
+  category: string | undefined,
+  hour: number,
+  locale: 'ko' | 'en'
+): string {
+  const normalized = category || 'career'
+  const hint = CATEGORY_FOCUS_HINTS[normalized]
+  if (!hint) return locale === 'ko' ? '핵심 1가지에 집중하세요' : 'Focus on one core action'
+  const bucket = getTimeBucket(hour)
+  return hint[locale][bucket]
+}
+
+function pickByHour(items: string[] | undefined, hour: number): string | null {
+  if (!items || items.length === 0) return null
+  const index =
+    hour < 10 ? 0 : hour < 16 ? Math.min(1, items.length - 1) : Math.min(2, items.length - 1)
+  const value = items[index]
+  return value ? value.trim() : null
+}
+
+function pickCategoryByHour(categories: string[] | undefined, hour: number): string {
+  if (!categories || categories.length === 0) return 'career'
+  const index =
+    hour < 10
+      ? 0
+      : hour < 16
+        ? Math.min(1, categories.length - 1)
+        : Math.min(2, categories.length - 1)
+  return (categories[index] || categories[0] || 'career').trim().toLowerCase()
+}
+
 const buildRuleBasedTimeline = (input: {
   date: string
   locale: 'ko' | 'en'
   intervalMinutes: 30 | 60
   calendar?: {
     grade?: number
+    categories?: string[]
     bestTimes?: string[]
+    recommendations?: string[]
     warnings?: string[]
+    summary?: string
   } | null
 }): TimelineSlot[] => {
   const { date, locale, intervalMinutes, calendar } = input
@@ -218,20 +339,43 @@ const buildRuleBasedTimeline = (input: {
         tone = 'caution'
       }
 
+      const category = pickCategoryByHour(calendar?.categories, hour)
+      const focusHint = getCategoryFocusHint(category, hour, locale)
+      const recHint = pickByHour(calendar?.recommendations, hour)
+      const warningHint = pickByHour(calendar?.warnings, hour)
+      const baseSummary = calendar?.summary?.trim()
+
+      const best = hourlyRec.bestActivities.slice(0, 2).join(', ')
+      const avoid = hourlyRec.avoidActivities.slice(0, 2).join(', ')
+
       let detailLine = ''
       if (locale === 'ko') {
-        const best = hourlyRec.bestActivities.slice(0, 2).join(', ')
-        const avoid = hourlyRec.avoidActivities.slice(0, 2).join(', ')
-        detailLine =
-          tone === 'caution' ? `주의: ${avoid || '무리한 결정'}` : `추천: ${best || '핵심 업무'}`
+        if (tone === 'caution') {
+          detailLine = `${focusHint}. ${
+            warningHint ? `주의 포인트: ${warningHint}` : `주의: ${avoid || '무리한 결정'}`
+          }`
+        } else {
+          detailLine = `${focusHint}. ${
+            recHint ? `실행: ${recHint}` : `추천: ${best || '핵심 업무'}`
+          }`
+        }
+        if (baseSummary) {
+          detailLine = `${detailLine} 근거: ${baseSummary.slice(0, 70)}`
+        }
       } else {
-        detailLine =
-          tone === 'caution'
-            ? 'Go light and avoid big decisions.'
-            : 'Good for focused work or planning.'
+        if (tone === 'caution') {
+          detailLine = `${focusHint}. ${
+            warningHint ? `Watch-out: ${warningHint}` : 'Avoid high-risk decisions right now'
+          }.`
+        } else {
+          detailLine = `${focusHint}. ${recHint ? `Action: ${recHint}` : 'Action: do one focused task'}.`
+        }
+        if (baseSummary) {
+          detailLine = `${detailLine} Why: ${baseSummary.slice(0, 90)}`
+        }
       }
 
-      const note = `${energyText} ${detailLine}`.trim()
+      const note = `${energyText} · ${detailLine}`.trim()
       slots.push({ hour, minute, label, note, tone })
     }
   }
@@ -342,16 +486,16 @@ async function generatePrecisionTimelineWithRag(input: {
 출력은 반드시 JSON:
 {"timeline":[{"hour":0-23,"minute":0|30,"note":"짧은 문장","tone":"best|caution|neutral"}],"summary":"짧은 한줄"}
 규칙:
-1) note는 80자 이하.
-2) 과장 금지, 실행 가능한 문장.
+1) note는 140자 이하.
+2) 과장 금지, 실행 가능한 행동 1개 + 짧은 근거 1개를 포함.
 3) 위험 시간은 tone=caution, 집중 시간은 tone=best.
 4) intervalMinutes=60이면 minute=0만 사용.`
       : `You are a schedule optimization coach. Refine the base timeline with higher precision.
 Output must be valid JSON:
 {"timeline":[{"hour":0-23,"minute":0|30,"note":"short sentence","tone":"best|caution|neutral"}],"summary":"one line"}
 Rules:
-1) note <= 80 chars.
-2) No hype, only actionable guidance.
+1) note <= 140 chars.
+2) No hype, include one concrete action plus a short reason.
 3) caution for risk windows, best for focus windows.
 4) If intervalMinutes=60, use minute=0 only.`
 
@@ -388,7 +532,7 @@ Rules:
         model: 'gpt-4o-mini',
         temperature: 0.3,
         response_format: { type: 'json_object' },
-        max_tokens: 1200,
+        max_tokens: 1600,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -449,8 +593,11 @@ export const POST = withApiMiddleware(
       calendar: calendar
         ? {
             grade: calendar.grade,
+            categories: trimList(calendar.categories, 3),
             bestTimes: trimList(calendar.bestTimes, 4),
+            recommendations: trimList(calendar.recommendations, 3),
             warnings: trimList(calendar.warnings, 3),
+            summary: calendar.summary,
           }
         : null,
     })

@@ -700,12 +700,23 @@ function buildMatrixOverlay(
   if (weightedDomain && domainWeight >= 0.55) {
     const domainLabel =
       lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
-    recommendations.push(
-      domainWeight >= 0.75
-        ? `${domainLabel} theme is the top execution priority today.`
-        : `Front-load ${domainLabel} theme tasks earlier in the day.`
-    )
-    summaryParts.push(`${domainLabel} theme weight from destiny-matrix is elevated today.`)
+    if (lang === 'ko') {
+      recommendations.push(
+        domainWeight >= 0.75
+          ? `${domainLabel} 테마를 오늘의 최우선 실행과제로 두세요.`
+          : `${domainLabel} 테마 관련 일정은 오전 시간대에 먼저 배치하세요.`
+      )
+      summaryParts.push(
+        `${domainLabel} 테마의 destiny-matrix 가중치가 높아 실행 적중도가 좋은 날입니다.`
+      )
+    } else {
+      recommendations.push(
+        domainWeight >= 0.75
+          ? `${domainLabel} is your top execution priority today.`
+          : `Front-load ${domainLabel} tasks earlier in the day.`
+      )
+      summaryParts.push(`${domainLabel} has elevated destiny-matrix weighting today.`)
+    }
   }
 
   if (cautionSignals.length > 0) {
@@ -731,7 +742,11 @@ function buildMatrixOverlay(
   ) {
     const domainLabel =
       lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
-    warnings.push(`For ${domainLabel}, run a verification checklist before expansion.`)
+    warnings.push(
+      lang === 'ko'
+        ? `${domainLabel} 테마는 확장 전에 검증 체크리스트를 거치는 것이 안전합니다.`
+        : `For ${domainLabel}, run a verification checklist before expansion.`
+    )
   }
 
   return {
@@ -815,6 +830,19 @@ export function formatDateForResponse(
   )
   const warnings = buildEnhancedWarnings(date, translations, lang)
   const matrixOverlay = buildMatrixOverlay(date.date, matrixContext || null, uniqueCategories, lang)
+  const baseSummary = generateSummary(
+    date.grade,
+    uniqueCategories,
+    date.score,
+    lang,
+    date.sajuFactorKeys,
+    date.astroFactorKeys,
+    date.crossVerified,
+    date.date
+  )
+  const finalSummary = matrixOverlay.summary
+    ? dedupeTexts([matrixOverlay.summary, baseSummary]).join(' ')
+    : baseSummary
 
   return {
     date: date.date,
@@ -823,19 +851,7 @@ export function formatDateForResponse(
     categories: uniqueCategories,
     title: getTranslation(date.titleKey, translations),
     description: getTranslation(date.descKey, translations),
-    summary: dedupeTexts([
-      generateSummary(
-        date.grade,
-        uniqueCategories,
-        date.score,
-        lang,
-        date.sajuFactorKeys,
-        date.astroFactorKeys,
-        date.crossVerified,
-        date.date
-      ),
-      matrixOverlay.summary,
-    ]).join(' '),
+    summary: finalSummary,
     bestTimes,
     sajuFactors: orderedSajuFactors,
     astroFactors: orderedAstroFactors,

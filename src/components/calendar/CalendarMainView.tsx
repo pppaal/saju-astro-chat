@@ -62,8 +62,6 @@ const MONTHS_EN = [
   'December',
 ]
 const CATEGORIES: EventCategory[] = ['wealth', 'career', 'love', 'health', 'travel', 'study']
-const LARGE_TEXT_STORAGE_KEY = 'destiny-calendar-large-text'
-const HIGH_CONTRAST_STORAGE_KEY = 'destiny-calendar-high-contrast'
 
 const CalendarMainView = memo(function CalendarMainView({
   data,
@@ -87,33 +85,6 @@ const CalendarMainView = memo(function CalendarMainView({
 }: CalendarMainViewProps) {
   const { locale } = useI18n()
   const [activeView, setActiveView] = useState<'calendar' | 'action'>('calendar')
-  const [largeTextMode, setLargeTextMode] = useState(false)
-  const [highContrastMode, setHighContrastMode] = useState(false)
-
-  React.useEffect(() => {
-    try {
-      setLargeTextMode(window.localStorage.getItem(LARGE_TEXT_STORAGE_KEY) === 'true')
-      setHighContrastMode(window.localStorage.getItem(HIGH_CONTRAST_STORAGE_KEY) === 'true')
-    } catch {
-      // Ignore storage read errors (private mode, etc.)
-    }
-  }, [])
-
-  React.useEffect(() => {
-    try {
-      window.localStorage.setItem(LARGE_TEXT_STORAGE_KEY, String(largeTextMode))
-    } catch {
-      // Ignore storage write errors
-    }
-  }, [largeTextMode])
-
-  React.useEffect(() => {
-    try {
-      window.localStorage.setItem(HIGH_CONTRAST_STORAGE_KEY, String(highContrastMode))
-    } catch {
-      // Ignore storage write errors
-    }
-  }, [highContrastMode])
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -285,7 +256,7 @@ const CalendarMainView = memo(function CalendarMainView({
 
   return (
     <div
-      className={`${styles.container} ${!isDarkTheme ? styles.lightTheme : ''} ${largeTextMode ? styles.largeTextMode : ''} ${highContrastMode ? styles.highContrastMode : ''}`}
+      className={`${styles.container} ${!isDarkTheme ? styles.lightTheme : ''} ${styles.largeTextMode} ${styles.highContrastMode}`}
     >
       {/* Header */}
       <div className={styles.calendarHeader}>
@@ -310,26 +281,7 @@ const CalendarMainView = memo(function CalendarMainView({
               </p>
             </div>
           </div>
-          <div className={styles.headerRight}>
-            <div className={styles.accessibilityControls}>
-              <button
-                type="button"
-                className={`${styles.accessibilityBtn} ${largeTextMode ? styles.accessibilityBtnActive : ''}`}
-                onClick={() => setLargeTextMode((prev) => !prev)}
-                aria-pressed={largeTextMode}
-              >
-                {locale === 'ko' ? '큰글자' : 'Large'}
-              </button>
-              <button
-                type="button"
-                className={`${styles.accessibilityBtn} ${highContrastMode ? styles.accessibilityBtnActive : ''}`}
-                onClick={() => setHighContrastMode((prev) => !prev)}
-                aria-pressed={highContrastMode}
-              >
-                {locale === 'ko' ? '고대비' : 'Contrast'}
-              </button>
-            </div>
-          </div>
+          <div className={styles.headerRight} />
         </div>
 
         {/* Year Summary Badges */}
