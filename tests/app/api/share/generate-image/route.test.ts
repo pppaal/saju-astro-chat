@@ -51,6 +51,7 @@ vi.mock('@/lib/api/middleware', () => ({
       )
     }
   }),
+  createPublicStreamGuard: vi.fn((options: any) => options),
   createSimpleGuard: vi.fn(() => ({})),
   apiSuccess: vi.fn((data: any) => ({
     data,
@@ -109,17 +110,29 @@ vi.mock('@/lib/api/zodValidation', () => ({
       if (!data.resultType || typeof data.resultType !== 'string') {
         errors.push({ path: ['resultType'], message: 'Required' })
       } else if (data.resultType.trim().length === 0) {
-        errors.push({ path: ['resultType'], message: 'String must contain at least 1 character(s)' })
+        errors.push({
+          path: ['resultType'],
+          message: 'String must contain at least 1 character(s)',
+        })
       } else if (data.resultType.length > 50) {
-        errors.push({ path: ['resultType'], message: 'String must contain at most 50 character(s)' })
+        errors.push({
+          path: ['resultType'],
+          message: 'String must contain at most 50 character(s)',
+        })
       }
 
       // description validation (optional)
       if (data.description !== undefined && data.description !== null) {
         if (typeof data.description !== 'string') {
-          errors.push({ path: ['description'], message: 'Expected string, received ' + typeof data.description })
+          errors.push({
+            path: ['description'],
+            message: 'Expected string, received ' + typeof data.description,
+          })
         } else if (data.description.length > 2000) {
-          errors.push({ path: ['description'], message: 'String must contain at most 2000 character(s)' })
+          errors.push({
+            path: ['description'],
+            message: 'String must contain at most 2000 character(s)',
+          })
         }
       }
 
@@ -133,7 +146,7 @@ vi.mock('@/lib/api/zodValidation', () => ({
       if (errors.length > 0) {
         return {
           success: false,
-          error: { issues: errors.map(e => ({ path: e.path, message: e.message })) },
+          error: { issues: errors.map((e) => ({ path: e.path, message: e.message })) },
         }
       }
 

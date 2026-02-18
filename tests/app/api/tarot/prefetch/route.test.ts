@@ -64,6 +64,13 @@ vi.mock('@/lib/api/middleware', () => {
         windowSeconds: opts.windowSeconds || 60,
       },
     })),
+    createTarotGuard: vi.fn((opts: any) => ({
+      ...opts,
+      rateLimit: {
+        limit: opts.limit || 60,
+        windowSeconds: opts.windowSeconds || 60,
+      },
+    })),
     apiSuccess: vi.fn((data: any) => ({ data })),
     apiError: vi.fn((code: string, message: string) => ({
       error: { code, message },
@@ -122,7 +129,8 @@ vi.mock('@/lib/api/errorHandler', () => ({
 vi.mock('@/lib/api/zodValidation', () => ({
   createValidationErrorResponse: vi.fn((error: any, _options?: any) => {
     const { NextResponse } = require('next/server')
-    const errorMessage = error.issues?.map((i: any) => i.path.join('.')).join(', ') || 'validation_error'
+    const errorMessage =
+      error.issues?.map((i: any) => i.path.join('.')).join(', ') || 'validation_error'
     return NextResponse.json({ error: errorMessage }, { status: 400 })
   }),
 }))
@@ -243,11 +251,9 @@ describe('Tarot Prefetch API - POST Success Cases', () => {
       // Wait for fire-and-forget call
       await new Promise((resolve) => setTimeout(resolve, 10))
 
-      expect(mockApiClientPost).toHaveBeenCalledWith(
-        '/api/tarot/prefetch',
-        testCase,
-        { timeout: 10000 }
-      )
+      expect(mockApiClientPost).toHaveBeenCalledWith('/api/tarot/prefetch', testCase, {
+        timeout: 10000,
+      })
     }
   })
 
