@@ -26,7 +26,7 @@
     { "name": "iniconfig", "version": "2.3.0", "vulns": [] },
     { "name": "jedi", "version": "0.19.2", "vulns": [] },
     { "name": "parso", "version": "0.8.6", "vulns": [] },
-    { "name": "librt", "version": "0.8.0", "vulns": [] },
+    { "name": "librt", "version": "0.8.1", "vulns": [] },
     { "name": "mypy-extensions", "version": "1.1.0", "vulns": [] },
     { "name": "pathspec", "version": "1.0.4", "vulns": [] },
     { "name": "platformdirs", "version": "4.9.2", "vulns": [] },

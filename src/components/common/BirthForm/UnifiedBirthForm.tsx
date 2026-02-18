@@ -215,8 +215,14 @@ export function UnifiedBirthForm({
     lat: number
     lon: number
     timezone?: string
+    displayKr?: string
+    displayEn?: string
   }) => {
-    setBirthCity(`${city.name}, ${city.country}`)
+    const displayName =
+      locale === 'ko'
+        ? city.displayKr || `${city.name}, ${city.country}`
+        : city.displayEn || `${city.name}, ${city.country}`
+    setBirthCity(displayName)
     setCityData({
       latitude: city.lat,
       longitude: city.lon,

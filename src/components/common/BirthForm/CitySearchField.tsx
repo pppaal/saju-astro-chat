@@ -11,6 +11,10 @@ interface CityHit {
   lat: number
   lon: number
   timezone?: string
+  nameKr?: string
+  countryKr?: string
+  displayKr?: string
+  displayEn?: string
 }
 
 interface CitySearchFieldProps {
@@ -52,7 +56,10 @@ export function CitySearchField({
   const handleSelect = (city: CityHit) => {
     const enrichedCity = handleCitySelect(city)
     setSelectedCity(enrichedCity)
-    const cityDisplay = `${city.name}, ${city.country}`
+    const cityDisplay =
+      locale === 'ko'
+        ? city.displayKr || formatCityForDropdown(city.name, city.country, 'ko')
+        : city.displayEn || `${city.name}, ${city.country}`
     onChange(cityDisplay)
     onCitySelect(enrichedCity)
   }
@@ -100,7 +107,10 @@ export function CitySearchField({
       {openSug && suggestions.length > 0 && (
         <ul id="city-suggestions" role="listbox" className={styles.dropdown}>
           {suggestions.map((s, idx) => {
-            const formattedCity = formatCityForDropdown(s.name, s.country, locale)
+            const formattedCity =
+              locale === 'ko'
+                ? s.displayKr || formatCityForDropdown(s.name, s.country, 'ko')
+                : s.displayEn || formatCityForDropdown(s.name, s.country, 'en')
             return (
               <li
                 key={`${s.name}-${s.country}-${idx}`}

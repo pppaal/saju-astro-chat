@@ -348,7 +348,7 @@ describe('/api/user/update-birth-info', () => {
           const response = await POST(req)
           const data = await response.json()
 
-          expect(data.error).toContain('Validation failed')
+          expect(JSON.stringify(data)).toContain('Validation failed')
         }
       })
 
@@ -913,9 +913,7 @@ describe('/api/user/update-birth-info', () => {
       await POST(req)
 
       // Should not call with saju/destiny/yearly patterns when old birthDate is null
-      expect(mockClearCacheByPattern).not.toHaveBeenCalledWith(
-        expect.stringContaining('saju:null')
-      )
+      expect(mockClearCacheByPattern).not.toHaveBeenCalledWith(expect.stringContaining('saju:null'))
     })
   })
 

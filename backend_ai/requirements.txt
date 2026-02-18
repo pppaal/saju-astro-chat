@@ -21,7 +21,9 @@ chromadb>=0.4.22
 
 # --- Retrieval/Agent (optional but recommended for full features) ---
 rank-bm25>=0.2.2
-langgraph>=0.2.36,<1.0
+# NOTE: langgraph is optional and imported behind a try/except gate.
+# It is intentionally omitted from default runtime requirements to reduce
+# transitive attack surface (langchain-core CVE exposure).
 tiktoken>=0.7.0
 transformers>=4.44.0
 

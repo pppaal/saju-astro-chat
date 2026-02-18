@@ -183,21 +183,30 @@ describe('ICP API Route - GET /api/icp', () => {
     await GET(request)
 
     expect(prisma.iCPResult.findFirst).toHaveBeenCalledTimes(1)
-    expect(prisma.iCPResult.findFirst).toHaveBeenCalledWith({
-      where: { userId: MOCK_USER_ID },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        primaryStyle: true,
-        secondaryStyle: true,
-        dominanceScore: true,
-        affiliationScore: true,
-        octantScores: true,
-        analysisData: true,
-        locale: true,
-        createdAt: true,
-      },
-    })
+    expect(prisma.iCPResult.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: MOCK_USER_ID },
+        orderBy: { createdAt: 'desc' },
+        select: expect.objectContaining({
+          id: true,
+          testVersion: true,
+          resultId: true,
+          primaryStyle: true,
+          secondaryStyle: true,
+          dominanceScore: true,
+          affiliationScore: true,
+          confidence: true,
+          axes: true,
+          completionSeconds: true,
+          missingAnswerCount: true,
+          octantScores: true,
+          analysisData: true,
+          answers: true,
+          locale: true,
+          createdAt: true,
+        }),
+      })
+    )
   })
 
   it('should include all selected fields in the result', async () => {
@@ -347,19 +356,27 @@ describe('ICP API Route - POST /api/icp', () => {
     await POST(request)
 
     expect(prisma.iCPResult.create).toHaveBeenCalledTimes(1)
-    expect(prisma.iCPResult.create).toHaveBeenCalledWith({
-      data: {
-        userId: MOCK_USER_ID,
-        primaryStyle: 'PA',
-        secondaryStyle: 'NO',
-        dominanceScore: 72.5,
-        affiliationScore: 45.3,
-        octantScores: payload.octantScores,
-        analysisData: payload.analysisData,
-        answers: payload.answers,
-        locale: 'ko',
-      },
-    })
+    expect(prisma.iCPResult.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          userId: MOCK_USER_ID,
+          testVersion: 'icp_v2',
+          resultId: null,
+          primaryStyle: 'PA',
+          secondaryStyle: 'NO',
+          dominanceScore: 72.5,
+          affiliationScore: 45.3,
+          confidence: null,
+          axes: {},
+          completionSeconds: null,
+          missingAnswerCount: 0,
+          octantScores: payload.octantScores,
+          analysisData: payload.analysisData,
+          answers: payload.answers,
+          locale: 'ko',
+        }),
+      })
+    )
   })
 
   it('should save with optional fields defaulted when omitted', async () => {

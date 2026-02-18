@@ -61,7 +61,7 @@ export default defineConfig({
     setupFiles: isIntegration ? ['./tests/integration/setup.ts'] : ['./tests/setup.ts'],
     // Coverage configuration
     coverage: {
-      enabled: true, // Coverage always collected; use --coverage=false to skip locally
+      enabled: isCoverageRun,
       provider: 'v8',
       reporter: coverageReporters,
       reportsDirectory: './coverage',

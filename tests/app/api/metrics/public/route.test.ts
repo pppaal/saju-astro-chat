@@ -283,8 +283,9 @@ describe('GET /api/metrics/public', () => {
     const data = await response.json()
 
     expect(response.status).toBe(500)
-    expect(data).toEqual({ error: 'Internal server error' })
-    expect(logger.error).toHaveBeenCalledWith('[Public Metrics API Error]', thrownError)
+    expect(data.success).toBe(false)
+    expect(data.error?.status).toBe(500)
+    expect(logger.error).toHaveBeenCalledWith('[API Error] metrics/public:', thrownError)
   })
 
   // -------------------------------------------------------------------------

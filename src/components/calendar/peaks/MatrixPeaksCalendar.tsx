@@ -103,7 +103,11 @@ export default function MatrixPeaksCalendar() {
           return
         }
 
-        const nextEvents = matrixSummaryToCalendarEvents(payload.summary)
+        const nextEvents = matrixSummaryToCalendarEvents(
+          payload.summary,
+          undefined,
+          locale === 'ko' ? 'ko' : 'en'
+        )
         setSummary(payload.summary)
         setEvents(nextEvents)
       } catch (err) {
@@ -137,7 +141,7 @@ export default function MatrixPeaksCalendar() {
       <div className={styles.container}>
         <div className={styles.loading}>
           <div className={styles.spinner} />
-          <p>Calculating matrix peaks...</p>
+          <p>{locale === 'ko' ? '피크 구간 계산 중...' : 'Calculating matrix peaks...'}</p>
         </div>
       </div>
     )
@@ -149,7 +153,7 @@ export default function MatrixPeaksCalendar() {
         <div className={styles.errorState}>
           <p>{error}</p>
           <button className={styles.retryBtn} onClick={() => setSubmitted(false)}>
-            Try again
+            {locale === 'ko' ? '다시 시도' : 'Try again'}
           </button>
         </div>
       </div>
@@ -169,20 +173,33 @@ export default function MatrixPeaksCalendar() {
             </p>
           </div>
           <button className={styles.retryBtn} onClick={() => setSubmitted(false)}>
-            Edit birth info
+            {locale === 'ko' ? '출생정보 수정' : 'Edit birth info'}
           </button>
         </div>
 
         {summary && (
           <div className={styles.matrixPeaksMeta}>
-            <span>Confidence {(summary.confidenceScore ?? 0).toFixed(2)}</span>
-            <span>Drivers {(summary.drivers || []).slice(0, 2).join(' | ') || '-'}</span>
-            <span>Cautions {(summary.cautions || []).slice(0, 1).join(' | ') || '-'}</span>
+            <span>
+              {locale === 'ko' ? '신뢰도' : 'Confidence'}{' '}
+              {(summary.confidenceScore ?? 0).toFixed(2)}
+            </span>
+            <span>
+              {locale === 'ko' ? '핵심 요인' : 'Drivers'}{' '}
+              {(summary.drivers || []).slice(0, 2).join(' | ') || '-'}
+            </span>
+            <span>
+              {locale === 'ko' ? '주의 요인' : 'Cautions'}{' '}
+              {(summary.cautions || []).slice(0, 1).join(' | ') || '-'}
+            </span>
           </div>
         )}
 
         {groupedByMonth.length === 0 ? (
-          <div className={styles.emptyState}>No peak windows found. Try another input.</div>
+          <div className={styles.emptyState}>
+            {locale === 'ko'
+              ? '피크 구간을 찾지 못했습니다. 다른 입력으로 다시 시도해보세요.'
+              : 'No peak windows found. Try another input.'}
+          </div>
         ) : (
           <div className={styles.matrixMonthList}>
             {groupedByMonth.map(([month, monthEvents]) => (

@@ -32,12 +32,22 @@ type CandidateEvent = CalendarEvent & {
   priority: number
 }
 
+type EventLocale = 'ko' | 'en'
+
 const DOMAIN_LABELS: Record<DomainKey, string> = {
   career: 'Career',
   love: 'Love',
   money: 'Money',
   health: 'Health',
   move: 'Move',
+}
+
+const DOMAIN_LABELS_KO: Record<DomainKey, string> = {
+  career: '커리어',
+  love: '연애',
+  money: '재물',
+  health: '건강',
+  move: '이동',
 }
 
 function clamp01(value: number): number {
@@ -62,20 +72,32 @@ function average(values: number[]): number {
   return values.reduce((sum, n) => sum + n, 0) / values.length
 }
 
-function buildGlobalNotes(summary: MatrixSummaryLike): string[] {
+function buildGlobalNotes(summary: MatrixSummaryLike, locale: EventLocale): string[] {
   const drivers = (summary.drivers || []).slice(0, 2)
   const cautions = (summary.cautions || []).slice(0, 1)
-  const metrics = `Align ${(summary.alignmentScore ?? 0).toFixed(2)} / Time ${(summary.timeOverlapWeight ?? 1).toFixed(2)}`
-  return [...drivers, ...cautions.map((c) => `Caution: ${c}`), metrics]
+  const metrics =
+    locale === 'ko'
+      ? `정렬 ${(summary.alignmentScore ?? 0).toFixed(2)} / 타이밍 ${(summary.timeOverlapWeight ?? 1).toFixed(2)}`
+      : `Align ${(summary.alignmentScore ?? 0).toFixed(2)} / Time ${(summary.timeOverlapWeight ?? 1).toFixed(2)}`
+
+  return [
+    ...drivers,
+    ...cautions.map((c) => (locale === 'ko' ? `주의: ${c}` : `Caution: ${c}`)),
+    metrics,
+  ]
 }
 
-function buildDomainNotes(score: DomainScore): string[] {
+function buildDomainNotes(score: DomainScore, locale: EventLocale): string[] {
   const drivers = (score.drivers || []).slice(0, 2)
   const caution = (score.cautions || [])[0]
-  const metrics = `Align ${score.alignmentScore.toFixed(2)} / Time ${score.timeOverlapWeight.toFixed(2)}`
+  const metrics =
+    locale === 'ko'
+      ? `정렬 ${score.alignmentScore.toFixed(2)} / 타이밍 ${score.timeOverlapWeight.toFixed(2)}`
+      : `Align ${score.alignmentScore.toFixed(2)} / Time ${score.timeOverlapWeight.toFixed(2)}`
+
   const notes = [...drivers]
   if (caution) {
-    notes.push(`Caution: ${caution}`)
+    notes.push(locale === 'ko' ? `주의: ${caution}` : `Caution: ${caution}`)
   }
   notes.push(metrics)
   return notes
@@ -128,7 +150,8 @@ function deriveDomainTimeline(
 
 export function matrixSummaryToCalendarEvents(
   summary: MatrixSummaryLike,
-  startYearMonth?: string
+  startYearMonth?: string,
+  locale: EventLocale = 'en'
 ): CalendarEvent[] {
   const timeline = (summary.overlapTimeline || [])
     .slice()
@@ -172,6 +195,21 @@ export function matrixSummaryToCalendarEvents(
     }
   }
 
+  if (selectedMonthsMap.size === 0) {
+    const fallbackMonths = timeline
+      .slice()
+      .sort((a, b) => b.overlapStrength - a.overlapStrength || a.month.localeCompare(b.month))
+      .slice(0, Math.min(3, timeline.length))
+
+    for (const point of fallbackMonths) {
+      selectedMonthsMap.set(point.month, {
+        month: point.month,
+        level: 'high',
+        overlapStrength: point.overlapStrength,
+      })
+    }
+  }
+
   const selectedMonths = Array.from(selectedMonthsMap.values()).sort((a, b) =>
     a.month.localeCompare(b.month)
   )
@@ -186,14 +224,23 @@ export function matrixSummaryToCalendarEvents(
     }
 
     const window = toDateWindow(monthInfo.month)
-    const globalNotes = buildGlobalNotes(summary)
+    const globalNotes = buildGlobalNotes(summary, locale)
+    const globalTitle =
+      locale === 'ko'
+        ? monthInfo.level === 'peak'
+          ? '피크 집중 구간'
+          : '고집중 구간'
+        : monthInfo.level === 'peak'
+          ? 'Peak Convergence Window'
+          : 'High Convergence Window'
+
     candidates.push({
       id: `global-${monthInfo.month}-${monthInfo.level}`,
       month: monthInfo.month,
       startDate: window.startDate,
       endDate: window.endDate,
-      title: `${lowConfidencePrefix}${monthInfo.level === 'peak' ? 'Peak Convergence Window' : 'High Convergence Window'}`,
-      subtitle: `${monthInfo.month} � ${window.startDate} - ${window.endDate}`,
+      title: `${lowConfidencePrefix}${globalTitle}`,
+      subtitle: `${monthInfo.month} | ${window.startDate} - ${window.endDate}`,
       notes: globalNotes,
       level: monthInfo.level,
       domain: 'global',
@@ -212,23 +259,30 @@ export function matrixSummaryToCalendarEvents(
         return
       }
 
-      const notes = buildDomainNotes({
-        ...domainScore,
-        overlapStrength: clamp01(
-          average([domainScore.overlapStrength, domainPoint.overlapStrength])
-        ),
-        timeOverlapWeight: clampTimeWeight(
-          average([domainScore.timeOverlapWeight, domainPoint.timeOverlapWeight])
-        ),
-      })
+      const notes = buildDomainNotes(
+        {
+          ...domainScore,
+          overlapStrength: clamp01(
+            average([domainScore.overlapStrength, domainPoint.overlapStrength])
+          ),
+          timeOverlapWeight: clampTimeWeight(
+            average([domainScore.timeOverlapWeight, domainPoint.timeOverlapWeight])
+          ),
+        },
+        locale
+      )
+
+      const domainLabel = locale === 'ko' ? DOMAIN_LABELS_KO[domain] : DOMAIN_LABELS[domain]
 
       candidates.push({
         id: `${domain}-${monthInfo.month}`,
         month: monthInfo.month,
         startDate: window.startDate,
         endDate: window.endDate,
-        title: `${lowConfidencePrefix}Peak ${DOMAIN_LABELS[domain]} Window`,
-        subtitle: `${monthInfo.month} � ${window.startDate} - ${window.endDate}`,
+        title: `${lowConfidencePrefix}${
+          locale === 'ko' ? `${domainLabel} 피크 구간` : `Peak ${domainLabel} Window`
+        }`,
+        subtitle: `${monthInfo.month} | ${window.startDate} - ${window.endDate}`,
         notes,
         level: 'peak',
         domain,

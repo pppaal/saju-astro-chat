@@ -10,6 +10,10 @@ interface CityHit {
   lat: number
   lon: number
   timezone?: string
+  nameKr?: string
+  countryKr?: string
+  displayKr?: string
+  displayEn?: string
 }
 
 interface UseCitySearchReturn {

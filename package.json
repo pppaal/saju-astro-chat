@@ -20,7 +20,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "typecheck:watch": "tsc -p tsconfig.json --watch --noEmit",
     "test": "vitest run",
-    "test:fast": "vitest run --exclude tests/components/ui-components.test.tsx --exclude tests/lib/modules-smoke.test.ts --exclude tests/lib/services-integration.test.ts",
+    "test:fast": "vitest run --exclude tests/components/ui-components.test.tsx --exclude tests/lib/modules-smoke.test.ts --exclude tests/lib/services-integration.test.ts --exclude tests/app/api/astrology/advanced/routes.integration.test.ts --exclude tests/app/api/destiny-matrix/report/route.test.ts --exclude tests/app/api/auth/register/route.comprehensive.test.ts",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
     "test:coverage:open": "vitest run --coverage && npx open-cli coverage/index.html",

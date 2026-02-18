@@ -2,17 +2,12 @@
 // Handles computation of Saju and Astrology charts with caching
 
 import { calculateSajuData } from '@/lib/Saju/saju'
-import {
-  calculateNatalChart,
-  calculateTransitChart,
-  findMajorTransits,
-  toChart,
-} from '@/lib/astrology'
 import { toSajuDataStructure } from '@/lib/destiny-map/type-guards'
 import { parseDateComponents, parseTimeComponents } from '@/lib/prediction/utils'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
 import type { SajuDataStructure, AstroDataStructure } from './index'
+import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 
 export interface ChartCalculationInput {
   birthDate: string
@@ -26,7 +21,7 @@ export interface ChartCalculationInput {
 export interface ChartCalculationResult {
   saju?: SajuDataStructure
   astro?: AstroDataStructure
-  natalChartData?: Awaited<ReturnType<typeof calculateNatalChart>>
+  natalChartData?: NatalChartData
   currentTransits: unknown[]
 }
 
@@ -68,9 +63,10 @@ export async function computeAstroData(
   timeZone = 'Asia/Seoul'
 ): Promise<{
   astro?: AstroDataStructure
-  natalChartData?: Awaited<ReturnType<typeof calculateNatalChart>>
+  natalChartData?: NatalChartData
 }> {
   try {
+    const { calculateNatalChart } = await import('@/lib/astrology')
     const { year, month, day } = parseDateComponents(birthDate)
     const { hour, minute } = parseTimeComponents(birthTime)
 
@@ -116,12 +112,13 @@ export async function computeAstroData(
  * Compute current transits for predictions (cached per hour + location)
  */
 export async function computeCurrentTransits(
-  natalChartData: Awaited<ReturnType<typeof calculateNatalChart>>,
+  natalChartData: NatalChartData,
   latitude: number,
   longitude: number,
   timeZone = 'Asia/Seoul'
 ): Promise<unknown[]> {
   try {
+    const { calculateTransitChart, findMajorTransits, toChart } = await import('@/lib/astrology')
     const now = new Date()
     const isoNow = now.toISOString().slice(0, 19) // "YYYY-MM-DDTHH:mm:ss"
 
@@ -168,7 +165,7 @@ export async function calculateChartData(
 
   let saju = existingSaju
   let astro = existingAstro
-  let natalChartData: Awaited<ReturnType<typeof calculateNatalChart>> | undefined
+  let natalChartData: NatalChartData | undefined
   let currentTransits: unknown[] = []
 
   // Compute saju if not provided or empty
