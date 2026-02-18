@@ -9,7 +9,6 @@ import { getGradeEmoji, getCategoryLabel, getScoreClass } from './utils'
 import SelectedDatePanel from './SelectedDatePanel'
 import MonthHighlights from './MonthHighlights'
 import CalendarActionPlanView from './CalendarActionPlanView'
-import MatrixPeaksCalendar from './peaks/MatrixPeaksCalendar'
 import type { CalendarData, ImportantDate, EventCategory, BirthInfo } from './types'
 
 interface CalendarMainViewProps {
@@ -683,20 +682,6 @@ const CalendarMainView = memo(function CalendarMainView({
               onDateSelect={handleDateSelect}
             />
           )}
-
-          <section className={styles.integratedPeaksSection} aria-label="Matrix Peaks">
-            <div className={styles.integratedPeaksHeader}>
-              <h2 className={styles.integratedPeaksTitle}>
-                {locale === 'ko' ? 'Destiny Matrix 피크 구간' : 'Destiny Matrix Peak Windows'}
-              </h2>
-              <p className={styles.integratedPeaksDescription}>
-                {locale === 'ko'
-                  ? '일간 캘린더 아래에서 12개월 피크 구간을 함께 확인할 수 있습니다.'
-                  : 'Peak windows for the next 12 months are now shown under the daily calendar.'}
-              </p>
-            </div>
-            <MatrixPeaksCalendar />
-          </section>
         </>
       ) : (
         <CalendarActionPlanView

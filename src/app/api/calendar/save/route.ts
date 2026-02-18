@@ -14,6 +14,17 @@ import type { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
+const normalizeQueryParam = (value: string | null): string | undefined => {
+  if (!value) {
+    return undefined
+  }
+  const normalized = value.trim()
+  if (normalized === '' || normalized === 'null' || normalized === 'undefined') {
+    return undefined
+  }
+  return normalized
+}
+
 // POST - 날짜 저장
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
@@ -152,9 +163,9 @@ export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     try {
       const { searchParams } = new URL(req.url)
-      const dateParam = searchParams.get('date') ?? undefined
-      const yearParam = searchParams.get('year') ?? undefined
-      const limitQueryParam = searchParams.get('limit') ?? '50'
+      const dateParam = normalizeQueryParam(searchParams.get('date'))
+      const yearParam = normalizeQueryParam(searchParams.get('year'))
+      const limitQueryParam = normalizeQueryParam(searchParams.get('limit')) ?? '50'
 
       const queryValidation = calendarQuerySchema.safeParse({
         date: dateParam,

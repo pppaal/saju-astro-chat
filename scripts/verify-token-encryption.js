@@ -11,7 +11,15 @@
 // Load environment variables
 require('dotenv').config();
 
-const chalk = require('chalk');
+const chalkImport = require('chalk');
+const chalkResolved = chalkImport.default || chalkImport;
+const chalk = {
+  red: typeof chalkResolved.red === 'function' ? chalkResolved.red.bind(chalkResolved) : (value) => value,
+  yellow: typeof chalkResolved.yellow === 'function' ? chalkResolved.yellow.bind(chalkResolved) : (value) => value,
+  gray: typeof chalkResolved.gray === 'function' ? chalkResolved.gray.bind(chalkResolved) : (value) => value,
+  green: typeof chalkResolved.green === 'function' ? chalkResolved.green.bind(chalkResolved) : (value) => value,
+  blue: typeof chalkResolved.blue === 'function' ? chalkResolved.blue.bind(chalkResolved) : (value) => value,
+};
 
 function main() {
   console.log('🔐 Verifying TOKEN_ENCRYPTION_KEY configuration...\n');
