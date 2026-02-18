@@ -53,9 +53,10 @@ type PremiumContentAccessDelegate = {
   count: (args: { where: { userId: string; service?: string } }) => Promise<number>
 }
 
-const premiumContentAccess = (
-  prisma as unknown as { premiumContentAccess: PremiumContentAccessDelegate }
-).premiumContentAccess
+function getPremiumContentAccess(): PremiumContentAccessDelegate {
+  return (prisma as unknown as { premiumContentAccess: PremiumContentAccessDelegate })
+    .premiumContentAccess
+}
 
 const VALID_SERVICES = [
   'astrology',
@@ -104,6 +105,7 @@ export const POST = withApiMiddleware(
     }
 
     try {
+      const premiumContentAccess = getPremiumContentAccess()
       const accessLog = await premiumContentAccess.create({
         data: {
           userId: context.userId!,
@@ -150,6 +152,7 @@ export const GET = withApiMiddleware(
     const { service, limit, offset } = queryValidation.data
 
     try {
+      const premiumContentAccess = getPremiumContentAccess()
       const where: { userId: string; service?: string } = { userId: context.userId! }
       if (service) {
         where.service = service
