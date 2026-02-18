@@ -5,18 +5,26 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createPublicStreamGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+import {
+  withApiMiddleware,
+  createPublicStreamGuard,
+  extractLocale,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { calculateYearlyImportantDates } from '@/lib/destiny-map/destinyCalendar'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
-import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '@/lib/Saju/constants'
+import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT, BRANCH_TO_ELEMENT_EN } from '@/lib/Saju/constants'
+import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
+import type { FiveElement } from '@/lib/Saju/types'
 import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
 import type { TranslationData } from '@/types/calendar-api'
 import { logger } from '@/lib/logger'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import type { MatrixCalendarContext } from './lib/helpers'
 
 // Import from extracted modules
 import {
@@ -49,6 +57,14 @@ const ZODIAC_TO_ELEMENT: Record<string, string> = {
   Cancer: 'water',
   Scorpio: 'water',
   Pisces: 'water',
+}
+
+const EN_TO_KO_ELEMENT: Record<string, FiveElement> = {
+  wood: '목',
+  fire: '화',
+  earth: '토',
+  metal: '금',
+  water: '수',
 }
 
 /**
@@ -240,6 +256,54 @@ export const GET = withApiMiddleware(
       }
     }
 
+    let matrixCalendarContext: MatrixCalendarContext = null
+    try {
+      const stemElements = [
+        pillars.year.stem,
+        pillars.month.stem,
+        pillars.day.stem,
+        pillars.hour.stem,
+      ]
+        .map((stem) => STEM_TO_ELEMENT[stem])
+        .filter((el): el is string => Boolean(el))
+
+      const branchElements = [
+        pillars.year.branch,
+        pillars.month.branch,
+        pillars.day.branch,
+        pillars.hour.branch,
+      ]
+        .map((branch) => BRANCH_TO_ELEMENT_EN[branch])
+        .filter((el): el is string => Boolean(el))
+
+      const pillarElements = [...stemElements, ...branchElements]
+        .map((el) => EN_TO_KO_ELEMENT[el])
+        .filter((el): el is FiveElement => Boolean(el))
+
+      const dayMasterElementKo = EN_TO_KO_ELEMENT[dayMasterElement] || '목'
+      const matrix = calculateDestinyMatrix({
+        dayMasterElement: dayMasterElementKo,
+        pillarElements,
+        sibsinDistribution: {},
+        twelveStages: {},
+        relations: [],
+        planetHouses: {},
+        planetSigns: {},
+        aspects: [],
+        lang: locale === 'en' ? 'en' : 'ko',
+        startYearMonth: `${year}-01`,
+      })
+
+      matrixCalendarContext = {
+        calendarSignals: matrix.summary.calendarSignals || [],
+        overlapTimeline: matrix.summary.overlapTimeline || [],
+        overlapTimelineByDomain: matrix.summary.overlapTimelineByDomain || undefined,
+        domainScores: matrix.summary.domainScores || undefined,
+      }
+    } catch (matrixError) {
+      logger.warn('[Calendar] Matrix overlay fallback:', matrixError)
+    }
+
     // 로컬 계산으로 중요 날짜 가져오기 (Redis 캐싱 적용)
     const cacheKey = CacheKeys.yearlyCalendar(
       birthDateParam,
@@ -252,7 +316,7 @@ export const GET = withApiMiddleware(
       cacheKey,
       async () => {
         return calculateYearlyImportantDates(year, sajuProfile, astroProfile, {
-          minGrade: 5, // grade 5 (최악의 날)까지 포함
+          minGrade: 4, // grade 4(최악의 날)까지 포함
         })
       },
       CACHE_TTL.CALENDAR_DATA // 1 day
@@ -289,18 +353,25 @@ export const GET = withApiMiddleware(
 
     // AI 백엔드 호출 시도
     const aiDates = await fetchAIDates(sajuData, astroData, category || 'overall')
+    const formatCalendarDate = (d: (typeof filteredDates)[number]) =>
+      formatDateForResponse(
+        d,
+        locale,
+        koTranslations as unknown as TranslationData,
+        enTranslations as unknown as TranslationData,
+        matrixCalendarContext
+      )
 
-    // 6등급별 그룹화 (single-pass instead of 6 separate filter calls)
+    // 5등급별 그룹화 (single-pass instead of repeated filter calls)
     const gradeGroups: Record<number, typeof filteredDates> = {
       0: [],
       1: [],
       2: [],
       3: [],
       4: [],
-      5: [],
     }
     for (const d of filteredDates) {
-      if (d.grade >= 0 && d.grade <= 5) {
+      if (d.grade >= 0 && d.grade <= 4) {
         gradeGroups[d.grade].push(d)
       }
     }
@@ -308,8 +379,7 @@ export const GET = withApiMiddleware(
     const grade1 = gradeGroups[1] // 아주 좋은 날
     const grade2 = gradeGroups[2] // 좋은 날
     const grade3 = gradeGroups[3] // 보통 날
-    const grade4 = gradeGroups[4] // 나쁜 날
-    const grade5 = gradeGroups[5] // 최악의 날
+    const grade4 = gradeGroups[4] // 최악의 날
 
     // AI 날짜 병합
     let aiEnhanced = false
@@ -334,8 +404,7 @@ export const GET = withApiMiddleware(
         grade1: grade1.length, // 아주 좋은 날
         grade2: grade2.length, // 좋은 날
         grade3: grade3.length, // 보통 날
-        grade4: grade4.length, // 나쁜 날
-        grade5: grade5.length, // 최악의 날
+        grade4: grade4.length, // 최악의 날
       },
       topDates: (() => {
         // grade0 + grade1 + grade2가 부족하면 grade3 중 높은 점수 날짜도 포함
@@ -346,55 +415,12 @@ export const GET = withApiMiddleware(
             .slice(0, 5 - topCandidates.length)
           topCandidates.push(...topGrade3)
         }
-        return topCandidates
-          .slice(0, 10)
-          .map((d) =>
-            formatDateForResponse(
-              d,
-              locale,
-              koTranslations as unknown as TranslationData,
-              enTranslations as unknown as TranslationData
-            )
-          )
+        return topCandidates.slice(0, 10).map((d) => formatCalendarDate(d))
       })(),
-      goodDates: [...grade1, ...grade2]
-        .slice(0, 20)
-        .map((d) =>
-          formatDateForResponse(
-            d,
-            locale,
-            koTranslations as unknown as TranslationData,
-            enTranslations as unknown as TranslationData
-          )
-        ),
-      badDates: [...grade5, ...grade4]
-        .slice(0, 10)
-        .map((d) =>
-          formatDateForResponse(
-            d,
-            locale,
-            koTranslations as unknown as TranslationData,
-            enTranslations as unknown as TranslationData
-          )
-        ),
-      worstDates: grade5
-        .slice(0, 5)
-        .map((d) =>
-          formatDateForResponse(
-            d,
-            locale,
-            koTranslations as unknown as TranslationData,
-            enTranslations as unknown as TranslationData
-          )
-        ),
-      allDates: filteredDates.map((d) =>
-        formatDateForResponse(
-          d,
-          locale,
-          koTranslations as unknown as TranslationData,
-          enTranslations as unknown as TranslationData
-        )
-      ),
+      goodDates: [...grade1, ...grade2].slice(0, 20).map((d) => formatCalendarDate(d)),
+      badDates: [...grade4, ...grade3].slice(0, 10).map((d) => formatCalendarDate(d)),
+      worstDates: grade4.slice(0, 5).map((d) => formatCalendarDate(d)),
+      allDates: filteredDates.map((d) => formatCalendarDate(d)),
       ...(aiDates && {
         aiInsights: {
           auspicious: aiDates.auspicious,

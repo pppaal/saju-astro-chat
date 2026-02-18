@@ -885,9 +885,41 @@
 }
 
 .headerRight {
-  flex: 0 0 48px;
+  flex: 0 0 auto;
   display: flex;
   justify-content: flex-end;
+}
+
+.accessibilityControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.accessibilityBtn {
+  min-width: 56px;
+  height: 38px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(30, 41, 59, 0.7);
+  color: var(--cal-text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: all var(--cal-transition-fast);
+}
+
+.accessibilityBtn:hover {
+  border-color: rgba(96, 165, 250, 0.65);
+  background: rgba(30, 58, 138, 0.28);
+}
+
+.accessibilityBtnActive {
+  border-color: rgba(34, 197, 94, 0.7);
+  background: rgba(34, 197, 94, 0.2);
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3) inset;
 }
 
 .backBtn {
@@ -947,7 +979,7 @@
 }
 
 .calendarTitle {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 800;
   color: var(--cal-text-primary);
   margin: 0;
@@ -963,7 +995,7 @@
 }
 
 .calendarSubtitle {
-  font-size: 11px;
+  font-size: 14px;
   color: var(--cal-text-tertiary);
   margin: 0;
   font-weight: 500;
@@ -1592,7 +1624,7 @@
   border: 1px solid var(--cal-border);
   border-radius: 20px;
   color: var(--cal-text-secondary);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--cal-transition-fast);
@@ -1636,7 +1668,7 @@
 
 .weekdayCell {
   text-align: center;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.7);
   text-transform: uppercase;
@@ -1734,7 +1766,7 @@
 }
 
 .dayNumber {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
   color: #ffffff;
   line-height: 1;
@@ -1924,7 +1956,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--cal-text-secondary);
   font-weight: 500;
 }
@@ -2217,7 +2249,7 @@
 }
 
 .summaryText {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 500;
   color: var(--cal-text-primary);
   margin: 0;
@@ -2480,7 +2512,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--cal-text-primary);
   margin: 0 0 12px;
@@ -2520,7 +2552,7 @@
 }
 
 .recommendationText {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--cal-text-secondary);
   line-height: 1.4;
 }
@@ -2534,7 +2566,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--cal-grade-bad);
   margin: 0 0 12px;
@@ -2558,7 +2590,7 @@
   background: rgba(255, 69, 58, 0.08);
   border-radius: 10px;
   margin-bottom: 6px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--cal-text-secondary);
   line-height: 1.4;
 }
@@ -3018,7 +3050,7 @@
   }
 
   .dayNumber {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .calendarWrapper {
@@ -3038,7 +3070,7 @@
   }
 
   .legendItem {
-    font-size: 11px;
+    font-size: 13px;
   }
 
   .features {
@@ -3061,7 +3093,7 @@
   }
 
   .dayNumber {
-    font-size: 16px;
+    font-size: 18px;
   }
 
   .calendarWrapper {
@@ -3089,7 +3121,7 @@
   }
 
   .calendarTitle {
-    font-size: 17px;
+    font-size: 19px;
   }
 
   .selectedDayInfo {
@@ -3816,6 +3848,7 @@
 .todayBtn:focus-visible,
 .filterBtn:focus-visible,
 .editBirthBtn:focus-visible,
+.accessibilityBtn:focus-visible,
 .saveBtn:focus-visible,
 .saveBtnLarge:focus-visible,
 .calendarSyncBtn:focus-visible,
@@ -3888,7 +3921,7 @@
   border: none;
   background: transparent;
   color: var(--cal-text-secondary);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   padding: 10px 12px;
   border-radius: 999px;
@@ -3911,7 +3944,7 @@
   max-width: 720px;
   margin: 8px auto 14px;
   padding: 0 16px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--cal-text-secondary);
   text-align: center;
 }
@@ -4300,7 +4333,7 @@
 }
 
 .actionPlanTimelineNote {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--cal-text-primary);
   line-height: 1.4;
 }
@@ -4335,9 +4368,162 @@
 .actionPlanItem {
   display: flex;
   gap: 8px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--cal-text-primary);
   line-height: 1.5;
+}
+
+/* ========== Accessibility Modes ========== */
+.largeTextMode {
+  font-size: 112.5%;
+}
+
+.largeTextMode .calendarTitle {
+  font-size: 28px;
+}
+
+.largeTextMode .calendarSubtitle {
+  font-size: 18px;
+}
+
+.largeTextMode .viewTab {
+  font-size: 18px;
+  min-height: 46px;
+}
+
+.largeTextMode .monthName {
+  font-size: 28px;
+}
+
+.largeTextMode .dayNumber {
+  font-size: 32px;
+}
+
+.largeTextMode .weekdayCell {
+  font-size: 17px;
+}
+
+.largeTextMode .filterBtn {
+  font-size: 16px;
+  padding: 10px 16px;
+}
+
+.largeTextMode .legendItem {
+  font-size: 16px;
+}
+
+.largeTextMode .summaryText {
+  font-size: 21px;
+}
+
+.largeTextMode .recommendationsTitle,
+.largeTextMode .warningsTitle,
+.largeTextMode .integratedPeaksTitle {
+  font-size: 21px;
+}
+
+.largeTextMode .recommendationText,
+.largeTextMode .warningItem,
+.largeTextMode .tabHelperText,
+.largeTextMode .integratedPeaksDescription,
+.largeTextMode .actionPlanItem,
+.largeTextMode .actionPlanTimelineNote {
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.highContrastMode {
+  --cal-bg-primary: #05070f;
+  --cal-bg-secondary: #0b1020;
+  --cal-bg-tertiary: #101935;
+  --cal-bg-card: #0e1731;
+  --cal-bg-hover: rgba(250, 204, 21, 0.2);
+  --cal-bg-active: rgba(250, 204, 21, 0.32);
+  --cal-text-primary: #ffffff;
+  --cal-text-secondary: #e2e8f0;
+  --cal-text-tertiary: #cbd5e1;
+  --cal-border: rgba(255, 255, 255, 0.45);
+  --cal-border-light: rgba(255, 255, 255, 0.3);
+}
+
+.highContrastMode .calendarHeader,
+.highContrastMode .calendarWrapper,
+.highContrastMode .summaryBox,
+.highContrastMode .monthNav,
+.highContrastMode .filtersSection {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.highContrastMode .day {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.highContrastMode .dayNumber {
+  text-shadow: none;
+}
+
+.highContrastMode .calendarTitle {
+  background: none;
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .headerTop {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .headerRight {
+    align-self: flex-start;
+  }
+
+  .accessibilityControls {
+    gap: 8px;
+  }
+
+  .accessibilityBtn {
+    min-width: 64px;
+    height: 40px;
+    font-size: 13px;
+  }
+
+  .largeTextMode .calendarTitle {
+    font-size: 24px;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .largeTextMode .calendarSubtitle {
+    font-size: 16px;
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+.integratedPeaksSection {
+  max-width: 980px;
+  margin: 24px auto 36px;
+  padding: 0 12px;
+}
+
+.integratedPeaksHeader {
+  margin: 0 auto 12px;
+  max-width: 920px;
+}
+
+.integratedPeaksTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--cal-text-primary);
+}
+
+.integratedPeaksDescription {
+  margin: 6px 0 0;
+  font-size: 15px;
+  color: var(--cal-text-secondary);
+  line-height: 1.6;
 }
 
 .actionPlanItemCheck {

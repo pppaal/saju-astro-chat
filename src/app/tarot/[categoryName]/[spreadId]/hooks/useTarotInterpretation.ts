@@ -9,7 +9,7 @@ import { useCallback, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { Spread, DrawnCard, DeckStyle, getCardImagePath } from '@/lib/Tarot/tarot.types'
-import { getStoredBirthDate } from '@/lib/userProfile'
+import { getStoredBirthDate, fetchAndSyncUserProfile } from '@/lib/userProfile'
 import { saveReading, formatReadingForSave } from '@/lib/Tarot/tarot-storage'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
@@ -81,7 +81,7 @@ function parseStreamedInterpretation(
   const jsonMatch = jsonText.match(/\{[\s\S]*\}/)
   if (!jsonMatch) throw new Error('No JSON found')
 
-  const parsed = JSON.parse(jsonMatch[0]);
+  const parsed = JSON.parse(jsonMatch[0])
 
   return {
     overall_message: parsed.overall || '',
@@ -121,6 +121,19 @@ export function useTarotInterpretation({
   const fetchInterpretation = useCallback(
     async (result: ReadingResponse): Promise<InterpretationResult | null> => {
       const isKorean = (language || 'ko') === 'ko'
+      let birthdate = getStoredBirthDate()
+      if (session?.user) {
+        try {
+          const syncedProfile = await fetchAndSyncUserProfile()
+          birthdate = syncedProfile.birthDate || birthdate
+        } catch (profileError) {
+          tarotLogger.error(
+            'Failed to refresh profile before tarot interpretation',
+            profileError instanceof Error ? profileError : undefined
+          )
+        }
+      }
+
       const cardPayload = result.drawnCards.map((dc, idx) => {
         const meaning = dc.isReversed ? dc.card.reversed : dc.card.upright
         return {
@@ -148,7 +161,7 @@ export function useTarotInterpretation({
             cards: cardPayload,
             userQuestion: userTopic,
             language: language || 'ko',
-            birthdate: getStoredBirthDate(),
+            birthdate,
           }),
         })
 
@@ -157,7 +170,7 @@ export function useTarotInterpretation({
 
           if (contentType.includes('text/event-stream') && response.body) {
             // SSE 스트림 처리
-            const jsonText = await consumeSSEStream(response);
+            const jsonText = await consumeSSEStream(response)
             return parseStreamedInterpretation(
               jsonText,
               result.drawnCards,
@@ -196,7 +209,7 @@ export function useTarotInterpretation({
           }
         }
 
-        throw new Error('Stream interpretation failed');
+        throw new Error('Stream interpretation failed')
       } catch (streamError) {
         tarotLogger.error(
           'Streaming interpretation failed, trying non-stream fallback',
@@ -216,7 +229,7 @@ export function useTarotInterpretation({
             cards: cardPayload,
             userQuestion: userTopic,
             language: language || 'ko',
-            birthdate: getStoredBirthDate(),
+            birthdate,
           }),
         })
 
@@ -247,7 +260,7 @@ export function useTarotInterpretation({
         fallback: true,
       }
     },
-    [categoryName, spreadId, language, translate, userTopic]
+    [categoryName, spreadId, language, session, translate, userTopic]
   )
 
   const handleSaveReading = useCallback(
@@ -326,7 +339,7 @@ export function useTarotInterpretation({
 
         setIsSaved(true)
         setSaveMessage(language === 'ko' ? '저장되었습니다!' : 'Saved!')
-        setTimeout(() => setSaveMessage(''), 3000);
+        setTimeout(() => setSaveMessage(''), 3000)
       } catch (error) {
         tarotLogger.error('Failed to save reading', error instanceof Error ? error : undefined)
         setSaveMessage(language === 'ko' ? '저장 실패' : 'Save failed')
@@ -334,7 +347,7 @@ export function useTarotInterpretation({
       }
     },
     [categoryName, spreadId, selectedDeckStyle, language, isSaved, session, userTopic]
-  );
+  )
 
   return {
     isSaved,

@@ -85,7 +85,10 @@ vi.mock('@/lib/api/zodValidation', () => ({
   },
   createValidationErrorResponse: vi.fn((error: any, options?: any) => {
     return new Response(
-      JSON.stringify({ error: 'validation_failed', details: error.issues.map((i: any) => ({ path: i.path.join('.'), message: i.message })) }),
+      JSON.stringify({
+        error: 'validation_failed',
+        details: error.issues.map((i: any) => ({ path: i.path.join('.'), message: i.message })),
+      }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     )
   }),
@@ -269,10 +272,7 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should return middleware error response when middleware fails', async () => {
-      const errorResponse = NextResponse.json(
-        { error: { code: 'RATE_LIMITED' } },
-        { status: 429 }
-      )
+      const errorResponse = NextResponse.json({ error: { code: 'RATE_LIMITED' } }, { status: 429 })
       mockInitializeApiContext.mockResolvedValue({
         context: MOCK_CONTEXT,
         error: errorResponse,
@@ -284,10 +284,7 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should return 401 when token is invalid', async () => {
-      const errorResponse = NextResponse.json(
-        { error: { code: 'UNAUTHORIZED' } },
-        { status: 401 }
-      )
+      const errorResponse = NextResponse.json({ error: { code: 'UNAUTHORIZED' } }, { status: 401 })
       mockInitializeApiContext.mockResolvedValue({
         context: MOCK_CONTEXT,
         error: errorResponse,
@@ -310,10 +307,7 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should return error when body is oversized', async () => {
-      const oversizedResponse = NextResponse.json(
-        { error: 'payload_too_large' },
-        { status: 413 }
-      )
+      const oversizedResponse = NextResponse.json({ error: 'payload_too_large' }, { status: 413 })
       mockEnforceBodySize.mockReturnValue(oversizedResponse)
 
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
@@ -330,9 +324,7 @@ describe('POST /api/tarot/interpret-stream', () => {
       mockTarotInterpretStreamSafeParse.mockReturnValue({
         success: false,
         error: {
-          issues: [
-            { path: ['categoryId'], message: 'Required' },
-          ],
+          issues: [{ path: ['categoryId'], message: 'Required' }],
         },
       })
 
@@ -418,12 +410,16 @@ describe('POST /api/tarot/interpret-stream', () => {
       mockTarotInterpretStreamSafeParse.mockReturnValue({
         success: false,
         error: {
-          issues: [{ path: ['userQuestion'], message: 'String must contain at most 600 character(s)' }],
+          issues: [
+            { path: ['userQuestion'], message: 'String must contain at most 600 character(s)' },
+          ],
         },
       })
 
       const longQuestion = 'x'.repeat(700)
-      const response = await POST(makePostRequest({ ...VALID_REQUEST_BODY, userQuestion: longQuestion }))
+      const response = await POST(
+        makePostRequest({ ...VALID_REQUEST_BODY, userQuestion: longQuestion })
+      )
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -462,10 +458,12 @@ describe('POST /api/tarot/interpret-stream', () => {
         },
       })
 
-      const response = await POST(makePostRequest({
-        ...VALID_REQUEST_BODY,
-        previousReadings: ['Reading 1', 'Reading 2', 'Reading 3'],
-      }))
+      const response = await POST(
+        makePostRequest({
+          ...VALID_REQUEST_BODY,
+          previousReadings: ['Reading 1', 'Reading 2', 'Reading 3'],
+        })
+      )
 
       expect(response.status).not.toBe(400)
     })
@@ -513,7 +511,9 @@ describe('POST /api/tarot/interpret-stream', () => {
     it('should log warning when OPENAI_API_KEY is missing', async () => {
       await POST(makePostRequest(VALID_REQUEST_BODY))
 
-      expect(logger.warn).toHaveBeenCalledWith('Tarot stream missing OPENAI_API_KEY, using fallback')
+      expect(logger.warn).toHaveBeenCalledWith(
+        'Tarot stream missing OPENAI_API_KEY, using fallback'
+      )
     })
   })
 
@@ -530,13 +530,15 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should call OpenAI API with correct parameters', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse([
-          'data: {"choices":[{"delta":{"content":"{\\"overall\\":"}}]}\n\n',
-          'data: {"choices":[{"delta":{"content":"\\"Test\\"}"}}]}\n\n',
-          'data: [DONE]\n\n',
-        ])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(
+          createMockOpenAIStreamResponse([
+            'data: {"choices":[{"delta":{"content":"{\\"overall\\":"}}]}\n\n',
+            'data: {"choices":[{"delta":{"content":"\\"Test\\"}"}}]}\n\n',
+            'data: [DONE]\n\n',
+          ])
+        )
       global.fetch = mockFetch
 
       await POST(makePostRequest(VALID_REQUEST_BODY))
@@ -555,9 +557,9 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should use gpt-4o-mini model', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       await POST(makePostRequest(VALID_REQUEST_BODY))
@@ -567,9 +569,9 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should request JSON response format', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       await POST(makePostRequest(VALID_REQUEST_BODY))
@@ -579,9 +581,9 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should enable streaming', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       await POST(makePostRequest(VALID_REQUEST_BODY))
@@ -591,12 +593,14 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should return SSE stream response on success', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse([
-          'data: {"choices":[{"delta":{"content":"test"}}]}\n\n',
-          'data: [DONE]\n\n',
-        ])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(
+          createMockOpenAIStreamResponse([
+            'data: {"choices":[{"delta":{"content":"test"}}]}\n\n',
+            'data: [DONE]\n\n',
+          ])
+        )
       global.fetch = mockFetch
 
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
@@ -619,9 +623,7 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should fallback to backend when OpenAI returns error status', async () => {
-      global.fetch = vi.fn().mockResolvedValue(
-        new Response('Rate limit exceeded', { status: 429 })
-      )
+      global.fetch = vi.fn().mockResolvedValue(new Response('Rate limit exceeded', { status: 429 }))
 
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
 
@@ -723,9 +725,9 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should include zodiac sign context when birthdate provided', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       mockTarotInterpretStreamSafeParse.mockReturnValue({
@@ -741,10 +743,37 @@ describe('POST /api/tarot/interpret-stream', () => {
       expect(userMessage.content).toContain('황소자리')
     })
 
-    it('should include previous readings context when provided', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
+    it('should ignore impossible YYYY-MM-DD birthdate values', async () => {
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
+      global.fetch = mockFetch
+
+      mockTarotInterpretStreamSafeParse.mockReturnValue({
+        success: true,
+        data: {
+          ...VALID_REQUEST_BODY,
+          language: 'en',
+          birthdate: '1990-02-31',
+        },
+      })
+
+      await POST(
+        makePostRequest({
+          ...VALID_REQUEST_BODY,
+          language: 'en',
+          birthdate: '1990-02-31',
+        })
       )
+
+      const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
+      const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
+      expect(userMessage.content).not.toContain('Zodiac:')
+    })
+    it('should include previous readings context when provided', async () => {
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       mockTarotInterpretStreamSafeParse.mockReturnValue({
@@ -755,10 +784,12 @@ describe('POST /api/tarot/interpret-stream', () => {
         },
       })
 
-      await POST(makePostRequest({
-        ...VALID_REQUEST_BODY,
-        previousReadings: ['Previous reading about love'],
-      }))
+      await POST(
+        makePostRequest({
+          ...VALID_REQUEST_BODY,
+          previousReadings: ['Previous reading about love'],
+        })
+      )
 
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
       const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
@@ -766,9 +797,9 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should analyze question mood for worried patterns', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       mockTarotInterpretStreamSafeParse.mockReturnValue({
@@ -901,9 +932,9 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should handle reversed cards correctly', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       const reversedCard = { ...VALID_CARD, isReversed: true }
@@ -920,9 +951,9 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should use Korean card names when language is ko', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       mockTarotInterpretStreamSafeParse.mockReturnValue({
@@ -938,9 +969,9 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should use English card names when language is en', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       mockTarotInterpretStreamSafeParse.mockReturnValue({
@@ -956,9 +987,9 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should include card keywords in prompt', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       await POST(makePostRequest(VALID_REQUEST_BODY))
@@ -969,9 +1000,9 @@ describe('POST /api/tarot/interpret-stream', () => {
     })
 
     it('should process multiple cards', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       const multipleCards = [
@@ -1032,10 +1063,12 @@ describe('POST /api/tarot/interpret-stream', () => {
         data: { ...VALID_REQUEST_BODY, userQuestion: specialQuestion },
       })
 
-      const response = await POST(makePostRequest({
-        ...VALID_REQUEST_BODY,
-        userQuestion: specialQuestion,
-      }))
+      const response = await POST(
+        makePostRequest({
+          ...VALID_REQUEST_BODY,
+          userQuestion: specialQuestion,
+        })
+      )
 
       expect(response.status).not.toBe(400)
     })
@@ -1046,10 +1079,12 @@ describe('POST /api/tarot/interpret-stream', () => {
         data: { ...VALID_REQUEST_BODY, birthdate: 'invalid-date' },
       })
 
-      const response = await POST(makePostRequest({
-        ...VALID_REQUEST_BODY,
-        birthdate: 'invalid-date',
-      }))
+      const response = await POST(
+        makePostRequest({
+          ...VALID_REQUEST_BODY,
+          birthdate: 'invalid-date',
+        })
+      )
 
       // Should still work, just without zodiac context
       expect(response.status).not.toBe(400)
@@ -1077,7 +1112,9 @@ describe('Tarot Stream - Internal Function Behavior', () => {
         data: { ...VALID_REQUEST_BODY, birthdate: '1990-04-10' },
       })
 
-      const response = await POST(makePostRequest({ ...VALID_REQUEST_BODY, birthdate: '1990-04-10' }))
+      const response = await POST(
+        makePostRequest({ ...VALID_REQUEST_BODY, birthdate: '1990-04-10' })
+      )
       expect(response.status).not.toBe(400)
     })
 
@@ -1088,7 +1125,9 @@ describe('Tarot Stream - Internal Function Behavior', () => {
         data: { ...VALID_REQUEST_BODY, birthdate: '1990-12-25' },
       })
 
-      const response = await POST(makePostRequest({ ...VALID_REQUEST_BODY, birthdate: '1990-12-25' }))
+      const response = await POST(
+        makePostRequest({ ...VALID_REQUEST_BODY, birthdate: '1990-12-25' })
+      )
       expect(response.status).not.toBe(400)
     })
   })
@@ -1106,9 +1145,9 @@ describe('Tarot Stream - Internal Function Behavior', () => {
     })
 
     it('should detect worried mood patterns in Korean', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       mockTarotInterpretStreamSafeParse.mockReturnValue({
@@ -1116,7 +1155,9 @@ describe('Tarot Stream - Internal Function Behavior', () => {
         data: { ...VALID_REQUEST_BODY, userQuestion: '실패할까봐 두렵고 걱정돼요' },
       })
 
-      await POST(makePostRequest({ ...VALID_REQUEST_BODY, userQuestion: '실패할까봐 두렵고 걱정돼요' }))
+      await POST(
+        makePostRequest({ ...VALID_REQUEST_BODY, userQuestion: '실패할까봐 두렵고 걱정돼요' })
+      )
 
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
       const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
@@ -1124,9 +1165,9 @@ describe('Tarot Stream - Internal Function Behavior', () => {
     })
 
     it('should detect urgent mood patterns', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       mockTarotInterpretStreamSafeParse.mockReturnValue({
@@ -1134,7 +1175,9 @@ describe('Tarot Stream - Internal Function Behavior', () => {
         data: { ...VALID_REQUEST_BODY, userQuestion: '급해요! 지금 당장 알려주세요' },
       })
 
-      await POST(makePostRequest({ ...VALID_REQUEST_BODY, userQuestion: '급해요! 지금 당장 알려주세요' }))
+      await POST(
+        makePostRequest({ ...VALID_REQUEST_BODY, userQuestion: '급해요! 지금 당장 알려주세요' })
+      )
 
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
       const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
@@ -1142,9 +1185,9 @@ describe('Tarot Stream - Internal Function Behavior', () => {
     })
 
     it('should detect hopeful mood patterns', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       mockTarotInterpretStreamSafeParse.mockReturnValue({
@@ -1152,7 +1195,12 @@ describe('Tarot Stream - Internal Function Behavior', () => {
         data: { ...VALID_REQUEST_BODY, userQuestion: '성공할 수 있을까요? 희망이 있나요?' },
       })
 
-      await POST(makePostRequest({ ...VALID_REQUEST_BODY, userQuestion: '성공할 수 있을까요? 희망이 있나요?' }))
+      await POST(
+        makePostRequest({
+          ...VALID_REQUEST_BODY,
+          userQuestion: '성공할 수 있을까요? 희망이 있나요?',
+        })
+      )
 
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
       const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
@@ -1160,9 +1208,9 @@ describe('Tarot Stream - Internal Function Behavior', () => {
     })
 
     it('should detect curious mood patterns', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       mockTarotInterpretStreamSafeParse.mockReturnValue({
@@ -1170,7 +1218,12 @@ describe('Tarot Stream - Internal Function Behavior', () => {
         data: { ...VALID_REQUEST_BODY, userQuestion: '궁금해요! 어떻게 될지 알고 싶어요' },
       })
 
-      await POST(makePostRequest({ ...VALID_REQUEST_BODY, userQuestion: '궁금해요! 어떻게 될지 알고 싶어요' }))
+      await POST(
+        makePostRequest({
+          ...VALID_REQUEST_BODY,
+          userQuestion: '궁금해요! 어떻게 될지 알고 싶어요',
+        })
+      )
 
       const callBody = JSON.parse(mockFetch.mock.calls[0][1].body)
       const userMessage = callBody.messages.find((m: { role: string }) => m.role === 'user')
@@ -1178,9 +1231,9 @@ describe('Tarot Stream - Internal Function Behavior', () => {
     })
 
     it('should detect English mood patterns', async () => {
-      const mockFetch = vi.fn().mockResolvedValue(
-        createMockOpenAIStreamResponse(['data: [DONE]\n\n'])
-      )
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValue(createMockOpenAIStreamResponse(['data: [DONE]\n\n']))
       global.fetch = mockFetch
 
       mockTarotInterpretStreamSafeParse.mockReturnValue({
@@ -1188,11 +1241,13 @@ describe('Tarot Stream - Internal Function Behavior', () => {
         data: { ...VALID_REQUEST_BODY, language: 'en', userQuestion: 'I am worried and anxious' },
       })
 
-      await POST(makePostRequest({
-        ...VALID_REQUEST_BODY,
-        language: 'en',
-        userQuestion: 'I am worried and anxious',
-      }))
+      await POST(
+        makePostRequest({
+          ...VALID_REQUEST_BODY,
+          language: 'en',
+          userQuestion: 'I am worried and anxious',
+        })
+      )
 
       // For English, mood hints may not be included (implementation specific)
       expect(mockFetch).toHaveBeenCalled()

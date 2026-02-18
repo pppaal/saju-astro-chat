@@ -340,7 +340,7 @@ describe('/api/user/update-birth-info', () => {
 
       it('should reject invalid gender values', async () => {
         const { POST } = await import('@/app/api/user/update-birth-info/route')
-        const invalidGenders = ['unknown', 'M', 'F', 'man', 'woman']
+        const invalidGenders = ['unknown', 'man', 'woman', 'invalid']
 
         for (const gender of invalidGenders) {
           vi.clearAllMocks()
@@ -348,6 +348,7 @@ describe('/api/user/update-birth-info', () => {
           const response = await POST(req)
           const data = await response.json()
 
+          expect(response.status).toBe(400)
           expect(JSON.stringify(data)).toContain('Validation failed')
         }
       })

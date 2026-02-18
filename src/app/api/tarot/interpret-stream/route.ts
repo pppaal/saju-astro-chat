@@ -196,16 +196,42 @@ async function fetchBackendFallback(payload: {
 }
 
 // 별자리 계산 함수
-function getZodiacSign(
-  birthdate: string
-): { sign: string; signKo: string; element: string } | null {
-  const date = new Date(birthdate)
-  if (isNaN(date.getTime())) {
+function parseBirthMonthDay(birthdate: string): { month: number; day: number } | null {
+  // Handle YYYY-MM-DD explicitly to avoid timezone shifts.
+  const directDateMatch = birthdate.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (directDateMatch) {
+    const year = Number(directDateMatch[1])
+    const month = Number(directDateMatch[2])
+    const day = Number(directDateMatch[3])
+    const utcDate = new Date(Date.UTC(year, month - 1, day))
+
+    if (
+      utcDate.getUTCFullYear() === year &&
+      utcDate.getUTCMonth() + 1 === month &&
+      utcDate.getUTCDate() === day
+    ) {
+      return { month, day }
+    }
     return null
   }
 
-  const month = date.getMonth() + 1
-  const day = date.getDate()
+  // Fallback for other ISO-like inputs. Use UTC fields for determinism.
+  const parsed = new Date(birthdate)
+  if (Number.isNaN(parsed.getTime())) {
+    return null
+  }
+  return { month: parsed.getUTCMonth() + 1, day: parsed.getUTCDate() }
+}
+
+function getZodiacSign(
+  birthdate: string
+): { sign: string; signKo: string; element: string } | null {
+  const parts = parseBirthMonthDay(birthdate)
+  if (!parts) {
+    return null
+  }
+
+  const { month, day } = parts
 
   const zodiacData = [
     { sign: 'Capricorn', signKo: '염소자리', element: '흙', start: [12, 22], end: [1, 19] },
@@ -329,7 +355,14 @@ export async function POST(req: NextRequest) {
     const spreadId = body.spreadId || ''
     const spreadTitle = body.spreadTitle || ''
     // Prefer body.language, fallback to context.locale, default to 'ko'
-    const language: 'ko' | 'en' = body.language === 'en' ? 'en' : (body.language === 'ko' ? 'ko' : (context.locale === 'en' ? 'en' : 'ko'))
+    const language: 'ko' | 'en' =
+      body.language === 'en'
+        ? 'en'
+        : body.language === 'ko'
+          ? 'ko'
+          : context.locale === 'en'
+            ? 'en'
+            : 'ko'
     const rawCards = body.cards
     const userQuestion = body.userQuestion || ''
     const birthdate = body.birthdate || ''

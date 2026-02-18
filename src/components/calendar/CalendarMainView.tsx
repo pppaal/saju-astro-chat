@@ -9,6 +9,7 @@ import { getGradeEmoji, getCategoryLabel, getScoreClass } from './utils'
 import SelectedDatePanel from './SelectedDatePanel'
 import MonthHighlights from './MonthHighlights'
 import CalendarActionPlanView from './CalendarActionPlanView'
+import MatrixPeaksCalendar from './peaks/MatrixPeaksCalendar'
 import type { CalendarData, ImportantDate, EventCategory, BirthInfo } from './types'
 
 interface CalendarMainViewProps {
@@ -62,6 +63,8 @@ const MONTHS_EN = [
   'December',
 ]
 const CATEGORIES: EventCategory[] = ['wealth', 'career', 'love', 'health', 'travel', 'study']
+const LARGE_TEXT_STORAGE_KEY = 'destiny-calendar-large-text'
+const HIGH_CONTRAST_STORAGE_KEY = 'destiny-calendar-high-contrast'
 
 const CalendarMainView = memo(function CalendarMainView({
   data,
@@ -85,6 +88,33 @@ const CalendarMainView = memo(function CalendarMainView({
 }: CalendarMainViewProps) {
   const { locale } = useI18n()
   const [activeView, setActiveView] = useState<'calendar' | 'action'>('calendar')
+  const [largeTextMode, setLargeTextMode] = useState(false)
+  const [highContrastMode, setHighContrastMode] = useState(false)
+
+  React.useEffect(() => {
+    try {
+      setLargeTextMode(window.localStorage.getItem(LARGE_TEXT_STORAGE_KEY) === 'true')
+      setHighContrastMode(window.localStorage.getItem(HIGH_CONTRAST_STORAGE_KEY) === 'true')
+    } catch {
+      // Ignore storage read errors (private mode, etc.)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    try {
+      window.localStorage.setItem(LARGE_TEXT_STORAGE_KEY, String(largeTextMode))
+    } catch {
+      // Ignore storage write errors
+    }
+  }, [largeTextMode])
+
+  React.useEffect(() => {
+    try {
+      window.localStorage.setItem(HIGH_CONTRAST_STORAGE_KEY, String(highContrastMode))
+    } catch {
+      // Ignore storage write errors
+    }
+  }, [highContrastMode])
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -255,7 +285,9 @@ const CalendarMainView = memo(function CalendarMainView({
   }
 
   return (
-    <div className={`${styles.container} ${!isDarkTheme ? styles.lightTheme : ''}`}>
+    <div
+      className={`${styles.container} ${!isDarkTheme ? styles.lightTheme : ''} ${largeTextMode ? styles.largeTextMode : ''} ${highContrastMode ? styles.highContrastMode : ''}`}
+    >
       {/* Header */}
       <div className={styles.calendarHeader}>
         <div className={styles.headerTop}>
@@ -279,7 +311,26 @@ const CalendarMainView = memo(function CalendarMainView({
               </p>
             </div>
           </div>
-          <div className={styles.headerRight}>{/* Placeholder for symmetry */}</div>
+          <div className={styles.headerRight}>
+            <div className={styles.accessibilityControls}>
+              <button
+                type="button"
+                className={`${styles.accessibilityBtn} ${largeTextMode ? styles.accessibilityBtnActive : ''}`}
+                onClick={() => setLargeTextMode((prev) => !prev)}
+                aria-pressed={largeTextMode}
+              >
+                {locale === 'ko' ? '큰글자' : 'Large'}
+              </button>
+              <button
+                type="button"
+                className={`${styles.accessibilityBtn} ${highContrastMode ? styles.accessibilityBtnActive : ''}`}
+                onClick={() => setHighContrastMode((prev) => !prev)}
+                aria-pressed={highContrastMode}
+              >
+                {locale === 'ko' ? '고대비' : 'Contrast'}
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Year Summary Badges */}
@@ -632,6 +683,20 @@ const CalendarMainView = memo(function CalendarMainView({
               onDateSelect={handleDateSelect}
             />
           )}
+
+          <section className={styles.integratedPeaksSection} aria-label="Matrix Peaks">
+            <div className={styles.integratedPeaksHeader}>
+              <h2 className={styles.integratedPeaksTitle}>
+                {locale === 'ko' ? 'Destiny Matrix 피크 구간' : 'Destiny Matrix Peak Windows'}
+              </h2>
+              <p className={styles.integratedPeaksDescription}>
+                {locale === 'ko'
+                  ? '일간 캘린더 아래에서 12개월 피크 구간을 함께 확인할 수 있습니다.'
+                  : 'Peak windows for the next 12 months are now shown under the daily calendar.'}
+              </p>
+            </div>
+            <MatrixPeaksCalendar />
+          </section>
         </>
       ) : (
         <CalendarActionPlanView
