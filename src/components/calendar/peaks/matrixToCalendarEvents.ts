@@ -148,12 +148,41 @@ function deriveDomainTimeline(
   })
 }
 
+function buildTimelineFromDomainTimelines(
+  byDomain: Record<DomainKey, MonthlyOverlapPoint[]> | undefined
+): MonthlyOverlapPoint[] {
+  if (!byDomain) {
+    return []
+  }
+
+  const monthMap = new Map<string, MonthlyOverlapPoint>()
+  const domainLists = Object.values(byDomain)
+  for (const list of domainLists) {
+    for (const point of list || []) {
+      const current = monthMap.get(point.month)
+      if (!current) {
+        monthMap.set(point.month, { ...point })
+        continue
+      }
+      if (point.overlapStrength > current.overlapStrength) {
+        monthMap.set(point.month, { ...point })
+      }
+    }
+  }
+
+  return Array.from(monthMap.values()).sort((a, b) => a.month.localeCompare(b.month))
+}
+
 export function matrixSummaryToCalendarEvents(
   summary: MatrixSummaryLike,
   startYearMonth?: string,
   locale: EventLocale = 'en'
 ): CalendarEvent[] {
-  const timeline = (summary.overlapTimeline || [])
+  const timeline = (
+    (summary.overlapTimeline && summary.overlapTimeline.length > 0
+      ? summary.overlapTimeline
+      : buildTimelineFromDomainTimelines(summary.overlapTimelineByDomain)) || []
+  )
     .slice()
     .sort((a, b) => a.month.localeCompare(b.month))
   if (timeline.length === 0) {

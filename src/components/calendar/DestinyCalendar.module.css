@@ -4468,6 +4468,22 @@
   -webkit-text-fill-color: #ffffff;
 }
 
+/* Default no-motion mode for readability */
+.highContrastMode .selectedDayInfo,
+.highContrastMode .daysGrid,
+.highContrastMode .slideLeft,
+.highContrastMode .slideRight,
+.highContrastMode .crossVerifiedIcon,
+.highContrastMode .urgentWarningBox,
+.highContrastMode .urgentWarningIcon,
+.highContrastMode .matrixEventCard,
+.highContrastMode .summaryBadge,
+.highContrastMode .scoreFill {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+
 @media (max-width: 640px) {
   .headerTop {
     align-items: flex-start;

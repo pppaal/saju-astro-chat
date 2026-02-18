@@ -3,7 +3,11 @@ import { withApiMiddleware, createSimpleGuard, type ApiContext } from '@/lib/api
 import fs from 'fs/promises'
 import path from 'path'
 import { logger } from '@/lib/logger'
-import { getCityNameInKorean, getCountryNameInKorean } from '@/lib/cities/formatter'
+import {
+  getCityNameFromKorean,
+  getCityNameInKorean,
+  getCountryNameInKorean,
+} from '@/lib/cities/formatter'
 import { citiesSearchQuerySchema } from '@/lib/api/zodValidation'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
@@ -28,8 +32,12 @@ let loading: Promise<City[]> | null = null
 
 const norm = (value: unknown) =>
   String(value ?? '')
+    .normalize('NFKC')
     .trim()
     .toLowerCase()
+
+const compact = (value: unknown) => norm(value).replace(/[\s,./_-]+/g, '')
+const hasHangul = (value: string) => /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(value)
 
 async function loadCities(): Promise<City[]> {
   if (cachedCities) {
@@ -52,7 +60,10 @@ async function loadCities(): Promise<City[]> {
           throw new Error('City data file is corrupted')
         }
         // File not found or other I/O error
-        logger.error('[cities] Failed to load cities data:', err instanceof Error ? err.message : 'Unknown error')
+        logger.error(
+          '[cities] Failed to load cities data:',
+          err instanceof Error ? err.message : 'Unknown error'
+        )
         throw new Error('City data unavailable')
       }
     })()
@@ -74,7 +85,9 @@ export const GET = withApiMiddleware(
       )
     }
     const query = norm(queryValidation.data.q)
+    const queryCompact = compact(queryValidation.data.q)
     const limit = queryValidation.data.limit
+    const koreanAlias = hasHangul(query) ? getCityNameFromKorean(queryValidation.data.q) : null
 
     logger.info('[cities API] Query:', { query, limit })
 
@@ -90,6 +103,8 @@ export const GET = withApiMiddleware(
       const name = norm(c.name)
       const cc = norm(c.country)
       const pair = `${name}, ${cc}`
+      const nameCompact = compact(c.name)
+      const pairCompact = compact(pair)
 
       // Get Korean translations
       const cityKr = getCityNameInKorean(c.name)
@@ -97,21 +112,31 @@ export const GET = withApiMiddleware(
       const cityKrNorm = cityKr ? norm(cityKr) : null
       const countryKrNorm = countryKr ? norm(countryKr) : null
       const pairKr = cityKrNorm && countryKrNorm ? `${cityKrNorm}, ${countryKrNorm}` : null
+      const cityKrCompact = cityKr ? compact(cityKr) : null
+      const countryKrCompact = countryKr ? compact(countryKr) : null
+      const pairKrCompact = pairKr ? compact(pairKr) : null
+      const aliasMatch = koreanAlias ? norm(c.name) === norm(koreanAlias) : false
 
       // Check English matches
       const engMatch =
         name.startsWith(query) ||
         name.includes(query) ||
         pair.startsWith(query) ||
-        pair.includes(query)
+        pair.includes(query) ||
+        (queryCompact.length >= 2 &&
+          (nameCompact.includes(queryCompact) || pairCompact.includes(queryCompact)))
 
       // Check Korean matches
       const korMatch =
         (cityKrNorm && (cityKrNorm.startsWith(query) || cityKrNorm.includes(query))) ||
         (countryKrNorm && (countryKrNorm.startsWith(query) || countryKrNorm.includes(query))) ||
-        (pairKr && (pairKr.startsWith(query) || pairKr.includes(query)))
+        (pairKr && (pairKr.startsWith(query) || pairKr.includes(query))) ||
+        (queryCompact.length >= 2 &&
+          ((cityKrCompact && cityKrCompact.includes(queryCompact)) ||
+            (countryKrCompact && countryKrCompact.includes(queryCompact)) ||
+            (pairKrCompact && pairKrCompact.includes(queryCompact))))
 
-      if (engMatch || korMatch) {
+      if (engMatch || korMatch || aliasMatch) {
         // Calculate score (lower is better)
         let score = 100
 

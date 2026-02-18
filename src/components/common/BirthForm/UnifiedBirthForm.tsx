@@ -7,6 +7,7 @@ import TimePicker from '@/components/ui/TimePicker'
 import { GenderSelector } from './GenderSelector'
 import { ProfileLoader } from './ProfileLoader'
 import { CitySearchField } from './CitySearchField'
+import { formatCityForDropdown } from '@/lib/cities/formatter'
 import { logger } from '@/lib/logger'
 import styles from './UnifiedBirthForm.module.css'
 
@@ -220,8 +221,8 @@ export function UnifiedBirthForm({
   }) => {
     const displayName =
       locale === 'ko'
-        ? city.displayKr || `${city.name}, ${city.country}`
-        : city.displayEn || `${city.name}, ${city.country}`
+        ? city.displayKr || formatCityForDropdown(city.name, city.country, 'ko')
+        : city.displayEn || formatCityForDropdown(city.name, city.country, 'en')
     setBirthCity(displayName)
     setCityData({
       latitude: city.lat,

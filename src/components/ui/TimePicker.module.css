@@ -3,9 +3,9 @@
 }
 
 .label {
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
+  color: #ffffff;
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -23,13 +23,13 @@
 }
 
 .select {
-  min-height: 48px;
-  padding: 14px 12px;
-  background: rgba(168, 237, 234, 0.08);
-  border: 1px solid rgba(168, 237, 234, 0.25);
+  min-height: 56px;
+  padding: 16px 14px;
+  background: rgba(17, 24, 39, 0.92);
+  border: 2px solid rgba(255, 255, 255, 0.45);
   border-radius: 12px;
   color: rgba(255, 255, 255, 0.95);
-  font-size: 1rem;
+  font-size: 1.08rem;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
   transition: all 0.3s ease;
   outline: none;
@@ -45,9 +45,9 @@
 }
 
 .select:focus {
-  border-color: rgba(168, 237, 234, 0.6);
-  background-color: rgba(168, 237, 234, 0.12);
-  box-shadow: 0 0 15px rgba(168, 237, 234, 0.2);
+  border-color: #93c5fd;
+  background-color: rgba(30, 41, 59, 0.96);
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.3);
 }
 
 .select:disabled {
@@ -78,14 +78,14 @@
   }
 
   .select {
-    min-height: 50px;
+    min-height: 54px;
     padding: 14px 12px;
     font-size: 16px;
     border-radius: 10px;
   }
 
   .label {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     margin-bottom: 0.4rem;
   }
 }
