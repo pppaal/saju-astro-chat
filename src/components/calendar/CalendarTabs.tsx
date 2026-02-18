@@ -45,12 +45,15 @@ export default function CalendarTabs() {
             : 'Peaks shows concentrated windows from Destiny Matrix and reuses your latest birth info.'}
       </p>
 
-      <div role="tabpanel" hidden={activeTab !== 'daily'} className={styles.tabPanel}>
-        <DestinyCalendar />
-      </div>
-      <div role="tabpanel" hidden={activeTab !== 'peaks'} className={styles.tabPanel}>
-        <MatrixPeaksCalendar />
-      </div>
+      {activeTab === 'daily' ? (
+        <div role="tabpanel" className={styles.tabPanel}>
+          <DestinyCalendar />
+        </div>
+      ) : (
+        <div role="tabpanel" className={styles.tabPanel}>
+          <MatrixPeaksCalendar />
+        </div>
+      )}
     </div>
   )
 }

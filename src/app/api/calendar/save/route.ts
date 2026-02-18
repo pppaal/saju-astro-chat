@@ -152,11 +152,14 @@ export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     try {
       const { searchParams } = new URL(req.url)
+      const dateParam = searchParams.get('date') ?? undefined
+      const yearParam = searchParams.get('year') ?? undefined
+      const limitQueryParam = searchParams.get('limit') ?? '50'
 
       const queryValidation = calendarQuerySchema.safeParse({
-        date: searchParams.get('date'),
-        year: searchParams.get('year'),
-        limit: searchParams.get('limit') || '50',
+        date: dateParam,
+        year: yearParam,
+        limit: limitQueryParam,
       })
 
       if (!queryValidation.success) {
