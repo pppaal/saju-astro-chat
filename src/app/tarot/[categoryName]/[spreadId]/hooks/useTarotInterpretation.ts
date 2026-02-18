@@ -14,12 +14,14 @@ import { saveReading, formatReadingForSave } from '@/lib/Tarot/tarot-storage'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import type { InterpretationResult, ReadingResponse } from '../types'
+import type { TarotPersonalizationOptions } from './useTarotGame'
 
 interface UseTarotInterpretationParams {
   categoryName: string | undefined
   spreadId: string | undefined
   userTopic: string
   selectedDeckStyle: DeckStyle
+  personalizationOptions: TarotPersonalizationOptions
 }
 
 interface UseTarotInterpretationReturn {
@@ -42,13 +44,15 @@ async function consumeSSEStream(response: Response): Promise<string> {
 
   const decoder = new TextDecoder()
   let accumulated = ''
+  let lineBuffer = ''
 
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
 
-    const text = decoder.decode(value, { stream: true })
-    const lines = text.split('\n')
+    lineBuffer += decoder.decode(value, { stream: true })
+    const lines = lineBuffer.split('\n')
+    lineBuffer = lines.pop() || ''
 
     for (const line of lines) {
       if (line.startsWith('data: ')) {
@@ -62,6 +66,21 @@ async function consumeSSEStream(response: Response): Promise<string> {
         } catch {
           // 불완전한 청크 무시
         }
+      }
+    }
+  }
+
+  lineBuffer += decoder.decode()
+  if (lineBuffer.startsWith('data: ')) {
+    const data = lineBuffer.slice(6)
+    if (data && data !== '[DONE]') {
+      try {
+        const parsed = JSON.parse(data)
+        if (parsed.content) {
+          accumulated += parsed.content
+        }
+      } catch {
+        // 무시 가능한 마지막 청크
       }
     }
   }
@@ -82,16 +101,27 @@ function parseStreamedInterpretation(
   if (!jsonMatch) throw new Error('No JSON found')
 
   const parsed = JSON.parse(jsonMatch[0])
+  const parsedCards = Array.isArray(parsed.cards) ? parsed.cards : []
+  const hasEnoughCards = parsedCards.length >= cards.length
+  const hasInterpretationsForAllCards = cards.every((_, i) => {
+    const interpretation = (parsedCards[i] as { interpretation?: unknown } | undefined)
+      ?.interpretation
+    return typeof interpretation === 'string' && interpretation.trim().length > 0
+  })
+
+  if (!hasEnoughCards || !hasInterpretationsForAllCards) {
+    throw new Error('Incomplete streamed tarot payload')
+  }
 
   return {
     overall_message: parsed.overall || '',
     card_insights: cards.map((dc, i) => {
-      const cardData = parsed.cards?.[i] || {}
+      const cardData = parsedCards[i] as { interpretation?: string } | undefined
       return {
         position: positions[i]?.title || `Card ${i + 1}`,
         card_name: dc.card.name,
         is_reversed: dc.isReversed,
-        interpretation: cardData.interpretation || '',
+        interpretation: cardData?.interpretation || '',
         spirit_animal: null,
         chakra: null,
         element: null,
@@ -112,6 +142,7 @@ export function useTarotInterpretation({
   spreadId,
   userTopic,
   selectedDeckStyle,
+  personalizationOptions,
 }: UseTarotInterpretationParams): UseTarotInterpretationReturn {
   const { data: session } = useSession()
   const { translate, language } = useI18n()
@@ -121,8 +152,11 @@ export function useTarotInterpretation({
   const fetchInterpretation = useCallback(
     async (result: ReadingResponse): Promise<InterpretationResult | null> => {
       const isKorean = (language || 'ko') === 'ko'
-      let birthdate = getStoredBirthDate()
-      if (session?.user) {
+      const includeAstrology = personalizationOptions.includeAstrology !== false
+      const includeSaju = personalizationOptions.includeSaju !== false
+
+      let birthdate = includeAstrology ? getStoredBirthDate() : undefined
+      if (session?.user && includeAstrology) {
         try {
           const syncedProfile = await fetchAndSyncUserProfile()
           birthdate = syncedProfile.birthDate || birthdate
@@ -149,20 +183,90 @@ export function useTarotInterpretation({
         }
       })
 
+      let sajuContext: string | undefined
+      if (session?.user && includeSaju) {
+        try {
+          const sajuResponse = await apiFetch('/api/me/saju')
+          if (sajuResponse.ok) {
+            const sajuPayload = (await sajuResponse.json()) as Record<string, unknown>
+            const container =
+              typeof sajuPayload.data === 'object' && sajuPayload.data
+                ? (sajuPayload.data as Record<string, unknown>)
+                : sajuPayload
+            const hasSaju = container.hasSaju === true
+            const saju =
+              typeof container.saju === 'object' && container.saju
+                ? (container.saju as Record<string, unknown>)
+                : null
+
+            if (hasSaju && saju) {
+              const dayMaster = (saju.dayMaster as string) || ''
+              const dayMasterElement = (saju.dayMasterElement as string) || ''
+              const dayMasterYinYang = (saju.dayMasterYinYang as string) || ''
+
+              if (dayMaster || dayMasterElement) {
+                sajuContext = isKorean
+                  ? `사주 핵심: 일간 ${dayMaster}, 오행 ${dayMasterElement}${dayMasterYinYang ? `, 음양 ${dayMasterYinYang}` : ''}`
+                  : `Saju core: Day master ${dayMaster}, element ${dayMasterElement}${dayMasterYinYang ? `, yin-yang ${dayMasterYinYang}` : ''}`
+              }
+            }
+          }
+        } catch (sajuError) {
+          tarotLogger.error(
+            'Failed to load saju context before tarot interpretation',
+            sajuError instanceof Error ? sajuError : undefined
+          )
+        }
+      }
+
+      const requestBody = {
+        categoryId: categoryName,
+        spreadId,
+        spreadTitle: result.spread.title,
+        cards: cardPayload,
+        userQuestion: userTopic,
+        language: language || 'ko',
+        birthdate: includeAstrology ? birthdate : undefined,
+        includeAstrology,
+        includeSaju,
+        sajuContext,
+      }
+
+      const requestNonStreamInterpretation = async (): Promise<InterpretationResult | null> => {
+        const response = await apiFetch('/api/tarot/interpret', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+        })
+
+        if (!response.ok) {
+          return null
+        }
+
+        return await response.json()
+      }
+
+      const shouldPreferBackendRag = result.drawnCards.length >= 6
+      if (shouldPreferBackendRag) {
+        try {
+          const ragResult = await requestNonStreamInterpretation()
+          if (ragResult) {
+            return ragResult
+          }
+        } catch (ragError) {
+          tarotLogger.error(
+            'Backend RAG interpretation failed, trying stream fallback',
+            ragError instanceof Error ? ragError : undefined
+          )
+        }
+      }
+
       // 1) 스트리밍 엔드포인트 시도
       try {
         const response = await apiFetch('/api/tarot/interpret-stream', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            categoryId: categoryName,
-            spreadId,
-            spreadTitle: result.spread.title,
-            cards: cardPayload,
-            userQuestion: userTopic,
-            language: language || 'ko',
-            birthdate,
-          }),
+          body: JSON.stringify(requestBody),
         })
 
         if (response.ok) {
@@ -182,21 +286,37 @@ export function useTarotInterpretation({
           // JSON 응답 (폴백으로 내려온 경우)
           const data = await response.json()
           if (data.overall || data.overall_message) {
+            const sourceInsights = Array.isArray(data.card_insights)
+              ? (data.card_insights as Record<string, unknown>[])
+              : Array.isArray(data.cards)
+                ? (data.cards as Record<string, unknown>[])
+                : []
+
+            const normalizedInsights = result.drawnCards.map((drawnCard, i) => {
+              const ci = sourceInsights[i] || {}
+              return {
+                position:
+                  (ci.position as string) || result.spread.positions[i]?.title || `Card ${i + 1}`,
+                card_name: drawnCard.card.name,
+                is_reversed: drawnCard.isReversed,
+                interpretation: (ci.interpretation as string) || '',
+                spirit_animal: null,
+                chakra: null,
+                element: null,
+                shadow: null,
+              }
+            })
+
+            const hasMissingInsight = normalizedInsights.some(
+              (insight) => insight.interpretation.trim().length === 0
+            )
+            if (hasMissingInsight) {
+              throw new Error('Incomplete JSON stream payload')
+            }
+
             return {
               overall_message: data.overall_message || data.overall || '',
-              card_insights: (data.card_insights || data.cards || []).map(
-                (ci: Record<string, unknown>, i: number) => ({
-                  position:
-                    (ci.position as string) || result.spread.positions[i]?.title || `Card ${i + 1}`,
-                  card_name: result.drawnCards[i]?.card.name || '',
-                  is_reversed: result.drawnCards[i]?.isReversed || false,
-                  interpretation: (ci.interpretation as string) || '',
-                  spirit_animal: null,
-                  chakra: null,
-                  element: null,
-                  shadow: null,
-                })
-              ),
+              card_insights: normalizedInsights,
               guidance:
                 data.guidance ||
                 data.advice ||
@@ -219,22 +339,9 @@ export function useTarotInterpretation({
 
       // 2) 비스트리밍 폴백
       try {
-        const response = await apiFetch('/api/tarot/interpret', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            categoryId: categoryName,
-            spreadId,
-            spreadTitle: result.spread.title,
-            cards: cardPayload,
-            userQuestion: userTopic,
-            language: language || 'ko',
-            birthdate,
-          }),
-        })
-
-        if (response.ok) {
-          return await response.json()
+        const fallbackResult = await requestNonStreamInterpretation()
+        if (fallbackResult) {
+          return fallbackResult
         }
       } catch (fallbackError) {
         tarotLogger.error(
@@ -260,7 +367,7 @@ export function useTarotInterpretation({
         fallback: true,
       }
     },
-    [categoryName, spreadId, language, session, translate, userTopic]
+    [categoryName, spreadId, language, session, translate, userTopic, personalizationOptions]
   )
 
   const handleSaveReading = useCallback(

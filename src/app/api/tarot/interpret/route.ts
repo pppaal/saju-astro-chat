@@ -1,4 +1,4 @@
-// src/app/api/tarot/interpret/route.ts
+﻿// src/app/api/tarot/interpret/route.ts
 // Premium Tarot Interpretation API using Hybrid RAG
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -61,6 +61,10 @@ export const POST = withApiMiddleware(
         language = 'ko',
         birthdate,
         moonPhase,
+        includeAstrology = true,
+        includeSaju = true,
+        sajuContext,
+        astroContext,
       } = validationResult.data
 
       const creditResult = await checkAndConsumeCredits('reading', 1)
@@ -84,8 +88,10 @@ export const POST = withApiMiddleware(
             })),
             user_question: userQuestion,
             language,
-            birthdate,
+            birthdate: includeAstrology ? birthdate : undefined,
             moon_phase: moonPhase,
+            saju_context: includeSaju ? sajuContext : undefined,
+            astro_context: includeAstrology ? astroContext : undefined,
           },
           { timeout: 20000 }
         )
@@ -107,11 +113,13 @@ export const POST = withApiMiddleware(
           validatedCards,
           spreadTitle,
           language,
-          userQuestion
+          userQuestion,
+          includeSaju ? sajuContext : undefined,
+          includeAstrology ? astroContext : undefined
         )
       }
 
-      // ======== 기록 저장 (로그인 사용자만) ========
+      // ======== ê¸°ë¡ ì €ìž¥ (ë¡œê·¸ì¸ ì‚¬ìš©ìžë§Œ) ========
       const session = context.session
       if (session?.user?.id) {
         try {
@@ -158,7 +166,7 @@ export const POST = withApiMiddleware(
   })
 )
 
-// GPT-4o-mini API 호출 헬퍼 (속도 최적화)
+// GPT-4o-mini API í˜¸ì¶œ í—¬í¼ (ì†ë„ ìµœì í™”)
 async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -182,33 +190,39 @@ async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
   return data.choices[0]?.message?.content || ''
 }
 
-// GPT를 사용한 해석 생성 (백엔드 없이 직접 호출) - 통합 프롬프트로 속도 최적화
+// GPTë¥¼ ì‚¬ìš©í•œ í•´ì„ ìƒì„± (ë°±ì—”ë“œ ì—†ì´ ì§ì ‘ í˜¸ì¶œ) - í†µí•© í”„ë¡¬í”„íŠ¸ë¡œ ì†ë„ ìµœì í™”
 async function generateGPTInterpretation(
   cards: CardInput[],
   spreadTitle: string,
   language: string,
-  userQuestion?: string
+  userQuestion?: string,
+  sajuContext?: string,
+  astroContext?: string
 ) {
   const isKorean = language === 'ko'
 
-  // 위치별 카드 정보
+  // ìœ„ì¹˜ë³„ ì¹´ë“œ ì •ë³´
   const cardListText = cards
     .map((c, i) => {
       const name = isKorean && c.nameKo ? c.nameKo : c.name
       const pos = isKorean && c.positionKo ? c.positionKo : c.position
       const keywords = (isKorean && c.keywordsKo ? c.keywordsKo : c.keywords) || []
-      return `${i + 1}. [${pos}] ${name}${c.isReversed ? '(역방향)' : ''} - ${keywords.slice(0, 3).join(', ')}`
+      return `${i + 1}. [${pos}] ${name}${c.isReversed ? '(ì—­ë°©í–¥)' : ''} - ${keywords.slice(0, 3).join(', ')}`
     })
     .join('\n')
 
-  const q = userQuestion || (isKorean ? '일반 운세' : 'general reading')
+  let q = userQuestion || (isKorean ? 'ì¼ë°˜ ìš´ì„¸' : 'general reading')
+  const contextBlock = [sajuContext, astroContext].filter(Boolean).join('\n')
+  if (contextBlock) {
+    q = `${q}\n${contextBlock}`
+  }
 
-  // 카드 개수에 맞춰 예시 생성
+  // ì¹´ë“œ ê°œìˆ˜ì— ë§žì¶° ì˜ˆì‹œ ìƒì„±
   const cardExamples = cards
     .map((c, i) => {
       const pos = isKorean && c.positionKo ? c.positionKo : c.position
       const ordinal = isKorean
-        ? `${i + 1}번째`
+        ? `${i + 1}ë²ˆì§¸`
         : i === 0
           ? 'First'
           : i === 1
@@ -219,7 +233,7 @@ async function generateGPTInterpretation(
       return isKorean
         ? `    {
       "position": "${pos}",
-      "interpretation": "${ordinal} 카드 해석 (700-1000자, 위와 동일한 형식)"
+      "interpretation": "${ordinal} ì¹´ë“œ í•´ì„ (700-1000ìž, ìœ„ì™€ ë™ì¼í•œ í˜•ì‹)"
     }`
         : `    {
       "position": "${pos}",
@@ -228,59 +242,59 @@ async function generateGPTInterpretation(
     })
     .join(',\n')
 
-  // 통합 프롬프트 (전체 해석 + 카드별 해석 + 조언을 한번에)
+  // í†µí•© í”„ë¡¬í”„íŠ¸ (ì „ì²´ í•´ì„ + ì¹´ë“œë³„ í•´ì„ + ì¡°ì–¸ì„ í•œë²ˆì—)
   const unifiedPrompt = isKorean
-    ? `당신은 20년 경력의 직관적인 타로 리더예요. 유튜브에서 수백만 뷰를 받는 타로 채널처럼, 깊이 있고 섬세하게 해석해주세요.
+    ? `ë‹¹ì‹ ì€ 20ë…„ ê²½ë ¥ì˜ ì§ê´€ì ì¸ íƒ€ë¡œ ë¦¬ë”ì˜ˆìš”. ìœ íŠœë¸Œì—ì„œ ìˆ˜ë°±ë§Œ ë·°ë¥¼ ë°›ëŠ” íƒ€ë¡œ ì±„ë„ì²˜ëŸ¼, ê¹Šì´ ìžˆê³  ì„¬ì„¸í•˜ê²Œ í•´ì„í•´ì£¼ì„¸ìš”.
 
-## 스프레드: ${spreadTitle}
-## 질문: "${q}"
+## ìŠ¤í”„ë ˆë“œ: ${spreadTitle}
+## ì§ˆë¬¸: "${q}"
 
-## 뽑힌 카드
+## ë½‘ížŒ ì¹´ë“œ
 ${cardListText}
 
-## 중요: 반드시 모든 ${cards.length}개 카드에 대해 해석을 작성하세요!
-각 카드마다 최소 700자 이상의 풍부한 해석을 제공해야 합니다.
+## ì¤‘ìš”: ë°˜ë“œì‹œ ëª¨ë“  ${cards.length}ê°œ ì¹´ë“œì— ëŒ€í•´ í•´ì„ì„ ìž‘ì„±í•˜ì„¸ìš”!
+ê° ì¹´ë“œë§ˆë‹¤ ìµœì†Œ 700ìž ì´ìƒì˜ í’ë¶€í•œ í•´ì„ì„ ì œê³µí•´ì•¼ í•©ë‹ˆë‹¤.
 
-## 출력 형식 (JSON)
-다음 형식으로 정확히 JSON 응답해:
+## ì¶œë ¥ í˜•ì‹ (JSON)
+ë‹¤ìŒ í˜•ì‹ìœ¼ë¡œ ì •í™•ížˆ JSON ì‘ë‹µí•´:
 {
-  "overall": "전체 메시지 (800-1200자). 질문자의 현재 상황에 공감하며 따뜻하게 시작해요. 카드들이 전체적으로 그리는 큰 그림을 먼저 보여주고, 질문자의 현재 에너지와 앞으로의 흐름을 자연스럽게 풀어주세요. 마지막엔 '결론:'으로 핵심 메시지 정리.",
+  "overall": "ì „ì²´ ë©”ì‹œì§€ (800-1200ìž). ì§ˆë¬¸ìžì˜ í˜„ìž¬ ìƒí™©ì— ê³µê°í•˜ë©° ë”°ëœ»í•˜ê²Œ ì‹œìž‘í•´ìš”. ì¹´ë“œë“¤ì´ ì „ì²´ì ìœ¼ë¡œ ê·¸ë¦¬ëŠ” í° ê·¸ë¦¼ì„ ë¨¼ì € ë³´ì—¬ì£¼ê³ , ì§ˆë¬¸ìžì˜ í˜„ìž¬ ì—ë„ˆì§€ì™€ ì•žìœ¼ë¡œì˜ íë¦„ì„ ìžì—°ìŠ¤ëŸ½ê²Œ í’€ì–´ì£¼ì„¸ìš”. ë§ˆì§€ë§‰ì—” 'ê²°ë¡ :'ìœ¼ë¡œ í•µì‹¬ ë©”ì‹œì§€ ì •ë¦¬.",
   "cards": [
 ${cardExamples}
   ],
-  "advice": "실용적이고 구체적한 행동 지침 (180-250자). '오늘부터 이렇게 해보세요' 식의 단계별 조언. 추상적이지 않고 실천 가능한 것만."
+  "advice": "ì‹¤ìš©ì ì´ê³  êµ¬ì²´ì í•œ í–‰ë™ ì§€ì¹¨ (180-250ìž). 'ì˜¤ëŠ˜ë¶€í„° ì´ë ‡ê²Œ í•´ë³´ì„¸ìš”' ì‹ì˜ ë‹¨ê³„ë³„ ì¡°ì–¸. ì¶”ìƒì ì´ì§€ ì•Šê³  ì‹¤ì²œ ê°€ëŠ¥í•œ ê²ƒë§Œ."
 }
 
-## 카드 해석 작성 가이드
-각 카드 해석은 반드시 다음 구조를 포함해야 합니다 (700-1000자):
+## ì¹´ë“œ í•´ì„ ìž‘ì„± ê°€ì´ë“œ
+ê° ì¹´ë“œ í•´ì„ì€ ë°˜ë“œì‹œ ë‹¤ìŒ êµ¬ì¡°ë¥¼ í¬í•¨í•´ì•¼ í•©ë‹ˆë‹¤ (700-1000ìž):
 
-1) **카드 비주얼 묘사** (2-3줄): '이 카드를 보면요~' 하며 색깔, 인물의 표정, 배경 상징물을 생생하게 그려내요.
+1) **ì¹´ë“œ ë¹„ì£¼ì–¼ ë¬˜ì‚¬** (2-3ì¤„): 'ì´ ì¹´ë“œë¥¼ ë³´ë©´ìš”~' í•˜ë©° ìƒ‰ê¹”, ì¸ë¬¼ì˜ í‘œì •, ë°°ê²½ ìƒì§•ë¬¼ì„ ìƒìƒí•˜ê²Œ ê·¸ë ¤ë‚´ìš”.
 
-2) **위치별 의미** (3-4줄): 이 위치에서 이 카드가 나온 게 왜 의미 있는지, 질문자의 상황과 어떻게 맞아떨어지는지 구체적으로 연결해요.
+2) **ìœ„ì¹˜ë³„ ì˜ë¯¸** (3-4ì¤„): ì´ ìœ„ì¹˜ì—ì„œ ì´ ì¹´ë“œê°€ ë‚˜ì˜¨ ê²Œ ì™œ ì˜ë¯¸ ìžˆëŠ”ì§€, ì§ˆë¬¸ìžì˜ ìƒí™©ê³¼ ì–´ë–»ê²Œ ë§žì•„ë–¨ì–´ì§€ëŠ”ì§€ êµ¬ì²´ì ìœ¼ë¡œ ì—°ê²°í•´ìš”.
 
-3) **감정적 레이어** (2-3줄): 이 카드가 전하는 감정, 에너지, 분위기를 섬세하게 전달해요.
+3) **ê°ì •ì  ë ˆì´ì–´** (2-3ì¤„): ì´ ì¹´ë“œê°€ ì „í•˜ëŠ” ê°ì •, ì—ë„ˆì§€, ë¶„ìœ„ê¸°ë¥¼ ì„¬ì„¸í•˜ê²Œ ì „ë‹¬í•´ìš”.
 
-4) **실용적 메시지** (3-4줄): 이 카드가 말하는 구체적인 조언.
+4) **ì‹¤ìš©ì  ë©”ì‹œì§€** (3-4ì¤„): ì´ ì¹´ë“œê°€ ë§í•˜ëŠ” êµ¬ì²´ì ì¸ ì¡°ì–¸.
 
-5) **숨은 의미** (1-2줄): 역방향이나 카드 조합에서만 보이는 깊은 통찰.
+5) **ìˆ¨ì€ ì˜ë¯¸** (1-2ì¤„): ì—­ë°©í–¥ì´ë‚˜ ì¹´ë“œ ì¡°í•©ì—ì„œë§Œ ë³´ì´ëŠ” ê¹Šì€ í†µì°°.
 
-## 해석 원칙 (매우 중요!)
-1. **질문에 직접 답변**: "${q}"를 항상 염두에 두고, 이 질문에 대한 답을 카드에서 찾아요
-2. **스토리텔링**: 각 카드를 따로따로 보지 말고, 전체가 하나의 이야기를 만들도록 연결해요
-3. **디테일 묘사**: "좋은 카드네요" 같은 뻔한 말 대신, 카드 속 구체적인 이미지를 언급하며 설명해요
-4. **공감과 솔직함**: 듣기 좋은 말만 하지 않고, 필요하면 경고도 따뜻하게 전달해요
-5. **역방향 의미**: 역방향 카드는 단순히 "반대"가 아니라, 에너지의 차단/과잉/내면화를 섬세하게 구분해요
+## í•´ì„ ì›ì¹™ (ë§¤ìš° ì¤‘ìš”!)
+1. **ì§ˆë¬¸ì— ì§ì ‘ ë‹µë³€**: "${q}"ë¥¼ í•­ìƒ ì—¼ë‘ì— ë‘ê³ , ì´ ì§ˆë¬¸ì— ëŒ€í•œ ë‹µì„ ì¹´ë“œì—ì„œ ì°¾ì•„ìš”
+2. **ìŠ¤í† ë¦¬í…”ë§**: ê° ì¹´ë“œë¥¼ ë”°ë¡œë”°ë¡œ ë³´ì§€ ë§ê³ , ì „ì²´ê°€ í•˜ë‚˜ì˜ ì´ì•¼ê¸°ë¥¼ ë§Œë“¤ë„ë¡ ì—°ê²°í•´ìš”
+3. **ë””í…Œì¼ ë¬˜ì‚¬**: "ì¢‹ì€ ì¹´ë“œë„¤ìš”" ê°™ì€ ë»”í•œ ë§ ëŒ€ì‹ , ì¹´ë“œ ì† êµ¬ì²´ì ì¸ ì´ë¯¸ì§€ë¥¼ ì–¸ê¸‰í•˜ë©° ì„¤ëª…í•´ìš”
+4. **ê³µê°ê³¼ ì†”ì§í•¨**: ë“£ê¸° ì¢‹ì€ ë§ë§Œ í•˜ì§€ ì•Šê³ , í•„ìš”í•˜ë©´ ê²½ê³ ë„ ë”°ëœ»í•˜ê²Œ ì „ë‹¬í•´ìš”
+5. **ì—­ë°©í–¥ ì˜ë¯¸**: ì—­ë°©í–¥ ì¹´ë“œëŠ” ë‹¨ìˆœížˆ "ë°˜ëŒ€"ê°€ ì•„ë‹ˆë¼, ì—ë„ˆì§€ì˜ ì°¨ë‹¨/ê³¼ìž‰/ë‚´ë©´í™”ë¥¼ ì„¬ì„¸í•˜ê²Œ êµ¬ë¶„í•´ìš”
 
-## 말투 (절대 규칙!)
-✅ 사용: "~해요", "~네요", "~거든요", "~죠", "~ㄹ 거예요"
-❌ 금지: "~것입니다", "~하겠습니다", "~합니다", "~하옵니다" (딱딱한 격식체/고어체)
-✅ 예시: "지금 좀 힘드시죠? 이 카드가 말해주고 있어요."
-❌ 나쁜 예: "현재 어려움을 겪고 계실 것입니다."
+## ë§íˆ¬ (ì ˆëŒ€ ê·œì¹™!)
+âœ… ì‚¬ìš©: "~í•´ìš”", "~ë„¤ìš”", "~ê±°ë“ ìš”", "~ì£ ", "~ã„¹ ê±°ì˜ˆìš”"
+âŒ ê¸ˆì§€: "~ê²ƒìž…ë‹ˆë‹¤", "~í•˜ê² ìŠµë‹ˆë‹¤", "~í•©ë‹ˆë‹¤", "~í•˜ì˜µë‹ˆë‹¤" (ë”±ë”±í•œ ê²©ì‹ì²´/ê³ ì–´ì²´)
+âœ… ì˜ˆì‹œ: "ì§€ê¸ˆ ì¢€ íž˜ë“œì‹œì£ ? ì´ ì¹´ë“œê°€ ë§í•´ì£¼ê³  ìžˆì–´ìš”."
+âŒ ë‚˜ìœ ì˜ˆ: "í˜„ìž¬ ì–´ë ¤ì›€ì„ ê²ªê³  ê³„ì‹¤ ê²ƒìž…ë‹ˆë‹¤."
 
-## 금지 사항
-- AI 티 나는 표현: "제 생각에는", "저는 믿습니다", "추천드립니다" ❌
-- 뻔한 일반론: "긍정적인 마음가짐이 중요합니다" ❌
-- 짧은 해석: 각 카드는 최소 700자 이상, 풍성하게!`
+## ê¸ˆì§€ ì‚¬í•­
+- AI í‹° ë‚˜ëŠ” í‘œí˜„: "ì œ ìƒê°ì—ëŠ”", "ì €ëŠ” ë¯¿ìŠµë‹ˆë‹¤", "ì¶”ì²œë“œë¦½ë‹ˆë‹¤" âŒ
+- ë»”í•œ ì¼ë°˜ë¡ : "ê¸ì •ì ì¸ ë§ˆìŒê°€ì§ì´ ì¤‘ìš”í•©ë‹ˆë‹¤" âŒ
+- ì§§ì€ í•´ì„: ê° ì¹´ë“œëŠ” ìµœì†Œ 700ìž ì´ìƒ, í’ì„±í•˜ê²Œ!`
     : `You are a 20-year veteran intuitive tarot reader. Read like a million-view YouTube tarot channel - deep, detailed, and insightful.
 
 ## Spread: ${spreadTitle}
@@ -323,14 +337,14 @@ Each card interpretation MUST include the following structure (450-600 words):
 5. **Reversal Nuance**: Reversed cards aren't just "opposite" - distinguish blocked/excess/internalized energy
 
 ## Tone Rules (Absolute!)
-✅ Use: Natural, conversational, warm but honest
-❌ Avoid: "I believe", "I think", "I suggest", "In my opinion" (AI-like phrases)
-✅ Example: "You're going through a tough time, aren't you? This card is telling you..."
-❌ Bad: "I believe you may be experiencing difficulties."
+âœ… Use: Natural, conversational, warm but honest
+âŒ Avoid: "I believe", "I think", "I suggest", "In my opinion" (AI-like phrases)
+âœ… Example: "You're going through a tough time, aren't you? This card is telling you..."
+âŒ Bad: "I believe you may be experiencing difficulties."
 
 ## Prohibited
-- AI-sounding: "I believe", "I suggest", "I recommend" ❌
-- Generic platitudes: "Positive mindset is important" ❌
+- AI-sounding: "I believe", "I suggest", "I recommend" âŒ
+- Generic platitudes: "Positive mindset is important" âŒ
 - Short readings: Each card minimum 450 words, make it rich!`
 
   try {
@@ -341,12 +355,12 @@ Each card interpretation MUST include the following structure (450-600 words):
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0])
 
-      // 카드별 해석이 비어있거나 너무 짧으면 기본 meaning 사용
+      // ì¹´ë“œë³„ í•´ì„ì´ ë¹„ì–´ìžˆê±°ë‚˜ ë„ˆë¬´ ì§§ìœ¼ë©´ ê¸°ë³¸ meaning ì‚¬ìš©
       const card_insights = cards.map((card, i) => {
         const cardData = parsed.cards?.[i] || {}
         let interpretation = cardData.interpretation || ''
 
-        // 해석이 너무 짧거나 없으면 카드의 기본 meaning 사용
+        // í•´ì„ì´ ë„ˆë¬´ ì§§ê±°ë‚˜ ì—†ìœ¼ë©´ ì¹´ë“œì˜ ê¸°ë³¸ meaning ì‚¬ìš©
         if (!interpretation || interpretation.length < 50) {
           interpretation = isKorean && card.meaningKo ? card.meaningKo : card.meaning || ''
         }
@@ -367,15 +381,18 @@ Each card interpretation MUST include the following structure (450-600 words):
         overall_message: parsed.overall || '',
         card_insights,
         guidance:
-          parsed.advice || (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
-        affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
+          parsed.advice ||
+          (isKorean ? 'ì¹´ë“œì˜ ë©”ì‹œì§€ì— ê·€ ê¸°ìš¸ì—¬ë³´ì„¸ìš”.' : 'Listen to the cards.'),
+        affirmation: isKorean
+          ? 'ì˜¤ëŠ˜ í•˜ë£¨ë„ ë‚˜ë‹µê²Œ ê°€ë©´ ë¼ìš”.'
+          : 'Just be yourself today.',
         combinations: [],
         followup_questions: [],
         fallback: false,
       }
     }
 
-    // JSON 파싱 실패 시 전체 텍스트를 overall로 사용
+    // JSON íŒŒì‹± ì‹¤íŒ¨ ì‹œ ì „ì²´ í…ìŠ¤íŠ¸ë¥¼ overallë¡œ ì‚¬ìš©
     return {
       overall_message: result,
       card_insights: cards.map((card) => ({
@@ -388,8 +405,8 @@ Each card interpretation MUST include the following structure (450-600 words):
         element: null,
         shadow: null,
       })),
-      guidance: isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.',
-      affirmation: isKorean ? '오늘도 화이팅!' : 'You got this!',
+      guidance: isKorean ? 'ì¹´ë“œì˜ ë©”ì‹œì§€ì— ê·€ ê¸°ìš¸ì—¬ë³´ì„¸ìš”.' : 'Listen to the cards.',
+      affirmation: isKorean ? 'ì˜¤ëŠ˜ë„ í™”ì´íŒ…!' : 'You got this!',
       combinations: [],
       followup_questions: [],
       fallback: false,
@@ -400,7 +417,7 @@ Each card interpretation MUST include the following structure (450-600 words):
   }
 }
 
-// 간단한 fallback (GPT도 실패한 경우)
+// ê°„ë‹¨í•œ fallback (GPTë„ ì‹¤íŒ¨í•œ ê²½ìš°)
 function generateSimpleFallback(
   cards: CardInput[],
   spreadTitle: string,
@@ -411,7 +428,7 @@ function generateSimpleFallback(
 
   return {
     overall_message: isKorean
-      ? `${cards.map((c) => c.nameKo || c.name).join(', ')} 카드가 나왔습니다.`
+      ? `${cards.map((c) => c.nameKo || c.name).join(', ')} ì¹´ë“œê°€ ë‚˜ì™”ìŠµë‹ˆë‹¤.`
       : `You drew: ${cards.map((c) => c.name).join(', ')}.`,
     card_insights: cards.map((card) => ({
       position: card.position,
@@ -423,8 +440,8 @@ function generateSimpleFallback(
       element: null,
       shadow: null,
     })),
-    guidance: isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.',
-    affirmation: isKorean ? '오늘도 화이팅!' : 'You got this!',
+    guidance: isKorean ? 'ì¹´ë“œì˜ ë©”ì‹œì§€ì— ê·€ ê¸°ìš¸ì—¬ë³´ì„¸ìš”.' : 'Listen to the cards.',
+    affirmation: isKorean ? 'ì˜¤ëŠ˜ë„ í™”ì´íŒ…!' : 'You got this!',
     combinations: [],
     followup_questions: [],
     fallback: true,

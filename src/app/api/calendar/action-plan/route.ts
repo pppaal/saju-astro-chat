@@ -15,6 +15,7 @@ import { STEM_ELEMENTS } from '@/lib/destiny-map/config/specialDays.data'
 import { getHourlyRecommendation } from '@/lib/destiny-map/calendar/specialDays-analysis'
 import { getFactorTranslation } from '../lib'
 import { apiClient } from '@/lib/api/ApiClient'
+import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
 
 type TimelineTone = 'best' | 'caution' | 'neutral'
 
@@ -34,6 +35,9 @@ type RagContextResponse = {
     insights?: string[]
   }
 }
+
+const CALENDAR_AI_PREMIUM_ONLY = true
+const CALENDAR_AI_CREDIT_COST = 0
 
 const actionPlanTimelineRequestSchema = z.object({
   date: dateSchema,
@@ -425,6 +429,18 @@ export const POST = withApiMiddleware(
     const { date, locale, timezone, calendar, icp, persona, intervalMinutes } = validation.data
     const lang = locale || (context.locale === 'ko' ? 'ko' : 'en')
     const safeInterval = intervalMinutes ?? 60
+    let isPremiumUser = context.isPremium
+    if (context.userId && !isPremiumUser) {
+      try {
+        const premiumStatus = await checkPremiumFromDatabase(context.userId)
+        isPremiumUser = premiumStatus.isPremium
+      } catch (error) {
+        logger.warn('[ActionPlanTimeline] Premium check fallback to context', {
+          error: error instanceof Error ? error.message : String(error),
+        })
+      }
+    }
+    const canUseAiPrecision = !CALENDAR_AI_PREMIUM_ONLY || isPremiumUser
 
     const baseTimeline = buildRuleBasedTimeline({
       date,
@@ -439,25 +455,27 @@ export const POST = withApiMiddleware(
         : null,
     })
 
-    const aiRefined = await generatePrecisionTimelineWithRag({
-      date,
-      locale: lang,
-      intervalMinutes: safeInterval,
-      baseTimeline,
-      calendar: calendar
-        ? {
-            grade: calendar.grade,
-            score: calendar.score,
-            categories: trimList(calendar.categories, 3),
-            bestTimes: trimList(calendar.bestTimes, 3),
-            warnings: trimList(calendar.warnings, 3),
-            recommendations: trimList(calendar.recommendations, 3),
-            sajuFactors: trimList(calendar.sajuFactors, 3),
-            astroFactors: trimList(calendar.astroFactors, 3),
-            summary: calendar.summary,
-          }
-        : null,
-    })
+    const aiRefined = canUseAiPrecision
+      ? await generatePrecisionTimelineWithRag({
+          date,
+          locale: lang,
+          intervalMinutes: safeInterval,
+          baseTimeline,
+          calendar: calendar
+            ? {
+                grade: calendar.grade,
+                score: calendar.score,
+                categories: trimList(calendar.categories, 3),
+                bestTimes: trimList(calendar.bestTimes, 3),
+                warnings: trimList(calendar.warnings, 3),
+                recommendations: trimList(calendar.recommendations, 3),
+                sajuFactors: trimList(calendar.sajuFactors, 3),
+                astroFactors: trimList(calendar.astroFactors, 3),
+                summary: calendar.summary,
+              }
+            : null,
+        })
+      : null
     const timeline = aiRefined?.timeline || baseTimeline
 
     const summaryParts: string[] = []
@@ -486,13 +504,26 @@ export const POST = withApiMiddleware(
       hasIcp: Boolean(icp),
       hasPersona: Boolean(persona),
       aiRefined: Boolean(aiRefined),
+      canUseAiPrecision,
+      isPremiumUser,
+      aiCreditCost: CALENDAR_AI_CREDIT_COST,
     })
 
     return apiSuccess({
       timeline,
       summary: summaryParts.join(' · ') || undefined,
       intervalMinutes: safeInterval,
-      precisionMode: aiRefined ? 'ai-graphrag' : 'rule-based',
+      precisionMode: aiRefined
+        ? 'ai-graphrag'
+        : canUseAiPrecision
+          ? 'rule-based'
+          : 'premium-locked',
+      aiAccess: {
+        premiumOnly: CALENDAR_AI_PREMIUM_ONLY,
+        allowed: canUseAiPrecision,
+        isPremiumUser,
+        creditCost: CALENDAR_AI_CREDIT_COST,
+      },
     })
   },
   createPublicStreamGuard({

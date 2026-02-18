@@ -82,6 +82,10 @@ export const tarotInterpretRequestSchema = z.object({
   language: z.enum(['ko', 'en']).default('ko'),
   birthdate: dateSchema.optional(),
   moonPhase: z.string().min(2).max(40).optional(),
+  includeAstrology: z.boolean().optional(),
+  includeSaju: z.boolean().optional(),
+  sajuContext: z.string().max(1000).optional(),
+  astroContext: z.string().max(1000).optional(),
 })
 
 export type TarotInterpretRequest = z.infer<typeof tarotInterpretRequestSchema>
@@ -129,6 +133,10 @@ export const tarotInterpretStreamSchema = z.object({
   userQuestion: z.string().max(600).trim().optional(),
   language: z.enum(['ko', 'en']).optional(),
   birthdate: z.string().max(12).optional(),
+  includeAstrology: z.boolean().optional(),
+  includeSaju: z.boolean().optional(),
+  sajuContext: z.string().max(1000).optional(),
+  astroContext: z.string().max(1000).optional(),
   zodiacSign: z.string().max(50).optional(),
   previousReadings: z.array(z.string().max(200)).max(3).optional(),
   questionMood: z.enum(['worried', 'curious', 'hopeful', 'urgent', 'neutral']).optional(),

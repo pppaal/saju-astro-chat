@@ -1,40 +1,43 @@
 /**
  * Deck Selector Component
- *
- * 덱 스타일 선택 UI
  */
 
-'use client';
+'use client'
 
-import Image from 'next/image';
-import BackButton from '@/components/ui/BackButton';
-import CreditBadge from '@/components/ui/CreditBadge';
-import { CARD_COLORS } from '../hooks/useTarotState';
-import type { Spread } from '@/lib/Tarot/tarot.types';
-import styles from '../tarot-reading.module.css';
+import Image from 'next/image'
+import BackButton from '@/components/ui/BackButton'
+import CreditBadge from '@/components/ui/CreditBadge'
+import { CARD_COLORS } from '../hooks/useTarotState'
+import type { TarotPersonalizationOptions } from '../hooks/useTarotGame'
+import type { Spread } from '@/lib/Tarot/tarot.types'
+import styles from '../tarot-reading.module.css'
 
 interface DeckSelectorProps {
-  spreadInfo: Spread;
-  selectedColor: typeof CARD_COLORS[0];
-  userTopic: string;
-  language: string;
-  onColorSelect: (color: typeof CARD_COLORS[0]) => void;
-  onStartReading: () => void;
+  spreadInfo: Spread
+  selectedColor: (typeof CARD_COLORS)[0]
+  userTopic: string
+  personalizationOptions: TarotPersonalizationOptions
+  language: string
+  onColorSelect: (color: (typeof CARD_COLORS)[0]) => void
+  onStartReading: () => void
+  onPersonalizationChange: (key: keyof TarotPersonalizationOptions, value: boolean) => void
 }
 
 export default function DeckSelector({
   spreadInfo,
   selectedColor,
   userTopic,
+  personalizationOptions,
   language,
   onColorSelect,
   onStartReading,
+  onPersonalizationChange,
 }: DeckSelectorProps) {
-  const effectiveCardCount = spreadInfo?.cardCount || 3;
+  const effectiveCardCount = spreadInfo?.cardCount || 3
+  const isKo = language === 'ko'
 
   return (
     <div className={styles.deckSelectPage}>
-      {/* Fixed elements */}
       <div className={styles.backButtonWrapper}>
         <BackButton />
       </div>
@@ -42,10 +45,8 @@ export default function DeckSelector({
         <CreditBadge variant="compact" />
       </div>
 
-      {/* Main content */}
       <main className={styles.deckSelectMain}>
         <div className={styles.deckSelectContent}>
-          {/* User Question Display */}
           {userTopic && (
             <div className={styles.userQuestionBanner}>
               <span className={styles.questionQuote}>&quot;</span>
@@ -54,31 +55,29 @@ export default function DeckSelector({
             </div>
           )}
 
-          {/* Title Section */}
           <div className={styles.deckSelectHeader}>
             <div className={styles.spreadInfoBadge}>
               <span className={styles.spreadIcon}>🃏</span>
               <span className={styles.spreadName}>
-                {language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title}
+                {isKo ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title}
               </span>
               <span className={styles.spreadCardCount}>
                 {effectiveCardCount}
-                {language === 'ko' ? '장' : ' cards'}
+                {isKo ? '\uC7A5' : ' cards'}
               </span>
             </div>
             <h1 className={styles.deckSelectTitle}>
-              {language === 'ko' ? '덱 스타일 선택' : 'Choose Your Deck'}
+              {isKo ? '\uB371 \uC2A4\uD0C0\uC77C \uC120\uD0DD' : 'Choose Your Deck'}
             </h1>
             <p className={styles.deckSelectSubtitle}>
-              {language === 'ko'
-                ? '마음에 드는 카드 뒷면을 선택하세요'
+              {isKo
+                ? '\uB9C8\uC74C\uC5D0 \uB4DC\uB294 \uCE74\uB4DC \uB4B7\uBA74\uC744 \uC120\uD0DD\uD558\uC138\uC694'
                 : 'Select the card back that resonates with you'}
             </p>
           </div>
 
-          {/* Deck Grid */}
           <div className={styles.deckGrid}>
-            {CARD_COLORS.map(deck => (
+            {CARD_COLORS.map((deck) => (
               <button
                 key={deck.id}
                 className={`${styles.deckOption} ${
@@ -95,18 +94,58 @@ export default function DeckSelector({
                     className={styles.deckBackImage}
                   />
                 </div>
-                <span className={styles.deckName}>{language === 'ko' ? deck.nameKo : deck.name}</span>
+                <span className={styles.deckName}>{isKo ? deck.nameKo : deck.name}</span>
                 {selectedColor.id === deck.id && <div className={styles.deckCheckmark}>✓</div>}
               </button>
             ))}
           </div>
 
-          {/* Start Button */}
-          <button className={styles.startReadingButton} onClick={onStartReading}>
-            {language === 'ko' ? '카드 뽑기' : 'Draw Cards'} →
+          <section
+            className={styles.personalizationSection}
+            data-testid="tarot-personalization-controls"
+          >
+            <h2 className={styles.personalizationTitle}>
+              {isKo ? '\uD574\uC11D \uAC1C\uC778\uD654 \uC124\uC815' : 'Personalization'}
+            </h2>
+            <label className={styles.toggleRow} htmlFor="tarot-toggle-saju">
+              <span className={styles.toggleLabelMain}>
+                {isKo ? '\uC0AC\uC8FC \uBC18\uC601' : 'Include Saju'}
+              </span>
+              <input
+                id="tarot-toggle-saju"
+                data-testid="tarot-toggle-saju"
+                type="checkbox"
+                checked={personalizationOptions.includeSaju}
+                onChange={(event) =>
+                  onPersonalizationChange('includeSaju', event.currentTarget.checked)
+                }
+              />
+            </label>
+            <label className={styles.toggleRow} htmlFor="tarot-toggle-astrology">
+              <span className={styles.toggleLabelMain}>
+                {isKo ? '\uC810\uC131 \uBC18\uC601' : 'Include Astrology'}
+              </span>
+              <input
+                id="tarot-toggle-astrology"
+                data-testid="tarot-toggle-astrology"
+                type="checkbox"
+                checked={personalizationOptions.includeAstrology}
+                onChange={(event) =>
+                  onPersonalizationChange('includeAstrology', event.currentTarget.checked)
+                }
+              />
+            </label>
+          </section>
+
+          <button
+            className={styles.startReadingButton}
+            onClick={onStartReading}
+            data-testid="tarot-start-reading"
+          >
+            {isKo ? '\uCE74\uB4DC \uBF51\uAE30' : 'Draw Cards'} →
           </button>
         </div>
       </main>
     </div>
-  );
+  )
 }

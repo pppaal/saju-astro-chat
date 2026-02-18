@@ -2245,6 +2245,47 @@
   position: relative;
 }
 
+/* Personalization Controls */
+.personalizationSection {
+  width: 100%;
+  max-width: 520px;
+  border: 1px solid rgba(99, 210, 255, 0.25);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  background: rgba(9, 20, 42, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.personalizationTitle {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(124, 242, 156, 0.95);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.88rem;
+}
+
+.toggleLabelMain {
+  font-weight: 500;
+}
+
+.toggleRow input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: #63d2ff;
+  cursor: pointer;
+}
+
 /* Start Button */
 .startReadingButton {
   padding: 1rem 2.5rem;
@@ -2299,6 +2340,10 @@
   .startReadingButton {
     width: 100%;
     padding: 1rem;
+  }
+
+  .personalizationSection {
+    max-width: none;
   }
 }
 

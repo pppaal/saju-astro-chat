@@ -34,6 +34,13 @@ type AiTimelineSlot = {
   tone?: 'neutral' | 'best' | 'caution'
 }
 
+type ActionPlanAiAccess = {
+  premiumOnly?: boolean
+  allowed?: boolean
+  isPremiumUser?: boolean
+  creditCost?: number
+}
+
 const DEFAULT_TODAY_KO = [
   '우선순위 3개 정리하기',
   '집중할 일 1개 25분 진행',
@@ -172,6 +179,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const [profileReady, setProfileReady] = useState(false)
   const [aiTimeline, setAiTimeline] = useState<AiTimelineSlot[] | null>(null)
   const [aiStatus, setAiStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [aiPremiumLocked, setAiPremiumLocked] = useState(false)
+  const [aiCreditCost, setAiCreditCost] = useState(0)
   const aiCacheRef = useRef<Record<string, AiTimelineSlot[]>>({})
   const aiAbortRef = useRef<AbortController | null>(null)
 
@@ -566,6 +575,17 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           throw new Error(json?.error?.message ?? 'AI generation failed')
         }
 
+        const aiAccess = (json?.data?.aiAccess ?? null) as ActionPlanAiAccess | null
+        const isLockedByPremium = aiAccess?.allowed === false
+        setAiPremiumLocked(isLockedByPremium)
+        setAiCreditCost(typeof aiAccess?.creditCost === 'number' ? aiAccess.creditCost : 0)
+
+        if (isLockedByPremium) {
+          setAiTimeline(null)
+          setAiStatus('idle')
+          return
+        }
+
         const timeline = sanitizeAiTimeline(json?.data?.timeline)
         if (timeline.length === 0) {
           throw new Error('Invalid AI timeline')
@@ -592,6 +612,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     if (!baseInfo) {
       setAiTimeline(null)
       setAiStatus('idle')
+      setAiPremiumLocked(false)
+      setAiCreditCost(0)
       return
     }
     void fetchAiTimeline()
@@ -619,6 +641,11 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     if (!baseInfo) {
       return isKo ? '날짜 정보 없음' : 'No date data'
     }
+    if (aiPremiumLocked) {
+      return isKo
+        ? `프리미엄 전용 · 현재 ${aiCreditCost}크레딧`
+        : `Premium only · currently ${aiCreditCost} credits`
+    }
     if (aiStatus === 'loading') {
       return isKo ? '정밀 타임라인 생성 중' : 'Generating precision timeline'
     }
@@ -626,12 +653,17 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       return isKo ? '정밀 생성 실패 · 기본 플랜 표시' : 'Precision failed · showing base plan'
     }
     if (aiStatus === 'ready') {
-      return isKo ? `정밀 적용됨 · ${aiContextLabel}` : `Precision applied · ${aiContextLabel}`
+      return isKo
+        ? `정밀 적용됨 · ${aiContextLabel} · ${aiCreditCost}크레딧`
+        : `Precision applied · ${aiContextLabel} · ${aiCreditCost} credits`
     }
     return isKo ? '정밀 준비됨' : 'Precision ready'
-  }, [aiContextLabel, aiStatus, baseInfo, isKo])
+  }, [aiContextLabel, aiCreditCost, aiPremiumLocked, aiStatus, baseInfo, isKo])
 
   const aiButtonLabel = useMemo(() => {
+    if (aiPremiumLocked) {
+      return isKo ? '프리미엄 전용' : 'Premium only'
+    }
     if (aiStatus === 'loading') {
       return isKo ? '정밀 생성 중' : 'Generating'
     }
@@ -642,15 +674,15 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       : isKo
         ? '정밀 생성'
         : 'Generate precision'
-  }, [aiStatus, aiTimeline, isKo])
+  }, [aiPremiumLocked, aiStatus, aiTimeline, isKo])
 
   const handleAiRefresh = useCallback(() => {
-    if (!baseInfo) return
+    if (!baseInfo || aiPremiumLocked) return
     if (aiCacheRef.current[aiCacheKey]) {
       delete aiCacheRef.current[aiCacheKey]
     }
     void fetchAiTimeline({ force: true })
-  }, [aiCacheKey, baseInfo, fetchAiTimeline])
+  }, [aiCacheKey, aiPremiumLocked, baseInfo, fetchAiTimeline])
 
   const baseTexts = useCallback(
     (hour: number) => {
@@ -1135,7 +1167,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                   type="button"
                   className={styles.actionPlanTimelineAiBtn}
                   onClick={handleAiRefresh}
-                  disabled={!baseInfo || aiStatus === 'loading'}
+                  disabled={!baseInfo || aiStatus === 'loading' || aiPremiumLocked}
                   aria-label={isKo ? '정밀 타임라인 생성' : 'Generate precision timeline'}
                 >
                   {aiButtonLabel}

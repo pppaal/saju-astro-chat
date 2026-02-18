@@ -5,6 +5,7 @@ import { DeckSelectStage, PickingStage, ResultsStage } from './stages'
 import type { GameState, ReadingResponse, InterpretationResult } from '../types'
 import type { Spread, DeckStyle } from '@/lib/Tarot/tarot.types'
 import type { CardColor } from '../constants'
+import type { TarotPersonalizationOptions } from '../hooks/useTarotGame'
 import '../tarot-reading-mobile.module.css'
 
 export interface PageContentProps {
@@ -20,6 +21,7 @@ export interface PageContentProps {
   revealedCards: number[]
   isSpreading: boolean
   userTopic: string
+  personalizationOptions: TarotPersonalizationOptions
 
   // Results state
   readingResult: ReadingResponse | null
@@ -46,6 +48,7 @@ export interface PageContentProps {
   toggleCardExpand: (index: number) => void
   handleSaveReading: () => Promise<void>
   handleReset: () => void
+  handlePersonalizationChange: (key: keyof TarotPersonalizationOptions, value: boolean) => void
 
   // i18n
   language: string
@@ -81,9 +84,11 @@ export function PageContent(props: PageContentProps) {
         spreadInfo={spreadInfo}
         selectedColor={props.selectedColor}
         userTopic={props.userTopic}
+        personalizationOptions={props.personalizationOptions}
         language={language}
         handleColorSelect={props.handleColorSelect}
         handleStartReading={props.handleStartReading}
+        handlePersonalizationChange={props.handlePersonalizationChange}
       />
     )
   }

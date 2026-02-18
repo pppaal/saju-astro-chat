@@ -582,9 +582,51 @@ function buildEnhancedWarnings(
   return dedupeTexts([...translated, ...contextual]).slice(0, 6)
 }
 
+const CATEGORY_TO_MATRIX_DOMAIN: Partial<Record<EventCategory, DomainKey>> = {
+  wealth: 'money',
+  career: 'career',
+  love: 'love',
+  health: 'health',
+  travel: 'move',
+}
+
+function clamp01(value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.min(1, Math.max(0, value))
+}
+
+function getPreferredDomainByCategory(
+  categories: EventCategory[],
+  matrixContext: MatrixCalendarContext
+): DomainKey | null {
+  if (!matrixContext?.domainScores) return null
+  for (const category of categories) {
+    const mapped = CATEGORY_TO_MATRIX_DOMAIN[category]
+    if (mapped && matrixContext.domainScores[mapped]) {
+      return mapped
+    }
+  }
+  return null
+}
+
+function getDomainWeight(
+  domain: DomainKey | null,
+  monthPoint: MonthlyOverlapPoint | undefined,
+  matrixContext: MatrixCalendarContext
+): number {
+  if (!domain || !matrixContext?.domainScores) return 0
+  const score = matrixContext.domainScores[domain]?.finalScoreAdjusted ?? 5
+  const scoreWeight = clamp01((score - 5) / 5)
+  const overlapWeight = clamp01(monthPoint?.overlapStrength ?? 0)
+  const peakBoost =
+    monthPoint?.peakLevel === 'peak' ? 0.22 : monthPoint?.peakLevel === 'high' ? 0.12 : 0
+  return clamp01(scoreWeight * 0.55 + overlapWeight * 0.35 + peakBoost)
+}
+
 function buildMatrixOverlay(
   dateIso: string,
   matrixContext: MatrixCalendarContext,
+  categories: EventCategory[],
   lang: 'ko' | 'en'
 ): { summary: string; recommendations: string[]; warnings: string[] } {
   if (!matrixContext) {
@@ -608,6 +650,7 @@ function buildMatrixOverlay(
   const topDomain = domainPeakCandidates[0]?.domain
   const cautionSignals = (matrixContext.calendarSignals || []).filter((s) => s.level === 'caution')
   const hasMonthCautionSignal = cautionSignals.some((s) => s.trigger.includes(monthKey))
+  const preferredDomain = getPreferredDomainByCategory(categories, matrixContext)
 
   const koDomainLabel: Record<DomainKey, string> = {
     career: '커리어',
@@ -616,6 +659,15 @@ function buildMatrixOverlay(
     health: '건강',
     move: '이동',
   }
+  const enDomainLabel: Record<DomainKey, string> = {
+    career: 'career',
+    love: 'love',
+    money: 'money',
+    health: 'health',
+    move: 'movement',
+  }
+  const weightedDomain = preferredDomain || topDomain || null
+  const domainWeight = getDomainWeight(weightedDomain, monthPoint, matrixContext)
 
   const summaryParts: string[] = []
   const recommendations: string[] = []
@@ -645,6 +697,17 @@ function buildMatrixOverlay(
     }
   }
 
+  if (weightedDomain && domainWeight >= 0.55) {
+    const domainLabel =
+      lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
+    recommendations.push(
+      domainWeight >= 0.75
+        ? `${domainLabel} theme is the top execution priority today.`
+        : `Front-load ${domainLabel} theme tasks earlier in the day.`
+    )
+    summaryParts.push(`${domainLabel} theme weight from destiny-matrix is elevated today.`)
+  }
+
   if (cautionSignals.length > 0) {
     warnings.push(
       lang === 'ko'
@@ -659,6 +722,16 @@ function buildMatrixOverlay(
         ? `이번 달(${monthKey})은 의사결정 속도보다 리스크 점검이 유리합니다.`
         : `In ${monthKey}, risk checks are safer than speed in decisions.`
     )
+  }
+
+  if (
+    weightedDomain &&
+    domainWeight >= 0.6 &&
+    (hasMonthCautionSignal || cautionSignals.length > 0)
+  ) {
+    const domainLabel =
+      lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
+    warnings.push(`For ${domainLabel}, run a verification checklist before expansion.`)
   }
 
   return {
@@ -741,7 +814,7 @@ export function formatDateForResponse(
     lang
   )
   const warnings = buildEnhancedWarnings(date, translations, lang)
-  const matrixOverlay = buildMatrixOverlay(date.date, matrixContext || null, lang)
+  const matrixOverlay = buildMatrixOverlay(date.date, matrixContext || null, uniqueCategories, lang)
 
   return {
     date: date.date,

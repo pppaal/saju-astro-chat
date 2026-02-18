@@ -54,6 +54,7 @@ function TarotReadingPage() {
     spreadId,
     userTopic: gameHook.userTopic,
     selectedDeckStyle: gameHook.selectedDeckStyle,
+    personalizationOptions: gameHook.personalizationOptions,
   })
 
   // Fetch interpretation when reading result is available

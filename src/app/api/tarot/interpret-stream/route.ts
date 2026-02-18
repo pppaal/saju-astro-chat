@@ -160,6 +160,10 @@ async function fetchBackendFallback(payload: {
   userQuestion: string
   language: 'ko' | 'en'
   birthdate: string
+  includeAstrology: boolean
+  includeSaju: boolean
+  sajuContext?: string
+  astroContext?: string
 }): Promise<unknown | null> {
   try {
     const result = await apiClient.post(
@@ -175,7 +179,9 @@ async function fetchBackendFallback(payload: {
         })),
         user_question: payload.userQuestion,
         language: payload.language,
-        birthdate: payload.birthdate || undefined,
+        birthdate: payload.includeAstrology ? payload.birthdate || undefined : undefined,
+        saju_context: payload.includeSaju ? payload.sajuContext || undefined : undefined,
+        astro_context: payload.includeAstrology ? payload.astroContext || undefined : undefined,
       },
       { timeout: BACKEND_TIMEOUT_MS }
     )
@@ -365,7 +371,11 @@ export async function POST(req: NextRequest) {
             : 'ko'
     const rawCards = body.cards
     const userQuestion = body.userQuestion || ''
-    const birthdate = body.birthdate || ''
+    const includeAstrology = body.includeAstrology !== false
+    const includeSaju = body.includeSaju !== false
+    const birthdate = includeAstrology ? body.birthdate || '' : ''
+    const sajuContext = includeSaju ? (body.sajuContext || '').trim() : ''
+    const astroContext = includeAstrology ? (body.astroContext || '').trim() : ''
     const previousReadings = body.previousReadings || []
 
     logger.info('Tarot stream payload', {
@@ -375,6 +385,10 @@ export async function POST(req: NextRequest) {
       cards: rawCards.length,
       hasQuestion: Boolean(userQuestion),
       hasBirthdate: Boolean(birthdate),
+      includeAstrology,
+      includeSaju,
+      hasSajuContext: Boolean(sajuContext),
+      hasAstroContext: Boolean(astroContext),
       previousReadings: previousReadings.length,
     })
 
@@ -402,6 +416,12 @@ export async function POST(req: NextRequest) {
       if (zodiac) {
         personalizationContext += `\n## 질문자 정보\n- 별자리: ${zodiac.signKo} (${zodiac.element} 원소)\n`
       }
+      if (astroContext) {
+        personalizationContext += `\n## 점성 맥락\n${astroContext}\n`
+      }
+      if (sajuContext) {
+        personalizationContext += `\n## 사주 맥락\n${sajuContext}\n`
+      }
       if (previousReadings.length > 0) {
         personalizationContext += `\n## 이전 상담 요약 (맥락 참고용)\n${previousReadings.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n`
       }
@@ -418,6 +438,12 @@ export async function POST(req: NextRequest) {
     } else {
       if (zodiac) {
         personalizationContext += `\n## Querent Info\n- Zodiac: ${zodiac.sign} (${zodiac.element} element)\n`
+      }
+      if (astroContext) {
+        personalizationContext += `\n## Astrology Context\n${astroContext}\n`
+      }
+      if (sajuContext) {
+        personalizationContext += `\n## Saju Context\n${sajuContext}\n`
       }
       if (previousReadings.length > 0) {
         personalizationContext += `\n## Previous Readings Summary (for context)\n${previousReadings.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n`
@@ -477,13 +503,13 @@ ${cardExamplesEn}
 ${personalizationContext}
 ## 뽑힌 카드
 ${cardListText}
-${zodiac ? `\n질문자 별자리(${zodiac.signKo}, ${zodiac.element} 원소)를 자연스럽게 연결해서 해석해주세요.` : ''}${previousReadings.length > 0 ? '\n이전 상담 내용과의 연결점이 있다면 언급해주세요.' : ''}`
+${zodiac ? `\n질문자 별자리(${zodiac.signKo}, ${zodiac.element} 원소)를 자연스럽게 연결해서 해석해주세요.` : ''}${astroContext ? '\n점성 맥락도 해석에 반영해주세요.' : ''}${sajuContext ? '\n사주 맥락도 해석에 반영해주세요.' : ''}${previousReadings.length > 0 ? '\n이전 상담 내용과의 연결점이 있다면 언급해주세요.' : ''}`
       : `## Spread: ${spreadTitle}
 ## Question: "${q}"
 ${personalizationContext}
 ## Cards Drawn
 ${cardListText}
-${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element traits.` : ''}${previousReadings.length > 0 ? '\nReference connections to previous readings if relevant.' : ''}`
+${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element traits.` : ''}${astroContext ? '\nApply the provided astrology context in your interpretation.' : ''}${sajuContext ? '\nApply the provided saju context in your interpretation.' : ''}${previousReadings.length > 0 ? '\nReference connections to previous readings if relevant.' : ''}`
 
     // OpenAI Streaming
     if (!process.env.OPENAI_API_KEY) {
@@ -535,6 +561,10 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
         userQuestion: userQuestion,
         language,
         birthdate,
+        includeAstrology,
+        includeSaju,
+        sajuContext,
+        astroContext,
       })
       const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase
       return streamJsonPayload(fallback, { 'X-Fallback': '1' })
@@ -555,6 +585,10 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
         userQuestion: userQuestion,
         language,
         birthdate,
+        includeAstrology,
+        includeSaju,
+        sajuContext,
+        astroContext,
       })
       const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase
       return streamJsonPayload(fallback, { 'X-Fallback': '1' })
@@ -580,6 +614,10 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
             userQuestion: userQuestion,
             language,
             birthdate,
+            includeAstrology,
+            includeSaju,
+            sajuContext,
+            astroContext,
           })
           const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase
           controller.enqueue(encoder.encode(createSSEEvent({ content: JSON.stringify(fallback) })))
