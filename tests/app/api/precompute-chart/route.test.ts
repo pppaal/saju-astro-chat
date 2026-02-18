@@ -330,11 +330,22 @@ const validBody = {
   timezone: 'Asia/Seoul',
 }
 
+let requestSequence = 0
+
+function makeRequestHeaders(base: Record<string, string> = {}) {
+  requestSequence += 1
+  return {
+    ...base,
+    // Keep each request on an isolated rate-limit key during test runs.
+    'x-forwarded-for': `203.0.113.${(requestSequence % 240) + 10}`,
+  }
+}
+
 /** Create a NextRequest with a JSON body */
 function makeRequest(body: unknown): NextRequest {
   return new NextRequest('http://localhost/api/precompute-chart', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: makeRequestHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(body),
   })
 }
@@ -394,7 +405,7 @@ describe('Precompute Chart API - POST', () => {
     it('should return 400 when request body is not valid JSON', async () => {
       const request = new NextRequest('http://localhost/api/precompute-chart', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: makeRequestHeaders({ 'Content-Type': 'application/json' }),
         body: 'this is not json{{{',
       })
 
@@ -1305,7 +1316,7 @@ describe('Precompute Chart API - POST', () => {
       // Simulate a request where .json() throws (e.g., network error)
       const request = new NextRequest('http://localhost/api/precompute-chart', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: makeRequestHeaders({ 'Content-Type': 'application/json' }),
         body: '<<<invalid>>>',
       })
 
@@ -1320,7 +1331,7 @@ describe('Precompute Chart API - POST', () => {
     it('should log the error in the top-level catch block', async () => {
       const request = new NextRequest('http://localhost/api/precompute-chart', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: makeRequestHeaders({ 'Content-Type': 'application/json' }),
         body: '<<<broken json>>>',
       })
 
