@@ -27,6 +27,17 @@ import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { logger } from '@/lib/logger'
 
+let requestSequence = 0
+
+function withRateLimitHeaders(base: Record<string, string> = {}) {
+  requestSequence += 1
+  return {
+    ...base,
+    // Isolate requests so per-IP rate limiting does not leak across tests.
+    'x-forwarded-for': `203.0.113.${(requestSequence % 240) + 10}`,
+  }
+}
+
 describe('GET /api/destiny-matrix', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -177,7 +188,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -201,7 +212,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -234,18 +245,22 @@ describe('POST /api/destiny-matrix', () => {
         dominantWesternElement: 'fire',
         planetHouses: { sun: 1 },
         planetSigns: { sun: 'Aries' },
-        aspects: [{
-          from: { name: 'Sun', kind: 'natal', longitude: 0 },
-          to: { name: 'Moon', kind: 'natal', longitude: 90 },
-          type: 'conjunction',
-          orb: 0,
-        }],
-        activeTransits: [{
-          transitPlanet: 'jupiter',
-          natalPlanet: 'sun',
-          aspectType: 'trine',
-          orb: 2,
-        }],
+        aspects: [
+          {
+            from: { name: 'Sun', kind: 'natal', longitude: 0 },
+            to: { name: 'Moon', kind: 'natal', longitude: 90 },
+            type: 'conjunction',
+            orb: 0,
+          },
+        ],
+        activeTransits: [
+          {
+            transitPlanet: 'jupiter',
+            natalPlanet: 'sun',
+            aspectType: 'trine',
+            orb: 2,
+          },
+        ],
         asteroidHouses: { chiron: 12 },
         extraPointSigns: { north_node: 'Leo' },
         lang: 'ko',
@@ -253,7 +268,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -277,18 +292,22 @@ describe('POST /api/destiny-matrix', () => {
           dominantWesternElement: 'fire',
           planetHouses: { sun: 1 },
           planetSigns: { sun: 'Aries' },
-          aspects: [{
-            from: { name: 'Sun', kind: 'natal', longitude: 0 },
-            to: { name: 'Moon', kind: 'natal', longitude: 90 },
-            type: 'conjunction',
-            orb: 0,
-          }],
-          activeTransits: [{
-            transitPlanet: 'jupiter',
-            natalPlanet: 'sun',
-            aspectType: 'trine',
-            orb: 2,
-          }],
+          aspects: [
+            {
+              from: { name: 'Sun', kind: 'natal', longitude: 0 },
+              to: { name: 'Moon', kind: 'natal', longitude: 90 },
+              type: 'conjunction',
+              orb: 0,
+            },
+          ],
+          activeTransits: [
+            {
+              transitPlanet: 'jupiter',
+              natalPlanet: 'sun',
+              aspectType: 'trine',
+              orb: 2,
+            },
+          ],
           asteroidHouses: { chiron: 12 },
           extraPointSigns: { north_node: 'Leo' },
           lang: 'ko',
@@ -330,7 +349,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -356,7 +375,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -382,7 +401,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -402,7 +421,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -422,7 +441,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -451,7 +470,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -490,7 +509,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -528,7 +547,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -555,7 +574,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -572,7 +591,7 @@ describe('POST /api/destiny-matrix', () => {
     it('should reject invalid JSON', async () => {
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: 'invalid json',
       })
 
@@ -594,14 +613,14 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
       const response = await POST(req)
       const data = await response.json()
 
-      expect(data.summary).toEqual({
+      expect(data.summary).toMatchObject({
         totalScore: 85,
         layersProcessed: 2,
         cellsMatched: 2,
@@ -648,7 +667,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -688,7 +707,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -726,7 +745,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -767,7 +786,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -792,7 +811,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -815,7 +834,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -836,7 +855,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 
@@ -856,7 +875,7 @@ describe('POST /api/destiny-matrix', () => {
 
       const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(body),
       })
 

@@ -43,6 +43,7 @@ vi.mock('@/lib/api/middleware', () => ({
       return NextResponse.json({ success: true, data: result }, { status: 200 })
     }
   }),
+  createPublicStreamGuard: vi.fn((options: any) => options),
   createSimpleGuard: vi.fn(() => ({})),
   extractLocale: vi.fn((_req: any) => 'ko'),
 }))
