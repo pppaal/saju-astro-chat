@@ -185,11 +185,17 @@ const MOCK_REPORT = {
 // Helper to create requests
 // ===========================
 
+let requestSequence = 0
+
 function createPostRequest(body: Record<string, unknown>): NextRequest {
+  requestSequence += 1
   return new NextRequest('http://localhost/api/destiny-matrix/report', {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-forwarded-for': `203.0.113.${(requestSequence % 240) + 10}`,
+    },
   })
 }
 
@@ -293,7 +299,10 @@ describe('POST /api/destiny-matrix/report', () => {
       const req = new NextRequest('http://localhost/api/destiny-matrix/report', {
         method: 'POST',
         body: 'this is not json{{{',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-forwarded-for': '203.0.113.250',
+        },
       })
 
       const response = await POST(req)

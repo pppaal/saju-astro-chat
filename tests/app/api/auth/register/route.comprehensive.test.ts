@@ -655,7 +655,7 @@ describe('/api/auth/register', () => {
 
       expect(generateReferralCode).toHaveBeenCalled()
       const upsertCall = vi.mocked(prisma.user.upsert).mock.calls[0][0]
-      expect(upsertCall.create.referralCode).toBe('UNIQUE123')
+      expect(upsertCall.create.settings.create.referralCode).toBe('UNIQUE123')
     })
 
     it('should not expose user ID in response', async () => {
