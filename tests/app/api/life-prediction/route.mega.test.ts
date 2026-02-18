@@ -58,12 +58,17 @@ const createWeeklyTimingRequest = (overrides?: Record<string, unknown>) => ({
   endDate: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
 })
 
+let requestSequence = 0
+
 function createNextRequest(body: Record<string, unknown>): NextRequest {
+  requestSequence += 1
   return new NextRequest('http://localhost:3000/api/life-prediction', {
     method: 'POST',
     body: JSON.stringify(body),
     headers: {
       'Content-Type': 'application/json',
+      // Avoid cross-test 429s from per-IP rate limits.
+      'x-forwarded-for': `203.0.113.${(requestSequence % 240) + 10}`,
     },
   })
 }

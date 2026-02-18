@@ -175,11 +175,16 @@ describe('useAiStreaming', () => {
 
       const { result } = renderHook(() => useAiStreaming(defaultParams))
 
+      let pending: Promise<void> | undefined
       act(() => {
-        result.current.startAiInterpretation()
+        pending = result.current.startAiInterpretation()
       })
 
       expect(result.current.aiStatus).toBe('loading')
+
+      await act(async () => {
+        await pending
+      })
     })
 
     it('should send correct request body', async () => {

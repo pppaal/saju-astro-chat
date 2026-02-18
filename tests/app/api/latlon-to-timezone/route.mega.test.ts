@@ -108,7 +108,7 @@ describe('POST /api/latlon-to-timezone', () => {
     const data = await response.json()
 
     expect(response.status).toBe(429)
-    expect(data.error).toBe('Too many requests')
+    expect(data.error?.message).toBe('Too many requests. Please wait a moment.')
   })
 
   it('should require valid public token', async () => {
@@ -123,7 +123,7 @@ describe('POST /api/latlon-to-timezone', () => {
     const data = await response.json()
 
     expect(response.status).toBe(401)
-    expect(data.error).toBe('Unauthorized')
+    expect(data.error?.message).toBe('Invalid or missing token')
   })
 
   it('should validate latitude range (-90 to 90)', async () => {
@@ -320,7 +320,7 @@ describe('POST /api/latlon-to-timezone', () => {
     await POST(req)
 
     expect(mockGetClientIp).toHaveBeenCalledWith(req.headers)
-    expect(mockRateLimit).toHaveBeenCalledWith('tz:192.168.1.100', {
+    expect(mockRateLimit).toHaveBeenCalledWith('api:/api/latlon-to-timezone:192.168.1.100', {
       limit: 60,
       windowSeconds: 60,
     })
