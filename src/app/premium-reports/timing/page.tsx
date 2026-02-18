@@ -1,42 +1,57 @@
 'use client'
 
-import { useState, useEffect, Suspense, useCallback } from 'react'
+import { useCallback, useEffect, useMemo, useState, Suspense } from 'react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { useUserProfile } from '@/hooks/useUserProfile'
-import Link from 'next/link'
 import DateTimePicker from '@/components/ui/DateTimePicker'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import {
+  ReportProfileForm,
+  type ReportProfileInput,
+} from '@/app/premium-reports/_components/ReportProfileForm'
 
 interface SajuData {
   dayMasterElement: string
-  dayMaster: string
-  birthDate: string
-  birthTime?: string
 }
 
-const PERIOD_INFO = {
+type PeriodType = 'daily' | 'monthly' | 'yearly'
+
+const PERIOD_INFO: Record<
+  PeriodType,
+  {
+    label: string
+    description: string
+    credits: number
+    color: string
+  }
+> = {
   daily: {
-    label: '오늘 운세',
-    emoji: '☀️',
-    description: '오늘 하루의 에너지 흐름과 행동 가이드',
+    label: '일간 타이밍 리포트',
+    description: '선택한 날짜의 핵심 흐름과 행동 포인트를 제안합니다.',
     credits: 1,
     color: 'from-yellow-500 to-orange-500',
   },
   monthly: {
-    label: '이번달 운세',
-    emoji: '📅',
-    description: '이번달 주요 흐름과 주차별 포인트',
+    label: '월간 타이밍 리포트',
+    description: '선택한 달의 주요 이벤트 흐름을 정리합니다.',
     credits: 2,
     color: 'from-blue-500 to-cyan-500',
   },
   yearly: {
-    label: '올해 운세',
-    emoji: '🗓️',
-    description: '올해 전체 흐름과 월별 예측',
+    label: '연간 타이밍 리포트',
+    description: '해당 연도의 흐름과 분기별 포인트를 안내합니다.',
     credits: 3,
     color: 'from-purple-500 to-pink-500',
   },
+}
+
+function toPeriod(value: string | null): PeriodType {
+  if (value === 'monthly' || value === 'yearly') {
+    return value
+  }
+  return 'daily'
 }
 
 function TimingReportContent() {
@@ -45,24 +60,39 @@ function TimingReportContent() {
   const { status } = useSession()
   const { profile, isLoading: profileLoading } = useUserProfile()
 
-  const period = (searchParams?.get('period') as 'daily' | 'monthly' | 'yearly') || 'daily'
+  const period = toPeriod(searchParams?.get('period') ?? null)
   const periodInfo = PERIOD_INFO[period]
 
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [targetDate, setTargetDate] = useState(() => {
-    return new Date().toISOString().split('T')[0]
-  })
+  const [targetDate, setTargetDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [profileInput, setProfileInput] = useState<ReportProfileInput | null>(null)
   const [sajuData, setSajuData] = useState<SajuData | null>(null)
   const [sajuLoading, setSajuLoading] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // 사용자 입력 정보 (프로필이 없는 경우 직접 입력)
-  const [manualName, setManualName] = useState('')
-  const [manualBirthDate, setManualBirthDate] = useState('')
-  const [manualBirthTime, setManualBirthTime] = useState('')
-  const [useCustomInfo, setUseCustomInfo] = useState(false)
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push(`/auth/signin?callbackUrl=/premium-reports/timing?period=${period}`)
+    }
+  }, [status, router, period])
 
-  // 사주 정보 로드
+  useEffect(() => {
+    if (!profile.birthDate || profileInput) {
+      return
+    }
+
+    setProfileInput({
+      name: profile.name || '사용자',
+      birthDate: profile.birthDate,
+      birthTime: profile.birthTime || '12:00',
+      birthCity: profile.birthCity,
+      gender: profile.gender === 'Female' ? 'F' : profile.gender === 'Male' ? 'M' : undefined,
+      timezone: profile.timezone,
+      latitude: profile.latitude,
+      longitude: profile.longitude,
+    })
+  }, [profile, profileInput])
+
   const loadSajuData = useCallback(async () => {
     if (status !== 'authenticated') {
       return
@@ -70,40 +100,36 @@ function TimingReportContent() {
 
     setSajuLoading(true)
     try {
-      const res = await fetch('/api/me/saju')
-      const data = await res.json()
+      const response = await fetch('/api/me/saju')
+      const data = await response.json()
       if (data.success && data.hasSaju) {
         setSajuData(data.saju)
       }
     } catch {
-      // 사주 로드 실패 시 무시 (기본값 사용)
+      // ignore and use fallback
     } finally {
       setSajuLoading(false)
     }
   }, [status])
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin?callbackUrl=/premium-reports/timing?period=' + period)
-    }
-  }, [status, router, period])
-
-  useEffect(() => {
-    loadSajuData()
+    void loadSajuData()
   }, [loadSajuData])
 
-  const handleGenerate = async () => {
-    // 프로필 또는 수동 입력 정보 사용
-    const finalName = profile.name || manualName || '사용자'
-    const finalBirthDate = profile.birthDate || manualBirthDate
+  const canGenerate = useMemo(
+    () => Boolean((profileInput?.birthDate || profile.birthDate) && !isGenerating),
+    [profileInput?.birthDate, profile.birthDate, isGenerating]
+  )
 
+  const handleGenerate = async () => {
+    const finalBirthDate = profileInput?.birthDate || profile.birthDate
     if (!finalBirthDate) {
-      setError('생년월일을 입력해주세요.')
+      setError('생년월일 정보를 먼저 저장해주세요.')
       return
     }
 
-    setIsGenerating(true)
     setError(null)
+    setIsGenerating(true)
 
     try {
       const response = await fetch('/api/destiny-matrix/ai-report', {
@@ -113,9 +139,9 @@ function TimingReportContent() {
           period,
           targetDate,
           dayMasterElement: sajuData?.dayMasterElement || '목',
-          name: finalName,
+          name: profileInput?.name || profile.name || '사용자',
           birthDate: finalBirthDate,
-          birthTime: profile.birthTime || manualBirthTime || undefined,
+          birthTime: profileInput?.birthTime || profile.birthTime || undefined,
           lang: 'ko',
         }),
       })
@@ -130,7 +156,6 @@ function TimingReportContent() {
         throw new Error(data.error?.message || '리포트 생성에 실패했습니다.')
       }
 
-      // 성공 - 결과 페이지로 이동
       analytics.matrixGenerate('premium-reports/timing')
       router.push(`/premium-reports/result/${data.report.id}?type=timing`)
     } catch (err) {
@@ -142,167 +167,71 @@ function TimingReportContent() {
 
   if (status === 'loading' || profileLoading || sajuLoading) {
     return (
-      <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
-        <div className="text-white">로딩 중...</div>
+      <div className="flex min-h-[100svh] items-center justify-center bg-slate-950">
+        <div className="text-slate-200">로딩 중...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-[100svh] bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      {/* Header */}
-      <header className="py-8 px-4">
-        <div className="max-w-2xl mx-auto">
+    <div className="min-h-[100svh] bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+      <header className="px-4 py-8">
+        <div className="mx-auto max-w-5xl">
           <Link
             href="/premium-reports"
-            className="text-gray-400 hover:text-white text-sm mb-4 inline-flex items-center gap-1"
+            className="inline-flex items-center text-sm text-slate-400 hover:text-slate-100"
           >
-            ← 리포트 선택으로
+            ← 리포트 선택으로 돌아가기
           </Link>
-          <div
-            className={`mt-4 p-6 rounded-2xl bg-gradient-to-r ${periodInfo.color} bg-opacity-20`}
-          >
-            <div className="flex items-center gap-4">
-              <span className="text-5xl">{periodInfo.emoji}</span>
-              <div>
-                <h1 className="text-2xl font-bold text-white">{periodInfo.label}</h1>
-                <p className="text-white/80">{periodInfo.description}</p>
-              </div>
-            </div>
+          <div className={`mt-4 rounded-2xl bg-gradient-to-r ${periodInfo.color} p-6`}>
+            <h1 className="text-2xl font-bold text-white">{periodInfo.label}</h1>
+            <p className="mt-2 text-sm text-white/90">{periodInfo.description}</p>
+            <p className="mt-2 text-xs text-white/80">{periodInfo.credits} credits</p>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 pb-20">
-        {/* Date Selector */}
-        <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 mb-6">
-          <h2 className="text-lg font-bold text-white mb-4">분석 기준일 선택</h2>
-          <DateTimePicker
-            value={targetDate}
-            onChange={setTargetDate}
-            label=""
-            locale="ko"
-            maxDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-            minDate="1900-01-01"
-          />
-          <p className="text-gray-400 text-sm mt-2">
-            {period === 'daily' && '선택한 날짜의 운세를 분석합니다.'}
-            {period === 'monthly' && '선택한 날짜가 포함된 달의 운세를 분석합니다.'}
-            {period === 'yearly' && '선택한 날짜가 포함된 해의 운세를 분석합니다.'}
+      <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1fr_1fr]">
+        <section className="rounded-2xl border border-slate-700/50 bg-slate-800/40 p-6">
+          <h2 className="text-lg font-semibold text-white">기준 날짜</h2>
+          <div className="mt-4">
+            <DateTimePicker
+              value={targetDate}
+              onChange={setTargetDate}
+              label=""
+              locale="ko"
+              minDate="1900-01-01"
+              maxDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)}
+            />
+          </div>
+          <p className="mt-3 text-sm text-slate-300">
+            {period === 'daily' && '선택한 날짜 기준으로 당일 흐름을 분석합니다.'}
+            {period === 'monthly' && '선택한 날짜가 포함된 달의 흐름을 분석합니다.'}
+            {period === 'yearly' && '선택한 날짜가 포함된 연도의 흐름을 분석합니다.'}
           </p>
-        </div>
+        </section>
 
-        {/* Profile Info */}
-        <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-white">분석 대상 정보</h2>
-            {profile.birthDate && (
-              <button
-                onClick={() => setUseCustomInfo(!useCustomInfo)}
-                className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
-              >
-                {useCustomInfo ? '프로필 사용' : '다른 정보 입력'}
-              </button>
-            )}
-          </div>
-          {profile.birthDate && !useCustomInfo ? (
-            <div className="space-y-2 text-gray-300">
-              <p>
-                <span className="text-gray-500">이름:</span> {profile.name || '미입력'}
-              </p>
-              <p>
-                <span className="text-gray-500">생년월일:</span> {profile.birthDate}
-              </p>
-              {profile.birthTime && (
-                <p>
-                  <span className="text-gray-500">출생시간:</span> {profile.birthTime}
-                </p>
-              )}
-              <p className="text-xs text-gray-500 mt-2">프로필에 저장된 정보를 사용합니다</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">이름 (선택)</label>
-                <input
-                  type="text"
-                  value={manualName}
-                  onChange={(e) => setManualName(e.target.value)}
-                  placeholder="예: 홍길동"
-                  className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <DateTimePicker
-                  value={manualBirthDate}
-                  onChange={setManualBirthDate}
-                  label="생년월일 (필수)"
-                  required
-                  locale="ko"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  출생시간 (선택)
-                </label>
-                <input
-                  type="time"
-                  value={manualBirthTime}
-                  onChange={(e) => setManualBirthTime(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-500 mt-1">더 정확한 분석을 위해 입력하세요</p>
-              </div>
-              <div className="pt-2 border-t border-slate-700">
-                <p className="text-xs text-gray-400">
-                  프로필에 정보가 없습니다. 위 정보를 입력하거나{' '}
-                  <Link
-                    href="/destiny-map"
-                    className="text-purple-400 hover:text-purple-300 underline"
-                  >
-                    운세 분석에서 프로필 설정
-                  </Link>
-                </p>
-              </div>
+        <section className="space-y-4">
+          <ReportProfileForm locale="ko" initialName={profile.name} onSubmit={setProfileInput} />
+
+          {error && (
+            <div className="rounded-xl border border-red-500/60 bg-red-500/15 p-3 text-sm text-red-200">
+              {error}
             </div>
           )}
-        </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4 mb-6">
-            <p className="text-red-300">{error}</p>
-          </div>
-        )}
-
-        {/* Generate Button */}
-        <button
-          onClick={handleGenerate}
-          disabled={isGenerating || (!(profile.birthDate && !useCustomInfo) && !manualBirthDate)}
-          className={`w-full p-4 rounded-xl font-bold text-white flex items-center justify-center gap-3 transition-all focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
-            isGenerating || (!(profile.birthDate && !useCustomInfo) && !manualBirthDate)
-              ? 'bg-slate-600 cursor-not-allowed'
-              : `bg-gradient-to-r ${periodInfo.color} hover:opacity-90`
-          }`}
-        >
-          {isGenerating ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>AI가 분석 중...</span>
-            </>
-          ) : (
-            <>
-              <span>{periodInfo.label} 생성하기</span>
-              <span className="text-sm opacity-80">✦ {periodInfo.credits} 크레딧</span>
-            </>
-          )}
-        </button>
-
-        {/* Info */}
-        <p className="text-gray-500 text-sm text-center mt-4">
-          생성된 리포트는 마이페이지에서 다시 확인할 수 있습니다.
-        </p>
+          <button
+            onClick={handleGenerate}
+            disabled={!canGenerate}
+            className={`w-full rounded-xl px-4 py-4 text-sm font-semibold text-white transition ${
+              canGenerate
+                ? `bg-gradient-to-r ${periodInfo.color} hover:opacity-90`
+                : 'cursor-not-allowed bg-slate-700'
+            }`}
+          >
+            {isGenerating ? '리포트 생성 중...' : `${periodInfo.label} 생성하기`}
+          </button>
+        </section>
       </main>
     </div>
   )
@@ -312,8 +241,8 @@ export default function TimingReportPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
-          <div className="text-white">로딩 중...</div>
+        <div className="flex min-h-[100svh] items-center justify-center bg-slate-950">
+          <div className="text-slate-200">로딩 중...</div>
         </div>
       }
     >
