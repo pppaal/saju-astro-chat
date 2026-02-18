@@ -1,10 +1,15 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
+import {
+  toQualityMarkdown,
+  type QualityAudit,
+  type CalculationDetails,
+} from '@/lib/destiny-matrix/ai-report/qualityAudit'
 
 interface ReportSection {
   title: string
@@ -25,6 +30,8 @@ interface ReportData {
   keywords?: string[]
   insights?: Array<{ title: string; content: string }>
   actionItems?: string[]
+  qualityAudit?: QualityAudit
+  calculationDetails?: CalculationDetails
   fullData?: Record<string, unknown>
 }
 
@@ -39,6 +46,7 @@ export default function ReportResultPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState(0)
+  const [showRawJson, setShowRawJson] = useState(false)
 
   const loadReport = useCallback(async () => {
     if (!reportId) {
@@ -53,48 +61,20 @@ export default function ReportResultPage() {
       const data = await response.json()
 
       if (!data.success) {
-        setError(data.error?.message || '리포트를 불러오는데 실패했습니다.')
+        setError(data.error?.message || '리포트를 불러오지 못했습니다.')
         return
       }
 
-      // API 응답을 ReportData 형식으로 변환
       const apiReport = data.report
       const fullData = apiReport.fullData || {}
 
-      // sections 변환 (다양한 형식 지원)
       let sections: ReportSection[] = []
-
       if (Array.isArray(apiReport.sections) && apiReport.sections.length > 0) {
         sections = apiReport.sections
-      } else if (fullData.sections && Array.isArray(fullData.sections)) {
-        sections = fullData.sections
-      } else {
-        // 리포트 데이터에서 섹션 추출 시도
-        const possibleSections = ['overview', 'analysis', 'timing', 'advice', 'summary']
-        for (const key of possibleSections) {
-          if (fullData[key] && typeof fullData[key] === 'string') {
-            sections.push({ title: getSectionTitle(key), content: fullData[key] as string })
-          } else if (fullData[key] && typeof fullData[key] === 'object') {
-            const obj = fullData[key] as Record<string, unknown>
-            if (obj.content) {
-              sections.push({
-                title: (obj.title as string) || getSectionTitle(key),
-                content: obj.content as string,
-              })
-            }
-          }
-        }
-
-        // 여전히 섹션이 없으면 기본 섹션 생성
-        if (sections.length === 0 && apiReport.summary) {
-          sections.push({ title: '요약', content: apiReport.summary })
-        }
-      }
-
-      // keywords 추출
-      let keywords: string[] = apiReport.keywords || []
-      if (keywords.length === 0 && fullData.keywords) {
-        keywords = fullData.keywords as string[]
+      } else if (Array.isArray(fullData.sections) && fullData.sections.length > 0) {
+        sections = fullData.sections as ReportSection[]
+      } else if (apiReport.summary) {
+        sections = [{ title: '요약', content: apiReport.summary }]
       }
 
       setReport({
@@ -108,13 +88,17 @@ export default function ReportResultPage() {
         score: apiReport.score,
         grade: apiReport.grade,
         sections,
-        keywords,
+        keywords: apiReport.keywords,
         insights: apiReport.insights,
         actionItems: apiReport.actionItems,
+        qualityAudit: apiReport.qualityAudit || (fullData.qualityAudit as QualityAudit | undefined),
+        calculationDetails:
+          apiReport.calculationDetails ||
+          (fullData.calculationDetails as CalculationDetails | undefined),
         fullData,
       })
     } catch {
-      setError('리포트를 불러오는데 실패했습니다.')
+      setError('리포트를 불러오지 못했습니다.')
     } finally {
       setIsLoading(false)
     }
@@ -127,41 +111,63 @@ export default function ReportResultPage() {
     }
 
     if (status === 'authenticated') {
-      loadReport()
+      void loadReport()
     }
   }, [status, router, loadReport])
 
-  const getSectionTitle = (key: string): string => {
-    const titles: Record<string, string> = {
-      overview: '총평',
-      analysis: '상세 분석',
-      timing: '시기 분석',
-      advice: '조언',
-      summary: '요약',
-    }
-    return titles[key] || key
+  const downloadFile = (filename: string, content: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType })
+    const url = window.URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = filename
+    document.body.appendChild(anchor)
+    anchor.click()
+    document.body.removeChild(anchor)
+    window.URL.revokeObjectURL(url)
   }
 
   const handleDownloadPDF = async () => {
     try {
       const response = await fetch(`/api/destiny-matrix/ai-report?reportId=${reportId}&format=pdf`)
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `destiny-report-${reportId}.pdf`
-        document.body.appendChild(a)
-        a.click()
-        analytics.matrixPdfDownload()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-      } else {
+      if (!response.ok) {
         alert('PDF 다운로드에 실패했습니다.')
+        return
       }
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `destiny-report-${reportId}.pdf`
+      document.body.appendChild(anchor)
+      anchor.click()
+      document.body.removeChild(anchor)
+      window.URL.revokeObjectURL(url)
+      analytics.matrixPdfDownload()
     } catch {
       alert('PDF 다운로드 중 오류가 발생했습니다.')
     }
+  }
+
+  const handleDownloadQualityMarkdown = () => {
+    if (!report?.qualityAudit) {
+      return
+    }
+    const markdown = toQualityMarkdown({
+      reportId: report.id,
+      title: report.title,
+      createdAt: report.createdAt,
+      quality: report.qualityAudit,
+    })
+    downloadFile(`report-quality-${report.id}.md`, markdown, 'text/markdown;charset=utf-8')
+  }
+
+  const handleDownloadCalculationJson = () => {
+    if (!report?.calculationDetails) {
+      return
+    }
+    const json = JSON.stringify(report.calculationDetails, null, 2)
+    downloadFile(`report-calculation-${report.id}.json`, json, 'application/json;charset=utf-8')
   }
 
   const handleShare = async () => {
@@ -173,27 +179,19 @@ export default function ReportResultPage() {
           url: window.location.href,
         })
       } catch {
-        // 사용자가 공유를 취소한 경우
+        // user canceled
       }
-    } else {
-      await navigator.clipboard.writeText(window.location.href)
-      alert('링크가 복사되었습니다.')
+      return
     }
+
+    await navigator.clipboard.writeText(window.location.href)
+    alert('링크가 복사되었습니다.')
   }
 
   if (status === 'loading' || isLoading) {
     return (
-      <div
-        className="min-h-[100svh] bg-slate-900 flex items-center justify-center"
-        aria-busy="true"
-      >
-        <div className="text-center" role="status" aria-live="polite">
-          <div
-            className="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"
-            aria-hidden="true"
-          />
-          <p className="text-white">리포트 불러오는 중...</p>
-        </div>
+      <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
+        <div className="text-white">리포트 로딩 중...</div>
       </div>
     )
   }
@@ -211,14 +209,15 @@ export default function ReportResultPage() {
     )
   }
 
+  const showThemedDiagnostics = report.type === 'themed' && !!report.calculationDetails
+
   return (
     <div className="min-h-[100svh] bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      {/* Header */}
       <header className="py-8 px-4 border-b border-slate-700/50">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <Link
             href="/premium-reports"
-            className="text-gray-400 hover:text-white text-sm mb-4 inline-flex items-center gap-1"
+            className="text-gray-400 hover:text-white text-sm inline-flex items-center gap-1"
           >
             ← 리포트 목록으로
           </Link>
@@ -231,56 +230,54 @@ export default function ReportResultPage() {
               </p>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <button
                 onClick={handleDownloadPDF}
-                className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm"
               >
                 PDF 다운로드
               </button>
               <button
                 onClick={handleShare}
-                className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm"
               >
                 공유하기
               </button>
+              {showThemedDiagnostics && report.qualityAudit && (
+                <button
+                  onClick={handleDownloadQualityMarkdown}
+                  className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm"
+                >
+                  품질 리포트(.md)
+                </button>
+              )}
+              {showThemedDiagnostics && (
+                <button
+                  onClick={handleDownloadCalculationJson}
+                  className="px-4 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-sm"
+                >
+                  계산 근거(.json)
+                </button>
+              )}
             </div>
           </div>
         </div>
       </header>
 
-      {/* Score Card */}
-      {report.score && (
-        <div className="max-w-4xl mx-auto px-4 -mt-6">
-          <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-6 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-sm">운세 점수</p>
-                <p className="text-4xl font-bold text-white">{report.score}점</p>
-                {report.grade && <p className="text-white/80 text-sm mt-1">등급: {report.grade}</p>}
-              </div>
-              <div className="text-6xl">
-                {report.score >= 90
-                  ? '🌟'
-                  : report.score >= 80
-                    ? '⭐'
-                    : report.score >= 70
-                      ? '✨'
-                      : report.score >= 60
-                        ? '💫'
-                        : '🌙'}
-              </div>
-            </div>
+      {report.score !== undefined && (
+        <div className="max-w-5xl mx-auto px-4 mt-6">
+          <div className="rounded-xl p-6 bg-gradient-to-r from-purple-500 to-pink-500">
+            <p className="text-white/80 text-sm">운세 점수</p>
+            <p className="text-4xl font-bold text-white">{report.score}점</p>
+            {report.grade && <p className="text-white/80 text-sm mt-1">등급: {report.grade}</p>}
           </div>
         </div>
       )}
 
-      {/* Summary */}
-      <div className="max-w-4xl mx-auto px-4 mt-6">
+      <div className="max-w-5xl mx-auto px-4 mt-6">
         <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
           <h2 className="text-lg font-bold text-white mb-3">핵심 요약</h2>
-          <p className="text-gray-300">{report.summary}</p>
-
+          <p className="text-gray-300 whitespace-pre-line">{report.summary}</p>
           {report.keywords && report.keywords.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {report.keywords.map((keyword) => (
@@ -296,23 +293,115 @@ export default function ReportResultPage() {
         </div>
       </div>
 
-      {/* Section Navigation */}
+      {showThemedDiagnostics && report.qualityAudit && (
+        <div className="max-w-5xl mx-auto px-4 mt-6">
+          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+            <h2 className="text-lg font-bold text-white mb-4">품질 점검</h2>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+              <div className="bg-slate-900/60 rounded p-3 text-slate-200">
+                Overall: {report.qualityAudit.overallQualityScore}
+              </div>
+              <div className="bg-slate-900/60 rounded p-3 text-slate-200">
+                완성도: {report.qualityAudit.completenessScore}
+              </div>
+              <div className="bg-slate-900/60 rounded p-3 text-slate-200">
+                교차근거: {report.qualityAudit.crossEvidenceScore}
+              </div>
+              <div className="bg-slate-900/60 rounded p-3 text-slate-200">
+                실행성: {report.qualityAudit.actionabilityScore}
+              </div>
+              <div className="bg-slate-900/60 rounded p-3 text-slate-200">
+                명확성: {report.qualityAudit.clarityScore}
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4 mt-4">
+              <div>
+                <h3 className="text-sm font-semibold text-green-300 mb-2">Strengths</h3>
+                <ul className="text-xs text-slate-300 space-y-1">
+                  {report.qualityAudit.strengths.map((item, idx) => (
+                    <li key={`${item}-${idx}`}>• {item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-amber-300 mb-2">Issues</h3>
+                <ul className="text-xs text-slate-300 space-y-1">
+                  {report.qualityAudit.issues.map((item, idx) => (
+                    <li key={`${item}-${idx}`}>• {item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-cyan-300 mb-2">Recommendations</h3>
+                <ul className="text-xs text-slate-300 space-y-1">
+                  {report.qualityAudit.recommendations.map((item, idx) => (
+                    <li key={`${item}-${idx}`}>• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showThemedDiagnostics && report.calculationDetails && (
+        <div className="max-w-5xl mx-auto px-4 mt-6">
+          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+            <h2 className="text-lg font-bold text-white mb-4">사주/점성 계산 근거 전체 상세</h2>
+
+            <details className="mb-3">
+              <summary className="cursor-pointer text-slate-200">입력 스냅샷 (사주 + 점성)</summary>
+              <pre className="mt-2 text-xs text-slate-300 overflow-auto bg-slate-900/60 p-3 rounded">
+                {JSON.stringify(report.calculationDetails.inputSnapshot, null, 2)}
+              </pre>
+            </details>
+
+            <details className="mb-3">
+              <summary className="cursor-pointer text-slate-200">타이밍 데이터</summary>
+              <pre className="mt-2 text-xs text-slate-300 overflow-auto bg-slate-900/60 p-3 rounded">
+                {JSON.stringify(report.calculationDetails.timingData, null, 2)}
+              </pre>
+            </details>
+
+            <details className="mb-3" open>
+              <summary className="cursor-pointer text-slate-200">Matrix Summary</summary>
+              <pre className="mt-2 text-xs text-slate-300 overflow-auto bg-slate-900/60 p-3 rounded">
+                {JSON.stringify(report.calculationDetails.matrixSummary, null, 2)}
+              </pre>
+            </details>
+
+            <details className="mb-3">
+              <summary className="cursor-pointer text-slate-200">Top Insights + Sources</summary>
+              <pre className="mt-2 text-xs text-slate-300 overflow-auto bg-slate-900/60 p-3 rounded">
+                {JSON.stringify(report.calculationDetails.topInsightsWithSources, null, 2)}
+              </pre>
+            </details>
+
+            <button
+              onClick={() => setShowRawJson((prev) => !prev)}
+              className="mt-2 px-3 py-2 rounded bg-slate-700 hover:bg-slate-600 text-xs text-white"
+            >
+              {showRawJson ? 'Raw JSON 숨기기' : 'Raw JSON 전체 보기'}
+            </button>
+
+            {showRawJson && (
+              <pre className="mt-3 text-xs text-slate-300 overflow-auto bg-slate-900/60 p-3 rounded max-h-[420px]">
+                {JSON.stringify(report.calculationDetails, null, 2)}
+              </pre>
+            )}
+          </div>
+        </div>
+      )}
+
       {report.sections.length > 0 && (
-        <div className="max-w-4xl mx-auto px-4 mt-6">
-          <div
-            className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide"
-            role="tablist"
-            aria-label="리포트 섹션"
-          >
+        <div className="max-w-5xl mx-auto px-4 mt-6">
+          <div className="flex overflow-x-auto gap-2 pb-2">
             {report.sections.map((section, index) => (
               <button
-                key={index}
+                key={`${section.title}-${index}`}
                 onClick={() => setActiveSection(index)}
-                role="tab"
-                aria-selected={activeSection === index}
-                aria-controls={`section-panel-${index}`}
-                id={`section-tab-${index}`}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
+                className={`px-4 py-2 rounded-lg whitespace-nowrap ${
                   activeSection === index
                     ? 'bg-purple-500 text-white'
                     : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
@@ -325,15 +414,9 @@ export default function ReportResultPage() {
         </div>
       )}
 
-      {/* Section Content */}
       {report.sections.length > 0 && (
-        <main className="max-w-4xl mx-auto px-4 py-6 pb-20">
-          <div
-            className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50"
-            role="tabpanel"
-            id={`section-panel-${activeSection}`}
-            aria-labelledby={`section-tab-${activeSection}`}
-          >
+        <main className="max-w-5xl mx-auto px-4 py-6 pb-20">
+          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
             <h2 className="text-xl font-bold text-white mb-4">
               {report.sections[activeSection].title}
             </h2>
@@ -341,47 +424,17 @@ export default function ReportResultPage() {
               {report.sections[activeSection].content}
             </div>
           </div>
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between mt-6">
-            <button
-              onClick={() => setActiveSection((prev) => Math.max(0, prev - 1))}
-              disabled={activeSection === 0}
-              className={`px-4 py-2 rounded-lg focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
-                activeSection === 0
-                  ? 'bg-slate-700 text-gray-500 cursor-not-allowed'
-                  : 'bg-slate-700 text-white hover:bg-slate-600'
-              }`}
-            >
-              ← 이전
-            </button>
-            <button
-              onClick={() =>
-                setActiveSection((prev) => Math.min(report.sections.length - 1, prev + 1))
-              }
-              disabled={activeSection === report.sections.length - 1}
-              className={`px-4 py-2 rounded-lg focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
-                activeSection === report.sections.length - 1
-                  ? 'bg-slate-700 text-gray-500 cursor-not-allowed'
-                  : 'bg-slate-700 text-white hover:bg-slate-600'
-              }`}
-            >
-              다음 →
-            </button>
-          </div>
         </main>
       )}
 
-      {/* Action Items */}
       {report.actionItems && report.actionItems.length > 0 && (
-        <div className="max-w-4xl mx-auto px-4 pb-20">
+        <div className="max-w-5xl mx-auto px-4 pb-20">
           <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
             <h2 className="text-lg font-bold text-white mb-4">실천 가이드</h2>
             <ul className="space-y-2">
               {report.actionItems.map((item, index) => (
-                <li key={index} className="flex items-start gap-2 text-gray-300">
-                  <span className="text-purple-400 mt-1">•</span>
-                  <span>{item}</span>
+                <li key={`${item}-${index}`} className="text-gray-300">
+                  • {item}
                 </li>
               ))}
             </ul>

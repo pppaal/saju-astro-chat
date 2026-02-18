@@ -506,6 +506,46 @@ describe('/api/reports/[id]', () => {
         expect(result.data.report.fullData).toEqual(mockReport.reportData)
       })
 
+      it('should expose qualityAudit and calculationDetails when present in reportData', async () => {
+        const themedReport = {
+          ...mockReport,
+          reportType: 'themed',
+          reportData: {
+            ...mockReport.reportData,
+            qualityAudit: {
+              completenessScore: 90,
+              crossEvidenceScore: 80,
+              actionabilityScore: 75,
+              clarityScore: 88,
+              overallQualityScore: 83,
+              issues: [],
+              strengths: ['cross evidence included'],
+              recommendations: ['increase action detail'],
+            },
+            calculationDetails: {
+              inputSnapshot: { saju: { dayMasterElement: '목' }, astrology: { aspects: [] } },
+              timingData: { seun: { year: 2026 } },
+              matrixSummary: { totalScore: 7.8 },
+              layerResults: { layer1: {} },
+              topInsightsWithSources: [],
+            },
+          },
+        }
+        ;(prisma.destinyMatrixReport.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          themedReport
+        )
+
+        const req = new Request(`http://localhost:3000/api/reports/${mockReportId}`)
+        const routeContext = createRouteContext(mockReportId)
+
+        const { GET } = await import('@/app/api/reports/[id]/route')
+        const response = await GET(req, routeContext)
+        const result = await response.json()
+
+        expect(result.data.report.qualityAudit).toBeDefined()
+        expect(result.data.report.calculationDetails).toBeDefined()
+      })
+
       it('should handle report with minimal data (empty arrays)', async () => {
         const minimalReport = {
           id: 'minimal-report',

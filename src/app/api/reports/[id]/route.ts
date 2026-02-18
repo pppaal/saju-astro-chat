@@ -233,6 +233,14 @@ export async function GET(request: Request, routeContext: RouteContext) {
             keywords: reportData?.keywords || [],
             insights: reportData?.insights || [],
             actionItems: reportData?.actionItems || [],
+            qualityAudit:
+              reportData && isRecord(reportData) && 'qualityAudit' in reportData
+                ? reportData.qualityAudit
+                : undefined,
+            calculationDetails:
+              reportData && isRecord(reportData) && 'calculationDetails' in reportData
+                ? reportData.calculationDetails
+                : undefined,
             fullData: reportData,
           },
         })

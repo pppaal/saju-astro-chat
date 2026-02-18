@@ -1,0 +1,268 @@
+import type { MatrixCell, MatrixSummary, MatrixCalculationInput } from '@/lib/destiny-matrix'
+import type { TimingData } from './types'
+
+export interface QualityAudit {
+  completenessScore: number
+  crossEvidenceScore: number
+  actionabilityScore: number
+  clarityScore: number
+  overallQualityScore: number
+  issues: string[]
+  strengths: string[]
+  recommendations: string[]
+}
+
+export interface CalculationDetails {
+  inputSnapshot: {
+    saju: Record<string, unknown>
+    astrology: Record<string, unknown>
+  }
+  timingData: TimingData
+  matrixSummary?: MatrixSummary
+  layerResults: Record<string, Record<string, MatrixCell>>
+  topInsightsWithSources: Array<{
+    title?: string
+    description?: string
+    category?: string
+    score?: number
+    sources?: unknown[]
+  }>
+}
+
+const REQUIRED_SECTION_KEYS = [
+  'deepAnalysis',
+  'patterns',
+  'timing',
+  'recommendations',
+  'actionPlan',
+]
+
+const THEME_SPECIFIC_KEYS: Record<string, string> = {
+  love: 'compatibility',
+  career: 'strategy',
+  wealth: 'strategy',
+  health: 'prevention',
+  family: 'dynamics',
+}
+
+const SAJU_REGEX = /사주|오행|십신|대운|세운|월운|일간|격국|용신|신살|saju|bazi|daeun|saeun|sibsin/i
+const ASTRO_REGEX =
+  /점성|행성|하우스|트랜싯|별자리|상승궁|천궁도|astrology|planet|house|transit|zodiac|progression/i
+
+const PLACEHOLDER_REGEX = /(\?{3,}|todo|tbd|lorem ipsum)/i
+
+const clamp100 = (value: number): number => Math.max(0, Math.min(100, Math.round(value)))
+
+function toText(value: unknown): string {
+  if (typeof value === 'string') {
+    return value.trim()
+  }
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+      .filter(Boolean)
+      .join(' ')
+      .trim()
+  }
+  return ''
+}
+
+function toSentenceCount(value: string): number {
+  if (!value) {
+    return 0
+  }
+  return value
+    .split(/[.!?\n]+/)
+    .map((segment) => segment.trim())
+    .filter(Boolean).length
+}
+
+function collectSectionTexts(
+  sections: Record<string, unknown>
+): Array<{ key: string; text: string }> {
+  return Object.entries(sections || {})
+    .map(([key, value]) => ({ key, text: toText(value) }))
+    .filter((entry) => entry.text.length > 0)
+}
+
+export function evaluateThemedReportQuality(input: {
+  sections: Record<string, unknown>
+  keywords?: string[]
+  theme?: string
+  lang: 'ko' | 'en'
+}): QualityAudit {
+  const sections = input.sections || {}
+  const sectionTexts = collectSectionTexts(sections)
+  const sectionCount = sectionTexts.length
+
+  const requiredKeys = [...REQUIRED_SECTION_KEYS]
+  const themeSpecific = input.theme ? THEME_SPECIFIC_KEYS[input.theme] : undefined
+  if (themeSpecific) {
+    requiredKeys.push(themeSpecific)
+  }
+
+  const presentRequired = requiredKeys.filter((key) => toText(sections[key]).length > 0).length
+  const completenessScore = clamp100((presentRequired / requiredKeys.length) * 100)
+
+  const crossMatchedCount = sectionTexts.filter(
+    ({ text }) => SAJU_REGEX.test(text) && ASTRO_REGEX.test(text)
+  ).length
+  const crossEvidenceScore = clamp100(
+    sectionCount > 0 ? (crossMatchedCount / sectionCount) * 100 : 0
+  )
+
+  const actionPlanText = toText(sections.actionPlan)
+  const recommendationsText = toText(sections.recommendations)
+  const actionSentenceCount = toSentenceCount(actionPlanText) + toSentenceCount(recommendationsText)
+  const actionabilityScore = clamp100(Math.min(1, actionSentenceCount / 8) * 100)
+
+  const totalChars = sectionTexts.reduce((sum, section) => sum + section.text.length, 0)
+  const avgChars = sectionCount > 0 ? totalChars / sectionCount : 0
+  const hasPlaceholder = sectionTexts.some(({ text }) => PLACEHOLDER_REGEX.test(text))
+  const clarityRaw = (avgChars >= 120 ? 1 : avgChars / 120) * (hasPlaceholder ? 0.65 : 1)
+  const clarityScore = clamp100(clarityRaw * 100)
+
+  const keywordBonus =
+    input.keywords && input.keywords.length >= 3
+      ? 2
+      : input.keywords && input.keywords.length > 0
+        ? 1
+        : 0
+  const overallQualityScore = clamp100(
+    completenessScore * 0.3 +
+      crossEvidenceScore * 0.3 +
+      actionabilityScore * 0.25 +
+      clarityScore * 0.15 +
+      keywordBonus
+  )
+
+  const issues: string[] = []
+  const strengths: string[] = []
+  const recommendations: string[] = []
+
+  if (completenessScore < 80) {
+    issues.push('필수 섹션 누락이 있습니다.')
+    recommendations.push('필수 섹션을 모두 채우고 theme 특화 섹션을 강화하세요.')
+  } else {
+    strengths.push('필수 섹션 구성 완성도가 높습니다.')
+  }
+
+  if (crossEvidenceScore < 70) {
+    issues.push('사주/점성 교차 근거가 부족합니다.')
+    recommendations.push('각 섹션에 사주 근거 1개 + 점성 근거 1개를 함께 명시하세요.')
+  } else {
+    strengths.push('사주와 점성의 교차 근거가 안정적으로 포함됩니다.')
+  }
+
+  if (actionabilityScore < 60) {
+    issues.push('실행 가능한 행동 가이드 밀도가 낮습니다.')
+    recommendations.push('actionPlan 문장을 6문장 이상으로 늘리고, recommendations를 구체화하세요.')
+  } else {
+    strengths.push('행동 가이드가 실용적인 수준입니다.')
+  }
+
+  if (clarityScore < 70) {
+    issues.push('문장 선명도 또는 길이가 부족합니다.')
+    recommendations.push('섹션별 핵심 문장을 늘리고 placeholder 문구를 제거하세요.')
+  } else {
+    strengths.push('리포트 문장 가독성이 양호합니다.')
+  }
+
+  if (recommendations.length === 0) {
+    recommendations.push('현재 품질 점수 유지 위해 교차 근거와 실행 가이드의 균형을 유지하세요.')
+  }
+
+  return {
+    completenessScore,
+    crossEvidenceScore,
+    actionabilityScore,
+    clarityScore,
+    overallQualityScore,
+    issues,
+    strengths,
+    recommendations,
+  }
+}
+
+export function toQualityMarkdown(input: {
+  reportId: string
+  title: string
+  createdAt: string
+  quality: QualityAudit
+}): string {
+  const { reportId, title, createdAt, quality } = input
+  return [
+    `# Themed Report Quality Audit`,
+    '',
+    `- Report ID: ${reportId}`,
+    `- Title: ${title}`,
+    `- Created At: ${createdAt}`,
+    '',
+    '## Scores',
+    `- Overall: ${quality.overallQualityScore}/100`,
+    `- Completeness: ${quality.completenessScore}/100`,
+    `- Cross Evidence: ${quality.crossEvidenceScore}/100`,
+    `- Actionability: ${quality.actionabilityScore}/100`,
+    `- Clarity: ${quality.clarityScore}/100`,
+    '',
+    '## Strengths',
+    ...quality.strengths.map((item) => `- ${item}`),
+    '',
+    '## Issues',
+    ...quality.issues.map((item) => `- ${item}`),
+    '',
+    '## Recommendations',
+    ...quality.recommendations.map((item) => `- ${item}`),
+    '',
+  ].join('\n')
+}
+
+export function buildCalculationDetails(input: {
+  matrixInput: MatrixCalculationInput
+  timingData: TimingData
+  matrixSummary?: MatrixSummary
+  layerResults: Record<string, Record<string, MatrixCell>>
+  topInsights?: Array<Record<string, unknown>>
+}): CalculationDetails {
+  const { matrixInput, timingData, matrixSummary, layerResults, topInsights } = input
+
+  const sajuSnapshot: Record<string, unknown> = {
+    dayMasterElement: matrixInput.dayMasterElement,
+    pillarElements: matrixInput.pillarElements,
+    sibsinDistribution: matrixInput.sibsinDistribution,
+    twelveStages: matrixInput.twelveStages,
+    relations: matrixInput.relations,
+    geokguk: matrixInput.geokguk,
+    yongsin: matrixInput.yongsin,
+    currentDaeunElement: matrixInput.currentDaeunElement,
+    currentSaeunElement: matrixInput.currentSaeunElement,
+    shinsalList: matrixInput.shinsalList,
+  }
+
+  const astrologySnapshot: Record<string, unknown> = {
+    dominantWesternElement: matrixInput.dominantWesternElement,
+    planetHouses: matrixInput.planetHouses,
+    planetSigns: matrixInput.planetSigns,
+    aspects: matrixInput.aspects,
+    activeTransits: matrixInput.activeTransits,
+    asteroidHouses: matrixInput.asteroidHouses,
+    extraPointSigns: matrixInput.extraPointSigns,
+  }
+
+  return {
+    inputSnapshot: {
+      saju: sajuSnapshot,
+      astrology: astrologySnapshot,
+    },
+    timingData,
+    matrixSummary,
+    layerResults,
+    topInsightsWithSources: (topInsights || []).map((insight) => ({
+      title: typeof insight.title === 'string' ? insight.title : undefined,
+      description: typeof insight.description === 'string' ? insight.description : undefined,
+      category: typeof insight.category === 'string' ? insight.category : undefined,
+      score: typeof insight.score === 'number' ? insight.score : undefined,
+      sources: Array.isArray(insight.sources) ? insight.sources : [],
+    })),
+  }
+}

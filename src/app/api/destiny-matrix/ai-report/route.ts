@@ -27,6 +27,10 @@ import {
   type TimingAIPremiumReport,
   type ThemedAIPremiumReport,
 } from '@/lib/destiny-matrix/ai-report'
+import {
+  evaluateThemedReportQuality,
+  buildCalculationDetails,
+} from '@/lib/destiny-matrix/ai-report/qualityAudit'
 import { canUseFeature, consumeCredits, getCreditBalance } from '@/lib/credits/creditService'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
@@ -225,12 +229,44 @@ export const POST = withApiMiddleware(
       let premiumReport: AIPremiumReport | null = null
 
       if (theme) {
-        // 테마별 리포트
-        aiReport = await generateThemedReport(matrixInput, baseReport, theme, timingData, {
-          name,
-          birthDate,
+        // ??? ???
+        const themedReport = await generateThemedReport(
+          matrixInput,
+          baseReport,
+          theme,
+          timingData,
+          {
+            name,
+            birthDate,
+            lang: matrixInput.lang || 'ko',
+          }
+        )
+        const qualityAudit = evaluateThemedReportQuality({
+          sections:
+            themedReport.sections && typeof themedReport.sections === 'object'
+              ? (themedReport.sections as unknown as Record<string, unknown>)
+              : {},
+          keywords: Array.isArray(themedReport.keywords) ? themedReport.keywords : [],
+          theme,
           lang: matrixInput.lang || 'ko',
         })
+        const calculationDetails = buildCalculationDetails({
+          matrixInput,
+          timingData,
+          matrixSummary:
+            matrix && typeof matrix === 'object' && 'summary' in matrix
+              ? (matrix.summary as typeof matrix.summary)
+              : undefined,
+          layerResults,
+          topInsights: Array.isArray(baseReport.topInsights)
+            ? (baseReport.topInsights as unknown as Array<Record<string, unknown>>)
+            : [],
+        })
+        aiReport = {
+          ...themedReport,
+          qualityAudit,
+          calculationDetails,
+        } as ThemedAIPremiumReport
       } else if (period && period !== 'comprehensive') {
         // 타이밍 리포트 (daily/monthly/yearly)
         aiReport = await generateTimingReport(matrixInput, baseReport, period, timingData, {

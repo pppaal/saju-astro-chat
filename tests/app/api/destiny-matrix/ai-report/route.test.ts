@@ -613,6 +613,17 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       })
     })
 
+    it('should not require themed diagnostics fields for comprehensive reports', async () => {
+      const req = createPostRequest(MOCK_VALID_INPUT)
+      await POST(req)
+
+      const callArg = vi.mocked(prisma.destinyMatrixReport.create).mock.calls[0]?.[0] as {
+        data: { reportData: Record<string, unknown> }
+      }
+      expect(callArg.data.reportData.qualityAudit).toBeUndefined()
+      expect(callArg.data.reportData.calculationDetails).toBeUndefined()
+    })
+
     it('should consume credits with correct amount', async () => {
       const req = createPostRequest(MOCK_VALID_INPUT)
       await POST(req)
@@ -700,6 +711,17 @@ describe('POST /api/destiny-matrix/ai-report', () => {
         }),
       })
     })
+
+    it('should not force themed diagnostics fields for timing reports', async () => {
+      const req = createPostRequest({ ...MOCK_VALID_INPUT, period: 'daily' })
+      await POST(req)
+
+      const callArg = vi.mocked(prisma.destinyMatrixReport.create).mock.calls[0]?.[0] as {
+        data: { reportData: Record<string, unknown> }
+      }
+      expect(callArg.data.reportData.qualityAudit).toBeUndefined()
+      expect(callArg.data.reportData.calculationDetails).toBeUndefined()
+    })
   })
 
   // ---- Themed Reports ----
@@ -767,6 +789,21 @@ describe('POST /api/destiny-matrix/ai-report', () => {
           theme: 'health',
         }),
       })
+    })
+
+    it('should persist qualityAudit and calculationDetails for themed reports', async () => {
+      const req = createPostRequest({ ...MOCK_VALID_INPUT, theme: 'love' })
+      await POST(req)
+
+      const callArg = vi.mocked(prisma.destinyMatrixReport.create).mock.calls[0]?.[0] as {
+        data: { reportData: Record<string, unknown> }
+      }
+      expect(callArg.data.reportData.qualityAudit).toBeDefined()
+      expect(callArg.data.reportData.calculationDetails).toBeDefined()
+
+      const details = callArg.data.reportData.calculationDetails as Record<string, unknown>
+      expect(details.layerResults).toBeDefined()
+      expect(details.inputSnapshot).toBeDefined()
     })
   })
 
