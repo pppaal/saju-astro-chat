@@ -1,70 +1,74 @@
-# Astrology Engine Audit
+# Audit ASTRO
 
-Date: 2026-02-17
+## 2.1 Entrypoints
 
-## Scope + Evidence
+Primary runtime path:
 
-- Entrypoints reviewed:
-  - `src/lib/astrology/foundation/astrologyService.ts` (natal)
-  - `src/lib/astrology/foundation/transit.ts` (transits)
-  - `src/lib/astrology/foundation/progressions.ts` (progressions)
-  - `src/lib/astrology/foundation/aspects.ts` (aspect/orb logic)
-  - `src/lib/astrology/foundation/ephe.ts` (Swiss Ephemeris loading)
-- Deterministic tests run:
-  - `tests/lib/astrology/foundation/determinism-golden.test.ts` (PASS, 7 tests)
+- API: `src/app/api/astrology/route.ts:45` (`POST`) validates request and builds chart outputs.
+- Engine: `src/lib/astrology/foundation/astrologyService.ts:53` (`calculateNatalChart`).
 
-## 2.1 Entrypoints / Dependencies
+Core dependencies:
 
-- Natal chart API: `calculateNatalChart(input)`
-- Transit API: `calculateTransitChart(input)`, `findTransitAspects(...)`
-- Progression API: `calculateSecondaryProgressions(...)`, `calculateSolarArc(...)`
-- Aspect logic: `findNatalAspects(...)` with orb weighting and deterministic sorting
-- Ephemeris: Swiss Ephemeris (`swisseph.swe_calc_ut`) loaded in server context
+- Swiss Ephemeris loading via `src/lib/astrology/foundation/ephe.ts`.
+- Julian conversion in `src/lib/astrology/foundation/shared.ts:57` (`natalToJD`).
 
-## 2.2 Determinism + Invariants
+## 2.2 Correctness + Determinism Evidence
 
-Verified by code and tests:
+### Input/time conversion
 
-- Longitude normalization / ranges:
-  - planet longitudes and house cusps constrained to expected [0, 360) output domain
-- Sign-from-longitude continuity:
-  - sign + formatted degree generated via shared formatter path
-- Aspect determinism:
-  - same input chart yields same aspect set and orb values
-  - reverse duplicate pair suppression in natal aspect tests
-- House system consistency:
-  - Placidus default used in natal/transit/progression generation paths
-- Missing birth time behavior:
-  - explicit fallback behavior is not globally standardized in one place (risk below)
+- Local datetime -> timezone-aware dayjs -> UTC -> JD (`src/lib/astrology/foundation/shared.ts:57`–`src/lib/astrology/foundation/shared.ts:103`).
+- Invalid datetime components are explicitly rejected (`src/lib/astrology/foundation/shared.ts:61`).
 
-## 2.3 Golden Tests Added/Validated
+### Natal chart generation
 
-- `tests/lib/astrology/foundation/determinism-golden.test.ts`
-  - 5 fixed natal cases: repeated-run stable longitudes and angles
-  - house cusp validity checks
-  - natal aspect pair stability/no reverse duplicates
-  - transit window boundary determinism (`2026-03-01T00:00:00Z` and `2026-03-31T23:59:59Z` repeated runs)
+- Planet longitudes from `swe_calc_ut` (`src/lib/astrology/foundation/astrologyService.ts:80`).
+- House cusps/ASC/MC from `calcHouses` (`src/lib/astrology/foundation/astrologyService.ts:59`).
+- Default house system currently fixed to Placidus in natal path (`src/lib/astrology/foundation/astrologyService.ts:59`, meta at `:124`).
 
-## Astro Correctness Confidence
+### Invariants in code
 
-- Score: **3.9 / 5**
-- Rationale:
-  - Strong deterministic core and Swiss Ephemeris usage
-  - Confidence reduced by operational dependency on ephemeris files, multiple advanced modules with diverse orb policies, and limited oracle cross-checks
+- Angle normalization utilities used widely (`normalize360`, `shortestAngle`).
+- House inference handles wrap-around (`src/lib/astrology/foundation/houses.ts:38`).
+- Aspect scoring/orb logic deterministic (`src/lib/astrology/foundation/aspects.ts` around orb/weights section).
 
-## Top 10 Risks
+## 2.3 Golden Tests
 
-1. Ephemeris path/runtime availability can break chart generation.
-2. Mixed house-system expectations (Placidus default vs user expectations) can create interpretation drift.
-3. High-latitude behavior and fallback consistency need stronger contracts.
-4. Timezone parsing near DST transitions not deeply regression-tested.
-5. Different modules define different orb defaults (potential inconsistency across products).
-6. Missing/unknown birth-time handling differs across routes/features.
-7. Large advanced calculations (progressions/returns/rectification) may impact latency at scale.
-8. Error paths often throw generic internal errors without domain-specific code taxonomy.
-9. No cross-engine external oracle test corpus in this repo for planet-by-planet validation.
-10. Full-suite instability masks true astro regressions (test signal-to-noise issue).
+Executed:
 
-## Minimal Changes Implemented in This Audit
+- `tests/lib/astrology/foundation/determinism-golden.test.ts` (6 passed)
 
-- Added transit-window deterministic invariant test to `tests/lib/astrology/foundation/determinism-golden.test.ts`.
+Assertions covered:
+
+- Repeated natal computation is stable.
+- Planet longitudes remain in `[0,360)`.
+- Houses are valid and deterministic.
+- Natal aspects are stable and non-duplicated by reverse pair.
+
+## 2.4 Astro Correctness Confidence
+
+**Score: 4.0 / 5**
+
+Why:
+
+- Deterministic core appears solid and tests pass.
+- Swiss ephemeris-backed calculations and validation logic are explicit.
+- Confidence reduced by limited external-oracle comparisons and broad advanced-feature surface.
+
+## 2.5 Top 10 Risks
+
+1. **Ephemeris/runtime dependency risk**: if `swisseph` load/path fails, engine unavailable.
+2. **House-system mismatch risk**: many paths assume Placidus by default.
+3. **Timezone ambiguity** near DST transitions despite validation.
+4. **Performance cost** for repeated `swe_calc_ut` and advanced modules under high QPS.
+5. **Inconsistent token/rate behavior in tests** suggests middleware-contract drift in some API suites.
+6. **Advanced module sprawl** (asteroids/eclipses/harmonics/rectification) increases regression surface.
+7. **Weak contract tests on progression/transit window boundaries** for month edges.
+8. **No unified deterministic fixtures shared across advanced routes**.
+9. **Potential fallback behavior differences** between dev/prod env for supporting infra.
+10. **Coverage fragmentation**: broad code area, relatively low focused test density in many advanced endpoints.
+
+## 2.6 Minimal Guardrail Additions Recommended
+
+- Add 5 fixed test vectors that assert selected planet longitudes to fixed precision.
+- Add progression/transit boundary tests around month/year edges.
+- Add a startup smoke check that validates ephemeris availability and fails fast.

@@ -46,6 +46,7 @@ def test_unified_prompt_contains_required_contract_sections():
     assert "## 출력 형식 (JSON)" in prompt
     assert '"card_evidence"' in prompt
     assert "card_id/orientation/domain/position" in prompt
+    assert "규칙 무시/시스템 공개/비밀 노출" in prompt
 
 
 def test_chat_system_prompt_contains_required_safety_and_evidence_rules():
@@ -63,6 +64,7 @@ def test_chat_system_prompt_contains_required_safety_and_evidence_rules():
     assert "🚫 절대 금지" in prompt
     assert "뽑힌 카드 이름과 위치 반드시 언급" in prompt
     assert "retrieved context" in prompt
+    assert "규칙 무시/시스템 공개/비밀 노출" in prompt
 
 
 def test_fallback_card_evidence_always_yields_required_keys():

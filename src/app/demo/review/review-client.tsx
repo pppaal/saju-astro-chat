@@ -77,7 +77,7 @@ export default function DemoReviewClient({ token }: DemoReviewClientProps) {
   )
 
   const loadInbox = useCallback(async () => {
-    const res = await fetch(`/api/demo/feedback?token=${encodeURIComponent(token)}&limit=50`, {
+    const res = await fetch(`/api/demo/feedback?demo_token=${encodeURIComponent(token)}&limit=50`, {
       cache: 'no-store',
     })
     if (!res.ok) {
@@ -101,7 +101,7 @@ export default function DemoReviewClient({ token }: DemoReviewClientProps) {
     }
     setSubmitting(true)
     try {
-      const res = await fetch(`/api/demo/feedback?token=${encodeURIComponent(token)}`, {
+      const res = await fetch(`/api/demo/feedback?demo_token=${encodeURIComponent(token)}`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
@@ -138,7 +138,7 @@ export default function DemoReviewClient({ token }: DemoReviewClientProps) {
 
   const updateStatus = useCallback(
     async (id: string, status: FeedbackStatus) => {
-      const res = await fetch(`/api/demo/feedback?token=${encodeURIComponent(token)}`, {
+      const res = await fetch(`/api/demo/feedback?demo_token=${encodeURIComponent(token)}`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ id, status }),
@@ -156,7 +156,7 @@ export default function DemoReviewClient({ token }: DemoReviewClientProps) {
     try {
       const visibleTextSnippet = document.body?.innerText?.slice(0, 4000) || ''
       const pageTitle = document.title
-      const res = await fetch(`/api/demo/ai-review?token=${encodeURIComponent(token)}`, {
+      const res = await fetch(`/api/demo/ai-review?demo_token=${encodeURIComponent(token)}`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({

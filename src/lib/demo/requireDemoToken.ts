@@ -15,6 +15,10 @@ import {
 export { isValidDemoToken } from '@/lib/demo/token'
 
 type TokenLike = string | string[] | null | undefined
+type DemoTokenSearchParams = {
+  demo_token?: TokenLike
+  token?: TokenLike
+}
 const DEMO_COOKIE_NAME = 'dp_demo'
 
 export function hasDemoTokenConfigured(): boolean {
@@ -65,10 +69,7 @@ export function requireDemoTokenOr404(token?: TokenLike): void {
   }
 }
 
-export function requireDemoTokenForPage(searchParams?: {
-  demo_token?: TokenLike
-  token?: TokenLike
-}): string {
+export function requireDemoTokenForPage(searchParams?: DemoTokenSearchParams): string {
   const token = readDemoTokenFromSearchParams(searchParams)
   requireDemoTokenOr404(token)
   return token ?? ''
@@ -83,10 +84,7 @@ async function hasDemoAccessCookie(): Promise<boolean> {
   }
 }
 
-export async function validateDemoTokenForPage(searchParams?: {
-  demo_token?: TokenLike
-  token?: TokenLike
-}): Promise<{
+export async function validateDemoTokenForPage(searchParams?: DemoTokenSearchParams): Promise<{
   ok: boolean
   token: string | null
   reason?: 'disabled' | 'misconfigured' | 'missing_or_invalid'
@@ -108,11 +106,11 @@ export async function validateDemoTokenForPage(searchParams?: {
 }
 
 export function demoNotFoundJson(): NextResponse {
-  return NextResponse.json({ error: 'Demo access required' }, { status: 401 })
+  return NextResponse.json({ error: 'Not Found' }, { status: 404 })
 }
 
 export function demoUnauthorizedJson(): NextResponse {
-  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  return demoNotFoundJson()
 }
 
 export function apiRequireDemoTokenOr404(request: NextRequest): NextResponse | null {
@@ -120,14 +118,14 @@ export function apiRequireDemoTokenOr404(request: NextRequest): NextResponse | n
     return null
   }
   if (!isDemoEnabled()) {
-    return NextResponse.json({ error: 'Demo mode disabled' }, { status: 403 })
+    return demoNotFoundJson()
   }
   if (!hasDemoTokenConfigured()) {
-    return NextResponse.json({ error: 'Demo token not configured' }, { status: 503 })
+    return demoNotFoundJson()
   }
   const token = readDemoTokenFromRequest(request)
   if (!isValidDemoToken(token)) {
-    return demoUnauthorizedJson()
+    return demoNotFoundJson()
   }
   return null
 }
@@ -146,8 +144,8 @@ export function requireDemoReviewTokenOr404(token?: TokenLike): void {
   }
 }
 
-export function requireDemoReviewTokenForPage(searchParams?: { token?: TokenLike }): string {
-  const token = normalizeDemoToken(searchParams?.token)
+export function requireDemoReviewTokenForPage(searchParams?: DemoTokenSearchParams): string {
+  const token = readDemoTokenFromSearchParams(searchParams)
   requireDemoReviewTokenOr404(token)
   return token || ''
 }

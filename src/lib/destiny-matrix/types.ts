@@ -423,4 +423,6 @@ export interface MatrixCalculationInput {
 
   // Options
   lang?: 'ko' | 'en'
+  // Optional anchor month for deterministic 12-month timeline generation (YYYY-MM)
+  startYearMonth?: string
 }

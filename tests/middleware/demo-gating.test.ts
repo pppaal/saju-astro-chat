@@ -16,7 +16,21 @@ describe('middleware demo token cookie gating', () => {
     process.env.DEMO_ENABLED = originalDemoEnabled
   })
 
-  it('sets dp_demo cookie and redirects /demo to clean URL when token is in query', () => {
+  it.each(['demo_token', 'token'] as const)(
+    'accepts %s query param on /demo/* and redirects to clean URL',
+    (paramName) => {
+      const request = new NextRequest(
+        `http://localhost:3000/demo/calendar?${paramName}=demo-test-token`
+      )
+      const response = middleware(request)
+
+      expect(response.status).toBe(307)
+      expect(response.headers.get('location')).toBe('http://localhost:3000/demo/calendar')
+      expect(response.headers.get('set-cookie')).toContain('dp_demo=1')
+    }
+  )
+
+  it('sets dp_demo cookie and redirects /demo to clean URL when demo token is in query', () => {
     const request = new NextRequest('http://localhost:3000/demo?demo_token=demo-test-token')
     const response = middleware(request)
 

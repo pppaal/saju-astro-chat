@@ -2,24 +2,26 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { fetchDemoJson } from '@/lib/demo/pageFetch'
 import { requireDemoTokenOr404 } from '@/lib/demo/requireDemoToken'
+import { readDemoTokenFromSearchParams } from '@/lib/demo/token'
 import type { DemoCombinedPayload } from '@/lib/demo/demoPipelines'
 
 export const dynamic = 'force-dynamic'
 
 interface DemoPageProps {
-  searchParams?: { token?: string | string[] } | Promise<{ token?: string | string[] }>
+  searchParams?:
+    | { demo_token?: string | string[]; token?: string | string[] }
+    | Promise<{ demo_token?: string | string[]; token?: string | string[] }>
 }
 
 export default async function DemoCombinedPage({ searchParams }: DemoPageProps) {
   const resolvedSearchParams = await Promise.resolve(searchParams)
-  const rawToken = resolvedSearchParams?.token
-  const token = Array.isArray(rawToken) ? rawToken[0] : rawToken
+  const token = readDemoTokenFromSearchParams(resolvedSearchParams)
   requireDemoTokenOr404(token)
 
   let data: DemoCombinedPayload
   try {
     data = await fetchDemoJson<DemoCombinedPayload>(
-      `/api/demo/combined?token=${encodeURIComponent(token || '')}`,
+      `/api/demo/combined?demo_token=${encodeURIComponent(token || '')}`,
       token
     )
   } catch {
@@ -119,7 +121,9 @@ export default async function DemoCombinedPage({ searchParams }: DemoPageProps) 
       </section>
 
       <div style={{ marginTop: 24 }}>
-        <Link href={`/demo/combined.pdf?token=${encodeURIComponent(token || '')}`}>Download PDF</Link>
+        <Link href={`/demo/combined.pdf?demo_token=${encodeURIComponent(token || '')}`}>
+          Download PDF
+        </Link>
       </div>
     </main>
   )

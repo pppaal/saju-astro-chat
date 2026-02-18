@@ -5,6 +5,15 @@ export const dynamic = 'force-dynamic'
 
 type Priority = 'P0' | 'P1' | 'P2'
 
+function isDemoAiReviewEnabled(): boolean {
+  const raw = process.env.ENABLE_DEMO_AI_REVIEW
+  if (typeof raw !== 'string' || raw.trim() === '') {
+    return true
+  }
+  const normalized = raw.trim().toLowerCase()
+  return normalized !== '0' && normalized !== 'false' && normalized !== 'off'
+}
+
 function inferIssuePriority(issue: string): Priority {
   const low = issue.toLowerCase()
   if (low.includes('loading') || low.includes('broken') || low.includes('error')) {
@@ -22,7 +31,7 @@ export async function POST(request: NextRequest) {
     return tokenValidation
   }
 
-  if (process.env.ENABLE_DEMO_AI_REVIEW !== '1') {
+  if (!isDemoAiReviewEnabled()) {
     return NextResponse.json({ enabled: false }, { status: 200 })
   }
 

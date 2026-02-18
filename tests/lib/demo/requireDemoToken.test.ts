@@ -34,7 +34,7 @@ describe('requireDemoToken', () => {
 
     const req = new NextRequest('http://localhost:3000/api/demo/icp?token=anything')
     const res = apiRequireDemoTokenOr404(req)
-    expect(res?.status).toBe(503)
+    expect(res?.status).toBe(404)
   })
 
   it('accepts exact token match and rejects mismatches', () => {
@@ -61,6 +61,20 @@ describe('requireDemoToken', () => {
     expect(res).toBeNull()
   })
 
+  it('apiRequireDemoTokenOr404 accepts both demo_token and token query params', () => {
+    process.env.DEMO_TOKEN = 'demo-test-token'
+
+    const newParamReq = new NextRequest(
+      'http://localhost:3000/api/demo/icp?demo_token=demo-test-token'
+    )
+    const legacyParamReq = new NextRequest(
+      'http://localhost:3000/api/demo/icp?token=demo-test-token'
+    )
+
+    expect(apiRequireDemoTokenOr404(newParamReq)).toBeNull()
+    expect(apiRequireDemoTokenOr404(legacyParamReq)).toBeNull()
+  })
+
   it('apiRequireDemoTokenOr404 accepts dp_demo cookie without token', () => {
     process.env.DEMO_TOKEN = 'demo-test-token'
     const req = new NextRequest('http://localhost:3000/api/demo/icp')
@@ -68,5 +82,13 @@ describe('requireDemoToken', () => {
 
     const res = apiRequireDemoTokenOr404(req)
     expect(res).toBeNull()
+  })
+
+  it('apiRequireDemoTokenOr404 returns 404 on mismatch', () => {
+    process.env.DEMO_TOKEN = 'demo-test-token'
+    const req = new NextRequest('http://localhost:3000/api/demo/icp?token=wrong')
+
+    const res = apiRequireDemoTokenOr404(req)
+    expect(res?.status).toBe(404)
   })
 })

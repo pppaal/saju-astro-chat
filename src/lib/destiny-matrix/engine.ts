@@ -584,6 +584,7 @@ function calculateSummary(
     input,
     layer4,
     layer7,
+    startYearMonth: input.startYearMonth,
     baseOverlapStrength: overlapStrength,
   })
   const overlapTimelineByDomain = generateTimelineByDomain(overlapTimeline, initialDomainScores)

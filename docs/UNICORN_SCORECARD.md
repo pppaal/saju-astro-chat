@@ -1,89 +1,73 @@
-# Unicorn Readiness Scorecard
-
-Date: 2026-02-17
+# Unicorn Scorecard
 
 ## 5.1 Moat / Differentiation (code-based)
 
-### What competitors can copy in ~2 weeks
+### What is easy to copy (2 weeks)
 
-- Generic Next.js route scaffolding and standard auth/credit wrappers
-- Basic tarot prompt orchestration and cache wrappers
-- Single-engine SAJU or western astrology calculators using known libraries
+- Standard single-domain tarot text generation UX.
+- Generic astrology route wrappers around Swiss ephemeris.
+- Basic RAG retrieval with vector search only.
 
-### What is materially harder to copy
+### What is harder to copy
 
-- Multi-layer fusion metric + explainability surfaces in `src/lib/destiny-matrix/*`
-  - alignment, overlap weight, domain/timeline explainability, calendar signals
-- Domain mapping assets and rule tables
-  - SAJU rule DBs (`johuYongsin`, sibsin/yongsin mappings)
-  - fusion layer matrices
-- Contract-test harness across TS + Python (deterministic + safety contracts)
-- End-to-end productized blend (SAJU + Astro + Tarot + chat/report routes)
+1. **Deterministic 10-layer SAJU×ASTRO fusion engine**
+   - Mapping assets + adjusted scoring + explainability: `src/lib/destiny-matrix/engine.ts`, `src/lib/destiny-matrix/data/layer*.ts`.
+2. **Cross-domain (saju+astro) GraphRAG isolation + cross collection design**
+   - `saju_astro_graph_nodes_v1`, `saju_astro_cross_v1`, strict domain filtering in runtime paths.
+3. **Operational guardrails around leakage**
+   - `scripts/self_check.py`, `scripts/e2e_rag_smoke.py`, `EXCLUDE_NON_SAJU_ASTRO` + `RAG_TRACE` controls.
+4. **Tarot evidence-contract flow**
+   - prompt schema + evidence repair/fallback in route.
 
-## 5.2 Operability
+## 5.2 Operability (Perf/Cost/Reliability)
 
-- Performance hotspots (observed by code path)
-  - Swiss Ephemeris calls in natal/transit/progression generation
-  - Tarot hybrid retrieval + optional GraphRAG + potential repair pass
-  - Fusion report generation under rate-limited routes
-- Caching
-  - in-memory SAJU cache and tarot API cache paths exist
-  - caching strategy is mixed (in-process + external), needs consistency at scale
-- Cost drivers
-  - repeated LLM calls (main + repair) in tarot interpretation
-  - high-volume chart generation
-- Rate limits/abuse
-  - route-level controls exist but full-suite failures show expectation drift in tests
-- Observability
-  - logging present in key paths; structured metrics coverage is uneven
+### Strengths
 
-## 5.3 Security
+- Extensive caching infrastructure (LRU + Redis + versioned cache keys): `src/lib/cache/*`, `src/lib/destiny-matrix/cache.ts`.
+- Middleware pattern centralizes auth/token/rate-limit/credits: `src/lib/api/middleware/context.ts`.
+- Domain-specific Chroma collections reduce mixed retrieval in saju×astro mode.
 
-- Prompt injection surface
-  - sanitizer regexes present; contract validation improves output safety
-- Secrets leakage
-  - no direct hardcoded secret found in reviewed paths
-- SSRF/open proxy
-  - no direct SSRF sink observed in reviewed core paths, but external fetches exist in scripts
-- Demo token + cookie scope
-  - middleware grants `dp_demo` cookie for demo paths; now set `secure` in production
-  - credit bypass previously header-only; hardened in this audit to require demo cookie + token
-- PII handling
-  - user profile/birth data processed across services; retention/encryption policy not fully evident in reviewed subset
+### Bottlenecks / cost drivers
 
-## 5.4 Graded Scores (0-10)
+- Heavy inference paths (Swiss ephemeris + multi-layer fusion + LLM generation) under high concurrency.
+- Large corpus collections (`corpus_nodes`) and broad retrieval surfaces increase query and ranking cost.
+- Full test suite instability increases release friction and hidden regression risk.
 
-- Correctness: **7.2**
-- Reliability: **6.3**
-- Safety: **6.8**
-- Differentiation: **7.9**
-- Scalability: **6.4**
-- Conversion readiness: **7.0**
-- Unicorn likelihood: **6.9**
+## 5.3 Security Review
 
-### Justification
+### Good controls present
 
-- Strongest asset is true cross-fusion architecture with explainability and deterministic properties.
-- Main drag is operational quality variance: full-suite instability and mixed guardrail maturity across many modules.
+- Timing-safe comparison utilities (`src/lib/security/timingSafe.ts`).
+- Public token validation helpers (`src/lib/auth/publicToken.ts`).
+- Secret/token redaction patterns (`src/lib/security/errorSanitizer.ts`).
+- Demo token guard supports not-found behavior in route utilities (`src/lib/demo/requireDemoToken.ts`).
 
-## Phase 6 Fixes Applied (minimal, high-impact)
+### Main security/safety risks
 
-1. Hardened credit bypass path to reduce demo token replay risk.
-   - `src/lib/credits/withCredits.ts`
-   - demo bypass now requires both valid `x-demo-token` and `dp_demo=1` cookie.
-2. Added regression tests for hardened bypass behavior.
-   - `tests/lib/credits/withCredits.test.ts`
-3. Strengthened demo cookie transport policy in production.
-   - `middleware.ts` sets `secure: true` in production for `dp_demo` cookie.
-4. Added transit-window determinism guardrail.
-   - `tests/lib/astrology/foundation/determinism-golden.test.ts`
+1. Demo behavior split between middleware pass-through and route-level deny can confuse threat modeling (`middleware.ts` vs route guards).
+2. Prompt-injection handling mostly prompt-policy based; no explicit model-side sandboxing.
+3. Shared graph search utility (`corpus_nodes`) can introduce domain contamination if reused carelessly.
+4. Broad API surface area requires stricter route-by-route auth/rate auditing.
 
-## Commands Run + Results
+## 5.4 Graded Scores (0–10)
 
-- `npm run -s lint` -> PASS
-- `npm run -s typecheck` -> PASS
-- `npm run -s build` -> PASS
-- `npm test` -> FAIL (existing broad-suite expectation drift; notable ICP and route-level contract mismatches)
-- `npx vitest run --coverage.enabled false tests/lib/Saju/determinism-golden.test.ts tests/lib/astrology/foundation/determinism-golden.test.ts tests/lib/destiny-matrix/fusion-properties-regression.test.ts tests/lib/destiny-matrix/ai-report-score-determinism.test.ts tests/lib/demo/requireDemoToken.test.ts tests/middleware/demo-gating.test.ts tests/app/api/demo/ai-review-route.test.ts tests/lib/credits/withCredits.test.ts` -> PASS (55 tests)
-- `python -m pytest backend_ai/tests/unit/test_tarot_router_contract.py backend_ai/tests/unit/test_tarot_crisis_detection_contract.py -q` -> PASS (8 tests)
-- `npm run -s test:ssr-placeholders` -> FAIL in this session (no running local server at `http://127.0.0.1:3000`)
+| Dimension            | Score | Rationale                                                                                    |
+| -------------------- | ----: | -------------------------------------------------------------------------------------------- |
+| Correctness          |   7.6 | SAJU/ASTRO deterministic internals are strong; external-oracle validation depth is limited.  |
+| Reliability          |   6.8 | Core targeted tests pass, but full suite has substantial pre-existing failures.              |
+| Safety               |   7.2 | Good contract/fallback patterns; still prompt-layer-centric for injection and crisis nuance. |
+| Differentiation      |   8.1 | 10-layer deterministic fusion + explainability + cross collections is non-trivial.           |
+| Scalability          |   6.9 | Caching exists, but expensive compute/retrieval paths need tighter perf budgets.             |
+| Conversion readiness |   7.0 | Product breadth strong; consistency/test drift can harm trust and release velocity.          |
+
+## 5.5 Unicorn Likelihood
+
+**Score: 7.4 / 10 (conditional)**
+
+Condition for upward move:
+
+- Stabilize release quality gates (full test suite health).
+- Tighten domain-isolation guarantees across all tarot/graph retrieval edges.
+- Add deterministic eval harnesses that gate regressions in fusion quality and safety behavior.
+
+Without this, differentiation remains strong but operational drag will cap growth velocity.

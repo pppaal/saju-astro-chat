@@ -1,76 +1,101 @@
 # Audit Repo Map
 
-Date: 2026-02-17
-Repo: `c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest`
-
-## 0.1 Baseline Health (commands run)
+## Baseline Health (2026-02-17)
 
 - `npm run -s lint`: PASS
 - `npm run -s typecheck`: PASS
-- `npm run -s build`: PASS (Next.js 16.1.6 build completed)
-- `npm test`: FAIL (large pre-existing suite mismatch/noise; major failures in ICP tests and many route expectation drift cases)
-- Targeted deterministic suites (run to reduce noise): PASS
-  - `npx vitest run --coverage.enabled false tests/lib/Saju/determinism-golden.test.ts tests/lib/astrology/foundation/determinism-golden.test.ts tests/lib/destiny-matrix/fusion-properties-regression.test.ts tests/lib/destiny-matrix/ai-report-score-determinism.test.ts tests/lib/demo/requireDemoToken.test.ts tests/middleware/demo-gating.test.ts tests/app/api/demo/ai-review-route.test.ts tests/lib/credits/withCredits.test.ts`
-  - `python -m pytest backend_ai/tests/unit/test_tarot_router_contract.py backend_ai/tests/unit/test_tarot_crisis_detection_contract.py -q`
+- `npm run -s build`: PASS (after cleaning `.next`/`tsconfig.tsbuildinfo` and rerunning)
+- `npm test`: TIMEOUT at 182s (suite is very large/noisy; targeted critical suites were run instead)
+- Targeted deterministic/contract suites:
+  - `npx vitest run tests/lib/Saju/determinism-golden.test.ts tests/lib/astrology/foundation/determinism-golden.test.ts tests/lib/destiny-matrix/fusion-properties-regression.test.ts tests/lib/destiny-matrix/ai-report-score-determinism.test.ts tests/lib/demo/requireDemoToken.test.ts tests/middleware/demo-gating.test.ts`: PASS (34 tests)
+  - `python -m pytest backend_ai/tests/unit/test_tarot_router_contract.py backend_ai/tests/unit/test_tarot_crisis_detection_contract.py backend_ai/tests/unit/test_tarot_interpret_evidence_route.py -q`: PASS (31 tests)
+  - `python scripts/self_check.py` with `USE_CHROMADB=1 EXCLUDE_NON_SAJU_ASTRO=1 RAG_TRACE=1`: PASS
 
-## 0.2 Repository Areas
+## Top-Level Product Modules
 
-- Frontend + API app routes: `src/app`
-- Core business/domain libraries: `src/lib`
-- Python AI backend + RAG pipelines: `backend_ai/app`
-- Test suites: `tests` (TypeScript/Vitest), `backend_ai/tests` (Pytest)
-- Static/data assets: `public`, `data`, `backend_ai/data`
-- Infra/config/scripts: `prisma`, `scripts`, `middleware.ts`, `next.config.ts`
+- Next.js App Router: `src/app/**` (89 page routes, 153 API routes)
+- Frontend domain libs: `src/lib/**`
+- Python backend AI runtime: `backend_ai/app/**`, `backend_ai/services/**`
+- Graph/corpus data: `backend_ai/data/graph/**`, `backend_ai/data/corpus/**`
+- Vector store: `backend_ai/data/chromadb/**`
+- Indexing/diagnostics scripts: `scripts/**`, `backend_ai/scripts/**`
+- Test suites:
+  - Frontend/unit/integration: `tests/**` (1027 test files)
+  - Backend Python: `backend_ai/tests/**` (159 test files)
 
-## Top-Level Module Map
+## Truth Sources (Authoritative Files)
 
-- UI/routes: `src/app/*`
-- API routes: `src/app/api/*`
-- SAJU engine: `src/lib/Saju/*`
-- Astrology engine: `src/lib/astrology/foundation/*`
-- Cross-fusion (Destiny Matrix): `src/lib/destiny-matrix/*`
-- Credits/demo/paywall: `src/lib/credits/*`, `src/lib/demo/*`, `middleware.ts`
-- Tarot frontend assets: `src/lib/Tarot/*`
-- Tarot GraphRAG + generation backend: `backend_ai/app/tarot/*`, `backend_ai/app/routers/tarot/*`, `backend_ai/app/rag*`
+- SAJU computation:
+  - `src/lib/Saju/saju.ts`
+  - `src/lib/Saju/constants.ts`
+  - API entry: `src/app/api/saju/route.ts`
+- Western astrology computation:
+  - `src/lib/astrology/foundation/shared.ts`
+  - `src/lib/astrology/foundation/astrologyService.ts`
+  - `src/lib/astrology/foundation/houses.ts`
+  - `src/lib/astrology/foundation/aspects.ts`
+  - `src/lib/astrology/foundation/transit.ts`
+  - `src/lib/astrology/foundation/progressions.ts`
+- Cross-fusion (saju x astro matrix):
+  - `src/lib/destiny-matrix/engine.ts`
+  - `src/lib/destiny-matrix/alignment.ts`
+  - `src/lib/destiny-matrix/timeOverlap.ts`
+  - `src/lib/destiny-matrix/domainScoring.ts`
+  - `src/lib/destiny-matrix/monthlyTimeline.ts`
+  - Mapping tables: `src/lib/destiny-matrix/data/layer*.ts`
+- Tarot + GraphRAG pipeline:
+  - Retrieval core: `backend_ai/app/saju_astro_rag.py`
+  - Vector/chroma wrapper: `backend_ai/app/rag/vector_store.py`
+  - Cross retrieval/grouping/ranking: `backend_ai/app/rag/cross_store.py`
+  - Tarot route/prompt contracts: `backend_ai/app/routers/tarot/interpret.py`, `backend_ai/app/routers/tarot/prompt_builder.py`
+  - Tarot safety crisis rules: `backend_ai/app/tarot/rules_loader.py`
+- Counseling/chat streaming pipeline:
+  - Main runtime: `backend_ai/services/streaming_service.py`
+  - SSE helper layer: `backend_ai/app/services/streaming_service.py`
+  - RAG prefetch managers:
+    - `backend_ai/app/rag_manager.py`
+    - `backend_ai/app/rag/optimized_manager.py`
+- Credits/paywall/demo gating:
+  - Next middleware gate: `middleware.ts`
+  - API middleware guards: `src/lib/api/middleware/**`
+  - Credits service: `src/lib/credits/creditService.ts`, `src/lib/credits/withCredits.ts`
+  - Demo token logic: `src/lib/demo/token.ts`, `src/lib/demo/requireDemoToken.ts`
 
-## 0.3 Truth Sources
+## Data/Index Sources
 
-- SAJU computation
-  - `src/lib/Saju/saju.ts` (main entrypoint: `calculateSajuData`)
-  - `src/lib/Saju/unse.ts` (luck cycles, iljin/monthly helpers)
-  - `src/lib/Saju/yongsin.ts` and `src/lib/Saju/johuYongsin.ts` (?? logic/rule tables)
-  - `src/lib/Saju/sibsinAnalysis.ts` (?? mapping)
-- Astrology computation
-  - `src/lib/astrology/foundation/astrologyService.ts` (natal chart)
-  - `src/lib/astrology/foundation/transit.ts` (transits)
-  - `src/lib/astrology/foundation/progressions.ts` (progressions)
-  - `src/lib/astrology/foundation/aspects.ts` (aspects/orbs)
-  - `src/lib/astrology/foundation/ephe.ts` (Swiss Ephemeris loading)
-- Cross-fusion matrix/metric
-  - `src/lib/destiny-matrix/engine.ts` (10-layer fusion + summary)
-  - `src/lib/destiny-matrix/alignment.ts` (alignment term)
-  - `src/lib/destiny-matrix/timeOverlap.ts` (time-overlap weight)
-  - `src/lib/destiny-matrix/domainScoring.ts`, `drivers.ts`, `calendarSignals.ts`, `monthlyTimeline.ts`
-- Tarot data + RAG pipeline
-  - `backend_ai/app/tarot/hybrid_rag.py` (orchestration)
-  - `backend_ai/app/routers/tarot/interpret.py` (main interpret route + evidence repair)
-  - `backend_ai/app/routers/tarot/prompt_builder.py` (prompt contracts)
-  - `backend_ai/app/routers/tarot/context_detector.py` (routing/context heuristics)
-  - `backend_ai/app/sanitizer.py` (injection sanitation)
-  - `backend_ai/app/tarot/rules_loader.py` (crisis/safety rules)
-- Counseling/chat streaming pipeline
-  - `src/app/api/tarot/chat/stream/route.ts`
-  - `src/app/api/destiny-map/chat-stream/route.ts`
-  - `backend_ai/app/routers/tarot/chat.py`
-- Credits/paywall/demo bypass
-  - `src/lib/credits/withCredits.ts`, `src/lib/credits/creditService.ts`
-  - `src/lib/demo/requireDemoToken.ts`, `src/lib/demo/token.ts`
-  - `middleware.ts` (`dp_demo` cookie grant + demo token acceptance)
+- Graph sources: `backend_ai/data/graph/{saju,astro,cross_analysis,fusion,tarot,...}`
+- Fusion rule assets: `backend_ai/data/graph/fusion/*.json` and `*.csv`
+- Chroma runtime collections (from self_check):
+  - `saju_astro_graph_nodes_v1` = 25928
+  - `saju_astro_cross_v1` = 17909
+  - `domain_tarot` = 624
+  - `domain_dream` = 171
+  - `domain_persona` = 22080
+  - `domain_destiny_map` = 2502
+  - `corpus_nodes` = 78787
 
-## Keyword File Index (selected high-signal)
+## Runtime Flow Map (Saju x Astro Counselor)
 
-- SAJU keywords: `src/lib/Saju/saju.ts`, `src/lib/Saju/unse.ts`, `src/lib/Saju/yongsin.ts`, `src/lib/Saju/sibsinAnalysis.ts`, `src/lib/Saju/johuYongsin.ts`
-- ASTRO keywords: `src/lib/astrology/foundation/astrologyService.ts`, `src/lib/astrology/foundation/aspects.ts`, `src/lib/astrology/foundation/transit.ts`, `src/lib/astrology/foundation/progressions.ts`, `src/lib/astrology/foundation/houses.ts`
-- FUSION keywords: `src/lib/destiny-matrix/engine.ts`, `src/lib/destiny-matrix/alignment.ts`, `src/lib/destiny-matrix/timeOverlap.ts`, `src/lib/destiny-matrix/domainScoring.ts`, `src/lib/destiny-matrix/monthlyTimeline.ts`
-- TAROT/RAG keywords: `backend_ai/app/tarot/hybrid_rag.py`, `backend_ai/app/routers/tarot/interpret.py`, `backend_ai/app/routers/tarot/prompt_builder.py`, `backend_ai/app/rag_manager.py`, `backend_ai/app/tarot/rules_loader.py`
-- PROMPT/guardrail keywords: `backend_ai/app/sanitizer.py`, `backend_ai/app/tarot/prompts/system_prompts.py`, `backend_ai/app/routers/tarot/prompt_builder.py`, `backend_ai/app/routers/tarot/interpret.py`
+1. Request enters backend (`backend_ai/app/app.py`) and calls `prefetch_all_rag_data()`.
+2. Prefetch uses optimized manager by default: `backend_ai/app/rag/optimized_manager.py`.
+3. Graph seeds come from `GraphRAG.query()` in `backend_ai/app/saju_astro_rag.py`.
+4. If `USE_CHROMADB=1`, graph retrieval is from `saju_astro_graph_nodes_v1` with `where={"domain": "saju_astro"}`.
+5. Cross-analysis comes from `backend_ai/app/rag/cross_store.py` (`saju_astro_cross_v1`) when `EXCLUDE_NON_SAJU_ASTRO=1`.
+6. Final generation happens in `backend_ai/services/streaming_service.py`.
+
+## Key Route Surface (core product)
+
+- Product pages: `/saju`, `/astrology`, `/destiny-map`, `/calendar`, `/tarot`, `/destiny-matrix`, `/compatibility`, `/icp`, `/personality`
+- Core APIs: `/api/saju`, `/api/astrology`, `/api/destiny-map`, `/api/calendar`, `/api/tarot`, `/api/destiny-matrix`, `/api/compatibility`, `/api/icp`, `/api/personality`
+- Demo APIs/pages are separately gated under `/demo/*` and `/api/demo/*`.
+
+## High-Risk Architectural Duplication Found
+
+- Two streaming service modules with similar names/roles:
+  - `backend_ai/services/streaming_service.py` (active runtime path)
+  - `backend_ai/app/services/streaming_service.py` (SSE helper module; imported mainly by tests)
+- Two RAG managers with overlapping behavior:
+  - `backend_ai/app/rag_manager.py`
+  - `backend_ai/app/rag/optimized_manager.py` (active via `backend_ai/app/app.py`)
+
+This duplication is a maintainability risk (drift, inconsistent fixes), not an immediate functional outage.

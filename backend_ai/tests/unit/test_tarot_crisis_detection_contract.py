@@ -64,3 +64,12 @@ def test_returns_none_for_neutral_case():
     loader = _loader_with_contract_data()
     result = loader.detect_crisis_situation(cards=[{"name": "The Fool"}], question="오늘 커리어 방향이 궁금해요")
     assert result is None
+
+
+def test_detect_crisis_with_builtin_fallback_phrase_when_rules_missing():
+    loader = _loader_with_contract_data()
+    loader.crisis_support["safety_guidelines"] = {}
+    result = loader.detect_crisis_situation(cards=[], question="I want to die")
+    assert result is not None
+    assert result.get("detected") is True
+    assert result.get("crisis_type") == "safety"

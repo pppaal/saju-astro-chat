@@ -641,12 +641,92 @@ class AdvancedRulesLoader:
         """Detect if reading indicates a crisis situation"""
         if not self.crisis_support:
             return None
-        # Check for crisis indicators in cards
-        crisis_cards = self.crisis_support.get('crisis_cards', [])
+
+        question_text = (question or "").strip().lower()
+        safety = self.crisis_support.get("safety_guidelines", {}) or {}
+        warning_phrases = [
+            str(p).strip().lower()
+            for p in (safety.get("warning_phrases", []) or [])
+            if str(p).strip()
+        ]
+        # Safety fallback terms even if rule files are incomplete.
+        default_warning_phrases = [
+            "죽고 싶다",
+            "살고 싶지 않다",
+            "자해",
+            "kill myself",
+            "want to die",
+            "suicide",
+            "self harm",
+        ]
+        for phrase in default_warning_phrases:
+            if phrase not in warning_phrases:
+                warning_phrases.append(phrase)
+
+        # 1) High-priority safety phrase detection from question text.
+        for phrase in warning_phrases:
+            if phrase and phrase in question_text:
+                return {
+                    "detected": True,
+                    "crisis_type": "safety",
+                    "crisis_name": "Safety risk",
+                    "severity": "high",
+                    "professional_help_needed": True,
+                    "matched_phrase": phrase,
+                    "trigger": "question_warning_phrase",
+                }
+
+        crisis_types = self.crisis_support.get("crisis_types", {}) or {}
+        keyword_map = {
+            "breakup": ["breakup", "divorce", "separation", "헤어", "이별"],
+            "loss_grief": ["grief", "bereavement", "funeral", "상실", "사별"],
+            "job_loss": ["laid off", "fired", "unemployed", "실직", "해고"],
+            "health_crisis": ["illness", "hospital", "diagnosis", "건강", "병원"],
+            "existential_crisis": ["meaningless", "empty", "lost", "무의미", "공허"],
+        }
+
+        # 2) Question intent hints for known crisis types.
+        for crisis_type, keywords in keyword_map.items():
+            if any(kw in question_text for kw in keywords):
+                cfg = crisis_types.get(crisis_type, {}) or {}
+                return {
+                    "detected": True,
+                    "crisis_type": crisis_type,
+                    "crisis_name": cfg.get("name", crisis_type),
+                    "severity": cfg.get("severity", "moderate"),
+                    "professional_help_needed": bool(cfg.get("professional_help_trigger")),
+                    "trigger": "question_keyword",
+                }
+
+        # 3) Card-based crisis detection.
+        crisis_cards = set(self.crisis_support.get("crisis_cards", []) or [])
+        supportive_card_map: Dict[str, str] = {}
+        for crisis_type, cfg in crisis_types.items():
+            supportive = cfg.get("supportive_cards", {}) or {}
+            if isinstance(supportive, dict):
+                for card_name in supportive.keys():
+                    normalized = str(card_name).strip()
+                    if normalized:
+                        crisis_cards.add(normalized)
+                        supportive_card_map[normalized] = crisis_type
+
         card_names = [c.get('name', '') if isinstance(c, dict) else str(c) for c in cards]
         for card in card_names:
-            if card in crisis_cards:
-                return {'detected': True, 'card': card}
+            normalized_card = str(card).strip()
+            if not normalized_card:
+                continue
+            if normalized_card in crisis_cards:
+                crisis_type = supportive_card_map.get(normalized_card, "general")
+                cfg = crisis_types.get(crisis_type, {}) or {}
+                return {
+                    "detected": True,
+                    "card": normalized_card,
+                    "crisis_type": crisis_type,
+                    "crisis_name": cfg.get("name", crisis_type),
+                    "severity": cfg.get("severity", "moderate"),
+                    "professional_help_needed": bool(cfg.get("professional_help_trigger")),
+                    "trigger": "card_indicator",
+                }
         return None
 
     def get_crisis_support(self, crisis_type: str, severity: str = 'moderate') -> Optional[Dict]:

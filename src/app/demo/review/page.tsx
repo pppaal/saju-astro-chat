@@ -13,12 +13,14 @@ export const metadata: Metadata = {
 }
 
 interface DemoReviewPageProps {
-  searchParams?: { token?: string | string[] } | Promise<{ token?: string | string[] }>
+  searchParams?:
+    | { demo_token?: string | string[]; token?: string | string[] }
+    | Promise<{ demo_token?: string | string[]; token?: string | string[] }>
 }
 
 export default async function DemoReviewPage({ searchParams }: DemoReviewPageProps) {
   const resolvedSearchParams = await Promise.resolve(searchParams)
-  const token = requireDemoReviewTokenForPage({ token: resolvedSearchParams?.token })
+  const token = requireDemoReviewTokenForPage(resolvedSearchParams)
 
   return <DemoReviewClient token={token} />
 }

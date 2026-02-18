@@ -198,6 +198,7 @@ export const POST = withApiMiddleware(
         asteroidHouses = {},
         extraPointSigns = {},
         lang = 'ko',
+        startYearMonth,
       } = validationResult.data
 
       let dayMasterElement = providedDayMaster
@@ -289,6 +290,7 @@ export const POST = withApiMiddleware(
         asteroidHouses: asteroidHouses as Partial<Record<AsteroidName, HouseNumber>> | undefined,
         extraPointSigns: extraPointSigns as Partial<Record<ExtraPointName, ZodiacKo>> | undefined,
         lang,
+        startYearMonth,
       }
 
       // Calculate matrix (server-side only)

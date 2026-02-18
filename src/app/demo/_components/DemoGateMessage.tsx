@@ -25,10 +25,11 @@ export function DemoGateMessage({ reason = 'missing_or_invalid' }: DemoGateMessa
         <h1 style={{ marginTop: 0 }}>Demo access required</h1>
         <p>{reasonText}</p>
         <p>
-          Open demo URLs with `?demo_token=YOUR_TOKEN`, or send header `x-demo-token: YOUR_TOKEN`.
+          Open demo URLs with `?demo_token=YOUR_TOKEN` (preferred) or `?token=YOUR_TOKEN` (legacy),
+          or send header `x-demo-token: YOUR_TOKEN`.
         </p>
         <p>
-          Example: <code>/demo?demo_token=YOUR_TOKEN</code>
+          Example: <code>/demo?demo_token=YOUR_TOKEN</code> or <code>/demo?token=YOUR_TOKEN</code>
         </p>
         <Link href="/">Back to home</Link>
       </div>

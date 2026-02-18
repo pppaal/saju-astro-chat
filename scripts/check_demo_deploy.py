@@ -220,7 +220,7 @@ def main() -> int:
     all_releases: List[str] = []
 
     # 1) Health check
-    health_url = f"{base_url}/api/demo/_health?token={token}&t={ts}"
+    health_url = f"{base_url}/api/demo/_health?demo_token={token}&t={ts}"
     r, payload, note = _request_json(session, health_url, token)
     if r is None:
         rows.append(
@@ -272,7 +272,7 @@ def main() -> int:
         )
 
     # 2) Demo page check
-    page_url = f"{base_url}/demo/icp?token={token}&t={ts}"
+    page_url = f"{base_url}/demo/icp?demo_token={token}&t={ts}"
     r, text, note = _request_text(session, page_url, token)
     if r is None:
         rows.append(
@@ -317,7 +317,7 @@ def main() -> int:
         )
 
     # 3) PDF endpoint check
-    pdf_url = f"{base_url}/demo/combined.pdf?token={token}&t={ts}"
+    pdf_url = f"{base_url}/demo/combined.pdf?demo_token={token}&t={ts}"
     method_used, r, note = _request_pdf_head_or_get(session, pdf_url, token)
     if r is None:
         rows.append(

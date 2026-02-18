@@ -1,71 +1,61 @@
-# SAJU Engine Audit
+# Audit SAJU
 
-Date: 2026-02-17
+## Scope
 
-## Scope + Evidence
+- Engine: `src/lib/Saju/saju.ts`
+- Constants/solar terms: `src/lib/Saju/constants.ts`
+- API entry: `src/app/api/saju/route.ts`
+- Determinism tests: `tests/lib/Saju/determinism-golden.test.ts`
 
-- Entrypoint reviewed: `src/lib/Saju/saju.ts` (`calculateSajuData`)
-- Related modules reviewed: `src/lib/Saju/unse.ts`, `src/lib/Saju/yongsin.ts`, `src/lib/Saju/sibsinAnalysis.ts`, `src/lib/Saju/johuYongsin.ts`
-- Deterministic tests run:
-  - `tests/lib/Saju/determinism-golden.test.ts` (PASS, 6 tests)
+## Entrypoints and Schema
 
-## 1.1 Entrypoints / Input / Output
+- Main compute entry: `calculateSajuData()` in `src/lib/Saju/saju.ts:162`.
+- API entry validates input and delegates to engine in `src/app/api/saju/route.ts`.
+- Output includes:
+  - Pillars (year/month/day/time)
+  - Day master
+  - Five elements
+  - Daeun/Seun/Wolun/Iljin derived timing
 
-- Primary API: `calculateSajuData(birthDate, birthTime, gender, calendarType, timezone, lunarLeap?)`
-- Normalization observed:
-  - lunar->solar conversion via `korean-lunar-calendar`
-  - timezone-aware parse via `date-fns-tz` `toDate`
-  - safe time parser (`parseHourMinute`) with clamps
-- Output schema includes:
-  - 4 pillars (`yearPillar`, `monthPillar`, `dayPillar`, `timePillar`)
-  - `dayMaster`, `fiveElements`, `daeWoon`, `unse`
+## Determinism Evidence
 
-## 1.2 Correctness / Determinism Findings
+- Repeated-run determinism verified by `tests/lib/Saju/determinism-golden.test.ts` (6 tests, pass).
+- Golden cases assert fixed pillar stems/branches and daeun start/flow for 5 birth cases.
+- Invariants checked:
+  - Daeun list length and +10 year step pattern
+  - Element count sum invariant for base chart extraction
 
-- Determinism: strong
-  - pure arithmetic for day pillar via JDN (`jdn + 49` mod 10/12)
-  - deterministic month/year boundaries using `getSolarTermKST`
-  - deterministic Daeun step pattern and start-age rule (`days/3`, `round`)
-  - in-memory cache key is normalized and stable
-- Timezone/day-boundary handling: partially robust
-  - uses timezone conversion + solar terms
-  - still sensitive to DST/timezone input quality and ambiguous local times
-- Core derived signal checks
-  - ?? mapping implemented (`getSibseong`, plus `sibsinAnalysis.ts`)
-  - ?? totals computed from 8 stem/branch slots
-  - ?? logic exists as rule stack (`yongsin.ts` + `johuYongsin.ts` DB)
-  - ??/??/?? present (`daeWoon` in `saju.ts`; cycle helpers in `unse.ts`)
+## Correctness Checks (Code Evidence)
 
-## 1.3 Golden Tests Added/Validated
+- Timezone conversion uses `toDate(..., { timeZone })` in `src/lib/Saju/saju.ts:205-206`.
+- Supported solar-term year range enforced at `src/lib/Saju/constants.ts:119` and called at `src/lib/Saju/saju.ts:219`.
+- Solar terms resolved from KST table via `getSolarTermKST()` in `src/lib/Saju/constants.ts:242`.
+- Day pillar uses explicit JDN formula in `src/lib/Saju/saju.ts:275-284`.
+- Daeun start-age quantization is deterministic in `src/lib/Saju/saju.ts:127`.
+- Daeun direction and list generation handled in `src/lib/Saju/saju.ts:360+` and `src/lib/Saju/saju.ts:511+`.
+- Sibsin mapping is explicit in `src/lib/Saju/saju.ts:37`.
 
-- `tests/lib/Saju/determinism-golden.test.ts`
-  - 5 fixed birth cases with expected intermediate outputs (year/month/day/time pillar + dayMaster + daeun start/dir)
-  - invariant checks:
-    - repeated run equality
-    - daeun list length 10 and +10-year step pattern
-    - five-element total count invariant (8)
+## Strengths
 
-## SAJU Correctness Confidence
+- Strong deterministic core for same inputs.
+- Explicit out-of-range guard (1940-2050) avoids silent wrong answers.
+- Clear, testable intermediate states (pillars, daeun, five elements).
 
-- Score: **3.8 / 5**
-- Rationale:
-  - Strong deterministic implementation and explicit rule surfaces
-  - Confidence reduced by lack of external oracle cross-validation and DST/locale edge-case coverage depth
+## Risks / Edge Cases (Top 10)
 
-## Top 10 Risks / Edge Cases
+1. Year support is hard-limited to 1940-2050 (`src/lib/Saju/constants.ts:119`), causing hard failures for older/future dates.
+2. Quality outside Asia/KST-centric assumptions is less proven (solar-term table is KST-based).
+3. Missing birth time fallback quality is not strongly validated in dedicated deterministic tests.
+4. DST edge behavior outside Korea needs explicit regression set.
+5. Lunar conversion assumptions are not externally oracle-validated in this audit.
+6. `daysToDaeunAge()` uses tiered rounding rules; domain validation against external references is not automated.
+7. Unicode/mojibake is present in many Korean source literals/comments, increasing maintenance risk.
+8. Large legacy test suite noise makes it harder to isolate true regressions quickly.
+9. Some advanced interpretation paths have weaker contract-style tests than core pillar derivation.
+10. Heavy dependency on static solar-term dataset means correction process needs formal update workflow.
 
-1. DST ambiguity around local midnight not explicitly regression-tested.
-2. Solar term dependency quality (`getSolarTermKST`) is assumed; no contract test for missing/incorrect table rows.
-3. Hardcoded Daeun rounding policy (`round`) may differ from lineage-specific expectations.
-4. Hour-branch boundary windows (e.g., 23:30 split) can mismatch other schools.
-5. Missing birth time fallback may over-confidently infer time pillar.
-6. Leap-day and lunar-leap combinations need explicit fixture coverage.
-7. Timezone alias variations (`Asia/Seoul` vs legacy identifiers) not stress-tested.
-8. In-memory cache (process-local) can diverge across horizontally scaled workers.
-9. No explicit property tests for yongsin stability under equal-strength ties.
-10. Error handling rethrows with message text; operationally okay but coarse for debugging provenance.
+## Confidence Score
 
-## Minimal Changes Implemented in This Audit
+- SAJU correctness confidence: **4.0 / 5.0**
 
-- No SAJU algorithmic change applied.
-- Added/validated deterministic golden tests as regression guardrails.
+Rationale: deterministic behavior and core computations are concrete and tested, but external-oracle parity and timezone edge coverage are not yet exhaustive.

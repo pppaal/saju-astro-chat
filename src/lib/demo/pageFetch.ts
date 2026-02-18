@@ -1,6 +1,6 @@
 import { headers } from 'next/headers'
 
-export async function fetchDemoJson<T>(pathWithToken: string, token?: string): Promise<T> {
+export async function fetchDemoJson<T>(pathWithToken: string, token?: string | null): Promise<T> {
   const h = await headers()
   const host =
     h.get('x-forwarded-host') ||

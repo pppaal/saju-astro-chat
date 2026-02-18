@@ -190,10 +190,12 @@ export const destinyMapContextSchema = z.object({
   theme: z.string().max(50).optional(),
   sessionId: z.string().max(100).optional(),
   previousTopics: z.array(z.string().max(100)).optional(),
-  userPreferences: z.object({
-    detailLevel: z.enum(['brief', 'moderate', 'detailed']).optional(),
-    focusArea: z.enum(['career', 'love', 'health', 'wealth', 'general']).optional(),
-  }).optional(),
+  userPreferences: z
+    .object({
+      detailLevel: z.enum(['brief', 'moderate', 'detailed']).optional(),
+      focusArea: z.enum(['career', 'love', 'health', 'wealth', 'general']).optional(),
+    })
+    .optional(),
 })
 
 export const destinyMapChatSchema = z.object({
@@ -218,19 +220,25 @@ export const destinyMatrixRequestSchema = z.object({
 export type DestinyMatrixRequestValidated = z.infer<typeof destinyMatrixRequestSchema>
 
 export const destinyMatrixReportDataSchema = z.object({
-  categories: z.array(z.object({
-    name: z.string().max(50),
-    score: z.number().min(0).max(100),
-    description: z.string().max(1000).optional(),
-  })).optional(),
+  categories: z
+    .array(
+      z.object({
+        name: z.string().max(50),
+        score: z.number().min(0).max(100),
+        description: z.string().max(1000).optional(),
+      })
+    )
+    .optional(),
   highlights: z.array(z.string().max(500)).optional(),
   warnings: z.array(z.string().max(500)).optional(),
   recommendations: z.array(z.string().max(500)).optional(),
-  luckyFactors: z.object({
-    colors: z.array(z.string().max(30)).optional(),
-    numbers: z.array(z.number().int().min(0).max(99)).optional(),
-    directions: z.array(z.string().max(30)).optional(),
-  }).optional(),
+  luckyFactors: z
+    .object({
+      colors: z.array(z.string().max(30)).optional(),
+      numbers: z.array(z.number().int().min(0).max(99)).optional(),
+      directions: z.array(z.string().max(30)).optional(),
+    })
+    .optional(),
 })
 
 export const destinyMatrixSaveRequestSchema = z
@@ -300,6 +308,10 @@ export const destinyMatrixCalculationSchema = z
     asteroidHouses: planetHousesSchema.optional(),
     extraPointSigns: planetSignsSchema.optional(),
     lang: z.enum(['ko', 'en']).optional(),
+    startYearMonth: z
+      .string()
+      .regex(/^\d{4}-\d{2}$/)
+      .optional(),
   })
   .refine((data) => data.birthDate || data.dayMasterElement, {
     message: 'Either birthDate or dayMasterElement is required',
@@ -328,7 +340,9 @@ export const destinyMatrixAiReportSchema = z.object({
   birthDate: dateSchema,
   matrixData: matrixDataSchema,
   locale: localeSchema.optional(),
-  reportType: z.enum(['personality', 'career', 'relationship', 'yearly', 'comprehensive']).optional(),
+  reportType: z
+    .enum(['personality', 'career', 'relationship', 'yearly', 'comprehensive'])
+    .optional(),
 })
 
 export type DestinyMatrixAiReportValidated = z.infer<typeof destinyMatrixAiReportSchema>
@@ -395,7 +409,13 @@ export const calendarQuerySchema = z.object({
     .regex(/^\d{4}$/)
     .transform(Number)
     .optional(),
-  limit: z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1).max(365)).optional().default(50),
+  limit: z
+    .string()
+    .regex(/^\d+$/)
+    .transform(Number)
+    .pipe(z.number().int().min(1).max(365))
+    .optional()
+    .default(50),
 })
 
 export type CalendarQueryValidated = z.infer<typeof calendarQuerySchema>
@@ -435,13 +455,15 @@ export type CacheChartValidated = z.infer<typeof cacheChartSchema>
 
 export const cachedChartDataSchema = z.object({
   saju: sajuResultSchema.optional(),
-  astro: z.object({
-    sunSign: z.string().max(30).optional(),
-    moonSign: z.string().max(30).optional(),
-    ascendant: z.string().max(30).optional(),
-    houses: z.array(z.number().int().min(1).max(12)).optional(),
-    aspects: z.array(aspectHitSchema).optional(),
-  }).optional(),
+  astro: z
+    .object({
+      sunSign: z.string().max(30).optional(),
+      moonSign: z.string().max(30).optional(),
+      ascendant: z.string().max(30).optional(),
+      houses: z.array(z.number().int().min(1).max(12)).optional(),
+      aspects: z.array(aspectHitSchema).optional(),
+    })
+    .optional(),
   calculatedAt: z.string().max(50),
   version: z.string().max(20).optional(),
 })
