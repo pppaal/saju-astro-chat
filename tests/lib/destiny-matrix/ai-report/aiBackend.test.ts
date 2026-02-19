@@ -4,7 +4,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // Set env vars before any module evaluation (vi.hoisted runs before vi.mock)
 vi.hoisted(() => {
   process.env.OPENAI_API_KEY = 'test-openai-key'
-  delete process.env.TOGETHER_API_KEY
   delete process.env.REPLICATE_API_KEY
 })
 

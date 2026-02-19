@@ -15,13 +15,9 @@ function parseTimeoutMs(value: string | undefined, fallback: number): number {
 // NOTE:
 // 9초는 3k+ 토큰 JSON 응답에 너무 짧아 AbortError가 빈번합니다.
 // 기본값을 현실적으로 상향하고, 환경변수로 조절 가능하게 둡니다.
-const DEFAULT_TIMEOUT_MS = parseTimeoutMs(process.env.AI_BACKEND_TIMEOUT_MS, 20000)
+const DEFAULT_TIMEOUT_MS = parseTimeoutMs(process.env.AI_BACKEND_TIMEOUT_MS, 60000)
 const OPENAI_TIMEOUT_MS = parseTimeoutMs(
   process.env.AI_BACKEND_OPENAI_TIMEOUT_MS,
-  DEFAULT_TIMEOUT_MS
-)
-const TOGETHER_TIMEOUT_MS = parseTimeoutMs(
-  process.env.AI_BACKEND_TOGETHER_TIMEOUT_MS,
   DEFAULT_TIMEOUT_MS
 )
 const REPLICATE_TIMEOUT_MS = parseTimeoutMs(
@@ -57,8 +53,6 @@ function getProviderTimeoutMs(providerName: AIProvider['name']): number {
   switch (providerName) {
     case 'openai':
       return OPENAI_TIMEOUT_MS
-    case 'together':
-      return TOGETHER_TIMEOUT_MS
     case 'replicate':
       return REPLICATE_TIMEOUT_MS
     default:
@@ -89,13 +83,6 @@ const AI_PROVIDERS: AIProvider[] = [
     endpoint: 'https://api.replicate.com/v1/predictions',
     model: 'meta/llama-2-70b-chat',
     enabled: isValidApiKey(process.env.REPLICATE_API_KEY),
-  },
-  {
-    name: 'together',
-    apiKey: process.env.TOGETHER_API_KEY,
-    endpoint: 'https://api.together.xyz/v1/chat/completions',
-    model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
-    enabled: isValidApiKey(process.env.TOGETHER_API_KEY),
   },
 ]
 
@@ -202,8 +189,8 @@ async function callProviderAPI<T>(
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
   try {
-    // OpenAI 호환 API 호출
-    if (provider.name === 'openai' || provider.name === 'together') {
+    // OpenAI API 호출
+    if (provider.name === 'openai') {
       return await callOpenAICompatible<T>(provider, prompt, systemMessage, maxTokens, controller)
     }
 
@@ -218,7 +205,7 @@ async function callProviderAPI<T>(
   }
 }
 
-// OpenAI 호환 API 호출 (OpenAI, Together AI)
+// OpenAI API 호출
 async function callOpenAICompatible<T>(
   provider: AIProvider,
   prompt: string,
