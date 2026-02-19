@@ -22,32 +22,15 @@ import {
   DestinyMapFeature,
   TarotSection,
   CTASection,
+  ParticleCanvas,
 } from './components'
+import { ChatDemoSection } from '@/components/home/ChatDemoSection'
+import PrefetchLinks from '@/components/PrefetchLinks'
 
-// Non-critical components - lazy loaded with suspense
-const ParticleCanvas = dynamic(
-  () => import('./components').then((mod) => ({ default: mod.ParticleCanvas })),
-  {
-    ssr: false,
-    loading: () => null,
-  }
-)
-
-const ChatDemoSection = dynamic(
-  () =>
-    import('@/components/home/ChatDemoSection').then((mod) => ({ default: mod.ChatDemoSection })),
-  {
-    ssr: false,
-    loading: () => <div className={styles.featureSectionSkeleton} />,
-  }
-)
+// Non-critical component - lazy loaded with suspense
 
 const WeeklyFortuneCard = dynamic(() => import('@/components/WeeklyFortuneCard'), {
   loading: () => <div className={styles.weeklyCardSkeleton} />,
-})
-
-const PrefetchLinks = dynamic(() => import('@/components/PrefetchLinks'), {
-  ssr: false,
 })
 
 type Locale = 'en' | 'ko'
@@ -126,7 +109,7 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
             {translate('landing.scrollDown', 'Scroll to see more')}
           </span>
           <div className={styles.scrollArrow}>
-            <span>v</span>
+            <span>▼</span>
           </div>
         </div>
       </section>

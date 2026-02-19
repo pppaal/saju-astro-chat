@@ -65,7 +65,7 @@ export function CardPickingScreen({
         <div className={styles.instructionContent}>
           {gameState === 'picking' && selectedIndices.length === 0 && (
             <p className={styles.guidanceText}>
-              âœ¨{' '}
+              ✨{' '}
               {isKo
                 ? 'ë§ˆìŒì´ ì´ë„ëŠ” ëŒ€ë¡œ ì¹´ë“œë¥¼ ì„ íƒí•˜ì„¸ìš”'
                 : 'Let your intuition guide you to the cards'}
@@ -75,7 +75,7 @@ export function CardPickingScreen({
             <>
               <div className={styles.revealingOrb}></div>
               <p className={styles.revealingText}>
-                âœ¨{' '}
+                ✨{' '}
                 {isKo
                   ? 'ì„ íƒ ì™„ë£Œ! ìš´ëª…ì„ ê³µê°œí•˜ëŠ” ì¤‘...'
                   : 'Selection Complete! Revealing your destiny...'}
@@ -94,9 +94,9 @@ export function CardPickingScreen({
               onClick={handleDismissTooltip}
               aria-label="Close"
             >
-              Ã—
+              ×
             </button>
-            <div className={styles.tooltipIcon}>ðŸ”®</div>
+            <div className={styles.tooltipIcon}>🔮</div>
             <h3 className={styles.tooltipTitle}>
               {isKo ? 'ì¹´ë“œ ì„ íƒ ê°€ì´ë“œ' : 'Card Selection Guide'}
             </h3>
@@ -185,7 +185,7 @@ export function CardPickingScreen({
             >
               <div className={styles.cardBack}>
                 <div className={styles.cardPattern}></div>
-                <div className={styles.cardCenterIcon}>âœ¦</div>
+                <div className={styles.cardCenterIcon}>✦</div>
               </div>
               {isSelected && <div className={styles.selectionNumber}>{displayNumber}</div>}
             </button>

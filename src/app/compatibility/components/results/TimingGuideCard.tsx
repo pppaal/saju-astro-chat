@@ -1,11 +1,11 @@
-import React from 'react';
-import type { TimingData } from '../../lib';
-import styles from '../../Compatibility.module.css';
+import React from 'react'
+import type { TimingData } from '../../lib'
+import styles from '../../Compatibility.module.css'
 
 interface TimingGuideCardProps {
-  timing: TimingData;
-  isGroupResult: boolean;
-  t: (key: string, fallback: string) => string;
+  timing: TimingData
+  isGroupResult: boolean
+  t: (key: string, fallback: string) => string
 }
 
 export const TimingGuideCard = React.memo<TimingGuideCardProps>(({ timing, isGroupResult, t }) => {
@@ -14,7 +14,7 @@ export const TimingGuideCard = React.memo<TimingGuideCardProps>(({ timing, isGro
       <div className={styles.resultCard}>
         <div className={styles.resultCardGlow} />
         <div className={styles.resultCardHeader}>
-          <span className={styles.resultCardIcon}>??</span>
+          <span className={styles.resultCardIcon}>⏰</span>
           <h3 className={styles.resultCardTitle}>
             {t('compatibilityPage.timingGuide', 'Timing Guide')}
           </h3>
@@ -22,7 +22,7 @@ export const TimingGuideCard = React.memo<TimingGuideCardProps>(({ timing, isGro
         <div className={styles.resultCardContent}>
           {timing.current_month && (
             <div className={styles.timingItem}>
-              <h4>?? {t('compatibilityPage.thisMonth', 'This Month')}</h4>
+              <h4>📅 {t('compatibilityPage.thisMonth', 'This Month')}</h4>
               <p className={styles.timingBranch}>
                 {timing.current_month.branch} ({timing.current_month.element})
               </p>
@@ -31,13 +31,11 @@ export const TimingGuideCard = React.memo<TimingGuideCardProps>(({ timing, isGro
           )}
           {isGroupResult && timing.group_activities && timing.group_activities.length > 0 && (
             <div className={styles.goodDays}>
-              <h4>?? {t('compatibilityPage.groupActivities', '?? ?? ??')}</h4>
+              <h4>🎯 {t('compatibilityPage.groupActivities', 'Group Activities')}</h4>
               {timing.group_activities.map((activity, idx) => (
                 <div key={idx} className={styles.dayItem}>
                   <span className={styles.dayLabel}>{activity.days}</span>
-                  <span className={styles.dayActivities}>
-                    {activity.activities.join(', ')}
-                  </span>
+                  <span className={styles.dayActivities}>{activity.activities.join(', ')}</span>
                   <span className={styles.dayReason}>{activity.reason}</span>
                 </div>
               ))}
@@ -45,13 +43,11 @@ export const TimingGuideCard = React.memo<TimingGuideCardProps>(({ timing, isGro
           )}
           {!isGroupResult && timing.good_days && timing.good_days.length > 0 && (
             <div className={styles.goodDays}>
-              <h4>? {t('compatibilityPage.recommendedDays', 'Recommended Days')}</h4>
+              <h4>✅ {t('compatibilityPage.recommendedDays', 'Recommended Days')}</h4>
               {timing.good_days.map((day, idx) => (
                 <div key={idx} className={styles.dayItem}>
                   <span className={styles.dayLabel}>{day.days}</span>
-                  <span className={styles.dayActivities}>
-                    {day.activities.join(', ')}
-                  </span>
+                  <span className={styles.dayActivities}>{day.activities.join(', ')}</span>
                   <span className={styles.dayReason}>{day.reason}</span>
                 </div>
               ))}
@@ -60,7 +56,7 @@ export const TimingGuideCard = React.memo<TimingGuideCardProps>(({ timing, isGro
         </div>
       </div>
     </div>
-  );
-});
+  )
+})
 
-TimingGuideCard.displayName = 'TimingGuideCard';
+TimingGuideCard.displayName = 'TimingGuideCard'

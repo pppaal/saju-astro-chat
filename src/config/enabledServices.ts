@@ -92,7 +92,6 @@ export const ENABLED_SERVICES: readonly EnabledService[] = [
 export const REMOVED_PUBLIC_SERVICE_PREFIXES: readonly string[] = [
   '/astrology',
   '/saju',
-  '/numerology',
   '/dream',
   '/iching',
   '/past-life',

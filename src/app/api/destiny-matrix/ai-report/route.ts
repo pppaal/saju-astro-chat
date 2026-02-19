@@ -18,6 +18,7 @@ import {
   generateAIPremiumReport,
   generateTimingReport,
   generateThemedReport,
+  generateFivePagePDF,
   generatePremiumPDF,
   REPORT_CREDIT_COSTS,
   type AIPremiumReport,
@@ -324,7 +325,7 @@ export const POST = withApiMiddleware(
       })
 
       // 13. PDF 형식 요청인 경우 (종합 리포트만 지원, Pro 이상)
-      if (format === 'pdf' && premiumReport) {
+      if (format === 'pdf') {
         const canUsePdf = await canUseFeature(userId, 'pdfReport')
         if (!canUsePdf) {
           return NextResponse.json(
@@ -339,7 +340,11 @@ export const POST = withApiMiddleware(
             { status: HTTP_STATUS.FORBIDDEN }
           )
         }
-        const pdfBytes = await generatePremiumPDF(premiumReport)
+        const pdfBytes = premiumReport
+          ? await generatePremiumPDF(premiumReport)
+          : await generateFivePagePDF(
+              aiReport as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
+            )
 
         // PDF 생성 상태 업데이트
         await prisma.destinyMatrixReport.update({
