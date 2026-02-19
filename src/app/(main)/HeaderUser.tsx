@@ -1,34 +1,13 @@
 'use client'
 
-import { useState, useRef, useEffect, useMemo, Suspense } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { signOut, useSession } from 'next-auth/react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 
 export default function HeaderUser() {
-  return (
-    <Suspense fallback={<HeaderUserSkeleton />}>
-      <HeaderUserContent />
-    </Suspense>
-  )
-}
-
-function HeaderUserSkeleton() {
-  return (
-    <div
-      style={{
-        marginLeft: 8,
-        minWidth: 80,
-        height: 34,
-        borderRadius: 20,
-        background: 'rgba(138,164,255,0.1)',
-        border: '1px solid transparent',
-        padding: '6px 14px',
-        boxSizing: 'border-box',
-      }}
-    />
-  )
+  return <HeaderUserContent />
 }
 
 function HeaderUserContent() {
