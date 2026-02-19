@@ -1,4 +1,4 @@
-﻿import { Metadata } from 'next'
+import { Metadata } from 'next'
 import DestinyCalendar from '@/components/calendar/DestinyCalendar'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'

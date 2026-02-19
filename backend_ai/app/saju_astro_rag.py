@@ -307,7 +307,6 @@ def get_model(prefer_multilingual: bool = True) -> SentenceTransformer:
 
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     device = _get_device()
-    torch.set_default_dtype(torch.float16 if device == "cuda" else torch.float32)
 
     try:
         torch.set_num_threads(int(os.getenv("RAG_CPU_THREADS", str(_DEFAULT_CPU_THREADS))))
@@ -317,11 +316,49 @@ def get_model(prefer_multilingual: bool = True) -> SentenceTransformer:
     model_override = os.getenv("RAG_MODEL", "").lower()
     use_multilingual = prefer_multilingual and model_override != "english"
 
+    def _load_with_fallbacks(model_name: str):
+        """
+        Some torch/transformers combinations can raise:
+        'Cannot copy out of meta tensor...'
+        Retry with safer loading combinations before failing.
+        """
+        attempts = [
+            {"device": device, "kwargs": {"model_kwargs": {"low_cpu_mem_usage": False}}},
+            {"device": device, "kwargs": {}},
+            {"device": "cpu", "kwargs": {"model_kwargs": {"low_cpu_mem_usage": False}}},
+            {"device": "cpu", "kwargs": {}},
+            {"device": None, "kwargs": {}},
+        ]
+
+        last_err: Optional[Exception] = None
+        for attempt in attempts:
+            try:
+                target = attempt["device"]
+                kwargs = attempt["kwargs"]
+                if target is None:
+                    return SentenceTransformer(model_name, **kwargs)
+                return SentenceTransformer(model_name, device=target, **kwargs)
+            except TypeError:
+                # Older sentence-transformers may not accept model_kwargs.
+                try:
+                    target = attempt["device"]
+                    if target is None:
+                        return SentenceTransformer(model_name)
+                    return SentenceTransformer(model_name, device=target)
+                except Exception as e2:
+                    last_err = e2
+            except Exception as e:
+                last_err = e
+
+        if last_err:
+            raise last_err
+        raise RuntimeError(f"Failed to load model: {model_name}")
+
     if use_multilingual:
         try:
             logger.info("Loading multilingual model: %s", _MODEL_NAME_MULTILINGUAL)
             logger.info("Using device: %s", device)
-            _MODEL = SentenceTransformer(_MODEL_NAME_MULTILINGUAL, device=device)
+            _MODEL = _load_with_fallbacks(_MODEL_NAME_MULTILINGUAL)
             _MODEL_TYPE = "multilingual"
             logger.info("Multilingual model loaded (ko/en/zh/ja support)")
             return _MODEL
@@ -330,7 +367,7 @@ def get_model(prefer_multilingual: bool = True) -> SentenceTransformer:
 
     logger.info("Loading English model: %s", _MODEL_NAME_ENGLISH)
     logger.info("Using device: %s", device)
-    _MODEL = SentenceTransformer(_MODEL_NAME_ENGLISH, device=device)
+    _MODEL = _load_with_fallbacks(_MODEL_NAME_ENGLISH)
     _MODEL_TYPE = "english"
     logger.info("English model loaded successfully")
     return _MODEL

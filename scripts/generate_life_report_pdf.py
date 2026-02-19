@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 """
 Generate a fixed 10-page saju x astro life consultation PDF with images.
 
@@ -203,6 +203,84 @@ def _timeline_from_themes(theme_scores: Dict[str, float]) -> List[Dict]:
         timeline.append({"month": month, "keyword": key, "score": round(score, 2)})
     return timeline
 
+def _phase_label(month: int) -> str:
+    if month <= 4:
+        return "초년기"
+    if month <= 8:
+        return "중년기"
+    return "후년기"
+
+
+def _phase_strength_word(score: float) -> str:
+    if score >= 0.95:
+        return "강한 상승"
+    if score >= 0.8:
+        return "안정 성장"
+    if score >= 0.7:
+        return "조정 구간"
+    return "변동 주의"
+
+
+def _build_life_phase_summary(timeline: List[Dict]) -> str:
+    phase_scores: Dict[str, List[float]] = {"초년기": [], "중년기": [], "후년기": []}
+    for item in timeline:
+        month = int(item.get("month", 0) or 0)
+        score = float(item.get("score", 0.0) or 0.0)
+        label = _phase_label(month if month > 0 else 1)
+        phase_scores[label].append(score)
+
+    lines: List[str] = []
+    for label in ("초년기", "중년기", "후년기"):
+        scores = phase_scores.get(label, [])
+        avg = (sum(scores) / len(scores)) if scores else 0.0
+        lines.append(f"- {label}: 평균 {avg:.2f} ({_phase_strength_word(avg)})")
+    return "\n".join(lines)
+
+
+def _career_archetype(saju_data: Dict, astro_data: Dict) -> str:
+    dominant = _safe(saju_data.get("dominantElement"))
+    sun_sign = _safe((astro_data.get("sun") or {}).get("sign")).lower()
+    moon_sign = _safe((astro_data.get("moon") or {}).get("sign")).lower()
+    rising_sign = _safe((astro_data.get("rising") or {}).get("sign")).lower()
+
+    if dominant in ("목", "화") or sun_sign in ("aries", "leo", "sagittarius"):
+        return "개척형(리더/창업/영업/프로젝트 드라이브)"
+    if dominant in ("토", "금") or sun_sign in ("taurus", "virgo", "capricorn"):
+        return "구조형(기획/운영/재무/품질/관리)"
+    if dominant == "수" or moon_sign in ("cancer", "pisces", "scorpio"):
+        return "공감형(상담/교육/콘텐츠/브랜딩/고객경험)"
+    if rising_sign in ("gemini", "libra", "aquarius"):
+        return "연결형(협업/커뮤니케이션/네트워킹/중재)"
+    return "균형형(전문성+협업을 함께 요구하는 직무)"
+
+
+def _build_total_fortune_section(
+    user_name: str,
+    theme_scores: Dict[str, float],
+    timeline: List[Dict],
+    cross_text: str,
+    matrix_summary: Dict,
+    career_text: str,
+) -> str:
+    top_themes = sorted(theme_scores.items(), key=lambda x: x[1], reverse=True)[:3]
+    theme_line = ", ".join([f"{k}({v:.2f})" for k, v in top_themes]) if top_themes else "general(1.00)"
+    cross_lines = [line.strip() for line in cross_text.splitlines() if line.strip()][:2]
+    matrix_score = float(matrix_summary.get("total_score", 0.0) or 0.0)
+
+    intro = (
+        f"{_safe(user_name) or 'Client'}님의 인생 총운세는 '관계 안정 + 루틴 강화 + 선택과 집중'이 핵심입니다.\n"
+        f"현재 교차 상위 테마는 {theme_line}이며, 매트릭스 총점은 {matrix_score:.2f}입니다."
+    )
+
+    phase = _build_life_phase_summary(timeline)
+    cross = "\n".join([f"- 교차 근거: {line}" for line in cross_lines]) if cross_lines else "- 교차 근거: 요약 없음"
+    insight = (
+        "실행 인사이트:\n"
+        "- 큰 판을 한 번에 바꾸기보다, 90일 단위로 목표를 쪼개면 성과가 빠르게 누적됩니다.\n"
+        "- 감정이 흔들리는 날에는 결정 속도를 늦추고, 데이터/기록 기반으로 판단하면 손실을 줄일 수 있습니다.\n"
+        f"- 직업 방향은 {career_text} 성향이 강하므로, '사람/문제/프로세스'를 연결하는 역할에서 성과가 큽니다."
+    )
+    return "\n".join([intro, "", "인생 단계 흐름", phase, "", "핵심 근거", cross, "", insight])
 
 def _fetch_destiny_matrix_summary(
     birth_date: str,
@@ -366,6 +444,15 @@ async def _collect_payload(saju_data: Dict, astro_data: Dict, user_name: str, lo
         "핵심 테마는 GraphRAG 근거와 cross_store 교차 해석을 합쳐 도출했습니다.",
     ]
     executive.extend([f"- {line}" for line in _parse_cross_lines(cross_text)[:6]])
+    career_text = _career_archetype(saju_data, astro_data)
+    total_fortune_section = _build_total_fortune_section(
+        user_name=user_name,
+        theme_scores=theme_scores,
+        timeline=timeline,
+        cross_text=cross_text,
+        matrix_summary=matrix_summary,
+        career_text=career_text,
+    )
 
     payload = {
         "user_name": user_name,
@@ -377,9 +464,15 @@ async def _collect_payload(saju_data: Dict, astro_data: Dict, user_name: str, lo
         "advanced_fusion_highlights": advanced_highlights,
         "cross_summary": cross_text,
         "executive_summary": "\n".join(executive),
+        "total_fortune_section": total_fortune_section,
         "identity_section": _nodes_to_section(graph_hits_by_theme["life_path"], "사주+점성 공통 성향"),
         "love_section": _nodes_to_section(graph_hits_by_theme["love"], "관계/연애 교차 근거"),
-        "career_section": _nodes_to_section(graph_hits_by_theme["career"], "커리어/일 교차 근거"),
+        "career_section": (
+            f"직업 핵심 방향: {career_text}\n"
+            "핵심 전략: 성향에 맞는 역할에서 반복 가능한 성과 시스템을 먼저 만들고, 이후 확장하세요.\n"
+            "실전 적용: 1) 잘하는 일 1개를 기준 서비스로 고정 2) 월 단위 성과지표 설정 3) 분기마다 포지셔닝 재정렬\n\n"
+            + _nodes_to_section(graph_hits_by_theme["career"], "커리어/일 교차 근거")
+        ),
         "money_section": _nodes_to_section(graph_hits_by_theme["wealth"], "돈/자원 교차 근거"),
         "health_section": _nodes_to_section(graph_hits_by_theme["health"], "스트레스/건강 관리 힌트"),
         "growth_section": (
@@ -457,3 +550,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

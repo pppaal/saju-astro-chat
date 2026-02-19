@@ -1,7 +1,6 @@
 ﻿'use client'
 
 import React, { useEffect, useCallback, useReducer } from 'react'
-import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -15,6 +14,9 @@ import { normalizeGender } from '@/lib/utils/gender'
 import styles from './destiny-map.module.css'
 import { logger } from '@/lib/logger'
 import DateTimePicker from '@/components/ui/DateTimePicker'
+import CreditBadge from '@/components/ui/CreditBadge'
+import BackButton from '@/components/ui/BackButton'
+import ParticleBackground from '@/components/destiny-map/ParticleBackground'
 import {
   type CityHit,
   formReducer,
@@ -25,12 +27,6 @@ import {
   resolveCityTimezone,
 } from './useDestinyForm'
 import { useDestinyProfile } from './useDestinyProfile'
-
-const CreditBadge = dynamic(() => import('@/components/ui/CreditBadge'), { ssr: false })
-const BackButton = dynamic(() => import('@/components/ui/BackButton'), { ssr: false })
-const ParticleBackground = dynamic(() => import('@/components/destiny-map/ParticleBackground'), {
-  ssr: false,
-})
 
 type Locale = 'en' | 'ko'
 
