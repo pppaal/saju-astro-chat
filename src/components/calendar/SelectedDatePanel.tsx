@@ -235,6 +235,21 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDay.getMonth() + 1}/{selectedDay.getDate()}
           {locale === 'ko' && ` (${WEEKDAYS[selectedDay.getDay()]})`}
         </span>
+        {selectedDate?.evidence?.matrix?.peakLevel && (
+          <span className={styles.peakLevelChip}>
+            {locale === 'ko'
+              ? selectedDate.evidence.matrix.peakLevel === 'peak'
+                ? '피크 구간'
+                : selectedDate.evidence.matrix.peakLevel === 'high'
+                  ? '상승 구간'
+                  : '안정 구간'
+              : selectedDate.evidence.matrix.peakLevel === 'peak'
+                ? 'Peak Window'
+                : selectedDate.evidence.matrix.peakLevel === 'high'
+                  ? 'Rising Window'
+                  : 'Steady Window'}
+          </span>
+        )}
         <div className={styles.headerActions}>
           {selectedDate && (
             <span className={styles.selectedGrade}>{getGradeEmoji(selectedDate.grade)}</span>

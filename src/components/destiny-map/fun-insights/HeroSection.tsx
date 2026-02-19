@@ -27,6 +27,7 @@ interface HeroSectionProps {
     weakest: [string, number]
     sunSign: string | null
     moonSign: string | null
+    report?: string
   }
   destinyNarrative: {
     lifeTheme?: { ko: string; en: string }
@@ -75,6 +76,14 @@ export default function HeroSection({ isKo, data, destinyNarrative }: HeroSectio
           )}
         </p>
       </div>
+
+      {data.report && (
+        <div className="relative mb-6 rounded-2xl border border-cyan-400/30 bg-cyan-500/10 p-4 md:p-5">
+          <p className="text-sm md:text-base text-cyan-50 leading-relaxed whitespace-pre-line">
+            {data.report.split('\n').slice(0, 6).join('\n')}
+          </p>
+        </div>
+      )}
 
       {/* 핵심 프로필 뱃지 */}
       <div className="relative flex flex-wrap items-center gap-3">

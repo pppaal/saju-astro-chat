@@ -158,6 +158,23 @@ function buildDepthRepairInstruction(
     .join('\n')
 }
 
+function buildSecondPassInstruction(lang: 'ko' | 'en'): string {
+  if (lang === 'ko') {
+    return [
+      '',
+      '2차 보강 지시: 여전히 밀도가 부족하면 각 섹션을 최소 6문장으로 확장해 주세요.',
+      '각 섹션에 반드시 실전 예시 1개와 실행 순서(오늘-이번주-이번달)를 포함해 주세요.',
+      '추상적 미사여구 대신 행동 가능한 문장으로 작성해 주세요.',
+    ].join('\n')
+  }
+  return [
+    '',
+    'Second-pass rewrite: if depth is still weak, expand each section to at least 6 sentences.',
+    'Include one practical example and execution sequence (today-this week-this month) in each section.',
+    'Prefer concrete action-oriented language over abstract filler.',
+  ].join('\n')
+}
+
 // ===========================
 // 메인 생성 함수
 // ===========================
@@ -239,9 +256,24 @@ export async function generateAIPremiumReport(
       .filter(Boolean)
       .join('\n')
     const repaired = await callAIBackendGeneric<AIPremiumReport['sections']>(repairPrompt, lang)
-    sections = repaired.sections as Record<string, unknown>
+    sections = repaired.sections as unknown as Record<string, unknown>
     model = repaired.model
     tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
+
+    const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
+    const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
+    const secondTotalChars = countSectionChars(sections)
+    if (
+      secondShortPaths.length > 0 ||
+      secondMissingCross.length > 0 ||
+      secondTotalChars < minTotalChars
+    ) {
+      const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
+      const second = await callAIBackendGeneric<AIPremiumReport['sections']>(secondPrompt, lang)
+      sections = second.sections as unknown as Record<string, unknown>
+      model = second.model
+      tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
+    }
   }
 
   // 3. 리포트 조립
@@ -379,6 +411,21 @@ export async function generateTimingReport(
     sections = repaired.sections as unknown as Record<string, unknown>
     model = repaired.model
     tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
+
+    const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
+    const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
+    const secondTotalChars = countSectionChars(sections)
+    if (
+      secondShortPaths.length > 0 ||
+      secondMissingCross.length > 0 ||
+      secondTotalChars < minTotalChars
+    ) {
+      const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
+      const second = await callAIBackendGeneric<TimingReportSections>(secondPrompt, lang)
+      sections = second.sections as unknown as Record<string, unknown>
+      model = second.model
+      tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
+    }
   }
 
   // 4. 기간 라벨 생성
@@ -502,6 +549,21 @@ export async function generateThemedReport(
     sections = repaired.sections as unknown as Record<string, unknown>
     model = repaired.model
     tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
+
+    const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
+    const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
+    const secondTotalChars = countSectionChars(sections)
+    if (
+      secondShortPaths.length > 0 ||
+      secondMissingCross.length > 0 ||
+      secondTotalChars < minTotalChars
+    ) {
+      const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
+      const second = await callAIBackendGeneric<ThemedReportSections>(secondPrompt, lang)
+      sections = second.sections as unknown as Record<string, unknown>
+      model = second.model
+      tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
+    }
   }
 
   // 4. 테마 메타데이터

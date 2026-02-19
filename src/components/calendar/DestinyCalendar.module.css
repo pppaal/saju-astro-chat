@@ -2140,6 +2140,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   padding: 20px 20px 16px;
   border-bottom: 1px solid var(--cal-border-light);
 }
@@ -2148,6 +2149,17 @@
   font-size: 18px;
   font-weight: 700;
   color: var(--cal-text-primary);
+}
+
+.peakLevelChip {
+  font-size: 11px;
+  font-weight: 700;
+  color: #bae6fd;
+  background: rgba(2, 132, 199, 0.25);
+  border: 1px solid rgba(125, 211, 252, 0.4);
+  border-radius: 999px;
+  padding: 5px 10px;
+  letter-spacing: 0.2px;
 }
 
 .headerActions {
