@@ -1,7 +1,65 @@
 import PricingPageClient from './PricingPageClient'
-import { getServerI18n } from '@/i18n/server'
+import { getServerI18n, getServerTranslation } from '@/i18n/server'
+
+const SSR_PRICING_KEYS = [
+  'free',
+  'perYear',
+  'perMonth',
+  'paymentError',
+  'eyebrow',
+  'heroTitle',
+  'heroSub',
+  'monthly',
+  'yearly',
+  'mostPopular',
+  'readingsPerMonth',
+  'getStarted',
+  'subscribe',
+  'creditPacks',
+  'creditPacksDesc',
+  'bestValue',
+  'readings',
+  'perReading',
+  'buyNow',
+  'howItWorks',
+  'oneReading',
+  'oneReadingDesc',
+  'freeFeature',
+  'freeFeatureDesc',
+  'monthlyReset',
+  'monthlyResetDesc',
+  'faq',
+  'faqs.q1',
+  'faqs.a1',
+  'faqs.q2',
+  'faqs.a2',
+  'faqs.q3',
+  'faqs.a3',
+  'faqs.q4',
+  'faqs.a4',
+  'faqs.q5',
+  'faqs.a5',
+  'guarantee',
+  'guaranteeDesc',
+  'ctaTitle',
+  'ctaSub',
+  'startFree',
+  'learnMore',
+  'features.aiChat7',
+  'features.calendarThisMonth',
+  'features.personalityFree',
+  'features.calendar3months',
+  'features.adFree',
+  'features.aiChat25',
+  'features.calendar1year',
+  'features.aiChat80',
+  'features.calendar2years',
+  'features.aiChat200',
+  'features.prioritySupport',
+] as const
 
 export default async function PricingPage() {
   const { locale, messages } = await getServerI18n()
-  return <PricingPageClient initialLocale={locale} initialMessages={messages} />
+  const ssrCopy = SSR_PRICING_KEYS.map((key) => getServerTranslation(messages, `pricing.${key}`))
+  return <PricingPageClient initialLocale={locale} initialCopy={ssrCopy} />
 }

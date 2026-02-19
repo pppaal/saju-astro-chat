@@ -3,12 +3,7 @@
 import Link from 'next/link'
 import { useCallback, useState, useEffect } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
-import {
-  getPathValue,
-  isPlaceholderTranslation,
-  toSafeFallbackText,
-  type I18nMessages,
-} from '@/i18n/utils'
+import { isPlaceholderTranslation, toSafeFallbackText } from '@/i18n/utils'
 import BackButton from '@/components/ui/BackButton'
 import styles from './pricing.module.css'
 import {
@@ -132,18 +127,78 @@ const PRICING_FALLBACKS: Record<string, string> = {
   heroSub: 'AI counseling, Tarot, and Dream interpretation at reasonable prices',
   paymentError: 'Payment service temporarily unavailable',
 }
+const SSR_PRICING_KEYS = [
+  'free',
+  'perYear',
+  'perMonth',
+  'paymentError',
+  'eyebrow',
+  'heroTitle',
+  'heroSub',
+  'monthly',
+  'yearly',
+  'mostPopular',
+  'readingsPerMonth',
+  'getStarted',
+  'subscribe',
+  'creditPacks',
+  'creditPacksDesc',
+  'bestValue',
+  'readings',
+  'perReading',
+  'buyNow',
+  'howItWorks',
+  'oneReading',
+  'oneReadingDesc',
+  'freeFeature',
+  'freeFeatureDesc',
+  'monthlyReset',
+  'monthlyResetDesc',
+  'faq',
+  'faqs.q1',
+  'faqs.a1',
+  'faqs.q2',
+  'faqs.a2',
+  'faqs.q3',
+  'faqs.a3',
+  'faqs.q4',
+  'faqs.a4',
+  'faqs.q5',
+  'faqs.a5',
+  'guarantee',
+  'guaranteeDesc',
+  'ctaTitle',
+  'ctaSub',
+  'startFree',
+  'learnMore',
+  'features.aiChat7',
+  'features.calendarThisMonth',
+  'features.personalityFree',
+  'features.calendar3months',
+  'features.adFree',
+  'features.aiChat25',
+  'features.calendar1year',
+  'features.aiChat80',
+  'features.calendar2years',
+  'features.aiChat200',
+  'features.prioritySupport',
+] as const
+const SSR_PRICING_INDEX: Record<string, number> = SSR_PRICING_KEYS.reduce(
+  (acc, key, idx) => {
+    acc[key] = idx
+    return acc
+  },
+  {} as Record<string, number>
+)
 
 type Locale = 'en' | 'ko'
 
 interface PricingPageClientProps {
   initialLocale: Locale
-  initialMessages: I18nMessages
+  initialCopy: readonly string[]
 }
 
-export default function PricingPageClient({
-  initialLocale,
-  initialMessages,
-}: PricingPageClientProps) {
+export default function PricingPageClient({ initialLocale, initialCopy }: PricingPageClientProps) {
   const { locale: activeLocale, hydrated, t } = useI18n()
   const locale = activeLocale || initialLocale
   const isKo = locale === 'ko'
@@ -188,10 +243,14 @@ export default function PricingPageClient({
   const pt = useCallback(
     (key: string) => {
       const path = `pricing.${key}`
+      const ssrValue = initialCopy[SSR_PRICING_INDEX[key]]
+      const safeSsrValue =
+        typeof ssrValue === 'string' && !isPlaceholderTranslation(ssrValue, path)
+          ? ssrValue
+          : undefined
       if (!hydrated) {
-        const serverValue = getPathValue(initialMessages, path)
-        if (typeof serverValue === 'string' && !isPlaceholderTranslation(serverValue, path)) {
-          return serverValue
+        if (safeSsrValue) {
+          return safeSsrValue
         }
         return PRICING_FALLBACKS[key] || toSafeFallbackText(path)
       }
@@ -201,16 +260,13 @@ export default function PricingPageClient({
         return translated
       }
 
-      if (activeLocale === initialLocale) {
-        const serverValue = getPathValue(initialMessages, path)
-        if (typeof serverValue === 'string' && !isPlaceholderTranslation(serverValue, path)) {
-          return serverValue
-        }
+      if (activeLocale === initialLocale && safeSsrValue) {
+        return safeSsrValue
       }
 
       return PRICING_FALLBACKS[key] || toSafeFallbackText(path)
     },
-    [activeLocale, hydrated, initialLocale, initialMessages, t]
+    [activeLocale, hydrated, initialCopy, initialLocale, t]
   )
 
   const getFeatureText = useCallback(
@@ -321,8 +377,8 @@ export default function PricingPageClient({
         {/* Hero */}
         <section className={styles.hero}>
           <p className={styles.eyebrow}>{pt('eyebrow')}</p>
-          <h1 className={styles.heroTitle}>{pt('heroTitle')}</h1>
-          <p className={styles.heroSub}>{pt('heroSub')}</p>
+          <h1 className={styles.mainTitle}>{pt('heroTitle')}</h1>
+          <p className={styles.mainSubtitle}>{pt('heroSub')}</p>
 
           {/* Billing Toggle */}
           <div className={styles.billingToggle}>
