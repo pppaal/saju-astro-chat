@@ -5,8 +5,29 @@ import { logger } from '@/lib/logger'
 import { recordExternalCall } from '@/lib/metrics/index'
 import type { AIPremiumReport } from './reportTypes'
 
-// 기본 타임아웃: 9초 (Vercel Hobby 플랜 10초 제한 고려)
-const DEFAULT_TIMEOUT = 9000
+function parseTimeoutMs(value: string | undefined, fallback: number): number {
+  if (!value) return fallback
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed < 1000) return fallback
+  return Math.floor(parsed)
+}
+
+// NOTE:
+// 9초는 3k+ 토큰 JSON 응답에 너무 짧아 AbortError가 빈번합니다.
+// 기본값을 현실적으로 상향하고, 환경변수로 조절 가능하게 둡니다.
+const DEFAULT_TIMEOUT_MS = parseTimeoutMs(process.env.AI_BACKEND_TIMEOUT_MS, 20000)
+const OPENAI_TIMEOUT_MS = parseTimeoutMs(
+  process.env.AI_BACKEND_OPENAI_TIMEOUT_MS,
+  DEFAULT_TIMEOUT_MS
+)
+const TOGETHER_TIMEOUT_MS = parseTimeoutMs(
+  process.env.AI_BACKEND_TOGETHER_TIMEOUT_MS,
+  DEFAULT_TIMEOUT_MS
+)
+const REPLICATE_TIMEOUT_MS = parseTimeoutMs(
+  process.env.AI_BACKEND_REPLICATE_TIMEOUT_MS,
+  Math.max(DEFAULT_TIMEOUT_MS, 60000)
+)
 
 // 플랜별 AI 토큰 한도
 // 종합 리포트(10개 섹션 JSON)에는 최소 2500+ 토큰 필요
@@ -30,6 +51,19 @@ interface AIProvider {
   endpoint: string
   model: string
   enabled: boolean
+}
+
+function getProviderTimeoutMs(providerName: AIProvider['name']): number {
+  switch (providerName) {
+    case 'openai':
+      return OPENAI_TIMEOUT_MS
+    case 'together':
+      return TOGETHER_TIMEOUT_MS
+    case 'replicate':
+      return REPLICATE_TIMEOUT_MS
+    default:
+      return DEFAULT_TIMEOUT_MS
+  }
 }
 
 function isValidApiKey(key: string | undefined): boolean {
@@ -112,6 +146,7 @@ export async function callAIBackendGeneric<T>(
       logger.info(`[AI Backend] Trying ${provider.name}...`, {
         plan: userPlan,
         maxTokens,
+        timeoutMs: getProviderTimeoutMs(provider.name),
       })
 
       const result = await callProviderAPI<T>(provider, prompt, systemMessage, maxTokens)
@@ -163,7 +198,8 @@ async function callProviderAPI<T>(
   maxTokens: number
 ): Promise<AIBackendResponse<T>> {
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT)
+  const timeoutMs = getProviderTimeoutMs(provider.name)
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
   try {
     // OpenAI 호환 API 호출
@@ -211,7 +247,20 @@ async function callOpenAICompatible<T>(
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
     logger.error(`[AI Backend] ${provider.name} API error`, { status: response.status, errorData })
-    throw new Error(`${provider.name} API error: ${response.status}`)
+    const apiMessage =
+      typeof errorData?.error?.message === 'string' ? errorData.error.message : undefined
+    const apiCode = typeof errorData?.error?.code === 'string' ? errorData.error.code : undefined
+    const isInvalidKey =
+      response.status === 401 &&
+      (apiCode === 'invalid_api_key' || apiMessage?.toLowerCase().includes('invalid api key'))
+
+    if (isInvalidKey && provider.enabled) {
+      provider.enabled = false
+      logger.warn(`[AI Backend] Disabled ${provider.name} provider due to invalid API key`)
+    }
+
+    const detail = apiMessage ? ` - ${apiMessage}` : ''
+    throw new Error(`${provider.name} API error: ${response.status}${detail}`)
   }
 
   const data = await response.json()
