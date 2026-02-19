@@ -9,16 +9,13 @@ import { useRouter } from 'next/navigation'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import styles from './Compatibility.module.css'
 
+import { ShareButton } from '@/components/share/ShareButton'
+import ScrollToTop from '@/components/ui/ScrollToTop'
+
 // Lazy load heavy components
-const ShareButton = dynamic(
-  () => import('@/components/share/ShareButton').then(mod => ({ default: mod.ShareButton })),
-  { ssr: false }
-)
-const ScrollToTop = dynamic(() => import('@/components/ui/ScrollToTop'), { ssr: false })
-const CompatibilityTabs = dynamic(
-  () => import('@/components/compatibility/CompatibilityTabs'),
-  { ssr: false, loading: () => <div style={{ minHeight: '300px' }} /> }
-)
+const CompatibilityTabs = dynamic(() => import('@/components/compatibility/CompatibilityTabs'), {
+  loading: () => <div style={{ minHeight: '300px' }} />,
+})
 
 // Dynamic import for share card generation (only needed when sharing)
 const loadShareCardModule = () => import('@/components/share/cards/CompatibilityCard')
