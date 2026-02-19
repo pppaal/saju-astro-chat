@@ -39,6 +39,7 @@ import { useParticleAnimation } from '@/hooks/calendar/useParticleAnimation'
 import BirthInfoForm from './BirthInfoForm'
 import CalendarMainView from './CalendarMainView'
 import { loadSharedBirthInfo, saveSharedBirthInfo } from './sharedBirthInfo'
+import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 
 // Utils
 import { getCacheKey, getCachedData, setCachedData } from './cache-utils'
@@ -396,14 +397,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
 
   // Loading state
   if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>
-          <div className={styles.spinner} />
-          <p>{locale === 'ko' ? '운명 분석 중...' : 'Analyzing destiny...'}</p>
-        </div>
-      </div>
-    )
+    return <UnifiedServiceLoading kind="calendar" locale={locale === 'ko' ? 'ko' : 'en'} />
   }
 
   // Error state

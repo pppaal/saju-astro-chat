@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Heart, Briefcase, Coins, HeartPulse, Users } from 'lucide-react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
+import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import {
   ReportProfileForm,
@@ -207,112 +208,115 @@ export default function ThemedReportPage() {
   }
 
   if (status === 'loading' || profileLoading || sajuLoading) {
-    return (
-      <div className="flex min-h-[100svh] items-center justify-center bg-slate-950">
-        <div className="text-slate-200">로딩 중...</div>
-      </div>
-    )
+    return <UnifiedServiceLoading kind="aiReport" locale="ko" />
   }
 
   return (
-    <div className="min-h-[100svh] bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-      <header className="px-4 py-8">
-        <div className="mx-auto max-w-5xl">
-          <Link
-            href="/premium-reports"
-            className="inline-flex items-center text-sm text-slate-400 hover:text-slate-100"
-          >
-            ← 리포트 선택으로 돌아가기
-          </Link>
-          <h1 className="mt-4 text-3xl font-bold text-white">테마 리포트</h1>
-          <p className="mt-2 text-slate-300">
-            관심 주제를 선택하고 통합 생년월일 폼으로 입력한 정보로 리포트를 생성하세요.
-          </p>
+    <>
+      {isGenerating && (
+        <div className="fixed inset-0 z-[120]">
+          <UnifiedServiceLoading kind="aiReport" locale="ko" />
         </div>
-      </header>
-
-      <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1.1fr_1fr]">
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-white">테마 선택</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {(Object.entries(THEME_INFO) as [ThemeType, (typeof THEME_INFO)[ThemeType]][]).map(
-              ([themeKey, theme]) => {
-                const Icon = theme.icon
-                const isSelected = selectedTheme === themeKey
-
-                return (
-                  <button
-                    key={themeKey}
-                    onClick={() => setSelectedTheme(themeKey)}
-                    className={`rounded-2xl border p-5 text-left transition ${
-                      isSelected
-                        ? `border-cyan-300 bg-gradient-to-br ${theme.color} shadow-lg shadow-cyan-500/20`
-                        : 'border-slate-700 bg-slate-800/40 hover:border-slate-500'
-                    }`}
-                  >
-                    <div className="mb-3 flex items-center justify-between">
-                      <Icon className="h-6 w-6 text-white" />
-                      <span className="rounded-full bg-slate-900/40 px-2 py-1 text-xs text-slate-200">
-                        {theme.credits} credits
-                      </span>
-                    </div>
-                    <h3 className="text-base font-semibold text-white">{theme.label}</h3>
-                    <p className="mt-2 text-sm text-slate-100/90">{theme.description}</p>
-                  </button>
-                )
-              }
-            )}
+      )}
+      <div className="min-h-[100svh] bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+        <header className="px-4 py-8">
+          <div className="mx-auto max-w-5xl">
+            <Link
+              href="/premium-reports"
+              className="inline-flex items-center text-sm text-slate-400 hover:text-slate-100"
+            >
+              ← 리포트 선택으로 돌아가기
+            </Link>
+            <h1 className="mt-4 text-3xl font-bold text-white">테마 리포트</h1>
+            <p className="mt-2 text-slate-300">
+              관심 주제를 선택하고 통합 생년월일 폼으로 입력한 정보로 리포트를 생성하세요.
+            </p>
           </div>
+        </header>
 
-          {selectedTheme && (
-            <div className="rounded-2xl border border-slate-700/50 bg-slate-800/40 p-5">
-              <h3 className="text-base font-semibold text-white">
-                {THEME_INFO[selectedTheme].label} 포함 내용
-              </h3>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {THEME_INFO[selectedTheme].sections.map((section) => (
-                  <span
-                    key={section}
-                    className="rounded-full border border-slate-600 bg-slate-900/50 px-3 py-1 text-xs text-slate-200"
-                  >
-                    {section}
-                  </span>
-                ))}
+        <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1.1fr_1fr]">
+          <section className="space-y-4">
+            <h2 className="text-lg font-semibold text-white">테마 선택</h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {(Object.entries(THEME_INFO) as [ThemeType, (typeof THEME_INFO)[ThemeType]][]).map(
+                ([themeKey, theme]) => {
+                  const Icon = theme.icon
+                  const isSelected = selectedTheme === themeKey
+
+                  return (
+                    <button
+                      key={themeKey}
+                      onClick={() => setSelectedTheme(themeKey)}
+                      className={`rounded-2xl border p-5 text-left transition ${
+                        isSelected
+                          ? `border-cyan-300 bg-gradient-to-br ${theme.color} shadow-lg shadow-cyan-500/20`
+                          : 'border-slate-700 bg-slate-800/40 hover:border-slate-500'
+                      }`}
+                    >
+                      <div className="mb-3 flex items-center justify-between">
+                        <Icon className="h-6 w-6 text-white" />
+                        <span className="rounded-full bg-slate-900/40 px-2 py-1 text-xs text-slate-200">
+                          {theme.credits} credits
+                        </span>
+                      </div>
+                      <h3 className="text-base font-semibold text-white">{theme.label}</h3>
+                      <p className="mt-2 text-sm text-slate-100/90">{theme.description}</p>
+                    </button>
+                  )
+                }
+              )}
+            </div>
+
+            {selectedTheme && (
+              <div className="rounded-2xl border border-slate-700/50 bg-slate-800/40 p-5">
+                <h3 className="text-base font-semibold text-white">
+                  {THEME_INFO[selectedTheme].label} 포함 내용
+                </h3>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {THEME_INFO[selectedTheme].sections.map((section) => (
+                    <span
+                      key={section}
+                      className="rounded-full border border-slate-600 bg-slate-900/50 px-3 py-1 text-xs text-slate-200"
+                    >
+                      {section}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </section>
+            )}
+          </section>
 
-        <section className="space-y-4">
-          <ReportProfileForm locale="ko" initialName={profile.name} onSubmit={setProfileInput} />
+          <section className="space-y-4">
+            <ReportProfileForm locale="ko" initialName={profile.name} onSubmit={setProfileInput} />
 
-          {error && (
-            <div className="rounded-xl border border-red-500/60 bg-red-500/15 p-3 text-sm text-red-200">
-              {error}
-            </div>
-          )}
+            {error && (
+              <div className="rounded-xl border border-red-500/60 bg-red-500/15 p-3 text-sm text-red-200">
+                {error}
+              </div>
+            )}
 
-          <button
-            onClick={handleGenerate}
-            disabled={!canGenerate}
-            className={`w-full rounded-xl px-4 py-4 text-center text-sm font-semibold text-white transition ${
-              canGenerate
-                ? `bg-gradient-to-r ${selectedTheme ? THEME_INFO[selectedTheme].color : 'from-cyan-500 to-blue-500'} hover:opacity-90`
-                : 'cursor-not-allowed bg-slate-700'
-            }`}
-          >
-            {isGenerating
-              ? '리포트 생성 중...'
-              : selectedTheme
-                ? `${THEME_INFO[selectedTheme].label} 생성하기`
-                : '테마를 선택해주세요'}
-          </button>
+            <button
+              onClick={handleGenerate}
+              disabled={!canGenerate}
+              className={`w-full rounded-xl px-4 py-4 text-center text-sm font-semibold text-white transition ${
+                canGenerate
+                  ? `bg-gradient-to-r ${selectedTheme ? THEME_INFO[selectedTheme].color : 'from-cyan-500 to-blue-500'} hover:opacity-90`
+                  : 'cursor-not-allowed bg-slate-700'
+              }`}
+            >
+              {isGenerating
+                ? '리포트 생성 중...'
+                : selectedTheme
+                  ? `${THEME_INFO[selectedTheme].label} 생성하기`
+                  : '테마를 선택해주세요'}
+            </button>
 
-          <p className="text-center text-xs text-slate-500">
-            생성된 리포트는 My Journey에서 다시 확인할 수 있습니다.
-          </p>
-        </section>
-      </main>
-    </div>
+            <p className="text-center text-xs text-slate-500">
+              생성된 리포트는 My Journey에서 다시 확인할 수 있습니다.
+            </p>
+          </section>
+        </main>
+      </div>
+    </>
   )
 }

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import { useUserProfile } from '@/hooks/useUserProfile'
+import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 import {
   ReportProfileForm,
   type ReportProfileInput,
@@ -131,71 +132,74 @@ export default function ComprehensiveReportPage() {
   }
 
   if (status === 'loading' || profileLoading || sajuLoading) {
-    return (
-      <div className="flex min-h-[100svh] items-center justify-center bg-slate-950">
-        <div className="text-slate-200">로딩 중...</div>
-      </div>
-    )
+    return <UnifiedServiceLoading kind="aiReport" locale="ko" />
   }
 
   return (
-    <div className="min-h-[100svh] bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-      <header className="px-4 py-8">
-        <div className="mx-auto max-w-5xl">
-          <Link
-            href="/premium-reports"
-            className="inline-flex items-center text-sm text-slate-400 hover:text-slate-100"
-          >
-            ← 리포트 선택으로 돌아가기
-          </Link>
-          <div className="mt-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 p-6">
-            <h1 className="text-2xl font-bold text-white">종합 리포트</h1>
-            <p className="mt-2 text-sm text-white/90">
-              사주와 점성의 핵심 시그널을 통합해 장기 전략을 제시합니다.
-            </p>
-            <p className="mt-2 text-xs text-white/80">3 credits</p>
-          </div>
+    <>
+      {isGenerating && (
+        <div className="fixed inset-0 z-[120]">
+          <UnifiedServiceLoading kind="aiReport" locale="ko" />
         </div>
-      </header>
-
-      <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1fr_1fr]">
-        <section className="rounded-2xl border border-slate-700/50 bg-slate-800/40 p-6">
-          <h2 className="text-lg font-semibold text-white">포함 내용</h2>
-          <ul className="mt-4 space-y-2">
-            {FEATURES.map((feature) => (
-              <li key={feature} className="text-sm text-slate-200">
-                • {feature}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="space-y-4">
-          <ReportProfileForm locale="ko" initialName={profile.name} onSubmit={setProfileInput} />
-
-          {error && (
-            <div className="rounded-xl border border-red-500/60 bg-red-500/15 p-3 text-sm text-red-200">
-              {error}
+      )}
+      <div className="min-h-[100svh] bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+        <header className="px-4 py-8">
+          <div className="mx-auto max-w-5xl">
+            <Link
+              href="/premium-reports"
+              className="inline-flex items-center text-sm text-slate-400 hover:text-slate-100"
+            >
+              ← 리포트 선택으로 돌아가기
+            </Link>
+            <div className="mt-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 p-6">
+              <h1 className="text-2xl font-bold text-white">종합 리포트</h1>
+              <p className="mt-2 text-sm text-white/90">
+                사주와 점성의 핵심 시그널을 통합해 장기 전략을 제시합니다.
+              </p>
+              <p className="mt-2 text-xs text-white/80">3 credits</p>
             </div>
-          )}
+          </div>
+        </header>
 
-          <button
-            onClick={handleGenerate}
-            disabled={!canGenerate}
-            className={`w-full rounded-xl px-4 py-4 text-sm font-semibold text-white transition ${
-              canGenerate
-                ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90'
-                : 'cursor-not-allowed bg-slate-700'
-            }`}
-          >
-            {isGenerating ? '리포트 생성 중...' : '종합 리포트 생성하기'}
-          </button>
+        <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1fr_1fr]">
+          <section className="rounded-2xl border border-slate-700/50 bg-slate-800/40 p-6">
+            <h2 className="text-lg font-semibold text-white">포함 내용</h2>
+            <ul className="mt-4 space-y-2">
+              {FEATURES.map((feature) => (
+                <li key={feature} className="text-sm text-slate-200">
+                  • {feature}
+                </li>
+              ))}
+            </ul>
+          </section>
 
-          <p className="text-center text-xs text-slate-500">
-            생성된 리포트는 My Journey에서 다시 확인할 수 있습니다.
-          </p>
-        </section>
-      </main>
-    </div>
+          <section className="space-y-4">
+            <ReportProfileForm locale="ko" initialName={profile.name} onSubmit={setProfileInput} />
+
+            {error && (
+              <div className="rounded-xl border border-red-500/60 bg-red-500/15 p-3 text-sm text-red-200">
+                {error}
+              </div>
+            )}
+
+            <button
+              onClick={handleGenerate}
+              disabled={!canGenerate}
+              className={`w-full rounded-xl px-4 py-4 text-sm font-semibold text-white transition ${
+                canGenerate
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90'
+                  : 'cursor-not-allowed bg-slate-700'
+              }`}
+            >
+              {isGenerating ? '리포트 생성 중...' : '종합 리포트 생성하기'}
+            </button>
+
+            <p className="text-center text-xs text-slate-500">
+              생성된 리포트는 My Journey에서 다시 확인할 수 있습니다.
+            </p>
+          </section>
+        </main>
+      </div>
+    </>
   )
 }

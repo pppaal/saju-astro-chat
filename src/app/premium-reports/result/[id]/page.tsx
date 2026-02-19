@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
+import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 import {
   toQualityMarkdown,
   type QualityAudit,
@@ -208,11 +209,7 @@ export default function ReportResultPage() {
   }
 
   if (status === 'loading' || isLoading) {
-    return (
-      <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
-        <div className="text-white">리포트 로딩 중...</div>
-      </div>
-    )
+    return <UnifiedServiceLoading kind="aiReport" locale="ko" />
   }
 
   if (error || !report) {
