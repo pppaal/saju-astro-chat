@@ -492,7 +492,8 @@ export function buildThemedPrompt(
   },
   timingData: TimingData,
   matrixSummary: string,
-  astroSummary?: string
+  astroSummary?: string,
+  graphRagEvidencePrompt?: string
 ): string {
   const isKo = lang === 'ko'
   const sections = THEME_SECTIONS[theme][lang]
@@ -529,6 +530,7 @@ ${timingData.seun ? `- 세운: ${timingData.seun.year}년 ${timingData.seun.heav
 ${matrixSummary}
 
 ${astroSummary ? `## 점성술 분석 요약\n${astroSummary}` : ''}
+${graphRagEvidencePrompt ? `\n## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}` : ''}
 
 ═══════════════════════════════════════════════════════════════
 ${sections}
@@ -579,6 +581,7 @@ ${timingData.seun ? `- Seun: ${timingData.seun.year} ${timingData.seun.heavenlyS
 ${matrixSummary}
 
 ${astroSummary ? `## Astrology Analysis Summary\n${astroSummary}` : ''}
+${graphRagEvidencePrompt ? `\n## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}` : ''}
 
 ═══════════════════════════════════════════════════════════════
 ${sections}

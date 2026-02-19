@@ -63,8 +63,7 @@ describe('cities/formatter', () => {
 
       it('should format known international cities in Korean', () => {
         expect(formatCityName('Tokyo', 'JP', { locale: 'ko' })).toBe('도쿄, 일본')
-        // 'New York' is stored as "'New York'" (with surrounding quotes) in the lookup, so no Korean translation found
-        expect(formatCityName('New York', 'US', { locale: 'ko' })).toBe('New York, 미국')
+        expect(formatCityName('New York', 'US', { locale: 'ko' })).toBe('뉴욕, 미국')
         expect(formatCityName('London', 'GB', { locale: 'ko' })).toBe('런던, 영국')
         expect(formatCityName('Paris', 'FR', { locale: 'ko' })).toBe('파리, 프랑스')
       })
@@ -142,8 +141,7 @@ describe('cities/formatter', () => {
       it('should format known cities in Korean', () => {
         expect(formatCityForDropdown('Seoul', 'KR', 'ko')).toBe('서울, 한국')
         expect(formatCityForDropdown('Tokyo', 'JP', 'ko')).toBe('도쿄, 일본')
-        // 'New York' is stored as "'New York'" in lookup, so falls back to English city + Korean country
-        expect(formatCityForDropdown('New York', 'US', 'ko')).toBe('New York, 미국')
+        expect(formatCityForDropdown('New York', 'US', 'ko')).toBe('뉴욕, 미국')
       })
 
       it('should handle city in Korean + country code when city known but country unknown', () => {
@@ -186,8 +184,7 @@ describe('cities/formatter', () => {
       expect(getCityNameInKorean('Seoul')).toBe('서울')
       expect(getCityNameInKorean('Busan')).toBe('부산')
       expect(getCityNameInKorean('Tokyo')).toBe('도쿄')
-      // 'New York' is stored as "'New York'" in lookup, so returns null
-      expect(getCityNameInKorean('New York')).toBeNull()
+      expect(getCityNameInKorean('New York')).toBe('뉴욕')
       expect(getCityNameInKorean('London')).toBe('런던')
     })
 
@@ -199,8 +196,7 @@ describe('cities/formatter', () => {
     it('should capitalize input before lookup', () => {
       expect(getCityNameInKorean('seoul')).toBe('서울')
       expect(getCityNameInKorean('BUSAN')).toBe('부산')
-      // 'New York' is stored as "'New York'" in lookup, so returns null even after capitalizing
-      expect(getCityNameInKorean('new york')).toBeNull()
+      expect(getCityNameInKorean('new york')).toBe('뉴욕')
     })
 
     it('should handle multi-word city names', () => {
@@ -270,8 +266,7 @@ describe('cities/formatter', () => {
       expect(getCityNameFromKorean('서울')).toBe('Seoul')
       expect(getCityNameFromKorean('부산')).toBe('Busan')
       expect(getCityNameFromKorean('도쿄')).toBe('Tokyo')
-      // Reverse lookup returns the key as-is from the JSON, which includes surrounding quotes
-      expect(getCityNameFromKorean('뉴욕')).toBe("'New York'")
+      expect(getCityNameFromKorean('뉴욕')).toBe('New York')
       expect(getCityNameFromKorean('런던')).toBe('London')
     })
 
@@ -395,11 +390,14 @@ describe('cities/formatter', () => {
         expect(getCityNameInKorean(city)).not.toBeNull()
         expect(formatCityName(city, 'US', { locale: 'ko' })).toContain('미국')
       })
-      // Multi-word cities stored with surrounding quotes in lookup (e.g., "'New York'")
-      // so getCityNameInKorean returns null, but formatCityName still includes Korean country
+      // 일부는 일반 키, 일부는 인용부호 키로 존재한다.
       const citiesWithQuotedKeys = ['New York', 'Los Angeles', 'San Francisco']
       citiesWithQuotedKeys.forEach((city) => {
-        expect(getCityNameInKorean(city)).toBeNull()
+        if (city === 'New York') {
+          expect(getCityNameInKorean(city)).toBe('뉴욕')
+        } else {
+          expect(getCityNameInKorean(city)).toBeNull()
+        }
         expect(formatCityName(city, 'US', { locale: 'ko' })).toContain('미국')
       })
     })

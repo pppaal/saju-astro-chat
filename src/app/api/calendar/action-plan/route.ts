@@ -25,6 +25,24 @@ type TimelineSlot = {
   label?: string
   note: string
   tone?: TimelineTone
+  evidenceSummary?: string[]
+  source?: 'rule' | 'rag' | 'hybrid'
+}
+
+type CalendarEvidence = {
+  matrix?: {
+    domain?: 'career' | 'love' | 'money' | 'health' | 'move' | 'general'
+    finalScoreAdjusted?: number
+    overlapStrength?: number
+    peakLevel?: 'peak' | 'high' | 'normal'
+    monthKey?: string
+  }
+  cross?: {
+    sajuEvidence?: string
+    astroEvidence?: string
+  }
+  confidence?: number
+  source?: 'rule' | 'rag' | 'hybrid'
 }
 
 type RagContextResponse = {
@@ -76,6 +94,27 @@ const actionPlanTimelineRequestSchema = z.object({
       summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
       ganzhi: z.string().max(TEXT_LIMITS.MAX_TITLE).optional(),
       transitSunSign: z.string().max(TEXT_LIMITS.MAX_TITLE).optional(),
+      evidence: z
+        .object({
+          matrix: z
+            .object({
+              domain: z.enum(['career', 'love', 'money', 'health', 'move', 'general']).optional(),
+              finalScoreAdjusted: z.number().min(0).max(10).optional(),
+              overlapStrength: z.number().min(0).max(1).optional(),
+              peakLevel: z.enum(['peak', 'high', 'normal']).optional(),
+              monthKey: z.string().max(20).optional(),
+            })
+            .optional(),
+          cross: z
+            .object({
+              sajuEvidence: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+              astroEvidence: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+            })
+            .optional(),
+          confidence: z.number().min(0).max(100).optional(),
+          source: z.enum(['rule', 'rag', 'hybrid']).optional(),
+        })
+        .optional(),
     })
     .nullable()
     .optional(),
@@ -285,6 +324,9 @@ const buildRuleBasedTimeline = (input: {
     recommendations?: string[]
     warnings?: string[]
     summary?: string
+    sajuFactors?: string[]
+    astroFactors?: string[]
+    evidence?: CalendarEvidence
   } | null
 }): TimelineSlot[] => {
   const { date, locale, intervalMinutes, calendar } = input
@@ -344,6 +386,13 @@ const buildRuleBasedTimeline = (input: {
       const recHint = pickByHour(calendar?.recommendations, hour)
       const warningHint = pickByHour(calendar?.warnings, hour)
       const baseSummary = calendar?.summary?.trim()
+      const matrixSummary =
+        calendar?.evidence?.matrix?.domain && typeof calendar?.evidence?.confidence === 'number'
+          ? `${calendar.evidence.matrix.domain} matrix confidence ${calendar.evidence.confidence}%`
+          : null
+      const crossSummary = [calendar?.sajuFactors?.[0], calendar?.astroFactors?.[0]]
+        .filter(Boolean)
+        .join(' / ')
 
       const best = hourlyRec.bestActivities.slice(0, 2).join(', ')
       const avoid = hourlyRec.avoidActivities.slice(0, 2).join(', ')
@@ -376,7 +425,11 @@ const buildRuleBasedTimeline = (input: {
       }
 
       const note = `${energyText} · ${detailLine}`.trim()
-      slots.push({ hour, minute, label, note, tone })
+      const evidenceSummary = [
+        matrixSummary || 'Matrix baseline evidence',
+        crossSummary || 'Cross evidence: baseline saju/astro flow',
+      ]
+      slots.push({ hour, minute, label, note, tone, evidenceSummary, source: 'rule' })
     }
   }
 
@@ -396,13 +449,20 @@ const sanitizeTimelineForInterval = (raw: unknown, intervalMinutes: 30 | 60): Ti
     const toneRaw = (item as { tone?: unknown }).tone
     const tone =
       toneRaw === 'best' || toneRaw === 'caution' || toneRaw === 'neutral' ? toneRaw : undefined
+    const evidenceRaw = (item as { evidenceSummary?: unknown }).evidenceSummary
+    const evidenceSummary = Array.isArray(evidenceRaw)
+      ? evidenceRaw
+          .map((line) => (typeof line === 'string' ? line.trim() : ''))
+          .filter(Boolean)
+          .slice(0, 3)
+      : undefined
 
     if (!Number.isInteger(hour) || hour < 0 || hour > 23) continue
     if (!Number.isInteger(minute) || (minute !== 0 && minute !== 30)) continue
     if (intervalMinutes === 60 && minute !== 0) continue
     if (!note) continue
 
-    cleaned.push({ hour, minute, note, tone })
+    cleaned.push({ hour, minute, note, tone, evidenceSummary, source: 'rag' })
   }
   return cleaned
 }
@@ -466,10 +526,36 @@ async function generatePrecisionTimelineWithRag(input: {
     sajuFactors?: string[]
     astroFactors?: string[]
     summary?: string
+    evidence?: CalendarEvidence
   } | null
 }): Promise<{ timeline: TimelineSlot[]; summary?: string } | null> {
   const openAiKey = process.env.OPENAI_API_KEY
   if (!openAiKey) return null
+
+  const bestHours = new Set<number>()
+  input.calendar?.bestTimes?.forEach((time) => {
+    extractHoursFromText(time).forEach((hour) => bestHours.add(hour))
+  })
+  const cautionHours = new Set<number>()
+  input.calendar?.warnings?.forEach((warning) => {
+    extractHoursFromText(warning).forEach((hour) => cautionHours.add(hour))
+  })
+  if ((input.calendar?.grade ?? 2) >= 3) {
+    cautionHours.add(13)
+    cautionHours.add(21)
+  }
+  const coreSlots: Array<{ hour: number; minute: number }> = []
+  const seenCore = new Set<string>()
+  for (const slot of input.baseTimeline) {
+    const isCore = bestHours.has(slot.hour) || cautionHours.has(slot.hour)
+    if (!isCore) continue
+    const key = `${slot.hour}:${slot.minute ?? 0}`
+    if (seenCore.has(key)) continue
+    seenCore.add(key)
+    coreSlots.push({ hour: slot.hour, minute: slot.minute ?? 0 })
+    if (coreSlots.length >= 5) break
+  }
+  if (coreSlots.length === 0) return null
 
   const ragContext = await fetchCalendarRagContext({
     locale: input.locale,
@@ -503,6 +589,7 @@ Rules:
     date: input.date,
     locale: input.locale,
     intervalMinutes: input.intervalMinutes,
+    coreSlots,
     calendar: {
       grade: input.calendar?.grade,
       score: input.calendar?.score,
@@ -511,14 +598,20 @@ Rules:
       warnings: input.calendar?.warnings?.slice(0, 2),
       recommendations: input.calendar?.recommendations?.slice(0, 2),
       summary: input.calendar?.summary,
+      evidence: input.calendar?.evidence,
     },
     ragContext,
-    baseTimeline: input.baseTimeline.map((slot) => ({
-      hour: slot.hour,
-      minute: slot.minute ?? 0,
-      note: slot.note,
-      tone: slot.tone ?? 'neutral',
-    })),
+    baseTimeline: input.baseTimeline
+      .filter((slot) =>
+        coreSlots.some((core) => core.hour === slot.hour && core.minute === (slot.minute ?? 0))
+      )
+      .map((slot) => ({
+        hour: slot.hour,
+        minute: slot.minute ?? 0,
+        note: slot.note,
+        tone: slot.tone ?? 'neutral',
+        evidenceSummary: slot.evidenceSummary?.slice(0, 2),
+      })),
   })
 
   try {
@@ -548,8 +641,30 @@ Rules:
     const parsed = JSON.parse(content) as { timeline?: unknown; summary?: unknown }
     const timeline = sanitizeTimelineForInterval(parsed.timeline, input.intervalMinutes)
     if (timeline.length === 0) return null
+    const coreKeySet = new Set(coreSlots.map((slot) => `${slot.hour}:${slot.minute}`))
+    const patchMap = new Map<string, TimelineSlot>()
+    timeline.forEach((slot) => {
+      const key = `${slot.hour}:${slot.minute ?? 0}`
+      if (coreKeySet.has(key)) {
+        patchMap.set(key, slot)
+      }
+    })
+    const merged = input.baseTimeline.map((slot) => {
+      const patch = patchMap.get(`${slot.hour}:${slot.minute ?? 0}`)
+      if (!patch) return slot
+      return {
+        ...slot,
+        note: patch.note,
+        tone: patch.tone || slot.tone,
+        evidenceSummary:
+          patch.evidenceSummary && patch.evidenceSummary.length > 0
+            ? patch.evidenceSummary.slice(0, 2)
+            : slot.evidenceSummary,
+        source: 'hybrid' as const,
+      }
+    })
     const summary = typeof parsed.summary === 'string' ? parsed.summary.slice(0, 240) : undefined
-    return { timeline, summary }
+    return { timeline: merged, summary }
   } catch {
     return null
   }
@@ -598,6 +713,9 @@ export const POST = withApiMiddleware(
             recommendations: trimList(calendar.recommendations, 3),
             warnings: trimList(calendar.warnings, 3),
             summary: calendar.summary,
+            sajuFactors: trimList(calendar.sajuFactors, 3),
+            astroFactors: trimList(calendar.astroFactors, 3),
+            evidence: calendar.evidence,
           }
         : null,
     })
@@ -619,11 +737,28 @@ export const POST = withApiMiddleware(
                 sajuFactors: trimList(calendar.sajuFactors, 3),
                 astroFactors: trimList(calendar.astroFactors, 3),
                 summary: calendar.summary,
+                evidence: calendar.evidence,
               }
             : null,
         })
       : null
-    const timeline = aiRefined?.timeline || baseTimeline
+    const timeline = (aiRefined?.timeline || baseTimeline).map((slot) => {
+      const baseEvidence = (slot.evidenceSummary || []).filter(Boolean)
+      if (isPremiumUser) {
+        const alternativeLine =
+          lang === 'ko'
+            ? `대안 행동: ${slot.tone === 'caution' ? '결정 보류 후 체크리스트 점검' : '핵심 행동 1개 완료 후 결과 기록'}`
+            : `Alternative: ${slot.tone === 'caution' ? 'pause decision and run checklist' : 'complete one key action and log result'}`
+        return {
+          ...slot,
+          evidenceSummary: [...baseEvidence.slice(0, 3), alternativeLine].slice(0, 4),
+        }
+      }
+      return {
+        ...slot,
+        evidenceSummary: baseEvidence.slice(0, 1),
+      }
+    })
 
     const summaryParts: string[] = []
     if (calendar?.bestTimes?.length) {

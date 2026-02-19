@@ -23,7 +23,7 @@ describe('cities/lookups', () => {
     it('should have major world cities with Korean translations', () => {
       expect(CITY_NAME_KR['Tokyo']).toBeDefined()
       expect(CITY_NAME_KR['Beijing']).toBeDefined()
-      expect(CITY_NAME_KR["'New York'"]).toBeDefined()
+      expect(CITY_NAME_KR['New York']).toBeDefined()
       expect(CITY_NAME_KR['London']).toBeDefined()
       expect(CITY_NAME_KR['Paris']).toBeDefined()
     })

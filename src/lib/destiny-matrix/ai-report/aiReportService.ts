@@ -18,6 +18,7 @@ import type {
 import { THEME_META } from './types'
 import { buildTimingPrompt } from './prompts/timingPrompts'
 import { buildThemedPrompt } from './prompts/themedPrompts'
+import { buildGraphRAGEvidence, formatGraphRAGEvidenceForPrompt } from './graphRagEvidence'
 
 // Extracted modules
 import type { AIPremiumReport, AIReportGenerationOptions } from './reportTypes'
@@ -100,11 +101,23 @@ export async function generateAIPremiumReport(
   const lang = options.lang || 'ko'
 
   // 1. 프롬프트 빌드
+  const graphRagEvidence = buildGraphRAGEvidence(input, matrixReport, {
+    mode: 'comprehensive',
+    focusDomain: options.focusDomain,
+  })
+  const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
+
   let prompt: string
   if (options.theme && options.theme !== 'comprehensive') {
-    prompt = buildThemedAIPrompt(input, matrixReport, options.theme, options)
+    prompt = buildThemedAIPrompt(input, matrixReport, options.theme, {
+      ...options,
+      graphRagEvidencePrompt,
+    })
   } else {
-    prompt = buildAIPrompt(input, matrixReport, options)
+    prompt = buildAIPrompt(input, matrixReport, {
+      ...options,
+      graphRagEvidencePrompt,
+    })
   }
 
   // 2. AI 백엔드 호출
@@ -125,6 +138,7 @@ export async function generateAIPremiumReport(
     },
 
     sections,
+    graphRagEvidence,
 
     matrixSummary: {
       overallScore: matrixReport.overallScore.total,
@@ -170,6 +184,8 @@ export async function generateTimingReport(
   const startTime = Date.now()
   const lang = options.lang || 'ko'
   const targetDate = options.targetDate || new Date().toISOString().split('T')[0]
+  const graphRagEvidence = buildGraphRAGEvidence(input, matrixReport, { mode: 'timing', period })
+  const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
 
   // 1. 매트릭스 요약 빌드
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
@@ -186,7 +202,8 @@ export async function generateTimingReport(
     },
     timingData,
     targetDate,
-    matrixSummary
+    matrixSummary,
+    graphRagEvidencePrompt
   )
 
   // 3. AI 백엔드 호출
@@ -220,6 +237,7 @@ export async function generateTimingReport(
 
     timingData,
     sections,
+    graphRagEvidence,
     periodScore,
 
     meta: {
@@ -250,6 +268,8 @@ export async function generateThemedReport(
 ): Promise<ThemedAIPremiumReport> {
   const startTime = Date.now()
   const lang = options.lang || 'ko'
+  const graphRagEvidence = buildGraphRAGEvidence(input, matrixReport, { mode: 'themed', theme })
+  const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
 
   // 1. 매트릭스 요약 빌드
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
@@ -266,7 +286,9 @@ export async function generateThemedReport(
       sibsinDistribution: input.sibsinDistribution,
     },
     timingData,
-    matrixSummary
+    matrixSummary,
+    undefined,
+    graphRagEvidencePrompt
   )
 
   // 3. AI 백엔드 호출
@@ -302,6 +324,7 @@ export async function generateThemedReport(
     themeEmoji: themeMeta.emoji,
 
     sections,
+    graphRagEvidence,
     themeScore,
     keywords,
 

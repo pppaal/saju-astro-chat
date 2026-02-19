@@ -342,7 +342,8 @@ export function buildTimingPrompt(
   },
   timingData: TimingData,
   targetDate: string,
-  matrixSummary: string
+  matrixSummary: string,
+  graphRagEvidencePrompt?: string
 ): string {
   const isKo = lang === 'ko'
 
@@ -380,6 +381,8 @@ ${formatTimingData(timingData, lang)}
 
 ## 매트릭스 분석 요약
 ${matrixSummary}
+
+${graphRagEvidencePrompt ? `## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}\n` : ''}
 
 ═══════════════════════════════════════════════════════════════
 ${sections}
@@ -429,6 +432,8 @@ ${formatTimingData(timingData, lang)}
 
 ## Matrix Analysis Summary
 ${matrixSummary}
+
+${graphRagEvidencePrompt ? `## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}\n` : ''}
 
 ═══════════════════════════════════════════════════════════════
 ${sections}

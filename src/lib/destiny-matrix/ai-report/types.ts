@@ -1,15 +1,16 @@
 // src/lib/destiny-matrix/ai-report/types.ts
 // Destiny Fusion Matrix - AI Premium Report Types
 
-import type { InsightDomain } from '../interpreter/types';
+import type { InsightDomain } from '../interpreter/types'
+import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
 
 // ===========================
 // 기간별/테마별 옵션
 // ===========================
 
-export type ReportPeriod = 'daily' | 'monthly' | 'yearly' | 'comprehensive';
+export type ReportPeriod = 'daily' | 'monthly' | 'yearly' | 'comprehensive'
 
-export type ReportTheme = 'love' | 'career' | 'wealth' | 'health' | 'family';
+export type ReportTheme = 'love' | 'career' | 'wealth' | 'health' | 'family'
 
 // ===========================
 // 크레딧 비용 설정
@@ -17,19 +18,19 @@ export type ReportTheme = 'love' | 'career' | 'wealth' | 'health' | 'family';
 
 export const REPORT_CREDIT_COSTS: Record<ReportPeriod | ReportTheme | 'themed', number> = {
   // 타이밍 리포트
-  daily: 2,        // 1 → 2
-  monthly: 3,      // 2 → 3
-  yearly: 5,       // 3 → 5
+  daily: 2, // 1 → 2
+  monthly: 3, // 2 → 3
+  yearly: 5, // 3 → 5
   comprehensive: 7, // 3 → 7
 
   // 테마별 리포트
-  themed: 3,       // 2 → 3 (기본)
+  themed: 3, // 2 → 3 (기본)
   love: 3,
   career: 3,
   wealth: 3,
   health: 3,
   family: 3,
-};
+}
 
 // ===========================
 // 확장된 리포트 옵션
@@ -37,20 +38,20 @@ export const REPORT_CREDIT_COSTS: Record<ReportPeriod | ReportTheme | 'themed', 
 
 export interface ExtendedReportOptions {
   // 기본 옵션
-  name?: string;
-  birthDate?: string;
-  lang?: 'ko' | 'en';
+  name?: string
+  birthDate?: string
+  lang?: 'ko' | 'en'
 
   // 기간별 옵션
-  period?: ReportPeriod;
-  targetDate?: string; // ISO 형식, 기본값 오늘
+  period?: ReportPeriod
+  targetDate?: string // ISO 형식, 기본값 오늘
 
   // 테마별 옵션
-  theme?: ReportTheme;
+  theme?: ReportTheme
 
   // 기존 호환
-  focusDomain?: InsightDomain;
-  detailLevel?: 'standard' | 'detailed' | 'comprehensive';
+  focusDomain?: InsightDomain
+  detailLevel?: 'standard' | 'detailed' | 'comprehensive'
 }
 
 // ===========================
@@ -58,18 +59,19 @@ export interface ExtendedReportOptions {
 // ===========================
 
 export interface TimingReportSections {
-  overview: string;           // 기간 총평
-  energy: string;             // 에너지 흐름
-  opportunities: string;      // 기회 시기
-  cautions: string;           // 주의 시기
-  domains: {                  // 영역별 분석
-    career: string;
-    love: string;
-    wealth: string;
-    health: string;
-  };
-  actionPlan: string;         // 실천 가이드
-  luckyElements?: string;     // 행운 요소 (색상, 방향, 숫자 등)
+  overview: string // 기간 총평
+  energy: string // 에너지 흐름
+  opportunities: string // 기회 시기
+  cautions: string // 주의 시기
+  domains: {
+    // 영역별 분석
+    career: string
+    love: string
+    wealth: string
+    health: string
+  }
+  actionPlan: string // 실천 가이드
+  luckyElements?: string // 행운 요소 (색상, 방향, 숫자 등)
 }
 
 // ===========================
@@ -77,15 +79,15 @@ export interface TimingReportSections {
 // ===========================
 
 export interface ThemedReportSections {
-  deepAnalysis: string;       // 심층 분석
-  patterns: string;           // 패턴 분석
-  timing: string;             // 테마별 타이밍
-  compatibility?: string;     // 궁합 (love)
-  strategy?: string;          // 전략 (career/wealth)
-  prevention?: string;        // 예방 (health)
-  dynamics?: string;          // 역학 (family)
-  recommendations: string[];  // 추천 사항
-  actionPlan: string;         // 실천 가이드
+  deepAnalysis: string // 심층 분석
+  patterns: string // 패턴 분석
+  timing: string // 테마별 타이밍
+  compatibility?: string // 궁합 (love)
+  strategy?: string // 전략 (career/wealth)
+  prevention?: string // 예방 (health)
+  dynamics?: string // 역학 (family)
+  recommendations: string[] // 추천 사항
+  actionPlan: string // 실천 가이드
 }
 
 // ===========================
@@ -94,31 +96,31 @@ export interface ThemedReportSections {
 
 export interface TimingData {
   daeun?: {
-    heavenlyStem: string;
-    earthlyBranch: string;
-    element: string;
-    startAge: number;
-    endAge: number;
-    isCurrent: boolean;
-  };
+    heavenlyStem: string
+    earthlyBranch: string
+    element: string
+    startAge: number
+    endAge: number
+    isCurrent: boolean
+  }
   seun?: {
-    year: number;
-    heavenlyStem: string;
-    earthlyBranch: string;
-    element: string;
-  };
+    year: number
+    heavenlyStem: string
+    earthlyBranch: string
+    element: string
+  }
   wolun?: {
-    month: number;
-    heavenlyStem: string;
-    earthlyBranch: string;
-    element: string;
-  };
+    month: number
+    heavenlyStem: string
+    earthlyBranch: string
+    element: string
+  }
   iljin?: {
-    date: string;
-    heavenlyStem: string;
-    earthlyBranch: string;
-    element: string;
-  };
+    date: string
+    heavenlyStem: string
+    earthlyBranch: string
+    element: string
+  }
 }
 
 // ===========================
@@ -126,45 +128,48 @@ export interface TimingData {
 // ===========================
 
 export interface TimingAIPremiumReport {
-  id: string;
-  generatedAt: string;
-  lang: 'ko' | 'en';
+  id: string
+  generatedAt: string
+  lang: 'ko' | 'en'
 
   // 기본 정보
   profile: {
-    name?: string;
-    birthDate?: string;
-    dayMaster: string;
-    dominantElement: string;
-  };
+    name?: string
+    birthDate?: string
+    dayMaster: string
+    dominantElement: string
+  }
 
   // 기간 정보
-  period: ReportPeriod;
-  targetDate: string;
-  periodLabel: string; // "2026년 1월 21일" 또는 "2026년 1월" 또는 "2026년"
+  period: ReportPeriod
+  targetDate: string
+  periodLabel: string // "2026년 1월 21일" 또는 "2026년 1월" 또는 "2026년"
 
   // 타이밍 데이터
-  timingData: TimingData;
+  timingData: TimingData
 
   // AI 생성 섹션
-  sections: TimingReportSections;
+  sections: TimingReportSections
+
+  // GraphRAG evidence anchors used to ground generated sections
+  graphRagEvidence?: GraphRAGEvidenceBundle
 
   // 점수
   periodScore: {
-    overall: number;
-    career: number;
-    love: number;
-    wealth: number;
-    health: number;
-  };
+    overall: number
+    career: number
+    love: number
+    wealth: number
+    health: number
+  }
 
   // 메타데이터
   meta: {
-    modelUsed: string;
-    tokensUsed?: number;
-    processingTime?: number;
-    reportVersion: string;
-  };
+    modelUsed: string
+    tokensUsed?: number
+    processingTime?: number
+    reportVersion: string
+  }
 }
 
 // ===========================
@@ -172,56 +177,62 @@ export interface TimingAIPremiumReport {
 // ===========================
 
 export interface ThemedAIPremiumReport {
-  id: string;
-  generatedAt: string;
-  lang: 'ko' | 'en';
+  id: string
+  generatedAt: string
+  lang: 'ko' | 'en'
 
   // 기본 정보
   profile: {
-    name?: string;
-    birthDate?: string;
-    dayMaster: string;
-    dominantElement: string;
-  };
+    name?: string
+    birthDate?: string
+    dayMaster: string
+    dominantElement: string
+  }
 
   // 테마 정보
-  theme: ReportTheme;
-  themeLabel: string; // "사랑 & 연애" 등
-  themeEmoji: string; // "💕" 등
+  theme: ReportTheme
+  themeLabel: string // "사랑 & 연애" 등
+  themeEmoji: string // "💕" 등
 
   // AI 생성 섹션
-  sections: ThemedReportSections;
+  sections: ThemedReportSections
+
+  // GraphRAG evidence anchors used to ground generated sections
+  graphRagEvidence?: GraphRAGEvidenceBundle
 
   // 테마별 점수
   themeScore: {
-    overall: number;
-    potential: number;  // 잠재력
-    timing: number;     // 타이밍
-    compatibility: number; // 조화도
-  };
+    overall: number
+    potential: number // 잠재력
+    timing: number // 타이밍
+    compatibility: number // 조화도
+  }
 
   // 핵심 키워드
-  keywords: string[];
+  keywords: string[]
 
   // 메타데이터
   meta: {
-    modelUsed: string;
-    tokensUsed?: number;
-    processingTime?: number;
-    reportVersion: string;
-  };
+    modelUsed: string
+    tokensUsed?: number
+    processingTime?: number
+    reportVersion: string
+  }
 }
 
 // ===========================
 // 테마 메타데이터
 // ===========================
 
-export const THEME_META: Record<ReportTheme, {
-  label: { ko: string; en: string };
-  emoji: string;
-  color: string;
-  description: { ko: string; en: string };
-}> = {
+export const THEME_META: Record<
+  ReportTheme,
+  {
+    label: { ko: string; en: string }
+    emoji: string
+    color: string
+    description: { ko: string; en: string }
+  }
+> = {
   love: {
     label: { ko: '사랑 & 연애', en: 'Love & Romance' },
     emoji: '💕',
@@ -267,18 +278,21 @@ export const THEME_META: Record<ReportTheme, {
       en: 'Family dynamics, parent/child fortune, communication, harmony',
     },
   },
-};
+}
 
 // ===========================
 // 기간 메타데이터
 // ===========================
 
-export const PERIOD_META: Record<ReportPeriod, {
-  label: { ko: string; en: string };
-  emoji: string;
-  description: { ko: string; en: string };
-  creditCost: number;
-}> = {
+export const PERIOD_META: Record<
+  ReportPeriod,
+  {
+    label: { ko: string; en: string }
+    emoji: string
+    description: { ko: string; en: string }
+    creditCost: number
+  }
+> = {
   daily: {
     label: { ko: '오늘 운세', en: "Today's Fortune" },
     emoji: '☀️',
@@ -315,4 +329,4 @@ export const PERIOD_META: Record<ReportPeriod, {
     },
     creditCost: 7,
   },
-};
+}

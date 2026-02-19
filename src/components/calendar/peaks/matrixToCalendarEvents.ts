@@ -77,8 +77,8 @@ function buildGlobalNotes(summary: MatrixSummaryLike, locale: EventLocale): stri
   const cautions = (summary.cautions || []).slice(0, 1)
   const metrics =
     locale === 'ko'
-      ? `정렬 ${(summary.alignmentScore ?? 0).toFixed(2)} / 타이밍 ${(summary.timeOverlapWeight ?? 1).toFixed(2)}`
-      : `Align ${(summary.alignmentScore ?? 0).toFixed(2)} / Time ${(summary.timeOverlapWeight ?? 1).toFixed(2)}`
+      ? `정렬 ${(summary.alignmentScore ?? 0).toFixed(2)} (전체 조화도) / 타이밍 ${(summary.timeOverlapWeight ?? 1).toFixed(2)} (시기 상승값)`
+      : `Align ${(summary.alignmentScore ?? 0).toFixed(2)} (overall harmony) / Time ${(summary.timeOverlapWeight ?? 1).toFixed(2)} (timing boost)`
 
   return [
     ...drivers,
@@ -92,8 +92,8 @@ function buildDomainNotes(score: DomainScore, locale: EventLocale): string[] {
   const caution = (score.cautions || [])[0]
   const metrics =
     locale === 'ko'
-      ? `정렬 ${score.alignmentScore.toFixed(2)} / 타이밍 ${score.timeOverlapWeight.toFixed(2)}`
-      : `Align ${score.alignmentScore.toFixed(2)} / Time ${score.timeOverlapWeight.toFixed(2)}`
+      ? `정렬 ${score.alignmentScore.toFixed(2)} (해당 영역 조화도) / 타이밍 ${score.timeOverlapWeight.toFixed(2)} (시기 상승값)`
+      : `Align ${score.alignmentScore.toFixed(2)} (domain harmony) / Time ${score.timeOverlapWeight.toFixed(2)} (timing boost)`
 
   const notes = [...drivers]
   if (caution) {

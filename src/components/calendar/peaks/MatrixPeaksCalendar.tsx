@@ -5,7 +5,11 @@ import { useI18n } from '@/i18n/I18nProvider'
 import BirthInfoForm from '../BirthInfoForm'
 import type { BirthInfo } from '../types'
 import styles from '../DestinyCalendar.module.css'
-import { loadSharedBirthInfo, saveSharedBirthInfo } from '../sharedBirthInfo'
+import {
+  loadSharedBirthInfo,
+  saveSharedBirthInfo,
+  SHARED_BIRTH_INFO_UPDATED_EVENT,
+} from '../sharedBirthInfo'
 import { matrixSummaryToCalendarEvents, type CalendarEvent } from './matrixToCalendarEvents'
 import type { DomainKey, DomainScore, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 
@@ -40,7 +44,11 @@ function monthLabel(month: string): string {
   return `${year}-${mm}`
 }
 
-export default function MatrixPeaksCalendar() {
+interface MatrixPeaksCalendarProps {
+  embedded?: boolean
+}
+
+export default function MatrixPeaksCalendar({ embedded = false }: MatrixPeaksCalendarProps) {
   const { locale } = useI18n()
   const [birthInfo, setBirthInfo] = useState<BirthInfo>(() => {
     const shared = loadSharedBirthInfo()
@@ -132,13 +140,69 @@ export default function MatrixPeaksCalendar() {
     void handleSubmit(birthInfo)
   }, [birthInfo, handleSubmit, submitted])
 
+  useEffect(() => {
+    const syncFromShared = () => {
+      const shared = loadSharedBirthInfo()
+      if (!shared) {
+        return
+      }
+      setBirthInfo(shared)
+      setSubmitted(false)
+      setError(null)
+      setSummary(null)
+      setEvents([])
+      hasAutoSubmitted.current = false
+    }
+
+    window.addEventListener(
+      SHARED_BIRTH_INFO_UPDATED_EVENT,
+      syncFromShared as unknown as EventListener
+    )
+    window.addEventListener('storage', syncFromShared)
+
+    return () => {
+      window.removeEventListener(
+        SHARED_BIRTH_INFO_UPDATED_EVENT,
+        syncFromShared as unknown as EventListener
+      )
+      window.removeEventListener('storage', syncFromShared)
+    }
+  }, [])
+
   if (!submitted) {
+    if (embedded) {
+      if (!birthInfo.birthDate || !birthInfo.birthPlace) {
+        return (
+          <div className={`${styles.container} ${styles.largeTextMode}`}>
+            <div className={styles.emptyState}>
+              {locale === 'ko'
+                ? '일간 캘린더에서 출생정보를 입력하면 피크 윈도우가 자동으로 계산됩니다.'
+                : 'Peak windows will auto-calculate after entering birth info in the daily calendar.'}
+            </div>
+          </div>
+        )
+      }
+
+      return (
+        <div className={`${styles.container} ${styles.largeTextMode}`}>
+          <div className={styles.loading}>
+            <div className={styles.spinner} />
+            <p>
+              {locale === 'ko'
+                ? '일간 캘린더 정보로 피크 윈도우를 연동 중...'
+                : 'Syncing peak windows from daily calendar info...'}
+            </p>
+          </div>
+        </div>
+      )
+    }
+
     return <BirthInfoForm birthInfo={birthInfo} onSubmit={handleSubmit} />
   }
 
   if (loading) {
     return (
-      <div className={styles.container}>
+      <div className={`${styles.container} ${styles.largeTextMode}`}>
         <div className={styles.loading}>
           <div className={styles.spinner} />
           <p>{locale === 'ko' ? '피크 구간 계산 중...' : 'Calculating matrix peaks...'}</p>
@@ -149,10 +213,16 @@ export default function MatrixPeaksCalendar() {
 
   if (error) {
     return (
-      <div className={styles.container}>
+      <div className={`${styles.container} ${styles.largeTextMode}`}>
         <div className={styles.errorState}>
           <p>{error}</p>
-          <button className={styles.retryBtn} onClick={() => setSubmitted(false)}>
+          <button
+            className={styles.retryBtn}
+            onClick={() => {
+              hasAutoSubmitted.current = false
+              setSubmitted(false)
+            }}
+          >
             {locale === 'ko' ? '다시 시도' : 'Try again'}
           </button>
         </div>
@@ -161,7 +231,7 @@ export default function MatrixPeaksCalendar() {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${styles.largeTextMode}`}>
       <div className={styles.matrixPeaksWrap}>
         <div className={styles.matrixPeaksHeaderRow}>
           <div>
@@ -172,7 +242,13 @@ export default function MatrixPeaksCalendar() {
                 : 'Shows 7-day windows for the next 12 months. (Reuses your daily input)'}
             </p>
           </div>
-          <button className={styles.retryBtn} onClick={() => setSubmitted(false)}>
+          <button
+            className={styles.retryBtn}
+            onClick={() => {
+              hasAutoSubmitted.current = false
+              setSubmitted(false)
+            }}
+          >
             {locale === 'ko' ? '출생정보 수정' : 'Edit birth info'}
           </button>
         </div>
@@ -180,15 +256,19 @@ export default function MatrixPeaksCalendar() {
         {summary && (
           <div className={styles.matrixPeaksMeta}>
             <span>
-              {locale === 'ko' ? '신뢰도' : 'Confidence'}{' '}
+              {locale === 'ko'
+                ? '신뢰도 (예측 일치 가능성)'
+                : 'Confidence (prediction reliability)'}{' '}
               {(summary.confidenceScore ?? 0).toFixed(2)}
             </span>
             <span>
-              {locale === 'ko' ? '핵심 요인' : 'Drivers'}{' '}
+              {locale === 'ko' ? '핵심 요인 (점수를 올린 근거)' : 'Drivers (what raised the score)'}{' '}
               {(summary.drivers || []).slice(0, 2).join(' | ') || '-'}
             </span>
             <span>
-              {locale === 'ko' ? '주의 요인' : 'Cautions'}{' '}
+              {locale === 'ko'
+                ? '주의 요인 (점수를 깎는 리스크)'
+                : 'Cautions (risk factors lowering score)'}{' '}
               {(summary.cautions || []).slice(0, 1).join(' | ') || '-'}
             </span>
           </div>

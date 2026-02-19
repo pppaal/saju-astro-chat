@@ -39,6 +39,14 @@ vi.mock('@/lib/cities/formatter', () => ({
     }
     return map[country] || null
   }),
+  getCityNameFromKorean: vi.fn((name: string) => {
+    const map: Record<string, string> = {
+      서울: 'Seoul',
+      대한민국: 'South Korea',
+      한국: 'South Korea',
+    }
+    return map[name] || null
+  }),
 }))
 
 import { logger } from '@/lib/logger'
