@@ -8,6 +8,7 @@ import { useUserProfile } from '@/hooks/useUserProfile'
 import { saveUserProfile } from '@/lib/userProfile'
 import { ProfileLoader } from '@/components/common/BirthForm'
 import { searchCities } from '@/lib/cities'
+import { formatCityForDropdown } from '@/lib/cities/formatter'
 import tzLookup from 'tz-lookup'
 import DateTimePicker from '@/components/ui/DateTimePicker'
 import TimePicker from '@/components/ui/TimePicker'
@@ -105,11 +106,10 @@ export default function SajuAnalyzer() {
 
   const handleCitySelect = useCallback(
     (city: CityResult) => {
-      // 한국어 표시 우선, 없으면 영어
       const displayName =
-        locale === 'ko' && city.displayKr
-          ? city.displayKr
-          : city.displayEn || `${city.name}, ${city.country}`
+        locale === 'ko'
+          ? city.displayKr || formatCityForDropdown(city.name, city.country, 'ko')
+          : city.displayEn || formatCityForDropdown(city.name, city.country, 'en')
       setSelectedCity(displayName)
       setCityQuery(displayName)
       setShowCitySuggestions(false)
@@ -187,6 +187,7 @@ export default function SajuAnalyzer() {
       saveUserProfile({
         birthDate: formData.birthDate,
         birthTime: formData.birthTime,
+        birthCity: selectedCity || cityQuery || undefined,
         gender: formData.gender === 'male' ? 'Male' : 'Female',
         timezone: formData.timezone,
       })
@@ -334,14 +335,18 @@ export default function SajuAnalyzer() {
         {/* 출생 도시 */}
         <div className="mb-5 relative">
           <label htmlFor="birthCity" className="block font-medium mb-2 text-gray-200">
-            출생 도시 (영문)
+            {locale === 'ko' ? '출생 도시' : 'Birth City'}
           </label>
           <input
             id="birthCity"
             name="birthCity"
             type="text"
             autoComplete="off"
-            placeholder="예: Seoul, Tokyo, New York"
+            placeholder={
+              locale === 'ko'
+                ? '예: 서울, 도쿄, 뉴욕 (한글/영문 가능)'
+                : 'e.g. Seoul, Tokyo, New York'
+            }
             value={cityQuery}
             onChange={(e) => setCityQuery(e.target.value)}
             onFocus={() => citySuggestions.length > 0 && setShowCitySuggestions(true)}
@@ -389,7 +394,9 @@ export default function SajuAnalyzer() {
           )}
           {selectedCity && (
             <p id="selected-city-info" className="text-sm text-blue-400 mt-1">
-              ✓ 선택됨: {selectedCity} → 타임존 자동 설정됨
+              {locale === 'ko'
+                ? `✓ 선택됨: ${selectedCity} → 타임존 자동 설정됨`
+                : `✓ Selected: ${selectedCity} → Timezone set automatically`}
             </p>
           )}
         </div>

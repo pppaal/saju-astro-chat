@@ -11,6 +11,7 @@ import {
   type I18nMessages,
 } from '@/i18n/utils'
 import { normalizeGender } from '@/lib/utils/gender'
+import { formatCityForDropdown } from '@/lib/cities/formatter'
 import styles from './destiny-map.module.css'
 import { logger } from '@/lib/logger'
 import DateTimePicker from '@/components/ui/DateTimePicker'
@@ -89,7 +90,7 @@ function DestinyMapContent({
         }
       }
     }
-    // Detect timezone on client side only (SSRì—ì„œ ì„œë²„ íƒ€ìž„ì¡´ ë°©ì§€)
+    // Detect timezone on client side only (SSR에서 서버 타임존 방지)
     resolveTimezone()
     return () => {
       active = false
@@ -154,9 +155,12 @@ function DestinyMapContent({
   }, [form.city])
 
   const onPick = useCallback((hit: CityHit) => {
+    const cityDisplay = isKo
+      ? hit.displayKr || formatCityForDropdown(hit.name, hit.country, 'ko')
+      : hit.displayEn || formatCityForDropdown(hit.name, hit.country, 'en')
     dispatch({
       type: 'PICK_CITY',
-      city: `${hit.name}, ${hit.country}`,
+      city: cityDisplay,
       selectedCity: { ...hit, timezone: hit.timezone },
     })
     resolveCityTimezone(hit)
@@ -169,7 +173,7 @@ function DestinyMapContent({
         })
       })
       .catch(() => {})
-  }, [])
+  }, [isKo])
 
   const onSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -215,7 +219,7 @@ function DestinyMapContent({
       if (tz) {
         params.set('tz', tz)
       }
-      params.set('userTz', form.userTimezone) // ì‚¬ìš©ìž í˜„ìž¬ íƒ€ìž„ì¡´ (ìš´ì„¸ ë‚ ì§œìš©)
+      params.set('userTz', form.userTimezone) // 사용자 현재 타임존 (운세 날짜용)
 
       // Save user profile for reuse across services
       const { saveUserProfile } = await import('@/lib/userProfile')
@@ -230,7 +234,7 @@ function DestinyMapContent({
         longitude: form.selectedCity?.lon,
       })
 
-      // í…Œë§ˆ ì„ íƒ ê±´ë„ˆë›°ê³  ë°”ë¡œ ì¸ìƒì´ìš´(life_path)ìœ¼ë¡œ ì´ë™
+      // 테마 선택 건너뛰고 바로 인생총운(life_path)으로 이동
       params.set('theme', 'focus_overall')
       router.push(`/destiny-map/result?${params.toString()}`)
     },
@@ -395,8 +399,16 @@ function DestinyMapContent({
                           onPick(s)
                         }}
                       >
-                        <span className={styles.cityName}>{s.name}</span>
-                        <span className={styles.country}>{s.country}</span>
+                        <span className={styles.cityName}>
+                          {isKo
+                            ? s.displayKr || formatCityForDropdown(s.name, s.country, 'ko')
+                            : s.displayEn || formatCityForDropdown(s.name, s.country, 'en')}
+                        </span>
+                        {isKo && (
+                          <span className={styles.country}>
+                            {s.displayEn || formatCityForDropdown(s.name, s.country, 'en')}
+                          </span>
+                        )}
                       </li>
                     ))}
                   </ul>

@@ -1,4 +1,14 @@
-export type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string }
+export type CityHit = {
+  name: string
+  country: string
+  lat: number
+  lon: number
+  timezone?: string
+  nameKr?: string
+  countryKr?: string
+  displayKr?: string
+  displayEn?: string
+}
 
 export interface FormState {
   name: string

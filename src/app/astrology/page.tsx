@@ -8,6 +8,7 @@ import ResultDisplay from '@/components/astrology/ResultDisplay'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 import type { AspectData, AdvancedData } from '@/components/astrology/ResultDisplay'
 import { searchCities } from '@/lib/cities'
+import { formatCityForDropdown } from '@/lib/cities/formatter'
 import tzLookup from 'tz-lookup'
 import { useI18n } from '@/i18n/I18nProvider'
 import ServicePageLayout from '@/components/ui/ServicePageLayout'
@@ -18,7 +19,16 @@ import { saveUserProfile } from '@/lib/userProfile'
 import styles from './Astrology.module.css'
 import DateTimePicker from '@/components/ui/DateTimePicker'
 
-type CityItem = { name: string; country: string; lat: number; lon: number }
+type CityItem = {
+  name: string
+  country: string
+  lat: number
+  lon: number
+  nameKr?: string
+  countryKr?: string
+  displayKr?: string
+  displayEn?: string
+}
 
 export default function Home() {
   const { locale, t } = useI18n()
@@ -117,7 +127,11 @@ export default function Home() {
   }, [cityQuery])
 
   const onPickCity = (item: CityItem) => {
-    setCityQuery(`${item.name}, ${item.country}`)
+    const displayName =
+      locale === 'ko'
+        ? item.displayKr || formatCityForDropdown(item.name, item.country, 'ko')
+        : item.displayEn || formatCityForDropdown(item.name, item.country, 'en')
+    setCityQuery(displayName)
     setLatitude(item.lat)
     setLongitude(item.lon)
     setShowDropdown(false)
@@ -366,14 +380,18 @@ export default function Home() {
               {/* City autocomplete */}
               <div className={styles.relative}>
                 <label htmlFor="city" className={styles.label}>
-                  {t('app.birthCity') || 'Birth City (English)'}
+                  {t('app.birthCity') || 'Birth City'}
                 </label>
                 <input
                   id="city"
                   name="city"
                   autoComplete="off"
                   value={cityQuery}
-                  onChange={(e) => setCityQuery(e.target.value)}
+                  onChange={(e) => {
+                    setCityQuery(e.target.value)
+                    setLatitude(null)
+                    setLongitude(null)
+                  }}
                   onFocus={() => setShowDropdown(true)}
                   onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
                   placeholder={t('app.cityPh') || 'Seoul'}
@@ -390,14 +408,16 @@ export default function Home() {
                           onPickCity(s)
                         }}
                       >
-                        {s.name}, {s.country}
+                        {locale === 'ko'
+                          ? s.displayKr || formatCityForDropdown(s.name, s.country, 'ko')
+                          : s.displayEn || formatCityForDropdown(s.name, s.country, 'en')}
                       </li>
                     ))}
                   </ul>
                 )}
                 <p className={styles.inputHint}>
                   {t('ui.tipChooseCity') ||
-                    'Tip: Choose a city; time zone will be set automatically.'}
+                    'Tip: Choose a city (Korean/English supported); time zone will be set automatically.'}
                 </p>
               </div>
 

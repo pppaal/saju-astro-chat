@@ -411,7 +411,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
     return (
       <div className={styles.container}>
         <div className={styles.errorState}>
-          <div className={styles.errorIcon}>Error</div>
+          <div className={styles.errorIcon}>😢</div>
           <p>{error}</p>
           <button className={styles.retryBtn} onClick={() => setHasBirthInfo(false)}>
             {locale === 'ko' ? '다시 시도' : 'Retry'}

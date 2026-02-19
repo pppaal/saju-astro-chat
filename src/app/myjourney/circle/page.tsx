@@ -7,12 +7,23 @@ import BackButton from "@/components/ui/BackButton";
 import DateTimePicker from "@/components/ui/DateTimePicker";
 import TimePicker from "@/components/ui/TimePicker";
 import { searchCities } from "@/lib/cities";
+import { formatCityForDropdown } from "@/lib/cities/formatter";
 import tzLookup from "tz-lookup";
 import styles from "./circle.module.css";
 import { logger } from "@/lib/logger";
 import { useI18n } from "@/i18n/I18nProvider";
 
-type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string };
+type CityHit = {
+  name: string;
+  country: string;
+  lat: number;
+  lon: number;
+  timezone?: string;
+  nameKr?: string;
+  countryKr?: string;
+  displayKr?: string;
+  displayEn?: string;
+};
 
 type Person = {
   id: string;
@@ -121,7 +132,11 @@ function CircleContent() {
 
   const onPickCity = (hit: CityHit) => {
     setIsUserTyping(false);
-    setBirthCity(`${hit.name}, ${hit.country}`);
+    const displayName =
+      locale === "ko"
+        ? hit.displayKr || formatCityForDropdown(hit.name, hit.country, "ko")
+        : hit.displayEn || formatCityForDropdown(hit.name, hit.country, "en");
+    setBirthCity(displayName);
     setSelectedCity({
       ...hit,
       timezone: hit.timezone ?? tzLookup(hit.lat, hit.lon),
@@ -399,8 +414,16 @@ function CircleContent() {
                           onPickCity(s);
                         }}
                       >
-                        <span className={styles.cityName}>{s.name}</span>
-                        <span className={styles.country}>{s.country}</span>
+                        <span className={styles.cityName}>
+                          {locale === "ko"
+                            ? s.displayKr || formatCityForDropdown(s.name, s.country, "ko")
+                            : s.displayEn || formatCityForDropdown(s.name, s.country, "en")}
+                        </span>
+                        {locale === "ko" && (
+                          <span className={styles.country}>
+                            {s.displayEn || formatCityForDropdown(s.name, s.country, "en")}
+                          </span>
+                        )}
                       </li>
                     ))}
                   </ul>

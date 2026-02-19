@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getUserTimezone } from '@/lib/Saju/timezone';
+import { formatCityForDropdown } from '@/lib/cities/formatter';
 import type { PersonForm, CityItem, Relation } from '@/app/compatibility/lib';
 import { makeEmptyPerson } from '@/app/compatibility/lib';
 
-export function useCompatibilityForm(initialCount: number = 2) {
+export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'en' = 'ko') {
   const [count, setCount] = useState<number>(initialCount);
   const [persons, setPersons] = useState<PersonForm[]>([
     makeEmptyPerson({ name: '' }),
@@ -66,11 +67,16 @@ export function useCompatibilityForm(initialCount: number = 2) {
   }, []);
 
   const onPickCity = useCallback((i: number, item: CityItem) => {
+    const cityDisplay =
+      locale === 'ko'
+        ? item.displayKr || formatCityForDropdown(item.name, item.country, 'ko')
+        : item.displayEn || formatCityForDropdown(item.name, item.country, 'en');
+
     setPersons((prev) => {
       const next = [...prev];
       next[i] = {
         ...next[i],
-        cityQuery: `${item.name}, ${item.country}`,
+        cityQuery: cityDisplay,
         lat: item.lat,
         lon: item.lon,
         showDropdown: false,
@@ -90,7 +96,7 @@ export function useCompatibilityForm(initialCount: number = 2) {
 
       return next;
     });
-  }, []);
+  }, [locale]);
 
   return {
     count,

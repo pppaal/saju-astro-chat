@@ -124,7 +124,7 @@ export function parseBirthDate(birthDateParam: string): Date | null {
   return date
 }
 
-// í•œì¤„ ìš”ì•½ ìƒì„±
+// 한줄 요약 생성
 export function generateSummary(
   grade: ImportanceGrade,
   categories: EventCategory[],
@@ -286,93 +286,93 @@ function getBadDayReason(
   const saju = sajuFactorKeys || []
   const astro = astroFactorKeys || []
 
-  // ì¶©(æ²–) - ê°€ìž¥ ê°•ë ¥í•œ ë¶€ì • ìš”ì†Œ
+  // 충(沖) - 가장 강력한 부정 요소
   if (saju.some((k) => k.toLowerCase().includes('chung'))) {
     return lang === 'ko'
-      ? 'ì¼ì§„ ì¶©(æ²–)! ê°ˆë“±ê³¼ ê¸‰ë³€ì— ì£¼ì˜í•˜ì„¸ìš”.'
+      ? '일진 충(沖)! 갈등과 급변에 주의하세요.'
       : 'Day Clash (æ²–)! Watch for conflicts.'
   }
 
-  // í˜•(åˆ‘)
+  // 형(刑)
   if (saju.some((k) => k.toLowerCase().includes('xing'))) {
     return lang === 'ko'
-      ? 'í˜•(åˆ‘)ì‚´! ì„œë¥˜ ì‹¤ìˆ˜, ë²•ì  ë¬¸ì œì— ì£¼ì˜í•˜ì„¸ìš”.'
+      ? '형(刑)살! 서류 실수, 법적 문제에 주의하세요.'
       : 'Punishment (åˆ‘)! Watch for legal issues.'
   }
 
-  // ê³µë§
+  // 공망
   if (saju.includes('shinsal_gongmang')) {
     return lang === 'ko'
-      ? 'ê³µë§(ç©ºäº¡)! ê³„íšì´ ë¬´ì‚°ë˜ê¸° ì‰¬ìš´ ë‚ ìž…ë‹ˆë‹¤.'
+      ? '공망(空亡)! 계획이 무산되기 쉬운 날입니다.'
       : 'Void Day! Plans may fall through.'
   }
 
-  // ë°±í˜¸
+  // 백호
   if (saju.includes('shinsal_backho')) {
     return lang === 'ko'
-      ? 'ë°±í˜¸ì‚´! ì‚¬ê³ , ìˆ˜ìˆ ì— íŠ¹ížˆ ì£¼ì˜í•˜ì„¸ìš”.'
+      ? '백호살! 사고, 수술에 특히 주의하세요.'
       : 'White Tiger! Be careful of accidents.'
   }
 
-  // ê·€ë¬¸ê´€
+  // 귀문관
   if (saju.includes('shinsal_guimungwan')) {
     return lang === 'ko'
-      ? 'ê·€ë¬¸ê´€! ì •ì‹ ì  í˜¼ëž€, ë¶ˆì•ˆê°ì— ì£¼ì˜í•˜ì„¸ìš”.'
+      ? '귀문관! 정신적 혼란, 불안감에 주의하세요.'
       : 'Ghost Gate! Watch for mental confusion.'
   }
 
-  // ê´€ì‚´
+  // 관살
   if (saju.includes('stemGwansal')) {
     return lang === 'ko'
-      ? 'ê´€ì‚´ ê¸°ìš´! ì™¸ë¶€ ì••ë°•ê³¼ ìŠ¤íŠ¸ë ˆìŠ¤ê°€ ê°•í•©ë‹ˆë‹¤.'
+      ? '관살 기운! 외부 압박과 스트레스가 강합니다.'
       : 'Authority pressure! High stress expected.'
   }
 
-  // ìˆ˜ì„± ì—­í–‰
+  // 수성 역행
   if (astro.includes('retrogradeMercury')) {
     return lang === 'ko'
-      ? 'ìˆ˜ì„± ì—­í–‰ ì¤‘! ê³„ì•½/ì†Œí†µì— ì˜¤ë¥˜ê°€ ìƒê¸°ê¸° ì‰¬ì›Œìš”.'
+      ? '수성 역행 중! 계약/소통에 오류가 생기기 쉬워요.'
       : 'Mercury retrograde! Communication errors likely.'
   }
 
-  // ê¸ˆì„± ì—­í–‰
+  // 금성 역행
   if (astro.includes('retrogradeVenus')) {
     return lang === 'ko'
-      ? 'ê¸ˆì„± ì—­í–‰ ì¤‘! ì—°ì• /ìž¬ì • ê²°ì •ì€ ë¯¸ë£¨ì„¸ìš”.'
+      ? '금성 역행 중! 연애/재정 결정은 미루세요.'
       : 'Venus retrograde! Delay love/money decisions.'
   }
 
-  // ë³´ì´ë“œ ì˜¤ë¸Œ ì½”ìŠ¤
+  // 보이드 오브 코스
   if (astro.includes('voidOfCourse')) {
     return lang === 'ko'
-      ? 'ë‹¬ì´ ê³µí—ˆí•œ ìƒíƒœ! ìƒˆ ì‹œìž‘ì€ í”¼í•˜ì„¸ìš”.'
+      ? '달이 공허한 상태! 새 시작은 피하세요.'
       : 'Void of Course Moon! Avoid new starts.'
   }
 
-  // êµì°¨ ë¶€ì •
+  // 교차 부정
   if (astro.includes('crossNegative')) {
     return lang === 'ko'
-      ? 'ì‚¬ì£¼+ì ì„±ìˆ  ëª¨ë‘ ë¶€ì •! ë§¤ìš° ì¡°ì‹¬í•˜ì„¸ìš”.'
+      ? '사주+점성술 모두 부정! 매우 조심하세요.'
       : 'Both Saju & Astro negative! Extra caution!'
   }
 
-  // ì¶©ëŒ ì›ì†Œ
+  // 충돌 원소
   if (astro.includes('conflictElement')) {
     return lang === 'ko'
-      ? 'ì˜¤í–‰ ì¶©ëŒ! ì—ë„ˆì§€ê°€ ë¶„ì‚°ë©ë‹ˆë‹¤.'
+      ? '오행 충돌! 에너지가 분산됩니다.'
       : 'Element clash! Energy scattered.'
   }
 
   return null
 }
 
-// ì¶”ì²œ ì‹œê°„ëŒ€ ìƒì„±
+// 추천 시간대 생성
 export function generateBestTimes(
   grade: ImportanceGrade,
   categories: EventCategory[],
   lang: 'ko' | 'en'
 ): string[] {
-  // Grade 3(ë³´í†µ), Grade 4(ë‚˜ìœ ë‚ )ëŠ” ì‹œê°„ ì¶”ì²œ ì—†ìŒ
+  // Grade 3(안좋음), Grade 4(최악)은 시간 추천 없음
   if (grade >= 3) {
     return []
   }
@@ -382,29 +382,29 @@ export function generateBestTimes(
   if (lang === 'ko') {
     const times: Record<string, string[]> = {
       career: [
-        'ðŸŒ… ì˜¤ì „ 10-12ì‹œ: ë¯¸íŒ…/í˜‘ìƒ ìµœì ',
-        'ðŸŒ† ì˜¤í›„ 2-4ì‹œ: ì„œë¥˜/ê³„ì•½ ìœ ë¦¬',
+        '🌅 오전 10-12시: 미팅/협상 최적',
+        '🌆 오후 2-4시: 서류/계약 유리',
       ],
       wealth: [
-        'ðŸ’° ì˜¤ì „ 9-11ì‹œ: ê¸ˆìœµ ê±°ëž˜ ìœ ë¦¬',
-        'ðŸ“ˆ ì˜¤í›„ 1-3ì‹œ: íˆ¬ìž ê²°ì • ì í•©',
+        '💰 오전 9-11시: 금융 거래 유리',
+        '📈 오후 1-3시: 투자 결정 적합',
       ],
-      love: ['â˜• ì˜¤í›„ 3-5ì‹œ: ë°ì´íŠ¸ ìµœì ', 'ðŸŒ™ ì €ë… 7-9ì‹œ: ë¡œë§¨í‹±í•œ ì‹œê°„'],
-      health: ['ðŸŒ„ ì˜¤ì „ 6-8ì‹œ: ìš´ë™ íš¨ê³¼ UP', 'ðŸ§˜ ì €ë… 6-8ì‹œ: íœ´ì‹/ëª…ìƒ ì¶”ì²œ'],
-      study: ['ðŸ“š ì˜¤ì „ 9-12ì‹œ: ì§‘ì¤‘ë ¥ ìµœê³ ', 'ðŸŒ™ ì €ë… 8-10ì‹œ: ì•”ê¸°ë ¥ UP'],
-      travel: ['âœˆï¸ ì˜¤ì „ 8-10ì‹œ: ì¶œë°œ ì¶”ì²œ', 'ðŸš— ì˜¤í›„ 2-4ì‹œ: ì´ë™ ì•ˆì „'],
-      general: ['ðŸŒ… ì˜¤ì „ 10-12ì‹œ: ì¤‘ìš”í•œ ì¼ ì²˜ë¦¬', 'ðŸŒ† ì˜¤í›„ 3-5ì‹œ: ë¯¸íŒ…/ì•½ì†'],
+      love: ['☕ 오후 3-5시: 데이트 최적', '🌙 저녁 7-9시: 로맨틱한 시간'],
+      health: ['🌄 오전 6-8시: 운동 효과 UP', '🧘 저녁 6-8시: 휴식/명상 추천'],
+      study: ['📚 오전 9-12시: 집중력 최고', '🌙 저녁 8-10시: 암기력 UP'],
+      travel: ['✈️ 오전 8-10시: 출발 추천', '🚗 오후 2-4시: 이동 안전'],
+      general: ['🌅 오전 10-12시: 중요한 일 처리', '🌆 오후 3-5시: 미팅/약속'],
     }
     return times[cat] || times.general
   } else {
     const times: Record<string, string[]> = {
-      career: ['ðŸŒ… 10am-12pm: Best for meetings', 'ðŸŒ† 2-4pm: Good for documents'],
-      wealth: ['ðŸ’° 9-11am: Financial deals', 'ðŸ“ˆ 1-3pm: Investment decisions'],
-      love: ['â˜• 3-5pm: Perfect for dates', 'ðŸŒ™ 7-9pm: Romantic time'],
-      health: ['ðŸŒ„ 6-8am: Exercise boost', 'ðŸ§˜ 6-8pm: Rest & meditation'],
-      study: ['ðŸ“š 9am-12pm: Peak focus', 'ðŸŒ™ 8-10pm: Memory boost'],
-      travel: ['âœˆï¸ 8-10am: Best departure', 'ðŸš— 2-4pm: Safe travel'],
-      general: ['ðŸŒ… 10am-12pm: Important tasks', 'ðŸŒ† 3-5pm: Meetings'],
+      career: ['🌅 10am-12pm: Best for meetings', '🌆 2-4pm: Good for documents'],
+      wealth: ['💰 9-11am: Financial deals', '📈 1-3pm: Investment decisions'],
+      love: ['☕ 3-5pm: Perfect for dates', '🌙 7-9pm: Romantic time'],
+      health: ['🌄 6-8am: Exercise boost', '🧘 6-8pm: Rest & meditation'],
+      study: ['📚 9am-12pm: Peak focus', '🌙 8-10pm: Memory boost'],
+      travel: ['✈️ 8-10am: Best departure', '🚗 2-4pm: Safe travel'],
+      general: ['🌅 10am-12pm: Important tasks', '🌆 3-5pm: Meetings'],
     }
     return times[cat] || times.general
   }
@@ -820,10 +820,10 @@ export function formatDateForResponse(
   const translations = locale === 'ko' ? koTranslations : enTranslations
   const lang = locale === 'ko' ? 'ko' : 'en'
 
-  // ì¤‘ë³µ ì¹´í…Œê³ ë¦¬ ì œê±°
+  // 중복 카테고리 제거
   const uniqueCategories = [...new Set(date.categories)]
 
-  // ë²ˆì—­ëœ ìš”ì†Œë§Œ í¬í•¨ (ë²ˆì—­ ì—†ìœ¼ë©´ ì œì™¸)
+  // 번역된 요소만 포함 (번역 없으면 제외)
   const translatedSajuFactors = date.sajuFactorKeys
     .map((key) => getFactorTranslation(key, lang))
     .filter((t): t is string => t !== null)
@@ -832,19 +832,19 @@ export function formatDateForResponse(
     .map((key) => getFactorTranslation(key, lang))
     .filter((t): t is string => t !== null)
 
-  // Grade 3 ì´ìƒ(ë‚˜ìœ ë‚ )ì—ì„œëŠ” ë¶€ì •ì  ìš”ì†Œë¥¼ ë¨¼ì € ë³´ì—¬ì£¼ê¸°
+  // Grade 3 이상(안좋음)에서는 부정적 요소를 먼저 표시
   let orderedSajuFactors = translatedSajuFactors
   let orderedAstroFactors = translatedAstroFactors
 
   if (date.grade >= 3) {
-    // ë¶€ì •ì  í‚¤ì›Œë“œê°€ í¬í•¨ëœ ìš”ì†Œë¥¼ ì•žìœ¼ë¡œ
+    // 부정적 키워드가 포함된 요소를 앞으로
     const negativeKeywords = [
-      'ì¶©',
-      'í˜•',
-      'í•´',
-      'ê³µë§',
-      'ì—­í–‰',
-      'ì£¼ì˜',
+      '충',
+      '형',
+      '해',
+      '공망',
+      '역행',
+      '주의',
       'clash',
       'conflict',
       'retrograde',
@@ -927,7 +927,7 @@ export function formatDateForResponse(
   }
 }
 
-// AI ë°±ì—”ë“œì—ì„œ ì¶”ê°€ ë‚ ì§œ ì •ë³´ ê°€ì ¸ì˜¤ê¸°
+// AI 백엔드에서 추가 날짜 정보 가져오기
 export async function fetchAIDates(
   sajuData: Record<string, unknown>,
   astroData: Record<string, unknown>,
@@ -960,7 +960,7 @@ export async function fetchAIDates(
   return null
 }
 
-// ìœ„ì¹˜ ì¢Œí‘œ
+// 위치 좌표
 export const LOCATION_COORDS: Record<string, LocationCoord> = {
   Seoul: { lat: 37.5665, lng: 126.978, tz: 'Asia/Seoul' },
   'Seoul, KR': { lat: 37.5665, lng: 126.978, tz: 'Asia/Seoul' },

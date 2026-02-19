@@ -56,7 +56,7 @@ export default function CompatPage() {
 
   // Use extracted hooks
   const { count, setCount, persons, setPersons, updatePerson, fillFromCircle, onPickCity } =
-    useCompatibilityForm(2)
+    useCompatibilityForm(2, locale as 'ko' | 'en')
 
   useCityAutocomplete(persons, setPersons)
 

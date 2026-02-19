@@ -1057,7 +1057,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
               }}
               aria-label={isKo ? '이전 날' : 'Previous day'}
             >
-              &lt;
+              ←
             </button>
             <input
               type="date"
@@ -1083,7 +1083,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
               }}
               aria-label={isKo ? '다음 날' : 'Next day'}
             >
-              &gt;
+              →
             </button>
             <button
               type="button"
@@ -1309,12 +1309,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           </div>
           {todayTiming && (
             <div className={styles.actionPlanTiming}>
-              {isKo ? '추천 시간' : 'Best timing'}: {todayTiming}
+              ⏰ {isKo ? '추천 시간' : 'Best timing'}: {todayTiming}
             </div>
           )}
           {todayCaution && (
             <div className={styles.actionPlanCaution}>
-              {isKo ? '주의' : 'Caution'}: {todayCaution}
+              ⚠ {isKo ? '주의' : 'Caution'}: {todayCaution}
             </div>
           )}
         </div>
@@ -1334,7 +1334,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           </ul>
           {topCategory && (
             <div className={styles.actionPlanTiming}>
-              {isKo ? '주간 포커스' : 'Weekly focus'}: {CATEGORY_EMOJI[topCategory]}{' '}
+              🎯 {isKo ? '주간 포커스' : 'Weekly focus'}: {CATEGORY_EMOJI[topCategory]}{' '}
               {categoryLabel(topCategory)}
             </div>
           )}

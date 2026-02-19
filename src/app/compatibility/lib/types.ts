@@ -18,7 +18,16 @@ export type SavedPerson = {
 
 export type Relation = 'friend' | 'lover' | 'other';
 
-export type CityItem = { name: string; country: string; lat: number; lon: number };
+export type CityItem = {
+  name: string;
+  country: string;
+  lat: number;
+  lon: number;
+  nameKr?: string;
+  countryKr?: string;
+  displayKr?: string;
+  displayEn?: string;
+};
 
 export type PersonForm = {
   name: string;

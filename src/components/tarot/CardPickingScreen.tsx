@@ -67,7 +67,7 @@ export function CardPickingScreen({
             <p className={styles.guidanceText}>
               ✨{' '}
               {isKo
-                ? 'ë§ˆìŒì´ ì´ë„ëŠ” ëŒ€ë¡œ ì¹´ë“œë¥¼ ì„ íƒí•˜ì„¸ìš”'
+                ? '마음이 이끄는 대로 카드를 선택하세요'
                 : 'Let your intuition guide you to the cards'}
             </p>
           )}
@@ -77,7 +77,7 @@ export function CardPickingScreen({
               <p className={styles.revealingText}>
                 ✨{' '}
                 {isKo
-                  ? 'ì„ íƒ ì™„ë£Œ! ìš´ëª…ì„ ê³µê°œí•˜ëŠ” ì¤‘...'
+                  ? '선택 완료! 운명을 공개하는 중...'
                   : 'Selection Complete! Revealing your destiny...'}
               </p>
             </>
@@ -98,14 +98,14 @@ export function CardPickingScreen({
             </button>
             <div className={styles.tooltipIcon}>🔮</div>
             <h3 className={styles.tooltipTitle}>
-              {isKo ? 'ì¹´ë“œ ì„ íƒ ê°€ì´ë“œ' : 'Card Selection Guide'}
+              {isKo ? '카드 선택 가이드' : 'Card Selection Guide'}
             </h3>
             <div className={styles.tooltipSteps}>
               <div className={styles.tooltipStep}>
                 <span className={styles.tooltipStepNumber}>1</span>
                 <p>
                   {isKo
-                    ? 'ì§ˆë¬¸ì— ì§‘ì¤‘í•˜ë©° ë§ˆìŒì„ ê°€ë¼ì•‰ížˆì„¸ìš”'
+                    ? '질문에 집중하며 마음을 가라앉히세요'
                     : 'Focus on your question and calm your mind'}
                 </p>
               </div>
@@ -113,7 +113,7 @@ export function CardPickingScreen({
                 <span className={styles.tooltipStepNumber}>2</span>
                 <p>
                   {isKo
-                    ? `ì§ê´€ì ìœ¼ë¡œ ëŒë¦¬ëŠ” ì¹´ë“œ ${cardCount}ìž¥ì„ ì„ íƒí•˜ì„¸ìš”`
+                    ? `직관적으로 끌리는 카드 ${cardCount}장을 선택하세요`
                     : `Intuitively select ${cardCount} cards that call to you`}
                 </p>
               </div>
@@ -121,13 +121,13 @@ export function CardPickingScreen({
                 <span className={styles.tooltipStepNumber}>3</span>
                 <p>
                   {isKo
-                    ? 'ì²« ëŠë‚Œì„ ë¯¿ê³  ë„ˆë¬´ ê³ ë¯¼í•˜ì§€ ë§ˆì„¸ìš”'
+                    ? '첫 느낌을 믿고 너무 고민하지 마세요'
                     : "Trust your first instinct, don't overthink"}
                 </p>
               </div>
             </div>
             <button className={styles.tooltipButton} onClick={handleDismissTooltip}>
-              {isKo ? 'ì‹œìž‘í•˜ê¸°' : 'Start'}
+              {isKo ? '시작하기' : 'Start'}
             </button>
           </div>
         </div>
@@ -137,7 +137,7 @@ export function CardPickingScreen({
         <>
           <div className={styles.topRightControls}>
             <div className={styles.progressBadge}>
-              <span className={styles.progressLabel}>{isKo ? 'ì„ íƒ' : 'Selected'}</span>
+              <span className={styles.progressLabel}>{isKo ? '선택' : 'Selected'}</span>
               <span className={styles.progressCount}>
                 {selectedIndices.length} / {cardCount}
               </span>
@@ -149,7 +149,7 @@ export function CardPickingScreen({
               onClick={onRedraw}
               data-testid="tarot-redraw-button"
             >
-              {isKo ? 'ë‹¤ì‹œ íŽ¼ì¹˜ê¸°' : 'Redraw'}
+              {isKo ? '다시 펼치기' : 'Redraw'}
             </button>
           )}
         </>
@@ -178,7 +178,7 @@ export function CardPickingScreen({
               data-testid={`tarot-card-${index}`}
               aria-label={
                 isKo
-                  ? `ì¹´ë“œ ${index + 1}${isSelected ? `, ì„ íƒë¨ (${displayNumber}ë²ˆì§¸)` : ''}`
+                  ? `카드 ${index + 1}${isSelected ? `, 선택됨 (${displayNumber}번째)` : ''}`
                   : `Card ${index + 1}${isSelected ? `, selected (${displayNumber})` : ''}`
               }
               disabled={gameState !== 'picking'}
