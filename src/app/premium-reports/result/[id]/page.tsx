@@ -16,6 +16,21 @@ interface ReportSection {
   content: string
 }
 
+interface GraphRAGEvidenceAnchor {
+  id: string
+  section: string
+  sajuEvidence: string
+  astrologyEvidence: string
+  crossConclusion: string
+}
+
+interface GraphRAGEvidenceBundle {
+  mode: 'comprehensive' | 'timing' | 'themed'
+  theme?: string
+  period?: string
+  anchors: GraphRAGEvidenceAnchor[]
+}
+
 interface ReportData {
   id: string
   type: 'timing' | 'themed' | 'comprehensive'
@@ -32,6 +47,7 @@ interface ReportData {
   actionItems?: string[]
   qualityAudit?: QualityAudit
   calculationDetails?: CalculationDetails
+  graphRagEvidence?: GraphRAGEvidenceBundle
   fullData?: Record<string, unknown>
 }
 
@@ -95,6 +111,9 @@ export default function ReportResultPage() {
         calculationDetails:
           apiReport.calculationDetails ||
           (fullData.calculationDetails as CalculationDetails | undefined),
+        graphRagEvidence:
+          apiReport.graphRagEvidence ||
+          (fullData.graphRagEvidence as GraphRAGEvidenceBundle | undefined),
         fullData,
       })
     } catch {
@@ -390,6 +409,46 @@ export default function ReportResultPage() {
                 {JSON.stringify(report.calculationDetails, null, 2)}
               </pre>
             )}
+          </div>
+        </div>
+      )}
+
+      {report.graphRagEvidence && report.graphRagEvidence.anchors?.length > 0 && (
+        <div className="max-w-5xl mx-auto px-4 mt-6">
+          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+            <h2 className="text-lg font-bold text-white mb-2">GraphRAG 교차 근거</h2>
+            <p className="text-xs text-slate-400 mb-4">
+              mode: {report.graphRagEvidence.mode}
+              {report.graphRagEvidence.theme ? ` / theme: ${report.graphRagEvidence.theme}` : ''}
+              {report.graphRagEvidence.period ? ` / period: ${report.graphRagEvidence.period}` : ''}
+            </p>
+
+            <div className="space-y-3">
+              {report.graphRagEvidence.anchors.map((anchor) => (
+                <details
+                  key={anchor.id}
+                  className="rounded-lg border border-slate-700/70 bg-slate-900/40 p-3"
+                >
+                  <summary className="cursor-pointer text-sm font-semibold text-slate-200">
+                    [{anchor.id}] {anchor.section}
+                  </summary>
+                  <div className="mt-3 space-y-2 text-xs leading-relaxed">
+                    <div>
+                      <p className="text-amber-300 font-semibold">Saju Basis</p>
+                      <p className="text-slate-300">{anchor.sajuEvidence}</p>
+                    </div>
+                    <div>
+                      <p className="text-cyan-300 font-semibold">Astrology Basis</p>
+                      <p className="text-slate-300">{anchor.astrologyEvidence}</p>
+                    </div>
+                    <div>
+                      <p className="text-emerald-300 font-semibold">Cross Conclusion</p>
+                      <p className="text-slate-300">{anchor.crossConclusion}</p>
+                    </div>
+                  </div>
+                </details>
+              ))}
+            </div>
           </div>
         </div>
       )}

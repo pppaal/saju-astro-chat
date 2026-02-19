@@ -241,6 +241,10 @@ export async function GET(request: Request, routeContext: RouteContext) {
               reportData && isRecord(reportData) && 'calculationDetails' in reportData
                 ? reportData.calculationDetails
                 : undefined,
+            graphRagEvidence:
+              reportData && isRecord(reportData) && 'graphRagEvidence' in reportData
+                ? reportData.graphRagEvidence
+                : undefined,
             fullData: reportData,
           },
         })
