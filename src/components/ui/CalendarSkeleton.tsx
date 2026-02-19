@@ -1,31 +1,31 @@
-"use client";
+'use client'
 
-import styles from "./CalendarSkeleton.module.css";
-import { useState, useEffect } from "react";
+import styles from './CalendarSkeleton.module.css'
+import { useState, useEffect } from 'react'
 
 /**
  * 캘린더 페이지 전용 로딩 스켈레톤
  * 실제 캘린더와 똑같은 모양 + 분석 진행 상태 표시
  */
 export function CalendarSkeleton() {
-  const weekDays = ["일", "월", "화", "수", "목", "금", "토"];
-  const [currentStep, setCurrentStep] = useState(0);
+  const weekDays = ['일', '월', '화', '수', '목', '금', '토']
+  const [currentStep, setCurrentStep] = useState(0)
 
   // 분석 단계 메시지 (사용자 친화적)
   const analysisSteps = [
-    "당신의 생년월일 정보를 확인하고 있어요...",
-    "사주 팔자와 대운을 계산하고 있어요...",
-    "점성술 천체 배치를 분석하고 있어요...",
-    "365일 운세를 종합 분석하고 있어요...",
-    "당신에게 특별한 날들을 찾고 있어요...",
-  ];
+    '당신의 생년월일 정보를 확인하고 있어요...',
+    '사주 팔자와 대운을 계산하고 있어요...',
+    '점성술 천체 배치를 분석하고 있어요...',
+    '365일 운세를 종합 분석하고 있어요...',
+    '당신에게 특별한 날들을 찾고 있어요...',
+  ]
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentStep((prev) => (prev + 1) % analysisSteps.length);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [analysisSteps.length]);
+      setCurrentStep((prev) => (prev + 1) % analysisSteps.length)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [analysisSteps.length])
 
   return (
     <div className={styles.container}>
@@ -40,18 +40,20 @@ export function CalendarSkeleton() {
       </div>
 
       {/* 분석 진행 상태 메시지 */}
-      <div style={{
-        textAlign: 'center',
-        padding: '24px',
-        fontSize: '16px',
-        color: 'var(--text-secondary, #666)',
-        fontWeight: 500,
-        animation: 'pulse 1.5s ease-in-out infinite',
-        minHeight: '60px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
+      <div
+        style={{
+          textAlign: 'center',
+          padding: '24px',
+          fontSize: '16px',
+          color: 'var(--text-secondary, #666)',
+          fontWeight: 500,
+          animation: 'pulse 1.5s ease-in-out infinite',
+          minHeight: '60px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         {analysisSteps[currentStep]}
       </div>
 
@@ -78,7 +80,7 @@ export function CalendarSkeleton() {
           {Array.from({ length: 35 }).map((_, i) => (
             <div
               key={i}
-              className={`${styles.dayCell} ${i % 7 === 0 || i % 7 === 6 ? styles.weekend : ""}`}
+              className={`${styles.dayCell} ${i % 7 === 0 || i % 7 === 6 ? styles.weekend : ''}`}
             >
               <div className={styles.dayNumber} />
               <div className={styles.gradeIndicator} />
@@ -97,5 +99,5 @@ export function CalendarSkeleton() {
       {/* 하단 설명 */}
       <div className={styles.hint} />
     </div>
-  );
+  )
 }

@@ -574,11 +574,11 @@ const CalendarMainView = memo(function CalendarMainView({
           {/* Monthly Fortune Graph */}
           {fortuneData.length > 0 && (
             <div className={styles.fortuneGraph}>
-            <div className={styles.graphHeader}>
-              <span className={styles.graphTitle}>
-                {locale === 'ko' ? '월간 운세 흐름' : 'Monthly Fortune Flow'}
-              </span>
-            </div>
+              <div className={styles.graphHeader}>
+                <span className={styles.graphTitle}>
+                  {locale === 'ko' ? '월간 운세 흐름' : 'Monthly Fortune Flow'}
+                </span>
+              </div>
               <div className={styles.sparkline}>
                 {fortuneData.map((d, idx) => {
                   const isSelected =

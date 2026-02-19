@@ -32,7 +32,7 @@ export default function CalendarHeader({
   isDarkTheme: _isDarkTheme,
   onThemeToggle: _onThemeToggle,
 }: CalendarHeaderProps) {
-  const { locale, t } = useI18n();
+  const { locale, t } = useI18n()
 
   return (
     <>
