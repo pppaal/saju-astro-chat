@@ -19,6 +19,7 @@ import {
   WEEKDAYS_KO,
 } from './constants'
 import type { CalendarData, ImportantDate, EventCategory } from './types'
+import { getPeakLabel, resolvePeakLevel } from './peakUtils'
 
 interface CalendarActionPlanViewProps {
   data: CalendarData
@@ -33,13 +34,6 @@ type AiTimelineSlot = {
   note: string
   tone?: 'neutral' | 'best' | 'caution'
   evidenceSummary?: string[]
-}
-
-type ActionPlanAiAccess = {
-  premiumOnly?: boolean
-  allowed?: boolean
-  isPremiumUser?: boolean
-  creditCost?: number
 }
 
 const DEFAULT_TODAY_KO = [
@@ -180,8 +174,6 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const [profileReady, setProfileReady] = useState(false)
   const [aiTimeline, setAiTimeline] = useState<AiTimelineSlot[] | null>(null)
   const [aiStatus, setAiStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
-  const [aiPremiumLocked, setAiPremiumLocked] = useState(false)
-  const [aiCreditCost, setAiCreditCost] = useState(0)
   const aiCacheRef = useRef<Record<string, AiTimelineSlot[]>>({})
   const aiAbortRef = useRef<AbortController | null>(null)
 
@@ -261,6 +253,10 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const baseInfo = useMemo(
     () => selectedDate ?? getDateInfo(baseDate),
     [selectedDate, baseDate, getDateInfo]
+  )
+  const resolvedPeakLevel = useMemo(
+    () => resolvePeakLevel(baseInfo?.evidence?.matrix?.peakLevel, baseInfo?.score),
+    [baseInfo?.evidence?.matrix?.peakLevel, baseInfo?.score]
   )
 
   const formatDateLabel = useCallback(
@@ -584,17 +580,6 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           throw new Error(json?.error?.message ?? 'AI generation failed')
         }
 
-        const aiAccess = (json?.data?.aiAccess ?? null) as ActionPlanAiAccess | null
-        const isLockedByPremium = aiAccess?.allowed === false
-        setAiPremiumLocked(isLockedByPremium)
-        setAiCreditCost(typeof aiAccess?.creditCost === 'number' ? aiAccess.creditCost : 0)
-
-        if (isLockedByPremium) {
-          setAiTimeline(null)
-          setAiStatus('idle')
-          return
-        }
-
         const timeline = sanitizeAiTimeline(json?.data?.timeline)
         if (timeline.length === 0) {
           throw new Error('Invalid AI timeline')
@@ -621,8 +606,6 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     if (!baseInfo) {
       setAiTimeline(null)
       setAiStatus('idle')
-      setAiPremiumLocked(false)
-      setAiCreditCost(0)
       return
     }
     void fetchAiTimeline()
@@ -650,11 +633,6 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     if (!baseInfo) {
       return isKo ? '날짜 정보 없음' : 'No date data'
     }
-    if (aiPremiumLocked) {
-      return isKo
-        ? `프리미엄 전용 · 현재 ${aiCreditCost}크레딧`
-        : `Premium only · currently ${aiCreditCost} credits`
-    }
     if (aiStatus === 'loading') {
       return isKo ? '정밀 타임라인 생성 중' : 'Generating precision timeline'
     }
@@ -662,17 +640,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       return isKo ? '정밀 생성 실패 · 기본 플랜 표시' : 'Precision failed · showing base plan'
     }
     if (aiStatus === 'ready') {
-      return isKo
-        ? `정밀 적용됨 · ${aiContextLabel} · ${aiCreditCost}크레딧`
-        : `Precision applied · ${aiContextLabel} · ${aiCreditCost} credits`
+      return isKo ? `정밀 적용됨 · ${aiContextLabel}` : `Precision applied · ${aiContextLabel}`
     }
     return isKo ? '정밀 준비됨' : 'Precision ready'
-  }, [aiContextLabel, aiCreditCost, aiPremiumLocked, aiStatus, baseInfo, isKo])
+  }, [aiContextLabel, aiStatus, baseInfo, isKo])
 
   const aiButtonLabel = useMemo(() => {
-    if (aiPremiumLocked) {
-      return isKo ? '프리미엄 전용' : 'Premium only'
-    }
     if (aiStatus === 'loading') {
       return isKo ? '정밀 생성 중' : 'Generating'
     }
@@ -683,15 +656,15 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       : isKo
         ? '정밀 생성'
         : 'Generate precision'
-  }, [aiPremiumLocked, aiStatus, aiTimeline, isKo])
+  }, [aiStatus, aiTimeline, isKo])
 
   const handleAiRefresh = useCallback(() => {
-    if (!baseInfo || aiPremiumLocked) return
+    if (!baseInfo) return
     if (aiCacheRef.current[aiCacheKey]) {
       delete aiCacheRef.current[aiCacheKey]
     }
     void fetchAiTimeline({ force: true })
-  }, [aiCacheKey, aiPremiumLocked, baseInfo, fetchAiTimeline])
+  }, [aiCacheKey, baseInfo, fetchAiTimeline])
 
   const baseTexts = useCallback(
     (hour: number) => {
@@ -927,6 +900,47 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     return lines.slice(0, 3)
   }, [baseInfo?.evidence, isKo, todayCaution])
 
+  const timelineInsight = useMemo(() => {
+    if (!baseInfo) {
+      return isKo
+        ? '선택한 날짜를 기준으로 시간대를 자동 정리합니다.'
+        : 'Timeline is generated from selected-date signals.'
+    }
+    const peakText = resolvedPeakLevel
+      ? isKo
+        ? getPeakLabel(resolvedPeakLevel, 'ko')
+        : getPeakLabel(resolvedPeakLevel, 'en')
+      : isKo
+        ? '기본 구간'
+        : 'Base window'
+    const cautionText = baseInfo.warnings?.length
+      ? isKo
+        ? '주의 슬롯 포함'
+        : 'Caution slots included'
+      : isKo
+        ? '주의 슬롯 없음'
+        : 'No caution slots'
+    return isKo
+      ? `${peakText} 기준 타임라인 · ${cautionText}`
+      : `${peakText} timeline · ${cautionText}`
+  }, [baseInfo, isKo, resolvedPeakLevel])
+
+  const todayInsight = useMemo(() => {
+    if (evidenceLines[0]) return evidenceLines[0]
+    return isKo
+      ? '교차 신호를 바탕으로 오늘 실행 우선순위를 압축했습니다.'
+      : 'Today priorities are compressed from cross-signals.'
+  }, [evidenceLines, isKo])
+
+  const weekInsight = useMemo(() => {
+    const bestCount = bestDays.length
+    const cautionCount = cautionDays.length
+    const focusLabel = topCategory ? categoryLabel(topCategory) : isKo ? '전체' : 'general'
+    return isKo
+      ? `좋은 날 ${bestCount}회 · 주의 날 ${cautionCount}회 · ${focusLabel} 중심 배치`
+      : `${bestCount} good-day slots · ${cautionCount} caution-day slots · ${focusLabel} focus`
+  }, [bestDays.length, cautionDays.length, topCategory, categoryLabel, isKo])
+
   const bestDayChips = bestDays.map((entry) => ({
     label: formatDateLabel(entry.date),
     emoji: GRADE_EMOJI[entry.info.grade],
@@ -1034,6 +1048,13 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         </div>
         {baseInfo?.categories?.length ? (
           <div className={styles.actionPlanMeta}>
+            {resolvedPeakLevel && (
+              <span className={styles.actionPlanMetaItem}>
+                {isKo
+                  ? getPeakLabel(resolvedPeakLevel, 'ko')
+                  : getPeakLabel(resolvedPeakLevel, 'en')}
+              </span>
+            )}
             {baseInfo.categories.slice(0, 2).map((cat) => (
               <span key={cat} className={styles.actionPlanMetaItem}>
                 {CATEGORY_EMOJI[cat]} {categoryLabel(cat)}
@@ -1207,7 +1228,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                   type="button"
                   className={styles.actionPlanTimelineAiBtn}
                   onClick={handleAiRefresh}
-                  disabled={!baseInfo || aiStatus === 'loading' || aiPremiumLocked}
+                  disabled={!baseInfo || aiStatus === 'loading'}
                   aria-label={isKo ? '정밀 타임라인 생성' : 'Generate precision timeline'}
                 >
                   {aiButtonLabel}
@@ -1239,6 +1260,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
               </div>
             </div>
           </div>
+          <p className={styles.actionPlanInsightLine}>{timelineInsight}</p>
           <div className={styles.actionPlanTimelineGrid} role="list">
             {timelineSlots.map((slot) => (
               <div
@@ -1285,6 +1307,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             </span>
             <span className={styles.actionPlanCardFocus}>{todayFocus}</span>
           </div>
+          <p className={styles.actionPlanInsightLine}>{todayInsight}</p>
           <ul className={styles.actionPlanList}>
             {todayItems.map((item, idx) => (
               <li key={idx} className={styles.actionPlanItem}>
@@ -1324,6 +1347,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             <span className={styles.actionPlanCardTitle}>{weekTitle}</span>
             <span className={styles.actionPlanCardFocus}>{weekFocus}</span>
           </div>
+          <p className={styles.actionPlanInsightLine}>{weekInsight}</p>
           <ul className={styles.actionPlanList}>
             {weekItems.map((item, idx) => (
               <li key={idx} className={styles.actionPlanItem}>

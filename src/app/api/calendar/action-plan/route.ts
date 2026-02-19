@@ -54,7 +54,7 @@ type RagContextResponse = {
   }
 }
 
-const CALENDAR_AI_PREMIUM_ONLY = true
+const CALENDAR_AI_PREMIUM_ONLY = false
 const CALENDAR_AI_CREDIT_COST = 0
 
 const actionPlanTimelineRequestSchema = z.object({

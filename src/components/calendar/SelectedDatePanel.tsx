@@ -1,10 +1,11 @@
 'use client'
 
 // src/components/calendar/SelectedDatePanel.tsx
-import React, { useCallback, memo } from 'react'
+import React, { useCallback, memo, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
+import { getPeakLabel, resolvePeakLevel } from './peakUtils'
 
 type EventCategory = 'wealth' | 'career' | 'love' | 'health' | 'travel' | 'study' | 'general'
 type ImportanceGrade = 0 | 1 | 2 | 3 | 4
@@ -67,6 +68,20 @@ const CATEGORY_EMOJI: Record<EventCategory, string> = {
 const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토']
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
+const hasMojibake = (value: string) => /[ìëêðâÃÂ]/.test(value)
+
+const repairMojibakeText = (value: string): string => {
+  if (!value || !hasMojibake(value)) return value
+  try {
+    const bytes = Uint8Array.from([...value].map((ch) => ch.charCodeAt(0) & 0xff))
+    const decoded = new TextDecoder('utf-8').decode(bytes)
+    if (decoded && !decoded.includes('�')) return decoded
+  } catch {
+    // Keep original when decode fails
+  }
+  return value
+}
+
 const SelectedDatePanel = memo(function SelectedDatePanel({
   selectedDay,
   selectedDate,
@@ -81,6 +96,11 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   const { locale } = useI18n()
   const { status } = useSession()
   const WEEKDAYS = locale === 'ko' ? WEEKDAYS_KO : WEEKDAYS_EN
+
+  const normalizedBestTimes = useMemo(
+    () => (selectedDate?.bestTimes || []).map((time) => repairMojibakeText(time)),
+    [selectedDate?.bestTimes]
+  )
 
   const handleAddToCalendar = useCallback(() => {
     if (!selectedDate || !selectedDay) return
@@ -191,10 +211,14 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       locale === 'ko' ? '데일리 + 피크 윈도우 통합 해석' : 'Daily + Peak Window Insight',
   }
 
+  const resolvedPeakLevel = selectedDate
+    ? resolvePeakLevel(selectedDate.evidence?.matrix?.peakLevel, selectedDate.score)
+    : null
+
   const mergedTimingNarrative = (() => {
     if (!selectedDate) return ''
-    const peakLevel = selectedDate.evidence?.matrix.peakLevel
-    const bestWindow = selectedDate.bestTimes?.[0]
+    const peakLevel = resolvedPeakLevel
+    const bestWindow = normalizedBestTimes[0]
     const domain = selectedDate.evidence?.matrix.domain
 
     if (locale === 'ko') {
@@ -235,19 +259,11 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDay.getMonth() + 1}/{selectedDay.getDate()}
           {locale === 'ko' && ` (${WEEKDAYS[selectedDay.getDay()]})`}
         </span>
-        {selectedDate?.evidence?.matrix?.peakLevel && (
+        {resolvedPeakLevel && (
           <span className={styles.peakLevelChip}>
             {locale === 'ko'
-              ? selectedDate.evidence.matrix.peakLevel === 'peak'
-                ? '피크 구간'
-                : selectedDate.evidence.matrix.peakLevel === 'high'
-                  ? '상승 구간'
-                  : '안정 구간'
-              : selectedDate.evidence.matrix.peakLevel === 'peak'
-                ? 'Peak Window'
-                : selectedDate.evidence.matrix.peakLevel === 'high'
-                  ? 'Rising Window'
-                  : 'Steady Window'}
+              ? getPeakLabel(resolvedPeakLevel, 'ko')
+              : getPeakLabel(resolvedPeakLevel, 'en')}
           </span>
         )}
         <div className={styles.headerActions}>
@@ -290,7 +306,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
       {selectedDate ? (
         <div className={styles.selectedDayContent}>
-          <h3 className={styles.selectedTitle}>{selectedDate.title}</h3>
+          <h3 className={styles.selectedTitle}>{repairMojibakeText(selectedDate.title)}</h3>
 
           {/* Grade 3, 4 (나쁜 날): 경고를 상단에 강조 표시 */}
           {selectedDate.grade >= 3 && selectedDate.warnings.length > 0 && (
@@ -315,7 +331,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 {selectedDate.warnings.slice(0, 3).map((w, i) => (
                   <li key={i} className={styles.urgentWarningItem}>
                     <span className={styles.urgentWarningDot}>•</span>
-                    {w}
+                    {repairMojibakeText(w)}
                   </li>
                 ))}
               </ul>
@@ -339,13 +355,13 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             <div
               className={`${styles.summaryBox} ${selectedDate.grade >= 3 ? styles.summaryWarning : ''}`}
             >
-              <p className={styles.summaryText}>{selectedDate.summary}</p>
+              <p className={styles.summaryText}>{repairMojibakeText(selectedDate.summary)}</p>
             </div>
           )}
           {mergedTimingNarrative && (
             <div className={styles.dailyPeakBox}>
               <div className={styles.dailyPeakTitle}>{termHelp.dailyPeakTitle}</div>
-              <p className={styles.dailyPeakText}>{mergedTimingNarrative}</p>
+              <p className={styles.dailyPeakText}>{repairMojibakeText(mergedTimingNarrative)}</p>
             </div>
           )}
           {selectedDate.evidence && (
@@ -370,7 +386,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </div>
           )}
 
-          <p className={styles.selectedDesc}>{selectedDate.description}</p>
+          <p className={styles.selectedDesc}>{repairMojibakeText(selectedDate.description)}</p>
 
           {/* Ganzhi info */}
           {selectedDate.ganzhi && (
@@ -388,17 +404,17 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           )}
 
           {/* Best times */}
-          {selectedDate.bestTimes && selectedDate.bestTimes.length > 0 && (
+          {normalizedBestTimes.length > 0 && (
             <div className={styles.bestTimesBox}>
               <h4 className={styles.bestTimesTitle}>
                 <span className={styles.bestTimesIcon}>⏰</span>
                 {termHelp.bestTimes}
               </h4>
               <div className={styles.bestTimesList}>
-                {selectedDate.bestTimes.map((time, i) => (
+                {normalizedBestTimes.map((time, i) => (
                   <span key={i} className={styles.bestTimeItem}>
                     <span className={styles.bestTimeNumber}>{i + 1}</span>
-                    {time}
+                    {repairMojibakeText(time)}
                   </span>
                 ))}
               </div>
@@ -438,7 +454,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 {selectedDate.sajuFactors.slice(0, 4).map((factor, i) => (
                   <li key={i} className={styles.analysisItem}>
                     <span className={styles.analysisDotSaju}></span>
-                    {factor}
+                    {repairMojibakeText(factor)}
                   </li>
                 ))}
               </ul>
@@ -456,7 +472,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 {selectedDate.astroFactors.slice(0, 4).map((factor, i) => (
                   <li key={i} className={styles.analysisItem}>
                     <span className={styles.analysisDotAstro}></span>
-                    {factor}
+                    {repairMojibakeText(factor)}
                   </li>
                 ))}
               </ul>
@@ -474,7 +490,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 {selectedDate.recommendations.slice(0, 4).map((r, i) => (
                   <div key={i} className={styles.recommendationCard}>
                     <span className={styles.recommendationNumber}>{i + 1}</span>
-                    <span className={styles.recommendationText}>{r}</span>
+                    <span className={styles.recommendationText}>{repairMojibakeText(r)}</span>
                   </div>
                 ))}
               </div>
@@ -492,7 +508,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 {selectedDate.warnings.slice(0, 3).map((w, i) => (
                   <li key={i} className={styles.warningItem}>
                     <span className={styles.warningDot}></span>
-                    {w}
+                    {repairMojibakeText(w)}
                   </li>
                 ))}
               </ul>

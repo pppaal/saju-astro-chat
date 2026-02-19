@@ -7,6 +7,7 @@ import styles from './DestinyCalendar.module.css'
 import { CATEGORY_EMOJI } from './constants'
 import { parseLocalDate } from './utils'
 import type { ImportantDate } from './types'
+import { getPeakLabel, resolvePeakLevel } from './peakUtils'
 
 interface MonthHighlightsProps {
   allDates: ImportantDate[]
@@ -47,6 +48,20 @@ const MONTHS_EN = [
 const truncate = (text: string, len = 58) => {
   if (!text) return ''
   return text.length > len ? `${text.slice(0, len)}...` : text
+}
+
+const hasMojibake = (value: string) => /[ìëêðâÃÂ]/.test(value)
+
+const repairMojibakeText = (value: string): string => {
+  if (!value || !hasMojibake(value)) return value
+  try {
+    const bytes = Uint8Array.from([...value].map((ch) => ch.charCodeAt(0) & 0xff))
+    const decoded = new TextDecoder('utf-8').decode(bytes)
+    if (decoded && !decoded.includes('�')) return decoded
+  } catch {
+    // Keep original if conversion fails
+  }
+  return value
 }
 
 export default function MonthHighlights({
@@ -119,6 +134,7 @@ export default function MonthHighlights({
       <div className={styles.highlightsList}>
         {highlightDates.map((d, i) =>
           (() => {
+            const peakLevel = resolvePeakLevel(d.evidence?.matrix?.peakLevel, d.score)
             const reason =
               d.summary ||
               d.evidence?.cross?.sajuEvidence ||
@@ -148,7 +164,7 @@ export default function MonthHighlights({
                 }}
                 role="button"
                 tabIndex={0}
-                aria-label={`${parseLocalDate(d.date).getDate()}${locale === 'ko' ? '일' : ''} - ${d.title || getGradeTitle(d.grade)}, ${locale === 'ko' ? '점수' : 'score'}: ${d.score}`}
+                aria-label={`${parseLocalDate(d.date).getDate()}${locale === 'ko' ? '일' : ''} - ${repairMojibakeText(d.title || getGradeTitle(d.grade))}, ${locale === 'ko' ? '점수' : 'score'}: ${d.score}`}
               >
                 <div className={styles.highlightHeader}>
                   <span className={styles.highlightDate}>
@@ -156,6 +172,13 @@ export default function MonthHighlights({
                     {locale === 'ko' ? '일' : ''}
                   </span>
                   <div className={styles.highlightBadges}>
+                    {peakLevel && (
+                      <span className={styles.highlightPeakBadge}>
+                        {locale === 'ko'
+                          ? getPeakLabel(peakLevel, 'ko')
+                          : getPeakLabel(peakLevel, 'en')}
+                      </span>
+                    )}
                     {((d.sajuFactors && d.sajuFactors.length > 0) ||
                       (d.astroFactors && d.astroFactors.length > 0)) && (
                       <span
@@ -167,7 +190,9 @@ export default function MonthHighlights({
                     )}
                   </div>
                 </div>
-                <span className={styles.highlightTitle}>{d.title || getGradeTitle(d.grade)}</span>
+                <span className={styles.highlightTitle}>
+                  {repairMojibakeText(d.title || getGradeTitle(d.grade))}
+                </span>
                 {d.categories && d.categories.length > 0 && (
                   <span className={styles.highlightEmojis}>
                     {d.categories
@@ -179,8 +204,16 @@ export default function MonthHighlights({
                 <span className={styles.highlightScore}>
                   {locale === 'ko' ? '점수' : 'Score'}: {d.score}
                 </span>
-                {reason && <div className={styles.highlightReason}>{truncate(reason, 52)}</div>}
-                {action && <div className={styles.highlightAction}>{truncate(action, 52)}</div>}
+                {reason && (
+                  <div className={styles.highlightReason}>
+                    {truncate(repairMojibakeText(reason), 52)}
+                  </div>
+                )}
+                {action && (
+                  <div className={styles.highlightAction}>
+                    {truncate(repairMojibakeText(action), 52)}
+                  </div>
+                )}
               </div>
             )
           })()
