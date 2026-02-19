@@ -82,10 +82,10 @@ const BirthInfoForm = memo(function BirthInfoForm({
             allowTimeUnknown={true}
             genderFormat="long"
             submitButtonText={locale === 'ko' ? '운명의 날 찾기' : 'Find Your Destiny Days'}
-            submitButtonIcon="✨"
+            submitButtonIcon=">"
             loadingButtonText={locale === 'ko' ? '분석 중...' : 'Analyzing...'}
             showHeader={true}
-            headerIcon="🎂"
+            headerIcon="Info"
             headerTitle={locale === 'ko' ? '생년월일을 입력해주세요' : 'Enter Your Birth Info'}
             headerSubtitle={
               locale === 'ko'
@@ -110,7 +110,7 @@ const BirthInfoForm = memo(function BirthInfoForm({
 
         {/* Quick Tips */}
         <div className={styles.quickTips}>
-          <h4>{locale === 'ko' ? '💡 이런 분들께 추천해요' : '💡 Recommended for'}</h4>
+          <h4>{locale === 'ko' ? '이런 분들께 추천해요' : 'Recommended for'}</h4>
           <ul>
             <li>{locale === 'ko' ? '중요한 일정을 잡아야 할 때' : 'Planning important events'}</li>
             <li>

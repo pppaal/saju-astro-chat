@@ -40,7 +40,7 @@ export default function CalendarHeader({
         <div className={styles.headerTop}>
           <div className={styles.headerTitleSection}>
             <div className={styles.calendarIconWrapper}>
-              <span className={styles.calendarIcon}>📅</span>
+              <span className={styles.calendarIcon}>CAL</span>
             </div>
             <div className={styles.titleGroup}>
               <h1 className={styles.calendarTitle}>
@@ -62,12 +62,12 @@ export default function CalendarHeader({
                 title={t('calendar.cachingNote', 'Using cached data (fast loading)')}
                 aria-label={locale === 'ko' ? '캐시된 데이터' : 'Cached data'}
               >
-                <span className={styles.cacheIcon}>⚡</span>
+                <span className={styles.cacheIcon}>OK</span>
                 <span className={styles.cacheText}>{locale === 'ko' ? '캐시' : 'Cached'}</span>
               </span>
             )}
             <button className={styles.editBirthBtn} onClick={onEditClick}>
-              <span>✏️</span>
+              <span>Edit</span>
               <span>{t('common.edit', 'Edit')}</span>
             </button>
           </div>
@@ -84,7 +84,7 @@ export default function CalendarHeader({
               className={styles.summaryBadge}
               title={t('calendar.bestDayShort', 'Best Days (~5%)')}
             >
-              <span className={styles.badgeEmoji}>🌟</span>
+              <span className={styles.badgeEmoji}>A</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '최고' : 'Best'}</span>
               <span className={styles.badgeCount}>
                 {yearSummary.grade0}
@@ -95,7 +95,7 @@ export default function CalendarHeader({
               className={styles.summaryBadge}
               title={t('calendar.goodDayShort', 'Good Days (~15%)')}
             >
-              <span className={styles.badgeEmoji}>✨</span>
+              <span className={styles.badgeEmoji}>B</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '좋음' : 'Good'}</span>
               <span className={styles.badgeCount}>
                 {yearSummary.grade1}
@@ -106,7 +106,7 @@ export default function CalendarHeader({
               className={`${styles.summaryBadge} ${styles.normalBadge}`}
               title={t('calendar.normalDayShort', 'Normal Days (~50%)')}
             >
-              <span className={styles.badgeEmoji}>◆</span>
+              <span className={styles.badgeEmoji}>C</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '보통' : 'Normal'}</span>
               <span className={styles.badgeCount}>
                 {yearSummary.grade2}
@@ -117,7 +117,7 @@ export default function CalendarHeader({
               className={`${styles.summaryBadge} ${styles.cautionBadge}`}
               title={t('calendar.badDayShort', 'Bad Days (~15%)')}
             >
-              <span className={styles.badgeEmoji}>⚠️</span>
+              <span className={styles.badgeEmoji}>D</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '안좋음' : 'Bad'}</span>
               <span className={styles.badgeCount}>
                 {yearSummary.grade3}
@@ -128,7 +128,7 @@ export default function CalendarHeader({
               className={`${styles.summaryBadge} ${styles.worstBadge}`}
               title={t('calendar.worstDayShort', 'Worst Days (~5%)')}
             >
-              <span className={styles.badgeEmoji}>☠️</span>
+              <span className={styles.badgeEmoji}>E</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '최악' : 'Worst'}</span>
               <span className={styles.badgeCount}>
                 {yearSummary.grade4}

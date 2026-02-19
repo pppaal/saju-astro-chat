@@ -150,31 +150,31 @@ export default function CalendarGrid({
       >
         <div className={styles.legendItem} role="listitem">
           <span className={`${styles.legendDot} ${styles.grade0Dot}`} aria-hidden="true">
-            <span className={styles.legendPattern}>★</span>
+            <span className={styles.legendPattern}>A</span>
           </span>
           <span>{locale === 'ko' ? '최고 (68+)' : 'Best (68+)'}</span>
         </div>
         <div className={styles.legendItem} role="listitem">
           <span className={`${styles.legendDot} ${styles.grade1Dot}`} aria-hidden="true">
-            <span className={styles.legendPattern}>●</span>
+            <span className={styles.legendPattern}>B</span>
           </span>
           <span>{locale === 'ko' ? '좋음 (62-67)' : 'Good (62-67)'}</span>
         </div>
         <div className={styles.legendItem} role="listitem">
           <span className={`${styles.legendDot} ${styles.grade2Dot}`} aria-hidden="true">
-            <span className={styles.legendPattern}>◆</span>
+            <span className={styles.legendPattern}>C</span>
           </span>
           <span>{locale === 'ko' ? '보통 (42-61)' : 'Normal (42-61)'}</span>
         </div>
         <div className={styles.legendItem} role="listitem">
           <span className={`${styles.legendDot} ${styles.grade3Dot}`} aria-hidden="true">
-            <span className={styles.legendPattern}>▲</span>
+            <span className={styles.legendPattern}>D</span>
           </span>
           <span>{locale === 'ko' ? '안좋음 (28-41)' : 'Bad (28-41)'}</span>
         </div>
         <div className={styles.legendItem} role="listitem">
           <span className={`${styles.legendDot} ${styles.grade4Dot}`} aria-hidden="true">
-            <span className={styles.legendPattern}>✕</span>
+            <span className={styles.legendPattern}>E</span>
           </span>
           <span>{locale === 'ko' ? '최악 (<28)' : 'Worst (<28)'}</span>
         </div>

@@ -55,13 +55,13 @@ interface SelectedDatePanelProps {
 }
 
 const CATEGORY_EMOJI: Record<EventCategory, string> = {
-  wealth: '💰',
-  career: '💼',
-  love: '💕',
-  health: '💪',
-  travel: '✈️',
-  study: '📚',
-  general: '⭐',
+  wealth: 'W',
+  career: 'C',
+  love: 'L',
+  health: 'H',
+  travel: 'T',
+  study: 'S',
+  general: 'G',
 }
 
 const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토']
@@ -227,7 +227,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                     : 'Save this date'
               }
             >
-              {saving ? '...' : isSaved ? '★' : '☆'}
+              {saving ? '...' : isSaved ? 'Saved' : 'Save'}
             </button>
           )}
         </div>
@@ -247,7 +247,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             >
               <div className={styles.urgentWarningHeader}>
                 <span className={styles.urgentWarningIcon}>
-                  {selectedDate.grade === 4 ? '🚨' : '⚠️'}
+                  {selectedDate.grade === 4 ? '!!' : '!'}
                 </span>
                 <span className={styles.urgentWarningTitle}>
                   {locale === 'ko'
@@ -273,7 +273,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {/* Cross-verified badge - 좋은 날에만 표시 */}
           {selectedDate.crossVerified && selectedDate.grade <= 1 && (
             <div className={styles.crossVerifiedBadge}>
-              <span className={styles.crossVerifiedIcon}>🔮</span>
+              <span className={styles.crossVerifiedIcon}>OK</span>
               <span className={styles.crossVerifiedText}>
                 {locale === 'ko'
                   ? '사주 + 점성술 교차 검증 완료'
@@ -333,7 +333,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDate.bestTimes && selectedDate.bestTimes.length > 0 && (
             <div className={styles.bestTimesBox}>
               <h4 className={styles.bestTimesTitle}>
-                <span className={styles.bestTimesIcon}>⏰</span>
+                <span className={styles.bestTimesIcon}>TIME</span>
                 {termHelp.bestTimes}
               </h4>
               <div className={styles.bestTimesList}>
@@ -373,7 +373,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDate.sajuFactors && selectedDate.sajuFactors.length > 0 && (
             <div className={styles.analysisSection}>
               <h4 className={styles.analysisTitle}>
-                <span className={styles.analysisBadge}>☯️</span>
+                <span className={styles.analysisBadge}>SJ</span>
                 {termHelp.sajuTitle}
               </h4>
               <ul className={styles.analysisList}>
@@ -391,7 +391,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDate.astroFactors && selectedDate.astroFactors.length > 0 && (
             <div className={styles.analysisSection}>
               <h4 className={styles.analysisTitle}>
-                <span className={styles.analysisBadge}>🌟</span>
+                <span className={styles.analysisBadge}>AS</span>
                 {termHelp.astroTitle}
               </h4>
               <ul className={styles.analysisList}>
@@ -409,7 +409,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDate.recommendations.length > 0 && (
             <div className={styles.recommendationsSection}>
               <h4 className={styles.recommendationsTitle}>
-                <span className={styles.recommendationsIcon}>✨</span>
+                <span className={styles.recommendationsIcon}>TIP</span>
                 {locale === 'ko' ? '오늘의 행운 키' : 'Lucky Keys'}
               </h4>
               <div className={styles.recommendationsGrid}>
@@ -427,7 +427,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDate.warnings.length > 0 && selectedDate.grade < 3 && (
             <div className={styles.warningsSection}>
               <h4 className={styles.warningsTitle}>
-                <span className={styles.warningsIcon}>⚡</span>
+                <span className={styles.warningsIcon}>!</span>
                 {locale === 'ko' ? '오늘의 주의보' : "Today's Alert"}
               </h4>
               <ul className={styles.warningsList}>
@@ -452,14 +452,12 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 <span>{locale === 'ko' ? '저장 중...' : 'Saving...'}</span>
               ) : isSaved ? (
                 <>
-                  <span>★</span>
                   <span>
                     {locale === 'ko' ? '저장됨 (클릭하여 삭제)' : 'Saved (click to remove)'}
                   </span>
                 </>
               ) : (
                 <>
-                  <span>☆</span>
                   <span>{locale === 'ko' ? '이 날짜 저장하기' : 'Save this date'}</span>
                 </>
               )}
@@ -472,7 +470,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             onClick={handleAddToCalendar}
             aria-label={locale === 'ko' ? '휴대폰 캘린더에 추가' : 'Add to phone calendar'}
           >
-            <span>📲</span>
+            <span>CAL</span>
             <span>{locale === 'ko' ? '캘린더에 추가' : 'Add to Calendar'}</span>
           </button>
         </div>

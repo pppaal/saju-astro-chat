@@ -130,9 +130,9 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
             title={translate('landing.selectService', 'Select service')}
           >
             <span className={styles.serviceSelectIcon}>
-              {HOME_CORE_SERVICE_OPTIONS.find((s) => s.key === selectedService)?.icon || '✨'}
+              {HOME_CORE_SERVICE_OPTIONS.find((s) => s.key === selectedService)?.icon || '*'}
             </span>
-            <span className={styles.serviceSelectArrow}>▼</span>
+            <span className={styles.serviceSelectArrow}>v</span>
           </button>
 
           {showServiceSelector && (
@@ -236,7 +236,7 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
 
       <div className={styles.aiRoutingGuide}>
         <p className={styles.aiRoutingText}>
-          <span className={styles.aiRoutingIcon}>ⓘ</span>
+          <span className={styles.aiRoutingIcon}>i</span>
           {translate('landing.aiRoutingText', 'Select a service and ask your question')}
         </p>
         <div className={styles.serviceIconsRow}>

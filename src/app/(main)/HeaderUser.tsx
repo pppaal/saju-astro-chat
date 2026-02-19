@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo, Suspense } from 'react'
 import { signOut, useSession } from 'next-auth/react'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 
@@ -35,15 +35,11 @@ function HeaderUserContent() {
   const { t } = useI18n()
   const router = useRouter()
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const { data: session, status } = useSession()
 
   const signInUrl = useMemo(() => {
-    const basePath = pathname || '/'
-    const search = searchParams?.toString()
-    const callbackUrl = search ? `${basePath}?${search}` : basePath
-    return buildSignInUrl(callbackUrl)
-  }, [pathname, searchParams])
+    return buildSignInUrl(pathname || '/')
+  }, [pathname])
   const [showDropdown, setShowDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 

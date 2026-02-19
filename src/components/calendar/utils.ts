@@ -30,7 +30,7 @@ export function parseLocalDate(dateStr: string): Date {
  * Get grade emoji
  */
 export function getGradeEmoji(grade: number): string {
-  return GRADE_EMOJI[grade] || "⭐";
+  return GRADE_EMOJI[grade] || "C";
 }
 
 /**

@@ -75,7 +75,7 @@ export default function MonthHighlights({
   return (
     <div className={styles.monthHighlights}>
       <h2 className={styles.highlightsTitle}>
-        🌟 {year} {MONTHS[month]} {locale === "ko" ? "주요 날짜" : "Highlights"}
+        {year} {MONTHS[month]} {locale === "ko" ? "주요 날짜" : "Highlights"}
       </h2>
       <div className={styles.highlightsList}>
         {highlightDates.map((d, i) => (
@@ -99,7 +99,7 @@ export default function MonthHighlights({
               </span>
               <div className={styles.highlightBadges}>
                 {((d.sajuFactors && d.sajuFactors.length > 0) || (d.astroFactors && d.astroFactors.length > 0)) && (
-                  <span className={styles.highlightBadge} title={locale === "ko" ? "분석 완료" : "Analyzed"}>✨</span>
+                  <span className={styles.highlightBadge} title={locale === "ko" ? "분석 완료" : "Analyzed"}>OK</span>
                 )}
               </div>
             </div>

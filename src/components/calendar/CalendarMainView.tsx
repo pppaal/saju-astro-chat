@@ -263,12 +263,12 @@ const CalendarMainView = memo(function CalendarMainView({
         <div className={styles.headerTop}>
           <div className={styles.headerLeft}>
             <button className={styles.backBtn} onClick={() => window.history.back()}>
-              <span>←</span>
+              <span>&lt;</span>
             </button>
           </div>
           <div className={styles.headerTitleSection}>
             <div className={styles.calendarIconWrapper}>
-              <span className={styles.calendarIcon}>📅</span>
+              <span className={styles.calendarIcon}>CAL</span>
             </div>
             <div className={styles.titleGroup}>
               <h1 className={styles.calendarTitle}>
@@ -291,7 +291,7 @@ const CalendarMainView = memo(function CalendarMainView({
               className={styles.summaryBadge}
               title={locale === 'ko' ? '최고의 날 (68점 이상)' : 'Best Days (68+ points)'}
             >
-              <span className={styles.badgeEmoji}>🌟</span>
+              <span className={styles.badgeEmoji}>A</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '최고' : 'Best'}</span>
               <span className={styles.badgeCount}>
                 {locale === 'ko' ? `${yearSummary.grade0}일` : `${yearSummary.grade0}d`}
@@ -301,7 +301,7 @@ const CalendarMainView = memo(function CalendarMainView({
               className={styles.summaryBadge}
               title={locale === 'ko' ? '좋은 날 (62-67점)' : 'Good Days (62-67 points)'}
             >
-              <span className={styles.badgeEmoji}>✨</span>
+              <span className={styles.badgeEmoji}>B</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '좋음' : 'Good'}</span>
               <span className={styles.badgeCount}>
                 {locale === 'ko' ? `${yearSummary.grade1}일` : `${yearSummary.grade1}d`}
@@ -311,7 +311,7 @@ const CalendarMainView = memo(function CalendarMainView({
               className={styles.summaryBadge}
               title={locale === 'ko' ? '보통 날 (42-61점)' : 'Normal Days (42-61 points)'}
             >
-              <span className={styles.badgeEmoji}>◆</span>
+              <span className={styles.badgeEmoji}>C</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '보통' : 'Normal'}</span>
               <span className={styles.badgeCount}>
                 {locale === 'ko' ? `${yearSummary.grade2}일` : `${yearSummary.grade2}d`}
@@ -321,7 +321,7 @@ const CalendarMainView = memo(function CalendarMainView({
               className={`${styles.summaryBadge} ${styles.cautionBadge}`}
               title={locale === 'ko' ? '안좋은 날 (28-41점)' : 'Bad Days (28-41 points)'}
             >
-              <span className={styles.badgeEmoji}>⚠️</span>
+              <span className={styles.badgeEmoji}>D</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '안좋음' : 'Bad'}</span>
               <span className={styles.badgeCount}>
                 {locale === 'ko' ? `${yearSummary.grade3}일` : `${yearSummary.grade3}d`}
@@ -331,7 +331,7 @@ const CalendarMainView = memo(function CalendarMainView({
               className={`${styles.summaryBadge} ${styles.worstBadge}`}
               title={locale === 'ko' ? '최악의 날 (28점 미만)' : 'Worst Days (under 28 points)'}
             >
-              <span className={styles.badgeEmoji}>☠️</span>
+              <span className={styles.badgeEmoji}>E</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '최악' : 'Worst'}</span>
               <span className={styles.badgeCount}>
                 {locale === 'ko' ? `${yearSummary.grade4}일` : `${yearSummary.grade4}d`}
@@ -354,7 +354,7 @@ const CalendarMainView = memo(function CalendarMainView({
           className={`${styles.viewTab} ${activeView === 'calendar' ? styles.viewTabActive : ''}`}
           onClick={() => setActiveView('calendar')}
         >
-          📅 {locale === 'ko' ? '캘린더' : 'Calendar'}
+          {locale === 'ko' ? '캘린더' : 'Calendar'}
         </button>
         <button
           type="button"
@@ -363,7 +363,7 @@ const CalendarMainView = memo(function CalendarMainView({
           className={`${styles.viewTab} ${activeView === 'action' ? styles.viewTabActive : ''}`}
           onClick={() => setActiveView('action')}
         >
-          ✅ {locale === 'ko' ? '행동 플랜' : 'Action Plan'}
+          {locale === 'ko' ? '행동 플랜' : 'Action Plan'}
         </button>
       </div>
 
@@ -376,7 +376,7 @@ const CalendarMainView = memo(function CalendarMainView({
               onClick={onPrevMonth}
               aria-label={locale === 'ko' ? '이전 달' : 'Previous month'}
             >
-              ◀
+              &lt;
             </button>
             <div className={styles.monthDisplay}>
               <div className={styles.yearNav}>
@@ -402,7 +402,7 @@ const CalendarMainView = memo(function CalendarMainView({
                     ))}
                   </select>
                   <span className={styles.yearSelectChevron} aria-hidden="true">
-                    ▾
+                    v
                   </span>
                 </div>
                 <button
@@ -420,7 +420,7 @@ const CalendarMainView = memo(function CalendarMainView({
               onClick={onNextMonth}
               aria-label={locale === 'ko' ? '다음 달' : 'Next month'}
             >
-              ▶
+              &gt;
             </button>
             <button className={styles.todayBtn} onClick={onGoToToday}>
               {locale === 'ko' ? '오늘' : 'Today'}
@@ -541,31 +541,31 @@ const CalendarMainView = memo(function CalendarMainView({
           >
             <div className={styles.legendItem} role="listitem">
               <span className={`${styles.legendDot} ${styles.grade0Dot}`} aria-hidden="true">
-                <span className={styles.legendPattern}>★</span>
+                <span className={styles.legendPattern}>A</span>
               </span>
               <span>{locale === 'ko' ? '최고 (68+)' : 'Best (68+)'}</span>
             </div>
             <div className={styles.legendItem} role="listitem">
               <span className={`${styles.legendDot} ${styles.grade1Dot}`} aria-hidden="true">
-                <span className={styles.legendPattern}>●</span>
+                <span className={styles.legendPattern}>B</span>
               </span>
               <span>{locale === 'ko' ? '좋음 (62-67)' : 'Good (62-67)'}</span>
             </div>
             <div className={styles.legendItem} role="listitem">
               <span className={`${styles.legendDot} ${styles.grade2Dot}`} aria-hidden="true">
-                <span className={styles.legendPattern}>◆</span>
+                <span className={styles.legendPattern}>C</span>
               </span>
               <span>{locale === 'ko' ? '보통 (42-61)' : 'Normal (42-61)'}</span>
             </div>
             <div className={styles.legendItem} role="listitem">
               <span className={`${styles.legendDot} ${styles.grade3Dot}`} aria-hidden="true">
-                <span className={styles.legendPattern}>▲</span>
+                <span className={styles.legendPattern}>D</span>
               </span>
               <span>{locale === 'ko' ? '안좋음 (28-41)' : 'Bad (28-41)'}</span>
             </div>
             <div className={styles.legendItem} role="listitem">
               <span className={`${styles.legendDot} ${styles.grade4Dot}`} aria-hidden="true">
-                <span className={styles.legendPattern}>✕</span>
+                <span className={styles.legendPattern}>E</span>
               </span>
               <span>{locale === 'ko' ? '최악 (<28)' : 'Worst (<28)'}</span>
             </div>
@@ -574,11 +574,11 @@ const CalendarMainView = memo(function CalendarMainView({
           {/* Monthly Fortune Graph */}
           {fortuneData.length > 0 && (
             <div className={styles.fortuneGraph}>
-              <div className={styles.graphHeader}>
-                <span className={styles.graphTitle}>
-                  📊 {locale === 'ko' ? '월간 운세 흐름' : 'Monthly Fortune Flow'}
-                </span>
-              </div>
+            <div className={styles.graphHeader}>
+              <span className={styles.graphTitle}>
+                {locale === 'ko' ? '월간 운세 흐름' : 'Monthly Fortune Flow'}
+              </span>
+            </div>
               <div className={styles.sparkline}>
                 {fortuneData.map((d, idx) => {
                   const isSelected =

@@ -28,23 +28,23 @@ interface DayCellProps {
 }
 
 const CATEGORY_EMOJI: Record<EventCategory, string> = {
-  wealth: "💰",
-  career: "💼",
-  love: "💕",
-  health: "💪",
-  travel: "✈️",
-  study: "📚",
-  general: "⭐",
+  wealth: "W",
+  career: "C",
+  love: "L",
+  health: "H",
+  travel: "T",
+  study: "S",
+  general: "G",
 };
 
 function getGradeEmoji(grade: number): string {
   switch (grade) {
-    case 0: return "🌟"; // 최고의 날
-    case 1: return "✨"; // 좋은 날
-    case 2: return "⭐"; // 보통 날
-    case 3: return "⚠️"; // 안좋은 날
-    case 4: return "☠️"; // 최악의 날
-    default: return "⭐";
+    case 0: return "A"; // 최고의 날
+    case 1: return "B"; // 좋은 날
+    case 2: return "C"; // 보통 날
+    case 3: return "D"; // 안좋은 날
+    case 4: return "E"; // 최악의 날
+    default: return "C";
   }
 }
 
