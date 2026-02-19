@@ -2,17 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback, memo } from 'react'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
 import styles from '../main-page.module.css'
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher'
 import Card from '@/components/ui/Card'
 import Grid from '@/components/ui/Grid'
 import { ENABLED_SERVICES } from '@/config/enabledServices'
-
-const NotificationBell = dynamic(() => import('@/components/notifications/NotificationBell'), {
-  ssr: false,
-})
-const HeaderUser = dynamic(() => import('../HeaderUser'), { ssr: false })
+import NotificationBell from '@/components/notifications/NotificationBell'
+import HeaderUser from '../HeaderUser'
 
 interface MainHeaderProps {
   translate: (key: string, fallback: string) => string

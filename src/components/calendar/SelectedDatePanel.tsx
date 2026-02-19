@@ -187,7 +187,44 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       locale === 'ko'
         ? '오늘의 좋은 시간 (중요 일정을 넣기 좋은 시간대)'
         : 'Best Times Today (better windows for key tasks)',
+    dailyPeakTitle:
+      locale === 'ko' ? '데일리 + 피크 윈도우 통합 해석' : 'Daily + Peak Window Insight',
   }
+
+  const mergedTimingNarrative = (() => {
+    if (!selectedDate) return ''
+    const peakLevel = selectedDate.evidence?.matrix.peakLevel
+    const bestWindow = selectedDate.bestTimes?.[0]
+    const domain = selectedDate.evidence?.matrix.domain
+
+    if (locale === 'ko') {
+      const peakLabel =
+        peakLevel === 'peak' ? '강한 피크 구간' : peakLevel === 'high' ? '상승 구간' : '안정 구간'
+      const domainLabel = domain || '전반'
+      const timeLine = bestWindow
+        ? `특히 ${bestWindow} 전후로 중요한 결정을 배치하시면 흐름을 타기 쉽습니다.`
+        : '시간대를 고를 수 있다면 오전-오후 중 가장 집중이 잘 되는 구간에 핵심 일을 배치해 보세요.'
+
+      if (selectedDate.grade >= 3) {
+        return `${peakLabel}이지만 ${domainLabel} 영역에서는 주의 신호가 함께 보여 무리한 확장보다 손실 방어가 우선입니다. ${timeLine}`
+      }
+      return `${peakLabel}에서 ${domainLabel} 영역의 효율이 올라오는 날입니다. 속도를 올리되, 핵심 1~2개 과제에 집중할수록 체감 성과가 커집니다. ${timeLine}`
+    }
+
+    const peakLabel =
+      peakLevel === 'peak'
+        ? 'peak window'
+        : peakLevel === 'high'
+          ? 'rising window'
+          : 'steady window'
+    const timeLine = bestWindow
+      ? `Prioritize key decisions around ${bestWindow}.`
+      : 'If possible, place key tasks in your highest-focus block.'
+    if (selectedDate.grade >= 3) {
+      return `This is a ${peakLabel}, but caution signals are active, so risk control should come before expansion. ${timeLine}`
+    }
+    return `This is a ${peakLabel} with stronger execution flow. Focus on one or two high-impact tasks for better outcomes. ${timeLine}`
+  })()
 
   const isSaved = selectedDate ? savedDates.has(selectedDate.date) : false
 
@@ -288,6 +325,12 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               className={`${styles.summaryBox} ${selectedDate.grade >= 3 ? styles.summaryWarning : ''}`}
             >
               <p className={styles.summaryText}>{selectedDate.summary}</p>
+            </div>
+          )}
+          {mergedTimingNarrative && (
+            <div className={styles.dailyPeakBox}>
+              <div className={styles.dailyPeakTitle}>{termHelp.dailyPeakTitle}</div>
+              <p className={styles.dailyPeakText}>{mergedTimingNarrative}</p>
             </div>
           )}
           {selectedDate.evidence && (

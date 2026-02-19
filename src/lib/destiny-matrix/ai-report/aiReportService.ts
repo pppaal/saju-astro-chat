@@ -88,6 +88,76 @@ function buildCrossRepairInstruction(lang: 'ko' | 'en', missing: string[]): stri
   ].join('\n')
 }
 
+function getPathText(sections: Record<string, unknown>, path: string): string {
+  const parts = path.split('.')
+  let cur: unknown = sections
+  for (const part of parts) {
+    if (!cur || typeof cur !== 'object') return ''
+    cur = (cur as Record<string, unknown>)[part]
+  }
+  if (typeof cur === 'string') return cur
+  if (Array.isArray(cur)) return cur.map((v) => String(v)).join(' ')
+  return ''
+}
+
+function getShortSectionPaths(
+  sections: Record<string, unknown>,
+  paths: string[],
+  minCharsPerSection: number
+): string[] {
+  const short: string[] = []
+  for (const path of paths) {
+    const text = getPathText(sections, path)
+    if (text && text.length < minCharsPerSection) short.push(path)
+  }
+  return short
+}
+
+function getMissingCrossPaths(sections: Record<string, unknown>, crossPaths: string[]): string[] {
+  return crossPaths.filter((path) => {
+    const text = getPathText(sections, path)
+    return !!text && !hasCrossInText(text)
+  })
+}
+
+function buildDepthRepairInstruction(
+  lang: 'ko' | 'en',
+  sectionPaths: string[],
+  shortPaths: string[],
+  minCharsPerSection: number,
+  minTotalChars: number
+): string {
+  const allPaths = sectionPaths.join(', ')
+  const shortList = shortPaths.join(', ')
+  if (lang === 'ko') {
+    return [
+      '',
+      '중요: 리포트가 짧거나 일반론적입니다. 아래 기준을 만족하도록 전체를 다시 작성해 주세요.',
+      `필수 섹션: ${allPaths}`,
+      `각 섹션 최소 길이: ${minCharsPerSection}자, 전체 최소 길이: ${minTotalChars}자`,
+      shortPaths.length > 0 ? `특히 보강이 필요한 섹션: ${shortList}` : '',
+      '각 섹션은 반드시 1) 핵심 해석 2) 근거 3) 생활 적용 4) 주의 포인트를 문장형으로 포함해 주세요.',
+      '어려운 용어를 쓰면 바로 뒤에 쉬운 한국어 설명을 붙여 주세요.',
+      '리스트 대신 서술형 문단으로 작성해 주세요.',
+    ]
+      .filter(Boolean)
+      .join('\n')
+  }
+
+  return [
+    '',
+    'IMPORTANT: The report is too short or generic. Rewrite all sections with stronger depth.',
+    `Required sections: ${allPaths}`,
+    `Minimum length: ${minCharsPerSection} chars per section, ${minTotalChars} chars total`,
+    shortPaths.length > 0 ? `Sections needing expansion: ${shortList}` : '',
+    'Each section must include: key interpretation, evidence, practical application, and caution point.',
+    'If technical terms are used, add plain-language explanations right after them.',
+    'Use paragraph-style narrative, not bullet points.',
+  ]
+    .filter(Boolean)
+    .join('\n')
+}
+
 // ===========================
 // 메인 생성 함수
 // ===========================
@@ -120,8 +190,59 @@ export async function generateAIPremiumReport(
     })
   }
 
-  // 2. AI 백엔드 호출
-  const { sections, model, tokensUsed } = await callAIBackend(prompt, lang)
+  // 2. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
+  const base = await callAIBackend(prompt, lang)
+  let sections = base.sections as unknown as Record<string, unknown>
+  let model = base.model
+  let tokensUsed = base.tokensUsed
+
+  const sectionPaths = [
+    'introduction',
+    'personalityDeep',
+    'careerPath',
+    'relationshipDynamics',
+    'wealthPotential',
+    'healthGuidance',
+    'lifeMission',
+    'timingAdvice',
+    'actionPlan',
+    'conclusion',
+  ]
+  const crossPaths = [
+    'personalityDeep',
+    'careerPath',
+    'relationshipDynamics',
+    'wealthPotential',
+    'timingAdvice',
+    'actionPlan',
+  ]
+  const minCharsPerSection = lang === 'ko' ? 220 : 170
+  const minTotalChars = lang === 'ko' ? 2600 : 2200
+
+  const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
+  const missingCross = getMissingCrossPaths(sections, crossPaths)
+  const totalChars = countSectionChars(sections)
+  const needsRepair = shortPaths.length > 0 || missingCross.length > 0 || totalChars < minTotalChars
+
+  if (needsRepair) {
+    const repairPrompt = [
+      prompt,
+      buildDepthRepairInstruction(
+        lang,
+        sectionPaths,
+        shortPaths,
+        minCharsPerSection,
+        minTotalChars
+      ),
+      missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
+    ]
+      .filter(Boolean)
+      .join('\n')
+    const repaired = await callAIBackendGeneric<AIPremiumReport['sections']>(repairPrompt, lang)
+    sections = repaired.sections as Record<string, unknown>
+    model = repaired.model
+    tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
+  }
 
   // 3. 리포트 조립
   const report: AIPremiumReport = {
@@ -137,7 +258,7 @@ export async function generateAIPremiumReport(
       geokguk: input.geokguk,
     },
 
-    sections,
+    sections: sections as AIPremiumReport['sections'],
     graphRagEvidence,
 
     matrixSummary: {
@@ -206,11 +327,59 @@ export async function generateTimingReport(
     graphRagEvidencePrompt
   )
 
-  // 3. AI 백엔드 호출
-  const { sections, model, tokensUsed } = await callAIBackendGeneric<TimingReportSections>(
-    prompt,
-    lang
-  )
+  // 3. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
+  const base = await callAIBackendGeneric<TimingReportSections>(prompt, lang)
+  let sections = base.sections as unknown as Record<string, unknown>
+  let model = base.model
+  let tokensUsed = base.tokensUsed
+
+  const sectionPaths = [
+    'overview',
+    'energy',
+    'opportunities',
+    'cautions',
+    'domains.career',
+    'domains.love',
+    'domains.wealth',
+    'domains.health',
+    'actionPlan',
+    'luckyElements',
+  ]
+  const crossPaths = [
+    'overview',
+    'energy',
+    'opportunities',
+    'domains.career',
+    'domains.love',
+    'actionPlan',
+  ]
+  const minCharsPerSection = lang === 'ko' ? 170 : 130
+  const minTotalChars = lang === 'ko' ? 1900 : 1600
+
+  const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
+  const missingCross = getMissingCrossPaths(sections, crossPaths)
+  const totalChars = countSectionChars(sections)
+  const needsRepair = shortPaths.length > 0 || missingCross.length > 0 || totalChars < minTotalChars
+
+  if (needsRepair) {
+    const repairPrompt = [
+      prompt,
+      buildDepthRepairInstruction(
+        lang,
+        sectionPaths,
+        shortPaths,
+        minCharsPerSection,
+        minTotalChars
+      ),
+      missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
+    ]
+      .filter(Boolean)
+      .join('\n')
+    const repaired = await callAIBackendGeneric<TimingReportSections>(repairPrompt, lang)
+    sections = repaired.sections as unknown as Record<string, unknown>
+    model = repaired.model
+    tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
+  }
 
   // 4. 기간 라벨 생성
   const periodLabel = generatePeriodLabel(period, targetDate, lang)
@@ -236,7 +405,7 @@ export async function generateTimingReport(
     periodLabel,
 
     timingData,
-    sections,
+    sections: sections as unknown as TimingReportSections,
     graphRagEvidence,
     periodScore,
 
@@ -291,11 +460,49 @@ export async function generateThemedReport(
     graphRagEvidencePrompt
   )
 
-  // 3. AI 백엔드 호출
-  const { sections, model, tokensUsed } = await callAIBackendGeneric<ThemedReportSections>(
-    prompt,
-    lang
-  )
+  // 3. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
+  const base = await callAIBackendGeneric<ThemedReportSections>(prompt, lang)
+  let sections = base.sections as unknown as Record<string, unknown>
+  let model = base.model
+  let tokensUsed = base.tokensUsed
+
+  const sectionPaths = [
+    'deepAnalysis',
+    'patterns',
+    'timing',
+    'compatibility',
+    'strategy',
+    'prevention',
+    'dynamics',
+    'actionPlan',
+  ]
+  const crossPaths = ['deepAnalysis', 'patterns', 'timing', 'actionPlan']
+  const minCharsPerSection = lang === 'ko' ? 180 : 140
+  const minTotalChars = lang === 'ko' ? 1700 : 1400
+  const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
+  const missingCross = getMissingCrossPaths(sections, crossPaths)
+  const totalChars = countSectionChars(sections)
+  const needsRepair = shortPaths.length > 0 || missingCross.length > 0 || totalChars < minTotalChars
+
+  if (needsRepair) {
+    const repairPrompt = [
+      prompt,
+      buildDepthRepairInstruction(
+        lang,
+        sectionPaths,
+        shortPaths,
+        minCharsPerSection,
+        minTotalChars
+      ),
+      missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
+    ]
+      .filter(Boolean)
+      .join('\n')
+    const repaired = await callAIBackendGeneric<ThemedReportSections>(repairPrompt, lang)
+    sections = repaired.sections as unknown as Record<string, unknown>
+    model = repaired.model
+    tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
+  }
 
   // 4. 테마 메타데이터
   const themeMeta = THEME_META[theme]
@@ -304,7 +511,7 @@ export async function generateThemedReport(
   const themeScore = calculateThemeScore(theme, input.sibsinDistribution)
 
   // 6. 키워드 추출
-  const keywords = extractKeywords(sections, theme, lang)
+  const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
 
   // 7. 리포트 조립
   const report: ThemedAIPremiumReport = {
@@ -323,7 +530,7 @@ export async function generateThemedReport(
     themeLabel: themeMeta.label[lang],
     themeEmoji: themeMeta.emoji,
 
-    sections,
+    sections: sections as unknown as ThemedReportSections,
     graphRagEvidence,
     themeScore,
     keywords,
